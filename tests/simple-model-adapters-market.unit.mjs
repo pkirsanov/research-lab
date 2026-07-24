@@ -96,7 +96,7 @@ function defaultValues(definition) {
 
 test('TP-05-01 market-structure module exposes the delivered market-structure adapters with no forbidden authority', () => {
   const ms = loadMarketStructure();
-  assert.deepEqual(ms.supportedAdapterIds, ['simple-adapter/market-breadth/v1', 'simple-adapter/conditional-volatility/v1', 'simple-adapter/session-auction/v1', 'simple-adapter/swing-transition/v1']);
+  assert.deepEqual(ms.supportedAdapterIds, ['simple-adapter/market-breadth/v1', 'simple-adapter/conditional-volatility/v1', 'simple-adapter/session-auction/v1', 'simple-adapter/swing-transition/v1', 'simple-adapter/technical-five-gate/v1']);
   const raw = readFileSync(new URL('../rlexperience-adapters/market-structure.js', import.meta.url), 'utf8');
   // Strip comments so the scan targets real authority CALLS, not the doc prose that
   // names the forbidden capabilities it deliberately avoids.
@@ -942,6 +942,196 @@ test('TP-05-01 swing-transition adapter performs zero fetch provider storage aut
     }));
     assert.equal(run.state, 'ready');
     await runtime.recompute({ parameterValues: { ...base, 'regime-window': 20 }, seed: null, scenarioIds: ['baseline'], computedAt: '2026-07-24T20:03:00.000Z' });
+  } finally {
+    globalThis.fetch = sentinels.fetch;
+    globalThis.localStorage = sentinels.localStorage;
+    globalThis.sessionStorage = sentinels.sessionStorage;
+  }
+  assert.equal(calls.fetch, 0);
+  assert.equal(calls.storage, 0);
+});
+
+/* ═══════════ technical-five-gate (owner seam = technical-analysis-decision-lab.html) ═══════════
+   technical-analysis-decision-lab.html is a Scope-01 FOUNDATION-RECEIPT VALIDATOR: it validates
+   reusable source/session/bar/identity contracts and EXPLICITLY publishes no analytic result
+   ("No signal, neutral, setup, or probability is published by Scope 01"; window.__TAD_DIAGNOSTICS__
+   carries ownerReadPublished:false). There is therefore NO owner five-gate MODEL to extract that
+   turns context/location/confirmation/validation gate scores and entry/stop/cost into a setup state
+   and expectancy. The adapter is the HONEST boundary: the foundation receipt IS present (evidence
+   state ready), but the five-gate model is absent, so compute returns explicit UNAVAILABLE naming
+   the missing owner capability rather than reinterpreting the foundation receipt as a signal.
+   Because the model is absent, every enabled parameter sits in a PROVED FLAT REGION (the unavailable
+   output is parameter-invariant) — not a missing effect. The `entry` parameter is evidence-derived
+   (defaultValue null), so the test supplies an EXPLICIT user entry to reach the graceful-unavailable
+   render through compute WITHOUT inventing an owner signal. No page rewire exists: there is no owner
+   formula to single-source until the owner five-gate model is implemented. */
+
+function technicalDefinition() {
+  return clone(readJson('simple-models.json').definitions.find((definition) => definition.toolId === 'technical-analysis-decision-lab'));
+}
+
+/* A frozen foundation-receipt owner snapshot mirroring the page's published receipt: the source,
+   session, bar, and identity contracts are present (ready), but ownerReadPublished is false — the
+   page asserts no signal/setup/probability. No owner five-gate model exists in this snapshot. */
+function technicalOwnerState() {
+  return {
+    contractVersion: 'technical-foundation-owner-state/v1',
+    toolId: 'technical-analysis-decision-lab',
+    symbol: 'SPY',
+    asOf: '2026-07-24T20:00:00.000Z',
+    source: 'pages-snapshot',
+    foundationReceipt: {
+      present: true,
+      name: 'Weekly close integrity',
+      session: 'XNYS venue-local weekly boundary',
+      primary: 'Primary 1w closed plus provisional',
+      ownerReadPublished: false
+    }
+  };
+}
+
+/* Defaults with an EXPLICIT user entry: `entry` is evidence-derived (defaultValue null) and the
+   owner publishes no signal, so a user-assumption entry is supplied to reach compute — never an
+   invented owner-derived entry. */
+function technicalDefaults(definition) {
+  return { ...defaultValues(definition), entry: 100 };
+}
+
+test('TP-05-01 technical-five-gate adapter registers and returns explicit unavailable naming the missing owner five-gate model', async () => {
+  const api = loadProductionApi();
+  const ms = loadMarketStructure();
+  const definition = technicalDefinition();
+  const runtime = runtimeFor(api, definition);
+  const results = ms.registerMarketStructureAdapters(runtime, api, [definition]);
+  assert.equal(results['simple-adapter/technical-five-gate/v1'].ok, true, JSON.stringify(results['simple-adapter/technical-five-gate/v1'] && results['simple-adapter/technical-five-gate/v1'].error || {}));
+
+  const prepared = requireValue(await runtime.prepare({
+    definitionId: definition.definitionId,
+    ownerContext: { ownerState: technicalOwnerState() },
+    parameterValues: technicalDefaults(definition),
+    seed: null,
+    scenarioIds: ['baseline'],
+    computedAt: '2026-07-24T20:02:00.000Z'
+  }));
+  // The foundation evidence IS ready, but the model output is explicit unavailable.
+  assert.equal(prepared.state, 'unavailable', 'five-gate output is honestly unavailable');
+  const summary = prepared.current.output.values.summary;
+  assert.equal(summary.state, 'unavailable');
+  assert.match(summary.missingOwnerCapability, /five-gate/i, 'names the missing owner five-gate model');
+  assert.match(summary.missingOwnerCapability, /technical-analysis-decision-lab/, 'names the owner page');
+  assert.equal(summary.foundationReceipt.present, true, 'the foundation receipt IS present/ready');
+  assert.equal(summary.setupState.state, 'unavailable');
+  assert.equal(summary.evidenceState.state, 'unavailable');
+  assert.equal(summary.gates.context.state, 'unavailable');
+  assert.equal(summary.gates.validation.state, 'unavailable');
+  assert.equal(summary.expectancy.state, 'unavailable');
+  // No invented owner signal: provenance is unavailable-only, and no observed-fact class is claimed.
+  assert.deepEqual(prepared.current.output.provenance.classes, ['unavailable']);
+  assert.equal(prepared.current.output.provenance.evidenceIdentity, prepared.current.input.evidenceIdentity);
+  // The owner projection also surfaces the unavailable state honestly (no numeric signal).
+  const projection = requireValue(runtime.project());
+  assert.equal(projection.state, 'unavailable');
+  assert.equal(projection.numericValue, null, 'no numeric signal is published');
+});
+
+test('TP-05-01 technical-five-gate keeps every gate/setup/expectancy path in a proved flat region until the owner model exists', async () => {
+  const api = loadProductionApi();
+  const ms = loadMarketStructure();
+  const definition = technicalDefinition();
+  const runtime = runtimeFor(api, definition);
+  ms.registerMarketStructureAdapters(runtime, api, [definition]);
+  const base = technicalDefaults(definition);
+  await runtime.prepare({
+    definitionId: definition.definitionId,
+    ownerContext: { ownerState: technicalOwnerState() },
+    parameterValues: base,
+    seed: null,
+    scenarioIds: ['baseline'],
+    computedAt: '2026-07-24T20:02:00.000Z'
+  });
+
+  const cases = [
+    ['timeframe', 'intraday', 'summary.setupState'],
+    ['data-tier', 'observed', 'summary.evidenceState'],
+    ['context-threshold', 0.7, 'summary.gates.context'],
+    ['location-threshold', 0.7, 'summary.gates.location'],
+    ['confirmation-threshold', 0.7, 'summary.gates.confirmation'],
+    ['validation-threshold', 0.7, 'summary.gates.validation'],
+    ['entry', 105, 'summary.expectancy'],
+    ['stop-distance', 6, 'summary.expectancy'],
+    ['cost', 20, 'summary.expectancy'],
+    ['family-requirement', 4, 'summary.setupState']
+  ];
+  for (const [parameterId, value, path] of cases) {
+    const run = requireValue(await runtime.recompute({
+      parameterValues: { ...base, [parameterId]: value },
+      seed: null,
+      scenarioIds: ['baseline'],
+      computedAt: '2026-07-24T20:03:00.000Z'
+    }));
+    assert.equal(run.state, 'unavailable', `${parameterId} keeps the model unavailable`);
+    assert.deepEqual(run.changedParameters, [parameterId], `changed ${parameterId}`);
+    const effect = run.sensitivity.effects.find((entry) => entry.parameterId === parameterId);
+    assert.ok(effect, `sensitivity effect present for ${parameterId}`);
+    assert.equal(effect.outputChanged, false, `${parameterId} produces no output change (model absent)`);
+    assert.notEqual(effect.flatRegionProof, null, `${parameterId} carries a proved flat region`);
+    assert.deepEqual(effect.resultPaths, [path], `${parameterId} declared path`);
+    await runtime.recompute({ parameterValues: { ...base }, seed: null, scenarioIds: ['baseline'], computedAt: '2026-07-24T20:03:30.000Z' });
+  }
+});
+
+test('TP-05-01 technical-five-gate compute is deterministic for one compute identity', async () => {
+  const api = loadProductionApi();
+  const ms = loadMarketStructure();
+  const definition = technicalDefinition();
+  const runtimeA = runtimeFor(api, definition);
+  ms.registerMarketStructureAdapters(runtimeA, api, [definition]);
+  const base = technicalDefaults(definition);
+  const first = requireValue(await runtimeA.prepare({
+    definitionId: definition.definitionId,
+    ownerContext: { ownerState: technicalOwnerState() },
+    parameterValues: base,
+    seed: null,
+    scenarioIds: ['baseline'],
+    computedAt: '2026-07-24T20:02:00.000Z'
+  }));
+  const runtimeB = runtimeFor(api, definition);
+  ms.registerMarketStructureAdapters(runtimeB, api, [definition]);
+  const second = requireValue(await runtimeB.prepare({
+    definitionId: definition.definitionId,
+    ownerContext: { ownerState: technicalOwnerState() },
+    parameterValues: base,
+    seed: null,
+    scenarioIds: ['baseline'],
+    computedAt: '2026-07-24T20:09:00.000Z'
+  }));
+  assert.equal(first.computeIdentity, second.computeIdentity);
+  assert.equal(api.fingerprint(first.current.output), api.fingerprint(second.current.output));
+});
+
+test('TP-05-01 technical-five-gate adapter performs zero fetch provider storage author or publication calls', async () => {
+  const api = loadProductionApi();
+  const ms = loadMarketStructure();
+  const definition = technicalDefinition();
+  const runtime = runtimeFor(api, definition);
+  ms.registerMarketStructureAdapters(runtime, api, [definition]);
+  const sentinels = { fetch: globalThis.fetch, localStorage: globalThis.localStorage, sessionStorage: globalThis.sessionStorage };
+  const calls = { fetch: 0, storage: 0 };
+  globalThis.fetch = () => { calls.fetch += 1; throw new Error('forbidden fetch'); };
+  globalThis.localStorage = { getItem() { calls.storage += 1; }, setItem() { calls.storage += 1; } };
+  globalThis.sessionStorage = { getItem() { calls.storage += 1; }, setItem() { calls.storage += 1; } };
+  try {
+    const base = technicalDefaults(definition);
+    const run = requireValue(await runtime.prepare({
+      definitionId: definition.definitionId,
+      ownerContext: { ownerState: technicalOwnerState() },
+      parameterValues: base,
+      seed: null,
+      scenarioIds: ['baseline'],
+      computedAt: '2026-07-24T20:02:00.000Z'
+    }));
+    assert.equal(run.state, 'unavailable');
+    await runtime.recompute({ parameterValues: { ...base, 'context-threshold': 0.7 }, seed: null, scenarioIds: ['baseline'], computedAt: '2026-07-24T20:03:00.000Z' });
   } finally {
     globalThis.fetch = sentinels.fetch;
     globalThis.localStorage = sentinels.localStorage;

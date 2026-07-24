@@ -71,8 +71,22 @@ export function loadRldata(options = {}) {
     'fetch',
     'location',
     'document',
+    'AbortController',
+    'setTimeout',
+    'clearTimeout',
     `${source}\nreturn globalThis.RLDATA;`
-  )(root, root, localStorage, sessionStorage, options.fetch, location, undefined);
+  )(
+    root,
+    root,
+    localStorage,
+    sessionStorage,
+    options.fetch,
+    location,
+    undefined,
+    options.AbortController || globalThis.AbortController,
+    options.setTimeout || globalThis.setTimeout,
+    options.clearTimeout || globalThis.clearTimeout
+  );
   return {
     api,
     dispatchLifecycle(type, detail = {}) { root.dispatchEvent({ type, ...detail }); },
@@ -133,6 +147,36 @@ export async function startStaticServer() {
   await new Promise((resolveReady) => server.listen(0, '127.0.0.1', resolveReady));
   return {
     baseUrl: `http://127.0.0.1:${server.address().port}`,
+    close: () => new Promise((resolveClosed, rejectClosed) => {
+      server.close((error) => error ? rejectClosed(error) : resolveClosed());
+      server.closeAllConnections?.();
+    })
+  };
+}
+
+export async function startProxyHealthServer() {
+  const requests = [];
+  const server = createServer((request, response) => {
+    const method = request.method || 'GET';
+    const requestUrl = request.url || '/';
+    requests.push({ method, url: requestUrl });
+    const headers = {
+      'access-control-allow-origin': '*',
+      'cache-control': 'no-store',
+      'content-type': 'application/json; charset=utf-8'
+    };
+    if (method === 'GET' && requestUrl === '/health') {
+      response.writeHead(200, headers);
+      response.end(JSON.stringify({ status: 'ok', providers: {} }));
+      return;
+    }
+    response.writeHead(404, headers);
+    response.end(JSON.stringify({ error: 'not found' }));
+  });
+  await new Promise((resolveReady) => server.listen(0, '127.0.0.1', resolveReady));
+  return {
+    baseUrl: `http://127.0.0.1:${server.address().port}`,
+    requests,
     close: () => new Promise((resolveClosed, rejectClosed) => {
       server.close((error) => error ? rejectClosed(error) : resolveClosed());
       server.closeAllConnections?.();

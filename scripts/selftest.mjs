@@ -52,6 +52,13 @@ function assert(cond, msg) {
 }
 function approx(a, b, tol) { return Math.abs(a - b) <= tol; }
 function group(name) { console.log('\n' + name); }
+const COMPANY_ROUTE_SCRIPTS = Object.freeze([
+  'rlexperience.js', 'rlcontext.js', 'rldata.js', 'rlapp.js', 'rlcompany.js',
+  'rlg.js', 'rlchart.js', 'rlticker.js', 'rlnav.js'
+]);
+function hasExactCompanyRouteScripts(sources) {
+  return JSON.stringify(sources) === JSON.stringify(COMPANY_ROUTE_SCRIPTS);
+}
 
 /* ---------- Feature 004: RLFX/RLDATA foundation ---------- */
 try {
@@ -2623,7 +2630,7 @@ try {
   assert(companyTrace.observations.length === 0 && companyTrace.sourceRequirements[0].sourceId === 'sec-companyfacts-msft' && companyTrace.transformations.map((item) => item.id).join(',') === 'mapping-revenue,formula-direction-foundation' && companyTrace.consumers.length === 2 && companyTrace.rights[0].limitations.length === 2 && companyTrace.unavailableLinks.length === 1, 'Feature 010 unavailable claim resolves required source period transformation consumer rights and unavailable-link lineage without unrelated evidence');
   const companyRouteSource = read('company-fundamentals-lab.html');
   const companyScriptSources = Array.from(companyRouteSource.matchAll(/<script\s+src="([^"]+)"/g), (match) => match[1]);
-  assert(companyScriptSources.length === 7 && companyScriptSources.every((source) => !source.includes('://')) && !companyRouteSource.includes('foundation-publication.js') && companyRouteSource.includes('RLCOMPANY.loadCompanyPublication') && companyRouteSource.includes('data/company-fundamentals/companies/sec-cik-0000789019/current.json') && companyRouteSource.includes('fetchImpl: window.fetch.bind(window)') && !/type="password"|name="[^"]*(?:credential|token|secret)/i.test(companyRouteSource), 'Feature 010 direct route uses the production current-pointer loader with same-origin scripts and no credential field');
+  assert(hasExactCompanyRouteScripts(companyScriptSources) && !companyRouteSource.includes('foundation-publication.js') && companyRouteSource.includes('RLCOMPANY.loadCompanyPublication') && companyRouteSource.includes('data/company-fundamentals/companies/sec-cik-0000789019/current.json') && companyRouteSource.includes('fetchImpl: window.fetch.bind(window)') && !/type="password"|name="[^"]*(?:credential|token|secret)/i.test(companyRouteSource), 'Feature 010 direct route uses the production current-pointer loader with same-origin scripts and no credential field');
   const companyValidatorSource = read('scripts/validate-company-fundamentals.mjs');
   assert(companyValidatorSource.includes('gunzipSync') && companyValidatorSource.includes('parseSecSubmissionsResponse') && companyValidatorSource.includes('validateCompanyConfig') && companyValidatorSource.includes('validatePublicationGraph') && companyValidatorSource.includes('projectAcceptedPublication') && companyValidatorSource.includes('selectSourcesView'), 'Feature 010 validator executes exact-capture parsing config graph projection and trace functions');
   const companyPeriodClassifications = ['period-msft-fy2026-q3', 'period-msft-fy2025-annual', 'period-msft-fy2026-q3-ytd', 'period-msft-fy2026-q3-instant'].map((id) => companyApi.classifyReportingPeriod(companyObjects[id]));
@@ -2685,7 +2692,7 @@ try {
   assert(scope2ConfigValidation.ok && scope2Api.companyObjectSha256(scope2Config) === scope2Manifest.configFingerprint && scope2SoftwareDefinition.kpiPriorities.length === 7 && scope2SoftwareDefinition.diagnosticPolicies.length === 2 && scope2Config.formulas.filter((formula) => formula.formulaId === 'formula-cash-conversion' || formula.formulaId === 'formula-operating-margin').length === 2, 'Feature 010 Scope 2 config binds formulas and the software-platform archetype to the regenerated publication fingerprint');
   const scope2RouteSource = read('company-fundamentals-lab.html');
   const scope2Scripts = Array.from(scope2RouteSource.matchAll(/<script\s+src="([^"]+)"/g), (match) => match[1]);
-  assert(scope2Scripts.length === 7 && scope2Scripts.every((source) => !source.includes('://')) && scope2RouteSource.includes('resolveArchetypeView') && scope2RouteSource.includes('company-fundamentals.config.json') && scope2RouteSource.includes('data-kpi-priority') && !/type="password"|name="[^"]*(?:credential|token|secret)/i.test(scope2RouteSource), 'Feature 010 Scope 2 cockpit wires the archetype-prioritized Simple view over same-origin scripts with no credential field');
+  assert(hasExactCompanyRouteScripts(scope2Scripts) && scope2RouteSource.includes('resolveArchetypeView') && scope2RouteSource.includes('company-fundamentals.config.json') && scope2RouteSource.includes('data-kpi-priority') && !/type="password"|name="[^"]*(?:credential|token|secret)/i.test(scope2RouteSource), 'Feature 010 Scope 2 cockpit wires the archetype-prioritized Simple view over same-origin scripts with no credential field');
 } catch (e) { failures++; console.log('  ✗ FAIL (Feature 010 Scope 2 group threw): ' + e.message); }
 /* FEATURE-010-COMPANY-FUNDAMENTALS-SCOPE2-END */
 
@@ -2744,7 +2751,7 @@ try {
   assert(scope3Forecast.comparable === true && scope3Forecast.forecastError.value === '3000' && scope3Forecast.estimate.evidenceClass === 'estimate' && scope3Forecast.actual.evidenceClass === 'reported' && scope3Forecast.estimate.clocks.acceptedAt !== scope3Forecast.actual.clocks.acceptedAt && scope3Incomparable.comparable === false && scope3Incomparable.forecastError === null, 'Feature 010 Scope 3 forecast error keeps estimate and actual classes and clocks separate and derives only when comparable');
   const scope3RouteSource = read('company-fundamentals-lab.html');
   const scope3Scripts = Array.from(scope3RouteSource.matchAll(/<script\s+src="([^"]+)"/g), (match) => match[1]);
-  assert(scope3Scripts.length === 7 && scope3Scripts.every((source) => !source.includes('://')) && scope3RouteSource.includes('RLCOMPANY.evaluateModel') && scope3RouteSource.includes('RLCOMPANY.reduceProposalDecision') && scope3RouteSource.includes('data-model-workspace') && !/type="password"|name="[^"]*(?:credential|token|secret)/i.test(scope3RouteSource), 'Feature 010 Scope 3 cockpit wires the linked model and accepted-state reducers over same-origin scripts with no credential field');
+  assert(hasExactCompanyRouteScripts(scope3Scripts) && scope3RouteSource.includes('RLCOMPANY.evaluateModel') && scope3RouteSource.includes('RLCOMPANY.reduceProposalDecision') && scope3RouteSource.includes('data-model-workspace') && !/type="password"|name="[^"]*(?:credential|token|secret)/i.test(scope3RouteSource), 'Feature 010 Scope 3 cockpit wires the linked model and accepted-state reducers over same-origin scripts with no credential field');
 } catch (e) { failures++; console.log('  ✗ FAIL (Feature 010 Scope 3 group threw): ' + e.message); }
 /* FEATURE-010-COMPANY-FUNDAMENTALS-SCOPE3-END */
 
@@ -2797,7 +2804,7 @@ try {
   assert(scope4Simple.clocks.statementCutoff === scope4Export.view.clocks.statementCutoff && scope4Simple.clocks.statementCutoff === scope4OwnerRead.statementCutoff && scope4Trace.focusRef === 'claim-direction' && scope4Simple.dependencyResults.find((result) => result.id === 'metric-direction').state === 'unavailable' && scope4OwnerRead.direction === 'Unavailable' && JSON.stringify(scope4Export.view.limitations) === JSON.stringify(scope4OwnerRead.limitations), 'Feature 010 Scope 4 Simple source-trace export and owner read share one accepted state without divergence');
   const scope4Route = read('company-fundamentals-lab.html');
   const scope4Scripts = Array.from(scope4Route.matchAll(/<script\s+src="([^"]+)"/g), (match) => match[1]);
-  assert(scope4Scripts.length === 7 && scope4Scripts.every((source) => !source.includes('://')) && scope4Route.includes('data-mode-seg') && scope4Route.includes('data-detailed-tab') && scope4Route.includes('RLCOMPANY.selectPeersView') && scope4Route.includes('RLCOMPANY.buildAcceptedExport') && scope4Route.includes('RLDATA.putToolRead') && !/type="password"|name="[^"]*(?:credential|token|secret)/i.test(scope4Route), 'Feature 010 Scope 4 cockpit wires the mode toggle, six Detailed workspaces, peers, and the owner-read compat over same-origin scripts with no credential field');
+  assert(hasExactCompanyRouteScripts(scope4Scripts) && scope4Route.includes('data-mode-seg') && scope4Route.includes('data-detailed-tab') && scope4Route.includes('RLCOMPANY.selectPeersView') && scope4Route.includes('RLCOMPANY.buildAcceptedExport') && scope4Route.includes('RLDATA.putToolRead') && !/type="password"|name="[^"]*(?:credential|token|secret)/i.test(scope4Route), 'Feature 010 Scope 4 cockpit wires the mode toggle, six Detailed workspaces, peers, and the owner-read compat over same-origin scripts with no credential field');
 } catch (e) { failures++; console.log('  ✗ FAIL (Feature 010 Scope 4 group threw): ' + e.message); }
 /* FEATURE-010-COMPANY-FUNDAMENTALS-SCOPE4-END */
 
@@ -2959,7 +2966,7 @@ try {
   const scope7HasProvenance = ['data-overlay-publication-id', 'data-overlay-source-cutoff', 'data-overlay-manifest-sha', 'data-overlay-status', 'data-overlay-error'].every((field) => scope7Html.includes(field));
   const scope7HasAcceptedObservationProjection = scope7Html.includes('prepareAccepted(overlayLoads.cmg.accepted)') && scope7Html.includes('prepareAccepted(overlayLoads.jpm.accepted)') && scope7Html.includes('diagnosticInput(') && scope7Html.includes('periodRef.objectId');
   const scope7HasLegacyOverlay = /constructed Scope 7 overlay fixture|not real issuer-reported values|5600000000|2800000000|3900000000|-3900000000|2400000000000|27000000000|value:\s*"0\.15"|value:\s*"1\.13"/.test(scope7Html);
-  assert(scope7Scripts.length === 7 && scope7Scripts.every((source) => !source.includes('://')) && scope7Html.includes('selectResilienceView') && scope7Html.includes('data-resilience-company="sec-cik-0001058090"') && scope7Html.includes('data-resilience-company="sec-cik-0000019617"') && scope7Html.includes('archetype-restaurant-unit-economics') && scope7Html.includes('archetype-financial-institution') && scope7HasPublicationWiring && scope7HasProvenance && scope7HasAcceptedObservationProjection && !scope7HasLegacyOverlay && scope7ForbiddenInlineValues.every((value) => !scope7Html.includes(value)) && !/type="password"|name="[^"]*(?:credential|token|secret)/i.test(scope7Html), 'Feature 010 Scope 7 overlay cockpit loads retained CMG and JPM publications through current pointers, projects accepted observations with provenance, and rejects constructed or inline issuer values');
+  assert(hasExactCompanyRouteScripts(scope7Scripts) && scope7Html.includes('selectResilienceView') && scope7Html.includes('data-resilience-company="sec-cik-0001058090"') && scope7Html.includes('data-resilience-company="sec-cik-0000019617"') && scope7Html.includes('archetype-restaurant-unit-economics') && scope7Html.includes('archetype-financial-institution') && scope7HasPublicationWiring && scope7HasProvenance && scope7HasAcceptedObservationProjection && !scope7HasLegacyOverlay && scope7ForbiddenInlineValues.every((value) => !scope7Html.includes(value)) && !/type="password"|name="[^"]*(?:credential|token|secret)/i.test(scope7Html), 'Feature 010 Scope 7 overlay cockpit loads retained CMG and JPM publications through current pointers, projects accepted observations with provenance, and rejects constructed or inline issuer values');
 } catch (e) { failures++; console.log('  ✗ FAIL (Feature 010 Scope 7 group threw): ' + e.message); }
 /* FEATURE-010-COMPANY-FUNDAMENTALS-SCOPE7-END */
 
@@ -3032,7 +3039,7 @@ try {
   const scope8HasChartTable = scope8Html.includes('data-accessible-chart-table') && scope8Html.includes('data-accessible-chart-body') && /data-chart-visual[^>]*aria-hidden="true"|aria-hidden="true"[^>]*data-chart-visual/.test(scope8Html);
   const scope8HasProductionWiring = scope8Html.includes('RLCOMPANY.evaluateComparability') && scope8Html.includes('RLCOMPANY.buildAccessibleChartTable') && scope8Html.includes('renderComparability(accepted, overlayLoads)');
   const scope8ForbiddenInline = ['2830607000', '362438000000', '182634303500', '6163924000'];
-  assert(scope8Scripts.length === 7 && scope8HasComparabilityTab && scope8HasRovingTabindex && scope8HasKeyboardNav && scope8HasLive && scope8HasChartTable && scope8HasProductionWiring && scope8ForbiddenInline.every((value) => !scope8Html.includes(value)) && !/type="password"|name="[^"]*(?:credential|token|secret)/i.test(scope8Html), 'Feature 010 Scope 8 lab hardens the research journey with a keyboard-operable roving tab list, a polite live region, an accessible chart-equivalent table, and a decorative visual hidden from assistive technology, driven by the production comparability and accessible-table helpers with no inline issuer values');
+  assert(hasExactCompanyRouteScripts(scope8Scripts) && scope8HasComparabilityTab && scope8HasRovingTabindex && scope8HasKeyboardNav && scope8HasLive && scope8HasChartTable && scope8HasProductionWiring && scope8ForbiddenInline.every((value) => !scope8Html.includes(value)) && !/type="password"|name="[^"]*(?:credential|token|secret)/i.test(scope8Html), 'Feature 010 Scope 8 lab hardens the research journey with a keyboard-operable roving tab list, a polite live region, an accessible chart-equivalent table, and a decorative visual hidden from assistive technology, driven by the production comparability and accessible-table helpers with no inline issuer values');
 } catch (e) { failures++; console.log('  ✗ FAIL (Feature 010 Scope 8 group threw): ' + e.message); }
 /* FEATURE-010-COMPANY-FUNDAMENTALS-SCOPE8-END */
 
@@ -3501,6 +3508,189 @@ try {
   assert(RB10.briefParseEvidence(agg10, 'session-aggregate').ok === true && RB10.briefParseEvidence(agg10, 'released-report-evidence').ok === false, 'Feature 002 Scope 10 evidence parser is contract-typed by kind');
 } catch (e) { failures++; console.log('  ✗ FAIL (Feature 002 Scope 10 group threw): ' + e.message); }
 /* FEATURE-002-MARKET-SESSION-SCOPE10-END */
+
+/* ---------- Feature 012 Scope 01: contract/config/registry foundation ---------- */
+try {
+  group('Feature 012 Scope 01 tool-experience contract and registry foundation');
+  const feature012Validator = await import('./validate-tool-experience.mjs');
+  const feature012 = feature012Validator.validateActualToolExperience();
+
+  assert(
+    feature012.summary.toolCount === 23 &&
+    feature012.summary.ordinaryCount === 22 &&
+    feature012.summary.marketActionCount === 1 &&
+    feature012.summary.simpleModelDefinitionCount === 23 &&
+    feature012.summary.journeyDefinitionCount === 48 &&
+    feature012.summary.journeyStepCount === 48,
+    'Feature 012 Scope 01 production validator derives the current 23-tool, 23-model, 48-Journey, 48-step inventory'
+  );
+  assert(
+    feature012.identities.toolIds.length === new Set(feature012.identities.toolIds).size &&
+    feature012.identities.modelDefinitionIds.length === feature012.identities.toolIds.length &&
+    feature012.identities.journeyDefinitionIds.length === feature012.summary.journeyDefinitionCount &&
+    feature012.identities.journeyStepIds.length === feature012.summary.journeyStepCount,
+    'Feature 012 Scope 01 registry-derived tool, model, Journey, and step identities remain unique and complete'
+  );
+  assert(
+    feature012.artifacts.length === 3 &&
+    feature012.artifacts.every((artifact) => artifact.bytes > 0 && artifact.bytes <= artifact.budget),
+    'Feature 012 Scope 01 config, model, and Journey artifacts remain inside their configured byte budgets'
+  );
+  assert(
+    feature012.scaling.toolId === 'feature-012-scaling-probe' &&
+    feature012.scaling.toolCount === 24 &&
+    feature012.scaling.modelCount === 24 &&
+    feature012.scaling.journeyCount === 50 &&
+    feature012.scaling.stepCount === 50,
+    'Feature 012 Scope 01 valid added-tool probe scales through registry membership without a production tool-ID branch'
+  );
+  assert(
+    feature012.adversarial.length === 13 &&
+    feature012.adversarial.every((refusal) => /^E012-/.test(refusal.code)) &&
+    new Set(feature012.adversarial.map((refusal) => refusal.name)).size === 13,
+    'Feature 012 Scope 01 omission, duplicate, version, view, module, field, reference, execution, and dependency mutations all fail closed'
+  );
+  assert(
+    feature012.summary.shadowOnly === true && feature012.summary.integrationClaims.length === 0,
+    'Feature 012 Scope 01 validator remains shadow-only and infers no provider, Brief, portfolio, or execution integration claim'
+  );
+} catch (e) { failures++; console.log('  ✗ FAIL (Feature 012 Scope 01 group threw): ' + e.message); }
+
+/* ---------- Feature 012 Scope 02: shared four-view shell ---------- */
+try {
+  group('Feature 012 Scope 02 shared four-view shell');
+  const { createRequire } = await import('node:module');
+  const shellRequire = createRequire(import.meta.url);
+  const RLEXPERIENCE02 = shellRequire('../rlexperience.js');
+  const config02 = JSON.parse(read('tool-experience.config.json'));
+  const registry02 = JSON.parse(read('tools.json'));
+  const ordinary02 = RLEXPERIENCE02.resolveShell(config02, registry02, 'market-heatmap-lab');
+  const center02 = RLEXPERIENCE02.resolveShell(config02, registry02, 'market-brief');
+  const viewsSource02 = read('rlviews.js');
+  const appSource02 = read('rlapp.js');
+
+  assert(
+    config02.migrationPolicy.phase === 'shell-canary' &&
+    config02.migrationPolicy.shadowOnly === true &&
+    config02.migrationPolicy.visibleModeCutover === false &&
+    config02.migrationPolicy.panelBootstrap === true,
+    'Feature 012 Scope 02 activates panel bootstrap only in the explicit shadow shell-canary phase'
+  );
+  assert(
+    ordinary02.ok === true && center02.ok === true &&
+    ordinary02.value.viewIds.join(',') === 'simple,power,brief,journey' &&
+    center02.value.viewIds.join(',') === 'brief,portfolio,red-alert,journey',
+    'Feature 012 Scope 02 resolves exact ordinary and Market Action four-view sets from the registry'
+  );
+  assert(
+    appSource02.includes('function mountExperienceShell()') &&
+    appSource02.includes('root.__rlviewsRegistration = {') &&
+    appSource02.includes('ensureSharedScript("rlviews-shared-js", "rlviews.js"') &&
+    !registry02.tools.some((tool) => appSource02.includes('"' + tool.id + '"')),
+    'Feature 012 Scope 02 bootstrap is registry-driven and loads one shared shell without a tool-ID switch'
+  );
+  assert(
+    viewsSource02.includes('shellControl.id = "rlviews"') &&
+    viewsSource02.includes('data-rlexperience-shell') &&
+    viewsSource02.includes('#modeSeg,#simpleTab,#powerTab{display:none!important}') &&
+    viewsSource02.includes('getAttribute("aria-hidden") !== "true"'),
+    'Feature 012 Scope 02 owns one shell and suppresses legacy controls with idempotent attribute updates'
+  );
+  assert(
+    viewsSource02.includes('html,body{max-width:100%;overflow-x:clip}') &&
+    viewsSource02.includes('overflow-x:auto') &&
+    viewsSource02.includes('min-height:44px') &&
+    viewsSource02.includes('@media(prefers-reduced-motion:reduce)'),
+    'Feature 012 Scope 02 contains root overflow while preserving a mobile dock, full labels, touch targets, and reduced motion'
+  );
+} catch (e) { failures++; console.log('  ✗ FAIL (Feature 012 Scope 02 group threw): ' + e.message); }
+
+/* ---------- Feature 012 Scope 03: contextual tooltip foundation ---------- */
+try {
+  group('Feature 012 Scope 03 contextual tooltip foundation');
+  const { createRequire } = await import('node:module');
+  const contextRequire = createRequire(import.meta.url);
+  const RLCTX03 = contextRequire('../rlcontext.js');
+  const contextSource03 = read('rlcontext.js');
+  const glossarySource03 = read('rlg.js');
+  const tickerSource03 = read('rlticker.js');
+  const chartSource03 = read('rlchart.js');
+  const heatmapSource03 = read('market-heatmap-lab.html');
+  const optionsSource03 = read('options-structure-lab.html');
+  const companySource03 = read('company-fundamentals-lab.html');
+  const providerSources03 = [glossarySource03, tickerSource03, chartSource03];
+  const canaryPages03 = [heatmapSource03, optionsSource03, companySource03];
+
+  assert(
+    RLCTX03.CONTROLLER_ID === 'rlcontext-disclosure' &&
+    typeof RLCTX03.validateContext === 'function' &&
+    typeof RLCTX03.bind === 'function' &&
+    typeof RLCTX03.open === 'function' &&
+    typeof RLCTX03.close === 'function',
+    'Feature 012 Scope 03 exposes one dual-runtime contextual-disclosure contract and controller API'
+  );
+  assert(
+    contextSource03.includes('data-context-fingerprint') &&
+    contextSource03.includes('Current interpretation') &&
+    contextSource03.includes('Uncertainty') &&
+    contextSource03.includes('Limitation') &&
+    !providerSources03.concat(canaryPages03).some((source) => /\b(?:rlgtip|rltkrtip|rlcharttip)\b/.test(source)),
+    'Feature 012 Scope 03 keeps complete current context in one disclosure owner with no private tooltip engines'
+  );
+  assert(
+    glossarySource03.includes('contextApi.bind(elm, contextFor(') &&
+    tickerSource03.includes('root.RLCTX.bind(button, tickerContext(') &&
+    chartSource03.includes('root.RLCTX.validateContext') &&
+    chartSource03.includes('aria-activedescendant') &&
+    chartSource03.includes('same-data table target'),
+    'Feature 012 Scope 03 composes glossary ticker and structured-chart providers through RLCTX'
+  );
+  assert(
+    canaryPages03.every((source) => source.indexOf('src="rlexperience.js"') < source.indexOf('src="rlcontext.js"')) &&
+    heatmapSource03.includes('RLCHART.attach(cv, {') &&
+    optionsSource03.includes('src="rlcontext.js"') &&
+    companySource03.includes('src="rlcontext.js"'),
+    'Feature 012 Scope 03 canary pages load the shared foundation before provider composition'
+  );
+  assert(
+    heatmapSource03.includes('function yieldToInteraction()') &&
+    heatmapSource03.includes('var CONCURRENCY = 2') &&
+    heatmapSource03.includes('return yieldToInteraction().then(worker)') &&
+    chartSource03.includes('{ mode: "keyboard", pinned: true }'),
+    'Feature 012 Scope 03 preserves responsive automatic hydration and stable keyboard disclosure state'
+  );
+} catch (e) { failures++; console.log('  ✗ FAIL (Feature 012 Scope 03 group threw): ' + e.message); }
+
+/* ---------- Feature 012 Scope 04: Simple model core runtime ---------- */
+try {
+  group('Feature 012 Scope 04 Simple model core runtime');
+  const runtimeValidator04 = await import('./validate-tool-experience.mjs');
+  const feature012Runtime04 = runtimeValidator04.validateActualToolExperience().runtime;
+  const runtimeSource04 = read('rlexperience.js');
+
+  assert(
+    feature012Runtime04.truthStateCount === 6 &&
+    feature012Runtime04.registeredAdapterCount === 0 &&
+    feature012Runtime04.toolIdBranchCount === 0,
+    'Feature 012 Scope 04 exposes the closed six-state runtime with no shipped owner adapter or tool-ID branch'
+  );
+  assert(
+    feature012Runtime04.occurrenceIdentityStable === true &&
+    feature012Runtime04.cutoffIdentityChanged === true,
+    'Feature 012 Scope 04 compute identity excludes retrieval occurrence time but retains the semantic evidence cutoff'
+  );
+  assert(
+    feature012Runtime04.authorityOwnedCount === 0 &&
+    !['fetch(', 'providerFetch(', 'localStorage.', 'sessionStorage.', '.setItem(', 'XMLHttpRequest', 'WebSocket', 'author(', 'publish('].some((capability) => runtimeSource04.includes(capability)),
+    'Feature 012 Scope 04 owns no provider, network, storage, authoring, publication, or tool-formula authority'
+  );
+  assert(
+    runtimeSource04.includes('simple-cancellation-token/v1') &&
+    runtimeSource04.includes('stale completion discarded') &&
+    runtimeSource04.includes('Last valid model run preserved'),
+    'Feature 012 Scope 04 carries cancellation, stale-completion rejection, and explicit last-valid projection contracts'
+  );
+} catch (e) { failures++; console.log('  ✗ FAIL (Feature 012 Scope 04 group threw): ' + e.message); }
 
 /* ---------- summary ---------- */
 console.log('\n' + '='.repeat(48));

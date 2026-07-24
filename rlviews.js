@@ -1,274 +1,269 @@
-/* ═══════════ RL Views — shared, uniform view-mode switch (loaded by every Research Lab tool) ═══════════
-   One self-contained script that injects a SINGLE standardized segmented control in a FIXED position
-   (top-center) on every tool, so the Simple / Power / Brief switch always looks the same and sits in the
-   same place — regardless of each tool's own header layout. It replaces the per-tool hand-rolled toggles
-   (which had drifted into three different markups/positions) with one shared component.
-
-   Contract (opt-in, per tool):
-     <meta name="rlviews" content="simple,power,brief">   ← simple/power tools
-     <meta name="rlviews" content="view,brief">           ← single-view tools (no Simple/Power)
-   If the meta is absent, rlviews stays inert (renders nothing) — safe to ship before a tool opts in.
-
-   Mode semantics (mutually exclusive; the switch is the single source of truth):
-     simple → body has NEITHER `power` NOR `rlv-brief`  (tool's decision-first view)
-     power  → body has `power`, not `rlv-brief`          (tool's full dashboard)
-     view   → body has neither                            (single-view tool's normal view)
-     brief  → body has `rlv-brief`                        (focused shared-brief view; underlying view preserved)
-
-   On every change rlviews:
-     • toggles `document.body.classList` → `power` (back-compat with existing tool CSS) + `rlv-brief`
-     • sets `document.body.dataset.rlview = <mode>`
-     • dispatches `window` CustomEvent `rlviews:change` with `{ detail: { mode, previousMode, toolId } }`
-       so each tool can run its own render/compute on mode change (tools listen; rlviews never forks their logic).
-     • persists the active non-brief mode per tool in localStorage.
-
-   Design language mirrors rlnav.js (teal #2dd4bf accent, dark glass, shared font stack). No dependencies;
-   safe on file:// and GitHub Pages; DOM-guarded for Node. */
+/* Shared registry-driven four-view shell for Research Lab tools. */
 (function () {
   "use strict";
-  var root = (typeof window !== "undefined") ? window : {};
-  if (root.__rlviewsInit) return; root.__rlviewsInit = 1;
-  if (typeof document === "undefined") return; /* no-DOM (Node) guard */
 
-  var ALL_MODES = { simple: 1, power: 1, view: 1, brief: 1 };
-  var LABELS = { simple: "Simple", power: "Power", view: "Tool", brief: "Brief" };
-  var TITLES = {
-    simple: "Decision-first view — the curated read",
-    power: "Full dashboard — every panel, chart and table",
-    view: "The tool",
-    brief: "Shared brief — the current read for this tool"
-  };
+  var root = typeof window !== "undefined" ? window : {};
+  if (typeof document === "undefined" || root.__rlviewsInit) return;
+  var registration = root.__rlviewsRegistration;
+  if (!registration || !registration.shell || !root.RLEXPERIENCE) return;
+  root.__rlviewsInit = 1;
 
-  function briefEnabledPage() {
-    try {
-      var m = document.querySelector('meta[name="rlbrief-enabled"]');
-      var c = m && m.getAttribute("content");
-      return !!(c && c !== "0" && c !== "false");
-    } catch (e) { return false; }
-  }
-  function readModeMeta() {
-    try {
-      var meta = document.querySelector('meta[name="rlviews"]');
-      return meta ? (meta.getAttribute("content") || "").trim().toLowerCase() : null;
-    } catch (e) { return null; }
-  }
-  /* Modes: an explicit <meta name="rlviews" content="simple,power,brief"> wins; otherwise
-     auto-detect from the presence of a legacy Simple/Power toggle (#modeSeg / #simpleTab /
-     #powerTab). Every enabled tool has a brief mount, so Brief is always offered. */
-  function detectModes(metaContent) {
-    if (metaContent && metaContent !== "off") {
-      var out = [];
-      metaContent.split(",").forEach(function (raw) {
-        var m = (raw || "").trim().toLowerCase();
-        if (ALL_MODES[m] && out.indexOf(m) === -1) out.push(m);
-      });
-      if (out.length) return out;
-    }
-    var hasSP = false;
-    try { hasSP = !!(document.getElementById("modeSeg") || document.getElementById("simpleTab") || document.getElementById("powerTab")); } catch (e) { }
-    return hasSP ? ["simple", "power", "brief"] : ["view", "brief"];
+  var SHELL = registration.shell;
+  var EXPERIENCE = root.RLEXPERIENCE;
+  var CONFIG = registration.config;
+  var DEPENDENCY_STATES = registration.dependencyStates || {};
+  var ANCHOR = registration.anchor;
+  var MODES = SHELL.viewIds.slice();
+  var TOOL = SHELL.toolId;
+  var ownerModes = Array.isArray(registration.ownerModes) ? registration.ownerModes.slice() : [];
+  var labels = {};
+  var current = SHELL.defaultViewId;
+  var panels = {};
+  var shellControl;
+  var drivingLegacy = false;
+
+  for (var labelIndex = 0; labelIndex < MODES.length; labelIndex += 1) {
+    labels[MODES[labelIndex]] = SHELL.labels[labelIndex];
   }
 
-  function toolId() {
-    try {
-      var mount = document.querySelector && document.querySelector("[data-rlbrief-mount][data-tool-id]");
-      if (mount) return mount.getAttribute("data-tool-id") || "tool";
-      var p = (location.pathname || "").split("/").pop() || "tool";
-      return p.replace(/\.html?$/, "") || "tool";
-    } catch (e) { return "tool"; }
-  }
-
-  /* Activate only on enabled tool pages (they carry the rlbrief-enabled meta); allow a tool
-     to opt OUT with <meta name="rlviews" content="off"> — used by tools whose tests still
-     couple to the legacy toggle, pending a spec migration. */
-  var META_MODES = readModeMeta();
-  if (!briefEnabledPage() || META_MODES === "off") return;
-  var MODES = detectModes(META_MODES);
-  var TOOL = toolId();
-  var baseModes = MODES.filter(function (m) { return m !== "brief"; });
-  var defaultBase = baseModes.length ? baseModes[0] : "view";
-
-  var lastBase = defaultBase; /* the underlying view to return to when leaving Brief */
-  var current = defaultBase;
-  var seg;
-
-  function esc(s) {
-    return (s || "").replace(/[&<>"]/g, function (c) {
-      return { "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;" }[c];
+  function escapeHtml(value) {
+    return String(value == null ? "" : value).replace(/[&<>"]/g, function (character) {
+      return { "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;" }[character];
     });
   }
 
-  function injectCSS() {
+  function injectCss() {
     if (document.getElementById("rlviews-css")) return;
-    var st = document.createElement("style"); st.id = "rlviews-css";
-    st.textContent = [
-      "#rlviews{position:fixed;top:10px;left:50%;transform:translateX(-50%);z-index:9995;display:inline-flex;align-items:stretch;gap:2px;padding:3px;border-radius:11px;background:rgba(14,20,28,.72);border:1px solid #24313f;box-shadow:0 6px 20px -8px rgba(0,0,0,.7);-webkit-backdrop-filter:blur(7px);backdrop-filter:blur(7px);font:600 13px/1 -apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,Helvetica,Arial,sans-serif}",
-      /* reserve top space so the fixed switch never overlaps the tool's title (desktop) */
+    var style = document.createElement("style");
+    style.id = "rlviews-css";
+    style.textContent = [
+      "html,body{max-width:100%;overflow-x:clip}",
+      "#rlviews{position:fixed;top:10px;left:50%;transform:translateX(-50%);z-index:9995;display:inline-flex;align-items:stretch;gap:2px;padding:3px;max-width:calc(100vw - 20px);border:1px solid #24313f;border-radius:8px;background:rgba(14,20,28,.94);box-shadow:0 6px 20px -8px rgba(0,0,0,.7);-webkit-backdrop-filter:blur(7px);backdrop-filter:blur(7px);font:600 13px/1 ui-rounded,'Avenir Next','Segoe UI',sans-serif}",
       "body{padding-top:54px}",
-      "#rlviews button{appearance:none;-webkit-appearance:none;border:1px solid transparent;background:transparent;color:#9fb2c4;cursor:pointer;padding:6px 14px;min-height:32px;border-radius:8px;font:inherit;letter-spacing:.1px;transition:color .14s,background .14s,border-color .14s}",
+      "#rlviews button{appearance:none;-webkit-appearance:none;flex:0 0 auto;width:auto;min-height:32px;padding:6px 14px;border:1px solid transparent;border-radius:6px;background:transparent;color:#9fb2c4;cursor:pointer;font:inherit;letter-spacing:0;white-space:nowrap;transition:color .14s,background .14s,border-color .14s}",
       "#rlviews button:hover{color:#e6edf3;background:#152230}",
       "#rlviews button:focus-visible{outline:2px solid #2dd4bf;outline-offset:2px}",
-      "#rlviews button[aria-selected='true']{color:#04121a;background:linear-gradient(90deg,#2dd4bf,#4bd6c4);border-color:transparent;font-weight:700;box-shadow:0 1px 5px -1px rgba(45,212,191,.5)}",
-      "#rlviews .rlv-ico{font-weight:700;margin-right:5px;opacity:.85}",
-      "@media (max-width:560px){#rlviews{top:auto;bottom:12px}#rlviews button{padding:6px 12px}body{padding-top:0;padding-bottom:66px}}",
-      "@media (prefers-reduced-motion:reduce){#rlviews button{transition:none}}",
-      /* Brief focus view: hide the tool's own top-level content, reveal the shared brief mount as a card. */
-      "body.rlv-brief>*:not(#rlviews):not(#rlnav):not(#rlnav-launcher):not(#rlnav-edge):not(#rl-proto-warn):not([data-rlbrief-mount]):not(script):not(style):not(link){display:none!important}",
-      "body.rlv-brief [data-rlbrief-mount]{display:block!important;max-width:860px;margin:64px auto 40px;padding:0 18px}",
-      "body.rlv-brief{overflow-y:auto}",      /* Outside Brief mode the shared brief lives ONLY behind the Brief tab \u2014 never dumped at the
-         page bottom in Simple/Power. (Injected only on switch-active tools, so opt-out tools keep
-         their inline brief until migrated.) */
-      "body:not(.rlv-brief) [data-rlbrief-mount]{display:none!important}",      /* Hide each tool's legacy inline Simple/Power toggle — rlviews replaces and drives it. */
-      "#modeSeg,#simpleTab,#powerTab{display:none!important}"
+      "#rlviews button[aria-selected='true']{color:#04121a;background:#2dd4bf;font-weight:700}",
+      "body.rlv-focused>*:not(#rlviews):not(#rlnav):not(#rlnav-launcher):not(#rlnav-edge):not(#rl-proto-warn):not(#rl-data-shell):not([data-rlexperience-panel]):not(script):not(style):not(link){display:none!important}",
+      "[data-rlexperience-panel][hidden]{display:none!important}",
+      "[data-rlexperience-panel]{display:block;max-width:860px;margin:64px auto 40px;padding:18px;color:inherit}",
+      "[data-rlexperience-panel].rlexperience-placeholder{border:1px solid #263646;border-radius:8px;background:#101821}",
+      ".rlexperience-placeholder h2{margin:0 0 8px;font-size:18px}.rlexperience-placeholder p{margin:6px 0;color:#9fb2c4}",
+      "[data-rlexperience-gate]{padding:12px 14px;border-left:3px solid #f5b942;background:rgba(245,185,66,.08)}",
+      "[data-rlexperience-gate] h2{margin:0 0 8px;font-size:17px}[data-rlexperience-gate] p{margin:5px 0}",
+      "#modeSeg,#simpleTab,#powerTab{display:none!important}",
+      "@media(max-width:560px){#rlviews{top:auto;right:8px;bottom:calc(8px + env(safe-area-inset-bottom));left:8px;transform:none;max-width:none;overflow-x:auto;overscroll-behavior-inline:contain}#rlviews button{min-height:44px;padding:8px 12px}body{padding-top:0;padding-bottom:calc(68px + env(safe-area-inset-bottom))}}",
+      "@media(prefers-reduced-motion:reduce){#rlviews button{transition:none}}"
     ].join("");
-    (document.head || document.documentElement).appendChild(st);
+    (document.head || document.documentElement).appendChild(style);
   }
 
-  /* Legacy-toggle facade: most tools still carry their original inline Simple/Power toggle
-     (now hidden by CSS). rlviews drives that existing, tested logic by synthesizing a click
-     on the matching legacy button — so a tool needs only the <meta> + <script>, no JS surgery.
-     Three legacy shapes are supported: #modeSeg[data-mode] (pattern A), #modeSeg[data-m]
-     (pattern C), and #simpleTab/#powerTab (pattern B). A fully-migrated tool (e.g. the sector
-     pilot) has no legacy toggle and instead listens for the rlviews:change event below. */
-  var driving = false;
   function driveLegacy(mode) {
-    if (driving || (mode !== "simple" && mode !== "power")) return false;
-    var btn = null;
-    var legacySeg = document.getElementById("modeSeg");
-    if (legacySeg) {
-      /* attribute variants seen across tools: data-mode / data-m / data-value */
-      btn = legacySeg.querySelector('[data-mode="' + mode + '"], [data-m="' + mode + '"], [data-value="' + mode + '"]');
-      if (!btn) {
-        /* universal fallback: match the legacy button by its visible label */
-        var kids = legacySeg.querySelectorAll("button");
-        for (var i = 0; i < kids.length; i++) {
-          if ((kids[i].textContent || "").trim().toLowerCase() === mode) { btn = kids[i]; break; }
+    if (drivingLegacy || (mode !== "simple" && mode !== "power")) return;
+    var button = null;
+    var legacyControl = document.getElementById("modeSeg");
+    if (legacyControl) {
+      button = legacyControl.querySelector('[data-mode="' + mode + '"],[data-m="' + mode + '"],[data-value="' + mode + '"]');
+      if (!button) {
+        var candidates = legacyControl.querySelectorAll("button");
+        for (var index = 0; index < candidates.length; index += 1) {
+          if ((candidates[index].textContent || "").trim().toLowerCase() === mode) {
+            button = candidates[index];
+            break;
+          }
         }
       }
     }
-    /* pattern B tools use #simpleTab / #powerTab (currently opt-out holdouts) */
-    if (!btn) btn = document.getElementById(mode + "Tab");
-    if (btn && typeof btn.click === "function") {
-      driving = true;
-      try { btn.click(); } catch (e) { }
-      driving = false;
-      return true;
-    }
-    return false;
+    if (!button) button = document.getElementById(mode + "Tab");
+    if (!button || typeof button.click !== "function") return;
+    drivingLegacy = true;
+    try { button.click(); } catch (error) { }
+    drivingLegacy = false;
   }
 
-  /* Detect the tool's CURRENT base mode for boot reflection: body.power OR an active legacy toggle
-     button (some tools mark power via aria-pressed/aria-selected/.on without setting body.power). */
-  function legacyActiveIsPower() {
-    try {
-      if (document.body.classList.contains("power")) return true;
-      var legacySeg = document.getElementById("modeSeg");
-      if (legacySeg) {
-        var pw = legacySeg.querySelector('[data-mode="power"],[data-m="power"],[data-value="power"]');
-        if (!pw) {
-          var kids = legacySeg.querySelectorAll("button");
-          for (var i = 0; i < kids.length; i++) { if ((kids[i].textContent || "").trim().toLowerCase() === "power") { pw = kids[i]; break; } }
+  function suppressLegacyControls() {
+    function suppress() {
+      var controls = [
+        document.getElementById("modeSeg"),
+        document.getElementById("simpleTab"),
+        document.getElementById("powerTab")
+      ].filter(Boolean);
+      for (var index = 0; index < controls.length; index += 1) {
+        if (controls[index].getAttribute("aria-hidden") !== "true") {
+          controls[index].setAttribute("aria-hidden", "true");
         }
-        if (pw && (pw.getAttribute("aria-pressed") === "true" || pw.getAttribute("aria-selected") === "true" || pw.classList.contains("on"))) return true;
+        if (controls[index].tabIndex !== -1) controls[index].tabIndex = -1;
       }
-      var pt = document.getElementById("powerTab");
-      if (pt && (pt.getAttribute("aria-selected") === "true" || pt.getAttribute("aria-pressed") === "true")) return true;
-    } catch (e) { }
-    return false;
+    }
+    suppress();
+    if (!root.MutationObserver) return;
+    var observer = new root.MutationObserver(suppress);
+    var legacyRoot = document.getElementById("modeSeg");
+    if (legacyRoot) observer.observe(legacyRoot, { attributes: true, attributeFilter: ["aria-hidden", "tabindex"], subtree: true });
   }
 
-  /* Pure visual reflection: body state + control UI. No tool drive, no event. */
+  function dependencyMarkup(gateKey) {
+    var result = EXPERIENCE.projectDependencyGate(CONFIG, gateKey, DEPENDENCY_STATES);
+    if (!result.ok) return "";
+    var gate = result.value;
+    return '<div data-rlexperience-gate="' + escapeHtml(gate.gateId) + '">' +
+      '<h2>' + escapeHtml(gate.heading) + '</h2>' +
+      '<p>Observed status: ' + escapeHtml(gate.observed.status || "unknown") + '</p>' +
+      '<p>Observed certification: ' + escapeHtml(gate.observed.certificationStatus || "unknown") + '</p>' +
+      '<p>Withheld: ' + escapeHtml(gate.withheldCapabilities.join(", ")) + '</p>' +
+      '<p>Available now: ' + escapeHtml(gate.preservedCapabilities.join(", ")) + '</p>' +
+      '<p>Acceptance gate: ' + escapeHtml(gate.acceptanceGate) + '</p>' +
+      '<p>Gate: ' + escapeHtml(gate.gateCode) + '</p>' +
+      '</div>';
+  }
+
+  function buildPanels() {
+    for (var index = 0; index < MODES.length; index += 1) {
+      var mode = MODES[index];
+      var panel = document.createElement("section");
+      panel.className = "rlexperience-placeholder";
+      if (mode === "brief" && ANCHOR) {
+        panel.appendChild(ANCHOR);
+        if (SHELL.kind === "ordinary") panel.insertAdjacentHTML("beforeend", dependencyMarkup("FEATURE002"));
+      } else if (mode === "journey") {
+        panel.innerHTML = '<h2>Journey</h2><p>Choose a tool goal to begin a guided research workflow. Runtime activation is delivered by the Journey foundation.</p>';
+      } else if (mode === "portfolio") {
+        panel.innerHTML = '<h2>Portfolio</h2><p>Public watchlist research remains available without implying holdings.</p>' + dependencyMarkup("FEATURE008");
+      } else if (mode === "red-alert") {
+        panel.innerHTML = '<h2>Red Alert</h2><p>No current evidence-qualified alert is published by this shell foundation.</p>';
+      }
+      panel.setAttribute("data-rlexperience-panel", mode);
+      panel.hidden = true;
+      panels[mode] = panel;
+      (document.body || document.documentElement).appendChild(panel);
+    }
+  }
+
   function applyVisual(mode) {
-    var isBrief = (mode === "brief");
-    if (!isBrief) lastBase = mode;
     current = mode;
     document.body.classList.toggle("power", mode === "power");
-    document.body.classList.toggle("rlv-brief", isBrief);
-    try { document.body.setAttribute("data-rlview", mode); } catch (e) { }
-    if (seg) {
-      var btns = seg.querySelectorAll("button[data-rlview-mode]");
-      for (var i = 0; i < btns.length; i++) {
-        var on = btns[i].getAttribute("data-rlview-mode") === mode;
-        btns[i].setAttribute("aria-selected", on ? "true" : "false");
-        btns[i].tabIndex = on ? 0 : -1;
-      }
+    document.body.classList.toggle("rlv-brief", mode === "brief");
+    document.body.classList.toggle("rlv-focused", ownerModes.indexOf(mode) === -1);
+    document.body.setAttribute("data-rlview", mode);
+    Object.keys(panels).forEach(function (panelMode) {
+      var ownerPlaceholder = ownerModes.indexOf(panelMode) !== -1 && panelMode !== "brief";
+      panels[panelMode].hidden = panelMode !== mode || ownerPlaceholder;
+    });
+    if (!shellControl) return;
+    var tabs = shellControl.querySelectorAll("button[data-rlview-mode]");
+    for (var index = 0; index < tabs.length; index += 1) {
+      var selected = tabs[index].getAttribute("data-rlview-mode") === mode;
+      tabs[index].setAttribute("aria-selected", selected ? "true" : "false");
+      tabs[index].tabIndex = selected ? 0 : -1;
     }
   }
 
-  /* User-initiated change: reflect + drive the tool (legacy click for simple/power) + notify. */
-  function apply(mode) {
+  function persistMode(mode) {
+    try {
+      var record = EXPERIENCE.createModeRecord(SHELL, mode, new Date().toISOString());
+      if (record.ok) localStorage.setItem(SHELL.routingPolicy.localModeKey, JSON.stringify(record.value));
+    } catch (error) { }
+  }
+
+  function apply(mode, source) {
     var previous = current;
     applyVisual(mode);
-    if (mode === "simple" || mode === "power") driveLegacy(mode);
+    driveLegacy(mode);
+    if (source !== "boot" && source !== "popstate") persistMode(mode);
     try {
       root.dispatchEvent(new CustomEvent("rlviews:change", {
-        detail: { mode: mode, previousMode: previous, baseMode: (mode === "brief") ? lastBase : mode, toolId: TOOL }
+        detail: { mode: mode, previousMode: previous, baseMode: mode, toolId: TOOL }
       }));
-    } catch (e) { }
+    } catch (error) { }
+  }
+
+  function readModeRecord() {
+    try {
+      var raw = localStorage.getItem(SHELL.routingPolicy.localModeKey);
+      return raw ? JSON.parse(raw) : null;
+    } catch (error) { return null; }
+  }
+
+  function resolveCurrentRoute(includeLocalRecord) {
+    var options = { publicTargetIds: [] };
+    if (includeLocalRecord) options.localModeRecord = readModeRecord();
+    var result = EXPERIENCE.resolveRoute(SHELL, location.hash, options);
+    return result.ok ? result.value : null;
+  }
+
+  function selectMode(mode, source) {
+    if (mode === current && source !== "popstate") return;
+    if (source !== "popstate") {
+      var transition = EXPERIENCE.transitionRoute(SHELL, {
+        contractVersion: "experience-route/v1",
+        mode: current,
+        targetId: null,
+        canonicalHash: "#" + current,
+        source: "current",
+        historyAction: "none",
+        focusPolicy: "preserve",
+        recovery: null,
+        noFetch: true
+      }, { type: "select", mode: mode, savedAt: new Date().toISOString() });
+      if (!transition.ok) return;
+      if (transition.value.historyAction === "push") {
+        history.pushState({ contractVersion: "experience-history/v1", toolId: TOOL, mode: mode }, "", transition.value.route.canonicalHash);
+      }
+    }
+    apply(mode, source);
+  }
+
+  function buildControl() {
+    shellControl = document.createElement("div");
+    shellControl.id = "rlviews";
+    shellControl.setAttribute("role", "tablist");
+    shellControl.setAttribute("aria-label", "View mode");
+    shellControl.setAttribute("data-rlexperience-shell", "ready");
+    shellControl.setAttribute("data-rlexperience-canary", "shadow-safe");
+    shellControl.innerHTML = MODES.map(function (mode) {
+      return '<button type="button" role="tab" data-rlview-mode="' + escapeHtml(mode) + '" aria-selected="false" title="Switch to ' + escapeHtml(labels[mode]) + '">' + escapeHtml(labels[mode]) + '</button>';
+    }).join("");
+    (document.body || document.documentElement).appendChild(shellControl);
+
+    shellControl.addEventListener("click", function (event) {
+      var button = event.target && event.target.closest ? event.target.closest("button[data-rlview-mode]") : null;
+      if (button) selectMode(button.getAttribute("data-rlview-mode"), "pointer");
+    });
+    shellControl.addEventListener("keydown", function (event) {
+      if (["ArrowLeft", "ArrowRight", "Home", "End", "Enter", " "].indexOf(event.key) === -1) return;
+      var index = MODES.indexOf(current);
+      if (index === -1) return;
+      var next = index;
+      if (event.key === "ArrowRight") next = (index + 1) % MODES.length;
+      else if (event.key === "ArrowLeft") next = (index - 1 + MODES.length) % MODES.length;
+      else if (event.key === "Home") next = 0;
+      else if (event.key === "End") next = MODES.length - 1;
+      selectMode(MODES[next], "keyboard");
+      var target = shellControl.querySelector('button[data-rlview-mode="' + MODES[next] + '"]');
+      if (target && target.focus) target.focus();
+      event.preventDefault();
+    });
   }
 
   function build() {
-    injectCSS();
-    seg = document.createElement("div");
-    seg.id = "rlviews";
-    seg.setAttribute("role", "tablist");
-    seg.setAttribute("aria-label", "View mode");
-    var html = "";
-    MODES.forEach(function (m) {
-      html +=
-        '<button type="button" role="tab" data-rlview-mode="' + esc(m) + '"' +
-        ' aria-selected="false" title="' + esc(TITLES[m] || "") + '">' +
-        esc(LABELS[m] || m) + "</button>";
+    injectCss();
+    buildPanels();
+    buildControl();
+    suppressLegacyControls();
+    var route = resolveCurrentRoute(true);
+    var initialMode = route ? route.mode : SHELL.defaultViewId;
+    if (route && route.historyAction === "replace") {
+      history.replaceState({ contractVersion: "experience-history/v1", toolId: TOOL, mode: initialMode }, "", route.canonicalHash);
+    }
+    apply(initialMode, "boot");
+    root.addEventListener("popstate", function () {
+      var restored = resolveCurrentRoute(false);
+      if (!restored) return;
+      if (restored.historyAction === "replace") {
+        history.replaceState({ contractVersion: "experience-history/v1", toolId: TOOL, mode: restored.mode }, "", restored.canonicalHash);
+      }
+      selectMode(restored.mode, "popstate");
     });
-    seg.innerHTML = html;
-    (document.body || document.documentElement).appendChild(seg);
-
-    seg.addEventListener("click", function (ev) {
-      var btn = ev.target && ev.target.closest ? ev.target.closest("button[data-rlview-mode]") : null;
-      if (!btn) return;
-      var mode = btn.getAttribute("data-rlview-mode");
-      if (mode && mode !== current) apply(mode);
-    });
-    /* keyboard: left/right move between segments (roving tabindex) */
-    seg.addEventListener("keydown", function (ev) {
-      if (ev.key !== "ArrowLeft" && ev.key !== "ArrowRight") return;
-      var idx = MODES.indexOf(current);
-      if (idx === -1) return;
-      var next = ev.key === "ArrowRight" ? (idx + 1) % MODES.length : (idx - 1 + MODES.length) % MODES.length;
-      apply(MODES[next]);
-      var target = seg.querySelector('button[data-rlview-mode="' + MODES[next] + '"]');
-      if (target && target.focus) target.focus();
-      ev.preventDefault();
-    });
-
-    /* initial mode: rlviews is a stateless facade — it FOLLOWS the tool's own restored state
-       (each tool persists its own mode and sets body.power during its init) rather than forcing
-       one. Reflect defaultBase immediately (no unselected flash), then, once the tool has
-       initialized, reflect its actual base view. Never boot into Brief. */
-    applyVisual(defaultBase);
-    var bootReflect = function () {
-      var m = defaultBase;
-      if (baseModes.indexOf("power") !== -1 && legacyActiveIsPower()) m = "power";
-      applyVisual(m);
-    };
-    if (root.requestAnimationFrame) root.requestAnimationFrame(function () { root.setTimeout(bootReflect, 0); });
-    else root.setTimeout(bootReflect, 30);
-    /* Follow late/async tool mode changes (e.g. a persisted mode restored after data settles):
-       observe the legacy toggle and re-reflect when its active state changes, unless we're mid-drive
-       or in Brief. Bounded to the first few seconds so it never perpetually observes. */
-    (function observeLegacy() {
-      try {
-        var targets = [document.getElementById("modeSeg"), document.getElementById("simpleTab"), document.getElementById("powerTab")].filter(Boolean);
-        if (!targets.length || !root.MutationObserver) return;
-        var obs = new root.MutationObserver(function () {
-          if (driving || current === "brief") return;
-          var want = (baseModes.indexOf("power") !== -1 && legacyActiveIsPower()) ? "power" : defaultBase;
-          if (want !== current) applyVisual(want);
-        });
-        for (var i = 0; i < targets.length; i++) obs.observe(targets[i], { attributes: true, attributeFilter: ["aria-pressed", "aria-selected", "class"], subtree: true });
-        root.setTimeout(function () { try { obs.disconnect(); } catch (e) { } }, 4000);
-      } catch (e) { }
-    })();
   }
 
   if (document.readyState === "loading") document.addEventListener("DOMContentLoaded", build);

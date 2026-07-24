@@ -207,6 +207,95 @@
       if (!text) return null; try { return JSON.parse(text); } catch (e) { return null; }
     }).catch(function () { return null; });
   }
+  function fetchRequiredJson(path) {
+    if (typeof fetch !== "function") return Promise.resolve(null);
+    return fetch(path, { cache: "no-store" }).then(function (res) {
+      return res && res.ok ? res.text() : null;
+    }).then(function (text) {
+      if (!text) return null;
+      try { return JSON.parse(text); } catch (e) { return null; }
+    }).catch(function () { return null; });
+  }
+  function ensureSharedScript(id, src, ready) {
+    return new Promise(function (resolve) {
+      if (ready()) return resolve(true);
+      var existing = document.getElementById(id);
+      if (existing) {
+        existing.remove();
+      }
+      var script = document.createElement("script");
+      script.id = id;
+      script.src = src;
+      script.addEventListener("load", function () { resolve(ready()); });
+      script.addEventListener("error", function () { resolve(false); });
+      (document.head || document.documentElement).appendChild(script);
+    });
+  }
+  function markExperienceUnavailable(anchor, message) {
+    if (!anchor) return;
+    anchor.setAttribute("data-rlexperience-state", "unavailable");
+    anchor.setAttribute("data-rlexperience-error", message);
+  }
+  function fetchDependencyStates(config) {
+    var gates = config && config.dependencyGates;
+    if (!gates || typeof gates !== "object") return Promise.resolve(null);
+    var keys = Object.keys(gates);
+    return Promise.all(keys.map(function (key) {
+      return fetchRequiredJson(gates[key].statePath).then(function (state) {
+        return { key: key, state: state };
+      });
+    })).then(function (rows) {
+      var states = {};
+      for (var i = 0; i < rows.length; i++) states[rows[i].key] = rows[i].state;
+      return states;
+    });
+  }
+  function mountExperienceShell() {
+    var anchors = document.querySelectorAll ? document.querySelectorAll("[data-rlbrief-mount][data-tool-id]") : [];
+    if (anchors.length !== 1) return Promise.resolve(false);
+    var anchor = anchors[0];
+    return Promise.all([
+      fetchRegistry(),
+      fetchRequiredJson("tool-experience.config.json"),
+      ensureSharedScript("rlexperience-shared-js", "rlexperience.js", function () {
+        return !!(root.RLEXPERIENCE && typeof root.RLEXPERIENCE.resolveShell === "function");
+      })
+    ]).then(function (values) {
+      var registry = values[0];
+      var config = values[1];
+      if (!registry || !config || values[2] !== true) {
+        markExperienceUnavailable(anchor, "experience-bootstrap-unavailable");
+        return false;
+      }
+      var toolId = anchor.getAttribute("data-tool-id");
+      var resolved = root.RLEXPERIENCE.resolveShell(config, registry, toolId);
+      if (!resolved.ok) {
+        markExperienceUnavailable(anchor, resolved.error.code);
+        return false;
+      }
+      return fetchDependencyStates(config).then(function (dependencyStates) {
+        if (!dependencyStates) {
+          markExperienceUnavailable(anchor, "dependency-state-unavailable");
+          return false;
+        }
+        root.__rlviewsRegistration = {
+          shell: resolved.value,
+          config: config,
+          registry: registry,
+          dependencyStates: dependencyStates,
+          anchor: anchor,
+          ownerModes: resolved.value.kind === "ordinary" ? ["simple", "power"] : ["brief"]
+        };
+        anchor.setAttribute("data-rlexperience-state", "registered");
+        return ensureSharedScript("rlviews-shared-js", "rlviews.js", function () {
+          return !!root.__rlviewsInit;
+        });
+      });
+    }).catch(function () {
+      markExperienceUnavailable(anchor, "experience-bootstrap-failed");
+      return false;
+    });
+  }
   function ensureBriefRenderer() {
     return new Promise(function (resolve) {
       if (root.RLBRIEF && typeof root.RLBRIEF.BriefMount === "function") return resolve(root.RLBRIEF);
@@ -261,8 +350,9 @@
     root.addEventListener("rl:data-status", renderStatus);
     setTimeout(renderStatus, 0);
     mountBriefs();
+    mountExperienceShell();
   }
 
-  root.RLAPP = { report: report, autoRefresh: autoRefresh, renderStatus: renderStatus, mountBriefs: mountBriefs };
+  root.RLAPP = { report: report, autoRefresh: autoRefresh, renderStatus: renderStatus, mountBriefs: mountBriefs, mountExperienceShell: mountExperienceShell };
   if (document.readyState === "loading") document.addEventListener("DOMContentLoaded", boot); else boot();
 })();

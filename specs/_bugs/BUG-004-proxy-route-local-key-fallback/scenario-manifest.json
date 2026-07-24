@@ -1,0 +1,168 @@
+{
+  "schemaVersion": 1,
+  "version": 1,
+  "spec": "BUG-004",
+  "featureDir": "specs/_bugs/BUG-004-proxy-route-local-key-fallback",
+  "generatedAt": "2026-07-22T02:40:26Z",
+  "scenarios": [
+    {
+      "id": "SCN-BUG004-001",
+      "scenarioId": "SCN-BUG004-001",
+      "scopeRef": "SCOPE-01",
+      "scope": "SCOPE-01-same-provider-ordered-transport-fallback",
+      "title": "Reachable proxy provider-route failure falls back to the same provider",
+      "behaviorClass": "provider-transport",
+      "changeType": "bugfix",
+      "requiredTestType": "functional",
+      "requiredTestTypes": ["functional"],
+      "regressionRequired": true,
+      "lockdown": { "state": "unlocked" },
+      "testPlanIds": ["TP-01", "TP-02", "TP-03", "TP-04", "TP-05"],
+      "plannedRegressions": [
+        {
+          "testPath": "tests/provider-credentials.functional.mjs",
+          "testTitle": "Regression BUG-004: proxy HTTP failure falls back once to same-provider local key",
+          "command": "node --test tests/provider-credentials.functional.mjs",
+          "adversarial": true,
+          "liveSystem": false,
+          "classification": "functional deterministic external boundary",
+          "discriminator": "The health probe succeeds and parameterized non-2xx responses include 503 PROVIDER_KEY_MISSING; only the registered same-provider direct host returns the distinct expected structure."
+        },
+        {
+          "testPath": "tests/provider-credentials.functional.mjs",
+          "testTitle": "Regression BUG-004: proxy transport rejection falls back once to same-provider local key",
+          "command": "node --test tests/provider-credentials.functional.mjs",
+          "adversarial": true,
+          "liveSystem": false,
+          "classification": "functional deterministic external boundary",
+          "discriminator": "The injected proxy provider fetch rejects; production providerFetch makes one same-provider direct attempt and surfaces no raw transport error."
+        },
+        {
+          "testPath": "tests/provider-credentials.functional.mjs",
+          "testTitle": "Regression BUG-004: proxy timeout rejection falls back once to same-provider local key",
+          "command": "node --test tests/provider-credentials.functional.mjs",
+          "adversarial": true,
+          "liveSystem": false,
+          "classification": "functional deterministic timer and external boundary",
+          "discriminator": "The additive loadRldata timer/abort seam observes fetchT timeout rejection and production providerFetch makes one same-provider direct attempt."
+        },
+        {
+          "testPath": "tests/provider-credentials.functional.mjs",
+          "testTitle": "Regression BUG-004: proxy JSON decode failure falls back once to same-provider local key",
+          "command": "node --test tests/provider-credentials.functional.mjs",
+          "adversarial": true,
+          "liveSystem": false,
+          "classification": "functional deterministic external boundary",
+          "discriminator": "The proxy response is HTTP-successful but json() rejects; production providerFetch makes one same-provider direct attempt and returns its parsed structure."
+        },
+        {
+          "testPath": "tests/provider-credentials.functional.mjs",
+          "testTitle": "Regression BUG-004: fallback never crosses provider or retries",
+          "command": "node --test tests/provider-credentials.functional.mjs",
+          "adversarial": true,
+          "liveSystem": false,
+          "classification": "functional deterministic external boundary",
+          "discriminator": "Multiple local provider keys exist, but request history contains one proxy route and at most one direct request to the originally requested provider's registered host."
+        }
+      ],
+      "evidenceRefs": ["report.md#bug-reproduction---before-fix", "report.md#bug-verification---after-fix", "report.md#test-phase-verification---tp-01-through-tp-13", "report.md#independent-test-reverification---system-chrome-2026-07-22"]
+    },
+    {
+      "id": "SCN-BUG004-002",
+      "scenarioId": "SCN-BUG004-002",
+      "scopeRef": "SCOPE-01",
+      "scope": "SCOPE-01-same-provider-ordered-transport-fallback",
+      "title": "Proxy provider-route failure without a local key remains fail closed",
+      "behaviorClass": "provider-transport",
+      "changeType": "bugfix",
+      "requiredTestType": "functional",
+      "requiredTestTypes": ["functional"],
+      "regressionRequired": true,
+      "lockdown": { "state": "unlocked" },
+      "testPlanIds": ["TP-06"],
+      "plannedRegressions": [
+        {
+          "testPath": "tests/provider-credentials.functional.mjs",
+          "testTitle": "Regression BUG-004: proxy failure without a local key makes no direct request",
+          "command": "node --test tests/provider-credentials.functional.mjs",
+          "adversarial": true,
+          "liveSystem": false,
+          "classification": "functional deterministic external boundary",
+          "discriminator": "The proxy route returns 503 PROVIDER_KEY_MISSING while no same-provider key exists; any direct request, cross-provider key use, or unsanitized error fails the test."
+        }
+      ],
+      "evidenceRefs": ["report.md#bug-reproduction---before-fix", "report.md#bug-verification---after-fix", "report.md#test-phase-verification---tp-01-through-tp-13", "report.md#independent-test-reverification---system-chrome-2026-07-22"]
+    },
+    {
+      "id": "SCN-BUG004-003",
+      "scenarioId": "SCN-BUG004-003",
+      "scopeRef": "SCOPE-01",
+      "scope": "SCOPE-01-same-provider-ordered-transport-fallback",
+      "title": "Force-local bypasses a reachable proxy provider route",
+      "behaviorClass": "provider-transport",
+      "changeType": "bugfix",
+      "requiredTestType": "functional",
+      "requiredTestTypes": ["functional", "e2e-ui"],
+      "regressionRequired": true,
+      "lockdown": { "state": "unlocked" },
+      "testPlanIds": ["TP-07", "TP-09", "TP-14"],
+      "plannedRegressions": [
+        {
+          "testPath": "tests/provider-credentials.functional.mjs",
+          "testTitle": "SCN-BUG004-003 force-local uses the shared direct provider path",
+          "command": "node --test tests/provider-credentials.functional.mjs",
+          "adversarial": false,
+          "liveSystem": false,
+          "classification": "functional deterministic external boundary"
+        },
+        {
+          "testPath": "tests/provider-fallback-status.spec.mjs",
+          "testTitle": "SCN-BUG004-003 force-local status stays masked with a reachable local proxy",
+          "command": "npx --no-install playwright test tests/provider-fallback-status.spec.mjs --config=playwright.config.mjs --project=system-chrome --grep \"SCN-BUG004-003 force-local status stays masked with a reachable local proxy\" --reporter=list",
+          "adversarial": false,
+          "liveSystem": true,
+          "classification": "e2e-ui local browser/application plus loopback HTTP proxy-health server",
+          "requestInterceptionAllowed": false,
+          "externalProviderTransportClaimed": false,
+          "coverageBoundary": "Browser settings, force-local control, masked provider status, and no-disclosure surfaces only."
+        },
+        {
+          "testPath": "tests/provider-fallback-status.spec.mjs",
+          "testTitle": "Broad Regression E2E UI: complete BUG-004 no-interception browser file",
+          "command": "npx --no-install playwright test tests/provider-fallback-status.spec.mjs --config=playwright.config.mjs --project=system-chrome --reporter=list",
+          "adversarial": false,
+          "liveSystem": true,
+          "classification": "e2e-ui broad local browser/application plus loopback HTTP proxy-health server",
+          "requestInterceptionAllowed": false,
+          "externalProviderTransportClaimed": false,
+          "coverageBoundary": "Complete BUG-004 no-interception browser file; no external-provider transport claim.",
+          "evidenceOwner": "bubbles.test",
+          "evidenceRef": "report.md#tp-14-broad-no-interception-browser-e2e"
+        }
+      ],
+      "evidenceRefs": ["report.md#bug-verification---after-fix", "report.md#test-phase-verification---tp-01-through-tp-13", "report.md#independent-test-reverification---system-chrome-2026-07-22", "report.md#tp-14-broad-no-interception-browser-e2e"]
+    },
+    {
+      "id": "SCN-BUG004-004",
+      "scenarioId": "SCN-BUG004-004",
+      "scopeRef": "SCOPE-01",
+      "scope": "SCOPE-01-same-provider-ordered-transport-fallback",
+      "title": "Unknown and prototype-shaped providers remain inert",
+      "behaviorClass": "provider-boundary",
+      "changeType": "regression-preservation",
+      "requiredTestType": "unit",
+      "requiredTestTypes": ["unit"],
+      "regressionRequired": true,
+      "lockdown": { "state": "unlocked" },
+      "testPlanIds": ["TP-08"],
+      "linkedTests": [
+        {
+          "file": "tests/provider-credentials.unit.mjs",
+          "testId": "SCN-BUG002-004 fail-closed transport and prototype-safe unknown providers",
+          "requiredAssertion": "Unknown, empty, toString, constructor, __proto__, and prototype identifiers reject without config, transport, or built-in prototype mutation."
+        }
+      ],
+      "evidenceRefs": ["report.md#bug-verification---after-fix", "report.md#test-phase-verification---tp-01-through-tp-13", "report.md#independent-test-reverification---system-chrome-2026-07-22"]
+    }
+  ]
+}

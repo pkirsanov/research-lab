@@ -1,0 +1,168 @@
+{
+  "version": 1,
+  "specId": "BUG-001",
+  "featureDir": "specs/012-market-action-center-and-guided-tools/bugs/BUG-001-options-flow-shell-startup-starvation",
+  "featureName": "Options-Flow Shell Startup Starvation",
+  "generatedBy": "bubbles.plan",
+  "generatedAt": "2026-07-24T01:55:41Z",
+  "planningStatus": "adopted-design-reconciled-pre-fix-red-required",
+  "evidenceBoundary": "Planning is adopted. No persistent adversarial test, pre-fix RED from that test, production fix, post-fix result, scope completion, or certification is claimed.",
+  "implementationDispatchAllowed": false,
+  "nextRequiredOwner": "bubbles.test",
+  "nextRequiredAction": "Create TP-BUG001-02 with the exact persistent title and record its pre-fix RED against unchanged options-flow-feed-lab.html before implementation dispatch.",
+  "dodParity": {
+    "scopeId": "SCOPE-01",
+    "testPlanRowCount": 6,
+    "testEvidenceCheckboxCount": 6,
+    "mapping": [
+      { "testPlanId": "TP-BUG001-01", "dodId": "DOD-TP-BUG001-01", "checked": false, "evidenceRef": "report.md#bug-reproduction---before-fix", "executionStatus": "failing-current" },
+      { "testPlanId": "TP-BUG001-02", "dodId": "DOD-TP-BUG001-02", "checked": false, "evidenceRef": null, "executionStatus": "not-created" },
+      { "testPlanId": "TP-BUG001-03", "dodId": "DOD-TP-BUG001-03", "checked": false, "evidenceRef": null, "executionStatus": "not-run" },
+      { "testPlanId": "TP-BUG001-04", "dodId": "DOD-TP-BUG001-04", "checked": false, "evidenceRef": null, "executionStatus": "not-run" },
+      { "testPlanId": "TP-BUG001-05", "dodId": "DOD-TP-BUG001-05", "checked": false, "evidenceRef": null, "executionStatus": "not-run" },
+      { "testPlanId": "TP-BUG001-06", "dodId": "DOD-TP-BUG001-06", "checked": false, "evidenceRef": null, "executionStatus": "not-run" }
+    ]
+  },
+  "scope": {
+    "scopeId": "SCOPE-01",
+    "scopeName": "Sequence Heavy Hydration After Shared Shell Readiness",
+    "status": "not_started",
+    "foundation": false,
+    "capabilityRole": "cross-scope-bugfix-overlay",
+    "dependsOn": [
+      "Feature-012/Scope-02",
+      "Feature-012/Scope-03"
+    ],
+    "tests": [
+      {
+        "id": "TP-BUG001-01",
+        "dodId": "DOD-TP-BUG001-01",
+        "type": "exact-before-after-functional-canary",
+        "category": "functional",
+        "file": "tests/tool-experience-shell.functional.mjs",
+        "scenarioIds": ["SCN-BUG001-001", "SCN-BUG001-003"],
+        "testId": "SCN-012-028 and SCN-012-029 all 23 registry pages bootstrap one exact shell without script-order drift",
+        "description": "Run the unchanged all-23 command before and after repair; current bytes fail only options-flow at the existing 10-second selector and fixed bytes must pass all routes with zero skips.",
+        "command": "node --test tests/tool-experience-shell.functional.mjs",
+        "liveSystem": true,
+        "liveBoundary": "local System Chrome application and same-origin static files",
+        "regression": true,
+        "adversarial": true,
+        "redRequiredBeforeImplementation": true,
+        "status": "failing-current",
+        "evidenceRef": "report.md#bug-reproduction---before-fix"
+      },
+      {
+        "id": "TP-BUG001-02",
+        "dodId": "DOD-TP-BUG001-02",
+        "type": "adversarial-regression-e2e-ui",
+        "category": "e2e-ui",
+        "file": "tests/tool-experience.spec.mjs",
+        "scenarioIds": ["SCN-BUG001-001", "SCN-BUG001-002"],
+        "testId": "Regression: BUG-001 options flow shell is ready before heavy hydration begins",
+        "description": "A page.addInitScript native-fetch observer forwards every request unchanged and proves the first option delta request sees the ready shell; it performs no route interception and retains the existing 10-second shell deadline.",
+        "command": "npx --no-install playwright test tests/tool-experience.spec.mjs --config=playwright.config.mjs --project=system-chrome --grep \"Regression: BUG-001 options flow shell is ready before heavy hydration begins\" --reporter=list",
+        "liveSystem": true,
+        "liveBoundary": "real local page and same-origin static server",
+        "requestObservationMode": "page.addInitScript wraps native fetch for observation and calls the original fetch unchanged",
+        "requestInterceptionAllowed": false,
+        "serviceWorkerAllowed": false,
+        "regression": true,
+        "adversarial": true,
+        "redRequiredBeforeImplementation": true,
+        "status": "not-created",
+        "evidenceRef": null
+      },
+      {
+        "id": "TP-BUG001-03",
+        "dodId": "DOD-TP-BUG001-03",
+        "type": "broader-shell-regression-e2e-ui",
+        "category": "e2e-ui",
+        "files": ["tests/tool-experience.spec.mjs", "tests/tool-experience-mobile.spec.mjs"],
+        "scenarioIds": ["SCN-BUG001-003"],
+        "description": "Run complete ordinary, Center, and mobile shell regressions together with no request interception.",
+        "command": "npx --no-install playwright test tests/tool-experience.spec.mjs tests/tool-experience-mobile.spec.mjs --config=playwright.config.mjs --project=system-chrome --reporter=list",
+        "liveSystem": true,
+        "requestInterceptionAllowed": false,
+        "regression": true,
+        "status": "not-run",
+        "evidenceRef": null
+      },
+      {
+        "id": "TP-BUG001-04",
+        "dodId": "DOD-TP-BUG001-04",
+        "type": "ownership-change-boundary-canary",
+        "category": "functional",
+        "files": ["rldata.js", "scripts/fetch-options.mjs", "data/options/**"],
+        "scenarioIds": ["SCN-BUG001-002"],
+        "description": "Prove provider/data ownership, option producer/snapshots, shared context modules, Scope 04, and parent coordination remain unchanged; classify every changed path.",
+        "command": "git diff --exit-code -- rldata.js scripts/fetch-options.mjs data/options",
+        "liveSystem": false,
+        "regression": true,
+        "status": "not-run",
+        "evidenceRef": null
+      },
+      {
+        "id": "TP-BUG001-05",
+        "dodId": "DOD-TP-BUG001-05",
+        "type": "broad-build-free-regression",
+        "category": "unit",
+        "file": "scripts/selftest.mjs",
+        "scenarioIds": ["SCN-BUG001-002", "SCN-BUG001-003"],
+        "description": "Preserve all existing source, registry, shell, context, model, and tool invariants.",
+        "command": "node scripts/selftest.mjs",
+        "liveSystem": false,
+        "regression": true,
+        "status": "not-run",
+        "evidenceRef": null
+      },
+      {
+        "id": "TP-BUG001-06",
+        "dodId": "DOD-TP-BUG001-06",
+        "type": "regression-and-bailout-quality",
+        "category": "functional",
+        "files": ["tests/tool-experience.spec.mjs", "tests/tool-experience-shell.functional.mjs"],
+        "scenarioIds": ["SCN-BUG001-001", "SCN-BUG001-003"],
+        "description": "Reject skips, failure-condition returns, optional assertions, interception, timeout inflation, and ordering tests that do not fail on current production.",
+        "command": "bash .github/bubbles/scripts/regression-quality-guard.sh --bugfix tests/tool-experience.spec.mjs tests/tool-experience-shell.functional.mjs",
+        "liveSystem": false,
+        "regression": true,
+        "adversarial": true,
+        "status": "not-run",
+        "evidenceRef": null
+      }
+    ]
+  },
+  "applicability": {
+    "unit": "broad selftest required; no new pure domain computation",
+    "functional": "required for exact all-route reproduction and ownership boundaries",
+    "integration": "not applicable: no Research Lab service tier changes",
+    "ui-unit": "not applicable: no component framework owns the inline page boot",
+    "e2e-api": "not applicable: no service API changes",
+    "e2e-ui": "required for exact startup ordering and broader shell preservation",
+    "stress": "not applicable: no new SLA or stress-sensitive algorithm",
+    "load": "not applicable: row-capacity redesign is excluded"
+  },
+  "changeBoundary": {
+    "allowedProduction": ["options-flow-feed-lab.html"],
+    "allowedTests": ["tests/tool-experience.spec.mjs", "tests/tool-experience-shell.functional.mjs"],
+    "readOnlyChecks": ["tests/tool-experience-mobile.spec.mjs", "scripts/selftest.mjs", "tests/provider-credentials.support.mjs"],
+    "excluded": [
+      "rldata.js and provider/source ownership",
+      "rlapp.js, rlviews.js, rlexperience.js, rlg.js, rlticker.js, rlcontext.js",
+      "scripts/fetch-options.mjs and data/options/**",
+      "Feature 012 parent scope/status/certification artifacts",
+      "Scope 04 source, tests, and report",
+      "framework-managed paths",
+      "timeout increases, route skips, worker/source changes, row truncation, and manual fetch controls"
+    ]
+  },
+  "routing": {
+    "sequence": [
+      { "order": 1, "owner": "bubbles.test", "action": "Create TP-BUG001-02 and record the persistent adversarial RED against unchanged production while retaining the exact all-23 RED." },
+      { "order": 2, "owner": "bubbles.implement", "action": "Apply the page-local startup-sequencing repair only after the persistent RED is recorded." },
+      { "order": 3, "owner": "bubbles.test", "action": "Run exact after-fix, broader shell, ownership, quality, rollback, and broad regression rows." },
+      { "order": 4, "owner": "bubbles.validate", "action": "Validate only after every required specialist and audit gate is satisfied." }
+    ]
+  }
+}

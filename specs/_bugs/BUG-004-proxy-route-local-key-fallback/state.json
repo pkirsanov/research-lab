@@ -1,0 +1,993 @@
+{
+  "version": 3,
+  "featureDir": "specs/_bugs/BUG-004-proxy-route-local-key-fallback",
+  "featureName": "BUG-004 Proxy Route Local-Key Fallback",
+  "createdAt": "2026-07-22T02:13:28Z",
+  "lastUpdatedAt": "2026-07-23T03:34:28Z",
+  "completedAt": "2026-07-23T03:28:14Z",
+  "certifiedAt": "2026-07-23T03:28:14Z",
+  "status": "done",
+  "workflowMode": "bugfix-fastlane",
+  "linkedImplementationSpec": "specs/_bugs/BUG-002-two-tier-provider-access",
+  "requiresRevalidation": false,
+  "flagsIntroduced": [],
+  "completedScopes": ["SCOPE-01"],
+  "completedPhases": ["implement", "test", "regression", "simplify", "gaps", "harden", "stabilize", "security", "validate", "audit"],
+  "execution": {
+    "activeAgent": "bubbles.validate",
+    "currentPhase": "validate",
+    "currentPhaseStatus": "completed",
+    "substate": "independently_verified",
+    "currentScope": "SCOPE-01",
+    "runStartedAt": "2026-07-23T03:23:40Z",
+    "completedAt": "2026-07-23T03:28:14Z",
+    "executionModel": "direct-authorized-runner",
+    "parentAgent": null,
+    "nextRequiredOwner": null,
+    "completedPhaseClaims": ["implement", "test", "regression", "simplify", "gaps", "harden", "stabilize", "security", "validate", "audit"],
+    "pendingTransitionRequests": [],
+    "scopeInventory": [
+      {
+        "scope": 1,
+        "scopeId": "SCOPE-01",
+        "name": "Same-Provider Ordered Transport Fallback",
+        "status": "done",
+        "dependsOn": [],
+        "foundation": false,
+        "foundationRef": "BUG-002/SCOPE-01 (foundation:true)",
+        "capabilityRole": "concrete-overlay",
+        "evidenceFile": "report.md"
+      }
+    ],
+    "audit": {
+      "schemaVersion": "audit-run/v1",
+      "runId": "audit-bug004-20260723T011859Z",
+      "currentAttemptId": "audit-attempt-20260723T025545Z",
+      "attempts": [
+        {
+          "attemptId": "audit-attempt-20260723T011859Z",
+          "resultState": "SUPERSEDED",
+          "startedAt": "2026-07-23T01:18:59Z",
+          "supersededAt": "2026-07-23T02:55:45Z",
+          "supersededByAttemptId": "audit-attempt-20260723T025545Z",
+          "auditClass": "delivery-completion",
+          "auditProfile": "delivery-completion-v1",
+          "targetStatus": "done",
+          "targetRevision": "sha256:27156f7d6b0888cd1a201c5d81d876b2fe4c606311729b75ef704812b3380e57",
+          "contractDigest": "sha256:aa91472c047d3d985d38c1d308feb1e6081955b2aa553816deb5987d9cdc449f",
+          "auditVerdict": "INTERRUPTED",
+          "outcome": "blocked",
+          "evidenceRef": "report.md#independent-delivery-completion-audit---2026-07-23t011859z",
+          "addressedFindings": [],
+          "unresolvedFindings": [
+            "BUG004-PLAN-ROUTING-DRIFT",
+            "VAL-BUG004-002",
+            "VAL-BUG004-003",
+            "VAL-BUG004-008",
+            "BUG004-REPORT-ROUTING-SUMMARY-DRIFT"
+          ]
+        },
+        {
+          "attemptId": "audit-attempt-20260723T025545Z",
+          "resultState": "ACTIVE",
+          "startedAt": "2026-07-23T02:55:45Z",
+          "completedAt": "2026-07-23T02:58:30Z",
+          "auditClass": "delivery-completion",
+          "auditProfile": "delivery-completion-v1",
+          "targetStatus": "done",
+          "targetRevision": "sha256:c13f7d95dbf40d78dedfcbc14c0ca86485d46103906db096ae3da5b9bcc1f098",
+          "contractDigest": "sha256:aa91472c047d3d985d38c1d308feb1e6081955b2aa553816deb5987d9cdc449f",
+          "auditVerdict": "REWORK_REQUIRED",
+          "outcome": "route_required",
+          "evidenceRef": "report.md#independent-delivery-completion-audit---2026-07-23t025545z",
+          "addressedFindings": [
+            "BUG004-PLAN-ROUTING-DRIFT",
+            "VAL-BUG004-008",
+            "BUG004-REPORT-ROUTING-SUMMARY-DRIFT"
+          ],
+          "unresolvedFindings": [
+            "VAL-BUG004-002",
+            "VAL-BUG004-003"
+          ]
+        }
+      ]
+    }
+  },
+  "certification": {
+    "status": "done",
+    "completedAt": "2026-07-23T03:28:14Z",
+    "certifiedAt": "2026-07-23T03:28:14Z",
+    "completedScopes": ["SCOPE-01"],
+    "certifiedCompletedPhases": ["implement", "test", "regression", "simplify", "gaps", "harden", "stabilize", "security", "validate", "audit"],
+    "scopeProgress": [
+      {
+        "scope": 1,
+        "scopeId": "SCOPE-01",
+        "name": "Same-Provider Ordered Transport Fallback",
+        "status": "done",
+        "dependsOn": [],
+        "scopeDir": null,
+        "evidenceFile": "report.md",
+        "certifiedAt": "2026-07-23T03:23:40Z"
+      }
+    ],
+    "assurance": {
+      "level": "full",
+      "missingForFull": []
+    },
+    "lockdownState": {
+      "active": false,
+      "lockedScenarioIds": []
+    }
+  },
+  "policySnapshot": {
+    "workflowMode": "bugfix-fastlane",
+    "grill": { "mode": "off", "source": "repo-default" },
+    "tdd": { "mode": "scenario-first", "source": "workflow-forced" },
+    "autoCommit": { "mode": "off", "source": "user-request" },
+    "lockdown": { "mode": "off", "source": "repo-default" },
+    "regression": { "mode": "protected-scenarios", "source": "repo-default" },
+    "validation": { "mode": "certification-required", "source": "repo-default" }
+  },
+  "transitionRequests": [
+    {
+      "id": "TR-BUG004-DESIGN",
+      "status": "resolved",
+      "requestedBy": "bubbles.bug",
+      "routedTo": "bubbles.design",
+      "requestedAt": "2026-07-22T02:13:28Z",
+      "reason": "Adopt or amend the grounded root-cause and one-helper fix design before planning or source changes.",
+      "scenarioIds": ["SCN-BUG004-001", "SCN-BUG004-002", "SCN-BUG004-003", "SCN-BUG004-004"],
+      "findingIds": ["BUG004-DESIGN-OWNERSHIP", "BUG004-PREFX-RED", "BUG004-IMPLEMENTATION", "BUG004-VERIFICATION"],
+      "evidenceRefs": ["bug.md#root-cause", "design.md#root-cause-analysis", "report.md#source-path-diagnosis"],
+      "resolvedAt": "2026-07-22T02:34:24Z",
+      "resolvedBy": "bubbles.design",
+      "resolutionSummary": "Adopted the grounded root cause and one-helper same-provider fallback, then reconciled the authoritative design with explicit ordering, error, secrecy, force-local, prototype-defense, protected-option, and testing contracts."
+    },
+    {
+      "id": "TR-BUG004-PLAN",
+      "status": "resolved",
+      "requestedBy": "bubbles.design",
+      "routedTo": "bubbles.plan",
+      "requestedAt": "2026-07-22T02:34:24Z",
+      "reason": "Reconcile plan-owned scopes and machine handoff to the adopted design: cover every FR-2 proxy failure class, preserve the exact 503 adversarial discriminator, resolve scenario-specific E2E applicability honestly, and remove the stale runSubagent routing block from scopes.md.",
+      "scenarioIds": ["SCN-BUG004-001", "SCN-BUG004-002", "SCN-BUG004-003", "SCN-BUG004-004"],
+      "findingIds": ["BUG004-PLAN-OWNERSHIP", "BUG004-FR2-TEST-COVERAGE", "BUG004-E2E-APPLICABILITY", "BUG004-STALE-PLAN-RUNTIME-PROSE"],
+      "evidenceRefs": ["design.md#testing-and-validation-strategy", "design.md#api-and-error-contracts", "design.md#risks-and-open-questions"],
+      "resolvedAt": "2026-07-22T02:40:26Z",
+      "resolvedBy": "bubbles.plan",
+      "resolutionSummary": "Finalized one SCOPE-01, enumerated every FR-2 failure class, added exact Test Plan-to-DoD parity and test-plan.json, separated deterministic functional transport proof from no-interception local-browser status E2E, preserved protected collateral, and removed stale plan-owned runtime prose."
+    },
+    {
+      "id": "TR-BUG004-TEST-RED",
+      "status": "resolved",
+      "requestedBy": "bubbles.plan",
+      "routedTo": "bubbles.test",
+      "requestedAt": "2026-07-22T02:40:26Z",
+      "reason": "Create TP-01 against unchanged rldata.js and execute the scenario-specific pre-fix RED before any production source edit.",
+      "scenarioIds": ["SCN-BUG004-001"],
+      "findingIds": ["BUG004-PREFX-RED"],
+      "evidenceRefs": ["scopes.md#test-plan", "test-plan.json", "scenario-manifest.json", "report.md#bug-reproduction---before-fix"],
+      "resolvedAt": "2026-07-22T03:11:47Z",
+      "resolvedBy": "bubbles.test",
+      "resolutionSummary": "Confirmed the existing current-session TP-01 adversarial RED evidence predates the production edit and retained its exact failing discriminator."
+    },
+    {
+      "id": "TR-BUG004-BROWSER-RUNTIME",
+      "status": "resolved",
+      "requestedBy": "bubbles.test",
+      "routedTo": "operator",
+      "requestedAt": "2026-07-22T03:11:47Z",
+      "reason": "Provision Linux Google Chrome Stable so /opt/google/chrome/chrome exists and is executable. Playwright 1.61.1 launches its existing managed Chromium cache, but that cache and Windows Chrome do not satisfy the repository-declared system-chrome channel; no repository-sanctioned install command exists and browser substitution is forbidden.",
+      "scenarioIds": ["SCN-BUG004-003", "SCN-BUG004-004"],
+      "findingIds": ["BUG004-VERIFICATION"],
+      "evidenceRefs": [
+        "report.md#tp-09---no-interception-browser-status",
+        "report.md#tp-12---intercepted-browser-functional-regression",
+        "report.md#browser-runtime-blocker",
+        "report.md#devops-browser-runtime-inspection"
+      ],
+      "resolvedAt": "2026-07-22T17:40:23Z",
+      "resolvedBy": "bubbles.validate",
+      "resolutionSummary": "Independent current-session execution confirmed Linux system Chrome 150.0.7871.181 at the declared channel, TP-09 passed 1/1 without interception, and TP-12 passed 4/4 under its intercepted functional-browser classification."
+    },
+    {
+      "id": "TR-BUG004-TRACEABILITY-PLAN",
+      "status": "resolved",
+      "requestedBy": "bubbles.test",
+      "routedTo": "bubbles.plan",
+      "requestedAt": "2026-07-22T03:13:14Z",
+      "reason": "Reconcile plan-owned DoD wording so traceability guard G068 faithfully maps SCN-BUG004-001, SCN-BUG004-002, and SCN-BUG004-004 without changing scenario behavior or test classification.",
+      "scenarioIds": ["SCN-BUG004-001", "SCN-BUG004-002", "SCN-BUG004-004"],
+      "findingIds": ["BUG004-DOD-FIDELITY"],
+      "evidenceRefs": ["report.md#governance-validation", "scopes.md#gherkin-scenarios", "scopes.md#definition-of-done---tiered-validation"],
+      "resolvedAt": "2026-07-22T03:17:55Z",
+      "resolvedBy": "bubbles.plan",
+      "resolutionSummary": "Restored G068 content fidelity by binding SCN-BUG004-001 to DOD-TP-01, SCN-BUG004-002 to DOD-TP-06, and SCN-BUG004-004 to DOD-TP-08 while preserving 13 Test Plan rows, 13 unchecked DoD test items, and existing test classifications. Artifact lint and traceability guard both pass."
+    }
+  ],
+  "reworkQueue": [],
+  "executionHistory": [
+    {
+      "agent": "bubbles.design",
+      "workflowMode": "bugfix-fastlane",
+      "executionModel": "direct-authorized-runner",
+      "parentAgent": null,
+      "startedAt": "2026-07-22T02:27:38Z",
+      "completedAt": "2026-07-22T02:34:24Z",
+      "statusBefore": "in_progress",
+      "statusAfter": "in_progress",
+      "phasesExecuted": ["bootstrap"],
+      "scopesCompleted": [],
+      "outcome": "route_required",
+      "addressedFindings": ["BUG004-DESIGN-OWNERSHIP"],
+      "unresolvedFindings": [
+        "BUG004-PLAN-OWNERSHIP",
+        "BUG004-FR2-TEST-COVERAGE",
+        "BUG004-E2E-APPLICABILITY",
+        "BUG004-PREFX-RED",
+        "BUG004-IMPLEMENTATION",
+        "BUG004-VERIFICATION",
+        "BUG004-STALE-BUG-RUNTIME-PROSE",
+        "BUG004-STALE-PLAN-RUNTIME-PROSE"
+      ],
+      "nextRequiredOwner": "bubbles.plan",
+      "summary": "Adopted and reconciled the grounded BUG-004 design. The active contract remains proxy-first with one same-provider direct fallback through a shared helper for the FR-2 failure set, strict key containment, unchanged force-local and prototype defenses, and byte-protected option/BUG-002 surfaces. No source, test, plan, report, bug, user-validation, scenario-manifest, certification, or policy field was modified."
+    },
+    {
+      "agent": "bubbles.plan",
+      "workflowMode": "bugfix-fastlane",
+      "executionModel": "direct-authorized-runner",
+      "parentAgent": null,
+      "startedAt": "2026-07-22T02:40:26Z",
+      "completedAt": "2026-07-22T02:46:36Z",
+      "statusBefore": "in_progress",
+      "statusAfter": "in_progress",
+      "phasesExecuted": ["bootstrap"],
+      "scopesCompleted": [],
+      "outcome": "route_required",
+      "addressedFindings": [
+        "BUG004-PLAN-OWNERSHIP",
+        "BUG004-FR2-TEST-COVERAGE",
+        "BUG004-E2E-APPLICABILITY",
+        "BUG004-STALE-PLAN-RUNTIME-PROSE"
+      ],
+      "unresolvedFindings": [
+        "BUG004-PREFX-RED",
+        "BUG004-IMPLEMENTATION",
+        "BUG004-VERIFICATION",
+        "BUG004-STALE-BUG-RUNTIME-PROSE"
+      ],
+      "nextRequiredOwner": "bubbles.test",
+      "summary": "Finalized the single-scope planning handoff and machine contracts without editing production or test code or claiming implementation-test results. The required next action is the scenario-specific pre-fix RED owned by bubbles.test."
+    },
+    {
+      "agent": "bubbles.implement",
+      "workflowMode": "bugfix-fastlane",
+      "executionModel": "direct-authorized-runner",
+      "parentAgent": null,
+      "startedAt": "2026-07-22T02:56:42Z",
+      "completedAt": "2026-07-22T02:58:52Z",
+      "statusBefore": "in_progress",
+      "statusAfter": "in_progress",
+      "phasesExecuted": ["implement"],
+      "scopesCompleted": [],
+      "outcome": "route_required",
+      "addressedFindings": ["BUG004-IMPLEMENTATION"],
+      "unresolvedFindings": [
+        "BUG004-VERIFICATION",
+        "BUG004-STALE-BUG-RUNTIME-PROSE"
+      ],
+      "nextRequiredOwner": "bubbles.test",
+      "summary": "Extracted the private same-provider direct helper, added one proxy-route failure continuation, and observed TP-01 GREEN. SCOPE-01 remains in progress with TP-02 through TP-13 owned by bubbles.test."
+    },
+    {
+      "agent": "bubbles.test",
+      "workflowMode": "bugfix-fastlane",
+      "executionModel": "direct-authorized-runner",
+      "parentAgent": null,
+      "startedAt": "2026-07-22T03:04:27Z",
+      "completedAt": "2026-07-22T03:13:14Z",
+      "statusBefore": "in_progress",
+      "statusAfter": "in_progress",
+      "phasesExecuted": ["test"],
+      "scopesCompleted": [],
+      "outcome": "blocked",
+      "addressedFindings": [
+        "BUG004-TEST-MATRIX-IMPLEMENTED",
+        "BUG004-VERIFICATION-NONBROWSER"
+      ],
+      "unresolvedFindings": ["BUG004-DOD-FIDELITY", "BUG004-VERIFICATION"],
+      "nextRequiredOwner": "bubbles.plan",
+      "summary": "Implemented the finalized TP-02 through TP-09 test surfaces. TP-01 through TP-08, TP-10, TP-11, and TP-13 pass with zero skips; TP-09 and TP-12 fail before test bodies execute because the required system Chrome channel is absent. Artifact lint passes, while traceability guard G068 routes three plan-owned DoD mappings to bubbles.plan. No production source, certification field, protected option path, or completed BUG-002 artifact was changed by the test phase."
+    },
+    {
+      "agent": "bubbles.plan",
+      "workflowMode": "bugfix-fastlane",
+      "executionModel": "direct-authorized-runner",
+      "parentAgent": null,
+      "startedAt": "2026-07-22T03:17:06Z",
+      "completedAt": "2026-07-22T03:17:55Z",
+      "statusBefore": "in_progress",
+      "statusAfter": "in_progress",
+      "phasesExecuted": ["bootstrap"],
+      "scopesCompleted": [],
+      "outcome": "route_required",
+      "addressedFindings": ["BUG004-DOD-FIDELITY"],
+      "unresolvedFindings": ["BUG004-VERIFICATION", "BUG004-STALE-BUG-RUNTIME-PROSE"],
+      "nextRequiredOwner": "bubbles.devops",
+      "summary": "Mapped the three G068 findings to their exact scenario-specific DoD test items without checking boxes or changing test classifications, source, tests, evidence, or certification. Artifact lint and traceability guard pass; the browser runtime remains the next blocking owner action."
+    },
+    {
+      "agent": "bubbles.devops",
+      "workflowMode": "bugfix-fastlane",
+      "executionModel": "direct-authorized-runner",
+      "parentAgent": null,
+      "startedAt": "2026-07-22T03:28:15Z",
+      "completedAt": "2026-07-22T03:28:35Z",
+      "statusBefore": "in_progress",
+      "statusAfter": "in_progress",
+      "phasesExecuted": [],
+      "scopesCompleted": [],
+      "outcome": "blocked",
+      "addressedFindings": ["BUG004-BROWSER-RUNTIME-DIAGNOSIS"],
+      "unresolvedFindings": ["BUG004-VERIFICATION", "BUG004-STALE-BUG-RUNTIME-PROSE"],
+      "nextRequiredOwner": "operator",
+      "summary": "Inspected the exact Playwright 1.61.1 system-chrome contract and available browser paths. The managed Chromium 1228 cache launches as Chrome for Testing 149, but channel chrome still requires absent /opt/google/chrome/chrome; Windows Chrome is not the Linux channel runtime. No package, browser, config, source, test, plan, or certification change was made."
+    },
+    {
+      "agent": "bubbles.plan",
+      "workflowMode": "bugfix-fastlane",
+      "executionModel": "direct-authorized-runner",
+      "parentAgent": null,
+      "startedAt": "2026-07-22T17:57:53Z",
+      "completedAt": "2026-07-22T18:09:52Z",
+      "statusBefore": "in_progress",
+      "statusAfter": "in_progress",
+      "phasesExecuted": ["bootstrap"],
+      "scopesCompleted": [],
+      "outcome": "route_required",
+      "addressedFindings": [
+        "VAL-BUG004-002-PLANNING-RECONCILIATION",
+        "VAL-BUG004-004-PLAN-CONTRACT",
+        "VAL-BUG004-005-PLAN-DEPENDENCY",
+        "VAL-BUG004-006",
+        "VAL-BUG004-007"
+      ],
+      "unresolvedFindings": [
+        "BUG004-STALE-BUG-RUNTIME-PROSE",
+        "VAL-BUG004-002",
+        "VAL-BUG004-003",
+        "VAL-BUG004-004",
+        "VAL-BUG004-005",
+        "VAL-BUG004-008"
+      ],
+      "nextRequiredOwner": "bubbles.implement",
+      "summary": "Canonicalized Scope 01 as In Progress; reconciled 17 of 21 DoD items to exact current-session report evidence; added guard-recognizable scenario and broad regression E2E, canary, rollback, and change-boundary planning; exposed implementation paths; synchronized test-plan.json and scenario-manifest.json; and routed the four unproven DoD claims plus analyst-owned G094 content without changing source, tests, certification, or completion arrays."
+    },
+    {
+      "agent": "bubbles.analyst",
+      "workflowMode": "bugfix-fastlane",
+      "executionModel": "direct-authorized-runner",
+      "parentAgent": null,
+      "startedAt": "2026-07-22T18:24:43Z",
+      "completedAt": "2026-07-22T18:24:43Z",
+      "statusBefore": "in_progress",
+      "statusAfter": "in_progress",
+      "phasesExecuted": ["analyze"],
+      "scopesCompleted": [],
+      "outcome": "route_required",
+      "addressedFindings": ["VAL-BUG004-005"],
+      "unresolvedFindings": [
+        "BUG004-STALE-BUG-RUNTIME-PROSE",
+        "VAL-BUG004-002",
+        "VAL-BUG004-003",
+        "VAL-BUG004-004",
+        "VAL-BUG004-008"
+      ],
+      "nextRequiredOwner": "bubbles.implement",
+      "summary": "Added the proportionate Single-Capability Justification to analyst-owned spec.md. It identifies BUG-002 provider data access as the existing foundation, names its registry, config, tier-resolution, transport, and masked-status primitives and policies, and records BUG-004 as a one-helper repair with no new provider, adapter, tier, public API, storage shape, screen, or policy owner. Gate G094 and artifact lint passed; status, completion arrays, certification, requirements, scenarios, design, scopes, report, tests, Feature 012, and source were unchanged."
+    },
+    {
+      "agent": "bubbles.implement",
+      "workflowMode": "bugfix-fastlane",
+      "executionModel": "direct-authorized-runner",
+      "parentAgent": null,
+      "startedAt": "2026-07-22T18:36:52Z",
+      "completedAt": "2026-07-22T18:47:41Z",
+      "statusBefore": "in_progress",
+      "statusAfter": "in_progress",
+      "phasesExecuted": ["implement"],
+      "scopesCompleted": [],
+      "outcome": "route_required",
+      "addressedFindings": ["VAL-BUG004-004"],
+      "unresolvedFindings": ["VAL-BUG004-002", "VAL-BUG004-003", "VAL-BUG004-008"],
+      "nextRequiredOwner": "bubbles.test",
+      "summary": "Recorded git-backed Code Diff Evidence at baseline 258ca4a4, proved exclusive direct-helper ownership and one keyless proxy continuation, classified all five BUG-004 non-artifact paths against concurrent Feature 012/framework work, and proved clean reverse applicability plus in-memory reproduction of the pre-fix 503 failure without mutating the working tree. Focused Node tests passed 11/11, the broad selftest passed 698/698, source lock rejected all 16 adversarial mutations, protected paths and editor diagnostics were clean, and two implementation-owned DoD items were checked. Rollback's post-boundary canary and TP-14 remain test-owned; no source, test, certification, protected, package/lock, or unrelated file was changed by this invocation."
+    },
+    {
+      "agent": "bubbles.test",
+      "workflowMode": "bugfix-fastlane",
+      "executionModel": "direct-authorized-runner",
+      "parentAgent": null,
+      "startedAt": "2026-07-22T18:57:12Z",
+      "completedAt": "2026-07-22T19:14:11Z",
+      "statusBefore": "in_progress",
+      "statusAfter": "in_progress",
+      "phasesExecuted": ["test"],
+      "scopesCompleted": [],
+      "outcome": "route_required",
+      "addressedFindings": ["VAL-BUG004-002-TEST-OWNED", "VAL-BUG004-008-TEST-OWNED"],
+      "unresolvedFindings": ["VAL-BUG004-002", "VAL-BUG004-003", "VAL-BUG004-008"],
+      "nextRequiredOwner": "bubbles.regression",
+      "summary": "Executed exact TP-14 broad no-interception browser coverage (1/1 pass, local browser/application plus loopback health only), independently reproduced the pre-fix terminal proxy-503 branch with zero direct attempts through an in-memory HEAD:rldata.js evaluation, reran current TP-11 (11/11 pass), and proved identical before/after worktree, source, protected-tree, and BUG-path fingerprints. Repaired every test-owned weak evidence block. The combined Build Quality DoD and ten foreign-owned historical evidence warnings remain unresolved; the next declared phase owner is bubbles.regression. Status and certification remain in progress."
+    },
+    {
+      "agent": "bubbles.regression",
+      "workflowMode": "bugfix-fastlane",
+      "executionModel": "direct-authorized-runner",
+      "parentAgent": null,
+      "startedAt": "2026-07-22T19:27:19Z",
+      "completedAt": "2026-07-22T19:37:58Z",
+      "statusBefore": "in_progress",
+      "statusAfter": "in_progress",
+      "phasesExecuted": ["regression"],
+      "scopesCompleted": [],
+      "outcome": "route_required",
+      "addressedFindings": ["BUG004-REGRESSION-FREE"],
+      "unresolvedFindings": ["VAL-BUG004-002", "VAL-BUG004-003", "VAL-BUG004-008"],
+      "nextRequiredOwner": "bubbles.simplify",
+      "summary": "Independently reproduced the pre-fix terminal proxy-503 discriminator from HEAD:rldata.js with zero direct attempts, then observed the current HTTP/transport/timeout/decode/no-key/one-attempt/force-local/prototype matrix pass. Standard and bugfix regression guards were clean; TP-09 and TP-14 passed without interception, TP-12 passed under its intercepted functional classification, completed BUG-002 stress/load canaries were leak-free, source lock rejected 16 adversarial mutations, protected options/BUG-002/package paths were unchanged, and the full selftest remained 698/698. No regression or design conflict was found and no source/test edit was made. Status, DoD, scope completion, and certification remain unchanged; the next declared phase owner is bubbles.simplify."
+    },
+    {
+      "agent": "bubbles.simplify",
+      "workflowMode": "bugfix-fastlane",
+      "executionModel": "direct-authorized-runner",
+      "parentAgent": null,
+      "startedAt": "2026-07-22T19:51:42Z",
+      "completedAt": "2026-07-22T19:52:41Z",
+      "statusBefore": "in_progress",
+      "statusAfter": "in_progress",
+      "phasesExecuted": ["simplify"],
+      "scopesCompleted": [],
+      "outcome": "route_required",
+      "addressedFindings": ["BUG004-SIMPLIFY-NO-CHANGE"],
+      "unresolvedFindings": ["VAL-BUG004-002", "VAL-BUG004-003", "VAL-BUG004-008"],
+      "nextRequiredOwner": "bubbles.gaps",
+      "summary": "Independently reviewed the BUG-004 rldata.js helper/catch repair and provider test/support changes across code reuse, code quality, and efficiency. The implementation already has one private direct helper, one keyless proxy attempt, at most one same-provider direct attempt, sanitized errors, no cross-provider selection, and additive shared test seams. Focused provider tests passed 11/11, TP-09 passed 1/1, TP-12 passed 4/4 under its functional classification, regression-quality guards were clean, source lock rejected 16 adversarial mutations, protected paths were unchanged, diagnostics were clean, and the full selftest passed 698/698. No source or test edit was justified or made. Status, DoD, scope completion, completedScopes, completedPhases, and certification remain unchanged; the next declared phase owner is bubbles.gaps."
+    },
+    {
+      "agent": "bubbles.gaps",
+      "workflowMode": "bugfix-fastlane",
+      "executionModel": "direct-authorized-runner",
+      "parentAgent": null,
+      "startedAt": "2026-07-22T20:52:14Z",
+      "completedAt": "2026-07-22T20:56:41Z",
+      "statusBefore": "in_progress",
+      "statusAfter": "in_progress",
+      "phasesExecuted": ["gaps"],
+      "scopesCompleted": [],
+      "outcome": "route_required",
+      "addressedFindings": [
+        "BUG004-GAPS-PRODUCT-CONTRACT-CLEAN",
+        "BUG004-GAPS-WEAK-FENCE-DISCRIMINATED"
+      ],
+      "unresolvedFindings": [
+        "BUG004-REPORT-ROUTING-SUMMARY-DRIFT",
+        "VAL-BUG004-002",
+        "VAL-BUG004-003",
+        "VAL-BUG004-008"
+      ],
+      "nextRequiredOwner": "bubbles.harden",
+      "summary": "Audited all eight requirements, four scenarios, the one-helper implementation, focused functional/unit/browser tests, packet evidence, source and protected boundaries, governance contracts, and the exact done-transition guard. Current execution passed 11/11 focused tests, TP-14 1/1, the 698/698 selftest, artifact/traceability/implementation/capability/regression guards, and source locking with 16 adversarial rejections. No implementation, test, requirement, scenario, data-flow, API/error-contract, or protected-boundary gap remains. The guard still correctly refuses nine foreign-owned completion/provenance conditions; the top report Completion Statement also retains stale regression routing and is routed to its plan owner. No DoD, scope, completedScopes, top-level completedPhases, certification, or terminal status was changed."
+    },
+    {
+      "agent": "bubbles.harden",
+      "workflowMode": "bugfix-fastlane",
+      "executionModel": "direct-authorized-runner",
+      "parentAgent": null,
+      "startedAt": "2026-07-22T21:09:13Z",
+      "completedAt": "2026-07-22T21:28:14Z",
+      "statusBefore": "in_progress",
+      "statusAfter": "in_progress",
+      "phasesExecuted": ["harden"],
+      "scopesCompleted": [],
+      "outcome": "route_required",
+      "addressedFindings": [],
+      "unresolvedFindings": [
+        "BUG004-HARDEN-KEY-CONTAINMENT",
+        "BUG004-PLAN-ROUTING-DRIFT",
+        "BUG004-REPORT-ROUTING-SUMMARY-DRIFT",
+        "VAL-BUG004-002",
+        "VAL-BUG004-003",
+        "VAL-BUG004-008"
+      ],
+      "nextRequiredOwner": "bubbles.test",
+      "summary": "Executed adversarial source, test-integrity, failure-semantics, ordering, force-local, prototype-defense, rollback, browser, source-lock, and protected-boundary checks. A supported registered full provider URL containing the provider key parameter copied the synthetic local key into the Tier-1 proxy URL and produced two direct token parameters, violating BUG-002 FR-4/FR-7 and BUG-004 FR-4/SCN-BUG004-001. The declared 11/11 focused matrix, TP-14 1/1, and 698/698 selftest remained green, proving a persistent regression-test gap. Harden is not claimed complete; no source, test, plan, DoD, scope, completion array, certification field, package/lock file, protected option path, completed BUG-002 artifact, or later specialist provenance was changed."
+    },
+    {
+      "agent": "bubbles.test",
+      "workflowMode": "bugfix-fastlane",
+      "executionModel": "direct-authorized-runner",
+      "parentAgent": null,
+      "startedAt": "2026-07-22T21:34:44Z",
+      "completedAt": "2026-07-22T21:36:45Z",
+      "statusBefore": "in_progress",
+      "statusAfter": "in_progress",
+      "phasesExecuted": ["test"],
+      "scopesCompleted": [],
+      "outcome": "route_required",
+      "addressedFindings": ["BUG004-HARDEN-KEY-CONTAINMENT-RED"],
+      "unresolvedFindings": [
+        "BUG004-HARDEN-KEY-CONTAINMENT",
+        "BUG004-PLAN-ROUTING-DRIFT",
+        "BUG004-REPORT-ROUTING-SUMMARY-DRIFT",
+        "VAL-BUG004-002",
+        "VAL-BUG004-003",
+        "VAL-BUG004-008"
+      ],
+      "nextRequiredOwner": "bubbles.implement",
+      "summary": "Added one persistent adversarial functional case for a registered Finnhub full URL already containing its key parameter, using only synthetic sentinels and the existing injected-fetch seam. The focused title reached health, one key-bearing proxy route, and exactly one same-provider direct fallback; all non-credential request semantics and the distinct direct result were preserved, while the assertion failed only because the proxy retained one token and the direct URL contained two. The nearby matrix discovered 12 tests, with all 11 existing cases green and only the new containment case red. No production source, plan, DoD, scope, completion array, certification field, protected path, package/lock file, completed BUG-002 artifact, or later phase was modified or claimed."
+    },
+    {
+      "agent": "bubbles.implement",
+      "workflowMode": "bugfix-fastlane",
+      "executionModel": "direct-authorized-runner",
+      "parentAgent": null,
+      "startedAt": "2026-07-22T21:36:45Z",
+      "completedAt": "2026-07-22T21:46:47Z",
+      "statusBefore": "in_progress",
+      "statusAfter": "in_progress",
+      "phasesExecuted": ["implement"],
+      "scopesCompleted": [],
+      "outcome": "route_required",
+      "addressedFindings": ["BUG004-HARDEN-KEY-CONTAINMENT"],
+      "unresolvedFindings": [
+        "BUG004-PLAN-ROUTING-DRIFT",
+        "BUG004-REPORT-ROUTING-SUMMARY-DRIFT",
+        "VAL-BUG004-002",
+        "VAL-BUG004-003",
+        "VAL-BUG004-008"
+      ],
+      "nextRequiredOwner": "bubbles.harden",
+      "summary": "Removed every same-provider credential query parameter before proxy/direct URL construction and inserted the configured key exactly once on direct transport before any fragment. The exact focused discriminator passed 1/1, the provider unit/functional matrix passed 12/12, browser-functional passed 4/4, focused and broad no-interception browser runs each passed 1/1, and the full selftest passed 698/698. Artifact lint, editor diagnostics, and git diff whitespace checks were clean. No plan, DoD, scope completion, certification, terminal status, provider contract, package/lock, option, Feature 012/002/008, or completed BUG-002 artifact was changed or claimed."
+    },
+    {
+      "agent": "bubbles.harden",
+      "workflowMode": "bugfix-fastlane",
+      "executionModel": "direct-authorized-runner",
+      "parentAgent": null,
+      "startedAt": "2026-07-22T21:53:06Z",
+      "completedAt": "2026-07-22T22:05:38Z",
+      "statusBefore": "in_progress",
+      "statusAfter": "in_progress",
+      "phasesExecuted": ["harden"],
+      "scopesCompleted": [],
+      "outcome": "route_required",
+      "addressedFindings": ["BUG004-HARDEN-REVERIFIED"],
+      "unresolvedFindings": [
+        "BUG004-PLAN-ROUTING-DRIFT",
+        "BUG004-REPORT-ROUTING-SUMMARY-DRIFT",
+        "VAL-BUG004-002",
+        "VAL-BUG004-003",
+        "VAL-BUG004-008"
+      ],
+      "nextRequiredOwner": "bubbles.stabilize",
+      "summary": "Independently reran the exact full-URL containment regression, the 12-test provider matrix, expanded duplicate-credential/query/fragment/order/force-local probes, seven proxy/direct failure variants, prototype and disclosure defenses, the pre-fix rollback discriminator, source lock with 16 adversarial rejections, protected options/BUG-002/package bytes, intercepted and no-interception browser classifications, protected stress/load canaries, regression-quality guards, H4-H9 plan synchronization, and the 698-test broad selftest. Every hardening discriminator passed and production diff review found no overbroad stripping or unrelated mutation. No source/test repair, plan/DoD edit, certification field, terminal status, or later specialist claim was made; the next declared owner is bubbles.stabilize."
+    },
+    {
+      "agent": "bubbles.stabilize",
+      "workflowMode": "bugfix-fastlane",
+      "executionModel": "direct-authorized-runner",
+      "parentAgent": null,
+      "startedAt": "2026-07-22T23:13:10Z",
+      "completedAt": "2026-07-22T23:14:45Z",
+      "statusBefore": "in_progress",
+      "statusAfter": "in_progress",
+      "phasesExecuted": ["stabilize"],
+      "scopesCompleted": [],
+      "outcome": "route_required",
+      "addressedFindings": ["BUG004-STABILIZE-CLEAN"],
+      "unresolvedFindings": [
+        "BUG004-PLAN-ROUTING-DRIFT",
+        "BUG004-REPORT-ROUTING-SUMMARY-DRIFT",
+        "VAL-BUG004-002",
+        "VAL-BUG004-003",
+        "VAL-BUG004-008"
+      ],
+      "nextRequiredOwner": "bubbles.security",
+      "summary": "Independently executed the persistent pre-keyed full-URL discriminator, complete 12-test provider matrix, 250-cycle stress and eight-context parallel load canaries, both system-Chrome classifications, broad 698-test selftest, exact protected-boundary check, and orphan-process scan. All passed with bounded one-attempt fallback, cleared timeout guards, zero key leaks, zero duplicate or cross-provider fallback, unchanged option/producer bytes, and no retained BUG-004 Node or headless-Chrome process. No source/test repair, plan/DoD edit, scope completion, certification field, terminal status, package/lock/config, Feature 012, option, or framework-managed artifact was changed or claimed; the next declared owner is bubbles.security."
+    },
+    {
+      "agent": "bubbles.security",
+      "workflowMode": "bugfix-fastlane",
+      "executionModel": "direct-authorized-runner",
+      "parentAgent": null,
+      "startedAt": "2026-07-22T23:26:18Z",
+      "completedAt": "2026-07-22T23:26:45Z",
+      "statusBefore": "in_progress",
+      "statusAfter": "in_progress",
+      "phasesExecuted": [],
+      "scopesCompleted": [],
+      "outcome": "route_required",
+      "addressedFindings": ["BUG004-SECURITY-REVIEW-EXECUTED"],
+      "unresolvedFindings": [
+        "BUG004-SECURITY-CREDENTIAL-NORMALIZATION-BYPASS",
+        "BUG004-PLAN-ROUTING-DRIFT",
+        "BUG004-REPORT-ROUTING-SUMMARY-DRIFT",
+        "VAL-BUG004-002",
+        "VAL-BUG004-003",
+        "VAL-BUG004-008"
+      ],
+      "nextRequiredOwner": "bubbles.test",
+      "summary": "Independent security execution found a high-severity caller-URL credential-normalization bypass. The all-provider matrix retained two registry-declared aliases in every Tier-1 proxy URL and two noncanonical aliases in every direct URL; mixed-case, double-encoded, malformed-name, and URL-userinfo probes also retained caller credential material. The committed 12-test matrix, force-local, same-provider, prototype, browser masking, 250-cycle stress, eight-context load, source-lock, protected-boundary, and 698-test broad regressions remained green, proving a persistent test gap rather than broad instability. No source/test/plan/DoD/certification/package/option/Feature-012/framework change or security completion claim was made. Scenario-first RED is routed to bubbles.test before any implementation repair."
+    },
+    {
+      "agent": "bubbles.security",
+      "workflowMode": "bugfix-fastlane",
+      "executionModel": "direct-authorized-runner",
+      "parentAgent": null,
+      "startedAt": "2026-07-22T23:35:26Z",
+      "completedAt": "2026-07-22T23:41:05Z",
+      "statusBefore": "in_progress",
+      "statusAfter": "in_progress",
+      "phasesExecuted": [],
+      "scopesCompleted": [],
+      "outcome": "route_required",
+      "addressedFindings": ["BUG004-SECURITY-REREVIEW-EXECUTED"],
+      "unresolvedFindings": [
+        "BUG004-SECURITY-CREDENTIAL-NORMALIZATION-BYPASS",
+        "BUG004-PLAN-ROUTING-DRIFT",
+        "BUG004-REPORT-ROUTING-SUMMARY-DRIFT",
+        "VAL-BUG004-002",
+        "VAL-BUG004-003",
+        "VAL-BUG004-008"
+      ],
+      "nextRequiredOwner": "bubbles.test",
+      "summary": "Current-session security re-review reran the declared 12-test provider matrix, both local browser classifications, the 698-test broad selftest, and the protected options/BUG-002 boundary. All declared checks passed, but source-only scanning reconfirmed that providerRequestPath removes only the selected provider's exact canonical keyParam even though the registry recognizes three credential query names; the persistent tests exercise only Finnhub's canonical token case. The high-severity privacy finding remains routed to bubbles.test for regression-first RED. No exploit payload or external provider request was generated, and no source, test, plan, DoD, completion, certification, dependency, option, Feature 012, or framework artifact was changed or claimed."
+    },
+    {
+      "agent": "bubbles.test",
+      "workflowMode": "bugfix-fastlane",
+      "executionModel": "direct-authorized-runner",
+      "parentAgent": null,
+      "startedAt": "2026-07-22T23:54:58Z",
+      "completedAt": "2026-07-22T23:54:58Z",
+      "statusBefore": "in_progress",
+      "statusAfter": "in_progress",
+      "phasesExecuted": ["test"],
+      "scopesCompleted": [],
+      "outcome": "route_required",
+      "addressedFindings": ["BUG004-SECURITY-CREDENTIAL-NORMALIZATION-RED"],
+      "unresolvedFindings": [
+        "BUG004-SECURITY-CREDENTIAL-NORMALIZATION-BYPASS",
+        "BUG004-PLAN-ROUTING-DRIFT",
+        "BUG004-REPORT-ROUTING-SUMMARY-DRIFT",
+        "VAL-BUG004-002",
+        "VAL-BUG004-003",
+        "VAL-BUG004-008"
+      ],
+      "nextRequiredOwner": "bubbles.implement",
+      "summary": "Executed the persistent table-driven reserved-query regression against unchanged production with inert sentinels and no external requests. All four registry providers preserved 16 caller-reserved entries in the proxy URL and 16 unexpected entries in the direct URL; normal query order, proxy-then-direct routing, selected-provider identity, one direct attempt, zero cross-provider attempts, and one configured canonical direct field remained correct. The exact assertion failed with actual 4 versus expected 0. Production repair is routed to bubbles.implement; status and certification remain in progress and security remains unclaimed."
+    },
+    {
+      "agent": "bubbles.security",
+      "workflowMode": "bugfix-fastlane",
+      "executionModel": "direct-authorized-runner",
+      "parentAgent": null,
+      "startedAt": "2026-07-23T00:08:18Z",
+      "completedAt": "2026-07-23T00:08:18Z",
+      "statusBefore": "in_progress",
+      "statusAfter": "in_progress",
+      "phasesExecuted": ["security"],
+      "scopesCompleted": [],
+      "outcome": "route_required",
+      "addressedFindings": [
+        "BUG004-SECURITY-CREDENTIAL-NORMALIZATION-BYPASS",
+        "BUG004-SECURITY-REREVIEW-CLEAN"
+      ],
+      "unresolvedFindings": [
+        "BUG004-PLAN-ROUTING-DRIFT",
+        "BUG004-REPORT-ROUTING-SUMMARY-DRIFT",
+        "VAL-BUG004-002",
+        "VAL-BUG004-003",
+        "VAL-BUG004-008"
+      ],
+      "nextRequiredOwner": "bubbles.validate",
+      "summary": "Independently reviewed the registry-derived URL normalization, valid encoded and malformed-name semantics, same-provider ordering, sanitized failures, status/log/DOM disclosure, force-local, unsupported and prototype-shaped providers, dependency source lock, implementation reality, browser privacy, broad regression, and protected options ownership. The provider matrix passed 13/13 with zero proxy reserved fields, zero unexpected direct reserved fields, one canonical selected-provider direct field, exact ordinary-query and transport order, one direct request, and zero cross-provider attempts. The parser probe, Playwright 1/1 and 4/4 suites, 698/698 selftest, source lock, reality scan, and protected-boundary check passed without external-provider traffic. The prior high-severity normalization finding is addressed; no new security finding was found. Statuses remain in progress, completion arrays remain empty, the final combined DoD remains unchecked, and validation is the next owner."
+    },
+    {
+      "agent": "bubbles.validate",
+      "workflowMode": "bugfix-fastlane",
+      "executionModel": "direct-authorized-runner",
+      "parentAgent": null,
+      "startedAt": "2026-07-23T01:01:27Z",
+      "completedAt": "2026-07-23T01:06:11Z",
+      "statusBefore": "in_progress",
+      "statusAfter": "in_progress",
+      "phasesExecuted": ["validate"],
+      "scopesCompleted": [],
+      "outcome": "route_required",
+      "addressedFindings": ["VAL-BUG004-011-CURRENT-BYTES-REPLAY"],
+      "unresolvedFindings": [
+        "BUG004-PLAN-ROUTING-DRIFT",
+        "BUG004-REPORT-ROUTING-SUMMARY-DRIFT",
+        "VAL-BUG004-002",
+        "VAL-BUG004-003",
+        "VAL-BUG004-008"
+      ],
+      "nextRequiredOwner": "bubbles.audit",
+      "summary": "Independently replayed the current working-tree outcome contract. The focused registry-derived reserved-field discriminator passed across four providers; the complete provider matrix passed 13/13; TP-09 and TP-14 passed without interception; TP-12 passed 4/4 under its intercepted functional-browser classification; source lock rejected 16 adversarial mutations; the full selftest passed 698/698; protected paths, regression guards, artifact lint, traceability, implementation reality, freshness, G094, Claim Source, framework integrity, and repo readiness were clean. The transition guard retained exactly seven expected delivery-closure failures and one evidence-signal warning. Validate provenance is recorded without changing DoD, scope completion, completed scopes, certification status, or top-level status; the independent delivery audit is the next owner."
+    },
+    {
+      "agent": "bubbles.audit",
+      "workflowMode": "bugfix-fastlane",
+      "executionModel": "direct-authorized-runner",
+      "parentAgent": null,
+      "startedAt": "2026-07-23T02:55:45Z",
+      "completedAt": "2026-07-23T02:58:30Z",
+      "statusBefore": "in_progress",
+      "statusAfter": "in_progress",
+      "phasesExecuted": ["audit"],
+      "scopesCompleted": [],
+      "outcome": "route_required",
+      "addressedFindings": [
+        "BUG004-PLAN-ROUTING-DRIFT",
+        "VAL-BUG004-008",
+        "BUG004-REPORT-ROUTING-SUMMARY-DRIFT"
+      ],
+      "unresolvedFindings": ["VAL-BUG004-002", "VAL-BUG004-003"],
+      "nextRequiredOwner": "bubbles.validate",
+      "summary": "Completed independent delivery-completion-v1 audit attempt audit-attempt-20260723T025545Z. The provider matrix passed 13/13, TP-14 passed 1/1 without interception, the selftest passed 698/698, all 42 evidence-signal warnings were adjudicated as supported, routing drift and VAL-BUG004-008 were addressed, and only the final validate-owned Build Quality/scope and completed-scope/phase coherence findings remained."
+    },
+    {
+      "agent": "bubbles.validate",
+      "workflowMode": "bugfix-fastlane",
+      "executionModel": "direct-authorized-runner",
+      "parentAgent": null,
+      "startedAt": "2026-07-23T03:23:40Z",
+      "completedAt": "2026-07-23T03:28:14Z",
+      "statusBefore": "in_progress",
+      "statusAfter": "done",
+      "phasesExecuted": ["validate"],
+      "scopesCompleted": ["SCOPE-01"],
+      "outcome": "completed_diagnostic",
+      "addressedFindings": ["VAL-BUG004-002", "VAL-BUG004-003"],
+      "unresolvedFindings": [],
+      "nextRequiredOwner": null,
+      "summary": "Consumed the linted independent audit result, preserved its immutable ACTIVE attempt, synchronized the final TP-14 Build Quality item and SCOPE-01 completion, reconciled completed scope and phase arrays, and observed the exact contract-bound guard exit zero before terminal certification."
+    }
+  ],
+  "addressedFindings": [
+    {
+      "id": "BUG004-PACKET-CREATED",
+      "summary": "Created the complete canonical bug packet and current control-plane companions without modifying production, tests, done BUG-002 artifacts, or options surfaces.",
+      "evidenceRef": "report.md#changed-files-at-packet-creation"
+    },
+    {
+      "id": "BUG004-DESIGN-OWNERSHIP",
+      "summary": "Design owner adopted the grounded root cause and reconciled design.md to one authoritative one-helper same-provider fallback contract with explicit preservation and validation boundaries.",
+      "evidenceRef": "design.md#design-brief"
+    },
+    {
+      "id": "BUG004-PLAN-OWNERSHIP",
+      "summary": "Planning owner finalized one SCOPE-01 with sequential RED, implementation, GREEN, regression, and certification routing.",
+      "evidenceRef": "scopes.md#scope-01-same-provider-ordered-transport-fallback"
+    },
+    {
+      "id": "BUG004-FR2-TEST-COVERAGE",
+      "summary": "Test Plan and machine handoff now enumerate non-2xx HTTP including 503 PROVIDER_KEY_MISSING, transport rejection, deterministic timeout rejection, JSON decode failure, and the same-provider one-attempt bound.",
+      "evidenceRef": "test-plan.json"
+    },
+    {
+      "id": "BUG004-E2E-APPLICABILITY",
+      "summary": "External-boundary interception is classified functional; the only e2e-ui row uses a no-interception browser and loopback HTTP health server to verify the actual settings/status integration without claiming live provider transport.",
+      "evidenceRef": "scopes.md#test-classification-contract"
+    },
+    {
+      "id": "BUG004-STALE-PLAN-RUNTIME-PROSE",
+      "summary": "Removed the obsolete runSubagent-unavailable routing block from the plan-owned scopes artifact and replaced it with the current bubbles.test RED handoff.",
+      "evidenceRef": "scopes.md#execution-routing"
+    },
+    {
+      "id": "BUG004-PREFX-RED",
+      "summary": "The test owner added TP-01 against unchanged production code and recorded the expected health-plus-proxy-without-direct RED before implementation.",
+      "evidenceRef": "report.md#bug-reproduction---before-fix"
+    },
+    {
+      "id": "BUG004-IMPLEMENTATION",
+      "summary": "Extracted the one private same-provider direct helper and added a single proxy-route failure continuation; the focused TP-01 suite is GREEN.",
+      "evidenceRef": "report.md#bug-verification---after-fix"
+    },
+    {
+      "id": "BUG004-TEST-MATRIX-IMPLEMENTED",
+      "summary": "Added the finalized HTTP, transport, timeout, JSON-decode, same-provider, no-key containment, force-local, prototype-defense, and no-interception browser test surfaces within the authorized test paths.",
+      "evidenceRef": "report.md#test-phase-verification---tp-01-through-tp-13"
+    },
+    {
+      "id": "BUG004-VERIFICATION-NONBROWSER",
+      "summary": "TP-01 through TP-08, TP-10, TP-11, and TP-13 pass with zero skipped tests; regression-quality and classification audits report no violations.",
+      "evidenceRef": "report.md#execution-summary"
+    },
+    {
+      "id": "BUG004-DOD-FIDELITY",
+      "summary": "G068 maps all four scenarios to faithful DoD items; TP-01 through TP-13 are evidence-linked and checked, while the new broad file-level TP-14 remains unchecked for bubbles.test.",
+      "evidenceRef": "scopes.md#test-evidence---14-items-for-14-test-plan-rows"
+    },
+    {
+      "id": "BUG004-BROWSER-RUNTIME-DIAGNOSIS",
+      "summary": "Confirmed that the exact Playwright 1.61.1 managed browser cache launches but cannot satisfy the separately resolved system Chrome channel, which remains absent at /opt/google/chrome/chrome.",
+      "evidenceRef": "report.md#devops-browser-runtime-inspection"
+    },
+    {
+      "id": "BUG004-BROWSER-RUNTIME-RESOLVED",
+      "summary": "Independent validation confirmed the declared Linux system Chrome channel is available; TP-09 passed 1/1 as local-only e2e-ui and TP-12 passed 4/4 as intercepted functional-browser coverage.",
+      "evidenceRef": "report.md#independent-validation---2026-07-22t174023z"
+    },
+    {
+      "id": "BUG004-STALE-BUG-RUNTIME-PROSE",
+      "summary": "Reconciled bug-owned current-state prose to distinguish the green runtime repair and resolved Chrome 150 browser gate from delivery certification, which remains in progress; historical evidence was preserved verbatim.",
+      "evidenceRef": "bug.md#current-state"
+    },
+    {
+      "id": "VAL-BUG004-002-PLANNING-RECONCILIATION",
+      "summary": "Scope 01 now uses canonical In Progress status and 17 of 21 DoD items link to exact current-session raw report evidence; four unproven claims remain unchecked with owner-specific uncertainty declarations.",
+      "evidenceRef": "scopes.md#definition-of-done---tiered-validation"
+    },
+    {
+      "id": "VAL-BUG004-004-PLAN-CONTRACT",
+      "summary": "The plan-owned Code Diff Evidence contract now exists and specifies the exact git baseline, path-family classification, helper ownership, excluded-surface, and rollback content required from bubbles.implement.",
+      "evidenceRef": "report.md#code-diff-evidence"
+    },
+    {
+      "id": "VAL-BUG004-005-PLAN-DEPENDENCY",
+      "summary": "Scope 01 is identified as a concrete repair overlay depending on the completed BUG-002 SCOPE-01 provider-access foundation; the remaining G094 finding is confined to analyst-owned spec.md.",
+      "evidenceRef": "scopes.md#scope-01-same-provider-ordered-transport-fallback"
+    },
+    {
+      "id": "VAL-BUG004-006",
+      "summary": "Exact transition checks 8A, 8C, and 8D recognize scenario-specific and broad E2E rows, canary and rollback DoD, the Fixture Canary row, and complete allowed/excluded boundary metadata.",
+      "evidenceRef": "report.md#plan-exact-transition-guard"
+    },
+    {
+      "id": "VAL-BUG004-007",
+      "summary": "The exact Implementation Files section resolves rldata.js without design fallback; implementation reality passes with zero violations and zero warnings.",
+      "evidenceRef": "report.md#plan-implementation-reality-scan"
+    },
+    {
+      "id": "VAL-BUG004-004",
+      "summary": "Implementation-owner Code Diff Evidence records the exact git baseline, five-path non-artifact inventory, helper/catch ownership, excluded-surface proof, per-path reverse applicability, and in-memory pre-fix rollback discriminator.",
+      "evidenceRef": "report.md#code-diff-evidence"
+    },
+    {
+      "id": "VAL-BUG004-005",
+      "summary": "The analyst owner added the proportionate Single-Capability Justification and independently passed Gate G094.",
+      "evidenceRef": "spec.md#single-capability-justification"
+    },
+    {
+      "id": "VAL-BUG004-002-TEST-OWNED",
+      "summary": "Test-owned execution is complete: TP-14 passes 1/1, the rollback discriminator reproduces the pre-fix 503 branch with zero direct attempts, TP-11 passes 11/11, and before/after worktree, source, protected-tree, and BUG-path fingerprints are identical.",
+      "evidenceRef": "report.md#test-owned-closeout-evidence---2026-07-22t190323z"
+    },
+    {
+      "id": "VAL-BUG004-008-TEST-OWNED",
+      "summary": "Every weak evidence fence under test-owned report headings now carries at least two transition-guard terminal-output signal categories; remaining weak historical blocks belong to implementation, devops, or validation owners.",
+      "evidenceRef": "report.md#test-owned-closeout-evidence---2026-07-22t190323z"
+    },
+    {
+      "id": "BUG004-REGRESSION-FREE",
+      "summary": "Regression independently reproduced the pre-fix discriminator and found no current test, browser, cross-spec, design, coverage-delta, source-lock, or protected-boundary regression; focused provider tests stayed 11/11 and the broad selftest stayed 698/698.",
+      "evidenceRef": "report.md#regression-specialist-evidence---2026-07-22t193758z"
+    },
+    {
+      "id": "BUG004-SIMPLIFY-NO-CHANGE",
+      "summary": "Three independent simplification passes found zero reuse, quality, or efficiency findings; the minimal one-helper implementation, additive test seams, focused 11/11 matrix, browser canaries, source lock, protected boundaries, diagnostics, and 698/698 selftest all remained clean without a source or test edit.",
+      "evidenceRef": "report.md#simplify-specialist-evidence---2026-07-22t195241z"
+    },
+    {
+      "id": "BUG004-GAPS-PRODUCT-CONTRACT-CLEAN",
+      "summary": "Gaps independently found no implementation, test, requirement, scenario, data-flow, API/error-contract, or protected-boundary mismatch; focused tests passed 11/11, TP-14 passed 1/1, and the full selftest passed 698/698.",
+      "evidenceRef": "report.md#gaps-specialist-evidence---2026-07-22t205641z"
+    },
+    {
+      "id": "BUG004-GAPS-WEAK-FENCE-DISCRIMINATED",
+      "summary": "The transition guard's 17 weak-fence warning was traced to custom machine-result vocabularies in foreign-owned evidence blocks rather than missing execution; exact commands, exit codes, Claim Source tags, and deterministic result tokens remain present for independent audit review.",
+      "evidenceRef": "report.md#gaps-specialist-evidence---2026-07-22t205641z"
+    },
+    {
+      "id": "BUG004-HARDEN-KEY-CONTAINMENT",
+      "summary": "Removed every occurrence of the validated provider's registry credential parameter before Tier-1 proxy and Tier-2 direct URL construction, then appended exactly one configured same-provider key only to direct transport before any fragment. The exact focused discriminator passed 1/1 and the combined provider matrix passed 12/12.",
+      "evidenceRef": "report.md#implementation-remediation-evidence---2026-07-22t214647z"
+    },
+    {
+      "id": "BUG004-HARDEN-REVERIFIED",
+      "summary": "Harden independently verified the corrected full-URL boundary: proxy keylessness, exactly one direct same-provider key, raw noncredential query and fragment preservation, force-local, all proxy/direct failure classes, prototype and disclosure defenses, rollback, source lock, protected bytes, browser classifications, stress/load canaries, H1-H9 plan coherence, and the 698-test selftest all passed.",
+      "evidenceRef": "report.md#harden-re-verification-evidence---2026-07-22t220538z"
+    },
+    {
+      "id": "BUG004-STABILIZE-CLEAN",
+      "summary": "Stabilize independently passed the pre-keyed full-URL discriminator twice, the 12-test functional/unit matrix, 250 repeated tier cycles, eight parallel browser contexts, both system-Chrome classifications, the 698-test selftest, exact protected-boundary check, and post-run process cleanup with no stability, timeout, transport, performance, resource, duplicate-key, cross-provider, or protected-byte defect.",
+      "evidenceRef": "report.md#stabilize-specialist-evidence---2026-07-22t231310z"
+    },
+    {
+      "id": "BUG004-SECURITY-REVIEW-EXECUTED",
+      "summary": "Security independently reviewed provider trust boundaries, secret echoes, URL normalization, proxy/direct failure classes, same-provider and prototype defenses, force-local, browser masking, source lock, broad regression, and protected paths. The pass is diagnostic only because a high-severity credential-normalization finding remains open.",
+      "evidenceRef": "report.md#security-specialist-evidence---2026-07-22t232645z"
+    },
+    {
+      "id": "BUG004-SECURITY-REREVIEW-EXECUTED",
+      "summary": "Security reran the declared focused, browser, broad, and protected-boundary checks without external-provider traffic or exploit payloads. The checks remain green, but current source review reconfirmed the high-severity credential query-name normalization gap, so security remains unclaimed and routing stays with bubbles.test.",
+      "evidenceRef": "report.md#security-re-review-evidence---2026-07-22t233601z"
+    },
+    {
+      "id": "BUG004-SECURITY-CREDENTIAL-NORMALIZATION-RED",
+      "summary": "The test owner executed one persistent table-driven functional regression across every production registry provider and reserved query name, including case variants and duplicate occurrences. The focused run failed only on four provider rows retaining reserved caller fields, while normal fields, proxy-then-direct order, provider identity, and one configured canonical direct field remained correct.",
+      "evidenceRef": "report.md#current-session-focused-reserved-query-red---2026-07-22t235458z"
+    },
+    {
+      "id": "BUG004-SECURITY-CREDENTIAL-NORMALIZATION-BYPASS",
+      "summary": "The registry-derived normalization repair now removes every once-decoded reserved query name, case variant, and duplicate before proxy and direct URL construction, then appends exactly one selected-provider canonical field only to direct transport. The independent all-provider matrix reports zero proxy leaks, zero unexpected direct fields, one canonical direct field, exact query and transport order, one direct request, and zero cross-provider attempts.",
+      "evidenceRef": "report.md#security-re-review-after-url-normalization---2026-07-23t000818z"
+    },
+    {
+      "id": "BUG004-SECURITY-REREVIEW-CLEAN",
+      "summary": "Security independently passed the 13-test provider matrix, encoded and malformed-name semantics probe, Playwright 1/1 and 4/4 privacy/provider suites, 698-test broad selftest, dependency source lock, implementation reality scan, and protected options/BUG-002 boundary without third-party traffic or a new finding.",
+      "evidenceRef": "report.md#security-re-review-after-url-normalization---2026-07-23t000818z"
+    },
+    {
+      "id": "VAL-BUG004-011-CURRENT-BYTES-REPLAY",
+      "summary": "Validate independently passed the focused all-provider reserved-field discriminator, complete 13-test provider matrices, correctly classified TP-09/TP-12/TP-14 browser runs, source lock, 698-test selftest, protected-boundary canary, regression guards, and all applicable artifact/governance checks on current working-tree bytes.",
+      "evidenceRef": "report.md#independent-validation-replay---2026-07-23t010611z"
+    },
+    {
+      "id": "BUG004-PLAN-ROUTING-DRIFT",
+      "summary": "Independent audit confirmed scopes.md, test-plan.json, state routing, and the current report Completion Statement coherently identified the audit phase before validate-owned closure.",
+      "evidenceRef": "report.md#independent-delivery-completion-audit---2026-07-23t025545z"
+    },
+    {
+      "id": "VAL-BUG004-008",
+      "summary": "Independent audit reviewed all 42 evidence-signal warnings and found 42 supported, zero unsupported, with complete command, exit, Claim Source, Interpretation, and custom-result discriminators.",
+      "evidenceRef": "report.md#evidence-signal-warning-adjudication"
+    },
+    {
+      "id": "BUG004-REPORT-ROUTING-SUMMARY-DRIFT",
+      "summary": "Independent audit confirmed the active report routing summary was reconciled before it delegated the final closure to bubbles.validate.",
+      "evidenceRef": "report.md#independent-delivery-completion-audit---2026-07-23t025545z"
+    },
+    {
+      "id": "VAL-BUG004-002",
+      "summary": "Validation consumed the linted independent audit, checked the final combined TP-14 Build Quality item, and synchronized SCOPE-01 as Done across scopes.md and state scope inventories without changing technical evidence.",
+      "evidenceRef": "scopes.md#build-quality-gate"
+    },
+    {
+      "id": "VAL-BUG004-003",
+      "summary": "Validation recorded the completed audit provenance and synchronized completedScopes, scopeProgress, and validate/audit certification phase records with the single Done scope.",
+      "evidenceRef": "report.md#independent-delivery-completion-audit---2026-07-23t025545z"
+    }
+  ],
+  "unresolvedFindings": [],
+  "routing": {
+    "currentOwner": "bubbles.validate",
+    "nextRequiredOwner": null,
+    "implementationDispatchAllowed": false,
+    "sequence": [
+      { "order": 1, "owner": "bubbles.regression", "action": "Completed: adversarial, baseline, cross-spec, design-coherence, coverage-delta, protected-boundary, browser, stress/load, and broad selftest regression checks are clean." },
+      { "order": 2, "owner": "bubbles.simplify", "action": "Completed: independent reuse, quality, and efficiency reviews found no justified simplification; source and tests remain unchanged and all proportional checks are clean." },
+      { "order": 3, "owner": "bubbles.gaps", "action": "Completed: no implementation, test, requirement, scenario, data-flow, API/error-contract, or protected-boundary gap remains; current evidence and the nine foreign-owned transition blockers are recorded without promoting scope or certification state." },
+      { "order": 4, "owner": "bubbles.harden", "action": "Completed initial pass: adversarial execution found BUG004-HARDEN-KEY-CONTAINMENT and correctly routed RED-first test and implementation repair without claiming harden completion." },
+      { "order": 5, "owner": "bubbles.test", "action": "Completed: the persistent full-URL adversarial test is valid RED; the focused title fails only on one proxy token and two direct tokens, while all 11 existing focused cases remain green." },
+      { "order": 6, "owner": "bubbles.implement", "action": "Completed: the minimal rldata.js correction strips the validated provider credential parameter before both routes and appends one configured key only to direct transport." },
+      { "order": 7, "owner": "bubbles.implement", "action": "Completed: exact focused, combined provider, intercepted browser-functional, focused/broad no-interception browser, full selftest, artifact-lint, diagnostics, and diff-whitespace checks are green." },
+      { "order": 8, "owner": "bubbles.harden", "action": "Completed: exact adversarial containment, expanded transport/failure/prototype/disclosure/rollback/source-lock/protected/browser/stress-load/selftest checks, production diff review, and Harden H1-H9 all passed with no remaining remediation finding." },
+      { "order": 9, "owner": "bubbles.stabilize", "action": "Completed: exact functional, timeout, repeated, parallel, system-Chrome, broad selftest, protected-byte, and cleanup checks found no stability or resource defect." },
+      { "order": 10, "owner": "bubbles.security", "action": "Attempted and independently re-reviewed: BUG004-SECURITY-CREDENTIAL-NORMALIZATION-BYPASS remains open; security is not complete and no phase claim was added." },
+      { "order": 11, "owner": "bubbles.test", "action": "Completed: the persistent all-provider reserved-query matrix fails with four provider rows while preserving normal query order, proxy-then-direct routing, provider identity, and one configured canonical direct field." },
+      { "order": 12, "owner": "bubbles.implement", "action": "Completed: the registry-derived normalization repair removes every once-decoded reserved query name, case variant, and duplicate before routing and appends one selected-provider canonical field only to direct transport." },
+      { "order": 13, "owner": "bubbles.security", "action": "Completed: the independent security replay passed the 13-test provider matrix, encoded and malformed-name semantics, browser privacy/provider defenses, broad selftest, source lock, implementation reality, and protected options boundary with no new finding." },
+      { "order": 14, "owner": "bubbles.validate", "action": "Completed pre-audit validation: current source, provider matrices, browser classifications, broad regression, protected boundaries, dependency source lock, and applicable governance gates independently replayed cleanly; no terminal certification was written." },
+      { "order": 15, "owner": "bubbles.audit", "action": "Completed: independent delivery-completion-v1 audit attempt audit-attempt-20260723T025545Z adjudicated the evidence heuristic, addressed routing drift and VAL-BUG004-008, and routed only VAL-BUG004-002 and VAL-BUG004-003 to validation." },
+      { "order": 16, "owner": "bubbles.validate", "action": "Completed: consumed the linted audit result, synchronized final scope and phase state, observed the exact contract-bound guard exit zero, and wrote terminal certification." }
+    ],
+    "dispatchReason": "Terminal closure completed after independent audit attempt audit-attempt-20260723T025545Z and an exact bugfix-fastlane transition guard exit zero. No unresolved finding or next required owner remains."
+  }
+}

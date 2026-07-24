@@ -43,6 +43,21 @@
         "freshnessPolicy": "final-aggregation-v1",
         "recommendationPolicy": "final-synthesis-v1",
         "budgetPolicy": "final-aggregator-v1"
+      },
+      "experience": {
+        "contractVersion": "tool-experience/v1",
+        "kind": "market-action-center",
+        "viewSetId": "market-action-center-four-view/v1",
+        "viewIds": ["brief", "portfolio", "red-alert", "journey"],
+        "simpleModelDefinitionId": null,
+        "simpleAdapterId": "simple-adapter/market-action-triage/v1",
+        "simpleAdapterModule": "rlexperience-adapters/market-action.js",
+        "powerAdapterId": "power-adapter/in-view-evidence-disclosures/v1",
+        "briefPolicyId": "web-evidence-policy/final-aggregator/v1",
+        "journeyDefinitionIds": ["journey/market-action/prepare-session/v1", "journey/market-action/triage/v1", "journey/market-action/latent-risk/v1", "journey/market-action/portfolio-stress/v1"],
+        "contextPolicyId": "contextual-tooltip/v1",
+        "matrixDomains": [],
+        "publicAliases": ["Actionable Market Brief", "Market Brief"]
       }
     },
     {
@@ -81,6 +96,21 @@
         "freshnessPolicy": "daily-market-bars-v1",
         "recommendationPolicy": "market-action-v1",
         "budgetPolicy": "live-market-v1"
+      },
+      "experience": {
+        "contractVersion": "tool-experience/v1",
+        "kind": "ordinary",
+        "viewSetId": "ordinary-four-view/v1",
+        "viewIds": ["simple", "power", "brief", "journey"],
+        "simpleModelDefinitionId": "simple-model/market-breadth/v1",
+        "simpleAdapterId": "simple-adapter/market-breadth/v1",
+        "simpleAdapterModule": "rlexperience-adapters/market-structure.js",
+        "powerAdapterId": "power-adapter/existing-owner-page/v1",
+        "briefPolicyId": "web-evidence-policy/live-market/v1",
+        "journeyDefinitionIds": ["journey/market-heatmap-lab/breadth/v1", "journey/market-heatmap-lab/outlier/v1"],
+        "contextPolicyId": "contextual-tooltip/v1",
+        "matrixDomains": ["technical", "macro-rotation"],
+        "publicAliases": []
       }
     },
     {
@@ -116,6 +146,21 @@
         "freshnessPolicy": "daily-market-bars-v1",
         "recommendationPolicy": "market-action-v1",
         "budgetPolicy": "live-market-v1"
+      },
+      "experience": {
+        "contractVersion": "tool-experience/v1",
+        "kind": "ordinary",
+        "viewSetId": "ordinary-four-view/v1",
+        "viewIds": ["simple", "power", "brief", "journey"],
+        "simpleModelDefinitionId": "simple-model/options-anomaly/v1",
+        "simpleAdapterId": "simple-adapter/options-anomaly/v1",
+        "simpleAdapterModule": "rlexperience-adapters/options.js",
+        "powerAdapterId": "power-adapter/existing-owner-page/v1",
+        "briefPolicyId": "web-evidence-policy/live-market/v1",
+        "journeyDefinitionIds": ["journey/options-flow-feed-lab/unusual-contracts/v1", "journey/options-flow-feed-lab/catalyst-noise/v1"],
+        "contextPolicyId": "contextual-tooltip/v1",
+        "matrixDomains": ["options", "catalyst"],
+        "publicAliases": []
       }
     },
     {
@@ -166,6 +211,21 @@
         "freshnessPolicy": "daily-market-bars-v1",
         "recommendationPolicy": "market-action-v1",
         "budgetPolicy": "live-market-v1"
+      },
+      "experience": {
+        "contractVersion": "tool-experience/v1",
+        "kind": "ordinary",
+        "viewSetId": "ordinary-four-view/v1",
+        "viewIds": ["simple", "power", "brief", "journey"],
+        "simpleModelDefinitionId": "simple-model/session-auction/v1",
+        "simpleAdapterId": "simple-adapter/session-auction/v1",
+        "simpleAdapterModule": "rlexperience-adapters/market-structure.js",
+        "powerAdapterId": "power-adapter/existing-owner-page/v1",
+        "briefPolicyId": "web-evidence-policy/live-market/v1",
+        "journeyDefinitionIds": ["journey/intraday-tape-lab/session-classification/v1", "journey/intraday-tape-lab/level-plan/v1"],
+        "contextPolicyId": "contextual-tooltip/v1",
+        "matrixDomains": ["technical", "options"],
+        "publicAliases": []
       }
     },
     {
@@ -217,6 +277,21 @@
         "freshnessPolicy": "daily-market-bars-v1",
         "recommendationPolicy": "market-action-v1",
         "budgetPolicy": "live-market-v1"
+      },
+      "experience": {
+        "contractVersion": "tool-experience/v1",
+        "kind": "ordinary",
+        "viewSetId": "ordinary-four-view/v1",
+        "viewIds": ["simple", "power", "brief", "journey"],
+        "simpleModelDefinitionId": "simple-model/swing-transition/v1",
+        "simpleAdapterId": "simple-adapter/swing-transition/v1",
+        "simpleAdapterModule": "rlexperience-adapters/market-structure.js",
+        "powerAdapterId": "power-adapter/existing-owner-page/v1",
+        "briefPolicyId": "web-evidence-policy/live-market/v1",
+        "journeyDefinitionIds": ["journey/swing-structure-lab/regime/v1", "journey/swing-structure-lab/support-thesis/v1"],
+        "contextPolicyId": "contextual-tooltip/v1",
+        "matrixDomains": ["technical", "volatility"],
+        "publicAliases": []
       }
     },
     {
@@ -272,6 +347,21 @@
         "freshnessPolicy": "daily-market-bars-v1",
         "recommendationPolicy": "market-action-v1",
         "budgetPolicy": "live-market-v1"
+      },
+      "experience": {
+        "contractVersion": "tool-experience/v1",
+        "kind": "ordinary",
+        "viewSetId": "ordinary-four-view/v1",
+        "viewIds": ["simple", "power", "brief", "journey"],
+        "simpleModelDefinitionId": "simple-model/options-surface/v1",
+        "simpleAdapterId": "simple-adapter/options-surface/v1",
+        "simpleAdapterModule": "rlexperience-adapters/options.js",
+        "powerAdapterId": "power-adapter/existing-owner-page/v1",
+        "briefPolicyId": "web-evidence-policy/live-market/v1",
+        "journeyDefinitionIds": ["journey/options-structure-lab/support-resistance/v1", "journey/options-structure-lab/wall-stress/v1"],
+        "contextPolicyId": "contextual-tooltip/v1",
+        "matrixDomains": ["options", "technical", "volatility"],
+        "publicAliases": []
       }
     },
     {
@@ -325,6 +415,21 @@
         "freshnessPolicy": "daily-market-bars-v1",
         "recommendationPolicy": "market-action-v1",
         "budgetPolicy": "live-market-v1"
+      },
+      "experience": {
+        "contractVersion": "tool-experience/v1",
+        "kind": "ordinary",
+        "viewSetId": "ordinary-four-view/v1",
+        "viewIds": ["simple", "power", "brief", "journey"],
+        "simpleModelDefinitionId": "simple-model/dealer-gamma-playbook/v1",
+        "simpleAdapterId": "simple-adapter/dealer-gamma-playbook/v1",
+        "simpleAdapterModule": "rlexperience-adapters/options.js",
+        "powerAdapterId": "power-adapter/existing-owner-page/v1",
+        "briefPolicyId": "web-evidence-policy/live-market/v1",
+        "journeyDefinitionIds": ["journey/gamma-trading-lab/gamma-flip/v1", "journey/gamma-trading-lab/opex-plan/v1"],
+        "contextPolicyId": "contextual-tooltip/v1",
+        "matrixDomains": ["options", "technical"],
+        "publicAliases": []
       }
     },
     {
@@ -407,6 +512,21 @@
         "freshnessPolicy": "daily-market-bars-v1",
         "recommendationPolicy": "market-action-v1",
         "budgetPolicy": "live-market-v1"
+      },
+      "experience": {
+        "contractVersion": "tool-experience/v1",
+        "kind": "ordinary",
+        "viewSetId": "ordinary-four-view/v1",
+        "viewIds": ["simple", "power", "brief", "journey"],
+        "simpleModelDefinitionId": "simple-model/sector-rotation-transition/v1",
+        "simpleAdapterId": "simple-adapter/sector-rotation-transition/v1",
+        "simpleAdapterModule": "rlexperience-adapters/macro-rotation.js",
+        "powerAdapterId": "power-adapter/existing-owner-page/v1",
+        "briefPolicyId": "web-evidence-policy/live-market/v1",
+        "journeyDefinitionIds": ["journey/sector-research-lab/sector-transition/v1", "journey/sector-research-lab/etf-vehicle/v1"],
+        "contextPolicyId": "contextual-tooltip/v1",
+        "matrixDomains": ["macro-rotation", "technical"],
+        "publicAliases": []
       }
     },
     {
@@ -443,6 +563,21 @@
         "freshnessPolicy": "daily-market-bars-v1",
         "recommendationPolicy": "market-action-v1",
         "budgetPolicy": "live-market-v1"
+      },
+      "experience": {
+        "contractVersion": "tool-experience/v1",
+        "kind": "ordinary",
+        "viewSetId": "ordinary-four-view/v1",
+        "viewIds": ["simple", "power", "brief", "journey"],
+        "simpleModelDefinitionId": "simple-model/country-rotation/v1",
+        "simpleAdapterId": "simple-adapter/country-rotation/v1",
+        "simpleAdapterModule": "rlexperience-adapters/macro-rotation.js",
+        "powerAdapterId": "power-adapter/existing-owner-page/v1",
+        "briefPolicyId": "web-evidence-policy/live-market/v1",
+        "journeyDefinitionIds": ["journey/global-rotation-lab/country-comparison/v1", "journey/global-rotation-lab/fx-risk/v1"],
+        "contextPolicyId": "contextual-tooltip/v1",
+        "matrixDomains": ["macro-rotation", "catalyst"],
+        "publicAliases": []
       }
     },
     {
@@ -481,6 +616,21 @@
         "freshnessPolicy": "daily-market-bars-v1",
         "recommendationPolicy": "market-action-v1",
         "budgetPolicy": "live-market-v1"
+      },
+      "experience": {
+        "contractVersion": "tool-experience/v1",
+        "kind": "ordinary",
+        "viewSetId": "ordinary-four-view/v1",
+        "viewIds": ["simple", "power", "brief", "journey"],
+        "simpleModelDefinitionId": "simple-model/real-asset-driver/v1",
+        "simpleAdapterId": "simple-adapter/real-asset-driver/v1",
+        "simpleAdapterModule": "rlexperience-adapters/macro-rotation.js",
+        "powerAdapterId": "power-adapter/existing-owner-page/v1",
+        "briefPolicyId": "web-evidence-policy/live-market/v1",
+        "journeyDefinitionIds": ["journey/real-assets-lab/driver-thesis/v1", "journey/real-assets-lab/reversal-stress/v1"],
+        "contextPolicyId": "contextual-tooltip/v1",
+        "matrixDomains": ["macro-rotation", "volatility"],
+        "publicAliases": []
       }
     },
     {
@@ -517,6 +667,21 @@
         "freshnessPolicy": "daily-market-bars-v1",
         "recommendationPolicy": "market-action-v1",
         "budgetPolicy": "live-market-v1"
+      },
+      "experience": {
+        "contractVersion": "tool-experience/v1",
+        "kind": "ordinary",
+        "viewSetId": "ordinary-four-view/v1",
+        "viewIds": ["simple", "power", "brief", "journey"],
+        "simpleModelDefinitionId": "simple-model/fixed-income-sleeve/v1",
+        "simpleAdapterId": "simple-adapter/fixed-income-sleeve/v1",
+        "simpleAdapterModule": "rlexperience-adapters/macro-rotation.js",
+        "powerAdapterId": "power-adapter/existing-owner-page/v1",
+        "briefPolicyId": "web-evidence-policy/live-market/v1",
+        "journeyDefinitionIds": ["journey/bond-regime-lab/regime-classification/v1", "journey/bond-regime-lab/sleeve-comparison/v1"],
+        "contextPolicyId": "contextual-tooltip/v1",
+        "matrixDomains": ["macro-rotation", "volatility"],
+        "publicAliases": []
       }
     },
     {
@@ -556,6 +721,21 @@
         "freshnessPolicy": "static-model-asof-v1",
         "recommendationPolicy": "model-conclusion-v1",
         "budgetPolicy": "static-model-v1"
+      },
+      "experience": {
+        "contractVersion": "tool-experience/v1",
+        "kind": "ordinary",
+        "viewSetId": "ordinary-four-view/v1",
+        "viewIds": ["simple", "power", "brief", "journey"],
+        "simpleModelDefinitionId": "simple-model/ai-capex-portfolio/v1",
+        "simpleAdapterId": "simple-adapter/ai-capex-portfolio/v1",
+        "simpleAdapterModule": "rlexperience-adapters/fundamental-models.js",
+        "powerAdapterId": "power-adapter/existing-owner-page/v1",
+        "briefPolicyId": "web-evidence-policy/static-model/v1",
+        "journeyDefinitionIds": ["journey/ai-capex-strategy-lab/beneficiaries/v1", "journey/ai-capex-strategy-lab/barbell-stress/v1"],
+        "contextPolicyId": "contextual-tooltip/v1",
+        "matrixDomains": ["fundamentals", "macro-rotation", "catalyst"],
+        "publicAliases": []
       }
     },
     {
@@ -590,6 +770,21 @@
         "freshnessPolicy": "static-model-asof-v1",
         "recommendationPolicy": "model-conclusion-v1",
         "budgetPolicy": "static-model-v1"
+      },
+      "experience": {
+        "contractVersion": "tool-experience/v1",
+        "kind": "ordinary",
+        "viewSetId": "ordinary-four-view/v1",
+        "viewIds": ["simple", "power", "brief", "journey"],
+        "simpleModelDefinitionId": "simple-model/msft-margin-eps/v1",
+        "simpleAdapterId": "simple-adapter/msft-margin-eps/v1",
+        "simpleAdapterModule": "rlexperience-adapters/fundamental-models.js",
+        "powerAdapterId": "power-adapter/existing-owner-page/v1",
+        "briefPolicyId": "web-evidence-policy/static-model/v1",
+        "journeyDefinitionIds": ["journey/msft-july-print-model/earnings-tree/v1", "journey/msft-july-print-model/valuation-driver/v1"],
+        "contextPolicyId": "contextual-tooltip/v1",
+        "matrixDomains": ["fundamentals", "catalyst"],
+        "publicAliases": []
       }
     },
     {
@@ -627,6 +822,21 @@
         "freshnessPolicy": "static-model-asof-v1",
         "recommendationPolicy": "model-conclusion-v1",
         "budgetPolicy": "static-model-v1"
+      },
+      "experience": {
+        "contractVersion": "tool-experience/v1",
+        "kind": "ordinary",
+        "viewSetId": "ordinary-four-view/v1",
+        "viewIds": ["simple", "power", "brief", "journey"],
+        "simpleModelDefinitionId": "simple-model/company-scenario-bridge/v1",
+        "simpleAdapterId": "simple-adapter/company-scenario-bridge/v1",
+        "simpleAdapterModule": "rlexperience-adapters/fundamental-models.js",
+        "powerAdapterId": "power-adapter/existing-owner-page/v1",
+        "briefPolicyId": "web-evidence-policy/static-model/v1",
+        "journeyDefinitionIds": ["journey/company-fundamentals-lab/evidence-sufficiency/v1", "journey/company-fundamentals-lab/linked-scenario/v1"],
+        "contextPolicyId": "contextual-tooltip/v1",
+        "matrixDomains": ["fundamentals", "catalyst", "gaps"],
+        "publicAliases": []
       }
     },
     {
@@ -672,6 +882,21 @@
         "freshnessPolicy": "daily-market-bars-v1",
         "recommendationPolicy": "market-action-v1",
         "budgetPolicy": "live-market-v1"
+      },
+      "experience": {
+        "contractVersion": "tool-experience/v1",
+        "kind": "ordinary",
+        "viewSetId": "ordinary-four-view/v1",
+        "viewIds": ["simple", "power", "brief", "journey"],
+        "simpleModelDefinitionId": "simple-model/etf-ranking/v1",
+        "simpleAdapterId": "simple-adapter/etf-ranking/v1",
+        "simpleAdapterModule": "rlexperience-adapters/macro-rotation.js",
+        "powerAdapterId": "power-adapter/existing-owner-page/v1",
+        "briefPolicyId": "web-evidence-policy/live-market/v1",
+        "journeyDefinitionIds": ["journey/etf-momentum-lab/objective-selection/v1", "journey/etf-momentum-lab/ranking-robustness/v1"],
+        "contextPolicyId": "contextual-tooltip/v1",
+        "matrixDomains": ["macro-rotation", "technical", "volatility"],
+        "publicAliases": []
       }
     },
     {
@@ -722,6 +947,21 @@
         "freshnessPolicy": "committed-projection-v1",
         "recommendationPolicy": "operational-next-step-v1",
         "budgetPolicy": "local-model-v1"
+      },
+      "experience": {
+        "contractVersion": "tool-experience/v1",
+        "kind": "ordinary",
+        "viewSetId": "ordinary-four-view/v1",
+        "viewIds": ["simple", "power", "brief", "journey"],
+        "simpleModelDefinitionId": "simple-model/strategy-evolution/v1",
+        "simpleAdapterId": "simple-adapter/strategy-evolution/v1",
+        "simpleAdapterModule": "rlexperience-adapters/strategy-research.js",
+        "powerAdapterId": "power-adapter/existing-owner-page/v1",
+        "briefPolicyId": "web-evidence-policy/local-model/v1",
+        "journeyDefinitionIds": ["journey/strategy-self-improvement-lab/one-variable-improvement/v1", "journey/strategy-self-improvement-lab/oos-failure/v1"],
+        "contextPolicyId": "contextual-tooltip/v1",
+        "matrixDomains": ["technical", "gaps"],
+        "publicAliases": []
       }
     },
     {
@@ -770,6 +1010,21 @@
         "freshnessPolicy": "committed-projection-v1",
         "recommendationPolicy": "operational-next-step-v1",
         "budgetPolicy": "local-model-v1"
+      },
+      "experience": {
+        "contractVersion": "tool-experience/v1",
+        "kind": "ordinary",
+        "viewSetId": "ordinary-four-view/v1",
+        "viewIds": ["simple", "power", "brief", "journey"],
+        "simpleModelDefinitionId": "simple-model/walk-forward-validation/v1",
+        "simpleAdapterId": "simple-adapter/walk-forward-validation/v1",
+        "simpleAdapterModule": "rlexperience-adapters/strategy-research.js",
+        "powerAdapterId": "power-adapter/existing-owner-page/v1",
+        "briefPolicyId": "web-evidence-policy/local-model/v1",
+        "journeyDefinitionIds": ["journey/strategy-validation-lab/edge-survival/v1", "journey/strategy-validation-lab/variant-comparison/v1"],
+        "contextPolicyId": "contextual-tooltip/v1",
+        "matrixDomains": ["technical", "volatility", "gaps"],
+        "publicAliases": []
       }
     },
     {
@@ -811,6 +1066,21 @@
         "freshnessPolicy": "committed-projection-v1",
         "recommendationPolicy": "operational-next-step-v1",
         "budgetPolicy": "local-model-v1"
+      },
+      "experience": {
+        "contractVersion": "tool-experience/v1",
+        "kind": "ordinary",
+        "viewSetId": "ordinary-four-view/v1",
+        "viewIds": ["simple", "power", "brief", "journey"],
+        "simpleModelDefinitionId": "simple-model/disclosure-decay/v1",
+        "simpleAdapterId": "simple-adapter/disclosure-decay/v1",
+        "simpleAdapterModule": "rlexperience-adapters/strategy-research.js",
+        "powerAdapterId": "power-adapter/existing-owner-page/v1",
+        "briefPolicyId": "web-evidence-policy/local-model/v1",
+        "journeyDefinitionIds": ["journey/smart-money-flow-lab/cluster-value/v1", "journey/smart-money-flow-lab/lag-comparison/v1"],
+        "contextPolicyId": "contextual-tooltip/v1",
+        "matrixDomains": ["fundamentals", "catalyst", "gaps"],
+        "publicAliases": []
       }
     },
     {
@@ -862,6 +1132,21 @@
         "freshnessPolicy": "off-theme-not-applicable-v1",
         "recommendationPolicy": "domain-next-step-v1",
         "budgetPolicy": "off-theme-v1"
+      },
+      "experience": {
+        "contractVersion": "tool-experience/v1",
+        "kind": "ordinary",
+        "viewSetId": "ordinary-four-view/v1",
+        "viewIds": ["simple", "power", "brief", "journey"],
+        "simpleModelDefinitionId": "simple-model/location-suitability/v1",
+        "simpleAdapterId": "simple-adapter/location-suitability/v1",
+        "simpleAdapterModule": "rlexperience-adapters/property-research.js",
+        "powerAdapterId": "power-adapter/existing-owner-page/v1",
+        "briefPolicyId": "web-evidence-policy/off-theme/v1",
+        "journeyDefinitionIds": ["journey/waterfront-polo-lab/market-shortlist/v1", "journey/waterfront-polo-lab/finalist-verification/v1"],
+        "contextPolicyId": "contextual-tooltip/v1",
+        "matrixDomains": ["fundamentals", "catalyst", "gaps"],
+        "publicAliases": []
       }
     },
     {
@@ -905,6 +1190,21 @@
         "freshnessPolicy": "daily-market-bars-v1",
         "recommendationPolicy": "market-action-v1",
         "budgetPolicy": "live-market-v1"
+      },
+      "experience": {
+        "contractVersion": "tool-experience/v1",
+        "kind": "ordinary",
+        "viewSetId": "ordinary-four-view/v1",
+        "viewIds": ["simple", "power", "brief", "journey"],
+        "simpleModelDefinitionId": "simple-model/conditional-volatility/v1",
+        "simpleAdapterId": "simple-adapter/conditional-volatility/v1",
+        "simpleAdapterModule": "rlexperience-adapters/market-structure.js",
+        "powerAdapterId": "power-adapter/existing-owner-page/v1",
+        "briefPolicyId": "web-evidence-policy/live-market/v1",
+        "journeyDefinitionIds": ["journey/volatility-sizing-lab/throttle/v1", "journey/volatility-sizing-lab/estimator-conflict/v1"],
+        "contextPolicyId": "contextual-tooltip/v1",
+        "matrixDomains": ["volatility", "technical"],
+        "publicAliases": []
       }
     },
     {
@@ -941,6 +1241,21 @@
         "freshnessPolicy": "off-theme-not-applicable-v1",
         "recommendationPolicy": "domain-next-step-v1",
         "budgetPolicy": "off-theme-v1"
+      },
+      "experience": {
+        "contractVersion": "tool-experience/v1",
+        "kind": "ordinary",
+        "viewSetId": "ordinary-four-view/v1",
+        "viewIds": ["simple", "power", "brief", "journey"],
+        "simpleModelDefinitionId": "simple-model/str-scenario/palm-springs/v1",
+        "simpleAdapterId": "simple-adapter/str-scenario/palm-springs/v1",
+        "simpleAdapterModule": "rlexperience-adapters/property-research.js",
+        "powerAdapterId": "power-adapter/existing-owner-page/v1",
+        "briefPolicyId": "web-evidence-policy/off-theme/v1",
+        "journeyDefinitionIds": ["journey/palm-springs-rental-market-lab/acquisition/v1", "journey/palm-springs-rental-market-lab/luxury-regulation-stress/v1"],
+        "contextPolicyId": "contextual-tooltip/v1",
+        "matrixDomains": ["fundamentals", "catalyst", "gaps"],
+        "publicAliases": []
       }
     },
     {
@@ -977,6 +1292,21 @@
         "freshnessPolicy": "off-theme-not-applicable-v1",
         "recommendationPolicy": "domain-next-step-v1",
         "budgetPolicy": "off-theme-v1"
+      },
+      "experience": {
+        "contractVersion": "tool-experience/v1",
+        "kind": "ordinary",
+        "viewSetId": "ordinary-four-view/v1",
+        "viewIds": ["simple", "power", "brief", "journey"],
+        "simpleModelDefinitionId": "simple-model/str-scenario/ocean-shores/v1",
+        "simpleAdapterId": "simple-adapter/str-scenario/ocean-shores/v1",
+        "simpleAdapterModule": "rlexperience-adapters/property-research.js",
+        "powerAdapterId": "power-adapter/existing-owner-page/v1",
+        "briefPolicyId": "web-evidence-policy/off-theme/v1",
+        "journeyDefinitionIds": ["journey/ocean-shores-rental-market-lab/luxury-scenario/v1", "journey/ocean-shores-rental-market-lab/season-weather-stress/v1"],
+        "contextPolicyId": "contextual-tooltip/v1",
+        "matrixDomains": ["fundamentals", "catalyst", "gaps"],
+        "publicAliases": []
       }
     },
     {
@@ -1013,6 +1343,21 @@
         "freshnessPolicy": "daily-market-bars-v1",
         "recommendationPolicy": "market-action-v1",
         "budgetPolicy": "live-market-v1"
+      },
+      "experience": {
+        "contractVersion": "tool-experience/v1",
+        "kind": "ordinary",
+        "viewSetId": "ordinary-four-view/v1",
+        "viewIds": ["simple", "power", "brief", "journey"],
+        "simpleModelDefinitionId": "simple-model/technical-five-gate/v1",
+        "simpleAdapterId": "simple-adapter/technical-five-gate/v1",
+        "simpleAdapterModule": "rlexperience-adapters/market-structure.js",
+        "powerAdapterId": "power-adapter/existing-owner-page/v1",
+        "briefPolicyId": "web-evidence-policy/live-market/v1",
+        "journeyDefinitionIds": ["journey/technical-analysis-decision-lab/setup-qualification/v1", "journey/technical-analysis-decision-lab/family-conflict/v1"],
+        "contextPolicyId": "contextual-tooltip/v1",
+        "matrixDomains": ["technical", "options", "volatility", "catalyst", "gaps"],
+        "publicAliases": []
       }
     }
   ]

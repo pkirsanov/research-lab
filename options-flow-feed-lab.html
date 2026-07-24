@@ -628,13 +628,26 @@
         for (var w = 0; w < Math.min(CONCURRENCY, UNIVERSE.length); w++) running.push(worker());
         return Promise.all(running).then(function () { HYDRATION.active = false; rebuild(); render(); if (window.RLAPP) RLAPP.report("options:flow", ROWS.length ? "ready" : "error", { label: "Unusual-options snapshots" }); });
       }
+      var deltaHydrationStarted = false;
+      function startDeltaHydration() {
+        if (deltaHydrationStarted) return;
+        deltaHydrationStarted = true;
+        fetchDelta().then(function () { rebuild(); render(); });
+      }
+      function startDeltaAfterShellReady() {
+        if (document.querySelector('#rlviews[data-rlexperience-shell="ready"]')) {
+          startDeltaHydration();
+          return;
+        }
+        window.addEventListener("rlviews:change", startDeltaHydration, { once: true });
+      }
       function boot() {
         loadState();
         syncSeg("modeSeg", "data-m", state.mode); syncSeg("sideSeg", "data-s", state.side); syncSeg("minSeg", "data-n", state.min); syncSeg("dteSeg", "data-d", state.dte);
         document.body.classList.toggle("power", state.mode === "power");
         wire();
         rebuild(); render();          /* cache-first paint */
-        fetchDelta().then(function () { rebuild(); render(); });  /* delta fetch, best-effort */
+        startDeltaAfterShellReady();   /* heavy delta starts once after the shared shell is ready */
       }
       if (document.readyState === "loading") document.addEventListener("DOMContentLoaded", boot); else boot();
     })();

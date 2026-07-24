@@ -1,11 +1,11 @@
-/* ═══════════ RLTKR — shared ticker → Yahoo Finance link + rich tooltip decorator ═══════════
+/* ═══════════ RLTKR — shared ticker → Yahoo Finance link + RLCTX disclosure decorator ═══════════
    Loaded by every Research Lab page. NON-NEGOTIABLE house standard: every ticker anywhere
    (cards, tables, prose, chart labels/legends) is a link to finance.yahoo.com with a rich
    tooltip (company name + kind). Two paths:
      • RLTKR.tag(ticker[, {label,name,kind}]) → an <a class="rltkr"> string for renderers.
      • auto scan() upgrades elements marked `.tkr` / `[data-tkr]`, and — inside any container
        marked `[data-tkr-auto]` — every KNOWN-map ticker token (word-bounded, no false links).
-   Custom hover tooltip (its own element; sets `data-rlk-done` so rlg.js won't double-decorate).
+  The ticker link remains navigation. A separate context control delegates disclosure to RLCTX.
    Safe on file://, GitHub Pages, and Node (no-DOM guard). Educational only — not advice. */
 (function () {
   "use strict";
@@ -44,6 +44,68 @@
   function companyName(t) { t = normTicker(t); return NAMES[t] ? NAMES[t][0] : null; }
   function companyKind(t) { t = normTicker(t); return NAMES[t] ? NAMES[t][1] : null; }
 
+  function freeze(value) {
+    if (!value || typeof value !== "object" || Object.isFrozen(value)) return value;
+    Object.keys(value).forEach(function (key) { freeze(value[key]); });
+    return Object.freeze(value);
+  }
+
+  function safeId(value) {
+    return normTicker(value).toLowerCase().replace(/[^a-z0-9]+/g, "-").replace(/^-+|-+$/g, "") || "ticker";
+  }
+
+  function tickerContext(ticker, opts) {
+    opts = opts || {};
+    var t = normTicker(ticker);
+    if (!t) return null;
+    var name = opts.name || companyName(t) || t;
+    var kind = opts.kind || companyKind(t) || "Public market symbol";
+    var context = {
+      contractVersion: "contextual-tooltip/v1",
+      contextId: "rlticker/" + safeId(t),
+      triggerKind: "ticker",
+      label: t + " market symbol",
+      definition: name + " is identified by the public market symbol " + t + ".",
+      displayed: { valueText: t, numericValue: null, unit: "ticker symbol", truthState: "current" },
+      interpretation: {
+        text: t + " identifies " + name + " as " + kind + "; this identity does not state price direction or a recommendation.",
+        direction: "not-directional",
+        comparisonBasis: "RLTKR public symbol registry",
+        window: "Current bundled symbol registry",
+        thresholdsOrBounds: []
+      },
+      provenance: {
+        ownerId: "rlticker",
+        modelId: "public-symbol-registry",
+        evidenceIdentity: "rlticker:" + t,
+        sourceRefs: ["rlticker:NAMES:" + t],
+        observedAsOf: "bundled symbol registry",
+        retrievedOrPublishedAt: "bundled with this page",
+        freshness: "static",
+        dataTier: "public symbol identity"
+      },
+      uncertainty: {
+        state: companyName(t) ? "bounded" : "partial",
+        rangeOrBand: companyName(t) ? "Known symbol identity" : "Symbol only",
+        reason: companyName(t) ? "Company and kind are present in the public RLTKR registry." : "Company and kind are not present in the bundled public registry."
+      },
+      limitation: "The public Yahoo Finance link is navigational and carries no user-specific financial data.",
+      triggerCondition: "The rendered public symbol is " + t + ".",
+      invalidationCondition: "The public symbol registry changes this identity or the symbol is removed.",
+      links: { owner: "", citation: "", sameDataTable: "", ticker: tickerHref(t) },
+      accessibility: {
+        conciseLabel: t + ", " + name + ", " + kind,
+        longDescriptionId: "rlcontext-rlticker-" + safeId(t)
+      },
+      contextFingerprint: null
+    };
+    if (root.RLCTX && typeof root.RLCTX.validateContext === "function") {
+      var result = root.RLCTX.validateContext(context);
+      if (result.ok) return result.value;
+    }
+    return freeze(context);
+  }
+
   function esc(s) { return (s == null ? "" : String(s)).replace(/[&<>"]/g, function (c) { return { "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;" }[c]; }); }
 
   /* renderer-facing: build a linked, tooltipped ticker <a>. */
@@ -51,40 +113,82 @@
     opts = opts || {};
     var t = normTicker(ticker); if (!t) return esc(opts.label || "");
     var nm = opts.name || companyName(t), kd = opts.kind || companyKind(t);
-    var tip = (nm ? nm : t) + (kd ? " · " + kd : "") + " — click → Yahoo Finance";
-    return '<a class="rltkr" href="' + esc(tickerHref(t)) + '" target="_blank" rel="noopener" ' +
-      'data-rlk-done="1" data-tip="' + esc(tip) + '" title="' + esc(tip) + '">' + esc(opts.label || t) + '</a>';
+    var identity = (nm ? nm : t) + (kd ? " · " + kd : "");
+    return '<span class="rltkr-wrap" data-tkr-symbol="' + esc(t) + '"><a class="rltkr" href="' + esc(tickerHref(t)) + '" target="_blank" rel="noopener" ' +
+      'data-rlk-done="1" aria-label="' + esc(identity + " — open Yahoo Finance") + '">' + esc(opts.label || t) + '</a>' +
+      '<button class="rltkr-context" type="button" data-tkr-context="' + esc(t) + '" aria-label="Explain ' + esc(t) + '">?</button></span>';
   }
 
-  root.RLTKR = { tag: tag, href: tickerHref, name: companyName, kind: companyKind, normTicker: normTicker, NAMES: NAMES };
+  root.RLTKR = { context: tickerContext, tag: tag, href: tickerHref, name: companyName, kind: companyKind, normTicker: normTicker, NAMES: NAMES };
   if (typeof document === "undefined") return; /* Node (selftest) — stop before DOM */
 
-  /* ── custom tooltip ── */
   function injectCSS() {
     if (document.getElementById("rltkr-css")) return;
     var st = document.createElement("style"); st.id = "rltkr-css";
     st.textContent = "a.rltkr{color:var(--teal,#2dd4bf);text-decoration:none;border-bottom:1px dotted rgba(45,212,191,.5);cursor:pointer}a.rltkr:hover{border-bottom-color:#2dd4bf;color:#7fe9db}" +
-      "#rltkrtip{position:fixed;z-index:10000;max-width:300px;background:#0e1620;border:1px solid #2f4457;border-radius:9px;padding:8px 11px;font:12px/1.5 -apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,Helvetica,Arial,sans-serif;color:#cbd8e4;box-shadow:0 12px 34px -10px rgba(0,0,0,.75);pointer-events:none;opacity:0;transform:translateY(3px);transition:opacity .12s,transform .12s}#rltkrtip.on{opacity:1;transform:translateY(0)}#rltkrtip b{color:#f5b942}";
+      ".rltkr-wrap{display:inline-flex;align-items:baseline;gap:3px}.rltkr-context{display:inline-grid;place-items:center;width:18px;height:18px;padding:0;border:1px solid var(--bd,#2f4457);border-radius:50%;background:transparent;color:var(--mut,#93a6b8);font:700 11px/1 -apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,Helvetica,Arial,sans-serif;cursor:help}.rltkr-context:hover,.rltkr-context:focus{border-color:var(--teal,#2dd4bf);color:var(--teal,#2dd4bf)}";
     (document.head || document.documentElement).appendChild(st);
   }
-  var tip = null;
-  function ensure() { if (!tip) { tip = document.createElement("div"); tip.id = "rltkrtip"; (document.body || document.documentElement).appendChild(tip); } return tip; }
-  function place(ev) { var e = ensure(), pad = 14, r = e.getBoundingClientRect(), x = ev.clientX + pad, y = ev.clientY + pad; if (x + r.width > window.innerWidth - 8) x = ev.clientX - pad - r.width; if (y + r.height > window.innerHeight - 8) y = ev.clientY - pad - r.height; e.style.left = Math.max(6, x) + "px"; e.style.top = Math.max(6, y) + "px"; }
-  function onEnter(ev) { var el = ev.currentTarget, txt = el.getAttribute("data-tip"); if (!txt) return; var e = ensure(); e.innerHTML = "<b>" + esc((el.textContent || "").trim()) + "</b> — " + esc(txt); place(ev); e.classList.add("on"); }
-  function onMove(ev) { if (tip && tip.classList.contains("on")) place(ev); }
-  function onLeave() { if (tip) tip.classList.remove("on"); }
+
+  function bindContextControl(button, ticker, opts) {
+    if (!button || button.getAttribute("data-rltkr-context-bound")) return;
+    function bindNow() {
+      if (!root.RLCTX || typeof root.RLCTX.bind !== "function") return;
+      var result = root.RLCTX.bind(button, tickerContext(ticker, opts));
+      if (result.ok) button.setAttribute("data-rltkr-context-bound", "1");
+    }
+    if (root.RLCTX) bindNow();
+    else if (typeof root.addEventListener === "function") root.addEventListener("rlcontextready", bindNow, { once: true });
+  }
+
+  function createContextControl(ticker, opts) {
+    var button = document.createElement("button");
+    button.className = "rltkr-context";
+    button.type = "button";
+    button.textContent = "?";
+    button.setAttribute("data-tkr-context", ticker);
+    button.setAttribute("aria-label", "Explain " + ticker);
+    bindContextControl(button, ticker, opts);
+    return button;
+  }
+
+  function configureLink(anchor, ticker, label, opts) {
+    var name = opts.name || companyName(ticker);
+    var kind = opts.kind || companyKind(ticker);
+    var identity = (name || ticker) + (kind ? " \u00b7 " + kind : "");
+    anchor.className = "rltkr";
+    anchor.href = tickerHref(ticker);
+    anchor.target = "_blank";
+    anchor.rel = "noopener";
+    anchor.textContent = label || ticker;
+    anchor.setAttribute("data-rlk-done", "1");
+    anchor.setAttribute("aria-label", identity + " \u2014 open Yahoo Finance");
+    anchor.removeAttribute("data-tip");
+    anchor.removeAttribute("title");
+  }
 
   function makeLink(elm, t) {
-    if (!elm || elm.getAttribute("data-rlk-done")) return;
+    if (!elm || elm.getAttribute("data-rltkr-done")) return;
     t = normTicker(t || elm.getAttribute("data-tkr") || elm.textContent);
-    elm.setAttribute("data-rlk-done", "1");
     if (!t) return;
-    var nm = companyName(t), kd = companyKind(t), tipTxt = (nm || t) + (kd ? " · " + kd : "") + " — click → Yahoo Finance";
-    var a = document.createElement("a");
-    a.className = "rltkr"; a.href = tickerHref(t); a.target = "_blank"; a.rel = "noopener";
-    a.setAttribute("data-tip", tipTxt); a.title = tipTxt; a.textContent = elm.textContent || t;
-    a.addEventListener("mouseenter", onEnter); a.addEventListener("mousemove", onMove); a.addEventListener("mouseleave", onLeave);
-    if (elm.tagName === "A") { elm.parentNode.replaceChild(a, elm); } else { elm.textContent = ""; elm.appendChild(a); }
+    var label = elm.textContent || t;
+    var opts = { name: companyName(t), kind: companyKind(t) };
+    var wrapper = document.createElement("span");
+    wrapper.className = "rltkr-wrap";
+    wrapper.setAttribute("data-tkr-symbol", t);
+    var anchor = elm.tagName === "A" ? elm : document.createElement("a");
+    configureLink(anchor, t, label, opts);
+    var button = createContextControl(t, opts);
+    if (elm.tagName === "A") {
+      elm.parentNode.replaceChild(wrapper, elm);
+      wrapper.appendChild(anchor);
+    } else {
+      elm.textContent = "";
+      elm.appendChild(wrapper);
+      wrapper.appendChild(anchor);
+    }
+    wrapper.appendChild(button);
+    elm.setAttribute("data-rltkr-done", "1");
   }
 
   /* bounded auto-scan of KNOWN tickers inside a container marked [data-tkr-auto] — no false links. */
@@ -93,7 +197,7 @@
   function autoScanText(container) {
     try {
       var walker = document.createTreeWalker(container, NodeFilter.SHOW_TEXT, null), nodes = [], n, re = knownRe();
-      while ((n = walker.nextNode())) { re.lastIndex = 0; if (n.parentNode && !n.parentNode.closest("a,button,input,textarea,select,script,style,code,pre,.rltkr,[data-rlk-done],.rlnav") && re.test(n.nodeValue)) nodes.push(n); }
+      while ((n = walker.nextNode())) { re.lastIndex = 0; if (n.parentNode && !n.parentNode.closest("a,button,input,textarea,select,script,style,code,pre,.rltkr,[data-rlk-done],.rlnav,#rlcontext-disclosure,#rlcontext-announcer") && re.test(n.nodeValue)) nodes.push(n); }
       nodes.forEach(function (node) {
         var frag = document.createDocumentFragment(), s = node.nodeValue, last = 0, m; knownRe().lastIndex = 0;
         while ((m = knownRe().exec(s))) {
@@ -110,6 +214,7 @@
     rootEl = rootEl || document;
     try {
       var ex = rootEl.querySelectorAll(".tkr,[data-tkr]"); for (var i = 0; i < ex.length; i++) makeLink(ex[i]);
+      var controls = rootEl.querySelectorAll(".rltkr-context[data-tkr-context]"); for (var c = 0; c < controls.length; c++) bindContextControl(controls[c], controls[c].getAttribute("data-tkr-context"), {});
       var au = rootEl.querySelectorAll("[data-tkr-auto]"); for (var j = 0; j < au.length; j++) autoScanText(au[j]);
       var body = rootEl.body || (rootEl === document ? document.body : (rootEl.nodeType === 1 ? rootEl : null));
       if (body && body.getAttribute && !body.getAttribute("data-tkr-noauto")) autoScanText(body);
@@ -119,6 +224,31 @@
 
   var timer = null;
   function schedule() { if (timer) return; timer = setTimeout(function () { timer = null; scan(document); }, 240); }
-  function boot() { try { injectCSS(); scan(document); try { new MutationObserver(function (m) { for (var i = 0; i < m.length; i++) if (m[i].addedNodes && m[i].addedNodes.length) { schedule(); return; } }).observe(document.body, { childList: true, subtree: true }); } catch (e) { } } catch (e) { } }
+  function mutationBelongsToContext(node) {
+    var element = node && node.nodeType === 1 ? node : node && node.parentElement;
+    return Boolean(element && element.closest && element.closest("#rlcontext-disclosure,#rlcontext-announcer"));
+  }
+  function textContainsKnownTicker(value) {
+    var re = knownRe();
+    re.lastIndex = 0;
+    return re.test(String(value || ""));
+  }
+  function mutationNeedsTickerScan(node) {
+    if (!node || mutationBelongsToContext(node)) return false;
+    if (node.nodeType === 3) {
+      var parent = node.parentElement;
+      if (!parent || (parent.closest && parent.closest("a,button,input,textarea,select,script,style,code,pre,.rltkr,[data-rlk-done],.rlnav"))) return false;
+      var autoRegion = parent.closest && parent.closest("[data-tkr-auto]");
+      var bodyAuto = document.body && !document.body.getAttribute("data-tkr-noauto");
+      return Boolean((autoRegion || bodyAuto) && textContainsKnownTicker(node.nodeValue));
+    }
+    if (node.nodeType !== 1) return false;
+    if ((node.matches && node.matches(".tkr,[data-tkr],.rltkr-context[data-tkr-context],[data-tkr-auto]")) ||
+        (node.querySelector && node.querySelector(".tkr,[data-tkr],.rltkr-context[data-tkr-context],[data-tkr-auto]"))) return true;
+    var inAutoRegion = node.closest && node.closest("[data-tkr-auto]");
+    var bodyAllowsAuto = document.body && !document.body.getAttribute("data-tkr-noauto");
+    return Boolean((inAutoRegion || bodyAllowsAuto) && textContainsKnownTicker(node.textContent));
+  }
+  function boot() { try { injectCSS(); scan(document); try { new MutationObserver(function (m) { for (var i = 0; i < m.length; i++) { for (var j = 0; m[i].addedNodes && j < m[i].addedNodes.length; j++) { if (mutationNeedsTickerScan(m[i].addedNodes[j])) { schedule(); return; } } } }).observe(document.body, { childList: true, subtree: true }); } catch (e) { } } catch (e) { } }
   if (document.readyState === "loading") document.addEventListener("DOMContentLoaded", boot); else boot();
 })();

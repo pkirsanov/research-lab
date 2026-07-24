@@ -138,8 +138,12 @@
             display: none;
         }
 
-        body.power #simpleWrap {
+        body.power #simpleWrap .simple-only {
             display: none;
+        }
+
+        body.canvas-unavailable #heatmap-table-panel {
+            display: block;
         }
 
         /* verdict */
@@ -319,7 +323,7 @@
 
     <!-- SIMPLE cockpit -->
     <div id="simpleWrap">
-        <div class="panel">
+        <div class="panel simple-only">
             <div class="verdict" id="verdict">—</div>
             <div class="vsub" id="verdictSub">Reading the map…</div>
             <div class="levers">
@@ -366,7 +370,7 @@
     </div>
 
     <!-- POWER drill-down -->
-    <div class="panel pw">
+    <div class="panel pw" id="heatmap-table-panel">
         <h2>Sector breadth <span class="hint">advancers / decliners &amp; average move per sector</span></h2>
         <div class="breadth" id="breadth"></div>
     </div>
@@ -404,6 +408,8 @@
             href="notes/market-heatmap-lab.md">notes/market-heatmap-lab.md</a>.
     </div>
 
+    <script src="rlexperience.js" defer></script>
+    <script src="rlcontext.js" defer></script>
     <script src="rlg.js" defer></script>
     <script src="rldata.js?v=20260712-4" defer></script>
     <script src="rlchart.js" defer></script>
@@ -567,6 +573,60 @@
             var WIN_BARS = { "1d": 1, "1w": 5, "1m": 21 };
             var HYDRATION = { done: 0, total: 0, active: false };  /* progress + coalesced-render state */
 
+            function heatPointId(cell) { return String(cell.ticker || "unavailable").replace(/[^A-Za-z0-9:._-]+/g, "-"); }
+            function heatRowId(cell) { return "heatmap-row-" + heatPointId(cell); }
+            function heatObservedAsOf(cell) {
+                var rows = window.RLDATA && RLDATA.bars(cell.ticker, "1d");
+                var latest = rows && rows.length ? rows[rows.length - 1] : null;
+                return latest && Number.isFinite(latest.t) ? new Date(latest.t).toISOString() : "unavailable";
+            }
+            function heatContext(cell) {
+                var available = Number.isFinite(cell.pct);
+                var valueText = available ? (cell.pct >= 0 ? "+" : "") + cell.pct.toFixed(2) + "%" : "Unavailable";
+                var zText = Number.isFinite(cell.z) ? (cell.z >= 0 ? "+" : "") + cell.z.toFixed(2) + " standard deviations" : "unavailable sector deviation";
+                var interpretation = available
+                    ? cell.ticker + " moved " + valueText + " over " + state.win + " and is " + zText + " versus its " + cell.sector + " peers."
+                    : "No current return interpretation is available because the shared cache has no complete price window for " + cell.ticker + ".";
+                var context = {
+                    contractVersion: "contextual-tooltip/v1",
+                    contextId: "market-heatmap/return/" + heatPointId(cell) + "/" + state.win,
+                    triggerKind: "chart-point",
+                    label: cell.ticker + " " + state.win + " return",
+                    definition: "The close-to-close percentage return over the selected heatmap window, compared with the owning sector distribution.",
+                    displayed: { valueText: valueText, numericValue: available ? cell.pct : null, unit: "percent", truthState: available ? "current" : "unavailable" },
+                    interpretation: {
+                        text: interpretation,
+                        direction: "threshold-dependent",
+                        comparisonBasis: cell.sector + " constituents with complete cached returns",
+                        window: state.win,
+                        thresholdsOrBounds: ["positive return > 0%", "sector outlier |z| >= 1.3"]
+                    },
+                    provenance: {
+                        ownerId: "market-heatmap-lab",
+                        modelId: "heatmap-return-and-sector-zscore",
+                        evidenceIdentity: "rlData:bars:" + cell.ticker + ":1d:" + heatObservedAsOf(cell),
+                        sourceRefs: ["rlData:bars:" + cell.ticker + ":1d"],
+                        observedAsOf: heatObservedAsOf(cell),
+                        retrievedOrPublishedAt: heatObservedAsOf(cell),
+                        freshness: available ? "cache-current-for-render" : "unavailable",
+                        dataTier: "shared cache snapshot"
+                    },
+                    uncertainty: {
+                        state: available ? "bounded" : "unavailable",
+                        rangeOrBand: available ? valueText + "; " + zText : "Unavailable",
+                        reason: available ? "Return and sector deviation use the exact cached rows currently rendered." : "The required cached price window is incomplete."
+                    },
+                    limitation: "The return and sector deviation describe the selected historical window; they do not establish persistence or a recommendation.",
+                    triggerCondition: "The selected " + state.win + " return remains available from the shared cache.",
+                    invalidationCondition: "The cache window changes, becomes incomplete, or a later observation replaces the current endpoint.",
+                    links: { owner: "market-heatmap-lab.html#power", citation: "", sameDataTable: "#" + heatRowId(cell), ticker: window.RLTKR ? RLTKR.href(cell.ticker) : "https://finance.yahoo.com/quote/" + encodeURIComponent(cell.ticker) },
+                    accessibility: { conciseLabel: cell.ticker + " return " + valueText + ", " + (available ? "current" : "unavailable"), longDescriptionId: "rlcontext-heatmap-" + heatPointId(cell) + "-" + state.win },
+                    contextFingerprint: null
+                };
+                var result = window.RLCTX && RLCTX.validateContext(context);
+                return result && result.ok ? result.value : context;
+            }
+
             function $(id) { return document.getElementById(id); }
             /* Which member symbols does a sectors-mode entry resolve to?
                - single-ticker sector/index entry → [ticker]
@@ -655,6 +715,18 @@
             function drawTreemap() {
                 var cv = $("tm"); if (!cv || !cv.getContext) return;
                 var ctx = cv.getContext("2d");
+                if (!ctx) {
+                    cv.hidden = true;
+                    cv.setAttribute("data-rlchart-unavailable", "true");
+                    document.body.classList.add("canvas-unavailable");
+                    $("tbl").setAttribute("data-context-primary", "true");
+                    $("mapHint").textContent = "canvas unavailable · same-data table is primary";
+                    return;
+                }
+                cv.hidden = false;
+                cv.removeAttribute("data-rlchart-unavailable");
+                document.body.classList.remove("canvas-unavailable");
+                $("tbl").removeAttribute("data-context-primary");
                 var cssW = cv.clientWidth || 900, cssH = 460, dpr = window.devicePixelRatio || 1;
                 cv.width = Math.round(cssW * dpr); cv.height = Math.round(cssH * dpr);
                 ctx.setTransform(dpr, 0, 0, dpr, 0, 0);
@@ -684,17 +756,24 @@
                     if (sr.w > 60 && sr.h > 22) { ctx.fillStyle = "rgba(230,237,243,.95)"; ctx.textBaseline = "bottom"; ctx.font = "700 11px -apple-system,Segoe UI,Roboto,Helvetica,Arial,sans-serif"; ctx.fillText(sr.item.label, sr.x + 4, sr.y + sr.h - 3); ctx.font = "11px -apple-system,Segoe UI,Roboto,Helvetica,Arial,sans-serif"; }
                 });
                 if (window.RLCHART) {
-                    RLCHART.attach(cv, function (mx, my) {
+                    function hitForPoint(pointId) {
                         for (var i = hits.length - 1; i >= 0; i--) {
-                            var hh = hits[i];
-                            if (mx >= hh.x && mx <= hh.x + hh.w && my >= hh.y && my <= hh.y + hh.h) {
-                                var c = hh.cell, pv = isFinite(c.pct) ? (c.pct >= 0 ? "+" : "") + c.pct.toFixed(2) + "%" : "no data";
-                                var note = !isFinite(c.pct) ? "No cached price history yet — fetch is in progress or the symbol is unavailable." :
-                                    (c.pct >= 0 ? "Up" : "Down") + " over " + state.win + "; " + (c.z >= 0 ? "+" : "") + c.z.toFixed(1) + "σ vs its " + c.sector + " peers.";
-                                return RLCHART.tip(c.ticker + " · " + c.label, [["Sector", c.sector], ["Return (" + state.win + ")", pv], ["σ vs sector", isFinite(c.z) ? (c.z >= 0 ? "+" : "") + c.z.toFixed(2) : "—"]], note);
-                            }
+                            if (heatPointId(hits[i].cell) === pointId) return hits[i];
                         }
                         return null;
+                    }
+                    RLCHART.attach(cv, {
+                        hitTest: function (mx, my) {
+                            for (var i = hits.length - 1; i >= 0; i--) {
+                                var hit = hits[i];
+                                if (mx >= hit.x && mx <= hit.x + hit.w && my >= hit.y && my <= hit.y + hit.h) return heatPointId(hit.cell);
+                            }
+                            return null;
+                        },
+                        orderedPointIds: hits.map(function (hit) { return heatPointId(hit.cell); }),
+                        contextFor: function (pointId) { var hit = hitForPoint(pointId); return hit ? heatContext(hit.cell) : null; },
+                        tableTargetFor: function (pointId) { var hit = hitForPoint(pointId); return hit ? heatRowId(hit.cell) : ""; },
+                        seriesOrder: ["sector", "ticker", "return", "sector-zscore"]
                     });
                 }
             }
@@ -764,10 +843,37 @@
                     va = isFinite(va) ? va : -Infinity; vb = isFinite(vb) ? vb : -Infinity;
                     return (va - vb) * state.sortDir;
                 });
-                var html = rows.map(function (c) {
-                    return "<tr><td>" + tkr(c.ticker, c.ticker + " · " + c.label) + "</td><td>" + c.sector + "</td><td class='" + (c.pct >= 0 ? "up" : "down") + "'>" + (isFinite(c.pct) ? (c.pct >= 0 ? "+" : "") + c.pct.toFixed(2) + "%" : "—") + "</td><td>" + sizeCell(c) + "</td><td>" + (isFinite(c.z) ? (c.z >= 0 ? "+" : "") + c.z.toFixed(2) : "—") + "</td></tr>";
-                }).join("");
-                $("tbody").innerHTML = html;
+                var tbody = $("tbody"), retained = {};
+                rows.forEach(function (c) {
+                    var rowId = heatRowId(c), row = document.getElementById(rowId);
+                    retained[rowId] = true;
+                    if (!row) {
+                        row = document.createElement("tr");
+                        row.id = rowId;
+                        for (var i = 0; i < 5; i++) row.appendChild(document.createElement("td"));
+                    }
+                    var cells = row.children;
+                    if (cells[0].getAttribute("data-ticker") !== c.ticker) {
+                        cells[0].setAttribute("data-ticker", c.ticker);
+                        cells[0].innerHTML = tkr(c.ticker, c.ticker + " · " + c.label);
+                    }
+                    cells[1].textContent = c.sector;
+                    cells[2].className = c.pct >= 0 ? "up" : "down";
+                    cells[2].textContent = isFinite(c.pct) ? (c.pct >= 0 ? "+" : "") + c.pct.toFixed(2) + "%" : "—";
+                    cells[3].textContent = sizeCell(c);
+                    cells[4].textContent = isFinite(c.z) ? (c.z >= 0 ? "+" : "") + c.z.toFixed(2) : "—";
+                    tbody.appendChild(row);
+                });
+                Array.prototype.slice.call(tbody.children).forEach(function (row) {
+                    if (!retained[row.id]) row.remove();
+                });
+                if (window.RLCTX) {
+                    rows.forEach(function (cell) {
+                        var row = document.getElementById(heatRowId(cell));
+                        var bound = row && RLCTX.bind(row, heatContext(cell));
+                        if (bound && bound.ok) row.setAttribute("data-rlcontext-fingerprint", bound.value.contextFingerprint);
+                    });
+                }
             }
             function sizeCell(c) { if (state.size === "equal") return "1"; if (state.size === "dvol") return "$" + shortNum(c.size); return (c.size * 100).toFixed(1) + "%"; }
             function shortNum(v) { if (!isFinite(v)) return "—"; if (v >= 1e9) return (v / 1e9).toFixed(1) + "B"; if (v >= 1e6) return (v / 1e6).toFixed(1) + "M"; if (v >= 1e3) return (v / 1e3).toFixed(1) + "K"; return v.toFixed(0); }
@@ -780,29 +886,33 @@
 
             /* ═══════ data: cache-first paint, then delta fetch, automatic on load ═══════ */
             function hydrateFromCache() { render(); } /* render() reads whatever RLDATA already has cached */
+            function yieldToInteraction() {
+                return new Promise(function (resolve) { window.setTimeout(resolve, 0); });
+            }
             function fetchDelta() {
                 if (!window.RLDATA || !RLDATA.ensureBars) return Promise.resolve();
                 var syms = symList(), i = 0;
                 HYDRATION = { done: 0, total: syms.length, active: true };
-                var CONCURRENCY = 8;                 /* same-origin snapshots — safe to parallelize (no upstream rate limit) */
-                var dirty = false, rafPending = false;
-                var raf = window.requestAnimationFrame ? window.requestAnimationFrame.bind(window) : function (f) { return setTimeout(f, 16); };
-                function scheduleRender() {           /* coalesce to ~1 render/frame instead of 1 render/symbol (avoids main-thread saturation) */
-                    dirty = true;
-                    if (rafPending) return;
-                    rafPending = true;
-                    raf(function () { rafPending = false; if (dirty) { dirty = false; render(); } });
-                }
+                document.body.setAttribute("data-heatmap-hydration", "loading");
+                     /* RLDATA persists the complete cache after each accepted symbol. Keep only two
+                         writes in flight so automatic delta hydration cannot starve UI interactions. */
+                     var CONCURRENCY = 2;
                 function worker() {
                     if (i >= syms.length) return Promise.resolve();
                     var s = syms[i++];
                     return RLDATA.ensureBars(s, "1d", 12, "3mo").catch(function () { }).then(function () {
-                        HYDRATION.done++; scheduleRender(); return worker();
+                        HYDRATION.done++;
+                        $("status").textContent = "loading " + HYDRATION.done + "/" + HYDRATION.total + " symbols…";
+                        return yieldToInteraction().then(worker);
                     });
                 }
                 var running = [];
                 for (var w = 0; w < Math.min(CONCURRENCY, syms.length); w++) running.push(worker());
-                return Promise.all(running).then(function () { HYDRATION.active = false; render(); });
+                return Promise.all(running).then(function () {
+                    HYDRATION.active = false;
+                    render();
+                    document.body.setAttribute("data-heatmap-hydration", "ready");
+                });
             }
 
             /* ═══════ wiring ═══════ */
@@ -847,6 +957,7 @@
             }
 
             function boot() {
+                document.body.setAttribute("data-heatmap-hydration", "loading");
                 loadState();
                 syncSeg("modeSeg", "data-m", state.mode); syncSeg("winSeg", "data-w", state.win);
                 syncSeg("sizeSeg", "data-s", state.size); syncSeg("grpSeg", "data-g", state.grp);
@@ -864,6 +975,7 @@
                     /* last-resort: never leave the tool wedged on a rejected boot chain — drop cache and repaint */
                     try { localStorage.removeItem("rlData"); } catch (_) { }
                     try { render(); } catch (_) { }
+                    document.body.setAttribute("data-heatmap-hydration", "ready");
                 });
             }
             if (document.readyState === "loading") document.addEventListener("DOMContentLoaded", boot); else boot();

@@ -2412,8 +2412,11 @@
     if (document.readyState === 'loading') document.addEventListener('DOMContentLoaded', boot); else boot();
   </script>
 
-  <!-- ═══════════ RL Glossary tooltips — self-contained, shared across all tools ═══════════ -->
-  <style id="rlg-css">
+  <script src="rlexperience.js"></script>
+  <script src="rlcontext.js"></script>
+  <script src="rlg.js"></script>
+  <!-- Legacy glossary definitions remain inert during canary migration; shared RLG owns runtime decoration. -->
+  <style id="rlg-legacy-css">
     .rlg {
       cursor: help
     }
@@ -2427,7 +2430,7 @@
       color: #2dd4bf
     }
 
-    #rlgtip {
+    #legacyGlossaryTip {
       position: fixed;
       z-index: 9999;
       max-width: 344px;
@@ -2444,35 +2447,35 @@
       transition: opacity .12s ease, transform .12s ease
     }
 
-    #rlgtip.on {
+    #legacyGlossaryTip.on {
       opacity: 1;
       transform: translateY(0)
     }
 
-    #rlgtip .h {
+    #legacyGlossaryTip .h {
       font-weight: 700;
       color: #e6edf3;
       margin: 0 0 3px;
       font-size: 12.5px
     }
 
-    #rlgtip .g {
+    #legacyGlossaryTip .g {
       color: #cbd8e4
     }
 
-    #rlgtip .c {
+    #legacyGlossaryTip .c {
       margin-top: 6px;
       padding-top: 6px;
       border-top: 1px solid #22303f;
       color: #93a6b8
     }
 
-    #rlgtip .c b {
+    #legacyGlossaryTip .c b {
       color: #f5b942;
       font-weight: 700
     }
   </style>
-  <script id="rlg-js">
+  <script id="rlg-legacy-js">
     (function () {
       var root = (typeof window !== 'undefined') ? window : {};
       if (root.__rlgInit) return; root.__rlgInit = 1;
@@ -2619,7 +2622,7 @@
       if (typeof document === "undefined") return; /* no-DOM (Node test): stop here */
 
       var tip = null;
-      function ensure() { if (!tip) { tip = document.createElement("div"); tip.id = "rlgtip"; (document.body || document.documentElement).appendChild(tip); } return tip; }
+      function ensure() { if (!tip) { tip = document.createElement("div"); tip.id = "legacyGlossaryTip"; (document.body || document.documentElement).appendChild(tip); } return tip; }
       function place(ev) { var t = ensure(), pad = 14, vw = window.innerWidth, vh = window.innerHeight, r = t.getBoundingClientRect(); var x = ev.clientX + pad, y = ev.clientY + pad; if (x + r.width > vw - 8) x = ev.clientX - pad - r.width; if (y + r.height > vh - 8) y = ev.clientY - pad - r.height; t.style.left = Math.max(6, x) + "px"; t.style.top = Math.max(6, y) + "px"; }
       function esc(s) { return (s || "").replace(/[&<>]/g, function (c) { return { "&": "&amp;", "<": "&lt;", ">": "&gt;" }[c]; }); }
       function onEnter(ev) { try { var k = ev.currentTarget.getAttribute("data-rlk"), d = G[k]; if (!d) return; var t = ensure(); t.innerHTML = '<div class="h">' + esc((ev.currentTarget.textContent || "").trim().slice(0, 60)) + '</div><div class="g">' + d[0] + '</div>' + (d[1] ? '<div class="c"><b>In context:</b> ' + d[1] + '</div>' : ''); place(ev); t.classList.add("on"); } catch (e) { } }

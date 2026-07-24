@@ -1,14 +1,13 @@
-/* ═══════════ RLCHART — shared canvas-chart hover tooltips (+ tiny hit-test helpers) ═══════════
-   NON-NEGOTIABLE house standard: every chart (including <canvas> charts) carries a rich hover
-   tooltip explaining what the hovered element is and what its value means in context.
-   Canvas pixels can't be DOM-linked, so each chart registers a hit-test closure:
+/* ═══════════ RLCHART — shared canvas context inspection (+ tiny hit-test helpers) ═══════════
+  Structured charts expose pointer, touch, keyboard point rails, and same-data table targets
+  through RLCTX. The original function hit-test overload remains migration compatibility:
 
        RLCHART.attach(canvasEl, function (mx, my) {   // mx,my = CSS px inside the canvas
          ...return RLCHART.tip(title, [[label,value],...], "context note") OR null...
        });
 
-   The helper owns the floating tooltip element, positioning, and mouse/touch wiring; the chart
-   only maps a cursor position to content. Redraws just call attach() again (idempotent wiring).
+  The helper owns point selection and accessibility wiring; RLCTX alone owns disclosure.
+  Redraws call attach() again (idempotent wiring).
    Safe on file://, GitHub Pages, and Node (no-DOM guard). Educational only — not investment advice. */
 (function () {
   "use strict";
@@ -72,51 +71,305 @@
     return a;
   }
 
-  root.RLCHART = { esc: esc, dist2: dist2, nearestIndex: nearestIndex, fmt: fmt, signed: signed, pct: pct, logTicks: logTicks, tip: tip, declutterY: declutterY };
+  function deepFreeze(value) {
+    if (!value || typeof value !== "object" || Object.isFrozen(value)) return value;
+    Object.keys(value).forEach(function (key) { deepFreeze(value[key]); });
+    return Object.freeze(value);
+  }
+
+  function adapterError(reason, fieldPath) {
+    if (root.RLCTX && typeof root.RLCTX.projectError === "function") {
+      return root.RLCTX.projectError({ reason: reason, fieldPath: fieldPath, phase: "chart-adapter-validation" });
+    }
+    return deepFreeze({
+      contractVersion: "experience-error/v1",
+      code: "E012-CONTEXT-MISSING",
+      phase: "chart-adapter-validation",
+      toolId: null,
+      contractId: "contextual-tooltip/v1",
+      reason: reason,
+      fieldPath: fieldPath,
+      recoverable: false,
+      dependencyGateId: null,
+      valueEchoed: false
+    });
+  }
+
+  function validateStructuredAdapter(adapter) {
+    function fail(reason, fieldPath) { return deepFreeze({ ok: false, error: adapterError(reason, fieldPath) }); }
+    if (!adapter || typeof adapter !== "object" || Array.isArray(adapter)) return fail("structured chart adapter required", "$.adapter");
+    var expected = ["contextFor", "hitTest", "orderedPointIds", "seriesOrder", "tableTargetFor"];
+    var keys = Object.keys(adapter).sort();
+    if (keys.join("|") !== expected.join("|")) return fail("structured chart adapter fields must match the contract exactly", "$.adapter");
+    if (typeof adapter.hitTest !== "function") return fail("hitTest function required", "$.hitTest");
+    if (typeof adapter.contextFor !== "function") return fail("contextFor function required", "$.contextFor");
+    if (typeof adapter.tableTargetFor !== "function") return fail("tableTargetFor function required", "$.tableTargetFor");
+    if (!Array.isArray(adapter.orderedPointIds) || !adapter.orderedPointIds.length) return fail("orderedPointIds must be non-empty", "$.orderedPointIds");
+    if (!Array.isArray(adapter.seriesOrder)) return fail("seriesOrder array required", "$.seriesOrder");
+    if (!root.RLCTX || typeof root.RLCTX.validateContext !== "function") return fail("RLCTX validator unavailable", "$.contextFor");
+    var seen = Object.create(null), points = Object.create(null), tableTargets = Object.create(null);
+    for (var i = 0; i < adapter.orderedPointIds.length; i++) {
+      var pointId = adapter.orderedPointIds[i];
+      if (typeof pointId !== "string" || !/^[A-Za-z0-9:._-]+$/.test(pointId)) return fail("stable point ID required", "$.orderedPointIds[" + i + "]");
+      if (seen[pointId]) return fail("duplicate point ID", "$.orderedPointIds[" + i + "]");
+      seen[pointId] = true;
+      var contextResult = root.RLCTX.validateContext(adapter.contextFor(pointId));
+      if (!contextResult.ok) return deepFreeze({ ok: false, error: contextResult.error });
+      var target = adapter.tableTargetFor(pointId);
+      if (typeof target !== "string" || !/^[A-Za-z][A-Za-z0-9:._-]*$/.test(target)) return fail("safe same-data table target required", "$.tableTargetFor(" + pointId + ")");
+      if (contextResult.value.links.sameDataTable !== "#" + target) return fail("context same-data link must match tableTargetFor", "$.contextFor(" + pointId + ").links.sameDataTable");
+      points[pointId] = contextResult.value;
+      tableTargets[pointId] = target;
+    }
+    for (var s = 0; s < adapter.seriesOrder.length; s++) {
+      if (typeof adapter.seriesOrder[s] !== "string" || !adapter.seriesOrder[s]) return fail("seriesOrder values must be non-empty strings", "$.seriesOrder[" + s + "]");
+    }
+    return deepFreeze({
+      ok: true,
+      value: {
+        orderedPointIds: adapter.orderedPointIds.slice(),
+        points: points,
+        seriesOrder: adapter.seriesOrder.slice(),
+        tableTargets: tableTargets
+      }
+    });
+  }
+
+  root.RLCHART = { esc: esc, dist2: dist2, nearestIndex: nearestIndex, fmt: fmt, signed: signed, pct: pct, logTicks: logTicks, tip: tip, declutterY: declutterY, validateStructuredAdapter: validateStructuredAdapter };
   if (typeof document === "undefined") return; /* Node (selftest) — stop before DOM */
 
-  /* ── floating tooltip element ── */
   function injectCSS() {
     if (document.getElementById("rlchart-css")) return;
     var st = document.createElement("style"); st.id = "rlchart-css";
     st.textContent =
-      "#rlcharttip{position:fixed;z-index:10001;max-width:320px;background:#0e1620;border:1px solid #2f4457;border-radius:9px;padding:8px 11px;font:12px/1.5 -apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,Helvetica,Arial,sans-serif;color:#cbd8e4;box-shadow:0 12px 34px -10px rgba(0,0,0,.75);pointer-events:none;opacity:0;transform:translateY(3px);transition:opacity .1s,transform .1s}" +
-      "#rlcharttip.on{opacity:1;transform:translateY(0)}#rlcharttip .h{font-weight:700;color:#e6edf3;margin:0 0 3px}#rlcharttip .g{color:#cbd8e4}#rlcharttip .g b{color:#e6edf3;font-weight:700}#rlcharttip .c{margin-top:6px;padding-top:6px;border-top:1px solid #22303f;color:#93a6b8}" +
-      "canvas[data-rlchart]{cursor:crosshair}";
+      "canvas[data-rlchart]{cursor:crosshair}canvas[data-rlchart-mode=structured]:focus{outline:2px solid var(--teal,#2dd4bf);outline-offset:2px}" +
+      ".rlchart-point-rail{position:absolute!important;width:1px!important;height:1px!important;padding:0!important;margin:-1px!important;overflow:hidden!important;clip:rect(0,0,0,0)!important;white-space:nowrap!important;border:0!important}";
     (document.head || document.documentElement).appendChild(st);
   }
-  var tipEl = null;
-  function ensure() { if (!tipEl) { tipEl = document.createElement("div"); tipEl.id = "rlcharttip"; (document.body || document.documentElement).appendChild(tipEl); } return tipEl; }
-  function place(ev) {
-    var e = ensure(), pad = 14, r = e.getBoundingClientRect();
-    var x = ev.clientX + pad, y = ev.clientY + pad;
-    if (x + r.width > window.innerWidth - 8) x = ev.clientX - pad - r.width;
-    if (y + r.height > window.innerHeight - 8) y = ev.clientY - pad - r.height;
-    e.style.left = Math.max(6, x) + "px"; e.style.top = Math.max(6, y) + "px";
-  }
-  function show(html, ev) { var e = ensure(); if (e.innerHTML !== html) e.innerHTML = html; place(ev); e.classList.add("on"); }
-  function hide() { if (tipEl) tipEl.classList.remove("on"); }
+  var activeCanvas = null;
 
-  function handle(ev) {
-    var cv = ev.currentTarget, fn = cv && cv.__rlhit; if (!fn) return;
-    var r = cv.getBoundingClientRect();
-    var mx = ev.clientX - r.left, my = ev.clientY - r.top;
-    var html = null; try { html = fn(mx, my, ev); } catch (e) { html = null; }
-    if (html) show(html, ev); else hide();
+  function safeDomId(value) {
+    return String(value || "point").replace(/[^A-Za-z0-9:._-]+/g, "-").replace(/^-+|-+$/g, "") || "point";
   }
 
-  /* register (or refresh) the hit-tester for a canvas; wiring is idempotent across redraws. */
-  function attach(cv, hitFn) {
-    if (!cv) return;
-    injectCSS();
-    cv.__rlhit = hitFn;
-    cv.setAttribute("data-rlchart", "1");
-    if (!cv.__rlwired) {
-      cv.__rlwired = 1;
-      cv.addEventListener("mousemove", handle);
-      cv.addEventListener("mouseleave", hide);
-      cv.addEventListener("touchstart", function (e) { if (e.touches && e.touches[0]) handle({ currentTarget: cv, clientX: e.touches[0].clientX, clientY: e.touches[0].clientY }); }, { passive: true });
+  function pointOptionId(canvas, pointId) {
+    return "rlchart-point-" + safeDomId(canvas.id || "canvas") + "-" + safeDomId(pointId);
+  }
+
+  function ensurePointRail(canvas, projection) {
+    var railId = "rlchart-rail-" + safeDomId(canvas.id || "canvas");
+    var rail = document.getElementById(railId);
+    if (!rail) {
+      rail = document.createElement("div");
+      rail.id = railId;
+      rail.className = "rlchart-point-rail";
+      rail.setAttribute("role", "listbox");
+      rail.setAttribute("aria-label", (canvas.getAttribute("aria-label") || "Chart") + " point rail");
+      canvas.insertAdjacentElement("afterend", rail);
     }
+    rail.textContent = "";
+    projection.orderedPointIds.forEach(function (pointId) {
+      var option = document.createElement("span");
+      option.id = pointOptionId(canvas, pointId);
+      option.setAttribute("role", "option");
+      option.setAttribute("aria-selected", "false");
+      option.textContent = projection.points[pointId].accessibility.conciseLabel;
+      rail.appendChild(option);
+    });
+    canvas.setAttribute("aria-owns", railId);
+    return rail;
+  }
+
+  function contextApi() {
+    return root.RLCTX && typeof root.RLCTX.open === "function" ? root.RLCTX : null;
+  }
+
+  function pointIndex(state, pointId) {
+    return state.projection.orderedPointIds.indexOf(pointId);
+  }
+
+  function selectPoint(canvas, pointId, options) {
+    var state = canvas.__rlchartState;
+    if (!state || state.mode !== "structured" || !state.projection.points[pointId]) return false;
+    options = options || {};
+    state.activePointId = pointId;
+    state.pinned = Boolean(options.pinned);
+    activeCanvas = canvas;
+    canvas.setAttribute("data-rlchart-active-point", pointId);
+    canvas.setAttribute("aria-activedescendant", pointOptionId(canvas, pointId));
+    var railOptions = state.rail.querySelectorAll("[role=option]");
+    for (var i = 0; i < railOptions.length; i++) {
+      railOptions[i].setAttribute("aria-selected", railOptions[i].id === pointOptionId(canvas, pointId) ? "true" : "false");
+    }
+    var tableTarget = document.getElementById(state.projection.tableTargets[pointId]);
+    if (tableTarget) {
+      tableTarget.setAttribute("data-rlchart-point-id", pointId);
+      tableTarget.setAttribute("data-rlcontext-fingerprint", state.projection.points[pointId].contextFingerprint);
+    }
+    var api = contextApi();
+    if (!api) return false;
+    api.open(canvas, state.projection.points[pointId], {
+      mode: options.mode || "chart",
+      pinned: state.pinned,
+      pointer: options.pointer || null
+    });
+    return true;
+  }
+
+  function chartCoordinates(canvas, event) {
+    var rect = canvas.getBoundingClientRect();
+    return { mx: event.clientX - rect.left, my: event.clientY - rect.top };
+  }
+
+  function handleStructuredPointer(canvas, event, pin) {
+    var state = canvas.__rlchartState;
+    if (!state || state.mode !== "structured") return;
+    var coordinates = chartCoordinates(canvas, event);
+    var pointId = null;
+    try { pointId = state.adapter.hitTest(coordinates.mx, coordinates.my); } catch (error) { pointId = null; }
+    if (pointId && state.projection.points[pointId]) {
+      selectPoint(canvas, pointId, { mode: pin ? "touch" : "hover", pinned: pin, pointer: event });
+    } else if (!state.pinned) {
+      hide(canvas, false);
+    }
+  }
+
+  function handleLegacyPointer(canvas, event, pin) {
+    var state = canvas.__rlchartState;
+    if (!state || state.mode !== "legacy") return;
+    var coordinates = chartCoordinates(canvas, event);
+    var html = null;
+    try { html = state.hitFn(coordinates.mx, coordinates.my, event); } catch (error) { html = null; }
+    var api = contextApi();
+    if (html && api) {
+      state.pinned = Boolean(pin);
+      activeCanvas = canvas;
+      api.openLegacy(canvas, html, { mode: pin ? "touch" : "legacy-hover", pinned: pin, pointer: event });
+    } else if (!state.pinned) hide(canvas, false);
+  }
+
+  function handlePointerMove(event) {
+    var canvas = event.currentTarget;
+    var state = canvas.__rlchartState;
+    if (!state || event.pointerType === "touch") return;
+    if (state.mode === "structured") handleStructuredPointer(canvas, event, false);
+    else handleLegacyPointer(canvas, event, false);
+  }
+
+  function handlePointerDown(event) {
+    if (event.pointerType !== "touch") return;
+    var canvas = event.currentTarget;
+    var state = canvas.__rlchartState;
+    if (!state) return;
+    if (state.mode === "structured") handleStructuredPointer(canvas, event, true);
+    else handleLegacyPointer(canvas, event, true);
+  }
+
+  function handleFocus(event) {
+    var canvas = event.currentTarget;
+    var state = canvas.__rlchartState;
+    if (!state || state.mode !== "structured") return;
+    var pointId = state.activePointId || state.projection.orderedPointIds[0];
+    selectPoint(canvas, pointId, { mode: "keyboard", pinned: true });
+  }
+
+  function movePoint(canvas, delta, edge) {
+    var state = canvas.__rlchartState;
+    if (!state || state.mode !== "structured") return;
+    var ids = state.projection.orderedPointIds;
+    var index = pointIndex(state, state.activePointId);
+    if (edge === "first") index = 0;
+    else if (edge === "last") index = ids.length - 1;
+    else index = Math.max(0, Math.min(ids.length - 1, (index < 0 ? 0 : index) + delta));
+    selectPoint(canvas, ids[index], { mode: "keyboard", pinned: true });
+  }
+
+  function handleKeyDown(event) {
+    var canvas = event.currentTarget;
+    var state = canvas.__rlchartState;
+    if (!state || state.mode !== "structured") return;
+    if (event.key === "ArrowRight" || event.key === "ArrowDown") { event.preventDefault(); movePoint(canvas, 1); }
+    else if (event.key === "ArrowLeft" || event.key === "ArrowUp") { event.preventDefault(); movePoint(canvas, -1); }
+    else if (event.key === "Home") { event.preventDefault(); movePoint(canvas, 0, "first"); }
+    else if (event.key === "End") { event.preventDefault(); movePoint(canvas, 0, "last"); }
+    else if (event.key === "Enter" || event.key === " ") {
+      event.preventDefault();
+      selectPoint(canvas, state.activePointId || state.projection.orderedPointIds[0], { mode: "keyboard", pinned: true });
+    } else if (event.key === "Escape") {
+      event.preventDefault();
+      hide(canvas, true);
+    }
+  }
+
+  function wireCanvas(canvas) {
+    if (canvas.__rlchartWired) return;
+    canvas.__rlchartWired = true;
+    canvas.addEventListener("pointermove", handlePointerMove);
+    canvas.addEventListener("pointerleave", function () {
+      var state = canvas.__rlchartState;
+      if (state && !state.pinned) hide(canvas, false);
+    });
+    canvas.addEventListener("pointerdown", handlePointerDown);
+    canvas.addEventListener("focus", handleFocus);
+    canvas.addEventListener("keydown", handleKeyDown);
+  }
+
+  function attachStructured(canvas, adapter) {
+    var validated = validateStructuredAdapter(adapter);
+    if (!validated.ok) {
+      canvas.setAttribute("data-rlchart-error", validated.error.code);
+      canvas.removeAttribute("data-rlchart-mode");
+      return validated;
+    }
+    var previous = canvas.__rlchartState;
+    var activePointId = previous && previous.mode === "structured" && validated.value.points[previous.activePointId]
+      ? previous.activePointId
+      : null;
+    var pinned = Boolean(activePointId && previous.pinned);
+    canvas.__rlchartState = {
+      activePointId: activePointId,
+      adapter: adapter,
+      mode: "structured",
+      pinned: pinned,
+      projection: validated.value,
+      rail: ensurePointRail(canvas, validated.value)
+    };
+    canvas.tabIndex = 0;
+    canvas.setAttribute("data-rlchart", "1");
+    canvas.setAttribute("data-rlchart-mode", "structured");
+    canvas.removeAttribute("data-rlchart-error");
+    if (activePointId) {
+      canvas.setAttribute("data-rlchart-active-point", activePointId);
+      canvas.setAttribute("aria-activedescendant", pointOptionId(canvas, activePointId));
+      var activeOption = document.getElementById(pointOptionId(canvas, activePointId));
+      if (activeOption) activeOption.setAttribute("aria-selected", "true");
+    }
+    wireCanvas(canvas);
+    return validated;
+  }
+
+  function attachLegacy(canvas, hitFn) {
+    canvas.__rlchartState = { hitFn: hitFn, mode: "legacy", pinned: false };
+    canvas.setAttribute("data-rlchart", "1");
+    canvas.setAttribute("data-rlchart-mode", "legacy");
+    canvas.setAttribute("data-rlchart-migration-required", "true");
+    wireCanvas(canvas);
+    return deepFreeze({ ok: true, value: { mode: "legacy" } });
+  }
+
+  function attach(canvas, adapterOrHitFn) {
+    if (!canvas) return deepFreeze({ ok: false, error: adapterError("canvas required", "$.canvas") });
+    injectCSS();
+    if (typeof adapterOrHitFn === "function") return attachLegacy(canvas, adapterOrHitFn);
+    return attachStructured(canvas, adapterOrHitFn);
+  }
+
+  function hide(canvas, returnFocus) {
+    var target = canvas || activeCanvas;
+    if (target && target.__rlchartState) target.__rlchartState.pinned = false;
+    var api = contextApi();
+    if (api) api.close({ returnFocus: Boolean(returnFocus) });
+    if (activeCanvas === target) activeCanvas = null;
   }
 
   root.RLCHART.attach = attach;

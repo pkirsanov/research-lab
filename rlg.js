@@ -3,7 +3,7 @@
    tooltip: a general definition PLUS what the term means in the context of these tools. Injects its
    own CSS, auto-scans the DOM, and re-scans dynamically-rendered content via a MutationObserver. */
 (function () {
-    var root = (typeof window !== 'undefined') ? window : {};
+    var root = (typeof window !== 'undefined') ? window : (typeof globalThis !== 'undefined' ? globalThis : {});
     if (root.__rlgInit) return; root.__rlgInit = 1;
     /* term -> [general meaning, meaning in the context of these tools] */
     var G = {
@@ -113,38 +113,146 @@
         var scan = s || n, ks = order(); for (var i = 0; i < ks.length; i++) { if (ks[i].length < 4) continue; if (hasWord(scan, ks[i])) return resolve(ks[i]); }
         return null;
     }
+    function freeze(value) {
+        if (!value || typeof value !== "object" || Object.isFrozen(value)) return value;
+        Object.keys(value).forEach(function (key) { freeze(value[key]); });
+        return Object.freeze(value);
+    }
+    function lookup(label) {
+        var key = labelKey(label), definition = key && G[key];
+        if (!definition) return null;
+        return freeze({ key: key, definition: definition[0], interpretation: definition[1] || definition[0] });
+    }
+    function safeId(value) {
+        var id = norm(value).replace(/[^a-z0-9]+/g, "-").replace(/^-+|-+$/g, "");
+        return id || "term";
+    }
+    function contextFor(label, options) {
+        options = options || {};
+        var found = lookup(label);
+        if (!found) return null;
+        var visibleLabel = options.label || String(label || found.key).trim() || found.key;
+        var context = {
+            contractVersion: "contextual-tooltip/v1",
+            contextId: options.contextId || "rlg/" + safeId(found.key),
+            triggerKind: options.triggerKind || "term",
+            label: visibleLabel,
+            definition: found.definition,
+            displayed: options.displayed || {
+                valueText: visibleLabel,
+                numericValue: null,
+                unit: "term",
+                truthState: "current"
+            },
+            interpretation: options.interpretation || {
+                text: found.interpretation,
+                direction: "not-directional",
+                comparisonBasis: "RLG glossary definition and declared tool context",
+                window: "Static glossary entry",
+                thresholdsOrBounds: []
+            },
+            provenance: options.provenance || {
+                ownerId: "rlg",
+                modelId: "research-lab-glossary",
+                evidenceIdentity: "rlg:" + found.key,
+                sourceRefs: ["rlg:glossary:" + found.key],
+                observedAsOf: "static glossary entry",
+                retrievedOrPublishedAt: "bundled with this page",
+                freshness: "static",
+                dataTier: "owner-authored glossary"
+            },
+            uncertainty: options.uncertainty || {
+                state: "bounded",
+                rangeOrBand: "Definition and declared context only",
+                reason: "RLG does not infer a live analytical value from a term label."
+            },
+            limitation: options.limitation || "This glossary context defines the term but does not infer a current signal or recommendation.",
+            triggerCondition: options.triggerCondition || "The rendered label resolves to this exact RLG glossary entry.",
+            invalidationCondition: options.invalidationCondition || "The label no longer resolves to this glossary key or the owning glossary entry changes.",
+            links: options.links || { owner: "", citation: "", sameDataTable: "", ticker: "" },
+            accessibility: options.accessibility || {
+                conciseLabel: visibleLabel + ". " + found.definition,
+                longDescriptionId: "rlcontext-rlg-" + safeId(found.key)
+            },
+            contextFingerprint: null
+        };
+        if (root.RLCTX && typeof root.RLCTX.validateContext === "function") {
+            var result = root.RLCTX.validateContext(context);
+            if (result.ok) return result.value;
+        }
+        return freeze(context);
+    }
     root.__rlg = { G: G, A: A, labelKey: labelKey, norm: norm };
+    root.RLG = Object.freeze({
+        A: A,
+        G: G,
+        contextFor: contextFor,
+        labelKey: labelKey,
+        lookup: lookup,
+        macroRegime: macroRegime,
+        norm: norm
+    });
     if (typeof document === "undefined") return; /* no-DOM (Node test): stop here */
 
     function injectCSS() {
         if (document.getElementById("rlg-css")) return;
         var st = document.createElement("style"); st.id = "rlg-css";
-        st.textContent = ".rlg{cursor:help}.rlg.u{border-bottom:1px dotted rgba(138,160,179,.55)}.rlg.u:hover{border-bottom-color:#2dd4bf;color:#2dd4bf}#rlgtip{position:fixed;z-index:9999;max-width:344px;background:#0e1620;border:1px solid #2f4457;border-radius:9px;padding:9px 11px;font:12px/1.55 -apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,Helvetica,Arial,sans-serif;color:#cbd8e4;box-shadow:0 12px 34px -10px rgba(0,0,0,.75);pointer-events:none;opacity:0;transform:translateY(3px);transition:opacity .12s ease,transform .12s ease}#rlgtip.on{opacity:1;transform:translateY(0)}#rlgtip .h{font-weight:700;color:#e6edf3;margin:0 0 3px;font-size:12.5px}#rlgtip .g{color:#cbd8e4}#rlgtip .c{margin-top:6px;padding-top:6px;border-top:1px solid #22303f;color:#93a6b8}#rlgtip .c b{color:#f5b942;font-weight:700}";
+        st.textContent = ".rlg{cursor:help}.rlg.u{border-bottom:1px dotted rgba(138,160,179,.55)}.rlg.u:hover,.rlg.u:focus{border-bottom-color:#2dd4bf;color:#2dd4bf}";
         (document.head || document.documentElement).appendChild(st);
     }
-    var tip = null;
-    function ensure() { if (!tip) { tip = document.createElement("div"); tip.id = "rlgtip"; (document.body || document.documentElement).appendChild(tip); } return tip; }
-    function place(ev) { var t = ensure(), pad = 14, vw = window.innerWidth, vh = window.innerHeight, r = t.getBoundingClientRect(); var x = ev.clientX + pad, y = ev.clientY + pad; if (x + r.width > vw - 8) x = ev.clientX - pad - r.width; if (y + r.height > vh - 8) y = ev.clientY - pad - r.height; t.style.left = Math.max(6, x) + "px"; t.style.top = Math.max(6, y) + "px"; }
-    function esc(s) { return (s || "").replace(/[&<>]/g, function (c) { return { "&": "&amp;", "<": "&lt;", ">": "&gt;" }[c]; }); }
-    function onEnter(ev) { try { var k = ev.currentTarget.getAttribute("data-rlk"), d = G[k]; if (!d) return; var t = ensure(); t.innerHTML = '<div class="h">' + esc((ev.currentTarget.textContent || "").trim().slice(0, 60)) + '</div><div class="g">' + d[0] + '</div>' + (d[1] ? '<div class="c"><b>In context:</b> ' + d[1] + '</div>' : ''); place(ev); t.classList.add("on"); } catch (e) { } }
-    function onMove(ev) { if (tip && tip.classList.contains("on")) place(ev); }
-    function onLeave() { if (tip) tip.classList.remove("on"); }
+    var contextCallbacks = [];
+    var contextLoading = false;
+    function flushContextCallbacks() {
+        if (!root.RLCTX) return;
+        var pending = contextCallbacks.slice(); contextCallbacks.length = 0;
+        for (var i = 0; i < pending.length; i++) pending[i](root.RLCTX);
+    }
+    function loadContextScript(src, done) {
+        var existing = document.querySelector('script[src^="' + src + '"]');
+        if (existing) {
+            if ((src === "rlexperience.js" && root.RLEXPERIENCE) || (src === "rlcontext.js" && root.RLCTX)) done();
+            else existing.addEventListener("load", done, { once: true });
+            return;
+        }
+        var script = document.createElement("script");
+        script.src = src;
+        script.setAttribute("data-rlcontext-loader", src);
+        script.addEventListener("load", done, { once: true });
+        (document.head || document.documentElement).appendChild(script);
+    }
+    function ensureContext(callback) {
+        if (root.RLCTX) { callback(root.RLCTX); return; }
+        contextCallbacks.push(callback);
+        if (contextLoading) return;
+        contextLoading = true;
+        function loadController() {
+            loadContextScript("rlcontext.js", function () { contextLoading = false; flushContextCallbacks(); });
+        }
+        if (root.RLEXPERIENCE) loadController();
+        else loadContextScript("rlexperience.js", loadController);
+    }
     function decorate(elm, underline) {
         try {
             if (!elm || elm.getAttribute("data-rlk-done")) return;
+            if (elm.closest && elm.closest("#rlcontext-disclosure,#rlcontext-announcer")) return;
             var key = labelKey(elm.textContent);
             elm.setAttribute("data-rlk-done", "1");
             if (!key) return; var d = G[key]; if (!d) return;
             if (elm.getAttribute("title")) return;
             elm.setAttribute("data-rlk", key); elm.classList.add("rlg"); if (underline) elm.classList.add("u");
             elm.setAttribute("aria-label", d[0] + (d[1] ? " \u2014 In context: " + d[1] : ""));
-            elm.addEventListener("mouseenter", onEnter); elm.addEventListener("mousemove", onMove); elm.addEventListener("mouseleave", onLeave);
+            ensureContext(function (contextApi) {
+                contextApi.bind(elm, contextFor(elm.textContent, { label: (elm.textContent || "").trim().slice(0, 90) }));
+            });
         } catch (e) { }
     }
+    var UNDERLINE_SELECTORS = ["th", ".kpi .k", ".k", ".badge", ".flag", ".legend span", ".ctl label", ".panel label", "label", ".g-title", ".gt", ".pill"];
+    var PLAIN_SELECTORS = [".chart .ct", ".chart .cc", ".panel h2"];
+    var GLOSSARY_SELECTOR = UNDERLINE_SELECTORS.concat(PLAIN_SELECTORS).join(",");
     function scan(rootEl) {
         rootEl = rootEl || document; try {
-            ["th", ".kpi .k", ".k", ".badge", ".flag", ".legend span", ".ctl label", ".panel label", "label", ".g-title", ".gt", ".pill"].forEach(function (sel) { var ns = rootEl.querySelectorAll(sel); for (var i = 0; i < ns.length; i++)decorate(ns[i], true); });
-            [".chart .ct", ".chart .cc", ".panel h2"].forEach(function (sel) { var ns = rootEl.querySelectorAll(sel); for (var i = 0; i < ns.length; i++)decorate(ns[i], false); });
+            UNDERLINE_SELECTORS.forEach(function (sel) { var ns = rootEl.querySelectorAll(sel); for (var i = 0; i < ns.length; i++)decorate(ns[i], true); });
+            PLAIN_SELECTORS.forEach(function (sel) { var ns = rootEl.querySelectorAll(sel); for (var i = 0; i < ns.length; i++)decorate(ns[i], false); });
         } catch (e) { }
     }
     var timer = null;
@@ -165,7 +273,19 @@
         if (hasVix && vix >= 30 && risk >= 0) { cls = "warn"; note = "elevated VIX " + vix.toFixed(0) + " tempers the risk-on read"; }
         return { score: score, vix: hasVix ? vix : null, band: band, cls: cls, risk: risk, note: note || (fg.band || band) };
     }
-    try { window.RLG = window.RLG || {}; window.RLG.macroRegime = macroRegime; } catch (e) { }
-    function boot() { try { injectCSS(); scan(document); window.addEventListener("scroll", onLeave, true); try { new MutationObserver(function (m) { for (var i = 0; i < m.length; i++) { if (m[i].addedNodes && m[i].addedNodes.length) { schedule(); return; } } }).observe(document.body, { childList: true, subtree: true }); } catch (e) { } } catch (e) { } }
+    function mutationBelongsToContext(node) {
+        var element = node && node.nodeType === 1 ? node : node && node.parentElement;
+        return Boolean(element && element.closest && element.closest("#rlcontext-disclosure,#rlcontext-announcer"));
+    }
+    function mutationNeedsGlossaryScan(node) {
+        if (!node || mutationBelongsToContext(node)) return false;
+        if (node.nodeType === 3) {
+            var parent = node.parentElement;
+            return Boolean(parent && parent.matches && parent.matches(GLOSSARY_SELECTOR));
+        }
+        if (node.nodeType !== 1) return false;
+        return Boolean((node.matches && node.matches(GLOSSARY_SELECTOR)) || (node.querySelector && node.querySelector(GLOSSARY_SELECTOR)));
+    }
+    function boot() { try { injectCSS(); scan(document); try { new MutationObserver(function (m) { for (var i = 0; i < m.length; i++) { for (var j = 0; m[i].addedNodes && j < m[i].addedNodes.length; j++) { if (mutationNeedsGlossaryScan(m[i].addedNodes[j])) { schedule(); return; } } } }).observe(document.body, { childList: true, subtree: true }); } catch (e) { } } catch (e) { } }
     if (document.readyState === "loading") document.addEventListener("DOMContentLoaded", boot); else boot();
 })();

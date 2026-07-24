@@ -1,0 +1,475 @@
+{
+  "version": 3,
+  "featureDir": "specs/012-market-action-center-and-guided-tools/bugs/BUG-001-options-flow-shell-startup-starvation",
+  "featureName": "BUG-001 Options-Flow Shell Startup Starvation",
+  "createdAt": "2026-07-24T01:12:51Z",
+  "lastUpdatedAt": "2026-07-24T07:12:00Z",
+  "completedAt": null,
+  "certifiedAt": null,
+  "status": "in_progress",
+  "workflowMode": "bugfix-fastlane",
+  "linkedImplementationSpec": "specs/012-market-action-center-and-guided-tools",
+  "requiresRevalidation": false,
+  "flagsIntroduced": [],
+  "completedScopes": ["SCOPE-01"],
+  "completedPhases": [],
+  "execution": {
+    "activeAgent": "bubbles.harden",
+    "currentPhase": "stabilize",
+    "currentPhaseStatus": "pending",
+    "substate": "independently_verified",
+    "currentScope": "SCOPE-01",
+    "runStartedAt": "2026-07-24T07:05:00Z",
+    "completedAt": "2026-07-24T07:12:00Z",
+    "executionModel": "direct-authorized-runner",
+    "parentAgent": null,
+    "nextRequiredOwner": "bubbles.stabilize",
+    "nextRequiredTarget": "Execute the mandatory bugfix-fastlane stabilize phase against the harden-verified, regression-clean, gaps-confirmed SCOPE-01 fix without modifying planning or certification.",
+    "completedPhaseClaims": ["implement", "test", "regression", "simplify", "gaps", "harden"],
+    "pendingTransitionRequests": [],
+    "scopeInventory": [
+      {
+        "scope": 1,
+        "scopeId": "SCOPE-01",
+        "name": "Sequence Heavy Hydration After Shared Shell Readiness",
+        "status": "done",
+        "dependsOn": [],
+        "foundation": false,
+        "capabilityRole": "cross-scope-bugfix-overlay",
+        "evidenceFile": "report.md"
+      }
+    ],
+    "audit": {
+      "schemaVersion": "audit-run/v1",
+      "runId": null,
+      "currentAttemptId": null,
+      "attempts": []
+    }
+  },
+  "certification": {
+    "status": "in_progress",
+    "completedAt": null,
+    "certifiedAt": null,
+    "completedScopes": [],
+    "certifiedCompletedPhases": [],
+    "scopeProgress": [
+      {
+        "scope": 1,
+        "scopeId": "SCOPE-01",
+        "name": "Sequence Heavy Hydration After Shared Shell Readiness",
+        "status": "not_started",
+        "dependsOn": [],
+        "scopeDir": null,
+        "evidenceFile": "report.md",
+        "certifiedAt": null
+      }
+    ],
+    "assurance": {
+      "level": "none",
+      "missingForFull": [
+        "design owner adoption",
+        "plan owner adoption",
+        "persistent pre-fix adversarial RED",
+        "implementation",
+        "post-fix verification",
+        "bugfix-fastlane specialist phases",
+        "independent audit",
+        "validate-owned transition"
+      ]
+    },
+    "lockdownState": {
+      "active": false,
+      "lockedScenarioIds": []
+    }
+  },
+  "policySnapshot": {
+    "workflowMode": "bugfix-fastlane",
+    "grill": { "mode": "off", "source": "repo-default" },
+    "tdd": { "mode": "scenario-first", "source": "workflow-forced" },
+    "autoCommit": { "mode": "off", "source": "user-request" },
+    "lockdown": { "mode": "off", "source": "repo-default" },
+    "regression": { "mode": "protected-scenarios", "source": "repo-default" },
+    "validation": { "mode": "certification-required", "source": "repo-default" }
+  },
+  "transitionRequests": [
+    {
+      "id": "TR-BUG001-DESIGN",
+      "status": "resolved",
+      "requestedBy": "bubbles.bug",
+      "routedTo": "bubbles.design",
+      "requestedAt": "2026-07-24T01:12:51Z",
+      "reason": "Adopt or amend the grounded controlling-path analysis and smallest no-bypass startup-sequencing design before planning, test, or source changes.",
+      "scenarioIds": ["SCN-BUG001-001", "SCN-BUG001-002", "SCN-BUG001-003"],
+      "findingIds": ["BUG001-DESIGN-OWNERSHIP", "BUG001-PLAN-OWNERSHIP", "BUG001-PREFIX-RED", "BUG001-IMPLEMENTATION", "BUG001-VERIFICATION"],
+      "evidenceRefs": ["bug.md#root-cause", "design.md#root-cause-analysis", "report.md#targeted-browser-diagnosis"],
+      "resolvedAt": "2026-07-24T01:45:25Z",
+      "resolvedBy": "bubbles.design",
+      "resolutionSummary": "Adopted the measured main-thread starvation RCA and reconciled the smallest page-local sequencing design: immediate cache-first render, generic ready-marker/event barrier, exactly-once heavy hydration, unchanged timeout/shared modules/data owners, and a mandatory persistent adversarial RED before implementation."
+    },
+    {
+      "id": "TR-BUG001-PLAN",
+      "status": "resolved",
+      "requestedBy": "bubbles.design",
+      "routedTo": "bubbles.plan",
+      "requestedAt": "2026-07-24T01:45:25Z",
+      "reason": "Reconcile plan-owned SCOPE-01, scenario-manifest, test-plan, and DoD contracts to the adopted startup sequence. Keep the named no-interception E2E as a persistent test that bubbles.test must create and observe RED against unchanged production before implementation; preserve all parent Feature 012, Scope 04, shared-module, timeout, and data-owner boundaries.",
+      "scenarioIds": ["SCN-BUG001-001", "SCN-BUG001-002", "SCN-BUG001-003"],
+      "findingIds": ["BUG001-PLAN-OWNERSHIP"],
+      "evidenceRefs": ["design.md#architecture-overview", "design.md#testing-and-validation-strategy", "design.md#change-boundary", "scopes.md#execution-outline", "test-plan.json", "scenario-manifest.json"],
+      "resolvedAt": "2026-07-24T01:55:41Z",
+      "resolvedBy": "bubbles.plan",
+      "resolutionSummary": "Reconciled the one-scope executable handoff to immediate cache-first render, the existing generic shell marker/event, page-local exactly-once heavy hydration, the unchanged 10-second all-route canary, native request observation without interception, and protected shared/source/worker/provider/option owners. Implementation remains disabled until bubbles.test creates TP-BUG001-02 and records its pre-fix RED against unchanged production."
+    },
+    {
+      "id": "TR-BUG001-TEST-TO-PLAN",
+      "status": "resolved",
+      "requestedBy": "bubbles.test",
+      "routedTo": "bubbles.plan",
+      "requestedAt": "2026-07-24T02:42:02Z",
+      "reason": "All six Test Plan rows and the isolated rollback rehearsal are GREEN on current bytes. Reconcile only plan-owned DoD checkboxes and SCOPE-01 status from the recorded evidence; do not modify certification.",
+      "scenarioIds": ["SCN-BUG001-001", "SCN-BUG001-002", "SCN-BUG001-003"],
+      "findingIds": ["BUG001-PLAN-RECONCILIATION"],
+      "evidenceRefs": ["report.md#independent-complete-verification---scope-01", "scopes.md#scope-01-sequence-heavy-hydration-after-shared-shell-readiness"],
+      "resolvedAt": "2026-07-24T02:57:34Z",
+      "resolvedBy": "bubbles.plan",
+      "resolutionSummary": "Checked all six Core Outcomes, all six Test Evidence items, and the grouped Build Quality Gate only where direct report evidence exists; set the execution-side SCOPE-01 status to done; preserved top-level in_progress and all certification fields; routed the next required bugfix-fastlane phase to bubbles.regression."
+    }
+  ],
+  "reworkQueue": [],
+  "executionHistory": [
+    {
+      "agent": "bubbles.bug",
+      "workflowMode": "bugfix-fastlane",
+      "executionModel": "direct-authorized-runner",
+      "parentAgent": null,
+      "startedAt": "2026-07-24T00:54:00Z",
+      "completedAt": "2026-07-24T01:22:24Z",
+      "statusBefore": "not_started",
+      "statusAfter": "in_progress",
+      "phasesExecuted": [],
+      "scopesCompleted": [],
+      "outcome": "route_required",
+      "addressedFindings": [
+        "BUG001-PACKET-CREATED",
+        "BUG001-REPRODUCTION-CONFIRMED",
+        "BUG001-CONTROLLING-PATH-DIAGNOSED",
+        "BUG001-TRACEABILITY-PACKET-REPAIR",
+        "BUG001-WORK-BOUNDARY-PRESERVED"
+      ],
+      "unresolvedFindings": [
+        "BUG001-DESIGN-OWNERSHIP",
+        "BUG001-PLAN-OWNERSHIP",
+        "BUG001-PREFIX-RED",
+        "BUG001-IMPLEMENTATION",
+        "BUG001-VERIFICATION"
+      ],
+      "nextRequiredOwner": "bubbles.design",
+      "summary": "Created the complete Feature 012 child bug packet, reproduced the unchanged all-23 canary twice, measured shell-resource versus main-thread timing, localized the missing shell-before-hydration dependency and RLTKR/RLCTX amplification, planned one bounded repair with an adversarial no-interception regression and rollback, and preserved all production, tests, parent scope/status/certification, Scope 04, option-source, and framework bytes."
+    },
+    {
+      "agent": "bubbles.design",
+      "workflowMode": "bugfix-fastlane",
+      "executionModel": "direct-authorized-runner",
+      "parentAgent": null,
+      "startedAt": "2026-07-24T01:43:24Z",
+      "completedAt": "2026-07-24T01:45:25Z",
+      "statusBefore": "in_progress",
+      "statusAfter": "in_progress",
+      "phasesExecuted": ["bootstrap"],
+      "scopesCompleted": [],
+      "outcome": "route_required",
+      "addressedFindings": ["BUG001-DESIGN-OWNERSHIP"],
+      "unresolvedFindings": [
+        "BUG001-PLAN-OWNERSHIP",
+        "BUG001-PREFIX-RED",
+        "BUG001-IMPLEMENTATION",
+        "BUG001-VERIFICATION"
+      ],
+      "nextRequiredOwner": "bubbles.plan",
+      "summary": "Adopted and reconciled the measured BUG-001 RCA into one active design truth. The repair remains one page-local ready-marker/event barrier with immediate cache-first paint, exactly-once heavy hydration, unchanged shared modules/timeout/data owners, and a required persistent adversarial RED before implementation. No production, test, plan, report, parent, Scope 04, certification, or policy field was modified."
+    },
+    {
+      "agent": "bubbles.plan",
+      "workflowMode": "bugfix-fastlane",
+      "executionModel": "direct-authorized-runner",
+      "parentAgent": null,
+      "startedAt": "2026-07-24T01:55:41Z",
+      "completedAt": "2026-07-24T01:55:41Z",
+      "statusBefore": "in_progress",
+      "statusAfter": "in_progress",
+      "phasesExecuted": ["bootstrap"],
+      "scopesCompleted": [],
+      "outcome": "route_required",
+      "addressedFindings": ["BUG001-PLAN-OWNERSHIP"],
+      "unresolvedFindings": ["BUG001-PREFIX-RED", "BUG001-IMPLEMENTATION", "BUG001-VERIFICATION"],
+      "nextRequiredOwner": "bubbles.test",
+      "summary": "Reconciled SCOPE-01, test-plan.json, scenario-manifest.json, six-row Test Plan and six-item test-evidence DoD parity to the adopted design. The handoff preserves immediate cache-first render, the generic shell-ready marker/event, page-local exactly-once hydration, the unchanged 10-second all-route canary, native request observation without interception, and all protected ownership boundaries. Implementation dispatch remains disabled pending TP-BUG001-02 pre-fix RED evidence against unchanged production."
+    },
+    {
+      "agent": "bubbles.test",
+      "workflowMode": "bugfix-fastlane",
+      "executionModel": "direct-authorized-runner",
+      "parentAgent": null,
+      "startedAt": "2026-07-24T02:04:17Z",
+      "completedAt": "2026-07-24T02:04:17Z",
+      "statusBefore": "in_progress",
+      "statusAfter": "in_progress",
+      "phasesExecuted": [],
+      "scopesCompleted": [],
+      "outcome": "route_required",
+      "addressedFindings": ["BUG001-PREFIX-RED"],
+      "unresolvedFindings": ["BUG001-IMPLEMENTATION", "BUG001-VERIFICATION"],
+      "nextRequiredOwner": "bubbles.implement",
+      "evidenceRef": "report.md#persistent-adversarial-red---tp-bug001-02",
+      "summary": "Created the exact TP-BUG001-02 persistent System Chrome regression and ran the exact focused command against unchanged options-flow-feed-lab.html. The real first same-origin delta request was /data/options/SPY.json with cacheFirstOwnerPainted=true and shellReadyAtStart=false, so the test failed on the planned ordering assertion rather than Chrome, server, selector, or request availability. Production, timeout, shared modules, parent Feature 012, Scope 04, plan-owned DoD/status, and certification remain unchanged; post-fix verification is still required."
+    },
+    {
+      "agent": "bubbles.implement",
+      "workflowMode": "bugfix-fastlane",
+      "executionModel": "direct-authorized-runner",
+      "parentAgent": null,
+      "startedAt": "2026-07-24T02:16:58Z",
+      "completedAt": "2026-07-24T02:16:58Z",
+      "statusBefore": "in_progress",
+      "statusAfter": "in_progress",
+      "phasesExecuted": ["implement"],
+      "scopesCompleted": [],
+      "outcome": "route_required",
+      "addressedFindings": ["BUG001-IMPLEMENTATION"],
+      "unresolvedFindings": ["BUG001-VERIFICATION"],
+      "nextRequiredOwner": "bubbles.test",
+      "evidenceRef": "report.md#implementation-owned-source-diff-and-boundary",
+      "summary": "Reviewed and recorded the adopted one-page startup repair: synchronous cache-first paint is retained, one page-local boolean is set before the existing fetchDelta call, and hydration waits on the generic ready marker or one initial rlviews:change event. TP-BUG001-02 is GREEN with one 12-path cycle. Protected shared hashes match the pre-fix packet, while plan DoD, scope status, parent Feature 012, Scope 04, and certification remain unchanged."
+    },
+    {
+      "agent": "bubbles.test",
+      "workflowMode": "bugfix-fastlane",
+      "executionModel": "direct-authorized-runner",
+      "parentAgent": null,
+      "startedAt": "2026-07-24T02:35:31Z",
+      "completedAt": "2026-07-24T02:42:02Z",
+      "statusBefore": "in_progress",
+      "statusAfter": "in_progress",
+      "phasesExecuted": ["test"],
+      "scopesCompleted": [],
+      "outcome": "route_required",
+      "addressedFindings": ["BUG001-VERIFICATION"],
+      "unresolvedFindings": ["BUG001-PLAN-RECONCILIATION"],
+      "nextRequiredOwner": "bubbles.plan",
+      "evidenceRef": "report.md#independent-complete-verification---scope-01",
+      "summary": "Independently executed all six SCOPE-01 Test Plan rows on current repaired bytes and completed the OS-temp rollback rehearsal. The unchanged all-23 canary emitted 23 success records with zero skips, the exact focused title proved cache-first and shell-ready ordering with one 12-path cycle, the complete two-file System Chrome suite passed 5/5, the broad selftest passed 712/712, regression and direct scans passed, all 90 dirty paths were classified, and protected real-worktree hashes remained stable. Plan-owned DoD/status and validate-owned certification remain unchanged."
+    },
+    {
+      "agent": "bubbles.plan",
+      "workflowMode": "bugfix-fastlane",
+      "executionModel": "direct-authorized-runner",
+      "parentAgent": null,
+      "startedAt": "2026-07-24T02:57:34Z",
+      "completedAt": "2026-07-24T03:04:34Z",
+      "statusBefore": "in_progress",
+      "statusAfter": "in_progress",
+      "phasesExecuted": ["bootstrap"],
+      "scopesCompleted": ["SCOPE-01"],
+      "outcome": "route_required",
+      "addressedFindings": ["TR-BUG001-TEST-TO-PLAN", "BUG001-PLAN-RECONCILIATION"],
+      "unresolvedFindings": ["BUG001-REGRESSION-PHASE"],
+      "nextRequiredOwner": "bubbles.regression",
+      "evidenceRef": "report.md#independent-complete-verification---scope-01",
+      "summary": "Reconciled all plan-owned SCOPE-01 DoD checkboxes and execution status from direct report evidence, resolved the test-to-plan transition and plan-reconciliation finding, preserved top-level in_progress and every certification field, and routed the next unexecuted bugfix-fastlane phase to bubbles.regression without claiming any downstream phase."
+    },
+    {
+      "agent": "bubbles.regression",
+      "workflowMode": "bugfix-fastlane",
+      "executionModel": "direct-authorized-runner",
+      "parentAgent": null,
+      "startedAt": "2026-07-24T06:24:11Z",
+      "completedAt": "2026-07-24T06:36:06Z",
+      "statusBefore": "in_progress",
+      "statusAfter": "in_progress",
+      "phasesExecuted": ["regression"],
+      "scopesCompleted": [],
+      "outcome": "completed_owned",
+      "verdict": "REGRESSION_FREE",
+      "addressedFindings": ["BUG001-REGRESSION-PHASE"],
+      "unresolvedFindings": ["BUG001-SIMPLIFY-PHASE"],
+      "nextRequiredOwner": "bubbles.simplify",
+      "evidenceRef": "report.md#regression-phase-evidence",
+      "summary": "Re-ran all six SCOPE-01 Test Plan rows plus the cross-spec certified BUG-004 provider-fallback, provider-credentials, and contextual-tooltip suites on current bytes; verdict REGRESSION_FREE. GREEN: all-23 shell canary 3/3 with every route ready (options-flow included); System Chrome shell suite 5/5 with shellReadyAtStart=true, cacheFirstOwnerPainted=true, and exactly-once 12-path hydration; selftest 712/0; regression-quality guard plain+bugfix 0v/0w; BUG-004+tooltip e2e 4/4; provider-credentials 2/2 unit and 11/11 functional with zero credential leaks; contextual-tooltip 5/5 unit and 9/9 functional. Every protected owner (scripts/fetch-options.mjs, rldata.js, shared readiness API rlapp/rlviews/rlexperience, decorators rlg/rlticker/rlcontext) is byte-stable and the change stays confined to options-flow-feed-lab.html plus tests/tool-experience.spec.mjs. One transient batch deepStrictEqual RED was proven a parallel-invocation artifact of running four node --test files in one process and cleared under standalone execution. No planning DoD, scope status, or certification field was modified."
+    },
+    {
+      "agent": "bubbles.simplify",
+      "workflowMode": "bugfix-fastlane",
+      "executionModel": "direct-authorized-runner",
+      "parentAgent": null,
+      "startedAt": "2026-07-24T06:48:00Z",
+      "completedAt": "2026-07-24T06:52:00Z",
+      "statusBefore": "in_progress",
+      "statusAfter": "in_progress",
+      "phasesExecuted": ["simplify"],
+      "scopesCompleted": [],
+      "outcome": "completed_owned",
+      "verdict": "NO_CHANGE_MINIMAL",
+      "addressedFindings": ["BUG001-SIMPLIFY-PHASE"],
+      "unresolvedFindings": ["BUG001-GAPS-PHASE"],
+      "nextRequiredOwner": "bubbles.gaps",
+      "evidenceRef": "report.md#simplify-phase-evidence",
+      "summary": "Executed the mandatory bugfix-fastlane simplify phase over the recorded diff surface only. Verdict: NO CODE CHANGE WARRANTED. The fix is one page-local exactly-once guard (deltaHydrationStarted) plus a shell-ready barrier (startDeltaAfterShellReady) that reuses the existing generic rlviews:change event and the data-rlexperience-shell=ready marker with no new shared API, no duplication, no dead code, and self-documenting names; the exactly-once boolean is the adopted design/plan contract and was retained. The only redundancy found (trailing rebuild/render after fetchDelta, which already renders) is pre-existing code relocated verbatim by the fix, outside the fix and simplify remit, and was left byte-stable. The regression test observes same-origin option ordering and forwards unchanged via Reflect.apply (no interception), each assertion mapping to a scenario contract; no safe simplification. Re-confirmed node scripts/selftest.mjs 712 passed / 0 failed on unchanged bytes. options-flow-feed-lab.html, tests/tool-experience.spec.mjs, and tests/tool-experience-shell.functional.mjs left byte-stable; only report.md and state.json were written. Protected owners (BUG-004, rldata.js, provider credential tests, provider-fallback-status.spec.mjs, parent Feature 012 + Scope 04, scripts/fetch-options.mjs, shared readiness API, decorators) and all certification fields untouched."
+    },
+    {
+      "agent": "bubbles.gaps",
+      "workflowMode": "bugfix-fastlane",
+      "executionModel": "direct-authorized-runner",
+      "parentAgent": null,
+      "startedAt": "2026-07-24T06:54:00Z",
+      "completedAt": "2026-07-24T06:57:00Z",
+      "statusBefore": "in_progress",
+      "statusAfter": "in_progress",
+      "phasesExecuted": ["gaps"],
+      "scopesCompleted": [],
+      "outcome": "completed_owned",
+      "verdict": "NO_CODE_GAP",
+      "addressedFindings": ["BUG001-GAPS-PHASE"],
+      "unresolvedFindings": ["BUG001-HARDEN-PHASE"],
+      "nextRequiredOwner": "bubbles.harden",
+      "evidenceRef": "report.md#gaps-phase-evidence",
+      "summary": "Executed the mandatory bugfix-fastlane gaps phase over the regression-clean, simplify-confirmed SCOPE-01 fix. Verdict NO CODE GAP: spec/design-to-implementation coherence, scenario coverage, DoD completeness, and research-lab policy are all clean on current bytes. traceability-guard PASSED (3/3 scenarios mapped to Test Plan rows and DoD items, 0 unmapped, no orphan test; TP-BUG001-02 is genuinely non-intercepting via Reflect.apply and rollback-proven RED on regression); artifact-lint PASSED (13/13 DoD checked with evidence blocks, 0 template placeholders, top-level status matches certification); regression-quality --bugfix 0 violations/0 warnings with adversarial signals in both files; added-line forbidden-remedy token scan clean; every protected owner (rldata.js, scripts/fetch-options.mjs, data/options, shared readiness API, decorators) byte-stable against the recorded pre-fix hashes; node scripts/selftest.mjs 712 passed / 0 failed. One artifact-only status drift was found and reconciled truthfully in place: the report Completion Statement and Validation Summary still read SCOPE-01 Not Started / DoD unchecked, a bubbles.test-phase statement (2026-07-24T02:42:02Z) that predated the TR-BUG001-TEST-TO-PLAN reconciliation (2026-07-24T02:57:34Z) which set execution-side SCOPE-01 to Done and checked all 13 DoD items. Only the status clauses were corrected; all evidence transcripts and the historical routing fact are preserved verbatim. No production or test byte modified (options-flow-feed-lab.html, tests/tool-experience.spec.mjs, tests/tool-experience-shell.functional.mjs byte-stable); only report.md and state.json were written. certification.* and top-level status untouched. Route advances to bubbles.harden."
+    },
+    {
+      "agent": "bubbles.harden",
+      "workflowMode": "bugfix-fastlane",
+      "executionModel": "direct-authorized-runner",
+      "parentAgent": null,
+      "startedAt": "2026-07-24T07:05:00Z",
+      "completedAt": "2026-07-24T07:12:00Z",
+      "statusBefore": "in_progress",
+      "statusAfter": "in_progress",
+      "phasesExecuted": ["harden"],
+      "scopesCompleted": [],
+      "outcome": "completed_owned",
+      "verdict": "HARDENED",
+      "robustnessVerdict": "ROBUST",
+      "addressedFindings": ["BUG001-HARDEN-PHASE"],
+      "unresolvedFindings": ["BUG001-STABILIZE-PHASE"],
+      "nextRequiredOwner": "bubbles.stabilize",
+      "evidenceRef": "report.md#harden-phase-evidence",
+      "summary": "Executed the mandatory bugfix-fastlane harden phase over the gaps-confirmed, regression-clean, simplify-confirmed SCOPE-01 fix on current bytes. Verdict HARDENED / robustnessVerdict ROBUST; no code changed. GREEN: node --test tests/tool-experience-shell.functional.mjs tests 3 / pass 3 / fail 0 / skipped 0 / todo 0 with all 23 registry routes (options-flow-feed-lab included, four panels, one status control); focused System Chrome regression 1 passed with firstDelta=/data/options/SPY.json shellReadyAtStart=true cacheFirstOwnerPainted=true; full tests/tool-experience.spec.mjs System Chrome suite 4 passed / 0 skipped; node scripts/selftest.mjs 712 passed / 0 failed; skip/.only/todo/pending scan and TODO/FIXME/HACK/STUB deferral scan both clean (grep exit 1); bash .github/bubbles/scripts/artifact-lint.sh exit 0 with all DoD items evidenced and top-level status matching certification; bash .github/bubbles/scripts/regression-quality-guard.sh --bugfix 0 violations / 0 warnings with adversarial signals in both files. The exactly-once barrier is robust across the synchronous data-rlexperience-shell=ready querySelector branch, the {once:true} rlviews:change event branch, and the deltaHydrationStarted guard; single-threaded execution leaves no TOCTOU between check and listen and view toggles do not start a second worker group, so no path leaves hydration unstarted or double-started and nothing routes to bubbles.implement. All 11 protected-owner sha256 (options-flow-feed-lab.html, both test files, rldata.js, scripts/fetch-options.mjs, rlapp.js, rlviews.js, rlexperience.js, rlg.js, rlticker.js, rlcontext.js) match the recorded baseline byte-for-byte. Only report.md (Harden Phase Evidence append) and state.json (phase advance) were written; certification.* and top-level status untouched. Route advances to bubbles.stabilize."
+    }
+  ],
+  "addressedFindings": [
+    {
+      "id": "BUG001-PACKET-CREATED",
+      "summary": "Created all canonical child bug artifacts, including user validation, scenario manifest, and test plan.",
+      "evidenceRef": "report.md#current-byte-provenance"
+    },
+    {
+      "id": "BUG001-REPRODUCTION-CONFIRMED",
+      "summary": "The complete and filtered all-route commands both fail only on the options-flow ready-shell selector at 10 seconds.",
+      "evidenceRef": "report.md#bug-reproduction---before-fix"
+    },
+    {
+      "id": "BUG001-CONTROLLING-PATH-DIAGNOSED",
+      "summary": "Browser diagnostics prove shell resources return early while option render/context work creates multi-second long tasks; holding hydration restores prompt shell readiness.",
+      "evidenceRef": "report.md#targeted-browser-diagnosis"
+    },
+    {
+      "id": "BUG001-TRACEABILITY-PACKET-REPAIR",
+      "summary": "The first traceability run exposed missing inline Gherkin in scopes.md; the packet was repaired and the identical guard then mapped 3/3 scenarios to Test Plan rows and DoD items with zero warnings.",
+      "evidenceRef": "report.md#traceability-repair-and-verification"
+    },
+    {
+      "id": "BUG001-WORK-BOUNDARY-PRESERVED",
+      "summary": "Discovery, design, plan, and RED phases preserved production bytes; implementation changed only the allowed options-flow-feed-lab.html startup sequence while Feature 012 parent, Scope 04, option data/producer, protected shared modules, and framework-managed bytes remained untouched by this implementation invocation.",
+      "evidenceRef": "report.md#code-diff-evidence"
+    },
+    {
+      "id": "BUG001-DESIGN-OWNERSHIP",
+      "summary": "Adopted the measured RCA and reconciled the authoritative design around the existing generic shell-ready lifecycle, one page-local exactly-once hydration barrier, protected ownership boundaries, and the mandatory pre-implementation adversarial RED.",
+      "evidenceRef": "design.md#design-brief"
+    },
+    {
+      "id": "BUG001-PLAN-OWNERSHIP",
+      "summary": "Reconciled the one-scope Markdown and JSON handoffs to the adopted design, preserved six-row/six-checkbox parity, and routed the locked pre-fix RED gate to bubbles.test.",
+      "evidenceRef": "scopes.md#execution-outline"
+    },
+    {
+      "id": "BUG001-PREFIX-RED",
+      "summary": "Created TP-BUG001-02 and captured its expected pre-fix System Chrome RED: cache-first owner content was painted, but the first native same-origin option delta request started before shared shell readiness.",
+      "evidenceRef": "report.md#persistent-adversarial-red---tp-bug001-02"
+    },
+    {
+      "id": "BUG001-IMPLEMENTATION",
+      "summary": "Applied and reviewed the adopted page-local shell-ready sequencing barrier, preserved synchronous cache-first paint, set one start guard before fetchDelta, retained protected shared/source/worker/timeout boundaries, and observed TP-BUG001-02 GREEN with one 12-path cycle.",
+      "evidenceRef": "report.md#implementation-owned-source-diff-and-boundary"
+    },
+    {
+      "id": "BUG001-VERIFICATION",
+      "summary": "Executed TP-BUG001-01 through TP-BUG001-06 and the isolated rollback rehearsal on current bytes. All six rows are GREEN; rollback produces the required shellReadyAtStart=false RED on the recorded pre-fix startup and exact fixed-byte restore returns GREEN with protected hashes unchanged.",
+      "evidenceRef": "report.md#independent-complete-verification---scope-01"
+    },
+    {
+      "id": "BUG001-PLAN-RECONCILIATION",
+      "summary": "Reconciled every plan-owned SCOPE-01 Core, Test, and Build checkbox from direct report evidence; set the execution-side scope status to done; preserved top-level and certification state; and corrected routing to the next mandatory bugfix-fastlane specialist.",
+      "evidenceRef": "scopes.md#scope-01-sequence-heavy-hydration-after-shared-shell-readiness"
+    },
+    {
+      "id": "BUG001-REGRESSION-PHASE",
+      "summary": "Re-ran all six SCOPE-01 Test Plan rows plus the cross-spec certified BUG-004 provider-fallback, provider-credentials, and contextual-tooltip suites on current bytes; every suite GREEN and every protected owner byte-stable. Verdict REGRESSION_FREE. One transient batch deepStrictEqual RED was proven a parallel-invocation artifact and cleared under standalone execution.",
+      "evidenceRef": "report.md#regression-phase-evidence"
+    },
+    {
+      "id": "BUG001-SIMPLIFY-PHASE",
+      "summary": "Executed the mandatory bugfix-fastlane simplify phase over the recorded diff surface (options-flow-feed-lab.html guard/barrier hunk + tests/tool-experience.spec.mjs BUG-001 regression). No code change warranted: the fix is one page-local exactly-once guard reusing the existing generic rlviews:change event and data-rlexperience-shell=ready marker with no new shared API, duplication, dead code, or unclear naming; the only redundancy (trailing rebuild/render after fetchDelta, which already renders) is pre-existing code relocated verbatim by the fix, outside the fix and simplify remit, and was left byte-stable. Re-confirmed selftest 712/0 on unchanged bytes. Certification and top-level status untouched.",
+      "evidenceRef": "report.md#simplify-phase-evidence"
+    },
+    {
+      "id": "BUG001-GAPS-PHASE",
+      "summary": "Executed the mandatory bugfix-fastlane gaps phase over the regression-clean, simplify-confirmed SCOPE-01 fix. Verdict NO CODE GAP. traceability-guard PASSED (3/3 scenarios mapped to Test Plan rows and DoD items, 0 unmapped, no orphan test); artifact-lint PASSED (13/13 DoD items checked with evidence blocks, 0 template placeholders, top-level status matches certification); regression-quality --bugfix 0 violations/0 warnings with adversarial signals in both files; added-line forbidden-remedy token scan clean (exit 1); all protected owners byte-stable against recorded pre-fix hashes; node scripts/selftest.mjs 712 passed / 0 failed. One artifact-only status drift was found and reconciled in place: the report Completion Statement and Validation Summary still read SCOPE-01 Not Started / DoD unchecked, a bubbles.test-phase reading that predated the TR-BUG001-TEST-TO-PLAN reconciliation; corrected truthfully while preserving all evidence transcripts and the historical routing fact. No production or test byte modified; certification and top-level status untouched.",
+      "evidenceRef": "report.md#gaps-phase-evidence"
+    },
+    {
+      "id": "BUG001-HARDEN-PHASE",
+      "summary": "Executed the mandatory bugfix-fastlane harden phase over the gaps-confirmed, regression-clean, simplify-confirmed SCOPE-01 fix. Verdict HARDENED / robustnessVerdict ROBUST on current bytes. GREEN: all-23 functional shell canary tests 3 / pass 3 / fail 0 / skipped 0 (options-flow-feed-lab present with four panels); focused BUG-001 System Chrome regression 1 passed with firstDelta=/data/options/SPY.json shellReadyAtStart=true cacheFirstOwnerPainted=true; full tool-experience.spec.mjs shell suite 4 passed / 0 skipped; node scripts/selftest.mjs 712 passed / 0 failed; skip/only and TODO/FIXME/HACK/STUB scans clean (grep exit 1); artifact-lint PASSED exit 0; regression-quality --bugfix 0 violations / 0 warnings with adversarial signals in both files. The exactly-once barrier is robust across the synchronous already-ready querySelector branch, the {once:true} rlviews:change event branch, and the deltaHydrationStarted guard, with no unstarted/double-started race and no second worker group on view toggles. No code changed: options-flow-feed-lab.html, tests/tool-experience.spec.mjs, tests/tool-experience-shell.functional.mjs and all shared/producer/decorator owners are byte-identical to the recorded baseline (11/11 sha256 match). certification.* and top-level status untouched.",
+      "evidenceRef": "report.md#harden-phase-evidence"
+    }
+  ],
+  "unresolvedFindings": [
+    {
+      "id": "BUG001-STABILIZE-PHASE",
+      "owner": "bubbles.stabilize",
+      "summary": "The mandatory bugfix-fastlane harden phase executed with a HARDENED / ROBUST verdict on current bytes (all-23 functional canary 3/3 pass 0 skip; focused BUG-001 System Chrome regression GREEN with shellReadyAtStart=true and cacheFirstOwnerPainted=true; full tool-experience shell suite 4/4; selftest 712/0; skip/only and deferral scans clean; artifact-lint exit 0; regression-quality 0v/0w; all 11 protected-owner hashes byte-stable; no code changed). The subsequent mandatory stabilize phase has not executed."
+    }
+  ],
+  "routing": {
+    "currentOwner": "bubbles.harden",
+    "nextRequiredOwner": "bubbles.stabilize",
+    "implementationDispatchAllowed": false,
+    "sequence": [
+      { "order": 1, "owner": "bubbles.test", "action": "Create TP-BUG001-02 and record the persistent adversarial RED against unchanged production while retaining the exact all-23 RED." },
+      { "order": 2, "owner": "bubbles.implement", "action": "Apply the smallest adopted startup-sequencing repair without changing protected owners or timeouts, only after the persistent RED is recorded." },
+      { "order": 3, "owner": "bubbles.test", "action": "Execute focused, exact all-23, broader E2E, ownership, regression-quality, rollback, and broad selftest rows." },
+      { "order": 4, "owner": "bubbles.plan", "action": "Reconcile the complete test evidence into plan-owned DoD checkboxes and SCOPE-01 status without modifying certification." },
+      { "order": 5, "owner": "bubbles.regression", "action": "Execute the mandatory regression phase and return its diagnostic verdict without modifying planning or certification." },
+      { "order": 6, "owner": "bubbles.simplify", "action": "Execute the mandatory simplify phase only after regression completes." },
+      { "order": 7, "owner": "bubbles.gaps", "action": "Execute the mandatory gaps phase only after simplify completes." },
+      { "order": 8, "owner": "bubbles.harden", "action": "Execute the mandatory harden phase only after gaps completes." },
+      { "order": 9, "owner": "bubbles.stabilize", "action": "Execute the mandatory stabilize phase only after harden completes." },
+      { "order": 10, "owner": "bubbles.devops", "action": "Execute the mandatory devops phase only after stabilize completes." },
+      { "order": 11, "owner": "bubbles.security", "action": "Execute the mandatory security phase only after devops completes." },
+      { "order": 12, "owner": "bubbles.validate", "action": "Certify only after every preceding bugfix-fastlane phase has produced its required verdict." },
+      { "order": 13, "owner": "bubbles.audit", "action": "Execute the independent audit only after validate completes." }
+    ],
+    "dispatchReason": "Plan reconciliation is complete from direct report evidence. The persisted bugfix-fastlane definition resolves to phaseOrder select, bootstrap, implement, test, regression, simplify, gaps, harden, stabilize, devops, security, validate, audit, finalize; regression is the first unexecuted required specialist phase."
+  },
+  "scopeLayout": "single-file",
+  "artifacts": {
+    "bug": "bug.md",
+    "spec": "spec.md",
+    "design": "design.md",
+    "scopes": "scopes.md",
+    "report": "report.md",
+    "uservalidation": "uservalidation.md",
+    "scenarioManifest": "scenario-manifest.json",
+    "testPlan": "test-plan.json",
+    "state": "state.json"
+  }
+}

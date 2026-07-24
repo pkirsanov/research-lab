@@ -27,32 +27,9 @@ function runtimeFor(api, definition) {
   return requireValue(api.createSimpleRuntime(config, models));
 }
 
-/* Extract a top-level `function NAME(...) { ... }` body from the owner page source.
-   Mirrors the "selftest-extractable" contract in market-heatmap-lab.html and lets the
-   parity test compare the module's extracted owner functions to the page's live
-   inline formula on canonical inputs (owner byte/semantic parity). */
-function extractPageFunction(source, name) {
-  const marker = `function ${name}(`;
-  const start = source.indexOf(marker);
-  assert.notEqual(start, -1, `owner function ${name} not found in market-heatmap-lab.html`);
-  let index = source.indexOf('{', start);
-  assert.notEqual(index, -1, `owner function ${name} has no body`);
-  let depth = 0;
-  let end = -1;
-  for (let i = index; i < source.length; i += 1) {
-    const ch = source[i];
-    if (ch === '{') depth += 1;
-    else if (ch === '}') {
-      depth -= 1;
-      if (depth === 0) { end = i + 1; break; }
-    }
-  }
-  assert.notEqual(end, -1, `owner function ${name} body is unbalanced`);
-  const signatureAndBody = source.slice(start + `function `.length, end);
-  // eslint-disable-next-line no-new-func
-  return new Function(`return function ${signatureAndBody};`)();
-}
-
+/* The owner page source, read once, so the single-source tests below can assert the
+   page delegates its breadth/outlier compute to the module (RLMARKETSTRUCTURE) and
+   carries no inline formula copy. */
 const OWNER_PAGE = readFileSync(new URL('../market-heatmap-lab.html', import.meta.url), 'utf8');
 
 /* Synthetic owner snapshot engineered so every declared parameter provably moves
@@ -118,43 +95,46 @@ test('TP-05-01 market-structure module exposes the delivered market-structure ad
   }
 });
 
-test('TP-05-01 owner functions are byte/semantic parity with the market-heatmap-lab.html inline formula', () => {
+test('TP-05-01 market-structure owner breadth functions pin the single-source formula (Number.isFinite parity with the delegating page)', () => {
   const ms = loadMarketStructure();
-  const pagePctOver = extractPageFunction(OWNER_PAGE, 'pctOver');
-  const pageMeanSd = extractPageFunction(OWNER_PAGE, 'meanSd');
-  const pageBreadthRead = extractPageFunction(OWNER_PAGE, 'breadthRead');
 
-  const barBatches = [
-    [{ c: 100 }, { c: 101 }, { c: 103 }, { c: 99 }, { c: 105 }, { c: 110 }],
-    [{ c: 50 }, { c: 55 }],
-    [{ c: 0 }, { c: 10 }],
-    [{ c: 100 }],
-    []
-  ];
-  for (const rows of barBatches) {
-    for (const win of [1, 5, 21]) {
-      assert.equal(
-        ms.pctOverWindow(rows, win),
-        pagePctOver(rows, win),
-        `pctOverWindow parity win=${win}`
-      );
-    }
-  }
+  // pctOverWindow: window % return. A null endpoint yields null (never a global-isFinite
+  // coerced 0), matching the page's `function isFinite(x){return Number.isFinite(x);}` shim.
+  assert.equal(ms.pctOverWindow([{ c: 100 }, { c: 110 }], 1), (110 / 100 - 1) * 100, 'pctOverWindow 1-back = +10%');
+  assert.equal(ms.pctOverWindow([{ c: 100 }, { c: 101 }, { c: 103 }, { c: 99 }, { c: 105 }, { c: 110 }], 5), (110 / 100 - 1) * 100, 'pctOverWindow 5-back');
+  assert.equal(ms.pctOverWindow([{ c: 100 }], 1), null, 'pctOverWindow needs >=2 rows');
+  assert.equal(ms.pctOverWindow([{ c: 100 }, { c: null }], 1), null, 'pctOverWindow rejects a null last close (Number.isFinite, not coercing global isFinite)');
+  assert.equal(ms.pctOverWindow([{ c: 100 }, { c: null }, { c: 121 }], 1), null, 'pctOverWindow rejects a null base close');
 
-  const numberBatches = [[1, 2, 3, 4], [5], [], [2.5, 2.5, 2.5], [-3, 7, 11, -1]];
-  for (const xs of numberBatches) {
-    assert.deepEqual(ms.meanSampleSd(xs), pageMeanSd(xs), 'meanSampleSd parity');
-  }
+  // meanSampleSd: mean + sample stdev; null members are rejected (Number.isFinite), so
+  // [2, null, 4] reduces to [2, 4] => mean 3 (NOT a coerced [2, 0, 4] => mean 2).
+  assert.deepEqual(ms.meanSampleSd([2, 4, 6]), { mean: 4, sd: 2 }, 'meanSampleSd finite');
+  assert.deepEqual(ms.meanSampleSd([2, null, 4]), { mean: 3, sd: Math.sqrt(2) }, 'meanSampleSd rejects null (parity with page Number.isFinite shim)');
+  assert.deepEqual(ms.meanSampleSd([]), { mean: 0, sd: 0 }, 'meanSampleSd empty');
+  assert.deepEqual(ms.meanSampleSd([5]), { mean: 5, sd: 0 }, 'meanSampleSd single => sd 0');
 
-  const cellBatches = [
-    [{ ticker: 'A', pct: 1 }, { ticker: 'B', pct: -2 }, { ticker: 'C', pct: 0.5 }],
-    [{ ticker: 'A', pct: -1 }, { ticker: 'B', pct: -2 }],
-    [{ ticker: 'A', pct: 3 }, { ticker: 'B', pct: 4 }],
-    []
-  ];
-  for (const cells of cellBatches) {
-    assert.deepEqual(ms.breadthReadCells(cells), pageBreadthRead(cells), 'breadthReadCells parity');
-  }
+  // breadthReadCells: unavailable (pct === null) cells are EXCLUDED from total, so a
+  // universe with a null constituent is not wrongly inflated (global isFinite(null) === true).
+  const withNull = [{ ticker: 'A', pct: 2 }, { ticker: 'B', pct: null }, { ticker: 'C', pct: -1 }];
+  assert.deepEqual(
+    ms.breadthReadCells(withNull),
+    { green: 1, total: 2, leader: withNull[0], laggard: withNull[2], bias: 'mixed', frac: 0.5 },
+    'breadthReadCells excludes null cells from total (parity with page)'
+  );
+  assert.equal(ms.breadthReadCells([{ pct: 1 }, { pct: 1 }, { pct: 1 }]).bias, 'risk-on', 'breadthReadCells all-green => risk-on');
+  assert.equal(ms.breadthReadCells([]).bias, 'n/a', 'breadthReadCells empty => n/a');
+});
+
+test('TP-05-01 market-heatmap-lab.html single-sources the breadth formula from market-structure.js with no inline copy', () => {
+  assert.match(OWNER_PAGE, /rlexperience-adapters\/market-structure\.js/, 'heatmap page loads market-structure.js');
+  assert.match(OWNER_PAGE, /RLMARKETSTRUCTURE\.pctOverWindow\s*\(/, 'heatmap page delegates pctOver to the module');
+  assert.match(OWNER_PAGE, /RLMARKETSTRUCTURE\.meanSampleSd\s*\(/, 'heatmap page delegates meanSd to the module');
+  assert.match(OWNER_PAGE, /RLMARKETSTRUCTURE\.breadthReadCells\s*\(/, 'heatmap page delegates breadthRead to the module');
+  assert.match(OWNER_PAGE, /WIN_BARS\s*=\s*RLMARKETSTRUCTURE\.WINDOW_BARS/, 'heatmap page single-sources WIN_BARS from the module');
+  // The single owner source lives in market-structure.js; the page must not carry a second inline copy.
+  assert.equal(/last\.c \/ base\.c - 1\) \* 100/.test(OWNER_PAGE), false, 'heatmap page has no inline pctOver formula');
+  assert.equal(/Math\.sqrt\(s \/ \(n - 1\)\)/.test(OWNER_PAGE), false, 'heatmap page has no inline meanSd formula');
+  assert.equal(/frac > 0\.6 \? "risk-on"/.test(OWNER_PAGE), false, 'heatmap page has no inline breadthRead formula');
 });
 
 test('TP-05-01 market-breadth adapter registers through the production runtime and produces a ready owner run', async () => {

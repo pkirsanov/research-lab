@@ -44,22 +44,28 @@
   var WINDOW_BARS = { "1d": 1, "1w": 5, "1m": 21 };
 
   /* % change over a window from ascending OHLCV rows carrying `.c`. Byte-identical
-     behaviour to the market-heatmap-lab.html `pctOver` owner function. */
+     behaviour to the market-heatmap-lab.html `pctOver` owner function. The owning
+     page's `isFinite` is a `function isFinite(x){return Number.isFinite(x);}` shim,
+     so this single source uses `Number.isFinite` (NOT the global coercing `isFinite`,
+     which treats `null` as finite) to stay byte-identical to the delegating page. */
   function pctOverWindow(rows, win) {
     if (!Array.isArray(rows) || rows.length < 2) return null;
     var last = rows[rows.length - 1];
-    if (!last || !isFinite(last.c)) return null;
+    if (!last || !Number.isFinite(last.c)) return null;
     var i = rows.length - 1 - win;
     if (i < 0) i = 0;
     var base = rows[i];
-    if (!base || !isFinite(base.c) || base.c === 0) return null;
+    if (!base || !Number.isFinite(base.c) || base.c === 0) return null;
     return (last.c / base.c - 1) * 100;
   }
 
   /* mean + sample stdev of a numeric array; sd=0 when <2 points. Byte-identical
-     behaviour to the market-heatmap-lab.html `meanSd` owner function. */
+     behaviour to the market-heatmap-lab.html `meanSd` owner function, whose
+     `isFinite` is a `Number.isFinite` shim — so the null-rejecting `Number.isFinite`
+     is used here for exact parity with the delegating page (global `isFinite(null)`
+     is `true`, which would silently keep a null-return constituent in the sample). */
   function meanSampleSd(xs) {
-    var v = (xs || []).filter(function (x) { return isFinite(x); });
+    var v = (xs || []).filter(function (x) { return Number.isFinite(x); });
     var n = v.length, i, m = 0;
     if (!n) return { mean: 0, sd: 0 };
     for (i = 0; i < n; i++) m += v[i];
@@ -71,12 +77,15 @@
   }
 
   /* one-line breadth read from cells [{pct,...}]. Byte-identical behaviour to the
-     market-heatmap-lab.html `breadthRead` owner function. */
+     market-heatmap-lab.html `breadthRead` owner function, whose `isFinite` is a
+     `Number.isFinite` shim — so unavailable (`pct === null`) cells are excluded
+     from the total exactly as the delegating page does (global `isFinite(null)` is
+     `true`, which would wrongly inflate `total` and skew the risk-on/off bias). */
   function breadthReadCells(cells) {
     var green = 0, tot = 0, leader = null, laggard = null, i, c;
     for (i = 0; i < (cells || []).length; i++) {
       c = cells[i];
-      if (!c || !isFinite(c.pct)) continue;
+      if (!c || !Number.isFinite(c.pct)) continue;
       tot++;
       if (c.pct > 0) green++;
       if (!leader || c.pct > leader.pct) leader = c;

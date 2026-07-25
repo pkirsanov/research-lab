@@ -254,3 +254,149 @@ test('SCN-012-014/015 rldata.js source-ownership surface (keyless chain, snapsho
     assert.match(RLDATA_RAW, marker, `rldata.js retains its ownership marker ${marker}`);
   }
 });
+
+/* ═══════════════════════ TP-06-03 — Scope 06 macro/fundamental source qualification (SCN-012-035) ═══════════════════════
+ *
+ * Feature 012 Scope 06 adds the macro-rotation (+ fundamental-models) Simple-adapter modules and
+ * does NOT touch the source chain or acquire any evidence. This suite proves ownership is intact for
+ * the delivered Scope-06 modules: no fetch/provider/storage/author/publication/cross-domain path
+ * (comment-stripped scan + a live sentinel run), the adapter consumes only the frozen owner
+ * projection, preserves the owner evidence clock, and never substitutes a default for missing
+ * evidence (a sector with no relative-strength series stays unavailable, not a fabricated value).
+ */
+
+function loadMacroRotation() {
+  const path = require.resolve('../rlexperience-adapters/macro-rotation.js');
+  delete require.cache[path];
+  return require(path);
+}
+
+const MACRO_ROTATION_RAW = readSource('../rlexperience-adapters/macro-rotation.js');
+
+function sectorRsSeries(slope, wobble, tilt) {
+  const out = [];
+  for (let i = 0; i < 200; i += 1) {
+    const trend = 1 + slope * (i / 200);
+    const wob = wobble * Math.sin(i / 9);
+    out.push(Math.round((trend + wob + tilt) * 1e6) / 1e6);
+  }
+  return out;
+}
+
+test('SCN-012-035 macro and fundamental source qualification: the macro-rotation module invokes no fetch, provider, storage, author, publication, or cross-domain path', () => {
+  const source = stripComments(MACRO_ROTATION_RAW);
+  const forbidden = [
+    /\bfetch\s*\(/,
+    /\bproviderFetch\s*\(/,
+    /\bRLDATA\b/,
+    /\blocalStorage\b/,
+    /\bsessionStorage\b/,
+    /\bindexedDB\b/,
+    /\bXMLHttpRequest\b/,
+    /\bWebSocket\b/,
+    /\bEventSource\b/,
+    /sendBeacon/,
+    /\bimport\s*\(/,
+    /\bwriteFileSync\b/,
+    /\bwriteFile\b/,
+    /\bmkdirSync\b/,
+    /data\/options/,
+    /data\/bars/,
+    /query[12]\.finance\.yahoo\.com/,
+    /corsproxy/,
+    /allorigins/,
+    /codetabs/,
+    /twelvedata/i
+  ];
+  for (const pattern of forbidden) {
+    assert.equal(pattern.test(source), false, `macro-rotation.js must contain no ${pattern}`);
+  }
+  const crossDomain = /rlexperience-adapters\/(market-structure|options|fundamental-models|strategy-research|property-research|market-action)/;
+  assert.equal(crossDomain.test(source), false, 'macro-rotation.js must import no other domain adapter');
+});
+
+test('SCN-012-035 macro and fundamental source qualification: the delivered sector-rotation adapter performs zero fetch/provider/storage at runtime', async () => {
+  const api = loadProductionApi();
+  const mr = loadMacroRotation();
+  const sectorDefinition = clone(readJson('simple-models.json').definitions.find((d) => d.toolId === 'sector-research-lab'));
+  const config = readJson('tool-experience.config.json');
+  const runtime = requireValue(api.createSimpleRuntime(config, { contractVersion: 'simple-model-registry/v1', definitions: [sectorDefinition] }));
+  mr.registerMacroRotationAdapters(runtime, api, [sectorDefinition]);
+
+  const owner = {
+    contractVersion: 'sector-rotation-owner-state/v1', toolId: 'sector-research-lab', asOf: '2026-07-24T20:00:00.000Z',
+    source: 'pages-snapshot cache', benchmarks: ['SPY', 'RSP'],
+    sectors: [
+      { id: 'XLK', label: 'Technology', rs: { SPY: sectorRsSeries(0.42, 0.05, 0), RSP: sectorRsSeries(0.30, 0.06, 0.04) }, x3: 0.08, breadthPct50: 0.7, riskScore: 1, etf: { ticker: 'XLK', fit: 0.82, mom: 0.61 } },
+      { id: 'XLE', label: 'Energy', rs: { SPY: sectorRsSeries(-0.28, 0.07, 0), RSP: sectorRsSeries(-0.20, 0.05, 0.05) }, x3: -0.05, breadthPct50: 0.3, riskScore: 4, etf: { ticker: 'XLE', fit: 0.44, mom: 0.58 } }
+    ]
+  };
+
+  const sentinels = { fetch: globalThis.fetch, localStorage: globalThis.localStorage, sessionStorage: globalThis.sessionStorage, XMLHttpRequest: globalThis.XMLHttpRequest };
+  const calls = { fetch: 0, storage: 0, xhr: 0 };
+  globalThis.fetch = () => { calls.fetch += 1; throw new Error('forbidden fetch'); };
+  globalThis.localStorage = { getItem() { calls.storage += 1; }, setItem() { calls.storage += 1; } };
+  globalThis.sessionStorage = { getItem() { calls.storage += 1; }, setItem() { calls.storage += 1; } };
+  globalThis.XMLHttpRequest = function () { calls.xhr += 1; throw new Error('forbidden xhr'); };
+  try {
+    const base = defaultValues(sectorDefinition);
+    const prepared = requireValue(await runtime.prepare({
+      definitionId: sectorDefinition.definitionId,
+      ownerContext: { ownerState: owner },
+      parameterValues: base,
+      seed: null,
+      scenarioIds: ['baseline'],
+      computedAt: '2026-07-25T20:02:00.000Z'
+    }));
+    assert.equal(prepared.state, 'ready');
+    // The owner evidence clock is preserved verbatim — the adapter acquires nothing.
+    assert.equal(prepared.current.input.evidenceCutoff, owner.asOf, 'evidence cutoff is the frozen owner asOf (no re-clocking)');
+    await runtime.recompute({ parameterValues: { ...base, benchmark: 'RSP' }, seed: null, scenarioIds: ['baseline'], computedAt: '2026-07-25T20:03:00.000Z' });
+  } finally {
+    globalThis.fetch = sentinels.fetch;
+    globalThis.localStorage = sentinels.localStorage;
+    globalThis.sessionStorage = sentinels.sessionStorage;
+    globalThis.XMLHttpRequest = sentinels.XMLHttpRequest;
+  }
+  assert.equal(calls.fetch, 0, 'zero fetch calls at runtime');
+  assert.equal(calls.storage, 0, 'zero storage calls at runtime');
+  assert.equal(calls.xhr, 0, 'zero XMLHttpRequest calls at runtime');
+});
+
+test('SCN-012-035 macro and fundamental source qualification: a sector with no relative-strength series stays unavailable — no default is substituted', async () => {
+  const api = loadProductionApi();
+  const mr = loadMacroRotation();
+  const sectorDefinition = clone(readJson('simple-models.json').definitions.find((d) => d.toolId === 'sector-research-lab'));
+  const config = readJson('tool-experience.config.json');
+  const runtime = requireValue(api.createSimpleRuntime(config, { contractVersion: 'simple-model-registry/v1', definitions: [sectorDefinition] }));
+  mr.registerMacroRotationAdapters(runtime, api, [sectorDefinition]);
+
+  // XLK carries a full series; XLU carries an EMPTY series (no owner evidence). The adapter must
+  // keep XLU unavailable (rsRatio null, priced false) and exclude it from the priced leaders —
+  // never invent a relative-strength value for it.
+  const owner = {
+    contractVersion: 'sector-rotation-owner-state/v1', toolId: 'sector-research-lab', asOf: '2026-07-24T20:00:00.000Z',
+    source: 'pages-snapshot cache', benchmarks: ['SPY', 'RSP'],
+    sectors: [
+      { id: 'XLK', label: 'Technology', rs: { SPY: sectorRsSeries(0.42, 0.05, 0), RSP: sectorRsSeries(0.30, 0.06, 0.04) }, x3: 0.08, breadthPct50: 0.7, riskScore: 1, etf: { ticker: 'XLK', fit: 0.82, mom: 0.61 } },
+      { id: 'XLU', label: 'Utilities', rs: { SPY: [], RSP: [] }, x3: null, breadthPct50: null, riskScore: null, etf: null }
+    ]
+  };
+  const base = defaultValues(sectorDefinition);
+  const prepared = requireValue(await runtime.prepare({
+    definitionId: sectorDefinition.definitionId,
+    ownerContext: { ownerState: owner },
+    parameterValues: base,
+    seed: null,
+    scenarioIds: ['baseline'],
+    computedAt: '2026-07-25T20:02:00.000Z'
+  }));
+  const summary = prepared.current.output.values.summary;
+  const utilities = summary.transition.sectors.find((entry) => entry.id === 'XLU');
+  assert.equal(utilities.rsRatio, null, 'the empty-evidence sector has no fabricated relative-strength value');
+  assert.equal(utilities.quad, null, 'the empty-evidence sector has no fabricated quadrant');
+  assert.equal(summary.relativeStrength.leaders.some((leader) => leader.id === 'XLU'), false, 'the empty-evidence sector is excluded from the priced leaders (no default substitution)');
+  assert.equal(summary.pricedCount, 1, 'only the one priced sector counts toward coverage');
+  // Partial coverage surfaces model-estimate provenance rather than silently claiming all-observed.
+  assert.deepEqual(prepared.current.output.provenance.classes, ['observed-fact', 'model-estimate'], 'partial owner coverage is declared, not hidden');
+});

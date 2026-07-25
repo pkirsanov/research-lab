@@ -788,20 +788,36 @@ try {
   assert(dr && dr.te > 0, 'activeStats: a drifting fund has positive tracking error');
 } catch (e) { failures++; console.log('  \u2717 FAIL (sector-lab group threw): ' + e.message); }
 
-/* ---------- Sector lab: Simple rotation action thresholds ---------- */
+/* ---------- Sector lab: Simple rotation action thresholds (single-sourced RLMACROROTATION) ---------- */
 try {
-  group('sector-research-lab.html — Simple rotation action thresholds');
+  group('sector-research-lab.html — Simple rotation action thresholds (single-sourced RLMACROROTATION)');
   const src = read('sector-research-lab.html');
-  const names = ['sectorSimpleCandidates'];
-  const env = build(names.map((n) => extractFn(src, n)), names);
-  const improving = { id: 'XLF', quad: 'I', state: { t: 'Improving ↑' }, accel: 0.35, x3: 0.04 };
-  const weakImproving = { id: 'XLE', quad: 'I', state: { t: 'Improving ↑' }, accel: 0.10, x3: -0.02 };
-  const peaking = { id: 'XLV', quad: 'L', state: { t: 'Peaking ⚠' }, accel: -0.30, x3: -0.03 };
-  const early = env.sectorSimpleCandidates([improving, weakImproving, peaking], 'early');
-  const strict = env.sectorSimpleCandidates([improving, weakImproving, peaking], 'strict');
-  assert(early.into.length === 2, 'early threshold keeps both improving rotations');
-  assert(strict.into.length === 1 && strict.into[0].id === 'XLF', 'strict threshold requires acceleration plus positive 3M excess');
-  assert(strict.out.length === 1 && strict.out[0].id === 'XLV', 'strict threshold keeps a confirmed peaking rotation-out');
+  // The into/out classifier, RRG normalization, quadrant, and state label are single-sourced in
+  // rlexperience-adapters/macro-rotation.js (RLMACROROTATION), which the page delegates to. Expose
+  // the module as the global the page's delegating functions reference, then evaluate them.
+  const macroRotationRequire = (await import('node:module')).createRequire(import.meta.url);
+  delete macroRotationRequire.cache[macroRotationRequire.resolve('../rlexperience-adapters/macro-rotation.js')];
+  const RLMACROROTATION = macroRotationRequire('../rlexperience-adapters/macro-rotation.js');
+  const priorMacro = globalThis.RLMACROROTATION;
+  globalThis.RLMACROROTATION = RLMACROROTATION;
+  try {
+    const names = ['sectorSimpleCandidates'];
+    const env = build(names.map((n) => extractFn(src, n)), names);
+    const improving = { id: 'XLF', quad: 'I', state: { t: 'Improving ↑' }, accel: 0.35, x3: 0.04 };
+    const weakImproving = { id: 'XLE', quad: 'I', state: { t: 'Improving ↑' }, accel: 0.10, x3: -0.02 };
+    const peaking = { id: 'XLV', quad: 'L', state: { t: 'Peaking ⚠' }, accel: -0.30, x3: -0.03 };
+    const early = env.sectorSimpleCandidates([improving, weakImproving, peaking], 'early');
+    const strict = env.sectorSimpleCandidates([improving, weakImproving, peaking], 'strict');
+    assert(early.into.length === 2, 'early threshold keeps both improving rotations');
+    assert(strict.into.length === 1 && strict.into[0].id === 'XLF', 'strict threshold requires acceleration plus positive 3M excess');
+    assert(strict.out.length === 1 && strict.out[0].id === 'XLV', 'strict threshold keeps a confirmed peaking rotation-out');
+    // Single-source: the page loads the module, delegates the classifier, and carries no inline copy.
+    assert(/rlexperience-adapters\/macro-rotation\.js/.test(src) && /RLMACROROTATION\.rotationCandidacy\s*\(/.test(src), 'sector page single-sources rotationCandidacy from RLMACROROTATION');
+    assert(/RLMACROROTATION\.rollZ100\s*\(/.test(src) && /RLMACROROTATION\.rrgQuadrant\s*\(/.test(src) && /RLMACROROTATION\.stateLabel\s*\(/.test(src), 'sector page delegates rollZ100/rrgQuadrant/stateLabel to the single source');
+    assert(!/view\.quad === 'I' \|\| view\.state\.t === 'Basing/.test(src) && !/out\[i\] = sd \? 100 \+ \(a\[i\] - m\) \/ sd : 100/.test(src), 'sector page carries no inline classifier or RRG-normalization copy');
+  } finally {
+    if (priorMacro === undefined) delete globalThis.RLMACROROTATION; else globalThis.RLMACROROTATION = priorMacro;
+  }
 } catch (e) { failures++; console.log('  ✗ FAIL (sector Simple group threw): ' + e.message); }
 /* ---------- Market Heatmap: squarified treemap + heat color + breadth ---------- */
 try {
@@ -3854,6 +3870,43 @@ try {
     group('Feature 012 Scope 05 dealer-gamma-playbook adapter completeness (gamma-trading-lab)');
     assertScope05AdapterComplete(OPTIONS_MODULE, 'createOptionsAdapters', 'gamma-trading-lab', 'simple-adapter/dealer-gamma-playbook/v1', ['gammaEnv', 'opexInfo', 'computeGammaPlaybookSummary'], {});
   } catch (e) { failures++; console.log('  ✗ FAIL (Feature 012 Scope 05 dealer-gamma-playbook completeness threw): ' + e.message); }
+}
+
+/* ---------- Feature 012 Scope 06 macro-rotation adapter completeness (delivered set) ----------
+   The eight Scope-06 adapters land incrementally. This block drives the REAL production factory +
+   api for each DELIVERED macro-rotation adapter and proves it is declared in simple-models.json,
+   registered by the production factory, single-sourced (owner primitives exported + owning page
+   delegates), and wired with the exact simple-model-adapter/v1 contract. Cumulatively with the six
+   Scope-05 completeness canaries above, this walks the growing delivered adapter set toward 16.
+   Delivered so far: sector-rotation-transition (sector-research-lab). */
+{
+  const scope06Require = (await import('node:module')).createRequire(import.meta.url);
+  const scope06Api = scope06Require('../rlexperience.js');
+  const scope06Definitions = JSON.parse(read('simple-models.json')).definitions;
+  const MACRO_MODULE = '../rlexperience-adapters/macro-rotation.js';
+  function assertScope06AdapterComplete(modulePath, factoryName, toolId, adapterId, singleSourceFns, pageFile, pageDelegations) {
+    const resolved = scope06Require.resolve(modulePath);
+    delete scope06Require.cache[resolved];
+    const mod = scope06Require(modulePath);
+    const def = scope06Definitions.find((entry) => entry.toolId === toolId);
+    assert(!!def, toolId + ': simple-models.json carries a Simple definition');
+    assert(!!def && def.adapterId === adapterId, toolId + ': definition declares the ' + adapterId + ' adapter id');
+    assert(mod.supportedAdapterIds.indexOf(adapterId) >= 0, adapterId + ': declared in ' + modulePath + ' supportedAdapterIds');
+    singleSourceFns.forEach((fn) => assert(typeof mod[fn] === 'function', adapterId + ': single-source owner primitive ' + fn + '() is exported'));
+    const adapters = mod[factoryName](scope06Api, [def], {});
+    const adapter = adapters[adapterId];
+    assert(!!adapter, adapterId + ': produced by the production ' + factoryName + ' factory for its declared definition');
+    assert(!!adapter && adapter.contractVersion === 'simple-model-adapter/v1' && adapter.adapterId === adapterId, adapterId + ': carries the exact simple-model-adapter/v1 contract identity');
+    assert(!!adapter && Array.isArray(adapter.supportedDefinitionIds) && adapter.supportedDefinitionIds.indexOf(def.definitionId) >= 0, adapterId + ': supports its declared definition id ' + (def && def.definitionId));
+    assert(!!adapter && typeof adapter.captureEvidence === 'function' && typeof adapter.compute === 'function' && typeof adapter.compareSensitivity === 'function', adapterId + ': exposes the captureEvidence/compute/compareSensitivity runtime surface');
+    const page = read(pageFile);
+    assert(/rlexperience-adapters\/macro-rotation\.js/.test(page), pageFile + ': loads the macro-rotation module');
+    pageDelegations.forEach((d) => assert(new RegExp('RLMACROROTATION\\.' + d + '\\s*\\(').test(page), pageFile + ': delegates ' + d + ' to the single source'));
+  }
+  try {
+    group('Feature 012 Scope 06 sector-rotation adapter completeness (sector-research-lab)');
+    assertScope06AdapterComplete(MACRO_MODULE, 'createMacroRotationAdapters', 'sector-research-lab', 'simple-adapter/sector-rotation-transition/v1', ['rollZ100', 'rrgQuadrant', 'stateLabel', 'rotationCandidacy', 'rrgReadout', 'computeSectorRotationSummary'], 'sector-research-lab.html', ['rollZ100', 'rrgQuadrant', 'stateLabel', 'rotationCandidacy']);
+  } catch (e) { failures++; console.log('  ✗ FAIL (Feature 012 Scope 06 sector-rotation completeness threw): ' + e.message); }
 }
 
 /* ---------- summary ---------- */

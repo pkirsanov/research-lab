@@ -1701,6 +1701,10 @@
   </div>
 
   <script src="rldata.js?v=20260712-4"></script>
+  <!-- Feature 012 Scope 06 — single owner source for the sector-rotation RRG / state / rotation
+       formulas (RLMACROROTATION). This Power page and the registered Simple adapter consume the
+       exact same pure owner functions; the inline copies below are removed (owner-parity). -->
+  <script src="rlexperience-adapters/macro-rotation.js"></script>
   <script>
     "use strict";
     /* ═══════════════════════════════════════════════════════════════════════════
@@ -1978,16 +1982,8 @@
     function windowFor(entry) { var f = fullFor(entry); return f ? windowSlice(f, rangeStartMs(state.range, f)) : null; }
 
     /* ══════════════════ rolling z-score (NaN-aware) → RRG normalization ══════════════════ */
-    function rollZ100(a, L) {
-      var out = new Array(a.length), minN = Math.max(8, Math.floor(L * 0.5));
-      for (var i = 0; i < a.length; i++) {
-        if (!isFinite(a[i])) { out[i] = NaN; continue; }
-        var vals = []; for (var j = i; j >= 0 && vals.length < L; j--) { if (isFinite(a[j])) vals.push(a[j]); }
-        if (vals.length < minN) { out[i] = NaN; continue; }
-        var m = mean(vals), sd = stdev(vals); out[i] = sd ? 100 + (a[i] - m) / sd : 100;
-      }
-      return out;
-    }
+    /* Single-sourced to RLMACROROTATION.rollZ100 (owner RRG normalization; no inline copy). */
+    function rollZ100(a, L) { return RLMACROROTATION.rollZ100(a, L); }
     function alignTwo(A, B) {
       // intersect two series by day-string → {t, a, b, av}
       if (!A || !B) return { t: [], a: [], b: [], av: [] };
@@ -2077,13 +2073,8 @@
     }
 
     /* ══════════════════ per-entry compute ══════════════════ */
-    function stateLabel(quad, accel) {
-      if (quad === 'L') return accel < -0.15 ? { t: 'Peaking ⚠', c: 'st-peak', early: 1 } : { t: 'Leading', c: 'st-lead', early: 0 };
-      if (quad === 'W') return { t: 'Weakening ↓', c: 'st-weak', early: 0 };
-      if (quad === 'A') return accel > 0.15 ? { t: 'Basing ↑', c: 'st-base', early: 1 } : { t: 'Lagging', c: 'st-lag', early: 0 };
-      if (quad === 'I') return { t: 'Improving ↑', c: 'st-improve', early: 0 };
-      return { t: '—', c: '', early: 0 };
-    }
+    /* Single-sourced to RLMACROROTATION.stateLabel (owner state label; no inline copy). */
+    function stateLabel(quad, accel) { return RLMACROROTATION.stateLabel(quad, accel); }
     function computeEntry(entry) {
       var full = fullFor(entry); if (!full || full.adj.length < 30) return null;
       var al = alignTwo(full, BENCH.full); if (al.t.length < 30) return null;
@@ -2096,7 +2087,7 @@
       var last = -1; for (i = rsRatioArr.length - 1; i >= 0; i--) { if (isFinite(rsRatioArr[i]) && isFinite(rsMomArr[i])) { last = i; break; } }
       if (last < 0) return null;
       var rsRatio = rsRatioArr[last], rsMom = rsMomArr[last];
-      var quad = (rsRatio >= 100 ? (rsMom >= 100 ? 'L' : 'W') : (rsMom >= 100 ? 'I' : 'A'));
+      var quad = RLMACROROTATION.rrgQuadrant(rsRatio, rsMom);  /* single-sourced owner RRG quadrant */
       // tail: last ~7 weekly points
       var tail = []; for (var k = last; k >= 0 && tail.length < 7; k -= 5) { if (isFinite(rsRatioArr[k]) && isFinite(rsMomArr[k])) tail.unshift([rsRatioArr[k], rsMomArr[k]]); }
       function backVal(arr, span) { var j = last - span; return (j >= 0 && isFinite(arr[j]) && isFinite(arr[last])) ? arr[last] - arr[j] : 0; }
@@ -2198,16 +2189,9 @@
     function sectorSimpleCandidates(rows, confirmation) {
       var into = [], out = [];
       rows.forEach(function (view) {
-        var inTurn = view.quad === 'I' || view.state.t === 'Basing ↑' || (view.quad === 'L' && view.accel > 0.2);
-        var outTurn = view.state.t === 'Peaking ⚠' || view.quad === 'W';
-        if (confirmation === 'strict') {
-          inTurn = inTurn && view.accel > 0.2 && Number.isFinite(view.x3) && view.x3 > 0;
-          outTurn = outTurn && view.accel < -0.2 && Number.isFinite(view.x3) && view.x3 < 0;
-        } else if (confirmation === 'early') {
-          inTurn = inTurn || (view.quad === 'A' && view.accel > 0);
-          outTurn = outTurn || (view.quad === 'L' && view.accel < 0);
-        }
-        if (inTurn) into.push(view); if (outTurn) out.push(view);
+        /* Single-sourced to RLMACROROTATION.rotationCandidacy (owner into/out classifier; no inline copy). */
+        var turn = RLMACROROTATION.rotationCandidacy(view, confirmation);
+        if (turn.inTurn) into.push(view); if (turn.outTurn) out.push(view);
       });
       into.sort(function (a, b) { return b.accel - a.accel; });
       out.sort(function (a, b) { return a.accel - b.accel; });

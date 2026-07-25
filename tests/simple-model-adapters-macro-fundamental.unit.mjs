@@ -1200,3 +1200,262 @@ test('TP-06-01 etf-ranking compute is deterministic for one compute identity', a
     'identical inputs => identical owner summary'
   );
 });
+
+/* ═══════════════════════ company-scenario-bridge owner fixture (company-fundamentals-lab) ═══════════════════════
+   A synthetic FROZEN accepted-publication snapshot engineered so every declared parameter provably moves its
+   declared output path and every source gap is preserved honestly. The five reported base facts are all
+   available (so the baseline scenario is "ready"); the lineage clocks put the accepted revision 30 whole days
+   before asOf (so lineage-cutoff flips within→stale across the default 90 and a tight 10); the two frozen
+   evidence gaps carry one required + one optional entry (so evidence-gap-policy flips preserve→refuse on the
+   required gap); and the lineage carries distinct statement/model cutoffs + revisions (so accepted-state flips
+   the source-qualified anchor). No fabricated feed — the adapter recomputes only from these frozen owner facts
+   through the single-source projection/lineage/gap primitives (RLFUNDAMENTALS.projectCompanyScenario /
+   companyScenarioLineage / companyGapLedger), which the company page Power path delegates to as well. */
+const COMPANY_PAGE = readFileSync(new URL('../company-fundamentals-lab.html', import.meta.url), 'utf8');
+
+function companyOwnerFixture() {
+  return {
+    contractVersion: 'company-scenario-owner-state/v1',
+    toolId: 'company-fundamentals-lab',
+    companyId: 'company-fundamentals-lab',
+    asOf: '2026-07-24T20:00:00.000Z',
+    source: 'accepted publication snapshot',
+    reported: {
+      revenue: { value: 200000, unit: 'USD-millions', state: 'reported' },
+      operatingMargin: { value: 0.4, unit: 'ratio', state: 'reported' },
+      revenueGrowth: { value: 0.1, unit: 'ratio', state: 'reported' },
+      capexIntensity: { value: 0.2, unit: 'ratio', state: 'reported' },
+      valuationMultiple: { value: 20, unit: 'x', state: 'reported' }
+    },
+    lineage: {
+      revision: 4,
+      owner: 'accepted-publication',
+      scenarioRevisionId: 'scn-rev-7',
+      createdAt: '2026-06-24T20:00:00.000Z',
+      statementCutoff: '2026-06-20T00:00:00.000Z',
+      modelCutoff: '2026-07-01T00:00:00.000Z'
+    },
+    gaps: [
+      { evidenceClass: 'segment-detail', concept: 'SegmentRevenue', state: 'unavailable', required: true },
+      { evidenceClass: 'guidance', concept: 'ForwardGuidance', state: 'unavailable', required: false }
+    ]
+  };
+}
+
+/* ═══════════════════════ TP-06-01 company-scenario-bridge module authority + primitives ═══════════════════════ */
+
+test('TP-06-01 fundamental-models module exposes the company-scenario-bridge adapter with single-sourced projection + lineage + gap primitives', () => {
+  const fm = loadFundamentalModels();
+  assert.ok(fm.supportedAdapterIds.includes('simple-adapter/company-scenario-bridge/v1'), 'company-scenario-bridge/v1 is a declared supported adapter');
+  assert.equal(typeof fm.projectCompanyScenario, 'function', 'projectCompanyScenario bounded-projection primitive is single-sourced in the module');
+  assert.equal(typeof fm.companyReportedBase, 'function', 'companyReportedBase gap-preserving marshaller is exported');
+  assert.equal(typeof fm.companyScenarioLineage, 'function', 'companyScenarioLineage frozen-clock primitive is exported');
+  assert.equal(typeof fm.companyGapLedger, 'function', 'companyGapLedger evidence-gap primitive is exported');
+  assert.equal(typeof fm.computeCompanyScenarioSummary, 'function', 'computeCompanyScenarioSummary is exported');
+});
+
+test('TP-06-01 projectCompanyScenario/companyScenarioLineage/companyGapLedger single-source pin the bounded scenario + gap-preservation formula', () => {
+  const fm = loadFundamentalModels();
+  const base = companyOwnerFixture().reported;
+  // projectCompanyScenario: growth applies to the frozen reported base and derives operating income + bounded valuation.
+  const ready = fm.projectCompanyScenario(base, { growth: 10, marginChange: 0, gapPolicy: 'preserve' });
+  assert.equal(ready.state, 'ready', 'a complete reported base yields a ready bounded scenario');
+  assert.equal(ready.revenue, 220000, 'revenue node = base-revenue 200000 * (1 + growth 0.10)');
+  assert.equal(ready.operatingIncome, 88000, 'operating income = revenue 220000 * margin 0.40');
+  assert.equal(ready.valuation, 1760000, 'bounded valuation = operating income 88000 * multiple 20');
+  // margin-change moves the margin node (percentage points), not the revenue node.
+  const marginShift = fm.projectCompanyScenario(base, { growth: 0, marginChange: 10, gapPolicy: 'preserve' });
+  assert.equal(marginShift.operatingMargin, 0.5, 'margin change +10pp lifts the 0.40 margin to 0.50');
+  assert.equal(marginShift.operatingIncome, 100000, 'operating income tracks the shifted margin (200000 * 0.50)');
+  // Gap preservation: a required reported gap stays honestly unavailable (preserve) or withholds the whole scenario (refuse) — never a fabricated default.
+  const gapped = companyOwnerFixture().reported;
+  gapped.revenue = { value: null, unit: 'USD-millions', state: 'unavailable' };
+  const preserved = fm.projectCompanyScenario(gapped, { growth: 10, marginChange: 0, gapPolicy: 'preserve' });
+  const refused = fm.projectCompanyScenario(gapped, { growth: 10, marginChange: 0, gapPolicy: 'refuse' });
+  assert.equal(preserved.state, 'unavailable', 'a required reported gap is honestly unavailable under preserve');
+  assert.equal(preserved.revenue, null, 'the gapped revenue node is null, never a fabricated default');
+  assert.equal(preserved.operatingIncome, null, 'a derived node depending on a gapped required node stays null');
+  assert.ok(preserved.missing.includes('revenue'), 'the preserved gap is named in missing');
+  assert.equal(refused.state, 'refused', 'the refuse policy withholds the whole scenario on a required gap');
+  assert.equal(refused.valuation, null, 'a refused scenario carries no fabricated numbers');
+  // A non-required reported gap is a partial scenario (the available nodes still project).
+  const optionalGap = companyOwnerFixture().reported;
+  optionalGap.valuationMultiple = { value: null, unit: 'x', state: 'unavailable' };
+  const partial = fm.projectCompanyScenario(optionalGap, { growth: 10, marginChange: 0, gapPolicy: 'preserve' });
+  assert.equal(partial.state, 'partial', 'a non-required reported gap is a partial scenario');
+  assert.equal(partial.valuation, null, 'the gapped valuation node stays null under partial');
+  assert.equal(partial.revenue, 220000, 'the available revenue node still projects');
+  // companyScenarioLineage: age over the FROZEN clocks (never Date.now()); the cutoff flips within→stale; a missing clock stays unavailable.
+  const within = fm.companyScenarioLineage(companyOwnerFixture().lineage, '2026-07-24T20:00:00.000Z', 90);
+  const stale = fm.companyScenarioLineage(companyOwnerFixture().lineage, '2026-07-24T20:00:00.000Z', 10);
+  assert.equal(within.ageDays, 30, 'the accepted revision is 30 whole days before asOf');
+  assert.equal(within.state, 'within', 'a 30-day age within the 90-day cutoff is within');
+  assert.equal(stale.state, 'stale', 'a 30-day age past a 10-day cutoff is stale');
+  assert.equal(fm.companyScenarioLineage({}, '2026-07-24T20:00:00.000Z', 90).ageDays, null, 'a missing lineage clock stays unavailable (no fabricated age)');
+  // companyGapLedger: preserve keeps every gap honest; refuse marks a required unresolved gap blocking and refuses acceptance.
+  const gaps = companyOwnerFixture().gaps;
+  const preserveLedger = fm.companyGapLedger(gaps, 'preserve');
+  const refuseLedger = fm.companyGapLedger(gaps, 'refuse');
+  assert.equal(preserveLedger.refused, false, 'preserve never refuses');
+  assert.equal(refuseLedger.refused, true, 'refuse refuses on a required gap');
+  assert.equal(refuseLedger.entries[0].blocking, true, 'the required gap is marked blocking under refuse');
+  assert.equal(preserveLedger.entries[0].blocking, false, 'no gap is blocking under preserve');
+});
+
+test('TP-06-01 company-fundamentals-lab.html single-sources projectCompanyScenario from fundamental-models.js', () => {
+  assert.match(COMPANY_PAGE, /rlexperience-adapters\/fundamental-models\.js/, 'company page loads fundamental-models.js');
+  assert.match(COMPANY_PAGE, /RLFUNDAMENTALS\.projectCompanyScenario\s*\(/, 'company page delegates the bounded scenario projection to the module');
+  // The single owner source lives in fundamental-models.js; the page must carry no inline projection copy.
+  assert.equal(/roundTo\(rev0 \* \(1 \+ g\), 6\)/.test(COMPANY_PAGE), false, 'company page has no inline bounded-revenue projection formula');
+  assert.equal(/clamp\(m0 \+ dm, -1, 1\)/.test(COMPANY_PAGE), false, 'company page has no inline bounded-margin projection formula');
+});
+
+/* ═══════════════════════ TP-06-01 company-scenario-bridge adapter runtime + owner parity ═══════════════════════ */
+
+test('TP-06-01 company-scenario-bridge adapter registers through the production runtime and produces a ready owner run at parity', async () => {
+  const api = loadProductionApi();
+  const fm = loadFundamentalModels();
+  const definition = definitionFor('company-fundamentals-lab');
+  const runtime = runtimeFor(api, definition);
+  const results = fm.registerFundamentalModelsAdapters(runtime, api, [definition]);
+  assert.equal(results['simple-adapter/company-scenario-bridge/v1'].ok, true, JSON.stringify(results['simple-adapter/company-scenario-bridge/v1'].error || {}));
+
+  const owner = companyOwnerFixture();
+  const base = defaultValues(definition);
+  const prepared = requireValue(await runtime.prepare({
+    definitionId: definition.definitionId,
+    ownerContext: { ownerState: owner },
+    parameterValues: base,
+    seed: null,
+    scenarioIds: ['baseline'],
+    computedAt: '2026-07-24T20:02:00.000Z'
+  }));
+  assert.equal(prepared.state, 'ready');
+  const summary = prepared.current.output.values.summary;
+  assert.equal(summary.acceptedState, 'reported', 'the default accepted state is reported');
+  assert.equal(summary.state.accepted, 'reported', 'the source-qualified anchor labels the reported state');
+  assert.equal(summary.scenario.state, 'ready', 'the complete reported base yields a ready bounded scenario');
+  assert.equal(prepared.current.output.provenance.evidenceIdentity, prepared.current.input.evidenceIdentity, 'evidence identity is bound');
+
+  // Owner parity: the Simple read reflects the company page's owner facts through the SINGLE-SOURCE primitives
+  // (RLFUNDAMENTALS.projectCompanyScenario / companyReportedBase / companyScenarioLineage / companyGapLedger)
+  // run directly on the frozen owner facts at the default parameters — not a re-implementation.
+  assert.deepEqual(summary.reported, fm.companyReportedBase(owner.reported), 'reported base is single-sourced from companyReportedBase');
+  assert.deepEqual(summary.scenario, fm.projectCompanyScenario(owner.reported, { growth: base['growth-assumption'], marginChange: base['margin-change'], gapPolicy: 'preserve' }), 'bounded scenario is single-sourced from projectCompanyScenario');
+  assert.deepEqual(summary.lineage, fm.companyScenarioLineage(owner.lineage, owner.asOf, base['lineage-cutoff']), 'lineage age is single-sourced from companyScenarioLineage');
+  assert.deepEqual(summary.gaps, fm.companyGapLedger(owner.gaps, 'preserve'), 'gap ledger is single-sourced from companyGapLedger');
+  assert.equal(summary.scenario.revenue, 220000, 'the parity scenario reproduces the owner revenue node (200000 * 1.10)');
+});
+
+test('TP-06-01 each enabled company-scenario-bridge parameter changes its declared output path', async () => {
+  const api = loadProductionApi();
+  const fm = loadFundamentalModels();
+  const definition = definitionFor('company-fundamentals-lab');
+  const runtime = runtimeFor(api, definition);
+  fm.registerFundamentalModelsAdapters(runtime, api, [definition]);
+  const base = defaultValues(definition);
+  await runtime.prepare({
+    definitionId: definition.definitionId,
+    ownerContext: { ownerState: companyOwnerFixture() },
+    parameterValues: base,
+    seed: null,
+    scenarioIds: ['baseline'],
+    computedAt: '2026-07-24T20:02:00.000Z'
+  });
+
+  const cases = [
+    ['accepted-state', 'scenario', 'summary.state'],
+    ['growth-assumption', 25, 'summary.scenario'],
+    ['margin-change', 5, 'summary.scenario'],
+    ['evidence-gap-policy', 'refuse', 'summary.gaps'],
+    ['lineage-cutoff', 10, 'summary.lineage']
+  ];
+  for (const [parameterId, value, path] of cases) {
+    const run = requireValue(await runtime.recompute({
+      parameterValues: { ...base, [parameterId]: value },
+      seed: null,
+      scenarioIds: ['baseline'],
+      computedAt: '2026-07-24T20:03:00.000Z'
+    }));
+    assert.deepEqual(run.changedParameters, [parameterId], `changed ${parameterId}`);
+    const effect = run.sensitivity.effects.find((entry) => entry.parameterId === parameterId);
+    assert.ok(effect, `sensitivity effect present for ${parameterId}`);
+    assert.equal(effect.outputChanged, true, `${parameterId} must change ${path}`);
+    assert.deepEqual(effect.resultPaths, [path], `${parameterId} declared path`);
+    // Restore baseline for the next isolated one-at-a-time change.
+    await runtime.recompute({ parameterValues: { ...base }, seed: null, scenarioIds: ['baseline'], computedAt: '2026-07-24T20:03:30.000Z' });
+  }
+});
+
+test('TP-06-01 company-scenario-bridge preserves source gaps as honest partial/unavailable through the live adapter (no fabricated default)', async () => {
+  const api = loadProductionApi();
+  const fm = loadFundamentalModels();
+  const definition = definitionFor('company-fundamentals-lab');
+
+  // (a) A NON-required reported gap (valuation multiple unavailable, revenue+margin present) runs through the LIVE
+  //     adapter to an honest "partial" scenario: the gapped node stays null, never a fabricated default.
+  const partialRuntime = runtimeFor(api, definition);
+  fm.registerFundamentalModelsAdapters(partialRuntime, api, [definition]);
+  const partialOwner = companyOwnerFixture();
+  partialOwner.reported.valuationMultiple = { value: null, unit: 'x', state: 'unavailable' };
+  const partialPrepared = requireValue(await partialRuntime.prepare({
+    definitionId: definition.definitionId,
+    ownerContext: { ownerState: partialOwner },
+    parameterValues: defaultValues(definition),
+    seed: null,
+    scenarioIds: ['baseline'],
+    computedAt: '2026-07-24T20:02:00.000Z'
+  }));
+  const partialScenario = partialPrepared.current.output.values.summary.scenario;
+  assert.equal(partialScenario.state, 'partial', 'a non-required reported gap yields an honest partial scenario');
+  assert.equal(partialScenario.valuation, null, 'the gapped valuation node stays null (no fabricated default)');
+  assert.ok(partialScenario.missing.includes('valuationMultiple'), 'the preserved gap is named in missing');
+  assert.equal(partialScenario.revenue, 220000, 'the available reported nodes still project (revenue node intact)');
+  assert.ok(partialPrepared.current.output.provenance.classes.includes('unavailable'), 'the output provenance carries the honest unavailable class');
+
+  // (b) A REQUIRED reported gap (revenue unavailable) makes the owner evidence "unavailable"; the runtime HONESTLY
+  //     REFUSES the run rather than fabricating a ready output — no invented default is produced.
+  const missingRuntime = runtimeFor(api, definition);
+  fm.registerFundamentalModelsAdapters(missingRuntime, api, [definition]);
+  const missingOwner = companyOwnerFixture();
+  missingOwner.reported.revenue = { value: null, unit: 'USD-millions', state: 'unavailable' };
+  const refusedRun = await missingRuntime.prepare({
+    definitionId: definition.definitionId,
+    ownerContext: { ownerState: missingOwner },
+    parameterValues: defaultValues(definition),
+    seed: null,
+    scenarioIds: ['baseline'],
+    computedAt: '2026-07-24T20:02:00.000Z'
+  });
+  assert.equal(refusedRun.ok, false, 'a required reported gap refuses the run (no fabricated ready output)');
+  assert.equal(refusedRun.error.code, 'E012-SIMPLE-INPUT', 'the refusal is the Simple-input contract refusal');
+  assert.match(refusedRun.error.reason, /evidence state does not permit a new run/, 'the refusal names the unavailable evidence truth state');
+});
+
+test('TP-06-01 company-scenario-bridge compute is deterministic for one compute identity', async () => {
+  const api = loadProductionApi();
+  const fm = loadFundamentalModels();
+  const definition = definitionFor('company-fundamentals-lab');
+  const runtime = runtimeFor(api, definition);
+  fm.registerFundamentalModelsAdapters(runtime, api, [definition]);
+  const base = defaultValues(definition);
+  const first = requireValue(await runtime.prepare({
+    definitionId: definition.definitionId,
+    ownerContext: { ownerState: companyOwnerFixture() },
+    parameterValues: base,
+    seed: null,
+    scenarioIds: ['baseline'],
+    computedAt: '2026-07-24T20:02:00.000Z'
+  }));
+  const again = requireValue(await runtime.recompute({
+    parameterValues: { ...base },
+    seed: null,
+    scenarioIds: ['baseline'],
+    computedAt: '2026-07-24T20:02:30.000Z'
+  }));
+  assert.equal(
+    api.fingerprint(first.current.output.values.summary),
+    api.fingerprint(again.current.output.values.summary),
+    'identical inputs => identical owner summary'
+  );
+});

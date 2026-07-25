@@ -821,6 +821,39 @@ function aiCapexOwnerFixture() {
   };
 }
 
+/* company-scenario-bridge owner fixture (verbatim from the unit suite): a complete frozen reported base
+   (so the baseline scenario is ready), lineage clocks 30 whole days before asOf (so lineage-cutoff flips
+   within→stale), one required + one optional evidence gap (so evidence-gap-policy flips preserve→refuse),
+   and distinct statement/model cutoffs + revisions (so accepted-state flips the source-qualified anchor). */
+function companyOwnerFixture() {
+  return {
+    contractVersion: 'company-scenario-owner-state/v1',
+    toolId: 'company-fundamentals-lab',
+    companyId: 'company-fundamentals-lab',
+    asOf: '2026-07-24T20:00:00.000Z',
+    source: 'accepted publication snapshot',
+    reported: {
+      revenue: { value: 200000, unit: 'USD-millions', state: 'reported' },
+      operatingMargin: { value: 0.4, unit: 'ratio', state: 'reported' },
+      revenueGrowth: { value: 0.1, unit: 'ratio', state: 'reported' },
+      capexIntensity: { value: 0.2, unit: 'ratio', state: 'reported' },
+      valuationMultiple: { value: 20, unit: 'x', state: 'reported' }
+    },
+    lineage: {
+      revision: 4,
+      owner: 'accepted-publication',
+      scenarioRevisionId: 'scn-rev-7',
+      createdAt: '2026-06-24T20:00:00.000Z',
+      statementCutoff: '2026-06-20T00:00:00.000Z',
+      modelCutoff: '2026-07-01T00:00:00.000Z'
+    },
+    gaps: [
+      { evidenceClass: 'segment-detail', concept: 'SegmentRevenue', state: 'unavailable', required: true },
+      { evidenceClass: 'guidance', concept: 'ForwardGuidance', state: 'unavailable', required: false }
+    ]
+  };
+}
+
 function makeScope6Descriptors(mr, fm) {
   return {
     'sector-research-lab': {
@@ -946,6 +979,25 @@ function makeScope6Descriptors(mr, fm) {
         ['risk-damper', 0.8],
         ['correlation-ceiling', 0.4],
         ['objective', 'return']
+      ]
+    },
+    'company-fundamentals-lab': {
+      ownerState: () => companyOwnerFixture(),
+      base: (definition) => defaultValues(definition),
+      ownerFact: ({ summary, owner, base }) => {
+        // Owner parity: the bounded scenario / lineage age / gap ledger are the single-sourced
+        // RLFUNDAMENTALS primitives run directly on the frozen owner facts (single source, no re-impl).
+        assert.deepEqual(summary.scenario, fm.projectCompanyScenario(owner.reported, { growth: base['growth-assumption'], marginChange: base['margin-change'], gapPolicy: 'preserve' }), 'bounded scenario is single-sourced from projectCompanyScenario');
+        assert.deepEqual(summary.lineage, fm.companyScenarioLineage(owner.lineage, owner.asOf, base['lineage-cutoff']), 'lineage age is single-sourced from companyScenarioLineage');
+        assert.deepEqual(summary.gaps, fm.companyGapLedger(owner.gaps, 'preserve'), 'gap ledger is single-sourced from companyGapLedger');
+        assert.equal(summary.scenario.revenue, 220000, 'the parity scenario reproduces the owner revenue node (200000 * 1.10)');
+      },
+      cases: () => [
+        ['accepted-state', 'scenario'],
+        ['growth-assumption', 25],
+        ['margin-change', 5],
+        ['evidence-gap-policy', 'refuse'],
+        ['lineage-cutoff', 10]
       ]
     }
   };

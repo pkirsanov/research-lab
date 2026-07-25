@@ -54,6 +54,7 @@ function approx(a, b, tol) { return Math.abs(a - b) <= tol; }
 function group(name) { console.log('\n' + name); }
 const COMPANY_ROUTE_SCRIPTS = Object.freeze([
   'rlexperience.js', 'rlcontext.js', 'rldata.js', 'rlapp.js', 'rlcompany.js',
+  'rlexperience-adapters/fundamental-models.js',
   'rlg.js', 'rlchart.js', 'rlticker.js', 'rlnav.js'
 ]);
 function hasExactCompanyRouteScripts(sources) {
@@ -481,6 +482,32 @@ try {
   assert(a > -1 && b > -1 && c > -1, 'CVaR bounded at -100%');
   assert(b < a, 'higher vol => deeper CVaR tail (sigma .5 worse than .3)');
 } catch (e) { failures++; console.log('  \u2717 FAIL (ai-capex group threw): ' + e.message); }
+
+/* ---------- Company scenario bridge (single-sourced to RLFUNDAMENTALS) ---------- */
+try {
+  group('company-fundamentals-lab.html \u2014 bounded scenario bridge');
+  // Feature 012 Scope 06: the bounded company scenario projection is single-sourced to
+  // rlexperience-adapters/fundamental-models.js (RLFUNDAMENTALS.projectCompanyScenario); the company
+  // page Power path loads the module and delegates, carrying no inline projection copy, so the bounded
+  // scenario formula is tested against the single-source module — never the page.
+  const companySrc = read('company-fundamentals-lab.html');
+  const companyReq = (await import('node:module')).createRequire(import.meta.url);
+  delete companyReq.cache[companyReq.resolve('../rlexperience-adapters/fundamental-models.js')];
+  const RLF2 = companyReq('../rlexperience-adapters/fundamental-models.js');
+  assert(/rlexperience-adapters\/fundamental-models\.js/.test(companySrc), 'company page loads the fundamental-models module');
+  assert(/RLFUNDAMENTALS\.projectCompanyScenario\s*\(/.test(companySrc), 'company page single-sources the bounded scenario to RLFUNDAMENTALS.projectCompanyScenario (no inline projection copy)');
+  assert(RLF2.supportedAdapterIds.indexOf('simple-adapter/company-scenario-bridge/v1') >= 0, 'company-scenario-bridge is a declared supported adapter');
+  // Owner parity: the bounded projection reproduces the owner accepted-scenario revenue node (base-revenue 200000 * (1 + growth 0.1) = 220000).
+  const cbase = { revenue: { value: 200000, unit: 'USD-millions', state: 'reported' }, operatingMargin: { value: 0.4, unit: 'ratio', state: 'reported' }, revenueGrowth: { value: 0.1, unit: 'ratio', state: 'reported' }, capexIntensity: { value: 0.2, unit: 'ratio', state: 'reported' }, valuationMultiple: { value: 20, unit: 'x', state: 'reported' } };
+  const cproj = RLF2.projectCompanyScenario(cbase, { growth: 10, marginChange: 0, gapPolicy: 'preserve' });
+  assert(cproj.revenue === 220000 && cproj.operatingIncome === 88000 && cproj.valuation === 1760000 && cproj.state === 'ready', 'projectCompanyScenario reproduces the owner revenue node (220000) and derives operating income + bounded valuation');
+  // Gap preservation: an unavailable required reported field stays null (honest), never a fabricated default; refuse withholds.
+  const cgap = { ...cbase, revenue: { value: null, unit: 'USD-millions', state: 'unavailable' } };
+  const cpres = RLF2.projectCompanyScenario(cgap, { growth: 10, marginChange: 0, gapPolicy: 'preserve' });
+  const cref = RLF2.projectCompanyScenario(cgap, { growth: 10, marginChange: 0, gapPolicy: 'refuse' });
+  assert(cpres.revenue === null && cpres.state === 'unavailable' && cpres.missing.indexOf('revenue') >= 0, 'projectCompanyScenario preserves an unavailable reported gap as null (no default substituted)');
+  assert(cref.state === 'refused' && cref.revenue === null, 'the refuse gap policy withholds the bounded scenario when a required reported field is gapped');
+} catch (e) { failures++; console.log('  \u2717 FAIL (company scenario bridge group threw): ' + e.message); }
 
 /* ---------- Gamma: second-order greeks ---------- */
 try {

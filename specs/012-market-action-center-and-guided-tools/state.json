@@ -3,7 +3,7 @@
   "featureDir": "specs/012-market-action-center-and-guided-tools",
   "featureName": "Market Action Center and Guided Tools",
   "createdAt": "2026-07-22T03:40:01Z",
-  "lastUpdatedAt": "2026-07-25T00:30:00Z",
+  "lastUpdatedAt": "2026-07-25T20:30:00Z",
   "status": "not_started",
   "workflowMode": "full-delivery",
   "linkedImplementationSpec": null,
@@ -54,7 +54,7 @@
     ],
     "pendingTransitionRequests": [],
     "nextRequiredOwner": "bubbles.implement",
-    "nextRequiredTarget": "Continue Scope 06: 6 of 8 adapters delivered (macro-rotation.js: sector-rotation-transition/v1, country-rotation/v1, real-asset-driver/v1, fixed-income-sleeve/v1, etf-ranking/v1; fundamental-models.js: ai-capex-portfolio/v1). Next deliver msft-margin-eps/v1 then company-scenario-bridge/v1 (both fundamental-models.js), then the persistent E2E rows TP-06-04..TP-06-11.",
+    "nextRequiredTarget": "Continue Scope 06: 7 of 8 adapters delivered (macro-rotation.js: sector-rotation-transition/v1, country-rotation/v1, real-asset-driver/v1, fixed-income-sleeve/v1, etf-ranking/v1; fundamental-models.js: ai-capex-portfolio/v1, company-scenario-bridge/v1). Next deliver msft-margin-eps/v1 (fundamental-models.js), then the persistent E2E rows TP-06-04..TP-06-11.",
     "scopeProgress": [
       {
         "scope": 1,

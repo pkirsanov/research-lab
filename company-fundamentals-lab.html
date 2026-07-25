@@ -1140,6 +1140,22 @@
             <h3>Accepted baseline outputs</h3>
             <ul id="model-baseline-list"></ul>
 
+            <div class="trace-record" data-scenario-bridge>
+                <h3>Bounded scenario bridge (source-qualified)</h3>
+                <p>The Simple bounded scenario projects the accepted reported base forward through the single owner
+                    formula in <code>rlexperience-adapters/fundamental-models.js</code>
+                    (<code>RLFUNDAMENTALS.projectCompanyScenario</code>) that the registered
+                    <code>company-scenario-bridge/v1</code> adapter also consumes. It preserves every source gap: a
+                    reported field that is unavailable stays unavailable here — never a fabricated default.</p>
+                <p><strong>Reported base:</strong> revenue <span data-bridge-reported-revenue>Loading</span>, operating
+                    margin <span data-bridge-reported-margin>Loading</span></p>
+                <p><strong>Projected revenue:</strong> <span data-bridge-revenue>Loading</span> — projected operating
+                    income <span data-bridge-operating-income>Loading</span>, bounded valuation
+                    <span data-bridge-valuation>Loading</span></p>
+                <p><strong>Scenario state:</strong> <span data-bridge-state>Loading</span> — preserved source gaps
+                    <span data-bridge-missing>Loading</span></p>
+            </div>
+
             <div class="demo-grid">
                 <div class="trace-record" data-model-draft="valuation">
                     <h3>Draft: one valuation driver edit</h3>
@@ -1389,6 +1405,7 @@
     <script src="rldata.js"></script>
     <script src="rlapp.js"></script>
     <script src="rlcompany.js"></script>
+    <script src="rlexperience-adapters/fundamental-models.js"></script>
     <script src="rlg.js"></script>
     <script src="rlchart.js"></script>
     <script src="rlticker.js"></script>
@@ -1698,6 +1715,7 @@
                 renderComparability(accepted, overlayLoads);
                 renderUnclassifiedDemo(accepted);
                 renderModelWorkspace(accepted);
+                renderScenarioBridge(accepted);
                 renderSimpleCockpit(simple);
                 renderAdaptiveBriefWorkspace(accepted, config);
                 renderPeersWorkspace(config);
@@ -2117,6 +2135,65 @@
                 setText("[data-decision-edit-value]", editDecision.newRevision.assumptions.find(function (entry) { return entry.driverId === proposal.affectedDriverId; }).value);
                 setText("[data-decision-reject-count]", String(rejectDecision.revisionsCreated));
                 setText("[data-decision-active-after]", String(acceptedScenario.revision));
+            }
+
+            // Bounded scenario bridge (source-qualified). Delegates the single owner projection formula to
+            // rlexperience-adapters/fundamental-models.js (RLFUNDAMENTALS.projectCompanyScenario) — the exact
+            // formula the registered company-scenario-bridge/v1 Simple adapter consumes, so Power and Simple
+            // share one projection (owner-parity). Fully guarded and null-safe: a gapped reported field renders
+            // an honest "Unavailable" and never a fabricated default, and no failure ever halts the render.
+            function renderScenarioBridge(accepted) {
+                var node = document.querySelector("[data-scenario-bridge]");
+                if (!node) return;
+                function put(selector, value) { var el = node.querySelector(selector); if (el) el.textContent = value; }
+                function money(value) { return value === null || value === undefined ? "Unavailable" : String(Math.round(value)); }
+                function ratio(value) { return value === null || value === undefined ? "Unavailable" : Number(value).toFixed(3); }
+                try {
+                    if (typeof RLFUNDAMENTALS === "undefined" || !RLFUNDAMENTALS || typeof RLFUNDAMENTALS.projectCompanyScenario !== "function") {
+                        node.setAttribute("data-scenario-bridge", "unavailable");
+                        put("[data-bridge-reported-revenue]", "Unavailable");
+                        put("[data-bridge-reported-margin]", "Unavailable");
+                        put("[data-bridge-revenue]", "Unavailable");
+                        put("[data-bridge-operating-income]", "Unavailable");
+                        put("[data-bridge-valuation]", "Unavailable");
+                        put("[data-bridge-state]", "unavailable");
+                        put("[data-bridge-missing]", "the bounded scenario module is unavailable");
+                        return;
+                    }
+                    var assume = Object.create(null);
+                    var modelPack = accepted && accepted.modelPack;
+                    var scenario = modelPack && modelPack.acceptedScenario;
+                    var assumptions = scenario && Array.isArray(scenario.assumptions) ? scenario.assumptions : [];
+                    assumptions.forEach(function (entry) { if (entry && entry.driverId != null) assume[entry.driverId] = entry.value; });
+                    function reportedField(driverId, unit) {
+                        var raw = assume[driverId];
+                        var value = (raw === undefined || raw === null || raw === "") ? null : Number(raw);
+                        var finite = value !== null && Number.isFinite(value);
+                        return { value: finite ? value : null, unit: unit, state: finite ? "reported" : "unavailable" };
+                    }
+                    var reportedBase = {
+                        revenue: reportedField("driver-base-revenue", "USD-millions"),
+                        operatingMargin: reportedField("driver-operating-margin", "ratio"),
+                        revenueGrowth: reportedField("driver-revenue-growth", "ratio"),
+                        capexIntensity: reportedField("driver-capex-intensity", "ratio"),
+                        valuationMultiple: reportedField("driver-fcf-multiple", "x")
+                    };
+                    var growthPct = reportedBase.revenueGrowth.value !== null ? reportedBase.revenueGrowth.value * 100 : 0;
+                    var bridge = RLFUNDAMENTALS.projectCompanyScenario(reportedBase, { growth: growthPct, marginChange: 0, gapPolicy: "preserve" });
+                    node.setAttribute("data-scenario-bridge", bridge.state);
+                    put("[data-bridge-reported-revenue]", money(reportedBase.revenue.value));
+                    put("[data-bridge-reported-margin]", ratio(reportedBase.operatingMargin.value));
+                    put("[data-bridge-revenue]", money(bridge.revenue));
+                    put("[data-bridge-operating-income]", money(bridge.operatingIncome));
+                    put("[data-bridge-valuation]", money(bridge.valuation));
+                    put("[data-bridge-state]", bridge.state);
+                    put("[data-bridge-missing]", bridge.missing && bridge.missing.length ? bridge.missing.join(", ") : "none");
+                } catch (error) {
+                    node.setAttribute("data-scenario-bridge", "unavailable");
+                    put("[data-bridge-revenue]", "Unavailable");
+                    put("[data-bridge-state]", "unavailable");
+                    put("[data-bridge-missing]", "the bounded scenario could not be computed");
+                }
             }
 
             function renderSimpleCockpit(simple) {

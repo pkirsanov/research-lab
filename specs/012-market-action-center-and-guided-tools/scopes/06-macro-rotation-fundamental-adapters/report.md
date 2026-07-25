@@ -9,14 +9,14 @@ modules. This dispatch delivered the FIRST macro-rotation adapter — `sector-ro
 (`sector-research-lab`) — at genuine owner-parity, single-sourced from the start, and wired into the
 registry loop, the source-ownership canaries, and the broad selftest.
 
-- **Delivered + verified: 6 of 8** — `sector-rotation-transition/v1` (dispatch 1),
+- **Delivered + verified: 7 of 8** — `sector-rotation-transition/v1` (dispatch 1),
   `country-rotation/v1` (dispatch 2), `real-asset-driver/v1` (dispatch 3),
   `fixed-income-sleeve/v1` (dispatch 4), and `etf-ranking/v1` (dispatch 5) in `macro-rotation.js`,
-  plus `ai-capex-portfolio/v1` (dispatch 6, this dispatch) — the first `fundamental-models.js`
-  adapter. `macro-rotation.js` `supportedAdapterIds` lists the five macro adapters and
-  `fundamental-models.js` `supportedAdapterIds` lists exactly `ai-capex-portfolio/v1`, so the
-  registry loop drives the delivered set of six and the remaining two (`msft-margin-eps`,
-  `company-scenario-bridge` in `fundamental-models.js`) are honestly absent.
+  plus `ai-capex-portfolio/v1` (dispatch 6) and `company-scenario-bridge/v1` (dispatch 7, this
+  dispatch) in `fundamental-models.js`. `macro-rotation.js` `supportedAdapterIds` lists the five macro
+  adapters and `fundamental-models.js` `supportedAdapterIds` lists exactly `ai-capex-portfolio/v1` +
+  `company-scenario-bridge/v1`, so the registry loop drives the delivered set of seven and the
+  remaining one (`msft-margin-eps` in `fundamental-models.js`) is honestly absent.
 - New module `rlexperience-adapters/macro-rotation.js` is the SINGLE OWNER SOURCE for the sector RRG
   normalization (`rollZ100`), the RRG quadrant (`rrgQuadrant`), the state label (`stateLabel`), the
   into/out classifier (`rotationCandidacy`), and the RRG kernel (`rrgReadout`). `sector-research-lab.html`
@@ -45,7 +45,7 @@ registry loop, the source-ownership canaries, and the broad selftest.
 
 ## Completion Statement
 
-Scope 06 is NOT complete. 6 of 8 adapters are delivered and verified. Scope `status` remains
+Scope 06 is NOT complete. 7 of 8 adapters are delivered and verified. Scope `status` remains
 `in_progress`; feature `status` remains `not_started`; `certifiedAt` remains null.
 
 ## Code Diff Evidence
@@ -432,6 +432,120 @@ tests/simple-model-source-ownership.functional.mjs       # tests 17  # pass 17  
 **Running total: 6 of 8.** Scope stays `in_progress`. Next required: `msft-margin-eps/v1` then
 `company-scenario-bridge/v1` (both `fundamental-models.js`), then the persistent E2E rows
 TP-06-04..TP-06-11.
+
+## Adapter 7 of 8 — company-scenario-bridge/v1 (company-fundamentals-lab) — this dispatch
+
+Phase: implement. Claim Source: executed (current session). RED-first (missing coverage) → GREEN →
+unit/integration/functional/selftest 0-failed → parse-check → committed.
+
+**Scope of this dispatch.** The `company-scenario-bridge/v1` ADAPTER, its `company-fundamentals-lab.html`
+page single-source (`RLFUNDAMENTALS.projectCompanyScenario`), and the broad-selftest bounded-scenario
+group were delivered by the PRIOR dispatch, which was truncated before adding the adapter's DEDICATED
+TEST COVERAGE. This dispatch completes 7 of 8 by adding (a) the dedicated unit block (7 tests) and (b)
+the registry-derived integration DESCRIPTOR the prior dispatch also omitted. The adapter/page/selftest
+are unchanged in behavior (staged verbatim as the delivered 7/8 unit) — no adapter re-implementation and
+no test weakening.
+
+**Discovered-and-fixed (broken tree from the prior truncated dispatch).** The prior dispatch added
+`simple-adapter/company-scenario-bridge/v1` to `fundamental-models.js` `supportedAdapterIds` but did
+NOT add the company owner descriptor to the registry-derived integration loop, so
+`tests/simple-model-adapters.integration.mjs` TP-06-02 was RED
+(`descriptor present for delivered Scope-06 member company-fundamentals-lab`, 4/5). Adding the
+`company-fundamentals-lab` descriptor + owner fixture (owner-parity + all 5 declared parameter effects,
+identical in shape to the other six delivered members) restores the loop to green — the delivered
+adapter is now covered exactly like its siblings. No test was weakened to pass.
+
+**Owner seam + single-source (delivered prior; verified here).** `rlexperience-adapters/fundamental-models.js`
+is the SINGLE OWNER SOURCE for the bounded company scenario projection (`projectCompanyScenario`), the
+gap-preserving reported-base marshaller (`companyReportedBase`), the frozen-clock lineage
+(`companyScenarioLineage`), and the evidence-gap ledger (`companyGapLedger`).
+`company-fundamentals-lab.html` DELEGATES the projection to `RLFUNDAMENTALS.projectCompanyScenario` and
+carries no inline projection copy. The adapter is pure compute over a FROZEN owner snapshot (zero
+fetch / providerFetch / storage / LLM / publisher / store; imports no other domain adapter). A gapped
+reported field stays honestly `null` / `unavailable` / `partial`, and a required gap either withholds
+(`refuse`) or refuses the run at the evidence boundary — never a fabricated default.
+
+### TP-06-01 company — Unit (`node --test --test-name-pattern="company" tests/simple-model-adapters-macro-fundamental.unit.mjs`)
+
+The dedicated block adds 7 tests (file 38 → 45). RED baseline: the file carried ZERO
+company-scenario-bridge coverage (38/38, all for the prior 7 adapters). GREEN after this dispatch. Exit Code: 0.
+
+```text
+ok 1 - TP-06-01 fundamental-models module exposes the company-scenario-bridge adapter with single-sourced projection + lineage + gap primitives
+ok 2 - TP-06-01 projectCompanyScenario/companyScenarioLineage/companyGapLedger single-source pin the bounded scenario + gap-preservation formula
+ok 3 - TP-06-01 company-fundamentals-lab.html single-sources projectCompanyScenario from fundamental-models.js
+ok 4 - TP-06-01 company-scenario-bridge adapter registers through the production runtime and produces a ready owner run at parity
+ok 5 - TP-06-01 each enabled company-scenario-bridge parameter changes its declared output path
+ok 6 - TP-06-01 company-scenario-bridge preserves source gaps as honest partial/unavailable through the live adapter (no fabricated default)
+ok 7 - TP-06-01 company-scenario-bridge compute is deterministic for one compute identity
+# tests 7
+# pass 7
+# fail 0
+```
+
+The 7 assertions: (1) the module lists `simple-adapter/company-scenario-bridge/v1` in
+`supportedAdapterIds` and exports the four single-source primitives; (2) `projectCompanyScenario`
+reproduces the bounded revenue/operating-income/valuation nodes, `companyScenarioLineage` ages over the
+frozen clocks (within→stale, missing-clock→unavailable), and `companyGapLedger` refuses a required gap
+only under `refuse`; (3) the owner page delegates the projection and carries no inline copy; (4) the
+adapter REGISTERS through the production runtime and its Simple read is owner-parity —
+`summary.{scenario,lineage,gaps,reported}` deep-equal the single-source primitives run on the frozen
+owner facts; (5) each of the 5 declared parameters (`accepted-state`, `growth-assumption`,
+`margin-change`, `evidence-gap-policy`, `lineage-cutoff`) moves exactly its declared output path
+(`summary.state` / `summary.scenario` / `summary.gaps` / `summary.lineage`), non-tautologically; (6)
+GAP PRESERVATION through the live adapter — a non-required reported gap yields an honest `partial`
+scenario with the gapped node `null` (no fabricated default, `unavailable` provenance class), and a
+required reported gap makes the owner evidence `unavailable` so the runtime HONESTLY REFUSES the run
+(`E012-SIMPLE-INPUT` / "evidence state does not permit a new run") rather than fabricating output; (7)
+determinism for one compute identity.
+
+### TP-06-02 company — Adapter integration (`node --test tests/simple-model-adapters.integration.mjs`)
+
+The registry-derived loop now iterates the delivered set of SEVEN (sector, country, real-asset, bond,
+etf, ai-capex, company) and drives company-scenario-bridge at owner-parity (`summary.scenario` ==
+`fm.projectCompanyScenario(owner.reported, …)`, lineage/gaps single-sourced) and proves every one of
+its 5 declared parameters moves its `affectsOutputPaths` path. Exit Code: 0.
+
+```text
+ok 4 - TP-06-02 macro rotation and fundamental adapters: registry-derived loop runs the delivered Scope-06 set at owner-parity with real parameter effects
+ok 5 - TP-06-02 macro rotation and fundamental adapters: Scope 05 adapter set and a real Scope 05 owner-run fingerprint are unchanged when Scope 06 shares the runtime
+# tests 5
+# pass 5
+# fail 0
+```
+
+### TP-06-01/02/03 company — delivered-set unit / integration / functional (green)
+
+```text
+tests/simple-model-adapters-macro-fundamental.unit.mjs   # tests 45  # pass 45  # fail 0
+tests/simple-model-adapters.integration.mjs              # tests 5   # pass 5   # fail 0
+tests/simple-model-source-ownership.functional.mjs       # tests 17  # pass 17  # fail 0
+```
+
+### TP-06-12 company — Broad regression selftest (`node scripts/selftest.mjs`)
+
+Baseline before this dispatch was 883 passed / 0 failed (dispatch-6 ai-capex, after the CVaR
+reconciliation). The company adapter's broad group was delivered by the prior dispatch; the full tree is
+889 passed / 0 failed. `node --check` clean on both edited `.mjs` test files. Exit Code: 0.
+
+```text
+================================================
+Research-Lab self-test: 889 passed, 0 failed
+================================================
+SELFTEST_EXIT=0
+```
+
+### Boundary + concurrent-session isolation (company)
+
+`rldata.js` and `rlexperience.js` are byte-unchanged (0 diff). Only the two `.mjs` test files were
+edited this dispatch (unit block + integration descriptor); the delivered `fundamental-models.js`,
+`company-fundamentals-lab.html`, and `scripts/selftest.mjs` are the prior dispatch's uncommitted 7/8
+delivery, staged together. The concurrent-session files (`msft-july-print-model.html`, `tools.json`,
+`notes/msft-july-print-model.md`, BUG-001/BUG-002, `tool-experience-shell.functional.mjs`) are NOT
+staged, reverted, or touched.
+
+**Running total: 7 of 8.** Scope stays `in_progress`. Next required: `msft-margin-eps/v1`
+(`fundamental-models.js`), then the persistent E2E rows TP-06-04..TP-06-11.
 
 ## Spot-Check Recommendations
 

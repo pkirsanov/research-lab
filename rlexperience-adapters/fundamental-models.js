@@ -560,6 +560,394 @@
     };
   }
 
+  /* ═══════════ company-scenario-bridge Simple model (owner seam = company-fundamentals-lab.html) ═══════════
+     The source-qualified company scenario lineage: a bounded scenario projected from the FROZEN reported
+     base (revenue, operating margin, revenue growth, capital intensity, valuation multiple) under an
+     explicit growth/margin overlay, an accepted-state anchor (reported evidence vs the linked scenario
+     revision), an evidence-gap policy, and a lineage cutoff. The bounded projection PRESERVES source
+     gaps: a reported field that is unavailable stays null (honest unavailable/partial), never a
+     fabricated default; under the `refuse` gap policy an unresolved required reported gap withholds the
+     whole scenario. `projectCompanyScenario` is the SINGLE SOURCE that the company page Power path and
+     the registered Simple adapter both consume. Power retains the full owner model, identity, filings,
+     statement coverage, source clocks, peers, gaps, and history; Simple asks only the bounded question. */
+
+  /* companyReportedField: normalize a frozen reported fact (value|null + availability) — gap-preserving.
+     A non-finite / absent value stays null with state "unavailable"; a gap is never a fabricated 0. */
+  function companyReportedField(field) {
+    if (!field || typeof field !== "object") return { value: null, unit: null, state: "unavailable" };
+    var v = isFiniteNumber(field.value) ? field.value : null;
+    return { value: v, unit: field.unit == null ? null : String(field.unit), state: v === null ? "unavailable" : String(field.state || "reported") };
+  }
+
+  /* companyReportedBase: marshal the frozen reported base, preserving each field's gap. Idempotent —
+     the owning page marshals the same shape from its accepted-publication lineage and hands the
+     identical base to projectCompanyScenario, so Power and Simple share exactly one projection input. */
+  function companyReportedBase(reported) {
+    reported = reported || {};
+    return {
+      revenue: companyReportedField(reported.revenue),
+      operatingMargin: companyReportedField(reported.operatingMargin),
+      revenueGrowth: companyReportedField(reported.revenueGrowth),
+      capexIntensity: companyReportedField(reported.capexIntensity),
+      valuationMultiple: companyReportedField(reported.valuationMultiple)
+    };
+  }
+
+  /* projectCompanyScenario: the SINGLE-SOURCE bounded company scenario formula. Applies an explicit
+     growth (percent) and margin change (percentage points) to the frozen reported base and derives
+     operating income, capital expenditure, and a bounded valuation. Every derived field that depends on
+     a gapped reported field stays null (honest unavailable/partial) — never a fabricated default. Under
+     the `refuse` gap policy an unresolved required reported gap (revenue or operating margin) withholds
+     the whole scenario (state "refused", all numbers null). Pure compute; no fetch, mutation, or default. */
+  function projectCompanyScenario(base, params) {
+    var b = companyReportedBase(base);
+    var growth = isFiniteNumber(params && params.growth) ? params.growth : 0;
+    var marginChange = isFiniteNumber(params && params.marginChange) ? params.marginChange : 0;
+    var gapPolicy = (params && params.gapPolicy === "refuse") ? "refuse" : "preserve";
+
+    var rev0 = b.revenue.value, m0 = b.operatingMargin.value, capI = b.capexIntensity.value, mult = b.valuationMultiple.value;
+    var missing = [];
+    if (rev0 === null) missing.push("revenue");
+    if (m0 === null) missing.push("operatingMargin");
+    if (capI === null) missing.push("capexIntensity");
+    if (mult === null) missing.push("valuationMultiple");
+    var requiredMissing = (rev0 === null) || (m0 === null);
+
+    if (gapPolicy === "refuse" && requiredMissing) {
+      return {
+        revenue: null, operatingMargin: null, operatingIncome: null, capex: null, valuation: null,
+        state: "refused", missing: missing,
+        reason: "The evidence-gap policy refuses an incomplete scenario: a required reported field (" + missing.join(", ") + ") is unavailable."
+      };
+    }
+
+    var g = growth / 100, dm = marginChange / 100;
+    var revenue = rev0 === null ? null : roundTo(rev0 * (1 + g), 6);
+    var margin = m0 === null ? null : roundTo(clamp(m0 + dm, -1, 1), 6);
+    var operatingIncome = (revenue === null || margin === null) ? null : roundTo(revenue * margin, 6);
+    var capex = (revenue === null || capI === null) ? null : roundTo(revenue * capI, 6);
+    var valuation = (operatingIncome === null || mult === null) ? null : roundTo(operatingIncome * mult, 6);
+    var state = missing.length === 0 ? "ready" : (requiredMissing ? "unavailable" : "partial");
+    return {
+      revenue: revenue, operatingMargin: margin, operatingIncome: operatingIncome, capex: capex, valuation: valuation,
+      state: state, missing: missing,
+      reason: state === "ready"
+        ? "All reported fields are available; the bounded scenario is complete."
+        : (state === "unavailable"
+          ? "A required reported field is unavailable, so the bounded scenario is unavailable — no default is substituted."
+          : "Some reported fields are unavailable; the bounded scenario is partial and preserves the gaps — no default is substituted.")
+    };
+  }
+
+  /* companyScenarioLineage: derive the accepted-scenario lineage age (evidence-cutoff asOf minus the
+     scenario createdAt, in whole days) and whether it is within the caller's lineage cutoff. Deterministic
+     over the FROZEN owner clocks — never Date.now(). Missing clocks stay unavailable, never a default age. */
+  function companyScenarioLineage(lineage, asOf, cutoffDays) {
+    lineage = lineage || {};
+    var createdMs = Date.parse(lineage.createdAt), asOfMs = Date.parse(asOf);
+    var ageDays = (isFiniteNumber(createdMs) && isFiniteNumber(asOfMs)) ? Math.max(0, Math.floor((asOfMs - createdMs) / 864e5)) : null;
+    var cd = isFiniteNumber(cutoffDays) ? cutoffDays : null;
+    var withinCutoff = (ageDays === null || cd === null) ? null : (ageDays <= cd);
+    return {
+      revision: (lineage.revision === undefined || lineage.revision === null) ? null : lineage.revision,
+      owner: lineage.owner == null ? null : String(lineage.owner),
+      scenarioRevisionId: lineage.scenarioRevisionId == null ? null : String(lineage.scenarioRevisionId),
+      createdAt: lineage.createdAt == null ? null : String(lineage.createdAt),
+      ageDays: ageDays,
+      cutoffDays: cd,
+      withinCutoff: withinCutoff,
+      state: withinCutoff === null ? "unavailable" : (withinCutoff ? "within" : "stale")
+    };
+  }
+
+  /* companyGapLedger: preserve the frozen evidence gaps under the caller's gap policy. `preserve` keeps
+     every gap as an honest unavailable entry; `refuse` additionally marks a required unresolved gap as
+     blocking and refuses acceptance. Never fabricates evidence for a gap. */
+  function companyGapLedger(gaps, gapPolicy) {
+    var policy = gapPolicy === "refuse" ? "refuse" : "preserve";
+    var entries = (Array.isArray(gaps) ? gaps : []).map(function (gap) {
+      var required = !!(gap && gap.required);
+      return {
+        evidenceClass: gap && gap.evidenceClass != null ? String(gap.evidenceClass) : "unclassified",
+        concept: gap && gap.concept != null ? String(gap.concept) : null,
+        state: gap && gap.state != null ? String(gap.state) : "unavailable",
+        required: required,
+        blocking: policy === "refuse" && required
+      };
+    });
+    var refused = policy === "refuse" && entries.some(function (entry) { return entry.blocking; });
+    return {
+      policy: policy,
+      refused: refused,
+      count: entries.length,
+      requiredGapCount: entries.filter(function (entry) { return entry.required; }).length,
+      entries: entries
+    };
+  }
+
+  /* companyAcceptedAnchor: the accepted-state param selects the source-qualified lineage the scenario is
+     LABELED with — reported evidence (observed-fact, statement cutoff) or the linked scenario revision
+     (model-estimate, model cutoff). It changes only the accepted-state label + provenance anchor, never
+     the projected numbers (which stay grounded in the reported base), so accepted-state moves summary.state
+     alone. */
+  function companyAcceptedAnchor(lineage, acceptedState) {
+    lineage = lineage || {};
+    if (acceptedState === "scenario") {
+      return {
+        accepted: "scenario",
+        anchorClass: "model-estimate",
+        anchorCutoff: lineage.modelCutoff == null ? null : String(lineage.modelCutoff),
+        anchorRevision: lineage.scenarioRevisionId == null ? null : String(lineage.scenarioRevisionId),
+        label: "Linked scenario revision accepted as the source-qualified state."
+      };
+    }
+    return {
+      accepted: "reported",
+      anchorClass: "observed-fact",
+      anchorCutoff: lineage.statementCutoff == null ? null : String(lineage.statementCutoff),
+      anchorRevision: (lineage.revision === undefined || lineage.revision === null) ? null : lineage.revision,
+      label: "Reported evidence accepted as the source-qualified state."
+    };
+  }
+
+  /* Compute the full company-scenario-bridge summary from FROZEN owner state + current parameters. Every
+     value derives from the frozen owner facts through the single-source projection/lineage/gap primitives;
+     nothing is fetched, mutated, or defaulted. Each parameter moves exactly its declared summary path:
+     accepted-state → summary.state, growth/margin → summary.scenario, gap-policy → summary.gaps,
+     lineage-cutoff → summary.lineage. */
+  function computeCompanyScenarioSummary(ownerState, params) {
+    var acceptedState = params["accepted-state"] === "scenario" ? "scenario" : "reported";
+    var gapPolicy = params["evidence-gap-policy"] === "refuse" ? "refuse" : "preserve";
+    var base = companyReportedBase(ownerState.reported);
+    var scenario = projectCompanyScenario(base, { growth: params["growth-assumption"], marginChange: params["margin-change"], gapPolicy: gapPolicy });
+    var lineage = companyScenarioLineage(ownerState.lineage, ownerState.asOf, params["lineage-cutoff"]);
+    var gaps = companyGapLedger(ownerState.gaps, gapPolicy);
+    var state = companyAcceptedAnchor(ownerState.lineage, acceptedState);
+    return {
+      companyId: String(ownerState.companyId || ownerState.toolId || "company-fundamentals-lab"),
+      asOf: String(ownerState.asOf || "unavailable"),
+      acceptedState: acceptedState,
+      state: state,
+      reported: base,
+      scenario: scenario,
+      gaps: gaps,
+      lineage: lineage
+    };
+  }
+
+  /* ═══════════ company-scenario-bridge Simple adapter contract wiring ═══════════ */
+
+  function companyReportedCount(ownerState) {
+    var base = companyReportedBase(ownerState && ownerState.reported);
+    var n = 0;
+    ["revenue", "operatingMargin", "revenueGrowth", "capexIntensity", "valuationMultiple"].forEach(function (key) {
+      if (base[key].value !== null) n += 1;
+    });
+    return n;
+  }
+
+  function companyEvidenceState(ownerState) {
+    var base = companyReportedBase(ownerState && ownerState.reported);
+    return (base.revenue.value !== null && base.operatingMargin.value !== null) ? "ready" : "unavailable";
+  }
+
+  function buildCompanyEvidence(api, ownerState) {
+    var state = companyEvidenceState(ownerState);
+    var cutoff = String(ownerState.asOf || "unavailable");
+    var evidence = {
+      contractVersion: "simple-evidence-snapshot/v1",
+      toolId: "company-fundamentals-lab",
+      state: state,
+      evidenceCutoff: cutoff,
+      evidenceRefs: [{
+        requirementId: "owner-evidence",
+        evidenceRef: "owner:company-fundamentals-lab:scenario:" + cutoff,
+        semanticFingerprint: ownerStateFingerprint(api, ownerState),
+        sourceClass: "observed-fact",
+        observedAsOf: cutoff,
+        retrievedOrPublishedAt: cutoff,
+        freshness: "cache-current-for-render",
+        dataTier: String(ownerState.source || "accepted publication snapshot"),
+        valueState: state === "ready" ? "ready" : "unavailable"
+      }],
+      parameterValues: {},
+      assumptions: [
+        "The bounded scenario uses only the frozen reported base facts currently captured, plus the explicit growth and margin overlay."
+      ],
+      limitations: [
+        "The bounded scenario preserves every source gap and does not establish a valuation, a recommendation, or a complete company model."
+      ],
+      invalidationConditions: [
+        "The accepted publication changes, a reported base fact gains or loses availability, or a later scenario revision replaces the current lineage."
+      ],
+      evidenceIdentity: null
+    };
+    evidence.evidenceIdentity = evidenceIdentityOf(api, evidence);
+    return evidence;
+  }
+
+  function companyProvenanceClasses(summary) {
+    var classes = ["observed-fact", "user-assumption"];
+    if (summary.acceptedState === "scenario") classes.push("model-estimate");
+    if (summary.gaps.count > 0 || summary.scenario.state !== "ready") classes.push("unavailable");
+    var seen = Object.create(null), ordered = [];
+    classes.forEach(function (cls) { if (!seen[cls]) { seen[cls] = true; ordered.push(cls); } });
+    return ordered;
+  }
+
+  function companyOutput(input, summary) {
+    var reportedCount = 0;
+    ["revenue", "operatingMargin", "revenueGrowth", "capexIntensity", "valuationMultiple"].forEach(function (key) {
+      if (summary.reported[key].value !== null) reportedCount += 1;
+    });
+    var calibrationReason = reportedCount + " of 5 reported base facts are available; " + summary.gaps.count +
+      " source evidence gap(s) are preserved under the " + summary.gaps.policy + " policy.";
+    var uncertaintyState = summary.scenario.state === "ready" ? "bounded" : "wide";
+    var scenarioValues = { summary: summary };
+    return {
+      contractVersion: "simple-model-output/v1",
+      state: "ready",
+      values: scenarioValues,
+      scenarios: input.scenarios.map(function (scenario) {
+        return { scenarioId: scenario.scenarioId, state: "ready", values: scenarioValues };
+      }),
+      calibration: { state: "owner-evidence-relative", reason: calibrationReason },
+      provenance: { classes: companyProvenanceClasses(summary), evidenceIdentity: input.evidenceIdentity },
+      uncertainty: {
+        state: uncertaintyState,
+        rangeOrBand: "Scenario " + summary.scenario.state + " / gaps " + summary.gaps.count + (summary.gaps.refused ? " (refused)" : ""),
+        reason: "The bounded scenario, the accepted-state anchor, the preserved gap ledger, and the lineage age all derive from the exact frozen owner facts currently captured."
+      },
+      assumptions: [
+        "The growth and margin change are explicit user assumptions applied over the frozen reported base."
+      ],
+      limitations: [
+        "A reported field that is unavailable stays unavailable in the scenario; no default is substituted."
+      ],
+      invalidationConditions: [
+        "The accepted publication changes or a later scenario revision replaces the current lineage."
+      ],
+      flatRegionProofs: []
+    };
+  }
+
+  /* affectsOutputPaths for the company-scenario-bridge parameters. Mirrors simple-models.json exactly. */
+  var COMPANY_OUTPUT_PATHS = {
+    "accepted-state": ["summary.state"],
+    "growth-assumption": ["summary.scenario"],
+    "margin-change": ["summary.scenario"],
+    "evidence-gap-policy": ["summary.gaps"],
+    "lineage-cutoff": ["summary.lineage"]
+  };
+
+  function companySummaryPath(summary, path) {
+    if (path === "summary.state") return summary.state;
+    if (path === "summary.scenario") return summary.scenario;
+    if (path === "summary.gaps") return summary.gaps;
+    if (path === "summary.lineage") return summary.lineage;
+    return null;
+  }
+
+  function createCompanyScenarioBridgeAdapter(api, definition, ownerByIdentity) {
+    return {
+      contractVersion: "simple-model-adapter/v1",
+      adapterId: definition.adapterId,
+      supportedDefinitionIds: [definition.definitionId],
+      validateDefinition: function (candidate) {
+        return { ok: true, value: candidate };
+      },
+      captureEvidence: function (ownerContext) {
+        if (!ownerContext || typeof ownerContext !== "object") {
+          return { ok: false, error: { reason: "owner context required" } };
+        }
+        var ownerState = ownerContext.ownerState;
+        if (!ownerState || typeof ownerState !== "object" || !ownerState.reported || typeof ownerState.reported !== "object") {
+          return { ok: false, error: { reason: "company scenario owner state (reported base) required" } };
+        }
+        var frozen = deepFreeze(JSON.parse(JSON.stringify(ownerState)));
+        var evidence = buildCompanyEvidence(api, frozen);
+        ownerByIdentity.set(evidence.evidenceIdentity, frozen);
+        return { ok: true, value: evidence };
+      },
+      normalizeInputs: function (candidate, evidence, parameterValues, seed, scenarioIds) {
+        return api.normalizeSimpleInput(candidate, evidence, parameterValues, seed, scenarioIds);
+      },
+      compute: function (input) {
+        var ownerState = ownerByIdentity.get(input.evidenceIdentity);
+        if (!ownerState) {
+          return { ok: false, error: { reason: "frozen owner state is unavailable for this evidence identity" } };
+        }
+        var summary = computeCompanyScenarioSummary(ownerState, paramMap(input));
+        return { ok: true, value: companyOutput(input, summary) };
+      },
+      compareSensitivity: function (baselineInput, currentInput, sharedRandomness) {
+        var ownerState = ownerByIdentity.get(currentInput.evidenceIdentity);
+        if (!ownerState) {
+          return { ok: false, error: { reason: "frozen owner state is unavailable for sensitivity" } };
+        }
+        var baselineValues = paramMap(baselineInput);
+        var currentValues = paramMap(currentInput);
+        var baselineSummary = computeCompanyScenarioSummary(ownerState, baselineValues);
+        var currentSummary = computeCompanyScenarioSummary(ownerState, currentValues);
+        var effects = [];
+        Object.keys(currentValues).forEach(function (parameterId) {
+          if (parameterId === "seed") return;
+          if (baselineValues[parameterId] === currentValues[parameterId]) return;
+          var paths = COMPANY_OUTPUT_PATHS[parameterId] || [];
+          var changed = paths.some(function (path) {
+            return fingerprintOf(api, companySummaryPath(baselineSummary, path)) !== fingerprintOf(api, companySummaryPath(currentSummary, path));
+          });
+          effects.push({
+            parameterId: parameterId,
+            oldValue: baselineValues[parameterId],
+            newValue: currentValues[parameterId],
+            direction: (typeof currentValues[parameterId] === "number" && typeof baselineValues[parameterId] === "number")
+              ? (currentValues[parameterId] > baselineValues[parameterId] ? "higher" : "lower")
+              : "changed",
+            magnitude: (typeof currentValues[parameterId] === "number" && typeof baselineValues[parameterId] === "number")
+              ? (Math.abs(currentValues[parameterId] - baselineValues[parameterId]) || 1)
+              : 1,
+            nonlinear: false,
+            resultPaths: paths,
+            outputChanged: changed,
+            flatRegionProof: changed ? null : {
+              parameterId: parameterId,
+              resultPaths: paths,
+              reason: "The frozen owner snapshot yields an identical value on these paths for this parameter change."
+            }
+          });
+        });
+        return {
+          ok: true,
+          value: {
+            contractVersion: "simple-sensitivity/v1",
+            sharedRandomness: sharedRandomness,
+            seedChanged: baselineInput.seed !== currentInput.seed,
+            effects: effects
+          }
+        };
+      },
+      projectOwnerEvidence: function (output) {
+        var summary = output.values.summary;
+        var revText = summary.scenario.revenue == null ? "unavailable" : String(summary.scenario.revenue);
+        return {
+          ok: true,
+          value: {
+            contractVersion: "owner-evidence-projection/v1",
+            state: output.state,
+            valueText: summary.scenario.state === "refused" ? "Scenario refused" : ("Projected revenue " + revText),
+            numericValue: summary.scenario.revenue,
+            unit: summary.reported.revenue.unit || "reported-unit",
+            summary: "Accepted " + summary.state.accepted + " state; bounded scenario " + summary.scenario.state +
+              " with projected revenue " + revText + "; " + summary.gaps.count + " source gap(s) preserved" +
+              (summary.gaps.refused ? " (refused)" : "") + "; lineage " + summary.lineage.state + ".",
+            sourceRefs: ["owner-evidence"]
+          }
+        };
+      }
+    };
+  }
+
   /* Factory: returns the fundamental Simple adapters implemented at genuine owner-parity, keyed by
      their exact declared adapter ID. Tools whose owner seam is not yet extracted are absent so the
      shared runtime renders the explicit unavailable state for them. */
@@ -574,6 +962,10 @@
     if (byToolId["ai-capex-strategy-lab"]) {
       var aiCapexDefinition = byToolId["ai-capex-strategy-lab"];
       adapters[aiCapexDefinition.adapterId] = createAiCapexPortfolioAdapter(api, aiCapexDefinition, ownerByIdentity);
+    }
+    if (byToolId["company-fundamentals-lab"]) {
+      var companyDefinition = byToolId["company-fundamentals-lab"];
+      adapters[companyDefinition.adapterId] = createCompanyScenarioBridgeAdapter(api, companyDefinition, ownerByIdentity);
     }
     return adapters;
   }
@@ -592,7 +984,7 @@
   return {
     contractVersion: "fundamental-models-adapters/v1",
     module: "rlexperience-adapters/fundamental-models.js",
-    supportedAdapterIds: ["simple-adapter/ai-capex-portfolio/v1"],
+    supportedAdapterIds: ["simple-adapter/ai-capex-portfolio/v1", "simple-adapter/company-scenario-bridge/v1"],
     erf: erf,
     normCdf: normCdf,
     invNorm: invNorm,
@@ -605,6 +997,11 @@
     seededBandSample: seededBandSample,
     computeAiCapexPortfolio: computeAiCapexPortfolio,
     computeAiCapexSummary: computeAiCapexSummary,
+    companyReportedBase: companyReportedBase,
+    projectCompanyScenario: projectCompanyScenario,
+    companyScenarioLineage: companyScenarioLineage,
+    companyGapLedger: companyGapLedger,
+    computeCompanyScenarioSummary: computeCompanyScenarioSummary,
     createFundamentalModelsAdapters: createFundamentalModelsAdapters,
     registerFundamentalModelsAdapters: registerFundamentalModelsAdapters
   };

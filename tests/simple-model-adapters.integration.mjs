@@ -683,6 +683,38 @@ function sectorOwnerFixture() {
   };
 }
 
+/* country-rotation owner fixture (verbatim from the unit suite): distinct rel21/rel63/rel126 so each
+   horizon weight moves the momentum blend, distinct non-zero fxScore so the FX weight moves the
+   queue, distinct vol so the volatility penalty moves the queue, distinct daily row shapes so the
+   single-sourced pairwise correlation differs (diversification weight moves the queue), and
+   local-close ages straddling the max-age band so the local-close control flips a country's
+   freshness. */
+function countryRows(seed, drift, wobble) {
+  const rows = [];
+  const base = Date.UTC(2026, 3, 1);
+  let close = 100;
+  for (let i = 0; i < 90; i += 1) {
+    close = close * (1 + drift + wobble * Math.sin((i + seed) / 5));
+    rows.push({ t: base + i * 864e5, c: Math.round(close * 1e4) / 1e4 });
+  }
+  return rows;
+}
+
+function countryOwnerFixture() {
+  return {
+    contractVersion: 'country-rotation-owner-state/v1',
+    toolId: 'global-rotation-lab',
+    asOf: '2026-07-24T20:00:00.000Z',
+    source: 'test-owner cache snapshot',
+    benchmark: 'ACWI',
+    countries: [
+      { id: 'EWY', label: 'South Korea', rel21: 6, rel63: 3, rel126: 1, fxScore: 0.5, vol: 0.25, drawdown: 0.12, trendScore: 0.4, localCloseAgeHours: 2, rows: countryRows(0, 0.004, 0.010) },
+      { id: 'EWG', label: 'Germany', rel21: -2, rel63: 4, rel126: 8, fxScore: -0.3, vol: 0.35, drawdown: 0.22, trendScore: 0.1, localCloseAgeHours: 12, rows: countryRows(7, -0.002, 0.014) },
+      { id: 'EWZ', label: 'Brazil', rel21: 1, rel63: -1, rel126: 2, fxScore: 0.1, vol: 0.15, drawdown: 0.30, trendScore: -0.2, localCloseAgeHours: 30, rows: countryRows(3, 0.001, 0.020) }
+    ]
+  };
+}
+
 function makeScope6Descriptors(mr) {
   return {
     'sector-research-lab': {
@@ -704,6 +736,27 @@ function makeScope6Descriptors(mr) {
         ['risk-weight', 0.6],
         ['benchmark', 'RSP'],
         ['etf-fit-weight', 0.6]
+      ]
+    },
+    'global-rotation-lab': {
+      ownerState: () => countryOwnerFixture(),
+      base: (definition) => defaultValues(definition),
+      ownerFact: ({ summary, owner, base }) => {
+        const weights = { short: base['short-horizon-weight'], medium: base['medium-horizon-weight'], long: base['long-horizon-weight'] };
+        owner.countries.forEach((country) => {
+          const entry = summary.queue.find((q) => q.id === country.id);
+          const momentum = mr.countryHorizonMomentum(country.rel21, country.rel63, country.rel126, weights);
+          assert.equal(entry.momentum, Math.round(momentum * 1e6) / 1e6, `${country.id} momentum is single-sourced from countryHorizonMomentum`);
+        });
+      },
+      cases: () => [
+        ['short-horizon-weight', 0.5],
+        ['medium-horizon-weight', 0.6],
+        ['long-horizon-weight', 0.5],
+        ['fx-weight', 0.5],
+        ['local-close-max-age', 6],
+        ['volatility-penalty', 0.5],
+        ['diversification-weight', 0.5]
       ]
     }
   };

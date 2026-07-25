@@ -19,11 +19,11 @@
   "certifiedAt": null,
   "requiresRevalidation": false,
   "execution": {
-    "activeAgent": "bubbles.test",
+    "activeAgent": "bubbles.implement",
     "currentPhase": "implement",
     "currentPhaseStatus": "in_progress",
     "currentScope": "06-macro-rotation-fundamental-adapters",
-    "substate": "independently_verified",
+    "substate": "implemented",
     "runStartedAt": "2026-07-24T03:30:00Z",
     "completedAt": null,
     "completedPhaseClaims": [
@@ -54,7 +54,7 @@
     ],
     "pendingTransitionRequests": [],
     "nextRequiredOwner": "bubbles.implement",
-    "nextRequiredTarget": "Implement Scope 06 (macro-rotation-fundamental adapters); depends on now-done Scope 05.",
+    "nextRequiredTarget": "Continue Scope 06: 2 of 8 adapters delivered (sector-rotation-transition/v1, country-rotation/v1); next deliver real-asset-driver/v1, fixed-income-sleeve/v1, etf-ranking/v1 (macro-rotation.js) then the fundamental-models.js trio (ai-capex-portfolio, msft-margin-eps, company-scenario-bridge).",
     "scopeProgress": [
       {
         "scope": 1,
@@ -110,7 +110,7 @@
         "scope": 6,
         "scopeId": "06-macro-rotation-fundamental-adapters",
         "name": "Macro, Rotation, And Fundamental Simple Adapters",
-        "status": "not_started",
+        "status": "in_progress",
         "dependsOn": [5],
         "scopeDir": "scopes/06-macro-rotation-fundamental-adapters",
         "scopeArtifact": "scopes/06-macro-rotation-fundamental-adapters/scope.md",

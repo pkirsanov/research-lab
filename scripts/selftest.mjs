@@ -3914,6 +3914,13 @@ try {
     group('Feature 012 Scope 06 sector-rotation adapter completeness (sector-research-lab)');
     assertScope06AdapterComplete(MACRO_MODULE, 'createMacroRotationAdapters', 'sector-research-lab', 'simple-adapter/sector-rotation-transition/v1', ['rollZ100', 'rrgQuadrant', 'stateLabel', 'rotationCandidacy', 'rrgReadout', 'computeSectorRotationSummary'], 'sector-research-lab.html', ['rollZ100', 'rrgQuadrant', 'stateLabel', 'rotationCandidacy']);
   } catch (e) { failures++; console.log('  ✗ FAIL (Feature 012 Scope 06 sector-rotation completeness threw): ' + e.message); }
+  try {
+    group('Feature 012 Scope 06 country-rotation adapter completeness (global-rotation-lab)');
+    assertScope06AdapterComplete(MACRO_MODULE, 'createMacroRotationAdapters', 'global-rotation-lab', 'simple-adapter/country-rotation/v1', ['globalPairCorrelation', 'countryHorizonMomentum', 'computeCountryRotationSummary'], 'global-rotation-lab.html', ['globalPairCorrelation']);
+    // The single owner correlation source lives in macro-rotation.js; the page carries no inline copy.
+    const countryPage = read('global-rotation-lab.html');
+    assert(!/covariance \/ Math\.sqrt\(varianceA \* varianceB\)/.test(countryPage), 'global-rotation page carries no inline pairwise-correlation formula (single-sourced to RLMACROROTATION)');
+  } catch (e) { failures++; console.log('  ✗ FAIL (Feature 012 Scope 06 country-rotation completeness threw): ' + e.message); }
 }
 
 /* ---------- summary ---------- */

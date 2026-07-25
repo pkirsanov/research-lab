@@ -276,3 +276,184 @@ test('TP-06-01 sector-rotation compute is deterministic for one compute identity
     'identical inputs => identical owner summary'
   );
 });
+
+/* ═══════════════════════ country-rotation owner fixture (global-rotation-lab) ═══════════════════════
+   A synthetic frozen owner snapshot engineered so every declared parameter provably moves its
+   declared output path. Per country: distinct rel21/rel63/rel126 (so each horizon weight moves the
+   momentum blend and hence the queue), distinct non-zero fxScore (so the FX weight moves the queue),
+   distinct vol (so the volatility penalty moves the queue), distinct daily row shapes (so pairwise
+   correlation differs and the diversification weight moves the queue), and distinct local-close ages
+   straddling the max-age band (so the local-close-max-age control flips a country's freshness). No
+   fabricated feed — the adapter recomputes only from these frozen owner facts, single-sourcing the
+   correlation formula from RLMACROROTATION.globalPairCorrelation. */
+const GLOBAL_ROTATION_PAGE = readFileSync(new URL('../global-rotation-lab.html', import.meta.url), 'utf8');
+
+function countryRows(seed, drift, wobble) {
+  const rows = [];
+  const base = Date.UTC(2026, 3, 1);
+  let close = 100;
+  for (let i = 0; i < 90; i += 1) {
+    close = close * (1 + drift + wobble * Math.sin((i + seed) / 5));
+    rows.push({ t: base + i * 864e5, c: Math.round(close * 1e4) / 1e4 });
+  }
+  return rows;
+}
+
+function countryOwnerFixture() {
+  return {
+    contractVersion: 'country-rotation-owner-state/v1',
+    toolId: 'global-rotation-lab',
+    asOf: '2026-07-24T20:00:00.000Z',
+    source: 'test-owner cache snapshot',
+    benchmark: 'ACWI',
+    countries: [
+      { id: 'EWY', label: 'South Korea', rel21: 6, rel63: 3, rel126: 1, fxScore: 0.5, vol: 0.25, drawdown: 0.12, trendScore: 0.4, localCloseAgeHours: 2, rows: countryRows(0, 0.004, 0.010) },
+      { id: 'EWG', label: 'Germany', rel21: -2, rel63: 4, rel126: 8, fxScore: -0.3, vol: 0.35, drawdown: 0.22, trendScore: 0.1, localCloseAgeHours: 12, rows: countryRows(7, -0.002, 0.014) },
+      { id: 'EWZ', label: 'Brazil', rel21: 1, rel63: -1, rel126: 2, fxScore: 0.1, vol: 0.15, drawdown: 0.30, trendScore: -0.2, localCloseAgeHours: 30, rows: countryRows(3, 0.001, 0.020) }
+    ]
+  };
+}
+
+/* ═══════════════════════ TP-06-01 country-rotation module authority + primitives ═══════════════════════ */
+
+test('TP-06-01 macro-rotation module exposes the country-rotation adapter with single-sourced correlation + horizon momentum', () => {
+  const mr = loadMacroRotation();
+  assert.ok(mr.supportedAdapterIds.includes('simple-adapter/country-rotation/v1'), 'country-rotation/v1 is a declared supported adapter');
+  assert.equal(typeof mr.globalPairCorrelation, 'function', 'globalPairCorrelation owner primitive is single-sourced in the module');
+  assert.equal(typeof mr.countryHorizonMomentum, 'function', 'countryHorizonMomentum horizon-weighted momentum is exported');
+  assert.equal(typeof mr.computeCountryRotationSummary, 'function', 'computeCountryRotationSummary is exported');
+});
+
+test('TP-06-01 globalPairCorrelation single-source pins Pearson correlation over aligned daily returns', () => {
+  const mr = loadMacroRotation();
+  const a = countryRows(0, 0.003, 0.012);
+  const b = countryRows(0, 0.003, 0.012);
+  assert.ok(Math.abs(mr.globalPairCorrelation(a, b, 63) - 1) < 1e-9, 'identical series => correlation 1');
+  const opp = a.map((row, i) => ({ t: row.t, c: 200 - row.c }));
+  assert.ok(mr.globalPairCorrelation(a, opp, 63) < 0, 'a mirror-image series is negatively correlated');
+  assert.equal(mr.globalPairCorrelation([{ t: 1, c: 1 }], [{ t: 1, c: 1 }], 63), null, 'a <12-key overlap stays null (never fabricated)');
+});
+
+test('TP-06-01 countryHorizonMomentum blends the three horizon relatives under explicit weights', () => {
+  const mr = loadMacroRotation();
+  // Only the short horizon is positive; a short-heavy weight lifts the blend above a long-heavy one.
+  const shortHeavy = mr.countryHorizonMomentum(8, 0, -8, { short: 0.8, medium: 0.1, long: 0.1 });
+  const longHeavy = mr.countryHorizonMomentum(8, 0, -8, { short: 0.1, medium: 0.1, long: 0.8 });
+  assert.ok(shortHeavy > longHeavy, 'weighting the positive short horizon outranks weighting the negative long horizon');
+  // Missing / non-positive weights are ignored, never defaulted to a neutral fill.
+  assert.equal(mr.countryHorizonMomentum(null, null, null, { short: 0.3, medium: 0.4, long: 0.3 }), null, 'no finite relative => null (no fabricated neutral)');
+  assert.ok(Number.isFinite(mr.countryHorizonMomentum(5, null, null, { short: 0.3, medium: 0, long: 0 })), 'a single finite horizon with weight still blends');
+});
+
+test('TP-06-01 global-rotation-lab.html single-sources globalPairCorrelation from macro-rotation.js', () => {
+  assert.match(GLOBAL_ROTATION_PAGE, /rlexperience-adapters\/macro-rotation\.js/, 'global-rotation page loads macro-rotation.js');
+  assert.match(GLOBAL_ROTATION_PAGE, /RLMACROROTATION\.globalPairCorrelation\s*\(/, 'global-rotation page delegates the pairwise correlation to the module');
+  // The single owner source lives in macro-rotation.js; the page must carry no inline correlation copy.
+  assert.equal(/covariance \/ Math\.sqrt\(varianceA \* varianceB\)/.test(GLOBAL_ROTATION_PAGE), false, 'global-rotation page has no inline pairwise-correlation formula');
+});
+
+/* ═══════════════════════ TP-06-01 country-rotation adapter runtime + owner parity ═══════════════════════ */
+
+test('TP-06-01 country-rotation adapter registers through the production runtime and produces a ready owner run', async () => {
+  const api = loadProductionApi();
+  const mr = loadMacroRotation();
+  const definition = definitionFor('global-rotation-lab');
+  const runtime = runtimeFor(api, definition);
+  const results = mr.registerMacroRotationAdapters(runtime, api, [definition]);
+  assert.equal(results['simple-adapter/country-rotation/v1'].ok, true, JSON.stringify(results['simple-adapter/country-rotation/v1'].error || {}));
+
+  const owner = countryOwnerFixture();
+  const base = defaultValues(definition);
+  const prepared = requireValue(await runtime.prepare({
+    definitionId: definition.definitionId,
+    ownerContext: { ownerState: owner },
+    parameterValues: base,
+    seed: null,
+    scenarioIds: ['baseline'],
+    computedAt: '2026-07-24T20:02:00.000Z'
+  }));
+  assert.equal(prepared.state, 'ready');
+  const summary = prepared.current.output.values.summary;
+  assert.equal(summary.benchmark, 'ACWI', 'benchmark is carried from the frozen owner state');
+  assert.ok(Array.isArray(summary.queue) && summary.queue.length === 3, 'queue carries every priced country');
+  assert.ok(summary.freshness && Array.isArray(summary.freshness.countries) && summary.freshness.countries.length === 3, 'freshness carries a per-country local-close state');
+  assert.equal(prepared.current.output.provenance.evidenceIdentity, prepared.current.input.evidenceIdentity, 'evidence identity is bound');
+
+  // Owner parity: each queue entry's momentum equals the module horizon-momentum primitive run
+  // directly on the frozen owner relatives at the default weights (single source, no re-implementation).
+  const weights = { short: base['short-horizon-weight'], medium: base['medium-horizon-weight'], long: base['long-horizon-weight'] };
+  owner.countries.forEach((country) => {
+    const entry = summary.queue.find((q) => q.id === country.id);
+    const momentum = mr.countryHorizonMomentum(country.rel21, country.rel63, country.rel126, weights);
+    assert.equal(entry.momentum, Math.round(momentum * 1e6) / 1e6, `${country.id} momentum is single-sourced from countryHorizonMomentum`);
+  });
+});
+
+test('TP-06-01 each enabled country-rotation parameter changes its declared output path', async () => {
+  const api = loadProductionApi();
+  const mr = loadMacroRotation();
+  const definition = definitionFor('global-rotation-lab');
+  const runtime = runtimeFor(api, definition);
+  mr.registerMacroRotationAdapters(runtime, api, [definition]);
+  const base = defaultValues(definition);
+  await runtime.prepare({
+    definitionId: definition.definitionId,
+    ownerContext: { ownerState: countryOwnerFixture() },
+    parameterValues: base,
+    seed: null,
+    scenarioIds: ['baseline'],
+    computedAt: '2026-07-24T20:02:00.000Z'
+  });
+
+  const cases = [
+    ['short-horizon-weight', 0.5, 'summary.queue'],
+    ['medium-horizon-weight', 0.6, 'summary.queue'],
+    ['long-horizon-weight', 0.5, 'summary.queue'],
+    ['fx-weight', 0.5, 'summary.queue'],
+    ['local-close-max-age', 6, 'summary.freshness'],
+    ['volatility-penalty', 0.5, 'summary.queue'],
+    ['diversification-weight', 0.5, 'summary.queue']
+  ];
+  for (const [parameterId, value, path] of cases) {
+    const run = requireValue(await runtime.recompute({
+      parameterValues: { ...base, [parameterId]: value },
+      seed: null,
+      scenarioIds: ['baseline'],
+      computedAt: '2026-07-24T20:03:00.000Z'
+    }));
+    assert.deepEqual(run.changedParameters, [parameterId], `changed ${parameterId}`);
+    const effect = run.sensitivity.effects.find((entry) => entry.parameterId === parameterId);
+    assert.ok(effect, `sensitivity effect present for ${parameterId}`);
+    assert.equal(effect.outputChanged, true, `${parameterId} must change ${path}`);
+    assert.deepEqual(effect.resultPaths, [path], `${parameterId} declared path`);
+    await runtime.recompute({ parameterValues: { ...base }, seed: null, scenarioIds: ['baseline'], computedAt: '2026-07-24T20:03:30.000Z' });
+  }
+});
+
+test('TP-06-01 country-rotation compute is deterministic for one compute identity', async () => {
+  const api = loadProductionApi();
+  const mr = loadMacroRotation();
+  const definition = definitionFor('global-rotation-lab');
+  const runtime = runtimeFor(api, definition);
+  mr.registerMacroRotationAdapters(runtime, api, [definition]);
+  const base = defaultValues(definition);
+  const first = requireValue(await runtime.prepare({
+    definitionId: definition.definitionId,
+    ownerContext: { ownerState: countryOwnerFixture() },
+    parameterValues: base,
+    seed: null,
+    scenarioIds: ['baseline'],
+    computedAt: '2026-07-24T20:02:00.000Z'
+  }));
+  const again = requireValue(await runtime.recompute({
+    parameterValues: { ...base },
+    seed: null,
+    scenarioIds: ['baseline'],
+    computedAt: '2026-07-24T20:02:30.000Z'
+  }));
+  assert.equal(
+    api.fingerprint(first.current.output.values.summary),
+    api.fingerprint(again.current.output.values.summary),
+    'identical inputs => identical owner summary'
+  );
+});

@@ -265,6 +265,159 @@
     };
   }
 
+  /* ═══════════ country-rotation Simple model (owner seam = global-rotation-lab.html) ═══════════
+     The adapter is a DIFFERENT Simple question over the SAME frozen owner facts the page computes:
+     a horizon-weighted research QUEUE (which country to rotate toward) plus a local-close FRESHNESS
+     gate. It consumes the page's already-computed owner facts (benchmark-relative rel21/rel63/rel126,
+     FX confirmation score, realized volatility, and the local-close age) and re-derives a queue under
+     the adapter's own controls. The pairwise-correlation owner formula is single-sourced here so the
+     page's Power path and this Simple adapter share ONE correlation source (page carries no inline
+     copy). Everything else is a frozen owner fact — the adapter fabricates nothing and defaults
+     nothing for missing evidence. */
+
+  /* globalPairCorrelation: Pearson correlation of two ETF daily-return series over the trailing
+     window (aligned by calendar date; >=12 overlapping returns required, else null). SINGLE SOURCE —
+     global-rotation-lab.html delegates its inline correlation to this exact function. Byte-identical
+     to the former page body (uses Number.isFinite explicitly, never the global isFinite). */
+  function globalPairCorrelation(rowsA, rowsB, windowDays) {
+    if (!Array.isArray(rowsA) || !Array.isArray(rowsB) || rowsA.length < 3 || rowsB.length < 3) return null;
+    var window = Number.isFinite(windowDays) && windowDays > 2 ? Math.floor(windowDays) : 63;
+    function returnMap(rows) {
+      var out = {}, start = Math.max(1, rows.length - window - 8), i, previous, current, key;
+      for (i = start; i < rows.length; i++) {
+        previous = rows[i - 1]; current = rows[i];
+        if (!previous || !current || !Number.isFinite(previous.c) || !Number.isFinite(current.c) || previous.c <= 0) continue;
+        key = new Date(current.t).toISOString().slice(0, 10);
+        out[key] = current.c / previous.c - 1;
+      }
+      return out;
+    }
+    var a = returnMap(rowsA), b = returnMap(rowsB), keys = Object.keys(a).filter(function (key) { return Number.isFinite(b[key]); }).sort();
+    if (keys.length > window) keys = keys.slice(keys.length - window);
+    if (keys.length < 12) return null;
+    var meanA = 0, meanB = 0, i, da, db, covariance = 0, varianceA = 0, varianceB = 0;
+    for (i = 0; i < keys.length; i++) { meanA += a[keys[i]]; meanB += b[keys[i]]; }
+    meanA /= keys.length; meanB /= keys.length;
+    for (i = 0; i < keys.length; i++) { da = a[keys[i]] - meanA; db = b[keys[i]] - meanB; covariance += da * db; varianceA += da * da; varianceB += db * db; }
+    if (!(varianceA > 0) || !(varianceB > 0)) return null;
+    return Math.max(-1, Math.min(1, covariance / Math.sqrt(varianceA * varianceB)));
+  }
+
+  /* countryHorizonMomentum: the horizon-weighted relative-momentum blend used by the Simple queue.
+     Each benchmark-relative return is scaled by its horizon dispersion (21d/63d/126d), clamped to
+     [-1,1], and averaged under the caller's explicit short/medium/long weights. A missing relative or
+     a non-positive weight is skipped, never defaulted to a neutral fill. This is the queue's own
+     horizon-weighted question — distinct from the page's fixed-weight leaderboard momentum. */
+  function countryHorizonMomentum(rel21, rel63, rel126, weights) {
+    var values = { "21": rel21, "63": rel63, "126": rel126 }, scales = { "21": 8, "63": 14, "126": 22 };
+    var wmap = { "21": weights.short, "63": weights.medium, "126": weights.long };
+    var keys = ["21", "63", "126"], total = 0, weight = 0, i, key, value, w;
+    for (i = 0; i < keys.length; i++) {
+      key = keys[i]; value = values[key]; w = wmap[key];
+      if (!isFiniteNumber(value) || !isFiniteNumber(w) || w <= 0) continue;
+      total += Math.max(-1, Math.min(1, value / scales[key])) * w;
+      weight += w;
+    }
+    return weight > 0 ? total / weight : null;
+  }
+
+  /* countryVolComponent: higher realized volatility raises the penalty component (0..1); missing vol
+     stays null so the volatility penalty simply does not apply (never a fabricated fill). */
+  function countryVolComponent(vol) {
+    return isFiniteNumber(vol) ? Math.max(0, Math.min(1, (vol - 0.10) / 0.30)) : null;
+  }
+
+  /* countryDiversification: how uncorrelated this country is to the rest, from the single-sourced
+     owner correlation. No measurable pair => null (unavailable), never a fabricated default. */
+  function countryDiversification(country, countries) {
+    var corrs = [];
+    countries.forEach(function (other) {
+      if (other.id === country.id) return;
+      if (!Array.isArray(country.rows) || !Array.isArray(other.rows)) return;
+      var corr = globalPairCorrelation(country.rows, other.rows, 63);
+      if (isFiniteNumber(corr)) corrs.push(corr);
+    });
+    if (!corrs.length) return null;
+    return Math.max(0, Math.min(1, (1 - mean(corrs)) / 2));
+  }
+
+  /* Compute the full country-rotation summary from frozen owner state + current parameters. The
+     queue score derives from the single-source horizon momentum, the frozen FX/volatility facts, and
+     the single-source correlation; freshness derives from the frozen local-close age. Nothing is
+     fabricated and missing evidence never becomes a default. */
+  function computeCountryRotationSummary(ownerState, params) {
+    var shortW = params["short-horizon-weight"];
+    var medW = params["medium-horizon-weight"];
+    var longW = params["long-horizon-weight"];
+    var fxW = params["fx-weight"];
+    var volPen = params["volatility-penalty"];
+    var divW = params["diversification-weight"];
+    var maxAge = params["local-close-max-age"];
+    var weights = { short: shortW, medium: medW, long: longW };
+    var countries = (ownerState && Array.isArray(ownerState.countries)) ? ownerState.countries : [];
+
+    var views = countries.map(function (country) {
+      var momentum = countryHorizonMomentum(country.rel21, country.rel63, country.rel126, weights);
+      var fx = isFiniteNumber(country.fxScore) ? country.fxScore : null;
+      var volComp = countryVolComponent(country.vol);
+      var divComp = countryDiversification(country, countries);
+      var priced = isFiniteNumber(momentum);
+      var raw = priced
+        ? momentum
+          + (fx == null ? 0 : fxW * fx)
+          - (volComp == null ? 0 : volPen * volComp)
+          + (divComp == null ? 0 : divW * divComp)
+        : null;
+      var score = priced ? roundTo(Math.max(0, Math.min(100, 50 + raw * 50)), 4) : null;
+      return {
+        id: String(country.id),
+        label: String(country.label || country.id),
+        momentum: roundTo(momentum, 6),
+        fx: fx == null ? null : roundTo(fx, 6),
+        volComponent: volComp == null ? null : roundTo(volComp, 6),
+        diversification: divComp == null ? null : roundTo(divComp, 6),
+        score: score,
+        priced: priced
+      };
+    });
+
+    var priced = views.filter(function (view) { return view.priced; });
+    var queue = priced.map(function (view) {
+      return { id: view.id, score: view.score, momentum: view.momentum, fx: view.fx, diversification: view.diversification };
+    }).sort(function (a, b) {
+      var d = (b.score == null ? -Infinity : b.score) - (a.score == null ? -Infinity : a.score);
+      if (d !== 0) return d;
+      return a.id < b.id ? -1 : (a.id > b.id ? 1 : 0);
+    });
+
+    var freshness = {
+      maxAgeHours: maxAge,
+      countries: countries.map(function (country) {
+        var age = isFiniteNumber(country.localCloseAgeHours) ? country.localCloseAgeHours : null;
+        return {
+          id: String(country.id),
+          ageHours: age,
+          state: age == null ? "unavailable" : (age <= maxAge ? "fresh" : "stale")
+        };
+      })
+    };
+
+    return {
+      benchmark: String((ownerState && ownerState.benchmark) || "unavailable"),
+      shortHorizonWeight: shortW,
+      mediumHorizonWeight: medW,
+      longHorizonWeight: longW,
+      fxWeight: fxW,
+      volatilityPenalty: volPen,
+      diversificationWeight: divW,
+      localCloseMaxAge: maxAge,
+      countryCount: views.length,
+      pricedCount: priced.length,
+      queue: queue,
+      freshness: freshness
+    };
+  }
+
   /* ═══════════ Simple adapter contract wiring ═══════════ */
 
   function deepFreeze(value) {
@@ -518,6 +671,205 @@
     };
   }
 
+  /* ═══════════ country-rotation adapter contract wiring ═══════════ */
+
+  function countryEvidenceState(ownerState) {
+    var countries = (ownerState && Array.isArray(ownerState.countries)) ? ownerState.countries : [];
+    var priced = 0;
+    countries.forEach(function (country) {
+      if (isFiniteNumber(country.rel21) || isFiniteNumber(country.rel63) || isFiniteNumber(country.rel126)) priced++;
+    });
+    return priced > 0 ? "ready" : "unavailable";
+  }
+
+  function buildCountryEvidence(api, ownerState) {
+    var state = countryEvidenceState(ownerState);
+    var cutoff = String(ownerState.asOf || "unavailable");
+    var evidence = {
+      contractVersion: "simple-evidence-snapshot/v1",
+      toolId: "global-rotation-lab",
+      state: state,
+      evidenceCutoff: cutoff,
+      evidenceRefs: [{
+        requirementId: "owner-evidence",
+        evidenceRef: "owner:global-rotation-lab:country-rotation:" + cutoff,
+        semanticFingerprint: ownerStateFingerprint(api, ownerState),
+        sourceClass: "observed-fact",
+        observedAsOf: cutoff,
+        retrievedOrPublishedAt: cutoff,
+        freshness: "cache-current-for-render",
+        dataTier: String(ownerState.source || "shared cache snapshot"),
+        valueState: state === "ready" ? "ready" : "unavailable"
+      }],
+      parameterValues: {},
+      assumptions: [
+        "Country rotation uses only the frozen owner relative-momentum, FX, volatility, and local-close facts currently captured."
+      ],
+      limitations: [
+        "The queue describes the selected owner window and does not establish persistence or an allocation."
+      ],
+      invalidationConditions: [
+        "The frozen owner snapshot changes, gains or loses a country, or a later local close replaces the current window."
+      ],
+      evidenceIdentity: null
+    };
+    evidence.evidenceIdentity = evidenceIdentityOf(api, evidence);
+    return evidence;
+  }
+
+  function countryOutput(input, summary) {
+    var provenanceClasses = summary.pricedCount < summary.countryCount
+      ? ["observed-fact", "model-estimate"]
+      : ["observed-fact"];
+    var calibrationReason = summary.pricedCount + " of " + summary.countryCount +
+      " countries carry a complete owner relative-momentum window.";
+    var uncertaintyState = summary.pricedCount >= 2 ? "bounded" : "wide";
+    var scenarioValues = { summary: summary };
+    var leader = summary.queue.length ? summary.queue[0].id : null;
+    return {
+      contractVersion: "simple-model-output/v1",
+      state: "ready",
+      values: scenarioValues,
+      scenarios: input.scenarios.map(function (scenario) {
+        return { scenarioId: scenario.scenarioId, state: "ready", values: scenarioValues };
+      }),
+      calibration: { state: "owner-evidence-relative", reason: calibrationReason },
+      provenance: { classes: provenanceClasses, evidenceIdentity: input.evidenceIdentity },
+      uncertainty: {
+        state: uncertaintyState,
+        rangeOrBand: leader ? ("Queue leader " + leader) : "No priced country",
+        reason: "Queue and freshness use the exact frozen owner relative-momentum, FX, volatility, correlation, and local-close facts currently captured."
+      },
+      assumptions: [
+        "Countries without a complete relative-momentum window are excluded from the priced queue."
+      ],
+      limitations: [
+        "The queue describes the selected owner window and does not establish persistence or an allocation."
+      ],
+      invalidationConditions: [
+        "The frozen owner snapshot changes or a later local close replaces the current window."
+      ],
+      flatRegionProofs: []
+    };
+  }
+
+  /* affectsOutputPaths for the country-rotation parameters. Mirrors simple-models.json exactly. */
+  var COUNTRY_OUTPUT_PATHS = {
+    "short-horizon-weight": ["summary.queue"],
+    "medium-horizon-weight": ["summary.queue"],
+    "long-horizon-weight": ["summary.queue"],
+    "fx-weight": ["summary.queue"],
+    "local-close-max-age": ["summary.freshness"],
+    "volatility-penalty": ["summary.queue"],
+    "diversification-weight": ["summary.queue"]
+  };
+
+  function countrySummaryPath(summary, path) {
+    if (path === "summary.queue") return summary.queue;
+    if (path === "summary.freshness") return summary.freshness;
+    return null;
+  }
+
+  function createCountryRotationAdapter(api, definition, ownerByIdentity) {
+    return {
+      contractVersion: "simple-model-adapter/v1",
+      adapterId: definition.adapterId,
+      supportedDefinitionIds: [definition.definitionId],
+      validateDefinition: function (candidate) {
+        return { ok: true, value: candidate };
+      },
+      captureEvidence: function (ownerContext) {
+        if (!ownerContext || typeof ownerContext !== "object") {
+          return { ok: false, error: { reason: "owner context required" } };
+        }
+        var ownerState = ownerContext.ownerState;
+        if (!ownerState || typeof ownerState !== "object" || !Array.isArray(ownerState.countries)) {
+          return { ok: false, error: { reason: "country owner state required" } };
+        }
+        var frozen = deepFreeze(JSON.parse(JSON.stringify(ownerState)));
+        var evidence = buildCountryEvidence(api, frozen);
+        ownerByIdentity.set(evidence.evidenceIdentity, frozen);
+        return { ok: true, value: evidence };
+      },
+      normalizeInputs: function (candidate, evidence, parameterValues, seed, scenarioIds) {
+        return api.normalizeSimpleInput(candidate, evidence, parameterValues, seed, scenarioIds);
+      },
+      compute: function (input) {
+        var ownerState = ownerByIdentity.get(input.evidenceIdentity);
+        if (!ownerState) {
+          return { ok: false, error: { reason: "frozen owner state is unavailable for this evidence identity" } };
+        }
+        var summary = computeCountryRotationSummary(ownerState, paramMap(input));
+        return { ok: true, value: countryOutput(input, summary) };
+      },
+      compareSensitivity: function (baselineInput, currentInput, sharedRandomness) {
+        var ownerState = ownerByIdentity.get(currentInput.evidenceIdentity);
+        if (!ownerState) {
+          return { ok: false, error: { reason: "frozen owner state is unavailable for sensitivity" } };
+        }
+        var baselineValues = paramMap(baselineInput);
+        var currentValues = paramMap(currentInput);
+        var baselineSummary = computeCountryRotationSummary(ownerState, baselineValues);
+        var currentSummary = computeCountryRotationSummary(ownerState, currentValues);
+        var effects = [];
+        Object.keys(currentValues).forEach(function (parameterId) {
+          if (parameterId === "seed") return;
+          if (baselineValues[parameterId] === currentValues[parameterId]) return;
+          var paths = COUNTRY_OUTPUT_PATHS[parameterId] || [];
+          var changed = paths.some(function (path) {
+            return fingerprintOf(api, countrySummaryPath(baselineSummary, path)) !== fingerprintOf(api, countrySummaryPath(currentSummary, path));
+          });
+          effects.push({
+            parameterId: parameterId,
+            oldValue: baselineValues[parameterId],
+            newValue: currentValues[parameterId],
+            direction: (typeof currentValues[parameterId] === "number" && typeof baselineValues[parameterId] === "number")
+              ? (currentValues[parameterId] > baselineValues[parameterId] ? "higher" : "lower")
+              : "changed",
+            magnitude: (typeof currentValues[parameterId] === "number" && typeof baselineValues[parameterId] === "number")
+              ? (Math.abs(currentValues[parameterId] - baselineValues[parameterId]) || 1)
+              : 1,
+            nonlinear: false,
+            resultPaths: paths,
+            outputChanged: changed,
+            flatRegionProof: changed ? null : {
+              parameterId: parameterId,
+              resultPaths: paths,
+              reason: "The frozen owner snapshot yields an identical value on these paths for this parameter change."
+            }
+          });
+        });
+        return {
+          ok: true,
+          value: {
+            contractVersion: "simple-sensitivity/v1",
+            sharedRandomness: sharedRandomness,
+            seedChanged: baselineInput.seed !== currentInput.seed,
+            effects: effects
+          }
+        };
+      },
+      projectOwnerEvidence: function (output) {
+        var summary = output.values.summary;
+        var leader = summary.queue.length ? summary.queue[0].id : null;
+        return {
+          ok: true,
+          value: {
+            contractVersion: "owner-evidence-projection/v1",
+            state: output.state,
+            valueText: leader ? ("Rotate toward " + leader) : "No confirmed country rotation",
+            numericValue: summary.queue.length ? summary.queue[0].score : null,
+            unit: "country-score",
+            summary: leader
+              ? (leader + " leads the country queue (benchmark " + summary.benchmark + ").")
+              : "No country clears the queue under the selected owner window.",
+            sourceRefs: ["owner-evidence"]
+          }
+        };
+      }
+    };
+  }
+
   /* Factory: returns the macro-rotation Simple adapters implemented at genuine owner-parity, keyed
      by their exact declared adapter ID. Tools whose owner seam is not yet extracted are absent so
      the shared runtime renders the explicit unavailable state for them. */
@@ -532,6 +884,10 @@
     if (byToolId["sector-research-lab"]) {
       var sectorDefinition = byToolId["sector-research-lab"];
       adapters[sectorDefinition.adapterId] = createSectorRotationAdapter(api, sectorDefinition, ownerByIdentity);
+    }
+    if (byToolId["global-rotation-lab"]) {
+      var countryDefinition = byToolId["global-rotation-lab"];
+      adapters[countryDefinition.adapterId] = createCountryRotationAdapter(api, countryDefinition, ownerByIdentity);
     }
     return adapters;
   }
@@ -550,7 +906,7 @@
   return {
     contractVersion: "macro-rotation-adapters/v1",
     module: "rlexperience-adapters/macro-rotation.js",
-    supportedAdapterIds: ["simple-adapter/sector-rotation-transition/v1"],
+    supportedAdapterIds: ["simple-adapter/sector-rotation-transition/v1", "simple-adapter/country-rotation/v1"],
     rollZ100: rollZ100,
     rrgQuadrant: rrgQuadrant,
     stateLabel: stateLabel,
@@ -559,6 +915,9 @@
     rrgReadout: rrgReadout,
     normList: normList,
     computeSectorRotationSummary: computeSectorRotationSummary,
+    globalPairCorrelation: globalPairCorrelation,
+    countryHorizonMomentum: countryHorizonMomentum,
+    computeCountryRotationSummary: computeCountryRotationSummary,
     createMacroRotationAdapters: createMacroRotationAdapters,
     registerMacroRotationAdapters: registerMacroRotationAdapters
   };

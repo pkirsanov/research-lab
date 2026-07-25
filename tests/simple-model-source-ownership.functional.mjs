@@ -400,3 +400,104 @@ test('SCN-012-035 macro and fundamental source qualification: a sector with no r
   // Partial coverage surfaces model-estimate provenance rather than silently claiming all-observed.
   assert.deepEqual(prepared.current.output.provenance.classes, ['observed-fact', 'model-estimate'], 'partial owner coverage is declared, not hidden');
 });
+
+/* countryRows: a synthetic daily-bar series for the country-rotation owner fixture (distinct shape
+   per seed so the single-sourced pairwise correlation differs across countries). */
+function countryRows(seed, drift, wobble) {
+  const rows = [];
+  const base = Date.UTC(2026, 3, 1);
+  let close = 100;
+  for (let i = 0; i < 90; i += 1) {
+    close = close * (1 + drift + wobble * Math.sin((i + seed) / 5));
+    rows.push({ t: base + i * 864e5, c: Math.round(close * 1e4) / 1e4 });
+  }
+  return rows;
+}
+
+test('SCN-012-035 macro and fundamental source qualification: the delivered country-rotation adapter performs zero fetch/provider/storage and preserves the frozen local-close clock', async () => {
+  const api = loadProductionApi();
+  const mr = loadMacroRotation();
+  const definition = clone(readJson('simple-models.json').definitions.find((d) => d.toolId === 'global-rotation-lab'));
+  const config = readJson('tool-experience.config.json');
+  const runtime = requireValue(api.createSimpleRuntime(config, { contractVersion: 'simple-model-registry/v1', definitions: [definition] }));
+  mr.registerMacroRotationAdapters(runtime, api, [definition]);
+
+  const owner = {
+    contractVersion: 'country-rotation-owner-state/v1', toolId: 'global-rotation-lab', asOf: '2026-07-24T20:00:00.000Z',
+    source: 'pages-snapshot cache', benchmark: 'ACWI',
+    countries: [
+      { id: 'EWY', label: 'South Korea', rel21: 6, rel63: 3, rel126: 1, fxScore: 0.5, vol: 0.25, localCloseAgeHours: 2, rows: countryRows(0, 0.004, 0.010) },
+      { id: 'EWG', label: 'Germany', rel21: -2, rel63: 4, rel126: 8, fxScore: -0.3, vol: 0.35, localCloseAgeHours: 12, rows: countryRows(7, -0.002, 0.014) }
+    ]
+  };
+
+  const sentinels = { fetch: globalThis.fetch, localStorage: globalThis.localStorage, sessionStorage: globalThis.sessionStorage, XMLHttpRequest: globalThis.XMLHttpRequest };
+  const calls = { fetch: 0, storage: 0, xhr: 0 };
+  globalThis.fetch = () => { calls.fetch += 1; throw new Error('forbidden fetch'); };
+  globalThis.localStorage = { getItem() { calls.storage += 1; }, setItem() { calls.storage += 1; } };
+  globalThis.sessionStorage = { getItem() { calls.storage += 1; }, setItem() { calls.storage += 1; } };
+  globalThis.XMLHttpRequest = function () { calls.xhr += 1; throw new Error('forbidden xhr'); };
+  try {
+    const base = defaultValues(definition);
+    const prepared = requireValue(await runtime.prepare({
+      definitionId: definition.definitionId,
+      ownerContext: { ownerState: owner },
+      parameterValues: base,
+      seed: null,
+      scenarioIds: ['baseline'],
+      computedAt: '2026-07-25T20:02:00.000Z'
+    }));
+    assert.equal(prepared.state, 'ready');
+    // The owner evidence clock is preserved verbatim — the adapter acquires nothing and re-clocks nothing.
+    assert.equal(prepared.current.input.evidenceCutoff, owner.asOf, 'evidence cutoff is the frozen owner asOf (no re-clocking)');
+    // The frozen local-close facts drive freshness; the adapter never fetches a fresher close.
+    const fresh = prepared.current.output.values.summary.freshness;
+    assert.equal(fresh.countries.find((c) => c.id === 'EWY').state, 'fresh', 'a 2h-old local close is fresh under the 24h default');
+    assert.equal(fresh.countries.find((c) => c.id === 'EWG').ageHours, 12, 'the frozen local-close age is preserved verbatim');
+    await runtime.recompute({ parameterValues: { ...base, 'local-close-max-age': 6 }, seed: null, scenarioIds: ['baseline'], computedAt: '2026-07-25T20:03:00.000Z' });
+  } finally {
+    globalThis.fetch = sentinels.fetch;
+    globalThis.localStorage = sentinels.localStorage;
+    globalThis.sessionStorage = sentinels.sessionStorage;
+    globalThis.XMLHttpRequest = sentinels.XMLHttpRequest;
+  }
+  assert.equal(calls.fetch, 0, 'zero fetch calls at runtime');
+  assert.equal(calls.storage, 0, 'zero storage calls at runtime');
+  assert.equal(calls.xhr, 0, 'zero XMLHttpRequest calls at runtime');
+});
+
+test('SCN-012-035 macro and fundamental source qualification: a country with no relative-momentum stays unavailable — no default is substituted', async () => {
+  const api = loadProductionApi();
+  const mr = loadMacroRotation();
+  const definition = clone(readJson('simple-models.json').definitions.find((d) => d.toolId === 'global-rotation-lab'));
+  const config = readJson('tool-experience.config.json');
+  const runtime = requireValue(api.createSimpleRuntime(config, { contractVersion: 'simple-model-registry/v1', definitions: [definition] }));
+  mr.registerMacroRotationAdapters(runtime, api, [definition]);
+
+  // EWY carries full relative-momentum; EWG carries NO finite relative (all null). The adapter must
+  // keep EWG unavailable (momentum null, priced false) and exclude it from the priced queue — never
+  // invent a momentum for it. Its frozen local close still surfaces honestly in freshness.
+  const owner = {
+    contractVersion: 'country-rotation-owner-state/v1', toolId: 'global-rotation-lab', asOf: '2026-07-24T20:00:00.000Z',
+    source: 'pages-snapshot cache', benchmark: 'ACWI',
+    countries: [
+      { id: 'EWY', label: 'South Korea', rel21: 6, rel63: 3, rel126: 1, fxScore: 0.5, vol: 0.25, localCloseAgeHours: 2, rows: countryRows(0, 0.004, 0.010) },
+      { id: 'EWG', label: 'Germany', rel21: null, rel63: null, rel126: null, fxScore: null, vol: null, localCloseAgeHours: 40, rows: [] }
+    ]
+  };
+  const base = defaultValues(definition);
+  const prepared = requireValue(await runtime.prepare({
+    definitionId: definition.definitionId,
+    ownerContext: { ownerState: owner },
+    parameterValues: base,
+    seed: null,
+    scenarioIds: ['baseline'],
+    computedAt: '2026-07-25T20:02:00.000Z'
+  }));
+  const summary = prepared.current.output.values.summary;
+  assert.equal(summary.queue.some((entry) => entry.id === 'EWG'), false, 'the no-momentum country is excluded from the priced queue (no default substitution)');
+  assert.equal(summary.pricedCount, 1, 'only the one priced country counts toward coverage');
+  const ewgFresh = summary.freshness.countries.find((c) => c.id === 'EWG');
+  assert.equal(ewgFresh.state, 'stale', 'the unavailable country still reports its honest frozen local-close staleness (40h > 24h default)');
+  assert.deepEqual(prepared.current.output.provenance.classes, ['observed-fact', 'model-estimate'], 'partial owner coverage is declared, not hidden');
+});

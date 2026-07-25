@@ -9,7 +9,8 @@ modules. This dispatch delivered the FIRST macro-rotation adapter — `sector-ro
 (`sector-research-lab`) — at genuine owner-parity, single-sourced from the start, and wired into the
 registry loop, the source-ownership canaries, and the broad selftest.
 
-- **Delivered + verified: 1 of 8** — `sector-rotation-transition/v1`.
+- **Delivered + verified: 2 of 8** — `sector-rotation-transition/v1` (dispatch 1) and
+  `country-rotation/v1` (dispatch 2, this dispatch).
 - New module `rlexperience-adapters/macro-rotation.js` is the SINGLE OWNER SOURCE for the sector RRG
   normalization (`rollZ100`), the RRG quadrant (`rrgQuadrant`), the state label (`stateLabel`), the
   into/out classifier (`rotationCandidacy`), and the RRG kernel (`rrgReadout`). `sector-research-lab.html`
@@ -38,7 +39,7 @@ registry loop, the source-ownership canaries, and the broad selftest.
 
 ## Completion Statement
 
-Scope 06 is NOT complete. 1 of 8 adapters is delivered and verified. Scope `status` remains
+Scope 06 is NOT complete. 2 of 8 adapters are delivered and verified. Scope `status` remains
 `in_progress`; feature `status` remains `not_started`; `certifiedAt` remains null.
 
 ## Code Diff Evidence
@@ -155,6 +156,135 @@ drives the REAL production factory + api.
 The `tests/simple-model-adapters-macro-fundamental.spec.mjs` persistent per-tool regressions land with
 their adapters. Sector-rotation's TP-06-04 row is not yet executed. See Uncertainty Declarations.
 
+## Adapter 2 of 8 — country-rotation/v1 (global-rotation-lab) — this dispatch
+
+Phase: implement. Claim Source: executed (current session). RED-first → GREEN → selftest 0-failed →
+parse-check → committed.
+
+**Owner seam + single-source.** `global-rotation-lab.html` already carried clean pure owner seams
+(`globalTrailingPct`/`globalAnnualVol`/`globalMaxDrawdown`/`globalTrendState`/`globalFxConfirm`/
+`globalCountryScore`/`globalMomentumScore`/`globalRiskQuality`) that are extracted STANDALONE by two
+out-of-boundary consumers I MUST NOT touch — the pre-existing `global-rotation-lab.html` selftest
+canary and `scripts/brief-refresh.mjs`. Delegating any of those eight would break those standalone
+extractions. The correlation/diversification owner seam `globalPairCorrelation` is extracted by
+NEITHER (verified repo-wide), so it is the safe single-source target: it was moved verbatim into
+`rlexperience-adapters/macro-rotation.js` and the page's inline copy was REMOVED and replaced with
+`RLMACROROTATION.globalPairCorrelation`. The adapter reuses that single source for the diversification
+component; the other queue inputs are FROZEN owner facts (rel21/rel63/rel126, FX score, realized
+volatility, local-close age) the page already computes and hands over, so nothing else is duplicated.
+`countryHorizonMomentum` is a new module helper (the queue's horizon-weighted momentum question,
+distinct from the page's fixed-weight leaderboard momentum).
+
+### TP-06-01 country — Unit (`node --test --test-name-pattern="country-rotation|globalPairCorrelation|countryHorizonMomentum|global-rotation-lab" tests/simple-model-adapters-macro-fundamental.unit.mjs`)
+
+RED first (module absent → `E012-REGISTRY $.adapterId`, page not delegating) → 7 fail; GREEN after
+delivery → 7 pass. Exit Code: 0.
+
+```text
+ok 1 - TP-06-01 macro-rotation module exposes the country-rotation adapter with single-sourced correlation + horizon momentum
+ok 2 - TP-06-01 globalPairCorrelation single-source pins Pearson correlation over aligned daily returns
+ok 3 - TP-06-01 countryHorizonMomentum blends the three horizon relatives under explicit weights
+ok 4 - TP-06-01 global-rotation-lab.html single-sources globalPairCorrelation from macro-rotation.js
+ok 5 - TP-06-01 country-rotation adapter registers through the production runtime and produces a ready owner run
+ok 6 - TP-06-01 each enabled country-rotation parameter changes its declared output path
+ok 7 - TP-06-01 country-rotation compute is deterministic for one compute identity
+# tests 7
+# pass 7
+# fail 0
+```
+
+RED proof (before `country-rotation` existed in the module):
+
+```text
+not ok 5 - TP-06-01 country-rotation adapter registers through the production runtime and produces a ready owner run
+    E012-REGISTRY $.adapterId
+# tests 7
+# pass 0
+# fail 7
+```
+
+### TP-06-02 country — Adapter integration (`node --test --test-name-pattern="macro rotation and fundamental adapters" tests/simple-model-adapters.integration.mjs`)
+
+The registry-derived loop now iterates the delivered set {sector-rotation, country-rotation}, drives
+country-rotation at owner-parity (each queue entry momentum == `mr.countryHorizonMomentum(rel21,
+rel63, rel126, weights)`), proves every one of its 7 declared parameters moves its declared path
+(`summary.queue` for the six weight/penalty controls, `summary.freshness` for `local-close-max-age`,
+read from the definition's `affectsOutputPaths`), AND proves the Scope-05 breadth owner-run
+fingerprint is unchanged. Exit Code: 0.
+
+```text
+ok 1 - TP-06-02 macro rotation and fundamental adapters: registry-derived loop runs the delivered Scope-06 set at owner-parity with real parameter effects
+ok 2 - TP-06-02 macro rotation and fundamental adapters: Scope 05 adapter set and a real Scope 05 owner-run fingerprint are unchanged when Scope 06 shares the runtime
+# tests 2
+# pass 2
+# fail 0
+```
+
+Full integration file (3 Scope-05 + 2 Scope-06 tests) remains green:
+
+```text
+# tests 5
+# pass 5
+# fail 0
+```
+
+### TP-06-03 country — Source-qualified functional (`node --test --test-name-pattern="macro and fundamental source qualification" tests/simple-model-source-ownership.functional.mjs`)
+
+The whole `macro-rotation.js` module (now including the country code) passes the comment-stripped
+forbidden-authority scan; the country adapter runs zero fetch/storage/xhr against live sentinels,
+preserves the frozen owner `asOf` evidence clock, keeps the frozen local-close age verbatim, and keeps
+a no-relative-momentum country `unavailable` (excluded from the priced queue, honest `stale` freshness,
+`['observed-fact','model-estimate']` provenance) — no default substitution. Exit Code: 0.
+
+```text
+ok 1 - SCN-012-035 macro and fundamental source qualification: the macro-rotation module invokes no fetch, provider, storage, author, publication, or cross-domain path
+ok 2 - SCN-012-035 macro and fundamental source qualification: the delivered sector-rotation adapter performs zero fetch/provider/storage at runtime
+ok 3 - SCN-012-035 macro and fundamental source qualification: a sector with no relative-strength series stays unavailable — no default is substituted
+ok 4 - SCN-012-035 macro and fundamental source qualification: the delivered country-rotation adapter performs zero fetch/provider/storage and preserves the frozen local-close clock
+ok 5 - SCN-012-035 macro and fundamental source qualification: a country with no relative-momentum stays unavailable — no default is substituted
+# tests 5
+# pass 5
+# fail 0
+```
+
+Full functional file (6 Scope-05 + 5 Scope-06 tests) remains green:
+
+```text
+# tests 11
+# pass 11
+# fail 0
+```
+
+### TP-06-12 country — Broad regression selftest (`node scripts/selftest.mjs`)
+
+Baseline before this dispatch was 823 passed / 0 failed (dispatch-1 sector). After country-rotation it
+is 836 passed / 0 failed (+13: the new country completeness canary + strengthened Scope-06 coverage).
+The pre-existing `global-rotation-lab.html` owner canary and `scripts/brief-refresh.mjs` are UNCHANGED
+and green (they extract the eight page owner functions standalone — none of which were delegated).
+Exit Code: 0.
+
+```text
+================================================
+Research-Lab self-test: 836 passed, 0 failed
+================================================
+```
+
+### Single-source-page proof + forbidden-authority + rldata zero-edit (country)
+
+```text
+page delegations (RLMACROROTATION.globalPairCorrelation)       = 3   (>=1 required; incl. load-comment)
+inline correlation copies left on the page                     = 0   (former inline body removed)
+EXECUTABLE_FORBIDDEN_HITS (comment-stripped macro-rotation.js)  = 0   (authoritative: TP-06-03 test 1)
+rldata.js changed-file count                                    = 0   (byte-unchanged)
+```
+
+### Scope-05-fingerprints-unchanged (country dispatch)
+
+TP-06-02 test 2 (unchanged) still registers the Scope-05 breadth adapter alone and again alongside a
+Scope-06 adapter in one runtime and asserts the breadth owner-run summary fingerprint is byte-identical.
+The module's Scope-05 siblings (`market-structure.js`, `options.js`) and `rldata.js` were not touched
+this dispatch.
+
 ## Owner-Parity + Single-Source Evidence
 
 ### Owner-parity fingerprint (module primitives are the single source)
@@ -208,10 +338,10 @@ are asserted unchanged.
   executed this dispatch. Playwright 1.61.1 is installed, but the full 8-tool spec file and its per-tool
   render assertions land with the remaining adapters. The adapter's parameter-sensitivity and
   owner-parity are proven exhaustively by TP-06-01/TP-06-02 (real production runtime, zero interception).
-- **UD-06-02 (7 of 8 adapters pending):** country-rotation, real-asset-driver, fixed-income-sleeve,
-  etf-ranking (macro-rotation.js) and ai-capex-portfolio, msft-margin-eps, company-scenario-bridge
+- **UD-06-02 (6 of 8 adapters pending):** real-asset-driver, fixed-income-sleeve, etf-ranking
+  (macro-rotation.js) and ai-capex-portfolio, msft-margin-eps, company-scenario-bridge
   (fundamental-models.js — file not yet created) are undelivered. `supportedAdapterIds` honestly lists
-  only the delivered adapter, so the registry loop drives only the delivered set.
+  only the two delivered adapters, so the registry loop drives only the delivered set.
 
 ## Scenario Contract Evidence
 

@@ -963,6 +963,216 @@ test('TP-06-01 each enabled etf-ranking parameter changes its declared output pa
   }
 });
 
+/* ═══════════════════════ ai-capex-portfolio owner fixture (ai-capex-strategy-lab) ═══════════════════════
+   A synthetic frozen owner snapshot engineered so every declared parameter provably moves its
+   declared output path. Per asset: a distinct per-horizon {er, sd} (so horizon moves the portfolio
+   distribution band), distinct theme membership with a selectedTheme (so theme-weight moves the
+   beneficiary distribution), distinct non-zero crowding (so the crowding penalty moves the
+   distribution mean), a spread of sd across a within-theme and cross-theme correlation pair (so the
+   correlation ceiling moves the portfolio sigma), and an er/sd spread that separates the objective
+   weightings (so the objective moves the portfolio). No fabricated feed — the adapter recomputes only
+   from these frozen owner facts, single-sourcing the lognormal band + CVaR from RLFUNDAMENTALS. */
+const AI_CAPEX_PAGE = readFileSync(new URL('../ai-capex-strategy-lab.html', import.meta.url), 'utf8');
+
+function loadFundamentalModels() {
+  const path = require.resolve('../rlexperience-adapters/fundamental-models.js');
+  delete require.cache[path];
+  return require(path);
+}
+
+function aiCapexOwnerFixture() {
+  return {
+    contractVersion: 'ai-capex-portfolio-owner-state/v1',
+    toolId: 'ai-capex-strategy-lab',
+    asOf: '2026-07-24T20:00:00.000Z',
+    source: 'test-owner cache snapshot',
+    selectedTheme: 'Memory & Storage',
+    correlation: { intra: 0.72, inter: 0.40 },
+    horizons: ['1m', '3m', '6m', '1y'],
+    assets: [
+      { id: 'MU', ticker: 'MU', theme: 'Memory & Storage', tier: 'A', crowding: 0.03, byHorizon: { '1m': { er: 0.06, sd: 0.16 }, '3m': { er: 0.14, sd: 0.28 }, '6m': { er: 0.22, sd: 0.39 }, '1y': { er: 0.34, sd: 0.55 } } },
+      { id: 'STX', ticker: 'STX', theme: 'Memory & Storage', tier: 'A', crowding: 0.02, byHorizon: { '1m': { er: 0.05, sd: 0.14 }, '3m': { er: 0.11, sd: 0.24 }, '6m': { er: 0.17, sd: 0.34 }, '1y': { er: 0.26, sd: 0.48 } } },
+      { id: 'ETN', ticker: 'ETN', theme: 'Grid & Electrical', tier: 'A', crowding: 0.04, byHorizon: { '1m': { er: 0.03, sd: 0.10 }, '3m': { er: 0.07, sd: 0.18 }, '6m': { er: 0.12, sd: 0.26 }, '1y': { er: 0.20, sd: 0.32 } } },
+      { id: 'GEV', ticker: 'GEV', theme: 'Grid & Electrical', tier: 'A', crowding: 0.06, byHorizon: { '1m': { er: 0.02, sd: 0.12 }, '3m': { er: 0.06, sd: 0.20 }, '6m': { er: 0.13, sd: 0.30 }, '1y': { er: 0.22, sd: 0.45 } } },
+      { id: 'CEG', ticker: 'CEG', theme: 'Power Gen & Nuclear', tier: 'A', crowding: 0.05, byHorizon: { '1m': { er: 0.02, sd: 0.13 }, '3m': { er: 0.05, sd: 0.22 }, '6m': { er: 0.11, sd: 0.33 }, '1y': { er: 0.19, sd: 0.44 } } },
+      { id: 'OKLO', ticker: 'OKLO', theme: 'Power Gen & Nuclear', tier: 'S', crowding: 0.14, byHorizon: { '1m': { er: 0.05, sd: 0.40 }, '3m': { er: 0.14, sd: 0.68 }, '6m': { er: 0.30, sd: 0.95 }, '1y': { er: 0.55, sd: 1.30 } } }
+    ]
+  };
+}
+
+/* ═══════════════════════ TP-06-01 ai-capex module authority + owner primitives ═══════════════════════ */
+
+test('TP-06-01 fundamental-models module exposes the delivered ai-capex adapter with no forbidden authority', () => {
+  const fm = loadFundamentalModels();
+  assert.ok(fm.supportedAdapterIds.includes('simple-adapter/ai-capex-portfolio/v1'), 'ai-capex-portfolio is a declared supported adapter');
+  const raw = readFileSync(new URL('../rlexperience-adapters/fundamental-models.js', import.meta.url), 'utf8');
+  // Strip comments so the scan targets real authority CALLS, not doc prose naming what it avoids.
+  const source = raw
+    .replace(/\/\*[\s\S]*?\*\//g, ' ')
+    .replace(/(^|[^:])\/\/[^\n]*/g, '$1');
+  const forbidden = [
+    /\bfetch\s*\(/,
+    /\bproviderFetch\s*\(/,
+    /\bRLDATA\b/,
+    /\blocalStorage\b/,
+    /\bsessionStorage\b/,
+    /\bindexedDB\b/,
+    /\bXMLHttpRequest\b/,
+    /\bimport\s*\(/,
+    /\bwriteFileSync\b/,
+    /data\/options/,
+    /data\/bars/,
+    /rlexperience-adapters\/(market-structure|options|macro-rotation|strategy-research|property-research|market-action)/
+  ];
+  for (const pattern of forbidden) {
+    assert.equal(pattern.test(source), false, `fundamental-models.js must not contain ${pattern}`);
+  }
+});
+
+test('TP-06-01 fundamental-models owner primitives pin the single-source lognormal band + CVaR formula', () => {
+  const fm = loadFundamentalModels();
+  // erf / normCdf / invNorm identities (A&S 7.1.26 erf carries ~1e-9 error at 0 — the same on the owner page).
+  assert.ok(Math.abs(fm.erf(0)) < 1e-6, 'erf(0) = 0');
+  assert.ok(Math.abs(fm.normCdf(0) - 0.5) < 1e-6, 'normCdf(0) = 0.5');
+  assert.ok(Math.abs(fm.invNorm(0.5)) < 1e-6, 'invNorm(0.5) ~ 0');
+  assert.ok(fm.invNorm(0.95) > 0 && fm.invNorm(0.05) < 0, 'invNorm is monotone about the median');
+  // bandStats: lognormal simple-return band with prob of a target, loss bounded at -100%.
+  const band = fm.bandStats(0.20, 0.35, 0.10);
+  assert.ok(band.lo < band.med && band.med < band.hi, 'band lo < median < hi');
+  assert.ok(band.lo >= -1, 'lower band bounded at -100%');
+  assert.ok(band.prob >= 0 && band.prob <= 1, 'target probability is in [0,1]');
+  const richer = fm.bandStats(0.40, 0.35, 0.10);
+  assert.ok(richer.prob > band.prob, 'a higher mean lifts the chance of clearing the target');
+  // cvarOf: expected shortfall (mean simple-return in the worst 5% tail) is a bounded loss.
+  const a = fm.cvarOf(0.15, 0.30, 0.05), b = fm.cvarOf(0.10, 0.50, 0.05);
+  assert.ok(a < 0 && b < 0, 'CVaR(5%) tail returns are losses (negative)');
+  assert.ok(a > -1 && b > -1, 'CVaR bounded at -100%');
+  assert.ok(b < a, 'higher volatility => deeper CVaR tail');
+});
+
+test('TP-06-01 ai-capex-strategy-lab.html single-sources erf/normCdf/invNorm/bandStats/cvarOf from fundamental-models.js', () => {
+  assert.match(AI_CAPEX_PAGE, /rlexperience-adapters\/fundamental-models\.js/, 'ai-capex page loads fundamental-models.js');
+  assert.match(AI_CAPEX_PAGE, /RLFUNDAMENTALS\.erf\s*\(/, 'ai-capex page delegates erf to the module');
+  assert.match(AI_CAPEX_PAGE, /RLFUNDAMENTALS\.normCdf\s*\(/, 'ai-capex page delegates normCdf to the module');
+  assert.match(AI_CAPEX_PAGE, /RLFUNDAMENTALS\.invNorm\s*\(/, 'ai-capex page delegates invNorm to the module');
+  assert.match(AI_CAPEX_PAGE, /RLFUNDAMENTALS\.bandStats\s*\(/, 'ai-capex page delegates bandStats to the module');
+  assert.match(AI_CAPEX_PAGE, /RLFUNDAMENTALS\.cvarOf\s*\(/, 'ai-capex page delegates cvarOf to the module');
+  // The single owner source lives in fundamental-models.js; the page must carry no inline copy.
+  assert.equal(/0\.3275911/.test(AI_CAPEX_PAGE), false, 'ai-capex page has no inline erf polynomial constant');
+  assert.equal(/2\.209460984245205e\+02/.test(AI_CAPEX_PAGE), false, 'ai-capex page has no inline invNorm coefficient');
+  assert.equal(/Math\.log\(base\) - s2 \/ 2/.test(AI_CAPEX_PAGE), false, 'ai-capex page has no inline bandStats/cvarOf lognormal fit');
+});
+
+/* ═══════════════════════ TP-06-01 ai-capex adapter runtime + owner parity ═══════════════════════ */
+
+test('TP-06-01 ai-capex-portfolio adapter registers through the production runtime and produces a ready owner run', async () => {
+  const api = loadProductionApi();
+  const fm = loadFundamentalModels();
+  const definition = definitionFor('ai-capex-strategy-lab');
+  const runtime = runtimeFor(api, definition);
+  const results = fm.registerFundamentalModelsAdapters(runtime, api, [definition]);
+  assert.equal(results['simple-adapter/ai-capex-portfolio/v1'].ok, true, JSON.stringify(results['simple-adapter/ai-capex-portfolio/v1'].error || {}));
+
+  const owner = aiCapexOwnerFixture();
+  const base = defaultValues(definition);
+  const prepared = requireValue(await runtime.prepare({
+    definitionId: definition.definitionId,
+    ownerContext: { ownerState: owner },
+    parameterValues: base,
+    seed: base.seed,
+    scenarioIds: ['baseline'],
+    computedAt: '2026-07-24T20:02:00.000Z'
+  }));
+  assert.equal(prepared.state, 'ready');
+  const summary = prepared.current.output.values.summary;
+  assert.equal(summary.horizon, '6m', 'default horizon is 6m');
+  assert.equal(summary.selectedTheme, 'Memory & Storage', 'selected owner theme is preserved');
+  assert.equal(summary.assetCount, 6, 'all six owner assets are scored');
+  assert.equal(summary.pricedCount, 6, 'all six owner assets are priced at the default horizon');
+  assert.ok(summary.distribution && typeof summary.distribution.median === 'number' && typeof summary.distribution.cvar === 'number', 'distribution carries a lognormal band + CVaR');
+  assert.ok(Array.isArray(summary.beneficiaries) && summary.beneficiaries.length === 3, 'beneficiaries carries the three owner themes');
+  assert.ok(summary.portfolio && Array.isArray(summary.portfolio.holdings) && summary.portfolio.holdings.length === 6, 'portfolio carries every priced holding');
+  assert.equal(prepared.current.output.provenance.evidenceIdentity, prepared.current.input.evidenceIdentity, 'evidence identity is bound');
+
+  // Owner parity: the distribution band + CVaR are the single-sourced RLFUNDAMENTALS primitives run
+  // directly on the portfolio's crowding/risk-adjusted mu/sigma (single source, no re-implementation).
+  const port = fm.computeAiCapexPortfolio(owner, base);
+  const band = fm.bandStats(port.muAdj, port.sdAdj, port.target);
+  assert.equal(summary.distribution.median, Math.round(band.med * 1e6) / 1e6, 'distribution median is single-sourced from bandStats');
+  assert.equal(summary.distribution.lo, Math.round(band.lo * 1e6) / 1e6, 'distribution lo parity');
+  assert.equal(summary.distribution.hi, Math.round(band.hi * 1e6) / 1e6, 'distribution hi parity');
+  assert.equal(summary.distribution.cvar, Math.round(fm.cvarOf(port.muAdj, port.sdAdj, 0.05) * 1e6) / 1e6, 'distribution CVaR is single-sourced from cvarOf');
+});
+
+test('TP-06-01 each enabled ai-capex-portfolio parameter changes its declared output path', async () => {
+  const api = loadProductionApi();
+  const fm = loadFundamentalModels();
+  const definition = definitionFor('ai-capex-strategy-lab');
+  const runtime = runtimeFor(api, definition);
+  fm.registerFundamentalModelsAdapters(runtime, api, [definition]);
+  const base = defaultValues(definition);
+  await runtime.prepare({
+    definitionId: definition.definitionId,
+    ownerContext: { ownerState: aiCapexOwnerFixture() },
+    parameterValues: base,
+    seed: base.seed,
+    scenarioIds: ['baseline'],
+    computedAt: '2026-07-24T20:02:00.000Z'
+  });
+
+  const cases = [
+    ['horizon', '1y', 'summary.distribution'],
+    ['theme-weight', 0.9, 'summary.beneficiaries'],
+    ['crowding-penalty', 0.8, 'summary.distribution'],
+    ['risk-damper', 0.8, 'summary.distribution'],
+    ['correlation-ceiling', 0.4, 'summary.portfolio'],
+    ['objective', 'return', 'summary.portfolio']
+  ];
+  for (const [parameterId, value, path] of cases) {
+    const run = requireValue(await runtime.recompute({
+      parameterValues: { ...base, [parameterId]: value },
+      seed: base.seed,
+      scenarioIds: ['baseline'],
+      computedAt: '2026-07-24T20:03:00.000Z'
+    }));
+    assert.deepEqual(run.changedParameters, [parameterId], `changed ${parameterId}`);
+    const effect = run.sensitivity.effects.find((entry) => entry.parameterId === parameterId);
+    assert.ok(effect, `sensitivity effect present for ${parameterId}`);
+    assert.equal(effect.outputChanged, true, `${parameterId} must change ${path}`);
+    assert.deepEqual(effect.resultPaths, [path], `${parameterId} declared path`);
+    // Restore baseline for the next isolated one-at-a-time change.
+    await runtime.recompute({ parameterValues: { ...base }, seed: base.seed, scenarioIds: ['baseline'], computedAt: '2026-07-24T20:03:30.000Z' });
+  }
+});
+
+test('TP-06-01 ai-capex-portfolio compute is deterministic for one compute identity', async () => {
+  const api = loadProductionApi();
+  const fm = loadFundamentalModels();
+  const definition = definitionFor('ai-capex-strategy-lab');
+  const runtime = runtimeFor(api, definition);
+  fm.registerFundamentalModelsAdapters(runtime, api, [definition]);
+  const base = defaultValues(definition);
+  const first = requireValue(await runtime.prepare({
+    definitionId: definition.definitionId,
+    ownerContext: { ownerState: aiCapexOwnerFixture() },
+    parameterValues: base,
+    seed: base.seed,
+    scenarioIds: ['baseline'],
+    computedAt: '2026-07-24T20:02:00.000Z'
+  }));
+  const again = requireValue(await runtime.recompute({
+    parameterValues: { ...base },
+    seed: base.seed,
+    scenarioIds: ['baseline'],
+    computedAt: '2026-07-24T20:02:30.000Z'
+  }));
+  assert.equal(
+    api.fingerprint(first.current.output.values.summary),
+    api.fingerprint(again.current.output.values.summary),
+    'identical inputs => identical owner summary'
+  );
+});
+
 test('TP-06-01 etf-ranking compute is deterministic for one compute identity', async () => {
   const api = loadProductionApi();
   const mr = loadMacroRotation();

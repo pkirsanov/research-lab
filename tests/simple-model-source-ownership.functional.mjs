@@ -271,7 +271,14 @@ function loadMacroRotation() {
   return require(path);
 }
 
+function loadFundamentalModels() {
+  const path = require.resolve('../rlexperience-adapters/fundamental-models.js');
+  delete require.cache[path];
+  return require(path);
+}
+
 const MACRO_ROTATION_RAW = readSource('../rlexperience-adapters/macro-rotation.js');
+const FUNDAMENTAL_MODELS_RAW = readSource('../rlexperience-adapters/fundamental-models.js');
 
 function sectorRsSeries(slope, wobble, tilt) {
   const out = [];

@@ -639,6 +639,12 @@ function loadMacroRotation() {
   return require(path);
 }
 
+function loadFundamentalModels() {
+  const path = require.resolve('../rlexperience-adapters/fundamental-models.js');
+  delete require.cache[path];
+  return require(path);
+}
+
 const SCOPE6_MODULES = ['rlexperience-adapters/macro-rotation.js', 'rlexperience-adapters/fundamental-models.js'];
 
 function scope6Definitions() {
@@ -650,8 +656,15 @@ function scope6Definitions() {
 /* Register the DELIVERED Scope-06 adapters through their production factories. A tool whose owner
    seam is not yet extracted is simply absent (the factory returns only implemented adapters), so
    the registered set equals the module's supportedAdapterIds — the honest delivered set. */
-function registerScope6(runtime, api, mr, definitions) {
-  return mr.registerMacroRotationAdapters(runtime, api, definitions);
+function registerScope6(runtime, api, mr, fm, definitions) {
+  // Register both delivered Scope-06 modules; each factory registers only the adapters it implements
+  // (a tool whose owner seam is not yet extracted is honestly absent), so the union equals the
+  // combined supportedAdapterIds — the honest delivered set across macro-rotation + fundamental-models.
+  return Object.assign(
+    {},
+    mr.registerMacroRotationAdapters(runtime, api, definitions),
+    fm.registerFundamentalModelsAdapters(runtime, api, definitions)
+  );
 }
 
 /* sector-rotation owner fixture (verbatim from the unit suite): distinct trend/wobble per sector so
@@ -783,7 +796,32 @@ function etfOwnerFixture() {
   };
 }
 
-function makeScope6Descriptors(mr) {
+/* ai-capex-portfolio owner fixture (verbatim from the unit suite): distinct per-horizon {er, sd} per
+   asset so horizon moves the distribution band, a selectedTheme so theme-weight moves the beneficiary
+   distribution, distinct non-zero crowding so the crowding penalty moves the distribution mean, a
+   within-theme/cross-theme correlation pair so the correlation ceiling moves the portfolio sigma, and
+   an er/sd spread that separates the objective weightings so the objective moves the portfolio. */
+function aiCapexOwnerFixture() {
+  return {
+    contractVersion: 'ai-capex-portfolio-owner-state/v1',
+    toolId: 'ai-capex-strategy-lab',
+    asOf: '2026-07-24T20:00:00.000Z',
+    source: 'test-owner cache snapshot',
+    selectedTheme: 'Memory & Storage',
+    correlation: { intra: 0.72, inter: 0.40 },
+    horizons: ['1m', '3m', '6m', '1y'],
+    assets: [
+      { id: 'MU', ticker: 'MU', theme: 'Memory & Storage', tier: 'A', crowding: 0.03, byHorizon: { '1m': { er: 0.06, sd: 0.16 }, '3m': { er: 0.14, sd: 0.28 }, '6m': { er: 0.22, sd: 0.39 }, '1y': { er: 0.34, sd: 0.55 } } },
+      { id: 'STX', ticker: 'STX', theme: 'Memory & Storage', tier: 'A', crowding: 0.02, byHorizon: { '1m': { er: 0.05, sd: 0.14 }, '3m': { er: 0.11, sd: 0.24 }, '6m': { er: 0.17, sd: 0.34 }, '1y': { er: 0.26, sd: 0.48 } } },
+      { id: 'ETN', ticker: 'ETN', theme: 'Grid & Electrical', tier: 'A', crowding: 0.04, byHorizon: { '1m': { er: 0.03, sd: 0.10 }, '3m': { er: 0.07, sd: 0.18 }, '6m': { er: 0.12, sd: 0.26 }, '1y': { er: 0.20, sd: 0.32 } } },
+      { id: 'GEV', ticker: 'GEV', theme: 'Grid & Electrical', tier: 'A', crowding: 0.06, byHorizon: { '1m': { er: 0.02, sd: 0.12 }, '3m': { er: 0.06, sd: 0.20 }, '6m': { er: 0.13, sd: 0.30 }, '1y': { er: 0.22, sd: 0.45 } } },
+      { id: 'CEG', ticker: 'CEG', theme: 'Power Gen & Nuclear', tier: 'A', crowding: 0.05, byHorizon: { '1m': { er: 0.02, sd: 0.13 }, '3m': { er: 0.05, sd: 0.22 }, '6m': { er: 0.11, sd: 0.33 }, '1y': { er: 0.19, sd: 0.44 } } },
+      { id: 'OKLO', ticker: 'OKLO', theme: 'Power Gen & Nuclear', tier: 'S', crowding: 0.14, byHorizon: { '1m': { er: 0.05, sd: 0.40 }, '3m': { er: 0.14, sd: 0.68 }, '6m': { er: 0.30, sd: 0.95 }, '1y': { er: 0.55, sd: 1.30 } } }
+    ]
+  };
+}
+
+function makeScope6Descriptors(mr, fm) {
   return {
     'sector-research-lab': {
       ownerState: () => sectorOwnerFixture(),
@@ -889,6 +927,26 @@ function makeScope6Descriptors(mr) {
         ['weighting', 'equal'],
         ['max-constituent-weight', 0.5]
       ]
+    },
+    'ai-capex-strategy-lab': {
+      ownerState: () => aiCapexOwnerFixture(),
+      base: (definition) => defaultValues(definition),
+      ownerFact: ({ summary, owner, base }) => {
+        // Owner parity: the distribution band + CVaR are the single-sourced RLFUNDAMENTALS primitives
+        // run directly on the portfolio's crowding/risk-adjusted mu/sigma (single source, no re-impl).
+        const port = fm.computeAiCapexPortfolio(owner, base);
+        const band = fm.bandStats(port.muAdj, port.sdAdj, port.target);
+        assert.equal(summary.distribution.median, Math.round(band.med * 1e6) / 1e6, 'distribution median is single-sourced from bandStats');
+        assert.equal(summary.distribution.cvar, Math.round(fm.cvarOf(port.muAdj, port.sdAdj, 0.05) * 1e6) / 1e6, 'distribution CVaR is single-sourced from cvarOf');
+      },
+      cases: () => [
+        ['horizon', '1y'],
+        ['theme-weight', 0.9],
+        ['crowding-penalty', 0.8],
+        ['risk-damper', 0.8],
+        ['correlation-ceiling', 0.4],
+        ['objective', 'return']
+      ]
     }
   };
 }
@@ -899,11 +957,14 @@ function makeScope6Descriptors(mr) {
 async function exerciseScope6Adapter(runtime, api, definition, descriptor) {
   const owner = descriptor.ownerState();
   const base = descriptor.base(definition);
+  // Seeded-resampling definitions (e.g. ai-capex) require an explicit integer seed matching the seed
+  // parameter; deterministic definitions (randomnessClass "none") require a null seed.
+  const seedArg = (definition.seedPolicy && definition.seedPolicy.required) ? base.seed : null;
   const prepared = requireValue(await runtime.prepare({
     definitionId: definition.definitionId,
     ownerContext: { ownerState: owner },
     parameterValues: base,
-    seed: null,
+    seed: seedArg,
     scenarioIds: ['baseline'],
     computedAt: '2026-07-25T20:02:00.000Z'
   }));
@@ -924,7 +985,7 @@ async function exerciseScope6Adapter(runtime, api, definition, descriptor) {
     const declaredPaths = paramDef.affectsOutputPaths;
     const run = requireValue(await runtime.recompute({
       parameterValues: { ...base, [parameterId]: value },
-      seed: null,
+      seed: seedArg,
       scenarioIds: ['baseline'],
       computedAt: '2026-07-25T20:03:00.000Z'
     }));
@@ -933,29 +994,31 @@ async function exerciseScope6Adapter(runtime, api, definition, descriptor) {
     assert.ok(effect, `${definition.toolId} sensitivity effect present for ${parameterId}`);
     assert.equal(effect.outputChanged, true, `${definition.toolId} ${parameterId} moves ${declaredPaths.join(',')}`);
     assert.deepEqual(effect.resultPaths, declaredPaths, `${definition.toolId} ${parameterId} resultPaths == definition.affectsOutputPaths`);
-    await runtime.recompute({ parameterValues: { ...base }, seed: null, scenarioIds: ['baseline'], computedAt: '2026-07-25T20:03:30.000Z' });
+    await runtime.recompute({ parameterValues: { ...base }, seed: seedArg, scenarioIds: ['baseline'], computedAt: '2026-07-25T20:03:30.000Z' });
   }
 }
 
 test('TP-06-02 macro rotation and fundamental adapters: registry-derived loop runs the delivered Scope-06 set at owner-parity with real parameter effects', async () => {
   const api = loadProductionApi();
   const mr = loadMacroRotation();
+  const fm = loadFundamentalModels();
 
   const definitions = scope6Definitions();
   assert.equal(definitions.length, 8, 'all eight Scope-06 definitions are declared in the registry');
 
   const runtime = makeRuntime(api, definitions);
-  const results = registerScope6(runtime, api, mr, definitions);
+  const results = registerScope6(runtime, api, mr, fm, definitions);
 
-  // Registry-derived membership: the registered Scope-06 set is EXACTLY the module's delivered
+  // Registry-derived membership: the registered Scope-06 set is EXACTLY the combined delivered
   // supportedAdapterIds (a tool whose owner seam is not yet extracted is honestly absent).
   const registeredAdapterIds = Object.keys(results).sort();
-  assert.deepEqual(registeredAdapterIds, mr.supportedAdapterIds.slice().sort(), 'registered Scope-06 adapters == macro-rotation supportedAdapterIds (delivered set)');
+  const deliveredAdapterIds = [...mr.supportedAdapterIds, ...fm.supportedAdapterIds].slice().sort();
+  assert.deepEqual(registeredAdapterIds, deliveredAdapterIds, 'registered Scope-06 adapters == macro-rotation + fundamental-models supportedAdapterIds (delivered set)');
   for (const adapterId of registeredAdapterIds) {
     assert.equal(results[adapterId].ok, true, `${adapterId} registered: ${JSON.stringify(results[adapterId].error || {})}`);
   }
 
-  const descriptors = makeScope6Descriptors(mr);
+  const descriptors = makeScope6Descriptors(mr, fm);
   for (const definition of definitions) {
     if (!registeredAdapterIds.includes(definition.adapterId)) continue; // not yet delivered
     const descriptor = descriptors[definition.toolId];
@@ -970,6 +1033,7 @@ test('TP-06-02 macro rotation and fundamental adapters: Scope 05 adapter set and
   const opts = loadOptions();
   const rlvol = loadRlvol();
   const mr = loadMacroRotation();
+  const fm = loadFundamentalModels();
 
   // Scope 05 supportedAdapterIds are byte-unchanged (no Scope-06 edit leaked into the Scope-05 modules).
   assert.deepEqual(ms.supportedAdapterIds.slice().sort(), ['simple-adapter/conditional-volatility/v1', 'simple-adapter/market-breadth/v1', 'simple-adapter/session-auction/v1', 'simple-adapter/swing-transition/v1', 'simple-adapter/technical-five-gate/v1'], 'market-structure supportedAdapterIds unchanged (5)');
@@ -998,7 +1062,7 @@ test('TP-06-02 macro rotation and fundamental adapters: Scope 05 adapter set and
   // Scope 05 breadth + Scope 06 sector-rotation in ONE shared runtime.
   const runtimeShared = makeRuntime(api, [breadthDefinition, sectorDefinition]);
   ms.registerMarketStructureAdapters(runtimeShared, api, [breadthDefinition], { rlvol });
-  const sharedResults = registerScope6(runtimeShared, api, mr, [sectorDefinition]);
+  const sharedResults = registerScope6(runtimeShared, api, mr, fm, [sectorDefinition]);
   assert.equal(sharedResults['simple-adapter/sector-rotation-transition/v1'].ok, true, 'sector-rotation registers alongside Scope 05 in one runtime');
   const fingerprintShared = await breadthFingerprint(runtimeShared);
 

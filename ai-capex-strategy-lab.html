@@ -1602,41 +1602,20 @@
     </div>
   </div>
 
+  <!-- Feature 012 Scope 06: the lognormal band + CVaR distribution/risk primitives are single-sourced
+       to rlexperience-adapters/fundamental-models.js (RLFUNDAMENTALS). This Power page and the
+       registered ai-capex Simple adapter consume the exact same owner functions — no inline copy. -->
+  <script src="rlexperience-adapters/fundamental-models.js"></script>
   <script>
     "use strict";
-    /* ---------------- math helpers ---------------- */
-    function erf(x) {
-      var s = x < 0 ? -1 : 1; x = Math.abs(x); var t = 1 / (1 + 0.3275911 * x);
-      var y = 1 - (((((1.061405429 * t - 1.453152027) * t) + 1.421413741) * t - 0.284496736) * t + 0.254829592) * t * Math.exp(-x * x);
-      return s * y;
-    }
-    function normCdf(x) { return 0.5 * (1 + erf(x / Math.SQRT2)); }
-    function invNorm(p) {
-      if (p <= 0) return -38; if (p >= 1) return 38;
-      var a = [-3.969683028665376e+01, 2.209460984245205e+02, -2.759285104469687e+02, 1.383577518672690e+02, -3.066479806614716e+01, 2.506628277459239e+00];
-      var b = [-5.447609879822406e+01, 1.615858368580409e+02, -1.556989798598866e+02, 6.680131188771972e+01, -1.328068155288572e+01];
-      var c = [-7.784894002430293e-03, -3.223964580411365e-01, -2.400758277161838e+00, -2.549732539343734e+00, 4.374664141464968e+00, 2.938163982698783e+00];
-      var d = [7.784695709041462e-03, 3.224671290700398e-01, 2.445134137142996e+00, 3.754408661907416e+00];
-      var pl = 0.02425, ph = 1 - pl, q, r;
-      if (p < pl) { q = Math.sqrt(-2 * Math.log(p)); return (((((c[0] * q + c[1]) * q + c[2]) * q + c[3]) * q + c[4]) * q + c[5]) / ((((d[0] * q + d[1]) * q + d[2]) * q + d[3]) * q + 1); }
-      if (p <= ph) { q = p - 0.5; r = q * q; return (((((a[0] * r + a[1]) * r + a[2]) * r + a[3]) * r + a[4]) * r + a[5]) * q / (((((b[0] * r + b[1]) * r + b[2]) * r + b[3]) * r + b[4]) * r + 1); }
-      q = Math.sqrt(-2 * Math.log(1 - p)); return -(((((c[0] * q + c[1]) * q + c[2]) * q + c[3]) * q + c[4]) * q + c[5]) / ((((d[0] * q + d[1]) * q + d[2]) * q + d[3]) * q + 1);
-    }
-    // Lognormal simple-return model fitted to (mu,sd): loss bounded at -100%, fat upside.
-    function bandStats(mu, sd, target) {
-      var base = Math.max(1 + mu, 0.02);
-      var s2 = Math.max(Math.log(1 + (sd * sd) / (base * base)), 1e-9);
-      var s = Math.sqrt(s2), m = Math.log(base) - s2 / 2;
-      function q(pp) { return Math.exp(m + s * invNorm(pp)) - 1; }
-      var tgt = (target == null ? 0 : target);
-      var prob = tgt <= -0.999 ? 1 : 1 - normCdf((Math.log(1 + tgt) - m) / s);
-      return { lo: Math.max(-1, q(0.05)), hi: q(0.95), prob: clamp(prob, 0, 1), med: Math.exp(m) - 1 };
-    }
-    /* lognormal expected shortfall (CVaR): mean simple-return in the worst `alpha` tail — a tail-risk measure variance ignores (negative = loss) */
-    function cvarOf(mu, sd, alpha) {
-      var base = Math.max(1 + mu, 0.02), s2 = Math.max(Math.log(1 + (sd * sd) / (base * base)), 1e-9), s = Math.sqrt(s2), m = Math.log(base) - s2 / 2;
-      alpha = alpha || 0.05; var steps = 20, sum = 0; for (var i = 1; i <= steps; i++) { var pp = alpha * (i - 0.5) / steps; sum += Math.exp(m + s * invNorm(pp)) - 1; } return Math.max(-1, sum / steps);
-    }
+    /* ---------------- math helpers (single-sourced to RLFUNDAMENTALS) ---------------- */
+    function erf(x) { return RLFUNDAMENTALS.erf(x); }
+    function normCdf(x) { return RLFUNDAMENTALS.normCdf(x); }
+    function invNorm(p) { return RLFUNDAMENTALS.invNorm(p); }
+    // Lognormal simple-return model fitted to (mu,sd): loss bounded at -100%, fat upside. Single-sourced to RLFUNDAMENTALS.
+    function bandStats(mu, sd, target) { return RLFUNDAMENTALS.bandStats(mu, sd, target); }
+    /* lognormal expected shortfall (CVaR): mean simple-return in the worst `alpha` tail — a tail-risk measure variance ignores (negative = loss). Single-sourced to RLFUNDAMENTALS. */
+    function cvarOf(mu, sd, alpha) { return RLFUNDAMENTALS.cvarOf(mu, sd, alpha); }
     /* log-return matrix from a {tk: closes[]} map, trimmed to a common recent length */
     function alignReturns(hist, tickers) {
       var cols = [], tks = [];

@@ -465,13 +465,18 @@ try {
   assert(RLMR.etfCompositeScore(simpleStrong, '6M', 'raw') === 0.24, 'Simple ETF raw mode preserves the selected momentum signal');
 } catch (e) { failures++; console.log('  \u2717 FAIL (etf group threw): ' + e.message); }
 
-/* ---------- AI-Capex: CVaR tail-risk ---------- */
+/* ---------- AI-Capex: CVaR tail-risk (single-sourced to RLFUNDAMENTALS) ---------- */
 try {
   group('ai-capex-strategy-lab.html \u2014 CVaR expected shortfall');
+  // Feature 012 Scope 06: the lognormal invNorm/CVaR tail-risk primitives are single-sourced to
+  // rlexperience-adapters/fundamental-models.js (RLFUNDAMENTALS); the page delegates and carries no
+  // inline copy, so the tail-risk math is tested against the single-source module, not the page.
   const src = read('ai-capex-strategy-lab.html');
-  const names = ['invNorm', 'cvarOf'];
-  const env = build(names.map((n) => extractFn(src, n)), names);
-  const a = env.cvarOf(0.15, 0.30, 0.05), b = env.cvarOf(0.10, 0.50, 0.05), c = env.cvarOf(0.03, 0.20, 0.05);
+  const cvarReq = (await import('node:module')).createRequire(import.meta.url);
+  delete cvarReq.cache[cvarReq.resolve('../rlexperience-adapters/fundamental-models.js')];
+  const RLF = cvarReq('../rlexperience-adapters/fundamental-models.js');
+  assert(/RLFUNDAMENTALS\.invNorm\s*\(/.test(src) && /RLFUNDAMENTALS\.cvarOf\s*\(/.test(src), 'ai-capex page single-sources invNorm/cvarOf to RLFUNDAMENTALS (no inline tail-risk copy)');
+  const a = RLF.cvarOf(0.15, 0.30, 0.05), b = RLF.cvarOf(0.10, 0.50, 0.05), c = RLF.cvarOf(0.03, 0.20, 0.05);
   assert(a < 0 && b < 0 && c < 0, 'CVaR(5%) returns are negative (losses)');
   assert(a > -1 && b > -1 && c > -1, 'CVaR bounded at -100%');
   assert(b < a, 'higher vol => deeper CVaR tail (sigma .5 worse than .3)');

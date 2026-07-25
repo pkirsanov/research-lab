@@ -9,11 +9,13 @@ modules. This dispatch delivered the FIRST macro-rotation adapter — `sector-ro
 (`sector-research-lab`) — at genuine owner-parity, single-sourced from the start, and wired into the
 registry loop, the source-ownership canaries, and the broad selftest.
 
-- **Delivered + verified: 5 of 8** — `sector-rotation-transition/v1` (dispatch 1),
+- **Delivered + verified: 6 of 8** — `sector-rotation-transition/v1` (dispatch 1),
   `country-rotation/v1` (dispatch 2), `real-asset-driver/v1` (dispatch 3),
-  `fixed-income-sleeve/v1` (dispatch 4), and `etf-ranking/v1` (dispatch 5, this dispatch). The
-  module's `supportedAdapterIds` now lists exactly these five, so the registry loop drives the
-  delivered set of five and the remaining three (`ai-capex-portfolio`, `msft-margin-eps`,
+  `fixed-income-sleeve/v1` (dispatch 4), and `etf-ranking/v1` (dispatch 5) in `macro-rotation.js`,
+  plus `ai-capex-portfolio/v1` (dispatch 6, this dispatch) — the first `fundamental-models.js`
+  adapter. `macro-rotation.js` `supportedAdapterIds` lists the five macro adapters and
+  `fundamental-models.js` `supportedAdapterIds` lists exactly `ai-capex-portfolio/v1`, so the
+  registry loop drives the delivered set of six and the remaining two (`msft-margin-eps`,
   `company-scenario-bridge` in `fundamental-models.js`) are honestly absent.
 - New module `rlexperience-adapters/macro-rotation.js` is the SINGLE OWNER SOURCE for the sector RRG
   normalization (`rollZ100`), the RRG quadrant (`rrgQuadrant`), the state label (`stateLabel`), the
@@ -43,7 +45,7 @@ registry loop, the source-ownership canaries, and the broad selftest.
 
 ## Completion Statement
 
-Scope 06 is NOT complete. 5 of 8 adapters are delivered and verified. Scope `status` remains
+Scope 06 is NOT complete. 6 of 8 adapters are delivered and verified. Scope `status` remains
 `in_progress`; feature `status` remains `not_started`; `certifiedAt` remains null.
 
 ## Code Diff Evidence
@@ -374,6 +376,62 @@ Remaining 7 adapters: not yet covered (undelivered).
   edited `.mjs` test files (parse-verified after every edit).
 - `git diff --check` clean (no whitespace errors) on all Scope 06 files. Exit Code: 0.
 - Editor diagnostics: No errors found on the new module and all edited test files.
+
+## Adapter 6 of 8 — ai-capex-portfolio/v1 (ai-capex-strategy-lab) — this dispatch
+
+Phase: implement. Claim Source: executed (current session). This dispatch completed the cut-off
+`ai-capex-portfolio/v1` delivery by reconciling the broad selftest to the new single source and
+verifying the full green tree.
+
+**Owner seam + single-source.** `rlexperience-adapters/fundamental-models.js` is the new SINGLE OWNER
+SOURCE for the lognormal distribution/risk primitives (`erf`, `normCdf`, `invNorm`, `bandStats`,
+`cvarOf`); `ai-capex-strategy-lab.html` DELEGATES all five to `RLFUNDAMENTALS.*` through thin one-line
+delegators and carries no inline copy, so the Power page and the registered
+`simple-adapter/ai-capex-portfolio/v1` share exactly one formula. The adapter's
+beneficiary/objective/correlation-ceiling projection is adapter normalization over a FROZEN owner
+snapshot (no fetch / providerFetch / storage / LLM / publisher / store; imports no other domain
+adapter; missing per-horizon facts stay unpriced, never defaulted). Comment-stripped executable
+forbidden-authority hits in `fundamental-models.js` = 0; `rldata.js` and `rlexperience.js` are
+byte-unchanged (0 diff).
+
+**Selftest single-source reconciliation (the cut-off item completed this dispatch).** The broad selftest
+group `ai-capex-strategy-lab.html — CVaR expected shortfall` previously `extractFn`'d `invNorm`/`cvarOf`
+straight out of the page; because the page now delegates to `RLFUNDAMENTALS`, the extracted code threw
+`RLFUNDAMENTALS is not defined` (879 passed / 1 failed). The group was reconciled to load the module via
+`createRequire` (mirroring the `RLMACROROTATION` / `RLMARKETSTRUCTURE` module-backed groups) and test
+`cvarOf` against the single source, plus a single-source hook asserting the page references
+`RLFUNDAMENTALS.invNorm(` / `RLFUNDAMENTALS.cvarOf(`. Every original invariant is preserved verbatim
+(CVaR negativity, −100% bound, vol-monotonicity). The `shrinkage covariance` group was intentionally
+left unchanged: its `alignReturns` / `ledoitWolf` are page-owned Power-only helpers the adapter never
+consumes and are NOT single-sourced, so that group correctly still extracts and tests them from the
+page (it was already green).
+
+### TP-06-12 ai-capex — Broad regression selftest (`node scripts/selftest.mjs`)
+
+Was 879 passed / 1 failed; after reconciliation it is 883 passed / 0 failed (the CVaR group's four
+assertions now run and pass, −1 failure). `node --check scripts/selftest.mjs` exit 0. Exit Code: 0.
+
+```text
+================================================
+Research-Lab self-test: 883 passed, 0 failed
+================================================
+SELFTEST_EXIT=0
+```
+
+### TP-06-01/02/03 ai-capex — delivered-set unit / integration / functional (green)
+
+The delivered-set suites (which now include the ai-capex-portfolio adapter and the
+`fundamental-models.js` comment-stripped forbidden-authority scan) are green in-session:
+
+```text
+tests/simple-model-adapters-macro-fundamental.unit.mjs   # tests 38  # pass 38  # fail 0
+tests/simple-model-adapters.integration.mjs              # tests 5   # pass 5   # fail 0
+tests/simple-model-source-ownership.functional.mjs       # tests 17  # pass 17  # fail 0
+```
+
+**Running total: 6 of 8.** Scope stays `in_progress`. Next required: `msft-margin-eps/v1` then
+`company-scenario-bridge/v1` (both `fundamental-models.js`), then the persistent E2E rows
+TP-06-04..TP-06-11.
 
 ## Spot-Check Recommendations
 

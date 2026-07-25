@@ -2922,7 +2922,14 @@ try {
   const scope6Payload = JSON.parse(read('market-brief.payload.json'));
   const scope6CoverageIds = scope6Payload.toolCoverage.map((entry) => entry.id);
   const scope6Coverage = scope6Payload.toolCoverage.filter((entry) => entry.id === 'company-fundamentals-lab');
-  assert(JSON.stringify(scope6CoverageIds) === JSON.stringify(scope6RegistryIds) && scope6Coverage.length === 1 && scope6Coverage[0].deepLink === scope6Tool.file && scope6Coverage[0].status === 'fresh-headless' && scope6Coverage[0].reason.includes('company-fundamentals-owner-v1') && scope6Coverage[0].reason.includes('no recommendation is fabricated'), 'Feature 010 Scope 6 keeps exact registry-wide toolCoverage parity with one hash-verified company owner-read entry');
+  // market-brief.payload.json is a per-window automation output (cron auto-refresh + Tier-B narrative, 4x/day). The
+  // owner-read coverage status legitimately varies per window between the deterministic Tier-A view ('fresh-headless',
+  // brief-refresh.mjs buildToolCoverage) and the Tier-B narrative "read-was-consumed" view ('analyzed', authored per
+  // brief-narrative-parallel.mjs). Pinning ONE value was a brittle canary; assert membership in the documented
+  // consumed-owner-read status set instead — both values still prove the hash-verified owner read was consumed this
+  // window, while a skipped/irrelevant/stale status (not-analyzed/not-relevant/stale) would correctly fail.
+  const scope6OwnerReadStatuses = ['fresh-headless', 'analyzed'];
+  assert(JSON.stringify(scope6CoverageIds) === JSON.stringify(scope6RegistryIds) && scope6Coverage.length === 1 && scope6Coverage[0].deepLink === scope6Tool.file && scope6OwnerReadStatuses.includes(scope6Coverage[0].status) && scope6Coverage[0].reason.includes('company-fundamentals-owner-v1') && scope6Coverage[0].reason.includes('no recommendation is fabricated'), 'Feature 010 Scope 6 keeps exact registry-wide toolCoverage parity with one hash-verified company owner-read entry');
 } catch (e) { failures++; console.log('  ✗ FAIL (Feature 010 Scope 6 group threw): ' + e.message); }
 /* FEATURE-010-COMPANY-FUNDAMENTALS-SCOPE6-END */
 

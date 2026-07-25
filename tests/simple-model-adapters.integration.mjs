@@ -715,6 +715,29 @@ function countryOwnerFixture() {
   };
 }
 
+/* real-asset-driver owner fixture (verbatim from the unit suite): the selected asset carries a
+   distinct owner score / volatility / drawdown so the volatility-penalty moves summary.score and the
+   drawdown-limit moves summary.riskState, the universe driver deltas are non-zero and mid-range so the
+   USD / rate / risk shocks each move summary.driverState, and the frozen commodity-breadth returns
+   straddle zero so the single-sourced realBreadthPct moves summary.confirmation with the threshold. */
+function realAssetOwnerFixture() {
+  return {
+    contractVersion: 'real-asset-driver-owner-state/v1',
+    toolId: 'real-assets-lab',
+    asOf: '2026-07-24T20:00:00.000Z',
+    source: 'test-owner cache snapshot',
+    benchmark: 'DBC',
+    selected: 'GLD',
+    drivers: { uup63: -3, tlt63: 5, tip63: 7, qqq63: 8, xle63: 4, xli63: 3, dbc63: 2, gld63: 6, btc63: 12, goldSilverRatio63: -4 },
+    breadthReturns: [8, -3, 5, -1, 6, -2],
+    assets: [
+      { id: 'GLD', label: 'Gold', model: 'gold', trendScore: 70, volatility: 16, drawdown: 8, ownerScore: 68, riskPenalty: 3 },
+      { id: 'BTC-USD', label: 'Bitcoin', model: 'bitcoin', trendScore: 62, volatility: 48, drawdown: 22, ownerScore: 55, riskPenalty: 9 },
+      { id: 'DBC', label: 'Broad commodities', model: 'broad', trendScore: 54, volatility: 22, drawdown: 12, ownerScore: 50, riskPenalty: 5 }
+    ]
+  };
+}
+
 function makeScope6Descriptors(mr) {
   return {
     'sector-research-lab': {
@@ -757,6 +780,23 @@ function makeScope6Descriptors(mr) {
         ['local-close-max-age', 6],
         ['volatility-penalty', 0.5],
         ['diversification-weight', 0.5]
+      ]
+    },
+    'real-assets-lab': {
+      ownerState: () => realAssetOwnerFixture(),
+      base: (definition) => defaultValues(definition),
+      ownerFact: ({ summary, owner }) => {
+        // Owner parity: the confirmation breadth equals the single-sourced module breadth primitive
+        // run directly on the frozen commodity-breadth returns (single source, no re-implementation).
+        assert.equal(summary.confirmation.breadth, Math.round(mr.realBreadthPct(owner.breadthReturns) * 1e4) / 1e4, 'confirmation breadth is single-sourced from realBreadthPct');
+      },
+      cases: () => [
+        ['usd-shock', 6],
+        ['rate-shock', 120],
+        ['risk-appetite', 0.6],
+        ['volatility-penalty', 0.6],
+        ['drawdown-limit', 6],
+        ['breadth-threshold', 50]
       ]
     }
   };

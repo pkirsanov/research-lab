@@ -501,3 +501,93 @@ test('SCN-012-035 macro and fundamental source qualification: a country with no 
   assert.equal(ewgFresh.state, 'stale', 'the unavailable country still reports its honest frozen local-close staleness (40h > 24h default)');
   assert.deepEqual(prepared.current.output.provenance.classes, ['observed-fact', 'model-estimate'], 'partial owner coverage is declared, not hidden');
 });
+
+test('SCN-012-035 macro and fundamental source qualification: the delivered real-asset-driver adapter performs zero fetch/provider/storage and preserves the frozen owner clock', async () => {
+  const api = loadProductionApi();
+  const mr = loadMacroRotation();
+  const definition = clone(readJson('simple-models.json').definitions.find((d) => d.toolId === 'real-assets-lab'));
+  const config = readJson('tool-experience.config.json');
+  const runtime = requireValue(api.createSimpleRuntime(config, { contractVersion: 'simple-model-registry/v1', definitions: [definition] }));
+  mr.registerMacroRotationAdapters(runtime, api, [definition]);
+
+  const owner = {
+    contractVersion: 'real-asset-driver-owner-state/v1', toolId: 'real-assets-lab', asOf: '2026-07-24T20:00:00.000Z',
+    source: 'pages-snapshot cache', benchmark: 'DBC', selected: 'GLD',
+    drivers: { uup63: -3, tlt63: 5, tip63: 7, qqq63: 8, xle63: 4, xli63: 3, dbc63: 2, gld63: 6, btc63: 12, goldSilverRatio63: -4 },
+    breadthReturns: [8, -3, 5, -1, 6, -2],
+    assets: [
+      { id: 'GLD', label: 'Gold', model: 'gold', trendScore: 70, volatility: 16, drawdown: 8, ownerScore: 68, riskPenalty: 3 },
+      { id: 'DBC', label: 'Broad commodities', model: 'broad', trendScore: 54, volatility: 22, drawdown: 12, ownerScore: 50, riskPenalty: 5 }
+    ]
+  };
+
+  const sentinels = { fetch: globalThis.fetch, localStorage: globalThis.localStorage, sessionStorage: globalThis.sessionStorage, XMLHttpRequest: globalThis.XMLHttpRequest };
+  const calls = { fetch: 0, storage: 0, xhr: 0 };
+  globalThis.fetch = () => { calls.fetch += 1; throw new Error('forbidden fetch'); };
+  globalThis.localStorage = { getItem() { calls.storage += 1; }, setItem() { calls.storage += 1; } };
+  globalThis.sessionStorage = { getItem() { calls.storage += 1; }, setItem() { calls.storage += 1; } };
+  globalThis.XMLHttpRequest = function () { calls.xhr += 1; throw new Error('forbidden xhr'); };
+  try {
+    const base = defaultValues(definition);
+    const prepared = requireValue(await runtime.prepare({
+      definitionId: definition.definitionId,
+      ownerContext: { ownerState: owner },
+      parameterValues: base,
+      seed: null,
+      scenarioIds: ['baseline'],
+      computedAt: '2026-07-25T20:02:00.000Z'
+    }));
+    assert.equal(prepared.state, 'ready');
+    // The owner evidence clock is preserved verbatim — the adapter acquires nothing and re-clocks nothing.
+    assert.equal(prepared.current.input.evidenceCutoff, owner.asOf, 'evidence cutoff is the frozen owner asOf (no re-clocking)');
+    // The frozen drawdown drives the risk state; the adapter never fetches a fresher owner score.
+    const summary = prepared.current.output.values.summary;
+    assert.equal(summary.riskState.drawdown, 8, 'the frozen selected-asset drawdown is preserved verbatim');
+    await runtime.recompute({ parameterValues: { ...base, 'usd-shock': 6 }, seed: null, scenarioIds: ['baseline'], computedAt: '2026-07-25T20:03:00.000Z' });
+  } finally {
+    globalThis.fetch = sentinels.fetch;
+    globalThis.localStorage = sentinels.localStorage;
+    globalThis.sessionStorage = sentinels.sessionStorage;
+    globalThis.XMLHttpRequest = sentinels.XMLHttpRequest;
+  }
+  assert.equal(calls.fetch, 0, 'zero fetch calls at runtime');
+  assert.equal(calls.storage, 0, 'zero storage calls at runtime');
+  assert.equal(calls.xhr, 0, 'zero XMLHttpRequest calls at runtime');
+});
+
+test('SCN-012-035 macro and fundamental source qualification: a real asset with no owner score and absent breadth stay unavailable — no default is substituted', async () => {
+  const api = loadProductionApi();
+  const mr = loadMacroRotation();
+  const definition = clone(readJson('simple-models.json').definitions.find((d) => d.toolId === 'real-assets-lab'));
+  const config = readJson('tool-experience.config.json');
+  const runtime = requireValue(api.createSimpleRuntime(config, { contractVersion: 'simple-model-registry/v1', definitions: [definition] }));
+  mr.registerMacroRotationAdapters(runtime, api, [definition]);
+
+  // GLD carries a full owner score; ZZZ carries NO owner score (null). The commodity-breadth returns
+  // are ABSENT (empty). The adapter must keep ZZZ out of priced coverage and keep breadth unavailable
+  // — never invent an owner score for ZZZ nor a breadth percentage from no returns.
+  const owner = {
+    contractVersion: 'real-asset-driver-owner-state/v1', toolId: 'real-assets-lab', asOf: '2026-07-24T20:00:00.000Z',
+    source: 'pages-snapshot cache', benchmark: 'DBC', selected: 'GLD',
+    drivers: { uup63: -3, tlt63: 5, qqq63: 8 },
+    breadthReturns: [],
+    assets: [
+      { id: 'GLD', label: 'Gold', model: 'gold', trendScore: 70, volatility: 16, drawdown: 8, ownerScore: 68, riskPenalty: 3 },
+      { id: 'ZZZ', label: 'Illiquid', model: 'broad', trendScore: null, volatility: null, drawdown: null, ownerScore: null, riskPenalty: null }
+    ]
+  };
+  const base = defaultValues(definition);
+  const prepared = requireValue(await runtime.prepare({
+    definitionId: definition.definitionId,
+    ownerContext: { ownerState: owner },
+    parameterValues: base,
+    seed: null,
+    scenarioIds: ['baseline'],
+    computedAt: '2026-07-25T20:02:00.000Z'
+  }));
+  const summary = prepared.current.output.values.summary;
+  assert.equal(summary.pricedCount, 1, 'only the one priced asset counts toward coverage');
+  assert.equal(summary.confirmation.breadth, null, 'absent breadth returns produce no fabricated breadth percentage');
+  assert.equal(summary.confirmation.state, 'unavailable', 'the breadth confirmation stays unavailable, not a default confirmed/unconfirmed');
+  assert.deepEqual(prepared.current.output.provenance.classes, ['observed-fact', 'model-estimate'], 'partial owner coverage is declared, not hidden');
+});

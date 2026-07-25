@@ -3921,6 +3921,17 @@ try {
     const countryPage = read('global-rotation-lab.html');
     assert(!/covariance \/ Math\.sqrt\(varianceA \* varianceB\)/.test(countryPage), 'global-rotation page carries no inline pairwise-correlation formula (single-sourced to RLMACROROTATION)');
   } catch (e) { failures++; console.log('  ✗ FAIL (Feature 012 Scope 06 country-rotation completeness threw): ' + e.message); }
+  try {
+    group('Feature 012 Scope 06 real-asset-driver adapter completeness (real-assets-lab)');
+    assertScope06AdapterComplete(MACRO_MODULE, 'createMacroRotationAdapters', 'real-assets-lab', 'simple-adapter/real-asset-driver/v1', ['realBreadthPct', 'realAssetDriverScenario', 'computeRealAssetDriverSummary'], 'real-assets-lab.html', ['realBreadthPct']);
+    // The single owner breadth source lives in macro-rotation.js; the page carries no inline reduction.
+    const realAssetsPage = read('real-assets-lab.html');
+    assert(!/return sum \+ value; \}, 0\) \/ values\.length \* 100/.test(realAssetsPage), 'real-assets page carries no inline breadth-percentage formula (single-sourced to RLMACROROTATION)');
+    // Byte-parity: realBreadthPct reproduces the old breadthScore reduction (fraction positive * 100).
+    delete scope06Require.cache[scope06Require.resolve(MACRO_MODULE)];
+    const realAssetsMod = scope06Require(MACRO_MODULE);
+    assert(realAssetsMod.realBreadthPct([8, -3, 5, -1, 6, -2]) === 3 / 6 * 100 && realAssetsMod.realBreadthPct([4, null, -2]) === 50 && realAssetsMod.realBreadthPct([]) === null, 'realBreadthPct is byte-parity with the owner breadthScore reduction (fraction positive, null when empty)');
+  } catch (e) { failures++; console.log('  ✗ FAIL (Feature 012 Scope 06 real-asset-driver completeness threw): ' + e.message); }
 }
 
 /* ---------- summary ---------- */

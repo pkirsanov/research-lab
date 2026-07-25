@@ -457,3 +457,179 @@ test('TP-06-01 country-rotation compute is deterministic for one compute identit
     'identical inputs => identical owner summary'
   );
 });
+
+/* ═══════════════════════ real-asset-driver owner fixture (real-assets-lab) ═══════════════════════
+   A synthetic frozen owner snapshot engineered so every declared parameter provably moves its
+   declared output path. The selected asset carries a distinct owner score / volatility / drawdown
+   (so the volatility-penalty moves summary.score and the drawdown-limit moves summary.riskState),
+   the universe-level driver deltas are non-zero and mid-range (so the USD / rate / risk shocks each
+   move summary.driverState through the bounded scenario tilt without clamping), and the frozen
+   commodity-breadth returns straddle zero (so the single-sourced realBreadthPct moves
+   summary.confirmation with the breadth threshold). No fabricated feed — the adapter recomputes only
+   from these frozen owner facts, single-sourcing the breadth formula from RLMACROROTATION.realBreadthPct. */
+const REAL_ASSETS_PAGE = readFileSync(new URL('../real-assets-lab.html', import.meta.url), 'utf8');
+
+function realAssetOwnerFixture() {
+  return {
+    contractVersion: 'real-asset-driver-owner-state/v1',
+    toolId: 'real-assets-lab',
+    asOf: '2026-07-24T20:00:00.000Z',
+    source: 'test-owner cache snapshot',
+    benchmark: 'DBC',
+    selected: 'GLD',
+    drivers: { uup63: -3, tlt63: 5, tip63: 7, qqq63: 8, xle63: 4, xli63: 3, dbc63: 2, gld63: 6, btc63: 12, goldSilverRatio63: -4 },
+    breadthReturns: [8, -3, 5, -1, 6, -2],
+    assets: [
+      { id: 'GLD', label: 'Gold', model: 'gold', trendScore: 70, volatility: 16, drawdown: 8, ownerScore: 68, riskPenalty: 3 },
+      { id: 'BTC-USD', label: 'Bitcoin', model: 'bitcoin', trendScore: 62, volatility: 48, drawdown: 22, ownerScore: 55, riskPenalty: 9 },
+      { id: 'DBC', label: 'Broad commodities', model: 'broad', trendScore: 54, volatility: 22, drawdown: 12, ownerScore: 50, riskPenalty: 5 }
+    ]
+  };
+}
+
+/* ═══════════════════════ TP-06-01 real-asset-driver module authority + primitives ═══════════════════════ */
+
+test('TP-06-01 macro-rotation module exposes the real-asset-driver adapter with single-sourced breadth + scenario tilt', () => {
+  const mr = loadMacroRotation();
+  assert.ok(mr.supportedAdapterIds.includes('simple-adapter/real-asset-driver/v1'), 'real-asset-driver/v1 is a declared supported adapter');
+  assert.equal(typeof mr.realBreadthPct, 'function', 'realBreadthPct owner primitive is single-sourced in the module');
+  assert.equal(typeof mr.realAssetDriverScenario, 'function', 'realAssetDriverScenario bounded scenario tilt is exported');
+  assert.equal(typeof mr.computeRealAssetDriverSummary, 'function', 'computeRealAssetDriverSummary is exported');
+});
+
+test('TP-06-01 realBreadthPct single-source pins the commodity-breadth percentage', () => {
+  const mr = loadMacroRotation();
+  // Byte-parity with the real-assets-lab breadthScore reduction: of the finite returns, the fraction
+  // that are positive, times 100.
+  assert.equal(mr.realBreadthPct([8, -3, 5, -1, 6, -2]), 3 / 6 * 100, 'three of six positive => 50%');
+  assert.equal(mr.realBreadthPct([1, 2, 3]), 100, 'all positive => 100%');
+  assert.equal(mr.realBreadthPct([-1, -2, -3]), 0, 'all negative => 0%');
+  // Missing/non-finite returns are ignored, never counted as a zero — an all-missing set is null.
+  assert.equal(mr.realBreadthPct([null, undefined, NaN]), null, 'no finite return => null (no fabricated breadth)');
+  assert.equal(mr.realBreadthPct([4, null, -2]), 50, 'non-finite entries are excluded from the denominator');
+});
+
+test('TP-06-01 realAssetDriverScenario applies bounded USD/rate/risk shocks to the frozen driver mix', () => {
+  const mr = loadMacroRotation();
+  const drivers = { uup63: -3, tlt63: 5, tip63: 7, qqq63: 8 };
+  const flat = mr.realAssetDriverScenario(drivers, { usd: 0, rate: 0, risk: 0 });
+  // A positive USD shock strengthens the dollar => the inverse-USD tilt falls => a lower composite tilt.
+  const usdUp = mr.realAssetDriverScenario(drivers, { usd: 8, rate: 0, risk: 0 });
+  assert.ok(usdUp.tilt < flat.tilt, 'a stronger dollar lowers the composite driver tilt');
+  // A positive risk-appetite shock lifts the risk component => a higher composite tilt.
+  const riskUp = mr.realAssetDriverScenario(drivers, { usd: 0, rate: 0, risk: 0.6 });
+  assert.ok(riskUp.tilt > flat.tilt, 'a higher risk appetite lifts the composite driver tilt');
+  // Missing drivers contribute nothing rather than a fabricated neutral score.
+  const empty = mr.realAssetDriverScenario({}, { usd: 5, rate: 5, risk: 0.5 });
+  assert.equal(empty.tilt, 0, 'no finite driver => a zero tilt, not a fabricated fill');
+});
+
+test('TP-06-01 real-assets-lab.html single-sources realBreadthPct from macro-rotation.js', () => {
+  assert.match(REAL_ASSETS_PAGE, /rlexperience-adapters\/macro-rotation\.js/, 'real-assets page loads macro-rotation.js');
+  assert.match(REAL_ASSETS_PAGE, /RLMACROROTATION\.realBreadthPct\s*\(/, 'real-assets page delegates the breadth percentage to the module');
+  // The single owner source lives in macro-rotation.js; the page must carry no inline breadth formula.
+  assert.equal(/return sum \+ value; \}, 0\) \/ values\.length \* 100/.test(REAL_ASSETS_PAGE), false, 'real-assets page has no inline breadth-percentage formula');
+});
+
+/* ═══════════════════════ TP-06-01 real-asset-driver adapter runtime + owner parity ═══════════════════════ */
+
+test('TP-06-01 real-asset-driver adapter registers through the production runtime and produces a ready owner run', async () => {
+  const api = loadProductionApi();
+  const mr = loadMacroRotation();
+  const definition = definitionFor('real-assets-lab');
+  const runtime = runtimeFor(api, definition);
+  const results = mr.registerMacroRotationAdapters(runtime, api, [definition]);
+  assert.equal(results['simple-adapter/real-asset-driver/v1'].ok, true, JSON.stringify(results['simple-adapter/real-asset-driver/v1'].error || {}));
+
+  const owner = realAssetOwnerFixture();
+  const base = defaultValues(definition);
+  const prepared = requireValue(await runtime.prepare({
+    definitionId: definition.definitionId,
+    ownerContext: { ownerState: owner },
+    parameterValues: base,
+    seed: null,
+    scenarioIds: ['baseline'],
+    computedAt: '2026-07-24T20:02:00.000Z'
+  }));
+  assert.equal(prepared.state, 'ready');
+  const summary = prepared.current.output.values.summary;
+  assert.equal(summary.benchmark, 'DBC', 'benchmark is carried from the frozen owner state');
+  assert.equal(summary.selected, 'GLD', 'the frozen selected asset drives the scenario');
+  assert.ok(summary.driverState && typeof summary.driverState.tilt === 'number', 'driverState carries a bounded scenario tilt');
+  assert.ok(typeof summary.score === 'number', 'score carries a bounded scenario score');
+  assert.ok(summary.riskState && typeof summary.riskState.state === 'string', 'riskState carries a drawdown-limit state');
+  assert.ok(summary.confirmation && typeof summary.confirmation.state === 'string', 'confirmation carries a breadth state');
+  assert.equal(prepared.current.output.provenance.evidenceIdentity, prepared.current.input.evidenceIdentity, 'evidence identity is bound');
+
+  // Owner parity: the confirmation breadth equals the single-sourced module breadth primitive run
+  // directly on the frozen commodity-breadth returns (single source, no re-implementation).
+  assert.equal(summary.confirmation.breadth, Math.round(mr.realBreadthPct(owner.breadthReturns) * 1e4) / 1e4, 'confirmation breadth is single-sourced from realBreadthPct');
+});
+
+test('TP-06-01 each enabled real-asset-driver parameter changes its declared output path', async () => {
+  const api = loadProductionApi();
+  const mr = loadMacroRotation();
+  const definition = definitionFor('real-assets-lab');
+  const runtime = runtimeFor(api, definition);
+  mr.registerMacroRotationAdapters(runtime, api, [definition]);
+  const base = defaultValues(definition);
+  await runtime.prepare({
+    definitionId: definition.definitionId,
+    ownerContext: { ownerState: realAssetOwnerFixture() },
+    parameterValues: base,
+    seed: null,
+    scenarioIds: ['baseline'],
+    computedAt: '2026-07-24T20:02:00.000Z'
+  });
+
+  const cases = [
+    ['usd-shock', 6, 'summary.driverState'],
+    ['rate-shock', 120, 'summary.driverState'],
+    ['risk-appetite', 0.6, 'summary.driverState'],
+    ['volatility-penalty', 0.6, 'summary.score'],
+    ['drawdown-limit', 6, 'summary.riskState'],
+    ['breadth-threshold', 50, 'summary.confirmation']
+  ];
+  for (const [parameterId, value, path] of cases) {
+    const run = requireValue(await runtime.recompute({
+      parameterValues: { ...base, [parameterId]: value },
+      seed: null,
+      scenarioIds: ['baseline'],
+      computedAt: '2026-07-24T20:03:00.000Z'
+    }));
+    assert.deepEqual(run.changedParameters, [parameterId], `changed ${parameterId}`);
+    const effect = run.sensitivity.effects.find((entry) => entry.parameterId === parameterId);
+    assert.ok(effect, `sensitivity effect present for ${parameterId}`);
+    assert.equal(effect.outputChanged, true, `${parameterId} must change ${path}`);
+    assert.deepEqual(effect.resultPaths, [path], `${parameterId} declared path`);
+    await runtime.recompute({ parameterValues: { ...base }, seed: null, scenarioIds: ['baseline'], computedAt: '2026-07-24T20:03:30.000Z' });
+  }
+});
+
+test('TP-06-01 real-asset-driver compute is deterministic for one compute identity', async () => {
+  const api = loadProductionApi();
+  const mr = loadMacroRotation();
+  const definition = definitionFor('real-assets-lab');
+  const runtime = runtimeFor(api, definition);
+  mr.registerMacroRotationAdapters(runtime, api, [definition]);
+  const base = defaultValues(definition);
+  const first = requireValue(await runtime.prepare({
+    definitionId: definition.definitionId,
+    ownerContext: { ownerState: realAssetOwnerFixture() },
+    parameterValues: base,
+    seed: null,
+    scenarioIds: ['baseline'],
+    computedAt: '2026-07-24T20:02:00.000Z'
+  }));
+  const again = requireValue(await runtime.recompute({
+    parameterValues: { ...base },
+    seed: null,
+    scenarioIds: ['baseline'],
+    computedAt: '2026-07-24T20:02:30.000Z'
+  }));
+  assert.equal(
+    api.fingerprint(first.current.output.values.summary),
+    api.fingerprint(again.current.output.values.summary),
+    'identical inputs => identical owner summary'
+  );
+});

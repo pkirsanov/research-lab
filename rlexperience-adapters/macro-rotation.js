@@ -870,6 +870,338 @@
     };
   }
 
+  /* ═══════════ real-asset-driver Simple model (owner seam = real-assets-lab.html) ═══════════
+     The adapter is a DIFFERENT Simple question over FROZEN owner facts the page computes: a bounded
+     asset-specific driver SCENARIO for the SELECTED asset under USD/rate/risk shocks, plus a scenario
+     score, a drawdown-limit risk state, and a commodity-breadth confirmation. It consumes the page's
+     already-computed per-asset facts (owner score, volatility, drawdown) and the universe driver
+     deltas (uup63/tlt63/tip63/qqq63/...), and re-derives a scenario under the adapter's own controls.
+     The commodity-breadth owner formula is single-sourced here so the page's breadthScore and this
+     Simple adapter share ONE breadth source (the page carries no inline breadth reduction). Everything
+     else is a frozen owner fact — the adapter fabricates nothing and defaults nothing for missing
+     evidence. NOTE: the page's driver-model formulas (goldModelScore/etc.) are extracted STANDALONE by
+     out-of-boundary consumers, so they are NOT delegated; the bounded driver tilt below is the
+     adapter's OWN scenario question, not a copy of any page model formula. */
+
+  /* realBreadthPct: of the finite commodity-family 63-day returns, the fraction that are positive,
+     times 100 (null when no finite return exists). SINGLE SOURCE — real-assets-lab.html breadthScore
+     delegates its inline reduction to this exact function. Uses Number.isFinite explicitly to match
+     the real-assets page (which uses Number.isFinite throughout, never the global isFinite). */
+  function realBreadthPct(returns) {
+    if (!Array.isArray(returns)) return null;
+    var finiteReturns = returns.filter(function (value) { return Number.isFinite(value); });
+    if (!finiteReturns.length) return null;
+    var positive = finiteReturns.reduce(function (sum, value) { return sum + (value > 0 ? 1 : 0); }, 0);
+    return positive / finiteReturns.length * 100;
+  }
+
+  /* realAssetTilt: a bounded [-1,1] tilt of a driver delta under an explicit scale (0 when the value
+     or scale is not finite/positive). This is the adapter's OWN scenario scaling — deliberately NOT
+     the page's realSignalFromPct (which maps to 0..100 via 50 + clamp*50); it is a distinct bounded
+     tilt for the driver-mix scenario question. */
+  function realAssetTilt(value, scale) {
+    return isFiniteNumber(value) && isFiniteNumber(scale) && scale > 0 ? Math.max(-1, Math.min(1, value / scale)) : 0;
+  }
+
+  /* realAssetDriverScenario: the adapter's bounded driver-mix scenario for the selected asset. A
+     USD shock (percent) shifts the frozen dollar driver, a rate shock (basis points) shifts the
+     frozen duration driver, and a risk-appetite shock (score) shifts the frozen equity-risk driver;
+     the three are mapped to bounded tilts and blended into one composite tilt with a scenario state.
+     Missing frozen drivers contribute nothing (a zero tilt), never a fabricated neutral. This is the
+     adapter's distinct Simple question — it does not re-run or copy the page's authoritative model. */
+  function realAssetDriverScenario(drivers, shocks) {
+    var d = drivers && typeof drivers === "object" ? drivers : {};
+    var usdShock = isFiniteNumber(shocks && shocks.usd) ? shocks.usd : 0;
+    var rateShock = isFiniteNumber(shocks && shocks.rate) ? shocks.rate : 0;
+    var riskShock = isFiniteNumber(shocks && shocks.risk) ? shocks.risk : 0;
+    var usd = isFiniteNumber(d.uup63) ? d.uup63 + usdShock : null;
+    var duration = isFiniteNumber(d.tlt63) ? d.tlt63 - rateShock / 100 : null;
+    var risk = isFiniteNumber(d.qqq63) ? d.qqq63 + riskShock * 10 : null;
+    var inverseUsd = usd == null ? 0 : realAssetTilt(-usd, 7);
+    var durationTilt = duration == null ? 0 : realAssetTilt(duration, 9);
+    var riskTilt = risk == null ? 0 : realAssetTilt(risk, 16);
+    var tilt = Math.max(-1, Math.min(1, inverseUsd * 0.4 + durationTilt * 0.3 + riskTilt * 0.3));
+    var state = tilt >= 0.15 ? "supportive" : (tilt <= -0.15 ? "headwind" : "mixed");
+    return {
+      state: state,
+      tilt: roundTo(tilt, 6),
+      components: {
+        inverseUsd: roundTo(inverseUsd, 6),
+        duration: roundTo(durationTilt, 6),
+        riskAppetite: roundTo(riskTilt, 6)
+      }
+    };
+  }
+
+  /* realAssetScenarioScore: a bounded scenario stress overlay on the FROZEN owner score. The user's
+     volatility-penalty weight scales an additional volatility/drawdown stress that is subtracted from
+     the frozen owner score. A missing owner score stays null (unavailable) — never a fabricated fill.
+     This is the adapter's own "weight volatility more" scenario, distinct from the page's realRiskPenalty. */
+  function realAssetScenarioScore(ownerScore, volatility, drawdown, volPenaltyWeight) {
+    if (!isFiniteNumber(ownerScore)) return null;
+    var vol = isFiniteNumber(volatility) ? Math.max(0, volatility) : 0;
+    var dd = isFiniteNumber(drawdown) ? Math.max(0, drawdown) : 0;
+    var weight = isFiniteNumber(volPenaltyWeight) ? volPenaltyWeight : 0;
+    var stress = (vol * 0.3 + dd * 0.2) * weight;
+    return Math.max(0, Math.min(100, ownerScore - stress));
+  }
+
+  /* Compute the full real-asset-driver summary from frozen owner state + current parameters. The
+     driver state derives from the frozen driver deltas under the bounded shocks, the score from the
+     frozen owner score under the scenario stress, the risk state from the frozen drawdown vs the
+     drawdown limit, and the confirmation from the single-source breadth vs the breadth threshold.
+     Nothing is fabricated and missing evidence never becomes a default. */
+  function computeRealAssetDriverSummary(ownerState, params) {
+    var usdShock = params["usd-shock"];
+    var rateShock = params["rate-shock"];
+    var riskAppetite = params["risk-appetite"];
+    var volPenalty = params["volatility-penalty"];
+    var drawdownLimit = params["drawdown-limit"];
+    var breadthThreshold = params["breadth-threshold"];
+    var assets = (ownerState && Array.isArray(ownerState.assets)) ? ownerState.assets : [];
+    var drivers = (ownerState && ownerState.drivers && typeof ownerState.drivers === "object") ? ownerState.drivers : {};
+    var breadthReturns = (ownerState && Array.isArray(ownerState.breadthReturns)) ? ownerState.breadthReturns : [];
+    var selectedId = String((ownerState && ownerState.selected) || (assets.length ? assets[0].id : "unavailable"));
+    var selected = assets.find(function (asset) { return String(asset.id) === selectedId; }) || (assets.length ? assets[0] : null);
+
+    var driverState = realAssetDriverScenario(drivers, { usd: usdShock, rate: rateShock, risk: riskAppetite });
+    driverState.selected = selectedId;
+    driverState.model = selected ? String(selected.model || "unavailable") : "unavailable";
+
+    var ownerScore = selected && isFiniteNumber(selected.ownerScore) ? selected.ownerScore : null;
+    var volatility = selected && isFiniteNumber(selected.volatility) ? selected.volatility : null;
+    var drawdown = selected && isFiniteNumber(selected.drawdown) ? selected.drawdown : null;
+    var score = realAssetScenarioScore(ownerScore, volatility, drawdown, volPenalty);
+
+    var riskState = {
+      drawdownLimit: drawdownLimit,
+      drawdown: drawdown == null ? null : roundTo(drawdown, 4),
+      state: drawdown == null ? "unavailable" : (drawdown > drawdownLimit ? "breached" : "within"),
+      headroom: drawdown == null ? null : roundTo(drawdownLimit - drawdown, 4)
+    };
+
+    var breadth = realBreadthPct(breadthReturns);
+    var confirmation = {
+      breadthThreshold: breadthThreshold,
+      breadth: breadth == null ? null : roundTo(breadth, 4),
+      state: breadth == null ? "unavailable" : (breadth >= breadthThreshold ? "confirmed" : "unconfirmed"),
+      margin: breadth == null ? null : roundTo(breadth - breadthThreshold, 4)
+    };
+
+    var priced = assets.filter(function (asset) { return isFiniteNumber(asset.ownerScore); });
+    return {
+      benchmark: String((ownerState && ownerState.benchmark) || "unavailable"),
+      selected: selectedId,
+      usdShock: usdShock,
+      rateShock: rateShock,
+      riskAppetite: riskAppetite,
+      volatilityPenalty: volPenalty,
+      drawdownLimit: drawdownLimit,
+      breadthThreshold: breadthThreshold,
+      assetCount: assets.length,
+      pricedCount: priced.length,
+      driverState: driverState,
+      score: score == null ? null : roundTo(score, 4),
+      riskState: riskState,
+      confirmation: confirmation
+    };
+  }
+
+  /* ═══════════ real-asset-driver adapter contract wiring ═══════════ */
+
+  function realAssetEvidenceState(ownerState) {
+    var assets = (ownerState && Array.isArray(ownerState.assets)) ? ownerState.assets : [];
+    var priced = 0;
+    assets.forEach(function (asset) { if (isFiniteNumber(asset.ownerScore)) priced++; });
+    return priced > 0 ? "ready" : "unavailable";
+  }
+
+  function buildRealAssetEvidence(api, ownerState) {
+    var state = realAssetEvidenceState(ownerState);
+    var cutoff = String(ownerState.asOf || "unavailable");
+    var evidence = {
+      contractVersion: "simple-evidence-snapshot/v1",
+      toolId: "real-assets-lab",
+      state: state,
+      evidenceCutoff: cutoff,
+      evidenceRefs: [{
+        requirementId: "owner-evidence",
+        evidenceRef: "owner:real-assets-lab:driver-scenario:" + cutoff,
+        semanticFingerprint: ownerStateFingerprint(api, ownerState),
+        sourceClass: "observed-fact",
+        observedAsOf: cutoff,
+        retrievedOrPublishedAt: cutoff,
+        freshness: "cache-current-for-render",
+        dataTier: String(ownerState.source || "shared cache snapshot"),
+        valueState: state === "ready" ? "ready" : "unavailable"
+      }],
+      parameterValues: {},
+      assumptions: [
+        "The driver scenario uses only the frozen owner score, volatility, drawdown, driver deltas, and breadth returns currently captured."
+      ],
+      limitations: [
+        "The driver scenario describes the selected owner asset under bounded shocks and does not establish an allocation."
+      ],
+      invalidationConditions: [
+        "The frozen owner snapshot changes, gains or loses an asset, or a later observation replaces the current window."
+      ],
+      evidenceIdentity: null
+    };
+    evidence.evidenceIdentity = evidenceIdentityOf(api, evidence);
+    return evidence;
+  }
+
+  function realAssetOutput(input, summary) {
+    var provenanceClasses = summary.pricedCount < summary.assetCount
+      ? ["observed-fact", "model-estimate"]
+      : ["observed-fact"];
+    var calibrationReason = summary.pricedCount + " of " + summary.assetCount +
+      " assets carry a complete owner model score.";
+    var uncertaintyState = summary.pricedCount >= 2 ? "bounded" : "wide";
+    var scenarioValues = { summary: summary };
+    return {
+      contractVersion: "simple-model-output/v1",
+      state: "ready",
+      values: scenarioValues,
+      scenarios: input.scenarios.map(function (scenario) {
+        return { scenarioId: scenario.scenarioId, state: "ready", values: scenarioValues };
+      }),
+      calibration: { state: "owner-evidence-relative", reason: calibrationReason },
+      provenance: { classes: provenanceClasses, evidenceIdentity: input.evidenceIdentity },
+      uncertainty: {
+        state: uncertaintyState,
+        rangeOrBand: "Driver " + summary.driverState.state + " / risk " + summary.riskState.state,
+        reason: "Driver state, score, risk state, and confirmation use the exact frozen owner score, volatility, drawdown, driver deltas, and breadth facts currently captured."
+      },
+      assumptions: [
+        "Assets without a complete owner model score are excluded from the priced coverage."
+      ],
+      limitations: [
+        "The driver scenario describes the selected owner asset under bounded shocks and does not establish an allocation."
+      ],
+      invalidationConditions: [
+        "The frozen owner snapshot changes or a later observation replaces the current window."
+      ],
+      flatRegionProofs: []
+    };
+  }
+
+  /* affectsOutputPaths for the real-asset-driver parameters. Mirrors simple-models.json exactly. */
+  var REAL_ASSET_OUTPUT_PATHS = {
+    "usd-shock": ["summary.driverState"],
+    "rate-shock": ["summary.driverState"],
+    "risk-appetite": ["summary.driverState"],
+    "volatility-penalty": ["summary.score"],
+    "drawdown-limit": ["summary.riskState"],
+    "breadth-threshold": ["summary.confirmation"]
+  };
+
+  function realAssetSummaryPath(summary, path) {
+    if (path === "summary.driverState") return summary.driverState;
+    if (path === "summary.score") return summary.score;
+    if (path === "summary.riskState") return summary.riskState;
+    if (path === "summary.confirmation") return summary.confirmation;
+    return null;
+  }
+
+  function createRealAssetDriverAdapter(api, definition, ownerByIdentity) {
+    return {
+      contractVersion: "simple-model-adapter/v1",
+      adapterId: definition.adapterId,
+      supportedDefinitionIds: [definition.definitionId],
+      validateDefinition: function (candidate) {
+        return { ok: true, value: candidate };
+      },
+      captureEvidence: function (ownerContext) {
+        if (!ownerContext || typeof ownerContext !== "object") {
+          return { ok: false, error: { reason: "owner context required" } };
+        }
+        var ownerState = ownerContext.ownerState;
+        if (!ownerState || typeof ownerState !== "object" || !Array.isArray(ownerState.assets)) {
+          return { ok: false, error: { reason: "real-asset owner state required" } };
+        }
+        var frozen = deepFreeze(JSON.parse(JSON.stringify(ownerState)));
+        var evidence = buildRealAssetEvidence(api, frozen);
+        ownerByIdentity.set(evidence.evidenceIdentity, frozen);
+        return { ok: true, value: evidence };
+      },
+      normalizeInputs: function (candidate, evidence, parameterValues, seed, scenarioIds) {
+        return api.normalizeSimpleInput(candidate, evidence, parameterValues, seed, scenarioIds);
+      },
+      compute: function (input) {
+        var ownerState = ownerByIdentity.get(input.evidenceIdentity);
+        if (!ownerState) {
+          return { ok: false, error: { reason: "frozen owner state is unavailable for this evidence identity" } };
+        }
+        var summary = computeRealAssetDriverSummary(ownerState, paramMap(input));
+        return { ok: true, value: realAssetOutput(input, summary) };
+      },
+      compareSensitivity: function (baselineInput, currentInput, sharedRandomness) {
+        var ownerState = ownerByIdentity.get(currentInput.evidenceIdentity);
+        if (!ownerState) {
+          return { ok: false, error: { reason: "frozen owner state is unavailable for sensitivity" } };
+        }
+        var baselineValues = paramMap(baselineInput);
+        var currentValues = paramMap(currentInput);
+        var baselineSummary = computeRealAssetDriverSummary(ownerState, baselineValues);
+        var currentSummary = computeRealAssetDriverSummary(ownerState, currentValues);
+        var effects = [];
+        Object.keys(currentValues).forEach(function (parameterId) {
+          if (parameterId === "seed") return;
+          if (baselineValues[parameterId] === currentValues[parameterId]) return;
+          var paths = REAL_ASSET_OUTPUT_PATHS[parameterId] || [];
+          var changed = paths.some(function (path) {
+            return fingerprintOf(api, realAssetSummaryPath(baselineSummary, path)) !== fingerprintOf(api, realAssetSummaryPath(currentSummary, path));
+          });
+          effects.push({
+            parameterId: parameterId,
+            oldValue: baselineValues[parameterId],
+            newValue: currentValues[parameterId],
+            direction: (typeof currentValues[parameterId] === "number" && typeof baselineValues[parameterId] === "number")
+              ? (currentValues[parameterId] > baselineValues[parameterId] ? "higher" : "lower")
+              : "changed",
+            magnitude: (typeof currentValues[parameterId] === "number" && typeof baselineValues[parameterId] === "number")
+              ? (Math.abs(currentValues[parameterId] - baselineValues[parameterId]) || 1)
+              : 1,
+            nonlinear: false,
+            resultPaths: paths,
+            outputChanged: changed,
+            flatRegionProof: changed ? null : {
+              parameterId: parameterId,
+              resultPaths: paths,
+              reason: "The frozen owner snapshot yields an identical value on these paths for this parameter change."
+            }
+          });
+        });
+        return {
+          ok: true,
+          value: {
+            contractVersion: "simple-sensitivity/v1",
+            sharedRandomness: sharedRandomness,
+            seedChanged: baselineInput.seed !== currentInput.seed,
+            effects: effects
+          }
+        };
+      },
+      projectOwnerEvidence: function (output) {
+        var summary = output.values.summary;
+        return {
+          ok: true,
+          value: {
+            contractVersion: "owner-evidence-projection/v1",
+            state: output.state,
+            valueText: summary.selected + " drivers " + summary.driverState.state,
+            numericValue: summary.score,
+            unit: "model-score",
+            summary: summary.selected + " reads " + summary.driverState.state +
+              " under the selected shocks (" + summary.confirmation.state + " commodity breadth, benchmark " + summary.benchmark + ").",
+            sourceRefs: ["owner-evidence"]
+          }
+        };
+      }
+    };
+  }
+
   /* Factory: returns the macro-rotation Simple adapters implemented at genuine owner-parity, keyed
      by their exact declared adapter ID. Tools whose owner seam is not yet extracted are absent so
      the shared runtime renders the explicit unavailable state for them. */
@@ -889,6 +1221,10 @@
       var countryDefinition = byToolId["global-rotation-lab"];
       adapters[countryDefinition.adapterId] = createCountryRotationAdapter(api, countryDefinition, ownerByIdentity);
     }
+    if (byToolId["real-assets-lab"]) {
+      var realAssetDefinition = byToolId["real-assets-lab"];
+      adapters[realAssetDefinition.adapterId] = createRealAssetDriverAdapter(api, realAssetDefinition, ownerByIdentity);
+    }
     return adapters;
   }
 
@@ -906,7 +1242,7 @@
   return {
     contractVersion: "macro-rotation-adapters/v1",
     module: "rlexperience-adapters/macro-rotation.js",
-    supportedAdapterIds: ["simple-adapter/sector-rotation-transition/v1", "simple-adapter/country-rotation/v1"],
+    supportedAdapterIds: ["simple-adapter/sector-rotation-transition/v1", "simple-adapter/country-rotation/v1", "simple-adapter/real-asset-driver/v1"],
     rollZ100: rollZ100,
     rrgQuadrant: rrgQuadrant,
     stateLabel: stateLabel,
@@ -918,6 +1254,9 @@
     globalPairCorrelation: globalPairCorrelation,
     countryHorizonMomentum: countryHorizonMomentum,
     computeCountryRotationSummary: computeCountryRotationSummary,
+    realBreadthPct: realBreadthPct,
+    realAssetDriverScenario: realAssetDriverScenario,
+    computeRealAssetDriverSummary: computeRealAssetDriverSummary,
     createMacroRotationAdapters: createMacroRotationAdapters,
     registerMacroRotationAdapters: registerMacroRotationAdapters
   };

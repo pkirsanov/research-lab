@@ -1007,6 +1007,9 @@
     <script src="rlticker.js"></script>
     <script src="rlapp.js?v=20260712-4"></script>
     <script src="rlnav.js"></script>
+    <!-- Feature 012 Scope 06: the single owner source for the commodity-breadth percentage the
+         registered real-asset-driver Simple adapter shares (RLMACROROTATION.realBreadthPct). -->
+    <script src="rlexperience-adapters/macro-rotation.js"></script>
     <script>
         "use strict";
 
@@ -1355,10 +1358,11 @@
                 visibleEntries().forEach(function (entry) {
                     if (!families[entry.model]) return;
                     var value = realTrailingPct(barsFor(entry.symbol), 63);
-                    if (finite(value)) values.push(value > 0 ? 1 : 0);
+                    if (finite(value)) values.push(value);
                 });
-                if (!values.length) return null;
-                return values.reduce(function (sum, value) { return sum + value; }, 0) / values.length * 100;
+                /* Single-sourced to RLMACROROTATION.realBreadthPct (owner commodity-breadth %; no inline copy).
+                   The registered real-asset-driver Simple adapter shares this exact breadth source. */
+                return RLMACROROTATION.realBreadthPct(values);
             }
             function driverSnapshot() {
                 return {

@@ -4,7 +4,7 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>MSFT July-Print Model v4 — Cost Cycle + Market Structure</title>
+  <title>MSFT July-Print Model v5 — Options-Implied Earnings Move + Macro Brief</title>
   <meta name="description"
     content="MSFT July-Print Model — a Microsoft earnings model built on reported FY26 Q1–Q3 income statements, surfacing the cost cycle and market-structure setup into the print with an inspectable, browser-side quote and estimate view." />
   <link rel="icon"
@@ -776,6 +776,23 @@
        Simple/Power tabs (#modeSeg/#simpleTab/#powerTab existence, roles, aria, keyboard).
        Migrate the spec, then remove this meta to adopt the shared Simple/Power/Brief switch. -->
   <meta name="rlviews" content="off">
+  <script>
+    // Make the rlviews opt-out above actually effective. rlapp.js currently mounts the shared
+    // rlviews Simple/Power/Brief shell regardless of this meta; on this native-tabs tool that
+    // shell suppresses #modeSeg/#simpleTab/#powerTab and — because the shared simple-model runtime
+    // is a stub that hardcodes "Simple model unavailable" for EVERY ordinary tool (verified: even
+    // ai-capex-strategy-lab, whose adapter IS registered, renders the same placeholder) — hijacks
+    // "simple" mode with rlv-focused, hiding the native Simple view (spot, FY27E EPS/valuation, the
+    // options-implied move model, macro brief). Setting rlviews.js's own init guard makes rlapp skip
+    // the shell (its load is gated on `!!root.__rlviewsInit`) while the separate rlbrief mount still
+    // renders. Remove this together with the meta above when the shared shell is adopted.
+    (function () {
+      try {
+        var m = document.querySelector('meta[name="rlviews"]');
+        if (m && (m.getAttribute('content') || '').toLowerCase() === 'off') window.__rlviewsInit = 1;
+      } catch (e) { window.__rlviewsInit = 1; }
+    })();
+  </script>
 </head>
 
 <body>
@@ -833,11 +850,13 @@
   </style>
 
   <header>
-    <h1>MSFT July-Print Margin &amp; EPS Model v4 <span class="pill">verified Q1–Q3 FY26 actuals + cost-cycle
-        overlay</span></h1>
-    <div class="sub">Now built on Microsoft's reported FY26 Q1/Q2/Q3 income statements. Surfaces the live
-      operating-margin downtrend, reconciles the Q4 print against consensus AND seasonality, and isolates FY27 from the
-      modeled depreciation step. Scenario data as-of <span id="asOfNote">2026-07-06</span>.</div>
+    <h1>MSFT July-Print Margin &amp; EPS Model v5 <span class="pill">options-implied earnings move + macro
+        brief</span></h1>
+    <div class="sub">Built on Microsoft's reported FY26 Q1/Q2/Q3 income statements: the live operating-margin downtrend,
+      the Q4 print reconciled against consensus AND seasonality, and FY27 isolated from the modeled depreciation step —
+      now with the <b>options-implied post-earnings move</b> (ATM straddle, computed live from the same-origin option
+      chain) and a <b>macro brief</b> (Fed week, Mag-7 peers, USD/JPY, SOXX, rates/dollar) regenerated on each refresh.
+      Fundamental scenario as-of <span id="asOfNote">2026-07-06</span>; market context runs on its own clock.</div>
     <div id="modeSeg" role="tablist" aria-label="Display mode">
       <button id="simpleTab" role="tab" aria-controls="simpleView" aria-selected="true" tabindex="0" class="modeBtn"
         type="button">Simple</button>
@@ -845,6 +864,9 @@
         type="button">Power</button>
     </div>
     <div class="live">
+      <button id="btnRefreshAll"
+        title="Re-pull the same-origin option chain + MSFT bars + macro-context bars and fully regenerate the brief">↻
+        Refresh data + brief</button>
       <button id="btnLive">↻ Fetch live MSFT</button>
       <button id="btnCsv" title="Download the current scenario (inputs + FY27E outputs) as CSV">⭳ CSV</button>
       <span id="liveStatus" class="sub">delayed quote loading from same-origin cache</span>
@@ -1039,6 +1061,27 @@
           <div class="val" id="ts_market">Market status: loading</div>
           <div class="clk" id="ts_evalClk">—</div>
         </div>
+      </div>
+
+      <!-- Shared MSFT earnings brief — regenerated on every refresh from the freshest same-origin caches (option
+           chain + MSFT bars + macro-context bars). Visible in both Simple and Power. Educational only. -->
+      <div class="card" id="msftBriefCard">
+        <h2>MSFT earnings brief <small style="text-transform:none;letter-spacing:0;color:var(--muted)">— options-implied
+            move + macro context, regenerated on each refresh</small></h2>
+        <div id="msftBrief" class="sub" style="font-size:12.75px">Loading the MSFT earnings brief from the same-origin
+          cache…</div>
+      </div>
+
+      <!-- Shared options-implied post-earnings move model — visible in Simple AND Power (the decision cockpit shows
+           the flagship model, not only the brief text). Same single compute (renderMoveCard) feeds both modes. -->
+      <div class="card">
+        <h2>Post-earnings move — options-implied model</h2>
+        <div class="sub" style="margin-bottom:10px">Computed live from the same-origin option chain
+          (<code>data/options/MSFT.json</code>): the ATM straddle on the first expiry that <i>brackets the print</i>
+          gives the market's own expected one-print move, the ±1σ/±2σ cones, the earnings-day move isolated from the
+          pre-event expiry, and implied vs realized reactions. This is a <b>market-clock read</b> — it never rewrites
+          your scenario inputs.</div>
+        <div id="msftMoveBody">Loading the option chain…</div>
       </div>
 
       <section id="simpleView" role="tabpanel" aria-labelledby="simpleTab" tabindex="0">
@@ -1283,9 +1326,13 @@
                 value="45" style="width:80px"></label>
             <label style="font-size:12px">P(bear) %<br><input type="number" id="pBear" min="0" max="100" step="5"
                 value="25" style="width:80px"></label>
-            <label style="font-size:12px">Implied move %<small style="display:block;color:var(--muted)">ATM
-                straddle</small><input type="number" id="impMove" min="0" max="25" step="0.5" value="5.5"
-                style="width:80px"></label>
+            <label style="font-size:12px">Scenario implied move %<small style="display:block;color:var(--muted)">user
+                override · <span id="optMoveInline">options —</span></small><input type="number" id="impMove" min="0"
+                max="25" step="0.5" value="5.5" style="width:80px"></label>
+            <button id="btnUseOptMove" type="button"
+              title="Copy the live options-implied earnings move (ATM straddle) into the scenario implied-move input"
+              style="font-size:12px;padding:6px 10px;border-radius:7px;border:1px solid var(--line);background:var(--chip);color:var(--ink);cursor:pointer">↧
+              Use options move</button>
           </div>
           <div id="evKpis" style="display:grid;grid-template-columns:repeat(auto-fit,minmax(140px,1fr));gap:12px"></div>
           <div class="sub" id="o_ev" style="margin-top:10px">—</div>
@@ -2408,8 +2455,23 @@
         if (booted) return Promise.resolve(acceptedState);
         booted = true;
         var evaluationTime = new Date().toISOString();
-        var quoteTask = fetchMsftJson('/data/options/MSFT.json', 'MSFT-QUOTE').then(afterStaticPaint).then(function (outcome) { settleQuote(outcome, evaluationTime); });
-        var barsTask = fetchMsftJson('/data/bars/MSFT.json', 'MSFT-BARS').then(afterStaticPaint).then(function (outcome) { settleBars(outcome, evaluationTime); });
+        var quoteTask = fetchMsftJson('/data/options/MSFT.json', 'MSFT-QUOTE').then(function (outcome) {
+          // Capture the raw option chain (o:[...]) for the additive options-implied earnings-move read. This does NOT
+          // add a fetch — it piggybacks on the single cache-first quote fetch — and never writes any accepted state or
+          // the user-owned implied-move input. The presentation script computes the move as its own market read.
+          if (outcome && outcome.ok && outcome.value && Array.isArray(outcome.value.o)) {
+            try { window.__msftOptChain = outcome.value; window.dispatchEvent(new CustomEvent('msft:options-chain', { detail: outcome.value })); } catch (chainError) { }
+          }
+          return outcome;
+        }).then(afterStaticPaint).then(function (outcome) { settleQuote(outcome, evaluationTime); });
+        var barsTask = fetchMsftJson('/data/bars/MSFT.json', 'MSFT-BARS').then(function (outcome) {
+          // Capture the raw daily bars (rows:[...]) for the additive realized-earnings-reaction history in the brief.
+          // No extra fetch — piggybacks on the single cache-first bars fetch — and never mutates accepted state.
+          if (outcome && outcome.ok && outcome.value && Array.isArray(outcome.value.rows)) {
+            try { window.__msftBarsRows = outcome.value.rows; window.dispatchEvent(new CustomEvent('msft:bars-rows', { detail: outcome.value })); } catch (barsError) { }
+          }
+          return outcome;
+        }).then(afterStaticPaint).then(function (outcome) { settleBars(outcome, evaluationTime); });
         return Promise.all([quoteTask, barsTask]).then(function () { return acceptedState; });
       }
 
@@ -2832,6 +2894,280 @@
         const evIn = ev >= lo && ev <= hi;
         note.innerHTML = 'At these odds the model\u2019s expected value is <b>' + price(ev) + '</b> (' + rp(evRet) + ' vs spot). Options are pricing a one-print move of <b>\u00b1' + (mv * 100).toFixed(1) + '%</b> (' + price(lo) + '\u2013' + price(hi) + '). The EV sits <b>' + (evIn ? 'inside' : 'outside') + '</b> that band' + (evIn ? ' \u2014 the model broadly agrees with what the straddle is pricing.' : (ev > hi ? ' on the upside \u2014 the model is more bullish than the straddle; a bull print could exceed what options expect.' : ' on the downside \u2014 the model is more bearish than the straddle.')) + ' Probabilities renormalize to 100%; each preset priced at its own multiple.' + (rn ? ' <b>Options-implied (risk-neutral) odds</b> \u2248 bull ' + (rn.bull * 100).toFixed(0) + '% / base ' + (rn.base * 100).toFixed(0) + '% / bear ' + (rn.bear * 100).toFixed(0) + '% (1-yr lognormal from ' + (_o.atmIV * 100).toFixed(0) + '% ATM IV' + (_o.skew ? '; put-skew ' + (_o.skew * 100).toFixed(1) + 'pt implies fatter downside than this symmetric estimate' : '') + ' \u2014 approximate).' : '');
       }
+      // ===================================================================================================
+      // Options-implied post-earnings move (its OWN market-clock read) + macro brief. Additive: never writes the
+      // user-owned impMove scenario input (Feature 009 SCN-009-004) or any accepted state. Computed live from the
+      // same-origin option chain + bars + macro-context bars; the brief is fully regenerated on every recompute.
+      // ===================================================================================================
+      var MSFT_EARNINGS_ISO = '2026-07-29';                 // FY26 Q4 print (confirmed; after market close) — see notes §
+      var MSFT_EARNINGS_MS = Date.parse(MSFT_EARNINGS_ISO + 'T23:59:59Z');
+      var YEAR_MS = 365 * 864e5;
+      // Recent MSFT report dates (report day; the reaction prints the next session). Editable in the notes.
+      var MSFT_PAST_EARNINGS = ['2024-07-30', '2024-10-30', '2025-01-29', '2025-04-30', '2025-07-30', '2025-10-29', '2026-01-28', '2026-04-29'];
+      var MSFT_CTX = [
+        { sym: 'SOXX', label: 'Semis (SOXX)', note: 'AI-capex demand proxy — read-through to Azure', link: 'sector-research-lab.html' },
+        { sym: 'SMH', label: 'Semis (SMH)', note: 'semis breadth', link: 'sector-research-lab.html' },
+        { sym: 'NVDA', label: 'NVDA', note: 'AI-compute bellwether', link: 'options-structure-lab.html' },
+        { sym: 'GOOGL', label: 'GOOGL', note: 'cloud/AI peer, reports the same week', link: 'options-structure-lab.html' },
+        { sym: 'META', label: 'META', note: 'AI-capex peer, reports the same week', link: 'options-structure-lab.html' },
+        { sym: 'AMZN', label: 'AMZN', note: 'cloud peer, reports the same week', link: 'options-structure-lab.html' },
+        { sym: 'AAPL', label: 'AAPL', note: 'Mag-7 peer, reports the same week', link: 'options-structure-lab.html' },
+        { sym: 'TLT', label: 'Long rates (TLT)', note: 'discount-rate proxy — TLT up = yields down = multiple tailwind', link: 'bond-regime-lab.html' },
+        { sym: 'UUP', label: 'US dollar (UUP)', note: 'a stronger dollar is an FX-translation headwind for MSFT revenue', link: 'global-rotation-lab.html' },
+        { sym: 'JPY=X', label: 'USD/JPY', note: 'carry / global risk appetite; a sharp yen move is a risk-off tell', link: 'global-rotation-lab.html' },
+        { sym: 'GLD', label: 'Gold (GLD)', note: 'real-rate / haven backdrop', link: 'real-assets-lab.html' },
+        { sym: 'QQQ', label: 'Nasdaq-100 (QQQ)', note: 'index backdrop MSFT trades with', link: 'global-rotation-lab.html' },
+        { sym: 'SPY', label: 'S&P 500 (SPY)', note: 'broad-market backdrop', link: 'global-rotation-lab.html' }
+      ];
+      var OPT_MOVE = null, EARN_HIST = null, CTX = {}, CTX_VIX = null, userEditedImpMove = false;
+
+      function emSig(x, dp) { return Number.isFinite(x) ? ((x >= 0 ? '+' : '') + x.toFixed(dp == null ? 1 : dp) + '%') : '—'; }
+      function emAbs(x, dp) { return Number.isFinite(x) ? ('±' + Math.abs(x).toFixed(dp == null ? 1 : dp) + '%') : '—'; }
+      function emCls(x) { return Number.isFinite(x) ? (x > 0 ? 'pos' : x < 0 ? 'neg' : '') : ''; }
+      function emEsc(s) { return String(s == null ? '' : s).replace(/&/g, '&amp;').replace(/"/g, '&quot;').replace(/</g, '&lt;'); }
+
+      function optMid(o) {
+        if (!o) return null;
+        var b = (typeof o.b === 'number' && o.b > 0) ? o.b : null;
+        var a = (typeof o.a === 'number' && o.a > 0) ? o.a : null;
+        if (b !== null && a !== null && a >= b) return (b + a) / 2;
+        return (typeof o.l === 'number' && o.l > 0) ? o.l : null; // fall back to last trade
+      }
+      function interpStraddle(ladder, spot) {
+        if (!Array.isArray(ladder) || !ladder.length || !(spot > 0)) return null;
+        var byK = {}; ladder.forEach(function (r) { byK[r.k] = r; });
+        var ks = ladder.map(function (r) { return r.k; }).filter(Number.isFinite).sort(function (x, y) { return x - y; });
+        function strad(k) { var r = byK[k]; if (!r) return null; var c = optMid(r.call), p = optMid(r.put); return (Number.isFinite(c) && Number.isFinite(p)) ? (c + p) : null; }
+        var lo = null, hi = null, i;
+        for (i = 0; i < ks.length; i++) { if (ks[i] <= spot) lo = ks[i]; if (ks[i] >= spot && hi === null) hi = ks[i]; }
+        if (lo === null) lo = ks[0]; if (hi === null) hi = ks[ks.length - 1];
+        var sLo = strad(lo), sHi = strad(hi);
+        if (Number.isFinite(sLo) && Number.isFinite(sHi) && hi !== lo) {
+          var w = (spot - lo) / (hi - lo);
+          return { straddle: sLo + w * (sHi - sLo), k: (Math.abs(spot - lo) <= Math.abs(hi - spot) ? lo : hi) };
+        }
+        if (Number.isFinite(sLo)) return { straddle: sLo, k: lo };
+        if (Number.isFinite(sHi)) return { straddle: sHi, k: hi };
+        var best = null, bestD = Infinity;
+        ks.forEach(function (k) { var s = strad(k); if (Number.isFinite(s) && Math.abs(k - spot) < bestD) { bestD = Math.abs(k - spot); best = { straddle: s, k: k }; } });
+        return best;
+      }
+      // The options-implied earnings move: interpolate the ATM straddle at spot on the first expiry that brackets the
+      // print; em% = straddle/spot (the market's breakeven ~1-print move). ATM IV via the closed-form ATM-straddle
+      // approximation σ ≈ 1.2533·(em%/√T). The clean earnings-day jump is isolated from a pre-event expiry as
+      // √(Tₑ·(σₑ²−σₚ²)). Symmetric estimate; skew is surfaced qualitatively elsewhere.
+      function msftComputeEarningsMove(payload, earningsMs, evalMs) {
+        var reason = [];
+        if (!payload || !Array.isArray(payload.o) || !payload.o.length) return { reasonCodes: ['chain-required'] };
+        var spot = (typeof payload.spot === 'number' && payload.spot > 0) ? payload.spot : ((Number.isFinite(SPOT) && SPOT > 0) ? SPOT : null);
+        if (spot === null) reason.push('spot-required');
+        var asof = typeof payload.asof === 'string' ? payload.asof : null;
+        var baseMs = (asof && Number.isFinite(Date.parse(asof + 'Z'))) ? Date.parse(asof + 'Z') : (Number.isFinite(evalMs) ? evalMs : Date.now());
+        var byExp = {};
+        payload.o.forEach(function (r) {
+          if (!r || !Number.isFinite(r.e) || !Number.isFinite(r.k)) return;
+          if (!byExp[r.e]) byExp[r.e] = {};
+          if (!byExp[r.e][r.k]) byExp[r.e][r.k] = { k: r.k, call: null, put: null };
+          if (r.t === 'C') byExp[r.e][r.k].call = r; else if (r.t === 'P') byExp[r.e][r.k].put = r;
+        });
+        var term = [];
+        Object.keys(byExp).map(Number).sort(function (a, b) { return a - b; }).forEach(function (e) {
+          var expMs = e * 1000 + 22 * 3600 * 1000;                 // ~expiry end-of-day
+          var T = (expMs - baseMs) / YEAR_MS; if (!(T > 0)) return;
+          if (spot === null) return;
+          var s = interpStraddle(Object.keys(byExp[e]).map(function (k) { return byExp[e][k]; }), spot);
+          if (!s || !Number.isFinite(s.straddle) || s.straddle <= 0) return;
+          var emPct = s.straddle / spot * 100;
+          var atmIV = 1.2533 * (emPct / 100) / Math.sqrt(T);
+          term.push({ expMs: e * 1000, iso: new Date(e * 1000).toISOString().slice(0, 10), dte: Math.round((expMs - baseMs) / 864e5), T: T, straddle: s.straddle, k: s.k, emPct: emPct, atmIV: atmIV });
+        });
+        if (!term.length) { reason.push('no-usable-expiry'); return { spot: spot, asof: asof, term: term, reasonCodes: reason }; }
+        var evt = null, pre = null;
+        term.forEach(function (t) { if (t.expMs > earningsMs) { if (!evt) evt = t; } else { pre = t; } });
+        if (!evt) { evt = term[term.length - 1]; reason.push('no-post-earnings-expiry'); }
+        var isolatedPct = null;
+        if (pre && Number.isFinite(pre.atmIV) && Number.isFinite(evt.atmIV)) {
+          var jv = evt.T * (evt.atmIV * evt.atmIV - pre.atmIV * pre.atmIV);
+          isolatedPct = (jv > 0) ? Math.sqrt(jv) * 100 : 0;
+        }
+        var sigma1 = evt.atmIV * Math.sqrt(evt.T) * 100;           // ~68% (1σ) event-expiry move
+        return {
+          spot: spot, asof: asof, baseMs: baseMs, event: evt, pre: pre, term: term,
+          emPct: evt.emPct, emPct85: evt.emPct * 0.85, sigma1Pct: sigma1, sigma2Pct: sigma1 * 2,
+          isolatedPct: isolatedPct, atmIV: evt.atmIV, reasonCodes: reason
+        };
+      }
+      function msftRealizedEarningsReactions(rows, dates) {
+        if (!Array.isArray(rows) || !rows.length) return null;
+        var out = [];
+        dates.forEach(function (d) {
+          var target = Date.parse(d + 'T00:00:00Z'); if (!Number.isFinite(target)) return;
+          var idx = -1, i;
+          for (i = 0; i < rows.length; i++) {
+            var day = new Date(rows[i].t).toISOString().slice(0, 10);
+            if (day === d) { idx = i; break; }
+            if (rows[i].t > target) { idx = i - 1; break; }
+          }
+          if (idx >= 0 && idx + 1 < rows.length && rows[idx].c > 0) {
+            var mv = (rows[idx + 1].c / rows[idx].c - 1) * 100;
+            if (Number.isFinite(mv)) out.push({ date: d, pct: mv });
+          }
+        });
+        if (!out.length) return null;
+        var absAvg = out.reduce(function (s, r) { return s + Math.abs(r.pct); }, 0) / out.length;
+        var avg = out.reduce(function (s, r) { return s + r.pct; }, 0) / out.length;
+        return { list: out, absAvg: absAvg, avg: avg, n: out.length };
+      }
+      function ctxRead(rows) {
+        if (!Array.isArray(rows) || rows.length < 2) return null;
+        var c = rows.map(function (r) { return r.c; }).filter(Number.isFinite);
+        if (c.length < 2) return null;
+        var last = c[c.length - 1];
+        function ma(n) { if (c.length < n) return null; var s = 0, i; for (i = c.length - n; i < c.length; i++) s += c[i]; return s / n; }
+        function chg(n) { if (c.length <= n) return null; var p = c[c.length - 1 - n]; return (p > 0) ? (last / p - 1) * 100 : null; }
+        var sma20 = ma(20), sma50 = ma(50), sma200 = ma(200);
+        var hi = Math.max.apply(null, c.slice(-252));
+        var stack = (sma20 && sma50 && sma200) ? (sma20 > sma50 && sma50 > sma200 ? 'up' : (sma20 < sma50 && sma50 < sma200 ? 'down' : 'mixed')) : null;
+        return { last: last, sma20: sma20, sma50: sma50, sma200: sma200, chg5: chg(5), chg20: chg(20), stack: stack, vs50: sma50 ? (last / sma50 - 1) * 100 : null, pos52: hi ? (last / hi - 1) * 100 : null };
+      }
+      function fetchOneJson(path) {
+        var ctrl = new AbortController(), t = setTimeout(function () { ctrl.abort(); }, 9000);
+        return fetch(path, { cache: 'no-store', signal: ctrl.signal }).then(function (r) { clearTimeout(t); return r.ok ? r.json() : null; }, function () { clearTimeout(t); return null; }).catch(function () { return null; });
+      }
+      function fetchCtxBars() {
+        var tasks = MSFT_CTX.map(function (row) {
+          return fetchOneJson('/data/bars/' + row.sym + '.json').then(function (j) {
+            CTX[row.sym] = (j && Array.isArray(j.rows)) ? { read: ctxRead(j.rows), asof: j.asof || null, refreshDate: j.refreshDate || null } : { read: null, asof: null };
+          });
+        });
+        tasks.push(fetchOneJson('/data/options/VIX.json').then(function (j) { if (j && Number.isFinite(j.spot)) CTX_VIX = { spot: j.spot, asof: j.asof || null }; }));
+        return Promise.all(tasks).then(function () { try { renderBrief(); } catch (e) { } });
+      }
+      function applyEarningsMove() {
+        try {
+          if (window.__msftOptChain) OPT_MOVE = msftComputeEarningsMove(window.__msftOptChain, MSFT_EARNINGS_MS, Date.now());
+          if (window.__msftBarsRows && !EARN_HIST) EARN_HIST = msftRealizedEarningsReactions(window.__msftBarsRows, MSFT_PAST_EARNINGS);
+          window.__msftEarnMove = OPT_MOVE;
+          var inl = document.getElementById('optMoveInline');
+          if (inl) inl.textContent = (OPT_MOVE && Number.isFinite(OPT_MOVE.emPct)) ? ('options \u00b1' + OPT_MOVE.emPct.toFixed(1) + '%') : 'options \u2014';
+        } catch (e) { }
+      }
+      function renderMoveCard() {
+        var el = document.getElementById('msftMoveBody'); if (!el) return;
+        var o = OPT_MOVE;
+        if (!o || !o.event || !Number.isFinite(o.emPct)) {
+          var why = (o && o.reasonCodes && o.reasonCodes.length) ? (' (' + o.reasonCodes.join(', ') + ')') : '';
+          el.innerHTML = '<div class="dim" style="font-size:12.5px">Options-implied move unavailable' + why + ' — the same-origin option chain (<code>data/options/MSFT.json</code>) is missing, malformed, or has no expiry bracketing the ' + MSFT_EARNINGS_ISO + ' print.</div>';
+          return;
+        }
+        var spot = Number.isFinite(o.spot) ? o.spot : (Number.isFinite(SPOT) ? SPOT : null);
+        var em$ = (spot != null) ? spot * o.emPct / 100 : null;
+        var lo = (spot != null && em$ != null) ? spot - em$ : null, hi = (spot != null && em$ != null) ? spot + em$ : null;
+        var s1$ = (spot != null && Number.isFinite(o.sigma1Pct)) ? spot * o.sigma1Pct / 100 : null;
+        var s2$ = (spot != null && Number.isFinite(o.sigma2Pct)) ? spot * o.sigma2Pct / 100 : null;
+        var sig = o.atmIV, T = o.event.T, pBand = null, pUp = null, pDn = null;
+        if (Number.isFinite(sig) && sig > 0 && Number.isFinite(T) && T > 0 && spot != null && lo != null && hi != null) {
+          var sd = sig * Math.sqrt(T);
+          var cdf = function (K) { return normCdfM((Math.log(K / spot) + 0.5 * sig * sig * T) / sd); }; // P(S_T <= K)
+          pBand = Math.max(0, cdf(hi) - cdf(lo)); pUp = Math.max(0, 1 - cdf(hi)); pDn = Math.max(0, cdf(lo));
+        }
+        var kpi = function (k, val, d, cl) { return '<div class="kpi"><div class="k">' + k + '</div><div class="v ' + (cl || '') + '">' + val + '</div><div class="d">' + (d || '') + '</div></div>'; };
+        var grid = '<div class="kpis" style="margin-bottom:12px">'
+          + kpi('Implied earnings move', emAbs(o.emPct), 'ATM straddle · ' + o.event.iso + ' expiry (' + o.event.dte + 'd)', 'accent')
+          + kpi('Expected range', (lo != null && hi != null) ? (price(lo) + ' – ' + price(hi)) : 'delayed quote required', 'spot ' + (spot != null ? price(spot) : '—') + ' ± straddle')
+          + kpi('1σ (~68%)', emAbs(o.sigma1Pct), (spot != null && s1$ != null) ? (price(spot - s1$) + ' – ' + price(spot + s1$)) : 'from ATM IV')
+          + kpi('2σ (~95%)', emAbs(o.sigma2Pct), (spot != null && s2$ != null) ? (price(spot - s2$) + ' – ' + price(spot + s2$)) : 'tail band')
+          + kpi('Isolated earnings jump', emAbs(o.isolatedPct), o.pre ? ('stripped of the ' + o.pre.iso + ' pre-event expiry') : 'no clean pre-event expiry')
+          + kpi('ATM implied vol', Number.isFinite(o.atmIV) ? (o.atmIV * 100).toFixed(0) + '%' : '—', (o.pre && Number.isFinite(o.pre.atmIV)) ? ('event vs ' + (o.pre.atmIV * 100).toFixed(0) + '% pre-event') : 'annualized, event expiry')
+          + '</div>';
+        var probs = (pBand != null) ? ('<div class="callout" style="margin:6px 0">At the ' + o.event.iso + ' expiry the option-implied (risk-neutral) odds are ~<b>' + (pBand * 100).toFixed(0) + '%</b> inside the ' + emAbs(o.emPct) + ' straddle band, ~<b>' + (pUp * 100).toFixed(0) + '%</b> above ' + price(hi) + ' and ~<b>' + (pDn * 100).toFixed(0) + '%</b> below ' + price(lo) + '. The straddle band ≈ ±0.8σ (holds ~57–58% of the time); the ' + emAbs(o.sigma1Pct) + ' band is the ~68% (1σ) cone.</div>') : '';
+        var realized = '';
+        if (EARN_HIST && EARN_HIST.n) {
+          var ratio = (Number.isFinite(o.emPct) && EARN_HIST.absAvg > 0) ? o.emPct / EARN_HIST.absAvg : null;
+          var verdict = ratio == null ? '' : (ratio > 1.15 ? '<b class="neg">rich</b> — options price more than the typical reaction' : ratio < 0.85 ? '<b class="pos">cheap</b> — below the typical reaction' : '<b>in line</b> with the typical reaction');
+          var rrows = EARN_HIST.list.slice(-8).map(function (r) { return '<tr><td>' + r.date + '</td><td class="' + emCls(r.pct) + '">' + emSig(r.pct) + '</td></tr>'; }).join('');
+          realized = '<div style="display:grid;grid-template-columns:1fr 1fr;gap:14px;align-items:start;margin-top:6px">'
+            + '<div><div class="sub" style="margin-bottom:4px">Realized next-session reaction, last ' + EARN_HIST.n + ' prints</div><table><thead><tr><th>Print</th><th>Move</th></tr></thead><tbody>' + rrows + '</tbody></table></div>'
+            + '<div><div class="sub" style="margin-bottom:4px">Implied vs realized</div><div class="kpi"><div class="k">Avg realized |move|</div><div class="v">' + emAbs(EARN_HIST.absAvg) + '</div><div class="d">directional bias ' + emSig(EARN_HIST.avg) + '</div></div><div class="kpi" style="margin-top:8px"><div class="k">Implied ÷ realized</div><div class="v">' + (ratio != null ? ratio.toFixed(2) + '×' : '—') + '</div><div class="d">implied ' + emAbs(o.emPct) + ' is ' + verdict + '</div></div></div>'
+            + '</div>';
+        }
+        var term = '';
+        if (Array.isArray(o.term) && o.term.length) {
+          var trs = o.term.slice(0, 8).map(function (t) { var isEvt = o.event && t.expMs === o.event.expMs; return '<tr' + (isEvt ? ' style="font-weight:600;color:var(--accent)"' : '') + '><td>' + t.iso + (isEvt ? ' ◄ print' : '') + '</td><td>' + t.dte + 'd</td><td>' + emAbs(t.emPct) + '</td><td>' + (Number.isFinite(t.atmIV) ? (t.atmIV * 100).toFixed(0) + '%' : '—') + '</td></tr>'; }).join('');
+          term = '<details style="margin-top:8px"><summary class="sub" style="cursor:pointer">Vol term structure — per-expiry ATM straddle move + implied vol</summary><table style="margin-top:6px"><thead><tr><th>Expiry</th><th>DTE</th><th>Straddle move</th><th>ATM IV</th></tr></thead><tbody>' + trs + '</tbody></table></details>';
+        }
+        var prov = '<div class="dim" style="font-size:11.5px;margin-top:8px">Chain as of ' + (o.asof || '—') + ' · spot ' + (spot != null ? price(spot) : '—') + ' · earnings ' + MSFT_EARNINGS_ISO + '. Method: interpolated ATM straddle at spot on the first post-earnings expiry; ATM IV via the closed-form ATM approximation; earnings jump isolated as √(Tₑ·(σₑ²−σₚ²)). Educational only. Detail owner: <a href="options-structure-lab.html" style="color:var(--accent)">Options Structure Lab</a>.</div>';
+        el.innerHTML = grid + probs + realized + term + prov;
+      }
+      function briefCtxChip(sym) {
+        var meta = null, i; for (i = 0; i < MSFT_CTX.length; i++) { if (MSFT_CTX[i].sym === sym) { meta = MSFT_CTX[i]; break; } }
+        if (!meta) return '';
+        var c = CTX[sym], r = c && c.read;
+        var stackTxt = (r && r.stack) ? (r.stack === 'up' ? 'uptrend' : r.stack === 'down' ? 'downtrend' : 'range') : '—';
+        var chg = (r && Number.isFinite(r.chg20)) ? r.chg20 : null;
+        var val = (r && Number.isFinite(r.last)) ? (Math.abs(r.last) >= 50 ? r.last.toFixed(1) : r.last.toFixed(2)) : '—';
+        var lab = meta.link ? ('<a href="' + meta.link + '" style="color:var(--ink);text-decoration:none;border-bottom:1px dotted var(--muted)">' + meta.label + '</a>') : meta.label;
+        var title = meta.note + (r ? (' · ' + stackTxt + (Number.isFinite(r.vs50) ? ' · ' + emSig(r.vs50) + ' vs 50d' : '') + (Number.isFinite(r.pos52) ? ' · ' + emSig(r.pos52) + ' vs 52w high' : '')) : ' · loading');
+        return '<div class="kpi" title="' + emEsc(title) + '"><div class="k">' + lab + '</div><div class="v ' + emCls(chg) + '" style="font-size:16px">' + val + '</div><div class="d">' + (chg != null ? emSig(chg) + ' 20d' : '—') + ' · ' + stackTxt + '</div></div>';
+      }
+      function renderBrief() {
+        var el = document.getElementById('msftBrief'); if (!el) return;
+        var m = lastM;
+        var accepted = (window.MsftJulyModel && window.MsftJulyModel.runtime) ? window.MsftJulyModel.runtime.acceptedState : null;
+        var q = accepted && accepted.quote;
+        var spot = (q && (q.status === 'available' || q.status === 'stale') && Number.isFinite(q.valueUsd) && q.valueUsd > 0) ? q.valueUsd : (Number.isFinite(SPOT) ? SPOT : null);
+        var o = OPT_MOVE;
+        var dte = Math.ceil((MSFT_EARNINGS_MS - Date.now()) / 864e5);
+        var dteTxt = dte > 1 ? (dte + ' days to') : dte === 1 ? '1 day to' : dte === 0 ? 'today —' : 'just past';
+        var emTxt = (o && Number.isFinite(o.emPct)) ? ('±' + o.emPct.toFixed(1) + '%') : '—';
+        var band = (o && spot != null && Number.isFinite(o.emPct)) ? (price(spot * (1 - o.emPct / 100)) + '–' + price(spot * (1 + o.emPct / 100))) : null;
+        var vsSpot = (m && spot != null && Number.isFinite(m.implied)) ? ((m.implied / spot - 1) * 100) : null;
+        var head = '<div style="font-size:13.5px;line-height:1.55;margin-bottom:10px"><b>MSFT ' + (spot != null ? price2(spot) : 'price loading') + '</b> · <b>' + dteTxt + '</b> the FY26 Q4 print (' + MSFT_EARNINGS_ISO + ', after close). Options price a one-print move of <b class="accent">' + emTxt + '</b>' + (band ? ' (' + band + ')' : '') + '. The static FY27E model lands EPS <b>' + (m ? eps(m.EPS27) : '—') + '</b> → <b>' + (m ? price(m.implied) : '—') + '</b>' + ((vsSpot != null && m) ? (' (<span class="' + emCls(vsSpot) + '">' + emSig(vsSpot, 0) + '</span> vs spot @ ' + m.pe.toFixed(1) + '×)') : '') + '.</div>';
+        var thePrint = '<div style="margin-bottom:8px"><b>The print.</b> Operating margin is <b class="neg">already compressing</b> — 48.9% → 47.1% → 46.3% (Q1→Q3 FY26), ahead of the bulk of the FY27 depreciation wave. Q4 guide is <b>$86.7–87.8B</b> revenue with <b>capex &gt;$40B</b>; the tape is applying a "show-me" discount on the capex→depreciation drag. RPO is OpenAI-concentrated ($392B→$625B→$627B), so the +99% YoY is one mega-deal, not broad backlog. Model FY27E OM ' + (m ? pct(m.OM27 * 100) : '—') + ', EPS ' + (m ? eps(m.EPS27) : '—') + '.</div>';
+        var opt;
+        if (o && Number.isFinite(o.emPct)) {
+          var rr = (EARN_HIST && EARN_HIST.absAvg > 0) ? o.emPct / EARN_HIST.absAvg : null;
+          var richTxt = rr == null ? '' : rr > 1.15 ? ' — <b class="neg">rich</b> vs the ' + emAbs(EARN_HIST.absAvg) + ' average realized reaction' : rr < 0.85 ? ' — <b class="pos">cheap</b> vs the ' + emAbs(EARN_HIST.absAvg) + ' average realized reaction' : ' — in line with the ' + emAbs(EARN_HIST.absAvg) + ' average realized reaction';
+          opt = '<div style="margin-bottom:8px"><b>Options setup.</b> The ' + o.event.iso + ' expiry (first bracketing the print, ' + o.event.dte + 'd) prices ' + emAbs(o.emPct) + ' on the straddle, a ' + emAbs(o.sigma1Pct) + ' 1σ / ' + emAbs(o.sigma2Pct) + ' 2σ cone, and an isolated earnings-day jump of ' + emAbs(o.isolatedPct) + ' (ATM IV ' + (Number.isFinite(o.atmIV) ? (o.atmIV * 100).toFixed(0) + '%' : '—') + ' vs ' + ((o.pre && Number.isFinite(o.pre.atmIV)) ? (o.pre.atmIV * 100).toFixed(0) + '% pre-event' : '—') + ' — the earnings vol premium)' + richTxt + '.' + ((EARN_HIST && EARN_HIST.n) ? (' Last prints: ' + EARN_HIST.list.slice(-4).map(function (r) { return '<span class="' + emCls(r.pct) + '">' + emSig(r.pct) + '</span>'; }).join(', ') + '.') : '') + '</div>';
+        } else {
+          opt = '<div style="margin-bottom:8px;color:var(--muted)"><b>Options setup.</b> Loading the option chain from <code>data/options/MSFT.json</code>…</div>';
+        }
+        var gridStyle = 'display:grid;grid-template-columns:repeat(auto-fit,minmax(118px,1fr));gap:8px;margin:4px 0 10px';
+        var vixChip = (CTX_VIX && Number.isFinite(CTX_VIX.spot)) ? ('<div class="kpi" title="CBOE VIX — 30-day implied vol of the S&amp;P 500. Under 20 calm · 20–28 elevated · over 28 stressed."><div class="k">VIX</div><div class="v ' + (CTX_VIX.spot < 20 ? 'pos' : CTX_VIX.spot > 28 ? 'neg' : '') + '" style="font-size:16px">' + CTX_VIX.spot.toFixed(1) + '</div><div class="d">' + (CTX_VIX.spot < 20 ? 'calm' : CTX_VIX.spot > 28 ? 'stressed' : 'elevated') + '</div></div>') : '';
+        var haveCtx = Object.keys(CTX).length > 0;
+        var ctxBlock = '<div style="margin-bottom:4px"><b>Around MSFT.</b> Semis / AI-capex demand (read-through to Azure):</div><div style="' + gridStyle + '">' + (['SOXX', 'SMH', 'NVDA'].map(briefCtxChip).join('') || (haveCtx ? '' : '<span class="dim">macro bars loading…</span>')) + '</div>'
+          + '<div style="margin-bottom:4px">Mag-7 cloud/AI peers — reporting the same week:</div><div style="' + gridStyle + '">' + ['GOOGL', 'META', 'AMZN', 'AAPL'].map(briefCtxChip).join('') + '</div>'
+          + '<div style="margin-bottom:4px">Rates · dollar · yen · gold (multiple + FX-translation backdrop):</div><div style="' + gridStyle + '">' + ['TLT', 'UUP', 'JPY=X', 'GLD'].map(briefCtxChip).join('') + '</div>'
+          + '<div style="margin-bottom:4px">Index &amp; vol backdrop:</div><div style="' + gridStyle + '">' + ['QQQ', 'SPY'].map(briefCtxChip).join('') + vixChip + '</div>';
+        var cat = '<div class="callout warn" style="margin:8px 0"><b>Catalysts this week.</b> MSFT FY26 Q4 — <b>' + MSFT_EARNINGS_ISO + '</b>, after close. The FOMC rate decision lands the <b>same week (Jul 28–29)</b>, so the print collides with a macro catalyst — watch rates, the dollar and the yen for cross-currents. Mag-7 peers (GOOGL/META ~Jul 29, AMZN/AAPL ~Jul 31) stack a heavy tape around it. <a href="market-brief.html" style="color:var(--accent)">Market Brief</a> owns the live cross-asset read.</div>';
+        var barsInfo = (accepted && accepted.dailyBars && accepted.dailyBars.cutoff) ? accepted.dailyBars.cutoff : '—';
+        var prov = '<div class="dim" style="font-size:11.5px">Regenerated ' + new Date().toLocaleTimeString() + '. Sources: option chain ' + ((o && o.asof) ? o.asof : '—') + ' · MSFT bars cutoff ' + barsInfo + ' · macro-context bars (same-origin caches). The fundamental model is a separate static as-of (2026-07-06); market context runs on its own clock. Educational only — not investment advice.</div>';
+        el.innerHTML = head + thePrint + opt + ctxBlock + cat + prov;
+      }
+      function refreshAll() {
+        var btn = document.getElementById('btnRefreshAll');
+        if (btn) { btn.disabled = true; btn.setAttribute('aria-busy', 'true'); }
+        setLiveStatus('Refreshing same-origin option chain + bars + macro context…');
+        var evalTime = new Date().toISOString(), tasks = [];
+        tasks.push(fetchOneJson('/data/options/MSFT.json').then(function (j) {
+          if (j && Array.isArray(j.o)) window.__msftOptChain = j;
+          if (j && window.MsftJulyModel && typeof window.MsftJulyModel.applyRefreshOutcome === 'function') window.MsftJulyModel.applyRefreshOutcome({ resource: 'quote', envelope: j, evaluationTime: evalTime });
+        }));
+        tasks.push(fetchOneJson('/data/bars/MSFT.json').then(function (j) {
+          if (j && Array.isArray(j.rows)) { window.__msftBarsRows = j.rows; EARN_HIST = msftRealizedEarningsReactions(j.rows, MSFT_PAST_EARNINGS); }
+          if (j && window.MsftJulyModel && typeof window.MsftJulyModel.applyRefreshOutcome === 'function') window.MsftJulyModel.applyRefreshOutcome({ resource: 'bars', envelope: j, evaluationTime: evalTime });
+        }));
+        tasks.push(fetchCtxBars());
+        return Promise.all(tasks).then(function () {
+          if (btn) { btn.disabled = false; btn.removeAttribute('aria-busy'); }
+          applyEarningsMove(); recompute();
+          setLiveStatus('Refreshed same-origin data + regenerated brief · ' + new Date().toLocaleTimeString());
+        }, function () {
+          if (btn) { btn.disabled = false; btn.removeAttribute('aria-busy'); }
+          setLiveStatus('Refresh encountered an error — the cached view remains in place.');
+        });
+      }
+
       function recompute() {
         const m = calculateAnnual();
         lastM = m;
@@ -2878,6 +3214,8 @@
         // Power is visible so hidden canvases are never drawn, then redraw on the Power transition and on resize.
         if (msftPowerVisible()) { drawMsftCharts(m, recon); drawTornadoSafe(); }
         renderMsftSurfaces();
+        // Additive market-clock reads: the options-implied move (its own read) + the fully-regenerated brief.
+        try { applyEarningsMove(); renderMoveCard(); renderBrief(); } catch (briefErr) { }
       }
 
       // ---- live MSFT quote (Finnhub — the confirmed-working native-CORS provider) ----
@@ -3179,6 +3517,20 @@
       applyPreset('base');
       applyMode();
       setLiveStatus('delayed quote loading from same-origin cache');
+      // Options-implied move + macro brief wiring (additive; never writes impMove or accepted state).
+      window.addEventListener('msft:options-chain', function () { try { applyEarningsMove(); renderMoveCard(); renderBrief(); } catch (e) { } });
+      window.addEventListener('msft:bars-rows', function () { try { if (window.__msftBarsRows) EARN_HIST = msftRealizedEarningsReactions(window.__msftBarsRows, MSFT_PAST_EARNINGS); renderMoveCard(); renderBrief(); } catch (e) { } });
+      var refreshAllBtn = document.getElementById('btnRefreshAll'); if (refreshAllBtn) refreshAllBtn.addEventListener('click', refreshAll);
+      var useMoveBtn = document.getElementById('btnUseOptMove');
+      if (useMoveBtn) useMoveBtn.addEventListener('click', function () {
+        if (OPT_MOVE && Number.isFinite(OPT_MOVE.emPct)) {
+          var el = document.getElementById('impMove');
+          if (el) { el.value = Math.min(25, Math.max(0, OPT_MOVE.emPct)).toFixed(1); userEditedImpMove = true; el.dispatchEvent(new Event('input', { bubbles: true })); setLiveStatus('Scenario implied move set to the options-implied \u00b1' + OPT_MOVE.emPct.toFixed(1) + '% (ATM straddle).'); }
+        } else { setLiveStatus('Options-implied move not yet available \u2014 the option chain is still loading.'); }
+      });
+      // Compute the move if the chain is already captured, then load the macro-context bars and regenerate the brief.
+      applyEarningsMove();
+      fetchCtxBars();
     })();
   </script>
   <script>

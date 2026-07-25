@@ -4,6 +4,8 @@
 > **Last analysis run:** 2026-07-06 · **Scenario "today":** 2026-07-06 (pre–FY26 Q4 print)
 > **Status:** living document — the next agent should update dates, plug in the actual Q4 print, refresh consensus, and re-verify the cost-cycle sources.
 >
+> **v5 (2026-07-25):** added the **options-implied post-earnings move** (computed live from the same-origin `data/options/MSFT.json` chain — see §3d), a **fully-regenerated macro brief** (§3e), and a **Refresh data + brief** control. These are **market-clock** reads (their own clock, per §0b); they never advance the fundamental as-of (2026-07-06) and never write the user-owned implied-move input. The scheduled Q4 print stays **2026-07-29** (a scenario, not an actual).
+>
 > **Educational only — NOT investment advice.** The fundamental model is a mechanical function of editable assumptions; the delayed quote and daily technicals are cache-first market context on their own clocks (see §0b), never a fundamental input.
 
 This file is the full handoff for the next analysis run: what the tool does, the verified data behind it, the model math, every input lever, the key findings/corrections, the cost-cycle thesis with sources, known limitations, and a next-run checklist.
@@ -44,6 +46,8 @@ The fundamental model and the market context are **separate source-owned clocks*
 | **Valuation ladder** | EPS × {18,20,22,25,28,32}× → implied price, benchmarked to spot |
 | **Heatmap** | FY27 OM / Op income / EPS across volume growth × depreciation (metric toggle) |
 | **Cost-cycle overlay** | 3-phase timeline (Inflation/Transition/Deflation) + phase presets |
+| **Options-implied move** (v5) | ATM-straddle expected move on the first post-earnings expiry, ±1σ/±2σ cones, isolated earnings-day jump, implied vs realized reactions (§3d) |
+| **MSFT earnings brief** (v5) | one regenerated read: the print + options setup + macro context (Fed week, Mag-7 peers, USD/JPY, SOXX, rates/dollar/gold, VIX) (§3e) |
 
 ---
 
@@ -120,6 +124,37 @@ scenarioFYOM    = (ytdOI + q4Rev×q4OM) / (ytdRev + q4Rev)
 - Color is **normalized to the grid's actual min/max** (dynamic), `hsl(6+t·134, 70%, 20+t·22%)`.
 - Metric toggle: **OM% / Op income $B / EPS $**. ⚠️ OM is a *ratio* and nearly **volume-invariant** (within-row spread ~1.5% vs ~8.4% down a column) — so on OM% a row looks flat; OI and EPS vary on both axes (EPS ~$1.93 within-row, ~$3.26 down-column).
 
+### 3d. Options-implied post-earnings move (v5 — the "correct way")
+
+The market's own expected move around the print is read **live from the same-origin option chain** (`data/options/MSFT.json`), never typed. Method, in order of what a desk actually uses:
+
+1. **Pick the event expiry.** The first listed expiry whose date is **strictly after the earnings date** (`MSFT_EARNINGS_ISO = 2026-07-29`) is the one that *brackets the print*. On the 2026-07-24 snapshot that is **2026-07-31** (the pre-event 2026-07-27 expiry does **not** capture the report).
+2. **Interpolate the ATM straddle at spot.** For each strike, mid = (bid+ask)/2 (fall back to last). The straddle at a strike = call-mid + put-mid; the value **at spot** is linearly interpolated between the two bracketing strikes (removes the strike-snapping error).
+3. **Expected move = straddle ÷ spot.** This is the market's **breakeven ~1-print move** (`emPct`). On the snapshot: straddle ≈ $27.5 on spot $381.4 → **±7.2%** ($354–$409). The tastytrade-style refinement `0.85 × straddle` (~6.1%) is also stored.
+4. **ATM implied vol (annualized)** via the closed-form ATM-straddle approximation `σ ≈ 1.2533 · (emPct/√T)`, `T` = calendar-days-to-expiry / 365. Event-expiry σ ≈ **61%** vs the 2026-07-27 pre-event σ ≈ **20%** — the *earnings vol premium* made explicit.
+5. **Probability cones.** The straddle band ≈ **±0.8σ** (holds only ~57–58% of the time). The proper **±1σ (~68%)** cone = `σ·√T` ≈ **±9.0%**; **±2σ (~95%)** ≈ **±18%**. Event-expiry risk-neutral odds (inside-band / above-upper / below-lower) use a driftless lognormal at the event `T` (correct horizon — *not* the 1-yr FY27 target, which is a different clock).
+6. **Isolated earnings-day jump.** Stripping the ordinary vol carried by the pre-event expiry: `move = √(Tₑ·(σₑ² − σₚ²))` ≈ **±8.5%** — the component the market attributes specifically to the print.
+7. **Implied vs realized.** The realized **next-session** reaction of the last 8 prints (`MSFT_PAST_EARNINGS`, computed from `data/bars/MSFT.json`) averages **±5.2%** (mean −2.3%, i.e. a downside bias; recent prints −10.0%, +7.6%, −6.2%, −6.1%). Implied **±7.2% ÷ 5.2% = 1.38×** → options are pricing a **rich** premium into this print.
+
+This is a **market-clock read** (`OPT_MOVE` / `window.__msftEarnMove`). Per Feature 009 SCN-009-004 it is displayed prominently but **never auto-writes** the user-owned scenario `impMove` input; a one-click **"↧ Use options move"** button copies it in as an explicit user action.
+
+### 3e. MSFT earnings brief (v5)
+
+A single shared card (visible in Simple **and** Power), **fully regenerated on every recompute / refresh**, that assembles:
+
+- **Headline** — spot, days-to-print, the options-implied ±move + range, and the model FY27E EPS → implied price vs spot.
+- **The print** — the live OM downtrend (48.9→47.1→46.3), the Q4 guide ($86.7–87.8B / capex >$40B), the RPO/OpenAI concentration, and the model FY27E OM/EPS.
+- **Options setup** — the §3d move, cones, isolated jump, IV term premium, and the implied-vs-realized verdict.
+- **Around MSFT (macro)** — each computed in-browser from a same-origin `data/bars/<sym>.json` cache (20-day change + MA stack, deep-linking the owning tool):
+  - **Semis / AI-capex** — SOXX, SMH, NVDA (Azure demand read-through).
+  - **Mag-7 peers** — GOOGL, META, AMZN, AAPL (all report the same week).
+  - **Rates · dollar · yen · gold** — TLT (discount-rate proxy), UUP (FX-translation headwind when strong), USD/JPY = `JPY=X` (carry / risk appetite), GLD.
+  - **Index & vol** — QQQ, SPY, and VIX spot (from `data/options/VIX.json`).
+- **Catalysts this week** — the **7/29 print collides with the same-week FOMC (Jul 28–29)**; peer prints stack a heavy Mag-7 tape. (The Fed odds themselves are owned by [`market-brief.html`](../market-brief.html); this card links out rather than fabricating a number.)
+- **Provenance footer** — regeneration time + every source clock (option-chain asof, bars cutoff, macro caches). Fundamental model stays a separate static as-of.
+
+**Refresh:** the header **"↻ Refresh data + brief"** re-pulls the same-origin option chain + MSFT bars + all macro-context bars and regenerates the brief; a normal page reload does the same on boot (cache-first, delta-only). All context is same-origin (no provider request), so it never trips the Feature-009 cache-first regression.
+
 ---
 
 ## 4. Inputs, defaults &amp; presets
@@ -186,6 +221,7 @@ scenarioFYOM    = (ytdOI + q4Rev×q4OM) / (ytdRev + q4Rev)
 ## 8. Next-run checklist (what to update)
 
 - [ ] Update "today" / 52-wk range / fwd P/E. The **delayed quote and daily technicals** refresh from the same-origin `data/options/MSFT.json` / `data/bars/MSFT.json` caches (data pipeline), not a hard-coded spot (see §0b).
+- [ ] **Options-implied move (v5, §3d):** confirm `MSFT_EARNINGS_ISO` is the real next report date so the *event expiry* is picked correctly; after the print, roll `MSFT_EARNINGS_ISO` to the next quarter and append the just-reported date to `MSFT_PAST_EARNINGS` (in the HTML) so implied-vs-realized stays current. The macro-context symbol set lives in `MSFT_CTX` — add/remove `data/bars/<sym>.json` symbols there.
 - [ ] **After the ~July 29 print:** replace Q4 *estimates* with **actual Q4 FY26 results** (revenue, OI, OM, EPS, D&amp;A, capex). The model becomes FY26-complete; re-point the reconciliation to **FY27 quarterly**.
 - [ ] Refresh **FY27 consensus** (revenue, EBIT margin) and — most important catalyst — the **FY27 capex guide** (up again? decelerating?).
 - [ ] Re-verify the **cost-cycle sources**; check whether the deflation phase has pulled forward or pushed out; update the phase years.
@@ -194,7 +230,6 @@ scenarioFYOM    = (ytdOI + q4Rev×q4OM) / (ytdRev + q4Rev)
 - [ ] Consider **new factors**: power/energy constraints, regulatory (Italy AGCM outcome + new probes), rate environment, FX regime, neoclouds / new entrants, antitrust.
 - [ ] Add or re-cut **time horizons** as needed (e.g., explicit 1M/3M/6M/1Y like the AI Capex Lab).
 - [ ] Re-run the **validation** in Section 9 before commit.
-
 ---
 
 ## 9. How to edit, validate &amp; ship
@@ -221,6 +256,7 @@ Then: `git add` the changed files → `git commit` → `git push origin main` (t
 - **v3** — rebuilt on **verified Q1–Q3 actuals**; margin-trajectory card; **dual Q4 anchors** (consensus + seasonality); RPO-concentration callout; capex guardrail.
 - **v4 (published as `msft-july-print-model.html`)** — added the **cost-cycle / market-structure** module with 3 phase presets.
 - **heatmap fix** — dynamic color normalization + OM/OI/EPS metric toggle (OM is volume-invariant).
+- **v5 (2026-07-25)** — added the **options-implied post-earnings move** (§3d: ATM-straddle expected move on the first post-earnings expiry, ±1σ/±2σ cones, isolated earnings-day jump, implied-vs-realized), a **fully-regenerated macro brief** (§3e: the print + options setup + Fed-week / Mag-7 / USD/JPY / SOXX / rates-dollar-gold / VIX context), and a **Refresh data + brief** control. All additive market-clock reads; the fundamental as-of and the user-owned `impMove` input are untouched.
 
 ---
 

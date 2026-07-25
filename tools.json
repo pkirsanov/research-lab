@@ -748,8 +748,8 @@
       "file": "msft-july-print-model.html",
       "notes": "notes/msft-july-print-model.md",
       "status": "live",
-      "updated": "2026-07-19",
-      "blurb": "Reconcile the late-July Microsoft FY26 Q4 print and FY27E margins against reported Q1-Q3 actuals: an operating-margin bridge, dual Q4 anchors (consensus vs seasonality), depreciation / price-mix / FX levers, a P/E ladder, an OM heatmap, and a verified memory-shortage cost-cycle overlay with phase presets. The static 2026-07-06 model now reads a cache-first delayed quote and daily technicals from separate same-origin snapshots on their own clocks, with a Simple/Power view over one accepted state; the FY26 Q4 print stays a scenario.",
+      "updated": "2026-07-25",
+      "blurb": "Reconcile the late-July Microsoft FY26 Q4 print and FY27E margins against reported Q1-Q3 actuals: an operating-margin bridge, dual Q4 anchors (consensus vs seasonality), depreciation / price-mix / FX levers, a P/E ladder, an OM heatmap, and a verified memory-shortage cost-cycle overlay. Now adds the options-implied post-earnings move (ATM straddle computed live from the option chain: expected range, 1-sigma/2-sigma cones, the isolated earnings-day jump, and implied vs realized reactions) plus a macro brief (Fed week, Mag-7 peers, USD/JPY, SOXX, rates/dollar) regenerated on each refresh. The static 2026-07-06 model still reads a cache-first delayed quote and daily technicals from separate same-origin snapshots on their own clocks, with a Simple/Power view over one accepted state; the FY26 Q4 print stays a scenario.",
       "tags": [
         "MSFT",
         "Q4 FY26",
@@ -758,6 +758,9 @@
         "depreciation",
         "cost cycle",
         "heatmap",
+        "options-implied move",
+        "earnings straddle",
+        "macro brief",
         "cache-first delayed quote",
         "daily technicals",
         "Simple/Power"

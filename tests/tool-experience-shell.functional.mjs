@@ -113,8 +113,41 @@ function copyRepositoryForReplay(targetRoot) {
   if (existsSync(nodeModules)) symlinkSync(nodeModules, join(targetRoot, 'node_modules'), 'dir');
 }
 
+// The compatibility-rollback rehearsal (SCN-012-031) reconstructs the TRUE
+// pre-Scope-02 legacy bytes of the shared shell files: the legacy simple/power
+// switch WITHOUT the modern four-view `data-rlexperience-shell` shell. HEAD is
+// NOT a usable baseline authority. Scope 02 (commit c81d808d) committed the
+// modern shell into rlviews.js at HEAD, so `git show HEAD:rlviews.js` now
+// returns MODERN bytes; sourcing the "legacy" rehearsal from HEAD would make it
+// wrongly mount the shell (currentShellCount 1 instead of 0). Pin instead to the
+// immutable pre-Scope-02 tree — the parent of the Scope 02 commit — which
+// predates the shell marker and can never drift as HEAD advances. The two guards
+// below make the reconstruction fail LOUD (never silently read modern bytes) if
+// the pin is ever (re)pointed at post-Scope-02 content, keeping SCN-012-031
+// adversarial.
+const LEGACY_BASELINE_COMMIT = '767732db04e0cd32bf107b2a95030a6771bd16f2';
+const MODERN_SHELL_MARKER = 'data-rlexperience-shell';
+const LEGACY_BASELINE_SHA256 = Object.freeze({
+  'rlviews.js': '9695b8cacf613546a82a60f18e6b382892073a50ff6031b14ca09a71bad98ee0',
+  'rlapp.js': 'b481a7323595f176fca7c7e5b1c25bccc0ed0a27f43a92bb57583f8ad1a5cdb9'
+});
+
 function baselineBytes(relativePath) {
-  return execFileSync('git', ['show', `HEAD:${relativePath}`], { cwd: REPOSITORY_ROOT });
+  const bytes = execFileSync('git', ['show', `${LEGACY_BASELINE_COMMIT}:${relativePath}`], { cwd: REPOSITORY_ROOT });
+  assert.equal(
+    bytes.includes(MODERN_SHELL_MARKER),
+    false,
+    `legacy baseline ${relativePath} @ ${LEGACY_BASELINE_COMMIT} must not contain the modern shell marker "${MODERN_SHELL_MARKER}"`
+  );
+  const expectedSha256 = LEGACY_BASELINE_SHA256[relativePath];
+  if (expectedSha256) {
+    assert.equal(
+      sha256(bytes),
+      expectedSha256,
+      `legacy baseline ${relativePath} @ ${LEGACY_BASELINE_COMMIT} sha256 drifted from the pinned pre-Scope-02 bytes`
+    );
+  }
+  return bytes;
 }
 
 function reconstructScope01MigrationPolicy(sandboxRoot) {
@@ -424,7 +457,7 @@ test('SCN-012-031 compatibility rollback restores legacy controls then exact cur
     assert.deepEqual(hashInventory(REPOSITORY_ROOT, protectedPaths), protectedBefore);
 
     console.log(`[scope02-rollback] sandbox=${temporaryRoot.split(sep).at(-1)} browser=${SYSTEM_CHROME} server=no-store-static`);
-    console.log('[scope02-rollback] baselineAuthority=git:HEAD sharedFiles=rlviews.js,rlapp.js configReconstruction=scope01-explicit-contract');
+    console.log('[scope02-rollback] baselineAuthority=git:767732db(pre-Scope-02,parent-of-c81d808d) sharedFiles=rlviews.js,rlapp.js configReconstruction=scope01-explicit-contract');
     console.log(`[scope02-rollback] boundary allowedFiles=${SCOPE02_CURRENT_PATHS.length} protectedFiles=${protectedPaths.length} worktreeFiles=${worktreePaths.length}`);
     console.log(`[scope02-rollback] protectedDigest=${inventoryDigest(protectedBefore)} byteEqual=true`);
     console.log(`[scope02-rollback] dataFiles=${dataPaths.length} dataDigest=${inventoryDigest(sandboxDataBefore)} byteEqual=true`);

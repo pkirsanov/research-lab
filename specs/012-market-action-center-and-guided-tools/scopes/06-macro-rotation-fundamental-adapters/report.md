@@ -9,8 +9,12 @@ modules. This dispatch delivered the FIRST macro-rotation adapter — `sector-ro
 (`sector-research-lab`) — at genuine owner-parity, single-sourced from the start, and wired into the
 registry loop, the source-ownership canaries, and the broad selftest.
 
-- **Delivered + verified: 2 of 8** — `sector-rotation-transition/v1` (dispatch 1) and
-  `country-rotation/v1` (dispatch 2, this dispatch).
+- **Delivered + verified: 5 of 8** — `sector-rotation-transition/v1` (dispatch 1),
+  `country-rotation/v1` (dispatch 2), `real-asset-driver/v1` (dispatch 3),
+  `fixed-income-sleeve/v1` (dispatch 4), and `etf-ranking/v1` (dispatch 5, this dispatch). The
+  module's `supportedAdapterIds` now lists exactly these five, so the registry loop drives the
+  delivered set of five and the remaining three (`ai-capex-portfolio`, `msft-margin-eps`,
+  `company-scenario-bridge` in `fundamental-models.js`) are honestly absent.
 - New module `rlexperience-adapters/macro-rotation.js` is the SINGLE OWNER SOURCE for the sector RRG
   normalization (`rollZ100`), the RRG quadrant (`rrgQuadrant`), the state label (`stateLabel`), the
   into/out classifier (`rotationCandidacy`), and the RRG kernel (`rrgReadout`). `sector-research-lab.html`
@@ -39,7 +43,7 @@ registry loop, the source-ownership canaries, and the broad selftest.
 
 ## Completion Statement
 
-Scope 06 is NOT complete. 2 of 8 adapters are delivered and verified. Scope `status` remains
+Scope 06 is NOT complete. 5 of 8 adapters are delivered and verified. Scope `status` remains
 `in_progress`; feature `status` remains `not_started`; `certifiedAt` remains null.
 
 ## Code Diff Evidence

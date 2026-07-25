@@ -1353,6 +1353,11 @@
   </div>
 
   <script src="rldata.js?v=20260712-4"></script>
+  <!-- Feature 012 Scope 06: the etf-ranking Simple owner formulas (horizon momentum + composite score)
+       are single-sourced in rlexperience-adapters/macro-rotation.js (RLMACROROTATION). This Power page's
+       Simple cockpit and the registered etf-ranking Simple adapter consume the exact same owner primitives
+       (no inline formula copy). Loaded before the inline model so RLMACROROTATION is available synchronously. -->
+  <script src="rlexperience-adapters/macro-rotation.js"></script>
   <script>
     "use strict";
     /* ══════════════════════════════════════════════════════════════════════════
@@ -1610,21 +1615,10 @@
       neededTickers().forEach(function (tk) { var m = computeMetrics(tk, bw, bd); if (m) METRICS[tk] = m; });
     }
 
-    function etfSimpleSignal(m, signal) {
-      if (!m) return null;
-      if (signal === 'blend') {
-        var values = ['3M', '6M', '1Y'].map(function (key) { return m.trailing && m.trailing[key]; }).filter(function (value) { return Number.isFinite(value); });
-        return values.length ? values.reduce(function (sum, value) { return sum + value; }, 0) / values.length : null;
-      }
-      return m.trailing && Number.isFinite(m.trailing[signal]) ? m.trailing[signal] : null;
-    }
-    function etfSimpleScore(m, signal, riskMode) {
-      var momentum = etfSimpleSignal(m, signal); if (!Number.isFinite(momentum)) return null;
-      if (riskMode === 'raw') return momentum;
-      var sharpe = Number.isFinite(m.sharpe) ? Math.max(-1, Math.min(1, m.sharpe / 2)) : 0;
-      var quality = Number.isFinite(m.annVol) ? Math.max(-1, Math.min(1, (0.30 - m.annVol) / 0.22)) : 0;
-      return riskMode === 'defensive' ? momentum * 0.45 + sharpe * 0.30 + quality * 0.25 : momentum * 0.70 + sharpe * 0.20 + quality * 0.10;
-    }
+    /* Single-sourced to RLMACROROTATION.etfMomentumSignal (owner horizon-momentum signal; no inline copy). */
+    function etfSimpleSignal(m, signal) { return RLMACROROTATION.etfMomentumSignal(m, signal); }
+    /* Single-sourced to RLMACROROTATION.etfCompositeScore (owner composite ranking score; no inline copy). */
+    function etfSimpleScore(m, signal, riskMode) { return RLMACROROTATION.etfCompositeScore(m, signal, riskMode); }
     function etfSimpleFunds() {
       var scope = state.simple.scope;
       if (scope === 'selected') return included();

@@ -425,7 +425,7 @@ try {
 try {
   group('etf-momentum-lab.html \u2014 Deflated/Probabilistic Sharpe + MC shocks');
   const src = read('etf-momentum-lab.html');
-  const names = ['mean', 'gauss', 'studentT', 'normCdf', 'invNorm', 'moments', 'deflatedSharpe', 'etfSimpleSignal', 'etfSimpleScore'];
+  const names = ['mean', 'gauss', 'studentT', 'normCdf', 'invNorm', 'moments', 'deflatedSharpe'];
   const env = build(names.map((n) => extractFn(src, n)), names, 'var ANN=252;');
 
   assert(approx(env.normCdf(0), 0.5, 1e-3), 'normCdf(0) = 0.5');
@@ -453,9 +453,16 @@ try {
   assert(dFlat.dsr < 0.6, 'flat/noisy equity => low DSR (' + (dFlat.dsr * 100).toFixed(0) + '%)');
   const simpleStrong = { trailing: { '3M': 0.12, '6M': 0.24, '1Y': 0.30 }, sharpe: 1.4, annVol: 0.20 };
   const simpleWeak = { trailing: { '3M': -0.04, '6M': -0.08, '1Y': -0.10 }, sharpe: -0.5, annVol: 0.35 };
-  assert(approx(env.etfSimpleSignal(simpleStrong, 'blend'), 0.22, 1e-12), 'Simple ETF blend averages 3M/6M/1Y inputs');
-  assert(env.etfSimpleScore(simpleStrong, '6M', 'balanced') > env.etfSimpleScore(simpleWeak, '6M', 'balanced'), 'Simple ETF balanced ranking rewards stronger momentum/quality');
-  assert(env.etfSimpleScore(simpleStrong, '6M', 'raw') === 0.24, 'Simple ETF raw mode preserves the selected momentum signal');
+  // Feature 012 Scope 06: the etf Simple ranking (etfSimpleSignal/etfSimpleScore) is single-sourced to
+  // RLMACROROTATION.etfMomentumSignal/etfCompositeScore in macro-rotation.js — the page delegates and
+  // carries no inline momentum/composite formula, so the owner ranking is tested through the module.
+  const etfRankReq = (await import('node:module')).createRequire(import.meta.url);
+  delete etfRankReq.cache[etfRankReq.resolve('../rlexperience-adapters/macro-rotation.js')];
+  const RLMR = etfRankReq('../rlexperience-adapters/macro-rotation.js');
+  assert(/RLMACROROTATION\.etfMomentumSignal\s*\(/.test(src) && /RLMACROROTATION\.etfCompositeScore\s*\(/.test(src), 'etf page single-sources the Simple ranking to RLMACROROTATION (no inline momentum/composite formula)');
+  assert(approx(RLMR.etfMomentumSignal(simpleStrong, 'blend'), 0.22, 1e-12), 'Simple ETF blend averages 3M/6M/1Y inputs');
+  assert(RLMR.etfCompositeScore(simpleStrong, '6M', 'balanced') > RLMR.etfCompositeScore(simpleWeak, '6M', 'balanced'), 'Simple ETF balanced ranking rewards stronger momentum/quality');
+  assert(RLMR.etfCompositeScore(simpleStrong, '6M', 'raw') === 0.24, 'Simple ETF raw mode preserves the selected momentum signal');
 } catch (e) { failures++; console.log('  \u2717 FAIL (etf group threw): ' + e.message); }
 
 /* ---------- AI-Capex: CVaR tail-risk ---------- */
@@ -3957,6 +3964,20 @@ try {
     const bondMod = scope06Require(MACRO_MODULE);
     assert(Math.round(bondMod.sleeveTotalReturn(5, 7, 6, 1.5, 6, 50, 30).total * 1e6) / 1e6 === -0.027952 && bondMod.sleeveTotalReturn(5, 7, 6, 1.5, 6, 50, null).spread === null && Number.isNaN(bondMod.sleeveTotalReturn(null, 7, 6, 1.5, 6, 50, 30).total), 'sleeveTotalReturn is byte-parity with the owner decomposition (null spread when spread-less, non-finite when a characteristic is missing)');
   } catch (e) { failures++; console.log('  ✗ FAIL (Feature 012 Scope 06 fixed-income-sleeve completeness threw): ' + e.message); }
+  try {
+    group('Feature 012 Scope 06 etf-ranking adapter completeness (etf-momentum-lab)');
+    assertScope06AdapterComplete(MACRO_MODULE, 'createMacroRotationAdapters', 'etf-momentum-lab', 'simple-adapter/etf-ranking/v1', ['etfMomentumSignal', 'etfCompositeScore', 'computeEtfRankingSummary'], 'etf-momentum-lab.html', ['etfMomentumSignal', 'etfCompositeScore']);
+    // The single owner ranking source lives in macro-rotation.js; the page carries no inline momentum/composite formula.
+    const etfPage = read('etf-momentum-lab.html');
+    assert(!/momentum \* 0\.70 \+ sharpe \* 0\.20 \+ quality \* 0\.10/.test(etfPage), 'etf page carries no inline composite-score formula (single-sourced to RLMACROROTATION)');
+    // Byte-parity: etfMomentumSignal + etfCompositeScore reproduce the owner ranking (horizon momentum + composite).
+    delete scope06Require.cache[scope06Require.resolve(MACRO_MODULE)];
+    const etfMod = scope06Require(MACRO_MODULE);
+    const canonEtf = { trailing: { '1M': 0.02, '3M': 0.06, '6M': 0.14, '1Y': 0.22 }, sharpe: 1.2, annVol: 0.18 };
+    const etfSharpe = Math.max(-1, Math.min(1, 1.2 / 2)), etfQuality = Math.max(-1, Math.min(1, (0.30 - 0.18) / 0.22));
+    assert(etfMod.etfMomentumSignal(canonEtf, '6M') === 0.14 && Math.abs(etfMod.etfMomentumSignal(canonEtf, 'blend') - (0.06 + 0.14 + 0.22) / 3) < 1e-12 && etfMod.etfMomentumSignal({ trailing: {} }, '6M') === null, 'etfMomentumSignal is byte-parity with the owner trailing/blend signal (null when absent)');
+    assert(etfMod.etfCompositeScore(canonEtf, '6M', 'raw') === 0.14 && Math.abs(etfMod.etfCompositeScore(canonEtf, '6M', 'balanced') - (0.14 * 0.70 + etfSharpe * 0.20 + etfQuality * 0.10)) < 1e-12 && etfMod.etfCompositeScore({ trailing: {} }, '6M', 'balanced') === null, 'etfCompositeScore is byte-parity with the owner composite (raw/balanced weights, null when no momentum)');
+  } catch (e) { failures++; console.log('  ✗ FAIL (Feature 012 Scope 06 etf-ranking completeness threw): ' + e.message); }
 }
 
 /* ---------- summary ---------- */

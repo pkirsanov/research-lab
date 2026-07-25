@@ -817,3 +817,176 @@ test('TP-06-01 fixed-income-sleeve compute is deterministic for one compute iden
     'identical inputs => identical owner summary'
   );
 });
+
+/* ═══════════════════════ etf-ranking owner fixture (etf-momentum-lab) ═══════════════════════
+   A synthetic frozen owner snapshot engineered so every declared parameter provably moves its
+   declared output path. Per fund: distinct trailing returns per horizon key (so the horizon control
+   moves the momentum and hence the ranking), distinct annVol/maxDD so the risk component differs (so
+   the risk-penalty moves the ranking), and distinct cagr so the excess-vs-benchmark differs; the two
+   frozen benchmarks (SPY/QQQ) carry distinct window CAGRs (so the benchmark control moves the
+   relative performance); the funds' scores spread (so weighting equal-vs-score and the constituent
+   cap both move the basket). No fabricated feed — the adapter recomputes only from these frozen owner
+   metrics, single-sourcing the horizon momentum from RLMACROROTATION.etfMomentumSignal (the same
+   owner ranking primitive the page's Simple cockpit delegates). */
+const ETF_PAGE = readFileSync(new URL('../etf-momentum-lab.html', import.meta.url), 'utf8');
+const ETF_HORIZON_KEY = { '1m': '1M', '3m': '3M', '6m': '6M', '12m': '1Y' };
+
+function etfOwnerFixture() {
+  return {
+    contractVersion: 'etf-ranking-owner-state/v1',
+    toolId: 'etf-momentum-lab',
+    asOf: '2026-07-24T20:00:00.000Z',
+    source: 'test-owner cache snapshot',
+    benchmarks: {
+      SPY: { cagr: 0.10, trailing: { '1M': 0.01, '3M': 0.03, '6M': 0.06, '1Y': 0.10 } },
+      QQQ: { cagr: 0.14, trailing: { '1M': 0.02, '3M': 0.05, '6M': 0.09, '1Y': 0.15 } }
+    },
+    funds: [
+      { ticker: 'MTUM', name: 'iShares MSCI USA Momentum', trailing: { '1M': 0.02, '3M': 0.06, '6M': 0.14, 'YTD': 0.11, '1Y': 0.22, '3Y': 0.09, '5Y': 0.11 }, annVol: 0.18, maxDD: -0.12, sharpe: 1.1, cagr: 0.20, aum: 28456 },
+      { ticker: 'XMMO', name: 'Invesco S&P MidCap Momentum', trailing: { '1M': 0.05, '3M': 0.10, '6M': 0.08, 'YTD': 0.07, '1Y': 0.10, '3Y': 0.06, '5Y': 0.09 }, annVol: 0.26, maxDD: -0.22, sharpe: 0.6, cagr: 0.12, aum: 7801 },
+      { ticker: 'VFMO', name: 'Vanguard U.S. Momentum', trailing: { '1M': -0.01, '3M': 0.02, '6M': 0.05, 'YTD': 0.04, '1Y': 0.16, '3Y': 0.07, '5Y': 0.10 }, annVol: 0.14, maxDD: -0.08, sharpe: 1.3, cagr: 0.15, aum: 1935 }
+    ]
+  };
+}
+
+/* ═══════════════════════ TP-06-01 etf-ranking module authority + primitives ═══════════════════════ */
+
+test('TP-06-01 macro-rotation module exposes the etf-ranking adapter with single-sourced momentum + composite score', () => {
+  const mr = loadMacroRotation();
+  assert.ok(mr.supportedAdapterIds.includes('simple-adapter/etf-ranking/v1'), 'etf-ranking/v1 is a declared supported adapter');
+  assert.equal(typeof mr.etfMomentumSignal, 'function', 'etfMomentumSignal owner primitive is single-sourced in the module');
+  assert.equal(typeof mr.etfCompositeScore, 'function', 'etfCompositeScore owner primitive is single-sourced in the module');
+  assert.equal(typeof mr.computeEtfRankingSummary, 'function', 'computeEtfRankingSummary is exported');
+});
+
+test('TP-06-01 etfMomentumSignal and etfCompositeScore single-source pin the owner ranking formula', () => {
+  const mr = loadMacroRotation();
+  const m = { trailing: { '1M': 0.02, '3M': 0.06, '6M': 0.14, '1Y': 0.22 }, sharpe: 1.2, annVol: 0.18 };
+  // etfMomentumSignal: a horizon key returns that trailing return; 'blend' averages the 3M/6M/1Y relatives.
+  assert.equal(mr.etfMomentumSignal(m, '6M'), 0.14, 'a horizon key returns its trailing return');
+  assert.ok(Math.abs(mr.etfMomentumSignal(m, 'blend') - (0.06 + 0.14 + 0.22) / 3) < 1e-12, 'blend averages the 3M/6M/1Y relatives (owner formula)');
+  assert.equal(mr.etfMomentumSignal({ trailing: {} }, '6M'), null, 'a missing trailing return stays null (never a fabricated fill)');
+  assert.equal(mr.etfMomentumSignal(null, '6M'), null, 'a missing metrics object stays null');
+  // etfCompositeScore: raw preserves the momentum; balanced/defensive blend sharpe + quality at the owner weights.
+  assert.equal(mr.etfCompositeScore(m, '6M', 'raw'), 0.14, 'raw mode preserves the selected momentum signal');
+  const sharpe = Math.max(-1, Math.min(1, 1.2 / 2));
+  const quality = Math.max(-1, Math.min(1, (0.30 - 0.18) / 0.22));
+  assert.ok(Math.abs(mr.etfCompositeScore(m, '6M', 'balanced') - (0.14 * 0.70 + sharpe * 0.20 + quality * 0.10)) < 1e-12, 'balanced blends momentum/sharpe/quality at the owner 0.70/0.20/0.10 weights');
+  assert.ok(Math.abs(mr.etfCompositeScore(m, '6M', 'defensive') - (0.14 * 0.45 + sharpe * 0.30 + quality * 0.25)) < 1e-12, 'defensive blends at the owner 0.45/0.30/0.25 weights');
+  assert.equal(mr.etfCompositeScore({ trailing: {} }, '6M', 'balanced'), null, 'no momentum => null composite (no fabricated score)');
+});
+
+test('TP-06-01 etf-momentum-lab.html single-sources etfMomentumSignal/etfCompositeScore from macro-rotation.js', () => {
+  assert.match(ETF_PAGE, /rlexperience-adapters\/macro-rotation\.js/, 'etf page loads macro-rotation.js');
+  assert.match(ETF_PAGE, /RLMACROROTATION\.etfMomentumSignal\s*\(/, 'etf page delegates the momentum signal to the module');
+  assert.match(ETF_PAGE, /RLMACROROTATION\.etfCompositeScore\s*\(/, 'etf page delegates the composite ranking score to the module');
+  // The single owner source lives in macro-rotation.js; the page must carry no inline composite formula.
+  assert.equal(/momentum \* 0\.70 \+ sharpe \* 0\.20 \+ quality \* 0\.10/.test(ETF_PAGE), false, 'etf page has no inline composite-score formula');
+  assert.equal(/momentum \* 0\.45 \+ sharpe \* 0\.30 \+ quality \* 0\.25/.test(ETF_PAGE), false, 'etf page has no inline defensive composite formula');
+});
+
+/* ═══════════════════════ TP-06-01 etf-ranking adapter runtime + owner parity ═══════════════════════ */
+
+test('TP-06-01 etf-ranking adapter registers through the production runtime and produces a ready owner run at parity', async () => {
+  const api = loadProductionApi();
+  const mr = loadMacroRotation();
+  const definition = definitionFor('etf-momentum-lab');
+  const runtime = runtimeFor(api, definition);
+  const results = mr.registerMacroRotationAdapters(runtime, api, [definition]);
+  assert.equal(results['simple-adapter/etf-ranking/v1'].ok, true, JSON.stringify(results['simple-adapter/etf-ranking/v1'].error || {}));
+
+  const owner = etfOwnerFixture();
+  const base = defaultValues(definition);
+  const prepared = requireValue(await runtime.prepare({
+    definitionId: definition.definitionId,
+    ownerContext: { ownerState: owner },
+    parameterValues: base,
+    seed: null,
+    scenarioIds: ['baseline'],
+    computedAt: '2026-07-24T20:02:00.000Z'
+  }));
+  assert.equal(prepared.state, 'ready');
+  const summary = prepared.current.output.values.summary;
+  assert.equal(summary.fundCount, 3, 'every frozen fund is scored');
+  assert.ok(Array.isArray(summary.ranking) && summary.ranking.length === 3, 'ranking carries every priced fund');
+  assert.ok(summary.relativePerformance && Array.isArray(summary.relativePerformance.funds) && summary.relativePerformance.funds.length === 3, 'relativePerformance carries the benchmark excess per fund');
+  assert.ok(summary.basket && Array.isArray(summary.basket.constituents) && summary.basket.constituents.length === 3, 'basket carries a weighted constituent per ranked fund');
+  assert.equal(prepared.current.output.provenance.evidenceIdentity, prepared.current.input.evidenceIdentity, 'evidence identity is bound');
+
+  // Owner parity: each ranking entry's momentum equals the single-sourced module momentum primitive run
+  // directly on the frozen fund trailing returns at the default horizon (single source, no re-implementation).
+  const horizonKey = ETF_HORIZON_KEY[base.horizon];
+  owner.funds.forEach((fund) => {
+    const entry = summary.ranking.find((row) => row.ticker === fund.ticker);
+    const momentum = mr.etfMomentumSignal(fund, horizonKey);
+    assert.equal(entry.momentum, Math.round(momentum * 1e6) / 1e6, `${fund.ticker} momentum is single-sourced from etfMomentumSignal`);
+  });
+});
+
+test('TP-06-01 each enabled etf-ranking parameter changes its declared output path', async () => {
+  const api = loadProductionApi();
+  const mr = loadMacroRotation();
+  const definition = definitionFor('etf-momentum-lab');
+  const runtime = runtimeFor(api, definition);
+  mr.registerMacroRotationAdapters(runtime, api, [definition]);
+  const base = defaultValues(definition);
+  await runtime.prepare({
+    definitionId: definition.definitionId,
+    ownerContext: { ownerState: etfOwnerFixture() },
+    parameterValues: base,
+    seed: null,
+    scenarioIds: ['baseline'],
+    computedAt: '2026-07-24T20:02:00.000Z'
+  });
+
+  const cases = [
+    ['horizon', '12m', 'summary.ranking'],
+    ['momentum-weight', 0.9, 'summary.ranking'],
+    ['risk-penalty', 0.6, 'summary.ranking'],
+    ['benchmark', 'QQQ', 'summary.relativePerformance'],
+    ['weighting', 'equal', 'summary.basket'],
+    ['max-constituent-weight', 0.5, 'summary.basket']
+  ];
+  for (const [parameterId, value, path] of cases) {
+    const run = requireValue(await runtime.recompute({
+      parameterValues: { ...base, [parameterId]: value },
+      seed: null,
+      scenarioIds: ['baseline'],
+      computedAt: '2026-07-24T20:03:00.000Z'
+    }));
+    assert.deepEqual(run.changedParameters, [parameterId], `changed ${parameterId}`);
+    const effect = run.sensitivity.effects.find((entry) => entry.parameterId === parameterId);
+    assert.ok(effect, `sensitivity effect present for ${parameterId}`);
+    assert.equal(effect.outputChanged, true, `${parameterId} must change ${path}`);
+    assert.deepEqual(effect.resultPaths, [path], `${parameterId} declared path`);
+    await runtime.recompute({ parameterValues: { ...base }, seed: null, scenarioIds: ['baseline'], computedAt: '2026-07-24T20:03:30.000Z' });
+  }
+});
+
+test('TP-06-01 etf-ranking compute is deterministic for one compute identity', async () => {
+  const api = loadProductionApi();
+  const mr = loadMacroRotation();
+  const definition = definitionFor('etf-momentum-lab');
+  const runtime = runtimeFor(api, definition);
+  mr.registerMacroRotationAdapters(runtime, api, [definition]);
+  const base = defaultValues(definition);
+  const first = requireValue(await runtime.prepare({
+    definitionId: definition.definitionId,
+    ownerContext: { ownerState: etfOwnerFixture() },
+    parameterValues: base,
+    seed: null,
+    scenarioIds: ['baseline'],
+    computedAt: '2026-07-24T20:02:00.000Z'
+  }));
+  const again = requireValue(await runtime.recompute({
+    parameterValues: { ...base },
+    seed: null,
+    scenarioIds: ['baseline'],
+    computedAt: '2026-07-24T20:02:30.000Z'
+  }));
+  assert.equal(
+    api.fingerprint(first.current.output.values.summary),
+    api.fingerprint(again.current.output.values.summary),
+    'identical inputs => identical owner summary'
+  );
+});

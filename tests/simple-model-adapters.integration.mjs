@@ -760,6 +760,29 @@ function bondSleeveOwnerFixture() {
   };
 }
 
+/* etf-ranking owner fixture (verbatim from the unit suite): distinct trailing returns per horizon key
+   so the horizon control moves the momentum and hence the ranking, distinct annVol/maxDD so the risk
+   component differs (risk-penalty moves the ranking), distinct cagr so the benchmark excess differs, two
+   frozen benchmarks with distinct window CAGRs (benchmark moves the relative performance), and spread of
+   scores so both the weighting scheme and the constituent cap move the basket. */
+function etfOwnerFixture() {
+  return {
+    contractVersion: 'etf-ranking-owner-state/v1',
+    toolId: 'etf-momentum-lab',
+    asOf: '2026-07-24T20:00:00.000Z',
+    source: 'test-owner cache snapshot',
+    benchmarks: {
+      SPY: { cagr: 0.10, trailing: { '1M': 0.01, '3M': 0.03, '6M': 0.06, '1Y': 0.10 } },
+      QQQ: { cagr: 0.14, trailing: { '1M': 0.02, '3M': 0.05, '6M': 0.09, '1Y': 0.15 } }
+    },
+    funds: [
+      { ticker: 'MTUM', name: 'iShares MSCI USA Momentum', trailing: { '1M': 0.02, '3M': 0.06, '6M': 0.14, 'YTD': 0.11, '1Y': 0.22, '3Y': 0.09, '5Y': 0.11 }, annVol: 0.18, maxDD: -0.12, sharpe: 1.1, cagr: 0.20, aum: 28456 },
+      { ticker: 'XMMO', name: 'Invesco S&P MidCap Momentum', trailing: { '1M': 0.05, '3M': 0.10, '6M': 0.08, 'YTD': 0.07, '1Y': 0.10, '3Y': 0.06, '5Y': 0.09 }, annVol: 0.26, maxDD: -0.22, sharpe: 0.6, cagr: 0.12, aum: 7801 },
+      { ticker: 'VFMO', name: 'Vanguard U.S. Momentum', trailing: { '1M': -0.01, '3M': 0.02, '6M': 0.05, 'YTD': 0.04, '1Y': 0.16, '3Y': 0.07, '5Y': 0.10 }, annVol: 0.14, maxDD: -0.08, sharpe: 1.3, cagr: 0.15, aum: 1935 }
+    ]
+  };
+}
+
 function makeScope6Descriptors(mr) {
   return {
     'sector-research-lab': {
@@ -843,6 +866,28 @@ function makeScope6Descriptors(mr) {
         ['inflation-shock', 60],
         ['real-yield-shock', 60],
         ['confirmation-threshold', 0.4]
+      ]
+    },
+    'etf-momentum-lab': {
+      ownerState: () => etfOwnerFixture(),
+      base: (definition) => defaultValues(definition),
+      ownerFact: ({ summary, owner, base }) => {
+        // Owner parity: each ranking entry's momentum equals the single-sourced module momentum primitive
+        // run directly on the frozen fund trailing returns at the default horizon (single source).
+        const horizonKey = { '1m': '1M', '3m': '3M', '6m': '6M', '12m': '1Y' }[base.horizon];
+        owner.funds.forEach((fund) => {
+          const entry = summary.ranking.find((row) => row.ticker === fund.ticker);
+          const momentum = mr.etfMomentumSignal(fund, horizonKey);
+          assert.equal(entry.momentum, Math.round(momentum * 1e6) / 1e6, `${fund.ticker} momentum is single-sourced from etfMomentumSignal`);
+        });
+      },
+      cases: () => [
+        ['horizon', '12m'],
+        ['momentum-weight', 0.9],
+        ['risk-penalty', 0.6],
+        ['benchmark', 'QQQ'],
+        ['weighting', 'equal'],
+        ['max-constituent-weight', 0.5]
       ]
     }
   };

@@ -679,3 +679,96 @@ test('SCN-012-035 macro and fundamental source qualification: a sleeve with no o
   assert.equal(summary.regime.confirmationScore, null, 'an absent credit confirmation produces no fabricated score');
   assert.deepEqual(prepared.current.output.provenance.classes, ['observed-fact', 'model-estimate'], 'partial owner coverage is declared, not hidden');
 });
+
+test('SCN-012-035 macro and fundamental source qualification: the delivered etf-ranking adapter performs zero fetch/provider/storage and preserves the frozen owner clock', async () => {
+  const api = loadProductionApi();
+  const mr = loadMacroRotation();
+  const definition = clone(readJson('simple-models.json').definitions.find((d) => d.toolId === 'etf-momentum-lab'));
+  const config = readJson('tool-experience.config.json');
+  const runtime = requireValue(api.createSimpleRuntime(config, { contractVersion: 'simple-model-registry/v1', definitions: [definition] }));
+  mr.registerMacroRotationAdapters(runtime, api, [definition]);
+
+  const owner = {
+    contractVersion: 'etf-ranking-owner-state/v1', toolId: 'etf-momentum-lab', asOf: '2026-07-24T20:00:00.000Z',
+    source: 'pages-snapshot cache',
+    benchmarks: { SPY: { cagr: 0.10, trailing: { '1M': 0.01, '3M': 0.03, '6M': 0.06, '1Y': 0.10 } }, QQQ: { cagr: 0.14, trailing: { '1M': 0.02, '3M': 0.05, '6M': 0.09, '1Y': 0.15 } } },
+    funds: [
+      { ticker: 'MTUM', name: 'iShares MSCI USA Momentum', trailing: { '1M': 0.02, '3M': 0.06, '6M': 0.14, '1Y': 0.22 }, annVol: 0.18, maxDD: -0.12, sharpe: 1.1, cagr: 0.20, aum: 28456 },
+      { ticker: 'VFMO', name: 'Vanguard U.S. Momentum', trailing: { '1M': -0.01, '3M': 0.02, '6M': 0.05, '1Y': 0.16 }, annVol: 0.14, maxDD: -0.08, sharpe: 1.3, cagr: 0.15, aum: 1935 }
+    ]
+  };
+
+  const sentinels = { fetch: globalThis.fetch, localStorage: globalThis.localStorage, sessionStorage: globalThis.sessionStorage, XMLHttpRequest: globalThis.XMLHttpRequest };
+  const calls = { fetch: 0, storage: 0, xhr: 0 };
+  globalThis.fetch = () => { calls.fetch += 1; throw new Error('forbidden fetch'); };
+  globalThis.localStorage = { getItem() { calls.storage += 1; }, setItem() { calls.storage += 1; } };
+  globalThis.sessionStorage = { getItem() { calls.storage += 1; }, setItem() { calls.storage += 1; } };
+  globalThis.XMLHttpRequest = function () { calls.xhr += 1; throw new Error('forbidden xhr'); };
+  try {
+    const base = defaultValues(definition);
+    const prepared = requireValue(await runtime.prepare({
+      definitionId: definition.definitionId,
+      ownerContext: { ownerState: owner },
+      parameterValues: base,
+      seed: null,
+      scenarioIds: ['baseline'],
+      computedAt: '2026-07-25T20:02:00.000Z'
+    }));
+    assert.equal(prepared.state, 'ready');
+    // The owner evidence clock is preserved verbatim — the adapter acquires nothing and re-clocks nothing.
+    assert.equal(prepared.current.input.evidenceCutoff, owner.asOf, 'evidence cutoff is the frozen owner asOf (no re-clocking)');
+    // The frozen owner momentum drives the ranking; the adapter never fetches a fresher fact.
+    const summary = prepared.current.output.values.summary;
+    const mtum = summary.ranking.find((row) => row.ticker === 'MTUM');
+    assert.equal(mtum.momentum, 0.14, 'the frozen 6M momentum is preserved verbatim (no re-fetch)');
+    await runtime.recompute({ parameterValues: { ...base, benchmark: 'QQQ' }, seed: null, scenarioIds: ['baseline'], computedAt: '2026-07-25T20:03:00.000Z' });
+  } finally {
+    globalThis.fetch = sentinels.fetch;
+    globalThis.localStorage = sentinels.localStorage;
+    globalThis.sessionStorage = sentinels.sessionStorage;
+    globalThis.XMLHttpRequest = sentinels.XMLHttpRequest;
+  }
+  assert.equal(calls.fetch, 0, 'zero fetch calls at runtime');
+  assert.equal(calls.storage, 0, 'zero storage calls at runtime');
+  assert.equal(calls.xhr, 0, 'zero XMLHttpRequest calls at runtime');
+});
+
+test('SCN-012-035 macro and fundamental source qualification: an ETF with no owner metrics and an absent benchmark stay unavailable — no default is substituted', async () => {
+  const api = loadProductionApi();
+  const mr = loadMacroRotation();
+  const definition = clone(readJson('simple-models.json').definitions.find((d) => d.toolId === 'etf-momentum-lab'));
+  const config = readJson('tool-experience.config.json');
+  const runtime = requireValue(api.createSimpleRuntime(config, { contractVersion: 'simple-model-registry/v1', definitions: [definition] }));
+  mr.registerMacroRotationAdapters(runtime, api, [definition]);
+
+  // MTUM carries a full owner trailing ladder; ZZZ carries NO trailing return at any horizon and no CAGR.
+  // The default SPY benchmark is ABSENT from the frozen state. The adapter must keep ZZZ out of the priced
+  // ranking, produce no fabricated excess for it, and keep the benchmark CAGR unavailable — never a default.
+  const owner = {
+    contractVersion: 'etf-ranking-owner-state/v1', toolId: 'etf-momentum-lab', asOf: '2026-07-24T20:00:00.000Z',
+    source: 'pages-snapshot cache',
+    benchmarks: { QQQ: { cagr: 0.14, trailing: { '6M': 0.09 } } },
+    funds: [
+      { ticker: 'MTUM', name: 'iShares MSCI USA Momentum', trailing: { '1M': 0.02, '3M': 0.06, '6M': 0.14, '1Y': 0.22 }, annVol: 0.18, maxDD: -0.12, sharpe: 1.1, cagr: 0.20, aum: 28456 },
+      { ticker: 'ZZZ', name: 'Illiquid', trailing: {}, annVol: null, maxDD: null, sharpe: null, cagr: null, aum: null }
+    ]
+  };
+  const base = defaultValues(definition);
+  const prepared = requireValue(await runtime.prepare({
+    definitionId: definition.definitionId,
+    ownerContext: { ownerState: owner },
+    parameterValues: base,
+    seed: null,
+    scenarioIds: ['baseline'],
+    computedAt: '2026-07-25T20:02:00.000Z'
+  }));
+  const summary = prepared.current.output.values.summary;
+  assert.equal(summary.fundCount, 2, 'both funds are carried in the coverage count');
+  assert.equal(summary.pricedCount, 1, 'only the one priced fund counts toward the ranking');
+  assert.equal(summary.ranking.length, 1, 'the metric-less fund is excluded from the priced ranking');
+  assert.equal(summary.ranking.find((row) => row.ticker === 'ZZZ'), undefined, 'no fabricated ranking row for the metric-less fund');
+  assert.equal(summary.relativePerformance.benchmarkCagr, null, 'an absent benchmark produces no fabricated CAGR');
+  const zzzExcess = summary.relativePerformance.funds.find((row) => row.ticker === 'ZZZ');
+  assert.equal(zzzExcess.excess, null, 'the metric-less fund produces no fabricated excess');
+  assert.deepEqual(prepared.current.output.provenance.classes, ['observed-fact', 'model-estimate'], 'partial owner coverage is declared, not hidden');
+});

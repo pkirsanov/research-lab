@@ -1527,6 +1527,352 @@
     };
   }
 
+  /* ═══════════ etf-ranking Simple model (owner seam = etf-momentum-lab.html) ═══════════
+     The adapter is a DIFFERENT Simple question over FROZEN owner facts the page computes: a
+     horizon-and-risk-weighted RANKING of the frozen momentum-ETF universe, a benchmark-relative
+     PERFORMANCE read (excess window CAGR versus the selected public benchmark), and a capped BASKET
+     projection. It consumes the page's already-computed per-fund owner metrics (the trailing-return
+     ladder, realized volatility, max drawdown, window CAGR) and re-ranks them under the adapter's own
+     controls. The horizon momentum owner formula is single-sourced here so the page's Simple cockpit
+     (etfSimpleSignal/etfSimpleScore) and this adapter share ONE momentum/composite primitive (the page
+     carries no inline momentum-blend or composite-score formula). Everything else is a frozen owner
+     fact — the adapter fabricates nothing and defaults nothing for missing evidence. */
+
+  /* etfMomentumSignal: the owner horizon-momentum signal. A specific horizon key returns that trailing
+     return; 'blend' averages the 3M/6M/1Y relatives. SINGLE SOURCE — etf-momentum-lab.html etfSimpleSignal
+     delegates to this exact function. Byte-identical to the former page body (uses Number.isFinite, never
+     the global isFinite) so a missing trailing return stays null (never a fabricated fill). */
+  function etfMomentumSignal(m, signal) {
+    if (!m) return null;
+    if (signal === "blend") {
+      var values = ["3M", "6M", "1Y"].map(function (key) { return m.trailing && m.trailing[key]; }).filter(function (value) { return Number.isFinite(value); });
+      return values.length ? values.reduce(function (sum, value) { return sum + value; }, 0) / values.length : null;
+    }
+    return m.trailing && Number.isFinite(m.trailing[signal]) ? m.trailing[signal] : null;
+  }
+
+  /* etfCompositeScore: the owner composite ranking score — raw preserves the momentum; balanced and
+     defensive blend the momentum with a clamped Sharpe and a clamped low-volatility quality at the owner
+     weights. SINGLE SOURCE — etf-momentum-lab.html etfSimpleScore delegates to this exact function.
+     Byte-identical to the former page body (clamps + 0.70/0.20/0.10 balanced, 0.45/0.30/0.25 defensive). */
+  function etfCompositeScore(m, signal, riskMode) {
+    var momentum = etfMomentumSignal(m, signal);
+    if (!Number.isFinite(momentum)) return null;
+    if (riskMode === "raw") return momentum;
+    var sharpe = Number.isFinite(m.sharpe) ? Math.max(-1, Math.min(1, m.sharpe / 2)) : 0;
+    var quality = Number.isFinite(m.annVol) ? Math.max(-1, Math.min(1, (0.30 - m.annVol) / 0.22)) : 0;
+    return riskMode === "defensive" ? momentum * 0.45 + sharpe * 0.30 + quality * 0.25 : momentum * 0.70 + sharpe * 0.20 + quality * 0.10;
+  }
+
+  /* etfHorizonKey: map the adapter's horizon enum (1m/3m/6m/12m) to the owner trailing-return key. An
+     unrecognized horizon yields null so the momentum signal stays unavailable (never a default fill). */
+  function etfHorizonKey(horizon) {
+    var map = { "1m": "1M", "3m": "3M", "6m": "6M", "12m": "1Y" };
+    return Object.prototype.hasOwnProperty.call(map, String(horizon)) ? map[String(horizon)] : null;
+  }
+
+  /* etfRiskComponent: the frozen owner risk load for one fund — realized volatility plus the absolute
+     max drawdown. A missing owner metric contributes zero (it is simply absent), never a fabricated fill. */
+  function etfRiskComponent(fund) {
+    var vol = isFiniteNumber(fund && fund.annVol) ? fund.annVol : 0;
+    var dd = isFiniteNumber(fund && fund.maxDD) ? Math.abs(fund.maxDD) : 0;
+    return vol + dd;
+  }
+
+  /* Compute the full etf-ranking summary from frozen owner state + current parameters. The ranking
+     derives from the single-source horizon momentum minus the frozen risk load under the caller's
+     momentum/risk weights; the relative performance is each fund's frozen window CAGR minus the selected
+     benchmark's frozen CAGR; the basket weights the ranked funds equal or by shifted rank score, each
+     capped at the constituent cap. Nothing is fabricated and missing evidence never becomes a default. */
+  function computeEtfRankingSummary(ownerState, params) {
+    var horizon = params["horizon"];
+    var momentumWeight = params["momentum-weight"];
+    var riskPenalty = params["risk-penalty"];
+    var benchmark = params["benchmark"];
+    var weighting = params["weighting"];
+    var maxConstituentWeight = params["max-constituent-weight"];
+    var horizonKey = etfHorizonKey(horizon);
+    var funds = (ownerState && Array.isArray(ownerState.funds)) ? ownerState.funds : [];
+    var benchmarks = (ownerState && ownerState.benchmarks && typeof ownerState.benchmarks === "object") ? ownerState.benchmarks : {};
+
+    var views = funds.map(function (fund) {
+      var momentum = horizonKey ? etfMomentumSignal(fund, horizonKey) : null;
+      var priced = isFiniteNumber(momentum);
+      var riskComponent = etfRiskComponent(fund);
+      var score = priced ? (momentumWeight * momentum - riskPenalty * riskComponent) : null;
+      return {
+        ticker: String(fund.ticker),
+        momentum: priced ? roundTo(momentum, 6) : null,
+        riskComponent: roundTo(riskComponent, 6),
+        score: priced ? roundTo(score, 6) : null,
+        cagr: isFiniteNumber(fund.cagr) ? fund.cagr : null,
+        priced: priced
+      };
+    });
+
+    var priced = views.filter(function (view) { return view.priced; });
+
+    // Ranking: the priced funds sorted by score desc (stable by ticker).
+    var ranking = priced.map(function (view) {
+      return { ticker: view.ticker, momentum: view.momentum, riskComponent: view.riskComponent, score: view.score };
+    }).sort(function (a, b) {
+      var d = (b.score == null ? -Infinity : b.score) - (a.score == null ? -Infinity : a.score);
+      if (d !== 0) return d;
+      return a.ticker < b.ticker ? -1 : (a.ticker > b.ticker ? 1 : 0);
+    });
+
+    // Relative performance: each fund's frozen window CAGR minus the selected benchmark's frozen CAGR.
+    // A missing benchmark or a missing fund CAGR stays null (unavailable), never a fabricated excess.
+    var benchState = benchmarks[benchmark] && typeof benchmarks[benchmark] === "object" ? benchmarks[benchmark] : null;
+    var benchCagr = benchState && isFiniteNumber(benchState.cagr) ? benchState.cagr : null;
+    var relativePerformance = {
+      benchmark: String(benchmark),
+      benchmarkCagr: benchCagr == null ? null : roundTo(benchCagr, 6),
+      funds: views.map(function (view) {
+        var excess = (view.cagr == null || benchCagr == null) ? null : view.cagr - benchCagr;
+        return { ticker: view.ticker, excess: excess == null ? null : roundTo(excess, 6) };
+      })
+    };
+
+    // Basket: the ranked funds weighted equal or by shifted rank score (score minus the lowest rank
+    // score, so every weight is positive), each capped at the constituent cap. The uncapped rawWeight
+    // and the capped weight are both reported so both the weighting scheme and the cap are visible.
+    var rankedCount = ranking.length;
+    var minScore = rankedCount ? ranking[rankedCount - 1].score : 0;
+    var shifted = ranking.map(function (row) { return (row.score - minScore) + 1e-6; });
+    var shiftedSum = shifted.reduce(function (sum, value) { return sum + value; }, 0);
+    var constituents = ranking.map(function (row, index) {
+      var rawWeight = weighting === "equal"
+        ? (rankedCount ? 1 / rankedCount : 0)
+        : (shiftedSum > 0 ? shifted[index] / shiftedSum : 0);
+      var weight = Math.min(rawWeight, maxConstituentWeight);
+      return { ticker: row.ticker, rawWeight: roundTo(rawWeight, 6), weight: roundTo(weight, 6) };
+    });
+    var investedWeight = constituents.reduce(function (sum, constituent) { return sum + (constituent.weight == null ? 0 : constituent.weight); }, 0);
+    var basket = {
+      weighting: String(weighting),
+      maxConstituentWeight: maxConstituentWeight,
+      constituents: constituents,
+      investedWeight: roundTo(investedWeight, 6)
+    };
+
+    return {
+      horizon: String(horizon),
+      horizonKey: horizonKey,
+      momentumWeight: momentumWeight,
+      riskPenalty: riskPenalty,
+      benchmark: String(benchmark),
+      weighting: String(weighting),
+      maxConstituentWeight: maxConstituentWeight,
+      fundCount: views.length,
+      pricedCount: priced.length,
+      ranking: ranking,
+      relativePerformance: relativePerformance,
+      basket: basket
+    };
+  }
+
+  /* ═══════════ etf-ranking adapter contract wiring ═══════════ */
+
+  function etfEvidenceState(ownerState) {
+    var funds = (ownerState && Array.isArray(ownerState.funds)) ? ownerState.funds : [];
+    var keys = ["1M", "3M", "6M", "1Y"];
+    var priced = 0;
+    funds.forEach(function (fund) {
+      var trailing = fund && fund.trailing && typeof fund.trailing === "object" ? fund.trailing : {};
+      if (keys.some(function (key) { return isFiniteNumber(trailing[key]); })) priced++;
+    });
+    return priced > 0 ? "ready" : "unavailable";
+  }
+
+  function buildEtfEvidence(api, ownerState) {
+    var state = etfEvidenceState(ownerState);
+    var cutoff = String(ownerState.asOf || "unavailable");
+    var evidence = {
+      contractVersion: "simple-evidence-snapshot/v1",
+      toolId: "etf-momentum-lab",
+      state: state,
+      evidenceCutoff: cutoff,
+      evidenceRefs: [{
+        requirementId: "owner-evidence",
+        evidenceRef: "owner:etf-momentum-lab:ranking:" + cutoff,
+        semanticFingerprint: ownerStateFingerprint(api, ownerState),
+        sourceClass: "observed-fact",
+        observedAsOf: cutoff,
+        retrievedOrPublishedAt: cutoff,
+        freshness: "cache-current-for-render",
+        dataTier: String(ownerState.source || "shared cache snapshot"),
+        valueState: state === "ready" ? "ready" : "unavailable"
+      }],
+      parameterValues: {},
+      assumptions: [
+        "The ranking uses only the frozen owner per-fund trailing-return, volatility, drawdown, and window-CAGR metrics currently captured."
+      ],
+      limitations: [
+        "The ranking is a local momentum/risk read over the frozen owner window and does not establish persistence or an allocation."
+      ],
+      invalidationConditions: [
+        "The frozen owner snapshot changes, gains or loses a fund, or a later observation replaces the current metrics."
+      ],
+      evidenceIdentity: null
+    };
+    evidence.evidenceIdentity = evidenceIdentityOf(api, evidence);
+    return evidence;
+  }
+
+  function etfRankingOutput(input, summary) {
+    var provenanceClasses = summary.pricedCount < summary.fundCount
+      ? ["observed-fact", "model-estimate"]
+      : ["observed-fact"];
+    var calibrationReason = summary.pricedCount + " of " + summary.fundCount +
+      " funds carry a complete owner trailing-return window at the selected horizon.";
+    var uncertaintyState = summary.pricedCount >= 2 ? "bounded" : "wide";
+    var scenarioValues = { summary: summary };
+    var leader = summary.ranking.length ? summary.ranking[0].ticker : null;
+    return {
+      contractVersion: "simple-model-output/v1",
+      state: "ready",
+      values: scenarioValues,
+      scenarios: input.scenarios.map(function (scenario) {
+        return { scenarioId: scenario.scenarioId, state: "ready", values: scenarioValues };
+      }),
+      calibration: { state: "owner-evidence-relative", reason: calibrationReason },
+      provenance: { classes: provenanceClasses, evidenceIdentity: input.evidenceIdentity },
+      uncertainty: {
+        state: uncertaintyState,
+        rangeOrBand: (leader ? ("Leader " + leader) : "No priced fund") + " / benchmark " + summary.benchmark,
+        reason: "The ranking, relative performance, and basket use the exact frozen owner per-fund metrics currently captured."
+      },
+      assumptions: [
+        "Funds without a complete owner trailing-return window at the selected horizon are excluded from the ranking and basket."
+      ],
+      limitations: [
+        "The ranking is a local momentum/risk read over the frozen owner window and does not establish persistence or an allocation."
+      ],
+      invalidationConditions: [
+        "The frozen owner snapshot changes or a later observation replaces the current metrics."
+      ],
+      flatRegionProofs: []
+    };
+  }
+
+  /* affectsOutputPaths for the etf-ranking parameters. Mirrors simple-models.json exactly. */
+  var ETF_OUTPUT_PATHS = {
+    "horizon": ["summary.ranking"],
+    "momentum-weight": ["summary.ranking"],
+    "risk-penalty": ["summary.ranking"],
+    "benchmark": ["summary.relativePerformance"],
+    "weighting": ["summary.basket"],
+    "max-constituent-weight": ["summary.basket"]
+  };
+
+  function etfSummaryPath(summary, path) {
+    if (path === "summary.ranking") return summary.ranking;
+    if (path === "summary.relativePerformance") return summary.relativePerformance;
+    if (path === "summary.basket") return summary.basket;
+    return null;
+  }
+
+  function createEtfRankingAdapter(api, definition, ownerByIdentity) {
+    return {
+      contractVersion: "simple-model-adapter/v1",
+      adapterId: definition.adapterId,
+      supportedDefinitionIds: [definition.definitionId],
+      validateDefinition: function (candidate) {
+        return { ok: true, value: candidate };
+      },
+      captureEvidence: function (ownerContext) {
+        if (!ownerContext || typeof ownerContext !== "object") {
+          return { ok: false, error: { reason: "owner context required" } };
+        }
+        var ownerState = ownerContext.ownerState;
+        if (!ownerState || typeof ownerState !== "object" || !Array.isArray(ownerState.funds)) {
+          return { ok: false, error: { reason: "etf ranking owner state required" } };
+        }
+        var frozen = deepFreeze(JSON.parse(JSON.stringify(ownerState)));
+        var evidence = buildEtfEvidence(api, frozen);
+        ownerByIdentity.set(evidence.evidenceIdentity, frozen);
+        return { ok: true, value: evidence };
+      },
+      normalizeInputs: function (candidate, evidence, parameterValues, seed, scenarioIds) {
+        return api.normalizeSimpleInput(candidate, evidence, parameterValues, seed, scenarioIds);
+      },
+      compute: function (input) {
+        var ownerState = ownerByIdentity.get(input.evidenceIdentity);
+        if (!ownerState) {
+          return { ok: false, error: { reason: "frozen owner state is unavailable for this evidence identity" } };
+        }
+        var summary = computeEtfRankingSummary(ownerState, paramMap(input));
+        return { ok: true, value: etfRankingOutput(input, summary) };
+      },
+      compareSensitivity: function (baselineInput, currentInput, sharedRandomness) {
+        var ownerState = ownerByIdentity.get(currentInput.evidenceIdentity);
+        if (!ownerState) {
+          return { ok: false, error: { reason: "frozen owner state is unavailable for sensitivity" } };
+        }
+        var baselineValues = paramMap(baselineInput);
+        var currentValues = paramMap(currentInput);
+        var baselineSummary = computeEtfRankingSummary(ownerState, baselineValues);
+        var currentSummary = computeEtfRankingSummary(ownerState, currentValues);
+        var effects = [];
+        Object.keys(currentValues).forEach(function (parameterId) {
+          if (parameterId === "seed") return;
+          if (baselineValues[parameterId] === currentValues[parameterId]) return;
+          var paths = ETF_OUTPUT_PATHS[parameterId] || [];
+          var changed = paths.some(function (path) {
+            return fingerprintOf(api, etfSummaryPath(baselineSummary, path)) !== fingerprintOf(api, etfSummaryPath(currentSummary, path));
+          });
+          effects.push({
+            parameterId: parameterId,
+            oldValue: baselineValues[parameterId],
+            newValue: currentValues[parameterId],
+            direction: (typeof currentValues[parameterId] === "number" && typeof baselineValues[parameterId] === "number")
+              ? (currentValues[parameterId] > baselineValues[parameterId] ? "higher" : "lower")
+              : "changed",
+            magnitude: (typeof currentValues[parameterId] === "number" && typeof baselineValues[parameterId] === "number")
+              ? (Math.abs(currentValues[parameterId] - baselineValues[parameterId]) || 1)
+              : 1,
+            nonlinear: false,
+            resultPaths: paths,
+            outputChanged: changed,
+            flatRegionProof: changed ? null : {
+              parameterId: parameterId,
+              resultPaths: paths,
+              reason: "The frozen owner snapshot yields an identical value on these paths for this parameter change."
+            }
+          });
+        });
+        return {
+          ok: true,
+          value: {
+            contractVersion: "simple-sensitivity/v1",
+            sharedRandomness: sharedRandomness,
+            seedChanged: baselineInput.seed !== currentInput.seed,
+            effects: effects
+          }
+        };
+      },
+      projectOwnerEvidence: function (output) {
+        var summary = output.values.summary;
+        var leader = summary.ranking.length ? summary.ranking[0] : null;
+        return {
+          ok: true,
+          value: {
+            contractVersion: "owner-evidence-projection/v1",
+            state: output.state,
+            valueText: leader ? (leader.ticker + " leads the ranking") : "No priced fund",
+            numericValue: leader && leader.score != null ? leader.score : null,
+            unit: "rank-score",
+            summary: leader
+              ? (leader.ticker + " leads the momentum/risk ranking (benchmark " + summary.benchmark + ").")
+              : "No fund prices under the selected owner window.",
+            sourceRefs: ["owner-evidence"]
+          }
+        };
+      }
+    };
+  }
+
   /* Factory: returns the macro-rotation Simple adapters implemented at genuine owner-parity, keyed
      by their exact declared adapter ID. Tools whose owner seam is not yet extracted are absent so
      the shared runtime renders the explicit unavailable state for them. */
@@ -1554,6 +1900,10 @@
       var fixedIncomeDefinition = byToolId["bond-regime-lab"];
       adapters[fixedIncomeDefinition.adapterId] = createFixedIncomeSleeveAdapter(api, fixedIncomeDefinition, ownerByIdentity);
     }
+    if (byToolId["etf-momentum-lab"]) {
+      var etfDefinition = byToolId["etf-momentum-lab"];
+      adapters[etfDefinition.adapterId] = createEtfRankingAdapter(api, etfDefinition, ownerByIdentity);
+    }
     return adapters;
   }
 
@@ -1571,7 +1921,7 @@
   return {
     contractVersion: "macro-rotation-adapters/v1",
     module: "rlexperience-adapters/macro-rotation.js",
-    supportedAdapterIds: ["simple-adapter/sector-rotation-transition/v1", "simple-adapter/country-rotation/v1", "simple-adapter/real-asset-driver/v1", "simple-adapter/fixed-income-sleeve/v1"],
+    supportedAdapterIds: ["simple-adapter/sector-rotation-transition/v1", "simple-adapter/country-rotation/v1", "simple-adapter/real-asset-driver/v1", "simple-adapter/fixed-income-sleeve/v1", "simple-adapter/etf-ranking/v1"],
     rollZ100: rollZ100,
     rrgQuadrant: rrgQuadrant,
     stateLabel: stateLabel,
@@ -1588,6 +1938,9 @@
     computeRealAssetDriverSummary: computeRealAssetDriverSummary,
     sleeveTotalReturn: sleeveTotalReturn,
     computeFixedIncomeSleeveSummary: computeFixedIncomeSleeveSummary,
+    etfMomentumSignal: etfMomentumSignal,
+    etfCompositeScore: etfCompositeScore,
+    computeEtfRankingSummary: computeEtfRankingSummary,
     createMacroRotationAdapters: createMacroRotationAdapters,
     registerMacroRotationAdapters: registerMacroRotationAdapters
   };

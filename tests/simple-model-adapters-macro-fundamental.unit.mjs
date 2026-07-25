@@ -633,3 +633,187 @@ test('TP-06-01 real-asset-driver compute is deterministic for one compute identi
     'identical inputs => identical owner summary'
   );
 });
+
+/* ═══════════════════════ fixed-income-sleeve owner fixture (bond-regime-lab) ═══════════════════════
+   A synthetic frozen owner snapshot engineered so every declared parameter provably moves its
+   declared output path. The sleeves carry distinct rate/spread durations and convexity so the same
+   scenario yields a distinct total per sleeve (the ranking moves with horizon/rate-shock/spread-
+   shock/carry/convexity), at least one sleeve is spread-bearing (so the spread-shock moves the
+   spread-bearing outcomes), and the frozen regime carries a non-zero real-yield/breakeven change and
+   a mid-range credit confirmation (so the inflation/real-yield/confirmation controls move the regime
+   read). No fabricated feed — the adapter recomputes only from these frozen owner facts, single-
+   sourcing the sleeve total-return decomposition from RLMACROROTATION.sleeveTotalReturn. The base
+   carries a non-zero rate/spread shock so the convexity term (0.5·convexity·combinedShock²) binds. */
+const BOND_PAGE = readFileSync(new URL('../bond-regime-lab.html', import.meta.url), 'utf8');
+
+function bondSleeveOwnerFixture() {
+  return {
+    contractVersion: 'fixed-income-sleeve-owner-state/v1',
+    toolId: 'bond-regime-lab',
+    asOf: '2026-07-24T20:00:00.000Z',
+    source: 'test-owner cache snapshot',
+    regime: { realYieldChangeBp: 14, breakevenChangeBp: -9, creditConfirmation: 0.55 },
+    sleeves: [
+      { id: 'long-treasury', label: 'Long Treasury', rateDuration: 17, spreadDuration: 0, convexity: 3.2, rateShockKind: 'nominal', spreadShockKind: 'none', carry: 4.2 },
+      { id: 'investment-grade-corporate', label: 'IG Corporate', rateDuration: 7, spreadDuration: 6.5, convexity: 0.8, rateShockKind: 'nominal', spreadShockKind: 'ig', carry: 5.4 },
+      { id: 'high-yield-corporate', label: 'HY Corporate', rateDuration: 3.5, spreadDuration: 4, convexity: 0.4, rateShockKind: 'nominal', spreadShockKind: 'hy', carry: 7.8 },
+      { id: 'tips', label: 'TIPS', rateDuration: 7.5, spreadDuration: 0, convexity: 0.6, rateShockKind: 'real-derived', spreadShockKind: 'none', carry: 3.1 }
+    ]
+  };
+}
+
+/* The bond scenario baseline carries a non-zero rate/spread shock so the convexity term binds and
+   the convexity control provably moves the sleeve outcomes (with a zero combined shock the owner
+   convexity term is identically zero, which would be a hidden flat region). */
+function bondBase(definition) {
+  return { ...defaultValues(definition), 'rate-shock': 40, 'spread-shock': 20 };
+}
+
+/* ═══════════════════════ TP-06-01 fixed-income-sleeve module authority + primitive ═══════════════════════ */
+
+test('TP-06-01 macro-rotation module exposes the fixed-income-sleeve adapter with the single-sourced sleeve total-return', () => {
+  const mr = loadMacroRotation();
+  assert.ok(mr.supportedAdapterIds.includes('simple-adapter/fixed-income-sleeve/v1'), 'fixed-income-sleeve/v1 is a declared supported adapter');
+  assert.equal(typeof mr.sleeveTotalReturn, 'function', 'sleeveTotalReturn owner primitive is single-sourced in the module');
+  assert.equal(typeof mr.computeFixedIncomeSleeveSummary, 'function', 'computeFixedIncomeSleeveSummary is exported');
+});
+
+test('TP-06-01 sleeveTotalReturn single-source pins the owner carry+rate+spread+convexity decomposition', () => {
+  const mr = loadMacroRotation();
+  // Byte-parity with the bond-regime-lab.html calculateScenarioResult decomposition, computed with
+  // the EXACT owner operations: carry = pctToDecimal(carry)·horizon/12, rate = −rateDuration·rateShock,
+  // spread = −spreadDuration·spreadShock, convexity = 0.5·convexity·combinedShock². The inline expected
+  // is the exact float arithmetic; the rounded expected pins the independent hand-computed value.
+  const carryDec = 5 / 100, rateShock = 50 / 10000, spreadShock = 30 / 10000;
+  const expCarry = carryDec * 6 / 12;
+  const expRate = -7 * rateShock;
+  const expSpread = -6 * spreadShock;
+  const expConvexity = 0.5 * 1.5 * (rateShock + spreadShock) * (rateShock + spreadShock);
+  const expTotal = expCarry + expRate + (expSpread || 0) + expConvexity;
+  const got = mr.sleeveTotalReturn(5, 7, 6, 1.5, 6, 50, 30);
+  assert.equal(got.carry, expCarry, 'carry term byte-parity');
+  assert.equal(got.rate, expRate, 'rate term byte-parity');
+  assert.equal(got.spread, expSpread, 'spread term byte-parity');
+  assert.equal(got.convexity, expConvexity, 'convexity term byte-parity');
+  assert.equal(got.total, expTotal, 'total byte-parity');
+  assert.equal(Math.round(got.total * 1e6) / 1e6, -0.027952, 'independent hand-computed total pins the decomposition');
+  // A spread-less sleeve carries a null spread and folds a zero into the total (the owner (spread||0) rule).
+  const none = mr.sleeveTotalReturn(5, 7, 6, 1.5, 6, 50, null);
+  assert.equal(none.spread, null, 'a spread-less sleeve carries a null spread (not a fabricated zero contribution)');
+  assert.equal(Math.round(none.total * 1e6) / 1e6, -0.009981, 'the spread-less total drops the spread term exactly');
+  // A non-finite owner characteristic yields a non-finite total (an unpriced sleeve), never a fabricated fill.
+  assert.equal(Number.isNaN(mr.sleeveTotalReturn(null, 7, 6, 1.5, 6, 50, 30).total), true, 'a missing carry leaves the total non-finite (unpriced), not a default');
+});
+
+test('TP-06-01 bond-regime-lab.html single-sources sleeveTotalReturn from macro-rotation.js', () => {
+  assert.match(BOND_PAGE, /rlexperience-adapters\/macro-rotation\.js/, 'bond page loads macro-rotation.js');
+  assert.match(BOND_PAGE, /RLMACROROTATION\.sleeveTotalReturn\s*\(/, 'bond page delegates the sleeve total-return to the module');
+  // The single owner source lives in macro-rotation.js; the page must carry no inline convexity formula.
+  assert.equal(/0\.5 \* values\.convexity \* combinedShock \* combinedShock/.test(BOND_PAGE), false, 'bond page has no inline sleeve convexity/total formula');
+});
+
+/* ═══════════════════════ TP-06-01 fixed-income-sleeve adapter runtime + owner parity ═══════════════════════ */
+
+test('TP-06-01 fixed-income-sleeve adapter registers through the production runtime and produces a ready owner run at parity', async () => {
+  const api = loadProductionApi();
+  const mr = loadMacroRotation();
+  const definition = definitionFor('bond-regime-lab');
+  const runtime = runtimeFor(api, definition);
+  const results = mr.registerMacroRotationAdapters(runtime, api, [definition]);
+  assert.equal(results['simple-adapter/fixed-income-sleeve/v1'].ok, true, JSON.stringify(results['simple-adapter/fixed-income-sleeve/v1'].error || {}));
+
+  const owner = bondSleeveOwnerFixture();
+  const base = bondBase(definition);
+  const prepared = requireValue(await runtime.prepare({
+    definitionId: definition.definitionId,
+    ownerContext: { ownerState: owner },
+    parameterValues: base,
+    seed: null,
+    scenarioIds: ['baseline'],
+    computedAt: '2026-07-24T20:02:00.000Z'
+  }));
+  assert.equal(prepared.state, 'ready');
+  const summary = prepared.current.output.values.summary;
+  assert.ok(Array.isArray(summary.outcomes) && summary.outcomes.length === 4, 'every frozen sleeve carries a scenario outcome');
+  assert.ok(summary.regime && typeof summary.regime.state === 'string', 'regime carries an inflation/real-yield confirmation state');
+  assert.equal(prepared.current.output.provenance.evidenceIdentity, prepared.current.input.evidenceIdentity, 'evidence identity is bound');
+
+  // Owner parity: each sleeve outcome total equals the single-sourced sleeve decomposition run directly
+  // on the frozen sleeve characteristics under the base scenario (single source, no re-implementation).
+  owner.sleeves.forEach((sleeve) => {
+    const spreadShockBp = sleeve.spreadShockKind === 'none' ? null : base['spread-shock'];
+    const parity = mr.sleeveTotalReturn(base.carry, sleeve.rateDuration, sleeve.spreadDuration, base.convexity, base.horizon / 30, base['rate-shock'], spreadShockBp);
+    const outcome = summary.outcomes.find((entry) => entry.id === sleeve.id);
+    assert.equal(outcome.total, Math.round(parity.total * 1e6) / 1e6, `${sleeve.id} total is single-sourced from sleeveTotalReturn`);
+  });
+});
+
+test('TP-06-01 each enabled fixed-income-sleeve parameter changes its declared output path', async () => {
+  const api = loadProductionApi();
+  const mr = loadMacroRotation();
+  const definition = definitionFor('bond-regime-lab');
+  const runtime = runtimeFor(api, definition);
+  mr.registerMacroRotationAdapters(runtime, api, [definition]);
+  const base = bondBase(definition);
+  await runtime.prepare({
+    definitionId: definition.definitionId,
+    ownerContext: { ownerState: bondSleeveOwnerFixture() },
+    parameterValues: base,
+    seed: null,
+    scenarioIds: ['baseline'],
+    computedAt: '2026-07-24T20:02:00.000Z'
+  });
+
+  const cases = [
+    ['horizon', 180, 'summary.outcomes'],
+    ['rate-shock', 120, 'summary.outcomes'],
+    ['spread-shock', 90, 'summary.outcomes'],
+    ['carry', 6, 'summary.outcomes'],
+    ['convexity', 9, 'summary.outcomes'],
+    ['inflation-shock', 60, 'summary.regime'],
+    ['real-yield-shock', 60, 'summary.regime'],
+    ['confirmation-threshold', 0.4, 'summary.regime']
+  ];
+  for (const [parameterId, value, path] of cases) {
+    const run = requireValue(await runtime.recompute({
+      parameterValues: { ...base, [parameterId]: value },
+      seed: null,
+      scenarioIds: ['baseline'],
+      computedAt: '2026-07-24T20:03:00.000Z'
+    }));
+    assert.deepEqual(run.changedParameters, [parameterId], `changed ${parameterId}`);
+    const effect = run.sensitivity.effects.find((entry) => entry.parameterId === parameterId);
+    assert.ok(effect, `sensitivity effect present for ${parameterId}`);
+    assert.equal(effect.outputChanged, true, `${parameterId} must change ${path}`);
+    assert.deepEqual(effect.resultPaths, [path], `${parameterId} declared path`);
+    await runtime.recompute({ parameterValues: { ...base }, seed: null, scenarioIds: ['baseline'], computedAt: '2026-07-24T20:03:30.000Z' });
+  }
+});
+
+test('TP-06-01 fixed-income-sleeve compute is deterministic for one compute identity', async () => {
+  const api = loadProductionApi();
+  const mr = loadMacroRotation();
+  const definition = definitionFor('bond-regime-lab');
+  const runtime = runtimeFor(api, definition);
+  mr.registerMacroRotationAdapters(runtime, api, [definition]);
+  const base = bondBase(definition);
+  const first = requireValue(await runtime.prepare({
+    definitionId: definition.definitionId,
+    ownerContext: { ownerState: bondSleeveOwnerFixture() },
+    parameterValues: base,
+    seed: null,
+    scenarioIds: ['baseline'],
+    computedAt: '2026-07-24T20:02:00.000Z'
+  }));
+  const again = requireValue(await runtime.recompute({
+    parameterValues: { ...base },
+    seed: null,
+    scenarioIds: ['baseline'],
+    computedAt: '2026-07-24T20:02:30.000Z'
+  }));
+  assert.equal(
+    api.fingerprint(first.current.output.values.summary),
+    api.fingerprint(again.current.output.values.summary),
+    'identical inputs => identical owner summary'
+  );
+});

@@ -591,3 +591,91 @@ test('SCN-012-035 macro and fundamental source qualification: a real asset with 
   assert.equal(summary.confirmation.state, 'unavailable', 'the breadth confirmation stays unavailable, not a default confirmed/unconfirmed');
   assert.deepEqual(prepared.current.output.provenance.classes, ['observed-fact', 'model-estimate'], 'partial owner coverage is declared, not hidden');
 });
+
+test('SCN-012-035 macro and fundamental source qualification: the delivered fixed-income-sleeve adapter performs zero fetch/provider/storage and preserves the frozen owner clock', async () => {
+  const api = loadProductionApi();
+  const mr = loadMacroRotation();
+  const definition = clone(readJson('simple-models.json').definitions.find((d) => d.toolId === 'bond-regime-lab'));
+  const config = readJson('tool-experience.config.json');
+  const runtime = requireValue(api.createSimpleRuntime(config, { contractVersion: 'simple-model-registry/v1', definitions: [definition] }));
+  mr.registerMacroRotationAdapters(runtime, api, [definition]);
+
+  const owner = {
+    contractVersion: 'fixed-income-sleeve-owner-state/v1', toolId: 'bond-regime-lab', asOf: '2026-07-24T20:00:00.000Z',
+    source: 'pages-snapshot cache', regime: { realYieldChangeBp: 14, breakevenChangeBp: -9, creditConfirmation: 0.55 },
+    sleeves: [
+      { id: 'long-treasury', label: 'Long Treasury', rateDuration: 17, spreadDuration: 0, convexity: 3.2, rateShockKind: 'nominal', spreadShockKind: 'none', carry: 4.2 },
+      { id: 'investment-grade-corporate', label: 'IG Corporate', rateDuration: 7, spreadDuration: 6.5, convexity: 0.8, rateShockKind: 'nominal', spreadShockKind: 'ig', carry: 5.4 }
+    ]
+  };
+
+  const sentinels = { fetch: globalThis.fetch, localStorage: globalThis.localStorage, sessionStorage: globalThis.sessionStorage, XMLHttpRequest: globalThis.XMLHttpRequest };
+  const calls = { fetch: 0, storage: 0, xhr: 0 };
+  globalThis.fetch = () => { calls.fetch += 1; throw new Error('forbidden fetch'); };
+  globalThis.localStorage = { getItem() { calls.storage += 1; }, setItem() { calls.storage += 1; } };
+  globalThis.sessionStorage = { getItem() { calls.storage += 1; }, setItem() { calls.storage += 1; } };
+  globalThis.XMLHttpRequest = function () { calls.xhr += 1; throw new Error('forbidden xhr'); };
+  try {
+    const base = { ...defaultValues(definition), 'rate-shock': 40, 'spread-shock': 20 };
+    const prepared = requireValue(await runtime.prepare({
+      definitionId: definition.definitionId,
+      ownerContext: { ownerState: owner },
+      parameterValues: base,
+      seed: null,
+      scenarioIds: ['baseline'],
+      computedAt: '2026-07-25T20:02:00.000Z'
+    }));
+    assert.equal(prepared.state, 'ready');
+    // The owner evidence clock is preserved verbatim — the adapter acquires nothing and re-clocks nothing.
+    assert.equal(prepared.current.input.evidenceCutoff, owner.asOf, 'evidence cutoff is the frozen owner asOf (no re-clocking)');
+    // The frozen credit-regime confirmation drives the regime read; the adapter never fetches a fresher fact.
+    const summary = prepared.current.output.values.summary;
+    assert.equal(summary.regime.creditConfirmation, 0.55, 'the frozen credit confirmation is preserved verbatim');
+    await runtime.recompute({ parameterValues: { ...base, 'rate-shock': 120 }, seed: null, scenarioIds: ['baseline'], computedAt: '2026-07-25T20:03:00.000Z' });
+  } finally {
+    globalThis.fetch = sentinels.fetch;
+    globalThis.localStorage = sentinels.localStorage;
+    globalThis.sessionStorage = sentinels.sessionStorage;
+    globalThis.XMLHttpRequest = sentinels.XMLHttpRequest;
+  }
+  assert.equal(calls.fetch, 0, 'zero fetch calls at runtime');
+  assert.equal(calls.storage, 0, 'zero storage calls at runtime');
+  assert.equal(calls.xhr, 0, 'zero XMLHttpRequest calls at runtime');
+});
+
+test('SCN-012-035 macro and fundamental source qualification: a sleeve with no owner characteristics and an absent regime stay unavailable — no default is substituted', async () => {
+  const api = loadProductionApi();
+  const mr = loadMacroRotation();
+  const definition = clone(readJson('simple-models.json').definitions.find((d) => d.toolId === 'bond-regime-lab'));
+  const config = readJson('tool-experience.config.json');
+  const runtime = requireValue(api.createSimpleRuntime(config, { contractVersion: 'simple-model-registry/v1', definitions: [definition] }));
+  mr.registerMacroRotationAdapters(runtime, api, [definition]);
+
+  // long-treasury carries full owner characteristics; ZZZ carries NO rate duration or convexity. The
+  // regime facts are ABSENT. The adapter must keep ZZZ out of the priced coverage and keep the regime
+  // unavailable — never invent a total for ZZZ nor a regime confirmation from no facts.
+  const owner = {
+    contractVersion: 'fixed-income-sleeve-owner-state/v1', toolId: 'bond-regime-lab', asOf: '2026-07-24T20:00:00.000Z',
+    source: 'pages-snapshot cache', regime: { realYieldChangeBp: null, breakevenChangeBp: null, creditConfirmation: null },
+    sleeves: [
+      { id: 'long-treasury', label: 'Long Treasury', rateDuration: 17, spreadDuration: 0, convexity: 3.2, rateShockKind: 'nominal', spreadShockKind: 'none', carry: 4.2 },
+      { id: 'ZZZ', label: 'Illiquid', rateDuration: null, spreadDuration: null, convexity: null, rateShockKind: 'nominal', spreadShockKind: 'none', carry: null }
+    ]
+  };
+  const base = { ...defaultValues(definition), 'rate-shock': 40 };
+  const prepared = requireValue(await runtime.prepare({
+    definitionId: definition.definitionId,
+    ownerContext: { ownerState: owner },
+    parameterValues: base,
+    seed: null,
+    scenarioIds: ['baseline'],
+    computedAt: '2026-07-25T20:02:00.000Z'
+  }));
+  const summary = prepared.current.output.values.summary;
+  assert.equal(summary.pricedCount, 1, 'only the one priced sleeve counts toward coverage');
+  const illiquid = summary.outcomes.find((entry) => entry.id === 'ZZZ');
+  assert.equal(illiquid.total, null, 'the characteristic-less sleeve produces no fabricated total');
+  assert.equal(summary.regime.state, 'unavailable', 'the regime stays unavailable, not a default confirmed/unconfirmed');
+  assert.equal(summary.regime.confirmationScore, null, 'an absent credit confirmation produces no fabricated score');
+  assert.deepEqual(prepared.current.output.provenance.classes, ['observed-fact', 'model-estimate'], 'partial owner coverage is declared, not hidden');
+});

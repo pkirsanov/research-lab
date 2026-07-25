@@ -1097,6 +1097,9 @@
     <script src="rlticker.js"></script>
     <script src="rlchart.js"></script>
     <script src="rlnav.js"></script>
+    <!-- Feature 012 Scope 06: the single owner source for the sleeve total-return decomposition the
+         registered fixed-income-sleeve Simple adapter shares (RLMACROROTATION.sleeveTotalReturn). -->
+    <script src="rlexperience-adapters/macro-rotation.js"></script>
     <script>
         "use strict";
 
@@ -1885,14 +1888,15 @@
                 result.warnings = stale.map(function (value) { return "BRL-CHARACTERISTIC-STALE: " + value; });
                 return result;
             }
-            var rateShock = bpToDecimal(shocks.rateShockBp);
-            var spreadShock = shocks.spreadShockBp === null ? 0 : bpToDecimal(shocks.spreadShockBp);
-            var carry = pctToDecimal(values.carry) * horizon / 12;
-            var rate = -values.rateDuration * rateShock;
-            var spread = shocks.spreadShockBp === null ? null : -values.spreadDuration * spreadShock;
-            var combinedShock = rateShock + spreadShock;
-            var convexity = 0.5 * values.convexity * combinedShock * combinedShock;
-            var total = carry + rate + (spread || 0) + convexity;
+            /* Single-sourced to RLMACROROTATION.sleeveTotalReturn (owner carry+rate+spread+convexity
+               decomposition; no inline copy). The registered fixed-income-sleeve Simple adapter shares
+               this exact decomposition. */
+            var decomposition = RLMACROROTATION.sleeveTotalReturn(values.carry, values.rateDuration, values.spreadDuration, values.convexity, horizon, shocks.rateShockBp, shocks.spreadShockBp);
+            var carry = decomposition.carry;
+            var rate = decomposition.rate;
+            var spread = decomposition.spread;
+            var convexity = decomposition.convexity;
+            var total = decomposition.total;
             if (![carry, rate, convexity, total].every(Number.isFinite) || (spread !== null && !Number.isFinite(spread))) {
                 result.errorCode = "BRL-MODEL-NONFINITE";
                 result.warnings = ["BRL-MODEL-NONFINITE: scenario arithmetic is not finite"];

@@ -1109,8 +1109,16 @@ try {
 try {
   group('bond-regime-lab.html — sleeve scenario foundation');
   const src = read('bond-regime-lab.html');
-  const names = ['finiteNumber', 'bpToDecimal', 'pctToDecimal', 'bondTrailingReturnPct', 'bondRealizedVolPct', 'bondMaxDrawdownPct', 'bondTrendState', 'scenarioShockForSleeve', 'solveBreakEvenShock', 'classifyReliability', 'calculateScenarioResult', 'rankScenarioResults', 'selectResearchExpression', 'buildDecisionRead', 'buildBondToolRead'];
-  const env = build(names.map((name) => extractFn(src, name)), names);
+  // calculateScenarioResult single-sources its carry+rate+spread+convexity decomposition to
+  // rlexperience-adapters/macro-rotation.js (RLMACROROTATION); expose it as the global the page's
+  // delegating function references, then evaluate the extracted owner functions.
+  const bondMacroRequire = (await import('node:module')).createRequire(import.meta.url);
+  delete bondMacroRequire.cache[bondMacroRequire.resolve('../rlexperience-adapters/macro-rotation.js')];
+  const priorBondMacro = globalThis.RLMACROROTATION;
+  globalThis.RLMACROROTATION = bondMacroRequire('../rlexperience-adapters/macro-rotation.js');
+  try {
+    const names = ['finiteNumber', 'bpToDecimal', 'pctToDecimal', 'bondTrailingReturnPct', 'bondRealizedVolPct', 'bondMaxDrawdownPct', 'bondTrendState', 'scenarioShockForSleeve', 'solveBreakEvenShock', 'classifyReliability', 'calculateScenarioResult', 'rankScenarioResults', 'selectResearchExpression', 'buildDecisionRead', 'buildBondToolRead'];
+    const env = build(names.map((name) => extractFn(src, name)), names);
   const config = JSON.parse(read('bond-regime-universe.json'));
   const instruments = Object.fromEntries(config.instruments.map((instrument) => [instrument.ticker, instrument]));
   const sleeves = Object.fromEntries(config.sleeves.map((sleeve) => [sleeve.id, sleeve]));
@@ -1148,6 +1156,12 @@ try {
   assert(normalized.metrics.preferredSleeveId === null && normalized.metrics.resultPct === null, 'Bond Regime: normalized read nulls indeterminate action and result');
   assert(!JSON.stringify(normalized).includes('2.681923') && !JSON.stringify(normalized).includes('restricted-sentinel'), 'Bond Regime: normalized read omits restricted values and source URLs');
   assert(normalized.deepLink === 'bond-regime-lab.html#simple' && normalized.metrics.creditRegime === 'Indeterminate', 'Bond Regime: normalized read keeps owner deep link and observed state');
+    // Single-source: the page loads the module, delegates the decomposition, and carries no inline copy.
+    assert(/rlexperience-adapters\/macro-rotation\.js/.test(src) && /RLMACROROTATION\.sleeveTotalReturn\s*\(/.test(src), 'bond page single-sources sleeveTotalReturn from RLMACROROTATION');
+    assert(!/0\.5 \* values\.convexity \* combinedShock \* combinedShock/.test(src), 'bond page carries no inline sleeve convexity/total copy');
+  } finally {
+    if (priorBondMacro === undefined) delete globalThis.RLMACROROTATION; else globalThis.RLMACROROTATION = priorBondMacro;
+  }
 } catch (e) { failures++; console.log('  ✗ FAIL (bond-regime scenario group threw): ' + e.message); }
 
 /* ---------- Bond regime: cache-first public and restricted adapters ---------- */
@@ -3932,6 +3946,17 @@ try {
     const realAssetsMod = scope06Require(MACRO_MODULE);
     assert(realAssetsMod.realBreadthPct([8, -3, 5, -1, 6, -2]) === 3 / 6 * 100 && realAssetsMod.realBreadthPct([4, null, -2]) === 50 && realAssetsMod.realBreadthPct([]) === null, 'realBreadthPct is byte-parity with the owner breadthScore reduction (fraction positive, null when empty)');
   } catch (e) { failures++; console.log('  ✗ FAIL (Feature 012 Scope 06 real-asset-driver completeness threw): ' + e.message); }
+  try {
+    group('Feature 012 Scope 06 fixed-income-sleeve adapter completeness (bond-regime-lab)');
+    assertScope06AdapterComplete(MACRO_MODULE, 'createMacroRotationAdapters', 'bond-regime-lab', 'simple-adapter/fixed-income-sleeve/v1', ['sleeveTotalReturn', 'computeFixedIncomeSleeveSummary'], 'bond-regime-lab.html', ['sleeveTotalReturn']);
+    // The single owner decomposition lives in macro-rotation.js; the page carries no inline convexity/total formula.
+    const bondPage = read('bond-regime-lab.html');
+    assert(!/0\.5 \* values\.convexity \* combinedShock \* combinedShock/.test(bondPage), 'bond page carries no inline sleeve convexity/total formula (single-sourced to RLMACROROTATION)');
+    // Byte-parity: sleeveTotalReturn reproduces the owner carry+rate+spread+convexity decomposition.
+    delete scope06Require.cache[scope06Require.resolve(MACRO_MODULE)];
+    const bondMod = scope06Require(MACRO_MODULE);
+    assert(Math.round(bondMod.sleeveTotalReturn(5, 7, 6, 1.5, 6, 50, 30).total * 1e6) / 1e6 === -0.027952 && bondMod.sleeveTotalReturn(5, 7, 6, 1.5, 6, 50, null).spread === null && Number.isNaN(bondMod.sleeveTotalReturn(null, 7, 6, 1.5, 6, 50, 30).total), 'sleeveTotalReturn is byte-parity with the owner decomposition (null spread when spread-less, non-finite when a characteristic is missing)');
+  } catch (e) { failures++; console.log('  ✗ FAIL (Feature 012 Scope 06 fixed-income-sleeve completeness threw): ' + e.message); }
 }
 
 /* ---------- summary ---------- */

@@ -738,6 +738,28 @@ function realAssetOwnerFixture() {
   };
 }
 
+/* fixed-income-sleeve owner fixture (verbatim from the unit suite): distinct rate/spread durations
+   and convexity per sleeve so the same scenario yields a distinct total per sleeve (the ranking moves
+   with horizon/rate-shock/spread-shock/carry/convexity), a spread-bearing IG/HY sleeve so the spread
+   shock moves the spread outcomes, and a frozen non-zero real-yield/breakeven change with a mid-range
+   credit confirmation so the inflation/real-yield/confirmation controls move the regime. The base
+   carries a non-zero rate/spread shock so the convexity term binds. */
+function bondSleeveOwnerFixture() {
+  return {
+    contractVersion: 'fixed-income-sleeve-owner-state/v1',
+    toolId: 'bond-regime-lab',
+    asOf: '2026-07-24T20:00:00.000Z',
+    source: 'test-owner cache snapshot',
+    regime: { realYieldChangeBp: 14, breakevenChangeBp: -9, creditConfirmation: 0.55 },
+    sleeves: [
+      { id: 'long-treasury', label: 'Long Treasury', rateDuration: 17, spreadDuration: 0, convexity: 3.2, rateShockKind: 'nominal', spreadShockKind: 'none', carry: 4.2 },
+      { id: 'investment-grade-corporate', label: 'IG Corporate', rateDuration: 7, spreadDuration: 6.5, convexity: 0.8, rateShockKind: 'nominal', spreadShockKind: 'ig', carry: 5.4 },
+      { id: 'high-yield-corporate', label: 'HY Corporate', rateDuration: 3.5, spreadDuration: 4, convexity: 0.4, rateShockKind: 'nominal', spreadShockKind: 'hy', carry: 7.8 },
+      { id: 'tips', label: 'TIPS', rateDuration: 7.5, spreadDuration: 0, convexity: 0.6, rateShockKind: 'real-derived', spreadShockKind: 'none', carry: 3.1 }
+    ]
+  };
+}
+
 function makeScope6Descriptors(mr) {
   return {
     'sector-research-lab': {
@@ -797,6 +819,30 @@ function makeScope6Descriptors(mr) {
         ['volatility-penalty', 0.6],
         ['drawdown-limit', 6],
         ['breadth-threshold', 50]
+      ]
+    },
+    'bond-regime-lab': {
+      ownerState: () => bondSleeveOwnerFixture(),
+      base: (definition) => ({ ...defaultValues(definition), 'rate-shock': 40, 'spread-shock': 20 }),
+      ownerFact: ({ summary, owner, base }) => {
+        // Owner parity: each sleeve outcome total is the single-sourced sleeve decomposition run
+        // directly on the frozen sleeve characteristics under the base scenario (single source).
+        owner.sleeves.forEach((sleeve) => {
+          const spreadShockBp = sleeve.spreadShockKind === 'none' ? null : base['spread-shock'];
+          const parity = mr.sleeveTotalReturn(base.carry, sleeve.rateDuration, sleeve.spreadDuration, base.convexity, base.horizon / 30, base['rate-shock'], spreadShockBp);
+          const outcome = summary.outcomes.find((entry) => entry.id === sleeve.id);
+          assert.equal(outcome.total, Math.round(parity.total * 1e6) / 1e6, `${sleeve.id} total is single-sourced from sleeveTotalReturn`);
+        });
+      },
+      cases: () => [
+        ['horizon', 180],
+        ['rate-shock', 120],
+        ['spread-shock', 90],
+        ['carry', 6],
+        ['convexity', 9],
+        ['inflation-shock', 60],
+        ['real-yield-shock', 60],
+        ['confirmation-threshold', 0.4]
       ]
     }
   };

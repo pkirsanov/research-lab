@@ -509,6 +509,29 @@ try {
   assert(cref.state === 'refused' && cref.revenue === null, 'the refuse gap policy withholds the bounded scenario when a required reported field is gapped');
 } catch (e) { failures++; console.log('  \u2717 FAIL (company scenario bridge group threw): ' + e.message); }
 
+/* ---------- MSFT margin/EPS/valuation bridge (single-sourced to RLFUNDAMENTALS) ---------- */
+try {
+  group('msft-july-print-model.html \u2014 margin/EPS/valuation bridge');
+  // Feature 012 Scope 06: the reported-period FY26->FY27 margin/EPS/valuation bridge is single-sourced
+  // to rlexperience-adapters/fundamental-models.js (RLFUNDAMENTALS.msftAnnualBridge); the page's
+  // calculateAnnual loads the module and delegates, carrying no inline bridge copy, so the reconciled
+  // bridge formula is tested against the single-source module \u2014 never the page.
+  const msftSrc = read('msft-july-print-model.html');
+  const msftReq = (await import('node:module')).createRequire(import.meta.url);
+  delete msftReq.cache[msftReq.resolve('../rlexperience-adapters/fundamental-models.js')];
+  const RLF3 = msftReq('../rlexperience-adapters/fundamental-models.js');
+  assert(/rlexperience-adapters\/fundamental-models\.js/.test(msftSrc), 'msft page loads the fundamental-models module');
+  assert(/RLFUNDAMENTALS\.msftAnnualBridge\s*\(/.test(msftSrc), 'msft page single-sources the FY26->FY27 bridge to RLFUNDAMENTALS.msftAnnualBridge (no inline bridge copy)');
+  assert(!/OI26 \+ GP_price \+ GP_vol \+ GP_fx - GP_churn - dDep - dOpex/.test(msftSrc), 'msft page carries no inline OI27 bridge formula');
+  assert(RLF3.supportedAdapterIds.indexOf('simple-adapter/msft-margin-eps/v1') >= 0, 'msft-margin-eps is a declared supported adapter');
+  // Owner parity: a clean zero-growth identity carries revenue/OI straight through (OM27 == om26,
+  // EPS27 == OI27/sh, implied == EPS27 * pe); a depreciation step + price uplift bite the bridge.
+  const mflat = RLF3.msftAnnualBridge({ revFY26: 100, om26: 0.4, vol: 0, prc: 0, churn: 0, fx: 0, pm: 1, vm: 1, cm: 1, opexI: 0, dDep: 0, oi: 0, tax: 0, sh: 1, pe: 10 });
+  assert(mflat.OI27 === 40 && mflat.OM27 === 0.4 && mflat.EPS27 === 40 && mflat.implied === 400, 'msftAnnualBridge zero-growth identity: OI27 40, OM27 0.40, EPS27 40, implied 400');
+  const mdep = RLF3.msftAnnualBridge({ revFY26: 100, om26: 0.4, vol: 0, prc: 0.10, churn: 0, fx: 0, pm: 1, vm: 1, cm: 1, opexI: 0, dDep: 5, oi: 0, tax: 0, sh: 1, pe: 10 });
+  assert(mdep.GP_price === 10 && mdep.OI27 === 45 && mdep.EPS27 > mflat.EPS27, 'a $5 depreciation step + 10% price uplift net +$5 to OI27 (45) and lift EPS27');
+} catch (e) { failures++; console.log('  \u2717 FAIL (msft margin/EPS bridge group threw): ' + e.message); }
+
 /* ---------- Gamma: second-order greeks ---------- */
 try {
   group('gamma-trading-lab.html \u2014 vanna / charm greeks');

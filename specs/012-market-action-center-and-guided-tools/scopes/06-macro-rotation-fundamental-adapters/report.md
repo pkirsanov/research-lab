@@ -9,14 +9,15 @@ modules. This dispatch delivered the FIRST macro-rotation adapter — `sector-ro
 (`sector-research-lab`) — at genuine owner-parity, single-sourced from the start, and wired into the
 registry loop, the source-ownership canaries, and the broad selftest.
 
-- **Delivered + verified: 7 of 8** — `sector-rotation-transition/v1` (dispatch 1),
+- **Delivered + verified: 8 of 8** — `sector-rotation-transition/v1` (dispatch 1),
   `country-rotation/v1` (dispatch 2), `real-asset-driver/v1` (dispatch 3),
   `fixed-income-sleeve/v1` (dispatch 4), and `etf-ranking/v1` (dispatch 5) in `macro-rotation.js`,
-  plus `ai-capex-portfolio/v1` (dispatch 6) and `company-scenario-bridge/v1` (dispatch 7, this
-  dispatch) in `fundamental-models.js`. `macro-rotation.js` `supportedAdapterIds` lists the five macro
-  adapters and `fundamental-models.js` `supportedAdapterIds` lists exactly `ai-capex-portfolio/v1` +
-  `company-scenario-bridge/v1`, so the registry loop drives the delivered set of seven and the
-  remaining one (`msft-margin-eps` in `fundamental-models.js`) is honestly absent.
+  plus `ai-capex-portfolio/v1` (dispatch 6), `company-scenario-bridge/v1` (dispatch 7), and
+  `msft-margin-eps/v1` (dispatch 8, this dispatch) in `fundamental-models.js`. `macro-rotation.js`
+  `supportedAdapterIds` lists the five macro adapters and `fundamental-models.js` `supportedAdapterIds`
+  now lists all three fundamental adapters (`ai-capex-portfolio/v1` + `company-scenario-bridge/v1` +
+  `msft-margin-eps/v1`), so the registry loop drives the full delivered set of eight and no adapter
+  remains absent.
 - New module `rlexperience-adapters/macro-rotation.js` is the SINGLE OWNER SOURCE for the sector RRG
   normalization (`rollZ100`), the RRG quadrant (`rrgQuadrant`), the state label (`stateLabel`), the
   into/out classifier (`rotationCandidacy`), and the RRG kernel (`rrgReadout`). `sector-research-lab.html`
@@ -45,7 +46,8 @@ registry loop, the source-ownership canaries, and the broad selftest.
 
 ## Completion Statement
 
-Scope 06 is NOT complete. 7 of 8 adapters are delivered and verified. Scope `status` remains
+Scope 06 is NOT complete. 8 of 8 adapters are delivered and verified; the persistent per-tool E2E rows
+(TP-06-04..TP-06-11) and independent `bubbles.test` verification remain. Scope `status` remains
 `in_progress`; feature `status` remains `not_started`; `certifiedAt` remains null.
 
 ## Code Diff Evidence
@@ -546,6 +548,133 @@ staged, reverted, or touched.
 
 **Running total: 7 of 8.** Scope stays `in_progress`. Next required: `msft-margin-eps/v1`
 (`fundamental-models.js`), then the persistent E2E rows TP-06-04..TP-06-11.
+
+## Adapter 8 of 8 — msft-margin-eps/v1 (msft-july-print-model) — this dispatch
+
+Phase: implement. Claim Source: executed (current session). RED-first (genuine failure) → GREEN →
+unit + selftest 0-failed → parse-check → byte-parity → invariants clean → committed. This dispatch
+delivers the FINAL adapter, completing `fundamental-models.js` at 3 of 3 and Scope 06 at 8 of 8.
+
+**Owner seam + single-source-from-the-start.** The reported-period FY26→FY27 margin/EPS/valuation
+bridge is `calculateAnnual` in `msft-july-print-model.html`. The pure reconciled bridge arithmetic
+(OI26 → gross-profit walk → OI27 → OM27 → NI/EPS → implied price) was EXTRACTED into
+`rlexperience-adapters/fundamental-models.js` as the SINGLE-SOURCE `msftAnnualBridge(inputs)`, and the
+page's `calculateAnnual` was rewired in the SAME change to read the DOM into the decimal bridge inputs
+and DELEGATE to `RLFUNDAMENTALS.msftAnnualBridge` — the inline OI27/NI/EPS formula was REMOVED, so the
+bridge lives in exactly one place. The registered `simple-adapter/msft-margin-eps/v1` consumes the same
+`msftAnnualBridge`, so Power and Simple share one formula. The adapter is pure compute over a FROZEN
+owner snapshot (`ownerState.bridge` base facts + `depreciationBase` + `anchors`); the seven Simple
+params (`depreciation-growth`, `mix-shift`, `fx-impact`, `memory-cost-impact`, `capex-phase`,
+`earnings-anchor`, `valuation-multiple`) project onto the scenario bridge inputs, and every value is a
+frozen owner fact or a bounded user assumption — zero fetch/providerFetch/storage/LLM/publisher/store,
+no owner-state mutation, no cross-domain adapter import.
+
+**Concurrent-session caution honored.** `msft-july-print-model.html` is a SHARED surface carrying
+Feature-009/010 options-implied earnings-move brief-card + market-refresh features. This dispatch
+touched ONLY the `calculateAnnual` bridge region (+ one adjacent module-load `<script>` tag); the
+brief-card / refresh-button / market-refresh / valuation-read features were NOT modified, reverted, or
+interfered with. The concurrent-session dirty file
+(`specs/.../BUG-001-options-flow-shell-startup-starvation/scenario-manifest.json`) was NOT staged,
+reverted, or touched.
+
+### RED proof (before the module additions + page delegation existed)
+
+`node --test --test-name-pattern="msft" tests/simple-model-adapters-macro-fundamental.unit.mjs` → 6 fail.
+
+```text
+✖ TP-06-01 fundamental-models module exposes the msft-margin-eps adapter ...  AssertionError: msft-margin-eps/v1 is a declared supported adapter (actual false)
+✖ TP-06-01 msftAnnualBridge single-source pins the reported-period ...        TypeError: fm.msftAnnualBridge is not a function
+✖ TP-06-01 msft-july-print-model.html single-sources the FY26->FY27 bridge ... AssertionError: msft page loads fundamental-models.js
+✖ TP-06-01 msft-margin-eps adapter registers through the production runtime ...
+✖ TP-06-01 each enabled msft-margin-eps parameter changes its declared ...
+✖ TP-06-01 msft-margin-eps compute is deterministic for one compute identity
+# tests 6  # pass 0  # fail 6
+```
+
+### TP-06-01 msft — Unit (`node --test --test-name-pattern="msft" tests/simple-model-adapters-macro-fundamental.unit.mjs`)
+
+GREEN after delivery. The dedicated block adds 6 tests (file 45 → 51). Exit Code: 0.
+
+```text
+✔ TP-06-01 fundamental-models module exposes the msft-margin-eps adapter with the single-source margin/EPS/valuation bridge
+✔ TP-06-01 msftAnnualBridge single-source pins the reported-period margin/EPS/valuation bridge formula
+✔ TP-06-01 msft-july-print-model.html single-sources the FY26->FY27 bridge from fundamental-models.js
+✔ TP-06-01 msft-margin-eps adapter registers through the production runtime and produces a ready owner run at parity
+✔ TP-06-01 each enabled msft-margin-eps parameter changes its declared output path
+✔ TP-06-01 msft-margin-eps compute is deterministic for one compute identity
+ℹ tests 6  ℹ pass 6  ℹ fail 0
+```
+
+### Owner-parity byte/semantic fingerprint (PRE == POST; single-source extraction preserved output exactly)
+
+Before the edit, an INDEPENDENT transcription of the current inline `calculateAnnual` arithmetic on the
+page's `PRESETS.base` decimals produced a sha256; after the extraction, the module's `msftAnnualBridge`
+on the IDENTICAL inputs produced the same sha256 — proving the single-sourced bridge is byte-identical
+to the former inline formula (Power output unchanged).
+
+```text
+PRE_SHA256 =6ccefa13cc8193598d7d69c1bf3dafcae5efda3e3c8966d29dacf588d2ee588c
+POST_SHA256=6ccefa13cc8193598d7d69c1bf3dafcae5efda3e3c8966d29dacf588d2ee588c
+PARITY=IDENTICAL
+{"revFY26":329.5,"om26":0.466,"oi":2,"tax":0.19,"sh":7.45,"pe":22,"OI26":153.547,"GP_price":14.086124999999997,"GP_vol":22.83435,"GP_fx":-3.1302499999999998,"GP_churn":3.706875,"dOpex":5.930999999999999,"dDep":22,"OI27":155.69935,"totalGrowthPct":0.12499999999999999,"RevFY27":370.6875,"OM27":0.42002859551509025,"EPS26":16.911821476510067,"EPS27":17.145835369127518,"implied":377.2083781208054}
+```
+
+The unit test ALSO proves adapter-level owner-parity: `summary.margin.om27`/`.oi27`,
+`summary.eps.eps27`/`.eps26`, and `summary.valuation.impliedPrice` deep-equal
+`msftAnnualBridge(computeMsftBridgeInputs(owner, base))` run directly on the frozen owner facts — not a
+re-implementation. The 7 declared parameters each move their declared path (depreciation-growth /
+mix-shift / memory-cost-impact / capex-phase → `summary.margin`; fx-impact / earnings-anchor →
+`summary.eps`; valuation-multiple → `summary.valuation`), non-tautologically.
+
+### Single-source-page proof + selftest reconciliation (msft)
+
+Page single-source (asserted by unit test 3 + the new selftest group + a direct scan):
+
+```text
+has_module_load (<script src="rlexperience-adapters/fundamental-models.js">) = true
+delegates_bridge (RLFUNDAMENTALS.msftAnnualBridge())                          = true
+inline_bridge_formula_present (OI26 + GP_price + ... - dDep - dOpex)          = false
+page inline-script syntax check: script_blocks_total=11 inline_compiled=5 syntax_errors=0  (no truncated tree)
+```
+
+Selftest reconciliation: NO pre-existing selftest group extracted+eval'd `calculateAnnual` (grep 0
+matches), so no existing group needed reconciling to the module. A NEW single-source group
+`msft-july-print-model.html — margin/EPS/valuation bridge` was ADDED (mirroring the ai-capex/company
+`RLFUNDAMENTALS` groups): it asserts the page loads the module + delegates + carries no inline bridge,
+that `msft-margin-eps/v1` is a declared supported adapter, and that `msftAnnualBridge` reproduces the
+zero-growth identity (OI27 40 / OM27 0.40 / EPS27 40 / implied 400) and the depreciation+price bite.
+
+### Comment-stripped forbidden-authority (0 executable) + protected-path zero-diff
+
+```text
+FORBIDDEN_EXECUTABLE_HITS (comment-stripped fundamental-models.js)            = 0
+rldata.js / rlexperience.js / scripts/fetch-options.mjs / data/options  diff  = 0 (byte-unchanged)
+```
+
+### TP-06-12 msft — Broad regression selftest (`node scripts/selftest.mjs`)
+
+Baseline before this dispatch was 889 passed / 0 failed (dispatch-7 company). After the msft delivery +
+the new msft single-source group it is 895 passed / 0 failed (+6 = the msft group's six assertions).
+`node --check scripts/selftest.mjs` exit 0. Exit Code: 0.
+
+```text
+================================================
+Research-Lab self-test: 895 passed, 0 failed
+================================================
+SELFTEST_EXIT=0
+```
+
+### Delivered-set unit (all 8) — green
+
+```text
+tests/simple-model-adapters-macro-fundamental.unit.mjs   # tests 51  # pass 51  # fail 0
+```
+
+**Running total: 8 of 8.** `fundamental-models.js` `supportedAdapterIds` now lists
+`ai-capex-portfolio/v1` + `company-scenario-bridge/v1` + `msft-margin-eps/v1`. Scope stays
+`in_progress` (independent `bubbles.test` verification + DoD finalization + the persistent E2E rows
+TP-06-04..TP-06-11 remain). The all-8 registry-integration (TP-06-02), source-ownership (TP-06-03),
+and per-tool E2E (TP-06-04..11) rows are addressed in the follow-up within this scope.
 
 ## Spot-Check Recommendations
 

@@ -948,6 +948,328 @@
     };
   }
 
+  /* ═══════════ msft-margin-eps Simple model (owner seam = msft-july-print-model.html) ═══════════
+     The reported-period FY26→FY27 margin / EPS / valuation bridge. `msftAnnualBridge` is the SINGLE
+     SOURCE that BOTH the MSFT July-print Power page's calculateAnnual AND the registered Simple adapter
+     consume: the page reads the DOM into the decimal bridge inputs and delegates the reconciled math
+     here (RLFUNDAMENTALS.msftAnnualBridge), carrying no inline copy. Inputs are the already-decimal
+     scenario facts (om26/vol/prc/churn/fx/pm/vm/cm/opexI/tax are ratios; revFY26/dDep/oi/sh/pe are
+     absolute). Returns the reconciled bridge: FY27 operating income, operating margin, FY26/FY27 EPS,
+     and the implied price (EPS27 * pe). Pure compute — no fetch, mutation, DOM, or default. */
+
+  function msftNum(value) { var n = Number(value); return isFinite(n) ? n : 0; }
+
+  function msftAnnualBridge(inputs) {
+    var i = inputs || {};
+    var revFY26 = i.revFY26, om26 = i.om26;
+    var vol = i.vol, prc = i.prc, churn = i.churn, fx = i.fx;
+    var pm = i.pm, vm = i.vm, cm = i.cm, opexI = i.opexI;
+    var dDep = i.dDep;
+    var oi = i.oi, tax = i.tax, sh = i.sh, pe = i.pe;
+    var OI26 = revFY26 * om26;
+    var dRevPrice = revFY26 * prc, dRevVol = revFY26 * vol, dRevFx = revFY26 * fx, dRevChurn = revFY26 * churn;
+    var GP_price = dRevPrice * pm, GP_vol = dRevVol * vm, GP_fx = dRevFx * 0.95, GP_churn = dRevChurn * cm;
+    var dOpex = opexI * (dRevPrice + dRevVol);
+    var OI27 = OI26 + GP_price + GP_vol + GP_fx - GP_churn - dDep - dOpex;
+    var totalGrowthPct = (prc + vol + fx - churn);
+    var RevFY27 = revFY26 * (1 + totalGrowthPct);
+    var OM27 = RevFY27 > 0 ? OI27 / RevFY27 : 0;
+    var NI26 = (OI26 + oi) * (1 - tax), NI27 = (OI27 + oi) * (1 - tax);
+    var EPS26 = NI26 / sh, EPS27 = NI27 / sh, implied = EPS27 * pe;
+    return {
+      revFY26: revFY26, om26: om26, oi: oi, tax: tax, sh: sh, pe: pe, OI26: OI26,
+      GP_price: GP_price, GP_vol: GP_vol, GP_fx: GP_fx, GP_churn: GP_churn, dOpex: dOpex, dDep: dDep,
+      OI27: OI27, totalGrowthPct: totalGrowthPct, RevFY27: RevFY27, OM27: OM27,
+      EPS26: EPS26, EPS27: EPS27, implied: implied
+    };
+  }
+
+  /* msftPhaseTilt: the cost-cycle capex phase tilts the FY27 incremental depreciation step — an early
+     heavy-build phase carries a heavier step, a mature phase a lighter one. Adapter projection tilt,
+     not a copied owner formula. */
+  function msftPhaseTilt(phase) {
+    if (phase === "early") return 1.30;
+    if (phase === "mature") return 0.70;
+    return 1.0;
+  }
+
+  /* computeMsftBridgeInputs: project the seven Simple params over the FROZEN owner bridge facts into the
+     scenario bridge inputs the single-source msftAnnualBridge consumes. depreciation-growth grows the
+     frozen FY26 D&A base into the FY27 step, tilted by the capex phase; mix-shift adds to the price/mix
+     growth; memory-cost-impact erodes the volume margin; fx-impact adds to the FX contribution;
+     earnings-anchor selects the frozen consensus vs seasonality FY26 OM anchor; and valuation-multiple
+     overrides the forward multiple used by the valuation bridge. Every input is a frozen owner fact or a
+     bounded user assumption — nothing is fetched, mutated, or defaulted. */
+  function computeMsftBridgeInputs(ownerState, params) {
+    var bridge = (ownerState && ownerState.bridge) || {};
+    var depGrowth = msftNum(params["depreciation-growth"]) / 100;
+    var mixShift = msftNum(params["mix-shift"]) / 100;
+    var fxImpact = msftNum(params["fx-impact"]) / 100;
+    var memoryCost = msftNum(params["memory-cost-impact"]) / 100;
+    var phase = params["capex-phase"];
+    var anchor = params["earnings-anchor"];
+    var multiple = msftNum(params["valuation-multiple"]);
+
+    var anchors = (ownerState && ownerState.anchors) || {};
+    var baseOm = isFiniteNumber(bridge.om26) ? bridge.om26 : 0;
+    var anchoredOm = anchor === "seasonality"
+      ? (isFiniteNumber(anchors.seasonality) ? anchors.seasonality : baseOm)
+      : (isFiniteNumber(anchors.consensus) ? anchors.consensus : baseOm);
+
+    var depBase = isFiniteNumber(ownerState && ownerState.depreciationBase) ? ownerState.depreciationBase : msftNum(bridge.dDep);
+    var dDepScenario = depBase * depGrowth * msftPhaseTilt(phase);
+
+    return {
+      revFY26: msftNum(bridge.revFY26),
+      om26: anchoredOm,
+      vol: msftNum(bridge.vol),
+      prc: msftNum(bridge.prc) + mixShift,
+      churn: msftNum(bridge.churn),
+      fx: msftNum(bridge.fx) + fxImpact,
+      pm: msftNum(bridge.pm),
+      vm: msftNum(bridge.vm) - memoryCost,
+      cm: msftNum(bridge.cm),
+      opexI: msftNum(bridge.opexI),
+      dDep: dDepScenario,
+      oi: msftNum(bridge.oi),
+      tax: msftNum(bridge.tax),
+      sh: msftNum(bridge.sh),
+      pe: multiple
+    };
+  }
+
+  /* affectsOutputPaths for the msft-margin-eps parameters. Mirrors simple-models.json exactly. */
+  var MSFT_OUTPUT_PATHS = {
+    "depreciation-growth": ["summary.margin"],
+    "mix-shift": ["summary.margin"],
+    "fx-impact": ["summary.eps"],
+    "memory-cost-impact": ["summary.margin"],
+    "capex-phase": ["summary.margin"],
+    "earnings-anchor": ["summary.eps"],
+    "valuation-multiple": ["summary.valuation"]
+  };
+
+  function msftSummaryPath(summary, path) {
+    if (path === "summary.margin") return summary.margin;
+    if (path === "summary.eps") return summary.eps;
+    if (path === "summary.valuation") return summary.valuation;
+    return null;
+  }
+
+  /* Compute the full msft-margin-eps summary from FROZEN owner state + current parameters. Every value
+     derives from the frozen owner bridge facts through the single-source msftAnnualBridge; nothing is
+     fetched, mutated, or defaulted. Each parameter moves at least its declared summary path:
+     depreciation-growth/mix-shift/memory-cost-impact/capex-phase → summary.margin, fx-impact/
+     earnings-anchor → summary.eps, valuation-multiple → summary.valuation. */
+  function computeMsftMarginEpsSummary(ownerState, params) {
+    var inputs = computeMsftBridgeInputs(ownerState, params);
+    var bridge = msftAnnualBridge(inputs);
+    return {
+      toolId: String((ownerState && ownerState.toolId) || "msft-july-print-model"),
+      asOf: String((ownerState && ownerState.asOf) || "unavailable"),
+      depreciationGrowth: msftNum(params["depreciation-growth"]),
+      mixShift: msftNum(params["mix-shift"]),
+      fxImpact: msftNum(params["fx-impact"]),
+      memoryCostImpact: msftNum(params["memory-cost-impact"]),
+      capexPhase: String(params["capex-phase"]),
+      earningsAnchor: String(params["earnings-anchor"]),
+      valuationMultiple: msftNum(params["valuation-multiple"]),
+      margin: {
+        om27: roundTo(bridge.OM27, 6),
+        oi27: roundTo(bridge.OI27, 6),
+        gpPrice: roundTo(bridge.GP_price, 6),
+        gpVol: roundTo(bridge.GP_vol, 6),
+        incrementalDepreciation: roundTo(bridge.dDep, 6),
+        revenueFy27: roundTo(bridge.RevFY27, 6)
+      },
+      eps: {
+        eps26: roundTo(bridge.EPS26, 6),
+        eps27: roundTo(bridge.EPS27, 6),
+        deltaEps: roundTo(bridge.EPS27 - bridge.EPS26, 6),
+        fxContribution: roundTo(bridge.GP_fx, 6),
+        anchoredOperatingMargin: roundTo(inputs.om26, 6)
+      },
+      valuation: {
+        multiple: roundTo(bridge.pe, 6),
+        impliedPrice: roundTo(bridge.implied, 6),
+        eps27: roundTo(bridge.EPS27, 6)
+      }
+    };
+  }
+
+  /* ═══════════ msft-margin-eps Simple adapter contract wiring ═══════════ */
+
+  function msftEvidenceState(ownerState) {
+    var bridge = (ownerState && ownerState.bridge) || {};
+    return (isFiniteNumber(bridge.revFY26) && isFiniteNumber(bridge.om26) && isFiniteNumber(bridge.sh) && bridge.sh !== 0)
+      ? "ready" : "unavailable";
+  }
+
+  function buildMsftEvidence(api, ownerState) {
+    var state = msftEvidenceState(ownerState);
+    var cutoff = String(ownerState.asOf || "unavailable");
+    var evidence = {
+      contractVersion: "simple-evidence-snapshot/v1",
+      toolId: "msft-july-print-model",
+      state: state,
+      evidenceCutoff: cutoff,
+      evidenceRefs: [{
+        requirementId: "owner-evidence",
+        evidenceRef: "owner:msft-july-print-model:bridge:" + cutoff,
+        semanticFingerprint: ownerStateFingerprint(api, ownerState),
+        sourceClass: "observed-fact",
+        observedAsOf: cutoff,
+        retrievedOrPublishedAt: cutoff,
+        freshness: "cache-current-for-render",
+        dataTier: String(ownerState.source || "static model snapshot"),
+        valueState: state === "ready" ? "ready" : "unavailable"
+      }],
+      parameterValues: {},
+      assumptions: [
+        "The margin/EPS/valuation bridge uses only the frozen reported FY26 base facts and FY27 levers currently captured, plus the explicit Simple assumptions."
+      ],
+      limitations: [
+        "The bridge is a static modeled FY27 projection and does not establish an earnings forecast or a price target."
+      ],
+      invalidationConditions: [
+        "The frozen owner snapshot changes or a later owner run replaces the current reported base and FY27 levers."
+      ],
+      evidenceIdentity: null
+    };
+    evidence.evidenceIdentity = evidenceIdentityOf(api, evidence);
+    return evidence;
+  }
+
+  function msftOutput(input, summary) {
+    var scenarioValues = { summary: summary };
+    return {
+      contractVersion: "simple-model-output/v1",
+      state: "ready",
+      values: scenarioValues,
+      scenarios: input.scenarios.map(function (scenario) {
+        return { scenarioId: scenario.scenarioId, state: "ready", values: scenarioValues };
+      }),
+      calibration: { state: "owner-evidence-relative", reason: "The bridge is calibrated to the frozen reported FY26 base and the modeled FY27 levers currently captured." },
+      provenance: { classes: ["observed-fact", "user-assumption", "model-estimate"], evidenceIdentity: input.evidenceIdentity },
+      uncertainty: {
+        state: "bounded",
+        rangeOrBand: "FY27 OM " + (summary.margin.om27 == null ? "—" : summary.margin.om27) + " / EPS " + (summary.eps.eps27 == null ? "—" : summary.eps.eps27),
+        reason: "The FY27 operating margin, EPS, and implied valuation all derive from the exact frozen owner bridge facts through the single-source msftAnnualBridge."
+      },
+      assumptions: [
+        "Depreciation growth, price/mix, FX, memory cost, capex phase, the Q4 earnings anchor, and the valuation multiple are explicit user assumptions applied over the frozen owner bridge."
+      ],
+      limitations: [
+        "The bridge is a static modeled FY27 projection and does not establish an earnings forecast or a price target."
+      ],
+      invalidationConditions: [
+        "The frozen owner snapshot changes or a later owner run replaces the current reported base and FY27 levers."
+      ],
+      flatRegionProofs: []
+    };
+  }
+
+  function createMsftMarginEpsAdapter(api, definition, ownerByIdentity) {
+    return {
+      contractVersion: "simple-model-adapter/v1",
+      adapterId: definition.adapterId,
+      supportedDefinitionIds: [definition.definitionId],
+      validateDefinition: function (candidate) {
+        return { ok: true, value: candidate };
+      },
+      captureEvidence: function (ownerContext) {
+        if (!ownerContext || typeof ownerContext !== "object") {
+          return { ok: false, error: { reason: "owner context required" } };
+        }
+        var ownerState = ownerContext.ownerState;
+        if (!ownerState || typeof ownerState !== "object" || !ownerState.bridge || typeof ownerState.bridge !== "object") {
+          return { ok: false, error: { reason: "msft margin/EPS owner state (bridge base) required" } };
+        }
+        var frozen = deepFreeze(JSON.parse(JSON.stringify(ownerState)));
+        var evidence = buildMsftEvidence(api, frozen);
+        ownerByIdentity.set(evidence.evidenceIdentity, frozen);
+        return { ok: true, value: evidence };
+      },
+      normalizeInputs: function (candidate, evidence, parameterValues, seed, scenarioIds) {
+        return api.normalizeSimpleInput(candidate, evidence, parameterValues, seed, scenarioIds);
+      },
+      compute: function (input) {
+        var ownerState = ownerByIdentity.get(input.evidenceIdentity);
+        if (!ownerState) {
+          return { ok: false, error: { reason: "frozen owner state is unavailable for this evidence identity" } };
+        }
+        var summary = computeMsftMarginEpsSummary(ownerState, paramMap(input));
+        return { ok: true, value: msftOutput(input, summary) };
+      },
+      compareSensitivity: function (baselineInput, currentInput, sharedRandomness) {
+        var ownerState = ownerByIdentity.get(currentInput.evidenceIdentity);
+        if (!ownerState) {
+          return { ok: false, error: { reason: "frozen owner state is unavailable for sensitivity" } };
+        }
+        var baselineValues = paramMap(baselineInput);
+        var currentValues = paramMap(currentInput);
+        var baselineSummary = computeMsftMarginEpsSummary(ownerState, baselineValues);
+        var currentSummary = computeMsftMarginEpsSummary(ownerState, currentValues);
+        var effects = [];
+        Object.keys(currentValues).forEach(function (parameterId) {
+          if (parameterId === "seed") return;
+          if (baselineValues[parameterId] === currentValues[parameterId]) return;
+          var paths = MSFT_OUTPUT_PATHS[parameterId] || [];
+          var changed = paths.some(function (path) {
+            return fingerprintOf(api, msftSummaryPath(baselineSummary, path)) !== fingerprintOf(api, msftSummaryPath(currentSummary, path));
+          });
+          effects.push({
+            parameterId: parameterId,
+            oldValue: baselineValues[parameterId],
+            newValue: currentValues[parameterId],
+            direction: (typeof currentValues[parameterId] === "number" && typeof baselineValues[parameterId] === "number")
+              ? (currentValues[parameterId] > baselineValues[parameterId] ? "higher" : "lower")
+              : "changed",
+            magnitude: (typeof currentValues[parameterId] === "number" && typeof baselineValues[parameterId] === "number")
+              ? (Math.abs(currentValues[parameterId] - baselineValues[parameterId]) || 1)
+              : 1,
+            nonlinear: false,
+            resultPaths: paths,
+            outputChanged: changed,
+            flatRegionProof: changed ? null : {
+              parameterId: parameterId,
+              resultPaths: paths,
+              reason: "The frozen owner snapshot yields an identical value on these paths for this parameter change."
+            }
+          });
+        });
+        return {
+          ok: true,
+          value: {
+            contractVersion: "simple-sensitivity/v1",
+            sharedRandomness: sharedRandomness,
+            seedChanged: baselineInput.seed !== currentInput.seed,
+            effects: effects
+          }
+        };
+      },
+      projectOwnerEvidence: function (output) {
+        var summary = output.values.summary;
+        return {
+          ok: true,
+          value: {
+            contractVersion: "owner-evidence-projection/v1",
+            state: output.state,
+            valueText: summary.eps.eps27 == null ? "EPS unavailable" : ("FY27 EPS " + summary.eps.eps27),
+            numericValue: summary.eps.eps27,
+            unit: "usd-eps",
+            summary: "FY27 operating margin " + (summary.margin.om27 == null ? "—" : summary.margin.om27) +
+              ", EPS " + (summary.eps.eps27 == null ? "—" : summary.eps.eps27) +
+              ", implied price " + (summary.valuation.impliedPrice == null ? "—" : summary.valuation.impliedPrice) +
+              " at a " + summary.valuationMultiple + "x multiple under the " + summary.earningsAnchor +
+              " anchor and " + summary.capexPhase + " capex phase.",
+            sourceRefs: ["owner-evidence"]
+          }
+        };
+      }
+    };
+  }
+
   /* Factory: returns the fundamental Simple adapters implemented at genuine owner-parity, keyed by
      their exact declared adapter ID. Tools whose owner seam is not yet extracted are absent so the
      shared runtime renders the explicit unavailable state for them. */
@@ -967,6 +1289,10 @@
       var companyDefinition = byToolId["company-fundamentals-lab"];
       adapters[companyDefinition.adapterId] = createCompanyScenarioBridgeAdapter(api, companyDefinition, ownerByIdentity);
     }
+    if (byToolId["msft-july-print-model"]) {
+      var msftDefinition = byToolId["msft-july-print-model"];
+      adapters[msftDefinition.adapterId] = createMsftMarginEpsAdapter(api, msftDefinition, ownerByIdentity);
+    }
     return adapters;
   }
 
@@ -984,7 +1310,7 @@
   return {
     contractVersion: "fundamental-models-adapters/v1",
     module: "rlexperience-adapters/fundamental-models.js",
-    supportedAdapterIds: ["simple-adapter/ai-capex-portfolio/v1", "simple-adapter/company-scenario-bridge/v1"],
+    supportedAdapterIds: ["simple-adapter/ai-capex-portfolio/v1", "simple-adapter/company-scenario-bridge/v1", "simple-adapter/msft-margin-eps/v1"],
     erf: erf,
     normCdf: normCdf,
     invNorm: invNorm,
@@ -1002,6 +1328,9 @@
     companyScenarioLineage: companyScenarioLineage,
     companyGapLedger: companyGapLedger,
     computeCompanyScenarioSummary: computeCompanyScenarioSummary,
+    msftAnnualBridge: msftAnnualBridge,
+    computeMsftBridgeInputs: computeMsftBridgeInputs,
+    computeMsftMarginEpsSummary: computeMsftMarginEpsSummary,
     createFundamentalModelsAdapters: createFundamentalModelsAdapters,
     registerFundamentalModelsAdapters: registerFundamentalModelsAdapters
   };

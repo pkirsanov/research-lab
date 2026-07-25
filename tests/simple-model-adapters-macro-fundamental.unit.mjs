@@ -1459,3 +1459,185 @@ test('TP-06-01 company-scenario-bridge compute is deterministic for one compute 
     'identical inputs => identical owner summary'
   );
 });
+
+/* ═══════════════════════ msft-margin-eps owner fixture (msft-july-print-model) ═══════════════════════
+   A synthetic FROZEN static-model snapshot engineered so every declared parameter provably moves its
+   declared output path. `bridge` carries the base decimal FY26 facts + FY27 growth/margin levers the
+   owner page already computes (revFY26/om26/vol/prc/churn/fx margins/opex/dDep/oi/tax/sh/pe); the
+   frozen `depreciationBase` (FY26 D&A) is what the depreciation-growth + capex-phase levers scale into
+   the FY27 incremental depreciation step; and `anchors` carries the two owner-computed Q4 FY26 OM
+   anchors (consensus vs seasonality) the earnings-anchor lever selects between. No fabricated feed —
+   the adapter recomputes only from these frozen owner facts through the SINGLE-SOURCE FY26→FY27 bridge
+   (RLFUNDAMENTALS.msftAnnualBridge), which the owner page's calculateAnnual delegates to as well. */
+const MSFT_PAGE = readFileSync(new URL('../msft-july-print-model.html', import.meta.url), 'utf8');
+
+function msftOwnerFixture() {
+  return {
+    contractVersion: 'msft-margin-eps-owner-state/v1',
+    toolId: 'msft-july-print-model',
+    asOf: '2026-07-24T20:00:00.000Z',
+    source: 'static model snapshot',
+    bridge: {
+      revFY26: 330, om26: 0.46,
+      vol: 0.10, prc: 0.05, churn: 0.02, fx: -0.01,
+      pm: 0.95, vm: 0.65, cm: 0.75, opexI: 0.12,
+      dDep: 20,
+      oi: 2, tax: 0.20, sh: 7.5, pe: 30
+    },
+    depreciationBase: 40,
+    anchors: { consensus: 0.46, seasonality: 0.44 }
+  };
+}
+
+/* ═══════════════════════ TP-06-01 msft-margin-eps module authority + single-source bridge ═══════════════════════ */
+
+test('TP-06-01 fundamental-models module exposes the msft-margin-eps adapter with the single-source margin/EPS/valuation bridge', () => {
+  const fm = loadFundamentalModels();
+  assert.ok(fm.supportedAdapterIds.includes('simple-adapter/msft-margin-eps/v1'), 'msft-margin-eps/v1 is a declared supported adapter');
+  assert.equal(typeof fm.msftAnnualBridge, 'function', 'msftAnnualBridge single-source FY26->FY27 bridge is exported');
+  assert.equal(typeof fm.computeMsftBridgeInputs, 'function', 'computeMsftBridgeInputs (param -> scenario bridge inputs) is exported');
+  assert.equal(typeof fm.computeMsftMarginEpsSummary, 'function', 'computeMsftMarginEpsSummary is exported');
+});
+
+test('TP-06-01 msftAnnualBridge single-source pins the reported-period margin/EPS/valuation bridge formula', () => {
+  const fm = loadFundamentalModels();
+  // A clean zero-growth identity: revenue and operating income carry straight through, so OM27 == om26,
+  // EPS27 == OI27/sh (no growth, no tax), and implied == EPS27 * pe. This pins the exact owner arithmetic.
+  const flat = fm.msftAnnualBridge({ revFY26: 100, om26: 0.4, vol: 0, prc: 0, churn: 0, fx: 0, pm: 1, vm: 1, cm: 1, opexI: 0, dDep: 0, oi: 0, tax: 0, sh: 1, pe: 10 });
+  assert.equal(flat.OI26, 40, 'OI26 = revenue 100 * om26 0.40');
+  assert.equal(flat.OI27, 40, 'zero-growth OI27 carries OI26 straight through');
+  assert.equal(flat.RevFY27, 100, 'zero-growth FY27 revenue == FY26 revenue');
+  assert.equal(flat.OM27, 0.4, 'zero-growth OM27 == om26');
+  assert.equal(flat.EPS27, 40, 'EPS27 = (OI27 + oi) * (1 - tax) / sh = 40 / 1');
+  assert.equal(flat.implied, 400, 'implied price = EPS27 40 * pe 10');
+  // A depreciation step and a price/mix uplift both bite the FY27 bridge: OI27 drops by the full dDep and
+  // rises by the price gross profit, so a bigger depreciation step lowers OM27 and a bigger price uplift lifts it.
+  const withDep = fm.msftAnnualBridge({ revFY26: 100, om26: 0.4, vol: 0, prc: 0, churn: 0, fx: 0, pm: 1, vm: 1, cm: 1, opexI: 0, dDep: 5, oi: 0, tax: 0, sh: 1, pe: 10 });
+  assert.equal(withDep.OI27, 35, 'a $5 depreciation step lowers OI27 to 35');
+  assert.ok(withDep.OM27 < flat.OM27, 'a heavier depreciation step compresses OM27');
+  const withPrice = fm.msftAnnualBridge({ revFY26: 100, om26: 0.4, vol: 0, prc: 0.10, churn: 0, fx: 0, pm: 1, vm: 1, cm: 1, opexI: 0, dDep: 0, oi: 0, tax: 0, sh: 1, pe: 10 });
+  assert.equal(withPrice.GP_price, 10, 'price/mix gross profit = revenue 100 * prc 0.10 * priceMargin 1.0');
+  assert.equal(withPrice.OI27, 50, 'the price uplift adds its full gross profit to OI27');
+  assert.ok(withPrice.EPS27 > flat.EPS27, 'a price/mix uplift lifts EPS27');
+});
+
+test('TP-06-01 msft-july-print-model.html single-sources the FY26->FY27 bridge from fundamental-models.js', () => {
+  assert.match(MSFT_PAGE, /rlexperience-adapters\/fundamental-models\.js/, 'msft page loads fundamental-models.js');
+  assert.match(MSFT_PAGE, /RLFUNDAMENTALS\.msftAnnualBridge\s*\(/, 'msft page calculateAnnual delegates the bridge to the module');
+  // The single owner source lives in fundamental-models.js; the page must carry no inline bridge copy.
+  assert.equal(/OI26 \+ GP_price \+ GP_vol \+ GP_fx - GP_churn - dDep - dOpex/.test(MSFT_PAGE), false, 'msft page has no inline OI27 bridge formula');
+  assert.equal(/NI27 = \(OI27 \+ oi\) \* \(1 - tax\)/.test(MSFT_PAGE), false, 'msft page has no inline net-income/EPS bridge formula');
+});
+
+/* ═══════════════════════ TP-06-01 msft-margin-eps adapter runtime + owner parity ═══════════════════════ */
+
+test('TP-06-01 msft-margin-eps adapter registers through the production runtime and produces a ready owner run at parity', async () => {
+  const api = loadProductionApi();
+  const fm = loadFundamentalModels();
+  const definition = definitionFor('msft-july-print-model');
+  const runtime = runtimeFor(api, definition);
+  const results = fm.registerFundamentalModelsAdapters(runtime, api, [definition]);
+  assert.equal(results['simple-adapter/msft-margin-eps/v1'].ok, true, JSON.stringify(results['simple-adapter/msft-margin-eps/v1'].error || {}));
+
+  const owner = msftOwnerFixture();
+  const base = defaultValues(definition);
+  const prepared = requireValue(await runtime.prepare({
+    definitionId: definition.definitionId,
+    ownerContext: { ownerState: owner },
+    parameterValues: base,
+    seed: null,
+    scenarioIds: ['baseline'],
+    computedAt: '2026-07-24T20:02:00.000Z'
+  }));
+  assert.equal(prepared.state, 'ready');
+  const summary = prepared.current.output.values.summary;
+  assert.ok(summary.margin && typeof summary.margin.om27 === 'number', 'summary.margin carries the FY27 operating margin');
+  assert.ok(summary.eps && typeof summary.eps.eps27 === 'number', 'summary.eps carries the FY27 EPS');
+  assert.ok(summary.valuation && typeof summary.valuation.impliedPrice === 'number', 'summary.valuation carries the implied price');
+  assert.equal(prepared.current.output.provenance.evidenceIdentity, prepared.current.input.evidenceIdentity, 'evidence identity is bound');
+
+  // Owner parity: the margin/EPS/valuation summary is the SINGLE-SOURCE bridge (RLFUNDAMENTALS.msftAnnualBridge)
+  // run on the default-param scenario inputs (computeMsftBridgeInputs) — not a re-implementation.
+  const inputs = fm.computeMsftBridgeInputs(owner, base);
+  const bridge = fm.msftAnnualBridge(inputs);
+  assert.equal(summary.margin.om27, Math.round(bridge.OM27 * 1e6) / 1e6, 'margin OM27 is single-sourced from msftAnnualBridge');
+  assert.equal(summary.margin.oi27, Math.round(bridge.OI27 * 1e6) / 1e6, 'margin OI27 parity');
+  assert.equal(summary.eps.eps27, Math.round(bridge.EPS27 * 1e6) / 1e6, 'EPS27 is single-sourced from msftAnnualBridge');
+  assert.equal(summary.eps.eps26, Math.round(bridge.EPS26 * 1e6) / 1e6, 'EPS26 parity');
+  assert.equal(summary.valuation.impliedPrice, Math.round(bridge.implied * 1e6) / 1e6, 'implied price is single-sourced from msftAnnualBridge');
+  // The default capex phase is mid and the default anchor is consensus, so the FY26 OM base is the consensus anchor
+  // and the incremental depreciation step is the frozen D&A base grown at the default depreciation-growth rate.
+  assert.equal(inputs.om26, owner.anchors.consensus, 'the default consensus anchor sets the FY26 OM base');
+  assert.equal(inputs.dDep, owner.depreciationBase * (base['depreciation-growth'] / 100), 'the FY27 depreciation step = frozen D&A base * depreciation-growth at the mid phase (tilt 1.0)');
+  assert.equal(inputs.pe, base['valuation-multiple'], 'the valuation multiple overrides pe for the valuation bridge');
+});
+
+test('TP-06-01 each enabled msft-margin-eps parameter changes its declared output path', async () => {
+  const api = loadProductionApi();
+  const fm = loadFundamentalModels();
+  const definition = definitionFor('msft-july-print-model');
+  const runtime = runtimeFor(api, definition);
+  fm.registerFundamentalModelsAdapters(runtime, api, [definition]);
+  const base = defaultValues(definition);
+  await runtime.prepare({
+    definitionId: definition.definitionId,
+    ownerContext: { ownerState: msftOwnerFixture() },
+    parameterValues: base,
+    seed: null,
+    scenarioIds: ['baseline'],
+    computedAt: '2026-07-24T20:02:00.000Z'
+  });
+
+  const cases = [
+    ['depreciation-growth', 40, 'summary.margin'],
+    ['mix-shift', 8, 'summary.margin'],
+    ['fx-impact', 5, 'summary.eps'],
+    ['memory-cost-impact', 6, 'summary.margin'],
+    ['capex-phase', 'early', 'summary.margin'],
+    ['earnings-anchor', 'seasonality', 'summary.eps'],
+    ['valuation-multiple', 50, 'summary.valuation']
+  ];
+  for (const [parameterId, value, path] of cases) {
+    const run = requireValue(await runtime.recompute({
+      parameterValues: { ...base, [parameterId]: value },
+      seed: null,
+      scenarioIds: ['baseline'],
+      computedAt: '2026-07-24T20:03:00.000Z'
+    }));
+    assert.deepEqual(run.changedParameters, [parameterId], `changed ${parameterId}`);
+    const effect = run.sensitivity.effects.find((entry) => entry.parameterId === parameterId);
+    assert.ok(effect, `sensitivity effect present for ${parameterId}`);
+    assert.equal(effect.outputChanged, true, `${parameterId} must change ${path}`);
+    assert.deepEqual(effect.resultPaths, [path], `${parameterId} declared path`);
+    // Restore baseline for the next isolated one-at-a-time change.
+    await runtime.recompute({ parameterValues: { ...base }, seed: null, scenarioIds: ['baseline'], computedAt: '2026-07-24T20:03:30.000Z' });
+  }
+});
+
+test('TP-06-01 msft-margin-eps compute is deterministic for one compute identity', async () => {
+  const api = loadProductionApi();
+  const fm = loadFundamentalModels();
+  const definition = definitionFor('msft-july-print-model');
+  const runtime = runtimeFor(api, definition);
+  fm.registerFundamentalModelsAdapters(runtime, api, [definition]);
+  const base = defaultValues(definition);
+  const first = requireValue(await runtime.prepare({
+    definitionId: definition.definitionId,
+    ownerContext: { ownerState: msftOwnerFixture() },
+    parameterValues: base,
+    seed: null,
+    scenarioIds: ['baseline'],
+    computedAt: '2026-07-24T20:02:00.000Z'
+  }));
+  const again = requireValue(await runtime.recompute({
+    parameterValues: { ...base },
+    seed: null,
+    scenarioIds: ['baseline'],
+    computedAt: '2026-07-24T20:02:30.000Z'
+  }));
+  assert.equal(
+    api.fingerprint(first.current.output.values.summary),
+    api.fingerprint(again.current.output.values.summary),
+    'identical inputs => identical owner summary'
+  );
+});

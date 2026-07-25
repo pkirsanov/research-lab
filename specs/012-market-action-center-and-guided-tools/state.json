@@ -3,7 +3,7 @@
   "featureDir": "specs/012-market-action-center-and-guided-tools",
   "featureName": "Market Action Center and Guided Tools",
   "createdAt": "2026-07-22T03:40:01Z",
-  "lastUpdatedAt": "2026-07-25T20:30:00Z",
+  "lastUpdatedAt": "2026-07-25T21:30:00Z",
   "status": "not_started",
   "workflowMode": "full-delivery",
   "linkedImplementationSpec": null,
@@ -54,7 +54,7 @@
     ],
     "pendingTransitionRequests": [],
     "nextRequiredOwner": "bubbles.implement",
-    "nextRequiredTarget": "Continue Scope 06: 7 of 8 adapters delivered (macro-rotation.js: sector-rotation-transition/v1, country-rotation/v1, real-asset-driver/v1, fixed-income-sleeve/v1, etf-ranking/v1; fundamental-models.js: ai-capex-portfolio/v1, company-scenario-bridge/v1). Next deliver msft-margin-eps/v1 (fundamental-models.js), then the persistent E2E rows TP-06-04..TP-06-11.",
+    "nextRequiredTarget": "Continue Scope 06: all 8 of 8 adapters delivered and unit/selftest-verified (macro-rotation.js: sector-rotation-transition/v1, country-rotation/v1, real-asset-driver/v1, fixed-income-sleeve/v1, etf-ranking/v1; fundamental-models.js: ai-capex-portfolio/v1, company-scenario-bridge/v1, msft-margin-eps/v1 — supportedAdapterIds now lists all three fundamental adapters). Remaining: all-8 registry-integration (TP-06-02) + source-ownership (TP-06-03) coverage and the persistent per-tool E2E rows TP-06-04..TP-06-11, then bubbles.test verification and Scope-06 DoD finalization.",
     "scopeProgress": [
       {
         "scope": 1,

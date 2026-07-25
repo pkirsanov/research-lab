@@ -2486,6 +2486,11 @@
     })();
   </script>
 
+  <!-- Single owner source for the reported-period FY26->FY27 margin/EPS/valuation bridge: this Power
+       page's calculateAnnual and the registered Simple adapter both consume RLFUNDAMENTALS.msftAnnualBridge
+       (rlexperience-adapters/fundamental-models.js) so the bridge formula lives in exactly one place. -->
+  <script src="rlexperience-adapters/fundamental-models.js"></script>
+
   <script>
     (function () {
       const pairs = [["volumeGrowth"], ["priceMixGrowth"], ["deltaDep"], ["fwdPE"]];
@@ -2594,22 +2599,17 @@
       }
 
       function calculateAnnual(ov = {}) {
-        const revFY26 = value("revFY26", ov), om26 = value("om26", ov) / 100;
-        const vol = value("volumeGrowth", ov) / 100, prc = value("priceMixGrowth", ov) / 100, churn = value("churn", ov) / 100, fx = value("fx", ov) / 100;
-        const pm = value("priceMargin", ov) / 100, vm = value("volumeMargin", ov) / 100, cm = value("churnMargin", ov) / 100, opexI = value("opexIntensity", ov) / 100;
-        const dDep = value("deltaDep", ov);
-        const oi = value("otherIncome", ov), tax = value("taxRate", ov) / 100, sh = value("shares", ov), pe = value("fwdPE", ov);
-        const OI26 = revFY26 * om26;
-        const dRevPrice = revFY26 * prc, dRevVol = revFY26 * vol, dRevFx = revFY26 * fx, dRevChurn = revFY26 * churn;
-        const GP_price = dRevPrice * pm, GP_vol = dRevVol * vm, GP_fx = dRevFx * 0.95, GP_churn = dRevChurn * cm;
-        const dOpex = opexI * (dRevPrice + dRevVol);
-        const OI27 = OI26 + GP_price + GP_vol + GP_fx - GP_churn - dDep - dOpex;
-        const totalGrowthPct = (prc + vol + fx - churn);
-        const RevFY27 = revFY26 * (1 + totalGrowthPct);
-        const OM27 = RevFY27 > 0 ? OI27 / RevFY27 : 0;
-        const NI26 = (OI26 + oi) * (1 - tax), NI27 = (OI27 + oi) * (1 - tax);
-        const EPS26 = NI26 / sh, EPS27 = NI27 / sh, implied = EPS27 * pe;
-        return { revFY26, om26, oi, tax, sh, pe, OI26, GP_price, GP_vol, GP_fx, GP_churn, dOpex, dDep, OI27, totalGrowthPct, RevFY27, OM27, EPS26, EPS27, implied };
+        // Single-sourced reported-period FY26->FY27 margin/EPS/valuation bridge — the reconciled math lives
+        // once in rlexperience-adapters/fundamental-models.js (RLFUNDAMENTALS.msftAnnualBridge). This Power
+        // page reads the DOM into the decimal bridge inputs and delegates; the registered Simple adapter
+        // consumes the same source, so no bridge formula is duplicated here.
+        return RLFUNDAMENTALS.msftAnnualBridge({
+          revFY26: value("revFY26", ov), om26: value("om26", ov) / 100,
+          vol: value("volumeGrowth", ov) / 100, prc: value("priceMixGrowth", ov) / 100, churn: value("churn", ov) / 100, fx: value("fx", ov) / 100,
+          pm: value("priceMargin", ov) / 100, vm: value("volumeMargin", ov) / 100, cm: value("churnMargin", ov) / 100, opexI: value("opexIntensity", ov) / 100,
+          dDep: value("deltaDep", ov),
+          oi: value("otherIncome", ov), tax: value("taxRate", ov) / 100, sh: value("shares", ov), pe: value("fwdPE", ov)
+        });
       }
 
       function calculateRecon() {

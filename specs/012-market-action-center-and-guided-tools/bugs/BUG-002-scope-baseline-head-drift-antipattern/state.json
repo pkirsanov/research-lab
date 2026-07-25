@@ -1,0 +1,209 @@
+{
+  "version": 3,
+  "featureDir": "specs/012-market-action-center-and-guided-tools/bugs/BUG-002-scope-baseline-head-drift-antipattern",
+  "featureName": "BUG-002 Feature 012 Test-Infra Moving-HEAD Baseline-Authority Drift",
+  "createdAt": "2026-07-24T17:19:28Z",
+  "lastUpdatedAt": "2026-07-24T17:19:28Z",
+  "completedAt": null,
+  "certifiedAt": null,
+  "status": "not_started",
+  "workflowMode": "bugfix-fastlane",
+  "linkedImplementationSpec": "specs/012-market-action-center-and-guided-tools",
+  "requiresRevalidation": false,
+  "flagsIntroduced": [],
+  "completedScopes": [],
+  "completedPhases": [],
+  "execution": {
+    "activeAgent": "bubbles.bug",
+    "currentPhase": "bug-discovery",
+    "currentPhaseStatus": "route_required",
+    "substate": "discovery_root_cause_routed",
+    "currentScope": null,
+    "runStartedAt": "2026-07-24T17:19:28Z",
+    "completedAt": null,
+    "executionModel": "dispatched-single-phase",
+    "parentAgent": "bubbles.goal",
+    "nextRequiredOwner": "bubbles.plan",
+    "nextRequiredTarget": "Adopt or amend the routed remediation design under a PARENT Feature 012 run (bubbles.plan / bubbles.design own scopes.md / design.md structure per G042). The systemic defect: multiple Feature 012 functional tests reconstruct a legacy/pre-scope baseline via `baselineBytes(path) = git show HEAD:<path>`, using the MOVING HEAD; once Feature 012 bytes land on HEAD the baseline silently becomes modern and the compatibility/rollback assertions rot. Verified on HEAD f1b5f633: (1) tests/tool-experience-shell.functional.mjs SCN-012-031 is ALREADY FIXED (pinned 767732db + MODERN_SHELL_MARKER + LEGACY_BASELINE_SHA256 guards) and GREEN 3/3 — the REFERENCE shape, preserve byte-for-byte; (2) tests/contextual-tooltip.functional.mjs SCN-012-003 is RED 8/9 (not ok 8, doesNotMatch at verifyLegacyCanaryPages:265) — DESIGN-INTENT-GATED: market-heatmap-lab.html decorator refs went 0@767732db -> 2@HEAD (rlexperience.js/rlcontext.js added at c81d808d), so the negative assertion encodes a pre-decorator expectation Feature 012 may have intentionally changed; the OWNER must confirm intended decorator behavior BEFORE the assertion is changed (guessing green could mask a real regression); (3) tests/tool-experience-registry.functional.mjs SCN-012-033 is RED 4/7 (experience is the only tools.json addition + rolled-back registry must be semantically equal to HEAD) — pure baseline-repin (both sites source baseline from HEAD:tools.json); (4) tests/brief-refresh-atomicity.support.mjs is CLEARED (env-gated BUG002_WRAPPER_SOURCE current-wrapper read, not a frozen legacy baseline). Remediation: replace every moving-HEAD baseline with a stable HEAD-independent authority (committed sha256-provenanced fixture PREFERRED for durability, or immutable pinned pre-feature commit) with fail-loud sha256 + semantic-marker guards; weaken/skip/delete NO assertion; change NO product code. Scope 2 (SCN-012-003) is BLOCKED on operator design-intent confirmation. This packet is discovery/routing only; do not modify certification.",
+    "completedPhaseClaims": [],
+    "pendingTransitionRequests": ["TR-BUG002-ROUTE-TO-PLAN"],
+    "scopeInventory": [
+      {
+        "scope": 1,
+        "scopeId": "SCOPE-01",
+        "name": "Repin the registry rollback baseline off moving HEAD (pure baseline-repin)",
+        "status": "not_started",
+        "dependsOn": [],
+        "foundation": false,
+        "capabilityRole": "test-infra-baseline-repin",
+        "class": "baseline-repin",
+        "evidenceFile": "report.md"
+      },
+      {
+        "scope": 2,
+        "scopeId": "SCOPE-02",
+        "name": "Reconcile + repin the Scope 03 decorator legacy-canary (DESIGN-INTENT-GATED)",
+        "status": "not_started",
+        "dependsOn": ["SCOPE-01"],
+        "foundation": false,
+        "capabilityRole": "test-infra-baseline-repin-owner-gated",
+        "class": "design-intent-gated",
+        "evidenceFile": "report.md"
+      }
+    ],
+    "audit": {
+      "schemaVersion": "audit-run/v1",
+      "runId": null,
+      "currentAttemptId": null,
+      "attempts": []
+    }
+  },
+  "certification": {
+    "status": "not_started",
+    "completedAt": null,
+    "certifiedAt": null,
+    "completedScopes": [],
+    "certifiedCompletedPhases": [],
+    "scopeProgress": [
+      {
+        "scope": 1,
+        "scopeId": "SCOPE-01",
+        "name": "Repin the registry rollback baseline off moving HEAD (pure baseline-repin)",
+        "status": "not_started",
+        "dependsOn": [],
+        "scopeDir": null,
+        "evidenceFile": "report.md",
+        "certifiedAt": null
+      },
+      {
+        "scope": 2,
+        "scopeId": "SCOPE-02",
+        "name": "Reconcile + repin the Scope 03 decorator legacy-canary (DESIGN-INTENT-GATED)",
+        "status": "not_started",
+        "dependsOn": ["SCOPE-01"],
+        "scopeDir": null,
+        "evidenceFile": "report.md",
+        "certifiedAt": null
+      }
+    ],
+    "assurance": {
+      "level": "none",
+      "missingForFull": [
+        "design owner adoption (parent Feature 012)",
+        "plan owner adoption (parent Feature 012)",
+        "operator design-intent confirmation for SCN-012-003 decorators",
+        "persistent pre-fix adversarial RED under owned run",
+        "implementation",
+        "post-fix verification",
+        "bugfix-fastlane specialist phases",
+        "independent audit",
+        "validate-owned transition"
+      ]
+    },
+    "lockdownState": {
+      "active": false,
+      "lockedScenarioIds": []
+    }
+  },
+  "policySnapshot": {
+    "workflowMode": "bugfix-fastlane",
+    "grill": { "mode": "off", "source": "repo-default" },
+    "tdd": { "mode": "scenario-first", "source": "workflow-forced" },
+    "autoCommit": { "mode": "off", "source": "repo-default" },
+    "lockdown": { "mode": "off", "source": "repo-default" },
+    "regression": { "mode": "protected-scenarios", "source": "repo-default" },
+    "validation": { "mode": "certification-required", "source": "repo-default" }
+  },
+  "findingsLedger": [
+    {
+      "findingId": "F-BUG002-001",
+      "site": "tests/tool-experience-shell.functional.mjs",
+      "scenario": "SCN-012-031",
+      "class": "baseline-repin",
+      "state": "GREEN",
+      "disposition": "already-fixed-reference-preserve",
+      "detail": "Pinned to immutable 767732db + MODERN_SHELL_MARKER + LEGACY_BASELINE_SHA256 fail-loud guards. Reference remediation shape; preserve byte-for-byte. Verified GREEN tests 3/pass 3/fail 0."
+    },
+    {
+      "findingId": "F-BUG002-002",
+      "site": "tests/contextual-tooltip.functional.mjs",
+      "scenario": "SCN-012-003",
+      "class": "design-intent-gated",
+      "state": "RED",
+      "disposition": "route-owner-gated",
+      "detail": "verifyLegacyCanaryPages reconstructs market-heatmap-lab.html from git show HEAD:, then asserts doesNotMatch(/rlcontext|rlexperience/). Decorator refs 0@767732db -> 2@HEAD (added c81d808d). Whether the page SHOULD carry decorators now is an OPERATOR design-intent decision; assertion MUST NOT change until owner confirms. Verified RED tests 9/pass 8/fail 1, not ok 8 doesNotMatch at :265."
+    },
+    {
+      "findingId": "F-BUG002-003",
+      "site": "tests/tool-experience-registry.functional.mjs",
+      "scenario": "SCN-012-033",
+      "class": "baseline-repin",
+      "state": "RED",
+      "disposition": "route-baseline-repin",
+      "detail": "baselineRegistry() and two reads source baseline from HEAD:tools.json / HEAD:scripts/selftest.mjs, which now contain Feature 012 experience objects. Failing assertions: 'experience is the only tools.json addition' + 'rolled-back registry must be semantically equal to HEAD'. Verified RED tests 7/pass 4/fail 3. Repin to HEAD-independent authority + fail-loud guards."
+    },
+    {
+      "findingId": "F-BUG002-004",
+      "site": "tests/brief-refresh-atomicity.support.mjs",
+      "scenario": null,
+      "class": "unrelated",
+      "state": "CLEARED",
+      "disposition": "no-action",
+      "detail": "git show HEAD:scripts/brief-refresh-and-push.sh is behind env gate BUG002_WRAPPER_SOURCE === 'HEAD'; default path copies the working-tree wrapper. Seeds a fixture repo with the CURRENT wrapper for a brief-refresh atomicity test; not a frozen legacy-baseline authority. Not the drift anti-pattern; no change required."
+    }
+  ],
+  "transitionRequests": [
+    {
+      "id": "TR-BUG002-ROUTE-TO-PLAN",
+      "status": "open",
+      "requestedBy": "bubbles.bug",
+      "routedTo": "bubbles.plan",
+      "requestedAt": "2026-07-24T17:19:28Z",
+      "reason": "Adopt or amend the routed durable remediation (stable HEAD-independent baseline authorities + fail-loud sha256/marker guards; fixture-preferred) under a PARENT Feature 012 run, and reconcile the plan-owned scope/DoD structure (G042). Preserve the SCN-012-031 reference fix; weaken no assertion; change no product code. SCOPE-02 (SCN-012-003) is BLOCKED on an operator design-intent confirmation of whether market-heatmap-lab.html is intended to carry rlexperience.js/rlcontext.js now.",
+      "scenarioIds": ["SCN-012-003", "SCN-012-033"],
+      "findingIds": ["F-BUG002-002", "F-BUG002-003"],
+      "evidenceRefs": ["bug.md#blast-radius-verified-read-only-on-head-f1b5f633", "design.md#remediation-design-routed-not-implemented-here", "report.md#findings-ledger-one-per-affected-test-site"],
+      "resolvedAt": null,
+      "resolvedBy": null,
+      "resolutionSummary": null,
+      "ownerGate": {
+        "gated": true,
+        "gatedScenario": "SCN-012-003",
+        "question": "Is market-heatmap-lab.html intended to carry rlexperience.js / rlcontext.js decorator refs now (0 at 767732db, 2 at HEAD, added at c81d808d)?",
+        "owner": "parent Feature 012 maintainer (operator)"
+      }
+    }
+  ],
+  "reworkQueue": [],
+  "executionHistory": [
+    {
+      "agent": "bubbles.bug",
+      "workflowMode": "bugfix-fastlane",
+      "executionModel": "dispatched-single-phase",
+      "parentAgent": "bubbles.goal",
+      "startedAt": "2026-07-24T17:19:28Z",
+      "completedAt": "2026-07-24T17:19:28Z",
+      "statusBefore": "not_started",
+      "statusAfter": "not_started",
+      "phasesExecuted": ["bug-discovery"],
+      "scopesCompleted": [],
+      "outcome": "completed_owned",
+      "addressedFindings": [
+        "BUG002-PACKET-CREATED",
+        "BUG002-BLAST-RADIUS-VERIFIED",
+        "BUG002-ROOT-CAUSE-DIAGNOSED",
+        "BUG002-PER-SITE-CLASSIFIED",
+        "BUG002-REFERENCE-SHAPE-IDENTIFIED",
+        "BUG002-SCN012003-DESIGN-INTENT-FLAGGED",
+        "BUG002-ROUTING-RECORDED",
+        "BUG002-WORK-BOUNDARY-PRESERVED"
+      ],
+      "unresolvedFindings": [
+        "F-BUG002-002",
+        "F-BUG002-003"
+      ],
+      "nextRequiredOwner": "bubbles.plan",
+      "summary": "Created the first-class Feature 012 child bug packet BUG-002 for the systemic moving-HEAD baseline-authority drift. Reproduced the class read-only on HEAD f1b5f633: confirmed the git show HEAD: / baselineBytes blast radius across four files; verified market-heatmap-lab.html decorator refs 0@767732db -> 2@HEAD (added c81d808d); ran node --test to classify SCN-012-003 RED 8/9 (design-intent-gated), SCN-012-033 RED 4/7 (baseline-repin), SCN-012-031 GREEN 3/3 (already-fixed reference), and cleared brief-refresh-atomicity as env-gated/unrelated. Designed the durable fixture-preferred remediation with fail-loud sha256/marker guards, flagged SCN-012-003 as OWNER-GATED on decorator design intent, and routed to bubbles.plan/bubbles.design under a parent Feature 012 run. Touched ONLY the new bug folder; no test/product/parent-state files; no git mutation."
+    }
+  ]
+}

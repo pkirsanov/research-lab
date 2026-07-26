@@ -3,7 +3,7 @@
   "featureDir": "specs/012-market-action-center-and-guided-tools",
   "featureName": "Market Action Center and Guided Tools",
   "createdAt": "2026-07-22T03:40:01Z",
-  "lastUpdatedAt": "2026-07-26T06:30:00Z",
+  "lastUpdatedAt": "2026-07-26T06:40:00Z",
   "status": "not_started",
   "workflowMode": "full-delivery",
   "linkedImplementationSpec": null,
@@ -19,11 +19,11 @@
   "certifiedAt": null,
   "requiresRevalidation": false,
   "execution": {
-    "activeAgent": "bubbles.test",
+    "activeAgent": "bubbles.implement",
     "currentPhase": "implement",
-    "currentPhaseStatus": "not_started",
+    "currentPhaseStatus": "in_progress",
     "currentScope": "07-strategy-property-method-adapters",
-    "substate": "independently_verified",
+    "substate": "implemented",
     "runStartedAt": "2026-07-24T03:30:00Z",
     "completedAt": null,
     "completedPhaseClaims": [
@@ -66,6 +66,14 @@
         "claimedAt": "2026-07-26T06:30:00Z",
         "evidence": "scopes/06-macro-rotation-fundamental-adapters/report.md#iv-e2e-finalization",
         "summary": "Independent E2E finalization of Scope 06 (full-delivery; recorded implement evidence not trusted, every Test Plan row reproduced from scratch at HEAD 20432c56 with the exact scope.md commands). All 12 rows GREEN in-session: TP-06-01 unit 51/51 exit 0, TP-06-02 integration 2/2 exit 0, TP-06-03 functional 12/12 exit 0, TP-06-12 selftest 895/0 exit 0, and the eight persistent per-tool system-Chrome E2E rows TP-06-04..TP-06-11 each 1 passed exit 0 with its exact --grep, plus the full 8-row spec in one invocation = 8 passed (FULLSPEC_EXIT=0). No-interception scan of the spec empty (grep exit 1); live-stack authentic (real page.goto + real adapter UMD + real createSimpleRuntime + real renderSimpleProjection + real [data-rlexperience-panel=simple] DOM host; frozen owner fixture, zero request interception; the only broader-scan hits are comment lines asserting the absence of interception). F-06-MSFT-SHELL-OPTOUT verified independently: committed meta name=rlviews content=off at msft page L778 (git show HEAD), page loads real fundamental-models.js for its Power path, and the page Power calculateAnnual + the Simple adapter both single-source RLFUNDAMENTALS.msftAnnualBridge -- JUDGED to genuinely satisfy TP-06-10 (real msft-margin-eps adapter + real two-control sensitivity + owner facts + provenance); the shell opt-out is surfaced as the non-blocking page-owner finding F-06-MSFT-SHELL-OPTOUT routed to bubbles.plan, NOT a Scope-06 adapter defect. Fresh owner-parity RED-bite on msftAnnualBridge (fundamental-models.js; prior session bit sleeveTotalReturn, so this is a not-previously-bitten adapter): doubled the implied valuation term -> RED 800!=400 exit 1; git checkout HEAD restored byte-identical sha256 0441403e...496237c4 -> GREEN exit 0; tree byte-clean. Scope-06 DoD reconciled 16/16 [x]; scope status done, substate independently_verified; artifact-lint exit 0. Feature status not_started, certifiedAt null, certification.status not_started -- UNTOUCHED. Only preserved concurrent dirt: bugs/BUG-001 scenario-manifest.json. Verdict TESTED; next owner bubbles.implement to kick off Scope 07."
+      },
+      {
+        "scope": "07-strategy-property-method-adapters",
+        "phase": "implement",
+        "agent": "bubbles.implement",
+        "claimedAt": "2026-07-26T06:40:00Z",
+        "evidence": "scopes/07-strategy-property-method-adapters/report.md#tp-07-01-ocean",
+        "summary": "Scope 07 implement IN PROGRESS -- 5 of 7 adapters delivered (NOT a completed phase). THIS dispatch registered simple-adapter/str-scenario/ocean-shores/v1 (batch 5) through the SAME property-research.js shared compute (computeStrScenarioSummary) + injected rlrental.js owner engine as palm-springs -- a 2-line registration (STR_SCENARIO_TOOL_IDS + supportedAdapterIds), no new formula. Added five dedicated ocean-shores unit rows: registration + no forbidden authority, page single-source vs rlrental.js (RLRENTAL.mountRoute, no inline copy), owner-parity run vs a DIRECT RLRENTAL.computeRentalResult, all EIGHT parameters move their declared path (segment/adr/occupancy/financing-rate/operating-cost/horizon -> summary.cashFlow; storm-insurance-stress + regulation-stress -> summary.stress ONLY), and gap preservation (full economics INCOMPLETE, null bottom line, missingCostFieldIds includes property-tax+capital-reserve, never zero-filled). RED replay: git stash of the registration reverted property-research.js to HEAD -> 4 of 5 ocean rows FAIL (adapter unregistered) exit 1; git stash pop restored GREEN 27/27. TP-07-01 unit 27/27 exit 0; TP-07-11 broad selftest 931/0 exit 0; forbidden-authority EXECUTABLE=0; rlrental.js / strategy-research.js / Scope 04/05/06 modules / rldata.js / data/options zero-diff. Ocean carries NO explicit insurance Simple input (disclosed cost = frozen owner baseFixedInsuranceUsd). Prior committed batches: strategy-evolution/v1, disclosure-decay/v1, walk-forward-validation/v1 (strategy-research.js), str-scenario/palm-springs/v1 (property-research.js). Remaining: location-suitability/v1 (waterfront-polo, this dispatch Task B) + market-action-triage/v1 (Center, later dispatch). Feature status not_started, certifiedAt null -- untouched. Scope 07 stays in_progress."
       }
     ],
     "pendingTransitionRequests": [],

@@ -1034,3 +1034,238 @@ test('TP-07-01 str-scenario/palm-springs preserves the undisclosed-economics gap
   // The OPERATING result is a real owner number (not null) — the disclosed-cost path is complete and usable.
   assert.equal(typeof cf.annualOperatingPreTaxCashFlowUsd, 'number', 'the disclosed-cost operating cash flow is a real owner number');
 });
+
+/* ═══════════════════════ property-research: str-scenario/ocean-shores (owner seam = rlrental.js) ═══════════════════════
+   The SECOND place-based scenario. Exactly like Palm Springs, the seasonal cash flow is computed ONLY by the
+   shared owner rental engine rlrental.js (RLRENTAL.computeRentalResult) — the same function the Ocean Shores
+   owner page consumes through mountRoute — so no formula is copied and Simple/Power share one engine. The Ocean
+   Shores definition carries NO explicit `insurance` Simple parameter (unlike Palm Springs); the disclosed fixed
+   insurance cost comes from the frozen owner place state (baseFixedInsuranceUsd), and the two stress levers
+   (storm/insurance and regulation) drive ONLY the stress path, not the base cash flow. */
+
+/* A synthetic frozen owner place scenario for Ocean Shores engineered so every declared parameter provably moves
+   its declared output path with GENUINE owner-computed content. Two segments differ in available nights, seasonal
+   occupancy, ADR, and purchase price so the segment enum genuinely re-prices the owner run. There is no explicit
+   insurance Simple input, so the disclosed insurance cost is the frozen owner baseFixedInsuranceUsd. The
+   full-economics required set adds the UNDISCLOSED property tax + capital reserve, so the owner engine returns
+   INCOMPLETE (a null bottom line + a missingCostFieldIds list) — the honest gap the adapter preserves without
+   zero-filling. Reference asOf 2026-07-26. */
+function oceanOwnerFixture() {
+  return {
+    contractVersion: 'str-scenario-owner-state/v1',
+    toolId: 'ocean-shores-rental-market-lab',
+    asOf: '2026-07-26',
+    source: 'test-owner synthetic seasonal place scenario',
+    marketId: 'ocean-shores-wa',
+    formulaVersion: 'place-based-rental-market-formula/v2',
+    forecastYear: 2026,
+    requiredFixedRiskCostFieldIds: ['insurance'],
+    fullRequiredFixedRiskCostFieldIds: ['insurance', 'property-tax', 'capital-reserve'],
+    missingEconomics: ['property-tax', 'capital-reserve', 'resale-basis'],
+    loanTermYears: 30,
+    leverageRatio: 0.7,
+    downPaymentRatio: 0.3,
+    baseFixedInsuranceUsd: 28000,
+    segments: {
+      'whole-market': { segmentId: 'whole-market', pairKey: 'ocean-shores-wa::whole-market', unitId: 'os-whole', baseOccupancy: 0.5, availableNights: 300, purchasePriceUsd: 480000, baseAdrUsd: 320 },
+      'large-luxury': { segmentId: 'large-luxury-5plus', pairKey: 'ocean-shores-wa::large-luxury-5plus', unitId: 'os-lux', baseOccupancy: 0.45, availableNights: 260, purchasePriceUsd: 1150000, baseAdrUsd: 900 }
+    }
+  };
+}
+
+/* Reconstruct the EXACT owner OPERATING context + assumptions the module derives for one segment + parameter set,
+   so the test can call RLRENTAL.computeRentalResult directly and prove the adapter single-sources the owner engine
+   (owner-parity), not re-deriving cash flow. Mirrors property-research.js strContext/strAssumptions for the
+   Ocean Shores case where the disclosed insurance cost is the frozen owner baseFixedInsuranceUsd (no `insurance`
+   Simple parameter) and the operating run applies no stress (demandDelta 0, no extra variable expense). */
+function oceanOwnerRun(rental, owner, params, requiredKey, demandDelta) {
+  const key = params.segment === 'large-luxury' ? 'large-luxury' : 'whole-market';
+  const preset = owner.segments[key];
+  const ctx = {
+    marketId: owner.marketId, segmentId: preset.segmentId, pairKey: preset.pairKey, unitId: preset.unitId,
+    scenarioId: 'baseline', formulaVersion: owner.formulaVersion, baseOccupancy: preset.baseOccupancy,
+    baseAdrUsd: preset.baseAdrUsd, availableNights: preset.availableNights,
+    requiredFixedRiskCostFieldIds: owner[requiredKey], bounds: {}
+  };
+  const assumptions = {
+    contractVersion: 'place-based-rental-market-user-assumptions/v2', marketId: owner.marketId,
+    segmentId: preset.segmentId, pairKey: preset.pairKey, unitId: preset.unitId, scenarioId: 'baseline',
+    forecastYear: owner.forecastYear, demandDelta: demandDelta, supplyDelta: 0, adrShock: 0,
+    downtime: { method: 'explicit-disjoint-days', items: [] }, purchasePriceUsd: preset.purchasePriceUsd,
+    leverageRatio: owner.leverageRatio, downPaymentRatio: owner.downPaymentRatio,
+    annualMortgageRate: params['financing-rate'] / 100, loanTermYears: owner.loanTermYears,
+    variableOperatingExpenseRatio: params['operating-cost'] / 100,
+    fixedRiskCosts: [{ costFieldId: 'insurance', annualUsd: owner.baseFixedInsuranceUsd }],
+    baseOccupancy: params.occupancy / 100, baseAdrUsd: params.adr, availableNights: preset.availableNights
+  };
+  return rental.computeRentalResult(ctx, assumptions);
+}
+
+test('TP-07-01 property-research module exposes the delivered str-scenario/ocean-shores adapter with no forbidden authority', () => {
+  const pr = loadPropertyResearch();
+  assert.ok(pr.supportedAdapterIds.includes('simple-adapter/str-scenario/ocean-shores/v1'), 'str-scenario/ocean-shores is a declared supported adapter');
+  const raw = readFileSync(new URL('../rlexperience-adapters/property-research.js', import.meta.url), 'utf8');
+  const source = raw
+    .replace(/\/\*[\s\S]*?\*\//g, ' ')
+    .replace(/(^|[^:])\/\/[^\n]*/g, '$1');
+  const forbidden = [
+    /\bfetch\s*\(/,
+    /\bproviderFetch\s*\(/,
+    /\bRLDATA\b/,
+    /\blocalStorage\b/,
+    /\bsessionStorage\b/,
+    /\bindexedDB\b/,
+    /\bXMLHttpRequest\b/,
+    /\bimport\s*\(/,
+    /\brequire\s*\(/,
+    /\bwriteFileSync\b/,
+    /\bDate\.now\s*\(/,
+    /\bMath\.random\s*\(/,
+    /data\/options/,
+    /data\/bars/,
+    /rlexperience-adapters\/(market-structure|options|macro-rotation|fundamental-models|strategy-research|market-action)/
+  ];
+  for (const pattern of forbidden) {
+    assert.equal(pattern.test(source), false, `property-research.js must not contain ${pattern}`);
+  }
+});
+
+test('TP-07-01 ocean-shores-rental-market-lab.html single-sources the place-based cash flow from rlrental.js (RLRENTAL)', () => {
+  const page = readFileSync(new URL('../ocean-shores-rental-market-lab.html', import.meta.url), 'utf8');
+  assert.ok(/<script src="rlrental\.js">/.test(page), 'ocean page loads the shared owner rental engine rlrental.js');
+  assert.ok(/RLRENTAL\.mountRoute\s*\(/.test(page), 'ocean page consumes the owner engine through RLRENTAL.mountRoute');
+  // The page carries NO inline cash-flow formula copy — revenue/cost/debt-service/cash-flow all live in rlrental.js.
+  assert.ok(!/grossRevenueUsd\s*=\s*[^;]*\*/.test(page) && !/preTaxCashFlowUsd\s*=\s*grossRevenue/.test(page) && !/computeRentalResult\s*=\s*function/.test(page), 'ocean page carries no inline copy of the single-sourced owner cash-flow formula');
+});
+
+test('TP-07-01 str-scenario/ocean-shores adapter registers through the production runtime and produces a ready owner-parity run', async () => {
+  const api = loadProductionApi();
+  const pr = loadPropertyResearch();
+  const rental = loadRentalEngine();
+  const definition = definitionFor('ocean-shores-rental-market-lab');
+  const runtime = runtimeFor(api, definition);
+  const results = pr.registerPropertyResearchAdapters(runtime, api, [definition], { rental });
+  assert.equal(results['simple-adapter/str-scenario/ocean-shores/v1'].ok, true, JSON.stringify(results['simple-adapter/str-scenario/ocean-shores/v1'].error || {}));
+
+  const owner = oceanOwnerFixture();
+  const base = defaultValues(definition);
+  const prepared = requireValue(await runtime.prepare({
+    definitionId: definition.definitionId,
+    ownerContext: { ownerState: owner },
+    parameterValues: base,
+    seed: null,
+    scenarioIds: ['baseline'],
+    computedAt: '2026-07-26T23:10:00.000Z'
+  }));
+  assert.equal(prepared.state, 'ready');
+  const summary = prepared.current.output.values.summary;
+  assert.equal(summary.marketId, 'ocean-shores-wa', 'summary carries the frozen owner market');
+  assert.equal(summary.segment, 'large-luxury', 'the default segment is the large-luxury preset');
+  assert.equal(prepared.current.output.provenance.evidenceIdentity, prepared.current.input.evidenceIdentity, 'evidence identity is bound');
+
+  // Owner parity: the adapter's headline cash-flow numbers equal a DIRECT RLRENTAL.computeRentalResult run over
+  // the exact same derived owner context + assumptions (single source, not a re-derivation). The disclosed
+  // insurance cost is the frozen owner baseFixedInsuranceUsd, since Ocean Shores has no `insurance` Simple input.
+  const opDirect = oceanOwnerRun(rental, owner, base, 'requiredFixedRiskCostFieldIds', 0);
+  assert.equal(opDirect.ok, true, 'the direct operating owner run is valid');
+  assert.equal(summary.cashFlow.grossRevenueUsd, Math.round(opDirect.result.grossRevenueUsd * 100) / 100, 'gross revenue is single-sourced from RLRENTAL.computeRentalResult');
+  assert.equal(summary.cashFlow.fixedRiskCostUsd, Math.round(opDirect.result.fixedRiskCostUsd * 100) / 100, 'the disclosed fixed insurance cost is single-sourced from the owner engine (frozen owner baseFixedInsuranceUsd)');
+  assert.equal(summary.cashFlow.annualDebtServiceUsd, Math.round(opDirect.result.annualDebtServiceUsd * 100) / 100, 'annual debt service is single-sourced from the owner engine');
+  assert.equal(summary.cashFlow.annualOperatingPreTaxCashFlowUsd, Math.round(opDirect.result.preTaxCashFlowUsd * 100) / 100, 'operating pre-tax cash flow is single-sourced from the owner engine');
+  assert.equal(summary.cashFlow.cumulativeOperatingPreTaxCashFlowUsd, Math.round(opDirect.result.preTaxCashFlowUsd * base.horizon * 100) / 100, 'the cumulative figure is the owner annual result times the horizon');
+});
+
+test('TP-07-01 each enabled str-scenario/ocean-shores parameter changes its declared output path with genuine owner-computed content', async () => {
+  const api = loadProductionApi();
+  const pr = loadPropertyResearch();
+  const rental = loadRentalEngine();
+  const definition = definitionFor('ocean-shores-rental-market-lab');
+  const runtime = runtimeFor(api, definition);
+  pr.registerPropertyResearchAdapters(runtime, api, [definition], { rental });
+  const base = defaultValues(definition);
+  await runtime.prepare({
+    definitionId: definition.definitionId,
+    ownerContext: { ownerState: oceanOwnerFixture() },
+    parameterValues: base,
+    seed: null,
+    scenarioIds: ['baseline'],
+    computedAt: '2026-07-26T23:10:00.000Z'
+  });
+
+  // Every declared parameter must move its declared output path. The five cash-flow levers move summary.cashFlow;
+  // BOTH stress levers (storm/insurance and regulation) move summary.stress. Each value is a genuine RLRENTAL
+  // re-computation, never an echoed parameter.
+  const cases = [
+    ['segment', 'whole-market', 'summary.cashFlow'],
+    ['adr', 1400, 'summary.cashFlow'],
+    ['occupancy', 70, 'summary.cashFlow'],
+    ['financing-rate', 9, 'summary.cashFlow'],
+    ['operating-cost', 48, 'summary.cashFlow'],
+    ['storm-insurance-stress', 12, 'summary.stress'],
+    ['regulation-stress', 0.5, 'summary.stress'],
+    ['horizon', 8, 'summary.cashFlow']
+  ];
+  for (const [parameterId, value, path] of cases) {
+    const run = requireValue(await runtime.recompute({
+      parameterValues: { ...base, [parameterId]: value },
+      seed: null,
+      scenarioIds: ['baseline'],
+      computedAt: '2026-07-26T23:11:00.000Z'
+    }));
+    assert.deepEqual(run.changedParameters, [parameterId], `changed ${parameterId}`);
+    const effect = run.sensitivity.effects.find((entry) => entry.parameterId === parameterId);
+    assert.ok(effect, `sensitivity effect present for ${parameterId}`);
+    assert.equal(effect.outputChanged, true, `${parameterId} must change ${path}`);
+    assert.deepEqual(effect.resultPaths, [path], `${parameterId} declared path`);
+    // Restore baseline for the next isolated one-at-a-time change.
+    await runtime.recompute({ parameterValues: { ...base }, seed: null, scenarioIds: ['baseline'], computedAt: '2026-07-26T23:11:30.000Z' });
+  }
+
+  // storm-insurance-stress moves ONLY the stress path (the base cash flow uses no extra storm-driven variable
+  // expense), and genuinely reshapes the stress scenario.
+  const stormRun = requireValue(await runtime.recompute({ parameterValues: { ...base, 'storm-insurance-stress': 15 }, seed: null, scenarioIds: ['baseline'], computedAt: '2026-07-26T23:12:00.000Z' }));
+  assert.equal(api.fingerprint(stormRun.current.output.values.summary.cashFlow), api.fingerprint(stormRun.baseline.output.values.summary.cashFlow), 'storm-insurance-stress leaves the base cash flow unchanged (it is a separate stress scenario)');
+  assert.notEqual(api.fingerprint(stormRun.current.output.values.summary.stress), api.fingerprint(stormRun.baseline.output.values.summary.stress), 'storm-insurance-stress genuinely reshapes the stress scenario');
+  await runtime.recompute({ parameterValues: { ...base }, seed: null, scenarioIds: ['baseline'], computedAt: '2026-07-26T23:12:15.000Z' });
+
+  // regulation-stress moves ONLY the stress path (the base cash flow is computed at zero regulatory demand haircut).
+  const regRun = requireValue(await runtime.recompute({ parameterValues: { ...base, 'regulation-stress': 0.6 }, seed: null, scenarioIds: ['baseline'], computedAt: '2026-07-26T23:12:30.000Z' }));
+  assert.equal(api.fingerprint(regRun.current.output.values.summary.cashFlow), api.fingerprint(regRun.baseline.output.values.summary.cashFlow), 'regulation-stress leaves the base cash flow unchanged (it is a separate stress scenario)');
+  assert.notEqual(api.fingerprint(regRun.current.output.values.summary.stress), api.fingerprint(regRun.baseline.output.values.summary.stress), 'regulation-stress genuinely reshapes the stress scenario');
+});
+
+test('TP-07-01 str-scenario/ocean-shores preserves the undisclosed-economics gap without zero-filling and is deterministic', async () => {
+  const api = loadProductionApi();
+  const pr = loadPropertyResearch();
+  const rental = loadRentalEngine();
+  const definition = definitionFor('ocean-shores-rental-market-lab');
+  const base = defaultValues(definition);
+
+  async function runOnce() {
+    const runtime = runtimeFor(api, definition);
+    pr.registerPropertyResearchAdapters(runtime, api, [definition], { rental });
+    return requireValue(await runtime.prepare({
+      definitionId: definition.definitionId,
+      ownerContext: { ownerState: oceanOwnerFixture() },
+      parameterValues: base,
+      seed: null,
+      scenarioIds: ['baseline'],
+      computedAt: '2026-07-26T23:10:00.000Z'
+    }));
+  }
+
+  const first = await runOnce();
+  const again = await runOnce();
+  assert.equal(first.computeIdentity, again.computeIdentity, 'identical inputs => identical compute identity (deterministic)');
+  assert.equal(api.fingerprint(first.current.output.values.summary), api.fingerprint(again.current.output.values.summary), 'identical inputs => identical owner summary');
+
+  // Gap preservation: the FULL-economics owner run is INCOMPLETE — the undisclosed property tax + capital reserve
+  // are surfaced as a missing list and the full bottom line is NULL, never zero-filled.
+  const cf = first.current.output.values.summary.cashFlow;
+  assert.equal(cf.fullEconomicsState, 'INCOMPLETE', 'the full-economics owner run is INCOMPLETE while property economics are undisclosed');
+  assert.equal(cf.fullPreTaxCashFlowUsd, null, 'the full bottom line is null (unavailable), never zero-filled');
+  assert.ok(Array.isArray(cf.missingCostFieldIds) && cf.missingCostFieldIds.includes('property-tax') && cf.missingCostFieldIds.includes('capital-reserve'), 'the owner engine reports the undisclosed cost fields as missing');
+  assert.ok(Array.isArray(cf.missingEconomics) && cf.missingEconomics.length > 0, 'the missing property economics remain preserved, not fabricated as zero');
+  // The OPERATING result is a real owner number (not null) — the disclosed-cost path is complete and usable.
+  assert.equal(typeof cf.annualOperatingPreTaxCashFlowUsd, 'number', 'the disclosed-cost operating cash flow is a real owner number');
+});

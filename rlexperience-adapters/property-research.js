@@ -446,7 +446,7 @@
      adapters require the shared owner rental engine (deps.rental = RLRENTAL); when it is absent they are
      simply omitted, so the shared runtime renders the explicit unavailable state for those tools. */
 
-  var STR_SCENARIO_TOOL_IDS = ["palm-springs-rental-market-lab"];
+  var STR_SCENARIO_TOOL_IDS = ["palm-springs-rental-market-lab", "ocean-shores-rental-market-lab"];
 
   function createPropertyResearchAdapters(api, definitions, deps) {
     if (!api || typeof api.fingerprint !== "function" || typeof api.normalizeSimpleInput !== "function") {
@@ -482,7 +482,7 @@
   return {
     contractVersion: "property-research-adapters/v1",
     module: "rlexperience-adapters/property-research.js",
-    supportedAdapterIds: ["simple-adapter/str-scenario/palm-springs/v1"],
+    supportedAdapterIds: ["simple-adapter/str-scenario/palm-springs/v1", "simple-adapter/str-scenario/ocean-shores/v1"],
     computeStrScenarioSummary: computeStrScenarioSummary,
     createPropertyResearchAdapters: createPropertyResearchAdapters,
     registerPropertyResearchAdapters: registerPropertyResearchAdapters

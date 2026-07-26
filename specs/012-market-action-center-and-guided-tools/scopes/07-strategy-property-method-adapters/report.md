@@ -4,8 +4,9 @@ Links: [scope.md](scope.md) | [spec.md](../../spec.md) | [design.md](../../desig
 
 ## Summary
 
-Scope 07 IN PROGRESS. **2 of 7** Scope-07 adapters delivered, both single-sourced through
-`rlexperience-adapters/strategy-research.js`.
+Scope 07 IN PROGRESS. **5 of 7** Scope-07 adapters delivered — three strategy adapters single-sourced
+through `rlexperience-adapters/strategy-research.js`, and two place-based rental adapters single-sourced
+through `rlexperience-adapters/property-research.js` (owner seam = the shared `rlrental.js` engine).
 
 - **Batch 1 — `strategy-evolution/v1`** (`strategy-self-improvement-lab`). Seeded owner engine
   (`mulberry32`, `gauss`, `genSeries`, `sma`, `realizedVol`, `backtest`, `metrics`, `walkForward`) extracted;
@@ -19,12 +20,33 @@ Scope 07 IN PROGRESS. **2 of 7** Scope-07 adapters delivered, both single-source
   `consensusScore` / `realisticEdgeFraction`, the model is deterministic over the frozen filing set, and the
   frozen evidence gap (single-filer / sub-threshold clusters) is preserved without zero-filling (TP-07-01
   now 12/12). A genuine page-delegation RED plus an `alphaDecay` age-ignore RED-bite proved the tests have teeth.
+- **Batch 3 — `walk-forward-validation/v1`** (`strategy-validation-lab`, committed `cebbd719`). The real-data
+  embargo walk-forward engine (`seriesFromCloses`, `walkForwardEmbargo`, `scorePass`, `allPass`, `buyHoldCurve`)
+  is extracted to `strategy-research.js`; the owner page delegates (the Bailey–López de Prado deflated Sharpe
+  stays RLVALID-owned, Feature 007, untouched). All seven declared parameters move their declared paths with
+  genuine computed content, owner-parity is proven vs the module `walkForwardEmbargo`, the model is deterministic,
+  and no-data instruments are preserved as null OOS, never zero-filled. (Delivered in a prior dispatch; green in
+  the current 27/27 unit run and 931/0 selftest.)
+- **Batch 4 — `str-scenario/palm-springs/v1`** (`palm-springs-rental-market-lab`, committed `6f66f002`). First
+  place-based rental adapter in `property-research.js`; the shared owner engine `rlrental.js`
+  (`RLRENTAL.computeRentalResult`) is the SINGLE cash-flow source, consumed by both the owner page (via
+  `mountRoute`) and the Simple adapter (owner-parity, no formula copy). Eight declared parameters move their
+  declared paths, and the undisclosed property economics (property tax + capital reserve) stay INCOMPLETE / null,
+  never zero-filled. (Delivered in a prior dispatch; green in the current 27/27 unit run and 931/0 selftest.)
+- **Batch 5 — `str-scenario/ocean-shores/v1`** (`ocean-shores-rental-market-lab`, THIS dispatch). Second
+  place-based rental adapter registered through the SAME `property-research.js` shared compute
+  (`computeStrScenarioSummary`) + `rlrental.js` owner engine — a 2-line registration (added to
+  `STR_SCENARIO_TOOL_IDS` + `supportedAdapterIds`), no new formula. Five dedicated ocean-shores unit tests were
+  added (registration + no forbidden authority, page single-source, owner-parity run, all EIGHT parameters move
+  their declared path, gap preservation + determinism). Ocean Shores carries NO explicit `insurance` Simple input,
+  so the disclosed insurance cost is the frozen owner `baseFixedInsuranceUsd`, and BOTH stress levers
+  (storm/insurance + regulation) drive ONLY `summary.stress`. A genuine RED replay (registration stashed → 4 of 5
+  ocean tests fail because the adapter is unregistered) proved the tests bite; the registration was restored to
+  GREEN at 27/27.
 
-The broad selftest is green (**912 passed / 0 failed**, +6 vs the batch-1 baseline of 906 — exactly the
-reconciled `smart-money-flow-lab.html` selftest group's net assertion delta). Remaining Scope-07 adapters:
-`walk-forward-validation/v1` (same module, this dispatch if solid), then the property-research trio + the
-Market Action Center triage model (later dispatches). Feature status stays `not_started`; Scope 07 stays
-`in_progress`.
+The broad selftest is green (**931 passed / 0 failed**). Remaining Scope-07 adapters: `location-suitability/v1`
+(`waterfront-polo-lab`, this dispatch Task B) and the Market Action Center `market-action-triage/v1` triage model
+(later dispatch). Feature status stays `not_started`; Scope 07 stays `in_progress`.
 
 ## Decision Record
 
@@ -184,22 +206,94 @@ BITE_UNIT_EXIT=1
 The same bite drove the broad selftest to `906 passed, 6 failed`. The `alphaDecay` body was reverted byte-exact
 and the suite returned to 12/12 GREEN.
 
+<a id="tp-07-01-ocean"></a>
+### TP-07-01 unit — str-scenario/ocean-shores/v1 (batch 5, THIS dispatch)
+
+Phase: implement | Command: `node --test tests/simple-model-adapters-strategy-property.unit.mjs` | Exit Code: 0 | Claim Source: executed
+
+GREEN — the five new ocean-shores rows inside the full 27-test unit run (spec reporter, ocean rows shown):
+
+```
+✔ TP-07-01 property-research module exposes the delivered str-scenario/ocean-shores adapter with no forbidden authority (1.017194ms)
+✔ TP-07-01 ocean-shores-rental-market-lab.html single-sources the place-based cash flow from rlrental.js (RLRENTAL)
+✔ TP-07-01 str-scenario/ocean-shores adapter registers through the production runtime and produces a ready owner-parity run (17.114794ms)
+✔ TP-07-01 each enabled str-scenario/ocean-shores parameter changes its declared output path with genuine owner-computed content (67.464784ms)
+✔ TP-07-01 str-scenario/ocean-shores preserves the undisclosed-economics gap without zero-filling and is deterministic (26.923834ms)
+ℹ tests 27
+ℹ pass 27
+ℹ fail 0
+UNIT_EXIT=0
+```
+
+What the five ocean-shores rows prove:
+
+- **Module authority + registration by exact ID.** `property-research.js` lists `simple-adapter/str-scenario/ocean-shores/v1`
+  in `supportedAdapterIds`, and the comment-stripped forbidden-authority scan over the whole module (both
+  place-based adapters) has zero executable hits.
+- **Page single-sources the owner engine.** `ocean-shores-rental-market-lab.html` loads `rlrental.js` and consumes
+  it through `RLRENTAL.mountRoute` with no inline copy of the revenue / cost / debt-service / cash-flow formula.
+- **Adapter runs through the production runtime + owner parity.** A `prepare` over the frozen Ocean Shores place
+  state yields a ready run whose headline `grossRevenueUsd`, `fixedRiskCostUsd`, `annualDebtServiceUsd`,
+  `annualOperatingPreTaxCashFlowUsd`, and cumulative figure each equal a DIRECT `RLRENTAL.computeRentalResult`
+  run over the same derived owner context + assumptions — the adapter single-sources the owner engine, not a
+  re-derivation. The disclosed insurance cost is the frozen owner `baseFixedInsuranceUsd` (there is no `insurance`
+  Simple input for Ocean Shores).
+- **All eight parameters move their declared path with genuine owner-computed content.** `segment`, `adr`,
+  `occupancy`, `financing-rate`, `operating-cost`, and `horizon` each move `summary.cashFlow`; `storm-insurance-stress`
+  and `regulation-stress` each move `summary.stress` ONLY (both leave the base cash flow fingerprint unchanged and
+  genuinely reshape the stress scenario). Each is a real `RLRENTAL` re-computation, never an echoed parameter.
+- **Deterministic + gap-preserving.** Two runs over the frozen state are byte-identical, and the undisclosed
+  property economics (property tax + capital reserve) stay INCOMPLETE with a NULL full bottom line and a
+  `missingCostFieldIds` list — never zero-filled — while the disclosed-cost operating cash flow is a real owner
+  number.
+
+### RED proof — ocean-shores (registration stashed → the tests bite)
+
+Before committing, the ocean registration edit was stashed (`git stash push -- rlexperience-adapters/property-research.js`),
+reverting `property-research.js` to HEAD where `str-scenario/ocean-shores/v1` is absent from `STR_SCENARIO_TOOL_IDS`
+and `supportedAdapterIds`. Re-running only the ocean rows FAILED 4 of 5 (`pass 1 / fail 4`, exit 1) — the four
+registration-dependent rows fail precisely because the adapter is unregistered, while the registration-independent
+page single-source row correctly still passes:
+
+```
+✖ TP-07-01 property-research module exposes the delivered str-scenario/ocean-shores adapter with no forbidden authority
+  AssertionError [ERR_ASSERTION]: str-scenario/ocean-shores is a declared supported adapter
+      at ~/research-lab/tests/simple-model-adapters-strategy-property.unit.mjs:1106:10
+    actual: false, expected: true, operator: '=='
+✔ TP-07-01 ocean-shores-rental-market-lab.html single-sources the place-based cash flow from rlrental.js (RLRENTAL)
+✖ TP-07-01 str-scenario/ocean-shores adapter registers through the production runtime and produces a ready owner-parity run
+  TypeError: Cannot read properties of undefined (reading 'ok')   [results['simple-adapter/str-scenario/ocean-shores/v1'] is undefined]
+✖ TP-07-01 each enabled str-scenario/ocean-shores parameter changes its declared output path with genuine owner-computed content
+  AssertionError [ERR_ASSERTION]: E012-SIMPLE-INPUT $   [runtime rejects the unregistered adapter]
+✖ TP-07-01 str-scenario/ocean-shores preserves the undisclosed-economics gap without zero-filling and is deterministic
+  AssertionError [ERR_ASSERTION]: E012-REGISTRY $.adapterId   [registry has no ocean-shores adapter]
+ℹ tests 5
+ℹ pass 1
+ℹ fail 4
+RED_EXIT=1
+```
+
+The registration was restored (`git stash pop`), re-adding ocean-shores to both arrays, and the full unit file
+returned to **27/27 GREEN** (the block above). Node `--check` on the unit file parses clean.
+
 <a id="tp-07-11"></a>
 ### TP-07-11 broad selftest
 
 Phase: implement | Command: `node scripts/selftest.mjs` | Exit Code: 0 | Claim Source: executed
 
 ```
-Research-Lab self-test: 912 passed, 0 failed
+Research-Lab self-test: 931 passed, 0 failed
 SELFTEST_EXIT=0
 ```
 
 - Batch 1: 895 (Scope-06 baseline) → 906 = +11, exactly the new `strategy-self-improvement-lab.html` selftest
   group's assertion count.
-- Batch 2: 906 → **912 = +6**, exactly the reconciled `smart-money-flow-lab.html` selftest group's net delta
-  (the old `extractFn`-based group was replaced IN LOCKSTEP with a module-require group that asserts the owner
-  primitives + a disclosure-decay determinism/effect canary + page delegation + no-inline-copy). Zero regressions
-  in any other group; the full selftest re-parses both rewired owner pages' inline scripts with 0 failures.
+- Batch 2: 906 → 912 = +6, exactly the reconciled `smart-money-flow-lab.html` selftest group's net delta.
+- Batches 3–5 (walk-forward-validation, palm-springs, ocean-shores): 912 → **931** = +19, from the
+  `strategy-validation-lab.html` reconciled group and the two place-based rental selftest groups delivered in the
+  prior dispatches. Ocean-shores (batch 5, this dispatch) added no selftest group — it reuses the same
+  `rlrental.js` place-based engine + `property-research.js` shared compute as palm-springs, so it required only a
+  2-line registration + its dedicated unit rows. Zero regressions in any other group.
 
 ### Forbidden-authority + protected-path integrity (batch 1)
 
@@ -230,6 +324,24 @@ SELFTEST_EXIT=0
   `smart-money-flow-lab.html` (M), `tests/simple-model-adapters-strategy-property.unit.mjs` (M),
   `scripts/selftest.mjs` (M), plus the untouched concurrent-session `bugs/BUG-001-.../scenario-manifest.json`
   (M) — preserved, not staged.
+
+### Forbidden-authority + protected-path integrity (batch 5 — ocean-shores)
+
+- Comment-stripped EXECUTABLE forbidden-authority scan on `rlexperience-adapters/property-research.js` (both
+  place-based adapters in one module): `EXECUTABLE_FORBIDDEN_HITS=0` (no fetch/providerFetch/RLDATA/localStorage/
+  sessionStorage/indexedDB/XMLHttpRequest/dynamic-import/require/writeFileSync/Date.now/Math.random/data-options/
+  data-bars/cross-domain-adapter). The place-based scenario is a pure function of the frozen owner place state +
+  the Simple parameters, computed only by the injected `rlrental.js` engine.
+- `git diff --stat HEAD` of the protected surfaces — `rlrental.js` (the shared owner engine, CONSUMED not edited),
+  `rlexperience-adapters/strategy-research.js` (the Scope-07 strategy module), the Scope 04/05/06 modules
+  (`rlexperience.js`, `market-structure.js`, `options.js`, `macro-rotation.js`, `fundamental-models.js`),
+  `rldata.js`, and `data/options/**` — is EMPTY (none modified by batch 5; zero diff).
+- `git status --short` working tree for the ocean batch: only `rlexperience-adapters/property-research.js` (M, the
+  2-line ocean registration) and `tests/simple-model-adapters-strategy-property.unit.mjs` (M, the five ocean rows),
+  plus the untouched concurrent-session `bugs/BUG-001-.../scenario-manifest.json` (M) — preserved, not staged. No
+  `scripts/selftest.mjs` change for batch 5 (ocean reuses the palm-springs place-based `rlrental.js` engine +
+  `property-research.js` shared compute, so it needs no new selftest group).
+
 ## Uncertainty Declarations
 
 ## Scenario Contract Evidence

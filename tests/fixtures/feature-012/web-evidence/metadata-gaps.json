@@ -1,0 +1,57 @@
+{
+  "scenario": "metadata-gaps",
+  "description": "A retrieved candidate clears transport, robots, media, and budget checks but its source metadata is incomplete (publisher absent). The candidate is rejected (E012-WEB-POLICY / missing-metadata) and NO source is retained; the bundle still freezes with zero sources and one closed rejection.",
+  "lane": "tool-brief",
+  "toolId": "market-brief",
+  "runId": "run/2026-07-26/metadata-gaps",
+  "cutoffAt": "2026-07-26T15:00:00.000Z",
+  "acquisitionStartedAt": "2026-07-26T15:00:05.000Z",
+  "frozenAt": "2026-07-26T15:00:20.000Z",
+  "queryPlanInput": {
+    "templates": [
+      {
+        "templateId": "metadata-required",
+        "termsTemplate": "{{ticker}} filing",
+        "purpose": "material-claim-corroboration",
+        "allowedHosts": [{ "host": "reuters.example", "pathPrefix": "/markets" }],
+        "requiredSourceClasses": ["wire"],
+        "freshnessWindowDays": 7,
+        "maxResults": 4
+      }
+    ],
+    "facts": { "ticker": "ACME" }
+  },
+  "claimSpecs": [],
+  "ownerEvidence": {},
+  "boundary": {
+    "search": {
+      "run/2026-07-26/metadata-gaps:q0": [
+        { "candidateId": "cand-nometa", "url": "https://reuters.example/markets/acme-nometa" }
+      ]
+    },
+    "retrieve": {
+      "https://reuters.example/robots.txt": { "status": 200, "contentType": "text/plain", "durationMs": 30, "body": "User-agent: *\nAllow: /markets\n" },
+      "https://reuters.example/markets/acme-nometa": {
+        "status": 200,
+        "finalUrl": "https://reuters.example/markets/acme-nometa",
+        "contentType": "text/html",
+        "durationMs": 100,
+        "body": "<p>A market note whose source metadata is incomplete.</p>",
+        "meta": {
+          "title": "Note without a publisher",
+          "publishedAt": "2026-07-26T13:00:00.000Z",
+          "sourceClass": "wire",
+          "supportsClaims": [],
+          "excerpts": ["A market note whose source metadata is incomplete."]
+        }
+      }
+    }
+  },
+  "expect": {
+    "ok": true,
+    "retainedSourceCount": 0,
+    "rejectedCandidateCount": 1,
+    "rejection": { "candidateId": "cand-nometa", "reasonCode": "E012-WEB-POLICY", "safeReasonDetail": "missing-metadata", "safeHost": "reuters.example" },
+    "frozen": true
+  }
+}

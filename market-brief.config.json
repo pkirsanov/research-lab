@@ -530,5 +530,50 @@
         "maxSymbolsPerRun": 48,
         "maxNormalizedObservationBytes": 262144,
         "rawBodyRetention": "hash-only"
+    },
+    "web-evidence-acquisition/v1": {
+        "contractVersion": "web-evidence-acquisition/v1",
+        "policyId": "web-evidence-acquisition/v1",
+        "userAgent": "ResearchLabEvidenceBot/1.0",
+        "maxQueryChars": 240,
+        "acceptedMediaTypes": ["text/html", "text/plain"],
+        "sourceClasses": ["primary", "wire", "regulator", "exchange", "analysis", "publisher"],
+        "redirects": "none",
+        "scheme": "https",
+        "port": 443,
+        "minIndependentOriginGroups": 2,
+        "rawBodyRetention": "hash-only",
+        "lanes": {
+            "tool-brief": {
+                "maxQueries": 4,
+                "maxCandidateUrls": 24,
+                "maxRetainedOrigins": 10,
+                "maxRetainedExcerpts": 24,
+                "maxExcerptBytes": 1200,
+                "maxResponseBytesPerUrl": 1048576,
+                "maxBundleBytes": 262144,
+                "perRequestTimeoutMs": 10000,
+                "totalAcquisitionMs": 60000,
+                "maxConcurrentFetches": 4,
+                "redirects": "none",
+                "scheme": "https",
+                "port": 443
+            },
+            "red-alert": {
+                "maxQueries": 8,
+                "maxCandidateUrls": 48,
+                "maxRetainedOrigins": 16,
+                "maxRetainedExcerpts": 48,
+                "maxExcerptBytes": 1200,
+                "maxResponseBytesPerUrl": 1048576,
+                "maxBundleBytes": 524288,
+                "perRequestTimeoutMs": 10000,
+                "totalAcquisitionMs": 90000,
+                "maxConcurrentFetches": 4,
+                "redirects": "none",
+                "scheme": "https",
+                "port": 443
+            }
+        }
     }
 }

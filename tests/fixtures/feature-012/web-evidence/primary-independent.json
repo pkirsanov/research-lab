@@ -1,0 +1,93 @@
+{
+  "scenario": "primary-independent",
+  "description": "Two current sources with DISTINCT canonical origins support one material claim => two independent origin groups => corroborated, frozen bundle.",
+  "lane": "tool-brief",
+  "toolId": "market-brief",
+  "runId": "run/2026-07-26/primary-independent",
+  "cutoffAt": "2026-07-26T15:00:00.000Z",
+  "acquisitionStartedAt": "2026-07-26T15:00:05.000Z",
+  "frozenAt": "2026-07-26T15:00:20.000Z",
+  "queryPlanInput": {
+    "templates": [
+      {
+        "templateId": "guidance-latest",
+        "termsTemplate": "{{ticker}} FY guidance update",
+        "purpose": "material-claim-corroboration",
+        "allowedHosts": [
+          { "host": "reuters.example", "pathPrefix": "/markets" },
+          { "host": "apnews.example", "pathPrefix": "/hub" }
+        ],
+        "requiredSourceClasses": ["wire", "primary"],
+        "freshnessWindowDays": 7,
+        "maxResults": 6
+      }
+    ],
+    "facts": { "ticker": "MSFT" }
+  },
+  "claimSpecs": [
+    {
+      "claimId": "claim-guidance",
+      "materiality": "material",
+      "claimKind": "general-material",
+      "normalizedClaim": "The issuer raised its full-year guidance."
+    }
+  ],
+  "ownerEvidence": {},
+  "boundary": {
+    "search": {
+      "run/2026-07-26/primary-independent:q0": [
+        { "candidateId": "cand-reuters", "url": "https://reuters.example/markets/issuer-guidance" },
+        { "candidateId": "cand-ap", "url": "https://apnews.example/hub/issuer-analysis" }
+      ]
+    },
+    "retrieve": {
+      "https://reuters.example/robots.txt": { "status": 200, "contentType": "text/plain", "durationMs": 30, "body": "User-agent: *\nAllow: /markets\n" },
+      "https://reuters.example/markets/issuer-guidance": {
+        "status": 200,
+        "finalUrl": "https://reuters.example/markets/issuer-guidance",
+        "contentType": "text/html",
+        "durationMs": 120,
+        "body": "<p>The issuer raised its full-year guidance today, the company said.</p>",
+        "meta": {
+          "title": "Issuer raises full-year guidance",
+          "publisher": "Reuters",
+          "publishedAt": "2026-07-26T13:00:00.000Z",
+          "sourceClass": "wire",
+          "canonicalOriginRef": "reuters/issuer-guidance-2026-07-26",
+          "supportsClaims": ["claim-guidance"],
+          "directionTag": "up",
+          "excerpts": ["The issuer raised its full-year guidance today, the company said."]
+        }
+      },
+      "https://apnews.example/robots.txt": { "status": 200, "contentType": "text/plain", "durationMs": 30, "body": "User-agent: *\nAllow: /hub\n" },
+      "https://apnews.example/hub/issuer-analysis": {
+        "status": 200,
+        "finalUrl": "https://apnews.example/hub/issuer-analysis",
+        "contentType": "text/html",
+        "durationMs": 130,
+        "body": "<p>An independent AP review of the filing confirms the raised outlook.</p>",
+        "meta": {
+          "title": "AP review confirms raised outlook",
+          "publisher": "Associated Press",
+          "publishedAt": "2026-07-26T13:40:00.000Z",
+          "sourceClass": "primary",
+          "canonicalOriginRef": "ap/issuer-filing-review-2026-07-26",
+          "supportsClaims": ["claim-guidance"],
+          "directionTag": "up",
+          "excerpts": ["An independent AP review of the filing confirms the raised outlook."]
+        }
+      }
+    }
+  },
+  "expect": {
+    "ok": true,
+    "retainedSourceCount": 2,
+    "independentOriginCount": 2,
+    "corroboratedMaterialClaims": 1,
+    "rejectedMaterialClaims": 0,
+    "rejectedCandidateCount": 0,
+    "claimAuthorable": { "claim-guidance": true },
+    "claimCorroboration": { "claim-guidance": "corroborated" },
+    "frozen": true
+  }
+}

@@ -1,0 +1,41 @@
+{
+  "scenario": "over-budget",
+  "description": "The injected search returns MORE candidates than the query record's maxResults budget. The acquisition stage fails closed (E012-WEB-BUDGET / candidate-cardinality-over-cap) BEFORE any content or robots request is made. No partial bundle is returned.",
+  "lane": "tool-brief",
+  "toolId": "market-brief",
+  "runId": "run/2026-07-26/over-budget",
+  "cutoffAt": "2026-07-26T15:00:00.000Z",
+  "acquisitionStartedAt": "2026-07-26T15:00:05.000Z",
+  "frozenAt": "2026-07-26T15:00:20.000Z",
+  "queryPlanInput": {
+    "templates": [
+      {
+        "templateId": "budget-bounded",
+        "termsTemplate": "{{ticker}} filing",
+        "purpose": "material-claim-corroboration",
+        "allowedHosts": [{ "host": "reuters.example", "pathPrefix": "/markets" }],
+        "requiredSourceClasses": ["wire"],
+        "freshnessWindowDays": 7,
+        "maxResults": 2
+      }
+    ],
+    "facts": { "ticker": "ACME" }
+  },
+  "claimSpecs": [],
+  "ownerEvidence": {},
+  "boundary": {
+    "search": {
+      "run/2026-07-26/over-budget:q0": [
+        { "candidateId": "cand-1", "url": "https://reuters.example/markets/acme-1" },
+        { "candidateId": "cand-2", "url": "https://reuters.example/markets/acme-2" },
+        { "candidateId": "cand-3", "url": "https://reuters.example/markets/acme-3" }
+      ]
+    },
+    "retrieve": {}
+  },
+  "expect": {
+    "ok": false,
+    "error": { "code": "E012-WEB-BUDGET", "detail": "candidate-cardinality-over-cap" },
+    "noUrlRetrieved": true
+  }
+}

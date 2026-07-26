@@ -1,0 +1,71 @@
+{
+  "scenario": "one-origin-uncorroborated",
+  "description": "SCN-012-006: online search finds exactly ONE current source for a material claim. With no independent corroborating origin, the material claim is REJECTED (uncorroborated, not authorable). The Brief must not imply the claim is verified.",
+  "lane": "tool-brief",
+  "toolId": "market-brief",
+  "runId": "run/2026-07-26/one-origin",
+  "cutoffAt": "2026-07-26T15:00:00.000Z",
+  "acquisitionStartedAt": "2026-07-26T15:00:05.000Z",
+  "frozenAt": "2026-07-26T15:00:20.000Z",
+  "queryPlanInput": {
+    "templates": [
+      {
+        "templateId": "single-source",
+        "termsTemplate": "{{ticker}} contract award",
+        "purpose": "material-claim-corroboration",
+        "allowedHosts": [{ "host": "reuters.example", "pathPrefix": "/markets" }],
+        "requiredSourceClasses": ["wire"],
+        "freshnessWindowDays": 7,
+        "maxResults": 4
+      }
+    ],
+    "facts": { "ticker": "ACME" }
+  },
+  "claimSpecs": [
+    {
+      "claimId": "claim-award",
+      "materiality": "material",
+      "claimKind": "general-material",
+      "normalizedClaim": "The issuer won a major contract award."
+    }
+  ],
+  "ownerEvidence": {},
+  "boundary": {
+    "search": {
+      "run/2026-07-26/one-origin:q0": [
+        { "candidateId": "cand-only", "url": "https://reuters.example/markets/acme-award" }
+      ]
+    },
+    "retrieve": {
+      "https://reuters.example/robots.txt": { "status": 200, "contentType": "text/plain", "durationMs": 30, "body": "User-agent: *\nAllow: /markets\n" },
+      "https://reuters.example/markets/acme-award": {
+        "status": 200,
+        "finalUrl": "https://reuters.example/markets/acme-award",
+        "contentType": "text/html",
+        "durationMs": 100,
+        "body": "<p>The issuer won a major contract award, a single wire report says.</p>",
+        "meta": {
+          "title": "Issuer wins contract",
+          "publisher": "Reuters",
+          "publishedAt": "2026-07-26T12:30:00.000Z",
+          "sourceClass": "wire",
+          "canonicalOriginRef": "reuters/acme-award-2026-07-26",
+          "supportsClaims": ["claim-award"],
+          "directionTag": "up",
+          "excerpts": ["The issuer won a major contract award, a single wire report says."]
+        }
+      }
+    }
+  },
+  "expect": {
+    "ok": true,
+    "retainedSourceCount": 1,
+    "independentOriginCount": 1,
+    "corroboratedMaterialClaims": 0,
+    "rejectedMaterialClaims": 1,
+    "claimAuthorable": { "claim-award": false },
+    "claimCorroboration": { "claim-award": "uncorroborated" },
+    "claimIndependentOriginGroupCount": { "claim-award": 1 },
+    "frozen": true
+  }
+}

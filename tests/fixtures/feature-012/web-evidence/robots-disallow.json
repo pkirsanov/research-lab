@@ -1,0 +1,59 @@
+{
+  "scenario": "robots-disallow",
+  "description": "The origin robots.txt disallows the target path. The URL is rejected (E012-WEB-ROBOTS / robots-disallow) and NO content request is made for that URL.",
+  "lane": "tool-brief",
+  "toolId": "market-brief",
+  "runId": "run/2026-07-26/robots-disallow",
+  "cutoffAt": "2026-07-26T15:00:00.000Z",
+  "acquisitionStartedAt": "2026-07-26T15:00:05.000Z",
+  "frozenAt": "2026-07-26T15:00:20.000Z",
+  "queryPlanInput": {
+    "templates": [
+      {
+        "templateId": "robots-gated",
+        "termsTemplate": "{{ticker}} filing",
+        "purpose": "material-claim-corroboration",
+        "allowedHosts": [{ "host": "reuters.example", "pathPrefix": "/markets" }],
+        "requiredSourceClasses": ["wire"],
+        "freshnessWindowDays": 7,
+        "maxResults": 4
+      }
+    ],
+    "facts": { "ticker": "ACME" }
+  },
+  "claimSpecs": [],
+  "ownerEvidence": {},
+  "boundary": {
+    "search": {
+      "run/2026-07-26/robots-disallow:q0": [
+        { "candidateId": "cand-disallowed", "url": "https://reuters.example/markets/acme-secret" }
+      ]
+    },
+    "retrieve": {
+      "https://reuters.example/robots.txt": { "status": 200, "contentType": "text/plain", "durationMs": 30, "body": "User-agent: *\nDisallow: /markets\n" },
+      "https://reuters.example/markets/acme-secret": {
+        "status": 200,
+        "finalUrl": "https://reuters.example/markets/acme-secret",
+        "contentType": "text/html",
+        "durationMs": 100,
+        "body": "<p>This body must never be retrieved because robots disallows it.</p>",
+        "meta": {
+          "title": "Disallowed page",
+          "publisher": "Reuters",
+          "publishedAt": "2026-07-26T13:00:00.000Z",
+          "sourceClass": "wire",
+          "supportsClaims": [],
+          "excerpts": ["This body must never be retrieved because robots disallows it."]
+        }
+      }
+    }
+  },
+  "expect": {
+    "ok": true,
+    "retainedSourceCount": 0,
+    "rejectedCandidateCount": 1,
+    "rejection": { "candidateId": "cand-disallowed", "reasonCode": "E012-WEB-ROBOTS", "safeReasonDetail": "robots-disallow", "safeHost": "reuters.example" },
+    "contentUrlNeverRetrieved": "https://reuters.example/markets/acme-secret",
+    "frozen": true
+  }
+}

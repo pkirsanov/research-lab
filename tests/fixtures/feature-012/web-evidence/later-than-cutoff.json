@@ -1,0 +1,58 @@
+{
+  "scenario": "later-than-cutoff",
+  "description": "A retrieved candidate is published AFTER the run cutoff. Production computes freshnessState=later-than-cutoff and rejects the candidate (E012-WEB-POLICY / later-than-cutoff) so no post-cutoff information leaks into the frozen bundle.",
+  "lane": "tool-brief",
+  "toolId": "market-brief",
+  "runId": "run/2026-07-26/later-than-cutoff",
+  "cutoffAt": "2026-07-26T15:00:00.000Z",
+  "acquisitionStartedAt": "2026-07-26T15:00:05.000Z",
+  "frozenAt": "2026-07-26T15:00:20.000Z",
+  "queryPlanInput": {
+    "templates": [
+      {
+        "templateId": "cutoff-bounded",
+        "termsTemplate": "{{ticker}} update",
+        "purpose": "material-claim-corroboration",
+        "allowedHosts": [{ "host": "reuters.example", "pathPrefix": "/markets" }],
+        "requiredSourceClasses": ["wire"],
+        "freshnessWindowDays": 7,
+        "maxResults": 4
+      }
+    ],
+    "facts": { "ticker": "ACME" }
+  },
+  "claimSpecs": [],
+  "ownerEvidence": {},
+  "boundary": {
+    "search": {
+      "run/2026-07-26/later-than-cutoff:q0": [
+        { "candidateId": "cand-future", "url": "https://reuters.example/markets/acme-future" }
+      ]
+    },
+    "retrieve": {
+      "https://reuters.example/robots.txt": { "status": 200, "contentType": "text/plain", "durationMs": 30, "body": "User-agent: *\nAllow: /markets\n" },
+      "https://reuters.example/markets/acme-future": {
+        "status": 200,
+        "finalUrl": "https://reuters.example/markets/acme-future",
+        "contentType": "text/html",
+        "durationMs": 100,
+        "body": "<p>A report timestamped after the acquisition cutoff.</p>",
+        "meta": {
+          "title": "Post-cutoff report",
+          "publisher": "Reuters",
+          "publishedAt": "2026-07-26T16:30:00.000Z",
+          "sourceClass": "wire",
+          "supportsClaims": [],
+          "excerpts": ["A report timestamped after the acquisition cutoff."]
+        }
+      }
+    }
+  },
+  "expect": {
+    "ok": true,
+    "retainedSourceCount": 0,
+    "rejectedCandidateCount": 1,
+    "rejection": { "candidateId": "cand-future", "reasonCode": "E012-WEB-POLICY", "safeReasonDetail": "later-than-cutoff", "safeHost": "reuters.example" },
+    "frozen": true
+  }
+}

@@ -1,0 +1,94 @@
+{
+  "scenario": "stale",
+  "description": "A stale source (published before the freshness window) is retained with freshnessState=stale but does NOT count toward the two-current-independent-origins requirement. With only one CURRENT origin, the material claim stays uncorroborated.",
+  "lane": "tool-brief",
+  "toolId": "market-brief",
+  "runId": "run/2026-07-26/stale",
+  "cutoffAt": "2026-07-26T15:00:00.000Z",
+  "acquisitionStartedAt": "2026-07-26T15:00:05.000Z",
+  "frozenAt": "2026-07-26T15:00:20.000Z",
+  "queryPlanInput": {
+    "templates": [
+      {
+        "templateId": "current-plus-stale",
+        "termsTemplate": "{{ticker}} guidance history",
+        "purpose": "material-claim-corroboration",
+        "allowedHosts": [
+          { "host": "reuters.example", "pathPrefix": "/markets" },
+          { "host": "apnews.example", "pathPrefix": "/hub" }
+        ],
+        "requiredSourceClasses": ["wire", "primary"],
+        "freshnessWindowDays": 7,
+        "maxResults": 6
+      }
+    ],
+    "facts": { "ticker": "ACME" }
+  },
+  "claimSpecs": [
+    {
+      "claimId": "claim-guidance",
+      "materiality": "material",
+      "claimKind": "general-material",
+      "normalizedClaim": "The issuer maintains its guidance."
+    }
+  ],
+  "ownerEvidence": {},
+  "boundary": {
+    "search": {
+      "run/2026-07-26/stale:q0": [
+        { "candidateId": "cand-current", "url": "https://reuters.example/markets/acme-current" },
+        { "candidateId": "cand-stale", "url": "https://apnews.example/hub/acme-old" }
+      ]
+    },
+    "retrieve": {
+      "https://reuters.example/robots.txt": { "status": 200, "contentType": "text/plain", "durationMs": 30, "body": "User-agent: *\nAllow: /markets\n" },
+      "https://reuters.example/markets/acme-current": {
+        "status": 200,
+        "finalUrl": "https://reuters.example/markets/acme-current",
+        "contentType": "text/html",
+        "durationMs": 100,
+        "body": "<p>The issuer maintains its guidance, a current report says.</p>",
+        "meta": {
+          "title": "Guidance maintained",
+          "publisher": "Reuters",
+          "publishedAt": "2026-07-26T13:00:00.000Z",
+          "sourceClass": "wire",
+          "canonicalOriginRef": "reuters/acme-current-2026-07-26",
+          "supportsClaims": ["claim-guidance"],
+          "directionTag": "flat",
+          "excerpts": ["The issuer maintains its guidance, a current report says."]
+        }
+      },
+      "https://apnews.example/robots.txt": { "status": 200, "contentType": "text/plain", "durationMs": 30, "body": "User-agent: *\nAllow: /hub\n" },
+      "https://apnews.example/hub/acme-old": {
+        "status": 200,
+        "finalUrl": "https://apnews.example/hub/acme-old",
+        "contentType": "text/html",
+        "durationMs": 105,
+        "body": "<p>An older report from earlier in the month noted the same guidance.</p>",
+        "meta": {
+          "title": "Earlier guidance note",
+          "publisher": "Associated Press",
+          "publishedAt": "2026-07-10T13:00:00.000Z",
+          "sourceClass": "primary",
+          "canonicalOriginRef": "ap/acme-old-2026-07-10",
+          "supportsClaims": ["claim-guidance"],
+          "directionTag": "flat",
+          "excerpts": ["An older report from earlier in the month noted the same guidance."]
+        }
+      }
+    }
+  },
+  "expect": {
+    "ok": true,
+    "retainedSourceCount": 2,
+    "independentOriginCount": 2,
+    "corroboratedMaterialClaims": 0,
+    "rejectedMaterialClaims": 1,
+    "claimAuthorable": { "claim-guidance": false },
+    "claimCorroboration": { "claim-guidance": "uncorroborated" },
+    "claimIndependentOriginGroupCount": { "claim-guidance": 1 },
+    "sourceFreshness": { "cand-current": "current", "cand-stale": "stale" },
+    "frozen": true
+  }
+}

@@ -1,0 +1,94 @@
+{
+  "scenario": "syndicated-common-origin",
+  "description": "SCN-012-007: two current articles that trace to ONE upstream report (shared canonicalOriginRef) count as ONE independent origin. A material claim resting on one origin is uncorroborated => a second independent origin is still required.",
+  "lane": "tool-brief",
+  "toolId": "market-brief",
+  "runId": "run/2026-07-26/syndicated",
+  "cutoffAt": "2026-07-26T15:00:00.000Z",
+  "acquisitionStartedAt": "2026-07-26T15:00:05.000Z",
+  "frozenAt": "2026-07-26T15:00:20.000Z",
+  "queryPlanInput": {
+    "templates": [
+      {
+        "templateId": "wire-and-reprint",
+        "termsTemplate": "{{ticker}} recall report",
+        "purpose": "material-claim-corroboration",
+        "allowedHosts": [
+          { "host": "reuters.example", "pathPrefix": "/markets" },
+          { "host": "syndicate.example", "pathPrefix": "/wire" }
+        ],
+        "requiredSourceClasses": ["wire"],
+        "freshnessWindowDays": 7,
+        "maxResults": 6
+      }
+    ],
+    "facts": { "ticker": "ACME" }
+  },
+  "claimSpecs": [
+    {
+      "claimId": "claim-recall",
+      "materiality": "material",
+      "claimKind": "general-material",
+      "normalizedClaim": "The issuer announced a product recall."
+    }
+  ],
+  "ownerEvidence": {},
+  "boundary": {
+    "search": {
+      "run/2026-07-26/syndicated:q0": [
+        { "candidateId": "cand-original", "url": "https://reuters.example/markets/acme-recall" },
+        { "candidateId": "cand-reprint", "url": "https://syndicate.example/wire/acme-recall-reprint" }
+      ]
+    },
+    "retrieve": {
+      "https://reuters.example/robots.txt": { "status": 200, "contentType": "text/plain", "durationMs": 30, "body": "User-agent: *\nAllow: /markets\n" },
+      "https://reuters.example/markets/acme-recall": {
+        "status": 200,
+        "finalUrl": "https://reuters.example/markets/acme-recall",
+        "contentType": "text/html",
+        "durationMs": 110,
+        "body": "<p>The issuer announced a product recall, according to the wire report.</p>",
+        "meta": {
+          "title": "Issuer announces recall",
+          "publisher": "Reuters",
+          "publishedAt": "2026-07-26T12:00:00.000Z",
+          "sourceClass": "wire",
+          "canonicalOriginRef": "reuters/acme-recall-2026-07-26",
+          "supportsClaims": ["claim-recall"],
+          "directionTag": "down",
+          "excerpts": ["The issuer announced a product recall, according to the wire report."]
+        }
+      },
+      "https://syndicate.example/robots.txt": { "status": 200, "contentType": "text/plain", "durationMs": 30, "body": "User-agent: *\nAllow: /wire\n" },
+      "https://syndicate.example/wire/acme-recall-reprint": {
+        "status": 200,
+        "finalUrl": "https://syndicate.example/wire/acme-recall-reprint",
+        "contentType": "text/html",
+        "durationMs": 115,
+        "body": "<p>The issuer announced a product recall, according to the wire report.</p>",
+        "meta": {
+          "title": "Issuer announces recall (syndicated)",
+          "publisher": "Syndicate Wire",
+          "publishedAt": "2026-07-26T12:20:00.000Z",
+          "sourceClass": "wire",
+          "canonicalOriginRef": "reuters/acme-recall-2026-07-26",
+          "supportsClaims": ["claim-recall"],
+          "directionTag": "down",
+          "excerpts": ["The issuer announced a product recall, according to the wire report."]
+        }
+      }
+    }
+  },
+  "expect": {
+    "ok": true,
+    "retainedSourceCount": 2,
+    "independentOriginCount": 1,
+    "corroboratedMaterialClaims": 0,
+    "rejectedMaterialClaims": 1,
+    "rejectedCandidateCount": 0,
+    "claimAuthorable": { "claim-recall": false },
+    "claimCorroboration": { "claim-recall": "uncorroborated" },
+    "claimIndependentOriginGroupCount": { "claim-recall": 1 },
+    "frozen": true
+  }
+}

@@ -1,0 +1,58 @@
+{
+  "scenario": "redirects",
+  "description": "The content response redirects (finalUrl != requested URL). Redirects are not permitted; the candidate is rejected (E012-WEB-POLICY / redirect-not-allowed) and no source is retained.",
+  "lane": "tool-brief",
+  "toolId": "market-brief",
+  "runId": "run/2026-07-26/redirects",
+  "cutoffAt": "2026-07-26T15:00:00.000Z",
+  "acquisitionStartedAt": "2026-07-26T15:00:05.000Z",
+  "frozenAt": "2026-07-26T15:00:20.000Z",
+  "queryPlanInput": {
+    "templates": [
+      {
+        "templateId": "redirecting",
+        "termsTemplate": "{{ticker}} report",
+        "purpose": "material-claim-corroboration",
+        "allowedHosts": [{ "host": "reuters.example", "pathPrefix": "/markets" }],
+        "requiredSourceClasses": ["wire"],
+        "freshnessWindowDays": 7,
+        "maxResults": 4
+      }
+    ],
+    "facts": { "ticker": "ACME" }
+  },
+  "claimSpecs": [],
+  "ownerEvidence": {},
+  "boundary": {
+    "search": {
+      "run/2026-07-26/redirects:q0": [
+        { "candidateId": "cand-redirect", "url": "https://reuters.example/markets/acme-report" }
+      ]
+    },
+    "retrieve": {
+      "https://reuters.example/robots.txt": { "status": 200, "contentType": "text/plain", "durationMs": 30, "body": "User-agent: *\nAllow: /markets\n" },
+      "https://reuters.example/markets/acme-report": {
+        "status": 200,
+        "finalUrl": "https://reuters.example/markets/acme-report-moved",
+        "contentType": "text/html",
+        "durationMs": 100,
+        "body": "<p>Redirected content that must be rejected.</p>",
+        "meta": {
+          "title": "Redirected page",
+          "publisher": "Reuters",
+          "publishedAt": "2026-07-26T13:00:00.000Z",
+          "sourceClass": "wire",
+          "supportsClaims": [],
+          "excerpts": ["Redirected content that must be rejected."]
+        }
+      }
+    }
+  },
+  "expect": {
+    "ok": true,
+    "retainedSourceCount": 0,
+    "rejectedCandidateCount": 1,
+    "rejection": { "candidateId": "cand-redirect", "reasonCode": "E012-WEB-POLICY", "safeReasonDetail": "redirect-not-allowed", "safeHost": "reuters.example" },
+    "frozen": true
+  }
+}

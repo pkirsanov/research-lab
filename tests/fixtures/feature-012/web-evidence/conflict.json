@@ -1,0 +1,92 @@
+{
+  "scenario": "conflict",
+  "description": "Two independent current sources disagree on direction (up vs down). A material claim in conflict is REJECTED (conflicted, not averaged), even with two independent origins.",
+  "lane": "tool-brief",
+  "toolId": "market-brief",
+  "runId": "run/2026-07-26/conflict",
+  "cutoffAt": "2026-07-26T15:00:00.000Z",
+  "acquisitionStartedAt": "2026-07-26T15:00:05.000Z",
+  "frozenAt": "2026-07-26T15:00:20.000Z",
+  "queryPlanInput": {
+    "templates": [
+      {
+        "templateId": "conflicting-reports",
+        "termsTemplate": "{{ticker}} outlook revision",
+        "purpose": "material-claim-corroboration",
+        "allowedHosts": [
+          { "host": "reuters.example", "pathPrefix": "/markets" },
+          { "host": "apnews.example", "pathPrefix": "/hub" }
+        ],
+        "requiredSourceClasses": ["wire", "primary"],
+        "freshnessWindowDays": 7,
+        "maxResults": 6
+      }
+    ],
+    "facts": { "ticker": "ACME" }
+  },
+  "claimSpecs": [
+    {
+      "claimId": "claim-outlook",
+      "materiality": "material",
+      "claimKind": "general-material",
+      "normalizedClaim": "The issuer revised its outlook higher."
+    }
+  ],
+  "ownerEvidence": {},
+  "boundary": {
+    "search": {
+      "run/2026-07-26/conflict:q0": [
+        { "candidateId": "cand-up", "url": "https://reuters.example/markets/acme-up" },
+        { "candidateId": "cand-down", "url": "https://apnews.example/hub/acme-down" }
+      ]
+    },
+    "retrieve": {
+      "https://reuters.example/robots.txt": { "status": 200, "contentType": "text/plain", "durationMs": 30, "body": "User-agent: *\nAllow: /markets\n" },
+      "https://reuters.example/markets/acme-up": {
+        "status": 200,
+        "finalUrl": "https://reuters.example/markets/acme-up",
+        "contentType": "text/html",
+        "durationMs": 100,
+        "body": "<p>The issuer revised its outlook higher, one report states.</p>",
+        "meta": {
+          "title": "Outlook revised higher",
+          "publisher": "Reuters",
+          "publishedAt": "2026-07-26T13:00:00.000Z",
+          "sourceClass": "wire",
+          "canonicalOriginRef": "reuters/acme-up-2026-07-26",
+          "supportsClaims": ["claim-outlook"],
+          "directionTag": "up",
+          "excerpts": ["The issuer revised its outlook higher, one report states."]
+        }
+      },
+      "https://apnews.example/robots.txt": { "status": 200, "contentType": "text/plain", "durationMs": 30, "body": "User-agent: *\nAllow: /hub\n" },
+      "https://apnews.example/hub/acme-down": {
+        "status": 200,
+        "finalUrl": "https://apnews.example/hub/acme-down",
+        "contentType": "text/html",
+        "durationMs": 105,
+        "body": "<p>A separate report states the issuer cut its outlook.</p>",
+        "meta": {
+          "title": "Outlook cut",
+          "publisher": "Associated Press",
+          "publishedAt": "2026-07-26T13:15:00.000Z",
+          "sourceClass": "primary",
+          "canonicalOriginRef": "ap/acme-down-2026-07-26",
+          "supportsClaims": ["claim-outlook"],
+          "directionTag": "down",
+          "excerpts": ["A separate report states the issuer cut its outlook."]
+        }
+      }
+    }
+  },
+  "expect": {
+    "ok": true,
+    "retainedSourceCount": 2,
+    "independentOriginCount": 2,
+    "corroboratedMaterialClaims": 0,
+    "rejectedMaterialClaims": 1,
+    "claimAuthorable": { "claim-outlook": false },
+    "claimCorroboration": { "claim-outlook": "conflicted" },
+    "frozen": true
+  }
+}

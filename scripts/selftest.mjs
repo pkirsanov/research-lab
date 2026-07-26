@@ -4313,6 +4313,41 @@ try {
   assert(marketAction.center.viewCount === 4 && marketAction.center.gatesPending === 3 && marketAction.adversarial.length === 7 && marketAction.adversarial.every((refusal) => /^RLMKT-/.test(refusal.code)) && new Set(marketAction.adversarial.map((refusal) => refusal.name)).size === 7, 'the market-action contract validator reports four views, three pending gates, and seven distinct closed RLMKT-* adversarial refusals');
 } catch (e) { failures++; console.log('  \u2717 FAIL (Feature 012 Scope 09 Market Action canaries threw): ' + e.message); }
 
+/* ---------- Feature 012 Scope 10 Bounded WebEvidence Acquisition canaries ----------
+   Drives the REAL scripts/validate-web-evidence.mjs over the committed acquisition policy
+   (market-brief.config.json "web-evidence-acquisition/v1") + the static fixtures, exercising the
+   REAL production acquire() (scripts/web-evidence-acquire.mjs) through each fixture's INJECTED
+   boundary (no socket, no network). Proves: every committed fixture produces its deterministic
+   frozen WebEvidenceBundle/v1 or closed rejection; a single/syndicated origin leaves a material
+   claim uncorroborated (SCN-012-006/007) while two DISTINCT origins corroborate; the acquisition
+   module imports ONLY node:crypto and owns ZERO fetch/provider-key/repo-write/current-pointer/
+   author-publication authority; and every closed adversarial mutation is refused with an E012-* code. */
+try {
+  group('Feature 012 Scope 10 Bounded WebEvidence Acquisition (fail-closed acquisition + validator)');
+  const feature012Scope10Validator = await import('./validate-web-evidence.mjs');
+  const webEvidence = await feature012Scope10Validator.validateWebEvidence();
+
+  // (1) every committed fixture (>= 11) evaluated deterministically against the REAL acquire() transform.
+  assert(webEvidence.fixtures.length >= 11 && webEvidence.fixtures.every((f) => f.name), 'every committed web-evidence fixture (>= 11) evaluates deterministically against the REAL acquire() production transform');
+
+  // (2) module authority: imports ONLY node:crypto, zero forbidden capability, no author/publication import.
+  assert(JSON.stringify(webEvidence.moduleAuthority.imports) === JSON.stringify(['node:crypto']) && webEvidence.moduleAuthority.forbiddenCapabilityCount === 0 && webEvidence.moduleAuthority.importsAuthorModule === false, 'web-evidence-acquire.mjs imports ONLY node:crypto and owns zero fetch/provider-key/repo-write/current-pointer/author-publication authority');
+
+  // (3) twelve distinct closed adversarial refusals, every code in the E012-* namespace.
+  assert(webEvidence.adversarial.length === 12 && webEvidence.adversarial.every((r) => /^E012-/.test(r.code)) && new Set(webEvidence.adversarial.map((r) => r.name)).size === 12, 'the web-evidence validator refuses twelve distinct closed adversarial mutations, each with an E012-* code');
+
+  // (4) SCN-012-006/007/037 through the harness: single & syndicated origins => uncorroborated; two distinct origins => corroborated; safe frozen bundle.
+  const policies10 = feature012Scope10Validator.resolveFixturePolicies(feature012Scope10Validator.loadConfig());
+  const tb10 = policies10['tool-brief'];
+  const syn10 = await feature012Scope10Validator.runFixtureAcquisition(feature012Scope10Validator.loadFixture('syndicated-common-origin'), tb10);
+  const one10 = await feature012Scope10Validator.runFixtureAcquisition(feature012Scope10Validator.loadFixture('one-origin-uncorroborated'), tb10);
+  const prim10 = await feature012Scope10Validator.runFixtureAcquisition(feature012Scope10Validator.loadFixture('primary-independent'), tb10);
+  const synClaim10 = syn10.acquireResult.value.claims.find((c) => c.claimId === 'claim-recall');
+  const oneClaim10 = one10.acquireResult.value.claims.find((c) => c.claimId === 'claim-award');
+  const primClaim10 = prim10.acquireResult.value.claims.find((c) => c.claimId === 'claim-guidance');
+  assert(syn10.acquireResult.value.coverage.independentOriginCount === 1 && synClaim10.corroborationState === 'uncorroborated' && synClaim10.authorable === false && oneClaim10.corroborationState === 'uncorroborated' && oneClaim10.authorable === false && primClaim10.corroborationState === 'corroborated' && primClaim10.authorable === true && Object.isFrozen(prim10.acquireResult.value) && !JSON.stringify(prim10.acquireResult.value).includes('<p>'), 'SCN-012-006/007 single & syndicated origins leave a material claim uncorroborated while two DISTINCT origins corroborate; the safe bundle is frozen with no raw markup (SCN-012-037)');
+} catch (e) { failures++; console.log('  \u2717 FAIL (Feature 012 Scope 10 WebEvidence canaries threw): ' + e.message); }
+
 /* ---------- summary ---------- */
 console.log('\n' + '='.repeat(48));
 console.log('Research-Lab self-test: ' + passes + ' passed, ' + failures + ' failed');

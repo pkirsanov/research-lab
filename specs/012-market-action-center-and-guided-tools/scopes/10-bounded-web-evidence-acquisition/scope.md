@@ -4,7 +4,7 @@
 
 Planning authority: [spec.md](../../spec.md), [design.md](../../design.md), and the [scope index](../_index.md). Execution evidence belongs in [report.md](report.md).
 
-**Status:** Not Started
+**Status:** In Progress
 
 **Scope-Kind:** runtime-behavior
 
@@ -135,22 +135,22 @@ Create one-origin/syndication/policy/safety/freeze assertions before acquisition
 
 #### Core Delivery Items
 
-- [ ] Exact bounded acquisition policies, safe query rendering, robots/transport/source verification, hostile-content rejection, origin grouping, claim/owner mapping, and immutable bundle freeze are complete.
-- [ ] One-origin and syndicated-common-origin material claims remain rejected; raw/unsafe/private/credential data is absent from prompts, logs, artifacts, DOM, and outputs.
-- [ ] Acquisition has no author, repository-write, current-pointer, provider-key, owner-model, private-state, or public publication authority.
-- [ ] Existing Feature 002 v1 Brief/payload/config behavior and rollback remain green.
+- [x] Exact bounded acquisition policies, safe query rendering, robots/transport/source verification, hostile-content rejection, origin grouping, claim/owner mapping, and immutable bundle freeze are complete. → [report.md#tp-10-01](report.md#tp-10-01), [#tp-10-02](report.md#tp-10-02), [#tp-10-04](report.md#tp-10-04)
+- [x] One-origin and syndicated-common-origin material claims remain rejected; raw/unsafe/private/credential data is absent from prompts, logs, artifacts, DOM, and outputs. → [report.md#tp-10-03](report.md#tp-10-03), [#scn-012-006](report.md#scn-012-006), [#scn-012-007](report.md#scn-012-007), [#scn-012-037](report.md#scn-012-037)
+- [x] Acquisition has no author, repository-write, current-pointer, provider-key, owner-model, private-state, or public publication authority. → [report.md#tp-10-03](report.md#tp-10-03), [#tp-10-08](report.md#tp-10-08); browser INSPECT-only proof [#scn-012-037](report.md#scn-012-037) (b)
+- [x] Existing Feature 002 v1 Brief/payload/config behavior and rollback remain green. → [report.md#existing-brief-canary](report.md#existing-brief-canary) (validate-brief-payload PASS + selftest 949/0; distributed-briefs browser suite fails identically at HEAD — pre-existing F-10-B, not a regression)
 
 #### Test Evidence Items - Exact Parity With 8 Test Plan Rows
 
-- [ ] TP-10-01 unit evidence proves closed plan/policy/source/claim/origin/budget contracts.
-- [ ] TP-10-02 functional evidence proves bounded acquisition, robots, extraction, freeze, and corroboration behavior.
-- [ ] TP-10-03 security evidence proves every unsafe/private/instruction/budget mutation fails closed without echo.
-- [ ] TP-10-04 validator evidence proves committed policies/fixtures produce deterministic accepted/refused results.
-- [ ] TP-10-05 E2E evidence proves SCN-012-006 one-origin rejection in the real static UI.
-- [ ] TP-10-06 E2E evidence proves SCN-012-007 syndicated-origin grouping in the real static UI.
-- [ ] TP-10-07 E2E evidence proves SCN-012-037 safe bounded bundle projection with no hostile body.
-- [ ] TP-10-08 broad selftest evidence proves existing Research Lab behavior remains green.
+- [x] TP-10-01 unit evidence proves closed plan/policy/source/claim/origin/budget contracts. → [report.md#tp-10-01](report.md#tp-10-01) (10/0, exit 0)
+- [x] TP-10-02 functional evidence proves bounded acquisition, robots, extraction, freeze, and corroboration behavior. → [report.md#tp-10-02](report.md#tp-10-02) (11/0, exit 0)
+- [x] TP-10-03 security evidence proves every unsafe/private/instruction/budget mutation fails closed without echo. → [report.md#tp-10-03](report.md#tp-10-03) (9/0, exit 0)
+- [x] TP-10-04 validator evidence proves committed policies/fixtures produce deterministic accepted/refused results. → [report.md#tp-10-04](report.md#tp-10-04) (fixtures=11 adversarial=12 unexpectedAcceptances=0, exit 0)
+- [x] TP-10-05 E2E evidence proves SCN-012-006 one-origin rejection in the real static UI. → [report.md#scn-012-006](report.md#scn-012-006) (RED→GREEN, exit 0)
+- [x] TP-10-06 E2E evidence proves SCN-012-007 syndicated-origin grouping in the real static UI. → [report.md#scn-012-007](report.md#scn-012-007) (exit 0)
+- [x] TP-10-07 E2E evidence proves SCN-012-037 safe bounded bundle projection with no hostile body. → [report.md#scn-012-037](report.md#scn-012-037) (exit 0; hostile bundle fully redacted, browser cannot acquire)
+- [x] TP-10-08 broad selftest evidence proves existing Research Lab behavior remains green. → [report.md#tp-10-08](report.md#tp-10-08) (949 passed / 0 failed, exit 0)
 
 #### Build Quality Gate
 
-- [ ] Scenario RED/GREEN, exact system-Chrome identity, no-interception scan, authority/import graph, robots/URL/budget/injection mutation matrix, content/credential/private sentinel scan, deterministic bytes, existing Brief/payload canaries, protected-path diff, editor diagnostics, `git diff --check`, source-lock, validators, artifact lint, and broad selftest are current and clean.
+- [x] Scenario RED/GREEN, exact system-Chrome identity, no-interception scan, authority/import graph, robots/URL/budget/injection mutation matrix, content/credential/private sentinel scan, deterministic bytes, existing Brief/payload canaries, protected-path diff, editor diagnostics, `git diff --check`, source-lock, validators, artifact lint, and broad selftest are current and clean. → RED→GREEN [report.md#scn-012-006](report.md#scn-012-006); no-interception clean + `git diff --check` exit 0 + validators PASS [report.md#no-interception-scan](report.md#no-interception-scan), [#lintquality](report.md#lintquality); artifact-lint PASSED; protected-path diff clean [report.md#code-diff-evidence](report.md#code-diff-evidence)

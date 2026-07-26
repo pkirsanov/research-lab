@@ -4,9 +4,10 @@ Links: [scope.md](scope.md) | [spec.md](../../spec.md) | [design.md](../../desig
 
 ## Summary
 
-Scope 07 IN PROGRESS. **5 of 7** Scope-07 adapters delivered — three strategy adapters single-sourced
-through `rlexperience-adapters/strategy-research.js`, and two place-based rental adapters single-sourced
-through `rlexperience-adapters/property-research.js` (owner seam = the shared `rlrental.js` engine).
+Scope 07 IN PROGRESS. **6 of 7** Scope-07 adapters delivered — three strategy adapters single-sourced
+through `rlexperience-adapters/strategy-research.js`; two place-based rental adapters (owner seam = the shared
+`rlrental.js` engine) plus the Waterfront × Masters location screener (owner seam = the module's own geo
+primitives) single-sourced through `rlexperience-adapters/property-research.js`.
 
 - **Batch 1 — `strategy-evolution/v1`** (`strategy-self-improvement-lab`). Seeded owner engine
   (`mulberry32`, `gauss`, `genSeries`, `sma`, `realizedVol`, `backtest`, `metrics`, `walkForward`) extracted;
@@ -43,10 +44,27 @@ through `rlexperience-adapters/property-research.js` (owner seam = the shared `r
   (storm/insurance + regulation) drive ONLY `summary.stress`. A genuine RED replay (registration stashed → 4 of 5
   ocean tests fail because the adapter is unregistered) proved the tests bite; the registration was restored to
   GREEN at 27/27.
+- **Batch 6 — `location-suitability/v1`** (`waterfront-polo-lab`, THIS dispatch Task A). Third property owner seam,
+  and a DIFFERENT single-source style: the great-circle distance / drive-time / nearest-club / market-filter owner
+  primitives (`haversineMi`, `driveMinutesApprox`, `nearestClub`, `marketPasses`) live once, in
+  `property-research.js` (RLPROPERTY), and BOTH the owning `waterfront-polo-lab.html` page (now delegating via thin
+  `RLPROPERTY.*` wrappers — the inline formula bodies REMOVED) AND the `location-suitability/v1` Simple adapter
+  consume them (owner-parity). Five dedicated location-suitability unit rows were added (module authority + geo
+  primitives exposed + no forbidden authority; page single-source; adapter registers + owner-parity; all SEVEN
+  parameters move their declared path; unverified-gap preservation + determinism). All seven declared parameters
+  provably move their declared path — `budget` / `minimum-size` / `water-type` / `travel-limit` → `summary.shortlist`,
+  `insurance-risk-ceiling` → `summary.risk`, `flood-verification` / `club-verification` → `summary.verification` —
+  each engineered to toggle exactly one market with genuine owner-primitive content, and the two verification flags
+  keep the shortlist + risk partitions unchanged. Unverified Masters-club seeds and estimated hazard rows are
+  preserved as an explicit verification gap, never promoted to verified. The `scripts/selftest.mjs` waterfront group
+  was reconciled IN LOCKSTEP — it now loads the single source (`createRequire` → RLPROPERTY) and asserts the page
+  loads the module + delegates + carries no inline `var R = 3958.7613` / budget-fit rank table (+3 assertions). An
+  isolated RED replay (page stashed to HEAD → only the page-single-source row bites) proved the test has teeth; the
+  rewired page returned the unit file to 32/32 GREEN.
 
-The broad selftest is green (**931 passed / 0 failed**). Remaining Scope-07 adapters: `location-suitability/v1`
-(`waterfront-polo-lab`, this dispatch Task B) and the Market Action Center `market-action-triage/v1` triage model
-(later dispatch). Feature status stays `not_started`; Scope 07 stays `in_progress`.
+The broad selftest is green (**934 passed / 0 failed**). Remaining Scope-07 adapter: the Market Action Center
+`market-action-triage/v1` in-Brief triage model (THIS dispatch Task B). Feature status stays `not_started`;
+Scope 07 stays `in_progress`.
 
 ## Decision Record
 
@@ -276,13 +294,89 @@ RED_EXIT=1
 The registration was restored (`git stash pop`), re-adding ocean-shores to both arrays, and the full unit file
 returned to **27/27 GREEN** (the block above). Node `--check` on the unit file parses clean.
 
+### TP-07-01 unit — location-suitability/v1 (batch 6, THIS dispatch Task A)
+
+Phase: implement | Command: `node --test tests/simple-model-adapters-strategy-property.unit.mjs` | Exit Code: 0 | Claim Source: executed
+
+GREEN — the five new location-suitability rows inside the full 32-test unit run (spec reporter, location rows shown):
+
+```
+ok 28 - TP-07-01 property-research module exposes the delivered location-suitability adapter and single-source geo primitives with no forbidden authority
+ok 29 - TP-07-01 waterfront-polo-lab.html single-sources the geo / market-filter primitives from property-research.js (RLPROPERTY)
+ok 30 - TP-07-01 location-suitability adapter registers through the production runtime and produces a ready owner-parity run
+ok 31 - TP-07-01 each enabled location-suitability parameter changes its declared output path with genuine owner-computed content
+ok 32 - TP-07-01 location-suitability preserves the unverified club-seed / estimated-hazard gap without promoting to verified, and is deterministic
+# tests 32
+# pass 32
+# fail 0
+UNIT_EXIT=0
+```
+
+What the five location-suitability rows prove:
+
+- **Module authority + single-source geo primitives + registration by exact ID.** `property-research.js` lists
+  `simple-adapter/location-suitability/v1` in `supportedAdapterIds` and exposes the four owner geo primitives
+  (`haversineMi`, `driveMinutesApprox`, `nearestClub`, `marketPasses`) plus `computeLocationSuitabilitySummary`
+  on its public API — the single source both the page and the adapter consume. The comment-stripped
+  forbidden-authority scan over the whole module has zero executable hits.
+- **Page single-sources the geo primitives (the anti-F-05-SS-OPTIONS step).** `waterfront-polo-lab.html` loads
+  `rlexperience-adapters/property-research.js`, delegates `haversineMi` / `driveMinutesApprox` / `nearestClub` /
+  `marketPasses` to `RLPROPERTY.*` via thin one-line wrappers, and carries NO inline copy of the great-circle
+  Earth-radius constant (`var R = 3958.7613`) or the market-filter budget-fit rank table — the formula bodies were
+  REMOVED so the page has ONE source (the module).
+- **Adapter runs through the production runtime + owner parity.** A `prepare` over a frozen six-market geo universe
+  yields a ready run whose shortlist row `nearestClubMi` and `driveMin` for market `m-a` each equal a DIRECT
+  `RLPROPERTY.nearestClub` + `RLPROPERTY.driveMinutesApprox` call over the same owner facts — the adapter
+  single-sources the geo primitives, not a re-derivation — and the shortlist is the deterministic drive-time-ordered
+  `['m-f', 'm-a']` set.
+- **All seven parameters move their declared path with genuine owner-primitive content.** `budget`, `minimum-size`,
+  `water-type`, and `travel-limit` each move `summary.shortlist`; `insurance-risk-ceiling` moves `summary.risk`
+  ONLY (shortlist + verification fingerprints unchanged); `flood-verification` and `club-verification` each move
+  `summary.verification` ONLY (shortlist + risk fingerprints unchanged). Each change toggles exactly one market via
+  the single-sourced owner primitives.
+- **Gap-preserving + deterministic.** Two runs are byte-identical (no clock, no randomness). With flood + club
+  evidence required (the defaults) the estimated-hazard market (`m-b`) and the seed-club market (`m-f`) stay
+  UNVERIFIED — never promoted — and the shortlisted seed-club market still surfaces its `seed` confidence rather
+  than being rewritten to `reported`.
+
+### RED proof — location-suitability (page stashed → the single-source row bites)
+
+Before committing, the rewired page was stashed (`git stash push -- waterfront-polo-lab.html`), reverting
+`waterfront-polo-lab.html` to HEAD where it still defines the geo primitives inline (`var R = 3958.7613`, the
+budget-fit rank table) and does NOT load `property-research.js`. Re-running the unit file FAILED exactly ONE row —
+the page single-source assertion — while the four page-independent adapter rows (module authority, registration +
+owner-parity, parameter effects, gap preservation) correctly still pass:
+
+```
+ok 28 - TP-07-01 property-research module exposes the delivered location-suitability adapter and single-source geo primitives with no forbidden authority
+not ok 29 - TP-07-01 waterfront-polo-lab.html single-sources the geo / market-filter primitives from property-research.js (RLPROPERTY)
+  failureType: 'testCodeFailure'   [AssertionError: waterfront page loads the property-research module]
+ok 30 - TP-07-01 location-suitability adapter registers through the production runtime and produces a ready owner-parity run
+ok 31 - TP-07-01 each enabled location-suitability parameter changes its declared output path with genuine owner-computed content
+ok 32 - TP-07-01 location-suitability preserves the unverified club-seed / estimated-hazard gap without promoting to verified, and is deterministic
+# tests 32
+# pass 31
+# fail 1
+RED_EXIT=1
+```
+
+The rewired page was restored (`git stash pop`) — re-adding the `property-research.js` script tag + the four
+`RLPROPERTY.*` delegators and removing the inline formula bodies — and the full unit file returned to **32/32
+GREEN** (the block above). Transparency: during first authoring the adapter-registration row also flagged a
+fixture-expectation error — my hand-computed shortlist drive-time order `['m-a','m-f']` was reversed; the genuine
+single-sourced owner-primitive output is `['m-f','m-a']` because m-f sits fractionally closer to its club at
+latitude 30 than m-a at 28.5 (longitude miles-per-degree shrinks with latitude). The test's expected order was
+corrected to the genuine deterministic output — an expectation fix, not a relaxed assertion; the row still asserts
+exactly the two correct markets in correct drive-time order. Node `--check` on the module + selftest + unit file
+parses clean; the page's inline JS is a trivial delegator rewrite exercised GREEN by the adapter + selftest.
+
 <a id="tp-07-11"></a>
 ### TP-07-11 broad selftest
 
 Phase: implement | Command: `node scripts/selftest.mjs` | Exit Code: 0 | Claim Source: executed
 
 ```
-Research-Lab self-test: 931 passed, 0 failed
+Research-Lab self-test: 934 passed, 0 failed
 SELFTEST_EXIT=0
 ```
 
@@ -294,6 +388,12 @@ SELFTEST_EXIT=0
   prior dispatches. Ocean-shores (batch 5, this dispatch) added no selftest group — it reuses the same
   `rlrental.js` place-based engine + `property-research.js` shared compute as palm-springs, so it required only a
   2-line registration + its dedicated unit rows. Zero regressions in any other group.
+- Batch 6 (location-suitability): 931 → **934** = +3, exactly the three new single-source wiring assertions added to
+  the reconciled `waterfront-polo-lab.html` selftest group when it was converted from `extractFn`/`build` on the
+  page to a `createRequire` load of the single source (RLPROPERTY): the page loads the module, delegates the four
+  geo primitives, and carries no inline `var R = 3958.7613` / budget-fit rank table. The 13 pre-existing geo
+  assertions moved from `env.*` (page-extracted) to `RLP.*` (module) with no count change. Zero regressions in any
+  other group.
 
 ### Forbidden-authority + protected-path integrity (batch 1)
 
@@ -341,6 +441,27 @@ SELFTEST_EXIT=0
   plus the untouched concurrent-session `bugs/BUG-001-.../scenario-manifest.json` (M) — preserved, not staged. No
   `scripts/selftest.mjs` change for batch 5 (ocean reuses the palm-springs place-based `rlrental.js` engine +
   `property-research.js` shared compute, so it needs no new selftest group).
+
+### Forbidden-authority + protected-path integrity (batch 6 — location-suitability)
+
+- Comment-stripped EXECUTABLE forbidden-authority scan on `rlexperience-adapters/property-research.js` (all three
+  property adapters + the four geo primitives in one module): `EXECUTABLE_FORBIDDEN_AUTHORITY_TOKENS=0` (no
+  fetch/providerFetch/RLDATA/localStorage/sessionStorage/indexedDB/XMLHttpRequest/dynamic-import/require/
+  writeFileSync/Date.now/Math.random/data-options/data-bars/cross-domain-adapter). The geo primitives are pure math
+  (`Math.sin/cos/asin/sqrt/PI/min` + `Math.round/pow`); the 4 raw comment mentions of `RLDATA`/`fetch` are doc prose
+  naming what the module avoids, not executable calls.
+- `git diff --numstat` of the protected surfaces is EMPTY (zero diff) for ALL of: `rlrental.js`,
+  `rlexperience-adapters/strategy-research.js`, `rldata.js`, `rlexperience.js`, the Scope 04/05/06 modules
+  (`market-structure.js`, `options.js`, `macro-rotation.js`, `fundamental-models.js`), `simple-models.json`,
+  `tests/simple-model-adapters.integration.mjs`, and `data/options/**` — none modified by batch 6.
+- The registry-derived integration loop stayed **5/5 green** (`INTEGRATION_EXIT=0`) — the property-research /
+  waterfront / selftest edits did not regress any Scope-05/06 adapter.
+- `git status --short` working tree for the location batch: only `waterfront-polo-lab.html` (M, script tag + four
+  `RLPROPERTY.*` delegators, inline formula bodies removed — net -deletions), `scripts/selftest.mjs` (M, reconciled
+  waterfront group), and `tests/simple-model-adapters-strategy-property.unit.mjs` (M, the five location rows), plus
+  the already-dirty `rlexperience-adapters/property-research.js` (the location-suitability module implementation from
+  the prior partial dispatch, PRESERVED + now single-sourced by the page) and the untouched concurrent-session
+  `bugs/BUG-001-.../scenario-manifest.json` (M) — preserved, not staged into the location commit's scope.
 
 ## Uncertainty Declarations
 

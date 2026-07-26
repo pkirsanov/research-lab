@@ -756,40 +756,51 @@ try {
   assert(!/return Math\.pow\(2, -Math\.max\(0, ageDays\) \/ halfLifeDays\)/.test(src) && !/var breadth = Math\.log2\(1 \+ Math\.max\(0, nFilers\)\)/.test(src), 'smart-money-flow-lab.html carries no inline copy of the single-sourced disclosure-lag / consensus formula');
 } catch (e) { failures++; console.log('  \u2717 FAIL (smart-money group threw): ' + e.message); }
 
-/* ---------- Waterfront × Masters Water-Polo screener: geo + filter ---------- */
+/* ---------- Waterfront × Masters Water-Polo screener: single-sourced geo + filter (RLPROPERTY) ---------- */
+// Feature 012 Scope 07: the great-circle distance / drive-time / nearest-club / market-filter owner primitives
+// are single-sourced in rlexperience-adapters/property-research.js (RLPROPERTY), which the page delegates to.
+// Both the owning waterfront page's screener AND the location-suitability/v1 Simple adapter consume the exact
+// same pure owner primitives (owner-parity); the page carries no inline copy of the geo/market-filter formulas.
 try {
-  group('waterfront-polo-lab.html \u2014 geo distance, drive-time & market filter');
+  group('waterfront-polo-lab.html \u2014 single-sourced geo distance, drive-time & market filter (RLPROPERTY)');
   const src = read('waterfront-polo-lab.html');
-  const names = ['haversineMi', 'driveMinutesApprox', 'nearestClub', 'marketPasses'];
-  const env = build(names.map((n) => extractFn(src, n)), names);
+  const { createRequire } = await import('node:module');
+  const wpRequire = createRequire(import.meta.url);
+  delete wpRequire.cache[wpRequire.resolve('../rlexperience-adapters/property-research.js')];
+  const RLP = wpRequire('../rlexperience-adapters/property-research.js');
 
   // haversine: identity, symmetry, known city pair (Orlando <-> Tampa ~ 77-85 mi)
-  assert(env.haversineMi(28.54, -81.38, 28.54, -81.38) === 0, 'haversineMi(p,p) = 0');
-  assert(approx(env.haversineMi(28.54, -81.38, 27.95, -82.46), env.haversineMi(27.95, -82.46, 28.54, -81.38), 1e-9), 'haversineMi symmetric');
-  const orlTpa = env.haversineMi(28.54, -81.38, 27.95, -82.46);
+  assert(RLP.haversineMi(28.54, -81.38, 28.54, -81.38) === 0, 'haversineMi(p,p) = 0');
+  assert(approx(RLP.haversineMi(28.54, -81.38, 27.95, -82.46), RLP.haversineMi(27.95, -82.46, 28.54, -81.38), 1e-9), 'haversineMi symmetric');
+  const orlTpa = RLP.haversineMi(28.54, -81.38, 27.95, -82.46);
   assert(orlTpa > 60 && orlTpa < 95, 'Orlando<->Tampa great-circle ~77-85 mi, got ' + orlTpa.toFixed(1));
 
   // drive-time: 0 at 0, monotone, 38 mi @ 38 mph @ rf 1.0 = 60 min
-  assert(env.driveMinutesApprox(0, 38, 1.25) === 0, 'driveMinutesApprox(0,...) = 0');
-  assert(approx(env.driveMinutesApprox(38, 38, 1.0), 60, 1e-6), '38 mi @ 38 mph, rf 1.0 => 60 min');
-  assert(env.driveMinutesApprox(50, 38, 1.25) > env.driveMinutesApprox(10, 38, 1.25), 'drive-time monotone in distance');
-  assert(env.driveMinutesApprox(-5, 38, 1.25) === null && env.driveMinutesApprox(10, 0, 1.25) === null, 'guards bad input => null');
+  assert(RLP.driveMinutesApprox(0, 38, 1.25) === 0, 'driveMinutesApprox(0,...) = 0');
+  assert(approx(RLP.driveMinutesApprox(38, 38, 1.0), 60, 1e-6), '38 mi @ 38 mph, rf 1.0 => 60 min');
+  assert(RLP.driveMinutesApprox(50, 38, 1.25) > RLP.driveMinutesApprox(10, 38, 1.25), 'drive-time monotone in distance');
+  assert(RLP.driveMinutesApprox(-5, 38, 1.25) === null && RLP.driveMinutesApprox(10, 0, 1.25) === null, 'guards bad input => null');
 
   // nearestClub: picks the closest of the set
   const clubs = [{ lat: 28.5, lon: -81.4 }, { lat: 27.9, lon: -82.5 }, { lat: 30.3, lon: -81.7 }];
-  assert(env.nearestClub(28.55, -81.38, clubs).idx === 0, 'nearestClub picks the co-located Orlando club');
-  assert(env.nearestClub(30.2, -81.65, clubs).idx === 2, 'nearestClub picks Jacksonville for a NE point');
+  assert(RLP.nearestClub(28.55, -81.38, clubs).idx === 0, 'nearestClub picks the co-located Orlando club');
+  assert(RLP.nearestClub(30.2, -81.65, clubs).idx === 2, 'nearestClub picks Jacksonville for a NE point');
 
   // marketPasses: budget-fit rank, drive-time gate, water/flood/surge/land/ins filters
   const base = { driveMin: 25, budgetFit: 'strong', water: 'lake', flood: 1, surge: 0, land: 3, insBand: 1 };
   const fAll = { withinOnly: true, minutes: 40, minFit: 'good', water: { lake: true, river: true, intracoastal: true, canalBay: true, ocean: true }, maxFlood: 4, maxSurge: 4, minLand: 1, maxIns: 3 };
-  assert(env.marketPasses(base, fAll) === true, 'a strong, in-ring, low-risk lake market passes');
-  assert(env.marketPasses(Object.assign({}, base, { driveMin: 55 }), fAll) === false, 'out-of-ring drive-time fails when withinOnly');
-  assert(env.marketPasses(Object.assign({}, base, { budgetFit: 'over' }), fAll) === false, 'over-budget fails minFit >= good');
-  assert(env.marketPasses(Object.assign({}, base, { budgetFit: 'partial' }), fAll) === false, 'partial (rank 1) fails minFit good (rank 2)');
-  assert(env.marketPasses(base, Object.assign({}, fAll, { water: { lake: false, river: true, intracoastal: true, canalBay: true, ocean: true } })) === false, 'excluded water type fails');
-  assert(env.marketPasses(Object.assign({}, base, { surge: 4 }), Object.assign({}, fAll, { maxSurge: 2 })) === false, 'high-surge market fails a low max-surge cap');
-  assert(env.marketPasses(Object.assign({}, base, { land: 1 }), Object.assign({}, fAll, { minLand: 3 })) === false, 'low-land market fails a high land floor');
+  assert(RLP.marketPasses(base, fAll) === true, 'a strong, in-ring, low-risk lake market passes');
+  assert(RLP.marketPasses(Object.assign({}, base, { driveMin: 55 }), fAll) === false, 'out-of-ring drive-time fails when withinOnly');
+  assert(RLP.marketPasses(Object.assign({}, base, { budgetFit: 'over' }), fAll) === false, 'over-budget fails minFit >= good');
+  assert(RLP.marketPasses(Object.assign({}, base, { budgetFit: 'partial' }), fAll) === false, 'partial (rank 1) fails minFit good (rank 2)');
+  assert(RLP.marketPasses(base, Object.assign({}, fAll, { water: { lake: false, river: true, intracoastal: true, canalBay: true, ocean: true } })) === false, 'excluded water type fails');
+  assert(RLP.marketPasses(Object.assign({}, base, { surge: 4 }), Object.assign({}, fAll, { maxSurge: 2 })) === false, 'high-surge market fails a low max-surge cap');
+  assert(RLP.marketPasses(Object.assign({}, base, { land: 1 }), Object.assign({}, fAll, { minLand: 3 })) === false, 'low-land market fails a high land floor');
+
+  // single-source wiring: the owning page loads the module, delegates, and carries no inline formula copy.
+  assert(/rlexperience-adapters\/property-research\.js/.test(src), 'waterfront-polo-lab.html loads the property-research module');
+  assert(/RLPROPERTY\.haversineMi\s*\(/.test(src) && /RLPROPERTY\.driveMinutesApprox\s*\(/.test(src) && /RLPROPERTY\.nearestClub\s*\(/.test(src) && /RLPROPERTY\.marketPasses\s*\(/.test(src), 'waterfront-polo-lab.html delegates geo distance / drive-time / nearest-club / market-filter to the single source');
+  assert(!/var R = 3958\.7613/.test(src) && !/var fitRank = \{ strong: 3, good: 2, partial: 1, over: 0 \}/.test(src), 'waterfront-polo-lab.html carries no inline copy of the single-sourced geo / market-filter formula');
 } catch (e) { failures++; console.log('  \u2717 FAIL (waterfront-polo group threw): ' + e.message); }
 
 /* ---------- Property research: str-scenario place-based cash flow (single-sourced RLRENTAL owner engine) ---------- */

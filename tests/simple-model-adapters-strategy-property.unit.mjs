@@ -1269,3 +1269,247 @@ test('TP-07-01 str-scenario/ocean-shores preserves the undisclosed-economics gap
   // The OPERATING result is a real owner number (not null) — the disclosed-cost path is complete and usable.
   assert.equal(typeof cf.annualOperatingPreTaxCashFlowUsd, 'number', 'the disclosed-cost operating cash flow is a real owner number');
 });
+
+/* ═══════════════════════ property-research: location-suitability (owner seam = waterfront-polo-lab.html geo primitives) ═══════════════════════
+   The THIRD property owner seam, and a DIFFERENT single-source style from the two str-scenario adapters. The
+   great-circle distance / drive-time / nearest-club / market-filter primitives (haversineMi / driveMinutesApprox
+   / nearestClub / marketPasses) are the SINGLE SOURCE — they live once, in property-research.js (RLPROPERTY) —
+   and BOTH the owning waterfront-polo page delegates to them AND the location-suitability/v1 Simple adapter
+   consumes them (owner-parity). No geometry is re-derived on the page or in the adapter. Unverified Masters-club
+   seeds and estimated hazard rows are preserved as an explicit verification gap, never promoted to verified. */
+
+/* A synthetic frozen owner location universe engineered so every declared parameter provably moves its declared
+   output path with GENUINE owner-primitive content. Two Masters clubs — one "reported", one far-NE "seed" — plus
+   six candidate markets positioned so exactly one market crosses each lever:
+     - m-a: near the reported club, lake, in-budget, big-enough, low insurance, measured flood → the stable finalist.
+     - m-b: ~32 mi from the reported club (>40 min but <70 min drive), lake, insurance band 5, ESTIMATED flood →
+       the travel-limit lever (out at 40, in at 70), the insurance-risk-ceiling lever (over at ceiling 3, within
+       at 5), AND the flood-verification lever (verified only when flood evidence is not required).
+     - m-c: near the reported club, lake, high price-per-sqft (small affordable size) → the minimum-size lever.
+     - m-d: near the reported club, RIVER → the water-type lever.
+     - m-e: near the reported club, lake, ABOVE the default budget → the budget lever.
+     - m-f: nearest to the SEED club, lake, in the default shortlist → the club-verification lever.
+   Reference asOf 2026-07-26. */
+function locationOwnerFixture() {
+  return {
+    contractVersion: 'location-suitability-owner-state/v1',
+    toolId: 'waterfront-polo-lab',
+    asOf: '2026-07-26',
+    source: 'test-owner synthetic location universe',
+    driveModel: { defaultMinutes: 40, avgSpeedMph: 38, roadFactor: 1.25 },
+    mastersClubs: [
+      { id: 'club-r', name: 'Reported club', lat: 28.50, lon: -81.40, confidence: 'reported' },
+      { id: 'club-s', name: 'Seed club', lat: 30.00, lon: -82.00, confidence: 'seed' }
+    ],
+    markets: [
+      { id: 'm-a', name: 'Alpha Lake', lat: 28.55, lon: -81.45, water: 'lake', medK: 1200, ppsf: 400, insBand: 2, flood: 1, surge: 1, land: 3, budgetFit: 'strong', q: 'measured' },
+      { id: 'm-b', name: 'Bravo Lake (far)', lat: 28.85, lon: -81.75, water: 'lake', medK: 1000, ppsf: 350, insBand: 5, flood: 3, surge: 3, land: 2, budgetFit: 'good', q: 'estimated' },
+      { id: 'm-c', name: 'Charlie Lake (pricey)', lat: 28.60, lon: -81.55, water: 'lake', medK: 1400, ppsf: 800, insBand: 3, flood: 1, surge: 1, land: 3, budgetFit: 'good', q: 'measured' },
+      { id: 'm-d', name: 'Delta River', lat: 28.45, lon: -81.30, water: 'river', medK: 1100, ppsf: 300, insBand: 2, flood: 1, surge: 0, land: 4, budgetFit: 'strong', q: 'measured' },
+      { id: 'm-e', name: 'Echo Lake (over budget)', lat: 28.52, lon: -81.42, water: 'lake', medK: 1800, ppsf: 500, insBand: 1, flood: 1, surge: 0, land: 3, budgetFit: 'over', q: 'measured' },
+      { id: 'm-f', name: 'Foxtrot Lake (seed club)', lat: 29.95, lon: -82.05, water: 'lake', medK: 1300, ppsf: 400, insBand: 2, flood: 1, surge: 1, land: 3, budgetFit: 'strong', q: 'measured' }
+    ]
+  };
+}
+
+/* Reconstruct one market's nearest-club drive DIRECTLY through the module's single-source owner primitives, so a
+   test can prove the adapter summary's geo values equal a direct RLPROPERTY.nearestClub + driveMinutesApprox
+   call over the same owner facts (owner-parity), not a re-derivation. roundTo(4) mirrors the module. */
+function locationOwnerNearest(pr, owner, marketId) {
+  const market = owner.markets.find((m) => m.id === marketId);
+  const nearest = pr.nearestClub(market.lat, market.lon, owner.mastersClubs);
+  const driveMin = pr.driveMinutesApprox(nearest.mi, owner.driveModel.avgSpeedMph, owner.driveModel.roadFactor);
+  const club = owner.mastersClubs[nearest.idx];
+  return {
+    nearestClubId: club.id,
+    nearestClubConfidence: club.confidence,
+    nearestClubMi: Math.round(nearest.mi * 1e4) / 1e4,
+    driveMin: Math.round(driveMin * 1e4) / 1e4
+  };
+}
+
+test('TP-07-01 property-research module exposes the delivered location-suitability adapter and single-source geo primitives with no forbidden authority', () => {
+  const pr = loadPropertyResearch();
+  assert.ok(pr.supportedAdapterIds.includes('simple-adapter/location-suitability/v1'), 'location-suitability is a declared supported adapter');
+  // The four owner geo primitives are the SINGLE SOURCE exposed on the module's public API — the exact functions
+  // both the owning page and the location-suitability adapter consume. Pure math, no owner-fact re-derivation.
+  assert.equal(typeof pr.haversineMi, 'function', 'property-research exposes the single-source haversineMi');
+  assert.equal(typeof pr.driveMinutesApprox, 'function', 'property-research exposes the single-source driveMinutesApprox');
+  assert.equal(typeof pr.nearestClub, 'function', 'property-research exposes the single-source nearestClub');
+  assert.equal(typeof pr.marketPasses, 'function', 'property-research exposes the single-source marketPasses');
+  assert.equal(typeof pr.computeLocationSuitabilitySummary, 'function', 'property-research exposes the single-source computeLocationSuitabilitySummary');
+  // Adding the geo primitives introduced NO forbidden authority: no fetch/provider/storage/clock/randomness/
+  // cross-domain import in the whole module (comments stripped so the scan targets real CALLS, not doc prose).
+  const raw = readFileSync(new URL('../rlexperience-adapters/property-research.js', import.meta.url), 'utf8');
+  const source = raw
+    .replace(/\/\*[\s\S]*?\*\//g, ' ')
+    .replace(/(^|[^:])\/\/[^\n]*/g, '$1');
+  const forbidden = [
+    /\bfetch\s*\(/,
+    /\bproviderFetch\s*\(/,
+    /\bRLDATA\b/,
+    /\blocalStorage\b/,
+    /\bsessionStorage\b/,
+    /\bindexedDB\b/,
+    /\bXMLHttpRequest\b/,
+    /\bimport\s*\(/,
+    /\brequire\s*\(/,
+    /\bwriteFileSync\b/,
+    /\bDate\.now\s*\(/,
+    /\bMath\.random\s*\(/,
+    /data\/options/,
+    /data\/bars/,
+    /rlexperience-adapters\/(market-structure|options|macro-rotation|fundamental-models|strategy-research|market-action)/
+  ];
+  for (const pattern of forbidden) {
+    assert.equal(pattern.test(source), false, `property-research.js must not contain ${pattern}`);
+  }
+});
+
+test('TP-07-01 waterfront-polo-lab.html single-sources the geo / market-filter primitives from property-research.js (RLPROPERTY)', () => {
+  const page = readFileSync(new URL('../waterfront-polo-lab.html', import.meta.url), 'utf8');
+  assert.ok(/rlexperience-adapters\/property-research\.js/.test(page), 'waterfront page loads the property-research module');
+  assert.ok(/RLPROPERTY\.haversineMi\s*\(/.test(page) && /RLPROPERTY\.driveMinutesApprox\s*\(/.test(page) && /RLPROPERTY\.nearestClub\s*\(/.test(page) && /RLPROPERTY\.marketPasses\s*\(/.test(page), 'waterfront page delegates great-circle distance / drive-time / nearest-club / market-filter to RLPROPERTY');
+  // The page carries NO inline copy of the single-sourced geo / market-filter formula bodies — the great-circle
+  // Earth radius constant and the budget-fit rank table live ONLY in property-research.js now.
+  assert.ok(!/var R = 3958\.7613/.test(page), 'waterfront page carries no inline copy of the great-circle formula body');
+  assert.ok(!/var fitRank = \{ strong: 3, good: 2, partial: 1, over: 0 \}/.test(page), 'waterfront page carries no inline copy of the market-filter budget-fit rank table');
+});
+
+test('TP-07-01 location-suitability adapter registers through the production runtime and produces a ready owner-parity run', async () => {
+  const api = loadProductionApi();
+  const pr = loadPropertyResearch();
+  const definition = definitionFor('waterfront-polo-lab');
+  const runtime = runtimeFor(api, definition);
+  // No rental dependency — the location adapter computes purely from the frozen geo universe.
+  const results = pr.registerPropertyResearchAdapters(runtime, api, [definition], {});
+  assert.equal(results['simple-adapter/location-suitability/v1'].ok, true, JSON.stringify(results['simple-adapter/location-suitability/v1'].error || {}));
+
+  const owner = locationOwnerFixture();
+  const base = defaultValues(definition);
+  const prepared = requireValue(await runtime.prepare({
+    definitionId: definition.definitionId,
+    ownerContext: { ownerState: owner },
+    parameterValues: base,
+    seed: null,
+    scenarioIds: ['baseline'],
+    computedAt: '2026-07-26T23:20:00.000Z'
+  }));
+  assert.equal(prepared.state, 'ready');
+  const summary = prepared.current.output.values.summary;
+  assert.equal(summary.universeMarketCount, 6, 'summary carries the full frozen owner universe count');
+  assert.equal(prepared.current.output.provenance.evidenceIdentity, prepared.current.input.evidenceIdentity, 'evidence identity is bound');
+  // The default shortlist is [m-f, m-a] (the two in-budget, big-enough, in-ring lake markets), sorted ascending by
+  // the single-sourced drive time: m-f sits fractionally closer to its (seed) club than m-a to its (reported) club.
+  assert.deepEqual(summary.shortlist.marketIds, ['m-f', 'm-a'], 'the default shortlist is the in-budget/in-size/in-ring lake markets, drive-time ordered');
+
+  // Owner parity: the shortlist row's nearest-club distance and drive time equal a DIRECT RLPROPERTY.nearestClub +
+  // driveMinutesApprox run over the same owner facts (single source, not a re-derivation), and the nearest club is
+  // the reported Orlando-area club.
+  const directA = locationOwnerNearest(pr, owner, 'm-a');
+  const rowA = summary.shortlist.markets.find((m) => m.id === 'm-a');
+  assert.ok(rowA, 'm-a is present in the shortlist');
+  assert.equal(rowA.nearestClubId, directA.nearestClubId, 'nearest club is single-sourced from RLPROPERTY.nearestClub');
+  assert.equal(rowA.nearestClubConfidence, 'reported', 'm-a nearest club confidence is carried through from the owner universe');
+  assert.equal(rowA.nearestClubMi, directA.nearestClubMi, 'nearest-club distance is single-sourced from RLPROPERTY.nearestClub (owner-parity)');
+  assert.equal(rowA.driveMin, directA.driveMin, 'drive time is single-sourced from RLPROPERTY.driveMinutesApprox (owner-parity)');
+});
+
+test('TP-07-01 each enabled location-suitability parameter changes its declared output path with genuine owner-computed content', async () => {
+  const api = loadProductionApi();
+  const pr = loadPropertyResearch();
+  const definition = definitionFor('waterfront-polo-lab');
+  const runtime = runtimeFor(api, definition);
+  pr.registerPropertyResearchAdapters(runtime, api, [definition], {});
+  const base = defaultValues(definition);
+  await runtime.prepare({
+    definitionId: definition.definitionId,
+    ownerContext: { ownerState: locationOwnerFixture() },
+    parameterValues: base,
+    seed: null,
+    scenarioIds: ['baseline'],
+    computedAt: '2026-07-26T23:20:00.000Z'
+  });
+
+  // Every declared parameter must move its declared output path with a genuine owner-primitive recomputation:
+  // the four shortlist levers move summary.shortlist; the insurance-risk ceiling moves summary.risk; the two
+  // verification flags move summary.verification. Each change is engineered to toggle exactly one market.
+  const cases = [
+    ['budget', 2500000, 'summary.shortlist'],
+    ['minimum-size', 1500, 'summary.shortlist'],
+    ['water-type', 'river', 'summary.shortlist'],
+    ['travel-limit', 70, 'summary.shortlist'],
+    ['insurance-risk-ceiling', 5, 'summary.risk'],
+    ['flood-verification', false, 'summary.verification'],
+    ['club-verification', false, 'summary.verification']
+  ];
+  for (const [parameterId, value, path] of cases) {
+    const run = requireValue(await runtime.recompute({
+      parameterValues: { ...base, [parameterId]: value },
+      seed: null,
+      scenarioIds: ['baseline'],
+      computedAt: '2026-07-26T23:21:00.000Z'
+    }));
+    assert.deepEqual(run.changedParameters, [parameterId], `changed ${parameterId}`);
+    const effect = run.sensitivity.effects.find((entry) => entry.parameterId === parameterId);
+    assert.ok(effect, `sensitivity effect present for ${parameterId}`);
+    assert.equal(effect.outputChanged, true, `${parameterId} must change ${path}`);
+    assert.deepEqual(effect.resultPaths, [path], `${parameterId} declared path`);
+    // Restore baseline for the next isolated one-at-a-time change.
+    await runtime.recompute({ parameterValues: { ...base }, seed: null, scenarioIds: ['baseline'], computedAt: '2026-07-26T23:21:30.000Z' });
+  }
+
+  // insurance-risk-ceiling moves ONLY the risk partition (m-b crosses from over to within) — the shortlist and the
+  // verification partition are untouched.
+  const ceilingRun = requireValue(await runtime.recompute({ parameterValues: { ...base, 'insurance-risk-ceiling': 5 }, seed: null, scenarioIds: ['baseline'], computedAt: '2026-07-26T23:22:00.000Z' }));
+  assert.notEqual(api.fingerprint(ceilingRun.current.output.values.summary.risk), api.fingerprint(ceilingRun.baseline.output.values.summary.risk), 'insurance-risk-ceiling genuinely re-partitions the insurance risk');
+  assert.equal(api.fingerprint(ceilingRun.current.output.values.summary.shortlist), api.fingerprint(ceilingRun.baseline.output.values.summary.shortlist), 'insurance-risk-ceiling leaves the shortlist unchanged (a separate declared path)');
+  assert.equal(api.fingerprint(ceilingRun.current.output.values.summary.verification), api.fingerprint(ceilingRun.baseline.output.values.summary.verification), 'insurance-risk-ceiling leaves the verification partition unchanged');
+  await runtime.recompute({ parameterValues: { ...base }, seed: null, scenarioIds: ['baseline'], computedAt: '2026-07-26T23:22:15.000Z' });
+
+  // flood-verification moves ONLY the verification partition (m-b, an estimated-flood market, becomes verified when
+  // flood evidence is not required) — the shortlist and the risk partition are untouched.
+  const floodRun = requireValue(await runtime.recompute({ parameterValues: { ...base, 'flood-verification': false }, seed: null, scenarioIds: ['baseline'], computedAt: '2026-07-26T23:22:30.000Z' }));
+  assert.notEqual(api.fingerprint(floodRun.current.output.values.summary.verification), api.fingerprint(floodRun.baseline.output.values.summary.verification), 'flood-verification genuinely re-partitions the verified/unverified set');
+  assert.equal(api.fingerprint(floodRun.current.output.values.summary.shortlist), api.fingerprint(floodRun.baseline.output.values.summary.shortlist), 'flood-verification leaves the shortlist unchanged');
+  assert.equal(api.fingerprint(floodRun.current.output.values.summary.risk), api.fingerprint(floodRun.baseline.output.values.summary.risk), 'flood-verification leaves the risk partition unchanged');
+});
+
+test('TP-07-01 location-suitability preserves the unverified club-seed / estimated-hazard gap without promoting to verified, and is deterministic', async () => {
+  const api = loadProductionApi();
+  const pr = loadPropertyResearch();
+  const definition = definitionFor('waterfront-polo-lab');
+  const base = defaultValues(definition);
+
+  async function runOnce() {
+    const runtime = runtimeFor(api, definition);
+    pr.registerPropertyResearchAdapters(runtime, api, [definition], {});
+    return requireValue(await runtime.prepare({
+      definitionId: definition.definitionId,
+      ownerContext: { ownerState: locationOwnerFixture() },
+      parameterValues: base,
+      seed: null,
+      scenarioIds: ['baseline'],
+      computedAt: '2026-07-26T23:20:00.000Z'
+    }));
+  }
+
+  const first = await runOnce();
+  const again = await runOnce();
+  assert.equal(first.computeIdentity, again.computeIdentity, 'identical inputs => identical compute identity (deterministic — no clock, no randomness)');
+  assert.equal(api.fingerprint(first.current.output.values.summary), api.fingerprint(again.current.output.values.summary), 'identical inputs => identical owner summary');
+
+  // Gap preservation: with flood + club evidence required (the defaults), the estimated-hazard market (m-b) and the
+  // seed-club market (m-f) stay UNVERIFIED — they are never silently promoted to verified or dropped.
+  const verification = first.current.output.values.summary.verification;
+  assert.equal(verification.floodRequired, true, 'flood verification is required by default');
+  assert.equal(verification.clubRequired, true, 'club verification is required by default');
+  assert.ok(verification.unverifiedCount >= 2, 'the estimated-hazard and seed-club markets are preserved as unverified');
+  assert.ok(verification.unverifiedIds.includes('m-b'), 'the estimated-flood market m-b is preserved as unverified (not promoted)');
+  assert.ok(verification.unverifiedIds.includes('m-f'), 'the seed-club market m-f is preserved as unverified (not promoted)');
+  // The visible gap survives even inside the shortlist: the shortlisted seed-club market still shows its seed
+  // confidence rather than being rewritten to "reported".
+  const shortlistF = first.current.output.values.summary.shortlist.markets.find((m) => m.id === 'm-f');
+  assert.ok(shortlistF, 'the seed-club market m-f is shortlisted (it fits the budget/size/water/travel brief)');
+  assert.equal(shortlistF.nearestClubConfidence, 'seed', 'the shortlisted seed-club market still surfaces its unverified seed confidence, never promoted');
+});

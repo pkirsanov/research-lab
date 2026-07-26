@@ -573,54 +573,26 @@
         </div>
     </div>
 
+    <script src="rlexperience-adapters/property-research.js"></script>
     <script>
         "use strict";
 
-        /* ══════════════ PURE HELPERS (unit-tested in scripts/selftest.mjs) ══════════════ */
+        /* ══════════════ OWNER GEO PRIMITIVES — single-sourced to RLPROPERTY (rlexperience-adapters/property-research.js) ══════════════
+           The great-circle distance / drive-time / nearest-club / market-filter formulas live in ONE place — the
+           property-research.js module (RLPROPERTY) — which the location-suitability/v1 Simple adapter and this owning
+           page BOTH consume (owner-parity). These thin delegators carry no inline formula copy. */
 
-        /* Great-circle distance in statute miles between two lat/lon points. */
-        function haversineMi(aLat, aLon, bLat, bLon) {
-            var R = 3958.7613; // Earth radius, miles
-            var toRad = Math.PI / 180;
-            var dLat = (bLat - aLat) * toRad, dLon = (bLon - aLon) * toRad;
-            var s1 = Math.sin(dLat / 2), s2 = Math.sin(dLon / 2);
-            var h = s1 * s1 + Math.cos(aLat * toRad) * Math.cos(bLat * toRad) * s2 * s2;
-            return 2 * R * Math.asin(Math.min(1, Math.sqrt(h)));
-        }
+        /* Single-sourced to RLPROPERTY.haversineMi (owner great-circle distance; no inline copy). */
+        function haversineMi(aLat, aLon, bLat, bLon) { return RLPROPERTY.haversineMi(aLat, aLon, bLat, bLon); }
 
-        /* Approximate driving minutes for a straight-line distance, inflated by a road factor. */
-        function driveMinutesApprox(miles, avgSpeedMph, roadFactor) {
-            if (!(miles >= 0) || !(avgSpeedMph > 0)) return null;
-            var rf = (roadFactor > 0) ? roadFactor : 1;
-            return miles * rf / avgSpeedMph * 60;
-        }
+        /* Single-sourced to RLPROPERTY.driveMinutesApprox (no inline copy). */
+        function driveMinutesApprox(miles, avgSpeedMph, roadFactor) { return RLPROPERTY.driveMinutesApprox(miles, avgSpeedMph, roadFactor); }
 
-        /* Nearest club (by great-circle miles) to a point. clubs: [{lat,lon,...}]. Returns {idx, mi} or null. */
-        function nearestClub(lat, lon, clubs) {
-            if (!clubs || !clubs.length) return null;
-            var best = -1, bestMi = Infinity;
-            for (var i = 0; i < clubs.length; i++) {
-                var mi = haversineMi(lat, lon, clubs[i].lat, clubs[i].lon);
-                if (mi < bestMi) { bestMi = mi; best = i; }
-            }
-            return { idx: best, mi: bestMi };
-        }
+        /* Single-sourced to RLPROPERTY.nearestClub (no inline copy). */
+        function nearestClub(lat, lon, clubs) { return RLPROPERTY.nearestClub(lat, lon, clubs); }
 
-        /* Does a market (with a precomputed m.driveMin) pass the filter object f? Pure — no globals. */
-        function marketPasses(m, f) {
-            if (!m || !f) return false;
-            var fitRank = { strong: 3, good: 2, partial: 1, over: 0 };
-            if (f.withinOnly && (m.driveMin == null || m.driveMin > f.minutes)) return false;
-            var mr = fitRank[m.budgetFit]; if (mr == null) mr = 0;
-            var need = fitRank[f.minFit]; if (need == null) need = 0;
-            if (mr < need) return false;
-            if (f.water && f.water[m.water] === false) return false;
-            if (isFinite(f.maxFlood) && m.flood > f.maxFlood) return false;
-            if (isFinite(f.maxSurge) && m.surge > f.maxSurge) return false;
-            if (isFinite(f.minLand) && m.land < f.minLand) return false;
-            if (isFinite(f.maxIns) && m.insBand > f.maxIns) return false;
-            return true;
-        }
+        /* Single-sourced to RLPROPERTY.marketPasses (no inline copy). */
+        function marketPasses(m, f) { return RLPROPERTY.marketPasses(m, f); }
 
         /* ══════════════ DATA (inline default; overridden by waterfront-polo-universe.json if fetchable) ══════════════ */
         var DEFAULT_UNIVERSE = {

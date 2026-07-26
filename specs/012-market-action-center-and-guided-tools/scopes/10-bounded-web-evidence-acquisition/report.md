@@ -339,3 +339,126 @@ to the rlbrief renderer/static/payload canaries. Scope status stays `in_progress
 
 Deferred to `bubbles.test` (independent finalization). Implementation evidence above is
 current-session, executed, and non-fabricated.
+
+## Independent Verification (bubbles.test)
+
+**Verifier:** `bubbles.test` · **Mode:** `full-delivery` · **HEAD:** `674cb92f` ·
+**Method:** recorded evidence NOT trusted — every Test Plan row reproduced from scratch
+this session with the EXACT `scope.md` commands and full unfiltered output.
+`repo-binding-preflight.sh --agent-source research-lab` → exit 0 first.
+
+### Test Plan rows — all GREEN in-session
+
+| Row | Command | Result | Exit |
+|---|---|---|---|
+| TP-10-01 unit | `node --test tests/web-evidence.unit.mjs` | 10 pass / 0 fail | 0 |
+| TP-10-02 functional | `node --test tests/web-evidence.functional.mjs` | 11 pass / 0 fail | 0 |
+| TP-10-03 security | `node --test tests/web-evidence.security.mjs` | 9 pass / 0 fail | 0 |
+| TP-10-04 validator | `node scripts/validate-web-evidence.mjs --fixtures tests/fixtures/feature-012/web-evidence` | PASS fixtures=11 adversarial=12 unexpectedAcceptances=0 | 0 |
+| TP-10-05 e2e SCN-012-006 | `npx --no-install playwright test tests/web-evidence.spec.mjs …system-chrome --grep "…SCN-012-006…"` | 1 passed | 0 |
+| TP-10-06 e2e SCN-012-007 | `…--grep "…SCN-012-007…"` | 1 passed | 0 |
+| TP-10-07 e2e SCN-012-037 | `…--grep "…SCN-012-037…"` | 1 passed | 0 |
+| TP-10-08 selftest | `node scripts/selftest.mjs` | 949 passed / 0 failed | 0 |
+
+Canaries: `validate-brief-payload` PASS (exit 0); `validate-tool-experience` PASS
+adversarial=13 unexpectedAcceptances=0 (exit 0). Full web-evidence e2e spec = 3 passed
+(exit 0).
+
+### Eight independent checks — all confirmed
+
+1. **SCN-012-006/007/037.** SCN-012-006 one-origin material claim REJECTED as
+   uncorroborated (unit `SCN-012-006 one current origin leaves a material claim
+   uncorroborated`; functional evaluateFixture(one-origin) exit 0; e2e
+   `data-web-evidence-material-authorable="0"`, text `insufficient-corroboration` /
+   `no toolbrief is authored or published`, no `verified`). SCN-012-007 syndicated
+   pages → ONE independent origin, second still required (validator
+   `syndicated-common-origin … origins=1`; unit `SCN-012-007 syndication counts as ONE
+   independent origin`; e2e `data-web-evidence-origins="1"`, `a second independent
+   source is still required`). SCN-012-037 one immutable frozen `web-evidence-bundle/v1`
+   with exact hashes/bounded-excerpts/claims/origins/owner-evidence/rejections/coverage;
+   raw HTML/scripts/instructions/credentials/redirects/private-context/author-authority
+   ABSENT (functional freeze test + e2e proof a: `scriptCount=0 jsHrefCount=0
+   resourcesAdded=0`, raw markup absent).
+2. **Fail-closed policy.** Validator rejects 12 distinct closed adversarial mutations
+   each with an `E012-*` code (private-fact, url-in-terms, credential-in-terms,
+   shell-control-in-terms, wildcard-in-terms, instruction-shaped-terms, overlength-terms,
+   too-many-queries, bundle-fingerprint-tamper, bundle-version-tamper,
+   material-authorable-uncorroborated, claim-instruction-shaped);
+   `unexpectedAcceptances=0`. Functional policy-enforcement rows: robots-disallow,
+   redirects, over-budget (fails closed before retrieval), missing-metadata,
+   later-than-cutoff, instruction-shaped-excerpt — all reject. No fallback/env relaxation
+   (only import `node:crypto`).
+3. **Hostile content rejected & never echoed.** Security suite: credentialed-url
+   rejected and credential never echoed; executable-markup rejected and never stored;
+   injection-hostile fixture rejects and never echoes the hostile string; every
+   rejection carries only closed reason codes. E2e proof (c): a crafted hostile bundle
+   (`<script>` publisher, `user:secretpass@evil.example` URL, `<img onerror=…>` excerpt,
+   instruction-shaped claim) renders `scriptCount=0`, `onerror=false`,
+   `window.__webEvidencePwned` still false, `secretpass`/`exfiltrate` absent,
+   `redactedCount>0`.
+4. **Zero author/network authority (STATIC).** `scripts/web-evidence-acquire.mjs` imports
+   ONLY `import { createHash } from 'node:crypto';` (line 48). Forbidden-capability grep
+   (fetch/XMLHttpRequest/WebSocket/writeFile/provider/apiKey/brief-author/brief-publication/
+   brief-refresh/brief-narrative/currentPointer/process.env) matches ONLY docstring lines
+   35/37/38 (the negative-assertion comment). Validator `moduleAuthority=PASS
+   imports=node:crypto forbiddenCapabilities=0 importsAuthorModule=false`; selftest static
+   authority canary green. I/O reachable ONLY through the injected `boundary.search` /
+   `boundary.retrieve` object. Produces NO ToolBrief and NO public current pointer (the
+   only `ToolBrief` match is the docstring `It produces NO ToolBrief …`).
+5. **Browser boundary.** `rlbrief.js` consumers `projectSafeWebEvidence` (895–989, pure)
+   and `renderWebEvidenceDisclosure` (990–1056, DOM via `esc()` only) contain NO network
+   primitive; the sole `fetch(` in `rlbrief.js` (line 1158) is the pre-existing Feature-002
+   `briefFetchText` loader, unrelated to web-evidence. E2e asserts
+   `window.RLBRIEF.acquire === 'undefined'` and `window.RLBRIEF.fetch === 'undefined'`.
+   No-interception grep on `tests/web-evidence.spec.mjs` = 0 matches (exit 1); e2e drives
+   real `acquire()` at the Node boundary then renders the frozen bundle over a static
+   same-origin `page.goto` — no raw/unsafe content in the DOM.
+6. **RED-bite (adversarial, restored byte-identical).** Baseline sha256
+   `d51838d7…1727f24a`. Neutralized the second-independent-origin requirement
+   (`MIN_INDEPENDENT_ORIGINS` 2→1) via the IDE edit tool → functional 8 pass / **3 fail**
+   (`corroboratedMaterialClaimCount 1 != 0` on one-origin/syndicated/stale, exit 1) AND
+   unit 7 pass / **3 fail** (`actual: 'corroborated', expected: 'uncorroborated'`, exit 1).
+   Restored `git checkout HEAD -- scripts/web-evidence-acquire.mjs` → sha256
+   `d51838d7…1727f24a` (== baseline, byte-identical) → functional + unit GREEN (exit 0).
+   `git status --short` afterward = ONLY the concurrent BUG-001 `scenario-manifest.json`;
+   no neutralized file left in the tree.
+7. **Protected paths byte-unchanged.** `git status --short` on
+   `brief-author.mjs`/`brief-publication.mjs`/`brief-refresh.mjs`/`brief-narrative-parallel.mjs`,
+   public pointer/objects/history, `rldata.js`, `rlexperience-adapters/`, `rlmarketaction.js`,
+   `rljourney.js`, `journeys.json`, `simple-models.json`, `data/options/`,
+   `market-brief.config.json`, `rlexperience.js` = EMPTY (all byte-unchanged; all tracked).
+   Feature 002 renderer/static suites green (selftest 949/0 + `validate-brief-payload`
+   PASS). `market-brief.config.json` change is additive (payload PASS).
+8. **Rollback verified truthful (reasoned).** The Scope-10 `rlbrief.js` consumer commit
+   `587e9ee9` = `1 file changed, 244 insertions(+), 0 deletions` (real-deletion grep exit
+   1 — purely additive; existing renderers byte-unchanged). Removing the Scope-10
+   additions (acquire/validator/fixtures/tests + additive `rlbrief.js` hunk + additive
+   `market-brief.config.json`) restores prior Brief/Market-Action/selftest/payload green
+   with NO published object/history/pointer or external state change (clean tree confirms
+   additive delivery).
+
+### Findings disposition (both non-blocking; already recorded)
+
+- **F-10-A** (informational → `bubbles.plan`): `scope.md` Implementation Files → Modified
+  lists `rlexperience.js`, but it is byte-unchanged (git status empty). Deliberate — the
+  disclosure consumer lives in `rlbrief.js` (the module `market-brief.html` loads); the
+  browser MUST NOT acquire, so there is no acquisition-side wiring to add, and
+  `rlexperience.js` already carries the `E012-WEB-*` refusal contract. The DoD and the
+  security boundary are genuinely satisfied without touching it. Planning-doc nuance for
+  `bubbles.plan` to reconcile the Modified list. NON-BLOCKING.
+- **F-10-B** (pre-existing/environmental → owning surface): `tests/distributed-briefs.spec.mjs`
+  fails at current HEAD (12/13) at the `mountReady` selector
+  `[data-rlbrief-mount][data-rlbrief-ready="1"]` staying HIDDEN
+  (`data-rlbrief-mounting="1"`, tool `sector-research-lab`) — a Feature-002 mount-visibility
+  harness/env issue in this WSL environment. Independently reproduced this session.
+  DEFINITIVELY not a Scope-10 regression: the Scope-10 `rlbrief.js` change is purely
+  additive (244 insertions / 0 deletions), the same browser harness passes the web-evidence
+  e2e, and the rlbrief renderer/static canaries are green (selftest 949/0). NON-BLOCKING,
+  out of Scope-10 boundary.
+
+### Verdict
+
+All 8 Test Plan rows GREEN, all 8 checks confirmed, every DoD item genuinely satisfied.
+Scope 10 → `done`, substate `independently_verified`. Feature `status`=`not_started`,
+`certifiedAt`=null, `certification.status`=`not_started` remain UNTOUCHED (Scope 10 of 14).
+Next owner `bubbles.implement` for Scope 11 (Feature 002-Gated Authored Brief Integration).

@@ -3,7 +3,7 @@
   "featureDir": "specs/012-market-action-center-and-guided-tools",
   "featureName": "Market Action Center and Guided Tools",
   "createdAt": "2026-07-22T03:40:01Z",
-  "lastUpdatedAt": "2026-07-26T20:00:00Z",
+  "lastUpdatedAt": "2026-07-26T21:40:00Z",
   "status": "not_started",
   "workflowMode": "full-delivery",
   "linkedImplementationSpec": null,
@@ -19,14 +19,22 @@
   "certifiedAt": null,
   "requiresRevalidation": false,
   "execution": {
-    "activeAgent": "bubbles.implement",
-    "currentPhase": "implement",
-    "currentPhaseStatus": "in_progress",
-    "currentScope": "10-bounded-web-evidence-acquisition",
-    "substate": "implemented",
+    "activeAgent": "bubbles.test",
+    "currentPhase": "test",
+    "currentPhaseStatus": "completed",
+    "currentScope": "11-feature-002-authored-brief-integration",
+    "substate": "independently_verified",
     "runStartedAt": "2026-07-24T03:30:00Z",
     "completedAt": null,
     "completedPhaseClaims": [
+      {
+        "scope": "10-bounded-web-evidence-acquisition",
+        "phase": "test",
+        "agent": "bubbles.test",
+        "claimedAt": "2026-07-26T21:40:00Z",
+        "evidence": "scopes/10-bounded-web-evidence-acquisition/report.md#independent-verification-bubblestest",
+        "summary": "Independent verification of Scope 10 Bounded WebEvidence Acquisition (full-delivery; recorded evidence NOT trusted, every Test Plan row reproduced from scratch at HEAD 674cb92f with the exact scope.md commands and full unfiltered output; repo-binding-preflight --agent-source research-lab exit 0 first). All 8 rows GREEN in-session: TP-10-01 unit 10/0 exit 0, TP-10-02 functional 11/0 exit 0, TP-10-03 security 9/0 exit 0, TP-10-04 validator PASS fixtures=11 adversarial=12 unexpectedAcceptances=0 exit 0, TP-10-05/06/07 live system-chrome e2e each 1 passed exit 0 (full spec 3/3), TP-10-08 selftest 949/0 exit 0; validate-brief-payload PASS + validate-tool-experience PASS adversarial=13. Eight checks pass: (1) SCN-012-006 one-origin material claim rejected as uncorroborated + SCN-012-007 syndication=one independent origin (second still required) + SCN-012-037 frozen web-evidence-bundle/v1 with hashes/bounded-excerpts/claims/origins/owner-evidence, raw HTML/scripts/creds/redirects/author-authority ABSENT (functional+unit+e2e+validator); (2) fail-closed 12 closed-code adversarial rejections + functional policy-enforcement (robots/redirect/over-budget/missing-metadata/later-than-cutoff/instruction-excerpt), no env relaxation; (3) hostile content rejected and never echoed (security + e2e redaction proof: scriptCount=0 onerror=false __webEvidencePwned=false secretpass/exfiltrate absent redactedCount>0); (4) zero author/network authority STATIC -- acquire imports ONLY node:crypto, moduleAuthority=PASS forbiddenCapabilities=0 importsAuthorModule=false, produces NO ToolBrief/pointer, I/O only via injected boundary; (5) browser boundary -- rlbrief consumers projectSafeWebEvidence/renderWebEvidenceDisclosure network-free (only fetch at line 1158 is pre-existing briefFetchText), window.RLBRIEF.acquire===undefined, no-interception grep exit 1, static same-origin frozen bundles, no raw DOM content; (6) RED-bite MIN_INDEPENDENT_ORIGINS 2->1 -> functional 3 fail + unit 3 fail exit 1, git checkout HEAD restored byte-identical sha256 d51838d7...1727f24a -> GREEN exit 0, git status only BUG-001; (7) protected paths byte-unchanged (author/publication scripts, rldata.js, rlexperience-adapters, rlmarketaction.js, rljourney.js, journeys.json, simple-models.json, data/options, market-brief.config.json, rlexperience.js all empty git status), Feature-002 renderer/static green (selftest 949/0 + payload PASS), config additive; (8) rollback truthful -- rlbrief consumer commit 587e9ee9 = 244 insertions/0 deletions (purely additive), removing Scope-10 additions restores prior green with no published state change. Findings F-10-A (scope.md Modified list names rlexperience.js but it is byte-unchanged -- deliberate, non-blocking, route bubbles.plan) + F-10-B (distributed-briefs.spec.mjs pre-existing mount-visibility harness failure, independently reproduced, additive-only proof it is not a Scope-10 regression, non-blocking) both recorded, neither blocks. Scope 10 DoD 13/13 [x]; scope status done, substate independently_verified; artifact-lint exit 0. Feature status not_started / certifiedAt null / certification.status not_started UNTOUCHED (Scope 10 of 14). Next owner bubbles.implement for Scope 11."
+      },
       {
         "scope": "09-public-matrix-market-action-scaffold",
         "phase": "test",
@@ -134,7 +142,7 @@
     ],
     "pendingTransitionRequests": [],
     "nextRequiredOwner": "bubbles.implement",
-    "nextRequiredTarget": "Scope 09 (Public Matrix And Market Action Center Scaffold) is DONE (substate independently_verified): bubbles.test reproduced all 8 Test Plan rows from scratch at HEAD df37f198 (TP-09-01 13/13, TP-09-02 10/10, TP-09-03 5/5 blocking=0, TP-09-04..07 live system-chrome 4/4, TP-09-08 selftest 945/0; validate-market-action + validate-brief-payload PASS) and confirmed all 8 checks (rename+route/ID/payload stability, no-action truthful, public-only + watchlist byte-unchanged, non-tautological consumer-trace, no-interception, RED-bite fail->byte-identical restore->pass with clean tree, forbidden-authority 0 executable + protected paths byte-unchanged, truthful rollback). Next owner bubbles.implement to begin Scope 10 (Bounded WebEvidence Acquisition). Feature status not_started / certifiedAt null / certification.status not_started remain UNTOUCHED (Scope 9 of 14).",
+    "nextRequiredTarget": "Scope 10 (Bounded WebEvidence Acquisition) is DONE (substate independently_verified): bubbles.test reproduced all 8 Test Plan rows from scratch at HEAD 674cb92f (TP-10-01 unit 10/0, TP-10-02 functional 11/0, TP-10-03 security 9/0, TP-10-04 validator PASS fixtures=11 adversarial=12, TP-10-05/06/07 live system-chrome e2e 3/3, TP-10-08 selftest 949/0; validate-brief-payload + validate-tool-experience PASS) and confirmed all 8 checks (SCN-012-006/007/037 rejections+freeze, fail-closed 12 adversarial, hostile-not-echoed, zero author/network authority static imports=node:crypto forbiddenCapabilities=0, browser cannot acquire + no-interception, RED-bite MIN_INDEPENDENT_ORIGINS 2->1 fail->byte-identical restore->pass clean tree, protected paths byte-unchanged, truthful additive rollback). Findings F-10-A (rlexperience.js byte-unchanged vs Modified list) + F-10-B (distributed-briefs pre-existing mount-visibility harness failure) both non-blocking. Next owner bubbles.implement to begin Scope 11 (Feature 002-Gated Authored Brief Integration). Feature status not_started / certifiedAt null / certification.status not_started remain UNTOUCHED (Scope 10 of 14).",
     "scopeProgress": [
       {
         "scope": 1,
@@ -233,7 +241,7 @@
         "scope": 10,
         "scopeId": "10-bounded-web-evidence-acquisition",
         "name": "Bounded WebEvidence Acquisition",
-        "status": "in_progress",
+        "status": "done",
         "dependsOn": [9],
         "scopeDir": "scopes/10-bounded-web-evidence-acquisition",
         "scopeArtifact": "scopes/10-bounded-web-evidence-acquisition/scope.md",

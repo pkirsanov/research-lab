@@ -4,7 +4,7 @@
 
 Planning authority: [spec.md](../../spec.md), [design.md](../../design.md), and the [scope index](../_index.md). Execution evidence belongs in [report.md](report.md).
 
-**Status:** In Progress
+**Status:** Done
 
 **Scope-Kind:** runtime-behavior
 
@@ -153,4 +153,4 @@ Create one-origin/syndication/policy/safety/freeze assertions before acquisition
 
 #### Build Quality Gate
 
-- [x] Scenario RED/GREEN, exact system-Chrome identity, no-interception scan, authority/import graph, robots/URL/budget/injection mutation matrix, content/credential/private sentinel scan, deterministic bytes, existing Brief/payload canaries, protected-path diff, editor diagnostics, `git diff --check`, source-lock, validators, artifact lint, and broad selftest are current and clean. → RED→GREEN [report.md#scn-012-006](report.md#scn-012-006); no-interception clean + `git diff --check` exit 0 + validators PASS [report.md#no-interception-scan](report.md#no-interception-scan), [#lintquality](report.md#lintquality); artifact-lint PASSED; protected-path diff clean [report.md#code-diff-evidence](report.md#code-diff-evidence)
+- [x] Scenario RED/GREEN, exact system-Chrome identity, no-interception scan, authority/import graph, robots/URL/budget/injection mutation matrix, content/credential/private sentinel scan, deterministic bytes, existing Brief/payload canaries, protected-path diff, editor diagnostics, `git diff --check`, source-lock, validators, artifact lint, and broad selftest are current and clean. → Evidence: RED→GREEN [report.md#scn-012-006](report.md#scn-012-006); no-interception clean + `git diff --check` exit 0 + validators PASS [report.md#no-interception-scan](report.md#no-interception-scan), [#lintquality](report.md#lintquality); artifact-lint PASSED; protected-path diff clean [report.md#code-diff-evidence](report.md#code-diff-evidence)

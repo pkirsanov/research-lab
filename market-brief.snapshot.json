@@ -1,16 +1,16 @@
 {
-  "asOf": "2026-07-26T20:48:13.913Z",
-  "generatedAt": "2026-07-26T20:48:13.913Z",
-  "window": "pre-close",
+  "asOf": "2026-07-26T23:49:16.660Z",
+  "generatedAt": "2026-07-26T23:49:16.660Z",
+  "window": "after-hours",
   "marketClosed": true,
   "nextSessionDate": "2026-07-27",
   "dataFreshness": {
     "bars": {
-      "updated": "2026-07-26T20:48:09.979Z",
+      "updated": "2026-07-26T23:49:15.444Z",
       "count": 285
     },
     "options": {
-      "updated": "2026-07-26T20:48:13.472Z",
+      "updated": "2026-07-26T23:49:15.816Z",
       "count": 22
     }
   },
@@ -519,7 +519,7 @@
   "toolReads": {
     "sector-research-lab": {
       "id": "sector-research-lab",
-      "asOf": "2026-07-26T20:48:13.894Z",
+      "asOf": "2026-07-26T23:49:16.543Z",
       "read": "Rotate toward XLE as XLV weakens.",
       "metrics": {
         "into": {
@@ -572,7 +572,7 @@
     },
     "etf-momentum-lab": {
       "id": "etf-momentum-lab",
-      "asOf": "2026-07-26T20:48:13.899Z",
+      "asOf": "2026-07-26T23:49:16.568Z",
       "read": "ETF momentum model unavailable this run.",
       "metrics": {
         "error": "RLMACROROTATION is not defined"

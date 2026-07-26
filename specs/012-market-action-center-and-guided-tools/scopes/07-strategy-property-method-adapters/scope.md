@@ -156,13 +156,13 @@ Write same-seed/new-seed/common-randomness and per-tool parameter-effect tests b
 
 - [x] TP-07-01 unit evidence proves adapter/seed/source/gap/Center rules. → Evidence: [report.md#tp-07-01] (38/38 exit 0, all 7 adapters)
 - [x] TP-07-02 integration evidence proves the complete owner-parity/parameter-effect inventory. → Evidence: [report.md#tp-07-02] (F-07-REGLOOP-01 CLOSED — `node --test tests/simple-model-adapters.integration.mjs` 8 pass/0 fail exit 0; coverage 16→23; all 22 ordinary + Center resolve, registeredAdapterCount=23, no generic fallback)
-- [ ] TP-07-03 E2E evidence proves SCN-012-002 seeded strategy behavior.
-- [ ] TP-07-04 E2E evidence proves strategy-validation parameter effect.
-- [ ] TP-07-05 E2E evidence proves smart-money decay parameter effect.
-- [ ] TP-07-06 E2E evidence proves waterfront/polo suitability and evidence truth.
-- [ ] TP-07-07 E2E evidence proves Palm Springs cash-flow sensitivity without gap filling.
-- [ ] TP-07-08 E2E evidence proves Ocean Shores seasonal sensitivity without gap filling.
-- [ ] TP-07-09 E2E evidence proves Center triage stays bounded and inside Brief.
+- [x] TP-07-03 E2E evidence proves SCN-012-002 seeded strategy behavior. → Evidence: [report.md#scenario-scn-012-002] (F-07-E2E-01 CLOSED — live system-Chrome row TP-07-03 exit 0; same-seed reproducible identity/summary/path, common-random `goal`/`search-budget` sensitivity with a STABLE seeded path + visible DOM change, new-seed `path-separated` labeled path change `changedParameters=[]`)
+- [x] TP-07-04 E2E evidence proves strategy-validation parameter effect. → Evidence: [report.md#tp-07-04] (live system-Chrome exit 0; `cost→80`/`folds→8` recompute owner OOS evidence, ready owner run, rendered text moves)
+- [x] TP-07-05 E2E evidence proves smart-money decay parameter effect. → Evidence: [report.md#tp-07-05] (live system-Chrome exit 0; `lag-half-life→90`/`cluster-minimum→2` recompute owner disclosure-lag decay)
+- [x] TP-07-06 E2E evidence proves waterfront/polo suitability and evidence truth. → Evidence: [report.md#tp-07-06] (live system-Chrome exit 0; `travel-limit→70`/`budget→2500000` recompute owner shortlist; unverified truth visible — `unverifiedIds` includes m-b+m-f, shortlisted m-f keeps `confidence='seed'`)
+- [x] TP-07-07 E2E evidence proves Palm Springs cash-flow sensitivity without gap filling. → Evidence: [report.md#tp-07-07] (live system-Chrome exit 0; real RLRENTAL; `adr→1500`/`occupancy→72` recompute owner cash flow; `fullEconomicsState=INCOMPLETE`, `fullPreTaxCashFlowUsd=null`, `missingCostFieldIds` has property-tax+capital-reserve, never zero-filled)
+- [x] TP-07-08 E2E evidence proves Ocean Shores seasonal sensitivity without gap filling. → Evidence: [report.md#tp-07-08] (live system-Chrome exit 0; real RLRENTAL; `adr→1400`/`occupancy→70` recompute seasonal owner cash flow; same undisclosed-economics gap preserved, never zero-filled)
+- [x] TP-07-09 E2E evidence proves Center triage stays bounded and inside Brief. → Evidence: [report.md#tp-07-09] (live system-Chrome exit 0; `evidence-threshold→0.95`/`catalyst-horizon→30` recompute a BOUNDED action→no-action triage; NO top-level Simple tab/panel on the Center page — in-Brief only)
 - [x] TP-07-10 validator evidence proves SCN-012-036 complete Simple inventory with no generic/unresolved adapter. → Evidence: [report.md#tp-07-10] (`node scripts/validate-tool-experience.mjs --require-simple-adapters` exit 0, registeredAdapters=23; selftest 934/0)
 - [x] TP-07-11 broad selftest evidence proves the existing Research Lab baseline remains green. → Evidence: [report.md#tp-07-11] (934 passed / 0 failed exit 0)
 

@@ -487,8 +487,36 @@ Proven at unit level for `strategy-evolution/v1` (batch 1) via the production Sc
   acceptance-threshold → `summary.acceptance`, walk-forward-folds → `summary.outOfSample`.
 
 The RED-bite above (genSeries ignoring the seed) proved the seed-distinct half genuinely fails when the seed does
-not drive the path. E2E (TP-07-03, `#scenario-scn-012-002` at the browser level) is a later full-scope-completion
-row, not part of this implement batch.
+not drive the path.
+
+**E2E delivered (TP-07-03, F-07-E2E-01 CLOSED, this session — live system-Chrome).** The browser row `Regression:
+strategy self-improvement Simple repeats one seed and separates parameter sensitivity from path randomness` drives
+the REAL `strategy-evolution/v1` adapter through the REAL production runtime on the REAL
+`strategy-self-improvement-lab.html` page and proves SCN-012-002 at the browser level: (1) two fresh `prepare` runs
+at the SAME seed → identical `computeIdentity` + identical `fingerprint(summary)` + identical `path.pathIdentity`
+(reproducible); (2) a two-control change (`goal→cagr`, `search-budget→6`) under the SAME seed →
+`sensitivity.sharedRandomness.mode = common-random-numbers`, `changedParameters = ['goal','search-budget']`,
+`path.pathIdentity` UNCHANGED, and a visible rendered-DOM text difference (sensitivity SEPARATE from path
+randomness); (3) a NEW seed (`base.seed + 1`) → `mode = path-separated`, `seedChanged = true`,
+`changedParameters = []`, a distinct `path.pathIdentity`, and a distinct `computeIdentity` (a labeled path change,
+not a sensitivity). Command + full raw output:
+
+```text
+$ npx --no-install playwright test tests/simple-model-adapters-strategy-property.spec.mjs --config=playwright.config.mjs --project=system-chrome --grep "Regression: strategy self-improvement Simple repeats one seed and separates parameter sensitivity from path randomness" --reporter=list
+
+Running 1 test using 1 worker
+
+  ✓  1 …ne seed and separates parameter sensitivity from path randomness (795ms)
+
+  1 passed (2.5s)
+TP0703_EXIT=0
+```
+
+Live-stack authentic: real `page.goto` + real page core (`globalThis.RLEXPERIENCE` via the page's rlapp.js) + real
+adapter UMD (`rlexperience-adapters/strategy-research.js`, RLSTRATEGY) + real `createSimpleRuntime` /
+`registerStrategyResearchAdapters` + real `renderSimpleProjection` into the real `[data-rlexperience-panel="simple"]`
+host; the frozen owner scenario is a deterministic fixture, NOT an intercepted network response. Full 7-row spec +
+no-interception scan in the F-07-E2E-01 section below (`#f-07-e2e-01`).
 
 ### SCN-012-036
 
@@ -507,8 +535,9 @@ adapter is the SCN-012-036 ("disclosure lag decay reshapes conviction") owner su
 - **The frozen evidence gap is preserved.** Single-filer / sub-threshold clusters are dropped from the qualified
   set, never zero-filled, so the model never fabricates consensus it does not have.
 
-E2E (TP-07-04, `#scenario-scn-012-036` at the browser level) is a later full-scope-completion row, not part of
-this implement batch.
+**E2E delivered (TP-07-04 … TP-07-09, F-07-E2E-01 CLOSED, this session).** The six remaining owner tools plus the
+in-Brief Center triage each pass a persistent system-Chrome regression proving the REAL adapter's parameter-sensitive
+Simple read with the tool's evidence truth preserved. See the F-07-E2E-01 section below (`#tp-07-04` … `#tp-07-09`).
 
 ## Coverage Report
 
@@ -832,3 +861,165 @@ zero generic fallback. Boundary: only `tests/simple-model-adapters.integration.m
 no owner fixture re-derivation (verbatim copies), no adapter compute touched.
 
 **F-07-REGLOOP-01: CLOSED.**
+
+<a id="f-07-e2e-01"></a>
+### F-07-E2E-01 CLOSED — the 7 persistent per-tool system-Chrome E2E rows TP-07-03..TP-07-09 authored + green | Claim Source: executed
+
+**Root gap (as routed):** the E2E spec `tests/simple-model-adapters-strategy-property.spec.mjs` (holding the seven
+rows TP-07-03..TP-07-09) did not exist — the identical pattern to Scope 06's F-06-E2E-01. Under full-delivery,
+sibling Scopes 05 and 06 both ran ALL their per-tool E2E rows in-scope before `done`.
+
+**Fix:** authored the spec mirroring the delivered Scope-05/06 specs EXACTLY — real `page.goto` to the REAL owner
+page, inject the REAL production adapter UMD (`strategy-research.js` / `property-research.js` / `market-action.js`,
++ `rlrental.js` for the two place-based scenarios), register into the REAL production runtime
+(`globalThis.RLEXPERIENCE.createSimpleRuntime` + the module's real `register*Adapters`), drive the REAL
+`renderSimpleProjection` into the REAL `[data-rlexperience-panel="simple"]` host, and assert the specified behavior
+against the rendered DOM + the real owner-run summary. Owner data = frozen deterministic fixtures byte-faithful to
+the TP-07-01 unit fixtures (NOT interception). All seven pages are shell-opt-out for the shared Simple UI (like the
+Scope-06 msft page); each row drives the REAL adapter through the page's own already-loaded production core,
+mounting the Simple host the shell omits. ZERO `page.route` / `context.route` / `intercept` / `routeFromHAR` /
+`msw` / `nock` / `fulfill` anywhere (the no-interception scan below is empty of executable hits).
+
+**Full 7-row spec — one invocation:**
+
+```text
+$ npx --no-install playwright test tests/simple-model-adapters-strategy-property.spec.mjs --config=playwright.config.mjs --project=system-chrome --reporter=list
+
+Running 7 tests using 1 worker
+
+  ✓  1 …one seed and separates parameter sensitivity from path randomness (2.7s)
+  ✓  2 …alidation Simple controls recompute owner out-of-sample evidence (742ms)
+  ✓  3 …smart-money Simple controls recompute owner disclosure-lag decay (512ms)
+  ✓  4 …ols recompute owner suitability with unverified evidence visible (431ms)
+  ✓  5 …ple controls recompute owner cash-flow without zero-filling gaps (452ms)
+  ✓  6 …ols recompute owner seasonal cash-flow without zero-filling gaps (489ms)
+  ✓  7 … controls recompute bounded action or no-action inside Brief only (2.3s)
+
+  7 passed (13.7s)
+FULLSPEC_EXIT=0
+```
+
+**Per-row (each with its exact scope.md `--grep`, `--project=system-chrome --reporter=list`):**
+
+| Row | Adapter | Exit | Result |
+|---|---|---|---|
+| TP-07-03 | `strategy-evolution/v1` | 0 | 1 passed |
+| TP-07-04 | `walk-forward-validation/v1` | 0 | 1 passed |
+| TP-07-05 | `disclosure-decay/v1` | 0 | 1 passed |
+| TP-07-06 | `location-suitability/v1` | 0 | 1 passed |
+| TP-07-07 | `str-scenario/palm-springs/v1` | 0 | 1 passed |
+| TP-07-08 | `str-scenario/ocean-shores/v1` | 0 | 1 passed |
+| TP-07-09 | `market-action-triage/v1` | 0 | 1 passed |
+
+TP-07-03 raw output + the browser-level SCN-012-002 proof (same-seed reproducible / common-random sensitivity /
+new-seed path change) is recorded at `#scenario-scn-012-002` above.
+
+<a id="tp-07-04"></a>
+##### TP-07-04 :: strategy-validation-lab (simple-adapter/walk-forward-validation/v1) #####
+
+```text
+Running 1 test using 1 worker
+
+  ✓  1 …alidation Simple controls recompute owner out-of-sample evidence (644ms)
+
+  1 passed (2.1s)
+TP0704_EXIT=0
+```
+
+Command: `... --grep "Regression: strategy validation Simple controls recompute owner out-of-sample evidence" ...` — controls `cost→80` + `folds→8` recompute the owner out-of-sample evidence (net OOS Sharpe / per-fold structure); `changedParameters=['cost','folds']`, both renders are a ready owner run, and the rendered Simple text moves.
+
+<a id="tp-07-05"></a>
+##### TP-07-05 :: smart-money-flow-lab (simple-adapter/disclosure-decay/v1) #####
+
+```text
+Running 1 test using 1 worker
+
+  ✓  1 …smart-money Simple controls recompute owner disclosure-lag decay (570ms)
+
+  1 passed (2.2s)
+TP0705_EXIT=0
+```
+
+Command: `... --grep "Regression: smart-money Simple controls recompute owner disclosure-lag decay" ...` — controls `lag-half-life→90` (surviving decayed conviction) + `cluster-minimum→2` (admits the 2-filer cluster); `changedParameters=['cluster-minimum','lag-half-life']`, the rendered owner read moves.
+
+<a id="tp-07-06"></a>
+##### TP-07-06 :: waterfront-polo-lab (simple-adapter/location-suitability/v1) #####
+
+```text
+Running 1 test using 1 worker
+
+  ✓  1 …ols recompute owner suitability with unverified evidence visible (643ms)
+
+  1 passed (2.4s)
+TP0706_EXIT=0
+```
+
+Command: `... --grep "Regression: waterfront polo Simple controls recompute owner suitability with unverified evidence visible" ...` — controls `travel-limit→70` + `budget→2500000` recompute the owner shortlist; the test ALSO asserts the owner run keeps the unverified-evidence truth visible: `verification.floodRequired=true`, `verification.clubRequired=true`, `verification.unverifiedIds` includes the estimated-hazard market `m-b` AND the seed-club market `m-f`, and the shortlisted seed-club market `m-f` still surfaces `nearestClubConfidence='seed'` (never promoted to `reported`).
+
+<a id="tp-07-07"></a>
+##### TP-07-07 :: palm-springs-rental-market-lab (simple-adapter/str-scenario/palm-springs/v1) #####
+
+```text
+Running 1 test using 1 worker
+
+  ✓  1 …ple controls recompute owner cash-flow without zero-filling gaps (574ms)
+
+  1 passed (2.1s)
+TP0707_EXIT=0
+```
+
+Command: `... --grep "Regression: Palm Springs Simple controls recompute owner cash-flow without zero-filling gaps" ...` — real `rlrental.js` (RLRENTAL) injected as `deps.rental`; controls `adr→1500` + `occupancy→72` recompute the owner cash flow; the test ALSO asserts the undisclosed-economics gap is preserved WITHOUT zero-filling: `cashFlow.fullEconomicsState='INCOMPLETE'`, `cashFlow.fullPreTaxCashFlowUsd=null`, `cashFlow.missingCostFieldIds` includes `property-tax` + `capital-reserve`, while the disclosed-cost `annualOperatingPreTaxCashFlowUsd` is a real owner number.
+
+<a id="tp-07-08"></a>
+##### TP-07-08 :: ocean-shores-rental-market-lab (simple-adapter/str-scenario/ocean-shores/v1) #####
+
+```text
+Running 1 test using 1 worker
+
+  ✓  1 …ols recompute owner seasonal cash-flow without zero-filling gaps (565ms)
+
+  1 passed (2.0s)
+TP0708_EXIT=0
+```
+
+Command: `... --grep "Regression: Ocean Shores Simple controls recompute owner seasonal cash-flow without zero-filling gaps" ...` — real `rlrental.js` (RLRENTAL) injected as `deps.rental`; controls `adr→1400` + `occupancy→70` recompute the seasonal owner cash flow; the same undisclosed-economics gap is preserved WITHOUT zero-filling (`fullEconomicsState='INCOMPLETE'`, `fullPreTaxCashFlowUsd=null`, `missingCostFieldIds` includes `property-tax` + `capital-reserve`).
+
+<a id="tp-07-09"></a>
+##### TP-07-09 :: market-brief (simple-adapter/market-action-triage/v1) — Center in-Brief only #####
+
+```text
+Running 1 test using 1 worker
+
+  ✓  1 … controls recompute bounded action or no-action inside Brief only (2.8s)
+
+  1 passed (4.3s)
+TP0709_EXIT=0
+```
+
+Command: `... --grep "Regression: Market Action triage controls recompute bounded action or no-action inside Brief only" ...` — real `market-action.js` (RLMARKETACTION) on the REAL `market-brief.html`; controls `evidence-threshold→0.95` + `catalyst-horizon→30` recompute a BOUNDED triage — the default frozen window triages to `actionState.state='action'` and the tighter evidence threshold flips it to `'no-action'` (both bounded ∈ {action, no-action}). INSIDE the Brief only: the Market Action Center page exposes NO top-level Simple tab (`nativeSimpleTabs=0`) and NO shared Simple panel (`nativeSimplePanel=false`) — the triage is an in-Brief model, not a fifth/top-level Simple view.
+
+<a id="no-interception-scan-07"></a>
+##### No-interception scan (new spec) — live-stack authentic #####
+
+```text
+$ grep -nE 'page\.route|context\.route|\.intercept|routeFromHAR|msw|nock|fulfill\(' tests/simple-model-adapters-strategy-property.spec.mjs
+28: * page.route / context.route / intercept / routeFromHAR / msw / nock / fulfill anywhere — the owner
+GREP_EXIT=0
+```
+
+The single match is line 28 — a header doc-comment asserting the ABSENCE of interception (identical to the
+Scope-05/06 specs). ZERO executable interception hits; every row is real `page.goto` + real production core + real
+adapter UMD + real runtime + real `renderSimpleProjection` + a frozen owner fixture (never an intercepted network
+response).
+
+**Broad selftest unchanged:** `node scripts/selftest.mjs` → `934 passed, 0 failed` (`SELFTEST_EXIT=0`). **Artifact
+lint:** `bash .github/bubbles/scripts/artifact-lint.sh specs/012-market-action-center-and-guided-tools` →
+`Artifact lint PASSED` (`ARTIFACTLINT_EXIT=0`).
+
+**Change boundary:** only `tests/simple-model-adapters-strategy-property.spec.mjs` (new), this `report.md`, the
+scope `scope.md` DoD checkboxes, and `state.json` (execution pointer) changed. No adapter module, owner page,
+`rlexperience.js`, `rldata.js`, `simple-models.json`, `scripts/selftest.mjs`, or any other scope was touched; the
+concurrent-session dirty file `bugs/BUG-001-.../scenario-manifest.json` was preserved (not staged / reverted).
+
+**F-07-E2E-01: CLOSED.** Scope 07 stays `in_progress`; `bubbles.test` independently re-verifies TP-07-03..09 and
+finalizes the DoD and status.

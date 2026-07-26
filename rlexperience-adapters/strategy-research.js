@@ -637,6 +637,363 @@
     };
   }
 
+  /* ═══════════ disclosure-lag owner primitives (single source; consumed by Power + Simple) ═══════════
+     These mirror the smart-money-flow-lab.html owner helpers EXACTLY. The owning page delegates to them so it
+     carries no inline disclosure-decay / consensus formula copy (owner-parity). */
+
+  /* alphaDecay: information-edge decay — the fraction of naive edge retained at ageDays given halfLifeDays.
+     alphaDecay(0,H)=1; alphaDecay(H,H)=0.5; strictly decreasing in age; always in (0,1]. Byte-identical to
+     the page's alphaDecay. */
+  function alphaDecay(ageDays, halfLifeDays) {
+    if (halfLifeDays <= 0) return ageDays <= 0 ? 1 : 0;
+    return Math.pow(2, -Math.max(0, ageDays) / halfLifeDays);
+  }
+
+  /* dayGap: whole days between two ISO dates (clamped at 0). NaN-safe -> 0. Byte-identical to the page's
+     dayGap. Date.parse is a deterministic string parse (it reads the given ISO strings, never the wall clock). */
+  function dayGap(fromISO, toISO) {
+    var a = Date.parse(fromISO), b = Date.parse(toISO);
+    if (isNaN(a) || isNaN(b)) return 0;
+    return Math.max(0, (b - a) / 86400000);
+  }
+
+  /* consensusScore: the naive consensus/conviction score. Monotonic up in distinct filers and |netUsd|, down
+     in recencyDays (through alphaDecay). Byte-identical to the page's consensusScore. */
+  function consensusScore(nFilers, netUsd, recencyDays, halfLifeDays) {
+    var breadth = Math.log2(1 + Math.max(0, nFilers));
+    var size = Math.log10(1 + Math.abs(netUsd) / 1e5);
+    var fresh = alphaDecay(recencyDays, halfLifeDays);
+    return breadth * (1 + size) * fresh;
+  }
+
+  /* realisticEdgeFraction: the fraction of naive edge that survives the disclosure lag (== decay at the lag).
+     Byte-identical to the page's realisticEdgeFraction. */
+  function realisticEdgeFraction(disclosureLagDays, halfLifeDays) {
+    return alphaDecay(disclosureLagDays, halfLifeDays);
+  }
+
+  /* ═══════════ disclosure-decay Simple model (owner seam = smart-money-flow-lab.html) ═══════════
+     The Simple question: over a FROZEN owner disclosure set, recompute the SURVIVING conviction under a
+     selected SOURCE MIX, a disclosure-lag HALF-LIFE, a CLUSTER MINIMUM, a directional CONSENSUS threshold,
+     and a DECAY FLOOR. It REUSES the single-sourced owner alphaDecay / consensusScore / realisticEdgeFraction
+     / dayGap (no re-implementation) — the disclosure-lag decay is the owner seam. The cluster gate, the net
+     directional consensus, and the decay floor are the adapter's own bounded Simple question, distinct from
+     the page's Power records / clocks / breadth / decay-audit. It is NOT seeded: it is a pure deterministic
+     function of the frozen filing set. */
+
+  /* sourceTypeFilter: the Simple "source-mix" enum maps to which owner filer types are included. 'blended'
+     includes every type; the option 'institutional' maps to the owner type 'institution'. */
+  function sourceTypeFilter(sourceMix) {
+    if (sourceMix === "insider") return function (type) { return type === "insider"; };
+    if (sourceMix === "congress") return function (type) { return type === "congress"; };
+    if (sourceMix === "institutional") return function (type) { return type === "institution"; };
+    return function () { return true; };
+  }
+
+  /* disclosureClusters: group the source-filtered disclosures into per-ticker owner consensus clusters exactly
+     as the owner aggregate() does — distinct filers, net signed $, average disclosure lag (via dayGap), and the
+     freshest disclosure age — then score naive conviction (consensusScore) and retained edge
+     (realisticEdgeFraction). Every numeric comes from the single-sourced owner functions; nothing is fabricated. */
+  function disclosureClusters(disclosures, includeType, halfLife, today) {
+    var byTicker = Object.create(null);
+    disclosures.forEach(function (d) {
+      if (!includeType(d.type)) return;
+      var g = byTicker[d.ticker] || (byTicker[d.ticker] = { ticker: d.ticker, filers: Object.create(null), net: 0, lags: [], recent: Infinity });
+      var signed = (d.side === "sell" ? -1 : 1) * d.usd;
+      g.net += signed;
+      g.filers[d.filer] = 1;
+      var lag = dayGap(d.txn, d.disclosed);
+      var age = dayGap(d.disclosed, today);
+      g.lags.push(lag);
+      if (age < g.recent) g.recent = age;
+    });
+    return Object.keys(byTicker).map(function (tk) {
+      var g = byTicker[tk];
+      var nFilers = Object.keys(g.filers).length;
+      var avgLag = g.lags.reduce(function (a, b) { return a + b; }, 0) / (g.lags.length || 1);
+      var recency = g.recent === Infinity ? 0 : g.recent;
+      var naive = consensusScore(nFilers, g.net, recency, halfLife);
+      var retained = realisticEdgeFraction(avgLag, halfLife);
+      return { ticker: tk, nFilers: nFilers, net: g.net, avgLag: avgLag, recency: recency, naive: naive, retained: retained, direction: g.net >= 0 ? "buy" : "sell" };
+    }).sort(function (a, b) { return b.naive - a.naive; });
+  }
+
+  /* Recompute the surviving-conviction summary over one frozen owner disclosure set under the current Simple
+     parameters. Pure, deterministic, and derived only from the single-sourced owner functions. */
+  function computeDisclosureDecaySummary(ownerState, params) {
+    var sourceMix = params["source-mix"];
+    var halfLife = params["lag-half-life"];
+    var clusterMin = params["cluster-minimum"];
+    var consensusThreshold = params["consensus-threshold"];
+    var decayFloor = params["decay-floor"];
+
+    var today = String(ownerState.today || ownerState.asOf || "");
+    var disclosures = Array.isArray(ownerState.disclosures) ? ownerState.disclosures : [];
+    var includeType = sourceTypeFilter(sourceMix);
+
+    var clusters = disclosureClusters(disclosures, includeType, halfLife, today);
+
+    // decay floor: the minimum surviving fraction after lag decay. When the natural retained fraction is below
+    // the floor, the floor lifts it; otherwise the natural retained fraction stands (no zero-fill, no cap up).
+    var perTicker = clusters.map(function (c) {
+      var retainedFloored = Math.max(c.retained, decayFloor);
+      return {
+        ticker: c.ticker,
+        nFilers: c.nFilers,
+        net: roundTo(c.net, 2),
+        avgLag: roundTo(c.avgLag, 4),
+        direction: c.direction,
+        naive: roundTo(c.naive, 6),
+        retained: roundTo(c.retained, 6),
+        retainedFloored: roundTo(retainedFloored, 6),
+        realistic: roundTo(c.naive * c.retained, 6),
+        decayed: roundTo(c.naive * retainedFloored, 6),
+        floored: retainedFloored > c.retained,
+        qualifiesCluster: c.nFilers >= clusterMin
+      };
+    });
+
+    var totalNaive = 0, totalRealistic = 0, totalDecayed = 0;
+    perTicker.forEach(function (c) { totalNaive += c.naive; totalRealistic += c.realistic; totalDecayed += c.decayed; });
+
+    var qualified = perTicker.filter(function (c) { return c.qualifiesCluster; });
+    var dropped = perTicker.filter(function (c) { return !c.qualifiesCluster; });
+    var buyClusters = qualified.filter(function (c) { return c.direction === "buy"; });
+    var consensusFraction = qualified.length ? buyClusters.length / qualified.length : 0;
+    var passes = qualified.length > 0 && consensusFraction >= consensusThreshold;
+
+    return {
+      sourceMix: sourceMix,
+      lagHalfLife: halfLife,
+      clusterMinimum: clusterMin,
+      consensusThreshold: consensusThreshold,
+      decayFloor: decayFloor,
+      today: today,
+      universe: { totalDisclosures: disclosures.filter(function (d) { return includeType(d.type); }).length, totalClusters: perTicker.length },
+      conviction: {
+        sourceMix: sourceMix,
+        totalNaive: roundTo(totalNaive, 6),
+        perTicker: perTicker.map(function (c) { return { ticker: c.ticker, nFilers: c.nFilers, direction: c.direction, naive: c.naive }; })
+      },
+      decayedConviction: {
+        lagHalfLife: halfLife,
+        decayFloor: decayFloor,
+        totalRealistic: roundTo(totalRealistic, 6),
+        totalDecayed: roundTo(totalDecayed, 6),
+        perTicker: perTicker.map(function (c) { return { ticker: c.ticker, retained: c.retained, retainedFloored: c.retainedFloored, decayed: c.decayed, floored: c.floored }; })
+      },
+      cluster: {
+        clusterMinimum: clusterMin,
+        qualifiedCount: qualified.length,
+        qualifiedTickers: qualified.map(function (c) { return c.ticker; }),
+        droppedTickers: dropped.map(function (c) { return c.ticker; })
+      },
+      consensus: {
+        consensusThreshold: consensusThreshold,
+        qualifiedClusters: qualified.length,
+        buyClusters: buyClusters.length,
+        consensusFraction: roundTo(consensusFraction, 6),
+        passes: passes,
+        band: passes ? "consensus" : "divided"
+      }
+    };
+  }
+
+  /* affectsOutputPaths for the disclosure-decay parameters. Mirrors simple-models.json exactly. */
+  var DISCLOSURE_DECAY_OUTPUT_PATHS = {
+    "source-mix": ["summary.conviction"],
+    "lag-half-life": ["summary.decayedConviction"],
+    "cluster-minimum": ["summary.cluster"],
+    "consensus-threshold": ["summary.consensus"],
+    "decay-floor": ["summary.decayedConviction"]
+  };
+
+  function disclosureDecaySummaryPath(summary, path) {
+    if (path === "summary.conviction") return summary.conviction;
+    if (path === "summary.decayedConviction") return summary.decayedConviction;
+    if (path === "summary.cluster") return summary.cluster;
+    if (path === "summary.consensus") return summary.consensus;
+    return null;
+  }
+
+  /* ═══════════ disclosure-decay adapter ═══════════ */
+
+  function disclosureDecayEvidenceState(ownerState) {
+    var hasDisclosures = ownerState && Array.isArray(ownerState.disclosures) && ownerState.disclosures.length > 0;
+    var stamp = ownerState && (ownerState.today || ownerState.asOf);
+    var hasToday = typeof stamp === "string" && stamp.length >= 8;
+    return (hasDisclosures && hasToday) ? "ready" : "unavailable";
+  }
+
+  function buildDisclosureDecayEvidence(api, ownerState) {
+    var state = disclosureDecayEvidenceState(ownerState);
+    var cutoff = String(ownerState.today || ownerState.asOf || "unavailable");
+    var sourceClass = String(ownerState.sourceClass || "model-estimate");
+    var evidence = {
+      contractVersion: "simple-evidence-snapshot/v1",
+      toolId: "smart-money-flow-lab",
+      state: state,
+      evidenceCutoff: cutoff,
+      evidenceRefs: [{
+        requirementId: "owner-evidence",
+        evidenceRef: "owner:smart-money-flow-lab:disclosure-set:" + cutoff,
+        semanticFingerprint: ownerStateFingerprint(api, ownerState),
+        sourceClass: sourceClass,
+        observedAsOf: cutoff,
+        retrievedOrPublishedAt: cutoff,
+        freshness: "cache-current-for-render",
+        dataTier: String(ownerState.source || "disclosed filing set"),
+        valueState: state === "ready" ? "ready" : "unavailable"
+      }],
+      parameterValues: {},
+      assumptions: [
+        "Every conviction number is computed only from the frozen disclosed filing set; no price, return, or forward outcome is used."
+      ],
+      limitations: [
+        "Disclosure-lag decay estimates how much of the naive edge is already public by the time it is disclosed; it cannot recover an edge that has fully decayed, and the sample filing set is illustrative unless real filings were supplied."
+      ],
+      invalidationConditions: [
+        "The frozen disclosed filing set, any disclosure/transaction date, or the reference date changes."
+      ],
+      evidenceIdentity: null
+    };
+    evidence.evidenceIdentity = evidenceIdentityOf(api, evidence);
+    return evidence;
+  }
+
+  function disclosureDecayOutput(input, summary) {
+    var scenarioValues = { summary: summary };
+    return {
+      contractVersion: "simple-model-output/v1",
+      state: "ready",
+      values: scenarioValues,
+      scenarios: input.scenarios.map(function (scenario) {
+        return { scenarioId: scenario.scenarioId, state: "ready", values: scenarioValues };
+      }),
+      calibration: {
+        state: "owner-evidence-relative",
+        reason: "Surviving conviction is measured relative to the frozen owner disclosure set; there is no external price calibration."
+      },
+      provenance: { classes: ["model-estimate", "observed-fact"], evidenceIdentity: input.evidenceIdentity },
+      uncertainty: {
+        state: summary.consensus.passes ? "bounded" : "wide",
+        rangeOrBand: summary.consensus.band + " (" + summary.consensus.buyClusters + "/" + summary.consensus.qualifiedClusters + " qualified clusters buy-directional)",
+        reason: "The disclosure-lag decay and cluster gate are deterministic over the frozen filing set; conviction that has already decayed below the floor is reported as surviving at the floor, never recovered above it."
+      },
+      assumptions: [
+        "Directional consensus is measured over clusters meeting the minimum-filer gate; single disclosures below the gate are excluded, not zero-filled."
+      ],
+      limitations: [
+        "Filing-lag decay is a public-information haircut, not a forward return; surviving conviction is a research signal, not a trade recommendation."
+      ],
+      invalidationConditions: [
+        "The frozen filing set changes, or a disclosure/transaction date changes a computed lag or age."
+      ],
+      flatRegionProofs: []
+    };
+  }
+
+  function createDisclosureDecayAdapter(api, definition, ownerByIdentity) {
+    return {
+      contractVersion: "simple-model-adapter/v1",
+      adapterId: definition.adapterId,
+      supportedDefinitionIds: [definition.definitionId],
+      validateDefinition: function (candidate) {
+        return { ok: true, value: candidate };
+      },
+      captureEvidence: function (ownerContext) {
+        if (!ownerContext || typeof ownerContext !== "object") {
+          return { ok: false, error: { reason: "owner context required" } };
+        }
+        var ownerState = ownerContext.ownerState;
+        if (!ownerState || typeof ownerState !== "object" || !Array.isArray(ownerState.disclosures)) {
+          return { ok: false, error: { reason: "disclosure owner state required" } };
+        }
+        var frozen = deepFreeze(JSON.parse(JSON.stringify(ownerState)));
+        var evidence = buildDisclosureDecayEvidence(api, frozen);
+        ownerByIdentity.set(evidence.evidenceIdentity, frozen);
+        return { ok: true, value: evidence };
+      },
+      normalizeInputs: function (candidate, evidence, parameterValues, seed, scenarioIds) {
+        return api.normalizeSimpleInput(candidate, evidence, parameterValues, seed, scenarioIds);
+      },
+      compute: function (input) {
+        var ownerState = ownerByIdentity.get(input.evidenceIdentity);
+        if (!ownerState) {
+          return { ok: false, error: { reason: "frozen owner state is unavailable for this evidence identity" } };
+        }
+        var summary = computeDisclosureDecaySummary(ownerState, paramMap(input));
+        return { ok: true, value: disclosureDecayOutput(input, summary) };
+      },
+      compareSensitivity: function (baselineInput, currentInput, sharedRandomness) {
+        var ownerState = ownerByIdentity.get(currentInput.evidenceIdentity);
+        if (!ownerState) {
+          return { ok: false, error: { reason: "frozen owner state is unavailable for sensitivity" } };
+        }
+        var baselineValues = paramMap(baselineInput);
+        var currentValues = paramMap(currentInput);
+        var baselineSummary = computeDisclosureDecaySummary(ownerState, baselineValues);
+        var currentSummary = computeDisclosureDecaySummary(ownerState, currentValues);
+        var effects = [];
+        Object.keys(currentValues).forEach(function (parameterId) {
+          if (baselineValues[parameterId] === currentValues[parameterId]) return;
+          var paths = DISCLOSURE_DECAY_OUTPUT_PATHS[parameterId] || [];
+          var changed = paths.some(function (path) {
+            return fingerprintOf(api, disclosureDecaySummaryPath(baselineSummary, path)) !== fingerprintOf(api, disclosureDecaySummaryPath(currentSummary, path));
+          });
+          effects.push({
+            parameterId: parameterId,
+            oldValue: baselineValues[parameterId],
+            newValue: currentValues[parameterId],
+            direction: (typeof currentValues[parameterId] === "number" && typeof baselineValues[parameterId] === "number")
+              ? (currentValues[parameterId] > baselineValues[parameterId] ? "higher" : "lower")
+              : "changed",
+            magnitude: (typeof currentValues[parameterId] === "number" && typeof baselineValues[parameterId] === "number")
+              ? (Math.abs(currentValues[parameterId] - baselineValues[parameterId]) || 1)
+              : 1,
+            nonlinear: false,
+            resultPaths: paths,
+            outputChanged: changed,
+            flatRegionProof: changed ? null : {
+              parameterId: parameterId,
+              resultPaths: paths,
+              reason: "The frozen owner disclosure set yields an identical value on these paths for this parameter change."
+            }
+          });
+        });
+        return {
+          ok: true,
+          value: {
+            contractVersion: "simple-sensitivity/v1",
+            sharedRandomness: sharedRandomness,
+            seedChanged: baselineInput.seed !== currentInput.seed,
+            effects: effects
+          }
+        };
+      },
+      projectOwnerEvidence: function (output) {
+        var summary = output.values.summary;
+        var top = summary.conviction.perTicker[0] || null;
+        return {
+          ok: true,
+          value: {
+            contractVersion: "owner-evidence-projection/v1",
+            state: output.state,
+            valueText: summary.consensus.passes
+              ? ("Consensus (" + summary.consensus.buyClusters + "/" + summary.consensus.qualifiedClusters + " clusters buy)")
+              : ("Divided (" + summary.consensus.buyClusters + "/" + summary.consensus.qualifiedClusters + " clusters buy)"),
+            numericValue: summary.decayedConviction.totalDecayed,
+            unit: "surviving-conviction",
+            summary: top
+              ? ("Top surviving cluster is " + top.ticker + " (" + top.direction + ", " + top.nFilers + " filers); " + summary.consensus.qualifiedClusters + " clusters clear the " + summary.clusterMinimum + "-filer gate at a " + summary.lagHalfLife + "-day lag half-life.")
+              : ("No cluster clears the " + summary.clusterMinimum + "-filer gate under the selected source mix."),
+            sourceRefs: ["owner-evidence"]
+          }
+        };
+      }
+    };
+  }
+
   /* ═══════════ registration ═══════════
      Build every implemented strategy adapter for the supplied definitions. A tool whose owner seam is not
      yet extracted is simply absent, so the shared runtime renders the explicit unavailable state for it. */
@@ -651,6 +1008,10 @@
     if (byToolId["strategy-self-improvement-lab"]) {
       var evolutionDefinition = byToolId["strategy-self-improvement-lab"];
       adapters[evolutionDefinition.adapterId] = createStrategyEvolutionAdapter(api, evolutionDefinition, ownerByIdentity);
+    }
+    if (byToolId["smart-money-flow-lab"]) {
+      var disclosureDefinition = byToolId["smart-money-flow-lab"];
+      adapters[disclosureDefinition.adapterId] = createDisclosureDecayAdapter(api, disclosureDefinition, ownerByIdentity);
     }
     return adapters;
   }
@@ -669,7 +1030,7 @@
   return {
     contractVersion: "strategy-research-adapters/v1",
     module: "rlexperience-adapters/strategy-research.js",
-    supportedAdapterIds: ["simple-adapter/strategy-evolution/v1"],
+    supportedAdapterIds: ["simple-adapter/strategy-evolution/v1", "simple-adapter/disclosure-decay/v1"],
     mulberry32: mulberry32,
     gauss: gauss,
     genSeries: genSeries,
@@ -680,6 +1041,11 @@
     walkForward: walkForward,
     candidateValues: candidateValues,
     computeStrategyEvolutionSummary: computeStrategyEvolutionSummary,
+    alphaDecay: alphaDecay,
+    dayGap: dayGap,
+    consensusScore: consensusScore,
+    realisticEdgeFraction: realisticEdgeFraction,
+    computeDisclosureDecaySummary: computeDisclosureDecaySummary,
     createStrategyResearchAdapters: createStrategyResearchAdapters,
     registerStrategyResearchAdapters: registerStrategyResearchAdapters
   };

@@ -698,29 +698,62 @@ try {
   assert(env.signalEdge([{ c: 1 }], { m20: [], m50: [], m200: [] }, 21) === null, 'signalEdge needs >= 260 bars');
 } catch (e) { failures++; console.log('  \u2717 FAIL (swing edge group threw): ' + e.message); }
 
-/* ---------- Smart Money: disclosure-lag edge decay + consensus ---------- */
+/* ---------- Smart Money: single-sourced disclosure-lag decay + consensus + reproducible disclosure-decay adapter (RLSTRATEGY) ---------- */
+// Feature 012 Scope 07: the disclosure-lag decay / consensus / realistic-edge owner formulas are single-sourced
+// in rlexperience-adapters/strategy-research.js (RLSTRATEGY), which the page delegates to. Both the page's Power
+// path and the registered disclosure-decay/v1 Simple adapter consume the exact same pure owner functions
+// (owner-parity), and the surviving-conviction model is deterministic over the frozen disclosed filing set.
 try {
-  group('smart-money-flow-lab.html \u2014 disclosure-lag edge decay + consensus');
+  group('smart-money-flow-lab.html \u2014 single-sourced disclosure-lag decay + consensus + reproducible disclosure-decay adapter (RLSTRATEGY)');
   const src = read('smart-money-flow-lab.html');
-  const names = ['alphaDecay', 'dayGap', 'consensusScore', 'realisticEdgeFraction'];
-  const env = build(names.map((n) => extractFn(src, n)), names);
+  const { createRequire } = await import('node:module');
+  const smartRequire = createRequire(import.meta.url);
+  delete smartRequire.cache[smartRequire.resolve('../rlexperience-adapters/strategy-research.js')];
+  const RLST = smartRequire('../rlexperience-adapters/strategy-research.js');
 
-  assert(env.alphaDecay(0, 15) === 1, 'alphaDecay(0,H) = 1 (no age, full edge)');
-  assert(approx(env.alphaDecay(15, 15), 0.5, 1e-9), 'alphaDecay(H,H) = 0.5 (one half-life)');
-  assert(approx(env.alphaDecay(45, 15), 0.125, 1e-9), 'alphaDecay(3H,H) = 12.5% (45d @ 15d half-life)');
-  assert(env.alphaDecay(30, 15) < env.alphaDecay(10, 15), 'alphaDecay strictly decreasing in age');
-  assert(env.alphaDecay(200, 15) > 0 && env.alphaDecay(0, 15) <= 1, 'alphaDecay stays in (0,1]');
+  // alphaDecay: the owner information-edge decay — the exact owner semantics the page used inline before the rewire.
+  assert(RLST.alphaDecay(0, 15) === 1, 'alphaDecay(0,H) = 1 (no age, full edge)');
+  assert(approx(RLST.alphaDecay(15, 15), 0.5, 1e-9), 'alphaDecay(H,H) = 0.5 (one half-life)');
+  assert(approx(RLST.alphaDecay(45, 15), 0.125, 1e-9), 'alphaDecay(3H,H) = 12.5% (45d @ 15d half-life)');
+  assert(RLST.alphaDecay(30, 15) < RLST.alphaDecay(10, 15), 'alphaDecay strictly decreasing in age');
+  assert(RLST.alphaDecay(200, 15) > 0 && RLST.alphaDecay(0, 15) <= 1, 'alphaDecay stays in (0,1]');
 
-  assert(env.dayGap('2026-05-20', '2026-06-28') === 39, 'dayGap counts whole days (STOCK-Act lag)');
-  assert(env.dayGap('2026-06-28', '2026-05-20') === 0, 'dayGap clamps a reversed range to 0');
-  assert(env.dayGap('not-a-date', '2026-06-28') === 0, 'dayGap is NaN-safe -> 0');
+  assert(RLST.dayGap('2026-05-20', '2026-06-28') === 39, 'dayGap counts whole days (STOCK-Act lag)');
+  assert(RLST.dayGap('2026-06-28', '2026-05-20') === 0, 'dayGap clamps a reversed range to 0');
+  assert(RLST.dayGap('not-a-date', '2026-06-28') === 0, 'dayGap is NaN-safe -> 0');
 
-  assert(env.consensusScore(3, 1e6, 2, 15) > env.consensusScore(1, 1e6, 2, 15), 'consensus rises with distinct filers');
-  assert(env.consensusScore(2, 5e6, 2, 15) > env.consensusScore(2, 1e5, 2, 15), 'consensus rises with net $');
-  assert(env.consensusScore(2, 1e6, 40, 15) < env.consensusScore(2, 1e6, 2, 15), 'consensus falls as the cluster ages');
+  assert(RLST.consensusScore(3, 1e6, 2, 15) > RLST.consensusScore(1, 1e6, 2, 15), 'consensus rises with distinct filers');
+  assert(RLST.consensusScore(2, 5e6, 2, 15) > RLST.consensusScore(2, 1e5, 2, 15), 'consensus rises with net $');
+  assert(RLST.consensusScore(2, 1e6, 40, 15) < RLST.consensusScore(2, 1e6, 2, 15), 'consensus falls as the cluster ages');
 
-  assert(approx(env.realisticEdgeFraction(2, 15), env.alphaDecay(2, 15), 1e-12), 'realistic edge == decay at the disclosure lag');
-  assert(env.realisticEdgeFraction(45, 15) < env.realisticEdgeFraction(2, 15), 'a 45-day 13F echo retains far less than a 2-day Form 4');
+  assert(approx(RLST.realisticEdgeFraction(2, 15), RLST.alphaDecay(2, 15), 1e-12), 'realistic edge == decay at the disclosure lag');
+  assert(RLST.realisticEdgeFraction(45, 15) < RLST.realisticEdgeFraction(2, 15), 'a 45-day 13F echo retains far less than a 2-day Form 4');
+
+  // disclosure-decay adapter canary: deterministic over the frozen filing set + genuine parameter effects
+  // (SCN-012-036 owner-parity at the adapter summary level).
+  const owner = {
+    today: '2026-07-05', disclosures: [
+      { ticker: 'AAA', filer: 'F1', type: 'insider', side: 'buy', usd: 2000000, txn: '2026-06-29', disclosed: '2026-07-01' },
+      { ticker: 'AAA', filer: 'F2', type: 'insider', side: 'buy', usd: 900000, txn: '2026-06-29', disclosed: '2026-07-01' },
+      { ticker: 'AAA', filer: 'F3', type: 'insider', side: 'buy', usd: 600000, txn: '2026-06-29', disclosed: '2026-07-01' },
+      { ticker: 'BBB', filer: 'G1', type: 'congress', side: 'buy', usd: 250000, txn: '2026-04-30', disclosed: '2026-06-29' },
+      { ticker: 'BBB', filer: 'G2', type: 'congress', side: 'buy', usd: 120000, txn: '2026-04-30', disclosed: '2026-06-29' },
+      { ticker: 'BBB', filer: 'G3', type: 'congress', side: 'buy', usd: 90000, txn: '2026-04-30', disclosed: '2026-06-29' }
+    ]
+  };
+  const P = { 'source-mix': 'blended', 'lag-half-life': 45, 'cluster-minimum': 3, 'consensus-threshold': 0.6, 'decay-floor': 0.1 };
+  const d1 = RLST.computeDisclosureDecaySummary(owner, P);
+  const d2 = RLST.computeDisclosureDecaySummary(owner, P);
+  assert(JSON.stringify(d1) === JSON.stringify(d2), 'disclosure-decay: identical inputs => identical summary (deterministic over the frozen filing set)');
+  const dInsider = RLST.computeDisclosureDecaySummary(owner, Object.assign({}, P, { 'source-mix': 'insider' }));
+  assert(dInsider.conviction.totalNaive !== d1.conviction.totalNaive, 'disclosure-decay: source-mix genuinely changes total naive conviction');
+  const dLong = RLST.computeDisclosureDecaySummary(owner, Object.assign({}, P, { 'lag-half-life': 90 }));
+  assert(dLong.decayedConviction.totalDecayed > d1.decayedConviction.totalDecayed, 'disclosure-decay: a longer lag half-life retains more surviving conviction');
+
+  // single-source wiring: the page loads the module, delegates, and carries no inline formula copy.
+  assert(/rlexperience-adapters\/strategy-research\.js/.test(src), 'smart-money-flow-lab.html loads the strategy-research module');
+  assert(/RLSTRATEGY\.alphaDecay\s*\(/.test(src) && /RLSTRATEGY\.consensusScore\s*\(/.test(src) && /RLSTRATEGY\.realisticEdgeFraction\s*\(/.test(src) && /RLSTRATEGY\.dayGap\s*\(/.test(src), 'smart-money-flow-lab.html delegates disclosure-lag decay / consensus / realistic-edge / dayGap to the single source');
+  assert(!/return Math\.pow\(2, -Math\.max\(0, ageDays\) \/ halfLifeDays\)/.test(src) && !/var breadth = Math\.log2\(1 \+ Math\.max\(0, nFilers\)\)/.test(src), 'smart-money-flow-lab.html carries no inline copy of the single-sourced disclosure-lag / consensus formula');
 } catch (e) { failures++; console.log('  \u2717 FAIL (smart-money group threw): ' + e.message); }
 
 /* ---------- Waterfront × Masters Water-Polo screener: geo + filter ---------- */

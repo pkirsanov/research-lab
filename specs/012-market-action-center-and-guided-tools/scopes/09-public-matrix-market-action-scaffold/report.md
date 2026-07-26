@@ -290,3 +290,36 @@ VALIDATOR_EXIT=0
 ## Audit Verdict
 
 Not yet audited. Batch 2 completes the Scope 09 code + test surface (all 8 Test Plan rows GREEN in-session; selftest 945/0; validate-brief-payload PASS; no-interception clean; regression-quality-guard 0 violations; artifact-lint PASSED). Scope 09 remains `in_progress`. `nextRequiredOwner` = `bubbles.test` for independent verification + the grouped Build Quality Gate (protected-path diff, editor diagnostics, source-lock, audit) before Done.
+
+## Independent Verification (bubbles.test)
+
+Independent re-verification (full-delivery; recorded evidence **not** trusted — every Test Plan row reproduced from scratch this session at HEAD `df37f198` with the exact `scope.md` commands, full unfiltered output, no truncation/redirect-to-file/`--no-verify`). `repo-binding-preflight.sh --agent-source research-lab` exit 0 was the first action. **Verdict: Scope 09 = done, substate = independently_verified.** Feature `status` = `not_started`, `certifiedAt` = null, `certification.status` = `not_started` — UNTOUCHED (Scope 9 of 14).
+
+### Reproduced Test Plan rows (this session)
+
+| Row | Command | Result | Exit |
+|---|---|---|---|
+| TP-09-01 | `node --test tests/market-action.unit.mjs` | tests 13 / pass 13 / fail 0 | 0 |
+| TP-09-02 | `node --test tests/public-portfolio-matrix.functional.mjs` | tests 10 / pass 10 / fail 0 | 0 |
+| TP-09-03 | `node --test tests/market-action-consumer-trace.mjs` | tests 5 / pass 5 / fail 0; `blockingStaleReferences=0` (1967 files scanned) | 0 |
+| TP-09-04 | `npx --no-install playwright test tests/market-action-center.spec.mjs … --grep "Regression: SCN-012-017 …exact four views"` | 1 passed | 0 |
+| TP-09-05 | `… --grep "Regression: SCN-012-019 …no-action and no invented row"` | 1 passed | 0 |
+| TP-09-06 | `… --grep "Regression: SCN-012-022 …never exposes or implies a holding"` | 1 passed | 0 |
+| TP-09-07 | `… --grep "Regression: legacy hashes payload provenance windows action gates and closed disclosures remain truthful"` | 1 passed | 0 |
+| (full spec) | `npx … playwright test tests/market-action-center.spec.mjs --project=system-chrome --reporter=list` | 4 passed (17.2s) | 0 |
+| TP-09-08 | `node scripts/selftest.mjs` | `Research-Lab self-test: 945 passed, 0 failed` (Scope-09 canary group present) | 0 |
+| validator | `node scripts/validate-market-action.mjs` | `moduleAuthorityScan=PASS forbiddenCapabilities=0`; `publicMatrix=PASS rows=4 scopeLabel="Public watchlist"`; `centerProjection=PASS views=4 gatesPending=3`; adversarial 7 REJECTED, unexpectedAcceptances=0 | 0 |
+| validator | `node scripts/validate-brief-payload.mjs` | `[brief-contract] PASS` | 0 |
+
+### Eight confirmation checks
+
+1. **SCN-012-017 rename + route/ID/payload stability** — `git diff 3a86d1a3..HEAD -- market-brief.config.json` is **empty** (payload IDs + scheduler byte-unchanged, stronger than "IDs preserved"). `tools.json` / `index.html` / `rlnav.js` diffs change ONLY the visible `title`/`nav.label` to "Market Action Center"; `id: 'market-brief'` and `file: 'market-brief.html'` are preserved and singular. `market-brief.html` / `rlbrief.js` edits are purely additive (`#mac-center` section + controller; `renderCenterNoAction` export). TP-09-04/07 prove `#simple`/`#power` → `#brief` via boot `replaceState`, `#power` opens the evidence disclosure, and Back/Forward restore the exact tab on the REAL route.
+2. **SCN-012-019 no-action truthful** — reproduced at unit (TP-09-01) and live e2e (TP-09-05): complete coverage + zero admitted actions → exact `NO_ACTION_STATEMENT`, `fabricatedAction/Catalyst/Confidence=false`, zero actions/catalysts, no numeric confidence/probability in the serialized projection; an admitted action suppresses no-action.
+3. **SCN-012-022 public-only** — reproduced at functional (TP-09-02) and live e2e (TP-09-06): every row `scopeLabel="Public watchlist"`; no holding/quantity/cost/P&L/mandate/exposure field or copy; storage/request sentinel proves ZERO Feature-008 key read/created and zero fetch/storage; `watchlist.json` byte-unchanged, `sha256=8d65ba89aaf72e45ad1f6ab1db0eb6133f813f174b9eb3494a5aabe64bc28eb1`.
+4. **Consumer-trace non-tautological** — TP-09-03 sub-test "adversarial: the classifier flags a reverted product title (non-tautological)" passes: reverting the `<title>` in-memory makes the SAME classifier report exactly one `blocking-stale-reference` (no disk mutation). Green run: `blockingStaleReferences=0`.
+5. **No-interception** — raw grep of `page.route|context.route|.intercept|msw|nock|wiremock|fulfill(|cy.intercept` on `tests/market-action-center.spec.mjs` = **zero matches** (grep exit 1) — none in code or comments; the spec drives a real `page.goto` + real `market-brief.html` route + real Center runtime.
+6. **RED-bite (adversarial, read-only-safe)** — neutralized a real behavior in `rlmarketaction.js` (the no-action projection's `fabricatedCatalyst: false` → `true`); the targeted assertion genuinely FAILED (`node --test --test-name-pattern="fabricates nothing"` → `AssertionError: true !== false` at `tests/market-action.unit.mjs:80`, exit 1). Restored byte-identical via `git checkout HEAD -- rlmarketaction.js` — `sha256` before `f7d43ca33cb78ff15914b996012ad7d0913222aa8da84781d56f1aa7c1251617` == after; re-run GREEN (1 passed, exit 0). `git status --short` afterward shows ONLY the concurrent BUG-001 `scenario-manifest.json` — no neutralized file left in the tree.
+7. **Forbidden-authority + protected paths** — comment-stripped scan of `rlmarketaction.js`: the only two `fetch/providerFetch/localStorage/…` occurrences are lines 37-38 INSIDE the JSDoc block comment (documentation of the purity invariant); **0 executable** fetch/providerFetch/credential/LLM/publisher/storage-write (corroborated by `validate-market-action.mjs moduleAuthorityScan=PASS forbiddenCapabilities=0`). `git diff 3a86d1a3..HEAD` and `git status --short` are BOTH empty for `rlexperience.js`, `rlexperience-adapters/**`, `simple-models.json`, `journeys.json`, `rljourney.js`, `rldata.js`, `data/options/**`, `watchlist.json` — all byte-unchanged.
+8. **Rollback (Core-Delivery item 4) — truthful, reasoned** — Scope-09 is additive-only: `market-brief.config.json` empty diff (payload + scheduler untouched), `watchlist.json` byte-unchanged, `id`/`file` `market-brief` preserved, no scheduler/workflow file in the diff. Reverting the Scope-09 additions (restore prior `title`/`nav.label` text + delete the new module/validator/tests + drop the additive `renderCenterNoAction` export and `#mac-center` controller) restores the prior Market Brief visible behavior via a forward revert — no history rewrite, no payload/watchlist/local-data change. The claim is verified truthful without a destructive run.
+
+**No coverage gap; no test change required.** Scope 09 status set to `done`, substate `independently_verified`; next owner `bubbles.implement`, next scope `10-bounded-web-evidence-acquisition`. Feature status / certification untouched.

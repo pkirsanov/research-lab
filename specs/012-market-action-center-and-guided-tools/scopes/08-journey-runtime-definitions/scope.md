@@ -4,7 +4,7 @@
 
 Planning authority: [spec.md](../../spec.md), [design.md](../../design.md), and the [scope index](../_index.md). Execution evidence belongs in [report.md](report.md).
 
-**Status:** Not Started
+**Status:** Done
 
 **Scope-Kind:** runtime-behavior
 
@@ -181,23 +181,23 @@ Write reducer/storage/definition tests and the four exact scenario browser title
 
 #### Core Delivery Items
 
-- [ ] One shared runtime implements every mechanism, evidence-completion rule, local storage state, resume/backtrack/stale lifecycle, typed packet, safe export, and no-execution invariant.
-- [ ] All 23 registry entries resolve concrete goals exactly as inventoried; every ordinary tool has at least two and Market Action Center has exactly four.
-- [ ] Durable/session-only truth, forbidden-field privacy, public-only deep links, focus/mobile/accessibility, and rollback behavior are complete without touching private portfolio or publication owners.
+- [x] One shared runtime implements every mechanism, evidence-completion rule, local storage state, resume/backtrack/stale lifecycle, typed packet, safe export, and no-execution invariant. → Evidence: [report.md#independent-verification-bubblestest](report.md#independent-verification-bubblestest)
+- [x] All 23 registry entries resolve concrete goals exactly as inventoried; every ordinary tool has at least two and Market Action Center has exactly four. → Evidence: [report.md#tp-08-02](report.md#tp-08-02)
+- [x] Durable/session-only truth, forbidden-field privacy, public-only deep links, focus/mobile/accessibility, and rollback behavior are complete without touching private portfolio or publication owners. → Evidence: [report.md#tp-08-03](report.md#tp-08-03)
 
 #### Test Evidence Items - Exact Parity With 10 Test Plan Rows
 
-- [ ] TP-08-01 unit evidence proves definition/reducer/stale/packet/no-execution contracts.
-- [ ] TP-08-02 functional evidence proves SCN-012-032 all-tool goal/mechanism completeness.
+- [x] TP-08-01 unit evidence proves definition/reducer/stale/packet/no-execution contracts. → Evidence: [report.md#tp-08-01](report.md#tp-08-01)
+- [x] TP-08-02 functional evidence proves SCN-012-032 all-tool goal/mechanism completeness. → Evidence: [report.md#tp-08-02](report.md#tp-08-02)
 - [x] TP-08-03 functional evidence proves verified storage, session-only, privacy, clear/export, and last-valid behavior. → Evidence: [report.md#tp-08-03](report.md#tp-08-03)
-- [ ] TP-08-04 E2E evidence proves SCN-012-009 durable resume and no visit-only completion.
-- [ ] TP-08-05 E2E evidence proves SCN-012-010 dependency-aware backtracking and packet exclusion.
-- [ ] TP-08-06 E2E evidence proves SCN-012-011 review-only signoff and zero execution.
-- [ ] TP-08-07 E2E evidence proves SCN-012-032 concrete goal inventory in the real shell.
-- [ ] TP-08-08 E2E evidence proves all four mechanisms use the common contract.
+- [x] TP-08-04 E2E evidence proves SCN-012-009 durable resume and no visit-only completion. → Evidence: [report.md#tp-08-04](report.md#tp-08-04)
+- [x] TP-08-05 E2E evidence proves SCN-012-010 dependency-aware backtracking and packet exclusion. → Evidence: [report.md#tp-08-05](report.md#tp-08-05)
+- [x] TP-08-06 E2E evidence proves SCN-012-011 review-only signoff and zero execution. → Evidence: [report.md#tp-08-06](report.md#tp-08-06)
+- [x] TP-08-07 E2E evidence proves SCN-012-032 concrete goal inventory in the real shell. → Evidence: [report.md#tp-08-07](report.md#tp-08-07)
+- [x] TP-08-08 E2E evidence proves all four mechanisms use the common contract. → Evidence: [report.md#tp-08-08](report.md#tp-08-08)
 - [x] TP-08-09 E2E evidence proves narrow/mobile/focus/dialog/progress/packet accessibility. → Evidence: [report.md#tp-08-09](report.md#tp-08-09)
-- [ ] TP-08-10 broad selftest evidence proves the existing Research Lab baseline remains green.
+- [x] TP-08-10 broad selftest evidence proves the existing Research Lab baseline remains green. → Evidence: [report.md#tp-08-10](report.md#tp-08-10)
 
 #### Build Quality Gate
 
-- [ ] Scenario RED/GREEN, exact system-Chrome identity, no-interception/service-worker scan, storage fault/forbidden-field/key inventory, URL/referrer/private sentinel scan, all-tool goal validator, mechanism and no-execution source/DOM scan, accessibility/mobile checks, protected-path diff, editor diagnostics, `git diff --check`, source-lock, artifact lint, and broad selftest are current and clean.
+- [x] Scenario RED/GREEN, exact system-Chrome identity, no-interception/service-worker scan, storage fault/forbidden-field/key inventory, URL/referrer/private sentinel scan, all-tool goal validator, mechanism and no-execution source/DOM scan, accessibility/mobile checks, protected-path diff, editor diagnostics, `git diff --check`, source-lock, artifact lint, and broad selftest are current and clean. → Evidence: [report.md#independent-verification-bubblestest](report.md#independent-verification-bubblestest)

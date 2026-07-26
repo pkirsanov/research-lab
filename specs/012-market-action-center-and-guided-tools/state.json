@@ -3,7 +3,7 @@
   "featureDir": "specs/012-market-action-center-and-guided-tools",
   "featureName": "Market Action Center and Guided Tools",
   "createdAt": "2026-07-22T03:40:01Z",
-  "lastUpdatedAt": "2026-07-26T16:20:00Z",
+  "lastUpdatedAt": "2026-07-26T16:40:00Z",
   "status": "not_started",
   "workflowMode": "full-delivery",
   "linkedImplementationSpec": null,
@@ -19,14 +19,22 @@
   "certifiedAt": null,
   "requiresRevalidation": false,
   "execution": {
-    "activeAgent": "bubbles.implement",
+    "activeAgent": "bubbles.test",
     "currentPhase": "implement",
-    "currentPhaseStatus": "in_progress",
-    "currentScope": "08-journey-runtime-definitions",
-    "substate": "implemented",
+    "currentPhaseStatus": "not_started",
+    "currentScope": "09-public-matrix-market-action-scaffold",
+    "substate": "independently_verified",
     "runStartedAt": "2026-07-24T03:30:00Z",
     "completedAt": null,
     "completedPhaseClaims": [
+      {
+        "scope": "08-journey-runtime-definitions",
+        "phase": "test",
+        "agent": "bubbles.test",
+        "claimedAt": "2026-07-26T16:40:00Z",
+        "evidence": "scopes/08-journey-runtime-definitions/report.md#independent-verification-bubblestest",
+        "summary": "Independent verification of Scope 08 (full-delivery; recorded evidence NOT trusted, every Test Plan row reproduced from scratch at HEAD e590c1d5 with the exact scope.md commands; repo-binding-preflight --agent-source research-lab exit 0 first). All 10 rows GREEN in-session: TP-08-01 unit 12/12 exit 0, TP-08-02 functional 7/7 exit 0, TP-08-03 storage/privacy functional 11/11 exit 0, TP-08-04..08 desktop e2e each 1 passed exit 0 (full journey.spec.mjs 6/6), TP-08-09 mobile e2e 1 passed exit 0, TP-08-10 broad selftest 939 passed/0 failed exit 0. Six checks pass: (1) SCN-012-011 NO-EXECUTION -- zero executable execution path in rljourney.js (only a doc-comment + the packet disclaimer STRING literal), ledger byte-identity proven at unit (TP-08-01 three sentinel ledgers) + desktop (TP-08-06 full localStorage ledger + live network capture) + mobile (TP-08-09); (2) no-interception -- both e2e specs match only documentation-comment lines, each drives a REAL page.goto + REAL RLAPP.mountJourney + REAL RLJOURNEY/__rljourneyController runtime + RLJOURNEY.compileDefinition; (3) SCN-012-032 coverage -- validate-tool-experience.mjs journeyCoverage=PASS ordinaryTools=22 centerGoals=4 totalGoals=48 definitions=48, adversarial journey-execution-enabled REJECTED (E012-JOURNEY-DEFINITION), 13/13 adversarial refused; (4) config no-executable-JS (grep 0 tokens, both valid JSON) + local-non-sensitive-only + portfolio-stress gated to Scope 13 (privacyClass local-private-ref, noExecution:true, step sideEffectPolicy none, opaque-reference-only limitations, no Feature 008 read); (5) RED-bite -- neutralizing the transitive-stale marking in backtrackStepInternal failed EXACTLY the two SCN-012-010 unit assertions (RED pass 10/fail 2 exit 1; dependent stayed complete, packet leaked [d,b,c]), git checkout HEAD -- rljourney.js restored byte-identical sha256 fa80d5dcd81cce65060b6f923f23bd005869afdc08381a682d6718e16d94cb24 (GREEN 12/12 exit 0), git status --short shows ONLY the concurrent BUG-001 scenario-manifest.json dirty -- no neutralized file left in the tree; (6) forbidden-authority EXECUTABLE=0 on rljourney.js (only two header doc-comment lines) + EMPTY git diff on rlexperience.js/rlexperience-adapters/simple-models.json/rldata.js/data/options/journeys.json. Reconciled the stale report Summary/Completion-Statement/Decision-Record + TP-08-10 count (934 to 939) and wrote the missing TP-08-04..08 evidence blocks -- F-08-REPORT-STALE CLOSED. Scope-08 DoD 14/14 [x]; scope status done, substate independently_verified. execution.currentScope=09-public-matrix-market-action-scaffold, nextRequiredOwner=bubbles.implement. Feature status not_started, certifiedAt null, certification.status not_started -- UNTOUCHED (Scope 8 of 14)."
+      },
       {
         "scope": "08-journey-runtime-definitions",
         "phase": "implement",
@@ -101,8 +109,8 @@
       }
     ],
     "pendingTransitionRequests": [],
-    "nextRequiredOwner": "bubbles.test",
-    "nextRequiredTarget": "Scope 08 (Journey Capability Runtime And All-Tool Definitions) is CODE+TEST COMPLETE and ready for bubbles.test finalization; next owner bubbles.test. All 6 Implementation Files present: rljourney.js + tests/journey.unit.mjs (TP-08-01) + tests/journey-definitions.functional.mjs (TP-08-02) + tests/journey-storage.functional.mjs (TP-08-03) + tests/journey.spec.mjs (TP-08-04..08 e2e) + tests/journey-mobile.spec.mjs (TP-08-09 mobile e2e, delivered this dispatch: 1 passed exit 0, no-interception clean). Broad selftest 939/0 this session. The additive journey-exposure wiring (rlapp.js Journey chooser) + journey canaries (scripts/selftest.mjs + scripts/validate-tool-experience.mjs) landed in prior commits 6db3e282/055f7512/fb3fb26b/a8efa69d. bubbles.test to independently re-verify all Test Plan rows, reconcile the STALE report Summary/Completion-Statement + TP-08-04..08 + TP-08-10 rows (they still narrate 'deferred'/934 from milestone-1), finalize the Scope-08 DoD, and set Scope-08 status. Feature status not_started / certifiedAt null / certification.status not_started remain UNTOUCHED.",
+    "nextRequiredOwner": "bubbles.implement",
+    "nextRequiredTarget": "Scope 08 (Journey Capability Runtime And All-Tool Definitions) is DONE and independently verified by bubbles.test: all 10 Test Plan rows reproduced GREEN in-session (TP-08-01 12/12, TP-08-02 7/7, TP-08-03 11/11, TP-08-04..08 each 1 passed + full spec 6/6, TP-08-09 1 passed, TP-08-10 939/0 -- all exit 0); the six no-execution/no-interception/SCN-012-032-coverage/config-no-JS+gate/RED-bite/forbidden-authority checks all pass; F-08-REPORT-STALE closed (report Summary/Completion/Decision reconciled, TP-08-10 934->939, TP-08-04..08 evidence blocks written). Next scope 09 (Public Matrix And Market Action Center Scaffold), next owner bubbles.implement. Feature status not_started / certifiedAt null / certification.status not_started remain UNTOUCHED (Scope 8 of 14).",
     "scopeProgress": [
       {
         "scope": 1,
@@ -179,7 +187,8 @@
         "scope": 8,
         "scopeId": "08-journey-runtime-definitions",
         "name": "Journey Capability Runtime And All-Tool Definitions",
-        "status": "in_progress",
+        "status": "done",
+        "substate": "independently_verified",
         "dependsOn": [7],
         "scopeDir": "scopes/08-journey-runtime-definitions",
         "scopeArtifact": "scopes/08-journey-runtime-definitions/scope.md",

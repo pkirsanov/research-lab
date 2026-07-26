@@ -3,7 +3,7 @@
   "featureDir": "specs/012-market-action-center-and-guided-tools",
   "featureName": "Market Action Center and Guided Tools",
   "createdAt": "2026-07-22T03:40:01Z",
-  "lastUpdatedAt": "2026-07-26T14:30:00Z",
+  "lastUpdatedAt": "2026-07-26T15:06:27Z",
   "status": "not_started",
   "workflowMode": "full-delivery",
   "linkedImplementationSpec": null,
@@ -19,14 +19,22 @@
   "certifiedAt": null,
   "requiresRevalidation": false,
   "execution": {
-    "activeAgent": "bubbles.test",
-    "currentPhase": "test",
+    "activeAgent": "bubbles.implement",
+    "currentPhase": "implement",
     "currentPhaseStatus": "in_progress",
     "currentScope": "08-journey-runtime-definitions",
-    "substate": "independently_verified",
+    "substate": null,
     "runStartedAt": "2026-07-24T03:30:00Z",
     "completedAt": null,
     "completedPhaseClaims": [
+      {
+        "scope": "08-journey-runtime-definitions",
+        "phase": "implement",
+        "agent": "bubbles.implement",
+        "claimedAt": "2026-07-26T15:06:27Z",
+        "evidence": "scopes/08-journey-runtime-definitions/report.md#tp-08-01",
+        "summary": "Scope 08 implement PARTIAL (NOT a completed phase) -- Journey runtime CORE + unit + definitions-functional delivered. Created rljourney.js (greenfield UMD Journey runtime): runtime-boundary definition/step preconditions, dependency-DAG cycle-rejection + topological order, canonical sha256 semantic fingerprints, JourneySession create/serialize/restore/completeStep/backtrack with DEPENDENCY-AWARE TRANSITIVE-STALE marking (SCN-012-010), typed complete/partial/refused NON-EXECUTING JourneyCompletionPacket (SCN-012-011: recordSignoff mutates only local review state, executed:false, no execution entry point exists), no-executable-code invariant (RLJOURNEY-EXECUTION), privacy field-name boundary (RLJOURNEY-PRIVACY), Scope-13 portfolio-stress gate (privacyClass local-private-ref compiles gated:true, no Feature 008 read). DELEGATES deep schema validation to rlexperience.validateJourneyRegistry (single source, no fork). TP-08-01 unit 12/12 exit 0 (RED-first: first run 10/2 on two test-expectation errors -- topo next-step d not c; forbidden context field is RLJOURNEY-PRIVACY not RLJOURNEY-SESSION -- corrected to the runtime contract, GREEN 12/12; adversarial RED-bite neutralizing transitive-stale fails exactly the 2 SCN-012-010 tests, restored byte-identical sha256 989a749c...7d9d GREEN). TP-08-02 functional 7/7 exit 0 (SCN-012-032: ordinaryTools=22, centerGoals=4, totalGoals=48, definitionCount=48; market-brief -> 4 market-action goals; rlexperience cross-check 48/48; adversarial single-goal/three-Center/generic-goalId refusals). TP-08-10 broad selftest 934/0 exit 0 (baseline preserved). journeys.json NOT modified -- all 48 definitions already satisfy the runtime contract. Forbidden-authority EXECUTABLE=0 on rljourney.js (only hit is the FORBIDDEN_FIELD_ROOTS denylist literal). rlexperience.js / rlexperience-adapters/** / simple-models.json / rldata.js / data/options/** byte-unchanged (empty git diff). artifact-lint PASSED. DEFERRED to next dispatch: TP-08-03 storage-functional, TP-08-04..08 journey.spec e2e, TP-08-09 journey-mobile e2e, verified local-slot storage, rlexperience/rlapp/config journey-exposure wiring, validate-tool-experience + selftest journey canary wiring, finalization. Scope 08 stays in_progress; feature status not_started / certifiedAt null / certification.status not_started UNTOUCHED."
+      },
       {
         "scope": "04-simple-model-core-runtime",
         "phase": "implement",
@@ -86,7 +94,7 @@
     ],
     "pendingTransitionRequests": [],
     "nextRequiredOwner": "bubbles.implement",
-    "nextRequiredTarget": "Implement Scope 08 (Journey Capability Runtime And All-Tool Definitions); next owner bubbles.implement. Scope 07 is done + independently_verified: all 7 adapters register (validator --require-simple-adapters simpleAdapterRegistry=PASS ordinaryAdapters=22 centerAdapters=1 registeredAdapters=23 exit 0), TP-07-02 integration loop covers all 22 ordinary + Center (8/0 exit 0, SCN-012-036 completeness, no generic fallback), E2E spec tests/simple-model-adapters-strategy-property.spec.mjs 7/7 exit 0, broad selftest 934/0 exit 0, git diff --check exit 0, artifact-lint PASSED. The three prior BLOCKING findings are CLOSED (dd53e4b5 F-07-VALIDATOR-01, e3ddaec2 F-07-REGLOOP-01, 56f4672d F-07-E2E-01). Feature status not_started / certifiedAt null / certification.status not_started remain UNTOUCHED.",
+    "nextRequiredTarget": "Continue Scope 08 (Journey Capability Runtime And All-Tool Definitions); next owner bubbles.implement. Runtime CORE done this dispatch: rljourney.js + tests/journey.unit.mjs (TP-08-01 12/0) + tests/journey-definitions.functional.mjs (TP-08-02 7/0, SCN-012-032 48-def coverage) all GREEN in-session; broad selftest 934/0 (TP-08-10); journeys.json unchanged (48 defs already conformant); rlexperience/adapters/simple-models.json/rldata.js/data-options byte-unchanged; forbidden-authority EXECUTABLE=0; artifact-lint PASSED; non-tautology RED-bite proven + restored byte-identical. REMAINING for Scope 08: tests/journey-storage.functional.mjs (TP-08-03) + verified local-slot storage, tests/journey.spec.mjs (TP-08-04..08) e2e, tests/journey-mobile.spec.mjs (TP-08-09) mobile e2e, additive journey-exposure wiring into rlexperience.js/rlapp.js/tool-experience.config.json, journey canary wiring into scripts/validate-tool-experience.mjs + scripts/selftest.mjs, then finalization + independent bubbles.test verification. Feature status not_started / certifiedAt null / certification.status not_started remain UNTOUCHED.",
     "scopeProgress": [
       {
         "scope": 1,
@@ -163,7 +171,7 @@
         "scope": 8,
         "scopeId": "08-journey-runtime-definitions",
         "name": "Journey Capability Runtime And All-Tool Definitions",
-        "status": "not_started",
+        "status": "in_progress",
         "dependsOn": [7],
         "scopeDir": "scopes/08-journey-runtime-definitions",
         "scopeArtifact": "scopes/08-journey-runtime-definitions/scope.md",

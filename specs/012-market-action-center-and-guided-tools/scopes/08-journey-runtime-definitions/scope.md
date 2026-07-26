@@ -195,7 +195,7 @@ Write reducer/storage/definition tests and the four exact scenario browser title
 - [ ] TP-08-06 E2E evidence proves SCN-012-011 review-only signoff and zero execution.
 - [ ] TP-08-07 E2E evidence proves SCN-012-032 concrete goal inventory in the real shell.
 - [ ] TP-08-08 E2E evidence proves all four mechanisms use the common contract.
-- [ ] TP-08-09 E2E evidence proves narrow/mobile/focus/dialog/progress/packet accessibility.
+- [x] TP-08-09 E2E evidence proves narrow/mobile/focus/dialog/progress/packet accessibility. → Evidence: [report.md#tp-08-09](report.md#tp-08-09)
 - [ ] TP-08-10 broad selftest evidence proves the existing Research Lab baseline remains green.
 
 #### Build Quality Gate

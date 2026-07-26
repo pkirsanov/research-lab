@@ -185,6 +185,48 @@ Neutralizing the transitive-stale marking fails EXACTLY the two SCN-012-010 test
 - **Command:** `git diff --stat -- rlexperience.js rlexperience-adapters/ simple-models.json rldata.js data/options/`
 - **Result:** EMPTY diff — Scope 04-07 core + all seven adapter modules + `simple-models.json` + `rldata.js` + `data/options/**` are byte-unchanged. Working tree adds only `rljourney.js`, `tests/journey.unit.mjs`, `tests/journey-definitions.functional.mjs`; the concurrent `BUG-001-.../scenario-manifest.json` dirty file is present and untouched. `journeys.json` unchanged.
 
+### TP-08-09
+
+- **Phase:** implement
+- **Command:** `npx --no-install playwright test tests/journey-mobile.spec.mjs --config=playwright.config.mjs --project=system-chrome --reporter=list`
+- **Exit Code:** 0
+- **Claim Source:** executed (current session, 2026-07-26)
+
+```text
+Running 1 test using 1 worker
+
+  ✓  1 …gress evidence backtrack dialogs and packet fit and restore focus (2.1s)
+
+  1 passed (3.7s)
+TP0809_EXIT=0
+```
+
+The single persistent live-stack mobile regression `Regression: Journey mobile progress evidence backtrack dialogs and packet fit and restore focus` runs the REAL production Journey shell under a genuine 320×900 mobile client (`page.setViewportSize`, not interception) on the REAL `market-heatmap-lab.html` page (loads `rlapp.js` → the REAL `RLAPP`), triggers the REAL boot path `RLAPP.mountJourney()` (fetches the real `tool-experience.config.json` / `journeys.json` / `tools.json`, loads the real `rljourney.js`, builds the real `__rljourneyController` against the real browser `localStorage`), and proves the SAME core invariants the desktop `journey.spec.mjs` proves, ON MOBILE:
+
+- **Phase A/boot** — the shared Journey chooser boots on the 320px client with the durable-capability banner and the real `market-heatmap-lab` tool row exposing ≥2 concrete goals; the real breadth goal control renders with a real layout box.
+- **Phase B / SCN-012-009 durable resume** — a fresh step is `pending` (a visit/creation is NOT a completed step), an evidence-less click is refused, the progress list is a semantic `<ol data-rljourney-progress aria-label="Journey progress">` with `aria-current="step"` on the current step and a per-step `data-rljourney-evidence-count`, a real evidence-backed completion persists to a verified durable slot, and after a genuine `page.reload()` the durable session resumes with the completed step, restored context, restored evidence, and restored next-required state (the completed step restores because it was completed, not because it was revisited).
+- **Phase C / SCN-012-010 backtracking** — backtracking `a` in a real-runtime-compiled `a→b→(d)` synthetic marks ONLY the transitive dependent `b` stale WITH reason (`dependency backtracked: a … replace earlier assumption`) and keeps the unrelated `d` complete with no reason — asserted on the session view AND the rendered mobile DOM (`data-rljourney-status` / `data-rljourney-stale-reason` on `b` vs `d`); the partial packet excludes `b`, and a complete packet is refused (`RLJOURNEY-STALE`).
+- **Phase D / SCN-012-011 signoff = NO execution** — after building a complete packet with signoff, recording the human review flips the packet review state locally (`reviewRecorded` false→true, `executed:false`, `noExecution:true`, packet DOM `data-rljourney-review="true"`) while the FULL `localStorage` ledger (every key) is BYTE-IDENTICAL across the signoff; no `executeTrade/submitOrder/placeOrder/rebalance/hedge/trade/execute/changeHolding` entry point exists on the runtime or controller, and a live `page.on('request')` capture confirms recording review issues NO trade/order/execute/rebalance/hedge/holding/portfolio/publish network request.
+- **Phase A/D/E / mobile fit + focus** — the completion packet + non-empty disclaimer render and fit within the 320px viewport; the whole shell has no internal horizontal overflow (`scrollWidth ≤ clientWidth + 1`), the progress list and packet fit within the viewport width, and the shell imposes ZERO hardcoded inline geometry on its rendered children (`mount.querySelectorAll('[style]').length === 0` → adapts to any narrow viewport); focus on a real chooser control is PRESERVED (restored) across the shell's active-region re-render (the shell re-renders only the active progress/packet region, never the chooser control that holds focus).
+
+Consistent with the proven desktop `journey.spec.mjs`, the injected mount is driven through `page.evaluate` (the DOM/runtime reality), not Playwright actionability; the neutral test host `<div data-rljourney-mount>` is opted into visibility (a real adopting page supplies its own visible host container) — a host-only override that never touches the shell's rendered chooser/progress/packet children, whose natural 320px reflow and zero inline geometry are exactly what the mobile-fit proof measures. The broad selftest re-ran green this session at `939 passed, 0 failed` (exit 0), confirming the new mobile spec does not regress the Research Lab baseline.
+
+### TP-08-09 no-interception scan (mobile spec)
+
+- **Phase:** implement
+- **Command:** `grep -nE 'page\.route|context\.route|\.intercept|cy\.intercept|routeFromHAR|\bmsw\b|\bnock\b|wiremock|\.fulfill\(' tests/journey-mobile.spec.mjs` (executable lines then filtered to exclude `*`/`//` comment lines)
+- **Exit Code:** 0
+- **Claim Source:** executed (current session, 2026-07-26)
+
+```text
+22: * against the REAL browser per-origin localStorage store. There is NO page.route /
+23: * context.route / .intercept / routeFromHAR / msw / nock / fulfill anywhere — durable storage is
+=== EXECUTABLE (non-comment) interception lines — must be EMPTY ===
+NONE — zero executable interception
+```
+
+The ONLY matches are the two documentation-comment lines (22–23) that DECLARE the zero-interception constraint; there is zero executable `page.route` / `context.route` / `.intercept` / `msw` / `nock` / `fulfill(` in the spec. The 320×900 mobile viewport is a genuine `page.setViewportSize` narrow client and the durable-storage / no-execution proofs run against the browser's own `localStorage` — never an intercepted response — so the mobile regression is a true live-stack test.
+
 ## Uncertainty Declarations
 
 ## Scenario Contract Evidence

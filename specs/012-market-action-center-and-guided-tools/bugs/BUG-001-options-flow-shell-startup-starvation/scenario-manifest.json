@@ -29,6 +29,10 @@
       "regressionRequired": true,
       "lockdown": { "state": "unlocked" },
       "testPlanIds": ["TP-BUG001-01", "TP-BUG001-02"],
+      "linkedTests": [
+        { "testPlanId": "TP-BUG001-02", "testPath": "tests/tool-experience.spec.mjs", "testTitle": "Regression: BUG-001 options flow shell is ready before heavy hydration begins", "category": "e2e-ui" },
+        { "testPlanId": "TP-BUG001-01", "testPath": "tests/tool-experience-shell.functional.mjs", "testTitle": "SCN-012-028 and SCN-012-029 all 23 registry pages bootstrap one exact shell without script-order drift", "category": "functional" }
+      ],
       "plannedRegressions": [
         {
           "testPath": "tests/tool-experience.spec.mjs",
@@ -72,6 +76,10 @@
       "regressionRequired": true,
       "lockdown": { "state": "unlocked" },
       "testPlanIds": ["TP-BUG001-02", "TP-BUG001-04", "TP-BUG001-05"],
+      "linkedTests": [
+        { "testPlanId": "TP-BUG001-02", "testPath": "tests/tool-experience.spec.mjs", "testTitle": "Regression: BUG-001 options flow shell is ready before heavy hydration begins", "category": "e2e-ui" },
+        { "testPlanId": "TP-BUG001-05", "testPath": "scripts/selftest.mjs", "testTitle": "Research Lab broad build-free selftest — source, registry, shell, context, model, and tool invariants remain green", "category": "unit" }
+      ],
       "expectedAssertions": [
         "cache-first paint remains immediate",
         "same-origin option snapshots and existing fallback order remain unchanged",
@@ -93,6 +101,11 @@
       "regressionRequired": true,
       "lockdown": { "state": "unlocked" },
       "testPlanIds": ["TP-BUG001-01", "TP-BUG001-03", "TP-BUG001-05", "TP-BUG001-06"],
+      "linkedTests": [
+        { "testPlanId": "TP-BUG001-01", "testPath": "tests/tool-experience-shell.functional.mjs", "testTitle": "SCN-012-028 and SCN-012-029 all 23 registry pages bootstrap one exact shell without script-order drift", "category": "functional" },
+        { "testPlanId": "TP-BUG001-03", "testPath": "tests/tool-experience.spec.mjs", "testTitle": "Complete ordinary, Center, and mobile shell regression suite", "category": "e2e-ui" },
+        { "testPlanId": "TP-BUG001-05", "testPath": "scripts/selftest.mjs", "testTitle": "Research Lab broad build-free selftest", "category": "unit" }
+      ],
       "expectedAssertions": [
         "all twenty-three route records are present",
         "each route exposes one ready shell and four expected panels",

@@ -1061,6 +1061,42 @@
     });
   }
 
+  /* ── generic no-execution evidence submission composer (Scope 12 · latent-risk) ──
+     Compose a Journey completeStep submission from EXTERNAL evidence references
+     (e.g. a qualified Red Alert's owner market-evidence and public claim refs) so
+     a research goal can CONSUME that evidence through this runtime. It is pure,
+     generic (not coupled to any producer), and NON-EXECUTING: it asserts no
+     function value or forbidden private field can enter the submission, and it
+     emits ONLY the {input, evidence, conclusion} research data the runtime already
+     accepts. It grants no order, publication, or execution capability whatsoever. */
+  function composeEvidenceSubmissionInternal(spec, options) {
+    if (!isPlainObject(spec)) reject("RLJOURNEY-INPUT", "$spec", "evidence submission spec object required");
+    assertNoExecutable(spec, "$spec");
+    assertNoForbiddenFields(spec, "$spec");
+    var opts = isPlainObject(options) ? options : {};
+    assertNoExecutable(opts, "$options");
+    var ownerRefs = Array.isArray(spec.ownerRefs) ? spec.ownerRefs : [];
+    requireArray(ownerRefs, "$spec.ownerRefs", 1);
+    var publicRefs = Array.isArray(spec.publicRefs) ? spec.publicRefs : [];
+    var ownerSlot = (typeof opts.ownerSlot === "string" && opts.ownerSlot.length > 0) ? opts.ownerSlot : "owner-evidence";
+    var publicSlot = (typeof opts.publicSlot === "string" && opts.publicSlot.length > 0) ? opts.publicSlot : "public-source";
+    var phaseOutcome = (typeof spec.phaseOutcome === "string" && spec.phaseOutcome.length > 0) ? spec.phaseOutcome
+      : ((typeof opts.phaseOutcome === "string" && opts.phaseOutcome.length > 0) ? opts.phaseOutcome : "reviewed");
+    var evidence = ownerRefs.map(function (ref, index) {
+      requireString(ref, "$spec.ownerRefs[" + index + "]");
+      return { slot: ownerSlot, ref: ref, provenance: "owner-evidence" };
+    });
+    publicRefs.forEach(function (ref) {
+      if (typeof ref === "string" && ref.length > 0) evidence.push({ slot: publicSlot, ref: ref, provenance: "public-source" });
+    });
+    var submission = { input: { phaseOutcome: phaseOutcome }, evidence: evidence };
+    if (typeof spec.conclusion === "string" && spec.conclusion.length > 0) submission.conclusion = spec.conclusion;
+    else if (typeof opts.conclusion === "string" && opts.conclusion.length > 0) submission.conclusion = opts.conclusion;
+    if (typeof opts.completedAt === "string" && opts.completedAt.length > 0) submission.completedAt = opts.completedAt;
+    assertNoExecutable(submission, "$submission");
+    return submission;
+  }
+
   return {
     CONTRACT: CONTRACT,
     MECHANISMS: MECHANISMS,
@@ -1086,6 +1122,7 @@
     backtrackStep: function (session, stepId, options) { return capture(function () { return backtrackStepInternal(session, stepId, options); }); },
     buildCompletionPacket: function (session, options) { return capture(function () { return buildCompletionPacketInternal(session, options); }); },
     recordSignoff: function (packet, signoff) { return capture(function () { return recordSignoffInternal(packet, signoff); }); },
+    composeEvidenceSubmission: function (spec, options) { return capture(function () { return composeEvidenceSubmissionInternal(spec, options); }); },
     store: {
       capability: function (provider, policy) { return capture(function () { return storageCapabilityInternal(provider, policy); }); },
       saveSession: function (provider, policy, record) { return capture(function () { return saveSessionInternal(provider, policy, record); }); },

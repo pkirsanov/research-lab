@@ -166,3 +166,75 @@ test('a RUNTIME observation mutation (drop one origin) flips the SAME hypothesis
   assert.equal(mutatedProjection.visibleAlerts.length, 0, 'dropping one origin flips the SAME hypothesis to rejected');
   assert.ok(mutatedProjection.rejections.byReasonClass['insufficient-corroboration'] >= 1, 'the flip is attributed to the observation change, not the hypothesis');
 });
+
+test('the latent-risk Journey consumes a qualified Red Alert and can qualify OR reject with zero execution', async () => {
+  const RJ = require(resolve(ROOT, 'rljourney.js'));
+  const journeys = JSON.parse(readFileSync(resolve(ROOT, 'journeys.json'), 'utf8'));
+
+  /* derive a REAL qualified alert (production, not a fixture label). */
+  const fixture = loadRedAlertFixture('qualified-candidate');
+  const projection = await projectFixture(fixture);
+  assert.equal(projection.visibleAlerts.length, 1);
+  const alert = projection.visibleAlerts[0];
+  const before = JSON.stringify(alert);
+
+  /* bridge the alert's owner + public evidence into a journey submission — pure, no-execution. */
+  const evidence = RA.buildLatentRiskEvidence(alert);
+  assert.equal(evidence.ok, true, `buildLatentRiskEvidence rejected a qualified alert: ${evidence.ok ? '' : JSON.stringify(evidence.error)}`);
+  assert.ok(evidence.value.ownerRefs.length >= 1 && evidence.value.noExecution === true && evidence.value.noPublication === true);
+  assert.equal(evidence.value.evidenceIdentity, alert.semanticKey, 'the latent-risk evidence carries the alert semantic identity');
+
+  const def = journeys.definitions.find((d) => d.definitionId === 'journey/market-action/latent-risk/v1');
+  const steps = journeys.steps.filter((s) => s.definitionId === def.definitionId);
+  const compiled = RJ.compileDefinition(def, steps);
+  assert.equal(compiled.ok, true, `latent-risk definition failed to compile: ${compiled.ok ? '' : JSON.stringify(compiled.error)}`);
+  assert.equal(compiled.value.noExecution, true);
+
+  const submission = RJ.composeEvidenceSubmission(
+    { ownerRefs: evidence.value.ownerRefs, publicRefs: evidence.value.publicRefs, phaseOutcome: 'qualify-research', conclusion: 'latent-risk thesis corroborated by current owner evidence' },
+    { completedAt: fixture.cutoffAt }
+  );
+  assert.equal(submission.ok, true, `composeEvidenceSubmission rejected: ${submission.ok ? '' : JSON.stringify(submission.error)}`);
+  assert.equal(submission.value.input.phaseOutcome, 'qualify-research');
+  assert.ok(submission.value.evidence.some((e) => e.slot === 'owner-evidence' && e.provenance === 'owner-evidence'), 'the composed submission carries owner evidence');
+
+  const stepId = def.stepIds[0];
+
+  /* QUALIFY path — a complete NON-EXECUTING packet with human signoff. */
+  const opened = RJ.createSession(compiled.value, { context: { evidenceIdentity: evidence.value.evidenceIdentity, publicTargetId: 'market-brief' }, sessionId: 'session/functional/latent-risk', createdAt: fixture.cutoffAt });
+  assert.equal(opened.ok, true, `createSession rejected: ${opened.ok ? '' : JSON.stringify(opened.error)}`);
+  const stepped = RJ.completeStep(opened.value, stepId, submission.value);
+  assert.equal(stepped.ok, true, `completeStep rejected the composed Red Alert evidence: ${stepped.ok ? '' : JSON.stringify(stepped.error)}`);
+  const completePacket = RJ.buildCompletionPacket(stepped.value, { outcome: 'complete', signoff: { reviewer: 'analyst', intent: 'accept-research-process' } });
+  assert.equal(completePacket.ok, true, `complete packet rejected: ${completePacket.ok ? '' : JSON.stringify(completePacket.error)}`);
+  assert.equal(completePacket.value.outcome, 'complete');
+  assert.equal(completePacket.value.executed, false, 'a qualified latent-risk packet executes nothing');
+  assert.equal(completePacket.value.noExecution, true);
+
+  /* REJECT path — the SAME consumed evidence can produce a refused packet that still executes nothing. */
+  const refusedPacket = RJ.buildCompletionPacket(stepped.value, { outcome: 'refused' });
+  assert.equal(refusedPacket.ok, true, `refused packet rejected: ${refusedPacket.ok ? '' : JSON.stringify(refusedPacket.error)}`);
+  assert.equal(refusedPacket.value.outcome, 'refused');
+  assert.equal(refusedPacket.value.executed, false, 'a rejected candidate executes nothing');
+  assert.equal(refusedPacket.value.noExecution, true);
+
+  /* the underlying alert evidence is PRESERVED — the Journey read it, never mutated it. */
+  assert.equal(JSON.stringify(alert), before, 'consuming the alert in a Journey never mutates the alert evidence');
+
+  /* both packets are STRUCTURALLY non-executing: the runtime already refuses any function value
+     (assertNoExecutable in the builder), both carry executed:false + noExecution:true, and both
+     carry the explicit no-execution disclaimer that no trade/order/holding/rebalance/hedge/publish
+     side effect is triggered. */
+  for (const packet of [completePacket.value, refusedPacket.value]) {
+    assert.equal(packet.executed, false);
+    assert.equal(packet.noExecution, true);
+    assert.equal(/no trade, order, holding change, rebalance, hedge, or external execution is triggered/i.test(packet.disclaimer), true, 'the packet carries the explicit no-execution disclaimer');
+  }
+  const seenFunction = { found: false };
+  (function walk(value) {
+    if (typeof value === 'function') { seenFunction.found = true; return; }
+    if (Array.isArray(value)) { value.forEach(walk); return; }
+    if (value && typeof value === 'object') { Object.keys(value).forEach((k) => walk(value[k])); }
+  })([completePacket.value, refusedPacket.value]);
+  assert.equal(seenFunction.found, false, 'a latent-risk packet carries no executable function value anywhere');
+});

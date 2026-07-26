@@ -1302,6 +1302,38 @@
     });
   }
 
+  /* ── latent-risk Journey bridge (Scope 12 · Scope 08 no-execution runtime) ──
+     Extract the falsifiable EVIDENCE references from a qualified red-alert/v1 so
+     the latent-risk Journey can CONSUME them through the Scope 08 runtime. This
+     is a PURE data projection: it copies the alert's owner market-evidence and
+     public claim references and its stable semantic identity — it holds no
+     execution, publication, order, or private-holding authority of any kind, and
+     it never mutates the alert it reads. The Journey uses the returned refs to
+     complete or REJECT its single review step; a rejection changes only local
+     review state and leaves the alert evidence untouched. */
+  function buildLatentRiskEvidence(alert) {
+    return capture(function () {
+      if (!isPlainObject(alert) || alert.contractVersion !== RED_ALERT_CONTRACT.alert) reject("RLMKT-REDALERT", "$", "latent-risk evidence requires a qualified red-alert/v1");
+      if (!isNonEmptyString(alert.semanticKey)) reject("RLMKT-REDALERT", "$.semanticKey", "a qualified alert must carry a stable semantic identity");
+      if (!isNonEmptyString(alert.thesis)) reject("RLMKT-REDALERT", "$.thesis", "a qualified alert must carry a thesis");
+      var ownerRefs = Array.isArray(alert.ownerMarketEvidenceRefs) ? alert.ownerMarketEvidenceRefs.slice() : [];
+      if (ownerRefs.length < 1) reject("RLMKT-REDALERT", "$.ownerMarketEvidenceRefs", "a qualified alert must carry at least one owner market-evidence reference");
+      var publicRefs = Array.isArray(alert.claimRefs) ? alert.claimRefs.slice() : [];
+      return {
+        contractVersion: "latent-risk-evidence/v1",
+        evidenceIdentity: alert.semanticKey,
+        publicTargetId: "market-brief",
+        thesis: alert.thesis,
+        ownerRefs: ownerRefs,
+        publicRefs: publicRefs,
+        severityLevel: alert.severityLevel,
+        admissionScore: alert.admissionScore,
+        noExecution: true,
+        noPublication: true
+      };
+    });
+  }
+
   /* ═══════════ frozen public API ═══════════ */
 
   return {
@@ -1340,6 +1372,7 @@
     applyLifecycleEvent: applyLifecycleEvent,
     qualifyRedAlerts: qualifyRedAlerts,
     validateRedAlert: validateRedAlert,
-    validateRedAlertProjection: validateRedAlertProjection
+    validateRedAlertProjection: validateRedAlertProjection,
+    buildLatentRiskEvidence: buildLatentRiskEvidence
   };
 });

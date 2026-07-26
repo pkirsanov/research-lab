@@ -1,9 +1,9 @@
 {
-  "installedVersion": "7.20.1",
+  "installedVersion": "7.20.3",
   "installMode": "local-source",
-  "sourceRef": "fix/installer-managed-nested-payload",
-  "sourceGitSha": "171e1f76376a84aeec6c9688ba2a2f47e391eac0",
+  "sourceRef": "main",
+  "sourceGitSha": "44c553e2f2f9cd58e9d3049b528011760ed8d79e",
   "sourceDirty": false,
   "targetRepoSlug": "research-lab",
-  "installedAt": "2026-07-22T06:41:13Z"
+  "installedAt": "2026-07-26T19:24:15Z"
 }

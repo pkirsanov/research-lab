@@ -35,10 +35,11 @@ This section owns the full stochastic sweep contract, including:
 
 #### Step 0: Pool Resolution
 
-1. **Spec pool.** If the user provided spec targets, use those. Otherwise discover ALL spec folders under `specs/` as the pool.
-2. **Trigger pool.** If the user provided `triggerAgents`, use those. Otherwise use the full `triggerAgentPool` from `workflows.yaml`.
-3. **Round count.** Use the user's `maxRounds` if provided, else `defaultMaxRounds` from `workflows.yaml`.
-4. **Time budget.** Use the user's `minutes` if provided, else `defaultTimeBudgetMinutes`. When set, continue rounds until time runs out (finish the active round).
+1. **Repository preflight.** Require `PREFLIGHT_COMMITTED` and retain the current actionable repository-binding packet before expanding targets or constructing any pool.
+2. **Spec pool.** If the user provided spec targets, resolve them only inside the committed repository. Otherwise call `bubbles/scripts/repository-binding.sh discover-specs` with the current actionable packet and the active mode. Accept the returned pool only after its exact `DISCOVERY SCOPE` line names `<resolvedRepositoryRoot>/specs`; the executable discovery scope is `resolvedRepositoryRoot/specs`. Raw unqualified executable discovery is forbidden.
+3. **Trigger pool.** If the user provided `triggerAgents`, use those. Otherwise use the full `triggerAgentPool` from `workflows.yaml`.
+4. **Round count.** Use the user's `maxRounds` if provided, else `defaultMaxRounds` from `workflows.yaml`.
+5. **Time budget.** Use the user's `minutes` if provided, else `defaultTimeBudgetMinutes`. When set, continue rounds until time runs out (finish the active round).
 
 #### Step 1: Round Loop (SYNCHRONOUS — One Round At A Time)
 
@@ -120,6 +121,7 @@ After all rounds complete:
 - **No docs/finalize duplication.** The runner MUST NOT add a bespoke docs/finalize tail after the mapped mode completes.
 - **No narrative-only mapped-mode results.** If the mapped mode returns without concrete evidence and a `## RESULT-ENVELOPE`, treat the result as incomplete and the round as NON_TERMINAL.
 - **No report-only completion.** Producing a table of findings without executing mapped workflow modes to remediate them is a policy violation, not a valid sweep outcome.
+- **No report-and-wait on filing (Gate G095).** Even a round that only DISCOVERS (no fix this pass) MUST FILE each finding as a tracked artifact the moment it is found — a `bug-filed` bug folder, plus an immediate spec/scope/DoD status flip (`status` off `done` / `requiresRevalidation:true` / unchecked `- [ ]`) when the finding invalidates a completion claim. Handing the user a findings table and waiting for authorization to file, "recommending" filing, or documenting findings only in `report.md` prose is a violation. File first, then report what was filed.
 - **No baseline-rationalization skip.** A green E2E suite does NOT make a stochastic sweep redundant. The runner MUST execute all requested rounds.
 - **No test-suite substitution.** A sweep round is random spec + random trigger + mapped workflow mode execution, never merely an existing test-suite run.
 

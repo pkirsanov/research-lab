@@ -2,6 +2,12 @@
 
 Use this file for shared operating behavior instead of duplicating the same session/loading/loop prose in prompts.
 
+## Repository Authority Baseline
+
+Prompt source, chat CWD, process CWD, active editor, tool CWD, recent file access, workspace declaration order, and host repository metadata are diagnostic-only. They cannot establish, switch, repair, break ties for, or override repository authority.
+
+Repository authority is limited to valid explicit repository or concrete target intent, one valid durable same-session work boundary, or the sole eligible repository in a true single-repository workspace. Every repository-sensitive command requires repository-binding preflight before repository-local state, relative expansion, scans, selection, commands, or dispatch; unresolved multi-root authority refuses with zero repository-local side effects.
+
 ## Project-Agnostic Indirection
 
 Agents MUST resolve project-specific commands, ports, paths, and policy details through `.specify/memory/agents.md`, `.specify/memory/constitution.md`, and `.github/copilot-instructions.md`. Do not hardcode project-specific values into portable prompts.
@@ -104,6 +110,14 @@ When an agent encounters any of the following — hang, crash, regression, broke
 | **spec-filed** | The issue requires new design / behavior change | Path to `specs/NNN-*/spec.md` you just created |
 | **ops-filed** | The issue is operational (infra, deploy, monitoring, governance hygiene) | Path to ops artifact / ticket URL / issue link you just created |
 | **routed** | The issue belongs to another owner and you emitted a transition packet | Path to `transition-requests.json` entry with `routedTo` + `routedToCommit\|Spec\|Ticket` |
+| **status-adjusted** | The issue invalidates a completion claim on an EXISTING spec/scope/DoD item | The edited `state.json` (`status` moved off `done`, and/or `requiresRevalidation:true`) and/or the unchecked `- [ ]` DoD item — saved THIS turn, paired with a `bug-filed` entry for the underlying defect |
+
+**File on discovery — not report-and-wait (NON-NEGOTIABLE).** A disposition is discharged by CREATING or EDITING the tracked artifact NOW, in the SAME turn you observed the issue — never by describing it in chat prose, a findings table, or a `report.md` appendix and then waiting. Concretely:
+
+- `bug-filed` / `spec-filed` / `ops-filed` mean the artifact EXISTS ON DISK as of this turn (the bug folder with its required artifacts, the spec, the ops ticket) — not "will be filed", not "recommended for a future workflow", not "documented for later".
+- `routed` means a transition packet naming a CONCRETE owner + target was emitted THIS turn — not "deferred to a future delivery-mode workflow" with no packet.
+- When a finding shows a `done` spec/scope is not actually done (unimplemented requirement, broken behavior, missing coverage), you MUST immediately flip the artifact: move `status` off `done` OR set `requiresRevalidation:true`, uncheck the affected `- [ ]` DoD item(s), set the scope status — AND file the `bug-filed` entry for the defect. Do this in the same turn; do NOT report "this spec looks over-certified" and wait.
+- **Filing is NOT user-gated.** Never end a turn by handing the user a list of unfiled findings and asking whether or what to file. The default, unconditional action on discovery is to FILE; THEN report what you filed. "Should I file these?" is not a valid stopping point — file them, then tell the user they are filed.
 
 FORBIDDEN responses to a discovered issue:
 
@@ -112,6 +126,9 @@ FORBIDDEN responses to a discovered issue:
 - ❌ "I'll fix this later" — `later` is not a disposition
 - ❌ "Known issue" — known where? cite the BUG / TR ID
 - ❌ Silently moving on after observing a failure
+- ❌ "Here are the findings — let me know which to file" — filing is not user-authorized; file first, report second
+- ❌ "Recommend filing these as bugs" / "should be tracked in a follow-up workflow" — a recommendation is not a filing; create the artifact now
+- ❌ Documenting a finding in `report.md` prose or an appendix as the ONLY action — the tracked artifact (bug folder / status flip) MUST also exist this turn
 
 **Disposition record.** Every discovered-issue disposition MUST be recorded in the active spec's `report.md` under a `## Discovered Issues` section using this shape:
 
@@ -153,10 +170,12 @@ Compact eagerly, before the next dispatch. Do not wait for the model to start tr
 ### How To Compact
 
 1. For each raw RESULT-ENVELOPE older than the latest 2 (which stay in working memory verbatim):
-   - Run `bash bubbles/scripts/context-compactor.sh <raw-result-file>` against the saved raw envelope.
+  - For a repository-sensitive result, first validate the current actionable packet, then run `bash bubbles/scripts/context-compactor.sh --session-id <session-id> --session-control-file <control-file> --binding-packet-file <packet-file> <raw-result-file>` against the saved raw envelope. The compactor refuses a repository-sensitive result when any binding input is omitted, stale, substituted, redacted, or malformed.
+  - For a legacy result with no repository binding fields, run `bash bubbles/scripts/context-compactor.sh <raw-result-file>`.
    - Append the resulting single-line JSON record to `compactedHistory[]` in `.specify/memory/bubbles.session.json`.
 2. After appending, DELETE that raw envelope from in-context working memory. Keep only the latest 2 raw envelopes plus the full `compactedHistory` ledger in scope.
 3. The compactor is idempotent — re-running it on the same input file produces a byte-identical record. Re-compacting is safe.
+4. Before repository-local work resumes from a compacted record, reconstruct the packet from `repositoryRoot`, `repositoryAlias`, and the nested `repositoryResolution`, then run `bubbles/scripts/repository-binding.sh validate-packet` against the current control record. A failed validation is a refusal before reads or dispatch. Never reconstruct repository identity from CWD, prompt text, workspace order, or the flattened compatibility fields.
 
 ### What MUST Be Preserved (Non-Negotiable)
 
@@ -164,6 +183,7 @@ Compact eagerly, before the next dispatch. Do not wait for the model to start tr
 - All `nextRequiredOwner` chain entries — orchestrators rely on these for routing decisions.
 - All `blockedReason` strings — never collapse a blocked finding into "all good".
 - All artifact paths (`artifactsCreated`, `artifactsUpdated`).
+- The exact current repository decision: `repositoryRoot`, `repositoryAlias`, and every nested `repositoryResolution` field (`sessionId`, `decisionId`, `controlRevision`, `controlPathDigest`, `authority`, `transition`, `scopeKind`, `scopeId`, `targetKind`, `pathVisibility`, `actionable`).
 - The `rawPointer` field — every compact record MUST point back to the original raw envelope file so an operator (or audit) can drill in.
 
 Truncation may only affect verbose narrative or evidence prose, never the structural routing fields above.
@@ -184,6 +204,8 @@ Compacted records still satisfy the framework's anti-fabrication contract:
 - **Gate G083 (Context Compaction Discipline):** The compaction thresholds above (`count > 3` OR `cumulative rawSizeBytes > 8192` for the eligible slice, keeping the latest 2 raw) are enforced mechanically by `bubbles/scripts/compaction-discipline-guard.sh` against `.specify/memory/bubbles.session.json` `envelopesReceived[]`. Eligible envelopes that breach either threshold without a `compactedAt` timestamp fail Gate G083 (exit 1). Orchestrators receiving a Gate G083 violation MUST emit a `blocked` RESULT-ENVELOPE with finding `G083` and remediate by running `bubbles/scripts/context-compactor.sh` on the over-budget envelopes — the compactor additively stamps `compactedAt` so the guard reads the next run as clean. `state-transition-guard.sh` invokes the guard as Check 24; `framework-validate.sh` runs the hermetic selftest on every framework validation pass.
 
 If `rawPointer` ever points to a file that does not exist, the compact record is invalid and MUST be discarded; the orchestrator MUST re-dispatch the specialist to obtain a fresh envelope.
+
+Operator-supplied context — pasted screenshots, terminal scrollback, another repository's logs, or another session's state — is DIAGNOSTIC INPUT ONLY. It MUST NOT be restated as the agent's own execution evidence, and MUST NOT be used to infer an active work mandate. Work is authorized only by the operator's explicit request in the current conversation (and, for repository selection, by IMP-103 repository-binding preflight).
 
 ## Trajectory Inspector Health Mode
 
@@ -215,7 +237,7 @@ Hard dependency: `jq` is required (already used elsewhere in the framework). If 
 
 ### What
 
-- Each orchestrator agent calls `bash bubbles/scripts/state-snapshot.sh --mode start --phase <p>` at the beginning of every turn, and `--mode end` at the close, before yielding control back to the operator.
+- Each orchestrator agent calls `bash bubbles/scripts/state-snapshot.sh --mode start --phase <p> --session-id <session-id> --session-control-file <control-file> --binding-packet-file <packet-file>` at the beginning of every turn, and repeats the complete binding triplet with `--mode end` at the close, before yielding control back to the operator.
 - Each invocation appends a single record to `.specify/memory/bubbles.session.json` `turnSnapshots[]` carrying: `turnNumber` (auto-incremented), `timestamp` (UTC ISO8601), `phase`, `scopeId` (or null), `mode` (`start` | `end`), `note` (or null), and `agent` (from `$BUBBLES_AGENT_NAME`, defaulting to `unknown`).
 
 ### Why

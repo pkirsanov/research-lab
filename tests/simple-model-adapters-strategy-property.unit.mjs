@@ -1513,3 +1513,288 @@ test('TP-07-01 location-suitability preserves the unverified club-seed / estimat
   assert.ok(shortlistF, 'the seed-club market m-f is shortlisted (it fits the budget/size/water/travel brief)');
   assert.equal(shortlistF.nearestClubConfidence, 'seed', 'the shortlisted seed-club market still surfaces its unverified seed confidence, never promoted');
 });
+
+/* ═══════════════════════ market-action: market-action-triage/v1 (owner seam = rlbrief.js §6c window/action-gating) ═══════════════════════
+   The Market Action Center's in-Brief triage model reuses the SAME pure window/action-gating primitives the
+   Market Brief renders with. Those primitives (normalizeRecommendation / nextSessionActions / actionableAttention
+   / nearTermEvents / capConfidence / consecutiveRun / isPersistentSignal) are extracted into market-action.js as
+   the SINGLE SOURCE: rlbrief.js now delegates every one of them to RLMARKETACTION.*, and the market-action-triage
+   Simple adapter composes the same functions into a bounded action / no-action triage. The Brief PAYLOAD is
+   untouched — the extraction is behaviour-preserving (proved below against the exact §6c canary values). The
+   Center model is INTERNAL: selected by registry metadata, it renders only inside Brief (no top-level Simple, no
+   Power). market-action.js is a pure adapter — no fetch/provider/storage/clock/randomness/cross-domain import. */
+
+function loadMarketAction() {
+  const path = require.resolve('../rlexperience-adapters/market-action.js');
+  delete require.cache[path];
+  return require(path);
+}
+
+const RLBRIEF_SOURCE = readFileSync(new URL('../rlbrief.js', import.meta.url), 'utf8');
+const MARKET_BRIEF_PAGE = readFileSync(new URL('../market-brief.html', import.meta.url), 'utf8');
+
+/* A synthetic frozen owner Brief-window fixture engineered so every declared triage parameter provably moves its
+   declared summary path. Two windows differ in candidate/attention count (the window enum re-selects evidence).
+   The 07:30 window holds a NON-persistent gated action (XLK: gated but its series reverses) and a persistent gated
+   action (SPY: a 3-read decline) plus a watch-only idea (MAGS), so the action gate genuinely partitions them and
+   the excluded candidates are preserved as disclosures. Two catalysts (a near CPI and a far FOMC) let the catalyst
+   horizon widen the visible slate. Reference asOf 2026-07-26T11:30Z. */
+function marketActionOwnerFixture() {
+  const asOf = '2026-07-26T11:30:00.000Z';
+  const base = Date.parse(asOf);
+  const at = (days) => new Date(base + days * 864e5).toISOString();
+  return {
+    contractVersion: 'market-action-triage-owner-state/v1',
+    toolId: 'market-brief',
+    asOf,
+    source: 'test-owner synthetic brief windows',
+    windows: {
+      '07:30': {
+        label: '07:30 ET', asOf,
+        recommendations: [
+          { key: 'XLK', subject: 'XLK', action: 'add', trigger: 'hold breakout', invalidation: 'lose breakout', structuralAnchor: 'above 50d', confidence: 82, horizon: 'swing' },
+          { key: 'SPY', subject: 'SPY', action: 'hedge', trigger: 'before CPI', invalidation: 'reclaim 200d', structuralAnchor: 'below 50d', confidence: 72, horizon: 'swing' },
+          { key: 'MAGS', subject: 'MAGS', action: 'watch', trigger: 'breadth improves', invalidation: 'breadth rolls', structuralAnchor: 'at 50d', confidence: 70, horizon: 'tactical' }
+        ],
+        attention: [
+          { title: 'Confirmed break', what: 'XLK cleared its base', structuralAnchor: '50d', confidence: 66 },
+          { title: 'Watchlist only', what: 'MAGS breadth watch', structuralAnchor: '200d', confidence: 74 }
+        ],
+        seriesByKey: { XLK: [-0.2, -0.5, -0.3], SPY: [-0.2, -0.5, -0.9] },
+        events: [{ when: at(3), event: 'CPI' }, { when: at(14), event: 'FOMC' }]
+      },
+      '11:00': {
+        label: '11:00 ET', asOf,
+        recommendations: [
+          { key: 'XLK', subject: 'XLK', action: 'add', trigger: 'hold breakout', invalidation: 'lose breakout', structuralAnchor: 'above 50d', confidence: 80, horizon: 'swing' }
+        ],
+        attention: [{ title: 'Confirmed break', what: 'XLK holds', structuralAnchor: '50d', confidence: 64 }],
+        seriesByKey: { XLK: [-0.2, -0.5, -0.9] },
+        events: [{ when: at(3), event: 'CPI' }]
+      },
+      '15:00': { label: '15:00 ET', asOf, recommendations: [], attention: [], seriesByKey: {}, events: [] },
+      '17:00': { label: '17:00 ET', asOf, recommendations: [], attention: [], seriesByKey: {}, events: [] }
+    }
+  };
+}
+
+test('TP-07-01 market-action module exposes the delivered market-action-triage adapter with no forbidden authority', () => {
+  const ma = loadMarketAction();
+  assert.ok(ma.supportedAdapterIds.includes('simple-adapter/market-action-triage/v1'), 'market-action-triage is a declared supported adapter');
+  const raw = readFileSync(new URL('../rlexperience-adapters/market-action.js', import.meta.url), 'utf8');
+  const source = raw
+    .replace(/\/\*[\s\S]*?\*\//g, ' ')
+    .replace(/(^|[^:])\/\/[^\n]*/g, '$1');
+  const forbidden = [
+    /\bfetch\s*\(/,
+    /\bproviderFetch\s*\(/,
+    /\bRLDATA\b/,
+    /\blocalStorage\b/,
+    /\bsessionStorage\b/,
+    /\bindexedDB\b/,
+    /\bXMLHttpRequest\b/,
+    /\bimport\s*\(/,
+    /\brequire\s*\(/,
+    /\bwriteFileSync\b/,
+    /\bDate\.now\s*\(/,
+    /\bMath\.random\s*\(/,
+    /data\/options/,
+    /data\/bars/,
+    /rlexperience-adapters\/(market-structure|options|macro-rotation|fundamental-models|strategy-research|property-research)/
+  ];
+  for (const pattern of forbidden) {
+    assert.equal(pattern.test(source), false, `market-action.js must not contain ${pattern}`);
+  }
+});
+
+test('TP-07-01 rlbrief.js single-sources its window/action-gating from market-action.js (Brief-payload-parity, behaviour-preserving)', () => {
+  const ma = loadMarketAction();
+  // The Brief delegates every window/action-gating primitive to the module (RLMARKETACTION.*) — one source.
+  const delegated = ['normalizeRecommendation', 'nextSessionActions', 'actionableAttention', 'nearTermEvents', 'capConfidence', 'consecutiveRun', 'isPersistentSignal'];
+  for (const name of delegated) {
+    assert.ok(new RegExp('RLMARKETACTION\\.' + name + '\\s*\\(').test(RLBRIEF_SOURCE), `rlbrief.js delegates ${name} to RLMARKETACTION`);
+  }
+  // rlbrief.js carries NO inline copy of the moved action-gate bodies (the single source lives in market-action.js).
+  assert.equal(/item\.action !== "watch" && !!item\.trigger && !!item\.invalidation/.test(RLBRIEF_SOURCE), false, 'rlbrief.js has no inline nextSessionActions filter copy');
+  assert.equal(/r\.dir !== 0 && r\.len >=/.test(RLBRIEF_SOURCE), false, 'rlbrief.js has no inline isPersistentSignal body copy');
+  // The Brief page loads the module so the delegators resolve in the browser.
+  assert.ok(/rlexperience-adapters\/market-action\.js/.test(MARKET_BRIEF_PAGE), 'market-brief.html loads market-action.js');
+  // Behaviour parity: the extracted primitives reproduce the EXACT §6c action-gate canary outcomes (nothing changed).
+  assert.equal(ma.capConfidence(68, 'tactical', 55), 55, 'capConfidence: tactical 68 capped to 55 (parity)');
+  assert.equal(ma.capConfidence(68, 'structural', 55), 68, 'capConfidence: structural read not capped (parity)');
+  assert.equal(JSON.stringify(ma.consecutiveRun([-0.2, -0.5, -0.9])), JSON.stringify({ dir: -1, len: 2 }), 'consecutiveRun parity');
+  assert.equal(ma.isPersistentSignal([-0.53, -0.94], 2), false, 'persistence gate: one-window RS drop is not persistent (parity)');
+  assert.equal(ma.isPersistentSignal([-0.2, -0.5, -0.9], 2), true, 'persistence gate: 3-read decline is persistent (parity)');
+  assert.equal(ma.isPersistentSignal([-0.2, -0.5, -0.3], 2), false, 'persistence gate: alternating series is noise (parity)');
+  const acts = ma.nextSessionActions([
+    { direction: 'add', instrument: 'XLF', trigger: 'hold breakout', invalidation: 'lose breakout', structuralAnchor: 'above 50d', confidence: 62 },
+    { action: 'watch', subject: 'MAGS', trigger: 'breadth improves', confidence: 70 },
+    { action: 'hedge', subject: 'SPY', trigger: 'before CPI', confidence: 54 },
+    { action: 'trim', subject: 'XLI', confidence: 70 }
+  ], 5, 55);
+  assert.ok(acts.length === 1 && acts[0].action === 'add' && acts[0].subject === 'XLF', 'nextSessionActions parity (one triggered non-watch action above floor)');
+  const attn = ma.actionableAttention([
+    { title: 'Confirmed break', structuralAnchor: '50d', confidence: 60 },
+    { title: 'Watchlist only', structuralAnchor: '200d', confidence: 70 },
+    { title: 'No anchor', confidence: 80 },
+    { title: 'Low confidence', structuralAnchor: '50d', confidence: 40 }
+  ], 55);
+  assert.ok(attn.length === 1 && attn[0].title === 'Confirmed break', 'actionableAttention parity (removes watch/no-anchor/low-confidence)');
+  const evs = ma.nearTermEvents([{ when: '2026-07-14', event: 'CPI' }, { when: '2026-07-29', event: 'FOMC' }, { when: 'bad', event: 'bad' }], '2026-07-12T11:00:00-04:00', 14);
+  assert.ok(evs.length === 1 && evs[0].event === 'CPI', 'nearTermEvents parity (valid catalysts inside the window)');
+  // Deterministic edge: an unparseable asOf yields no near-term catalysts (no Date.now, no clock).
+  assert.deepEqual(ma.nearTermEvents([{ when: '2026-07-14', event: 'CPI' }], 'not-a-date', 14), [], 'nearTermEvents deterministic on an invalid asOf (no clock)');
+});
+
+test('TP-07-01 market-action-triage adapter registers through the production runtime and produces a ready owner-parity triage', async () => {
+  const api = loadProductionApi();
+  const ma = loadMarketAction();
+  const definition = definitionFor('market-brief');
+  const runtime = runtimeFor(api, definition);
+  const results = ma.registerMarketActionAdapters(runtime, api, [definition]);
+  assert.equal(results['simple-adapter/market-action-triage/v1'].ok, true, JSON.stringify(results['simple-adapter/market-action-triage/v1'].error || {}));
+
+  const owner = marketActionOwnerFixture();
+  const base = defaultValues(definition);
+  const prepared = requireValue(await runtime.prepare({
+    definitionId: definition.definitionId,
+    ownerContext: { ownerState: owner },
+    parameterValues: base,
+    seed: null,
+    scenarioIds: ['baseline'],
+    computedAt: '2026-07-26T23:40:00.000Z'
+  }));
+  assert.equal(prepared.state, 'ready');
+  const summary = prepared.current.output.values.summary;
+  assert.equal(summary.window.windowId, '07:30', 'the default window is the 07:30 evidence slice');
+  assert.equal(summary.window.candidateCount, 3, 'the window surfaces its three frozen owner candidates');
+  assert.equal(summary.actionState.state, 'action', 'the default triage lands on a bounded action');
+  assert.equal(prepared.current.output.provenance.evidenceIdentity, prepared.current.input.evidenceIdentity, 'evidence identity is bound');
+
+  // Owner parity: the triage gates are DIRECT single-sourced RLMARKETACTION primitive runs over the frozen window.
+  const win = owner.windows['07:30'];
+  const floor = 0.65 * 100; // balanced posture => +0 delta
+  const gated = ma.nextSessionActions(win.recommendations, 5, floor);
+  const persistent = gated.filter((a) => ma.isPersistentSignal(win.seriesByKey[a.key] || win.seriesByKey[a.subject] || [], 2));
+  assert.equal(summary.actionState.gatedActionCount, gated.length, 'gated action count is single-sourced from RLMARKETACTION.nextSessionActions');
+  assert.equal(summary.actionState.persistentActionCount, persistent.length, 'persistent action count is single-sourced from RLMARKETACTION.isPersistentSignal');
+  assert.equal(persistent.length, 1, 'exactly the persistent-signal SPY hedge survives the action gate');
+  const cats = ma.nearTermEvents(win.events, win.asOf, base['catalyst-horizon']);
+  assert.equal(summary.catalysts.count, cats.length, 'catalyst count is single-sourced from RLMARKETACTION.nearTermEvents');
+  assert.equal(summary.catalysts.count, 1, 'only the near CPI is inside the default 7-day catalyst horizon');
+  assert.equal(summary.horizon.cappedActionConfidence, ma.capConfidence(82, 'swing', 55), 'capped action confidence is single-sourced from RLMARKETACTION.capConfidence');
+});
+
+test('TP-07-01 each enabled market-action-triage parameter drives its declared triage output path', async () => {
+  const api = loadProductionApi();
+  const ma = loadMarketAction();
+  const definition = definitionFor('market-brief');
+  const runtime = runtimeFor(api, definition);
+  ma.registerMarketActionAdapters(runtime, api, [definition]);
+  const base = defaultValues(definition);
+  await runtime.prepare({
+    definitionId: definition.definitionId,
+    ownerContext: { ownerState: marketActionOwnerFixture() },
+    parameterValues: base,
+    seed: null,
+    scenarioIds: ['baseline'],
+    computedAt: '2026-07-26T23:41:00.000Z'
+  });
+  // window -> summary.window; horizon -> summary.horizon; evidence-threshold + risk-posture -> summary.actionState;
+  // catalyst-horizon -> summary.catalysts. Each case is a genuine gate recomputation, not an echoed parameter.
+  const cases = [
+    ['window', '11:00', ['summary.window']],
+    ['horizon', 1, ['summary.horizon']],
+    ['evidence-threshold', 0.95, ['summary.actionState']],
+    ['catalyst-horizon', 30, ['summary.catalysts']],
+    ['risk-posture', 'defensive', ['summary.actionState']]
+  ];
+  const declared = definition.parameterDefinitions.map((p) => p.parameterId).sort();
+  assert.deepEqual(cases.map((c) => c[0]).sort(), declared, 'every declared market-action-triage parameter is exercised');
+  for (const [parameterId, value, paths] of cases) {
+    const run = requireValue(await runtime.recompute({
+      parameterValues: { ...base, [parameterId]: value },
+      seed: null,
+      scenarioIds: ['baseline'],
+      computedAt: '2026-07-26T23:41:30.000Z'
+    }));
+    assert.deepEqual(run.changedParameters, [parameterId], `changed ${parameterId}`);
+    const effect = run.sensitivity.effects.find((e) => e.parameterId === parameterId);
+    assert.ok(effect, `sensitivity effect present for ${parameterId}`);
+    assert.equal(effect.outputChanged, true, `${parameterId} moves ${paths.join(',')}`);
+    assert.deepEqual(effect.resultPaths, paths, `${parameterId} declared path`);
+    await runtime.recompute({ parameterValues: { ...base }, seed: null, scenarioIds: ['baseline'], computedAt: '2026-07-26T23:41:45.000Z' });
+  }
+  // evidence-threshold and risk-posture BOTH flip the action state to no-action (each independently).
+  const tighter = requireValue(await runtime.recompute({ parameterValues: { ...base, 'evidence-threshold': 0.95 }, seed: null, scenarioIds: ['baseline'], computedAt: '2026-07-26T23:42:00.000Z' }));
+  assert.equal(tighter.current.output.values.summary.actionState.state, 'no-action', 'a tighter evidence threshold flips the triage to no-action');
+  await runtime.recompute({ parameterValues: { ...base }, seed: null, scenarioIds: ['baseline'], computedAt: '2026-07-26T23:42:15.000Z' });
+  const defensive = requireValue(await runtime.recompute({ parameterValues: { ...base, 'risk-posture': 'defensive' }, seed: null, scenarioIds: ['baseline'], computedAt: '2026-07-26T23:42:30.000Z' }));
+  assert.equal(defensive.current.output.values.summary.actionState.state, 'no-action', 'a defensive posture flips the triage to no-action');
+});
+
+test('TP-07-01 market-action-triage preserves gated-out candidates as disclosures, never promoted', async () => {
+  const api = loadProductionApi();
+  const ma = loadMarketAction();
+  const definition = definitionFor('market-brief');
+  const runtime = runtimeFor(api, definition);
+  ma.registerMarketActionAdapters(runtime, api, [definition]);
+  const base = defaultValues(definition);
+  const prepared = requireValue(await runtime.prepare({
+    definitionId: definition.definitionId,
+    ownerContext: { ownerState: marketActionOwnerFixture() },
+    parameterValues: base,
+    seed: null,
+    scenarioIds: ['baseline'],
+    computedAt: '2026-07-26T23:43:00.000Z'
+  }));
+  const summary = prepared.current.output.values.summary;
+  const disclosures = summary.catalysts.disclosures;
+  // The watch-only idea (MAGS) and the gated-but-non-persistent action (XLK) are surfaced, never dropped or promoted.
+  const mags = disclosures.find((d) => d.subject === 'MAGS');
+  const xlk = disclosures.find((d) => d.subject === 'XLK');
+  assert.ok(mags && mags.reason === 'watch-only' && mags.promoted === false, 'the watch-only MAGS idea is preserved as a watch-only disclosure, never promoted');
+  assert.ok(xlk && xlk.reason === 'no persistent signal' && xlk.promoted === false, 'the gated-but-non-persistent XLK action is preserved as a disclosure, never promoted');
+  // Not a single disclosure is promoted to an action.
+  assert.equal(disclosures.every((d) => d.promoted === false), true, 'no disclosed candidate is silently promoted to an action');
+  // The action itself is the persistent SPY hedge — the disclosures are strictly the excluded candidates.
+  assert.equal(summary.actionState.persistentActionCount, 1, 'exactly one candidate clears the full action gate');
+  assert.equal(disclosures.some((d) => d.subject === 'SPY'), false, 'the surviving action (SPY) is not double-counted as a disclosure');
+});
+
+test('TP-07-01 market-action-triage is an in-Brief-only model (no top-level Simple/Power) and is deterministic', async () => {
+  const api = loadProductionApi();
+  const ma = loadMarketAction();
+  const definition = definitionFor('market-brief');
+  assert.equal(definition.definitionId, 'simple-model/market-action-triage/v1', 'the market-brief tool owns the market-action-triage definition');
+
+  // In-Brief-only: the market-brief tool renders the Market Action Center view-set (no top-level Simple, no Power).
+  const registry = readJson('tools.json');
+  const marketBrief = registry.tools.find((tool) => tool.id === 'market-brief');
+  assert.ok(marketBrief, 'the market-brief tool is registered');
+  assert.equal(marketBrief.experience.kind, 'market-action-center', 'market-brief is a market-action-center specialization');
+  assert.equal(marketBrief.experience.simpleModelDefinitionId, null, 'market-brief has NO top-level Simple model binding');
+  assert.equal(marketBrief.experience.viewIds.includes('simple'), false, 'market-brief exposes no top-level Simple view');
+  assert.equal(marketBrief.experience.viewIds.includes('power'), false, 'market-brief exposes no Power view');
+  assert.deepEqual(marketBrief.experience.viewIds, ['brief', 'portfolio', 'red-alert', 'journey'], 'market-brief renders only the Center four-view set');
+  // Exactly one Center model, and it is the triage adapter this module delivers.
+  assert.deepEqual(ma.supportedAdapterIds, ['simple-adapter/market-action-triage/v1'], 'market-action delivers exactly the one internal Center adapter');
+
+  // Deterministic: identical inputs => identical compute identity and identical owner summary (no clock, no randomness).
+  async function runOnce() {
+    const runtime = runtimeFor(api, definition);
+    ma.registerMarketActionAdapters(runtime, api, [definition]);
+    return requireValue(await runtime.prepare({
+      definitionId: definition.definitionId,
+      ownerContext: { ownerState: marketActionOwnerFixture() },
+      parameterValues: defaultValues(definition),
+      seed: null,
+      scenarioIds: ['baseline'],
+      computedAt: '2026-07-26T23:44:00.000Z'
+    }));
+  }
+  const first = await runOnce();
+  const again = await runOnce();
+  assert.equal(first.computeIdentity, again.computeIdentity, 'identical inputs => identical compute identity (deterministic)');
+  assert.equal(api.fingerprint(first.current.output.values.summary), api.fingerprint(again.current.output.values.summary), 'identical inputs => identical owner triage summary');
+});

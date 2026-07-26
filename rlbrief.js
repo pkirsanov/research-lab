@@ -57,45 +57,32 @@
     return Math.abs(spot / flip - 1) * 100;
   }
 
-  /* Normalize the two historical recommendation shapes used by the payload. */
+  /* Normalize the two historical recommendation shapes used by the payload.
+     Single-sourced in rlexperience-adapters/market-action.js (RLMARKETACTION); the Brief delegates. */
   function normalizeRecommendation(item) {
-    item = item || {};
-    return Object.assign({}, item, {
-      action: item.action || item.direction || "watch",
-      subject: item.subject || item.instrument || ""
-    });
+    return root.RLMARKETACTION.normalizeRecommendation(item);
   }
 
   /* Immediately actionable next-session recommendations only. Watch-only ideas,
-     missing triggers, and low-confidence observations stay out of the action block. */
+     missing triggers, and low-confidence observations stay out of the action block.
+     Single-sourced in rlexperience-adapters/market-action.js (RLMARKETACTION); the Brief delegates. */
   function nextSessionActions(recommendations, max, minConfidence) {
-    var floor = isFinite(minConfidence) ? minConfidence : 55;
-    var rows = (recommendations || []).map(normalizeRecommendation).filter(function (item) {
-      return item.action !== "watch" && !!item.trigger && !!item.invalidation && !!item.structuralAnchor && isFinite(item.confidence) && item.confidence >= floor;
-    });
-    rows.sort(function (a, b) { return b.confidence - a.confidence; });
-    return rows.slice(0, isFinite(max) && max > 0 ? max : 5);
+    return root.RLMARKETACTION.nextSessionActions(recommendations, max, minConfidence);
   }
 
   /* Attention is still analysis, but the brief's visible feed is action-gated: it
      needs a structural anchor, adequate confidence, and cannot be labeled as mere
-     watch/noise. Lower-confidence material belongs in owning tools, not the brief. */
+     watch/noise. Lower-confidence material belongs in owning tools, not the brief.
+     Single-sourced in rlexperience-adapters/market-action.js (RLMARKETACTION); the Brief delegates. */
   function actionableAttention(cards, minConfidence) {
-    var floor = isFinite(minConfidence) ? minConfidence : 55;
-    return (cards || []).filter(function (card) {
-      var text = ((card && card.title) || "") + " " + ((card && card.what) || "");
-      return card && !!card.structuralAnchor && isFinite(card.confidence) && card.confidence >= floor && !/\bwatch(?:list)?\b|intraday noise|not yet a trend/i.test(text);
-    });
+    return root.RLMARKETACTION.actionableAttention(cards, minConfidence);
   }
 
   /* Keep the visible event slate focused on the next ~10 trading days (14 calendar
-     days by default). Invalid/far-out dates remain in config/payload but not the cockpit. */
+     days by default). Invalid/far-out dates remain in config/payload but not the cockpit.
+     Single-sourced in rlexperience-adapters/market-action.js (RLMARKETACTION); the Brief delegates. */
   function nearTermEvents(events, asOf, maxCalendarDays) {
-    var base = Date.parse(asOf || ""), span = (isFinite(maxCalendarDays) ? maxCalendarDays : 14) * 864e5;
-    if (!isFinite(base)) base = Date.now();
-    return (events || []).filter(function (event) {
-      var time = Date.parse(event && event.when); return isFinite(time) && time >= base - 864e5 && time <= base + span;
-    }).sort(function (a, b) { return Date.parse(a.when) - Date.parse(b.when); });
+    return root.RLMARKETACTION.nearTermEvents(events, asOf, maxCalendarDays);
   }
 
   /* rank attention cards by confidence × domain importance, capped to `max`. */
@@ -137,33 +124,25 @@
   }
 
   /* §6c anti-reactivity cap: a tactical-horizon (single-session) read is capped at `cap`
-     confidence so an intraday wiggle can never look as strong as a structural signal. */
+     confidence so an intraday wiggle can never look as strong as a structural signal.
+     Single-sourced in rlexperience-adapters/market-action.js (RLMARKETACTION); the Brief delegates. */
   function capConfidence(conf, horizon, cap) {
-    var c = isFinite(conf) ? conf : 50, k = isFinite(cap) ? cap : 55;
-    return (horizon === "tactical" && c > k) ? k : c;
+    return root.RLMARKETACTION.capConfidence(conf, horizon, cap);
   }
 
   /* the tail consecutive same-direction run in a series (oldest→newest), beyond eps.
      Returns { dir:-1|0|1, len }. The persistence gate (§5/§6c) uses this so a momentum
-     micro-delta must persist across snapshots before it becomes an action. */
+     micro-delta must persist across snapshots before it becomes an action.
+     Single-sourced in rlexperience-adapters/market-action.js (RLMARKETACTION); the Brief delegates. */
   function consecutiveRun(values, eps) {
-    if (!Array.isArray(values) || values.length < 2) return { dir: 0, len: 0 };
-    eps = isFinite(eps) ? eps : 0;
-    var dir = 0, len = 0;
-    for (var i = values.length - 1; i > 0; i--) {
-      var d = values[i] - values[i - 1], s = d > eps ? 1 : d < -eps ? -1 : 0;
-      if (s === 0) break;
-      if (dir === 0) dir = s; else if (s !== dir) break;
-      len++;
-    }
-    return { dir: dir, len: len };
+    return root.RLMARKETACTION.consecutiveRun(values, eps);
   }
 
   /* is a momentum/RS delta a persistent SIGNAL (not intraday noise)? True when the tail
-     run is ≥ minRun snapshots in one direction (the §6c persistence gate). */
+     run is ≥ minRun snapshots in one direction (the §6c persistence gate).
+     Single-sourced in rlexperience-adapters/market-action.js (RLMARKETACTION); the Brief delegates. */
   function isPersistentSignal(values, minRun, eps) {
-    var r = consecutiveRun(values, eps);
-    return r.dir !== 0 && r.len >= (isFinite(minRun) ? minRun : 2);
+    return root.RLMARKETACTION.isPersistentSignal(values, minRun, eps);
   }
 
   /* ── §7a mega-cap / thematic group helpers (pure, tested) ── */

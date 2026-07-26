@@ -1438,8 +1438,14 @@ try {
 try {
   group('rlbrief.js — §6c structural frame + anti-reactivity (MA stack, horizon cap, persistence gate)');
   const src = read('rlbrief.js');
-  const names = ['maStackLabel', 'pctFromLevel', 'capConfidence', 'consecutiveRun', 'isPersistentSignal', 'memberArray', 'groupBreadth', 'notableMembers', 'normalizeRecommendation', 'nextSessionActions', 'actionableAttention', 'nearTermEvents'];
-  const env = build(names.map((n) => extractFn(src, n)), names);
+  // The window/action-gating primitives are single-sourced in rlexperience-adapters/market-action.js
+  // (RLMARKETACTION); rlbrief.js now delegates to them. Extract each pure fn from the file that OWNS it so this
+  // §6c action-gate canary still tests the real bodies — behaviour is byte-identical before/after the extraction.
+  const actionSrc = read('rlexperience-adapters/market-action.js');
+  const briefNames = ['maStackLabel', 'pctFromLevel', 'memberArray', 'groupBreadth', 'notableMembers'];
+  const actionNames = ['capConfidence', 'consecutiveRun', 'isPersistentSignal', 'normalizeRecommendation', 'nextSessionActions', 'actionableAttention', 'nearTermEvents'];
+  const names = briefNames.concat(actionNames);
+  const env = build(briefNames.map((n) => extractFn(src, n)).concat(actionNames.map((n) => extractFn(actionSrc, n))), names);
 
   // maStackLabel — the PRIMARY structural frame (20/50/200)
   assert(env.maStackLabel(3, 2, 1) === 'bull-stack', 'maStackLabel: 20>50>200 => bull-stack');

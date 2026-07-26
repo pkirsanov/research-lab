@@ -792,6 +792,67 @@ try {
   assert(env.marketPasses(Object.assign({}, base, { land: 1 }), Object.assign({}, fAll, { minLand: 3 })) === false, 'low-land market fails a high land floor');
 } catch (e) { failures++; console.log('  \u2717 FAIL (waterfront-polo group threw): ' + e.message); }
 
+/* ---------- Property research: str-scenario place-based cash flow (single-sourced RLRENTAL owner engine) ---------- */
+// Feature 012 Scope 07: the str-scenario Simple adapters reuse the shared place-based owner rental engine
+// rlrental.js (RLRENTAL.computeRentalResult) — the exact function the owning rental page consumes through
+// mountRoute. Both the owner page's cash flow and the registered str-scenario adapter consume ONE engine
+// (owner-parity); the place-based cash flow is never re-derived, and undisclosed property economics are
+// preserved as an explicit INCOMPLETE gap (a null bottom line + a missing-cost list), never zero-filled.
+try {
+  group('property-research.js \u2014 str-scenario place-based cash flow (single-sourced RLRENTAL owner engine)');
+  const { createRequire } = await import('node:module');
+  const propRequire = createRequire(import.meta.url);
+  delete propRequire.cache[propRequire.resolve('../rlexperience-adapters/property-research.js')];
+  delete propRequire.cache[propRequire.resolve('../rlrental.js')];
+  const RLP = propRequire('../rlexperience-adapters/property-research.js');
+  const RLR = propRequire('../rlrental.js');
+  const palmSrc = read('palm-springs-rental-market-lab.html');
+
+  assert(RLP.supportedAdapterIds.includes('simple-adapter/str-scenario/palm-springs/v1'), 'property-research exposes the delivered str-scenario/palm-springs adapter');
+  assert(typeof RLP.computeStrScenarioSummary === 'function', 'property-research exposes the single-source computeStrScenarioSummary');
+
+  const owner = {
+    contractVersion: 'str-scenario-owner-state/v1', toolId: 'palm-springs-rental-market-lab', asOf: '2026-07-26',
+    source: 'selftest synthetic place scenario', marketId: 'palm-springs-ca',
+    formulaVersion: 'place-based-rental-market-formula/v2', forecastYear: 2026,
+    requiredFixedRiskCostFieldIds: ['insurance'],
+    fullRequiredFixedRiskCostFieldIds: ['insurance', 'property-tax', 'capital-reserve'],
+    missingEconomics: ['property-tax', 'capital-reserve', 'resale-basis'],
+    loanTermYears: 30, leverageRatio: 0.7, downPaymentRatio: 0.3, baseFixedInsuranceUsd: null,
+    segments: {
+      'whole-market': { segmentId: 'whole-market', pairKey: 'palm-springs-ca::whole-market', unitId: 'ps-whole', baseOccupancy: 0.6, availableNights: 340, purchasePriceUsd: 1250000, baseAdrUsd: 600 },
+      'large-luxury': { segmentId: 'large-luxury-5plus', pairKey: 'palm-springs-ca::large-luxury-5plus', unitId: 'ps-lux', baseOccupancy: 0.55, availableNights: 300, purchasePriceUsd: 3500000, baseAdrUsd: 1200 }
+    }
+  };
+  const base = { segment: 'large-luxury', adr: 1200, occupancy: 60, 'financing-rate': 7, 'operating-cost': 35, insurance: 20000, 'regulation-stress': 0.25, horizon: 5 };
+  const s1 = RLP.computeStrScenarioSummary(owner, base, RLR);
+  const s2 = RLP.computeStrScenarioSummary(owner, base, RLR);
+  assert(JSON.stringify(s1) === JSON.stringify(s2), 'str-scenario: identical inputs => identical summary (deterministic over the frozen owner place state)');
+
+  // owner parity: the headline cash flow equals a DIRECT RLRENTAL.computeRentalResult run over the same inputs.
+  const preset = owner.segments['large-luxury'];
+  const ctx = { marketId: owner.marketId, segmentId: preset.segmentId, pairKey: preset.pairKey, unitId: preset.unitId, scenarioId: 'baseline', formulaVersion: owner.formulaVersion, baseOccupancy: preset.baseOccupancy, baseAdrUsd: preset.baseAdrUsd, availableNights: preset.availableNights, requiredFixedRiskCostFieldIds: owner.requiredFixedRiskCostFieldIds, bounds: {} };
+  const asum = { contractVersion: 'place-based-rental-market-user-assumptions/v2', marketId: owner.marketId, segmentId: preset.segmentId, pairKey: preset.pairKey, unitId: preset.unitId, scenarioId: 'baseline', forecastYear: owner.forecastYear, demandDelta: 0, supplyDelta: 0, adrShock: 0, downtime: { method: 'explicit-disjoint-days', items: [] }, purchasePriceUsd: preset.purchasePriceUsd, leverageRatio: owner.leverageRatio, downPaymentRatio: owner.downPaymentRatio, annualMortgageRate: base['financing-rate'] / 100, loanTermYears: owner.loanTermYears, variableOperatingExpenseRatio: base['operating-cost'] / 100, fixedRiskCosts: [{ costFieldId: 'insurance', annualUsd: base.insurance }], baseOccupancy: base.occupancy / 100, baseAdrUsd: base.adr, availableNights: preset.availableNights };
+  const direct = RLR.computeRentalResult(ctx, asum);
+  assert(direct.ok && s1.cashFlow.grossRevenueUsd === Math.round(direct.result.grossRevenueUsd * 100) / 100, 'str-scenario: gross revenue is single-sourced from RLRENTAL.computeRentalResult (owner-parity)');
+  assert(s1.cashFlow.annualOperatingPreTaxCashFlowUsd === Math.round(direct.result.preTaxCashFlowUsd * 100) / 100, 'str-scenario: operating pre-tax cash flow is single-sourced from the owner engine');
+
+  // genuine parameter effects (owner-recomputed, not echoed).
+  const sAdr = RLP.computeStrScenarioSummary(owner, Object.assign({}, base, { adr: 1600 }), RLR);
+  assert(sAdr.cashFlow.grossRevenueUsd > s1.cashFlow.grossRevenueUsd, 'str-scenario: a higher ADR genuinely raises the owner gross revenue');
+  const sReg = RLP.computeStrScenarioSummary(owner, Object.assign({}, base, { 'regulation-stress': 0.6 }), RLR);
+  assert(sReg.stress.stressedGrossRevenueUsd < s1.stress.stressedGrossRevenueUsd, 'str-scenario: a heavier regulatory stress genuinely deepens the revenue haircut');
+  assert(JSON.stringify(sReg.cashFlow) === JSON.stringify(s1.cashFlow), 'str-scenario: regulatory stress leaves the base cash flow unchanged (a separate stress scenario)');
+
+  // gap preservation: undisclosed property economics stay unavailable, the operating path stays real.
+  assert(s1.cashFlow.fullEconomicsState === 'INCOMPLETE' && s1.cashFlow.fullPreTaxCashFlowUsd === null, 'str-scenario: undisclosed property economics keep the full bottom line INCOMPLETE/null (never zero-filled)');
+  assert(Array.isArray(s1.cashFlow.missingCostFieldIds) && s1.cashFlow.missingCostFieldIds.length > 0 && typeof s1.cashFlow.annualOperatingPreTaxCashFlowUsd === 'number', 'str-scenario: the missing-cost gap is preserved while the disclosed operating cash flow stays a real owner number');
+
+  // single-source wiring: the owning page loads the engine and carries no inline cash-flow formula copy.
+  assert(/<script src="rlrental\.js">/.test(palmSrc), 'palm-springs-rental-market-lab.html loads the shared owner rental engine rlrental.js');
+  assert(/RLRENTAL\.mountRoute\s*\(/.test(palmSrc) && !/computeRentalResult\s*=\s*function/.test(palmSrc), 'palm-springs-rental-market-lab.html consumes the owner engine via RLRENTAL.mountRoute with no inline cash-flow formula');
+} catch (e) { failures++; console.log('  \u2717 FAIL (property-research str-scenario group threw): ' + e.message); }
+
 /* ---------- Strategy Validation: real-data walk-forward engine (single-sourced RLSTRATEGY) + robustness ---------- */
 // Feature 012 Scope 07: the real-data walk-forward engine (seriesFromCloses / backtest / metrics /
 // walkForwardEmbargo / scorePass / allPass and the buyHoldCurve benchmark) is single-sourced in

@@ -803,3 +803,234 @@ test('TP-07-01 walk-forward-validation is deterministic (non-seeded) and preserv
   assert.ok(thin && thin.withData === false && thin.held === false && thin.oosSharpe === null, 'the thin instrument is reported no-data (null OOS), never zero-filled');
   assert.equal(robustness.withData, 3, 'the thin instrument is excluded from the with-data count, not counted as a failed hold');
 });
+
+/* ═══════════════════════ property-research: str-scenario/palm-springs (owner seam = rlrental.js) ═══════════════════════
+   The place-based cash flow is computed ONLY by the shared owner rental engine rlrental.js
+   (RLRENTAL.computeRentalResult) — the exact function the owning rental page consumes through mountRoute.
+   The Simple adapter consumes the SAME function (owner-parity), so no formula is copied and Simple/Power share
+   one engine. rlrental.js is injected (deps.rental); the module never imports or fetches it. */
+
+function loadPropertyResearch() {
+  const path = require.resolve('../rlexperience-adapters/property-research.js');
+  delete require.cache[path];
+  return require(path);
+}
+
+function loadRentalEngine() {
+  const path = require.resolve('../rlrental.js');
+  delete require.cache[path];
+  return require(path);
+}
+
+/* A synthetic frozen owner place scenario for Palm Springs engineered so every declared parameter provably moves
+   its declared output path with GENUINE owner-computed content. Two segments differ in available nights and
+   purchase price so the segment enum genuinely re-prices the owner run. The full-economics required set includes
+   the UNDISCLOSED property tax + capital reserve, so the owner engine returns INCOMPLETE (a null bottom line and
+   a missingCostFieldIds list) — the honest gap the adapter preserves without zero-filling. Reference asOf 2026-07-26. */
+function palmOwnerFixture() {
+  return {
+    contractVersion: 'str-scenario-owner-state/v1',
+    toolId: 'palm-springs-rental-market-lab',
+    asOf: '2026-07-26',
+    source: 'test-owner synthetic place scenario',
+    marketId: 'palm-springs-ca',
+    formulaVersion: 'place-based-rental-market-formula/v2',
+    forecastYear: 2026,
+    requiredFixedRiskCostFieldIds: ['insurance'],
+    fullRequiredFixedRiskCostFieldIds: ['insurance', 'property-tax', 'capital-reserve'],
+    missingEconomics: ['property-tax', 'capital-reserve', 'resale-basis'],
+    loanTermYears: 30,
+    leverageRatio: 0.7,
+    downPaymentRatio: 0.3,
+    baseFixedInsuranceUsd: null,
+    segments: {
+      'whole-market': { segmentId: 'whole-market', pairKey: 'palm-springs-ca::whole-market', unitId: 'ps-whole', baseOccupancy: 0.6, availableNights: 340, purchasePriceUsd: 1250000, baseAdrUsd: 600 },
+      'large-luxury': { segmentId: 'large-luxury-5plus', pairKey: 'palm-springs-ca::large-luxury-5plus', unitId: 'ps-lux', baseOccupancy: 0.55, availableNights: 300, purchasePriceUsd: 3500000, baseAdrUsd: 1200 }
+    }
+  };
+}
+
+/* Reconstruct the EXACT owner context + assumptions the module derives for one segment + parameter set, so the
+   test can call RLRENTAL.computeRentalResult directly and prove the adapter is single-sourcing the owner engine
+   (owner-parity), not re-deriving cash flow. Mirrors property-research.js strContext/strAssumptions. */
+function palmOwnerRun(rental, owner, params, requiredKey, demandDelta) {
+  const key = params.segment === 'large-luxury' ? 'large-luxury' : 'whole-market';
+  const preset = owner.segments[key];
+  const ctx = {
+    marketId: owner.marketId, segmentId: preset.segmentId, pairKey: preset.pairKey, unitId: preset.unitId,
+    scenarioId: 'baseline', formulaVersion: owner.formulaVersion, baseOccupancy: preset.baseOccupancy,
+    baseAdrUsd: preset.baseAdrUsd, availableNights: preset.availableNights,
+    requiredFixedRiskCostFieldIds: owner[requiredKey], bounds: {}
+  };
+  const assumptions = {
+    contractVersion: 'place-based-rental-market-user-assumptions/v2', marketId: owner.marketId,
+    segmentId: preset.segmentId, pairKey: preset.pairKey, unitId: preset.unitId, scenarioId: 'baseline',
+    forecastYear: owner.forecastYear, demandDelta: demandDelta, supplyDelta: 0, adrShock: 0,
+    downtime: { method: 'explicit-disjoint-days', items: [] }, purchasePriceUsd: preset.purchasePriceUsd,
+    leverageRatio: owner.leverageRatio, downPaymentRatio: owner.downPaymentRatio,
+    annualMortgageRate: params['financing-rate'] / 100, loanTermYears: owner.loanTermYears,
+    variableOperatingExpenseRatio: params['operating-cost'] / 100,
+    fixedRiskCosts: [{ costFieldId: 'insurance', annualUsd: params.insurance }],
+    baseOccupancy: params.occupancy / 100, baseAdrUsd: params.adr, availableNights: preset.availableNights
+  };
+  return rental.computeRentalResult(ctx, assumptions);
+}
+
+test('TP-07-01 property-research module exposes the delivered str-scenario/palm-springs adapter with no forbidden authority', () => {
+  const pr = loadPropertyResearch();
+  assert.ok(pr.supportedAdapterIds.includes('simple-adapter/str-scenario/palm-springs/v1'), 'str-scenario/palm-springs is a declared supported adapter');
+  const raw = readFileSync(new URL('../rlexperience-adapters/property-research.js', import.meta.url), 'utf8');
+  const source = raw
+    .replace(/\/\*[\s\S]*?\*\//g, ' ')
+    .replace(/(^|[^:])\/\/[^\n]*/g, '$1');
+  const forbidden = [
+    /\bfetch\s*\(/,
+    /\bproviderFetch\s*\(/,
+    /\bRLDATA\b/,
+    /\blocalStorage\b/,
+    /\bsessionStorage\b/,
+    /\bindexedDB\b/,
+    /\bXMLHttpRequest\b/,
+    /\bimport\s*\(/,
+    /\brequire\s*\(/,
+    /\bwriteFileSync\b/,
+    /\bDate\.now\s*\(/,
+    /\bMath\.random\s*\(/,
+    /data\/options/,
+    /data\/bars/,
+    /rlexperience-adapters\/(market-structure|options|macro-rotation|fundamental-models|strategy-research|market-action)/
+  ];
+  for (const pattern of forbidden) {
+    assert.equal(pattern.test(source), false, `property-research.js must not contain ${pattern}`);
+  }
+});
+
+test('TP-07-01 palm-springs-rental-market-lab.html single-sources the place-based cash flow from rlrental.js (RLRENTAL)', () => {
+  const page = readFileSync(new URL('../palm-springs-rental-market-lab.html', import.meta.url), 'utf8');
+  assert.ok(/<script src="rlrental\.js">/.test(page), 'palm page loads the shared owner rental engine rlrental.js');
+  assert.ok(/RLRENTAL\.mountRoute\s*\(/.test(page), 'palm page consumes the owner engine through RLRENTAL.mountRoute');
+  // The page carries NO inline cash-flow formula copy — revenue/cost/debt-service/cash-flow all live in rlrental.js.
+  assert.ok(!/grossRevenueUsd\s*=\s*[^;]*\*/.test(page) && !/preTaxCashFlowUsd\s*=\s*grossRevenue/.test(page) && !/computeRentalResult\s*=\s*function/.test(page), 'palm page carries no inline copy of the single-sourced owner cash-flow formula');
+});
+
+test('TP-07-01 str-scenario/palm-springs adapter registers through the production runtime and produces a ready owner-parity run', async () => {
+  const api = loadProductionApi();
+  const pr = loadPropertyResearch();
+  const rental = loadRentalEngine();
+  const definition = definitionFor('palm-springs-rental-market-lab');
+  const runtime = runtimeFor(api, definition);
+  const results = pr.registerPropertyResearchAdapters(runtime, api, [definition], { rental });
+  assert.equal(results['simple-adapter/str-scenario/palm-springs/v1'].ok, true, JSON.stringify(results['simple-adapter/str-scenario/palm-springs/v1'].error || {}));
+
+  const owner = palmOwnerFixture();
+  const base = defaultValues(definition);
+  const prepared = requireValue(await runtime.prepare({
+    definitionId: definition.definitionId,
+    ownerContext: { ownerState: owner },
+    parameterValues: base,
+    seed: null,
+    scenarioIds: ['baseline'],
+    computedAt: '2026-07-26T22:10:00.000Z'
+  }));
+  assert.equal(prepared.state, 'ready');
+  const summary = prepared.current.output.values.summary;
+  assert.equal(summary.marketId, 'palm-springs-ca', 'summary carries the frozen owner market');
+  assert.equal(summary.segment, 'large-luxury', 'the default segment is the large-luxury preset');
+  assert.equal(prepared.current.output.provenance.evidenceIdentity, prepared.current.input.evidenceIdentity, 'evidence identity is bound');
+
+  // Owner parity: the adapter's headline cash-flow numbers equal a DIRECT RLRENTAL.computeRentalResult run over
+  // the exact same derived owner context + assumptions (single source, not a re-derivation).
+  const opDirect = palmOwnerRun(rental, owner, base, 'requiredFixedRiskCostFieldIds', 0);
+  assert.equal(opDirect.ok, true, 'the direct operating owner run is valid');
+  assert.equal(summary.cashFlow.grossRevenueUsd, Math.round(opDirect.result.grossRevenueUsd * 100) / 100, 'gross revenue is single-sourced from RLRENTAL.computeRentalResult');
+  assert.equal(summary.cashFlow.annualDebtServiceUsd, Math.round(opDirect.result.annualDebtServiceUsd * 100) / 100, 'annual debt service is single-sourced from the owner engine');
+  assert.equal(summary.cashFlow.annualOperatingPreTaxCashFlowUsd, Math.round(opDirect.result.preTaxCashFlowUsd * 100) / 100, 'operating pre-tax cash flow is single-sourced from the owner engine');
+  assert.equal(summary.cashFlow.cumulativeOperatingPreTaxCashFlowUsd, Math.round(opDirect.result.preTaxCashFlowUsd * base.horizon * 100) / 100, 'the cumulative figure is the owner annual result times the horizon');
+});
+
+test('TP-07-01 each enabled str-scenario/palm-springs parameter changes its declared output path with genuine owner-computed content', async () => {
+  const api = loadProductionApi();
+  const pr = loadPropertyResearch();
+  const rental = loadRentalEngine();
+  const definition = definitionFor('palm-springs-rental-market-lab');
+  const runtime = runtimeFor(api, definition);
+  pr.registerPropertyResearchAdapters(runtime, api, [definition], { rental });
+  const base = defaultValues(definition);
+  await runtime.prepare({
+    definitionId: definition.definitionId,
+    ownerContext: { ownerState: palmOwnerFixture() },
+    parameterValues: base,
+    seed: null,
+    scenarioIds: ['baseline'],
+    computedAt: '2026-07-26T22:10:00.000Z'
+  });
+
+  // Every declared parameter must move its declared output path (summary.cashFlow, or summary.stress for the
+  // regulatory-stress lever). Each value is a genuine RLRENTAL re-computation, never an echoed parameter.
+  const cases = [
+    ['segment', 'whole-market', 'summary.cashFlow'],
+    ['adr', 1500, 'summary.cashFlow'],
+    ['occupancy', 72, 'summary.cashFlow'],
+    ['financing-rate', 9, 'summary.cashFlow'],
+    ['operating-cost', 45, 'summary.cashFlow'],
+    ['insurance', 35000, 'summary.cashFlow'],
+    ['regulation-stress', 0.5, 'summary.stress'],
+    ['horizon', 8, 'summary.cashFlow']
+  ];
+  for (const [parameterId, value, path] of cases) {
+    const run = requireValue(await runtime.recompute({
+      parameterValues: { ...base, [parameterId]: value },
+      seed: null,
+      scenarioIds: ['baseline'],
+      computedAt: '2026-07-26T22:11:00.000Z'
+    }));
+    assert.deepEqual(run.changedParameters, [parameterId], `changed ${parameterId}`);
+    const effect = run.sensitivity.effects.find((entry) => entry.parameterId === parameterId);
+    assert.ok(effect, `sensitivity effect present for ${parameterId}`);
+    assert.equal(effect.outputChanged, true, `${parameterId} must change ${path}`);
+    assert.deepEqual(effect.resultPaths, [path], `${parameterId} declared path`);
+    // Restore baseline for the next isolated one-at-a-time change.
+    await runtime.recompute({ parameterValues: { ...base }, seed: null, scenarioIds: ['baseline'], computedAt: '2026-07-26T22:11:30.000Z' });
+  }
+
+  // regulation-stress moves ONLY the stress path (the base cash flow is computed at zero regulatory demand haircut).
+  const regRun = requireValue(await runtime.recompute({ parameterValues: { ...base, 'regulation-stress': 0.6 }, seed: null, scenarioIds: ['baseline'], computedAt: '2026-07-26T22:12:00.000Z' }));
+  assert.equal(api.fingerprint(regRun.current.output.values.summary.cashFlow), api.fingerprint(regRun.baseline.output.values.summary.cashFlow), 'regulation-stress leaves the base cash flow unchanged (it is a separate stress scenario)');
+  assert.notEqual(api.fingerprint(regRun.current.output.values.summary.stress), api.fingerprint(regRun.baseline.output.values.summary.stress), 'regulation-stress genuinely reshapes the stress scenario');
+});
+
+test('TP-07-01 str-scenario/palm-springs preserves the undisclosed-economics gap without zero-filling and is deterministic', async () => {
+  const api = loadProductionApi();
+  const pr = loadPropertyResearch();
+  const rental = loadRentalEngine();
+  const definition = definitionFor('palm-springs-rental-market-lab');
+  const base = defaultValues(definition);
+
+  async function runOnce() {
+    const runtime = runtimeFor(api, definition);
+    pr.registerPropertyResearchAdapters(runtime, api, [definition], { rental });
+    return requireValue(await runtime.prepare({
+      definitionId: definition.definitionId,
+      ownerContext: { ownerState: palmOwnerFixture() },
+      parameterValues: base,
+      seed: null,
+      scenarioIds: ['baseline'],
+      computedAt: '2026-07-26T22:10:00.000Z'
+    }));
+  }
+
+  const first = await runOnce();
+  const again = await runOnce();
+  assert.equal(first.computeIdentity, again.computeIdentity, 'identical inputs => identical compute identity (deterministic)');
+  assert.equal(api.fingerprint(first.current.output.values.summary), api.fingerprint(again.current.output.values.summary), 'identical inputs => identical owner summary');
+
+  // Gap preservation: the FULL-economics owner run is INCOMPLETE — the undisclosed property tax + capital reserve
+  // are surfaced as a missing list and the full bottom line is NULL, never zero-filled.
+  const cf = first.current.output.values.summary.cashFlow;
+  assert.equal(cf.fullEconomicsState, 'INCOMPLETE', 'the full-economics owner run is INCOMPLETE while property economics are undisclosed');
+  assert.equal(cf.fullPreTaxCashFlowUsd, null, 'the full bottom line is null (unavailable), never zero-filled');
+  assert.ok(Array.isArray(cf.missingCostFieldIds) && cf.missingCostFieldIds.includes('property-tax') && cf.missingCostFieldIds.includes('capital-reserve'), 'the owner engine reports the undisclosed cost fields as missing');
+  assert.ok(Array.isArray(cf.missingEconomics) && cf.missingEconomics.length > 0, 'the missing property economics remain preserved, not fabricated as zero');
+  // The OPERATING result is a real owner number (not null) — the disclosed-cost path is complete and usable.
+  assert.equal(typeof cf.annualOperatingPreTaxCashFlowUsd, 'number', 'the disclosed-cost operating cash flow is a real owner number');
+});

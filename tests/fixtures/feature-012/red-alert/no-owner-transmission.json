@@ -1,0 +1,145 @@
+{
+  "scenario": "no-owner-transmission",
+  "description": "OBSERVATIONS ONLY. Dynamic discovery found the SAME material claim independently across THREE distinct current wire/primary origins (strongly corroborated, high admission score), but NO owning tool shows observable market transmission evidence. Production must DERIVE that this clears corroboration/freshness/severity/completeness/score but is rejected SOLELY on the missing-owner-market-evidence gate. No verdict is encoded here.",
+  "cutoffAt": "2026-07-24T20:00:00.000Z",
+  "seeds": [
+    {
+      "seedId": "seed-liquidity",
+      "ownerToolId": "market-heatmap-lab",
+      "evidenceRefs": ["market-heatmap-lab:liquidity-seed"],
+      "observedCondition": "dealer balance-sheet liquidity contracted across the current window",
+      "normalizedEntities": ["dealer-liquidity", "balance-sheet"],
+      "transmissionChannels": ["counterparty-operational"],
+      "magnitudeOrState": "contraction",
+      "cutoffAt": "2026-07-24T20:00:00.000Z",
+      "freshness": "current",
+      "limitations": ["discovery seed only; owner market read not yet observed"]
+    }
+  ],
+  "channelsReviewed": ["counterparty-operational", "credit-funding"],
+  "webEvidence": {
+    "toolId": "market-brief",
+    "runId": "run/2026-07-24/red-alert-no-owner",
+    "cutoffAt": "2026-07-24T20:00:00.000Z",
+    "acquisitionStartedAt": "2026-07-24T20:00:05.000Z",
+    "frozenAt": "2026-07-24T20:00:20.000Z",
+    "queryPlanInput": {
+      "templates": [
+        {
+          "templateId": "liquidity-transmission",
+          "termsTemplate": "{{entity}} dealer liquidity contraction",
+          "purpose": "material-claim-corroboration",
+          "allowedHosts": [
+            { "host": "reuters.example", "pathPrefix": "/markets" },
+            { "host": "bis.example", "pathPrefix": "/publ" },
+            { "host": "ft.example", "pathPrefix": "/markets" }
+          ],
+          "requiredSourceClasses": ["wire", "primary"],
+          "freshnessWindowDays": 7,
+          "maxResults": 8
+        }
+      ],
+      "facts": { "entity": "dealer-liquidity" }
+    },
+    "claimSpecs": [
+      {
+        "claimId": "claim-liquidity",
+        "materiality": "material",
+        "claimKind": "market-state",
+        "normalizedClaim": "Dealer balance-sheet liquidity contracted sharply across the current window.",
+        "ownerEvidenceRefs": []
+      }
+    ],
+    "ownerEvidence": {},
+    "boundary": {
+      "search": {
+        "run/2026-07-24/red-alert-no-owner:q0": [
+          { "candidateId": "cand-reuters-liquidity", "url": "https://reuters.example/markets/dealer-liquidity" },
+          { "candidateId": "cand-bis-liquidity", "url": "https://bis.example/publ/dealer-liquidity-note" },
+          { "candidateId": "cand-ft-liquidity", "url": "https://ft.example/markets/dealer-liquidity" }
+        ]
+      },
+      "retrieve": {
+        "https://reuters.example/robots.txt": { "status": 200, "contentType": "text/plain", "durationMs": 30, "body": "User-agent: *\nAllow: /markets\n" },
+        "https://bis.example/robots.txt": { "status": 200, "contentType": "text/plain", "durationMs": 30, "body": "User-agent: *\nAllow: /publ\n" },
+        "https://ft.example/robots.txt": { "status": 200, "contentType": "text/plain", "durationMs": 30, "body": "User-agent: *\nAllow: /markets\n" },
+        "https://reuters.example/markets/dealer-liquidity": {
+          "status": 200,
+          "finalUrl": "https://reuters.example/markets/dealer-liquidity",
+          "contentType": "text/html",
+          "durationMs": 120,
+          "body": "<p>Dealer balance-sheet liquidity contracted sharply across the current window, participants said.</p>",
+          "meta": {
+            "title": "Dealer liquidity contracts sharply",
+            "publisher": "Reuters",
+            "publishedAt": "2026-07-24T18:00:00.000Z",
+            "sourceClass": "wire",
+            "canonicalOriginRef": "reuters/dealer-liquidity-2026-07-24",
+            "supportsClaims": ["claim-liquidity"],
+            "directionTag": "contraction",
+            "excerpts": ["Dealer balance-sheet liquidity contracted sharply across the current window, participants said."]
+          }
+        },
+        "https://bis.example/publ/dealer-liquidity-note": {
+          "status": 200,
+          "finalUrl": "https://bis.example/publ/dealer-liquidity-note",
+          "contentType": "text/html",
+          "durationMs": 130,
+          "body": "<p>An independent settlement note confirms the dealer liquidity contraction this week.</p>",
+          "meta": {
+            "title": "Settlement note confirms liquidity contraction",
+            "publisher": "BIS",
+            "publishedAt": "2026-07-24T17:30:00.000Z",
+            "sourceClass": "primary",
+            "canonicalOriginRef": "bis/dealer-liquidity-2026-07-24",
+            "supportsClaims": ["claim-liquidity"],
+            "directionTag": "contraction",
+            "excerpts": ["An independent settlement note confirms the dealer liquidity contraction this week."]
+          }
+        },
+        "https://ft.example/markets/dealer-liquidity": {
+          "status": 200,
+          "finalUrl": "https://ft.example/markets/dealer-liquidity",
+          "contentType": "text/html",
+          "durationMs": 118,
+          "body": "<p>A third independent desk review reports the same dealer liquidity contraction this week.</p>",
+          "meta": {
+            "title": "Desk review reports liquidity contraction",
+            "publisher": "Financial Times",
+            "publishedAt": "2026-07-24T18:10:00.000Z",
+            "sourceClass": "wire",
+            "canonicalOriginRef": "ft/dealer-liquidity-2026-07-24",
+            "supportsClaims": ["claim-liquidity"],
+            "directionTag": "contraction",
+            "excerpts": ["A third independent desk review reports the same dealer liquidity contraction this week."]
+          }
+        }
+      }
+    }
+  },
+  "hypothesis": {
+    "clusterId": "cluster/0",
+    "thesis": "Dealer balance-sheet liquidity is contracting and could transmit into counterparty funding stress.",
+    "severity": 5,
+    "likelihoodInterval": [0.6, 0.8],
+    "horizon": "0-2w",
+    "uncertainty": "Wide; the wire evidence is strong but no owner market read has confirmed transmission.",
+    "whyNow": "Three independent current origins flag the same liquidity contraction this week.",
+    "trigger": "An owning tool confirms observable market transmission of the liquidity contraction.",
+    "invalidation": "Dealer liquidity re-expands to its prior range for five consecutive sessions.",
+    "monitoring": "Track the counterparty-operational channel and seek an owner market read daily.",
+    "resolution": "The alert resolves when liquidity re-anchors or transmission is ruled out.",
+    "propagation": [
+      { "from": "counterparty-operational", "to": "credit-funding" }
+    ],
+    "affectedAssets": ["DBC"],
+    "exposureClasses": ["funding"],
+    "researchActions": [
+      { "verb": "verify", "detail": "Obtain an owner market read that observes the liquidity transmission." },
+      { "verb": "monitor", "detail": "Watch the counterparty-operational channel into quarter end." }
+    ],
+    "materialClaims": [
+      { "claimId": "claim-liquidity", "channel": "counterparty-operational", "kind": "market-state" }
+    ]
+  }
+}

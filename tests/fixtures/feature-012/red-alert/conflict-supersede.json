@@ -1,0 +1,147 @@
+{
+  "scenario": "conflict-supersede",
+  "description": "OBSERVATIONS ONLY. Three distinct current origins support the SAME material claim but DISAGREE on direction (two report widening, one reports narrowing). Production must DERIVE an unresolved source conflict that changes the thesis and reject with no visible slot, even though origin count, freshness, owner evidence, severity, completeness and the admission score would otherwise clear. No verdict is encoded here.",
+  "cutoffAt": "2026-07-24T20:00:00.000Z",
+  "seeds": [
+    {
+      "seedId": "seed-basis-conflict",
+      "ownerToolId": "market-heatmap-lab",
+      "evidenceRefs": ["market-heatmap-lab:basis-read"],
+      "observedCondition": "cross-currency basis moved but sources disagree on direction",
+      "normalizedEntities": ["xccy-basis", "usd-funding"],
+      "transmissionChannels": ["credit-funding"],
+      "magnitudeOrState": "disputed",
+      "cutoffAt": "2026-07-24T20:00:00.000Z",
+      "freshness": "current",
+      "limitations": ["direction of the basis move is disputed across origins"]
+    }
+  ],
+  "channelsReviewed": ["credit-funding", "fx-carry"],
+  "webEvidence": {
+    "toolId": "market-brief",
+    "runId": "run/2026-07-24/red-alert-conflict",
+    "cutoffAt": "2026-07-24T20:00:00.000Z",
+    "acquisitionStartedAt": "2026-07-24T20:00:05.000Z",
+    "frozenAt": "2026-07-24T20:00:20.000Z",
+    "queryPlanInput": {
+      "templates": [
+        {
+          "templateId": "basis-conflict",
+          "termsTemplate": "{{entity}} funding basis direction",
+          "purpose": "material-claim-corroboration",
+          "allowedHosts": [
+            { "host": "reuters.example", "pathPrefix": "/markets" },
+            { "host": "bis.example", "pathPrefix": "/publ" },
+            { "host": "ft.example", "pathPrefix": "/markets" }
+          ],
+          "requiredSourceClasses": ["wire", "primary"],
+          "freshnessWindowDays": 7,
+          "maxResults": 8
+        }
+      ],
+      "facts": { "entity": "xccy-basis" }
+    },
+    "claimSpecs": [
+      {
+        "claimId": "claim-basis",
+        "materiality": "material",
+        "claimKind": "market-state",
+        "normalizedClaim": "The cross-currency funding basis moved materially this week.",
+        "ownerEvidenceRefs": ["market-heatmap-lab:basis-read"]
+      }
+    ],
+    "ownerEvidence": {
+      "market-heatmap-lab:basis-read": { "read": "funding basis moved materially, direction contested", "asOf": "2026-07-24T19:00:00.000Z", "provenance": "same-origin-snapshot" }
+    },
+    "boundary": {
+      "search": {
+        "run/2026-07-24/red-alert-conflict:q0": [
+          { "candidateId": "cand-reuters-wider", "url": "https://reuters.example/markets/basis-wider" },
+          { "candidateId": "cand-bis-wider", "url": "https://bis.example/publ/basis-wider-note" },
+          { "candidateId": "cand-ft-narrower", "url": "https://ft.example/markets/basis-narrower" }
+        ]
+      },
+      "retrieve": {
+        "https://reuters.example/robots.txt": { "status": 200, "contentType": "text/plain", "durationMs": 30, "body": "User-agent: *\nAllow: /markets\n" },
+        "https://bis.example/robots.txt": { "status": 200, "contentType": "text/plain", "durationMs": 30, "body": "User-agent: *\nAllow: /publ\n" },
+        "https://ft.example/robots.txt": { "status": 200, "contentType": "text/plain", "durationMs": 30, "body": "User-agent: *\nAllow: /markets\n" },
+        "https://reuters.example/markets/basis-wider": {
+          "status": 200,
+          "finalUrl": "https://reuters.example/markets/basis-wider",
+          "contentType": "text/html",
+          "durationMs": 120,
+          "body": "<p>The cross-currency funding basis widened materially this week, dealers said.</p>",
+          "meta": {
+            "title": "Funding basis widens materially",
+            "publisher": "Reuters",
+            "publishedAt": "2026-07-24T18:00:00.000Z",
+            "sourceClass": "wire",
+            "canonicalOriginRef": "reuters/basis-wider-2026-07-24",
+            "supportsClaims": ["claim-basis"],
+            "directionTag": "wider",
+            "excerpts": ["The cross-currency funding basis widened materially this week, dealers said."]
+          }
+        },
+        "https://bis.example/publ/basis-wider-note": {
+          "status": 200,
+          "finalUrl": "https://bis.example/publ/basis-wider-note",
+          "contentType": "text/html",
+          "durationMs": 130,
+          "body": "<p>An independent settlement note also reports the funding basis widened this week.</p>",
+          "meta": {
+            "title": "Settlement note reports basis widening",
+            "publisher": "BIS",
+            "publishedAt": "2026-07-24T17:30:00.000Z",
+            "sourceClass": "primary",
+            "canonicalOriginRef": "bis/basis-wider-2026-07-24",
+            "supportsClaims": ["claim-basis"],
+            "directionTag": "wider",
+            "excerpts": ["An independent settlement note also reports the funding basis widened this week."]
+          }
+        },
+        "https://ft.example/markets/basis-narrower": {
+          "status": 200,
+          "finalUrl": "https://ft.example/markets/basis-narrower",
+          "contentType": "text/html",
+          "durationMs": 118,
+          "body": "<p>A separate desk review reports the funding basis narrowed this week instead.</p>",
+          "meta": {
+            "title": "Desk review reports basis narrowing",
+            "publisher": "Financial Times",
+            "publishedAt": "2026-07-24T18:10:00.000Z",
+            "sourceClass": "wire",
+            "canonicalOriginRef": "ft/basis-narrower-2026-07-24",
+            "supportsClaims": ["claim-basis"],
+            "directionTag": "narrower",
+            "excerpts": ["A separate desk review reports the funding basis narrowed this week instead."]
+          }
+        }
+      }
+    }
+  },
+  "hypothesis": {
+    "clusterId": "cluster/0",
+    "thesis": "Cross-currency funding basis stress is building this week.",
+    "severity": 5,
+    "likelihoodInterval": [0.6, 0.8],
+    "horizon": "0-2w",
+    "uncertainty": "Wide; origins disagree on the direction of the basis move.",
+    "whyNow": "Multiple current origins flag a material basis move this week.",
+    "trigger": "The basis breaches its prior wide with a directionally consistent confirmation.",
+    "invalidation": "The basis re-anchors to its one-year median for five consecutive sessions.",
+    "monitoring": "Track the credit-funding channel and reconcile the conflicting direction reports daily.",
+    "resolution": "The alert resolves when the direction of the basis move is reconciled.",
+    "propagation": [
+      { "from": "credit-funding", "to": "fx-carry" }
+    ],
+    "affectedAssets": ["DBC"],
+    "exposureClasses": ["funding"],
+    "researchActions": [
+      { "verb": "trace-claims", "detail": "Reconcile the widening and narrowing origins to resolve the direction conflict." },
+      { "verb": "verify", "detail": "Confirm the basis direction against a fourth independent origin." }
+    ],
+    "materialClaims": [
+      { "claimId": "claim-basis", "channel": "credit-funding", "kind": "market-state" }
+    ]
+  }
+}

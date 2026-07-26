@@ -1,0 +1,20 @@
+{
+  "scenario": "no-candidates-empty",
+  "description": "OBSERVATIONS ONLY. Discovery reviewed known channels and owner coverage for the window but produced no candidate hypothesis that could be qualified (no webEvidence bundle and no hypothesis are supplied). Production must DERIVE an explicit, honest empty state that reports the cutoff, the channels reviewed, and the owner/seed coverage, and must NOT pad the view with any illustrative topic. This fixture carries NO expected verdict.",
+  "cutoffAt": "2026-07-24T20:00:00.000Z",
+  "seeds": [
+    {
+      "seedId": "seed-coverage",
+      "ownerToolId": "market-heatmap-lab",
+      "evidenceRefs": ["market-heatmap-lab:coverage-read"],
+      "observedCondition": "channels reviewed with no dislocation exceeding the discovery threshold",
+      "normalizedEntities": ["breadth", "liquidity"],
+      "transmissionChannels": ["breadth-market-structure", "rates-liquidity"],
+      "magnitudeOrState": "within-band",
+      "cutoffAt": "2026-07-24T20:00:00.000Z",
+      "freshness": "current",
+      "limitations": ["no owner read exceeded the discovery threshold this window"]
+    }
+  ],
+  "channelsReviewed": ["breadth-market-structure", "rates-liquidity", "credit-funding"]
+}

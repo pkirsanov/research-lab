@@ -1,0 +1,98 @@
+{
+  "scenario": "one-origin-weak",
+  "description": "OBSERVATIONS ONLY. The same funding thesis, but the material claim is supported by only ONE origin. Production must DERIVE insufficient corroboration and reject with no visible slot. No verdict is encoded here.",
+  "cutoffAt": "2026-07-24T20:00:00.000Z",
+  "seeds": [
+    {
+      "seedId": "seed-funding",
+      "ownerToolId": "market-heatmap-lab",
+      "evidenceRefs": ["market-heatmap-lab:funding-read"],
+      "observedCondition": "cross-currency funding basis widened",
+      "normalizedEntities": ["xccy-basis", "usd-funding"],
+      "transmissionChannels": ["credit-funding"],
+      "magnitudeOrState": "p96",
+      "cutoffAt": "2026-07-24T20:00:00.000Z",
+      "freshness": "current",
+      "limitations": ["single origin at discovery"]
+    }
+  ],
+  "channelsReviewed": ["credit-funding"],
+  "webEvidence": {
+    "toolId": "market-brief",
+    "runId": "run/2026-07-24/red-alert-one-origin",
+    "cutoffAt": "2026-07-24T20:00:00.000Z",
+    "acquisitionStartedAt": "2026-07-24T20:00:05.000Z",
+    "frozenAt": "2026-07-24T20:00:20.000Z",
+    "queryPlanInput": {
+      "templates": [
+        {
+          "templateId": "funding-single",
+          "termsTemplate": "{{entity}} funding basis",
+          "purpose": "material-claim-corroboration",
+          "allowedHosts": [{ "host": "reuters.example", "pathPrefix": "/markets" }],
+          "requiredSourceClasses": ["wire"],
+          "freshnessWindowDays": 7,
+          "maxResults": 4
+        }
+      ],
+      "facts": { "entity": "xccy-basis" }
+    },
+    "claimSpecs": [
+      {
+        "claimId": "claim-funding",
+        "materiality": "material",
+        "claimKind": "market-state",
+        "normalizedClaim": "The cross-currency funding basis widened this week.",
+        "ownerEvidenceRefs": ["market-heatmap-lab:funding-read"]
+      }
+    ],
+    "ownerEvidence": {
+      "market-heatmap-lab:funding-read": { "read": "funding basis at the 96th percentile", "asOf": "2026-07-24T19:00:00.000Z", "provenance": "same-origin-snapshot" }
+    },
+    "boundary": {
+      "search": {
+        "run/2026-07-24/red-alert-one-origin:q0": [
+          { "candidateId": "cand-reuters-funding", "url": "https://reuters.example/markets/funding-basis" }
+        ]
+      },
+      "retrieve": {
+        "https://reuters.example/robots.txt": { "status": 200, "contentType": "text/plain", "durationMs": 30, "body": "User-agent: *\nAllow: /markets\n" },
+        "https://reuters.example/markets/funding-basis": {
+          "status": 200,
+          "finalUrl": "https://reuters.example/markets/funding-basis",
+          "contentType": "text/html",
+          "durationMs": 120,
+          "body": "<p>The cross-currency funding basis widened this week, one dealer said.</p>",
+          "meta": {
+            "title": "Funding basis widens",
+            "publisher": "Reuters",
+            "publishedAt": "2026-07-24T18:00:00.000Z",
+            "sourceClass": "wire",
+            "canonicalOriginRef": "reuters/funding-basis-2026-07-24",
+            "supportsClaims": ["claim-funding"],
+            "directionTag": "wider",
+            "excerpts": ["The cross-currency funding basis widened this week, one dealer said."]
+          }
+        }
+      }
+    }
+  },
+  "hypothesis": {
+    "clusterId": "cluster/0",
+    "thesis": "Cross-currency funding stress is building but is not yet corroborated.",
+    "severity": 5,
+    "likelihoodInterval": [0.4, 0.6],
+    "horizon": "0-2w",
+    "uncertainty": "High; a single source only.",
+    "whyNow": "One current owner read flags the basis.",
+    "trigger": "A second independent origin confirms the basis move.",
+    "invalidation": "The basis re-anchors to its median.",
+    "monitoring": "Track the funding basis daily.",
+    "resolution": "Resolves when the basis normalizes.",
+    "propagation": [{ "from": "credit-funding", "to": "fx-carry" }],
+    "affectedAssets": ["DBC"],
+    "exposureClasses": ["funding"],
+    "researchActions": [{ "verb": "verify", "detail": "Seek a second independent origin for the basis claim." }],
+    "materialClaims": [{ "claimId": "claim-funding", "channel": "credit-funding", "kind": "market-state" }]
+  }
+}

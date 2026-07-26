@@ -575,5 +575,30 @@
                 "port": 443
             }
         }
+    },
+    "red-alert-policy/v1": {
+        "contractVersion": "red-alert-policy/v1",
+        "policyId": "red-alert-policy/v1",
+        "scoreThreshold": 75,
+        "visibleCap": 5,
+        "minSeverity": 4,
+        "minIndependentOrigins": 2,
+        "minOwnerEvidence": 1,
+        "components": {
+            "severity": { "weight": 25 },
+            "likelihood": { "weight": 15 },
+            "observableTransmission": { "weight": 20, "cap": 3 },
+            "evidenceStrength": { "weight": 20, "cap": 3 },
+            "imminence": { "weight": 10 },
+            "falsifiabilityActionability": { "weight": 10 }
+        },
+        "horizonBands": [
+            { "id": "0-2w", "maxDays": 14, "bandScore": 1 },
+            { "id": "2-8w", "maxDays": 56, "bandScore": 0.7 },
+            { "id": "2-6m", "maxDays": 180, "bandScore": 0.4 },
+            { "id": ">6m", "maxDays": null, "bandScore": 0.2 }
+        ],
+        "severityLabels": { "1": "informational", "2": "low", "3": "elevated", "4": "high", "5": "severe" },
+        "stalenessWindowDays": { "source": 45, "ownerEvidence": 21 }
     }
 }

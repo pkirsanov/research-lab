@@ -1,0 +1,106 @@
+{
+  "scenario": "stale",
+  "description": "OBSERVATIONS ONLY. The material claim's only supporting source was published well before the freshness window, so no CURRENT origin corroborates it. Production must DERIVE a stale/cutoff-mismatch rejection with no visible slot. An owner market read is present so the missing-owner gate does not fire; the salient rejection is the staleness gate. No verdict is encoded here.",
+  "cutoffAt": "2026-07-24T20:00:00.000Z",
+  "seeds": [
+    {
+      "seedId": "seed-stale",
+      "ownerToolId": "market-heatmap-lab",
+      "evidenceRefs": ["market-heatmap-lab:stale-read"],
+      "observedCondition": "a prior liquidity dislocation whose only citation predates the current window",
+      "normalizedEntities": ["term-liquidity", "repo"],
+      "transmissionChannels": ["rates-liquidity"],
+      "magnitudeOrState": "prior-event",
+      "cutoffAt": "2026-07-24T20:00:00.000Z",
+      "freshness": "current",
+      "limitations": ["only citation predates the freshness window"]
+    }
+  ],
+  "channelsReviewed": ["rates-liquidity"],
+  "webEvidence": {
+    "toolId": "market-brief",
+    "runId": "run/2026-07-24/red-alert-stale",
+    "cutoffAt": "2026-07-24T20:00:00.000Z",
+    "acquisitionStartedAt": "2026-07-24T20:00:05.000Z",
+    "frozenAt": "2026-07-24T20:00:20.000Z",
+    "queryPlanInput": {
+      "templates": [
+        {
+          "templateId": "repo-liquidity",
+          "termsTemplate": "{{entity}} repo liquidity dislocation",
+          "purpose": "material-claim-corroboration",
+          "allowedHosts": [
+            { "host": "reuters.example", "pathPrefix": "/markets" }
+          ],
+          "requiredSourceClasses": ["wire"],
+          "freshnessWindowDays": 7,
+          "maxResults": 4
+        }
+      ],
+      "facts": { "entity": "term-liquidity" }
+    },
+    "claimSpecs": [
+      {
+        "claimId": "claim-repo",
+        "materiality": "material",
+        "claimKind": "market-state",
+        "normalizedClaim": "Term repo liquidity dislocated in the referenced episode.",
+        "ownerEvidenceRefs": ["market-heatmap-lab:stale-read"]
+      }
+    ],
+    "ownerEvidence": {
+      "market-heatmap-lab:stale-read": { "read": "term repo spread noted at the referenced prior episode", "asOf": "2026-07-24T19:00:00.000Z", "provenance": "same-origin-snapshot" }
+    },
+    "boundary": {
+      "search": {
+        "run/2026-07-24/red-alert-stale:q0": [
+          { "candidateId": "cand-reuters-stale", "url": "https://reuters.example/markets/repo-liquidity" }
+        ]
+      },
+      "retrieve": {
+        "https://reuters.example/robots.txt": { "status": 200, "contentType": "text/plain", "durationMs": 30, "body": "User-agent: *\nAllow: /markets\n" },
+        "https://reuters.example/markets/repo-liquidity": {
+          "status": 200,
+          "finalUrl": "https://reuters.example/markets/repo-liquidity",
+          "contentType": "text/html",
+          "durationMs": 120,
+          "body": "<p>Term repo liquidity dislocated during the referenced episode, the report noted.</p>",
+          "meta": {
+            "title": "Term repo liquidity dislocation (prior episode)",
+            "publisher": "Reuters",
+            "publishedAt": "2026-05-20T18:00:00.000Z",
+            "sourceClass": "wire",
+            "canonicalOriginRef": "reuters/repo-liquidity-2026-05-20",
+            "supportsClaims": ["claim-repo"],
+            "directionTag": "dislocation",
+            "excerpts": ["Term repo liquidity dislocated during the referenced episode, the report noted."]
+          }
+        }
+      }
+    }
+  },
+  "hypothesis": {
+    "clusterId": "cluster/0",
+    "thesis": "Term repo liquidity stress is re-emerging based on a prior dislocation.",
+    "severity": 5,
+    "likelihoodInterval": [0.4, 0.6],
+    "horizon": "0-2w",
+    "uncertainty": "High; the only supporting citation predates the current window.",
+    "whyNow": "The referenced dislocation is cited as a precedent for current risk.",
+    "trigger": "A current-window origin re-confirms the repo liquidity dislocation.",
+    "invalidation": "Repo spreads remain at their median through the current window.",
+    "monitoring": "Track the rates-liquidity channel for a current corroborating origin daily.",
+    "resolution": "The alert resolves when current evidence either confirms or rules out the stress.",
+    "propagation": [
+      { "from": "rates-liquidity", "to": "credit-funding" }
+    ],
+    "affectedAssets": ["SHY"],
+    "exposureClasses": ["funding"],
+    "researchActions": [
+      { "verb": "verify", "detail": "Seek a current-window origin for the repo liquidity dislocation." }
+    ],
+    "materialClaims": [
+      { "claimId": "claim-repo", "channel": "rates-liquidity", "kind": "market-state" }
+    ]
+  }
+}

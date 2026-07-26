@@ -4348,6 +4348,44 @@ try {
   assert(syn10.acquireResult.value.coverage.independentOriginCount === 1 && synClaim10.corroborationState === 'uncorroborated' && synClaim10.authorable === false && oneClaim10.corroborationState === 'uncorroborated' && oneClaim10.authorable === false && primClaim10.corroborationState === 'corroborated' && primClaim10.authorable === true && Object.isFrozen(prim10.acquireResult.value) && !JSON.stringify(prim10.acquireResult.value).includes('<p>'), 'SCN-012-006/007 single & syndicated origins leave a material claim uncorroborated while two DISTINCT origins corroborate; the safe bundle is frozen with no raw markup (SCN-012-037)');
 } catch (e) { failures++; console.log('  \u2717 FAIL (Feature 012 Scope 10 WebEvidence canaries threw): ' + e.message); }
 
+/* ---------- Feature 012 Scope 12 Dynamic Red Alert discovery/qualification/projection canaries ----------
+   Drives the REAL rlmarketaction.js Red Alert engine over INLINE observations (a WebEvidenceBundle/v1-shaped
+   material-claim set + a discovery hypothesis; production DERIVES the verdict, never a fixture echo). Proves:
+   a dynamically corroborated, market-confirmed, high-severity candidate QUALIFIES with every falsifiable field
+   and an admission score that is NEVER a probability/confidence/crash-odds field (SCN-012-023); a single-origin
+   candidate consumes NO visible slot as a safe insufficient-corroboration count and never echoes its dramatic
+   title (SCN-012-024); a no-candidate window renders an honest empty state with cutoff/channels/owner coverage
+   and no illustrative topic (SCN-012-025); and live Red Alert publication stays a Feature 002 dependency-pending
+   gate. Pure Node, no browser, no named-topic catalog. */
+try {
+  group('Feature 012 Scope 12 Dynamic Red Alert discovery/qualification/projection');
+  const raRequire = (await import('node:module')).createRequire(import.meta.url);
+  delete raRequire.cache[raRequire.resolve('../rlmarketaction.js')];
+  const RA12 = raRequire('../rlmarketaction.js');
+  const CUT12 = '2026-07-26T15:00:00.000Z';
+  const mkClaim12 = (id, over) => Object.assign({ claimId: id, materiality: 'material', claimKind: 'market-state', normalizedClaim: id + ' moved this week', independentOriginGroups: ['origin:a', 'origin:b'], ownerEvidenceRefs: ['owner:1'], corroborationState: 'corroborated', conflictState: 'consistent', freshnessState: 'current' }, over || {});
+  const mkBundle12 = (claims) => ({ contractVersion: 'web-evidence-bundle/v1', bundleId: 'selftest/red-alert:bundle', cutoffAt: CUT12, claims, bundleFingerprint: 'sha256:' + '1'.repeat(64) });
+  const seed12 = { seedId: 'seed-st', ownerToolId: 'market-heatmap-lab', evidenceRefs: ['owner:1'], observedCondition: 'funding basis widened beyond its band', normalizedEntities: ['xccy-basis', 'usd-funding'], transmissionChannels: ['credit-funding', 'fx-carry'], magnitudeOrState: 'p97', cutoffAt: CUT12, freshness: 'current', limitations: [] };
+  const hypo12 = (over) => Object.assign({ clusterId: 'cluster-st', thesis: 'Cross-currency funding stress is transmitting into carry unwinds this window.', severity: 5, likelihoodInterval: [0.4, 0.6], horizon: '0-2w', uncertainty: 'wide; depends on quarter-end rollover', whyNow: 'basis and carry both dislocated in the same current window', trigger: 'basis breaches its prior wide with a carry drawdown', invalidation: 'basis normalizes to its 1y median for five sessions', monitoring: 'track the basis band and the two owner reads daily', resolution: 'resolves when basis and carry re-anchor', propagation: [{ from: 'credit-funding', to: 'fx-carry' }, { from: 'fx-carry', to: 'volatility-options' }], affectedAssets: ['DBC', 'GLD'], exposureClasses: ['carry', 'funding'], researchActions: [{ verb: 'monitor', detail: 'watch the funding basis band into quarter end' }, { verb: 'verify', detail: 'reconcile the basis claim against a second origin' }], materialClaims: [{ claimId: 'c-fund', channel: 'credit-funding', kind: 'market-state' }, { claimId: 'c-carry', channel: 'fx-carry', kind: 'market-state' }] }, over || {});
+
+  // (1) SCN-012-023 dynamic corroborated + market-confirmed candidate QUALIFIES with all falsifiable fields; admission score >= 75; NEVER a probability/confidence/crash-odds field; publication Feature-002 gated.
+  const strongBundle = mkBundle12([mkClaim12('c-fund'), mkClaim12('c-carry', { independentOriginGroups: ['origin:c', 'origin:d'], ownerEvidenceRefs: ['owner:2'] })]);
+  const qualified = RA12.qualifyRedAlerts({ projectionId: 'selftest/red-alert', cutoffAt: CUT12, seeds: [seed12], candidateInputs: [Object.assign({ bundle: strongBundle }, hypo12())], channelsReviewed: ['credit-funding', 'fx-carry', 'volatility-options'] });
+  const strongAlert = qualified.ok ? qualified.value.visibleAlerts[0] : {};
+  const forbiddenScoreKeys12 = ['probability', 'confidence', 'crashOdds', 'crashProbability', 'odds', 'certainty'];
+  assert(qualified.ok && qualified.value.visibleAlerts.length === 1 && strongAlert.severityLevel >= 4 && strongAlert.admissionScore >= 75 && ['thesis', 'whyNow', 'trigger', 'invalidation', 'monitoring', 'resolution', 'horizon', 'uncertainty'].every((f) => typeof strongAlert[f] === 'string' && strongAlert[f].length > 0) && strongAlert.propagation.length > 0 && strongAlert.researchActions.length > 0 && strongAlert.independentOriginGroupCount >= 2 && strongAlert.ownerMarketEvidenceRefs.length >= 1 && 'admissionScore' in strongAlert && !forbiddenScoreKeys12.some((k) => (k in strongAlert) || (k in strongAlert.scoreComponents)) && qualified.value.publicationState === 'dependency-pending:feature-002' && RA12.validateRedAlertProjection(qualified.value).ok, 'SCN-012-023 a dynamically corroborated, market-confirmed, high-severity candidate qualifies with every falsifiable field and an admission score (never a probability/confidence/crash-odds field), publication Feature-002 gated');
+
+  // (2) SCN-012-024 single-origin dramatic candidate consumes NO visible slot; safe insufficient-corroboration count; dramatic title never echoed.
+  const weakBundle = mkBundle12([mkClaim12('c-fund', { independentOriginGroups: ['origin:a'], corroborationState: 'uncorroborated' }), mkClaim12('c-carry', { independentOriginGroups: ['origin:c'], corroborationState: 'uncorroborated', ownerEvidenceRefs: ['owner:2'] })]);
+  const weak = RA12.qualifyRedAlerts({ projectionId: 'selftest/red-alert-weak', cutoffAt: CUT12, seeds: [seed12], candidateInputs: [Object.assign({ bundle: weakBundle }, hypo12({ thesis: 'SENSATIONAL UNSTOPPABLE MELTDOWN NARRATIVE ZZZ.' }))], channelsReviewed: ['credit-funding'] });
+  assert(weak.ok && weak.value.visibleAlerts.length === 0 && weak.value.rejections.count === 1 && weak.value.rejections.byReasonClass['insufficient-corroboration'] >= 1 && !JSON.stringify(weak.value).includes('SENSATIONAL'), 'SCN-012-024 a single-origin dramatic candidate consumes no visible slot, is a safe insufficient-corroboration count, and never echoes its dramatic title');
+
+  // (3) SCN-012-025 no candidate -> honest empty state with cutoff/coverage and no illustrative topic.
+  const empty12 = RA12.qualifyRedAlerts({ projectionId: 'selftest/red-alert-empty', cutoffAt: CUT12, seeds: [seed12], candidateInputs: [], channelsReviewed: ['credit-funding', 'fx-carry'] });
+  const empty12Text = empty12.ok ? JSON.stringify(empty12.value.emptyState).toLowerCase() : '';
+  assert(empty12.ok && empty12.value.visibleAlerts.length === 0 && empty12.value.emptyState && empty12.value.emptyState.cutoffAt === CUT12 && empty12.value.emptyState.channelsReviewed.length > 0 && empty12.value.emptyState.ownerCoverage.anomalySeedCount >= 1 && !['usd/jpy', 'private credit', 'capex', 'war'].some((t) => empty12Text.includes(t)) && RA12.validateRedAlertProjection(empty12.value).ok, 'SCN-012-025 a no-candidate window renders an honest empty state with cutoff/channels/owner coverage and no illustrative topic');
+} catch (e) { failures++; console.log('  \u2717 FAIL (Feature 012 Scope 12 Red Alert canaries threw): ' + e.message); }
+
 /* ---------- summary ---------- */
 console.log('\n' + '='.repeat(48));
 console.log('Research-Lab self-test: ' + passes + ' passed, ' + failures + ' failed');

@@ -1,0 +1,186 @@
+{
+  "scenario": "no-topic-hardcoding",
+  "description": "OBSERVATIONS ONLY. A dynamically discovered candidate on a topic UNRELATED to the funding/carry demo: sovereign issuance supply and term premium transmitting into index volatility. Two material claims, each independently corroborated (two distinct current origins) and linked to a current owner market read. Production must DERIVE that this clears every gate and the admission score purely from the observations, proving the engine hardcodes no named topic. This fixture carries NO expected verdict and uses no illustrative spec topic.",
+  "cutoffAt": "2026-07-24T20:00:00.000Z",
+  "seeds": [
+    {
+      "seedId": "seed-supply",
+      "ownerToolId": "market-heatmap-lab",
+      "evidenceRefs": ["market-heatmap-lab:supply-read"],
+      "observedCondition": "sovereign issuance supply overwhelmed demand and term premium repriced higher",
+      "normalizedEntities": ["sovereign-supply", "term-premium"],
+      "transmissionChannels": ["rates-liquidity"],
+      "magnitudeOrState": "repricing",
+      "cutoffAt": "2026-07-24T20:00:00.000Z",
+      "freshness": "current",
+      "limitations": []
+    },
+    {
+      "seedId": "seed-vol",
+      "ownerToolId": "options-flow-feed-lab",
+      "evidenceRefs": ["options-flow-feed-lab:vol-read"],
+      "observedCondition": "index volatility term structure steepened alongside the term premium repricing",
+      "normalizedEntities": ["term-premium", "index-vol"],
+      "transmissionChannels": ["volatility-options"],
+      "magnitudeOrState": "steepening",
+      "cutoffAt": "2026-07-24T20:00:00.000Z",
+      "freshness": "current",
+      "limitations": []
+    }
+  ],
+  "channelsReviewed": ["rates-liquidity", "volatility-options", "breadth-market-structure"],
+  "webEvidence": {
+    "toolId": "market-brief",
+    "runId": "run/2026-07-24/red-alert-no-topic",
+    "cutoffAt": "2026-07-24T20:00:00.000Z",
+    "acquisitionStartedAt": "2026-07-24T20:00:05.000Z",
+    "frozenAt": "2026-07-24T20:00:20.000Z",
+    "queryPlanInput": {
+      "templates": [
+        {
+          "templateId": "supply-transmission",
+          "termsTemplate": "{{entity}} issuance supply term premium",
+          "purpose": "material-claim-corroboration",
+          "allowedHosts": [
+            { "host": "reuters.example", "pathPrefix": "/markets" },
+            { "host": "bis.example", "pathPrefix": "/publ" }
+          ],
+          "requiredSourceClasses": ["wire", "primary"],
+          "freshnessWindowDays": 7,
+          "maxResults": 8
+        }
+      ],
+      "facts": { "entity": "sovereign-supply" }
+    },
+    "claimSpecs": [
+      {
+        "claimId": "claim-supply",
+        "materiality": "material",
+        "claimKind": "market-state",
+        "normalizedClaim": "Sovereign issuance supply overwhelmed demand and term premium repriced higher this week.",
+        "ownerEvidenceRefs": ["market-heatmap-lab:supply-read"]
+      },
+      {
+        "claimId": "claim-vol",
+        "materiality": "material",
+        "claimKind": "market-state",
+        "normalizedClaim": "Index volatility term structure steepened alongside the term premium repricing this week.",
+        "ownerEvidenceRefs": ["options-flow-feed-lab:vol-read"]
+      }
+    ],
+    "ownerEvidence": {
+      "market-heatmap-lab:supply-read": { "read": "term premium repriced to the 96th percentile band", "asOf": "2026-07-24T19:00:00.000Z", "provenance": "same-origin-snapshot" },
+      "options-flow-feed-lab:vol-read": { "read": "index volatility term structure steepened to the 91st percentile", "asOf": "2026-07-24T19:00:00.000Z", "provenance": "same-origin-snapshot" }
+    },
+    "boundary": {
+      "search": {
+        "run/2026-07-24/red-alert-no-topic:q0": [
+          { "candidateId": "cand-reuters-supply", "url": "https://reuters.example/markets/issuance-supply" },
+          { "candidateId": "cand-bis-supply", "url": "https://bis.example/publ/issuance-supply-note" },
+          { "candidateId": "cand-reuters-vol", "url": "https://reuters.example/markets/vol-term-structure" },
+          { "candidateId": "cand-bis-vol", "url": "https://bis.example/publ/vol-term-structure-note" }
+        ]
+      },
+      "retrieve": {
+        "https://reuters.example/robots.txt": { "status": 200, "contentType": "text/plain", "durationMs": 30, "body": "User-agent: *\nAllow: /markets\n" },
+        "https://bis.example/robots.txt": { "status": 200, "contentType": "text/plain", "durationMs": 30, "body": "User-agent: *\nAllow: /publ\n" },
+        "https://reuters.example/markets/issuance-supply": {
+          "status": 200,
+          "finalUrl": "https://reuters.example/markets/issuance-supply",
+          "contentType": "text/html",
+          "durationMs": 120,
+          "body": "<p>Sovereign issuance supply overwhelmed demand and term premium repriced higher this week, strategists said.</p>",
+          "meta": {
+            "title": "Issuance supply lifts term premium",
+            "publisher": "Reuters",
+            "publishedAt": "2026-07-24T18:00:00.000Z",
+            "sourceClass": "wire",
+            "canonicalOriginRef": "reuters/issuance-supply-2026-07-24",
+            "supportsClaims": ["claim-supply"],
+            "directionTag": "higher",
+            "excerpts": ["Sovereign issuance supply overwhelmed demand and term premium repriced higher this week, strategists said."]
+          }
+        },
+        "https://bis.example/publ/issuance-supply-note": {
+          "status": 200,
+          "finalUrl": "https://bis.example/publ/issuance-supply-note",
+          "contentType": "text/html",
+          "durationMs": 130,
+          "body": "<p>An independent primary-market note confirms the term premium repricing on heavy issuance this week.</p>",
+          "meta": {
+            "title": "Primary-market note confirms term premium repricing",
+            "publisher": "BIS",
+            "publishedAt": "2026-07-24T17:30:00.000Z",
+            "sourceClass": "primary",
+            "canonicalOriginRef": "bis/issuance-supply-2026-07-24",
+            "supportsClaims": ["claim-supply"],
+            "directionTag": "higher",
+            "excerpts": ["An independent primary-market note confirms the term premium repricing on heavy issuance this week."]
+          }
+        },
+        "https://reuters.example/markets/vol-term-structure": {
+          "status": 200,
+          "finalUrl": "https://reuters.example/markets/vol-term-structure",
+          "contentType": "text/html",
+          "durationMs": 118,
+          "body": "<p>Index volatility term structure steepened alongside the term premium repricing this week, desks reported.</p>",
+          "meta": {
+            "title": "Volatility term structure steepens",
+            "publisher": "Reuters",
+            "publishedAt": "2026-07-24T18:10:00.000Z",
+            "sourceClass": "wire",
+            "canonicalOriginRef": "reuters/vol-term-structure-2026-07-24",
+            "supportsClaims": ["claim-vol"],
+            "directionTag": "steepening",
+            "excerpts": ["Index volatility term structure steepened alongside the term premium repricing this week, desks reported."]
+          }
+        },
+        "https://bis.example/publ/vol-term-structure-note": {
+          "status": 200,
+          "finalUrl": "https://bis.example/publ/vol-term-structure-note",
+          "contentType": "text/html",
+          "durationMs": 140,
+          "body": "<p>An independent review confirms the volatility term-structure steepening this week.</p>",
+          "meta": {
+            "title": "Review confirms volatility steepening",
+            "publisher": "BIS",
+            "publishedAt": "2026-07-24T17:45:00.000Z",
+            "sourceClass": "primary",
+            "canonicalOriginRef": "bis/vol-term-structure-2026-07-24",
+            "supportsClaims": ["claim-vol"],
+            "directionTag": "steepening",
+            "excerpts": ["An independent review confirms the volatility term-structure steepening this week."]
+          }
+        }
+      }
+    }
+  },
+  "hypothesis": {
+    "clusterId": "cluster/0",
+    "thesis": "Heavy sovereign issuance supply is repricing term premium and transmitting into steeper index volatility.",
+    "severity": 5,
+    "likelihoodInterval": [0.4, 0.6],
+    "horizon": "0-2w",
+    "uncertainty": "Wide; conditional on the pace of the issuance calendar and demand absorption.",
+    "whyNow": "Term premium and index volatility both repriced within the same current evidence window.",
+    "trigger": "Term premium breaches its prior wide with a confirmed volatility term-structure steepening.",
+    "invalidation": "Term premium and volatility both re-anchor to their prior ranges for five sessions.",
+    "monitoring": "Track the rates-liquidity and volatility-options channels and the two owner reads daily.",
+    "resolution": "The alert resolves when term premium and volatility both re-anchor to prior ranges.",
+    "propagation": [
+      { "from": "rates-liquidity", "to": "volatility-options" },
+      { "from": "volatility-options", "to": "breadth-market-structure" }
+    ],
+    "affectedAssets": ["SHY", "VXX"],
+    "exposureClasses": ["duration", "volatility"],
+    "researchActions": [
+      { "verb": "monitor", "detail": "Watch the term premium band across the issuance calendar." },
+      { "verb": "verify", "detail": "Reconcile the term premium repricing against a third independent origin." },
+      { "verb": "scenario-test", "detail": "Run a local duration-and-volatility shock against public watch scope." }
+    ],
+    "materialClaims": [
+      { "claimId": "claim-supply", "channel": "rates-liquidity", "kind": "market-state" },
+      { "claimId": "claim-vol", "channel": "volatility-options", "kind": "market-state" }
+    ]
+  }
+}

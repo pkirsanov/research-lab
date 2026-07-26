@@ -94,7 +94,9 @@
   });
   var REFUSAL_CODES = Object.freeze([
     "RLMKT-INPUT", "RLMKT-MATRIX", "RLMKT-CELL", "RLMKT-SCOPE", "RLMKT-PRIVACY",
-    "RLMKT-PROJECTION", "RLMKT-VIEW", "RLMKT-GATE", "RLMKT-NOACTION", "RLMKT-VERSION"
+    "RLMKT-PROJECTION", "RLMKT-VIEW", "RLMKT-GATE", "RLMKT-NOACTION", "RLMKT-VERSION",
+    /* Scope 12 Red Alert engine refusal codes. */
+    "RLMKT-SEED", "RLMKT-CANDIDATE", "RLMKT-SCORE", "RLMKT-LIFECYCLE", "RLMKT-ALARMISM", "RLMKT-REDALERT"
   ]);
   /* forbidden PRIVATE field-name roots (Feature 008 portfolio state). A field whose
      lower-cased name contains any of these roots may never enter a public matrix or
@@ -660,6 +662,646 @@
     });
   }
 
+  /* ═══════════════════════════════════════════════════════════════════════
+     Scope 12 — Dynamic Red Alert discovery / qualification / projection engine.
+
+     PURE and additive. Discovery starts ONLY from current public owner-read
+     anomaly seeds; transmission channels are classification labels only and the
+     engine carries NO named threat/entity/country/asset candidate list. A
+     candidate becomes a visible Red Alert only when it clears all seven hard
+     admission gates AND the exact explainable ADMISSION SCORE threshold — the
+     total is an admission index, never a probability / confidence / crash-odds
+     claim. A weak/alarmist/conflicted/stale/below-threshold candidate is a
+     NON-throwing rejection (safe reason class + count only) that consumes no
+     visible slot; contract-malformed or hostile input is a closed refusal.
+     Live acquisition and public Red Alert publication stay gated to Feature 002
+     (Scope 11); this engine produces fixture/local qualification only.
+     ═══════════════════════════════════════════════════════════════════════ */
+
+  var RED_ALERT_CONTRACT = Object.freeze({
+    seed: "anomaly-seed/v1",
+    candidate: "red-alert-candidate/v1",
+    alert: "red-alert/v1",
+    projection: "red-alert-projection/v1",
+    empty: "red-alert-empty/v1",
+    policy: "red-alert-policy/v1"
+  });
+
+  /* the eight allowed transmission channels — CLASSIFICATION LABELS ONLY. The
+     registry contains no named threat; a channel cannot seed a candidate. */
+  var TRANSMISSION_CHANNELS = Object.freeze([
+    "rates-liquidity", "fx-carry", "credit-funding", "volatility-options",
+    "commodities-energy", "breadth-market-structure",
+    "geopolitical-supply-chain", "counterparty-operational"
+  ]);
+
+  var LIFECYCLE_STATES = Object.freeze([
+    "discovered", "evidence-building", "qualified", "rejected",
+    "acknowledged", "monitoring", "invalidated", "resolved", "stale"
+  ]);
+
+  /* the legal APPEND-ONLY lifecycle transitions. discovered -> evidence-building
+     -> qualified | rejected, then qualified -> acknowledged -> monitoring ->
+     invalidated | resolved | stale. 'stale' (evidence aging) is reachable from
+     any live qualified state. */
+  var LIFECYCLE_TRANSITIONS = Object.freeze({
+    "discovered": ["evidence-building", "rejected"],
+    "evidence-building": ["qualified", "rejected"],
+    "qualified": ["acknowledged", "stale"],
+    "acknowledged": ["monitoring", "stale"],
+    "monitoring": ["invalidated", "resolved", "stale"],
+    "rejected": [],
+    "invalidated": [],
+    "resolved": [],
+    "stale": []
+  });
+
+  /* the closed safe rejection reason-class vocabulary. A rejected candidate is
+     represented ONLY by these counts, never by its dramatic title/text. */
+  var REJECTION_REASON_CLASSES = Object.freeze([
+    "insufficient-corroboration", "no-observable-market-evidence",
+    "incomplete-fields", "source-conflict", "stale-or-cutoff-mismatch",
+    "score-below-threshold", "low-severity"
+  ]);
+
+  /* research-ONLY verbs. No execution / order / hedge-placement verb is allowed. */
+  var RESEARCH_VERBS = Object.freeze([
+    "monitor", "verify", "investigate", "scenario-test", "review-hedge-research", "trace-claims"
+  ]);
+
+  /* the embedded default policy MIRRORS market-brief.config.json "red-alert-policy/v1";
+     scripts/validate-market-action.mjs proves the committed config equals this. */
+  var DEFAULT_RED_ALERT_POLICY = deepFreeze({
+    contractVersion: "red-alert-policy/v1",
+    policyId: "red-alert-policy/v1",
+    scoreThreshold: 75,
+    visibleCap: 5,
+    minSeverity: 4,
+    minIndependentOrigins: 2,
+    minOwnerEvidence: 1,
+    components: {
+      severity: { weight: 25 },
+      likelihood: { weight: 15 },
+      observableTransmission: { weight: 20, cap: 3 },
+      evidenceStrength: { weight: 20, cap: 3 },
+      imminence: { weight: 10 },
+      falsifiabilityActionability: { weight: 10 }
+    },
+    horizonBands: [
+      { id: "0-2w", maxDays: 14, bandScore: 1 },
+      { id: "2-8w", maxDays: 56, bandScore: 0.7 },
+      { id: "2-6m", maxDays: 180, bandScore: 0.4 },
+      { id: ">6m", maxDays: null, bandScore: 0.2 }
+    ],
+    severityLabels: { "1": "informational", "2": "low", "3": "elevated", "4": "high", "5": "severe" },
+    stalenessWindowDays: { source: 45, ownerEvidence: 21 }
+  });
+
+  var RED_ALERT_EMPTY_STATEMENT = "No current candidate cleared the Red Alert evidence bar for this window.";
+  var RED_ALERT_METHOD_REF = "notes/market-brief.md#red-alert-qualification";
+  /* forbidden alarmist certainty/urgency terms. Severity is text and restrained;
+     no unsupported certainty/inevitability/urgency language may appear. */
+  var FORBIDDEN_ALARMIST_TERMS = Object.freeze([
+    "guaranteed", "inevitable", "certain to", "will definitely", "act now",
+    "panic", "sure thing", "zero-risk", "cannot fail", "imminent crash", "catastrophic collapse"
+  ]);
+  /* structural hostile-shape detector for a discovery thesis (markup / injected
+     instruction / URL / credential / shell / template-expansion). */
+  var HOSTILE_SHAPE = /<\/?[a-z][\s\S]*>|ignore (all|previous) instructions|https?:\/\/|javascript:|api[_-]?key|rm -rf|\$\{/i;
+
+  function round2(x) { return Math.round((x + Number.EPSILON) * 100) / 100; }
+  function dedupeSort(arr) { var seen = Object.create(null); (arr || []).forEach(function (x) { seen[x] = true; }); return Object.keys(seen).sort(); }
+  function resolveRedAlertPolicy(policy) { return isPlainObject(policy) ? policy : DEFAULT_RED_ALERT_POLICY; }
+  function containsHostileShape(text) { return typeof text === "string" && HOSTILE_SHAPE.test(text); }
+  function severityLabelFor(policy, level) {
+    var labels = (policy && isPlainObject(policy.severityLabels)) ? policy.severityLabels : DEFAULT_RED_ALERT_POLICY.severityLabels;
+    return isNonEmptyString(labels[String(level)]) ? labels[String(level)] : "unlabeled";
+  }
+  function horizonBandScore(policy, horizonId) {
+    var bands = (policy && Array.isArray(policy.horizonBands)) ? policy.horizonBands : DEFAULT_RED_ALERT_POLICY.horizonBands;
+    for (var i = 0; i < bands.length; i += 1) if (bands[i].id === horizonId) return bands[i].bandScore;
+    return 0;
+  }
+
+  /* ── AnomalySeed/v1 ── */
+
+  function normalizeAnomalySeed(seed, path) {
+    if (!isPlainObject(seed)) reject("RLMKT-SEED", path, "anomaly seed must be an object");
+    if (!isNonEmptyString(seed.seedId)) reject("RLMKT-SEED", path + ".seedId", "seedId is required");
+    if (!isNonEmptyString(seed.ownerToolId)) reject("RLMKT-SEED", path + ".ownerToolId", "an anomaly seed must name its owning tool");
+    if (!Array.isArray(seed.evidenceRefs) || seed.evidenceRefs.length === 0 || !seed.evidenceRefs.every(isNonEmptyString)) reject("RLMKT-SEED", path + ".evidenceRefs", "an anomaly seed requires at least one owner evidence ref");
+    if (!isNonEmptyString(seed.observedCondition)) reject("RLMKT-SEED", path + ".observedCondition", "observedCondition is required");
+    if (!Array.isArray(seed.normalizedEntities) || seed.normalizedEntities.length === 0 || !seed.normalizedEntities.every(isNonEmptyString)) reject("RLMKT-SEED", path + ".normalizedEntities", "an anomaly seed requires at least one normalized entity");
+    if (!Array.isArray(seed.transmissionChannels) || seed.transmissionChannels.length === 0) reject("RLMKT-SEED", path + ".transmissionChannels", "an anomaly seed requires at least one transmission channel");
+    seed.transmissionChannels.forEach(function (channel, i) {
+      if (TRANSMISSION_CHANNELS.indexOf(channel) === -1) reject("RLMKT-SEED", path + ".transmissionChannels[" + i + "]", "unknown transmission channel (channels are classification labels only)");
+    });
+    if (!isNonEmptyString(seed.cutoffAt) || !ISO_PATTERN.test(seed.cutoffAt)) reject("RLMKT-SEED", path + ".cutoffAt", "cutoffAt must be an ISO timestamp");
+    return {
+      contractVersion: RED_ALERT_CONTRACT.seed,
+      seedId: seed.seedId,
+      ownerToolId: seed.ownerToolId,
+      evidenceRefs: seed.evidenceRefs.slice(),
+      observedCondition: seed.observedCondition,
+      normalizedEntities: seed.normalizedEntities.slice(),
+      transmissionChannels: seed.transmissionChannels.slice(),
+      magnitudeOrState: isNonEmptyString(seed.magnitudeOrState) ? seed.magnitudeOrState : "unspecified",
+      cutoffAt: seed.cutoffAt,
+      freshness: isNonEmptyString(seed.freshness) ? seed.freshness : "current",
+      limitations: Array.isArray(seed.limitations) ? seed.limitations.filter(isNonEmptyString) : []
+    };
+  }
+
+  function validateAnomalySeed(seed) {
+    return capture(function () { return normalizeAnomalySeed(seed, "$"); });
+  }
+
+  /* ── clustering (overlapping entities / shared evidence) ── */
+
+  function clusterAnomalySeeds(seeds) {
+    return capture(function () {
+      if (!Array.isArray(seeds) || seeds.length === 0) reject("RLMKT-SEED", "$", "clustering requires a non-empty seed array");
+      var normalized = seeds.map(function (s, i) { return normalizeAnomalySeed(s, "$[" + i + "]"); });
+      var parent = normalized.map(function (_, i) { return i; });
+      function find(x) { while (parent[x] !== x) { parent[x] = parent[parent[x]]; x = parent[x]; } return x; }
+      function union(a, b) { parent[find(a)] = find(b); }
+      for (var i = 0; i < normalized.length; i += 1) {
+        for (var j = i + 1; j < normalized.length; j += 1) {
+          var shareEntity = normalized[i].normalizedEntities.some(function (e) { return normalized[j].normalizedEntities.indexOf(e) !== -1; });
+          var shareEvidence = normalized[i].evidenceRefs.some(function (e) { return normalized[j].evidenceRefs.indexOf(e) !== -1; });
+          if (shareEntity || shareEvidence) union(i, j);
+        }
+      }
+      var groups = Object.create(null);
+      normalized.forEach(function (s, i) {
+        var root = find(i);
+        if (!groups[root]) groups[root] = [];
+        groups[root].push(s);
+      });
+      var clusters = Object.keys(groups).map(function (root, index) {
+        var members = groups[root];
+        var entities = Object.create(null), channels = Object.create(null), evidence = Object.create(null);
+        members.forEach(function (m) {
+          m.normalizedEntities.forEach(function (e) { entities[e] = true; });
+          m.transmissionChannels.forEach(function (c) { channels[c] = true; });
+          m.evidenceRefs.forEach(function (e) { evidence[e] = true; });
+        });
+        return {
+          clusterId: "cluster/" + index,
+          seedIds: members.map(function (m) { return m.seedId; }).sort(),
+          ownerToolIds: dedupeSort(members.map(function (m) { return m.ownerToolId; })),
+          normalizedEntities: Object.keys(entities).sort(),
+          transmissionChannels: Object.keys(channels).sort(),
+          evidenceRefs: Object.keys(evidence).sort(),
+          cutoffAt: members[0].cutoffAt
+        };
+      });
+      return { clusters: clusters };
+    });
+  }
+
+  /* ── bounded public query-plan derivation (through Scope 10 render/acquire) ── */
+
+  function buildQueryPlanInput(cluster, options) {
+    return capture(function () {
+      if (!isPlainObject(cluster) || !Array.isArray(cluster.normalizedEntities) || cluster.normalizedEntities.length === 0) reject("RLMKT-CANDIDATE", "$.cluster", "a query plan requires a cluster with observed entities");
+      if (!Array.isArray(cluster.transmissionChannels) || cluster.transmissionChannels.length === 0) reject("RLMKT-CANDIDATE", "$.cluster.transmissionChannels", "a query plan requires the cluster's classified channels");
+      var opts = isPlainObject(options) ? options : {};
+      /* ONE bounded query per classified channel; terms DERIVE from observed
+         entities only — never a hardcoded threat/topic term. */
+      var terms = cluster.normalizedEntities.slice(0, 3).join(" ");
+      var templates = cluster.transmissionChannels.map(function (channel, i) {
+        return {
+          templateId: "seed-derived/" + channel + "/" + i,
+          termsTemplate: terms + " {{entity}}",
+          purpose: "material-claim-corroboration",
+          transmissionChannel: channel,
+          allowedHosts: Array.isArray(opts.allowedHosts) ? opts.allowedHosts : [],
+          requiredSourceClasses: Array.isArray(opts.requiredSourceClasses) ? opts.requiredSourceClasses : ["wire"],
+          freshnessWindowDays: Number.isInteger(opts.freshnessWindowDays) ? opts.freshnessWindowDays : 7,
+          maxResults: Number.isInteger(opts.maxResults) ? opts.maxResults : 4
+        };
+      });
+      return {
+        toolId: isNonEmptyString(opts.toolId) ? opts.toolId : "market-brief",
+        runId: isNonEmptyString(opts.runId) ? opts.runId : ("run/red-alert/" + cluster.clusterId),
+        cutoffAt: cluster.cutoffAt,
+        clusterRef: cluster.clusterId,
+        facts: { entity: cluster.normalizedEntities[0] },
+        templates: templates
+      };
+    });
+  }
+
+  /* ── candidate assembly (derives channels / origins / owner-evidence from the frozen bundle) ── */
+
+  function normalizePropagation(edges) {
+    if (!Array.isArray(edges)) return [];
+    return edges
+      .filter(function (e) { return isPlainObject(e) && TRANSMISSION_CHANNELS.indexOf(e.from) !== -1 && TRANSMISSION_CHANNELS.indexOf(e.to) !== -1; })
+      .map(function (e) { return { from: e.from, to: e.to }; });
+  }
+
+  function normalizeResearchActions(actions) {
+    if (!Array.isArray(actions)) return [];
+    return actions
+      .filter(function (a) { return isPlainObject(a) && RESEARCH_VERBS.indexOf(a.verb) !== -1 && isNonEmptyString(a.detail); })
+      .map(function (a) { return { verb: a.verb, detail: a.detail }; });
+  }
+
+  function buildCandidate(input) {
+    if (!isPlainObject(input)) reject("RLMKT-CANDIDATE", "$", "candidate assembly input must be an object");
+    var bundle = input.bundle;
+    if (!isPlainObject(bundle) || bundle.contractVersion !== "web-evidence-bundle/v1" || !Array.isArray(bundle.claims)) reject("RLMKT-CANDIDATE", "$.bundle", "assembly requires a frozen web-evidence-bundle/v1 with claims");
+    if (!isNonEmptyString(input.cutoffAt) || !ISO_PATTERN.test(input.cutoffAt)) reject("RLMKT-CANDIDATE", "$.cutoffAt", "cutoffAt must be an ISO timestamp");
+    if (bundle.cutoffAt !== input.cutoffAt) reject("RLMKT-CANDIDATE", "$.cutoffAt", "the frozen bundle cutoff must match the candidate cutoff (cutoff compatibility)");
+    if (!isNonEmptyString(input.thesis)) reject("RLMKT-CANDIDATE", "$.thesis", "a candidate requires a normalized thesis");
+    if (containsHostileShape(input.thesis)) reject("RLMKT-CANDIDATE", "$.thesis", "thesis contains a forbidden instruction/markup/url shape");
+    if (!Number.isInteger(input.severity) || input.severity < 1 || input.severity > 5) reject("RLMKT-CANDIDATE", "$.severity", "severity must be an integer 1..5");
+    var li = input.likelihoodInterval;
+    if (!Array.isArray(li) || li.length !== 2 || !li.every(function (n) { return typeof n === "number" && Number.isFinite(n) && n >= 0 && n <= 1; }) || li[0] > li[1]) reject("RLMKT-CANDIDATE", "$.likelihoodInterval", "likelihoodInterval must be a finite [lo,hi] within [0,1]");
+
+    var mats = Array.isArray(input.materialClaims) ? input.materialClaims : [];
+    if (mats.length === 0) reject("RLMKT-CANDIDATE", "$.materialClaims", "a candidate must reference at least one material claim");
+    var byId = Object.create(null);
+    bundle.claims.forEach(function (c) { if (isPlainObject(c) && isNonEmptyString(c.claimId)) byId[c.claimId] = c; });
+    var claimRefs = [];
+    var channels = Object.create(null);
+    var originGroupUnion = Object.create(null);
+    var ownerEvidence = Object.create(null);
+    var materialEvaluation = mats.map(function (m, i) {
+      if (!isPlainObject(m) || !isNonEmptyString(m.claimId)) reject("RLMKT-CANDIDATE", "$.materialClaims[" + i + "].claimId", "each material claim reference requires a claimId");
+      if (TRANSMISSION_CHANNELS.indexOf(m.channel) === -1) reject("RLMKT-CANDIDATE", "$.materialClaims[" + i + "].channel", "each material claim must map to a known transmission channel");
+      var claim = byId[m.claimId];
+      if (!claim) reject("RLMKT-CANDIDATE", "$.materialClaims[" + i + "].claimId", "named material claim is absent from the frozen bundle");
+      if (claim.materiality !== "material") reject("RLMKT-CANDIDATE", "$.materialClaims[" + i + "].claimId", "a candidate material claim must be a material bundle claim");
+      claimRefs.push(m.claimId);
+      channels[m.channel] = true;
+      (Array.isArray(claim.independentOriginGroups) ? claim.independentOriginGroups : []).forEach(function (g) { originGroupUnion[g] = true; });
+      (Array.isArray(claim.ownerEvidenceRefs) ? claim.ownerEvidenceRefs : []).forEach(function (r) { ownerEvidence[r] = true; });
+      return {
+        claimId: m.claimId,
+        channel: m.channel,
+        kind: isNonEmptyString(m.kind) ? m.kind : claim.claimKind,
+        claimKind: claim.claimKind,
+        originGroupCount: Array.isArray(claim.independentOriginGroups) ? claim.independentOriginGroups.length : 0,
+        ownerEvidenceCount: Array.isArray(claim.ownerEvidenceRefs) ? claim.ownerEvidenceRefs.length : 0,
+        corroborationState: isNonEmptyString(claim.corroborationState) ? claim.corroborationState : "uncorroborated",
+        conflictState: isNonEmptyString(claim.conflictState) ? claim.conflictState : "consistent",
+        freshnessState: isNonEmptyString(claim.freshnessState) ? claim.freshnessState : "unsupported"
+      };
+    });
+
+    var candidate = {
+      contractVersion: RED_ALERT_CONTRACT.candidate,
+      candidateId: "candidate/" + (isNonEmptyString(input.clusterId) ? input.clusterId : "adhoc") + "/" + fingerprint(input.thesis).slice(7, 19),
+      clusterId: isNonEmptyString(input.clusterId) ? input.clusterId : null,
+      thesis: input.thesis,
+      severity: input.severity,
+      likelihoodInterval: [li[0], li[1]],
+      horizon: isNonEmptyString(input.horizon) ? input.horizon : "",
+      uncertainty: isNonEmptyString(input.uncertainty) ? input.uncertainty : "",
+      whyNow: isNonEmptyString(input.whyNow) ? input.whyNow : "",
+      trigger: isNonEmptyString(input.trigger) ? input.trigger : "",
+      invalidation: isNonEmptyString(input.invalidation) ? input.invalidation : "",
+      monitoring: isNonEmptyString(input.monitoring) ? input.monitoring : "",
+      resolution: isNonEmptyString(input.resolution) ? input.resolution : "",
+      propagation: normalizePropagation(input.propagation),
+      affectedAssets: Array.isArray(input.affectedAssets) ? input.affectedAssets.filter(isNonEmptyString) : [],
+      exposureClasses: Array.isArray(input.exposureClasses) ? input.exposureClasses.filter(isNonEmptyString) : [],
+      researchActions: normalizeResearchActions(input.researchActions),
+      channels: Object.keys(channels).sort(),
+      claimRefs: claimRefs.slice().sort(),
+      materialEvaluation: materialEvaluation,
+      independentOriginGroupCount: Object.keys(originGroupUnion).length,
+      ownerMarketEvidenceRefs: Object.keys(ownerEvidence).sort(),
+      bundleRef: isNonEmptyString(bundle.bundleFingerprint) ? bundle.bundleFingerprint : bundle.bundleId,
+      cutoffAt: input.cutoffAt,
+      lifecycleState: "evidence-building",
+      fingerprint: null
+    };
+    candidate.fingerprint = fingerprint(Object.assign({}, candidate, { fingerprint: null }));
+    return candidate;
+  }
+
+  function assembleCandidate(input) {
+    return capture(function () { return buildCandidate(input); });
+  }
+
+  /* ── explainable admission score (index, NEVER a probability) ── */
+
+  /* a structural shape guard so a malformed candidate refuses with the precise
+     code, never a coerced generic RLMKT-INPUT from a downstream TypeError. */
+  function assertCandidateShape(candidate, code) {
+    if (!isPlainObject(candidate) || candidate.contractVersion !== RED_ALERT_CONTRACT.candidate) reject(code, "$", "expected a red-alert-candidate/v1");
+    if (!Number.isInteger(candidate.severity) || candidate.severity < 1 || candidate.severity > 5) reject(code, "$.severity", "candidate severity must be an integer 1..5");
+    var li = candidate.likelihoodInterval;
+    if (!Array.isArray(li) || li.length !== 2 || !li.every(function (n) { return typeof n === "number" && Number.isFinite(n); })) reject(code, "$.likelihoodInterval", "candidate likelihoodInterval must be a finite [lo,hi]");
+    if (!Array.isArray(candidate.materialEvaluation) || !Array.isArray(candidate.propagation) || !Array.isArray(candidate.affectedAssets) || !Array.isArray(candidate.researchActions) || !Array.isArray(candidate.channels)) reject(code, "$", "candidate is structurally incomplete");
+  }
+
+  function computeScore(candidate, policy) {
+    assertCandidateShape(candidate, "RLMKT-SCORE");
+    var comp = policy.components;
+    var mats = Array.isArray(candidate.materialEvaluation) ? candidate.materialEvaluation : [];
+    var midpoint = (candidate.likelihoodInterval[0] + candidate.likelihoodInterval[1]) / 2;
+    var verifiedChannels = Object.create(null);
+    mats.forEach(function (m) { if (m.corroborationState === "corroborated" && m.freshnessState === "current") verifiedChannels[m.channel] = true; });
+    var vc = Math.min(Object.keys(verifiedChannels).length, comp.observableTransmission.cap);
+    var origins = mats.map(function (m) { return m.originGroupCount; });
+    var meanOrigins = origins.length > 0 ? origins.reduce(function (s, n) { return s + n; }, 0) / origins.length : 0;
+    var es = Math.min(meanOrigins, comp.evidenceStrength.cap);
+    var band = horizonBandScore(policy, candidate.horizon);
+    var falsifiers = [candidate.trigger, candidate.invalidation, candidate.monitoring, candidate.resolution].filter(isNonEmptyString).length + (candidate.researchActions.length > 0 ? 1 : 0);
+    var rawSeverity = candidate.severity / 5 * comp.severity.weight;
+    var rawLikelihood = midpoint * comp.likelihood.weight;
+    var rawTransmission = vc / comp.observableTransmission.cap * comp.observableTransmission.weight;
+    var rawEvidence = es / comp.evidenceStrength.cap * comp.evidenceStrength.weight;
+    var rawImminence = band * comp.imminence.weight;
+    var rawFalsifiability = falsifiers / 5 * comp.falsifiabilityActionability.weight;
+    return {
+      components: {
+        severity: round2(rawSeverity),
+        likelihood: round2(rawLikelihood),
+        observableTransmission: round2(rawTransmission),
+        evidenceStrength: round2(rawEvidence),
+        imminence: round2(rawImminence),
+        falsifiabilityActionability: round2(rawFalsifiability)
+      },
+      admissionScore: round2(rawSeverity + rawLikelihood + rawTransmission + rawEvidence + rawImminence + rawFalsifiability),
+      verifiedChannelCount: Object.keys(verifiedChannels).length,
+      meanOriginsPerMaterialClaim: round2(meanOrigins)
+    };
+  }
+
+  function scoreCandidate(candidate, policy) {
+    return capture(function () { return computeScore(candidate, resolveRedAlertPolicy(policy)); });
+  }
+
+  /* ── qualification (7 hard gates + score threshold; rejection is non-throwing) ── */
+
+  function runQualification(candidate, policy) {
+    assertCandidateShape(candidate, "RLMKT-CANDIDATE");
+    var reasons = [];
+    var mats = Array.isArray(candidate.materialEvaluation) ? candidate.materialEvaluation : [];
+    /* gate 1: every material claim has >= minIndependentOrigins CURRENT origin
+       groups (origins + freshness ONLY; owner evidence is gate 2, conflict is gate 5). */
+    var gate1Pass = mats.length > 0 && mats.every(function (m) { return m.originGroupCount >= policy.minIndependentOrigins && m.freshnessState === "current"; });
+    if (!gate1Pass) {
+      if (mats.some(function (m) { return m.freshnessState === "stale" || m.freshnessState === "unsupported"; })) reasons.push("stale-or-cutoff-mismatch");
+      if (mats.some(function (m) { return m.originGroupCount < policy.minIndependentOrigins; })) reasons.push("insufficient-corroboration");
+    }
+    /* gate 2: >= minOwnerEvidence owner market-evidence refs among market-state material claims. */
+    var ownerEv = mats.filter(function (m) { return m.kind === "market-state" || m.claimKind === "market-state"; }).reduce(function (s, m) { return s + m.ownerEvidenceCount; }, 0);
+    if (ownerEv < policy.minOwnerEvidence) reasons.push("no-observable-market-evidence");
+    /* gate 3: severity >= minSeverity (finite likelihood interval enforced at assembly). */
+    if (!(candidate.severity >= policy.minSeverity)) reasons.push("low-severity");
+    /* gate 4: all falsifiable/complete fields present. */
+    var complete = isNonEmptyString(candidate.thesis) && isNonEmptyString(candidate.whyNow) && isNonEmptyString(candidate.trigger) && isNonEmptyString(candidate.invalidation) && isNonEmptyString(candidate.monitoring) && isNonEmptyString(candidate.resolution) && isNonEmptyString(candidate.horizon) && isNonEmptyString(candidate.uncertainty) && candidate.propagation.length > 0 && candidate.affectedAssets.length > 0 && candidate.researchActions.length > 0;
+    if (!complete) reasons.push("incomplete-fields");
+    /* gate 5: no unresolved conflict changing the thesis (any conflicted material claim). */
+    if (mats.some(function (m) { return m.conflictState === "conflicted" || m.corroborationState === "conflicted"; })) reasons.push("source-conflict");
+    /* gate 6 (cutoff compatibility) enforced at assembly; the gate-1 stale path covers a stale material claim. */
+    /* gate 7: admission score threshold. */
+    var scored = computeScore(candidate, policy);
+    if (scored.admissionScore < policy.scoreThreshold) reasons.push("score-below-threshold");
+
+    var uniqueReasons = dedupeSort(reasons.filter(function (r) { return REJECTION_REASON_CLASSES.indexOf(r) !== -1; }));
+    if (uniqueReasons.length > 0) {
+      return { outcome: "rejected", reasonClasses: uniqueReasons, admissionScore: scored.admissionScore, scoreComponents: scored.components, alert: null };
+    }
+    return { outcome: "qualified", reasonClasses: [], admissionScore: scored.admissionScore, scoreComponents: scored.components, alert: buildAlert(candidate, scored, policy) };
+  }
+
+  function qualifyCandidate(candidate, policy) {
+    return capture(function () { return runQualification(candidate, resolveRedAlertPolicy(policy)); });
+  }
+
+  /* ── semantic key + de-duplication + append-only lifecycle ── */
+
+  function semanticKey(alertOrCandidate) {
+    var x = isPlainObject(alertOrCandidate) ? alertOrCandidate : {};
+    var key = {
+      thesis: String(x.thesis || "").trim().toLowerCase(),
+      channels: (Array.isArray(x.channels) ? x.channels.slice() : []).sort(),
+      propagation: (Array.isArray(x.propagation) ? x.propagation.map(function (e) { return e.from + ">" + e.to; }) : []).sort(),
+      assets: (Array.isArray(x.affectedAssets) ? x.affectedAssets.slice() : []).sort(),
+      exposureClasses: (Array.isArray(x.exposureClasses) ? x.exposureClasses.slice() : []).sort()
+    };
+    return "redkey:" + sha256(canonicalize(key));
+  }
+
+  function sharesLineage(priorAlert, candidate) {
+    var pa = Array.isArray(priorAlert.channels) ? priorAlert.channels : [];
+    var ca = Array.isArray(candidate.channels) ? candidate.channels : [];
+    var shareChannel = pa.some(function (c) { return ca.indexOf(c) !== -1; });
+    var pAssets = Array.isArray(priorAlert.affectedAssets) ? priorAlert.affectedAssets : [];
+    var cAssets = Array.isArray(candidate.affectedAssets) ? candidate.affectedAssets : [];
+    var shareAsset = pAssets.some(function (x) { return cAssets.indexOf(x) !== -1; });
+    return shareChannel && shareAsset && priorAlert.semanticKey !== semanticKey(candidate);
+  }
+
+  function dedupeCandidate(priorAlerts, candidate) {
+    var key = semanticKey(candidate);
+    var prior = Array.isArray(priorAlerts) ? priorAlerts : [];
+    for (var i = 0; i < prior.length; i += 1) {
+      if (isPlainObject(prior[i]) && prior[i].semanticKey === key) return { status: "duplicate", semanticKey: key };
+    }
+    for (var j = 0; j < prior.length; j += 1) {
+      if (isPlainObject(prior[j]) && sharesLineage(prior[j], candidate)) return { status: "supersedes", semanticKey: key, supersededKey: prior[j].semanticKey };
+    }
+    return { status: "new", semanticKey: key };
+  }
+
+  function buildAlert(candidate, scored, policy) {
+    var events = [
+      { seq: 0, from: null, to: "discovered", at: candidate.cutoffAt, kind: "discovery", note: null },
+      { seq: 1, from: "discovered", to: "evidence-building", at: candidate.cutoffAt, kind: "evidence", note: null },
+      { seq: 2, from: "evidence-building", to: "qualified", at: candidate.cutoffAt, kind: "qualification", note: null }
+    ];
+    var alert = {
+      contractVersion: RED_ALERT_CONTRACT.alert,
+      alertId: "alert/" + candidate.candidateId,
+      semanticKey: null,
+      thesis: candidate.thesis,
+      severityLevel: candidate.severity,
+      severityLabel: severityLabelFor(policy, candidate.severity),
+      likelihoodInterval: candidate.likelihoodInterval.slice(),
+      horizon: candidate.horizon,
+      uncertainty: candidate.uncertainty,
+      affectedAssets: candidate.affectedAssets.slice(),
+      exposureClasses: candidate.exposureClasses.slice(),
+      propagation: candidate.propagation.map(function (e) { return { from: e.from, to: e.to }; }),
+      whyNow: candidate.whyNow,
+      trigger: candidate.trigger,
+      invalidation: candidate.invalidation,
+      monitoring: candidate.monitoring,
+      resolution: candidate.resolution,
+      channels: candidate.channels.slice(),
+      claimRefs: candidate.claimRefs.slice(),
+      independentOriginGroupCount: candidate.independentOriginGroupCount,
+      ownerMarketEvidenceRefs: candidate.ownerMarketEvidenceRefs.slice(),
+      researchActions: candidate.researchActions.map(function (a) { return { verb: a.verb, detail: a.detail }; }),
+      admissionScore: scored.admissionScore,
+      scoreComponents: scored.components,
+      cutoffAt: candidate.cutoffAt,
+      lifecycle: { state: "qualified", events: events },
+      presentation: { severityText: true, flashing: false, pulse: false, alertRole: false, executeCommand: false },
+      alertFingerprint: null
+    };
+    alert.semanticKey = semanticKey(alert);
+    alert.alertFingerprint = fingerprint(Object.assign({}, alert, { alertFingerprint: null }));
+    return alert;
+  }
+
+  function applyLifecycleEvent(alert, event) {
+    return capture(function () {
+      if (!isPlainObject(alert) || !isPlainObject(alert.lifecycle) || !isNonEmptyString(alert.lifecycle.state)) reject("RLMKT-LIFECYCLE", "$.alert", "a lifecycle transition requires an alert with a current lifecycle state");
+      if (!isPlainObject(event) || LIFECYCLE_STATES.indexOf(event.to) === -1) reject("RLMKT-LIFECYCLE", "$.event.to", "a lifecycle event must target a known lifecycle state");
+      var from = alert.lifecycle.state;
+      var legal = LIFECYCLE_TRANSITIONS[from] || [];
+      if (legal.indexOf(event.to) === -1) reject("RLMKT-LIFECYCLE", "$.event.to", "illegal lifecycle transition from " + from + " to " + event.to);
+      var priorEvents = Array.isArray(alert.lifecycle.events) ? alert.lifecycle.events : [];
+      var appended = priorEvents.slice();
+      appended.push({ seq: priorEvents.length, from: from, to: event.to, at: isNonEmptyString(event.at) ? event.at : alert.cutoffAt, kind: isNonEmptyString(event.kind) ? event.kind : "transition", note: isNonEmptyString(event.note) ? event.note : null });
+      var next = Object.assign({}, alert, { lifecycle: { state: event.to, events: appended }, alertFingerprint: null });
+      next.alertFingerprint = fingerprint(Object.assign({}, next, { alertFingerprint: null }));
+      return next;
+    });
+  }
+
+  /* ── no-alarmism + round-trip validators ── */
+
+  function assertNoAlarmism(alert) {
+    var p = isPlainObject(alert.presentation) ? alert.presentation : {};
+    if (p.severityText !== true || p.flashing !== false || p.pulse !== false || p.alertRole !== false || p.executeCommand !== false) {
+      reject("RLMKT-ALARMISM", "$.presentation", "a Red Alert must render restrained text with no flashing/pulse/alert-role/execute control");
+    }
+    var haystack = [alert.thesis, alert.whyNow, alert.trigger, alert.invalidation].filter(isNonEmptyString).join(" ").toLowerCase();
+    for (var i = 0; i < FORBIDDEN_ALARMIST_TERMS.length; i += 1) {
+      if (haystack.indexOf(FORBIDDEN_ALARMIST_TERMS[i]) !== -1) reject("RLMKT-ALARMISM", "$.text", "a Red Alert must not use unsupported alarmist certainty/urgency language");
+    }
+  }
+
+  function validateRedAlert(alert) {
+    return capture(function () {
+      if (!isPlainObject(alert) || alert.contractVersion !== RED_ALERT_CONTRACT.alert) reject("RLMKT-REDALERT", "$", "not a red-alert/v1");
+      if (!isNonEmptyString(alert.thesis)) reject("RLMKT-REDALERT", "$.thesis", "thesis required");
+      if (!(alert.severityLevel >= 4 && alert.severityLevel <= 5)) reject("RLMKT-REDALERT", "$.severityLevel", "a visible Red Alert is severity 4 or 5");
+      ["whyNow", "trigger", "invalidation", "monitoring", "resolution", "horizon", "uncertainty"].forEach(function (field) {
+        if (!isNonEmptyString(alert[field])) reject("RLMKT-REDALERT", "$." + field, "a visible Red Alert requires " + field);
+      });
+      if (!Array.isArray(alert.propagation) || alert.propagation.length === 0) reject("RLMKT-REDALERT", "$.propagation", "a visible Red Alert requires a propagation path");
+      if (!Array.isArray(alert.researchActions) || alert.researchActions.length === 0) reject("RLMKT-REDALERT", "$.researchActions", "a visible Red Alert requires at least one research action");
+      alert.researchActions.forEach(function (a, i) {
+        if (!isPlainObject(a) || RESEARCH_VERBS.indexOf(a.verb) === -1) reject("RLMKT-ALARMISM", "$.researchActions[" + i + "].verb", "research actions must use research-only verbs (no execution command)");
+      });
+      assertNoAlarmism(alert);
+      if (alert.alertFingerprint !== fingerprint(Object.assign({}, alert, { alertFingerprint: null }))) reject("RLMKT-REDALERT", "$.alertFingerprint", "alert fingerprint does not match its canonical content");
+      return { contractVersion: RED_ALERT_CONTRACT.alert, alertId: alert.alertId, severityLevel: alert.severityLevel, admissionScore: alert.admissionScore, alarmismClean: true };
+    });
+  }
+
+  function validateRedAlertProjection(projection) {
+    return capture(function () {
+      if (!isPlainObject(projection) || projection.contractVersion !== RED_ALERT_CONTRACT.projection) reject("RLMKT-REDALERT", "$", "not a red-alert-projection/v1");
+      if (!Array.isArray(projection.visibleAlerts)) reject("RLMKT-REDALERT", "$.visibleAlerts", "visibleAlerts must be an array");
+      if (projection.visibleAlerts.length > DEFAULT_RED_ALERT_POLICY.visibleCap) reject("RLMKT-REDALERT", "$.visibleAlerts", "visible Red Alerts exceed the cap of " + DEFAULT_RED_ALERT_POLICY.visibleCap);
+      projection.visibleAlerts.forEach(function (alert, i) {
+        var checked = validateRedAlert(alert);
+        if (!checked.ok) reject(checked.error.code, "$.visibleAlerts[" + i + "]", checked.error.reason);
+      });
+      if (!isPlainObject(projection.rejections) || typeof projection.rejections.count !== "number") reject("RLMKT-REDALERT", "$.rejections", "a projection must report a safe rejection count");
+      if (projection.visibleAlerts.length === 0 && !isPlainObject(projection.emptyState)) reject("RLMKT-REDALERT", "$.emptyState", "an empty projection must carry an explicit empty state");
+      if (isPlainObject(projection.emptyState)) {
+        if (projection.emptyState.statement !== RED_ALERT_EMPTY_STATEMENT) reject("RLMKT-REDALERT", "$.emptyState.statement", "the empty-state statement drifted from the exact copy");
+        if (!Array.isArray(projection.emptyState.channelsReviewed)) reject("RLMKT-REDALERT", "$.emptyState.channelsReviewed", "the empty state must report the channels reviewed");
+        if (!isNonEmptyString(projection.emptyState.methodRef)) reject("RLMKT-REDALERT", "$.emptyState.methodRef", "the empty state must link a method reference");
+      }
+      if (projection.publicationState !== GATE.redAlertPublication) reject("RLMKT-REDALERT", "$.publicationState", "live Red Alert publication must remain a Feature 002 dependency-pending gate");
+      if (projection.projectionFingerprint !== fingerprint(Object.assign({}, projection, { projectionFingerprint: null }))) reject("RLMKT-REDALERT", "$.projectionFingerprint", "projection fingerprint does not match its canonical content");
+      return { contractVersion: RED_ALERT_CONTRACT.projection, visibleCount: projection.visibleAlerts.length, rejectionCount: projection.rejections.count, empty: projection.visibleAlerts.length === 0 };
+    });
+  }
+
+  /* ── top-level pipeline (cluster is done by caller; here we qualify + project) ── */
+
+  function qualifyRedAlerts(input) {
+    return capture(function () {
+      if (!isPlainObject(input)) reject("RLMKT-REDALERT", "$", "projection input must be an object");
+      if (!isNonEmptyString(input.projectionId)) reject("RLMKT-REDALERT", "$.projectionId", "projectionId is required");
+      if (!isNonEmptyString(input.cutoffAt) || !ISO_PATTERN.test(input.cutoffAt)) reject("RLMKT-REDALERT", "$.cutoffAt", "cutoffAt must be an ISO timestamp");
+      var policy = resolveRedAlertPolicy(input.policy);
+      var seeds = Array.isArray(input.seeds) ? input.seeds.map(function (s, i) { return normalizeAnomalySeed(s, "$.seeds[" + i + "]"); }) : [];
+      var candidateInputs = Array.isArray(input.candidateInputs) ? input.candidateInputs : [];
+
+      var qualified = [];
+      var rejections = { count: 0, byReasonClass: {} };
+      candidateInputs.forEach(function (ci) {
+        var candidate;
+        try {
+          candidate = buildCandidate(Object.assign({ cutoffAt: input.cutoffAt }, ci));
+        } catch (buildError) {
+          /* a malformed / hostile candidate becomes a SAFE rejection count — its
+             raw title is never assembled into or projected onto the view. A real
+             engine fault (non-refusal) is re-thrown so it cannot be swallowed. */
+          if (!buildError || buildError.name !== "RlmktRefusal") throw buildError;
+          rejections.count += 1;
+          rejections.byReasonClass["incomplete-fields"] = (rejections.byReasonClass["incomplete-fields"] || 0) + 1;
+          return;
+        }
+        var q = runQualification(candidate, policy);
+        if (q.outcome === "qualified") {
+          qualified.push(q.alert);
+        } else {
+          rejections.count += 1;
+          q.reasonClasses.forEach(function (rc) { rejections.byReasonClass[rc] = (rejections.byReasonClass[rc] || 0) + 1; });
+        }
+      });
+      qualified.sort(function (a, b) { return b.admissionScore - a.admissionScore; });
+      var visible = qualified.slice(0, policy.visibleCap);
+      var overflow = qualified.slice(policy.visibleCap).map(function (a) { return { alertId: a.alertId, semanticKey: a.semanticKey, admissionScore: a.admissionScore }; });
+
+      var channelsReviewed = Array.isArray(input.channelsReviewed) && input.channelsReviewed.length > 0
+        ? dedupeSort(input.channelsReviewed.filter(function (c) { return TRANSMISSION_CHANNELS.indexOf(c) !== -1; }))
+        : dedupeSort(seeds.reduce(function (acc, s) { return acc.concat(s.transmissionChannels); }, []));
+      var ownerCoverage = { toolsConsulted: dedupeSort(seeds.map(function (s) { return s.ownerToolId; })), anomalySeedCount: seeds.length };
+      var lifecycleEvents = visible.reduce(function (acc, a) {
+        return acc.concat(a.lifecycle.events.map(function (e) { return { alertKey: a.semanticKey, from: e.from, to: e.to, at: e.at, kind: e.kind }; }));
+      }, []);
+
+      var emptyState = null;
+      if (visible.length === 0) {
+        emptyState = {
+          contractVersion: RED_ALERT_CONTRACT.empty,
+          statement: RED_ALERT_EMPTY_STATEMENT,
+          cutoffAt: input.cutoffAt,
+          channelsReviewed: channelsReviewed,
+          ownerCoverage: ownerCoverage,
+          rejectionCount: rejections.count,
+          methodRef: RED_ALERT_METHOD_REF
+        };
+      }
+
+      var projection = {
+        contractVersion: RED_ALERT_CONTRACT.projection,
+        projectionId: input.projectionId,
+        cutoffAt: input.cutoffAt,
+        visibleAlerts: visible,
+        overflowAlertRefs: overflow,
+        rejections: rejections,
+        emptyState: emptyState,
+        channelsReviewed: channelsReviewed,
+        ownerCoverage: ownerCoverage,
+        lifecycleEvents: lifecycleEvents,
+        publicationState: GATE.redAlertPublication,
+        projectionFingerprint: null
+      };
+      projection.projectionFingerprint = fingerprint(Object.assign({}, projection, { projectionFingerprint: null }));
+      return projection;
+    });
+  }
+
   /* ═══════════ frozen public API ═══════════ */
 
   return {
@@ -678,6 +1320,26 @@
     composePublicMatrix: composePublicMatrix,
     validatePublicMatrix: validatePublicMatrix,
     composeCenterProjection: composeCenterProjection,
-    validateCenterProjection: validateCenterProjection
+    validateCenterProjection: validateCenterProjection,
+    /* Scope 12 — Red Alert engine. */
+    RED_ALERT_CONTRACT: RED_ALERT_CONTRACT,
+    TRANSMISSION_CHANNELS: TRANSMISSION_CHANNELS,
+    LIFECYCLE_STATES: LIFECYCLE_STATES,
+    REJECTION_REASON_CLASSES: REJECTION_REASON_CLASSES,
+    RESEARCH_VERBS: RESEARCH_VERBS,
+    DEFAULT_RED_ALERT_POLICY: DEFAULT_RED_ALERT_POLICY,
+    RED_ALERT_EMPTY_STATEMENT: RED_ALERT_EMPTY_STATEMENT,
+    validateAnomalySeed: validateAnomalySeed,
+    clusterAnomalySeeds: clusterAnomalySeeds,
+    buildQueryPlanInput: buildQueryPlanInput,
+    assembleCandidate: assembleCandidate,
+    scoreCandidate: scoreCandidate,
+    qualifyCandidate: qualifyCandidate,
+    semanticKey: semanticKey,
+    dedupeCandidate: dedupeCandidate,
+    applyLifecycleEvent: applyLifecycleEvent,
+    qualifyRedAlerts: qualifyRedAlerts,
+    validateRedAlert: validateRedAlert,
+    validateRedAlertProjection: validateRedAlertProjection
   };
 });

@@ -1,0 +1,186 @@
+{
+  "scenario": "qualified-candidate",
+  "description": "OBSERVATIONS ONLY. Two clustered owner anomaly seeds plus two market-state material claims, each independently corroborated (two distinct origins) and linked to a current owner market read. Production must DERIVE that this clears every gate and the >=75 admission score. This fixture carries NO expected verdict.",
+  "cutoffAt": "2026-07-24T20:00:00.000Z",
+  "seeds": [
+    {
+      "seedId": "seed-funding",
+      "ownerToolId": "market-heatmap-lab",
+      "evidenceRefs": ["market-heatmap-lab:funding-read"],
+      "observedCondition": "cross-currency funding basis widened beyond its 95th percentile band",
+      "normalizedEntities": ["xccy-basis", "usd-funding"],
+      "transmissionChannels": ["credit-funding"],
+      "magnitudeOrState": "p97",
+      "cutoffAt": "2026-07-24T20:00:00.000Z",
+      "freshness": "current",
+      "limitations": ["single owner read at discovery; corroboration pending"]
+    },
+    {
+      "seedId": "seed-carry",
+      "ownerToolId": "sector-research-lab",
+      "evidenceRefs": ["sector-research-lab:carry-read"],
+      "observedCondition": "carry pairs unwound as cross-currency funding tightened",
+      "normalizedEntities": ["xccy-basis", "carry"],
+      "transmissionChannels": ["fx-carry"],
+      "magnitudeOrState": "drawdown",
+      "cutoffAt": "2026-07-24T20:00:00.000Z",
+      "freshness": "current",
+      "limitations": []
+    }
+  ],
+  "channelsReviewed": ["credit-funding", "fx-carry", "volatility-options"],
+  "webEvidence": {
+    "toolId": "market-brief",
+    "runId": "run/2026-07-24/red-alert-qualified",
+    "cutoffAt": "2026-07-24T20:00:00.000Z",
+    "acquisitionStartedAt": "2026-07-24T20:00:05.000Z",
+    "frozenAt": "2026-07-24T20:00:20.000Z",
+    "queryPlanInput": {
+      "templates": [
+        {
+          "templateId": "funding-transmission",
+          "termsTemplate": "{{entity}} funding basis carry",
+          "purpose": "material-claim-corroboration",
+          "allowedHosts": [
+            { "host": "reuters.example", "pathPrefix": "/markets" },
+            { "host": "bis.example", "pathPrefix": "/publ" }
+          ],
+          "requiredSourceClasses": ["wire", "primary"],
+          "freshnessWindowDays": 7,
+          "maxResults": 8
+        }
+      ],
+      "facts": { "entity": "xccy-basis" }
+    },
+    "claimSpecs": [
+      {
+        "claimId": "claim-funding",
+        "materiality": "material",
+        "claimKind": "market-state",
+        "normalizedClaim": "The cross-currency funding basis widened beyond its 95th percentile band this week.",
+        "ownerEvidenceRefs": ["market-heatmap-lab:funding-read"]
+      },
+      {
+        "claimId": "claim-carry",
+        "materiality": "material",
+        "claimKind": "market-state",
+        "normalizedClaim": "Carry pairs unwound as cross-currency funding tightened this week.",
+        "ownerEvidenceRefs": ["sector-research-lab:carry-read"]
+      }
+    ],
+    "ownerEvidence": {
+      "market-heatmap-lab:funding-read": { "read": "funding basis at the 97th percentile band", "asOf": "2026-07-24T19:00:00.000Z", "provenance": "same-origin-snapshot" },
+      "sector-research-lab:carry-read": { "read": "carry basket drawdown of -3.1 percent on the week", "asOf": "2026-07-24T19:00:00.000Z", "provenance": "same-origin-snapshot" }
+    },
+    "boundary": {
+      "search": {
+        "run/2026-07-24/red-alert-qualified:q0": [
+          { "candidateId": "cand-reuters-funding", "url": "https://reuters.example/markets/funding-basis" },
+          { "candidateId": "cand-bis-funding", "url": "https://bis.example/publ/funding-note" },
+          { "candidateId": "cand-reuters-carry", "url": "https://reuters.example/markets/carry-unwind" },
+          { "candidateId": "cand-bis-carry", "url": "https://bis.example/publ/carry-note" }
+        ]
+      },
+      "retrieve": {
+        "https://reuters.example/robots.txt": { "status": 200, "contentType": "text/plain", "durationMs": 30, "body": "User-agent: *\nAllow: /markets\n" },
+        "https://bis.example/robots.txt": { "status": 200, "contentType": "text/plain", "durationMs": 30, "body": "User-agent: *\nAllow: /publ\n" },
+        "https://reuters.example/markets/funding-basis": {
+          "status": 200,
+          "finalUrl": "https://reuters.example/markets/funding-basis",
+          "contentType": "text/html",
+          "durationMs": 120,
+          "body": "<p>The cross-currency funding basis widened beyond its 95th percentile band this week, dealers said.</p>",
+          "meta": {
+            "title": "Funding basis widens to a multi-year extreme",
+            "publisher": "Reuters",
+            "publishedAt": "2026-07-24T18:00:00.000Z",
+            "sourceClass": "wire",
+            "canonicalOriginRef": "reuters/funding-basis-2026-07-24",
+            "supportsClaims": ["claim-funding"],
+            "directionTag": "wider",
+            "excerpts": ["The cross-currency funding basis widened beyond its 95th percentile band this week, dealers said."]
+          }
+        },
+        "https://bis.example/publ/funding-note": {
+          "status": 200,
+          "finalUrl": "https://bis.example/publ/funding-note",
+          "contentType": "text/html",
+          "durationMs": 130,
+          "body": "<p>An independent settlement note confirms the widened cross-currency funding basis this week.</p>",
+          "meta": {
+            "title": "Settlement note confirms basis widening",
+            "publisher": "BIS",
+            "publishedAt": "2026-07-24T17:30:00.000Z",
+            "sourceClass": "primary",
+            "canonicalOriginRef": "bis/funding-note-2026-07-24",
+            "supportsClaims": ["claim-funding"],
+            "directionTag": "wider",
+            "excerpts": ["An independent settlement note confirms the widened cross-currency funding basis this week."]
+          }
+        },
+        "https://reuters.example/markets/carry-unwind": {
+          "status": 200,
+          "finalUrl": "https://reuters.example/markets/carry-unwind",
+          "contentType": "text/html",
+          "durationMs": 118,
+          "body": "<p>Carry pairs unwound as cross-currency funding tightened this week, traders reported.</p>",
+          "meta": {
+            "title": "Carry pairs unwind as funding tightens",
+            "publisher": "Reuters",
+            "publishedAt": "2026-07-24T18:10:00.000Z",
+            "sourceClass": "wire",
+            "canonicalOriginRef": "reuters/carry-unwind-2026-07-24",
+            "supportsClaims": ["claim-carry"],
+            "directionTag": "unwind",
+            "excerpts": ["Carry pairs unwound as cross-currency funding tightened this week, traders reported."]
+          }
+        },
+        "https://bis.example/publ/carry-note": {
+          "status": 200,
+          "finalUrl": "https://bis.example/publ/carry-note",
+          "contentType": "text/html",
+          "durationMs": 140,
+          "body": "<p>An independent desk review confirms the carry unwind alongside the funding move this week.</p>",
+          "meta": {
+            "title": "Desk review confirms carry unwind",
+            "publisher": "BIS",
+            "publishedAt": "2026-07-24T17:45:00.000Z",
+            "sourceClass": "primary",
+            "canonicalOriginRef": "bis/carry-note-2026-07-24",
+            "supportsClaims": ["claim-carry"],
+            "directionTag": "unwind",
+            "excerpts": ["An independent desk review confirms the carry unwind alongside the funding move this week."]
+          }
+        }
+      }
+    }
+  },
+  "hypothesis": {
+    "clusterId": "cluster/0",
+    "thesis": "Cross-currency funding stress is transmitting into carry unwinds across the current window.",
+    "severity": 5,
+    "likelihoodInterval": [0.4, 0.6],
+    "horizon": "0-2w",
+    "uncertainty": "Wide; conditional on quarter-end funding rollover.",
+    "whyNow": "The basis and carry both dislocated within the same current evidence window.",
+    "trigger": "The basis breaches its prior wide with a confirmed carry drawdown.",
+    "invalidation": "The basis normalizes to its one-year median for five consecutive sessions.",
+    "monitoring": "Track the funding basis band and the two owner reads daily.",
+    "resolution": "The alert resolves when the basis and carry both re-anchor to prior ranges.",
+    "propagation": [
+      { "from": "credit-funding", "to": "fx-carry" },
+      { "from": "fx-carry", "to": "volatility-options" }
+    ],
+    "affectedAssets": ["DBC", "GLD"],
+    "exposureClasses": ["carry", "funding"],
+    "researchActions": [
+      { "verb": "monitor", "detail": "Watch the funding basis band into quarter end." },
+      { "verb": "verify", "detail": "Reconcile the basis claim against a second wire origin." },
+      { "verb": "scenario-test", "detail": "Run a local carry-unwind shock against public watch scope." }
+    ],
+    "materialClaims": [
+      { "claimId": "claim-funding", "channel": "credit-funding", "kind": "market-state" },
+      { "claimId": "claim-carry", "channel": "fx-carry", "kind": "market-state" }
+    ]
+  }
+}

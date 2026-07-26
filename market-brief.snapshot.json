@@ -1,16 +1,16 @@
 {
-  "asOf": "2026-07-26T14:51:45.988Z",
-  "generatedAt": "2026-07-26T14:51:45.988Z",
-  "window": "pre-market",
+  "asOf": "2026-07-26T20:48:13.913Z",
+  "generatedAt": "2026-07-26T20:48:13.913Z",
+  "window": "pre-close",
   "marketClosed": true,
   "nextSessionDate": "2026-07-27",
   "dataFreshness": {
     "bars": {
-      "updated": "2026-07-26T14:51:36.792Z",
+      "updated": "2026-07-26T20:48:09.979Z",
       "count": 285
     },
     "options": {
-      "updated": "2026-07-26T14:51:45.404Z",
+      "updated": "2026-07-26T20:48:13.472Z",
       "count": 22
     }
   },
@@ -519,7 +519,7 @@
   "toolReads": {
     "sector-research-lab": {
       "id": "sector-research-lab",
-      "asOf": "2026-07-26T14:51:45.956Z",
+      "asOf": "2026-07-26T20:48:13.894Z",
       "read": "Rotate toward XLE as XLV weakens.",
       "metrics": {
         "into": {
@@ -572,7 +572,7 @@
     },
     "etf-momentum-lab": {
       "id": "etf-momentum-lab",
-      "asOf": "2026-07-26T14:51:45.961Z",
+      "asOf": "2026-07-26T20:48:13.899Z",
       "read": "ETF momentum model unavailable this run.",
       "metrics": {
         "error": "RLMACROROTATION is not defined"
@@ -595,7 +595,7 @@
           "rel126": 6.85,
           "trend": "Strong uptrend",
           "fx": "FX headwind",
-          "fxStrength": -1.11,
+          "fxStrength": -1.08,
           "vol": 16.46,
           "maxDrawdown": 7.82,
           "asOf": "2026-07-23T13:30:00.000Z"
@@ -610,7 +610,7 @@
             "rel126": 6.85,
             "trend": "Strong uptrend",
             "fx": "FX headwind",
-            "fxStrength": -1.11,
+            "fxStrength": -1.08,
             "vol": 16.46,
             "maxDrawdown": 7.82,
             "asOf": "2026-07-23T13:30:00.000Z"
@@ -618,13 +618,13 @@
           {
             "ticker": "EWC",
             "country": "Canada",
-            "score": 63.4,
+            "score": 63.6,
             "rel21": 2.06,
             "rel63": -1.54,
             "rel126": -0.46,
             "trend": "Strong uptrend",
             "fx": "Confirms weakness",
-            "fxStrength": -3.02,
+            "fxStrength": -2.91,
             "vol": 13.09,
             "maxDrawdown": 8.51,
             "asOf": "2026-07-23T13:30:00.000Z"
@@ -632,13 +632,13 @@
           {
             "ticker": "EWU",
             "country": "United Kingdom",
-            "score": 62.8,
+            "score": 63,
             "rel21": 2.54,
             "rel63": -2.98,
             "rel126": -2.98,
             "trend": "Strong uptrend",
             "fx": "Confirms weakness",
-            "fxStrength": -1.51,
+            "fxStrength": -1.34,
             "vol": 16.84,
             "maxDrawdown": 9.92,
             "asOf": "2026-07-23T13:30:00.000Z"
@@ -660,13 +660,13 @@
           {
             "ticker": "EWA",
             "country": "Australia",
-            "score": 55.7,
+            "score": 56.1,
             "rel21": 1.74,
             "rel63": -5.28,
             "rel126": 0.33,
             "trend": "Constructive",
             "fx": "Confirms weakness",
-            "fxStrength": -2.84,
+            "fxStrength": -2.55,
             "vol": 18.27,
             "maxDrawdown": 10.01,
             "asOf": "2026-07-23T13:30:00.000Z"
@@ -964,7 +964,7 @@
                   "TLT",
                   "TIP"
                 ],
-                "score": 46.41525369365017,
+                "score": 46.415230268944434,
                 "detail": "TLT direction plus TIP-vs-TLT is a rough rate mix, not a direct real-yield series."
               }
             ],
@@ -1015,10 +1015,10 @@
             "model": "bitcoin",
             "score": 39,
             "trend": "Downtrend",
-            "mom21": 1.73,
-            "mom63": -16.03,
-            "mom126": -4.72,
-            "vol": 36.41,
+            "mom21": 1.67,
+            "mom63": -16.07,
+            "mom126": -4.77,
+            "vol": 36.4,
             "maxDrawdown": 28.71,
             "riskPenalty": 5.68,
             "confirmations": [

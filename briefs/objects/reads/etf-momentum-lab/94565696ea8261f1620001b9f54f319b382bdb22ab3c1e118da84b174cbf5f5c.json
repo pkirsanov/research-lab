@@ -1,0 +1,1 @@
+{"contractVersion":"tool-model-read/v1","deepLink":"etf-momentum-lab.html","evidenceKind":"deterministic-tier-a-read","metrics":{"error":"RLMACROROTATION is not defined"},"profile":"live-market","readAsOf":"2026-07-26T14:51:45.961Z","source":"owning-tool-functions","status":"fresh-headless","summary":"ETF momentum model unavailable this run.","toolId":"etf-momentum-lab"}

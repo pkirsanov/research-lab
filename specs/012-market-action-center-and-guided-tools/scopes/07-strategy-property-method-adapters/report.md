@@ -1023,3 +1023,51 @@ concurrent-session dirty file `bugs/BUG-001-.../scenario-manifest.json` was pres
 
 **F-07-E2E-01: CLOSED.** Scope 07 stays `in_progress`; `bubbles.test` independently re-verifies TP-07-03..09 and
 finalizes the DoD and status.
+
+## Independent Verification (bubbles.test) — Finalization
+
+Final mechanical finalization at HEAD `56f4672d` (full-delivery; recorded evidence re-confirmed from scratch this
+session, not trusted). The three previously-routed BLOCKING findings are all **CLOSED** (committed `dd53e4b5`
+F-07-VALIDATOR-01, `e3ddaec2` F-07-REGLOOP-01, `56f4672d` F-07-E2E-01) and every green signal was reproduced
+in-session. **Outcome: ✅ TESTED — Scope 07 `done`, `substate: independently_verified`.** No `done` fabricated;
+feature `status` stays `not_started`, `certifiedAt` null, `certification.status` untouched.
+
+### Re-confirmed signals (this session, full output)
+
+```text
+repo-binding-preflight.sh                                    PREFLIGHT_EXIT=0
+node scripts/validate-tool-experience.mjs --require-simple-adapters
+  simpleAdapterRegistry=PASS ordinaryAdapters=22 centerAdapters=1 registeredAdapters=23
+  adversarial=13 REJECTED unexpectedAcceptances=0            VALIDATOR_EXIT=0
+node --test tests/simple-model-adapters.integration.mjs
+  8 pass / 0 fail (incl TP-07-02 SCN-012-036 completeness: all 22 ordinary + Center resolve, no generic fallback)
+                                                            INTEGRATION_EXIT=0
+npx --no-install playwright test tests/simple-model-adapters-strategy-property.spec.mjs --project=system-chrome
+  7 passed                                                  PLAYWRIGHT_EXIT=0
+node scripts/selftest.mjs      Research-Lab self-test: 934 passed, 0 failed     SELFTEST_EXIT=0
+git diff --check                                            GIT_DIFF_CHECK_EXIT=0
+bash .github/bubbles/scripts/artifact-lint.sh specs/012-market-action-center-and-guided-tools
+  Artifact lint PASSED                                      ARTIFACT_LINT_EXIT=0
+```
+
+### Single-source (all 7 owner surfaces + Brief) — genuinely wired
+
+Every Scope-07 page loads its module AND its adapter global is active. The dispatch spot-confirm grep reported a
+`0` for three pages; each is a **false negative from a module-name / registration-pattern mismatch**, reconciled
+to ground truth (direct source + the live 7/7 e2e + the validator's `registeredAdapters=23`):
+
+| Page | Module loaded | Adapter global | Wired? |
+|---|---|---|---|
+| strategy-self-improvement-lab | strategy-research.js | RLSTRATEGY (page refs) | yes |
+| strategy-validation-lab | strategy-research.js | RLSTRATEGY (page refs) | yes |
+| smart-money-flow-lab | strategy-research.js | RLSTRATEGY (page refs) | yes |
+| waterfront-polo-lab | property-research.js | RLPROPERTY (page refs) | yes |
+| palm-springs-rental-market-lab | **rlrental.js** (L886) | **RLRENTAL.mountRoute** (L892) | yes — grep looked for the wrong module name |
+| ocean-shores-rental-market-lab | **rlrental.js** (L877) | **RLRENTAL.mountRoute** (L883) | yes — grep looked for the wrong module name |
+| market-brief → market-action | **rlexperience-adapters/market-action.js** (L871, `defer`) | **RLMARKETACTION set BY the UMD module** (`globalThis.RLMARKETACTION`, market-action.js L51), mounted at `data-rlbrief-mount` (L876) | yes — the global is set by the self-registering module, never textually in the page |
+
+### Integrity
+
+Verification was **read-only** — no neutralize-and-restore bite was performed this session, so nothing needed
+restoring. `git status --short` shows ONLY the preserved concurrent `bugs/BUG-001-.../scenario-manifest.json`
+dirty. DoD reconciled **16 / 16 `[x]`**.

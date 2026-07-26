@@ -806,6 +806,53 @@ try {
   assert(approx(env.normCdf(env.invNorm(0.9)), 0.9, 2e-3), 'lifted stats: invNorm/normCdf round-trip holds');
 } catch (e) { failures++; console.log('  \u2717 FAIL (strategy-validation group threw): ' + e.message); }
 
+/* ---------- Strategy Self-Improvement: single-sourced seeded path + walk-forward + reproducible strategy-evolution adapter (RLSTRATEGY) ---------- */
+// Feature 012 Scope 07: the seeded PRNG / synthetic path / walk-forward owner formulas are single-sourced
+// in rlexperience-adapters/strategy-research.js (RLSTRATEGY), which the page delegates to. Both the page's
+// Power path and the registered strategy-evolution/v1 Simple adapter consume the exact same pure owner
+// functions — so Simple and Power share one seeded process (owner-parity), and the seeded path is fully
+// reproducible under an explicit integer seed (SCN-012-002).
+try {
+  group('strategy-self-improvement-lab.html \u2014 single-sourced seeded path + walk-forward engine + reproducible strategy-evolution adapter (RLSTRATEGY)');
+  const src = read('strategy-self-improvement-lab.html');
+  const { createRequire } = await import('node:module');
+  const strategyRequire = createRequire(import.meta.url);
+  delete strategyRequire.cache[strategyRequire.resolve('../rlexperience-adapters/strategy-research.js')];
+  const RLST = strategyRequire('../rlexperience-adapters/strategy-research.js');
+
+  // mulberry32: deterministic PRNG — same seed => same stream; a different seed => a different stream.
+  const a1 = RLST.mulberry32(12345), a2 = RLST.mulberry32(12345);
+  assert(a1() === a2() && a1() === a2(), 'mulberry32: same seed yields the same stream (reproducible)');
+  assert(RLST.mulberry32(12345)() !== RLST.mulberry32(999)(), 'mulberry32: a different seed yields a different draw');
+
+  // genSeries: the seeded synthetic path — same seed => identical path; a different seed => a distinct path.
+  const regimes = [{ frac: 1, muAnnual: 0.11, sigAnnual: 0.16 }];
+  const s1 = RLST.genSeries(20260722, 8, regimes), s2 = RLST.genSeries(20260722, 8, regimes);
+  assert(s1.days === s2.days && s1.px[s1.days] === s2.px[s2.days], 'genSeries: same seed => identical reproducible path (terminal price)');
+  assert(RLST.genSeries(777, 8, regimes).px[s1.days] !== s1.px[s1.days], 'genSeries: a different seed selects a distinct reproducible path');
+
+  // walkForward: the single-sourced owner evaluation engine produces finite OOS metrics on the seeded path.
+  const levers = { fast: 20, slow: 100, momLookback: 120, volTarget: 0.15, stopDd: 0.15, maxLeverage: 1.5 };
+  const wf = RLST.walkForward(s1, levers, 5, 0.6);
+  assert(wf.oos && isFinite(wf.oos.sharpe) && wf.folds.length === 5, 'walkForward: finite OOS Sharpe, one record per fold');
+
+  // strategy-evolution determinism canary: same frozen scenario + params + seed => identical summary;
+  // changing the seed => a distinct reproducible path (SCN-012-002 at the adapter summary level).
+  const owner = { years: 8, regimes: [{ frac: 0.4, muAnnual: 0.17, sigAnnual: 0.14 }, { frac: 0.2, muAnnual: -0.38, sigAnnual: 0.42 }, { frac: 0.4, muAnnual: 0.13, sigAnnual: 0.18 }], startLevers: levers, leverRanges: { fast: { min: 5, max: 60, step: 5 }, momLookback: { min: 20, max: 250, step: 10 }, volTarget: { min: 0.05, max: 0.35, step: 0.025 }, stopDd: { min: 0.05, max: 0.4, step: 0.025 } }, walkForward: { folds: 5, trainRatio: 0.6 } };
+  const P = { goal: 'sharpe', variable: 'trend-window', 'search-budget': 50, 'overfit-penalty': 0.25, seed: 20260722, 'acceptance-threshold': 0.1, 'walk-forward-folds': 5 };
+  const sum1 = RLST.computeStrategyEvolutionSummary(owner, P);
+  const sum2 = RLST.computeStrategyEvolutionSummary(owner, P);
+  assert(sum1.path.pathIdentity === sum2.path.pathIdentity, 'strategy-evolution: same seed => identical reproducible path identity');
+  assert(JSON.stringify(sum1) === JSON.stringify(sum2), 'strategy-evolution: identical inputs => identical summary (reproducible)');
+  const sumSeed = RLST.computeStrategyEvolutionSummary(owner, Object.assign({}, P, { seed: 20260723 }));
+  assert(sumSeed.path.pathIdentity !== sum1.path.pathIdentity, 'strategy-evolution: a new seed selects a distinct reproducible path');
+
+  // single-source wiring: the page loads the module, delegates, and carries no inline formula copy.
+  assert(/rlexperience-adapters\/strategy-research\.js/.test(src), 'strategy-self-improvement-lab.html loads the strategy-research module');
+  assert(/RLSTRATEGY\.mulberry32\s*\(/.test(src) && /RLSTRATEGY\.genSeries\s*\(/.test(src) && /RLSTRATEGY\.walkForward\s*\(/.test(src) && /RLSTRATEGY\.backtest\s*\(/.test(src) && /RLSTRATEGY\.metrics\s*\(/.test(src), 'strategy-self-improvement-lab.html delegates PRNG/path/backtest/metrics/walk-forward to the single source');
+  assert(!/a = a \+ 0x6D2B79F5 \| 0/.test(src) && !/px\[i \+ 1\] = px\[i\] \* Math\.exp\(r\)/.test(src) && !/out\.oos\.sharpe = out\.meanOos/.test(src), 'strategy-self-improvement-lab.html carries no inline copy of the single-sourced seeded path / walk-forward formula');
+} catch (e) { failures++; console.log('  \u2717 FAIL (strategy-self-improvement group threw): ' + e.message); }
+
 /* ---------- Sector lab: ETF-selector risk / liquidity / drawdown helpers ---------- */
 try {
   group('sector-research-lab.html \u2014 ETF-selector metrics (drawdown, dollar ADV, Sharpe-like, tracking error / beta / info ratio)');

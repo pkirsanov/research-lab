@@ -775,6 +775,32 @@
     }).join("");
   }
 
+  /* ── Feature 012 Scope 09 — Market Action Center brief-view wire (additive) ──
+     Consumes a composed rlmarketaction MarketActionCenterProjection/v1 brief view and renders
+     (1) the ACTUAL legacy provenance label — the first viewport is the real legacy public
+     projection, never an authored ToolBrief/v2 or frozen-bundle claim before Feature 002 — and
+     (2) when the composer admits a no-action outcome (complete coverage + zero admitted
+     actions), the EXACT truthful no-action lead (SCN-012-019). It NEVER manufactures a trade,
+     catalyst, or confidence claim. DOM helper (no-DOM safe: no-ops when host is absent), so it
+     is never invoked by the Node selftest extraction of pure analytic helpers. */
+  function renderCenterNoAction(host, briefView) {
+    if (!host) return;
+    if (!briefView || typeof briefView !== "object") { host.hidden = true; host.innerHTML = ""; return; }
+    var provenance = esc(briefView.legacyProvenance || "legacy-market-brief-payload");
+    var authorState = esc(briefView.authorState || "dependency-pending:feature-002");
+    var parts = ['<div class="sub" data-mac-provenance="' + provenance + '" data-mac-author-state="' + authorState + '">' +
+      'Viewport provenance: <b>' + provenance + '</b>. Authored ToolBrief v2 Brief: <b>' + authorState + '</b> (Feature 002 · Scope 11) — the first viewport is the actual legacy public projection, never a v2 / frozen-bundle claim.</div>'];
+    var na = briefView.noAction;
+    if (na && typeof na === "object") {
+      parts.push('<div class="acard" data-mac-noaction data-mac-noaction-fabricated="false" style="border-left:3px solid var(--teal);background:rgba(45,212,191,.06)">' +
+        '<b>' + esc(na.statement) + '</b>' +
+        '<div class="ay">Coverage is complete for this window and no admitted item clears the immediate-action bar. No trade, catalyst, or confidence claim is manufactured.</div>' +
+        '</div>');
+    }
+    host.innerHTML = parts.join("");
+    host.hidden = false;
+  }
+
   root.RLBRIEF.deepLink = deepLink;
   root.RLBRIEF.renderRegimeStrip = renderRegimeStrip;
   root.RLBRIEF.renderBackdrop = renderBackdrop;
@@ -785,6 +811,7 @@
   root.RLBRIEF.renderEvents = renderEvents;
   root.RLBRIEF.renderWatchlist = renderWatchlist;
   root.RLBRIEF.renderGroups = renderGroups;
+  root.RLBRIEF.renderCenterNoAction = renderCenterNoAction;
 
   /* horizon pill (structural / swing / tactical) — the §6c frame label. */
   function horizonPill(h) {

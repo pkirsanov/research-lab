@@ -5,9 +5,9 @@
   "tools": [
     {
       "id": "market-brief",
-      "title": "Actionable Market Brief",
+      "title": "Market Action Center",
       "nav": {
-        "label": "Market Brief",
+        "label": "Market Action Center",
         "icon": "🛰️"
       },
       "file": "market-brief.html",

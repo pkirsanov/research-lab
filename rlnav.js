@@ -43,7 +43,7 @@
   /* ── tool registry — order mirrors index.html's TOOLS array ── */
   var HOME = { label: "All tools", full: "Research Lab — home", icon: "🏠", file: "index.html" };
   var TOOLS = [
-    { label: "Market Brief", full: "Actionable Market Brief", icon: "🛰️", file: "market-brief.html" },
+    { label: "Market Action Center", full: "Market Action Center", icon: "🛰️", file: "market-brief.html" },
     { label: "Market Heatmap", full: "Market Heatmap Lab", icon: "🗺️", file: "market-heatmap-lab.html" },
     { label: "Unusual Options", full: "Unusual Options Activity Lab", icon: "🐋", file: "options-flow-feed-lab.html" },
     { label: "Intraday Tape", full: "Intraday Tape & Volume-Profile Lab", icon: "🎯", file: "intraday-tape-lab.html" },

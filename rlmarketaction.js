@@ -47,7 +47,9 @@
  *     catalyst, or confidence claim that the caller did not admit.
  *
  * Ships as a UMD dual module: Node (module.exports) for tests, and browser global
- * RLMARKETACTION for the shared shell.
+ * RLMARKETACTIONCENTER for the shared shell (distinct from the RLMARKETACTION
+ * simple-adapter global owned by rlexperience-adapters/market-action.js, which
+ * rlbrief.js delegates its next-session action feed to — the two must not collide).
  */
 (function (factory) {
   "use strict";
@@ -59,7 +61,7 @@
   if (typeof globalThis === "undefined") {
     throw new Error("RLMARKETACTION_BROWSER_GLOBAL_UNAVAILABLE");
   }
-  globalThis.RLMARKETACTION = api;
+  globalThis.RLMARKETACTIONCENTER = api;
 })(function () {
   "use strict";
 

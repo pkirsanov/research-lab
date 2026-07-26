@@ -4266,6 +4266,53 @@ try {
   assert(afterBacktrack.steps.b.status === 'stale' && /dependency backtracked: a/.test(afterBacktrack.steps.b.staleReason) && afterBacktrack.steps.d.status === 'complete' && afterBacktrack.steps.d.staleReason === null, 'backtracking an assumption stales only its transitive dependent (b) and preserves the unrelated completed step (d)');
 } catch (e) { failures++; console.log('  \u2717 FAIL (Feature 012 Scope 08 RLJOURNEY canaries threw): ' + e.message); }
 
+/* ---------- Feature 012 Scope 09 Market Action Center PUBLIC projection canaries ----------
+   Drives the REAL rlmarketaction.js against the REAL watchlist.json + registry-derived domain
+   map (tools.json), and the REAL scripts/validate-market-action.mjs contract validator. Proves:
+   the PUBLIC PortfolioTickerMatrix labels every row `Public watchlist` with one explicit cell per
+   domain (SCN-012-022, never neutral by omission); the MarketActionCenterProjection composes
+   EXACTLY four top-level views with the three exact dependency-pending gates and the truthful
+   no-action Brief (SCN-012-019); the module owns ZERO forbidden capability; and the private-field
+   barrier + closed adversarial refusals fail closed. Pure Node, no browser. */
+try {
+  group('Feature 012 Scope 09 Market Action Center PUBLIC projection + public portfolio matrix');
+  const feature012Scope09Validator = await import('./validate-market-action.mjs');
+  const marketAction = feature012Scope09Validator.validateMarketAction();
+  const maRequire = (await import('node:module')).createRequire(import.meta.url);
+  delete maRequire.cache[maRequire.resolve('../rlmarketaction.js')];
+  const RLMKT = maRequire('../rlmarketaction.js');
+  const watchlist = JSON.parse(read('watchlist.json'));
+  const registryTools = JSON.parse(read('tools.json')).tools;
+
+  // (1) forbidden-authority scan: rlmarketaction.js owns ZERO fetch/providerFetch/storage-write/publisher capability.
+  assert(marketAction.authority.forbiddenCapabilityCount === 0 && marketAction.authority.scanned >= 8, 'rlmarketaction.js owns zero forbidden fetch/providerFetch/storage-write/publisher/LLM capability');
+
+  // (2) SCN-012-022 public matrix: one row per watchlist ticker, every row labeled `Public watchlist`, one explicit cell per domain.
+  const ownerPrecedence = Object.create(null);
+  for (const domain of RLMKT.MATRIX_DOMAINS) ownerPrecedence[domain] = [];
+  for (const tool of registryTools) { for (const domain of (tool.experience && tool.experience.matrixDomains) || []) { if (ownerPrecedence[domain]) ownerPrecedence[domain].push(tool.id); } }
+  const applicability = Object.create(null);
+  for (const domain of RLMKT.MATRIX_DOMAINS) applicability[domain] = Object.create(null);
+  const etfApplicable = new Set(['technical', 'macro-rotation', 'options', 'volatility']);
+  const stockApplicable = new Set(['fundamentals', 'technical', 'options', 'volatility', 'catalyst', 'gaps']);
+  for (const item of watchlist.items) { const isEtf = item.type === 'etf'; for (const domain of RLMKT.MATRIX_DOMAINS) applicability[domain][item.ticker] = (isEtf ? etfApplicable.has(domain) : stockApplicable.has(domain)) ? 'applicable' : 'not-applicable'; }
+  const matrix = RLMKT.composePublicMatrix({ matrixId: 'selftest', cutoffAt: '2026-07-26T15:00:00.000Z', generationRef: 'legacy:selftest', domainMapVersion: 'registry-derived/v1', watchlist, ownerPrecedence, applicability, ownerReads: { 'company-fundamentals-lab': { MSFT: { state: 'current', read: 'FY26', asOf: '2026-07-26T14:00:00.000Z', provenance: 'same-origin-snapshot' } } } });
+  assert(matrix.ok && matrix.value.rows.length === watchlist.items.length && matrix.value.rows.every((row) => row.scopeClass === 'public-watchlist' && row.scopeLabel === 'Public watchlist' && row.cells.length === RLMKT.MATRIX_DOMAINS.length && row.cells.every((cell) => RLMKT.APPLICABILITY.includes(cell.applicability) && RLMKT.CELL_STATES.includes(cell.state))), 'SCN-012-022 public matrix labels every row `Public watchlist` with one explicit applicable/state cell per domain (never neutral by omission)');
+  assert(RLMKT.validatePublicMatrix(matrix.value).ok && marketAction.matrix.rowCount === watchlist.items.length, 'the composed public matrix validates round-trip and matches the validator row count');
+
+  // (3) SCN-012-022 private-field barrier: the composer REFUSES any Feature 008 private field without echoing its value.
+  const smuggled = structuredClone(watchlist); smuggled.items[0].quantity = 100;
+  const refused = RLMKT.composePublicMatrix({ matrixId: 'selftest', cutoffAt: '2026-07-26T15:00:00.000Z', generationRef: 'legacy:selftest', domainMapVersion: 'v1', watchlist: smuggled, ownerPrecedence, applicability, ownerReads: {} });
+  assert(!refused.ok && refused.error.code === 'RLMKT-PRIVACY' && !JSON.stringify(refused.error).includes('100'), 'the public composer refuses a smuggled Feature 008 private field (RLMKT-PRIVACY) and never echoes the private value');
+
+  // (4) SCN-012-019 four-view Center + no-action: exactly four top-level views, three exact dependency-pending gates, truthful no-action Brief that fabricates nothing.
+  const projection = RLMKT.composeCenterProjection({ projectionId: 'selftest', generationRef: 'legacy:selftest', cutoffAt: '2026-07-26T15:00:00.000Z', activeView: 'brief', brief: { window: '1100ET', coverageComplete: true, actions: [] }, portfolio: { publicMatrixRef: matrix.value.matrixFingerprint }, redAlert: { alertRefs: [] }, journey: { definitionRefs: ['journey/market-action/prepare-session/v1', 'journey/market-action/triage/v1', 'journey/market-action/latent-risk/v1', 'journey/market-action/portfolio-stress/v1'] } });
+  assert(projection.ok && JSON.stringify(projection.value.viewOrder) === JSON.stringify(['brief', 'portfolio', 'red-alert', 'journey']) && projection.value.gates.authoredBriefV2 === 'dependency-pending:feature-002' && projection.value.gates.redAlertPublication === 'dependency-pending:feature-002' && projection.value.gates.privatePortfolioOverlay === 'dependency-pending:feature-008' && projection.value.views.brief.noAction.statement === RLMKT.NO_ACTION_STATEMENT && projection.value.views.brief.noAction.fabricatedAction === false && projection.value.views.brief.noAction.fabricatedCatalyst === false && projection.value.views.brief.noAction.fabricatedConfidence === false, 'SCN-012-019 the Center composes exactly four views (brief/portfolio/red-alert/journey), three exact dependency-pending gates, and a truthful no-action Brief that fabricates no action/catalyst/confidence');
+
+  // (5) closed adversarial refusals from the contract validator all fail closed with RLMKT-* codes.
+  assert(marketAction.center.viewCount === 4 && marketAction.center.gatesPending === 3 && marketAction.adversarial.length === 7 && marketAction.adversarial.every((refusal) => /^RLMKT-/.test(refusal.code)) && new Set(marketAction.adversarial.map((refusal) => refusal.name)).size === 7, 'the market-action contract validator reports four views, three pending gates, and seven distinct closed RLMKT-* adversarial refusals');
+} catch (e) { failures++; console.log('  \u2717 FAIL (Feature 012 Scope 09 Market Action canaries threw): ' + e.message); }
+
 /* ---------- summary ---------- */
 console.log('\n' + '='.repeat(48));
 console.log('Research-Lab self-test: ' + passes + ' passed, ' + failures + ' failed');

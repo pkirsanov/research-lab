@@ -3,7 +3,7 @@
   "featureDir": "specs/012-market-action-center-and-guided-tools",
   "featureName": "Market Action Center and Guided Tools",
   "createdAt": "2026-07-22T03:40:01Z",
-  "lastUpdatedAt": "2026-07-26T16:40:00Z",
+  "lastUpdatedAt": "2026-07-26T17:20:00Z",
   "status": "not_started",
   "workflowMode": "full-delivery",
   "linkedImplementationSpec": null,
@@ -19,14 +19,22 @@
   "certifiedAt": null,
   "requiresRevalidation": false,
   "execution": {
-    "activeAgent": "bubbles.test",
+    "activeAgent": "bubbles.implement",
     "currentPhase": "implement",
-    "currentPhaseStatus": "not_started",
+    "currentPhaseStatus": "in_progress",
     "currentScope": "09-public-matrix-market-action-scaffold",
-    "substate": "independently_verified",
+    "substate": "implemented",
     "runStartedAt": "2026-07-24T03:30:00Z",
     "completedAt": null,
     "completedPhaseClaims": [
+      {
+        "scope": "09-public-matrix-market-action-scaffold",
+        "phase": "implement",
+        "agent": "bubbles.implement",
+        "claimedAt": "2026-07-26T17:20:00Z",
+        "evidence": "scopes/09-public-matrix-market-action-scaffold/report.md#tp-09-01",
+        "summary": "Scope 09 implement BATCH 1 of 2 (PARTIAL -- NOT a completed phase). Delivered the PURE public projection module + its unit/functional tests + the contract validator, all GREEN in-session (repo-binding-preflight --agent-source research-lab exit 0 first). NEW rlmarketaction.js: pure dependency-free UMD (mirrors rljourney.js wrapper+helpers) composing/validating two public contracts -- PortfolioTickerMatrix/v1 PUBLIC (composePublicMatrix/validatePublicMatrix: one row per watchlist ticker, every row scope-labeled 'Public watchlist', one EXPLICIT cell per registry domain with applicability in {applicable,not-applicable} + state in the closed six {current|partial|stale|disputed|unavailable|not-applicable}, missing owner read -> unavailable+gapReason NEVER neutral-by-omission, not-applicable not counted as a gap) and MarketActionCenterProjection/v1 (composeCenterProjection/validateCenterProjection: EXACTLY four top-level views brief/portfolio/red-alert/journey, single active view, no Simple/Power/fifth; SCN-012-019 no-action Brief states 'No current action clears the bar' and fabricates NO action/catalyst/confidence; closed long-context disclosures open:false; three EXACT dependency-pending gates authoredBriefV2=feature-002, redAlertPublication=feature-002, privatePortfolioOverlay=feature-008 rendered NOT implemented). HARD INVARIANTS proven: PUBLIC-ONLY private-field barrier (assertNoPrivateField rejects any holding/quantity/cost/pnl/mandate/exposure field with RLMKT-PRIVACY, value never echoed -- SCN-012-022); ZERO fetch/providerFetch/credential/storage-write (forbidden-authority DIRECT scan on rlmarketaction.js: all 12 patterns incl require/import = 0; validator moduleAuthorityScan forbiddenCapabilities=0). TP-09-01 unit 13/13 exit 0; TP-09-02 functional 10/10 exit 0 (incl storage/request sentinel proving zero fetch/localStorage/RLDATA touch + zero Feature 008 key read/create, and watchlist.json sha256 byte-identical before/after). RED->GREEN proven for BOTH: with rlmarketaction.js moved aside the existence guard fails (UNIT_EXIT=1, FUNCTIONAL_EXIT=1, 'production contract missing: rlmarketaction.js'), module restored byte-identical -> GREEN. NEW scripts/validate-market-action.mjs exit 0 (publicMatrix rows=4, centerProjection views=4 gatesPending=3, 7 closed adversarial refusals RLMKT-PRIVACY/SCOPE/CELL/VIEW/GATE/NOACTION). scripts/selftest.mjs Scope-09 canary added (5 asserts) -> 945 passed / 0 failed exit 0. artifact-lint exit 0. tool-experience.config.json NOT modified (rlmarketaction.js is a TOP-LEVEL module, not rlexperience-adapters/*, so moduleAllowlist does not apply). Scope 01-08 code + rldata.js + data/options + watchlist.json byte-unchanged (git diff-name-only = only scripts/selftest.mjs + the concurrent BUG-001 scenario-manifest.json which was NOT touched). DEFERRED to batch 2 (route_required continuation): the visible RENAME (market-brief.html/tools.json/index.html/rlnav.js -> 'Market Action Center'), TP-09-03 consumer-trace test, TP-09-04..07 desktop e2e. No DoD item checked (full slice incl rename+e2e is batch 2). Feature status not_started, certifiedAt null -- UNTOUCHED. Scope 09 stays in_progress."
+      },
       {
         "scope": "08-journey-runtime-definitions",
         "phase": "test",

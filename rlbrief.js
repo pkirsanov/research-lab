@@ -813,6 +813,250 @@
   root.RLBRIEF.renderGroups = renderGroups;
   root.RLBRIEF.renderCenterNoAction = renderCenterNoAction;
 
+  /* ═══════════ Feature 012 · Scope 10 — SAFE WebEvidence disclosure consumer ═══════════
+     A static, browser-side, READ-ONLY audit of a frozen `web-evidence-bundle/v1`. It
+     INSPECTS a bundle's publisher/date/query/claim/origin/owner/freshness/hash status and
+     projects it as SAFE plain text. It has NO acquisition, network-retrieval, author,
+     publication, provider-key, or repository-write authority: it never invokes the
+     acquisition stage, never opens a socket, and never renders raw remote bodies (source
+     excerpts are summarized to counts, never printed). Every projected value passes through
+     webEvidenceSafeText(): any markup, dangerous scheme, credentialed/redirecting URL,
+     control char, over-length, private-context, or instruction-shaped phrase is REDACTED to
+     a fixed token, so the consumer stays fail-closed even when handed a hostile or malformed
+     bundle. It is an EVIDENCE AUDIT only — it NEVER presents an authored/published ToolBrief
+     claim (Feature 002 · Scope 11); a material claim with fewer than two independent origins
+     is shown as insufficient, never as verified. */
+
+  var WEB_EVIDENCE_BUNDLE_CONTRACT = "web-evidence-bundle/v1";
+  var WEB_EVIDENCE_MIN_MATERIAL_ORIGINS = 2;
+  var WEB_EVIDENCE_REDACTED = "[redacted-unsafe]";
+  var WEB_EVIDENCE_ABSENT = "[absent]";
+  var WEB_EVIDENCE_AUTHOR_STATE = "dependency-pending:feature-002";
+  /* closed content-free rejection tokens the audit may echo (mirror of the acquisition
+     SAFE_REJECTION_DETAILS / error-code enums — never a remote value). */
+  var WEB_EVIDENCE_SAFE_REJECTION_DETAILS = {
+    "scheme-not-https": 1, "port-not-443": 1, "host-not-allowlisted": 1, "path-not-allowed": 1,
+    "redirect-not-allowed": 1, "ip-literal-host": 1, "credentialed-url": 1, "malformed-url": 1,
+    "later-than-cutoff": 1, "stale-out-of-window": 1, "robots-missing": 1, "robots-failed": 1,
+    "robots-ambiguous": 1, "robots-disallow": 1, "response-bytes-over-cap": 1, "request-timeout": 1,
+    "executable-media": 1, "executable-markup": 1, "instruction-shaped-content": 1,
+    "no-safe-excerpt": 1, "missing-metadata": 1, "candidate-cardinality-over-cap": 1
+  };
+  var WEB_EVIDENCE_REJECTION_CODES = {
+    "E012-WEB-POLICY": 1, "E012-WEB-ROBOTS": 1, "E012-WEB-BUDGET": 1, "E012-WEB-UNSAFE": 1,
+    "E012-WEB-CORROBORATION": 1, "E012-AUTHOR-BOUNDARY": 1, "E012-VERSION": 1
+  };
+  var WEB_EVIDENCE_FRESHNESS = { current: 1, stale: 1, "later-than-cutoff": 1 };
+  var WEB_EVIDENCE_MATERIALITY = { material: 1, contextual: 1 };
+  var WEB_EVIDENCE_CORROBORATION = { corroborated: 1, uncorroborated: 1, conflicted: 1 };
+
+  /* redact any string that could carry markup / a dangerous scheme / a credentialed or
+     redirecting URL / a control char / private context / instruction-shaped text, or that
+     is over-length. Returns a fixed token so nothing unsafe ever reaches the DOM. */
+  function webEvidenceSafeText(value) {
+    if (value == null) return WEB_EVIDENCE_ABSENT;
+    var s = String(value);
+    if (s.length === 0) return WEB_EVIDENCE_ABSENT;
+    if (s.length > 400) return WEB_EVIDENCE_REDACTED;
+    if (/[<>]/.test(s)) return WEB_EVIDENCE_REDACTED;
+    if (/[\u0000-\u001f\u007f]/.test(s)) return WEB_EVIDENCE_REDACTED;
+    if (/(?:javascript|data|vbscript|file|blob):/i.test(s)) return WEB_EVIDENCE_REDACTED;
+    if (/[a-z][a-z0-9+.-]*:\/\/[^/\s@]*@/i.test(s)) return WEB_EVIDENCE_REDACTED;
+    if (/\b(?:ignore|disregard|override|bypass)\b[^.]{0,40}\b(?:instruction|prompt|rule|policy|guard)/i.test(s)) return WEB_EVIDENCE_REDACTED;
+    if (/\b(?:system prompt|as an ai|assistant:|do the following|run this|execute the|exfiltrate|api[_ -]?key|password|secret token)\b/i.test(s)) return WEB_EVIDENCE_REDACTED;
+    return s;
+  }
+
+  /* project the https HOST of a canonical URL (never the path/query/credentials). */
+  function webEvidenceSafeHost(rawUrl) {
+    if (typeof rawUrl !== "string" || !/^https:\/\//i.test(rawUrl)) return WEB_EVIDENCE_REDACTED;
+    var m = /^https:\/\/([^/:?#@\s]+)/i.exec(rawUrl);
+    if (!m) return WEB_EVIDENCE_REDACTED;
+    return webEvidenceSafeText(m[1].toLowerCase());
+  }
+
+  /* a short, bounded hash SUMMARY (never the full content, never raw bytes). */
+  function webEvidenceHashSummary(sha) {
+    if (typeof sha !== "string" || sha.length < 8) return WEB_EVIDENCE_ABSENT;
+    var safe = webEvidenceSafeText(sha);
+    if (safe === WEB_EVIDENCE_REDACTED || safe === WEB_EVIDENCE_ABSENT) return safe;
+    return safe.length > 20 ? safe.slice(0, 20) + "\u2026" : safe;
+  }
+
+  /* date+time only (no fractional/extra), or [absent] for a non-ISO value. */
+  function webEvidenceIso(value) {
+    if (typeof value !== "string" || !/^\d{4}-\d{2}-\d{2}T\d{2}:\d{2}:\d{2}/.test(value)) return WEB_EVIDENCE_ABSENT;
+    return value.slice(0, 19) + "Z";
+  }
+
+  /* PURE (no DOM): read a frozen web-evidence-bundle/v1 and return a CLOSED, safe-only
+     summary. A non-object / wrong contract version / malformed collections returns
+     { valid:false, reason } and NEVER any projected content. */
+  function projectSafeWebEvidence(bundle) {
+    if (!bundle || typeof bundle !== "object" || Array.isArray(bundle)) {
+      return { valid: false, reason: "not-a-bundle", rawContentExposed: false };
+    }
+    if (bundle.contractVersion !== WEB_EVIDENCE_BUNDLE_CONTRACT) {
+      return { valid: false, reason: "unsupported-version", rawContentExposed: false };
+    }
+    if (!Array.isArray(bundle.sources) || !Array.isArray(bundle.claims) || !Array.isArray(bundle.rejected)) {
+      return { valid: false, reason: "malformed-collections", rawContentExposed: false };
+    }
+    var originGroups = {};
+    var sources = bundle.sources.map(function (src) {
+      var group = (src && typeof src.independentOriginGroup === "string") ? src.independentOriginGroup : "";
+      if (group) { originGroups[group] = 1; }
+      return {
+        publisher: webEvidenceSafeText(src && src.publisher),
+        host: webEvidenceSafeHost(src && src.canonicalUrl),
+        publishedAt: webEvidenceIso(src && src.publishedAt),
+        fetchedAt: webEvidenceIso(src && src.fetchedAt),
+        sourceClass: webEvidenceSafeText(src && src.sourceClass),
+        freshnessState: (src && WEB_EVIDENCE_FRESHNESS[src.freshnessState]) ? src.freshnessState : WEB_EVIDENCE_ABSENT,
+        hashSummary: webEvidenceHashSummary(src && src.contentSha256),
+        originGroupLabel: webEvidenceSafeText(group),
+        excerptCount: (src && Array.isArray(src.excerpts)) ? src.excerpts.length : 0
+      };
+    });
+    var independentOriginCount = Object.keys(originGroups).length;
+    var materialAuthorableCount = 0;
+    var claims = bundle.claims.map(function (c) {
+      var materiality = (c && WEB_EVIDENCE_MATERIALITY[c.materiality]) ? c.materiality : "contextual";
+      var corroborationState = (c && WEB_EVIDENCE_CORROBORATION[c.corroborationState]) ? c.corroborationState : "uncorroborated";
+      var originGroupCount = (c && Array.isArray(c.independentOriginGroups)) ? c.independentOriginGroups.length : 0;
+      var ownerEvidenceCount = (c && Array.isArray(c.ownerEvidenceRefs)) ? c.ownerEvidenceRefs.length : 0;
+      var declaredAuthorable = !!(c && c.authorable === true);
+      var secondOriginRequired = materiality === "material" && originGroupCount < WEB_EVIDENCE_MIN_MATERIAL_ORIGINS;
+      var authorableByEvidence = materiality === "material" && declaredAuthorable && corroborationState === "corroborated" && !secondOriginRequired;
+      var disclosureStatus;
+      if (corroborationState === "conflicted") { disclosureStatus = "conflicted"; }
+      else if (materiality === "material" && (secondOriginRequired || corroborationState !== "corroborated")) { disclosureStatus = "insufficient-corroboration"; }
+      else if (materiality === "material") { disclosureStatus = "corroborated-evidence"; }
+      else { disclosureStatus = "contextual"; }
+      if (authorableByEvidence) { materialAuthorableCount += 1; }
+      return {
+        claim: webEvidenceSafeText(c && c.normalizedClaim),
+        materiality: materiality,
+        corroborationState: corroborationState,
+        independentOriginGroupCount: originGroupCount,
+        ownerEvidenceCount: ownerEvidenceCount,
+        authorableByEvidence: authorableByEvidence,
+        secondOriginRequired: secondOriginRequired,
+        disclosureStatus: disclosureStatus
+      };
+    });
+    var materialClaimCount = claims.filter(function (c) { return c.materiality === "material"; }).length;
+    var rejected = bundle.rejected.map(function (r) {
+      return {
+        code: (r && WEB_EVIDENCE_REJECTION_CODES[r.reasonCode]) ? r.reasonCode : "E012-WEB-POLICY",
+        detail: (r && WEB_EVIDENCE_SAFE_REJECTION_DETAILS[r.safeReasonDetail]) ? r.safeReasonDetail : "malformed-url"
+      };
+    });
+    var ownerEvidencePresent = claims.some(function (c) { return c.ownerEvidenceCount > 0; });
+    var coverage = (bundle.coverage && typeof bundle.coverage === "object") ? bundle.coverage : {};
+    return {
+      valid: true,
+      reason: null,
+      contractVersion: WEB_EVIDENCE_BUNDLE_CONTRACT,
+      bundleId: webEvidenceSafeText(bundle.bundleId),
+      toolId: webEvidenceSafeText(bundle.toolId),
+      policyId: webEvidenceSafeText(bundle.policyId),
+      queryPlanRef: webEvidenceHashSummary(bundle.queryPlanRef),
+      cutoffAt: webEvidenceIso(bundle.cutoffAt),
+      frozenAt: webEvidenceIso(bundle.frozenAt),
+      independentOriginCount: independentOriginCount,
+      minIndependentOriginsForMaterial: WEB_EVIDENCE_MIN_MATERIAL_ORIGINS,
+      sources: sources,
+      claims: claims,
+      materialClaimCount: materialClaimCount,
+      materialAuthorableCount: materialAuthorableCount,
+      ownerEvidencePresent: ownerEvidencePresent,
+      coverage: {
+        queryCount: isFinite(coverage.queryCount) ? coverage.queryCount : 0,
+        candidateCount: isFinite(coverage.candidateCount) ? coverage.candidateCount : 0,
+        retainedSourceCount: isFinite(coverage.retainedSourceCount) ? coverage.retainedSourceCount : sources.length,
+        rejectedCandidateCount: isFinite(coverage.rejectedCandidateCount) ? coverage.rejectedCandidateCount : rejected.length
+      },
+      rejected: rejected,
+      authorState: WEB_EVIDENCE_AUTHOR_STATE,
+      rawContentExposed: false
+    };
+  }
+
+  /* SAFE static browser disclosure: render the closed safe projection of a frozen bundle
+     into `host`. INSPECT-only — never fetches, never calls acquisition, never renders raw
+     remote bodies. Every value is redacted by the projection AND escaped by esc(). A
+     non-bundle / wrong-version / hostile input renders a safe "unavailable" state. */
+  function renderWebEvidenceDisclosure(host, bundle) {
+    if (!host) return null;
+    var safe = projectSafeWebEvidence(bundle);
+    host.setAttribute("data-mac-web-evidence", "1");
+    if (!safe.valid) {
+      host.setAttribute("data-web-evidence-valid", "false");
+      host.setAttribute("data-web-evidence-reason", esc(safe.reason || "invalid"));
+      host.innerHTML = '<div class="sub" data-web-evidence-unavailable="true">' +
+        'No safe web-evidence bundle is available for this window (' + esc(safe.reason || "invalid") + '). ' +
+        'No raw remote content is shown.</div>';
+      host.hidden = false;
+      return safe;
+    }
+    host.setAttribute("data-web-evidence-valid", "true");
+    host.setAttribute("data-web-evidence-origins", String(safe.independentOriginCount));
+    host.setAttribute("data-web-evidence-material-authorable", String(safe.materialAuthorableCount));
+    host.setAttribute("data-web-evidence-author-state", esc(safe.authorState));
+
+    var parts = [];
+    parts.push('<div class="sub" data-web-evidence-author-state="' + esc(safe.authorState) + '">' +
+      'Evidence audit only — <b>no ToolBrief is authored or published by this acquisition scope</b> (' +
+      esc(safe.authorState) + ' · Feature 002 · Scope 11). Frozen bundle <b>' + esc(safe.bundleId) +
+      '</b> · tool ' + esc(safe.toolId) + ' · policy ' + esc(safe.policyId) + ' · query-plan ' +
+      esc(safe.queryPlanRef) + ' · cutoff ' + esc(safe.cutoffAt) + ' · frozen ' + esc(safe.frozenAt) + '.</div>');
+
+    parts.push('<div class="sub" data-web-evidence-origins-line="' + String(safe.independentOriginCount) + '">' +
+      'Independent origins: <b>' + String(safe.independentOriginCount) + '</b> · retained sources: ' +
+      String(safe.coverage.retainedSourceCount) + ' · a material claim requires at least <b>' +
+      String(safe.minIndependentOriginsForMaterial) + '</b> independent origins.</div>');
+
+    var srcRows = safe.sources.map(function (s) {
+      return '<li data-web-evidence-source data-web-evidence-freshness="' + esc(s.freshnessState) + '">' +
+        '<b>' + esc(s.publisher) + '</b> · ' + esc(s.host) + ' · ' + esc(s.sourceClass) +
+        ' · published ' + esc(s.publishedAt) + ' · freshness ' + esc(s.freshnessState) +
+        ' · origin ' + esc(s.originGroupLabel) + ' · ' + esc(s.hashSummary) +
+        ' · excerpts ' + String(s.excerptCount) + '</li>';
+    }).join("");
+    parts.push('<ul class="sub" data-web-evidence-sources>' + srcRows + '</ul>');
+
+    var claimRows = safe.claims.map(function (c) {
+      var extra = c.secondOriginRequired
+        ? ' <span data-web-evidence-second-origin-required="true">— a second independent source is still required.</span>'
+        : '';
+      return '<li data-web-evidence-claim data-web-evidence-materiality="' + esc(c.materiality) +
+        '" data-web-evidence-corroboration="' + esc(c.corroborationState) +
+        '" data-web-evidence-status="' + esc(c.disclosureStatus) +
+        '" data-web-evidence-authorable="' + (c.authorableByEvidence ? "true" : "false") +
+        '" data-web-evidence-origin-groups="' + String(c.independentOriginGroupCount) +
+        '" data-web-evidence-owner-evidence="' + String(c.ownerEvidenceCount) + '">' +
+        esc(c.claim) + ' — <b>' + esc(c.materiality) + '</b> · ' + esc(c.corroborationState) +
+        ' · ' + esc(c.disclosureStatus) + extra + '</li>';
+    }).join("");
+    parts.push('<ul class="sub" data-web-evidence-claims>' + claimRows + '</ul>');
+
+    if (safe.rejected.length) {
+      var rejRows = safe.rejected.map(function (r) {
+        return '<li data-web-evidence-rejection data-web-evidence-code="' + esc(r.code) + '">' +
+          esc(r.code) + ' · ' + esc(r.detail) + '</li>';
+      }).join("");
+      parts.push('<ul class="sub" data-web-evidence-rejections>' + rejRows + '</ul>');
+    }
+
+    host.innerHTML = parts.join("");
+    host.hidden = false;
+    return safe;
+  }
+
+  root.RLBRIEF.projectSafeWebEvidence = projectSafeWebEvidence;
+  root.RLBRIEF.renderWebEvidenceDisclosure = renderWebEvidenceDisclosure;
+
   /* horizon pill (structural / swing / tactical) — the §6c frame label. */
   function horizonPill(h) {
     if (!h) return "";

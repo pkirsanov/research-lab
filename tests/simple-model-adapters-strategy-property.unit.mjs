@@ -528,3 +528,278 @@ test('TP-07-01 disclosure-decay is deterministic and preserves the frozen eviden
   const eee = summary.decayedConviction.perTicker.find((c) => c.ticker === 'EEE');
   assert.ok(eee && eee.retained > 0 && eee.retained < 1, 'the dropped cluster still reports its real decayed edge (no zero-fill)');
 });
+
+/* ═══════════════════════ walk-forward-validation owner fixture (strategy-validation-lab) ═══════════════════════
+   A synthetic frozen owner universe engineered so every declared parameter provably moves its declared output
+   path with GENUINE computed content. The instrument closes are pre-generated deterministically in the TEST via
+   the single-sourced module genSeries (a SEEDED generation done here, in the fixture — the ADAPTER itself is
+   non-seeded and only consumes the frozen closes). The goal uses the OOS Sharpe as the SOLE discriminator with a
+   wide margin (floor 0.5): clean-trend instruments clear it comfortably (measured OOS Sharpe 2–3) while choppy /
+   downtrend instruments fail it (measured negative). The registry universe carries two clean-trend passers and
+   one whipsaw failer (heldFraction 2/3); the current-watchlist universe carries one clean-trend passer and two
+   failers (heldFraction 1/3) — a DIFFERENT held set of DISTINCT instruments, so the universe switch genuinely
+   moves robustness. No fabricated feed: the adapter recomputes only from these frozen owner closes through the
+   single-source walk-forward engine. Seeds calibrated against the real module OOS metrics. */
+function walkForwardValidationOwnerFixture(sr) {
+  const closesFor = (seed, regimes) => Array.from(sr.genSeries(seed, 5, regimes).px);
+  const up = [{ frac: 1, muAnnual: 0.22, sigAnnual: 0.10 }];        // clean trend -> OOS Sharpe > 2 (PASS)
+  const whip = [{ frac: 1, muAnnual: -0.20, sigAnnual: 0.35 }];     // sharp downtrend -> OOS Sharpe < 0 (FAIL)
+  const down = [{ frac: 1, muAnnual: -0.18, sigAnnual: 0.30 }];     // downtrend -> OOS Sharpe < 0 (FAIL)
+  const flat = [{ frac: 1, muAnnual: 0.0, sigAnnual: 0.42 }];       // high-vol chop -> OOS Sharpe < 0 (FAIL)
+  return {
+    contractVersion: 'walk-forward-validation-owner-state/v1',
+    toolId: 'strategy-validation-lab',
+    asOf: '2026-07-26',
+    source: 'test-owner synthetic multi-instrument universe',
+    sourceClass: 'model-estimate',
+    trainRatio: 0.6,
+    startLevers: { fast: 20, slow: 100, momLookback: 120, volTarget: 0.15, stopDd: 0.15, maxLeverage: 1.5 },
+    goal: { targetCagr: -1, sharpeFloor: 0.5, maxDdCeiling: 0.99, minTimeInMarket: 0.0 },
+    universes: {
+      registry: [
+        { symbol: 'REG-STRONG', closes: closesFor(111, up), sourceClass: 'model-estimate' }, // OOS Sharpe 3.12 -> PASS (focus)
+        { symbol: 'REG-STEADY', closes: closesFor(444, up), sourceClass: 'model-estimate' }, // OOS Sharpe 2.24 -> PASS
+        { symbol: 'REG-WHIP', closes: closesFor(606, whip), sourceClass: 'model-estimate' }  // OOS Sharpe -0.75 -> FAIL
+      ],
+      'current-watchlist': [
+        { symbol: 'WL-EDGE', closes: closesFor(808, flat), sourceClass: 'model-estimate' },   // OOS Sharpe -0.12 -> FAIL (focus)
+        { symbol: 'WL-CLEAN', closes: closesFor(555, up), sourceClass: 'model-estimate' },     // OOS Sharpe 2.73 -> PASS
+        { symbol: 'WL-DOWN', closes: closesFor(303, down), sourceClass: 'model-estimate' }     // OOS Sharpe -0.77 -> FAIL
+      ]
+    }
+  };
+}
+
+/* The strategy-validation owner page source, read once, so the single-source tests can assert the page delegates
+   its real-data walk-forward engine to the module (RLSTRATEGY) and carries no inline copy of the extracted
+   formulas. Its Bailey-Lopez de Prado deflated Sharpe stays RLVALID-owned (Feature 007) and is untouched. */
+const SVL_PAGE = readFileSync(new URL('../strategy-validation-lab.html', import.meta.url), 'utf8');
+
+/* ═══════════════════════ TP-07-01 walk-forward-validation module authority + owner primitives ═══════════════════════ */
+
+test('TP-07-01 strategy-research module exposes the delivered walk-forward-validation adapter (owner-parity primitives)', () => {
+  const sr = loadStrategyResearch();
+  assert.ok(sr.supportedAdapterIds.includes('simple-adapter/walk-forward-validation/v1'), 'walk-forward-validation is a declared supported adapter');
+
+  // seriesFromCloses: REAL closes[] -> the same engine struct the seeded lab uses (single source).
+  const ramp = []; for (let i = 0; i < 200; i++) ramp.push(100 * Math.pow(1.001, i));
+  const Sr = sr.seriesFromCloses(ramp);
+  assert.ok(Sr && Sr.days === 199, 'seriesFromCloses: days = closes.length - 1');
+  assert.ok(Math.abs(Sr.fwd[0] - 0.001) < 1e-9, 'seriesFromCloses: forward return matches the bar ratio');
+  assert.equal(sr.seriesFromCloses([1, 2, 3]), null, 'seriesFromCloses rejects < 120 bars (no stub series)');
+
+  // scorePass / allPass: the OOS goal scorecard (single source).
+  const goal = { targetCagr: 0.08, sharpeFloor: 0.7, maxDdCeiling: 0.30, minTimeInMarket: 0.25 };
+  assert.equal(sr.allPass(sr.scorePass({ cagr: 0.2, sharpe: 1.5, maxDd: 0.1, tim: 0.5 }, goal)), true, 'scorePass/allPass: a clearly-good OOS result passes all four targets');
+  assert.equal(sr.allPass(sr.scorePass({ cagr: 0.02, sharpe: 0.3, maxDd: 0.5, tim: 0.1 }, goal)), false, 'scorePass/allPass: a weak OOS result fails');
+
+  // walkForwardEmbargo: the embargo walk-forward engine on a deterministic strong-bull synthetic path.
+  const L = { fast: 20, slow: 100, momLookback: 120, volTarget: 0.15, stopDd: 0.15, maxLeverage: 1.5 };
+  const Sb = sr.genSeries(12345, 6, [{ frac: 1, muAnnual: 0.18, sigAnnual: 0.11 }]);
+  const wf = sr.walkForwardEmbargo(Sb, L, 4, 0.6, 5);
+  assert.ok(wf.oos && Number.isFinite(wf.oos.sharpe) && wf.folds.length === 4, 'walkForwardEmbargo: finite OOS Sharpe, one record per fold');
+  assert.ok(wf.usable > 0 && wf.oosCurve.length > 20, 'walkForwardEmbargo: stitches usable OOS folds');
+  const wfBig = sr.walkForwardEmbargo(Sb, L, 4, 0.6, 100000);
+  assert.ok(wfBig.usable <= wf.usable, 'walkForwardEmbargo: a larger embargo never increases usable OOS (purge, not peek)');
+
+  // buyHoldCurve: the benchmark equity curve (single source).
+  const bh = sr.buyHoldCurve(Sb, 10, 40);
+  assert.ok(Array.isArray(bh) && bh.length === 30 && bh.every((x) => Number.isFinite(x) && x > 0), 'buyHoldCurve: one positive equity point per bar');
+});
+
+test('TP-07-01 strategy-validation-lab.html single-sources the real-data walk-forward engine from strategy-research.js', () => {
+  assert.match(SVL_PAGE, /rlexperience-adapters\/strategy-research\.js/, 'strategy-validation page loads strategy-research.js');
+  assert.match(SVL_PAGE, /RLSTRATEGY\.walkForwardEmbargo\s*\(/, 'strategy-validation page delegates the embargo walk-forward engine to the module');
+  assert.match(SVL_PAGE, /RLSTRATEGY\.seriesFromCloses\s*\(/, 'strategy-validation page delegates seriesFromCloses to the module');
+  assert.match(SVL_PAGE, /RLSTRATEGY\.scorePass\s*\(/, 'strategy-validation page delegates scorePass to the module');
+  assert.match(SVL_PAGE, /RLSTRATEGY\.allPass\s*\(/, 'strategy-validation page delegates allPass to the module');
+  assert.match(SVL_PAGE, /RLSTRATEGY\.mulberry32\s*\(/, 'strategy-validation page delegates the demo PRNG to the module');
+  // The single owner source lives in strategy-research.js; the page must carry no inline copy of the extracted formulas.
+  assert.equal(/var warm = Math\.max\(L\.slow, L\.momLookback, VOL_WIN\) \+ 1;/.test(SVL_PAGE), false, 'strategy-validation page has no inline backtest/walkForward warm-up formula');
+  assert.equal(/var pnl = want \* S\.fwd\[i\];/.test(SVL_PAGE), false, 'strategy-validation page has no inline backtest pnl formula');
+  assert.equal(/out\.oos\.sharpe = out\.meanOos;/.test(SVL_PAGE), false, 'strategy-validation page has no inline walkForward OOS-headline formula');
+  // The Bailey-Lopez de Prado deflated Sharpe stays RLVALID-owned (Feature 007) — the module never re-implements it.
+  const sr = loadStrategyResearch();
+  assert.equal(typeof sr.deflatedSharpe, 'undefined', 'the module does not export a deflatedSharpe (Power owns Bailey-LdP via RLVALID)');
+});
+
+/* ═══════════════════════ TP-07-01 walk-forward-validation adapter runtime + owner parity ═══════════════════════ */
+
+test('TP-07-01 walk-forward-validation adapter registers through the production runtime and produces a ready owner run', async () => {
+  const api = loadProductionApi();
+  const sr = loadStrategyResearch();
+  const definition = definitionFor('strategy-validation-lab');
+  const runtime = runtimeFor(api, definition);
+  const results = sr.registerStrategyResearchAdapters(runtime, api, [definition]);
+  assert.equal(results['simple-adapter/walk-forward-validation/v1'].ok, true, JSON.stringify(results['simple-adapter/walk-forward-validation/v1'].error || {}));
+
+  const owner = walkForwardValidationOwnerFixture(sr);
+  const base = defaultValues(definition);
+  const prepared = requireValue(await runtime.prepare({
+    definitionId: definition.definitionId,
+    ownerContext: { ownerState: owner },
+    parameterValues: base,
+    seed: null,
+    scenarioIds: ['baseline'],
+    computedAt: '2026-07-26T22:02:00.000Z'
+  }));
+  assert.equal(prepared.state, 'ready');
+  const summary = prepared.current.output.values.summary;
+  assert.equal(summary.rule, 'trend', 'default rule is trend');
+  assert.equal(summary.universe, 'registry', 'default universe is registry');
+  assert.ok(summary.validation && summary.validation.focusSymbol === 'REG-STRONG', 'the first registry instrument with data is the validation focus');
+  assert.ok(summary.outOfSample && Array.isArray(summary.outOfSample.perFold) && summary.outOfSample.perFold.length === base.folds, 'outOfSample carries one entry per fold');
+  assert.ok(summary.robustness && summary.robustness.instrumentCount === 3, 'the registry universe carries three instruments');
+  assert.ok(summary.deflatedEvidence && typeof summary.deflatedEvidence.deflatedSharpe === 'number', 'deflatedEvidence carries a numeric surviving Sharpe');
+  assert.equal(prepared.current.output.provenance.evidenceIdentity, prepared.current.input.evidenceIdentity, 'evidence identity is bound');
+
+  // The registry heldFraction is a genuine 2/3 (two up-trend instruments hold the time-in-market gate; the bear fails).
+  assert.equal(summary.robustness.withData, 3, 'all three registry instruments have data');
+  assert.equal(summary.robustness.held, 2, 'exactly the two up-trend instruments hold the goal (the bear fails the time-in-market gate)');
+  assert.equal(summary.robustness.heldFraction, Math.round((2 / 3) * 1e6) / 1e6, 'registry heldFraction is 2/3');
+  assert.equal(summary.robustness.robust, true, 'a 2/3 held fraction clears the default 0.6 robustness threshold');
+
+  // Owner parity: the focus validation gross OOS equals the module walkForwardEmbargo run DIRECTLY on the frozen
+  // focus closes at the default (trend = identity) rule levers, folds, trainRatio and embargo (single source).
+  const focusCloses = owner.universes.registry[0].closes;
+  const directWf = sr.walkForwardEmbargo(sr.seriesFromCloses(focusCloses), owner.startLevers, base.folds, owner.trainRatio, base.embargo);
+  assert.equal(summary.validation.gross.sharpe, Math.round(directWf.oos.sharpe * 1e6) / 1e6, 'focus gross OOS Sharpe is single-sourced from walkForwardEmbargo');
+  assert.equal(summary.validation.gross.cagr, Math.round(directWf.oos.cagr * 1e6) / 1e6, 'focus gross OOS CAGR is single-sourced from walkForwardEmbargo');
+  assert.deepEqual(summary.validation.appliedLevers, owner.startLevers, 'the trend rule uses the owner base levers verbatim (identity override)');
+});
+
+test('TP-07-01 each enabled walk-forward-validation parameter changes its declared output path with genuine computed content', async () => {
+  const api = loadProductionApi();
+  const sr = loadStrategyResearch();
+  const definition = definitionFor('strategy-validation-lab');
+  const runtime = runtimeFor(api, definition);
+  sr.registerStrategyResearchAdapters(runtime, api, [definition]);
+  const base = defaultValues(definition);
+  const prepared = requireValue(await runtime.prepare({
+    definitionId: definition.definitionId,
+    ownerContext: { ownerState: walkForwardValidationOwnerFixture(sr) },
+    parameterValues: base,
+    seed: null,
+    scenarioIds: ['baseline'],
+    computedAt: '2026-07-26T22:02:00.000Z'
+  }));
+  const baseSummary = prepared.current.output.values.summary;
+
+  const cases = [
+    ['rule', 'momentum', 'summary.validation'],
+    ['universe', 'current-watchlist', 'summary.robustness'],
+    ['folds', 8, 'summary.outOfSample'],
+    ['embargo', 20, 'summary.outOfSample'],
+    ['cost', 60, 'summary.validation'],
+    ['trial-count', 300, 'summary.deflatedEvidence'],
+    ['robustness-threshold', 0.9, 'summary.robustness']
+  ];
+  for (const [parameterId, value, path] of cases) {
+    const run = requireValue(await runtime.recompute({
+      parameterValues: { ...base, [parameterId]: value },
+      seed: null,
+      scenarioIds: ['baseline'],
+      computedAt: '2026-07-26T22:03:00.000Z'
+    }));
+    assert.deepEqual(run.changedParameters, [parameterId], `changed ${parameterId}`);
+    const effect = run.sensitivity.effects.find((entry) => entry.parameterId === parameterId);
+    assert.ok(effect, `sensitivity effect present for ${parameterId}`);
+    assert.equal(effect.outputChanged, true, `${parameterId} must change ${path}`);
+    assert.deepEqual(effect.resultPaths, [path], `${parameterId} declared path`);
+    await runtime.recompute({ parameterValues: { ...base }, seed: null, scenarioIds: ['baseline'], computedAt: '2026-07-26T22:03:30.000Z' });
+  }
+
+  // Genuine computed effects (not merely echoed parameters):
+  // rule genuinely applies different levers (momentum halves the momentum lookback), driving a different backtest.
+  const byRule = requireValue(await runtime.recompute({ parameterValues: { ...base, rule: 'momentum' }, seed: null, scenarioIds: ['baseline'], computedAt: '2026-07-26T22:04:00.000Z' })).current.output.values.summary;
+  assert.equal(byRule.validation.appliedLevers.momLookback, Math.max(20, Math.round(baseSummary.validation.appliedLevers.momLookback * 0.5)), 'the momentum rule genuinely halves the momentum-lookback lever');
+  assert.notDeepEqual(byRule.validation.appliedLevers, baseSummary.validation.appliedLevers, 'the momentum rule genuinely uses different levers than trend');
+  await runtime.recompute({ parameterValues: { ...base }, seed: null, scenarioIds: ['baseline'], computedAt: '2026-07-26T22:04:15.000Z' });
+
+  // universe genuinely swaps the held instrument set (registry 2/3 -> watchlist 1/3).
+  const byUniverse = requireValue(await runtime.recompute({ parameterValues: { ...base, universe: 'current-watchlist' }, seed: null, scenarioIds: ['baseline'], computedAt: '2026-07-26T22:04:30.000Z' })).current.output.values.summary;
+  assert.deepEqual(byUniverse.robustness.perInstrument.map((r) => r.symbol), ['WL-EDGE', 'WL-CLEAN', 'WL-DOWN'], 'the watchlist universe genuinely evaluates a different instrument set');
+  assert.ok(byUniverse.robustness.heldFraction < baseSummary.robustness.heldFraction, 'the watchlist universe genuinely holds fewer instruments than the registry');
+  await runtime.recompute({ parameterValues: { ...base }, seed: null, scenarioIds: ['baseline'], computedAt: '2026-07-26T22:04:45.000Z' });
+
+  // folds genuinely changes the per-fold structure.
+  const byFolds = requireValue(await runtime.recompute({ parameterValues: { ...base, folds: 8 }, seed: null, scenarioIds: ['baseline'], computedAt: '2026-07-26T22:05:00.000Z' })).current.output.values.summary;
+  assert.equal(byFolds.outOfSample.perFold.length, 8, 'raising folds genuinely produces eight per-fold records');
+  assert.notEqual(byFolds.outOfSample.meanOos, baseSummary.outOfSample.meanOos, 'raising folds genuinely changes the mean OOS Sharpe');
+  await runtime.recompute({ parameterValues: { ...base }, seed: null, scenarioIds: ['baseline'], computedAt: '2026-07-26T22:05:15.000Z' });
+
+  // embargo genuinely purges leakage — a larger embargo never leaves MORE usable OOS.
+  const byEmbargo = requireValue(await runtime.recompute({ parameterValues: { ...base, embargo: 25 }, seed: null, scenarioIds: ['baseline'], computedAt: '2026-07-26T22:05:30.000Z' })).current.output.values.summary;
+  assert.ok(byEmbargo.outOfSample.usable <= baseSummary.outOfSample.usable, 'a larger embargo genuinely never increases usable OOS (purge, not peek)');
+  await runtime.recompute({ parameterValues: { ...base }, seed: null, scenarioIds: ['baseline'], computedAt: '2026-07-26T22:05:45.000Z' });
+
+  // cost genuinely reduces the net OOS edge (higher round-trip cost -> lower net Sharpe and net CAGR).
+  const byCost = requireValue(await runtime.recompute({ parameterValues: { ...base, cost: 80 }, seed: null, scenarioIds: ['baseline'], computedAt: '2026-07-26T22:06:00.000Z' })).current.output.values.summary;
+  assert.ok(byCost.validation.net.sharpe < baseSummary.validation.net.sharpe, 'a higher trading cost genuinely lowers the net OOS Sharpe');
+  assert.ok(byCost.validation.net.cagr < baseSummary.validation.net.cagr, 'a higher trading cost genuinely lowers the net OOS CAGR');
+  assert.ok(byCost.validation.gross.sharpe === baseSummary.validation.gross.sharpe, 'the gross OOS is unchanged by cost (cost is an explicit post-hoc drag, not a formula change)');
+  await runtime.recompute({ parameterValues: { ...base }, seed: null, scenarioIds: ['baseline'], computedAt: '2026-07-26T22:06:15.000Z' });
+
+  // trial-count genuinely deflates the surviving Sharpe (more variants tried -> a larger multiple-testing discount).
+  const byTrials = requireValue(await runtime.recompute({ parameterValues: { ...base, 'trial-count': 500 }, seed: null, scenarioIds: ['baseline'], computedAt: '2026-07-26T22:06:30.000Z' })).current.output.values.summary;
+  assert.ok(byTrials.deflatedEvidence.discount > baseSummary.deflatedEvidence.discount, 'more trials genuinely raise the multiple-testing discount');
+  assert.ok(Math.abs(byTrials.deflatedEvidence.deflatedSharpe) <= Math.abs(baseSummary.deflatedEvidence.deflatedSharpe), 'more trials genuinely shrink the surviving Sharpe toward zero');
+  await runtime.recompute({ parameterValues: { ...base }, seed: null, scenarioIds: ['baseline'], computedAt: '2026-07-26T22:06:45.000Z' });
+
+  // robustness-threshold genuinely gates the robust verdict around the actual held fraction. The registry held
+  // fraction is a deterministic 2/3 (≈0.667); step-aligned thresholds 0.65 and 0.70 straddle it (domain step 0.05).
+  const held = baseSummary.robustness.heldFraction;
+  assert.ok(held > 0.65 && held < 0.70, 'the fixture held fraction (2/3) sits strictly between the 0.65 and 0.70 thresholds');
+  const strict = requireValue(await runtime.recompute({ parameterValues: { ...base, 'robustness-threshold': 0.70 }, seed: null, scenarioIds: ['baseline'], computedAt: '2026-07-26T22:07:00.000Z' })).current.output.values.summary;
+  assert.equal(strict.robustness.robust, false, 'a 0.70 threshold above the 2/3 held fraction genuinely fails the robustness verdict');
+  await runtime.recompute({ parameterValues: { ...base }, seed: null, scenarioIds: ['baseline'], computedAt: '2026-07-26T22:07:15.000Z' });
+  const loose = requireValue(await runtime.recompute({ parameterValues: { ...base, 'robustness-threshold': 0.65 }, seed: null, scenarioIds: ['baseline'], computedAt: '2026-07-26T22:07:30.000Z' })).current.output.values.summary;
+  assert.equal(loose.robustness.robust, true, 'a 0.65 threshold below the 2/3 held fraction genuinely passes the robustness verdict');
+  await runtime.recompute({ parameterValues: { ...base }, seed: null, scenarioIds: ['baseline'], computedAt: '2026-07-26T22:07:45.000Z' });
+});
+
+test('TP-07-01 walk-forward-validation is deterministic (non-seeded) and preserves the no-data gap without zero-filling', async () => {
+  const api = loadProductionApi();
+  const sr = loadStrategyResearch();
+  const definition = definitionFor('strategy-validation-lab');
+  const base = defaultValues(definition);
+
+  async function runOnce() {
+    const runtime = runtimeFor(api, definition);
+    sr.registerStrategyResearchAdapters(runtime, api, [definition]);
+    return requireValue(await runtime.prepare({
+      definitionId: definition.definitionId,
+      ownerContext: { ownerState: walkForwardValidationOwnerFixture(sr) },
+      parameterValues: base,
+      seed: null,
+      scenarioIds: ['baseline'],
+      computedAt: '2026-07-26T22:02:00.000Z'
+    }));
+  }
+  const first = await runOnce();
+  const again = await runOnce();
+  assert.equal(first.computeIdentity, again.computeIdentity, 'identical inputs => identical compute identity (no seed, pure over the frozen universe)');
+  assert.equal(
+    api.fingerprint(first.current.output.values.summary),
+    api.fingerprint(again.current.output.values.summary),
+    'identical inputs => identical owner summary (deterministic)'
+  );
+
+  // A universe instrument with too few closes is reported as no-data, never zero-filled into a fake OOS result.
+  const owner = walkForwardValidationOwnerFixture(sr);
+  owner.universes.registry.push({ symbol: 'REG-THIN', closes: owner.universes.registry[0].closes.slice(0, 60), sourceClass: 'model-estimate' });
+  const runtime = runtimeFor(api, definition);
+  sr.registerStrategyResearchAdapters(runtime, api, [definition]);
+  const prepared = requireValue(await runtime.prepare({
+    definitionId: definition.definitionId,
+    ownerContext: { ownerState: owner },
+    parameterValues: base,
+    seed: null,
+    scenarioIds: ['baseline'],
+    computedAt: '2026-07-26T22:08:00.000Z'
+  }));
+  const robustness = prepared.current.output.values.summary.robustness;
+  const thin = robustness.perInstrument.find((r) => r.symbol === 'REG-THIN');
+  assert.ok(thin && thin.withData === false && thin.held === false && thin.oosSharpe === null, 'the thin instrument is reported no-data (null OOS), never zero-filled');
+  assert.equal(robustness.withData, 3, 'the thin instrument is excluded from the with-data count, not counted as a failed hold');
+});

@@ -792,51 +792,77 @@ try {
   assert(env.marketPasses(Object.assign({}, base, { land: 1 }), Object.assign({}, fAll, { minLand: 3 })) === false, 'low-land market fails a high land floor');
 } catch (e) { failures++; console.log('  \u2717 FAIL (waterfront-polo group threw): ' + e.message); }
 
-/* ---------- Strategy Validation: real-data walk-forward engine + robustness ---------- */
+/* ---------- Strategy Validation: real-data walk-forward engine (single-sourced RLSTRATEGY) + robustness ---------- */
+// Feature 012 Scope 07: the real-data walk-forward engine (seriesFromCloses / backtest / metrics /
+// walkForwardEmbargo / scorePass / allPass and the buyHoldCurve benchmark) is single-sourced in
+// rlexperience-adapters/strategy-research.js (RLSTRATEGY). The Power page AND the registered
+// walk-forward-validation/v1 Simple adapter compute from that ONE source; the page carries no inline copy of
+// any of those formulas. The Bailey-Lopez de Prado deflated Sharpe stays RLVALID-owned on the page (Feature 007).
 try {
-  group('strategy-validation-lab.html \u2014 real-data walk-forward OOS + Deflated Sharpe');
+  group('strategy-validation-lab.html \u2014 real-data walk-forward OOS engine (single-sourced RLSTRATEGY) + Deflated Sharpe');
   const src = read('strategy-validation-lab.html');
-  const names = ['mulberry32', 'gaussR', 'genDemoSeries', 'seriesFromCloses', 'sma', 'realizedVol', 'backtest', 'buyHoldCurve', 'metrics', 'walkForward', 'scorePass', 'allPass', 'meanA', 'moments', 'normCdf', 'invNorm', 'deflatedSharpe'];
-  const env = build(names.map((n) => extractFn(src, n)), names, 'var ANN=252, VOL_WIN=20;');
+  const { createRequire } = await import('node:module');
+  const validationRequire = createRequire(import.meta.url);
+  delete validationRequire.cache[validationRequire.resolve('../rlexperience-adapters/strategy-research.js')];
+  const RLST = validationRequire('../rlexperience-adapters/strategy-research.js');
 
-  // seriesFromCloses: REAL bars -> the same engine struct the synthetic lab uses
+  // seriesFromCloses: REAL bars -> the same engine struct the seeded path uses (single source)
   const ramp = []; for (let i = 0; i < 200; i++) ramp.push(100 * Math.pow(1.001, i));
-  const Sr = env.seriesFromCloses(ramp);
+  const Sr = RLST.seriesFromCloses(ramp);
   assert(Sr && Sr.days === 199, 'seriesFromCloses: days = closes.length - 1');
   assert(approx(Sr.fwd[0], 0.001, 1e-9), 'seriesFromCloses: forward return matches the bar ratio');
   assert(Sr.pPx[1] === ramp[0] && approx(Sr.pPx[2], ramp[0] + ramp[1], 1e-6), 'seriesFromCloses: price prefix-sum is correct');
-  assert(env.seriesFromCloses([1, 2, 3]) === null, 'seriesFromCloses rejects < 120 bars (no stub series)');
+  assert(RLST.seriesFromCloses([1, 2, 3]) === null, 'seriesFromCloses rejects < 120 bars (no stub series)');
 
   // metrics on a known positive-drift path
   const rr = [0.01, 0.02, 0.01, 0.02, 0.01, 0.02, 0.01, 0.02], curve = []; let eq = 1;
   for (let i = 0; i < rr.length; i++) { eq *= (1 + rr[i]); curve.push(eq); }
-  const mm = env.metrics({ curve, r: rr, expo: rr.map(() => 1) });
+  const mm = RLST.metrics({ curve, r: rr, expo: rr.map(() => 1) });
   assert(mm.cagr > 0 && mm.sharpe > 0, 'metrics: positive-drift path => positive CAGR & Sharpe');
   assert(approx(mm.tim, 1, 1e-9), 'metrics: fully-invested path => time-in-market = 1');
 
-  // walk-forward on a DETERMINISTIC strong-bull synthetic (seed-reproducible)
+  // buyHoldCurve: the benchmark equity curve compounds the forward returns from 1
+  const bh = RLST.buyHoldCurve(Sr, 0, 5);
+  assert(bh.length === 5 && approx(bh[0], 1 * (1 + Sr.fwd[0]), 1e-9), 'buyHoldCurve: compounds the forward returns from 1');
+
+  // walkForwardEmbargo on a DETERMINISTIC strong-bull seeded path (module genSeries returns the engine struct)
   const L = { fast: 20, slow: 100, momLookback: 120, volTarget: 0.15, stopDd: 0.15, maxLeverage: 1.5 };
-  const bull = env.genDemoSeries(12345, 8, [{ frac: 1, muAnnual: 0.18, sigAnnual: 0.11 }]);
-  const Sb = env.seriesFromCloses(bull);
-  const wf = env.walkForward(Sb, L, 4, 0.6, 5);
-  assert(wf.oos !== null && isFinite(wf.oos.sharpe), 'walkForward: produces a finite out-of-sample Sharpe');
-  assert(wf.usable > 0 && wf.oosCurve.length > 20, 'walkForward: stitches usable OOS folds');
-  assert(wf.oos.tim > 0 && wf.folds.length === 4, 'walkForward: long-biased rule takes OOS exposure; one record per fold');
+  const bull = RLST.genSeries(12345, 8, [{ frac: 1, muAnnual: 0.18, sigAnnual: 0.11 }]);
+  const wf = RLST.walkForwardEmbargo(bull, L, 4, 0.6, 5);
+  assert(wf.oos !== null && isFinite(wf.oos.sharpe), 'walkForwardEmbargo: produces a finite out-of-sample Sharpe');
+  assert(wf.usable > 0 && wf.oosCurve.length > 20, 'walkForwardEmbargo: stitches usable OOS folds');
+  assert(wf.oos.tim > 0 && wf.folds.length === 4, 'walkForwardEmbargo: long-biased rule takes OOS exposure; one record per fold');
 
   // embargo PURGES leakage — a massive embargo can never leave MORE usable OOS
-  const wfBig = env.walkForward(Sb, L, 4, 0.6, 100000);
-  assert(wfBig.usable <= wf.usable, 'walkForward: larger embargo never increases usable OOS (purge, not peek)');
+  const wfBig = RLST.walkForwardEmbargo(bull, L, 4, 0.6, 100000);
+  assert(wfBig.usable <= wf.usable, 'walkForwardEmbargo: larger embargo never increases usable OOS (purge, not peek)');
 
   // goal scorecard (judged OOS)
   const goal = { targetCagr: 0.08, sharpeFloor: 0.7, maxDdCeiling: 0.30, minTimeInMarket: 0.25 };
-  assert(env.allPass(env.scorePass({ cagr: 0.2, sharpe: 1.5, maxDd: 0.1, tim: 0.5 }, goal)) === true, 'scorePass/allPass: a clearly-good OOS result passes all four targets');
-  assert(env.allPass(env.scorePass({ cagr: 0.02, sharpe: 0.3, maxDd: 0.5, tim: 0.1 }, goal)) === false, 'scorePass/allPass: a weak OOS result fails');
+  assert(RLST.allPass(RLST.scorePass({ cagr: 0.2, sharpe: 1.5, maxDd: 0.1, tim: 0.5 }, goal)) === true, 'scorePass/allPass: a clearly-good OOS result passes all four targets');
+  assert(RLST.allPass(RLST.scorePass({ cagr: 0.02, sharpe: 0.3, maxDd: 0.5, tim: 0.1 }, goal)) === false, 'scorePass/allPass: a weak OOS result fails');
 
-  // Deflated Sharpe on the REAL stitched OOS equity curve
-  const d = env.deflatedSharpe(wf.oosCurve, 8);
-  assert(d && d.dsr >= 0 && d.dsr <= 1 && d.psr >= 0 && d.psr <= 1, 'deflatedSharpe: DSR/PSR are probabilities in [0,1]');
-  assert(d.dsr <= d.psr + 1e-9, 'deflatedSharpe: an 8-trial discount only lowers Sharpe confidence');
-  assert(approx(env.normCdf(env.invNorm(0.9)), 0.9, 2e-3), 'lifted stats: invNorm/normCdf round-trip holds');
+  // genDemoSeries: the page's SYNTHETIC demo path delegates its PRNG to the single source and stays reproducible.
+  const moduleSrc = read('rlexperience-adapters/strategy-research.js');
+  const prngPreamble = 'var ANN = 252, VOL_WIN = 20;\nvar RLSTRATEGY = (function(){ ' + extractFn(moduleSrc, 'mulberry32') + ' ' + extractFn(moduleSrc, 'gauss') + ' return { mulberry32: mulberry32, gauss: gauss }; })();';
+  const demoEnv = build([extractFn(src, 'mulberry32'), extractFn(src, 'gaussR'), extractFn(src, 'genDemoSeries')], ['genDemoSeries'], prngPreamble);
+  const demoRegimes = [{ frac: 1, muAnnual: 0.15, sigAnnual: 0.15 }];
+  const d1 = demoEnv.genDemoSeries(4242, 8, demoRegimes), d2 = demoEnv.genDemoSeries(4242, 8, demoRegimes);
+  assert(d1.length === d2.length && d1[d1.length - 1] === d2[d2.length - 1], 'genDemoSeries: same seed => identical reproducible demo path (through the single-sourced PRNG)');
+  assert(demoEnv.genDemoSeries(777, 8, demoRegimes)[d1.length - 1] !== d1[d1.length - 1], 'genDemoSeries: a different seed selects a distinct reproducible demo path');
+
+  // Deflated Sharpe (Bailey-Lopez de Prado) stays RLVALID-owned on the page (Feature 007) — its lifted stats round-trip.
+  const statsEnv = build([extractFn(src, 'meanA'), extractFn(src, 'moments'), extractFn(src, 'normCdf'), extractFn(src, 'invNorm'), extractFn(src, 'deflatedSharpe')], ['deflatedSharpe', 'normCdf', 'invNorm'], 'var ANN=252;');
+  const dS = statsEnv.deflatedSharpe(wf.oosCurve, 8);
+  assert(dS && dS.dsr >= 0 && dS.dsr <= 1 && dS.psr >= 0 && dS.psr <= 1, 'deflatedSharpe (page-owned Bailey-LdP): DSR/PSR are probabilities in [0,1]');
+  assert(dS.dsr <= dS.psr + 1e-9, 'deflatedSharpe: an 8-trial discount only lowers Sharpe confidence');
+  assert(approx(statsEnv.normCdf(statsEnv.invNorm(0.9)), 0.9, 2e-3), 'lifted stats: invNorm/normCdf round-trip holds');
+
+  // single-source wiring: the page loads the module, delegates the real-data engine, and carries no inline copy.
+  assert(/rlexperience-adapters\/strategy-research\.js/.test(src), 'strategy-validation-lab.html loads the strategy-research module');
+  assert(/RLSTRATEGY\.walkForwardEmbargo\s*\(/.test(src) && /RLSTRATEGY\.seriesFromCloses\s*\(/.test(src) && /RLSTRATEGY\.scorePass\s*\(/.test(src) && /RLSTRATEGY\.allPass\s*\(/.test(src) && /RLSTRATEGY\.mulberry32\s*\(/.test(src) && /RLSTRATEGY\.gauss\s*\(/.test(src), 'strategy-validation-lab.html delegates the real-data walk-forward engine to the single source');
+  assert(!/var pnl = want \* S\.fwd\[i\];/.test(src) && !/out\.oos\.sharpe = out\.meanOos;/.test(src) && !/var warm = Math\.max\(L\.slow, L\.momLookback, VOL_WIN\) \+ 1;/.test(src), 'strategy-validation-lab.html carries no inline copy of the single-sourced backtest / walk-forward formula');
+  assert(/function strategyValidationParityDeflatedSharpe/.test(src) && /RLVALID\.rlvDeflatedSharpe/.test(src), 'strategy-validation-lab.html keeps the Bailey-Lopez de Prado deflated Sharpe RLVALID-owned (Feature 007)');
 } catch (e) { failures++; console.log('  \u2717 FAIL (strategy-validation group threw): ' + e.message); }
 
 /* ---------- Strategy Self-Improvement: single-sourced seeded path + walk-forward + reproducible strategy-evolution adapter (RLSTRATEGY) ---------- */

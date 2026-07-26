@@ -194,6 +194,83 @@
     return out;
   }
 
+  /* ═══════════ real-data walk-forward owner primitives (single source; consumed by Power + Simple) ═══════════
+     These mirror the strategy-validation-lab.html owner helpers EXACTLY. The owning page delegates to them so it
+     carries no inline real-data walk-forward formula copy (owner-parity). They reuse the sma / realizedVol /
+     backtest / metrics engine already single-sourced above. The page's Bailey-Lopez de Prado deflated Sharpe is
+     NOT extracted here — it stays RLVALID-owned (Feature 007) on the page; this module never re-implements it. */
+
+  /* seriesFromCloses: adapt a real closes[] array into the same engine S struct the seeded genSeries produces,
+     so backtest / walkForwardEmbargo / metrics run unchanged on REAL prices. Rejects < 120 bars (no stub series).
+     Byte-identical to the page's seriesFromCloses. */
+  function seriesFromCloses(closes) {
+    var days = closes.length - 1, i;
+    if (days < 120) return null;
+    var px = new Float64Array(days + 1);
+    for (i = 0; i <= days; i++) px[i] = closes[i];
+    var fwd = new Float64Array(days), past = new Float64Array(days + 1);
+    for (i = 0; i < days; i++) fwd[i] = px[i + 1] / px[i] - 1;
+    for (i = 1; i <= days; i++) past[i] = px[i] / px[i - 1] - 1;
+    var pPx = new Float64Array(days + 2), pR = new Float64Array(days + 2), pR2 = new Float64Array(days + 2);
+    for (i = 0; i <= days; i++) pPx[i + 1] = pPx[i] + px[i];
+    for (i = 0; i <= days; i++) { pR[i + 1] = pR[i] + past[i]; pR2[i + 1] = pR2[i] + past[i] * past[i]; }
+    return { days: days, px: px, fwd: fwd, past: past, pPx: pPx, pR: pR, pR2: pR2 };
+  }
+
+  /* buyHoldCurve: the benchmark buy-and-hold equity curve over [start,end). Byte-identical to the page's
+     buyHoldCurve. */
+  function buyHoldCurve(S, start, end) {
+    var eq = 1, out = [];
+    for (var i = start; i < end; i++) { eq *= (1 + S.fwd[i]); out.push(eq); }
+    return out;
+  }
+
+  /* walkForwardEmbargo: the owner walk-forward engine WITH a data-leakage EMBARGO — OOS scoring starts `embargo`
+     days after the train cut so the rule warm-up window cannot reach back into in-sample. Reuses the single-
+     sourced backtest / metrics / buyHoldCurve. Byte-identical to the page's walkForward (embargo variant); its
+     return shape { folds, meanIs, meanOos, oos, oosCurve, bhCurve, usable } is unchanged. Distinct from the
+     no-embargo walkForward above (span < folds * 80 guard, per-fold embargo purge, usable count). */
+  function walkForwardEmbargo(S, L, folds, trainRatio, embargo) {
+    embargo = embargo || 0;
+    var warm = Math.max(L.slow, L.momLookback, VOL_WIN) + 1;
+    var lo = warm, hi = S.days, span = hi - lo;
+    var out = { folds: [], meanIs: 0, meanOos: 0, oos: null, oosCurve: [], bhCurve: [], usable: 0 };
+    if (span < folds * 80) return out;
+    var flen = Math.floor(span / folds);
+    var oosConcat = { curve: [], r: [], expo: [] }, eqAcc = 1, bhAcc = 1;
+    var sumIs = 0, sumOos = 0, used = 0, k;
+    for (k = 0; k < folds; k++) {
+      var fs = lo + k * flen, fe = (k === folds - 1) ? hi : fs + flen;
+      var isEnd = fs + Math.floor((fe - fs) * trainRatio);
+      var oosStart = Math.min(isEnd + embargo, fe);
+      if (fe - oosStart < 30) { out.folds.push({ is: NaN, oos: NaN }); continue; }
+      var isBt = backtest(S, L, fs, isEnd), oosBt = backtest(S, L, oosStart, fe);
+      var isM = metrics(isBt), oosM = metrics(oosBt);
+      sumIs += isM.sharpe; sumOos += oosM.sharpe; used++;
+      out.folds.push({ is: isM.sharpe, oos: oosM.sharpe });
+      var bh = buyHoldCurve(S, oosStart, fe);
+      for (var j = 0; j < oosBt.r.length; j++) {
+        eqAcc *= (1 + oosBt.r[j]); oosConcat.curve.push(eqAcc); oosConcat.r.push(oosBt.r[j]); oosConcat.expo.push(oosBt.expo[j]);
+      }
+      for (var b = 0; b < bh.length; b++) { bhAcc *= (bh[b] / (b ? bh[b - 1] : 1)); out.bhCurve.push(bhAcc); }
+    }
+    out.usable = used;
+    if (!used) return out;
+    out.meanIs = sumIs / used; out.meanOos = sumOos / used;
+    out.oos = metrics({ curve: oosConcat.curve, r: oosConcat.r, expo: oosConcat.expo });
+    out.oos.sharpe = out.meanOos;
+    out.oosCurve = oosConcat.curve;
+    return out;
+  }
+
+  /* scorePass: judge OOS metrics against the four owner goal targets. Byte-identical to the page's scorePass. */
+  function scorePass(m, g) {
+    return { cagr: m.cagr >= g.targetCagr, sharpe: m.sharpe >= g.sharpeFloor, maxDd: m.maxDd <= g.maxDdCeiling, tim: m.tim >= g.minTimeInMarket };
+  }
+
+  /* allPass: the OOS result holds only when all four goal targets pass. Byte-identical to the page's allPass. */
+  function allPass(p) { return p.cagr && p.sharpe && p.maxDd && p.tim; }
+
   /* ═══════════ shared numeric helpers ═══════════ */
 
   function isFiniteNumber(value) { return typeof value === "number" && isFinite(value); }
@@ -994,6 +1071,394 @@
     };
   }
 
+  /* ═══════════ walk-forward-validation Simple model (owner seam = strategy-validation-lab.html) ═══════════
+     The Simple question: over a FROZEN owner universe of real (or clearly-labelled synthetic) instrument closes,
+     recompute the walk-forward OUT-OF-SAMPLE evidence for one mechanical RULE across a chosen UNIVERSE, under a
+     FOLD count, an EMBARGO, an explicit round-trip COST, a variant TRIAL-COUNT, and a held-instrument ROBUSTNESS
+     threshold. It REUSES the single-sourced owner seriesFromCloses / walkForwardEmbargo / scorePass / allPass
+     engine (no re-implementation) — the fold/embargo walk-forward is the owner seam. The rule-lever preset, the
+     explicit cost drag, the cross-instrument robustness gate, and the trial-count deflation are the adapter's own
+     bounded Simple question, distinct from the Power page's fold ledger, cross-instrument hold, and full
+     Bailey-Lopez de Prado deflated Sharpe (which the page keeps via the Feature-007 RLVALID owner). It is NOT
+     seeded: it is a pure deterministic function of the frozen instrument closes. */
+
+  /* The Simple cost model maps an explicit per-round-trip basis-point cost to an annual drag by assuming an
+     average holding period. HOLD_DAYS is a documented modeling assumption (≈ one trading month); it is the ONLY
+     constant the cost drag adds on top of the owner OOS metrics, and it never changes the gross owner formula. */
+  var HOLD_DAYS = 20;
+
+  /* The Simple "rule" enum maps to a deterministic lever preset over the owner base levers. 'trend' is the owner
+     baseline verbatim (identity); the others isolate one mechanism through a fixed, transparent override. The SAME
+     single-sourced backtest / walk-forward engine runs on the resulting levers — the preset is the adapter's own
+     Simple question, not a formula copy. */
+  var RULE_LEVER_OVERRIDE = {
+    "trend": function (L) { return cloneLevers(L); },
+    "momentum": function (L) { var o = cloneLevers(L); o.momLookback = Math.max(20, Math.round(L.momLookback * 0.5)); return o; },
+    "vol-target": function (L) { var o = cloneLevers(L); o.volTarget = L.volTarget * 0.6; return o; },
+    "trailing-stop": function (L) { var o = cloneLevers(L); o.stopDd = L.stopDd * 0.5; return o; }
+  };
+
+  function ruleOverrideDescription(rule) {
+    if (rule === "momentum") return "momentum lookback halved";
+    if (rule === "vol-target") return "volatility target tightened to 60%";
+    if (rule === "trailing-stop") return "trailing stop tightened to 50%";
+    return "owner baseline trend + momentum composite (identity)";
+  }
+
+  function applyRuleOverride(baseLevers, rule) {
+    var fn = RULE_LEVER_OVERRIDE[rule] || RULE_LEVER_OVERRIDE.trend;
+    return fn(baseLevers);
+  }
+
+  /* Recompute the walk-forward-validation summary over one frozen owner universe under the current Simple
+     parameters. Pure, deterministic, and derived only from the single-sourced owner functions. */
+  function computeWalkForwardValidationSummary(ownerState, params) {
+    var rule = params.rule;
+    var universeKey = params.universe;
+    var folds = params.folds;
+    var embargo = params.embargo;
+    var costBps = params.cost;
+    var trialCount = params["trial-count"];
+    var robustnessThreshold = params["robustness-threshold"];
+
+    var trainRatio = isFiniteNumber(ownerState.trainRatio) ? ownerState.trainRatio : 0.6;
+    var goal = (ownerState.goal && typeof ownerState.goal === "object") ? ownerState.goal : {};
+    var baseLevers = (ownerState.startLevers && typeof ownerState.startLevers === "object") ? ownerState.startLevers : {};
+    var appliedLevers = applyRuleOverride(baseLevers, rule);
+
+    var universes = (ownerState.universes && typeof ownerState.universes === "object") ? ownerState.universes : {};
+    var selected = Array.isArray(universes[universeKey]) ? universes[universeKey] : [];
+
+    // Per-instrument walk-forward OOS across the selected universe (robustness). The first instrument that yields
+    // usable OOS is the validation focus. A too-short instrument is reported no-data, never zero-filled.
+    var perInstrument = [], held = 0, withData = 0, focus = null;
+    selected.forEach(function (instrument) {
+      var symbol = String((instrument && instrument.symbol) || "");
+      var closes = (instrument && Array.isArray(instrument.closes)) ? instrument.closes : [];
+      var S = seriesFromCloses(closes);
+      var wf = S ? walkForwardEmbargo(S, appliedLevers, folds, trainRatio, embargo) : null;
+      if (!S || !wf || !wf.oos) {
+        perInstrument.push({ symbol: symbol, withData: false, held: false, oosSharpe: null, oosCagr: null, oosMaxDd: null });
+        return;
+      }
+      withData++;
+      var pass = scorePass(wf.oos, goal), isHeld = allPass(pass);
+      if (isHeld) held++;
+      if (!focus) focus = { symbol: symbol, wf: wf };
+      perInstrument.push({
+        symbol: symbol,
+        withData: true,
+        held: isHeld,
+        oosSharpe: roundTo(wf.oos.sharpe, 6),
+        oosCagr: roundTo(wf.oos.cagr, 6),
+        oosMaxDd: roundTo(wf.oos.maxDd, 6)
+      });
+    });
+    var heldFraction = withData ? held / withData : 0;
+    var robust = withData > 0 && heldFraction >= robustnessThreshold;
+
+    var validation, outOfSample, deflatedEvidence;
+    if (focus) {
+      var oos = focus.wf.oos;
+      var annualRoundTrips = HOLD_DAYS > 0 ? (ANN * (isFiniteNumber(oos.tim) ? oos.tim : 0)) / HOLD_DAYS : 0;
+      var costDragAnnual = (costBps / 1e4) * annualRoundTrips;
+      var netCagr = isFiniteNumber(oos.cagr) ? oos.cagr - costDragAnnual : null;
+      var netSharpe = isFiniteNumber(oos.sharpe) ? oos.sharpe - costDragAnnual / Math.max(oos.vol, 1e-6) : null;
+      validation = {
+        rule: rule,
+        leverOverride: ruleOverrideDescription(rule),
+        appliedLevers: cloneLevers(appliedLevers),
+        focusSymbol: focus.symbol,
+        costBps: costBps,
+        holdDaysAssumption: HOLD_DAYS,
+        annualRoundTrips: roundTo(annualRoundTrips, 4),
+        costDragAnnual: roundTo(costDragAnnual, 6),
+        gross: {
+          cagr: roundTo(oos.cagr, 6), sharpe: roundTo(oos.sharpe, 6), vol: roundTo(oos.vol, 6),
+          maxDd: roundTo(oos.maxDd, 6), tim: roundTo(oos.tim, 6)
+        },
+        net: { cagr: roundTo(netCagr, 6), sharpe: roundTo(netSharpe, 6) }
+      };
+      outOfSample = {
+        folds: folds,
+        embargo: embargo,
+        trainRatio: trainRatio,
+        usable: focus.wf.usable,
+        focusSymbol: focus.symbol,
+        perFold: focus.wf.folds.map(function (fold) { return { is: roundTo(fold.is, 6), oos: roundTo(fold.oos, 6) }; }),
+        meanIs: roundTo(focus.wf.meanIs, 6),
+        meanOos: roundTo(focus.wf.meanOos, 6),
+        gap: roundTo(focus.wf.meanIs - focus.wf.meanOos, 6)
+      };
+      var grossSharpe = isFiniteNumber(oos.sharpe) ? oos.sharpe : 0;
+      var trials = Math.max(1, Math.floor(trialCount));
+      var breadth = Math.log2(1 + trials);
+      var discount = breadth / (breadth + 4);
+      var deflated = grossSharpe * (1 - discount);
+      deflatedEvidence = {
+        trialCount: trials,
+        grossSharpe: roundTo(grossSharpe, 6),
+        discount: roundTo(discount, 6),
+        deflatedSharpe: roundTo(deflated, 6),
+        survivesDeflation: deflated > 0,
+        method: "Simple trial-count multiple-testing discount over the focus OOS Sharpe; the Power page reports the full Bailey-Lopez de Prado deflated Sharpe (RLVALID)."
+      };
+    } else {
+      validation = {
+        rule: rule, leverOverride: ruleOverrideDescription(rule), appliedLevers: cloneLevers(appliedLevers),
+        focusSymbol: null, costBps: costBps, holdDaysAssumption: HOLD_DAYS, annualRoundTrips: null,
+        costDragAnnual: null, gross: null, net: null
+      };
+      outOfSample = {
+        folds: folds, embargo: embargo, trainRatio: trainRatio, usable: 0, focusSymbol: null,
+        perFold: [], meanIs: null, meanOos: null, gap: null
+      };
+      deflatedEvidence = {
+        trialCount: Math.max(1, Math.floor(trialCount)), grossSharpe: null, discount: null, deflatedSharpe: null,
+        survivesDeflation: false,
+        method: "No focus instrument in the selected universe yields usable out-of-sample data."
+      };
+    }
+
+    return {
+      rule: rule,
+      universe: universeKey,
+      folds: folds,
+      embargo: embargo,
+      cost: costBps,
+      trialCount: Math.max(1, Math.floor(trialCount)),
+      robustnessThreshold: robustnessThreshold,
+      validation: validation,
+      robustness: {
+        universe: universeKey,
+        robustnessThreshold: robustnessThreshold,
+        instrumentCount: selected.length,
+        withData: withData,
+        held: held,
+        heldFraction: roundTo(heldFraction, 6),
+        robust: robust,
+        band: withData ? (heldFraction >= 0.67 ? "robust" : heldFraction >= 0.34 ? "mixed" : "fragile") : "no-data",
+        perInstrument: perInstrument
+      },
+      outOfSample: outOfSample,
+      deflatedEvidence: deflatedEvidence
+    };
+  }
+
+  /* affectsOutputPaths for the walk-forward-validation parameters. Mirrors simple-models.json exactly. */
+  var WALK_FORWARD_VALIDATION_OUTPUT_PATHS = {
+    "rule": ["summary.validation"],
+    "universe": ["summary.robustness"],
+    "folds": ["summary.outOfSample"],
+    "embargo": ["summary.outOfSample"],
+    "cost": ["summary.validation"],
+    "trial-count": ["summary.deflatedEvidence"],
+    "robustness-threshold": ["summary.robustness"]
+  };
+
+  function walkForwardValidationSummaryPath(summary, path) {
+    if (path === "summary.validation") return summary.validation;
+    if (path === "summary.robustness") return summary.robustness;
+    if (path === "summary.outOfSample") return summary.outOfSample;
+    if (path === "summary.deflatedEvidence") return summary.deflatedEvidence;
+    return null;
+  }
+
+  /* ═══════════ walk-forward-validation adapter ═══════════ */
+
+  function walkForwardValidationUniverseHasData(universes) {
+    var keys = Object.keys(universes || {});
+    for (var k = 0; k < keys.length; k++) {
+      var list = universes[keys[k]];
+      if (!Array.isArray(list)) continue;
+      for (var i = 0; i < list.length; i++) {
+        var closes = list[i] && list[i].closes;
+        if (Array.isArray(closes) && closes.length > 120) return true;
+      }
+    }
+    return false;
+  }
+
+  function walkForwardValidationEvidenceState(ownerState) {
+    var hasUniverse = ownerState && ownerState.universes && typeof ownerState.universes === "object" && walkForwardValidationUniverseHasData(ownerState.universes);
+    var hasGoal = ownerState && ownerState.goal && typeof ownerState.goal === "object" && isFiniteNumber(ownerState.goal.minTimeInMarket);
+    var hasLevers = ownerState && ownerState.startLevers && typeof ownerState.startLevers === "object" && isFiniteNumber(ownerState.startLevers.fast);
+    var stamp = ownerState && ownerState.asOf;
+    var hasStamp = typeof stamp === "string" && stamp.length >= 8;
+    return (hasUniverse && hasGoal && hasLevers && hasStamp) ? "ready" : "unavailable";
+  }
+
+  function buildWalkForwardValidationEvidence(api, ownerState) {
+    var state = walkForwardValidationEvidenceState(ownerState);
+    var cutoff = String(ownerState.asOf || "unavailable");
+    var sourceClass = String(ownerState.sourceClass || "model-estimate");
+    var evidence = {
+      contractVersion: "simple-evidence-snapshot/v1",
+      toolId: "strategy-validation-lab",
+      state: state,
+      evidenceCutoff: cutoff,
+      evidenceRefs: [{
+        requirementId: "owner-evidence",
+        evidenceRef: "owner:strategy-validation-lab:universe:" + cutoff,
+        semanticFingerprint: ownerStateFingerprint(api, ownerState),
+        sourceClass: sourceClass,
+        observedAsOf: cutoff,
+        retrievedOrPublishedAt: cutoff,
+        freshness: "cache-current-for-render",
+        dataTier: String(ownerState.source || "instrument closes universe"),
+        valueState: state === "ready" ? "ready" : "unavailable"
+      }],
+      parameterValues: {},
+      assumptions: [
+        "Every out-of-sample number is a walk-forward result over the frozen instrument closes; the trailing embargo purges the rule warm-up window from in-sample.",
+        "The explicit round-trip cost is applied as a post-hoc annual drag assuming an average holding period of " + HOLD_DAYS + " trading days; it never changes the gross owner formula."
+      ],
+      limitations: [
+        "Walk-forward out-of-sample scoring and the trial-count deflation reduce but never eliminate overfitting; synthetic instrument closes are clearly labelled and are not a tradable edge.",
+        "The Simple surviving Sharpe is a bounded trial-count discount; the full Bailey-Lopez de Prado deflated Sharpe remains the Power page's owner statistic."
+      ],
+      invalidationConditions: [
+        "The frozen universe instruments/closes, base levers, goal targets, or walk-forward configuration change."
+      ],
+      evidenceIdentity: null
+    };
+    evidence.evidenceIdentity = evidenceIdentityOf(api, evidence);
+    return evidence;
+  }
+
+  function walkForwardValidationOutput(input, summary) {
+    var scenarioValues = { summary: summary };
+    return {
+      contractVersion: "simple-model-output/v1",
+      state: "ready",
+      values: scenarioValues,
+      scenarios: input.scenarios.map(function (scenario) {
+        return { scenarioId: scenario.scenarioId, state: "ready", values: scenarioValues };
+      }),
+      calibration: {
+        state: "walk-forward-out-of-sample",
+        reason: "Every headline number is a walk-forward out-of-sample result over the frozen owner universe across " + summary.folds + " folds with a " + summary.embargo + "-day embargo."
+      },
+      provenance: { classes: ["observed-fact", "model-estimate"], evidenceIdentity: input.evidenceIdentity },
+      uncertainty: {
+        state: summary.robustness.robust ? "bounded" : "wide",
+        rangeOrBand: summary.robustness.band + " (" + summary.robustness.held + "/" + summary.robustness.withData + " instruments hold the goal)",
+        reason: "The fold/embargo walk-forward and the cross-instrument robustness gate are deterministic over the frozen universe; the surviving Sharpe is discounted for the number of variants tried."
+      },
+      assumptions: [
+        "One mechanical rule is validated at a time; the rule preset changes the owner levers, never the owner engine."
+      ],
+      limitations: [
+        "Out-of-sample robustness is measured over the supplied universe only; a rule that holds here can still fail on unseen instruments or under live costs."
+      ],
+      invalidationConditions: [
+        "The frozen universe, base levers, goal, or walk-forward configuration changes."
+      ],
+      flatRegionProofs: []
+    };
+  }
+
+  function createWalkForwardValidationAdapter(api, definition, ownerByIdentity) {
+    return {
+      contractVersion: "simple-model-adapter/v1",
+      adapterId: definition.adapterId,
+      supportedDefinitionIds: [definition.definitionId],
+      validateDefinition: function (candidate) {
+        return { ok: true, value: candidate };
+      },
+      captureEvidence: function (ownerContext) {
+        if (!ownerContext || typeof ownerContext !== "object") {
+          return { ok: false, error: { reason: "owner context required" } };
+        }
+        var ownerState = ownerContext.ownerState;
+        if (!ownerState || typeof ownerState !== "object" || !ownerState.universes || typeof ownerState.universes !== "object") {
+          return { ok: false, error: { reason: "walk-forward validation universe owner state required" } };
+        }
+        var frozen = deepFreeze(JSON.parse(JSON.stringify(ownerState)));
+        var evidence = buildWalkForwardValidationEvidence(api, frozen);
+        ownerByIdentity.set(evidence.evidenceIdentity, frozen);
+        return { ok: true, value: evidence };
+      },
+      normalizeInputs: function (candidate, evidence, parameterValues, seed, scenarioIds) {
+        return api.normalizeSimpleInput(candidate, evidence, parameterValues, seed, scenarioIds);
+      },
+      compute: function (input) {
+        var ownerState = ownerByIdentity.get(input.evidenceIdentity);
+        if (!ownerState) {
+          return { ok: false, error: { reason: "frozen owner state is unavailable for this evidence identity" } };
+        }
+        var summary = computeWalkForwardValidationSummary(ownerState, paramMap(input));
+        return { ok: true, value: walkForwardValidationOutput(input, summary) };
+      },
+      compareSensitivity: function (baselineInput, currentInput, sharedRandomness) {
+        var ownerState = ownerByIdentity.get(currentInput.evidenceIdentity);
+        if (!ownerState) {
+          return { ok: false, error: { reason: "frozen owner state is unavailable for sensitivity" } };
+        }
+        var baselineValues = paramMap(baselineInput);
+        var currentValues = paramMap(currentInput);
+        var baselineSummary = computeWalkForwardValidationSummary(ownerState, baselineValues);
+        var currentSummary = computeWalkForwardValidationSummary(ownerState, currentValues);
+        var effects = [];
+        Object.keys(currentValues).forEach(function (parameterId) {
+          if (baselineValues[parameterId] === currentValues[parameterId]) return;
+          var paths = WALK_FORWARD_VALIDATION_OUTPUT_PATHS[parameterId] || [];
+          var changed = paths.some(function (path) {
+            return fingerprintOf(api, walkForwardValidationSummaryPath(baselineSummary, path)) !== fingerprintOf(api, walkForwardValidationSummaryPath(currentSummary, path));
+          });
+          effects.push({
+            parameterId: parameterId,
+            oldValue: baselineValues[parameterId],
+            newValue: currentValues[parameterId],
+            direction: (typeof currentValues[parameterId] === "number" && typeof baselineValues[parameterId] === "number")
+              ? (currentValues[parameterId] > baselineValues[parameterId] ? "higher" : "lower")
+              : "changed",
+            magnitude: (typeof currentValues[parameterId] === "number" && typeof baselineValues[parameterId] === "number")
+              ? (Math.abs(currentValues[parameterId] - baselineValues[parameterId]) || 1)
+              : 1,
+            nonlinear: false,
+            resultPaths: paths,
+            outputChanged: changed,
+            flatRegionProof: changed ? null : {
+              parameterId: parameterId,
+              resultPaths: paths,
+              reason: "The frozen owner universe yields an identical value on these paths for this parameter change."
+            }
+          });
+        });
+        return {
+          ok: true,
+          value: {
+            contractVersion: "simple-sensitivity/v1",
+            sharedRandomness: sharedRandomness,
+            seedChanged: baselineInput.seed !== currentInput.seed,
+            effects: effects
+          }
+        };
+      },
+      projectOwnerEvidence: function (output) {
+        var summary = output.values.summary;
+        var v = summary.validation;
+        return {
+          ok: true,
+          value: {
+            contractVersion: "owner-evidence-projection/v1",
+            state: output.state,
+            valueText: summary.robustness.robust
+              ? ("Robust (" + summary.robustness.held + "/" + summary.robustness.withData + " hold)")
+              : ("Fragile (" + summary.robustness.held + "/" + summary.robustness.withData + " hold)"),
+            numericValue: (v && v.net) ? v.net.sharpe : null,
+            unit: "net-oos-sharpe",
+            summary: (v && v.focusSymbol)
+              ? ("The " + summary.rule + " rule on " + v.focusSymbol + " nets a " + (v.net ? v.net.sharpe : "—") + " OOS Sharpe after a " + summary.cost + "bp round-trip cost; " + summary.robustness.held + "/" + summary.robustness.withData + " " + summary.universe + " instruments hold the goal.")
+              : ("No instrument in the " + summary.universe + " universe yields usable out-of-sample data."),
+            sourceRefs: ["owner-evidence"]
+          }
+        };
+      }
+    };
+  }
+
   /* ═══════════ registration ═══════════
      Build every implemented strategy adapter for the supplied definitions. A tool whose owner seam is not
      yet extracted is simply absent, so the shared runtime renders the explicit unavailable state for it. */
@@ -1013,6 +1478,10 @@
       var disclosureDefinition = byToolId["smart-money-flow-lab"];
       adapters[disclosureDefinition.adapterId] = createDisclosureDecayAdapter(api, disclosureDefinition, ownerByIdentity);
     }
+    if (byToolId["strategy-validation-lab"]) {
+      var validationDefinition = byToolId["strategy-validation-lab"];
+      adapters[validationDefinition.adapterId] = createWalkForwardValidationAdapter(api, validationDefinition, ownerByIdentity);
+    }
     return adapters;
   }
 
@@ -1030,7 +1499,7 @@
   return {
     contractVersion: "strategy-research-adapters/v1",
     module: "rlexperience-adapters/strategy-research.js",
-    supportedAdapterIds: ["simple-adapter/strategy-evolution/v1", "simple-adapter/disclosure-decay/v1"],
+    supportedAdapterIds: ["simple-adapter/strategy-evolution/v1", "simple-adapter/disclosure-decay/v1", "simple-adapter/walk-forward-validation/v1"],
     mulberry32: mulberry32,
     gauss: gauss,
     genSeries: genSeries,
@@ -1046,6 +1515,12 @@
     consensusScore: consensusScore,
     realisticEdgeFraction: realisticEdgeFraction,
     computeDisclosureDecaySummary: computeDisclosureDecaySummary,
+    seriesFromCloses: seriesFromCloses,
+    buyHoldCurve: buyHoldCurve,
+    walkForwardEmbargo: walkForwardEmbargo,
+    scorePass: scorePass,
+    allPass: allPass,
+    computeWalkForwardValidationSummary: computeWalkForwardValidationSummary,
     createStrategyResearchAdapters: createStrategyResearchAdapters,
     registerStrategyResearchAdapters: registerStrategyResearchAdapters
   };

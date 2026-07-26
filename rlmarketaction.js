@@ -1334,6 +1334,67 @@
     });
   }
 
+  /* ── single-sourced Red Alert render (Scope 12 Center wiring) ──
+     Turn a red-alert-projection/v1 into a SAFE, escaped HTML fragment for the
+     Market Action Center's Red Alert view. This is the SINGLE source of the Red
+     Alert presentation — no page duplicates the copy, the field layout, the
+     restrained severity text, or the admission-score labelling. It renders the
+     qualified rows' falsifiable fields, the honest empty state, and the SAFE
+     rejection counts (never a rejected thesis), plus the always-on live-publication
+     dependency-pending gate. It carries no flashing/pulse/alert-role/execute verb;
+     the admission score is labelled an admission score, never a probability,
+     confidence, or crash-odds. */
+  function renderRedAlertProjection(projection) {
+    return capture(function () {
+      if (!isPlainObject(projection) || projection.contractVersion !== RED_ALERT_CONTRACT.projection) reject("RLMKT-REDALERT", "$", "renderRedAlertProjection requires a red-alert-projection/v1");
+      function esc(s) { return (s == null ? "" : String(s)).replace(/[&<>"]/g, function (c) { return { "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;" }[c]; }); }
+      var methodRef = projection.emptyState ? projection.emptyState.methodRef : RED_ALERT_METHOD_REF;
+      var parts = ['<h2>Red Alert — latent risk</h2>'];
+      parts.push('<p class="sub" data-mac-redalert-method>Restrained latent-risk screening. Each total below is an <b>admission score</b> — a research-admission threshold only. Method: <code>' + esc(methodRef) + '</code>.</p>');
+      projection.visibleAlerts.forEach(function (a) {
+        var fields = [
+          ["why-now", a.whyNow], ["trigger", a.trigger], ["invalidation", a.invalidation],
+          ["monitoring", a.monitoring], ["resolution", a.resolution], ["horizon", a.horizon], ["uncertainty", a.uncertainty]
+        ];
+        var fieldHtml = fields.map(function (f) { return '<div data-mac-redalert-field="' + esc(f[0]) + '"><b>' + esc(f[0]) + ':</b> ' + esc(f[1]) + '</div>'; }).join("");
+        var propagation = a.propagation.map(function (e) { return esc(e.from) + " to " + esc(e.to); }).join(", ");
+        var actions = a.researchActions.map(function (r) { return '<li data-mac-redalert-action="' + esc(r.verb) + '">' + esc(r.verb) + " — " + esc(r.detail) + "</li>"; }).join("");
+        parts.push(
+          '<article data-mac-redalert-alert data-mac-redalert-key="' + esc(a.semanticKey) + '" data-mac-redalert-flashing="false" data-mac-redalert-pulse="false" data-mac-redalert-role="none" data-mac-redalert-execute="false">' +
+          '<h3 data-mac-redalert-severity data-mac-redalert-severity-level="' + esc(a.severityLevel) + '">' + esc(a.severityLabel) + " — restrained latent-risk screen</h3>" +
+          '<div data-mac-redalert-thesis>' + esc(a.thesis) + "</div>" +
+          fieldHtml +
+          '<div data-mac-redalert-likelihood>likelihood interval: ' + esc(a.likelihoodInterval[0]) + " to " + esc(a.likelihoodInterval[1]) + "</div>" +
+          '<div data-mac-redalert-assets>affected: ' + esc(a.affectedAssets.join(", ")) + "</div>" +
+          '<div data-mac-redalert-exposure>exposure: ' + esc(a.exposureClasses.join(", ")) + "</div>" +
+          '<div data-mac-redalert-propagation>propagation: ' + propagation + "</div>" +
+          '<div data-mac-redalert-channels>channels: ' + esc(a.channels.join(", ")) + "</div>" +
+          '<div data-mac-redalert-citations data-mac-redalert-origin-count="' + esc(a.independentOriginGroupCount) + '">independent citations: ' + esc(a.claimRefs.length) + " claim reference(s) across " + esc(a.independentOriginGroupCount) + " independent origin group(s)</div>" +
+          '<div data-mac-redalert-owner-evidence data-mac-redalert-owner-count="' + esc(a.ownerMarketEvidenceRefs.length) + '">owner market evidence: ' + esc(a.ownerMarketEvidenceRefs.join(", ")) + "</div>" +
+          '<div data-mac-redalert-score data-mac-redalert-score-label="admission score" data-mac-redalert-score-value="' + esc(a.admissionScore) + '"><b>admission score:</b> ' + esc(a.admissionScore) + " / 100 (research-admission threshold)</div>" +
+          '<ul data-mac-redalert-actions>' + actions + "</ul>" +
+          "</article>"
+        );
+      });
+      if (projection.emptyState) {
+        var es = projection.emptyState;
+        parts.push(
+          '<div data-mac-redalert-empty data-mac-redalert-cutoff="' + esc(es.cutoffAt) + '">' +
+          '<p data-mac-redalert-empty-statement>' + esc(es.statement) + "</p>" +
+          '<p class="sub" data-mac-redalert-empty-coverage>Cutoff <code>' + esc(es.cutoffAt) + "</code>. Channels reviewed: " + esc(es.channelsReviewed.length ? es.channelsReviewed.join(", ") : "none") + ". Owner coverage: " + esc(es.ownerCoverage.anomalySeedCount) + " anomaly seed(s) across " + esc(es.ownerCoverage.toolsConsulted.length) + " owner tool(s). Rejections this window: " + esc(es.rejectionCount) + " (safe count only). Method: <code>" + esc(es.methodRef) + "</code>.</p>" +
+          "</div>"
+        );
+      }
+      var rc = (projection.rejections && projection.rejections.byReasonClass) ? projection.rejections.byReasonClass : {};
+      if (projection.rejections && projection.rejections.count > 0) {
+        var summary = Object.keys(rc).sort().map(function (k) { return esc(k) + " x" + esc(rc[k]); }).join(", ");
+        parts.push('<p class="sub" data-mac-redalert-rejections data-mac-redalert-rejection-count="' + esc(projection.rejections.count) + '">Screened out this window (safe counts only, no rejected title shown): ' + summary + ".</p>");
+      }
+      parts.push('<p class="sub" data-mac-redalert-gate data-mac-gate="dependency-pending:feature-002" data-mac-redalert-publication="' + esc(projection.publicationState) + '">Live Red Alert publication is <b>dependency-pending</b> — gated to Feature 002 (Scope 12). This view renders the local qualification only; nothing goes live.</p>');
+      return { contractVersion: "red-alert-render/v1", html: parts.join("") };
+    });
+  }
+
   /* ═══════════ frozen public API ═══════════ */
 
   return {
@@ -1373,6 +1434,7 @@
     qualifyRedAlerts: qualifyRedAlerts,
     validateRedAlert: validateRedAlert,
     validateRedAlertProjection: validateRedAlertProjection,
-    buildLatentRiskEvidence: buildLatentRiskEvidence
+    buildLatentRiskEvidence: buildLatentRiskEvidence,
+    renderRedAlertProjection: renderRedAlertProjection
   };
 });

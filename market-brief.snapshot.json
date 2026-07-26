@@ -1,16 +1,16 @@
 {
-  "asOf": "2026-07-26T11:18:17.174Z",
-  "generatedAt": "2026-07-26T11:18:17.174Z",
+  "asOf": "2026-07-26T14:51:45.988Z",
+  "generatedAt": "2026-07-26T14:51:45.988Z",
   "window": "pre-market",
   "marketClosed": true,
   "nextSessionDate": "2026-07-27",
   "dataFreshness": {
     "bars": {
-      "updated": "2026-07-26T11:18:13.788Z",
+      "updated": "2026-07-26T14:51:36.792Z",
       "count": 285
     },
     "options": {
-      "updated": "2026-07-26T11:18:16.788Z",
+      "updated": "2026-07-26T14:51:45.404Z",
       "count": 22
     }
   },
@@ -519,7 +519,7 @@
   "toolReads": {
     "sector-research-lab": {
       "id": "sector-research-lab",
-      "asOf": "2026-07-26T11:18:17.155Z",
+      "asOf": "2026-07-26T14:51:45.956Z",
       "read": "Rotate toward XLE as XLV weakens.",
       "metrics": {
         "into": {
@@ -572,7 +572,7 @@
     },
     "etf-momentum-lab": {
       "id": "etf-momentum-lab",
-      "asOf": "2026-07-26T11:18:17.159Z",
+      "asOf": "2026-07-26T14:51:45.961Z",
       "read": "ETF momentum model unavailable this run.",
       "metrics": {
         "error": "RLMACROROTATION is not defined"
@@ -646,13 +646,13 @@
           {
             "ticker": "EWT",
             "country": "Taiwan",
-            "score": 59.2,
+            "score": 59.3,
             "rel21": -5.07,
             "rel63": 12.39,
             "rel126": 40.15,
             "trend": "Mixed",
             "fx": "FX headwind",
-            "fxStrength": -2.62,
+            "fxStrength": -2.56,
             "vol": 42.41,
             "maxDrawdown": 13.98,
             "asOf": "2026-07-23T13:30:00.000Z"
@@ -694,7 +694,7 @@
     "real-assets-lab": {
       "id": "real-assets-lab",
       "asOf": "2026-07-23T13:30:00.000Z",
-      "read": "PDBC leads real assets at 70.6/100; GLD 14, BTC 38.6, SLV 0.",
+      "read": "PDBC leads real assets at 70.6/100; GLD 14, BTC 39, SLV 0.",
       "metrics": {
         "leader": {
           "ticker": "PDBC",
@@ -964,7 +964,7 @@
                   "TLT",
                   "TIP"
                 ],
-                "score": 46.415230268944434,
+                "score": 46.41525369365017,
                 "detail": "TLT direction plus TIP-vs-TLT is a rough rate mix, not a direct real-yield series."
               }
             ],
@@ -1013,12 +1013,12 @@
           "BTC-USD": {
             "ticker": "BTC-USD",
             "model": "bitcoin",
-            "score": 38.6,
+            "score": 39,
             "trend": "Downtrend",
-            "mom21": 1.43,
-            "mom63": -16.27,
-            "mom126": -4.99,
-            "vol": 36.4,
+            "mom21": 1.73,
+            "mom63": -16.03,
+            "mom126": -4.72,
+            "vol": 36.41,
             "maxDrawdown": 28.71,
             "riskPenalty": 5.68,
             "confirmations": [

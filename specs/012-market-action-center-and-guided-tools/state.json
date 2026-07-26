@@ -3,7 +3,7 @@
   "featureDir": "specs/012-market-action-center-and-guided-tools",
   "featureName": "Market Action Center and Guided Tools",
   "createdAt": "2026-07-22T03:40:01Z",
-  "lastUpdatedAt": "2026-07-26T17:20:00Z",
+  "lastUpdatedAt": "2026-07-26T18:20:00Z",
   "status": "not_started",
   "workflowMode": "full-delivery",
   "linkedImplementationSpec": null,
@@ -27,6 +27,14 @@
     "runStartedAt": "2026-07-24T03:30:00Z",
     "completedAt": null,
     "completedPhaseClaims": [
+      {
+        "scope": "09-public-matrix-market-action-scaffold",
+        "phase": "implement",
+        "agent": "bubbles.implement",
+        "claimedAt": "2026-07-26T18:20:00Z",
+        "evidence": "scopes/09-public-matrix-market-action-scaffold/report.md#tp-09-03",
+        "summary": "Scope 09 implement BATCH 2 of 2 (code + tests COMPLETE; execution claim, NOT a self-certified completed phase -- bubbles.test finalizes). Delivered the two remaining Test Plan files against the already-shipped visible rename (commit 380812b4): tests/market-action-consumer-trace.mjs (TP-09-03) + tests/market-action-center.spec.mjs (TP-09-04..07). repo-binding-preflight --agent-source research-lab exit 0 first. TP-09-03 consumer-trace 5/5 exit 0: enumerates the whole repo (1966 files scanned, 278 with occurrences, 881 old-visible + 1384 identity refs) and classifies every occurrence into immutable-history(1763) / routed-to-Scope-14-docs(87) / explicit-compat-alias(6) / in-scope-source-tests(409) -- 0 blocking-stale-references; the blocking rule is a STRUCTURAL primary-identity check (page title/h1, tools.json title+nav.label, index card title, rlnav label) plus a singular-route/id guard; the adversarial sub-test reverts the <title> IN-MEMORY and proves the SAME classifier reports exactly 1 blocking ref (non-tautological, no disk mutation). All 4 primary surfaces read 'Market Action Center'; route/file market-brief.html + registry id market-brief + payload IDs + publicAliases preserved and singular. TP-09-04..07 live-stack system-chrome 4/4 exit 0 against the REAL market-brief.html route + REAL four-view shell rlviews.js + REAL Center controller, ZERO request interception (passive storage-API observation only; no-interception scan clean; regression-quality-guard 0 violations): SCN-012-017 title/h1 + exactly 4 tabs [brief,portfolio,red-alert,journey] + route/id registered + #simple/#power -> #brief boot-replaceState + #power opens the evidence disclosure + Back/Forward restore exact tab + bare bookmark boots Brief; SCN-012-019 driving the REAL renderCenterNoAction with complete-coverage/zero-action -> exact no-action statement + no fabricated action/catalyst/confidence + admitted-action suppression (adversarial) + closed disclosure; SCN-012-022 every public row 'Public watchlist' + closed explicit cells + no private field/copy + Feature-008 overlay gate + live matrix privacyAssertion feature008KeyRead/Created=false + storage sentinel 0 private key read/created; TP-09-07 legacy hashes safe + legacy-market-brief-payload provenance + authored-v2 Feature-002 gate + 4 ET windows + Red Alert empty+Feature-002 gate + 4 journey goals+Feature-008 stress gate + closed evidence. Regression guards: selftest 945/0, validate-brief-payload PASS, watchlist.json byte-unchanged, artifact-lint PASSED. Committed f2049709 (consumer-trace), c5de975b (e2e); git add scoped to the 2 changed files, concurrent BUG-001 scenario-manifest.json preserved. All 8 Test Plan rows GREEN. Scope 09 stays in_progress; Feature status not_started / certifiedAt null / certification.status not_started UNTOUCHED. nextRequiredOwner bubbles.test."
+      },
       {
         "scope": "09-public-matrix-market-action-scaffold",
         "phase": "implement",
@@ -117,8 +125,8 @@
       }
     ],
     "pendingTransitionRequests": [],
-    "nextRequiredOwner": "bubbles.implement",
-    "nextRequiredTarget": "Scope 08 (Journey Capability Runtime And All-Tool Definitions) is DONE and independently verified by bubbles.test: all 10 Test Plan rows reproduced GREEN in-session (TP-08-01 12/12, TP-08-02 7/7, TP-08-03 11/11, TP-08-04..08 each 1 passed + full spec 6/6, TP-08-09 1 passed, TP-08-10 939/0 -- all exit 0); the six no-execution/no-interception/SCN-012-032-coverage/config-no-JS+gate/RED-bite/forbidden-authority checks all pass; F-08-REPORT-STALE closed (report Summary/Completion/Decision reconciled, TP-08-10 934->939, TP-08-04..08 evidence blocks written). Next scope 09 (Public Matrix And Market Action Center Scaffold), next owner bubbles.implement. Feature status not_started / certifiedAt null / certification.status not_started remain UNTOUCHED (Scope 8 of 14).",
+    "nextRequiredOwner": "bubbles.test",
+    "nextRequiredTarget": "Scope 09 (Public Matrix And Market Action Center Scaffold) implement is COMPLETE (code + all 8 Test Plan rows GREEN in-session): the pure rlmarketaction.js module + validator (batch 1) plus the consumer-trace (TP-09-03 5/5) and live-stack system-chrome e2e (TP-09-04..07 4/4) tests (batch 2, commits f2049709 + c5de975b) prove the rename / exact four views / legacy-hash / no-action / public-watchlist-row / dependency-gate contracts against the REAL stack with zero interception; regression guards hold (selftest 945/0, validate-brief-payload PASS, no-interception clean, regression-quality-guard 0 violations, artifact-lint PASSED). Scope 09 stays in_progress; next owner bubbles.test to independently verify the 8 rows + finalize the grouped Build Quality Gate + DoD before Done. Feature status not_started / certifiedAt null / certification.status not_started remain UNTOUCHED (Scope 9 of 14).",
     "scopeProgress": [
       {
         "scope": 1,

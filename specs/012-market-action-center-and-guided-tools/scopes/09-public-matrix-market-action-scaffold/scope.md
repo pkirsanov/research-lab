@@ -150,22 +150,22 @@ Write the route/title/four-tab, no-action, public-scope/no-holding, and consumer
 
 #### Core Delivery Items
 
-- [ ] Existing route/ID/bookmarks remain functional under visible Market Action Center naming and exactly four top-level views, with zero stale first-party consumer references.
-- [ ] Brief retains current windows/action gates/provenance and truthful no-action while long context is closed and integrated v2 claims remain gated.
-- [ ] Public matrix is registry-derived, scope-labeled, gap-honest, read-only, and contains no private/holding inference or parallel store.
-- [ ] Rename/scaffold rollback restores prior visible behavior without changing payload/history/watchlist/local data.
+- [x] Existing route/ID/bookmarks remain functional under visible Market Action Center naming and exactly four top-level views, with zero stale first-party consumer references. → Evidence: [report.md#scenario-scn-012-017](report.md#scenario-scn-012-017), [report.md#tp-09-03](report.md#tp-09-03)
+- [x] Brief retains current windows/action gates/provenance and truthful no-action while long context is closed and integrated v2 claims remain gated. → Evidence: [report.md#scenario-scn-012-019](report.md#scenario-scn-012-019), [report.md#tp-09-07](report.md#tp-09-07)
+- [x] Public matrix is registry-derived, scope-labeled, gap-honest, read-only, and contains no private/holding inference or parallel store. → Evidence: [report.md#scenario-scn-012-022](report.md#scenario-scn-012-022), [report.md#tp-09-02](report.md#tp-09-02)
+- [ ] Rename/scaffold rollback restores prior visible behavior without changing payload/history/watchlist/local data. → rollback capability not executed this implement dispatch; owned by `bubbles.test`.
 
 #### Test Evidence Items - Exact Parity With 8 Test Plan Rows
 
-- [ ] TP-09-01 unit evidence proves Center/public-matrix/compatibility/no-action contracts.
-- [ ] TP-09-02 functional evidence proves actual public projection and no private/write behavior.
-- [ ] TP-09-03 consumer-trace evidence proves zero stale/duplicate first-party route/name consumers.
-- [ ] TP-09-04 E2E evidence proves SCN-012-017 route/name/exact-four-view compatibility.
-- [ ] TP-09-05 E2E evidence proves SCN-012-019 truthful no-action.
-- [ ] TP-09-06 E2E evidence proves SCN-012-022 no holding inference.
-- [ ] TP-09-07 E2E evidence proves legacy hashes/payload/windows/gates/disclosures remain truthful.
-- [ ] TP-09-08 broad selftest evidence proves existing Research Lab behavior remains green.
+- [x] TP-09-01 unit evidence proves Center/public-matrix/compatibility/no-action contracts. → Evidence: [report.md#tp-09-01](report.md#tp-09-01)
+- [x] TP-09-02 functional evidence proves actual public projection and no private/write behavior. → Evidence: [report.md#tp-09-02](report.md#tp-09-02)
+- [x] TP-09-03 consumer-trace evidence proves zero stale/duplicate first-party route/name consumers. → Evidence: [report.md#tp-09-03](report.md#tp-09-03)
+- [x] TP-09-04 E2E evidence proves SCN-012-017 route/name/exact-four-view compatibility. → Evidence: [report.md#scenario-scn-012-017](report.md#scenario-scn-012-017)
+- [x] TP-09-05 E2E evidence proves SCN-012-019 truthful no-action. → Evidence: [report.md#scenario-scn-012-019](report.md#scenario-scn-012-019)
+- [x] TP-09-06 E2E evidence proves SCN-012-022 no holding inference. → Evidence: [report.md#scenario-scn-012-022](report.md#scenario-scn-012-022)
+- [x] TP-09-07 E2E evidence proves legacy hashes/payload/windows/gates/disclosures remain truthful. → Evidence: [report.md#tp-09-07](report.md#tp-09-07)
+- [x] TP-09-08 broad selftest evidence proves existing Research Lab behavior remains green. → Evidence: [report.md#tp-09-08](report.md#tp-09-08)
 
 #### Build Quality Gate
 
-- [ ] Scenario RED/GREEN, exact system-Chrome identity, no-interception scan, full consumer trace/stale-reference scan, payload validator, public/private sentinel scan, accessibility/mobile/focus checks, protected-path diff, editor diagnostics, `git diff --check`, source-lock, registry/market-action validators, artifact lint, and broad selftest are current and clean.
+- [ ] Scenario RED/GREEN, exact system-Chrome identity, no-interception scan, full consumer trace/stale-reference scan, payload validator, public/private sentinel scan, accessibility/mobile/focus checks, protected-path diff, editor diagnostics, `git diff --check`, source-lock, registry/market-action validators, artifact lint, and broad selftest are current and clean. → in-session partials clean (no-interception scan, consumer trace, payload validator, storage sentinel, market-action validator, artifact lint, selftest 945/0, regression-quality-guard 0 violations); the grouped gate + certification is owned by `bubbles.test`.

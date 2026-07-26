@@ -854,6 +854,30 @@ function companyOwnerFixture() {
   };
 }
 
+/* msft-margin-eps owner fixture (verbatim from the unit suite): a FROZEN static-model snapshot whose
+   `bridge` carries the decimal FY26 facts + FY27 growth/margin levers the owner page already computes,
+   the frozen `depreciationBase` (FY26 D&A) the depreciation-growth + capex-phase levers scale into the
+   FY27 incremental depreciation step, and the two owner-computed Q4 FY26 OM `anchors` the earnings-anchor
+   lever selects between. The adapter recomputes only from these frozen owner facts through the
+   SINGLE-SOURCE FY26->FY27 bridge (RLFUNDAMENTALS.msftAnnualBridge). */
+function msftOwnerFixture() {
+  return {
+    contractVersion: 'msft-margin-eps-owner-state/v1',
+    toolId: 'msft-july-print-model',
+    asOf: '2026-07-24T20:00:00.000Z',
+    source: 'static model snapshot',
+    bridge: {
+      revFY26: 330, om26: 0.46,
+      vol: 0.10, prc: 0.05, churn: 0.02, fx: -0.01,
+      pm: 0.95, vm: 0.65, cm: 0.75, opexI: 0.12,
+      dDep: 20,
+      oi: 2, tax: 0.20, sh: 7.5, pe: 30
+    },
+    depreciationBase: 40,
+    anchors: { consensus: 0.46, seasonality: 0.44 }
+  };
+}
+
 function makeScope6Descriptors(mr, fm) {
   return {
     'sector-research-lab': {
@@ -998,6 +1022,30 @@ function makeScope6Descriptors(mr, fm) {
         ['margin-change', 5],
         ['evidence-gap-policy', 'refuse'],
         ['lineage-cutoff', 10]
+      ]
+    },
+    'msft-july-print-model': {
+      ownerState: () => msftOwnerFixture(),
+      base: (definition) => defaultValues(definition),
+      ownerFact: ({ summary, owner, base }) => {
+        // Owner parity: the margin/EPS/valuation summary is the SINGLE-SOURCE bridge
+        // (RLFUNDAMENTALS.msftAnnualBridge) run on the default-param scenario inputs
+        // (computeMsftBridgeInputs) — not a re-implementation.
+        const inputs = fm.computeMsftBridgeInputs(owner, base);
+        const bridge = fm.msftAnnualBridge(inputs);
+        assert.equal(summary.margin.om27, Math.round(bridge.OM27 * 1e6) / 1e6, 'margin OM27 is single-sourced from msftAnnualBridge');
+        assert.equal(summary.margin.oi27, Math.round(bridge.OI27 * 1e6) / 1e6, 'margin OI27 is single-sourced from msftAnnualBridge');
+        assert.equal(summary.eps.eps27, Math.round(bridge.EPS27 * 1e6) / 1e6, 'EPS27 is single-sourced from msftAnnualBridge');
+        assert.equal(summary.valuation.impliedPrice, Math.round(bridge.implied * 1e6) / 1e6, 'implied price is single-sourced from msftAnnualBridge');
+      },
+      cases: () => [
+        ['depreciation-growth', 40],
+        ['mix-shift', 8],
+        ['fx-impact', 5],
+        ['memory-cost-impact', 6],
+        ['capex-phase', 'early'],
+        ['earnings-anchor', 'seasonality'],
+        ['valuation-multiple', 50]
       ]
     }
   };

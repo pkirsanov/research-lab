@@ -322,6 +322,38 @@ test('SCN-012-035 macro and fundamental source qualification: the macro-rotation
   assert.equal(crossDomain.test(source), false, 'macro-rotation.js must import no other domain adapter');
 });
 
+test('SCN-012-035 macro and fundamental source qualification: the fundamental-models module invokes no fetch, provider, storage, author, publication, or cross-domain path', () => {
+  const source = stripComments(FUNDAMENTAL_MODELS_RAW);
+  const forbidden = [
+    /\bfetch\s*\(/,
+    /\bproviderFetch\s*\(/,
+    /\bRLDATA\b/,
+    /\blocalStorage\b/,
+    /\bsessionStorage\b/,
+    /\bindexedDB\b/,
+    /\bXMLHttpRequest\b/,
+    /\bWebSocket\b/,
+    /\bEventSource\b/,
+    /sendBeacon/,
+    /\bimport\s*\(/,
+    /\bwriteFileSync\b/,
+    /\bwriteFile\b/,
+    /\bmkdirSync\b/,
+    /data\/options/,
+    /data\/bars/,
+    /query[12]\.finance\.yahoo\.com/,
+    /corsproxy/,
+    /allorigins/,
+    /codetabs/,
+    /twelvedata/i
+  ];
+  for (const pattern of forbidden) {
+    assert.equal(pattern.test(source), false, `fundamental-models.js must contain no ${pattern}`);
+  }
+  const crossDomain = /rlexperience-adapters\/(market-structure|options|macro-rotation|strategy-research|property-research|market-action)/;
+  assert.equal(crossDomain.test(source), false, 'fundamental-models.js must import no other domain adapter');
+});
+
 test('SCN-012-035 macro and fundamental source qualification: the delivered sector-rotation adapter performs zero fetch/provider/storage at runtime', async () => {
   const api = loadProductionApi();
   const mr = loadMacroRotation();

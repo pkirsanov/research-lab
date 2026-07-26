@@ -3,7 +3,7 @@
   "featureDir": "specs/012-market-action-center-and-guided-tools",
   "featureName": "Market Action Center and Guided Tools",
   "createdAt": "2026-07-22T03:40:01Z",
-  "lastUpdatedAt": "2026-07-25T21:30:00Z",
+  "lastUpdatedAt": "2026-07-26T00:00:00Z",
   "status": "not_started",
   "workflowMode": "full-delivery",
   "linkedImplementationSpec": null,
@@ -54,7 +54,7 @@
     ],
     "pendingTransitionRequests": [],
     "nextRequiredOwner": "bubbles.implement",
-    "nextRequiredTarget": "Continue Scope 06: all 8 of 8 adapters delivered and unit/selftest-verified (macro-rotation.js: sector-rotation-transition/v1, country-rotation/v1, real-asset-driver/v1, fixed-income-sleeve/v1, etf-ranking/v1; fundamental-models.js: ai-capex-portfolio/v1, company-scenario-bridge/v1, msft-margin-eps/v1 — supportedAdapterIds now lists all three fundamental adapters). Remaining: all-8 registry-integration (TP-06-02) + source-ownership (TP-06-03) coverage and the persistent per-tool E2E rows TP-06-04..TP-06-11, then bubbles.test verification and Scope-06 DoD finalization.",
+    "nextRequiredTarget": "Scope 06 stays in_progress. bubbles.test independently re-verified (HEAD 9c990e27) the four node suites GREEN from scratch: TP-06-01 unit 51/51, TP-06-02 integration 5/5, TP-06-03 source-ownership functional 18/18, TP-06-12 broad selftest 895/0 (all exit 0); plus the 8-page single-source audit (every owner page loads its module + references the global), 0-executable forbidden-authority on both modules, protected-path byte-diff empty, and an owner-parity RED-bite (neutralized sleeveTotalReturn convexity -> RED exit 1, restored byte-identical sha256 c2e07d81 -> GREEN exit 0). The 3 Core DoD items + the 4 node Test-Evidence rows (TP-06-01/02/03/12) are reconciled [x]. REMAINING (blocking Scope-06 done): the eight persistent per-tool E2E rows TP-06-04..TP-06-11 are UNDELIVERED -- the spec file tests/simple-model-adapters-macro-fundamental.spec.mjs does not exist and was never authored or run. bubbles.implement must author + run those 8 system-Chrome E2E rows (mirroring the delivered Scope-05 spec simple-model-adapters-market.spec.mjs), after which bubbles.test re-verifies TP-06-04..11 and finalizes the Scope-06 DoD + status.",
     "scopeProgress": [
       {
         "scope": 1,

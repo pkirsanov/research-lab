@@ -134,16 +134,16 @@ Write the bulk eight-tool loop and each exact browser title before adapter work.
 
 #### Core Delivery Items
 
-- [ ] SCN-012-035: All eight Scope 06 adapters execute actual owner logic, every enabled parameter affects a declared result or explicit flat region, and every Simple question is distinct from Power.
-- [ ] Source/statement/model/market/retrieval clocks, gaps, partial/disputed states, provenance, uncertainty, and owner facts remain truthful and aligned.
-- [ ] Scope 05 registrations/fingerprints and all existing owner behavior remain unchanged; no formula, fetch, default, or source owner is duplicated.
+- [x] SCN-012-035: All eight Scope 06 adapters execute actual owner logic, every enabled parameter affects a declared result or explicit flat region, and every Simple question is distinct from Power. → Evidence: [report.md#iv-tp-06-01](report.md#iv-tp-06-01) (51/51: all 8 register + run + each enabled parameter moves its declared output path), [report.md#iv-tp-06-02](report.md#iv-tp-06-02) (registry loop owner-parity + parameter effects).
+- [x] Source/statement/model/market/retrieval clocks, gaps, partial/disputed states, provenance, uncertainty, and owner facts remain truthful and aligned. → Evidence: [report.md#iv-tp-06-03](report.md#iv-tp-06-03) (18/18: frozen clocks preserved, missing evidence stays unavailable, no default substitution).
+- [x] Scope 05 registrations/fingerprints and all existing owner behavior remain unchanged; no formula, fetch, default, or source owner is duplicated. → Evidence: [report.md#iv-tp-06-02](report.md#iv-tp-06-02) (Scope-05 fingerprint unchanged), 8-page single-source audit + forbidden-authority (0 executable) + protected-path byte-diff (empty) + [report.md#iv-tp-06-12](report.md#iv-tp-06-12) (selftest 895/0).
 
 #### Test Evidence Items - Exact Parity With 12 Test Plan Rows
 
-- [ ] TP-06-01 unit evidence proves all eight contract and adversarial invariants.
-- [ ] TP-06-02 integration evidence proves the cumulative registry loop, parameter effects, owner parity, and Scope 05 stability.
-- [ ] TP-06-03 functional evidence proves source qualification, clocks, gaps, and zero forbidden acquisition/default behavior.
-- [ ] TP-06-04 E2E evidence proves sector-rotation parameter effect.
+- [x] TP-06-01 unit evidence proves all eight contract and adversarial invariants. → Evidence: [report.md#iv-tp-06-01](report.md#iv-tp-06-01) (51/51, exit 0; independently re-run).
+- [x] TP-06-02 integration evidence proves the cumulative registry loop, parameter effects, owner parity, and Scope 05 stability. → Evidence: [report.md#iv-tp-06-02](report.md#iv-tp-06-02) (5/5, exit 0; independently re-run).
+- [x] TP-06-03 functional evidence proves source qualification, clocks, gaps, and zero forbidden acquisition/default behavior. → Evidence: [report.md#iv-tp-06-03](report.md#iv-tp-06-03) (18/18, exit 0; independently re-run).
+- [ ] TP-06-04 E2E evidence proves sector-rotation parameter effect. → GAP: spec file `tests/simple-model-adapters-macro-fundamental.spec.mjs` does not exist; never authored/run (see [report.md](report.md) E2E gap). Routed to bubbles.implement.
 - [ ] TP-06-05 E2E evidence proves global-rotation parameter effect and FX/session truth.
 - [ ] TP-06-06 E2E evidence proves real-assets owner-driver parameter effect.
 - [ ] TP-06-07 E2E evidence proves bond-regime parameter effect without hiding conflicts.
@@ -151,8 +151,17 @@ Write the bulk eight-tool loop and each exact browser title before adapter work.
 - [ ] TP-06-09 E2E evidence proves AI-capex distribution parameter effect.
 - [ ] TP-06-10 E2E evidence proves MSFT bridge parameter effect.
 - [ ] TP-06-11 E2E evidence proves source-qualified company scenario effect without gap filling.
-- [ ] TP-06-12 broad selftest evidence proves the existing Research Lab baseline remains green.
+- [x] TP-06-12 broad selftest evidence proves the existing Research Lab baseline remains green. → Evidence: [report.md#iv-tp-06-12](report.md#iv-tp-06-12) (895 passed / 0 failed, exit 0; independently re-run).
+
+> **DoD gate note (bubbles.test, HEAD `9c990e27`):** the four node suites (TP-06-01/02/03/12), the 3
+> Core items, the 8-page single-source audit, the 0-executable forbidden-authority scan, the
+> protected-path byte-diff, and the owner-parity RED-bite are independently re-verified green (see
+> [report.md#independent-verification-bubblestest](report.md)). **TP-06-04..TP-06-11 (eight persistent
+> per-tool E2E rows) remain `[ ]`: the spec file `tests/simple-model-adapters-macro-fundamental.spec.mjs`
+> does not exist and was never authored or run.** Under `full-delivery` these E2E rows are required for
+> Scope-06 `done` (sibling Scope 05 ran all eight of its E2E rows in-scope). Routed to `bubbles.implement`
+> to author + run them; Scope 06 stays `in_progress`.
 
 #### Build Quality Gate
 
-- [ ] Per-tool RED/GREEN, exact system-Chrome identity, no-interception scan, owner pre/post parity, cumulative registry loop, parameter-effect/no-effect mutations, evidence-clock and later-evidence guards, forbidden-authority scan, protected-path diff, editor diagnostics, `git diff --check`, source-lock, registry validator, artifact lint, and broad selftest are current and clean.
+- [ ] Per-tool RED/GREEN, exact system-Chrome identity, no-interception scan, owner pre/post parity, cumulative registry loop, parameter-effect/no-effect mutations, evidence-clock and later-evidence guards, forbidden-authority scan, protected-path diff, editor diagnostics, `git diff --check`, source-lock, registry validator, artifact lint, and broad selftest are current and clean. → PARTIAL: owner pre/post parity (RED-bite), cumulative registry loop (TP-06-02), forbidden-authority scan (0 executable), protected-path diff (empty), broad selftest (895/0), and artifact lint are green; the **per-tool RED/GREEN, exact system-Chrome identity, and no-interception scan** sub-items await the TP-06-04..11 E2E rows (undelivered). Remains `[ ]`.

@@ -691,3 +691,194 @@ Not authorized by this agent. Delivered adapter awaits `bubbles.validate` on sco
 ## Audit Verdict
 
 Not authorized by this agent.
+
+## Independent Verification (bubbles.test)
+
+Phase: test. Claim Source: executed (current session, HEAD `9c990e27`). Recorded implement-phase
+evidence was NOT trusted; every suite below was reproduced from scratch this session with full
+unfiltered output, no redirection, no `--no-verify`.
+
+**Verdict — node-level surface GREEN and independently re-verified, but Scope 06 is NOT
+finalization-ready.** The eight persistent per-tool E2E rows (TP-06-04..TP-06-11) are UNDELIVERED: the
+spec file `tests/simple-model-adapters-macro-fundamental.spec.mjs` DOES NOT EXIST and was never
+authored or run (consistent with UD-06-01 and `state.json execution.nextRequiredTarget`). Sibling Scope
+05 ran all eight of its E2E rows (`TP-05-04..11 e2e 8/8`) IN-scope before it went `done`, so under
+`full-delivery` the eight E2E rows are REQUIRED for Scope-06 `done`. Scope status therefore remains
+`in_progress`; routed to `bubbles.implement` to author + run the E2E rows, after which `bubbles.test`
+re-verifies TP-06-04..11 and finalizes the DoD.
+
+<a id="iv-tp-06-01"></a>
+### Re-run 1 — TP-06-01 unit (`node --test tests/simple-model-adapters-macro-fundamental.unit.mjs`) → 51/51, exit 0
+
+```text
+✔ TP-06-01 macro-rotation module exposes the delivered sector-rotation adapter with no forbidden authority (5.526199ms)
+✔ TP-06-01 macro-rotation owner primitives pin the single-source RRG/state/rotation formula (1.9298ms)
+✔ TP-06-01 sector-research-lab.html single-sources rollZ100/rrgQuadrant/stateLabel/rotationCandidacy from macro-rotation.js (0.6372ms)
+✔ TP-06-01 sector-rotation adapter registers through the production runtime and produces a ready owner run (38.424995ms)
+✔ TP-06-01 each enabled sector-rotation parameter changes its declared output path (152.33478ms)
+✔ TP-06-01 country-rotation adapter registers through the production runtime and produces a ready owner run (20.083197ms)
+✔ TP-06-01 real-asset-driver adapter registers through the production runtime and produces a ready owner run (13.013998ms)
+✔ TP-06-01 fixed-income-sleeve adapter registers through the production runtime and produces a ready owner run at parity (20.282402ms)
+✔ TP-06-01 etf-ranking adapter registers through the production runtime and produces a ready owner run at parity (14.547302ms)
+✔ TP-06-01 ai-capex-portfolio adapter registers through the production runtime and produces a ready owner run (14.492402ms)
+✔ TP-06-01 company-scenario-bridge adapter registers through the production runtime and produces a ready owner run at parity (12.662502ms)
+✔ TP-06-01 msft-margin-eps adapter registers through the production runtime and produces a ready owner run at parity (12.161902ms)
+ℹ tests 51
+ℹ suites 0
+ℹ pass 51
+ℹ fail 0
+ℹ cancelled 0
+ℹ skipped 0
+ℹ todo 0
+ℹ duration_ms 1074.278317
+UNIT_EXIT=0
+```
+
+<a id="iv-tp-06-02"></a>
+### Re-run 2 — TP-06-02 integration (`node --test tests/simple-model-adapters.integration.mjs`) → 5/5, exit 0
+
+Registry-derived loop over the delivered Scope-06 set at owner-parity + real parameter effects, plus
+the Scope-05 owner-run fingerprint proven unchanged when Scope 06 shares the runtime.
+
+```text
+✔ TP-05-02 market structure and options adapters: registry-derived loop runs all eight at owner-parity with real parameter effects (350.330599ms)
+✔ TP-05-02 market structure and options adapters: a missing definition removes exactly that adapter from the production registry loop (17.641797ms)
+✔ TP-05-02 market structure and options adapters: adding a valid definition registers exactly that adapter through the production loop (75.512479ms)
+✔ TP-06-02 macro rotation and fundamental adapters: registry-derived loop runs the delivered Scope-06 set at owner-parity with real parameter effects (382.058294ms)
+✔ TP-06-02 macro rotation and fundamental adapters: Scope 05 adapter set and a real Scope 05 owner-run fingerprint are unchanged when Scope 06 shares the runtime (27.392392ms)
+ℹ tests 5
+ℹ suites 0
+ℹ pass 5
+ℹ fail 0
+ℹ cancelled 0
+ℹ skipped 0
+ℹ todo 0
+ℹ duration_ms 954.456753
+INTEGRATION_EXIT=0
+```
+
+<a id="iv-tp-06-03"></a>
+### Re-run 3 — TP-06-03 source-ownership functional (`node --test tests/simple-model-source-ownership.functional.mjs`) → 18/18, exit 0
+
+Both Scope-06 modules pass the comment-stripped forbidden-authority scan; every delivered adapter runs
+zero fetch/provider/storage against live sentinels, preserves frozen owner clocks, and keeps
+missing-evidence entries `unavailable` (no default substitution).
+
+```text
+✔ SCN-012-035 macro and fundamental source qualification: the macro-rotation module invokes no fetch, provider, storage, author, publication, or cross-domain path (1.6308ms)
+✔ SCN-012-035 macro and fundamental source qualification: the fundamental-models module invokes no fetch, provider, storage, author, publication, or cross-domain path (0.9833ms)
+✔ SCN-012-035 macro and fundamental source qualification: the delivered sector-rotation adapter performs zero fetch/provider/storage at runtime (38.188803ms)
+✔ SCN-012-035 macro and fundamental source qualification: a sector with no relative-strength series stays unavailable — no default is substituted (21.787002ms)
+✔ SCN-012-035 macro and fundamental source qualification: the delivered country-rotation adapter performs zero fetch/provider/storage and preserves the frozen local-close clock (27.243902ms)
+✔ SCN-012-035 macro and fundamental source qualification: the delivered real-asset-driver adapter performs zero fetch/provider/storage and preserves the frozen owner clock (20.647902ms)
+✔ SCN-012-035 macro and fundamental source qualification: the delivered fixed-income-sleeve adapter performs zero fetch/provider/storage and preserves the frozen owner clock (23.192102ms)
+✔ SCN-012-035 macro and fundamental source qualification: the delivered etf-ranking adapter performs zero fetch/provider/storage and preserves the frozen owner clock (22.397401ms)
+ℹ tests 18
+ℹ suites 0
+ℹ pass 18
+ℹ fail 0
+ℹ cancelled 0
+ℹ skipped 0
+ℹ todo 0
+ℹ duration_ms 393.927129
+FUNCTIONAL_EXIT=0
+```
+
+<a id="iv-tp-06-12"></a>
+### Re-run 4 — TP-06-12 broad selftest (`node scripts/selftest.mjs`) → 895 passed / 0 failed, exit 0
+
+Full unfiltered 895-line per-test output was produced this session; the terminal banner is reproduced
+below (the complete output stream was captured intact, no truncation).
+
+```text
+  ✓ Feature 009 refresh failure with no prior accepted quote reports refresh-failed with a null spot and never resurrects a value
+================================================
+Research-Lab self-test: 895 passed, 0 failed
+================================================
+SELFTEST_EXIT=0
+```
+
+### 8-page single-source audit (module-load + global-ref; file greps)
+
+Every owner page loads its shared module (load ≥ 1) AND references the shared global (ref ≥ 1); no page
+carries an inline formula copy (authoritatively pinned by the TP-06-01 `single-sources … from …`
+assertions). No F-05-SS-OPTIONS verbatim-copy defect.
+
+```text
+PAGE                             MODULE                 load     ref
+sector-research-lab.html         macro-rotation.js      1        8
+global-rotation-lab.html         macro-rotation.js      1        3
+real-assets-lab.html             macro-rotation.js      1        3
+bond-regime-lab.html             macro-rotation.js      1        3
+etf-momentum-lab.html            macro-rotation.js      2        6
+ai-capex-strategy-lab.html       fundamental-models.js  2        9
+company-fundamentals-lab.html    fundamental-models.js  3        4
+msft-july-print-model.html       fundamental-models.js  3        3
+```
+
+### Forbidden-authority (0 executable) + supportedAdapterIds + protected-path byte-diff
+
+Raw token grep on both modules returns only comment lines (13, 15) and a string-literal error message
+(`throw new Error("..._REQUIRES_RLEXPERIENCE_API")`) — i.e. 0 EXECUTABLE forbidden-authority
+(authoritative: TP-06-03 tests 1–2). `supportedAdapterIds` = 5 (macro) + 3 (fundamental) = 8. Protected
+paths (`rldata.js`, `rlexperience.js`, `scripts/fetch-options.mjs`, `market-structure.js`, `options.js`,
+`data/options`) are byte-unchanged vs HEAD.
+
+```text
+--- rlexperience-adapters/macro-rotation.js ---
+13: * NEVER fetch, providerFetch, read local credentials, call an LLM, a public   (comment)
+15: *   import another domain adapter module. Data acquisition (RLDATA cache reads) (comment)
+1881:      throw new Error("RLMACROROTATION_REQUIRES_RLEXPERIENCE_API");           (string literal)
+--- rlexperience-adapters/fundamental-models.js ---
+13: * NEVER fetch, providerFetch, read local credentials, call an LLM, a public   (comment)
+15: *   import another domain adapter module. Data acquisition (RLDATA cache reads) (comment)
+1278:      throw new Error("RLFUNDAMENTALS_REQUIRES_RLEXPERIENCE_API");            (string literal)
+
+macro-rotation.js supportedAdapterIds     = sector-rotation-transition/v1, country-rotation/v1, real-asset-driver/v1, fixed-income-sleeve/v1, etf-ranking/v1
+fundamental-models.js supportedAdapterIds = ai-capex-portfolio/v1, company-scenario-bridge/v1, msft-margin-eps/v1
+protected-path diff --stat HEAD           = (empty — byte-unchanged)
+```
+
+### Owner-parity RED-bite spot-check (`sleeveTotalReturn` convexity)
+
+Pre-bite `sha256(macro-rotation.js) = c2e07d81cbf94e6b46105e790436925db884263da2708518c6edeff18fa59532`.
+The convexity term was temporarily doubled (`… * combinedShock * combinedShock * 2`) via the IDE edit
+tool; the single-source pin test FAILED (RED, exit 1), proving the parity assertion has teeth. The
+module was then restored from HEAD (byte-identical sha256), and the same test PASSED (GREEN, exit 0).
+The tree is byte-clean — no residual bite.
+
+```text
+# RED (convexity doubled)
+✖ TP-06-01 sleeveTotalReturn single-source pins the owner carry+rate+spread+convexity decomposition (4.7487ms)
+  AssertionError [ERR_ASSERTION]: convexity term byte-parity
+  + actual - expected
+  + 0.000096
+  - 0.000048
+      at ~/research-lab/tests/simple-model-adapters-macro-fundamental.unit.mjs:697:10
+# tests 1  # pass 0  # fail 1
+RED_BITE_EXIT=1
+
+# RESTORE + GREEN
+post-restore sha256 = c2e07d81cbf94e6b46105e790436925db884263da2708518c6edeff18fa59532   (== pre-bite)
+diff --stat HEAD -- macro-rotation.js = (empty — byte-identical)
+✔ TP-06-01 sleeveTotalReturn single-source pins the owner carry+rate+spread+convexity decomposition (4.109801ms)
+# tests 1  # pass 1  # fail 0
+GREEN_EXIT=0
+```
+
+### E2E gap (BLOCKING for Scope-06 `done`) — routed to bubbles.implement
+
+- TP-06-04..TP-06-11 are eight persistent per-tool system-Chrome E2E regressions
+  (`tests/simple-model-adapters-macro-fundamental.spec.mjs`), one per owner tool, each asserting a
+  visible parameter, baseline/current, owner-sensitivity, provenance, uncertainty, limitation, and the
+  Simple-vs-Power distinction.
+- The spec file **does not exist** in `tests/` (only Scope-05's `simple-model-adapters-market.spec.mjs`
+  is present) and no spec references the Scope-06 adapter regressions. The rows were never authored or
+  run.
+- Scope-06 DoD "Test Evidence Items — Exact Parity With 12 Test Plan Rows" therefore has 8 of 12 items
+  genuinely unsatisfied; they remain `[ ]`. The "Build Quality Gate" item (which names per-tool
+  RED/GREEN, exact system-Chrome identity, no-interception scan, and per-tool E2E) is likewise not fully
+  satisfied and remains `[ ]`.
+- **Route:** `bubbles.implement` authors + runs the eight E2E rows (mirroring the delivered Scope-05
+  spec), then `bubbles.test` independently re-verifies TP-06-04..11 and finalizes the Scope-06 DoD and
+  status. Scope 06 stays `in_progress`; feature `status` stays `not_started`; `certifiedAt` stays null.

@@ -4219,6 +4219,53 @@ try {
   } catch (e) { failures++; console.log('  ✗ FAIL (Feature 012 Scope 06 etf-ranking completeness threw): ' + e.message); }
 }
 
+/* ---------- Feature 012 Scope 08 RLJOURNEY runtime + all-tool + no-execution canaries ----------
+   Drives the REAL production rljourney.js runtime against the REAL journeys.json (48 definitions) and
+   the REAL tools.json registry: proves all-22-ordinary-tool + 4-Center goal coverage, the
+   no-executable-code invariant, the NON-EXECUTING signed-off completion packet (SCN-012-011), and
+   dependency-aware transitive-stale backtracking (SCN-012-010). Pure Node, no browser. */
+try {
+  group('Feature 012 Scope 08 RLJOURNEY runtime + all-tool + no-execution canaries');
+  const rjRequire = (await import('node:module')).createRequire(import.meta.url);
+  delete rjRequire.cache[rjRequire.resolve('../rljourney.js')];
+  const RJ = rjRequire('../rljourney.js');
+  const journeys = JSON.parse(read('journeys.json'));
+  const registryTools = JSON.parse(read('tools.json')).tools;
+
+  // (1) SCN-012-032 all-tool coverage: 22 ordinary tools (>=2 goals) + the Market Action Center (exactly 4), 48 defs.
+  const inventory = registryTools.map((t) => ({ registryId: t.id, kind: (t.experience && t.experience.kind) || 'ordinary', journeyDefinitionIds: (t.experience && t.experience.journeyDefinitionIds) || [] }));
+  const completeness = RJ.validateRegistryCompleteness(journeys, inventory);
+  assert(completeness.ok && completeness.value.ordinaryTools === 22 && completeness.value.centerGoals === 4 && completeness.value.totalGoals === 48 && completeness.value.definitionCount === 48, 'RLJOURNEY validates all 22 ordinary tools (>=2 goals) + the 4 Market Action Center goals across 48 definitions');
+
+  // (2) the 48-definition registry compiles, and a function value anywhere in a definition is rejected.
+  const compiledRegistry = RJ.compileRegistry(journeys);
+  const breadth = compiledRegistry.ok ? compiledRegistry.value.definitions['journey/market-heatmap-lab/breadth/v1'] : null;
+  assert(compiledRegistry.ok && !!breadth, 'the 48-definition journey registry compiles under the runtime');
+  const badDef = JSON.parse(JSON.stringify(journeys.definitions.find((d) => d.definitionId === 'journey/market-heatmap-lab/breadth/v1')));
+  const badSteps = journeys.steps.filter((s) => badDef.stepIds.includes(s.stepId)).map((s) => JSON.parse(JSON.stringify(s)));
+  badDef.injected = () => 'boom';
+  const execRejected = RJ.compileDefinition(badDef, badSteps);
+  assert(!execRejected.ok && execRejected.error.code === 'RLJOURNEY-EXECUTION', 'a function value anywhere in Journey data is rejected (no-executable-code invariant)');
+
+  // (3) SCN-012-011 no-execution: a signed-off complete packet records review locally and executes NOTHING.
+  const created = RJ.createSession(breadth, { context: { evidenceIdentity: 'sha256:owner-breadth-canary' }, createdAt: '2026-07-26T00:00:00.000Z' }).value;
+  const doneStep = RJ.completeStep(created, breadth.order[0], { input: { acknowledgedEvidenceIds: ['breadth-1'] }, evidence: [{ slot: 'owner-evidence', ref: 'owner:canary', provenance: 'owner-evidence' }], completedAt: '2026-07-26T00:05:00.000Z' }).value;
+  const packet = RJ.buildCompletionPacket(doneStep, { outcome: 'complete', signoff: { reviewer: 'canary' } }).value;
+  const reviewed = RJ.recordSignoff(packet, { reviewer: 'canary', acceptedAt: '2026-07-26T00:06:00.000Z' }).value;
+  const noExecutionSurface = ['executeTrade', 'submitOrder', 'placeOrder', 'rebalance', 'hedge', 'trade', 'execute'].every((name) => typeof RJ[name] !== 'function');
+  assert(packet.executed === false && packet.noExecution === true && reviewed.executed === false && reviewed.noExecution === true && reviewed.reviewRecorded === true && noExecutionSurface, 'a signed-off JourneyCompletionPacket records review locally and executes NOTHING (no execution entry point exists)');
+
+  // (4) SCN-012-010 dependency-aware transitive-stale backtracking on a synthetic a->b (+unrelated d) chain.
+  const synDefId = 'journey/synthetic/canary/v1';
+  const synDef = { contractVersion: 'journey-definition/v1', definitionId: synDefId, definitionVersion: 'v1', toolId: 'synthetic', goalId: 'canary', title: 'Canary', outcomeDescription: 'Backtrack canary.', mechanism: 'decision-tree', prerequisiteRules: [{ ruleId: 'r', predicate: 'explicit-choice-recorded' }], contextSchema: { contractVersion: 'journey-context-schema/v1', allowedFields: ['evidenceIdentity'], requiredFields: ['evidenceIdentity'] }, stepIds: ['a', 'b', 'd'], evidencePolicy: { requiredSlots: ['owner-evidence'], allowedProvenance: ['owner-evidence'] }, backtrackPolicy: { mode: 'transitive-dependents-stale', auditPriorOutcomes: true }, staleEvidencePolicy: { mode: 'reopen-dependent-steps', preserveAudit: true }, completionPolicy: { predicates: ['explicit-choice-recorded'], outcomes: ['complete', 'partial', 'refused'] }, packetPolicy: { contractVersion: 'journey-completion-packet/v1', humanSignoffRequired: true, noExecution: true }, privacyClass: 'public-safe', noExecution: true, accessibility: { progressSemantics: 'ordered-list', currentStepSemantics: 'aria-current-step' }, limitations: ['Research only.'], definitionFingerprint: null };
+  const synStep = (id, deps) => ({ contractVersion: 'journey-step/v1', stepId: id, definitionId: synDefId, title: id, purpose: 'p', mechanismRole: 'decision-tree', dependsOnStepIds: deps, inputSchema: { contractVersion: 'journey-step-input/v1', allowedFields: ['choice'], requiredFields: ['choice'] }, allowedInputProvenance: ['user-assumption'], requiredEvidenceSlots: ['owner-evidence'], optionalEvidenceSlots: [], completionPredicate: 'explicit-choice-recorded', branchRules: [], staleWhen: [], invalidatesStepIds: [], ownerDeepLinks: ['synthetic.html#journey'], sideEffectPolicy: 'none', accessibility: { label: id, description: 'd' }, stepFingerprint: null });
+  const synCompiled = RJ.compileDefinition(synDef, [synStep('a', []), synStep('b', ['a']), synStep('d', [])]).value;
+  let syn = RJ.createSession(synCompiled, { context: { evidenceIdentity: 'e-1' } }).value;
+  for (const stepId of synCompiled.order) syn = RJ.completeStep(syn, stepId, { input: { choice: stepId }, evidence: [{ slot: 'owner-evidence', ref: 'owner:c' }], completedAt: '2026-07-26T00:07:00.000Z' }).value;
+  const afterBacktrack = RJ.backtrackStep(syn, 'a', { reason: 'canary backtrack' }).value;
+  assert(afterBacktrack.steps.b.status === 'stale' && /dependency backtracked: a/.test(afterBacktrack.steps.b.staleReason) && afterBacktrack.steps.d.status === 'complete' && afterBacktrack.steps.d.staleReason === null, 'backtracking an assumption stales only its transitive dependent (b) and preserves the unrelated completed step (d)');
+} catch (e) { failures++; console.log('  \u2717 FAIL (Feature 012 Scope 08 RLJOURNEY canaries threw): ' + e.message); }
+
 /* ---------- summary ---------- */
 console.log('\n' + '='.repeat(48));
 console.log('Research-Lab self-test: ' + passes + ' passed, ' + failures + ' failed');

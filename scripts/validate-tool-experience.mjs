@@ -478,6 +478,37 @@ function runAdversarialChecks(packet) {
   return cases.map(([name, code, mutate]) => requireRejected(packet, name, code, mutate));
 }
 
+/* SCN-012-032 — journey-definition / registry coverage. Drives the REAL production rljourney runtime
+   against the REAL journeys.json + tools.json registry and proves every ordinary tool exposes at least
+   two concrete goals, the Market Action Center exposes exactly four, and all 48 definitions resolve. */
+function validateJourneyRegistryCoverage(packet) {
+  const RLJOURNEY = require('../rljourney.js');
+  const inventory = packet.registry.tools.map((tool) => ({
+    registryId: tool.id,
+    kind: (tool.experience && tool.experience.kind) || 'ordinary',
+    journeyDefinitionIds: (tool.experience && tool.experience.journeyDefinitionIds) || []
+  }));
+  const completeness = RLJOURNEY.validateRegistryCompleteness(packet.journeys, inventory);
+  invariant(completeness.ok, `SCN-012-032 journey coverage rejected: ${completeness.error && completeness.error.code} ${completeness.error && completeness.error.fieldPath} ${completeness.error && completeness.error.reason}`);
+  invariant(completeness.value.ordinaryTools === 22, `SCN-012-032 expected 22 ordinary tools with concrete goals, got ${completeness.value.ordinaryTools}`);
+  invariant(completeness.value.centerGoals === 4, `SCN-012-032 Market Action Center must expose exactly four goals, got ${completeness.value.centerGoals}`);
+  invariant(completeness.value.totalGoals === 48, `SCN-012-032 expected 48 total goals, got ${completeness.value.totalGoals}`);
+  invariant(completeness.value.definitionCount === 48, `SCN-012-032 expected 48 journey definitions, got ${completeness.value.definitionCount}`);
+  for (const row of inventory) {
+    if (row.kind === 'market-action-center') {
+      invariant(row.journeyDefinitionIds.length === 4, `${row.registryId} (Center) must reference exactly four journey goals`);
+    } else {
+      invariant(row.journeyDefinitionIds.length >= 2, `${row.registryId} must reference at least two concrete journey goals`);
+    }
+  }
+  return {
+    ordinaryTools: completeness.value.ordinaryTools,
+    centerGoals: completeness.value.centerGoals,
+    totalGoals: completeness.value.totalGoals,
+    definitionCount: completeness.value.definitionCount
+  };
+}
+
 export function validateActualToolExperience(options = {}) {
   const loaded = loadActualPacket();
   const artifactChecks = validateArtifactBudgets(loaded.packet, loaded.bytes);
@@ -488,6 +519,7 @@ export function validateActualToolExperience(options = {}) {
   const identities = deriveIdentityInventory(loaded.packet, validation.value);
   validateProductionSource(loaded.packet);
   const runtime = validateSimpleRuntimeCanaries(loaded.packet);
+  const journeyCoverage = validateJourneyRegistryCoverage(loaded.packet);
   const simpleAdapters = options.requireSimpleAdapters ? validateSimpleAdapterRegistry(loaded.packet) : null;
 
   const scalingPacket = buildScalingPacket(loaded.packet);
@@ -502,6 +534,7 @@ export function validateActualToolExperience(options = {}) {
   return {
     summary: validation.value,
     runtime,
+    journeyCoverage,
     simpleAdapters,
     identities,
     artifacts: artifactChecks,
@@ -526,6 +559,7 @@ function main() {
     console.log(`[tool-experience] registry=PASS tools=${report.summary.toolCount} ordinary=${report.summary.ordinaryCount} marketAction=${report.summary.marketActionCount}`);
     console.log(`[tool-experience] definitions=PASS simpleModels=${report.summary.simpleModelDefinitionCount} journeys=${report.summary.journeyDefinitionCount} steps=${report.summary.journeyStepCount}`);
     console.log(`[tool-experience] simpleRuntime=PASS truthStates=${report.runtime.truthStateCount} registeredAdapters=${report.runtime.registeredAdapterCount} toolIdBranches=${report.runtime.toolIdBranchCount} authorityOwned=${report.runtime.authorityOwnedCount} occurrenceIdentityStable=${report.runtime.occurrenceIdentityStable} cutoffIdentityChanged=${report.runtime.cutoffIdentityChanged}`);
+    console.log(`[tool-experience] journeyCoverage=PASS ordinaryTools=${report.journeyCoverage.ordinaryTools} centerGoals=${report.journeyCoverage.centerGoals} totalGoals=${report.journeyCoverage.totalGoals} definitions=${report.journeyCoverage.definitionCount}`);
     if (report.simpleAdapters) {
       console.log(`[tool-experience] simpleAdapterRegistry=PASS ordinaryAdapters=${report.simpleAdapters.ordinaryAdapterCount} centerAdapters=${report.simpleAdapters.centerAdapterCount} registeredAdapters=${report.simpleAdapters.registeredAdapterCount} toolIdBranches=${report.simpleAdapters.toolIdBranchCount} authorityOwned=${report.simpleAdapters.authorityOwnedCount}`);
     }

@@ -147,14 +147,14 @@ Write same-seed/new-seed/common-randomness and per-tool parameter-effect tests b
 
 #### Core Delivery Items
 
-- [ ] All remaining ordinary adapters and the in-Brief Center triage model execute actual owner logic with visible effects, distinct Simple questions, truthful evidence, and no formula copy/default/generic fallback.
-- [ ] SCN-012-002 proves deterministic seed identity and separates common-random parameter sensitivity from path randomness.
+- [x] All remaining ordinary adapters and the in-Brief Center triage model execute actual owner logic with visible effects, distinct Simple questions, truthful evidence, and no formula copy/default/generic fallback. → Evidence: [report.md#independent-verification-bubblestest] (unit 38/38, single-source audit, forbidden-authority 0, capConfidence RED-bite)
+- [x] SCN-012-002 proves deterministic seed identity and separates common-random parameter sensitivity from path randomness. → Evidence: [report.md#scenario-scn-012-002] (unit-proven; E2E row TP-07-03 is in the F-07-E2E-01 routed gap)
 - [ ] The production validator accounts for all 22 ordinary Simple adapters plus the Center in-view model; unresolved owners block release.
-- [ ] Scope 05/06 fingerprints, current owner behavior, local ledgers/data, and legacy Market Brief provenance remain unchanged.
+- [x] Scope 05/06 fingerprints, current owner behavior, local ledgers/data, and legacy Market Brief provenance remain unchanged. → Evidence: [report.md#independent-verification-bubblestest] (protected-paths zero-diff, TP-05-02/TP-06-02 green, validate-brief-payload PASS, selftest 934/0)
 
 #### Test Evidence Items - Exact Parity With 11 Test Plan Rows
 
-- [ ] TP-07-01 unit evidence proves adapter/seed/source/gap/Center rules.
+- [x] TP-07-01 unit evidence proves adapter/seed/source/gap/Center rules. → Evidence: [report.md#tp-07-01] (38/38 exit 0, all 7 adapters)
 - [ ] TP-07-02 integration evidence proves the complete owner-parity/parameter-effect inventory.
 - [ ] TP-07-03 E2E evidence proves SCN-012-002 seeded strategy behavior.
 - [ ] TP-07-04 E2E evidence proves strategy-validation parameter effect.
@@ -164,7 +164,7 @@ Write same-seed/new-seed/common-randomness and per-tool parameter-effect tests b
 - [ ] TP-07-08 E2E evidence proves Ocean Shores seasonal sensitivity without gap filling.
 - [ ] TP-07-09 E2E evidence proves Center triage stays bounded and inside Brief.
 - [ ] TP-07-10 validator evidence proves SCN-012-036 complete Simple inventory with no generic/unresolved adapter.
-- [ ] TP-07-11 broad selftest evidence proves the existing Research Lab baseline remains green.
+- [x] TP-07-11 broad selftest evidence proves the existing Research Lab baseline remains green. → Evidence: [report.md#tp-07-11] (934 passed / 0 failed exit 0)
 
 #### Build Quality Gate
 

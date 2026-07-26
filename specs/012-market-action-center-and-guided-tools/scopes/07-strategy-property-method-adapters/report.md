@@ -519,3 +519,181 @@ this implement batch.
 ## Validation Summary
 
 ## Audit Verdict
+
+## Independent Verification (bubbles.test)
+
+Independent re-verification of Scope 07 at HEAD `48658598` (full-delivery; recorded implement evidence NOT
+trusted — every claim below was reproduced from scratch this session). **Outcome: route_required — Scope 07 stays
+`in_progress`.** The 6 ordinary + 1 internal-Center adapter MODULES are genuinely sound and single-sourced, but
+THREE Test-Plan rows required by the scope's own DoD are undelivered/under-delivered, so the SCN-012-036
+registry-completion headline is NOT proven and the scope cannot go `done`. No `done` is fabricated.
+
+### What is genuinely GREEN (reproduced in-session)
+
+#### TP-07-01 unit — `node --test tests/simple-model-adapters-strategy-property.unit.mjs` | Exit 0 | Claim Source: executed
+
+All 7 adapters (6 ordinary + market-action-triage) covered, incl. SCN-012-002 seeded reproducibility:
+
+```
+✔ TP-07-01 strategy-research module exposes the delivered strategy-evolution adapter with no forbidden authority
+✔ TP-07-01 SCN-012-002 the same inputs+params+evidence+seed run twice produce identical result identity + summary
+✔ TP-07-01 SCN-012-002 changing the seed creates a distinct run and a distinct path
+✔ TP-07-01 disclosure-decay adapter registers through the production runtime and produces a ready owner run
+✔ TP-07-01 walk-forward-validation adapter registers through the production runtime and produces a ready owner run
+✔ TP-07-01 str-scenario/palm-springs adapter registers through the production runtime and produces a ready owner-parity run
+✔ TP-07-01 str-scenario/ocean-shores adapter registers through the production runtime and produces a ready owner-parity run
+✔ TP-07-01 location-suitability adapter registers through the production runtime and produces a ready owner-parity run
+✔ TP-07-01 market-action module exposes the delivered market-action-triage adapter with no forbidden authority
+✔ TP-07-01 rlbrief.js single-sources its window/action-gating from market-action.js (Brief-payload-parity, behaviour-preserving)
+✔ TP-07-01 market-action-triage adapter registers through the production runtime and produces a ready owner-parity triage
+✔ TP-07-01 market-action-triage is an in-Brief-only model (no top-level Simple/Power) and is deterministic
+ℹ tests 38
+ℹ pass 38
+ℹ fail 0
+UNIT_EXIT=0
+```
+
+#### TP-07-11 broad selftest — `node scripts/selftest.mjs` | Exit 0 | Claim Source: executed
+
+```
+================================================
+Research-Lab self-test: 934 passed, 0 failed
+================================================
+SELFTEST_EXIT=0
+```
+
+(The batch-7 market-action extraction added NO new selftest group — the count is unchanged from batch 6. The
+`action-only payload contract` canary that guards registry-wide Brief coverage lives inside this selftest and is
+part of the 934-passed set.)
+
+#### Single-Source Audit (F-05-SS-OPTIONS lesson) — all 7 owner surfaces + Brief, Claim Source: executed
+
+Each owner page/Brief loads its module, references the module global, and carries NO inline duplicate of the
+single-sourced formula:
+
+| Owner surface | Module loaded | Global refs | Inline-formula in page | Verdict |
+|---|---|---|---|---|
+| `strategy-self-improvement-lab.html` | strategy-research.js (1) | RLSTRATEGY (17) | `0x6D2B79F5` = 0 | single-sourced |
+| `strategy-validation-lab.html` | strategy-research.js (1) | RLSTRATEGY (7) | `0x6D2B79F5` = 0 | single-sourced |
+| `smart-money-flow-lab.html` | strategy-research.js (1) | RLSTRATEGY (8) | (decay/consensus removed) | single-sourced |
+| `waterfront-polo-lab.html` | property-research.js (1) | RLPROPERTY (10) | `3958.7613` = 0 | single-sourced |
+| `palm-springs-rental-market-lab.html` | rlrental.js (1) | RLRENTAL (1) | (shared engine, no copy) | single-sourced |
+| `ocean-shores-rental-market-lab.html` | rlrental.js (1) | RLRENTAL (1) | (shared engine, no copy) | single-sourced |
+| `market-brief.html` → `rlbrief.js` | market-action.js (L871) then rlbrief.js (L872) | RLMARKETACTION (14 in rlbrief.js) | (window/gating delegated) | single-sourced |
+
+`3958.7613` present only in `property-research.js` (1); `0x6D2B79F5` present only in `strategy-research.js` (1)
+— the single sources. `rlbrief.js` delegates every window/action-gating primitive to `root.RLMARKETACTION.*`
+(normalizeRecommendation / nextSessionActions / actionableAttention / …) with "Single-sourced in
+market-action.js; the Brief delegates" prose.
+
+#### BRIEF PAYLOAD PARITY (critical) — Claim Source: executed
+
+- Legacy Brief payload validator `node scripts/validate-brief-payload.mjs` → Exit 0:
+  `[brief-contract] PASS: all visible sections, registry coverage, model-specific real assets, and next-session
+  actions are valid`.
+- The `action-only payload contract` canary is inside `scripts/selftest.mjs` (934/0, above).
+- `market-brief.html` loads `market-action.js` (module) BEFORE `rlbrief.js` (consumer); the Brief route/payload
+  is behaviour-preserving. No new authored provenance label was introduced (protected-paths + validator both
+  clean). The market-action extraction did NOT change the current Brief payload behaviour.
+
+#### Forbidden-authority (comment-stripped EXECUTABLE) — Claim Source: executed
+
+```
+rlexperience-adapters/strategy-research.js     EXECUTABLE_FORBIDDEN_HITS=0
+rlexperience-adapters/property-research.js     EXECUTABLE_FORBIDDEN_HITS=0
+rlexperience-adapters/market-action.js         EXECUTABLE_FORBIDDEN_HITS=0
+```
+
+(no fetch/providerFetch/RLDATA/localStorage/sessionStorage/indexedDB/XMLHttpRequest/writeFileSync/Date.now/
+Math.random/dynamic-import/data-options/data-bars — comments/doc-prose only.)
+
+#### Protected paths byte-unchanged vs HEAD — Claim Source: executed
+
+`git diff --numstat HEAD --` on `rldata.js`, `rlexperience.js`, `data/options`, `rlexperience-adapters/macro-rotation.js`,
+`fundamental-models.js`, `market-structure.js`, `options.js`, `rlrental.js`, `scripts/fetch-options.mjs` → **empty
+(zero diff), exit 0**. Scope 04/05/06 modules + the shared rental engine are untouched.
+
+#### Owner-parity RED-bite — market-action-triage (not previously bitten) — Claim Source: executed
+
+Neutralized the `capConfidence` owner primitive in `market-action.js` (`return (horizon === "tactical" && c > k)
+? k : c;` → `return c;` — never cap). The literal Brief-parity assertion bit:
+
+```
+not ok 34 - TP-07-01 rlbrief.js single-sources its window/action-gating from market-action.js (Brief-payload-parity, behaviour-preserving)
+    capConfidence: tactical 68 capped to 55 (parity)
+  name: 'AssertionError'
+# tests 38
+# pass 37
+# fail 1
+RED_UNIT_EXIT=1
+```
+
+Restored via `git checkout HEAD -- rlexperience-adapters/market-action.js`; sha256 =
+`d3cfdb9077da5faa9f198b51c15a790822aeef801f1011006e18eacc0e98d339` (identical to baseline); re-run GREEN (exit
+0); `git status --short` shows only the preserved concurrent `BUG-001 scenario-manifest.json` dirt. Tree
+byte-clean. (Note: the adapter's own owner-parity assertions are correctly self-sourced — both adapter and test
+call `ma.capConfidence` — so a neutralization is caught by the LITERAL module-parity assertion, exactly the
+anti-self-validating design.)
+
+### BLOCKING GAPS (routed to bubbles.implement — the SCN-012-036 + E2E completion package)
+
+The task premise ("all 7 committed; independently verify + finalize done") does NOT hold: the batch-7
+(market-action) commit added the adapter + unit rows but left three DoD-required rows undelivered, and left
+`report.md` (Summary still "6 of 7") and `state.json` (`nextRequiredTarget` still "Task B delivers the FINAL
+adapter … then bubbles.test … TP-07-02 full 22+Center integration + TP-07-03..10 E2E + TP-07-10 validator")
+stale. The plan-of-record itself lists these as remaining.
+
+#### F-07-E2E-01 — E2E spec file MISSING (7 undelivered rows) — BLOCKING
+
+`tests/simple-model-adapters-strategy-property.spec.mjs` (named under scope.md → Implementation Files → New, and
+the file for TP-07-03..TP-07-09) **does not exist**. A repo-wide grep for the 7 exact scope.md test titles
+returns nothing (`GREP_TITLES_EXIT=1`). This is the identical pattern to Scope 06's F-06-E2E-01 (which was routed
+to bubbles.implement, authored as `tests/simple-model-adapters-macro-fundamental.spec.mjs`, then re-verified).
+Under full-delivery, sibling Scopes 05 and 06 both ran ALL their per-tool E2E rows in-scope before `done`.
+→ **Route:** bubbles.implement authors + runs the 7 persistent system-Chrome regressions TP-07-03 (SCN-012-002
+seeded strategy), TP-07-04 (strategy-validation), TP-07-05 (smart-money decay), TP-07-06 (waterfront/polo),
+TP-07-07 (Palm Springs), TP-07-08 (Ocean Shores), TP-07-09 (Center triage inside Brief), mirroring the delivered
+Scope-05/06 specs (real page.goto + real adapter UMD + real createSimpleRuntime + real renderer + real DOM host;
+no request interception).
+
+#### F-07-REGLOOP-01 — TP-07-02 integration loop covers 16, NOT 22+Center — BLOCKING
+
+`node --test tests/simple-model-adapters.integration.mjs` → 5/5 exit 0, but the file contains only per-scope
+blocks `TP-05-02` (market-structure + options = 8) and `TP-06-02` (macro-rotation + fundamental = 8) = **16
+adapters**. There is NO `TP-07-02` block registering the 7 Scope-07 adapters, and no single all-22+Center loop.
+scope.md TP-07-02 requires the loop to prove "all 22 ordinary adapters plus Center triage, every enabled
+parameter effect/owner parity … and no generic fallback." → **Route:** bubbles.implement adds the genuine
+Scope-07 owner-parity/parameter-effect integration block (or refactors to a single registry-derived 22+Center
+loop) with real per-adapter owner fixtures.
+
+#### F-07-VALIDATOR-01 — TP-07-10 `--require-simple-adapters` is a no-op (registeredAdapters=0) — BLOCKING
+
+`node scripts/validate-tool-experience.mjs --require-simple-adapters` → exit 0 and confirms
+`registry=PASS tools=23 ordinary=22 marketAction=1` (22+1 registry DEFINITIONS exist), but the runtime line is
+`simpleRuntime=PASS truthStates=6 registeredAdapters=0 toolIdBranches=0 authorityOwned=0`. The validator NEVER
+calls any `register*Adapters` (no `registerStrategyResearch`/`registerPropertyResearch`/`registerMarketAction`/
+`registerMarketStructure`/`registerMacroRotation` in the script), and the string `--require-simple-adapters`
+does not appear in the validator at all — the flag is effectively ignored and the release gate passes with ZERO
+registered owner adapters. So TP-07-10's DoD claim ("validator evidence proves SCN-012-036 complete Simple
+inventory with no generic/unresolved adapter") is NOT enforced. → **Route:** bubbles.implement wires
+`--require-simple-adapters` to register the 6 ordinary owner-adapter modules + the Center model and assert 22
+ordinary owner adapters + 1 in-Brief Center resolve with no generic fallback / no unresolved definition.
+
+### SCN-012-036 registry-completion verdict
+
+**Registry has 22 ordinary + 1 marketAction DEFINITIONS (validator `registry=PASS tools=23 ordinary=22
+marketAction=1`), and each of the 6 Scope-07 ordinary adapters + the Center adapter individually registers and
+runs at owner-parity (TP-07-01 38/38). BUT the "22 ordinary tools resolve exactly one actual owner adapter, no
+generic fallback" HEADLINE is proven by NEITHER of the two mechanisms the scope assigns to it: the integration
+loop proves only 16 (F-07-REGLOOP-01) and the validator reports registeredAdapters=0 (F-07-VALIDATOR-01).
+SCN-012-036 is therefore NOT yet proven at the registry-wide level.**
+
+### DoD reconciliation (this session): 5 / 16 `[x]`
+
+Checked (genuinely reproduced): Core-1 (adapters execute real owner logic, single-sourced, forbidden-authority
+0, RED-bite teeth), Core-2 (SCN-012-002 deterministic seed identity — unit-proven; its E2E row TP-07-03 is in the
+F-07-E2E-01 gap), Core-4 (Scope 05/06 fingerprints + legacy Brief provenance unchanged), TP-07-01 (unit 38/38),
+TP-07-11 (selftest 934/0). Left `[ ]` (routed): Core-3 (validator accounts for 22+Center → F-07-VALIDATOR-01),
+TP-07-02 (→ F-07-REGLOOP-01), TP-07-03..TP-07-09 (→ F-07-E2E-01), TP-07-10 (→ F-07-VALIDATOR-01), and the Build
+Quality Gate (names per-tool E2E / no-interception scan / all-tool registry loop / registry validator — all in
+the routed gaps).

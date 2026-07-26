@@ -3,7 +3,7 @@
   "featureDir": "specs/012-market-action-center-and-guided-tools",
   "featureName": "Market Action Center and Guided Tools",
   "createdAt": "2026-07-22T03:40:01Z",
-  "lastUpdatedAt": "2026-07-26T07:10:00Z",
+  "lastUpdatedAt": "2026-07-26T07:20:00Z",
   "status": "not_started",
   "workflowMode": "full-delivery",
   "linkedImplementationSpec": null,
@@ -19,11 +19,11 @@
   "certifiedAt": null,
   "requiresRevalidation": false,
   "execution": {
-    "activeAgent": "bubbles.implement",
-    "currentPhase": "implement",
+    "activeAgent": "bubbles.test",
+    "currentPhase": "test",
     "currentPhaseStatus": "in_progress",
     "currentScope": "07-strategy-property-method-adapters",
-    "substate": "implemented",
+    "substate": "needs_reverification",
     "runStartedAt": "2026-07-24T03:30:00Z",
     "completedAt": null,
     "completedPhaseClaims": [
@@ -86,7 +86,7 @@
     ],
     "pendingTransitionRequests": [],
     "nextRequiredOwner": "bubbles.implement",
-    "nextRequiredTarget": "Scope 07 IN PROGRESS -- 6 of 7 adapters delivered. THIS dispatch Task A delivered location-suitability/v1 (batch 6, waterfront-polo-lab) with genuine single-sourcing: the four owner geo primitives + computeLocationSuitabilitySummary live once in property-research.js (RLPROPERTY); the page was rewired to load the module + delegate via thin RLPROPERTY.* wrappers (inline var R=3958.7613 + budget-fit rank table REMOVED -- the F-05-SS-OPTIONS-critical step), and scripts/selftest.mjs waterfront group was reconciled to load the single source (+3 wiring assertions). TP-07-01 unit 32/32 exit 0; TP-07-02 integration 5/5 exit 0 (no Scope-05/06 regression); TP-07-11 broad selftest 934/0 exit 0; forbidden-authority EXECUTABLE=0; all protected paths (rlrental.js / strategy-research.js / rldata.js / rlexperience.js / Scope 04-06 modules / simple-models.json / integration.mjs / data-options) zero-diff. Isolated RED replay proved the single-source test bites (page stashed -> pass 31/fail 1 exit 1). Feature status not_started, certifiedAt null -- UNTOUCHED. NEXT: bubbles.implement Task B delivers the FINAL adapter market-action-triage/v1 (Market Action Center in-Brief triage, extracted from the market-brief.html window/action-gating fns into a new market-action.js WITHOUT changing Brief payload behavior); then bubbles.test independently verifies Scope 07 (all 7 adapters + TP-07-02 full 22+Center integration + TP-07-03..10 E2E + TP-07-10 validator + DoD + status).",
+    "nextRequiredTarget": "Scope 07 IN PROGRESS -- ALL 7 adapters (6 ordinary + market-action-triage/v1 Center) are committed at HEAD 48658598, but bubbles.test independent verification (this session) found THREE DoD-required Test-Plan rows undelivered, so the SCN-012-036 registry-completion headline is NOT proven and Scope 07 stays in_progress (no done fabricated). VERIFIED GREEN, reproduced in-session: TP-07-01 unit 38/38 exit 0 (all 7 adapters incl SCN-012-002 seeded reproducibility), TP-07-11 broad selftest 934/0 exit 0, single-source audit clean (all 7 owner surfaces + Brief load their module + delegate; zero inline formula in pages), forbidden-authority EXECUTABLE=0 on strategy-research.js/property-research.js/market-action.js, all protected paths zero-diff (rldata.js/rlexperience.js/data-options/Scope-05-06 modules/rlrental.js/fetch-options.mjs), legacy validate-brief-payload.mjs PASS + action-only-payload-contract canary inside the 934 selftest, and a capConfidence owner-parity RED-bite on market-action.js (37/1 exit 1 then byte-restored sha256 d3cfdb90...98d339 GREEN, tree byte-clean). ROUTED GAPS -> bubbles.implement (the SCN-012-036 + E2E completion package): (1) F-07-E2E-01 -- author + run the 7 system-Chrome E2E rows TP-07-03..TP-07-09 in the MISSING file tests/simple-model-adapters-strategy-property.spec.mjs (mirror the delivered Scope-05/06 specs: real page.goto + real adapter UMD + real createSimpleRuntime + real renderer + real DOM host, NO request interception); (2) F-07-REGLOOP-01 -- extend tests/simple-model-adapters.integration.mjs with a genuine TP-07-02 Scope-07 owner-parity/parameter-effect block (it currently loops only 16 of 22: TP-05-02=8 + TP-06-02=8, no Scope-07 block), or refactor to a single all-22+Center registry-derived loop; (3) F-07-VALIDATOR-01 -- wire scripts/validate-tool-experience.mjs --require-simple-adapters to actually REGISTER the 6 ordinary owner modules + the Center model and REQUIRE 22 ordinary owner adapters + 1 in-Brief Center resolve with no generic/unresolved fallback (it currently reports registeredAdapters=0 and the flag is a no-op that passes the release gate with ZERO owner adapters). Then bubbles.test re-verifies all 11 TP rows + DoD + status. Feature status not_started / certifiedAt null / certification.status not_started remain UNTOUCHED.",
     "scopeProgress": [
       {
         "scope": 1,

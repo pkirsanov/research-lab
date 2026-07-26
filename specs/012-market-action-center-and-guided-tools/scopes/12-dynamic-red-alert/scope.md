@@ -4,7 +4,7 @@
 
 Planning authority: [spec.md](../../spec.md), [design.md](../../design.md), and the [scope index](../_index.md). Execution evidence belongs in [report.md](report.md).
 
-**Status:** In Progress
+**Status:** Done
 
 **Scope-Kind:** runtime-behavior
 
@@ -140,22 +140,22 @@ Write dynamic-seed, hard-gate, weak-candidate, empty-state, lifecycle, no-topic,
 
 #### Core Delivery Items
 
-- [ ] Dynamic owner anomalies and frozen evidence, not named topics, produce candidates; every visible alert clears complete corroboration/market/field/conflict/cutoff/score gates.
-- [ ] Weak/alarmist/conflicted/stale candidates consume no slot; valid empty state is complete and contains no padded example.
-- [ ] Append/supersede lifecycle, restrained accessible UI, and latent-risk Journey preserve evidence/falsifiers/no-execution.
-- [ ] Scope 12 makes no live-publication claim while Feature 002 is false and leaves public pointer/private scope unchanged.
+- [x] Dynamic owner anomalies and frozen evidence, not named topics, produce candidates; every visible alert clears complete corroboration/market/field/conflict/cutoff/score gates. → Evidence: [report.md#tp-12-01](report.md#tp-12-01) (unit gates 1-7 GREEN) + RED-bite proves the corroboration gate is load-bearing [report.md#independent-verification-bubblestest](report.md#independent-verification-bubblestest)
+- [x] Weak/alarmist/conflicted/stale candidates consume no slot; valid empty state is complete and contains no padded example. → Evidence: [report.md#scenario-scn-012-024](report.md#scenario-scn-012-024) + [report.md#scenario-scn-012-025](report.md#scenario-scn-012-025) (zero slot; honest empty, no illustrative topic)
+- [x] Append/supersede lifecycle, restrained accessible UI, and latent-risk Journey preserve evidence/falsifiers/no-execution. → Evidence: [report.md#tp-12-07](report.md#tp-12-07) (lifecycle + Journey ledger/alert byte-identity + zero execution)
+- [x] Scope 12 makes no live-publication claim while Feature 002 is false and leaves public pointer/private scope unchanged. → Evidence: [report.md#independent-verification-bubblestest](report.md#independent-verification-bubblestest) (Center boot renders only the Feature-002-gated empty scaffold; protected paths byte-unchanged, empty diff)
 
 #### Test Evidence Items - Exact Parity With 8 Test Plan Rows
 
-- [ ] TP-12-01 unit evidence proves contracts, gates, score, lifecycle, de-duplication, and empty state.
-- [ ] TP-12-02 functional evidence proves production discovery/qualification/lifecycle/Journey transformations from raw evidence.
-- [ ] TP-12-03 security evidence proves no topic/minimum/alarmism/execute/private/publication bypass.
-- [ ] TP-12-04 E2E evidence proves SCN-012-023 complete dynamic qualification.
-- [ ] TP-12-05 adversarial E2E evidence proves SCN-012-024 weak dramatic rejection and zero slot.
-- [ ] TP-12-06 E2E evidence proves SCN-012-025 honest empty state with coverage and no example.
-- [ ] TP-12-07 E2E evidence proves latent-risk Journey/lifecycle and zero execution/publication.
-- [ ] TP-12-08 broad selftest evidence proves existing Research Lab behavior remains green.
+- [x] TP-12-01 unit evidence proves contracts, gates, score, lifecycle, de-duplication, and empty state. → Evidence: [report.md#tp-12-01](report.md#tp-12-01) (26 pass / 0 fail, exit 0)
+- [x] TP-12-02 functional evidence proves production discovery/qualification/lifecycle/Journey transformations from raw evidence. → Evidence: [report.md#tp-12-02](report.md#tp-12-02) (7 pass / 0 fail, exit 0)
+- [x] TP-12-03 security evidence proves no topic/minimum/alarmism/execute/private/publication bypass. → Evidence: [report.md#tp-12-03](report.md#tp-12-03) (9 pass / 0 fail, exit 0)
+- [x] TP-12-04 E2E evidence proves SCN-012-023 complete dynamic qualification. → Evidence: [report.md#scenario-scn-012-023](report.md#scenario-scn-012-023) (system-chrome, 1 passed, exit 0)
+- [x] TP-12-05 adversarial E2E evidence proves SCN-012-024 weak dramatic rejection and zero slot. → Evidence: [report.md#scenario-scn-012-024](report.md#scenario-scn-012-024) (system-chrome, 1 passed, exit 0)
+- [x] TP-12-06 E2E evidence proves SCN-012-025 honest empty state with coverage and no example. → Evidence: [report.md#scenario-scn-012-025](report.md#scenario-scn-012-025) (system-chrome, 1 passed, exit 0)
+- [x] TP-12-07 E2E evidence proves latent-risk Journey/lifecycle and zero execution/publication. → Evidence: [report.md#tp-12-07](report.md#tp-12-07) (system-chrome, 1 passed, exit 0; ledger/alert byte-identical, zero execution traffic)
+- [x] TP-12-08 broad selftest evidence proves existing Research Lab behavior remains green. → Evidence: [report.md#tp-12-08](report.md#tp-12-08) (952 pass / 0 fail, exit 0)
 
 #### Build Quality Gate
 
-- [ ] Scenario RED/GREEN, exact system-Chrome identity, no-interception scan, no-topic/minimum source scan, evidence/score/lifecycle mutation matrix, no-alarmism/accessibility checks, public-pointer/private sentinel hashes, Journey no-execution checks, protected-path diff, editor diagnostics, `git diff --check`, source-lock, WebEvidence/market-action validators, artifact lint, and broad selftest are current and clean.
+- [x] Scenario RED/GREEN, exact system-Chrome identity, no-interception scan, no-topic/minimum source scan, evidence/score/lifecycle mutation matrix, no-alarmism/accessibility checks, public-pointer/private sentinel hashes, Journey no-execution checks, protected-path diff, editor diagnostics, `git diff --check`, source-lock, WebEvidence/market-action validators, artifact lint, and broad selftest are current and clean. → Evidence: RED→GREEN + no-interception empty + protected-path diff empty + `git diff --check` exit 0 + validators PASS + artifact-lint PASSED [report.md#independent-verification-bubblestest](report.md#independent-verification-bubblestest)

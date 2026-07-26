@@ -289,3 +289,173 @@ Change surface this dispatch: `tests/red-alert.spec.mjs` (new) only; `rlmarketac
 Status stays `in_progress` — this is an execution claim; bubbles.test independently verifies and finalizes.
 
 ## Audit Verdict
+
+Independently verified and finalized by bubbles.test — see the section below. All 8 Test Plan rows reproduced GREEN from scratch, all 6 required audits pass, the adversarial RED-bite is genuine and restored byte-identical, and the Tiered DoD (13 items: 4 Core + 8 Test Evidence + 1 Build Quality Gate) is fully satisfied. Scope 12 status set to `done` (substate `independently_verified`). Feature status `not_started`, `certifiedAt` null, `certification.status` not_started remain UNTOUCHED (Scope 12 of 14).
+
+## Independent Verification (bubbles.test)
+
+Independent verification under `full-delivery`. Recorded implement-phase evidence was NOT trusted: every Test Plan row was reproduced from scratch in the current session at HEAD `77c92aac2fc42937a737030e7034ffada6ab7cde` (in sync with `origin/main`) with the exact `scope.md` commands and full unfiltered output. `bash .github/bubbles/scripts/repo-binding-preflight.sh --repo-root . --agent-source research-lab` exited 0 first (`OK — agent source 'research-lab' matches target repo 'research-lab'`). Working tree at entry contained ONLY the preserved concurrent `bugs/BUG-001-.../scenario-manifest.json` (untouched throughout).
+
+### DoD Count Reconciliation
+
+The Scope 12 Tiered DoD in `scope.md` contains **13** checkbox items (4 Core Delivery + 8 Test Evidence + 1 Build Quality Gate), verified by `grep -cE '^- \[[ x]\]' scope.md` = 13. (The dispatch brief referenced "16"; the authoritative artifact count is 13.) All 13 are genuinely satisfied and checked `[x]` below.
+
+### Reproduced Test Plan Rows (in-session, HEAD 77c92aac)
+
+| Row | Command | Exit | Result |
+|---|---|---|---|
+| TP-12-01 | `node --test tests/red-alert.unit.mjs` | 0 | 26 pass / 0 fail |
+| TP-12-02 | `node --test tests/red-alert.functional.mjs` | 0 | 7 pass / 0 fail |
+| TP-12-03 | `node --test tests/red-alert.security.mjs` | 0 | 9 pass / 0 fail |
+| TP-12-04 | e2e `--project=system-chrome --grep "...SCN-012-023..."` | 0 | 1 passed |
+| TP-12-05 | e2e `--project=system-chrome --grep "...SCN-012-024..."` | 0 | 1 passed |
+| TP-12-06 | e2e `--project=system-chrome --grep "...SCN-012-025..."` | 0 | 1 passed |
+| TP-12-07 | e2e `--project=system-chrome --grep "...latent-risk Journey..."` | 0 | 1 passed |
+| TP-12-08 | `node scripts/selftest.mjs` | 0 | 952 pass / 0 fail |
+
+#### TP-12-01 unit (raw, in-session)
+
+- **Phase:** test (independent)
+- **Command:** `node --test tests/red-alert.unit.mjs`
+- **Exit Code:** 0
+- **Claim Source:** executed
+
+```text
+✔ gate 1: dropping a material claim to a single origin group rejects with insufficient-corroboration (SCN-012-024) (1.186194ms)
+✔ gate 2: removing owner market-evidence rejects with no-observable-market-evidence (SCN-012-024) (1.130095ms)
+✔ gate 3: severity below 4 rejects with low-severity (1.371894ms)
+✔ gate 7: a complete but low-scoring candidate rejects with score-below-threshold (0.531297ms)
+✔ qualifyRedAlerts enforces the visible cap of 5 and pushes the overflow to history refs (4.219379ms)
+✔ validateRedAlert refuses an alarmist presentation (no flashing/pulse/alert-role/execute) (0.791896ms)
+ℹ tests 26
+ℹ suites 0
+ℹ pass 26
+ℹ fail 0
+ℹ duration_ms 168.506359
+TP_12_01_EXIT=0
+```
+
+#### TP-12-02 functional (raw, in-session)
+
+- **Command:** `node --test tests/red-alert.functional.mjs`
+- **Exit Code:** 0
+- **Claim Source:** executed
+
+```text
+✔ every committed red-alert fixture drives the production transform to its DERIVED outcome (35.083625ms)
+✔ SCN-012-023: a dynamic anomaly with corroborated transmission and owner evidence qualifies a complete alert (4.10648ms)
+✔ SCN-012-024: a dramatic candidate lacking corroboration consumes no visible slot (1.567992ms)
+✔ SCN-012-025: when no candidate clears the bar the projection is an honest empty state with cutoff/coverage (0.476498ms)
+✔ append/supersede lifecycle preserves prior falsifiers on a qualified alert (2.633387ms)
+✔ a RUNTIME observation mutation (drop one origin) flips the SAME hypothesis from qualified to rejected (4.01628ms)
+✔ the latent-risk Journey consumes a qualified Red Alert and can qualify OR reject with zero execution (13.671432ms)
+ℹ tests 7
+ℹ pass 7
+ℹ fail 0
+TP_12_02_EXIT=0
+```
+
+Note: the row derives **7** functional tests in-session (the dispatch brief's "6" is superseded by the authoritative reproduced count).
+
+#### TP-12-03 security (raw, in-session)
+
+- **Command:** `node --test tests/red-alert.security.mjs`
+- **Exit Code:** 0
+- **Claim Source:** executed
+
+```text
+✔ acquire() discards a hostile injected source and its marker never enters the frozen bundle or the projection (14.486628ms)
+✔ a hostile thesis is a closed refusal at assembly and its marker is never echoed in the refusal (3.270484ms)
+✔ the engine source and runtime red-alert policy hardcode no illustrative named topic (3.359783ms)
+✔ no red-alert policy exposes a topic catalog, seed catalog, or a minimum-output floor (0.295399ms)
+✔ the committed runtime red-alert policy equals the module embedded default (single source of truth) (0.331299ms)
+✔ no minimum alert count forces output: a no-candidate window renders an honest empty state and pads nothing (0.773996ms)
+✔ the produced score and alert expose an admission score and NEVER a probability/confidence/crash-odds field (9.742652ms)
+✔ a DIFFERENT-topic qualified candidate flips qualified -> rejected under a runtime observation mutation (no topic hardcoding) (9.98465ms)
+✔ a visible Red Alert renders restrained, research-only, non-alarmist copy (3.514483ms)
+ℹ tests 9
+ℹ pass 9
+ℹ fail 0
+TP_12_03_EXIT=0
+```
+
+#### TP-12-04..07 e2e (raw, in-session, per exact `--grep`, `--project=system-chrome`)
+
+- **Claim Source:** executed
+
+```text
+# TP-12-04 --grep "Regression: SCN-012-023 dynamic anomaly and corroborated transmission qualify a complete Red Alert"
+  ✓  1 …nomaly and corroborated transmission qualify a complete Red Alert (4.0s)
+  1 passed (5.6s)
+TP_12_04_EXIT=0
+# TP-12-05 --grep "Regression: SCN-012-024 dramatic uncorroborated candidate consumes no visible alert slot"
+  ✓  1 … dramatic uncorroborated candidate consumes no visible alert slot (3.6s)
+  1 passed (5.4s)
+TP_12_05_EXIT=0
+# TP-12-06 --grep "Regression: SCN-012-025 no qualified candidate renders cutoff coverage and no illustrative topic"
+  ✓  1 …ified candidate renders cutoff coverage and no illustrative topic (3.5s)
+  1 passed (5.0s)
+TP_12_06_EXIT=0
+# TP-12-07 --grep "Regression: latent-risk Journey preserves alert evidence can reject candidate and never executes or publishes"
+  ✓  1 …ert evidence can reject candidate and never executes or publishes (3.8s)
+  1 passed (5.2s)
+TP_12_07_EXIT=0
+```
+
+#### TP-12-08 broad selftest (raw, in-session)
+
+- **Command:** `node scripts/selftest.mjs`
+- **Exit Code:** 0
+- **Claim Source:** executed (952-line suite; summary + Scope-12 canaries shown, exit code captured via `${PIPESTATUS[0]}`)
+
+```text
+Feature 012 Scope 12 Dynamic Red Alert discovery/qualification/projection
+  ✓ SCN-012-023 a dynamically corroborated, market-confirmed, high-severity candidate qualifies with every falsifiable field and an admission score (never a probability/confidence/crash-odds field), publication Feature-002 gated
+  ✓ SCN-012-024 a single-origin dramatic candidate consumes no visible slot, is a safe insufficient-corroboration count, and never echoes its dramatic title
+  ✓ SCN-012-025 a no-candidate window renders an honest empty state with cutoff/channels/owner coverage and no illustrative topic
+
+================================================
+Research-Lab self-test: 952 passed, 0 failed
+================================================
+SELFTEST_EXIT=0
+```
+
+### Six Required Audits (all PASS)
+
+**1. No-interception (BLOCKING if present) — CLEAN.** `grep -nE 'page\.route|context\.route|\.intercept|routeFromHAR|msw|nock|setupServer|fulfill\(' tests/red-alert.spec.mjs` printed nothing (`NO_INTERCEPTION_GREP_EXIT=1`). Positive live-stack proof: the spec has 27 real-page/real-engine references — `page.goto('about:blank')` then `page.goto(${site.baseUrl}/${PAGE})` (lines 108-109), the REAL `window.RLMARKETACTIONCENTER` runtime, and REAL `rljourney.js` injection via `page.addScriptTag({ path: RLJOURNEY_PATH })` (line 293). Zero request routing/stubbing/replay.
+
+**2. Center single-source — PASS.** `market-brief.html` loads the module (`<script src="rlmarketaction.js" defer></script>`, line 876). `qualifyRedAlerts` (rlmarketaction.js:1229) and `renderRedAlertProjection` (rlmarketaction.js:1347) are defined and exported ONLY in `rlmarketaction.js` — repo-wide source scan returns that single definition site. A scan for `data-mac-redalert-(field|severity|score|thesis|action|propagation)` render hooks OUTSIDE the engine returned nothing (exit 1) — no inline duplicate of the render/qualification logic (the F-05-SS-OPTIONS defect class is absent). The page boot renders ONLY the Feature-002-gated empty scaffold (`data-mac-gate="dependency-pending:feature-002"`), and the e2e drives the REAL engine projection into the REAL `[data-rlexperience-panel="red-alert"]` panel.
+
+**3. No-execution byte-identical — PASS.** `buildLatentRiskEvidence` (rlmarketaction.js:1314) sets `noExecution:true` (1331) and `noPublication:true` (1332). `rljourney.js` hard-REJECTS any definition lacking `noExecution` (`RLJOURNEY-DEFINITION` at lines 314/330-331) and every session/packet carries `noExecution:true`. A source scan for executable execution/publication verbs (`\.execute\(|executeOrder|placeOrder|submitOrder|\.publish\(|publishAlert|liquidat|sendOrder|placeTrade|\.trade\(|mutatePortfolio`) across `rlmarketaction.js` + `rljourney.js` returned zero (exit 1). Reproduced TP-12-07 proves the runtime guarantee in the REAL browser: `ledgerAfter === ledgerBefore` (full `localStorage` byte-identical), `alertAfter === alertBefore` (alert evidence byte-identical across qualify+reject), and the passive request log filtered for `execute|order|trade|publish|submit|place-order|liquidat` is empty.
+
+**4. No-topic-catalog / no-alarmism — PASS.** The config `red-alert-policy/v1` block (market-brief.config.json:579-611) is pure thresholds/weights (`scoreThreshold:75`, `minIndependentOrigins:2`, component weights summing to 100), horizon bands, severity labels, and staleness windows — NO named threat/entity/country/asset candidate list, NO seed catalog, and `visibleCap:5` is a MAXIMUM cap (never a minimum-output floor). The `geopolit*` config hits are the pre-existing standing market-brief `globalBackdrop`, not a Red Alert seed catalog. The engine total is `admissionScore` / "admission index" (rlmarketaction.js:991,1031,1067,…) — every `probability|confidence|crash-odds` occurrence is a comment stating what it is NOT or the unrelated Scope-09 `fabricatedConfidence:false` no-action guard. Security suite (TP-12-03) confirms "no topic catalog, seed catalog, or minimum-output floor" and "no illustrative named topic" and "admission score and NEVER a probability/confidence/crash-odds field".
+
+**5. Forbidden-authority + payload + market-action — PASS.** Raw forbidden-authority scan of `rlmarketaction.js` (`fetch(|providerFetch|XMLHttpRequest|localStorage|sessionStorage|indexedDB|credential|apiKey|api_key|.execute(|placeOrder|liquidat|require(|import`) returned 3 hits, ALL comment lines (JSDoc "performs ZERO fetch/providerFetch/credential…" and a safety comment) — zero executable authority. `node scripts/validate-market-action.mjs` PASS (`moduleAuthorityScan=PASS forbiddenCapabilities=0 scanned=10`, `adversarial=7 unexpectedAcceptances=0`, exit 0). `node scripts/validate-brief-payload.mjs` PASS (exit 0). `node scripts/validate-web-evidence.mjs` PASS (`fixtures=11 adversarial=12 unexpectedAcceptances=0`, exit 0).
+
+**6. Genuine RED-bite (adversarial, non-tautological) — PASS, restored byte-identical.** `sha256(rlmarketaction.js)` BEFORE = `714cf84f3fd2bb20f1dba72473ed70bc66af6f2ca226e082589218ba8b946ef6`. Neutralized gate 1 (two-independent-origin corroboration) by lowering both `policy.minIndependentOrigins` comparisons to `1` in `runQualification`. Targeted RED (exit 1): unit `24 pass / 2 fail` — `not ok 11 - gate 1: dropping a material claim to a single origin group rejects with insufficient-corroboration (SCN-012-024)` + `not ok 24`; functional `4 pass / 3 fail` — SCN-012-024 dramatic-uncorroborated, the drop-one-origin observation-mutation flip, and the all-fixtures derived-outcome test; security `7 pass / 2 fail` — the drop-origin mutation + hostile-source. Restored via `git checkout HEAD -- rlmarketaction.js`; sha256 AFTER = `714cf84f3fd2bb20f1dba72473ed70bc66af6f2ca226e082589218ba8b946ef6` (**== BEFORE, byte-identical**). Re-GREEN: unit 26/0, functional 7/0, security 9/0 (all exit 0); `validate-market-action` PASS exit 0. `git status --short` shows ONLY the preserved BUG-001 `scenario-manifest.json` — **the bite left NO residue in the tree** and `rlmarketaction.js` is byte-identical to HEAD.
+
+```text
+# RED (gate-1 neutralized)
+not ok 11 - gate 1: dropping a material claim to a single origin group rejects with insufficient-corroboration (SCN-012-024)
+# tests 26 / pass 24 / fail 2  -> RED_UNIT_EXIT=1
+# functional: pass 4 / fail 3  -> RED_FUNC_EXIT=1
+# security:   pass 7 / fail 2  -> RED_SEC_EXIT=1
+# RESTORE
+git checkout HEAD -- rlmarketaction.js
+sha256 AFTER = 714cf84f3fd2bb20f1dba72473ed70bc66af6f2ca226e082589218ba8b946ef6  (== BEFORE)
+# GREEN
+unit 26/0 exit 0 ; functional 7/0 exit 0 ; security 9/0 exit 0 ; validate-market-action exit 0
+git status --short -> only bugs/BUG-001-.../scenario-manifest.json (bite absent)
+```
+
+### Build Quality Gate
+
+- No-interception scan clean; system-Chrome identity (e2e ran `--project=system-chrome`); no-topic/minimum source scan clean; evidence/score/lifecycle mutation matrix green (RED-bite + unit gates 1-7); no-alarmism/accessibility green (`validateRedAlert refuses an alarmist presentation`, `-flashing/-pulse/-role/-execute` false); Journey no-execution checks green; protected-path diff EMPTY for `rldata.js rlexperience.js data/options watchlist.json web-evidence-acquire.mjs rlexperience-adapters .github/bubbles rlmarketaction.js rljourney.js journeys.json market-brief.html market-brief.config.json scripts/selftest.mjs`; editor diagnostics: "No errors found" on `rlmarketaction.js` + all four `tests/red-alert.*`; `git diff --check` exit 0; WebEvidence + market-action + brief-payload validators PASS; `bash .github/bubbles/scripts/artifact-lint.sh specs/012-market-action-center-and-guided-tools` = `Artifact lint PASSED` exit 0; broad selftest 952/0.
+
+### Coverage Gaps
+
+None found. All tests are real (Node `--test` + live-stack system-Chrome Playwright with zero interception), non-tautological (the RED-bite proves the corroboration gate is genuinely load-bearing across unit/functional/security), and cover SCN-012-023/024/025 plus lifecycle and Journey no-execution. No test change was required.
+
+### Finalization
+
+All 13 Tiered DoD items are genuinely satisfied and checked `[x]` in `scope.md`. Scope 12 `status` = `done`, `substate` = `independently_verified` in `state.json` `scopeProgress`. `execution.currentScope` reconciled off the stale `11-…` (Scope 11 is externally gated on Feature-002; Scopes 13/14 externally gated on Feature-008/BUG-004) to reflect that Scope 12 is complete and the remaining scopes are blocked on external certification gates. Feature `status` remains `not_started`, `certifiedAt` null, `certification.status` not_started (Scope 12 of 14). The concurrent `BUG-001` `scenario-manifest.json` was preserved untouched.

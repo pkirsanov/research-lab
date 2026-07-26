@@ -3,7 +3,7 @@
   "featureDir": "specs/012-market-action-center-and-guided-tools",
   "featureName": "Market Action Center and Guided Tools",
   "createdAt": "2026-07-22T03:40:01Z",
-  "lastUpdatedAt": "2026-07-26T21:40:00Z",
+  "lastUpdatedAt": "2026-07-26T23:15:00Z",
   "status": "not_started",
   "workflowMode": "full-delivery",
   "linkedImplementationSpec": null,
@@ -22,11 +22,19 @@
     "activeAgent": "bubbles.test",
     "currentPhase": "test",
     "currentPhaseStatus": "completed",
-    "currentScope": "11-feature-002-authored-brief-integration",
+    "currentScope": "12-dynamic-red-alert",
     "substate": "independently_verified",
     "runStartedAt": "2026-07-24T03:30:00Z",
     "completedAt": null,
     "completedPhaseClaims": [
+      {
+        "scope": "12-dynamic-red-alert",
+        "phase": "test",
+        "agent": "bubbles.test",
+        "claimedAt": "2026-07-26T23:15:00Z",
+        "evidence": "scopes/12-dynamic-red-alert/report.md#independent-verification-bubblestest",
+        "summary": "Independent verification of Scope 12 Dynamic Red Alert And Latent-Risk Journey (full-delivery; recorded implement evidence NOT trusted, every Test Plan row reproduced from scratch at HEAD 77c92aac with the exact scope.md commands and full unfiltered output; repo-binding-preflight --agent-source research-lab exit 0 first; tree byte-clean except the preserved concurrent BUG-001 scenario-manifest.json). All 8 rows GREEN in-session: TP-12-01 unit 26/0 exit 0, TP-12-02 functional 7/0 exit 0 (the brief's '6' superseded by the authoritative reproduced 7), TP-12-03 security 9/0 exit 0, TP-12-04..07 live system-chrome e2e each 1 passed exit 0 per exact --grep, TP-12-08 selftest 952/0 exit 0; validate-market-action PASS (forbiddenCapabilities=0, adversarial=7, unexpectedAcceptances=0) + validate-brief-payload PASS + validate-web-evidence PASS (fixtures=11 adversarial=12). Six audits pass: (1) no-interception grep on the spec empty (exit 1); real page.goto + real window.RLMARKETACTIONCENTER + real rljourney addScriptTag (27 real-page/real-engine refs); (2) Center single-source -- qualifyRedAlerts(1229)/renderRedAlertProjection(1347) defined+exported ONLY in rlmarketaction.js, zero data-mac-redalert-field/severity/score/thesis render hooks outside the engine, market-brief.html loads the module (L876) and boot renders only the Feature-002-gated empty scaffold (no F-05-SS-OPTIONS inline duplicate); (3) no-execution -- buildLatentRiskEvidence noExecution/noPublication:true (1331/1332), rljourney.js hard-rejects any non-noExecution definition (RLJOURNEY-DEFINITION 314/330), zero executable execution/publication verbs in rlmarketaction.js+rljourney.js (exit 1), reproduced TP-12-07 proves ledgerAfter===ledgerBefore + alertAfter===alertBefore byte-identical + zero execution traffic in the REAL browser; (4) no-topic/no-alarmism -- config red-alert-policy/v1 = scoreThreshold75/minIndependentOrigins2/weights-sum-100/horizon-bands/severity-labels/staleness, NO named threat/entity/country/asset seed catalog, visibleCap5 is a MAX not a floor, engine total is admissionScore/admission-index and every probability/confidence/crash-odds occurrence is a comment or the unrelated Scope-09 fabricatedConfidence guard; (5) forbidden-authority raw scan of rlmarketaction.js = 3 hits ALL comments (JSDoc + safety), zero executable fetch/providerFetch/credential/storage/execute/publish, validate-market-action moduleAuthorityScan forbiddenCapabilities=0 scanned=10; (6) RED-bite neutralized gate-1 two-independent-origin (both policy.minIndependentOrigins -> 1 in runQualification) -> genuine non-tautological RED: unit 24/2 (not ok 11 gate-1 insufficient-corroboration SCN-012-024 + not ok 24), functional 4/3 (SCN-012-024 + drop-one-origin flip + all-fixtures-derived), security 7/2, each exit 1 -> git checkout HEAD -- rlmarketaction.js restored byte-identical sha256 714cf84f3fd2bb20f1dba72473ed70bc66af6f2ca226e082589218ba8b946ef6 (==before) -> GREEN unit 26/0 func 7/0 sec 9/0 exit 0 + validate-market-action exit 0 -> git status shows ONLY the preserved BUG-001 file, NO bite residue. Build Quality Gate clean: protected paths (rldata.js/rlexperience.js/data/options/watchlist.json/web-evidence-acquire.mjs/rlexperience-adapters/.github-bubbles/rlmarketaction.js/rljourney.js/journeys.json/market-brief.html/market-brief.config.json/scripts-selftest.mjs) byte-unchanged (empty diff), git diff --check exit 0, editor diagnostics 'No errors found' on the engine + all four tests/red-alert.*, artifact-lint PASSED exit 0. No coverage gap; no test change required. Scope 12 DoD 13/13 [x]; scope status done, substate independently_verified. execution.currentScope reconciled off the stale 11 to 12-dynamic-red-alert. NO agent-actionable scope remains: Scope 11 (Feature-002), Scope 13 (Feature-008), Scope 14 (BUG-004 + Scopes 11/13) are all externally gated. Non-blocking finding F-12-INDEX: _index.md status column uniformly stale (Not Started for done scopes 4-12) -> bubbles.plan. Feature status not_started / certifiedAt null / certification.status not_started UNTOUCHED (Scope 12 of 14)."
+      },
       {
         "scope": "10-bounded-web-evidence-acquisition",
         "phase": "test",
@@ -142,7 +150,7 @@
     ],
     "pendingTransitionRequests": [],
     "nextRequiredOwner": "bubbles.implement",
-    "nextRequiredTarget": "Scope 10 (Bounded WebEvidence Acquisition) is DONE (substate independently_verified): bubbles.test reproduced all 8 Test Plan rows from scratch at HEAD 674cb92f (TP-10-01 unit 10/0, TP-10-02 functional 11/0, TP-10-03 security 9/0, TP-10-04 validator PASS fixtures=11 adversarial=12, TP-10-05/06/07 live system-chrome e2e 3/3, TP-10-08 selftest 949/0; validate-brief-payload + validate-tool-experience PASS) and confirmed all 8 checks (SCN-012-006/007/037 rejections+freeze, fail-closed 12 adversarial, hostile-not-echoed, zero author/network authority static imports=node:crypto forbiddenCapabilities=0, browser cannot acquire + no-interception, RED-bite MIN_INDEPENDENT_ORIGINS 2->1 fail->byte-identical restore->pass clean tree, protected paths byte-unchanged, truthful additive rollback). Findings F-10-A (rlexperience.js byte-unchanged vs Modified list) + F-10-B (distributed-briefs pre-existing mount-visibility harness failure) both non-blocking. Next owner bubbles.implement to begin Scope 11 (Feature 002-Gated Authored Brief Integration). Feature status not_started / certifiedAt null / certification.status not_started remain UNTOUCHED (Scope 10 of 14).",
+    "nextRequiredTarget": "Scope 12 (Dynamic Red Alert And Latent-Risk Journey) is DONE (substate independently_verified): bubbles.test reproduced all 8 Test Plan rows from scratch at HEAD 77c92aac (TP-12-01 unit 26/0, TP-12-02 functional 7/0, TP-12-03 security 9/0, TP-12-04..07 live system-chrome e2e 4/4, TP-12-08 selftest 952/0; validate-market-action + validate-brief-payload + validate-web-evidence PASS) and confirmed all 6 audits: (1) no-interception scan empty; (2) Center single-source qualifyRedAlerts/renderRedAlertProjection defined ONLY in rlmarketaction.js, zero render hooks outside the engine, market-brief.html loads the module and boot renders only the Feature-002-gated empty scaffold; (3) no-execution buildLatentRiskEvidence noExecution/noPublication:true + rljourney hard-rejects non-noExecution definitions + zero execution/publication verbs in source + TP-12-07 runtime ledger/alert byte-identity + zero execution traffic; (4) no-topic/no-alarmism config red-alert-policy=thresholds/weights(sum100)/bands/staleness with NO named-topic seed catalog and visibleCap is a MAX not a floor, total labelled admissionScore never probability/confidence/crash-odds; (5) forbidden-authority raw scan=3 comment-only hits + validate-market-action forbiddenCapabilities=0 + validate-brief-payload + validate-web-evidence PASS; (6) RED-bite neutralized gate-1 minIndependentOrigins->1 -> genuine RED unit 2/func 3/sec 2 fail exit 1 -> git checkout HEAD byte-identical restore sha256 714cf84f...b946ef6 (==before) -> GREEN 26/7/9 exit 0 -> tree clean of the bite. Scope 12 DoD 13/13 [x] (authoritative artifact count is 13, not the brief's 16). NO agent-actionable scope remains: Scope 11 blocked on external Feature-002 gate, Scope 13 blocked on external Feature-008 gate, Scope 14 blocked on external BUG-004 gate (plus Scopes 11/13). bubbles.implement resumes Scope 11 or 13 ONLY after its external certification/feature gate clears. Non-blocking finding F-12-INDEX: _index.md status column is uniformly stale (shows Not Started for scopes 4-12 that are done in state.json) -> route to bubbles.plan. Feature status not_started / certifiedAt null / certification.status not_started remain UNTOUCHED (Scope 12 of 14).",
     "scopeProgress": [
       {
         "scope": 1,
@@ -262,7 +270,8 @@
         "scope": 12,
         "scopeId": "12-dynamic-red-alert",
         "name": "Dynamic Red Alert And Latent-Risk Journey",
-        "status": "not_started",
+        "status": "done",
+        "substate": "independently_verified",
         "dependsOn": [8, 10],
         "scopeDir": "scopes/12-dynamic-red-alert",
         "scopeArtifact": "scopes/12-dynamic-red-alert/scope.md",

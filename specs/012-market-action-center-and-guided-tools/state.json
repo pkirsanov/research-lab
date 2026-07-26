@@ -3,7 +3,7 @@
   "featureDir": "specs/012-market-action-center-and-guided-tools",
   "featureName": "Market Action Center and Guided Tools",
   "createdAt": "2026-07-22T03:40:01Z",
-  "lastUpdatedAt": "2026-07-26T05:00:00Z",
+  "lastUpdatedAt": "2026-07-26T06:30:00Z",
   "status": "not_started",
   "workflowMode": "full-delivery",
   "linkedImplementationSpec": null,
@@ -19,11 +19,11 @@
   "certifiedAt": null,
   "requiresRevalidation": false,
   "execution": {
-    "activeAgent": "bubbles.implement",
+    "activeAgent": "bubbles.test",
     "currentPhase": "implement",
-    "currentPhaseStatus": "in_progress",
-    "currentScope": "06-macro-rotation-fundamental-adapters",
-    "substate": "implemented",
+    "currentPhaseStatus": "not_started",
+    "currentScope": "07-strategy-property-method-adapters",
+    "substate": "independently_verified",
     "runStartedAt": "2026-07-24T03:30:00Z",
     "completedAt": null,
     "completedPhaseClaims": [
@@ -58,11 +58,19 @@
         "claimedAt": "2026-07-26T05:00:00Z",
         "evidence": "scopes/06-macro-rotation-fundamental-adapters/report.md",
         "summary": "Authored + ran the previously-missing E2E spec tests/simple-model-adapters-macro-fundamental.spec.mjs (F-06-E2E-01 CLOSED): the eight persistent per-tool system-Chrome regressions TP-06-04..TP-06-11 (one per Scope-06 owner tool), mirroring the delivered Scope-05 spec. All 8 rows GREEN in-session -- full-spec single run 8 passed (FULLSPEC_EXIT=0) and each per-row --grep command exit 0 (TP-06-04..11). Broad selftest 895 passed / 0 failed (SELFTEST_EXIT=0). No-interception scan of the new spec empty (grep exit 1). Live-stack authentic: real page (page.goto) + real production adapter UMD (macro-rotation.js / fundamental-models.js) + real runtime (globalThis.RLEXPERIENCE.createSimpleRuntime + register*Adapters) + real renderer (renderSimpleProjection) + real [data-rlexperience-panel=simple] DOM host; owner data = frozen deterministic fixture, NOT an intercepted network response. Finding F-06-MSFT-SHELL-OPTOUT: msft-july-print-model.html deliberately opts out of the shared #rlviews shell (committed; documented as future spec-migration work) but already loads the real core + adapter for its Power path, so the TP-06-10 row exercises the real msft-margin-eps adapter through the page's OWN core + adapter, mounting only the Simple host the opt-out shell omits (probe: FY27 EPS 18.229333 -> 17.162667 under the two controls). Scope 06 stays in_progress; bubbles.test to independently re-verify TP-06-04..11 + finalize the DoD + status."
+      },
+      {
+        "scope": "06-macro-rotation-fundamental-adapters",
+        "phase": "test",
+        "agent": "bubbles.test",
+        "claimedAt": "2026-07-26T06:30:00Z",
+        "evidence": "scopes/06-macro-rotation-fundamental-adapters/report.md#iv-e2e-finalization",
+        "summary": "Independent E2E finalization of Scope 06 (full-delivery; recorded implement evidence not trusted, every Test Plan row reproduced from scratch at HEAD 20432c56 with the exact scope.md commands). All 12 rows GREEN in-session: TP-06-01 unit 51/51 exit 0, TP-06-02 integration 2/2 exit 0, TP-06-03 functional 12/12 exit 0, TP-06-12 selftest 895/0 exit 0, and the eight persistent per-tool system-Chrome E2E rows TP-06-04..TP-06-11 each 1 passed exit 0 with its exact --grep, plus the full 8-row spec in one invocation = 8 passed (FULLSPEC_EXIT=0). No-interception scan of the spec empty (grep exit 1); live-stack authentic (real page.goto + real adapter UMD + real createSimpleRuntime + real renderSimpleProjection + real [data-rlexperience-panel=simple] DOM host; frozen owner fixture, zero request interception; the only broader-scan hits are comment lines asserting the absence of interception). F-06-MSFT-SHELL-OPTOUT verified independently: committed meta name=rlviews content=off at msft page L778 (git show HEAD), page loads real fundamental-models.js for its Power path, and the page Power calculateAnnual + the Simple adapter both single-source RLFUNDAMENTALS.msftAnnualBridge -- JUDGED to genuinely satisfy TP-06-10 (real msft-margin-eps adapter + real two-control sensitivity + owner facts + provenance); the shell opt-out is surfaced as the non-blocking page-owner finding F-06-MSFT-SHELL-OPTOUT routed to bubbles.plan, NOT a Scope-06 adapter defect. Fresh owner-parity RED-bite on msftAnnualBridge (fundamental-models.js; prior session bit sleeveTotalReturn, so this is a not-previously-bitten adapter): doubled the implied valuation term -> RED 800!=400 exit 1; git checkout HEAD restored byte-identical sha256 0441403e...496237c4 -> GREEN exit 0; tree byte-clean. Scope-06 DoD reconciled 16/16 [x]; scope status done, substate independently_verified; artifact-lint exit 0. Feature status not_started, certifiedAt null, certification.status not_started -- UNTOUCHED. Only preserved concurrent dirt: bugs/BUG-001 scenario-manifest.json. Verdict TESTED; next owner bubbles.implement to kick off Scope 07."
       }
     ],
     "pendingTransitionRequests": [],
-    "nextRequiredOwner": "bubbles.test",
-    "nextRequiredTarget": "Scope 06 stays in_progress. bubbles.implement DELIVERED the eight persistent per-tool system-Chrome E2E rows TP-06-04..TP-06-11 in the NEW spec tests/simple-model-adapters-macro-fundamental.spec.mjs (F-06-E2E-01 CLOSED). All 8 GREEN in-session: full-spec single run 8 passed (FULLSPEC_EXIT=0); each per-row --grep command exit 0 (TP-06-04 sector-rotation-transition, TP-06-05 country-rotation, TP-06-06 real-asset-driver, TP-06-07 fixed-income-sleeve, TP-06-08 etf-ranking, TP-06-09 ai-capex-portfolio, TP-06-10 msft-margin-eps, TP-06-11 company-scenario-bridge). Broad selftest 895/0 (SELFTEST_EXIT=0). No-interception scan of the new spec empty (grep exit 1). Live-stack authentic (real page + real adapter + real runtime + real renderer + real DOM host; owner data = frozen fixture, zero interception). Finding F-06-MSFT-SHELL-OPTOUT: msft-july-print-model.html opts out of the shared #rlviews shell (committed, documented future migration) so the TP-06-10 row exercises the real msft-margin-eps adapter via the page's OWN already-loaded core + adapter, mounting only the Simple host the opt-out shell omits -- a non-blocking architectural finding routed to bubbles.plan / the page owner (adopt the shell OR keep msft Simple node-/Power-sourced until the documented migration). bubbles.test must independently re-verify TP-06-04..11 from scratch and finalize the Scope-06 DoD (the 8 E2E Test-Evidence items + the Build Quality Gate sub-items) + status.",
+    "nextRequiredOwner": "bubbles.implement",
+    "nextRequiredTarget": "Scope 06 is DONE and independently_verified by bubbles.test (HEAD 20432c56). All 12 Test Plan rows re-verified GREEN from scratch this session with the exact scope.md commands: TP-06-01 unit 51/51, TP-06-02 integration 2/2, TP-06-03 functional 12/12, TP-06-12 selftest 895/0, and the eight persistent per-tool system-Chrome E2E rows TP-06-04..TP-06-11 (each with its exact --grep, plus the full 8-row spec in one invocation = 8 passed, FULLSPEC_EXIT=0). No-interception scan empty (live-stack authentic). Owner-parity RED-bite on msftAnnualBridge (a not-previously-bitten adapter): RED 800!=400 exit 1 -> byte-identical HEAD restore -> GREEN exit 0. TP-06-10 msft row judged to genuinely satisfy its DoD (real msft-margin-eps adapter + real two-control sensitivity + owner facts + provenance); the page's committed #rlviews shared-shell opt-out is surfaced as the non-blocking page-owner finding F-06-MSFT-SHELL-OPTOUT (routed to bubbles.plan), NOT a Scope-06 adapter defect. Scope 06 DoD reconciled 16/16 [x]; scope status done; substate independently_verified. Feature status not_started, certifiedAt null, certification.status not_started -- UNTOUCHED. NEXT: bubbles.implement kicks off Scope 07 (07-strategy-property-method-adapters) per its scope.md scenario-first RED/GREEN contract and Test Plan; then bubbles.test verifies Scope 07.",
     "scopeProgress": [
       {
         "scope": 1,
@@ -118,7 +126,7 @@
         "scope": 6,
         "scopeId": "06-macro-rotation-fundamental-adapters",
         "name": "Macro, Rotation, And Fundamental Simple Adapters",
-        "status": "in_progress",
+        "status": "done",
         "dependsOn": [5],
         "scopeDir": "scopes/06-macro-rotation-fundamental-adapters",
         "scopeArtifact": "scopes/06-macro-rotation-fundamental-adapters/scope.md",

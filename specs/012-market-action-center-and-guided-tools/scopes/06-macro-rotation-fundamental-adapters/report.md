@@ -1114,3 +1114,262 @@ API tokens, so the scan is truly empty — live-stack authentic, zero request in
 run, and green. Scope 06 stays `in_progress`; `bubbles.test` independently re-verifies TP-06-04..11 and
 finalizes the Scope-06 DoD (the 8 E2E Test-Evidence items + the Build Quality Gate sub-items) + status.
 Feature `status` stays `not_started`; `certifiedAt` stays null.
+
+---
+
+<a id="iv-e2e-finalization"></a>
+## Independent Verification (bubbles.test) — E2E finalization
+
+Phase: test. Claim Source: executed (current session, HEAD `20432c56`). Recorded implement-phase
+evidence was NOT trusted; every Test Plan row below was reproduced from scratch this session with the
+EXACT scope.md command, full unfiltered output, no redirection, no `--no-verify`, no truncating pipe.
+
+**Verdict — ✅ TESTED. All 12 Test Plan rows GREEN, Scope 06 FINALIZATION-READY.** The eight
+per-tool system-Chrome E2E rows TP-06-04..TP-06-11 (`tests/simple-model-adapters-macro-fundamental.spec.mjs`)
+each pass with the exact scope.md `--grep`, the full 8-row spec passes in one invocation, the
+no-interception scan is empty (live-stack authentic), the msft shell-opt-out row is judged to genuinely
+satisfy its DoD item (real adapter + real sensitivity + owner facts + provenance; see the decision
+below), and a fresh owner-parity RED-bite on a not-previously-checked adapter (`msftAnnualBridge`) proves
+the parity assertions have teeth. Scope 06 → `done`; feature `status` stays `not_started`; `certifiedAt`
+stays null; `certification.status` stays `not_started`.
+
+### Node re-runs (exact scope.md commands)
+
+| Row | Command | Exit | Result |
+|---|---|---|---|
+| TP-06-01 | `node --test tests/simple-model-adapters-macro-fundamental.unit.mjs` | 0 | tests 51 / pass 51 / fail 0 |
+| TP-06-02 | `node --test --test-name-pattern="macro rotation and fundamental adapters" tests/simple-model-adapters.integration.mjs` | 0 | tests 2 / pass 2 / fail 0 |
+| TP-06-03 | `node --test --test-name-pattern="macro and fundamental source qualification" tests/simple-model-source-ownership.functional.mjs` | 0 | tests 12 / pass 12 / fail 0 |
+| TP-06-12 | `node scripts/selftest.mjs` | 0 | 895 passed / 0 failed |
+
+TP-06-01 tail (51 assertions incl. all 8 adapters register + run at parity + each enabled parameter
+moves its declared output path):
+
+```text
+✔ TP-06-01 msft-margin-eps adapter registers through the production runtime and produces a ready owner run at parity (15.232931ms)
+✔ TP-06-01 each enabled msft-margin-eps parameter changes its declared output path (49.757703ms)
+✔ TP-06-01 msft-margin-eps compute is deterministic for one compute identity (17.742236ms)
+ℹ tests 51
+ℹ suites 0
+ℹ pass 51
+ℹ fail 0
+ℹ cancelled 0
+ℹ skipped 0
+ℹ todo 0
+ℹ duration_ms 1124.37938
+TP0601_EXIT=0
+```
+
+TP-06-02 + TP-06-03 (name-pattern scoped to the Scope-06 rows):
+
+```text
+✔ TP-06-02 macro rotation and fundamental adapters: registry-derived loop runs the delivered Scope-06 set at owner-parity with real parameter effects (435.39027ms)
+✔ TP-06-02 macro rotation and fundamental adapters: Scope 05 adapter set and a real Scope 05 owner-run fingerprint are unchanged when Scope 06 shares the runtime (33.129764ms)
+ℹ tests 2  ℹ pass 2  ℹ fail 0
+TP0602_EXIT=0
+✔ SCN-012-035 macro and fundamental source qualification: the macro-rotation module invokes no fetch, provider, storage, author, publication, or cross-domain path (2.788905ms)
+✔ SCN-012-035 macro and fundamental source qualification: the fundamental-models module invokes no fetch, provider, storage, author, publication, or cross-domain path (1.157703ms)
+✔ SCN-012-035 … the delivered {sector,country,real-asset,fixed-income,etf} adapters perform zero fetch/provider/storage and preserve the frozen owner clock; missing-evidence entries stay unavailable (no default substituted)
+ℹ tests 12  ℹ pass 12  ℹ fail 0
+TP0603_EXIT=0
+```
+
+TP-06-12 broad selftest banner (full 895-test stream produced; scrollback banner reproduced):
+
+```text
+Research-Lab self-test: 895 passed, 0 failed
+TP0612_EXIT=0
+```
+
+### E2E rows TP-06-04..TP-06-11 — each with its exact scope.md `--grep` (system-chrome)
+
+Each row: `npx --no-install playwright test tests/simple-model-adapters-macro-fundamental.spec.mjs --config=playwright.config.mjs --project=system-chrome --grep "<title>" --reporter=list`.
+
+| Row | Adapter | Exit | Result |
+|---|---|---|---|
+| TP-06-04 | `sector-rotation-transition/v1` | 0 | 1 passed |
+| TP-06-05 | `country-rotation/v1` | 0 | 1 passed |
+| TP-06-06 | `real-asset-driver/v1` | 0 | 1 passed |
+| TP-06-07 | `fixed-income-sleeve/v1` | 0 | 1 passed |
+| TP-06-08 | `etf-ranking/v1` | 0 | 1 passed |
+| TP-06-09 | `ai-capex-portfolio/v1` | 0 | 1 passed |
+| TP-06-10 | `msft-margin-eps/v1` (shell-opt-out) | 0 | 1 passed |
+| TP-06-11 | `company-scenario-bridge/v1` | 0 | 1 passed |
+
+Raw per-row output (TP-06-04..08):
+
+```text
+### TP-06-04 sector-research-lab ###
+Running 1 test using 1 worker
+  ✓  1 …r rotation Simple controls recompute owner transition and ETF fit (1.4s)
+  1 passed (2.8s)
+TP0604_EXIT=0
+### TP-06-05 global-rotation ###
+Running 1 test using 1 worker
+  ✓  1 … controls recompute owner country queue with FX and session truth (1.6s)
+  1 passed (3.0s)
+TP0605_EXIT=0
+### TP-06-06 real-assets ###
+Running 1 test using 1 worker
+  ✓  1 …assets Simple controls recompute the selected owner driver model (766ms)
+  1 passed (2.1s)
+TP0606_EXIT=0
+### TP-06-07 bond-regime ###
+Running 1 test using 1 worker
+  ✓  1 …ecompute owner sleeve outcomes without hiding duration conflicts (648ms)
+  1 passed (2.0s)
+TP0607_EXIT=0
+### TP-06-08 etf-momentum ###
+Running 1 test using 1 worker
+  ✓  1 …um Simple controls recompute owner ranking and basket sensitivity (1.0s)
+  1 passed (2.3s)
+TP0608_EXIT=0
+```
+
+Raw per-row output (TP-06-09..11):
+
+```text
+### TP-06-09 ai-capex ###
+Running 1 test using 1 worker
+  ✓  1 … controls recompute owner beneficiary and portfolio distribution (714ms)
+  1 passed (2.1s)
+TP0609_EXIT=0
+### TP-06-10 msft (shell-optout) ###
+Running 1 test using 1 worker
+  ✓  1 … Simple controls recompute owner margin EPS and valuation bridge (562ms)
+  1 passed (1.9s)
+TP0610_EXIT=0
+### TP-06-11 company-fundamentals ###
+Running 1 test using 1 worker
+  ✓  1 …trols recompute a source-qualified scenario without filling gaps (588ms)
+  1 passed (1.9s)
+TP0611_EXIT=0
+```
+
+### Full 8-row spec (single invocation)
+
+Command: `npx --no-install playwright test tests/simple-model-adapters-macro-fundamental.spec.mjs --config=playwright.config.mjs --project=system-chrome --reporter=list`
+
+```text
+Running 8 tests using 1 worker
+
+  ✓  1 …r rotation Simple controls recompute owner transition and ETF fit (1.3s)
+  ✓  2 … controls recompute owner country queue with FX and session truth (1.3s)
+  ✓  3 …assets Simple controls recompute the selected owner driver model (652ms)
+  ✓  4 …ecompute owner sleeve outcomes without hiding duration conflicts (586ms)
+  ✓  5 …m Simple controls recompute owner ranking and basket sensitivity (881ms)
+  ✓  6 … controls recompute owner beneficiary and portfolio distribution (695ms)
+  ✓  7 … Simple controls recompute owner margin EPS and valuation bridge (486ms)
+  ✓  8 …trols recompute a source-qualified scenario without filling gaps (551ms)
+
+  8 passed (7.9s)
+FULLSPEC_EXIT=0
+```
+
+### No-interception scan (new spec) — live-stack authentic
+
+Task pattern (`page.route|context.route|.intercept|routeFromHAR|msw|nock|setupServer|fulfill(`) is
+EMPTY (grep exit 1). A broader mock-family scan (`route(|intercept|mock|nock|msw|wiremock|setupServer|fulfill|sinon|jest.fn|vi.fn|stub(`)
+matches ONLY comment lines 18/19/21/336 — prose that literally states "NO request interception …
+never intercepted". Zero EXECUTABLE interception.
+
+```text
+$ grep -nE 'page\.route|context\.route|\.intercept|routeFromHAR|msw|nock|setupServer|fulfill\(' tests/simple-model-adapters-macro-fundamental.spec.mjs
+SCAN_EXIT=1  (empty = clean)
+$ grep -nE 'route\(|intercept|mock|nock|msw|wiremock|setupServer|fulfill|sinon|jest\.fn|vi\.fn|stub\(' <spec>
+18: * NO request interception of any kind (no route-level request mocking, no service-worker request   (comment)
+19: * mocking, no HTTP-stub library) anywhere — the owner data is a deterministic frozen owner fixture   (comment)
+21: * an intercepted network response. Owner-parity is proven                                            (comment)
+336:   projections into the REAL Simple panel host. Owner data is a frozen fixture (never intercepted).  (comment)
+```
+
+Real-stack primitives confirmed present in the spec (not intercepted): `page.goto` (L345);
+`require('../rlexperience-adapters/{macro-rotation,fundamental-models}.js')` (L36-37);
+`api.createSimpleRuntime` (L369); `api.renderSimpleProjection` into `[data-rlexperience-panel="simple"]`
+(L406/L418/L375). Each row navigates the REAL owner page, injects/uses the REAL production adapter UMD,
+registers it into a REAL runtime, and renders the REAL projection into the REAL DOM — a deterministic
+frozen owner DATA fixture, never an intercepted network response.
+
+### F-06-MSFT-SHELL-OPTOUT decision (bubbles.test judgment — NOT rubber-stamped)
+
+**Facts independently verified this session (not trusted from the implement report):**
+- `msft-july-print-model.html` carries a COMMITTED `<meta name="rlviews" content="off">` at line 778
+  (`git show HEAD:msft-july-print-model.html` confirms it is at HEAD, not a working-tree edit), plus a
+  `window.__rlviewsInit = 1` guard (L791-793) that suppresses the shared `#rlviews` four-view shell.
+- The page STILL loads the REAL production adapter module `rlexperience-adapters/fundamental-models.js`
+  (L2492) for its OWN Power path, and the page's Power `calculateAnnual` AND the registered Simple
+  adapter BOTH single-source `RLFUNDAMENTALS.msftAnnualBridge` (L2490-2491, L2606) — one bridge formula,
+  one place.
+- The TP-06-10 spec row asserts the FULL adapter contract on the real page: two controls changed +
+  `changedParameters` matches, adapter registered + `baseline/changed.adapter === msft-margin-eps/v1`,
+  `preparedState/baseline/changed.state === 'ready'`, `'Simple model result'` heading, a non-null numeric
+  owner value on both renders, a `Limitation:` provenance line on both, and a VISIBLE two-control
+  sensitivity (`changed.text !== baseline.text`). It skips ONLY the 2 shell-specific preconditions
+  (`placeholderState === 'unavailable'` and the shared-Power-panel text comparison) — both of which are
+  structurally ABSENT on a page that (by committed design) mounts no shared shell.
+
+**Decision: YES — TP-06-10 genuinely satisfies its DoD item; check it.** The DoD item is "TP-06-10 E2E
+evidence proves MSFT bridge parameter effect." The bridge parameter effect IS proven — the REAL
+`msft-margin-eps/v1` adapter, on the REAL page, through the page's OWN already-loaded production core +
+adapter, renders a READY, parameter-sensitive Simple projection whose visible output text CHANGES under
+the two controls, and the adapter's owner math is single-sourced (`msftAnnualBridge`) and asserted
+exhaustively by TP-06-01 ("each enabled msft-margin-eps parameter changes its declared output path" +
+"msftAnnualBridge single-source pins the reported-period margin/EPS/valuation bridge formula") and by the
+RED-bite below. Skipping two assertions about a shell that is intentionally, committedly not mounted is
+NOT weakening the adapter proof — it is correctly not asserting something structurally absent. The
+shell-opt-out is a documented page-architecture choice (the page comment frames shell adoption as future
+spec-migration work), NOT an adapter defect, and the msft page's shell adoption is outside Scope 06's
+change boundary.
+
+**Honest non-blocking residual (routed, does NOT block Scope-06 done):** the DEPLOYED msft Simple surface
+today is the page's native view; the shared-shell msft Simple adapter read is not yet surfaced in the
+deployed shell (pending the documented shell migration). This is architectural/product finding
+**F-06-MSFT-SHELL-OPTOUT** for the page owner (`bubbles.plan` / page owner: adopt the shared shell so the
+Simple adapter surfaces in the deployed shell, OR keep the msft Simple read node-/Power-single-sourced
+until the documented migration). It is a page-surface decision, not a Scope-06 adapter deliverable — the
+Scope-06 deliverable (the `msft-margin-eps/v1` adapter) is real, single-sourced, parameter-sensitive, and
+proven. (Provenance note: the specific `FY27 EPS 18.229333 → 17.162667` transition is the implement
+dispatch's probe; my independent proof of msft sensitivity is the passing TP-06-10 row's
+`changed.text !== baseline.text` assertion + TP-06-01 + the RED-bite.)
+
+### Owner-parity RED-bite spot-check (`msftAnnualBridge` — fundamental-models.js, NOT previously bitten)
+
+Prior `bubbles.test` bit `sleeveTotalReturn` (macro-rotation.js, fixed-income-sleeve). This session bit a
+DIFFERENT adapter's owner fn — `msftAnnualBridge` in `fundamental-models.js` (the msft-margin-eps owner
+seam) — to prove the msft parity assertion has teeth (directly reinforcing the shell-opt-out judgment).
+Pre-bite `sha256(fundamental-models.js) = 0441403e164fbbcc17207bff63bb267d21de0a9cde14dc74f92f015f496237c4`.
+The valuation term `implied = EPS27 * pe` was temporarily doubled (`* 2`) via the IDE edit tool; the
+`msftAnnualBridge single-source pins …` unit test FAILED (RED, exit 1, `implied 800 !== 400`), proving the
+parity assertion binds. The module was then restored from HEAD (byte-identical sha256), and the same test
+PASSED (GREEN, exit 0). The tree is byte-clean — no residual bite.
+
+```text
+# post-bite sha256 (differs) = 5bb754f01ecbc88f14359c3d167ba649ad6cc35c296a8befb03bb916deb280bf
+# RED (implied valuation doubled)
+✖ TP-06-01 msftAnnualBridge single-source pins the reported-period margin/EPS/valuation bridge formula (4.141395ms)
+  AssertionError [ERR_ASSERTION]: implied price = EPS27 40 * pe 10
+  800 !== 400
+      at TestContext.<anonymous> (file:///~/research-lab/tests/simple-model-adapters-macro-fundamental.unit.mjs:1512:10)
+# tests 1  # pass 0  # fail 1
+RED_BITE_EXIT=1
+
+# RESTORE + GREEN
+post-restore sha256 = 0441403e164fbbcc17207bff63bb267d21de0a9cde14dc74f92f015f496237c4   (== pre-bite)
+git diff --stat HEAD -- fundamental-models.js = (empty — byte-identical)
+✔ TP-06-01 msftAnnualBridge single-source pins the reported-period margin/EPS/valuation bridge formula (3.559393ms)
+# tests 1  # pass 1  # fail 0
+GREEN_EXIT=0
+```
+
+### Working-tree hygiene
+
+After all verification the only dirty path is the CONCURRENT-session
+`bugs/BUG-001-options-flow-shell-startup-starvation/scenario-manifest.json` (preserved, not mine). All
+adapter modules, owner pages, and protected paths are byte-clean vs HEAD. This bubbles.test dispatch
+touches only `scope.md` (DoD reconciliation), `report.md` (this section), and `state.json` (status/owner).
+
+**Finalization result:** ✅ TESTED. 12/12 Test Plan rows green; msft shell-opt-out row judged to satisfy
+its DoD (adapter proven) with F-06-MSFT-SHELL-OPTOUT surfaced as a non-blocking page-owner finding; owner
+parity has teeth. Scope 06 DoD reconciled 16/16 `[x]`; Scope 06 → `done`
+(`substate: independently_verified`). Feature `status` `not_started`, `certifiedAt` null,
+`certification.status` `not_started` — UNTOUCHED. Next: `bubbles.implement` kicks off Scope 07.

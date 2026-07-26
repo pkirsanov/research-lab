@@ -82,7 +82,7 @@
   var REFUSAL_CODES = Object.freeze([
     "RLJOURNEY-INPUT", "RLJOURNEY-DEFINITION", "RLJOURNEY-STEP", "RLJOURNEY-DAG",
     "RLJOURNEY-MECHANISM", "RLJOURNEY-SESSION", "RLJOURNEY-STALE", "RLJOURNEY-PACKET",
-    "RLJOURNEY-EXECUTION", "RLJOURNEY-PRIVACY", "RLJOURNEY-VERSION"
+    "RLJOURNEY-EXECUTION", "RLJOURNEY-PRIVACY", "RLJOURNEY-VERSION", "RLJOURNEY-STORE"
   ]);
   /* forbidden storage field-name roots (privacy boundary). A field whose lower-cased
      name contains any of these roots may never enter a session or a packet. */
@@ -862,6 +862,191 @@
     return deepFreeze(next);
   }
 
+  /* ═══════════ verified local session store (provider-injected; NO storage global) ═══════════
+     The runtime NEVER references a browser storage global. The caller injects a provider
+     { getItem(key) -> string|null, setItem(key, value), removeItem(key) }: the browser shell
+     injects the platform per-origin store, Node tests inject a Map-backed fake (or a
+     capability-disabled throwing provider). Verified DOUBLE-BUFFER: a write goes to the INACTIVE
+     slot, is re-read and hash-compared, and only THEN is the pointer flipped — a corrupt slot can
+     never destroy the last-valid session, and clearStore is the ONLY path that deletes user data.
+     Sessions already reject the runtime privacy roots; the store ADDITIONALLY rejects the config
+     journeyStoragePolicy.forbiddenFieldNames, so only non-sensitive data is ever persisted. */
+
+  function requireStoragePolicy(policy) {
+    if (!isPlainObject(policy)) reject("RLJOURNEY-STORE", "$policy", "journey storage policy object required");
+    requireString(policy.pointerKey, "$policy.pointerKey");
+    if (!Array.isArray(policy.slotKeys) || policy.slotKeys.length !== 2) reject("RLJOURNEY-STORE", "$policy.slotKeys", "verified store requires exactly two slot keys");
+    policy.slotKeys.forEach(function (key, index) { requireString(key, "$policy.slotKeys[" + index + "]"); });
+    if (typeof policy.maxSessionBytes !== "number" || !Number.isFinite(policy.maxSessionBytes) || policy.maxSessionBytes <= 0) {
+      reject("RLJOURNEY-STORE", "$policy.maxSessionBytes", "positive maxSessionBytes required");
+    }
+    requireArray(policy.forbiddenFieldNames, "$policy.forbiddenFieldNames", 1);
+    return policy;
+  }
+
+  function requireProvider(provider) {
+    if (!provider || typeof provider !== "object") reject("RLJOURNEY-STORE", "$provider", "storage provider object required");
+    if (typeof provider.getItem !== "function" || typeof provider.setItem !== "function" || typeof provider.removeItem !== "function") {
+      reject("RLJOURNEY-STORE", "$provider", "provider must expose getItem, setItem, removeItem");
+    }
+    return provider;
+  }
+
+  /* Reject any field whose lower-cased name contains a policy-forbidden token — an additional
+     boundary on top of the runtime FORBIDDEN_FIELD_ROOTS enforced on every session and packet. */
+  function assertPolicyCleanFields(value, policy, path) {
+    var forbidden = policy.forbiddenFieldNames.map(function (name) { return String(name).toLowerCase(); });
+    var seen = [];
+    (function walk(current, currentPath) {
+      if (!current || typeof current !== "object") return;
+      if (seen.indexOf(current) !== -1) return;
+      seen.push(current);
+      if (Array.isArray(current)) { current.forEach(function (item, index) { walk(item, currentPath + "[" + index + "]"); }); return; }
+      Object.keys(current).forEach(function (key) {
+        var lowered = String(key).toLowerCase();
+        forbidden.forEach(function (token) {
+          if (lowered.indexOf(token) !== -1) reject("RLJOURNEY-PRIVACY", currentPath + "." + key, "policy-forbidden sensitive field name");
+        });
+        walk(current[key], currentPath + "." + key);
+      });
+    })(value, path);
+  }
+
+  function utf8ByteLength(text) {
+    var bytes = 0;
+    for (var i = 0; i < text.length; i += 1) {
+      var code = text.charCodeAt(i);
+      if (code < 0x80) bytes += 1;
+      else if (code < 0x800) bytes += 2;
+      else if (code < 0xd800 || code >= 0xe000) bytes += 3;
+      else { i += 1; bytes += 4; }
+    }
+    return bytes;
+  }
+
+  function slotKeyFor(policy, slot) {
+    return slot === "A" ? policy.slotKeys[0] : policy.slotKeys[1];
+  }
+
+  function readPointer(provider, policy) {
+    var raw;
+    try { raw = provider.getItem(policy.pointerKey); } catch (error) { return null; }
+    if (typeof raw !== "string" || raw.length === 0) return null;
+    var parsed;
+    try { parsed = JSON.parse(raw); } catch (error) { return null; }
+    if (!isPlainObject(parsed) || (parsed.active !== "A" && parsed.active !== "B")) return null;
+    return parsed;
+  }
+
+  /* Capability detection is a REAL probe write + read-back (never request interception). A provider
+     that throws on write, or silently drops the probe, is reported session-only. */
+  function storageCapabilityInternal(provider, policy) {
+    requireProvider(provider);
+    requireStoragePolicy(policy);
+    var probeKey = policy.pointerKey + ".probe";
+    var probeValue = "rlj-probe-" + fingerprint({ probe: policy.pointerKey }).slice(7, 19);
+    try {
+      provider.setItem(probeKey, probeValue);
+      var readBack = provider.getItem(probeKey);
+      provider.removeItem(probeKey);
+      if (readBack !== probeValue) return deepFreeze({ durable: false, mode: "session-only", reason: "storage-readback-mismatch" });
+      return deepFreeze({ durable: true, mode: "durable", reason: null });
+    } catch (error) {
+      return deepFreeze({ durable: false, mode: "session-only", reason: "storage-unavailable" });
+    }
+  }
+
+  function saveSessionInternal(provider, policy, record) {
+    requireProvider(provider);
+    requireStoragePolicy(policy);
+    if (!isPlainObject(record) || record.contractVersion !== CONTRACT.session) reject("RLJOURNEY-STORE", "$record", "session record required");
+    assertNoExecutable(record, "$record");
+    assertNoForbiddenFields(record, "$record");
+    assertPolicyCleanFields(record, policy, "$record");
+    var payload = canonicalize(record);
+    var bytes = utf8ByteLength(payload);
+    if (bytes > policy.maxSessionBytes) reject("RLJOURNEY-STORE", "$record", "session exceeds maxSessionBytes (" + bytes + " > " + policy.maxSessionBytes + ")");
+    var expectedFingerprint = "sha256:" + sha256(payload);
+    var pointer = readPointer(provider, policy);
+    var targetSlot = pointer && pointer.active === "A" ? "B" : "A"; /* always write the INACTIVE slot */
+    var targetKey = slotKeyFor(policy, targetSlot);
+    try {
+      provider.setItem(targetKey, payload);
+    } catch (error) {
+      reject("RLJOURNEY-STORE", "$provider", "storage write unavailable; last-valid session preserved");
+    }
+    var reread;
+    try { reread = provider.getItem(targetKey); } catch (error) { reread = null; }
+    if (reread !== payload || ("sha256:" + sha256(String(reread))) !== expectedFingerprint) {
+      reject("RLJOURNEY-STORE", "$provider", "verified re-read failed; last-valid session preserved");
+    }
+    /* Flip the pointer ONLY after the verified re-read — the previous active slot stays intact
+       until this line, so any failure above leaves the last-valid session recoverable. */
+    var newPointer = { active: targetSlot, fingerprint: expectedFingerprint, bytes: bytes, updatedAt: (record.updatedAt || null) };
+    try {
+      provider.setItem(policy.pointerKey, JSON.stringify(newPointer));
+    } catch (error) {
+      reject("RLJOURNEY-STORE", "$provider", "pointer flip failed; last-valid session preserved");
+    }
+    return deepFreeze({ slot: targetSlot, key: targetKey, fingerprint: expectedFingerprint, bytes: bytes });
+  }
+
+  function loadSlot(provider, policy, slot, expectedFingerprint) {
+    var raw;
+    try { raw = provider.getItem(slotKeyFor(policy, slot)); } catch (error) { return null; }
+    if (typeof raw !== "string" || raw.length === 0) return null;
+    if (expectedFingerprint && ("sha256:" + sha256(raw)) !== expectedFingerprint) return null;
+    var parsed;
+    try { parsed = JSON.parse(raw); } catch (error) { return null; }
+    if (!isPlainObject(parsed) || parsed.contractVersion !== CONTRACT.session) return null;
+    return parsed;
+  }
+
+  function loadSessionInternal(provider, policy) {
+    requireProvider(provider);
+    requireStoragePolicy(policy);
+    var pointer = readPointer(provider, policy);
+    if (!pointer) return deepFreeze({ record: null, slot: null, corrupt: false });
+    /* Try the pointer's active slot (fingerprint-verified) first, then the OTHER slot as the
+       last-valid recovery — a corrupt active write never loses the previous good session. */
+    var active = loadSlot(provider, policy, pointer.active, pointer.fingerprint);
+    if (active) return deepFreeze({ record: active, slot: pointer.active, corrupt: false });
+    var other = pointer.active === "A" ? "B" : "A";
+    var fallback = loadSlot(provider, policy, other, null);
+    if (fallback) return deepFreeze({ record: fallback, slot: other, corrupt: true });
+    return deepFreeze({ record: null, slot: null, corrupt: true });
+  }
+
+  function clearStoreInternal(provider, policy) {
+    requireProvider(provider);
+    requireStoragePolicy(policy);
+    /* The ONLY user-data deletion path. */
+    [policy.pointerKey, slotKeyFor(policy, "A"), slotKeyFor(policy, "B")].forEach(function (key) {
+      try { provider.removeItem(key); } catch (error) { /* best-effort removal */ }
+    });
+    return deepFreeze({ cleared: true });
+  }
+
+  function exportSessionInternal(provider, policy) {
+    var loaded = loadSessionInternal(provider, policy);
+    if (!loaded.record) return deepFreeze({ record: null, json: null, slot: null });
+    assertNoForbiddenFields(loaded.record, "$export");
+    assertPolicyCleanFields(loaded.record, policy, "$export");
+    return deepFreeze({ record: loaded.record, json: canonicalize(loaded.record), slot: loaded.slot, corrupt: loaded.corrupt });
+  }
+
+  /* Safe export of a LIVE in-memory session with NO provider — available even in session-only
+     mode where durable storage is unavailable, so the user can always export their work. */
+  function exportRecordInternal(policy, record) {
+    requireStoragePolicy(policy);
+    if (!isPlainObject(record) || record.contractVersion !== CONTRACT.session) reject("RLJOURNEY-STORE", "$record", "session record required");
+    assertNoExecutable(record, "$record");
+    assertNoForbiddenFields(record, "$record");
+    assertPolicyCleanFields(record, policy, "$record");
+    var json = canonicalize(record);
+    return deepFreeze({ json: json, bytes: utf8ByteLength(json) });
+  }
+
   function runtimeDiagnosticInternal() {
     return deepFreeze({
       contractVersion: CONTRACT.runtime,
@@ -901,6 +1086,14 @@
     backtrackStep: function (session, stepId, options) { return capture(function () { return backtrackStepInternal(session, stepId, options); }); },
     buildCompletionPacket: function (session, options) { return capture(function () { return buildCompletionPacketInternal(session, options); }); },
     recordSignoff: function (packet, signoff) { return capture(function () { return recordSignoffInternal(packet, signoff); }); },
+    store: {
+      capability: function (provider, policy) { return capture(function () { return storageCapabilityInternal(provider, policy); }); },
+      saveSession: function (provider, policy, record) { return capture(function () { return saveSessionInternal(provider, policy, record); }); },
+      loadSession: function (provider, policy) { return capture(function () { return loadSessionInternal(provider, policy); }); },
+      clearStore: function (provider, policy) { return capture(function () { return clearStoreInternal(provider, policy); }); },
+      exportSession: function (provider, policy) { return capture(function () { return exportSessionInternal(provider, policy); }); },
+      exportRecord: function (policy, record) { return capture(function () { return exportRecordInternal(policy, record); }); }
+    },
     assertNoForbiddenFields: function (value) { return capture(function () { assertNoForbiddenFields(value, "$value"); return true; }); },
     runtimeDiagnostic: function () { return capture(function () { return runtimeDiagnosticInternal(); }); }
   };

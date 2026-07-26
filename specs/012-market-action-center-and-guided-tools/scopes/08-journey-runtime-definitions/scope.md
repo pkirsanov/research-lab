@@ -189,7 +189,7 @@ Write reducer/storage/definition tests and the four exact scenario browser title
 
 - [ ] TP-08-01 unit evidence proves definition/reducer/stale/packet/no-execution contracts.
 - [ ] TP-08-02 functional evidence proves SCN-012-032 all-tool goal/mechanism completeness.
-- [ ] TP-08-03 functional evidence proves verified storage, session-only, privacy, clear/export, and last-valid behavior.
+- [x] TP-08-03 functional evidence proves verified storage, session-only, privacy, clear/export, and last-valid behavior. → Evidence: [report.md#tp-08-03](report.md#tp-08-03)
 - [ ] TP-08-04 E2E evidence proves SCN-012-009 durable resume and no visit-only completion.
 - [ ] TP-08-05 E2E evidence proves SCN-012-010 dependency-aware backtracking and packet exclusion.
 - [ ] TP-08-06 E2E evidence proves SCN-012-011 review-only signoff and zero execution.

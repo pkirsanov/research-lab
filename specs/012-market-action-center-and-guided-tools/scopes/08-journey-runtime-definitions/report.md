@@ -94,6 +94,60 @@ SELFTEST_EXIT=0
 
 Broad baseline preserved exactly at 934/0. Journey definition/storage/no-execution selftest canaries are deferred to the next dispatch (TP-08-10 finalization), so the count is intentionally unchanged this dispatch.
 
+### TP-08-03
+
+- **Phase:** implement
+- **Command:** `node --test tests/journey-storage.functional.mjs`
+- **Exit Code:** 0
+- **Claim Source:** executed (current session, 2026-07-26)
+
+```text
+✔ TP-08-03 SCN-012-009 verified round-trip restores prior context, completed step, evidence, and next-required step (33.208499ms)
+✔ TP-08-03 SCN-012-009 a visit or creation alone is never a completed step after persistence (13.746ms)
+✔ TP-08-03 corruption falls back to the REAL last-valid session, never a fixture echo (14.3352ms)
+✔ TP-08-03 future-version and unknown records are left untouched (never downgraded) (12.1921ms)
+✔ TP-08-03 verified write refuses a lossy (truncating) provider and preserves the last-valid session (13.896799ms)
+✔ TP-08-03 enforces the maxSessionBytes limit (11.3366ms)
+✔ TP-08-03 session-only mode: disabled storage reports session-only, refuses durable save, and safe export still works (12.1995ms)
+✔ TP-08-03 a durable provider reports durable and probes leave no residue (0.4656ms)
+✔ TP-08-03 the store rejects sensitive fields via both the runtime roots and the config policy layer (12.1485ms)
+✔ TP-08-03 clear is the only deletion path and leaves unrelated keys intact (13.2354ms)
+✔ TP-08-03 save / load / export never mutate unrelated storage keys (16.634199ms)
+ℹ tests 11
+ℹ pass 11
+ℹ fail 0
+ℹ duration_ms 267.198796
+TP0803_EXIT=0
+```
+
+The verified-slot store lives in `rljourney.js` (`RJ.store.{capability,saveSession,loadSession,clearStore,exportSession,exportRecord}`), a provider-INJECTED double buffer consuming the REAL production `journeyStoragePolicy` from `tool-experience.config.json` (`pointerKey rlJourneySessionsV1.pointer`, `slotKeys slotA/slotB`, `maxSessionBytes 131072`, `forbiddenFieldNames`). The runtime NEVER references a storage global — a Map-backed provider (Node) or the browser per-origin store is injected. A write goes to the INACTIVE slot, is re-read and sha256-compared, and only then is the pointer flipped, so a corrupt slot never loses the last-valid session. Capability is a REAL probe write+read-back (a throwing provider = a browser CAPABILITY refusal, not request interception). Proven in-session: verified round-trip restoring context/completed-step/evidence/next-required; a visit (no evidence) is NEVER restored as complete; corruption recovers the REAL production last-valid `session1` (compared by its production `sessionFingerprint`, not a fixture echo); a newer-version slot is left byte-identical (never downgraded); the `maxSessionBytes` limit is enforced; session-only mode refuses durable save yet keeps safe export; both the runtime privacy roots (`position`) AND the config-only forbidden name (`privateTicker`) are rejected; clear is the only deletion path; and unrelated storage keys are never mutated.
+
+### TP-08-03 storage RED-bite (non-tautology, in-session)
+
+- **Phase:** implement
+- **Command:** `node --test tests/journey-storage.functional.mjs` (with the verified re-read in `saveSessionInternal` neutralized: `if (false && ...)`)
+- **Exit Code:** 1 (expected RED)
+- **Claim Source:** executed (current session, 2026-07-26)
+
+```text
+not ok 5 - TP-08-03 verified write refuses a lossy (truncating) provider and preserves the last-valid session
+# pass 10
+# fail 1
+RED_EXIT=1
+```
+
+Restored byte-identical and re-verified GREEN:
+
+```text
+fa80d5dcd81cce65060b6f923f23bd005869afdc08381a682d6718e16d94cb24  rljourney.js
+# tests 11
+# pass 11
+# fail 0
+GREEN_EXIT=0
+```
+
+Neutralizing the verified re-read fails EXACTLY the lossy-provider test (pass 10 / fail 1), proving it genuinely detects the verified-write contract; the `sha256sum` after restore equals the milestone-1 baseline `fa80d5dc…cb24`.
+
 ### Non-tautology RED-bite (runtime, in-session)
 
 - **Phase:** implement
@@ -137,7 +191,7 @@ Neutralizing the transitive-stale marking fails EXACTLY the two SCN-012-010 test
 
 ### SCN-012-009
 
-Unit-level durable-resume contract proven in TP-08-01 (`SCN-012-009 creates a durable session, restores it byte-identically, and rejects definition drift`): `createSession` starts every step `pending` with `nextRequiredStepId` at the first step — a visit/creation is NOT a completed step; `serializeSession`→`restoreSession` reproduces the exact `sessionFingerprint` and step statuses; a drifted `definitionFingerprint` is refused with `RLJOURNEY-STALE`. The e2e durable-resume browser proof (TP-08-04, `tests/journey.spec.mjs`) is deferred to the next dispatch.
+Unit-level durable-resume contract proven in TP-08-01 (`SCN-012-009 creates a durable session, restores it byte-identically, and rejects definition drift`): `createSession` starts every step `pending` with `nextRequiredStepId` at the first step — a visit/creation is NOT a completed step; `serializeSession`→`restoreSession` reproduces the exact `sessionFingerprint` and step statuses; a drifted `definitionFingerprint` is refused with `RLJOURNEY-STALE`. Durable resume through VERIFIED LOCAL SLOTS is now proven end-to-end in TP-08-03 (see `report.md#tp-08-03`): a real production session saved to a verified slot restores prior context, the completed step, its recorded evidence, and the next-required step on reload, while a mere visit is never restored as complete. The e2e durable-resume browser proof (TP-08-04, `tests/journey.spec.mjs`) follows in this dispatch's next milestone.
 
 ### SCN-012-010
 

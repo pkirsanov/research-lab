@@ -345,14 +345,253 @@
       });
     });
   }
+  /* ── Feature 012 Scope 08: Journey capability shell (additive, lazy, NON-EXECUTING) ──
+     ONE shared Journey controller. It CONSUMES an injected rljourney runtime, the browser
+     per-origin store, and the config journeyStoragePolicy; it renders the goal chooser /
+     progress / evidence / backtrack / packet / review into a host and persists ONLY through the
+     runtime's verified local slots. It NEVER executes: recording human review mutates local
+     packet state only — no trade / order / holding change / rebalance / hedge / external call.
+     It performs ZERO eager storage writes: nothing is written until the user completes a step,
+     and on every real page (which carries no [data-rljourney-mount] anchor) the boot hook is
+     inert, so the existing shell boot is unchanged. */
+  function journeyUnwrap(result, label) {
+    if (!result || result.ok !== true) {
+      var err = result && result.error ? (result.error.code + " " + result.error.fieldPath + " " + result.error.reason) : "unknown";
+      throw new Error("RLJOURNEY " + (label || "op") + " refused: " + err);
+    }
+    return result.value;
+  }
+  function journeyStepView(session) {
+    return session.order.map(function (stepId) {
+      var record = session.steps[stepId];
+      return { stepId: stepId, status: record.status, staleReason: record.staleReason || null, evidenceCount: (record.evidence || []).length };
+    });
+  }
+  function journeySessionState(state) {
+    var session = state.session;
+    if (!session) return { active: false };
+    return {
+      active: true,
+      definitionId: session.definitionId,
+      toolId: session.toolId,
+      goalId: session.goalId,
+      mechanism: session.mechanism,
+      privacyClass: session.privacyClass,
+      gated: session.gated,
+      status: session.status,
+      steps: journeyStepView(session),
+      nextRequiredStepId: session.nextRequiredStepId,
+      sessionFingerprint: session.sessionFingerprint,
+      context: JSON.parse(JSON.stringify(session.context))
+    };
+  }
+  function journeyPacketState(packet) {
+    if (!packet) return { built: false };
+    return {
+      built: true,
+      outcome: packet.outcome,
+      reviewRecorded: packet.reviewRecorded,
+      executed: packet.executed,
+      noExecution: packet.noExecution,
+      excludedStaleSteps: packet.excludedStaleSteps.slice(),
+      excludedIncompleteSteps: packet.excludedIncompleteSteps.slice(),
+      outcomes: packet.outcomes.map(function (row) { return row.stepId; }),
+      disclaimer: packet.disclaimer,
+      packetFingerprint: packet.packetFingerprint
+    };
+  }
+  function createJourneyController(deps) {
+    deps = deps || {};
+    var runtime = deps.runtime;
+    var storage = deps.storage || null;
+    var policy = deps.policy;
+    var host = deps.host || null;
+    var journeys = deps.journeys || null;
+    var registry = deps.registry || null;
+    if (!runtime || typeof runtime.compileRegistry !== "function" || !runtime.store) throw new Error("journey controller requires the rljourney runtime");
+    if (!policy) throw new Error("journey controller requires the journey storage policy");
+    var compiledRegistry = journeys ? journeyUnwrap(runtime.compileRegistry(journeys), "compileRegistry") : null;
+    var capability = { durable: false, mode: "session-only", reason: "no-storage" };
+    if (storage) {
+      var cap = runtime.store.capability(storage, policy);
+      capability = (cap && cap.ok) ? cap.value : { durable: false, mode: "session-only", reason: "storage-unavailable" };
+    }
+    var state = { compiled: null, session: null, packet: null };
+
+    function persistIfDurable() {
+      if (!capability.durable || !storage || !state.session) return { persisted: false, mode: capability.mode };
+      var serialized = journeyUnwrap(runtime.serializeSession(state.session), "serialize");
+      var saved = runtime.store.saveSession(storage, policy, serialized);
+      if (!saved.ok) return { persisted: false, error: saved.error, mode: capability.mode };
+      return { persisted: true, slot: saved.value.slot, mode: capability.mode };
+    }
+    function chooserRows() {
+      var tools = (registry && (registry.tools || registry.registry)) || [];
+      return tools.map(function (tool) {
+        var ids = (tool.experience && tool.experience.journeyDefinitionIds) || [];
+        var kind = (tool.experience && tool.experience.kind) || "ordinary";
+        var goals = ids.map(function (definitionId) {
+          var compiled = compiledRegistry ? compiledRegistry.definitions[definitionId] : null;
+          return compiled ? { definitionId: definitionId, toolId: compiled.toolId, goalId: compiled.goalId, mechanism: compiled.mechanism, title: compiled.title } : null;
+        }).filter(function (row) { return !!row; });
+        return { registryId: tool.id, kind: kind, goals: goals };
+      });
+    }
+    function renderChooser() {
+      if (!host) return;
+      var rows = chooserRows();
+      var listHtml = rows.map(function (row) {
+        var goalsHtml = row.goals.map(function (goal) {
+          return '<button type="button" data-rljourney-goal="' + esc(goal.definitionId) + '" data-rljourney-tool-id="' + esc(goal.toolId) + '" data-rljourney-mechanism="' + esc(goal.mechanism) + '">' + esc(goal.title) + '</button>';
+        }).join("");
+        return '<li data-rljourney-tool="' + esc(row.registryId) + '" data-rljourney-kind="' + esc(row.kind) + '" data-rljourney-goal-count="' + row.goals.length + '"><span class="rlj-tool-label">' + esc(row.registryId) + '</span>' + goalsHtml + '</li>';
+      }).join("");
+      var capHtml = '<div data-rljourney-capability="' + esc(capability.mode) + '" data-rljourney-durable="' + (capability.durable ? "true" : "false") + '">' +
+        (capability.durable ? 'Durable — progress is saved locally and survives reload.' : 'Session only — local storage is unavailable; progress is not saved across reloads. Safe export remains available.') + '</div>';
+      host.innerHTML = capHtml + '<ul data-rljourney-chooser>' + listHtml + '</ul><section data-rljourney-active hidden></section>';
+    }
+    function renderActive() {
+      if (!host) return;
+      var section = host.querySelector("[data-rljourney-active]");
+      if (!section) return;
+      if (!state.session) { section.setAttribute("hidden", "hidden"); section.innerHTML = ""; return; }
+      var s = state.session;
+      section.removeAttribute("hidden");
+      section.setAttribute("data-rljourney-active", s.definitionId);
+      var stepsHtml = s.order.map(function (stepId) {
+        var record = s.steps[stepId];
+        var current = stepId === s.nextRequiredStepId;
+        return '<li data-rljourney-step="' + esc(stepId) + '" data-rljourney-status="' + esc(record.status) + '"' +
+          (current ? ' aria-current="step"' : '') +
+          (record.staleReason ? ' data-rljourney-stale-reason="' + esc(record.staleReason) + '"' : '') +
+          ' data-rljourney-evidence-count="' + (record.evidence || []).length + '"><span>' + esc(stepId) + '</span></li>';
+      }).join("");
+      var packetHtml = "";
+      if (state.packet) {
+        var p = state.packet;
+        packetHtml = '<div data-rljourney-packet="' + esc(p.outcome) + '" data-rljourney-executed="' + (p.executed ? "true" : "false") + '" data-rljourney-review="' + (p.reviewRecorded ? "true" : "false") + '" data-rljourney-excluded-stale="' + esc(p.excludedStaleSteps.join(",")) + '"><p data-rljourney-disclaimer>' + esc(p.disclaimer) + '</p></div>';
+      }
+      section.innerHTML = '<h3 data-rljourney-goal-title>' + esc(s.goalId) + '</h3>' +
+        '<ol data-rljourney-progress aria-label="Journey progress">' + stepsHtml + '</ol>' +
+        '<div data-rljourney-next="' + esc(s.nextRequiredStepId || "none") + '"></div>' + packetHtml;
+    }
+
+    return {
+      capability: function () { return JSON.parse(JSON.stringify(capability)); },
+      mount: function () { renderChooser(); var rows = chooserRows(); return { toolCount: rows.length, rows: rows.map(function (r) { return { registryId: r.registryId, kind: r.kind, goalCount: r.goals.length }; }) }; },
+      chooser: function () { return chooserRows(); },
+      openGoal: function (definitionId, options) {
+        var compiled = compiledRegistry ? compiledRegistry.definitions[definitionId] : null;
+        if (!compiled) throw new Error("unknown journey definition: " + definitionId);
+        state.compiled = compiled;
+        state.packet = null;
+        state.session = journeyUnwrap(runtime.createSession(compiled, options || {}), "createSession");
+        renderActive();
+        return journeySessionState(state);
+      },
+      openCompiled: function (compiled, options) {
+        if (!compiled || compiled.contractVersion !== runtime.CONTRACT.compiled) throw new Error("openCompiled requires a runtime-compiled definition");
+        state.compiled = compiled;
+        state.packet = null;
+        state.session = journeyUnwrap(runtime.createSession(compiled, options || {}), "createSession");
+        renderActive();
+        return journeySessionState(state);
+      },
+      completeStep: function (stepId, submission) {
+        state.session = journeyUnwrap(runtime.completeStep(state.session, stepId, submission || {}), "completeStep");
+        var persist = persistIfDurable();
+        renderActive();
+        var view = journeySessionState(state);
+        view.persist = persist;
+        return view;
+      },
+      previewBacktrack: function (stepId) { return journeyUnwrap(runtime.previewBacktrack(state.session, stepId), "previewBacktrack"); },
+      backtrack: function (stepId, options) {
+        state.session = journeyUnwrap(runtime.backtrackStep(state.session, stepId, options || {}), "backtrackStep");
+        var persist = persistIfDurable();
+        renderActive();
+        var view = journeySessionState(state);
+        view.persist = persist;
+        return view;
+      },
+      buildPacket: function (options) {
+        state.packet = journeyUnwrap(runtime.buildCompletionPacket(state.session, options || {}), "buildCompletionPacket");
+        renderActive();
+        return journeyPacketState(state.packet);
+      },
+      recordReview: function (signoff) {
+        /* SCN-012-011: local review only — mutates the packet's review state, executes NOTHING. */
+        state.packet = journeyUnwrap(runtime.recordSignoff(state.packet, signoff), "recordSignoff");
+        renderActive();
+        return journeyPacketState(state.packet);
+      },
+      resume: function () {
+        if (!storage) return { resumed: false, reason: "no-storage" };
+        var loaded = runtime.store.loadSession(storage, policy);
+        if (!loaded.ok || !loaded.value.record) return { resumed: false };
+        var record = loaded.value.record;
+        var compiled = compiledRegistry ? compiledRegistry.definitions[record.definitionId] : null;
+        if (!compiled) return { resumed: false, reason: "definition-unavailable" };
+        state.compiled = compiled;
+        state.packet = null;
+        state.session = journeyUnwrap(runtime.restoreSession(compiled, record), "restoreSession");
+        renderActive();
+        var view = journeySessionState(state);
+        view.resumed = true;
+        view.corrupt = !!loaded.value.corrupt;
+        return view;
+      },
+      clear: function () {
+        if (storage) runtime.store.clearStore(storage, policy);
+        state = { compiled: null, session: null, packet: null };
+        renderActive();
+        return { cleared: true };
+      },
+      exportCurrent: function () {
+        if (!state.session) return { json: null };
+        var serialized = journeyUnwrap(runtime.serializeSession(state.session), "serialize");
+        return journeyUnwrap(runtime.store.exportRecord(policy, serialized), "exportRecord");
+      },
+      sessionState: function () { return journeySessionState(state); },
+      packetState: function () { return journeyPacketState(state.packet); }
+    };
+  }
+  function mountJourney() {
+    var anchors = document.querySelectorAll ? document.querySelectorAll("[data-rljourney-mount]") : [];
+    if (!anchors.length) return; /* inert on every real page → ZERO eager Journey storage writes */
+    var anchor = anchors[0];
+    Promise.all([
+      fetchRequiredJson("tool-experience.config.json"),
+      fetchRequiredJson("journeys.json"),
+      fetchRegistry(),
+      ensureSharedScript("rljourney-shared-js", "rljourney.js", function () { return !!(root.RLJOURNEY && typeof root.RLJOURNEY.compileRegistry === "function"); })
+    ]).then(function (values) {
+      var config = values[0];
+      var journeys = values[1];
+      var registry = values[2];
+      if (!config || !journeys || !registry || values[3] !== true) { anchor.setAttribute("data-rljourney-state", "unavailable"); return; }
+      var controller = createJourneyController({
+        runtime: root.RLJOURNEY,
+        storage: (function () { try { return root.localStorage || null; } catch (e) { return null; } })(),
+        policy: config.journeyStoragePolicy,
+        host: anchor,
+        journeys: journeys,
+        registry: registry
+      });
+      controller.mount();
+      anchor.setAttribute("data-rljourney-state", "ready");
+      root.__rljourneyController = controller;
+    }).catch(function () { anchor.setAttribute("data-rljourney-state", "unavailable"); });
+  }
   function boot() {
     buildStatus(); mountSettings(document.getElementById("data-settings"));
     root.addEventListener("rl:data-status", renderStatus);
     setTimeout(renderStatus, 0);
     mountBriefs();
     mountExperienceShell();
+    mountJourney();
   }
 
-  root.RLAPP = { report: report, autoRefresh: autoRefresh, renderStatus: renderStatus, mountBriefs: mountBriefs, mountExperienceShell: mountExperienceShell };
+  root.RLAPP = { report: report, autoRefresh: autoRefresh, renderStatus: renderStatus, mountBriefs: mountBriefs, mountExperienceShell: mountExperienceShell, mountJourney: mountJourney, journey: createJourneyController };
   if (document.readyState === "loading") document.addEventListener("DOMContentLoaded", boot); else boot();
 })();

@@ -149,7 +149,7 @@ Write same-seed/new-seed/common-randomness and per-tool parameter-effect tests b
 
 - [x] All remaining ordinary adapters and the in-Brief Center triage model execute actual owner logic with visible effects, distinct Simple questions, truthful evidence, and no formula copy/default/generic fallback. → Evidence: [report.md#independent-verification-bubblestest] (unit 38/38, single-source audit, forbidden-authority 0, capConfidence RED-bite)
 - [x] SCN-012-002 proves deterministic seed identity and separates common-random parameter sensitivity from path randomness. → Evidence: [report.md#scenario-scn-012-002] (unit-proven; E2E row TP-07-03 is in the F-07-E2E-01 routed gap)
-- [ ] The production validator accounts for all 22 ordinary Simple adapters plus the Center in-view model; unresolved owners block release.
+- [x] The production validator accounts for all 22 ordinary Simple adapters plus the Center in-view model; unresolved owners block release. → Evidence: [report.md#tp-07-10] (F-07-VALIDATOR-01 CLOSED — `--require-simple-adapters` before NO-OP registeredAdapters=0 → after simpleAdapterRegistry=PASS ordinaryAdapters=22 centerAdapters=1 registeredAdapters=23 exit 0; genuine-bite: property-research omitted → 3 unresolved, exit 1)
 - [x] Scope 05/06 fingerprints, current owner behavior, local ledgers/data, and legacy Market Brief provenance remain unchanged. → Evidence: [report.md#independent-verification-bubblestest] (protected-paths zero-diff, TP-05-02/TP-06-02 green, validate-brief-payload PASS, selftest 934/0)
 
 #### Test Evidence Items - Exact Parity With 11 Test Plan Rows
@@ -163,7 +163,7 @@ Write same-seed/new-seed/common-randomness and per-tool parameter-effect tests b
 - [ ] TP-07-07 E2E evidence proves Palm Springs cash-flow sensitivity without gap filling.
 - [ ] TP-07-08 E2E evidence proves Ocean Shores seasonal sensitivity without gap filling.
 - [ ] TP-07-09 E2E evidence proves Center triage stays bounded and inside Brief.
-- [ ] TP-07-10 validator evidence proves SCN-012-036 complete Simple inventory with no generic/unresolved adapter.
+- [x] TP-07-10 validator evidence proves SCN-012-036 complete Simple inventory with no generic/unresolved adapter. → Evidence: [report.md#tp-07-10] (`node scripts/validate-tool-experience.mjs --require-simple-adapters` exit 0, registeredAdapters=23; selftest 934/0)
 - [x] TP-07-11 broad selftest evidence proves the existing Research Lab baseline remains green. → Evidence: [report.md#tp-07-11] (934 passed / 0 failed exit 0)
 
 #### Build Quality Gate

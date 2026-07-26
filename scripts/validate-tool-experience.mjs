@@ -380,6 +380,82 @@ function requireRejected(packet, name, expectedCode, mutate) {
   return { name, code: expectedCode, fieldPath: result.error.fieldPath };
 }
 
+/*
+ * SCN-012-036 release-gate enforcement (behind --require-simple-adapters).
+ *
+ * Loads the six ordinary owner modules plus the internal Market Action Center model, registers
+ * every one of their adapters into ONE production runtime over the ACTUAL model registry, then
+ * runs the production registry loop: every ordinary registry tool MUST resolve exactly one
+ * registered owner adapter, and the single in-Brief Center triage model MUST resolve too. Because
+ * the runtime structurally rejects any adapter whose adapterId is not declared and any duplicate
+ * registration, a "generic fallback" cannot register; the count invariant plus a per-tool
+ * adapterStatus() resolution proves every one of the 22 ordinary tools and the 1 Center model owns
+ * a distinct actual adapter with zero generic fallback, zero tool-id branch, and zero authority.
+ * Each factory self-filters by its own tool IDs (byToolId guards), so passing the full definition
+ * set is safe — a module registers only the adapters it owns.
+ */
+const ORDINARY_OWNER_MODULES = [
+  { path: '../rlexperience-adapters/market-structure.js', factory: 'registerMarketStructureAdapters', deps: () => ({ rlvol: require('../rlvol.js') }) },
+  { path: '../rlexperience-adapters/options.js', factory: 'registerOptionsAdapters', deps: () => undefined },
+  { path: '../rlexperience-adapters/macro-rotation.js', factory: 'registerMacroRotationAdapters', deps: () => undefined },
+  { path: '../rlexperience-adapters/fundamental-models.js', factory: 'registerFundamentalModelsAdapters', deps: () => undefined },
+  { path: '../rlexperience-adapters/strategy-research.js', factory: 'registerStrategyResearchAdapters', deps: () => undefined },
+  { path: '../rlexperience-adapters/property-research.js', factory: 'registerPropertyResearchAdapters', deps: () => ({ rental: require('../rlrental.js') }) }
+];
+const CENTER_OWNER_MODULE = { path: '../rlexperience-adapters/market-action.js', factory: 'registerMarketActionAdapters', deps: () => undefined };
+
+function validateSimpleAdapterRegistry(packet) {
+  const runtimeResult = RLEXPERIENCE.createSimpleRuntime(packet.config, packet.models);
+  invariant(runtimeResult.ok, `Simple adapter registry runtime rejected declarations: ${runtimeResult.error?.code || 'unknown'}`);
+  const runtime = runtimeResult.value;
+
+  const registration = Object.create(null);
+  for (const descriptor of [...ORDINARY_OWNER_MODULES, CENTER_OWNER_MODULE]) {
+    const module = require(descriptor.path);
+    invariant(typeof module[descriptor.factory] === 'function', `${descriptor.path} is missing production factory ${descriptor.factory}`);
+    const results = module[descriptor.factory](runtime, RLEXPERIENCE, packet.models.definitions, descriptor.deps());
+    for (const [adapterId, result] of Object.entries(results)) {
+      invariant(result && result.ok, `owner adapter ${adapterId} failed to register: ${JSON.stringify((result && result.error) || {})}`);
+      invariant(registration[adapterId] === undefined, `owner adapter ${adapterId} was registered by more than one module`);
+      registration[adapterId] = descriptor.path;
+    }
+  }
+
+  const ordinaryToolIds = packet.registry.tools.filter((tool) => tool.experience.kind === 'ordinary').map((tool) => tool.id);
+  const centerToolIds = packet.registry.tools.filter((tool) => tool.experience.kind === 'market-action-center').map((tool) => tool.id);
+  invariant(centerToolIds.length === 1, 'exactly one Market Action Center model is required');
+
+  const unresolvedOrdinary = [];
+  for (const toolId of ordinaryToolIds) {
+    const definition = packet.models.definitions.find((candidate) => candidate.toolId === toolId);
+    invariant(definition, `ordinary tool ${toolId} has no declared model definition`);
+    const status = runtime.adapterStatus(definition.definitionId);
+    if (!status.ok || status.value.registered !== true) unresolvedOrdinary.push(toolId);
+  }
+  invariant(unresolvedOrdinary.length === 0, `ordinary tools without a registered owner adapter: ${unresolvedOrdinary.join(', ')}`);
+
+  const centerDefinition = packet.models.definitions.find((candidate) => candidate.toolId === centerToolIds[0]);
+  invariant(centerDefinition, `Center tool ${centerToolIds[0]} has no declared model definition`);
+  const centerStatus = runtime.adapterStatus(centerDefinition.definitionId);
+  invariant(centerStatus.ok && centerStatus.value.registered === true, 'Market Action Center triage model has no registered owner adapter');
+
+  const diagnostic = runtime.diagnostic();
+  invariant(diagnostic.ok, 'Simple adapter registry runtime diagnostic failed');
+  const expected = ordinaryToolIds.length + centerToolIds.length;
+  invariant(diagnostic.value.registeredAdapterCount === expected, `registered owner adapters ${diagnostic.value.registeredAdapterCount} differ from declared ${expected} (generic fallback or missing owner)`);
+  invariant(diagnostic.value.toolIdBranchCount === 0, 'runtime owns a tool-id branch (generic fallback risk)');
+  invariant(Object.values(diagnostic.value.authority).every((owned) => owned === false), 'Simple runtime owns a forbidden authority under adapter registration');
+
+  return {
+    ordinaryAdapterCount: ordinaryToolIds.length,
+    centerAdapterCount: centerToolIds.length,
+    registeredAdapterCount: diagnostic.value.registeredAdapterCount,
+    toolIdBranchCount: diagnostic.value.toolIdBranchCount,
+    authorityOwnedCount: Object.values(diagnostic.value.authority).filter(Boolean).length,
+    resolvedOrdinaryToolIds: ordinaryToolIds
+  };
+}
+
 function runAdversarialChecks(packet) {
   const cases = [
     ['missing-experience', 'E012-REGISTRY', (candidate) => { delete candidate.registry.tools[0].experience; }],
@@ -402,7 +478,7 @@ function runAdversarialChecks(packet) {
   return cases.map(([name, code, mutate]) => requireRejected(packet, name, code, mutate));
 }
 
-export function validateActualToolExperience() {
+export function validateActualToolExperience(options = {}) {
   const loaded = loadActualPacket();
   const artifactChecks = validateArtifactBudgets(loaded.packet, loaded.bytes);
   const validation = RLEXPERIENCE.validateFoundation(loaded.packet);
@@ -412,6 +488,7 @@ export function validateActualToolExperience() {
   const identities = deriveIdentityInventory(loaded.packet, validation.value);
   validateProductionSource(loaded.packet);
   const runtime = validateSimpleRuntimeCanaries(loaded.packet);
+  const simpleAdapters = options.requireSimpleAdapters ? validateSimpleAdapterRegistry(loaded.packet) : null;
 
   const scalingPacket = buildScalingPacket(loaded.packet);
   const scaling = RLEXPERIENCE.validateFoundation(scalingPacket);
@@ -425,6 +502,7 @@ export function validateActualToolExperience() {
   return {
     summary: validation.value,
     runtime,
+    simpleAdapters,
     identities,
     artifacts: artifactChecks,
     scaling: {
@@ -440,13 +518,17 @@ export function validateActualToolExperience() {
 
 function main() {
   try {
-    const report = validateActualToolExperience();
+    const requireSimpleAdapters = process.argv.includes('--require-simple-adapters');
+    const report = validateActualToolExperience({ requireSimpleAdapters });
     for (const artifact of report.artifacts) {
       console.log(`[tool-experience] artifact=${artifact.artifact} bytes=${artifact.bytes} budget=${artifact.budget} result=PASS`);
     }
     console.log(`[tool-experience] registry=PASS tools=${report.summary.toolCount} ordinary=${report.summary.ordinaryCount} marketAction=${report.summary.marketActionCount}`);
     console.log(`[tool-experience] definitions=PASS simpleModels=${report.summary.simpleModelDefinitionCount} journeys=${report.summary.journeyDefinitionCount} steps=${report.summary.journeyStepCount}`);
     console.log(`[tool-experience] simpleRuntime=PASS truthStates=${report.runtime.truthStateCount} registeredAdapters=${report.runtime.registeredAdapterCount} toolIdBranches=${report.runtime.toolIdBranchCount} authorityOwned=${report.runtime.authorityOwnedCount} occurrenceIdentityStable=${report.runtime.occurrenceIdentityStable} cutoffIdentityChanged=${report.runtime.cutoffIdentityChanged}`);
+    if (report.simpleAdapters) {
+      console.log(`[tool-experience] simpleAdapterRegistry=PASS ordinaryAdapters=${report.simpleAdapters.ordinaryAdapterCount} centerAdapters=${report.simpleAdapters.centerAdapterCount} registeredAdapters=${report.simpleAdapters.registeredAdapterCount} toolIdBranches=${report.simpleAdapters.toolIdBranchCount} authorityOwned=${report.simpleAdapters.authorityOwnedCount}`);
+    }
     console.log(`[tool-experience] ids=PASS toolIds=${report.identities.toolIds.join(',')}`);
     console.log(`[tool-experience] scaling=PASS addedTool=${report.scaling.toolId} tools=${report.scaling.toolCount} models=${report.scaling.modelCount} journeys=${report.scaling.journeyCount} steps=${report.scaling.stepCount}`);
     for (const refusal of report.adversarial) {

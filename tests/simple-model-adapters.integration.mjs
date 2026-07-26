@@ -1169,3 +1169,616 @@ test('TP-06-02 macro rotation and fundamental adapters: Scope 05 adapter set and
   // The Scope 05 breadth owner run is byte-identical whether or not Scope 06 shares the runtime.
   assert.equal(fingerprintShared, fingerprintAlone, 'Scope 05 breadth owner-run fingerprint is unchanged when Scope 06 shares the runtime');
 });
+
+/*
+ * TP-07-02 — Scope 07 strategy/property/method + in-Brief Center registry-derived loop + all-22+Center completeness.
+ *
+ * The seven Scope-07 definitions (adapterModule = strategy-research.js, property-research.js, or market-action.js
+ * = six ordinary tools + the one in-Brief Center triage) register through their production factories, then this
+ * suite drives every one end-to-end through the SAME generic registry-derived exerciser the Scope-05/06 blocks
+ * use (exerciseScope6Adapter): an owner-fixture prepare, an owner-parity single-source check, and a
+ * per-declared-parameter recompute proving the sensitivity effect from the registry's own affectsOutputPaths.
+ * Membership is registry-derived (definitions whose adapterModule is a Scope-07 module), never a hard-coded
+ * adapter-ID list. A dedicated SCN-012-036 completeness test then registers ALL SEVEN Scope-07 modules alongside
+ * the four Scope-05/06 modules in ONE runtime and proves all 22 ordinary registry tools resolve exactly one
+ * registered owner adapter + the one Center model resolves, with zero generic fallback / tool-id branch /
+ * authority — the complete 22+Center inventory the scope headline requires. Owner fixtures are copied verbatim
+ * from the Scope-07 unit suite (the proven frozen owner facts).
+ */
+
+function loadStrategyResearch() {
+  const path = require.resolve('../rlexperience-adapters/strategy-research.js');
+  delete require.cache[path];
+  return require(path);
+}
+
+function loadPropertyResearch() {
+  const path = require.resolve('../rlexperience-adapters/property-research.js');
+  delete require.cache[path];
+  return require(path);
+}
+
+function loadMarketAction() {
+  const path = require.resolve('../rlexperience-adapters/market-action.js');
+  delete require.cache[path];
+  return require(path);
+}
+
+function loadRentalEngine() {
+  const path = require.resolve('../rlrental.js');
+  delete require.cache[path];
+  return require(path);
+}
+
+const SCOPE7_MODULES = ['rlexperience-adapters/strategy-research.js', 'rlexperience-adapters/property-research.js', 'rlexperience-adapters/market-action.js'];
+
+function scope7Definitions() {
+  return readJson('simple-models.json').definitions
+    .filter((definition) => SCOPE7_MODULES.includes(definition.adapterModule))
+    .map(clone);
+}
+
+/* Register the Scope-07 adapters through their production factories. property-research needs the injected
+   rlrental owner engine (deps.rental) for its two str-scenario adapters; each factory self-filters by its own
+   tool IDs, so the union equals the combined supportedAdapterIds — the delivered Scope-07 set (6 ordinary + Center). */
+function registerScope7(runtime, api, sr, pr, ma, rental, definitions) {
+  return Object.assign(
+    {},
+    sr.registerStrategyResearchAdapters(runtime, api, definitions),
+    pr.registerPropertyResearchAdapters(runtime, api, definitions, { rental }),
+    ma.registerMarketActionAdapters(runtime, api, definitions)
+  );
+}
+
+/* ═══════════════════════ per-tool owner fixtures (verbatim from the Scope-07 unit suite) ═══════════════════════ */
+
+/* strategy-evolution (owner seam = strategy-self-improvement-lab.html): a multi-regime boom-bust-recovery path;
+   the SEEDED path comes only from the single-sourced module genSeries/mulberry32. */
+function strategyOwnerFixture() {
+  return {
+    contractVersion: 'strategy-evolution-owner-state/v1',
+    toolId: 'strategy-self-improvement-lab',
+    asOf: '2026-07-26T20:00:00.000Z',
+    source: 'test-owner synthetic seeded scenario',
+    scenario: { id: 'boom-bust-recovery', label: 'Boom -> bust -> recovery' },
+    years: 8,
+    regimes: [
+      { frac: 0.4, muAnnual: 0.17, sigAnnual: 0.14 },
+      { frac: 0.2, muAnnual: -0.38, sigAnnual: 0.42 },
+      { frac: 0.4, muAnnual: 0.13, sigAnnual: 0.18 }
+    ],
+    startLevers: { fast: 20, slow: 100, momLookback: 120, volTarget: 0.15, stopDd: 0.15, maxLeverage: 1.5 },
+    leverRanges: {
+      fast: { min: 5, max: 60, step: 5 },
+      slow: { min: 50, max: 250, step: 10 },
+      momLookback: { min: 20, max: 250, step: 10 },
+      volTarget: { min: 0.05, max: 0.35, step: 0.025 },
+      stopDd: { min: 0.05, max: 0.40, step: 0.025 },
+      maxLeverage: { min: 0.5, max: 3.0, step: 0.25 }
+    },
+    goal: { targetCagr: 0.12, sharpeFloor: 1.0, maxDdCeiling: 0.20, minTimeInMarket: 0.25 },
+    walkForward: { folds: 5, trainRatio: 0.6, acceptMargin: 0.05, oosGapTolerance: 0.8 }
+  };
+}
+
+/* disclosure-decay (owner seam = smart-money-flow-lab.html): five clusters straddling the gates; reference "today"
+   2026-07-05. */
+function disclosureOwnerFixture() {
+  return {
+    contractVersion: 'disclosure-decay-owner-state/v1',
+    toolId: 'smart-money-flow-lab',
+    asOf: '2026-07-05',
+    today: '2026-07-05',
+    source: 'test-owner illustrative filing set',
+    sourceClass: 'model-estimate',
+    disclosures: [
+      { ticker: 'AAA', filer: 'Dir A1 (Form 4)', type: 'insider', side: 'buy', usd: 2100000, txn: '2026-06-29', disclosed: '2026-07-01' },
+      { ticker: 'AAA', filer: 'Off A2 (Form 4)', type: 'insider', side: 'buy', usd: 950000, txn: '2026-06-29', disclosed: '2026-07-01' },
+      { ticker: 'AAA', filer: 'Off A3 (Form 4)', type: 'insider', side: 'buy', usd: 640000, txn: '2026-06-29', disclosed: '2026-07-01' },
+      { ticker: 'BBB', filer: 'Sen B1 (STOCK Act)', type: 'congress', side: 'buy', usd: 250000, txn: '2026-04-30', disclosed: '2026-06-29' },
+      { ticker: 'BBB', filer: 'Rep B2 (STOCK Act)', type: 'congress', side: 'buy', usd: 120000, txn: '2026-04-30', disclosed: '2026-06-29' },
+      { ticker: 'BBB', filer: 'Rep B3 (STOCK Act)', type: 'congress', side: 'buy', usd: 90000, txn: '2026-04-30', disclosed: '2026-06-29' },
+      { ticker: 'CCC', filer: 'Off C1 (Form 4)', type: 'insider', side: 'sell', usd: 5200000, txn: '2026-06-28', disclosed: '2026-07-01' },
+      { ticker: 'CCC', filer: 'Off C2 (Form 4)', type: 'insider', side: 'sell', usd: 1800000, txn: '2026-06-28', disclosed: '2026-07-01' },
+      { ticker: 'CCC', filer: 'Dir C3 (Form 4)', type: 'insider', side: 'sell', usd: 900000, txn: '2026-06-28', disclosed: '2026-07-01' },
+      { ticker: 'DDD', filer: 'Rep D1 (STOCK Act)', type: 'congress', side: 'buy', usd: 175000, txn: '2026-05-20', disclosed: '2026-06-29' },
+      { ticker: 'DDD', filer: 'Sen D2 (STOCK Act)', type: 'congress', side: 'buy', usd: 130000, txn: '2026-05-20', disclosed: '2026-06-29' },
+      { ticker: 'EEE', filer: 'Fund E1 (13F)', type: 'institution', side: 'buy', usd: 42000000, txn: '2026-05-10', disclosed: '2026-06-29' }
+    ]
+  };
+}
+
+/* walk-forward-validation (owner seam = strategy-validation-lab.html): closes pre-generated deterministically via
+   the single-sourced module genSeries (a seeded generation done here, in the fixture — the ADAPTER is non-seeded
+   and only consumes the frozen closes). Registry universe holds 2/3; watchlist holds 1/3. */
+function walkForwardValidationOwnerFixture(sr) {
+  const closesFor = (seed, regimes) => Array.from(sr.genSeries(seed, 5, regimes).px);
+  const up = [{ frac: 1, muAnnual: 0.22, sigAnnual: 0.10 }];
+  const whip = [{ frac: 1, muAnnual: -0.20, sigAnnual: 0.35 }];
+  const down = [{ frac: 1, muAnnual: -0.18, sigAnnual: 0.30 }];
+  const flat = [{ frac: 1, muAnnual: 0.0, sigAnnual: 0.42 }];
+  return {
+    contractVersion: 'walk-forward-validation-owner-state/v1',
+    toolId: 'strategy-validation-lab',
+    asOf: '2026-07-26',
+    source: 'test-owner synthetic multi-instrument universe',
+    sourceClass: 'model-estimate',
+    trainRatio: 0.6,
+    startLevers: { fast: 20, slow: 100, momLookback: 120, volTarget: 0.15, stopDd: 0.15, maxLeverage: 1.5 },
+    goal: { targetCagr: -1, sharpeFloor: 0.5, maxDdCeiling: 0.99, minTimeInMarket: 0.0 },
+    universes: {
+      registry: [
+        { symbol: 'REG-STRONG', closes: closesFor(111, up), sourceClass: 'model-estimate' },
+        { symbol: 'REG-STEADY', closes: closesFor(444, up), sourceClass: 'model-estimate' },
+        { symbol: 'REG-WHIP', closes: closesFor(606, whip), sourceClass: 'model-estimate' }
+      ],
+      'current-watchlist': [
+        { symbol: 'WL-EDGE', closes: closesFor(808, flat), sourceClass: 'model-estimate' },
+        { symbol: 'WL-CLEAN', closes: closesFor(555, up), sourceClass: 'model-estimate' },
+        { symbol: 'WL-DOWN', closes: closesFor(303, down), sourceClass: 'model-estimate' }
+      ]
+    }
+  };
+}
+
+/* str-scenario/palm-springs (owner seam = rlrental.js): the place-based cash flow is computed ONLY by
+   RLRENTAL.computeRentalResult; full-economics required set includes the UNDISCLOSED property tax + capital
+   reserve so the owner engine returns INCOMPLETE (a null bottom line). */
+function palmOwnerFixture() {
+  return {
+    contractVersion: 'str-scenario-owner-state/v1',
+    toolId: 'palm-springs-rental-market-lab',
+    asOf: '2026-07-26',
+    source: 'test-owner synthetic place scenario',
+    marketId: 'palm-springs-ca',
+    formulaVersion: 'place-based-rental-market-formula/v2',
+    forecastYear: 2026,
+    requiredFixedRiskCostFieldIds: ['insurance'],
+    fullRequiredFixedRiskCostFieldIds: ['insurance', 'property-tax', 'capital-reserve'],
+    missingEconomics: ['property-tax', 'capital-reserve', 'resale-basis'],
+    loanTermYears: 30,
+    leverageRatio: 0.7,
+    downPaymentRatio: 0.3,
+    baseFixedInsuranceUsd: null,
+    segments: {
+      'whole-market': { segmentId: 'whole-market', pairKey: 'palm-springs-ca::whole-market', unitId: 'ps-whole', baseOccupancy: 0.6, availableNights: 340, purchasePriceUsd: 1250000, baseAdrUsd: 600 },
+      'large-luxury': { segmentId: 'large-luxury-5plus', pairKey: 'palm-springs-ca::large-luxury-5plus', unitId: 'ps-lux', baseOccupancy: 0.55, availableNights: 300, purchasePriceUsd: 3500000, baseAdrUsd: 1200 }
+    }
+  };
+}
+
+/* Reconstruct the EXACT owner OPERATING context + assumptions property-research.js derives for one Palm Springs
+   segment + parameter set, so the loop can call RLRENTAL.computeRentalResult directly and prove owner-parity. */
+function palmOwnerRun(rental, owner, params, requiredKey, demandDelta) {
+  const key = params.segment === 'large-luxury' ? 'large-luxury' : 'whole-market';
+  const preset = owner.segments[key];
+  const ctx = {
+    marketId: owner.marketId, segmentId: preset.segmentId, pairKey: preset.pairKey, unitId: preset.unitId,
+    scenarioId: 'baseline', formulaVersion: owner.formulaVersion, baseOccupancy: preset.baseOccupancy,
+    baseAdrUsd: preset.baseAdrUsd, availableNights: preset.availableNights,
+    requiredFixedRiskCostFieldIds: owner[requiredKey], bounds: {}
+  };
+  const assumptions = {
+    contractVersion: 'place-based-rental-market-user-assumptions/v2', marketId: owner.marketId,
+    segmentId: preset.segmentId, pairKey: preset.pairKey, unitId: preset.unitId, scenarioId: 'baseline',
+    forecastYear: owner.forecastYear, demandDelta: demandDelta, supplyDelta: 0, adrShock: 0,
+    downtime: { method: 'explicit-disjoint-days', items: [] }, purchasePriceUsd: preset.purchasePriceUsd,
+    leverageRatio: owner.leverageRatio, downPaymentRatio: owner.downPaymentRatio,
+    annualMortgageRate: params['financing-rate'] / 100, loanTermYears: owner.loanTermYears,
+    variableOperatingExpenseRatio: params['operating-cost'] / 100,
+    fixedRiskCosts: [{ costFieldId: 'insurance', annualUsd: params.insurance }],
+    baseOccupancy: params.occupancy / 100, baseAdrUsd: params.adr, availableNights: preset.availableNights
+  };
+  return rental.computeRentalResult(ctx, assumptions);
+}
+
+/* str-scenario/ocean-shores (owner seam = rlrental.js): the SECOND place-based scenario; no explicit `insurance`
+   Simple input (the disclosed insurance cost is the frozen owner baseFixedInsuranceUsd). */
+function oceanOwnerFixture() {
+  return {
+    contractVersion: 'str-scenario-owner-state/v1',
+    toolId: 'ocean-shores-rental-market-lab',
+    asOf: '2026-07-26',
+    source: 'test-owner synthetic seasonal place scenario',
+    marketId: 'ocean-shores-wa',
+    formulaVersion: 'place-based-rental-market-formula/v2',
+    forecastYear: 2026,
+    requiredFixedRiskCostFieldIds: ['insurance'],
+    fullRequiredFixedRiskCostFieldIds: ['insurance', 'property-tax', 'capital-reserve'],
+    missingEconomics: ['property-tax', 'capital-reserve', 'resale-basis'],
+    loanTermYears: 30,
+    leverageRatio: 0.7,
+    downPaymentRatio: 0.3,
+    baseFixedInsuranceUsd: 28000,
+    segments: {
+      'whole-market': { segmentId: 'whole-market', pairKey: 'ocean-shores-wa::whole-market', unitId: 'os-whole', baseOccupancy: 0.5, availableNights: 300, purchasePriceUsd: 480000, baseAdrUsd: 320 },
+      'large-luxury': { segmentId: 'large-luxury-5plus', pairKey: 'ocean-shores-wa::large-luxury-5plus', unitId: 'os-lux', baseOccupancy: 0.45, availableNights: 260, purchasePriceUsd: 1150000, baseAdrUsd: 900 }
+    }
+  };
+}
+
+/* Reconstruct the EXACT owner OPERATING context + assumptions for one Ocean Shores segment + parameter set (the
+   disclosed insurance cost is the frozen owner baseFixedInsuranceUsd), so the loop can prove owner-parity. */
+function oceanOwnerRun(rental, owner, params, requiredKey, demandDelta) {
+  const key = params.segment === 'large-luxury' ? 'large-luxury' : 'whole-market';
+  const preset = owner.segments[key];
+  const ctx = {
+    marketId: owner.marketId, segmentId: preset.segmentId, pairKey: preset.pairKey, unitId: preset.unitId,
+    scenarioId: 'baseline', formulaVersion: owner.formulaVersion, baseOccupancy: preset.baseOccupancy,
+    baseAdrUsd: preset.baseAdrUsd, availableNights: preset.availableNights,
+    requiredFixedRiskCostFieldIds: owner[requiredKey], bounds: {}
+  };
+  const assumptions = {
+    contractVersion: 'place-based-rental-market-user-assumptions/v2', marketId: owner.marketId,
+    segmentId: preset.segmentId, pairKey: preset.pairKey, unitId: preset.unitId, scenarioId: 'baseline',
+    forecastYear: owner.forecastYear, demandDelta: demandDelta, supplyDelta: 0, adrShock: 0,
+    downtime: { method: 'explicit-disjoint-days', items: [] }, purchasePriceUsd: preset.purchasePriceUsd,
+    leverageRatio: owner.leverageRatio, downPaymentRatio: owner.downPaymentRatio,
+    annualMortgageRate: params['financing-rate'] / 100, loanTermYears: owner.loanTermYears,
+    variableOperatingExpenseRatio: params['operating-cost'] / 100,
+    fixedRiskCosts: [{ costFieldId: 'insurance', annualUsd: owner.baseFixedInsuranceUsd }],
+    baseOccupancy: params.occupancy / 100, baseAdrUsd: params.adr, availableNights: preset.availableNights
+  };
+  return rental.computeRentalResult(ctx, assumptions);
+}
+
+/* location-suitability (owner seam = waterfront-polo-lab.html geo primitives): the great-circle / drive-time /
+   nearest-club / market-filter primitives are the SINGLE SOURCE in property-research.js (RLPROPERTY). */
+function locationOwnerFixture() {
+  return {
+    contractVersion: 'location-suitability-owner-state/v1',
+    toolId: 'waterfront-polo-lab',
+    asOf: '2026-07-26',
+    source: 'test-owner synthetic location universe',
+    driveModel: { defaultMinutes: 40, avgSpeedMph: 38, roadFactor: 1.25 },
+    mastersClubs: [
+      { id: 'club-r', name: 'Reported club', lat: 28.50, lon: -81.40, confidence: 'reported' },
+      { id: 'club-s', name: 'Seed club', lat: 30.00, lon: -82.00, confidence: 'seed' }
+    ],
+    markets: [
+      { id: 'm-a', name: 'Alpha Lake', lat: 28.55, lon: -81.45, water: 'lake', medK: 1200, ppsf: 400, insBand: 2, flood: 1, surge: 1, land: 3, budgetFit: 'strong', q: 'measured' },
+      { id: 'm-b', name: 'Bravo Lake (far)', lat: 28.85, lon: -81.75, water: 'lake', medK: 1000, ppsf: 350, insBand: 5, flood: 3, surge: 3, land: 2, budgetFit: 'good', q: 'estimated' },
+      { id: 'm-c', name: 'Charlie Lake (pricey)', lat: 28.60, lon: -81.55, water: 'lake', medK: 1400, ppsf: 800, insBand: 3, flood: 1, surge: 1, land: 3, budgetFit: 'good', q: 'measured' },
+      { id: 'm-d', name: 'Delta River', lat: 28.45, lon: -81.30, water: 'river', medK: 1100, ppsf: 300, insBand: 2, flood: 1, surge: 0, land: 4, budgetFit: 'strong', q: 'measured' },
+      { id: 'm-e', name: 'Echo Lake (over budget)', lat: 28.52, lon: -81.42, water: 'lake', medK: 1800, ppsf: 500, insBand: 1, flood: 1, surge: 0, land: 3, budgetFit: 'over', q: 'measured' },
+      { id: 'm-f', name: 'Foxtrot Lake (seed club)', lat: 29.95, lon: -82.05, water: 'lake', medK: 1300, ppsf: 400, insBand: 2, flood: 1, surge: 1, land: 3, budgetFit: 'strong', q: 'measured' }
+    ]
+  };
+}
+
+/* Reconstruct one market's nearest-club drive DIRECTLY through the module's single-source owner primitives, so the
+   loop can prove the adapter summary's geo values equal a direct RLPROPERTY.nearestClub + driveMinutesApprox run. */
+function locationOwnerNearest(pr, owner, marketId) {
+  const market = owner.markets.find((m) => m.id === marketId);
+  const nearest = pr.nearestClub(market.lat, market.lon, owner.mastersClubs);
+  const driveMin = pr.driveMinutesApprox(nearest.mi, owner.driveModel.avgSpeedMph, owner.driveModel.roadFactor);
+  const club = owner.mastersClubs[nearest.idx];
+  return {
+    nearestClubId: club.id,
+    nearestClubConfidence: club.confidence,
+    nearestClubMi: Math.round(nearest.mi * 1e4) / 1e4,
+    driveMin: Math.round(driveMin * 1e4) / 1e4
+  };
+}
+
+/* market-action-triage (owner seam = rlbrief.js window/action-gating, single-sourced into market-action.js): the
+   in-Brief Center triage. The 07:30 window holds a non-persistent gated action (XLK), a persistent gated action
+   (SPY: a 3-read decline), and a watch-only idea (MAGS); two catalysts (near CPI, far FOMC). asOf 2026-07-26T11:30Z. */
+function marketActionOwnerFixture() {
+  const asOf = '2026-07-26T11:30:00.000Z';
+  const base = Date.parse(asOf);
+  const at = (days) => new Date(base + days * 864e5).toISOString();
+  return {
+    contractVersion: 'market-action-triage-owner-state/v1',
+    toolId: 'market-brief',
+    asOf,
+    source: 'test-owner synthetic brief windows',
+    windows: {
+      '07:30': {
+        label: '07:30 ET', asOf,
+        recommendations: [
+          { key: 'XLK', subject: 'XLK', action: 'add', trigger: 'hold breakout', invalidation: 'lose breakout', structuralAnchor: 'above 50d', confidence: 82, horizon: 'swing' },
+          { key: 'SPY', subject: 'SPY', action: 'hedge', trigger: 'before CPI', invalidation: 'reclaim 200d', structuralAnchor: 'below 50d', confidence: 72, horizon: 'swing' },
+          { key: 'MAGS', subject: 'MAGS', action: 'watch', trigger: 'breadth improves', invalidation: 'breadth rolls', structuralAnchor: 'at 50d', confidence: 70, horizon: 'tactical' }
+        ],
+        attention: [
+          { title: 'Confirmed break', what: 'XLK cleared its base', structuralAnchor: '50d', confidence: 66 },
+          { title: 'Watchlist only', what: 'MAGS breadth watch', structuralAnchor: '200d', confidence: 74 }
+        ],
+        seriesByKey: { XLK: [-0.2, -0.5, -0.3], SPY: [-0.2, -0.5, -0.9] },
+        events: [{ when: at(3), event: 'CPI' }, { when: at(14), event: 'FOMC' }]
+      },
+      '11:00': {
+        label: '11:00 ET', asOf,
+        recommendations: [
+          { key: 'XLK', subject: 'XLK', action: 'add', trigger: 'hold breakout', invalidation: 'lose breakout', structuralAnchor: 'above 50d', confidence: 80, horizon: 'swing' }
+        ],
+        attention: [{ title: 'Confirmed break', what: 'XLK holds', structuralAnchor: '50d', confidence: 64 }],
+        seriesByKey: { XLK: [-0.2, -0.5, -0.9] },
+        events: [{ when: at(3), event: 'CPI' }]
+      },
+      '15:00': { label: '15:00 ET', asOf, recommendations: [], attention: [], seriesByKey: {}, events: [] },
+      '17:00': { label: '17:00 ET', asOf, recommendations: [], attention: [], seriesByKey: {}, events: [] }
+    }
+  };
+}
+
+/* Registry-derived descriptors for the seven Scope-07 members. Each ownerFact is a genuine single-source
+   owner-parity assertion; each cases entry moves one declared parameter (values proven in the unit suite). The
+   generic exerciseScope6Adapter reads the declared output path from the DEFINITION's affectsOutputPaths. */
+function makeScope7Descriptors(sr, pr, ma, rental) {
+  return {
+    'strategy-self-improvement-lab': {
+      ownerState: () => strategyOwnerFixture(),
+      base: (definition) => defaultValues(definition),
+      ownerFact: ({ summary, owner, base }) => {
+        const series = sr.genSeries(base.seed, owner.years, owner.regimes);
+        const baseWf = sr.walkForward(series, owner.startLevers, base['walk-forward-folds'], owner.walkForward.trainRatio);
+        assert.equal(summary.outOfSample.meanOos, Math.round(baseWf.meanOos * 1e6) / 1e6, 'strategy baseline meanOos is single-sourced from RLSTRATEGY.walkForward');
+        const samples = [series.px[0], series.px[Math.floor(series.days * 0.25)], series.px[Math.floor(series.days * 0.5)], series.px[Math.floor(series.days * 0.75)], series.px[series.days]];
+        assert.equal(summary.path.pathIdentity, samples.map((v) => Math.round(v * 1e6) / 1e6).join(':'), 'strategy path identity is single-sourced from RLSTRATEGY.genSeries');
+      },
+      cases: () => [
+        ['goal', 'cagr'],
+        ['variable', 'vol-target'],
+        ['search-budget', 6],
+        ['overfit-penalty', 0.6],
+        ['acceptance-threshold', 0.9],
+        ['walk-forward-folds', 8]
+      ]
+    },
+    'smart-money-flow-lab': {
+      ownerState: () => disclosureOwnerFixture(),
+      base: (definition) => defaultValues(definition),
+      ownerFact: ({ summary, base }) => {
+        const bbb = summary.conviction.perTicker.find((c) => c.ticker === 'BBB');
+        assert.ok(bbb, 'BBB is a conviction cluster');
+        assert.equal(bbb.naive, Math.round(sr.consensusScore(3, 250000 + 120000 + 90000, 6, base['lag-half-life']) * 1e6) / 1e6, 'BBB naive conviction is single-sourced from RLSTRATEGY.consensusScore');
+        const bbbDecay = summary.decayedConviction.perTicker.find((c) => c.ticker === 'BBB');
+        assert.equal(bbbDecay.retained, Math.round(sr.realisticEdgeFraction(60, base['lag-half-life']) * 1e6) / 1e6, 'BBB retained edge is single-sourced from RLSTRATEGY.realisticEdgeFraction');
+      },
+      cases: () => [
+        ['source-mix', 'insider'],
+        ['lag-half-life', 90],
+        ['cluster-minimum', 2],
+        ['consensus-threshold', 0.7],
+        ['decay-floor', 0.5]
+      ]
+    },
+    'strategy-validation-lab': {
+      ownerState: () => walkForwardValidationOwnerFixture(sr),
+      base: (definition) => defaultValues(definition),
+      ownerFact: ({ summary, owner, base }) => {
+        const focusCloses = owner.universes.registry[0].closes;
+        const directWf = sr.walkForwardEmbargo(sr.seriesFromCloses(focusCloses), owner.startLevers, base.folds, owner.trainRatio, base.embargo);
+        assert.equal(summary.validation.gross.sharpe, Math.round(directWf.oos.sharpe * 1e6) / 1e6, 'focus gross OOS Sharpe is single-sourced from RLSTRATEGY.walkForwardEmbargo');
+        assert.equal(summary.robustness.heldFraction, Math.round((2 / 3) * 1e6) / 1e6, 'registry heldFraction is the genuine 2/3');
+      },
+      cases: () => [
+        ['rule', 'momentum'],
+        ['universe', 'current-watchlist'],
+        ['folds', 8],
+        ['embargo', 20],
+        ['cost', 60],
+        ['trial-count', 300],
+        ['robustness-threshold', 0.9]
+      ]
+    },
+    'palm-springs-rental-market-lab': {
+      ownerState: () => palmOwnerFixture(),
+      base: (definition) => defaultValues(definition),
+      ownerFact: ({ summary, owner, base }) => {
+        const opDirect = palmOwnerRun(rental, owner, base, 'requiredFixedRiskCostFieldIds', 0);
+        assert.equal(opDirect.ok, true, 'the direct Palm Springs owner run is valid');
+        assert.equal(summary.cashFlow.grossRevenueUsd, Math.round(opDirect.result.grossRevenueUsd * 100) / 100, 'Palm Springs gross revenue is single-sourced from RLRENTAL.computeRentalResult');
+        assert.equal(summary.cashFlow.annualOperatingPreTaxCashFlowUsd, Math.round(opDirect.result.preTaxCashFlowUsd * 100) / 100, 'Palm Springs operating cash flow is single-sourced from the owner engine');
+        assert.equal(summary.cashFlow.fullPreTaxCashFlowUsd, null, 'the full bottom line stays null while property economics are undisclosed (no zero-fill)');
+      },
+      cases: () => [
+        ['segment', 'whole-market'],
+        ['adr', 1500],
+        ['occupancy', 72],
+        ['financing-rate', 9],
+        ['operating-cost', 45],
+        ['insurance', 35000],
+        ['regulation-stress', 0.5],
+        ['horizon', 8]
+      ]
+    },
+    'ocean-shores-rental-market-lab': {
+      ownerState: () => oceanOwnerFixture(),
+      base: (definition) => defaultValues(definition),
+      ownerFact: ({ summary, owner, base }) => {
+        const opDirect = oceanOwnerRun(rental, owner, base, 'requiredFixedRiskCostFieldIds', 0);
+        assert.equal(opDirect.ok, true, 'the direct Ocean Shores owner run is valid');
+        assert.equal(summary.cashFlow.grossRevenueUsd, Math.round(opDirect.result.grossRevenueUsd * 100) / 100, 'Ocean Shores gross revenue is single-sourced from RLRENTAL.computeRentalResult');
+        assert.equal(summary.cashFlow.fixedRiskCostUsd, Math.round(opDirect.result.fixedRiskCostUsd * 100) / 100, 'the disclosed insurance cost is single-sourced from the frozen owner baseFixedInsuranceUsd');
+        assert.equal(summary.cashFlow.fullPreTaxCashFlowUsd, null, 'the full bottom line stays null while property economics are undisclosed (no zero-fill)');
+      },
+      cases: () => [
+        ['segment', 'whole-market'],
+        ['adr', 1400],
+        ['occupancy', 70],
+        ['financing-rate', 9],
+        ['operating-cost', 48],
+        ['storm-insurance-stress', 12],
+        ['regulation-stress', 0.5],
+        ['horizon', 8]
+      ]
+    },
+    'waterfront-polo-lab': {
+      ownerState: () => locationOwnerFixture(),
+      base: (definition) => defaultValues(definition),
+      ownerFact: ({ summary, owner }) => {
+        const directA = locationOwnerNearest(pr, owner, 'm-a');
+        const rowA = summary.shortlist.markets.find((m) => m.id === 'm-a');
+        assert.ok(rowA, 'm-a is present in the shortlist');
+        assert.equal(rowA.nearestClubMi, directA.nearestClubMi, 'nearest-club distance is single-sourced from RLPROPERTY.nearestClub (owner-parity)');
+        assert.equal(rowA.driveMin, directA.driveMin, 'drive time is single-sourced from RLPROPERTY.driveMinutesApprox (owner-parity)');
+        assert.equal(rowA.nearestClubConfidence, 'reported', 'the shortlisted market carries its owner-universe club confidence');
+      },
+      cases: () => [
+        ['budget', 2500000],
+        ['minimum-size', 1500],
+        ['water-type', 'river'],
+        ['travel-limit', 70],
+        ['insurance-risk-ceiling', 5],
+        ['flood-verification', false],
+        ['club-verification', false]
+      ]
+    },
+    'market-brief': {
+      ownerState: () => marketActionOwnerFixture(),
+      base: (definition) => defaultValues(definition),
+      ownerFact: ({ summary, owner, base }) => {
+        const win = owner.windows['07:30'];
+        const floor = 0.65 * 100;
+        const gated = ma.nextSessionActions(win.recommendations, 5, floor);
+        const persistent = gated.filter((a) => ma.isPersistentSignal(win.seriesByKey[a.key] || win.seriesByKey[a.subject] || [], 2));
+        assert.equal(summary.actionState.gatedActionCount, gated.length, 'gated action count is single-sourced from RLMARKETACTION.nextSessionActions');
+        assert.equal(summary.actionState.persistentActionCount, persistent.length, 'persistent action count is single-sourced from RLMARKETACTION.isPersistentSignal');
+        const cats = ma.nearTermEvents(win.events, win.asOf, base['catalyst-horizon']);
+        assert.equal(summary.catalysts.count, cats.length, 'catalyst count is single-sourced from RLMARKETACTION.nearTermEvents');
+        assert.equal(summary.horizon.cappedActionConfidence, ma.capConfidence(82, 'swing', 55), 'capped action confidence is single-sourced from RLMARKETACTION.capConfidence');
+      },
+      cases: () => [
+        ['window', '11:00'],
+        ['horizon', 1],
+        ['evidence-threshold', 0.95],
+        ['catalyst-horizon', 30],
+        ['risk-posture', 'defensive']
+      ]
+    }
+  };
+}
+
+test('TP-07-02 strategy/property/method + Center adapters: registry-derived loop runs all seven Scope-07 (six ordinary + in-Brief Center) at owner-parity with real parameter effects', async () => {
+  const api = loadProductionApi();
+  const sr = loadStrategyResearch();
+  const pr = loadPropertyResearch();
+  const ma = loadMarketAction();
+  const rental = loadRentalEngine();
+
+  const definitions = scope7Definitions();
+  assert.equal(definitions.length, 7, 'all seven Scope-07 definitions (six ordinary + Center) are declared in the registry');
+
+  const runtime = makeRuntime(api, definitions);
+  const results = registerScope7(runtime, api, sr, pr, ma, rental, definitions);
+
+  // Registry-derived membership: the registered Scope-07 set is EXACTLY the combined delivered supportedAdapterIds.
+  const registeredAdapterIds = Object.keys(results).sort();
+  const deliveredAdapterIds = [...sr.supportedAdapterIds, ...pr.supportedAdapterIds, ...ma.supportedAdapterIds].slice().sort();
+  assert.deepEqual(registeredAdapterIds, deliveredAdapterIds, 'registered Scope-07 adapters == strategy-research + property-research + market-action supportedAdapterIds (delivered 7)');
+  for (const adapterId of registeredAdapterIds) {
+    assert.equal(results[adapterId].ok, true, `${adapterId} registered: ${JSON.stringify(results[adapterId].error || {})}`);
+  }
+
+  const descriptors = makeScope7Descriptors(sr, pr, ma, rental);
+  for (const definition of definitions) {
+    const descriptor = descriptors[definition.toolId];
+    assert.ok(descriptor, `descriptor present for Scope-07 member ${definition.toolId}`);
+    await exerciseScope6Adapter(runtime, api, definition, descriptor);
+  }
+});
+
+test('TP-07-02 SCN-012-036 completeness: all 22 ordinary adapters plus the in-Brief Center triage register in ONE runtime and every ordinary registry tool resolves exactly one owner adapter with no generic fallback', async () => {
+  const api = loadProductionApi();
+  const ms = loadMarketStructure();
+  const opts = loadOptions();
+  const rlvol = loadRlvol();
+  const mr = loadMacroRotation();
+  const fm = loadFundamentalModels();
+  const sr = loadStrategyResearch();
+  const pr = loadPropertyResearch();
+  const ma = loadMarketAction();
+  const rental = loadRentalEngine();
+
+  // Register ALL 22 ordinary owner adapters (Scope 05/06/07) + the one in-Brief Center model into ONE runtime over
+  // the FULL model registry. Each factory self-filters by its own tool IDs, so the union is the complete inventory.
+  const definitions = readJson('simple-models.json').definitions.map(clone);
+  const runtime = makeRuntime(api, definitions);
+  const results = Object.assign(
+    {},
+    ms.registerMarketStructureAdapters(runtime, api, definitions, { rlvol }),
+    opts.registerOptionsAdapters(runtime, api, definitions),
+    mr.registerMacroRotationAdapters(runtime, api, definitions),
+    fm.registerFundamentalModelsAdapters(runtime, api, definitions),
+    sr.registerStrategyResearchAdapters(runtime, api, definitions),
+    pr.registerPropertyResearchAdapters(runtime, api, definitions, { rental }),
+    ma.registerMarketActionAdapters(runtime, api, definitions)
+  );
+  for (const [adapterId, result] of Object.entries(results)) {
+    assert.equal(result.ok, true, `${adapterId} registered: ${JSON.stringify(result.error || {})}`);
+  }
+
+  const registry = readJson('tools.json');
+  const ordinaryToolIds = registry.tools.filter((tool) => tool.experience.kind === 'ordinary').map((tool) => tool.id);
+  const centerToolIds = registry.tools.filter((tool) => tool.experience.kind === 'market-action-center').map((tool) => tool.id);
+  assert.equal(ordinaryToolIds.length, 22, 'the registry declares 22 ordinary tools');
+  assert.equal(centerToolIds.length, 1, 'the registry declares exactly one in-Brief Center model');
+
+  // Every ordinary registry tool resolves EXACTLY one registered owner adapter (adapterStatus.registered = true).
+  for (const toolId of ordinaryToolIds) {
+    const definition = definitions.find((candidate) => candidate.toolId === toolId);
+    const status = requireValue(runtime.adapterStatus(definition.definitionId));
+    assert.equal(status.registered, true, `${toolId} resolves a registered owner adapter (no generic fallback)`);
+  }
+  const centerDefinition = definitions.find((candidate) => candidate.toolId === centerToolIds[0]);
+  assert.equal(requireValue(runtime.adapterStatus(centerDefinition.definitionId)).registered, true, 'the in-Brief Center triage model resolves a registered owner adapter');
+
+  // Zero generic fallback: the runtime registered EXACTLY 22 ordinary + 1 Center = 23 owner adapters, owns no
+  // tool-id branch, and owns no forbidden authority.
+  const diagnostic = requireValue(runtime.diagnostic());
+  assert.equal(diagnostic.registeredAdapterCount, 23, 'exactly 22 ordinary + 1 Center owner adapters are registered (no extras, no generic fallback)');
+  assert.equal(diagnostic.toolIdBranchCount, 0, 'the shared runtime owns no tool-id branch');
+  assert.equal(Object.values(diagnostic.authority).every((owned) => owned === false), true, 'the shared runtime owns no forbidden authority');
+});
+
+test('TP-07-02 Scope 05 and Scope 06 adapter sets and a real Scope-05 owner-run fingerprint are unchanged when Scope 07 shares the runtime', async () => {
+  const api = loadProductionApi();
+  const ms = loadMarketStructure();
+  const rlvol = loadRlvol();
+  const mr = loadMacroRotation();
+  const fm = loadFundamentalModels();
+  const sr = loadStrategyResearch();
+  const pr = loadPropertyResearch();
+  const ma = loadMarketAction();
+  const rental = loadRentalEngine();
+
+  // Scope 07 supportedAdapterIds are byte-unchanged (no Scope-07 edit leaked into the Scope-05/06 modules).
+  assert.deepEqual(sr.supportedAdapterIds.slice().sort(), ['simple-adapter/disclosure-decay/v1', 'simple-adapter/strategy-evolution/v1', 'simple-adapter/walk-forward-validation/v1'], 'strategy-research supportedAdapterIds unchanged (3)');
+  assert.deepEqual(pr.supportedAdapterIds.slice().sort(), ['simple-adapter/location-suitability/v1', 'simple-adapter/str-scenario/ocean-shores/v1', 'simple-adapter/str-scenario/palm-springs/v1'], 'property-research supportedAdapterIds unchanged (3)');
+  assert.deepEqual(ma.supportedAdapterIds.slice().sort(), ['simple-adapter/market-action-triage/v1'], 'market-action supportedAdapterIds unchanged (1)');
+
+  const breadthDefinition = clone(readJson('simple-models.json').definitions.find((definition) => definition.toolId === 'market-heatmap-lab'));
+  const sectorDefinition = clone(readJson('simple-models.json').definitions.find((definition) => definition.toolId === 'sector-research-lab'));
+  const strategyDefinition = clone(readJson('simple-models.json').definitions.find((definition) => definition.toolId === 'strategy-self-improvement-lab'));
+
+  async function breadthFingerprint(runtime) {
+    const prepared = requireValue(await runtime.prepare({
+      definitionId: breadthDefinition.definitionId,
+      ownerContext: { ownerState: breadthOwnerState(ms) },
+      parameterValues: defaultValues(breadthDefinition),
+      seed: null,
+      scenarioIds: ['baseline'],
+      computedAt: '2026-07-27T20:04:00.000Z'
+    }));
+    return api.fingerprint(prepared.current.output.values.summary);
+  }
+
+  // Scope 05 breadth alone.
+  const runtimeAlone = makeRuntime(api, [breadthDefinition]);
+  ms.registerMarketStructureAdapters(runtimeAlone, api, [breadthDefinition], { rlvol });
+  const fingerprintAlone = await breadthFingerprint(runtimeAlone);
+
+  // Scope 05 breadth + Scope 06 sector-rotation + Scope 07 strategy-evolution in ONE shared runtime.
+  const runtimeShared = makeRuntime(api, [breadthDefinition, sectorDefinition, strategyDefinition]);
+  ms.registerMarketStructureAdapters(runtimeShared, api, [breadthDefinition], { rlvol });
+  registerScope6(runtimeShared, api, mr, fm, [sectorDefinition]);
+  const scope7Results = registerScope7(runtimeShared, api, sr, pr, ma, rental, [strategyDefinition]);
+  assert.equal(scope7Results['simple-adapter/strategy-evolution/v1'].ok, true, 'strategy-evolution registers alongside Scope 05/06 in one runtime');
+  const fingerprintShared = await breadthFingerprint(runtimeShared);
+
+  // The Scope 05 breadth owner run is byte-identical whether or not Scope 06 + Scope 07 share the runtime.
+  assert.equal(fingerprintShared, fingerprintAlone, 'Scope 05 breadth owner-run fingerprint is unchanged when Scope 06 + Scope 07 share the runtime');
+});

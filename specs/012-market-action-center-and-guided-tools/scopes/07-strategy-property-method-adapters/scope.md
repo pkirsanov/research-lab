@@ -155,7 +155,7 @@ Write same-seed/new-seed/common-randomness and per-tool parameter-effect tests b
 #### Test Evidence Items - Exact Parity With 11 Test Plan Rows
 
 - [x] TP-07-01 unit evidence proves adapter/seed/source/gap/Center rules. → Evidence: [report.md#tp-07-01] (38/38 exit 0, all 7 adapters)
-- [ ] TP-07-02 integration evidence proves the complete owner-parity/parameter-effect inventory.
+- [x] TP-07-02 integration evidence proves the complete owner-parity/parameter-effect inventory. → Evidence: [report.md#tp-07-02] (F-07-REGLOOP-01 CLOSED — `node --test tests/simple-model-adapters.integration.mjs` 8 pass/0 fail exit 0; coverage 16→23; all 22 ordinary + Center resolve, registeredAdapterCount=23, no generic fallback)
 - [ ] TP-07-03 E2E evidence proves SCN-012-002 seeded strategy behavior.
 - [ ] TP-07-04 E2E evidence proves strategy-validation parameter effect.
 - [ ] TP-07-05 E2E evidence proves smart-money decay parameter effect.

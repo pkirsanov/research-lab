@@ -784,3 +784,51 @@ gated + additive; no baseline drift). Boundary: only `scripts/validate-tool-expe
 compute, no owner page, no protected path touched.
 
 **F-07-VALIDATOR-01: CLOSED.** SCN-012-036 registry-completion is now genuinely enforced by the release gate.
+
+<a id="tp-07-02"></a>
+### F-07-REGLOOP-01 CLOSED — TP-07-02 integration loop now covers all 22 ordinary + Center (was 16) | Claim Source: executed
+
+**Root defect (as routed):** `tests/simple-model-adapters.integration.mjs` held only the per-scope blocks
+`TP-05-02` (market-structure + options = 8) and `TP-06-02` (macro-rotation + fundamental = 8) = **16 adapters**;
+there was NO `TP-07-02` block and no all-22+Center loop.
+
+**Fix:** added a genuine `TP-07-02` Scope-07 block mirroring the proven Scope-05/06 blocks — the seven Scope-07
+owner fixtures (copied verbatim from the Scope-07 unit suite) + the three helpers (`palmOwnerRun`, `oceanOwnerRun`,
+`locationOwnerNearest`) + `makeScope7Descriptors` + `registerScope7`, driven through the SAME generic
+registry-derived exerciser (`exerciseScope6Adapter`: owner-parity single-source check + a per-declared-parameter
+recompute proving each declared `affectsOutputPaths`). Three new tests: (1) the registry-derived Scope-07 loop
+runs all seven (six ordinary + the in-Brief Center) at owner-parity with real parameter effects, (2) an
+SCN-012-036 completeness test that registers ALL seven modules alongside the four Scope-05/06 modules in ONE
+runtime and asserts every one of the 22 ordinary registry tools resolves exactly one registered owner adapter via
+`runtime.adapterStatus(definitionId).registered`, the one Center resolves, and the diagnostic shows
+`registeredAdapterCount === 23`, `toolIdBranchCount === 0`, zero authority (no generic fallback), and (3) a
+Scope-05/06 stability test proving the Scope-05 breadth owner-run fingerprint is byte-identical when Scope 06 +
+Scope 07 share the runtime.
+
+**Command + full raw output:**
+
+```text
+$ node --test tests/simple-model-adapters.integration.mjs
+✔ TP-05-02 market structure and options adapters: registry-derived loop runs all eight at owner-parity with real parameter effects (365.652341ms)
+✔ TP-05-02 market structure and options adapters: a missing definition removes exactly that adapter from the production registry loop (23.536861ms)
+✔ TP-05-02 market structure and options adapters: adding a valid definition registers exactly that adapter through the production loop (79.653405ms)
+✔ TP-06-02 macro rotation and fundamental adapters: registry-derived loop runs the delivered Scope-06 set at owner-parity with real parameter effects (375.830782ms)
+✔ TP-06-02 macro rotation and fundamental adapters: Scope 05 adapter set and a real Scope 05 owner-run fingerprint are unchanged when Scope 06 shares the runtime (26.412971ms)
+✔ TP-07-02 strategy/property/method + Center adapters: registry-derived loop runs all seven Scope-07 (six ordinary + in-Brief Center) at owner-parity with real parameter effects (436.072767ms)
+✔ TP-07-02 SCN-012-036 completeness: all 22 ordinary adapters plus the in-Brief Center triage register in ONE runtime and every ordinary registry tool resolves exactly one owner adapter with no generic fallback (41.11411ms)
+✔ TP-07-02 Scope 05 and Scope 06 adapter sets and a real Scope-05 owner-run fingerprint are unchanged when Scope 07 shares the runtime (30.490782ms)
+ℹ tests 8
+ℹ suites 0
+ℹ pass 8
+ℹ fail 0
+ℹ duration_ms 1483.81509
+INTEGRATION_EXIT=0
+```
+
+Coverage: **16 → 23** (8 Scope-05 + 8 Scope-06 + 7 Scope-07, plus the all-22+Center completeness loop over the
+full registry). Every Scope-07 adapter runs at genuine owner-parity (single-sourced from its owner engine) with a
+real per-parameter output effect; the completeness test proves the 22-ordinary + 1-Center inventory resolves with
+zero generic fallback. Boundary: only `tests/simple-model-adapters.integration.mjs` changed; no production code,
+no owner fixture re-derivation (verbatim copies), no adapter compute touched.
+
+**F-07-REGLOOP-01: CLOSED.**

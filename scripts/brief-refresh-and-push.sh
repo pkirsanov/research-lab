@@ -32,6 +32,7 @@
 #   BRIEF_FETCH_OPTIONS_TIMEOUT maximum seconds for the option refresh (default: 900)
 #   BRIEF_TIER_A_TIMEOUT     maximum seconds for deterministic Tier A (default: 600)
 #   BRIEF_REQUIRE_COMPLETE_RUN fail closed on incomplete data/tool/final publication (scheduler forces 1)
+#   BRIEF_PUBLICATION_ACK_FILE private scheduler-owned post-push acknowledgment path
 #
 # Usage:  bash scripts/brief-refresh-and-push.sh [--dry-run]
 #   --dry-run : refresh + stage + print what WOULD be committed, then revert; NO narrative
@@ -43,7 +44,7 @@
 
 set -uo pipefail
 
-export BRIEF_PIPELINE_CONTRACT="pull-data-tools-final-v1"
+export BRIEF_PIPELINE_CONTRACT="pull-data-tools-final-ack-v2"
 
 DRY_RUN=0
 [ "${1:-}" = "--dry-run" ] && DRY_RUN=1
@@ -397,6 +398,41 @@ push_head() {
   echo "[brief-timer] push still failing — commit left local for the next run to push"; return 1
 }
 
+write_publication_ack() {
+  [ -z "${BRIEF_PUBLICATION_ACK_FILE:-}" ] && return 0
+  local ack_dir ack_tmp pushed_commit pushed_at pushed_epoch
+  if [ -z "${BRIEF_PUBLICATION_ACK_TOKEN:-}" ]; then
+    echo "[brief-timer] publication acknowledgment identity is incomplete"
+    return 1
+  fi
+  pushed_commit="$("$GIT_BIN" rev-parse HEAD 2>/dev/null || true)"
+  case "$pushed_commit" in
+    ''|*[!0-9a-f]*)
+      echo "[brief-timer] cannot resolve the pushed commit for publication acknowledgment"
+      return 1
+      ;;
+  esac
+  pushed_at="$(date -u '+%Y-%m-%dT%H:%M:%SZ')"
+  pushed_epoch="$(date +%s)"
+  ack_dir="${BRIEF_PUBLICATION_ACK_FILE%/*}"
+  [ "$ack_dir" = "$BRIEF_PUBLICATION_ACK_FILE" ] && ack_dir="."
+  mkdir -p "$ack_dir" || return 1
+  ack_tmp="${BRIEF_PUBLICATION_ACK_FILE}.tmp.$$"
+  umask 077
+  {
+    printf '%s\n' "schemaVersion=1"
+    printf '%s\n' "token=$BRIEF_PUBLICATION_ACK_TOKEN"
+    printf '%s\n' "runKey=${BRIEF_PUBLICATION_RUN_KEY:-}"
+    printf '%s\n' "window=${BRIEF_PUBLICATION_WINDOW-$WINDOW}"
+    printf '%s\n' "branch=$BR"
+    printf '%s\n' "remote=${BRIEF_PUBLICATION_REMOTE:-origin}"
+    printf '%s\n' "commit=$pushed_commit"
+    printf '%s\n' "pushedAt=$pushed_at"
+    printf '%s\n' "pushedEpoch=$pushed_epoch"
+  } >"$ack_tmp" || { rm -f "$ack_tmp"; return 1; }
+  mv -f "$ack_tmp" "$BRIEF_PUBLICATION_ACK_FILE"
+}
+
 # Are we ahead of origin already (unpushed commits from an earlier run)?
 ahead=""
 [ "$DRY_RUN" != "1" ] && ahead="$("$GIT_BIN" rev-list "origin/$BR..HEAD" 2>/dev/null || true)"
@@ -406,7 +442,14 @@ if "$GIT_BIN" diff --cached --quiet -- "${SELECTED_FILES[@]}"; then
   # Still ALWAYS push if a previous run left an unpushed commit.
   if [ -n "$ahead" ]; then
     echo "[brief-timer] local commits ahead of origin/$BR — pushing them"
-    push_head || true
+    if ! push_head; then
+      [ "$REQUIRE_COMPLETE_RUN" = "1" ] && exit 1
+      exit 0
+    fi
+  fi
+  if ! write_publication_ack; then
+    echo "[brief-timer] post-push publication acknowledgment failed"
+    [ "$REQUIRE_COMPLETE_RUN" = "1" ] && exit 1
   fi
   exit 0
 fi
@@ -440,4 +483,8 @@ echo "[brief-timer] committed: $MSG"
 if ! push_head; then
   [ "$REQUIRE_COMPLETE_RUN" = "1" ] && exit 1
   exit 0
+fi
+if ! write_publication_ack; then
+  echo "[brief-timer] post-push publication acknowledgment failed"
+  [ "$REQUIRE_COMPLETE_RUN" = "1" ] && exit 1
 fi

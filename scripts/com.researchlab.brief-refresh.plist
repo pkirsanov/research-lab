@@ -14,9 +14,9 @@
     cp scripts/com.researchlab.brief-refresh.plist ~/Library/LaunchAgents/
     launchctl load ~/Library/LaunchAgents/com.researchlab.brief-refresh.plist
 
-  Starts 12 minutes before the four ET publication targets. launchd fires in LOCAL time and
+  Starts 30 minutes before the four ET publication targets. launchd fires in LOCAL time and
   cannot be given a timezone, so the hours below are the LOCAL (US Pacific, ET-3) equivalents
-  (04:18/07:48/11:48/13:48 PT → ~07:30/11:00/15:00/17:00 ET completion). If this box
+  (04:00/07:30/11:30/13:30 PT → ~07:30/11:00/15:00/17:00 ET completion). If this box
   moves off US Pacific, re-derive them (local = ET - 3). The wrapper auto-detects the window
   from the ET clock; closed-market runs retain the latest official close with explicit
   closed/stale states and still require one complete all-tools + final publication.
@@ -34,10 +34,10 @@
 
     <key>StartCalendarInterval</key>
     <array>
-      <dict><key>Hour</key><integer>4</integer><key>Minute</key><integer>18</integer></dict>  <!-- target 07:30 ET pre-market -->
-      <dict><key>Hour</key><integer>7</integer><key>Minute</key><integer>48</integer></dict>  <!-- target 11:00 ET morning -->
-      <dict><key>Hour</key><integer>11</integer><key>Minute</key><integer>48</integer></dict> <!-- target 15:00 ET pre-close -->
-      <dict><key>Hour</key><integer>13</integer><key>Minute</key><integer>48</integer></dict> <!-- target 17:00 ET after-hours -->
+      <dict><key>Hour</key><integer>4</integer><key>Minute</key><integer>0</integer></dict>   <!-- target 07:30 ET pre-market -->
+      <dict><key>Hour</key><integer>7</integer><key>Minute</key><integer>30</integer></dict>  <!-- target 11:00 ET morning -->
+      <dict><key>Hour</key><integer>11</integer><key>Minute</key><integer>30</integer></dict> <!-- target 15:00 ET pre-close -->
+      <dict><key>Hour</key><integer>13</integer><key>Minute</key><integer>30</integer></dict> <!-- target 17:00 ET after-hours -->
     </array>
 
     <!-- Retry a missed/failed window every 15 minutes. The wrapper's durable
@@ -51,6 +51,8 @@
       <string>/opt/homebrew/bin:/opt/local/bin:/usr/local/bin:/usr/bin:/bin</string>
       <key>BRIEF_SCHEDULE_DUE_ONLY</key>
       <string>1</string>
+      <key>BRIEF_PUBLICATION_LEAD_MINUTES</key>
+      <string>30</string>
     </dict>
 
     <key>RunAtLoad</key>

@@ -71,13 +71,18 @@ after-hours = reactions/follow-through).
 
 - **Tier A (data) + Tier B (narrative) — on THIS MacBook (macOS `launchd`, 4×/day) → commit → push.** The
   launchd job (`scripts/com.researchlab.brief-refresh.plist`) runs
-  `scripts/brief-refresh-scheduled.sh`. That launcher locks against overlap, clones `origin/main` into a
+  `scripts/brief-refresh-scheduled.sh` 30 minutes before each target, matching the observed full-pipeline runtime
+  rather than assuming the old 12-minute lead is enough. That launcher locks against overlap, clones `origin/main` into a
   disposable clean checkout, explicitly fast-forward pulls the configured GitHub branch, and invokes
   the pulled `scripts/brief-refresh-and-push.sh` there. Developer worktree changes
   can therefore neither block the timer nor be overwritten. The four exact calendar triggers are backed by a
   15-minute due-only heartbeat: a private receipt under `git rev-parse --git-path brief-scheduler.status` records
-  the attempted run key, exit, pushed commit, and last successful run key; the heartbeat skips a completed window,
-  retries a missing/failed one, and reclaims a dead stale directory lock. This also means the developer checkout can
+  the attempted run key, exit, pushed commit, and last successful run key. The launcher executes from an unlinked
+  immutable copy, so editing or updating its source while a long worker is active cannot corrupt Bash's lazy script
+  read. The worker atomically records a private post-push acknowledgment; if launcher closeout is interrupted after
+  a successful push, the same run or next heartbeat verifies the commit and repairs the main receipt without rerunning
+  market data or Copilot. The heartbeat skips a completed window, retries a missing/failed one, and reclaims a dead
+  stale directory lock. This also means the developer checkout can
   remain behind `origin/main` after a healthy isolated publication; use the private receipt, remote commit, and public
   payload clock rather than local JSON mtimes to diagnose the scheduler. If the published snapshot/payload baseline is already
   incoherent, the scheduler enables repair automatically, but publication still requires a newly generated matching

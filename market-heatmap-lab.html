@@ -556,6 +556,42 @@
             var WIN_BARS = RLMARKETSTRUCTURE.WINDOW_BARS;  /* single-sourced owner window map (mirrors module WINDOW_BARS) */
             var HYDRATION = { done: 0, total: 0, active: false };  /* progress + coalesced-render state */
 
+            /* ═══════ Scope 15 production Simple-view owner-state provider (Model B) ═══════
+               Expose this page's REAL current owner state to the shared production bridge
+               (rlexperience.js renderSimpleBridge). Registered synchronously (this inline
+               script runs during parse, before the deferred rlapp.js bootstrap) so the shell's
+               provider-gated ownerModes resolves market-heatmap to the adapter-panel Simple
+               (["power"]). The provider performs NO fetch — it reads the live UNI universe plus
+               the already-hydrated RLDATA cache and single-sources the owner snapshot through the
+               module's OWN reducer (RLMARKETSTRUCTURE.reduceOwnerState), so Simple and Power share
+               one owner formula (owner parity — no inline copy). Called lazily by the bridge, so it
+               reflects whatever universe + cache the page currently holds. */
+            globalThis.__rlOwnerStateProvider = globalThis.__rlOwnerStateProvider || {};
+            globalThis.__rlOwnerStateProvider["market-heatmap-lab"] = function () {
+                var constituents = [];
+                for (var secId in UNI.sectorMap) {
+                    var sec = UNI.sectorMap[secId];
+                    var secLabel = (sec && sec.label) || secId;
+                    var members = (sec && sec.constituents) || [];
+                    for (var mi = 0; mi < members.length; mi++) {
+                        var member = members[mi];
+                        if (!member || !member.ticker) continue;
+                        constituents.push({
+                            ticker: member.ticker,
+                            sector: secLabel,
+                            industry: member.industry || secLabel,
+                            weight: (typeof member.weight === "number" && member.weight > 0) ? member.weight : 0.01
+                        });
+                    }
+                }
+                return RLMARKETSTRUCTURE.reduceOwnerState({
+                    asOf: new Date().toISOString(),
+                    source: "shared cache snapshot",
+                    constituents: constituents,
+                    barsReader: function (ticker) { return (window.RLDATA && RLDATA.bars(ticker, "1d")) || null; }
+                });
+            };
+
             function heatPointId(cell) { return String(cell.ticker || "unavailable").replace(/[^A-Za-z0-9:._-]+/g, "-"); }
             function heatRowId(cell) { return "heatmap-row-" + heatPointId(cell); }
             function heatObservedAsOf(cell) {

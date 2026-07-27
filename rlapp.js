@@ -257,13 +257,15 @@
     return Promise.all([
       fetchRegistry(),
       fetchRequiredJson("tool-experience.config.json"),
+      fetchRequiredJson("simple-models.json"),
       ensureSharedScript("rlexperience-shared-js", "rlexperience.js", function () {
         return !!(root.RLEXPERIENCE && typeof root.RLEXPERIENCE.resolveShell === "function");
       })
     ]).then(function (values) {
       var registry = values[0];
       var config = values[1];
-      if (!registry || !config || values[2] !== true) {
+      var simpleModels = values[2]; /* best-effort Simple-model registry for the production bridge; null degrades to honest unavailable */
+      if (!registry || !config || values[3] !== true) {
         markExperienceUnavailable(anchor, "experience-bootstrap-unavailable");
         return false;
       }
@@ -282,9 +284,18 @@
           shell: resolved.value,
           config: config,
           registry: registry,
+          simpleModels: simpleModels,
           dependencyStates: dependencyStates,
           anchor: anchor,
-          ownerModes: resolved.value.kind === "ordinary" ? ["simple", "power"] : ["brief"]
+          /* Provider-gated Model B rollout (Scope 15): an ordinary tool becomes an
+             adapter-panel Simple (ownerModes ["power"]) ONLY when its page has
+             registered an owner-state provider; otherwise it keeps native Simple
+             (["simple", "power"]) so unwired tools do not regress. Brief-only tools
+             are unchanged. applyVisual (rlviews.js) remains the sole owner of
+             rlv-focused; this is a data-only effect. */
+          ownerModes: resolved.value.kind === "ordinary"
+            ? ((root.__rlOwnerStateProvider && typeof root.__rlOwnerStateProvider[toolId] === "function") ? ["power"] : ["simple", "power"])
+            : ["brief"]
         };
         anchor.setAttribute("data-rlexperience-state", "registered");
         return ensureSharedScript("rlviews-shared-js", "rlviews.js", function () {

@@ -1307,6 +1307,99 @@
     });
   }
 
+  /* Which UMD adapter-module global + registrar drives each ordinary tool's
+     Simple adapter. Keyed by the simple-models.json `adapterModule` path. This is
+     infrastructure wiring (which module + registrar), never an owner formula. The
+     brief-only `market-action.js` runs inside Brief and is intentionally absent. */
+  var ADAPTER_MODULE_BINDINGS = {
+    "rlexperience-adapters/market-structure.js": { global: "RLMARKETSTRUCTURE", register: "registerMarketStructureAdapters" },
+    "rlexperience-adapters/options.js": { global: "RLOPTIONS", register: "registerOptionsAdapters" },
+    "rlexperience-adapters/macro-rotation.js": { global: "RLMACROROTATION", register: "registerMacroRotationAdapters" },
+    "rlexperience-adapters/fundamental-models.js": { global: "RLFUNDAMENTALS", register: "registerFundamentalModelsAdapters" },
+    "rlexperience-adapters/strategy-research.js": { global: "RLSTRATEGY", register: "registerStrategyResearchAdapters" },
+    "rlexperience-adapters/property-research.js": { global: "RLPROPERTY", register: "registerPropertyResearchAdapters" }
+  };
+
+  /* Production Simple-view bridge (Model B — Scope 15). On rlviews:change→simple
+     for an ordinary tool, resolve the tool's registered adapter definition, obtain
+     the page's REAL owner state through the uniform provider seam, run the exact
+     production runtime (createSimpleRuntime + register<Domain>Adapters + prepare)
+     the adapter e2e already proves, and render the real projection into
+     [data-rlexperience-panel="simple"]. When no provider / owner state / adapter
+     module is available, or the owner evidence does not permit a run, render the
+     honest "unavailable" projection (truthful degradation — no invented signal).
+
+     INVARIANT (BUG-003 closure): this bridge NEVER mutates body.rlv-focused —
+     applyVisual (rlviews.js) is the sole owner of that class. The bridge performs
+     local compute only: it never fetch/providerFetch, reads credentials, calls an
+     author/publisher/store, or mutates owner state. */
+  function renderSimpleBridgeInternal(options) {
+    options = options || {};
+    var panel = options.panel;
+    if (!panel) return Promise.resolve(null);
+    var toolId = options.toolId;
+    var definition = options.definition || null;
+    var ownerState = options.ownerState || null;
+    var moduleObject = options.moduleObject || null;
+    var registerFnName = options.registerFnName || null;
+    var api = options.api || null;
+    var config = options.config || null;
+    var experience = options.toolExperience || null;
+    var adapterId = options.adapterId || (definition && definition.simpleAdapterId) || (experience && experience.simpleAdapterId) || null;
+    var definitionId = (definition && definition.definitionId) || (experience && experience.simpleModelDefinitionId) || null;
+
+    function honestUnavailable(reason) {
+      var projection = projectSimpleStateInternal("unavailable", {
+        toolId: toolId,
+        definitionId: definitionId,
+        adapterId: adapterId,
+        message: "Owner model adapter required: " + (adapterId || "unavailable") + ". No model result is available. No provider request, storage mutation, author call, publication, formula substitution, or behavioral default was used.",
+        requiredEvidence: ["owner-evidence"],
+        observedEvidence: [],
+        lastValidRun: null,
+        evidenceCutoff: null,
+        limitations: ["The shared core cannot invent or substitute the missing owner model."],
+        uncertainty: { state: "unavailable", reason: reason || "The declared owner adapter is not available." },
+        deepLinks: { power: "#power", journey: "#journey" }
+      });
+      renderSimpleProjectionInternal(panel, projection);
+      return projection;
+    }
+
+    if (!definition || !ownerState || !moduleObject || !registerFnName || typeof moduleObject[registerFnName] !== "function" || !api || !config) {
+      return Promise.resolve(honestUnavailable("No wired owner-state provider or adapter module is available for this tool."));
+    }
+
+    var runtime;
+    try {
+      runtime = createSimpleRuntimeInternal(config, { contractVersion: "simple-model-registry/v1", definitions: [definition] });
+      moduleObject[registerFnName](runtime, api, [definition], { rlvol: (typeof globalThis !== "undefined" ? globalThis.RLVOL : undefined) });
+    } catch (setupError) {
+      return Promise.resolve(honestUnavailable("The owner adapter runtime could not be initialized."));
+    }
+
+    var parameterValues = {};
+    var definitions = Array.isArray(definition.parameterDefinitions) ? definition.parameterDefinitions : [];
+    for (var i = 0; i < definitions.length; i += 1) parameterValues[definitions[i].parameterId] = definitions[i].defaultValue;
+    var seed = (definition.seedPolicy && definition.seedPolicy.required) ? definition.seedPolicy.defaultSeed : null;
+
+    return Promise.resolve(runtime.prepare({
+      definitionId: definition.definitionId,
+      ownerContext: { ownerState: ownerState },
+      parameterValues: parameterValues,
+      seed: seed,
+      scenarioIds: ["baseline"],
+      computedAt: options.computedAt || new Date().toISOString()
+    })).then(function (prepared) {
+      if (!prepared || !prepared.ok) return honestUnavailable("The owner evidence does not currently permit a model run.");
+      var projection = runtime.snapshot().value.projection;
+      renderSimpleProjectionInternal(panel, projection);
+      return projection;
+    }).catch(function () {
+      return honestUnavailable("The owner adapter run failed.");
+    });
+  }
+
   function installSimpleProjectionBridge() {
     if (typeof globalThis === "undefined" || typeof globalThis.addEventListener !== "function") return;
     globalThis.addEventListener("rlviews:change", function (event) {
@@ -1314,24 +1407,44 @@
       if (!detail || detail.mode !== "simple" || typeof document === "undefined") return;
       var registration = globalThis.__rlviewsRegistration;
       if (!registration || !registration.registry || !Array.isArray(registration.registry.tools)) return;
-      var tool = registration.registry.tools.find(function (candidate) { return candidate && candidate.id === detail.toolId; });
+      var toolId = detail.toolId;
+      var tool = registration.registry.tools.find(function (candidate) { return candidate && candidate.id === toolId; });
       if (!tool || !tool.experience || tool.experience.kind !== "ordinary") return;
       var panel = document.querySelector('[data-rlexperience-panel="simple"]');
       if (!panel) return;
-      var projection = projectSimpleStateInternal("unavailable", {
-        toolId: detail.toolId,
-        definitionId: tool.experience.simpleModelDefinitionId,
+
+      var definition = null;
+      var models = registration.simpleModels;
+      if (models && Array.isArray(models.definitions)) {
+        for (var i = 0; i < models.definitions.length; i += 1) {
+          if (models.definitions[i] && models.definitions[i].toolId === toolId) { definition = models.definitions[i]; break; }
+        }
+      }
+
+      var ownerState = null;
+      var providers = globalThis.__rlOwnerStateProvider;
+      if (providers && typeof providers[toolId] === "function") {
+        try { ownerState = providers[toolId](); } catch (providerError) { ownerState = null; }
+      }
+
+      var modulePath = definition ? definition.adapterModule : (tool.experience.simpleAdapterModule || null);
+      var binding = modulePath ? ADAPTER_MODULE_BINDINGS[modulePath] : null;
+
+      renderSimpleBridgeInternal({
+        panel: panel,
+        toolId: toolId,
+        toolExperience: tool.experience,
+        definition: definition,
+        ownerState: ownerState,
+        moduleObject: binding ? globalThis[binding.global] : null,
+        registerFnName: binding ? binding.register : null,
         adapterId: tool.experience.simpleAdapterId,
-        message: "Owner model adapter required: " + tool.experience.simpleAdapterId + ". No model result is available. No provider request, storage mutation, author call, publication, formula substitution, or behavioral default was used.",
-        requiredEvidence: ["owner-evidence"],
-        observedEvidence: [],
-        lastValidRun: null,
-        evidenceCutoff: null,
-        limitations: ["The shared core cannot invent or substitute the missing owner model."],
-        uncertainty: { state: "unavailable", reason: "The declared owner adapter is not registered." },
-        deepLinks: { power: "#power", journey: "#journey" }
+        api: globalThis.RLEXPERIENCE,
+        config: registration.config,
+        computedAt: new Date().toISOString()
       });
-      renderSimpleProjectionInternal(panel, projection);
+      /* BUG-003 closure: NO body.classList mutation here. applyVisual (rlviews.js)
+         is the sole owner of rlv-focused; the stub's classList.add is removed. */
     });
   }
 
@@ -1797,6 +1910,7 @@
     computeSimpleIdentity: function (input) { return capture(function () { return computeSimpleIdentityInternal(input); }); },
     projectSimpleState: function (state, options) { return capture(function () { return projectSimpleStateInternal(state, options); }); },
     renderSimpleProjection: function (host, projection) { return capture(function () { return renderSimpleProjectionInternal(host, projection); }); },
+    renderSimpleBridge: function (options) { return renderSimpleBridgeInternal(options); },
     createSimpleRuntime: function (config, models) { return capture(function () { return createSimpleRuntimeInternal(config, models); }); },
     runtimeDiagnostic: function () { return capture(function () { return runtimeDiagnosticInternal(); }); },
     validateConfig: function (config) { return capture(function () { return validateConfigInternal(config); }); },

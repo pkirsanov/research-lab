@@ -1518,3 +1518,189 @@ COLLISION_TEST_INTEGRITY_END
 | `BUG003-ENV-DOCTOR-QUERY-TOOL-LOG-DRIFT` | Preserved unresolved for the Bubbles framework owner. |
 | `BUG003-ENV-OBSERVABILITY-UNDECLARED` | Preserved unresolved for the repository governance owner. |
 | BUG-003 scope/status/certification | Remains `in_progress` and uncertified; no Done, validated, or completed-scope inference is made. |
+
+## Independent Test Re-Verification - 2026-07-27
+
+### Re-Verification Context And Verdict
+
+**Phase:** test
+**Claim Source:** executed and interpreted
+**Workflow:** `bugfix-fastlane`, `executionModel: direct-authorized-runner`, parent `bubbles.goal`
+**Outcome:** `route_required`
+
+This bug was dormant for ~8 days and is picked up on a different host (Linux; prior sessions ran on macOS). At current `HEAD 56ec4b0e` the two anchor files have new content hashes versus every prior report section (`bond-regime-lab.html` is now `874f6509…`, not `af96efad…`; `tests/bond-regime-lab.spec.mjs` is now `43875a96…`, not `b010a103…`). Eight later commits touched the anchors, notably the WIP spec-012 shared view-switch / experience-shell / brief migration: `f317cc84 feat(012/scope-06): fixed-income-sleeve/v1 adapter`, `47dd5d19 feat(switch): migrate bond-regime to the shared switch`, `36ce4243 feat(ui): unified Simple/Power/Brief view switch (rlviews)`, `7ac8f546 feat(002): Scope 10 — shared brief UI cutover`.
+
+The prior `BUG003-INDEPENDENT-VERIFICATION` "Addressed" disposition is INVALIDATED by this change. The BUG-003 lifecycle fix and the core one-model parity contract remain intact, but the required adversarial regression TP-01-02 and five other bond-regime browser scenarios now FAIL because the shared spec-012 experience-shell CSS-hides the native bond-regime UI. The reconciliation surface (`rlviews.js` shared across 17+ tools, `rlexperience.js`, `rlexperience-adapters/macro-rotation.js`, the shared brief mount, and the spec-012 migration) is entirely OUTSIDE BUG-003's change boundary. BUG-003 is therefore blocked, not done.
+
+### Repo Binding Preflight
+
+**Executed:** YES (current session)
+**Command:** `bash .github/bubbles/scripts/repo-binding-preflight.sh --repo-root ~/research-lab --agent-source research-lab`
+**Exit Code:** `0`
+**Claim Source:** executed
+**Output:**
+
+```text
+[repo-binding-preflight] OK — agent source 'research-lab' matches target repo 'research-lab'.
+PREFLIGHT_EXIT=0
+```
+
+### Fix Presence On Current Bytes
+
+**Executed:** YES (current session)
+**Claim Source:** executed and interpreted
+**Interpretation:** Source inspection confirms the three-part BUG-003 lifecycle repair survived the eight later commits. `render()` publishes Ready only when refresh is inactive; terminal hydration clears the active flag before publishing Ready; `boot()` starts `hydrate(false)` in the boot turn.
+
+```text
+2304:  if (!runtime.refresh.active) document.getElementById("appStatus").innerHTML = "<strong>Ready</strong> - observed credit evidence computed from the current snapshot";
+2331:  document.getElementById("appStatus").innerHTML = "<strong>Refreshing</strong> - cached observations remain visible";
+2348:  runtime.refresh.active = false;
+2350:  document.getElementById("appStatus").innerHTML = "<strong>Ready</strong> - observed credit evidence computed from the current snapshot";
+2532:  hydrate(false);
+```
+
+Regression title present at `tests/bond-regime-lab.spec.mjs:326` (`Regression BUG-003: Ready waits for auto-hydration before Simple and Power comparison`); protected BS-011 title present at line 378, both byte-unchanged in intent (not weakened, renamed, skipped, or retried by this session).
+
+### TP-01-03 Protected BS-011 — PASS (Core Parity Intact)
+
+**Executed:** YES (current session)
+**Command:** exact TP-01-03 command from `scopes.md`
+**Exit Code:** `0`
+**Claim Source:** executed
+**Output:**
+
+```text
+Running 1 test using 1 worker
+
+  ✓  1 …b.spec.mjs:378:1 › BS-011 Simple and Power share one model digest (1.3s)
+
+  1 passed (3.8s)
+TP0103_EXIT=0
+```
+
+**Result:** PASS. The fundamental defect (Simple digest ≠ Power digest during a no-refresh mode switch) is NOT reintroduced. BS-011 reads the model digest via `getAttribute`, which succeeds even when the native view is CSS-hidden, so it isolates the model-parity contract from the view-visibility regression below.
+
+### TP-01-02 Adversarial Regression — FAIL (spec-012 shell hides native Simple view)
+
+**Executed:** YES (current session)
+**Command:** exact TP-01-02 command from `scopes.md`
+**Exit Code:** `1`
+**Claim Source:** executed
+**Output:**
+
+```text
+Running 1 test using 1 worker
+
+  ✘  1 …Ready waits for auto-hydration before Simple and Power comparison (6.3s)
+
+  1) [system-chrome] › tests/bond-regime-lab.spec.mjs:326:1 › Regression BUG-003: Ready waits for auto-hydration before Simple and Power comparison
+
+    Error: expect(locator).toBeVisible() failed
+    Locator:  locator('#simpleView [data-model-digest]')
+    Expected: visible
+    Received: hidden
+    Timeout:  5000ms
+    Call log:
+      - Expect "toBeVisible" with timeout 5000ms
+      - waiting for locator('#simpleView [data-model-digest]')
+        13 × locator resolved to <div id="decisionGrid" class="decision-grid" data-model-digest="8a020d8b" data-observed-digest="b8b8ae16">…</div>
+           - unexpected value "hidden"
+
+      348 |     await treasuryRequestStarted;
+    > 349 |     await expect(page.locator('#simpleView [data-model-digest]')).toBeVisible();
+  1 failed
+TP0102_EXIT=1
+```
+
+**Result:** FAIL. The `#decisionGrid` element carries the correct cached model digest `8a020d8b`, but the shared spec-012 experience-shell CSS-hides the native bond-regime content, so the adversarial visibility assertion (BRD-014, cache-first paint under BRD-001) can no longer hold. The failure is at the first held-window assertion (`toBeVisible`), before the status/refresh-active checks execute; the underlying Ready lifecycle code is unchanged.
+
+### TP-01-04 Complete Bond File — FAIL (21 passed / 6 failed)
+
+**Executed:** YES (current session)
+**Command:** exact TP-01-04 command from `scopes.md`
+**Exit Code:** `1`
+**Claim Source:** executed
+**Output:** results line plus the two representative visibility timeouts.
+
+```text
+Running 27 tests using 1 worker
+  ✘   8 …js:172:1 › BS-006 six month mixed shock decomposes every sleeve (30.1s)
+  ✘   9 …S-007 oversized shock preserves estimate and lowers reliability (30.1s)
+  ✘  11 …reject nonfinite input and persist only allowlisted assumptions (30.1s)
+  ✘  17 …eady waits for auto-hydration before Simple and Power comparison (5.4s)
+  ✓  18 …spec.mjs:378:1 › BS-011 Simple and Power share one model digest (684ms)
+  ✘  19 …-012 lever change recomputes without fetch or observed mutation (30.1s)
+  ✘  22 … nonblank synchronous and text equivalent on desktop and mobile (677ms)
+
+  1) BS-006 … Error: locator.fill: Test timeout of 30000ms exceeded.
+       - locator resolved to <input type="text" id="treasuryShock" …/>
+       - element is not visible
+  2) BS-007 … Error: locator.fill: Test timeout of 30000ms exceeded.
+       - locator resolved to <input type="text" id="hySpreadShock" …/>
+       - element is not visible
+
+  21 passed, 6 failed
+TP0104_EXIT=1
+```
+
+**Result:** FAIL. Six of 27 required bond-regime scenarios fail (BS-006, BS-007, reject-nonfinite, the BUG-003 adversarial regression, BS-012, and the nonblank-synchronous canvas test). Every failure is a native control `element is not visible` / `.fill()` timeout — the same shared-shell root cause, not a BUG-003 model defect. Tests that read attributes without requiring visibility (BS-011, BS-014, landmarks) still pass. This is a widespread regression to the whole bond-regime tool's interactivity introduced by the spec-012 experience-shell, not a BUG-003-scoped defect.
+
+### TP-01-05 Repository Selftest — PASS (952/0)
+
+**Executed:** YES (current session)
+**Command:** `node scripts/selftest.mjs`
+**Exit Code:** `0`
+**Claim Source:** executed
+**Output:**
+
+```text
+  ✓ SCN-012-024 a single-origin dramatic candidate consumes no visible slot, is a safe insufficient-corroboration count, and never echoes its dramatic title
+  ✓ SCN-012-025 a no-candidate window renders an honest empty state with cutoff/channels/owner coverage and no illustrative topic
+
+================================================
+Research-Lab self-test: 952 passed, 0 failed
+================================================
+SELFTEST_EXIT=0
+```
+
+**Result:** PASS. The inline production model contracts are fully intact and unchanged. This proves the spec-012 regression is confined to the browser/CSS view layer (native content is CSS-hidden), not the bond-regime model or digest computation.
+
+### State Transition Guard — BLOCKED (26 failures)
+
+**Executed:** YES (current session)
+**Command:** `bash .github/bubbles/scripts/state-transition-guard.sh specs/_bugs/BUG-003-bond-regime-simple-power-model-digest-divergence`
+**Exit Code:** `1`
+**Claim Source:** executed
+**Output:** verdict block.
+
+```text
+🔴 TRANSITION BLOCKED: 26 failure(s), 2 warning(s)
+state.json status MUST NOT be set to 'done'.
+failedGateIds: [G022,G053,G028,G003,G068,G093]
+failedChecks: [Check-4-completion,Check-5-all-done]
+blockingCode: DELIVERY_COMPLETION_FAILED
+verdict: FAIL
+STATE_GUARD_EXIT=1
+```
+
+**Result:** BLOCKED. Beyond the runtime regression above, the transition guard reports gate failures that are unresolvable inside BUG-003's boundary: `G028` ZERO_FILES_RESOLVED (the reality scanner does not resolve `.html`/`.mjs` implementation files — framework owner), `G093` delivery-implementation-delta (the fix was committed 8 days ago; the current working tree has no BUG-003 implementation delta outside `specs/`), `G053` Code Diff Evidence heading shape, `G068` DoD-Gherkin fidelity for SCN-BUG003-001, `G003` regression/shared-infra/change-boundary DoD wording (the scope-kind `bugfix` is unrecognised under the newer v4.1.0 scopeKinds vocabulary), and `G022` specialist-phase records. Plus the fourth unchecked DoD item is the cross-spec BUG-002 / Feature 006 resume handoff, owned by those chains, not by BUG-003.
+
+### Root Cause And Boundary Determination
+
+**Claim Source:** interpreted
+**Interpretation:** Cross-referenced with repository memory (`research-lab-rlviews-optout-and-shared-index`) and read-only code inspection of `rlviews.js` and `rlexperience-adapters/macro-rotation.js`.
+
+- The WIP spec-012 experience-shell is loaded by `rlapp.js mountExperienceShell()` (via `rlexperience.js` + `rlviews.js`). Its simple-projection runtime is currently a stub that hides native tool content (`body.rlv-focused` / single-active-view CSS) and sets `aria-hidden` on native tab controls. Bond-regime's `#simpleView`, `#decisionGrid`, and the `#treasuryShock`/`#hySpreadShock` scenario inputs are native content and become CSS-hidden.
+- Reconciliation options (opt bond-regime out of the shell via a `__rlviewsInit=1` head guard, complete the shell's simple projection so native content stays visible, or migrate BUG-003's adversarial DOM contract to the shell's contract) are all spec-012 / Feature-012 integration decisions. They touch `rlviews.js` (shared 17+ tools), `rlexperience-adapters/macro-rotation.js` (explicitly excluded), the shared brief mount, or make a Feature-012 opt-in/opt-out decision — none of which are BUG-003-owned surfaces.
+- No source, test, or foreign artifact was edited in this re-verification. No test was weakened, renamed, skipped, or retried. No out-of-boundary file was touched. Anchors and the BUG-003 packet remain byte-clean except this appended evidence.
+
+### Re-Verification Finding Accounting And Route
+
+| Finding | Current disposition | Owner |
+| --- | --- | --- |
+| `BUG003-ASYNC-READY-RACE` | Fix code intact on current bytes; BS-011 parity green; selftest 952/0 | `bubbles.test` (evidence recorded) |
+| `BUG003-INDEPENDENT-VERIFICATION` | RE-OPENED: prior "Addressed" disposition invalidated by the spec-012 shell migration; TP-01-02 + 5 bond scenarios now FAIL | blocked pending spec-012 reconciliation |
+| `BUG003-SPEC012-SHELL-NATIVE-VIEW-REGRESSION` | NEW: shared spec-012 experience-shell CSS-hides native bond-regime UI, breaking 6/27 bond scenarios including the BUG-003 adversarial regression | spec-012 / Feature-012 experience-shell owner (`rlviews.js` / `rlexperience.js` / `rlexperience-adapters/macro-rotation.js`) — OUT of BUG-003 boundary |
+| `BUG003-GUARD-V41-DRIFT` (G028/G093/G053/G068/G003/G022) | NEW: transition guard gates unresolvable inside BUG-003 boundary (framework `.html`/`.mjs` scanner, delivery-delta on a long-committed fix, DoD wording under v4.1.0 scopeKinds) | Bubbles framework / `bubbles.plan` for DoD wording |
+| `BUG002-ACCEPTANCE-BLOCK` | Still preserved unresolved; BUG-003 cannot unblock BUG-002 until the shell regression is reconciled and the adversarial regression is green | `bubbles.test` after BUG-003 reconciliation |
+| BUG-003 scope/status/certification | Remains `in_progress` and uncertified; no Done, validated, or completed-scope inference is made | `bubbles.test` |

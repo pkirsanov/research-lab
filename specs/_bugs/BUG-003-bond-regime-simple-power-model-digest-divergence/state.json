@@ -3,7 +3,7 @@
     "featureDir": "specs/_bugs/BUG-003-bond-regime-simple-power-model-digest-divergence",
     "featureName": "BUG-003 Bond Regime Simple/Power Model-Digest Divergence",
     "createdAt": "2026-07-16T05:27:35Z",
-    "lastUpdatedAt": "2026-07-17T00:03:35Z",
+    "lastUpdatedAt": "2026-07-27T00:35:00Z",
     "status": "in_progress",
     "workflowMode": "bugfix-fastlane",
     "linkedImplementationSpec": null,
@@ -23,10 +23,11 @@
         "executionModel": "direct-authorized-runner",
         "parentAgent": "bubbles.goal",
         "nextRequiredOwner": "bubbles.test",
-        "nextRequiredTarget": "specs/_bugs/BUG-002-market-brief-session-date-drift SCOPE-01 independent acceptance",
+        "nextRequiredTarget": "spec-012 / Feature-012 experience-shell owner: reconcile bond-regime native-view visibility (rlviews.js / rlexperience.js / rlexperience-adapters/macro-rotation.js) so the BUG-003 adversarial regression and the 5 other now-hidden bond scenarios are green again, then re-run BUG-003 independent acceptance",
+        "substate": "needs_reverification",
         "completedPhaseClaims": [],
         "pendingTransitionRequests": [],
-        "scopeExecutionStatus": "test_replay_complete_non_certified",
+        "scopeExecutionStatus": "test_reverification_blocked_by_spec012_shell_regression",
         "scopeInventory": [
             {
                 "scope": 1,

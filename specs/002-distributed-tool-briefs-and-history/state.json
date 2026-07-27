@@ -2,7 +2,7 @@
     "version": 3,
     "featureDir": "specs/002-distributed-tool-briefs-and-history",
     "featureName": "Distributed Tool Briefs and Recommendation History",
-    "status": "not_started",
+    "status": "in_progress",
     "workflowMode": "full-delivery",
     "linkedImplementationSpec": null,
     "linkedPlanningPacket": null,
@@ -118,7 +118,7 @@
         }
     },
     "certification": {
-        "status": "not_started",
+        "status": "in_progress",
         "completedScopes": [],
         "certifiedCompletedPhases": [],
         "scopeProgress": [
@@ -369,7 +369,7 @@
     "activeBugs": [],
     "resolvedBugs": [],
     "failures": [],
-    "lastUpdatedAt": "2026-07-19T10:37:57Z",
+    "lastUpdatedAt": "2026-07-27T00:00:00Z",
     "scopeLayout": "per-scope-directory",
     "artifacts": {
         "spec": "spec.md",

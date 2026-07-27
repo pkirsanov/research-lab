@@ -302,6 +302,16 @@
         "scopeDir": "scopes/14-integrated-acceptance-release-handoff",
         "scopeArtifact": "scopes/14-integrated-acceptance-release-handoff/scope.md",
         "reportArtifact": "scopes/14-integrated-acceptance-release-handoff/report.md"
+      },
+      {
+        "scope": 15,
+        "scopeId": "15-production-simple-adapter-wiring",
+        "name": "Production Simple-View Adapter Wiring (Model B)",
+        "status": "not_started",
+        "dependsOn": [5, 6, 7],
+        "scopeDir": "scopes/15-production-simple-adapter-wiring",
+        "scopeArtifact": "scopes/15-production-simple-adapter-wiring/scope.md",
+        "reportArtifact": "scopes/15-production-simple-adapter-wiring/report.md"
       }
     ],
     "audit": {

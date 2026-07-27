@@ -19,6 +19,8 @@
 13. **Scope 13 - Feature 008-gated private Portfolio integration:** only after named RLPORTFOLIO milestones are certified, add opaque private-scope overlays and local portfolio-stress Journey behavior without a second store or leak.
 14. **Scope 14 - Integrated acceptance and release handoff:** validate all 23 consumers, all four Market Action Center views, dependency activations/refusals, migration, accessibility, privacy, performance, rollback, docs handoff, and QF contract-only portability.
 
+15. **Scope 15 - Production Simple-view adapter wiring (Model B):** complete the never-wired production rendering of the 23 SimpleModel adapters — replace the stub bridge with a real adapter-render bridge, flip ordinary `ownerModes` to `["power"]`, expose each page's real owner state through a uniform provider seam, demote the 8 native `#simpleView` tools' Simple content to Power (nothing deleted), and close the BUG-003 native-view breakage.
+
 ### New Types And Signatures
 
 - `ToolExperience/v1`, `ToolExperienceConfig/v1`, exact ordinary and Market Action Center view-set enums.

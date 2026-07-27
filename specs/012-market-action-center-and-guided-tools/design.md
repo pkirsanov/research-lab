@@ -1841,3 +1841,23 @@ fallback.
 All BS-012-001 through BS-012-032 have exact technical exercises and planned
 test locations in the scenario mapping above. No requirement is satisfied by a
 render-only or narrative-only proxy.
+
+## Addendum: Production Simple-View Adapter Wiring (Model B)
+
+Scopes 05/06/07 delivered the 23 SimpleModel adapters but **never wired them
+into production page rendering** — `renderSimpleProjection` has zero production
+callers, and the only production writer into `[data-rlexperience-panel="simple"]`
+is a stub bridge (`rlexperience.js` `installSimpleProjectionBridge`) that renders
+an "unavailable" projection and re-adds `body.rlv-focused` (the open BUG-003
+native-view breakage). The orchestrator selected **Model B** (the adapter Simple
+is the uniform canonical Simple view for every ordinary tool; native rich Simple
+moves to Power, nothing deleted). The full rendering contract, the `ownerModes`
+change (`["simple","power"]` → `["power"]` for ordinary tools), the owner-state
+provider seam, the verified per-tool owner-state-source mapping for all 23 tools,
+the 8 `#simpleView`-tool reconciliation, and the test strategy are specified in:
+
+- [`design-addendum-production-simple-wiring.md`](design-addendum-production-simple-wiring.md)
+
+The implementation is tracked as
+[`scopes/15-production-simple-adapter-wiring`](scopes/15-production-simple-adapter-wiring/scope.md)
+(status: Not Started).

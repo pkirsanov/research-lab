@@ -1,23 +1,23 @@
 {
-  "asOf": "2026-07-27T06:33:09.140Z",
-  "generatedAt": "2026-07-27T06:33:09.140Z",
+  "asOf": "2026-07-27T11:18:16.542Z",
+  "generatedAt": "2026-07-27T11:18:16.542Z",
   "window": "pre-market",
   "marketClosed": false,
   "nextSessionDate": "2026-07-27",
   "dataFreshness": {
     "bars": {
-      "updated": "2026-07-27T06:33:08.449Z",
+      "updated": "2026-07-27T11:18:11.435Z",
       "count": 287
     },
     "options": {
-      "updated": "2026-07-27T06:33:08.554Z",
+      "updated": "2026-07-27T11:18:11.487Z",
       "count": 22
     }
   },
   "regime": {
-    "band": "VIX 18.7",
+    "band": "VIX 17.6",
     "score": 0,
-    "vix": 18.7,
+    "vix": 17.61,
     "fearGreed": null
   },
   "bench": {
@@ -519,7 +519,7 @@
   "toolReads": {
     "sector-research-lab": {
       "id": "sector-research-lab",
-      "asOf": "2026-07-27T06:33:09.082Z",
+      "asOf": "2026-07-27T11:18:15.024Z",
       "read": "Rotate toward XLE as XLV weakens.",
       "metrics": {
         "into": {
@@ -636,7 +636,7 @@
           "rel126": 6.85,
           "trend": "Strong uptrend",
           "fx": "FX headwind",
-          "fxStrength": -1.09,
+          "fxStrength": -1.1,
           "vol": 16.46,
           "maxDrawdown": 7.82,
           "asOf": "2026-07-23T13:30:00.000Z"
@@ -651,7 +651,7 @@
             "rel126": 6.85,
             "trend": "Strong uptrend",
             "fx": "FX headwind",
-            "fxStrength": -1.09,
+            "fxStrength": -1.1,
             "vol": 16.46,
             "maxDrawdown": 7.82,
             "asOf": "2026-07-23T13:30:00.000Z"
@@ -659,13 +659,13 @@
           {
             "ticker": "EWC",
             "country": "Canada",
-            "score": 63.5,
+            "score": 63.3,
             "rel21": 2.06,
             "rel63": -1.54,
             "rel126": -0.46,
             "trend": "Strong uptrend",
             "fx": "Confirms weakness",
-            "fxStrength": -2.96,
+            "fxStrength": -3.1,
             "vol": 13.09,
             "maxDrawdown": 8.51,
             "asOf": "2026-07-23T13:30:00.000Z"
@@ -673,13 +673,13 @@
           {
             "ticker": "EWU",
             "country": "United Kingdom",
-            "score": 63.1,
+            "score": 62.7,
             "rel21": 2.54,
             "rel63": -2.98,
             "rel126": -2.98,
             "trend": "Strong uptrend",
             "fx": "Confirms weakness",
-            "fxStrength": -1.26,
+            "fxStrength": -1.54,
             "vol": 16.84,
             "maxDrawdown": 9.92,
             "asOf": "2026-07-23T13:30:00.000Z"
@@ -687,13 +687,13 @@
           {
             "ticker": "EWT",
             "country": "Taiwan",
-            "score": 59,
+            "score": 59.4,
             "rel21": -5.07,
             "rel63": 12.39,
             "rel126": 40.15,
             "trend": "Mixed",
             "fx": "FX headwind",
-            "fxStrength": -2.77,
+            "fxStrength": -2.47,
             "vol": 42.41,
             "maxDrawdown": 13.98,
             "asOf": "2026-07-23T13:30:00.000Z"
@@ -701,13 +701,13 @@
           {
             "ticker": "EWA",
             "country": "Australia",
-            "score": 56,
+            "score": 56.1,
             "rel21": 1.74,
             "rel63": -5.28,
             "rel126": 0.33,
             "trend": "Constructive",
             "fx": "Confirms weakness",
-            "fxStrength": -2.61,
+            "fxStrength": -2.55,
             "vol": 18.27,
             "maxDrawdown": 10.01,
             "asOf": "2026-07-23T13:30:00.000Z"
@@ -715,13 +715,13 @@
           {
             "ticker": "EPHE",
             "country": "Philippines",
-            "score": 55.2,
+            "score": 55.3,
             "rel21": 0.87,
             "rel63": -1.49,
             "rel126": -10.45,
             "trend": "Mixed",
             "fx": "Confirms weakness",
-            "fxStrength": -1.06,
+            "fxStrength": -1.01,
             "vol": 23.17,
             "maxDrawdown": 15.9,
             "asOf": "2026-07-23T13:30:00.000Z"
@@ -735,7 +735,7 @@
     "real-assets-lab": {
       "id": "real-assets-lab",
       "asOf": "2026-07-23T13:30:00.000Z",
-      "read": "PDBC leads real assets at 70.6/100; GLD 14, BTC 40.8, SLV 0.",
+      "read": "PDBC leads real assets at 70.6/100; GLD 14, BTC 38.5, SLV 0.",
       "metrics": {
         "leader": {
           "ticker": "PDBC",
@@ -1005,7 +1005,7 @@
                   "TLT",
                   "TIP"
                 ],
-                "score": 46.415230268944434,
+                "score": 46.41525465214265,
                 "detail": "TLT direction plus TIP-vs-TLT is a rough rate mix, not a direct real-yield series."
               }
             ],
@@ -1054,12 +1054,12 @@
           "BTC-USD": {
             "ticker": "BTC-USD",
             "model": "bitcoin",
-            "score": 40.8,
-            "trend": "Mixed",
-            "mom21": 2.83,
-            "mom63": -15.11,
-            "mom126": -3.68,
-            "vol": 36.5,
+            "score": 38.5,
+            "trend": "Downtrend",
+            "mom21": 1.88,
+            "mom63": -15.63,
+            "mom126": -8.06,
+            "vol": 35.66,
             "maxDrawdown": 28.71,
             "riskPenalty": 5.68,
             "confirmations": [

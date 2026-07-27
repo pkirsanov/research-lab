@@ -1,16 +1,16 @@
 {
-  "asOf": "2026-07-26T23:49:16.660Z",
-  "generatedAt": "2026-07-26T23:49:16.660Z",
-  "window": "after-hours",
-  "marketClosed": true,
+  "asOf": "2026-07-27T04:21:57.023Z",
+  "generatedAt": "2026-07-27T04:21:57.023Z",
+  "window": "pre-market",
+  "marketClosed": false,
   "nextSessionDate": "2026-07-27",
   "dataFreshness": {
     "bars": {
-      "updated": "2026-07-26T23:49:15.444Z",
-      "count": 285
+      "updated": "2026-07-27T04:21:52.290Z",
+      "count": 287
     },
     "options": {
-      "updated": "2026-07-26T23:49:15.816Z",
+      "updated": "2026-07-27T04:21:56.454Z",
       "count": 22
     }
   },
@@ -519,7 +519,7 @@
   "toolReads": {
     "sector-research-lab": {
       "id": "sector-research-lab",
-      "asOf": "2026-07-26T23:49:16.543Z",
+      "asOf": "2026-07-27T04:21:57.002Z",
       "read": "Rotate toward XLE as XLV weakens.",
       "metrics": {
         "into": {
@@ -572,10 +572,51 @@
     },
     "etf-momentum-lab": {
       "id": "etf-momentum-lab",
-      "asOf": "2026-07-26T23:49:16.568Z",
-      "read": "ETF momentum model unavailable this run.",
+      "asOf": "2026-07-23T13:30:00.000Z",
+      "read": "SPMO leads the default 6M balanced ETF ranking at 27.91% momentum; 13 funds scored.",
       "metrics": {
-        "error": "RLMACROROTATION is not defined"
+        "leader": "SPMO",
+        "signal": 27.91,
+        "ranked": [
+          {
+            "ticker": "SPMO",
+            "signal": 27.91,
+            "score": 0.3497,
+            "annVol": 22.85,
+            "asOf": "2026-07-23T13:30:00.000Z"
+          },
+          {
+            "ticker": "JMOM",
+            "signal": 16.62,
+            "score": 0.3217,
+            "annVol": 16.17,
+            "asOf": "2026-07-23T13:30:00.000Z"
+          },
+          {
+            "ticker": "VGT",
+            "signal": 22.52,
+            "score": 0.3131,
+            "annVol": 23.61,
+            "asOf": "2026-07-23T13:30:00.000Z"
+          },
+          {
+            "ticker": "MTUM",
+            "signal": 23.18,
+            "score": 0.2997,
+            "annVol": 24.39,
+            "asOf": "2026-07-23T13:30:00.000Z"
+          },
+          {
+            "ticker": "XSMO",
+            "signal": 13.1,
+            "score": 0.261,
+            "annVol": 19.69,
+            "asOf": "2026-07-23T13:30:00.000Z"
+          }
+        ],
+        "scored": 13,
+        "horizon": "6M",
+        "risk": "balanced"
       },
       "deepLink": "etf-momentum-lab.html",
       "source": "owning-tool-functions"
@@ -595,7 +636,7 @@
           "rel126": 6.85,
           "trend": "Strong uptrend",
           "fx": "FX headwind",
-          "fxStrength": -1.08,
+          "fxStrength": -1.09,
           "vol": 16.46,
           "maxDrawdown": 7.82,
           "asOf": "2026-07-23T13:30:00.000Z"
@@ -610,7 +651,7 @@
             "rel126": 6.85,
             "trend": "Strong uptrend",
             "fx": "FX headwind",
-            "fxStrength": -1.08,
+            "fxStrength": -1.09,
             "vol": 16.46,
             "maxDrawdown": 7.82,
             "asOf": "2026-07-23T13:30:00.000Z"
@@ -618,13 +659,13 @@
           {
             "ticker": "EWC",
             "country": "Canada",
-            "score": 63.6,
+            "score": 63.5,
             "rel21": 2.06,
             "rel63": -1.54,
             "rel126": -0.46,
             "trend": "Strong uptrend",
             "fx": "Confirms weakness",
-            "fxStrength": -2.91,
+            "fxStrength": -2.96,
             "vol": 13.09,
             "maxDrawdown": 8.51,
             "asOf": "2026-07-23T13:30:00.000Z"
@@ -632,13 +673,13 @@
           {
             "ticker": "EWU",
             "country": "United Kingdom",
-            "score": 63,
+            "score": 63.1,
             "rel21": 2.54,
             "rel63": -2.98,
             "rel126": -2.98,
             "trend": "Strong uptrend",
             "fx": "Confirms weakness",
-            "fxStrength": -1.34,
+            "fxStrength": -1.26,
             "vol": 16.84,
             "maxDrawdown": 9.92,
             "asOf": "2026-07-23T13:30:00.000Z"
@@ -646,13 +687,13 @@
           {
             "ticker": "EWT",
             "country": "Taiwan",
-            "score": 59.3,
+            "score": 59,
             "rel21": -5.07,
             "rel63": 12.39,
             "rel126": 40.15,
             "trend": "Mixed",
             "fx": "FX headwind",
-            "fxStrength": -2.56,
+            "fxStrength": -2.77,
             "vol": 42.41,
             "maxDrawdown": 13.98,
             "asOf": "2026-07-23T13:30:00.000Z"
@@ -660,13 +701,13 @@
           {
             "ticker": "EWA",
             "country": "Australia",
-            "score": 56.1,
+            "score": 56,
             "rel21": 1.74,
             "rel63": -5.28,
             "rel126": 0.33,
             "trend": "Constructive",
             "fx": "Confirms weakness",
-            "fxStrength": -2.55,
+            "fxStrength": -2.61,
             "vol": 18.27,
             "maxDrawdown": 10.01,
             "asOf": "2026-07-23T13:30:00.000Z"
@@ -674,13 +715,13 @@
           {
             "ticker": "EPHE",
             "country": "Philippines",
-            "score": 55,
+            "score": 55.2,
             "rel21": 0.87,
             "rel63": -1.49,
             "rel126": -10.45,
             "trend": "Mixed",
             "fx": "Confirms weakness",
-            "fxStrength": -1.22,
+            "fxStrength": -1.06,
             "vol": 23.17,
             "maxDrawdown": 15.9,
             "asOf": "2026-07-23T13:30:00.000Z"
@@ -694,7 +735,7 @@
     "real-assets-lab": {
       "id": "real-assets-lab",
       "asOf": "2026-07-23T13:30:00.000Z",
-      "read": "PDBC leads real assets at 70.6/100; GLD 14, BTC 39, SLV 0.",
+      "read": "PDBC leads real assets at 70.6/100; GLD 14, BTC 40.8, SLV 0.",
       "metrics": {
         "leader": {
           "ticker": "PDBC",
@@ -1013,12 +1054,12 @@
           "BTC-USD": {
             "ticker": "BTC-USD",
             "model": "bitcoin",
-            "score": 39,
-            "trend": "Downtrend",
-            "mom21": 1.67,
-            "mom63": -16.07,
-            "mom126": -4.77,
-            "vol": 36.4,
+            "score": 40.8,
+            "trend": "Mixed",
+            "mom21": 2.83,
+            "mom63": -15.11,
+            "mom126": -3.68,
+            "vol": 36.5,
             "maxDrawdown": 28.71,
             "riskPenalty": 5.68,
             "confirmations": [
@@ -1037,7 +1078,7 @@
                 "detail": "Bitcoin's own realized volatility and drawdown reduce the score directly."
               }
             ],
-            "asOf": "2026-07-26T00:00:00.000Z"
+            "asOf": "2026-07-27T00:00:00.000Z"
           },
           "IBIT": {
             "ticker": "IBIT",

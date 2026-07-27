@@ -50,8 +50,10 @@ And no provider request, storage mutation, author call, publication, or fabricat
 
 ### SCN-012-039 - ownerModes make the panel visible in simple and native in power
 
+**Authoritative mechanism — provider-gating (resolves the tension with the flat `["power"]` phrasing):** `ownerModes` is resolved per ordinary tool by `rlapp.js`, gated on the page's owner-state provider — a page that has registered `__rlOwnerStateProvider[toolId]` resolves to `["power"]`; an un-provided page keeps `["simple", "power"]` so unwired tools do not regress. The rollout is incremental (one provider registration per tool); the END state (scope fully Done) is every ordinary tool wired, at which point every ordinary tool's resolved `ownerModes` is `["power"]`. The Gherkin below is therefore the per-wired-tool contract AND the all-ordinary-tools END-state contract.
+
 ```
-Given ordinary ownerModes are ["power"]
+Given a wired ordinary tool (its page registered an owner-state provider) so its resolved ownerModes are ["power"]
 When the view is "simple"
 Then body.rlv-focused is ON, the adapter panel is visible, and native content is hidden
 And when the view is "power"
@@ -123,7 +125,7 @@ delegating, 4 open, 1 brief-only) is in
 ### Modified
 
 - `rlexperience.js` (replace `installSimpleProjectionBridge` stub with the real production bridge; no `rlv-focused` mutation)
-- `rlapp.js` (ordinary `ownerModes` → `["power"]`)
+- `rlapp.js` (provider-gated ordinary `ownerModes`: resolves to `["power"]` once the page registers an owner-state provider, else `["simple", "power"]` so unwired tools do not regress — the authoritative incremental mechanism)
 - each wired ordinary page (register a `toolId` owner-state provider; for the `#simpleView` subset, move native Simple content under Power): `market-heatmap-lab.html`, `options-flow-feed-lab.html`, `intraday-tape-lab.html`, `swing-structure-lab.html`, `options-structure-lab.html`, `gamma-trading-lab.html`, `sector-research-lab.html`, `global-rotation-lab.html`, `real-assets-lab.html`, `bond-regime-lab.html`, `ai-capex-strategy-lab.html`, `msft-july-print-model.html`, `company-fundamentals-lab.html`, `etf-momentum-lab.html`, `strategy-self-improvement-lab.html`, `strategy-validation-lab.html`, `smart-money-flow-lab.html`, `waterfront-polo-lab.html`, `volatility-sizing-lab.html`, `palm-springs-rental-market-lab.html`, `ocean-shores-rental-market-lab.html`, `technical-analysis-decision-lab.html`
 - `tests/bond-regime-lab.spec.mjs`, `tests/volatility-sizing-lab.spec.mjs`, `tests/msft-july-market-refresh.spec.mjs` (move native `#simpleView` expectations to Power; assert the adapter panel in Simple)
 - `scripts/selftest.mjs` (production-bridge canaries)
@@ -143,7 +145,10 @@ another adapter, or a test helper.
    `__rlOwnerStateProvider[toolId]`; `createSimpleRuntime` + `register<Domain>Adapters`
    + `runtime.prepare({ ownerContext:{ ownerState }, … })` + `renderSimpleProjection`;
    render honest `unavailable` when the provider is absent; **never** mutate
-   `body.rlv-focused`). Flip ordinary `ownerModes` in `rlapp.js` to `["power"]`.
+   `body.rlv-focused`). Provider-gate ordinary `ownerModes` in `rlapp.js`: resolve
+   `["power"]` when the page has registered `__rlOwnerStateProvider[toolId]`, else
+   keep `["simple", "power"]` so unwired tools do not regress (the authoritative
+   incremental mechanism; the END state is every ordinary tool wired).
    Confirm `market-brief` (brief-only) is unchanged.
 3. **Proven single-tool end-to-end.** Wire `market-heatmap-lab` (its
    `reduceOwnerState` already exists): register its provider from the page's live
@@ -231,7 +236,7 @@ and pass only after the bridge + `ownerModes` change.
 #### Core Delivery Items
 
 - [ ] SCN-012-038: The production bridge replaces the stub and renders the real registered adapter into `[data-rlexperience-panel="simple"]` for wired ordinary tools, with no fabricated default and no forbidden authority.
-- [ ] SCN-012-039: Ordinary `ownerModes` is `["power"]`; `applyVisual` is the sole owner of `rlv-focused`; Simple shows the panel (native hidden) and Power shows native content (panel hidden); the bridge never mutates `rlv-focused`.
+- [ ] SCN-012-039: Provider-gated ordinary `ownerModes` resolves to `["power"]` once a page registers its owner-state provider (else `["simple", "power"]`; END state = every ordinary tool wired); `applyVisual` is the sole owner of `rlv-focused`; Simple shows the panel (native hidden) and Power shows native content (panel hidden); the bridge never mutates `rlv-focused`.
 - [ ] SCN-012-040: Each wired page exposes its real current owner state through the uniform provider seam, and the adapter's owner facts match the page's Power path (owner parity, no formula copy).
 - [ ] SCN-012-041: The 8 `#simpleView` tools' native Simple content is reachable under Power with nothing deleted; BUG-003 is closed.
 - [ ] SCN-012-042: Tools without a wired provider, and `technical-analysis-decision-lab` (no owner model), render an explicit honest `unavailable` with no invented signal; `market-brief` (brief-only) is unaffected.

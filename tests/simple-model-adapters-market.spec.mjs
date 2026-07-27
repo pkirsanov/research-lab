@@ -314,7 +314,12 @@ const TOOLS = {
     owner: () => breadthOwnerState(),
     changes: () => [['size-metric', 'equal'], ['breadth-threshold', 30]],
     adapterId: 'simple-adapter/market-breadth/v1',
-    expectFlat: false
+    expectFlat: false,
+    // Wired into its production page THIS increment (market-heatmap-lab.html registers a real
+    // owner-state provider consumed by the production Simple bridge in rlexperience.js). Because the
+    // bridge renders the REAL adapter on Simple BEFORE this test drives anything, the pre-drive shell
+    // state is 'ready' — a stronger proof than the unwired 'unavailable'. All other tools here stay unwired.
+    wiredInProduction: true
   },
   'intraday-tape-lab': {
     title: 'Regression: intraday tape Simple auction controls recompute from truthful snapshot evidence',
@@ -407,8 +412,11 @@ async function driveSimple(page, toolId) {
   await page.goto(`${site.baseUrl}/${descriptor.html}`);
   await expect(page.locator('#rlviews[data-rlexperience-shell="ready"]')).toBeVisible();
 
-  // Open Simple through the real shell — the deployed default renders the "owner adapter required"
-  // placeholder (no adapter is wired into the shell UI yet), proving we start from the real page.
+  // Open Simple through the real shell. For tools not yet wired into their page the deployed default
+  // renders the honest "owner adapter required" placeholder ('unavailable'); for a tool wired into
+  // production this increment (market-heatmap-lab) the production Simple bridge has already rendered
+  // the REAL adapter via the page's owner-state provider ('ready'). Either way we start from the real
+  // page — the pre-drive state is captured here and asserted per-tool in assertVisibleSensitivity.
   await page.getByRole('tab', { name: 'Power', exact: true }).click();
   await page.getByRole('tab', { name: 'Simple', exact: true }).click();
   const placeholderState = await page.locator('[data-rlexperience-panel="simple"]').getAttribute('data-rlexperience-simple-state');
@@ -492,8 +500,18 @@ async function assertVisibleSensitivity(page, toolId) {
   expect(result.registered).toContain(descriptor.adapterId);
   expect(result.baseline.adapter).toBe(descriptor.adapterId);
   expect(result.changed.adapter).toBe(descriptor.adapterId);
-  // We started from the real deployed shell placeholder before driving the real adapter.
-  expect(placeholderState).toBe('unavailable');
+  // Pre-drive shell state (real page, BEFORE this test injects/drives the adapter):
+  //   • Wired-in-production tool (market-heatmap-lab): the production Simple bridge
+  //     (rlexperience.js installSimpleProjectionBridge) already rendered the REAL adapter via the
+  //     page's wired owner-state provider, so the panel is 'ready'. This is STRONGER than the unwired
+  //     'unavailable' premise: it PROVES the production bridge painted the real adapter in the real
+  //     owner-mode Simple flow before we drove it.
+  //   • Every other (still-unwired) tool shows the honest "owner adapter required" placeholder — 'unavailable'.
+  if (descriptor.wiredInProduction) {
+    expect(placeholderState).toBe('ready');
+  } else {
+    expect(placeholderState).toBe('unavailable');
+  }
 
   if (descriptor.expectFlat) {
     // Proven-INCOMPLETE owner model (technical-five-gate): the Simple read stays HONESTLY

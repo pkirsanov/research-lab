@@ -237,3 +237,27 @@ test('Regression: Simple core preserves last valid run across invalid stale miss
   expect(result.hostText).not.toMatch(/neutral|average|prior unlabeled/i);
   expect(result.numericNodes).toBe(0);
 });
+
+test('Regression: technical-analysis-decision-lab native detail is reachable under Power (Simple stays honest-unavailable, nothing deleted)', async ({ page }) => {
+  await page.goto(`${site.baseUrl}/technical-analysis-decision-lab.html`);
+  await expect(page.locator('#rlviews[data-rlexperience-shell="ready"]')).toBeVisible();
+
+  // Simple: the page's registered owner-state provider gates ownerModes to ["power"], so applyVisual
+  // focuses the page — the honest-unavailable adapter panel is shown and the native foundation-receipt
+  // detail is hidden (bodyFocused === true). The full honest-unavailable panel contract (heading, text,
+  // adapter id, zero side effects) is proved by SCN-012-034 above; here we only establish the focused-
+  // Simple context so we can prove the native detail is REACHABLE AGAIN under Power (no content lost).
+  await page.getByRole('tab', { name: 'Simple', exact: true }).click();
+  await expect(page.locator('[data-rlexperience-panel="simple"][data-rlexperience-simple-state="unavailable"]')).toBeVisible();
+  await expect(page.locator('body')).toHaveClass(/rlv-focused/);
+  await expect(page.locator('#stateHeading')).toBeHidden();
+
+  // Power: applyVisual drops rlv-focused (bodyFocused === false), the Simple panel and the shell's
+  // owner-placeholder power panel are hidden, and the page's NATIVE foundation-receipt detail is
+  // reachable again — nothing deleted, just reorganized so Simple is the honest-unavailable panel.
+  await page.getByRole('tab', { name: 'Power', exact: true }).click();
+  await expect(page.locator('body')).not.toHaveClass(/rlv-focused/);
+  await expect(page.locator('[data-rlexperience-panel="simple"]')).toBeHidden();
+  await expect(page.locator('#stateHeading')).toBeVisible();
+  await expect(page.locator('#profileSelect')).toBeVisible();
+});

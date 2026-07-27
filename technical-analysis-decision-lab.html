@@ -1034,6 +1034,46 @@
     }
     if (document.readyState === "loading") document.addEventListener("DOMContentLoaded", boot); else boot();
   </script>
+  <script>
+    /* ═══════ Scope 15 production Simple-view owner-state provider (Model B) ═══════
+       Expose this page's REAL owner state to the shared production bridge
+       (rlexperience.js renderSimpleBridge) through the SAME uniform provider seam
+       market-heatmap-lab.html uses (globalThis.__rlOwnerStateProvider[toolId]).
+       Registered synchronously during parse — before the deferred rlapp.js
+       mountExperienceShell (rlapp.js: DOMContentLoaded → boot → mountExperienceShell)
+       reads it — so the shell's provider-gated ownerModes resolves this ordinary tool
+       to the adapter-panel Simple (["power"]); applyVisual (rlviews.js) remains the
+       sole owner of rlv-focused. This is the ONLY per-tool element and it lives on the
+       tool's own page, NOT in the shared runtime/bridge source (runtimeSourceHasToolBranch
+       stays 0).
+
+       This page is a Scope-01 FOUNDATION-RECEIPT VALIDATOR: it establishes source /
+       session / timeframe / validation identity contracts but publishes NO owner-model
+       read (the technical five-gate owner model does not yet exist — see the
+       simple-model/technical-five-gate/v1 researchQuestion and
+       __TAD_DIAGNOSTICS__.ownerReadPublished:false). The provider therefore yields the
+       page's HONEST current owner evidence (no published owner read), network-free (it
+       reads the page's own diagnostic global and NEVER fetches). Because this page
+       intentionally does NOT load the owner adapter module
+       (rlexperience-adapters/market-structure.js / RLMARKETSTRUCTURE), the shared bridge
+       recognizes the owner model as unavailable and renders the honest "owner adapter
+       required" panel in focused Simple — no provider request, storage mutation, author
+       call, publication, formula substitution, behavioral default, or invented signal. */
+    globalThis.__rlOwnerStateProvider = globalThis.__rlOwnerStateProvider || {};
+    globalThis.__rlOwnerStateProvider["technical-analysis-decision-lab"] = function () {
+      var diagnostics = (typeof window !== "undefined" && window.__TAD_DIAGNOSTICS__) || null;
+      return {
+        contractVersion: "technical-foundation-owner-state/v1",
+        toolId: "technical-analysis-decision-lab",
+        source: "page-diagnostics-snapshot",
+        foundationReceipt: {
+          present: !!diagnostics,
+          truthState: (diagnostics && typeof diagnostics.truthState === "string") ? diagnostics.truthState : "unavailable",
+          ownerReadPublished: !!(diagnostics && diagnostics.ownerReadPublished === true)
+        }
+      };
+    };
+  </script>
   <script src="rlnav.js"></script>
   <section data-rlbrief-mount data-tool-id="technical-analysis-decision-lab" data-simple-target="rlbrief-simple"
     data-power-target="rlbrief-power"></section>

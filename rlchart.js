@@ -350,6 +350,11 @@
 
   function attachLegacy(canvas, hitFn) {
     canvas.__rlchartState = { hitFn: hitFn, mode: "legacy", pinned: false };
+    /* Documented per-canvas hit-test contract (specs/003-bond-regime-and-scenario-lab/design.md
+       L1006: "inspect each Power canvas for … attached __rlhit …"). The structured/legacy attach
+       refactor moved the hit fn into __rlchartState.hitFn; restore the legacy canvas.__rlhit alias
+       that Power canvases (e.g. bond-regime ratio/curve/decomposition) inspect for their hit fn. */
+    canvas.__rlhit = hitFn;
     canvas.setAttribute("data-rlchart", "1");
     canvas.setAttribute("data-rlchart-mode", "legacy");
     canvas.setAttribute("data-rlchart-migration-required", "true");

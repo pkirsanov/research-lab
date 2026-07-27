@@ -28,6 +28,9 @@
 #   BRIEF_LANE_CONCURRENCY   maximum simultaneous Copilot lanes (scheduler default: 2)
 #   BRIEF_LANE_EXIT_GRACE    seconds to await process exit after a complete fragment (scheduler default: 60)
 #   BRIEF_LANE_TERMINATE_GRACE seconds between TERM and KILL for a lingering lane (scheduler default: 5)
+#   BRIEF_FETCH_BARS_TIMEOUT maximum seconds for the canonical bar refresh (default: 1200)
+#   BRIEF_FETCH_OPTIONS_TIMEOUT maximum seconds for the option refresh (default: 900)
+#   BRIEF_TIER_A_TIMEOUT     maximum seconds for deterministic Tier A (default: 600)
 #   BRIEF_REQUIRE_COMPLETE_RUN fail closed on incomplete data/tool/final publication (scheduler forces 1)
 #
 # Usage:  bash scripts/brief-refresh-and-push.sh [--dry-run]
@@ -139,6 +142,9 @@ restore_owned_baseline() {
 MODEL="${BRIEF_MODEL:-claude-opus-4.8}"
 NARRATIVE_ATTEMPTS="${BRIEF_NARRATIVE_ATTEMPTS:-1}"
 NARRATIVE_TIMEOUT="${BRIEF_NARRATIVE_TIMEOUT:-1800}"
+FETCH_BARS_TIMEOUT="${BRIEF_FETCH_BARS_TIMEOUT:-1200}"
+FETCH_OPTIONS_TIMEOUT="${BRIEF_FETCH_OPTIONS_TIMEOUT:-900}"
+TIER_A_TIMEOUT="${BRIEF_TIER_A_TIMEOUT:-600}"
 
 # Portable timeout (macOS has no `timeout` by default): timeout -> gtimeout -> watchdog.
 run_with_timeout() {
@@ -168,11 +174,11 @@ echo "[brief-timer] $(TZ=America/New_York date '+%Y-%m-%d %H:%M:%S %Z') — wind
 #    option chains and attach those same bar rows. Tier A and browser tools reuse
 #    the resulting same-origin snapshots without another ticker-history request.
 if [ "$DRY_RUN" != "1" ]; then
-  BRIEF_WINDOW="$WINDOW" "$NODE_BIN" scripts/fetch-bars.mjs || {
+  run_with_timeout "$FETCH_BARS_TIMEOUT" env BRIEF_WINDOW="$WINDOW" "$NODE_BIN" scripts/fetch-bars.mjs || {
     echo "[brief-timer] fetch-bars failed"
     [ "$REQUIRE_COMPLETE_RUN" = "1" ] && { restore_owned_baseline || true; exit 1; }
   }
-  BRIEF_WINDOW="$WINDOW" "$NODE_BIN" scripts/fetch-options.mjs || {
+  run_with_timeout "$FETCH_OPTIONS_TIMEOUT" env BRIEF_WINDOW="$WINDOW" "$NODE_BIN" scripts/fetch-options.mjs || {
     echo "[brief-timer] fetch-options failed"
     [ "$REQUIRE_COMPLETE_RUN" = "1" ] && { restore_owned_baseline || true; exit 1; }
   }
@@ -186,13 +192,13 @@ fi
 # 1b) Tier-A deterministic refresh. Scheduled runs fail closed; ad-hoc legacy runs retain the
 # historical soft behavior unless BRIEF_REQUIRE_COMPLETE_RUN=1 is explicitly set.
 if [ "$REQUIRE_COMPLETE_RUN" = "1" ]; then
-  BRIEF_WINDOW="$WINDOW" "$NODE_BIN" scripts/brief-refresh.mjs --window "$WINDOW" --strict || {
+  run_with_timeout "$TIER_A_TIMEOUT" env BRIEF_WINDOW="$WINDOW" "$NODE_BIN" scripts/brief-refresh.mjs --window "$WINDOW" --strict || {
     echo "[brief-timer] Tier-A refresh failed — refusing before tool briefs"
     restore_owned_baseline || true
     exit 1
   }
 else
-  BRIEF_WINDOW="$WINDOW" "$NODE_BIN" scripts/brief-refresh.mjs --window "$WINDOW" || echo "[brief-timer] refresh returned non-zero (soft) — continuing"
+  run_with_timeout "$TIER_A_TIMEOUT" env BRIEF_WINDOW="$WINDOW" "$NODE_BIN" scripts/brief-refresh.mjs --window "$WINDOW" || echo "[brief-timer] refresh returned non-zero (soft) — continuing"
 fi
 
 # 1c) Freeze and validate one truthful brief outcome for every registry source BEFORE final authorship.

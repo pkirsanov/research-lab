@@ -40,10 +40,17 @@
       <dict><key>Hour</key><integer>13</integer><key>Minute</key><integer>48</integer></dict> <!-- target 17:00 ET after-hours -->
     </array>
 
+    <!-- Retry a missed/failed window every 15 minutes. The wrapper's durable
+         run-key receipt makes this idempotent after the first success. -->
+    <key>StartInterval</key>
+    <integer>900</integer>
+
     <key>EnvironmentVariables</key>
     <dict>
       <key>PATH</key>
       <string>/opt/homebrew/bin:/opt/local/bin:/usr/local/bin:/usr/bin:/bin</string>
+      <key>BRIEF_SCHEDULE_DUE_ONLY</key>
+      <string>1</string>
     </dict>
 
     <key>RunAtLoad</key>

@@ -1,6 +1,6 @@
 import assert from 'node:assert/strict';
 import { spawnSync } from 'node:child_process';
-import { chmodSync, existsSync, readFileSync, writeFileSync } from 'node:fs';
+import { chmodSync, existsSync, mkdirSync, readFileSync, writeFileSync } from 'node:fs';
 import { resolve } from 'node:path';
 
 import {
@@ -10,6 +10,13 @@ import {
   runBriefRefreshFixture,
   runFixtureValidator
 } from './brief-refresh-atomicity.support.mjs';
+
+function readSchedulerStatus(path) {
+  return Object.fromEntries(readFileSync(path, 'utf8').trim().split('\n').map((line) => {
+    const separator = line.indexOf('=');
+    return [line.slice(0, separator), line.slice(separator + 1)];
+  }));
+}
 
 if (process.env.NODE_TEST_CONTEXT) {
   const { default: test } = await import('node:test');
@@ -196,6 +203,7 @@ if (process.env.NODE_TEST_CONTEXT) {
     );
     writeFileSync(validatorPath, validatorSource);
     const lockDir = resolve(fixture.fixtureRoot, 'brief-scheduler.lock');
+    const statusFile = resolve(fixture.fixtureRoot, 'brief-scheduler.status');
 
     const result = spawnSync('bash', [resolve(process.cwd(), 'scripts/brief-refresh-scheduled.sh')], {
       cwd: process.cwd(),
@@ -204,6 +212,7 @@ if (process.env.NODE_TEST_CONTEXT) {
         ...process.env,
         BRIEF_SCHEDULE_SOURCE_ROOT: fixture.repoRoot,
         BRIEF_SCHEDULE_LOCK_DIR: lockDir,
+        BRIEF_SCHEDULE_STATUS_FILE: statusFile,
         BRIEF_COPILOT_BIN: fixture.copilotPath,
         BUG002_BOUNDARY_LOG: fixture.boundaryLog,
         BUG002_CANDIDATE_DATE: fixture.candidateDate,
@@ -249,14 +258,70 @@ if (process.env.NODE_TEST_CONTEXT) {
     assert.ok(readFileSync(snapshotPath).equals(dirtyBytes), 'developer snapshot bytes remain untouched');
     assert.equal(gitFixture(fixture, ['status', '--porcelain=v1', '--', 'market-brief.snapshot.json']), 'M market-brief.snapshot.json');
     gitFixture(fixture, ['fetch', 'origin']);
-    assert.notEqual(gitFixture(fixture, ['rev-parse', 'origin/main']), fixture.initialHead, 'isolated publisher advances origin/main');
+    const publishedHead = gitFixture(fixture, ['rev-parse', 'origin/main']);
+    assert.notEqual(publishedHead, fixture.initialHead, 'isolated publisher advances origin/main');
+    const status = readSchedulerStatus(statusFile);
+    assert.equal(status.state, 'success', 'durable scheduler receipt records success');
+    assert.equal(status.exitCode, '0', 'durable scheduler receipt records the publisher exit');
+    assert.equal(status.publishedCommit, publishedHead, 'durable scheduler receipt records the pushed commit');
+    assert.equal(status.lastSuccessCommit, publishedHead, 'durable scheduler receipt preserves the last successful commit');
+    assert.ok(Number(status.finishedEpoch) >= Number(status.startedEpoch), 'durable scheduler receipt records an ordered run interval');
     assert.equal(existsSync(lockDir), false, 'scheduler lock is released');
   });
 
-  test('scheduled launcher refuses incomplete current-window data before tool and final briefs', (context) => {
+  test('scheduled catch-up is idempotent after the current run key succeeds', (context) => {
     const fixture = createBriefRefreshFixture({ narrativeMode: 'success' });
     context.after(() => fixture.cleanup());
-    const lockDir = resolve(fixture.fixtureRoot, 'brief-scheduler-incomplete.lock');
+    const lockDir = resolve(fixture.fixtureRoot, 'brief-scheduler-catch-up.lock');
+    const statusFile = resolve(fixture.fixtureRoot, 'brief-scheduler-catch-up.status');
+    const runKey = '2026-07-27/pre-market';
+    const env = {
+      ...process.env,
+      BRIEF_SCHEDULE_SOURCE_ROOT: fixture.repoRoot,
+      BRIEF_SCHEDULE_LOCK_DIR: lockDir,
+      BRIEF_SCHEDULE_STATUS_FILE: statusFile,
+      BRIEF_SCHEDULE_DUE_ONLY: '1',
+      BRIEF_SCHEDULE_RUN_KEY: runKey,
+      BRIEF_COPILOT_BIN: fixture.copilotPath,
+      BUG002_BOUNDARY_LOG: fixture.boundaryLog,
+      BUG002_CANDIDATE_DATE: fixture.candidateDate,
+      BUG002_COPILOT_ATTEMPT_FILE: fixture.copilotAttemptFile,
+      BUG002_COPILOT_AUDIT_FILE: fixture.copilotAuditFile,
+      BUG002_VALIDATOR_COUNT_FILE: fixture.validatorCountFile
+    };
+    const first = spawnSync('bash', [resolve(process.cwd(), 'scripts/brief-refresh-scheduled.sh')], {
+      cwd: process.cwd(), encoding: 'utf8', env
+    });
+    assert.equal(first.status, 0, `first catch-up failed\nstdout:\n${first.stdout}\nstderr:\n${first.stderr}`);
+    assert.match(first.stdout, /publication due for 2026-07-27\/pre-market/);
+    gitFixture(fixture, ['fetch', 'origin']);
+    const publishedHead = gitFixture(fixture, ['rev-parse', 'origin/main']);
+    const boundaryAfterFirst = readFileSync(fixture.boundaryLog, 'utf8');
+
+    const second = spawnSync('bash', [resolve(process.cwd(), 'scripts/brief-refresh-scheduled.sh')], {
+      cwd: process.cwd(), encoding: 'utf8', env
+    });
+    assert.equal(second.status, 0, `idempotent catch-up failed\nstdout:\n${second.stdout}\nstderr:\n${second.stderr}`);
+    assert.match(second.stdout, /publication already succeeded for 2026-07-27\/pre-market — no catch-up needed/);
+    assert.doesNotMatch(second.stdout, /cloning origin\/main/, 'idempotent catch-up stops before network and publication work');
+    assert.equal(readFileSync(fixture.boundaryLog, 'utf8'), boundaryAfterFirst, 'idempotent catch-up crosses no external data or author boundary');
+    gitFixture(fixture, ['fetch', 'origin']);
+    assert.equal(gitFixture(fixture, ['rev-parse', 'origin/main']), publishedHead, 'idempotent catch-up creates no second publication commit');
+    const status = readSchedulerStatus(statusFile);
+    assert.equal(status.state, 'already-current');
+    assert.equal(status.lastSuccessRunKey, runKey);
+    assert.equal(status.lastSuccessCommit, publishedHead);
+    assert.equal(existsSync(lockDir), false, 'idempotent catch-up releases the scheduler lock');
+  });
+
+  test('scheduled launcher reclaims a dead stale lock before publication', (context) => {
+    const fixture = createBriefRefreshFixture({ narrativeMode: 'success' });
+    context.after(() => fixture.cleanup());
+    const lockDir = resolve(fixture.fixtureRoot, 'brief-scheduler-dead.lock');
+    const statusFile = resolve(fixture.fixtureRoot, 'brief-scheduler-dead.status');
+    mkdirSync(lockDir);
+    writeFileSync(resolve(lockDir, 'pid'), '99999999\n');
+    writeFileSync(resolve(lockDir, 'started-epoch'), '1\n');
 
     const result = spawnSync('bash', [resolve(process.cwd(), 'scripts/brief-refresh-scheduled.sh')], {
       cwd: process.cwd(),
@@ -265,6 +330,37 @@ if (process.env.NODE_TEST_CONTEXT) {
         ...process.env,
         BRIEF_SCHEDULE_SOURCE_ROOT: fixture.repoRoot,
         BRIEF_SCHEDULE_LOCK_DIR: lockDir,
+        BRIEF_SCHEDULE_STATUS_FILE: statusFile,
+        BRIEF_COPILOT_BIN: fixture.copilotPath,
+        BUG002_BOUNDARY_LOG: fixture.boundaryLog,
+        BUG002_CANDIDATE_DATE: fixture.candidateDate,
+        BUG002_COPILOT_ATTEMPT_FILE: fixture.copilotAttemptFile,
+        BUG002_COPILOT_AUDIT_FILE: fixture.copilotAuditFile,
+        BUG002_VALIDATOR_COUNT_FILE: fixture.validatorCountFile
+      }
+    });
+
+    assert.equal(result.status, 0, `dead-lock recovery failed\nstdout:\n${result.stdout}\nstderr:\n${result.stderr}`);
+    assert.match(result.stdout, /reclaiming stale publication lock \(pid=99999999/);
+    assert.match(result.stdout, /publisher finished with exit=0/);
+    assert.equal(readSchedulerStatus(statusFile).state, 'success');
+    assert.equal(existsSync(lockDir), false, 'recovered scheduler lock is released');
+  });
+
+  test('scheduled launcher refuses incomplete current-window data before tool and final briefs', (context) => {
+    const fixture = createBriefRefreshFixture({ narrativeMode: 'success' });
+    context.after(() => fixture.cleanup());
+    const lockDir = resolve(fixture.fixtureRoot, 'brief-scheduler-incomplete.lock');
+    const statusFile = resolve(fixture.fixtureRoot, 'brief-scheduler-incomplete.status');
+
+    const result = spawnSync('bash', [resolve(process.cwd(), 'scripts/brief-refresh-scheduled.sh')], {
+      cwd: process.cwd(),
+      encoding: 'utf8',
+      env: {
+        ...process.env,
+        BRIEF_SCHEDULE_SOURCE_ROOT: fixture.repoRoot,
+        BRIEF_SCHEDULE_LOCK_DIR: lockDir,
+        BRIEF_SCHEDULE_STATUS_FILE: statusFile,
         BRIEF_COPILOT_BIN: fixture.copilotPath,
         BUG002_BOUNDARY_LOG: fixture.boundaryLog,
         BUG002_CANDIDATE_DATE: fixture.candidateDate,
@@ -284,6 +380,10 @@ if (process.env.NODE_TEST_CONTEXT) {
     assert.equal(existsSync(fixture.copilotAuditFile), false, 'final author was never invoked');
     gitFixture(fixture, ['fetch', 'origin']);
     assert.equal(gitFixture(fixture, ['rev-parse', 'origin/main']), fixture.initialHead, 'no incomplete run commit reached origin');
+    const status = readSchedulerStatus(statusFile);
+    assert.equal(status.state, 'failed', 'durable scheduler receipt records a refused run');
+    assert.equal(status.exitCode, '1', 'durable scheduler receipt records the refusal exit');
+    assert.equal(status.lastSuccessCommit, '', 'a failed first run cannot fabricate a successful commit');
     assert.equal(existsSync(lockDir), false, 'scheduler lock is released after refusal');
   });
 

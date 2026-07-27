@@ -74,14 +74,24 @@ after-hours = reactions/follow-through).
   `scripts/brief-refresh-scheduled.sh`. That launcher locks against overlap, clones `origin/main` into a
   disposable clean checkout, explicitly fast-forward pulls the configured GitHub branch, and invokes
   the pulled `scripts/brief-refresh-and-push.sh` there. Developer worktree changes
-  can therefore neither block the timer nor be overwritten. If the published snapshot/payload baseline is already
+  can therefore neither block the timer nor be overwritten. The four exact calendar triggers are backed by a
+  15-minute due-only heartbeat: a private receipt under `git rev-parse --git-path brief-scheduler.status` records
+  the attempted run key, exit, pushed commit, and last successful run key; the heartbeat skips a completed window,
+  retries a missing/failed one, and reclaims a dead stale directory lock. This also means the developer checkout can
+  remain behind `origin/main` after a healthy isolated publication; use the private receipt, remote commit, and public
+  payload clock rather than local JSON mtimes to diagnose the scheduler. If the published snapshot/payload baseline is already
   incoherent, the scheduler enables repair automatically, but publication still requires a newly generated matching
   pair to pass the unchanged final validator. Direct worker invocations remain fail-closed by default. On each run
   the isolated publisher:
     1. refreshes the same-origin daily-bar and option-chain snapshots used by the owning tools. Both
       fetchers write a current ET date/window receipt (`expected`, `freshCount`, `carriedCount`, `missing`),
       and `validate-brief-cache.mjs --require-current-run` refuses before any brief work unless every expected
-      snapshot is fresh for this run. It then runs
+      snapshot is fresh for this run. For exchange-traded daily bars, "fresh" additionally means every receipt
+      reaches the last completed XNYS session from the committed calendar. If Yahoo emits that completed daily
+      row with null OHLCV, `fetch-bars.mjs` reconstructs only that official regular session from Yahoo's bounded
+      five-minute feed, records the repair, and preserves it until Yahoo later supplies a non-null daily row.
+      A later publication window reuses the same completed-session bars with zero duplicate history requests.
+      It then runs
       `scripts/brief-refresh.mjs` (fetches VIX + Fear&Greed and reuses bar snapshots fetched within six hours;
       recomputes regime, momentum, sector RRG, exact ETF, global-rotation and real-assets model reads), appends one
       `brief-history.jsonl` snapshot, and writes `market-brief.snapshot.json` (the "Computed (Tier-A)" slice,

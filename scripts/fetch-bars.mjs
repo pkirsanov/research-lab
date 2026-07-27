@@ -20,11 +20,16 @@ import { readFileSync, mkdirSync, writeFileSync, existsSync } from 'node:fs';
 const OUT_DIR = 'data/bars';
 const RANGE = '2y';
 const FETCH_CONCURRENCY = positiveInteger(process.env.BAR_FETCH_CONCURRENCY, 8);
+const FETCH_TIMEOUT_MS = positiveInteger(process.env.BAR_FETCH_TIMEOUT_MS, 20000);
+const FETCH_ATTEMPTS = positiveInteger(process.env.BAR_FETCH_ATTEMPTS, 3);
+const FETCH_RETRY_BASE_MS = positiveInteger(process.env.BAR_FETCH_RETRY_BASE_MS, 500);
 const CACHE_WINDOW = process.env.BRIEF_WINDOW || null;
 const CACHE_DATE = new Intl.DateTimeFormat('en-CA', {
   timeZone: 'America/New_York', year: 'numeric', month: '2-digit', day: '2-digit'
 }).format(new Date());
 const MISSING_ONLY = process.argv.includes('--missing-only');
+const COMPLETE_RUN = process.env.BRIEF_REQUIRE_COMPLETE_RUN === '1';
+const XNYS_CALENDAR = 'data/calendars/xnys/calendar.json';
 
 /* Basket/theme ids that live in the universe files for grouping/labeling, plus
  * delisted names — NONE are tradeable Yahoo tickers, so never fetch them (they
@@ -36,6 +41,35 @@ function positiveInteger(value, fallback) {
   const parsed = Number(value);
   return Number.isInteger(parsed) && parsed > 0 ? parsed : fallback;
 }
+
+function sessionDateFromMs(value) {
+  return Number.isFinite(value) ? new Date(value).toISOString().slice(0, 10) : null;
+}
+function isSessionBoundSymbol(sym) {
+  return !sym.endsWith('-USD') && !sym.endsWith('=X');
+}
+function resolveExpectedSession() {
+  const overrideDate = process.env.BAR_EXPECTED_SESSION_DATE || null;
+  const overrideStart = process.env.BAR_EXPECTED_SESSION_START_UTC || null;
+  const overrideEnd = process.env.BAR_EXPECTED_SESSION_END_UTC || null;
+  if (overrideDate && overrideStart && overrideEnd) {
+    return { tradingDate: overrideDate, dateState: 'regular', regular: { startUtc: overrideStart, endUtc: overrideEnd } };
+  }
+  const calendar = readJSON(XNYS_CALENDAR, null);
+  const rows = calendar && Array.isArray(calendar.rows) ? calendar.rows : [];
+  const now = Date.now();
+  const eligible = rows.filter((row) =>
+    (row.dateState === 'regular' || row.dateState === 'early-close')
+    && row.regular
+    && Number.isFinite(Date.parse(row.regular.endUtc))
+    && Date.parse(row.regular.endUtc) <= now
+    && (!overrideDate || row.tradingDate === overrideDate)
+  );
+  return eligible.length ? eligible[eligible.length - 1] : null;
+}
+
+const EXPECTED_SESSION = resolveExpectedSession();
+const EXPECTED_SESSION_DATE = EXPECTED_SESSION && EXPECTED_SESSION.tradingDate;
 
 /* union of the tickers the bar tools need, from the committed universe files. */
 function universe() {
@@ -70,22 +104,87 @@ function universe() {
 }
 
 async function getJSON(url) {
-  const r = await fetch(url, { headers: { 'User-Agent': 'Mozilla/5.0 (research-lab bars snapshot)' } });
-  if (!r.ok) throw new Error('HTTP ' + r.status);
-  return r.json();
+  let lastError = null;
+  for (let attempt = 1; attempt <= FETCH_ATTEMPTS; attempt++) {
+    try {
+      const r = await fetch(url, {
+        headers: { 'User-Agent': 'Mozilla/5.0 (research-lab bars snapshot)' },
+        signal: AbortSignal.timeout(FETCH_TIMEOUT_MS)
+      });
+      if (r.ok) return r.json();
+      lastError = new Error('HTTP ' + r.status);
+      if (r.status !== 429 && (r.status < 500 || r.status >= 600)) throw lastError;
+    } catch (error) {
+      lastError = error;
+    }
+    if (attempt < FETCH_ATTEMPTS) await new Promise((resolveDelay) => setTimeout(resolveDelay, FETCH_RETRY_BASE_MS * attempt));
+  }
+  throw lastError || new Error('request failed');
 }
-function trimBars(j) {
+function eventFallsOn(events, tradingDate) {
+  for (const group of Object.values(events || {})) {
+    for (const event of Object.values(group || {})) {
+      if (sessionDateFromMs(Number(event && event.date) * 1000) === tradingDate) return true;
+    }
+  }
+  return false;
+}
+function trimBars(j, cutoffDate) {
   const r = j && j.chart && j.chart.result && j.chart.result[0];
   if (!r || !r.timestamp) return null;
   const ts = r.timestamp, q = (r.indicators && r.indicators.quote && r.indicators.quote[0]) || {};
   const adj = (r.indicators.adjclose && r.indicators.adjclose[0] && r.indicators.adjclose[0].adjclose) || null;
   const out = [];
+  let adjustmentFactor = 1;
   for (let i = 0; i < ts.length; i++) {
-    const c = (adj && adj[i] != null) ? adj[i] : (q.close ? q.close[i] : null);
-    if (c == null) continue;
+    const rowDate = sessionDateFromMs(ts[i] * 1000);
+    if (cutoffDate && rowDate > cutoffDate) continue;
+    const rawClose = q.close ? q.close[i] : null;
+    const c = (adj && adj[i] != null) ? adj[i] : rawClose;
+    if (!Number.isFinite(c)) continue;
+    if (Number.isFinite(rawClose) && rawClose !== 0 && adj && Number.isFinite(adj[i])) adjustmentFactor = adj[i] / rawClose;
     out.push({ t: ts[i] * 1000, o: q.open ? q.open[i] : c, h: q.high ? q.high[i] : c, l: q.low ? q.low[i] : c, c, v: (q.volume ? q.volume[i] : 0) || 0 });
   }
-  return out.length ? out : null;
+  return out.length ? { rows: out, adjustmentFactor, events: r.events || {}, meta: r.meta || {} } : null;
+}
+function mergeRows(existingRows, freshRows, cutoffDate) {
+  const byTimestamp = new Map();
+  for (const row of Array.isArray(existingRows) ? existingRows : []) {
+    if (row && Number.isFinite(row.t) && (!cutoffDate || sessionDateFromMs(row.t) <= cutoffDate)) byTimestamp.set(row.t, row);
+  }
+  for (const row of Array.isArray(freshRows) ? freshRows : []) {
+    if (row && Number.isFinite(row.t) && (!cutoffDate || sessionDateFromMs(row.t) <= cutoffDate)) byTimestamp.set(row.t, row);
+  }
+  return [...byTimestamp.values()].sort((a, b) => a.t - b.t).slice(-520);
+}
+function reconstructSession(j, session, adjustmentFactor) {
+  const result = j && j.chart && j.chart.result && j.chart.result[0];
+  if (!result || !Array.isArray(result.timestamp) || !result.indicators || !Array.isArray(result.indicators.quote)) return null;
+  const start = Date.parse(session.regular.startUtc), end = Date.parse(session.regular.endUtc);
+  const periods = Array.isArray(result.meta && result.meta.tradingPeriods) ? result.meta.tradingPeriods.flat() : [];
+  if (!periods.some((period) => period && period.start * 1000 <= start && period.end * 1000 >= end)) return null;
+  const q = result.indicators.quote[0] || {};
+  let open = null, high = null, low = null, close = null, volume = 0, count = 0, firstObserved = null, lastObserved = null;
+  const expectedBars = Math.ceil((end - start) / (5 * 60 * 1000));
+  for (let i = 0; i < result.timestamp.length; i++) {
+    const timestamp = result.timestamp[i] * 1000;
+    if (timestamp < start || timestamp >= end) continue;
+    const rowClose = q.close && q.close[i];
+    if (!Number.isFinite(rowClose)) continue;
+    const rowOpen = q.open && Number.isFinite(q.open[i]) ? q.open[i] : rowClose;
+    const rowHigh = q.high && Number.isFinite(q.high[i]) ? q.high[i] : Math.max(rowOpen, rowClose);
+    const rowLow = q.low && Number.isFinite(q.low[i]) ? q.low[i] : Math.min(rowOpen, rowClose);
+    if (open === null) open = rowOpen;
+    if (firstObserved === null) firstObserved = timestamp;
+    lastObserved = timestamp;
+    high = high === null ? rowHigh : Math.max(high, rowHigh);
+    low = low === null ? rowLow : Math.min(low, rowLow);
+    close = rowClose;
+    if (q.volume && Number.isFinite(q.volume[i])) volume += q.volume[i];
+    count += 1;
+  }
+  if (count < Math.floor(expectedBars * 0.8) || firstObserved > start + 15 * 60 * 1000 || lastObserved < end - 15 * 60 * 1000 || ![open, high, low, close].every(Number.isFinite)) return null;
+  return { t: start, o: open, h: high, l: low, c: close * adjustmentFactor, v: volume, sourceBars: count };
 }
 async function mapConcurrent(items, limit, worker) {
   const results = new Array(items.length);
@@ -104,27 +203,49 @@ async function mapConcurrent(items, limit, worker) {
 async function refreshSymbol(sym) {
   const existingFile = OUT_DIR + '/' + sym + '.json';
   const existing = readJSON(existingFile, null), existingRows = existing && existing.rows;
-  if (CACHE_WINDOW && existing && existing.refreshDate === CACHE_DATE && existing.refreshWindow === CACHE_WINDOW && Array.isArray(existingRows) && existingRows.length) {
-    console.log('reuse ' + sym + '  bars=' + existingRows.length + ' (git cache ' + CACHE_DATE + '/' + CACHE_WINDOW + ')');
-    return { sym, n: existingRows.length, last: existingRows[existingRows.length - 1].c, cached: true };
+  const sessionBound = isSessionBoundSymbol(sym);
+  const enforceSession = sessionBound && !!EXPECTED_SESSION_DATE;
+  const sessionCurrent = !enforceSession || (existing && existing.asof === EXPECTED_SESSION_DATE);
+  const sameWindow = CACHE_WINDOW && existing && existing.refreshDate === CACHE_DATE && existing.refreshWindow === CACHE_WINDOW;
+  const sameCompletedSession = enforceSession && existing && existing.asof === EXPECTED_SESSION_DATE;
+  if (existing && Array.isArray(existingRows) && existingRows.length && sessionCurrent && (sameWindow || sameCompletedSession)) {
+    const reuseReason = sameWindow ? CACHE_DATE + '/' + CACHE_WINDOW : 'completed session ' + EXPECTED_SESSION_DATE;
+    console.log('reuse ' + sym + '  bars=' + existingRows.length + ' (git cache ' + reuseReason + ')');
+    return { sym, n: existingRows.length, last: existingRows[existingRows.length - 1].c, asof: existing.asof, cached: true, sessionCached: !sameWindow && sameCompletedSession, reconstructed: Array.isArray(existing.reconstructedSessions) && existing.reconstructedSessions.length > 0 };
   }
   if (MISSING_ONLY && existsSync(existingFile)) {
     if (Array.isArray(existingRows) && existingRows.length) {
       console.log('keep ' + sym + '  bars=' + existingRows.length);
-      return { sym, n: existingRows.length, last: existingRows[existingRows.length - 1].c };
+      return { sym, n: existingRows.length, last: existingRows[existingRows.length - 1].c, asof: existing.asof };
     }
   }
 
   try {
-    const bars = trimBars(await getJSON('https://query1.finance.yahoo.com/v8/finance/chart/' + encodeURIComponent(sym) + '?interval=1d&range=' + RANGE + '&includeAdjustedClose=true'));
-    if (!bars) { console.log('skip ' + sym + ' (no bars)'); return null; }
-    writeFileSync(existingFile, JSON.stringify({ sym, interval: '1d', range: RANGE, asof: new Date(bars[bars.length - 1].t).toISOString().slice(0, 10), fetched: new Date().toISOString(), refreshDate: CACHE_DATE, refreshWindow: CACHE_WINDOW, src: 'yahoo', rows: bars }));
-    console.log('ok   ' + sym + '  bars=' + bars.length + '  last=' + bars[bars.length - 1].c + '  (yahoo)');
-    return { sym, n: bars.length, last: bars[bars.length - 1].c };
+    const daily = await getJSON('https://query1.finance.yahoo.com/v8/finance/chart/' + encodeURIComponent(sym) + '?interval=1d&range=' + RANGE + '&includeAdjustedClose=true&events=div%2Csplits');
+    const parsed = trimBars(daily, enforceSession ? EXPECTED_SESSION_DATE : null);
+    if (!parsed) throw new Error('no daily bars');
+    let bars = mergeRows(existingRows, parsed.rows, enforceSession ? EXPECTED_SESSION_DATE : null), reconstructed = false;
+    let asof = sessionDateFromMs(bars[bars.length - 1].t);
+    if (enforceSession && asof !== EXPECTED_SESSION_DATE) {
+      if (!EXPECTED_SESSION) throw new Error('expected XNYS session unavailable');
+      if (eventFallsOn(parsed.events, EXPECTED_SESSION_DATE)) throw new Error('corporate action blocks intraday reconstruction for ' + EXPECTED_SESSION_DATE);
+      const intraday = await getJSON('https://query1.finance.yahoo.com/v8/finance/chart/' + encodeURIComponent(sym) + '?interval=5m&range=5d&includePrePost=false&events=div%2Csplits');
+      const repair = reconstructSession(intraday, EXPECTED_SESSION, parsed.adjustmentFactor);
+      if (!repair) throw new Error('completed session ' + EXPECTED_SESSION_DATE + ' unavailable from daily and intraday feeds');
+      bars = mergeRows(bars.filter((row) => sessionDateFromMs(row.t) !== EXPECTED_SESSION_DATE), [repair], EXPECTED_SESSION_DATE);
+      reconstructed = true;
+      asof = EXPECTED_SESSION_DATE;
+    }
+    if (enforceSession && asof !== EXPECTED_SESSION_DATE) throw new Error('latest completed session is ' + asof + ', expected ' + EXPECTED_SESSION_DATE);
+    const reconstructedSessions = [...new Set(bars.filter((row) => Number.isInteger(row.sourceBars) && row.sourceBars > 0).map((row) => sessionDateFromMs(row.t)))];
+    const record = { sym, interval: '1d', range: RANGE, asof, fetched: new Date().toISOString(), refreshDate: CACHE_DATE, refreshWindow: CACHE_WINDOW, expectedSessionDate: enforceSession ? EXPECTED_SESSION_DATE : null, src: reconstructedSessions.length ? 'yahoo-daily+intraday-repair' : 'yahoo', reconstructedSessions, rows: bars };
+    writeFileSync(existingFile, JSON.stringify(record));
+    console.log('ok   ' + sym + '  bars=' + bars.length + '  asof=' + asof + '  last=' + bars[bars.length - 1].c + (reconstructed ? '  (yahoo intraday repair)' : '  (yahoo)'));
+    return { sym, n: bars.length, last: bars[bars.length - 1].c, asof, reconstructed: reconstructedSessions.length > 0, repairedThisRun: reconstructed };
   } catch (err) {
     if (Array.isArray(existingRows) && existingRows.length) {
       console.log('kept ' + sym + '  bars=' + existingRows.length + ' (last-good; ' + ((err && err.message) || err) + ')');
-      return { sym, n: existingRows.length, last: existingRows[existingRows.length - 1].c, carried: true };
+      return { sym, n: existingRows.length, last: existingRows[existingRows.length - 1].c, asof: existing.asof || sessionDateFromMs(existingRows[existingRows.length - 1].t), carried: true };
     }
     console.log('FAIL ' + sym + ': ' + ((err && err.message) || err));
     return null;
@@ -132,6 +253,7 @@ async function refreshSymbol(sym) {
 }
 
 async function main() {
+  if (COMPLETE_RUN && !EXPECTED_SESSION_DATE) throw new Error('cannot resolve the latest completed XNYS session');
   const syms = universe();
   mkdirSync(OUT_DIR, { recursive: true });
   console.log('refreshing ' + syms.length + ' canonical ticker histories with concurrency=' + FETCH_CONCURRENCY);
@@ -139,11 +261,14 @@ async function main() {
   const returned = new Set(idx.map((row) => row.sym));
   const missing = syms.filter((sym) => !returned.has(sym));
   const carriedCount = idx.filter((row) => row.carried).length;
+  const reconstructedCount = idx.filter((row) => row.reconstructed).length;
+  const sessionReuseCount = idx.filter((row) => row.sessionCached).length;
   writeFileSync(OUT_DIR + '/index.json', JSON.stringify({
     updated: new Date().toISOString(), refreshDate: CACHE_DATE, refreshWindow: CACHE_WINDOW,
+    expectedSessionDate: EXPECTED_SESSION_DATE,
     expected: syms.length, count: idx.length, freshCount: idx.length - carriedCount,
-    carriedCount, missing, tickers: idx
+    carriedCount, reconstructedCount, sessionReuseCount, missing, tickers: idx
   }));
   console.log('\nwrote ' + idx.length + '/' + syms.length + ' bar snapshots to ' + OUT_DIR);
 }
-main().catch((e) => { console.error('fatal:', e); process.exit(0); });
+main().catch((e) => { console.error('fatal:', e); process.exit(COMPLETE_RUN ? 1 : 0); });

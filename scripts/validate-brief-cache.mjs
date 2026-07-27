@@ -12,6 +12,28 @@ const EXPECTED_WINDOW = process.env.BRIEF_WINDOW || null;
 const EXPECTED_DATE = new Intl.DateTimeFormat('en-CA', {
   timeZone: 'America/New_York', year: 'numeric', month: '2-digit', day: '2-digit'
 }).format(new Date());
+const XNYS_CALENDAR = join(DATA_ROOT, 'calendars', 'xnys', 'calendar.json');
+
+function latestCompletedSessionDate() {
+  if (process.env.BAR_EXPECTED_SESSION_DATE) return process.env.BAR_EXPECTED_SESSION_DATE;
+  if (!existsSync(XNYS_CALENDAR)) return null;
+  try {
+    const calendar = JSON.parse(readFileSync(XNYS_CALENDAR, 'utf8'));
+    const now = Date.now();
+    const rows = (calendar.rows || []).filter((row) =>
+      (row.dateState === 'regular' || row.dateState === 'early-close')
+      && row.regular
+      && Number.isFinite(Date.parse(row.regular.endUtc))
+      && Date.parse(row.regular.endUtc) <= now
+    );
+    return rows.length ? rows[rows.length - 1].tradingDate : null;
+  } catch {
+    return null;
+  }
+}
+function isSessionBoundSymbol(sym) {
+  return typeof sym === 'string' && !sym.endsWith('-USD') && !sym.endsWith('=X');
+}
 
 function readJson(path) {
   try {
@@ -54,6 +76,20 @@ function validateIndex(kind) {
     if (index.freshCount !== index.expected) errors.push(`data/${kind}/index.json freshCount ${index.freshCount} does not match expected ${index.expected}`);
     if (index.carriedCount !== 0) errors.push(`data/${kind}/index.json carriedCount must be 0 for a complete scheduled run`);
     if (!Array.isArray(index.missing) || index.missing.length !== 0) errors.push(`data/${kind}/index.json missing must be an empty array`);
+    if (kind === 'bars') {
+      const expectedSessionDate = latestCompletedSessionDate() || index.expectedSessionDate || null;
+      if (!expectedSessionDate) errors.push('data/bars/index.json cannot resolve expectedSessionDate');
+      if (index.expectedSessionDate !== expectedSessionDate) errors.push(`data/bars/index.json expectedSessionDate must equal ${expectedSessionDate}`);
+      if (!Number.isInteger(index.reconstructedCount) || index.reconstructedCount < 0) errors.push('data/bars/index.json reconstructedCount must be a non-negative integer');
+      if (!Number.isInteger(index.sessionReuseCount) || index.sessionReuseCount < 0) errors.push('data/bars/index.json sessionReuseCount must be a non-negative integer');
+      const reconstructedCount = index.tickers.filter((row) => row && row.reconstructed).length;
+      const sessionReuseCount = index.tickers.filter((row) => row && row.sessionCached).length;
+      if (index.reconstructedCount !== reconstructedCount) errors.push(`data/bars/index.json reconstructedCount ${index.reconstructedCount} does not match ticker receipts ${reconstructedCount}`);
+      if (index.sessionReuseCount !== sessionReuseCount) errors.push(`data/bars/index.json sessionReuseCount ${index.sessionReuseCount} does not match ticker receipts ${sessionReuseCount}`);
+      for (const row of index.tickers) {
+        if (row && isSessionBoundSymbol(row.sym) && row.asof !== expectedSessionDate) errors.push(`data/bars/index.json ${row.sym} asof ${row.asof || '<missing>'} must equal completed XNYS session ${expectedSessionDate}`);
+      }
+    }
   }
   for (const row of index.tickers) {
     if (!row || typeof row.sym !== 'string' || !row.sym.trim()) {

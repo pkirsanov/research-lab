@@ -180,8 +180,9 @@ if (process.env.BRIEF_REQUIRE_COMPLETE_RUN === '1') {
   const date = new Intl.DateTimeFormat('en-CA', { timeZone: 'America/New_York', year: 'numeric', month: '2-digit', day: '2-digit' }).format(new Date());
   const incomplete = process.env.BUG002_INCOMPLETE_REFRESH === '1';
   mkdirSync(new URL('../data/bars/', import.meta.url), { recursive: true });
-  writeFileSync(new URL('../data/bars/FIXTURE.json', import.meta.url), JSON.stringify({ sym: 'FIXTURE', rows: [{ t: 1, c: 1 }] }) + '\\n');
-  writeFileSync(new URL('../data/bars/index.json', import.meta.url), JSON.stringify({ updated: new Date().toISOString(), refreshDate: date, refreshWindow: process.env.BRIEF_WINDOW, expected: 1, count: 1, freshCount: incomplete ? 0 : 1, carriedCount: incomplete ? 1 : 0, missing: [], tickers: [{ sym: 'FIXTURE', carried: incomplete }] }) + '\\n');
+  const sessionDate = process.env.BAR_EXPECTED_SESSION_DATE || date;
+  writeFileSync(new URL('../data/bars/FIXTURE.json', import.meta.url), JSON.stringify({ sym: 'FIXTURE', asof: sessionDate, rows: [{ t: 1, c: 1 }] }) + '\\n');
+  writeFileSync(new URL('../data/bars/index.json', import.meta.url), JSON.stringify({ updated: new Date().toISOString(), refreshDate: date, refreshWindow: process.env.BRIEF_WINDOW, expectedSessionDate: sessionDate, expected: 1, count: 1, freshCount: incomplete ? 0 : 1, carriedCount: incomplete ? 1 : 0, reconstructedCount: 0, sessionReuseCount: 0, missing: [], tickers: [{ sym: 'FIXTURE', asof: sessionDate, carried: incomplete, reconstructed: false, sessionCached: false }] }) + '\\n');
 }
 console.log('[fixture-fetch-bars] no external fetch required');
 `);

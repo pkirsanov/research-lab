@@ -187,7 +187,14 @@
   function resolveCurrentRoute(includeLocalRecord) {
     var options = { publicTargetIds: [] };
     if (includeLocalRecord) options.localModeRecord = readModeRecord();
-    var result = EXPERIENCE.resolveRoute(SHELL, location.hash, options);
+    var routeHash = location.hash;
+    if (SHELL.kind === "ordinary" && MODES.indexOf(String(routeHash || "").replace(/^#/, "").split("/")[0]) === -1) {
+      try {
+        var legacyMode = new URLSearchParams(location.search).get("mode");
+        if (legacyMode === "simple" || legacyMode === "power") routeHash = "#" + legacyMode;
+      } catch (error) { }
+    }
+    var result = EXPERIENCE.resolveRoute(SHELL, routeHash, options);
     return result.ok ? result.value : null;
   }
 

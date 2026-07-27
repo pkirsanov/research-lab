@@ -1332,7 +1332,6 @@
         deepLinks: { power: "#power", journey: "#journey" }
       });
       renderSimpleProjectionInternal(panel, projection);
-      document.body.classList.add("rlv-focused");
     });
   }
 

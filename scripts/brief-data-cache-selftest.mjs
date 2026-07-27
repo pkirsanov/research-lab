@@ -37,7 +37,7 @@ try {
     writeJson('global-rotation-universe.json', { entries: [], benchmarks: [] });
     writeJson('real-assets-universe.json', { entries: [], benchmarks: [] });
     writeJson('bond-regime-universe.json', { instruments: [] });
-    writeJson('options-structure-universe.json', { entries: [{ id: 'SPY' }] });
+    writeJson('options-structure-universe.json', { entries: [{ id: 'SPY' }, { id: 'SPX', alt: { yahoo: '^SPX' } }] });
 
     writeFileSync(resolve(fixture, 'mock-fetch.mjs'), `
 import { writeFileSync } from 'node:fs';
@@ -63,13 +63,27 @@ process.on('exit', () => writeFileSync(process.env.MOCK_FETCH_LOG, JSON.stringif
 
     const firstBars = run('fetch-bars.mjs', 'first-bars.json');
     const firstBarCalls = firstBars.log.calls.filter((url) => url.includes('query1.finance.yahoo.com'));
-    assert.equal(firstBarCalls.length, 8, 'the union fetches each built-in ticker exactly once');
+    assert.equal(firstBarCalls.length, 9, 'the union fetches each built-in ticker and the canonical index alias exactly once');
+    assert.equal(firstBarCalls.some((url) => url.includes('%5ESPX')), true, 'SPX resolves through its canonical Yahoo ^SPX alias');
     assert.ok(firstBars.log.maxActive > 1, 'ticker histories are fetched concurrently');
+    const barIndex = JSON.parse(readFileSync(resolve(fixture, 'data/bars/index.json'), 'utf8'));
+    assert.equal(barIndex.expected, 9);
+    assert.equal(barIndex.freshCount, 9);
+    assert.equal(barIndex.carriedCount, 0);
+    assert.deepEqual(barIndex.missing, []);
+    assert.equal(barIndex.refreshWindow, 'morning');
 
     const firstOptions = run('fetch-options.mjs', 'first-options.json');
     assert.equal(firstOptions.log.calls.filter((url) => url.includes('query1.finance.yahoo.com')).length, 0, 'options issue no duplicate Yahoo history request');
-    assert.equal(firstOptions.log.calls.filter((url) => url.includes('cdn.cboe.com')).length, 1, 'one CBOE chain request is made');
+    assert.equal(firstOptions.log.calls.filter((url) => url.includes('cdn.cboe.com')).length, 2, 'one CBOE chain request is made per option entry');
     assert.equal(JSON.parse(readFileSync(resolve(fixture, 'data/options/SPY.json'), 'utf8')).bars.length, 260, 'options attach canonical SPY bars');
+    assert.equal(JSON.parse(readFileSync(resolve(fixture, 'data/options/SPX.json'), 'utf8')).bars.length, 260, 'options attach canonical ^SPX bars through the alias');
+    const optionIndex = JSON.parse(readFileSync(resolve(fixture, 'data/options/index.json'), 'utf8'));
+    assert.equal(optionIndex.expected, 2);
+    assert.equal(optionIndex.freshCount, 2);
+    assert.equal(optionIndex.carriedCount, 0);
+    assert.deepEqual(optionIndex.missing, []);
+    assert.equal(optionIndex.refreshWindow, 'morning');
 
     const secondBars = run('fetch-bars.mjs', 'second-bars.json');
     const secondOptions = run('fetch-options.mjs', 'second-options.json');

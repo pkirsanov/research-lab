@@ -55,7 +55,7 @@ function evidenceBundleFixture() {
     };
 }
 
-test('Canary: five current publisher reads and four headless reads preserve pre-evidence semantics', () => {
+test('Canary: five current publisher reads and four headless reads preserve pre-evidence semantics', async () => {
     // The five current browser publisher projections still round-trip through the UNCHANGED
     // rl-tool-read/v1 strict path byte-identically (the additive tool-model-read/v1 branch and
     // validateToolModelRead never intercept or mutate them).
@@ -87,9 +87,23 @@ test('Canary: five current publisher reads and four headless reads preserve pre-
     // No evidence-interpretation field leaks into the pre-evidence compact projection.
     assert.equal(Object.prototype.hasOwnProperty.call(sectorRead, 'evidenceInterpretations'), false);
 
-    // Headless reads #2-#4 (ETF, Global, Real Assets — the network builders) remain unchanged,
-    // callable production functions rather than being removed or replaced by the shared layer.
-    assert.equal(typeof buildEtfToolRead, 'function');
+    // Headless read #2 executes the real ETF builder against deterministic bars and the shared owner
+    // module, proving the ESM integration produces a scored read rather than a hidden require error.
+    const macroModel = await import('../rlexperience-adapters/macro-rotation.js').then(() => globalThis.RLMACROROTATION || null);
+    const nodeModel = macroModel || (await import('node:module')).createRequire(import.meta.url)('../rlexperience-adapters/macro-rotation.js');
+    const bars = Array.from({ length: 300 }, (_, index) => ({ t: Date.UTC(2025, 0, 1 + index), c: 100 + index * 0.25 }));
+    const etfRead = await buildEtfToolRead({
+        universe: { riskFree: 0.04, etfs: [{ ticker: 'FIXTURE', on: true }] },
+        model: nodeModel,
+        rowsFor: async () => bars
+    });
+    assert.equal(etfRead.id, 'etf-momentum-lab');
+    assert.equal(etfRead.metrics.error, undefined);
+    assert.equal(etfRead.metrics.scored, 1);
+    assert.equal(etfRead.metrics.leader, 'FIXTURE');
+
+    // Headless reads #3-#4 (Global, Real Assets — the network builders) remain callable production
+    // functions rather than being removed or replaced by the shared layer.
     assert.equal(typeof buildGlobalToolRead, 'function');
     assert.equal(typeof buildRealAssetsToolRead, 'function');
 });

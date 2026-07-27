@@ -40,7 +40,7 @@ function positiveInteger(value, fallback) {
 /* union of the tickers the bar tools need, from the committed universe files. */
 function universe() {
   const set = new Set();
-  const add = (t) => { if (typeof t === 'string') { const s = t.trim().toUpperCase(); if (s && !s.startsWith('^')) set.add(s); } };
+  const add = (t) => { if (typeof t === 'string') { const s = t.trim().toUpperCase(); if (s) set.add(s); } };
   const su = readJSON('sector-universe.json', {});
   (su.entries || []).forEach((e) => { add(e.ticker || e.id); add(e.etf); (e.members || []).forEach(add); });
   Object.values(su.sectorMap || {}).forEach((s) => (s.constituents || []).forEach((c) => add(c.ticker)));
@@ -65,7 +65,7 @@ function universe() {
   const bu = readJSON('bond-regime-universe.json', {});
   (bu.instruments || []).forEach((instrument) => add(instrument && instrument.ticker));
   const ou = readJSON('options-structure-universe.json', {});
-  (ou.entries || []).forEach((entry) => add(entry && entry.id));
+  (ou.entries || []).forEach((entry) => add(entry && entry.alt && entry.alt.yahoo ? entry.alt.yahoo : entry && entry.id));
   return [...set].filter((s) => !NON_TICKERS.has(s)).sort();
 }
 
@@ -136,7 +136,14 @@ async function main() {
   mkdirSync(OUT_DIR, { recursive: true });
   console.log('refreshing ' + syms.length + ' canonical ticker histories with concurrency=' + FETCH_CONCURRENCY);
   const idx = (await mapConcurrent(syms, FETCH_CONCURRENCY, refreshSymbol)).filter(Boolean);
-  writeFileSync(OUT_DIR + '/index.json', JSON.stringify({ updated: new Date().toISOString(), count: idx.length, tickers: idx }));
+  const returned = new Set(idx.map((row) => row.sym));
+  const missing = syms.filter((sym) => !returned.has(sym));
+  const carriedCount = idx.filter((row) => row.carried).length;
+  writeFileSync(OUT_DIR + '/index.json', JSON.stringify({
+    updated: new Date().toISOString(), refreshDate: CACHE_DATE, refreshWindow: CACHE_WINDOW,
+    expected: syms.length, count: idx.length, freshCount: idx.length - carriedCount,
+    carriedCount, missing, tickers: idx
+  }));
   console.log('\nwrote ' + idx.length + '/' + syms.length + ' bar snapshots to ' + OUT_DIR);
 }
 main().catch((e) => { console.error('fatal:', e); process.exit(0); });

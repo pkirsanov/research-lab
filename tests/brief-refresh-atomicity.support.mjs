@@ -52,6 +52,13 @@ function baselineSnapshot(sessionDate) {
   snapshot.window = 'pre-market';
   snapshot.marketClosed = false;
   snapshot.nextSessionDate = sessionDate;
+  for (const [toolId, toolRead] of Object.entries(snapshot.toolReads || {})) {
+    toolRead.asOf = `${sessionDate}T13:59:00.000Z`;
+    if (toolRead.metrics && typeof toolRead.metrics === 'object' && typeof toolRead.metrics.error === 'string') {
+      delete toolRead.metrics.error;
+      toolRead.read = `${toolId} fixture owner read is current.`;
+    }
+  }
   return `${JSON.stringify(snapshot, null, 2)}\n`;
 }
 
@@ -86,7 +93,11 @@ export function createBriefRefreshFixture(options = {}) {
   }
   chmodSync(wrapperPath, 0o755);
   copyFileSync(resolve(ROOT, 'scripts/brief-narrative-parallel.mjs'), resolve(repoRoot, 'scripts/brief-narrative-parallel.mjs'));
+  copyFileSync(resolve(ROOT, 'scripts/brief-distributed-publish.mjs'), resolve(repoRoot, 'scripts/brief-distributed-publish.mjs'));
+  copyFileSync(resolve(ROOT, 'scripts/brief-publication.mjs'), resolve(repoRoot, 'scripts/brief-publication.mjs'));
+  copyFileSync(resolve(ROOT, 'scripts/validate-distributed-briefs.mjs'), resolve(repoRoot, 'scripts/validate-distributed-briefs.mjs'));
   copyFileSync(resolve(ROOT, 'scripts/validate-brief-cache.mjs'), resolve(repoRoot, 'scripts/validate-brief-cache.mjs'));
+  copyFileSync(resolve(ROOT, 'rlcontracts.js'), resolve(repoRoot, 'rlcontracts.js'));
   if (options.validatorMode === 'fail-final') {
     copyFileSync(resolve(ROOT, 'scripts/validate-brief-payload.mjs'), resolve(repoRoot, 'scripts/validate-brief-payload.real.mjs'));
     writeFixtureScript(resolve(repoRoot, 'scripts/validate-brief-payload.mjs'), `#!/usr/bin/env node
@@ -141,14 +152,28 @@ if (count === 3) {
   writeFileSync(resolve(repoRoot, 'unrelated.txt'), 'unrelated baseline\n', 'utf8');
 
   writeFixtureScript(resolve(repoRoot, 'scripts/fetch-options.mjs'), `
-import { appendFileSync, writeFileSync } from 'node:fs';
+import { appendFileSync, mkdirSync, writeFileSync } from 'node:fs';
 if (process.env.BUG002_BOUNDARY_LOG) appendFileSync(process.env.BUG002_BOUNDARY_LOG, 'fetch-options\\n');
 writeFileSync(new URL('../data/raw-refresh.json', import.meta.url), JSON.stringify({ refreshed: true }) + '\\n');
+if (process.env.BRIEF_REQUIRE_COMPLETE_RUN === '1') {
+  const date = new Intl.DateTimeFormat('en-CA', { timeZone: 'America/New_York', year: 'numeric', month: '2-digit', day: '2-digit' }).format(new Date());
+  const incomplete = process.env.BUG002_INCOMPLETE_REFRESH === '1';
+  mkdirSync(new URL('../data/options/', import.meta.url), { recursive: true });
+  writeFileSync(new URL('../data/options/FIXTURE.json', import.meta.url), JSON.stringify({ sym: 'FIXTURE', o: [{ e: 1 }] }) + '\\n');
+  writeFileSync(new URL('../data/options/index.json', import.meta.url), JSON.stringify({ updated: new Date().toISOString(), refreshDate: date, refreshWindow: process.env.BRIEF_WINDOW, expected: 1, count: 1, freshCount: incomplete ? 0 : 1, carriedCount: incomplete ? 1 : 0, missing: [], tickers: [{ sym: 'FIXTURE', carried: incomplete }] }) + '\\n');
+}
 console.log('[fixture-fetch-options] wrote independent raw data');
 `);
   writeFixtureScript(resolve(repoRoot, 'scripts/fetch-bars.mjs'), `
-import { appendFileSync } from 'node:fs';
+import { appendFileSync, mkdirSync, writeFileSync } from 'node:fs';
 if (process.env.BUG002_BOUNDARY_LOG) appendFileSync(process.env.BUG002_BOUNDARY_LOG, 'fetch-bars\\n');
+if (process.env.BRIEF_REQUIRE_COMPLETE_RUN === '1') {
+  const date = new Intl.DateTimeFormat('en-CA', { timeZone: 'America/New_York', year: 'numeric', month: '2-digit', day: '2-digit' }).format(new Date());
+  const incomplete = process.env.BUG002_INCOMPLETE_REFRESH === '1';
+  mkdirSync(new URL('../data/bars/', import.meta.url), { recursive: true });
+  writeFileSync(new URL('../data/bars/FIXTURE.json', import.meta.url), JSON.stringify({ sym: 'FIXTURE', rows: [{ t: 1, c: 1 }] }) + '\\n');
+  writeFileSync(new URL('../data/bars/index.json', import.meta.url), JSON.stringify({ updated: new Date().toISOString(), refreshDate: date, refreshWindow: process.env.BRIEF_WINDOW, expected: 1, count: 1, freshCount: incomplete ? 0 : 1, carriedCount: incomplete ? 1 : 0, missing: [], tickers: [{ sym: 'FIXTURE', carried: incomplete }] }) + '\\n');
+}
 console.log('[fixture-fetch-bars] no external fetch required');
 `);
   writeFixtureScript(resolve(repoRoot, 'scripts/brief-refresh.mjs'), `
@@ -188,6 +213,10 @@ const configPath = resolve('market-brief.config.json');
 const payloadPath = resolve('market-brief.payload.json');
 const config = JSON.parse(readFileSync(configPath, 'utf8'));
 const payload = JSON.parse(readFileSync(payloadPath, 'utf8'));
+const laneInputPath = resolve('.brief-work', lane + '.input.json');
+const laneInput = existsSync(laneInputPath) ? JSON.parse(readFileSync(laneInputPath, 'utf8')) : null;
+const toolBundleCount = laneInput && laneInput.toolBriefBundle && Array.isArray(laneInput.toolBriefBundle.tools)
+  ? laneInput.toolBriefBundle.tools.length : null;
 if (process.env.BUG002_NARRATIVE_MODE === 'retry-config' && attempt === 1 && lane === 'core') {
   config.failedAttemptLeak = true;
   writeFileSync(configPath, JSON.stringify(config, null, 2) + '\\n');
@@ -200,7 +229,9 @@ if (process.env.BUG002_NARRATIVE_MODE === 'lane-retry' && lane === 'groups' && l
 }
 const cleanConfigObserved = !Object.prototype.hasOwnProperty.call(config, 'failedAttemptLeak');
 if (lane === 'core') {
-  writeFileSync(process.env.BUG002_COPILOT_AUDIT_FILE, JSON.stringify({ attempt, cleanConfigObserved }) + '\\n');
+  const audit = { attempt, cleanConfigObserved };
+  if (toolBundleCount !== null) audit.toolBundleCount = toolBundleCount;
+  writeFileSync(process.env.BUG002_COPILOT_AUDIT_FILE, JSON.stringify(audit) + '\\n');
   payload.nextSession.sessionDate = process.env.BUG002_CANDIDATE_DATE;
 }
 const fragment = Object.fromEntries(keys.map((key) => [key, payload[key]]));
@@ -238,6 +269,7 @@ if (process.env.BUG002_NARRATIVE_MODE === 'post-write-hang' && lane === 'core') 
     fixtureRoot,
     initialHead: runGit(repoRoot, ['rev-parse', 'HEAD']),
     narrativeMode: options.narrativeMode || null,
+    remoteRoot,
     repoRoot,
     validatorCountFile
   };

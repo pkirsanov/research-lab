@@ -489,7 +489,7 @@ export async function runToolAuthorPool(config) {
 
   let queueIndex = 0;
   async function worker() {
-    for (;;) {
+    for (; ;) {
       if (refusal) return;
       if (queueIndex >= tasks.length) return;
       const task = tasks[queueIndex];
@@ -719,7 +719,7 @@ export async function runBriefRefresh(deps) {
     return { ok: false, refusal: { code, reason, phase }, events, state, ...(extra || {}) };
   };
 
-  const lease = deps.lease && typeof deps.lease.acquire === 'function' ? deps.lease.acquire(deps.runKey) : { ok: true, release() {} };
+  const lease = deps.lease && typeof deps.lease.acquire === 'function' ? deps.lease.acquire(deps.runKey) : { ok: true, release() { } };
   if (!lease.ok) return refuse('B002-RUN-IN-PROGRESS', 'lease-held', 'lease-held', { duplicate: true });
   advance('lease-held'); emit('lease-held', {});
 
@@ -1090,17 +1090,18 @@ function oneYearWindowMetrics(rows, riskFree) {
   return { annVol, cagr, sharpe: Number.isFinite(cagr) && Number.isFinite(annVol) && annVol > 0 ? (cagr - riskFree) / annVol : null };
 }
 
-export async function buildEtfToolRead() {
+export async function buildEtfToolRead(deps = {}) {
   try {
-    const universe = JSON.parse(read('etf-universe.json'));
-    const model = loadToolFunctions('etf-momentum-lab.html', ['etfSimpleSignal', 'etfSimpleScore']);
+    const universe = deps.universe || JSON.parse(read('etf-universe.json'));
+    const model = deps.model || featureRequire('../rlexperience-adapters/macro-rotation.js');
+    const rowsFor = typeof deps.rowsFor === 'function' ? deps.rowsFor : yahooRowsMemo;
     const rows = [];
     for (const fund of (universe.etfs || []).filter((entry) => entry.on)) {
-      const bars = await yahooRowsMemo(fund.ticker); if (!bars || bars.length < 127) continue;
+      const bars = await rowsFor(fund.ticker); if (!bars || bars.length < 127) continue;
       const trailing = { '3M': calendarReturnDecimal(bars, 91), '6M': calendarReturnDecimal(bars, 182), '1Y': calendarReturnDecimal(bars, 365) };
       const windowMetrics = oneYearWindowMetrics(bars, universe.riskFree || 0), annVol = windowMetrics.annVol;
       const metrics = { trailing, annVol, sharpe: windowMetrics.sharpe };
-      const signal = model.etfSimpleSignal(metrics, '6M'), score = model.etfSimpleScore(metrics, '6M', 'balanced');
+      const signal = model.etfMomentumSignal(metrics, '6M'), score = model.etfCompositeScore(metrics, '6M', 'balanced');
       if (Number.isFinite(score)) rows.push({ ticker: fund.ticker, signal: round(signal * 100), score: round(score, 4), annVol: round(annVol * 100), asOf: latestIso(bars) });
     }
     rows.sort((a, b) => b.score - a.score);
@@ -1276,5 +1277,8 @@ if (process.argv[1] && resolve(process.argv[1]) === fileURLToPath(import.meta.ur
     console.error('[brief-refresh] --distributed-run: evidence-first publication is implemented and test-proven but not live-wired yet (Scope 10 cutover). No action taken.');
     process.exit(0);
   }
-  main().catch((e) => { console.error('[brief-refresh] soft-fail:', e.message); process.exit(0); });
+  main().catch((e) => {
+    console.error(`[brief-refresh] ${process.argv.includes('--strict') ? 'fatal' : 'soft-fail'}:`, e.message);
+    process.exit(process.argv.includes('--strict') ? 1 : 0);
+  });
 }

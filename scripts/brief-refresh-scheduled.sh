@@ -2,10 +2,10 @@
 #
 # Scheduler entry point for Actionable Market Brief publication.
 #
-# launchd invokes this script from the developer checkout. The current worker
-# implementation runs against a disposable clone of origin/main so editor changes,
-# staged files, and an interrupted prior refresh can never block or overwrite the
-# developer worktree. This also avoids executing stale worker code from origin.
+# launchd invokes this script from the developer checkout. The worker runs against
+# a disposable clone that is explicitly fast-forwarded from the configured remote
+# before any refresh starts, so editor changes, staged files, and an interrupted
+# prior refresh can never block or overwrite the developer worktree.
 
 set -uo pipefail
 
@@ -23,6 +23,7 @@ export BRIEF_LANE_CONCURRENCY="${BRIEF_LANE_CONCURRENCY:-2}"
 export BRIEF_LANE_EXIT_GRACE="${BRIEF_LANE_EXIT_GRACE:-60}"
 export BRIEF_LANE_TERMINATE_GRACE="${BRIEF_LANE_TERMINATE_GRACE:-5}"
 export BRIEF_REPAIR_INVALID_BASELINE="${BRIEF_REPAIR_INVALID_BASELINE:-1}"
+export BRIEF_REQUIRE_COMPLETE_RUN=1
 GIT_BIN="$(command -v git 2>/dev/null || true)"
 [ -z "$GIT_BIN" ] && { echo "[brief-scheduler] git not found"; exit 1; }
 
@@ -61,18 +62,24 @@ PUBLISH_PARENT="$(mktemp -d "${TMPDIR:-/tmp}/research-lab-brief-publisher.XXXXXX
 PUBLISH_ROOT="$PUBLISH_PARENT/repo"
 
 echo "[brief-scheduler] cloning $REMOTE_NAME/$BRANCH into a disposable checkout"
-if ! "$GIT_BIN" clone --quiet --branch "$BRANCH" --single-branch "$REMOTE_URL" "$PUBLISH_ROOT"; then
+if ! "$GIT_BIN" clone --quiet --origin "$REMOTE_NAME" --branch "$BRANCH" --single-branch "$REMOTE_URL" "$PUBLISH_ROOT"; then
   echo "[brief-scheduler] clone failed"
   exit 1
 fi
 
-VALIDATOR_SOURCE="$SOURCE_ROOT/scripts/validate-brief-payload.mjs"
-if [ ! -f "$VALIDATOR_SOURCE" ]; then
-  echo "[brief-scheduler] local contract validator is unavailable: $VALIDATOR_SOURCE"
+echo "[brief-scheduler] pulling latest $REMOTE_NAME/$BRANCH before tool updates"
+if ! "$GIT_BIN" -C "$PUBLISH_ROOT" pull --ff-only "$REMOTE_NAME" "$BRANCH"; then
+  echo "[brief-scheduler] fast-forward pull failed"
   exit 1
 fi
-if ! cp "$VALIDATOR_SOURCE" "$PUBLISH_ROOT/scripts/validate-brief-payload.mjs"; then
-  echo "[brief-scheduler] cannot install the local contract validator in the disposable checkout"
+
+WORKER="$PUBLISH_ROOT/scripts/brief-refresh-and-push.sh"
+if [ ! -f "$WORKER" ]; then
+  echo "[brief-scheduler] pulled worker is unavailable: $WORKER"
+  exit 1
+fi
+if ! grep -q '^export BRIEF_PIPELINE_CONTRACT="pull-data-tools-final-v1"$' "$WORKER"; then
+  echo "[brief-scheduler] pulled worker does not satisfy pull-data-tools-final-v1 — publish the scheduler changes before the next run"
   exit 1
 fi
 
@@ -80,7 +87,7 @@ echo "[brief-scheduler] publisher checkout ready; developer worktree remains unt
 echo "[brief-scheduler] narrative policy: ${BRIEF_NARRATIVE_ATTEMPTS} attempt(s), ${BRIEF_NARRATIVE_TIMEOUT}s each"
 echo "[brief-scheduler] lane policy: ${BRIEF_LANE_CONCURRENCY} concurrent, ${BRIEF_LANE_ATTEMPTS} attempt(s) each, ${BRIEF_LANE_EXIT_GRACE}s post-write exit grace"
 echo "[brief-scheduler] invalid-baseline repair: $BRIEF_REPAIR_INVALID_BASELINE (final validation remains mandatory)"
-BRIEF_REPO_ROOT="$PUBLISH_ROOT" /bin/bash "$SOURCE_ROOT/scripts/brief-refresh-and-push.sh" "$@"
+BRIEF_REPO_ROOT="$PUBLISH_ROOT" /bin/bash "$WORKER" "$@"
 exit_code=$?
 echo "[brief-scheduler] publisher finished with exit=$exit_code"
 exit "$exit_code"

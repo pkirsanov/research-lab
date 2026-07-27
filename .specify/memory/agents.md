@@ -288,10 +288,14 @@ and 17:00 ET after its local-time entries are configured for the host:
 bash scripts/brief-refresh-and-push.sh
 ```
 
-The wrapper refreshes bars/options, runs deterministic Tier A, optionally asks
-the authenticated GitHub Copilot CLI to rewrite and validate Tier B, stages only
-the owned brief/data files, commits, and pushes the current branch. It uses the
-HTTPS remote with macOS Keychain credentials and the Copilot CLI's existing
+The installed launchd path runs `scripts/brief-refresh-scheduled.sh`, which
+clones and explicitly fast-forward pulls the configured GitHub branch before
+any update. It then requires complete current-window bars/options receipts,
+runs deterministic Tier A, validates one brief outcome for every registry
+source, generates the final brief only after that barrier, validates and stages
+the exact all-tools + final graph, commits, and pushes. Scheduled runs are
+complete-or-refuse; `BRIEF_SKIP_NARRATIVE=1` is not accepted there. Push uses
+the HTTPS remote with macOS Keychain credentials and Copilot CLI's existing
 login. Never print or duplicate either credential.
 
 The wrapper also exposes:

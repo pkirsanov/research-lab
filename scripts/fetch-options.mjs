@@ -157,8 +157,14 @@ async function main() {
 
   console.log('refreshing ' + entries.length + ' option chains with concurrency=' + FETCH_CONCURRENCY + '; canonical bars are reused');
   const index = (await mapConcurrent(entries, FETCH_CONCURRENCY, refreshEntry)).filter(Boolean);
-
-  writeFileSync(OUT_DIR + '/index.json', JSON.stringify({ updated: new Date().toISOString(), count: index.length, tickers: index }));
+  const returned = new Set(index.map((row) => row.sym));
+  const missing = entries.map((entry) => entry.id).filter((id) => !returned.has(id));
+  const carriedCount = index.filter((row) => row.carried).length;
+  writeFileSync(OUT_DIR + '/index.json', JSON.stringify({
+    updated: new Date().toISOString(), refreshDate: CACHE_DATE, refreshWindow: CACHE_WINDOW,
+    expected: entries.length, count: index.length, freshCount: index.length - carriedCount,
+    carriedCount, missing, tickers: index
+  }));
   console.log('\nwrote ' + index.length + '/' + entries.length + ' tickers to ' + OUT_DIR);
 }
 

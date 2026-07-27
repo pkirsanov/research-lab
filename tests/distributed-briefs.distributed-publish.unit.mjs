@@ -24,7 +24,8 @@ import { tmpdir } from 'node:os';
 import path from 'node:path';
 
 import {
-  publishDistributedBriefs, buildDistributedRun, loadInputs, readPriorFromRoot
+  publishDistributedBriefs, buildDistributedRun, buildToolBriefBundle,
+  validateToolBriefBundle, loadInputs, readPriorFromRoot
 } from '../scripts/brief-distributed-publish.mjs';
 import {
   buildPublishSet, validatePublishSet, validateRunIdentity, canonicalMonthFromEtRunDate
@@ -34,6 +35,8 @@ import { validateCurrentGraph, validateHistoryGraph } from '../scripts/validate-
 import { createRequire } from 'node:module';
 const require = createRequire(import.meta.url);
 const RLCONTRACTS = require('../rlcontracts.js');
+await import('../rldata.js');
+const RLDATA = globalThis.RLDATA;
 
 function sha(bytes) { return `sha256:${createHash('sha256').update(bytes).digest('hex')}`; }
 
@@ -119,6 +122,10 @@ test('distributed publisher builds a SCHEMA-VALID publish set and authors rich v
     assert.equal(runResult.ok, true, 'run built');
     assert.equal(runResult.richCount, 2, 'exactly 2 rich reads (src-alpha, src-bravo)');
     assert.equal(runResult.coverageCount, 1, 'exactly 1 coverage-only source (src-charlie)');
+    const bundleResult = buildToolBriefBundle({ snapshot: inputs.snapshot, frozen: frozen.value, snapshotSha: inputs.snapshotSha });
+    assert.equal(bundleResult.ok, true, 'pre-final tool bundle built');
+    assert.equal(validateToolBriefBundle(bundleResult.bundle, { frozen: frozen.value, snapshotSha: inputs.snapshotSha }).ok, true, 'pre-final tool bundle validates');
+    assert.deepEqual(bundleResult.bundle.orderedSourceToolIds, ['src-alpha', 'src-bravo', 'src-charlie']);
     const built = buildPublishSet(runResult.run);
     assert.equal(built.ok, true, 'buildPublishSet ok');
     assert.equal(validatePublishSet(built.staging, { priorStreams: {}, sealedMonths: [] }).ok, true, 'validatePublishSet ok');
@@ -137,20 +144,25 @@ test('distributed publisher builds a SCHEMA-VALID publish set and authors rich v
 
     const alphaBrief = readJson(fx.root, current.tools['src-alpha'].briefPath);
     assert.equal(alphaBrief.outcome, 'newly-authored');
-    assert.equal(alphaBrief.evidenceKind, 'deterministic-tier-a-read');
     assert.equal(alphaBrief.summary, 'Alpha leads rotation.', 'rich brief summary is the deterministic read text');
     const alphaRead = readJson(fx.root, current.tools['src-alpha'].readPath);
-    assert.equal(alphaRead.status, 'fresh-headless');
+    assert.equal(alphaRead.status, 'fresh');
     assert.deepEqual(alphaRead.metrics, { leader: 'AAA', signal: 12.3 }, 'rich read carries the real metrics');
+    assert.equal(alphaBrief.readRef.sha256, current.tools['src-alpha'].readSha256, 'brief read ref matches the exact published read object hash');
+    assert.equal(RLDATA.validateToolModelRead(alphaRead).ok, true, 'rich read validates as ToolModelRead/v1');
+    assert.equal(RLCONTRACTS.validateToolBrief(alphaBrief, alphaRead, alphaRead.profile).ok, true, 'rich brief validates as ToolBrief/v1');
 
     const charlieBrief = readJson(fx.root, current.tools['src-charlie'].briefPath);
     assert.equal(charlieBrief.outcome, 'coverage-only');
-    assert.equal(charlieBrief.evidenceKind, 'coverage-only');
-    assert.equal(charlieBrief.coverageStatus, 'browser-or-agent-read');
     const charlieRead = readJson(fx.root, current.tools['src-charlie'].readPath);
-    assert.equal(charlieRead.status, 'browser-or-agent-read');
+    assert.equal(charlieRead.status, 'not-applicable');
     assert.equal(charlieRead.metrics, null, 'coverage-only read fabricates NO metrics');
     assert.equal(charlieRead.summary, 'No deterministic Tier-A adapter; consume its latest browser toolRead when present.', 'coverage read carries the honest coverage reason');
+    assert.equal(RLDATA.validateToolModelRead(charlieRead).ok, true, 'coverage read validates as ToolModelRead/v1');
+    assert.equal(RLCONTRACTS.validateToolBrief(charlieBrief, charlieRead, charlieRead.profile).ok, true, 'coverage brief validates as ToolBrief/v1');
+    const finalBrief = readJson(fx.root, current.finalRef.path);
+    assert.equal(finalBrief.toolBriefBundleRef.sourceCount, 3, 'final brief records complete tool-bundle cardinality');
+    assert.equal(finalBrief.toolBriefBundleRef.fingerprint, bundleResult.bundle.bundleFingerprint, 'final brief binds the exact pre-final bundle');
 
     // (3) Pointer-last — current.json resolves a manifest + every object ref on disk.
     assert.equal(validateCurrentGraph(fx.root).ok, true, 'current graph coherent');

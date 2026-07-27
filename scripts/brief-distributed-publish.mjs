@@ -31,7 +31,7 @@
  */
 import { createHash } from 'node:crypto';
 import { createRequire } from 'node:module';
-import { existsSync, readFileSync, readdirSync, statSync } from 'node:fs';
+import { existsSync, mkdirSync, readFileSync, readdirSync, statSync, writeFileSync } from 'node:fs';
 import path from 'node:path';
 import { fileURLToPath } from 'node:url';
 
@@ -40,9 +40,11 @@ import {
   canonicalMonthFromEtRunDate
 } from './brief-publication.mjs';
 import { validateCurrentGraph, validateHistoryGraph } from './validate-distributed-briefs.mjs';
+import '../rldata.js';
 
 const require = createRequire(import.meta.url);
 const RLCONTRACTS = require('../rlcontracts.js');
+const RLDATA = globalThis.RLDATA;
 
 const FAIL_CODE = 'B002-DISTRIBUTED-PUBLISH';
 
@@ -76,28 +78,34 @@ function etCivilDate(iso) {
   return `${get('year')}-${get('month')}-${get('day')}`;
 }
 
-/** Load the committed publisher inputs and their exact content hashes (offline, read-only). */
-export function loadInputs(root) {
+/** Load the snapshot + registry needed to generate every source-tool brief. */
+export function loadToolInputs(root) {
   const snapshotPath = path.join(root, 'market-brief.snapshot.json');
-  const payloadPath = path.join(root, 'market-brief.payload.json');
   const toolsPath = path.join(root, 'tools.json');
   if (!existsSync(snapshotPath)) return fail('snapshot-missing', 'market-brief.snapshot.json');
-  if (!existsSync(payloadPath)) return fail('payload-missing', 'market-brief.payload.json');
   if (!existsSync(toolsPath)) return fail('registry-missing', 'tools.json');
   const snapshotBytes = readFileSync(snapshotPath);
-  const payloadBytes = readFileSync(payloadPath);
   const toolsBytes = readFileSync(toolsPath);
   let snapshot;
-  let payload;
   let toolsJson;
   try { snapshot = JSON.parse(snapshotBytes.toString('utf8')); } catch (e) { return fail('snapshot-parse', e.message); }
-  try { payload = JSON.parse(payloadBytes.toString('utf8')); } catch (e) { return fail('payload-parse', e.message); }
   try { toolsJson = JSON.parse(toolsBytes.toString('utf8')); } catch (e) { return fail('registry-parse', e.message); }
   return {
-    ok: true, snapshot, payload, toolsJson,
-    snapshotSha: `sha256:${sha256Hex(snapshotBytes)}`,
-    payloadSha: `sha256:${sha256Hex(payloadBytes)}`
+    ok: true, snapshot, toolsJson,
+    snapshotSha: `sha256:${sha256Hex(snapshotBytes)}`
   };
+}
+
+/** Load the complete publisher inputs and their exact content hashes (offline, read-only). */
+export function loadInputs(root) {
+  const toolInputs = loadToolInputs(root);
+  if (!toolInputs.ok) return toolInputs;
+  const payloadPath = path.join(root, 'market-brief.payload.json');
+  if (!existsSync(payloadPath)) return fail('payload-missing', 'market-brief.payload.json');
+  const payloadBytes = readFileSync(payloadPath);
+  let payload;
+  try { payload = JSON.parse(payloadBytes.toString('utf8')); } catch (e) { return fail('payload-parse', e.message); }
+  return { ...toolInputs, payload, payloadSha: `sha256:${sha256Hex(payloadBytes)}` };
 }
 
 /**
@@ -142,6 +150,218 @@ export function readPriorFromRoot(root, currentMonth) {
  * the ~17 coverage-only reads come from snapshot.toolCoverage; the final brief is derived from the
  * snapshot + the already-authored narrative payload (referenced, not re-authored).
  */
+function toolBriefBundleFingerprint(bundle) {
+  return stableSha({
+    contractVersion: bundle.contractVersion,
+    snapshotSha: bundle.snapshotSha,
+    registryFingerprint: bundle.registryFingerprint,
+    orderedSourceToolIds: bundle.orderedSourceToolIds,
+    tools: bundle.tools
+  });
+}
+
+/** Build one truthful brief outcome for every registry-discovered source before final authorship. */
+export function buildToolBriefBundle(context) {
+  const { snapshot, frozen, snapshotSha } = context;
+  const window = typeof snapshot.window === 'string' && snapshot.window ? snapshot.window : 'pre-market';
+  const asOf = typeof snapshot.asOf === 'string' && snapshot.asOf
+    ? snapshot.asOf
+    : (typeof snapshot.generatedAt === 'string' ? snapshot.generatedAt : null);
+  if (!asOf) return fail('snapshot-asof-missing', 'snapshot.asOf');
+
+  const toolReads = snapshot.toolReads && typeof snapshot.toolReads === 'object' ? snapshot.toolReads : {};
+  const coverageById = {};
+  for (const cov of Array.isArray(snapshot.toolCoverage) ? snapshot.toolCoverage : []) {
+    if (cov && typeof cov.id === 'string') coverageById[cov.id] = cov;
+  }
+
+  let richCount = 0;
+  let coverageCount = 0;
+  const tools = [];
+  for (const toolId of frozen.orderedSourceToolIds) {
+    const entry = frozen.entries && frozen.entries[toolId] ? frozen.entries[toolId] : {};
+    const profile = typeof entry.profile === 'string' ? entry.profile : 'unknown';
+    const hasRead = Object.prototype.hasOwnProperty.call(toolReads, toolId);
+    const coverage = coverageById[toolId] || {};
+    let outcome;
+    let summary;
+    let readStatus;
+    let applicabilityStatus;
+    let applicabilityReason;
+    let readAsOf = asOf;
+    let metrics = null;
+    let source = null;
+    let limitation;
+    if (hasRead) {
+      richCount += 1;
+      const tr = toolReads[toolId] || {};
+      summary = typeof tr.read === 'string' && tr.read.trim() ? tr.read.trim() : '';
+      if (!summary || (tr.metrics && typeof tr.metrics.error === 'string' && tr.metrics.error)) {
+        return fail('tool-owner-read-invalid', toolId);
+      }
+      outcome = 'newly-authored';
+      readStatus = 'fresh';
+      applicabilityStatus = 'applicable';
+      applicabilityReason = `${toolId} produced a current deterministic Tier-A owner read for this scheduled cutoff.`;
+      readAsOf = typeof tr.asOf === 'string' && Number.isFinite(Date.parse(tr.asOf)) ? tr.asOf : asOf;
+      metrics = tr.metrics === undefined ? null : tr.metrics;
+      source = tr.source || null;
+      limitation = 'Deterministic Tier-A owner read; the briefing layer adds no market recommendation.';
+    } else {
+      coverageCount += 1;
+      outcome = 'coverage-only';
+      readStatus = profile === 'live-market' ? 'not-run' : 'not-applicable';
+      applicabilityStatus = profile === 'live-market' ? 'not-integrated' : 'not-applicable';
+      summary = typeof coverage.reason === 'string' && coverage.reason
+        ? coverage.reason
+        : 'No deterministic Tier-A adapter exists for this source; the scheduled run records an explicit no-data state.';
+      applicabilityReason = summary;
+      limitation = 'Explicit coverage state only; no server-side owner read or recommendation is fabricated.';
+    }
+
+    const read = {
+      contractVersion: 'tool-model-read/v1',
+      toolId,
+      role: 'source',
+      profile,
+      status: readStatus,
+      adapter: {
+        adapterId: entry.readAdapter,
+        readContractVersion: entry.readContractVersion,
+        owningModelVersion: `${entry.readAdapter}/scheduled-v1`
+      },
+      evaluatedAt: asOf,
+      modelAsOf: readAsOf,
+      sourceAsOf: readAsOf,
+      evidenceCutoff: asOf,
+      summary,
+      metrics,
+      source,
+      marketSessionEvidenceRef: null,
+      evidenceRefs: [],
+      evidenceApplicability: { status: applicabilityStatus, reason: applicabilityReason },
+      evidenceInterpretations: [],
+      recommendationEligibility: {
+        eligible: false,
+        reasonCode: outcome === 'newly-authored' ? 'deterministic-context-only' : applicabilityStatus,
+        permittedActionFamilies: [],
+        permittedSubjectBoundary: toolId
+      },
+      facts: [],
+      evidenceBoundary: [limitation],
+      limitations: [limitation],
+      deepLink: coverage.deepLink || (toolReads[toolId] && toolReads[toolId].deepLink) || `${toolId}.html`
+    };
+    read.fingerprint = RLCONTRACTS.fingerprint('tool-model-read', read);
+    const readSha = stableSha(read);
+    const inputFingerprint = RLCONTRACTS.fingerprint('tool-brief-input', {
+      contractVersion: 'tool-brief-input/v1', readFingerprint: read.fingerprint, profile, snapshotSha, window
+    });
+    const brief = {
+      contractVersion: 'tool-brief/v1',
+      toolId,
+      profile,
+      runId: `bundle-${snapshotSha.slice(7, 19)}`,
+      readRef: {
+        path: `briefs/objects/reads/${toolId}/${readSha.slice(7)}.json`,
+        sha256: readSha,
+        fingerprint: read.fingerprint
+      },
+      inputFingerprint,
+      contentFingerprint: RLCONTRACTS.fingerprint('tool-brief-content', {
+        contractVersion: 'tool-brief-content/v1', toolId, inputFingerprint, outcome, summary
+      }),
+      outcome,
+      status: 'validated',
+      summary,
+      decisionRationale: outcome === 'newly-authored'
+        ? 'Current deterministic owner output is available as context; the briefing layer adds no recommendation.'
+        : 'This source has no current server-side owner output, so the run preserves an explicit coverage state.',
+      recommendations: [],
+      nextSteps: [],
+      marketSessionEvidenceRef: null,
+      evidenceRefs: [],
+      ownerInterpretationRefs: [],
+      windowUse: outcome === 'newly-authored' ? 'context' : 'not-applicable',
+      evidenceBoundary: [limitation],
+      limitations: [limitation],
+      authorship: {
+        provider: 'deterministic-scheduler', model: 'none', promptPolicy: 'tool-brief-bundle/v1',
+        authoredAt: asOf, attempts: 0
+      },
+      validation: { schema: 'tool-brief/v1', passed: ['shape', 'registry', 'profile', 'privacy'] }
+    };
+    const readValidation = RLDATA.validateToolModelRead(read);
+    if (!readValidation.ok) return fail('tool-read-contract-invalid', `${toolId}:${readValidation.reason}`);
+    const briefValidation = RLCONTRACTS.validateToolBrief(brief, read, profile);
+    if (!briefValidation.ok) return fail('tool-brief-contract-invalid', `${toolId}:${briefValidation.error.reason}`);
+    tools.push({ toolId, outcome, read: readValidation.value, brief: briefValidation.value });
+  }
+
+  const bundle = {
+    contractVersion: 'brief-tool-bundle/v1',
+    snapshotSha,
+    registryFingerprint: frozen.registryFingerprint,
+    window,
+    asOf,
+    orderedSourceToolIds: frozen.orderedSourceToolIds.slice(),
+    richCount,
+    coverageCount,
+    tools
+  };
+  bundle.bundleFingerprint = toolBriefBundleFingerprint(bundle);
+  return { ok: true, bundle, richCount, coverageCount };
+}
+
+/** Validate that a prepared bundle belongs to this exact snapshot and complete frozen registry. */
+export function validateToolBriefBundle(bundle, context) {
+  const frozen = context && context.frozen;
+  const snapshotSha = context && context.snapshotSha;
+  if (!bundle || bundle.contractVersion !== 'brief-tool-bundle/v1') return fail('tool-bundle-contract', 'brief-tool-bundle/v1');
+  if (!frozen || !Array.isArray(frozen.orderedSourceToolIds)) return fail('tool-bundle-registry', 'frozen registry required');
+  if (bundle.snapshotSha !== snapshotSha) return fail('tool-bundle-snapshot-mismatch', bundle.snapshotSha);
+  if (bundle.registryFingerprint !== frozen.registryFingerprint) return fail('tool-bundle-registry-mismatch', bundle.registryFingerprint);
+  if (bundle.bundleFingerprint !== toolBriefBundleFingerprint(bundle)) return fail('tool-bundle-fingerprint-mismatch', bundle.bundleFingerprint);
+  if (JSON.stringify(bundle.orderedSourceToolIds) !== JSON.stringify(frozen.orderedSourceToolIds)) return fail('tool-bundle-source-order', 'orderedSourceToolIds');
+  if (!Array.isArray(bundle.tools) || bundle.tools.length !== frozen.orderedSourceToolIds.length) return fail('tool-bundle-source-count', String(bundle.tools && bundle.tools.length));
+  const seen = new Set();
+  for (let index = 0; index < bundle.tools.length; index += 1) {
+    const tool = bundle.tools[index];
+    const expectedId = frozen.orderedSourceToolIds[index];
+    if (!tool || tool.toolId !== expectedId || seen.has(tool.toolId)) return fail('tool-bundle-source-identity', expectedId);
+    if (!tool.read || tool.read.toolId !== expectedId || !tool.brief || tool.brief.toolId !== expectedId) return fail('tool-bundle-outcome-incomplete', expectedId);
+    if (tool.outcome !== tool.brief.outcome) return fail('tool-bundle-outcome-mismatch', expectedId);
+    const readValidation = RLDATA.validateToolModelRead(tool.read);
+    if (!readValidation.ok) return fail('tool-read-contract-invalid', `${expectedId}:${readValidation.reason}`);
+    const briefValidation = RLCONTRACTS.validateToolBrief(tool.brief, tool.read, tool.read.profile);
+    if (!briefValidation.ok) return fail('tool-brief-contract-invalid', `${expectedId}:${briefValidation.error.reason}`);
+    seen.add(tool.toolId);
+  }
+  const richCount = bundle.tools.filter((tool) => tool.outcome === 'newly-authored').length;
+  const coverageCount = bundle.tools.length - richCount;
+  if (bundle.richCount !== richCount || bundle.coverageCount !== coverageCount) return fail('tool-bundle-count-mismatch', `${richCount}/${coverageCount}`);
+  return { ok: true, bundle, richCount, coverageCount };
+}
+
+/** Materialize the validated pre-final bundle outside the tracked publication tree. */
+export function prepareToolBriefBundle(options) {
+  const opts = options || {};
+  const root = opts.root ? path.resolve(opts.root) : process.cwd();
+  if (typeof opts.output !== 'string' || !opts.output) return fail('tool-bundle-output-required', 'output');
+  const inputs = loadToolInputs(root);
+  if (!inputs.ok) return inputs;
+  const registry = RLCONTRACTS.validateRegistry(inputs.toolsJson, null);
+  if (!registry.ok) return fail('registry-invalid', registry.error && registry.error.reason);
+  const built = buildToolBriefBundle({ snapshot: inputs.snapshot, frozen: registry.value, snapshotSha: inputs.snapshotSha });
+  if (!built.ok) return built;
+  const validated = validateToolBriefBundle(built.bundle, { frozen: registry.value, snapshotSha: inputs.snapshotSha });
+  if (!validated.ok) return validated;
+  const output = path.resolve(opts.output);
+  mkdirSync(path.dirname(output), { recursive: true });
+  writeFileSync(output, stableStringify(validated.bundle) + '\n');
+  return { ok: true, output, bundleFingerprint: validated.bundle.bundleFingerprint, sourceCount: validated.bundle.tools.length, richCount: validated.richCount, coverageCount: validated.coverageCount };
+}
+
 export function buildDistributedRun(context) {
   const { snapshot, payload, frozen, snapshotSha, payloadSha, prior } = context;
   const window = typeof snapshot.window === 'string' && snapshot.window ? snapshot.window : 'pre-market';
@@ -152,62 +372,19 @@ export function buildDistributedRun(context) {
   let etRunDate;
   try { etRunDate = etCivilDate(asOf); } catch (e) { return fail('snapshot-asof-invalid', e.message); }
 
+  const prepared = context.toolBriefBundle
+    ? validateToolBriefBundle(context.toolBriefBundle, { frozen, snapshotSha })
+    : buildToolBriefBundle({ snapshot, frozen, snapshotSha });
+  if (!prepared.ok) return prepared;
+  const { bundle, richCount, coverageCount } = prepared;
+  const tools = bundle.tools;
+
   const runFingerprint = stableSha({
     contractVersion: 'brief-distributed-run-identity/v1',
-    snapshotSha, payloadSha, registryFingerprint: frozen.registryFingerprint, window, etRunDate
+    snapshotSha, payloadSha, toolBriefBundleFingerprint: bundle.bundleFingerprint,
+    registryFingerprint: frozen.registryFingerprint, window, etRunDate
   });
   const runId = `dist-${etRunDate}-${window}-${runFingerprint.slice(7, 7 + 12)}`;
-
-  const toolReads = snapshot.toolReads && typeof snapshot.toolReads === 'object' ? snapshot.toolReads : {};
-  const coverageById = {};
-  for (const cov of Array.isArray(snapshot.toolCoverage) ? snapshot.toolCoverage : []) {
-    if (cov && typeof cov.id === 'string') coverageById[cov.id] = cov;
-  }
-
-  let richCount = 0;
-  let coverageCount = 0;
-  const tools = frozen.orderedSourceToolIds.map((toolId) => {
-    const entry = frozen.entries && frozen.entries[toolId] ? frozen.entries[toolId] : {};
-    const profile = typeof entry.profile === 'string' ? entry.profile : 'unknown';
-    const hasRead = Object.prototype.hasOwnProperty.call(toolReads, toolId);
-    if (hasRead) {
-      richCount += 1;
-      const tr = toolReads[toolId] || {};
-      const summary = typeof tr.read === 'string' ? tr.read : '';
-      const read = {
-        contractVersion: 'tool-model-read/v1', toolId, profile,
-        status: 'fresh-headless', evidenceKind: 'deterministic-tier-a-read',
-        readAsOf: typeof tr.asOf === 'string' ? tr.asOf : asOf,
-        summary, deepLink: tr.deepLink || null, source: tr.source || null,
-        metrics: tr.metrics === undefined ? null : tr.metrics
-      };
-      const brief = {
-        contractVersion: 'tool-brief/v1', toolId, profile,
-        outcome: 'newly-authored', status: 'validated', evidenceKind: 'deterministic-tier-a-read',
-        summary, readAsOf: typeof tr.asOf === 'string' ? tr.asOf : asOf, deepLink: tr.deepLink || null,
-        limitations: 'Deterministic Tier-A read reduced to a brief without an LLM author; no fabricated confirmation.'
-      };
-      return { toolId, outcome: 'newly-authored', read, brief };
-    }
-    coverageCount += 1;
-    const cov = coverageById[toolId] || {};
-    const coverageStatus = typeof cov.status === 'string' && cov.status ? cov.status : 'browser-or-agent-read';
-    const reason = typeof cov.reason === 'string' && cov.reason
-      ? cov.reason
-      : 'No deterministic Tier-A adapter for this source; consume its latest browser toolRead when present.';
-    const read = {
-      contractVersion: 'tool-model-read/v1', toolId, profile,
-      status: 'browser-or-agent-read', evidenceKind: 'coverage-only', coverageStatus,
-      summary: reason, deepLink: cov.deepLink || null, metrics: null
-    };
-    const brief = {
-      contractVersion: 'tool-brief/v1', toolId, profile,
-      outcome: 'coverage-only', status: 'validated', evidenceKind: 'coverage-only', coverageStatus,
-      summary: reason, deepLink: cov.deepLink || null,
-      limitations: 'Coverage-only: no server-side deterministic read exists for this source; no recommendation is fabricated.'
-    };
-    return { toolId, outcome: 'coverage-only', read, brief };
-  });
 
   const evidenceBody = {
     contractVersion: 'market-session-evidence/v1', cutoffAt: asOf, window,
@@ -241,6 +418,7 @@ export function buildDistributedRun(context) {
       toolId: payload.toolId || null, window: payload.window || null,
       asOf: payload.asOf || null, payloadSha
     },
+    toolBriefBundleRef: { fingerprint: bundle.bundleFingerprint, sourceCount: tools.length },
     sourceSummary: {
       participantCount: frozen.participantCount, sourceCount: frozen.sourceCount,
       richCount, coverageCount
@@ -264,7 +442,7 @@ export function buildDistributedRun(context) {
     recommendationEvents,
     prior: prior || null
   };
-  return { ok: true, run, richCount, coverageCount, etRunDate };
+  return { ok: true, run, richCount, coverageCount, etRunDate, toolBriefBundleFingerprint: bundle.bundleFingerprint };
 }
 
 /**
@@ -276,7 +454,7 @@ export function publishDistributedBriefs(options) {
   const opts = options || {};
   const root = opts.root ? path.resolve(opts.root) : process.cwd();
   const dryRun = Boolean(opts.dryRun);
-  const log = typeof opts.log === 'function' ? opts.log : () => {};
+  const log = typeof opts.log === 'function' ? opts.log : () => { };
 
   const inputs = loadInputs(root);
   if (!inputs.ok) return inputs;
@@ -294,10 +472,15 @@ export function publishDistributedBriefs(options) {
   try { currentMonth = canonicalMonthFromEtRunDate(etCivilDate(asOf)); } catch (e) { return fail('snapshot-asof-invalid', e.message); }
 
   const prior = readPriorFromRoot(root, currentMonth);
+  let toolBriefBundle = null;
+  if (opts.toolBundlePath) {
+    try { toolBriefBundle = JSON.parse(readFileSync(path.resolve(opts.toolBundlePath), 'utf8')); }
+    catch (error) { return fail('tool-bundle-read', error.message); }
+  }
 
   const runResult = buildDistributedRun({
     snapshot: inputs.snapshot, payload: inputs.payload, frozen,
-    snapshotSha: inputs.snapshotSha, payloadSha: inputs.payloadSha, prior
+    snapshotSha: inputs.snapshotSha, payloadSha: inputs.payloadSha, prior, toolBriefBundle
   });
   if (!runResult.ok) return runResult;
   const { run, richCount, coverageCount } = runResult;
@@ -360,22 +543,32 @@ export function publishDistributedBriefs(options) {
 function parseArgs(argv) {
   const args = argv.slice(2);
   const dryRun = args.includes('--dry-run');
+  const prepareTools = args.includes('--prepare-tools');
   let root = process.cwd();
   const eq = args.find((a) => a.startsWith('--root='));
   const idx = args.indexOf('--root');
   if (eq) root = eq.slice('--root='.length);
   else if (idx >= 0 && args[idx + 1]) root = args[idx + 1];
-  return { dryRun, root };
+  const valueFor = (name) => {
+    const direct = args.find((arg) => arg.startsWith(`${name}=`));
+    if (direct) return direct.slice(name.length + 1);
+    const at = args.indexOf(name);
+    return at >= 0 ? args[at + 1] : null;
+  };
+  return { dryRun, prepareTools, root, output: valueFor('--output'), toolBundlePath: valueFor('--tool-bundle') };
 }
 
 function mainCli() {
-  const { dryRun, root } = parseArgs(process.argv);
-  const result = publishDistributedBriefs({ root, dryRun, log: (m) => console.log(m) });
+  const { dryRun, prepareTools, root, output, toolBundlePath } = parseArgs(process.argv);
+  const result = prepareTools
+    ? prepareToolBriefBundle({ root, output })
+    : publishDistributedBriefs({ root, dryRun, toolBundlePath, log: (m) => console.log(m) });
   if (!result.ok) {
     const detail = result.error && result.error.detail ? ` (${result.error.detail})` : '';
     console.error(`[brief-distributed] FAILED: ${result.error ? result.error.reason : 'unknown'}${detail}`);
     process.exit(1);
   }
+  if (prepareTools) console.log(`[brief-distributed] tool brief barrier passed: sources=${result.sourceCount} rich=${result.richCount} explicit-state=${result.coverageCount} fingerprint=${result.bundleFingerprint}`);
   process.exit(0);
 }
 

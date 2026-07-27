@@ -1,17 +1,18 @@
 #!/usr/bin/env bash
 #
-# Actionable Market Brief — timer wrapper (refresh -> regenerate narrative -> commit -> push).
+# Actionable Market Brief — timer wrapper (data -> all tool briefs -> final -> commit -> push).
 #
 # This is the "timer wrapper" referenced by notes/market-brief.md §2. It runs on THIS
 # MacBook 4x/day via launchd (scripts/com.researchlab.brief-refresh.plist). Each run:
 #   1. refreshes shared same-origin bars/options, then runs scripts/brief-refresh.mjs
 #      (Tier-A deterministic data — writes market-brief.snapshot.json + appends
 #      brief-history.jsonl; closed-market runs target the next session),
-#   2. regenerates and contract-validates the Tier-B NARRATIVE (market-brief.payload.json) with the GitHub Copilot
+#   2. builds and validates one registry-derived brief outcome for EVERY source tool,
+#   3. regenerates and contract-validates the Tier-B FINAL narrative (market-brief.payload.json) with the GitHub Copilot
 #      CLI (Opus 4.8 by default), locked to file edits only (shell + network denied),
 #      RETRYING (default 2 attempts) until the payload validates so each run fully generates,
-#   3. commits the changed brief files (data + narrative) — scoped, never `git add -A`,
-#   4. ALWAYS git-pushes any local brief commit (including a prior run's unpushed commit) so
+#   4. publishes the exact tool bundle + final graph and commits scoped files (never `git add -A`),
+#   5. ALWAYS git-pushes any local brief commit (including a prior run's unpushed commit) so
 #      GitHub Pages redeploys.
 #
 # Auth: the push uses the repo's HTTPS remote + the macOS osxkeychain credential helper;
@@ -27,19 +28,23 @@
 #   BRIEF_LANE_CONCURRENCY   maximum simultaneous Copilot lanes (scheduler default: 2)
 #   BRIEF_LANE_EXIT_GRACE    seconds to await process exit after a complete fragment (scheduler default: 60)
 #   BRIEF_LANE_TERMINATE_GRACE seconds between TERM and KILL for a lingering lane (scheduler default: 5)
+#   BRIEF_REQUIRE_COMPLETE_RUN fail closed on incomplete data/tool/final publication (scheduler forces 1)
 #
 # Usage:  bash scripts/brief-refresh-and-push.sh [--dry-run]
 #   --dry-run : refresh + stage + print what WOULD be committed, then revert; NO narrative
 #               AI call, no commit, no push.
 #
-# It never wedges the timer: refresh/narrative failures are soft — the run still commits
-# whatever valid changes it has (data-only fallback) and ALWAYS pushes any local brief commit
-# (this run's or a prior run's unpushed one), or exits 0 cleanly when there is genuinely nothing to do.
+# Scheduled runs set BRIEF_REQUIRE_COMPLETE_RUN=1 and refuse on any incomplete data, tool-bundle,
+# final-author, graph-validation, commit, or push boundary. Direct ad-hoc runs retain the historical
+# data-only fallback unless the caller explicitly enables complete-run mode.
 
 set -uo pipefail
 
+export BRIEF_PIPELINE_CONTRACT="pull-data-tools-final-v1"
+
 DRY_RUN=0
 [ "${1:-}" = "--dry-run" ] && DRY_RUN=1
+REQUIRE_COMPLETE_RUN="${BRIEF_REQUIRE_COMPLETE_RUN:-0}"
 
 SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 REPO_ROOT="${BRIEF_REPO_ROOT:-$(cd "$SCRIPT_DIR/.." && pwd)}"
@@ -163,12 +168,47 @@ echo "[brief-timer] $(TZ=America/New_York date '+%Y-%m-%d %H:%M:%S %Z') — wind
 #    option chains and attach those same bar rows. Tier A and browser tools reuse
 #    the resulting same-origin snapshots without another ticker-history request.
 if [ "$DRY_RUN" != "1" ]; then
-  BRIEF_WINDOW="$WINDOW" "$NODE_BIN" scripts/fetch-bars.mjs    || echo "[brief-timer] fetch-bars soft-failed — continuing"
-  BRIEF_WINDOW="$WINDOW" "$NODE_BIN" scripts/fetch-options.mjs || echo "[brief-timer] fetch-options soft-failed — continuing"
+  BRIEF_WINDOW="$WINDOW" "$NODE_BIN" scripts/fetch-bars.mjs || {
+    echo "[brief-timer] fetch-bars failed"
+    [ "$REQUIRE_COMPLETE_RUN" = "1" ] && { restore_owned_baseline || true; exit 1; }
+  }
+  BRIEF_WINDOW="$WINDOW" "$NODE_BIN" scripts/fetch-options.mjs || {
+    echo "[brief-timer] fetch-options failed"
+    [ "$REQUIRE_COMPLETE_RUN" = "1" ] && { restore_owned_baseline || true; exit 1; }
+  }
+  if [ "$REQUIRE_COMPLETE_RUN" = "1" ] && ! BRIEF_WINDOW="$WINDOW" "$NODE_BIN" scripts/validate-brief-cache.mjs --require-current-run; then
+    echo "[brief-timer] current-window data refresh is incomplete — refusing before tool briefs"
+    restore_owned_baseline || echo "[brief-timer] ERROR: owned baseline restoration failed"
+    exit 1
+  fi
 fi
 
-# 1b) Tier-A deterministic refresh (soft-fails to exit 0 internally on a network error)
-"$NODE_BIN" scripts/brief-refresh.mjs || echo "[brief-timer] refresh returned non-zero (soft) — continuing"
+# 1b) Tier-A deterministic refresh. Scheduled runs fail closed; ad-hoc legacy runs retain the
+# historical soft behavior unless BRIEF_REQUIRE_COMPLETE_RUN=1 is explicitly set.
+if [ "$REQUIRE_COMPLETE_RUN" = "1" ]; then
+  BRIEF_WINDOW="$WINDOW" "$NODE_BIN" scripts/brief-refresh.mjs --window "$WINDOW" --strict || {
+    echo "[brief-timer] Tier-A refresh failed — refusing before tool briefs"
+    restore_owned_baseline || true
+    exit 1
+  }
+else
+  BRIEF_WINDOW="$WINDOW" "$NODE_BIN" scripts/brief-refresh.mjs --window "$WINDOW" || echo "[brief-timer] refresh returned non-zero (soft) — continuing"
+fi
+
+# 1c) Freeze and validate one truthful brief outcome for every registry source BEFORE final authorship.
+# Scheduled runs require this complete barrier; the exact bytes are passed to every final-author lane and
+# later to the distributed publisher, which rejects any snapshot/registry/fingerprint drift.
+TOOL_BRIEF_BUNDLE="$BASELINE_DIR/tool-brief-bundle.json"
+TOOL_BRIEF_BUNDLE_READY=0
+if [ "$REQUIRE_COMPLETE_RUN" = "1" ]; then
+  if "$NODE_BIN" scripts/brief-distributed-publish.mjs --prepare-tools --root . --output "$TOOL_BRIEF_BUNDLE"; then
+    TOOL_BRIEF_BUNDLE_READY=1
+  else
+    echo "[brief-timer] all-tool brief barrier failed — refusing before final brief"
+    restore_owned_baseline || true
+    exit 1
+  fi
+fi
 
 # 2) Tier-B narrative regeneration with four write-disjoint Copilot lanes in parallel,
 #    followed by one deterministic collector and the unchanged payload validator.
@@ -176,8 +216,18 @@ NARRATIVE_OK=0
 if [ "$DRY_RUN" = "1" ]; then
   echo "[brief-timer] DRY-RUN — skipping the Copilot narrative AI call"
 elif [ "${BRIEF_SKIP_NARRATIVE:-0}" = "1" ]; then
+  if [ "$REQUIRE_COMPLETE_RUN" = "1" ]; then
+    echo "[brief-timer] final brief is required for scheduled runs; BRIEF_SKIP_NARRATIVE is not permitted"
+    restore_owned_baseline || true
+    exit 1
+  fi
   echo "[brief-timer] BRIEF_SKIP_NARRATIVE=1 — data-only run, narrative not regenerated"
 elif [ -z "$COPILOT_BIN" ]; then
+  if [ "$REQUIRE_COMPLETE_RUN" = "1" ]; then
+    echo "[brief-timer] copilot CLI not found — refusing because the final brief is required"
+    restore_owned_baseline || true
+    exit 1
+  fi
   echo "[brief-timer] copilot CLI not found — data-only run (install: npm i -g @github/copilot)"
 else
   # The parallel launcher owns its curated finance/econ web allowlist and keeps shell denied.
@@ -202,6 +252,7 @@ else
           BRIEF_NARRATIVE_ATTEMPT="$attempt" \
           BRIEF_WINDOW="$WINDOW" \
           BRIEF_TODAY="$TODAY" \
+          BRIEF_TOOL_BUNDLE="$TOOL_BRIEF_BUNDLE" \
           "$NODE_BIN" scripts/brief-narrative-parallel.mjs \
        && "$NODE_BIN" scripts/validate-brief-payload.mjs "$PAYLOAD"; then
       NARRATIVE_OK=1
@@ -217,6 +268,12 @@ else
     attempt=$((attempt + 1))
   done
   [ "$NARRATIVE_OK" = "1" ] || echo "[brief-timer] narrative did not converge after $NARRATIVE_ATTEMPTS attempts — evaluating retained payload against candidate Tier A"
+fi
+
+if [ "$DRY_RUN" != "1" ] && [ "$REQUIRE_COMPLETE_RUN" = "1" ] && [ "$NARRATIVE_OK" != "1" ]; then
+  echo "[brief-timer] final brief generation failed — refusing the complete scheduled run"
+  restore_owned_baseline || true
+  exit 1
 fi
 
 # 3) Select one coherent publication transaction. A retained payload may use a
@@ -285,16 +342,28 @@ if [ "$DRY_RUN" = "1" ]; then
   else
     echo "[brief-timer] DRY-RUN — distributed publisher dry-run soft-failed (main brief unaffected)"
   fi
+elif [ "$NARRATIVE_OK" != "1" ]; then
+  echo "[brief-timer] distributed graph retained — this run did not generate a new final brief"
 else
-  if "$NODE_BIN" scripts/brief-distributed-publish.mjs --root . \
+  tool_bundle_args=()
+  if [ "$TOOL_BRIEF_BUNDLE_READY" = "1" ]; then
+    tool_bundle_args=(--tool-bundle "$TOOL_BRIEF_BUNDLE")
+  fi
+  if "$NODE_BIN" scripts/brief-distributed-publish.mjs --root . "${tool_bundle_args[@]}" \
     && "$NODE_BIN" scripts/validate-distributed-briefs.mjs --root . --graph-only; then
     DISTRIBUTED_OK=1
     echo "[brief-timer] distributed briefs/ graph generated + graph-validated — will ride the same commit"
   else
-    echo "[brief-timer] distributed publisher soft-failed — discarding briefs/ changes; main brief proceeds unchanged"
+    echo "[brief-timer] distributed publisher failed — discarding briefs/ changes"
     "$GIT_BIN" restore --staged -- briefs 2>/dev/null || true
     "$GIT_BIN" checkout -- briefs 2>/dev/null || true
     "$GIT_BIN" clean -fdq -- briefs 2>/dev/null || true
+    if [ "$REQUIRE_COMPLETE_RUN" = "1" ]; then
+      echo "[brief-timer] exact all-tool/final publication is required — refusing the scheduled run"
+      restore_owned_baseline || true
+      exit 1
+    fi
+    echo "[brief-timer] main brief proceeds unchanged by the optional distributed graph"
   fi
 fi
 if [ "$DISTRIBUTED_OK" = "1" ]; then
@@ -362,4 +431,7 @@ if ! "$GIT_BIN" commit -q -m "$MSG" -- "${SELECTED_FILES[@]}"; then
   exit 1
 fi
 echo "[brief-timer] committed: $MSG"
-push_head || exit 0
+if ! push_head; then
+  [ "$REQUIRE_COMPLETE_RUN" = "1" ] && exit 1
+  exit 0
+fi

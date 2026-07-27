@@ -72,12 +72,16 @@ after-hours = reactions/follow-through).
 - **Tier A (data) + Tier B (narrative) — on THIS MacBook (macOS `launchd`, 4×/day) → commit → push.** The
   launchd job (`scripts/com.researchlab.brief-refresh.plist`) runs
   `scripts/brief-refresh-scheduled.sh`. That launcher locks against overlap, clones `origin/main` into a
-  disposable clean checkout, and invokes `scripts/brief-refresh-and-push.sh` there. Developer worktree changes
+  disposable clean checkout, explicitly fast-forward pulls the configured GitHub branch, and invokes
+  the pulled `scripts/brief-refresh-and-push.sh` there. Developer worktree changes
   can therefore neither block the timer nor be overwritten. If the published snapshot/payload baseline is already
   incoherent, the scheduler enables repair automatically, but publication still requires a newly generated matching
   pair to pass the unchanged final validator. Direct worker invocations remain fail-closed by default. On each run
   the isolated publisher:
-    1. refreshes the same-origin option-chain and daily-bar snapshots used by the owning tools, then runs
+    1. refreshes the same-origin daily-bar and option-chain snapshots used by the owning tools. Both
+      fetchers write a current ET date/window receipt (`expected`, `freshCount`, `carriedCount`, `missing`),
+      and `validate-brief-cache.mjs --require-current-run` refuses before any brief work unless every expected
+      snapshot is fresh for this run. It then runs
       `scripts/brief-refresh.mjs` (fetches VIX + Fear&Greed and reuses bar snapshots fetched within six hours;
       recomputes regime, momentum, sector RRG, exact ETF, global-rotation and real-assets model reads), appends one
       `brief-history.jsonl` snapshot, and writes `market-brief.snapshot.json` (the "Computed (Tier-A)" slice,
@@ -85,31 +89,40 @@ after-hours = reactions/follow-through).
       history pull for the union of every tool; option snapshots attach those canonical rows and never refetch
       Yahoo history. The committed `data/bars/` and `data/options/` files carry an ET date+window cache key, so a
       retry or another machine cloning `origin/main` reuses the same-window snapshots with zero upstream calls;
-    2. **regenerates Tier B through four write-disjoint GitHub Copilot CLI lanes in parallel**: core posture
+    2. freezes `tools.json` and builds one validated brief outcome for every source tool. A tool with a
+      current headless owner read gets that current read; static/local/off-theme or not-yet-headless tools
+      get an explicit coverage/not-applicable/unavailable outcome, never fabricated market data. The exact
+      bundle fingerprint is immutable for the rest of the run;
+    3. **regenerates the final Tier B brief through four write-disjoint GitHub Copilot CLI lanes in parallel**: core posture
       (`nextSession`, regime, backdrop, psychology), actionable signals/events, groups/watchlist, and
       registry-wide tool coverage. Each lane may write only its private `.brief-work/<lane>.json` fragment;
       shell is denied, and web fetch is restricted to the curated finance/economics allowlist for the two research
       lanes. The runner precomputes one compact `.brief-work/<lane>.input.json` packet, so models do not repeatedly
       scan the 500 KB history, 89 KB prior payload, registry, config, and runbook. `scripts/brief-narrative-parallel.mjs`
-      rejects missing/extra keys or protected-file edits, then acts as
+      gives every lane the complete frozen tool bundle, rejects missing/extra keys or protected-file edits,
+      then acts as
       the sole writer that deterministically collects the four fragments into `market-brief.payload.json`;
-    3. validates caches independently with `scripts/validate-brief-cache.mjs`, then validates any selected
+    4. validates the final pair and publishes `briefs/` from the exact pre-final tool bundle. The graph
+      publisher rejects snapshot, registry, source-order, source-count, or bundle-fingerprint drift, so
+      every run contains every source brief and one final brief with a single identity;
+    5. validates caches independently with `scripts/validate-brief-cache.mjs`, then validates any selected
       narrative pair with `scripts/validate-brief-payload.mjs`: every `tools.json` entry must have a
       specific coverage reason, global/real-assets owning reads are mandatory, `GLD`/`SLV`/`BTC` plus a broad/oil
       commodity must remain model-specific, and next-session actions must be complete and immediately executable;
-    4. **commits the changed brief files (scoped — never `git add -A`) and `git push`es** (HTTPS remote + macOS
+    6. **commits the changed brief files (scoped — never `git add -A`) and `git push`es** (HTTPS remote + macOS
      osxkeychain helper; the Copilot CLI reuses its own login — both headless-safe) so **GitHub Pages
      redeploys**.
   On weekends/holidays it reuses the latest completed bar, marks the market closed, and targets the next session;
-  repeated closed-market runs never count as persistence. A lane failure/timeout retains the prior coherent pair
-  but still commits and pushes independently validated `data/bars/` + `data/options/` cache changes; an invalid baseline remains unmodified unless all lanes
-  collect into a final-valid matching pair. The unattended scheduler runs at most two lane processes concurrently,
+  repeated closed-market runs never count as persistence. Any missing/carried current-window data, incomplete
+  tool bundle, failed final lane, invalid pair/graph, or push failure refuses the scheduled run and leaves the
+  prior current publication authoritative; an invalid baseline remains unmodified unless all lanes collect into
+  a final-valid matching pair. The unattended scheduler runs at most two lane processes concurrently,
   retries only the failed lane once, and accepts a structurally complete lane fragment after a 60-second process-exit
   grace when the native Copilot binary hangs or aborts during shutdown. Exact owned-key parsing and the unchanged
   final payload validator still gate collection and publication. The outer default remains one narrative transaction
   attempt with 30 minutes per lane.
   Knobs: `BRIEF_MODEL` (default
-  `claude-opus-4.8`), `BRIEF_SKIP_NARRATIVE=1` (data-only), `BRIEF_NARRATIVE_ATTEMPTS`, and
+  `claude-opus-4.8`), `BRIEF_NARRATIVE_ATTEMPTS`, and
   `BRIEF_NARRATIVE_TIMEOUT`; lane controls are `BRIEF_LANE_ATTEMPTS`, `BRIEF_LANE_CONCURRENCY`,
   `BRIEF_LANE_EXIT_GRACE`, and `BRIEF_LANE_TERMINATE_GRACE`. Install once: the Copilot CLI
   (`npm i -g @github/copilot`, then `copilot` → `/login`), then

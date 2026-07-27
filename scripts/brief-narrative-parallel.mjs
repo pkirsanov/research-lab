@@ -21,6 +21,8 @@ const HISTORY_PATH = resolve(ROOT, 'brief-history.jsonl');
 const TOOLS_PATH = resolve(ROOT, 'tools.json');
 const WATCHLIST_PATH = resolve(ROOT, 'watchlist.json');
 const WORK_DIR = resolve(ROOT, '.brief-work');
+const TOOL_BUNDLE_PATH = process.env.BRIEF_TOOL_BUNDLE ? resolve(process.env.BRIEF_TOOL_BUNDLE) : null;
+const REQUIRE_TOOL_BUNDLE = process.env.BRIEF_REQUIRE_COMPLETE_RUN === '1';
 
 const copilotBin = process.env.BRIEF_COPILOT_BIN || 'copilot';
 const model = process.env.BRIEF_MODEL || 'claude-opus-4.8';
@@ -166,6 +168,7 @@ function laneInput(lane) {
     if (lane.id === 'core' || lane.id === 'signals') {
         return {
             meta,
+            toolBriefBundle,
             snapshot: {
                 ...baseSnapshot(),
                 names: compactMap(snapshot.names, ['px', 'mom5', 'mom21', 'mom63', 'mom126', 'mom252', 'maStack', 'ma50Dist', 'ma200Dist', 'pctFrom52wHigh']),
@@ -181,6 +184,7 @@ function laneInput(lane) {
     if (lane.id === 'groups') {
         return {
             meta,
+            toolBriefBundle,
             snapshot: {
                 ...baseSnapshot(),
                 names: compactMap(snapshot.names, ['px', 'mom5', 'mom21', 'mom63', 'maStack', 'ma50Dist', 'ma200Dist', 'pctFrom52wHigh']),
@@ -194,6 +198,7 @@ function laneInput(lane) {
     }
     return {
         meta,
+        toolBriefBundle,
         snapshot: { ...baseSnapshot(), toolReads: snapshot.toolReads, toolCoverage: snapshot.toolCoverage },
         tools: (tools.tools || []).map((tool) => ({ id: tool.id, title: tool.title, file: tool.file, status: tool.status })),
         config: { deepLinks: config.deepLinks },
@@ -209,7 +214,10 @@ function runLane(lane, laneAttempt) {
     writeFileSync(outputPath, '{}\n');
     writeFileSync(inputPath, JSON.stringify(laneInput(lane), null, 2) + '\n');
 
-    const prompt = `You are one parallel lane of the Actionable Market Brief for window=${windowId}, today ET=${todayEt}. All allowed repository evidence, current schema examples, and relevant recent history for this lane have already been compacted into .brief-work/${lane.id}.input.json. Read that one input file and no other repository file. The deterministic data and owning-tool reads are already refreshed. Structure first, tactical noise last. Count persistence by distinct market-bar dates, not repeated intraday runs. Label estimates, proxies, carried data, and unavailable inputs honestly. Do not edit market-brief.payload.json, market-brief.config.json, or any other repository file. Overwrite only .brief-work/${lane.id}.json with one strict JSON object, no markdown, containing exactly these top-level keys: ${lane.keys.join(', ')}. ${lane.instructions}`;
+    const bundleInstruction = toolBriefBundle
+        ? 'Consume every toolBriefBundle.tools outcome; preserve explicit unavailable, not-applicable, and coverage-only states rather than inventing evidence.'
+        : 'This legacy ad-hoc run has no pre-final tool bundle; use only the refreshed deterministic data and owning-tool reads supplied.';
+    const prompt = `You are one parallel lane of the Actionable Market Brief for window=${windowId}, today ET=${todayEt}. All allowed repository evidence, current schema examples, and relevant recent history for this lane have already been compacted into .brief-work/${lane.id}.input.json. Read that one input file and no other repository file. The deterministic data and owning-tool reads are already refreshed. ${bundleInstruction} Structure first, tactical noise last. Count persistence by distinct market-bar dates, not repeated intraday runs. Label estimates, proxies, carried data, and unavailable inputs honestly. Do not edit market-brief.payload.json, market-brief.config.json, the tool bundle, or any other repository file. Overwrite only .brief-work/${lane.id}.json with one strict JSON object, no markdown, containing exactly these top-level keys: ${lane.keys.join(', ')}. ${lane.instructions}`;
 
     const args = ['-p', prompt, '--allow-all-tools', '--deny-tool=shell'];
     if (lane.web && process.env.BRIEF_NO_WEB !== '1') {
@@ -362,6 +370,19 @@ const config = JSON.parse(configBaseline.toString('utf8'));
 const tools = readJson(TOOLS_PATH);
 const watchlist = readJson(WATCHLIST_PATH);
 const history = recentHistory();
+if (REQUIRE_TOOL_BUNDLE && (!TOOL_BUNDLE_PATH || !existsSync(TOOL_BUNDLE_PATH))) {
+    throw new Error('BRIEF_TOOL_BUNDLE must name the validated pre-final tool brief bundle');
+}
+const toolBundleBaseline = TOOL_BUNDLE_PATH && existsSync(TOOL_BUNDLE_PATH) ? readFileSync(TOOL_BUNDLE_PATH) : null;
+const toolBriefBundle = toolBundleBaseline ? JSON.parse(toolBundleBaseline.toString('utf8')) : null;
+const expectedToolIds = (tools.tools || []).filter((tool) => tool && tool.briefing && tool.briefing.role === 'source').map((tool) => tool.id);
+if (toolBriefBundle && (toolBriefBundle.contractVersion !== 'brief-tool-bundle/v1'
+    || JSON.stringify(toolBriefBundle.orderedSourceToolIds) !== JSON.stringify(expectedToolIds)
+    || !Array.isArray(toolBriefBundle.tools)
+    || toolBriefBundle.tools.length !== expectedToolIds.length
+    || toolBriefBundle.tools.some((tool, index) => !tool || tool.toolId !== expectedToolIds[index] || !tool.read || !tool.brief))) {
+    throw new Error('pre-final tool brief bundle is incomplete or does not match tools.json');
+}
 
 rmSync(WORK_DIR, { recursive: true, force: true });
 mkdirSync(WORK_DIR, { recursive: true });
@@ -370,10 +391,11 @@ let succeeded = false;
 try {
     console.log(`[brief-parallel] starting ${lanes.length} write-disjoint lanes with maxConcurrency=${laneConcurrency} laneAttempts=${laneAttempts} exitGrace=${exitGraceSeconds}s`);
     const results = await runLanePool(lanes, laneConcurrency);
-    if (!sameBytes(PAYLOAD_PATH, payloadBaseline) || !sameBytes(CONFIG_PATH, configBaseline)) {
+    if (!sameBytes(PAYLOAD_PATH, payloadBaseline) || !sameBytes(CONFIG_PATH, configBaseline)
+        || (toolBundleBaseline && !sameBytes(TOOL_BUNDLE_PATH, toolBundleBaseline))) {
         writeFileSync(PAYLOAD_PATH, payloadBaseline);
         writeFileSync(CONFIG_PATH, configBaseline);
-        throw new Error('a lane edited a protected publication file');
+        throw new Error('a lane edited a protected publication file or the frozen tool bundle');
     }
 
     for (const result of results) Object.assign(payload, loadFragment(result));

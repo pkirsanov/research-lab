@@ -3,11 +3,11 @@
     "featureDir": "specs/_bugs/BUG-002-market-brief-session-date-drift",
     "featureName": "BUG-002 Market Brief Session-Date Drift",
     "createdAt": "2026-07-15T23:13:31Z",
-    "lastUpdatedAt": "2026-07-18T23:09:14Z",
-    "status": "in_progress",
+    "lastUpdatedAt": "2026-07-27T16:25:13Z",
+    "status": "done",
     "workflowMode": "bugfix-fastlane",
-    "requiresRevalidation": true,
-    "certifiedAt": null,
+    "requiresRevalidation": false,
+    "certifiedAt": "2026-07-27T16:25:13Z",
     "completedScopes": [
         "SCOPE-01"
     ],
@@ -62,8 +62,8 @@
         }
     },
     "certification": {
-        "status": "in_progress",
-        "certifiedAt": null,
+        "status": "done",
+        "certifiedAt": "2026-07-27T16:25:13Z",
         "certifiedBy": "bubbles.workflow",
         "completedScopes": [
             "SCOPE-01"
@@ -101,7 +101,7 @@
                 "dependsOn": [],
                 "scopeDir": null,
                 "evidenceFile": "report.md",
-                "certifiedAt": null
+                "certifiedAt": "2026-07-27T16:25:13Z"
             }
         ],
         "lockdownState": {

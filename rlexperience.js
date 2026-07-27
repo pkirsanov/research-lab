@@ -319,7 +319,7 @@
 
   function safeModule(modulePath, config, path, code, phase, toolId) {
     if (typeof modulePath !== "string" || !SAFE_MODULE_PATTERN.test(modulePath) ||
-        !config.adapterPolicy.moduleAllowlist.includes(modulePath)) {
+      !config.adapterPolicy.moduleAllowlist.includes(modulePath)) {
       reject(code, phase, "experience-adapter-policy/v1", path, "adapter module is not allowlisted and same-origin safe", toolId);
     }
   }
@@ -327,8 +327,8 @@
   function validateViewSet(viewSet, expected, path) {
     exactKeys(viewSet, VIEW_SET_KEYS, path, "E012-REGISTRY", "config", "tool-experience-config/v1");
     if (viewSet.viewSetId !== expected.viewSetId || viewSet.kind !== expected.kind ||
-        viewSet.registryToolId !== expected.registryToolId || viewSet.defaultViewId !== expected.defaultViewId ||
-        !equalArray(viewSet.labels, expected.labels)) {
+      viewSet.registryToolId !== expected.registryToolId || viewSet.defaultViewId !== expected.defaultViewId ||
+      !equalArray(viewSet.labels, expected.labels)) {
       reject("E012-VIEWSET", "config", "tool-experience-config/v1", path, "view-set identity or labels do not match the closed contract");
     }
     if (!equalArray(viewSet.viewIds, expected.viewIds)) {
@@ -378,9 +378,9 @@
     exactKeys(config.routingPolicy.history, ["userSelection", "bootNormalization", "invalidTarget"], "$.routingPolicy.history", "E012-REGISTRY", "config", config.routingPolicy.contractVersion);
     exactKeys(config.routingPolicy.focus, ["nestedPublicTarget", "returnTarget"], "$.routingPolicy.focus", "E012-REGISTRY", "config", config.routingPolicy.contractVersion);
     if (config.routingPolicy.publicHashPrefix !== "#" || config.routingPolicy.nestedTargetSeparator !== "/" ||
-        config.routingPolicy.history.userSelection !== "push" || config.routingPolicy.history.bootNormalization !== "replace" ||
-        config.routingPolicy.history.invalidTarget !== "replace" || config.routingPolicy.focus.nestedPublicTarget !== "after-render" ||
-        config.routingPolicy.focus.returnTarget !== "exact-trigger" || config.routingPolicy.invalidTargetPolicy !== "remove-target-preserve-mode") {
+      config.routingPolicy.history.userSelection !== "push" || config.routingPolicy.history.bootNormalization !== "replace" ||
+      config.routingPolicy.history.invalidTarget !== "replace" || config.routingPolicy.focus.nestedPublicTarget !== "after-render" ||
+      config.routingPolicy.focus.returnTarget !== "exact-trigger" || config.routingPolicy.invalidTargetPolicy !== "remove-target-preserve-mode") {
       reject("E012-REGISTRY", "config", config.routingPolicy.contractVersion, "$.routingPolicy", "routing policy does not match the closed contract");
     }
     requireString(config.routingPolicy.localModeKey, "$.routingPolicy.localModeKey", "E012-REGISTRY", "config", config.routingPolicy.contractVersion);
@@ -409,9 +409,9 @@
     exactKeys(config.journeyStoragePolicy, ["contractVersion", "namespace", "pointerKey", "slotKeys", "maxSessionBytes", "maxRetainedSessions", "completedOrAbandonedExpiryDays", "forbiddenFieldNames"], "$.journeyStoragePolicy", "E012-REGISTRY", "config", config.contractVersion);
     requireVersion(config.journeyStoragePolicy.contractVersion, "journey-storage-policy/v1", "$.journeyStoragePolicy.contractVersion", "config");
     if (config.journeyStoragePolicy.namespace !== "rlJourneySessionsV1" || config.journeyStoragePolicy.pointerKey !== "rlJourneySessionsV1.pointer" ||
-        !equalArray(config.journeyStoragePolicy.slotKeys, ["rlJourneySessionsV1.slotA", "rlJourneySessionsV1.slotB"]) ||
-        config.journeyStoragePolicy.maxSessionBytes !== 131072 || config.journeyStoragePolicy.maxRetainedSessions !== 20 ||
-        config.journeyStoragePolicy.completedOrAbandonedExpiryDays !== 90) {
+      !equalArray(config.journeyStoragePolicy.slotKeys, ["rlJourneySessionsV1.slotA", "rlJourneySessionsV1.slotB"]) ||
+      config.journeyStoragePolicy.maxSessionBytes !== 131072 || config.journeyStoragePolicy.maxRetainedSessions !== 20 ||
+      config.journeyStoragePolicy.completedOrAbandonedExpiryDays !== 90) {
       reject("E012-REGISTRY", "config", config.journeyStoragePolicy.contractVersion, "$.journeyStoragePolicy", "Journey storage budgets and keys must be exact");
     }
     requireStringArray(config.journeyStoragePolicy.forbiddenFieldNames, "$.journeyStoragePolicy.forbiddenFieldNames", "E012-REGISTRY", "config", config.journeyStoragePolicy.contractVersion, 1);
@@ -419,7 +419,7 @@
     exactKeys(config.redAlertPolicy, ["contractVersion", "hardGate", "minimumIndependentOrigins", "minimumObservableMarketEvidence", "minimumVisibleCount", "noTopicSeedList"], "$.redAlertPolicy", "E012-REGISTRY", "config", config.contractVersion);
     requireVersion(config.redAlertPolicy.contractVersion, "red-alert-policy/v1", "$.redAlertPolicy.contractVersion", "config");
     if (config.redAlertPolicy.hardGate !== "current-corroborated-observable-falsifiable" || config.redAlertPolicy.minimumIndependentOrigins !== 2 ||
-        config.redAlertPolicy.minimumObservableMarketEvidence !== 1 || config.redAlertPolicy.minimumVisibleCount !== 0 || config.redAlertPolicy.noTopicSeedList !== true) {
+      config.redAlertPolicy.minimumObservableMarketEvidence !== 1 || config.redAlertPolicy.minimumVisibleCount !== 0 || config.redAlertPolicy.noTopicSeedList !== true) {
       reject("E012-REGISTRY", "config", config.redAlertPolicy.contractVersion, "$.redAlertPolicy", "Red Alert policy must remain dynamic and fail closed");
     }
 
@@ -443,9 +443,9 @@
       requireFinitePositive(config.performanceBudgets[key], "$.performanceBudgets." + key, "E012-REGISTRY", "config", performanceVersion);
     });
     if (performanceVersion === "experience-performance-policy/v2" &&
-        (config.performanceBudgets.standardSimpleMaxMs > config.performanceBudgets.localRecomputeMaxMs ||
-         config.performanceBudgets.heavySimpleMaxMs < config.performanceBudgets.localRecomputeMaxMs ||
-         config.performanceBudgets.cooperativeChunkMaxMs > config.performanceBudgets.standardSimpleMaxMs)) {
+      (config.performanceBudgets.standardSimpleMaxMs > config.performanceBudgets.localRecomputeMaxMs ||
+        config.performanceBudgets.heavySimpleMaxMs < config.performanceBudgets.localRecomputeMaxMs ||
+        config.performanceBudgets.cooperativeChunkMaxMs > config.performanceBudgets.standardSimpleMaxMs)) {
       reject("E012-REGISTRY", "config", performanceVersion, "$.performanceBudgets", "Simple runtime budgets are internally inconsistent");
     }
 
@@ -458,7 +458,7 @@
     var contractShadow = config.migrationPolicy.phase === "contract-shadow" && config.migrationPolicy.panelBootstrap === false;
     var shellCanary = config.migrationPolicy.phase === "shell-canary" && config.migrationPolicy.panelBootstrap === true;
     if ((!contractShadow && !shellCanary) || config.migrationPolicy.shadowOnly !== true ||
-        config.migrationPolicy.visibleModeCutover !== false) {
+      config.migrationPolicy.visibleModeCutover !== false) {
       reject("E012-REGISTRY", "config", config.migrationPolicy.contractVersion, "$.migrationPolicy", "migration policy must be an explicit shadow or shell-canary state");
     }
     if (!equalArray(config.refusalCodes, REFUSAL_CODES)) reject("E012-REGISTRY", "config", config.contractVersion, "$.refusalCodes", "refusal code enum must be exact");
@@ -494,7 +494,7 @@
       if (parameter.defaultValue === null) {
         if (parameter.defaultSource !== "evidence-derived") reject("E012-SIMPLE-DEFINITION", "simple-definition", "parameter-definition/v1", path + ".defaultValue", "null default requires evidence-derived source");
       } else if (!Number.isFinite(parameter.defaultValue) || parameter.defaultValue < parameter.domain.min || parameter.defaultValue > parameter.domain.max ||
-          ((parameter.kind === "integer" || parameter.kind === "seed") && !Number.isInteger(parameter.defaultValue))) {
+        ((parameter.kind === "integer" || parameter.kind === "seed") && !Number.isInteger(parameter.defaultValue))) {
         reject("E012-SIMPLE-DEFINITION", "simple-definition", "parameter-definition/v1", path + ".defaultValue", "default is outside the declared domain");
       }
     } else {
@@ -591,7 +591,7 @@
     requireStringArray(definition.provenancePolicy.allowedClasses, path + ".provenancePolicy.allowedClasses", "E012-SIMPLE-DEFINITION", "simple-definition", definition.contractVersion, 1, definition.toolId);
     requireFinitePositive(definition.performancePolicy.maxComputeMs, path + ".performancePolicy.maxComputeMs", "E012-SIMPLE-DEFINITION", "simple-definition", definition.contractVersion);
     if (definition.sensitivityPolicy.method !== "one-at-a-time" || definition.sensitivityPolicy.requireOutputEffect !== true || definition.sensitivityPolicy.flatRegionPolicy !== "explicit-proof" ||
-        typeof definition.calibrationPolicy.class !== "string" || definition.provenancePolicy.requireEvidenceCutoff !== true || definition.performancePolicy.deterministic !== true) {
+      typeof definition.calibrationPolicy.class !== "string" || definition.provenancePolicy.requireEvidenceCutoff !== true || definition.performancePolicy.deterministic !== true) {
       reject("E012-SIMPLE-DEFINITION", "simple-definition", definition.contractVersion, path, "model policies do not match the closed declaration contract", definition.toolId);
     }
     requireStringArray(definition.limitations, path + ".limitations", "E012-SIMPLE-DEFINITION", "simple-definition", definition.contractVersion, 1, definition.toolId);
@@ -1738,8 +1738,8 @@
 
   function restoreModeRecordInternal(shell, record) {
     if (!exactModeRecordKeys(record) || record.contractVersion !== "experience-mode/v1" ||
-        record.toolId !== shell.toolId || !shellHasMode(shell, record.mode) ||
-        typeof record.savedAt !== "string" || record.savedAt.length === 0) return null;
+      record.toolId !== shell.toolId || !shellHasMode(shell, record.mode) ||
+      typeof record.savedAt !== "string" || record.savedAt.length === 0) return null;
     return createModeRecordInternal(shell, record.mode, record.savedAt);
   }
 
@@ -1770,7 +1770,7 @@
 
   function resolveRouteInternal(shell, hash, options) {
     if (!isPlainObject(shell) || shell.contractVersion !== "experience-shell/v1" ||
-        !shellHasMode(shell, shell.defaultViewId)) {
+      !shellHasMode(shell, shell.defaultViewId)) {
       reject("E012-VIEWSET", "route", "experience-route/v1", "$.shell", "validated shell is required", shell && shell.toolId);
     }
     var rawHash = typeof hash === "string" ? hash.trim() : "";

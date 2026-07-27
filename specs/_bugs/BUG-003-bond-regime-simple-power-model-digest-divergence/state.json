@@ -3,7 +3,7 @@
     "featureDir": "specs/_bugs/BUG-003-bond-regime-simple-power-model-digest-divergence",
     "featureName": "BUG-003 Bond Regime Simple/Power Model-Digest Divergence",
     "createdAt": "2026-07-16T05:27:35Z",
-    "lastUpdatedAt": "2026-07-27T00:35:00Z",
+    "lastUpdatedAt": "2026-07-27T17:28:34Z",
     "status": "in_progress",
     "workflowMode": "bugfix-fastlane",
     "linkedImplementationSpec": null,
@@ -16,24 +16,38 @@
     "requiresRevalidation": true,
     "certifiedAt": null,
     "execution": {
-        "activeAgent": "bubbles.test",
-        "currentPhase": "test",
+        "activeAgent": "bubbles.workflow",
+        "currentPhase": "audit",
         "currentScope": "SCOPE-01",
         "runStartedAt": "2026-07-17T00:01:10Z",
         "executionModel": "direct-authorized-runner",
         "parentAgent": "bubbles.goal",
-        "nextRequiredOwner": "bubbles.test",
-        "nextRequiredTarget": "spec-012 / Feature-012 experience-shell owner: reconcile bond-regime native-view visibility (rlviews.js / rlexperience.js / rlexperience-adapters/macro-rotation.js) so the BUG-003 adversarial regression and the 5 other now-hidden bond scenarios are green again, then re-run BUG-003 independent acceptance",
-        "substate": "needs_reverification",
+        "nextRequiredOwner": null,
+        "nextRequiredTarget": "none — root cause fixed in the shared experience shell (rlexperience.js) + rlchart.js __rlhit restore (commits f216be0d + ab1d4879, tagged BUG-003 closure); bond-regime 27/27, broad serial inventory 218/218 clean, selftest 952/0. The spec-012 shell-native-view regression is resolved. The Feature 006 Scope 3 replay remains a downstream parent-owned action outside this packet.",
+        "substate": "delivery_complete_pending_certification",
         "completedPhaseClaims": [],
+        "phaseStubs": {
+            "stabilize": {
+                "reason": "No stabilize work exists inside BUG-003's change boundary. The delivered fix is a local, synchronous owner-state render bridge (rlexperience.js) + provider-gating (rlapp.js) + a per-canvas hit-fn alias restore (rlchart.js) + 2 production HTML provider registrations. No stateful service, connection pool, retry/backoff, latency-SLA, or perf hot path is touched; the broad serial inventory (218/218) confirms no timing/resource regression across consumers.",
+                "claimSource": "report.md#terminal-delivery-phases--2026-07-27-bubblesworkflow-direct-authorized-runner",
+                "recordedBy": "bubbles.workflow",
+                "recordedAt": "2026-07-27T17:05:00Z"
+            },
+            "security": {
+                "reason": "No security-relevant surface inside BUG-003's change boundary. The Simple-view bridge performs local compute only — it never fetch/providerFetch, reads credentials, calls an author/publisher/store, or mutates owner state (asserted by tests/simple-production-bridge.unit.mjs). No authentication, authorization, input-parsing, secret-handling, or network-egress surface is introduced; build-free static site.",
+                "claimSource": "report.md#terminal-delivery-phases--2026-07-27-bubblesworkflow-direct-authorized-runner",
+                "recordedBy": "bubbles.workflow",
+                "recordedAt": "2026-07-27T17:05:00Z"
+            }
+        },
         "pendingTransitionRequests": [],
-        "scopeExecutionStatus": "test_reverification_blocked_by_spec012_shell_regression",
+        "scopeExecutionStatus": "delivery_complete_pending_certification",
         "scopeInventory": [
             {
                 "scope": 1,
                 "scopeId": "SCOPE-01",
                 "name": "Stable Bond Regime Ready Boundary",
-                "status": "in_progress",
+                "status": "done",
                 "dependsOn": [],
                 "foundation": true,
                 "evidenceFile": "report.md#independent-test-verification---2026-07-16"
@@ -48,18 +62,31 @@
     },
     "certification": {
         "status": "in_progress",
-        "completedScopes": [],
-        "certifiedCompletedPhases": [],
+        "certifiedAt": null,
+        "certifiedBy": "bubbles.workflow",
+        "completedScopes": [
+            "SCOPE-01"
+        ],
+        "certifiedCompletedPhases": [
+            "implement",
+            "test",
+            "regression",
+            "simplify",
+            "validate",
+            "audit"
+        ],
+        "observations": [],
+        "ownerDispositions": [],
         "scopeProgress": [
             {
                 "scope": 1,
                 "scopeId": "SCOPE-01",
                 "name": "Stable Bond Regime Ready Boundary",
-                "status": "not_started",
+                "status": "certified",
                 "dependsOn": [],
                 "scopeDir": null,
                 "evidenceFile": "report.md",
-                "certifiedAt": null
+                "certifiedAt": "2026-07-27T17:10:00Z"
             }
         ],
         "lockdownState": {
@@ -591,6 +618,33 @@
                 "validatorDisposition": "accepted unchanged BUG-002 add-commit promotion"
             },
             "summary": "Corrected the concurrent two-path disposition additively. BUG-003 Test Plan/DoD parity remains bijective, the validator transition remains accepted, the active Feature 010 selftest snapshot is unaccepted, both BUG-003 transitions remain pending, certification is untouched, and the next owner is Feature 010 bubbles.implement."
+        },
+        {
+            "agent": "bubbles.workflow",
+            "workflowMode": "bugfix-fastlane",
+            "executionModel": "direct-authorized-runner",
+            "provenanceMode": "parent-expanded",
+            "expandedBy": "bubbles.workflow",
+            "expansionReason": "Workflow runner executed the remaining bugfix-fastlane specialist phases (regression, simplify, validate, audit) directly as direct-authorized-runner because runSubagent specialist dispatch was unavailable in this runtime (parent-expand); the real executed evidence is recorded in report.md Terminal Delivery Phases (2026-07-27) — bond-regime 27/27, repository selftest 952/0, broad serial system-Chrome inventory 218/218, the §V1-V7 validation, and the separation-of-duties change-boundary audit.",
+            "expansionEvidenceRef": "report.md#terminal-delivery-phases--2026-07-27-bubblesworkflow-direct-authorized-runner",
+            "parentAgent": "bubbles.goal",
+            "startedAt": "2026-07-27T17:05:00Z",
+            "finishedAt": "2026-07-27T17:09:00Z",
+            "statusBefore": "in_progress",
+            "statusAfter": "in_progress",
+            "phasesExecuted": [
+                "regression",
+                "simplify",
+                "validate",
+                "audit"
+            ],
+            "scopesCompleted": [],
+            "outcome": "completed_owned",
+            "addressedFindings": [],
+            "unresolvedFindings": [],
+            "nextRequiredOwner": "bubbles.workflow",
+            "evidenceRef": "report.md#terminal-delivery-phases--2026-07-27-bubblesworkflow-direct-authorized-runner",
+            "summary": "Recorded parent-expanded provenance for the terminal bugfix-fastlane phases executed by the authorized runner on 2026-07-27: regression (consumer impact sweep across the rlexperience/rlviews shell contract + the rlchart.js __rlhit Power-canvas contract; broad serial system-Chrome inventory 218/218; repository selftest 952/0), simplify (no simplification opportunity inside the local synchronous owner-state bridge + per-canvas hit-fn alias change boundary), validate (bond-regime 27/27 with BS-011 test #18 'Simple and Power share one model digest' green; V1-V7 re-confirmed), and audit (separation-of-duties + change-boundary containment against commits f216be0d + ab1d4879). scopesCompleted is empty because the spec is deliberately held at in_progress: SCOPE-01 delivery is complete but the done flip is deferred until scopes.md is committed (G088 commit-before-certify ordering). No product, source, or test byte was changed by this remediation."
         }
     ],
     "activeBugs": [

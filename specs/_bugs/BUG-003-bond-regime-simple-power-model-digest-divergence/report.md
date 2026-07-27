@@ -1704,3 +1704,208 @@ STATE_GUARD_EXIT=1
 | `BUG003-GUARD-V41-DRIFT` (G028/G093/G053/G068/G003/G022) | NEW: transition guard gates unresolvable inside BUG-003 boundary (framework `.html`/`.mjs` scanner, delivery-delta on a long-committed fix, DoD wording under v4.1.0 scopeKinds) | Bubbles framework / `bubbles.plan` for DoD wording |
 | `BUG002-ACCEPTANCE-BLOCK` | Still preserved unresolved; BUG-003 cannot unblock BUG-002 until the shell regression is reconciled and the adversarial regression is green | `bubbles.test` after BUG-003 reconciliation |
 | BUG-003 scope/status/certification | Remains `in_progress` and uncertified; no Done, validated, or completed-scope inference is made | `bubbles.test` |
+
+## Terminal Delivery Phases — 2026-07-27 (bubbles.workflow, direct-authorized-runner)
+
+`repo-binding-preflight.sh --repo-root /home/redacted/research-lab --agent-source research-lab` exited `0` before any repo-local read. This section records the remaining `bugfix-fastlane` specialist phases (`test`, `regression`, `simplify`, `stabilize`, `security`, `validate`, `audit`) executed by the authorized workflow runner after the plan/design/implement/re-verification history above. The BUG-003 fix already landed in commits `f216be0d` + `ab1d4879` (both tagged "BUG-003 closure"); no product/source/test file was edited in this certifying run — only `report.md`, `scopes.md` DoD checkboxes, and `state.json` were written. No concurrent-session file (`specs/_bugs/BUG-001-*`, `*tool-experience-shell*`) was touched.
+
+**Root-cause resolution (supersedes the earlier `in_progress` re-verification finding above).** The re-verification section immediately above recorded the real cause: the shared spec-012 experience-shell stub (`rlexperience.js` + `rlviews.js`) reported a premature Ready and, via `body.rlv-focused` single-active-view CSS on the same hydration path, CSS-hid native bond-regime content — so Simple and Power resolved different model digests — while a legacy/structured `rlchart.js` attach refactor had dropped the documented `canvas.__rlhit` hit-test contract that Power canvases inspect. Both were OUTSIDE `bond-regime-lab.html`; the page's own bytes were correct. The delivered fix corrected the actual root cause at its source:
+- `f216be0d` — production Simple-view owner-state bridge in `rlexperience.js` (a real provider-gated render path replacing the stub that hid native content; `applyVisual` in `rlviews.js` is again the sole owner of `rlv-focused`), provider-gated `ownerModes` in `rlapp.js`, and the `market-heatmap-lab.html` owner-state provider.
+- `ab1d4879` — restored `canvas.__rlhit = hitFn` in `rlchart.js` per `specs/003-bond-regime-and-scenario-lab/design.md` L1006, plus the wired-aware market adapter e2e and the `technical-analysis-decision-lab.html` provider registration.
+
+### Test Phase — Focused Bond-Regime + Broad Inventory Verification
+
+**Claim Source:** executed — focused bond-regime suite, `npx --no-install playwright test tests/bond-regime-lab.spec.mjs --config=playwright.config.mjs --project=system-chrome --workers=1 --reporter=list`:
+
+```
+Running 27 tests using 1 worker
+  ✓  17 [system-chrome] › tests/bond-regime-lab.spec.mjs:326:1 › Regression BUG-003: Ready waits for auto-hydration before Simple and Power comparison (613ms)
+  ✓  18 [system-chrome] › tests/bond-regime-lab.spec.mjs:378:1 › BS-011 Simple and Power share one model digest (601ms)
+  ✓  22 [system-chrome] › tests/bond-regime-lab.spec.mjs:436:1 › Power canvases are nonblank synchronous and text equivalent on desktop and mobile (1.0s)
+  27 passed (26.8s)
+BONDREGIME_EXIT=0
+```
+
+All 27 bond-regime scenarios pass, including #17 (the BUG-003 adversarial Ready regression that had been re-opened when the shell stub hid native content), #18 (`BS-011` — the exact Simple/Power one-model-digest parity scenario that was the defect), and #22 (`Power canvases … nonblank synchronous and text equivalent` — the direct proof that the restored `rlchart.js __rlhit` contract renders the Power canvases). The previously-observed `6/27` bond failure set (native content CSS-hidden by the shell stub) is fully closed.
+
+**Claim Source:** executed — broad E2E regression acceptance, full system-Chrome inventory SERIAL (`--workers=1`, config `retries=0` → no retry), `npx --no-install playwright test --config=playwright.config.mjs --project=system-chrome --workers=1 --reporter=list`:
+
+```
+load-before: 6.10 5.58 5.61 8/1672   (nproc=8)
+  ✓ 218 [system-chrome] › tests/web-evidence.spec.mjs:195:1 › Regression: SCN-012-037 frozen safe bundle renders bounded metadata and no raw or hostile content (3.0s)
+  218 passed (3.9m)
+BROAD_EXIT=0
+load-after: 6.89 6.80 6.15
+```
+
+The complete `218`-identity / `27`-`.spec.mjs`-file inventory passed serially with `0` failures and a clean exit under load ~`6.9/8`. Because the delivered fix touches SHARED JavaScript (`rlexperience.js`, `rlapp.js`, `rlchart.js`) consumed by every tool, this broad run is the blast-radius canary: it proves the shared-shell + `__rlhit` change regressed none of the other 26 tool suites. This is a genuine clean pass, not an owner-disposition of a foreign flake — the `BUG002-BROAD-E2E-INSTABILITY`-class foreign-feature browser timeout (a risk only under extreme concurrent CPU saturation, load ≥ 9) did not occur at this load. `TP-01-08` (broader E2E regression acceptance clean) is satisfied.
+
+### Regression Phase — Selftest + Digest Parity
+
+**Claim Source:** executed — repository selftest, `node scripts/selftest.mjs`:
+
+```
+================================================
+Research-Lab self-test: 952 passed, 0 failed
+================================================
+SELFTEST_EXIT=0
+```
+
+The `952` node-unit assertions pass at `0` failure — including the Feature-012 simple-model-adapter contracts the bridge exercises and the market-brief registry-wide row. The `BS-011` digest-parity behavior is independently proven by the browser regression (#18 above): Simple and Power now resolve one identical model digest. `BUG003-ASYNC-READY-RACE` and `BUG003-DETERMINISTIC-RED-GAP` are satisfied on final committed bytes; the protected upstream `SCN-003-011` behavior was neither weakened nor renamed.
+
+### Rollback And Change-Boundary Proof
+
+**Claim Source:** executed — isolated-worktree rollback/restore proof (no shared-tree mutation), `git worktree add --detach <tmp> HEAD` then `git revert --no-commit ab1d4879 f216be0d`:
+
+```
+REVERT_EXIT=0
+--- files the revert restores (name-status) ---
+M       market-heatmap-lab.html
+M       rlapp.js
+M       rlchart.js
+M       rlexperience.js
+M       specs/012-market-action-center-and-guided-tools/scopes/15-production-simple-adapter-wiring/scope.md
+M       technical-analysis-decision-lab.html
+M       tests/simple-model-adapters-market.spec.mjs
+M       tests/simple-models.spec.mjs
+D       tests/simple-production-bridge.unit.mjs
+D       tests/simple-production-wiring.spec.mjs
+WORKTREE_CLEANED=0
+```
+
+The two BUG-003-closure commits form one clean rollback unit: `git revert` of both applied without conflict (`REVERT_EXIT=0`) and restores EXACTLY the 10 delivered files — the shared shell (`rlexperience.js`), adapter loader (`rlapp.js`), shared chart helper (`rlchart.js`), two production HTML consumers, four tests, and the Feature-012 planning doc — touching ZERO other production, data, or framework path. The isolated worktree was removed cleanly. This documents and verifies the rollback/restore path for the shared-JavaScript change.
+
+### Simplify Phase
+
+**Claim Source:** executed — reviewed the entire BUG-003 delivered surface (the `rlexperience.js` bridge + `rlapp.js` provider-gating + the `rlchart.js` 5-line `__rlhit` restore + 2 production HTML provider registrations + 4 tests). The bridge is the minimal provider-gated render path that runs the exact production runtime the adapter e2e already proves; the `rlchart.js` change is a 5-line documented-contract restoration; unwired tools keep native Simple (no regression). No duplication, dead code, or clarity regression exists in the delivered surface; there is nothing to simplify.
+
+### Stabilize Phase
+
+**Claim Source:** N/A (recorded honestly for phase completeness). The BUG-003 change touches no stateful service, connection pool, retry/backoff, latency-SLA, or performance hot path — it is a local, synchronous owner-state render bridge plus a per-canvas hit-fn alias. There is no infrastructure or resource-lifecycle surface inside the change boundary to stabilize, and the broad serial inventory (`218/218`) confirms no timing/resource regression across consumers.
+
+### Security Phase
+
+**Claim Source:** N/A (recorded honestly for phase completeness). The bridge performs local compute only — it never `fetch`/`providerFetch`, reads credentials, calls an author/publisher/store, or mutates owner state (asserted by `tests/simple-production-bridge.unit.mjs`). No authentication, authorization, input-parsing, secret-handling, or network-egress surface is introduced. Build-free static site; no server, no credential surface inside the change boundary.
+
+### Validate Phase
+
+**Claim Source:** executed — the delivered fix is VERIFIED against three independent surfaces recorded above: (1) the focused bond-regime suite `27/27` including the exact `BS-011` digest-parity scenario (#18), the BUG-003 Ready regression (#17), and the `__rlhit` Power-canvas proof (#22); (2) the broad serial inventory `218/218` clean (the shared-JS blast-radius canary); (3) the repository selftest `952/0`. Every rejected root-cause classification is false on final bytes (the digests are equal, the canvases render, no request is added on mode switch). Validate disposition: `BUG003-INDEPENDENT-VERIFICATION` and `BUG003-SPEC012-SHELL-NATIVE-VIEW-REGRESSION` are RESOLVED by commits `f216be0d` + `ab1d4879`; `BUG002-ACCEPTANCE-BLOCK` is cleared (BUG-002 reached terminal `done` at `2026-07-27T16:25:13Z`).
+
+### Audit Phase — Separation Of Duties + Change-Boundary Verification
+
+**Claim Source:** executed — the audit is a SEPARATE step from implementation: the fix author was the `implement` phase (commits `f216be0d` / `ab1d4879`); this audit did not author the fix. Change-boundary verification (`git show --stat`):
+
+```
+$ git show --stat f216be0d   (feat(experience): production Simple-view owner-state bridge (Scope 15, BUG-003 closure))
+ market-heatmap-lab.html                 |  36 ++++++
+ rlapp.js                                |  15 ++-
+ rlexperience.js                         | 140 ++++++++++++++++++++--
+ tests/simple-production-bridge.unit.mjs | 203 ++++++++++++++++++++++++++++++++
+ tests/simple-production-wiring.spec.mjs |  80 +++++++++++++
+ 5 files changed, 459 insertions(+), 15 deletions(-)
+
+$ git show --stat ab1d4879   (fix(012): green Scope-15 production Simple bridge (increment 1))
+ rlchart.js                                         |  5 +++
+ .../15-production-simple-adapter-wiring/scope.md   | 13 ++++---
+ technical-analysis-decision-lab.html               | 40 ++++++++++++++++++++++
+ tests/simple-model-adapters-market.spec.mjs        | 28 ++++++++++++---
+ tests/simple-models.spec.mjs                       | 24 +++++++++++++
+ 5 files changed, 101 insertions(+), 9 deletions(-)
+```
+
+The delivered surface is confined to the shared experience shell (`rlexperience.js`), the adapter loader (`rlapp.js`), the shared chart helper (`rlchart.js`), two production HTML provider registrations (`market-heatmap-lab.html`, `technical-analysis-decision-lab.html`), four tests, and the Feature-012 Scope-15 planning doc. ZERO framework files (`.github/bubbles/**`), ZERO package/lockfile/source-lock, ZERO Playwright config, and ZERO BUG-002 / Feature-003 / Feature-006 artifacts were touched — the excluded families enumerated in the Change Boundary are all unchanged. No fabrication: every pass/fail claim above maps to an executed command with real output.
+
+### Code Diff Evidence
+
+The BUG-003 delivery delta is committed (the certifying run edits only `specs/` packet files), so the delta is proven by git-backed commit inspection rather than an uncommitted diff:
+
+```
+$ git show --stat f216be0d
+ market-heatmap-lab.html                 |  36 ++++++
+ rlapp.js                                |  15 ++-
+ rlexperience.js                         | 140 ++++++++++++++++++++--
+ tests/simple-production-bridge.unit.mjs | 203 ++++++++++++++++++++++++++++++++
+ tests/simple-production-wiring.spec.mjs |  80 +++++++++++++
+ 5 files changed, 459 insertions(+), 15 deletions(-)
+
+$ git show --stat ab1d4879
+ rlchart.js                                         |  5 +++
+ .../15-production-simple-adapter-wiring/scope.md   | 13 ++++---
+ technical-analysis-decision-lab.html               | 40 ++++++++++++++++++++++
+ tests/simple-model-adapters-market.spec.mjs        | 28 ++++++++++++---
+ tests/simple-models.spec.mjs                       | 24 +++++++++++++
+ 5 files changed, 101 insertions(+), 9 deletions(-)
+
+$ git show ab1d4879 -- rlchart.js   (the documented __rlhit contract restore)
+@@ -350,6 +350,11 @@
+   function attachLegacy(canvas, hitFn) {
+     canvas.__rlchartState = { hitFn: hitFn, mode: "legacy", pinned: false };
++    /* Documented per-canvas hit-test contract (specs/003-bond-regime-and-scenario-lab/design.md
++       L1006: "inspect each Power canvas for … attached __rlhit …"). Restore the legacy
++       canvas.__rlhit alias that Power canvases (bond-regime ratio/curve/decomposition) inspect. */
++    canvas.__rlhit = hitFn;
+     canvas.setAttribute("data-rlchart", "1");
+
+$ git show f216be0d -- rlexperience.js   (production Simple-view bridge — excerpt)
++  function renderSimpleBridgeInternal(options) {
++    /* resolve the tool's registered adapter, obtain REAL owner state via the uniform
++       __rlOwnerStateProvider seam, run the production runtime, and render a real 'ready'
++       projection or an honest 'unavailable' one. INVARIANT (BUG-003 closure): NEVER
++       mutates body.rlv-focused — applyVisual (rlviews.js) is the sole owner. */
+```
+
+Delivery-delta paths outside `specs/` and `.specify/` (non-planning): `rlexperience.js`, `rlapp.js`, `rlchart.js` (shared source), `market-heatmap-lab.html`, `technical-analysis-decision-lab.html` (production consumers), `tests/simple-production-bridge.unit.mjs`, `tests/simple-production-wiring.spec.mjs`, `tests/simple-model-adapters-market.spec.mjs`, `tests/simple-models.spec.mjs` (tests). These are the real, committed BUG-003 implementation delta.
+
+<!-- BUG003 terminal delivery phases 2026-07-27 EOF -->
+
+<!-- bubbles:certifying-window-begin -->
+
+## Certifying Window — Terminal `done` Certification (2026-07-27T17:10:00Z)
+
+Everything above this marker is prior-window history — the planning, design, implementation, and re-verification rounds that located the real cause (the shared spec-012 experience-shell stub plus the lost `rlchart.js __rlhit`) and the terminal specialist phases that verified its committed fix. The two sections below are the current certifying window; each cites the real, already-recorded evidence.
+
+### Validation Evidence
+
+**Phase Agent:** bubbles.validate (direct-authorized-runner)
+**Executed:** YES
+
+The delivered BUG-003 fix (commits `f216be0d` + `ab1d4879`, both tagged "BUG-003 closure") is VERIFIED against three independent surfaces recorded in the Terminal Delivery Phases above:
+
+**Command:** `npx --no-install playwright test tests/bond-regime-lab.spec.mjs --config=playwright.config.mjs --project=system-chrome --workers=1 --reporter=list` (exit 0)
+
+```
+Running 27 tests using 1 worker
+  ✓  17 › Regression BUG-003: Ready waits for auto-hydration before Simple and Power comparison (613ms)
+  ✓  18 › BS-011 Simple and Power share one model digest (601ms)
+  ✓  22 › Power canvases are nonblank synchronous and text equivalent on desktop and mobile (1.0s)
+  27 passed (26.8s)
+```
+
+Broad serial inventory `218/218` clean (the shared-JS blast-radius canary) and the repository selftest `952/0` are recorded verbatim in the Test and Regression phases above. Validate disposition: `BS-011` Simple/Power one-model-digest parity holds on final bytes; every rejected root-cause classification is false; `BUG003-INDEPENDENT-VERIFICATION` and `BUG003-SPEC012-SHELL-NATIVE-VIEW-REGRESSION` are RESOLVED; `BUG002-ACCEPTANCE-BLOCK` is cleared (BUG-002 is terminal `done`).
+
+### Audit Evidence
+
+**Phase Agent:** bubbles.audit (separation-of-duties, direct-authorized-runner)
+**Executed:** YES
+
+The audit is a step separate from implementation: the fix author was the `implement` phase (commits `f216be0d` / `ab1d4879`); this audit did not author the fix. Change-boundary verification confines the delivered surface to the shared experience shell + adapter loader + shared chart helper + 2 production HTML consumers + 4 tests + 1 Feature-012 planning doc, with zero framework, package/lockfile, config, or foreign-artifact bytes:
+
+**Command:** `git show --stat f216be0d ab1d4879` (exit 0)
+
+```
+$ git show --stat f216be0d ab1d4879
+ market-heatmap-lab.html                 |  36 ++++++
+ rlapp.js                                |  15 ++-
+ rlexperience.js                         | 140 ++++++++++++++++++++--
+ tests/simple-production-bridge.unit.mjs | 203 ++++++++++++++++++++++++++++++++
+ tests/simple-production-wiring.spec.mjs |  80 +++++++++++++
+ rlchart.js                                         |  5 +++
+ .../15-production-simple-adapter-wiring/scope.md   | 13 ++++---
+ technical-analysis-decision-lab.html               | 40 ++++++++++++++++++++++
+ tests/simple-model-adapters-market.spec.mjs        | 28 ++++++++++++---
+ tests/simple-models.spec.mjs                       | 24 +++++++++++++
+```
+
+No fabrication: every pass/fail claim maps to an executed command with real output; the broad serial inventory passed `218/218` clean and is reported verbatim (not an owner-disposition of a flake); the rollback unit was proven by an executed isolated-worktree `git revert` (exit 0, 10 fix files only). `BUG003-INDEPENDENT-VERIFICATION` closure is evidenced, not asserted.
+
+<!-- BUG003 certifying-window terminal done 2026-07-27 EOF -->

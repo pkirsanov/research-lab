@@ -13,6 +13,7 @@ Scope 10 delivers the shared browser brief experience. `rlbrief.js` is the dual-
 - Change Boundary honored: only `rlbrief.js`, `rlapp.js` (narrow mount bridge), the 23 HTML anchors (+2 lines each), `scripts/selftest.mjs` (Scope-10 group), and the Scope-10 tests/fixtures were touched. No prior-scope files, no owner formulas/controls/canvases, no page-specific renderer branches, no broad restyle.
 - De-flake decision: `data-rlbrief-ready="1"` is now set only on terminal load states (not the transient `loading`), guarded by a separate `data-rlbrief-mounting` re-entrancy flag, so a consumer that waits for `data-rlbrief-ready="1"` observes a settled load. This removed a render/assert race (pre-fix the spec intermittently failed 3/13; post-fix 13/13 twice).
 - ui-canary wait correction (test-only): the pre-cutover inert mount is an empty, zero-height (invisible-by-design) `<section>`, so `page.waitForSelector('[data-rlbrief-mount][data-rlbrief-ready="1"]')` under Playwright's DEFAULT `state:'visible'` never resolved and every page timed out at 20s. The mount genuinely reaches `data-rlbrief-ready="1"` + `state=idle` (verified with a standalone one-page diagnostic: ready set, RLAPP loaded, status shell present, zero console/page errors, boundingBox height 0). Corrected the wait to `state:'attached'`; the canary then passes in ~7s. This is a test-correctness fix (matching the test's stated intent to observe the settled inert state), not a product change and not a weakening of any assertion.
+- Brief-view reveal remediation (2026-07-27): the later four-view `rlviews` shell ("brief lives only in Brief view", commits `36ce4243`/`6a4adb73`) landed AFTER this scope was delivered. For an ordinary tool it moves the `data-rlbrief-mount` anchor into a `<section class="rlexperience-placeholder" data-rlexperience-panel="brief" hidden>` placeholder that is `display:none` in the default `simple` view, so the Scope-10 `mountReady` helper (which waited for the mount VISIBLE in the boot view) timed out and the acceptance suite reverted to red. Root-caused from a browser diagnostic: the `<section data-rlbrief-mount>` itself is `display:block/visibility:visible`, but its parent `data-rlexperience-panel="brief"` placeholder is `hidden`/`display:none`; `sector-research-lab` reports `viewIds:[simple,power,brief,journey]`, `defaultViewId:simple`, `ownerModes:[simple,power]`, and switching to the Brief view via the real `#rlviews` control makes the mount visible (`officialCloseVisible:true`); `market-brief` reports `defaultViewId:brief` and is already visible. Remediation drives the REAL reveal contract in `mountReady` — wait for `#rlviews[data-rlexperience-shell="ready"]`, click `#rlviews button[data-rlview-mode="brief"]`, then assert the mount visible — exactly as every other shell regression (bond-regime / tool-experience / simple-models) reaches its view. No assertion weakened, no `.skip`, no force-reveal. The shell-less `added-source-fixture-lab` case (a registry entry with a briefing block but no experience view-set resolves NO shell, so the brief renders standalone) keeps the direct `data-rlbrief-ready="1"` wait. Runtime: `rlbrief.js briefSetState` now also clears the transient `data-rlbrief-mounting` marker on any settled (non-`loading`) state, so the DOM reflects a completed load and a legitimate re-mount is not permanently short-circuited by the mounting guard.
 
 ## Completion Statement
 
@@ -39,6 +40,54 @@ All commands re-run this session (2026-07-19):
 - `node scripts/validate-distributed-briefs.mjs --root .` = **ok:true**. [TP-10-21]
 - `node scripts/migrate-brief-history.mjs --check` = **ok:true, bytesUnchanged:true** (`brief-history.jsonl` untouched). [TP-10-22]
 - `node scripts/validate-brief-cache.mjs` = PASS (354); `node scripts/validate-brief-payload.mjs market-brief.payload.json` = PASS.
+
+## Regression Remediation Evidence — Brief-view reveal restore (2026-07-27)
+
+The later `rlviews` shell ("brief lives only in Brief view") regressed this scope's acceptance suite to 0/13. Fix: `mountReady` drives the real `#rlviews` Brief-view control; `rlbrief.js briefSetState` clears `data-rlbrief-mounting` on settle. Working-tree change is confined to `rlbrief.js` (+8/-1) and `tests/distributed-briefs.spec.mjs` (+7) — `git diff --stat`: `2 files changed, 14 insertions(+), 1 deletion(-)`. All three green-bar commands re-run 2026-07-27, full output, exit 0.
+
+Scope-10 acceptance suite — `npx --no-install playwright test tests/distributed-briefs.spec.mjs --config=playwright.config.mjs --project=system-chrome --reporter=list`:
+
+```
+  ✓   1 …wer keep official close separate and disclose comparable volume (527ms)
+  ✓   2 … the exact published pre-market thesis with owner read evidence (300ms)
+  ✓   3 …inal never labels a partial regular print as the official close (354ms)
+  ✓   4 …erve official close and label every post-close print indicative (359ms)
+  ✓   5 … strips use explicit calendar boundaries and next valid session (542ms)
+  ✓   6 …ming to released without stale actual or post-release consensus (561ms)
+  ✓   7 …ay separate and revisions append without rewriting the original (583ms)
+  ✓   8 … and history exclude look-ahead and retain immutable chronology (388ms)
+  ✓   9 …ed unusual evidence remains context and consumes no action slot (333ms)
+  ✓  10 …emains truthful and non-current failures cannot replace current (640ms)
+  ✓  11 …fetches only the selected partition and opened evidence objects (438ms)
+  ✓  12 …ory UI is accessible safe and stable at desktop mobile and zoom (619ms)
+  ✓  13 …y source receives the shared mount with no page-specific branch (346ms)
+
+  13 passed (7.7s)
+SCOPE10_EXIT=0
+```
+
+Repository selftest — `node scripts/selftest.mjs`:
+
+```
+================================================
+Research-Lab self-test: 952 passed, 0 failed
+================================================
+SELFTEST_EXIT=0
+```
+
+Regression guard — `npx --no-install playwright test tests/bond-regime-lab.spec.mjs tests/simple-models.spec.mjs tests/simple-model-adapters-market.spec.mjs tests/palm-springs-rental-market-lab.spec.mjs tests/tool-experience.spec.mjs --config=playwright.config.mjs --project=system-chrome --reporter=list` (one heavy options-flow test flaked at the 30s per-test timeout under accumulated memory pressure on the first pass, passed in 18.1s in isolation, then passed in 25.3s on a clean full re-run):
+
+```
+  ✓  28 … options flow Simple anomaly controls recompute without trade-side inference or new chain owner (25.3s)
+  ✓  68 … options structure Simple shocks recompute owner walls flip move and skew from same-origin evidence (1.2s)
+  ✓  71 … gamma trading Simple controls recompute owner playbook from existing options owner (820ms)
+  ✓  70 … Both modes expose landmarks names focus and noncolor states at 390 and 1440 widths (1.4s)
+
+  71 passed (36.1s)
+REGRESSION_EXIT=0
+```
+
+Separate / pre-existing (left untouched): `tests/market-brief-session-date-drift.spec.mjs` (BUG-002) fails on `#liveNote` never showing "live shared cache refreshed" — a different root cause (market-brief live shared-cache refresh, not the brief-view reveal). It fails identically on clean HEAD with these two files stashed (`DRIFT_CLEAN_EXIT=1`), proving it is independent of this remediation.
 
 ## Uncertainty Declarations
 

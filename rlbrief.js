@@ -1203,7 +1203,13 @@
   function briefSetState(anchor, mount, state, badge) {
     // "loading" is the only transient state; data-rlbrief-ready signals a SETTLED load attempt, so it is
     // set on terminal states only — a consumer that waits for data-rlbrief-ready="1" must not race the load.
-    if (state !== "loading") anchor.setAttribute("data-rlbrief-ready", "1");
+    if (state !== "loading") {
+      anchor.setAttribute("data-rlbrief-ready", "1");
+      // The mount cycle has settled (rendered, empty, or a verified failure). Clear the transient
+      // in-flight marker so the DOM reflects a completed load and a legitimate later re-mount is not
+      // permanently short-circuited by the data-rlbrief-mounting guard in BriefMount.
+      anchor.removeAttribute("data-rlbrief-mounting");
+    }
     anchor.setAttribute("data-rlbrief-state", state);
     if (badge) { badge.textContent = briefLoadStateText(state) || badge.textContent; badge.setAttribute("data-rlbrief-state", state); }
   }

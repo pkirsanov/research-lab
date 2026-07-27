@@ -18,6 +18,11 @@ async function serve(g) {
 async function teardown(ctx) { if (ctx.server) await ctx.server.close(); if (ctx.dir) removeTemp(ctx.dir); }
 async function mountReady(page, ctx, toolId) {
     await page.goto(harnessUrl(ctx.server.baseUrl, toolId), { waitUntil: 'load' });
+    // The shared brief renders inside the shell's "Brief" view (feat(brief): brief lives only in Brief
+    // view). Ordinary tools boot in their default "simple" view, so drive the real rlviews control to the
+    // Brief view — exactly as every other shell regression does — before asserting the brief is visible.
+    await page.waitForSelector('#rlviews[data-rlexperience-shell="ready"]', { timeout: 20000 });
+    await page.locator('#rlviews button[data-rlview-mode="brief"]').click();
     await page.waitForSelector('[data-rlbrief-mount][data-rlbrief-ready="1"]', { timeout: 20000 });
 }
 async function openPower(page) {
@@ -220,6 +225,8 @@ test('Regression: valid added registry source receives the shared mount with no 
     const g = buildGraph({ toolId: 'added-source-fixture-lab', session: 'pre-market', addedSource: true });
     const ctx = await serve(g);
     try {
+        // An added registry source with a briefing block but no experience view-set resolves NO shell,
+        // so the shared brief renders standalone (directly visible) rather than inside a Brief-view panel.
         await page.goto(harnessUrl(ctx.server.baseUrl, 'added-source-fixture-lab'), { waitUntil: 'load' });
         await page.waitForSelector('[data-rlbrief-mount][data-rlbrief-ready="1"]', { timeout: 20000 });
         expect(await page.getAttribute('[data-rlbrief-mount]', 'data-rlbrief-state')).toBe('ready');

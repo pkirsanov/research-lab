@@ -182,7 +182,7 @@ if (process.env.BRIEF_REQUIRE_COMPLETE_RUN === '1') {
   mkdirSync(new URL('../data/bars/', import.meta.url), { recursive: true });
   const sessionDate = process.env.BAR_EXPECTED_SESSION_DATE || date;
   writeFileSync(new URL('../data/bars/FIXTURE.json', import.meta.url), JSON.stringify({ sym: 'FIXTURE', asof: sessionDate, rows: [{ t: 1, c: 1 }] }) + '\\n');
-  writeFileSync(new URL('../data/bars/index.json', import.meta.url), JSON.stringify({ updated: new Date().toISOString(), refreshDate: date, refreshWindow: process.env.BRIEF_WINDOW, expectedSessionDate: sessionDate, expected: 1, count: 1, freshCount: incomplete ? 0 : 1, carriedCount: incomplete ? 1 : 0, reconstructedCount: 0, sessionReuseCount: 0, zeroObservedCount: 0, missing: [], tickers: [{ sym: 'FIXTURE', asof: sessionDate, sessionDate, sessionState: 'observed', zeroObserved: false, carried: incomplete, reconstructed: false, sessionCached: false }] }) + '\\n');
+  writeFileSync(new URL('../data/bars/index.json', import.meta.url), JSON.stringify({ updated: new Date().toISOString(), refreshDate: date, refreshWindow: process.env.BRIEF_WINDOW, expectedSessionDate: sessionDate, expected: 1, count: 1, freshCount: incomplete ? 0 : 1, carriedCount: incomplete ? 1 : 0, reconstructedCount: 0, sessionReuseCount: 0, zeroObservedCount: 0, thinObservedCount: 0, missing: [], tickers: [{ sym: 'FIXTURE', asof: sessionDate, sessionDate, sessionState: 'observed', zeroObserved: false, thinObserved: false, carried: incomplete, reconstructed: false, sessionCached: false }] }) + '\\n');
 }
 console.log('[fixture-fetch-bars] no external fetch required');
 `);

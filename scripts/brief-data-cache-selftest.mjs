@@ -59,14 +59,16 @@ globalThis.fetch = async function mockFetch(url) {
     if (target.includes('interval=5m')) {
         const start = Date.parse(process.env.BAR_EXPECTED_SESSION_START_UTC) / 1000;
         const end = Date.parse(process.env.BAR_EXPECTED_SESSION_END_UTC) / 1000;
-        const intradayTimestamps = Array.from({ length: Math.floor((end - start) / 300) }, (_, index) => start + index * 300);
+        const requestedBars = Number(process.env.MOCK_INTRADAY_COUNT);
+        const intradayCount = Number.isInteger(requestedBars) && requestedBars >= 0 ? requestedBars : Math.floor((end - start) / 300);
+        const intradayTimestamps = Array.from({ length: intradayCount }, (_, index) => start + index * 300);
         const values = intradayTimestamps.map((_, index) => process.env.MOCK_INTRADAY_ZERO === '1' ? null : 125 + index / 100);
         return { ok: true, status: 200, json: async () => ({ chart: { result: [{ meta: { tradingPeriods: [[{ start, end }]] }, timestamp: intradayTimestamps, indicators: { quote: [{ open: values, high: values.map((value) => value + 0.1), low: values.map((value) => value - 0.1), close: values, volume: intradayTimestamps.map(() => 100) }] }, events: {} }] } }) };
     }
   const values = timestamps.map((_, index) => 100 + index / 10);
     const dailyValues = process.env.MOCK_DAILY_GAP === '1' ? values.map((value, index) => index === values.length - 1 ? null : value) : values;
     const adjustedValues = process.env.MOCK_DIVIDEND === '1' ? dailyValues.map((value) => value == null ? null : value * 0.5) : dailyValues;
-    const events = process.env.MOCK_DIVIDEND === '1' ? { dividends: { expected: { amount: 1, date: timestamps[timestamps.length - 1] } } } : {};
+    const events = process.env.MOCK_DIVIDEND === '1' ? { dividends: { expected: { amount: 1, date: timestamps[timestamps.length - 1] } } } : process.env.MOCK_SPLIT === '1' ? { splits: { expected: { numerator: 2, denominator: 1, date: timestamps[timestamps.length - 1] } } } : {};
     return { ok: true, status: 200, json: async () => ({ chart: { result: [{ timestamp: timestamps, indicators: { quote: [{ open: dailyValues, high: dailyValues, low: dailyValues, close: dailyValues, volume: timestamps.map((_, index) => index === timestamps.length - 1 && process.env.MOCK_DAILY_GAP === '1' ? null : 1000) }], adjclose: [{ adjclose: adjustedValues }] }, events }] } }) };
 };
 process.on('exit', () => writeFileSync(process.env.MOCK_FETCH_LOG, JSON.stringify({ calls, maxActive }) + '\\n'));
@@ -121,6 +123,8 @@ process.on('exit', () => writeFileSync(process.env.MOCK_FETCH_LOG, JSON.stringif
     assert.equal(repairedIndex.freshCount, 9);
     assert.equal(repairedIndex.reconstructedCount, 9);
     assert.equal(repairedIndex.sessionReuseCount, 0);
+    assert.equal(repairedIndex.zeroObservedCount, 0);
+    assert.equal(repairedIndex.thinObservedCount, 0);
     assert.equal(repairedIndex.tickers.every((row) => row.asof === expectedSessionDate && row.reconstructed === true), true);
     const repairedSpy = JSON.parse(readFileSync(resolve(fixture, 'data/bars/SPY.json'), 'utf8'));
     assert.equal(repairedSpy.src, 'yahoo-daily+intraday-repair');
@@ -186,7 +190,36 @@ process.on('exit', () => writeFileSync(process.env.MOCK_FETCH_LOG, JSON.stringif
     assert.equal(dividendSpy.rows.at(-1).c, 125.77, 'dividend-date repair retains the raw post-event close instead of applying the prior adjusted-close factor');
     assert.equal(dividendSpy.rows.at(-2).c, 62.9, 'pre-dividend daily history keeps its adjusted-close basis');
 
-    console.log('[brief-data-cache] PASS: completed sessions are observed, reconstructed, or explicitly zero-observed; dividends preserve basis; same-session cache is reusable');
+    rmSync(resolve(fixture, 'data/bars'), { recursive: true, force: true });
+    const thinBars = run('fetch-bars.mjs', 'thin-bars.json', { ...strictEnv, MOCK_INTRADAY_COUNT: '11' });
+    assert.equal(thinBars.log.calls.filter((url) => url.includes('interval=5m')).length, 9);
+    const thinIndex = JSON.parse(readFileSync(resolve(fixture, 'data/bars/index.json'), 'utf8'));
+    assert.equal(thinIndex.freshCount, 9);
+    assert.equal(thinIndex.carriedCount, 0);
+    assert.equal(thinIndex.thinObservedCount, 9);
+    assert.equal(thinIndex.tickers.every((row) => row.sessionState === 'thin-observed' && row.thinObserved === true && row.asof === expectedSessionDate), true);
+    const thinSpy = JSON.parse(readFileSync(resolve(fixture, 'data/bars/SPY.json'), 'utf8'));
+    assert.equal(thinSpy.sessionState, 'thin-observed');
+    assert.deepEqual(thinSpy.thinObservedSessions, [expectedSessionDate]);
+    assert.equal(thinSpy.rows.at(-1).sourceBars, 11);
+    assert.equal(thinSpy.rows.at(-1).sourceExpectedBars, 78);
+    assert.ok(Math.abs(thinSpy.rows.at(-1).sourceCoverage - 11 / 78) < 1e-12);
+    const thinValidation = spawnSync(process.execPath, [resolve(fixture, 'scripts/validate-brief-cache.mjs'), '--require-current-run'], {
+        cwd: fixture,
+        encoding: 'utf8',
+        env: { ...process.env, ...strictEnv }
+    });
+    assert.equal(thinValidation.status, 0, `thin-observed session validation failed\nstdout:\n${thinValidation.stdout}\nstderr:\n${thinValidation.stderr}`);
+
+    rmSync(resolve(fixture, 'data/bars'), { recursive: true, force: true });
+    const splitBars = run('fetch-bars.mjs', 'split-bars.json', { ...strictEnv, MOCK_SPLIT: '1' });
+    const splitIndex = JSON.parse(readFileSync(resolve(fixture, 'data/bars/index.json'), 'utf8'));
+    assert.equal(splitIndex.freshCount, 0, `split-date refresh cannot be marked fresh\n${splitBars.output}`);
+    assert.equal(splitIndex.carriedCount, 0);
+    assert.equal(splitIndex.count, 0);
+    assert.equal(splitIndex.missing.length, 9, 'split-date refresh refuses every incoherent symbol instead of reconstructing it');
+
+    console.log('[brief-data-cache] PASS: completed sessions are observed, thin-observed, reconstructed, or zero-observed; dividends preserve basis; splits refuse');
 } finally {
     rmSync(fixture, { recursive: true, force: true });
 }

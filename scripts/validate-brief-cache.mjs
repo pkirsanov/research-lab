@@ -83,12 +83,15 @@ function validateIndex(kind) {
       if (!Number.isInteger(index.reconstructedCount) || index.reconstructedCount < 0) errors.push('data/bars/index.json reconstructedCount must be a non-negative integer');
       if (!Number.isInteger(index.sessionReuseCount) || index.sessionReuseCount < 0) errors.push('data/bars/index.json sessionReuseCount must be a non-negative integer');
       if (!Number.isInteger(index.zeroObservedCount) || index.zeroObservedCount < 0) errors.push('data/bars/index.json zeroObservedCount must be a non-negative integer');
+      if (!Number.isInteger(index.thinObservedCount) || index.thinObservedCount < 0) errors.push('data/bars/index.json thinObservedCount must be a non-negative integer');
       const reconstructedCount = index.tickers.filter((row) => row && row.reconstructed).length;
       const sessionReuseCount = index.tickers.filter((row) => row && row.sessionCached).length;
       const zeroObservedCount = index.tickers.filter((row) => row && row.zeroObserved).length;
+      const thinObservedCount = index.tickers.filter((row) => row && row.thinObserved).length;
       if (index.reconstructedCount !== reconstructedCount) errors.push(`data/bars/index.json reconstructedCount ${index.reconstructedCount} does not match ticker receipts ${reconstructedCount}`);
       if (index.sessionReuseCount !== sessionReuseCount) errors.push(`data/bars/index.json sessionReuseCount ${index.sessionReuseCount} does not match ticker receipts ${sessionReuseCount}`);
       if (index.zeroObservedCount !== zeroObservedCount) errors.push(`data/bars/index.json zeroObservedCount ${index.zeroObservedCount} does not match ticker receipts ${zeroObservedCount}`);
+      if (index.thinObservedCount !== thinObservedCount) errors.push(`data/bars/index.json thinObservedCount ${index.thinObservedCount} does not match ticker receipts ${thinObservedCount}`);
       for (const row of index.tickers) {
         if (!row || !isSessionBoundSymbol(row.sym)) continue;
         if (row.sessionState === 'zero-observed') {
@@ -96,6 +99,11 @@ function validateIndex(kind) {
           const snapshot = readJson(join(directory, `${row.sym}.json`));
           const actualDates = new Set(snapshot && Array.isArray(snapshot.rows) ? snapshot.rows.map((bar) => new Date(bar.t).toISOString().slice(0, 10)) : []);
           if (!snapshot || snapshot.sessionState !== 'zero-observed' || !Array.isArray(snapshot.zeroObservedSessions) || !snapshot.zeroObservedSessions.includes(expectedSessionDate) || actualDates.has(expectedSessionDate)) errors.push(`data/bars/${row.sym}.json zero-observed session ${expectedSessionDate} is not represented without a fabricated bar`);
+        } else if (row.sessionState === 'thin-observed') {
+          if (row.thinObserved !== true || row.sessionDate !== expectedSessionDate || row.asof !== expectedSessionDate) errors.push(`data/bars/index.json ${row.sym} thin-observed receipt must identify completed XNYS session ${expectedSessionDate}`);
+          const snapshot = readJson(join(directory, `${row.sym}.json`));
+          const sessionBar = snapshot && Array.isArray(snapshot.rows) ? snapshot.rows.find((bar) => new Date(bar.t).toISOString().slice(0, 10) === expectedSessionDate) : null;
+          if (!snapshot || snapshot.sessionState !== 'thin-observed' || !Array.isArray(snapshot.thinObservedSessions) || !snapshot.thinObservedSessions.includes(expectedSessionDate) || !sessionBar || sessionBar.sourceState !== 'thin-observed' || !Number.isInteger(sessionBar.sourceBars) || !Number.isInteger(sessionBar.sourceExpectedBars) || sessionBar.sourceBars <= 0 || sessionBar.sourceBars >= sessionBar.sourceExpectedBars || !Number.isFinite(sessionBar.sourceCoverage) || sessionBar.sourceCoverage <= 0 || sessionBar.sourceCoverage >= 1) errors.push(`data/bars/${row.sym}.json thin-observed session ${expectedSessionDate} lacks measured sparse-trade coverage`);
         } else if (row.sessionState !== 'observed' || row.asof !== expectedSessionDate || row.sessionDate !== expectedSessionDate) {
           errors.push(`data/bars/index.json ${row.sym} observed receipt must equal completed XNYS session ${expectedSessionDate}`);
         }

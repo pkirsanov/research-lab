@@ -91,8 +91,10 @@ after-hours = reactions/follow-through).
       row with null OHLCV, `fetch-bars.mjs` checks Yahoo's bounded five-minute feed for that official regular
       session. A complete observed session is reconstructed and recorded; an explicitly declared session with
       zero observed trades is recorded as `zero-observed` while preserving the prior actual model clock and
-      creating no synthetic bar. Dividend dates use raw post-event intraday prices against adjusted prior history;
-      split dates remain fail-closed until Yahoo supplies a coherent adjusted daily row.
+      creating no synthetic bar. A sparse but real session is recorded as `thin-observed` with actual/expected
+      bucket count, coverage, and first/last trade clocks; only observed trades enter its OHLCV aggregate.
+      Dividend dates use raw post-event intraday prices against adjusted prior history; split dates remain
+      fail-closed until Yahoo supplies a coherent adjusted daily row.
       A later publication window reuses the same completed-session bars with zero duplicate history requests.
       It then runs
       `scripts/brief-refresh.mjs` (fetches VIX + Fear&Greed and reuses bar snapshots fetched within six hours;

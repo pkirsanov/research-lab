@@ -13,7 +13,8 @@
  * This is the sole Yahoo-history owner; option snapshots attach these canonical
  * rows. Committed date+window keys make the cache reusable across machines.
  *
- * Best-effort: a failing ticker is skipped; the process always exits 0.
+ * Ad-hoc runs are best-effort. Complete scheduled runs exit nonzero unless the
+ * current-window index passes the strict completed-session validator.
  */
 import { readFileSync, mkdirSync, writeFileSync, existsSync } from 'node:fs';
 
@@ -191,9 +192,19 @@ function reconstructSession(j, session, adjustmentFactor) {
     if (q.volume && Number.isFinite(q.volume[i])) volume += q.volume[i];
     count += 1;
   }
-  if (count === 0) return { state: 'zero-observed', sourceBars: 0 };
-  if (count < Math.floor(expectedBars * 0.8) || firstObserved > start + 15 * 60 * 1000 || lastObserved < end - 15 * 60 * 1000 || ![open, high, low, close].every(Number.isFinite)) return { state: 'incomplete', sourceBars: count };
-  return { state: 'observed', row: { t: start, o: open, h: high, l: low, c: close * adjustmentFactor, v: volume, sourceBars: count } };
+  if (count === 0) return { state: 'zero-observed', sourceBars: 0, expectedBars };
+  if (![open, high, low, close].every(Number.isFinite)) return { state: 'unavailable', sourceBars: count, expectedBars };
+  const completeCoverage = count >= Math.floor(expectedBars * 0.8) && firstObserved <= start + 15 * 60 * 1000 && lastObserved >= end - 15 * 60 * 1000;
+  const state = completeCoverage ? 'observed' : 'thin-observed';
+  return {
+    state,
+    row: {
+      t: start, o: open, h: high, l: low, c: close * adjustmentFactor, v: volume,
+      sourceBars: count, sourceExpectedBars: expectedBars, sourceCoverage: count / expectedBars,
+      sourceFirstObservedAt: new Date(firstObserved).toISOString(), sourceLastObservedAt: new Date(lastObserved).toISOString(),
+      sourceState: state
+    }
+  };
 }
 async function mapConcurrent(items, limit, worker) {
   const results = new Array(items.length);
@@ -215,13 +226,15 @@ async function refreshSymbol(sym) {
   const sessionBound = isSessionBoundSymbol(sym);
   const enforceSession = sessionBound && !!EXPECTED_SESSION_DATE;
   const existingZeroObserved = enforceSession && existing && existing.sessionState === 'zero-observed' && existing.expectedSessionDate === EXPECTED_SESSION_DATE && Array.isArray(existing.zeroObservedSessions) && existing.zeroObservedSessions.includes(EXPECTED_SESSION_DATE);
-  const sessionCurrent = !enforceSession || (existing && existing.asof === EXPECTED_SESSION_DATE) || existingZeroObserved;
+  const existingThinObserved = enforceSession && existing && existing.sessionState === 'thin-observed' && existing.asof === EXPECTED_SESSION_DATE && Array.isArray(existing.thinObservedSessions) && existing.thinObservedSessions.includes(EXPECTED_SESSION_DATE);
+  const sessionCurrent = !enforceSession || (existing && existing.asof === EXPECTED_SESSION_DATE) || existingZeroObserved || existingThinObserved;
   const sameWindow = CACHE_WINDOW && existing && existing.refreshDate === CACHE_DATE && existing.refreshWindow === CACHE_WINDOW;
-  const sameCompletedSession = enforceSession && ((existing && existing.asof === EXPECTED_SESSION_DATE) || existingZeroObserved);
+  const sameCompletedSession = enforceSession && ((existing && existing.asof === EXPECTED_SESSION_DATE) || existingZeroObserved || existingThinObserved);
   if (existing && Array.isArray(existingRows) && existingRows.length && sessionCurrent && (sameWindow || sameCompletedSession)) {
     const reuseReason = sameWindow ? CACHE_DATE + '/' + CACHE_WINDOW : 'completed session ' + EXPECTED_SESSION_DATE;
     console.log('reuse ' + sym + '  bars=' + existingRows.length + ' (git cache ' + reuseReason + ')');
-    return { sym, n: existingRows.length, last: existingRows[existingRows.length - 1].c, asof: existing.asof, sessionDate: enforceSession ? EXPECTED_SESSION_DATE : existing.asof, sessionState: existingZeroObserved ? 'zero-observed' : 'observed', zeroObserved: existingZeroObserved, cached: true, sessionCached: !sameWindow && sameCompletedSession, reconstructed: Array.isArray(existing.reconstructedSessions) && existing.reconstructedSessions.length > 0 };
+    const cachedSessionState = existingZeroObserved ? 'zero-observed' : existingThinObserved ? 'thin-observed' : 'observed';
+    return { sym, n: existingRows.length, last: existingRows[existingRows.length - 1].c, asof: existing.asof, sessionDate: enforceSession ? EXPECTED_SESSION_DATE : existing.asof, sessionState: cachedSessionState, zeroObserved: existingZeroObserved, thinObserved: existingThinObserved, cached: true, sessionCached: !sameWindow && sameCompletedSession, reconstructed: Array.isArray(existing.reconstructedSessions) && existing.reconstructedSessions.length > 0 };
   }
   if (MISSING_ONLY && existsSync(existingFile)) {
     if (Array.isArray(existingRows) && existingRows.length) {
@@ -234,7 +247,7 @@ async function refreshSymbol(sym) {
     const daily = await getJSON('https://query1.finance.yahoo.com/v8/finance/chart/' + encodeURIComponent(sym) + '?interval=1d&range=' + RANGE + '&includeAdjustedClose=true&events=div%2Csplits');
     const parsed = trimBars(daily, enforceSession ? EXPECTED_SESSION_DATE : null);
     if (!parsed) throw new Error('no daily bars');
-    let bars = mergeRows(existingRows, parsed.rows, enforceSession ? EXPECTED_SESSION_DATE : null), reconstructed = false, zeroObserved = false;
+    let bars = mergeRows(existingRows, parsed.rows, enforceSession ? EXPECTED_SESSION_DATE : null), reconstructed = false, zeroObserved = false, sessionState = 'observed';
     let asof = sessionDateFromMs(bars[bars.length - 1].t);
     if (enforceSession && asof !== EXPECTED_SESSION_DATE) {
       if (!EXPECTED_SESSION) throw new Error('expected XNYS session unavailable');
@@ -242,24 +255,28 @@ async function refreshSymbol(sym) {
       const intraday = await getJSON('https://query1.finance.yahoo.com/v8/finance/chart/' + encodeURIComponent(sym) + '?interval=5m&range=5d&includePrePost=false&events=div%2Csplits');
       const reconstructionFactor = eventFallsOn(parsed.events, 'dividends', EXPECTED_SESSION_DATE) ? 1 : parsed.adjustmentFactor;
       const repair = reconstructSession(intraday, EXPECTED_SESSION, reconstructionFactor);
-      if (repair.state === 'observed') {
+      const dailyState = dailySessionState(daily, EXPECTED_SESSION_DATE);
+      if ((repair.state === 'observed' || repair.state === 'thin-observed') && dailyState === 'declared-null') {
         bars = mergeRows(bars.filter((row) => sessionDateFromMs(row.t) !== EXPECTED_SESSION_DATE), [repair.row], EXPECTED_SESSION_DATE);
         reconstructed = true;
         asof = EXPECTED_SESSION_DATE;
-      } else if (repair.state === 'zero-observed' && dailySessionState(daily, EXPECTED_SESSION_DATE) === 'declared-null') {
+        sessionState = repair.state;
+      } else if (repair.state === 'zero-observed' && dailyState === 'declared-null') {
         zeroObserved = true;
+        sessionState = 'zero-observed';
       } else {
         throw new Error('completed session ' + EXPECTED_SESSION_DATE + ' unavailable from daily and intraday feeds (' + repair.state + ')');
       }
     }
     if (enforceSession && asof !== EXPECTED_SESSION_DATE && !zeroObserved) throw new Error('latest completed session is ' + asof + ', expected ' + EXPECTED_SESSION_DATE);
     const reconstructedSessions = [...new Set(bars.filter((row) => Number.isInteger(row.sourceBars) && row.sourceBars > 0).map((row) => sessionDateFromMs(row.t)))];
+    const thinObservedSessions = [...new Set(bars.filter((row) => row.sourceState === 'thin-observed').map((row) => sessionDateFromMs(row.t)))];
     const freshDates = new Set(bars.map((row) => sessionDateFromMs(row.t)));
     const zeroObservedSessions = [...new Set([...(Array.isArray(existing && existing.zeroObservedSessions) ? existing.zeroObservedSessions : []), ...(zeroObserved ? [EXPECTED_SESSION_DATE] : [])])].filter((date) => !freshDates.has(date));
-    const record = { sym, interval: '1d', range: RANGE, asof, fetched: new Date().toISOString(), refreshDate: CACHE_DATE, refreshWindow: CACHE_WINDOW, expectedSessionDate: enforceSession ? EXPECTED_SESSION_DATE : null, sessionState: zeroObserved ? 'zero-observed' : 'observed', src: reconstructedSessions.length ? 'yahoo-daily+intraday-repair' : zeroObserved ? 'yahoo-zero-observed-session' : 'yahoo', reconstructedSessions, zeroObservedSessions, rows: bars };
+    const record = { sym, interval: '1d', range: RANGE, asof, fetched: new Date().toISOString(), refreshDate: CACHE_DATE, refreshWindow: CACHE_WINDOW, expectedSessionDate: enforceSession ? EXPECTED_SESSION_DATE : null, sessionState, src: reconstructedSessions.length ? 'yahoo-daily+intraday-repair' : zeroObserved ? 'yahoo-zero-observed-session' : 'yahoo', reconstructedSessions, thinObservedSessions, zeroObservedSessions, rows: bars };
     writeFileSync(existingFile, JSON.stringify(record));
     console.log('ok   ' + sym + '  bars=' + bars.length + '  asof=' + asof + '  session=' + (enforceSession ? EXPECTED_SESSION_DATE : asof) + '/' + record.sessionState + '  last=' + bars[bars.length - 1].c + (reconstructed ? '  (yahoo intraday repair)' : zeroObserved ? '  (yahoo zero observed trades)' : '  (yahoo)'));
-    return { sym, n: bars.length, last: bars[bars.length - 1].c, asof, sessionDate: enforceSession ? EXPECTED_SESSION_DATE : asof, sessionState: record.sessionState, zeroObserved, reconstructed: reconstructedSessions.length > 0, repairedThisRun: reconstructed };
+    return { sym, n: bars.length, last: bars[bars.length - 1].c, asof, sessionDate: enforceSession ? EXPECTED_SESSION_DATE : asof, sessionState, zeroObserved, thinObserved: sessionState === 'thin-observed', reconstructed: reconstructedSessions.length > 0, repairedThisRun: reconstructed };
   } catch (err) {
     if (Array.isArray(existingRows) && existingRows.length) {
       console.log('kept ' + sym + '  bars=' + existingRows.length + ' (last-good; ' + ((err && err.message) || err) + ')');
@@ -282,11 +299,12 @@ async function main() {
   const reconstructedCount = idx.filter((row) => row.reconstructed).length;
   const sessionReuseCount = idx.filter((row) => row.sessionCached).length;
   const zeroObservedCount = idx.filter((row) => row.zeroObserved).length;
+  const thinObservedCount = idx.filter((row) => row.thinObserved).length;
   writeFileSync(OUT_DIR + '/index.json', JSON.stringify({
     updated: new Date().toISOString(), refreshDate: CACHE_DATE, refreshWindow: CACHE_WINDOW,
     expectedSessionDate: EXPECTED_SESSION_DATE,
     expected: syms.length, count: idx.length, freshCount: idx.length - carriedCount,
-    carriedCount, reconstructedCount, sessionReuseCount, zeroObservedCount, missing, tickers: idx
+    carriedCount, reconstructedCount, sessionReuseCount, zeroObservedCount, thinObservedCount, missing, tickers: idx
   }));
   console.log('\nwrote ' + idx.length + '/' + syms.length + ' bar snapshots to ' + OUT_DIR);
 }

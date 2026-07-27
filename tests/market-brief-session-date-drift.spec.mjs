@@ -27,8 +27,22 @@ test('Regression BUG-002: a failed rollover never serves prior-session actions b
     const nextSession = page.locator('#nextSession');
     await expect(page.locator('#liveNote')).toContainText('live shared cache refreshed', { timeout: 45_000 });
     await expect(nextSession).toContainText(fixture.baselineDate);
-    await expect(nextSession).toContainText(publication.payload.nextSession.thesis);
-    await expect(nextSession).toContainText(publication.payload.nextSession.actions[0].subject);
+    // The universal RLTKR ticker decorator injects an "Explain <ticker>" context button
+    // (<button class="rltkr-context">?</button>) after every KNOWN ticker anywhere in the
+    // rendered body, so the visible thesis/action prose is the published July-15 text with
+    // those affordance buttons interleaved (e.g. "MSFT" renders as "MSFT?"). Strip ONLY those
+    // injected buttons, then require the FULL published thesis and first-action subject to
+    // render verbatim — the design.md boundary that "the visible date, thesis, and action
+    // content all remain July 15". Decoration-invariant, not a relaxation: every character of
+    // the published thesis and action subject must still be present, so a drifted July-16
+    // payload (or a renderer that dropped/replaced the published prose) still fails.
+    const renderedNextSessionText = () => nextSession.evaluate((element) => {
+      const clone = element.cloneNode(true);
+      clone.querySelectorAll('.rltkr-context').forEach((button) => button.remove());
+      return clone.textContent || '';
+    });
+    await expect.poll(renderedNextSessionText, { timeout: 15_000 }).toContain(publication.payload.nextSession.thesis);
+    await expect.poll(renderedNextSessionText, { timeout: 15_000 }).toContain(publication.payload.nextSession.actions[0].subject);
     await expect(nextSession.locator('.next-head .pill.warn')).toHaveCount(0);
     expect(externalRequests).toEqual([]);
     expect(publication.snapshotDate).toBe(publication.payloadDate);

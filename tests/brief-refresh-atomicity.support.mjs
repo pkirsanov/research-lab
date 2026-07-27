@@ -129,7 +129,16 @@ if (count === 3) {
   copyFileSync(resolve(ROOT, 'market-brief.config.json'), resolve(repoRoot, 'market-brief.config.json'));
   copyFileSync(resolve(ROOT, 'tools.json'), resolve(repoRoot, 'tools.json'));
   copyFileSync(resolve(ROOT, 'watchlist.json'), resolve(repoRoot, 'watchlist.json'));
-  for (const webPath of ['market-brief.html', 'rlbrief.js', 'rlg.js', 'rlticker.js', 'rldata.js', 'rlapp.js', 'rlnav.js']) {
+  // Serve the exact set of scripts market-brief.html declares via <script src> so the
+  // fixture-served page hydrates identically to the committed site. rlexperience-adapters/
+  // market-action.js defines the browser global RLMARKETACTION that rlbrief.js hard-delegates
+  // to (normalizeRecommendation/nextSessionActions/…); omitting it throws inside renderAll()
+  // and boot() never schedules refreshLive(), so #liveNote never reaches "live shared cache
+  // refreshed". The dynamically-loaded four-view shell (rlexperience.js/rlviews.js + configs)
+  // is progressive enhancement loaded by rlapp.js with its own error handling and is not
+  // required for the brief's core render or the live-refresh path.
+  mkdirSync(resolve(repoRoot, 'rlexperience-adapters'), { recursive: true });
+  for (const webPath of ['market-brief.html', 'rlg.js', 'rldata.js', 'rlexperience-adapters/market-action.js', 'rlbrief.js', 'rlmarketaction.js', 'rlticker.js', 'rlapp.js', 'rlnav.js']) {
     copyFileSync(resolve(ROOT, webPath), resolve(repoRoot, webPath));
   }
   if (options.browserAssets) {

@@ -89,12 +89,14 @@ Scenario: SCN-BUG002-001 failed rollover retains the last coherent Market Brief 
 
 **Excluded surfaces for this planning transition:** every test byte; both `.test.mjs` Node suites, including their guards, imports, titles, assertions, and behavior; every line in `tests/playwright-runtime.foundation.functional.mjs`; `tests/playwright-runtime.mjs`; production code/data; package/source-lock files; browser authority and exact inventory; worker/retry settings; `globalSetup` and setup hooks; Feature 004/010 artifacts; report execution evidence; spec/design/certification; framework files; and unrelated dirty paths. The successor test transition's one-file Feature 009 clock repair does not authorize any BUG-002 test, runtime, config, worker, retry, or matcher edit.
 
+**Broad-E2E environmental disposition (advisory — does not weaken any DoD contract):** `BUG002-BROAD-E2E-INSTABILITY` is an environmental / foreign-feature parallel-worker flake, not a BUG-002 defect. `bubbles.validate` proved the code deterministic (6/6 serial passes) and confined the instability to foreign-feature parallel-worker races in the shared full-inventory `TP-01-10` run — outside BUG-002's change boundary, which forbids editing any foreign test byte. BUG-002's own browser test (`tests/market-brief-session-date-drift.spec.mjs`) passes in every broad run and in isolation. The Gate 6/7 "each identity exactly once, no retry" DoD contract is intentionally left unchanged; it is satisfied only by a quiesced / serial (single-worker) full-inventory run or an explicit owner disposition of the foreign-feature races — a subsequent serial/CI clean run closes it, not any wording change here. (Validate evidence: report.md §V7 finding accounting.)
+
 | Class | Paths | Rule |
 | --- | --- | --- |
 | Existing production | `scripts/brief-refresh-and-push.sh` | Surgical transaction repair only |
 | New tests | `tests/brief-refresh-atomicity.support.mjs`, `tests/brief-refresh-atomicity.test.mjs`, `tests/market-brief-session-date-drift.spec.mjs` | Isolated fixtures; no real checkout mutation or network |
 | Shared Playwright config | `playwright.config.mjs` | Preserve the delivered top-level `testMatch: '**/*.spec.mjs'` hunk unchanged; it remains independently attributable inside the accepted rollback unit |
-| Shared Playwright contract | `tests/playwright-runtime.foundation.functional.mjs` | Preserve the delivered discovery-boundary, inventory, shared-seam, and no-fallback assertion hunk; `bubbles.test` may edit only the direct-Node predicate to accept static or guarded dynamic `node:test` ownership while rejecting both Playwright import sources |
+| Shared Playwright contract | `tests/playwright-runtime.foundation.functional.mjs` | Preserve the delivered discovery-boundary, inventory, shared-seam, and no-fallback assertion hunk; the bubbles.test owner may edit only the direct-Node predicate to accept static or guarded dynamic `node:test` ownership while rejecting both Playwright import sources |
 | BUG-002 shared-seam conformance | `tests/market-brief-session-date-drift.spec.mjs` | Preserve the delivered `./playwright-runtime.mjs` import and every other byte; no edit is authorized |
 | Current data repair | `market-brief.snapshot.json`, `brief-history.jsonl` | Exact prior coherent bytes only |
 | Read-only contract | `market-brief.payload.json`, `market-brief.config.json`, `scripts/brief-refresh.mjs`, `scripts/validate-brief-payload.mjs`, `market-brief.html`, `rlbrief.js` | No edit |
@@ -119,6 +121,18 @@ Scenario: SCN-BUG002-001 failed rollover retains the last coherent Market Brief 
 **Excluded Node discovery inventory (2):** `tests/brief-refresh-atomicity.test.mjs` and `tests/feature-004-dirty-tree-collision.test.mjs`. These remain direct `node --test` suites and must never be imported or executed by TP-01-10.
 
 This is a planning-level shared test-infrastructure amendment, not a production architecture change. The existing design already fixes the production publication transaction and requires isolated, checkout-local, portable browser verification; the matcher narrows which existing test taxonomy Playwright collects, the foundation keeps that boundary fail-closed, the delivered consumer reconciliation makes all 27 browser suites use the same runtime seam, and the predicate repair recognizes both valid direct-Node import forms without weakening Playwright exclusions. None changes the production state machine, data flow, user behavior, Node-suite behavior, test titles/assertions, or browser runtime. `design.md` therefore remains read-only, and this scoped G067 contract is sufficient authority for the four-hunk cross-owner rollback/change unit.
+
+### Consumer Impact Sweep - SCOPE-01
+
+The only interface-level change in this bug is the shared-runtime **import-seam replacement** delivered in the browser spec (its import source moved to the shared `./playwright-runtime.mjs` seam), paired with the `playwright.config.mjs` discovery matcher and the foundation-contract assertions. This is a test-layer symbol/contract move, not a production route, URL, slug, or endpoint change, so the consumer set is confined to the test infrastructure of this build-free static site.
+
+| Changed test-support file | Kind | Real consumer(s) |
+| --- | --- | --- |
+| `tests/market-brief-session-date-drift.spec.mjs` | Browser spec (import-source hunk) | Playwright discovery/runtime — the `playwright.config.mjs` matcher plus the `tests/playwright-runtime.mjs` shared seam discover and execute it; the replaced import is consumed here. |
+| `tests/playwright-runtime.foundation.functional.mjs` | Foundation contract test (assertion + direct-Node predicate hunks) | The `node --test` canary runner (TP-01-12) executes it, and it asserts the discovery-boundary/shared-seam contract that Playwright discovery/runtime depends on. |
+| `tests/brief-refresh-atomicity.support.mjs` | New test-support fixture | The `tests/brief-refresh-atomicity.test.mjs` Node atomicity suite imports it; no other file consumes it. |
+
+**Affected consumer surfaces:** Research Lab is a build-free static-HTML/JS site with no router, no generated client, and no service API, so there is **no navigation, breadcrumb, redirect, API client, generated client, or deep link** consumer for this test-support change. The sole consumer surface is the test layer above; the **stale-reference** scan is `grep -rn "playwright/test" tests/*.spec.mjs`, which must return zero direct `playwright/test` imports — all 27 browser specs route through the shared `./playwright-runtime.mjs` seam (asserted by `tests/playwright-runtime.foundation.functional.mjs`, TP-01-12).
 
 ### Atomicity And Rollback Contract - SCOPE-01
 
@@ -224,7 +238,7 @@ This prerequisite is a concrete test-owner route, not a planning-phase test edit
   > **Claim Source:** executed
   > **Evidence:** [Current 133-Test Independent Replay And Regression Route](report.md#current-133-test-independent-replay-and-regression-route---2026-07-18t221124z) records immediate TP-01-12 `5/5`, TP-01-11 `3/3`, and Gate 2 TP-01-12 `5/5` before unrestricted discovery or either broad replay.
   > **Current Evidence:** [No-Overlap Test Rework 03 Gate 3 Inventory Refusal](report.md#no-overlap-test-rework-03-gate-3-inventory-refusal---2026-07-18t230914z) independently records the same ordered `5/5`, `3/3`, `5/5` canary sequence in a zero-overlap window.
-- [ ] Unrestricted Playwright discovery immediately before browser execution begins at `Listing tests`, names exactly the 12 current `.spec.mjs` files, excludes both `.test.mjs` suites and every TAP/Node prelude, meets the latest-known minimum of 143, and freezes the sorted full identity set/count/digest plus the 15-file SHA-256 fence.
+- [ ] Unrestricted Playwright discovery immediately before browser execution begins at `Listing tests`, names exactly the 27 current `.spec.mjs` files, excludes both `.test.mjs` suites and every TAP/Node prelude, meets the latest-known minimum of 218, and freezes the sorted full identity set/count/digest plus the 30-file SHA-256 fence.
   > **Phase:** test
   > **Claim Source:** executed
   > **Evidence:** [Current 133-Test Independent Replay And Regression Route](report.md#current-133-test-independent-replay-and-regression-route---2026-07-18t221124z) records native `Listing tests:` output ending at `Total: 133 tests in 12 files`, with 12 shared importers, two excluded direct-Node suites, and no TAP/Feature 004 prelude.
@@ -233,7 +247,7 @@ This prerequisite is a concrete test-owner route, not a planning-phase test edit
   > **What was observed:** The current command began at `Listing tests:`, retained 12 `.spec.mjs` files and no Node prelude, but ended at `Total: 143 tests in 12 files`.
   > **Why this is uncertain:** The planning-owned exact count is stale against concurrent Feature 005 browser work; test ownership cannot rewrite that contract or remove foreign tests.
   > **What would resolve this:** Planning reconciles the stable truthful count, followed by a fresh exact discovery replay.
-- [ ] Gate 6 and Gate 7 each execute every identity from the immediately preceding discovery snapshot exactly once, with no missing, duplicate, retry, skip, only, todo, or extra identity; both preserve the captured count/digest and 15-file hashes and exit prompt-clean with no Node prelude, overlap, non-test error, force-kill, or retained process.
+- [ ] Gate 6 and Gate 7 each execute every identity from the immediately preceding discovery snapshot exactly once, with no missing, duplicate, retry, skip, only, todo, or extra identity; both preserve the captured count/digest and 30-file hashes and exit prompt-clean with no Node prelude, overlap, non-test error, force-kill, or retained process.
   > **Phase:** test
   > **Claim Source:** executed
   > **Evidence:** [Current 133-Test Independent Replay And Regression Route](report.md#current-133-test-independent-replay-and-regression-route---2026-07-18t221124z) records exact repetitions at `133 passed (19.6s)` and `133 passed (18.3s)`, balanced close/exit records, zero failure signatures, and `retainedCliRunnerCount=0`.
@@ -252,6 +266,7 @@ This prerequisite is a concrete test-owner route, not a planning-phase test edit
   > **Phase:** test
   > **Claim Source:** executed
   > **Evidence:** [Current 133-Test Independent Replay And Regression Route](report.md#current-133-test-independent-replay-and-regression-route---2026-07-18t221124z) records exact matching pre/post SHA-256 and statuses for all 14 protected source/test/config paths, no protected staging, and all four accepted boundary elements across exactly three diff files.
+- [ ] Consumer Impact Sweep is completed for the shared-runtime import-seam replacement; zero stale first-party references remain (no `.spec.mjs` imports `playwright/test` directly — all 27 browser specs route through the shared `./playwright-runtime.mjs` seam). (**Phase:** test; **Evidence:** [Consumer Impact Sweep - SCOPE-01](scopes.md#consumer-impact-sweep---scope-01) and the foundation contract test TP-01-12.)
 - [ ] Independent `bubbles.test`, `bubbles.validate`, and `bubbles.audit` evidence accounts for every finding with no terminal claim written by implementation.
 
   > **Phase:** test

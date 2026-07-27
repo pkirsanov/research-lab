@@ -7457,3 +7457,228 @@ truthful inventory, `bubbles.test` must restart from the immediate foundation
 command rather than resume at Gate 4.
 
 <!-- BUG002 no-overlap test rework 03 gate 3 refusal EOF -->
+
+## Validate-Owned Diagnostic Evidence — 2026-07-27 (bubbles.validate, deep mode)
+
+Independent `bubbles.validate` diagnostic evidence, gathered after the plan
+cardinality reconciliation (`d784ea16`) and the fixture/content green
+(`25e2f66e`). Repository-binding preflight exited `0` before any repo-local
+read. No terminal certification field was written by this run.
+
+### V1: Unrestricted Discovery Snapshot (Gate 3 / TP-01-13)
+
+**Claim Source:** executed
+**Command:** `npx --no-install playwright test --list --config=playwright.config.mjs --project=system-chrome --reporter=list`
+
+```
+Listing tests:
+  [system-chrome] › tests/bond-regime-lab.spec.mjs:75:1 › BS-001 duration-driven ratio improvement stays mixed
+  [system-chrome] › tests/bond-regime-lab.spec.mjs:94:1 › BS-002 aligned ratios plus OAS confirmation are constructive
+  ... (218 identities across 27 spec files) ...
+  [system-chrome] › tests/web-evidence.spec.mjs:162:1 › Regression: SCN-012-007 syndicated pages count as one origin in the safe evidence disclosure
+  [system-chrome] › tests/web-evidence.spec.mjs:195:1 › Regression: SCN-012-037 frozen safe bundle renders bounded metadata and no raw or hostile content
+Total: 218 tests in 27 files
+```
+
+- First Playwright line is `Listing tests:`.
+- `Total: 218 tests in 27 files` — meets (and equals) the `>=218` monotonic floor; identity count `218`.
+- Distinct `.spec.mjs` files named: exactly `27`, matching the corrected inventory.
+- `.test.mjs` / TAP / Node prelude leaked into discovery: `(none — clean)`.
+- Sorted identity digest (sha256 over the 218 sorted `›` lines): `d95435ae217f36956c9e94b44508f707e030272fc8f16c02323b88915eca78ad`.
+
+This snapshot directly contradicts the DoD item text still standing at `scopes.md`
+lines 227 and 236 (`12 current .spec.mjs files`, `minimum of 143`, `15-file
+SHA-256 fence`). Commit `d784ea16` corrected that inventory everywhere else in
+`scopes.md` (Phase Order item 5, Checkpoint D/G, the Shared Infrastructure table,
+Test Plan TP-01-10/12/13, Gate 3/6/7, and the Structured Handoff
+`browserAssertionMinimumBaseline: 218`) but left those two DoD item texts stale.
+
+### V2: 30-File Hash Fence
+
+**Claim Source:** executed
+Fence membership = 27 `tests/*.spec.mjs` + `playwright.config.mjs` +
+`tests/playwright-runtime.mjs` + `tests/playwright-runtime.foundation.functional.mjs`
+= `30` files (confirmed count `30`).
+
+```
+--- fence file count (must be 30) ---
+30
+--- ROLLUP FENCE DIGEST (sha256 of the sorted per-file hash table) ---
+7641d6badf9190caa49d0e56f83eb4b28218cc8919eec0c0e437b828799b99fe  -
+```
+
+Selected per-file SHA-256:
+`playwright.config.mjs` `b35e8e75984b6a21…`,
+`tests/playwright-runtime.mjs` `70b68b970551e247…`,
+`tests/playwright-runtime.foundation.functional.mjs` `6bfc36e1c436eb3f…`,
+`tests/market-brief-session-date-drift.spec.mjs` `b7e414d7963d67ef…`.
+
+### V3: Repository Selftest + Parent Finding F006-EXT-SELFTEST-MARKET-BRIEF-001
+
+**Claim Source:** executed
+**Command:** `node scripts/selftest.mjs` (exit `0`)
+
+```
+================================================
+Research-Lab self-test: 952 passed, 0 failed
+================================================
+```
+
+The parent-finding assertion passes (the exact row the date-drift previously broke):
+
+```
+market brief — registry-wide coverage + action-only payload contract
+  ✓ current payload satisfies the executable brief contract
+```
+
+No `✗ FAIL` line and no `F006-EXT-SELFTEST-MARKET-BRIEF-001` finding in the run.
+The restored market-brief payload/snapshot date coherence is green.
+
+### V4: Broad E2E Behavior + Determinism Proof (TP-01-10 / Gate 6-7)
+
+The exact unchanged TP-01-10 command runs at Playwright default `retries=0` and
+default workers (`playwright.config.mjs` declares no `retries`/`workers`/`timeout`
+override).
+
+**Claim Source:** executed — exact command, retries=0 (repetition A, exit `1`):
+
+```
+  4 failed
+    [system-chrome] › tests/company-fundamentals-lab.spec.mjs:14:1 › Regression: SCN-010-026 missing concepts remain unavailable while independent facts stay usable
+    [system-chrome] › tests/company-fundamentals-lab.spec.mjs:271:1 › Regression: SCN-010-008 archetypes change KPI priority without changing shared financial facts
+    [system-chrome] › tests/simple-model-adapters-market.spec.mjs:596:1 › Regression: options flow Simple anomaly controls recompute without trade-side inference or new chain owner
+    [system-chrome] › tests/tool-experience.spec.mjs:125:1 › Regression: BUG-001 options flow shell is ready before heavy hydration begins
+  214 passed (2.4m)
+```
+
+The BUG-002 target test itself PASSES inside the same broad run:
+`✓ 72 [system-chrome] › tests/market-brief-session-date-drift.spec.mjs:11:1 › Regression BUG-002: a failed rollover never serves prior-session actions beside an advanced Tier-A snapshot (7.8s)`.
+The four failures are foreign-feature tests (Feature 010 `company-fundamentals-lab`,
+Feature 012 `tool-experience`, `simple-model-adapters-market`): two
+`locator.click: Test timeout of 30000ms exceeded` (35.1s) and two
+`expect(locator).toHaveText` failures where cells resolved empty
+(`<td data-node-value="">`) — parallel-worker hydration/timeout races. A concurrent
+QuantitativeFinance workspace build (`cargo clippy --workspace` + `cargo check
+--workspace`, multiple `rustc` processes) was saturating CPU during this run.
+
+**Claim Source:** executed — exact command, `--retries=2` (repetition 1, exit `1`):
+
+```
+  2 failed
+    [system-chrome] › tests/company-fundamentals-lab.spec.mjs:14:1 › Regression: SCN-010-026 ...
+    [system-chrome] › tests/company-fundamentals-lab.spec.mjs:302:1 › Regression: SCN-010-027 optional source failure preserves the last valid dossier ...
+  2 flaky
+    [system-chrome] › tests/simple-model-adapters-market.spec.mjs:596:1 › Regression: options flow Simple anomaly ...
+    [system-chrome] › tests/tool-experience.spec.mjs:125:1 › Regression: BUG-001 options flow shell ...
+  214 passed (2.9m)
+```
+
+Under this shared box's current concurrent load, `--retries=2` reduced but did not
+eliminate the foreign-test flake (2 residual failures). `--retries=2` is used ONLY
+to absorb environmental CPU-contention flake on a multi-repo dev host; it is not a
+code weakening and the underlying code is deterministic (see below).
+
+**Claim Source:** executed — DETERMINISM PROOF: all 6 distinct broad-suite
+flakers, serial `--workers=1`, retries=0 (exit `0`):
+
+```
+  ✓  1 [system-chrome] › tests/company-fundamentals-lab.spec.mjs:14:1 › Regression: SCN-010-026 ... (860ms)
+  ✓  2 [system-chrome] › tests/company-fundamentals-lab.spec.mjs:271:1 › Regression: SCN-010-008 ... (608ms)
+  ✓  3 [system-chrome] › tests/company-fundamentals-lab.spec.mjs:302:1 › Regression: SCN-010-027 ... (671ms)
+  ✓  4 [system-chrome] › tests/simple-model-adapters-market.spec.mjs:596:1 › Regression: options flow Simple anomaly ... (21.0s)
+  ✓  5 [system-chrome] › tests/tool-experience.spec.mjs:89:1 › Regression: SCN-012-029 ... (3.7s)
+  ✓  6 [system-chrome] › tests/tool-experience.spec.mjs:125:1 › Regression: BUG-001 options flow shell ... (23.0s)
+  6 passed (51.9s)
+```
+
+Every broad-suite failure passes deterministically in serial execution — the
+instability is confined to foreign-feature parallel-worker races, not a code
+regression, and lies outside the BUG-002 change boundary (which forbids editing
+foreign tests). This is the acknowledged `BUG002-BROAD-E2E-INSTABILITY` finding. A
+clean Gate 6/7 exact-command pass requires a quiesced/CI environment or an owner
+disposition on the acknowledged instability.
+
+### V5: Rollback / Restore Path Verified (item 4)
+
+**Claim Source:** executed — isolated throwaway `git worktree` (no shared-tree mutation):
+
+```
+worktree added at HEAD (d784ea16)
+revert-exit=0
+--- files the rollback restores ---
+specs/_bugs/BUG-002-market-brief-session-date-drift/scopes.md
+tests/brief-refresh-atomicity.support.mjs
+tests/market-brief-session-date-drift.spec.mjs
+tests/playwright-runtime.foundation.functional.mjs
+--- inverse delta stat ---
+ 4 files changed, 34 insertions(+), 72 deletions(-)
+--- production/source/data touched? ---
+(none — only specs/_bugs/BUG-002 + tests/ paths)
+worktree removed
+```
+
+`git revert --no-commit d784ea16 25e2f66e` applies cleanly (exit `0`) in a detached
+worktree, restoring exactly the four test-support/spec files and touching zero
+production/source/data. `git show --stat` confirms `25e2f66e` changed only
+`tests/brief-refresh-atomicity.support.mjs` + `tests/market-brief-session-date-drift.spec.mjs`,
+and `d784ea16` changed only `scopes.md` +
+`tests/playwright-runtime.foundation.functional.mjs`. The shared working tree was
+never mutated (worktree removed; main tree clean).
+
+### V6: Governance Guards
+
+**Claim Source:** executed
+
+| Guard | Exit | Verdict |
+| --- | --- | --- |
+| `state-transition-guard.sh specs/_bugs/BUG-002-market-brief-session-date-drift` | `1` | FAIL — 24 failures; `failedGateIds: [G061,G022,G053,G027,G040,G093]`; `blockingCode: DELIVERY_COMPLETION_FAILED`; `verdict: FAIL` |
+| `artifact-lint.sh specs/_bugs/BUG-002-market-brief-session-date-drift` | `0` | PASS |
+
+Guard blocking classes (all correct for a mid-workflow `bugfix-fastlane` bug):
+6 unchecked DoD items (including the two stale-text items at lines 227/236, which
+the guard itself echoes as `12 current .spec.mjs files` / `minimum of 143` /
+`15-file SHA-256 fence`); 1 scope In Progress; 7 missing specialist phases
+(`test`, `regression`, `simplify`, `stabilize`, `security`, `validate`, `audit`);
+G027 phase-vs-`completedScopes` incoherence; G053 missing `### Code Diff Evidence`;
+G040 pre-existing deferral-language hit; G093 delivery-delta; a Test-Plan phantom
+`bubbles.test` file reference; and consumer-trace planning gaps.
+
+### V7: Validate Finding Accounting And Route
+
+| Finding | Validate disposition | Required owner |
+| --- | --- | --- |
+| `BUG002-BROWSER-INVENTORY-CARDINALITY-DRIFT` | Reconfirmed at `218/27/30` (not the historical `143/12/15`). `d784ea16` corrected most of `scopes.md` but left the two DoD item texts at lines 227/236 stale. | `bubbles.plan` — finish the reconciliation: lines 227/236 → `27` files / `218` floor / `30-file` fence |
+| `BUG002-BROAD-E2E-INSTABILITY` | Environmental; determinism proven (6/6 serial pass); confined to foreign-feature parallel-worker races; outside the BUG-002 boundary. | `bubbles.test` after planning reconciliation, plus an owner disposition on the acknowledged instability (quiesced/CI clean run) |
+| BUG-002 date-drift fix itself | VERIFIED: BUG-002 browser test passes in every broad run; selftest market-brief contract row passes; rollback clean. | — |
+| `BUG002-VALIDATE-CERTIFICATION` | NOT certified — guard FAIL (24), 7 phases missing, stale DoD text blocks a self-consistent DoD. No terminal certification field written. | `bubbles.validate` after the missing phases + the plan artifact fix |
+| `BUG002-AUDIT-CERTIFICATION` | Not executed. | `bubbles.audit` (`delivery-completion-v1`) after validation |
+
+`bubbles.validate` deep-mode outcome: `route_required`. Immediate next owner:
+`bubbles.plan` (finish the cardinality reconciliation at `scopes.md` lines
+227/236). The BUG-002 date-drift fix is independently verified; the blockers to
+terminal certification are the stale planning-artifact text plus the outstanding
+`test`/`regression`/`simplify`/`stabilize`/`security`/`validate`/`audit` phases and
+the acknowledged foreign-test broad-suite instability. No terminal `Fixed` mark was
+written; that remains the audit-owned step.
+
+<!-- BUG002 validate diagnostic evidence 2026-07-27 EOF -->
+
+## Plan Reconciliation — Cardinality, Phantom Test-Plan, Consumer Sweep, Environmental Disposition — 2026-07-27
+
+`bubbles.plan` executed the routed packet from `bubbles.validate` (§V7). All edits are confined to `scopes.md` (plan-owned) and this record; no product/source/test file, `state.json`, or any other spec was touched, and no DoD box was checked. Every number was verified against §V1/§V2 and the on-disk test tree (27 `tests/*.spec.mjs` + 2 `tests/*.test.mjs`) before writing. `artifact-lint.sh` exit 0 (PASSED); `state-transition-guard.sh` exit 1 — the residual blocks are the un-run specialist phases plus `state.json`-owned routing, none plan-owned.
+
+**1. Stale cardinality — resolves `BUG002-BROWSER-INVENTORY-CARDINALITY-DRIFT` (the finish of `d784ea16`).** The two forward-looking DoD items `d784ea16` missed were reconciled from the historical `143/12/15` baseline to the validate-refreshed `218/27/30` reality (§V1 `Total: 218 tests in 27 files`, digest `d95435ae217f36956c9e94b44508f707e030272fc8f16c02323b88915eca78ad`; §V2 30-file fence rollup `7641d6badf9190caa49d0e56f83eb4b28218cc8919eec0c0e437b828799b99fe`):
+
+- DoD "Unrestricted Playwright discovery…" — `the 12 current .spec.mjs files` → `the 27 current .spec.mjs files`; `minimum of 143` → `minimum of 218`; `the 15-file SHA-256 fence` → `the 30-file SHA-256 fence`.
+- DoD "Gate 6 and Gate 7…" — `15-file hashes` → `30-file hashes`.
+- The paired `> What was observed:` / `> Why this is uncertain:` historical blockquotes (the genuine 2026-07-18 discovery of `143 tests in 12 files` against the planned `133`) were preserved verbatim — rewriting timestamped evidence would be fabrication. The "each identity exactly once, no retry" contract wording is unchanged (not weakened). The guard's Check 4 dump now reads `27/218/30` with zero `12/143/15` forward-looking text.
+
+**2. Phantom Test-Plan file (state-transition-guard Check 8).** The phantom was not in the Test Plan table (TP-01-01..13 all resolve to real files). Check 8 scans every 3-column markdown table row and treats any backtick token ending in a supported suffix as a test file. In the Change Boundary table's "Shared Playwright contract" row, the first backtick `tests/playwright-runtime.foundation.functional.mjs` ends in `.functional.mjs` — an unsupported suffix that yields no candidate — so Check 8 fell through to the next backtick, the owner token `bubbles.test` (ends in `.test`), and `find bubbles.test` failed. Fix: de-code-formatted that owner name to `the bubbles.test owner` (it is an agent, not a file), so the row yields no file token. Correcting it to the drift spec would have been untruthful — that row governs the foundation test, not the drift spec. Check 8 now passes (13 real files, zero missing). The 2-column Shared-Infrastructure "Independent canary" row (which also names the owner) is never scanned by Check 8 and was left unchanged.
+
+**3. Consumer Impact Sweep (guard Check 8B — 3 blocks → 3 passes).** The scope had no Consumer Impact Sweep section, no consumer-sweep DoD item, and no enumerated consumer surfaces (Check 8B fires on the import-seam replacement's replace/move language). Added `### Consumer Impact Sweep - SCOPE-01` documenting the only real consumers of the changed test-support files — the Playwright discovery/runtime + `tests/playwright-runtime.mjs` shared seam, the `node --test` foundation canary (TP-01-12), and the `tests/brief-refresh-atomicity.test.mjs` suite that imports the new `tests/brief-refresh-atomicity.support.mjs` fixture — plus an explicit N/A declaration for navigation/breadcrumb/redirect/API-client/generated-client/deep-link surfaces (build-free static site) and the `grep -rn "playwright/test" tests/*.spec.mjs` stale-reference scan. Added the `- [ ]` DoD item "Consumer Impact Sweep is completed…; zero stale first-party references remain" (its completion belongs to the test phase — the unchecked DoD count therefore moves 6 → 7 by design). All three cited test-support files were confirmed present on disk before citation, so no new Check 8 phantom was introduced.
+
+**4. Broad-E2E environmental disposition (advisory).** Added a note to the Change Boundary section recording that `BUG002-BROAD-E2E-INSTABILITY` is an environmental / foreign-feature parallel-worker flake outside BUG-002's change boundary (which forbids editing foreign tests), that BUG-002's own browser test passes on every broad run and in isolation, and that the Gate 6/7 "each identity exactly once, no retry" contract — left unchanged — is satisfied by a quiesced/serial (single-worker) run or an explicit owner disposition of the foreign-feature races. Sourced to §V7 (determinism proven, 6/6 serial passes; instability confined to foreign-feature parallel-worker races). No DoD wording was weakened.
+
+**Residual guard blocks (none plan-owned; orchestrator routes the next specialist).** `state-transition-guard.sh` still exits 1 for: 7 un-run specialist phases (`test`, `regression`, `simplify`, `stabilize`, `security`, `validate`, `audit` — Gate G022) and their consequences (7 unchecked DoD items; scope still In Progress; empty `completedScopes`/zero Done scopes — Gate G027); 3 `transitionRequest` routing-field blocks in `state.json` (Gate G061, including the PLAN-tagged `TR-BUG-002-PLAN-BROWSER-INVENTORY-CARDINALITY-02`, which lives in `state.json` and is outside this packet's edit boundary); the report/implement-owned `### Code Diff Evidence` (Gate G053), delivery-implementation-delta (Gate G093), and the 1 pre-existing report deferral-language hit (Gate G040). This packet added zero deferral-language hits. The immediate next owner is `bubbles.test` (then regression → validate → audit); no plan-owned work is left for BUG-002.
+
+<!-- BUG002 plan reconciliation 2026-07-27 EOF -->

@@ -3,8 +3,8 @@
     "featureDir": "specs/_bugs/BUG-003-bond-regime-simple-power-model-digest-divergence",
     "featureName": "BUG-003 Bond Regime Simple/Power Model-Digest Divergence",
     "createdAt": "2026-07-16T05:27:35Z",
-    "lastUpdatedAt": "2026-07-27T17:28:34Z",
-    "status": "in_progress",
+    "lastUpdatedAt": "2026-07-27T20:30:33Z",
+    "status": "done",
     "workflowMode": "bugfix-fastlane",
     "linkedImplementationSpec": null,
     "linkedPlanningPacket": null,
@@ -13,8 +13,8 @@
     "specDependsOn": [
         "specs/003-bond-regime-and-scenario-lab"
     ],
-    "requiresRevalidation": true,
-    "certifiedAt": null,
+    "requiresRevalidation": false,
+    "certifiedAt": "2026-07-27T20:30:33Z",
     "execution": {
         "activeAgent": "bubbles.workflow",
         "currentPhase": "audit",
@@ -61,8 +61,8 @@
         }
     },
     "certification": {
-        "status": "in_progress",
-        "certifiedAt": null,
+        "status": "done",
+        "certifiedAt": "2026-07-27T20:30:33Z",
         "certifiedBy": "bubbles.workflow",
         "completedScopes": [
             "SCOPE-01"
@@ -86,7 +86,7 @@
                 "dependsOn": [],
                 "scopeDir": null,
                 "evidenceFile": "report.md",
-                "certifiedAt": "2026-07-27T17:10:00Z"
+                "certifiedAt": "2026-07-27T20:30:33Z"
             }
         ],
         "lockdownState": {

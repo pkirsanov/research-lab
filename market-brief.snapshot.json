@@ -1,227 +1,227 @@
 {
-  "asOf": "2026-07-27T18:30:16.775Z",
-  "generatedAt": "2026-07-27T18:30:16.775Z",
-  "window": "pre-close",
+  "asOf": "2026-07-27T20:30:19.263Z",
+  "generatedAt": "2026-07-27T20:30:19.263Z",
+  "window": "after-hours",
   "marketClosed": false,
-  "nextSessionDate": "2026-07-27",
+  "nextSessionDate": "2026-07-28",
   "dataFreshness": {
     "bars": {
-      "updated": "2026-07-27T18:30:12.348Z",
+      "updated": "2026-07-27T20:30:14.439Z",
       "count": 287
     },
     "options": {
-      "updated": "2026-07-27T18:30:16.419Z",
+      "updated": "2026-07-27T20:30:18.715Z",
       "count": 22
     }
   },
   "regime": {
-    "band": "VIX 19.2",
+    "band": "VIX 18.7",
     "score": 0,
-    "vix": 19.19,
+    "vix": 18.67,
     "fearGreed": null
   },
   "bench": {
-    "px": 738.86,
-    "mom126": 7.81,
+    "px": 739.09,
+    "mom126": 7.8,
     "mom252": 17.79,
-    "ma50Dist": -0.71,
-    "ma200Dist": 6.25,
+    "ma50Dist": -0.67,
+    "ma200Dist": 6.22,
     "maStack": "bull-stack",
-    "pctFrom52wHigh": -2.48
+    "pctFrom52wHigh": -2.45
   },
   "names": {
     "QQQ": {
-      "px": 684.22,
-      "mom5": -1.6,
-      "mom21": -3.72,
-      "mom63": 5.15,
-      "mom126": 10.48,
-      "mom252": 21.94,
-      "ma50Dist": -4.69,
-      "ma200Dist": 6.59,
+      "px": 682.12,
+      "mom5": -2,
+      "mom21": -4.78,
+      "mom63": 2.86,
+      "mom126": 9.8,
+      "mom252": 21.31,
+      "ma50Dist": -4.9,
+      "ma200Dist": 6.2,
       "maStack": "tangled",
-      "pctFrom52wHigh": -8.2
+      "pctFrom52wHigh": -8.48
     },
     "SPMO": {
-      "px": 146.6,
-      "mom5": 1.88,
-      "mom21": -4.67,
-      "mom63": 13.62,
-      "mom126": 24.85,
-      "mom252": 29.27,
-      "ma50Dist": -2.62,
-      "ma200Dist": 14.54,
+      "px": 144.75,
+      "mom5": 0.16,
+      "mom21": -9.33,
+      "mom63": 10.23,
+      "mom126": 23.29,
+      "mom252": 27.66,
+      "ma50Dist": -3.83,
+      "ma200Dist": 12.98,
       "maStack": "bull-stack",
-      "pctFrom52wHigh": -9.31
+      "pctFrom52wHigh": -10.46
     },
     "VGT": {
-      "px": 113.29,
-      "mom5": 0.17,
-      "mom21": -1.6,
-      "mom63": 11.67,
-      "mom126": 20.43,
-      "mom252": 32.86,
-      "ma50Dist": -2.77,
-      "ma200Dist": 13.1,
+      "px": 112.42,
+      "mom5": -0.72,
+      "mom21": -2.64,
+      "mom63": 8.06,
+      "mom126": 19.39,
+      "mom252": 31.46,
+      "ma50Dist": -3.5,
+      "ma200Dist": 12.13,
       "maStack": "tangled",
-      "pctFrom52wHigh": -9.82
+      "pctFrom52wHigh": -10.51
     },
     "MSFT": {
-      "px": 381.74,
-      "mom5": -3.07,
-      "mom21": 4.45,
-      "mom63": -7.98,
-      "mom126": -15.01,
-      "mom252": -23.94,
-      "ma50Dist": -4.34,
-      "ma200Dist": -12.19,
+      "px": 389.1,
+      "mom5": -3.28,
+      "mom21": 10.28,
+      "mom63": -8.17,
+      "mom126": -16.12,
+      "mom252": -23.23,
+      "ma50Dist": -2.42,
+      "ma200Dist": -10.36,
       "maStack": "bear-stack",
-      "pctFrom52wHigh": -29.13
+      "pctFrom52wHigh": -27.76
     }
   },
   "sectors": {
     "XLK": {
-      "rsMom1m": -4.68,
-      "rsMom3m": 8.44,
-      "rsMom6m": 13.89,
-      "rsRatio": 99.52,
-      "rsMom": 99.03,
+      "rsMom1m": -6.22,
+      "rsMom3m": 5.13,
+      "rsMom6m": 12.62,
+      "rsRatio": 99.25,
+      "rsMom": 99.07,
       "quad": "A",
-      "accel": -0.41,
+      "accel": -0.29,
       "rrgState": "Lagging",
       "rotation": "neutral",
       "maStack": "tangled",
-      "ma200Dist": 13.96
+      "ma200Dist": 12.81
     },
     "XLC": {
-      "rsMom1m": -1,
-      "rsMom3m": -13.78,
-      "rsMom6m": -15.85,
-      "rsRatio": 98.59,
-      "rsMom": 99.32,
+      "rsMom1m": 1.32,
+      "rsMom3m": -10.37,
+      "rsMom6m": -15.22,
+      "rsRatio": 98.93,
+      "rsMom": 99.48,
       "quad": "A",
-      "accel": -2.01,
+      "accel": -1.66,
       "rrgState": "Lagging",
       "rotation": "neutral",
       "maStack": "bear-stack",
-      "ma200Dist": -6.71
+      "ma200Dist": -5.48
     },
     "XLY": {
-      "rsMom1m": -5.68,
-      "rsMom3m": -11.44,
-      "rsMom6m": -18.22,
-      "rsRatio": 97.48,
-      "rsMom": 98.48,
+      "rsMom1m": -2.87,
+      "rsMom3m": -10.22,
+      "rsMom6m": -17.42,
+      "rsRatio": 98.01,
+      "rsMom": 99.19,
       "quad": "A",
-      "accel": -1.98,
+      "accel": -0.57,
       "rrgState": "Lagging",
       "rotation": "neutral",
       "maStack": "bear-stack",
-      "ma200Dist": -6.31
+      "ma200Dist": -5.07
     },
     "XLP": {
-      "rsMom1m": -1.15,
-      "rsMom3m": -3.1,
-      "rsMom6m": -4.28,
-      "rsRatio": 100.27,
-      "rsMom": 101.45,
+      "rsMom1m": 1.04,
+      "rsMom3m": -0.52,
+      "rsMom6m": -3.55,
+      "rsRatio": 101,
+      "rsMom": 101.61,
       "quad": "L",
-      "accel": 1.9,
+      "accel": 1.92,
       "rrgState": "Leading",
       "rotation": "into",
       "maStack": "bull-stack",
-      "ma200Dist": 3.54
+      "ma200Dist": 5.02
     },
     "XLE": {
-      "rsMom1m": 10.51,
-      "rsMom3m": 0.81,
-      "rsMom6m": 15.75,
-      "rsRatio": 101.21,
-      "rsMom": 102.73,
+      "rsMom1m": 7.24,
+      "rsMom3m": -0.43,
+      "rsMom6m": 12.47,
+      "rsRatio": 100.69,
+      "rsMom": 101.11,
       "quad": "L",
-      "accel": 2.27,
-      "rrgState": "Leading",
-      "rotation": "into",
+      "accel": -0.37,
+      "rrgState": "Peaking ⚠",
+      "rotation": "out",
       "maStack": "tangled",
-      "ma200Dist": 15.44
+      "ma200Dist": 12.86
     },
     "XLF": {
-      "rsMom1m": 4.07,
-      "rsMom3m": 4.55,
-      "rsMom6m": -2.24,
-      "rsRatio": 101.82,
-      "rsMom": 100.43,
+      "rsMom1m": 5.76,
+      "rsMom3m": 7.22,
+      "rsMom6m": 0.3,
+      "rsRatio": 102.02,
+      "rsMom": 100.11,
       "quad": "L",
-      "accel": -0.03,
-      "rrgState": "Leading",
-      "rotation": "neutral",
+      "accel": -0.51,
+      "rrgState": "Peaking ⚠",
+      "rotation": "out",
       "maStack": "bull-stack",
-      "ma200Dist": 7.53
+      "ma200Dist": 8.56
     },
     "XLV": {
-      "rsMom1m": 5.24,
-      "rsMom3m": 7.09,
-      "rsMom6m": -4.24,
-      "rsRatio": 101.76,
-      "rsMom": 99.98,
+      "rsMom1m": 4.34,
+      "rsMom3m": 10.04,
+      "rsMom6m": -3.16,
+      "rsRatio": 101.81,
+      "rsMom": 99.51,
       "quad": "W",
-      "accel": -0.11,
+      "accel": -0.09,
       "rrgState": "Weakening ↓",
       "rotation": "out",
       "maStack": "bull-stack",
-      "ma200Dist": 7.79
+      "ma200Dist": 8.28
     },
     "XLI": {
-      "rsMom1m": 0.59,
-      "rsMom3m": 0.63,
-      "rsMom6m": 3.14,
-      "rsRatio": 101.51,
-      "rsMom": 101.04,
+      "rsMom1m": -1.15,
+      "rsMom3m": 2.69,
+      "rsMom6m": 4.34,
+      "rsRatio": 101.58,
+      "rsMom": 101.08,
       "quad": "L",
-      "accel": 2.16,
+      "accel": 1.91,
       "rrgState": "Leading",
       "rotation": "into",
       "maStack": "bull-stack",
-      "ma200Dist": 10.12
+      "ma200Dist": 10.35
     },
     "XLB": {
-      "rsMom1m": -0.58,
-      "rsMom3m": -5.26,
-      "rsMom6m": -3.46,
-      "rsRatio": 100.26,
-      "rsMom": 101.71,
+      "rsMom1m": -1.52,
+      "rsMom3m": -4.44,
+      "rsMom6m": -4.12,
+      "rsRatio": 100.42,
+      "rsMom": 101.8,
       "quad": "L",
-      "accel": 2.38,
+      "accel": 2.49,
       "rrgState": "Leading",
       "rotation": "into",
       "maStack": "tangled",
-      "ma200Dist": 5.84
+      "ma200Dist": 6.04
     },
     "XLRE": {
-      "rsMom1m": 2.45,
-      "rsMom3m": 0.86,
-      "rsMom6m": 5.59,
-      "rsRatio": 102.02,
-      "rsMom": 102.21,
+      "rsMom1m": 1.97,
+      "rsMom3m": 1.53,
+      "rsMom6m": 4.85,
+      "rsRatio": 101.75,
+      "rsMom": 101.48,
       "quad": "L",
-      "accel": 2.88,
+      "accel": 2.33,
       "rrgState": "Leading",
       "rotation": "into",
       "maStack": "bull-stack",
-      "ma200Dist": 9.49
+      "ma200Dist": 8.99
     },
     "XLU": {
-      "rsMom1m": 0.86,
-      "rsMom3m": -3.51,
-      "rsMom6m": 2,
-      "rsRatio": 101,
-      "rsMom": 101.77,
+      "rsMom1m": -1.02,
+      "rsMom3m": -4.24,
+      "rsMom6m": 0.97,
+      "rsRatio": 100.59,
+      "rsMom": 100.79,
       "quad": "L",
-      "accel": 1.9,
+      "accel": 0.8,
       "rrgState": "Leading",
       "rotation": "into",
       "maStack": "bull-stack",
-      "ma200Dist": 4.33
+      "ma200Dist": 2.96
     }
   },
   "groups": [
@@ -232,111 +232,111 @@
       "deepLink": "sector-research-lab.html",
       "read": {
         "etf": "MAGS",
-        "px": 63.17,
-        "rsMom1m": 0.02,
-        "rsMom3m": -7.87,
-        "rsMom6m": -10.52,
-        "rsRatio": 98.4,
-        "rsMom": 99.23,
+        "px": 63.01,
+        "rsMom1m": 2.52,
+        "rsMom3m": -9.14,
+        "rsMom6m": -11.78,
+        "rsRatio": 98.39,
+        "rsMom": 99.3,
         "quad": "A",
-        "accel": -2.42,
+        "accel": -1.88,
         "rrgState": "Lagging",
         "rotation": "neutral",
         "maStack": "tangled",
-        "ma200Dist": -2.47
+        "ma200Dist": -2.71
       },
       "breadth": {
         "n": 7,
         "bullStacked": 1,
         "above50": 1,
-        "above200": 2,
-        "upMom": 4,
+        "above200": 3,
+        "upMom": 5,
         "label": "1/7 bull-stacked"
       },
       "members": {
         "AAPL": {
-          "px": 333.07,
-          "mom5": -0.2,
-          "mom21": 13.64,
-          "mom63": 21.92,
-          "mom126": 34.36,
-          "mom252": 56.15,
-          "ma50Dist": 8.76,
-          "ma200Dist": 20.82,
+          "px": 336.91,
+          "mom5": 3.16,
+          "mom21": 22.45,
+          "mom63": 24.41,
+          "mom126": 36.08,
+          "mom252": 58.24,
+          "ma50Dist": 9.75,
+          "ma200Dist": 22.04,
           "maStack": "bull-stack",
-          "pctFrom52wHigh": -0.2
+          "pctFrom52wHigh": 0
         },
         "MSFT": {
-          "px": 381.74,
-          "mom5": -3.07,
-          "mom21": 4.45,
-          "mom63": -7.98,
-          "mom126": -15.01,
-          "mom252": -23.94,
-          "ma50Dist": -4.34,
-          "ma200Dist": -12.19,
+          "px": 389.1,
+          "mom5": -3.28,
+          "mom21": 10.28,
+          "mom63": -8.17,
+          "mom126": -16.12,
+          "mom252": -23.23,
+          "ma50Dist": -2.42,
+          "ma200Dist": -10.36,
           "maStack": "bear-stack",
-          "pctFrom52wHigh": -29.13
+          "pctFrom52wHigh": -27.76
         },
         "NVDA": {
-          "px": 206.96,
-          "mom5": 2.05,
-          "mom21": 4,
-          "mom63": 3.79,
-          "mom126": 12.1,
-          "mom252": 21.35,
-          "ma50Dist": -1.03,
-          "ma200Dist": 7.39,
+          "px": 196.51,
+          "mom5": -3.33,
+          "mom21": 0.39,
+          "mom63": -5.54,
+          "mom126": 4.84,
+          "mom252": 13.26,
+          "ma50Dist": -5.76,
+          "ma200Dist": 1.94,
           "maStack": "tangled",
-          "pctFrom52wHigh": -12.11
+          "pctFrom52wHigh": -16.54
         },
         "AMZN": {
-          "px": 232.07,
-          "mom5": -6.13,
-          "mom21": -0.94,
-          "mom63": -9.02,
-          "mom126": -0.97,
-          "mom252": 1.66,
-          "ma50Dist": -6.88,
-          "ma200Dist": -1.07,
+          "px": 231.39,
+          "mom5": -7.44,
+          "mom21": 1.93,
+          "mom63": -12.35,
+          "mom126": -3.25,
+          "mom252": -0.36,
+          "ma50Dist": -6.87,
+          "ma200Dist": -1.38,
           "maStack": "tangled",
-          "pctFrom52wHigh": -15.61
+          "pctFrom52wHigh": -15.86
         },
         "GOOGL": {
-          "px": 319.77,
-          "mom5": -7.79,
-          "mom21": -7.39,
-          "mom63": -5.59,
-          "mom126": -3.13,
-          "mom252": 68.58,
-          "ma50Dist": -12.3,
-          "ma200Dist": -1.18,
+          "px": 326.56,
+          "mom5": -7.22,
+          "mom21": -4.99,
+          "mom63": -5.12,
+          "mom126": -0.29,
+          "mom252": 70.42,
+          "ma50Dist": -10.07,
+          "ma200Dist": 0.79,
           "maStack": "tangled",
-          "pctFrom52wHigh": -20.53
+          "pctFrom52wHigh": -18.84
         },
         "META": {
-          "px": 595.2,
-          "mom5": -7.87,
-          "mom21": 6.73,
-          "mom63": -9.62,
-          "mom126": -7.93,
-          "mom252": -16.32,
-          "ma50Dist": -1.75,
-          "ma200Dist": -6.58,
+          "px": 593.87,
+          "mom5": -8.05,
+          "mom21": 9.39,
+          "mom63": -11.94,
+          "mom126": -9.69,
+          "mom252": -16.65,
+          "ma50Dist": -1.9,
+          "ma200Dist": -6.7,
           "maStack": "tangled",
-          "pctFrom52wHigh": -24.41
+          "pctFrom52wHigh": -24.58
         },
         "TSLA": {
-          "px": 313,
-          "mom5": -17.81,
-          "mom21": -16.65,
-          "mom63": -16.25,
-          "mom126": -30.35,
-          "mom252": -5.88,
-          "ma50Dist": -22.25,
-          "ma200Dist": -24.53,
+          "px": 309.22,
+          "mom5": -16.33,
+          "mom21": -17.57,
+          "mom63": -17.83,
+          "mom126": -31.14,
+          "mom252": 1.28,
+          "ma50Dist": -22.66,
+          "ma200Dist": -25.33,
           "maStack": "bear-stack",
-          "pctFrom52wHigh": -36.11
+          "pctFrom52wHigh": -36.88
         }
       }
     },
@@ -347,171 +347,171 @@
       "deepLink": "sector-research-lab.html",
       "read": {
         "etf": "SOXX",
-        "px": 527.22,
-        "rsMom1m": -13.11,
-        "rsMom3m": 15.05,
-        "rsMom6m": 43.57,
-        "rsRatio": 99.51,
-        "rsMom": 98.92,
+        "px": 516.23,
+        "rsMom1m": -18.08,
+        "rsMom3m": 8.1,
+        "rsMom6m": 42.12,
+        "rsRatio": 99.24,
+        "rsMom": 99.19,
         "quad": "A",
-        "accel": -0.13,
+        "accel": 0.1,
         "rrgState": "Lagging",
         "rotation": "neutral",
         "maStack": "tangled",
-        "ma200Dist": 32.74
+        "ma200Dist": 29.59
       },
       "breadth": {
         "n": 12,
         "bullStacked": 6,
-        "above50": 1,
-        "above200": 11,
+        "above50": 0,
+        "above200": 12,
         "upMom": 2,
         "label": "6/12 bull-stacked"
       },
       "members": {
         "NVDA": {
-          "px": 206.96,
-          "mom5": 2.05,
-          "mom21": 4,
-          "mom63": 3.79,
-          "mom126": 12.1,
-          "mom252": 21.35,
-          "ma50Dist": -1.03,
-          "ma200Dist": 7.39,
+          "px": 196.51,
+          "mom5": -3.33,
+          "mom21": 0.39,
+          "mom63": -5.54,
+          "mom126": 4.84,
+          "mom252": 13.26,
+          "ma50Dist": -5.76,
+          "ma200Dist": 1.94,
           "maStack": "tangled",
-          "pctFrom52wHigh": -12.11
+          "pctFrom52wHigh": -16.54
         },
         "AVGO": {
-          "px": 381.92,
-          "mom5": 2.99,
-          "mom21": -0.04,
-          "mom63": -8.91,
-          "mom126": 17.77,
-          "mom252": 35.61,
-          "ma50Dist": -4.28,
-          "ma200Dist": 4.97,
+          "px": 383.22,
+          "mom5": 1.34,
+          "mom21": 1.14,
+          "mom63": -9.21,
+          "mom126": 20.18,
+          "mom252": 33.71,
+          "ma50Dist": -3.8,
+          "ma200Dist": 5.26,
           "maStack": "tangled",
-          "pctFrom52wHigh": -20.57
+          "pctFrom52wHigh": -20.3
         },
         "AMD": {
-          "px": 522.03,
-          "mom5": 5.3,
-          "mom21": 0.44,
-          "mom63": 70.97,
-          "mom126": 105.74,
-          "mom252": 229.05,
-          "ma50Dist": 2.66,
-          "ma200Dist": 70.78,
+          "px": 494.95,
+          "mom5": -1.71,
+          "mom21": -7.06,
+          "mom63": 42.3,
+          "mom126": 90.6,
+          "mom252": 205.3,
+          "ma50Dist": -2.85,
+          "ma200Dist": 61.17,
           "maStack": "bull-stack",
-          "pctFrom52wHigh": -10.14
+          "pctFrom52wHigh": -14.8
         },
         "TSM": {
-          "px": 403.69,
-          "mom5": 1.34,
-          "mom21": -8.43,
-          "mom63": 5.74,
-          "mom126": 23.95,
-          "mom252": 69.83,
-          "ma50Dist": -5.17,
-          "ma200Dist": 14.2,
+          "px": 399.09,
+          "mom5": -0.8,
+          "mom21": -8.25,
+          "mom63": -0.61,
+          "mom126": 19.79,
+          "mom252": 67.01,
+          "ma50Dist": -6.25,
+          "ma200Dist": 12.73,
           "maStack": "bull-stack",
-          "pctFrom52wHigh": -15.47
+          "pctFrom52wHigh": -16.43
         },
         "QCOM": {
-          "px": 166.97,
-          "mom5": -2.8,
-          "mom21": -15.42,
-          "mom63": 25.11,
-          "mom126": 6.88,
-          "mom252": 6.64,
-          "ma50Dist": -17.66,
-          "ma200Dist": -0.58,
+          "px": 170.04,
+          "mom5": -0.16,
+          "mom21": -17.01,
+          "mom63": 14.66,
+          "mom126": 10.23,
+          "mom252": 9.31,
+          "ma50Dist": -15.8,
+          "ma200Dist": 1.23,
           "maStack": "tangled",
-          "pctFrom52wHigh": -33.24
+          "pctFrom52wHigh": -32.01
         },
         "TXN": {
-          "px": 279.64,
-          "mom5": -1.54,
-          "mom21": -7.74,
-          "mom63": -0.41,
-          "mom126": 45.08,
-          "mom252": 54.35,
-          "ma50Dist": -7.07,
-          "ma200Dist": 25.53,
+          "px": 279.41,
+          "mom5": -1.64,
+          "mom21": -10.39,
+          "mom63": 1.33,
+          "mom126": 46.22,
+          "mom252": 54.69,
+          "ma50Dist": -6.98,
+          "ma200Dist": 25.13,
           "maStack": "tangled",
-          "pctFrom52wHigh": -15.84
+          "pctFrom52wHigh": -15.91
         },
         "AMAT": {
-          "px": 536.29,
-          "mom5": 1.25,
-          "mom21": -8.94,
-          "mom63": 32.94,
-          "mom126": 68.65,
-          "mom252": 188.87,
-          "ma50Dist": -0.21,
-          "ma200Dist": 46.47,
+          "px": 516.89,
+          "mom5": -1.68,
+          "mom21": -22.62,
+          "mom63": 24.1,
+          "mom126": 60.74,
+          "mom252": 176.78,
+          "ma50Dist": -4.11,
+          "ma200Dist": 40.59,
           "maStack": "bull-stack",
-          "pctFrom52wHigh": -25.82
+          "pctFrom52wHigh": -28.51
         },
         "LRCX": {
-          "px": 305.4,
-          "mom5": -2.52,
-          "mom21": -18.52,
-          "mom63": 18.2,
-          "mom126": 38.64,
-          "mom252": 216.26,
-          "ma50Dist": -9.74,
-          "ma200Dist": 28.74,
+          "px": 291.61,
+          "mom5": -4.94,
+          "mom21": -27.43,
+          "mom63": 8.98,
+          "mom126": 34.06,
+          "mom252": 199.88,
+          "ma50Dist": -13.79,
+          "ma200Dist": 22.53,
           "maStack": "bull-stack",
-          "pctFrom52wHigh": -29.52
+          "pctFrom52wHigh": -32.7
         },
         "KLAC": {
-          "px": 210.85,
-          "mom5": -0.89,
-          "mom21": -12.32,
-          "mom63": 16.29,
-          "mom126": 40.93,
-          "mom252": 136.55,
-          "ma50Dist": -4.49,
-          "ma200Dist": 31.57,
+          "px": 203.36,
+          "mom5": -2.04,
+          "mom21": -21.42,
+          "mom63": 5.23,
+          "mom126": 34.77,
+          "mom252": 126.36,
+          "ma50Dist": -8.04,
+          "ma200Dist": 26.52,
           "maStack": "bull-stack",
-          "pctFrom52wHigh": -30.12
+          "pctFrom52wHigh": -32.6
         },
         "MU": {
-          "px": 920.16,
-          "mom5": 8.39,
-          "mom21": -12.23,
-          "mom63": 91.04,
-          "mom126": 131.57,
-          "mom252": 739.15,
-          "ma50Dist": -3.68,
-          "ma200Dist": 83.34,
+          "px": 900.2,
+          "mom5": 4.01,
+          "mom21": -25.81,
+          "mom63": 81.26,
+          "mom126": 125.38,
+          "mom252": 706.99,
+          "ma50Dist": -5.96,
+          "ma200Dist": 78.1,
           "maStack": "bull-stack",
-          "pctFrom52wHigh": -24.17
+          "pctFrom52wHigh": -25.81
         },
         "MRVL": {
-          "px": 194.22,
-          "mom5": 2.94,
-          "mom21": -29.79,
-          "mom63": 17.34,
-          "mom126": 133.89,
-          "mom252": 165.64,
-          "ma50Dist": -18.77,
-          "ma200Dist": 46.34,
+          "px": 189.17,
+          "mom5": -2.96,
+          "mom21": -32.73,
+          "mom63": 15.16,
+          "mom126": 135.96,
+          "mom252": 156.04,
+          "ma50Dist": -20.96,
+          "ma200Dist": 41.98,
           "maStack": "tangled",
-          "pctFrom52wHigh": -38.61
+          "pctFrom52wHigh": -40.2
         },
         "ADI": {
-          "px": 372.01,
-          "mom5": -0.89,
-          "mom21": -9.96,
-          "mom63": -7.64,
-          "mom126": 21.29,
-          "mom252": 65.29,
-          "ma50Dist": -7.69,
-          "ma200Dist": 13.89,
+          "px": 371.89,
+          "mom5": -0.15,
+          "mom21": -11.02,
+          "mom63": -6.67,
+          "mom126": 22.41,
+          "mom252": 66.49,
+          "ma50Dist": -7.44,
+          "ma200Dist": 13.61,
           "maStack": "tangled",
-          "pctFrom52wHigh": -16.49
+          "pctFrom52wHigh": -16.52
         }
       }
     }
@@ -519,50 +519,50 @@
   "toolReads": {
     "sector-research-lab": {
       "id": "sector-research-lab",
-      "asOf": "2026-07-27T18:30:16.756Z",
-      "read": "Rotate toward XLRE as XLV weakens.",
+      "asOf": "2026-07-27T20:30:19.244Z",
+      "read": "Rotate toward XLB as XLF weakens.",
       "metrics": {
         "into": {
-          "ticker": "XLRE",
-          "rsMom1m": 2.45,
-          "rsMom3m": 0.86,
-          "rsMom6m": 5.59,
-          "rsRatio": 102.02,
-          "rsMom": 102.21,
+          "ticker": "XLB",
+          "rsMom1m": -1.52,
+          "rsMom3m": -4.44,
+          "rsMom6m": -4.12,
+          "rsRatio": 100.42,
+          "rsMom": 101.8,
           "quad": "L",
-          "accel": 2.88,
+          "accel": 2.49,
           "rrgState": "Leading",
           "rotation": "into",
-          "maStack": "bull-stack",
-          "ma200Dist": 9.49
+          "maStack": "tangled",
+          "ma200Dist": 6.04
         },
         "out": {
+          "ticker": "XLF",
+          "rsMom1m": 5.76,
+          "rsMom3m": 7.22,
+          "rsMom6m": 0.3,
+          "rsRatio": 102.02,
+          "rsMom": 100.11,
+          "quad": "L",
+          "accel": -0.51,
+          "rrgState": "Peaking ⚠",
+          "rotation": "out",
+          "maStack": "bull-stack",
+          "ma200Dist": 8.56
+        },
+        "leader": {
           "ticker": "XLV",
-          "rsMom1m": 5.24,
-          "rsMom3m": 7.09,
-          "rsMom6m": -4.24,
-          "rsRatio": 101.76,
-          "rsMom": 99.98,
+          "rsMom1m": 4.34,
+          "rsMom3m": 10.04,
+          "rsMom6m": -3.16,
+          "rsRatio": 101.81,
+          "rsMom": 99.51,
           "quad": "W",
-          "accel": -0.11,
+          "accel": -0.09,
           "rrgState": "Weakening ↓",
           "rotation": "out",
           "maStack": "bull-stack",
-          "ma200Dist": 7.79
-        },
-        "leader": {
-          "ticker": "XLK",
-          "rsMom1m": -4.68,
-          "rsMom3m": 8.44,
-          "rsMom6m": 13.89,
-          "rsRatio": 99.52,
-          "rsMom": 99.03,
-          "quad": "A",
-          "accel": -0.41,
-          "rrgState": "Lagging",
-          "rotation": "neutral",
-          "maStack": "tangled",
-          "ma200Dist": 13.96
+          "ma200Dist": 8.28
         },
         "count": 11,
         "benchmark": "SPY"
@@ -572,46 +572,46 @@
     },
     "etf-momentum-lab": {
       "id": "etf-momentum-lab",
-      "asOf": "2026-07-24T13:30:00.000Z",
-      "read": "SPMO leads the default 6M balanced ETF ranking at 24.85% momentum; 13 funds scored.",
+      "asOf": "2026-07-27T13:30:00.000Z",
+      "read": "JMOM leads the default 6M balanced ETF ranking at 16.24% momentum; 13 funds scored.",
       "metrics": {
-        "leader": "SPMO",
-        "signal": 24.85,
+        "leader": "JMOM",
+        "signal": 16.24,
         "ranked": [
           {
-            "ticker": "SPMO",
-            "signal": 24.85,
-            "score": 0.3148,
-            "annVol": 22.97,
-            "asOf": "2026-07-24T13:30:00.000Z"
+            "ticker": "JMOM",
+            "signal": 16.24,
+            "score": 0.3107,
+            "annVol": 16.21,
+            "asOf": "2026-07-27T13:30:00.000Z"
           },
           {
-            "ticker": "JMOM",
-            "signal": 15.6,
-            "score": 0.3081,
-            "annVol": 16.19,
-            "asOf": "2026-07-24T13:30:00.000Z"
+            "ticker": "SPMO",
+            "signal": 23.29,
+            "score": 0.2918,
+            "annVol": 23.05,
+            "asOf": "2026-07-27T13:30:00.000Z"
           },
           {
             "ticker": "VGT",
-            "signal": 20.43,
-            "score": 0.2912,
-            "annVol": 23.64,
-            "asOf": "2026-07-24T13:30:00.000Z"
-          },
-          {
-            "ticker": "MTUM",
-            "signal": 19.95,
-            "score": 0.2648,
-            "annVol": 24.51,
-            "asOf": "2026-07-24T13:30:00.000Z"
+            "signal": 19.39,
+            "score": 0.2739,
+            "annVol": 23.69,
+            "asOf": "2026-07-27T13:30:00.000Z"
           },
           {
             "ticker": "XSMO",
-            "signal": 12.11,
-            "score": 0.2605,
-            "annVol": 19.63,
-            "asOf": "2026-07-24T13:30:00.000Z"
+            "signal": 14.09,
+            "score": 0.2704,
+            "annVol": 19.66,
+            "asOf": "2026-07-27T13:30:00.000Z"
+          },
+          {
+            "ticker": "MTUM",
+            "signal": 18.57,
+            "score": 0.2452,
+            "annVol": 24.59,
+            "asOf": "2026-07-27T13:30:00.000Z"
           }
         ],
         "scored": 13,
@@ -623,108 +623,108 @@
     },
     "global-rotation-lab": {
       "id": "global-rotation-lab",
-      "asOf": "2026-07-24T13:30:00.000Z",
-      "read": "EWS (Singapore) leads global rotation at 79.2/100 versus ACWI; EWU is next.",
+      "asOf": "2026-07-27T13:30:00.000Z",
+      "read": "EWS (Singapore) leads global rotation at 81.4/100 versus ACWI; EWU is next.",
       "metrics": {
         "benchmark": "ACWI",
         "leader": {
           "ticker": "EWS",
           "country": "Singapore",
-          "score": 79.2,
-          "rel21": 6.68,
-          "rel63": 8.03,
-          "rel126": 7.52,
+          "score": 81.4,
+          "rel21": 7.87,
+          "rel63": 9.36,
+          "rel126": 6.39,
           "trend": "Strong uptrend",
           "fx": "FX headwind",
-          "fxStrength": -1.45,
-          "vol": 16.34,
+          "fxStrength": -1.12,
+          "vol": 16.38,
           "maxDrawdown": 7.82,
-          "asOf": "2026-07-24T13:30:00.000Z"
+          "asOf": "2026-07-27T13:30:00.000Z"
         },
         "ranked": [
           {
             "ticker": "EWS",
             "country": "Singapore",
-            "score": 79.2,
-            "rel21": 6.68,
-            "rel63": 8.03,
-            "rel126": 7.52,
+            "score": 81.4,
+            "rel21": 7.87,
+            "rel63": 9.36,
+            "rel126": 6.39,
             "trend": "Strong uptrend",
             "fx": "FX headwind",
-            "fxStrength": -1.45,
-            "vol": 16.34,
+            "fxStrength": -1.12,
+            "vol": 16.38,
             "maxDrawdown": 7.82,
-            "asOf": "2026-07-24T13:30:00.000Z"
+            "asOf": "2026-07-27T13:30:00.000Z"
           },
           {
             "ticker": "EWU",
             "country": "United Kingdom",
-            "score": 64.3,
-            "rel21": 3.85,
-            "rel63": -1.71,
-            "rel126": -0.98,
+            "score": 64.9,
+            "rel21": 3.31,
+            "rel63": -1.15,
+            "rel126": -1.76,
             "trend": "Strong uptrend",
             "fx": "Confirms weakness",
-            "fxStrength": -2.3,
-            "vol": 16.92,
+            "fxStrength": -1.78,
+            "vol": 16.91,
             "maxDrawdown": 9.92,
-            "asOf": "2026-07-24T13:30:00.000Z"
+            "asOf": "2026-07-27T13:30:00.000Z"
           },
           {
             "ticker": "EWC",
             "country": "Canada",
-            "score": 63,
-            "rel21": 3.04,
-            "rel63": -1.47,
-            "rel126": 0.24,
+            "score": 64.3,
+            "rel21": 3.13,
+            "rel63": -0.42,
+            "rel126": -0.21,
             "trend": "Strong uptrend",
             "fx": "Confirms weakness",
-            "fxStrength": -3.97,
-            "vol": 13.1,
+            "fxStrength": -3.69,
+            "vol": 13.13,
             "maxDrawdown": 8.51,
-            "asOf": "2026-07-24T13:30:00.000Z"
-          },
-          {
-            "ticker": "EWT",
-            "country": "Taiwan",
-            "score": 58.7,
-            "rel21": -6.46,
-            "rel63": 12.29,
-            "rel126": 36.36,
-            "trend": "Mixed",
-            "fx": "FX headwind",
-            "fxStrength": -2.26,
-            "vol": 42.31,
-            "maxDrawdown": 13.98,
-            "asOf": "2026-07-24T13:30:00.000Z"
-          },
-          {
-            "ticker": "EPHE",
-            "country": "Philippines",
-            "score": 58.6,
-            "rel21": 3.3,
-            "rel63": -0.52,
-            "rel126": -9.76,
-            "trend": "Mixed",
-            "fx": "Confirms weakness",
-            "fxStrength": -0.61,
-            "vol": 23.06,
-            "maxDrawdown": 15.9,
-            "asOf": "2026-07-24T13:30:00.000Z"
+            "asOf": "2026-07-27T13:30:00.000Z"
           },
           {
             "ticker": "EWA",
             "country": "Australia",
-            "score": 56.9,
-            "rel21": 2.82,
-            "rel63": -4.6,
-            "rel126": 0.3,
-            "trend": "Constructive",
+            "score": 62.5,
+            "rel21": 3.46,
+            "rel63": -3.01,
+            "rel126": -0.24,
+            "trend": "Strong uptrend",
             "fx": "Confirms weakness",
-            "fxStrength": -2.93,
-            "vol": 18.31,
+            "fxStrength": -2.44,
+            "vol": 18.33,
             "maxDrawdown": 10.01,
-            "asOf": "2026-07-24T13:30:00.000Z"
+            "asOf": "2026-07-27T13:30:00.000Z"
+          },
+          {
+            "ticker": "EPHE",
+            "country": "Philippines",
+            "score": 61.8,
+            "rel21": 3.86,
+            "rel63": 1.36,
+            "rel126": -8.43,
+            "trend": "Mixed",
+            "fx": "FX neutral",
+            "fxStrength": -0.01,
+            "vol": 23.08,
+            "maxDrawdown": 15.9,
+            "asOf": "2026-07-27T13:30:00.000Z"
+          },
+          {
+            "ticker": "EWW",
+            "country": "Mexico",
+            "score": 58.1,
+            "rel21": 1.4,
+            "rel63": -4.43,
+            "rel126": -5.12,
+            "trend": "Constructive",
+            "fx": "FX offsets weakness",
+            "fxStrength": 0.42,
+            "vol": 20.62,
+            "maxDrawdown": 13.98,
+            "asOf": "2026-07-27T13:30:00.000Z"
           }
         ],
         "scored": 13
@@ -734,20 +734,20 @@
     },
     "real-assets-lab": {
       "id": "real-assets-lab",
-      "asOf": "2026-07-24T13:30:00.000Z",
-      "read": "PDBC leads real assets at 66.6/100; GLD 16.5, BTC 37, SLV 0.",
+      "asOf": "2026-07-27T13:30:00.000Z",
+      "read": "CPER leads real assets at 56.5/100; GLD 15.7, BTC 35, SLV 0.",
       "metrics": {
         "leader": {
-          "ticker": "PDBC",
-          "model": "broad",
-          "score": 66.6,
+          "ticker": "CPER",
+          "model": "industrial",
+          "score": 56.5,
           "trend": "Uptrend",
-          "mom21": 13.75,
-          "mom63": 0.62,
-          "mom126": 27.4,
-          "vol": 23.87,
-          "maxDrawdown": 16.55,
-          "riskPenalty": 2.89,
+          "mom21": 4.84,
+          "mom63": 4.95,
+          "mom126": 6.16,
+          "vol": 31.05,
+          "maxDrawdown": 16.43,
+          "riskPenalty": 5.22,
           "confirmations": [
             {
               "label": "Commodity breadth",
@@ -756,30 +756,63 @@
                 "CPER",
                 "DBA"
               ],
-              "score": 62.5,
-              "detail": "Share of commodity vehicles with positive medium-term trends."
+              "score": 25,
+              "detail": "Broad participation tests whether the metals move is isolated."
             },
             {
-              "label": "Inverse USD",
+              "label": "Industrial cycle",
               "symbols": [
-                "UUP"
+                "XLI"
               ],
-              "score": 22.757012846459332,
-              "detail": "A weaker dollar supports a broad basket at the margin."
+              "score": 71.60903470044829,
+              "detail": "Industrial-equity direction proxies cyclical demand confirmation."
             }
           ],
-          "asOf": "2026-07-24T13:30:00.000Z"
+          "asOf": "2026-07-27T13:30:00.000Z"
         },
         "ranked": [
           {
+            "ticker": "CPER",
+            "model": "industrial",
+            "score": 56.5,
+            "trend": "Uptrend",
+            "mom21": 4.84,
+            "mom63": 4.95,
+            "mom126": 6.16,
+            "vol": 31.05,
+            "maxDrawdown": 16.43,
+            "riskPenalty": 5.22,
+            "confirmations": [
+              {
+                "label": "Commodity breadth",
+                "symbols": [
+                  "DBC",
+                  "CPER",
+                  "DBA"
+                ],
+                "score": 25,
+                "detail": "Broad participation tests whether the metals move is isolated."
+              },
+              {
+                "label": "Industrial cycle",
+                "symbols": [
+                  "XLI"
+                ],
+                "score": 71.60903470044829,
+                "detail": "Industrial-equity direction proxies cyclical demand confirmation."
+              }
+            ],
+            "asOf": "2026-07-27T13:30:00.000Z"
+          },
+          {
             "ticker": "PDBC",
             "model": "broad",
-            "score": 66.6,
+            "score": 53.1,
             "trend": "Uptrend",
-            "mom21": 13.75,
-            "mom63": 0.62,
-            "mom126": 27.4,
-            "vol": 23.87,
+            "mom21": 7.64,
+            "mom63": -2.53,
+            "mom126": 20.92,
+            "vol": 24.3,
             "maxDrawdown": 16.55,
             "riskPenalty": 2.89,
             "confirmations": [
@@ -790,7 +823,7 @@
                   "CPER",
                   "DBA"
                 ],
-                "score": 62.5,
+                "score": 25,
                 "detail": "Share of commodity vehicles with positive medium-term trends."
               },
               {
@@ -798,21 +831,21 @@
                 "symbols": [
                   "UUP"
                 ],
-                "score": 22.757012846459332,
+                "score": 20.887896187085516,
                 "detail": "A weaker dollar supports a broad basket at the margin."
               }
             ],
-            "asOf": "2026-07-24T13:30:00.000Z"
+            "asOf": "2026-07-27T13:30:00.000Z"
           },
           {
             "ticker": "DBC",
             "model": "broad",
-            "score": 66.5,
+            "score": 52.7,
             "trend": "Uptrend",
-            "mom21": 13.78,
-            "mom63": 0.69,
-            "mom126": 26.77,
-            "vol": 23.77,
+            "mom21": 7.72,
+            "mom63": -2.85,
+            "mom126": 19.98,
+            "vol": 24.26,
             "maxDrawdown": 16.54,
             "riskPenalty": 2.88,
             "confirmations": [
@@ -823,7 +856,7 @@
                   "CPER",
                   "DBA"
                 ],
-                "score": 62.5,
+                "score": 25,
                 "detail": "Share of commodity vehicles with positive medium-term trends."
               },
               {
@@ -831,21 +864,54 @@
                 "symbols": [
                   "UUP"
                 ],
-                "score": 22.757012846459332,
+                "score": 20.887896187085516,
                 "detail": "A weaker dollar supports a broad basket at the margin."
               }
             ],
-            "asOf": "2026-07-24T13:30:00.000Z"
+            "asOf": "2026-07-27T13:30:00.000Z"
+          },
+          {
+            "ticker": "BNO",
+            "model": "energy",
+            "score": 50.7,
+            "trend": "Uptrend",
+            "mom21": 16.33,
+            "mom63": -7.36,
+            "mom126": 58.75,
+            "vol": 56.76,
+            "maxDrawdown": 34.46,
+            "riskPenalty": 16.69,
+            "confirmations": [
+              {
+                "label": "Energy equities",
+                "symbols": [
+                  "XLE"
+                ],
+                "score": 59.33356724537754,
+                "detail": "Energy-equity direction confirms or diverges from the oil-linked price trend."
+              },
+              {
+                "label": "Commodity breadth",
+                "symbols": [
+                  "DBC",
+                  "CPER",
+                  "DBA"
+                ],
+                "score": 25,
+                "detail": "Share of commodity vehicles with positive medium-term trends."
+              }
+            ],
+            "asOf": "2026-07-27T13:30:00.000Z"
           },
           {
             "ticker": "DBA",
             "model": "agriculture",
-            "score": 63.7,
-            "trend": "Uptrend",
-            "mom21": 6.33,
-            "mom63": 3.07,
-            "mom126": 10.31,
-            "vol": 10.82,
+            "score": 50.7,
+            "trend": "Mixed",
+            "mom21": 2.6,
+            "mom63": 0.84,
+            "mom126": 7.3,
+            "vol": 11.27,
             "maxDrawdown": 8.67,
             "riskPenalty": 1.07,
             "confirmations": [
@@ -856,7 +922,7 @@
                   "CPER",
                   "DBA"
                 ],
-                "score": 62.5,
+                "score": 25,
                 "detail": "Broad real-asset participation supports an agriculture trend."
               },
               {
@@ -864,7 +930,7 @@
                 "symbols": [
                   "DBC"
                 ],
-                "score": 51.90513296803221,
+                "score": 42.092725644718456,
                 "detail": "The broad basket confirms whether agriculture strength is part of a larger move."
               },
               {
@@ -872,30 +938,30 @@
                 "symbols": [
                   "UUP"
                 ],
-                "score": 22.757012846459332,
+                "score": 20.887896187085516,
                 "detail": "A weaker dollar is a modest tailwind, not a weather or crop-supply signal."
               }
             ],
-            "asOf": "2026-07-24T13:30:00.000Z"
+            "asOf": "2026-07-27T13:30:00.000Z"
           },
           {
             "ticker": "USO",
             "model": "energy",
-            "score": 60.8,
+            "score": 46.5,
             "trend": "Uptrend",
-            "mom21": 28.57,
-            "mom63": 1.44,
-            "mom126": 90.28,
-            "vol": 58.66,
+            "mom21": 14.13,
+            "mom63": -5.77,
+            "mom126": 68.71,
+            "vol": 60.01,
             "maxDrawdown": 32.49,
-            "riskPenalty": 16.98,
+            "riskPenalty": 17.51,
             "confirmations": [
               {
                 "label": "Energy equities",
                 "symbols": [
                   "XLE"
                 ],
-                "score": 64.9170084697455,
+                "score": 59.33356724537754,
                 "detail": "Energy-equity direction confirms or diverges from the oil-linked price trend."
               },
               {
@@ -905,98 +971,32 @@
                   "CPER",
                   "DBA"
                 ],
-                "score": 62.5,
+                "score": 25,
                 "detail": "Share of commodity vehicles with positive medium-term trends."
               }
             ],
-            "asOf": "2026-07-24T13:30:00.000Z"
-          },
-          {
-            "ticker": "BNO",
-            "model": "energy",
-            "score": 60.4,
-            "trend": "Uptrend",
-            "mom21": 29.01,
-            "mom63": -0.27,
-            "mom126": 76.02,
-            "vol": 55.77,
-            "maxDrawdown": 34.46,
-            "riskPenalty": 16.3,
-            "confirmations": [
-              {
-                "label": "Energy equities",
-                "symbols": [
-                  "XLE"
-                ],
-                "score": 64.9170084697455,
-                "detail": "Energy-equity direction confirms or diverges from the oil-linked price trend."
-              },
-              {
-                "label": "Commodity breadth",
-                "symbols": [
-                  "DBC",
-                  "CPER",
-                  "DBA"
-                ],
-                "score": 62.5,
-                "detail": "Share of commodity vehicles with positive medium-term trends."
-              }
-            ],
-            "asOf": "2026-07-24T13:30:00.000Z"
-          },
-          {
-            "ticker": "CPER",
-            "model": "industrial",
-            "score": 59.4,
-            "trend": "Mixed",
-            "mom21": 5.67,
-            "mom63": 3.81,
-            "mom126": 7.6,
-            "vol": 31.19,
-            "maxDrawdown": 16.43,
-            "riskPenalty": 5.28,
-            "confirmations": [
-              {
-                "label": "Commodity breadth",
-                "symbols": [
-                  "DBC",
-                  "CPER",
-                  "DBA"
-                ],
-                "score": 62.5,
-                "detail": "Broad participation tests whether the metals move is isolated."
-              },
-              {
-                "label": "Industrial cycle",
-                "symbols": [
-                  "XLI"
-                ],
-                "score": 67.29067291490146,
-                "detail": "Industrial-equity direction proxies cyclical demand confirmation."
-              }
-            ],
-            "asOf": "2026-07-24T13:30:00.000Z"
+            "asOf": "2026-07-27T13:30:00.000Z"
           }
         ],
         "specific": {
           "GLD": {
             "ticker": "GLD",
             "model": "gold",
-            "score": 16.5,
+            "score": 15.7,
             "trend": "Downtrend",
-            "mom21": 1.63,
-            "mom63": -13.72,
-            "mom126": -17.68,
-            "vol": 33.52,
+            "mom21": 1.4,
+            "mom63": -13.53,
+            "mom126": -18.2,
+            "vol": 33.47,
             "maxDrawdown": 26.4,
-            "riskPenalty": 11.22,
+            "riskPenalty": 11.2,
             "confirmations": [
               {
                 "label": "Inverse USD",
                 "symbols": [
                   "UUP"
                 ],
-                "score": 22.757012846459332,
+                "score": 20.887896187085516,
                 "detail": "A weaker dollar is the modeled gold tailwind."
               },
               {
@@ -1005,23 +1005,23 @@
                   "TLT",
                   "TIP"
                 ],
-                "score": 45.922085467275,
+                "score": 44.901112845717776,
                 "detail": "TLT direction plus TIP-vs-TLT is a rough rate mix, not a direct real-yield series."
               }
             ],
-            "asOf": "2026-07-24T13:30:00.000Z"
+            "asOf": "2026-07-27T13:30:00.000Z"
           },
           "SLV": {
             "ticker": "SLV",
             "model": "silver",
             "score": 0,
             "trend": "Downtrend",
-            "mom21": 1.6,
+            "mom21": 1.09,
             "mom63": -23.06,
-            "mom126": -39.62,
-            "vol": 74.8,
+            "mom126": -43.03,
+            "vol": 74.16,
             "maxDrawdown": 52.28,
-            "riskPenalty": 29.4,
+            "riskPenalty": 29.15,
             "confirmations": [
               {
                 "label": "Gold/silver ratio direction",
@@ -1037,7 +1037,7 @@
                 "symbols": [
                   "GLD"
                 ],
-                "score": 4.265641644976554,
+                "score": 4.899022798855562,
                 "detail": "Gold strength confirms the monetary-metal side of silver."
               },
               {
@@ -1045,21 +1045,21 @@
                 "symbols": [
                   "XLI"
                 ],
-                "score": 67.29067291490146,
+                "score": 71.60903470044829,
                 "detail": "Industrials proxy the cyclical-demand side of silver."
               }
             ],
-            "asOf": "2026-07-24T13:30:00.000Z"
+            "asOf": "2026-07-27T13:30:00.000Z"
           },
           "BTC-USD": {
             "ticker": "BTC-USD",
             "model": "bitcoin",
-            "score": 37,
+            "score": 35,
             "trend": "Downtrend",
-            "mom21": 1.34,
-            "mom63": -16.08,
-            "mom126": -8.55,
-            "vol": 35.68,
+            "mom21": 1.49,
+            "mom63": -15.95,
+            "mom126": -8.41,
+            "vol": 35.67,
             "maxDrawdown": 28.71,
             "riskPenalty": 5.68,
             "confirmations": [
@@ -1068,7 +1068,7 @@
                 "symbols": [
                   "QQQ"
                 ],
-                "score": 66.09556226069064,
+                "score": 58.93873670395132,
                 "detail": "Growth-equity direction is a liquid risk-appetite proxy; no on-chain input is used."
               },
               {
@@ -1083,41 +1083,41 @@
           "IBIT": {
             "ticker": "IBIT",
             "model": "bitcoin",
-            "score": 28.3,
+            "score": 28.9,
             "trend": "Downtrend",
-            "mom21": 7.31,
-            "mom63": -17.49,
-            "mom126": -28.27,
-            "vol": 47.92,
-            "maxDrawdown": 34.34,
-            "riskPenalty": 8.12,
+            "mom21": 9.7,
+            "mom63": -16.47,
+            "mom126": -27.48,
+            "vol": 47.96,
+            "maxDrawdown": 34.25,
+            "riskPenalty": 8.11,
             "confirmations": [
               {
                 "label": "Equity risk appetite",
                 "symbols": [
                   "QQQ"
                 ],
-                "score": 66.09556226069064,
+                "score": 58.93873670395132,
                 "detail": "Growth-equity direction is a liquid risk-appetite proxy; no on-chain input is used."
               },
               {
                 "label": "Volatility / drawdown",
                 "symbols": [],
-                "score": 67.52607147683918,
+                "score": 67.54915100242026,
                 "detail": "Bitcoin's own realized volatility and drawdown reduce the score directly."
               }
             ],
-            "asOf": "2026-07-24T13:30:00.000Z"
+            "asOf": "2026-07-27T13:30:00.000Z"
           },
           "DBC": {
             "ticker": "DBC",
             "model": "broad",
-            "score": 66.5,
+            "score": 52.7,
             "trend": "Uptrend",
-            "mom21": 13.78,
-            "mom63": 0.69,
-            "mom126": 26.77,
-            "vol": 23.77,
+            "mom21": 7.72,
+            "mom63": -2.85,
+            "mom126": 19.98,
+            "vol": 24.26,
             "maxDrawdown": 16.54,
             "riskPenalty": 2.88,
             "confirmations": [
@@ -1128,7 +1128,7 @@
                   "CPER",
                   "DBA"
                 ],
-                "score": 62.5,
+                "score": 25,
                 "detail": "Share of commodity vehicles with positive medium-term trends."
               },
               {
@@ -1136,30 +1136,30 @@
                 "symbols": [
                   "UUP"
                 ],
-                "score": 22.757012846459332,
+                "score": 20.887896187085516,
                 "detail": "A weaker dollar supports a broad basket at the margin."
               }
             ],
-            "asOf": "2026-07-24T13:30:00.000Z"
+            "asOf": "2026-07-27T13:30:00.000Z"
           },
           "USO": {
             "ticker": "USO",
             "model": "energy",
-            "score": 60.8,
+            "score": 46.5,
             "trend": "Uptrend",
-            "mom21": 28.57,
-            "mom63": 1.44,
-            "mom126": 90.28,
-            "vol": 58.66,
+            "mom21": 14.13,
+            "mom63": -5.77,
+            "mom126": 68.71,
+            "vol": 60.01,
             "maxDrawdown": 32.49,
-            "riskPenalty": 16.98,
+            "riskPenalty": 17.51,
             "confirmations": [
               {
                 "label": "Energy equities",
                 "symbols": [
                   "XLE"
                 ],
-                "score": 64.9170084697455,
+                "score": 59.33356724537754,
                 "detail": "Energy-equity direction confirms or diverges from the oil-linked price trend."
               },
               {
@@ -1169,11 +1169,11 @@
                   "CPER",
                   "DBA"
                 ],
-                "score": 62.5,
+                "score": 25,
                 "detail": "Share of commodity vehicles with positive medium-term trends."
               }
             ],
-            "asOf": "2026-07-24T13:30:00.000Z"
+            "asOf": "2026-07-27T13:30:00.000Z"
           }
         },
         "scored": 14,

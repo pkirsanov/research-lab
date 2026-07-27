@@ -142,7 +142,7 @@ test('every Playwright spec uses the shared seam and sole committed browser conf
   for (const specPath of importers) {
     console.log('[playwright-runtime] importer=' + specPath.slice(ROOT.length + 1));
   }
-  assert.equal(specPaths.length, 12);
+  assert.equal(specPaths.length, 27);
   assert.deepEqual(nodeTestNames, [
     'brief-refresh-atomicity.test.mjs',
     'feature-004-dirty-tree-collision.test.mjs'
@@ -166,15 +166,30 @@ test('committed discovery boundary keeps browser specs and direct Node suites di
     'bond-regime-lab.spec.mjs',
     'causal-rotation-lab.spec.mjs',
     'company-fundamentals-lab.spec.mjs',
+    'contextual-tooltip.spec.mjs',
+    'distributed-briefs.spec.mjs',
     'fx-regime-relative-value-lab.spec.mjs',
+    'journey-mobile.spec.mjs',
+    'journey.spec.mjs',
+    'market-action-center.spec.mjs',
     'market-brief-session-date-drift.spec.mjs',
     'msft-july-market-refresh.spec.mjs',
     'palm-springs-rental-market-lab.spec.mjs',
     'portfolio-survival-foundation.spec.mjs',
     'provider-credentials.spec.mjs',
+    'provider-fallback-status.spec.mjs',
+    'red-alert.spec.mjs',
+    'simple-model-adapters-macro-fundamental.spec.mjs',
+    'simple-model-adapters-market.spec.mjs',
+    'simple-model-adapters-strategy-property.spec.mjs',
+    'simple-models.spec.mjs',
+    'simple-production-wiring.spec.mjs',
     'technical-analysis-decision-lab.spec.mjs',
+    'tool-experience-mobile.spec.mjs',
+    'tool-experience.spec.mjs',
     'trend-dynamics-cycle-lab.spec.mjs',
-    'volatility-sizing-lab.spec.mjs'
+    'volatility-sizing-lab.spec.mjs',
+    'web-evidence.spec.mjs'
   ]);
   assert.deepEqual(nodeSuiteNames, [
     'brief-refresh-atomicity.test.mjs',

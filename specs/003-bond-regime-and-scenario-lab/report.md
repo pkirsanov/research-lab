@@ -2335,20 +2335,19 @@ SELFTEST_EXIT=0
 
 **Executed:** YES (current session, 2026-07-27)
 **Phase Agent:** bubbles.audit (recorded by bubbles.workflow as direct-authorized-runner, parent-expanded)
-**Command:** `git --no-pager status --short -- specs/003-bond-regime-and-scenario-lab/` and `git --no-pager status --short -- bond-regime-lab.html tests/bond-regime-lab.spec.mjs specs/003-bond-regime-and-scenario-lab/scopes.md scripts/selftest.mjs`
-**Exit Code:** 0
+**Command:** `git --no-pager status --short -- specs/003-bond-regime-and-scenario-lab/` then `git --no-pager status --short -- bond-regime-lab.html bond-regime-universe.json tests/bond-regime-lab.spec.mjs specs/003-bond-regime-and-scenario-lab/scopes.md scripts/selftest.mjs rlexperience-adapters/macro-rotation.js`
+**Exit Code:** 0 (both)
 **Output:**
 
 ```text
-AUDIT_CHANGE_BOUNDARY_BEGIN
+$ git --no-pager status --short -- specs/003-bond-regime-and-scenario-lab/
  M specs/003-bond-regime-and-scenario-lab/report.md
  M specs/003-bond-regime-and-scenario-lab/state.json
---- diffstat (representative; file list is the stable boundary) ---
- specs/003-bond-regime-and-scenario-lab/report.md  | ++++
- specs/003-bond-regime-and-scenario-lab/state.json | ++++
---- forbidden-path check (product/test/scopes.md/shared-JS must be absent) ---
-(none — product/test/scopes.md untouched)
-AUDIT_CHANGE_BOUNDARY_END
+Exit Code: 0
+
+$ git --no-pager status --short -- bond-regime-lab.html bond-regime-universe.json tests/bond-regime-lab.spec.mjs specs/003-bond-regime-and-scenario-lab/scopes.md scripts/selftest.mjs rlexperience-adapters/macro-rotation.js
+Exit Code: 0
+(empty output — product / test / scopes.md / shared-JS forbidden-path check clean)
 ```
 
 **Result:** PASS. Separation of duties holds: this certification-recording session changed only `report.md` and `state.json`. No product surface (`bond-regime-lab.html`), test surface (`tests/bond-regime-lab.spec.mjs`), committed `scopes.md`, or shared JavaScript was modified.
@@ -2524,3 +2523,113 @@ $ git diff --stat HEAD -- bond-regime-lab.html bond-regime-universe.json tests/b
 ```
 
 **Result:** PASS. The full selftest (952/0) and Bond Regime browser suite (27/27) are green; inline JavaScript compiles with all 71 referenced DOM ids present and `bond-regime-universe.json` parses (S5-T02); the node source-lock/registry-parity validator passes with 16/16 adversarial rejections and zero unexpected acceptances; and the path-scoped diff confirms the committed baseline `861bfeac` is HEAD with no excluded file family (product HTML, universe JSON, test spec, `scopes.md`, shared `rlg.js`/`rlnav.js`/`rlchart.js`/`macro-rotation.js`, registries, `selftest.mjs`) changed this session. Registry parity, source-rights, and security scans are additionally covered by the green selftest groups above and the [Scope 5 Security And Rights](#scope-5-security-and-rights) block.
+
+### Spec Review Evidence
+
+**Executed:** YES (current session, 2026-07-27)
+**Phase Agent:** bubbles.spec-review (specialist provenance; recorded in `state.json.executionHistory` and `certifiedCompletedPhases`)
+**Purpose:** The `full-delivery` workflow requires a genuine `spec-review` phase (`specReview: once-before-implement`; enforced by artifact-lint Check 5B and state-transition-guard Check 21). This section IS that real spec-vs-implementation freshness audit: `spec.md` and `design.md` were read in full and compared against the actual product, config, tests, and the fixed-income-sleeve adapter with grep/ls proof below. It is a review, not a rubber stamp.
+**Trust Verdict:** CURRENT (fresh) — with one honest MINOR-DRIFT documentation note (VR-4). The spec faithfully describes the tool's behavior; the drift is a location-of-shared-formula nuance introduced by a later feature and does not block full delivery (behavior unchanged, 27/27 e2e + 952/0 selftest green).
+
+#### VR-1 — Every foundation function in design.md § Concrete Implementations exists in the product
+
+`design.md` names the foundation/view-model/consumer symbols `validateBondConfig`, `alignCommonDateRows`, `estimateDurationConfound`, `classifyRelativeCreditPulse`, `buildDecisionRead`, `buildBondToolRead`, and `computeBondLabViewModel`. All seven are present in `bond-regime-lab.html`:
+
+```text
+$ grep -nE 'function validateBondConfig|function alignCommonDateRows|function classifyRelativeCreditPulse|function estimateDurationConfound|function computeBondLabViewModel|function buildDecisionRead|function buildBondToolRead' bond-regime-lab.html
+1122:        function validateBondConfig(config) {
+1276:        function alignCommonDateRows(leftRows, rightRows) {
+1322:        function estimateDurationConfound(numeratorDuration, denominatorDuration, treasuryChangeBp, observedMovePct, policy) {
+1338:        function classifyRelativeCreditPulse(input, ratioPolicy) {
+1959:        function buildDecisionRead(creditRegime, durationPosture, scenarioResults, assumptions, minimumAdvantagePct) {
+1980:        function buildBondToolRead(decisionRead) {
+2056:        function computeBondLabViewModel(config, observedSnapshot, assumptions, ui) {
+Exit Code: 0
+```
+
+**Verdict:** MATCH. spec.md FR-005/FR-007/FR-016 classifiers and FR-053 owner read are implemented under the exact design symbol names.
+
+#### VR-2 — Controlled vocabularies + owner tool-read present; Treasury no-key paths correctly config-owned
+
+spec.md FR-007 (`Constructive | Mixed | Defensive | Indeterminate`), FR-016 (`Shorten | Balanced | Extend | Indeterminate`), and FR-053 (one owner `putToolRead`) are implemented:
+
+```text
+$ grep -nE 'state = "Constructive"|state = "Defensive"|state = "Extend"|state = "Shorten"|RLDATA.putToolRead\("bond-regime-lab"' bond-regime-lab.html
+1438:                state = "Constructive"; confidence = confounded || pulses.length < 2 ? "Moderate" : "High"; confirming.push("relative-price-strengthening", "independent-credit-improvement");
+1440:                state = "Defensive"; confidence = pulses.length > 1 ? "High" : "Moderate"; confirming.push("relative-price-weakening", "independent-credit-deterioration");
+1716:            else if (curveImpulse.shortChangeBp < 0 && curveImpulse.longChangeBp < 0 && inflationState.state !== "Heating") { state = "Extend"; confirming.push("short-and-long-rates-falling"); }
+1717:            else if (curveImpulse.state === "Bear Steepener" || inflationState.state === "Heating" || inflationState.realYieldChangeBp > 5) { state = "Shorten"; confirming.push("long-end-pressure"); }
+2367:            return window.RLDATA && RLDATA.putToolRead ? RLDATA.putToolRead("bond-regime-lab", read) : read;
+Exit Code: 0
+```
+
+The official Treasury no-key URL templates (design.md § Official Treasury No-Key Paths: `daily_treasury_yield_curve` / `daily_treasury_real_yield_curve`) are NOT inline in the HTML — they are config-owned in `bond-regime-universe.json`, exactly as design.md § Patterns To Avoid prescribes ("thresholds live only in `bond-regime-universe.json`"). The config SST top-level shape matches design.md § Configuration Contract:
+
+```text
+$ grep -nE '"schemaVersion"|"toolId"|"sourcePolicies"|"scenarioPresets"|"instruments"|"pairs"|"sleeves"' bond-regime-universe.json
+2:    "schemaVersion": 1,
+3:    "toolId": "bond-regime-lab",
+19:    "sourcePolicies": {
+96:    "scenarioPresets": [
+143:    "instruments": [
+497:    "pairs": [
+511:    "sleeves": [
+Exit Code: 0
+```
+
+**Verdict:** MATCH. Vocabularies and owner-read are implemented; the Treasury source policies live in the config SST (the earlier direct read of `bond-regime-universe.json` confirmed both `daily_treasury_yield_curve` and `daily_treasury_real_yield_curve` URL templates under `sourcePolicies`). Config-owned URLs are a faithful design pattern, not spec drift.
+
+#### VR-3 — All fourteen BS-0NN business-scenario contracts have behavioral test coverage
+
+spec.md defines BS-001…BS-014. The test spec asserts all fourteen (distinct count = 14):
+
+```text
+$ grep -noE 'BS-0[0-9][0-9]' tests/bond-regime-lab.spec.mjs | sort -u -t: -k2 | awk -F: '{print $1": "$2}'
+75: BS-001
+94: BS-002
+111: BS-003
+137: BS-004
+150: BS-005
+172: BS-006
+183: BS-007
+192: BS-008
+265: BS-009
+128: BS-010
+378: BS-011
+393: BS-012
+278: BS-013
+409: BS-014
+$ grep -oE 'BS-0[0-9][0-9]' tests/bond-regime-lab.spec.mjs | sort -u | wc -l
+14
+Exit Code: 0
+```
+
+**Verdict:** MATCH. Every business scenario is exercised (BS-001 duration-confound → not Constructive; BS-002 two-key → Constructive; BS-010 no-forward-fill common-date; BS-011 one-model digest; BS-013 restricted-observation memory-only; …), plus the FR-018 inversion-alone regression and the no-credential/source-rights test (spec grep earlier).
+
+#### VR-4 — Honest MINOR-DRIFT note: sleeve-decomposition single-source location evolved (documentation-location only)
+
+design.md 003 § Concrete Implementations describes the carry/rate/spread/convexity scenario decomposition as owned by the product's own `computeBondLabViewModel` / `calculateScenarioResult`. The CURRENT reality is that the sleeve total-return decomposition (`sleeveTotalReturn`) was single-sourced into the Feature-012 adapter and `bond-regime-lab.html` now DELEGATES its inline decomposition to it:
+
+```text
+$ ls -la bond-regime-lab.html bond-regime-universe.json tests/bond-regime-lab.spec.mjs rlexperience-adapters/macro-rotation.js
+-rw-r--r-- 1 redacted redacted 167094 Jul 25 18:11 bond-regime-lab.html
+-rw-r--r-- 1 redacted redacted  24007 Jul 19 05:24 bond-regime-universe.json
+-rw-r--r-- 1 redacted redacted  99391 Jul 26 00:44 rlexperience-adapters/macro-rotation.js
+-rw-r--r-- 1 redacted redacted  32180 Jul 27 18:27 tests/bond-regime-lab.spec.mjs
+$ grep -nE 'owner seam = bond-regime-lab|bond-regime-lab\.html calculateScenarioResult delegates' rlexperience-adapters/macro-rotation.js
+1205:  /* ═══════════ fixed-income-sleeve Simple model (owner seam = bond-regime-lab.html) ═══════════
+1217:     generic sleeve response. SINGLE SOURCE — bond-regime-lab.html calculateScenarioResult delegates its
+Exit Code: 0
+```
+
+**Assessment (classified MINOR_DRIFT, not MAJOR_DRIFT / OBSOLETE):**
+
+- The *WHAT* (the decomposition contract: `carry + rate + spread + convexity`, null spread for Treasury sleeves) is unchanged and directly tested by BS-006 and BS-011 (27/27 green; the S5-T13 selftest group asserts "bond-regime-lab.html: delegates sleeveTotalReturn to the single source").
+- The *WHERE* (the shared formula's home) moved from "inline in `bond-regime-lab.html`" (design.md 003) into `rlexperience-adapters/macro-rotation.js` `sleeveTotalReturn` via a LATER Feature-012 (Simple-models) integration that design.md 003 predates and does not mention.
+- The delegation is self-documented in the adapter owner-seam comment (lines 1205/1217) and enforced by selftest, so a maintenance agent is not misled about behavior.
+- Note on the task-prompt phrasing: "the `macro-rotation.js` fixed-income-sleeve adapter" refers to `rlexperience-adapters/macro-rotation.js` (a Feature-012 artifact), not a repo-root file and not a spec-003 design artifact; spec-003's own design correctly names `bond-regime-lab.html` as the owner. A repo-root `macro-rotation.js` does not exist.
+- **Non-blocking:** the drift does not affect the tool's observable behavior or any FR/BS contract; all are green. A future design.md 003 refresh could add one sentence noting the Feature-012 single-source delegation.
+
+#### Spec Review Verdict
+
+**CURRENT (fresh).** `spec.md` and `design.md` are a trustworthy source of truth for the Bond Regime tool's behavior: all seven foundation symbols, both controlled vocabularies, the owner tool-read, the config SST shape, the Treasury no-key source policies, and all fourteen BS-0NN business-scenario contracts are present and green (27/27 e2e, 952/0 selftest). One honest MINOR-DRIFT documentation-location note (VR-4) is recorded; it does not block full-delivery certification.

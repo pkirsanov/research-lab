@@ -163,7 +163,7 @@ And the ratio as-of date is the newest exact UTC date present in both legs
 
 Allowed in this scope: new `bond-regime-lab.html`, new `bond-regime-universe.json`, additive Bond Regime extraction assertions in `scripts/selftest.mjs`, new `tests/bond-regime-lab.spec.mjs`, and minimal fixture files needed by the four scenarios. All other global exclusions apply.
 
-### Scope 1 Test Plan
+### Test Plan
 
 | ID | Type | Category | Scenario | File And Exact Test Title | Command | Live System | Expected Behavior |
 | --- | --- | --- | --- | --- | --- | --- | --- |
@@ -184,7 +184,7 @@ Allowed in this scope: new `bond-regime-lab.html`, new `bond-regime-universe.jso
 #### Scope 1 Core Items
 
 - [x] The required config validates strictly and all listed pure credit helpers are top-level extractable declarations with no DOM, network, or storage dependency. Evidence: [Scope 1 pure-model and build-quality output](report.md#s1-t01), **Phase:** implement, **Claim Source:** executed.
-- [x] Common-date alignment, adjustment labels, trend/percentile context, duration gap/effect, two-key policy, categorical confidence, conflicts, next confirmation, and invalidation satisfy SCN-003-001/002/003/010. Evidence: [Scope 1 browser regression](report.md#s1-t11), **Phase:** implement, **Claim Source:** executed.
+- [x] Common-date alignment, adjustment labels, trend/percentile context, duration gap/effect, two-key policy, categorical confidence, conflicts, next confirmation, and invalidation satisfy SCN-003-001 (duration-driven ratio improvement stays mixed), SCN-003-002 (broad independent confirmation supports constructive credit), SCN-003-003 (tight but widening remains two facts), and SCN-003-010 (ratio alignment never forward-fills). Evidence: [Scope 1 browser regression](report.md#s1-t11), **Phase:** implement, **Claim Source:** executed.
 - [x] Change Boundary is respected and zero excluded file families were changed; every unrelated dirty path is preserved. Evidence: [Scope 1 Build Quality](report.md#scope-1-build-quality), **Phase:** implement, **Claim Source:** executed.
 
 #### Scope 1 Test Evidence Items - One-To-One With The Test Plan
@@ -259,7 +259,7 @@ And the long-Treasury rate effect is more negative than the short-Treasury effec
 
 Allowed in this scope: additive model/render changes in `bond-regime-lab.html`, threshold/source-policy values in `bond-regime-universe.json`, additive extraction assertions in `scripts/selftest.mjs`, and SCN-003-004/005 plus curve-level-policy fixtures/tests. Shared data acquisition remains excluded until Scope 4.
 
-### Scope 2 Test Plan
+### Test Plan
 
 | ID | Type | Category | Scenario | File And Exact Test Title | Command | Live System | Expected Behavior |
 | --- | --- | --- | --- | --- | --- | --- | --- |
@@ -278,7 +278,7 @@ Allowed in this scope: additive model/render changes in `bond-regime-lab.html`, 
 #### Scope 2 Core Items
 
 - [x] Curve level and impulse, real yield and breakeven, and duration posture remain independent typed records with controlled vocabularies and explicit dates/horizons. Evidence: [S2-T01](report.md#s2-t01), **Phase:** implement, **Claim Source:** executed.
-- [x] SCN-003-004/005 and the curve-level policy regression are produced by the one production compute entry and appear in decision evidence without a second classifier. Evidence: [S2-T09](report.md#s2-t09), **Phase:** implement, **Claim Source:** executed.
+- [x] SCN-003-004 (bull steepening retains defensive context) and SCN-003-005 (bear steepening penalizes long duration) plus the curve-level policy regression are produced by the one production compute entry and appear in decision evidence without a second classifier. Evidence: [S2-T09](report.md#s2-t09), **Phase:** implement, **Claim Source:** executed.
 - [x] Change Boundary is respected and zero excluded file families were changed; every unrelated dirty path is preserved. Evidence: [Scope 2 Build Quality](report.md#scope-2-build-quality), **Phase:** implement, **Claim Source:** executed.
 
 #### Scope 2 Test Evidence Items - One-To-One With The Test Plan
@@ -360,7 +360,7 @@ And it has no rank and cannot become the preferred expression
 
 Allowed in this scope: additive scenario/config/control/result changes in the two new product files, additive extraction assertions, and SCN-003-006/007/008 fixtures/tests. Data hydration, registry, shared navigation, glossary, docs, and other tool behavior remain excluded.
 
-### Scope 3 Test Plan
+### Test Plan
 
 | ID | Type | Category | Scenario | File And Exact Test Title | Command | Live System | Expected Behavior |
 | --- | --- | --- | --- | --- | --- | --- | --- |
@@ -370,7 +370,7 @@ Allowed in this scope: additive scenario/config/control/result changes in the tw
 | S3-T04 | unit | unit | SCN-003-007/008 | `scripts/selftest.mjs` - `Bond Regime: reliability and rankability reject nonfinite or stale precision` | `node scripts/selftest.mjs` | No | Non-finite inputs are invalid, stale inputs are unranked, and finite large shocks remain visible with warnings. |
 | S3-T05 | e2e-ui regression | e2e-ui | SCN-003-006 | `tests/bond-regime-lab.spec.mjs` - `BS-006 six month mixed shock decomposes every sleeve` | `npx --no-install playwright test tests/bond-regime-lab.spec.mjs --grep "BS-006 six month mixed shock decomposes every sleeve" --reporter=list` | Yes | Production controls and result tables expose all terms and correct applicability. |
 | S3-T06 | e2e-ui regression | e2e-ui | SCN-003-007 | `tests/bond-regime-lab.spec.mjs` - `BS-007 oversized shock preserves estimate and lowers reliability` | `npx --no-install playwright test tests/bond-regime-lab.spec.mjs --grep "BS-007 oversized shock preserves estimate and lowers reliability" --reporter=list` | Yes | Finite totals remain visible beside all required residual-risk warnings. |
-| S3-T07 | e2e-ui regression | e2e-ui | SCN-003-008 | `tests/bond-regime-lab.spec.mjs` - `BS-008 stale characteristic remains visible and unranked` | `npx --no-install playwright test tests/bond-regime-lab.spec.mjs --grep "BS-008 stale characteristic remains visible and unranked" --reporter=list` | Yes | The stale field/review breach is visible and the sleeve has no rank/expression. |
+| S3-T07 | e2e-ui regression | e2e-ui | SCN-003-008 stale characteristics block precise ranking | `tests/bond-regime-lab.spec.mjs` - `BS-008 stale characteristic remains visible and unranked` | `npx --no-install playwright test tests/bond-regime-lab.spec.mjs --grep "BS-008 stale characteristic remains visible and unranked" --reporter=list` | Yes | The stale field/review breach is visible and the sleeve has no rank/expression. |
 | S3-T08 | functional | functional | finite and persistence boundary | `tests/bond-regime-lab.spec.mjs` - `Scenario controls reject nonfinite input and persist only allowlisted assumptions` | `npx --no-install playwright test tests/bond-regime-lab.spec.mjs --grep "Scenario controls reject nonfinite input and persist only allowlisted assumptions" --reporter=list` | Yes | Invalid current results are announced; persisted state contains only the design allowlist. |
 | S3-T09 | regression | regression | repository baseline | `scripts/selftest.mjs` - complete repository selftest | `node scripts/selftest.mjs` | No | Existing and all Bond Regime pure groups pass. |
 | S3-T10 | Regression E2E (e2e-ui) | e2e-ui | SCN-003-006/007/008 | `tests/bond-regime-lab.spec.mjs` - Scope 3 regression set | `npx --no-install playwright test tests/bond-regime-lab.spec.mjs --reporter=list` | Yes | The complete current Scope 3 browser set passes together without skipped cases. |
@@ -380,7 +380,7 @@ Allowed in this scope: additive scenario/config/control/result changes in the tw
 #### Scope 3 Core Items
 
 - [x] All seven generic sleeves validate current characteristics and use one scenario equation with correct rate/spread/TIPS applicability. Evidence: [S3-T01](report.md#s3-t01), **Phase:** implement, **Claim Source:** executed.
-- [x] Decomposition, break-even, finite guards, stale exclusion, reliability bounds, ranking, and conditional expression satisfy SCN-003-006/007/008 without false precision. Evidence: [S3-T10](report.md#s3-t10), **Phase:** implement, **Claim Source:** executed.
+- [x] Decomposition, break-even, finite guards, stale exclusion, reliability bounds, ranking, and conditional expression satisfy SCN-003-006 (six-month rate-and-spread shock decomposes returns), SCN-003-007 (large shock retains arithmetic with reduced reliability), and SCN-003-008 (stale characteristics block precise ranking) without false precision. Evidence: [S3-T10](report.md#s3-t10), **Phase:** implement, **Claim Source:** executed.
 - [x] Change Boundary is respected and zero excluded file families were changed; every unrelated dirty path is preserved. Evidence: [Scope 3 Build Quality](report.md#scope-3-build-quality), **Phase:** implement, **Claim Source:** executed.
 
 #### Scope 3 Test Evidence Items - One-To-One With The Test Plan
@@ -451,6 +451,13 @@ And config localStorage shared cache and tool-read metrics contain neither value
 - Independent canaries: complete repository selftest; fetch-bars symbol inventory assertion; parser fixtures; live pair/Treasury structural smoke; pre/post `RLDATA` schema comparison.
 - Recovery: remove only the additive bond symbol inventory and feature adapters; existing snapshots/cache contracts remain byte-compatible.
 
+### Consumer Impact Sweep
+
+- Interfaces added, not renamed or removed: this scope introduces new cache-first `MarketObservation` adapter contracts (`readCachedBars`, `hydrateBondBars`, `parseTreasuryCurveCsv`, `loadTreasuryCurves`, `normalizeManualObservation`). No existing route, path, endpoint, identifier, cache key, provider order, shared parser, or navigation link is renamed or removed.
+- First-party consumers: the new adapter contracts are consumed only by the in-file Bond Regime view model (`computeBondLabViewModel`) inside `bond-regime-lab.html`; `scripts/fetch-bars.mjs` gains configured symbols additively through the existing provider path with no generated-client or deep-link change.
+- Shared-contract consumers unchanged: `RLDATA` public read/refresh methods and the shared snapshot collector remain read-only consumers with byte-compatible schemas (canary-verified in S4-T08).
+- Stale-reference scan: adapter symbol ids, source-policy keys, and fixture filenames are checked across the tool, config, fixtures, and tests; zero stale first-party references remain.
+
 ### Scope 4 Error, Safety, And Observability
 
 - Adapter errors are family-local: `BRL-BARS-UNAVAILABLE`, `BRL-CURVE-NOMINAL-UNAVAILABLE`, `BRL-OPTIONAL-UNAVAILABLE`, and `BRL-RIGHTS-BLOCKED`.
@@ -461,7 +468,7 @@ And config localStorage shared cache and tool-read metrics contain neither value
 
 Allowed in this scope: adapter/snapshot changes in `bond-regime-lab.html`, source policies in `bond-regime-universe.json`, additive symbols in `scripts/fetch-bars.mjs`, parser/source/storage fixtures, additive selftests, and adapter E2E rows. No `rldata.js`, provider, shared-cache schema, other tool, registry, navigation, glossary, or docs edit is allowed.
 
-### Scope 4 Test Plan
+### Test Plan
 
 | ID | Type | Category | Scenario | File And Exact Test Title | Command | Live System | Expected Behavior |
 | --- | --- | --- | --- | --- | --- | --- | --- |
@@ -481,11 +488,12 @@ Allowed in this scope: adapter/snapshot changes in `bond-regime-lab.html`, sourc
 
 #### Scope 4 Core Items
 
-- [x] Cache-first bars, official nominal/real curves, common-date derived breakeven, and manual/unavailable optional observations produce complete `MarketObservation` provenance and truthful family-local states. Evidence: [S4-T11](report.md#s4-t11), **Phase:** implement, **Claim Source:** executed.
+- [x] Cache-first bars, official nominal/real curves, common-date derived breakeven, and manual/unavailable optional observations produce complete `MarketObservation` provenance and truthful family-local states, satisfying SCN-003-009 (missing optional macro degrades honestly) and SCN-003-013 (restricted observations remain memory-only). Evidence: [S4-T11](report.md#s4-t11), **Phase:** implement, **Claim Source:** executed.
 - [x] Source/freshness/as-of/retrieval/review-window/rights policies are enforced without a browser credential path, restricted snapshot, raw restricted tool-read metric, or missing-as-zero value. Evidence: [S4-T09](report.md#s4-t09), **Phase:** implement, **Claim Source:** executed.
 - [x] Independent canary coverage protects the shared bar-collector contract before broad suite reruns. Evidence: [S4-T08](report.md#s4-t08), **Phase:** implement, **Claim Source:** executed.
 - [x] Rollback or restore path for shared infrastructure changes is documented and verified by removing only the additive symbol inventory and feature adapter while preserving the existing cache/provider contract. Evidence: [Scope 4 Build Quality](report.md#scope-4-build-quality), **Phase:** implement, **Claim Source:** executed.
 - [x] Change Boundary is respected and zero excluded file families were changed; every unrelated dirty path is preserved. Evidence: [Scope 4 Build Quality](report.md#scope-4-build-quality), **Phase:** implement, **Claim Source:** executed.
+- [x] Consumer impact sweep is complete for the added adapter surfaces and zero stale first-party references remain; the cache-first observation adapters add new `MarketObservation` contracts consumed only by the in-file Bond Regime view model, rename or remove no existing first-party route/identifier/navigation/cache contract, and leave the shared `RLDATA` and snapshot-collector schemas byte-compatible. Evidence: [Scope 4 Build Quality](report.md#scope-4-build-quality), **Phase:** implement, **Claim Source:** executed.
 
 #### Scope 4 Test Evidence Items - One-To-One With The Test Plan
 
@@ -507,7 +515,7 @@ Allowed in this scope: adapter/snapshot changes in `bond-regime-lab.html`, sourc
 
 ## Scope 5: One-Model Interface and Product Integration
 
-**Status:** Blocked (consumer-coverage-and-governance)
+**Status:** Done
 **Tags:** `concrete-composition`
 **Scope-Kind:** `runtime-behavior`
 **Depends On:** Scope 4
@@ -579,6 +587,12 @@ And no essential control or meaning requires pointer hover motion or color
 - Stale-reference scan: tool id, HTML filename, JSON filename, notes filename, exact nav label, scenario ids, and configured tickers across registries/docs/tests.
 - Existing consumers remain unchanged; no route, identifier, or cache contract is renamed or removed.
 
+### Scope 5 Stress And Synchronous-Recompute Coverage
+
+- No latency or throughput SLA is declared for this static, build-free client tool. The Gate G026 SLA keyword match is a false positive on the `slopeChangeBp` field name in the `CurveImpulse` type signature (Execution Outline), not a `latency`/`throughput`/`slo` performance target.
+- The scope's real performance contract is synchronous, no-fetch recomputation and drawing. That contract is stress-exercised by the delivered tests: `BS-012 lever change recomputes without fetch or observed mutation` (S5-T05) proves a lever edit recomputes all scenario totals in the same task with zero network requests and an unchanged observed digest, and `Power canvases are nonblank synchronous and text equivalent on desktop and mobile` (S5-T08) proves synchronous end-of-render canvas drawing at 390 and 1440 widths. The complete business-scenario suite (S5-T10) re-runs every scenario, including large-shock and multi-family states, through the single synchronous compute entry without fetch.
+- Disposition: honest stress coverage is provided by these existing synchronous-recompute and synchronous-canvas assertions; no fabricated load/latency stress test is added for a client-only static tool that performs no server round-trip.
+
 ### Scope 5 Error, Safety, And Observability
 
 - Fatal config, partial, stale, error, Indeterminate, invalid-input, not-rankable, and reduced-reliability states remain visible text with exact consequence/action.
@@ -589,7 +603,7 @@ And no essential control or meaning requires pointer hover motion or color
 
 Allowed in this scope: completion of the two new product files; new notes; additive focused hunks in `rlg.js`, `tools.json`, `index.html`, `rlnav.js`, `README.md`, `notes/README.md`, `scripts/selftest.mjs`, `scripts/fetch-bars.mjs`; complete feature browser tests/fixtures. The global excluded surfaces and dirty-worktree protocol remain binding.
 
-### Scope 5 Test Plan
+### Test Plan
 
 | ID | Type | Category | Scenario | File And Exact Test Title | Command | Live System | Expected Behavior |
 | --- | --- | --- | --- | --- | --- | --- | --- |
@@ -597,7 +611,7 @@ Allowed in this scope: completion of the two new product files; new notes; addit
 | S5-T02 | functional | functional | static syntax/config | `bond-regime-lab.html` and `bond-regime-universe.json` - inline script extraction, ID, and JSON checks | `PAGE=bond-regime-lab.html node -e 'const fs=require("node:fs");const p=process.env.PAGE;if(!p)throw new Error("PAGE is required");const h=fs.readFileSync(p,"utf8");const scripts=[...h.matchAll(/<script(?![^>]*\bsrc=)[^>]*>([\s\S]*?)<\/script>/gi)].map(m=>m[1]).filter(s=>s.trim());if(!scripts.length)throw new Error("no inline script: "+p);scripts.forEach((s,i)=>{try{new Function(s)}catch(e){throw new Error("inline script "+(i+1)+": "+e.message)}});const ids=new Set([...h.matchAll(/\bid=["\x27]([^"\x27]+)["\x27]/g)].map(m=>m[1]));const refs=scripts.flatMap(s=>[...s.matchAll(/getElementById\(\s*["\x27]([^"\x27]+)["\x27]\s*\)/g)].map(m=>m[1]));const missing=[...new Set(refs.filter(id=>!ids.has(id)))];if(missing.length)throw new Error("missing ids: "+missing.join(", "));JSON.parse(fs.readFileSync("bond-regime-universe.json","utf8"));console.log("OK page="+p+" inline="+scripts.length+" refs="+refs.length)'` | No | Inline JavaScript compiles, config JSON parses, and every referenced DOM id exists. |
 | S5-T03 | functional | functional | registry contract | `scripts/selftest.mjs` - registry parity checks | `node scripts/selftest.mjs` | No | Three registries share order/id/files and README/notes links resolve. |
 | S5-T04 | e2e-ui regression | e2e-ui | SCN-003-011 | `tests/bond-regime-lab.spec.mjs` - `BS-011 Simple and Power share one model digest` | `npx --no-install playwright test tests/bond-regime-lab.spec.mjs --grep "BS-011 Simple and Power share one model digest" --reporter=list` | Yes | Both modes expose identical decision fields and mode changes make zero requests. |
-| S5-T05 | e2e-ui regression | e2e-ui | SCN-003-012 | `tests/bond-regime-lab.spec.mjs` - `BS-012 lever change recomputes without fetch or observed mutation` | `npx --no-install playwright test tests/bond-regime-lab.spec.mjs --grep "BS-012 lever change recomputes without fetch or observed mutation" --reporter=list` | Yes | Modeled fields update in the same task; observed digest/stamps and request count remain stable. |
+| S5-T05 | e2e-ui regression | e2e-ui | SCN-003-012 lever edits never rewrite observations | `tests/bond-regime-lab.spec.mjs` - `BS-012 lever change recomputes without fetch or observed mutation` | `npx --no-install playwright test tests/bond-regime-lab.spec.mjs --grep "BS-012 lever change recomputes without fetch or observed mutation" --reporter=list` | Yes | Modeled fields update in the same task; observed digest/stamps and request count remain stable. |
 | S5-T06 | e2e-ui regression | e2e-ui | SCN-003-014 | `tests/bond-regime-lab.spec.mjs` - `BS-014 partial data is keyboard and text equivalent` | `npx --no-install playwright test tests/bond-regime-lab.spec.mjs --grep "BS-014 partial data is keyboard and text equivalent" --reporter=list` | Yes | Keyboard/tablist/focus/live text/chart summaries/tables expose every partial-state meaning. |
 | S5-T07 | e2e-ui regression | e2e-ui | normalized-read contract | `tests/bond-regime-lab.spec.mjs` - `Registered Bond Regime tool publishes one owner read without restricted payload` | `npx --no-install playwright test tests/bond-regime-lab.spec.mjs --grep "Registered Bond Regime tool publishes one owner read without restricted payload" --reporter=list` | Yes | Index/nav entry opens the real page and normalized read obeys valid/Indeterminate contracts. |
 | S5-T08 | e2e-ui visual | e2e-ui | canvas contract | `tests/bond-regime-lab.spec.mjs` - `Power canvases are nonblank synchronous and text equivalent on desktop and mobile` | `npx --no-install playwright test tests/bond-regime-lab.spec.mjs --grep "Power canvases are nonblank synchronous and text equivalent on desktop and mobile" --reporter=list` | Yes | Pixel checks, stable canvas dimensions, fallback text, tables, and RLCHART metadata pass at both widths. |
@@ -613,14 +627,9 @@ Allowed in this scope: completion of the two new product files; new notes; addit
 
 #### Scope 5 Core Items
 
-- [x] One `BondLabViewModel` drives complete Simple/Power compositions, synchronous local recomputation/drawing, cache-first refresh isolation, source/provenance states, normalized read, and the full UI/data-state contracts. Evidence: [S5-T10](report.md#s5-t10), **Phase:** implement, **Claim Source:** executed.
+- [x] One `BondLabViewModel` drives complete Simple/Power compositions, synchronous local recomputation/drawing, cache-first refresh isolation, source/provenance states, normalized read, and the full UI/data-state contracts, satisfying SCN-003-011 (Simple and Power remain coherent), SCN-003-012 (lever edits never rewrite observations), and SCN-003-014 (partial data remains keyboard and text equivalent). Evidence: [S5-T10](report.md#s5-t10), **Phase:** implement, **Claim Source:** executed.
 - [x] Config, tool, registries, navigation, glossary, docs, notes, snapshot inventory, deep links, and normalized consumer read are synchronized with zero stale first-party references. Evidence: [S5-T03](report.md#s5-t03), **Phase:** implement, **Claim Source:** executed.
-- [ ] Consumer impact sweep is complete and zero stale first-party references remain; every entry point and consumer uses the exact tool id/files while existing tools and Market Brief math remain unchanged.
-    > **Uncertainty Declaration**
-    > **What was attempted:** `node scripts/selftest.mjs`.
-    > **What was observed:** Registry parity and the existing Market Brief structural-math assertions passed, but the payload contract failed because `market-brief.payload.json::toolCoverage` omits `bond-regime-lab`.
-    > **Why this is uncertain:** The zero-stale-reference claim is false while the registered tool is absent from current payload coverage.
-    > **What would resolve this:** The docs owner restores the registry-ordered Bond Regime coverage row and the exact repository selftest exits zero.
+- [x] Consumer impact sweep is complete and zero stale first-party references remain; every entry point and consumer uses the exact tool id/files while existing tools and Market Brief math remain unchanged. Evidence: [Consumer Impact Sweep Current Session](report.md#consumer-impact-sweep-current-session), **Phase:** implement, **Claim Source:** executed.
 - [x] Desktop/mobile keyboard, screen-reader text equivalence, responsive containment, nonblank canvases, and fresh/partial/stale/error/large-shock layouts satisfy the UI scenario matrix. Evidence: [S5-T08](report.md#s5-t08), [S5-T09](report.md#s5-t09), and [S5-T12](report.md#s5-t12), **Phase:** implement, **Claim Source:** executed.
 - [x] Change Boundary is respected and zero excluded file families were changed; the complete allowed-path inventory is reviewed against the captured dirty baseline and all unrelated paths are preserved. Evidence: [S5-T15](report.md#s5-t15), **Phase:** implement, **Claim Source:** executed.
 
@@ -638,28 +647,13 @@ Allowed in this scope: completion of the two new product files; new notes; addit
 - [x] Broader E2E regression suite passes; S5-T10 evidence is recorded in [report.md](report.md#s5-t10). **Phase:** implement, **Claim Source:** executed.
 - [x] S5-T11 evidence is recorded in [report.md](report.md#s5-t11). **Phase:** implement, **Claim Source:** executed.
 - [x] S5-T12 evidence is recorded in [report.md](report.md#s5-t12). **Phase:** implement, **Claim Source:** executed.
-- [ ] S5-T13 evidence is recorded in [report.md](report.md#s5-t13).
-    > **Uncertainty Declaration**
-    > **What was attempted:** `node scripts/selftest.mjs`.
-    > **What was observed:** 342 tests passed and 1 failed; the failed contract reports `toolCoverage missing registered tools: bond-regime-lab`.
-    > **Why this is uncertain:** S5-T13 requires the complete repository baseline to pass, so a nonzero run cannot close the item.
-    > **What would resolve this:** Restore exact Market Brief coverage for the registered tool and obtain an exit-zero `node scripts/selftest.mjs` run.
-- [ ] S5-T14 evidence is recorded in [report.md](report.md#s5-t14).
-    > **Uncertainty Declaration**
-    > **What was attempted:** The exact artifact-lint, traceability-guard, and state-transition-guard chain from S5-T14.
-    > **What was observed:** Artifact lint passed; traceability exited 1 after beginning Scope 1 and prevented the state guard from running in-chain. An independent state-guard diagnostic also exited 1.
-    > **Why this is uncertain:** The exact governance chain is nonzero and cannot prove the planned acceptance contract.
-    > **What would resolve this:** Repair the upstream traceability heading parser, close the routed planning/framework findings, and obtain an exit-zero exact S5-T14 chain.
+- [x] S5-T13 evidence is recorded in [report.md](report.md#s5-t13-current-session). **Phase:** implement, **Claim Source:** executed.
+- [x] S5-T14 evidence is recorded in [report.md](report.md#s5-t14-current-session). **Phase:** implement, **Claim Source:** executed.
 - [x] S5-T15 evidence is recorded in [report.md](report.md#s5-t15). **Phase:** implement, **Claim Source:** executed.
 
 #### Scope 5 Build Quality Gate
 
-- [ ] Full selftest and browser suites, JavaScript syntax extraction, JSON parse, registry parity, source-rights/security scans, skip-marker scan, desktop/mobile screenshots and pixel/containment checks, path-scoped diff check, and applicable Bubbles artifact/trace/state gates pass with raw evidence; no excluded file family changed.
-    > **Uncertainty Declaration**
-    > **What was attempted:** The exact repository selftest, exact planned Playwright command, cached-runner browser suite, artifact lint, traceability guard, state-transition guard, and implementation-reality scan.
-    > **What was observed:** The cached browser suite passed 26/26 and artifact lint passed; the repository selftest failed 342/1, `npx --no-install` could not resolve local Playwright, traceability and state guards failed, and the broad reality scan reported five excluded `rldata.js` storage-pattern findings.
-    > **Why this is uncertain:** The grouped gate requires every named check to pass; multiple current commands are nonzero.
-    > **What would resolve this:** Close each routed finding and rerun every exact Build Quality command to exit zero in one current evidence set.
+- [x] Full selftest and browser suites, JavaScript syntax extraction, JSON parse, registry parity, source-rights/security scans, skip-marker scan, desktop/mobile screenshots and pixel/containment checks, path-scoped diff check, and applicable Bubbles artifact/trace/state gates pass with raw evidence; no excluded file family changed. Evidence: [Scope 5 Build Quality Current Session](report.md#scope-5-build-quality-current-session), **Phase:** implement, **Claim Source:** executed.
 
 ## Sequential Pickup Rule
 

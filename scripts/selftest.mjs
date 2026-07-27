@@ -2207,8 +2207,14 @@ try {
     'msftClassifyStack'
   ];
   const msft = build(msftFunctionNames.map((name) => extractFn(msftSource, name)), msftFunctionNames);
-  const quoteEnvelope = JSON.parse(read('data/options/MSFT.json'));
-  const barsEnvelope = JSON.parse(read('data/bars/MSFT.json'));
+  // Feature 009 reads FROZEN committed fixtures (a real, internally-coherent MSFT quote+bars
+  // snapshot), NOT the live data/**/MSFT.json caches. Those caches are cron-refreshed ~4x/day and
+  // the options-vs-bars `fetched` gap is non-deterministic; SCN-009-008 pins staleEvalTime to
+  // barsEnv.fetched + 25h yet measures quote staleness against quoteEnv.fetched, so an independent
+  // refresh flips the quote between stale/available. The fixtures freeze one coherent snapshot so
+  // the SAME market-truth contract is proven deterministically. See tests/fixtures/feature-009/.
+  const quoteEnvelope = JSON.parse(read('tests/fixtures/feature-009/msft-options.json'));
+  const barsEnvelope = JSON.parse(read('tests/fixtures/feature-009/msft-bars.json'));
   const evaluationTime = new Date(Math.max(Date.parse(quoteEnvelope.fetched), Date.parse(barsEnvelope.fetched)) + 60000).toISOString();
   const acceptedValue = (result) => result && result.ok === true && result.value ? result.value : result;
 
@@ -2365,8 +2371,8 @@ try {
     'msftReduceResourceOutcome'
   ];
   const s2 = build(msftS2Names.map((name) => extractFn(msftS2Source, name)), msftS2Names);
-  const quoteEnv = JSON.parse(read('data/options/MSFT.json'));
-  const barsEnv = JSON.parse(read('data/bars/MSFT.json'));
+  const quoteEnv = JSON.parse(read('tests/fixtures/feature-009/msft-options.json'));
+  const barsEnv = JSON.parse(read('tests/fixtures/feature-009/msft-bars.json'));
   const evalTime = new Date(Math.max(Date.parse(quoteEnv.fetched), Date.parse(barsEnv.fetched)) + 60000).toISOString();
   const acceptedValue = (result) => (result && result.ok === true && result.value ? result.value : result);
 
@@ -2490,8 +2496,8 @@ try {
     'msftBuildValuationRead'
   ];
   const s3 = build(msftS3Names.map((name) => extractFn(msftS3Source, name)), msftS3Names);
-  const quoteEnv3 = JSON.parse(read('data/options/MSFT.json'));
-  const barsEnv3 = JSON.parse(read('data/bars/MSFT.json'));
+  const quoteEnv3 = JSON.parse(read('tests/fixtures/feature-009/msft-options.json'));
+  const barsEnv3 = JSON.parse(read('tests/fixtures/feature-009/msft-bars.json'));
   const evalTime3 = new Date(Math.max(Date.parse(quoteEnv3.fetched), Date.parse(barsEnv3.fetched)) + 60000).toISOString();
   const accept3 = (result) => (result && result.ok === true && result.value ? result.value : result);
   const spot3 = quoteEnv3.spot; // the actual accepted delayed spot, parsed from the committed cache (never embedded)
@@ -2629,8 +2635,8 @@ try {
   const msftS4Source = read('msft-july-print-model.html');
   const s4Names = ['buildMsftCsvRows', 'msftDeriveDailyTechnicals', 'msftSma', 'msftDistancePct', 'msftClassifyStack'];
   const s4 = build(s4Names.map((name) => extractFn(msftS4Source, name)), s4Names);
-  const quoteEnv4 = JSON.parse(read('data/options/MSFT.json'));
-  const barsEnv4 = JSON.parse(read('data/bars/MSFT.json'));
+  const quoteEnv4 = JSON.parse(read('tests/fixtures/feature-009/msft-options.json'));
+  const barsEnv4 = JSON.parse(read('tests/fixtures/feature-009/msft-bars.json'));
   const technicals4 = s4.msftDeriveDailyTechnicals(barsEnv4.rows); // derived from the parsed current bar rows, never embedded
   const exportedAt4 = '2026-07-19T12:34:56.000Z';
 
@@ -2747,8 +2753,8 @@ try {
   const msftS5Source = read('msft-july-print-model.html');
   const s5Names = ['buildMsftStaticToolRead', 'msftDeriveDailyTechnicals', 'msftSma', 'msftDistancePct', 'msftClassifyStack'];
   const s5 = build(s5Names.map((name) => extractFn(msftS5Source, name)), s5Names);
-  const quoteEnv5 = JSON.parse(read('data/options/MSFT.json'));
-  const barsEnv5 = JSON.parse(read('data/bars/MSFT.json'));
+  const quoteEnv5 = JSON.parse(read('tests/fixtures/feature-009/msft-options.json'));
+  const barsEnv5 = JSON.parse(read('tests/fixtures/feature-009/msft-bars.json'));
   const technicals5 = s5.msftDeriveDailyTechnicals(barsEnv5.rows); // derived from the parsed current rows, never embedded
 
   // Deterministic committed-Base scaffolding: pure model numbers, NOT market constants. The builder must project

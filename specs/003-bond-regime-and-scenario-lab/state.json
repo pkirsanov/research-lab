@@ -2,14 +2,14 @@
     "version": 3,
     "featureDir": "specs/003-bond-regime-and-scenario-lab",
     "featureName": "Bond Regime and Fixed-Income Scenario Lab",
-    "status": "in_progress",
+    "status": "done",
     "workflowMode": "full-delivery",
     "linkedImplementationSpec": null,
     "linkedPlanningPacket": null,
     "planningOnly": false,
     "planningOnlyJustification": null,
     "specDependsOn": [],
-    "certifiedAt": null,
+    "certifiedAt": "2026-07-27T20:23:04Z",
     "requiresRevalidation": false,
     "execution": {
         "activeAgent": "bubbles.workflow",
@@ -42,7 +42,8 @@
         }
     },
     "certification": {
-        "status": "in_progress",
+        "status": "done",
+        "certifiedAt": "2026-07-27T20:23:04Z",
         "completedScopes": [
             "scope-1-credit-evidence-foundation",
             "scope-2-curve-inflation-and-duration-foundation",
@@ -66,11 +67,11 @@
             "spec-review"
         ],
         "scopeProgress": [
-            { "scope": "scope-1-credit-evidence-foundation", "status": "done" },
-            { "scope": "scope-2-curve-inflation-and-duration-foundation", "status": "done" },
-            { "scope": "scope-3-sleeve-scenario-foundation", "status": "done" },
-            { "scope": "scope-4-cache-first-observation-adapters", "status": "done" },
-            { "scope": "scope-5-one-model-interface-and-product-integration", "status": "done" }
+            { "scope": "scope-1-credit-evidence-foundation", "status": "done", "certifiedAt": "2026-07-27T20:23:04Z" },
+            { "scope": "scope-2-curve-inflation-and-duration-foundation", "status": "done", "certifiedAt": "2026-07-27T20:23:04Z" },
+            { "scope": "scope-3-sleeve-scenario-foundation", "status": "done", "certifiedAt": "2026-07-27T20:23:04Z" },
+            { "scope": "scope-4-cache-first-observation-adapters", "status": "done", "certifiedAt": "2026-07-27T20:23:04Z" },
+            { "scope": "scope-5-one-model-interface-and-product-integration", "status": "done", "certifiedAt": "2026-07-27T20:23:04Z" }
         ],
         "scopeInventory": [
             { "scope": "scope-1-credit-evidence-foundation", "status": "done" },
@@ -222,7 +223,7 @@
     "activeBugs": [],
     "resolvedBugs": [],
     "failures": [],
-    "lastUpdatedAt": "2026-07-27T20:24:00Z",
+    "lastUpdatedAt": "2026-07-27T20:23:04Z",
     "scopeLayout": "single-file",
     "artifacts": {
         "spec": "spec.md",

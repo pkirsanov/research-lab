@@ -60,12 +60,14 @@ globalThis.fetch = async function mockFetch(url) {
         const start = Date.parse(process.env.BAR_EXPECTED_SESSION_START_UTC) / 1000;
         const end = Date.parse(process.env.BAR_EXPECTED_SESSION_END_UTC) / 1000;
         const intradayTimestamps = Array.from({ length: Math.floor((end - start) / 300) }, (_, index) => start + index * 300);
-        const values = intradayTimestamps.map((_, index) => 125 + index / 100);
+        const values = intradayTimestamps.map((_, index) => process.env.MOCK_INTRADAY_ZERO === '1' ? null : 125 + index / 100);
         return { ok: true, status: 200, json: async () => ({ chart: { result: [{ meta: { tradingPeriods: [[{ start, end }]] }, timestamp: intradayTimestamps, indicators: { quote: [{ open: values, high: values.map((value) => value + 0.1), low: values.map((value) => value - 0.1), close: values, volume: intradayTimestamps.map(() => 100) }] }, events: {} }] } }) };
     }
   const values = timestamps.map((_, index) => 100 + index / 10);
     const dailyValues = process.env.MOCK_DAILY_GAP === '1' ? values.map((value, index) => index === values.length - 1 ? null : value) : values;
-    return { ok: true, status: 200, json: async () => ({ chart: { result: [{ timestamp: timestamps, indicators: { quote: [{ open: dailyValues, high: dailyValues, low: dailyValues, close: dailyValues, volume: timestamps.map((_, index) => index === timestamps.length - 1 && process.env.MOCK_DAILY_GAP === '1' ? null : 1000) }], adjclose: [{ adjclose: dailyValues }] }, events: {} }] } }) };
+    const adjustedValues = process.env.MOCK_DIVIDEND === '1' ? dailyValues.map((value) => value == null ? null : value * 0.5) : dailyValues;
+    const events = process.env.MOCK_DIVIDEND === '1' ? { dividends: { expected: { amount: 1, date: timestamps[timestamps.length - 1] } } } : {};
+    return { ok: true, status: 200, json: async () => ({ chart: { result: [{ timestamp: timestamps, indicators: { quote: [{ open: dailyValues, high: dailyValues, low: dailyValues, close: dailyValues, volume: timestamps.map((_, index) => index === timestamps.length - 1 && process.env.MOCK_DAILY_GAP === '1' ? null : 1000) }], adjclose: [{ adjclose: adjustedValues }] }, events }] } }) };
 };
 process.on('exit', () => writeFileSync(process.env.MOCK_FETCH_LOG, JSON.stringify({ calls, maxActive }) + '\\n'));
 `);
@@ -154,9 +156,37 @@ process.on('exit', () => writeFileSync(process.env.MOCK_FETCH_LOG, JSON.stringif
         env: { ...process.env, ...strictEnv, BRIEF_WINDOW: 'after-hours' }
     });
     assert.equal(staleValidation.status, 1, 'strict validation refuses a ticker receipt behind the last completed XNYS session');
-    assert.match(staleValidation.stderr, /SPY asof 2025-09-16 must equal completed XNYS session 2025-09-17/);
+    assert.match(staleValidation.stderr, /SPY observed receipt must equal completed XNYS session 2025-09-17/);
 
-    console.log('[brief-data-cache] PASS: one concurrent ticker pull feeds all tools; same-window cache is reusable; null completed daily rows are repaired from the same provider and session-validated');
+    rmSync(resolve(fixture, 'data/bars'), { recursive: true, force: true });
+    const zeroObservedBars = run('fetch-bars.mjs', 'zero-observed-bars.json', { ...strictEnv, MOCK_INTRADAY_ZERO: '1' });
+    assert.equal(zeroObservedBars.log.calls.filter((url) => url.includes('interval=5m')).length, 9);
+    const zeroObservedIndex = JSON.parse(readFileSync(resolve(fixture, 'data/bars/index.json'), 'utf8'));
+    assert.equal(zeroObservedIndex.freshCount, 9);
+    assert.equal(zeroObservedIndex.carriedCount, 0);
+    assert.equal(zeroObservedIndex.reconstructedCount, 0);
+    assert.equal(zeroObservedIndex.zeroObservedCount, 9);
+    assert.equal(zeroObservedIndex.tickers.every((row) => row.sessionState === 'zero-observed' && row.sessionDate === expectedSessionDate && row.asof === '2025-09-16'), true);
+    const zeroObservedSpy = JSON.parse(readFileSync(resolve(fixture, 'data/bars/SPY.json'), 'utf8'));
+    assert.equal(zeroObservedSpy.sessionState, 'zero-observed');
+    assert.deepEqual(zeroObservedSpy.zeroObservedSessions, [expectedSessionDate]);
+    assert.equal(zeroObservedSpy.rows.some((row) => new Date(row.t).toISOString().slice(0, 10) === expectedSessionDate), false, 'zero-observed session creates no synthetic zero-volume bar');
+    const zeroValidation = spawnSync(process.execPath, [resolve(fixture, 'scripts/validate-brief-cache.mjs'), '--require-current-run'], {
+        cwd: fixture,
+        encoding: 'utf8',
+        env: { ...process.env, ...strictEnv }
+    });
+    assert.equal(zeroValidation.status, 0, `zero-observed session validation failed\nstdout:\n${zeroValidation.stdout}\nstderr:\n${zeroValidation.stderr}`);
+
+    rmSync(resolve(fixture, 'data/bars'), { recursive: true, force: true });
+    const dividendBars = run('fetch-bars.mjs', 'dividend-bars.json', { ...strictEnv, MOCK_DIVIDEND: '1' });
+    assert.equal(dividendBars.log.calls.filter((url) => url.includes('interval=5m')).length, 9);
+    const dividendSpy = JSON.parse(readFileSync(resolve(fixture, 'data/bars/SPY.json'), 'utf8'));
+    assert.equal(dividendSpy.sessionState, 'observed');
+    assert.equal(dividendSpy.rows.at(-1).c, 125.77, 'dividend-date repair retains the raw post-event close instead of applying the prior adjusted-close factor');
+    assert.equal(dividendSpy.rows.at(-2).c, 62.9, 'pre-dividend daily history keeps its adjusted-close basis');
+
+    console.log('[brief-data-cache] PASS: completed sessions are observed, reconstructed, or explicitly zero-observed; dividends preserve basis; same-session cache is reusable');
 } finally {
     rmSync(fixture, { recursive: true, force: true });
 }

@@ -88,8 +88,11 @@ after-hours = reactions/follow-through).
       and `validate-brief-cache.mjs --require-current-run` refuses before any brief work unless every expected
       snapshot is fresh for this run. For exchange-traded daily bars, "fresh" additionally means every receipt
       reaches the last completed XNYS session from the committed calendar. If Yahoo emits that completed daily
-      row with null OHLCV, `fetch-bars.mjs` reconstructs only that official regular session from Yahoo's bounded
-      five-minute feed, records the repair, and preserves it until Yahoo later supplies a non-null daily row.
+      row with null OHLCV, `fetch-bars.mjs` checks Yahoo's bounded five-minute feed for that official regular
+      session. A complete observed session is reconstructed and recorded; an explicitly declared session with
+      zero observed trades is recorded as `zero-observed` while preserving the prior actual model clock and
+      creating no synthetic bar. Dividend dates use raw post-event intraday prices against adjusted prior history;
+      split dates remain fail-closed until Yahoo supplies a coherent adjusted daily row.
       A later publication window reuses the same completed-session bars with zero duplicate history requests.
       It then runs
       `scripts/brief-refresh.mjs` (fetches VIX + Fear&Greed and reuses bar snapshots fetched within six hours;

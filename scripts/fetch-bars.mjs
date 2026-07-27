@@ -121,13 +121,21 @@ async function getJSON(url) {
   }
   throw lastError || new Error('request failed');
 }
-function eventFallsOn(events, tradingDate) {
-  for (const group of Object.values(events || {})) {
-    for (const event of Object.values(group || {})) {
-      if (sessionDateFromMs(Number(event && event.date) * 1000) === tradingDate) return true;
-    }
+function eventFallsOn(events, eventKind, tradingDate) {
+  for (const event of Object.values(events && events[eventKind] || {})) {
+    if (sessionDateFromMs(Number(event && event.date) * 1000) === tradingDate) return true;
   }
   return false;
+}
+function dailySessionState(j, tradingDate) {
+  const result = j && j.chart && j.chart.result && j.chart.result[0];
+  const timestamps = result && Array.isArray(result.timestamp) ? result.timestamp : [];
+  const quote = result && result.indicators && Array.isArray(result.indicators.quote) ? result.indicators.quote[0] || {} : {};
+  for (let index = 0; index < timestamps.length; index++) {
+    if (sessionDateFromMs(timestamps[index] * 1000) !== tradingDate) continue;
+    return quote.close && Number.isFinite(quote.close[index]) ? 'observed' : 'declared-null';
+  }
+  return 'absent';
 }
 function trimBars(j, cutoffDate) {
   const r = j && j.chart && j.chart.result && j.chart.result[0];
@@ -159,10 +167,10 @@ function mergeRows(existingRows, freshRows, cutoffDate) {
 }
 function reconstructSession(j, session, adjustmentFactor) {
   const result = j && j.chart && j.chart.result && j.chart.result[0];
-  if (!result || !Array.isArray(result.timestamp) || !result.indicators || !Array.isArray(result.indicators.quote)) return null;
+  if (!result || !Array.isArray(result.timestamp) || !result.indicators || !Array.isArray(result.indicators.quote)) return { state: 'unavailable' };
   const start = Date.parse(session.regular.startUtc), end = Date.parse(session.regular.endUtc);
   const periods = Array.isArray(result.meta && result.meta.tradingPeriods) ? result.meta.tradingPeriods.flat() : [];
-  if (!periods.some((period) => period && period.start * 1000 <= start && period.end * 1000 >= end)) return null;
+  if (!periods.some((period) => period && period.start * 1000 <= start && period.end * 1000 >= end)) return { state: 'unavailable' };
   const q = result.indicators.quote[0] || {};
   let open = null, high = null, low = null, close = null, volume = 0, count = 0, firstObserved = null, lastObserved = null;
   const expectedBars = Math.ceil((end - start) / (5 * 60 * 1000));
@@ -183,8 +191,9 @@ function reconstructSession(j, session, adjustmentFactor) {
     if (q.volume && Number.isFinite(q.volume[i])) volume += q.volume[i];
     count += 1;
   }
-  if (count < Math.floor(expectedBars * 0.8) || firstObserved > start + 15 * 60 * 1000 || lastObserved < end - 15 * 60 * 1000 || ![open, high, low, close].every(Number.isFinite)) return null;
-  return { t: start, o: open, h: high, l: low, c: close * adjustmentFactor, v: volume, sourceBars: count };
+  if (count === 0) return { state: 'zero-observed', sourceBars: 0 };
+  if (count < Math.floor(expectedBars * 0.8) || firstObserved > start + 15 * 60 * 1000 || lastObserved < end - 15 * 60 * 1000 || ![open, high, low, close].every(Number.isFinite)) return { state: 'incomplete', sourceBars: count };
+  return { state: 'observed', row: { t: start, o: open, h: high, l: low, c: close * adjustmentFactor, v: volume, sourceBars: count } };
 }
 async function mapConcurrent(items, limit, worker) {
   const results = new Array(items.length);
@@ -205,13 +214,14 @@ async function refreshSymbol(sym) {
   const existing = readJSON(existingFile, null), existingRows = existing && existing.rows;
   const sessionBound = isSessionBoundSymbol(sym);
   const enforceSession = sessionBound && !!EXPECTED_SESSION_DATE;
-  const sessionCurrent = !enforceSession || (existing && existing.asof === EXPECTED_SESSION_DATE);
+  const existingZeroObserved = enforceSession && existing && existing.sessionState === 'zero-observed' && existing.expectedSessionDate === EXPECTED_SESSION_DATE && Array.isArray(existing.zeroObservedSessions) && existing.zeroObservedSessions.includes(EXPECTED_SESSION_DATE);
+  const sessionCurrent = !enforceSession || (existing && existing.asof === EXPECTED_SESSION_DATE) || existingZeroObserved;
   const sameWindow = CACHE_WINDOW && existing && existing.refreshDate === CACHE_DATE && existing.refreshWindow === CACHE_WINDOW;
-  const sameCompletedSession = enforceSession && existing && existing.asof === EXPECTED_SESSION_DATE;
+  const sameCompletedSession = enforceSession && ((existing && existing.asof === EXPECTED_SESSION_DATE) || existingZeroObserved);
   if (existing && Array.isArray(existingRows) && existingRows.length && sessionCurrent && (sameWindow || sameCompletedSession)) {
     const reuseReason = sameWindow ? CACHE_DATE + '/' + CACHE_WINDOW : 'completed session ' + EXPECTED_SESSION_DATE;
     console.log('reuse ' + sym + '  bars=' + existingRows.length + ' (git cache ' + reuseReason + ')');
-    return { sym, n: existingRows.length, last: existingRows[existingRows.length - 1].c, asof: existing.asof, cached: true, sessionCached: !sameWindow && sameCompletedSession, reconstructed: Array.isArray(existing.reconstructedSessions) && existing.reconstructedSessions.length > 0 };
+    return { sym, n: existingRows.length, last: existingRows[existingRows.length - 1].c, asof: existing.asof, sessionDate: enforceSession ? EXPECTED_SESSION_DATE : existing.asof, sessionState: existingZeroObserved ? 'zero-observed' : 'observed', zeroObserved: existingZeroObserved, cached: true, sessionCached: !sameWindow && sameCompletedSession, reconstructed: Array.isArray(existing.reconstructedSessions) && existing.reconstructedSessions.length > 0 };
   }
   if (MISSING_ONLY && existsSync(existingFile)) {
     if (Array.isArray(existingRows) && existingRows.length) {
@@ -224,24 +234,32 @@ async function refreshSymbol(sym) {
     const daily = await getJSON('https://query1.finance.yahoo.com/v8/finance/chart/' + encodeURIComponent(sym) + '?interval=1d&range=' + RANGE + '&includeAdjustedClose=true&events=div%2Csplits');
     const parsed = trimBars(daily, enforceSession ? EXPECTED_SESSION_DATE : null);
     if (!parsed) throw new Error('no daily bars');
-    let bars = mergeRows(existingRows, parsed.rows, enforceSession ? EXPECTED_SESSION_DATE : null), reconstructed = false;
+    let bars = mergeRows(existingRows, parsed.rows, enforceSession ? EXPECTED_SESSION_DATE : null), reconstructed = false, zeroObserved = false;
     let asof = sessionDateFromMs(bars[bars.length - 1].t);
     if (enforceSession && asof !== EXPECTED_SESSION_DATE) {
       if (!EXPECTED_SESSION) throw new Error('expected XNYS session unavailable');
-      if (eventFallsOn(parsed.events, EXPECTED_SESSION_DATE)) throw new Error('corporate action blocks intraday reconstruction for ' + EXPECTED_SESSION_DATE);
+      if (eventFallsOn(parsed.events, 'splits', EXPECTED_SESSION_DATE)) throw new Error('split blocks intraday reconstruction for ' + EXPECTED_SESSION_DATE);
       const intraday = await getJSON('https://query1.finance.yahoo.com/v8/finance/chart/' + encodeURIComponent(sym) + '?interval=5m&range=5d&includePrePost=false&events=div%2Csplits');
-      const repair = reconstructSession(intraday, EXPECTED_SESSION, parsed.adjustmentFactor);
-      if (!repair) throw new Error('completed session ' + EXPECTED_SESSION_DATE + ' unavailable from daily and intraday feeds');
-      bars = mergeRows(bars.filter((row) => sessionDateFromMs(row.t) !== EXPECTED_SESSION_DATE), [repair], EXPECTED_SESSION_DATE);
-      reconstructed = true;
-      asof = EXPECTED_SESSION_DATE;
+      const reconstructionFactor = eventFallsOn(parsed.events, 'dividends', EXPECTED_SESSION_DATE) ? 1 : parsed.adjustmentFactor;
+      const repair = reconstructSession(intraday, EXPECTED_SESSION, reconstructionFactor);
+      if (repair.state === 'observed') {
+        bars = mergeRows(bars.filter((row) => sessionDateFromMs(row.t) !== EXPECTED_SESSION_DATE), [repair.row], EXPECTED_SESSION_DATE);
+        reconstructed = true;
+        asof = EXPECTED_SESSION_DATE;
+      } else if (repair.state === 'zero-observed' && dailySessionState(daily, EXPECTED_SESSION_DATE) === 'declared-null') {
+        zeroObserved = true;
+      } else {
+        throw new Error('completed session ' + EXPECTED_SESSION_DATE + ' unavailable from daily and intraday feeds (' + repair.state + ')');
+      }
     }
-    if (enforceSession && asof !== EXPECTED_SESSION_DATE) throw new Error('latest completed session is ' + asof + ', expected ' + EXPECTED_SESSION_DATE);
+    if (enforceSession && asof !== EXPECTED_SESSION_DATE && !zeroObserved) throw new Error('latest completed session is ' + asof + ', expected ' + EXPECTED_SESSION_DATE);
     const reconstructedSessions = [...new Set(bars.filter((row) => Number.isInteger(row.sourceBars) && row.sourceBars > 0).map((row) => sessionDateFromMs(row.t)))];
-    const record = { sym, interval: '1d', range: RANGE, asof, fetched: new Date().toISOString(), refreshDate: CACHE_DATE, refreshWindow: CACHE_WINDOW, expectedSessionDate: enforceSession ? EXPECTED_SESSION_DATE : null, src: reconstructedSessions.length ? 'yahoo-daily+intraday-repair' : 'yahoo', reconstructedSessions, rows: bars };
+    const freshDates = new Set(bars.map((row) => sessionDateFromMs(row.t)));
+    const zeroObservedSessions = [...new Set([...(Array.isArray(existing && existing.zeroObservedSessions) ? existing.zeroObservedSessions : []), ...(zeroObserved ? [EXPECTED_SESSION_DATE] : [])])].filter((date) => !freshDates.has(date));
+    const record = { sym, interval: '1d', range: RANGE, asof, fetched: new Date().toISOString(), refreshDate: CACHE_DATE, refreshWindow: CACHE_WINDOW, expectedSessionDate: enforceSession ? EXPECTED_SESSION_DATE : null, sessionState: zeroObserved ? 'zero-observed' : 'observed', src: reconstructedSessions.length ? 'yahoo-daily+intraday-repair' : zeroObserved ? 'yahoo-zero-observed-session' : 'yahoo', reconstructedSessions, zeroObservedSessions, rows: bars };
     writeFileSync(existingFile, JSON.stringify(record));
-    console.log('ok   ' + sym + '  bars=' + bars.length + '  asof=' + asof + '  last=' + bars[bars.length - 1].c + (reconstructed ? '  (yahoo intraday repair)' : '  (yahoo)'));
-    return { sym, n: bars.length, last: bars[bars.length - 1].c, asof, reconstructed: reconstructedSessions.length > 0, repairedThisRun: reconstructed };
+    console.log('ok   ' + sym + '  bars=' + bars.length + '  asof=' + asof + '  session=' + (enforceSession ? EXPECTED_SESSION_DATE : asof) + '/' + record.sessionState + '  last=' + bars[bars.length - 1].c + (reconstructed ? '  (yahoo intraday repair)' : zeroObserved ? '  (yahoo zero observed trades)' : '  (yahoo)'));
+    return { sym, n: bars.length, last: bars[bars.length - 1].c, asof, sessionDate: enforceSession ? EXPECTED_SESSION_DATE : asof, sessionState: record.sessionState, zeroObserved, reconstructed: reconstructedSessions.length > 0, repairedThisRun: reconstructed };
   } catch (err) {
     if (Array.isArray(existingRows) && existingRows.length) {
       console.log('kept ' + sym + '  bars=' + existingRows.length + ' (last-good; ' + ((err && err.message) || err) + ')');
@@ -263,11 +281,12 @@ async function main() {
   const carriedCount = idx.filter((row) => row.carried).length;
   const reconstructedCount = idx.filter((row) => row.reconstructed).length;
   const sessionReuseCount = idx.filter((row) => row.sessionCached).length;
+  const zeroObservedCount = idx.filter((row) => row.zeroObserved).length;
   writeFileSync(OUT_DIR + '/index.json', JSON.stringify({
     updated: new Date().toISOString(), refreshDate: CACHE_DATE, refreshWindow: CACHE_WINDOW,
     expectedSessionDate: EXPECTED_SESSION_DATE,
     expected: syms.length, count: idx.length, freshCount: idx.length - carriedCount,
-    carriedCount, reconstructedCount, sessionReuseCount, missing, tickers: idx
+    carriedCount, reconstructedCount, sessionReuseCount, zeroObservedCount, missing, tickers: idx
   }));
   console.log('\nwrote ' + idx.length + '/' + syms.length + ' bar snapshots to ' + OUT_DIR);
 }

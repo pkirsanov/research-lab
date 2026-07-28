@@ -593,3 +593,563 @@ routes the remaining phases rather than forcing a terminal status.
 `validate` is deliberately **not** recorded in `certifiedCompletedPhases`: this validation
 verdict is `route_required`, not clean, and validate must re-run after the remaining
 phases to certify the final state.
+
+---
+
+## Test Phase (bubbles.test)
+
+- **Executed by:** `bubbles.test`
+- **Executed at:** 2026-07-28T22:44Z – 23:05Z
+- **HEAD at execution:** `0a9638012af21750ad005e4cb39041dbd4efa530`
+- **Fix commit under test:** `8206c89c` — `fix(012/BUG-003): reconcile TP-10-02 to the shell Brief-view contract`
+- **Claim Source:** `executed` — every block below is verbatim terminal output from a
+  command run in this session. Nothing is interpreted, summarised or carried over.
+- **Files changed by this phase:** only this packet (`report.md`, `state.json`). The
+  `tests/` tree, `rlviews.js`, `rlbrief.js`, `rlexperience.js`,
+  `tool-experience.config.json`, every `*.html`, `scripts/` and `.github/` are
+  byte-identical to HEAD (verified in TPH-3 and TPH-11).
+
+### TPH-0 Repository-binding preflight (mandatory gate)
+
+```text
+$ bash .github/bubbles/scripts/repo-binding-preflight.sh --repo-root /home/redacted/research-lab --agent-source research-lab
+[repo-binding-preflight] OK — agent source 'research-lab' matches target repo 'research-lab'.
+PREFLIGHT_EXIT=0
+```
+
+### TPH-1 Packet-vs-request file reconciliation (recorded, not asserted)
+
+The dispatch brief named `tests/distributed-briefs.spec.mjs` as the file holding the
+reconciled TP-10-02 and expected "all 14 to pass" there. The repository disagrees, and the
+packet is correct: the reconciled test lives in `tests/distributed-briefs.static.integration.mjs`
+(1 test, `node --test`), and `tests/distributed-briefs.spec.mjs` holds the **13 siblings**
+(Playwright). 13 + 1 = the 14 tests the brief expected, split across two files. Both were
+run; neither was skipped.
+
+```text
+$ git --no-pager show --numstat --format='%H%n%an%n%ad%n%s' 8206c89c
+8206c89c7247ba2d8e5652663ffdb06c19a83a57
+pkirsanov
+Tue Jul 28 19:34:55 2026 +0000
+fix(012/BUG-003): reconcile TP-10-02 to the shell Brief-view contract
+
+165     0       .../BUG-003-.../bug.md
+198     0       .../BUG-003-.../design.md
+318     0       .../BUG-003-.../report.md
+223     0       .../BUG-003-.../scopes.md
+90      0       .../BUG-003-.../spec.md
+137     0       .../BUG-003-.../state.json
+13      0       .../BUG-003-.../uservalidation.md
+13      0       tests/distributed-briefs.static.integration.mjs
+
+$ for f in tests/distributed-briefs*.mjs; do printf '%-55s %s\n' "$f" "$(grep -cE "^\s*test\(" "$f")"; done
+tests/distributed-briefs.spec.mjs                       13
+tests/distributed-briefs.static.integration.mjs         1
+tests/distributed-briefs.support.mjs                    0
+```
+
+The only non-packet file the fix touched is `tests/distributed-briefs.static.integration.mjs`
+at 13 insertions / 0 deletions.
+
+### TPH-2 Direct regression — TP-B003-01, the previously-failing test (GREEN, exit 0)
+
+```text
+$ timeout 300 node --test tests/distributed-briefs.static.integration.mjs
+✔ static loader verifies coherent current objects and fetches history only after selection (2979.783849ms)
+ℹ tests 1
+ℹ suites 0
+ℹ pass 1
+ℹ fail 0
+ℹ cancelled 0
+ℹ skipped 0
+ℹ todo 0
+ℹ duration_ms 3105.493904
+TP_B003_01_EXIT=0
+```
+
+`skipped 0` — the pre-existing `t.skip('Playwright runtime unavailable')` guard did **not**
+fire, so the test really executed a browser. It completed in 2.98 s against an unchanged
+15000 ms wait, so it passes by satisfying the wait, not by outlasting it.
+
+### TPH-3 Direct regression — TP-B003-02, the 13 ratified siblings (exit 0)
+
+```text
+$ timeout 900 npx --no-install playwright test tests/distributed-briefs.spec.mjs --config=playwright.config.mjs --project=system-chrome --reporter=list
+
+Running 13 tests using 1 worker
+
+  ✓   1 …wer keep official close separate and disclose comparable volume (758ms)
+  ✓   2 … the exact published pre-market thesis with owner read evidence (388ms)
+  ✓   3 …inal never labels a partial regular print as the official close (458ms)
+  ✓   4 …erve official close and label every post-close print indicative (587ms)
+  ✓   5 … strips use explicit calendar boundaries and next valid session (625ms)
+  ✓   6 …ming to released without stale actual or post-release consensus (743ms)
+  ✓   7 …ay separate and revisions append without rewriting the original (737ms)
+  ✓   8 … and history exclude look-ahead and retain immutable chronology (493ms)
+  ✓   9 …ed unusual evidence remains context and consumes no action slot (487ms)
+  ✓  10 …emains truthful and non-current failures cannot replace current (826ms)
+  ✓  11 …fetches only the selected partition and opened evidence objects (463ms)
+  ✓  12 …ory UI is accessible safe and stable at desktop mobile and zoom (717ms)
+  ✓  13 …y source receives the shared mount with no page-specific branch (383ms)
+
+  13 passed (9.6s)
+STEP1_EXIT=0
+```
+
+SCN-B003-04 additionally requires the sibling file to be **unmodified**. It is byte-identical
+across the fix commit:
+
+```text
+$ git show 8206c89c^:tests/distributed-briefs.spec.mjs | sha256sum | cut -d' ' -f1
+2ab687eb2ef52dca2f7e41b1563ec2ff4fc9c1c09e0a0a99ff79afdd3a990221
+$ sha256sum tests/distributed-briefs.spec.mjs | cut -d' ' -f1
+2ab687eb2ef52dca2f7e41b1563ec2ff4fc9c1c09e0a0a99ff79afdd3a990221
+
+$ git show 8206c89c^:tests/distributed-briefs.spec.mjs | grep -c 'toBeVisible'
+6
+$ grep -c 'toBeVisible' tests/distributed-briefs.spec.mjs
+6
+```
+
+### TPH-4 Adversarial RED proof — the reconciled test still catches BUG-003
+
+**Purpose.** Prove the reconciliation did not neuter the assertion. The mutation reverts
+**only the brief-view click** and deliberately **retains** the newly-added 20000 ms
+shell-ready wait, so the click — not the extra wait — is isolated as the causal element.
+
+**Baseline checksum before mutation:**
+
+```text
+$ sha256sum tests/distributed-briefs.static.integration.mjs
+3acd7764c0d754764053dd3b6cc7352f53cea0d5ae79b414d6693e8a15636727  tests/distributed-briefs.static.integration.mjs
+```
+
+**The mutation (1 line, click only):**
+
+```text
+$ git --no-pager diff -- tests/distributed-briefs.static.integration.mjs
+diff --git a/tests/distributed-briefs.static.integration.mjs b/tests/distributed-briefs.static.integration.mjs
+index fd54ee7d..f141da3c 100644
+--- a/tests/distributed-briefs.static.integration.mjs
++++ b/tests/distributed-briefs.static.integration.mjs
+@@ -18,7 +18,7 @@ import { startBriefServer, harnessUrl, loadPlaywright, browserLaunchOptions } fr
+ // below (`no history partition before Open history`, `beforePower`) and cannot invalidate them.
+ async function openBriefView(page) {
+     await page.waitForSelector('#rlviews[data-rlexperience-shell="ready"]', { timeout: 20000 });
+-    await page.locator('#rlviews button[data-rlview-mode="brief"]').click();
++    // ADVERSARIAL-MUTATION-TEMP: brief-view click reverted to prove the assertion still catches BUG-003
+ }
+ 
+ test('static loader verifies coherent current objects and fetches history only after selection', async (t) => {
+
+$ git --no-pager diff --numstat -- tests/distributed-briefs.static.integration.mjs
+1       1       tests/distributed-briefs.static.integration.mjs
+
+$ sha256sum tests/distributed-briefs.static.integration.mjs
+f24c2b82c5a8f9b385ff63d0e0da651509aa0415c6aca433dfa144151ca14ba8  tests/distributed-briefs.static.integration.mjs
+```
+
+**RED (exit 1) — identical failure signature to the original defect:**
+
+```text
+$ timeout 300 node --test tests/distributed-briefs.static.integration.mjs
+✖ static loader verifies coherent current objects and fetches history only after selection (16917.793401ms)
+ℹ tests 1
+ℹ suites 0
+ℹ pass 0
+ℹ fail 1
+ℹ cancelled 0
+ℹ skipped 0
+ℹ todo 0
+ℹ duration_ms 17105.372066
+
+✖ failing tests:
+
+test at tests/distributed-briefs.static.integration.mjs:24:1
+✖ static loader verifies coherent current objects and fetches history only after selection (16917.793401ms)
+  page.waitForSelector: Timeout 15000ms exceeded.
+  Call log:
+    - waiting for locator('[data-rlbrief-mount][data-rlbrief-ready="1"]') to be visible
+      33 × locator resolved to hidden <section data-rlbrief-mount="" data-rlbrief-ready="1" data-rlbrief-state="ready" data-power-target="rlbrief-power" data-tool-id="sector-research-lab" data-simple-target="rlbrief-simple" data-rlexperience-state="registered">…</section>
+
+      at TestContext.<anonymous> (/home/redacted/research-lab/tests/distributed-briefs.static.integration.mjs:39:20) {
+    name: 'TimeoutError',
+    log: [ `  - waiting for locator('[data-rlbrief-mount][data-rlbrief-ready="1"]') to be visible`, '    33 × locator resolved to hidden <section data-rlbrief-mount="" data-rlbrief-ready="1" data-rlbrief-state="ready" data-power-target="rlbrief-power" data-tool-id="sector-research-lab" data-simple-target="rlbrief-simple" data-rlexperience-state="registered">…</section>' ]
+  }
+ADVERSARIAL_RED_EXIT=1
+```
+
+This reproduces the original defect exactly as recorded in [bug.md](bug.md) § Verbatim
+Failure Output: same `TimeoutError`, same unchanged `Timeout 15000ms exceeded`, same
+`to be visible` state, and the same fully-settled-but-`hidden` mount
+(`data-rlbrief-ready="1" data-rlbrief-state="ready" data-rlexperience-state="registered"`).
+The poll count differs only by scheduling jitter (33 here vs 32 at discovery).
+
+**Byte-exact restore:**
+
+```text
+$ sha256sum tests/distributed-briefs.static.integration.mjs
+3acd7764c0d754764053dd3b6cc7352f53cea0d5ae79b414d6693e8a15636727  tests/distributed-briefs.static.integration.mjs
+   (identical to the pre-mutation baseline above)
+
+$ git --no-pager diff -- tests/distributed-briefs.static.integration.mjs
+(no output — byte-identical to HEAD)
+
+$ git --no-pager status --porcelain -- tests/
+(no output — the entire tests/ tree is byte-identical to HEAD)
+
+$ grep -c 'ADVERSARIAL-MUTATION-TEMP' tests/distributed-briefs.static.integration.mjs
+0
+grep_exit=1
+```
+
+**GREEN re-proof after restore (exit 0):**
+
+```text
+$ timeout 300 node --test tests/distributed-briefs.static.integration.mjs
+✔ static loader verifies coherent current objects and fetches history only after selection (3035.270226ms)
+ℹ tests 1
+ℹ suites 0
+ℹ pass 1
+ℹ fail 0
+ℹ cancelled 0
+ℹ skipped 0
+ℹ todo 0
+ℹ duration_ms 3197.907499
+POST_RESTORE_GREEN_EXIT=0
+```
+
+RED (exit 1) → restore → GREEN (exit 0) with a byte-identical file proves the assertion is
+still load-bearing: the fix works because it drives the shell, not because it relaxed anything.
+
+### TPH-5 Regression quality guard (exit 0, adversarial signal detected)
+
+```text
+$ bash .github/bubbles/scripts/regression-quality-guard.sh tests/distributed-briefs.spec.mjs
+============================================================
+  BUBBLES REGRESSION QUALITY GUARD
+  Repo: /home/redacted/research-lab
+  Timestamp: 2026-07-28T22:44:42Z
+  Bugfix mode: false
+============================================================
+
+ℹ️  Scanning tests/distributed-briefs.spec.mjs
+
+============================================================
+  REGRESSION QUALITY RESULT: 0 violation(s), 0 warning(s)
+  Files scanned: 1
+============================================================
+GUARD_SIBLING_EXIT=0
+
+$ bash .github/bubbles/scripts/regression-quality-guard.sh tests/distributed-briefs.static.integration.mjs
+============================================================
+  BUBBLES REGRESSION QUALITY GUARD
+  Repo: /home/redacted/research-lab
+  Timestamp: 2026-07-28T22:44:42Z
+  Bugfix mode: false
+============================================================
+
+ℹ️  Scanning tests/distributed-briefs.static.integration.mjs
+
+============================================================
+  REGRESSION QUALITY RESULT: 0 violation(s), 0 warning(s)
+  Files scanned: 1
+============================================================
+GUARD_FIXED_EXIT=0
+
+$ bash .github/bubbles/scripts/regression-quality-guard.sh --bugfix tests/distributed-briefs.static.integration.mjs
+============================================================
+  BUBBLES REGRESSION QUALITY GUARD
+  Repo: /home/redacted/research-lab
+  Timestamp: 2026-07-28T22:44:43Z
+  Bugfix mode: true
+============================================================
+
+ℹ️  Scanning tests/distributed-briefs.static.integration.mjs
+✅ Adversarial signal detected in tests/distributed-briefs.static.integration.mjs
+
+============================================================
+  REGRESSION QUALITY RESULT: 0 violation(s), 0 warning(s)
+  Files scanned: 1
+  Files with adversarial signals: 1
+============================================================
+GUARD_BUGFIX_EXIT=0
+```
+
+The guard was run against BOTH the file named in the dispatch brief and the file the fix
+actually changed. Both are clean; the bugfix/adversarial mode detects an adversarial signal
+in the reconciled file.
+
+### TPH-6 No-weakening verification (mechanical)
+
+```text
+$ git --no-pager show --numstat 8206c89c -- tests/distributed-briefs.static.integration.mjs
+13      0       tests/distributed-briefs.static.integration.mjs
+
+$ git --no-pager show 8206c89c -- tests/distributed-briefs.static.integration.mjs | grep -E '^-[^-]'
+deleted_line_grep_exit=1 (1 == zero deletions)
+
+$ git show 8206c89c^:...static.integration.mjs | grep -c 'assert\.'     # pre-fix
+15
+$ grep -c 'assert\.' tests/distributed-briefs.static.integration.mjs     # now
+15
+
+$ git show 8206c89c^:...static.integration.mjs | grep -cE "state: *['\"]attached['\"]"   # pre-fix
+0
+$ grep -cE "state: *['\"]attached['\"]" tests/distributed-briefs.static.integration.mjs  # now
+0
+
+$ git show 8206c89c^:...static.integration.mjs | grep -c '\.skip'   # pre-fix
+1
+$ grep -c '\.skip' tests/distributed-briefs.static.integration.mjs  # now
+1
+
+--- ALL timeout values, pre-fix ---
+27:  waitForSelector('[data-rlbrief-mount][data-rlbrief-ready="1"]', { timeout: 15000 });
+46:  waitForSelector('[data-rlbrief-part="price"]', { timeout: 5000 });
+54:  waitForSelector('#rlbrief-hist-select', { timeout: 8000 });
+61:  waitForSelector('[data-rlbrief-part="history-timeline"]', { timeout: 8000 });
+81:  waitForSelector('[data-rlbrief-mount][data-rlbrief-ready="1"]', { timeout: 15000 });
+--- ALL timeout values, now ---
+20:  waitForSelector('#rlviews[data-rlexperience-shell="ready"]', { timeout: 20000 });   <-- NEW (shell-ready), copied from the ratified sibling
+39:  waitForSelector('[data-rlbrief-mount][data-rlbrief-ready="1"]', { timeout: 15000 });
+58:  waitForSelector('[data-rlbrief-part="price"]', { timeout: 5000 });
+66:  waitForSelector('#rlbrief-hist-select', { timeout: 8000 });
+73:  waitForSelector('[data-rlbrief-part="history-timeline"]', { timeout: 8000 });
+94:  waitForSelector('[data-rlbrief-mount][data-rlbrief-ready="1"]', { timeout: 15000 });
+
+$ grep -nE 'waitForSelector\(.*rlbrief-mount' tests/distributed-briefs.static.integration.mjs
+39:        await page.waitForSelector('[data-rlbrief-mount][data-rlbrief-ready="1"]', { timeout: 15000 });
+94:        await page.waitForSelector('[data-rlbrief-mount][data-rlbrief-ready="1"]', { timeout: 15000 });
+```
+
+| Weakening vector | Pre-fix | Now | Verdict |
+|---|---|---|---|
+| Deleted lines in the fix diff | — | 0 | additive only |
+| Assertion count | 15 | 15 | unchanged |
+| `state: 'attached'` relaxations | 0 | 0 | visibility still asserted |
+| `.skip` count | 1 (pre-existing runtime guard) | 1 | no new skip |
+| Every pre-existing timeout (15000/5000/8000/8000/15000) | 5 values | same 5 values | unchanged |
+| Mount-wait state | Playwright default `visible` | Playwright default `visible` | unchanged |
+| Sibling `toBeVisible()` | 6 | 6 | unchanged |
+
+The **only** new timeout is the 20000 ms shell-ready wait, which belongs to a newly added
+wait copied from the ratified sibling — no existing timeout was extended to mask anything.
+The reconciled test finishes in ~3 s against a 15000 ms budget.
+
+### TPH-7 Surrounding suite — full `distributed-briefs` family via `node --test` (61/61, exit 0)
+
+```text
+$ timeout 2400 node --test $(ls tests/distributed-briefs*.mjs | grep -v '\.spec\.mjs$')
+✔ Regression: SCN-002-001 current registry freezes 22 source reads and one non-recursive final aggregator (14.820289ms)
+✔ Regression: SCN-002-002 unavailable non-live and off-theme evidence never becomes a market recommendation (3.590197ms)
+✔ Regression: SCN-002-003 registry-only addition joins every read consumer without inventory edits (2.027098ms)
+...
+================================================
+Scope 06 author-pool stress: 16 passed, 0 failed
+================================================
+✔ tests/distributed-briefs.authorship.stress.mjs (347.472336ms)
+...
+================================================
+history load: 8 passed, 0 failed
+================================================
+✔ tests/distributed-briefs.history.load.mjs (788.985102ms)
+...
+distributed-briefs.scheduler.stress: PASS (concurrent duplicates + crash-resume within budgets)
+✔ tests/distributed-briefs.scheduler.stress.mjs (1779.318057ms)
+✔ SCN-002-010: run state permits only evidence freeze reads authors final publish commit and push order (1.945899ms)
+✔ SCN-002-010: manifest inventory and pointer-last generation share one run identity (31.662177ms)
+✔ static loader verifies coherent current objects and fetches history only after selection (5968.016387ms)
+✔ tests/distributed-briefs.support.mjs (89.628133ms)
+✔ Canary: enabled source pages render briefs and retain controls/RLDATA/credential lifecycle; the aggregator stays idle (43527.14261ms)
+ℹ tests 61
+ℹ suites 0
+ℹ pass 61
+ℹ fail 0
+ℹ cancelled 0
+ℹ skipped 0
+ℹ todo 0
+ℹ duration_ms 51103.84158
+STEP4A_EXIT=0
+```
+
+37 files, **61 passed / 0 failed / 0 skipped**, exit 0 — and the reconciled TP-10-02 is
+visible inside that run (`✔ static loader verifies coherent current objects …`). The elided
+`...` lines are the remaining individual `✔` results in the same 61-test run; every one is a
+pass, and the machine-readable totals above are the run's own summary.
+
+### TPH-8 Surrounding suite — TP-B003-03 project selftest (952/0, exit 0)
+
+```text
+$ timeout 1200 node scripts/selftest.mjs
+  ✓ rlmarketaction.js owns zero forbidden fetch/providerFetch/storage-write/publisher/LLM capability
+  ✓ SCN-012-022 public matrix labels every row `Public watchlist` with one explicit applicable/state cell per domain (never neutral by omission)
+  ✓ the composed public matrix validates round-trip and matches the validator row count
+  ✓ the public composer refuses a smuggled Feature 008 private field (RLMKT-PRIVACY) and never echoes the private value
+  ✓ SCN-012-019 the Center composes exactly four views (brief/portfolio/red-alert/journey), three exact dependency-pending gates, and a truthful no-action Brief that fabricates no action/catalyst/confidence
+  ✓ the market-action contract validator reports four views, three pending gates, and seven distinct closed RLMKT-* adversarial refusals
+  ✓ every committed web-evidence fixture (>= 11) evaluates deterministically against the REAL acquire() production transform
+  ✓ web-evidence-acquire.mjs imports ONLY node:crypto and owns zero fetch/provider-key/repo-write/current-pointer/author-publication authority
+  ✓ the web-evidence validator refuses twelve distinct closed adversarial mutations, each with an E012-* code
+  ✓ SCN-012-006/007 single & syndicated origins leave a material claim uncorroborated while two DISTINCT origins corroborate; the safe bundle is frozen with no raw markup (SCN-012-037)
+  ✓ SCN-012-023 a dynamically corroborated, market-confirmed, high-severity candidate qualifies with every falsifiable field and an admission score (never a probability/confidence/crash-odds field), publication Feature-002 gated
+  ✓ SCN-012-024 a single-origin dramatic candidate consumes no visible slot, is a safe insufficient-corroboration count, and never echoes its dramatic title
+  ✓ SCN-012-025 a no-candidate window renders an honest empty state with cutoff/channels/owner coverage and no illustrative topic
+
+================================================
+Research-Lab self-test: 952 passed, 0 failed
+================================================
+SELFTEST_EXIT=0
+```
+
+The run emitted 370 lines; the verdict line and exit code were extracted from that captured
+full output (`grep -nE 'Research-Lab self-test|SELFTEST_EXIT' → line 367/369`) and no `✗` or
+`FAIL` line was present. This matches the ratified 952/0 baseline exactly.
+
+### TPH-9 Surrounding suite — Playwright wiring + models (4/4, exit 0)
+
+```text
+$ timeout 1800 npx --no-install playwright test tests/simple-production-wiring.spec.mjs tests/simple-models.spec.mjs --config=playwright.config.mjs --project=system-chrome --reporter=list
+
+Running 4 tests using 2 workers
+
+  ✓  1 …ter stays unavailable without defaults fetch or fabricated result (2.0s)
+  ✓  2 …Simple renders the real adapter panel in the real owner-mode flow (4.5s)
+  ✓  3 … last valid run across invalid stale missing and non-finite input (1.2s)
+  ✓  4 …e under Power (Simple stays honest-unavailable, nothing deleted) (803ms)
+
+  4 passed (7.5s)
+STEP4C_EXIT=0
+```
+
+### TPH-10 Surrounding suite — TP-B003-04 production Simple bridge (6/6, 19 wired, exit 0)
+
+```text
+$ timeout 900 node --test tests/simple-production-bridge.integration.mjs
+[TP-15-02] wired (19): market-heatmap-lab, options-flow-feed-lab, intraday-tape-lab, swing-structure-lab, options-structure-lab, gamma-trading-lab, sector-research-lab, global-rotation-lab, real-assets-lab, bond-regime-lab, ai-capex-strategy-lab, company-fundamentals-lab, etf-momentum-lab, strategy-self-improvement-lab, strategy-validation-lab, smart-money-flow-lab, waterfront-polo-lab, volatility-sizing-lab, technical-analysis-decision-lab
+[TP-15-02] not wired (4): market-brief, msft-july-print-model, palm-springs-rental-market-lab, ocean-shores-rental-market-lab
+[TP-15-02] strict parity (module loaded by the page): 18 of 19
+[TP-15-02] honest generic unavailable (module deliberately absent, SCN-012-034 lock): technical-analysis-decision-lab
+✔ TP-15-02 the wired-tool set is derived from the production registry + the production pages (never a hard-coded list) (57.791058ms)
+✔ TP-15-02 registry-derived loop: each wired tool prepares through the REAL runtime and paints the REAL panel (1069.186667ms)
+✔ TP-15-02 owner parity: every wired tool's Simple facts EQUAL the owner/Power-path values (1125.209687ms)
+✔ TP-15-02 the production bridge reaches the SAME projection as the explicit runtime path for every module-backed wired tool (and the honest generic unavailable where the module is deliberately absent) (1742.179487ms)
+✔ TP-15-02 honest unavailable: a wired tool whose provider yields NO owner state degrades truthfully (no invented signal) (61.00885ms)
+✔ TP-15-02 honest unavailable: owner evidence that does not permit a run degrades truthfully rather than inventing a read (52.111358ms)
+ℹ tests 6
+ℹ suites 0
+ℹ pass 6
+ℹ fail 0
+ℹ cancelled 0
+ℹ skipped 0
+ℹ todo 0
+ℹ duration_ms 4258.610693
+TP_B003_04_EXIT=0
+```
+
+### TPH-11 Boundary attestation for this phase
+
+```text
+$ git --no-pager status --porcelain -- tests/ rlviews.js rlbrief.js rlexperience.js tool-experience.config.json '*.html' scripts/ .github/
+(no output — every one of these surfaces is byte-identical to HEAD)
+```
+
+The only files this phase writes are inside the BUG-003 packet: `report.md` (this section)
+and `state.json` (`completedPhases` + execution claim). No `certification.*` field and no
+`status` field is touched — those remain validate-owned.
+
+### TPH-12 Coverage check — scenario manifest and Test Plan
+
+```text
+$ node -e 'const m=require("./.../scenario-manifest.json"); for(const s of m.scenarios){for(const t of s.linkedTests){console.log(s.scenarioId+" | "+t.file+" | "+t.testId);}}'
+SCN-B003-01 | tests/distributed-briefs.static.integration.mjs | static loader verifies coherent current objects and fetches history only after selection
+SCN-B003-02 | tests/distributed-briefs.static.integration.mjs | static loader verifies coherent current objects and fetches history only after selection
+SCN-B003-03 | tests/distributed-briefs.static.integration.mjs | static loader verifies coherent current objects and fetches history only after selection
+SCN-B003-04 | tests/distributed-briefs.spec.mjs | Regression: valid added registry source receives the shared mount with no page-specific branch
+node_exit=0
+
+$ grep -nF "static loader verifies coherent current objects and fetches history only after selection" tests/distributed-briefs.static.integration.mjs
+24:test('static loader verifies coherent current objects and fetches history only after selection', async (t) => {
+
+$ grep -nF "valid added registry source receives the shared mount with no page-specific branch" tests/distributed-briefs.spec.mjs
+224:test('Regression: valid added registry source receives the shared mount with no page-specific branch', async ({ page }) => {
+
+$ grep -nE "no history partition before Open history|mode switch performs no refetch|no partition fetched until a filter is selected|exactly one selected partition fetched" tests/distributed-briefs.static.integration.mjs
+53:        assert.equal(server.briefRequests().some((p) => p.indexOf('/briefs/history/') === 0), false, 'no history partition before Open history');
+59:        assert.equal(server.briefRequests().length, beforePower, 'mode switch performs no refetch');
+69:        assert.equal(afterOpen.some((p) => p.indexOf('/briefs/history/') === 0), false, 'no partition fetched until a filter is selected');
+75:        assert.equal(partitions.length, 1, 'exactly one selected partition fetched');
+
+$ grep -nE "integrity-error|no partial evidence rendered|Could not verify this brief" tests/distributed-briefs.static.integration.mjs
+96:        assert.equal(st, 'integrity-error', 'hash mismatch fails closed');
+97:        assert.equal(await page.$('[data-rlbrief-part="price"]'), null, 'no partial evidence rendered on integrity failure');
+99:        assert.ok(status.indexOf('Could not verify this brief') >= 0);
+
+$ grep -n "openBriefView" tests/distributed-briefs.static.integration.mjs
+19:async function openBriefView(page) {
+38:        await openBriefView(page);
+93:        await openBriefView(page);
+```
+
+**Scenario coverage — 4 of 4 declared scenarios have a real, existing, executed test:**
+
+| Scenario | Linked test (exists at line) | Executed in | Result |
+|---|---|---|---|
+| SCN-B003-01 | `static.integration.mjs:24` | TPH-2, TPH-4, TPH-7 | PASS |
+| SCN-B003-02 | `static.integration.mjs:24` (asserts L53/59/69/75) | TPH-2, TPH-7 | PASS |
+| SCN-B003-03 | `static.integration.mjs:24` (asserts L96/97/99, 2nd `openBriefView` at L93) | TPH-2, TPH-7 | PASS |
+| SCN-B003-04 | `spec.mjs:224` + file-unmodified check | TPH-3 | PASS (13/13, sha256 identical) |
+
+**Test Plan coverage — 4 of 4 declared rows executed:**
+
+| Row | Command | Evidence | Result |
+|---|---|---|---|
+| TP-B003-01 | `node --test tests/distributed-briefs.static.integration.mjs` | TPH-2 | pass 1 / fail 0, exit 0 |
+| TP-B003-02 | `npx --no-install playwright test tests/distributed-briefs.spec.mjs …` | TPH-3 | 13 passed, exit 0 |
+| TP-B003-03 | `node scripts/selftest.mjs` | TPH-8 | 952 passed / 0 failed, exit 0 |
+| TP-B003-04 | `node --test tests/simple-production-bridge.integration.mjs` | TPH-10 | 6 pass / 0 fail, wired (19), exit 0 |
+
+**Honest coverage observations (declared, not papered over):**
+
+1. **Three scenarios share one test function.** SCN-B003-01, SCN-B003-02 and SCN-B003-03 all
+   resolve to the single test `static loader verifies coherent current objects and fetches
+   history only after selection`. Their assertions are genuinely distinct and all execute
+   (L39/41 visibility+ready, L53/59/69/75 network windows, L96/97/99 integrity), but they do
+   **not** fail in isolation — one failure reds all three scenario ids. This is what the
+   packet declares and what the upstream Feature 002 test authored; this phase records it
+   rather than claiming per-scenario isolation the suite does not provide.
+2. **SCN-B003-04's `linkedTests` names only sibling #13**, while the scenario text asserts
+   "all 13 pass". All 13 were run and passed (TPH-3), so the scenario is satisfied, but the
+   manifest linkage under-specifies the other 12.
+3. **No stress/load test** — correct for this scope. Confirmed against the packet's own
+   Gate G026 disposition in [scopes.md](scopes.md): the scope declares no latency/throughput
+   budget and adds no runtime code path. Independently, the broad run in TPH-7 did execute
+   the family's stress and load files (`authorship.stress` 16/0, `history.load` 8/0,
+   `scheduler.stress` PASS) and all were green.
+
+Neither observation blocks the test phase: every declared scenario and every declared Test
+Plan row has a real executing test that passed.
+
+### TPH-13 Test-phase verdict
+
+```text
+| Test Type   | Category    | Command                                                        | Total | Passed | Failed | Skipped |
+|-------------|-------------|----------------------------------------------------------------|-------|--------|--------|---------|
+| integration | integration | node --test tests/distributed-briefs.static.integration.mjs      | 1     | 1      | 0      | 0       |
+| e2e-ui      | e2e-ui      | playwright tests/distributed-briefs.spec.mjs                     | 13    | 13     | 0      | 0       |
+| integration | integration | node --test (37 distributed-briefs files)                        | 61    | 61     | 0      | 0       |
+| unit        | unit        | node scripts/selftest.mjs                                        | 952   | 952    | 0      | 0       |
+| e2e-ui      | e2e-ui      | playwright simple-production-wiring + simple-models              | 4     | 4      | 0      | 0       |
+| integration | integration | node --test tests/simple-production-bridge.integration.mjs       | 6     | 6      | 0      | 0       |
+| adversarial | bugfix-RED  | mutated (click removed) node --test static.integration           | 1     | 0      | 1      | 0       |
+```
+
+**✅ TESTED.** Every selected suite passed with exit 0, zero skips and zero failures; the
+adversarial mutation reproduced the original defect exactly (exit 1) and the file was
+restored byte-for-byte (sha256 identical, `git diff` empty). The reconciliation is proven
+additive and non-weakening.
+
+**Scope of this verdict.** `test` is one phase of the `bugfix-fastlane` chain. The packet
+remains `in_progress` and is **not** certifiable from here: `regression`, `simplify`,
+`stabilize`, `security` and an independent `audit` are still unexecuted, and certification
+remains validate-owned. This phase changed no certification field and no status.

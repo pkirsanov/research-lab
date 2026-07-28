@@ -3,7 +3,7 @@
   "featureDir": "specs/012-market-action-center-and-guided-tools/bugs/BUG-003-shell-brief-panel-adoption-hides-feature-002-mount",
   "featureName": "BUG-003 Reconcile TP-10-02 To The Ratified Shell Brief-View Contract",
   "createdAt": "2026-07-28T19:14:34Z",
-  "lastUpdatedAt": "2026-07-28T21:12:03Z",
+  "lastUpdatedAt": "2026-07-28T23:05:00Z",
   "completedAt": null,
   "certifiedAt": null,
   "status": "in_progress",
@@ -13,7 +13,7 @@
   "requiresRevalidation": true,
   "flagsIntroduced": [],
   "completedScopes": ["SCOPE-01"],
-  "completedPhases": ["implement", "validate"],
+  "completedPhases": ["implement", "validate", "test"],
   "execution": {
     "activeAgent": "bubbles.validate",
     "currentPhase": "validate",
@@ -24,7 +24,7 @@
     "completedAt": "2026-07-28T19:14:34Z",
     "executionModel": "dispatched-single-phase",
     "parentAgent": "bubbles.goal",
-    "nextRequiredOwner": "bubbles.test",
+    "nextRequiredOwner": "bubbles.regression",
     "validateVerdict": {
       "outcome": "route_required",
       "verdictAt": "2026-07-28T21:12:03Z",
@@ -49,6 +49,16 @@
         "evidenceFile": "report.md",
         "claimType": "executed-not-certifying",
         "detail": "The validate phase genuinely EXECUTED: repository-binding preflight exit 0; independent replay of TP-B003-01 (node --test tests/distributed-briefs.static.integration.mjs -> pass 1 / fail 0 / skipped 0, exit 0, ~3.2s against an unchanged 15000ms wait); git status --porcelain -- tests/ empty (tests tree byte-identical to HEAD); git show 8206c89c --numstat -- tests/distributed-briefs.static.integration.mjs -> 13 insertions / 0 deletions; plus the prior validate pass's recorded IV-1..IV-7 (sibling suite 13/13, selftest 952/0, bridge 6/6 with 19 wired, A1/A2 adversarial mutation RED with byte-exact restore). The VERDICT is route_required, not clean, so this is an execution claim only — it is deliberately NOT mirrored into certification.certifiedCompletedPhases, and requiresRevalidation is true because validate must re-run after the remaining specialists and the independent audit."
+      },
+      {
+        "phase": "test",
+        "claimedBy": "bubbles.test",
+        "claimedAt": "2026-07-28T23:05:00Z",
+        "scopeId": "SCOPE-01",
+        "evidenceFile": "report.md",
+        "evidenceSection": "report.md § Test Phase (bubbles.test), TPH-0 .. TPH-13",
+        "claimType": "executed-not-certifying",
+        "detail": "The test phase genuinely EXECUTED against HEAD 0a9638012af21750ad005e4cb39041dbd4efa530. Repository-binding preflight exit 0 (TPH-0). All four declared Test Plan rows RUN and GREEN: TP-B003-01 node --test tests/distributed-briefs.static.integration.mjs -> pass 1 / fail 0 / skipped 0, exit 0, 2.98s against an unchanged 15000ms wait (TPH-2); TP-B003-02 playwright tests/distributed-briefs.spec.mjs -> 13 passed, exit 0, sibling file sha256 identical pre-fix vs now (TPH-3); TP-B003-03 node scripts/selftest.mjs -> 952 passed / 0 failed, exit 0 (TPH-8); TP-B003-04 node --test tests/simple-production-bridge.integration.mjs -> 6 pass / 0 fail, wired (19), exit 0 (TPH-10). Surrounding isolation suites also green: node --test over the 37-file distributed-briefs family -> 61 pass / 0 fail / 0 skipped, exit 0 (TPH-7); playwright simple-production-wiring + simple-models -> 4 passed, exit 0 (TPH-9). ADVERSARIAL RED PROOF (TPH-4): reverting ONLY the brief-view click while RETAINING the added 20000ms shell-ready wait reproduced the original defect exactly — TimeoutError, unchanged 15000ms budget, mount resolving 33x as hidden while data-rlbrief-ready=1 / state=ready / rlexperience-state=registered, exit 1 — then the file was restored BYTE-EXACTLY (sha256 3acd7764c0d754764053dd3b6cc7352f53cea0d5ae79b414d6693e8a15636727 before and after, git diff empty, git status --porcelain -- tests/ empty, 0 residual markers) and re-ran GREEN exit 0. NO WEAKENING (TPH-6): fix is 13 insertions / 0 deletions with zero deleted lines; assertion count unchanged 15 -> 15; state:'attached' relaxations 0 -> 0; .skip unchanged 1 -> 1; all five pre-existing timeouts (15000/5000/8000/8000/15000) unchanged and both mount waits still use Playwright's default visible state; sibling toBeVisible() unchanged 6 -> 6. regression-quality-guard.sh clean on BOTH files and --bugfix reports an adversarial signal, 0 violations / 0 warnings (TPH-5). COVERAGE (TPH-12): all 4 scenario-manifest scenarios and all 4 Test Plan rows map to a real, existing, executed, passing test; two honest linkage observations are recorded rather than papered over — SCN-B003-01/02/03 share one test function so they cannot fail in isolation, and SCN-B003-04 links only sibling #13 although all 13 were run and passed. VERDICT: TESTED. This is an execution claim only; it is deliberately NOT mirrored into certification.certifiedCompletedPhases and no certification.* or status field was written. NOTE for the next validate pass: the top-level blockedReason predates this phase and still lists 'test' among the NOT-executed specialists — it was left byte-intact because it is validate-authored verdict prose, and requiresRevalidation is already true."
       }
     ],
     "pendingTransitionRequests": [],

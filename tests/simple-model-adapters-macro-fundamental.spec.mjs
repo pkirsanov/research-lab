@@ -318,7 +318,18 @@ const TOOLS = {
     moduleFile: 'rlexperience-adapters/macro-rotation.js',
     owner: () => etfOwnerFixture(),
     changes: () => [['horizon', '12m'], ['weighting', 'equal']],
-    adapterId: 'simple-adapter/etf-ranking/v1'
+    adapterId: 'simple-adapter/etf-ranking/v1',
+    // Wired into its production page (etf-momentum-lab.html registers a real owner-state provider,
+    // __rlOwnerStateProvider['etf-momentum-lab'], consumed by the production Simple bridge in
+    // rlexperience.js) AND that provider returns a real owner snapshot under this harness: it
+    // re-runs computeAll() over etfSimpleFunds(), which the page hydrates from the same-origin
+    // shared bars cache, so it does NOT hit its documented `if (!priced) return null` honest-absence
+    // path. The bridge therefore paints the REAL etf-ranking adapter into the Simple panel BEFORE
+    // this test drives anything, making the pre-drive shell state 'ready'. That is STRONGER than the
+    // old unwired 'unavailable' premise: it proves the production bridge rendered the real adapter
+    // in the real owner-mode Simple flow. OBSERVED, not assumed: with no flag this spec asserted
+    // 'unavailable' and the real page returned 'ready'.
+    wiredInProduction: true
   },
   'ai-capex-strategy-lab': {
     title: 'Regression: AI capex Simple controls recompute owner beneficiary and portfolio distribution',

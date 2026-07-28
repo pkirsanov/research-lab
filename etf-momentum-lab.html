@@ -1630,6 +1630,108 @@
         return true;
       });
     }
+
+    /* ══════════════════ Feature 012 Scope 15 — production Simple owner-state provider ══════════════════
+       The shared four-view shell's Simple bridge (installSimpleProjectionBridge in rlexperience.js)
+       reads globalThis.__rlOwnerStateProvider["etf-momentum-lab"] and hands the result to the
+       registered etf-ranking adapter (simple-adapter/etf-ranking/v1 in
+       rlexperience-adapters/macro-rotation.js, already loaded above as the single source of this
+       page's own Simple ranking primitives).
+
+       THIS PAGE STAYS THE OWNER. The provider publishes only facts this page has ALREADY computed
+       through its own single computation path — it re-runs computeAll() (the exact function
+       recompute()/render() drive, so a provider call made before the first render still reads live
+       shared-cache values rather than a stale METRICS map), and it COPIES NO FORMULA: the momentum
+       and composite primitives stay delegated to RLMACROROTATION (etfSimpleSignal/etfSimpleScore
+       above) and every number below is a verbatim passthrough of computeMetrics output. Field by
+       field:
+         • funds[]                -> etfSimpleFunds(), the SAME live sleeve renderSimple() ranks
+                                     (state.simple.scope: selected / us / intl-factor / country),
+         • funds[].ticker/.name/.aum
+                                  -> the universe row this page loaded from etf-universe.json,
+         • funds[].trailing       -> METRICS[ticker].trailing verbatim (1M/3M/6M/YTD/1Y/3Y/5Y as
+                                     FRACTIONS, the exact units RLMACROROTATION.etfMomentumSignal
+                                     reads), computed by this page's own computeMetrics trailing
+                                     ladder off the FULL series,
+         • funds[].annVol         -> METRICS[ticker].annVol, this page's own realized volatility,
+         • funds[].maxDD          -> METRICS[ticker].maxDD, this page's own max drawdown (negative),
+         • funds[].sharpe         -> METRICS[ticker].sharpe, this page's own risk-free-adjusted Sharpe,
+         • funds[].cagr           -> METRICS[ticker].cagr, this page's own window CAGR,
+         • benchmarks[b]          -> METRICS[b].cagr + .trailing for every entry of this page's OWN
+                                     benchmark list (state.benchmarks, loaded from etf-universe.json)
+                                     that this page actually priced — the adapter selects one of them
+                                     with its own `benchmark` control,
+         • asOf                   -> the latest observed daily bar behind those metric windows (the
+                                     same observed clock publishEtfRead() stamps its read with),
+         • source                 -> the shared-cache provenance tag from RLDATA.barInfo.
+
+       The adapter asks a DIFFERENT Simple question over these frozen owner facts (a horizon- and
+       risk-weighted re-ranking, a benchmark-relative read and a capped basket) under its OWN
+       controls, so this page's live Simple horizon/risk selection is deliberately NOT published —
+       it is not part of the owner-state contract.
+
+       HONEST ABSENCE, never fabricated or zero-filled: any per-fund trailing return, volatility,
+       drawdown, Sharpe or CAGR this page could not compute is published as null rather than a
+       neutral fill, and the adapter then simply omits that term (a missing volatility or drawdown
+       contributes no risk load, and a missing CAGR reports the benchmark-relative excess as
+       honestly unavailable instead of zero).
+
+       When this page has priced NO fund yet (unhydrated, or the shared cache carries too little
+       daily history for any trailing return) the provider returns null and the bridge renders the
+       honest "unavailable" panel — matching this page's own stated Simple behaviour ("Missing
+       observations remain missing; the model does not fabricate a neutral score"). */
+    globalThis.__rlOwnerStateProvider = globalThis.__rlOwnerStateProvider || {};
+    globalThis.__rlOwnerStateProvider["etf-momentum-lab"] = function () {
+      computeAll();
+      var funds = [], lastObserved = 0, priced = 0;
+      function observedTrailing(metrics) {
+        var trailing = {}, any = false;
+        if (metrics && metrics.trailing) Object.keys(metrics.trailing).forEach(function (key) {
+          var value = metrics.trailing[key];
+          if (Number.isFinite(value)) { trailing[key] = value; any = true; } else { trailing[key] = null; }
+        });
+        return { trailing: trailing, any: any };
+      }
+      etfSimpleFunds().forEach(function (fund) {
+        if (!fund || !fund.ticker) return;
+        var metrics = METRICS[fund.ticker], observed = observedTrailing(metrics);
+        if (metrics && metrics.w && metrics.w.t && metrics.w.t.length) {
+          var last = metrics.w.t[metrics.w.t.length - 1];
+          if (Number.isFinite(last) && last > lastObserved) lastObserved = last;
+        }
+        if (observed.any) priced++;
+        funds.push({
+          ticker: fund.ticker,
+          name: fund.name || fund.ticker,
+          trailing: observed.trailing,
+          annVol: metrics && Number.isFinite(metrics.annVol) ? metrics.annVol : null,
+          maxDD: metrics && Number.isFinite(metrics.maxDD) ? metrics.maxDD : null,
+          sharpe: metrics && Number.isFinite(metrics.sharpe) ? metrics.sharpe : null,
+          cagr: metrics && Number.isFinite(metrics.cagr) ? metrics.cagr : null,
+          aum: fund && Number.isFinite(fund.aum) ? fund.aum : null
+        });
+      });
+      if (!priced) return null;
+      var benchmarks = {};
+      (state.benchmarks || []).forEach(function (ticker) {
+        var metrics = METRICS[ticker], observed = observedTrailing(metrics);
+        if (!metrics || !observed.any) return;
+        benchmarks[ticker] = {
+          cagr: Number.isFinite(metrics.cagr) ? metrics.cagr : null,
+          trailing: observed.trailing
+        };
+      });
+      var info = (typeof RLDATA !== 'undefined' && RLDATA.barInfo) ? RLDATA.barInfo(state.benchmark, '1d') : null;
+      return {
+        contractVersion: "etf-ranking-owner-state/v1",
+        toolId: "etf-momentum-lab",
+        asOf: lastObserved ? new Date(lastObserved).toISOString() : "unavailable",
+        source: (info && info.src) || "shared cache snapshot",
+        benchmarks: benchmarks,
+        funds: funds
+      };
+    };
+
     function renderSimple() {
       var funds = etfSimpleFunds(), rows = funds.map(function (fund) {
         var metrics = METRICS[fund.ticker], signal = etfSimpleSignal(metrics, state.simple.signal), score = etfSimpleScore(metrics, state.simple.signal, state.simple.risk);

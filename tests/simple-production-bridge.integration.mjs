@@ -696,6 +696,118 @@ function realAssetOwnerState() {
   };
 }
 
+/* The calendar-day lookback etf-momentum-lab.html's OWN computeMetrics declares for each trailing
+   key it publishes — trail(30) -> '1M', trail(91) -> '3M', trail(182) -> '6M', trail(365) -> '1Y'.
+   Page-declared, never an invented sampling choice, and restricted to exactly the four keys the
+   etf-ranking adapter reads (etfHorizonKey maps its own 1m/3m/6m/12m horizon enum onto them). */
+const ETF_TRAILING_WINDOW_DAYS = { '1M': 30, '3M': 91, '6M': 182, '1Y': 365 };
+const ETF_DAY_MS = 86400000;
+
+/* The observed trailing fraction of a close series over one CALENDAR-day lookback: the last close
+   divided by the last close at-or-before (lastObservation - days), minus one. This is an OBSERVATION
+   REDUCTION of two real closes on one series — the same class as observedTrailingPct above and as
+   the sector fixture's aligned close/benchmark ratio — and it supplies an owner INPUT only. Every
+   owner RESULT below still comes from the module. Returns null (never a fill) when the snapshot does
+   not reach back far enough. */
+function observedTrailingFraction(rows, calendarDays) {
+  const priced = rows.filter((row) => Number.isFinite(row.t) && Number.isFinite(row.c) && row.c > 0);
+  if (priced.length < 2) return null;
+  const last = priced[priced.length - 1];
+  const target = last.t - calendarDays * ETF_DAY_MS;
+  let base = null;
+  for (const row of priced) {
+    if (row.t > target) break;
+    base = row;
+  }
+  return base ? (last.c / base.c - 1) : null;
+}
+
+/* etf-ranking owner state — the SAME shape etf-momentum-lab.html's provider publishes
+   (contractVersion + benchmarks map + per-fund {ticker, name, trailing, annVol, maxDD, sharpe,
+   cagr, aum}).
+
+   PRODUCTION-DERIVED, NEVER A HAND-TYPED LIST. The fund rows, their tickers/names/AUM come from the
+   page's OWN universe file (etf-universe.json — the exact file the page's boot() fetches and
+   applyUniverse() loads), restricted to the `on: true` sleeve the page's own included() ranks by
+   default, and every trailing return is built from the REAL same-origin daily snapshots the page
+   hydrates through RLDATA (data/bars/<TICKER>.json). The benchmark MEMBERSHIP is the registry's OWN
+   declared `benchmark` parameter domain rather than a hand-written list, so a registry change is
+   picked up automatically.
+
+   The trailing ladder is the owner INPUT the page's computeMetrics assembles — a calendar-day
+   two-close ratio off the full observed series — never an owner RESULT: the horizon momentum, the
+   composite ranking score, the risk load, the benchmark-relative excess and the capped basket all
+   stay inside the module, and every value asserted below still comes from computeEtfRankingSummary.
+
+   HONEST ABSENCE, stated plainly: annVol, maxDD, sharpe and cagr (fund AND benchmark) are page-owned
+   computeMetrics reductions — realized volatility, the running-peak drawdown, the risk-free-adjusted
+   Sharpe and the window-annualized CAGR — with NO module producer, so reproducing them here would
+   COPY an owner formula, which this suite forbids. They are left absent rather than invented,
+   exactly as the sector fixture leaves x3/riskScore and the country fixture leaves
+   fxScore/vol/drawdown/trendScore absent. Substituting another model's estimator (rlvol.js's
+   realizedVol) would publish a DIFFERENT number than the owner's and is therefore equally
+   forbidden. The module tolerates all four by contract — its own etfRiskComponent documents that a
+   missing owner metric "contributes zero (it is simply absent), never a fabricated fill", and a
+   missing CAGR reports the benchmark-relative excess as honestly null instead of a fabricated
+   excess — and none of them feeds the numeric asserted below, which comes from the module's own
+   ranking score. The deployed page's provider DOES publish all four live from METRICS; only this
+   fixture, which cannot reproduce them without copying the formula, leaves them null. */
+function etfOwnerState() {
+  const universe = readJson('etf-universe.json');
+  const definition = definitionForAdapter('simple-adapter/etf-ranking/v1');
+  const benchmarkParameter = (definition.parameterDefinitions || []).find((parameter) => parameter.parameterId === 'benchmark');
+  assert.ok(benchmarkParameter && Array.isArray(benchmarkParameter.domain.options),
+    'the registry must declare the etf-ranking benchmark domain');
+
+  const entries = (universe.etfs || []).filter((entry) => entry.on && entry.ticker
+    && existsSync(new URL(`data/bars/${entry.ticker}.json`, ROOT)));
+  assert.ok(entries.length >= 3, 'at least three real momentum-fund snapshots are required for an etf owner state');
+
+  let lastObserved = 0;
+  let priced = 0;
+  const funds = [];
+  for (const entry of entries) {
+    const rows = realDailyRows(entry.ticker);
+    const observed = rows.filter((row) => Number.isFinite(row.t) && Number.isFinite(row.c) && row.c > 0);
+    assert.ok(observed.length > 0, `${entry.ticker}: the real snapshot must carry priced closes`);
+    if (observed[observed.length - 1].t > lastObserved) lastObserved = observed[observed.length - 1].t;
+    const trailing = {};
+    for (const [key, days] of Object.entries(ETF_TRAILING_WINDOW_DAYS)) trailing[key] = observedTrailingFraction(rows, days);
+    if (Object.values(trailing).some((value) => Number.isFinite(value))) priced += 1;
+    funds.push({
+      ticker: entry.ticker,
+      name: entry.name,
+      trailing,
+      annVol: null,
+      maxDD: null,
+      sharpe: null,
+      cagr: null,
+      aum: Number.isFinite(entry.aum) ? entry.aum : null
+    });
+  }
+  assert.ok(priced >= 2, 'at least two real funds must price a trailing return before a ranking can be judged');
+
+  const benchmarks = {};
+  for (const option of benchmarkParameter.domain.options) {
+    const ticker = String(option.value);
+    if (!existsSync(new URL(`data/bars/${ticker}.json`, ROOT))) continue;
+    const rows = realDailyRows(ticker);
+    const trailing = {};
+    for (const [key, days] of Object.entries(ETF_TRAILING_WINDOW_DAYS)) trailing[key] = observedTrailingFraction(rows, days);
+    benchmarks[ticker] = { cagr: null, trailing };
+  }
+  assert.ok(Object.keys(benchmarks).length > 0, 'at least one registry-declared benchmark must carry a real snapshot');
+
+  return {
+    contractVersion: 'etf-ranking-owner-state/v1',
+    toolId: 'etf-momentum-lab',
+    asOf: new Date(lastObserved).toISOString(),
+    source: 'same-origin daily snapshot (data/bars)',
+    benchmarks,
+    funds
+  };
+}
+
 /* Owner-state builders keyed by the REGISTRY adapter id. A wired tool with no entry FAILS LOUD. */
 const OWNER_STATES = {
   'simple-adapter/market-breadth/v1': breadthOwnerState,
@@ -707,7 +819,8 @@ const OWNER_STATES = {
   'simple-adapter/dealer-gamma-playbook/v1': gammaOwnerState,
   'simple-adapter/sector-rotation-transition/v1': sectorOwnerState,
   'simple-adapter/country-rotation/v1': countryOwnerState,
-  'simple-adapter/real-asset-driver/v1': realAssetOwnerState
+  'simple-adapter/real-asset-driver/v1': realAssetOwnerState,
+  'simple-adapter/etf-ranking/v1': etfOwnerState
 };
 
 /* ═══════════════════════ owner-parity extractors (the Power-path single source) ═══════════════════════
@@ -837,6 +950,19 @@ const OWNER_PARITY = {
          that named a different asset, claimed a different driver or confirmation state, or claimed a
          benchmark the owner did not price against fails here. */
       summaryContains: [summary.selected, summary.driverState.state, summary.confirmation.state, summary.benchmark]
+    };
+  },
+  'simple-adapter/etf-ranking/v1': (moduleObject, ownerState, parameterValues) => {
+    const summary = moduleObject.computeEtfRankingSummary(frozenClone(ownerState), parameterValues);
+    const leader = summary.ranking.length ? summary.ranking[0] : null;
+    return {
+      ownerFunction: 'computeEtfRankingSummary',
+      numericValue: leader && leader.score != null ? leader.score : null,
+      valueText: leader ? `${leader.ticker} leads the ranking` : 'No priced fund',
+      /* The owner-computed ranking leader and the benchmark it was priced against, taken straight
+         off the summary object. A Simple read that named a different fund — or claimed a benchmark
+         the owner did not price against — fails here. */
+      summaryContains: leader ? [leader.ticker, summary.benchmark] : []
     };
   }
 };

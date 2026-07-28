@@ -70,7 +70,7 @@ The consumed Scope 01 primitive `rlsession.js` is unmodified in the working tree
 
 Controlled mutation of the consumed Scope 01 primitive `rlsession.js::buildReactionSegment`: `var startBucket = Math.max(0, Math.floor((releaseEpoch - sessionStartEpoch) / FIVE_MINUTES_MS) + 1);` → `var startBucket = 0; /* RED-TP0401: bucket-zero remap */`.
 
-#### RED — `node --test --test-name-pattern="ReactionSegment v1 preserves exact non-zero window" tests/market-session-evidence.unit.mjs` — Exit 1 — Claim Source: executed
+**RED — `node --test --test-name-pattern="ReactionSegment v1 preserves exact non-zero window" tests/market-session-evidence.unit.mjs` — Exit 1 — Claim Source: executed**
 
 ```text
 ✖ SCN-002-020: ReactionSegment v1 preserves exact non-zero window source boundary cutoff state and identities (38.736917ms)
@@ -83,7 +83,7 @@ Controlled mutation of the consumed Scope 01 primitive `rlsession.js::buildReact
 
 Restore: `git checkout -- rlsession.js`; `shasum -a 256 rlsession.js` = `eb56dd69…7703` (anchor).
 
-#### GREEN — `node --test --test-name-pattern="ReactionSegment v1 preserves exact non-zero window" tests/market-session-evidence.unit.mjs` — Exit 0 — Claim Source: executed
+**GREEN — `node --test --test-name-pattern="ReactionSegment v1 preserves exact non-zero window" tests/market-session-evidence.unit.mjs` — Exit 0 — Claim Source: executed**
 
 ```text
 ✔ SCN-002-020: ReactionSegment v1 preserves exact non-zero window source boundary cutoff state and identities (44.544167ms)
@@ -94,7 +94,7 @@ Restore: `git checkout -- rlsession.js`; `shasum -a 256 rlsession.js` = `eb56dd6
 
 Controlled mutation of the Scope 04 wiring in `scripts/market-session-evidence.mjs`: `reactions.push(reaction);` → `/* RED-TP0402: reaction intentionally not added to the bundle */` (orphans the segment baseline whose `currentAggregateRef` points at the reaction segment).
 
-#### RED — `node --test tests/event-market-reaction.functional.mjs` — Exit 1 — Claim Source: executed
+**RED — `node --test tests/event-market-reaction.functional.mjs` — Exit 1 — Claim Source: executed**
 
 ```text
 ✖ SCN-002-020: production reaction graph preserves field-complete segments exact comparables and revision lineage (3910.32225ms)
@@ -106,7 +106,7 @@ Controlled mutation of the Scope 04 wiring in `scripts/market-session-evidence.m
 
 Restore: exact inverse edit; `shasum -a 256 scripts/market-session-evidence.mjs` = `233d40f9…1e9b` (anchor).
 
-#### GREEN — `node --test tests/event-market-reaction.functional.mjs` — Exit 0 — Claim Source: executed
+**GREEN — `node --test tests/event-market-reaction.functional.mjs` — Exit 0 — Claim Source: executed**
 
 ```text
 ✔ SCN-002-020: production reaction graph preserves field-complete segments exact comparables and revision lineage (14266.584334ms)
@@ -117,7 +117,7 @@ Restore: exact inverse edit; `shasum -a 256 scripts/market-session-evidence.mjs`
 
 Controlled mutation of the Scope 04 additive validator in `rldata.js`: `if (it.ownerAdapterId !== adapter.adapterId || it.ownerModelVersion !== adapter.owningModelVersion) return trmFail("evidence-interpretation-provenance-mismatch");` → guarded with `if (false /* RED-TP0403 */ && (…))` so a forged owner-adapter provenance is no longer rejected.
 
-#### RED — `node --test --test-name-pattern="only owner adapters may publish" tests/distributed-briefs.contract.mjs` — Exit 1 — Claim Source: executed
+**RED — `node --test --test-name-pattern="only owner adapters may publish" tests/distributed-briefs.contract.mjs` — Exit 1 — Claim Source: executed**
 
 ```text
 ✖ SCN-002-026: only owner adapters may publish evidence interpretations or action eligibility (1.86175ms)
@@ -130,14 +130,16 @@ Controlled mutation of the Scope 04 additive validator in `rldata.js`: `if (it.o
 
 Restore: exact inverse edit; `shasum -a 256 rldata.js` = `42fe212c…ad78` (anchor).
 
-#### GREEN — `node --test --test-name-pattern="only owner adapters may publish" tests/distributed-briefs.contract.mjs` — Exit 0 — Claim Source: executed
+**GREEN — `node --test --test-name-pattern="only owner adapters may publish" tests/distributed-briefs.contract.mjs` — Exit 0 — Claim Source: executed**
 
 ```text
 ✔ SCN-002-026: only owner adapters may publish evidence interpretations or action eligibility (0.921042ms)
 ℹ tests 1  ℹ pass 1  ℹ fail 0
 ```
 
-### TP-04-04 integration SCN-002-026
+### TP-04-04 through TP-04-06 integration and owner canary
+
+**TP-04-04 integration SCN-002-026**
 
 `node --test tests/distributed-briefs-owner-reads.integration.mjs` — Exit 0 — Claim Source: executed. One real `MarketSessionEvidence/v1` bundle is built through both production entry points (`acquireReportEvidence` + `acquireMarketSessionEvidence` with `reactionReport`), and the six declared owners are frozen over it via production `freezeToolReads`. Every owner read validates through `RLDATA.validateToolModelRead`, carries an owner-provenance interpretation over refs that exist in the frozen bundle, and leaks no owner-formula field (the shared layer never recomputes a model); Bond Regime is the one action-eligible owner (CPI report + reaction refs), the four session-context owners are context-only/ineligible, Real Assets is explicit `not-applicable` for SPY, and every non-owner source carries explicit applicability with zero interpretations.
 
@@ -146,7 +148,7 @@ Restore: exact inverse edit; `shasum -a 256 rldata.js` = `42fe212c…ad78` (anch
 ℹ tests 1  ℹ pass 1  ℹ fail 0
 ```
 
-### TP-04-05 and TP-04-06 owner canary
+**TP-04-05 and TP-04-06 owner canary**
 
 `node --test tests/distributed-briefs-owner-canary.mjs` — Exit 0 — Claim Source: executed. The independent Shared-Infrastructure canary imports and exercises each pre-change owner projection: the five current browser publishers still round-trip byte-identically through the UNCHANGED `rl-tool-read/v1` strict path, the legacy compact projection still normalizes to the exact 5-field shape, the four headless builders (Sector synchronous over a committed-shape fixture; ETF/Global/Real-Assets callable functions) are preserved, and Bond Regime plus the browser credential surfaces exclude every restricted local observation and private credential field.
 
@@ -156,7 +158,9 @@ Restore: exact inverse edit; `shasum -a 256 rldata.js` = `42fe212c…ad78` (anch
 ℹ tests 2  ℹ pass 2  ℹ fail 0
 ```
 
-### TP-04-07 e2e regression SCN-002-020
+### TP-04-07 and TP-04-08 e2e regression
+
+**TP-04-07 e2e regression SCN-002-020**
 
 `node --test tests/event-market-reaction.e2e.mjs` — Exit 0 — Claim Source: executed. Drives `acquireReportEvidence` (report fixtures) → `reactionReport` → `acquireMarketSessionEvidence` (session fixture) and revalidates the whole immutable graph.
 
@@ -165,7 +169,7 @@ Restore: exact inverse edit; `shasum -a 256 rldata.js` = `42fe212c…ad78` (anch
 ℹ tests 1  ℹ pass 1  ℹ fail 0
 ```
 
-### TP-04-08 e2e regression SCN-002-026
+**TP-04-08 e2e regression SCN-002-026**
 
 `node --test tests/distributed-briefs-owner-reads.e2e.mjs` — Exit 0 — Claim Source: executed. Proves final-eligible evidence exists only after an owning read publishes its interpretation; raw shared evidence alone never supports a recommendation and profile boundaries are preserved.
 
@@ -229,11 +233,21 @@ Coverage is expressed as scenario-to-test-to-evidence traceability for the two S
 
 ## Lint and Quality
 
+**Phase:** implement · **Agent:** bubbles.implement
+**Claim Source:** executed
+
 - `node scripts/validate-node-source-lock.mjs` → `[node-source-lock] OK adversarial=16 unexpectedAcceptances=0`, exit 0 (supply-chain source lock intact; Scope 04 touches no dependency manifest).
 - `bash .github/bubbles/scripts/artifact-lint.sh specs/002-distributed-tool-briefs-and-history` → `Artifact lint PASSED.`, exit 0.
 - `node scripts/validate-brief-cache.mjs` → `[brief-cache] PASS: 354 JSON cache files parsed …`, exit 0.
 - `node scripts/validate-brief-payload.mjs market-brief.payload.json` → `[brief-contract] PASS …`, exit 0 (the additive `freezeToolReads` owner adapters do not disturb the Market Brief pipeline).
-- No internal owner/model mock was introduced: the integration and canary suites execute the real production owner functions over committed fixtures. No `--skip`, interception, or self-validation shortcut was added. Full unfiltered command output was captured for every run; zero warnings and zero undeclared mutations.
+- `node scripts/selftest.mjs` → `Research-Lab self-test: 601 passed, 0 failed`, exit 0; the additive Scope 04 group raised the baseline from 589 to 601 with zero regressions.
+- No internal owner/model mock was introduced: the integration and canary suites execute the real production owner functions over committed fixtures.
+- No `--skip`, request interception, or self-validation shortcut was added by the Scope 04 tests.
+- Full unfiltered command output was captured for every run; zero warnings and zero undeclared mutations.
+- Diff isolation: `git status --porcelain` shows only the declared Scope 04 surface; no formula, generated history, or root dirty state is rewritten.
+- Every Scope 04 change is additive (new branch, new functions, new fields), and the three RED cycles each reverted to a byte-identical anchor.
+
+Full unfiltered output for each command above is recorded verbatim in the per-row Test Evidence sections and in [Consumer and Shared Infrastructure Sweep](#consumer-and-shared-infrastructure-sweep); this section restates those recorded results and adds no new claim.
 
 ## Validation Summary
 

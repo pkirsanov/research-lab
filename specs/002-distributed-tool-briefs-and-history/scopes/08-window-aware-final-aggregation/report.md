@@ -160,7 +160,9 @@ Test-Plan row mapping (each row GREEN above):
 | TP-08-06 | Regression E2E | `Regression: SCN-002-025 pre-market morning pre-close and after-hours use only cutoff-relevant owner evidence` |
 | TP-08-07 | Regression E2E | `Regression: SCN-002-027 unsupported unusual evidence remains educational context with zero action-slot impact` |
 
-### TP-08-08 — broader author-lifecycle-history-final E2E regression GREEN
+### TP-08-08 / TP-08-09 — broader author-lifecycle-history-final E2E regression and baseline repository selftest GREEN
+
+**TP-08-08 — broader author-lifecycle-history-final E2E regression GREEN**
 
 ```
 $ node --test tests/distributed-briefs.authorship.e2e.mjs tests/distributed-briefs.history.e2e.mjs \
@@ -176,7 +178,7 @@ $ node --test tests/distributed-briefs.authorship.e2e.mjs tests/distributed-brie
 TP0808_EXIT=0
 ```
 
-### TP-08-09 — baseline repository selftest GREEN (633 / 0)
+**TP-08-09 — baseline repository selftest GREEN (633 / 0)**
 
 ```
 $ node scripts/selftest.mjs
@@ -200,7 +202,9 @@ product invariant regressed.)
 window/date match; official regular close is a distinct `officialCloseAnchorRef`, never an extended-hours
 `close` label.
 
-## Consumer Impact Sweep
+## Consumer and Shared Infrastructure Impact Sweep
+
+**Consumer Impact Sweep**
 
 Inventory + anti-pattern search (read-only `grep` over real files this session):
 
@@ -213,7 +217,7 @@ Inventory + anti-pattern search (read-only `grep` over real files this session):
 
 **Finding: none.** No behavior-authoritative violation; no code change required by the sweep.
 
-## Shared Infrastructure Impact Sweep
+**Shared Infrastructure Impact Sweep**
 
 Final compaction/validation is a shared policy surface. Independent canaries (not routed through the changed
 helper's own output):

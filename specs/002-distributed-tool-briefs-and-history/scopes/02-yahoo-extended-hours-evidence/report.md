@@ -48,11 +48,11 @@ Scope 02 implementation is complete and its implement-phase DoD is met by reprod
 
 **Phase:** implement · **Agent:** bubbles.implement
 
-### TP-02-01 — Unit source-policy allowlist (SCN-002-028)
+### TP-02-01: Unit source-policy allowlist (SCN-002-028)
 
 Controlled production mutation (restored byte-exact): in `scripts/market-session-evidence.mjs::validateSourceRequest`, the host check `if (url.hostname !== entry.host)` → `if (false && url.hostname !== entry.host)` (host-allowlist rejection disabled).
 
-#### TP-02-01 RED — `node --test tests/market-session-evidence.unit.mjs` — Exit 1 — Claim Source: executed
+**TP-02-01 RED — `node --test tests/market-session-evidence.unit.mjs` — Exit 1 — Claim Source: executed**
 
 ```text
 ✖ SCN-002-028: source policy accepts only the exact NYSE and Yahoo request contracts (1.128916ms)
@@ -71,7 +71,7 @@ test at tests/market-session-evidence.unit.mjs:401:1
 
 Restore: `git checkout -- scripts/market-session-evidence.mjs`; post-restore `git status --porcelain scripts/market-session-evidence.mjs` = empty.
 
-#### TP-02-01 GREEN — `node --test tests/market-session-evidence.unit.mjs` — Exit 0 — Claim Source: executed
+**TP-02-01 GREEN — `node --test tests/market-session-evidence.unit.mjs` — Exit 0 — Claim Source: executed**
 
 ```text
 ✔ SCN-002-016: opening-boundary bars belong to exactly one session and cutoff
@@ -84,11 +84,11 @@ Restore: `git checkout -- scripts/market-session-evidence.mjs`; post-restore `gi
 ℹ fail 0
 ```
 
-### TP-02-02 — Functional captured-Yahoo normalization (SCN-002-017)
+### TP-02-02: Functional captured-Yahoo normalization (SCN-002-017)
 
 Controlled production mutation (restored byte-exact): in `normalizeYahooSession`, missing-volume handling `{ volume = null; ... }` → `{ volume = 0; ... }` (coerces missing volume to zero).
 
-#### TP-02-02 RED — `node --test tests/market-session-evidence.functional.mjs` — Exit 1 — Claim Source: executed
+**TP-02-02 RED — `node --test tests/market-session-evidence.functional.mjs` — Exit 1 — Claim Source: executed**
 
 ```text
 ✖ SCN-002-017: captured Yahoo bytes normalize official and indicative session fields without missing-volume coercion (2.903541ms)
@@ -106,7 +106,7 @@ test at tests/market-session-evidence.functional.mjs:34:1
 
 Restore: `git checkout -- scripts/market-session-evidence.mjs`; post-restore `git status --porcelain` = empty.
 
-#### TP-02-02 GREEN — `node --test tests/market-session-evidence.functional.mjs` — Exit 0 — Claim Source: executed
+**TP-02-02 GREEN — `node --test tests/market-session-evidence.functional.mjs` — Exit 0 — Claim Source: executed**
 
 ```text
 ✔ SCN-002-017: captured Yahoo bytes normalize official and indicative session fields without missing-volume coercion
@@ -116,11 +116,11 @@ Restore: `git checkout -- scripts/market-session-evidence.mjs`; post-restore `gi
 ℹ fail 0
 ```
 
-### TP-02-03 — Functional source mutations/bounds/retry/provenance/use (SCN-002-028)
+### TP-02-03: Functional source mutations/bounds/retry/provenance/use (SCN-002-028)
 
 Controlled production mutation (restored byte-exact): in `fetchWithSourcePolicy`, the redirect guard `if (response.redirected || (response.status >= 300 && response.status < 400))` → `if (false && (...))` (redirect rejection disabled).
 
-#### TP-02-03 RED — `node --test tests/market-session-evidence.functional.mjs` — Exit 1 — Claim Source: executed
+**TP-02-03 RED — `node --test tests/market-session-evidence.functional.mjs` — Exit 1 — Claim Source: executed**
 
 ```text
 ✖ SCN-002-028: Yahoo and NYSE fixture mutations enforce bounds retries provenance and source use (0.843ms)
@@ -138,7 +138,7 @@ test at tests/market-session-evidence.functional.mjs:101:1
 
 Restore: `git checkout -- scripts/market-session-evidence.mjs`; post-restore `git status --porcelain` = empty.
 
-#### TP-02-03 GREEN — `node --test tests/market-session-evidence.functional.mjs` — Exit 0 — Claim Source: executed
+**TP-02-03 GREEN — `node --test tests/market-session-evidence.functional.mjs` — Exit 0 — Claim Source: executed**
 
 ```text
 ✔ SCN-002-017: captured Yahoo bytes normalize official and indicative session fields without missing-volume coercion
@@ -148,7 +148,9 @@ Restore: `git checkout -- scripts/market-session-evidence.mjs`; post-restore `gi
 ℹ fail 0
 ```
 
-### TP-02-04 — Integration calendar `--check` no-write — Exit 0 — Claim Source: executed
+### TP-02-04 and TP-02-05: Integration evidence
+
+**TP-02-04 — Integration calendar `--check` no-write — Exit 0 — Claim Source: executed**
 
 `node scripts/generate-xnys-calendar.mjs --config market-brief.config.json --check`
 
@@ -156,7 +158,7 @@ Restore: `git checkout -- scripts/market-session-evidence.mjs`; post-restore `gi
 [XNYS-CALENDAR] --check OK: data/calendars/xnys/calendar.json matches reviewed source (365 rows, 251 open) sha=sha256:37e08c3300da2a0cab45d3c6bc7cd26bc7d062ad261b6a8b02455ad839d67172 tz=2026a
 ```
 
-### TP-02-05 — Integration live no-write source smoke — Exit 0 — Claim Source: executed
+**TP-02-05 — Integration live no-write source smoke — Exit 0 — Claim Source: executed**
 
 `node scripts/market-session-evidence-live-check.mjs --symbols SPY --no-write` (weekend / market-closed — truthful unavailable, no fixed numeric claim, zero repository writes)
 
@@ -176,7 +178,7 @@ Restore: `git checkout -- scripts/market-session-evidence.mjs`; post-restore `gi
 ✔ Regression: SCN-002-028 source acquisition is bounded reviewed fail-loud and no-write
 ```
 
-### TP-02-08 — Broader E2E regression (foundation + source) — Exit 0 — Claim Source: executed
+### TP-02-08: Broader E2E regression (foundation and source), Exit 0, Claim Source: executed
 
 `node --test tests/market-session-evidence.foundation.e2e.mjs tests/market-session-evidence.source.e2e.mjs`
 
@@ -223,7 +225,21 @@ Business-logic coverage for the Scope 02 vertical is exercised by the unit + fun
 
 ## Lint and Quality
 
-`node scripts/selftest.mjs` = 572 passed / 0 failed (exit 0) with no warning. Working tree clean (`git status --porcelain` empty); declared Change Boundary respected — no file outside the Scope 02 surface was modified by this reconciliation.
+**Phase:** implement · **Agent:** bubbles.implement
+**Claim Source:** executed
+
+- `node scripts/selftest.mjs` = `Research-Lab self-test: 572 passed, 0 failed` (exit 0), no warning emitted.
+- `node --test tests/market-session-evidence.unit.mjs tests/market-session-evidence.functional.mjs tests/market-session-evidence.source.e2e.mjs` = `tests 9  pass 9  fail 0` (exit 0), zero skipped.
+- `node scripts/validate-brief-cache.mjs` = `[brief-cache] PASS: 354 JSON cache files parsed and available indexes are coherent` (exit 0).
+- `node scripts/validate-brief-payload.mjs market-brief.payload.json` = `[brief-contract] PASS: all visible sections, registry coverage, model-specific real assets, and next-session actions are valid` (exit 0).
+- `node scripts/market-session-evidence-live-check.mjs --symbols SPY --no-write` = `[LIVE-CHECK] OK` with `no-write verified` (exit 0); zero repository writes.
+- Diff isolation: `git status --porcelain` = empty at `git rev-parse HEAD` = `e8328b75cbbc40f98241868798f312d390811214`.
+- Byte identity: the six Scope 02 code files match the SHA-256 values recorded in [Byte-Identity Audit](#byte-identity-audit-claim-source-executed); this reconciliation changed no production, test, fixture, or config file.
+- Declared Change Boundary respected — no file outside the Scope 02 surface was modified.
+- No `--skip`, request interception, internal mock, or self-validation shortcut was introduced by the Scope 02 tests.
+- Every controlled mutation used for the TP-02-01/02/03 RED stage was restored byte-exact via `git checkout -- <file>`, with post-restore `git status --porcelain` empty.
+
+Full unfiltered output for each command above is recorded verbatim in [Test Evidence](#test-evidence-one-block-per-test-plan-row) and [Reproduced Delivery Validation](#reproduced-delivery-validation-summary-claim-source-executed); this section restates those recorded results and adds no new claim.
 
 ## Validation Summary
 

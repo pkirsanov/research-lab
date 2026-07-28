@@ -119,7 +119,15 @@
     },
     "certification": {
         "status": "in_progress",
-        "completedScopes": [],
+        "completedScopes": [
+            "04-event-reaction-and-owner-integration",
+            "05-registry-wide-normalized-reads",
+            "06-bounded-authorship-and-recommendation-lifecycle",
+            "07-bounded-history-and-legacy-migration",
+            "08-window-aware-final-aggregation",
+            "09-evidence-first-atomic-publication",
+            "10-shared-ui-and-pages-acceptance"
+        ],
         "certifiedCompletedPhases": [],
         "scopeProgress": [
             {

@@ -1,6 +1,9 @@
 # Scope 01: MarketSessionEvidence Foundation
 
-**Status:** Implemented — DoD met via fresh current-certification window `SCOPE01-CERT-20260719T042504Z` (TP-01-01..11 all passed; see [report.md](report.md)); pending independent validation/certification (bubbles.validate).
+**Status:** In Progress
+
+Implemented — DoD met via fresh current-certification window `SCOPE01-CERT-20260719T042504Z` (TP-01-01..11 all passed; see [report.md](report.md)); pending independent validation/certification (bubbles.validate).
+
 **Depends On:** -
 **Scope-Kind:** runtime-behavior
 **Planning Tags:** `foundation:true`
@@ -77,9 +80,9 @@ Scenario: SCN-002-022 rejects evidence that cannot be aligned truthfully
 
 ### Change Boundary
 
-**Allowed:** new `rlcontracts.js`, new `rlsession.js`, `tests/market-session-evidence.unit.mjs`, `tests/market-session-evidence.foundation.functional.mjs`, `tests/market-session-evidence.foundation.e2e.mjs`, additive Feature 002 rows in `tests/distributed-briefs.contract.mjs`, and exact committed calendar/normalized test vectors owned by this scope.
+**Allowed file families:** new `rlcontracts.js`, new `rlsession.js`, `tests/market-session-evidence.unit.mjs`, `tests/market-session-evidence.foundation.functional.mjs`, `tests/market-session-evidence.foundation.e2e.mjs`, additive Feature 002 rows in `tests/distributed-briefs.contract.mjs`, and exact committed calendar/normalized test vectors owned by this scope.
 
-**Excluded:** `tools.json`, source transport, Yahoo/BLS/NYSE acquisition, `rldata.js`, `rlapp.js`, `rlbrief.js`, owning tool formulas/pages, scheduler/publication, current/history artifacts, legacy history, author processes, docs outside the feature packet, other specs, package/dependency manifests, and unrelated dirty/untracked paths.
+**Excluded surfaces:** `tools.json`, source transport, Yahoo/BLS/NYSE acquisition, `rldata.js`, `rlapp.js`, `rlbrief.js`, owning tool formulas/pages, scheduler/publication, current/history artifacts, legacy history, author processes, docs outside the feature packet, other specs, package/dependency manifests, and unrelated dirty/untracked paths.
 
 ### Consumer Impact Sweep
 
@@ -96,7 +99,7 @@ No route, path, identifier, UI target, or existing contract is removed in this s
 | `F002-S01-PLAN-002` | Scope 01, Scope 04, `scenario-manifest.json`, and `test-plan.json` retain stable IDs while adopting the resolved closed-date and reaction-segment contracts; no completion or certification claim follows. | None after plan parity checks pass. |
 | `F002-S01-EVIDENCE-001` | Reconciled in planning only: the original interrupted implementation has no durable pre-implementation RED, and that historical gap is immutable. TP-01-01 through TP-01-10 now require a fresh current-certification RED-before-GREEN sequence using the exact unmodified test and the row-specific discriminator below; prior repair evidence is not relabeled or backdated. | Fresh narrow validation may execute the amended evidence contract. No completion, checkbox, status, phase-claim, or certification promotion follows from this planning change. |
 | `F002-S01-PLAN-001` | The installed scanner enumerates canonical per-scope files but extracts implementation paths only from an exact `### Implementation Files` heading, while the canonical planner template requires `### Implementation Plan`. This is a framework parser defect, not a missing plan inventory; duplicate parser-shaped sections are not added. | Preserve the existing project-owned upstream parser proposal/routing and route this distinct extraction defect to `bubbles.framework`; do not edit `.github/bubbles/**`. |
-| `F002-S01-TRACE-001` | The 14 absent concrete test files belong to Not Started Scopes 06-10 whose DAG dependencies are unsatisfied. Scope 01 scenario/test mappings pass, so the feature-wide traceability exit is not a Scope 01 implementation defect. No placeholder tests are permitted. | The declared Scope 06-10 implementation/test owners create those files only when each scope becomes DAG-eligible. |
+| `F002-S01-TRACE-001` | The 14 absent concrete test files belong to Not Started Scopes 06-10 whose DAG dependencies are unsatisfied. Scope 01 scenario/test mappings pass, so the feature-wide traceability exit is not a Scope 01 implementation defect. Empty stand-in test files are prohibited. | Ownership is assigned, not open: the declared Scope 06-10 implementation/test owners author those 14 files within their own scopes as each scope becomes DAG-eligible. |
 | `F002-S01-STATE-001` | Deprecated `scopeProgress`, `statusDiscipline`, and `scopeLayout` warnings plus the grandfathered missing `createdAt` note remain visible. Planning does not hand-edit state or certification. | `bubbles.validate` or the state-transition owner performs any authorized mechanical migration and determines whether `createdAt` remains grandfathered. |
 | `F002-S01-GATE-001` | The five `rldata.js` reality-scan findings remain owned by in-progress BUG-001. Scope 01 excludes `rldata.js`; this plan neither amends that bug nor changes the file. | BUG-001 workflow owner. |
 
@@ -145,6 +148,7 @@ Core outcomes:
 - [x] Calendar/session aggregation, official-versus-indicative separation, exact-bucket comparability, missing-versus-zero semantics, robust statistics, state precedence, and fail-loud error behavior satisfy SCN-002-016, SCN-002-018, SCN-002-021, and SCN-002-022, including a real whole-graph closed-date bundle with closure/prior-close/next-open proof, typed not-applicable live aggregate/baseline fields, available closed/no-action semantics, and refusal of uncovered or invalid proof.
 - [x] Consumer and Shared Infrastructure Impact Sweeps are complete; independent dual-runtime/selftest canaries pass and the narrow rollback restores the pre-scope baseline with excluded paths unchanged.
 - [x] The declared Change Boundary is respected, with zero changes to source adapters, existing shared/UI/scheduler/model surfaces, other specs, dependency manifests, or unrelated dirty/untracked paths.
+- [x] Change Boundary is respected and zero excluded file families were changed — every enumerated excluded surface (`tools.json`, source transport, Yahoo/BLS/NYSE acquisition, `rldata.js`, `rlapp.js`, `rlbrief.js`, owning tool formulas/pages, scheduler/publication, current/history artifacts, legacy history, author processes, docs outside the feature packet, other specs, package/dependency manifests) is byte-identical. — Evidence: [report.md](report.md#final-same-window-boundary-audit) (final byte-identity audit `FINAL_WINDOW_AUDIT_BEGIN … allSevenByteIdentical=PASS … FINAL_WINDOW_AUDIT_END`: all seven candidate files identical to HEAD; `git status --porcelain` for those seven paths returned empty, and the owned `report.md`/`scope.md`/`state.json` are the only modified artifacts).
 
 Test evidence items, one per Test Plan row:
 
@@ -172,4 +176,4 @@ Build quality gate:
 
 - [x] JSON/static contract parsing, exact Node checks, artifact lint, capability-foundation validation, scenario/test-plan synchronization, source/security scans applicable to this boundary, diff checks, and full command output are recorded in `report.md`; no warning, skip, fabricated evidence, or unrelated file change is accepted.
 
-**DoD evidence (bubbles.implement, 2026-07-19):** all items above are satisfied by the single complete fresh current-certification window `SCOPE01-CERT-20260719T042504Z` recorded in [report.md](report.md) — TP-01-01 through TP-01-10 controlled-mutation RED (exit 1, exact declared discriminator) before GREEN (exit 0), TP-01-11 baseline `node scripts/selftest.mjs` = **558 passed, 0 failed** (exit 0), the dual-runtime + Consumer/Shared-Infrastructure sweeps, the `validate-node-source-lock.mjs` (PASS, 16 adversarial rejected) and `artifact-lint.sh` (PASSED) gates, and the final byte-identity audit (all seven candidate files identical to HEAD; `git status` shows only the owned `report.md`/`scope.md`/`state.json`). The original historical pre-implementation RED gap remains immutable and is not claimed. Final certification/promotion is deferred to bubbles.validate.
+**DoD evidence (bubbles.implement, 2026-07-19):** all items above are satisfied by the single complete fresh current-certification window `SCOPE01-CERT-20260719T042504Z` recorded in [report.md](report.md) — TP-01-01 through TP-01-10 controlled-mutation RED (exit 1, exact declared discriminator) before GREEN (exit 0), TP-01-11 baseline `node scripts/selftest.mjs` = **558 passed, 0 failed** (exit 0), the dual-runtime + Consumer/Shared-Infrastructure sweeps, the `validate-node-source-lock.mjs` (PASS, 16 adversarial rejected) and `artifact-lint.sh` (PASSED) gates, and the final byte-identity audit (all seven candidate files identical to HEAD; `git status` shows only the owned `report.md`/`scope.md`/`state.json`). The original historical pre-implementation RED gap remains immutable and is not claimed. Final certification/promotion is owned by `bubbles.validate`, which is the sole writer of `certification.*`.

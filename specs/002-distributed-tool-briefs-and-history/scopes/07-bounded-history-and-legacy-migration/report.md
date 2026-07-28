@@ -327,12 +327,29 @@ node:test surface (23 tests) and the repository selftest (624 assertions) are gr
 
 ## Lint and Quality
 
+**Phase:** implement · **Agent:** bubbles.implement
+**Claim Source:** executed
+
 - `node scripts/validate-node-source-lock.mjs` — `[node-source-lock] OK adversarial=16
   unexpectedAcceptances=0`, exit 0.
+- Node source-lock manifest / npmrc / lockfile / graph all PASS; no dependency files were touched.
 - `bash .github/bubbles/scripts/artifact-lint.sh specs/002-distributed-tool-briefs-and-history` —
   `Artifact lint PASSED.`, exit 0 (only informational deprecated-field warnings on the pre-existing
   state.json v2 fields).
-- Node source-lock manifest/npmrc/lockfile/graph all PASS; no dependency files were touched.
+- `node scripts/selftest.mjs` — 624 assertions green, zero failures.
+- The full distributed-briefs `node:test` surface (23 tests) is green with zero failures.
+- `node scripts/validate-brief-cache.mjs` — `[brief-cache] PASS: 354 JSON cache files`, exit 0.
+- `node scripts/validate-brief-payload.mjs market-brief.payload.json` — `[brief-contract] PASS`, exit 0,
+  on the UNCHANGED root payload.
+- Legacy-bytes canary: `brief-history.jsonl` SHA-256 identical before/after every command and
+  `git status --porcelain brief-history.jsonl` empty.
+- Diff isolation: `git status --porcelain` shows only in-scope paths; the static test server, browser
+  harness, and shared renderer/pages were not touched.
+- No `--skip`, request interception, internal mock, or self-validation shortcut was introduced.
+
+Full unfiltered output for each command above is recorded verbatim in [Test Evidence](#test-evidence)
+and [Validation Summary](#validation-summary); this section restates those recorded results and adds no
+new claim.
 
 ## Validation Summary
 

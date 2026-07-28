@@ -154,7 +154,9 @@ origins …`.
 
 **Claim Source:** executed.
 
-### [TP-06-05] Functional — true external author boundary and every adversarial class
+### [TP-06-05] / [TP-06-06] — Functional author boundary and integration source pool
+
+**[TP-06-05] Functional — true external author boundary and every adversarial class**
 
 `node --test tests/distributed-briefs.author-boundary.functional.mjs` produced 1 pass, exit 0. The
 production `invokeAuthor` spawns the real `author-echo.mjs` child at the provider boundary; a matched
@@ -164,7 +166,7 @@ MISMATCH,DUPLICATE}`) with no prompt/narrative/private field.
 
 **Claim Source:** executed.
 
-### [TP-06-06] Integration — complete 22-source four-worker pool
+**[TP-06-06] Integration — complete 22-source four-worker pool**
 
 `node --test tests/distributed-briefs.authorship.integration.mjs` produced 1 pass, exit 0. The pool
 resolves exactly 22 validated outcomes (IDs equal `orderedSourceToolIds`), independently observed peak
@@ -189,7 +191,9 @@ Scope 06 author-pool stress: 16 passed, 0 failed
 
 **Claim Source:** executed.
 
-### [TP-06-08] E2E — Regression SCN-002-004 (RED before GREEN)
+### [TP-06-08] / [TP-06-09] / [TP-06-10] — E2E regression SCN-002-004 and SCN-002-005 and SCN-002-006 RED before GREEN
+
+**[TP-06-08] E2E — Regression SCN-002-004 (RED before GREEN)**
 
 RED: `validateToolBrief` evidence-subset check disabled. `node --test
 tests/distributed-briefs.authorship.e2e.mjs` produced 1 fail, exit 1 (`✖ Regression: SCN-002-004 …
@@ -199,7 +203,7 @@ brief outcome` — barrier complete, aggregator never self-consumed, tampered ev
 
 **Claim Source:** executed.
 
-### [TP-06-09] E2E — Regression SCN-002-005 (RED before GREEN)
+**[TP-06-09] E2E — Regression SCN-002-005 (RED before GREEN)**
 
 RED: `lifecycleEventId` given a `Math.random()` nonce. `node --test …authorship.e2e.mjs` produced 1 fail,
 exit 1 (`✖ Regression: SCN-002-005 …` — the two identical reduce runs produced different event IDs).
@@ -208,7 +212,7 @@ or cost churn` — reuse carries with zero author calls, idempotent reduce, dupl
 
 **Claim Source:** executed.
 
-### [TP-06-10] E2E — Regression SCN-002-006 (RED before GREEN)
+**[TP-06-10] E2E — Regression SCN-002-006 (RED before GREEN)**
 
 RED: merged confidence `Math.min` → `Math.max`. `node --test …authorship.e2e.mjs` produced 1 fail, exit 1
 (`✖ Regression: SCN-002-006 … 64 !== 50`). GREEN (restored): `✔ Regression: SCN-002-006 recommendation
@@ -216,7 +220,9 @@ lifecycle preserves prior terms merges origins and exposes conflicts`.
 
 **Claim Source:** executed.
 
-### [TP-06-11] Broader E2E regression — registry-owner-authorship
+### [TP-06-11] / [TP-06-12] — Broader E2E regression and baseline selftest
+
+**[TP-06-11] Broader E2E regression — registry-owner-authorship**
 
 `node --test` over the full distributed-briefs surface (Scope 01–06, excluding the stress script) =
 25 tests / 25 pass / 0 fail, exit 0. This includes `distributed-briefs-foundation.e2e.mjs`,
@@ -226,7 +232,7 @@ regression.
 
 **Claim Source:** executed.
 
-### [TP-06-12] Baseline — `node scripts/selftest.mjs`
+**[TP-06-12] Baseline — `node scripts/selftest.mjs`**
 
 `node scripts/selftest.mjs` produced 616 passed, 0 failed, exit 0 (up from the 606 baseline; +10 for the
 additive Scope 06 selftest group). The dual-runtime browser-safety of the new `rlcontracts.js` functions

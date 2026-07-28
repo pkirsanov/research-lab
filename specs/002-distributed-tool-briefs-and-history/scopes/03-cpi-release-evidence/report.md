@@ -72,9 +72,9 @@ Controlled production mutations (each reversed by an exact inverse edit; the fil
 - **SCN-002-023** — `acquireReportEvidence`: `const fetchCount = 1 + (options.additionalApiFetches || 0);` → `const fetchCount = 1;` (second disagreeing source dropped).
 - **SCN-002-024** — `acquireReportEvidence`: `normalizeReleasedReport(…, options.previousEvidence || null, cutoffAt)` → `normalizeReleasedReport(…, null, cutoffAt)` (revision lineage dropped).
 
-### TP-03-01 (unit SCN-002-019) + TP-03-07 (e2e SCN-002-019)
+### TP-03-01 (unit SCN-002-019) and TP-03-07 (e2e SCN-002-019)
 
-#### RED — `node --test --test-name-pattern="SCN-002-019" tests/market-session-evidence.unit.mjs tests/released-report-evidence.e2e.mjs` — Exit 1 — Claim Source: executed
+**RED — `node --test --test-name-pattern="SCN-002-019" tests/market-session-evidence.unit.mjs tests/released-report-evidence.e2e.mjs` — Exit 1 — Claim Source: executed**
 
 ```text
 ✖ SCN-002-019: CPI is upcoming before release and uses exact BLS transforms after release
@@ -86,16 +86,16 @@ Controlled production mutations (each reversed by an exact inverse edit; the fil
 
 Restore: exact inverse edit (`, 2)` → `, 1)`); `shasum -a 256 scripts/market-session-evidence.mjs` = `8e5b82d6…c48` (anchor).
 
-#### GREEN — `node --test tests/market-session-evidence.unit.mjs` (unit) and `node --test tests/released-report-evidence.e2e.mjs` (e2e) — Exit 0 — Claim Source: executed
+**GREEN — `node --test tests/market-session-evidence.unit.mjs` (unit) and `node --test tests/released-report-evidence.e2e.mjs` (e2e) — Exit 0 — Claim Source: executed**
 
 ```text
 ✔ SCN-002-019: CPI is upcoming before release and uses exact BLS transforms after release
 ✔ Regression: SCN-002-019 exposes upcoming then released CPI lineage without stale carry
 ```
 
-### TP-03-02 (unit SCN-002-023) + TP-03-08 (e2e SCN-002-023)
+### TP-03-02 (unit SCN-002-023) and TP-03-08 (e2e SCN-002-023)
 
-#### RED — `node --test --test-name-pattern="SCN-002-023" tests/market-session-evidence.unit.mjs tests/released-report-evidence.e2e.mjs` — Exit 1 — Claim Source: executed
+**RED — `node --test --test-name-pattern="SCN-002-023" tests/market-session-evidence.unit.mjs tests/released-report-evidence.e2e.mjs` — Exit 1 — Claim Source: executed**
 
 ```text
 ✖ SCN-002-023: comparable source disagreement remains disputed with no synthesized value
@@ -107,16 +107,16 @@ Restore: exact inverse edit (`, 2)` → `, 1)`); `shasum -a 256 scripts/market-s
 
 Restore: exact inverse edit; SHA-256 = anchor.
 
-#### GREEN — Exit 0 — Claim Source: executed
+**GREEN — Exit 0 — Claim Source: executed**
 
 ```text
 ✔ SCN-002-023: comparable source disagreement remains disputed with no synthesized value
 ✔ Regression: SCN-002-023 provider disagreement blocks a single CPI surprise and owner claim
 ```
 
-### TP-03-03 (unit SCN-002-024) + TP-03-09 (e2e SCN-002-024)
+### TP-03-03 (unit SCN-002-024) and TP-03-09 (e2e SCN-002-024)
 
-#### RED — `node --test --test-name-pattern="SCN-002-024" tests/market-session-evidence.unit.mjs tests/released-report-evidence.e2e.mjs` — Exit 1 — Claim Source: executed
+**RED — `node --test --test-name-pattern="SCN-002-024" tests/market-session-evidence.unit.mjs tests/released-report-evidence.e2e.mjs` — Exit 1 — Claim Source: executed**
 
 ```text
 ✖ SCN-002-024: changed BLS levels append one revision identity and preserve prior bytes
@@ -128,14 +128,16 @@ Restore: exact inverse edit; SHA-256 = anchor.
 
 Restore: exact inverse edit; SHA-256 = anchor.
 
-#### GREEN — Exit 0 — Claim Source: executed
+**GREEN — Exit 0 — Claim Source: executed**
 
 ```text
 ✔ SCN-002-024: changed BLS levels append one revision identity and preserve prior bytes
 ✔ Regression: SCN-002-024 CPI revision appends while original release graph remains immutable
 ```
 
-### TP-03-04 — Functional captured BLS schedule/API normalization (SCN-002-019) — Exit 0 — Claim Source: executed
+### TP-03-04 and TP-03-05: Functional evidence
+
+**TP-03-04 — Functional captured BLS schedule/API normalization (SCN-002-019) — Exit 0 — Claim Source: executed**
 
 `node --test tests/market-session-evidence.functional.mjs`
 
@@ -144,7 +146,7 @@ Restore: exact inverse edit; SHA-256 = anchor.
 ℹ tests 4  ℹ pass 4  ℹ fail 0
 ```
 
-### TP-03-05 — Functional consensus lock / source use / basis / disagreement mutations — Exit 0 — Claim Source: executed
+**TP-03-05 — Functional consensus lock / source use / basis / disagreement mutations — Exit 0 — Claim Source: executed**
 
 `node --test tests/market-session-evidence.functional.mjs`
 
@@ -152,7 +154,9 @@ Restore: exact inverse edit; SHA-256 = anchor.
 ✔ Consensus lock source use unit basis and disagreement mutations fail loud
 ```
 
-### TP-03-06 — Integration live no-write BLS CPI structural smoke — Exit 0 — Claim Source: executed
+### TP-03-06 through TP-03-09: Integration smoke and scenario-specific E2E regression, Exit 0, Claim Source: executed
+
+**TP-03-06 — Integration live no-write BLS CPI structural smoke — Exit 0 — Claim Source: executed**
 
 `node scripts/market-session-evidence-live-check.mjs --reports cpi --no-write` (real BLS probe; the live page's heading differs from the reviewed fixture, so the parser fail-closes → truthful unavailability, no fixed numeric claim, zero writes)
 
@@ -163,7 +167,7 @@ Restore: exact inverse edit; SHA-256 = anchor.
 [LIVE-CHECK] OK
 ```
 
-### TP-03-07 / TP-03-08 / TP-03-09 — Scenario-specific E2E regression — Exit 0 — Claim Source: executed
+**TP-03-07 / TP-03-08 / TP-03-09 — Scenario-specific E2E regression — Exit 0 — Claim Source: executed**
 
 `node --test tests/released-report-evidence.e2e.mjs` (RED discriminators recorded above with TP-03-01/02/03)
 
@@ -174,7 +178,7 @@ Restore: exact inverse edit; SHA-256 = anchor.
 ℹ tests 3  ℹ pass 3  ℹ fail 0
 ```
 
-### TP-03-10 — Broader E2E regression (report + foundation) — Exit 0 — Claim Source: executed
+### TP-03-10: Broader E2E regression (report and foundation), Exit 0, Claim Source: executed
 
 `node --test tests/released-report-evidence.e2e.mjs tests/market-session-evidence.foundation.e2e.mjs`
 
@@ -231,7 +235,21 @@ Business-logic coverage for the CPI vertical is exercised by the unit (SCN-002-0
 
 ## Lint and Quality
 
-`node scripts/validate-node-source-lock.mjs` = PASS (manifest/npmrc/lockfile/graph PASS, 16 adversarial supply-chain cases REJECTED, 0 unexpected acceptances, exit 0). `bash .github/bubbles/scripts/artifact-lint.sh specs/002-distributed-tool-briefs-and-history` = `Artifact lint PASSED.` (exit 0). `node scripts/selftest.mjs` = 589 passed / 0 failed (exit 0), no warning. The declared Change Boundary is respected — only the Scope 03 code/test/fixture/selftest surface plus this scope's owned `report.md`/`scope.md`/`_index.md`/`state.json` are modified; every unrelated dirty or untracked path is unchanged and unstaged.
+**Phase:** implement · **Agent:** bubbles.implement
+**Claim Source:** executed
+
+- `node scripts/validate-node-source-lock.mjs` = PASS (exit 0) — manifest PASS, npmrc PASS, lockfile PASS, graph PASS.
+- Supply-chain adversarial matrix: 16 adversarial cases REJECTED, 0 unexpected acceptances.
+- `bash .github/bubbles/scripts/artifact-lint.sh specs/002-distributed-tool-briefs-and-history` = `Artifact lint PASSED.` (exit 0).
+- `node scripts/selftest.mjs` = 589 passed / 0 failed (exit 0), no warning emitted.
+- The additive Scope 03 selftest group contributes 17 checks inside that 589-total baseline.
+- Live CPI structural smoke ran read-only with zero repository writes; it claims no fixed numeric value.
+- Diff isolation: only the Scope 03 code/test/fixture/selftest surface plus this scope's owned `report.md`, `scope.md`, `_index.md`, and `state.json` are modified.
+- Every unrelated dirty or untracked path is unchanged and unstaged.
+- Declared Change Boundary respected — no excluded file family was touched.
+- No `--skip`, request interception, internal mock, or self-validation shortcut was introduced by the Scope 03 tests.
+
+Full unfiltered output for each command above is recorded verbatim in the per-row Test Evidence sections of this report; this section restates those recorded results and adds no new claim.
 
 ## Validation Summary
 

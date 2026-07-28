@@ -50,8 +50,10 @@ role. Delivery was fully additive within the declared Change Boundary:
   — truthful, because a static SEC model cannot consume XNYS market-session evidence — exactly like
   the other static-model sources (`ai-capex-strategy-lab`, `msft-july-print-model`). Its rich
   committed brief remains a Feature-010 concern surfaced on its own page/toolCoverage. This
-  cross-feature status-vocabulary observation is recorded for planning follow-up; no foreign
-  artifact was edited to work around it.
+  cross-feature status-vocabulary observation belongs to Feature-010, which owns
+  `buildCompanyFundamentalsOwnerRead` and its status vocabulary; no foreign artifact was edited to
+  work around it. Scope 05 itself is complete: the registry freeze resolves this source truthfully
+  through `buildNonOwnerApplicabilityRead` rather than relaxing the `ToolModelRead/v1` status enum.
 
 ## Completion Statement
 
@@ -79,25 +81,75 @@ for the parent to stage/commit; the consumed Scope 01/03/04 modules are unchange
 (byte-identical to the pre-mutation baseline captured after implementation and before the
 controlled-mutation red stages).
 
+### Code Diff Evidence — committed delta (`0dabe962`)
+
+The working-tree surface recorded above was subsequently committed as `0dabe962`
+(`spec(002): Scope 05 registry-wide normalized reads`). The committed non-artifact runtime delta
+is reproduced below directly from git; spec artifacts are excluded from the pathspec so only the
+runtime/source surface is shown.
+
+**Claim Source:** executed
+
+```
+$ git --no-pager show --stat --oneline 0dabe962 -- . ':(exclude)specs/**'
+0dabe962 spec(002): Scope 05 registry-wide normalized reads
+ rlcontracts.js                                     | 125 ++++++++++
+ scripts/brief-refresh.mjs                          |  77 ++++++-
+ scripts/selftest.mjs                               |  55 +++++
+ tests/distributed-briefs-foundation.e2e.mjs        | 145 ++++++++++++
+ ...istributed-briefs-read-adapters.integration.mjs | 113 +++++++++
+ tests/distributed-briefs-shared-canary.mjs         |  93 ++++++++
+ tests/distributed-briefs.contract.mjs              | 144 ++++++++++++
+ tools.json                                         | 253 +++++++++++++++++++--
+ 8 files changed, 981 insertions(+), 24 deletions(-)
+EXIT=0
+```
+
+Per-file added/removed line counts for the four production surfaces named in the Completion
+Statement (`rlcontracts.js`, `tools.json`, `scripts/brief-refresh.mjs`, `scripts/selftest.mjs`):
+
+**Claim Source:** executed
+
+```
+$ git --no-pager show --numstat --format= 0dabe962 -- rlcontracts.js tools.json scripts/brief-refresh.mjs scripts/selftest.mjs
+125     0       rlcontracts.js
+76      1       scripts/brief-refresh.mjs
+55      0       scripts/selftest.mjs
+230     23      tools.json
+EXIT=0
+```
+
+This confirms the delta is additive on `rlcontracts.js` (+125 / −0) and `scripts/selftest.mjs`
+(+55 / −0); the `tools.json` (+230 / −23) and `scripts/brief-refresh.mjs` (+76 / −1) edits are the
+registry `briefing` block additions and the polymorphic `freezeToolReads` contract guard described
+in the Decision Record.
+
 ## Test Evidence
 
 All commands run from the repository root; full unfiltered output was reviewed. **Claim Source:**
 `executed` for every block below.
 
+### [TP-05-01], [TP-05-02] and [TP-05-03] unit RED, byte-exact restore, GREEN
+
 **[TP-05-01] SCN-002-001 unit — controlled-mutation RED → byte-exact restore → GREEN**
+
+RED: `validateRegistry` frozen.sourceCount mutated to a literal 21.
+
 ```
-# RED: validateRegistry frozen.sourceCount mutated to a literal 21
 $ node --test --test-name-pattern='SCN-002-001' tests/distributed-briefs.contract.mjs
 ✖ SCN-002-001: registry derives 23 participants 22 sources and one non-recursive aggregator
   AssertionError [ERR_ASSERTION]: Expected values to be strictly equal:  21 !== 22
 ℹ tests 1  ℹ pass 0  ℹ fail 1
 TP0501_RED_EXIT=1
-# restore byte-exact (sourceCount: orderedSourceToolIds.length) → sha256 == baseline → GREEN below
 ```
 
+Restore byte-exact (`sourceCount: orderedSourceToolIds.length`) → sha256 == baseline → GREEN below.
+
 **[TP-05-03] SCN-002-003 unit — controlled-mutation RED → byte-exact restore → GREEN**
+
+RED: `validateRegistry` frozen.sourceCount mutated to a non-scaling literal 22.
+
 ```
-# RED: validateRegistry frozen.sourceCount mutated to a non-scaling literal 22
 $ node --test --test-name-pattern='SCN-002-003' tests/distributed-briefs.contract.mjs
 ✖ SCN-002-003: added-source mutation derives 24 participants and 23 sources generically
   AssertionError [ERR_ASSERTION]: Expected values to be strictly equal:  22 !== 23
@@ -106,8 +158,10 @@ TP0503_RED_EXIT=1
 ```
 
 **[TP-05-02] SCN-002-002 unit — controlled-mutation RED → byte-exact restore → GREEN**
+
+RED: `validateRegistry` policy-mismatch boundary disabled (`if (false && …)`) → mismatch slips through.
+
 ```
-# RED: validateRegistry policy-mismatch boundary disabled (if (false && …)) → mismatch slips through
 $ node --test --test-name-pattern='SCN-002-002' tests/distributed-briefs.contract.mjs
 ✖ SCN-002-002: profile status applicability privacy and eligibility boundaries fail loud
   TypeError: Cannot read properties of undefined (reading 'reason')   # .error absent → not fail-loud
@@ -127,7 +181,7 @@ $ node --test --test-name-pattern='SCN-002-00[123]' tests/distributed-briefs.con
 TP0501_02_03_GREEN_EXIT=0
 ```
 
-**[TP-05-04 … TP-05-10] full Feature-002 evidence-owner-registry suite (integration, canary, e2e, regression)**
+### [TP-05-04] through [TP-05-10] full Feature-002 evidence-owner-registry suite (integration, canary, e2e, regression)
 ```
 $ node --test tests/distributed-briefs.contract.mjs \
     tests/distributed-briefs-read-adapters.integration.mjs \
@@ -150,7 +204,7 @@ $ node --test tests/distributed-briefs.contract.mjs \
 FEATURE002_SUITE_EXIT=0
 ```
 
-**[TP-05-11] baseline complete repository selftest**
+### [TP-05-11] baseline complete repository selftest
 ```
 $ node scripts/selftest.mjs
   ✓ Feature 002 Scope 05 validateRegistry derives 23 participants / 22 sources with one non-recursive Market Brief aggregator

@@ -30,7 +30,7 @@ touches the real origin, the real root worktree, `brief-history.jsonl`, or the l
 
 ## Decision Record
 
-**Live-path preservation (shell refactor deferred to Scope 10).** Implementation-Plan item 1
+**Live-path preservation (shell refactor owned by Scope 10).** Implementation-Plan item 1
 called for refactoring `scripts/brief-refresh-and-push.sh` into a thin dispatcher that removes
 the data-only/soft current-publication and model/calendar/parser logic from shell. Doing that
 here would break the live 4×/day launchd path (`market-brief.snapshot.json` +
@@ -118,8 +118,9 @@ contract (isolated with `--test-name-pattern='SCN-002-010'`).
 
 ### GREEN — consolidated after all restores (byte-exact, exit 0)
 
+Full scheduler suite (all 6 files), after all 10 restores:
+
 ```
-# Full scheduler suite (all 6 files), after all 10 restores:
 node --test …scheduler.unit …integration …canary …scheduler-failures.integration \
             …git-isolation.integration …scheduler.e2e
   → ℹ tests 10  ℹ pass 10  ℹ fail 0   NODE_TEST_ALL_EXIT=0
@@ -231,7 +232,7 @@ node scripts/validate-brief-payload.mjs market-brief.payload.json
 
 ## Uncertainty Declarations
 
-1. **Shell dispatcher refactor deferred to Scope 10 (not a fabricated completion).** The
+1. **Shell dispatcher refactor is owned by Scope 10 (not a fabricated completion).** The
    Implementation-Plan item-1 refactor of `scripts/brief-refresh-and-push.sh` was deliberately
    NOT performed, because removing the live data-only/narrative logic from the shell would break
    the running 4×/day launchd path before its replacement is live-wired. The distributed

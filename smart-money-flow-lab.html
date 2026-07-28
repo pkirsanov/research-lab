@@ -1157,6 +1157,65 @@
             try { localStorage.setItem('smartMoneyLab', JSON.stringify({ hl: state.halflife, filer: state.filer, side: state.side, minFilers: state.minFilers, today: state.today, mode: state.mode, name: state.name })); } catch (e) { }
         }
 
+        /* ═══════ Feature 012 Scope 15 — production Simple-view owner-state provider ═══════
+           The shared production bridge (RLEXPERIENCE.renderSimpleBridge, installed by rlapp.js) reads
+           globalThis.__rlOwnerStateProvider["smart-money-flow-lab"] and hands the result to the registered
+           disclosure-decay adapter (simple-adapter/disclosure-decay/v1 in
+           rlexperience-adapters/strategy-research.js — already loaded above as the SINGLE SOURCE of this
+           page's alphaDecay / dayGap / consensusScore / realisticEdgeFraction).
+
+           THIS PAGE STAYS THE OWNER, AND NO FORMULA IS COPIED OR RECOMPUTED HERE. Unlike the priced labs,
+           this page's owner evidence is not a derived metric table — it is the DISCLOSED FILING SET itself
+           plus the reference clock those filings are aged against. The provider therefore publishes only
+           those two live facts and performs no arithmetic at all:
+             • disclosures[] -> state.data, the page's OWN live filing set — the exact array aggregate()
+                                reduces. It is whatever the page currently holds: the bundled illustrative
+                                SAMPLE at boot, a user-pasted set (applyData), or a regenerated illustrative
+                                scenario (refreshBtn). Each row is handed over with the page's own seven
+                                canonical columns (ticker, filer, type, side, usd, txn, disclosed — the same
+                                COLS this page reads and writes), unedited and unfiltered,
+             • asOf / today  -> state.today, the page's OWN reference date — the single clock its dayGap()
+                                measures every disclosure age against.
+
+           The page's VIEW controls are deliberately NOT published. state.filer / state.side / state.minFilers
+           / state.name are this page's Power-ledger filters, and the adapter asks its own bounded Simple
+           question over the same frozen filings under its OWN source-mix / cluster-minimum / consensus and
+           decay-floor controls. Publishing the pre-filtered filtered() rows instead of state.data would
+           double-apply those gates (a page filer filter would silently starve the adapter's source-mix
+           control) and would drop the disclosed SELL rows the adapter scores as signed net flow — so the
+           complete owner set is published and the Simple question is answered over it.
+
+           NOTHING IS INVENTED. `source` and `sourceClass` are deliberately OMITTED rather than labelled:
+           this page keeps no structured provenance for state.data (its dataStatus chip is transient UI text,
+           empty at boot), so the adapter's own conservative documented defaults apply — dataTier "disclosed
+           filing set" and sourceClass "model-estimate", which never overstate a user-supplied set.
+
+           HONEST DEGRADATION: with no filings loaded, or a reference date that does not parse, the provider
+           returns null and the bridge renders the honest "unavailable" panel. The null-date guard matters —
+           the single-sourced dayGap() is NaN-safe and returns 0 for an unparseable date, so publishing an
+           invalid clock would silently report every filing as zero-age (full edge retained). That would be a
+           fabricated freshness, so the provider refuses instead. */
+        function smartMoneyOwnerState() {
+            var rows = Array.isArray(state.data) ? state.data : [];
+            if (!rows.length) return null;
+            var today = String(state.today == null ? '' : state.today);
+            if (isNaN(Date.parse(today))) return null;
+            return {
+                contractVersion: 'disclosure-decay-owner-state/v1',
+                toolId: 'smart-money-flow-lab',
+                asOf: today,
+                today: today,
+                disclosures: rows.map(function (r) {
+                    return {
+                        ticker: r.ticker, filer: r.filer, type: r.type, side: r.side,
+                        usd: r.usd, txn: r.txn, disclosed: r.disclosed
+                    };
+                })
+            };
+        }
+        globalThis.__rlOwnerStateProvider = globalThis.__rlOwnerStateProvider || {};
+        globalThis.__rlOwnerStateProvider["smart-money-flow-lab"] = smartMoneyOwnerState;
+
         /* ─────────── events ─────────── */
         el('modeSeg').addEventListener('click', function (e) { var b = e.target.closest('button'); if (!b) return;[].forEach.call(this.children, function (x) { x.classList.remove('on'); }); b.classList.add('on'); state.mode = b.getAttribute('data-m'); render(); });
         el('halflife').addEventListener('input', function () { state.halflife = +this.value; el('hlVal').textContent = this.value + ' days'; render(); });

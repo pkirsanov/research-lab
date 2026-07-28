@@ -949,6 +949,65 @@ function aiCapexOwnerState() {
   return ownerState;
 }
 
+/* ─────────── smart-money-flow-lab (disclosure-decay): the page's OWN provider, RUN here ───────────
+   Like ai-capex, this page's owner model has no module producer for its owner FACTS and publishes no
+   harvested read — but for a simpler reason: its owner evidence IS the disclosed filing set it holds
+   (`state.data`) plus the reference clock those filings are aged against (`state.today`). There is no
+   metric table to rebuild, so the only faithful way to reach the page's real published owner state is
+   to RUN the page's own provider on the page's own data. Restating either here would be a copy of the
+   owner's data, which this suite forbids just as firmly as a copy of an owner formula.
+
+   So the page's own bindings are extracted VERBATIM from the deployed source and executed: `SAMPLE`
+   (the bundled illustrative filing set), `state` (whose initializer takes `SAMPLE.slice()` — exactly
+   the page's boot value when no localStorage snapshot is restored, which is the deterministic case
+   here) and the page's OWN `smartMoneyOwnerState`. The owner state is then whatever that provider
+   returns — the page's own live value, produced by the page's own deployed code.
+
+   DETERMINISTIC BY CONSTRUCTION: the single input is the committed page itself, and the page's default
+   state is fixed (reference date 2026-07-05, the bundled 12-row filing set). No clock, no network, no
+   randomness — `genSample()` (the page's Math.random scenario refresh) is a user action that is
+   deliberately NOT taken here, so the run is reproducible.
+
+   NO SEED: the registry declares seedPolicy.required = false / randomnessClass "none", so
+   `registrySeed(definition)` pins null and the model is a pure function of the frozen filing set. */
+function disclosureDecayOwnerState() {
+  const source = readPage('smart-money-flow-lab.html');
+  assert.ok(source, 'the deployed smart-money-flow-lab.html source is required to run its own owner provider');
+
+  const ownerState = Function([
+    extractPageBinding(source, 'SAMPLE'),
+    extractPageBinding(source, 'state'),
+    extractPageBinding(source, 'smartMoneyOwnerState'),
+    'return smartMoneyOwnerState();'
+  ].join('\n'))();
+
+  assert.ok(ownerState, 'the page provider must publish an owner state for its own bundled filing set');
+  assert.equal(ownerState.contractVersion, 'disclosure-decay-owner-state/v1');
+  assert.equal(ownerState.toolId, 'smart-money-flow-lab');
+  assert.equal(ownerState.asOf, ownerState.today, 'the page publishes ONE reference clock as both as-of and today');
+  assert.equal(Number.isNaN(Date.parse(ownerState.today)), false, 'the published reference clock must parse — dayGap is NaN-safe, so an unparseable clock would silently report every filing as zero-age');
+  assert.ok(ownerState.disclosures.length >= 3, 'the owner filing set must carry at least three disclosures');
+  for (const disclosure of ownerState.disclosures) {
+    assert.deepEqual(Object.keys(disclosure), ['ticker', 'filer', 'type', 'side', 'usd', 'txn', 'disclosed'],
+      'each published row carries the page\'s own seven canonical filing columns');
+  }
+  // Substance, not just shape: the published set must actually exercise the model's own controls —
+  // more than one filer type (so `source-mix` has real content to select) and at least one disclosed
+  // SELL (so the signed net-flow path the adapter scores is genuinely present, not buy-only).
+  const filerTypes = new Set(ownerState.disclosures.map((disclosure) => disclosure.type));
+  assert.ok(filerTypes.size >= 2, `the owner filing set must span more than one filer type (saw ${[...filerTypes].join(', ')})`);
+  assert.ok(ownerState.disclosures.some((disclosure) => disclosure.side === 'sell'),
+    'the owner filing set must retain a disclosed SELL — the page publishes the complete set, not its buy-only ledger view');
+  // At the REGISTRY defaults the model must reach a non-vacuous consensus read: the owner's own
+  // summary function (never a reimplementation here) must clear the cluster gate on ≥2 tickers.
+  const definition = definitionForAdapter('simple-adapter/disclosure-decay/v1');
+  const summary = loadModule('rlexperience-adapters/strategy-research.js')
+    .computeDisclosureDecaySummary(frozenClone(ownerState), registryDefaults(definition));
+  assert.ok(summary.cluster.qualifiedCount >= 2,
+    `at least two clusters must clear the registry-default ${summary.clusterMinimum}-filer gate before a consensus can be judged (saw ${summary.cluster.qualifiedCount})`);
+  return ownerState;
+}
+
 /* Owner-state builders keyed by the REGISTRY adapter id. A wired tool with no entry FAILS LOUD. */
 const OWNER_STATES = {
   'simple-adapter/market-breadth/v1': breadthOwnerState,
@@ -962,7 +1021,8 @@ const OWNER_STATES = {
   'simple-adapter/country-rotation/v1': countryOwnerState,
   'simple-adapter/real-asset-driver/v1': realAssetOwnerState,
   'simple-adapter/etf-ranking/v1': etfOwnerState,
-  'simple-adapter/ai-capex-portfolio/v1': aiCapexOwnerState
+  'simple-adapter/ai-capex-portfolio/v1': aiCapexOwnerState,
+  'simple-adapter/disclosure-decay/v1': disclosureDecayOwnerState
 };
 
 /* ═══════════════════════ owner-parity extractors (the Power-path single source) ═══════════════════════
@@ -1120,6 +1180,24 @@ const OWNER_PARITY = {
          actually priced under, taken straight off the summary object. A Simple read that led with a
          different theme — or claimed an objective/horizon the owner did not run — fails here. */
       summaryContains: lead ? [lead.theme, summary.objective, summary.horizon] : []
+    };
+  },
+  'simple-adapter/disclosure-decay/v1': (moduleObject, ownerState, parameterValues) => {
+    const summary = moduleObject.computeDisclosureDecaySummary(frozenClone(ownerState), parameterValues);
+    const top = summary.conviction.perTicker.length ? summary.conviction.perTicker[0] : null;
+    return {
+      ownerFunction: 'computeDisclosureDecaySummary',
+      numericValue: summary.decayedConviction.totalDecayed,
+      valueText: summary.consensus.passes
+        ? `Consensus (${summary.consensus.buyClusters}/${summary.consensus.qualifiedClusters} clusters buy)`
+        : `Divided (${summary.consensus.buyClusters}/${summary.consensus.qualifiedClusters} clusters buy)`,
+      /* The owner-computed top surviving cluster and its direction, plus the cluster gate and the lag
+         half-life the owner actually decayed under, taken straight off the summary object. A Simple
+         read that named a different leading cluster — or claimed a gate/half-life the owner did not
+         run — fails here. */
+      summaryContains: top
+        ? [top.ticker, top.direction, String(summary.clusterMinimum), String(summary.lagHalfLife)]
+        : [String(summary.clusterMinimum)]
     };
   }
 };

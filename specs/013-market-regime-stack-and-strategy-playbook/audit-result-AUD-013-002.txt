@@ -1,0 +1,217 @@
+Audit attempt AUD-013-002 for specs/013-market-regime-stack-and-strategy-playbook
+Agent: bubbles.audit
+Audit profile: planning-maturity-v1 (re-resolved from the registry, not caller-selected)
+Recorded: 2026-07-28T14:26:43Z
+Supersedes: AUD-013-001, recorded 2026-07-28T07:31:31Z, now SUPERSEDED
+
+This file is the canonical ASCII transcript for the ACTIVE audit attempt recorded at
+state.json .execution.audit. The same AUDIT_RESULT_V1 block is embedded in report.md.
+The superseded AUD-013-001 transcript was not destroyed; it was preserved verbatim as
+audit-result-AUD-013-001.txt in this directory, which is where the AUD-013-001
+evidenceRef entry "audit-result.txt" now resolves. report.md also retains the
+AUD-013-001 machine block above the current one as the audit trail. That block's
+resultState field was corrected from ACTIVE to SUPERSEDED so a reader cannot mistake it
+for the current record; every other byte of it is unchanged, including its contradictions
+line, which quotes the pre-remediation text verbatim and is genuine historical evidence.
+
+BEGIN TRANSITION_GUARD_RESULT_V1
+schemaVersion: transition-guard-result/v1
+workflowMode: product-to-planning
+auditProfile: planning-maturity-v1
+targetStatus: specs_hardened
+contractDigest: sha256:b3cb88eff3d0f9298932bc3b00c7f9ed9079ac5b7c074749656a18c6d80d3190
+targetRevision: sha256:20f7ce6b5cfceb6934b769a90fcf590f5e3811d96991ff77c964cf1321b11c10
+applicableCheckClasses: [universal,mode-required,planning-maturity]
+notApplicableChecks: [Check-4-completion,Check-5-all-done,Check-8-file-existence,Check-11-execution-evidence]
+passedGateIds: [G073,G051,G068,G082,G083,G084,G128,G085,G086,G091,G087,G093,G088,G089,G092,G090,G094,G095,G097,G098,G099,G100,G130,G131,G001,G002,G006,G007,G008,G010,G011,G012,G014,G015,G016,G032]
+failedGateIds: []
+failedChecks: []
+blockingCode: none
+failureCount: 0
+exitStatus: 0
+verdict: PASS
+END TRANSITION_GUARD_RESULT_V1
+
+target: specs/013-market-regime-stack-and-strategy-playbook
+mode: product-to-planning
+audit class: planning-maturity
+ceiling: specs_hardened
+verdict: PLANNING_AUDIT_CLEAN
+
+WHAT THIS ATTEMPT IS
+AUD-013-001 returned PLANNING_REWORK_REQUIRED with two open findings and routed them to
+bubbles.plan. bubbles.plan remediated both. This attempt supersedes that record and
+re-adjudicates those two findings against the artifacts as they stand now. It is not a
+re-read of the routing packet: every claim below was recounted from the artifacts
+themselves, and the remediation summary was treated as a claim to be tested, not as
+evidence.
+
+PROVENANCE RE-RESOLVED, NOT ACCEPTED FROM THE CALLER
+The routing packet asked for this attempt to be bound to target revision
+sha256:e124d5bf9993bcbd224faa815457664ee15ba77cf7197ae35a4c1f390219bcd5. That is not the
+revision of this packet. transition-contract-resolver.sh returns
+sha256:20f7ce6b5cfceb6934b769a90fcf590f5e3811d96991ff77c964cf1321b11c10, identically on
+three consecutive runs, and state-transition-guard.sh independently reports the same value
+in its own result block above.
+
+The discrepancy is explained and is not a defect in the packet. e124d5bf was the fresh
+revision bubbles.validate computed at 13:55:16Z, before validate appended its own fourth
+refusal Validation Record to report.md at 13:56. The resolver's report.md digest excludes
+only the AUDIT_RESULT_V1 blocks, so validate's own prose moved the packet from e124d5bf to
+20f7ce6b. The routed revision was stale the moment it was written.
+
+This attempt is therefore bound to the observed 20f7ce6b. Copying the caller's value would
+have recorded provenance this agent never observed, which is precisely the class of thing
+this audit exists to refuse. Mode, profile, ceiling and contract digest b3cb88ef were all
+re-resolved and all matched the routing packet exactly; only the volatile artifact
+fingerprint differed, so the packet's contract binding is confirmed and nothing here is
+blocked on the mismatch.
+
+Consequence for the next owner. To keep 20f7ce6b valid, this attempt wrote nothing into
+report.md outside the AUDIT_RESULT_V1 markers and nothing into state.json outside
+.execution.audit. Both surfaces are excluded from the fingerprint by design. The resolver
+was re-run after the writes and still returns 20f7ce6b. bubbles.validate should re-resolve
+and compare before it appends anything to report.md; appending first will move the revision
+again and manufacture a false staleness mismatch, which is exactly how the previous cycle
+stalled.
+
+FINDING 1 - AUDIT-013-001-report-scenario-range - CLOSED
+Alleged defect: report.md line 30 asserted the scenario range as BS-013-001 through
+BS-013-022 while scopes/_index.md line 99 carried BS-013-001 through BS-013-024.
+report.md line 30 now reads: "All 24 business scenarios BS-013-001 ... BS-013-024 are each
+owned by exactly one scope per scopes/_index.md".
+The corrected sentence was not accepted on its face. Both of its assertions were recounted:
+  count 24  - spec.md carries 24 scenario headings of the form "### BS-013-NNN", spanning
+              BS-013-001 through BS-013-024; scenario-manifest.json carries 24 scenario
+              ids and its set is identical to the spec.md set, with an empty symmetric
+              difference in both directions.
+  ownership - scopes/_index.md carries 24 ownership rows covering 24 distinct scenarios,
+              with zero doubly-owned and zero unowned against the spec.md set.
+Both assertions hold, so the line is now true rather than merely renumbered. A sweep of
+report.md found no surviving 22-scenario range claim and no 22-scenario count claim outside
+the audit trail. Finding closed.
+
+FINDING 2 - AUDIT-013-002-uservalidation-scenario-coverage - CLOSED
+Alleged defect: uservalidation.md covered BS-013-001 through BS-013-022 and omitted
+BS-013-023 and BS-013-024 with no documented rationale, so the acceptance surface could not
+receive a user regression report for those two governance-refusal behaviours.
+The section header at line 19 now reads "Checklist - Business Behaviors (BS-013-001 ...
+BS-013-024)". Coverage was recounted rather than trusted: the file references 24 distinct
+scenario ids, zero missing against the spec.md set of 24 and zero not present in that set,
+and both BS-013-023 and BS-013-024 are present. The file holds 49 checklist items, all
+checked, which is the framework's checked-by-default acceptance baseline and is not a
+Definition of Done surface.
+The two added entries were read against their source Gherkin rather than accepted as text.
+The BS-013-023 entry carries both refusal directions the scenario specifies, a surface
+registered without its hard-asserted count raised in the same change, and a count raised
+above the entries actually present, together with the clause that no absent entry is
+inferred, defaulted or backfilled. The BS-013-024 entry carries the set-level semantics:
+closure reported only when the whole set holds with the number re-run named, and a single
+regression refusing closure and naming the regressing scenario rather than reporting
+partial, provisional or passing-with-exceptions. Both are faithful user-visible paraphrases
+of the real scenarios, not invented acceptance text. Finding closed.
+
+WHAT ELSE WAS RE-VERIFIED INDEPENDENTLY
+1. Test Plan parity. The three-way reconciliation is exact and the symmetric difference is
+   empty in every direction: 88 row ids in the scope.md tables, 88 in the report.md
+   anchors, 88 in test-plan.json, and test-plan.json totalTests is 88. The per-scope
+   distribution 9/14/10/13/10/10/10/12 sums to 88 and agrees with the report.md Summary
+   table and with the Summary prose.
+2. Scenario traceability. All 24 scenarios map to at least one Test Plan row and all 24 map
+   to at least one Definition of Done item. Zero unmapped in either direction.
+3. Honesty. There are 139 Definition of Done items across the 8 scope files and 0 are
+   checked. All 8 scopes read "Not Started". report.md carries exactly 88 evidence slots and
+   every one of them is the literal awaiting-execution sentence. The Completion Statement's
+   asserted trio matches state.json exactly: status blocked, certification.status blocked,
+   certifiedAt null.
+4. Zero implementation, as required at this ceiling. All five planned deliverables are
+   absent from disk: rlregime.js, rlratio.js, ratio-pairs.json, market-regime-lab.html and
+   regime-archetypes.json. No .html, .js or .mjs file is modified or untracked anywhere in
+   the working tree.
+5. Source-edit lockout. G073 is in passedGateIds and the working tree carries no source
+   edit. The oscillating lockout recorded as VALIDATE-C, and again as Finding C in the prior
+   attempt, did not recur: the concurrent feature-012 workstream has landed and the tree is
+   clean.
+6. Profile discipline. The four delivery-completion checks are rendered NOT_APPLICABLE by
+   the guard and are carried through as such here. None is counted as a positive result and
+   none is omitted:
+     Check-4-completion          NOT_APPLICABLE
+     Check-5-all-done            NOT_APPLICABLE
+     Check-8-file-existence      NOT_APPLICABLE
+     Check-11-execution-evidence NOT_APPLICABLE
+   Absent implementation is not a defect at planning maturity and was not treated as one.
+
+ONE OBSERVATION, DELIBERATELY NOT RAISED AS A FINDING
+spec.md line 735 reads "Business Scenarios: 22 (BS-013-001 ... BS-013-022)". It sits inside
+a fenced RESULT-ENVELOPE labelled "Chunk: 3 of N", a record of what one bounded analyst
+invocation produced, whose sibling line states that existing content was preserved
+byte-for-byte and that earlier chunk envelopes were retained. BS-013-023 and BS-013-024 were
+introduced by a later chunk, together with FR-051, AC-017 and AC-018. It is a historical
+per-invocation record rather than a current assertion about the packet, and no consumer
+reads it: every authoritative surface counts 24. Owner bubbles.analyst, severity low,
+non-blocking, recorded here so it is disclosed rather than silently absorbed.
+
+Two nearby patterns were checked and are NOT stale, so neither was raised. The BS-013-001
+through BS-013-022 references in the BS-013-024 Gherkin, in AC-018, in scope 08 and in
+test-plan.json define the protected scenario set as the 22 product scenarios, deliberately
+excluding the two governance scenarios that guard that set; the exclusion is stated
+consistently in all four places and including BS-013-024 in its own protected set would be
+self-referential. Likewise the UI Scenario Matrix preamble bounds itself at BS-013-022
+because all 25 of its rows assert on-screen outcomes and BS-013-023 and BS-013-024 have no
+on-screen surface.
+
+WHY CLEAN
+PLANNING_AUDIT_CLEAN requires an empty unresolved finding set and a green guard. Both
+findings routed by AUD-013-001 were re-adjudicated against the current artifacts and both
+are genuinely closed, verified by recount rather than by reading the remediation claim. The
+guard passed all 36 applicable gates with zero failures and blockingCode none. No new
+blocking contradiction was found anywhere in the packet. The single observation above is a
+historical analyst envelope with no consumer and does not meet the bar for a finding.
+
+AUTHORITY OBSERVED
+This attempt wrote only its own audit evidence: the AUDIT_RESULT_V1 block appended to
+report.md, the resultState correction on the superseded block in report.md, this transcript
+and the preserved copy of the prior one, and the additive state.json .execution.audit
+record. It did not write certification.*, did not set the top-level status or certifiedAt,
+did not touch execution.nextRequiredOwner or execution.blocker, did not mark any scope Done,
+did not check any Definition of Done item, ran no tests, and created or modified no .html,
+.js or .mjs file. It did not touch specs/002, specs/012 or specs/014. The certifiedStatus
+value specs_hardened in the machine block is the contract-mandated projection for a clean
+planning verdict; the certification write itself belongs to bubbles.validate, which remains
+the next actor.
+
+BEGIN AUDIT_RESULT_V1
+schemaVersion: audit-result/v1
+runId: RUN-013-AUDIT-20260728T142643Z
+attemptId: AUD-013-002
+target: specs/013-market-regime-stack-and-strategy-playbook
+targetRevision: sha256:20f7ce6b5cfceb6934b769a90fcf590f5e3811d96991ff77c964cf1321b11c10
+workflowMode: product-to-planning
+modeClass: none
+auditClass: planning-maturity
+statusCeiling: specs_hardened
+requestedStatus: specs_hardened
+auditVerdict: PLANNING_AUDIT_CLEAN
+outcome: completed_diagnostic
+resultState: ACTIVE
+certifiedStatus: specs_hardened
+planningEvaluation: CERTIFIED
+deliveryEvaluation: NOT_EVALUATED
+sourceEditLockout: PASS
+applicableCheckClasses: [universal,mode-required,planning-maturity]
+notApplicableChecks: [Check-4-completion,Check-5-all-done,Check-8-file-existence,Check-11-execution-evidence]
+passedGateIds: [G073,G051,G068,G082,G083,G084,G128,G085,G086,G091,G087,G093,G088,G089,G092,G090,G094,G095,G097,G098,G099,G100,G130,G131,G001,G002,G006,G007,G008,G010,G011,G012,G014,G015,G016,G032]
+failedGateIds: []
+failedChecks: []
+blockingCode: none
+unresolvedFields: []
+contradictions: []
+contractRef: bubbles/workflows/modes.yaml#product-to-planning
+contractDigest: sha256:b3cb88eff3d0f9298932bc3b00c7f9ed9079ac5b7c074749656a18c6d80d3190
+evidenceRefs: [report.md#AUDIT_RESULT_V1,audit-result.txt,audit-result-AUD-013-001.txt,report.md#L30,uservalidation.md#L19,scopes/_index.md#L99,state.json#execution.audit]
+addressedFindings: [VALIDATE-A-audit-attempt-absent,VALIDATE-B-report-count-drift,VALIDATE-C-g073-transient-lockout,AUDIT-013-001-report-scenario-range,AUDIT-013-002-uservalidation-scenario-coverage]
+unresolvedFindings: []
+nextRequiredOwner: none
+supersedesAttemptId: AUD-013-001
+resumeFromPhase: none
+END AUDIT_RESULT_V1

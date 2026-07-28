@@ -1,0 +1,261 @@
+Audit attempt AUD-013-004 for specs/013-market-regime-stack-and-strategy-playbook
+Agent: bubbles.audit
+Audit profile: planning-maturity-v1 (re-resolved from the registry, not caller-selected)
+Recorded: 2026-07-28T19:21:25Z
+Supersedes: AUD-013-003, recorded 2026-07-28T18:39:39Z, now SUPERSEDED
+
+This file is the canonical ASCII transcript for the ACTIVE audit attempt recorded at
+state.json .execution.audit. The same AUDIT_RESULT_V1 block is embedded in report.md.
+Superseded transcripts were not destroyed. AUD-013-001 remains at
+audit-result-AUD-013-001.txt, AUD-013-002 at audit-result-AUD-013-002.txt, and
+AUD-013-003 was preserved byte-for-byte as audit-result-AUD-013-003.txt before this
+file was rewritten; the copy was verified identical by cmp and by sha256
+(59d1e39aba786174e7cd149e0a26b53973c4ca5fdee10c27f53af56cb6d04579). In report.md the
+AUD-013-003 machine block is retained above this one as the audit trail, with only its
+resultState field corrected from ACTIVE to SUPERSEDED so a reader cannot mistake it for
+the current record. Every other byte of that block is unchanged, including its finding
+lines, which are genuine historical evidence of what was true at revision 2fc9238f.
+
+BEGIN TRANSITION_GUARD_RESULT_V1
+schemaVersion: transition-guard-result/v1
+workflowMode: product-to-planning
+auditProfile: planning-maturity-v1
+targetStatus: specs_hardened
+contractDigest: sha256:b3cb88eff3d0f9298932bc3b00c7f9ed9079ac5b7c074749656a18c6d80d3190
+targetRevision: sha256:32b75c1e6d719cbd00e33069ee130e93a6c4da000017f52c7cbe6b7521095eaa
+applicableCheckClasses: [universal,mode-required,planning-maturity]
+notApplicableChecks: [Check-4-completion,Check-5-all-done,Check-8-file-existence,Check-11-execution-evidence]
+passedGateIds: [G073,G051,G068,G082,G083,G084,G128,G085,G086,G091,G087,G093,G088,G089,G092,G090,G094,G095,G097,G098,G099,G100,G130,G131,G001,G002,G006,G007,G008,G010,G011,G012,G014,G015,G016,G032]
+failedGateIds: []
+failedChecks: []
+blockingCode: none
+failureCount: 0
+exitStatus: 0
+verdict: PASS
+END TRANSITION_GUARD_RESULT_V1
+
+target: specs/013-market-regime-stack-and-strategy-playbook
+mode: product-to-planning
+audit class: planning-maturity
+ceiling: specs_hardened
+verdict: PLANNING_REWORK_REQUIRED
+
+PROVENANCE RE-RESOLVED, NOT ACCEPTED FROM THE CALLER
+
+transition-contract-resolver.sh was run twice, before and after the adjudication pass,
+and returned byte-identical values both times: workflowMode product-to-planning,
+auditProfile planning-maturity-v1, statusCeiling specs_hardened, targetStatus
+specs_hardened, currentStatus blocked, contractDigest b3cb88ef, targetRevision
+32b75c1e. state-transition-guard.sh independently reported the same mode, profile,
+target status, contract digest and target revision. The caller's declared
+targetRevision 32b75c1e and contractDigest b3cb88ef both matched what was observed,
+so the caller values were confirmed by agreement rather than copied on assertion.
+
+GUARD AND LINT, RE-RUN IN THIS SESSION
+
+state-transition-guard.sh exit 0, verdict PASS, failureCount 0, failedGateIds [],
+failedChecks [], blockingCode none, 36 gate ids in passedGateIds, and all 13 gates the
+resolver lists in requiredGates (G001 G002 G006 G007 G008 G010 G011 G012 G014 G015
+G016 G032 G073) present in passedGateIds. artifact-lint.sh exit 0, "Artifact lint
+PASSED". The four delivery-completion checks Check-4-completion, Check-5-all-done,
+Check-8-file-existence and Check-11-execution-evidence are rendered NOT_APPLICABLE for
+this profile and are never counted as a pass.
+
+The guard was run a second time after a concurrent workstream dirtied the tree at
+19:13:55Z (see the G073 note below) and returned the identical machine record, so this
+attempt is bound to a re-verified green rather than to a single stale sample.
+
+THE FOUR PRIOR FINDINGS, ADJUDICATED ON THE CURRENT ARTIFACTS
+
+AUDIT-013-003-testplan-parity-tp-14-06 CLOSED. Test Plan identifiers reconcile exactly:
+124 unique TP ids across the 14 scopes/NN-*/scope.md files, 124 unique TP ids in
+test-plan.json, empty symmetric difference in both directions, and test-plan.json
+totalTests 124. Per-scope declared testCount sums to 124 at 9/14/10/13/10/10/10/12
+/6/6/6/6/6/6. TP-14-06 is present in scope 14 scope.md and is a complete structured
+entry in test-plan.json SCOPE-14 (category e2e-ui, liveSystem true, file
+tests/market-regime-lab.spec.mjs, a concrete command and status planned), and it now
+carries an evidence slot at scopes/14-spec-hygiene-process-metadata/report.md line 31.
+SCOPE-14 testCount moved 5 to 6. The evidence-slot metric AUD-013-003 itself used, the
+union of anchors across the per-scope report.md files, moved 123 to 124 and is exact
+per scope for all 14 scopes.
+
+AUDIT-013-002-uservalidation-scenario-coverage CLOSED. uservalidation.md references 30
+distinct BS ids with empty symmetric difference against the 30 headings in spec.md, so
+0 missing and 0 extra. The header at line 19 now reads BS-013-001 ... BS-013-030 and
+entries for BS-013-025 through BS-013-030 are present, including BS-013-030 at line 50.
+
+AUDIT-013-001-report-scenario-range CLOSED ON REPORT.MD. report.md line 36 now reads
+"All 30 business scenarios BS-013-001 ... BS-013-030 are each owned by exactly one
+scope per scopes/_index.md". The underlying claim was verified independently rather
+than accepted: the ownership table in scopes/_index.md carries 30 rows, 30 distinct
+ids, each appearing exactly once, with 0 unowned and 0 doubly-owned. The current
+plan-owned region of report.md, lines 1 to 423, contains no residual 22, 24, 73, 88 or
+123 count token. The same defect class has however reappeared in a different file and
+is raised below as a new finding, not as a reopen of this one.
+
+VALIDATE-B-report-count-drift CLOSED. The current report.md Summary table lists all 14
+scopes at 9/14/10/13/10/10/10/12/6/6/6/6/6/6 with Total 124 and "0 of 124" recorded,
+which matches test-plan.json exactly. The Completion Statement asserts 0 of 124 Test
+Plan rows executed and 0 of 214 Definition of Done items checked; both were recounted
+independently at 214 total DoD items and 0 checked across the 14 scope files. Every
+surviving 24, 88 and 123 token in report.md sits inside a timestamped historical
+Validation Record (the 13:55:16Z record beginning at line 424 and the 07:05:42Z record
+beginning at line 544) or inside a preserved superseded AUDIT_RESULT_V1 block. Those
+are append-only audit-trail records; rewriting them to match today's counts would
+falsify the trail, so they are correctly left intact.
+
+NEW FINDING AUDIT-013-004-scope-index-census-drift
+
+The 8-scope to 14-scope and 24-scenario to 30-scenario expansion was swept through
+report.md and uservalidation.md but was not swept through scopes/_index.md, which
+state.json declares as scopeIndexArtifact. That file is current, plan-owned and
+authoritative; it is not a historical record and not a preserved transcript. It carries
+three stale census assertions:
+
+  line 4   "Scope layout: per-scope directory (scopes/NN-name/scope.md) - 8 scopes
+           exceed the single-file threshold." The packet has 14 scopes.
+
+  line 132 "Every business scenario BS-013-001 ... BS-013-024 is owned by exactly one
+           scope. There are no orphaned scenarios and no scenario is claimed by two
+           scopes." The ownership table immediately below it, lines 136 to 165, carries
+           30 rows spanning BS-013-001 to BS-013-030, so six owned scenarios fall
+           outside the range this sentence asserts coverage over.
+
+  line 167 "Coverage arithmetic: SCOPE-1 owns 4, SCOPE-2 owns 7, SCOPE-3 owns 1,
+           SCOPE-4 owns 6, SCOPE-5 owns 1, SCOPE-6 owns 2, SCOPE-7 owns 2, SCOPE-8
+           owns 1 - 24 of 24, each exactly once." The enumeration stops at SCOPE-8 and
+           totals 24, while the table shows 14 owning scopes and 30 scenarios, with
+           SCOPE-9 through SCOPE-14 each owning exactly 1.
+
+This is blocking for four reasons. First, it is the same defect class this audit
+lineage already ruled blocking twice, as AUDIT-013-001 on the report.md range sentence
+and as VALIDATE-B on the report.md count table; ruling it tolerable now purely because
+it sits in _index.md rather than report.md would be inconsistent. Second, it sits
+directly on a citation edge: report.md line 36 asserts 30 on the stated authority of
+scopes/_index.md while that file's own prose asserts 24, so the packet contradicts
+itself across the exact reference it relies on. Third, the sentences are census
+assertions of the form "every scenario is owned" and "24 of 24, each exactly once",
+which are false as scoped and would mislead a reader about the governed set. Fourth,
+the guard structurally cannot catch it: its ownership check parses the table, which is
+correct at 30 with 0 unowned and 0 doubly-owned, and does not read the surrounding
+prose. This is the concrete instance of the rule AUD-013-003 stated, that a green guard
+is not a clean packet.
+
+The sweep was carried across the rest of the packet to avoid trickling this finding
+across another cycle: the 14 scopes/NN-*/scope.md files and design.md carry no stale
+8-scope, 24-of-24, 88 or BS-013-024-range assertion, and spec.md, scenario-manifest.json
+and test-plan.json are consistent at 30 and 124. The drift is isolated to
+scopes/_index.md lines 4, 132 and 167.
+
+Owner: bubbles.plan. These three lines are plan-authored narrative in a plan-owned
+artifact.
+
+EXPLICIT RULING ON THE REPORT.MD ANCHOR QUESTION
+
+The question put to this audit was whether the top-level report.md carrying 88 unique
+TP anchors against 124 Test Plan rows is a planning-completeness finding. Ruled NOT a
+blocking finding, and recorded instead as a low-severity observation. The reasoning is
+recorded in full so the ruling can be challenged.
+
+The measurement was first disambiguated. The 88 figure is the top-level report.md only.
+The per-scope report.md files carry 124 unique anchors in union, and the count is exact
+per scope for all 14 scopes at 9/14/10/13/10/10/10/12/6/6/6/6/6/6, matching each
+scope's declared testCount. The 88 in the top-level file is precisely scopes 1 to 8
+(9+14+10+13+10+10+10+12), and the 36-row gap is exactly scopes 9 to 14 at 6 rows each.
+
+Four reasons the gap is not blocking. First, state.json declares scopeLayout
+per-scope-directory, which makes scopes/NN-*/report.md the evidence destination; that
+surface is complete at 124 of 124 and no Test Plan row is orphaned, so every row has a
+real addressable slot for an execution agent to fill. Second, this is the same
+measurement basis the superseded ACTIVE attempt used: AUD-013-003 reported 123
+report.md anchors and located the break as TP-14-06 having no evidence slot in scope 14
+report.md, which is the per-scope union; on its own stated basis that metric is now
+124 of 124, and re-opening it on a newly substituted top-level-only basis would be
+moving the goalposts mid-lineage. Third, no census statement in the top-level file is
+false: its Summary table, its scenario range and its Completion Statement are all
+correct at 124, 30, 214 and 14, and both places that describe the slots state the
+slot-to-row direction, that each slot present is keyed to exactly one Test Plan row,
+which holds for all 88; nothing in that file claims 124 slots exist in it. This is the
+material difference from the three closed drift findings, each of which asserted a
+false count. Fourth, no gate in this profile requires it: aggregate-file anchor
+coverage is not among the 13 required gates, artifact-lint passes, and guard Check 11
+iterates the per-scope report.md files and passed all 14. Fabrication risk is nil
+because 0 of 124 rows are executed, 0 of 214 DoD items are checked and the recorded
+status is blocked, so nothing is presented as done.
+
+The honest residue, recorded rather than waved away: the Test Evidence preamble at
+report.md line 47 says evidence is recorded per Test Plan row under the scope sections
+below, which is imprecise for the 36 rows in scopes 9 to 14 whose sections are absent
+from that file. It is the same incomplete-sweep signature as the blocking _index.md
+finding and is worth a one-line correction, but it misstates no count and blocks no
+execution agent. Severity low, follow-up owner bubbles.plan, follow-up action either
+extend the aggregate Test Evidence section to scopes 9 to 14 or narrow the preamble to
+say the per-scope report.md files hold the per-row slots.
+
+STATE RE-VERIFIED INDEPENDENTLY
+
+30 BS headings in spec.md contiguous 001 to 030, set-identical to the 30 scenarioId
+entries in scenario-manifest.json with empty symmetric difference and no duplicates.
+scopes/_index.md ownership table covers all 30 exactly once. 214 DoD items across the
+14 scope files with 0 checked, correct for planning maturity. All five planned
+deliverables absent from disk: rlregime.js, rlratio.js, ratio-pairs.json,
+market-regime-lab.html and regime-archetypes.json. state.json status blocked,
+certification.status blocked, certifiedAt null.
+
+G073 NOTE, RECORDED RATHER THAN GLOSSED
+
+The request asserted zero non-specs dirty working-tree entries. That was not true at
+audit time and the discrepancy is recorded rather than repeated. git status shows
+tests/distributed-briefs.static.integration.mjs modified, with mtime 19:13:55Z, which
+is after the 19:07:12Z guard run, and it is paired with a modification to
+specs/002-distributed-tool-briefs-and-history/report.md. It is the concurrent feature
+002 workstream, not this packet. The file is referenced nowhere in specs/013, so it is
+outside this packet's boundary, and it was not touched, reverted, stashed or committed.
+The guard was re-run after that edit and G073 remained in passedGateIds with exit 0, so
+the lockout is genuinely satisfied for this spec and sourceEditLockout is rendered PASS
+on re-verified evidence rather than on the caller's assertion.
+
+WHAT THIS ATTEMPT DID NOT DO
+
+No certification.* field, no top-level status, no certifiedAt, no scope status, no DoD
+checkbox, no execution.nextRequiredOwner and no source file were written. No test was
+run and no implementation file was created. No git commit or push was made. specs/002,
+specs/012, specs/014, specs/015, specs/016, tests/, scripts/ and .github/ were not
+modified. certifiedStatus is none because the planning verdict is a refusal;
+bubbles.validate remains the sole owner of certification state.
+
+BEGIN AUDIT_RESULT_V1
+schemaVersion: audit-result/v1
+runId: RUN-013-AUDIT-20260728T192125Z
+attemptId: AUD-013-004
+target: specs/013-market-regime-stack-and-strategy-playbook
+targetRevision: sha256:32b75c1e6d719cbd00e33069ee130e93a6c4da000017f52c7cbe6b7521095eaa
+workflowMode: product-to-planning
+modeClass: none
+auditClass: planning-maturity
+statusCeiling: specs_hardened
+requestedStatus: specs_hardened
+auditVerdict: PLANNING_REWORK_REQUIRED
+outcome: route_required
+resultState: ACTIVE
+certifiedStatus: none
+planningEvaluation: REWORK_REQUIRED
+deliveryEvaluation: NOT_EVALUATED
+sourceEditLockout: PASS
+applicableCheckClasses: [universal,mode-required,planning-maturity]
+notApplicableChecks: [Check-4-completion,Check-5-all-done,Check-8-file-existence,Check-11-execution-evidence]
+passedGateIds: [G073,G051,G068,G082,G083,G084,G128,G085,G086,G091,G087,G093,G088,G089,G092,G090,G094,G095,G097,G098,G099,G100,G130,G131,G001,G002,G006,G007,G008,G010,G011,G012,G014,G015,G016,G032]
+failedGateIds: []
+failedChecks: []
+blockingCode: PLANNING_GATE_FAILED
+unresolvedFields: []
+contradictions: [scopes/_index.md#L4_scope-count=8,scopes/_index.md#L132_scenario-range=001-024,scopes/_index.md#L167_coverage-arithmetic=24-of-24,scopes/_index.md_ownership-table=30,report.md#L36_scenario-range=001-030]
+contractRef: bubbles/workflows/modes.yaml#product-to-planning
+contractDigest: sha256:b3cb88eff3d0f9298932bc3b00c7f9ed9079ac5b7c074749656a18c6d80d3190
+evidenceRefs: [report.md#AUDIT_RESULT_V1,audit-result.txt,audit-result-AUD-013-003.txt,audit-result-AUD-013-002.txt,audit-result-AUD-013-001.txt,scopes/_index.md#L4,scopes/_index.md#L132,scopes/_index.md#L167,report.md#L36,uservalidation.md#L19,test-plan.json#SCOPE-14,scopes/14-spec-hygiene-process-metadata/report.md#L31,state.json#execution.audit]
+addressedFindings: [VALIDATE-A-audit-attempt-absent,VALIDATE-C-g073-transient-lockout,VALIDATE-B-report-count-drift,AUDIT-013-001-report-scenario-range,AUDIT-013-002-uservalidation-scenario-coverage,AUDIT-013-003-testplan-parity-tp-14-06]
+unresolvedFindings: [AUDIT-013-004-scope-index-census-drift]
+nextRequiredOwner: bubbles.plan
+supersedesAttemptId: AUD-013-003
+resumeFromPhase: none
+END AUDIT_RESULT_V1

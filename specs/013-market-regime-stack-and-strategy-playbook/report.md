@@ -13,7 +13,7 @@ Every evidence slot below is an empty placeholder keyed to exactly one Test Plan
 
 ## Summary
 
-Feature 013 ships the Market Regime Stack and Strategy Playbook across 8 scopes and 88 planned Test Plan rows.
+Feature 013 ships the Market Regime Stack and Strategy Playbook across 14 scopes and 124 planned Test Plan rows.
 
 | Scope | Name | Planned Test Plan rows | Evidence recorded |
 |---|---|---|---|
@@ -25,13 +25,19 @@ Feature 013 ships the Market Regime Stack and Strategy Playbook across 8 scopes 
 | SCOPE-6 | Consumer migration + compatibility projection | 10 | 0 of 10 |
 | SCOPE-7 | Headless DERIVED owner read | 10 | 0 of 10 |
 | SCOPE-8 | Regression + governance closure | 12 | 0 of 12 |
-| **Total** | | **88** | **0 of 88** |
+| SCOPE-9 | Contradiction comparand semantics | 6 | 0 of 6 |
+| SCOPE-10 | Independent evidence family coverage | 6 | 0 of 6 |
+| SCOPE-11 | Quadrant input sufficiency | 6 | 0 of 6 |
+| SCOPE-12 | Persistence vocabulary unification | 6 | 0 of 6 |
+| SCOPE-13 | Model provenance separation | 6 | 0 of 6 |
+| SCOPE-14 | Specification hygiene — process metadata removal | 6 | 0 of 6 |
+| **Total** | | **124** | **0 of 124** |
 
-All 24 business scenarios `BS-013-001` … `BS-013-024` are each owned by exactly one scope per `scopes/_index.md`. Scenario-to-scope binding and required test type are carried in `scenario-manifest.json`; the machine-readable mirror of every Test Plan row is carried in `test-plan.json`.
+All 30 business scenarios `BS-013-001` … `BS-013-030` are each owned by exactly one scope per `scopes/_index.md`. Scenario-to-scope binding and required test type are carried in `scenario-manifest.json`; the machine-readable mirror of every Test Plan row is carried in `test-plan.json`.
 
 ## Completion Statement
 
-Feature 013 is not complete and is not certified. This is a planning packet: planning artifacts exist, no implementation has been written, and 0 of the 88 Test Plan rows have been executed. Across the 8 scope files, 0 Definition of Done items are checked.
+Feature 013 is not complete and is not certified. This is a planning packet: planning artifacts exist, no implementation has been written, and 0 of the 124 Test Plan rows have been executed. Across the 14 scope files, 0 of 214 Definition of Done items are checked.
 
 The state recorded in `state.json` is `status: blocked`, `certification.status: blocked`, `certifiedAt: null`. Certification was refused by `bubbles.validate`; that refusal, its evidence, and its findings are recorded in the Validation Record section below.
 
@@ -751,7 +757,7 @@ statusCeiling: specs_hardened
 requestedStatus: specs_hardened
 auditVerdict: PLANNING_AUDIT_CLEAN
 outcome: completed_diagnostic
-resultState: ACTIVE
+resultState: SUPERSEDED
 certifiedStatus: specs_hardened
 planningEvaluation: CERTIFIED
 deliveryEvaluation: NOT_EVALUATED
@@ -771,5 +777,110 @@ addressedFindings: [VALIDATE-A-audit-attempt-absent,VALIDATE-B-report-count-drif
 unresolvedFindings: []
 nextRequiredOwner: none
 supersedesAttemptId: AUD-013-001
+resumeFromPhase: none
+END AUDIT_RESULT_V1
+BEGIN AUDIT_RESULT_V1
+schemaVersion: audit-result/v1
+runId: RUN-013-AUDIT-20260728T183939Z
+attemptId: AUD-013-003
+target: specs/013-market-regime-stack-and-strategy-playbook
+targetRevision: sha256:2fc9238fe4538dce19b423eb403e7fb231435a3f305214e051fcad1ec8ec66e8
+workflowMode: product-to-planning
+modeClass: none
+auditClass: planning-maturity
+statusCeiling: specs_hardened
+requestedStatus: specs_hardened
+auditVerdict: PLANNING_REWORK_REQUIRED
+outcome: route_required
+resultState: SUPERSEDED
+certifiedStatus: none
+planningEvaluation: REWORK_REQUIRED
+deliveryEvaluation: NOT_EVALUATED
+sourceEditLockout: PASS
+applicableCheckClasses: [universal,mode-required,planning-maturity]
+notApplicableChecks: [Check-4-completion,Check-5-all-done,Check-8-file-existence,Check-11-execution-evidence]
+passedGateIds: [G073,G051,G068,G082,G083,G084,G128,G085,G086,G091,G087,G093,G088,G089,G092,G090,G094,G095,G097,G098,G099,G100,G130,G131,G001,G002,G006,G007,G008,G010,G011,G012,G014,G015,G016,G032]
+failedGateIds: []
+failedChecks: []
+blockingCode: PLANNING_GATE_FAILED
+unresolvedFields: []
+contradictions: [report.md#L30_scenario-range=001-024,scopes/_index.md_scenario-range=001-030,uservalidation.md#L19_coverage=24-of-30,scopes/14-spec-hygiene-process-metadata/scope.md_testplan-rows=6,test-plan.json#SCOPE-14_testCount=5,test-plan.json_totalTests=123,scope.md_testplan-rows-total=124]
+contractRef: bubbles/workflows/modes.yaml#product-to-planning
+contractDigest: sha256:b3cb88eff3d0f9298932bc3b00c7f9ed9079ac5b7c074749656a18c6d80d3190
+evidenceRefs: [report.md#AUDIT_RESULT_V1,audit-result.txt,audit-result-AUD-013-002.txt,audit-result-AUD-013-001.txt,report.md#L30,uservalidation.md#L19,scopes/_index.md,scopes/14-spec-hygiene-process-metadata/scope.md#L58,test-plan.json#SCOPE-14,state.json#execution.audit]
+addressedFindings: [VALIDATE-A-audit-attempt-absent,VALIDATE-C-g073-transient-lockout]
+unresolvedFindings: [VALIDATE-B-report-count-drift,AUDIT-013-001-report-scenario-range,AUDIT-013-002-uservalidation-scenario-coverage,AUDIT-013-003-testplan-parity-tp-14-06]
+nextRequiredOwner: bubbles.plan
+supersedesAttemptId: AUD-013-002
+resumeFromPhase: none
+END AUDIT_RESULT_V1
+BEGIN AUDIT_RESULT_V1
+schemaVersion: audit-result/v1
+runId: RUN-013-AUDIT-20260728T192125Z
+attemptId: AUD-013-004
+target: specs/013-market-regime-stack-and-strategy-playbook
+targetRevision: sha256:32b75c1e6d719cbd00e33069ee130e93a6c4da000017f52c7cbe6b7521095eaa
+workflowMode: product-to-planning
+modeClass: none
+auditClass: planning-maturity
+statusCeiling: specs_hardened
+requestedStatus: specs_hardened
+auditVerdict: PLANNING_REWORK_REQUIRED
+outcome: route_required
+resultState: SUPERSEDED
+certifiedStatus: none
+planningEvaluation: REWORK_REQUIRED
+deliveryEvaluation: NOT_EVALUATED
+sourceEditLockout: PASS
+applicableCheckClasses: [universal,mode-required,planning-maturity]
+notApplicableChecks: [Check-4-completion,Check-5-all-done,Check-8-file-existence,Check-11-execution-evidence]
+passedGateIds: [G073,G051,G068,G082,G083,G084,G128,G085,G086,G091,G087,G093,G088,G089,G092,G090,G094,G095,G097,G098,G099,G100,G130,G131,G001,G002,G006,G007,G008,G010,G011,G012,G014,G015,G016,G032]
+failedGateIds: []
+failedChecks: []
+blockingCode: PLANNING_GATE_FAILED
+unresolvedFields: []
+contradictions: [scopes/_index.md#L4_scope-count=8,scopes/_index.md#L132_scenario-range=001-024,scopes/_index.md#L167_coverage-arithmetic=24-of-24,scopes/_index.md_ownership-table=30,report.md#L36_scenario-range=001-030]
+contractRef: bubbles/workflows/modes.yaml#product-to-planning
+contractDigest: sha256:b3cb88eff3d0f9298932bc3b00c7f9ed9079ac5b7c074749656a18c6d80d3190
+evidenceRefs: [report.md#AUDIT_RESULT_V1,audit-result.txt,audit-result-AUD-013-003.txt,audit-result-AUD-013-002.txt,audit-result-AUD-013-001.txt,scopes/_index.md#L4,scopes/_index.md#L132,scopes/_index.md#L167,report.md#L36,uservalidation.md#L19,test-plan.json#SCOPE-14,scopes/14-spec-hygiene-process-metadata/report.md#L31,state.json#execution.audit]
+addressedFindings: [VALIDATE-A-audit-attempt-absent,VALIDATE-C-g073-transient-lockout,VALIDATE-B-report-count-drift,AUDIT-013-001-report-scenario-range,AUDIT-013-002-uservalidation-scenario-coverage,AUDIT-013-003-testplan-parity-tp-14-06]
+unresolvedFindings: [AUDIT-013-004-scope-index-census-drift]
+nextRequiredOwner: bubbles.plan
+supersedesAttemptId: AUD-013-003
+resumeFromPhase: none
+END AUDIT_RESULT_V1
+BEGIN AUDIT_RESULT_V1
+schemaVersion: audit-result/v1
+runId: RUN-013-AUDIT-20260728T210104Z
+attemptId: AUD-013-005
+target: specs/013-market-regime-stack-and-strategy-playbook
+targetRevision: sha256:32b75c1e6d719cbd00e33069ee130e93a6c4da000017f52c7cbe6b7521095eaa
+workflowMode: product-to-planning
+modeClass: none
+auditClass: planning-maturity
+statusCeiling: specs_hardened
+requestedStatus: specs_hardened
+auditVerdict: PLANNING_AUDIT_CLEAN
+outcome: completed_diagnostic
+resultState: ACTIVE
+certifiedStatus: specs_hardened
+planningEvaluation: CERTIFIED
+deliveryEvaluation: NOT_EVALUATED
+sourceEditLockout: PASS
+applicableCheckClasses: [universal,mode-required,planning-maturity]
+notApplicableChecks: [Check-4-completion,Check-5-all-done,Check-8-file-existence,Check-11-execution-evidence]
+passedGateIds: [G073,G051,G068,G082,G083,G084,G128,G085,G086,G091,G087,G093,G088,G089,G092,G090,G094,G095,G097,G098,G099,G100,G130,G131,G001,G002,G006,G007,G008,G010,G011,G012,G014,G015,G016,G032]
+failedGateIds: []
+failedChecks: []
+blockingCode: none
+unresolvedFields: []
+contradictions: []
+contractRef: bubbles/workflows/modes.yaml#product-to-planning
+contractDigest: sha256:b3cb88eff3d0f9298932bc3b00c7f9ed9079ac5b7c074749656a18c6d80d3190
+evidenceRefs: [report.md#AUDIT_RESULT_V1,audit-result.txt,audit-result-AUD-013-004.txt,audit-result-AUD-013-003.txt,audit-result-AUD-013-002.txt,audit-result-AUD-013-001.txt,scopes/_index.md#L4,scopes/_index.md#L132,scopes/_index.md#L167,scopes/_index.md#L171,scopes/_index.md#L181,spec.md,scenario-manifest.json,test-plan.json,uservalidation.md,state.json#execution.audit]
+addressedFindings: [VALIDATE-A-audit-attempt-absent,VALIDATE-C-g073-transient-lockout,VALIDATE-B-report-count-drift,AUDIT-013-001-report-scenario-range,AUDIT-013-002-uservalidation-scenario-coverage,AUDIT-013-003-testplan-parity-tp-14-06,AUDIT-013-004-scope-index-census-drift]
+unresolvedFindings: []
+nextRequiredOwner: none
+supersedesAttemptId: AUD-013-004
 resumeFromPhase: none
 END AUDIT_RESULT_V1

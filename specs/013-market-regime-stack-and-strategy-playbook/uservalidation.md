@@ -16,7 +16,7 @@ Contracts: [spec.md](spec.md) | [design.md](design.md) | [scenario-manifest.json
 > proven. Execution proof lives in [report.md](report.md), one slot per Test Plan
 > row, and every slot is currently awaiting execution.
 
-## Checklist — Business Behaviors (BS-013-001 … BS-013-024)
+## Checklist — Business Behaviors (BS-013-001 … BS-013-030)
 
 - [x] Reading the tool with current facets available, I get one combined regime that names an archetype from the published list rather than a made-up name. (BS-013-001)
 - [x] When my facet combination is not on the published list, I see a fingerprint plus the literal `Mixed` or `Unresolved` with the unresolved facet pair named — never an invented archetype name. (BS-013-002)
@@ -42,6 +42,12 @@ Contracts: [spec.md](spec.md) | [design.md](design.md) | [scenario-manifest.json
 - [x] When required facets are missing, the owner read says unavailable or partial and names what is missing, instead of filling the gaps and showing me a confident verdict. (BS-013-022)
 - [x] A surface added to the registration surfaces without its hard-asserted count raised in the same change is refused with the count that did not move named, and a count raised above the entries actually present is refused the same way — no absent entry is inferred, defaulted, or backfilled to make the declared count add up. (BS-013-023)
 - [x] The protected scenario set re-runs as one set rather than scenario by scenario: closure is reported only when the whole set holds and the number of scenarios re-run is named, and one regression inside the set refuses closure and names the regressing scenario instead of reporting partial, provisional, or passing-with-exceptions. (BS-013-024)
+- [x] Two facets that differ in facet kind or in horizon are shown to me as a divergence naming the reason rather than as a contradiction; a contradiction is recorded only when subject, facet kind, horizon class, and as-of cutoff all match; and no surface tells me the headline reflects the structural lane. (BS-013-025)
+- [x] Two facets built on the same underlying input or mechanism collapse to one evidence family in my confirmation denominator, the ratio on screen names each counted family rather than each counted facet, and a read below the declared minimum coverage renders `Unresolved` with no "n of n" count shown. (BS-013-026)
+- [x] When the quadrant's only inputs are a Fear & Greed score and VIX, it renders as a sentiment/stress state — or `Unresolved` — and names those two inputs explicitly, instead of using a growth or inflation axis name its inputs cannot identify. (BS-013-027)
+- [x] Every persistence word I see, on any surface and in the published read, comes from one declared vocabulary; a value from any other word set is refused with the stated reason rather than silently mapped, aliased, or coerced into a member of it. (BS-013-028)
+- [x] A claim this tool computed is verified by showing its inputs, its lineage, its model version, and a recomputation that reproduces the stated value — never by two sources agreeing — while an externally-observed fact still needs two independent origins, and the two classes are labeled distinctly and kept structurally separate. (BS-013-029)
+- [x] The specification I read as the requirement surface carries no embedded agent result-envelope blocks and no stale "not yet written" claims about sections that exist in the same file; a run's process metadata lives in that run's execution artifact instead. (BS-013-030)
 
 ## Checklist — UI Scenario Matrix (UX-M-01 … UX-M-25)
 

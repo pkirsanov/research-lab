@@ -1,7 +1,7 @@
 # Scope Index — Market Regime Stack and Strategy Playbook
 
 **Feature:** `specs/013-market-regime-stack-and-strategy-playbook`
-**Scope layout:** per-scope directory (`scopes/NN-name/scope.md`) — 8 scopes exceed the single-file threshold.
+**Scope layout:** per-scope directory (`scopes/NN-name/scope.md`) — 14 scopes exceed the single-file threshold.
 **Authority:** every implementation file named in any scope is drawn from `design.md` → `## Implementation Boundary`. No scope names a path outside that boundary, and no scope names a protected surface.
 
 ---
@@ -129,7 +129,7 @@ flowchart TD
 
 ## Business Scenario Ownership Map
 
-Every business scenario `BS-013-001` … `BS-013-024` is owned by **exactly one** scope. There are no orphaned scenarios and no scenario is claimed by two scopes.
+Every business scenario `BS-013-001` … `BS-013-030` is owned by **exactly one** scope. There are no orphaned scenarios and no scenario is claimed by two scopes.
 
 | Scenario | Title | Owning scope |
 |---|---|---|
@@ -164,11 +164,11 @@ Every business scenario `BS-013-001` … `BS-013-024` is owned by **exactly one*
 | BS-013-029 | Model-derived claims are verified by recomputation, never by independent origins | SCOPE-13 |
 | BS-013-030 | The active specification carries no embedded process metadata | SCOPE-14 |
 
-**Coverage arithmetic:** SCOPE-1 owns 4, SCOPE-2 owns 7, SCOPE-3 owns 1, SCOPE-4 owns 6, SCOPE-5 owns 1, SCOPE-6 owns 2, SCOPE-7 owns 2, SCOPE-8 owns 1 — 24 of 24, each exactly once.
+**Coverage arithmetic:** SCOPE-1 owns 4, SCOPE-2 owns 7, SCOPE-3 owns 1, SCOPE-4 owns 6, SCOPE-5 owns 1, SCOPE-6 owns 2, SCOPE-7 owns 2, SCOPE-8 owns 1, SCOPE-9 owns 1, SCOPE-10 owns 1, SCOPE-11 owns 1, SCOPE-12 owns 1, SCOPE-13 owns 1, SCOPE-14 owns 1 — 30 of 30, each exactly once.
 
 **Amendment — review-finding scenarios BS-013-025 … BS-013-030.** The analyst review pass appended six scenarios to `spec.md` under `## Additional Business Scenarios — Review Findings`. Each is owned by exactly one of the six scopes added here, one scenario per scope: SCOPE-9 owns BS-013-025, SCOPE-10 owns BS-013-026, SCOPE-11 owns BS-013-027, SCOPE-12 owns BS-013-028, SCOPE-13 owns BS-013-029, and SCOPE-14 owns BS-013-030. Extending the arithmetic above, the feature now covers `BS-013-001` … `BS-013-030` — 30 of 30, each owned exactly once, with no orphaned scenario and no scenario claimed by two scopes.
 
-**Ownership note for SCOPE-5 and SCOPE-8.** These two scopes own zero business scenarios by design, and that is not an orphaning gap. SCOPE-5 delivers the FR-051 registry-count lockstep, which is a functional-requirement coupling across `tools.json`, `simple-models.json`, `journeys.json`, `index.html`, `rlnav.js`, and the hard-asserted counts — no business scenario describes registry arithmetic. SCOPE-8 is the whole-feature closure gate; it re-verifies scenarios already owned upstream rather than claiming ownership of any, because a second owner for an already-owned scenario would be a duplicate claim.
+**Ownership note for SCOPE-5 and SCOPE-8.** These two scopes each own exactly one business scenario, and in each case it is the scenario describing that scope's own refusal rather than one already owned upstream. SCOPE-5 owns BS-013-023, the FR-051 registry-count lockstep itself — a refusal coupling `tools.json`, `simple-models.json`, `journeys.json`, `index.html`, `rlnav.js`, and the hard-asserted counts, which no other scope is positioned to assert. SCOPE-8 owns BS-013-024, the closure-gate refusal; every other scenario SCOPE-8 exercises is re-verified under its upstream owner rather than re-claimed, because a second owner for an already-owned scenario would be a duplicate claim.
 
 ---
 
@@ -178,7 +178,7 @@ Every business scenario `BS-013-001` … `BS-013-024` is owned by **exactly one*
 
 - **SCOPE-1** (`foundation:true`) has no dependencies and ships the Tier 0.5 ratio primitive that the ratio-derived facet sources and the composer both consume.
 - **SCOPE-2** (`foundation:true`) depends only on SCOPE-1 and ships the Tier 2 sole composer plus the closed registry.
-- Every overlay scope — SCOPE-3, SCOPE-4, SCOPE-5, SCOPE-6, SCOPE-7 — reaches SCOPE-2 (and through it SCOPE-1) transitively via its `Depends On` chain. No overlay scope can start before both foundations are done.
+- Every overlay scope — SCOPE-3, SCOPE-4, SCOPE-5, SCOPE-6, SCOPE-7, SCOPE-9, SCOPE-10, SCOPE-11, SCOPE-12, SCOPE-13 — reaches SCOPE-2 (and through it SCOPE-1) transitively via its `Depends On` chain. No overlay scope can start before both foundations are done.
 
 **Amendment — the review-finding scopes.** The five overlay scopes added for the review findings hold the same ordering. SCOPE-9, SCOPE-10, and SCOPE-12 name SCOPE-2 directly, and SCOPE-10 also names SCOPE-1 because it generalizes the `RLRATIO.groupByFamily` primitive. SCOPE-11 and SCOPE-13 reach SCOPE-2 transitively through SCOPE-4, and SCOPE-13 also names SCOPE-2 directly because the recomputation evidence carries the composer version. SCOPE-14 is the one exception and takes no dependency: it is a specification-hygiene change that touches no runtime surface, no contract, and no consumer, so no foundation constrains it and it constrains nothing.
 

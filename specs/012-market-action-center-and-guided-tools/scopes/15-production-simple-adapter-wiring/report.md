@@ -7,11 +7,11 @@ Links: [scope.md](scope.md) | [spec.md](../../spec.md) | [design.md](../../desig
 Scope 15 (Production Simple-View Adapter Wiring, Model B) is **In Progress** and is
 **not** Done.
 
-The production bridge is delivered and proven, and **18 of the 22 ordinary tools are
-wired** — 17 module-backed tools in strict projection parity plus
+The production bridge is delivered and proven, and **19 of the 22 ordinary tools are
+wired** — 18 module-backed tools in strict projection parity plus
 `technical-analysis-decision-lab`, which is registry-gated `declaredUnavailable` and
 asserts the honest generic `MODULE_ABSENT_REASON` string via the integration test's
-discriminator. That 18th tool is an **intended outcome, not a gap**: its registry
+discriminator. That 19th tool is an **intended outcome, not a gap**: its registry
 `limitations` entry explicitly requires the adapter to return `unavailable` until an
 owner model exists (SCN-012-034 lock).
 
@@ -19,18 +19,34 @@ owner model exists (SCN-012-034 lock).
 `experience.kind` is `market-action-center`, not an ordinary Simple/Power tool — so it
 is not one of the 22.
 
-**Four ordinary tools remain unwired**, each recorded below with its verified reason.
-One is a deliberate architecture opt-out (`msft-july-print-model`); three were
-attempted and **cleanly reverted** (`volatility-sizing-lab`,
-`palm-springs-rental-market-lab`, `ocean-shores-rental-market-lab`). All four require an
-owner decision or a shared-code extraction that this scope may not perform unilaterally.
+**`volatility-sizing-lab` is now WIRED (commit `30326253`).** An earlier revision of
+this report recorded it as BLOCKED after an attempted wiring was cleanly reverted on a
+TP-15-02 strict projection-parity divergence. That divergence has since been
+root-caused and **fixed**: the provider was taking a **second wall-clock sample**, so
+the bridge and the explicit runtime path computed against two different instants and
+could never converge deterministically. The fix reads `asOf` and `decisionTime` back
+off the page's own displayed decision (`runtime.decision.asOf` /
+`runtime.decision.computedAt`) rather than sampling time again, making the provider
+single-sourced and deterministic. **No assertion was relaxed, no tolerance widened, and
+no parity check removed** — the tool now passes the identical strict parity assertion
+that previously failed it.
 
-Two Test-Plan ↔ implementation drifts (TP-15-03/TP-15-04 declared titles, TP-15-07
+**Three ordinary tools remain unwired**, each recorded below with its verified reason.
+One is a deliberate architecture opt-out (`msft-july-print-model`); two —
+`palm-springs-rental-market-lab` and `ocean-shores-rental-market-lab` — are a
+**deliberate product decision**: the owner published `purchasePriceUsd: null` /
+`state: "unavailable"` because the underlying research found insufficient data, and the
+GitHub Pages deploy gate asserts that absence, so wiring them would mean fabricating the
+economic layer the owner intentionally withheld.
+
+Three Test-Plan ↔ implementation drifts (TP-15-03/TP-15-04 declared titles, TP-15-07
 bridge canaries) remain **routed to `bubbles.plan`** and are deliberately not resolved
-here. A third drift — a stale Implementation Files allowlist — is newly recorded under
-[Change-Boundary Check](#change-boundary-check-all-12-commits), and a fourth — TP-15-05's
+here. A third drift — a stale Implementation Files allowlist — is recorded under
+[Change-Boundary Check](#change-boundary-check-all-12-commits); a fourth — TP-15-05's
 declared title being absent while the nearest existing BUG-003 test uses `page.route`
-interception — is newly recorded as [D4](#d4--tp-15-05s-declared-title-does-not-exist-and-the-nearest-test-is-mocked).
+interception — is recorded as [D4](#d4--tp-15-05s-declared-title-does-not-exist-and-the-nearest-test-is-mocked);
+and a fifth — TP-15-06's declared title being absent even though its behaviour is now
+proven — is newly recorded as [D5](#d5--tp-15-06s-declared-title-does-not-exist-behaviour-proven-title-absent).
 
 No completion of the scope, and no completion of Feature 012, is claimed.
 
@@ -44,13 +60,212 @@ gap analysis, rendering contract, the full 23-tool owner-state-source mapping, a
 the test strategy are in
 [design-addendum-production-simple-wiring.md](../../design-addendum-production-simple-wiring.md).
 
-## Final Verification Run — 2026-07-28, HEAD `fed8f9ab`
+## Final Verification Run — 2026-07-28, HEAD `30326253`
 
 **Claim Source:** executed (2026-07-28, this session). Every command below was
-re-executed from a clean tree; nothing in this section is carried over from an earlier
-run. At capture time `git status --porcelain -- specs/012-market-action-center-and-guided-tools`
-was empty, and the repo-wide tree was clean outside the unrelated concurrent
-`specs/002|013|014` work.
+re-executed by this agent at HEAD `30326253` from a tree with **no modifications to any
+scope-15 artifact or product file** (`git status --short` showed only the unrelated
+concurrent `specs/002` modification and the untracked `specs/014|015|016` folders owned
+by other sessions). Nothing in this section is carried over from an earlier run. This
+section **supersedes** the HEAD `fed8f9ab` run retained further below.
+
+### Command 0 — repository binding preflight
+
+```text
+$ bash .github/bubbles/scripts/repo-binding-preflight.sh \
+    --repo-root /home/redacted/research-lab --agent-source research-lab
+[repo-binding-preflight] OK — agent source 'research-lab' matches target repo 'research-lab'.
+PREFLIGHT_EXIT=0
+```
+
+### Command 1 — TP-15-02 integration (19 wired, 18 of 19 strict parity)
+
+```text
+$ node --test tests/simple-production-bridge.integration.mjs
+[TP-15-02] wired (19): market-heatmap-lab, options-flow-feed-lab, intraday-tape-lab, swing-structure-lab, options-structure-lab, gamma-trading-lab, sector-research-lab, global-rotation-lab, real-assets-lab, bond-regime-lab, ai-capex-strategy-lab, company-fundamentals-lab, etf-momentum-lab, strategy-self-improvement-lab, strategy-validation-lab, smart-money-flow-lab, waterfront-polo-lab, volatility-sizing-lab, technical-analysis-decision-lab
+[TP-15-02] not wired (4): market-brief, msft-july-print-model, palm-springs-rental-market-lab, ocean-shores-rental-market-lab
+[TP-15-02] strict parity (module loaded by the page): 18 of 19
+[TP-15-02] honest generic unavailable (module deliberately absent, SCN-012-034 lock): technical-analysis-decision-lab
+✔ TP-15-02 the wired-tool set is derived from the production registry + the production pages (never a hard-coded list) (49.125262ms)
+✔ TP-15-02 registry-derived loop: each wired tool prepares through the REAL runtime and paints the REAL panel (917.186397ms)
+✔ TP-15-02 owner parity: every wired tool's Simple facts EQUAL the owner/Power-path values (879.434727ms)
+✔ TP-15-02 the production bridge reaches the SAME projection as the explicit runtime path for every module-backed wired tool (and the honest generic unavailable where the module is deliberately absent) (1272.626227ms)
+✔ TP-15-02 honest unavailable: a wired tool whose provider yields NO owner state degrades truthfully (no invented signal) (48.949663ms)
+✔ TP-15-02 honest unavailable: owner evidence that does not permit a run degrades truthfully rather than inventing a read (30.057777ms)
+ℹ tests 6
+ℹ suites 0
+ℹ pass 6
+ℹ fail 0
+ℹ cancelled 0
+ℹ skipped 0
+ℹ todo 0
+ℹ duration_ms 3317.921861
+EXIT=0
+```
+
+`volatility-sizing-lab` now appears in the **wired (19)** list and inside the
+**18 of 19** strict-parity set — the same strict assertion that previously forced the
+revert.
+
+### Command 2 — TP-15-01 unit
+
+```text
+$ node --test tests/simple-production-bridge.unit.mjs
+✔ renderSimpleBridge is exposed on the production API (3.890697ms)
+✔ provider present + real owner state → renders the REAL market-breadth adapter (ready), never mutates rlv-focused (26.70638ms)
+✔ no owner-state provider → honest unavailable, no invented signal, never mutates rlv-focused (4.717597ms)
+✔ owner evidence does not permit a run (unhydrated) → honest unavailable, never mutates rlv-focused (9.977392ms)
+✔ missing adapter module → honest unavailable (no crash), never mutates rlv-focused (3.673298ms)
+ℹ tests 5
+ℹ suites 0
+ℹ pass 5
+ℹ fail 0
+ℹ cancelled 0
+ℹ skipped 0
+ℹ todo 0
+ℹ duration_ms 139.900595
+EXIT=0
+```
+
+### Command 3 — TP-15-07 broad selftest
+
+**Provenance note (honest labelling).** `node scripts/selftest.mjs` was executed with
+**no pipe, filter, `head`, or `tail`**. The run emits roughly one line per assertion
+across 952 assertions (~1124 lines), which exceeds this agent's inline result budget, so
+the harness itself spilled the stdout to a capture file. The block below is a
+**verbatim contiguous excerpt of the end of that captured stdout**, including the
+summary banner and the exit code — not a summary and not a reconstruction.
+
+```text
+$ node scripts/selftest.mjs
+Feature 012 Scope 12 Dynamic Red Alert discovery/qualification/projection
+  ✓ SCN-012-023 a dynamically corroborated, market-confirmed, high-severity candidate qualifies with every falsifiable field and an admission score (never a probability/confidence/crash-odds field), publication Feature-002 gated
+  ✓ SCN-012-024 a single-origin dramatic candidate consumes no visible slot, is a safe insufficient-corroboration count, and never echoes its dramatic title
+  ✓ SCN-012-025 a no-candidate window renders an honest empty state with cutoff/channels/owner coverage and no illustrative topic
+
+================================================
+Research-Lab self-test: 952 passed, 0 failed
+================================================
+EXIT=0
+```
+
+### Command 4 — TP-15-06 volatility-sizing spec (standalone, system-chrome)
+
+```text
+$ npx --no-install playwright test tests/volatility-sizing-lab.spec.mjs \
+    --config=playwright.config.mjs --project=system-chrome --reporter=list --workers=1
+
+Running 16 tests using 1 worker
+
+  ✓   1 …entile always renders its trailing window and observation count (484ms)
+  ✓   2 …ssion BS-005: no directional element appears in Simple or Power (495ms)
+  ✓   3 …ression BS-007: backtest is a deep-link with no in-tool verdict (343ms)
+  ✓   4 …S-008: managed-suppressed history is marked, not calm/full-size (471ms)
+  ✓   5 …n BS-009: insufficient history is unavailable with exact counts (476ms)
+  ✓   6 …Regression BS-010: Simple and Power share one decision identity (396ms)
+  ✓   7 …BS-004: near-zero forecast vol floors the multiplier at the cap (289ms)
+  ✓   8 …on BS-006: GARCH fit is labeled a lightweight optimizer not MLE (743ms)
+  ✓   9 …ression BS-011: non-convergent GARCH falls back to labeled EWMA (465ms)
+  ✓  10 …S-013: realized is never relabeled a forecast in the owner read (311ms)
+  ✓  11 …longer history is caveated and reproduces no multi-decade claim (445ms)
+  ✓  12 …ers synchronous non-blank canvases with text and table fallback (408ms)
+  ✓  13 …Controls recompute one decision without any market-data request (666ms)
+  ✓  14 …ases carry aria-label and same-data table on desktop and mobile (624ms)
+  ✓  15 …es one owner read and Market Brief renders it without recompute (501ms)
+  ✓  16 …e THROUGH the shared rlnav registration, not just by direct URL (858ms)
+
+  16 passed (9.7s)
+EXIT=0
+```
+
+The `--reporter=list` middle-truncates long titles, so the full titles were also
+enumerated to prove exactly which behaviours the 16 green tests carry:
+
+```text
+$ npx --no-install playwright test tests/volatility-sizing-lab.spec.mjs \
+    --config=playwright.config.mjs --project=system-chrome --list
+Listing tests:
+  [system-chrome] › tests/volatility-sizing-lab.spec.mjs:171:1 › Regression BS-009: insufficient history is unavailable with exact counts
+  [system-chrome] › tests/volatility-sizing-lab.spec.mjs:206:1 › Regression BS-010: Simple and Power share one decision identity
+  [system-chrome] › tests/volatility-sizing-lab.spec.mjs:275:1 › Cache-first partial paint renders synchronous non-blank canvases with text and table fallback
+  [system-chrome] › tests/volatility-sizing-lab.spec.mjs:291:1 › Controls recompute one decision without any market-data request
+  [system-chrome] › tests/volatility-sizing-lab.spec.mjs:310:1 › Power canvases carry aria-label and same-data table on desktop and mobile
+  [system-chrome] › tests/volatility-sizing-lab.spec.mjs:325:1 › Registered Volatility Sizing tool publishes one owner read and Market Brief renders it without recompute
+  [system-chrome] › tests/volatility-sizing-lab.spec.mjs:351:1 › TP-02-04: the volatility tool is reachable THROUGH the shared rlnav registration, not just by direct URL
+Total: 16 tests in 1 file
+EXIT=0
+```
+
+**No test in this file carries TP-15-06's declared persistent title.** See
+[D5](#d5--tp-15-06s-declared-title-does-not-exist-behaviour-proven-title-absent).
+
+### Command 5 — Simple-adapter + production-wiring + wired-tool regression (8 specs, system-chrome)
+
+```text
+$ npx --no-install playwright test tests/simple-production-wiring.spec.mjs \
+    tests/simple-models.spec.mjs tests/simple-model-adapters-market.spec.mjs \
+    tests/simple-model-adapters-macro-fundamental.spec.mjs \
+    tests/simple-model-adapters-strategy-property.spec.mjs \
+    tests/volatility-sizing-lab.spec.mjs tests/bond-regime-lab.spec.mjs \
+    tests/company-fundamentals-lab.spec.mjs \
+    --config=playwright.config.mjs --project=system-chrome --reporter=list --workers=1
+  ✓   92 …egression BS-010: Simple and Power share one decision identity (492ms)
+  ✓   93 …S-004: near-zero forecast vol floors the multiplier at the cap (415ms)
+  ✓   94 …n BS-006: GARCH fit is labeled a lightweight optimizer not MLE (717ms)
+  ✓   95 …ession BS-011: non-convergent GARCH falls back to labeled EWMA (582ms)
+  ✓   96 …-013: realized is never relabeled a forecast in the owner read (502ms)
+  ✓   97 …onger history is caveated and reproduces no multi-decade claim (861ms)
+  ✓   98 …rs synchronous non-blank canvases with text and table fallback (814ms)
+  ✓   99 …Controls recompute one decision without any market-data request (1.0s)
+  ✓  100 …ses carry aria-label and same-data table on desktop and mobile (960ms)
+  ✓  101 …s one owner read and Market Brief renders it without recompute (767ms)
+  ✓  102 …e THROUGH the shared rlnav registration, not just by direct URL (1.1s)
+
+  102 passed (1.7m)
+EXIT=0
+```
+
+This single run covers the 5 Simple-adapter/wiring specs **and** all three
+shell-reconciled wired-tool specs (`volatility-sizing-lab`, `bond-regime-lab`,
+`company-fundamentals-lab`) together, proving the wiring did not regress any of them.
+
+### Command 6 — GitHub Pages deploy gate (palm-springs rental, system-chrome)
+
+```text
+$ npx --no-install playwright test tests/palm-springs-rental-market-lab.spec.mjs \
+    --config=playwright.config.mjs --project=system-chrome --reporter=list
+
+Running 29 tests using 1 worker
+
+  ✓  17 …acquisition baselines disclose sample status and legal unknowns (396ms)
+[SCN-005-027] luxurySamples=2
+[SCN-005-027] status=active-ask
+[SCN-005-027] sampleStates=sparse,unclean
+[SCN-005-027] filtersDedupRangePeriod=visible
+[SCN-005-027] legalUnknowns=visible
+[SCN-005-027] rights=public-summary
+[SCN-005-027] baseline=unavailable
+[SCN-005-027] purchasePriceUsd=UNAVAILABLE
+  ✓  27 …4 Ocean Shores coastal inputs change nights costs and cash flow (735ms)
+  ✓  28 …05-025 Palm Springs luxury keeps legal and operating boundaries (474ms)
+  ✓  29 …n cockpit — model + sliders in Simple, deep-dive lives in Power (516ms)
+
+  29 passed (27.8s)
+EXIT=0
+```
+
+The emitted `[SCN-005-027] purchasePriceUsd=UNAVAILABLE` and
+`[SCN-005-027] baseline=unavailable` lines are the deploy gate **asserting the owner's
+deliberate data absence** — the decisive reason the two rental tools are not wired.
+
+---
+
+## Superseded Verification Run — 2026-07-28, HEAD `fed8f9ab`
+
+**Retained for audit; superseded by the HEAD `30326253` run above.** Every command
+below was genuinely executed at HEAD `fed8f9ab`, before `volatility-sizing-lab` was
+wired. Its `18 wired / 17-of-18 parity` figures are the true figures **for that commit**
+and are no longer the current state.
 
 ### Command 1 — TP-15-02 integration
 
@@ -194,20 +409,20 @@ source, or test file.
 | `44afd71b` | 2026-07-28 | `company-fundamentals` wired + its spec reconciled to the shell |
 | `fed8f9ab` | 2026-07-28 | `bond-regime` wired + its spec reconciled to the shell (HEAD) |
 
-### Coverage: 18 of 22 ordinary tools wired, 17 in strict projection parity
+### Coverage: 19 of 22 ordinary tools wired, 18 in strict projection parity
 
 TP-15-02 derives the wired set from the production registry **and** the production
 pages (never a hard-coded list), so this count cannot drift from reality. Its run log
-from the re-run above:
+from the HEAD `30326253` re-run above:
 
 ```text
-[TP-15-02] wired (18): market-heatmap-lab, options-flow-feed-lab, intraday-tape-lab, swing-structure-lab, options-structure-lab, gamma-trading-lab, sector-research-lab, global-rotation-lab, real-assets-lab, bond-regime-lab, ai-capex-strategy-lab, company-fundamentals-lab, etf-momentum-lab, strategy-self-improvement-lab, strategy-validation-lab, smart-money-flow-lab, waterfront-polo-lab, technical-analysis-decision-lab
-[TP-15-02] not wired (5): market-brief, msft-july-print-model, volatility-sizing-lab, palm-springs-rental-market-lab, ocean-shores-rental-market-lab
-[TP-15-02] strict parity (module loaded by the page): 17 of 18
+[TP-15-02] wired (19): market-heatmap-lab, options-flow-feed-lab, intraday-tape-lab, swing-structure-lab, options-structure-lab, gamma-trading-lab, sector-research-lab, global-rotation-lab, real-assets-lab, bond-regime-lab, ai-capex-strategy-lab, company-fundamentals-lab, etf-momentum-lab, strategy-self-improvement-lab, strategy-validation-lab, smart-money-flow-lab, waterfront-polo-lab, volatility-sizing-lab, technical-analysis-decision-lab
+[TP-15-02] not wired (4): market-brief, msft-july-print-model, palm-springs-rental-market-lab, ocean-shores-rental-market-lab
+[TP-15-02] strict parity (module loaded by the page): 18 of 19
 [TP-15-02] honest generic unavailable (module deliberately absent, SCN-012-034 lock): technical-analysis-decision-lab
 ```
 
-Independently confirmed against the pages themselves — exactly 18 pages register the
+Independently confirmed against the pages themselves — exactly 19 pages register the
 provider seam:
 
 ```text
@@ -229,8 +444,9 @@ strategy-self-improvement-lab.html
 strategy-validation-lab.html
 swing-structure-lab.html
 technical-analysis-decision-lab.html
+volatility-sizing-lab.html
 waterfront-polo-lab.html
-  -- count: 18
+  -- count: 19
 ```
 
 Registry totals for the same run:
@@ -247,7 +463,7 @@ market-action-center` (brief-only) and is excluded from ordinary Simple wiring *
 design** — its `ownerModes` stays `["brief"]`. It is therefore not one of the 22
 ordinary tools and not a remaining item.
 
-### The 18th wired tool is an intended outcome, not a gap
+### The 19th wired tool is an intended outcome, not a gap
 
 `technical-analysis-decision-lab` is **registry-gated**. `registryDeclaresUnavailable()`
 in the integration test reads the definition's `limitations` array; the tool's entry
@@ -356,10 +572,11 @@ Note: this is a **manual static scan performed this session**, not an automated
 canary. No automated forbidden-authority / `ownerModes` canary for the bridge exists
 in `scripts/selftest.mjs` yet (see TP-15-07 below).
 
-### The 4 remaining ordinary tools — each with its verified reason
+### The 3 remaining ordinary tools — each with its verified reason
 
-None of these is done, and none is claimed as done. Each is an **outcome with a
-recorded cause**, not an omission. `market-brief` is listed first for completeness even
+None of these is wired, and none is claimed as wired. Each is an **outcome with a
+recorded cause**, not an omission — and for the two rental tools the cause is a
+**deliberate product decision**. `market-brief` is listed first for completeness even
 though it is excluded by design and is not one of the 22.
 
 #### 0. `market-brief` — BY DESIGN (not an ordinary tool; not one of the 22)
@@ -385,50 +602,104 @@ $ python3 -c "…market-brief entry from tools.json…"
 
 This is an exclusion, not a remaining item.
 
-#### 1. `volatility-sizing-lab` — BLOCKED (attempted, cleanly reverted)
+#### RESOLVED — `volatility-sizing-lab` is no longer a remaining tool (commit `30326253`)
 
-Two independent problems.
+**This entry previously read "BLOCKED (attempted, cleanly reverted)". That is obsolete.**
+Both problems recorded there have been fixed, and the fix was a genuine defect
+correction — not a relaxed assertion.
 
-**(a) Structural — verified at HEAD this session.** Its declared `adapterModule` is not
-loaded by the page; the page loads only `rlvol.js`, so wiring additionally requires
-adding the module `<script>`:
+**(a) Structural — fixed.** The page now loads its declared `adapterModule` after
+`rlvol.js`, which is the wiring contract for this page:
 
 ```text
-$ python3 -c "…declared adapterModule vs what the page loads…"
-  volatility-sizing-lab: declared adapterModule=rlexperience-adapters/market-structure.js | page loads it = False
-
 $ grep -n 'rlexperience-adapters/\|rlvol.js' volatility-sizing-lab.html
 652:    <script src="rlvol.js"></script>
+659:         rlvol.js (RLVOL.buildVolDecisionRead), loaded above, which the shared production bridge
+661:         rlvol.js BEFORE this module is therefore the wiring contract for this page: without that
+663:    <script src="rlexperience-adapters/market-structure.js"></script>
+949:               rlexperience-adapters/market-structure.js — loaded above). Registered while this inline
+
+$ grep -n '__rlOwnerStateProvider' volatility-sizing-lab.html
+947:               globalThis.__rlOwnerStateProvider["volatility-sizing-lab"] and hands the result to the
+991:            globalThis.__rlOwnerStateProvider = globalThis.__rlOwnerStateProvider || {};
+992:            globalThis.__rlOwnerStateProvider["volatility-sizing-lab"] = volatilityOwnerState;
 ```
 
-**(b) Parity — the reverted attempt.** The wiring was implemented and then **reverted
-on purpose**. It reached 19-wired but **failed TP-15-02 strict projection parity** —
-`volatility-sizing-lab: bridge state matches the explicit runtime path` (actual !=
-expected) — plus three unreconcilable spec failures in
-`tests/volatility-sizing-lab.spec.mjs`:
+**(b) Parity — root-caused and fixed, not worked around.** The earlier revision recorded
+the cause as "the owner state is live-data dependent, so the bridge and the explicit
+runtime path do not converge deterministically". That diagnosis was **incomplete**. The
+real cause was narrower and fixable: **the provider took a SECOND wall-clock sample**.
+The bridge and the explicit runtime path therefore ran against two different instants,
+so `volatility-sizing-lab: bridge state matches the explicit runtime path` could never
+converge — not because the data was live, but because the provider re-sampled time.
 
-- **BS-008** — `[data-regime-managed]` hidden
-- **BS-009** — Playwright strict-mode violation: `[data-degraded="INSUFFICIENT_HISTORY"]`
-  resolved to 2 elements
-- **TP-02-04** — `#simpleView` not visible
+The fix makes the provider **single-sourced and deterministic**: `asOf` and
+`decisionTime` are read back off the page's own currently-displayed decision instead of
+being sampled again. The page stays the owner and no formula is recomputed in the
+provider:
 
-**Root cause to record:** this tool's owner state is **live-data dependent**, so the
-production bridge and the explicit runtime path **do not converge deterministically**.
-The attempt was reverted to keep the tree green rather than relax the parity assertion
-— weakening TP-15-02's strict-parity check to accommodate one tool would degrade the
-guarantee for the other 17.
+```text
+$ sed -n '985,995p' volatility-sizing-lab.html
+            function volatilityOwnerState() {
+                var decision = runtime.decision;
+                if (!runtime.config || !runtime.policy || !runtime.bars || !decision) return null;
+                var asset = assetById(runtime.controls.asset);
+                if (!asset) return null;
+                return {
+                    asOf: decision.asOf,
+                    decisionTime: decision.computedAt,
+```
 
-**Claim Source for (b): the reverted in-session attempt — NOT re-verifiable at HEAD,
-because the change was reverted.** What *is* verifiable at HEAD this session is that
-the revert is clean: the tool is absent from the `[TP-15-02] wired (18)` line, present
-in `not wired (5)`, and `git status --porcelain` outside `specs/002|013|014` is empty.
+The page's own inline contract documents the single-sourcing explicitly:
 
-The design addendum already classifies this tool's provider extraction as an **open**
-implementation item (`design-addendum-production-simple-wiring.md:221`, "owner-parity /
-provider extraction is an OPEN implementation item — 4 tools") and lists six native
-`#simpleView` assertion sites needing relocation (`:258` → `:74,:75,:80,:95,:161,:281`).
+```text
+  • asOf        -> runtime.decision.asOf, the evidence cutoff RLVOL itself stamped on
+                   the decision this page is currently displaying — never a wall clock.
+  • decisionTime-> runtime.decision.computedAt, the SAME instant this page's own
+                   buildInput() passed to RLVOL for the displayed decision, read back
+                   off that decision rather than sampled again here, so the adapter
+                   runs on the page's decision instant and not a second, later one.
+```
 
-#### 2. `msft-july-print-model` — NOT APPLICABLE (deliberate shared-shell opt-out)
+**No assertion was relaxed.** TP-15-02's strict-parity check is unchanged and the tool
+now passes it — `volatility-sizing-lab` appears in `[TP-15-02] wired (19)` and inside
+the `18 of 19` strict-parity set (Command 1 above). The three previously-failing spec
+assertions (BS-008, BS-009, TP-02-04) were reconciled to the Model B shell by binding
+each original assertion to an explicit **native** root and adding an **additional**
+adapter-agreement assertion, rather than dodged with `.first()`. The full spec is green:
+
+```text
+$ npx --no-install playwright test tests/volatility-sizing-lab.spec.mjs \
+    --config=playwright.config.mjs --project=system-chrome --reporter=list --workers=1
+  16 passed (9.7s)
+EXIT=0
+```
+
+The commit records the same root cause independently:
+
+```text
+$ git show --stat --format='%H%n%s' 30326253
+30326253af551d198c95ead352f1301f95944539
+feat(012/scope-15): wire volatility-sizing + reconcile its specs to the shell
+
+Root cause of the earlier TP-15-02 parity divergence (which had forced a
+revert): the provider took a SECOND wall-clock sample, so the bridge and the
+explicit runtime path could never converge deterministically. Fixed by reading
+asOf/decisionTime back off the page's own displayed decision, making the
+provider single-sourced and deterministic rather than time-dependent.
+
+ tests/simple-model-adapters-market.spec.mjs    |  11 +-
+ tests/simple-production-bridge.integration.mjs | 151 ++++++++++++++++++++++++-
+ tests/volatility-sizing-lab.spec.mjs           | 111 +++++++++++++++++-
+ volatility-sizing-lab.html                     |  56 +++++++++
+ 4 files changed, 320 insertions(+), 9 deletions(-)
+```
+
+Note the changed-file list: **no `rlexperience-adapters/*` module was edited**, so the
+Formula-ownership rule holds — the provider is a pure passthrough of values the page
+already holds.
+
+#### 1. `msft-july-print-model` — NOT APPLICABLE (deliberate shared-shell opt-out)
 
 The page carries an **unconditional** `<meta name="rlviews" content="off">` plus a
 guard script that sets `window.__rlviewsInit = 1`. `rlapp.js` gates the shared-shell
@@ -455,27 +726,93 @@ Its adapter e2e already encodes this via the `shellOptOut` descriptor
 (`tests/simple-model-adapters-macro-fundamental.spec.mjs:373`, honored at `:405`,
 `:433`, `:516`, `:543`).
 
-#### 3 & 4. `palm-springs-rental-market-lab` and `ocean-shores-rental-market-lab` — BLOCKED (attempted, cleanly reverted)
+#### 2 & 3. `palm-springs-rental-market-lab` and `ocean-shores-rental-market-lab` — DECLINED BY PRODUCT DECISION (not merely an engineering blocker)
 
-**Claim Source: executed (2026-07-28, this session).** Unlike the other 18, **neither
-page loads a per-tool adapter module at all** — the owner computation lives in the
-**shared `RLRENTAL` engine** (`rlrental.js`):
+**Claim Source: executed (2026-07-28, this session, HEAD `30326253`).** An earlier
+revision of this entry recorded only the shared-`RLRENTAL`-engine obstacle. That reason
+was **incomplete**. Investigation since then found a **deeper, decisive** reason, and it
+is about data the owner deliberately withheld — not about engineering difficulty.
+
+**REASON 1 (DECISIVE) — the owner deliberately published no purchase price, and the
+Pages deploy gate asserts that absence.**
+
+The owner's published payloads carry `"purchasePriceUsd": null` with
+`"state": "unavailable"` for these places, and they record *why* verbatim: the
+underlying research found insufficient data to support an eligible short-term-rental
+acquisition baseline.
 
 ```text
-$ python3 -c "…declared adapterModule vs what the page loads…"
-  palm-springs-rental-market-lab: declared adapterModule=rlexperience-adapters/property-research.js | page loads it = False
-  ocean-shores-rental-market-lab: declared adapterModule=rlexperience-adapters/property-research.js | page loads it = False
+$ grep -rn '"purchasePriceUsd": null' *.payload.json
+palm-springs-rental-market.payload.json:1605:                "purchasePriceUsd": null,
+palm-springs-rental-market.payload.json:2899:                "purchasePriceUsd": null,
+ocean-shores-rental-market.payload.json:1859:                "purchasePriceUsd": null,
+ocean-shores-rental-market.payload.json:3674:                "purchasePriceUsd": null,
+
+$ sed -n '1595,1612p' palm-springs-rental-market.payload.json
+                "limitations": [
+                    "Aggregate all-home median only; no price range or member set.",
+                    "Cannot yield an eligible STR purchase baseline."
+                ]
+            },
+            "acquisitionBaseline": {
+                "baselineId": "baseline:palm-springs-ca:whole-market:acquisition",
+                "pairKey": "palm-springs-ca::whole-market",
+                "state": "unavailable",
+                "sampleId": "sample:palm-springs-ca:whole-market:acquisition",
+                "purchasePriceUsd": null,
+                "statistic": "median",
+                "sampleN": 492,
+```
+
+`tests/palm-springs-rental-market-lab.spec.mjs` — which is simultaneously the **GitHub
+Pages deploy gate** — **asserts that absence directly**:
+
+```text
+$ grep -n "purchasePriceUsd\|baseline" tests/palm-springs-rental-market-lab.spec.mjs
+530:    expect(receiptField(luxuryLine, 'baseline')).toBe('unavailable');
+531:    expect(receiptField(luxuryLine, 'purchasePriceUsd')).toBe('UNAVAILABLE');
+578:    expect(receiptField(luxuryLine, 'baseline')).toBe('UNAVAILABLE');
+582:    for (const input of ['baseOccupancy', 'baseAdrUsd', 'purchasePriceUsd', 'variableOperatingExpenseRatio', 'annualFixedRiskCostUsd']) {
+```
+
+and the gate emitted exactly those receipts when executed this session (Command 6):
+
+```text
+[SCN-005-027] baseline=unavailable
+[SCN-005-027] purchasePriceUsd=UNAVAILABLE
+  29 passed (27.8s)
+EXIT=0
+```
+
+**Consequence:** wiring an owner-state provider that produced a `ready` acquisition
+projection for these tools would require **fabricating the exact economic layer the
+owner intentionally withheld**, and would break the deploy gate that exists to protect
+that intent. Declining to wire them is **honoring a published product decision**, not
+deferring work. This is why these two tools may never move to "wired" as literally
+worded, and why SCN-012-039's "every ordinary tool wired" END-state clause is routed to
+`bubbles.plan` for a wording decision.
+
+**REASON 2 (SECONDARY) — no per-tool adapter module on the page.**
+
+Independently of the data question, neither page loads a per-tool adapter module — the
+owner computation lives in the **shared `RLRENTAL` engine** (`rlrental.js`):
+
+```text
+$ for f in palm-springs-rental-market-lab.html ocean-shores-rental-market-lab.html; do \
+    echo -n "  $f rlexperience-adapters => "; grep -c 'rlexperience-adapters' "$f"; done
+  palm-springs-rental-market-lab.html rlexperience-adapters => 0
+  ocean-shores-rental-market-lab.html rlexperience-adapters => 0
 
 $ grep -n 'rlexperience-adapters/\|rlrental' palm-springs-rental-market-lab.html ocean-shores-rental-market-lab.html
 palm-springs-rental-market-lab.html:886:    <script src="rlrental.js"></script>
 ocean-shores-rental-market-lab.html:877:    <script src="rlrental.js"></script>
 ```
 
-Wiring therefore requires a named provider **EXTRACTION from shared code**. That could
-not be done without either **editing the shared `RLRENTAL` engine** or **duplicating a
-formula** into the page/provider — **both forbidden** by this scope's Formula-ownership
-rule ("no formula is copied into `rlexperience.js`, JSON, another adapter, or a test
-helper"). The attempt was therefore reverted.
+Wiring would therefore also require a named provider **EXTRACTION from shared code**,
+which could not be done without either **editing the shared `RLRENTAL` engine** or
+**duplicating a formula** into the page/provider — **both forbidden** by this scope's
+Formula-ownership rule. This reason alone would make the work expensive; **reason 1
+makes it wrong**.
 
 ```text
 $ grep -n 'OPEN implementation item' specs/.../design-addendum-production-simple-wiring.md
@@ -484,9 +821,8 @@ $ grep -n 'OPEN implementation item' specs/.../design-addendum-production-simple
 227:| 21 | `ocean-shores-rental-market-lab` | … | shared rental engine `RLRENTAL.mountRoute`. Same as palm-springs. |
 ```
 
-**Additional risk to note:** `tests/palm-springs-rental-market-lab.spec.mjs` (29 tests)
-is the **GitHub Pages deploy gate**, so a regression here breaks deployment, not just
-CI. That makes this the highest-risk of the four:
+**Deploy-risk note:** `tests/palm-springs-rental-market-lab.spec.mjs` (29 tests) is the
+GitHub Pages deploy gate, so a regression here breaks deployment, not just CI:
 
 ```text
 $ grep -rn 'playwright test' .github/workflows/pages.yml
@@ -505,9 +841,9 @@ Prose annotation only; no DoD item is created or altered here.
 | 1. RED contract tests first | **Complete** — `tests/simple-production-bridge.unit.mjs` and `tests/simple-production-wiring.spec.mjs` landed in `f216be0d` |
 | 2. Shell bridge + provider-gated `ownerModes` | **Complete** — `rlexperience.js` + `rlapp.js` in `f216be0d`; `market-brief` confirmed unchanged (still absent from the wired set, `ownerModes` stays `["brief"]`) |
 | 3. Proven single-tool end-to-end (`market-heatmap-lab`) | **Complete** — `f216be0d`, greened in `ab1d4879` |
-| 4. Remaining delegating tools in adapter-module batches | **Partially complete** — 17 of the 18 delegating tools wired across `9a713001`…`fed8f9ab`; only `msft-july-print-model` outstanding (deliberate shell opt-out, reason 2 above) |
-| 5. Reconcile the 8 `#simpleView` tools + BUG-003 regression | **Partially complete** — 6 of the 8 `#simpleView` pages are wired (`bond-regime`, `etf-momentum`, `gamma-trading`, `intraday-tape`, `sector-research`, `swing-structure`), and `bond-regime`'s spec was reconciled to the shell in `fed8f9ab`. The 2 unwired `#simpleView` pages (`msft-july-print-model`, `volatility-sizing-lab`) are blocked per reasons 1-2; `tests/volatility-sizing-lab.spec.mjs` and `tests/msft-july-market-refresh.spec.mjs` remain unmodified. **No BUG-003 closure is claimed in this report** — see TP-15-05 |
-| 6. Handle the 4 non-delegating tools | **Partially complete** — `technical-analysis-decision-lab` done (intentional registry-gated honest-`unavailable`, `ab1d4879`); the three provider extractions (`volatility-sizing`, `palm-springs`, `ocean-shores`) attempted and reverted (reasons 1, 3, 4) |
+| 4. Remaining delegating tools in adapter-module batches | **Partially complete** — 18 of the 19 delegating tools wired across `9a713001`…`30326253`; only `msft-july-print-model` outstanding (deliberate shell opt-out, reason 1 above) |
+| 5. Reconcile the 8 `#simpleView` tools + BUG-003 regression | **Partially complete** — 7 of the 8 `#simpleView` pages are wired (`bond-regime`, `etf-momentum`, `gamma-trading`, `intraday-tape`, `sector-research`, `swing-structure`, `volatility-sizing`); `bond-regime`'s spec was reconciled to the shell in `fed8f9ab` and `volatility-sizing`'s in `30326253`. The 1 unwired `#simpleView` page (`msft-july-print-model`) is blocked on the owner opt-out decision; `tests/msft-july-market-refresh.spec.mjs` remains unmodified. **No BUG-003 closure is claimed in this report** — see TP-15-05 |
+| 6. Handle the 4 non-delegating tools | **Partially complete** — `technical-analysis-decision-lab` done (intentional registry-gated honest-`unavailable`, `ab1d4879`); `volatility-sizing` **RESOLVED and wired** in `30326253` (provider re-sampled wall-clock time → fixed by single-sourcing `asOf`/`decisionTime` off the displayed decision); `palm-springs` + `ocean-shores` **declined by product decision** (owner published `purchasePriceUsd: null`; the Pages gate asserts that absence) |
 | 7. `scripts/selftest.mjs` bridge canaries | **Outstanding** — the broad suite is 0-fail (952 passed), but no bridge canary exists (`grep` for `renderSimpleBridge` / `ownerModes` / `installSimpleProjectionBridge` in `scripts/selftest.mjs` returns nothing) |
 
 ## Known Drift — Routed to `bubbles.plan` (NOT resolved here)
@@ -770,14 +1106,49 @@ The DoD item therefore remains `- [ ]`. **No BUG-003 closure is claimed.**
 
 ### TP-15-06
 
-**Claim Source:** not-run at HEAD — attempted in-session and deliberately reverted.
-**Result:** NOT SATISFIED.
+**Command:** `npx --no-install playwright test tests/volatility-sizing-lab.spec.mjs
+--config=playwright.config.mjs --project=system-chrome --reporter=list --workers=1`
+**Claim Source:** executed (2026-07-28, this session, HEAD `30326253`)
+**Result:** 16 passed / 0 failed, exit 0 — the **behaviour** this row describes is now
+proven; the **declared persistent title** still does not exist, so the DoD row stays
+open. Full raw output under
+[Command 4](#command-4--tp-15-06-volatility-sizing-spec-standalone-system-chrome).
 
-See "The 4 remaining ordinary tools → 1. `volatility-sizing-lab`" above for the full
-record: the TP-15-02 strict projection-parity failure (`volatility-sizing-lab: bridge
-state matches the explicit runtime path`), the three unreconcilable spec failures
-(BS-008, BS-009, TP-02-04), and the live-data-dependency root cause. The tool is
-unwired at HEAD and the revert is clean. The DoD item remains `- [ ]`.
+**Supersedes the prior entry.** An earlier revision of this section read "not-run at
+HEAD — attempted in-session and deliberately reverted … The tool is unwired at HEAD".
+That is **obsolete and false at HEAD `30326253`** — see
+[RESOLVED — `volatility-sizing-lab`](#resolved--volatility-sizing-lab-is-no-longer-a-remaining-tool-commit-30326253).
+
+**Both halves of the row's stated behaviour are proven by green, interception-free
+live-stack tests** inside the 16/16 run:
+
+| Row clause | Proving test | Assertions |
+|---|---|---|
+| native Simple moved to Power | `TP-02-04: the volatility tool is reachable THROUGH the shared rlnav registration, not just by direct URL` (`:351`) | `#simpleView` is only `toBeAttached()` (deliberately off screen) while `[data-rlexperience-panel="simple"]` is `toBeVisible()`; after driving the shell to Power, `#powerView` and `#assetSelect` are `toBeVisible()` |
+| Simple shows the panel / an honest unavailable | `Regression BS-009: insufficient history is unavailable with exact counts` (`:171`) | `[data-rlexperience-panel="simple"]` carries `data-rlexperience-adapter` equal to the **registry-resolved** adapter id (read from `simple-models.json`, never hard-coded), reports `data-rlexperience-simple-state="unavailable"`, and is `toBeVisible()` |
+
+The spec is genuinely live-stack — the only interception match is the comment that
+*states* the constraint:
+
+```text
+$ grep -nE 'page\.route|context\.route|intercept\(|cy\.intercept|msw|nock|wiremock' tests/volatility-sizing-lab.spec.mjs
+9: * page.route / route.fulfill / route.abort / response interception anywhere in this file.
+(1 match — inside the comment block that STATES the constraint; zero executable interception)
+```
+
+**Why the DoD row nevertheless remains `- [ ]` (drift D5).** The persistent title this
+Test Plan row declares does not exist anywhere in `tests/`:
+
+```text
+$ grep -rn 'Regression: volatility-sizing native Simple moves to Power' tests/
+(exit 1 — declared title NOT FOUND)
+```
+
+This is the **same disqualifier already applied to TP-15-03 and TP-15-04 (D1) and
+TP-15-05 (D4)**. Closing this row against a title that does not exist would be
+fabrication, and making an exception for it purely because its underlying behaviour
+improved would apply a weaker standard to this row than to its three siblings. Recorded
+as **D5** and routed to `bubbles.plan`. The DoD item remains `- [ ]`.
 
 ### TP-15-07
 
@@ -808,27 +1179,37 @@ The DoD item therefore remains `- [ ]`.
 
 ## Status
 
-- **Status:** In Progress (scope); `blocked` recorded in `state.json` — the four
-  remaining tools are genuine architecture/operator decisions, not pending agent work
-- **Phase:** implement (increments committed and pushed; HEAD `fed8f9ab`)
-- **Coverage:** **18 of 22 ordinary tools wired** — 17 module-backed in strict
+- **Status:** In Progress (scope) — 10 of 14 DoD items remain open, so `Done` would be
+  fabrication; the remaining work is *mixed* (part agent-actionable in-allowlist, part
+  owner/product decisions and drifts routed to `bubbles.plan`), so `Blocked` would also
+  be inaccurate
+- **Phase:** implement (increments committed and pushed; HEAD `30326253`)
+- **Coverage:** **19 of 22 ordinary tools wired** — 18 module-backed in strict
   projection parity + `technical-analysis-decision-lab` as the intended registry-gated
   honest `unavailable`
-- **Remaining (4 ordinary tools):**
+- **Newly resolved this cycle:** `volatility-sizing-lab` — the earlier revert was
+  caused by the provider taking a **second wall-clock sample**; fixed by reading
+  `asOf`/`decisionTime` back off the page's own displayed decision, making the provider
+  single-sourced and deterministic. No assertion relaxed; the tool passes the identical
+  strict-parity check that previously failed it (`30326253`)
+- **Remaining (3 ordinary tools):**
   - `msft-july-print-model` — NOT APPLICABLE: deliberate shared-shell opt-out
     (`window.__rlviewsInit = 1`); the bridge never runs
-  - `volatility-sizing-lab` — BLOCKED: strict projection-parity divergence from a
-    live-data-dependent owner state; attempted and cleanly reverted
-  - `palm-springs-rental-market-lab`, `ocean-shores-rental-market-lab` — BLOCKED:
-    require a named provider extraction from the shared `RLRENTAL` engine, which cannot
-    be done without editing shared code or duplicating a formula (both forbidden);
-    attempted and cleanly reverted. `palm-springs` is the GitHub Pages deploy gate
+  - `palm-springs-rental-market-lab`, `ocean-shores-rental-market-lab` — **DECLINED BY
+    PRODUCT DECISION**: the owner deliberately published `purchasePriceUsd: null` /
+    `state: "unavailable"` because the research found insufficient data, and the
+    GitHub Pages deploy gate **asserts that absence**, so wiring them would mean
+    fabricating the economic layer the owner intentionally withheld. Secondarily,
+    neither page loads a per-tool adapter module and the owner computation lives in the
+    shared `RLRENTAL` engine, so extraction would also require editing shared code or
+    duplicating a formula (both forbidden)
 - **Excluded by design:** `market-brief` (`experience.kind = market-action-center`)
 - **Open drift routed to `bubbles.plan`:** D1 (TP-15-03/TP-15-04 titles), D2 (TP-15-07
   canaries), D3 (stale Implementation Files allowlist), D4 (TP-15-05 title absent +
-  nearest BUG-003 test is mocked)
-- **Evidence:** TP-15-01, TP-15-02, TP-15-03, TP-15-05 and TP-15-07 executed this
-  session (all exit 0); TP-15-04 not implemented; TP-15-06 reverted. Only **TP-15-02**
-  is closed as a DoD item — **4 of 14 DoD items checked, 10 open**
+  nearest BUG-003 test is mocked), D5 (TP-15-06 title absent although its behaviour is
+  now proven)
+- **Evidence:** TP-15-01, TP-15-02, TP-15-03, TP-15-05, TP-15-06 and TP-15-07 executed
+  this session at HEAD `30326253` (all exit 0); TP-15-04 not implemented. Only
+  **TP-15-02** is closed as a DoD item — **4 of 14 DoD items checked, 10 open**
 
 

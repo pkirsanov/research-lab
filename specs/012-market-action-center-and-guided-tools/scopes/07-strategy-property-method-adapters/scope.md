@@ -4,7 +4,7 @@
 
 Planning authority: [spec.md](../../spec.md), [design.md](../../design.md), and the [scope index](../_index.md). Execution evidence belongs in [report.md](report.md).
 
-**Status:** In Progress
+**Status:** Done
 
 **Scope-Kind:** runtime-behavior
 
@@ -148,7 +148,7 @@ Write same-seed/new-seed/common-randomness and per-tool parameter-effect tests b
 #### Core Delivery Items
 
 - [x] All remaining ordinary adapters and the in-Brief Center triage model execute actual owner logic with visible effects, distinct Simple questions, truthful evidence, and no formula copy/default/generic fallback. → Evidence: [report.md#independent-verification-bubblestest] (unit 38/38, single-source audit, forbidden-authority 0, capConfidence RED-bite)
-- [x] SCN-012-002 proves deterministic seed identity and separates common-random parameter sensitivity from path randomness. → Evidence: [report.md#scenario-scn-012-002] (unit-proven; E2E row TP-07-03 is in the F-07-E2E-01 routed gap)
+- [x] SCN-012-002 proves deterministic seed identity and separates common-random parameter sensitivity from path randomness. → Evidence: [report.md#scenario-scn-012-002] (unit-proven AND E2E-proven; F-07-E2E-01 is CLOSED — live system-Chrome row TP-07-03 exit 0, see the TP-07-03 evidence item below)
 - [x] The production validator accounts for all 22 ordinary Simple adapters plus the Center in-view model; unresolved owners block release. → Evidence: [report.md#tp-07-10] (F-07-VALIDATOR-01 CLOSED — `--require-simple-adapters` before NO-OP registeredAdapters=0 → after simpleAdapterRegistry=PASS ordinaryAdapters=22 centerAdapters=1 registeredAdapters=23 exit 0; genuine-bite: property-research omitted → 3 unresolved, exit 1)
 - [x] Scope 05/06 fingerprints, current owner behavior, local ledgers/data, and legacy Market Brief provenance remain unchanged. → Evidence: [report.md#independent-verification-bubblestest] (protected-paths zero-diff, TP-05-02/TP-06-02 green, validate-brief-payload PASS, selftest 934/0)
 

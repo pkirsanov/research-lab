@@ -4,7 +4,7 @@
 
 Planning authority: [spec.md](../../spec.md), [design.md](../../design.md), and the [scope index](../_index.md). Execution evidence belongs in [report.md](report.md).
 
-**Status:** In Progress
+**Status:** Done
 
 **Scope-Kind:** runtime-behavior
 

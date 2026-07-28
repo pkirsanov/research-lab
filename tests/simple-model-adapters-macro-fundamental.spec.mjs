@@ -268,7 +268,18 @@ const TOOLS = {
     moduleFile: 'rlexperience-adapters/macro-rotation.js',
     owner: () => countryOwnerFixture(),
     changes: () => [['fx-weight', 0.5], ['local-close-max-age', 6]],
-    adapterId: 'simple-adapter/country-rotation/v1'
+    adapterId: 'simple-adapter/country-rotation/v1',
+    // Wired into its production page (global-rotation-lab.html registers a real owner-state provider,
+    // __rlOwnerStateProvider['global-rotation-lab'], consumed by the production Simple bridge in
+    // rlexperience.js) AND that provider returns a real owner snapshot under this harness: it reads
+    // countryRows(), which the page hydrates from the same-origin shared bars cache, so it does NOT
+    // hit its documented `if (!priced) return null` honest-absence path. The bridge therefore paints
+    // the REAL country-rotation adapter into the Simple panel BEFORE this test drives anything,
+    // making the pre-drive shell state 'ready'. That is STRONGER than the old unwired 'unavailable'
+    // premise: it proves the production bridge rendered the real adapter in the real owner-mode
+    // Simple flow. OBSERVED, not assumed: with no flag this spec asserted 'unavailable' and the real
+    // page returned 'ready'.
+    wiredInProduction: true
   },
   'real-assets-lab': {
     title: 'Regression: real assets Simple controls recompute the selected owner driver model',

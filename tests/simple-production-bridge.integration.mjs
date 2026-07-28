@@ -498,6 +498,92 @@ function sectorOwnerState() {
   };
 }
 
+/* The observed trailing percentage change of a close series over N sessions. This is an OBSERVATION
+   REDUCTION of two real closes on one series — the same class as the sector fixture's aligned
+   close/benchmark ratio — and it supplies an owner INPUT only. Every owner RESULT below still comes
+   from the module. */
+function observedTrailingPct(rows, sessions) {
+  if (!Array.isArray(rows) || rows.length < sessions + 1) return null;
+  const last = rows[rows.length - 1];
+  const first = rows[rows.length - 1 - sessions];
+  if (!last || !first || !Number.isFinite(last.c) || !Number.isFinite(first.c) || first.c <= 0) return null;
+  return (last.c / first.c - 1) * 100;
+}
+
+/* The horizons the country-rotation contract itself declares, one per owner-state field
+   (rel21 / rel63 / rel126). Contract-derived, never an invented sampling choice. */
+const COUNTRY_HORIZONS = [21, 63, 126];
+
+/* country-rotation owner state — the SAME shape global-rotation-lab.html's provider publishes
+   (contractVersion + benchmark + per-country {id, label, rel21, rel63, rel126, fxScore, vol,
+   drawdown, trendScore, rows}).
+   PRODUCTION-DERIVED, NEVER A HAND-TYPED LIST. The country rows, their tickers/labels and the
+   benchmark all come from the page's OWN universe file (global-rotation-universe.json — the exact
+   file the page's loadUniverse() fetches), and every close series is the REAL same-origin daily
+   snapshot the page hydrates through RLDATA (data/bars/<SYM>.json).
+   The relative-momentum triple is the owner INPUT the page's buildModelRows() assembles — a
+   benchmark-relative trailing observation of two observed close series over the contract's OWN
+   declared horizons — never an owner RESULT: the horizon weighting and 8/14/22 scaling, the FX and
+   volatility and diversification blend, the 0..100 score mapping, the queue ordering and the
+   freshness classification all stay inside the module, and every value asserted below still comes
+   from computeCountryRotationSummary. The per-country close series is handed over verbatim so the
+   diversification term runs on the MODULE's OWN exported globalPairCorrelation.
+   HONEST ABSENCE, stated plainly: fxScore, vol, drawdown and trendScore are page-owned reductions
+   (globalFxConfirm / globalAnnualVol / globalMaxDrawdown / globalTrendState) with NO module
+   producer, so reproducing them here would copy an owner formula — they are left absent rather than
+   invented, exactly as the sector fixture leaves x3 and riskScore absent. localCloseAgeHours is
+   absent because NO producer exists anywhere: the page carries only indicative prose sessions and a
+   US-listed ETF bar date, which its own caveat states is not a synchronized local-market
+   observation. The module tolerates all five by contract — a missing FX or volatility term is simply
+   not applied, and a missing local-close age is reported as honestly "unavailable" freshness rather
+   than defaulted fresh — and none of them is required for the numeric asserted below, which comes
+   from the module's own queue. */
+function countryOwnerState() {
+  const universe = readJson('global-rotation-universe.json');
+  const benchmark = String(universe.defaultBenchmark || '');
+  assert.ok(benchmark, 'the production global-rotation universe must declare a default benchmark');
+  const benchmarkRows = realDailyRows(benchmark).filter((row) => Number.isFinite(row.c) && row.c > 0);
+  assert.ok(benchmarkRows.length > COUNTRY_HORIZONS[COUNTRY_HORIZONS.length - 1],
+    `${benchmark}: the real benchmark snapshot must cover the longest declared horizon`);
+  const entries = (universe.entries || []).filter((entry) => entry.kind === 'country' && entry.ticker
+    && existsSync(new URL(`data/bars/${entry.ticker}.json`, ROOT)));
+  assert.ok(entries.length >= 3, 'at least three real country snapshots are required for a country owner state');
+
+  let lastObserved = 0;
+  const countries = [];
+  for (const entry of entries) {
+    const rows = realDailyRows(entry.ticker)
+      .filter((row) => Number.isFinite(row.t) && Number.isFinite(row.c) && row.c > 0)
+      .map((row) => ({ t: row.t, c: row.c }));
+    assert.ok(rows.length > COUNTRY_HORIZONS[COUNTRY_HORIZONS.length - 1],
+      `${entry.ticker}: the real snapshot must cover the longest declared horizon`);
+    if (rows[rows.length - 1].t > lastObserved) lastObserved = rows[rows.length - 1].t;
+    const country = {
+      id: entry.ticker,
+      label: entry.country,
+      fxScore: null,
+      vol: null,
+      drawdown: null,
+      trendScore: null,
+      rows
+    };
+    for (const horizon of COUNTRY_HORIZONS) {
+      const own = observedTrailingPct(rows, horizon);
+      const control = observedTrailingPct(benchmarkRows, horizon);
+      country[`rel${horizon}`] = (Number.isFinite(own) && Number.isFinite(control)) ? own - control : null;
+    }
+    countries.push(country);
+  }
+  return {
+    contractVersion: 'country-rotation-owner-state/v1',
+    toolId: 'global-rotation-lab',
+    asOf: new Date(lastObserved).toISOString(),
+    source: 'same-origin daily snapshot (data/bars)',
+    benchmark,
+    countries
+  };
+}
+
 /* Owner-state builders keyed by the REGISTRY adapter id. A wired tool with no entry FAILS LOUD. */
 const OWNER_STATES = {
   'simple-adapter/market-breadth/v1': breadthOwnerState,
@@ -507,7 +593,8 @@ const OWNER_STATES = {
   'simple-adapter/options-anomaly/v1': anomalyOwnerState,
   'simple-adapter/options-surface/v1': surfaceOwnerState,
   'simple-adapter/dealer-gamma-playbook/v1': gammaOwnerState,
-  'simple-adapter/sector-rotation-transition/v1': sectorOwnerState
+  'simple-adapter/sector-rotation-transition/v1': sectorOwnerState,
+  'simple-adapter/country-rotation/v1': countryOwnerState
 };
 
 /* ═══════════════════════ owner-parity extractors (the Power-path single source) ═══════════════════════
@@ -611,6 +698,19 @@ const OWNER_PARITY = {
          two the owner confirms appears verbatim in the Simple summary line, so a Simple read that
          named a different sector than the owner transition fails here. */
       summaryContains: [into, out].filter(Boolean)
+    };
+  },
+  'simple-adapter/country-rotation/v1': (moduleObject, ownerState, parameterValues) => {
+    const summary = moduleObject.computeCountryRotationSummary(frozenClone(ownerState), parameterValues);
+    const leader = summary.queue.length ? summary.queue[0] : null;
+    return {
+      ownerFunction: 'computeCountryRotationSummary',
+      numericValue: leader ? leader.score : null,
+      valueText: leader ? `Rotate toward ${leader.id}` : 'No confirmed country rotation',
+      /* The owner-computed queue leader and the benchmark it was priced against, taken straight off
+         the summary object. A Simple read that named a different country — or claimed a benchmark
+         the owner did not price against — fails here. */
+      summaryContains: leader ? [leader.id, summary.benchmark] : []
     };
   }
 };

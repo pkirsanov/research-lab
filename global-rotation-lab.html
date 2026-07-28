@@ -1402,6 +1402,81 @@
             function countryRows() { return modelRows.filter(function (row) { return row.entry.kind === "country"; }); }
             function scoredCountries() { return countryRows().filter(function (row) { return Number.isFinite(row.score); }); }
 
+            /* ══════════════════ Scope 15 production Simple seam (country-rotation) ══════════════════
+               The owner-state provider the shared Simple bridge (rlexperience.js) reads for this page.
+               It PUBLISHES the country facts buildModelRows() has ALREADY computed for the Power
+               leaderboard — it recomputes nothing and copies no formula:
+
+                 • rel21 / rel63 / rel126 -> row.rel21 / row.rel63 / row.rel126, the verbatim
+                                             benchmark-relative trailing returns relativeReturn()
+                                             produced against the CURRENTLY SELECTED benchmark, in
+                                             percentage points (the exact unit the module's
+                                             countryHorizonMomentum scales by 8 / 14 / 22),
+                 • fxScore                -> row.fx.score, the page's own globalFxConfirm confirmation
+                                             score already clamped to [-1,1],
+                 • vol                    -> row.vol, the page's own globalAnnualVol annualized
+                                             realized volatility as a FRACTION (the unit the module's
+                                             countryVolComponent reads via (vol - 0.10) / 0.30),
+                 • drawdown               -> row.drawdown, globalMaxDrawdown as a FRACTION,
+                 • trendScore             -> row.trend.score, globalTrendState's own [-1,1] score,
+                 • rows                   -> the same cleaned daily {t,c} bars the page priced from,
+                                             projected to the two fields the contract documents. The
+                                             module runs its OWN exported globalPairCorrelation over
+                                             them for diversification — the very function this page
+                                             already delegates its inline correlation to, so both
+                                             views share ONE correlation source,
+                 • benchmark              -> state.benchmark, the control this page actually priced
+                                             every relative against (never a benchmark it did not use),
+                 • asOf / source          -> the latest observed daily bar behind those rows and the
+                                             shared-cache provenance tag from RLDATA.barInfo.
+
+               HONEST ABSENCE, never fabricated or zero-filled: localCloseAgeHours is NOT published,
+               because this page computes NO local-close clock. entry.session is indicative PROSE
+               ("Asia/Seoul · KRX closes 15:30 local") and row.asOf is the US-listed ETF daily bar —
+               which this page's own caveat states is NOT a synchronized local-market observation. So
+               there is no faithful local-close age to publish, and inventing one from a prose string
+               or relabelling the US bar age as a local-close age would fabricate a signal. The module
+               tolerates the absence by contract: computeCountryRotationSummary reports every country's
+               freshness state as "unavailable" rather than defaulting it fresh. Per-country rel / FX /
+               volatility / trend facts are likewise published as null whenever this page could not
+               price them, and the module then simply omits that term instead of substituting one.
+
+               When this page has priced no country yet (unhydrated, or the shared cache lacks
+               overlapping ETF and benchmark history) the provider returns null and the bridge renders
+               the honest "unavailable" panel — matching this page's own stated behaviour that it will
+               rank countries only once enough overlapping history exists, and never invents a signal. */
+            globalThis.__rlOwnerStateProvider = globalThis.__rlOwnerStateProvider || {};
+            globalThis.__rlOwnerStateProvider["global-rotation-lab"] = function () {
+                var countries = [], lastObserved = 0, priced = 0;
+                countryRows().forEach(function (row) {
+                    if (!row || !row.entry || !Array.isArray(row.rows) || !row.rows.length) return;
+                    if (Number.isFinite(row.asOf) && row.asOf > lastObserved) lastObserved = row.asOf;
+                    if (Number.isFinite(row.rel21) || Number.isFinite(row.rel63) || Number.isFinite(row.rel126)) priced++;
+                    countries.push({
+                        id: row.entry.ticker,
+                        label: row.entry.country,
+                        rel21: Number.isFinite(row.rel21) ? row.rel21 : null,
+                        rel63: Number.isFinite(row.rel63) ? row.rel63 : null,
+                        rel126: Number.isFinite(row.rel126) ? row.rel126 : null,
+                        fxScore: row.fx && Number.isFinite(row.fx.score) ? row.fx.score : null,
+                        vol: Number.isFinite(row.vol) ? row.vol : null,
+                        drawdown: Number.isFinite(row.drawdown) ? row.drawdown : null,
+                        trendScore: row.trend && Number.isFinite(row.trend.score) ? row.trend.score : null,
+                        rows: row.rows.map(function (bar) { return { t: bar.t, c: bar.c }; })
+                    });
+                });
+                if (!priced) return null;
+                var info = (window.RLDATA && RLDATA.barInfo) ? RLDATA.barInfo(state.benchmark, "1d") : null;
+                return {
+                    contractVersion: "country-rotation-owner-state/v1",
+                    toolId: "global-rotation-lab",
+                    asOf: lastObserved ? new Date(lastObserved).toISOString() : "unavailable",
+                    source: (info && info.src) || "shared cache snapshot",
+                    benchmark: state.benchmark,
+                    countries: countries
+                };
+            };
+
             function averageCorrelation(rows) {
                 var sum = 0, count = 0, i, j, correlation;
                 for (i = 0; i < rows.length; i++) for (j = i + 1; j < rows.length; j++) {

@@ -12,8 +12,8 @@ Ship the Tier 0.5 pure `RLRATIO` primitive and its declared pair registry so tha
 
 | File | Change |
 |---|---|
-| `rlratio.js` | **New.** Tier 0.5 pure `RLRATIO` primitive — ratio math, window stats, family grouping, comparability/adjustment parity. |
-| `ratio-pairs.json` | **New.** `ratio-pair-registry/v1` — declared pairs with `pairId`, legs, `lookbackBars`, `semanticClass`, `ratioFamilyId`, refs. |
+| `./rlratio.js` | **New.** Tier 0.5 pure `RLRATIO` primitive — ratio math, window stats, family grouping, comparability/adjustment parity. |
+| `./ratio-pairs.json` | **New.** `ratio-pair-registry/v1` — declared pairs with `pairId`, legs, `lookbackBars`, `semanticClass`, `ratioFamilyId`, refs. |
 
 No other path is touched by this scope.
 
@@ -71,8 +71,8 @@ Scenario: A cross-session pair without alignment is refused
 
 ## Implementation Plan
 
-1. **UMD wrapper.** Author `rlratio.js` with the single shared IIFE shape stated once in `design.md` → `## Module Contracts`: deep-freeze the factory return before publication, prefer `module.exports` when present, otherwise assign `globalThis.RLRATIO`, and throw the named `RLRATIO_BROWSER_GLOBAL_UNAVAILABLE` when neither host exists. No silent no-op, no partial export.
-2. **Pair registry.** Author `ratio-pairs.json` as `ratio-pair-registry/v1`. Each entry declares `pairId`, both legs, `lookbackBars`, `semanticClass` drawn from the closed set (risk-appetite, breadth, style, credit, safety, global, dollar), `ratioFamilyId`, and its refs. Lookbacks are declared in bars, never in calendar days, so the declared window is exact.
+1. **UMD wrapper.** Author `./rlratio.js` with the single shared IIFE shape stated once in `design.md` → `## Module Contracts`: deep-freeze the factory return before publication, prefer `module.exports` when present, otherwise assign `globalThis.RLRATIO`, and throw the named `RLRATIO_BROWSER_GLOBAL_UNAVAILABLE` when neither host exists. No silent no-op, no partial export.
+2. **Pair registry.** Author `./ratio-pairs.json` as `ratio-pair-registry/v1`. Each entry declares `pairId`, both legs, `lookbackBars`, `semanticClass` drawn from the closed set (risk-appetite, breadth, style, credit, safety, global, dollar), `ratioFamilyId`, and its refs. Lookbacks are declared in bars, never in calendar days, so the declared window is exact.
 3. **Ratio math and window stats.** Compute level and trend over the date intersection of both legs with as-of-safe truncation — no point may use a bar dated after the requested as-of. The z-score carries its declared window as a returned field so the consumer renders it as adjacent text rather than recovering it from a tooltip.
 4. **Family grouping.** Implement `groupByFamily` so pairs sharing a `ratioFamilyId` collapse to a single evidence family. The collapse runs before any confirmation arithmetic downstream, which is what stops overlapping pairs from double-counting.
 5. **Comparability and adjustment parity.** Implement the comparability predicate: a pair whose legs disagree on distribution adjustment, or whose intersected history is shorter than `lookbackBars`, returns `unavailable` with the specific reason. A cross-session or unaligned-FX pair returns `not-comparable` naming the session or FX misalignment. Neither state emits a level, trend, or z-score number.
@@ -107,8 +107,8 @@ Scenario: A cross-session pair without alignment is refused
 - [ ] `[TP-01-07]` `[BS-013-013]` Long synthetic histories at the largest declared `lookbackBars` stay within the stated compute budget and return byte-identical output for identical frozen input.
 - [ ] `[TP-01-08]` The complete selftest suite stays green with the additive `rlratio` and `rlratio-scale` groups, every pre-existing group preserved and no decreased passing count.
 - [ ] `[BS-013-015]` `[BS-013-016]` Data absence resolves to a typed `unavailable` / `not-comparable` state carrying a reason code and a what-would-resolve statement; no zero, dash, blank, or neutral value stands in for a missing reading.
-- [ ] `[BS-013-013]` `rlratio.js` and `ratio-pairs.json` carry no default value, no fallback path, and no stub: every declared pair states `pairId`, both legs, `lookbackBars` in bars, `semanticClass`, `ratioFamilyId`, and its refs explicitly.
-- [ ] `[BS-013-013]` Every numeric guard in new code uses `Number.isFinite`; the global `isFinite` appears zero times in `rlratio.js`.
+- [ ] `[BS-013-013]` `./rlratio.js` and `./ratio-pairs.json` carry no default value, no fallback path, and no stub: every declared pair states `pairId`, both legs, `lookbackBars` in bars, `semanticClass`, `ratioFamilyId`, and its refs explicitly.
+- [ ] `[BS-013-013]` Every numeric guard in new code uses `Number.isFinite`; the global `isFinite` appears zero times in `./rlratio.js`.
 - [ ] Scenario-specific E2E regression tests for every new/changed/fixed behavior in this scope are persistent and named — `[TP-01-09]` the feature's real-page regression spec holds a permanently registered case asserting that `SOXX/SPY` and `SMH/SPY` collapse to one evidence family and that an `unavailable` or `not-comparable` pair emits no level, trend, or z-score number.
 - [ ] Broader E2E regression suite passes — the complete `node scripts/selftest.mjs` suite and the feature's real-page Playwright regression spec both run green once this scope lands, with every pre-existing selftest group and every previously registered regression case preserved and no decreased passing count.
 

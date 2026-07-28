@@ -6,15 +6,15 @@
 
 ## Objective
 
-Ship `market-regime-lab.html` — the owning tool of the composer and the only surface that renders the full fingerprint. It carries the four Feature-012 views (Simple as the persisted default, Power, Brief, Journey) over a single compute pass, composes the 12 declared UI primitives once each, and gives every degraded state a designed rendering so nothing ever renders as a confident-looking blank or a zero.
+Ship `./market-regime-lab.html` — the owning tool of the composer and the only surface that renders the full fingerprint. It carries the four Feature-012 views (Simple as the persisted default, Power, Brief, Journey) over a single compute pass, composes the 12 declared UI primitives once each, and gives every degraded state a designed rendering so nothing ever renders as a confident-looking blank or a zero.
 
 ## Implementation Files
 
 | File | Change |
 |---|---|
-| `market-regime-lab.html` | **New.** Single-file surface: Simple / Power / Brief / Journey views composing the 12 primitives once each. |
+| `./market-regime-lab.html` | **New.** Single-file surface: Simple / Power / Brief / Journey views composing the 12 primitives once each. |
 
-`rlratio.js`, `rlregime.js`, `ratio-pairs.json`, and `regime-archetypes.json` are consumed as delivered by SCOPE-1 and SCOPE-2. Registry registration is SCOPE-5. No protected surface is modified: `rlexperience.js`, `rljourney.js`, `rlcontracts.js`, the `rldata.js` cache schema, `data/**`, and `watchlist.json` are consumed as delivered.
+`./rlratio.js`, `./rlregime.js`, `./ratio-pairs.json`, and `./regime-archetypes.json` are consumed as delivered by SCOPE-1 and SCOPE-2. Registry registration is SCOPE-5. No protected surface is modified: `rlexperience.js`, `rljourney.js`, `rlcontracts.js`, the `rldata.js` cache schema, `data/**`, and `watchlist.json` are consumed as delivered.
 
 ## Gherkin Scenarios
 
@@ -140,9 +140,9 @@ Scenario: An indistinct regime refuses to force a sleeve ordering
 - [ ] `[TP-04-12]` `[BS-013-005]` `[UX-M-06]` A sentiment-derived quadrant is labeled by its actual inputs: the growth-inflation quadrant whose only inputs are a Fear & Greed score and VIX is labeled `market-implied`, is not labeled a macro growth regime, an inflation regime, or an economic regime, and its input attribution names the Fear & Greed score and VIX explicitly.
 - [ ] `[BS-013-003]` `[BS-013-005]` First paint is cache-first and auto-hydrating: the `rlData` cache is read before any network work, no Fetch/Refresh control is a precondition for content, and no empty shell or bare loading state survives into the first painted frame.
 - [ ] `[BS-013-017]` `[BS-013-020]` Every degraded state has a designed rendering — `unavailable` facets show reason plus what-would-resolve, the shrunken confirmation denominator renders inline, a fully-`unavailable` owner read and `not-comparable` international pairs render their typed states, and contradictions render as first-class disagreement blocks that are never resolved verdicts or dismissible warnings.
-- [ ] `[BS-013-005]` `market-regime-lab.html` carries no default value, no fallback path, and no stub: no protected surface is modified, no request interception appears in any live-stack spec, and no silent-pass bailout appears inside a required scenario.
+- [ ] `[BS-013-005]` `./market-regime-lab.html` carries no default value, no fallback path, and no stub: no protected surface is modified, no request interception appears in any live-stack spec, and no silent-pass bailout appears inside a required scenario.
 - [ ] `[BS-013-001]` Identical frozen cache input at an identical `decisionTime` renders identical text in all four views across repeated loads.
-- [ ] `[BS-013-003]` Every numeric guard in new code uses `Number.isFinite`; the global `isFinite` appears zero times in `market-regime-lab.html`.
+- [ ] `[BS-013-003]` Every numeric guard in new code uses `Number.isFinite`; the global `isFinite` appears zero times in `./market-regime-lab.html`.
 - [ ] Scenario-specific E2E regression tests for every new/changed/fixed behavior in this scope are persistent and named — `[TP-04-13]` the feature's real-page regression spec holds a permanently registered case asserting that the growth-inflation quadrant renders as market-implied rather than as a macro regime and that an absent relative advantage renders the explicit no-advantage state.
 - [ ] Broader E2E regression suite passes — the complete `node scripts/selftest.mjs` suite and the feature's real-page Playwright regression spec both run green once this scope lands, with every pre-existing selftest group and every previously registered regression case preserved and no decreased passing count.
 

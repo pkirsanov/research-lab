@@ -52,6 +52,10 @@ Awaiting execution — no command has been run for this row.
 
 Awaiting execution — no command has been run for this row.
 
+#### TP-08-12
+
+Awaiting execution — no command has been run for this row.
+
 ## Completion Statement
 
 SCOPE-8 is not complete. Every Definition of Done item remains unchecked and

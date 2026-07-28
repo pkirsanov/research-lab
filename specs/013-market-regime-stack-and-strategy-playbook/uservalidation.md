@@ -16,7 +16,7 @@ Contracts: [spec.md](spec.md) | [design.md](design.md) | [scenario-manifest.json
 > proven. Execution proof lives in [report.md](report.md), one slot per Test Plan
 > row, and every slot is currently awaiting execution.
 
-## Checklist — Business Behaviors (BS-013-001 … BS-013-022)
+## Checklist — Business Behaviors (BS-013-001 … BS-013-024)
 
 - [x] Reading the tool with current facets available, I get one combined regime that names an archetype from the published list rather than a made-up name. (BS-013-001)
 - [x] When my facet combination is not on the published list, I see a fingerprint plus the literal `Mixed` or `Unresolved` with the unresolved facet pair named — never an invented archetype name. (BS-013-002)
@@ -40,6 +40,8 @@ Contracts: [spec.md](spec.md) | [design.md](design.md) | [scenario-manifest.json
 - [x] When nothing has a clear relative advantage, I get an explicit no-advantage state instead of a forced ranking or an empty panel. (BS-013-020)
 - [x] The tool publishes exactly one owner read carrying the full payload — verdict, archetype or fingerprint, confirmation count, absent facets, availability, sleeve fits, contradictions, and provenance. (BS-013-021)
 - [x] When required facets are missing, the owner read says unavailable or partial and names what is missing, instead of filling the gaps and showing me a confident verdict. (BS-013-022)
+- [x] A surface added to the registration surfaces without its hard-asserted count raised in the same change is refused with the count that did not move named, and a count raised above the entries actually present is refused the same way — no absent entry is inferred, defaulted, or backfilled to make the declared count add up. (BS-013-023)
+- [x] The protected scenario set re-runs as one set rather than scenario by scenario: closure is reported only when the whole set holds and the number of scenarios re-run is named, and one regression inside the set refuses closure and names the regressing scenario instead of reporting partial, provisional, or passing-with-exceptions. (BS-013-024)
 
 ## Checklist — UI Scenario Matrix (UX-M-01 … UX-M-25)
 

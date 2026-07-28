@@ -305,9 +305,63 @@ Per-source specifics:
 - **real-assets** — `ratio-derived` facets over `RLRATIO` pairs, carrying the `:1170` proxy caveat.
 - **global-rotation** — `ratio-derived` facets for international pairs, emitting `not-comparable`
   where the pair fails the comparability predicate.
-- **fx** — `ratio-derived` dollar facets via `RLFX` plus `RLRATIO`.
+- **fx** — `ratio-derived` dollar facets via `RLFX` plus `RLRATIO`. **Declared facet slot with no
+  shim host in this feature** (OQ-1, resolved): the slot exists in the contract, no publication shim
+  is authorized here, and the facet is therefore always absent at runtime and composes through the
+  already-specified absent-facet path.
 - **trend-dynamics** — trend-structure facet; retains its existing vocabulary with an explicit,
   declared mapping into the facet vocabulary rather than a silent re-label.
+
+#### Shim host surfaces
+
+A shim lives in the surface that already owns and renders that source's model, so publication is a
+local read of frozen output rather than a new dependency. The host is the file the shim edit lands
+in; the *consumed* column is read as input and is **not** modified by the shim.
+
+| Facet source (Tier 1 node) | Shim host surface | Consumed as delivered (not modified) |
+|---|---|---|
+| `sector` | `sector-research-lab.html` | `rlg.js` vocabulary map |
+| `heatmap` | `market-heatmap-lab.html` | — |
+| `bond` | `bond-regime-lab.html` | `RLRATIO` credit-quality pulse pair |
+| `volatility` | `volatility-sizing-lab.html` | `rlvol.js:335 regimeBand()` reading |
+| `options / gamma` | `gamma-trading-lab.html`, `options-structure-lab.html` | `rlexperience-adapters/options.js` owner formulas |
+| `real-assets` | `real-assets-lab.html` | `RLRATIO` proxy pairs |
+| `global-rotation` | `global-rotation-lab.html` | `RLRATIO` international pairs |
+| `trend-dynamics` | `trend-dynamics-cycle-lab.html` | `rlg.js` vocabulary map |
+| `fx` | **none — declared slot, no host in this feature** (OQ-1, resolved) | `RLFX`, `RLRATIO` dollar pairs |
+
+`rlvol.js` and `rlexperience-adapters/options.js` are read as **inputs** by their hosts' shims and
+are not themselves shim hosts. `rlvol.js` is an enumerated Tier 0.5 pure primitive whose
+`regimeBand()` reading already exists and is mapped by the host, and an `rlexperience-adapters/*`
+change is a `tool-experience.config.json` contract change under FR-049, never an implementation
+detail absorbed here. `rlfx.js` is likewise **consumed, not modified**: it is a pure frozen UMD
+module that Tier 0 `rldata.js` already calls — `rldata.js:309` invokes
+`root.RLFX.normalizeSourceEnvelope(raw, policy || {}, decisionTime)`, guarded at `rldata.js:298` and
+`rldata.js:312` by `typeof root.RLFX.normalizeSourceEnvelope !== "function"`. Placing a shared-cache
+**write** inside `rlfx.js` would therefore put one module on both sides of the Tier 0 boundary and
+close the `rldata.js → RLFX → rldata.js` edge BP-1 forbids. `RLFX` is consumed as a reading input
+exactly the way `RLRATIO` is, and `rlfx.js` is absent from every authorized-edit list in
+`## Implementation Boundary`.
+
+**The `fx` slot with no host is a runtime state, not a hole in the design** (OQ-1, resolved). `fx`
+stays a first-class declared facet slot: it keeps its Tier 1 node in the DAG, its entry in the tier
+table, its per-source bullet above, and its `fx.dollar` appearances in the `absentFacetIds` /
+`excludedFacetIds` examples. Because no shim host is authorized here, the slot is simply **always
+absent at runtime**, which is a state the composer already specifies end to end: the facet is
+excluded from `m`, named in `confirmation.excludedFacetIds`, and named in the owner read's
+`absentFacetIds` under `availability: 'partial'` with `unavailableReason: 'SOURCE_UNAVAILABLE'`. A
+composition with `fx` absent is a **valid, expected** composition that degrades honestly — the
+absent slot is stated, never filled with a neutral vote, a zero, a stale value, or an omitted line
+that reads as agreement, and it MUST never be presented as a live FX reading. When a future host
+publishes a `RegimeFacetContract` reading into this existing slot through the same Tier 1
+publication path every other source uses, the contract, the DAG, the tier table, the composer, and
+the archetype registry require zero change.
+
+`trend-dynamics-cycle-lab.html` exists in the repository and is the `trend-dynamics` node's owner,
+so its shim lands in a file that is present. It is absent from `tools.json`, `rlnav.js`,
+`index.html`, `simple-models.json`, and `journeys.json`, so it carries no registry deep link: the
+registry-coherence obligation that binds *registered* facet-source owner tools does not reach it,
+and this feature neither registers it nor alters that condition.
 
 ### `market-regime-lab.html` — the new surface
 
@@ -1046,6 +1100,16 @@ selftest-time failure surface, and `market-regime-lab.html` never catches such a
 a value — it surfaces the failure. Absent, stale, or incomparable **data** never throws; it returns a
 typed reading whose single reason code drives `UnavailableDetail`.
 
+**An unhosted facet slot degrades on this same path.** A declared facet slot with no publication host
+is not a distinct failure mode and gets no special handling: it resolves through the *Missing or
+stale facet* row above as `availability: 'unavailable'` with `SOURCE_UNAVAILABLE`, shrinking `m` and
+naming itself in `excludedFacetIds` / `absentFacetIds`. `fx` is exactly this case under this feature
+(OQ-1, resolved) — the `fx.dollar` id already carried in the `combined-regime/v1` and
+`regime-owner-read/v1` samples is the live shape of that state. Composing with `fx` absent is a
+**valid, expected** composition: the absent slot is stated with its reason, and it is never rendered
+as a live FX reading, never a neutral vote, never `0`, never a value carried forward from an earlier
+read, and never an omitted line that reads as agreement.
+
 ---
 
 ## Performance And Rendering
@@ -1177,12 +1241,17 @@ repository is out of bounds for this feature.
 
 | File | Role |
 |---|---|
-| `rlratio.js` | Tier 0.5 pure `RLRATIO` primitive — ratio math, window stats, family grouping, comparability/adjustment parity. Holds no regime vocabulary. |
-| `rlregime.js` | Tier 2 sole composer `RLREGIME` — facet validation, persistence, confirmation, contradictions, `composeRegime`, archetype match, sleeve fits, owner read, compatibility projection, `readPublishedContext`. |
-| `market-regime-lab.html` | The new single-file surface: Simple / Power / Brief / Journey views composing the 12 primitives once each. |
-| `ratio-pairs.json` | `ratio-pair-registry/v1` — declared pairs with `pairId`, legs, `lookbackBars`, `semanticClass`, `ratioFamilyId`, refs. |
-| `regime-archetypes.json` | `regime-archetype-registry/v1` — fully-enumerated facet-value tuples, plus the `sleeve-fit` and legacy-projection cells. No wildcards, no ranges. |
+| `./rlratio.js` | Tier 0.5 pure `RLRATIO` primitive — ratio math, window stats, family grouping, comparability/adjustment parity. Holds no regime vocabulary. |
+| `./rlregime.js` | Tier 2 sole composer `RLREGIME` — facet validation, persistence, confirmation, contradictions, `composeRegime`, archetype match, sleeve fits, owner read, compatibility projection, `readPublishedContext`. |
+| `./market-regime-lab.html` | The new single-file surface: Simple / Power / Brief / Journey views composing the 12 primitives once each. |
+| `./ratio-pairs.json` | `ratio-pair-registry/v1` — declared pairs with `pairId`, legs, `lookbackBars`, `semanticClass`, `ratioFamilyId`, refs. |
+| `./regime-archetypes.json` | `regime-archetype-registry/v1` — fully-enumerated facet-value tuples, plus the `sleeve-fit` and legacy-projection cells. No wildcards, no ranges. |
 | `notes/market-regime-lab.md` | Required per-tool handoff doc. |
+| `tests/market-regime-lab.spec.mjs` | The feature's Playwright `system-chrome` live-stack spec for `market-regime-lab.html`, covering the four views (Simple, Power, Brief, Journey) and carrying the persistent named regression cases for the migrated consumers. This is the concrete `e2e-ui` surface the `## Testing Strategy` table names generically. |
+| `tests/market-regime-lab.stress.spec.mjs` | The feature's Playwright `system-chrome` `stress` spec — the maximum declared pair set and facet set under rapid lever and view churn. This is the concrete surface the `## Testing Strategy` `stress` row names generically. |
+| `tests/market-regime-consumer-migration.spec.mjs` | The feature's Playwright `system-chrome` live-stack spec for the *Consumer migration* table below — each migrated consumer renders exactly one published read and no locally recomposed verdict. |
+
+The three specs above are discovered by the existing `playwright.config.mjs` `testMatch: '**/*.spec.mjs'` glob, so `playwright.config.mjs` itself is **not** modified by this feature and is absent from every table here.
 
 **Modified in the SAME change (registry coherence — these move together or the change is incoherent):**
 
@@ -1195,9 +1264,57 @@ repository is out of bounds for this feature.
 | `rlnav.js` | Add the tool to the `TOOLS` array. |
 | `scripts/selftest.mjs` | Add the `rlratio`, `rlregime`, `rlregime-compose`, `rlregime-projection`, `rlregime-history`, `regime-primitives`, and `rlratio-scale` groups, and update the hard-asserted registry counts. |
 | `scripts/brief-refresh.mjs` | Add the deterministic `DERIVED` adapter for the composed owner read (deterministic set 5 → 6). |
-| `README.md` | Add `market-regime-lab.html` to `## Live tools`, and the new `rlratio.js`, `rlregime.js`, `ratio-pairs.json`, `regime-archetypes.json` files to `## Layout`. |
+| `README.md` | Add `./market-regime-lab.html` to `## Live tools`, and the new `./rlratio.js`, `./rlregime.js`, `./ratio-pairs.json`, `./regime-archetypes.json` files to `## Layout`. |
+| `scripts/validate-tool-experience.mjs` | Move its hard-asserted registry counts (ordinary tools, Market Action Center goals, total goals, journey definitions) in the same coherent change as the registration above, so no registry and its assertion disagree. Its `invariant(…)` count assertions are the tool-experience analogue of the `scripts/selftest.mjs` count update in the row above. |
 
 `README.md` is the effective path for BOTH `required: true` managed-doc keys — `architecture` and `development` — via `docsRegistryOverrides` in `.github/bubbles-project.yaml`, published under `publishManagedDocsOnCloseout: true`. SCOPE-5 (registry registration) writes those two sections as part of its delivery, in the same coherent change as the other registries; the packet records the boundary, the section text itself is authored at delivery.
+
+**Tier 1 facet-source publication shims (publication-only edit, one per facet source):**
+
+Every path below is an existing repository file that already owns and renders its source's model.
+The permitted edit is bounded to adding that source's publication shim: read the host's
+already-computed frozen model output, map it through the declared versioned `valueVocabularyId`
+mapping, stamp `asOf`, `sourceAttribution`, and `coverageNote`, and write exactly one
+`RegimeFacetContract` reading per owned facet into the Tier 0 shared-cache facet slot through the
+existing `rldata.js` append API. Nothing else in these files may change.
+
+| File | Facet source | Permitted edit |
+|---|---|---|
+| `sector-research-lab.html` | `sector` | Publish breadth-participation and trend-structure facets from the existing sector model. |
+| `market-heatmap-lab.html` | `heatmap` | Publish a breadth-participation facet over the existing constituent grid. |
+| `bond-regime-lab.html` | `bond` | Publish `credit` (`:1419`), `curve` (`:1455`), and `duration-posture` (`:1709`) as three separately identifiable facets, never blended into one score. |
+| `volatility-sizing-lab.html` | `volatility` | Publish strictly `kind: 'volatility-magnitude'` from the `rlvol.js:335 regimeBand()` reading the tool already renders. |
+| `gamma-trading-lab.html` | `options / gamma` | Publish volatility-magnitude and positioning-context facets from the owner formulas the tool already renders. |
+| `options-structure-lab.html` | `options / gamma` | Publish volatility-magnitude and positioning-context facets from the call/put lean and unusualness values the tool already renders. |
+| `real-assets-lab.html` | `real-assets` | Publish `ratio-derived` facets over `RLRATIO` pairs, carrying the `:1170` proxy caveat onto the published reading. |
+| `global-rotation-lab.html` | `global-rotation` | Publish `ratio-derived` international-pair facets, emitting `not-comparable` where the comparability predicate fails. |
+| `trend-dynamics-cycle-lab.html` | `trend-dynamics` | Publish a trend-structure facet through the declared versioned mapping from the tool's existing vocabulary. |
+
+`rlvol.js`, `rlfx.js`, and `rlexperience-adapters/options.js` are deliberately **absent** from this
+table. Each is consumed as a reading input by a shim hosted elsewhere and is not itself modified;
+`## Concrete Implementations` → *Shim host surfaces* records why for each. `rlfx.js` in particular is
+**consumed-not-modified**: `rldata.js:309` already calls `root.RLFX.normalizeSourceEnvelope` (guarded
+at `rldata.js:298` and `rldata.js:312`), so a shared-cache write inside `rlfx.js` would close the
+`rldata.js → RLFX → rldata.js` cycle BP-1 forbids.
+
+The `fx` node is a **declared facet slot with no shim host in this feature** — OQ-1, resolved. It is
+not a shim host, it authorizes no shim edit, and it appears nowhere in any table above. The slot
+remains in the contract, the DAG, and the tier table, and the facet is always absent at runtime,
+which `## Failure Handling And Degradation` types as a normal `SOURCE_UNAVAILABLE` state rather than
+an error. Adding any `fx` publication edit under this feature is out of bounds exactly as if the
+file were unlisted.
+
+**The limit that keeps the DAG acyclic.** These edits are publication-only in the strict sense: the
+shim publishes and never consumes. Neither the shim nor the model computation path feeding it may
+import `rlregime.js`, call `composeRegime`, read the composed regime, or declare the composed regime
+as a facet input — `composeRegime` stays Tier-2-only, the Tier 1 → Tier 2 edge stays one-way, and
+the IP-002 no-cycle lint asserts both mechanically. Where a host also renders composed context as a
+Tier 3 consumer, it does so exclusively through `RLREGIME.readPublishedContext` on a path that is
+separate from, and never feeds, its facet computation; the two-entry-point `RLREGIME` contract is
+unchanged and no third entry point is introduced. A shim performs no new fetching, adds no provider
+call, changes no `rldata.js` cache schema, and alters no existing rendered output of its host. An
+edit to a file in this table that is not that file's publication shim is out of bounds exactly as if
+the file were unlisted.
 
 **Consumer migration (retire the duplicated logic in the same feature):**
 
@@ -1220,6 +1337,72 @@ repository is out of bounds for this feature.
 | `data/**` snapshots | Same-origin cached snapshots are produced by their own pipelines; this feature reads them and writes none. |
 | `watchlist.json` | Tickers-only, user-owned; not a regime input and never rewritten here. |
 | Every Feature 012 gated surface | The Simple/Power paradigm, the four-view frame, and the journey/goal/model registry **shapes** are consumed as delivered-by-scope. This feature conforms to them; it does not modify or re-derive them. |
+
+---
+
+## Open Questions
+
+No open question remains. OQ-1 is recorded below as a resolved owner decision.
+
+### OQ-1 — RESOLVED — `fx` is a declared facet slot with no shim host in this feature
+
+**Resolution (owner decision).** `fx` **remains a first-class declared facet slot** in the regime
+contract. This feature authorizes **no** `fx` publication shim and **no** `fx` shim host, so the
+`fx` facet is **always absent at runtime** until a future host publishes a `RegimeFacetContract`
+reading into the existing slot. This is neither of the two alternatives originally offered; both
+were rejected for the reasons recorded under *Alternatives rejected*.
+
+**Observed condition that produced the question.** `fx` is a first-class Tier 1 node in the layered
+DAG (`RLDATA → FX`, `RLRATIO → FX`, `FX → RLREGIME`), is enumerated in the Tier 1 row of the tier
+table, carries its own bullet under `## Concrete Implementations` → *Facet-source publication
+shims*, and appears in the `absentFacetIds` / `excludedFacetIds` examples as `fx.dollar`. No FX
+owner tool page exists in the repository: the root `.html` inventory contains no FX tool and
+`fx-regime-relative-value-lab.html` is absent. `rlfx.js` (`RLFX`) is the only FX surface on disk,
+and it is a pure frozen UMD module that Tier 0 `rldata.js` already calls — `rldata.js:309` invokes
+`root.RLFX.normalizeSourceEnvelope(raw, policy || {}, decisionTime)`, guarded at `rldata.js:298`
+and `rldata.js:312`. Placing a shared-cache **write** inside `rlfx.js` would put one module on both
+sides of the Tier 0 boundary and close the `rldata.js → RLFX → rldata.js` edge BP-1 forbids. The FX
+tool page is owned by `specs/004-fx-regime-relative-value-lab`, whose `state.json` reports
+`status: "not_started"`.
+
+**Alternatives rejected.**
+
+- **Rejected — declare a prerequisite on `specs/004-fx-regime-relative-value-lab`.** That couples a
+  **foundation** to an unbuilt tool and blocks the foundation on it. Spec 004 is `not_started`, so
+  the whole regime stack would be gated behind a surface that does not exist. A foundation must not
+  be held behind one of its own consumers.
+- **Rejected — drop `fx` from the contract.** `fx` is a real, already-modelled facet slot with a
+  declared semantic class (`dollar` ratio pairs), declared inputs (`RLFX` + `RLRATIO`), and existing
+  identity (`fx.dollar`) in the published shapes. Removing it would discard modelled work and force
+  a **breaking contract change** at the point an FX surface lands — a new facet id, a changed facet
+  set, a changed `facetSetId`, and a re-versioned archetype registry.
+
+**Why the resolution needs no new machinery.** The design already specifies this exact runtime
+state. `RLREGIME.confirmationRatio` excludes an `unavailable` facet from `m` and names it in
+`excludedFacetIds`; the composed read carries `availability: 'partial'` with
+`unavailableReason: 'SOURCE_UNAVAILABLE'` and `absentFacetIds`; `## Failure Handling And
+Degradation` types the case in its *Missing or stale facet* row. `fx.dollar` is already the leading
+id in both the `combined-regime/v1` `excludedFacetIds` sample and the `regime-owner-read/v1`
+`absentFacetIds` sample. An unhosted facet slot is a **normal, already-specified runtime state** —
+not an error and not a gap.
+
+**Mandatory honesty consequence.** A composition with `fx` absent is a **valid, expected**
+composition and MUST degrade honestly. The absent slot is stated with its single reason code and
+shrinks the confirmation denominator visibly. It is never rendered as a live FX reading, never a
+neutral vote, never `0`, never a value carried forward from an earlier read, and never an omitted
+line that reads as agreement.
+
+**Extensibility consequence.** When a future host publishes into the existing `fx` slot, it does so
+through the same Tier 1 publication path every other facet source uses, and this feature requires
+**zero** change: the slot, the facet id, the DAG edge, the tier-table membership, the composer, the
+`facetSetId` computation, and the archetype registry are already in place. That host adds its own
+shim-host row and its own authorized-edit entry under its own feature's boundary; nothing in this
+design is re-opened.
+
+**Boundary consequence, restated.** `rlfx.js` is **consumed-not-modified** and is absent from every
+authorized-edit list in `## Implementation Boundary`. `fx` is **not** a shim host and does **not**
+appear in the *Tier 1 facet-source publication shims* table. The nine authorized shim-host files
+are unchanged by this resolution.
 
 ---
 
@@ -1255,7 +1438,21 @@ sectionsDelivered:
   - "## Security And Privacy"
   - "## Testing Strategy"
   - "## Implementation Boundary"
+  - "## Open Questions"
 sectionsDeferredToLaterChunks: []
+openQuestions: []
+resolvedQuestions:
+  - id: OQ-1
+    question: "Which surface hosts the fx facet source's publication shim?"
+    resolution: "fx remains a first-class DECLARED FACET SLOT in the regime contract with NO shim host in this feature, so the facet is always absent at runtime until a future host publishes into the existing slot."
+    resolvedBy: product owner
+    alternativesRejected:
+      - "Declare a prerequisite on specs/004-fx-regime-relative-value-lab (status not_started) — couples a foundation to an unbuilt tool and blocks the foundation on it."
+      - "Drop fx from the contract — discards a modelled facet slot and forces a breaking contract change when an FX surface lands."
+    machineryAlreadyPresent: "absent-facet handling — confirmationRatio excludes the facet from m, excludedFacetIds/absentFacetIds name it, availability partial with SOURCE_UNAVAILABLE; fx.dollar is already the leading id in the combined-regime/v1 and regime-owner-read/v1 samples."
+    honestyConsequence: "Composing with fx absent is a valid, expected state that degrades honestly — never a live FX reading, never a neutral vote, never 0, never an omitted line that reads as agreement."
+    extensibilityConsequence: "A future host publishes into the existing slot through the standard Tier 1 publication path; this feature requires zero change."
+    boundaryConsequence: "rlfx.js is consumed-not-modified and absent from every authorized-edit list; fx is not a shim host and appears in no shim table. The nine authorized shim-host files are unchanged."
 finalChunkDecisions:
   uiPrimitiveRealization:
     primitivesMapped: 12
@@ -1291,8 +1488,14 @@ finalChunkDecisions:
     adversarialRedBiteMutations: ["no-cycle rule neutralized", "denominator shrink neutralized", "family collapse neutralized", "archetype fallback neutralized"]
     interceptionForbidden: "page.route / context.route / intercept( / cy.intercept / msw / nock forbidden in every live-stack spec; silent-pass bailouts forbidden"
   implementationBoundary:
-    new: ["rlratio.js", "rlregime.js", "market-regime-lab.html", "ratio-pairs.json", "regime-archetypes.json", "notes/market-regime-lab.md"]
+    new: ["./rlratio.js", "./rlregime.js", "./market-regime-lab.html", "./ratio-pairs.json", "./regime-archetypes.json", "notes/market-regime-lab.md"]
     modifiedSameChange: ["tools.json", "simple-models.json", "journeys.json", "index.html", "rlnav.js", "scripts/selftest.mjs", "scripts/brief-refresh.mjs"]
+    facetSourceShims: ["sector-research-lab.html", "market-heatmap-lab.html", "bond-regime-lab.html", "volatility-sizing-lab.html", "gamma-trading-lab.html", "options-structure-lab.html", "real-assets-lab.html", "global-rotation-lab.html", "trend-dynamics-cycle-lab.html"]
+    facetSourceShimCount: 9
+    declaredSlotWithNoShimHost: ["fx"]
+    facetSourceShimLimit: "publication-only; neither a shim nor its model computation path imports rlregime.js, calls composeRegime, reads the composed regime, or declares it a facet input; composeRegime stays Tier-2-only and the two-entry-point RLREGIME contract is unchanged"
+    consumedNotModified: ["rlvol.js", "rlfx.js", "rlexperience-adapters/options.js"]
+    rlfxCycleReason: "rldata.js:309 already calls root.RLFX.normalizeSourceEnvelope (guarded at :298 and :312), so a shared-cache write inside rlfx.js would close the rldata.js -> RLFX -> rldata.js cycle BP-1 forbids."
     consumerMigration: ["rlg.js", "rlexperience-adapters/market-structure.js", "intraday-tape-lab.html", "swing-structure-lab.html", "market-brief.html"]
     protected: ["rldata.js cache schema", "rlcontracts.js", "rlexperience.js", "rljourney.js", "data/** snapshots", "watchlist.json", "every Feature 012 gated surface"]
 appendedChunkDecisions:

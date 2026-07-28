@@ -318,6 +318,84 @@
             },
             "linkedTests": [],
             "evidenceRefs": []
+        },
+        {
+            "scenarioId": "BS-013-025",
+            "specSection": "## Additional Business Scenarios — Review Findings",
+            "title": "A contradiction requires matched comparands and no lane silently wins the headline",
+            "scopeId": "SCOPE-9",
+            "requiredTestType": "functional",
+            "regressionRequired": true,
+            "lockdown": {
+                "state": "unlocked"
+            },
+            "linkedTests": [],
+            "evidenceRefs": []
+        },
+        {
+            "scenarioId": "BS-013-026",
+            "specSection": "## Additional Business Scenarios — Review Findings",
+            "title": "Correlated facets collapse to one evidence family and thin coverage renders Unresolved",
+            "scopeId": "SCOPE-10",
+            "requiredTestType": "functional",
+            "regressionRequired": true,
+            "lockdown": {
+                "state": "unlocked"
+            },
+            "linkedTests": [],
+            "evidenceRefs": []
+        },
+        {
+            "scenarioId": "BS-013-027",
+            "specSection": "## Additional Business Scenarios — Review Findings",
+            "title": "A growth or inflation axis name requires inputs capable of identifying that axis",
+            "scopeId": "SCOPE-11",
+            "requiredTestType": "functional",
+            "regressionRequired": true,
+            "lockdown": {
+                "state": "unlocked"
+            },
+            "linkedTests": [],
+            "evidenceRefs": []
+        },
+        {
+            "scenarioId": "BS-013-028",
+            "specSection": "## Additional Business Scenarios — Review Findings",
+            "title": "Persistence is expressed in exactly one declared closed vocabulary",
+            "scopeId": "SCOPE-12",
+            "requiredTestType": "integration",
+            "regressionRequired": true,
+            "lockdown": {
+                "state": "unlocked"
+            },
+            "linkedTests": [],
+            "evidenceRefs": []
+        },
+        {
+            "scenarioId": "BS-013-029",
+            "specSection": "## Additional Business Scenarios — Review Findings",
+            "title": "Model-derived claims are verified by recomputation, never by independent origins",
+            "scopeId": "SCOPE-13",
+            "requiredTestType": "functional",
+            "regressionRequired": true,
+            "lockdown": {
+                "state": "unlocked"
+            },
+            "linkedTests": [],
+            "evidenceRefs": []
+        },
+        {
+            "scenarioId": "BS-013-030",
+            "specSection": "## Additional Business Scenarios — Review Findings",
+            "title": "The active specification carries no embedded process metadata",
+            "scopeId": "SCOPE-14",
+            "requiredTestType": "functional",
+            "regressionRequired": true,
+            "lockdown": {
+                "state": "unlocked"
+            },
+            "linkedTests": [],
+            "evidenceRefs": []
         }
     ]
 }

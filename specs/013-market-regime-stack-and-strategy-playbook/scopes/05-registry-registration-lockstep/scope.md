@@ -6,7 +6,7 @@
 
 ## Objective
 
-Register `market-regime-lab.html` across every registry in one coherent change and move the hard-asserted counts together with it. Registry registration is atomic by design: a tool present in `tools.json` but absent from the navigation array, or a count assertion that lags its registry, is an incoherent repository state, not a partially-complete one.
+Register `./market-regime-lab.html` across every registry in one coherent change and move the hard-asserted counts together with it. Registry registration is atomic by design: a tool present in `tools.json` but absent from the navigation array, or a count assertion that lags its registry, is an incoherent repository state, not a partially-complete one.
 
 ## Implementation Files
 
@@ -20,7 +20,7 @@ Register `market-regime-lab.html` across every registry in one coherent change a
 | `notes/market-regime-lab.md` | **New.** Required per-tool handoff doc. |
 | `scripts/selftest.mjs` | Update the hard-asserted registry counts. |
 
-No other path is touched by this scope. `tool-experience.config.json` `adapterPolicy.moduleAllowlist` stays at its exact 7 entries because the tool composes via the root-level `rlregime.js` UMD and introduces no new adapter module.
+No other path is touched by this scope. `tool-experience.config.json` `adapterPolicy.moduleAllowlist` stays at its exact 7 entries because the tool composes via the root-level `./rlregime.js` UMD and introduces no new adapter module.
 
 ## Gherkin Scenarios
 
@@ -74,7 +74,7 @@ Stale-reference scan surface: every navigation entry, every landing-page deep li
 | --- | --- | --- | --- | --- | --- | --- |
 | TP-05-01 | Integration | `integration` | `scripts/validate-tool-experience.mjs` — registry validation over `tools.json`, `simple-models.json`, `journeys.json`, and `tool-experience.config.json` | **FR-051 count lockstep** — the tool-experience validator passes against the updated registries with the exact asserted counts of 22 ordinary tools, 4 Market Action Center goals, 48 total goals, and 48 journey definitions, so no registry and its assertion disagree. | `node scripts/validate-tool-experience.mjs` | No |
 | TP-05-02 | Integration | `integration` | `scripts/selftest.mjs` group `regime-primitives` / `market-regime-lab is registered coherently across tools.json, simple-models.json, journeys.json, the index.html TOOLS array, the rlnav.js TOOLS array, and notes/market-regime-lab.md` | **Atomic registry registration** — the tool resolves in every registration surface in the same change: `tools.json`, `simple-models.json`, `journeys.json` (with `noExecution: true`), the `index.html` `TOOLS` array, the `rlnav.js` `TOOLS` array, and the required `notes/market-regime-lab.md` handoff doc. A tool present in one surface and absent from another is asserted to be a failure, not a partial state. | `node scripts/selftest.mjs` | No |
-| TP-05-03 | Unit | `unit` | `scripts/selftest.mjs` group `regime-primitives` / `tool-experience.config.json adapterPolicy.moduleAllowlist holds exactly its 7 entries` | The `adapterPolicy.moduleAllowlist` in `tool-experience.config.json` holds exactly 7 entries after registration, proving the tool composes via the root-level `rlregime.js` UMD and introduces no new adapter module. | `node scripts/selftest.mjs` | No |
+| TP-05-03 | Unit | `unit` | `scripts/selftest.mjs` group `regime-primitives` / `tool-experience.config.json adapterPolicy.moduleAllowlist holds exactly its 7 entries` | The `adapterPolicy.moduleAllowlist` in `tool-experience.config.json` holds exactly 7 entries after registration, proving the tool composes via the root-level `./rlregime.js` UMD and introduces no new adapter module. | `node scripts/selftest.mjs` | No |
 | TP-05-04 | Functional | `functional` | `scripts/selftest.mjs` — hard-asserted registry count assertions | The hard-asserted registry counts inside `scripts/selftest.mjs` are moved in the same change as the registries themselves and re-derive the same 22 / 4 / 48 / 48 values directly from the registry files rather than from a hand-maintained constant. | `node scripts/selftest.mjs` | No |
 | TP-05-05 | Integration | `integration` | `scripts/selftest.mjs` group `regime-primitives` / `market-regime-lab publishes its Simple-view read into the shared toolReads slot with id, asOf, read, metrics, and deepLink` | The tool's Simple-view read is written into the shared `toolReads[<id>]` cache slot carrying `id`, `asOf`, a one-line `read`, `metrics`, and `deepLink`, so brief coverage of this tool is derived from the registry rather than hand-maintained. | `node scripts/selftest.mjs` | No |
 | TP-05-06 | Integration | `integration` | `scripts/validate-tool-experience.mjs` — registry lockstep assertion | **BS-013-023: A registry entry and its hard-asserted count are refused unless they move together** — **ADVERSARIAL RED-bite** — register the tool in `tools.json` alone while leaving `journeys.json` and the asserted counts at their prior values. `node scripts/validate-tool-experience.mjs` MUST fail under that half-applied registration naming the asserted count that did not move, MUST NOT report the half-registered surface as registered, and MUST pass against the delivered coherent change. | `node scripts/validate-tool-experience.mjs` | No |
@@ -88,7 +88,7 @@ Stale-reference scan surface: every navigation entry, every landing-page deep li
 #### Core Items
 
 - [ ] `[TP-05-01]` The tool-experience validator passes against the updated registries with the exact 22 ordinary tools, 4 Market Action Center goals, 48 total goals, and 48 journey definitions.
-- [ ] `[TP-05-02]` `market-regime-lab.html` resolves in `tools.json`, `simple-models.json`, `journeys.json`, the `index.html` `TOOLS` array, the `rlnav.js` `TOOLS` array, and `notes/market-regime-lab.md` from the same change.
+- [ ] `[TP-05-02]` `./market-regime-lab.html` resolves in `tools.json`, `simple-models.json`, `journeys.json`, the `index.html` `TOOLS` array, the `rlnav.js` `TOOLS` array, and `notes/market-regime-lab.md` from the same change.
 - [ ] `[TP-05-03]` `tool-experience.config.json` `adapterPolicy.moduleAllowlist` holds exactly its 7 entries with no new adapter module introduced.
 - [ ] `[TP-05-04]` The hard-asserted registry counts in `scripts/selftest.mjs` move together with the registries and re-derive their values from the registry files.
 - [ ] `[TP-05-05]` The tool's Simple-view read is published into the shared `toolReads[<id>]` slot with `id`, `asOf`, `read`, `metrics`, and `deepLink`.

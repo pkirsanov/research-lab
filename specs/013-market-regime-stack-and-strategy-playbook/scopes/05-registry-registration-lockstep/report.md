@@ -40,6 +40,14 @@ Awaiting execution — no command has been run for this row.
 
 Awaiting execution — no command has been run for this row.
 
+#### TP-05-09
+
+Awaiting execution — no command has been run for this row.
+
+#### TP-05-10
+
+Awaiting execution — no command has been run for this row.
+
 ## Completion Statement
 
 SCOPE-5 is not complete. Every Definition of Done item remains unchecked and

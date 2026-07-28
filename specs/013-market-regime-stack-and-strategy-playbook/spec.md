@@ -2660,3 +2660,124 @@ flowchart TD
     C --> A
     E --> A
 ```
+
+---
+
+## Additional Business Scenarios — Review Findings
+
+Six scenarios added by an analyst review pass over the sections above. Each closes a defect
+verified by direct measurement of this file (counts recorded in the closing table). They follow
+the same contract as `## Business Scenarios`: exactly one falsifiable behavior per scenario, and
+no execution, allocation, exposure, direction, win-rate, or probability-of-outcome claim.
+
+### BS-013-025: A contradiction requires matched comparands and no lane silently wins the headline
+
+```gherkin
+Scenario: Mismatched facets report as divergence, not as a contradiction
+  Given the trend-structure facet reads "risk-on" at the structural horizon
+  And the dealer/auction facet reads "trend-day" at the tactical horizon
+  And the two facets differ in facet kind and in horizon class
+  When the system composes the combined regime
+  Then the pair is reported as a divergence with the reason "different facet kind and horizon"
+  And it is not recorded as a contradiction
+  And a contradiction record is emitted only when subject, facet kind, horizon class, and
+    as-of cutoff all match between the two facets
+  And the headline archetype does not adopt either facet's value by lane precedence
+  And any surface stating that the headline reflects the structural lane is reported as a
+    precedence rule that violates BP-6
+```
+
+### BS-013-026: Correlated facets collapse to one evidence family and thin coverage renders Unresolved
+
+```gherkin
+Scenario: Facets sharing an underlying input cannot inflate the confirmation denominator
+  Given the sentiment facet is derived from a Fear & Greed score
+  And the volatility facet is derived from VIX
+  And the equity-trend facet is derived from SPY
+  And the declared independent-origin map assigns two of those facets to the same underlying
+    input or the same mechanism
+  When the system counts confirmation for the combined regime
+  Then those two facets collapse to one evidence family in the denominator
+  And the displayed ratio names each counted family rather than each counted facet
+  And when the number of independent evidence families is below the declared minimum coverage
+    for that read, the archetype renders "Unresolved"
+  And no "n of n" confirmation is displayed for a read below that minimum coverage
+```
+
+### BS-013-027: A growth or inflation axis name requires inputs capable of identifying that axis
+
+```gherkin
+Scenario: Sentiment and stress proxies cannot carry a growth-inflation axis name
+  Given the quadrant's only available inputs are a Fear & Greed score and VIX
+  And the declared axis-identification requirement for a growth axis or an inflation axis names
+    inputs such as real yields, breakevens, curve shape, commodities, or cyclical-versus-
+    defensive relationships
+  When the quadrant is rendered on any surface
+  Then it does not use a growth axis name or an inflation axis name
+  And it renders as a sentiment/stress state, or as "Unresolved" when even that is unsupported
+  And its input attribution names the Fear & Greed score and VIX explicitly
+  And when the axis-identifying inputs are present, the growth or inflation axis name is
+    permitted and each axis cites the specific inputs that identified it
+```
+
+### BS-013-028: Persistence is expressed in exactly one declared closed vocabulary
+
+```gherkin
+Scenario: A persistence value outside the single declared vocabulary is refused
+  Given the specification declares exactly one closed persistence vocabulary
+  And every surface, contract, and published read is bound to that one vocabulary
+  When a facet, transition record, or published read carries a persistence value
+  Then the value is a member of the declared closed vocabulary
+  And a value drawn from any other persistence vocabulary is refused with the reason
+    "persistence value outside the declared closed vocabulary"
+  And the refused value is not silently mapped, aliased, or coerced into a member of the
+    declared vocabulary
+  And any second persistence vocabulary found in the specification or in any surface is
+    reported as a vocabulary-divergence defect
+```
+
+### BS-013-029: Model-derived claims are verified by recomputation, never by independent origins
+
+```gherkin
+Scenario: A model-derived claim is verified by lineage and deterministic recomputation
+  Given the Brief view presents the model-derived claim "tactical equals risk-off"
+  And the claim is classified as model-derived rather than externally observed
+  When the reader requests verification of that claim
+  Then the claim presents its reproducible inputs, its lineage, its composer/model version, and
+    a deterministic recomputation that reproduces the stated value
+  And the claim is not blocked for lacking two independent origins
+  And the claim is not treated as verified merely because two origins agree with it
+  And an externally-observed factual claim on the same surface still requires two independent
+    origins
+  And the two classes are labeled distinctly and are visually and structurally separated
+```
+
+### BS-013-030: The active specification carries no embedded process metadata
+
+```gherkin
+Scenario: Agent result envelopes and stale authoring claims are absent from the active spec
+  Given the active specification is the requirement surface read by downstream owners
+  When the specification is inspected for process metadata
+  Then it contains zero embedded agent result-envelope blocks
+  And it contains zero "not yet written" claims about sections that exist in the same file
+  And any agent result envelope for a run is recorded in that run's execution artifact instead
+  And a stale authoring claim that contradicts the file's own contents is reported as a
+    stale-process-metadata defect
+```
+
+### Finding-to-scenario map
+
+Evidence counts below were measured directly against this file during the review pass.
+
+| New BS | Finding it closes | Verified evidence in this file |
+|---|---|---|
+| BS-013-025 | BP-6 forbids resolving contradictions by precedence, yet surfaces assert the headline reflects the structural lane; contradictions are also asserted across mismatched facet kinds and horizons | `BP-6` at line 227 (`### Business Policies`, line 195) states disagreement is "displayed, not resolved by averaging, precedence, or majority vote"; **6** occurrences of `structural lane` / `structural-lane` describing headline precedence |
+| BS-013-026 | Evidence-family collapse is defined only for ratio pairs (FR-003), so the confirmation denominator (FR-015) can still count facets derived from the same underlying series as independent | Family collapse scoped to ratio pairs in FR-003; no independent-origin map or minimum-coverage floor governs the FR-015 denominator; correlated inputs (SPY, Fear & Greed, VIX, credit) each contribute a separate facet |
+| BS-013-027 | The quadrant names growth and inflation axes while its only inputs are a Fear & Greed score and VIX, which cannot identify either axis | BS-013-005 fixes the quadrant's inputs to "a Fear & Greed score and VIX" and constrains only the `market-implied` label, not the growth/inflation axis names themselves |
+| BS-013-028 | At least three divergent persistence vocabularies coexist | `unavailable → computed → persistent` lifecycle wording at line 171; `candidate` \| `confirmed` \| `fading` \| `transitioned` at line 832; `forming` / `persistent` / `fading` in the `FacetRow` contract at line 1750 |
+| BS-013-029 | The Brief view's independent-origin requirement is applied to model-derived claims, and recomputation-based provenance is entirely absent | **7** occurrences of `independent origin` (**5** of `two independent`), applied to material claims including model-derived ones such as `tactical equals risk-off`; **0** occurrences of `deterministic recomputation` / `deterministic re-computation` |
+| BS-013-030 | The active spec embeds agent process metadata and stale authoring claims that its own contents contradict | **5** `## RESULT-ENVELOPE` blocks (lines 244, 411, 728, 1145, 1596); **4** `NOT YET WRITTEN` claims whose named sections now exist in this file |
+
+Removal of the embedded result-envelope blocks and the stale authoring claims is the work
+BS-013-030 specifies; it is planned here and executed by its owning scope, not by this
+review pass.

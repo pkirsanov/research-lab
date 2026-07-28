@@ -14,7 +14,7 @@ Publish the composed owner read deterministically from the headless refresh pipe
 |---|---|
 | `scripts/brief-refresh.mjs` | Add the deterministic `DERIVED` adapter for the composed owner read (deterministic set 5 → 6). |
 
-`rlregime.js` is consumed as delivered by SCOPE-2 and `market-regime-lab.html` by SCOPE-4. `data/**` snapshots stay protected — this scope reads them and writes none.
+`./rlregime.js` is consumed as delivered by SCOPE-2 and `./market-regime-lab.html` by SCOPE-4. `data/**` snapshots stay protected — this scope reads them and writes none.
 
 ## Gherkin Scenarios
 

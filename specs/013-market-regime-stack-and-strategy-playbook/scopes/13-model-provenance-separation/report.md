@@ -1,4 +1,4 @@
-# SCOPE-7: Headless DERIVED owner read — Execution Report
+# SCOPE-13: Model provenance separation — Execution Report
 
 ## Summary
 
@@ -8,47 +8,31 @@ Test Plan row at implementation time.
 
 ## Test Evidence
 
-#### TP-07-01
+#### TP-13-01
 
 Awaiting execution — no command has been run for this row.
 
-#### TP-07-02
+#### TP-13-02
 
 Awaiting execution — no command has been run for this row.
 
-#### TP-07-03
+#### TP-13-03
 
 Awaiting execution — no command has been run for this row.
 
-#### TP-07-04
+#### TP-13-04
 
 Awaiting execution — no command has been run for this row.
 
-#### TP-07-05
+#### TP-13-05
 
 Awaiting execution — no command has been run for this row.
 
-#### TP-07-06
-
-Awaiting execution — no command has been run for this row.
-
-#### TP-07-07
-
-Awaiting execution — no command has been run for this row.
-
-#### TP-07-08
-
-Awaiting execution — no command has been run for this row.
-
-#### TP-07-09
-
-Awaiting execution — no command has been run for this row.
-
-#### TP-07-10
+#### TP-13-06
 
 Awaiting execution — no command has been run for this row.
 
 ## Completion Statement
 
-SCOPE-7 is not complete. Every Definition of Done item remains unchecked and
+SCOPE-13 is not complete. Every Definition of Done item remains unchecked and
 every Test Plan row above remains unexecuted.

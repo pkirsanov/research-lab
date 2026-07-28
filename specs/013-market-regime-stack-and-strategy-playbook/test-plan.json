@@ -6,7 +6,7 @@
   "featureDir": "specs/013-market-regime-stack-and-strategy-playbook",
   "generatedBy": "bubbles.plan",
   "evidenceBoundary": "Planning-owned structured mirror of the Markdown Test Plan tables in scopes/NN-*/scope.md. Feature 013 has not been implemented and no command below has been run, so every test carries status 'planned'. An execution agent flips a test's status only after running its command and recording the raw output under the matching report.md anchor.",
-  "totalTests": 87,
+  "totalTests": 123,
   "scopes": [
     {
       "scopeId": "SCOPE-1",
@@ -113,7 +113,7 @@
           "id": "TP-02-01",
           "category": "functional",
           "file": "scripts/selftest.mjs",
-          "description": "BS-013-001 — a facet tuple with an exact entry in regime-archetypes.json composes to that enumerated archetype name together with its k/m confirmation denominator.",
+          "description": "BS-013-001 — a facet tuple with an exact entry in ./regime-archetypes.json composes to that enumerated archetype name together with its k/m confirmation denominator.",
           "command": "node scripts/selftest.mjs",
           "liveSystem": false,
           "status": "planned"
@@ -245,7 +245,7 @@
       "dependsOn": [
         "SCOPE-2"
       ],
-      "testCount": 9,
+      "testCount": 10,
       "tests": [
         {
           "id": "TP-03-01",
@@ -278,7 +278,7 @@
           "id": "TP-03-04",
           "category": "functional",
           "file": "scripts/selftest.mjs",
-          "description": "The credit-quality-pulse, real-assets, global-rotation, and FX dollar sources read their readings from RLRATIO over pairs declared in ratio-pairs.json, real-assets propagates the proxy caveat onto its published facet, and global-rotation emits not-comparable where a pair fails the comparability predicate.",
+          "description": "The credit-quality-pulse, real-assets, and global-rotation sources read their readings from RLRATIO over pairs declared in ./ratio-pairs.json, real-assets propagates the proxy caveat onto its published facet, and global-rotation emits not-comparable where a pair fails the comparability predicate.",
           "command": "node scripts/selftest.mjs",
           "liveSystem": false,
           "status": "planned"
@@ -296,7 +296,7 @@
           "id": "TP-03-06",
           "category": "functional",
           "file": "scripts/selftest.mjs",
-          "description": "ADVERSARIAL RED-bite — introduce a source-side cycle fixture in which a shim imports rlregime.js and declares the composed regime as a facet input. The named IP-002 no-cycle test MUST fail under that fixture, resolving to an explicit lint-failure state rather than a value, and MUST pass against the delivered one-way shims.",
+          "description": "ADVERSARIAL RED-bite — introduce a source-side cycle fixture in which a shim imports ./rlregime.js and declares the composed regime as a facet input. The named IP-002 no-cycle test MUST fail under that fixture, resolving to an explicit lint-failure state rather than a value, and MUST pass against the delivered one-way shims.",
           "command": "node scripts/selftest.mjs",
           "liveSystem": false,
           "status": "planned"
@@ -324,6 +324,15 @@
           "category": "stress",
           "file": "scripts/selftest.mjs",
           "description": "Stress coverage for the shared-cache facet publication path: a repeated high-volume publication run across every registered facet source asserts that the Tier 0 facet slot append stays bounded, that repeated writes for the same source replace rather than accumulate, and that write throughput does not degrade across the run.",
+          "command": "node scripts/selftest.mjs",
+          "liveSystem": false,
+          "status": "planned"
+        },
+        {
+          "id": "TP-03-10",
+          "category": "functional",
+          "file": "scripts/selftest.mjs",
+          "description": "The declared fx slot has no shim host in this feature, so the fixture asserts fx.dollar composes as availability 'unavailable' with SOURCE_UNAVAILABLE, is excluded from m, and is named in excludedFacetIds \u2014 never a neutral vote, never 0, and never a rendered FX value.",
           "command": "node scripts/selftest.mjs",
           "liveSystem": false,
           "status": "planned"
@@ -492,7 +501,7 @@
           "id": "TP-05-03",
           "category": "unit",
           "file": "scripts/selftest.mjs",
-          "description": "The adapterPolicy.moduleAllowlist in tool-experience.config.json holds exactly 7 entries after registration, proving the tool composes via the root-level rlregime.js UMD and introduces no new adapter module.",
+          "description": "The adapterPolicy.moduleAllowlist in tool-experience.config.json holds exactly 7 entries after registration, proving the tool composes via the root-level ./rlregime.js UMD and introduces no new adapter module.",
           "command": "node scripts/selftest.mjs",
           "liveSystem": false,
           "status": "planned"
@@ -890,6 +899,394 @@
           "description": "Persistent scenario-specific regression coverage for closure: the real-page regression spec holds the permanently registered protected-scenario cases contributed by SCOPE-1 through SCOPE-7 and re-runs them as one set on the live page.",
           "command": "npx --no-install playwright test tests/market-regime-lab.spec.mjs --config=playwright.config.mjs --project=system-chrome --reporter=list",
           "liveSystem": true,
+          "status": "planned"
+        }
+      ]
+    },
+    {
+      "scopeId": "SCOPE-9",
+      "scopeName": "Contradiction comparand semantics",
+      "scopeDir": "scopes/09-contradiction-comparand-semantics",
+      "foundation": false,
+      "dependsOn": [
+        "SCOPE-2"
+      ],
+      "testCount": 6,
+      "tests": [
+        {
+          "id": "TP-09-01",
+          "category": "unit",
+          "file": "scripts/selftest.mjs",
+          "description": "**BS-013-025: A contradiction requires matched comparands** — a trend-structure structural-horizon reading and a dealer/auction tactical-horizon reading compose to a divergence record, and the contradiction list stays empty for that pair.",
+          "command": "node scripts/selftest.mjs",
+          "liveSystem": false,
+          "status": "planned"
+        },
+        {
+          "id": "TP-09-02",
+          "category": "unit",
+          "file": "scripts/selftest.mjs",
+          "description": "The emitted divergence carries the reason `different facet kind and horizon` derived from the comparand tuple rather than from surface prose, and a pair differing only in as-of cutoff names that member instead.",
+          "command": "node scripts/selftest.mjs",
+          "liveSystem": false,
+          "status": "planned"
+        },
+        {
+          "id": "TP-09-03",
+          "category": "functional",
+          "file": "scripts/selftest.mjs",
+          "description": "Positive path: two readings sharing all four comparand members with conflicting values produce exactly one contradiction record; changing any single member moves the same pair to the divergence path.",
+          "command": "node scripts/selftest.mjs",
+          "liveSystem": false,
+          "status": "planned"
+        },
+        {
+          "id": "TP-09-04",
+          "category": "functional",
+          "file": "scripts/selftest.mjs",
+          "description": "**ADVERSARIAL RED-bite** — a fixture supplies a structural-lane facet and a tactical-lane facet whose values disagree, then asserts the headline archetype resolves from the enumerated registry alone. Reintroducing any lane, tier, or horizon precedence ordering into headline selection MUST fail this named test.",
+          "command": "node scripts/selftest.mjs",
+          "liveSystem": false,
+          "status": "planned"
+        },
+        {
+          "id": "TP-09-05",
+          "category": "e2e-ui",
+          "file": "tests/market-regime-lab.spec.mjs",
+          "description": "Persistent scenario-specific regression coverage on the real page: divergence and contradiction render as two separately labeled states, and the rendered text contains no statement that the headline reflects the structural lane or any other lane. A reintroduced precedence claim fails this named test by name.",
+          "command": "npx --no-install playwright test tests/market-regime-lab.spec.mjs --config=playwright.config.mjs --project=system-chrome",
+          "liveSystem": true,
+          "status": "planned"
+        },
+        {
+          "id": "TP-09-06",
+          "category": "functional",
+          "file": "scripts/selftest.mjs",
+          "description": "Broad-suite regression: the full selftest suite stays green with the comparand assertions added, every pre-existing group is preserved byte-for-byte, and the total passing count does not decrease.",
+          "command": "node scripts/selftest.mjs",
+          "liveSystem": false,
+          "status": "planned"
+        }
+      ]
+    },
+    {
+      "scopeId": "SCOPE-10",
+      "scopeName": "Independent evidence family coverage",
+      "scopeDir": "scopes/10-independent-family-coverage",
+      "foundation": false,
+      "dependsOn": [
+        "SCOPE-1",
+        "SCOPE-2"
+      ],
+      "testCount": 6,
+      "tests": [
+        {
+          "id": "TP-10-01",
+          "category": "unit",
+          "file": "scripts/selftest.mjs",
+          "description": "The generalized primitive collapses two facets carrying the same `evidenceFamilyId` into one family and leaves genuinely independent facets separate, using the same implementation as the SCOPE-1 ratio-pair collapse.",
+          "command": "node scripts/selftest.mjs",
+          "liveSystem": false,
+          "status": "planned"
+        },
+        {
+          "id": "TP-10-02",
+          "category": "functional",
+          "file": "scripts/selftest.mjs",
+          "description": "**BS-013-026: Correlated facets collapse to one evidence family** — the sentiment (Fear & Greed), volatility (VIX), and equity-trend (SPY) fixture, with two facets mapped to the same underlying input, produces a denominator of distinct families rather than three.",
+          "command": "node scripts/selftest.mjs",
+          "liveSystem": false,
+          "status": "planned"
+        },
+        {
+          "id": "TP-10-03",
+          "category": "unit",
+          "file": "scripts/selftest.mjs",
+          "description": "The produced confirmation payload carries the named family ids that were counted, so the rendered ratio can name each family instead of emitting a bare count.",
+          "command": "node scripts/selftest.mjs",
+          "liveSystem": false,
+          "status": "planned"
+        },
+        {
+          "id": "TP-10-04",
+          "category": "functional",
+          "file": "scripts/selftest.mjs",
+          "description": "**ADVERSARIAL RED-bite** — a fixture whose three facets collapse to one family sits below the declared floor. The archetype MUST render `Unresolved`, the confirmation payload MUST carry no `n of n` string, and removing the coverage floor MUST fail this named test.",
+          "command": "node scripts/selftest.mjs",
+          "liveSystem": false,
+          "status": "planned"
+        },
+        {
+          "id": "TP-10-05",
+          "category": "e2e-ui",
+          "file": "tests/market-regime-lab.spec.mjs",
+          "description": "Persistent scenario-specific regression coverage on the real page: the rendered confirmation names its counted families, and a below-floor read renders `Unresolved` with no `n of n` ratio anywhere in the rendered text. A reintroduced facet-count denominator fails this named test by name.",
+          "command": "npx --no-install playwright test tests/market-regime-lab.spec.mjs --config=playwright.config.mjs --project=system-chrome",
+          "liveSystem": true,
+          "status": "planned"
+        },
+        {
+          "id": "TP-10-06",
+          "category": "functional",
+          "file": "scripts/selftest.mjs",
+          "description": "Broad-suite regression: the full selftest suite stays green with the generalized collapse and the coverage floor added, the SCOPE-1 ratio-pair family assertions still pass unchanged, and the total passing count does not decrease.",
+          "command": "node scripts/selftest.mjs",
+          "liveSystem": false,
+          "status": "planned"
+        }
+      ]
+    },
+    {
+      "scopeId": "SCOPE-11",
+      "scopeName": "Quadrant input sufficiency",
+      "scopeDir": "scopes/11-quadrant-input-sufficiency",
+      "foundation": false,
+      "dependsOn": [
+        "SCOPE-4"
+      ],
+      "testCount": 6,
+      "tests": [
+        {
+          "id": "TP-11-01",
+          "category": "unit",
+          "file": "scripts/selftest.mjs",
+          "description": "The declared requirement enumerates the input classes capable of identifying the growth and inflation axes, and an undeclared input never satisfies an axis regardless of its value.",
+          "command": "node scripts/selftest.mjs",
+          "liveSystem": false,
+          "status": "planned"
+        },
+        {
+          "id": "TP-11-02",
+          "category": "functional",
+          "file": "scripts/selftest.mjs",
+          "description": "**BS-013-027: A growth or inflation axis name requires identifying inputs** — the proxy-only fixture produces an axis-permission decision of refused for both axes and a sentiment/stress state instead.",
+          "command": "node scripts/selftest.mjs",
+          "liveSystem": false,
+          "status": "planned"
+        },
+        {
+          "id": "TP-11-03",
+          "category": "functional",
+          "file": "scripts/selftest.mjs",
+          "description": "Positive path: a fixture supplying real yields, breakevens, and curve shape permits the axis names and emits, per axis, the specific inputs that satisfied the requirement.",
+          "command": "node scripts/selftest.mjs",
+          "liveSystem": false,
+          "status": "planned"
+        },
+        {
+          "id": "TP-11-04",
+          "category": "unit",
+          "file": "scripts/selftest.mjs",
+          "description": "The unsupported fixture resolves to `Unresolved` carrying a reason code and a what-would-resolve statement naming the missing axis-identifying inputs, never a blank or neutral quadrant.",
+          "command": "node scripts/selftest.mjs",
+          "liveSystem": false,
+          "status": "planned"
+        },
+        {
+          "id": "TP-11-05",
+          "category": "e2e-ui",
+          "file": "tests/market-regime-lab.spec.mjs",
+          "description": "**ADVERSARIAL RED-bite**, persistent and named — on the real page with a proxy-only input set, the rendered quadrant text MUST contain no growth axis name and no inflation axis name anywhere in its labels, axis titles, or legend, and MUST name the Fear & Greed score and VIX explicitly. Reintroducing a growth/inflation axis label under proxy-only inputs fails this named test by name.",
+          "command": "npx --no-install playwright test tests/market-regime-lab.spec.mjs --config=playwright.config.mjs --project=system-chrome",
+          "liveSystem": true,
+          "status": "planned"
+        },
+        {
+          "id": "TP-11-06",
+          "category": "functional",
+          "file": "scripts/selftest.mjs",
+          "description": "Broad-suite regression: the full selftest suite stays green with the axis-permission predicate added, the SCOPE-4 quadrant assertions for BS-013-005 still pass unchanged, and the total passing count does not decrease.",
+          "command": "node scripts/selftest.mjs",
+          "liveSystem": false,
+          "status": "planned"
+        }
+      ]
+    },
+    {
+      "scopeId": "SCOPE-12",
+      "scopeName": "Persistence vocabulary unification",
+      "scopeDir": "scopes/12-persistence-vocabulary-unification",
+      "foundation": false,
+      "dependsOn": [
+        "SCOPE-2",
+        "SCOPE-3"
+      ],
+      "testCount": 6,
+      "tests": [
+        {
+          "id": "TP-12-01",
+          "category": "unit",
+          "file": "scripts/selftest.mjs",
+          "description": "The declaration is a single enumerated member set; membership is exact-match only, with no alias table, no nearest-member match, and no default member.",
+          "command": "node scripts/selftest.mjs",
+          "liveSystem": false,
+          "status": "planned"
+        },
+        {
+          "id": "TP-12-02",
+          "category": "functional",
+          "file": "scripts/selftest.mjs",
+          "description": "**BS-013-028: A persistence value outside the single declared vocabulary is refused** — an out-of-vocabulary value is refused with the reason `persistence value outside the declared closed vocabulary`, and the refused value never appears mapped into a declared member.",
+          "command": "node scripts/selftest.mjs",
+          "liveSystem": false,
+          "status": "planned"
+        },
+        {
+          "id": "TP-12-03",
+          "category": "integration",
+          "file": "scripts/selftest.mjs",
+          "description": "Every producer resolves its persistence state names from the single declaration rather than a local word set, so the gate, the transition record, the `FacetRow` contract, and the published read agree member-for-member.",
+          "command": "node scripts/selftest.mjs",
+          "liveSystem": false,
+          "status": "planned"
+        },
+        {
+          "id": "TP-12-04",
+          "category": "functional",
+          "file": "scripts/selftest.mjs",
+          "description": "**ADVERSARIAL RED-bite** — a fixture reintroduces a `candidate` / `confirmed` / `fading` / `transitioned` word set alongside the declaration. The named test MUST fail under that fixture and MUST pass against the unified delivery.",
+          "command": "node scripts/selftest.mjs",
+          "liveSystem": false,
+          "status": "planned"
+        },
+        {
+          "id": "TP-12-05",
+          "category": "e2e-ui",
+          "file": "tests/market-regime-lab.spec.mjs",
+          "description": "Persistent scenario-specific regression coverage on the real page: every persistence label rendered across the Simple, Power, Brief, and Journey views is a member of the one declared vocabulary, and no second persistence word set appears in the rendered text. A reintroduced alternative word fails this named test by name.",
+          "command": "npx --no-install playwright test tests/market-regime-lab.spec.mjs --config=playwright.config.mjs --project=system-chrome",
+          "liveSystem": true,
+          "status": "planned"
+        },
+        {
+          "id": "TP-12-06",
+          "category": "functional",
+          "file": "scripts/selftest.mjs",
+          "description": "Broad-suite regression: the full selftest suite stays green with the unified vocabulary bound across every producer, the SCOPE-2 persistence-gate assertions and the SCOPE-3 vocabulary-mapping assertions still pass, and the total passing count does not decrease.",
+          "command": "node scripts/selftest.mjs",
+          "liveSystem": false,
+          "status": "planned"
+        }
+      ]
+    },
+    {
+      "scopeId": "SCOPE-13",
+      "scopeName": "Model provenance separation",
+      "scopeDir": "scopes/13-model-provenance-separation",
+      "foundation": false,
+      "dependsOn": [
+        "SCOPE-2",
+        "SCOPE-4"
+      ],
+      "testCount": 6,
+      "tests": [
+        {
+          "id": "TP-13-01",
+          "category": "unit",
+          "file": "scripts/selftest.mjs",
+          "description": "The classification is declared per claim; an unclassified claim is refused rather than defaulted into either class.",
+          "command": "node scripts/selftest.mjs",
+          "liveSystem": false,
+          "status": "planned"
+        },
+        {
+          "id": "TP-13-02",
+          "category": "functional",
+          "file": "scripts/selftest.mjs",
+          "description": "**BS-013-029: A model-derived claim is verified by lineage and deterministic recomputation** — the `tactical equals risk-off` fixture emits the full verification bundle and the recomputation reproduces the stated value exactly.",
+          "command": "node scripts/selftest.mjs",
+          "liveSystem": false,
+          "status": "planned"
+        },
+        {
+          "id": "TP-13-03",
+          "category": "functional",
+          "file": "scripts/selftest.mjs",
+          "description": "The origin requirement is applied to `externally-observed` claims only: the model-derived fixture verifies with a single origin, and the externally-observed fixture with one origin resolves to an unverified state.",
+          "command": "node scripts/selftest.mjs",
+          "liveSystem": false,
+          "status": "planned"
+        },
+        {
+          "id": "TP-13-04",
+          "category": "functional",
+          "file": "scripts/selftest.mjs",
+          "description": "**ADVERSARIAL RED-bite** — a fixture supplies two independent origins agreeing with a model-derived claim whose recomputation reproduces a different value. The named test MUST resolve the claim to unverified; treating origin agreement as verification MUST fail it.",
+          "command": "node scripts/selftest.mjs",
+          "liveSystem": false,
+          "status": "planned"
+        },
+        {
+          "id": "TP-13-05",
+          "category": "e2e-ui",
+          "file": "tests/market-regime-lab.spec.mjs",
+          "description": "Persistent scenario-specific regression coverage on the real page: the Brief view renders the two claim classes under distinct labels in structurally separate regions, presents the recomputation evidence for a model-derived claim, and shows no two-origin block on a model-derived claim. Collapsing the two classes into one region fails this named test by name.",
+          "command": "npx --no-install playwright test tests/market-regime-lab.spec.mjs --config=playwright.config.mjs --project=system-chrome",
+          "liveSystem": true,
+          "status": "planned"
+        },
+        {
+          "id": "TP-13-06",
+          "category": "integration",
+          "file": "scripts/selftest.mjs",
+          "description": "Headless parity: for identical frozen inputs the `scripts/brief-refresh.mjs` `DERIVED` adapter and the browser publication emit an identical classification and an identical verification bundle per claim.",
+          "command": "node scripts/selftest.mjs",
+          "liveSystem": false,
+          "status": "planned"
+        }
+      ]
+    },
+    {
+      "scopeId": "SCOPE-14",
+      "scopeName": "Specification hygiene — process metadata removal",
+      "scopeDir": "scopes/14-spec-hygiene-process-metadata",
+      "foundation": false,
+      "dependsOn": [],
+      "testCount": 5,
+      "tests": [
+        {
+          "id": "TP-14-01",
+          "category": "functional",
+          "file": "scripts/selftest.mjs",
+          "description": "**BS-013-030: The active specification carries no embedded process metadata** — the guard scans the active `spec.md` and asserts an embedded result-envelope block count of zero, against the 5 blocks measured by the review pass.",
+          "command": "node scripts/selftest.mjs",
+          "liveSystem": false,
+          "status": "planned"
+        },
+        {
+          "id": "TP-14-02",
+          "category": "functional",
+          "file": "scripts/selftest.mjs",
+          "description": "The guard asserts zero remaining authoring claims that a section is unwritten while that named section exists in the same file, against the 4 claims measured by the review pass, and reports any survivor as a stale-process-metadata defect naming the contradicting section.",
+          "command": "node scripts/selftest.mjs",
+          "liveSystem": false,
+          "status": "planned"
+        },
+        {
+          "id": "TP-14-03",
+          "category": "unit",
+          "file": "scripts/selftest.mjs",
+          "description": "The removal is confined to process metadata: the counts and ids of business scenarios, functional requirements, and business policies in `spec.md` are unchanged from before the edit.",
+          "command": "node scripts/selftest.mjs",
+          "liveSystem": false,
+          "status": "planned"
+        },
+        {
+          "id": "TP-14-04",
+          "category": "functional",
+          "file": "scripts/selftest.mjs",
+          "description": "**ADVERSARIAL RED-bite**, persistent and named — a fixture reintroduces one embedded result-envelope block and one stale authoring claim into a specification fixture. The named guard MUST fail under that fixture and MUST pass against the cleaned specification. This is the permanent regression protection for this scope.",
+          "command": "node scripts/selftest.mjs",
+          "liveSystem": false,
+          "status": "planned"
+        },
+        {
+          "id": "TP-14-05",
+          "category": "functional",
+          "file": "scripts/selftest.mjs",
+          "description": "Broad-suite regression: the full selftest suite stays green with the additive `spec-hygiene` group, every pre-existing group is preserved byte-for-byte, and the total passing count does not decrease.",
+          "command": "node scripts/selftest.mjs",
+          "liveSystem": false,
           "status": "planned"
         }
       ]

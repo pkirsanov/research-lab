@@ -1,0 +1,180 @@
+Audit attempt AUD-013-001 for specs/013-market-regime-stack-and-strategy-playbook
+Agent: bubbles.audit
+Audit profile: planning-maturity-v1 (resolved from the registry, not caller-selected)
+Recorded: 2026-07-28T07:31:31Z
+
+This file is the canonical ASCII transcript for the ACTIVE audit attempt recorded at
+state.json .execution.audit. The same AUDIT_RESULT_V1 block is embedded in report.md.
+
+BEGIN TRANSITION_GUARD_RESULT_V1
+schemaVersion: transition-guard-result/v1
+workflowMode: product-to-planning
+auditProfile: planning-maturity-v1
+targetStatus: specs_hardened
+contractDigest: sha256:b3cb88eff3d0f9298932bc3b00c7f9ed9079ac5b7c074749656a18c6d80d3190
+targetRevision: sha256:78f2d2da12e65acf2275c4c3e79fdc183bff826041c15da37f64fe0875db1351
+applicableCheckClasses: [universal,mode-required,planning-maturity]
+notApplicableChecks: [Check-4-completion,Check-5-all-done,Check-8-file-existence,Check-11-execution-evidence]
+passedGateIds: [G073,G051,G068,G082,G083,G084,G128,G085,G086,G091,G087,G093,G088,G089,G092,G090,G094,G095,G097,G098,G099,G100,G130,G131,G001,G002,G006,G007,G008,G010,G011,G012,G014,G015,G016,G032]
+failedGateIds: []
+failedChecks: []
+blockingCode: none
+failureCount: 0
+exitStatus: 0
+verdict: PASS
+END TRANSITION_GUARD_RESULT_V1
+
+target: specs/013-market-regime-stack-and-strategy-playbook
+mode: product-to-planning
+audit class: planning-maturity
+ceiling: specs_hardened
+verdict: PLANNING_REWORK_REQUIRED
+
+WHAT THIS ATTEMPT IS
+This is the first audit attempt on this packet. Before it, state.json .execution.audit
+was null and no AUDIT_RESULT_V1 transcript existed, which is why bubbles.validate refused
+to write terminal certification. This attempt supplies the missing ACTIVE record.
+
+This packet contains zero implementation by design. Absent implementation was NOT treated
+as a defect. Planning maturity is the ceiling and the four delivery-completion checks are
+rendered NOT_APPLICABLE, never as a pass:
+  Check-4-completion         NOT_APPLICABLE
+  Check-5-all-done           NOT_APPLICABLE
+  Check-8-file-existence     NOT_APPLICABLE
+  Check-11-execution-evidence NOT_APPLICABLE
+
+WHAT VERIFIED CLEAN
+1. Honesty. 0 of 139 scope Definition of Done items are checked, across all 8 scope files.
+   The 47 checked boxes in the packet live only in uservalidation.md, which is the
+   framework's checked-by-default acceptance baseline and is not a DoD surface. All 8
+   scopes read "Not Started". Zero fabricated-execution phrases. All 88 report evidence
+   slots carry the literal awaiting-execution sentence. Status trio is blocked / blocked /
+   null and this attempt did not alter it.
+2. Test Plan traceability. Three-way reconciliation of Test Plan row IDs is exact:
+   88 in the scope.md tables, 88 report.md anchors, 88 in test-plan.json, with an empty
+   symmetric difference in every direction. Per-scope counts 9/14/10/13/10/10/10/12 agree
+   across the report.md Summary table, the scope files and the report anchors, and sum to
+   88. test-plan.json totalTests is 88 and equals the sum of its per-scope rows. Every one
+   of the 88 rows has a matching TP-tagged, unchecked DoD item; zero rows lack one.
+3. Scope DAG. The dependency graph is acyclic and the per-scope "Depends On" lines agree
+   with the _index.md table for all 8 scopes.
+4. Architecture. The Tier0 -> Tier1 -> Tier2 -> Tier3 graph carries no back-edge into
+   Tier 0 or Tier 1; every Tier-2 and Tier-3 edge points forward, so the Tier1 -> Tier2
+   edge is one-way as claimed. The two-entry-point RLREGIME contract is stated explicitly,
+   with composeRegime Tier-2-only, readPublishedContext display-only, and no third entry
+   point. design.md Implementation Boundary authorizes exactly 9 Tier-1 shim hosts.
+5. OQ-1. The fx resolution holds and is load-bearing rather than decorative. fx appears as
+   a declared Tier-1 slot, a DAG node, a source-table row whose host is "none", a resolved
+   open question with rejected alternatives, and the machine key
+   declaredSlotWithNoShimHost. It appears in the shim tables only in the prose that
+   excludes it. The BP-1 cycle rationale was checked against real source: rldata.js:309
+   does call root.RLFX.normalizeSourceEnvelope, guarded at rldata.js:298 and rldata.js:312,
+   so a shared-cache write inside rlfx.js would indeed close the rldata.js -> RLFX ->
+   rldata.js cycle. rlfx.js is correctly consumed-not-modified.
+6. Citations. Every load-bearing line citation resolves to the claimed construct:
+   rlvol.js:335 regimeBand, bond-regime-lab.html:1419 classifyCreditRegime,
+   :1455 classifyCurveState, :1709 classifyDurationPosture (three separate classifiers,
+   matching the never-blended claim), and real-assets-lab.html:1170 for the proxy caveat.
+   The cross-spec citation is also exact: specs/004-fx-regime-relative-value-lab/state.json
+   really does report status not_started.
+7. File paths. All 6 files declared NEW are absent from disk, consistent with zero
+   implementation. All 8 same-change registry targets exist, all 9 shim hosts exist, and
+   all consumed-not-modified files exist. No artifact names a path that neither exists nor
+   is declared NEW.
+8. Deferral language. Five hits of the forbidden vocabulary exist. All five are the same
+   requestAnimationFrame render-timing idiom, and three of them explicitly forbid
+   deferring a draw. The camelCase authoring key sectionsDeferredToLaterChunks is empty.
+   None defers work, so none is raised. The guard independently rendered its own
+   deferral-language check NOT_APPLICABLE at planning maturity.
+9. Source-edit lockout. G073 passed at the time of this attempt.
+
+FINDINGS THAT REMAIN OPEN
+Both findings share one root cause: a stale 22-scenario baseline survived in two
+planning-owned artifacts after the scenario set grew to 24. Neither weakens the
+architecture, the scope DAG, the Test Plan traceability or the status honesty above.
+
+AUDIT-013-001-report-scenario-range  (severity medium, owner bubbles.plan)
+  report.md line 30 asserts: "Business scenarios BS-013-001 ... BS-013-022 are each owned
+  by exactly one scope per scopes/_index.md". That range is wrong. Six artifacts carry 24
+  scenarios: spec.md, scopes/_index.md, scenario-manifest.json, test-plan.json and the
+  SCOPE-5 and SCOPE-8 scope files. scopes/_index.md line 99 states the authoritative form
+  of the same sentence using BS-013-001 ... BS-013-024. Gate G068 independently counted 24
+  Gherkin scenarios. report.md line 30 is a stale copy of the _index.md sentence and is
+  contradicted by the artifact it cites.
+  Fix: correct the range in report.md line 30 to BS-013-024.
+
+AUDIT-013-002-uservalidation-scenario-coverage  (severity medium, owner bubbles.plan)
+  uservalidation.md covers BS-013-001 through BS-013-022 contiguously and omits
+  BS-013-023 (a registry entry and its hard-asserted count are refused unless they move
+  together, owned by SCOPE-5) and BS-013-024 (one regression inside the protected scenario
+  set refuses governance closure, owned by SCOPE-8). Its section header at line 19
+  self-declares the truncated range. No rationale for excluding the two is documented
+  anywhere in the packet, so a reader cannot tell a deliberate scoping choice from the
+  same stale baseline that produced AUDIT-013-001; the evidence points to the latter.
+  Consequence: the acceptance surface cannot receive a user regression report for those
+  two governance-refusal behaviours.
+  Fix: either add the two acceptance items, or state an explicit documented rationale for
+  their exclusion and correct the header range.
+
+PRIOR FINDINGS CARRIED AND CLOSED
+VALIDATE-A-audit-attempt-absent      closed by this attempt existing as the ACTIVE record.
+VALIDATE-B-report-count-drift        re-verified independently: the 88/88/88 three-way
+                                     reconciliation is exact and the Completion Statement
+                                     states the true blocked / blocked / null trio.
+VALIDATE-C-g073-transient-lockout    re-verified. It recurred once during this audit: at
+                                     07:23:51Z the guard failed with SOURCE_EDIT_LOCKOUT
+                                     on etf-momentum-lab.html, modified at 07:21:40Z. That
+                                     file is named nowhere in this packet and 013 declares
+                                     no deliverableFiles, so it is not 013's. It was the
+                                     concurrent feature-012 scope-15 adapter wiring, which
+                                     landed as commit 801df1d2. It was not touched,
+                                     reverted, stashed or committed by this audit. The
+                                     re-run at 07:31:31Z passed with a clean tree.
+
+WHY NOT CLEAN
+PLANNING_AUDIT_CLEAN requires an empty unresolved finding set. Two findings remain open,
+so the honest verdict is PLANNING_REWORK_REQUIRED routed to bubbles.plan. The mechanical
+guard passed all 36 applicable gates with zero failures; these two findings are semantic
+contradictions between artifacts that the guard cannot see, which is what this audit adds.
+
+AUTHORITY OBSERVED
+This attempt wrote only its own audit evidence: the AUDIT_RESULT_V1 block in report.md,
+this transcript, and the additive state.json .execution.audit record. It did not write
+certification.*, did not set status or certifiedAt, did not mark any scope Done, did not
+check any DoD item, and created or modified no .html, .js or .mjs source file.
+
+BEGIN AUDIT_RESULT_V1
+schemaVersion: audit-result/v1
+runId: RUN-013-AUDIT-20260728T073131Z
+attemptId: AUD-013-001
+target: specs/013-market-regime-stack-and-strategy-playbook
+targetRevision: sha256:78f2d2da12e65acf2275c4c3e79fdc183bff826041c15da37f64fe0875db1351
+workflowMode: product-to-planning
+modeClass: none
+auditClass: planning-maturity
+statusCeiling: specs_hardened
+requestedStatus: specs_hardened
+auditVerdict: PLANNING_REWORK_REQUIRED
+outcome: route_required
+resultState: ACTIVE
+certifiedStatus: none
+planningEvaluation: REWORK_REQUIRED
+deliveryEvaluation: NOT_EVALUATED
+sourceEditLockout: PASS
+applicableCheckClasses: [universal,mode-required,planning-maturity]
+notApplicableChecks: [Check-4-completion,Check-5-all-done,Check-8-file-existence,Check-11-execution-evidence]
+passedGateIds: [G073,G051,G068,G082,G083,G084,G128,G085,G086,G091,G087,G093,G088,G089,G092,G090,G094,G095,G097,G098,G099,G100,G130,G131,G001,G002,G006,G007,G008,G010,G011,G012,G014,G015,G016,G032]
+failedGateIds: []
+failedChecks: []
+blockingCode: PLANNING_GATE_FAILED
+unresolvedFields: []
+contradictions: [report.md#L30_scenario-range=001-022,scopes/_index.md#L99_scenario-range=001-024,uservalidation.md#L19_coverage=22-of-24]
+contractRef: bubbles/workflows/modes.yaml#product-to-planning
+contractDigest: sha256:b3cb88eff3d0f9298932bc3b00c7f9ed9079ac5b7c074749656a18c6d80d3190
+evidenceRefs: [report.md#AUDIT_RESULT_V1,audit-result.txt,scopes/_index.md#L99,uservalidation.md#L19,report.md#L30]
+addressedFindings: [VALIDATE-A-audit-attempt-absent,VALIDATE-B-report-count-drift,VALIDATE-C-g073-transient-lockout]
+unresolvedFindings: [AUDIT-013-001-report-scenario-range,AUDIT-013-002-uservalidation-scenario-coverage]
+nextRequiredOwner: bubbles.plan
+supersedesAttemptId: none
+resumeFromPhase: none
+END AUDIT_RESULT_V1

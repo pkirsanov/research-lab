@@ -1468,6 +1468,77 @@ async function companyScenarioOwnerState() {
   return ownerState;
 }
 
+/* fixed-income-sleeve owner state — the SAME shape bond-regime-lab.html's provider publishes
+   (contractVersion + toolId + asOf + source + regime + per-sleeve {id, label, rateDuration,
+   spreadDuration, convexity, rateShockKind, spreadShockKind, carry}).
+
+   PROVENANCE, STATED PLAINLY: that provider is a pure PASSTHROUGH of the page's OWN committed model
+   configuration. It reads runtime.config.sleeves[], indexes runtime.config.instruments[] by
+   proxyTicker through the page's own instrumentIndex(), and republishes rateDuration.valueYears,
+   spreadDuration.valueYears, convexity.valueYearsSquared and carry.valuePctAnnual verbatim. So this
+   builder reads that SAME committed artifact — bond-regime-universe.json, the file the page fetches —
+   and performs that SAME index-and-republish. Nothing is hand-typed and nothing is canned: change a
+   duration in the committed configuration and this owner state changes with it.
+
+   NO OWNER FORMULA IS REIMPLEMENTED HERE. The sleeve total-return decomposition stays exactly where
+   it belongs — RLMACROROTATION.sleeveTotalReturn — which the page's Power surface delegates to and
+   which the adapter calls for itself over these frozen characteristics.
+
+   THE REGIME FACTS ARE PUBLISHED AS THE PAGE PUBLISHES THEM WHEN IT HOLDS NO ALIGNED OBSERVATION.
+   realYieldChangeBp/breakevenChangeBp come from runtime.viewModel.inflationState, classified from
+   LIVE treasury nominal/real curve fetches this offline harness deliberately does not make, and
+   creditConfirmation is ALWAYS null in production because the page publishes no numeric credit
+   confirmation at all (classifyCreditRegime yields a category plus a confidence, nothing more).
+   Publishing nulls is therefore the page's own honest degradation path rather than an invented
+   number: the adapter's regime read stays "unavailable", and per fixedIncomeEvidenceState readiness
+   depends only on the sleeve characteristics, which the committed configuration does carry. */
+function bondSleeveOwnerState() {
+  const universe = readJson('bond-regime-universe.json');
+  const instruments = new Map((universe.instruments || []).map((instrument) => [instrument.ticker, instrument]));
+  const rows = Array.isArray(universe.sleeves) ? universe.sleeves : [];
+  assert.ok(rows.length >= 3, 'at least three committed sleeves are required for a fixed-income owner state');
+  assert.ok(universe.asOf, 'the committed bond model configuration must declare its own as-of');
+
+  const sleeves = rows.map((sleeve) => {
+    const instrument = instruments.get(sleeve.proxyTicker) || {};
+    return {
+      id: sleeve.id,
+      label: sleeve.label,
+      rateDuration: instrument.rateDuration ? instrument.rateDuration.valueYears : null,
+      spreadDuration: instrument.spreadDuration ? instrument.spreadDuration.valueYears : null,
+      convexity: instrument.convexity ? instrument.convexity.valueYearsSquared : null,
+      rateShockKind: sleeve.rateShockKind,
+      spreadShockKind: sleeve.spreadShockKind,
+      carry: instrument.carry ? instrument.carry.valuePctAnnual : null
+    };
+  });
+  // A sleeve that bears no credit spread keeps the configuration's OWN null spread duration. A 0
+  // fill would silently price a leg the owner never priced, so its absence is asserted here.
+  assert.ok(sleeves.some((sleeve) => sleeve.spreadShockKind === 'none' && sleeve.spreadDuration === null),
+    'a sleeve bearing no credit spread must keep the committed null spread duration, never a 0 fill');
+  assert.ok(sleeves.some((sleeve) => Number.isFinite(sleeve.spreadDuration)),
+    'a spread-bearing sleeve must carry a real committed spread duration');
+
+  const ownerState = {
+    contractVersion: 'fixed-income-sleeve-owner-state/v1',
+    toolId: 'bond-regime-lab',
+    asOf: universe.asOf,
+    source: 'bond-regime-universe.json model configuration',
+    regime: { realYieldChangeBp: null, breakevenChangeBp: null, creditConfirmation: null },
+    sleeves
+  };
+  // At the REGISTRY defaults the module's OWN summary function (never a reimplementation here) must
+  // price a real sleeve outcome over those committed characteristics.
+  const definition = definitionForAdapter('simple-adapter/fixed-income-sleeve/v1');
+  const summary = loadModule(definition.adapterModule)
+    .computeFixedIncomeSleeveSummary(frozenClone(ownerState), registryDefaults(definition));
+  assert.ok(summary.pricedCount > 0,
+    `the committed configuration must price at least one sleeve (priced: ${summary.pricedCount}/${summary.sleeveCount})`);
+  assert.equal(summary.regime.state, 'unavailable',
+    'with no numeric credit confirmation published the regime read must stay honestly unavailable, not be filled');
+  return ownerState;
+}
+
 /* Owner-state builders keyed by the REGISTRY adapter id. A wired tool with no entry FAILS LOUD.
    A builder may be async: company-fundamentals-lab's owner facts come out of a same-origin
    publication load, so `driveWiredTool` awaits the builder result (a no-op for the synchronous
@@ -1483,6 +1554,7 @@ const OWNER_STATES = {
   'simple-adapter/sector-rotation-transition/v1': sectorOwnerState,
   'simple-adapter/country-rotation/v1': countryOwnerState,
   'simple-adapter/real-asset-driver/v1': realAssetOwnerState,
+  'simple-adapter/fixed-income-sleeve/v1': bondSleeveOwnerState,
   'simple-adapter/etf-ranking/v1': etfOwnerState,
   'simple-adapter/ai-capex-portfolio/v1': aiCapexOwnerState,
   'simple-adapter/disclosure-decay/v1': disclosureDecayOwnerState,
@@ -1619,6 +1691,20 @@ const OWNER_PARITY = {
          that named a different asset, claimed a different driver or confirmation state, or claimed a
          benchmark the owner did not price against fails here. */
       summaryContains: [summary.selected, summary.driverState.state, summary.confirmation.state, summary.benchmark]
+    };
+  },
+  'simple-adapter/fixed-income-sleeve/v1': (moduleObject, ownerState, parameterValues) => {
+    const summary = moduleObject.computeFixedIncomeSleeveSummary(frozenClone(ownerState), parameterValues);
+    const leader = summary.outcomes.length ? summary.outcomes[0] : null;
+    return {
+      ownerFunction: 'computeFixedIncomeSleeveSummary',
+      numericValue: leader && leader.total != null ? leader.total : null,
+      valueText: leader ? `${leader.id} leads sleeve outcomes` : 'No priced sleeve',
+      /* The owner-computed leading sleeve and the inflation/real-yield regime state it was read
+         under, taken straight off the summary object. A Simple read that led with a different
+         sleeve — or claimed a regime the owner did not confirm, which for this owner means claiming
+         a confirmation the page publishes no number for — fails here. */
+      summaryContains: leader ? [leader.id, summary.regime.state] : []
     };
   },
   'simple-adapter/etf-ranking/v1': (moduleObject, ownerState, parameterValues) => {

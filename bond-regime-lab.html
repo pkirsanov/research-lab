@@ -2032,6 +2032,94 @@
             return output;
         }
 
+        /* ══════════ PRODUCTION SIMPLE OWNER-STATE PROVIDER (Feature 012 Scope 15, Model B) ══════════
+           The uniform provider seam. The deployed Simple bridge (installSimpleProjectionBridge in
+           rlexperience.js) reads globalThis.__rlOwnerStateProvider["bond-regime-lab"] and hands the
+           result to the registered fixed-income-sleeve adapter (simple-adapter/fixed-income-sleeve/v1
+           in rlexperience-adapters/macro-rotation.js — already loaded above as this page's SINGLE
+           SOURCE of sleeveTotalReturn). Registered while this inline script is parsed, before the
+           rlapp.js shell bootstrap resolves, so the shell's provider-gated ownerModes resolves this
+           tool to the adapter-panel Simple (["power"]).
+
+           THIS PAGE STAYS THE OWNER, AND NO FORMULA IS COPIED OR RECOMPUTED HERE. Every field below
+           is a plain passthrough of a value this page already holds. The provider issues NO network
+           request, prompts for NO credential, touches no DOM and mutates no state. It NEVER
+           re-derives the sleeve total-return decomposition: that single source stays
+           RLMACROROTATION.sleeveTotalReturn, which calculateScenarioResult below already delegates
+           to and which the adapter calls for itself over these frozen characteristics.
+
+           FIELD                       -> PAGE SOURCE
+             • asOf                    -> runtime.config.asOf, the model configuration's OWN declared
+                                          as-of. Every frozen characteristic published below is read
+                                          verbatim out of that committed configuration, so its stamp
+                                          is the honest evidence cutoff for this owner read — never a
+                                          wall clock and never an invented observation date.
+             • source                  -> the committed configuration file named explicitly, so this
+                                          read can never be mistaken for a live market feed.
+             • sleeves[].id, .label,   -> config.sleeves[] verbatim.
+               .rateShockKind,
+               .spreadShockKind
+             • sleeves[].rateDuration, -> instruments[sleeve.proxyTicker].rateDuration.valueYears,
+               .spreadDuration,           .spreadDuration.valueYears, .convexity.valueYearsSquared and
+               .convexity, .carry         .carry.valuePctAnnual, each verbatim through this page's own
+                                          instrumentIndex(). A sleeve that bears no credit spread keeps
+                                          the configuration's OWN null spread duration — never a 0 fill.
+             • regime.realYieldChangeBp -> runtime.viewModel.inflationState.realYieldChangeBp and
+               regime.breakevenChangeBp    .breakevenChangeBp, this page's OWN currently classified
+                                           inflation facts. While the page holds no aligned nominal and
+                                           real observation its own inflation state is "Unavailable" and
+                                           carries nulls, and those nulls are published as-is.
+             • regime.creditConfirmation -> ALWAYS null. This page publishes NO numeric credit
+                                           confirmation score: classifyCreditRegime produces a
+                                           categorical direction plus a Low/Moderate/High confidence
+                                           and nothing else. Projecting a category onto the adapter's
+                                           0..1 confirmation score would invent a number, so the fact
+                                           is published as ABSENT and the adapter's own regime read
+                                           stays "unavailable" instead of being fabricated.
+
+           DELIBERATELY NOT PUBLISHED, AND WHY: this page's scenario controls — preset, horizon, and
+           the treasury / IG / HY / breakeven shocks — plus the ranked scenarioResults they produce.
+           Horizon, rate shock, spread shock, carry and convexity are the Simple model's OWN steerable
+           parameters, declared in simple-models.json and pinned from the registry by the bridge;
+           publishing a control value as owner state would stamp a user assumption with this model's
+           evidence cutoff. The adapter asks its own generic sleeve-response question over the frozen
+           characteristics, so this page's scenario ranking is its Power surface and is not owner input.
+
+           HONEST DEGRADATION: until this page's own configuration fetch resolves there are no frozen
+           characteristics to publish, so the provider publishes NOTHING and the bridge renders the
+           honest "unavailable" panel. It never substitutes a default. */
+        function bondSleeveOwnerState() {
+            if (!runtime.config || !Array.isArray(runtime.config.sleeves) || !runtime.config.sleeves.length) return null;
+            var instruments = instrumentIndex(runtime.config);
+            var inflation = runtime.viewModel && runtime.viewModel.inflationState;
+            return {
+                contractVersion: "fixed-income-sleeve-owner-state/v1",
+                toolId: "bond-regime-lab",
+                asOf: runtime.config.asOf,
+                source: "bond-regime-universe.json model configuration",
+                regime: {
+                    realYieldChangeBp: inflation ? finiteNumber(inflation.realYieldChangeBp) : null,
+                    breakevenChangeBp: inflation ? finiteNumber(inflation.breakevenChangeBp) : null,
+                    creditConfirmation: null
+                },
+                sleeves: runtime.config.sleeves.map(function (sleeve) {
+                    var instrument = instruments[sleeve.proxyTicker] || {};
+                    return {
+                        id: sleeve.id,
+                        label: sleeve.label,
+                        rateDuration: instrument.rateDuration ? instrument.rateDuration.valueYears : null,
+                        spreadDuration: instrument.spreadDuration ? instrument.spreadDuration.valueYears : null,
+                        convexity: instrument.convexity ? instrument.convexity.valueYearsSquared : null,
+                        rateShockKind: sleeve.rateShockKind,
+                        spreadShockKind: sleeve.spreadShockKind,
+                        carry: instrument.carry ? instrument.carry.valuePctAnnual : null
+                    };
+                })
+            };
+        }
+        globalThis.__rlOwnerStateProvider = globalThis.__rlOwnerStateProvider || {};
+        globalThis.__rlOwnerStateProvider["bond-regime-lab"] = bondSleeveOwnerState;
+
         function computeCreditView(config, snapshot) {
             var instruments = instrumentIndex(config), pulses = [], details = {};
             (config.pairs || []).forEach(function (pair) {

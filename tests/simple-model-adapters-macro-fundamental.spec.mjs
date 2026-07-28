@@ -309,7 +309,19 @@ const TOOLS = {
     owner: () => bondSleeveOwnerFixture(),
     base: (definition) => bondBase(definition),
     changes: () => [['rate-shock', 120], ['spread-shock', 90]],
-    adapterId: 'simple-adapter/fixed-income-sleeve/v1'
+    adapterId: 'simple-adapter/fixed-income-sleeve/v1',
+    // Wired into its production page (bond-regime-lab.html registers a real owner-state provider,
+    // __rlOwnerStateProvider['bond-regime-lab'], consumed by the production Simple bridge in
+    // rlexperience.js) AND that provider returns a real owner snapshot under this harness: it reads
+    // runtime.config.sleeves[] indexed against runtime.config.instruments[], which the page hydrates
+    // from the same-origin bond-regime-universe.json model configuration, so it does NOT hit its
+    // documented `return null` honest-absence path. The bridge therefore paints the REAL
+    // fixed-income-sleeve adapter into the Simple panel BEFORE this test drives anything, making the
+    // pre-drive shell state 'ready'. That is STRONGER than the old unwired 'unavailable' premise: it
+    // proves the production bridge rendered the real adapter in the real owner-mode Simple flow.
+    // OBSERVED, not assumed: with no flag this spec asserted 'unavailable' and the real page
+    // returned 'ready'.
+    wiredInProduction: true
   },
   'etf-momentum-lab': {
     title: 'Regression: ETF momentum Simple controls recompute owner ranking and basket sensitivity',

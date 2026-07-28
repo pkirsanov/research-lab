@@ -72,6 +72,36 @@ async function openWithSnapshot(page, snapshot) {
   await page.evaluate((nextSnapshot) => window.BondRegimeLab.replaceObservedSnapshot(nextSnapshot), snapshot);
 }
 
+// Feature 012 Scope 15 (four-view experience shell, Model B): bond-regime-lab is now a WIRED
+// ordinary tool — bond-regime-lab.html registers __rlOwnerStateProvider["bond-regime-lab"] — so
+// rlapp.js resolves ownerModes: ["power"] for it. On the default Simple view the shell therefore
+// sets body.rlv-focused, renders the production Simple ADAPTER panel
+// ([data-rlexperience-panel="simple"]), and hides this page's own <div class="shell"> — its only
+// direct body child — via the shell rule
+// `body.rlv-focused>*:not(#rlviews)...{display:none!important}` (rlviews.js).
+//
+// Nothing was deleted. The page's native research surface — the scenario controls, the decision
+// grid, the ranked sleeve-response table and the Power dashboards — MOVED UNDER THE POWER VIEW. A
+// test that must SEE or DRIVE that native surface therefore drives the shell exactly as a
+// production user does: wait for the shell, then select Power. rlviews.js driveLegacy() also clicks
+// the page's own #powerTab, so the page enters its native Power mode; the scenario controls and
+// #scenarioAlert live outside #simpleView/#powerView and stay rendered in both native modes, so
+// every downstream assertion below is unchanged.
+//
+// Read-only assertions need NO switch and were left exactly as they were: Playwright's
+// getAttribute / textContent / inputValue / evaluateAll and toHaveText / toHaveCount resolve
+// attached nodes, so BS-011's Simple-vs-Power model-digest comparison still reads this page's real
+// #simpleView and #powerView digest nodes and its anti-divergence check is untouched.
+// Mirrors the shell-driving pattern in tests/company-fundamentals-lab.spec.mjs.
+const openNativeResearchSurface = async (page) => {
+  await expect(page.locator('#rlviews[data-rlexperience-shell="ready"]')).toBeVisible();
+  await page.locator('#rlviews button[data-rlview-mode="power"]').click();
+  // Power IS in ownerModes, so rlv-focused clears and the native surface becomes visible again.
+  await expect(page.locator('body')).toHaveAttribute('data-rlview', 'power');
+  await expect(page.locator('body')).not.toHaveClass(/\brlv-focused\b/);
+  await expect(page.locator('#treasuryShock')).toBeVisible();
+};
+
 test('BS-001 duration-driven ratio improvement stays mixed', async ({ page }) => {
   await openWithSnapshot(page, observedSnapshot({
     change21dBp: 42,
@@ -171,6 +201,8 @@ async function setScenario(page, values) {
 
 test('BS-006 six month mixed shock decomposes every sleeve', async ({ page }) => {
   await openWithSnapshot(page, observedSnapshot());
+  // The native scenario controls driven below live under the Power view (Feature 012 Scope 15).
+  await openNativeResearchSurface(page);
   await setScenario(page, { treasuryShock: -50, igSpreadShock: 60, hySpreadShock: 150, breakevenShock: 0 });
   await expect(page.locator('[data-scenario-row]')).toHaveCount(7);
   await expect(page.locator('[data-scenario-row="intermediate-treasury"] [data-term="spread"]')).toHaveText('Not applicable');
@@ -182,6 +214,8 @@ test('BS-006 six month mixed shock decomposes every sleeve', async ({ page }) =>
 
 test('BS-007 oversized shock preserves estimate and lowers reliability', async ({ page }) => {
   await openWithSnapshot(page, observedSnapshot());
+  // The native scenario controls driven below live under the Power view (Feature 012 Scope 15).
+  await openNativeResearchSurface(page);
   await page.locator('#hySpreadShock').fill('400');
   const row = page.locator('[data-scenario-row="high-yield-corporate"]');
   await expect(row.locator('[data-reliability]')).toHaveText('Reduced reliability');
@@ -204,6 +238,8 @@ test('BS-008 stale characteristic remains visible and unranked', async ({ page }
 
 test('Scenario controls reject nonfinite input and persist only allowlisted assumptions', async ({ page }) => {
   await openWithSnapshot(page, observedSnapshot());
+  // The native scenario controls driven below live under the Power view (Feature 012 Scope 15).
+  await openNativeResearchSurface(page);
   await page.locator('#treasuryShock').fill('Infinity');
   await expect(page.locator('#scenarioAlert')).toContainText('finite');
   const storage = await page.evaluate(() => ({ state: JSON.parse(localStorage.getItem('bondRegimeLabState') || '{}'), keys: Object.keys(JSON.parse(localStorage.getItem('bondRegimeLabState') || '{}')).sort() }));
@@ -346,7 +382,24 @@ test('Regression BUG-003: Ready waits for auto-hydration before Simple and Power
   try {
     await page.goto(site.baseUrl + '/bond-regime-lab.html');
     await treasuryRequestStarted;
-    await expect(page.locator('#simpleView [data-model-digest]')).toBeVisible();
+    // Feature 012 Scope 15 (Model B): bond-regime-lab is now a WIRED tool, so the Simple surface a
+    // production user sees in this pre-hydration window is the production ADAPTER panel, and this
+    // page's own native surface is hidden by the shell rule
+    // `body.rlv-focused>*:not(#rlviews)...{display:none!important}` (rlviews.js). Nothing was
+    // deleted and nothing moved off-model: #simpleView is still RENDERED and still carries this
+    // page's real model digest, which is exactly what the ordering assertions below sample. The
+    // precondition therefore now waits on BOTH halves of that split — the Simple surface actually
+    // on screen, and this page's own digest node — instead of on a single node that Model B has
+    // deliberately taken off screen. (Under Model B that node can never be visible: on shell-Simple
+    // the shell hides this whole page, and shell-Power drives the page's own #powerTab, which sets
+    // #simpleView.hidden. Requiring visibility here would assert a state production no longer has.)
+    //
+    // The shell is deliberately LEFT on Simple. Driving it to Power here would collapse the
+    // Simple->Power transition at the end of this test into a no-op and silently gut its
+    // anti-divergence comparison, so that switch stays exactly where it always was.
+    await expect(page.locator('#rlviews[data-rlexperience-shell="ready"]')).toBeVisible();
+    await expect(page.locator('[data-rlexperience-panel="simple"]')).toBeVisible();
+    await expect(page.locator('#simpleView [data-model-digest]')).toBeAttached();
     const heldState = await page.evaluate(() => ({
       digest: document.querySelector('#simpleView [data-model-digest]')?.dataset.modelDigest || '',
       refreshActive: window.BondRegimeLab.runtime.refresh.active,
@@ -362,6 +415,24 @@ test('Regression BUG-003: Ready waits for auto-hydration before Simple and Power
 
   await expect(page.locator('#appStatus')).toContainText('Ready');
   expect(await page.evaluate(() => window.BondRegimeLab.runtime.refresh.active)).toBe(false);
+  // ANTI-DIVERGENCE, POST-WIRING FORM — asserted in two explicit halves, neither of them dropped.
+  //
+  // Half 1: the Simple surface the user now sees is the adapter panel, which publishes no
+  // data-model-digest of its own. What it does publish is the identity of the adapter driving it,
+  // so assert that identity is the one the REGISTRY binds to this tool (read from simple-models.json
+  // rather than hard-coded, so a registry rebinding cannot slip past). That closes the divergence
+  // question for the Simple side, because TP-15-02's global owner-parity test in
+  // tests/simple-production-bridge.integration.mjs proves that this adapter's projection EQUALS the
+  // owner/Power-path values from RLMACROROTATION.computeFixedIncomeSleeveSummary — the same module
+  // this page's own scenario math delegates to. Simple and Power are therefore provably one model.
+  //
+  // Half 2: this page's OWN #simpleView and #powerView digests are still compared directly below and
+  // must remain byte-identical across a real Simple->Power mode change. That is the original BUG-003
+  // divergence check, unchanged.
+  const registryAdapterId = JSON.parse(readFileSync(new URL('../simple-models.json', import.meta.url), 'utf8'))
+    .definitions.find((definition) => definition.toolId === 'bond-regime-lab').adapterId;
+  await expect(page.locator('[data-rlexperience-panel="simple"]'))
+    .toHaveAttribute('data-rlexperience-adapter', registryAdapterId);
   const simpleDigest = await page.locator('#simpleView [data-model-digest]').getAttribute('data-model-digest');
   const assumptionSelector = '#scenarioPreset, #scenarioHorizon, #treasuryShock, #igSpreadShock, #hySpreadShock, #breakevenShock';
   const assumptions = await page.locator(assumptionSelector).evaluateAll((nodes) => Object.fromEntries(nodes.map((node) => [node.id, node.value])));
@@ -392,6 +463,10 @@ test('BS-011 Simple and Power share one model digest', async ({ page }) => {
 
 test('BS-012 lever change recomputes without fetch or observed mutation', async ({ page }) => {
   await openFromSharedCache(page);
+  // The native lever driven below lives under the Power view (Feature 012 Scope 15). The shell
+  // switch happens BEFORE the request recorder is installed, so the measured window below still
+  // covers exactly the lever change and nothing else.
+  await openNativeResearchSurface(page);
   const requests = [];
   page.on('request', (request) => requests.push(request.url()));
   const beforeRequests = requests.length;

@@ -2,7 +2,7 @@
 
 ## 15-production-simple-adapter-wiring
 
-**Status:** Not Started
+**Status:** In Progress
 
 **Scope-Kind:** runtime-behavior
 
@@ -177,6 +177,34 @@ another adapter, or a test helper.
    `node scripts/selftest.mjs` stays 0-fail and every Feature 012 adapter e2e is
    GREEN in the real owner-mode flow.
 
+### Implementation Plan Progress (as of 2026-07-28, HEAD `56099e24`)
+
+Annotation only — no step is added, removed, or reworded, and no DoD item is
+created here. Full evidence is in [report.md](report.md#progress--2026-07-28-increments-1-12).
+
+- **Step 1 — Complete.** `tests/simple-production-bridge.unit.mjs` and
+  `tests/simple-production-wiring.spec.mjs` landed with the bridge (`f216be0d`).
+- **Step 2 — Complete.** Real bridge in `rlexperience.js` + provider-gated ordinary
+  `ownerModes` in `rlapp.js` (`f216be0d`); `market-brief` confirmed unchanged.
+- **Step 3 — Complete.** `market-heatmap-lab` wired and proven end-to-end
+  (`f216be0d`, greened in `ab1d4879`).
+- **Step 4 — Partially complete.** 15 of the 18 delegating tools are wired across
+  `9a713001`…`56099e24`. Outstanding: `bond-regime-lab` (certified-Feature-003 spec
+  amendment required), `msft-july-print-model` (deliberate shared-shell opt-out —
+  the bridge never runs, so a provider would be dead code), `company-fundamentals-lab`
+  (its own spec is already RED at HEAD with the tool unwired).
+- **Step 5 — Outstanding.** No `#simpleView` spec has been modified; the reconciliation
+  is blocked on the Feature 003 and Feature 011 amendments. BUG-003 is **not** closed.
+- **Step 6 — Partially complete.** `technical-analysis-decision-lab` is done as the
+  intentional honest-`unavailable` (`ab1d4879`). The three provider extractions
+  (`volatility-sizing-lab`, `palm-springs-rental-market-lab`,
+  `ocean-shores-rental-market-lab`) are outstanding; `volatility-sizing-lab` was
+  attempted in-session and **deliberately reverted** after it broke the certified
+  Feature 011 spec and produced a TP-15-02 parity divergence.
+- **Step 7 — Outstanding.** The broad suite is 952 passed / 0 failed, but no bridge
+  canary exists in `scripts/selftest.mjs` (`grep` for `renderSimpleBridge`,
+  `ownerModes`, `installSimpleProjectionBridge` returns nothing).
+
 ## Shared Infrastructure Impact Sweep
 
 | Protected surface | Downstream contract | Independent canary before broad validation |
@@ -235,23 +263,244 @@ and pass only after the bridge + `ownerModes` change.
 
 #### Core Delivery Items
 
-- [ ] SCN-012-038: The production bridge replaces the stub and renders the real registered adapter into `[data-rlexperience-panel="simple"]` for wired ordinary tools, with no fabricated default and no forbidden authority.
+- [x] SCN-012-038: The production bridge replaces the stub and renders the real registered adapter into `[data-rlexperience-panel="simple"]` for wired ordinary tools, with no fabricated default and no forbidden authority.
+
+  **Claim Source:** executed (2026-07-28). The stub `installSimpleProjectionBridge` was
+  replaced by the real `renderSimpleBridge` in `f216be0d`; the unit contract proves the
+  real-adapter render and the no-fabricated-default fallbacks; the integration loop
+  proves the REAL panel is painted for each wired tool; the static scan proves zero
+  forbidden authority. **Coverage note:** this closes the bridge mechanism for wired
+  ordinary tools; 6 ordinary tools are still unwired (tracked by SCN-012-039's END state).
+
+  ```text
+  $ node --test tests/simple-production-bridge.unit.mjs
+  ✔ renderSimpleBridge is exposed on the production API (4.104797ms)
+  ✔ provider present + real owner state → renders the REAL market-breadth adapter (ready), never mutates rlv-focused (25.70928ms)
+  ✔ no owner-state provider → honest unavailable, no invented signal, never mutates rlv-focused (4.689196ms)
+  ✔ owner evidence does not permit a run (unhydrated) → honest unavailable, never mutates rlv-focused (10.036992ms)
+  ✔ missing adapter module → honest unavailable (no crash), never mutates rlv-focused (3.587498ms)
+  ℹ tests 5
+  ℹ pass 5
+  ℹ fail 0
+  ===TP1501_EXIT=0===
+
+  $ node --test tests/simple-production-bridge.integration.mjs
+  ✔ TP-15-02 registry-derived loop: each wired tool prepares through the REAL runtime and paints the REAL panel (765.479122ms)
+  ✔ TP-15-02 honest unavailable: a wired tool whose provider yields NO owner state degrades truthfully (no invented signal) (48.474755ms)
+  ℹ tests 6
+  ℹ pass 6
+  ℹ fail 0
+  ===TP1502_EXIT=0===
+
+  $ npx --no-install playwright test tests/simple-production-wiring.spec.mjs (in the 5-spec batch)
+    ✓  12 …imple renders the real adapter panel in the real owner-mode flow (1.8s)
+    27 passed (33.0s)
+  ===PW_ADAPTERS_EXIT=0===
+
+  $ grep -nE 'fetch\(|providerFetch|localStorage|sessionStorage|publish' rlexperience.js
+  1334:     local compute only: it never fetch/providerFetch, reads credentials, calls an
+  1335:     author/publisher/store, or mutates owner state. */
+  (2 matches, both inside the constraint comment — zero executable occurrences)
+  ```
+
 - [ ] SCN-012-039: Provider-gated ordinary `ownerModes` resolves to `["power"]` once a page registers its owner-state provider (else `["simple", "power"]`; END state = every ordinary tool wired); `applyVisual` is the sole owner of `rlv-focused`; Simple shows the panel (native hidden) and Power shows native content (panel hidden); the bridge never mutates `rlv-focused`.
-- [ ] SCN-012-040: Each wired page exposes its real current owner state through the uniform provider seam, and the adapter's owner facts match the page's Power path (owner parity, no formula copy).
+
+  NOT SATISFIED — the item's own text names the END state as "every ordinary tool
+  wired", and 6 of the 22 ordinary tools are unwired at HEAD (`bond-regime-lab`,
+  `volatility-sizing-lab`, `msft-july-print-model`, `company-fundamentals-lab`,
+  `palm-springs-rental-market-lab`, `ocean-shores-rental-market-lab`). The
+  never-mutates-`rlv-focused` half is proven (see SCN-012-038 evidence), but the item
+  cannot be closed until the coverage clause is met.
+
+- [x] SCN-012-040: Each wired page exposes its real current owner state through the uniform provider seam, and the adapter's owner facts match the page's Power path (owner parity, no formula copy).
+
+  **Claim Source:** executed (2026-07-28). The wired set is derived from the production
+  registry **and** the production pages (never a hard-coded list); every wired tool's
+  Simple facts equal the owner/Power-path values; 15 of 16 wired tools reach strict
+  projection parity and the 16th is the deliberate module-absent honest-`unavailable`
+  (`technical-analysis-decision-lab`, SCN-012-034 lock, covered by SCN-012-042). "No
+  formula copy" is corroborated by 14 `no inline copy` selftest canaries plus zero edits
+  to any `rlexperience-adapters/*` module across all 13 scope-15 commits.
+
+  ```text
+  $ node --test tests/simple-production-bridge.integration.mjs
+  [TP-15-02] wired (16): market-heatmap-lab, options-flow-feed-lab, intraday-tape-lab, swing-structure-lab, options-structure-lab, gamma-trading-lab, sector-research-lab, global-rotation-lab, real-assets-lab, ai-capex-strategy-lab, etf-momentum-lab, strategy-self-improvement-lab, strategy-validation-lab, smart-money-flow-lab, waterfront-polo-lab, technical-analysis-decision-lab
+  [TP-15-02] strict parity (module loaded by the page): 15 of 16
+  [TP-15-02] honest generic unavailable (module deliberately absent, SCN-012-034 lock): technical-analysis-decision-lab
+  ✔ TP-15-02 the wired-tool set is derived from the production registry + the production pages (never a hard-coded list) (44.575167ms)
+  ✔ TP-15-02 owner parity: every wired tool's Simple facts EQUAL the owner/Power-path values (863.319648ms)
+  ✔ TP-15-02 the production bridge reaches the SAME projection as the explicit runtime path for every module-backed wired tool (and the honest generic unavailable where the module is deliberately absent) (1382.070447ms)
+  ℹ tests 6
+  ℹ pass 6
+  ℹ fail 0
+  ===TP1502_EXIT=0===
+
+  $ grep -ln '__rlOwnerStateProvider' *.html | wc -l
+  16
+
+  $ grep -c 'no inline copy' scripts/selftest.mjs
+  14
+
+  $ git show --name-only --format='' <13 scope-15 commits> | grep -E 'rlexperience-adapters/'
+  (empty = zero adapter-module formula edits)
+  ```
+
 - [ ] SCN-012-041: The 8 `#simpleView` tools' native Simple content is reachable under Power with nothing deleted; BUG-003 is closed.
-- [ ] SCN-012-042: Tools without a wired provider, and `technical-analysis-decision-lab` (no owner model), render an explicit honest `unavailable` with no invented signal; `market-brief` (brief-only) is unaffected.
+
+  NOT SATISFIED — no `#simpleView` tool has been reconciled. `bond-regime-lab`,
+  `volatility-sizing-lab` and `msft-july-print-model` are all unwired at HEAD and none
+  of the three affected specs (`tests/bond-regime-lab.spec.mjs`,
+  `tests/volatility-sizing-lab.spec.mjs`, `tests/msft-july-market-refresh.spec.mjs`)
+  has been modified. BUG-003 is **not** closed.
+
+- [x] SCN-012-042: Tools without a wired provider, and `technical-analysis-decision-lab` (no owner model), render an explicit honest `unavailable` with no invented signal; `market-brief` (brief-only) is unaffected.
+
+  **Claim Source:** executed (2026-07-28). The provider-absent, unhydrated-evidence and
+  missing-module paths all degrade to an honest `unavailable` with no invented signal
+  and without mutating `rlv-focused`; `technical-analysis-decision-lab` is explicitly
+  logged as the deliberate module-absent honest-`unavailable` under the SCN-012-034
+  lock; `market-brief` is untouched by every scope-15 commit and still runs brief-only.
+
+  ```text
+  $ node --test tests/simple-production-bridge.unit.mjs
+  ✔ no owner-state provider → honest unavailable, no invented signal, never mutates rlv-focused (4.689196ms)
+  ✔ owner evidence does not permit a run (unhydrated) → honest unavailable, never mutates rlv-focused (10.036992ms)
+  ✔ missing adapter module → honest unavailable (no crash), never mutates rlv-focused (3.587498ms)
+  ℹ pass 5
+  ℹ fail 0
+  ===TP1501_EXIT=0===
+
+  $ node --test tests/simple-production-bridge.integration.mjs
+  [TP-15-02] honest generic unavailable (module deliberately absent, SCN-012-034 lock): technical-analysis-decision-lab
+  ✔ TP-15-02 honest unavailable: a wired tool whose provider yields NO owner state degrades truthfully (no invented signal) (48.474755ms)
+  ✔ TP-15-02 honest unavailable: owner evidence that does not permit a run degrades truthfully rather than inventing a read (30.175572ms)
+  ℹ pass 6
+  ℹ fail 0
+  ===TP1502_EXIT=0===
+
+  $ npx --no-install playwright test <5-spec batch> --project=system-chrome --reporter=list
+    ✓  19 …imple five-gate controls recompute or stay honestly unavailable (544ms)
+    ✓  18 …controls recompute bounded action or no-action inside Brief only (3.1s)
+    27 passed (33.0s)
+  ===PW_ADAPTERS_EXIT=0===
+
+  $ git show --name-only --format='' <13 scope-15 commits> | grep -E '^market-brief\.html'
+  (empty = market-brief untouched)
+  ```
+
 - [ ] The change remains within the exact bridge/ownerModes/page-provider boundary; rollback restores the prior stub behavior without data loss.
+
+  PARTIALLY VERIFIED, NOT CLOSED — the boundary half is proven (all 22 paths touched by
+  the scope-15 commits are inside the Implementation Files allowlist; `rldata.js`,
+  `rlviews.js`, `market-brief.html`, `data/options/**` and package/lock files were not
+  touched — see [report.md](report.md#change-boundary-check-all-12-commits)). The
+  rollback half has not been demonstrated by any executed command, and the change set is
+  still growing (6 tools remain), so this item stays open.
+
 
 #### Test Evidence Items - Exact Parity With 7 Test Plan Rows
 
 - [ ] TP-15-01 unit evidence proves the bridge contract, `ownerModes`, honest-unavailable fallback, and no forbidden authority.
-- [ ] TP-15-02 integration evidence proves the registry-derived provider→runtime→panel loop and owner-parity for wired tools.
+
+  **Uncertainty Declaration.** `node --test tests/simple-production-bridge.unit.mjs`
+  was executed this session and is green (5/5, exit 0 — evidence under SCN-012-038),
+  proving the bridge contract and the honest-unavailable fallback. But the file
+  contains **no** `ownerModes` assertion and **no** forbidden-authority assertion, so
+  two of the four claims in this DoD row are not proven by the named test:
+  `grep -n 'ownerModes\|forbidden\|providerFetch\|localStorage\|fetch(' tests/simple-production-bridge.unit.mjs`
+  returns no matches. The bridge's zero-forbidden-authority property was confirmed by a
+  manual static scan, but that is not the automated unit proof this row requires. Item
+  stays open. See [report.md](report.md#tp-15-01).
+
+- [x] TP-15-02 integration evidence proves the registry-derived provider→runtime→panel loop and owner-parity for wired tools.
+
+  **Claim Source:** executed (2026-07-28). Exact match to the Test Plan row: the file,
+  the command, and all six test titles exist and pass, including the registry-derived
+  loop and the owner-parity assertion.
+
+  ```text
+  $ node --test tests/simple-production-bridge.integration.mjs
+  [TP-15-02] wired (16): market-heatmap-lab, options-flow-feed-lab, intraday-tape-lab, swing-structure-lab, options-structure-lab, gamma-trading-lab, sector-research-lab, global-rotation-lab, real-assets-lab, ai-capex-strategy-lab, etf-momentum-lab, strategy-self-improvement-lab, strategy-validation-lab, smart-money-flow-lab, waterfront-polo-lab, technical-analysis-decision-lab
+  [TP-15-02] not wired (7): market-brief, bond-regime-lab, msft-july-print-model, company-fundamentals-lab, volatility-sizing-lab, palm-springs-rental-market-lab, ocean-shores-rental-market-lab
+  [TP-15-02] strict parity (module loaded by the page): 15 of 16
+  [TP-15-02] honest generic unavailable (module deliberately absent, SCN-012-034 lock): technical-analysis-decision-lab
+  ✔ TP-15-02 the wired-tool set is derived from the production registry + the production pages (never a hard-coded list) (44.575167ms)
+  ✔ TP-15-02 registry-derived loop: each wired tool prepares through the REAL runtime and paints the REAL panel (765.479122ms)
+  ✔ TP-15-02 owner parity: every wired tool's Simple facts EQUAL the owner/Power-path values (863.319648ms)
+  ✔ TP-15-02 the production bridge reaches the SAME projection as the explicit runtime path for every module-backed wired tool (and the honest generic unavailable where the module is deliberately absent) (1382.070447ms)
+  ✔ TP-15-02 honest unavailable: a wired tool whose provider yields NO owner state degrades truthfully (no invented signal) (48.474755ms)
+  ✔ TP-15-02 honest unavailable: owner evidence that does not permit a run degrades truthfully rather than inventing a read (30.175572ms)
+  ℹ tests 6
+  ℹ suites 0
+  ℹ pass 6
+  ℹ fail 0
+  ℹ cancelled 0
+  ℹ skipped 0
+  ℹ todo 0
+  ℹ duration_ms 3263.332508
+  ===TP1502_EXIT=0===
+  ```
+
 - [ ] TP-15-03 E2E evidence proves market-heatmap Simple renders the real adapter panel and a control recomputes.
+
+  **Uncertainty Declaration.** Both behaviours are proven by real passing tests, but
+  neither carries the persistent title this Test Plan row declares, and they live in two
+  different files: `tests/simple-production-wiring.spec.mjs:47` is
+  `Regression: market-heatmap Simple renders the real adapter panel in the real
+  owner-mode flow` (not "…and one control recomputes owner leadership"), while the
+  recompute half is `tests/simple-model-adapters-market.spec.mjs:310`
+  (`Regression: market heatmap Simple breadth controls recompute owner leadership
+  sensitivity`, a Scope-05 adapter e2e). Closing this row against a persistent title
+  that does not exist would be fabrication. This is a Test-Plan ↔ implementation drift
+  owned by `bubbles.plan`. Item stays open. See [report.md](report.md#tp-15-03).
+
 - [ ] TP-15-04 E2E evidence proves each wired ordinary tool shows a ready adapter panel in Simple with an owner-parity fact.
+
+  NOT IMPLEMENTED — the declared persistent title
+  (`Regression: each wired ordinary tool shows a ready adapter panel in Simple with an
+  owner-parity fact`) does not exist in `tests/simple-production-wiring.spec.mjs`, which
+  contains exactly one test (see TP-15-03). The per-wired-tool loop is currently proven
+  at the **integration** layer by TP-15-02, not by an `e2e-ui` test. Item stays open.
+
 - [ ] TP-15-05 E2E evidence proves bond-regime native content shows in Power not Simple (BUG-003 closure).
+
+  NOT STARTED — `bond-regime-lab` is unwired, its spec still asserts native
+  `#simpleView [data-model-digest]` on the default Simple view (lines 349/351/365/383,
+  including `BS-011`), and the owning Feature 003 is certified `done`
+  (`certifiedAt=2026-07-27T20:23:04Z`). A spec amendment / owner decision is required
+  before this regression can be written. BUG-003 is **not** closed.
+
 - [ ] TP-15-06 E2E evidence proves volatility-sizing native Simple moved to Power and Simple shows the panel or an honest unavailable pending the RLVOL provider.
+
+  NOT SATISFIED — wiring was attempted in this session and **deliberately reverted**.
+  The page does not load its declared `adapterModule`
+  (`rlexperience-adapters/market-structure.js`; it loads only `rlvol.js`), the reverted
+  attempt broke `tests/volatility-sizing-lab.spec.mjs` (owned by Feature 011, certified
+  `done`) and produced an unresolved TP-15-02 parity divergence. At HEAD the spec is
+  back to 16/16 green with the tool unwired. Item stays open. See
+  [report.md](report.md#tp-15-06).
+
 - [ ] TP-15-07 broad selftest evidence proves existing Research Lab behavior remains green (0 failures) with the new bridge canaries.
+
+  **Uncertainty Declaration.** `node scripts/selftest.mjs` was executed this session:
+  **952 passed, 0 failed, exit 0** — the 0-failure preservation half is met. But the
+  "new bridge canaries" half is not: `grep -n
+  'renderSimpleBridge\|ownerModes\|production bridge\|installSimpleProjectionBridge'
+  scripts/selftest.mjs` returns no matches, so no bridge canary exists. Item stays open.
+  See [report.md](report.md#tp-15-07).
+
 
 #### Build Quality Gate
 
 - [ ] Per-tool RED/GREEN, exact system-Chrome identity, no-interception scan (no `page.route`/`context.route`/`intercept`/`msw`/`nock`), bridge/provider forbidden-authority scan, owner pre/post parity, the registry-derived loop, changed-path boundary, editor diagnostics, `git diff --check`, source-lock, registry validator, artifact lint, and the broad selftest are current and clean.
+
+  PARTIALLY VERIFIED, NOT CLOSED — verified this session: the registry-derived loop
+  (TP-15-02, 6/6), owner pre/post parity (TP-15-02, 15-of-16 strict + 1 deliberate
+  honest-`unavailable`), the changed-path boundary (22 paths, all in-allowlist, zero
+  protected paths), a manual bridge forbidden-authority static scan, the broad selftest
+  (952 passed / 0 failed), and artifact lint. **Not** verified: per-tool RED/GREEN for
+  the 6 remaining tools (they are unwired), and the automated bridge/provider
+  forbidden-authority canary does not exist yet (Implementation Plan step 7). This gate
+  cannot close while 6 ordinary tools remain unwired and 3 of them await a spec
+  amendment or owner decision.
+

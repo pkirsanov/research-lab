@@ -44,6 +44,41 @@
 
 ---
 
+## Dependency Graph
+
+| # | Scope | Depends On | Status |
+|---|---|---|---|
+| 01 | Ratio capability foundation | — | Not Started |
+| 02 | Regime facet contract + composer foundation | 01 | Not Started |
+| 03 | Facet source publication shims | 02 | Not Started |
+| 04 | Market Regime Lab surface | 02, 03 | Not Started |
+| 05 | Registry registration + FR-051 count lockstep | 04 | Not Started |
+| 06 | Consumer migration + compatibility projection | 02, 05 | Not Started |
+| 07 | Headless DERIVED owner read | 04, 05 | Not Started |
+| 08 | Regression + governance closure | 01, 02, 03, 04, 05, 06, 07 | Not Started |
+
+```mermaid
+flowchart TD
+    S01[01 Ratio capability foundation] --> S02[02 Regime facet contract + composer foundation]
+    S02 --> S03[03 Facet source publication shims]
+    S02 --> S04[04 Market Regime Lab surface]
+    S03 --> S04
+    S04 --> S05[05 Registry registration + FR-051 count lockstep]
+    S02 --> S06[06 Consumer migration + compatibility projection]
+    S05 --> S06
+    S04 --> S07[07 Headless DERIVED owner read]
+    S05 --> S07
+    S01 --> S08[08 Regression + governance closure]
+    S02 --> S08
+    S03 --> S08
+    S04 --> S08
+    S05 --> S08
+    S06 --> S08
+    S07 --> S08
+```
+
+---
+
 ## Scope Table
 
 | ID | Name | Status | Tags | Depends On | Business scenarios owned |

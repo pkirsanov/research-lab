@@ -33,6 +33,24 @@ Scenario: The protected scenario set re-runs as a set and a single regression bl
   And the scenarios that still hold do not offset the single regression
 ```
 
+## Consumer Impact Sweep
+
+Governance closure re-verifies every surface the preceding scopes renamed, removed, or migrated, so the closure itself consumes the full protected-scenario set and every registry those scopes moved. The enumeration below is the complete re-verification surface. A stale-reference scan run at closure must return zero remaining first-party references to any derivation, identifier, or count retired by SCOPE-2 through SCOPE-7.
+
+| Re-verified surface | Path | What closure re-verifies |
+| --- | --- | --- |
+| Protected scenario set | the `BS-013-*` scenarios registered across every scope of this feature | Every protected scenario holds; a single regression inside the set refuses closure outright and is not offset by the scenarios that still pass. |
+| Selftest group registration | `scripts/selftest.mjs` | All seven groups — `rlratio`, `rlregime`, `rlregime-compose`, `rlregime-projection`, `rlregime-history`, `regime-primitives`, `rlratio-scale` — are wired in and the complete suite runs green. |
+| Tool registry | `tools.json` | Holds the registered tool and matches its hard-asserted count of 22 ordinary tools. |
+| Simple-model registry | `simple-models.json` | Holds the registered Simple model entry. |
+| Journey registry | `journeys.json` | Holds 48 journey definitions against 48 total goals and 4 Market Action Center goals. |
+| Experience config | `tool-experience.config.json` | `adapterPolicy.moduleAllowlist` still holds exactly 7 entries. |
+| Landing-page inventory and shared navigation | `index.html` `TOOLS` array, `rlnav.js` `TOOLS` array | Every navigation entry and landing-page deep link resolves, with no dead entry and no silent redirect left behind by the registration or migration scopes. |
+| Registry validator | `scripts/validate-tool-experience.mjs` | Passes against the registries with the exact asserted counts, so no registry and its assertion disagree at closure. |
+| Handoff documentation | `notes/market-regime-lab.md` | Documents the delivered composer, facets, owner read, and registries with no reference to a retired derivation. |
+
+Stale-reference scan surface: every navigation entry, every landing-page deep link, and every redirect across the registered tool set, plus every remaining first-party reference to a retired regime derivation or a pre-registration hard-asserted count.
+
 ## Implementation Plan
 
 1. **Selftest group wiring.** Register all seven groups — `rlratio`, `rlregime`, `rlregime-compose`, `rlregime-projection`, `rlregime-history`, `regime-primitives`, `rlratio-scale` — in `scripts/selftest.mjs` so the project check exercises the pure modules on every run.
@@ -59,6 +77,7 @@ Scenario: The protected scenario set re-runs as a set and a single regression bl
 | TP-08-09 | Integration | `integration` | `scripts/selftest.mjs` group `regime-primitives` / `zero first-party references remain to the regime derivations retired by the migration` | Consumer-trace closure: zero remaining first-party references to the regime derivations SCOPE-6 retired, swept across pages, notes, registry metadata, and docs, so no caller resolves to a deleted path. | `node scripts/selftest.mjs` | No |
 | TP-08-10 | Integration | `integration` | `scripts/selftest.mjs` group `regime-primitives` / `IP-002 no-cycle: no facet source imports a Tier 2 module and no facet declares the composed regime as an input` | **ADVERSARIAL RED-bite** — neutralize the no-cycle rule by letting a facet source import a Tier 2 module and declare the composed regime as one of its inputs, anywhere in the tree. The named test `IP-002 no-cycle: no facet source imports a Tier 2 module and no facet declares the composed regime as an input` MUST fail under that mutation and MUST pass against the delivered tree. | `node scripts/selftest.mjs` | No |
 | TP-08-11 | Integration | `integration` | `scripts/selftest.mjs` group `regime-primitives` / `a single regression inside the protected scenario set refuses closure and names the regressing scenario` | **BS-013-024: One regression inside the protected scenario set refuses governance closure** — **ADVERSARIAL RED-bite** — re-run the protected set with exactly one scenario within it regressed. Closure MUST be refused with the regressing scenario named, MUST NOT be reported as partial, provisional, or passing-with-exceptions, and the scenarios that still hold MUST NOT offset the single regression. | `node scripts/selftest.mjs` | No |
+| TP-08-12 | Regression E2E | `e2e-ui` | `tests/market-regime-lab.spec.mjs` / `Regression: BS-013-024 the protected scenario set re-runs on the real page as one set` | Persistent scenario-specific regression coverage for this scope's closure behavior: the feature's real-page regression spec holds the permanently registered protected-scenario cases contributed by SCOPE-1 through SCOPE-7 and re-runs them as one set, so a re-introduced defect in any owned scenario fails its own named case on the live page rather than only inside the Node suite. | `npx --no-install playwright test tests/market-regime-lab.spec.mjs --config=playwright.config.mjs --project=system-chrome --reporter=list` | Yes |
 
 ### Definition of Done
 
@@ -78,6 +97,9 @@ Scenario: The protected scenario set re-runs as a set and a single regression bl
 - [ ] The four RED-bite mutations from `design.md` → `## Testing Strategy` — no-cycle neutralization, denominator shrink, family collapse, and archetype fallback — are each registered against a specifically named failing test rather than a coverage number.
 - [ ] `notes/market-regime-lab.md` records the delivered surface, the published owner-read shape, the facet-source inventory, and the retired-duplicate inventory, with no placeholder section and no default text.
 - [ ] This scope adds no production behavior: no path outside `scripts/selftest.mjs` and `notes/market-regime-lab.md` is modified.
+- [ ] Consumer impact sweep is completed at closure across every re-verified surface enumerated in this scope's `## Consumer Impact Sweep` section, and zero stale first-party references remain to any derivation, identifier, or hard-asserted count retired by SCOPE-2 through SCOPE-7, with every navigation entry and landing-page deep link resolving and no silent redirect left behind.
+- [ ] Scenario-specific E2E regression tests for every new/changed/fixed behavior in this scope are persistent and named — `[TP-08-12]` the feature's real-page regression spec holds the permanently registered protected-scenario cases contributed by SCOPE-1 through SCOPE-7 and re-runs them as one set on the live page.
+- [ ] Broader E2E regression suite passes — the complete `node scripts/selftest.mjs` suite and the feature's real-page Playwright regression spec both run green at closure, with every pre-existing selftest group and every previously registered regression case preserved and no decreased passing count.
 
 #### Build Quality Gate
 

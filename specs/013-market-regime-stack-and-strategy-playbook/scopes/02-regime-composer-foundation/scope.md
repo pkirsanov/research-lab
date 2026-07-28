@@ -106,6 +106,21 @@ Scenario: A historical label is computed only from data available at its own tim
   And the rejection states that the label was not as-of-safe
 ```
 
+## Consumer Impact Sweep
+
+This scope makes `RLREGIME` the sole composer and moves regime naming out of every place that previously derived it, so every first-party reader of a regime value becomes a consumer of the contract published here. The enumeration below is the complete first-party consumer set bound by that contract; SCOPE-6 executes the projection-reader migration against this same enumeration. A stale-reference scan must return zero remaining first-party references to a locally derived regime name once the migration lands.
+
+| Consumer surface | Path | What the composed contract changes for it |
+| --- | --- | --- |
+| Tool-page owner read | `market-regime-lab.html` | Renders the composed verdict read through `RLREGIME.readPublishedContext` and names no regime itself. |
+| Headless derived read | `scripts/brief-refresh.mjs` | Consumes the composed owner read as a `DERIVED` adapter instead of re-deriving a regime label. |
+| Legacy macro-regime projection reader | `rlg.js` `macroRegime()` | Reads `RLREGIME.projectCompatibility(…, 'macro-regime-legacy/v1')`; its local classification stops being an authority. |
+| Legacy band projection reader | `rlexperience-adapters/market-structure.js` `regimeBand()` | Reads `market-structure-band-legacy/v1` from the same fingerprint instead of deriving its own band. |
+| Shared navigation and landing inventory | `rlnav.js` `TOOLS` array, `index.html` `TOOLS` array | The navigation entries and landing-page deep link targets that route a reader to a regime surface must continue to resolve unchanged. |
+| Handoff documentation | `notes/market-regime-lab.md` | Names the composer as the single regime-naming authority so no doc points a reader at a retired derivation. |
+
+Stale-reference scan surface: every navigation entry, every landing-page deep link, and every in-page redirect that targets a regime read, plus every remaining textual reference to a locally computed regime name across `*.html`, `*.js`, `*.mjs`, `notes/**`, and the registry JSON files.
+
 ## Implementation Plan
 
 1. **UMD wrapper.** Author `rlregime.js` with the same single IIFE shape as SCOPE-1, throwing the named `RLREGIME_BROWSER_GLOBAL_UNAVAILABLE` when neither host exists, and deep-freezing the API before publication.
@@ -139,6 +154,7 @@ Scenario: A historical label is computed only from data available at its own tim
 | TP-02-11 | Functional | `functional` | `scripts/selftest.mjs` groups `rlregime-compose` and `rlregime` / `RLREGIME holds the composed label and marks the facet forming until the persistence gate is met` and `RLREGIME readPublishedContext refuses a raw facet array with RLREGIME_SCHEMA_INVALID at publishedRegime` | **ADVERSARIAL RED-bite** — two mutations, each of which MUST fail a named assertion: (a) neutralize the hysteresis gate so a sub-threshold move flips the composed label immediately, which MUST fail `RLREGIME holds the composed label and marks the facet forming until the persistence gate is met`; (b) let a facet source path reach `composeRegime` by allowing `readPublishedContext` to accept a raw facet array and recompute, which MUST fail `RLREGIME readPublishedContext refuses a raw facet array with RLREGIME_SCHEMA_INVALID at publishedRegime`. Both named assertions MUST pass against the delivered composer. | `node scripts/selftest.mjs` | No |
 | TP-02-12 | Functional | `functional` | `scripts/selftest.mjs` — complete suite, every pre-existing group plus the additive `rlregime`, `rlregime-compose`, `rlregime-history`, and `rlregime-projection` groups | Broad-suite regression: the full selftest suite stays green with the new composer groups added, every pre-existing group (including SCOPE-1's `rlratio` groups) is preserved byte-for-byte, and the total passing count does not decrease. | `node scripts/selftest.mjs` | No |
 | TP-02-13 | Functional | `functional` | `scripts/selftest.mjs` group `rlregime-compose` / `RLREGIME records a one-print archetype change as a candidate transition and holds the displayed label` | **BS-013-008: A one-print change stays a candidate transition** — after the confirmed archetype has held for twelve consecutive observations, a single new observation implying a different archetype is recorded with state `candidate`, the displayed archetype remains the previously confirmed one, and the candidate transition is visible with its current run length. | `node scripts/selftest.mjs` | No |
+| TP-02-14 | Regression E2E | `e2e-ui` | `tests/market-regime-lab.spec.mjs` / `Regression: BS-013-002 and BS-013-008 non-enumerated combinations stay fingerprints and labels hold the persistence gate` | Persistent scenario-specific regression coverage for this scope's composer behavior: a permanently registered case in the feature's real-page regression spec re-asserts that a non-enumerated facet tuple renders as a fingerprint with no invented archetype label and that a regime label does not flip until the persistence gate is met. A re-introduced invented label or a premature flip fails this named test by name. | `npx --no-install playwright test tests/market-regime-lab.spec.mjs --config=playwright.config.mjs --project=system-chrome --reporter=list` | Yes |
 
 ### Definition of Done
 
@@ -161,6 +177,9 @@ Scenario: A historical label is computed only from data available at its own tim
 - [ ] `[BS-013-002]` `rlregime.js` and `regime-archetypes.json` carry no default value, no fallback path, and no stub: the archetype registry is fully enumerated with no wildcards and no ranges, and unmatched tuples resolve through the declared fingerprint path.
 - [ ] `[BS-013-001]` Identical frozen input at an identical `decisionTime` produces byte-identical composed output and an identical `fingerprintId`.
 - [ ] `[BS-013-001]` Every numeric guard in new code uses `Number.isFinite`; the global `isFinite` appears zero times in `rlregime.js`.
+- [ ] Consumer impact sweep is completed for every consumer surface enumerated in this scope's `## Consumer Impact Sweep` section, and zero stale first-party references remain to a locally derived regime name across navigation entries, landing-page deep links, in-page redirects, `*.html`, `*.js`, `*.mjs`, `notes/**`, and the registry JSON files.
+- [ ] Scenario-specific E2E regression tests for every new/changed/fixed behavior in this scope are persistent and named — `[TP-02-14]` the feature's real-page regression spec holds a permanently registered case asserting that a non-enumerated facet tuple renders as a fingerprint with no invented archetype label and that a regime label does not flip until the persistence gate is met.
+- [ ] Broader E2E regression suite passes — the complete `node scripts/selftest.mjs` suite and the feature's real-page Playwright regression spec both run green once this scope lands, with every pre-existing selftest group and every previously registered regression case preserved and no decreased passing count.
 
 #### Build Quality Gate
 

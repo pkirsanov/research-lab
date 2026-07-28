@@ -45,6 +45,19 @@ Scenario: An inline duplicate is replaced by consumption of the published read
   And the tool's genuinely tool-specific signal remains registered as its own facet
 ```
 
+## Consumer Impact Sweep
+
+This scope retires the duplicate regime derivations and replaces each with a read over the single published composer output, so every page that rendered a locally derived regime value is a consumer of the removal. The enumeration below names each retired derivation together with the first-party pages that read it. A stale-reference scan must return zero remaining first-party callers of a retired derivation and zero surfaces rendering a second, locally computed regime value.
+
+| Retired derivation | Path | First-party readers of that derivation |
+| --- | --- | --- |
+| Local macro-regime classification | `rlg.js` `macroRegime()` | `intraday-tape-lab.html`, `market-brief.html` — both move to the `macro-regime-legacy/v1` projection read. |
+| Local band derivation | `rlexperience-adapters/market-structure.js` `regimeBand(fg, trend, vix)` | `swing-structure-lab.html` — moves to the `market-structure-band-legacy/v1` projection read. |
+| Inline in-page regime copy | the inline regime copy inside `intraday-tape-lab.html` | That page itself — the inline copy is removed and the page reads context through `RLREGIME.readPublishedContext`. |
+| Legacy vocabulary consumers at large | `macro-regime-legacy/v1`, `market-structure-band-legacy/v1` projections | Every remaining reader of either legacy vocabulary resolves from one fingerprint, so the previously live cross-page disagreement resolves structurally rather than as a silent difference. |
+
+Stale-reference scan surface: every navigation entry, every deep link, and every in-page redirect that targets a page whose regime read moved, plus every remaining first-party call site of `macroRegime()` or `regimeBand(` and every remaining inline regime derivation across `*.html`, `*.js`, `*.mjs`, and `notes/**`.
+
 ## Implementation Plan
 
 1. **`rlg.js` macro-regime reader.** Replace the local classification in `macroRegime()` with a thin read over `RLREGIME.projectCompatibility(…, 'macro-regime-legacy/v1')`. It carries its declared-lossy field list and a deprecation date and stops classifying entirely.
@@ -70,6 +83,7 @@ Scenario: An inline duplicate is replaced by consumption of the published read
 | TP-06-07 | Unit | `unit` | `scripts/selftest.mjs` group `rlregime-projection` / `a compatibility projection is never re-composed back into a facet` | **BS-013-011: A consumer reads the published owner read and cannot recompute or upgrade it** — a projected legacy value offered back as a `RegimeFacetContract` input is rejected with its typed schema error; the projection is a terminal read surface and cannot re-enter composition as a facet. | `node scripts/selftest.mjs` | No |
 | TP-06-08 | E2E UI | `e2e-ui` | `tests/market-regime-consumer-migration.spec.mjs` / `intraday-tape-lab renders exactly one regime read matching the published owner read verbatim` | **ADVERSARIAL RED-bite** — reintroduce an inline regime copy into `intraday-tape-lab.html` so a second locally-derived regime label renders beside the published read. The named test `intraday-tape-lab renders exactly one regime read matching the published owner read verbatim` MUST fail under that mutation and MUST pass against the delivered migration. | `npx --no-install playwright test tests/market-regime-consumer-migration.spec.mjs --config=playwright.config.mjs --project=system-chrome --reporter=list` | Yes |
 | TP-06-09 | Functional | `functional` | `scripts/selftest.mjs` — complete suite, every pre-existing group plus the migration and projection assertions this scope adds | Broad-suite regression: the full selftest suite stays green after the duplicate retirement, every pre-existing group (including the SCOPE-1 through SCOPE-5 groups) is preserved byte-for-byte, and the total passing count does not decrease. | `node scripts/selftest.mjs` | No |
+| TP-06-10 | Regression E2E | `e2e-ui` | `tests/market-regime-lab.spec.mjs` / `Regression: BS-013-011 and BS-013-012 migrated consumers render the one published read and cannot recompute it` | Persistent scenario-specific regression coverage for this scope's migration behavior: a permanently registered case in the feature's real-page regression spec re-asserts that every migrated consumer renders the single published owner read or its declared legacy projection, and that no consumer recomputes or upgrades the regime locally. A re-introduced inline regime copy fails this named test by name. | `npx --no-install playwright test tests/market-regime-lab.spec.mjs --config=playwright.config.mjs --project=system-chrome --reporter=list` | Yes |
 
 ### Definition of Done
 
@@ -89,6 +103,9 @@ Scenario: An inline duplicate is replaced by consumption of the published read
 - [ ] `[BS-013-011]` A stale published read renders its staleness with a reason and a what-would-resolve statement; no consumer substitutes a recompute, an upgrade, a zero, a dash, or a neutral value for it.
 - [ ] Zero first-party references to the retired local regime derivations remain across pages, docs, notes, and registry metadata; no caller resolves to a deleted path.
 - [ ] `rlexperience.js` and `rljourney.js` are byte-for-byte unmodified, and no path outside this scope's Implementation Files table is touched.
+- [ ] Consumer impact sweep is completed for every retired derivation and reader enumerated in this scope's `## Consumer Impact Sweep` section, and zero stale first-party references remain — no remaining first-party call site of `macroRegime()` or `regimeBand(`, no remaining inline regime derivation, and every navigation entry, deep link, and in-page redirect targeting a migrated surface still resolves.
+- [ ] Scenario-specific E2E regression tests for every new/changed/fixed behavior in this scope are persistent and named — `[TP-06-10]` the feature's real-page regression spec holds a permanently registered case asserting that every migrated consumer renders the single published owner read or its declared legacy projection and that no consumer recomputes or upgrades the regime locally.
+- [ ] Broader E2E regression suite passes — the complete `node scripts/selftest.mjs` suite and the feature's real-page Playwright regression spec both run green once this scope lands, with every pre-existing selftest group and every previously registered regression case preserved and no decreased passing count.
 
 #### Build Quality Gate
 

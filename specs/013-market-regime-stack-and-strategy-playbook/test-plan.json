@@ -1,808 +1,898 @@
 {
-    "contractVersion": 1,
-    "schemaVersion": 1,
-    "version": 1,
-    "specId": "013",
-    "featureDir": "specs/013-market-regime-stack-and-strategy-playbook",
-    "generatedBy": "bubbles.plan",
-    "evidenceBoundary": "Planning-owned structured mirror of the Markdown Test Plan tables in scopes/NN-*/scope.md. Feature 013 has not been implemented and no command below has been run, so every test carries status 'planned'. An execution agent flips a test's status only after running its command and recording the raw output under the matching report.md anchor.",
-    "totalTests": 77,
-    "scopes": [
+  "contractVersion": 1,
+  "schemaVersion": 1,
+  "version": 1,
+  "specId": "013",
+  "featureDir": "specs/013-market-regime-stack-and-strategy-playbook",
+  "generatedBy": "bubbles.plan",
+  "evidenceBoundary": "Planning-owned structured mirror of the Markdown Test Plan tables in scopes/NN-*/scope.md. Feature 013 has not been implemented and no command below has been run, so every test carries status 'planned'. An execution agent flips a test's status only after running its command and recording the raw output under the matching report.md anchor.",
+  "totalTests": 87,
+  "scopes": [
+    {
+      "scopeId": "SCOPE-1",
+      "scopeName": "Ratio capability foundation",
+      "scopeDir": "scopes/01-ratio-capability-foundation",
+      "foundation": true,
+      "dependsOn": [],
+      "testCount": 9,
+      "tests": [
         {
-            "scopeId": "SCOPE-1",
-            "scopeName": "Ratio capability foundation",
-            "scopeDir": "scopes/01-ratio-capability-foundation",
-            "foundation": true,
-            "dependsOn": [],
-            "testCount": 8,
-            "tests": [
-                {
-                    "id": "TP-01-01",
-                    "category": "unit",
-                    "file": "scripts/selftest.mjs",
-                    "description": "BS-013-013 — a declared pairId returns level and trend over the as-of-safe date intersection of both legs, and the z-score carries its declared lookbackBars window as a returned field rather than an implicit one.",
-                    "command": "node scripts/selftest.mjs",
-                    "liveSystem": false,
-                    "status": "planned"
-                },
-                {
-                    "id": "TP-01-02",
-                    "category": "unit",
-                    "file": "scripts/selftest.mjs",
-                    "description": "BS-013-014 — two pairs sharing a ratioFamilyId collapse into one evidence family contributing confirmationWeight 1, and the collapse runs before any downstream confirmation arithmetic.",
-                    "command": "node scripts/selftest.mjs",
-                    "liveSystem": false,
-                    "status": "planned"
-                },
-                {
-                    "id": "TP-01-03",
-                    "category": "unit",
-                    "file": "scripts/selftest.mjs",
-                    "description": "BS-013-015 — legs disagreeing on distribution adjustment, or an intersected history shorter than lookbackBars, return unavailable with the specific reason code and emit no level, trend, or z-score number.",
-                    "command": "node scripts/selftest.mjs",
-                    "liveSystem": false,
-                    "status": "planned"
-                },
-                {
-                    "id": "TP-01-04",
-                    "category": "unit",
-                    "file": "scripts/selftest.mjs",
-                    "description": "BS-013-016 — a cross-session or unaligned-FX pair returns not-comparable naming the misaligned session or FX leg, and emits no reading number.",
-                    "command": "node scripts/selftest.mjs",
-                    "liveSystem": false,
-                    "status": "planned"
-                },
-                {
-                    "id": "TP-01-05",
-                    "category": "functional",
-                    "file": "scripts/selftest.mjs",
-                    "description": "Contract-boundary behavior across the primitive: malformed input raises each declared RLRATIO_* code at its declared .path, the factory return is deep-frozen before publication, RLRATIO_BROWSER_GLOBAL_UNAVAILABLE is raised when neither host exists, and proxy/coverage caveats on a leg propagate onto the returned reading.",
-                    "command": "node scripts/selftest.mjs",
-                    "liveSystem": false,
-                    "status": "planned"
-                },
-                {
-                    "id": "TP-01-06",
-                    "category": "unit",
-                    "file": "scripts/selftest.mjs",
-                    "description": "ADVERSARIAL RED-bite — collapse the SOXX/SPY + SMH/SPY shared-family grouping so groupByFamily returns per-pair weight and the confirmation weight becomes 2. The named grouping test MUST fail under that mutation and MUST pass against the delivered grouping.",
-                    "command": "node scripts/selftest.mjs",
-                    "liveSystem": false,
-                    "status": "planned"
-                },
-                {
-                    "id": "TP-01-07",
-                    "category": "load",
-                    "file": "scripts/selftest.mjs",
-                    "description": "Long synthetic bar histories at the largest declared lookbackBars: the date intersection and window statistics stay within the stated compute budget and return byte-identical output for identical frozen input.",
-                    "command": "node scripts/selftest.mjs",
-                    "liveSystem": false,
-                    "status": "planned"
-                },
-                {
-                    "id": "TP-01-08",
-                    "category": "functional",
-                    "file": "scripts/selftest.mjs",
-                    "description": "Broad-suite regression: the full selftest suite stays green with the additive rlratio and rlratio-scale groups added, every pre-existing group is preserved byte-for-byte, and the total passing count does not decrease.",
-                    "command": "node scripts/selftest.mjs",
-                    "liveSystem": false,
-                    "status": "planned"
-                }
-            ]
+          "id": "TP-01-01",
+          "category": "unit",
+          "file": "scripts/selftest.mjs",
+          "description": "BS-013-013 — a declared pairId returns level and trend over the as-of-safe date intersection of both legs, and the z-score carries its declared lookbackBars window as a returned field rather than an implicit one.",
+          "command": "node scripts/selftest.mjs",
+          "liveSystem": false,
+          "status": "planned"
         },
         {
-            "scopeId": "SCOPE-2",
-            "scopeName": "Regime facet contract + composer foundation",
-            "scopeDir": "scopes/02-regime-composer-foundation",
-            "foundation": true,
-            "dependsOn": [
-                "SCOPE-1"
-            ],
-            "testCount": 13,
-            "tests": [
-                {
-                    "id": "TP-02-01",
-                    "category": "functional",
-                    "file": "scripts/selftest.mjs",
-                    "description": "BS-013-001 — a facet tuple with an exact entry in regime-archetypes.json composes to that enumerated archetype name together with its k/m confirmation denominator.",
-                    "command": "node scripts/selftest.mjs",
-                    "liveSystem": false,
-                    "status": "planned"
-                },
-                {
-                    "id": "TP-02-02",
-                    "category": "functional",
-                    "file": "scripts/selftest.mjs",
-                    "description": "BS-013-002 — an unmatched tuple emits the deterministic fingerprintId plus the literal Mixed or Unresolved with unresolvedFacetPair named; nearest-neighbour, majority-vote, and generated names are absent.",
-                    "command": "node scripts/selftest.mjs",
-                    "liveSystem": false,
-                    "status": "planned"
-                },
-                {
-                    "id": "TP-02-03",
-                    "category": "functional",
-                    "file": "scripts/selftest.mjs",
-                    "description": "BS-013-004 — the short facet is excluded from that horizon lane's k and m, appears in excludedFacetIds, and its shortfall is stated on the returned reading.",
-                    "command": "node scripts/selftest.mjs",
-                    "liveSystem": false,
-                    "status": "planned"
-                },
-                {
-                    "id": "TP-02-04",
-                    "category": "functional",
-                    "file": "scripts/selftest.mjs",
-                    "description": "BS-013-006 — a facet past its cutoff returns unavailable with a reason and what-would-resolve, m shrinks to match with populated absentFacetIds, m === 0 produces unavailable rather than 0, and no zero, dash, blank, or Neutral substitutes for it.",
-                    "command": "node scripts/selftest.mjs",
-                    "liveSystem": false,
-                    "status": "planned"
-                },
-                {
-                    "id": "TP-02-05",
-                    "category": "functional",
-                    "file": "scripts/selftest.mjs",
-                    "description": "BS-013-007 — the contradiction record names both facets, both values, and both horizons, and the headline verdict carries no averaged value, no majority resolution, and no confidence number standing in for the conflict.",
-                    "command": "node scripts/selftest.mjs",
-                    "liveSystem": false,
-                    "status": "planned"
-                },
-                {
-                    "id": "TP-02-06",
-                    "category": "functional",
-                    "file": "scripts/selftest.mjs",
-                    "description": "BS-013-008 — a sub-threshold move leaves the composed label unchanged and marks the moving facet forming; the label flips only once the gate is met, so no transient flicker is emitted.",
-                    "command": "node scripts/selftest.mjs",
-                    "liveSystem": false,
-                    "status": "planned"
-                },
-                {
-                    "id": "TP-02-07",
-                    "category": "integration",
-                    "file": "scripts/selftest.mjs",
-                    "description": "BS-013-009 — every historical point composes only from bars available at its own observedAsOf/retrievedAt cutoff, and a hindsight-smoothing request returns an explicit typed refusal with its reason instead of a smoothed or silently re-labelled series.",
-                    "command": "node scripts/selftest.mjs",
-                    "liveSystem": false,
-                    "status": "planned"
-                },
-                {
-                    "id": "TP-02-08",
-                    "category": "unit",
-                    "file": "scripts/selftest.mjs",
-                    "description": "Contract-surface behavior of the facet layer: each kind-keyed closed vocabulary is enforced against its valueVocabularyId, FacetHorizonClass is immutable at declaration, a tactical facet cannot move a structural value or a structural persistence counter, and a volatility-magnitude facet is rejected wherever a directional regime is expected.",
-                    "command": "node scripts/selftest.mjs",
-                    "liveSystem": false,
-                    "status": "planned"
-                },
-                {
-                    "id": "TP-02-09",
-                    "category": "integration",
-                    "file": "scripts/selftest.mjs",
-                    "description": "The compatibility projection reproduces macro-regime-legacy/v1 and market-structure-band-legacy/v1 cells without mutating the source read and declares any lossy cell; readPublishedContext returns isRecomputation false, holds no registry, and raises RLREGIME_SCHEMA_INVALID at publishedRegime when handed a raw facet array.",
-                    "command": "node scripts/selftest.mjs",
-                    "liveSystem": false,
-                    "status": "planned"
-                },
-                {
-                    "id": "TP-02-10",
-                    "category": "functional",
-                    "file": "scripts/selftest.mjs",
-                    "description": "Sleeve-fit shape and determinism: rows carry ordinal relative rank, rationaleFacetIds, and an invalidation condition; the forbidden-output tokens are rejected at the contract boundary; a flat input emits the explicit no-advantage state instead of a forced 1..n ordering; and identical frozen input at an identical decisionTime yields byte-identical output and fingerprintId.",
-                    "command": "node scripts/selftest.mjs",
-                    "liveSystem": false,
-                    "status": "planned"
-                },
-                {
-                    "id": "TP-02-11",
-                    "category": "functional",
-                    "file": "scripts/selftest.mjs",
-                    "description": "ADVERSARIAL RED-bite — two mutations, each of which MUST fail a named assertion: (a) neutralize the hysteresis gate so a sub-threshold move flips the composed label immediately; (b) let a facet source path reach composeRegime by allowing readPublishedContext to accept a raw facet array and recompute. Both named assertions MUST pass against the delivered composer.",
-                    "command": "node scripts/selftest.mjs",
-                    "liveSystem": false,
-                    "status": "planned"
-                },
-                {
-                    "id": "TP-02-12",
-                    "category": "functional",
-                    "file": "scripts/selftest.mjs",
-                    "description": "Broad-suite regression: the full selftest suite stays green with the additive rlregime, rlregime-compose, rlregime-history, and rlregime-projection groups added, every pre-existing group (including SCOPE-1's rlratio groups) is preserved byte-for-byte, and the total passing count does not decrease.",
-                    "command": "node scripts/selftest.mjs",
-                    "liveSystem": false,
-                    "status": "planned"
-                },
-                {
-                    "id": "TP-02-13",
-                    "category": "functional",
-                    "file": "scripts/selftest.mjs",
-                    "description": "BS-013-008: A one-print change stays a candidate transition — after the confirmed archetype has held for twelve consecutive observations, a single new observation implying a different archetype is recorded with state candidate, the displayed archetype remains the previously confirmed one, and the candidate transition is visible with its current run length.",
-                    "command": "node scripts/selftest.mjs",
-                    "liveSystem": false,
-                    "status": "planned"
-                }
-            ]
+          "id": "TP-01-02",
+          "category": "unit",
+          "file": "scripts/selftest.mjs",
+          "description": "BS-013-014 — two pairs sharing a ratioFamilyId collapse into one evidence family contributing confirmationWeight 1, and the collapse runs before any downstream confirmation arithmetic.",
+          "command": "node scripts/selftest.mjs",
+          "liveSystem": false,
+          "status": "planned"
         },
         {
-            "scopeId": "SCOPE-3",
-            "scopeName": "Facet source publication shims",
-            "scopeDir": "scopes/03-facet-source-publication-shims",
-            "foundation": false,
-            "dependsOn": [
-                "SCOPE-2"
-            ],
-            "testCount": 7,
-            "tests": [
-                {
-                    "id": "TP-03-01",
-                    "category": "functional",
-                    "file": "scripts/selftest.mjs",
-                    "description": "BS-013-010 — each shim reads its owner tool's frozen model output, performs no new fetching, and writes exactly one RegimeFacetContract reading per owned facet stamped with asOf, sourceAttribution, and coverageNote.",
-                    "command": "node scripts/selftest.mjs",
-                    "liveSystem": false,
-                    "status": "planned"
-                },
-                {
-                    "id": "TP-03-02",
-                    "category": "unit",
-                    "file": "scripts/selftest.mjs",
-                    "description": "Each retained legacy vocabulary maps into the facet vocabulary through a declared, versioned mapping keyed by valueVocabularyId; a mapping that is lossy declares its loss, and an undeclared silent re-label is rejected at the boundary.",
-                    "command": "node scripts/selftest.mjs",
-                    "liveSystem": false,
-                    "status": "planned"
-                },
-                {
-                    "id": "TP-03-03",
-                    "category": "unit",
-                    "file": "scripts/selftest.mjs",
-                    "description": "Per-source facet typing: the bond source publishes credit, curve, and duration-posture as three separately identifiable facets never blended into one score, and the volatility source publishes strictly kind volatility-magnitude so the composer rejects it wherever a directional regime is expected.",
-                    "command": "node scripts/selftest.mjs",
-                    "liveSystem": false,
-                    "status": "planned"
-                },
-                {
-                    "id": "TP-03-04",
-                    "category": "functional",
-                    "file": "scripts/selftest.mjs",
-                    "description": "The credit-quality-pulse, real-assets, global-rotation, and FX dollar sources read their readings from RLRATIO over pairs declared in ratio-pairs.json, real-assets propagates the proxy caveat onto its published facet, and global-rotation emits not-comparable where a pair fails the comparability predicate.",
-                    "command": "node scripts/selftest.mjs",
-                    "liveSystem": false,
-                    "status": "planned"
-                },
-                {
-                    "id": "TP-03-05",
-                    "category": "integration",
-                    "file": "scripts/selftest.mjs",
-                    "description": "Publication reaches the Tier 0 shared-cache facet slot through the existing rldata.js append API with the protected cache schema unchanged, and each published facet carries the producing source and the targeted composer version so a provenance line can name the source without naming the composed regime as an input.",
-                    "command": "node scripts/selftest.mjs",
-                    "liveSystem": false,
-                    "status": "planned"
-                },
-                {
-                    "id": "TP-03-06",
-                    "category": "functional",
-                    "file": "scripts/selftest.mjs",
-                    "description": "ADVERSARIAL RED-bite — introduce a source-side cycle fixture in which a shim imports rlregime.js and declares the composed regime as a facet input. The named IP-002 no-cycle test MUST fail under that fixture, resolving to an explicit lint-failure state rather than a value, and MUST pass against the delivered one-way shims.",
-                    "command": "node scripts/selftest.mjs",
-                    "liveSystem": false,
-                    "status": "planned"
-                },
-                {
-                    "id": "TP-03-07",
-                    "category": "functional",
-                    "file": "scripts/selftest.mjs",
-                    "description": "Broad-suite regression: the full selftest suite stays green with the regime-primitives group added, every pre-existing group (including the SCOPE-1 and SCOPE-2 groups) is preserved byte-for-byte, and the total passing count does not decrease.",
-                    "command": "node scripts/selftest.mjs",
-                    "liveSystem": false,
-                    "status": "planned"
-                }
-            ]
+          "id": "TP-01-03",
+          "category": "unit",
+          "file": "scripts/selftest.mjs",
+          "description": "BS-013-015 — legs disagreeing on distribution adjustment, or an intersected history shorter than lookbackBars, return unavailable with the specific reason code and emit no level, trend, or z-score number.",
+          "command": "node scripts/selftest.mjs",
+          "liveSystem": false,
+          "status": "planned"
         },
         {
-            "scopeId": "SCOPE-4",
-            "scopeName": "Market Regime Lab surface",
-            "scopeDir": "scopes/04-market-regime-lab-surface",
-            "foundation": false,
-            "dependsOn": [
-                "SCOPE-2",
-                "SCOPE-3"
-            ],
-            "testCount": 12,
-            "tests": [
-                {
-                    "id": "TP-04-01",
-                    "category": "e2e-ui",
-                    "file": "tests/market-regime-lab.spec.mjs",
-                    "description": "BS-013-003 / matrix row UX-M-03 — flipping an intraday/tactical facet changes the tactical lane text while the structural lane verdict text and its lane confirmation count render identically, and no tactical reading appears inside, above, or as a modifier of the structural lane.",
-                    "command": "npx --no-install playwright test tests/market-regime-lab.spec.mjs --config=playwright.config.mjs --project=system-chrome --reporter=list",
-                    "liveSystem": true,
-                    "status": "planned"
-                },
-                {
-                    "id": "TP-04-02",
-                    "category": "e2e-ui",
-                    "file": "tests/market-regime-lab.spec.mjs",
-                    "description": "BS-013-005 / matrix row UX-M-06 — the literal market-implied qualifier renders inline on the quadrant label itself rather than in a footnote, caption, or tooltip, and no wording presenting the quadrant as an observed macro regime is rendered.",
-                    "command": "npx --no-install playwright test tests/market-regime-lab.spec.mjs --config=playwright.config.mjs --project=system-chrome --reporter=list",
-                    "liveSystem": true,
-                    "status": "planned"
-                },
-                {
-                    "id": "TP-04-03",
-                    "category": "e2e-ui",
-                    "file": "tests/market-regime-lab.spec.mjs",
-                    "description": "BS-013-017 / matrix row UX-M-09 — each sleeve row renders an ordinal relative rank, a rationale naming the driving facets, and an invalidation condition; no weight, allocation, exposure, position size, target, or direction renders as text, as a number, or as a bar length.",
-                    "command": "npx --no-install playwright test tests/market-regime-lab.spec.mjs --config=playwright.config.mjs --project=system-chrome --reporter=list",
-                    "liveSystem": true,
-                    "status": "planned"
-                },
-                {
-                    "id": "TP-04-04",
-                    "category": "e2e-ui",
-                    "file": "tests/market-regime-lab.spec.mjs",
-                    "description": "BS-013-018 / matrix row UX-M-10 — the bond sub-type rows reorder visibly between the inflationary and disinflationary risk-off fixtures and stay individually named rather than collapsing into one bond row.",
-                    "command": "npx --no-install playwright test tests/market-regime-lab.spec.mjs --config=playwright.config.mjs --project=system-chrome --reporter=list",
-                    "liveSystem": true,
-                    "status": "planned"
-                },
-                {
-                    "id": "TP-04-05",
-                    "category": "e2e-ui",
-                    "file": "tests/market-regime-lab.spec.mjs",
-                    "description": "BS-013-019 / matrix row UX-M-24 — energy, metals, and agriculture render as separate individually-named sleeve rows rather than one merged commodities row.",
-                    "command": "npx --no-install playwright test tests/market-regime-lab.spec.mjs --config=playwright.config.mjs --project=system-chrome --reporter=list",
-                    "liveSystem": true,
-                    "status": "planned"
-                },
-                {
-                    "id": "TP-04-06",
-                    "category": "e2e-ui",
-                    "file": "tests/market-regime-lab.spec.mjs",
-                    "description": "BS-013-020 / matrix row UX-M-11 — a flat fixture renders the explicit no-advantage state in place of the sleeve list, with no forced 1..n ordering and no empty region.",
-                    "command": "npx --no-install playwright test tests/market-regime-lab.spec.mjs --config=playwright.config.mjs --project=system-chrome --reporter=list",
-                    "liveSystem": true,
-                    "status": "planned"
-                },
-                {
-                    "id": "TP-04-07",
-                    "category": "e2e-ui",
-                    "file": "tests/market-regime-lab.spec.mjs",
-                    "description": "Matrix row UX-M-16 — at a 375px viewport all four views render with the three lanes stacked in the fixed structural to swing to tactical order, lane labels and per-lane counts preserved, the confirmation denominator and its shrink clause rendered as wrapped text lines rather than a ring or gauge, and the document body gains no horizontal scroll.",
-                    "command": "npx --no-install playwright test tests/market-regime-lab.spec.mjs --config=playwright.config.mjs --project=system-chrome --reporter=list",
-                    "liveSystem": true,
-                    "status": "planned"
-                },
-                {
-                    "id": "TP-04-08",
-                    "category": "ui-unit",
-                    "file": "scripts/selftest.mjs",
-                    "description": "Each of the 12 regime primitives given an unavailable / not-comparable / Mixed / Unresolved input produces the typed rendering with a reason and a total reason-to-resolution mapping — never a zero, dash, neutral, or empty cell — and each primitive is a single named render function composed by at least two views.",
-                    "command": "node scripts/selftest.mjs",
-                    "liveSystem": false,
-                    "status": "planned"
-                },
-                {
-                    "id": "TP-04-09",
-                    "category": "stress",
-                    "file": "tests/market-regime-lab.stress.spec.mjs",
-                    "description": "Rapid lever and view toggling across the maximum declared pair set and facet set: one compute per render() holds under churn, a view switch triggers no refetch, no unhandled rejection or frozen paint occurs, and canvas redraw stays correct across resize and hidden to visible transitions.",
-                    "command": "npx --no-install playwright test tests/market-regime-lab.stress.spec.mjs --config=playwright.config.mjs --project=system-chrome --reporter=list",
-                    "liveSystem": true,
-                    "status": "planned"
-                },
-                {
-                    "id": "TP-04-10",
-                    "category": "e2e-ui",
-                    "file": "tests/market-regime-lab.spec.mjs",
-                    "description": "ADVERSARIAL RED-bite — let a non-enumerated facet combination render an archetype name in the verdict header. The named UX-M-02 test MUST fail under that mutation and MUST pass against the delivered surface, which renders the fingerprint string plus the literal Mixed or Unresolved with the unresolved facet pair named.",
-                    "command": "npx --no-install playwright test tests/market-regime-lab.spec.mjs --config=playwright.config.mjs --project=system-chrome --reporter=list",
-                    "liveSystem": true,
-                    "status": "planned"
-                },
-                {
-                    "id": "TP-04-11",
-                    "category": "functional",
-                    "file": "scripts/selftest.mjs",
-                    "description": "Broad-suite regression: the full selftest suite stays green with the surface's primitive assertions added, every pre-existing group (including the SCOPE-1, SCOPE-2, and SCOPE-3 groups) is preserved byte-for-byte, and the total passing count does not decrease.",
-                    "command": "node scripts/selftest.mjs",
-                    "liveSystem": false,
-                    "status": "planned"
-                },
-                {
-                    "id": "TP-04-12",
-                    "category": "e2e-ui",
-                    "file": "tests/market-regime-lab.spec.mjs",
-                    "description": "BS-013-005: A sentiment-derived quadrant is labeled by its actual inputs — the growth-inflation quadrant whose only inputs are a Fear & Greed score and VIX is labeled market-implied, is not labeled a macro growth regime, an inflation regime, or an economic regime, and its rendered input attribution names the Fear & Greed score and VIX explicitly on every surface that renders the quadrant.",
-                    "command": "npx --no-install playwright test tests/market-regime-lab.spec.mjs --config=playwright.config.mjs --project=system-chrome --reporter=list",
-                    "liveSystem": true,
-                    "status": "planned"
-                }
-            ]
+          "id": "TP-01-04",
+          "category": "unit",
+          "file": "scripts/selftest.mjs",
+          "description": "BS-013-016 — a cross-session or unaligned-FX pair returns not-comparable naming the misaligned session or FX leg, and emits no reading number.",
+          "command": "node scripts/selftest.mjs",
+          "liveSystem": false,
+          "status": "planned"
         },
         {
-            "scopeId": "SCOPE-5",
-            "scopeName": "Registry registration + FR-051 count lockstep",
-            "scopeDir": "scopes/05-registry-registration-lockstep",
-            "foundation": false,
-            "dependsOn": [
-                "SCOPE-4"
-            ],
-            "testCount": 8,
-            "tests": [
-                {
-                    "id": "TP-05-01",
-                    "category": "integration",
-                    "file": "scripts/validate-tool-experience.mjs",
-                    "description": "FR-051 count lockstep — the tool-experience validator passes against the updated registries with the exact asserted counts of 22 ordinary tools, 4 Market Action Center goals, 48 total goals, and 48 journey definitions, so no registry and its assertion disagree.",
-                    "command": "node scripts/validate-tool-experience.mjs",
-                    "liveSystem": false,
-                    "status": "planned"
-                },
-                {
-                    "id": "TP-05-02",
-                    "category": "integration",
-                    "file": "scripts/selftest.mjs",
-                    "description": "Atomic registry registration — the tool resolves in every registration surface in the same change: tools.json, simple-models.json, journeys.json (with noExecution true), the index.html TOOLS array, the rlnav.js TOOLS array, and the required notes/market-regime-lab.md handoff doc. A tool present in one surface and absent from another is asserted to be a failure, not a partial state.",
-                    "command": "node scripts/selftest.mjs",
-                    "liveSystem": false,
-                    "status": "planned"
-                },
-                {
-                    "id": "TP-05-03",
-                    "category": "unit",
-                    "file": "scripts/selftest.mjs",
-                    "description": "The adapterPolicy.moduleAllowlist in tool-experience.config.json holds exactly 7 entries after registration, proving the tool composes via the root-level rlregime.js UMD and introduces no new adapter module.",
-                    "command": "node scripts/selftest.mjs",
-                    "liveSystem": false,
-                    "status": "planned"
-                },
-                {
-                    "id": "TP-05-04",
-                    "category": "functional",
-                    "file": "scripts/selftest.mjs",
-                    "description": "The hard-asserted registry counts inside scripts/selftest.mjs are moved in the same change as the registries themselves and re-derive the same 22 / 4 / 48 / 48 values directly from the registry files rather than from a hand-maintained constant.",
-                    "command": "node scripts/selftest.mjs",
-                    "liveSystem": false,
-                    "status": "planned"
-                },
-                {
-                    "id": "TP-05-05",
-                    "category": "integration",
-                    "file": "scripts/selftest.mjs",
-                    "description": "The tool's Simple-view read is written into the shared toolReads slot carrying id, asOf, a one-line read, metrics, and deepLink, so brief coverage of this tool is derived from the registry rather than hand-maintained.",
-                    "command": "node scripts/selftest.mjs",
-                    "liveSystem": false,
-                    "status": "planned"
-                },
-                {
-                    "id": "TP-05-06",
-                    "category": "integration",
-                    "file": "scripts/validate-tool-experience.mjs",
-                    "description": "ADVERSARIAL RED-bite — register the tool in tools.json alone while leaving journeys.json and the asserted counts at their prior values. The validator MUST fail under that half-applied registration naming the missing journey registration and the stale count, and MUST pass against the delivered coherent change.",
-                    "command": "node scripts/validate-tool-experience.mjs",
-                    "liveSystem": false,
-                    "status": "planned"
-                },
-                {
-                    "id": "TP-05-07",
-                    "category": "functional",
-                    "file": "scripts/selftest.mjs",
-                    "description": "Broad-suite regression: the full selftest suite stays green with the moved registry counts, every pre-existing group (including the SCOPE-1 through SCOPE-4 groups) is preserved byte-for-byte, and the total passing count does not decrease.",
-                    "command": "node scripts/selftest.mjs",
-                    "liveSystem": false,
-                    "status": "planned"
-                },
-                {
-                    "id": "TP-05-08",
-                    "category": "integration",
-                    "file": "scripts/validate-tool-experience.mjs",
-                    "description": "BS-013-023: A registry entry and its hard-asserted count are refused unless they move together \u2014 ADVERSARIAL RED-bite, overstated-count direction \u2014 raise an asserted count above the number of entries actually present across the registration surfaces. The registry validation MUST fail naming the asserted count that overstates the entries, MUST NOT infer, default, or backfill an absent entry to satisfy the declared count, and MUST pass against the delivered counts.",
-                    "command": "node scripts/validate-tool-experience.mjs",
-                    "liveSystem": false,
-                    "status": "planned"
-                }
-            ]
+          "id": "TP-01-05",
+          "category": "functional",
+          "file": "scripts/selftest.mjs",
+          "description": "Contract-boundary behavior across the primitive: malformed input raises each declared RLRATIO_* code at its declared .path, the factory return is deep-frozen before publication, RLRATIO_BROWSER_GLOBAL_UNAVAILABLE is raised when neither host exists, and proxy/coverage caveats on a leg propagate onto the returned reading.",
+          "command": "node scripts/selftest.mjs",
+          "liveSystem": false,
+          "status": "planned"
         },
         {
-            "scopeId": "SCOPE-6",
-            "scopeName": "Consumer migration + compatibility projection",
-            "scopeDir": "scopes/06-consumer-migration-projection",
-            "foundation": false,
-            "dependsOn": [
-                "SCOPE-2",
-                "SCOPE-5"
-            ],
-            "testCount": 9,
-            "tests": [
-                {
-                    "id": "TP-06-01",
-                    "category": "e2e-ui",
-                    "file": "tests/market-regime-consumer-migration.spec.mjs",
-                    "description": "BS-013-012 — intraday-tape-lab.html renders exactly one regime read whose label matches the published owner read verbatim; the retired inline third copy renders nowhere on the page and no second divergent vocabulary appears.",
-                    "command": "npx --no-install playwright test tests/market-regime-consumer-migration.spec.mjs --config=playwright.config.mjs --project=system-chrome --reporter=list",
-                    "liveSystem": true,
-                    "status": "planned"
-                },
-                {
-                    "id": "TP-06-02",
-                    "category": "e2e-ui",
-                    "file": "tests/market-regime-consumer-migration.spec.mjs",
-                    "description": "BS-013-012 — swing-structure-lab.html publishes its facet through the SCOPE-3 publication contract, reads context through RLREGIME.readPublishedContext, and renders exactly one regime read; no locally recomposed verdict renders.",
-                    "command": "npx --no-install playwright test tests/market-regime-consumer-migration.spec.mjs --config=playwright.config.mjs --project=system-chrome --reporter=list",
-                    "liveSystem": true,
-                    "status": "planned"
-                },
-                {
-                    "id": "TP-06-03",
-                    "category": "e2e-ui",
-                    "file": "tests/market-regime-consumer-migration.spec.mjs",
-                    "description": "BS-013-012 — market-brief.html renders the published composed read with its k/m, absentFacetIds, and availability carried through verbatim; a stale published read renders its staleness rather than triggering a local recompute or an upgrade.",
-                    "command": "npx --no-install playwright test tests/market-regime-consumer-migration.spec.mjs --config=playwright.config.mjs --project=system-chrome --reporter=list",
-                    "liveSystem": true,
-                    "status": "planned"
-                },
-                {
-                    "id": "TP-06-04",
-                    "category": "integration",
-                    "file": "scripts/selftest.mjs",
-                    "description": "Duplicate retirement — a repository-wide scan proves zero inline regime copies survive: the inline third copy formerly in intraday-tape-lab.html is deleted rather than commented out or guarded, and no migrated consumer file contains a local regime classification block.",
-                    "command": "node scripts/selftest.mjs",
-                    "liveSystem": false,
-                    "status": "planned"
-                },
-                {
-                    "id": "TP-06-05",
-                    "category": "integration",
-                    "file": "scripts/selftest.mjs",
-                    "description": "BS-013-011 — each migrated consumer is asserted to hold no registry data, run no archetype match, and compute no confirmation ratio; the read path exposes no recomposition or upgrade entry point.",
-                    "command": "node scripts/selftest.mjs",
-                    "liveSystem": false,
-                    "status": "planned"
-                },
-                {
-                    "id": "TP-06-06",
-                    "category": "unit",
-                    "file": "scripts/selftest.mjs",
-                    "description": "Both retained legacy vocabularies still project correctly: rlg.js reads macro-regime-legacy/v1 and rlexperience-adapters/market-structure.js reads market-structure-band-legacy/v1, each carrying its declared-lossy field list and deprecation date, and both resolving from the same fingerprint so the previously-live band divergence resolves structurally.",
-                    "command": "node scripts/selftest.mjs",
-                    "liveSystem": false,
-                    "status": "planned"
-                },
-                {
-                    "id": "TP-06-07",
-                    "category": "unit",
-                    "file": "scripts/selftest.mjs",
-                    "description": "BS-013-011 — a projected legacy value offered back as a RegimeFacetContract input is rejected with its typed schema error; the projection is a terminal read surface and cannot re-enter composition as a facet.",
-                    "command": "node scripts/selftest.mjs",
-                    "liveSystem": false,
-                    "status": "planned"
-                },
-                {
-                    "id": "TP-06-08",
-                    "category": "e2e-ui",
-                    "file": "tests/market-regime-consumer-migration.spec.mjs",
-                    "description": "ADVERSARIAL RED-bite — reintroduce an inline regime copy into intraday-tape-lab.html so a second locally-derived regime label renders beside the published read. The named single-read test MUST fail under that mutation and MUST pass against the delivered migration.",
-                    "command": "npx --no-install playwright test tests/market-regime-consumer-migration.spec.mjs --config=playwright.config.mjs --project=system-chrome --reporter=list",
-                    "liveSystem": true,
-                    "status": "planned"
-                },
-                {
-                    "id": "TP-06-09",
-                    "category": "functional",
-                    "file": "scripts/selftest.mjs",
-                    "description": "Broad-suite regression: the full selftest suite stays green after the duplicate retirement, every pre-existing group (including the SCOPE-1 through SCOPE-5 groups) is preserved byte-for-byte, and the total passing count does not decrease.",
-                    "command": "node scripts/selftest.mjs",
-                    "liveSystem": false,
-                    "status": "planned"
-                }
-            ]
+          "id": "TP-01-06",
+          "category": "unit",
+          "file": "scripts/selftest.mjs",
+          "description": "ADVERSARIAL RED-bite — collapse the SOXX/SPY + SMH/SPY shared-family grouping so groupByFamily returns per-pair weight and the confirmation weight becomes 2. The named grouping test MUST fail under that mutation and MUST pass against the delivered grouping.",
+          "command": "node scripts/selftest.mjs",
+          "liveSystem": false,
+          "status": "planned"
         },
         {
-            "scopeId": "SCOPE-7",
-            "scopeName": "Headless DERIVED owner read",
-            "scopeDir": "scopes/07-headless-derived-owner-read",
-            "foundation": false,
-            "dependsOn": [
-                "SCOPE-4",
-                "SCOPE-5"
-            ],
-            "testCount": 9,
-            "tests": [
-                {
-                    "id": "TP-07-01",
-                    "category": "integration",
-                    "file": "scripts/selftest.mjs",
-                    "description": "BS-013-021 — scripts/brief-refresh.mjs registers the composed owner read as a DERIVED adapter, the deterministic adapter set moves from 5 to 6, and exactly one read is published stamped source DERIVED.",
-                    "command": "node scripts/selftest.mjs",
-                    "liveSystem": false,
-                    "status": "planned"
-                },
-                {
-                    "id": "TP-07-02",
-                    "category": "integration",
-                    "file": "scripts/selftest.mjs",
-                    "description": "BS-013-021 — the published read carries the composed verdict, the archetype-or-fingerprint identity, k/m, absentFacetIds, availability, the ordered sleeve-fit list, the contradiction records, and the provenance fields — the complete contract, not a subset.",
-                    "command": "node scripts/selftest.mjs",
-                    "liveSystem": false,
-                    "status": "planned"
-                },
-                {
-                    "id": "TP-07-03",
-                    "category": "integration",
-                    "file": "scripts/selftest.mjs",
-                    "description": "BS-013-022 — with required facets absent the read publishes unavailable or partial naming every absentFacetIds entry and shrinking the k/m denominator to the facets actually present, with a reason and a what-would-resolve statement and no interpretation prose, partial narrative, or placeholder verdict.",
-                    "command": "node scripts/selftest.mjs",
-                    "liveSystem": false,
-                    "status": "planned"
-                },
-                {
-                    "id": "TP-07-04",
-                    "category": "unit",
-                    "file": "scripts/selftest.mjs",
-                    "description": "Determinism: repeated runs of the DERIVED adapter over the same frozen inputs produce the same fingerprint and byte-identical published output, with no clock, ordering, or iteration-order dependence leaking into the payload.",
-                    "command": "node scripts/selftest.mjs",
-                    "liveSystem": false,
-                    "status": "planned"
-                },
-                {
-                    "id": "TP-07-05",
-                    "category": "integration",
-                    "file": "scripts/selftest.mjs",
-                    "description": "Publication parity: the headless DERIVED publication and the browser shared-cache publication resolve to the same bytes for the same frozen inputs, so a divergence is surfaced as a defect in one of the two publication sites rather than accepted as a formatting difference.",
-                    "command": "node scripts/selftest.mjs",
-                    "liveSystem": false,
-                    "status": "planned"
-                },
-                {
-                    "id": "TP-07-06",
-                    "category": "unit",
-                    "file": "scripts/selftest.mjs",
-                    "description": "The evidenceFamilyId guard applies in the headless path exactly as in the browser path: overlapping ratio families collapse to one evidence family before the confirmation arithmetic, so the headless k/m cannot double-count a shared family.",
-                    "command": "node scripts/selftest.mjs",
-                    "liveSystem": false,
-                    "status": "planned"
-                },
-                {
-                    "id": "TP-07-07",
-                    "category": "functional",
-                    "file": "scripts/selftest.mjs",
-                    "description": "The adapter reads same-origin cached snapshots produced by their own pipelines and writes none; the data tree is byte-for-byte unchanged across an adapter run, keeping the protected snapshot tree read-only for this scope.",
-                    "command": "node scripts/selftest.mjs",
-                    "liveSystem": false,
-                    "status": "planned"
-                },
-                {
-                    "id": "TP-07-08",
-                    "category": "integration",
-                    "file": "scripts/selftest.mjs",
-                    "description": "ADVERSARIAL RED-bite — fabricate a full read from partial facets by filling the absent facets with their most recent prior values and publishing a complete verdict at the full denominator. The named unavailable-or-partial test MUST fail under that mutation and MUST pass against the delivered adapter.",
-                    "command": "node scripts/selftest.mjs",
-                    "liveSystem": false,
-                    "status": "planned"
-                },
-                {
-                    "id": "TP-07-09",
-                    "category": "functional",
-                    "file": "scripts/selftest.mjs",
-                    "description": "Broad-suite regression: the full selftest suite stays green with the headless adapter registered, every pre-existing group (including the SCOPE-1 through SCOPE-6 groups) is preserved byte-for-byte, and the total passing count does not decrease.",
-                    "command": "node scripts/selftest.mjs",
-                    "liveSystem": false,
-                    "status": "planned"
-                }
-            ]
+          "id": "TP-01-07",
+          "category": "load",
+          "file": "scripts/selftest.mjs",
+          "description": "Long synthetic bar histories at the largest declared lookbackBars: the date intersection and window statistics stay within the stated compute budget and return byte-identical output for identical frozen input.",
+          "command": "node scripts/selftest.mjs",
+          "liveSystem": false,
+          "status": "planned"
         },
         {
-            "scopeId": "SCOPE-8",
-            "scopeName": "Regression + governance closure",
-            "scopeDir": "scopes/08-regression-governance-closure",
-            "foundation": false,
-            "dependsOn": [
-                "SCOPE-1",
-                "SCOPE-2",
-                "SCOPE-3",
-                "SCOPE-4",
-                "SCOPE-5",
-                "SCOPE-6",
-                "SCOPE-7"
-            ],
-            "testCount": 11,
-            "tests": [
-                {
-                    "id": "TP-08-01",
-                    "category": "functional",
-                    "file": "scripts/selftest.mjs",
-                    "description": "Broad-suite regression: all seven groups (rlratio, rlregime, rlregime-compose, rlregime-projection, rlregime-history, regime-primitives, rlratio-scale) are registered in the project check and the complete selftest suite runs green, every pre-existing group preserved byte-for-byte and the total passing count not decreased.",
-                    "command": "node scripts/selftest.mjs",
-                    "liveSystem": false,
-                    "status": "planned"
-                },
-                {
-                    "id": "TP-08-02",
-                    "category": "e2e-ui",
-                    "file": "tests/",
-                    "description": "The complete Playwright suite runs green under the system-chrome project, covering the SCOPE-4 surface matrix rows, the SCOPE-4 stress spec, and the SCOPE-6 consumer-migration spec together with every pre-existing spec in the suite.",
-                    "command": "npx --no-install playwright test --config=playwright.config.mjs --project=system-chrome --reporter=list",
-                    "liveSystem": true,
-                    "status": "planned"
-                },
-                {
-                    "id": "TP-08-03",
-                    "category": "integration",
-                    "file": ".github/bubbles/scripts/artifact-lint.sh",
-                    "description": "Artifact closure: the feature's artifact set passes artifact-lint.sh with the spec, design, per-scope directories, index, report, user validation, and state artifacts all structurally consistent.",
-                    "command": "bash .github/bubbles/scripts/artifact-lint.sh specs/013-market-regime-stack-and-strategy-playbook",
-                    "liveSystem": false,
-                    "status": "planned"
-                },
-                {
-                    "id": "TP-08-04",
-                    "category": "integration",
-                    "file": ".github/bubbles/scripts/traceability-guard.sh",
-                    "description": "Traceability closure: each of BS-013-001 through BS-013-022 traces to exactly one owning scope with no unowned and no doubly-owned scenario, and every scope's Test Plan row count equals its test-related Definition of Done item count.",
-                    "command": "bash .github/bubbles/scripts/traceability-guard.sh specs/013-market-regime-stack-and-strategy-playbook",
-                    "liveSystem": false,
-                    "status": "planned"
-                },
-                {
-                    "id": "TP-08-05",
-                    "category": "integration",
-                    "file": ".github/bubbles/scripts/state-transition-guard.sh",
-                    "description": "Transition closure: the state-transition guard passes for the feature directory, confirming every scope's Definition of Done is satisfied with recorded evidence before the feature is proposed as complete.",
-                    "command": "bash .github/bubbles/scripts/state-transition-guard.sh specs/013-market-regime-stack-and-strategy-playbook",
-                    "liveSystem": false,
-                    "status": "planned"
-                },
-                {
-                    "id": "TP-08-06",
-                    "category": "integration",
-                    "file": "scripts/selftest.mjs",
-                    "description": "Protected-scenario regression: all 22 owned business scenarios are registered under the repo's protected-scenarios regression policy, and a reintroduced defect in any one of them fails a specifically named test rather than merely reducing a coverage number.",
-                    "command": "node scripts/selftest.mjs",
-                    "liveSystem": false,
-                    "status": "planned"
-                },
-                {
-                    "id": "TP-08-07",
-                    "category": "integration",
-                    "file": "scripts/validate-tool-experience.mjs",
-                    "description": "Registry-count confirmation: the FR-051 counts SCOPE-5 moved (22 ordinary tools, 4 Market Action Center goals, 48 total goals, 48 journey definitions) still hold after every upstream scope has landed, and adapterPolicy.moduleAllowlist still holds exactly 7 entries.",
-                    "command": "node scripts/validate-tool-experience.mjs",
-                    "liveSystem": false,
-                    "status": "planned"
-                },
-                {
-                    "id": "TP-08-08",
-                    "category": "functional",
-                    "file": "scripts/selftest.mjs",
-                    "description": "Live-stack authenticity sweep: no live-stack spec for this feature uses page.route, context.route, intercept(, cy.intercept, msw, or nock, and no required spec contains a silent-pass bailout that converts a missing behavior into a pass.",
-                    "command": "node scripts/selftest.mjs",
-                    "liveSystem": false,
-                    "status": "planned"
-                },
-                {
-                    "id": "TP-08-09",
-                    "category": "integration",
-                    "file": "scripts/selftest.mjs",
-                    "description": "Consumer-trace closure: zero remaining first-party references to the regime derivations SCOPE-6 retired, swept across pages, notes, registry metadata, and docs, so no caller resolves to a deleted path.",
-                    "command": "node scripts/selftest.mjs",
-                    "liveSystem": false,
-                    "status": "planned"
-                },
-                {
-                    "id": "TP-08-10",
-                    "category": "integration",
-                    "file": "scripts/selftest.mjs",
-                    "description": "ADVERSARIAL RED-bite — neutralize the no-cycle rule by letting a facet source import a Tier 2 module and declare the composed regime as one of its inputs, anywhere in the tree. The named IP-002 no-cycle test MUST fail under that mutation and MUST pass against the delivered tree.",
-                    "command": "node scripts/selftest.mjs",
-                    "liveSystem": false,
-                    "status": "planned"
-                },
-                {
-                    "id": "TP-08-11",
-                    "category": "integration",
-                    "file": "scripts/selftest.mjs",
-                    "description": "BS-013-024: One regression inside the protected scenario set refuses governance closure \u2014 ADVERSARIAL RED-bite \u2014 re-run the protected set with exactly one scenario within it regressed. Closure MUST be refused with the regressing scenario named, MUST NOT be reported as partial, provisional, or passing-with-exceptions, and the scenarios that still hold MUST NOT offset the single regression.",
-                    "command": "node scripts/selftest.mjs",
-                    "liveSystem": false,
-                    "status": "planned"
-                }
-            ]
+          "id": "TP-01-08",
+          "category": "functional",
+          "file": "scripts/selftest.mjs",
+          "description": "Broad-suite regression: the full selftest suite stays green with the additive rlratio and rlratio-scale groups added, every pre-existing group is preserved byte-for-byte, and the total passing count does not decrease.",
+          "command": "node scripts/selftest.mjs",
+          "liveSystem": false,
+          "status": "planned"
+        },
+        {
+          "id": "TP-01-09",
+          "category": "e2e-ui",
+          "file": "tests/market-regime-lab.spec.mjs",
+          "description": "Persistent scenario-specific regression coverage for the ratio primitive: a permanently registered real-page case re-asserts that SOXX/SPY and SMH/SPY collapse to one evidence family and that an unavailable or not-comparable pair emits no level, trend, or z-score number.",
+          "command": "npx --no-install playwright test tests/market-regime-lab.spec.mjs --config=playwright.config.mjs --project=system-chrome --reporter=list",
+          "liveSystem": true,
+          "status": "planned"
         }
-    ]
+      ]
+    },
+    {
+      "scopeId": "SCOPE-2",
+      "scopeName": "Regime facet contract + composer foundation",
+      "scopeDir": "scopes/02-regime-composer-foundation",
+      "foundation": true,
+      "dependsOn": [
+        "SCOPE-1"
+      ],
+      "testCount": 14,
+      "tests": [
+        {
+          "id": "TP-02-01",
+          "category": "functional",
+          "file": "scripts/selftest.mjs",
+          "description": "BS-013-001 — a facet tuple with an exact entry in regime-archetypes.json composes to that enumerated archetype name together with its k/m confirmation denominator.",
+          "command": "node scripts/selftest.mjs",
+          "liveSystem": false,
+          "status": "planned"
+        },
+        {
+          "id": "TP-02-02",
+          "category": "functional",
+          "file": "scripts/selftest.mjs",
+          "description": "BS-013-002 — an unmatched tuple emits the deterministic fingerprintId plus the literal Mixed or Unresolved with unresolvedFacetPair named; nearest-neighbour, majority-vote, and generated names are absent.",
+          "command": "node scripts/selftest.mjs",
+          "liveSystem": false,
+          "status": "planned"
+        },
+        {
+          "id": "TP-02-03",
+          "category": "functional",
+          "file": "scripts/selftest.mjs",
+          "description": "BS-013-004 — the short facet is excluded from that horizon lane's k and m, appears in excludedFacetIds, and its shortfall is stated on the returned reading.",
+          "command": "node scripts/selftest.mjs",
+          "liveSystem": false,
+          "status": "planned"
+        },
+        {
+          "id": "TP-02-04",
+          "category": "functional",
+          "file": "scripts/selftest.mjs",
+          "description": "BS-013-006 — a facet past its cutoff returns unavailable with a reason and what-would-resolve, m shrinks to match with populated absentFacetIds, m === 0 produces unavailable rather than 0, and no zero, dash, blank, or Neutral substitutes for it.",
+          "command": "node scripts/selftest.mjs",
+          "liveSystem": false,
+          "status": "planned"
+        },
+        {
+          "id": "TP-02-05",
+          "category": "functional",
+          "file": "scripts/selftest.mjs",
+          "description": "BS-013-007 — the contradiction record names both facets, both values, and both horizons, and the headline verdict carries no averaged value, no majority resolution, and no confidence number standing in for the conflict.",
+          "command": "node scripts/selftest.mjs",
+          "liveSystem": false,
+          "status": "planned"
+        },
+        {
+          "id": "TP-02-06",
+          "category": "functional",
+          "file": "scripts/selftest.mjs",
+          "description": "BS-013-008 — a sub-threshold move leaves the composed label unchanged and marks the moving facet forming; the label flips only once the gate is met, so no transient flicker is emitted.",
+          "command": "node scripts/selftest.mjs",
+          "liveSystem": false,
+          "status": "planned"
+        },
+        {
+          "id": "TP-02-07",
+          "category": "integration",
+          "file": "scripts/selftest.mjs",
+          "description": "BS-013-009 — every historical point composes only from bars available at its own observedAsOf/retrievedAt cutoff, and a hindsight-smoothing request returns an explicit typed refusal with its reason instead of a smoothed or silently re-labelled series.",
+          "command": "node scripts/selftest.mjs",
+          "liveSystem": false,
+          "status": "planned"
+        },
+        {
+          "id": "TP-02-08",
+          "category": "unit",
+          "file": "scripts/selftest.mjs",
+          "description": "Contract-surface behavior of the facet layer: each kind-keyed closed vocabulary is enforced against its valueVocabularyId, FacetHorizonClass is immutable at declaration, a tactical facet cannot move a structural value or a structural persistence counter, and a volatility-magnitude facet is rejected wherever a directional regime is expected.",
+          "command": "node scripts/selftest.mjs",
+          "liveSystem": false,
+          "status": "planned"
+        },
+        {
+          "id": "TP-02-09",
+          "category": "integration",
+          "file": "scripts/selftest.mjs",
+          "description": "The compatibility projection reproduces macro-regime-legacy/v1 and market-structure-band-legacy/v1 cells without mutating the source read and declares any lossy cell; readPublishedContext returns isRecomputation false, holds no registry, and raises RLREGIME_SCHEMA_INVALID at publishedRegime when handed a raw facet array.",
+          "command": "node scripts/selftest.mjs",
+          "liveSystem": false,
+          "status": "planned"
+        },
+        {
+          "id": "TP-02-10",
+          "category": "functional",
+          "file": "scripts/selftest.mjs",
+          "description": "Sleeve-fit shape and determinism: rows carry ordinal relative rank, rationaleFacetIds, and an invalidation condition; the forbidden-output tokens are rejected at the contract boundary; a flat input emits the explicit no-advantage state instead of a forced 1..n ordering; and identical frozen input at an identical decisionTime yields byte-identical output and fingerprintId.",
+          "command": "node scripts/selftest.mjs",
+          "liveSystem": false,
+          "status": "planned"
+        },
+        {
+          "id": "TP-02-11",
+          "category": "functional",
+          "file": "scripts/selftest.mjs",
+          "description": "ADVERSARIAL RED-bite — two mutations, each of which MUST fail a named assertion: (a) neutralize the hysteresis gate so a sub-threshold move flips the composed label immediately; (b) let a facet source path reach composeRegime by allowing readPublishedContext to accept a raw facet array and recompute. Both named assertions MUST pass against the delivered composer.",
+          "command": "node scripts/selftest.mjs",
+          "liveSystem": false,
+          "status": "planned"
+        },
+        {
+          "id": "TP-02-12",
+          "category": "functional",
+          "file": "scripts/selftest.mjs",
+          "description": "Broad-suite regression: the full selftest suite stays green with the additive rlregime, rlregime-compose, rlregime-history, and rlregime-projection groups added, every pre-existing group (including SCOPE-1's rlratio groups) is preserved byte-for-byte, and the total passing count does not decrease.",
+          "command": "node scripts/selftest.mjs",
+          "liveSystem": false,
+          "status": "planned"
+        },
+        {
+          "id": "TP-02-13",
+          "category": "functional",
+          "file": "scripts/selftest.mjs",
+          "description": "BS-013-008: A one-print change stays a candidate transition — after the confirmed archetype has held for twelve consecutive observations, a single new observation implying a different archetype is recorded with state candidate, the displayed archetype remains the previously confirmed one, and the candidate transition is visible with its current run length.",
+          "command": "node scripts/selftest.mjs",
+          "liveSystem": false,
+          "status": "planned"
+        },
+        {
+          "id": "TP-02-14",
+          "category": "e2e-ui",
+          "file": "tests/market-regime-lab.spec.mjs",
+          "description": "Persistent scenario-specific regression coverage for the composer: a permanently registered real-page case re-asserts that a non-enumerated facet tuple renders as a fingerprint with no invented archetype label and that a regime label does not flip until the persistence gate is met.",
+          "command": "npx --no-install playwright test tests/market-regime-lab.spec.mjs --config=playwright.config.mjs --project=system-chrome --reporter=list",
+          "liveSystem": true,
+          "status": "planned"
+        }
+      ]
+    },
+    {
+      "scopeId": "SCOPE-3",
+      "scopeName": "Facet source publication shims",
+      "scopeDir": "scopes/03-facet-source-publication-shims",
+      "foundation": false,
+      "dependsOn": [
+        "SCOPE-2"
+      ],
+      "testCount": 9,
+      "tests": [
+        {
+          "id": "TP-03-01",
+          "category": "functional",
+          "file": "scripts/selftest.mjs",
+          "description": "BS-013-010 — each shim reads its owner tool's frozen model output, performs no new fetching, and writes exactly one RegimeFacetContract reading per owned facet stamped with asOf, sourceAttribution, and coverageNote.",
+          "command": "node scripts/selftest.mjs",
+          "liveSystem": false,
+          "status": "planned"
+        },
+        {
+          "id": "TP-03-02",
+          "category": "unit",
+          "file": "scripts/selftest.mjs",
+          "description": "Each retained legacy vocabulary maps into the facet vocabulary through a declared, versioned mapping keyed by valueVocabularyId; a mapping that is lossy declares its loss, and an undeclared silent re-label is rejected at the boundary.",
+          "command": "node scripts/selftest.mjs",
+          "liveSystem": false,
+          "status": "planned"
+        },
+        {
+          "id": "TP-03-03",
+          "category": "unit",
+          "file": "scripts/selftest.mjs",
+          "description": "Per-source facet typing: the bond source publishes credit, curve, and duration-posture as three separately identifiable facets never blended into one score, and the volatility source publishes strictly kind volatility-magnitude so the composer rejects it wherever a directional regime is expected.",
+          "command": "node scripts/selftest.mjs",
+          "liveSystem": false,
+          "status": "planned"
+        },
+        {
+          "id": "TP-03-04",
+          "category": "functional",
+          "file": "scripts/selftest.mjs",
+          "description": "The credit-quality-pulse, real-assets, global-rotation, and FX dollar sources read their readings from RLRATIO over pairs declared in ratio-pairs.json, real-assets propagates the proxy caveat onto its published facet, and global-rotation emits not-comparable where a pair fails the comparability predicate.",
+          "command": "node scripts/selftest.mjs",
+          "liveSystem": false,
+          "status": "planned"
+        },
+        {
+          "id": "TP-03-05",
+          "category": "integration",
+          "file": "scripts/selftest.mjs",
+          "description": "Publication reaches the Tier 0 shared-cache facet slot through the existing rldata.js append API with the protected cache schema unchanged, and each published facet carries the producing source and the targeted composer version so a provenance line can name the source without naming the composed regime as an input.",
+          "command": "node scripts/selftest.mjs",
+          "liveSystem": false,
+          "status": "planned"
+        },
+        {
+          "id": "TP-03-06",
+          "category": "functional",
+          "file": "scripts/selftest.mjs",
+          "description": "ADVERSARIAL RED-bite — introduce a source-side cycle fixture in which a shim imports rlregime.js and declares the composed regime as a facet input. The named IP-002 no-cycle test MUST fail under that fixture, resolving to an explicit lint-failure state rather than a value, and MUST pass against the delivered one-way shims.",
+          "command": "node scripts/selftest.mjs",
+          "liveSystem": false,
+          "status": "planned"
+        },
+        {
+          "id": "TP-03-07",
+          "category": "functional",
+          "file": "scripts/selftest.mjs",
+          "description": "Broad-suite regression: the full selftest suite stays green with the regime-primitives group added, every pre-existing group (including the SCOPE-1 and SCOPE-2 groups) is preserved byte-for-byte, and the total passing count does not decrease.",
+          "command": "node scripts/selftest.mjs",
+          "liveSystem": false,
+          "status": "planned"
+        },
+        {
+          "id": "TP-03-08",
+          "category": "e2e-ui",
+          "file": "tests/market-regime-lab.spec.mjs",
+          "description": "Persistent scenario-specific regression coverage for the publication-only shims: a permanently registered real-page case re-asserts that each Tier 1 owner tool publishes its RegimeFacetContract reading with asOf and sourceAttribution and that no shim reads the composed regime.",
+          "command": "npx --no-install playwright test tests/market-regime-lab.spec.mjs --config=playwright.config.mjs --project=system-chrome --reporter=list",
+          "liveSystem": true,
+          "status": "planned"
+        },
+        {
+          "id": "TP-03-09",
+          "category": "stress",
+          "file": "scripts/selftest.mjs",
+          "description": "Stress coverage for the shared-cache facet publication path: a repeated high-volume publication run across every registered facet source asserts that the Tier 0 facet slot append stays bounded, that repeated writes for the same source replace rather than accumulate, and that write throughput does not degrade across the run.",
+          "command": "node scripts/selftest.mjs",
+          "liveSystem": false,
+          "status": "planned"
+        }
+      ]
+    },
+    {
+      "scopeId": "SCOPE-4",
+      "scopeName": "Market Regime Lab surface",
+      "scopeDir": "scopes/04-market-regime-lab-surface",
+      "foundation": false,
+      "dependsOn": [
+        "SCOPE-2",
+        "SCOPE-3"
+      ],
+      "testCount": 13,
+      "tests": [
+        {
+          "id": "TP-04-01",
+          "category": "e2e-ui",
+          "file": "tests/market-regime-lab.spec.mjs",
+          "description": "BS-013-003 / matrix row UX-M-03 — flipping an intraday/tactical facet changes the tactical lane text while the structural lane verdict text and its lane confirmation count render identically, and no tactical reading appears inside, above, or as a modifier of the structural lane.",
+          "command": "npx --no-install playwright test tests/market-regime-lab.spec.mjs --config=playwright.config.mjs --project=system-chrome --reporter=list",
+          "liveSystem": true,
+          "status": "planned"
+        },
+        {
+          "id": "TP-04-02",
+          "category": "e2e-ui",
+          "file": "tests/market-regime-lab.spec.mjs",
+          "description": "BS-013-005 / matrix row UX-M-06 — the literal market-implied qualifier renders inline on the quadrant label itself rather than in a footnote, caption, or tooltip, and no wording presenting the quadrant as an observed macro regime is rendered.",
+          "command": "npx --no-install playwright test tests/market-regime-lab.spec.mjs --config=playwright.config.mjs --project=system-chrome --reporter=list",
+          "liveSystem": true,
+          "status": "planned"
+        },
+        {
+          "id": "TP-04-03",
+          "category": "e2e-ui",
+          "file": "tests/market-regime-lab.spec.mjs",
+          "description": "BS-013-017 / matrix row UX-M-09 — each sleeve row renders an ordinal relative rank, a rationale naming the driving facets, and an invalidation condition; no weight, allocation, exposure, position size, target, or direction renders as text, as a number, or as a bar length.",
+          "command": "npx --no-install playwright test tests/market-regime-lab.spec.mjs --config=playwright.config.mjs --project=system-chrome --reporter=list",
+          "liveSystem": true,
+          "status": "planned"
+        },
+        {
+          "id": "TP-04-04",
+          "category": "e2e-ui",
+          "file": "tests/market-regime-lab.spec.mjs",
+          "description": "BS-013-018 / matrix row UX-M-10 — the bond sub-type rows reorder visibly between the inflationary and disinflationary risk-off fixtures and stay individually named rather than collapsing into one bond row.",
+          "command": "npx --no-install playwright test tests/market-regime-lab.spec.mjs --config=playwright.config.mjs --project=system-chrome --reporter=list",
+          "liveSystem": true,
+          "status": "planned"
+        },
+        {
+          "id": "TP-04-05",
+          "category": "e2e-ui",
+          "file": "tests/market-regime-lab.spec.mjs",
+          "description": "BS-013-019 / matrix row UX-M-24 — energy, metals, and agriculture render as separate individually-named sleeve rows rather than one merged commodities row.",
+          "command": "npx --no-install playwright test tests/market-regime-lab.spec.mjs --config=playwright.config.mjs --project=system-chrome --reporter=list",
+          "liveSystem": true,
+          "status": "planned"
+        },
+        {
+          "id": "TP-04-06",
+          "category": "e2e-ui",
+          "file": "tests/market-regime-lab.spec.mjs",
+          "description": "BS-013-020 / matrix row UX-M-11 — a flat fixture renders the explicit no-advantage state in place of the sleeve list, with no forced 1..n ordering and no empty region.",
+          "command": "npx --no-install playwright test tests/market-regime-lab.spec.mjs --config=playwright.config.mjs --project=system-chrome --reporter=list",
+          "liveSystem": true,
+          "status": "planned"
+        },
+        {
+          "id": "TP-04-07",
+          "category": "e2e-ui",
+          "file": "tests/market-regime-lab.spec.mjs",
+          "description": "Matrix row UX-M-16 — at a 375px viewport all four views render with the three lanes stacked in the fixed structural to swing to tactical order, lane labels and per-lane counts preserved, the confirmation denominator and its shrink clause rendered as wrapped text lines rather than a ring or gauge, and the document body gains no horizontal scroll.",
+          "command": "npx --no-install playwright test tests/market-regime-lab.spec.mjs --config=playwright.config.mjs --project=system-chrome --reporter=list",
+          "liveSystem": true,
+          "status": "planned"
+        },
+        {
+          "id": "TP-04-08",
+          "category": "ui-unit",
+          "file": "scripts/selftest.mjs",
+          "description": "Each of the 12 regime primitives given an unavailable / not-comparable / Mixed / Unresolved input produces the typed rendering with a reason and a total reason-to-resolution mapping — never a zero, dash, neutral, or empty cell — and each primitive is a single named render function composed by at least two views.",
+          "command": "node scripts/selftest.mjs",
+          "liveSystem": false,
+          "status": "planned"
+        },
+        {
+          "id": "TP-04-09",
+          "category": "stress",
+          "file": "tests/market-regime-lab.stress.spec.mjs",
+          "description": "Rapid lever and view toggling across the maximum declared pair set and facet set: one compute per render() holds under churn, a view switch triggers no refetch, no unhandled rejection or frozen paint occurs, and canvas redraw stays correct across resize and hidden to visible transitions.",
+          "command": "npx --no-install playwright test tests/market-regime-lab.stress.spec.mjs --config=playwright.config.mjs --project=system-chrome --reporter=list",
+          "liveSystem": true,
+          "status": "planned"
+        },
+        {
+          "id": "TP-04-10",
+          "category": "e2e-ui",
+          "file": "tests/market-regime-lab.spec.mjs",
+          "description": "ADVERSARIAL RED-bite — let a non-enumerated facet combination render an archetype name in the verdict header. The named UX-M-02 test MUST fail under that mutation and MUST pass against the delivered surface, which renders the fingerprint string plus the literal Mixed or Unresolved with the unresolved facet pair named.",
+          "command": "npx --no-install playwright test tests/market-regime-lab.spec.mjs --config=playwright.config.mjs --project=system-chrome --reporter=list",
+          "liveSystem": true,
+          "status": "planned"
+        },
+        {
+          "id": "TP-04-11",
+          "category": "functional",
+          "file": "scripts/selftest.mjs",
+          "description": "Broad-suite regression: the full selftest suite stays green with the surface's primitive assertions added, every pre-existing group (including the SCOPE-1, SCOPE-2, and SCOPE-3 groups) is preserved byte-for-byte, and the total passing count does not decrease.",
+          "command": "node scripts/selftest.mjs",
+          "liveSystem": false,
+          "status": "planned"
+        },
+        {
+          "id": "TP-04-12",
+          "category": "e2e-ui",
+          "file": "tests/market-regime-lab.spec.mjs",
+          "description": "BS-013-005: A sentiment-derived quadrant is labeled by its actual inputs — the growth-inflation quadrant whose only inputs are a Fear & Greed score and VIX is labeled market-implied, is not labeled a macro growth regime, an inflation regime, or an economic regime, and its rendered input attribution names the Fear & Greed score and VIX explicitly on every surface that renders the quadrant.",
+          "command": "npx --no-install playwright test tests/market-regime-lab.spec.mjs --config=playwright.config.mjs --project=system-chrome --reporter=list",
+          "liveSystem": true,
+          "status": "planned"
+        },
+        {
+          "id": "TP-04-13",
+          "category": "e2e-ui",
+          "file": "tests/market-regime-lab.spec.mjs",
+          "description": "Persistent scenario-specific regression coverage for the surface: a permanently registered real-page case re-asserts that the growth-inflation quadrant renders as market-implied rather than as a macro regime and that an absent relative advantage renders the explicit no-advantage state.",
+          "command": "npx --no-install playwright test tests/market-regime-lab.spec.mjs --config=playwright.config.mjs --project=system-chrome --reporter=list",
+          "liveSystem": true,
+          "status": "planned"
+        }
+      ]
+    },
+    {
+      "scopeId": "SCOPE-5",
+      "scopeName": "Registry registration + FR-051 count lockstep",
+      "scopeDir": "scopes/05-registry-registration-lockstep",
+      "foundation": false,
+      "dependsOn": [
+        "SCOPE-4"
+      ],
+      "testCount": 10,
+      "tests": [
+        {
+          "id": "TP-05-01",
+          "category": "integration",
+          "file": "scripts/validate-tool-experience.mjs",
+          "description": "FR-051 count lockstep — the tool-experience validator passes against the updated registries with the exact asserted counts of 22 ordinary tools, 4 Market Action Center goals, 48 total goals, and 48 journey definitions, so no registry and its assertion disagree.",
+          "command": "node scripts/validate-tool-experience.mjs",
+          "liveSystem": false,
+          "status": "planned"
+        },
+        {
+          "id": "TP-05-02",
+          "category": "integration",
+          "file": "scripts/selftest.mjs",
+          "description": "Atomic registry registration — the tool resolves in every registration surface in the same change: tools.json, simple-models.json, journeys.json (with noExecution true), the index.html TOOLS array, the rlnav.js TOOLS array, and the required notes/market-regime-lab.md handoff doc. A tool present in one surface and absent from another is asserted to be a failure, not a partial state.",
+          "command": "node scripts/selftest.mjs",
+          "liveSystem": false,
+          "status": "planned"
+        },
+        {
+          "id": "TP-05-03",
+          "category": "unit",
+          "file": "scripts/selftest.mjs",
+          "description": "The adapterPolicy.moduleAllowlist in tool-experience.config.json holds exactly 7 entries after registration, proving the tool composes via the root-level rlregime.js UMD and introduces no new adapter module.",
+          "command": "node scripts/selftest.mjs",
+          "liveSystem": false,
+          "status": "planned"
+        },
+        {
+          "id": "TP-05-04",
+          "category": "functional",
+          "file": "scripts/selftest.mjs",
+          "description": "The hard-asserted registry counts inside scripts/selftest.mjs are moved in the same change as the registries themselves and re-derive the same 22 / 4 / 48 / 48 values directly from the registry files rather than from a hand-maintained constant.",
+          "command": "node scripts/selftest.mjs",
+          "liveSystem": false,
+          "status": "planned"
+        },
+        {
+          "id": "TP-05-05",
+          "category": "integration",
+          "file": "scripts/selftest.mjs",
+          "description": "The tool's Simple-view read is written into the shared toolReads slot carrying id, asOf, a one-line read, metrics, and deepLink, so brief coverage of this tool is derived from the registry rather than hand-maintained.",
+          "command": "node scripts/selftest.mjs",
+          "liveSystem": false,
+          "status": "planned"
+        },
+        {
+          "id": "TP-05-06",
+          "category": "integration",
+          "file": "scripts/validate-tool-experience.mjs",
+          "description": "ADVERSARIAL RED-bite — register the tool in tools.json alone while leaving journeys.json and the asserted counts at their prior values. The validator MUST fail under that half-applied registration naming the missing journey registration and the stale count, and MUST pass against the delivered coherent change.",
+          "command": "node scripts/validate-tool-experience.mjs",
+          "liveSystem": false,
+          "status": "planned"
+        },
+        {
+          "id": "TP-05-07",
+          "category": "functional",
+          "file": "scripts/selftest.mjs",
+          "description": "Broad-suite regression: the full selftest suite stays green with the moved registry counts, every pre-existing group (including the SCOPE-1 through SCOPE-4 groups) is preserved byte-for-byte, and the total passing count does not decrease.",
+          "command": "node scripts/selftest.mjs",
+          "liveSystem": false,
+          "status": "planned"
+        },
+        {
+          "id": "TP-05-08",
+          "category": "integration",
+          "file": "scripts/validate-tool-experience.mjs",
+          "description": "BS-013-023: A registry entry and its hard-asserted count are refused unless they move together — ADVERSARIAL RED-bite, overstated-count direction — raise an asserted count above the number of entries actually present across the registration surfaces. The registry validation MUST fail naming the asserted count that overstates the entries, MUST NOT infer, default, or backfill an absent entry to satisfy the declared count, and MUST pass against the delivered counts.",
+          "command": "node scripts/validate-tool-experience.mjs",
+          "liveSystem": false,
+          "status": "planned"
+        },
+        {
+          "id": "TP-05-09",
+          "category": "e2e-ui",
+          "file": "tests/market-regime-lab.spec.mjs",
+          "description": "Persistent scenario-specific regression coverage for the registration: a permanently registered real-page case re-asserts that the tool resolves from every registry surface and that the FR-051 hard-asserted counts match the registered set.",
+          "command": "npx --no-install playwright test tests/market-regime-lab.spec.mjs --config=playwright.config.mjs --project=system-chrome --reporter=list",
+          "liveSystem": true,
+          "status": "planned"
+        },
+        {
+          "id": "TP-05-10",
+          "category": "stress",
+          "file": "scripts/selftest.mjs",
+          "description": "Stress coverage for the registration and tool-read publication path: a repeated full-registry validation run across tools.json, simple-models.json, journeys.json, and tool-experience.config.json asserts that the exact-count assertions re-derive identically on every pass, that the shared tool-read slot write stays bounded under repeated publication rather than accumulating one entry per run, and that validation throughput does not degrade across the run.",
+          "command": "node scripts/selftest.mjs",
+          "liveSystem": false,
+          "status": "planned"
+        }
+      ]
+    },
+    {
+      "scopeId": "SCOPE-6",
+      "scopeName": "Consumer migration + compatibility projection",
+      "scopeDir": "scopes/06-consumer-migration-projection",
+      "foundation": false,
+      "dependsOn": [
+        "SCOPE-2",
+        "SCOPE-5"
+      ],
+      "testCount": 10,
+      "tests": [
+        {
+          "id": "TP-06-01",
+          "category": "e2e-ui",
+          "file": "tests/market-regime-consumer-migration.spec.mjs",
+          "description": "BS-013-012 — intraday-tape-lab.html renders exactly one regime read whose label matches the published owner read verbatim; the retired inline third copy renders nowhere on the page and no second divergent vocabulary appears.",
+          "command": "npx --no-install playwright test tests/market-regime-consumer-migration.spec.mjs --config=playwright.config.mjs --project=system-chrome --reporter=list",
+          "liveSystem": true,
+          "status": "planned"
+        },
+        {
+          "id": "TP-06-02",
+          "category": "e2e-ui",
+          "file": "tests/market-regime-consumer-migration.spec.mjs",
+          "description": "BS-013-012 — swing-structure-lab.html publishes its facet through the SCOPE-3 publication contract, reads context through RLREGIME.readPublishedContext, and renders exactly one regime read; no locally recomposed verdict renders.",
+          "command": "npx --no-install playwright test tests/market-regime-consumer-migration.spec.mjs --config=playwright.config.mjs --project=system-chrome --reporter=list",
+          "liveSystem": true,
+          "status": "planned"
+        },
+        {
+          "id": "TP-06-03",
+          "category": "e2e-ui",
+          "file": "tests/market-regime-consumer-migration.spec.mjs",
+          "description": "BS-013-012 — market-brief.html renders the published composed read with its k/m, absentFacetIds, and availability carried through verbatim; a stale published read renders its staleness rather than triggering a local recompute or an upgrade.",
+          "command": "npx --no-install playwright test tests/market-regime-consumer-migration.spec.mjs --config=playwright.config.mjs --project=system-chrome --reporter=list",
+          "liveSystem": true,
+          "status": "planned"
+        },
+        {
+          "id": "TP-06-04",
+          "category": "integration",
+          "file": "scripts/selftest.mjs",
+          "description": "Duplicate retirement — a repository-wide scan proves zero inline regime copies survive: the inline third copy formerly in intraday-tape-lab.html is deleted rather than commented out or guarded, and no migrated consumer file contains a local regime classification block.",
+          "command": "node scripts/selftest.mjs",
+          "liveSystem": false,
+          "status": "planned"
+        },
+        {
+          "id": "TP-06-05",
+          "category": "integration",
+          "file": "scripts/selftest.mjs",
+          "description": "BS-013-011 — each migrated consumer is asserted to hold no registry data, run no archetype match, and compute no confirmation ratio; the read path exposes no recomposition or upgrade entry point.",
+          "command": "node scripts/selftest.mjs",
+          "liveSystem": false,
+          "status": "planned"
+        },
+        {
+          "id": "TP-06-06",
+          "category": "unit",
+          "file": "scripts/selftest.mjs",
+          "description": "Both retained legacy vocabularies still project correctly: rlg.js reads macro-regime-legacy/v1 and rlexperience-adapters/market-structure.js reads market-structure-band-legacy/v1, each carrying its declared-lossy field list and deprecation date, and both resolving from the same fingerprint so the previously-live band divergence resolves structurally.",
+          "command": "node scripts/selftest.mjs",
+          "liveSystem": false,
+          "status": "planned"
+        },
+        {
+          "id": "TP-06-07",
+          "category": "unit",
+          "file": "scripts/selftest.mjs",
+          "description": "BS-013-011 — a projected legacy value offered back as a RegimeFacetContract input is rejected with its typed schema error; the projection is a terminal read surface and cannot re-enter composition as a facet.",
+          "command": "node scripts/selftest.mjs",
+          "liveSystem": false,
+          "status": "planned"
+        },
+        {
+          "id": "TP-06-08",
+          "category": "e2e-ui",
+          "file": "tests/market-regime-consumer-migration.spec.mjs",
+          "description": "ADVERSARIAL RED-bite — reintroduce an inline regime copy into intraday-tape-lab.html so a second locally-derived regime label renders beside the published read. The named single-read test MUST fail under that mutation and MUST pass against the delivered migration.",
+          "command": "npx --no-install playwright test tests/market-regime-consumer-migration.spec.mjs --config=playwright.config.mjs --project=system-chrome --reporter=list",
+          "liveSystem": true,
+          "status": "planned"
+        },
+        {
+          "id": "TP-06-09",
+          "category": "functional",
+          "file": "scripts/selftest.mjs",
+          "description": "Broad-suite regression: the full selftest suite stays green after the duplicate retirement, every pre-existing group (including the SCOPE-1 through SCOPE-5 groups) is preserved byte-for-byte, and the total passing count does not decrease.",
+          "command": "node scripts/selftest.mjs",
+          "liveSystem": false,
+          "status": "planned"
+        },
+        {
+          "id": "TP-06-10",
+          "category": "e2e-ui",
+          "file": "tests/market-regime-lab.spec.mjs",
+          "description": "Persistent scenario-specific regression coverage for the migration: a permanently registered real-page case re-asserts that every migrated consumer renders the single published owner read or its declared legacy projection and that no consumer recomputes or upgrades the regime locally.",
+          "command": "npx --no-install playwright test tests/market-regime-lab.spec.mjs --config=playwright.config.mjs --project=system-chrome --reporter=list",
+          "liveSystem": true,
+          "status": "planned"
+        }
+      ]
+    },
+    {
+      "scopeId": "SCOPE-7",
+      "scopeName": "Headless DERIVED owner read",
+      "scopeDir": "scopes/07-headless-derived-owner-read",
+      "foundation": false,
+      "dependsOn": [
+        "SCOPE-4",
+        "SCOPE-5"
+      ],
+      "testCount": 10,
+      "tests": [
+        {
+          "id": "TP-07-01",
+          "category": "integration",
+          "file": "scripts/selftest.mjs",
+          "description": "BS-013-021 — scripts/brief-refresh.mjs registers the composed owner read as a DERIVED adapter, the deterministic adapter set moves from 5 to 6, and exactly one read is published stamped source DERIVED.",
+          "command": "node scripts/selftest.mjs",
+          "liveSystem": false,
+          "status": "planned"
+        },
+        {
+          "id": "TP-07-02",
+          "category": "integration",
+          "file": "scripts/selftest.mjs",
+          "description": "BS-013-021 — the published read carries the composed verdict, the archetype-or-fingerprint identity, k/m, absentFacetIds, availability, the ordered sleeve-fit list, the contradiction records, and the provenance fields — the complete contract, not a subset.",
+          "command": "node scripts/selftest.mjs",
+          "liveSystem": false,
+          "status": "planned"
+        },
+        {
+          "id": "TP-07-03",
+          "category": "integration",
+          "file": "scripts/selftest.mjs",
+          "description": "BS-013-022 — with required facets absent the read publishes unavailable or partial naming every absentFacetIds entry and shrinking the k/m denominator to the facets actually present, with a reason and a what-would-resolve statement and no interpretation prose, partial narrative, or placeholder verdict.",
+          "command": "node scripts/selftest.mjs",
+          "liveSystem": false,
+          "status": "planned"
+        },
+        {
+          "id": "TP-07-04",
+          "category": "unit",
+          "file": "scripts/selftest.mjs",
+          "description": "Determinism: repeated runs of the DERIVED adapter over the same frozen inputs produce the same fingerprint and byte-identical published output, with no clock, ordering, or iteration-order dependence leaking into the payload.",
+          "command": "node scripts/selftest.mjs",
+          "liveSystem": false,
+          "status": "planned"
+        },
+        {
+          "id": "TP-07-05",
+          "category": "integration",
+          "file": "scripts/selftest.mjs",
+          "description": "Publication parity: the headless DERIVED publication and the browser shared-cache publication resolve to the same bytes for the same frozen inputs, so a divergence is surfaced as a defect in one of the two publication sites rather than accepted as a formatting difference.",
+          "command": "node scripts/selftest.mjs",
+          "liveSystem": false,
+          "status": "planned"
+        },
+        {
+          "id": "TP-07-06",
+          "category": "unit",
+          "file": "scripts/selftest.mjs",
+          "description": "The evidenceFamilyId guard applies in the headless path exactly as in the browser path: overlapping ratio families collapse to one evidence family before the confirmation arithmetic, so the headless k/m cannot double-count a shared family.",
+          "command": "node scripts/selftest.mjs",
+          "liveSystem": false,
+          "status": "planned"
+        },
+        {
+          "id": "TP-07-07",
+          "category": "functional",
+          "file": "scripts/selftest.mjs",
+          "description": "The adapter reads same-origin cached snapshots produced by their own pipelines and writes none; the data tree is byte-for-byte unchanged across an adapter run, keeping the protected snapshot tree read-only for this scope.",
+          "command": "node scripts/selftest.mjs",
+          "liveSystem": false,
+          "status": "planned"
+        },
+        {
+          "id": "TP-07-08",
+          "category": "integration",
+          "file": "scripts/selftest.mjs",
+          "description": "ADVERSARIAL RED-bite — fabricate a full read from partial facets by filling the absent facets with their most recent prior values and publishing a complete verdict at the full denominator. The named unavailable-or-partial test MUST fail under that mutation and MUST pass against the delivered adapter.",
+          "command": "node scripts/selftest.mjs",
+          "liveSystem": false,
+          "status": "planned"
+        },
+        {
+          "id": "TP-07-09",
+          "category": "functional",
+          "file": "scripts/selftest.mjs",
+          "description": "Broad-suite regression: the full selftest suite stays green with the headless adapter registered, every pre-existing group (including the SCOPE-1 through SCOPE-6 groups) is preserved byte-for-byte, and the total passing count does not decrease.",
+          "command": "node scripts/selftest.mjs",
+          "liveSystem": false,
+          "status": "planned"
+        },
+        {
+          "id": "TP-07-10",
+          "category": "e2e-ui",
+          "file": "tests/market-regime-lab.spec.mjs",
+          "description": "Persistent scenario-specific regression coverage for the owner read: a permanently registered real-page case re-asserts that the browser publishes exactly one owner read carrying the full declared payload and that missing facets publish the unavailable state rather than a fabricated read.",
+          "command": "npx --no-install playwright test tests/market-regime-lab.spec.mjs --config=playwright.config.mjs --project=system-chrome --reporter=list",
+          "liveSystem": true,
+          "status": "planned"
+        }
+      ]
+    },
+    {
+      "scopeId": "SCOPE-8",
+      "scopeName": "Regression + governance closure",
+      "scopeDir": "scopes/08-regression-governance-closure",
+      "foundation": false,
+      "dependsOn": [
+        "SCOPE-1",
+        "SCOPE-2",
+        "SCOPE-3",
+        "SCOPE-4",
+        "SCOPE-5",
+        "SCOPE-6",
+        "SCOPE-7"
+      ],
+      "testCount": 12,
+      "tests": [
+        {
+          "id": "TP-08-01",
+          "category": "functional",
+          "file": "scripts/selftest.mjs",
+          "description": "Broad-suite regression: all seven groups (rlratio, rlregime, rlregime-compose, rlregime-projection, rlregime-history, regime-primitives, rlratio-scale) are registered in the project check and the complete selftest suite runs green, every pre-existing group preserved byte-for-byte and the total passing count not decreased.",
+          "command": "node scripts/selftest.mjs",
+          "liveSystem": false,
+          "status": "planned"
+        },
+        {
+          "id": "TP-08-02",
+          "category": "e2e-ui",
+          "file": "tests/",
+          "description": "The complete Playwright suite runs green under the system-chrome project, covering the SCOPE-4 surface matrix rows, the SCOPE-4 stress spec, and the SCOPE-6 consumer-migration spec together with every pre-existing spec in the suite.",
+          "command": "npx --no-install playwright test --config=playwright.config.mjs --project=system-chrome --reporter=list",
+          "liveSystem": true,
+          "status": "planned"
+        },
+        {
+          "id": "TP-08-03",
+          "category": "integration",
+          "file": ".github/bubbles/scripts/artifact-lint.sh",
+          "description": "Artifact closure: the feature's artifact set passes artifact-lint.sh with the spec, design, per-scope directories, index, report, user validation, and state artifacts all structurally consistent.",
+          "command": "bash .github/bubbles/scripts/artifact-lint.sh specs/013-market-regime-stack-and-strategy-playbook",
+          "liveSystem": false,
+          "status": "planned"
+        },
+        {
+          "id": "TP-08-04",
+          "category": "integration",
+          "file": ".github/bubbles/scripts/traceability-guard.sh",
+          "description": "Traceability closure: each of BS-013-001 through BS-013-022 traces to exactly one owning scope with no unowned and no doubly-owned scenario, and every scope's Test Plan row count equals its test-related Definition of Done item count.",
+          "command": "bash .github/bubbles/scripts/traceability-guard.sh specs/013-market-regime-stack-and-strategy-playbook",
+          "liveSystem": false,
+          "status": "planned"
+        },
+        {
+          "id": "TP-08-05",
+          "category": "integration",
+          "file": ".github/bubbles/scripts/state-transition-guard.sh",
+          "description": "Transition closure: the state-transition guard passes for the feature directory, confirming every scope's Definition of Done is satisfied with recorded evidence before the feature is proposed as complete.",
+          "command": "bash .github/bubbles/scripts/state-transition-guard.sh specs/013-market-regime-stack-and-strategy-playbook",
+          "liveSystem": false,
+          "status": "planned"
+        },
+        {
+          "id": "TP-08-06",
+          "category": "integration",
+          "file": "scripts/selftest.mjs",
+          "description": "Protected-scenario regression: all 22 owned business scenarios are registered under the repo's protected-scenarios regression policy, and a reintroduced defect in any one of them fails a specifically named test rather than merely reducing a coverage number.",
+          "command": "node scripts/selftest.mjs",
+          "liveSystem": false,
+          "status": "planned"
+        },
+        {
+          "id": "TP-08-07",
+          "category": "integration",
+          "file": "scripts/validate-tool-experience.mjs",
+          "description": "Registry-count confirmation: the FR-051 counts SCOPE-5 moved (22 ordinary tools, 4 Market Action Center goals, 48 total goals, 48 journey definitions) still hold after every upstream scope has landed, and adapterPolicy.moduleAllowlist still holds exactly 7 entries.",
+          "command": "node scripts/validate-tool-experience.mjs",
+          "liveSystem": false,
+          "status": "planned"
+        },
+        {
+          "id": "TP-08-08",
+          "category": "functional",
+          "file": "scripts/selftest.mjs",
+          "description": "Live-stack authenticity sweep: no live-stack spec for this feature uses page.route, context.route, intercept(, cy.intercept, msw, or nock, and no required spec contains a silent-pass bailout that converts a missing behavior into a pass.",
+          "command": "node scripts/selftest.mjs",
+          "liveSystem": false,
+          "status": "planned"
+        },
+        {
+          "id": "TP-08-09",
+          "category": "integration",
+          "file": "scripts/selftest.mjs",
+          "description": "Consumer-trace closure: zero remaining first-party references to the regime derivations SCOPE-6 retired, swept across pages, notes, registry metadata, and docs, so no caller resolves to a deleted path.",
+          "command": "node scripts/selftest.mjs",
+          "liveSystem": false,
+          "status": "planned"
+        },
+        {
+          "id": "TP-08-10",
+          "category": "integration",
+          "file": "scripts/selftest.mjs",
+          "description": "ADVERSARIAL RED-bite — neutralize the no-cycle rule by letting a facet source import a Tier 2 module and declare the composed regime as one of its inputs, anywhere in the tree. The named IP-002 no-cycle test MUST fail under that mutation and MUST pass against the delivered tree.",
+          "command": "node scripts/selftest.mjs",
+          "liveSystem": false,
+          "status": "planned"
+        },
+        {
+          "id": "TP-08-11",
+          "category": "integration",
+          "file": "scripts/selftest.mjs",
+          "description": "BS-013-024: One regression inside the protected scenario set refuses governance closure — ADVERSARIAL RED-bite — re-run the protected set with exactly one scenario within it regressed. Closure MUST be refused with the regressing scenario named, MUST NOT be reported as partial, provisional, or passing-with-exceptions, and the scenarios that still hold MUST NOT offset the single regression.",
+          "command": "node scripts/selftest.mjs",
+          "liveSystem": false,
+          "status": "planned"
+        },
+        {
+          "id": "TP-08-12",
+          "category": "e2e-ui",
+          "file": "tests/market-regime-lab.spec.mjs",
+          "description": "Persistent scenario-specific regression coverage for closure: the real-page regression spec holds the permanently registered protected-scenario cases contributed by SCOPE-1 through SCOPE-7 and re-runs them as one set on the live page.",
+          "command": "npx --no-install playwright test tests/market-regime-lab.spec.mjs --config=playwright.config.mjs --project=system-chrome --reporter=list",
+          "liveSystem": true,
+          "status": "planned"
+        }
+      ]
+    }
+  ]
 }

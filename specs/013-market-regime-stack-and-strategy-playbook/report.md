@@ -79,6 +79,10 @@ Awaiting execution — no command has been run for this row.
 
 Awaiting execution — no command has been run for this row.
 
+#### TP-01-09
+
+Awaiting execution — no command has been run for this row.
+
 ### SCOPE-2 — Regime facet contract + composer foundation
 
 #### TP-02-01
@@ -133,6 +137,10 @@ Awaiting execution — no command has been run for this row.
 
 Awaiting execution — no command has been run for this row.
 
+#### TP-02-14
+
+Awaiting execution — no command has been run for this row.
+
 ### SCOPE-3 — Facet source publication shims
 
 #### TP-03-01
@@ -160,6 +168,14 @@ Awaiting execution — no command has been run for this row.
 Awaiting execution — no command has been run for this row.
 
 #### TP-03-07
+
+Awaiting execution — no command has been run for this row.
+
+#### TP-03-08
+
+Awaiting execution — no command has been run for this row.
+
+#### TP-03-09
 
 Awaiting execution — no command has been run for this row.
 
@@ -209,6 +225,14 @@ Awaiting execution — no command has been run for this row.
 
 Awaiting execution — no command has been run for this row.
 
+#### TP-04-12
+
+Awaiting execution — no command has been run for this row.
+
+#### TP-04-13
+
+Awaiting execution — no command has been run for this row.
+
 ### SCOPE-5 — Registry registration + FR-051 count lockstep
 
 #### TP-05-01
@@ -236,6 +260,18 @@ Awaiting execution — no command has been run for this row.
 Awaiting execution — no command has been run for this row.
 
 #### TP-05-07
+
+Awaiting execution — no command has been run for this row.
+
+#### TP-05-08
+
+Awaiting execution — no command has been run for this row.
+
+#### TP-05-09
+
+Awaiting execution — no command has been run for this row.
+
+#### TP-05-10
 
 Awaiting execution — no command has been run for this row.
 
@@ -277,6 +313,10 @@ Awaiting execution — no command has been run for this row.
 
 Awaiting execution — no command has been run for this row.
 
+#### TP-06-10
+
+Awaiting execution — no command has been run for this row.
+
 ### SCOPE-7 — Headless DERIVED owner read
 
 #### TP-07-01
@@ -312,6 +352,10 @@ Awaiting execution — no command has been run for this row.
 Awaiting execution — no command has been run for this row.
 
 #### TP-07-09
+
+Awaiting execution — no command has been run for this row.
+
+#### TP-07-10
 
 Awaiting execution — no command has been run for this row.
 
@@ -354,5 +398,13 @@ Awaiting execution — no command has been run for this row.
 Awaiting execution — no command has been run for this row.
 
 #### TP-08-10
+
+Awaiting execution — no command has been run for this row.
+
+#### TP-08-11
+
+Awaiting execution — no command has been run for this row.
+
+#### TP-08-12
 
 Awaiting execution — no command has been run for this row.

@@ -38,6 +38,24 @@ Scenario: Registry entries and asserted counts move in lockstep or the change is
   And no absent entry is inferred, defaulted, or backfilled to satisfy the declared count
 ```
 
+## Consumer Impact Sweep
+
+Registration moves a tool identifier into every registry that resolves it, so each registration surface and each hard-asserted count is a consumer of the same identifier. Registering in one surface while another still holds the prior set is the half-applied state this scope exists to refuse. The enumeration below is the complete first-party consumer set; a stale-reference scan must return zero surfaces still carrying the pre-registration identifier set or its pre-registration counts.
+
+| Consumer surface | Path | What changes for it |
+| --- | --- | --- |
+| Tool registry | `tools.json` | Gains the tool id, title, description, and the metadata the landing page and navigation consume. |
+| Simple-model registry | `simple-models.json` | Gains the Simple model entry so the Simple view is a declared model rather than an inline page concern. |
+| Journey registry | `journeys.json` | Gains the tool's journeys with `noExecution: true` and the ordered steps the Journey view renders. |
+| Experience config | `tool-experience.config.json` | `adapterPolicy.moduleAllowlist` is asserted to stay at exactly 7 entries; no new adapter module is introduced. |
+| Landing-page inventory | `index.html` `TOOLS` array | Gains the tool so its landing-page card and its deep link target resolve. |
+| Shared navigation | `rlnav.js` `TOOLS` array | Gains the tool so the shared navigation resolves it on every page and no navigation entry dead-ends or silently redirects. |
+| Handoff documentation | `notes/market-regime-lab.md` | Gains the required per-tool handoff doc covering what the tool owns and the registries it participates in. |
+| Registry validator | `scripts/validate-tool-experience.mjs` | Its exact-count assertions (22 ordinary tools, 4 Market Action Center goals, 48 total goals, 48 journey definitions) move in the same change as the registries. |
+| Hard-asserted registry counts | `scripts/selftest.mjs` | Re-derives the same counts from the registry files so no assertion and its registry disagree. |
+
+Stale-reference scan surface: every navigation entry, every landing-page deep link, and every redirect that resolves a tool id, plus every hard-asserted count that names the pre-registration tool, goal, or journey totals.
+
 ## Implementation Plan
 
 1. **`tools.json`.** Register the tool with its id, title, description, and the metadata the landing page and navigation consume.
@@ -62,6 +80,8 @@ Scenario: Registry entries and asserted counts move in lockstep or the change is
 | TP-05-06 | Integration | `integration` | `scripts/validate-tool-experience.mjs` — registry lockstep assertion | **BS-013-023: A registry entry and its hard-asserted count are refused unless they move together** — **ADVERSARIAL RED-bite** — register the tool in `tools.json` alone while leaving `journeys.json` and the asserted counts at their prior values. `node scripts/validate-tool-experience.mjs` MUST fail under that half-applied registration naming the asserted count that did not move, MUST NOT report the half-registered surface as registered, and MUST pass against the delivered coherent change. | `node scripts/validate-tool-experience.mjs` | No |
 | TP-05-07 | Functional | `functional` | `scripts/selftest.mjs` — complete suite, every pre-existing group plus the registry-coherence assertions this scope adds | Broad-suite regression: the full selftest suite stays green with the moved registry counts, every pre-existing group (including the SCOPE-1 through SCOPE-4 groups) is preserved byte-for-byte, and the total passing count does not decrease. | `node scripts/selftest.mjs` | No |
 | TP-05-08 | Integration | `integration` | `scripts/validate-tool-experience.mjs` — overstated-count assertion | **BS-013-023: A registry entry and its hard-asserted count are refused unless they move together** — **ADVERSARIAL RED-bite, overstated-count direction** — raise an asserted count above the number of entries actually present across the registration surfaces. `node scripts/validate-tool-experience.mjs` MUST fail naming the asserted count that overstates the entries, MUST NOT infer, default, or backfill an absent entry to satisfy the declared count, and MUST pass against the delivered counts. | `node scripts/validate-tool-experience.mjs` | No |
+| TP-05-09 | Regression E2E | `e2e-ui` | `tests/market-regime-lab.spec.mjs` / `Regression: BS-013-023 the registered tool resolves from every registry and its hard-asserted counts move together` | Persistent scenario-specific regression coverage for this scope's registration behavior: a permanently registered case in the feature's real-page regression spec re-asserts that the tool resolves from `tools.json`, `simple-models.json`, `journeys.json`, the `index.html` `TOOLS` array, and the `rlnav.js` `TOOLS` array, and that the FR-051 hard-asserted counts match the registered set. A registry entry landing without its count fails this named test by name. | `npx --no-install playwright test tests/market-regime-lab.spec.mjs --config=playwright.config.mjs --project=system-chrome --reporter=list` | Yes |
+| TP-05-10 | Stress | `stress` | `scripts/selftest.mjs` group `regime-primitives-stress` / `registry validation and the shared tool-read publication sustain a repeated full-registry run without degraded throughput or unbounded slot growth` | Stress coverage for the registration and tool-read publication path: a repeated full-registry validation run across `tools.json`, `simple-models.json`, `journeys.json`, and `tool-experience.config.json` asserts that the exact-count assertions re-derive identically on every pass, that the shared tool-read slot write stays bounded under repeated publication rather than accumulating one entry per run, and that validation throughput does not degrade across the run. | `node scripts/selftest.mjs` | No |
 
 ### Definition of Done
 
@@ -77,6 +97,10 @@ Scenario: Registry entries and asserted counts move in lockstep or the change is
 - [ ] `[TP-05-08]` `[BS-013-023]` A change that raises an asserted count above the number of entries actually present across the registration surfaces is refused by the registry validation, which names the asserted count that overstates the entries, and no absent entry is inferred, defaulted, or backfilled to satisfy the declared count.
 - [ ] `notes/market-regime-lab.md` states what the tool owns, the facets it composes, the owner read it publishes, and the registries it participates in — no placeholder section and no default text.
 - [ ] No registration surface carries a default value, a fallback entry, or a stub row: every registry entry states its id, title, description, and the metadata its consumer reads explicitly.
+- [ ] `[TP-05-10]` A repeated full-registry validation run re-derives the exact counts identically on every pass, the shared `toolReads` slot write stays bounded under repeated publication, and validation throughput does not degrade across the run.
+- [ ] Consumer impact sweep is completed for every registration surface and hard-asserted count enumerated in this scope's `## Consumer Impact Sweep` section, and zero stale first-party references remain — no surface still carries the pre-registration identifier set or its pre-registration counts, and every navigation entry and landing-page deep link resolving a tool id still resolves with no dead entry and no silent redirect.
+- [ ] Scenario-specific E2E regression tests for every new/changed/fixed behavior in this scope are persistent and named — `[TP-05-09]` the feature's real-page regression spec holds a permanently registered case asserting that the tool resolves from every registry surface and that the FR-051 hard-asserted counts match the registered set.
+- [ ] Broader E2E regression suite passes — the complete `node scripts/selftest.mjs` suite and the feature's real-page Playwright regression spec both run green once this scope lands, with every pre-existing selftest group and every previously registered regression case preserved and no decreased passing count.
 
 #### Build Quality Gate
 

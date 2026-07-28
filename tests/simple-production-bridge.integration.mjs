@@ -1099,6 +1099,130 @@ function walkForwardValidationOwnerState() {
   return ownerState;
 }
 
+/* ───── strategy-self-improvement-lab (strategy-evolution): the page's OWN provider, RUN here ─────
+   Like ai-capex, smart-money-flow and strategy-validation, this page's owner FACTS have no module
+   producer and no harvested published read: the owner evidence IS the frozen seed+regime SCENARIO
+   this page is currently studying plus the live rule / bounds / goal / walk-forward configuration it
+   is scoring that scenario under. Restating any of those here would copy the owner's data, which
+   this suite forbids just as firmly as a copy of an owner formula. So the page's own bindings are
+   extracted VERBATIM from the deployed source and executed, and the owner state is whatever the
+   page's OWN `strategyEvolutionOwnerState()` returns.
+
+   THE PAGE'S OWN BOOT ORDER: its universe loader calls `boot(u)`, which sets `U`, seeds the scenario
+   picker, writes the first scenario's seed into the seed control, runs `fillDefaults()` (which writes
+   the universe file's own goal + walk-forward numbers into this page's controls) and then
+   `loadScenario(U.scenarios[0].id)` (which selects the scenario, generates the seeded series through
+   the single-source engine, resets the rule to the universe baseline and calls `readGoalWf()` to read
+   the controls back). `boot` FETCHES its universe, so it cannot run here; instead the page's own
+   documented offline path is taken — its inline `FALLBACK_UNIVERSE`, which the page claims is "kept
+   identical to the .json file" — and that claim is ASSERTED field-by-field against the real committed
+   strategy-self-improvement-universe.json below, so `U` is the real committed scenario universe either
+   way and a future divergence fails loudly instead of silently changing the owner scenario. (The
+   committed file additionally carries `site` / `note` documentation keys the inline copy omits, so the
+   comparison is per OWNER field rather than a whole-object deep-equal.)
+
+   WHY A CONTROL STUB AND A COUNTED PAINT. This page reads its live goal and walk-forward numbers back
+   out of its own DOM controls (`readGoalWf`), so its controls are modelled as plain value cells: the
+   page's own `fillDefaults()` WRITES the universe numbers into them and the page's own `readGoalWf()`
+   READS them straight back — the page's real control round-trip runs, nothing is short-circuited or
+   restated. `loadScenario()`'s last statement is this page's PAINT step (`render()`), which only READS
+   state — it writes the verdict / scorecard / lever / ledger DOM and the two canvases and mutates no
+   owner field — and a 2d canvas context does not exist in Node, so it is replaced by a COUNTED no-op
+   that is asserted to have run. Every owner field below is still produced by the page's own
+   `fillDefaults` / `loadScenario` / `readGoalWf` executing for real.
+
+   DETERMINISTIC BY CONSTRUCTION: both inputs are committed static files (the deployed page and
+   strategy-self-improvement-universe.json), the scenario is the page's own first scenario, the rule is
+   the universe baseline (no accepted improvement step is taken here), and no localStorage ledger is
+   restored. No clock, no network, no randomness.
+
+   NO SEED IN THE OWNER STATE: `simple-models.json` declares the path seed as this model's OWN registry
+   parameter (seedPolicy.required = true, defaultSeed 20260722, defaultSource "registry",
+   randomnessClass "seeded-path") and the module reads it from `params.seed`, never from
+   `ownerState.seed`. So the deployed bridge pins it from the definition (rlexperience.js
+   `installSimpleProjectionBridge`) and this suite pins the identical value through
+   `registrySeed(definition)` — exactly the ai-capex arrangement. The page's own `state.seed` is its
+   POWER view's path selector for the same frozen scenario and is deliberately not published; both
+   documented owner fixtures carry no seed field either. */
+const STRATEGY_EVOLUTION_PAGE_BINDINGS = Object.freeze([
+  'clone', 'genSeries', 'readGoalWf', 'fillDefaults', 'loadScenario', 'strategyEvolutionOwnerState'
+]);
+
+function strategyEvolutionOwnerState() {
+  const source = readPage('strategy-self-improvement-lab.html');
+  assert.ok(source, 'the deployed strategy-self-improvement-lab.html source is required to run its own owner provider');
+  const strategyModule = loadModule('rlexperience-adapters/strategy-research.js');
+
+  const controls = Object.create(null);
+  const documentStub = {
+    getElementById(id) {
+      if (!controls[id]) controls[id] = { value: '' };
+      return controls[id];
+    }
+  };
+  let paints = 0;
+
+  const page = Function('RLSTRATEGY', 'document', 'paint', [
+    extractPageBinding(source, 'FALLBACK_UNIVERSE'),
+    extractPageLine(source, 'var U = null, S = null;'),
+    extractPageBinding(source, 'state'),
+    ...STRATEGY_EVOLUTION_PAGE_BINDINGS.map((name) => extractPageBinding(source, name)),
+    'function render() { paint(); }',
+    // The page's own offline fallback (boot()'s `U = universe`), then its own boot seed-control line.
+    'U = FALLBACK_UNIVERSE;',
+    extractPageLine(source, "document.getElementById('seed').value = U.scenarios[0].seed;"),
+    'return { fallbackUniverse: FALLBACK_UNIVERSE, state: state, fillDefaults: fillDefaults, loadScenario: loadScenario, ownerState: strategyEvolutionOwnerState };'
+  ].join('\n'))(strategyModule, documentStub, () => { paints += 1; });
+
+  const universe = readJson('strategy-self-improvement-universe.json');
+  for (const key of ['tool', 'updated', 'walkForward', 'goal', 'startLevers', 'leverRanges', 'scenarios']) {
+    assert.deepEqual(page.fallbackUniverse[key], universe[key],
+      `the page's inline FALLBACK_UNIVERSE.${key} must stay identical to the committed strategy-self-improvement-universe.json it claims to mirror`);
+  }
+
+  // The page's OWN boot order: fill the controls from the universe, then load its first scenario.
+  page.fillDefaults();
+  page.loadScenario(universe.scenarios[0].id);
+  assert.ok(paints > 0, 'the page\'s own loadScenario must reach its paint step');
+
+  const ownerState = page.ownerState();
+  assert.ok(ownerState, 'the page provider must publish an owner state for its own live scenario');
+  assert.equal(ownerState.contractVersion, 'strategy-evolution-owner-state/v1');
+  assert.equal(ownerState.toolId, 'strategy-self-improvement-lab');
+  // This tool has NO observed market evidence: its evidence is the committed scenario definition, so
+  // its as-of is that file's own declared stamp and its provenance names itself synthetic.
+  assert.equal(ownerState.asOf, universe.updated,
+    'the synthetic scenario is stamped with the universe file\'s own declared as-of, never an invented observation date');
+  assert.match(String(ownerState.source), /synthetic/i, 'the published source must name the evidence as synthetic');
+  // The live scenario is the page's own selected scenario, published whole.
+  const scenario = universe.scenarios[0];
+  assert.equal(ownerState.scenario.id, scenario.id);
+  assert.equal(ownerState.scenario.label, scenario.label);
+  assert.equal(ownerState.years, scenario.years);
+  assert.deepEqual(ownerState.regimes, scenario.regimes, 'the published regimes are the live scenario\'s own regime table');
+  // The live rule, bounds, goal and walk-forward configuration are the page's own live values.
+  assert.deepEqual(ownerState.startLevers, universe.startLevers,
+    'before any accepted improvement step the page\'s live rule IS the universe baseline');
+  assert.deepEqual(ownerState.leverRanges, universe.leverRanges);
+  assert.deepEqual(ownerState.goal, universe.goal, 'the four goal targets round-trip through the page\'s own controls unchanged');
+  assert.deepEqual(ownerState.walkForward, universe.walkForward, 'the live walk-forward configuration round-trips through the page\'s own controls unchanged');
+  // The path seed is a REGISTRY parameter, not an owner fact (see the seed note above).
+  assert.equal(Object.prototype.hasOwnProperty.call(ownerState, 'seed'), false,
+    'the path seed is the model\'s own registry parameter and must never be published as an owner fact');
+  // Substance, not just shape: at the REGISTRY defaults the owner's own summary function (never a
+  // reimplementation here) must run a real bounded search and reach a real acceptance decision.
+  const definition = definitionForAdapter('simple-adapter/strategy-evolution/v1');
+  const summary = strategyModule.computeStrategyEvolutionSummary(frozenClone(ownerState), registryDefaults(definition));
+  assert.ok(summary.search.trials > 0,
+    `the published lever ranges must yield real search trials at the registry-default budget (saw ${summary.search.trials})`);
+  assert.notEqual(summary.candidate.to, null, 'the bounded search must reach a real best candidate on the published scenario');
+  assert.equal(Number.isFinite(summary.acceptance.penalizedDelta), true,
+    'the acceptance decision must produce a real penalized goal delta, never a null the Simple read would have to hide');
+  assert.ok(summary.outOfSample.perFold.length >= 2,
+    `at least two walk-forward folds must score out-of-sample (saw ${summary.outOfSample.perFold.length})`);
+  return ownerState;
+}
+
 /* Owner-state builders keyed by the REGISTRY adapter id. A wired tool with no entry FAILS LOUD. */
 const OWNER_STATES = {
   'simple-adapter/market-breadth/v1': breadthOwnerState,
@@ -1114,7 +1238,8 @@ const OWNER_STATES = {
   'simple-adapter/etf-ranking/v1': etfOwnerState,
   'simple-adapter/ai-capex-portfolio/v1': aiCapexOwnerState,
   'simple-adapter/disclosure-decay/v1': disclosureDecayOwnerState,
-  'simple-adapter/walk-forward-validation/v1': walkForwardValidationOwnerState
+  'simple-adapter/walk-forward-validation/v1': walkForwardValidationOwnerState,
+  'simple-adapter/strategy-evolution/v1': strategyEvolutionOwnerState
 };
 
 /* ═══════════════════════ owner-parity extractors (the Power-path single source) ═══════════════════════
@@ -1308,6 +1433,26 @@ const OWNER_PARITY = {
       summaryContains: (validation && validation.focusSymbol)
         ? [validation.focusSymbol, summary.rule, summary.universe, String(summary.cost)]
         : [summary.universe]
+    };
+  },
+  'simple-adapter/strategy-evolution/v1': (moduleObject, ownerState, parameterValues) => {
+    /* `parameterValues` carries the registry-pinned path seed (seedPolicy.defaultSeed), so the owner's
+       seeded path is regenerated on EXACTLY the path the Simple run took. */
+    const summary = moduleObject.computeStrategyEvolutionSummary(frozenClone(ownerState), parameterValues);
+    const accepted = summary.acceptance.accepted;
+    return {
+      ownerFunction: 'computeStrategyEvolutionSummary',
+      numericValue: summary.acceptance.penalizedDelta,
+      valueText: accepted
+        ? `Accept ${summary.leverKey} ${summary.candidate.from} -> ${summary.candidate.to}`
+        : 'No accepted change',
+      /* The owner-computed lever the bounded search moved, the value it moved to, and the goal it was
+         scored against, taken straight off the summary object. A Simple read that named a different
+         lever — or a landing value or goal the owner did not run — fails here. When no candidate is
+         accepted the owner's own message names only the goal, so only that fragment is asserted. */
+      summaryContains: accepted
+        ? [summary.leverKey, String(summary.candidate.to), summary.goal]
+        : [summary.goal]
     };
   }
 };

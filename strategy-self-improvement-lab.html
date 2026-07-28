@@ -762,7 +762,8 @@
         function walkForward(S, L, folds, trainRatio) { return RLSTRATEGY.walkForward(S, L, folds, trainRatio); }
 
         /* ---- state -------------------------------------------------------------- */
-        var U = null, S = null, state = {
+        var U = null, S = null;
+        var state = {
             scenario: null, seed: 0, baseline: null, improved: null,
             goal: null, wf: null, trials: 0, lastSearch: null
         };
@@ -1167,6 +1168,99 @@
                 drawEquity(); drawFolds();
             }
         }
+
+        /* ══════════════════ Feature 012 Scope 15 — production Simple owner-state provider ══════════════════
+           The shared four-view shell's Simple bridge (installSimpleProjectionBridge in rlexperience.js)
+           reads globalThis.__rlOwnerStateProvider["strategy-self-improvement-lab"] and hands the result to
+           the registered strategy-evolution adapter (simple-adapter/strategy-evolution/v1 in
+           rlexperience-adapters/strategy-research.js — already loaded above as the SINGLE SOURCE of this
+           page's mulberry32 / gauss / genSeries / sma / realizedVol / backtest / metrics / walkForward
+           engine).
+
+           THIS PAGE STAYS THE OWNER, AND NO FORMULA IS COPIED OR RECOMPUTED HERE. Every value below is
+           either a live field of this page's own `state` / `U` or a plain passthrough copy of one; the
+           provider performs no arithmetic of its own and calls no engine function.
+
+           FIELD          -> PAGE SOURCE
+             • scenario   -> state.scenario.{id,label}, the scenario this page currently has selected in
+                             its own scenario picker,
+             • years      -> state.scenario.years, the live scenario's own horizon,
+             • regimes    -> state.scenario.regimes, the live scenario's own (frac, muAnnual, sigAnnual)
+                             regime table — the market shape this page is currently studying,
+             • startLevers-> state.improved || state.baseline, this page's OWN live current rule. That is
+                             the exact `active` expression this page itself uses everywhere it scores the
+                             current rule (render(), runSeedRobustness(), the Run-loop): the tuned rule
+                             once the self-improvement loop has accepted a step, and the untouched
+                             baseline (clone(U.startLevers)) before that. The Simple search therefore
+                             starts from the same rule the Power view is showing, never a stale one,
+             • leverRanges-> U.leverRanges, this page's live lever bounds (the same ranges its own
+                             improveOnce() steps within), copied per key,
+             • goal       -> state.goal, this page's four LIVE goal targets as last read from its own
+                             goal controls by readGoalWf(),
+             • walkForward-> state.wf, this page's LIVE walk-forward configuration (folds / trainRatio /
+                             acceptMargin from its own controls, oosGapTolerance from the universe file),
+             • asOf       -> U.updated, the committed scenario file's OWN declared publication stamp. This
+                             tool has no observed market evidence at all: its evidence IS the frozen
+                             seed+regime scenario definition committed in
+                             strategy-self-improvement-universe.json, so its as-of is that file's own
+                             stamp. A synthetic scenario never borrows an observed market cutoff,
+             • source     -> the live scenario's own label, named explicitly as a labelled synthetic
+                             seeded scenario so the read can never be mistaken for observed market data.
+
+           THE PATH SEED IS NOT AN OWNER FACT AND IS DELIBERATELY ABSENT — it is NOT omitted evidence.
+           `simple-models.json` declares the path seed as this model's OWN registry parameter
+           (`seed`, seedPolicy.required = true, defaultSeed 20260722, defaultSource "registry",
+           randomnessClass "seeded-path"), and the adapter reads it from `params.seed` — it never reads
+           `ownerState.seed`. So the deployed bridge pins the Simple path seed from the definition
+           (rlexperience.js installSimpleProjectionBridge) and the user re-selects it with the Simple
+           control, exactly as ai-capex-strategy-lab's seeded model does. This page's own `state.seed` is
+           the POWER view's path selector for the same frozen scenario; publishing it here would put a
+           number into the evidence fingerprint that the model never reads and that does not describe the
+           path the Simple read actually took. The owner contract
+           (`strategy-evolution-owner-state/v1`) carries no seed field for exactly that reason, and both
+           documented owner fixtures (tests/simple-model-adapters-strategy-property.{spec,unit}.mjs)
+           publish none. Reproducibility is unaffected: the seeded path is a pure function of the
+           registry-pinned seed plus this frozen owner scenario.
+
+           DELIBERATELY NOT PUBLISHED: state.trials, state.lastSearch and the localStorage accepted-step
+           ledger. Those are this page's Power-view search history; the adapter asks its OWN bounded
+           Simple question (one goal, one allowed variable, a search budget, an overfit discount and an
+           acceptance threshold) over the frozen owner scenario instead of replaying this page's ledger.
+
+           HONEST DEGRADATION: before this page has loaded its scenario universe and initialised its
+           scenario / levers / goal / walk-forward state — the whole window between parse and the
+           universe fetch resolving — the provider returns null and the bridge renders the honest
+           "unavailable" panel. It never publishes a scenario this page is not currently running, and it
+           never substitutes a default for a control the page has not read yet. */
+        function strategyEvolutionOwnerState() {
+            if (!U || !U.leverRanges || !U.walkForward) return null;
+            if (!state.scenario || !state.baseline || !state.goal || !state.wf) return null;
+            if (typeof state.wf.trainRatio !== 'number' || !isFinite(state.wf.trainRatio)) return null;
+            var regimes = state.scenario.regimes;
+            if (!regimes || !regimes.length) return null;
+            var asOf = String(U.updated == null ? '' : U.updated);
+            if (asOf.length < 8) return null;
+
+            var ranges = {}, k;
+            for (k in U.leverRanges) {
+                ranges[k] = { min: U.leverRanges[k].min, max: U.leverRanges[k].max, step: U.leverRanges[k].step };
+            }
+            return {
+                contractVersion: 'strategy-evolution-owner-state/v1',
+                toolId: 'strategy-self-improvement-lab',
+                asOf: asOf,
+                source: 'labelled synthetic seeded scenario: ' + state.scenario.label,
+                scenario: { id: state.scenario.id, label: state.scenario.label },
+                years: state.scenario.years,
+                regimes: regimes.map(function (g) { return { frac: g.frac, muAnnual: g.muAnnual, sigAnnual: g.sigAnnual }; }),
+                startLevers: clone(state.improved || state.baseline),
+                leverRanges: ranges,
+                goal: clone(state.goal),
+                walkForward: clone(state.wf)
+            };
+        }
+        globalThis.__rlOwnerStateProvider = globalThis.__rlOwnerStateProvider || {};
+        globalThis.__rlOwnerStateProvider["strategy-self-improvement-lab"] = strategyEvolutionOwnerState;
 
         /* ---- load universe (fetch → fallback) ----------------------------------- */
         (function () {

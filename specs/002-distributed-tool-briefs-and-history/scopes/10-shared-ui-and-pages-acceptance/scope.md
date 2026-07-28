@@ -1,6 +1,6 @@
 # Scope 10: Shared UI and Pages Acceptance
 
-**Status:** Done (implementation and all pre-deployment validation complete; TP-10-18 deployed-Pages E2E runs post-cutover)
+**Status:** Done (implementation and every runnable DoD item validated; TP-10-18 deployed-Pages E2E executed post-cutover against the deployed GitHub Pages site and passed 13/13; the SCN-002-015 pointer-coherence clause remains a declared honest gap)
 **Depends On:** 09
 **Scope-Kind:** runtime-behavior
 **Requirements:** FR-010, FR-024 through FR-028, FR-043 through FR-049, FR-073, FR-076, FR-078 through FR-091, FR-095, FR-100, FR-105 through FR-108, FR-111 through FR-121, FR-122 through FR-131; NFR-001, NFR-005, NFR-007 through NFR-008, NFR-010 through NFR-015, NFR-019 through NFR-024
@@ -150,7 +150,7 @@ Test evidence items, one per Test Plan row:
 - [x] [TP-10-15] Scenario-specific E2E regression tests for accessibility, responsive geometry, non-color states, and safe authored content pass with the exact title. — Evidence: [report.md](report.md#test-evidence) (playwright spec 13/13, accessibility/desktop/mobile/zoom).
 - [x] [TP-10-16] Scenario-specific E2E regression tests for registry-added shared mounting pass with the exact title. — Evidence: [report.md](report.md#test-evidence) (playwright spec 13/13, valid added registry source).
 - [x] [TP-10-17] Functional consumer-trace evidence passes with zero stale first-party assumptions. — Evidence: [report.md](report.md#test-evidence) (consumer-trace 1/1).
-- [ ] [TP-10-18] Deployed Pages E2E evidence passes against the required `RESEARCH_LAB_BASE_URL` with no browser-side external source calls. — Deferred (inherently post-deployment): validates the deployed GitHub Pages site, which requires this cutover commit to be pushed and deployed first; runs post-cutover. See [report.md](report.md#uncertainty-declarations).
+- [x] [TP-10-18] Deployed Pages E2E evidence passes against the required `RESEARCH_LAB_BASE_URL` with no browser-side external source calls. — Evidence: [report.md](report.md#tp-10-18-deployed-pages-e2e-post-cutover) (deployed GitHub Pages site `https://pkirsanov.github.io/research-lab/`, 13 passed / 0 failed, exit 0).
 - [x] [TP-10-19] Broader E2E regression suite passes for all existing and Feature 002 browser behavior. — Evidence: [report.md](report.md#test-evidence) (full playwright suite --project=system-chrome = 158 passed / 0 failed).
 - [x] [TP-10-20] Baseline functional evidence passes for `node scripts/selftest.mjs` after focused checks are green. — Evidence: [report.md](report.md#test-evidence) (node scripts/selftest.mjs = 645 passed / 0 failed).
 - [x] [TP-10-21] Integration evidence passes for the complete UI-consumed distributed artifact graph. — Evidence: [report.md](report.md#test-evidence) (validate-distributed-briefs --root . = ok:true).

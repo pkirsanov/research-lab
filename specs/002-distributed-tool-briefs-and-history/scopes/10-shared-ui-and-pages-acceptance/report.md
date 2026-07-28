@@ -1,6 +1,6 @@
 # Scope 10 Report: Shared UI and Pages Acceptance
 
-**Status:** Done — implementation and all pre-deployment validation complete. TP-10-18 (deployed-Pages E2E) is an inherently post-deployment gate; see Uncertainty Declarations.
+**Status:** Done — implementation and every runnable DoD item validated, including TP-10-18 (deployed-Pages E2E), which executed post-cutover against the deployed GitHub Pages site and passed 13/13. The SCN-002-015 pointer-coherence clause remains an unchecked honest gap (see scope.md); it is unrelated to TP-10-18.
 
 Links: [scope.md](scope.md) | [spec.md](../../spec.md) | [scope index](../_index.md)
 
@@ -17,7 +17,7 @@ Scope 10 delivers the shared browser brief experience. `rlbrief.js` is the dual-
 
 ## Completion Statement
 
-Implementation is complete and every runnable DoD item is validated in this session. TP-10-18 runs post-cutover once this commit deploys to GitHub Pages.
+Implementation is complete and every runnable DoD item is validated. TP-10-18 ran post-cutover, after commit `76fcad0a` deployed to GitHub Pages, and passed 13/13 — see [TP-10-18 — Deployed Pages E2E (post-cutover)](#tp-10-18-deployed-pages-e2e-post-cutover). One DoD item stays unchecked as a declared honest gap: the SCN-002-015 pointer-coherence clause, which has no positive proof until a current pointer is published.
 
 ## Code Diff Evidence
 
@@ -89,9 +89,50 @@ REGRESSION_EXIT=0
 
 Separate / pre-existing (left untouched): `tests/market-brief-session-date-drift.spec.mjs` (BUG-002) fails on `#liveNote` never showing "live shared cache refreshed" — a different root cause (market-brief live shared-cache refresh, not the brief-view reveal). It fails identically on clean HEAD with these two files stashed (`DRIFT_CLEAN_EXIT=1`), proving it is independent of this remediation.
 
+### TP-10-18 — Deployed Pages E2E (post-cutover)
+
+TP-10-18 is the one gate in this scope that could not execute pre-cutover: it validates the DEPLOYED GitHub Pages site, so it required the cutover commit to be pushed and served first. That precondition is now satisfied, and the gate was executed against the live deployment.
+
+Deploy precondition verification (content probe, not merely an HTTP 200 liveness check):
+
+- Commit `76fcad0a` pushed to `origin/main` (`82a88bad..76fcad0a`).
+- GitHub Pages deploy completed and was confirmed live by content probe: the just-pushed `specs/002-distributed-tool-briefs-and-history/scopes/_index.md` served 3 `In Progress` rows matching local, proving the deployed bytes are the pushed bytes and not a stale edge cache.
+- Site root returned HTTP 200.
+- Deployed base URL under test: `https://pkirsanov.github.io/research-lab/`.
+- Playwright runner `Version 1.61.1` — the same version the Pages CI workflow pins.
+- Executed with zero concurrent Playwright processes (the other session's run was waited out for 120s first), so `test-results/` was uncontended.
+
+**Executed:** YES (this session, against the deployed GitHub Pages site)
+**Command:** `RESEARCH_LAB_BASE_URL="https://pkirsanov.github.io/research-lab/" npx --no-install playwright test tests/distributed-briefs.spec.mjs --config=playwright.config.mjs --project=system-chrome --reporter=list --workers=1`
+**Claim Source:** executed
+**Exit Code:** 0
+
+```
+Running 13 tests using 1 worker
+
+  ✓   1 …wer keep official close separate and disclose comparable volume (784ms)
+  ✓   2 … the exact published pre-market thesis with owner read evidence (447ms)
+  ✓   3 …inal never labels a partial regular print as the official close (498ms)
+  ✓   4 …erve official close and label every post-close print indicative (606ms)
+  ✓   5 … strips use explicit calendar boundaries and next valid session (718ms)
+  ✓   6 …ming to released without stale actual or post-release consensus (896ms)
+  ✓   7 …ay separate and revisions append without rewriting the original (926ms)
+  ✓   8 … and history exclude look-ahead and retain immutable chronology (529ms)
+  ✓   9 …ed unusual evidence remains context and consumes no action slot (405ms)
+  ✓  10 …emains truthful and non-current failures cannot replace current (865ms)
+  ✓  11 …fetches only the selected partition and opened evidence objects (614ms)
+  ✓  12 …ory UI is accessible safe and stable at desktop mobile and zoom (921ms)
+  ✓  13 …y source receives the shared mount with no page-specific branch (401ms)
+
+  13 passed (10.8s)
+TP1018_EXIT=0
+```
+
+Result: 13 passed / 0 failed against the deployed site, exit 0. TP-10-18 is satisfied; the browser made no external source calls beyond the deployed same-origin site.
+
 ## Uncertainty Declarations
 
-- **TP-10-18 (deployed-Pages E2E vs `RESEARCH_LAB_BASE_URL`)** is inherently a post-deployment gate: it validates the deployed GitHub Pages site, which requires this cutover commit to be pushed and deployed first. It cannot run pre-deployment, so it is left unchecked and runs post-cutover.
+- **TP-10-18 (deployed-Pages E2E vs `RESEARCH_LAB_BASE_URL`)** is a post-deployment gate: it validates the deployed GitHub Pages site, so it could not execute until the cutover commit was pushed and served. That constraint is now historical — commit `76fcad0a` is pushed and live on GitHub Pages (confirmed by content probe, not merely HTTP 200), and the gate HAS RUN post-cutover against `https://pkirsanov.github.io/research-lab/`: 13 passed / 0 failed, exit 0. Evidence: [TP-10-18 — Deployed Pages E2E (post-cutover)](#tp-10-18-deployed-pages-e2e-post-cutover). No residual uncertainty for this item.
 - The separate point-readable `briefs/` per-tool graph publication (the LLM-authored distributed cutover behind the intentionally-inert `--distributed-run` seam) is not activated here. Per-tool and main-brief history is already saved, committed, and pushed each run via `market-brief.snapshot.json` (embedded `toolReads` + 23-entry `toolCoverage`) and `brief-history.jsonl`.
 
 ## Scenario Contract Evidence
@@ -110,7 +151,7 @@ All 23 registered pages carry the shared mount (`grep -l data-rlbrief-mount *.ht
 
 ## Validation Summary
 
-Implementation plus every pre-deployment DoD item validated: TP-10-01, 02, 03, 04–16, 17, 19, 20, 21, 22. TP-10-18 is post-deployment.
+Implementation plus every runnable DoD item validated: TP-10-01, 02, 03, 04–16, 17, 19, 20, 21, 22, and TP-10-18 (the post-deployment gate, executed against the deployed GitHub Pages site: 13 passed / 0 failed, exit 0). The SCN-002-015 pointer-coherence clause is the one remaining unchecked item and stays a declared honest gap.
 
 ## Audit Verdict
 

@@ -1,6 +1,23 @@
 import { test, expect } from './playwright-runtime.mjs';
 import { startStaticServer } from './provider-credentials.support.mjs';
 
+// The universal RLTKR ticker decorator (rlticker.js) rewrites every KNOWN ticker anywhere in the
+// rendered body into a Yahoo-Finance link plus an "Explain <ticker>" context affordance
+// (<button class="rltkr-context">?</button>), so the identity summary's textContent renders as
+// "MICROSOFT CORP | MSFT?" once the decorator's scan lands. Strip ONLY those injected affordance
+// buttons, apply the same whitespace normalization toHaveText performs, and then require the value
+// to equal the published identity string EXACTLY.
+//
+// Decoration-invariant, NOT a relaxation: this stays exact equality, so a different company, a
+// different ticker, an empty node, a dropped "| MSFT" suffix, or any other extra/missing character
+// still fails. It is strictly stronger than a substring check. Mirrors the precedent in
+// tests/market-brief-session-date-drift.spec.mjs.
+const undecoratedText = (locator) => () => locator.evaluate((element) => {
+    const clone = element.cloneNode(true);
+    clone.querySelectorAll('.rltkr-context').forEach((button) => button.remove());
+    return (clone.textContent || '').replace(/\s+/g, ' ').trim();
+});
+
 let site;
 
 test.beforeAll(async () => {
@@ -48,7 +65,7 @@ test('Regression: SCN-010-026 missing concepts remain unavailable while independ
     await expect(briefEligibility.locator('[data-node-state]')).toHaveText('Unavailable');
     await expect(briefEligibility.locator('[data-missing-facts]')).toHaveText('fact-revenue');
     await expect(independent.locator('[data-node-state]')).toHaveText('Available');
-    await expect(independent.locator('[data-node-value]')).toHaveText('MICROSOFT CORP | MSFT');
+    await expect.poll(undecoratedText(independent.locator('[data-node-value]')), { timeout: 5000 }).toBe('MICROSOFT CORP | MSFT');
 
     expect(sameOriginPaths).toContain('/data/company-fundamentals/companies/sec-cik-0000789019/current.json');
     expect(sameOriginPaths.some((path) => /^\/data\/company-fundamentals\/objects\/[a-f0-9]{64}\.json$/.test(path))).toBe(true);
@@ -279,7 +296,7 @@ test('Regression: SCN-010-008 archetypes change KPI priority without changing sh
 
     // The shared financial facts, identity, and dependency trace are unchanged by the lens.
     await expect(page.locator('[data-company-cik]')).toHaveText('0000789019');
-    await expect(page.locator('[data-node-id="identity-summary"] [data-node-value]')).toHaveText('MICROSOFT CORP | MSFT');
+    await expect.poll(undecoratedText(page.locator('[data-node-id="identity-summary"] [data-node-value]')), { timeout: 5000 }).toBe('MICROSOFT CORP | MSFT');
     await expect(page.locator('[data-node-id="fact-revenue"] [data-node-state]')).toHaveText('Unavailable');
     // The shared-fact byte-stability guarantee is surfaced for the reader.
     await expect(page.locator('[data-shared-fact-stability]')).toContainText('byte-equivalent');
@@ -314,7 +331,7 @@ test('Regression: SCN-010-027 optional source failure preserves the last valid d
     // The accepted dossier remains rendered even though the optional market enrichment is unavailable.
     await expect(page.locator('[data-company-name]')).toHaveText('MICROSOFT CORP');
     await expect(page.locator('[data-evidence-class="reported"] [data-coverage-state]')).toHaveText('Partial');
-    await expect(page.locator('[data-node-id="identity-summary"] [data-node-value]')).toHaveText('MICROSOFT CORP | MSFT');
+    await expect.poll(undecoratedText(page.locator('[data-node-id="identity-summary"] [data-node-value]')), { timeout: 5000 }).toBe('MICROSOFT CORP | MSFT');
 
     // Only the optional market evidence class reports unavailable; no synthetic value appears.
     await expect(page.locator('[data-clock-market]')).toContainText('Unavailable');

@@ -1307,6 +1307,38 @@
             var state = { provider: 'auto', ticker: 'SPY', win: 126, mode: 'simple', acct: 10000, riskPct: 1, svStance: 'neutral', svAggr: 'balanced', svHz: 'swing', full: [], view: [], ma: null, name: '', prof: null, struct: null, ad: null, opt: null, macro: null, dataAt: 0, universe: UNIV_FALLBACK.slice() };
             var busy = false;
 
+            /* ═══════ Scope 15 production Simple-view owner-state provider (Model B) ═══════
+               Expose this page's REAL current owner state to the shared production bridge
+               (rlexperience.js renderSimpleBridge). Registered synchronously (this inline script
+               runs during parse, before the deferred rlapp.js bootstrap) so the shell's
+               provider-gated ownerModes resolves swing-structure to the adapter-panel Simple
+               (["power"]). The provider performs NO fetch and copies NO formula — it hands the
+               adapter the SAME owner input the native Power path already feeds to the module's
+               owner functions (smaArr / alignment / pivots / structure / accumDist / regimeBand):
+                 • full     -> state.full, the exact daily row set render() passes to those
+                              functions (state.ma = computeMAs(state.full), accumDist(state.full)),
+                 • macro    -> state.macro, the exact regime input render() passes to
+                              regimeBand(state.macro && state.macro.fg, …, state.macro && state.macro.vix),
+                 • asOf/source -> the last observed daily bar and the shared-cache provenance tag
+                              from RLDATA.barInfo (honest observation truth).
+               When the page has not hydrated its daily rows yet the provider returns null and the
+               bridge renders the honest "unavailable" panel — no invented signal. */
+            globalThis.__rlOwnerStateProvider = globalThis.__rlOwnerStateProvider || {};
+            globalThis.__rlOwnerStateProvider["swing-structure-lab"] = function () {
+                if (!state.full || !state.full.length) return null;
+                var lastBar = state.full[state.full.length - 1];
+                var info = (window.RLDATA && RLDATA.barInfo) ? RLDATA.barInfo(state.ticker, '1d') : null;
+                return {
+                    contractVersion: 'swing-transition-owner-state/v1',
+                    toolId: 'swing-structure-lab',
+                    symbol: state.ticker,
+                    asOf: (lastBar && isNum(lastBar.t)) ? new Date(lastBar.t).toISOString() : 'unavailable',
+                    source: (info && info.src) || 'shared cache snapshot',
+                    full: state.full,
+                    macro: state.macro ? { fg: state.macro.fg || null, vix: isNum(state.macro.vix) ? state.macro.vix : null } : null
+                };
+            };
+
             function saveState() { try { localStorage.setItem('swingStructLab', JSON.stringify({ provider: state.provider, ticker: state.ticker, win: state.win, mode: state.mode, acct: state.acct, riskPct: state.riskPct, svStance: state.svStance, svAggr: state.svAggr, svHz: state.svHz })); } catch (e) { } }
             function loadState() { try { return JSON.parse(localStorage.getItem('swingStructLab') || 'null'); } catch (e) { return null; } }
 

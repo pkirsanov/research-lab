@@ -315,10 +315,11 @@ const TOOLS = {
     changes: () => [['size-metric', 'equal'], ['breadth-threshold', 30]],
     adapterId: 'simple-adapter/market-breadth/v1',
     expectFlat: false,
-    // Wired into its production page THIS increment (market-heatmap-lab.html registers a real
-    // owner-state provider consumed by the production Simple bridge in rlexperience.js). Because the
-    // bridge renders the REAL adapter on Simple BEFORE this test drives anything, the pre-drive shell
-    // state is 'ready' — a stronger proof than the unwired 'unavailable'. All other tools here stay unwired.
+    // Wired into its production page (market-heatmap-lab.html registers a real owner-state provider
+    // consumed by the production Simple bridge in rlexperience.js) AND its provider returns a real
+    // owner snapshot under this harness (same-origin constituent bars hydrate), so the bridge renders
+    // the REAL adapter on Simple BEFORE this test drives anything and the pre-drive shell state is
+    // 'ready' — a stronger proof than the unwired 'unavailable'.
     wiredInProduction: true
   },
   'intraday-tape-lab': {
@@ -329,7 +330,19 @@ const TOOLS = {
     owner: () => sessionOwnerState(),
     changes: () => [['opening-range', 5], ['gamma-context', 'exclude']],
     adapterId: 'simple-adapter/session-auction/v1',
-    expectFlat: false
+    expectFlat: false,
+    // NO wiredInProduction flag — deliberately, and this is the OBSERVED truth, not an oversight.
+    // intraday-tape-lab.html IS production-wired (it registers __rlOwnerStateProvider['intraday-tape-lab'],
+    // and that provider is confirmed registered on this page under this harness), but the provider
+    // legitimately returns null here: it gates on state.sel + state.dayKeys (a selected regular-hours
+    // session), and intraday session bars have NO same-origin snapshot, so an unkeyed harness load has
+    // none to hydrate. The bridge therefore paints the honest "owner adapter required" panel and the
+    // pre-drive state is 'unavailable' — truthful degradation (SCN-012-042), not an unwired page.
+    // Consequence to expect: a future run in which intraday session bars ARE hydrated will flip this
+    // pre-drive state to 'ready'; that is a DOCUMENTED, correct transition (it would then need
+    // wiredInProduction: true here), not a mystery regression. Asserting 'ready' today would be a
+    // fabricated premise and would fail for the wrong reason.
+    wiredButUnhydratedInHarness: true
   },
   'swing-structure-lab': {
     title: 'Regression: swing structure Simple thresholds recompute owner transition state',
@@ -339,7 +352,14 @@ const TOOLS = {
     owner: () => swingOwnerState(),
     changes: () => swingChanges(),
     adapterId: 'simple-adapter/swing-transition/v1',
-    expectFlat: false
+    expectFlat: false,
+    // Wired into its production page (swing-structure-lab.html registers a real owner-state provider
+    // consumed by the production Simple bridge) AND its provider returns a real owner snapshot under
+    // this harness (the page hydrates state.full daily rows from the same-origin bars snapshot), so the
+    // bridge renders the REAL swing-transition adapter before this test drives anything. Asserting
+    // 'ready' is therefore STRONGER than the old unwired 'unavailable' premise: it proves the
+    // production bridge painted the real adapter in the real owner-mode Simple flow.
+    wiredInProduction: true
   },
   'volatility-sizing-lab': {
     title: 'Regression: volatility sizing Simple controls recompute owner forecast regime and throttle',
@@ -412,11 +432,14 @@ async function driveSimple(page, toolId) {
   await page.goto(`${site.baseUrl}/${descriptor.html}`);
   await expect(page.locator('#rlviews[data-rlexperience-shell="ready"]')).toBeVisible();
 
-  // Open Simple through the real shell. For tools not yet wired into their page the deployed default
-  // renders the honest "owner adapter required" placeholder ('unavailable'); for a tool wired into
-  // production this increment (market-heatmap-lab) the production Simple bridge has already rendered
-  // the REAL adapter via the page's owner-state provider ('ready'). Either way we start from the real
-  // page — the pre-drive state is captured here and asserted per-tool in assertVisibleSensitivity.
+  // Open Simple through the real shell. The pre-drive panel state is the REAL production outcome for
+  // this page and is asserted per-tool in assertVisibleSensitivity:
+  //   • tool NOT wired into its page              -> honest "owner adapter required" placeholder ('unavailable');
+  //   • tool wired AND its provider yields owner state -> the production Simple bridge already rendered
+  //     the REAL adapter ('ready');
+  //   • tool wired but its provider yields null in this harness (no hydratable owner evidence)
+  //     -> honest truthful degradation ('unavailable').
+  // Either way we start from the real page — the pre-drive state is captured here.
   await page.getByRole('tab', { name: 'Power', exact: true }).click();
   await page.getByRole('tab', { name: 'Simple', exact: true }).click();
   const placeholderState = await page.locator('[data-rlexperience-panel="simple"]').getAttribute('data-rlexperience-simple-state');
@@ -501,12 +524,15 @@ async function assertVisibleSensitivity(page, toolId) {
   expect(result.baseline.adapter).toBe(descriptor.adapterId);
   expect(result.changed.adapter).toBe(descriptor.adapterId);
   // Pre-drive shell state (real page, BEFORE this test injects/drives the adapter):
-  //   • Wired-in-production tool (market-heatmap-lab): the production Simple bridge
-  //     (rlexperience.js installSimpleProjectionBridge) already rendered the REAL adapter via the
-  //     page's wired owner-state provider, so the panel is 'ready'. This is STRONGER than the unwired
+  //   • Wired-in-production tool whose provider yields owner state (market-heatmap-lab,
+  //     swing-structure-lab): the production Simple bridge (rlexperience.js
+  //     installSimpleProjectionBridge) already rendered the REAL adapter via the page's wired
+  //     owner-state provider, so the panel is 'ready'. This is STRONGER than the unwired
   //     'unavailable' premise: it PROVES the production bridge painted the real adapter in the real
   //     owner-mode Simple flow before we drove it.
-  //   • Every other (still-unwired) tool shows the honest "owner adapter required" placeholder — 'unavailable'.
+  //   • Wired tool whose provider returns null in this harness (intraday-tape-lab — no hydratable
+  //     intraday session bars) and every still-unwired tool: the honest "owner adapter required"
+  //     panel — 'unavailable'. Both are truthful degradation, never an invented signal.
   if (descriptor.wiredInProduction) {
     expect(placeholderState).toBe('ready');
   } else {

@@ -1328,6 +1328,53 @@
             };
             var busy = false;
 
+            /* ═══════ Scope 15 production Simple-view owner-state provider (Model B) ═══════
+               Expose this page's REAL current owner state to the shared production bridge
+               (rlexperience.js renderSimpleBridge). Registered synchronously (this inline script
+               runs during parse, before the deferred rlapp.js bootstrap) so the shell's
+               provider-gated ownerModes resolves intraday-tape to the adapter-panel Simple
+               (["power"]). The provider performs NO fetch and copies NO formula — it reads the
+               SAME live page state the native Power path renders from:
+                 • sessions  -> state.sessions / state.dayKeys segmented by segment(), truncated at
+                               state.sel so the adapter's "today" IS the page's state.today session
+                               (state.today = computeSession(state.sessions[state.sel], …)),
+                 • ivMin     -> ivMinutes(state.iv), the page's own interval-minutes owner function,
+                 • gap       -> openVsVA().gap, the page's own open-vs-prior-value owner function
+                               (never re-derived here),
+                 • gamma     -> state.opt, the page's normalized 0DTE options snapshot,
+                 • asOf/source -> the last observed bar of the selected session and the shared-cache
+                               provenance tag from RLDATA.barInfo (honest observation truth).
+               When the page has not hydrated a regular-hours session yet (intraday bars have no
+               same-origin snapshot, so an unkeyed load legitimately has none) the provider returns
+               null and the bridge renders the honest "unavailable" panel — no invented signal. */
+            globalThis.__rlOwnerStateProvider = globalThis.__rlOwnerStateProvider || {};
+            globalThis.__rlOwnerStateProvider["intraday-tape-lab"] = function () {
+                if (!state.sel || !state.dayKeys.length) return null;
+                var upto = state.dayKeys.indexOf(state.sel);
+                if (upto < 0) return null;
+                var sessions = [];
+                for (var i = 0; i <= upto; i++) {
+                    var key = state.dayKeys[i], bars = state.sessions[key];
+                    if (bars && bars.length) sessions.push({ key: key, bars: bars });
+                }
+                if (!sessions.length) return null;
+                var todayBars = sessions[sessions.length - 1].bars;
+                var lastBar = todayBars[todayBars.length - 1];
+                var ova = openVsVA();
+                var info = (window.RLDATA && RLDATA.barInfo) ? RLDATA.barInfo(state.ticker, state.iv) : null;
+                return {
+                    contractVersion: 'session-auction-owner-state/v1',
+                    toolId: 'intraday-tape-lab',
+                    symbol: state.ticker,
+                    asOf: (lastBar && isNum(lastBar.t)) ? new Date(lastBar.t).toISOString() : 'unavailable',
+                    ivMin: ivMinutes(state.iv),
+                    source: (info && info.src) || 'shared cache snapshot',
+                    gap: (ova && isNum(ova.gap)) ? ova.gap : null,
+                    gamma: state.opt ? { callWall: state.opt.callWall, putWall: state.opt.putWall, flip: state.opt.flip } : null,
+                    sessions: sessions
+                };
+            };
+
             function saveState() {
                 try { localStorage.setItem('intradayTapeLab', JSON.stringify({ provider: state.provider, ticker: state.ticker, iv: state.iv, orlen: state.orlen, mode: state.mode, regime: state.regime, acct: state.acct, riskPct: state.riskPct, svStance: state.svStance, svAggr: state.svAggr, svHz: state.svHz })); } catch (e) { }
             }

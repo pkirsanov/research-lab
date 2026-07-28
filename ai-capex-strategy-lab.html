@@ -1790,6 +1790,13 @@
     // This does NOT change the user's editable bull/down/vol assumptions; it only nudges optimizer ranking.
     var CROWDING = { VRT: .10, POWL: .08, OKLO: .14, NNE: .14, SMR: .09, SMCI: .12, ALAB: .08, CRDO: .08, NVTS: .08, BE: .07, GEV: .06, VST: .05, CEG: .05, ETN: .04, TSM: .04, BESIY: .04, MU: .03, STX: .02, EME: .06, FIX: .07, CDNS: .05, SNPS: .05, DLR: .03, EQIX: .03 };
 
+    /* Declared as-of + provenance of the universe actually in memory. Starts at this page's OWN
+       static-universe as-of (the same date the header banner stamps) and is replaced by
+       ai-capex-universe.json's OWN declared `asOf` once that file loads. Never invented — it is
+       always the universe's own declaration, so the Simple owner evidence cutoff below is honest. */
+    var UNIVERSE_AS_OF = '2026-06-30';
+    var UNIVERSE_SOURCE = 'inline static universe';
+
     /* ---------------- state ---------------- */
     var state = {
       H: '1y', lambda: 1, target: 15, rho: 0.40, rhoIntra: 0.72, maxw: 25, scen: 'base', capital: 100000, convex: 0, txBps: 10, themeCap: 100,
@@ -2831,8 +2838,99 @@
       if (j.crowding && typeof j.crowding === 'object') {        // merge override-by-ticker (keep hardcoded values for tickers the JSON omits)
         Object.keys(j.crowding).forEach(function (tk) { var c = +j.crowding[tk]; if (isFinite(c)) CROWDING[String(tk).toUpperCase()] = c; });
       }
+      if (typeof j.asOf === 'string' && j.asOf) UNIVERSE_AS_OF = j.asOf;   // the file's OWN declared as-of
+      UNIVERSE_SOURCE = 'ai-capex-universe.json';
       return true;
     }
+
+    /* ══════════════════ Feature 012 Scope 15 — production Simple owner-state provider ══════════════════
+       The shared four-view shell's Simple bridge (installSimpleProjectionBridge in rlexperience.js)
+       reads globalThis.__rlOwnerStateProvider["ai-capex-strategy-lab"] and hands the result to the
+       registered simple-adapter/ai-capex-portfolio/v1 adapter in
+       rlexperience-adapters/fundamental-models.js — the module this page ALREADY loads above for its
+       own single-sourced band/CVaR tail-risk math. This provider only PUBLISHES this page's live
+       owner facts through the ai-capex-portfolio-owner-state/v1 contract: every value below is read
+       from this page's own live state or produced by this page's own functions. It recomputes
+       nothing and restates no formula.
+
+       FIELD                      -> PAGE SOURCE
+         • assets[]               -> included(), this page's LIVE selected sleeve (the applied preset
+                                     or the user's own include/weight edits). An empty sleeve
+                                     publishes NO owner state rather than an invented universe.
+         • assets[].id / .ticker  -> asset.tk, this page's stable per-asset identity,
+         • assets[].theme         -> asset.th,
+         • assets[].tier          -> asset.tier,
+         • assets[].crowding      -> CROWDING[asset.tk] || 0 — the EXACT crowding haircut this page's
+                                     own optimizer applies at allocationFor(); a ticker the crowding
+                                     map omits carries no haircut on this page, so 0 here is page
+                                     parity, not a neutral fill,
+         • assets[].byHorizon[h]  -> assetHorizon(asset, h).er / .sd at every horizon key of this
+                                     page's OWN HORIZONS ladder — this page's own scenario-,
+                                     regime-persistence-, trigger-fraction- and resource-runway-
+                                     conditioned expected return and horizon volatility. CALLED,
+                                     never re-derived here,
+         • correlation            -> { intra: state.rhoIntra, inter: state.rho }, this page's live
+                                     theme-ρ sliders,
+         • selectedTheme          -> state.themeFilter, this page's live theme chip ('All' -> null,
+                                     i.e. no theme singled out, so the adapter applies no theme tilt),
+         • horizons               -> the keys of this page's OWN HORIZONS ladder,
+         • asOf / source          -> the declared as-of + provenance of the universe actually in
+                                     memory (ai-capex-universe.json's OWN asOf once it loads, this
+                                     page's static-universe as-of before/without it).
+
+       DELIBERATELY NOT PUBLISHED: this page's per-name weights and its optimizer settings (λ, max
+       weight, max positions, theme cap, transaction cost) and Simple risk⇄reward dials. The adapter
+       asks a DIFFERENT Simple question over these frozen owner facts — it builds its OWN objective
+       weights, its OWN correlation ceiling and its OWN crowding/risk-damper/seeded distribution
+       under its OWN registry controls — so this page's allocation is not part of the contract. The
+       empirical shrinkage covariance (state.empCorr) is likewise Power-only: the owner contract
+       carries a single {intra, inter} theme-ρ pair and has no slot for a per-pair matrix, so the
+       theme-ρ model this page declares is published and the empirical overlay is never claimed.
+       The adapter's simulation seed is a REGISTRY parameter (simple-models.json seedPolicy), not an
+       owner fact, so it is supplied by the Simple runtime and is deliberately absent here.
+
+       HONEST ABSENCE, never fabricated or zero-filled: a horizon whose expected return or volatility
+       this page cannot produce as a finite number is published as null, and the adapter then treats
+       that asset as unpriced at that horizon instead of pricing a fill. When this page holds no
+       included sleeve, or prices no asset at any horizon, the provider returns null and the bridge
+       renders the honest "unavailable" panel. */
+    function aiCapexOwnerState() {
+      var sleeve = included();
+      if (!sleeve.length) return null;
+      var assets = [], priced = 0;
+      sleeve.forEach(function (a) {
+        var byHorizon = {}, anyPriced = false;
+        HORIZONS.forEach(function (h) {
+          var view = assetHorizon(a, h.k);
+          var er = view && Number.isFinite(view.er) ? view.er : null;
+          var sd = view && Number.isFinite(view.sd) ? view.sd : null;
+          byHorizon[h.k] = { er: er, sd: sd };
+          if (er !== null && sd !== null) anyPriced = true;
+        });
+        if (anyPriced) priced++;
+        assets.push({
+          id: String(a.tk),
+          ticker: String(a.tk),
+          theme: String(a.th),
+          tier: String(a.tier),
+          crowding: CROWDING[a.tk] || 0,
+          byHorizon: byHorizon
+        });
+      });
+      if (!priced) return null;
+      return {
+        contractVersion: "ai-capex-portfolio-owner-state/v1",
+        toolId: "ai-capex-strategy-lab",
+        asOf: UNIVERSE_AS_OF,
+        source: UNIVERSE_SOURCE,
+        selectedTheme: (state.themeFilter && state.themeFilter !== 'All') ? String(state.themeFilter) : null,
+        correlation: { intra: state.rhoIntra, inter: state.rho },
+        horizons: HORIZONS.map(function (h) { return h.k; }),
+        assets: assets
+      };
+    }
+    globalThis.__rlOwnerStateProvider = globalThis.__rlOwnerStateProvider || {};
+    globalThis.__rlOwnerStateProvider["ai-capex-strategy-lab"] = aiCapexOwnerState;
 
     /* ---------------- init ---------------- */
     (function () {

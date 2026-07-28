@@ -339,7 +339,20 @@ const TOOLS = {
     owner: () => aiCapexOwnerFixture(),
     changes: () => [['theme-weight', 0.9], ['horizon', '1y']],
     adapterId: 'simple-adapter/ai-capex-portfolio/v1',
-    seedFromBase: true
+    seedFromBase: true,
+    // Wired into its production page (ai-capex-strategy-lab.html registers a real owner-state
+    // provider, __rlOwnerStateProvider['ai-capex-strategy-lab'], consumed by the production Simple
+    // bridge in rlexperience.js) AND that provider returns a real owner snapshot under this harness:
+    // it publishes included() priced through assetHorizon() over the page's OWN static universe,
+    // which the page's init hydrates with applyPreset('balanced') during load and which needs no
+    // network, so it does NOT hit its documented `if (!sleeve.length) return null` /
+    // `if (!priced) return null` honest-absence paths. The bridge therefore paints the REAL
+    // ai-capex-portfolio adapter into the Simple panel BEFORE this test drives anything, making the
+    // pre-drive shell state 'ready'. That is STRONGER than the old unwired 'unavailable' premise: it
+    // proves the production bridge rendered the real adapter in the real owner-mode Simple flow.
+    // OBSERVED, not assumed: with no flag this spec asserted 'unavailable' and the real page
+    // returned 'ready'.
+    wiredInProduction: true
   },
   'msft-july-print-model': {
     title: 'Regression: MSFT print Simple controls recompute owner margin EPS and valuation bridge',

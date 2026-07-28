@@ -56,6 +56,58 @@ function readPage(relativePath) {
   return existsSync(url) ? readFileSync(url, 'utf8') : null;
 }
 
+/* Slice a delimiter-balanced span out of a page source, starting at `from` and balancing from the
+   `open` delimiter at `openIndex` to its matching `close`. */
+function sliceBalanced(source, from, openIndex, open, close) {
+  assert.ok(openIndex >= 0, 'no balanced body found in the page source');
+  let depth = 0;
+  let index = openIndex;
+  for (; index < source.length; index++) {
+    if (source[index] === open) depth += 1;
+    else if (source[index] === close) { depth -= 1; if (depth === 0) { index += 1; break; } }
+  }
+  assert.equal(depth, 0, 'unbalanced body in the page source');
+  return source.slice(from, index);
+}
+
+/* Extract ONE top-level binding — a `function name(...) {...}` declaration or a
+   `var name = {…}/[…]/'…';` object/array/string literal — VERBATIM from a deployed page's source.
+
+   Used ONLY to RUN a page's OWN code here, never to copy or restate it: when a page's owner model
+   has no module export and the page publishes no harvested owner read, running the deployed source
+   is the only way to reach the owner's real values without reimplementing an owner formula (which
+   this suite forbids). Same technique scripts/selftest.mjs already uses to test this repo's pages
+   (e.g. ai-capex's alignReturns/ledoitWolf) against their deployed source. */
+function extractPageBinding(source, name) {
+  const fnMatch = new RegExp(`function\\s+${name}\\s*\\(`).exec(source);
+  if (fnMatch) return sliceBalanced(source, fnMatch.index, source.indexOf('{', fnMatch.index), '{', '}');
+  const varMatch = new RegExp(`(?:^|\\n)\\s*var\\s+${name}\\s*=\\s*`).exec(source);
+  assert.ok(varMatch, `binding not found in the deployed page source: ${name}`);
+  const valueStart = varMatch.index + varMatch[0].length;
+  const open = source[valueStart];
+  if (open === '"' || open === '\'') {
+    const close = source.indexOf(open, valueStart + 1);
+    assert.ok(close > valueStart, `${name}: unterminated string-literal binding`);
+    assert.equal(source.slice(valueStart + 1, close).includes('\\'), false, `${name}: only plain string literals are extracted`);
+    return `var ${name} = ${source.slice(valueStart, close + 1)};`;
+  }
+  assert.ok(open === '{' || open === '[', `${name}: only object/array/string literal bindings are extracted`);
+  return `var ${name} = ${sliceBalanced(source, valueStart, valueStart, open, open === '{' ? '}' : ']')};`;
+}
+
+/* Take ONE whole source LINE verbatim out of a deployed page, located by a literal marker. Used for
+   the page statements that a single-binding extractor cannot express — a declaration and its
+   initialization fused into one line — so they are still RUN as the page's own code rather than
+   restated here. The marker must be unique in the page. */
+function extractPageLine(source, marker) {
+  const index = source.indexOf(marker);
+  assert.ok(index >= 0, `statement not found in the deployed page source: ${marker}`);
+  assert.equal(source.indexOf(marker, index + 1), -1, `ambiguous page statement marker: ${marker}`);
+  const start = source.lastIndexOf('\n', index) + 1;
+  const end = source.indexOf('\n', index);
+  return source.slice(start, end < 0 ? source.length : end);
+}
+
 /* A tool is WIRED iff its production page registers the owner-state provider the shared bridge
    reads. This is derived from the deployed page source — the same fact rlapp.js keys its
    provider-gated ownerModes on — so a tool wired in a future batch joins this loop automatically. */
@@ -808,6 +860,95 @@ function etfOwnerState() {
   };
 }
 
+/* The ai-capex-strategy-lab bindings this fixture RUNS, in the page's own declaration order (the
+   `var` literals initialize in sequence; the function declarations hoist). This is the transitive
+   closure of the page's OWN provider — nothing here is a test reimplementation. */
+const AI_CAPEX_PAGE_BINDINGS = Object.freeze([
+  'HORIZONS', 'TRIG_FRAC', 'SCEN', 'REGIME_PERSIST', 'RESOURCE_RUNWAY',
+  'CROWDING', 'UNIVERSE_AS_OF', 'UNIVERSE_SOURCE', 'state',
+  'clamp', 'runwayFor', 'assetHorizon', 'included', 'normalizeWeights', 'applyPreset',
+  'acValidUniverseAsset', 'acApplyUniverse', 'aiCapexOwnerState'
+]);
+
+/* ai-capex-portfolio owner state — literally the object ai-capex-strategy-lab.html's OWN registered
+   provider publishes, produced by RUNNING that page's OWN deployed code.
+
+   WHY THIS FIXTURE RUNS THE PAGE INSTEAD OF READING AN ARTIFACT. The ai-capex owner contract carries
+   per-asset per-horizon expected-return/volatility facts. Those are produced by the page's OWN
+   closure-local `assetHorizon` chain (the scenario table SCEN, the horizon regime-persistence fade
+   REGIME_PERSIST, the trigger-timing fraction TRIG_FRAC and the per-theme resource-runway tilt
+   RESOURCE_RUNWAY), which has NO module export — the fundamental-models adapter deliberately
+   CONSUMES those facts as frozen owner inputs rather than deriving them. Unlike real-assets-lab
+   there is also no harvested owner read to fall back on: market-brief.snapshot.json carries no
+   ai-capex entry, and the brief's own published ai-capex read is `coverage-only`/`not-applicable`
+   with `metrics: null` ("No deterministic Tier-A adapter"). And unlike the etf fixture's absent
+   annVol/maxDD, the per-horizon er/sd CANNOT be left null: the module's own `aiCapexEvidenceState`
+   reports `unavailable` when no asset prices at any horizon, so an all-null owner state would prove
+   nothing about a ready projection. Hand-typing er/sd values would fabricate an owner result, and
+   reimplementing `assetHorizon` here would COPY an owner formula — both forbidden by this suite.
+
+   So the page's own bindings are extracted VERBATIM from the deployed source and executed, exactly
+   as scripts/selftest.mjs already executes this same page's `alignReturns`/`ledoitWolf`. The boot
+   order is the page's own: `applyPreset('balanced')` — the default sleeve the page's init applies
+   when no snapshot/localStorage state is restored — followed by `acApplyUniverse()` on the REAL
+   ai-capex-universe.json the page's init fetches, which is what refreshes the per-asset facts,
+   merges the crowding overrides and replaces the declared as-of with the file's OWN `asOf`. The
+   owner state is then whatever the page's OWN `aiCapexOwnerState()` returns. Every value is
+   therefore the page's own live value, computed by the page's own code on the page's own committed
+   universe — not a test reproduction of it, and not a hand-written projection.
+
+   DETERMINISTIC BY CONSTRUCTION: both inputs are committed static files (the deployed page and
+   ai-capex-universe.json) and the page's default state is fixed (scenario `base`, theme filter
+   `All`, intra/inter theme correlation 0.72/0.40). No clock, no network, no snapshot recency.
+
+   THE SIMULATION SEED IS NOT AN OWNER FACT and is deliberately absent from the owner state on both
+   sides: `simple-models.json` declares it as a registry parameter (seedPolicy.required = true,
+   defaultSeed 20260722, defaultSource "registry"), so the deployed bridge pins it from the
+   definition (rlexperience.js `installSimpleProjectionBridge`) and this suite pins the identical
+   value through `registrySeed(definition)`. ai-capex is the first wired tool with a stochastic seed
+   policy, and that shared registry pin is what makes its seeded distribution sample reproducible. */
+function aiCapexOwnerState() {
+  const source = readPage('ai-capex-strategy-lab.html');
+  assert.ok(source, 'the deployed ai-capex-strategy-lab.html source is required to run its own owner provider');
+
+  const declarations = AI_CAPEX_PAGE_BINDINGS.map((name) => extractPageBinding(source, name));
+  // Two page statements fuse a declaration with its initialization on one line, so they are taken
+  // whole rather than as bindings: the ASSETS id/inclusion stamp that `included()` filters on, and
+  // the ticker index `applyPreset()` writes through.
+  const assetsLiteral = extractPageBinding(source, 'ASSETS');
+  const assetsStamp = extractPageLine(source, 'ASSETS.forEach(function (a, i) { a.id = i;');
+  const presetsLiteral = extractPageBinding(source, 'PRESETS');
+  const tickerIndex = extractPageLine(source, 'var byTk = {};');
+
+  const page = Function([
+    declarations.join('\n'),
+    assetsLiteral,
+    assetsStamp,
+    presetsLiteral,
+    tickerIndex,
+    'return { applyPreset: applyPreset, acApplyUniverse: acApplyUniverse, aiCapexOwnerState: aiCapexOwnerState, state: state };'
+  ].join('\n'))();
+
+  // The page's OWN boot order (its init IIFE): the default preset first, then the universe file.
+  page.applyPreset('balanced');
+  const universe = readJson('ai-capex-universe.json');
+  assert.equal(page.acApplyUniverse(universe), true, 'the page must accept its own committed ai-capex-universe.json');
+
+  const ownerState = page.aiCapexOwnerState();
+  assert.ok(ownerState, 'the page provider must publish an owner state for its own default sleeve');
+  assert.equal(ownerState.contractVersion, 'ai-capex-portfolio-owner-state/v1');
+  assert.equal(ownerState.toolId, 'ai-capex-strategy-lab');
+  assert.equal(ownerState.asOf, universe.asOf, 'the published as-of must be the universe file\'s OWN declared asOf');
+  assert.ok(ownerState.assets.length >= 3, 'the default sleeve must carry at least three assets');
+  const pricedAtDefault = ownerState.assets.filter((asset) => {
+    const horizon = asset.byHorizon[registryDefaults(definitionForAdapter('simple-adapter/ai-capex-portfolio/v1')).horizon];
+    return horizon && Number.isFinite(horizon.er) && Number.isFinite(horizon.sd);
+  });
+  assert.ok(pricedAtDefault.length >= 2,
+    'at least two assets must price at the registry-default horizon before a portfolio can be judged');
+  return ownerState;
+}
+
 /* Owner-state builders keyed by the REGISTRY adapter id. A wired tool with no entry FAILS LOUD. */
 const OWNER_STATES = {
   'simple-adapter/market-breadth/v1': breadthOwnerState,
@@ -820,7 +961,8 @@ const OWNER_STATES = {
   'simple-adapter/sector-rotation-transition/v1': sectorOwnerState,
   'simple-adapter/country-rotation/v1': countryOwnerState,
   'simple-adapter/real-asset-driver/v1': realAssetOwnerState,
-  'simple-adapter/etf-ranking/v1': etfOwnerState
+  'simple-adapter/etf-ranking/v1': etfOwnerState,
+  'simple-adapter/ai-capex-portfolio/v1': aiCapexOwnerState
 };
 
 /* ═══════════════════════ owner-parity extractors (the Power-path single source) ═══════════════════════
@@ -963,6 +1105,21 @@ const OWNER_PARITY = {
          off the summary object. A Simple read that named a different fund — or claimed a benchmark
          the owner did not price against — fails here. */
       summaryContains: leader ? [leader.ticker, summary.benchmark] : []
+    };
+  },
+  'simple-adapter/ai-capex-portfolio/v1': (moduleObject, ownerState, parameterValues) => {
+    /* `parameterValues` carries the registry-pinned seed (seedPolicy.defaultSeed), so the module's
+       seeded distribution sample is reproduced on exactly the path the Simple run took. */
+    const summary = moduleObject.computeAiCapexSummary(frozenClone(ownerState), parameterValues);
+    const lead = summary.beneficiaries.length ? summary.beneficiaries[0] : null;
+    return {
+      ownerFunction: 'computeAiCapexSummary',
+      numericValue: summary.distribution.median,
+      valueText: summary.distribution.median == null ? 'No priced portfolio' : `Median return ${summary.distribution.median}`,
+      /* The owner-computed leading beneficiary theme, plus the objective and horizon the owner
+         actually priced under, taken straight off the summary object. A Simple read that led with a
+         different theme — or claimed an objective/horizon the owner did not run — fails here. */
+      summaryContains: lead ? [lead.theme, summary.objective, summary.horizon] : []
     };
   }
 };

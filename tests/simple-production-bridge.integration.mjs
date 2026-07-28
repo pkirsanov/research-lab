@@ -132,6 +132,88 @@ function pageLoadsAdapterModule(toolId, adapterModule) {
   return source.includes(`src="${adapterModule}"`) || source.includes(`src='${adapterModule}'`);
 }
 
+/* ─────────── the page-provided FOUNDATION-MODULE globals the bridge resolves ───────────
+   PRODUCTION FIDELITY, SECOND AXIS. Besides the adapter module, the production bridge
+   (rlexperience.js renderSimpleBridgeInternal) hands the registrar an injected dependency object
+   whose members it resolves off `globalThis` — the browser global that a page-loaded UMD FOUNDATION
+   module installs. Today that is `{ rlvol: globalThis.RLVOL }`, and createMarketStructureAdapters
+   produces the conditional-volatility adapter ONLY when that dependency is supplied (its owner
+   formula lives in rlvol.js, not in the adapter module).
+
+   In a BROWSER the owning page's own `<script src="rlvol.js">` runs that module's UMD browser branch
+   and installs `globalThis.RLVOL`. Under NODE the same UMD takes its CommonJS branch
+   (`module.exports = api; return;`) and RETURNS BEFORE the global assignment, so `require()` never
+   installs it. Not reproducing what the deployed page really provides would compare the bridge
+   against an environment production never has, and would report a correctly-wired tool as a parity
+   failure — a false defect, not a real one.
+
+   Every fact is DERIVED from production sources, never a hard-coded name map:
+     1. WHICH globals the bridge reads — parsed out of rlexperience.js's OWN injection expression;
+     2. WHICH module installs a global — that module's OWN UMD browser-branch assignment;
+     3. WHETHER this page provides it  — the page's OWN `<script src>` tag.
+   A page that does NOT load the foundation module therefore installs nothing here and still lands on
+   the bridge's honest module-guard branch, exactly as it would in a browser. The guard is preserved:
+   deleting the page's foundation `<script src>` tag makes this reproduction install nothing and the
+   strict-parity assertions below fail loud. */
+function bridgeFoundationGlobalNames() {
+  const source = readPage('rlexperience.js');
+  assert.ok(source, 'the production bridge source must be readable');
+  const injection = /moduleObject\[registerFnName\]\([^;]*?\{([^}]*)\}\s*\)\s*;/.exec(source);
+  assert.ok(injection, 'the production bridge must hand the registrar a dependency object');
+  const names = [];
+  const member = /globalThis\.([A-Z][A-Za-z0-9_$]*)/g;
+  let match;
+  while ((match = member.exec(injection[1]))) names.push(match[1]);
+  assert.ok(names.length > 0, 'the bridge dependency object must resolve at least one browser global');
+  return names;
+}
+
+function pageScriptSources(pageSource) {
+  const sources = [];
+  const tag = /<script\s+src="([^"]+\.js)"/g;
+  let match;
+  while ((match = tag.exec(pageSource))) sources.push(match[1]);
+  return sources;
+}
+
+/* The foundation-module globals THIS page installs in a browser: for each global the bridge reads,
+   the first script the page loads whose source contains that global's own UMD browser assignment. */
+function pageFoundationGlobals(toolId) {
+  const pageSource = readPage(`${toolId}.html`);
+  const globals = Object.create(null);
+  if (!pageSource) return globals;
+  for (const globalName of bridgeFoundationGlobalNames()) {
+    for (const scriptPath of pageScriptSources(pageSource)) {
+      const moduleSource = readPage(scriptPath);
+      if (!moduleSource || !new RegExp(`globalThis\\.${globalName}\\s*=`).test(moduleSource)) continue;
+      globals[globalName] = loadModule(scriptPath);
+      break;
+    }
+  }
+  return globals;
+}
+
+/* Run `body` with exactly the foundation-module globals the DEPLOYED PAGE installs, then restore the
+   prior environment so no tool's reproduction can leak into another's. */
+async function withPageFoundationGlobals(toolId, body) {
+  const globals = pageFoundationGlobals(toolId);
+  const names = Object.keys(globals);
+  const previous = new Map();
+  for (const name of names) {
+    previous.set(name, Object.prototype.hasOwnProperty.call(globalThis, name) ? globalThis[name] : undefined);
+    globalThis[name] = globals[name];
+  }
+  try {
+    return await body(globals);
+  } finally {
+    for (const name of names) {
+      const prior = previous.get(name);
+      if (prior === undefined) delete globalThis[name];
+      else globalThis[name] = prior;
+    }
+  }
+}
+
 /* The registry-declared expectation for a definition: a model whose own declared limitations say the
    adapter must return unavailable (proven-incomplete owner model) may never publish a signal. */
 function registryDeclaresUnavailable(definition) {
@@ -228,6 +310,38 @@ function swingOwnerState() {
     source: 'same-origin daily snapshot (data/bars)',
     full,
     macro: { fg: { score: 70, band: 'Greed' }, vix: 15.5 }
+  };
+}
+
+/* conditional-volatility owner state — the SAME shape volatility-sizing-lab.html's provider
+   publishes (a passthrough of the page's booted universe plus its cache-first bar window), built
+   here from the REAL committed volatility-sizing-universe.json validated by the page's OWN
+   RLVOL.validateUniverse, and the REAL same-origin daily snapshot the page's readCachedBars() reads
+   through RLDATA. No owner formula is reimplemented and no owner RESULT is fabricated: every number
+   this suite asserts comes back out of the module's own computeVolatilitySummary.
+
+   FULLY DETERMINISTIC: the registry declares seedPolicy.required=false (this model draws no
+   randomness at all), the bar window is a committed snapshot, and both instants are PINNED — the
+   evidence cutoff to the snapshot's own last observation and the decision instant to COMPUTED_AT —
+   so no wall clock enters the owner state and both compared paths see one identical input. */
+function volatilityOwnerState() {
+  const universe = readJson('volatility-sizing-universe.json');
+  const validation = loadModule('rlvol.js').validateUniverse(universe);
+  assert.equal(validation.ok, true, `the committed volatility universe must validate: ${JSON.stringify(validation.errors || [])}`);
+  const config = validation.value;
+  const asset = config.assets[0];
+  const rows = realDailyRows(asset.symbol).map((row) => ({ t: row.t, c: row.c }));
+  const observedAsOf = new Date(rows[rows.length - 1].t).toISOString().slice(0, 10);
+  const source = { id: 'pages-snapshot', url: null };
+  return {
+    asOf: observedAsOf,
+    decisionTime: COMPUTED_AT,
+    configVersion: config.version,
+    historyRange: config.policy.history.defaultRange,
+    asset,
+    policy: config.policy,
+    bars: { rows, observedAsOf, retrievedAt: COMPUTED_AT, source },
+    source
   };
 }
 
@@ -1545,6 +1659,7 @@ function bondSleeveOwnerState() {
    builders). */
 const OWNER_STATES = {
   'simple-adapter/market-breadth/v1': breadthOwnerState,
+  'simple-adapter/conditional-volatility/v1': volatilityOwnerState,
   'simple-adapter/session-auction/v1': sessionOwnerState,
   'simple-adapter/swing-transition/v1': swingOwnerState,
   'simple-adapter/technical-five-gate/v1': technicalOwnerState,
@@ -1577,6 +1692,29 @@ const OWNER_PARITY = {
       numericValue: summary.breadth.pct,
       valueText: summary.leadership.state === 'broad' ? 'Broad leadership' : 'Narrow leadership',
       summaryContains: [String(summary.breadth.pct), String(summary.leadership.threshold)]
+    };
+  },
+  'simple-adapter/conditional-volatility/v1': (moduleObject, ownerState, parameterValues) => {
+    /* The owner formula for this model lives in the FOUNDATION module rlvol.js, so the module's own
+       exported owner summary takes it by injection — exactly as the owning page injects it through
+       the bridge. computeVolatilitySummary is still the single source the Power path renders from;
+       no forecast, regime or sizing formula is reimplemented here. */
+    const summary = moduleObject.computeVolatilitySummary(loadModule('rlvol.js'), frozenClone(ownerState), parameterValues);
+    const ready = summary.forecast.state === 'ready';
+    const multiplierText = summary.throttle.multiplier !== null ? `×${summary.throttle.multiplier.toFixed(2)}` : 'withheld';
+    return {
+      ownerFunction: 'computeVolatilitySummary',
+      numericValue: ready ? summary.forecast.annualizedDecimal : null,
+      valueText: ready
+        ? `Forecast ${summary.forecast.annualizedPct}% (${summary.regime.band || 'regime unavailable'})`
+        : 'Volatility evidence unavailable',
+      /* The owner-computed forecast level, the capped throttle the owner actually sized to, and the
+         regime band it was read under — taken straight off the summary object. A Simple read that
+         published a different forecast, sized to a different (or silently uncapped) throttle, or
+         claimed a regime band the owner did not reach fails here. */
+      summaryContains: ready
+        ? [String(summary.forecast.annualizedPct), multiplierText, summary.regime.band]
+        : []
     };
   },
   'simple-adapter/session-auction/v1': (moduleObject, ownerState, parameterValues) => {
@@ -2043,8 +2181,15 @@ test('TP-15-02 the production bridge reaches the SAME projection as the explicit
        `globalThis[ADAPTER_MODULE_BINDINGS[adapterModule].global]`: present iff the tool's own page
        loaded the adapter module <script>, and NULL when it did not. Handing the module to a tool
        whose page never loads it would exercise a path production never takes for that tool, so the
-       module input here is derived from the deployed page exactly as production derives it. */
-    const bridged = await api.renderSimpleBridge({
+       module input here is derived from the deployed page exactly as production derives it.
+
+       The bridge ALSO resolves its injected foundation-module dependency off `globalThis` (today
+       `{ rlvol: globalThis.RLVOL }`) — a global that only a page-loaded UMD installs and that Node's
+       `require()` never installs, because the same UMD returns on its CommonJS branch first.
+       withPageFoundationGlobals reproduces exactly the globals THIS page installs in a browser,
+       derived from the page's own <script src> tags, for the duration of the call, and restores the
+       prior environment afterwards. A page that loads no foundation module gets none. */
+    const bridged = await withPageFoundationGlobals(entry.toolId, () => api.renderSimpleBridge({
       panel,
       toolId: entry.toolId,
       toolExperience: { kind: 'ordinary', simpleModelDefinitionId: entry.definition.definitionId, simpleAdapterId: entry.adapterId, simpleAdapterModule: entry.adapterModule },
@@ -2056,7 +2201,7 @@ test('TP-15-02 the production bridge reaches the SAME projection as the explicit
       api,
       config,
       computedAt: COMPUTED_AT
-    });
+    }));
 
     // Panel identity + the BUG-003 invariant hold on EVERY wired tool, module-backed or not.
     assert.equal(bridged.adapterId, entry.adapterId, `${entry.toolId}: the bridge publishes the registry adapter id`);

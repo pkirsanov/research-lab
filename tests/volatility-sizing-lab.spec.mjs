@@ -46,10 +46,50 @@ function cacheFor(barsBySymbol) {
     return { v: 1, bars: buckets, quotes: {}, options: {}, si: {}, macro: null, events: {}, toolReads: {} };
 }
 
+/*
+ * Feature 012 Scope 15 (four-view experience shell, Model B): volatility-sizing-lab is now a WIRED
+ * ordinary tool — the page registers __rlOwnerStateProvider["volatility-sizing-lab"] and the registry
+ * binds it to the adapter simple-adapter/conditional-volatility/v1 — so rlviews.js resolves
+ * ownerModes: ["power"] for it. On the default Simple view the shell therefore sets body.rlv-focused,
+ * renders the production Simple ADAPTER panel ([data-rlexperience-panel="simple"]), and hides this
+ * page's own content via the shell rule
+ * `body.rlv-focused>*:not(#rlviews)...{display:none!important}` (rlviews.js).
+ *
+ * Nothing was deleted. The page's native research surface — the asset / estimator / target-vol /
+ * history control bar and the #simpleView + #powerView cockpits — MOVED UNDER THE POWER VIEW. A test
+ * that must SEE or DRIVE that native surface therefore drives the shell exactly as a production user
+ * does: wait for the shell, then select Power. rlviews.js driveLegacy() also clicks this page's own
+ * #powerTab, so the page enters its native Power mode. The control bar lives OUTSIDE
+ * #simpleView/#powerView and stays rendered in both native modes, so every control interaction below
+ * behaves exactly as it always did.
+ *
+ * Read-only assertions need NO switch and were left exactly as they were: Playwright's textContent /
+ * getAttribute / innerText and toHaveText / toContainText resolve ATTACHED nodes, so assertions that
+ * read this page's real #simpleView cockpit — which renderSimple() still refreshes on every render, in
+ * BOTH native modes — are untouched.
+ *
+ * Mirrors the proven shell-driving pattern in tests/bond-regime-lab.spec.mjs and
+ * tests/company-fundamentals-lab.spec.mjs.
+ */
+const openNativeResearchSurface = async (page) => {
+    await expect(page.locator('#rlviews[data-rlexperience-shell="ready"]')).toBeVisible();
+    await page.locator('#rlviews button[data-rlview-mode="power"]').click();
+    // Power IS in ownerModes, so rlv-focused clears and the native surface becomes visible again.
+    await expect(page.locator('body')).toHaveAttribute('data-rlview', 'power');
+    await expect(page.locator('body')).not.toHaveClass(/\brlv-focused\b/);
+    await expect(page.locator('#assetSelect')).toBeVisible();
+};
+
 async function open(page, cache, options = {}) {
     await page.addInitScript((payload) => { if (!localStorage.getItem('rlData')) localStorage.setItem('rlData', JSON.stringify(payload)); }, cache);
     await page.goto(site.baseUrl + '/volatility-sizing-lab.html');
     await page.waitForFunction(() => window.VolSizingLab && window.VolSizingLab.runtime && window.VolSizingLab.runtime.decision);
+    if (options.asset || options.estimator) {
+        // The native control bar driven immediately below is only on screen under the shell Power view
+        // (Feature 012 Scope 15, Model B). Guarded so that callers which drive no native control keep
+        // their exact previous behaviour — only the asset/estimator paths gain the shell switch.
+        await openNativeResearchSurface(page);
+    }
     if (options.asset) {
         await page.selectOption('#assetSelect', options.asset);
         await page.waitForFunction((a) => window.VolSizingLab.runtime.controls.asset === a && !window.VolSizingLab.runtime.refresh.active, options.asset);
@@ -100,8 +140,26 @@ test('Regression BS-007: backtest is a deep-link with no in-tool verdict', async
 
 test('Regression BS-008: managed-suppressed history is marked, not calm/full-size', async ({ page }) => {
     await open(page, cacheFor({ SPY: clusteredCloses(), 'CNY=X': peggedCloses() }), { asset: 'CNY=X' });
-    await expect(page.locator('[data-regime-managed]')).toBeVisible();
-    await expect(page.locator('[data-degraded="MANAGED_SUPPRESSED"]')).toBeVisible();
+    // Feature 012 Scope 15 (Model B): #simpleView can no longer be VISIBLE anywhere in production. On
+    // shell-Simple the shell hides this whole page; on shell-Power rlviews driveLegacy() clicks this
+    // page's own #powerTab and setMode() sets #simpleView.hidden. The shell additionally hides
+    // #simpleTab/#powerTab, so the native Simple cockpit is genuinely unreachable — requiring
+    // visibility here would assert a state production no longer has. The invariant the original
+    // toBeVisible() was PROXYING is the badge toggle renderSimple() performs:
+    //   q("[data-regime-managed]").classList.toggle("is-hidden", !d.regime.managedSuppressed)
+    // so assert that toggle directly against the explicit native root. That is strictly MORE precise
+    // than the original check, which could not have distinguished a silently inverted toggle from an
+    // ancestor-hidden node. Nothing is dropped.
+    await expect(page.locator('#simpleView [data-regime-managed]')).toBeAttached();
+    await expect(page.locator('#simpleView [data-regime-managed]')).not.toHaveClass(/\bis-hidden\b/);
+    // The managed mark the user actually SEES is the native Power degraded banner, so toBeVisible() is
+    // preserved there verbatim. The root scope is REQUIRED, not cosmetic: once the page is in its
+    // native Power mode render() calls both renderSimple() and renderPower(), so degradedBanner() is
+    // injected into BOTH #simpleDegraded and #powerDegraded and an unscoped
+    // [data-degraded="MANAGED_SUPPRESSED"] now matches 2 NATIVE nodes (strict-mode violation).
+    await expect(page.locator('#powerView [data-degraded="MANAGED_SUPPRESSED"]')).toBeVisible();
+    // Anti-divergence: the page's OTHER native surface must carry the identical reason (no split-brain).
+    await expect(page.locator('#simpleView [data-degraded="MANAGED_SUPPRESSED"]')).toBeAttached();
     const suggestion = (await page.locator('[data-sizing-suggestion]').textContent()).toLowerCase();
     expect(suggestion).toContain('withheld');
     const managedSuppressed = await page.evaluate(() => window.VolSizingLab.runtime.decision.regime.managedSuppressed);
@@ -112,8 +170,31 @@ test('Regression BS-008: managed-suppressed history is marked, not calm/full-siz
 
 test('Regression BS-009: insufficient history is unavailable with exact counts', async ({ page }) => {
     await open(page, cacheFor({ SPY: shortCloses() }));
-    await expect(page.locator('[data-degraded="INSUFFICIENT_HISTORY"]')).toBeVisible();
-    await expect(page.locator('[data-degraded="INSUFFICIENT_HISTORY"]')).toContainText('required minimum');
+    // ANTI-DIVERGENCE (new invariant, Feature 012 Scope 15). The Simple surface a production user now
+    // sees for this tool is the production ADAPTER panel, not this page's #simpleView. Assert — while
+    // the shell is still on Simple, which is where that panel is on screen — that the adapter the
+    // REGISTRY binds to this tool projects the SAME unavailable verdict the owner decision reaches
+    // below. The adapter id is read from simple-models.json rather than hard-coded, so a registry
+    // rebinding cannot slip past. If the adapter ever published a `ready` projection carrying an
+    // invented number while the owner model says INSUFFICIENT_HISTORY, this fails.
+    const { readFileSync } = await import('node:fs');
+    const registryAdapterId = JSON.parse(readFileSync(new URL('../simple-models.json', import.meta.url), 'utf8'))
+        .definitions.find((definition) => definition.toolId === 'volatility-sizing-lab').adapterId;
+    const adapterPanel = page.locator('[data-rlexperience-panel="simple"]');
+    await expect(page.locator('#rlviews[data-rlexperience-shell="ready"]')).toBeVisible();
+    await expect(adapterPanel).toHaveAttribute('data-rlexperience-adapter', registryAdapterId);
+    await expect(adapterPanel).toHaveAttribute('data-rlexperience-simple-state', 'unavailable');
+    await expect(adapterPanel).toBeVisible();
+    // The native degraded banner moved under the Power view, so the ORIGINAL assertions below are bound
+    // to an explicit NATIVE root. The scope is REQUIRED, not cosmetic: in native Power mode render()
+    // calls both renderSimple() and renderPower(), so degradedBanner() is injected into BOTH
+    // #simpleDegraded and #powerDegraded and an unscoped [data-degraded="INSUFFICIENT_HISTORY"] now
+    // matches 2 NATIVE nodes (strict-mode violation). Both halves are asserted; neither is dropped.
+    await openNativeResearchSurface(page);
+    await expect(page.locator('#powerView [data-degraded="INSUFFICIENT_HISTORY"]')).toBeVisible();
+    await expect(page.locator('#powerView [data-degraded="INSUFFICIENT_HISTORY"]')).toContainText('required minimum');
+    // The page's OTHER native surface must carry the identical reason and counts (no split-brain).
+    await expect(page.locator('#simpleView [data-degraded="INSUFFICIENT_HISTORY"]')).toContainText('required minimum');
     const state = await page.evaluate(() => window.VolSizingLab.runtime.decision.state);
     const coverage = await page.evaluate(() => window.VolSizingLab.runtime.decision.coverage);
     expect(state).toBe('unavailable');
@@ -180,6 +261,8 @@ test('Regression BS-013: realized is never relabeled a forecast in the owner rea
 
 test('Regression BS-014: longer history is caveated and reproduces no multi-decade claim', async ({ page }) => {
     await open(page, cacheFor({ SPY: clusteredCloses() }));
+    // The native #historyRange control driven below lives under the Power view (Feature 012 Scope 15).
+    await openNativeResearchSurface(page);
     await page.selectOption('#historyRange', '10y');
     await page.waitForFunction(() => window.VolSizingLab.runtime.controls.historyRange === '10y' && !window.VolSizingLab.runtime.refresh.active);
     const limitations = await page.evaluate(() => window.VolSizingLab.runtime.decision.limitations.join(' '));
@@ -209,6 +292,12 @@ test('Controls recompute one decision without any market-data request', async ({
     await open(page, cacheFor({ SPY: clusteredCloses() }));
     const barRequests = [];
     page.on('request', (request) => { const url = request.url(); if (/\/data\/bars\/|query1\.finance\.yahoo\.com/.test(url)) barRequests.push(url); });
+    // The native #targetVolInput control driven below lives under the Power view (Feature 012 Scope 15).
+    // The switch is deliberately placed AFTER the request listener is attached and INSIDE the counted
+    // window, so the no-market-data-request invariant now covers the shell view change as well as the
+    // control change. Nothing about the interception/counting logic below is altered, and a request
+    // issued by the view switch would FAIL this test rather than be masked by it.
+    await openNativeResearchSurface(page);
     const before = await page.evaluate(() => window.VolSizingLab.runtime.decision.decisionId);
     await page.fill('#targetVolInput', '25');
     await page.waitForFunction((prev) => window.VolSizingLab.runtime.decision.decisionId !== prev, before);
@@ -278,6 +367,18 @@ test('TP-02-04: the volatility tool is reachable THROUGH the shared rlnav regist
     // The registered route resolves to the real tool page: correct document title, booted runtime, and the Simple cockpit.
     await expect(page).toHaveTitle(/Volatility Regime & Vol-Targeting Sizing Lab/);
     await page.waitForFunction(() => window.VolSizingLab && window.VolSizingLab.runtime && window.VolSizingLab.runtime.decision);
-    await expect(page.locator('#simpleView')).toBeVisible();
+    // Feature 012 Scope 15 (Model B): the registered route now renders THROUGH the experience shell, so
+    // the Simple cockpit a production user lands on is the production ADAPTER panel and this page's own
+    // #simpleView is deliberately off screen (it is still RENDERED, and renderSimple() still refreshes
+    // it on every render). Assert both halves of that split — the Simple surface actually on screen and
+    // this page's own cockpit node — instead of a single node Model B has taken off screen.
+    await expect(page.locator('#rlviews[data-rlexperience-shell="ready"]')).toBeVisible();
+    await expect(page.locator('[data-rlexperience-panel="simple"]')).toBeVisible();
+    await expect(page.locator('#simpleView')).toBeAttached();
+    // ...and the native research surface is reachable from the landed route under the Power view. The
+    // original #assetSelect visibility assertion is preserved verbatim (openNativeResearchSurface also
+    // anchors on it), which is what proves the registered route really booted this tool's own controls.
+    await openNativeResearchSurface(page);
+    await expect(page.locator('#powerView')).toBeVisible();
     await expect(page.locator('#assetSelect')).toBeVisible();
 });

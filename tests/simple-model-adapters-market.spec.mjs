@@ -369,7 +369,16 @@ const TOOLS = {
     owner: () => volOwnerState(),
     changes: () => [['estimator', 'garch'], ['target-volatility', 25]],
     adapterId: 'simple-adapter/conditional-volatility/v1',
-    expectFlat: false
+    expectFlat: false,
+    // Wired into its production page (volatility-sizing-lab.html registers a real owner-state provider
+    // consumed by the production Simple bridge) AND its provider returns a real owner snapshot under
+    // this harness (the page hydrates its return series from the same-origin bars snapshot, which is
+    // exactly what the provider reads), so the bridge renders the REAL conditional-volatility adapter
+    // before this test drives anything. Asserting 'ready' is therefore STRONGER than the old unwired
+    // 'unavailable' premise: it proves the production bridge painted the real adapter in the real
+    // owner-mode Simple flow. OBSERVED, not assumed: with no flag this spec asserted 'unavailable'
+    // and the real page returned 'ready' — the DOCUMENTED correct transition described above.
+    wiredInProduction: true
   },
   'technical-analysis-decision-lab': {
     title: 'Regression: technical decision Simple five-gate controls recompute or stay honestly unavailable',

@@ -654,6 +654,13 @@
     <script src="rlticker.js"></script>
     <script src="rlchart.js"></script>
     <script src="rlnav.js"></script>
+    <!-- Feature 012 Scope 15: the module carrying the registered conditional-volatility Simple
+         adapter (RLMARKETSTRUCTURE). The owner FORMULA is deliberately NOT in it — that stays
+         rlvol.js (RLVOL.buildVolDecisionRead), loaded above, which the shared production bridge
+         (rlexperience.js) injects into the registrar as deps.rlvol from globalThis.RLVOL. Loading
+         rlvol.js BEFORE this module is therefore the wiring contract for this page: without that
+         global the registrar produces no conditional-volatility adapter at all. -->
+    <script src="rlexperience-adapters/market-structure.js"></script>
     <script>
         (function () {
             "use strict";
@@ -934,6 +941,55 @@
                 var read = RLVOL.projectVolToolRead(runtime.decision);
                 return (window.RLDATA && RLDATA.putToolRead) ? RLDATA.putToolRead("volatility-sizing-lab", read) : read;
             }
+
+            /* ── Feature 012 Scope 15: uniform owner-state provider seam ──
+               The shared production Simple bridge (rlexperience.js) reads
+               globalThis.__rlOwnerStateProvider["volatility-sizing-lab"] and hands the result to the
+               registered conditional-volatility adapter (simple-adapter/conditional-volatility/v1 in
+               rlexperience-adapters/market-structure.js — loaded above). Registered while this inline
+               script is parsed, before the rlapp.js shell bootstrap resolves, so the shell's
+               provider-gated ownerModes resolves this tool to the adapter-panel Simple (["power"]).
+
+               THIS PAGE STAYS THE OWNER, AND NO FORMULA IS COPIED OR RECOMPUTED HERE. Every field
+               below is a plain passthrough of a value this page already holds. The provider issues NO
+               network request, prompts for NO credential, touches no DOM and mutates no state. It
+               NEVER re-derives the forecast, the regime percentile or the sizing multiplier: that
+               single source stays RLVOL.buildVolDecisionRead, which recompute() above already
+               delegates to and which the adapter calls for itself over these frozen inputs.
+
+               FIELD           -> PAGE SOURCE
+                 • asOf        -> runtime.decision.asOf, the evidence cutoff RLVOL itself stamped on
+                                  the decision this page is currently displaying — never a wall clock.
+                 • decisionTime-> runtime.decision.computedAt, the SAME instant this page's own
+                                  buildInput() passed to RLVOL for the displayed decision, read back
+                                  off that decision rather than sampled again here, so the adapter
+                                  runs on the page's decision instant and not a second, later one.
+                 • configVersion, historyRange, asset, policy
+                               -> runtime.config / runtime.controls / runtime.policy verbatim: the
+                                  validated volatility-sizing-universe.json this page booted from.
+                 • bars, source-> runtime.bars verbatim, the cache-first rows readCachedBars() already
+                                  read out of the shared RLDATA surface for the displayed decision.
+
+               Returns null — never a substituted or partial state — until the page holds a booted
+               config and a real cached bar window, so an unhydrated page degrades honestly. */
+            function volatilityOwnerState() {
+                var decision = runtime.decision;
+                if (!runtime.config || !runtime.policy || !runtime.bars || !decision) return null;
+                var asset = assetById(runtime.controls.asset);
+                if (!asset) return null;
+                return {
+                    asOf: decision.asOf,
+                    decisionTime: decision.computedAt,
+                    configVersion: runtime.config.version,
+                    historyRange: runtime.controls.historyRange,
+                    asset: asset,
+                    policy: runtime.policy,
+                    bars: runtime.bars,
+                    source: runtime.bars.source
+                };
+            }
+            globalThis.__rlOwnerStateProvider = globalThis.__rlOwnerStateProvider || {};
+            globalThis.__rlOwnerStateProvider["volatility-sizing-lab"] = volatilityOwnerState;
 
             /* ── delta hydration (controls never fetch) ── */
             function hydrate(force) {

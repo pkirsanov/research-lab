@@ -10,6 +10,17 @@ import assert from 'node:assert/strict';
 import { buildGraph, writeGraphToTemp, removeTemp } from './fixtures/feature-002/ui/ui-fixture-builder.mjs';
 import { startBriefServer, harnessUrl, loadPlaywright, browserLaunchOptions } from './distributed-briefs.support.mjs';
 
+// The shared brief renders inside the shell's "Brief" view (feat(brief): brief lives only in Brief
+// view). Ordinary tools boot in their default "simple" view, so drive the real rlviews control to the
+// Brief view — exactly as every other shell regression does (tests/distributed-briefs.spec.mjs
+// ::mountReady) — before asserting the brief is visible. The switch only reveals the already-loaded
+// mount and issues no brief request of its own, so it is placed BEFORE every network-window baseline
+// below (`no history partition before Open history`, `beforePower`) and cannot invalidate them.
+async function openBriefView(page) {
+    await page.waitForSelector('#rlviews[data-rlexperience-shell="ready"]', { timeout: 20000 });
+    await page.locator('#rlviews button[data-rlview-mode="brief"]').click();
+}
+
 test('static loader verifies coherent current objects and fetches history only after selection', async (t) => {
     let chromium;
     try { ({ chromium } = await loadPlaywright()); } catch (e) { t.skip('Playwright runtime unavailable'); return; }
@@ -24,6 +35,7 @@ test('static loader verifies coherent current objects and fetches history only a
         page.on('response', (res) => { try { cacheHeaders.set(new URL(res.url()).pathname, res.headers()['cache-control'] || ''); } catch (e) { /* ignore */ } });
 
         await page.goto(harnessUrl(server.baseUrl, 'sector-research-lab'), { waitUntil: 'load' });
+        await openBriefView(page);
         await page.waitForSelector('[data-rlbrief-mount][data-rlbrief-ready="1"]', { timeout: 15000 });
 
         const state = await page.getAttribute('[data-rlbrief-mount]', 'data-rlbrief-state');
@@ -78,6 +90,7 @@ test('static loader verifies coherent current objects and fetches history only a
     try {
         const page = await browser2.newPage();
         await page.goto(harnessUrl(badServer.baseUrl, 'sector-research-lab'), { waitUntil: 'load' });
+        await openBriefView(page);
         await page.waitForSelector('[data-rlbrief-mount][data-rlbrief-ready="1"]', { timeout: 15000 });
         const st = await page.getAttribute('[data-rlbrief-mount]', 'data-rlbrief-state');
         assert.equal(st, 'integrity-error', 'hash mismatch fails closed');

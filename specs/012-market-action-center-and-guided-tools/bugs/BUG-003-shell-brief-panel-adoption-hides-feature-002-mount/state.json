@@ -1,0 +1,137 @@
+{
+  "version": 3,
+  "featureDir": "specs/012-market-action-center-and-guided-tools/bugs/BUG-003-shell-brief-panel-adoption-hides-feature-002-mount",
+  "featureName": "BUG-003 Reconcile TP-10-02 To The Ratified Shell Brief-View Contract",
+  "createdAt": "2026-07-28T19:14:34Z",
+  "lastUpdatedAt": "2026-07-28T19:14:34Z",
+  "completedAt": null,
+  "certifiedAt": null,
+  "status": "in_progress",
+  "workflowMode": "bugfix-fastlane",
+  "linkedImplementationSpec": "specs/012-market-action-center-and-guided-tools",
+  "requiresRevalidation": false,
+  "flagsIntroduced": [],
+  "completedScopes": [],
+  "completedPhases": [],
+  "execution": {
+    "activeAgent": "bubbles.implement",
+    "currentPhase": "implement",
+    "currentPhaseStatus": "completed_owned",
+    "substate": "implemented",
+    "currentScope": "SCOPE-01",
+    "runStartedAt": "2026-07-28T19:14:34Z",
+    "completedAt": "2026-07-28T19:14:34Z",
+    "executionModel": "dispatched-single-phase",
+    "parentAgent": "bubbles.goal",
+    "nextRequiredOwner": "bubbles.validate",
+    "nextRequiredTarget": "Validate-owned certification of BUG-003. The Feature 012 owner decision is RECORDED and IMPLEMENTED: the shell is correct as authored (brief lives in the Brief view); TP-10-02 was the sole un-reconciled member of the Feature 002 Scope 10 brief family and has been reconciled to the same mountReady sequencing its 13 siblings already use. Change surface is one test file, tests/distributed-briefs.static.integration.mjs, at 13 insertions and 0 deletions; assertion count unchanged 15 to 15; zero state:'attached' relaxations; .skip count unchanged at 1 (pre-existing Playwright-runtime guard); mount-wait timeouts unchanged at 15000ms. No product, shell, config, page or sibling-test file was modified. Owned evidence recorded in report.md: pre-fix RED (exit 1), path-scoped-stash causal RED re-proof (exit 1), GREEN (exit 0, 2.2s versus a 15s timeout exhaustion pre-fix), 13 sibling regressions (exit 0), scripts/selftest.mjs 952 passed 0 failed (exit 0), simple-production-bridge 6/6 wired (19) (exit 0). This agent does not write certification fields; validate owns promotion.",
+    "completedPhaseClaims": [
+      {
+        "phase": "implement",
+        "claimedBy": "bubbles.implement",
+        "claimedAt": "2026-07-28T19:14:34Z",
+        "scopeId": "SCOPE-01",
+        "evidenceFile": "report.md"
+      }
+    ],
+    "pendingTransitionRequests": ["TR-BUG003-ROUTE-TO-VALIDATE"],
+    "scopeInventory": [
+      {
+        "scope": 1,
+        "scopeId": "SCOPE-01",
+        "name": "Reconcile TP-10-02 to the shell's Brief-view residency",
+        "status": "done",
+        "dependsOn": [],
+        "foundation": false,
+        "capabilityRole": "test-contract-reconciliation",
+        "class": "straggler-reconciliation",
+        "evidenceFile": "report.md"
+      }
+    ],
+    "audit": {
+      "schemaVersion": "audit-run/v1",
+      "runId": null,
+      "currentAttemptId": null,
+      "attempts": []
+    }
+  },
+  "certification": {
+    "status": "in_progress",
+    "completedAt": null,
+    "certifiedAt": null,
+    "completedScopes": [],
+    "certifiedCompletedPhases": [],
+    "scopeProgress": [
+      {
+        "scope": 1,
+        "scopeId": "SCOPE-01",
+        "name": "Reconcile TP-10-02 to the shell's Brief-view residency",
+        "status": "in_progress",
+        "dependsOn": [],
+        "scopeDir": null,
+        "evidenceFile": "report.md",
+        "certifiedAt": null
+      }
+    ],
+    "assurance": {
+      "level": "partial",
+      "missingForFull": [
+        "independent audit",
+        "validate-owned transition"
+      ]
+    },
+    "lockdownState": {
+      "active": false,
+      "lockedScenarioIds": []
+    }
+  },
+  "policySnapshot": {
+    "workflowMode": "bugfix-fastlane",
+    "grill": { "mode": "off", "source": "repo-default" },
+    "tdd": { "mode": "scenario-first", "source": "workflow-forced" },
+    "autoCommit": { "mode": "off", "source": "repo-default" },
+    "lockdown": { "mode": "off", "source": "repo-default" },
+    "regression": { "mode": "protected-scenarios", "source": "repo-default" },
+    "validation": { "mode": "certification-required", "source": "repo-default" }
+  },
+  "findingsLedger": [
+    {
+      "findingId": "F-BUG003-001",
+      "site": "tests/distributed-briefs.static.integration.mjs",
+      "scenario": "SCN-B003-01",
+      "class": "straggler-reconciliation",
+      "state": "RESOLVED",
+      "disposition": "reconciled-to-ratified-contract",
+      "detail": "The coherent-graph block waited for [data-rlbrief-mount][data-rlbrief-ready=\"1\"] with Playwright's default visible state immediately after load, with no view switch. rlviews.js buildPanels() (L120-L139) appends the anchor into the brief panel and sets panel.hidden = true; applyVisual() (L141-L150) unhides only the current mode, and ordinary tools boot at defaultViewId simple. Reconciled by invoking a module-local openBriefView(page) that waits for #rlviews[data-rlexperience-shell=\"ready\"] then clicks #rlviews button[data-rlview-mode=\"brief\"], identical to tests/distributed-briefs.spec.mjs::mountReady(). Verified GREEN exit 0."
+    },
+    {
+      "findingId": "F-BUG003-002",
+      "site": "tests/distributed-briefs.static.integration.mjs",
+      "scenario": "SCN-B003-03",
+      "class": "straggler-reconciliation",
+      "state": "RESOLVED",
+      "disposition": "reconciled-to-ratified-contract",
+      "detail": "The fail-closed integrity-error block carried the same unreconciled wait. The shell adoption at rlviews.js L124-L125 is guarded only by (mode === \"brief\" && ANCHOR), so it is independent of brief load outcome and the integrity path is adopted into the hidden panel identically. Reconciled with the same openBriefView(page) call; the integrity-error and no-partial-evidence assertions are unchanged and pass."
+    },
+    {
+      "findingId": "F-BUG003-003",
+      "site": "specs/012-market-action-center-and-guided-tools/bugs/BUG-003-shell-brief-panel-adoption-hides-feature-002-mount/bug.md",
+      "scenario": null,
+      "class": "packet-coherence",
+      "state": "RESOLVED",
+      "disposition": "decision-recorded",
+      "detail": "bug.md § Expected Behavior asserted the Feature 002 and Feature 012 contracts were mutually exclusive and blocked on an owner decision. The decision is now made and recorded in design.md § The Decision with four verified evidence points, and design.md § Why the two contracts are NOT actually mutually exclusive shows the exclusivity framing was drawn from TP-10-02 alone: Feature 002's own 13-test Scope 10 suite had already adopted the shell contract via mountReady(). bug.md status fields were updated so the packet is internally consistent post-decision."
+    }
+  ],
+  "transitionRequests": [
+    {
+      "id": "TR-BUG003-ROUTE-TO-VALIDATE",
+      "status": "open",
+      "requestedBy": "bubbles.implement",
+      "routedTo": "bubbles.validate",
+      "requestedAt": "2026-07-28T19:14:34Z",
+      "reason": "SCOPE-01 is implemented with owned raw evidence for every DoD item. Certification fields are validate-owned and were deliberately not written by this agent."
+    }
+  ],
+  "reworkQueue": []
+}

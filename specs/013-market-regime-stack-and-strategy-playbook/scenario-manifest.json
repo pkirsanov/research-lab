@@ -1,0 +1,323 @@
+{
+    "contractVersion": 1,
+    "schemaVersion": 1,
+    "version": 1,
+    "spec": "013",
+    "featureDir": "specs/013-market-regime-stack-and-strategy-playbook",
+    "generatedBy": "bubbles.plan",
+    "evidenceBoundary": "Planning-owned scenario contract only. Feature 013 has not been implemented and no Test Plan command has been run, so every scenario carries empty linkedTests and empty evidenceRefs. An execution agent populates linkedTests with the concrete test identity it creates and evidenceRefs with the matching report.md anchor at the time that test is actually run.",
+    "scenarios": [
+        {
+            "scenarioId": "BS-013-001",
+            "specSection": "## Business Scenarios",
+            "title": "Combined regime composes from current facets and names an enumerated archetype",
+            "scopeId": "SCOPE-2",
+            "requiredTestType": "functional",
+            "regressionRequired": true,
+            "lockdown": {
+                "state": "unlocked"
+            },
+            "linkedTests": [],
+            "evidenceRefs": []
+        },
+        {
+            "scenarioId": "BS-013-002",
+            "specSection": "## Business Scenarios",
+            "title": "A non-enumerated combination renders as a fingerprint with no invented label",
+            "scopeId": "SCOPE-2",
+            "requiredTestType": "functional",
+            "regressionRequired": true,
+            "lockdown": {
+                "state": "unlocked"
+            },
+            "linkedTests": [],
+            "evidenceRefs": []
+        },
+        {
+            "scenarioId": "BS-013-003",
+            "specSection": "## Business Scenarios",
+            "title": "An intraday facet changes tactical context without moving the structural quadrant",
+            "scopeId": "SCOPE-4",
+            "requiredTestType": "e2e-ui",
+            "regressionRequired": true,
+            "lockdown": {
+                "state": "unlocked"
+            },
+            "linkedTests": [],
+            "evidenceRefs": []
+        },
+        {
+            "scenarioId": "BS-013-004",
+            "specSection": "## Business Scenarios",
+            "title": "A facet shorter than the requested horizon is excluded from that read",
+            "scopeId": "SCOPE-2",
+            "requiredTestType": "functional",
+            "regressionRequired": true,
+            "lockdown": {
+                "state": "unlocked"
+            },
+            "linkedTests": [],
+            "evidenceRefs": []
+        },
+        {
+            "scenarioId": "BS-013-005",
+            "specSection": "## Business Scenarios",
+            "title": "The growth-inflation quadrant renders as market-implied, never as a macro regime",
+            "scopeId": "SCOPE-4",
+            "requiredTestType": "e2e-ui",
+            "regressionRequired": true,
+            "lockdown": {
+                "state": "unlocked"
+            },
+            "linkedTests": [],
+            "evidenceRefs": []
+        },
+        {
+            "scenarioId": "BS-013-006",
+            "specSection": "## Business Scenarios",
+            "title": "A stale facet degrades to unavailable and shrinks the denominator",
+            "scopeId": "SCOPE-2",
+            "requiredTestType": "functional",
+            "regressionRequired": true,
+            "lockdown": {
+                "state": "unlocked"
+            },
+            "linkedTests": [],
+            "evidenceRefs": []
+        },
+        {
+            "scenarioId": "BS-013-007",
+            "specSection": "## Business Scenarios",
+            "title": "A facet contradiction stays visible and is never averaged into the headline",
+            "scopeId": "SCOPE-2",
+            "requiredTestType": "functional",
+            "regressionRequired": true,
+            "lockdown": {
+                "state": "unlocked"
+            },
+            "linkedTests": [],
+            "evidenceRefs": []
+        },
+        {
+            "scenarioId": "BS-013-008",
+            "specSection": "## Business Scenarios",
+            "title": "A regime label does not flip until the persistence gate is met",
+            "scopeId": "SCOPE-2",
+            "requiredTestType": "functional",
+            "regressionRequired": true,
+            "lockdown": {
+                "state": "unlocked"
+            },
+            "linkedTests": [],
+            "evidenceRefs": []
+        },
+        {
+            "scenarioId": "BS-013-009",
+            "specSection": "## Business Scenarios",
+            "title": "Historical regime series are as-of-safe and a hindsight-smoothed label is refused",
+            "scopeId": "SCOPE-2",
+            "requiredTestType": "integration",
+            "regressionRequired": true,
+            "lockdown": {
+                "state": "unlocked"
+            },
+            "linkedTests": [],
+            "evidenceRefs": []
+        },
+        {
+            "scenarioId": "BS-013-010",
+            "specSection": "## Business Scenarios",
+            "title": "A facet source publishes its facet and never consumes the composed regime",
+            "scopeId": "SCOPE-3",
+            "requiredTestType": "functional",
+            "regressionRequired": true,
+            "lockdown": {
+                "state": "unlocked"
+            },
+            "linkedTests": [],
+            "evidenceRefs": []
+        },
+        {
+            "scenarioId": "BS-013-011",
+            "specSection": "## Business Scenarios",
+            "title": "A consumer reads the published owner read and cannot recompute or upgrade it",
+            "scopeId": "SCOPE-6",
+            "requiredTestType": "integration",
+            "regressionRequired": true,
+            "lockdown": {
+                "state": "unlocked"
+            },
+            "linkedTests": [],
+            "evidenceRefs": []
+        },
+        {
+            "scenarioId": "BS-013-012",
+            "specSection": "## Business Scenarios",
+            "title": "A migrated consumer renders the single published read",
+            "scopeId": "SCOPE-6",
+            "requiredTestType": "e2e-ui",
+            "regressionRequired": true,
+            "lockdown": {
+                "state": "unlocked"
+            },
+            "linkedTests": [],
+            "evidenceRefs": []
+        },
+        {
+            "scenarioId": "BS-013-013",
+            "specSection": "## Business Scenarios",
+            "title": "A named ratio pair reports level, trend, and a window-declared z-score",
+            "scopeId": "SCOPE-1",
+            "requiredTestType": "unit",
+            "regressionRequired": true,
+            "lockdown": {
+                "state": "unlocked"
+            },
+            "linkedTests": [],
+            "evidenceRefs": []
+        },
+        {
+            "scenarioId": "BS-013-014",
+            "specSection": "## Business Scenarios",
+            "title": "Overlapping ratio pairs count as one evidence family",
+            "scopeId": "SCOPE-1",
+            "requiredTestType": "unit",
+            "regressionRequired": true,
+            "lockdown": {
+                "state": "unlocked"
+            },
+            "linkedTests": [],
+            "evidenceRefs": []
+        },
+        {
+            "scenarioId": "BS-013-015",
+            "specSection": "## Business Scenarios",
+            "title": "A pair with mismatched adjustment or short history reports unavailable",
+            "scopeId": "SCOPE-1",
+            "requiredTestType": "unit",
+            "regressionRequired": true,
+            "lockdown": {
+                "state": "unlocked"
+            },
+            "linkedTests": [],
+            "evidenceRefs": []
+        },
+        {
+            "scenarioId": "BS-013-016",
+            "specSection": "## Business Scenarios",
+            "title": "An international pair honors session and FX alignment or reports not-comparable",
+            "scopeId": "SCOPE-1",
+            "requiredTestType": "unit",
+            "regressionRequired": true,
+            "lockdown": {
+                "state": "unlocked"
+            },
+            "linkedTests": [],
+            "evidenceRefs": []
+        },
+        {
+            "scenarioId": "BS-013-017",
+            "specSection": "## Business Scenarios",
+            "title": "Sleeve output ranks relative research fit and emits nothing else",
+            "scopeId": "SCOPE-4",
+            "requiredTestType": "e2e-ui",
+            "regressionRequired": true,
+            "lockdown": {
+                "state": "unlocked"
+            },
+            "linkedTests": [],
+            "evidenceRefs": []
+        },
+        {
+            "scenarioId": "BS-013-018",
+            "specSection": "## Business Scenarios",
+            "title": "Inflationary and disinflationary risk-off produce different bond sub-type fit",
+            "scopeId": "SCOPE-4",
+            "requiredTestType": "e2e-ui",
+            "regressionRequired": true,
+            "lockdown": {
+                "state": "unlocked"
+            },
+            "linkedTests": [],
+            "evidenceRefs": []
+        },
+        {
+            "scenarioId": "BS-013-019",
+            "specSection": "## Business Scenarios",
+            "title": "Commodity sub-types stay separate rather than moving as one block",
+            "scopeId": "SCOPE-4",
+            "requiredTestType": "e2e-ui",
+            "regressionRequired": true,
+            "lockdown": {
+                "state": "unlocked"
+            },
+            "linkedTests": [],
+            "evidenceRefs": []
+        },
+        {
+            "scenarioId": "BS-013-020",
+            "specSection": "## Business Scenarios",
+            "title": "No clear relative advantage produces an explicit no-advantage state",
+            "scopeId": "SCOPE-4",
+            "requiredTestType": "e2e-ui",
+            "regressionRequired": true,
+            "lockdown": {
+                "state": "unlocked"
+            },
+            "linkedTests": [],
+            "evidenceRefs": []
+        },
+        {
+            "scenarioId": "BS-013-021",
+            "specSection": "## Business Scenarios",
+            "title": "The tool publishes exactly one owner read with the full payload",
+            "scopeId": "SCOPE-7",
+            "requiredTestType": "integration",
+            "regressionRequired": true,
+            "lockdown": {
+                "state": "unlocked"
+            },
+            "linkedTests": [],
+            "evidenceRefs": []
+        },
+        {
+            "scenarioId": "BS-013-022",
+            "specSection": "## Business Scenarios",
+            "title": "The owner read is unavailable rather than fabricated when facets are missing",
+            "scopeId": "SCOPE-7",
+            "requiredTestType": "integration",
+            "regressionRequired": true,
+            "lockdown": {
+                "state": "unlocked"
+            },
+            "linkedTests": [],
+            "evidenceRefs": []
+        },
+        {
+            "scenarioId": "BS-013-023",
+            "specSection": "## Business Scenarios",
+            "title": "A registry entry and its hard-asserted count are refused unless they move together",
+            "scopeId": "SCOPE-5",
+            "requiredTestType": "integration",
+            "regressionRequired": true,
+            "lockdown": {
+                "state": "unlocked"
+            },
+            "linkedTests": [],
+            "evidenceRefs": []
+        },
+        {
+            "scenarioId": "BS-013-024",
+            "specSection": "## Business Scenarios",
+            "title": "One regression inside the protected scenario set refuses governance closure",
+            "scopeId": "SCOPE-8",
+            "requiredTestType": "integration",
+            "regressionRequired": true,
+            "lockdown": {
+                "state": "unlocked"
+            },
+            "linkedTests": [],
+            "evidenceRefs": []
+        }
+    ]
+}

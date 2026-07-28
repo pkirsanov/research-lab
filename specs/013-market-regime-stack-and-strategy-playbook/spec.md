@@ -697,6 +697,34 @@ Scenario: A missing required facet set blocks publication of a value
   And no last-known, neutral, or zero value is substituted into the read
 ```
 
+### BS-013-023: A registry entry and its hard-asserted count are refused unless they move together
+
+```gherkin
+Scenario: Registry entries and asserted counts move in lockstep or the change is refused
+  Given `scripts/validate-tool-experience.mjs` hard-asserts the ordinary-tool count, the Market Action Center goal count, the total goal count, and the journey-definition count
+  And the registration surfaces for this feature are `tools.json`, `simple-models.json`, `journeys.json`, `tool-experience.config.json`, the `index.html` TOOLS array, and the `rlnav.js` TOOLS array
+  When a change adds this surface to the registration surfaces without raising the asserted counts in the same change
+  Then the registry validation refuses the change and names the asserted count that did not move
+  And the half-registered surface is not reported as registered
+  When a change raises an asserted count above the number of entries actually present across the registration surfaces
+  Then the registry validation refuses the change and names the asserted count that overstates the entries
+  And no absent entry is inferred, defaulted, or backfilled to satisfy the declared count
+```
+
+### BS-013-024: One regression inside the protected scenario set refuses governance closure
+
+```gherkin
+Scenario: The protected scenario set re-runs as a set and a single regression blocks closure
+  Given the protected scenario set is BS-013-001 through BS-013-022
+  And governance closure for this feature requires that protected set to re-run as one set rather than scenario by scenario
+  When the protected set is re-run and every scenario in it holds
+  Then closure is reported only with the whole set holding and the number of scenarios re-run named
+  When the protected set is re-run and exactly one scenario within it regresses
+  Then closure is refused and the regressing scenario is named
+  And closure is not reported as partial, provisional, or passing-with-exceptions
+  And the scenarios that still hold do not offset the single regression
+```
+
 ## RESULT-ENVELOPE
 
 ```
@@ -1049,7 +1077,7 @@ asserts exact registry counts — 22 ordinary tools with concrete goals, 4 Marke
 goals, 48 total goals, and 48 journey definitions. Registering this surface MUST update those
 asserted counts in the same change that adds the registry entries, so the registry, the goals,
 the definitions, and the assertions never disagree.
-*Traces: BS-013-021.*
+*Traces: BS-013-021, BS-013-023.*
 
 ## Non-Functional Requirements
 
@@ -1409,8 +1437,19 @@ breaking live consumers; IP-006 is the pipeline reach multiplier.
 - **AC-016:** BS-013-022 proves the owner read is `unavailable` with the missing facets named —
   emitting no archetype, no fingerprint, and no confirmation count — rather than substituting a
   last-known, neutral, or zero value.
+- **AC-017:** BS-013-023 proves the FR-051 registry COUNT coupling is enforced in **both**
+  directions — a change that adds a registration entry without raising the asserted count is
+  refused with the stale count named, and a change that declares a count exceeding the entries
+  actually present across `tools.json`, `simple-models.json`, `journeys.json`,
+  `tool-experience.config.json`, the `index.html` TOOLS array, and the `rlnav.js` TOOLS array is
+  refused with the overstating count named — and no absent entry is inferred, defaulted, or
+  backfilled to satisfy a declared count.
+- **AC-018:** BS-013-024 proves the protected scenario set BS-013-001 … BS-013-022 **re-runs as a
+  set**, that a single regression anywhere within it **refuses** governance closure and names the
+  regressing scenario, and that closure is never reported as partial, provisional, or
+  passing-with-exceptions on the strength of the scenarios that still hold.
 
-Coverage: AC-001 … AC-016 map to all 22 business scenarios (BS-013-001 … BS-013-022); zero
+Coverage: AC-001 … AC-018 map to all 24 business scenarios (BS-013-001 … BS-013-024); zero
 business scenarios are unmapped.
 
 ## Known Risks And Honest Limitations

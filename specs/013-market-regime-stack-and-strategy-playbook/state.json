@@ -1,103 +1,293 @@
 {
-    "version": 3,
-    "featureDir": "specs/013-market-regime-stack-and-strategy-playbook",
-    "featureName": "Market Regime Stack and Strategy Playbook",
-    "status": "not_started",
-    "workflowMode": "product-to-planning",
-    "linkedImplementationSpec": null,
-    "linkedPlanningPacket": null,
-    "planningOnly": false,
-    "planningOnlyJustification": null,
-    "specDependsOn": [],
-    "certifiedAt": null,
-    "requiresRevalidation": false,
-    "execution": {
-        "activeAgent": "bubbles.analyst",
-        "currentPhase": "analyze",
-        "currentScope": null,
-        "runStartedAt": "2026-07-27T00:00:00Z",
-        "completedPhaseClaims": [],
-        "pendingTransitionRequests": [],
-        "scopeProgress": [],
-        "nextRequiredOwner": "bubbles.design",
-        "nextRequiredTarget": "The UX authoring pass is COMPLETE. spec.md now carries '## UI Wireframes' (shell preamble with the four-view #rlviews contract and the compute-once rule, Screen Inventory covering 5 screens, 12 shared UI Primitives satisfying UX9, and five fully-specified screens: Simple \u2014 Regime Cockpit, Power \u2014 Facet And Composition Evidence, Brief \u2014 Cited Regime Interpretation, Journey \u2014 Guided Regime Goals, and Mobile \u2014 Simple under 600px) plus '## User Flows' (7 mermaid diagrams). Every screen carries Interactions, Responsive behavior, Accessibility, and States. bubbles.design owns next: module boundaries, the FR-049 exact adapterPolicy.moduleAllowlist constraint, the FR-051 registry-count lockstep coupling, the IP-005 compatibility projection into both live band vocabularies, as-of-safe history mechanics, R-5 consumer-side double-count mitigation, and the technical realization of the 12 declared UI primitives as shared components (a per-screen copy of any primitive is a defect). design.md does not exist yet and must be authored by bubbles.design. The analyst-owned '## UI Scenario Matrix' section is now AUTHORED (finding UX-013-F1 closed): 25 rows (UX-M-01 .. UX-M-25) inserted between '## Downstream Owner Handoffs' and the ux-owned '## UI Wireframes', covering all 22 business scenarios across all five declared screens, every row asserting a user-visible outcome with a Test Type drawn from the canonical taxonomy. Finding UX-013-F2 is also closed: the split analyst executionHistory record was merged verbatim into one chronologically-correct entry. No scopes.md, report.md, design.md, or uservalidation.md exists yet.",
-        "blocker": null,
-        "audit": null
-    },
-    "certification": {
+  "version": 3,
+  "featureDir": "specs/013-market-regime-stack-and-strategy-playbook",
+  "featureName": "Market Regime Stack and Strategy Playbook",
+  "status": "blocked",
+  "workflowMode": "product-to-planning",
+  "linkedImplementationSpec": null,
+  "linkedPlanningPacket": null,
+  "planningOnly": false,
+  "planningOnlyJustification": null,
+  "specDependsOn": [],
+  "certifiedAt": null,
+  "requiresRevalidation": true,
+  "scopeLayout": "per-scope-directory",
+  "scopeIndexArtifact": "specs/013-market-regime-stack-and-strategy-playbook/scopes/_index.md",
+  "artifacts": {
+    "spec": "specs/013-market-regime-stack-and-strategy-playbook/spec.md",
+    "design": "specs/013-market-regime-stack-and-strategy-playbook/design.md",
+    "scopeIndex": "specs/013-market-regime-stack-and-strategy-playbook/scopes/_index.md",
+    "report": "specs/013-market-regime-stack-and-strategy-playbook/report.md",
+    "userValidation": "specs/013-market-regime-stack-and-strategy-playbook/uservalidation.md",
+    "scenarioManifest": "specs/013-market-regime-stack-and-strategy-playbook/scenario-manifest.json",
+    "testPlan": "specs/013-market-regime-stack-and-strategy-playbook/test-plan.json",
+    "state": "specs/013-market-regime-stack-and-strategy-playbook/state.json"
+  },
+  "execution": {
+    "activeAgent": "bubbles.validate",
+    "currentPhase": "validate",
+    "currentScope": null,
+    "runStartedAt": "2026-07-27T04:00:00Z",
+    "completedPhaseClaims": [],
+    "pendingTransitionRequests": [],
+    "scopeProgress": [
+      {
+        "scopeId": "SCOPE-1",
+        "name": "Ratio capability foundation",
         "status": "not_started",
-        "completedScopes": [],
-        "certifiedCompletedPhases": [],
-        "scopeProgress": [],
-        "lockdownState": {
-            "active": false,
-            "lockedScenarioIds": []
-        }
+        "foundation": true,
+        "dependsOn": [],
+        "scopeDir": "specs/013-market-regime-stack-and-strategy-playbook/scopes/01-ratio-capability-foundation",
+        "scopeArtifact": "specs/013-market-regime-stack-and-strategy-playbook/scopes/01-ratio-capability-foundation/scope.md",
+        "reportArtifact": "specs/013-market-regime-stack-and-strategy-playbook/scopes/01-ratio-capability-foundation/report.md",
+        "businessScenariosOwned": [
+          "BS-013-013",
+          "BS-013-014",
+          "BS-013-015",
+          "BS-013-016"
+        ]
+      },
+      {
+        "scopeId": "SCOPE-2",
+        "name": "Regime facet contract + composer foundation",
+        "status": "not_started",
+        "foundation": true,
+        "dependsOn": [
+          "SCOPE-1"
+        ],
+        "scopeDir": "specs/013-market-regime-stack-and-strategy-playbook/scopes/02-regime-composer-foundation",
+        "scopeArtifact": "specs/013-market-regime-stack-and-strategy-playbook/scopes/02-regime-composer-foundation/scope.md",
+        "reportArtifact": "specs/013-market-regime-stack-and-strategy-playbook/scopes/02-regime-composer-foundation/report.md",
+        "businessScenariosOwned": [
+          "BS-013-001",
+          "BS-013-002",
+          "BS-013-004",
+          "BS-013-006",
+          "BS-013-007",
+          "BS-013-008",
+          "BS-013-009"
+        ]
+      },
+      {
+        "scopeId": "SCOPE-3",
+        "name": "Facet source publication shims",
+        "status": "not_started",
+        "foundation": false,
+        "dependsOn": [
+          "SCOPE-2"
+        ],
+        "scopeDir": "specs/013-market-regime-stack-and-strategy-playbook/scopes/03-facet-source-publication-shims",
+        "scopeArtifact": "specs/013-market-regime-stack-and-strategy-playbook/scopes/03-facet-source-publication-shims/scope.md",
+        "reportArtifact": "specs/013-market-regime-stack-and-strategy-playbook/scopes/03-facet-source-publication-shims/report.md",
+        "businessScenariosOwned": [
+          "BS-013-010"
+        ]
+      },
+      {
+        "scopeId": "SCOPE-4",
+        "name": "Market Regime Lab surface",
+        "status": "not_started",
+        "foundation": false,
+        "dependsOn": [
+          "SCOPE-2",
+          "SCOPE-3"
+        ],
+        "scopeDir": "specs/013-market-regime-stack-and-strategy-playbook/scopes/04-market-regime-lab-surface",
+        "scopeArtifact": "specs/013-market-regime-stack-and-strategy-playbook/scopes/04-market-regime-lab-surface/scope.md",
+        "reportArtifact": "specs/013-market-regime-stack-and-strategy-playbook/scopes/04-market-regime-lab-surface/report.md",
+        "businessScenariosOwned": [
+          "BS-013-003",
+          "BS-013-005",
+          "BS-013-017",
+          "BS-013-018",
+          "BS-013-019",
+          "BS-013-020"
+        ]
+      },
+      {
+        "scopeId": "SCOPE-5",
+        "name": "Registry registration + FR-051 count lockstep",
+        "status": "not_started",
+        "foundation": false,
+        "dependsOn": [
+          "SCOPE-4"
+        ],
+        "scopeDir": "specs/013-market-regime-stack-and-strategy-playbook/scopes/05-registry-registration-lockstep",
+        "scopeArtifact": "specs/013-market-regime-stack-and-strategy-playbook/scopes/05-registry-registration-lockstep/scope.md",
+        "reportArtifact": "specs/013-market-regime-stack-and-strategy-playbook/scopes/05-registry-registration-lockstep/report.md",
+        "businessScenariosOwned": []
+      },
+      {
+        "scopeId": "SCOPE-6",
+        "name": "Consumer migration + compatibility projection",
+        "status": "not_started",
+        "foundation": false,
+        "dependsOn": [
+          "SCOPE-2",
+          "SCOPE-5"
+        ],
+        "scopeDir": "specs/013-market-regime-stack-and-strategy-playbook/scopes/06-consumer-migration-projection",
+        "scopeArtifact": "specs/013-market-regime-stack-and-strategy-playbook/scopes/06-consumer-migration-projection/scope.md",
+        "reportArtifact": "specs/013-market-regime-stack-and-strategy-playbook/scopes/06-consumer-migration-projection/report.md",
+        "businessScenariosOwned": [
+          "BS-013-011",
+          "BS-013-012"
+        ]
+      },
+      {
+        "scopeId": "SCOPE-7",
+        "name": "Headless DERIVED owner read",
+        "status": "not_started",
+        "foundation": false,
+        "dependsOn": [
+          "SCOPE-4",
+          "SCOPE-5"
+        ],
+        "scopeDir": "specs/013-market-regime-stack-and-strategy-playbook/scopes/07-headless-derived-owner-read",
+        "scopeArtifact": "specs/013-market-regime-stack-and-strategy-playbook/scopes/07-headless-derived-owner-read/scope.md",
+        "reportArtifact": "specs/013-market-regime-stack-and-strategy-playbook/scopes/07-headless-derived-owner-read/report.md",
+        "businessScenariosOwned": [
+          "BS-013-021",
+          "BS-013-022"
+        ]
+      },
+      {
+        "scopeId": "SCOPE-8",
+        "name": "Regression + governance closure",
+        "status": "not_started",
+        "foundation": false,
+        "dependsOn": [
+          "SCOPE-1",
+          "SCOPE-2",
+          "SCOPE-3",
+          "SCOPE-4",
+          "SCOPE-5",
+          "SCOPE-6",
+          "SCOPE-7"
+        ],
+        "scopeDir": "specs/013-market-regime-stack-and-strategy-playbook/scopes/08-regression-governance-closure",
+        "scopeArtifact": "specs/013-market-regime-stack-and-strategy-playbook/scopes/08-regression-governance-closure/scope.md",
+        "reportArtifact": "specs/013-market-regime-stack-and-strategy-playbook/scopes/08-regression-governance-closure/report.md",
+        "businessScenariosOwned": []
+      }
+    ],
+    "nextRequiredOwner": "bubbles.plan",
+    "nextRequiredTarget": "specs_hardened",
+    "blocker": "G073 SOURCE_EDIT_LOCKOUT + 36 planning-layer guard failures; see blockedReason",
+    "audit": null
+  },
+  "certification": {
+    "status": "blocked",
+    "completedScopes": [],
+    "certifiedCompletedPhases": [],
+    "scopeProgress": [],
+    "lockdownState": {
+      "active": false,
+      "lockedScenarioIds": []
+    }
+  },
+  "policySnapshot": {
+    "grill": {
+      "mode": "off",
+      "source": "repo-default"
     },
-    "policySnapshot": {
-        "grill": {
-            "mode": "off",
-            "source": "repo-default"
-        },
-        "tdd": {
-            "mode": "scenario-first",
-            "source": "repo-default"
-        },
-        "autoCommit": {
-            "mode": "off",
-            "source": "repo-default"
-        },
-        "lockdown": {
-            "mode": "off",
-            "source": "repo-default"
-        },
-        "regression": {
-            "mode": "protected-scenarios",
-            "source": "repo-default"
-        },
-        "validation": {
-            "mode": "certification-required",
-            "source": "repo-default"
-        }
+    "tdd": {
+      "mode": "scenario-first",
+      "source": "repo-default"
     },
-    "transitionRequests": [],
-    "reworkQueue": [],
-    "executionHistory": [
-        {
-            "agent": "bubbles.analyst",
-            "phasesExecuted": [
-                "analyze"
-            ],
-            "statusBefore": "not_started",
-            "statusAfter": "not_started",
-            "startedAt": "2026-07-27T00:00:00Z",
-            "finishedAt": "2026-07-27T00:04:00Z",
-            "outcome": "completed_owned",
-            "summary": "Greenfield analyst authoring, chunk 1 of N (bounded task). Created specs/013-market-regime-stack-and-strategy-playbook/{spec.md,state.json}. Wrote EXACTLY three analyst-owned spec.md sections and stopped: (1) '# Feature: 013 Market Regime Stack and Strategy Playbook' + '## Problem', grounded in verified file:line evidence that regime is computed in at least seven places under four vocabularies and that TWO nominally-shared classifiers already disagree - rlg.js:262-274 macroRegime() (Extreme greed / Greed - risk-on / Neutral / Fear - risk-off / Extreme fear, plus risk:1|0|-1, consumed by intraday-tape-lab.html:1609 and market-brief.html:837) versus rlexperience-adapters/market-structure.js:1296-1300 regimeBand(fg,trend,vix) (Risk-on trend / Greed (late) / Distribution - topping / Accumulation - basing / Risk-off - fear / Fear (early), consumed by swing-structure-lab.html:1473) - with intraday-tape-lab.html:1776-1777 holding an inline THIRD copy while delegating four other primitives to RLMARKETSTRUCTURE at :1424-1431; plus the independent regime notions in sector-research-lab.html:2022/:2894, market-heatmap-lab.html:488, bond-regime-lab.html:1419/:1455/:1709, and the magnitude-only rlvol.js:335 (declared direction-free at rlvol.js:13); the brief's existing regime-weighted evidence model (rlbrief.js:90), horizon frame (rlbrief.js:1060-1103) and persistence primitive (rlbrief.js:137-145); the trapped generic ratio primitive real-assets-lab.html:1249 used only for gold/silver at :1371 with the honest proxy caveat at :1170; and the headless-owner-read coverage gap at scripts/brief-refresh.mjs:1173 alongside the existing DERIVED source concept at :561. (2) '## Outcome Contract' with Intent / Success Signal / Hard Constraints / Failure Condition, encoding horizon separation, market-implied quadrant labeling, typed fingerprint with named archetypes only for explicitly-defined combinations, relative-research-fit-only sleeve ranking, separated dividend/bond/commodity sub-types, contradiction preservation, first-class unavailable that shrinks the confirmation denominator, as-of-safe filtered history, and educational-only scope. (3) '## Domain Capability Model' (G094/AN5) with the capability statement, an eight-primitive table with lifecycles (RatioPair, RegimeFacet, FacetHorizon, CombinedRegime, RegimeArchetype, SleeveFitRead, RegimeTransition, RegimeOwnerRead), relationships, and business policies including the facet DAG no-cycle rule (sources publish, one composer combines, consumers read; a facet source must never consume the composed regime inside its own model). No foreign artifact was created or edited; no certification value other than the initial not_started was written; no UX wireframe section authored. Outcome: completed_owned, spec.md deliberately partial pending the remaining analyst chunks."
-        },
-        {
-            "agent": "bubbles.analyst",
-            "phasesExecuted": [
-                "analyze"
-            ],
-            "statusBefore": "not_started",
-            "statusAfter": "not_started",
-            "startedAt": "2026-07-27T01:00:00Z",
-            "finishedAt": "2026-07-27T01:04:00Z",
-            "outcome": "completed_owned",
-            "summary": "Final analyst chunk (bounded task). APPENDED five analyst-owned sections to spec.md, preserving everything above the append point byte-for-byte. (1) '## Competitive Landscape' — a 6-column table across five surface classes: TradingView technical ratings (publicly documented constituent-averaging gauge; per-symbol technical, not cross-asset regime), Koyfin/YCharts-class macro dashboards (user-composed synthesis, no product-level horizon contract), Bloomberg/Refinitiv-class terminals (row explicitly marked NOT publicly inspectable / entitlement-gated so NO proprietary-methodology claim is made), retail newsletters (narrative calls with implicit shifting horizons), and Research Lab's own fragmented state (seven notions, four vocabularies, two divergent shared classifiers, one inline copy). Closing positioning paragraph is deliberately honest: the feature does NOT compete on data quality, universe breadth, latency, or predictive power; the ONLY differentiator is transparent facet composition with preserved contradiction, declared horizons, and honest unavailable that shrinks the confirmation denominator. (2) '## Improvement Proposals' — six ranked proposals IP-001..IP-006 in the repo's established format extended with Problem/Proposal/Evidence Basis/Competitive Advantage/Impact/Effort/Business Scenarios: IP-001 shared ratio-pair capability (generalizing the trapped generic primitive real-assets-lab.html:1249 used once at :1371, carrying the :1170 proxy caveat, with overlapping pairs collapsed into one evidence family); IP-002 facet DAG with declared source/composer/consumer roles plus a MECHANICAL no-cycle lint wired into the existing validation path (grounded in the live half-migration at intraday-tape-lab.html:1424-1431 vs :1776-1777, and the scripts/validate-tool-experience.mjs precedent for mechanical invariants); IP-003 combined-regime fingerprint with a CLOSED enumerated archetype registry where nearest-neighbour and majority-vote naming are defects not fallbacks; IP-004 sleeve relative-fit registry with permanently separated dividend/bond/commodity sub-types and a negative output contract (zero weights/allocations/exposures/direction) plus an explicit no-advantage state; IP-005 compatibility projection back into BOTH live band vocabularies (5-band rlg.js:262-274 + risk sign, 6-band market-structure.js:1296-1300) as a declared, dated, declared-lossy deprecation surface so the three live pages plus the brief payload migrate one at a time instead of a big-bang cutover; IP-006 deterministic published RegimeOwnerRead shaped for the existing DERIVED contract at scripts/brief-refresh.mjs:561 to join the five-tool deterministic set at :1173. (3) '## Acceptance Criteria' — AC-001..AC-016 mapping 22 of 22 business scenarios (zero unmapped), including every criterion the task required explicitly: AC-004 growth-inflation quadrant labeled market-implied INLINE whenever sentiment/stress proxies are the only input; AC-002 a non-enumerated combination NEVER receives an invented archetype name; AC-009 a facet source NEVER consumes the composed regime in model computation; AC-013 sleeve output carries zero weight/allocation/exposure/direction language in any wording; AC-014 inflationary vs disinflationary risk-off yield DIFFERENT bond sub-type fit; AC-005 unavailable REDUCES the confirmation denominator rather than voting neutral; AC-012 SOXX/SPY and SMH/SPY count as ONE evidence family; AC-008 historical regime labels are as-of-safe filtered and hindsight-smoothed series are refused. (4) '## Known Risks And Honest Limitations' — R-1..R-9 naming every required risk: R-1 multiplicity (regime slicing multiplies effective trials and MUST be counted in any downstream out-of-sample discount; this feature publishes labels and licenses no conditional performance claim); R-2 small per-regime samples; R-3 label instability without hysteresis plus the hysteresis lag trade-off; R-4 look-ahead contamination arising from input REVISIONS not merely truncation, with shorter-or-absent history as the honest outcome; R-5 coupling risk where regime becomes a vote that collapses independent evidence, contrary to Feature 007's independent-family / no-vote-inflation discipline, with the explicit note that the DAG blocks only the source-side cycle and NOT consumer-side double counting; R-6 freshness cascade producing correlated concentrated degradation across many consumers; R-7 migration blast radius of two live divergent vocabularies across three pages plus the brief payload where regime carries the heaviest weight (rlbrief.js:90); R-8 dependency on the non-certified Feature 012 substrate (status blocked, certifiedAt null) which must never be cited as certified; R-9 no predictive claim is made or implied. (5) '## Downstream Owner Handoffs' — explicit constrained handoffs to bubbles.ux, bubbles.design, and bubbles.plan. HONEST GAP left deliberately open and named rather than silently dropped: '## UI Scenario Matrix' was NOT authored because the bounding task scoped user flows to bubbles.ux; it remains a required unwritten section. No UX wireframes or user flows authored. No fabricated competitor claims. No placeholders, TODOs, or TBDs. Artifacts NOT touched: design.md, scopes.md, report.md, uservalidation.md (none created), and state.json certification.* left at not_started with certifiedAt null; top-level status left at not_started. nextRequiredOwner set to bubbles.ux. VERBATIM CONTINUATION of the bubbles.analyst record above — retained unedited so the original analyst wording is preserved in full rather than truncated. It describes the same single analyst pass, which APPENDED five analyst-owned sections to spec.md, preserving everything above the append point byte-for-byte. (1) '## Competitive Landscape' — a 6-column table across five surface classes: TradingView technical ratings (publicly documented constituent-averaging gauge; per-symbol technical, not cross-asset regime), Koyfin/YCharts-class macro dashboards (user-composed synthesis, no product-level horizon contract), Bloomberg/Refinitiv-class terminals (row explicitly marked NOT publicly inspectable / entitlement-gated so NO proprietary-methodology claim is made), retail newsletters (narrative calls with implicit shifting horizons), and Research Lab's own fragmented state (seven notions, four vocabularies, two divergent shared classifiers, one inline copy). Closing positioning paragraph is deliberately honest: the feature does NOT compete on data quality, universe breadth, latency, or predictive power; the ONLY differentiator is transparent facet composition with preserved contradiction, declared horizons, and honest unavailable that shrinks the confirmation denominator. (2) '## Improvement Proposals' — six ranked proposals IP-001..IP-006 in the repo's established format extended with Problem/Proposal/Evidence Basis/Competitive Advantage/Impact/Effort/Business Scenarios: IP-001 shared ratio-pair capability (generalizing the trapped generic primitive real-assets-lab.html:1249 used once at :1371, carrying the :1170 proxy caveat, with overlapping pairs collapsed into one evidence family); IP-002 facet DAG with declared source/composer/consumer roles plus a MECHANICAL no-cycle lint wired into the existing validation path (grounded in the live half-migration at intraday-tape-lab.html:1424-1431 vs :1776-1777, and the scripts/validate-tool-experience.mjs precedent for mechanical invariants); IP-003 combined-regime fingerprint with a CLOSED enumerated archetype registry where nearest-neighbour and majority-vote naming are defects not fallbacks; IP-004 sleeve relative-fit registry with permanently separated dividend/bond/commodity sub-types and a negative output contract (zero weights/allocations/exposures/direction) plus an explicit no-advantage state; IP-005 compatibility projection back into BOTH live band vocabularies (5-band rlg.js:262-274 + risk sign, 6-band market-structure.js:1296-1300) as a declared, dated, declared-lossy deprecation surface so the three live pages plus the brief payload migrate one at a time instead of a big-bang cutover; IP-006 deterministic published RegimeOwnerRead shaped for the existing DERIVED contract at scripts/brief-refresh.mjs:561 to join the five-tool deterministic set at :1173. (3) '## Acceptance Criteria' — AC-001..AC-016 mapping 22 of 22 business scenarios (zero unmapped), including every criterion the task required explicitly: AC-004 growth-inflation quadrant labeled market-implied INLINE whenever sentiment/stress proxies are the only input; AC-002 a non-enumerated combination NEVER receives an invented archetype name; AC-009 a facet source NEVER consumes the composed regime in model computation; AC-013 sleeve output carries zero weight/allocation/exposure/direction language in any wording; AC-014 inflationary vs disinflationary risk-off yield DIFFERENT bond sub-type fit; AC-005 unavailable REDUCES the confirmation denominator rather than voting neutral; AC-012 SOXX/SPY and SMH/SPY count as ONE evidence family; AC-008 historical regime labels are as-of-safe filtered and hindsight-smoothed series are refused. (4) '## Known Risks And Honest Limitations' — R-1..R-9 naming every required risk: R-1 multiplicity (regime slicing multiplies effective trials and MUST be counted in any downstream out-of-sample discount; this feature publishes labels and licenses no conditional performance claim); R-2 small per-regime samples; R-3 label instability without hysteresis plus the hysteresis lag trade-off; R-4 look-ahead contamination arising from input REVISIONS not merely truncation, with shorter-or-absent history as the honest outcome; R-5 coupling risk where regime becomes a vote that collapses independent evidence, contrary to Feature 007's independent-family / no-vote-inflation discipline, with the explicit note that the DAG blocks only the source-side cycle and NOT consumer-side double counting; R-6 freshness cascade producing correlated concentrated degradation across many consumers; R-7 migration blast radius of two live divergent vocabularies across three pages plus the brief payload where regime carries the heaviest weight (rlbrief.js:90); R-8 dependency on the non-certified Feature 012 substrate (status blocked, certifiedAt null) which must never be cited as certified; R-9 no predictive claim is made or implied. (5) '## Downstream Owner Handoffs' — explicit constrained handoffs to bubbles.ux (four Simple/Power/Brief/Journey views, facet-disagreement display that never resolves the conflict, structural/swing/tactical separation, unavailable + not-comparable + no-advantage states, UI primitives NFR-006..NFR-010 and NFR-012, and the UI Scenario Matrix), bubbles.design (module boundaries, the FR-049 EXACT adapterPolicy.moduleAllowlist constraint where widening is a contract change, the FR-051 registry-count lockstep coupling, the IP-005 compatibility projection, as-of-safe history mechanics, and R-5 consumer-side mitigation), and bubbles.plan (foundation-first ordering ratio capability -> facet contract + no-cycle lint -> composer/archetype registry -> sleeve registry + tool surface -> consumer migration, with the compatibility projection schedulable before or with migration; plus BS/AC to scope/DoD mapping where the negative criteria are loud-failing tests not checklist items). HONEST GAP left deliberately open and named rather than silently dropped: '## UI Scenario Matrix' was NOT authored because the bounding task scoped user flows to bubbles.ux; it remains a required unwritten section and is called out in the bubbles.ux handoff and in the RESULT-ENVELOPE. No UX wireframes or user flows authored. No fabricated competitor claims — non-public methodology is explicitly marked as not inspectable. No placeholders, TODOs, or TBDs. Artifacts NOT touched: design.md, scopes.md, report.md, uservalidation.md (none created), and state.json certification.* left at not_started with certifiedAt null; top-level status left at not_started. nextRequiredOwner set to bubbles.ux."
-        },
-        {
-            "agent": "bubbles.ux",
-            "phasesExecuted": [
-                "analyze"
-            ],
-            "statusBefore": "not_started",
-            "statusAfter": "not_started",
-            "startedAt": "2026-07-27T02:00:00Z",
-            "finishedAt": "2026-07-27T02:34:00Z",
-            "outcome": "completed_owned",
-            "summary": "UX authoring pass COMPLETE across two bounded chunks (part 1 + part 2), both APPEND-ONLY into specs/013-market-regime-stack-and-strategy-playbook/spec.md. No sidecar UX file was created at any point (UX8): no ux.md, wireframes.md, flows.md, user-flows.md, or screens.md exists in the feature directory. PART 1 authored: the '## UI Wireframes' shell preamble (one Research Lab tool page, shared shell, four views Simple/Power/Brief/Journey through the standard #rlviews control per the Feature-012 four-view contract, Simple as the persisted default with a blank-proof fallback, plus the compute-once rule where all four views read one composed CombinedRegime plus one ordered SleeveFitRead list and a lever change recomputes through a single render() call, never a refetch, with Power canvases drawn synchronously from render() rather than deferred behind rAF); '### Screen Inventory'; '### UI Primitives' declaring 12 shared primitives satisfying UX9 (RegimeVerdictHeader, FacetRow, HorizonLane, ConfirmationDenominator, ContradictionCallout, RatioPairRow, SleeveFitRow, DataTruthBand, ProvenanceLine, UnavailableDetail, ContextualTooltip, TickerLink), each used by at least two of the four views with a stated composition rule and an explicit declaration that a per-screen copy is a defect; and the first two screens '### Screen: Simple — Regime Cockpit' and '### Screen: Power — Facet And Composition Evidence'. PART 2 authored: three further screens plus the flows section. '### Screen: Brief — Cited Regime Interpretation' encodes the Feature-012 rule that the Brief is LLM-authored ONLY from this tool's validated owner read plus a FROZEN cited WebEvidenceBundle — the wireframe shows a six-row authoring gate, the owner-read verdict block (read, never re-derived), the authored prose with inline [Cn] markers, a citation table naming BOTH origins per material claim with an explicit Independent? verdict and a same-origin collapse rule (two citations sharing one publisher, syndication feed, or upstream wire count as ONE origin), the sealed evidence bundle with its declared cutoff and its visible 'excluded — post-cutoff' list, and a SECOND full wireframe for the refusal state in which the prose and citation blocks are REPLACED (not hidden) by an explicit refusal naming each reason plus what-would-resolve, with no partial brief, no hedged brief, and no prose emitted at all. '### Screen: Journey — Guided Regime Goals' encodes noExecution: true with six ordered steps carrying aria-current=step, per-step evidence counts in n of m qualifying form, a transitive-stale marker showing the full dependency chain (step 4 ← step 2 ← credit facet), an explicitly STATED signoff withdrawal rather than a silent one, backtracking of aria-current to the earliest invalidated step, blocked downstream steps that withhold their preview rather than computing one on withdrawn evidence, and a completion packet whose terminal state is a reading record carrying an inseparable no-execution disclaimer (authorises nothing, publishes nothing, submits nothing, places no order). '### Screen: Mobile — Simple (under 600px)' is a single-column wireframe in which the three horizon lanes STACK in the fixed structural → swing → tactical order with lane labels and per-lane confirmation counts preserved, the composed confirmation denominator including its shrink clause is preserved as wrapped TEXT LINES rather than a ring/bar/gauge, and the body never gains a horizontal scrollbar at any width — the #rlviews segment and any wide table scroll only inside their own labeled, focusable containers, and long names/reasons wrap rather than ellipsise because the truncated tail carries the load-bearing qualification. '## User Flows' authored with 7 mermaid diagrams: (1) boot → cache-first first paint → delta refresh → composed verdict, branching to named archetype vs Mixed/Unresolved fingerprint; (2) facet staleness → unavailable → never-neutral → shrunken denominator → honest degraded verdict; (3) contradiction discovery → Power facet matrix → transition ledger with FLIPPED/HELD hysteresis detail, never averaged or majority-resolved; (4) sleeve relative-fit comparison → invalidation record with an explicit terminal state emitting relative fit and invalidation only; (5) ratio-pair inspection → adjacent declared window → family grouping → not-comparable branch; (6) Brief authoring gate → corroborated brief OR explicit refusal; (7) journey step → evidence check → transitive-stale backtrack → completion packet. UX3/UX4/UX5 satisfied on every one of the five screens: each carries **Interactions**, **Responsive behavior**, **Accessibility**, and **States**. Cross-cutting invariants held throughout: every state word is text plus a non-colour mark and never colour alone; every window-relative percentile or z-score renders its declared window as ADJACENT visible text rather than tooltip-only; every 'unavailable' renders reason plus what-would-resolve and is never a zero, a neutral value, or a bare dash; no weight, allocation, exposure, position size, target, or trade direction appears anywhere except inside explicit negative prohibition statements; and no journey terminal state contains any execution, publication, submission, or order concept. Screen Inventory was updated in place to mark Brief Read and Guided Regime Journey as 'New' (they were staged as 'New — part 2') and to add the Mobile — Simple (< 600px) row. Design Language: none resolved — the repo has no designLanguages.enabled entry, so no '### Design Language' section was written and the feature relies on the repo's local UI skills only; the operator may enable one and set designLanguages.default in .github/bubbles-project.yaml (operator-owned, not auto-written). NOT touched: all analyst-owned sections above '## UI Wireframes' preserved byte-for-byte, design.md, scopes.md, report.md, uservalidation.md (none created), certification.* (left at not_started), certifiedAt (left null), and top-level status (left not_started). nextRequiredOwner set to bubbles.design."
-        }
-    ]
+    "autoCommit": {
+      "mode": "off",
+      "source": "repo-default"
+    },
+    "lockdown": {
+      "mode": "off",
+      "source": "repo-default"
+    },
+    "regression": {
+      "mode": "protected-scenarios",
+      "source": "repo-default"
+    },
+    "validation": {
+      "mode": "certification-required",
+      "source": "repo-default"
+    }
+  },
+  "transitionRequests": [],
+  "reworkQueue": [],
+  "executionHistory": [
+    {
+      "agent": "bubbles.analyst",
+      "phasesExecuted": [
+        "analyze"
+      ],
+      "statusBefore": "not_started",
+      "statusAfter": "not_started",
+      "startedAt": "2026-07-27T00:00:00Z",
+      "finishedAt": "2026-07-27T00:04:00Z",
+      "outcome": "completed_owned",
+      "summary": "Greenfield analyst authoring, chunk 1 of N (bounded task). Created specs/013-market-regime-stack-and-strategy-playbook/{spec.md,state.json}. Wrote EXACTLY three analyst-owned spec.md sections and stopped: (1) '# Feature: 013 Market Regime Stack and Strategy Playbook' + '## Problem', grounded in verified file:line evidence that regime is computed in at least seven places under four vocabularies and that TWO nominally-shared classifiers already disagree - rlg.js:262-274 macroRegime() (Extreme greed / Greed - risk-on / Neutral / Fear - risk-off / Extreme fear, plus risk:1|0|-1, consumed by intraday-tape-lab.html:1609 and market-brief.html:837) versus rlexperience-adapters/market-structure.js:1296-1300 regimeBand(fg,trend,vix) (Risk-on trend / Greed (late) / Distribution - topping / Accumulation - basing / Risk-off - fear / Fear (early), consumed by swing-structure-lab.html:1473) - with intraday-tape-lab.html:1776-1777 holding an inline THIRD copy while delegating four other primitives to RLMARKETSTRUCTURE at :1424-1431; plus the independent regime notions in sector-research-lab.html:2022/:2894, market-heatmap-lab.html:488, bond-regime-lab.html:1419/:1455/:1709, and the magnitude-only rlvol.js:335 (declared direction-free at rlvol.js:13); the brief's existing regime-weighted evidence model (rlbrief.js:90), horizon frame (rlbrief.js:1060-1103) and persistence primitive (rlbrief.js:137-145); the trapped generic ratio primitive real-assets-lab.html:1249 used only for gold/silver at :1371 with the honest proxy caveat at :1170; and the headless-owner-read coverage gap at scripts/brief-refresh.mjs:1173 alongside the existing DERIVED source concept at :561. (2) '## Outcome Contract' with Intent / Success Signal / Hard Constraints / Failure Condition, encoding horizon separation, market-implied quadrant labeling, typed fingerprint with named archetypes only for explicitly-defined combinations, relative-research-fit-only sleeve ranking, separated dividend/bond/commodity sub-types, contradiction preservation, first-class unavailable that shrinks the confirmation denominator, as-of-safe filtered history, and educational-only scope. (3) '## Domain Capability Model' (G094/AN5) with the capability statement, an eight-primitive table with lifecycles (RatioPair, RegimeFacet, FacetHorizon, CombinedRegime, RegimeArchetype, SleeveFitRead, RegimeTransition, RegimeOwnerRead), relationships, and business policies including the facet DAG no-cycle rule (sources publish, one composer combines, consumers read; a facet source must never consume the composed regime inside its own model). No foreign artifact was created or edited; no certification value other than the initial not_started was written; no UX wireframe section authored. Outcome: completed_owned, spec.md deliberately partial pending the remaining analyst chunks."
+    },
+    {
+      "agent": "bubbles.analyst",
+      "phasesExecuted": [
+        "analyze"
+      ],
+      "statusBefore": "not_started",
+      "statusAfter": "not_started",
+      "startedAt": "2026-07-27T01:00:00Z",
+      "finishedAt": "2026-07-27T01:04:00Z",
+      "outcome": "completed_owned",
+      "summary": "Final analyst chunk (bounded task). APPENDED five analyst-owned sections to spec.md, preserving everything above the append point byte-for-byte. (1) '## Competitive Landscape' \u2014 a 6-column table across five surface classes: TradingView technical ratings (publicly documented constituent-averaging gauge; per-symbol technical, not cross-asset regime), Koyfin/YCharts-class macro dashboards (user-composed synthesis, no product-level horizon contract), Bloomberg/Refinitiv-class terminals (row explicitly marked NOT publicly inspectable / entitlement-gated so NO proprietary-methodology claim is made), retail newsletters (narrative calls with implicit shifting horizons), and Research Lab's own fragmented state (seven notions, four vocabularies, two divergent shared classifiers, one inline copy). Closing positioning paragraph is deliberately honest: the feature does NOT compete on data quality, universe breadth, latency, or predictive power; the ONLY differentiator is transparent facet composition with preserved contradiction, declared horizons, and honest unavailable that shrinks the confirmation denominator. (2) '## Improvement Proposals' \u2014 six ranked proposals IP-001..IP-006 in the repo's established format extended with Problem/Proposal/Evidence Basis/Competitive Advantage/Impact/Effort/Business Scenarios: IP-001 shared ratio-pair capability (generalizing the trapped generic primitive real-assets-lab.html:1249 used once at :1371, carrying the :1170 proxy caveat, with overlapping pairs collapsed into one evidence family); IP-002 facet DAG with declared source/composer/consumer roles plus a MECHANICAL no-cycle lint wired into the existing validation path (grounded in the live half-migration at intraday-tape-lab.html:1424-1431 vs :1776-1777, and the scripts/validate-tool-experience.mjs precedent for mechanical invariants); IP-003 combined-regime fingerprint with a CLOSED enumerated archetype registry where nearest-neighbour and majority-vote naming are defects not fallbacks; IP-004 sleeve relative-fit registry with permanently separated dividend/bond/commodity sub-types and a negative output contract (zero weights/allocations/exposures/direction) plus an explicit no-advantage state; IP-005 compatibility projection back into BOTH live band vocabularies (5-band rlg.js:262-274 + risk sign, 6-band market-structure.js:1296-1300) as a declared, dated, declared-lossy deprecation surface so the three live pages plus the brief payload migrate one at a time instead of a big-bang cutover; IP-006 deterministic published RegimeOwnerRead shaped for the existing DERIVED contract at scripts/brief-refresh.mjs:561 to join the five-tool deterministic set at :1173. (3) '## Acceptance Criteria' \u2014 AC-001..AC-016 mapping 22 of 22 business scenarios (zero unmapped), including every criterion the task required explicitly: AC-004 growth-inflation quadrant labeled market-implied INLINE whenever sentiment/stress proxies are the only input; AC-002 a non-enumerated combination NEVER receives an invented archetype name; AC-009 a facet source NEVER consumes the composed regime in model computation; AC-013 sleeve output carries zero weight/allocation/exposure/direction language in any wording; AC-014 inflationary vs disinflationary risk-off yield DIFFERENT bond sub-type fit; AC-005 unavailable REDUCES the confirmation denominator rather than voting neutral; AC-012 SOXX/SPY and SMH/SPY count as ONE evidence family; AC-008 historical regime labels are as-of-safe filtered and hindsight-smoothed series are refused. (4) '## Known Risks And Honest Limitations' \u2014 R-1..R-9 naming every required risk: R-1 multiplicity (regime slicing multiplies effective trials and MUST be counted in any downstream out-of-sample discount; this feature publishes labels and licenses no conditional performance claim); R-2 small per-regime samples; R-3 label instability without hysteresis plus the hysteresis lag trade-off; R-4 look-ahead contamination arising from input REVISIONS not merely truncation, with shorter-or-absent history as the honest outcome; R-5 coupling risk where regime becomes a vote that collapses independent evidence, contrary to Feature 007's independent-family / no-vote-inflation discipline, with the explicit note that the DAG blocks only the source-side cycle and NOT consumer-side double counting; R-6 freshness cascade producing correlated concentrated degradation across many consumers; R-7 migration blast radius of two live divergent vocabularies across three pages plus the brief payload where regime carries the heaviest weight (rlbrief.js:90); R-8 dependency on the non-certified Feature 012 substrate (status blocked, certifiedAt null) which must never be cited as certified; R-9 no predictive claim is made or implied. (5) '## Downstream Owner Handoffs' \u2014 explicit constrained handoffs to bubbles.ux, bubbles.design, and bubbles.plan. HONEST GAP left deliberately open and named rather than silently dropped: '## UI Scenario Matrix' was NOT authored because the bounding task scoped user flows to bubbles.ux; it remains a required unwritten section. No UX wireframes or user flows authored. No fabricated competitor claims. No placeholders, TODOs, or TBDs. Artifacts NOT touched: design.md, scopes.md, report.md, uservalidation.md (none created), and state.json certification.* left at not_started with certifiedAt null; top-level status left at not_started. nextRequiredOwner set to bubbles.ux. VERBATIM CONTINUATION of the bubbles.analyst record above \u2014 retained unedited so the original analyst wording is preserved in full rather than truncated. It describes the same single analyst pass, which APPENDED five analyst-owned sections to spec.md, preserving everything above the append point byte-for-byte. (1) '## Competitive Landscape' \u2014 a 6-column table across five surface classes: TradingView technical ratings (publicly documented constituent-averaging gauge; per-symbol technical, not cross-asset regime), Koyfin/YCharts-class macro dashboards (user-composed synthesis, no product-level horizon contract), Bloomberg/Refinitiv-class terminals (row explicitly marked NOT publicly inspectable / entitlement-gated so NO proprietary-methodology claim is made), retail newsletters (narrative calls with implicit shifting horizons), and Research Lab's own fragmented state (seven notions, four vocabularies, two divergent shared classifiers, one inline copy). Closing positioning paragraph is deliberately honest: the feature does NOT compete on data quality, universe breadth, latency, or predictive power; the ONLY differentiator is transparent facet composition with preserved contradiction, declared horizons, and honest unavailable that shrinks the confirmation denominator. (2) '## Improvement Proposals' \u2014 six ranked proposals IP-001..IP-006 in the repo's established format extended with Problem/Proposal/Evidence Basis/Competitive Advantage/Impact/Effort/Business Scenarios: IP-001 shared ratio-pair capability (generalizing the trapped generic primitive real-assets-lab.html:1249 used once at :1371, carrying the :1170 proxy caveat, with overlapping pairs collapsed into one evidence family); IP-002 facet DAG with declared source/composer/consumer roles plus a MECHANICAL no-cycle lint wired into the existing validation path (grounded in the live half-migration at intraday-tape-lab.html:1424-1431 vs :1776-1777, and the scripts/validate-tool-experience.mjs precedent for mechanical invariants); IP-003 combined-regime fingerprint with a CLOSED enumerated archetype registry where nearest-neighbour and majority-vote naming are defects not fallbacks; IP-004 sleeve relative-fit registry with permanently separated dividend/bond/commodity sub-types and a negative output contract (zero weights/allocations/exposures/direction) plus an explicit no-advantage state; IP-005 compatibility projection back into BOTH live band vocabularies (5-band rlg.js:262-274 + risk sign, 6-band market-structure.js:1296-1300) as a declared, dated, declared-lossy deprecation surface so the three live pages plus the brief payload migrate one at a time instead of a big-bang cutover; IP-006 deterministic published RegimeOwnerRead shaped for the existing DERIVED contract at scripts/brief-refresh.mjs:561 to join the five-tool deterministic set at :1173. (3) '## Acceptance Criteria' \u2014 AC-001..AC-016 mapping 22 of 22 business scenarios (zero unmapped), including every criterion the task required explicitly: AC-004 growth-inflation quadrant labeled market-implied INLINE whenever sentiment/stress proxies are the only input; AC-002 a non-enumerated combination NEVER receives an invented archetype name; AC-009 a facet source NEVER consumes the composed regime in model computation; AC-013 sleeve output carries zero weight/allocation/exposure/direction language in any wording; AC-014 inflationary vs disinflationary risk-off yield DIFFERENT bond sub-type fit; AC-005 unavailable REDUCES the confirmation denominator rather than voting neutral; AC-012 SOXX/SPY and SMH/SPY count as ONE evidence family; AC-008 historical regime labels are as-of-safe filtered and hindsight-smoothed series are refused. (4) '## Known Risks And Honest Limitations' \u2014 R-1..R-9 naming every required risk: R-1 multiplicity (regime slicing multiplies effective trials and MUST be counted in any downstream out-of-sample discount; this feature publishes labels and licenses no conditional performance claim); R-2 small per-regime samples; R-3 label instability without hysteresis plus the hysteresis lag trade-off; R-4 look-ahead contamination arising from input REVISIONS not merely truncation, with shorter-or-absent history as the honest outcome; R-5 coupling risk where regime becomes a vote that collapses independent evidence, contrary to Feature 007's independent-family / no-vote-inflation discipline, with the explicit note that the DAG blocks only the source-side cycle and NOT consumer-side double counting; R-6 freshness cascade producing correlated concentrated degradation across many consumers; R-7 migration blast radius of two live divergent vocabularies across three pages plus the brief payload where regime carries the heaviest weight (rlbrief.js:90); R-8 dependency on the non-certified Feature 012 substrate (status blocked, certifiedAt null) which must never be cited as certified; R-9 no predictive claim is made or implied. (5) '## Downstream Owner Handoffs' \u2014 explicit constrained handoffs to bubbles.ux (four Simple/Power/Brief/Journey views, facet-disagreement display that never resolves the conflict, structural/swing/tactical separation, unavailable + not-comparable + no-advantage states, UI primitives NFR-006..NFR-010 and NFR-012, and the UI Scenario Matrix), bubbles.design (module boundaries, the FR-049 EXACT adapterPolicy.moduleAllowlist constraint where widening is a contract change, the FR-051 registry-count lockstep coupling, the IP-005 compatibility projection, as-of-safe history mechanics, and R-5 consumer-side mitigation), and bubbles.plan (foundation-first ordering ratio capability -> facet contract + no-cycle lint -> composer/archetype registry -> sleeve registry + tool surface -> consumer migration, with the compatibility projection schedulable before or with migration; plus BS/AC to scope/DoD mapping where the negative criteria are loud-failing tests not checklist items). HONEST GAP left deliberately open and named rather than silently dropped: '## UI Scenario Matrix' was NOT authored because the bounding task scoped user flows to bubbles.ux; it remains a required unwritten section and is called out in the bubbles.ux handoff and in the RESULT-ENVELOPE. No UX wireframes or user flows authored. No fabricated competitor claims \u2014 non-public methodology is explicitly marked as not inspectable. No placeholders, TODOs, or TBDs. Artifacts NOT touched: design.md, scopes.md, report.md, uservalidation.md (none created), and state.json certification.* left at not_started with certifiedAt null; top-level status left at not_started. nextRequiredOwner set to bubbles.ux."
+    },
+    {
+      "agent": "bubbles.ux",
+      "phasesExecuted": [
+        "analyze"
+      ],
+      "statusBefore": "not_started",
+      "statusAfter": "not_started",
+      "startedAt": "2026-07-27T02:00:00Z",
+      "finishedAt": "2026-07-27T02:34:00Z",
+      "outcome": "completed_owned",
+      "summary": "UX authoring pass COMPLETE across two bounded chunks (part 1 + part 2), both APPEND-ONLY into specs/013-market-regime-stack-and-strategy-playbook/spec.md. No sidecar UX file was created at any point (UX8): no ux.md, wireframes.md, flows.md, user-flows.md, or screens.md exists in the feature directory. PART 1 authored: the '## UI Wireframes' shell preamble (one Research Lab tool page, shared shell, four views Simple/Power/Brief/Journey through the standard #rlviews control per the Feature-012 four-view contract, Simple as the persisted default with a blank-proof fallback, plus the compute-once rule where all four views read one composed CombinedRegime plus one ordered SleeveFitRead list and a lever change recomputes through a single render() call, never a refetch, with Power canvases drawn synchronously from render() rather than deferred behind rAF); '### Screen Inventory'; '### UI Primitives' declaring 12 shared primitives satisfying UX9 (RegimeVerdictHeader, FacetRow, HorizonLane, ConfirmationDenominator, ContradictionCallout, RatioPairRow, SleeveFitRow, DataTruthBand, ProvenanceLine, UnavailableDetail, ContextualTooltip, TickerLink), each used by at least two of the four views with a stated composition rule and an explicit declaration that a per-screen copy is a defect; and the first two screens '### Screen: Simple \u2014 Regime Cockpit' and '### Screen: Power \u2014 Facet And Composition Evidence'. PART 2 authored: three further screens plus the flows section. '### Screen: Brief \u2014 Cited Regime Interpretation' encodes the Feature-012 rule that the Brief is LLM-authored ONLY from this tool's validated owner read plus a FROZEN cited WebEvidenceBundle \u2014 the wireframe shows a six-row authoring gate, the owner-read verdict block (read, never re-derived), the authored prose with inline [Cn] markers, a citation table naming BOTH origins per material claim with an explicit Independent? verdict and a same-origin collapse rule (two citations sharing one publisher, syndication feed, or upstream wire count as ONE origin), the sealed evidence bundle with its declared cutoff and its visible 'excluded \u2014 post-cutoff' list, and a SECOND full wireframe for the refusal state in which the prose and citation blocks are REPLACED (not hidden) by an explicit refusal naming each reason plus what-would-resolve, with no partial brief, no hedged brief, and no prose emitted at all. '### Screen: Journey \u2014 Guided Regime Goals' encodes noExecution: true with six ordered steps carrying aria-current=step, per-step evidence counts in n of m qualifying form, a transitive-stale marker showing the full dependency chain (step 4 \u2190 step 2 \u2190 credit facet), an explicitly STATED signoff withdrawal rather than a silent one, backtracking of aria-current to the earliest invalidated step, blocked downstream steps that withhold their preview rather than computing one on withdrawn evidence, and a completion packet whose terminal state is a reading record carrying an inseparable no-execution disclaimer (authorises nothing, publishes nothing, submits nothing, places no order). '### Screen: Mobile \u2014 Simple (under 600px)' is a single-column wireframe in which the three horizon lanes STACK in the fixed structural \u2192 swing \u2192 tactical order with lane labels and per-lane confirmation counts preserved, the composed confirmation denominator including its shrink clause is preserved as wrapped TEXT LINES rather than a ring/bar/gauge, and the body never gains a horizontal scrollbar at any width \u2014 the #rlviews segment and any wide table scroll only inside their own labeled, focusable containers, and long names/reasons wrap rather than ellipsise because the truncated tail carries the load-bearing qualification. '## User Flows' authored with 7 mermaid diagrams: (1) boot \u2192 cache-first first paint \u2192 delta refresh \u2192 composed verdict, branching to named archetype vs Mixed/Unresolved fingerprint; (2) facet staleness \u2192 unavailable \u2192 never-neutral \u2192 shrunken denominator \u2192 honest degraded verdict; (3) contradiction discovery \u2192 Power facet matrix \u2192 transition ledger with FLIPPED/HELD hysteresis detail, never averaged or majority-resolved; (4) sleeve relative-fit comparison \u2192 invalidation record with an explicit terminal state emitting relative fit and invalidation only; (5) ratio-pair inspection \u2192 adjacent declared window \u2192 family grouping \u2192 not-comparable branch; (6) Brief authoring gate \u2192 corroborated brief OR explicit refusal; (7) journey step \u2192 evidence check \u2192 transitive-stale backtrack \u2192 completion packet. UX3/UX4/UX5 satisfied on every one of the five screens: each carries **Interactions**, **Responsive behavior**, **Accessibility**, and **States**. Cross-cutting invariants held throughout: every state word is text plus a non-colour mark and never colour alone; every window-relative percentile or z-score renders its declared window as ADJACENT visible text rather than tooltip-only; every 'unavailable' renders reason plus what-would-resolve and is never a zero, a neutral value, or a bare dash; no weight, allocation, exposure, position size, target, or trade direction appears anywhere except inside explicit negative prohibition statements; and no journey terminal state contains any execution, publication, submission, or order concept. Screen Inventory was updated in place to mark Brief Read and Guided Regime Journey as 'New' (they were staged as 'New \u2014 part 2') and to add the Mobile \u2014 Simple (< 600px) row. Design Language: none resolved \u2014 the repo has no designLanguages.enabled entry, so no '### Design Language' section was written and the feature relies on the repo's local UI skills only; the operator may enable one and set designLanguages.default in .github/bubbles-project.yaml (operator-owned, not auto-written). NOT touched: all analyst-owned sections above '## UI Wireframes' preserved byte-for-byte, design.md, scopes.md, report.md, uservalidation.md (none created), certification.* (left at not_started), certifiedAt (left null), and top-level status (left not_started). nextRequiredOwner set to bubbles.design."
+    },
+    {
+      "agent": "bubbles.design",
+      "phasesExecuted": [
+        "bootstrap"
+      ],
+      "statusBefore": "not_started",
+      "statusAfter": "not_started",
+      "startedAt": "2026-07-27T03:00:00Z",
+      "finishedAt": "2026-07-27T03:04:00Z",
+      "outcome": "completed_owned",
+      "summary": "Design authoring pass COMPLETE. FINAL bounded chunk appended seven sections to specs/013-market-regime-stack-and-strategy-playbook/design.md, preserving every prior byte above '## RESULT-ENVELOPE' and keeping '## RESULT-ENVELOPE' as the last section. APPENDED: (1) '## UI Primitive Realization' mapping all 12 spec-declared UI primitives (RegimeVerdictHeader, FacetRow, HorizonLane, ConfirmationDenominator, ContradictionCallout, RatioPairRow, SleeveFitRow, DataTruthBand, ProvenanceLine, UnavailableDetail, ContextualTooltip, TickerLink) to the RLRATIO/RLREGIME export that supplies its data, the shared helper that renders it (rlcontext.js/RLCTX for the mandatory two-part contextual tooltips, rlticker.js/RLTKR for ticker links, rlchart.js/RLCHART for canvas hit-testing, rlg.js/RLG for the glossary half, rlapp.js/RLAPP.report for the shared DataTruthBand), and its composition rule, plus the hard single-source rule that each primitive is authored ONCE as a named render function and a per-screen copy is a defect \u2014 the same discipline rlexperience-adapters/options.js enforces for owner formulas. (2) '## Failure Handling And Degradation' with a Failure/Detection/User-visible result/Reason-code table covering missing-or-stale facet, insufficient ratio history, distribution-adjustment mismatch, session/FX incomparability, no archetype match, all-facets-unavailable, published-read stale for a consumer, legacy-projection for an unmappable state, hidden-tab canvas draw, and cache-miss on first paint \u2014 every row resolving to a typed unavailable / not-comparable / Mixed / Unresolved state with exactly one reason code, never a default, zero, neutral vote, or exception reaching the user, with the throw-vs-degrade split stated (malformed contract throws typed RLRATIO_*/RLREGIME_* with .code and .path; data absence never throws). (3) '## Performance And Rendering': cache-first auto-hydrate first paint from rldata.js then delta-only refresh; one compute per render() feeding Simple, Power, Brief and the published owner read with lever/view changes recomputing and never refetching; synchronous canvas draws inside render() because rAF does not fire in hidden tabs, with redraw on resize and on view activation, no draw while a view is inactive, and RLCHART.attach in the same pass; a stated sub-50ms compute budget for pure composition over cached inputs with groupByFamily collapsing before confirmationRatio; and the Number.isFinite null-safe first-paint rule with the global isFinite explicitly forbidden. (4) '## Security And Privacy': no credentials in any facet, ratio, composed regime, owner read, export, or journey packet; provider access exclusively on index.html#data-settings via RLDATA.providerFetch with no page-local key input, no rlApiKeys, no RLDATA.key, and no tokenized URL; no private portfolio scope read (Feature 008 boundary) with sleeve fits ordinal and instrument-agnostic; a public-safe published owner read; journeys noExecution. (5) '## Testing Strategy' mapped to the canonical taxonomy (unit, functional, integration, ui-unit, e2e-api, e2e-ui, stress, load) naming the concrete surfaces \u2014 scripts/selftest.mjs groups for the pure modules and Playwright system-chrome live-stack specs under tests/ for the screens (e2e-api marked not applicable: no server API) \u2014 with four mandatory adversarial RED-bite mutations (neutralizing the no-cycle rule, the denominator shrink, the family collapse, or the archetype fallback) each required to fail a NAMED test, and an explicit prohibition on page.route / context.route / intercept( / cy.intercept / msw / nock in any live-stack spec plus a prohibition on silent-pass bailouts. (6) '## Implementation Boundary' enumerating NEW files (rlratio.js, rlregime.js, market-regime-lab.html, ratio-pairs.json, regime-archetypes.json, notes/market-regime-lab.md), files MODIFIED in the same change for registry coherence (tools.json, simple-models.json, journeys.json, index.html, rlnav.js, scripts/selftest.mjs, scripts/brief-refresh.mjs), consumer migration (rlg.js, rlexperience-adapters/market-structure.js, intraday-tape-lab.html, swing-structure-lab.html, market-brief.html), and PROTECTED surfaces implementation must not touch (rldata.js cache schema, rlcontracts.js, rlexperience.js, rljourney.js, data/** snapshots, watchlist.json, and every Feature 012 gated surface). (7) The '## RESULT-ENVELOPE' block was updated in place to record the seven newly delivered sections, empty sectionsDeferredToLaterChunks, the finalChunkDecisions record, and nextOwner bubbles.plan. Hard rules held throughout: no defaults, no fallbacks, no stubs, no placeholders; Number.isFinite only and never the global isFinite; export and error-code names kept consistent with the existing '## Module Contracts' tables (RLRATIO.validatePairRegistry/ratioSeries/trailingChange/windowStats/groupByFamily/checkAdjustmentParity/checkComparability and RLREGIME.validateFacet/validateFacetSet/applyPersistence/confirmationRatio/matchArchetype/extractContradictions/composeRegime/sleeveFits/ownerRead/projectCompatibility/readPublishedContext). NOT touched: spec.md, scopes.md, report.md, uservalidation.md (none created), product code, certification.* (left at not_started), certifiedAt (left null), and top-level status (left not_started). execution.nextRequiredOwner set to bubbles.plan."
+    },
+    {
+      "agent": "bubbles.plan",
+      "phasesExecuted": [
+        "bootstrap"
+      ],
+      "statusBefore": "not_started",
+      "statusAfter": "not_started",
+      "startedAt": "2026-07-27T04:00:00Z",
+      "finishedAt": "2026-07-27T04:04:00Z",
+      "outcome": "completed_owned",
+      "summary": "Scope STRUCTURE authoring pass (bounded chunk 1 of the planning work). Adopted the PER-SCOPE DIRECTORY layout because the feature carries 8 scopes, which exceeds the single-file threshold: created scopes/_index.md plus eight scopes/NN-name/scope.md files. Scopes derived strictly from design.md '## Implementation Boundary' and the Tier DAG, with P4/G094 foundation-first ordering enforced: SCOPE-1 (Ratio capability foundation, rlratio.js + ratio-pairs.json, foundation:true, no dependencies) and SCOPE-2 (Regime facet contract + composer foundation, rlregime.js + regime-archetypes.json, foundation:true, dependsOn SCOPE-1) both precede every overlay, and every overlay reaches SCOPE-2 (and transitively SCOPE-1) through its Depends On chain. Overlays: SCOPE-3 Facet source publication shims (dependsOn SCOPE-2), SCOPE-4 Market Regime Lab surface (dependsOn SCOPE-2, SCOPE-3), SCOPE-5 Registry registration + FR-051 count lockstep (dependsOn SCOPE-4), SCOPE-6 Consumer migration + compatibility projection (dependsOn SCOPE-2, SCOPE-5), SCOPE-7 Headless DERIVED owner read (dependsOn SCOPE-4, SCOPE-5), SCOPE-8 Regression + governance closure (dependsOn SCOPE-1..SCOPE-7). Each scope.md carries Status Not Started, Tags, Depends On, Objective, an Implementation Files table drawn ONLY from the design's Implementation Boundary allowlist (no protected surface named as modifiable), the exact BS-013-0NN scenario titles it delivers copied verbatim from spec.md with no invented scenario text, and an Implementation Plan. scopes/_index.md carries the Execution Outline (phase order, new types and signatures introduced per scope, validation checkpoints), the scope table with ID/name/status/tags/dependsOn/BS coverage, the full BS-to-scope ownership map, the coverage arithmetic (4+7+1+6+0+2+2+0 = 22 of 22 each exactly once), the explicit ownership note explaining why SCOPE-5 and SCOPE-8 own zero business scenarios by design rather than by orphaning, the P4 foundation-ordering statement, and the sequential gating rule. state.json updated: scopeLayout set to per-scope-directory, scopeIndexArtifact recorded, and execution.scopeProgress populated with one entry per scope carrying scopeId, name, status not_started, foundation flag, dependsOn, scopeDir, scopeArtifact, reportArtifact, and businessScenariosOwned. DELIBERATELY NOT AUTHORED in this bounded chunk and reserved for the next planning chunk: Test Plan tables, tiered Definition of Done, per-scope report.md files, uservalidation.md, and scenario-manifest.json. NOT touched: spec.md, design.md, product code, certification.* (left at not_started), certifiedAt (left null), and top-level status (left not_started). execution.nextRequiredOwner remains bubbles.plan."
+    },
+    {
+      "agent": "bubbles.plan",
+      "phasesExecuted": [
+        "bootstrap",
+        "plan"
+      ],
+      "statusBefore": "not_started",
+      "statusAfter": "not_started",
+      "startedAt": "2026-07-27T19:00:00Z",
+      "finishedAt": "2026-07-27T19:04:00Z",
+      "outcome": "completed_owned",
+      "summary": "Planning-chain closure pass. Created the four remaining plan-owned artifacts and left the eight already-authored scopes/NN-name/scope.md files byte-for-byte untouched. (1) report.md: feature-level evidence template with ## Summary, a per-scope ### SCOPE-N section, one #### TP-NN-MM anchor per Test Plan row (73 anchors total: 8/12/7/11/7/9/9/10 across SCOPE-1..SCOPE-8), plus ## Completion Statement and ## Test Evidence. Every one of the 73 evidence slots carries the literal sentence 'Awaiting execution - no command has been run for this row.' No output, exit code, or result is recorded anywhere, because nothing has been run. (2) uservalidation.md: 47 acceptance items created CHECKED per the repository convention (the user unchecks to report broken behavior) - 22 items derived from BS-013-001..022 and 25 items derived from the UI Scenario Matrix rows UX-M-01..UX-M-25, each phrased as a user-observable behavior, with an explicit note that a checked box is not a claim of execution. (3) scenario-manifest.json: 22 entries, one per BS-013-001..022, each carrying scenarioId, specSection ('## Business Scenarios', spec.md line 432), the exact BS title from scopes/_index.md, the owning scopeId from the Business Scenario Ownership Map, requiredTestType derived from that scenario's owning Test Plan row, regressionRequired true, an unlocked lockdown state, and EMPTY linkedTests plus EMPTY evidenceRefs because no test file exists yet. contractVersion 1 is declared alongside the repository's existing schemaVersion 1 / version 1 manifest convention. (4) test-plan.json: machine-readable mirror of all 73 Markdown Test Plan rows across the 8 scopes, each scope carrying scopeId, scopeName, scopeDir, foundation flag, dependsOn, testCount, and tests[]; each test carrying id, category, file, description, command, liveSystem, and status 'planned'. Per-scope JSON row counts equal the Markdown row counts exactly: SCOPE-1 8/8, SCOPE-2 12/12, SCOPE-3 7/7, SCOPE-4 11/11, SCOPE-5 7/7, SCOPE-6 9/9, SCOPE-7 9/9, SCOPE-8 10/10, total 73/73. Also added the top-level artifacts map naming all eight feature artifacts. NOT touched: spec.md, design.md, every scopes/NN-name/scope.md, product code, certification.* (left at not_started), certifiedAt (left null), and top-level status (left not_started). Under workflow mode product-to-planning the ceiling is specs_hardened and focus is planning_only, so execution.nextRequiredOwner moves to bubbles.harden - the planning-closure chain (harden, docs, validate, audit), not an implementation agent."
+    }
+  ],
+  "blockedReason": "CERTIFICATION REFUSED at specs_hardened ceiling by bubbles.validate on 2026-07-28T03:30:25Z. state-transition-guard.sh exit 1: 44 blocking failures, failedGateIds=[G073], blockingCode=SOURCE_EDIT_LOCKOUT, targetStatus=specs_hardened, auditProfile=planning-maturity-v1. G073 is in this mode's requiredGates. Blockers, ALL closable inside planning_only without implementing: (1) G073 SOURCE_EDIT_LOCKOUT - intraday-tape-lab.html and swing-structure-lab.html are modified in the working tree and state.json has no deliverableFiles[]; owner bubbles.devops/operator must revert or declare. (2) 24 regression-E2E PLANNING requirements missing across all 8 scopes (scenario-specific regression DoD item + broader E2E regression DoD item + explicit regression Test Plan row per scope); owner bubbles.plan. (3) 10 consumer-trace planning requirements missing for rename/removal scopes 02, 05, 06, 08 (## Consumer Impact Sweep section, consumer-impact-sweep DoD item, enumerated affected consumer surfaces); owner bubbles.plan. (4) SLA-sensitive scopes 03 and 05 have no explicit stress coverage row; owner bubbles.plan. (5) Test Plan references non-existent/non-resolvable file rlregime.js (2 occurrences); owner bubbles.plan. (6) artifact-freshness-guard.sh FAILED; owner bubbles.plan. NOT a blocker and explicitly adjudicated as tolerated at this ceiling: traceability-guard.sh exit 1 with 24 failures (16 x missing report evidence reference, 8 x mapped row references no existing concrete test file). The transition guard resolved this same target and returned notApplicableChecks=[Check-4-completion,Check-5-all-done,Check-8-file-existence,Check-11-execution-evidence]; those 24 failures decompose exactly onto Check-8-file-existence and Check-11-execution-evidence. traceability-guard is not in requiredGates for product-to-planning. Its planning-layer assertions all passed: 24/24 scenarios mapped to a Test Plan row, 24/24 mapped to a DoD item, 0 unmapped, scenario-manifest covers 24 contracts with all linked tests existing. The 8 rows name well-formed concrete target paths (tests/market-regime-lab.spec.mjs, tests/market-regime-consumer-migration.spec.mjs) not yet written."
 }

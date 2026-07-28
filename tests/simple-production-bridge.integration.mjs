@@ -435,6 +435,69 @@ function gammaOwnerState() {
   };
 }
 
+/* sector-rotation-transition owner state — the SAME shape sector-research-lab.html's provider
+   publishes (contractVersion + benchmarks + per-sector {id, label, rs, x3, breadthPct50, riskScore,
+   etf}).
+   PRODUCTION-DERIVED, NEVER A HAND-TYPED LIST. The sector rows, their labels/tickers and the
+   benchmark all come from the page's OWN universe file (sector-universe.json — the exact file the
+   page's boot() fetches and applyUniverse() loads), and every relative-strength series is built from
+   the REAL same-origin daily snapshots the page hydrates through RLDATA (data/bars/<SYM>.json).
+   The series is the owner INPUT the page's computeEntry() assembles — a calendar-date alignment of
+   two observed close series and their ratio — never an owner RESULT: the rolling-z RRG kernel, the
+   transition classifier, the rank and the leaders all stay inside the module, and every value
+   asserted below still comes from computeSectorRotationSummary.
+   HONEST ABSENCE, stated plainly: x3 (trailing excess return) and riskScore (the risk-flag count)
+   are page-owned reductions with NO module producer, so reproducing them here would copy an owner
+   formula — they are left absent rather than invented. breadthPct50 is absent because the page
+   itself publishes breadth only for its synthetic GROUP rows (breadthOf returns null for a
+   single-ticker GICS sector), so absence is the faithful production value. The module tolerates all
+   three by contract — a row without breadth contributes 0 to its rank, and the "confirmed" tempo the
+   summary uses never reads x3 — and none of them feeds the numeric or the value text asserted below.
+   The per-row vehicle carries the sector's own tradeable ticker with no fit/mom (the page scores ETF
+   fit only within the operator-selected sector's candidate list), exactly as the page's provider
+   publishes it, so the module honestly reports vehicle.ticker null. */
+function sectorOwnerState() {
+  const universe = readJson('sector-universe.json');
+  const benchmark = String(universe.defaultBenchmark || '');
+  assert.ok(benchmark, 'the production sector universe must declare a default benchmark');
+  const benchmarkCloseByDay = new Map();
+  for (const row of realDailyRows(benchmark)) {
+    if (Number.isFinite(row.c) && row.c > 0) benchmarkCloseByDay.set(new Date(row.t).toISOString().slice(0, 10), row.c);
+  }
+  const rows = (universe.entries || []).filter((entry) => entry.group === 'GICS Sectors' && entry.on && entry.ticker
+    && existsSync(new URL(`data/bars/${entry.ticker}.json`, ROOT)));
+  assert.ok(rows.length >= 3, 'at least three real GICS sector snapshots are required for a sector owner state');
+  let lastObserved = 0;
+  const sectors = [];
+  for (const entry of rows) {
+    const rs = [];
+    for (const row of realDailyRows(entry.ticker)) {
+      const benchmarkClose = benchmarkCloseByDay.get(new Date(row.t).toISOString().slice(0, 10));
+      if (!Number.isFinite(row.c) || !Number.isFinite(benchmarkClose)) continue;
+      rs.push(row.c / benchmarkClose);
+      if (row.t > lastObserved) lastObserved = row.t;
+    }
+    assert.ok(rs.length >= 8, `${entry.ticker}: the real snapshot must align a priced relative-strength window`);
+    sectors.push({
+      id: entry.id,
+      label: entry.label,
+      rs: { [benchmark]: rs },
+      x3: null,
+      breadthPct50: null,
+      riskScore: null,
+      etf: { ticker: entry.ticker }
+    });
+  }
+  return {
+    contractVersion: 'sector-rotation-owner-state/v1',
+    toolId: 'sector-research-lab',
+    asOf: new Date(lastObserved).toISOString(),
+    source: 'same-origin daily snapshot (data/bars)',
+    benchmarks: [benchmark],
+    sectors
+  };
+}
+
 /* Owner-state builders keyed by the REGISTRY adapter id. A wired tool with no entry FAILS LOUD. */
 const OWNER_STATES = {
   'simple-adapter/market-breadth/v1': breadthOwnerState,
@@ -443,7 +506,8 @@ const OWNER_STATES = {
   'simple-adapter/technical-five-gate/v1': technicalOwnerState,
   'simple-adapter/options-anomaly/v1': anomalyOwnerState,
   'simple-adapter/options-surface/v1': surfaceOwnerState,
-  'simple-adapter/dealer-gamma-playbook/v1': gammaOwnerState
+  'simple-adapter/dealer-gamma-playbook/v1': gammaOwnerState,
+  'simple-adapter/sector-rotation-transition/v1': sectorOwnerState
 };
 
 /* ═══════════════════════ owner-parity extractors (the Power-path single source) ═══════════════════════
@@ -532,6 +596,21 @@ const OWNER_PARITY = {
       summaryContains: ready
         ? [summary.playbook.gammaRegime, summary.playbook.scenario, summary.playbook.conviction, summary.playbook.hold]
         : []
+    };
+  },
+  'simple-adapter/sector-rotation-transition/v1': (moduleObject, ownerState, parameterValues) => {
+    const summary = moduleObject.computeSectorRotationSummary(frozenClone(ownerState), parameterValues);
+    const into = summary.transition.top.into;
+    const out = summary.transition.top.out;
+    const leader = summary.relativeStrength.leaders.length ? summary.relativeStrength.leaders[0] : null;
+    return {
+      ownerFunction: 'computeSectorRotationSummary',
+      numericValue: leader ? leader.rsRatio : null,
+      valueText: into ? `Rotate toward ${into}` : (out ? `${out} weakening` : 'No confirmed rotation'),
+      /* The owner-computed transition ids, taken straight off the summary object. Whichever of the
+         two the owner confirms appears verbatim in the Simple summary line, so a Simple read that
+         named a different sector than the owner transition fails here. */
+      summaryContains: [into, out].filter(Boolean)
     };
   }
 };

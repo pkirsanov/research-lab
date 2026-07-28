@@ -1876,6 +1876,72 @@
     var BENCH = { full: null, win: null };
     var ETF_COL_TIPS = [];   // per-column rich-tooltip content for the sector-ETF table (built each render)
 
+    /* ═══════ Scope 15 production Simple-view owner-state provider (Model B) ═══════
+       Expose this page's REAL current owner state to the shared production bridge
+       (rlexperience.js renderSimpleBridge). Registered synchronously (this inline script runs
+       during parse, before the deferred rlapp.js bootstrap) so the shell's provider-gated
+       ownerModes resolves sector-research to the adapter-panel Simple (["power"]).
+
+       The provider performs NO fetch and copies NO formula — it hands the sector-rotation adapter
+       the SAME owner facts this page's own Simple read already renders from:
+         • rows          -> sectorSimpleRows(), the exact row set renderSimple() classifies through
+                            RLMACROROTATION.rotationCandidacy, so the adapter covers the operator's
+                            current Simple scope and nothing else,
+         • rs[benchmark] -> view.rs, the exact benchmark-relative ratio series computeEntry() built
+                            for that row and fed to RLMACROROTATION.rollZ100 (the module then runs
+                            its own RRG kernel over it — one series, one owner formula),
+         • x3            -> view.x3, breadthPct50 -> view.breadth.pct50, riskScore -> view.riskScore,
+                            each the verbatim value computeEntry() already published,
+         • etf.ticker    -> tradeableFor(entry), the page's own vehicle for that row,
+         • asOf / source -> the last aligned observation behind those series (view.rsT) and the
+                            shared-cache provenance tag from RLDATA.barInfo (honest observation truth).
+
+       BENCHMARK TRUTH: computeEntry() aligns every row against BENCH.full — the ONE benchmark the
+       operator currently has selected — so the snapshot declares exactly that benchmark and no
+       other. It never claims a series it did not price.
+
+       HONEST ABSENCES, never fabricated or zero-filled: computeEntry() publishes breadth ONLY for
+       synthetic group rows (breadthOf returns null for a single-ticker sector), and the page scores
+       ETF fit/momentum only for the operator-selected sector — etfScores() min-max-normalises within
+       that one sector's candidate list against state.etfSector as the tracking reference, so no
+       cross-sector fit/mom exists to publish. The adapter tolerates both by contract: a row without
+       breadth contributes 0 to its rank, and a vehicle without finite fit/mom reports ticker and
+       projection null.
+
+       When the page has priced no row yet (unhydrated, or an empty Simple scope) the provider
+       returns null and the bridge renders the honest "unavailable" panel — no invented signal. */
+    globalThis.__rlOwnerStateProvider = globalThis.__rlOwnerStateProvider || {};
+    globalThis.__rlOwnerStateProvider["sector-research-lab"] = function () {
+      var benchmark = state.benchmark, sectors = [], lastObserved = 0;
+      sectorSimpleRows().forEach(function (view) {
+        if (!view || !Array.isArray(view.rs) || !view.rs.length) return;
+        var tradeable = tradeableFor(findE(view.id));
+        var observed = (view.rsT && view.rsT.length) ? view.rsT[view.rsT.length - 1] : null;
+        if (Number.isFinite(observed) && observed > lastObserved) lastObserved = observed;
+        var sector = {
+          id: view.id,
+          label: view.label,
+          rs: {},
+          x3: Number.isFinite(view.x3) ? view.x3 : null,
+          breadthPct50: (view.breadth && Number.isFinite(view.breadth.pct50)) ? view.breadth.pct50 : null,
+          riskScore: Number.isFinite(view.riskScore) ? view.riskScore : null
+        };
+        sector.rs[benchmark] = view.rs;
+        if (tradeable) sector.etf = { ticker: tradeable };
+        sectors.push(sector);
+      });
+      if (!sectors.length) return null;
+      var info = (window.RLDATA && RLDATA.barInfo) ? RLDATA.barInfo(sharedKeyFor(benchmark), '1d') : null;
+      return {
+        contractVersion: 'sector-rotation-owner-state/v1',
+        toolId: 'sector-research-lab',
+        asOf: lastObserved ? new Date(lastObserved).toISOString() : 'unavailable',
+        source: (info && info.src) || 'shared cache snapshot',
+        benchmarks: [benchmark],
+        sectors: sectors
+      };
+    };
+
     /* ══════════════════ small stats lib ══════════════════ */
     function mean(a) { var s = 0, n = a.length; for (var i = 0; i < n; i++)s += a[i]; return n ? s / n : 0; }
     function variance(a) { var m = mean(a), s = 0, n = a.length; for (var i = 0; i < n; i++) { var d = a[i] - m; s += d * d; } return n > 1 ? s / (n - 1) : 0; }
@@ -2125,7 +2191,10 @@
       var sl = stateLabel(quad, accel);
       return {
         id: entry.id, label: entryLabel(entry), color: entryColor(entry.id), type: entry.type,
-        rsRatioArr: rsRatioArr, rsMomArr: rsMomArr, rsT: al.t,
+        /* rs = the benchmark-relative ratio series this row was priced from (the exact array fed to
+           rollZ100 above). Retained so the Scope 15 owner-state provider can hand the Simple adapter
+           the SAME series without recomputing it. */
+        rs: rs, rsRatioArr: rsRatioArr, rsMomArr: rsMomArr, rsT: al.t,
         rsRatio: rsRatio, rsMom: rsMom, quad: quad, tail: tail, rsTrend: rsTrend, accel: accel,
         t1: t1, t3: t3, t6: t6, t12: t12, x1: x1, x3: x3, x6: x6, x12: x12, blend: blend,
         rsLineT: rsLineT, rsLine: rsLine, flow: flow, breadth: breadth,

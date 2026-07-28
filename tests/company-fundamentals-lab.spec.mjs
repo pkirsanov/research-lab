@@ -18,6 +18,27 @@ const undecoratedText = (locator) => () => locator.evaluate((element) => {
     return (clone.textContent || '').replace(/\s+/g, ' ').trim();
 });
 
+// Feature 012 Scope 15 (four-view experience shell, Model B): company-fundamentals-lab is now a
+// WIRED ordinary tool, so rlviews.js resolves ownerModes: ["power"] for it. On the default Simple
+// view the shell therefore sets body.rlv-focused, renders the production Simple ADAPTER panel
+// ([data-rlexperience-panel="simple"]), and hides the page's own native content via the shell rule
+// `body.rlv-focused>*:not(#rlviews)...{display:none!important}` (rlviews.js).
+//
+// Nothing was deleted. The page's native research surface -- its Simple/Detailed mode buttons, the
+// six Detailed tabs, and the peers, resilience, comparability, brief and claim-trace workspaces --
+// MOVED UNDER THE POWER VIEW. A test that exercises that native surface must therefore drive the
+// shell exactly as a production user does: wait for the shell, then select Power. This restores the
+// preconditions the assertions always assumed; every downstream assertion below is unchanged.
+// Mirrors the proven shell-driving pattern in tests/bond-regime-lab.spec.mjs.
+const openNativeResearchSurface = async (page) => {
+    await expect(page.locator('#rlviews[data-rlexperience-shell="ready"]')).toBeVisible();
+    await page.locator('#rlviews button[data-rlview-mode="power"]').click();
+    // Power IS in ownerModes, so rlv-focused clears and the native surface becomes visible again.
+    await expect(page.locator('body')).toHaveAttribute('data-rlview', 'power');
+    await expect(page.locator('body')).not.toHaveClass(/\brlv-focused\b/);
+    await expect(page.locator('[data-detailed-tabs]')).toBeVisible();
+};
+
 let site;
 
 test.beforeAll(async () => {
@@ -81,6 +102,8 @@ test('Regression: SCN-010-026 missing concepts remain unavailable while independ
 test('Regression: SCN-010-029 every material claim reaches its exact source transformation and consumer chain', async ({ page }) => {
     await page.goto(`${site.baseUrl}/company-fundamentals-lab.html`);
     await expect(page.locator('body')).toHaveAttribute('data-publication-status', 'accepted');
+    // The native claim-trace band lives under the Power view (Feature 012 Scope 15).
+    await openNativeResearchSurface(page);
 
     const trigger = page.locator('[data-trace-control="claim-direction"]');
     await trigger.focus();
@@ -454,6 +477,10 @@ test('Regression: SCN-010-015 Simple Detailed and six tabs share one state witho
 
     await page.goto(`${site.baseUrl}/company-fundamentals-lab.html`);
     await expect(page.locator('body')).toHaveAttribute('data-publication-status', 'accepted');
+    // The native Simple/Detailed mode buttons and the six Detailed tabs live under the Power view
+    // (Feature 012 Scope 15). The shell switch happens before the no-refetch baseline is captured
+    // below, so the baseline still measures native mode/tab actions only.
+    await openNativeResearchSurface(page);
     // The one accepted publication was loaded at boot and the page opens in the Detailed view.
     await expect(page.locator('body')).toHaveAttribute('data-view-mode', 'detailed');
 
@@ -510,6 +537,8 @@ test('Regression: SCN-010-028 incompatible peers stay outside statistics and ran
 
     await page.goto(`${site.baseUrl}/company-fundamentals-lab.html`);
     await expect(page.locator('body')).toHaveAttribute('data-publication-status', 'accepted');
+    // The native peers workspace lives under the Power view (Feature 012 Scope 15).
+    await openNativeResearchSurface(page);
     await page.locator('[data-detailed-tab="peers"]').click();
     await expect(page.locator('body')).toHaveAttribute('data-active-tab', 'peers');
 
@@ -561,6 +590,8 @@ test('Regression: SCN-010-002 Chipotle preserves raw leverage beside lease and t
 
     await page.goto(`${site.baseUrl}/company-fundamentals-lab.html`);
     await expect(page.locator('body')).toHaveAttribute('data-publication-status', 'accepted');
+    // The native resilience workspace lives under the Power view (Feature 012 Scope 15).
+    await openNativeResearchSurface(page);
     await page.locator('[data-detailed-tab="resilience"]').click();
 
     const cmg = page.locator('[data-resilience-company="sec-cik-0001058090"]');
@@ -619,6 +650,8 @@ test('Regression: SCN-010-003 JPMorgan uses bank capital credit and liquidity ru
 
     await page.goto(`${site.baseUrl}/company-fundamentals-lab.html`);
     await expect(page.locator('body')).toHaveAttribute('data-publication-status', 'accepted');
+    // The native resilience workspace lives under the Power view (Feature 012 Scope 15).
+    await openNativeResearchSurface(page);
     await page.locator('[data-detailed-tab="resilience"]').click();
 
     const jpm = page.locator('[data-resilience-company="sec-cik-0000019617"]');
@@ -658,6 +691,8 @@ test('Regression: SCN-010-003 JPMorgan uses bank capital credit and liquidity ru
 test('Regression: SCN-010-017 a material filing change leads the brief and links thesis and model effects', async ({ page }) => {
     await page.goto(`${site.baseUrl}/company-fundamentals-lab.html`);
     await expect(page.locator('body')).toHaveAttribute('data-publication-status', 'accepted');
+    // The native brief workspace lives under the Power view (Feature 012 Scope 15).
+    await openNativeResearchSurface(page);
     await page.locator('[data-detailed-tab="brief"]').click();
     const material = page.locator('[data-brief-scenario="material"]');
     await expect(material.locator('[data-brief-status]')).toHaveText('material-update');
@@ -796,6 +831,10 @@ test('Regression: SCN-010-007 mixed currency and fiscal periods remain visible a
 
     await page.goto(`${site.baseUrl}/company-fundamentals-lab.html`);
     await expect(page.locator('body')).toHaveAttribute('data-publication-status', 'accepted');
+    // The native comparability workspace lives under the Power view (Feature 012 Scope 15). The shell
+    // switch happens before the no-refetch baseline is captured below, so the baseline still measures
+    // the native tab action only.
+    await openNativeResearchSurface(page);
     // Both real overlay publications settle at boot; the comparability workspace derives from them without any refetch.
     await expect(page.locator('[data-resilience-company="sec-cik-0001058090"]')).toHaveAttribute('data-overlay-status', 'accepted');
     await expect(page.locator('[data-resilience-company="sec-cik-0000019617"]')).toHaveAttribute('data-overlay-status', 'accepted');
@@ -849,6 +888,15 @@ test('Regression: SCN-010-032 keyboard research flow is accessible at 320 pixels
     await page.setViewportSize({ width: 320, height: 900 });
     await page.goto(`${site.baseUrl}/company-fundamentals-lab.html`);
     await expect(page.locator('body')).toHaveAttribute('data-publication-status', 'accepted');
+
+    // Shell-level a11y that legitimately applies on the default Simple view (Feature 012 Scope 15):
+    // the shell chrome plus the production Simple adapter panel must themselves fit 320 CSS pixels
+    // without horizontal body overflow. This is an ADDITIONAL check, not a replacement.
+    const shellOverflow = await page.evaluate(() => ({ scrollWidth: document.documentElement.scrollWidth, innerWidth: window.innerWidth }));
+    expect(shellOverflow.scrollWidth).toBeLessThanOrEqual(shellOverflow.innerWidth);
+
+    // The native keyboard research flow asserted below lives under the Power view (Feature 012 Scope 15).
+    await openNativeResearchSurface(page);
 
     // The document body has no horizontal overflow at 320 CSS pixels; wide tables scroll inside their own container only.
     const overflow = await page.evaluate(() => ({ scrollWidth: document.documentElement.scrollWidth, innerWidth: window.innerWidth }));

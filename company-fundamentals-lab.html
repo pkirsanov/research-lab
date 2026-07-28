@@ -1686,6 +1686,9 @@
             }
 
             function renderAccepted(accepted, config, overlayLoads) {
+                // Hand the accepted publication to the production Simple owner-state provider. Until this
+                // runs the provider publishes nothing (honest unavailable); it never holds a partial load.
+                acceptedPublication = accepted;
                 var archetypeView = null;
                 if (config && config.contractVersion === "company-fundamentals-config/v1") {
                     try { archetypeView = RLCOMPANY.resolveArchetypeView(config, accepted.companyId); } catch (_error) { archetypeView = null; }
@@ -2137,6 +2140,36 @@
                 setText("[data-decision-active-after]", String(acceptedScenario.revision));
             }
 
+            /* companyScenarioReportedBase: marshal the accepted publication's linked-scenario driver
+               assumptions into the reported base the bounded projection consumes. Gap-preserving — a driver
+               that is absent, empty, or non-finite stays null with state "unavailable" and is NEVER defaulted.
+
+               THIS IS THE ONE PLACE THE PAGE MARSHALS THAT BASE. The Power scenario bridge below and the
+               production Simple owner-state provider both read it, so both hand
+               RLFUNDAMENTALS.projectCompanyScenario the IDENTICAL input and owner-parity holds by
+               construction rather than by a second copy of this mapping. It performs no arithmetic: the
+               growth/margin overlay and every derived number stay inside the single-source projection. */
+            function companyScenarioReportedBase(accepted) {
+                var assume = Object.create(null);
+                var modelPack = accepted && accepted.modelPack;
+                var scenario = modelPack && modelPack.acceptedScenario;
+                var assumptions = scenario && Array.isArray(scenario.assumptions) ? scenario.assumptions : [];
+                assumptions.forEach(function (entry) { if (entry && entry.driverId != null) assume[entry.driverId] = entry.value; });
+                function reportedField(driverId, unit) {
+                    var raw = assume[driverId];
+                    var value = (raw === undefined || raw === null || raw === "") ? null : Number(raw);
+                    var finite = value !== null && Number.isFinite(value);
+                    return { value: finite ? value : null, unit: unit, state: finite ? "reported" : "unavailable" };
+                }
+                return {
+                    revenue: reportedField("driver-base-revenue", "USD-millions"),
+                    operatingMargin: reportedField("driver-operating-margin", "ratio"),
+                    revenueGrowth: reportedField("driver-revenue-growth", "ratio"),
+                    capexIntensity: reportedField("driver-capex-intensity", "ratio"),
+                    valuationMultiple: reportedField("driver-fcf-multiple", "x")
+                };
+            }
+
             // Bounded scenario bridge (source-qualified). Delegates the single owner projection formula to
             // rlexperience-adapters/fundamental-models.js (RLFUNDAMENTALS.projectCompanyScenario) — the exact
             // formula the registered company-scenario-bridge/v1 Simple adapter consumes, so Power and Simple
@@ -2160,24 +2193,7 @@
                         put("[data-bridge-missing]", "the bounded scenario module is unavailable");
                         return;
                     }
-                    var assume = Object.create(null);
-                    var modelPack = accepted && accepted.modelPack;
-                    var scenario = modelPack && modelPack.acceptedScenario;
-                    var assumptions = scenario && Array.isArray(scenario.assumptions) ? scenario.assumptions : [];
-                    assumptions.forEach(function (entry) { if (entry && entry.driverId != null) assume[entry.driverId] = entry.value; });
-                    function reportedField(driverId, unit) {
-                        var raw = assume[driverId];
-                        var value = (raw === undefined || raw === null || raw === "") ? null : Number(raw);
-                        var finite = value !== null && Number.isFinite(value);
-                        return { value: finite ? value : null, unit: unit, state: finite ? "reported" : "unavailable" };
-                    }
-                    var reportedBase = {
-                        revenue: reportedField("driver-base-revenue", "USD-millions"),
-                        operatingMargin: reportedField("driver-operating-margin", "ratio"),
-                        revenueGrowth: reportedField("driver-revenue-growth", "ratio"),
-                        capexIntensity: reportedField("driver-capex-intensity", "ratio"),
-                        valuationMultiple: reportedField("driver-fcf-multiple", "x")
-                    };
+                    var reportedBase = companyScenarioReportedBase(accepted);
                     var growthPct = reportedBase.revenueGrowth.value !== null ? reportedBase.revenueGrowth.value * 100 : 0;
                     var bridge = RLFUNDAMENTALS.projectCompanyScenario(reportedBase, { growth: growthPct, marginChange: 0, gapPolicy: "preserve" });
                     node.setAttribute("data-scenario-bridge", bridge.state);
@@ -2195,6 +2211,117 @@
                     put("[data-bridge-missing]", "the bounded scenario could not be computed");
                 }
             }
+
+            /* ══════════════ PRODUCTION SIMPLE OWNER-STATE PROVIDER (Feature 012 Scope 15) ══════════════
+               The uniform provider seam. The deployed Simple bridge (installSimpleProjectionBridge in
+               rlexperience.js) reads globalThis.__rlOwnerStateProvider["company-fundamentals-lab"] and hands
+               the result to the registered company-scenario-bridge adapter
+               (simple-adapter/company-scenario-bridge/v1 in rlexperience-adapters/fundamental-models.js —
+               already loaded above as this page's SINGLE SOURCE of projectCompanyScenario).
+
+               THIS PAGE STAYS THE OWNER, AND NO FORMULA IS COPIED OR RECOMPUTED HERE. Every field below is a
+               plain passthrough of a field of the accepted publication this page is currently rendering, or
+               (for the reported base) the SAME companyScenarioReportedBase() call the Power bridge above
+               makes. The provider performs no arithmetic, touches no DOM, and — per SCN-010-027 — issues NO
+               network request and prompts for NO credential: it only re-reads state already accepted.
+
+               FIELD        -> PAGE SOURCE
+                 • companyId  -> accepted.companyId, the SEC-CIK company identity of the accepted publication,
+                 • asOf       -> accepted.dossier.evidenceCutoff, the dossier's OWN declared evidence cutoff —
+                                 the exact value rendered into [data-evidence-cutoff]. Never an invented
+                                 observation date and never a wall clock,
+                 • source     -> the accepted publication named explicitly by its own publicationId and
+                                 generation, so the read can never be mistaken for a live market feed,
+                 • reported   -> companyScenarioReportedBase(accepted) — the identical frozen base the Power
+                                 scenario bridge projects, so Power and Simple share exactly one projection
+                                 input. A gapped driver stays null/"unavailable" and is never defaulted,
+                 • lineage    -> accepted.modelPack.acceptedScenario.{revision,owner,scenarioRevisionId,
+                                 createdAt} verbatim, plus accepted.ownerRead.{statementCutoff,modelCutoff} —
+                                 the same two clocks renderClocks() paints. The adapter derives the lineage
+                                 age from these frozen clocks; this page derives nothing,
+                 • gaps       -> the page's TWO OWN gap ledgers, passed through verbatim and never merged,
+                                 normalised, or resolved:
+                                   (a) accepted.ownerRead.coverage — the per-evidence-class ledger. Every
+                                       entry that is not "current" is published with its own evidenceClass and
+                                       its own state ("partial" stays partial, "unavailable" stays
+                                       unavailable), and `required` is the entry's OWN requiredUpdate being
+                                       present. This is what keeps the honest partial honest: the reported
+                                       class is published as a partial gap even though the linked-scenario
+                                       drivers are complete,
+                                   (b) accepted.unavailableLinks — the concept-level dependency links the
+                                       dossier could not resolve (the missing source-qualified revenue
+                                       observation that makes this tool's direction Unavailable). These carry
+                                       a concept but no evidence class, so none is invented: the key is
+                                       omitted and the adapter's own "unclassified" label applies. `required`
+                                       is the link's OWN requiredSourceId being present.
+
+               DELIBERATELY NOT PUBLISHED, AND WHY:
+                 • the growth / margin-change / accepted-state / gap-policy / lineage-cutoff values. Those are
+                   the Simple model's OWN steerable parameters, declared in simple-models.json and pinned from
+                   the registry by the bridge. The Power bridge above pins growth to the reported growth for
+                   ITS question; publishing a control value as owner state would stamp a user assumption with
+                   this publication's evidence cutoff,
+                 • the fundamental direction, KPI priorities, archetype lens, peers, brief, and source trace.
+                   Those are this page's Power surface; the company-scenario-bridge model asks only the
+                   bounded scenario question and reads none of them.
+
+               HONEST DEGRADATION: until the same-origin publication load resolves, acceptedPublication is
+               null and the provider publishes NOTHING, so the bridge renders the honest "unavailable" panel.
+               It also publishes nothing when the publication carries no linked scenario to project or no
+               declared evidence cutoff to stamp it with. It NEVER substitutes a default. A publication whose
+               reported drivers are gapped is NOT suppressed — that partial is real, and the adapter's
+               gap-preserving projection is what classifies it. */
+            var acceptedPublication = null;
+
+            function companyScenarioOwnerSnapshot(accepted) {
+                if (!accepted || accepted.contractVersion !== "company-accepted-state/v1") return null;
+                var modelPack = accepted.modelPack;
+                var scenario = modelPack && modelPack.acceptedScenario;
+                if (!scenario || !Array.isArray(scenario.assumptions)) return null;
+                var dossier = accepted.dossier;
+                var asOf = dossier && dossier.evidenceCutoff != null ? String(dossier.evidenceCutoff) : "";
+                if (asOf.length < 8) return null;
+                var ownerRead = accepted.ownerRead || {};
+
+                var coverageGaps = (Array.isArray(ownerRead.coverage) ? ownerRead.coverage : [])
+                    .filter(function (entry) { return entry && entry.state !== "current"; })
+                    .map(function (entry) {
+                        return {
+                            evidenceClass: entry.evidenceClass,
+                            concept: null,
+                            state: entry.state,
+                            required: entry.requiredUpdate !== null && entry.requiredUpdate !== undefined
+                        };
+                    });
+                var linkGaps = (Array.isArray(accepted.unavailableLinks) ? accepted.unavailableLinks : [])
+                    .map(function (link) {
+                        return { concept: link.concept, state: "unavailable", required: link.requiredSourceId != null };
+                    });
+
+                return {
+                    contractVersion: "company-scenario-owner-state/v1",
+                    toolId: "company-fundamentals-lab",
+                    companyId: accepted.companyId,
+                    asOf: asOf,
+                    source: "accepted publication " + accepted.publicationId + " generation " + accepted.generation,
+                    reported: companyScenarioReportedBase(accepted),
+                    lineage: {
+                        revision: scenario.revision,
+                        owner: scenario.owner,
+                        scenarioRevisionId: scenario.scenarioRevisionId,
+                        createdAt: scenario.createdAt,
+                        statementCutoff: ownerRead.statementCutoff === undefined ? null : ownerRead.statementCutoff,
+                        modelCutoff: ownerRead.modelCutoff === undefined ? null : ownerRead.modelCutoff
+                    },
+                    gaps: coverageGaps.concat(linkGaps)
+                };
+            }
+
+            function companyScenarioOwnerState() {
+                return companyScenarioOwnerSnapshot(acceptedPublication);
+            }
+            globalThis.__rlOwnerStateProvider = globalThis.__rlOwnerStateProvider || {};
+            globalThis.__rlOwnerStateProvider["company-fundamentals-lab"] = companyScenarioOwnerState;
 
             function renderSimpleCockpit(simple) {
                 var directionDep = simple.dependencyResults.find(function (result) { return result.id === "metric-direction"; });

@@ -1345,7 +1345,133 @@ function locationSuitabilityOwnerState() {
   return ownerState;
 }
 
-/* Owner-state builders keyed by the REGISTRY adapter id. A wired tool with no entry FAILS LOUD. */
+/* ─────────── company-fundamentals-lab (company-scenario-bridge): the page's OWN provider, RUN here ───────────
+   The company owner contract carries the accepted publication's linked-scenario driver assumptions,
+   its two source clocks, and its TWO gap ledgers. Those facts are not produced by any formula — they
+   are READ out of the accepted publication the page is currently rendering. So this fixture does the
+   same two things the deployed page does, using the same production code for each:
+
+     1. LOAD the accepted publication with the REAL production loader,
+        `RLCOMPANY.loadCompanyPublication`, on the SAME current-pointer path the page's own boot
+        chain requests (`data/company-fundamentals/companies/sec-cik-0000789019/current.json`). Every
+        pointer / manifest / content-address / graph check inside that loader runs unchanged here, so
+        the publication this fixture holds is the byte-verified one the browser would hold.
+     2. RUN the page's OWN provider on it: the page's `acceptedPublication` binding, its
+        `acceptedPublication = accepted;` publication statement (the exact line `renderAccepted`
+        executes), and its `companyScenarioReportedBase` / `companyScenarioOwnerSnapshot` /
+        `companyScenarioOwnerState` declarations are extracted VERBATIM from the deployed source and
+        executed — the same technique the ai-capex and smart-money fixtures above use.
+
+   NOTHING IS RESTATED HERE. The owner state is whatever the page's own registered provider returns
+   for the committed publication: no gap ledger is rebuilt, no driver is re-marshalled, and no
+   projection is hand-written. The bounded projection itself stays where it already lives — the page
+   and the adapter both call RLFUNDAMENTALS.projectCompanyScenario, so owner parity below is a real
+   comparison rather than a comparison against a copy.
+
+   DETERMINISTIC BY CONSTRUCTION: both inputs are committed static files (the deployed page and the
+   content-addressed publication objects under data/company-fundamentals/). The lineage age the
+   adapter derives comes from the publication's OWN frozen clocks (dossier evidence cutoff vs the
+   accepted scenario's createdAt), never Date.now(), so the run carries no wall-clock dependency.
+
+   NO SEED: the registry declares seedPolicy.required = false / randomnessClass "none", so
+   `registrySeed(definition)` pins null and the model is a pure function of the frozen publication. */
+const COMPANY_PUBLICATION_COMPANY_ID = 'sec-cik-0000789019';
+const COMPANY_PUBLICATION_POINTER_PATH = `data/company-fundamentals/companies/${COMPANY_PUBLICATION_COMPANY_ID}/current.json`;
+/* The page's OWN provider closure, in the page's own declaration order. This is the transitive
+   closure of `companyScenarioOwnerState` — nothing here is a test reimplementation. */
+const COMPANY_PAGE_BINDINGS = Object.freeze([
+  'companyScenarioReportedBase', 'companyScenarioOwnerSnapshot', 'companyScenarioOwnerState'
+]);
+
+/* A same-origin static-file responder over the COMMITTED repo tree — the exact bytes the deployed
+   site serves for these paths. It is the TRANSPORT ONLY: it is handed to the production loader as
+   `fetchImpl` (the seam the page itself fills with `window.fetch.bind(window)`), so every
+   same-origin, content-type, content-address and manifest check inside the loader still runs. The
+   loader is never intercepted and no publication object is substituted; a tampered committed object
+   would fail the load here exactly as it would in the browser. No network, no credential — which is
+   also what SCN-010-027 requires of this tool's Simple path. */
+function committedSiteFetch(url) {
+  const requested = new URL(url);
+  const file = new URL(requested.pathname.replace(/^\//, ''), ROOT);
+  const missing = !existsSync(file);
+  return Promise.resolve(new Response(missing ? '' : readFileSync(file, 'utf8'), {
+    status: missing ? 404 : 200,
+    headers: { 'content-type': 'application/json; charset=utf-8' }
+  }));
+}
+
+async function companyScenarioOwnerState() {
+  loadModule('rlcompany.js');
+  const company = globalThis.RLCOMPANY;
+  assert.equal(typeof (company && company.loadCompanyPublication), 'function',
+    'the REAL production publication loader (RLCOMPANY.loadCompanyPublication) is required');
+
+  // The page's OWN boot request: the same current-pointer path, the same companyId, the same
+  // same-origin loader. The returned publication is the byte-verified accepted state.
+  const accepted = await company.loadCompanyPublication({
+    baseUrl: new URL('company-fundamentals-lab.html', 'https://research-lab.invalid/').href,
+    path: COMPANY_PUBLICATION_POINTER_PATH,
+    companyId: COMPANY_PUBLICATION_COMPANY_ID,
+    fetchImpl: committedSiteFetch
+  });
+  assert.equal(accepted.contractVersion, 'company-accepted-state/v1');
+  assert.equal(accepted.companyId, COMPANY_PUBLICATION_COMPANY_ID);
+
+  const source = readPage('company-fundamentals-lab.html');
+  assert.ok(source, 'the deployed company-fundamentals-lab.html source is required to run its own owner provider');
+  const declarations = COMPANY_PAGE_BINDINGS.map((name) => extractPageBinding(source, name));
+  // The provider's state binding and the page's OWN publication statement — the exact line
+  // `renderAccepted` runs when the load resolves — taken whole rather than as bindings.
+  const acceptedBinding = extractPageLine(source, 'var acceptedPublication = null;');
+  const publishStatement = extractPageLine(source, 'acceptedPublication = accepted;').trim();
+
+  const page = Function([
+    acceptedBinding,
+    declarations.join('\n'),
+    `return { renderAccepted: function (accepted) { ${publishStatement} }, companyScenarioOwnerState: companyScenarioOwnerState };`
+  ].join('\n'))();
+
+  // Before the page renders a publication the provider MUST publish nothing — the honest-unavailable
+  // path the deployed page takes while its same-origin load is still in flight.
+  assert.equal(page.companyScenarioOwnerState(), null,
+    'the page provider must publish NO owner state until an accepted publication is rendered');
+
+  page.renderAccepted(accepted);
+  const ownerState = page.companyScenarioOwnerState();
+  assert.ok(ownerState, 'the page provider must publish an owner state for its own committed publication');
+  assert.equal(ownerState.contractVersion, 'company-scenario-owner-state/v1');
+  assert.equal(ownerState.toolId, 'company-fundamentals-lab');
+  assert.equal(ownerState.companyId, COMPANY_PUBLICATION_COMPANY_ID);
+  assert.equal(ownerState.asOf, accepted.dossier.evidenceCutoff,
+    'the published as-of must be the dossier\'s OWN declared evidence cutoff');
+
+  // Substance, not just shape. The committed publication carries a COMPLETE linked-scenario driver
+  // set, so the bounded projection is genuinely projectable — and it ALSO carries real evidence gaps
+  // (the partial `reported` coverage class plus the unresolved revenue link), so the gap-preserving
+  // behaviour this model exists to prove is actually exercised rather than trivially satisfied.
+  assert.equal(ownerState.reported.revenue.state, 'reported', 'the committed publication reports a base revenue');
+  assert.equal(ownerState.reported.operatingMargin.state, 'reported', 'the committed publication reports an operating margin');
+  assert.ok(ownerState.gaps.length > 0, 'the committed publication carries real preserved evidence gaps');
+  assert.ok(ownerState.gaps.some((gap) => gap.state === 'partial'),
+    'the honest PARTIAL coverage class must survive publication as partial, not be flattened to unavailable');
+  assert.ok(ownerState.gaps.some((gap) => gap.concept !== null),
+    'the unresolved concept-level dependency link must survive publication');
+  // At the REGISTRY defaults the owner's own summary function (never a reimplementation here) must
+  // reach a real bounded scenario over those facts.
+  const definition = definitionForAdapter('simple-adapter/company-scenario-bridge/v1');
+  const summary = loadModule(definition.adapterModule)
+    .computeCompanyScenarioSummary(frozenClone(ownerState), registryDefaults(definition));
+  assert.equal(summary.scenario.state, 'ready',
+    `the committed publication must project a complete bounded scenario (missing: ${JSON.stringify(summary.scenario.missing)})`);
+  assert.equal(Number.isFinite(summary.scenario.revenue), true, 'the bounded scenario prices a real projected revenue');
+  assert.equal(summary.gaps.count, ownerState.gaps.length, 'every published gap is preserved by the ledger, none dropped');
+  return ownerState;
+}
+
+/* Owner-state builders keyed by the REGISTRY adapter id. A wired tool with no entry FAILS LOUD.
+   A builder may be async: company-fundamentals-lab's owner facts come out of a same-origin
+   publication load, so `driveWiredTool` awaits the builder result (a no-op for the synchronous
+   builders). */
 const OWNER_STATES = {
   'simple-adapter/market-breadth/v1': breadthOwnerState,
   'simple-adapter/session-auction/v1': sessionOwnerState,
@@ -1362,7 +1488,8 @@ const OWNER_STATES = {
   'simple-adapter/disclosure-decay/v1': disclosureDecayOwnerState,
   'simple-adapter/walk-forward-validation/v1': walkForwardValidationOwnerState,
   'simple-adapter/strategy-evolution/v1': strategyEvolutionOwnerState,
-  'simple-adapter/location-suitability/v1': locationSuitabilityOwnerState
+  'simple-adapter/location-suitability/v1': locationSuitabilityOwnerState,
+  'simple-adapter/company-scenario-bridge/v1': companyScenarioOwnerState
 };
 
 /* ═══════════════════════ owner-parity extractors (the Power-path single source) ═══════════════════════
@@ -1595,6 +1722,27 @@ const OWNER_PARITY = {
         ? [String(summary.shortlist.count), String(summary.universeMarketCount), nearest.id, String(nearest.driveMin), String(summary.verification.unverifiedCount)]
         : [String(summary.shortlist.count), String(summary.universeMarketCount), String(summary.verification.unverifiedCount)]
     };
+  },
+  'simple-adapter/company-scenario-bridge/v1': (moduleObject, ownerState, parameterValues) => {
+    const summary = moduleObject.computeCompanyScenarioSummary(frozenClone(ownerState), parameterValues);
+    const revenueText = summary.scenario.revenue == null ? 'unavailable' : String(summary.scenario.revenue);
+    return {
+      ownerFunction: 'computeCompanyScenarioSummary',
+      numericValue: summary.scenario.revenue,
+      valueText: summary.scenario.state === 'refused' ? 'Scenario refused' : `Projected revenue ${revenueText}`,
+      /* The owner-computed accepted-state anchor, the bounded scenario's own state and projected
+         revenue, the size of the PRESERVED gap ledger and the lineage verdict — taken straight off
+         the summary object. A Simple read that anchored on a different accepted state, projected a
+         different revenue, quietly dropped a preserved evidence gap, or claimed a lineage verdict
+         the owner did not reach fails here. */
+      summaryContains: [
+        summary.state.accepted,
+        summary.scenario.state,
+        revenueText,
+        String(summary.gaps.count),
+        summary.lineage.state
+      ]
+    };
   }
 };
 
@@ -1659,7 +1807,9 @@ async function driveWiredTool(entry, ownerStateOverride) {
   const moduleObject = loadModule(entry.adapterModule);
   const registrar = resolveRegistrar(moduleObject);
   const parameterValues = registryDefaults(entry.definition);
-  const ownerState = ownerStateOverride === undefined ? OWNER_STATES[entry.adapterId]() : ownerStateOverride;
+  // `await` is a no-op for the synchronous builders and lets a builder whose owner facts come from a
+  // same-origin publication load (company-fundamentals-lab) run its REAL production loader.
+  const ownerState = ownerStateOverride === undefined ? await OWNER_STATES[entry.adapterId]() : ownerStateOverride;
 
   const { panel, bodyClassOps } = makePanel();
   const runtime = api.createSimpleRuntime(config, { contractVersion: 'simple-model-registry/v1', definitions: [entry.definition] }).value;

@@ -390,7 +390,16 @@ const TOOLS = {
     owner: () => anomalyOwnerState(),
     changes: () => [['volume-open-interest-threshold', 3], ['premium-threshold', 500000]],
     adapterId: 'simple-adapter/options-anomaly/v1',
-    expectFlat: false
+    expectFlat: false,
+    // Wired into its production page (options-flow-feed-lab.html registers a real owner-state
+    // provider consumed by the production Simple bridge in rlexperience.js) AND its provider returns
+    // a real owner snapshot under this harness: the page's own delta hydration lands the same-origin
+    // data/options/<SYM>.json chains into its chain cache, which is exactly what the provider reads,
+    // so the bridge renders the REAL options-anomaly adapter on Simple BEFORE this test drives
+    // anything and the pre-drive shell state is 'ready' — a stronger proof than the unwired
+    // 'unavailable'. OBSERVED, not assumed: with no flag this spec asserted 'unavailable' and the
+    // real page returned 'ready'.
+    wiredInProduction: true
   },
   'options-structure-lab': {
     title: 'Regression: options structure Simple shocks recompute owner walls flip move and skew from same-origin evidence',
@@ -400,7 +409,15 @@ const TOOLS = {
     owner: () => surfaceOwnerState(),
     changes: () => [['sign-convention', 'customer-short'], ['spot-shock', 5]],
     adapterId: 'simple-adapter/options-surface/v1',
-    expectFlat: false
+    expectFlat: false,
+    // Wired into its production page (options-structure-lab.html registers a real owner-state
+    // provider consumed by the production Simple bridge) AND its provider returns a real owner
+    // snapshot under this harness: the page's default 'pages' provider auto-hydrates state.spot and
+    // state.chains from the same-origin data/options/SPY.json snapshot, which is exactly what the
+    // provider reads, so the bridge renders the REAL options-surface adapter before this test drives
+    // anything. OBSERVED, not assumed: with no flag this spec asserted 'unavailable' and the real
+    // page returned 'ready'.
+    wiredInProduction: true
   },
   'gamma-trading-lab': {
     title: 'Regression: gamma trading Simple controls recompute owner playbook from existing options owner',
@@ -410,7 +427,15 @@ const TOOLS = {
     owner: () => gammaOwnerState(),
     changes: () => [['dealer-sign', 'customer-short'], ['aggressiveness', 'high']],
     adapterId: 'simple-adapter/dealer-gamma-playbook/v1',
-    expectFlat: false
+    expectFlat: false,
+    // Wired into its production page (gamma-trading-lab.html registers a real owner-state provider
+    // consumed by the production Simple bridge) AND its provider returns a real owner snapshot under
+    // this harness: the page's default 'pages' provider auto-hydrates state.snap from the
+    // same-origin data/options/SPY.json snapshot, which is exactly what the provider reads, so the
+    // bridge renders the REAL dealer-gamma-playbook adapter before this test drives anything.
+    // OBSERVED, not assumed: with no flag this spec asserted 'unavailable' and the real page
+    // returned 'ready'.
+    wiredInProduction: true
   }
 };
 

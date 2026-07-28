@@ -420,6 +420,53 @@
       function cachePut(sym, parsed) { var rec = { at: Date.now(), parsed: parsed }; _optMem[sym] = rec; try { localStorage.setItem(CACHE_PREFIX + sym, JSON.stringify(rec)); } catch (e) { } }
       function cacheFresh(o, maxAgeH) { return !!(o && o.at && (Date.now() - o.at) <= maxAgeH * 3600e3); }
 
+      /* ═══════ Scope 15 production Simple-view owner-state provider (Model B) ═══════
+         Expose this page's REAL current owner state to the shared production bridge
+         (rlexperience.js renderSimpleBridge) through the SAME uniform provider seam
+         market-heatmap-lab.html uses (globalThis.__rlOwnerStateProvider[toolId]). Registered
+         synchronously — this inline script runs during parse, before the deferred rlapp.js
+         bootstrap reads it — so the shell's provider-gated ownerModes resolves options-flow-feed
+         to the adapter-panel Simple (["power"]). This is the ONLY per-tool element and it lives
+         on the tool's own page, NOT in the shared runtime/bridge source (runtimeSourceHasToolBranch
+         stays 0).
+
+         SINGLE SOURCE — no formula is copied here. The provider reads the EXACT page state the
+         native Power path renders from: for each UNIVERSE symbol it reads this page's own chain
+         cache (cacheGet(sym).parsed = {spot, expiry, rows}), which is the same object rebuild()
+         hands to the single-sourced RLOPTIONS.scoreChain. The provider itself computes NO owner
+         value — vol/OI, premium, DTE, unusual score and the call/put tape read all stay inside
+         RLOPTIONS, where the options-anomaly Simple adapter re-runs them on this same chain set,
+         so Simple and Power share one formula. nowMs mirrors the Power path exactly: rebuild()
+         calls scoreChain(parsed, sym) with nowMs omitted, which RLOPTIONS.dteFrom resolves to
+         Date.now().
+
+         NETWORK-FREE (SCN-012-034): cacheGet reads only the in-memory mirror and localStorage —
+         it never fetches, so switching to Simple triggers no additional option-chain request.
+
+         HONEST DEGRADATION: before the page's own delta hydration has landed a single chain (a
+         fresh unkeyed load starts with an empty cache) the provider returns null and the bridge
+         paints the honest "owner adapter required" panel — no invented signal, no zero-fill. */
+      globalThis.__rlOwnerStateProvider = globalThis.__rlOwnerStateProvider || {};
+      globalThis.__rlOwnerStateProvider["options-flow-feed-lab"] = function () {
+        var chains = [], latestAt = 0, i, rec, parsed;
+        for (i = 0; i < UNIVERSE.length; i++) {
+          rec = cacheGet(UNIVERSE[i]);
+          parsed = rec && rec.parsed;
+          if (!parsed || !parsed.rows || !parsed.rows.length) continue;
+          if (Number.isFinite(rec.at) && rec.at > latestAt) latestAt = rec.at;
+          chains.push({ ticker: UNIVERSE[i], spot: parsed.spot, expiry: parsed.expiry, rows: parsed.rows });
+        }
+        if (!chains.length) return null;
+        return {
+          contractVersion: "options-owner-state/v1",
+          toolId: "options-flow-feed-lab",
+          asOf: new Date(latestAt || Date.now()).toISOString(),
+          source: "same-origin options snapshot (data/options)",
+          nowMs: Date.now(),
+          chains: chains
+        };
+      };
+
       /* Same-origin cached EOD snapshot (data/options/<SYM>.json) the site refreshes a few times per trading day.
          Works on GitHub Pages with NO CORS/proxy — the reliable default. Shape: {sym,spot,o:[{e,t,k,iv,oi,v,b,a,l}]}.
          (Reused from the same store the Gamma / Options-Structure labs read.) */

@@ -1306,6 +1306,56 @@
             function saveState() { try { localStorage.setItem('gammaTradingLab', JSON.stringify({ provider: state.provider, proxy: state.proxy, ticker: state.ticker, mode: state.mode, stance: state.stance, aggr: state.aggr, horizon: state.horizon, acct: state.acct, riskPct: state.riskPct, dealerFlip: state.dealerFlip })); } catch (e) { } }
             function loadState() { try { return JSON.parse(localStorage.getItem('gammaTradingLab') || 'null'); } catch (e) { return null; } }
 
+            /* ═══════════ Scope 15 production Simple-view owner-state provider (Model B) ═══════════
+               Expose this page's REAL current owner state to the shared production bridge
+               (rlexperience.js renderSimpleBridge) through the SAME uniform provider seam
+               market-heatmap-lab.html uses (globalThis.__rlOwnerStateProvider[toolId]). Registered
+               synchronously — this inline script runs during parse, before the deferred rlapp.js
+               bootstrap reads it — so the shell's provider-gated ownerModes resolves gamma-trading
+               to the adapter-panel Simple (["power"]). This is the ONLY per-tool element and it
+               lives on the tool's own page, NOT in the shared runtime/bridge source
+               (runtimeSourceHasToolBranch stays 0).
+
+               SINGLE SOURCE — no formula is copied here. The provider publishes the page's OWN
+               live objects, unmodified:
+                 • snap   -> state.snap, the exact computeGamma output every Power panel renders
+                            from (spot / netGEX / flip / maxPain / walls / atmIV / ovi / oviQty /
+                            oviSig / gexRows …),
+                 • hist   -> state.hist, the exact rolling per-ticker history pushHist maintains
+                            and the page's own oviPercentile read consumes,
+                 • ticker/asOf/source -> state.ticker / state.dataAt / state.src, the page's own
+                            observation provenance.
+               The regime read, the OVI percentile and the OPEX clock are NOT recomputed here: they
+               stay inside RLOPTIONS (gammaEnv / oviPercentile / opexInfo), which this page's envOf
+               and the dealer-gamma-playbook Simple adapter both delegate to, so Simple and Power
+               share one formula.
+
+               NETWORK-FREE (SCN-012-034): the provider only reads already-present page state — it
+               never fetches, so switching to Simple triggers no additional chain request.
+
+               HONEST DEGRADATION: until doFetch has landed a snapshot (a fresh load starts with
+               state.snap === null, and a ticker absent from the same-origin snapshot legitimately
+               never lands one) the provider returns null and the bridge paints the honest "owner
+               adapter required" panel — no invented signal, no zero-fill. */
+            globalThis.__rlOwnerStateProvider = globalThis.__rlOwnerStateProvider || {};
+            globalThis.__rlOwnerStateProvider['gamma-trading-lab'] = function () {
+                var snap = state.snap;
+                if (!snap || !isNum(snap.spot)) return null;
+                var asOf = isNum(state.dataAt) && state.dataAt > 0 ? new Date(state.dataAt).toISOString() : null;
+                if (!asOf) return null;
+                return {
+                    contractVersion: 'options-gamma-owner-state/v1',
+                    toolId: 'gamma-trading-lab',
+                    ticker: state.ticker,
+                    asOf: asOf,
+                    source: state.src || 'gamma-lab',
+                    nowMs: Date.now(),
+                    snap: snap,
+                    hist: Array.isArray(state.hist) ? state.hist : []
+                };
+            };
+
+
             /* ═══════════ fetch ═══════════ */
             function setStatus(s, cls) { var e = el('status'); if (e) { e.textContent = s; e.style.color = cls === 'bad' ? '#f0556b' : cls === 'ok' ? '#39d98a' : ''; } if (window.RLAPP) RLAPP.report('options:gamma', cls === 'bad' ? 'error' : cls === 'ok' ? 'ready' : /read|load|refresh/i.test(s) ? 'refreshing' : 'fresh', { label: 'Gamma option snapshot' }); }
 

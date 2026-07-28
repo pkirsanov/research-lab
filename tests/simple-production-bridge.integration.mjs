@@ -237,12 +237,213 @@ function technicalOwnerState() {
   };
 }
 
+/* ─────────────── the REAL same-origin option snapshot (data/options/<SYM>.json) ───────────────
+   All three option tools read exactly this store: options-flow-feed-lab.html
+   (pagesUrl → parsePagesChain), options-structure-lab.html (fetchChainPages → parsePagesChain) and
+   gamma-trading-lab.html (fetchGammaPages → parsePagesFront). Real observed contracts — never
+   fabricated values. Snapshot column schema: {sym, spot, asof, o:[{e,t,k,iv,oi,v,b,a,l}]}. */
+function realOptionSnapshot(symbol) {
+  const url = new URL(`data/options/${symbol}.json`, ROOT);
+  assert.equal(existsSync(url), true, `real option snapshot required: data/options/${symbol}.json`);
+  const snapshot = JSON.parse(readFileSync(url, 'utf8'));
+  assert.ok(Array.isArray(snapshot.o) && snapshot.o.length > 0, `data/options/${symbol}.json must carry option contracts`);
+  assert.ok(Number.isFinite(snapshot.spot) && snapshot.spot > 0, `data/options/${symbol}.json must carry a real spot`);
+  return snapshot;
+}
+
+/* The snapshot's OWN observation time, used as the frozen owner clock. Reading nowMs off the
+   snapshot (never Date.now()) keeps every DTE — and therefore every fixture below — deterministic
+   and anchored on the same observation the owning page reads. */
+function snapshotClockMs(snapshot) {
+  const observed = String(snapshot.asof || snapshot.fetched || '');
+  const stamped = /[Zz]$|[+-]\d{2}:?\d{2}$/.test(observed) ? observed : `${observed}Z`;
+  const parsed = Date.parse(stamped);
+  assert.ok(Number.isFinite(parsed), `the option snapshot must carry a parseable observation time (saw ${JSON.stringify(observed)})`);
+  return parsed;
+}
+
+/* Snapshot contracts grouped by their own expiry epoch, ascending. Pure grouping — no owner math. */
+function optionRowsByExpiry(snapshot) {
+  const byExpiry = new Map();
+  for (const row of snapshot.o) {
+    if (!Number.isFinite(row.e)) continue;
+    if (!byExpiry.has(row.e)) byExpiry.set(row.e, []);
+    byExpiry.get(row.e).push(row);
+  }
+  const expiries = [...byExpiry.keys()].sort((a, b) => a - b);
+  assert.ok(expiries.length > 0, 'the option snapshot must carry at least one expiry');
+  return { byExpiry, expiries };
+}
+
+/* Re-key ONE expiry's snapshot columns into the Yahoo v7 envelope the adapter module's OWN exported
+   parseYahooChain reads. This is a COLUMN RENAME of the snapshot's own fields (k→strike, v→volume,
+   oi→openInterest, iv→impliedVolatility, b→bid, a→ask, l→lastPrice) and nothing else: the row
+   projection AND the bid/ask→mid rule stay inside RLOPTIONS.parseYahooChain, so no owner formula is
+   reimplemented in this suite. */
+function yahooEnvelopeForExpiry(spot, expiryEpoch, rows) {
+  const calls = [];
+  const puts = [];
+  for (const row of rows) {
+    const contract = {
+      strike: row.k, volume: row.v, openInterest: row.oi,
+      impliedVolatility: row.iv, bid: row.b, ask: row.a, lastPrice: row.l
+    };
+    (row.t === 'C' ? calls : puts).push(contract);
+  }
+  return { optionChain: { result: [{ quote: { regularMarketPrice: spot }, options: [{ expirationDate: expiryEpoch, calls, puts }] }] } };
+}
+
+/* The registry definition behind an adapter id — used so a fixture that needs another model's
+   owner primitives runs them on that model's OWN registry-declared defaults, never on invented
+   parameter literals. */
+function definitionForAdapter(adapterId) {
+  const definition = readJson('simple-models.json').definitions.find((candidate) => candidate.adapterId === adapterId);
+  assert.ok(definition, `the registry must declare a definition for ${adapterId}`);
+  return definition;
+}
+
+/* options-anomaly owner state — the SAME shape options-flow-feed-lab.html's provider publishes
+   (contractVersion + per-ticker {ticker, spot, expiry, rows}), carrying the REAL same-origin option
+   contracts the page itself reads. Every contract row is decoded by the MODULE's OWN exported
+   parseYahooChain, so even the bid/ask→mid rule is single-sourced from the adapter module rather
+   than reimplemented here. The page's provider publishes every cached ticker; this fixture
+   publishes every ticker the same-origin store actually holds for the sampled set. */
+const ANOMALY_SYMBOLS = ['SPY', 'QQQ'];
+function anomalyOwnerState() {
+  const optionsModule = loadModule('rlexperience-adapters/options.js');
+  const symbols = ANOMALY_SYMBOLS.filter((symbol) => existsSync(new URL(`data/options/${symbol}.json`, ROOT)));
+  assert.ok(symbols.length >= 1, 'at least one real option snapshot is required for an anomaly owner state');
+  let clockMs = null;
+  const chains = symbols.map((symbol) => {
+    const snapshot = realOptionSnapshot(symbol);
+    const nowMs = snapshotClockMs(snapshot);
+    if (clockMs === null || nowMs > clockMs) clockMs = nowMs;
+    const { byExpiry, expiries } = optionRowsByExpiry(snapshot);
+    let rows = [];
+    for (const expiry of expiries) {
+      const parsed = optionsModule.parseYahooChain(yahooEnvelopeForExpiry(snapshot.spot, expiry, byExpiry.get(expiry)));
+      assert.ok(parsed && parsed.rows.length > 0, `${symbol}: the module parser must decode expiry ${expiry}`);
+      rows = rows.concat(parsed.rows);
+    }
+    return { ticker: snapshot.sym || symbol, spot: snapshot.spot, expiry: expiries[0], rows };
+  });
+  return {
+    contractVersion: 'options-owner-state/v1',
+    toolId: 'options-flow-feed-lab',
+    asOf: new Date(clockMs).toISOString(),
+    source: 'same-origin options snapshot (data/options)',
+    nowMs: clockMs,
+    chains
+  };
+}
+
+/* options-surface owner state — the SAME shape options-structure-lab.html's provider publishes
+   (contractVersion + spot/div/zoom/minOI + per-expiry {dte, calls, puts}). Contracts are decoded
+   straight off the REAL same-origin snapshot columns (a rename, not a formula) and the per-chain
+   DTE comes from the MODULE's OWN exported dteFrom — the exact primitive the page's provider calls.
+   The expiry count and the zoom / minOI / div envelope mirror the page's own state defaults
+   (options-structure-lab.html: nExp 3, zoom 18, minOI 0, div 0.0). */
+const SURFACE_EXPIRY_COUNT = 3;
+const SURFACE_ZOOM_PCT = 18;
+const SURFACE_MIN_OI = 0;
+const SURFACE_DIV = 0;
+function surfaceOwnerState() {
+  const optionsModule = loadModule('rlexperience-adapters/options.js');
+  const snapshot = realOptionSnapshot('SPY');
+  const nowMs = snapshotClockMs(snapshot);
+  const { byExpiry, expiries } = optionRowsByExpiry(snapshot);
+  const chains = expiries.slice(0, SURFACE_EXPIRY_COUNT).map((expiry) => {
+    const calls = [];
+    const puts = [];
+    for (const row of byExpiry.get(expiry)) {
+      const impliedVolatility = Number(row.iv);
+      const contract = {
+        strike: Number(row.k),
+        openInterest: Number(row.oi) || 0,
+        volume: Number(row.v) || 0,
+        impliedVolatility: Number.isFinite(impliedVolatility) && impliedVolatility > 0 ? impliedVolatility : null,
+        bid: Number(row.b),
+        ask: Number(row.a),
+        lastPrice: Number(row.l) || 0
+      };
+      (row.t === 'P' ? puts : calls).push(contract);
+    }
+    return { dte: optionsModule.dteFrom(expiry, nowMs), calls, puts };
+  });
+  assert.ok(chains.length > 0, 'a surface owner state needs at least one real expiry chain');
+  return {
+    contractVersion: 'options-surface-owner-state/v1',
+    toolId: 'options-structure-lab',
+    asOf: new Date(nowMs).toISOString(),
+    source: 'same-origin options snapshot (data/options)',
+    nowMs,
+    spot: snapshot.spot,
+    div: SURFACE_DIV,
+    zoom: SURFACE_ZOOM_PCT,
+    minOI: SURFACE_MIN_OI,
+    chains
+  };
+}
+
+/* dealer-gamma-playbook owner state — the SAME shape gamma-trading-lab.html's provider publishes
+   (contractVersion + ticker + {snap, hist}).
+   PROVENANCE, STATED PLAINLY: the page's gamma `snap` is produced by its OWN closure-coupled
+   computeGamma, which — unlike market-structure.js's reduceOwnerState — has NO module export and
+   carries its own inline greeks. Reimplementing it here would COPY an owner formula, which this
+   suite forbids. So instead of hand-typing a net-GEX, the gamma-structure INPUT is sourced from the
+   MODULE's OWN options-surface owner primitives run on the SAME REAL same-origin chain, at that
+   model's OWN registry-declared defaults:
+     • netGEX -> summary.surface.netGammaExposure (the module's unsigned net gamma exposure; the
+       playbook applies its own dealer sign on top, so an already-signed value must not be used),
+     • flip   -> summary.gammaFlip.flipLevel (the module's own gamma-flip zero-crossing, which the
+       module documents as mirroring the page's computeGammaFlip semantics and which is
+       sign-invariant),
+     • walls  -> summary.walls.callWall / putWall (the module's own OI-weighted walls),
+     • spot   -> the snapshot's OWN observed spot.
+   These are module-COMPUTED owner INPUTS to the playbook, not hand-written numbers, and they are
+   deliberately NOT claimed to be byte-identical to the deployed page's computeGamma output. That is
+   correct for this model: the playbook adapter's own contract is that it CONSUMES a frozen snapshot
+   and "recomputes nothing from a raw chain", so the snapshot is input, and every asserted playbook
+   value below still comes only from computeGammaPlaybookSummary.
+   HONEST ABSENCE: maxPain and the OVI trio (ovi/oviQty/oviSig) plus the rolling `hist` are
+   page-owned reductions with no module producer and no same-origin history store, so they are left
+   absent rather than invented. The playbook consequently reports summary.oviState as honestly
+   unavailable while the top-level read stays ready — real degradation, not a fabricated signal. */
+function gammaOwnerState() {
+  const optionsModule = loadModule('rlexperience-adapters/options.js');
+  const ownerChain = surfaceOwnerState();
+  const surfaceDefinition = definitionForAdapter('simple-adapter/options-surface/v1');
+  const surfaceSummary = optionsModule.computeSurfaceSummary(frozenClone(ownerChain), registryDefaults(surfaceDefinition));
+  assert.equal(surfaceSummary.surface.state, 'ready', 'the real same-origin chain must yield a ready surface before it can seed a gamma snapshot');
+  return {
+    contractVersion: 'options-gamma-owner-state/v1',
+    toolId: 'gamma-trading-lab',
+    ticker: 'SPY',
+    asOf: ownerChain.asOf,
+    source: ownerChain.source,
+    nowMs: ownerChain.nowMs,
+    snap: {
+      spot: ownerChain.spot,
+      netGEX: surfaceSummary.surface.netGammaExposure,
+      flip: surfaceSummary.gammaFlip.flipLevel,
+      callWall: surfaceSummary.walls.callWall,
+      putWall: surfaceSummary.walls.putWall,
+      atmIV: surfaceSummary.expectedMove.atmIV,
+      maxPain: null
+    },
+    hist: []
+  };
+}
+
 /* Owner-state builders keyed by the REGISTRY adapter id. A wired tool with no entry FAILS LOUD. */
 const OWNER_STATES = {
   'simple-adapter/market-breadth/v1': breadthOwnerState,
   'simple-adapter/session-auction/v1': sessionOwnerState,
   'simple-adapter/swing-transition/v1': swingOwnerState,
-  'simple-adapter/technical-five-gate/v1': technicalOwnerState
+  'simple-adapter/technical-five-gate/v1': technicalOwnerState,
+  'simple-adapter/options-anomaly/v1': anomalyOwnerState,
+  'simple-adapter/options-surface/v1': surfaceOwnerState,
+  'simple-adapter/dealer-gamma-playbook/v1': gammaOwnerState
 };
 
 /* ═══════════════════════ owner-parity extractors (the Power-path single source) ═══════════════════════
@@ -290,6 +491,47 @@ const OWNER_PARITY = {
       valueText: null,
       summaryContains: [],
       ownerPublishesNoRead: summary.state !== 'ready'
+    };
+  },
+  'simple-adapter/options-anomaly/v1': (moduleObject, ownerState, parameterValues) => {
+    const summary = moduleObject.computeAnomalySummary(frozenClone(ownerState), parameterValues);
+    const ready = summary.unusualness.state === 'ready';
+    return {
+      ownerFunction: 'computeAnomalySummary',
+      numericValue: ready ? summary.unusualness.clearedCount : null,
+      valueText: `${summary.unusualness.clearedCount} unusual contracts`,
+      summaryContains: ready
+        ? [String(summary.unusualness.clearedCount), String(summary.unusualness.consideredCount), summary.callPutLean.lean]
+        : []
+    };
+  },
+  'simple-adapter/options-surface/v1': (moduleObject, ownerState, parameterValues) => {
+    const summary = moduleObject.computeSurfaceSummary(frozenClone(ownerState), parameterValues);
+    const ready = summary.surface.state === 'ready';
+    return {
+      ownerFunction: 'computeSurfaceSummary',
+      numericValue: ready ? summary.gammaFlip.signedNetGEX : null,
+      valueText: `${summary.gammaFlip.regime} gamma`,
+      summaryContains: ready
+        ? [
+          summary.gammaFlip.regime,
+          summary.walls.callWall === null ? '-' : String(summary.walls.callWall),
+          summary.walls.putWall === null ? '-' : String(summary.walls.putWall),
+          summary.expectedMove.em === null ? '-' : String(summary.expectedMove.em)
+        ]
+        : []
+    };
+  },
+  'simple-adapter/dealer-gamma-playbook/v1': (moduleObject, ownerState, parameterValues) => {
+    const summary = moduleObject.computeGammaPlaybookSummary(frozenClone(ownerState), parameterValues);
+    const ready = summary.gammaState.state === 'ready';
+    return {
+      ownerFunction: 'computeGammaPlaybookSummary',
+      numericValue: ready ? summary.gammaState.signedNetGEX : null,
+      valueText: `${summary.playbook.gammaRegime} gamma`,
+      summaryContains: ready
+        ? [summary.playbook.gammaRegime, summary.playbook.scenario, summary.playbook.conviction, summary.playbook.hold]
+        : []
     };
   }
 };

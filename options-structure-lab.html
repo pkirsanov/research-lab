@@ -1265,6 +1265,64 @@
       } catch (e) { }
     }
     function loadState() { try { return JSON.parse(localStorage.getItem('optStructLab') || 'null'); } catch (e) { return null; } }
+
+    /* ══════════════════ Scope 15 production Simple-view owner-state provider (Model B) ══════════════════
+       Expose this page's REAL current owner state to the shared production bridge
+       (rlexperience.js renderSimpleBridge) through the SAME uniform provider seam
+       market-heatmap-lab.html uses (globalThis.__rlOwnerStateProvider[toolId]). Registered
+       synchronously — this inline script runs during parse, before the deferred rlapp.js bootstrap
+       reads it — so the shell's provider-gated ownerModes resolves options-structure to the
+       adapter-panel Simple (["power"]). This is the ONLY per-tool element and it lives on the
+       tool's own page, NOT in the shared runtime/bridge source (runtimeSourceHasToolBranch stays 0).
+
+       SINGLE SOURCE — no formula is copied here. Every field is read straight off the live `state`
+       object the native Power path renders from:
+         • spot/div/zoom/minOI -> state.spot / state.div / state.zoom / state.minOI (the same values
+           the Power aggregation and the ±zoom% chain window already use),
+         • chains              -> state.chains ({epoch,T,calls,puts}), the exact per-expiry chain
+           arrays computeAll/computeGammaFlip/maxPain read,
+         • dte                 -> RLOPTIONS.dteFrom(chain.epoch), the adapter MODULE's OWN exported
+           owner primitive (never a re-derived inline formula),
+         • asOf/source         -> state.pagesAsOf (the same-origin snapshot's own asof) else the
+           page's own state.dataAt read time — honest observation truth.
+       The Black-Scholes greeks, the walls, the gamma flip and the expected move are NOT computed
+       here: they stay inside RLOPTIONS, where the options-surface Simple adapter re-runs the same
+       single-sourced bsm the Power path delegates to, so Simple and Power share one formula.
+
+       NETWORK-FREE (SCN-012-034): the provider only reads already-present page state — it never
+       fetches, so switching to Simple triggers no additional chain request.
+
+       HONEST DEGRADATION: until fetchAll has landed a spot and at least one expiry chain (a fresh
+       load starts with state.spot === null and state.chains === []) the provider returns null and
+       the bridge paints the honest "owner adapter required" panel — no invented signal. */
+    globalThis.__rlOwnerStateProvider = globalThis.__rlOwnerStateProvider || {};
+    globalThis.__rlOwnerStateProvider['options-structure-lab'] = function () {
+      if (!Number.isFinite(state.spot) || !(state.spot > 0)) return null;
+      if (!Array.isArray(state.chains) || !state.chains.length) return null;
+      var chains = [], i, ch, dte;
+      for (i = 0; i < state.chains.length; i++) {
+        ch = state.chains[i];
+        dte = RLOPTIONS.dteFrom(ch && ch.epoch);
+        if (!Number.isFinite(dte)) continue;
+        chains.push({ dte: dte, calls: ch.calls || [], puts: ch.puts || [] });
+      }
+      if (!chains.length) return null;
+      var asOf = state.pagesAsOf || (Number.isFinite(state.dataAt) && state.dataAt > 0 ? new Date(state.dataAt).toISOString() : null);
+      if (!asOf) return null;
+      return {
+        contractVersion: 'options-surface-owner-state/v1',
+        toolId: 'options-structure-lab',
+        asOf: asOf,
+        source: state.pagesAsOf ? 'same-origin options snapshot (data/options)' : (state.provider + ' option chain'),
+        nowMs: Date.now(),
+        spot: state.spot,
+        div: state.div,
+        zoom: state.zoom,
+        minOI: state.minOI,
+        chains: chains
+      };
+    };
+
     /* day-over-day snapshot history: {tk:{day:{oiByStrike, netGEX, pcOI, pcVol, skew, atmIV, spot}}} */
     function snapStore() { try { return JSON.parse(localStorage.getItem('optSnaps') || '{}') || {}; } catch (e) { return {}; } }
     function saveSnap(tk, snap) {

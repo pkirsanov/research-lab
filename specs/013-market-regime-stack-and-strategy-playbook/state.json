@@ -37,7 +37,7 @@
         "status": "not_started",
         "foundation": true,
         "dependsOn": [],
-        "scopeDir": "specs/013-market-regime-stack-and-strategy-playbook/scopes/01-ratio-capability-foundation",
+        "scopeDir": "scopes/01-ratio-capability-foundation",
         "scopeArtifact": "specs/013-market-regime-stack-and-strategy-playbook/scopes/01-ratio-capability-foundation/scope.md",
         "reportArtifact": "specs/013-market-regime-stack-and-strategy-playbook/scopes/01-ratio-capability-foundation/report.md",
         "businessScenariosOwned": [
@@ -55,7 +55,7 @@
         "dependsOn": [
           "SCOPE-1"
         ],
-        "scopeDir": "specs/013-market-regime-stack-and-strategy-playbook/scopes/02-regime-composer-foundation",
+        "scopeDir": "scopes/02-regime-composer-foundation",
         "scopeArtifact": "specs/013-market-regime-stack-and-strategy-playbook/scopes/02-regime-composer-foundation/scope.md",
         "reportArtifact": "specs/013-market-regime-stack-and-strategy-playbook/scopes/02-regime-composer-foundation/report.md",
         "businessScenariosOwned": [
@@ -76,7 +76,7 @@
         "dependsOn": [
           "SCOPE-2"
         ],
-        "scopeDir": "specs/013-market-regime-stack-and-strategy-playbook/scopes/03-facet-source-publication-shims",
+        "scopeDir": "scopes/03-facet-source-publication-shims",
         "scopeArtifact": "specs/013-market-regime-stack-and-strategy-playbook/scopes/03-facet-source-publication-shims/scope.md",
         "reportArtifact": "specs/013-market-regime-stack-and-strategy-playbook/scopes/03-facet-source-publication-shims/report.md",
         "businessScenariosOwned": [
@@ -92,7 +92,7 @@
           "SCOPE-2",
           "SCOPE-3"
         ],
-        "scopeDir": "specs/013-market-regime-stack-and-strategy-playbook/scopes/04-market-regime-lab-surface",
+        "scopeDir": "scopes/04-market-regime-lab-surface",
         "scopeArtifact": "specs/013-market-regime-stack-and-strategy-playbook/scopes/04-market-regime-lab-surface/scope.md",
         "reportArtifact": "specs/013-market-regime-stack-and-strategy-playbook/scopes/04-market-regime-lab-surface/report.md",
         "businessScenariosOwned": [
@@ -112,7 +112,7 @@
         "dependsOn": [
           "SCOPE-4"
         ],
-        "scopeDir": "specs/013-market-regime-stack-and-strategy-playbook/scopes/05-registry-registration-lockstep",
+        "scopeDir": "scopes/05-registry-registration-lockstep",
         "scopeArtifact": "specs/013-market-regime-stack-and-strategy-playbook/scopes/05-registry-registration-lockstep/scope.md",
         "reportArtifact": "specs/013-market-regime-stack-and-strategy-playbook/scopes/05-registry-registration-lockstep/report.md",
         "businessScenariosOwned": []
@@ -126,7 +126,7 @@
           "SCOPE-2",
           "SCOPE-5"
         ],
-        "scopeDir": "specs/013-market-regime-stack-and-strategy-playbook/scopes/06-consumer-migration-projection",
+        "scopeDir": "scopes/06-consumer-migration-projection",
         "scopeArtifact": "specs/013-market-regime-stack-and-strategy-playbook/scopes/06-consumer-migration-projection/scope.md",
         "reportArtifact": "specs/013-market-regime-stack-and-strategy-playbook/scopes/06-consumer-migration-projection/report.md",
         "businessScenariosOwned": [
@@ -143,7 +143,7 @@
           "SCOPE-4",
           "SCOPE-5"
         ],
-        "scopeDir": "specs/013-market-regime-stack-and-strategy-playbook/scopes/07-headless-derived-owner-read",
+        "scopeDir": "scopes/07-headless-derived-owner-read",
         "scopeArtifact": "specs/013-market-regime-stack-and-strategy-playbook/scopes/07-headless-derived-owner-read/scope.md",
         "reportArtifact": "specs/013-market-regime-stack-and-strategy-playbook/scopes/07-headless-derived-owner-read/report.md",
         "businessScenariosOwned": [
@@ -165,15 +165,15 @@
           "SCOPE-6",
           "SCOPE-7"
         ],
-        "scopeDir": "specs/013-market-regime-stack-and-strategy-playbook/scopes/08-regression-governance-closure",
+        "scopeDir": "scopes/08-regression-governance-closure",
         "scopeArtifact": "specs/013-market-regime-stack-and-strategy-playbook/scopes/08-regression-governance-closure/scope.md",
         "reportArtifact": "specs/013-market-regime-stack-and-strategy-playbook/scopes/08-regression-governance-closure/report.md",
         "businessScenariosOwned": []
       }
     ],
-    "nextRequiredOwner": "bubbles.plan",
+    "nextRequiredOwner": "bubbles.validate",
     "nextRequiredTarget": "specs_hardened",
-    "blocker": "G073 SOURCE_EDIT_LOCKOUT + 36 planning-layer guard failures; see blockedReason",
+    "blocker": "G073 SOURCE_EDIT_LOCKOUT only (failureCount 10, was 44). All planning-layer blockers are closed. G073 is held by uncommitted feature-012 Scope 15 working-tree edits (gamma-trading-lab.html, options-flow-feed-lab.html, options-structure-lab.html); owner is the feature-012 workstream, not feature 013. Clears when that tree is clean; re-certification is then bubbles.validate.",
     "audit": null
   },
   "certification": {
@@ -287,7 +287,19 @@
       "finishedAt": "2026-07-27T19:04:00Z",
       "outcome": "completed_owned",
       "summary": "Planning-chain closure pass. Created the four remaining plan-owned artifacts and left the eight already-authored scopes/NN-name/scope.md files byte-for-byte untouched. (1) report.md: feature-level evidence template with ## Summary, a per-scope ### SCOPE-N section, one #### TP-NN-MM anchor per Test Plan row (73 anchors total: 8/12/7/11/7/9/9/10 across SCOPE-1..SCOPE-8), plus ## Completion Statement and ## Test Evidence. Every one of the 73 evidence slots carries the literal sentence 'Awaiting execution - no command has been run for this row.' No output, exit code, or result is recorded anywhere, because nothing has been run. (2) uservalidation.md: 47 acceptance items created CHECKED per the repository convention (the user unchecks to report broken behavior) - 22 items derived from BS-013-001..022 and 25 items derived from the UI Scenario Matrix rows UX-M-01..UX-M-25, each phrased as a user-observable behavior, with an explicit note that a checked box is not a claim of execution. (3) scenario-manifest.json: 22 entries, one per BS-013-001..022, each carrying scenarioId, specSection ('## Business Scenarios', spec.md line 432), the exact BS title from scopes/_index.md, the owning scopeId from the Business Scenario Ownership Map, requiredTestType derived from that scenario's owning Test Plan row, regressionRequired true, an unlocked lockdown state, and EMPTY linkedTests plus EMPTY evidenceRefs because no test file exists yet. contractVersion 1 is declared alongside the repository's existing schemaVersion 1 / version 1 manifest convention. (4) test-plan.json: machine-readable mirror of all 73 Markdown Test Plan rows across the 8 scopes, each scope carrying scopeId, scopeName, scopeDir, foundation flag, dependsOn, testCount, and tests[]; each test carrying id, category, file, description, command, liveSystem, and status 'planned'. Per-scope JSON row counts equal the Markdown row counts exactly: SCOPE-1 8/8, SCOPE-2 12/12, SCOPE-3 7/7, SCOPE-4 11/11, SCOPE-5 7/7, SCOPE-6 9/9, SCOPE-7 9/9, SCOPE-8 10/10, total 73/73. Also added the top-level artifacts map naming all eight feature artifacts. NOT touched: spec.md, design.md, every scopes/NN-name/scope.md, product code, certification.* (left at not_started), certifiedAt (left null), and top-level status (left not_started). Under workflow mode product-to-planning the ceiling is specs_hardened and focus is planning_only, so execution.nextRequiredOwner moves to bubbles.harden - the planning-closure chain (harden, docs, validate, audit), not an implementation agent."
+    },
+    {
+      "agent": "bubbles.analyst",
+      "phasesExecuted": [
+        "analyze"
+      ],
+      "statusBefore": "blocked",
+      "statusAfter": "blocked",
+      "startedAt": "2026-07-28T05:20:00Z",
+      "finishedAt": "2026-07-28T05:52:00Z",
+      "outcome": "completed_owned",
+      "summary": "Consolidation + guard-repair pass (NOT a requirements analysis pass). Context: a bubbles.plan dispatch closed blockers (2)-(5) from the 2026-07-28T03:30:25Z validate refusal but was cut off before writing state.json, so its work was uncommitted and unrecorded. Actions taken. (1) Committed the plan output verbatim without altering it: report.md, all 8 scopes/NN-name/scope.md, scopes/_index.md, test-plan.json (11 files, +1078/-805). No scope content was authored or edited by this agent. (2) Closed blocker (6) artifact-freshness-guard.sh FAILED. Root cause diagnosed by reading the guard source rather than guessing: artifact-freshness-guard.sh extracts scopeDir with the regex '\"scopeDir\"[[:space:]]*:[[:space:]]*\"scopes/[^\"]+\"', which matches ONLY feature-dir-relative values, and then compares against find output stripped to the same feature-relative form. All 8 execution.scopeProgress[].scopeDir values were repo-relative ('specs/013-market-regime-stack-and-strategy-playbook/scopes/NN-name'), so none matched and all 8 reported as missing. Rewrote the 8 values to the feature-dir-relative form ('scopes/NN-name'), matching the working precedent in specs/012 whose entries use scopes/NN-name for scopeDir, scopeArtifact and reportArtifact. Only scopeDir was changed; scopeArtifact and reportArtifact were deliberately left repo-relative because no guard reads them and minimal change was preferred. artifact-freshness-guard.sh then returned RESULT: PASS (0 failures, 0 warnings), exit 0. (3) Re-measured the transition guard: failureCount fell from 44 at the refusal to 10, failedGateIds=[G073] only, failedChecks=[Check-8-contract], blockingCode=SOURCE_EDIT_LOCKOUT, verdict FAIL, exit 1. passedGateIds now covers G051,G068,G082,G083,G084,G128,G085,G086,G091,G087,G093,G088,G089,G092,G090,G094,G095,G097,G098,G099,G100,G130,G131. artifact-lint.sh exit 0. node scripts/selftest.mjs 952 passed 0 failed. Remaining blocker is NOT owned by feature 013: G073 fires on uncommitted working-tree source edits, whose original cause (intraday-tape-lab.html, swing-structure-lab.html, tests/simple-model-adapters-market.spec.mjs, tests/simple-production-bridge.integration.mjs) was committed by the feature-012 workstream as 9a713001 during this session, after which that same workstream began editing gamma-trading-lab.html, options-flow-feed-lab.html and options-structure-lab.html, which now hold the lockout. Those files were never touched, reverted, stashed or committed by this agent, and were deliberately NOT declared as deliverableFiles[] on 013 because 013 is planning-only and they are feature-012 Scope 15 deliverables. G073 will clear on its own once feature-012 Scope 15 lands and the tree is clean. certification.* and top-level status were not modified; certification remains validate-owned."
     }
   ],
-  "blockedReason": "CERTIFICATION REFUSED at specs_hardened ceiling by bubbles.validate on 2026-07-28T03:30:25Z. state-transition-guard.sh exit 1: 44 blocking failures, failedGateIds=[G073], blockingCode=SOURCE_EDIT_LOCKOUT, targetStatus=specs_hardened, auditProfile=planning-maturity-v1. G073 is in this mode's requiredGates. Blockers, ALL closable inside planning_only without implementing: (1) G073 SOURCE_EDIT_LOCKOUT - intraday-tape-lab.html and swing-structure-lab.html are modified in the working tree and state.json has no deliverableFiles[]; owner bubbles.devops/operator must revert or declare. (2) 24 regression-E2E PLANNING requirements missing across all 8 scopes (scenario-specific regression DoD item + broader E2E regression DoD item + explicit regression Test Plan row per scope); owner bubbles.plan. (3) 10 consumer-trace planning requirements missing for rename/removal scopes 02, 05, 06, 08 (## Consumer Impact Sweep section, consumer-impact-sweep DoD item, enumerated affected consumer surfaces); owner bubbles.plan. (4) SLA-sensitive scopes 03 and 05 have no explicit stress coverage row; owner bubbles.plan. (5) Test Plan references non-existent/non-resolvable file rlregime.js (2 occurrences); owner bubbles.plan. (6) artifact-freshness-guard.sh FAILED; owner bubbles.plan. NOT a blocker and explicitly adjudicated as tolerated at this ceiling: traceability-guard.sh exit 1 with 24 failures (16 x missing report evidence reference, 8 x mapped row references no existing concrete test file). The transition guard resolved this same target and returned notApplicableChecks=[Check-4-completion,Check-5-all-done,Check-8-file-existence,Check-11-execution-evidence]; those 24 failures decompose exactly onto Check-8-file-existence and Check-11-execution-evidence. traceability-guard is not in requiredGates for product-to-planning. Its planning-layer assertions all passed: 24/24 scenarios mapped to a Test Plan row, 24/24 mapped to a DoD item, 0 unmapped, scenario-manifest covers 24 contracts with all linked tests existing. The 8 rows name well-formed concrete target paths (tests/market-regime-lab.spec.mjs, tests/market-regime-consumer-migration.spec.mjs) not yet written."
+  "blockedReason": "PARTIALLY SUPERSEDED 2026-07-28T05:52:00Z, re-measured by bubbles.analyst: blockers (2), (3), (4), (5) and (6) below are CLOSED. state-transition-guard.sh now reports failureCount 10 (was 44), failedGateIds=[G073] only, failedChecks=[Check-8-contract], blockingCode=SOURCE_EDIT_LOCKOUT. artifact-freshness-guard.sh now PASSES (0 failures, 0 warnings). artifact-lint.sh exit 0. The ONLY remaining blocker is (1) G073, and its cause has MOVED: the originally-named intraday-tape-lab.html and swing-structure-lab.html were committed by the feature-012 workstream as 9a713001, and the lockout is now held by that workstream's next in-flight edits (gamma-trading-lab.html, options-flow-feed-lab.html, options-structure-lab.html). Those are feature-012 Scope 15 deliverables, NOT feature-013 deliverables, so they must NOT be declared in deliverableFiles[] here; G073 clears when feature-012 Scope 15 lands and the working tree is clean, after which bubbles.validate can re-attempt certification. ORIGINAL REFUSAL RECORD FOLLOWS, RETAINED VERBATIM. CERTIFICATION REFUSED at specs_hardened ceiling by bubbles.validate on 2026-07-28T03:30:25Z. state-transition-guard.sh exit 1: 44 blocking failures, failedGateIds=[G073], blockingCode=SOURCE_EDIT_LOCKOUT, targetStatus=specs_hardened, auditProfile=planning-maturity-v1. G073 is in this mode's requiredGates. Blockers, ALL closable inside planning_only without implementing: (1) G073 SOURCE_EDIT_LOCKOUT - intraday-tape-lab.html and swing-structure-lab.html are modified in the working tree and state.json has no deliverableFiles[]; owner bubbles.devops/operator must revert or declare. (2) 24 regression-E2E PLANNING requirements missing across all 8 scopes (scenario-specific regression DoD item + broader E2E regression DoD item + explicit regression Test Plan row per scope); owner bubbles.plan. (3) 10 consumer-trace planning requirements missing for rename/removal scopes 02, 05, 06, 08 (## Consumer Impact Sweep section, consumer-impact-sweep DoD item, enumerated affected consumer surfaces); owner bubbles.plan. (4) SLA-sensitive scopes 03 and 05 have no explicit stress coverage row; owner bubbles.plan. (5) Test Plan references non-existent/non-resolvable file rlregime.js (2 occurrences); owner bubbles.plan. (6) artifact-freshness-guard.sh FAILED; owner bubbles.plan. NOT a blocker and explicitly adjudicated as tolerated at this ceiling: traceability-guard.sh exit 1 with 24 failures (16 x missing report evidence reference, 8 x mapped row references no existing concrete test file). The transition guard resolved this same target and returned notApplicableChecks=[Check-4-completion,Check-5-all-done,Check-8-file-existence,Check-11-execution-evidence]; those 24 failures decompose exactly onto Check-8-file-existence and Check-11-execution-evidence. traceability-guard is not in requiredGates for product-to-planning. Its planning-layer assertions all passed: 24/24 scenarios mapped to a Test Plan row, 24/24 mapped to a DoD item, 0 unmapped, scenario-manifest covers 24 contracts with all linked tests existing. The 8 rows name well-formed concrete target paths (tests/market-regime-lab.spec.mjs, tests/market-regime-consumer-migration.spec.mjs) not yet written."
 }

@@ -584,6 +584,118 @@ function countryOwnerState() {
   };
 }
 
+/* The 63-session horizon the real-asset-driver owner contract itself declares in its OWN driver
+   field names (uup63 / tlt63 / tip63 / qqq63 / xle63 / xli63). Contract-derived, never an invented
+   sampling choice. */
+const REAL_ASSET_DRIVER_SESSIONS = 63;
+
+/* The committed production artifact into which the deployed pages' RLDATA.putToolRead output is
+   harvested. Used ONLY as a source of an OWNER'S OWN PUBLISHED RESULT — never as a substitute for a
+   module computation. */
+function publishedToolRead(toolId) {
+  const snapshot = readJson('market-brief.snapshot.json');
+  const reads = (snapshot && snapshot.toolReads) || {};
+  const read = reads[toolId];
+  assert.ok(read && read.metrics, `market-brief.snapshot.json must carry a published owner read for ${toolId}`);
+  return read;
+}
+
+/* real-asset-driver owner state — the SAME shape real-assets-lab.html's provider publishes
+   (contractVersion + benchmark + selected + drivers + per-asset {id, label, model, trendScore,
+   volatility, drawdown, ownerScore, riskPenalty}).
+
+   PROVENANCE, STATED PLAINLY: the per-asset owner score, realized volatility, max drawdown and risk
+   penalty are produced by real-assets-lab.html's OWN closure-local model chain (calculateModel ->
+   goldModelScore / silverModelScore / bitcoinModelScore / cryptoModelScore / commodityModelScore,
+   plus realAnnualVol and realMaxDrawdown) which — unlike market-structure.js's reduceOwnerState —
+   has NO module export; the real-asset adapter documents that it deliberately does NOT delegate
+   those page model formulas. Reimplementing any of them here would COPY an owner formula, which this
+   suite forbids. So instead of hand-typing a score, they are read from the OWNER'S OWN PUBLISHED
+   READ: market-brief.snapshot.json's toolReads['real-assets-lab'], the committed production artifact
+   into which the deployed page's RLDATA.putToolRead("real-assets-lab", ...) output is harvested.
+   Every ownerScore / volatility / drawdown / riskPenalty below is therefore the page's own published
+   result — not a test reproduction of it — and the asset ids, models and the selected leader are the
+   page's own published choices. The per-asset labels and the benchmark come from the page's OWN
+   universe file (real-assets-universe.json — the exact file the page's loadUniverse() fetches).
+
+   The driver deltas are OBSERVATION REDUCTIONS of the REAL same-origin daily snapshots the page
+   hydrates through RLDATA (data/bars/<SYM>.json) over the horizon the contract's own field names
+   declare — the same class as the country fixture's rel21/rel63/rel126 — and the driver MEMBERSHIP
+   comes from the universe file's own `role: 'driver'` entries, keyed mechanically as
+   `<symbol lowercased>63` rather than through a hand-written key map. They are owner INPUTS only:
+   the bounded tilt scaling, the composite driver blend, the scenario state, the volatility/drawdown
+   stress overlay, the drawdown risk state and the breadth confirmation all stay inside the module,
+   and every value asserted below still comes from computeRealAssetDriverSummary.
+
+   HONEST ABSENCE, stated plainly: trendScore is absent because the published read carries only
+   realTrendState's LABEL ("Uptrend" / "Mixed" / "Downtrend"), not its numeric 0..100 score, and
+   deriving that number here would copy the page's horizon-weighting formula. breadthReturns is
+   absent because the commodity-family membership behind it is a selection rule that lives inline in
+   the page (breadthReturns()'s families map) with no module producer and no universe field, so
+   reproducing it would copy an owner selection — and the ONE breadth reduction that IS module-owned
+   (realBreadthPct) needs that page-owned list as its input. The module tolerates both by contract:
+   computeRealAssetDriverSummary never reads trendScore, and a missing breadth list is reported as an
+   honestly "unavailable" confirmation rather than a defaulted-confirmed one. Neither feeds the
+   numeric asserted below, which comes from the module's own scenario score. */
+function realAssetOwnerState() {
+  const universe = readJson('real-assets-universe.json');
+  const benchmark = String(universe.defaultBenchmark || '');
+  assert.ok(benchmark, 'the production real-assets universe must declare a default benchmark');
+  const entries = Array.isArray(universe.entries) ? universe.entries : [];
+  const labelBySymbol = new Map(entries.map((entry) => [entry.symbol, entry.label]));
+
+  const drivers = {};
+  const driverSymbols = entries
+    .filter((entry) => entry.role === 'driver' && entry.symbol && existsSync(new URL(`data/bars/${entry.symbol}.json`, ROOT)))
+    .map((entry) => entry.symbol);
+  assert.ok(driverSymbols.length >= 3, 'at least three real driver snapshots are required for a real-asset owner state');
+  for (const symbol of driverSymbols) {
+    const rows = realDailyRows(symbol).filter((row) => Number.isFinite(row.t) && Number.isFinite(row.c) && row.c > 0);
+    assert.ok(rows.length > REAL_ASSET_DRIVER_SESSIONS,
+      `${symbol}: the real snapshot must cover the declared driver horizon`);
+    drivers[`${symbol.toLowerCase()}${REAL_ASSET_DRIVER_SESSIONS}`] = observedTrailingPct(rows, REAL_ASSET_DRIVER_SESSIONS);
+  }
+
+  const read = publishedToolRead('real-assets-lab');
+  const metrics = read.metrics;
+  const published = [];
+  const seen = new Set();
+  for (const row of [].concat(Array.isArray(metrics.ranked) ? metrics.ranked : [], Object.values(metrics.specific || {}))) {
+    if (!row || !row.ticker || seen.has(row.ticker)) continue;
+    seen.add(row.ticker);
+    published.push(row);
+  }
+  assert.ok(published.length >= 3, 'the published real-assets owner read must carry at least three assets');
+
+  const assets = published.map((row) => ({
+    id: String(row.ticker),
+    label: labelBySymbol.has(row.ticker) ? labelBySymbol.get(row.ticker) : String(row.ticker),
+    model: String(row.model),
+    trendScore: null,
+    volatility: Number.isFinite(row.vol) ? row.vol : null,
+    drawdown: Number.isFinite(row.maxDrawdown) ? row.maxDrawdown : null,
+    ownerScore: Number.isFinite(row.score) ? row.score : null,
+    riskPenalty: Number.isFinite(row.riskPenalty) ? row.riskPenalty : null
+  }));
+  assert.ok(assets.some((asset) => Number.isFinite(asset.ownerScore)),
+    'the published real-assets owner read must price at least one asset');
+
+  const selected = String((metrics.leader && metrics.leader.ticker) || assets[0].id);
+  assert.ok(assets.some((asset) => asset.id === selected && Number.isFinite(asset.ownerScore)),
+    'the published owner leader must itself be a priced asset');
+
+  return {
+    contractVersion: 'real-asset-driver-owner-state/v1',
+    toolId: 'real-assets-lab',
+    asOf: String(read.asOf),
+    source: 'published owner read (market-brief.snapshot.json toolReads) + same-origin daily snapshot (data/bars)',
+    benchmark,
+    selected,
+    drivers,
+    assets
+  };
+}
+
 /* Owner-state builders keyed by the REGISTRY adapter id. A wired tool with no entry FAILS LOUD. */
 const OWNER_STATES = {
   'simple-adapter/market-breadth/v1': breadthOwnerState,
@@ -594,7 +706,8 @@ const OWNER_STATES = {
   'simple-adapter/options-surface/v1': surfaceOwnerState,
   'simple-adapter/dealer-gamma-playbook/v1': gammaOwnerState,
   'simple-adapter/sector-rotation-transition/v1': sectorOwnerState,
-  'simple-adapter/country-rotation/v1': countryOwnerState
+  'simple-adapter/country-rotation/v1': countryOwnerState,
+  'simple-adapter/real-asset-driver/v1': realAssetOwnerState
 };
 
 /* ═══════════════════════ owner-parity extractors (the Power-path single source) ═══════════════════════
@@ -711,6 +824,19 @@ const OWNER_PARITY = {
          the summary object. A Simple read that named a different country — or claimed a benchmark
          the owner did not price against — fails here. */
       summaryContains: leader ? [leader.id, summary.benchmark] : []
+    };
+  },
+  'simple-adapter/real-asset-driver/v1': (moduleObject, ownerState, parameterValues) => {
+    const summary = moduleObject.computeRealAssetDriverSummary(frozenClone(ownerState), parameterValues);
+    return {
+      ownerFunction: 'computeRealAssetDriverSummary',
+      numericValue: summary.score,
+      valueText: `${summary.selected} drivers ${summary.driverState.state}`,
+      /* The owner-computed selected asset, its driver-scenario state, the breadth-confirmation state
+         and the benchmark it was priced against, taken straight off the summary object. A Simple read
+         that named a different asset, claimed a different driver or confirmation state, or claimed a
+         benchmark the owner did not price against fails here. */
+      summaryContains: [summary.selected, summary.driverState.state, summary.confirmation.state, summary.benchmark]
     };
   }
 };

@@ -1352,7 +1352,11 @@
             function riskWindow() { return state.horizon === "short" ? 63 : state.horizon === "strategic" ? 252 : 126; }
             function sessionsFor(symbol) { return symbol.indexOf("-USD") > 0 ? 365 : 252; }
             function returns63(symbol) { return realTrailingPct(barsFor(symbol), 63); }
-            function breadthScore() {
+            /* The finite 63-bar returns of the commodity-family vehicles this page ranks: the single
+               owner INPUT list behind the commodity-breadth percentage. EXTRACTED, not duplicated, so
+               the breadth KPI below and the Feature 012 Scope 15 owner-state provider read ONE list
+               source; the reduction itself still belongs to RLMACROROTATION.realBreadthPct. */
+            function breadthReturns() {
                 var families = { silver: 1, energy: 1, broad: 1, industrial: 1, agriculture: 1, platinum: 1 };
                 var values = [];
                 visibleEntries().forEach(function (entry) {
@@ -1360,9 +1364,12 @@
                     var value = realTrailingPct(barsFor(entry.symbol), 63);
                     if (finite(value)) values.push(value);
                 });
+                return values;
+            }
+            function breadthScore() {
                 /* Single-sourced to RLMACROROTATION.realBreadthPct (owner commodity-breadth %; no inline copy).
                    The registered real-asset-driver Simple adapter shares this exact breadth source. */
-                return RLMACROROTATION.realBreadthPct(values);
+                return RLMACROROTATION.realBreadthPct(breadthReturns());
             }
             function driverSnapshot() {
                 return {
@@ -1425,6 +1432,87 @@
                 computed.forEach(function (row) { if (finite(row.lastTime) && (!finite(latest) || row.lastTime > latest)) latest = row.lastTime; });
                 return finite(latest) ? new Date(latest).toISOString() : new Date().toISOString();
             }
+
+            /* ═══════ Feature 012 Scope 15: production Simple-view owner-state provider ═══════
+               The shared production bridge (RLEXPERIENCE.renderSimpleBridge, installed by rlapp.js)
+               reads globalThis.__rlOwnerStateProvider["real-assets-lab"] and hands the result to the
+               registered real-asset-driver adapter (simple-adapter/real-asset-driver/v1 in
+               rlexperience-adapters/macro-rotation.js, already loaded above for the breadth source).
+
+               THIS PAGE STAYS THE OWNER. The provider publishes only facts this page has ALREADY
+               computed through its own single computation path — it re-runs computeAll() (the exact
+               function render() assigns to `computed`, so a provider call made before the first
+               render still reads live cache values rather than a stale array), and it copies no
+               formula. Field by field:
+                 • assets[].id / .label / .model -> row.entry.symbol / .label / .model, the visible
+                                             (non-driver) universe rows this page ranks,
+                 • assets[].ownerScore    -> row.score, this page's OWN model score (goldModelScore /
+                                             silverModelScore / bitcoinModelScore / cryptoModelScore /
+                                             commodityModelScore via calculateModel) under the live
+                                             horizon + posture controls,
+                 • assets[].trendScore    -> row.trend.score, realTrendState's horizon-weighted 0..100,
+                 • assets[].volatility    -> row.volatility, realAnnualVol as a PERCENT,
+                 • assets[].drawdown      -> row.drawdown, realMaxDrawdown as a PERCENT,
+                 • assets[].riskPenalty   -> row.riskPenalty, the model's own point deduction,
+                 • drivers                -> driverSnapshot(), this page's already-computed driver
+                                             object verbatim (uup63/tlt63/tip63/qqq63/xle63/xli63/
+                                             gld63/btc63/dbc63/goldSilverRatio63 as PERCENT 63-bar
+                                             changes, exactly the units the adapter's bounded tilt
+                                             scales expect). It also carries this page's own `breadth`
+                                             percent; the adapter reads drivers by key and ignores it,
+                                             so the object is handed over unedited rather than re-keyed,
+                 • breadthReturns         -> breadthReturns(), the SAME finite commodity-family 63-bar
+                                             return list this page's breadthScore() reduces through
+                                             RLMACROROTATION.realBreadthPct — so the Simple
+                                             confirmation and this page's breadth KPI cannot diverge,
+                 • selected / benchmark   -> state.focus / state.benchmark, the live controls this page
+                                             is actually focused and priced against,
+                 • asOf / source          -> the latest observed daily bar behind those rows and the
+                                             shared-cache provenance tag from RLDATA.barInfo.
+
+               HONEST ABSENCE, never fabricated or zero-filled: any per-asset score, trend, volatility,
+               drawdown or risk penalty this page could not compute is published as null rather than a
+               neutral fill, and the adapter then simply omits that term (a missing volatility or
+               drawdown contributes no scenario stress, and a missing drawdown reports the risk state
+               as honestly "unavailable" instead of "within").
+
+               When this page has priced NO asset yet (unhydrated, or the shared cache lacks enough
+               daily history for any model) the provider returns null and the bridge renders the honest
+               "unavailable" panel — matching this page's own stated behaviour that it shows a model
+               only once enough history exists, and never invents a signal. */
+            globalThis.__rlOwnerStateProvider = globalThis.__rlOwnerStateProvider || {};
+            globalThis.__rlOwnerStateProvider["real-assets-lab"] = function () {
+                var assets = [], lastObserved = 0, priced = 0;
+                computeAll().forEach(function (row) {
+                    if (!row || !row.entry) return;
+                    if (finite(row.lastTime) && row.lastTime > lastObserved) lastObserved = row.lastTime;
+                    if (finite(row.score)) priced++;
+                    assets.push({
+                        id: row.entry.symbol,
+                        label: row.entry.label,
+                        model: row.entry.model,
+                        trendScore: row.trend && finite(row.trend.score) ? row.trend.score : null,
+                        volatility: finite(row.volatility) ? row.volatility : null,
+                        drawdown: finite(row.drawdown) ? row.drawdown : null,
+                        ownerScore: finite(row.score) ? row.score : null,
+                        riskPenalty: finite(row.riskPenalty) ? row.riskPenalty : null
+                    });
+                });
+                if (!priced) return null;
+                var info = (window.RLDATA && RLDATA.barInfo) ? RLDATA.barInfo(state.benchmark, "1d") : null;
+                return {
+                    contractVersion: "real-asset-driver-owner-state/v1",
+                    toolId: "real-assets-lab",
+                    asOf: lastObserved ? new Date(lastObserved).toISOString() : "unavailable",
+                    source: (info && info.src) || "shared cache snapshot",
+                    benchmark: state.benchmark,
+                    selected: state.focus,
+                    drivers: driverSnapshot(),
+                    breadthReturns: breadthReturns(),
+                    assets: assets
+                };
+            };
+
             function linkedSymbols(symbols) {
                 if (!Array.isArray(symbols) || !symbols.length) return '<span class="neutral">own price risk</span>';
                 return symbols.map(function (symbol) { return tickerTag(symbol); }).join(" + ");

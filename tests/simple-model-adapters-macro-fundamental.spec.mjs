@@ -288,7 +288,18 @@ const TOOLS = {
     moduleFile: 'rlexperience-adapters/macro-rotation.js',
     owner: () => realAssetOwnerFixture(),
     changes: () => [['usd-shock', 6], ['risk-appetite', 0.6]],
-    adapterId: 'simple-adapter/real-asset-driver/v1'
+    adapterId: 'simple-adapter/real-asset-driver/v1',
+    // Wired into its production page (real-assets-lab.html registers a real owner-state provider,
+    // __rlOwnerStateProvider['real-assets-lab'], consumed by the production Simple bridge in
+    // rlexperience.js) AND that provider returns a real owner snapshot under this harness: it reads
+    // computeAll(), which the page hydrates from the same-origin shared bars cache, so it does NOT
+    // hit its documented `if (!priced) return null` honest-absence path. The bridge therefore paints
+    // the REAL real-asset-driver adapter into the Simple panel BEFORE this test drives anything,
+    // making the pre-drive shell state 'ready'. That is STRONGER than the old unwired 'unavailable'
+    // premise: it proves the production bridge rendered the real adapter in the real owner-mode
+    // Simple flow. OBSERVED, not assumed: with no flag this spec asserted 'unavailable' and the real
+    // page returned 'ready'.
+    wiredInProduction: true
   },
   'bond-regime-lab': {
     title: 'Regression: bond regime Simple shocks recompute owner sleeve outcomes without hiding duration conflicts',

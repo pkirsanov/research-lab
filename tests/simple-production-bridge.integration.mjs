@@ -1223,6 +1223,128 @@ function strategyEvolutionOwnerState() {
   return ownerState;
 }
 
+/* ───── waterfront-polo-lab (location-suitability): the page's OWN provider, RUN here ─────
+   This page's owner FACTS are a curated GEO UNIVERSE — a drive approximation, a Masters-club layer
+   and a candidate-market layer — committed in waterfront-polo-universe.json and screened live by the
+   page. There is no module producer for that data and no harvested published read (the page makes no
+   RLDATA.putToolRead call at all), so restating any of it here would copy the owner's DATA, which
+   this suite forbids just as firmly as a copy of an owner formula. The page's own bindings are
+   therefore extracted VERBATIM from the deployed source and executed, and the owner state is
+   whatever the page's OWN `locationSuitabilityOwnerState()` returns.
+
+   THE PAGE'S OWN BOOT ORDER: `boot()` paints from the inline `DEFAULT_UNIVERSE` first, then FETCHES
+   waterfront-polo-universe.json and — on success — runs one statement that swaps the universe in and
+   repaints. `boot` fetches, so it cannot run here; instead that exact statement is extracted verbatim
+   from the deployed source and driven with the REAL committed universe file, which is precisely what
+   the page does whenever it is served over http (GitHub Pages, the local static server, and the
+   Playwright specs). The pre-fetch state is exercised FIRST and asserted to publish nothing.
+
+   WHY TWO COUNTED NO-OPS. That extracted statement also calls this page's `buildControls()` and
+   `render()` — its control-rebuild and paint steps. Both only WRITE DOM (a <select>'s options, the
+   water checkboxes, the SVG map, the table body, the verdict line) and mutate no owner field, and
+   neither an SVG host nor those controls exist in Node, so each is replaced by a COUNTED no-op that
+   is asserted to have run. Nothing on the owner path is short-circuited: every field below is
+   produced by the page's own provider reading the page's own live `U`.
+
+   DETERMINISTIC BY CONSTRUCTION: both inputs are committed static files (the deployed page and
+   waterfront-polo-universe.json). No clock, no network, no randomness, no DOM.
+
+   NO SEED IN THE OWNER STATE: the registry declares seedPolicy.required = false / randomnessClass
+   "none" for this model, so `registrySeed(definition)` pins null and the adapter is non-seeded.
+
+   NO PAGE CONTROL VALUES IN THE OWNER STATE: the page's filter controls and its advanced speed /
+   road-factor tweaks are its POWER what-if surface; the Simple model declares its own steerable
+   constraints in simple-models.json and the bridge pins them from the registry. See the page's own
+   provider comment for the full deliberately-not-published list. */
+const LOCATION_SUITABILITY_PAGE_BINDINGS = Object.freeze(['locationSuitabilityOwnerState']);
+const LOCATION_CLUB_KEYS = Object.freeze(['id', 'name', 'lat', 'lon', 'confidence']);
+const LOCATION_MARKET_KEYS = Object.freeze(['id', 'name', 'lat', 'lon', 'water', 'medK', 'ppsf', 'insBand', 'flood', 'surge', 'land', 'budgetFit', 'q']);
+
+function locationSuitabilityOwnerState() {
+  const source = readPage('waterfront-polo-lab.html');
+  assert.ok(source, 'the deployed waterfront-polo-lab.html source is required to run its own owner provider');
+  const propertyModule = loadModule('rlexperience-adapters/property-research.js');
+
+  let controlRebuilds = 0;
+  let paints = 0;
+  const page = Function('rebuildControls', 'paint', [
+    extractPageBinding(source, 'DEFAULT_UNIVERSE'),
+    extractPageLine(source, 'var U = DEFAULT_UNIVERSE, sortK = "driveMin", sortAsc = true;'),
+    // The page's DOM-only control-rebuild and paint steps (see WHY TWO COUNTED NO-OPS above).
+    'function buildControls() { rebuildControls(); }',
+    'function render() { paint(); }',
+    ...LOCATION_SUITABILITY_PAGE_BINDINGS.map((name) => extractPageBinding(source, name)),
+    // The page's OWN universe-refresh statement from boot(), extracted verbatim from the deployed source.
+    `function applyUniverse(j) { ${extractPageLine(source, 'if (j && j.markets && j.mastersClubs) { U = j; buildControls(); render(); }').trim()} }`,
+    'return { applyUniverse: applyUniverse, ownerState: locationSuitabilityOwnerState };'
+  ].join('\n'))(() => { controlRebuilds += 1; }, () => { paints += 1; });
+
+  // HONEST DEGRADATION, on the page's REAL pre-fetch state: the inline DEFAULT_UNIVERSE carries no
+  // declared as-of, so there is no provenance-stamped owner evidence and the provider publishes NOTHING.
+  assert.equal(page.ownerState(), null,
+    'before its universe file resolves the page holds an unstamped inline default and must publish no owner evidence');
+
+  const universe = readJson('waterfront-polo-universe.json');
+  page.applyUniverse(universe);   // the page's own refresh statement, on the real committed universe
+  assert.equal(controlRebuilds, 1, 'the page\'s own universe-refresh statement must reach its control-rebuild step');
+  assert.equal(paints, 1, 'the page\'s own universe-refresh statement must reach its paint step');
+
+  const ownerState = page.ownerState();
+  assert.ok(ownerState, 'the page provider must publish an owner state once its own universe file is loaded');
+  assert.equal(ownerState.contractVersion, 'location-suitability-owner-state/v1');
+  assert.equal(ownerState.toolId, 'waterfront-polo-lab');
+  // This tool observes no market feed: its evidence IS the curated universe file, so its as-of is that
+  // file's own declared stamp and its provenance names that file, never an invented observation date.
+  assert.equal(ownerState.asOf, universe.asOf,
+    'the curated universe is stamped with the committed file\'s own declared as-of, never an invented observation date');
+  assert.match(String(ownerState.source), /waterfront-polo-universe\.json/, 'the published source names the committed universe file');
+  assert.ok(String(ownerState.source).includes(universe.priceAsOf), 'the published source carries the file\'s OWN declared price as-of');
+  // The drive approximation is the universe file's own three declared numbers, passed through unchanged.
+  assert.deepEqual(ownerState.driveModel, {
+    defaultMinutes: universe.driveModel.defaultMinutes,
+    avgSpeedMph: universe.driveModel.avgSpeedMph,
+    roadFactor: universe.driveModel.roadFactor
+  }, 'the published drive approximation is the committed file\'s own declared model');
+  // Both owner layers are published WHOLE — no row is dropped, reordered or invented.
+  assert.deepEqual(ownerState.mastersClubs.map((club) => club.id), universe.mastersClubs.map((club) => club.id),
+    'every committed Masters club is published, in the file\'s own order');
+  assert.deepEqual(ownerState.markets.map((market) => market.id), universe.markets.map((market) => market.id),
+    'every committed candidate market is published, in the file\'s own order');
+  // Exactly the documented contract fields — a future page-side field addition cannot silently widen
+  // the evidence fingerprint, and a removal cannot silently narrow it.
+  for (const club of ownerState.mastersClubs) assert.deepEqual(Object.keys(club), [...LOCATION_CLUB_KEYS]);
+  for (const market of ownerState.markets) assert.deepEqual(Object.keys(market), [...LOCATION_MARKET_KEYS]);
+  // VERBATIM grade passthrough — the whole point of this tool's evidence truth. A "seed" club is never
+  // promoted to "reported" and an "est" market is never normalised into a "measured" one.
+  for (const club of ownerState.mastersClubs) {
+    assert.equal(club.confidence, universe.mastersClubs.find((candidate) => candidate.id === club.id).confidence);
+  }
+  for (const market of ownerState.markets) {
+    const committed = universe.markets.find((candidate) => candidate.id === market.id);
+    assert.equal(market.q, committed.q);
+    assert.equal(market.water, committed.water);
+    assert.equal(market.budgetFit, committed.budgetFit);
+  }
+  assert.ok(ownerState.mastersClubs.some((club) => club.confidence === 'seed'),
+    'the committed universe carries unverified club seeds, and they must survive publication as seeds');
+  assert.ok(ownerState.markets.some((market) => market.q !== 'measured'),
+    'the committed universe carries estimated hazard rows, and they must survive publication as estimates');
+  // Substance, not just shape: at the REGISTRY defaults the owner's own summary function (never a
+  // reimplementation here) must screen the whole published universe and reach a real partition.
+  const definition = definitionForAdapter('simple-adapter/location-suitability/v1');
+  const summary = propertyModule.computeLocationSuitabilitySummary(frozenClone(ownerState), registryDefaults(definition));
+  assert.equal(summary.universeMarketCount, universe.markets.length, 'the whole published universe is screened');
+  assert.ok(summary.shortlist.count > 0,
+    `the published universe must satisfy the registry-default brief for at least one market (saw ${summary.shortlist.count})`);
+  assert.equal(summary.shortlist.markets.every((market) => Number.isFinite(market.driveMin) && Number.isFinite(market.nearestClubMi)), true,
+    'every shortlisted market carries a real drive time and a real nearest-club distance from the shared owner primitives');
+  assert.equal(summary.risk.withinCeilingCount + summary.risk.overCeilingCount, universe.markets.length,
+    'the insurance-risk partition covers the whole published universe');
+  assert.ok(summary.verification.unverifiedCount > 0,
+    'the published unverified club seeds / estimated hazard rows must still be counted as unverified');
+  return ownerState;
+}
+
 /* Owner-state builders keyed by the REGISTRY adapter id. A wired tool with no entry FAILS LOUD. */
 const OWNER_STATES = {
   'simple-adapter/market-breadth/v1': breadthOwnerState,
@@ -1239,7 +1361,8 @@ const OWNER_STATES = {
   'simple-adapter/ai-capex-portfolio/v1': aiCapexOwnerState,
   'simple-adapter/disclosure-decay/v1': disclosureDecayOwnerState,
   'simple-adapter/walk-forward-validation/v1': walkForwardValidationOwnerState,
-  'simple-adapter/strategy-evolution/v1': strategyEvolutionOwnerState
+  'simple-adapter/strategy-evolution/v1': strategyEvolutionOwnerState,
+  'simple-adapter/location-suitability/v1': locationSuitabilityOwnerState
 };
 
 /* ═══════════════════════ owner-parity extractors (the Power-path single source) ═══════════════════════
@@ -1453,6 +1576,24 @@ const OWNER_PARITY = {
       summaryContains: accepted
         ? [summary.leverKey, String(summary.candidate.to), summary.goal]
         : [summary.goal]
+    };
+  },
+  'simple-adapter/location-suitability/v1': (moduleObject, ownerState, parameterValues) => {
+    const summary = moduleObject.computeLocationSuitabilitySummary(frozenClone(ownerState), parameterValues);
+    const nearest = summary.shortlist.markets.length ? summary.shortlist.markets[0] : null;
+    return {
+      ownerFunction: 'computeLocationSuitabilitySummary',
+      numericValue: summary.shortlist.count,
+      valueText: `${summary.shortlist.count} market(s) fit`,
+      /* The owner-computed shortlist size, the size of the universe it was screened out of, the nearest
+         shortlisted market with the drive time the SHARED owner primitives produced for it, and the
+         count of markets the owner still holds unverified — taken straight off the summary object. A
+         Simple read that shortlisted a different market, claimed a drive time the owner primitives did
+         not produce, or quietly shrank the unverified count fails here. When nothing is shortlisted the
+         owner's own message names only the counts, so only those fragments are asserted. */
+      summaryContains: nearest
+        ? [String(summary.shortlist.count), String(summary.universeMarketCount), nearest.id, String(nearest.driveMin), String(summary.verification.unverifiedCount)]
+        : [String(summary.shortlist.count), String(summary.universeMarketCount), String(summary.verification.unverifiedCount)]
     };
   }
 };

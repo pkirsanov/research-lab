@@ -787,6 +787,96 @@
                 '<span style="color:var(--muted)">Budget-fit ≥ ' + fitLabel(f.minFit) + ', land ≥ ' + ["", "any", "med", "high"][f.minLand] + ', surge ≤ ' + riskName(f.maxSurge) + '. Click a market/club on the map for details.</span>';
         }
 
+        /* ══════════════ PRODUCTION SIMPLE OWNER-STATE PROVIDER (Feature 012 Scope 15) ══════════════
+           The uniform provider seam. The deployed Simple bridge reads
+           globalThis.__rlOwnerStateProvider["waterfront-polo-lab"] and hands the result to the registered
+           location-suitability adapter (simple-adapter/location-suitability/v1 in
+           rlexperience-adapters/property-research.js — already loaded above as the SINGLE SOURCE of this
+           page's haversineMi / driveMinutesApprox / nearestClub / marketPasses primitives).
+
+           THIS PAGE STAYS THE OWNER, AND NO FORMULA IS COPIED OR RECOMPUTED HERE. Every value below is a
+           plain passthrough copy of a live field of this page's own universe `U`; the provider performs
+           no arithmetic of its own and calls no geo primitive. It publishes the owner UNIVERSE — the same
+           frozen facts this page screens — and the adapter re-runs the SHARED primitives over it, which is
+           exactly why owner-parity holds without this page precomputing anything for it.
+
+           FIELD          -> PAGE SOURCE
+             • asOf       -> U.asOf, the committed universe file's OWN declared publication stamp. This
+                             tool observes no market feed: its evidence IS the curated universe committed in
+                             waterfront-polo-universe.json, so its as-of is that file's own stamp and is
+                             never an invented observation date,
+             • source     -> the committed universe file, named explicitly, plus that file's OWN declared
+                             price as-of (U.priceAsOf) when it carries one, so the read can never be
+                             mistaken for a live listing feed,
+             • driveModel -> U.driveModel.{defaultMinutes,avgSpeedMph,roadFactor}, the universe file's OWN
+                             declared drive approximation (the three fields both documented owner fixtures
+                             carry). Its `note` is prose documentation, not a consumed owner fact, and the
+                             adapter's own limitations already state the straight-line caveat,
+             • mastersClubs-> U.mastersClubs, this page's live Masters-club layer, per club id / name /
+                             lat / lon / confidence. The confidence grade is passed through VERBATIM, so a
+                             "seed" club is never promoted to "reported",
+             • markets    -> U.markets, this page's live candidate-market layer, per market id / name /
+                             lat / lon / water / medK / ppsf / insBand / flood / surge / land / budgetFit /
+                             q. The data-quality grade `q` is passed through VERBATIM ("measured" vs "est"),
+                             so an estimated hazard row stays unverified in the adapter's verification
+                             partition instead of being normalised into a verified one.
+
+           DELIBERATELY NOT PUBLISHED, AND WHY:
+             • the Power filter controls (mins / fit / land / ins / flood / surge / within / water) and the
+               advanced spd + rf tweaks. Those are this PAGE's what-if controls over the same owner
+               evidence; the Simple model declares its OWN steerable constraints in simple-models.json
+               (budget, minimum-size, water-type, travel-limit, insurance-risk-ceiling, flood-verification,
+               club-verification) and the bridge pins them from the registry. Publishing a live control
+               value as owner state would stamp a user assumption with this dataset's publication date, and
+               readFilters() substitutes hard defaults (|| 38, || 1.25) for a cleared field — a fabricated
+               number this seam must never emit,
+             • the selected club and any custom map pin (customClub). The pin is a user-placed point with
+               confidence "your pin", not Masters-club evidence; injecting it into mastersClubs would let a
+               user pin masquerade as club evidence in the adapter's verification partition,
+             • the per-row m.mi / m.driveMin this page's annotate() attaches. Those are distances to the
+               ONE selected club — this page's own question. The adapter asks a different, declared
+               question (nearest club per market) and answers it with the SAME shared primitives over the
+               published universe, so republishing the annotations would be stale, not authoritative,
+             • market region / yoy / dom / note and club note. Those are Power-table display columns the
+               location-suitability model never reads; both documented owner fixtures omit them.
+
+           HONEST DEGRADATION: before boot()'s waterfront-polo-universe.json fetch resolves, `U` is the
+           inline DEFAULT_UNIVERSE, which carries NO declared as-of — so there is no provenance-stamped
+           owner evidence to publish and the provider returns null, and the bridge renders the honest
+           "unavailable" panel. It also returns null when the universe carries no clubs, no markets, no
+           usable drive approximation, or a row without a real coordinate. It never substitutes a default
+           and never publishes a universe this page is not currently screening. */
+        function locationSuitabilityOwnerState() {
+            if (!U || !U.driveModel) return null;
+            var dm = U.driveModel, clubs = U.mastersClubs, markets = U.markets;
+            if (!(dm.avgSpeedMph > 0) || !(dm.roadFactor > 0)) return null;
+            if (!Array.isArray(clubs) || !clubs.length || !Array.isArray(markets) || !markets.length) return null;
+            var placed = function (p) { return !!p && isFinite(p.lat) && isFinite(p.lon); };
+            if (!clubs.every(placed) || !markets.every(placed)) return null;
+            var asOf = String(U.asOf == null ? "" : U.asOf);
+            if (asOf.length < 8) return null;
+
+            return {
+                contractVersion: "location-suitability-owner-state/v1",
+                toolId: "waterfront-polo-lab",
+                asOf: asOf,
+                source: "committed waterfront-polo-universe.json" + (U.priceAsOf ? " (market medians: " + U.priceAsOf + ")" : ""),
+                driveModel: { defaultMinutes: dm.defaultMinutes, avgSpeedMph: dm.avgSpeedMph, roadFactor: dm.roadFactor },
+                mastersClubs: clubs.map(function (c) {
+                    return { id: c.id, name: c.name, lat: c.lat, lon: c.lon, confidence: c.confidence };
+                }),
+                markets: markets.map(function (m) {
+                    return {
+                        id: m.id, name: m.name, lat: m.lat, lon: m.lon, water: m.water,
+                        medK: m.medK, ppsf: m.ppsf, insBand: m.insBand, flood: m.flood,
+                        surge: m.surge, land: m.land, budgetFit: m.budgetFit, q: m.q
+                    };
+                })
+            };
+        }
+        globalThis.__rlOwnerStateProvider = globalThis.__rlOwnerStateProvider || {};
+        globalThis.__rlOwnerStateProvider["waterfront-polo-lab"] = locationSuitabilityOwnerState;
+
         /* ══════════════ WIRE UP ══════════════ */
         var wired = false;
         function hasClub(id) { for (var i = 0; i < U.mastersClubs.length; i++) if (U.mastersClubs[i].id === id) return true; return false; }

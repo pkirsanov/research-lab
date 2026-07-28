@@ -1105,6 +1105,112 @@
         }
         function addFromInput() { var e = el('addTk'), tk = (e.value || '').trim().toUpperCase(); if (!tk) return; if (state.basket.indexOf(tk) < 0) state.basket.push(tk); state.focus = tk; e.value = ''; saveState(); setStatus('“' + tk + '” added — Fetch to pull its history', ''); renderBasket(); }
 
+        /* ══════════════════ Feature 012 Scope 15 — production Simple owner-state provider ══════════════════
+           The shared four-view shell's Simple bridge (installSimpleProjectionBridge in rlexperience.js)
+           reads globalThis.__rlOwnerStateProvider["strategy-validation-lab"] and hands the result to the
+           registered walk-forward-validation adapter (simple-adapter/walk-forward-validation/v1 in
+           rlexperience-adapters/strategy-research.js — already loaded above as the SINGLE SOURCE of this
+           page's seriesFromCloses / walkForwardEmbargo / scorePass / allPass engine).
+
+           THIS PAGE STAYS THE OWNER, AND NO FORMULA IS COPIED OR RECOMPUTED HERE. Every value below is
+           either a live field of this page's own `state` / `U` or the return of one of this page's own
+           functions; the provider performs no arithmetic of its own.
+
+           FIELD                      -> PAGE SOURCE
+             • universes.registry[]   -> enabledBasket(), this page's OWN live enabled universe (the
+                                         registry basket from strategy-validation-universe.json minus the
+                                         instruments toggled off, or the single labelled synthetic DEMO
+                                         instrument when the 🧪 Synthetic demo path is active). This page
+                                         holds exactly ONE universe — the one its registry file defines —
+                                         so it is published under the `registry` key,
+             • …[].symbol             -> the basket ticker (or 'DEMO'),
+             • …[].closes             -> seriesFor(tk).px, the EXACT engine series this page's own
+                                         validate() runs walkForwardEmbargo on. seriesFor() is this page's
+                                         own resolver, so the page's own ≥160-bar gate decides what counts
+                                         as usable history and the demo path stays generated from the
+                                         universe file's own committed seed. An instrument this page holds
+                                         no usable series for publishes an EMPTY closes list — the adapter
+                                         then reports it withData:false / held:false, exactly as this page
+                                         reports it "no data". Nothing is zero-filled or back-filled,
+             • trainRatio             -> state.wf.trainRatio, this page's live walk-forward train split,
+             • startLevers            -> state.levers, this page's live rule levers (the base the adapter's
+                                         own rule preset overrides),
+             • goal                   -> state.goal, this page's live four goal targets,
+             • asOf / source / sourceClass
+                                      -> the honest provenance of whichever evidence is live: for real
+                                         instruments the LAST OBSERVED daily bar behind the published
+                                         series (state.series[tk].t) plus the shared-cache provenance tag
+                                         from RLDATA.barInfo, classed `observed-fact`; for the synthetic
+                                         demo path the universe file's OWN declared `updated` stamp — the
+                                         publication date of the frozen seed+regime scenario that IS the
+                                         evidence — classed `model-estimate` and named as a labelled
+                                         synthetic demo scenario carrying this page's real committed seed.
+                                         A synthetic path NEVER borrows an observed cutoff, and a real path
+                                         NEVER claims a model-estimate class.
+
+           `universes['current-watchlist']` IS DELIBERATELY OMITTED, NOT INVENTED. The registry declares a
+           second `current-watchlist` universe option, but THIS page has no watchlist surface: it holds one
+           basket, and the provider must not fetch (a provider runs inside the Simple render path). Rather
+           than fabricate or alias a second universe, the key is left absent, and the adapter's own
+           documented degradation applies — selecting it yields instrumentCount 0 / band "no-data" / a null
+           deflated Sharpe and the honest "No instrument in the current-watchlist universe yields usable
+           out-of-sample data." That is an honest empty answer, never a fabricated one.
+
+           DELIBERATELY NOT PUBLISHED: state.wf.folds / state.wf.embargo (and acceptMargin /
+           oosGapTolerance), state.focus, state.trials and state.results. Folds and embargo are the
+           ADAPTER's own Simple controls with their own registry defaults, and the focus/trial/tuning
+           ledger belongs to this page's Power view; the adapter asks its own bounded Simple question
+           (rule preset, universe, cost drag, trial-count deflation, robustness gate) over the frozen
+           owner series instead.
+
+           HONEST DEGRADATION: before this page has initialised its levers/goal/walk-forward config, when
+           every enabled instrument still lacks usable history, or when the live evidence carries no
+           truthful as-of stamp, the provider returns null and the bridge renders the honest "unavailable"
+           panel — it never publishes a universe this page could not validate. */
+        function strategyValidationOwnerState() {
+            if (!state.levers || !state.goal || !state.wf) return null;
+            if (typeof state.wf.trainRatio !== 'number' || !isFinite(state.wf.trainRatio)) return null;
+            var synthetic = !!state.demo;
+            if (synthetic && !(U.demo && U.demo.regimes)) return null;
+
+            var list = enabledBasket();
+            if (!list.length) return null;
+            var instruments = [], withData = 0, lastObserved = 0, lastObservedTk = null, i, j;
+            for (i = 0; i < list.length; i++) {
+                var tk = list[i], S = seriesFor(tk), closes = [];
+                if (S) { withData++; for (j = 0; j <= S.days; j++) closes.push(S.px[j]); }
+                instruments.push({ symbol: tk, closes: closes });
+                var bars = state.series[tk];
+                if (S && bars && bars.t && bars.t.length) {
+                    var t = bars.t[bars.t.length - 1];
+                    if (typeof t === 'number' && isFinite(t) && t > lastObserved) { lastObserved = t; lastObservedTk = tk; }
+                }
+            }
+            if (!withData) return null;
+
+            var asOf = synthetic ? String(U.updated == null ? '' : U.updated)
+                : (lastObserved ? new Date(lastObserved).toISOString() : '');
+            if (asOf.length < 8) return null;
+            var info = (!synthetic && lastObservedTk && typeof window !== 'undefined' && window.RLDATA && window.RLDATA.barInfo)
+                ? window.RLDATA.barInfo(lastObservedTk, '1d') : null;
+
+            return {
+                contractVersion: 'walk-forward-validation-owner-state/v1',
+                toolId: 'strategy-validation-lab',
+                asOf: asOf,
+                source: synthetic
+                    ? ('labelled synthetic demo scenario (seed ' + U.demo.seed + ')')
+                    : ((info && info.src) || 'shared daily bar cache'),
+                sourceClass: synthetic ? 'model-estimate' : 'observed-fact',
+                trainRatio: state.wf.trainRatio,
+                startLevers: clone(state.levers),
+                goal: clone(state.goal),
+                universes: { registry: instruments }
+            };
+        }
+        globalThis.__rlOwnerStateProvider = globalThis.__rlOwnerStateProvider || {};
+        globalThis.__rlOwnerStateProvider["strategy-validation-lab"] = strategyValidationOwnerState;
+
         /* ═══════════ init ═══════════ */
         function init() {
             loadState(); loadSeries();

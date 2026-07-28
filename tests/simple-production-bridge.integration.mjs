@@ -1008,6 +1008,97 @@ function disclosureDecayOwnerState() {
   return ownerState;
 }
 
+/* ───────── strategy-validation-lab (walk-forward-validation): the page's OWN provider, RUN here ─────────
+   Like ai-capex and smart-money-flow, this page's owner FACTS have no module producer and no harvested
+   published read: the owner evidence IS the instrument series this page is currently validating, and the
+   resolver that produces it (`seriesFor` — the ≥160-bar real-bar gate plus the page-local `genDemoSeries`
+   synthetic path) is page-closure-local. Restating either here would copy the owner's data/resolver,
+   which this suite forbids. So the page's own bindings are extracted VERBATIM from the deployed source
+   and executed, and the owner state is whatever the page's OWN `strategyValidationOwnerState()` returns.
+
+   THE PAGE'S OWN BOOT ORDER: `init()` runs `loadUniverse()` (which installs strategy-validation-universe.json
+   as `U`) and then `defaults()` (which seeds state.levers / state.goal / state.wf from it). `loadUniverse`
+   FETCHES, so it cannot run here; instead the page's own claim — its inline `FALLBACK_UNIVERSE` is "kept
+   byte-identical to the .json file" — is ASSERTED against the real committed file below, so `U` is the real
+   committed universe either way and a future divergence fails loudly instead of silently changing the
+   owner scenario.
+
+   WHICH LIVE PAGE STATE, AND WHY. This page publishes whichever series it is currently validating. The
+   deterministic offline state used here is the page's documented labelled-SYNTHETIC path (its 🧪 Synthetic
+   demo control, `state.demo = true`), which resolves to the frozen seed+regime scenario committed in
+   strategy-validation-universe.json (seed 4242, 8 years ≈ 2017 closes). That is the only committed
+   evidence deep enough for the REGISTRY-DEFAULT 5-fold walk-forward: `walkForwardEmbargo` requires a
+   usable span of folds × 80 = 400 bars, and the committed same-origin daily snapshots (data/bars/*.json,
+   2y ≈ 502 closes) leave only 380 after the owner levers' 121-bar warm-up — so a real-bar owner state
+   would honestly report "no usable out-of-sample data" and prove nothing about a ready projection. The
+   published provenance is asserted below to stay `model-estimate` with the universe file's own `updated`
+   stamp: the synthetic path must never borrow an observed cutoff or an observed-fact class.
+
+   DETERMINISTIC BY CONSTRUCTION: both inputs are committed static files (the deployed page and
+   strategy-validation-universe.json), the demo path is a seeded PRNG walk over frozen regimes, and no
+   localStorage snapshot is restored. No clock, no network, no randomness.
+
+   NO SEED IN THE OWNER STATE: the registry declares seedPolicy.required = false / randomnessClass "none"
+   for this model, so `registrySeed(definition)` pins null. The demo scenario's own PRNG seed is an OWNER
+   input frozen in the universe file, not a Simple-runtime seed. */
+const STRATEGY_VALIDATION_PAGE_FUNCTIONS = Object.freeze([
+  'mulberry32', 'gaussR', 'genDemoSeries', 'seriesFromCloses',
+  'clone', 'defaults', 'enabledBasket', 'seriesFor', 'strategyValidationOwnerState'
+]);
+
+function walkForwardValidationOwnerState() {
+  const source = readPage('strategy-validation-lab.html');
+  assert.ok(source, 'the deployed strategy-validation-lab.html source is required to run its own owner provider');
+  const strategyModule = loadModule('rlexperience-adapters/strategy-research.js');
+
+  const page = Function('RLSTRATEGY', [
+    extractPageLine(source, 'var ANN = 252, VOL_WIN = 20;'),
+    extractPageBinding(source, 'FALLBACK_UNIVERSE'),
+    extractPageLine(source, 'var U = FALLBACK_UNIVERSE;'),
+    extractPageBinding(source, 'state'),
+    ...STRATEGY_VALIDATION_PAGE_FUNCTIONS.map((name) => extractPageBinding(source, name)),
+    'return { fallbackUniverse: FALLBACK_UNIVERSE, state: state, defaults: defaults, ownerState: strategyValidationOwnerState };'
+  ].join('\n'))(strategyModule);
+
+  const universe = readJson('strategy-validation-universe.json');
+  assert.deepEqual(page.fallbackUniverse, universe,
+    'the page\'s inline FALLBACK_UNIVERSE must stay byte-identical to the committed strategy-validation-universe.json it claims to mirror');
+
+  page.defaults();          // the page's own initializer, exactly as its init() calls it
+  page.state.demo = true;   // the page's own 🧪 Synthetic demo path (see WHICH LIVE PAGE STATE above)
+
+  const ownerState = page.ownerState();
+  assert.ok(ownerState, 'the page provider must publish an owner state for its own committed demo scenario');
+  assert.equal(ownerState.contractVersion, 'walk-forward-validation-owner-state/v1');
+  assert.equal(ownerState.toolId, 'strategy-validation-lab');
+  // The synthetic path publishes the universe file's OWN declared stamp and never claims observed data.
+  assert.equal(ownerState.sourceClass, 'model-estimate', 'the labelled synthetic path must never claim observed-fact provenance');
+  assert.equal(ownerState.asOf, universe.updated, 'the synthetic scenario is stamped with the universe file\'s own declared as-of, never an invented observation date');
+  assert.match(String(ownerState.source), /synthetic/i, 'the published source must name the evidence as synthetic');
+  // The owner run configuration is the page's live one, seeded from the committed universe file.
+  assert.equal(ownerState.trainRatio, universe.walkForward.trainRatio);
+  assert.deepEqual(ownerState.startLevers, universe.startLevers);
+  assert.deepEqual(ownerState.goal, universe.goal);
+  // ONE universe is published because this page holds exactly one; the registry's second
+  // `current-watchlist` option has no surface on this page and is deliberately absent, never faked.
+  assert.deepEqual(Object.keys(ownerState.universes), ['registry'],
+    'this page publishes only the universe it actually holds — an absent option is never fabricated');
+  assert.equal(ownerState.universes.registry.length, 1, 'the demo path validates exactly one instrument');
+  const instrument = ownerState.universes.registry[0];
+  assert.equal(instrument.symbol, 'DEMO');
+  assert.ok(instrument.closes.length > 120, `the published series must clear the module's 120-bar floor (saw ${instrument.closes.length})`);
+  assert.equal(instrument.closes.every((close) => Number.isFinite(close) && close > 0), true, 'every published close is a real positive number');
+  // Substance, not just shape: at the REGISTRY defaults the owner's own summary function (never a
+  // reimplementation here) must reach a focus instrument with real multi-fold out-of-sample content.
+  const definition = definitionForAdapter('simple-adapter/walk-forward-validation/v1');
+  const summary = strategyModule.computeWalkForwardValidationSummary(frozenClone(ownerState), registryDefaults(definition));
+  assert.ok(summary.validation.focusSymbol,
+    `the published universe must yield a usable out-of-sample focus at the registry-default ${summary.folds} folds`);
+  assert.equal(Number.isFinite(summary.validation.net.sharpe), true, 'the focus must produce a real net out-of-sample Sharpe');
+  assert.ok(summary.outOfSample.usable >= 2, `at least two folds must score out-of-sample (saw ${summary.outOfSample.usable})`);
+  return ownerState;
+}
+
 /* Owner-state builders keyed by the REGISTRY adapter id. A wired tool with no entry FAILS LOUD. */
 const OWNER_STATES = {
   'simple-adapter/market-breadth/v1': breadthOwnerState,
@@ -1022,7 +1113,8 @@ const OWNER_STATES = {
   'simple-adapter/real-asset-driver/v1': realAssetOwnerState,
   'simple-adapter/etf-ranking/v1': etfOwnerState,
   'simple-adapter/ai-capex-portfolio/v1': aiCapexOwnerState,
-  'simple-adapter/disclosure-decay/v1': disclosureDecayOwnerState
+  'simple-adapter/disclosure-decay/v1': disclosureDecayOwnerState,
+  'simple-adapter/walk-forward-validation/v1': walkForwardValidationOwnerState
 };
 
 /* ═══════════════════════ owner-parity extractors (the Power-path single source) ═══════════════════════
@@ -1198,6 +1290,24 @@ const OWNER_PARITY = {
       summaryContains: top
         ? [top.ticker, top.direction, String(summary.clusterMinimum), String(summary.lagHalfLife)]
         : [String(summary.clusterMinimum)]
+    };
+  },
+  'simple-adapter/walk-forward-validation/v1': (moduleObject, ownerState, parameterValues) => {
+    const summary = moduleObject.computeWalkForwardValidationSummary(frozenClone(ownerState), parameterValues);
+    const validation = summary.validation;
+    return {
+      ownerFunction: 'computeWalkForwardValidationSummary',
+      numericValue: (validation && validation.net) ? validation.net.sharpe : null,
+      valueText: summary.robustness.robust
+        ? `Robust (${summary.robustness.held}/${summary.robustness.withData} hold)`
+        : `Fragile (${summary.robustness.held}/${summary.robustness.withData} hold)`,
+      /* The owner-computed focus instrument, the rule it was validated under, the universe it was
+         drawn from and the round-trip cost the net Sharpe was charged, taken straight off the summary
+         object. A Simple read that named a different focus instrument — or claimed a rule, universe or
+         cost the owner did not run — fails here. */
+      summaryContains: (validation && validation.focusSymbol)
+        ? [validation.focusSymbol, summary.rule, summary.universe, String(summary.cost)]
+        : [summary.universe]
     };
   }
 };

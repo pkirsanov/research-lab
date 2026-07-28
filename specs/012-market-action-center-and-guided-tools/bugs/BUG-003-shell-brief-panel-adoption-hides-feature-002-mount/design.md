@@ -176,6 +176,34 @@ baseline it could perturb:
   ~2.2 s, versus a 15 s timeout exhaustion pre-fix — it passes by satisfying the wait,
   not by outlasting it.
 
+### Single-Implementation Justification
+
+There is exactly **one** implementation of the brief-view sequencing in this packet, and
+that is deliberate.
+
+The behaviour "wait for the shell to report ready, then drive the real `rlviews` control
+to the Brief view" already has a ratified implementation:
+`tests/distributed-briefs.spec.mjs::mountReady()`, used by all 13 sibling regressions.
+This packet does **not** design a second one, a provider seam, a strategy interface, an
+adapter or a variation axis. It copies that sequence into the one file that never adopted
+it, and pins the copy behind a single module-local `openBriefView(page)` so both call
+sites in that file are physically incapable of drifting apart.
+
+A capability foundation with concrete implementations and variation axes would be
+actively harmful here. The root cause of BUG-003 is that a family of 14 tests had 13
+members on one sequencing and 1 member on another; the remedy is convergence on a single
+implementation, not a framework that legitimises more than one. Nothing in this packet is
+parameterised, pluggable or swappable, and no second variant is anticipated: the shell
+publishes one `brief` view, the tool pages host one `[data-rlbrief-mount]` anchor, and
+`ordinary-four-view/v1` is a single authored contract.
+
+The cross-file abstraction question (hoisting `openBriefView` into
+`tests/distributed-briefs.support.mjs` so the sibling suite and this test literally share
+one function) is **out of scope by boundary, not by convenience**: it would edit
+`tests/distributed-briefs.spec.mjs`, which FR-B003-06 requires to stay byte-identical.
+The `openBriefView` doc comment therefore cites `mountReady` explicitly so the shared
+contract is discoverable from both sides.
+
 ### Alternative Approaches Considered
 
 1. **Change `rlviews.js` so the brief anchor stays visible in the default view** —

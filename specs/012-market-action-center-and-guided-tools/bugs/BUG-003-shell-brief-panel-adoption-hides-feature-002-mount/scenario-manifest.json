@@ -1,0 +1,115 @@
+{
+  "version": 3,
+  "featureDir": "specs/012-market-action-center-and-guided-tools/bugs/BUG-003-shell-brief-panel-adoption-hides-feature-002-mount",
+  "generatedAt": "2026-07-28T21:01:13Z",
+  "generatedBy": "bubbles.validate",
+  "provenance": "Transcribed verbatim from the four Gherkin scenarios authored in scopes.md § SCOPE-01 § Gherkin. No scenario was invented, merged, split or renamed; the SCN-B003-* ids are the ids already used by scopes.md, spec.md and state.json.findingsLedger.",
+  "scenarios": [
+    {
+      "scenarioId": "SCN-B003-01",
+      "scope": "SCOPE-01",
+      "title": "The reconciled TP-10-02 asserts brief visibility in the Brief view",
+      "gherkin": {
+        "given": "an ordinary tool page hosting a data-rlbrief-mount and a coherent current brief graph, and the Feature 012 shell has adopted the mount into its \"brief\" view panel",
+        "when": "TP-10-02 loads the page, waits for the shell to report ready, and drives the real rlviews control to the Brief view",
+        "then": "the mount is ready and visible, and data-rlbrief-state is \"ready\""
+      },
+      "behaviorClass": "integration-ui",
+      "changeType": "bugfix",
+      "requiredTestType": "integration",
+      "regressionRequired": true,
+      "lockdown": false,
+      "linkedTests": [
+        {
+          "file": "tests/distributed-briefs.static.integration.mjs",
+          "testId": "static loader verifies coherent current objects and fetches history only after selection"
+        }
+      ],
+      "evidenceRefs": [
+        "report.md#iv-1-tp-10-02-replay-scn-b003-01-scn-b003-02-scn-b003-03",
+        "report.md#iv-3-adversarial-non-silent-pass-proof"
+      ],
+      "replacedBy": null,
+      "invalidatedBy": null
+    },
+    {
+      "scenarioId": "SCN-B003-02",
+      "scope": "SCOPE-01",
+      "title": "The view switch does not weaken any network-window assertion",
+      "gherkin": {
+        "given": "TP-10-02 has driven the shell to the Brief view",
+        "when": "the test measures brief requests",
+        "then": "no history partition has been requested before \"Open history\", the Power mode switch performs no refetch, opening history fetches the pointer and index only, and selecting one filter fetches exactly one partition"
+      },
+      "behaviorClass": "integration-ui",
+      "changeType": "preserved",
+      "requiredTestType": "integration",
+      "regressionRequired": true,
+      "lockdown": false,
+      "linkedTests": [
+        {
+          "file": "tests/distributed-briefs.static.integration.mjs",
+          "testId": "static loader verifies coherent current objects and fetches history only after selection"
+        }
+      ],
+      "evidenceRefs": [
+        "report.md#iv-1-tp-10-02-replay-scn-b003-01-scn-b003-02-scn-b003-03",
+        "report.md#iv-5-fix-additivity-re-verification"
+      ],
+      "replacedBy": null,
+      "invalidatedBy": null
+    },
+    {
+      "scenarioId": "SCN-B003-03",
+      "scope": "SCOPE-01",
+      "title": "The fail-closed integrity path is reconciled identically",
+      "gherkin": {
+        "given": "a brief graph whose read object fails its SHA-256 check",
+        "when": "TP-10-02 drives the shell to the Brief view and waits for the mount",
+        "then": "data-rlbrief-state is \"integrity-error\" and no partial evidence is rendered"
+      },
+      "behaviorClass": "integration-ui",
+      "changeType": "bugfix",
+      "requiredTestType": "integration",
+      "regressionRequired": true,
+      "lockdown": false,
+      "linkedTests": [
+        {
+          "file": "tests/distributed-briefs.static.integration.mjs",
+          "testId": "static loader verifies coherent current objects and fetches history only after selection"
+        }
+      ],
+      "evidenceRefs": [
+        "report.md#iv-1-tp-10-02-replay-scn-b003-01-scn-b003-02-scn-b003-03"
+      ],
+      "replacedBy": null,
+      "invalidatedBy": null
+    },
+    {
+      "scenarioId": "SCN-B003-04",
+      "scope": "SCOPE-01",
+      "title": "The ratified sibling contract is unchanged",
+      "gherkin": {
+        "given": "the 13 sibling regressions in tests/distributed-briefs.spec.mjs",
+        "when": "the suite is re-run after the reconciliation",
+        "then": "all 13 pass and the file is unmodified"
+      },
+      "behaviorClass": "ui",
+      "changeType": "regression-preservation",
+      "requiredTestType": "e2e-ui",
+      "regressionRequired": true,
+      "lockdown": false,
+      "linkedTests": [
+        {
+          "file": "tests/distributed-briefs.spec.mjs",
+          "testId": "Regression: valid added registry source receives the shared mount with no page-specific branch"
+        }
+      ],
+      "evidenceRefs": [
+        "report.md#iv-2-sibling-suite-replay-scn-b003-04"
+      ],
+      "replacedBy": null,
+      "invalidatedBy": null
+    }
+  ]
+}

@@ -3,27 +3,35 @@
   "featureDir": "specs/012-market-action-center-and-guided-tools/bugs/BUG-003-shell-brief-panel-adoption-hides-feature-002-mount",
   "featureName": "BUG-003 Reconcile TP-10-02 To The Ratified Shell Brief-View Contract",
   "createdAt": "2026-07-28T19:14:34Z",
-  "lastUpdatedAt": "2026-07-28T19:14:34Z",
+  "lastUpdatedAt": "2026-07-28T21:12:03Z",
   "completedAt": null,
   "certifiedAt": null,
   "status": "in_progress",
+  "blockedReason": "NOT CERTIFIABLE TO 'done' — the product fix is delivered and green, but the bugfix-fastlane specialist chain is incomplete. Required specialists for this mode are [implement, test, regression, simplify, stabilize, security, validate, audit] (.github/bubbles/registry/required-specialists.yaml:40). Executed: implement (SCOPE-01, commit 8206c89c) and validate (independent re-verification, report.md § Independent Validation IV-1..IV-7 plus this pass's own replay of TP-B003-01, pass 1 / fail 0 / skipped 0, exit 0). NOT executed: test, regression, simplify, stabilize, security, audit — 6 phases, Gate G022. The decisive gap is the INDEPENDENT AUDIT: execution.audit.attempts is empty and currentAttemptId is null, so under audit profile delivery-completion-v1 there is no AUDIT_RESULT_V1 transcript for validate to certify against. Mechanical derivation (assurance-derive.sh --implement-complete true --tests-complete true --tests-passed true --audit-complete false, exit 0) yields achievedLevel=fast / terminalStatus=delivered_fast / missingForFull=independent-audit, and is-terminal-for-mode.sh delivered_fast bugfix-fastlane exits 1 — delivered_fast is NOT terminal for this mode; 'done' (exit 0) is the only terminal status and it requires 'full' assurance. TO UNBLOCK: dispatch the 6 missing specialists (test, regression, simplify, stabilize, security) and then an INDEPENDENT bubbles.audit run that writes a complete AUDIT_RESULT_V1 transcript into execution.audit.attempts with a matching currentAttemptId; then re-run bubbles.validate, which re-derives assurance with --audit-complete true (-> full / done) and performs the validate-owned terminal transition. No source or test change is required to unblock — tests/ is byte-identical to HEAD and every suite is green.",
   "workflowMode": "bugfix-fastlane",
   "linkedImplementationSpec": "specs/012-market-action-center-and-guided-tools",
-  "requiresRevalidation": false,
+  "requiresRevalidation": true,
   "flagsIntroduced": [],
-  "completedScopes": [],
-  "completedPhases": [],
+  "completedScopes": ["SCOPE-01"],
+  "completedPhases": ["implement", "validate"],
   "execution": {
-    "activeAgent": "bubbles.implement",
-    "currentPhase": "implement",
-    "currentPhaseStatus": "completed_owned",
-    "substate": "implemented",
+    "activeAgent": "bubbles.validate",
+    "currentPhase": "validate",
+    "currentPhaseStatus": "completed_diagnostic",
+    "substate": "validated-non-terminal",
     "currentScope": "SCOPE-01",
     "runStartedAt": "2026-07-28T19:14:34Z",
     "completedAt": "2026-07-28T19:14:34Z",
     "executionModel": "dispatched-single-phase",
     "parentAgent": "bubbles.goal",
-    "nextRequiredOwner": "bubbles.validate",
+    "nextRequiredOwner": "bubbles.test",
+    "validateVerdict": {
+      "outcome": "route_required",
+      "verdictAt": "2026-07-28T21:12:03Z",
+      "verdictBy": "bubbles.validate",
+      "clean": false,
+      "summary": "SCOPE-01 is independently verified complete and every suite is green, but the bugfix-fastlane specialist chain is incomplete (6 of 8 phases missing, decisively the independent audit). Validate recorded the scope completion, the executed phases, the closed routing packet and the mechanically derived assurance, and REFUSED to force a terminal status. certification.certifiedCompletedPhases is deliberately left empty and requiresRevalidation is true: validate must re-run after the remaining specialists and the independent audit to certify the final state."
+    },
     "nextRequiredTarget": "Validate-owned certification of BUG-003. The Feature 012 owner decision is RECORDED and IMPLEMENTED: the shell is correct as authored (brief lives in the Brief view); TP-10-02 was the sole un-reconciled member of the Feature 002 Scope 10 brief family and has been reconciled to the same mountReady sequencing its 13 siblings already use. Change surface is one test file, tests/distributed-briefs.static.integration.mjs, at 13 insertions and 0 deletions; assertion count unchanged 15 to 15; zero state:'attached' relaxations; .skip count unchanged at 1 (pre-existing Playwright-runtime guard); mount-wait timeouts unchanged at 15000ms. No product, shell, config, page or sibling-test file was modified. Owned evidence recorded in report.md: pre-fix RED (exit 1), path-scoped-stash causal RED re-proof (exit 1), GREEN (exit 0, 2.2s versus a 15s timeout exhaustion pre-fix), 13 sibling regressions (exit 0), scripts/selftest.mjs 952 passed 0 failed (exit 0), simple-production-bridge 6/6 wired (19) (exit 0). This agent does not write certification fields; validate owns promotion.",
     "completedPhaseClaims": [
       {
@@ -32,9 +40,18 @@
         "claimedAt": "2026-07-28T19:14:34Z",
         "scopeId": "SCOPE-01",
         "evidenceFile": "report.md"
+      },
+      {
+        "phase": "validate",
+        "claimedBy": "bubbles.validate",
+        "claimedAt": "2026-07-28T21:12:03Z",
+        "scopeId": "SCOPE-01",
+        "evidenceFile": "report.md",
+        "claimType": "executed-not-certifying",
+        "detail": "The validate phase genuinely EXECUTED: repository-binding preflight exit 0; independent replay of TP-B003-01 (node --test tests/distributed-briefs.static.integration.mjs -> pass 1 / fail 0 / skipped 0, exit 0, ~3.2s against an unchanged 15000ms wait); git status --porcelain -- tests/ empty (tests tree byte-identical to HEAD); git show 8206c89c --numstat -- tests/distributed-briefs.static.integration.mjs -> 13 insertions / 0 deletions; plus the prior validate pass's recorded IV-1..IV-7 (sibling suite 13/13, selftest 952/0, bridge 6/6 with 19 wired, A1/A2 adversarial mutation RED with byte-exact restore). The VERDICT is route_required, not clean, so this is an execution claim only — it is deliberately NOT mirrored into certification.certifiedCompletedPhases, and requiresRevalidation is true because validate must re-run after the remaining specialists and the independent audit."
       }
     ],
-    "pendingTransitionRequests": ["TR-BUG003-ROUTE-TO-VALIDATE"],
+    "pendingTransitionRequests": [],
     "scopeInventory": [
       {
         "scope": 1,
@@ -59,26 +76,30 @@
     "status": "in_progress",
     "completedAt": null,
     "certifiedAt": null,
-    "completedScopes": [],
+    "completedScopes": ["SCOPE-01"],
     "certifiedCompletedPhases": [],
     "scopeProgress": [
       {
         "scope": 1,
         "scopeId": "SCOPE-01",
         "name": "Reconcile TP-10-02 to the shell's Brief-view residency",
-        "status": "in_progress",
+        "status": "Done",
         "dependsOn": [],
         "scopeDir": null,
         "evidenceFile": "report.md",
-        "certifiedAt": null
+        "certifiedAt": "2026-07-28T21:12:03Z"
       }
     ],
     "assurance": {
-      "level": "partial",
+      "level": "fast",
       "missingForFull": [
-        "independent audit",
-        "validate-owned transition"
-      ]
+        "independent-audit"
+      ],
+      "derivedAt": "2026-07-28T21:12:03Z",
+      "derivedBy": "bubbles.validate",
+      "derivationCommand": "bash .github/bubbles/scripts/assurance-derive.sh --implement-complete true --tests-complete true --tests-passed true --audit-complete false",
+      "derivationOutput": "achievedLevel=fast; terminalStatus=delivered_fast; riskClass=unknown; missingForFull=independent-audit; exit 0",
+      "note": "Recorded VERBATIM from the mechanical derivation, not asserted. This supersedes an earlier hand-written level 'partial', which .github/bubbles/scripts/assurance-certification-check.sh mechanically REFUSES ('partial' is not one of full|fast|prototype) and which contradicted this packet's own executed derivation already recorded in report.md § IV-6. The substance is unchanged and no claim was raised: the level is still NOT 'full', and the independent audit is still named as the gap. The earlier second gap 'validate-owned transition' is subsumed — validate has now adjudicated, and the transition is blocked BY the missing independent audit, not by validate."
     },
     "lockdownState": {
       "active": false,
@@ -126,11 +147,38 @@
   "transitionRequests": [
     {
       "id": "TR-BUG003-ROUTE-TO-VALIDATE",
-      "status": "open",
+      "status": "resolved",
       "requestedBy": "bubbles.implement",
       "routedTo": "bubbles.validate",
       "requestedAt": "2026-07-28T19:14:34Z",
-      "reason": "SCOPE-01 is implemented with owned raw evidence for every DoD item. Certification fields are validate-owned and were deliberately not written by this agent."
+      "reason": "SCOPE-01 is implemented with owned raw evidence for every DoD item. Certification fields are validate-owned and were deliberately not written by this agent.",
+      "routedToCommit": "8206c89c",
+      "routedToSpec": "specs/012-market-action-center-and-guided-tools/bugs/BUG-003-shell-brief-panel-adoption-hides-feature-002-mount",
+      "productAction": "none",
+      "crossRepoFollowUp": false,
+      "routingClass": "same-repo-cross-feature",
+      "scenarioIds": [
+        "SCN-B003-01",
+        "SCN-B003-02",
+        "SCN-B003-03",
+        "SCN-B003-04"
+      ],
+      "findingIds": [
+        "F-BUG003-001",
+        "F-BUG003-002",
+        "F-BUG003-003"
+      ],
+      "evidenceRefs": [
+        "report.md#independent-validation-bubblesvalidate",
+        "report.md#iv-1-tp-10-02-replay-scn-b003-01-scn-b003-02-scn-b003-03",
+        "report.md#iv-3-adversarial-non-silent-pass-proof",
+        "report.md#iv-6-assurance-derivation-mechanical-not-asserted",
+        "scenario-manifest.json"
+      ],
+      "resolvedAt": "2026-07-28T21:12:03Z",
+      "resolvedBy": "bubbles.validate",
+      "outcome": "route_required",
+      "resolutionSummary": "Adjudicated by the routed-to owner. Validate independently re-verified SCOPE-01 (TP-B003-01 replay pass 1 / fail 0 / skipped 0 exit 0; tests/ byte-identical to HEAD; 13 insertions / 0 deletions in 8206c89c) and recorded the validate-owned fields this packet was routed for: certification.completedScopes=[SCOPE-01], scopeProgress SCOPE-01=Done, and the mechanically derived assurance level 'fast' with missingForFull=[independent-audit]. productAction is 'none' because the product remediation is already delivered in 8206c89c and no further product or test change is required. crossRepoFollowUp is FALSE: this was never an external/upstream repo hand-off — it is a SAME-repo, CROSS-FEATURE routing in which Feature 012's shell Brief-view contract governed a Feature 002 Scope 10 test (TP-10-02) that lives in this same repository; routingClass records that shape explicitly. Terminal certification was NOT granted and was not forced: the bugfix-fastlane chain is still missing 6 specialists (test, regression, simplify, stabilize, security, audit) and there is no AUDIT_RESULT_V1 transcript, so the packet remains in_progress with requiresRevalidation=true. The follow-up is now carried by state.json.blockedReason and execution.nextRequiredOwner rather than by an open routing packet."
     }
   ],
   "reworkQueue": []

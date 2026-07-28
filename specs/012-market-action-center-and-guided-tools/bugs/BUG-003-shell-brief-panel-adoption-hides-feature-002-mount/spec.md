@@ -70,6 +70,31 @@ view panel `hidden`. Exit code `1`.
 
 ---
 
+## Capability Proportionality
+
+### Single-Capability Justification
+
+This packet introduces **no capability**. It reconciles one already-written test to a
+contract that was ratified and shipped by Feature 002's own Scope 10 suite, and its
+entire delivery surface is 13 added lines in a single test file.
+
+The Gate G094 proportionality trigger fires only on incidental vocabulary inside pasted
+terminal evidence in [scopes.md](scopes.md) — the words `channels` and `strategy` appear
+in `scripts/selftest.mjs` output lines (`SCN-012-025 … cutoff/channels/owner coverage`,
+and the tool ids `ai-capex-strategy-lab`, `strategy-self-improvement-lab`,
+`strategy-validation-lab` in the bridge roster). None of them names a capability this
+packet designs, and no such word appears in any requirement, scenario or plan step.
+
+The single capability exercised — "drive the shell to its Brief view before asserting
+brief visibility" — is **owned elsewhere and consumed unchanged** here. Its foundation is
+`tests/distributed-briefs.spec.mjs::mountReady()`, ratified across 13 sibling
+regressions. Introducing a second implementation, a provider seam, a variation axis or
+any abstraction over it would create the exact drift this bug exists to remove: the whole
+defect was that one member of the family had its own un-reconciled sequencing. There is
+deliberately one implementation, and the reconciliation makes it the only one.
+
+---
+
 ## Out of Scope
 
 - **Changing the brief visibility contract.** The owner decision is recorded, not

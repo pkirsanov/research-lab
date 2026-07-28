@@ -65,6 +65,17 @@ Scenario: SCN-B003-04 The ratified sibling contract is unchanged
 | TP-B003-03 | Regression E2E — full project selftest baseline | unit | `scripts/selftest.mjs` | `node scripts/selftest.mjs` |
 | TP-B003-04 | Regression E2E — production Simple bridge parity (19 wired tools) | integration | `tests/simple-production-bridge.integration.mjs` | `node --test tests/simple-production-bridge.integration.mjs` |
 
+**Stress coverage disposition (Gate G026): not applicable — no stress test is planned or
+required for this scope.** The scope declares no latency, throughput, p95/p99, response-time
+or SLA/SLO budget, and it adds no runtime code path that could carry one: the delivery is 13
+lines inside one test file and the product/shell surface is byte-identical. The G026 keyword
+trigger fires on the substring `slo` inside the word `slot`, which occurs only in pasted
+`scripts/selftest.mjs` and Playwright output above (`consumes no action slot`, `consumes no
+visible slot`) — evidence text, not a performance budget authored by this scope. The single
+timing fact this scope does assert is a correctness fact, not a stress budget: the reconciled
+test completes in ~2.4 s instead of exhausting its unchanged 15000 ms wait, proving the pass
+comes from satisfying the wait rather than outlasting it.
+
 ### Definition of Done
 
 - [x] Feature 012 owner decision recorded with all four evidence points in `design.md` § The Decision
@@ -119,11 +130,11 @@ $ grep -c '\.skip' tests/distributed-briefs.static.integration.mjs
 1
 ```
 
-- [x] SCN-B003-01 + SCN-B003-03 — TP-B003-01 passes (both mount-wait sites reconciled)
+- [x] SCN-B003-01 — the reconciled TP-10-02 asserts brief visibility in the Brief view
 
 ```text
 $ timeout 300 node --test tests/distributed-briefs.static.integration.mjs
-✔ static loader verifies coherent current objects and fetches history only after selection (2216.53705ms)
+✔ static loader verifies coherent current objects and fetches history only after selection (2371.520656ms)
 ℹ tests 1
 ℹ suites 0
 ℹ pass 1
@@ -131,9 +142,35 @@ $ timeout 300 node --test tests/distributed-briefs.static.integration.mjs
 ℹ cancelled 0
 ℹ skipped 0
 ℹ todo 0
-ℹ duration_ms 2328.838766
+ℹ duration_ms 2503.388772
 GREEN_EXIT=0
 ```
+
+- [x] SCN-B003-03 — the fail-closed integrity path is reconciled identically
+
+```text
+$ grep -n 'openBriefView' tests/distributed-briefs.static.integration.mjs
+19:async function openBriefView(page) {
+38:        await openBriefView(page);
+93:        await openBriefView(page);
+grep_exit=0
+
+$ awk 'NR>=92 && NR<=99 {printf "%d| %s\n", NR, $0}' tests/distributed-briefs.static.integration.mjs
+92|         await page.goto(harnessUrl(badServer.baseUrl, 'sector-research-lab'), { waitUntil: 'load' });
+93|         await openBriefView(page);
+94|         await page.waitForSelector('[data-rlbrief-mount][data-rlbrief-ready="1"]', { timeout: 15000 });
+95|         const st = await page.getAttribute('[data-rlbrief-mount]', 'data-rlbrief-state');
+96|         assert.equal(st, 'integrity-error', 'hash mismatch fails closed');
+97|         assert.equal(await page.$('[data-rlbrief-part="price"]'), null, 'no partial evidence rendered on integrity failure');
+98|         const status = await page.textContent('[data-rlbrief-part="status"]');
+99|         assert.ok(status.indexOf('Could not verify this brief') >= 0);
+awk_exit=0
+```
+
+Line 93 is the same `openBriefView(page)` call as line 38 — the integrity site is reconciled
+by the identical mechanism, and lines 96-99 (`integrity-error`, no `price` part, "Could not
+verify this brief") are unchanged. Both sites execute inside the single `node --test` run
+above, which reports `pass 1 / fail 0`.
 
 - [x] SCN-B003-02 — every network-window assertion survives the view switch, still enforced
 

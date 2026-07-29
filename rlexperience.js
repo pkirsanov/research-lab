@@ -1320,6 +1320,82 @@
     "rlexperience-adapters/property-research.js": { global: "RLPROPERTY", register: "registerPropertyResearchAdapters" }
   };
 
+  /* ─── Steerable Simple-control helpers ───────────────────────────────────────
+     Simple is a user-steerable cockpit, not a static verdict: every declared
+     parameterDefinition becomes a REAL control that changes a real model input and
+     recomputes production logic. These helpers read ONLY a parameter's OWN declared
+     metadata — kind, label, unit, interpretation, and domain (enum/boolean options,
+     or numeric min/max/step) — so no range, option, step, or default is ever
+     invented here. */
+
+  /* A numeric domain wider than this many steps gets an exact number field instead
+     of a slider; a slider over millions of steps cannot express its own domain. */
+  var CONTROL_MAX_SLIDER_STEPS = 1000;
+
+  function controlIsChoice(parameter) {
+    return parameter.kind === "enum" || parameter.kind === "boolean";
+  }
+
+  /* Declared option values are strings or booleans; DOM option values are strings.
+     Tokenizing both ways keeps the round-trip exact (never a parsed guess). */
+  function controlOptionToken(value) {
+    return typeof value === "boolean" ? (value ? "true" : "false") : String(value);
+  }
+
+  function controlOptionFromToken(parameter, token) {
+    var options = (parameter.domain && parameter.domain.options) || [];
+    for (var i = 0; i < options.length; i += 1) {
+      if (controlOptionToken(options[i].value) === token) return { found: true, value: options[i].value };
+    }
+    return { found: false, value: null };
+  }
+
+  function controlOptionLabel(parameter, value) {
+    var options = (parameter.domain && parameter.domain.options) || [];
+    for (var i = 0; i < options.length; i += 1) {
+      if (options[i].value === value) return options[i].label;
+    }
+    return controlOptionToken(value);
+  }
+
+  /* The parameter's OWN declared domain rule — the same finite/integer/range/step
+     predicate the runtime enforces. A value that fails it is refused, never clamped
+     or rounded into range. */
+  function controlNumberIsDeclared(parameter, value) {
+    var domain = parameter.domain || {};
+    if (!Number.isFinite(value)) return false;
+    if ((parameter.kind === "integer" || parameter.kind === "seed") && !Number.isInteger(value)) return false;
+    if (value < domain.min || value > domain.max) return false;
+    var stepPosition = (value - domain.min) / domain.step;
+    return Math.abs(stepPosition - Math.round(stepPosition)) <= 1e-9;
+  }
+
+  function controlIsRepresentable(parameter, value) {
+    if (controlIsChoice(parameter)) return controlOptionFromToken(parameter, controlOptionToken(value)).found;
+    return controlNumberIsDeclared(parameter, value);
+  }
+
+  function controlValueText(parameter, value) {
+    if (controlIsChoice(parameter)) return controlOptionLabel(parameter, value);
+    return String(value) + (parameter.unit ? " " + parameter.unit : "");
+  }
+
+  /* Repo tooltip rule: say what the control IS and what its CURRENT setting means. */
+  function controlTooltip(parameter, value) {
+    return parameter.label + " — " + parameter.interpretation + " Current setting: " + controlValueText(parameter, value) + ".";
+  }
+
+  var CONTROL_STYLES = {
+    container: "margin-top:14px;padding-top:12px;border-top:1px solid #263646;display:grid;gap:9px",
+    note: "margin:0 0 2px;font-size:12px;color:#7f93a6",
+    row: "display:grid;grid-template-columns:minmax(120px,auto) minmax(90px,1fr) auto;gap:10px;align-items:center",
+    label: "font-size:13px;color:#9fb2c4",
+    select: "min-width:0;background:#0b1219;color:#dce9f5;border:1px solid #2b3d50;border-radius:6px;padding:4px 6px;font:inherit;font-size:13px",
+    number: "min-width:0;background:#0b1219;color:#dce9f5;border:1px solid #2b3d50;border-radius:6px;padding:4px 6px;font:inherit;font-size:13px",
+    range: "min-width:0;width:100%;accent-color:#4da3ff",
+    readout: "font-size:13px;color:#cfe0ef;font-variant-numeric:tabular-nums;text-align:right;white-space:nowrap"
+  };
+
   /* Production Simple-view bridge (Model B — Scope 15). On rlviews:change→simple
      for an ordinary tool, resolve the tool's registered adapter definition, obtain
      the page's REAL owner state through the uniform provider seam, run the exact
@@ -1383,21 +1459,182 @@
     for (var i = 0; i < definitions.length; i += 1) parameterValues[definitions[i].parameterId] = definitions[i].defaultValue;
     var seed = (definition.seedPolicy && definition.seedPolicy.required) ? definition.seedPolicy.defaultSeed : null;
 
-    return Promise.resolve(runtime.prepare({
-      definitionId: definition.definitionId,
-      ownerContext: { ownerState: ownerState },
-      parameterValues: parameterValues,
-      seed: seed,
-      scenarioIds: ["baseline"],
-      computedAt: options.computedAt || new Date().toISOString()
-    })).then(function (prepared) {
-      if (!prepared || !prepared.ok) return honestUnavailable("The owner evidence does not currently permit a model run.");
-      var projection = runtime.snapshot().value.projection;
-      renderSimpleProjectionInternal(panel, projection);
-      return projection;
-    }).catch(function () {
-      return honestUnavailable("The owner adapter run failed.");
-    });
+    /* Cancellation safety. The runtime already supersedes an in-flight computation:
+       a newer prepare installs a new active token, so the older one's control
+       checkpoint refuses with "stale completion discarded" — the one failure the
+       runtime deliberately does NOT project, leaving the newer result standing.
+       This sequence mirrors that decision in the panel: a superseded continuation
+       paints nothing, so a rapid control change can never render a stale projection
+       (or a stale-completion "unavailable") over a newer one. */
+    var runSequence = 0;
+    var controlNodes = null;
+    var panelDocument = panel.ownerDocument || null;
+
+    function pendingValues() {
+      var values = {};
+      for (var key in parameterValues) {
+        if (Object.prototype.hasOwnProperty.call(parameterValues, key)) values[key] = parameterValues[key];
+      }
+      return values;
+    }
+
+    function restoreControlFocus(parameterId) {
+      if (!parameterId || !controlNodes) return;
+      var node = controlNodes[parameterId];
+      if (node && typeof node.focus === "function") node.focus();
+    }
+
+    /* A control moved: adopt the new value and re-run the SAME production path that
+       painted the first projection — local compute over the owner state already
+       captured for this render. No provider request, no re-read, no new data. */
+    function commitControl(parameter, node) {
+      var next;
+      if (controlIsChoice(parameter)) {
+        var decoded = controlOptionFromToken(parameter, String(node.value));
+        if (!decoded.found) return;
+        next = decoded.value;
+      } else {
+        next = Number(node.value);
+        if (typeof node.setAttribute === "function") node.setAttribute("aria-invalid", controlNumberIsDeclared(parameter, next) ? "false" : "true");
+        if (!controlNumberIsDeclared(parameter, next)) return;
+      }
+      if (next === parameterValues[parameter.parameterId]) return;
+      parameterValues[parameter.parameterId] = next;
+      var keepFocus = !!(panelDocument && panelDocument.activeElement === node);
+      run(new Date().toISOString(), keepFocus ? parameter.parameterId : null);
+    }
+
+    function buildControlRow(parameter, shown) {
+      var row = panelDocument.createElement("div");
+      row.className = "rlexperience-control";
+      row.setAttribute("data-rlexperience-control", parameter.parameterId);
+      row.setAttribute("style", CONTROL_STYLES.row);
+
+      var elementId = "rlexperience-control-" + String(toolId) + "-" + parameter.parameterId;
+      var label = panelDocument.createElement("label");
+      label.setAttribute("for", elementId);
+      label.setAttribute("style", CONTROL_STYLES.label);
+      label.textContent = parameter.label;
+      row.appendChild(label);
+
+      var node;
+      var styleKey;
+      if (controlIsChoice(parameter)) {
+        node = panelDocument.createElement("select");
+        styleKey = "select";
+        parameter.domain.options.forEach(function (option) {
+          var optionNode = panelDocument.createElement("option");
+          var token = controlOptionToken(option.value);
+          optionNode.setAttribute("value", token);
+          optionNode.value = token;
+          optionNode.textContent = option.label;
+          if (option.value === shown) {
+            optionNode.setAttribute("selected", "selected");
+            optionNode.selected = true;
+          }
+          node.appendChild(optionNode);
+        });
+        node.value = controlOptionToken(shown);
+      } else {
+        var domain = parameter.domain;
+        var stepCount = domain.step > 0 ? (domain.max - domain.min) / domain.step : Infinity;
+        var inputType = stepCount <= CONTROL_MAX_SLIDER_STEPS ? "range" : "number";
+        node = panelDocument.createElement("input");
+        styleKey = inputType;
+        node.setAttribute("type", inputType);
+        node.type = inputType;
+        node.setAttribute("min", String(domain.min));
+        node.setAttribute("max", String(domain.max));
+        node.setAttribute("step", String(domain.step));
+        node.setAttribute("value", String(shown));
+        node.value = String(shown);
+      }
+      node.id = elementId;
+      node.setAttribute("id", elementId);
+      node.setAttribute("data-rlexperience-control-input", parameter.parameterId);
+      node.setAttribute("title", controlTooltip(parameter, shown));
+      node.setAttribute("style", CONTROL_STYLES[styleKey]);
+      row.appendChild(node);
+
+      var readout = panelDocument.createElement("span");
+      readout.setAttribute("data-rlexperience-control-value", parameter.parameterId);
+      readout.setAttribute("style", CONTROL_STYLES.readout);
+      readout.textContent = controlValueText(parameter, shown);
+      row.appendChild(readout);
+
+      if (typeof node.addEventListener === "function") {
+        /* "input" only moves the readout (free); the model re-runs on the committed
+           "change", so dragging a slider stays smooth and every commit is a real run. */
+        node.addEventListener("input", function () {
+          if (controlIsChoice(parameter)) return;
+          var live = Number(node.value);
+          if (!Number.isFinite(live)) return;
+          readout.textContent = controlValueText(parameter, live);
+          node.setAttribute("title", controlTooltip(parameter, live));
+        });
+        node.addEventListener("change", function () { commitControl(parameter, node); });
+      }
+      controlNodes[parameter.parameterId] = node;
+      return row;
+    }
+
+    /* One REAL control per declared parameter. Positions come from the run's RESOLVED
+       input, so an evidence-derived parameter shows the value the owner evidence
+       supplied while parameterValues keeps sending its declared default — first paint
+       is byte-identical to the pre-control bridge. Controls are painted only for a run
+       that published a result: with nothing to steer, a lever would be decorative. */
+    function renderControls(resolvedParameters) {
+      if (!panelDocument || typeof panelDocument.createElement !== "function" || typeof panel.appendChild !== "function") return;
+      var resolved = Object.create(null);
+      (resolvedParameters || []).forEach(function (entry) { resolved[entry.parameterId] = entry.value; });
+      var container = panelDocument.createElement("div");
+      container.className = "rlexperience-controls";
+      container.setAttribute("role", "group");
+      container.setAttribute("aria-label", "Model parameters");
+      container.setAttribute("data-rlexperience-controls", "parameters");
+      container.setAttribute("style", CONTROL_STYLES.container);
+      var note = panelDocument.createElement("p");
+      note.setAttribute("data-rlexperience-controls-note", "steerable");
+      note.setAttribute("style", CONTROL_STYLES.note);
+      note.textContent = "Steer the model: each control changes a declared model input and recomputes the owner model on the evidence already loaded — nothing new is requested.";
+      container.appendChild(note);
+      controlNodes = Object.create(null);
+      definitions.forEach(function (parameter) {
+        var shown = Object.prototype.hasOwnProperty.call(resolved, parameter.parameterId) ? resolved[parameter.parameterId] : parameter.defaultValue;
+        if (!controlIsRepresentable(parameter, shown)) return;
+        container.appendChild(buildControlRow(parameter, shown));
+      });
+      panel.appendChild(container);
+    }
+
+    function run(computedAt, focusParameterId) {
+      runSequence += 1;
+      var mySequence = runSequence;
+      return Promise.resolve(runtime.prepare({
+        definitionId: definition.definitionId,
+        ownerContext: { ownerState: ownerState },
+        parameterValues: pendingValues(),
+        seed: seed,
+        scenarioIds: ["baseline"],
+        computedAt: computedAt
+      })).then(function (prepared) {
+        if (mySequence !== runSequence) return null;
+        if (!prepared || !prepared.ok) return honestUnavailable("The owner evidence does not currently permit a model run.");
+        var settled = runtime.snapshot().value;
+        var projection = settled.projection;
+        renderSimpleProjectionInternal(panel, projection);
+        if (projection.state !== "unavailable" && settled.current) {
+          renderControls(settled.current.input.parameters);
+          restoreControlFocus(focusParameterId);
+        }
+        return projection;
+      }).catch(function () {
+        if (mySequence !== runSequence) return null;
+        return honestUnavailable("The owner adapter run failed.");
+      });
+    }
+
+    return run(options.computedAt || new Date().toISOString(), null);
   }
 
   function installSimpleProjectionBridge() {

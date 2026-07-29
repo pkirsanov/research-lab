@@ -71,6 +71,53 @@ function cacheFor(barsBySymbol) {
  * Mirrors the proven shell-driving pattern in tests/bond-regime-lab.spec.mjs and
  * tests/company-fundamentals-lab.spec.mjs.
  */
+
+/* ════════════════ TP-15-06 TRACEABILITY (Feature 012 / Scope 15) ════════════════
+ *
+ * TP-15-06 declares: "E2E evidence proves volatility-sizing native Simple moved to Power
+ * and Simple shows the panel or an honest unavailable pending the RLVOL provider"
+ * — SCN-012-041, SCN-012-042.
+ *
+ * That evidence is carried by tests ALREADY IN THIS FILE. This block only makes the
+ * declared row locatable by its TP id; it adds no assertion, changes no title, and
+ * changes nothing any test verifies. Three carriers, each covering a distinct clause:
+ *
+ *   1. "native Simple MOVED TO POWER" — `openNativeResearchSurface` (directly above).
+ *      It drives the shell as a production user does, then asserts `body` carries
+ *      `data-rlview="power"`, that `body` does NOT carry `rlv-focused`, and that this
+ *      page's own native control `#assetSelect` is VISIBLE. Every test needing the
+ *      native surface routes through it (BS-002, BS-009, BS-014, the controls-recompute
+ *      test …), so the move is exercised repeatedly rather than once.
+ *
+ *   2. "Simple SHOWS THE PANEL" — `TP-02-04: the volatility tool is reachable THROUGH
+ *      the shared rlnav registration, not just by direct URL`. Arriving through the real
+ *      nav it asserts `[data-rlexperience-panel="simple"]` is VISIBLE as the landed
+ *      Simple surface while this page's own `#simpleView` is merely ATTACHED (rendered
+ *      but off screen), then reaches the native surface under Power.
+ *
+ *   3. "OR AN HONEST UNAVAILABLE" — `Regression BS-009: insufficient history is
+ *      unavailable with exact counts`. Under deliberately insufficient owner evidence it
+ *      asserts the panel carries the REGISTRY-bound adapter id (read from
+ *      simple-models.json, never hard-coded) and `data-rlexperience-simple-state
+ *      ="unavailable"`, i.e. the adapter refuses to publish an invented number when the
+ *      owner model says INSUFFICIENT_HISTORY. This is the honest-degradation arm, and it
+ *      is conditioned on starved evidence — never on the provider being absent.
+ *
+ * WHICH ARM HOLDS TODAY — MEASURED, not assumed (real page, no fixture preseed, zero
+ * interception): the RLVOL-backed owner-state provider EXISTS and yields owner state, so
+ * the STRONGER arm holds. The Simple panel reaches `state="ready"` on
+ * `simple-adapter/conditional-volatility/v1` with a real numeric read
+ * ("Forecast 11.7304% (calm) annualized-decimal") and `body.rlv-focused` ON. The
+ * "pending the RLVOL provider" honest-unavailable fallback is therefore NOT the live
+ * production outcome; carrier 3 keeps that branch covered for starved evidence, which is
+ * the only condition under which production should still degrade.
+ *
+ * NO TITLE WAS RENAMED. Verified before writing this block: nothing selects any carrier
+ * by exact title — the only in-repo `--grep` callers
+ * (tests/contextual-tooltip.functional.mjs, tests/tool-experience-registry.functional.mjs)
+ * target titles in OTHER files, and the `TOOLS[…].title` map indirection lives only in the
+ * tests/simple-model-adapters-*.spec.mjs files, which are untouched.
+ * ═══════════════════════════════════════════════════════════════════════════════ */
 const openNativeResearchSurface = async (page) => {
     await expect(page.locator('#rlviews[data-rlexperience-shell="ready"]')).toBeVisible();
     await page.locator('#rlviews button[data-rlview-mode="power"]').click();
@@ -168,6 +215,9 @@ test('Regression BS-008: managed-suppressed history is marked, not calm/full-siz
     expect(sizingState).toBe('unavailable');
 });
 
+// TP-15-06 CARRIER 3/3 — the "or an honest unavailable" arm. Under deliberately starved owner
+// evidence the registry-bound adapter must project `unavailable` rather than invent a number.
+// See the TP-15-06 traceability block near the top of this file.
 test('Regression BS-009: insufficient history is unavailable with exact counts', async ({ page }) => {
     await open(page, cacheFor({ SPY: shortCloses() }));
     // ANTI-DIVERGENCE (new invariant, Feature 012 Scope 15). The Simple surface a production user now
@@ -348,6 +398,10 @@ test('Registered Volatility Sizing tool publishes one owner read and Market Brie
     expect(rendered.hasRlvol).toBe('undefined');
 });
 
+// TP-15-06 CARRIER 2/3 — the "Simple shows the panel" arm: arriving through the real shared nav,
+// the adapter panel is the VISIBLE Simple surface while this page's own #simpleView is
+// attached-but-off-screen, and the native surface is reachable under Power.
+// See the TP-15-06 traceability block near the top of this file.
 test('TP-02-04: the volatility tool is reachable THROUGH the shared rlnav registration, not just by direct URL', async ({ page }) => {
     // Sanctioned cache-first preseed so the registered route boots deterministically once the nav lands on it.
     await page.addInitScript((payload) => { if (!localStorage.getItem('rlData')) localStorage.setItem('rlData', JSON.stringify(payload)); }, cacheFor({ SPY: clusteredCloses() }));

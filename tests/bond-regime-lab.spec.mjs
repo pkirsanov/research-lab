@@ -1,3 +1,45 @@
+/* ════════════════ TP-15-05 TRACEABILITY (Feature 012 / Scope 15) ════════════════
+ *
+ * TP-15-05 declares: "E2E evidence proves bond-regime native content shows in Power
+ * not Simple (BUG-003 closure)" — SCN-012-039, SCN-012-041.
+ *
+ * That evidence is carried by tests ALREADY IN THIS FILE. This block only makes the
+ * declared row locatable by its TP id; it adds no assertion, changes no title, and
+ * changes nothing any test verifies. The proof is split across two carriers, and
+ * BOTH are required:
+ *
+ *   1. `openNativeResearchSurface` (below) — the "native content shows in POWER" half.
+ *      It drives the shell exactly as a production user does and then asserts
+ *      `body` carries `data-rlview="power"`, that `body` does NOT carry `rlv-focused`,
+ *      and that this page's own native control `#treasuryShock` is VISIBLE. Every
+ *      test that must see or drive the native research surface goes through it
+ *      (BS-004, BS-005, BS-012, BS-014 …), so the "native content lives under Power"
+ *      fact is exercised repeatedly, not once.
+ *
+ *   2. `Regression BUG-003: Ready waits for auto-hydration before Simple and Power
+ *      comparison` — the "NOT Simple" half plus the BUG-003 closure itself. On the
+ *      shell's Simple view it asserts the production ADAPTER panel
+ *      `[data-rlexperience-panel="simple"]` is the VISIBLE Simple surface and that it
+ *      carries the adapter id the REGISTRY binds to this tool (read from
+ *      simple-models.json, never hard-coded), while this page's own `#simpleView`
+ *      digest node is merely ATTACHED — i.e. rendered but off screen, hidden by
+ *      rlviews.js's `body.rlv-focused>*:not(#rlviews)…{display:none!important}`.
+ *      It then keeps the original anti-divergence check intact: `#simpleView` and
+ *      `#powerView` model digests must stay byte-identical across a real
+ *      Simple→Power change, with zero new requests.
+ *
+ * MEASURED, not assumed (real page, no fixture preseed, zero interception): this tool's
+ * production owner-state provider yields owner state and the Simple panel reaches
+ * `state="ready"` on `simple-adapter/fixed-income-sleeve/v1` with `body.rlv-focused`
+ * ON — so the Simple surface a production user sees really is the adapter panel and
+ * the native surface really is off screen there.
+ *
+ * NO TITLE WAS RENAMED. Verified before writing this block: nothing selects either
+ * carrier by exact title — the only in-repo `--grep` callers
+ * (tests/contextual-tooltip.functional.mjs, tests/tool-experience-registry.functional.mjs)
+ * target titles in OTHER files, and the `TOOLS[…].title` map indirection lives only in
+ * the tests/simple-model-adapters-*.spec.mjs files, which are untouched.
+ * ═══════════════════════════════════════════════════════════════════════════════ */
 import { test, expect } from './playwright-runtime.mjs';
 import { startStaticServer } from './provider-credentials.support.mjs';
 
@@ -93,6 +135,8 @@ async function openWithSnapshot(page, snapshot) {
 // attached nodes, so BS-011's Simple-vs-Power model-digest comparison still reads this page's real
 // #simpleView and #powerView digest nodes and its anti-divergence check is untouched.
 // Mirrors the shell-driving pattern in tests/company-fundamentals-lab.spec.mjs.
+//
+// TP-15-05 CARRIER 1/2 — the "native content shows in POWER" half of the declared row.
 const openNativeResearchSurface = async (page) => {
   await expect(page.locator('#rlviews[data-rlexperience-shell="ready"]')).toBeVisible();
   await page.locator('#rlviews button[data-rlview-mode="power"]').click();
@@ -359,6 +403,13 @@ test('No browser credential restricted endpoint or raw observation persistence p
 });
 
 // Regression: specs/_bugs/BUG-003-bond-regime-simple-power-model-digest-divergence/
+//
+// TP-15-05 CARRIER 2/2 — the "NOT Simple" half plus the BUG-003 closure. The test titled
+// 'Regression BUG-003: Ready waits for auto-hydration before Simple and Power comparison'
+// asserts the production adapter panel is the VISIBLE Simple surface carrying the
+// registry-bound adapter id, that this page's own #simpleView is attached-but-off-screen,
+// and that the #simpleView/#powerView digests stay byte-identical across a real
+// Simple→Power change. See the TP-15-05 traceability block at the top of this file.
 test('Regression BUG-003: Ready waits for auto-hydration before Simple and Power comparison', async ({ page }) => {
   const cache = sharedBarCache();
   const { readFileSync } = await import('node:fs');

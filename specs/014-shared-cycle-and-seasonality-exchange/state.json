@@ -1,0 +1,457 @@
+{
+  "version": 3,
+  "featureDir": "specs/014-shared-cycle-and-seasonality-exchange",
+  "featureName": "Shared Cycle And Seasonality Exchange",
+  "createdAt": "2026-07-28T00:00:00Z",
+  "status": "not_started",
+  "workflowMode": "product-to-planning",
+  "linkedImplementationSpec": null,
+  "linkedPlanningPacket": null,
+  "planningOnly": false,
+  "planningOnlyJustification": null,
+  "specDependsOn": [
+    {
+      "featureDir": "specs/006-trend-dynamics-cycle-lab",
+      "relationship": "engine-provider",
+      "status": "not_started",
+      "note": "Feature 006 implements the cross-domain cycle and seasonality measurement engine (M13-M18 at trend-dynamics-cycle-lab.html#L2177/#L2317/#L2385/#L2436/#L2498/#L2593, typed evaluator at #L2656, 18 methods and a 10-entry cycleCatalog spanning 10 domains and 6 types in trend-dynamics-cycle-universe.json) but never publishes it. Scopes 1-3 are Done; Scope 4 'Complete Simple/Power Experience, Registration, And Publication' (scopes.md#L1617, Not Started at #L1619) and Scope 5 'As-Of Replay, Progress, And Regression Closure' (scopes.md#L1725, Not Started at #L1727) are unstarted, and specs/006-trend-dynamics-cycle-lab/state.json carries status not_started. scripts/validate-trend-dynamics-cycle.mjs#L511 prints owner-publication=false. Feature 014 exchanges the evidence this engine produces and MUST NOT re-implement it."
+    },
+    {
+      "featureDir": "specs/013-market-regime-stack-and-strategy-playbook",
+      "relationship": "regime-consumer-and-protected-surface-owner",
+      "status": "in_progress-concurrent",
+      "note": "Feature 013 owns the ratio-pair capability, the sole regime composer, the archetype and sleeve registries, market-regime-lab.html, registry lockstep, consumer migration, and the headless DERIVED regime owner read. 013 SCOPE-3 maps trend-dynamics-cycle-lab.html to a trend-structure facet ONLY, so 014 MUST NOT claim trend-structure or compose/name a regime. 013 also declares the rldata.js persisted cache schema protected and unchanged, which binds Feature 014's fail-closed typed transport to the admission path only (see spec.md HC-4 and BP-014-010, recorded as a named cross-feature risk). Feature 013 is being authored by a concurrent session; its working-tree artifacts were not read for mutation and were not modified by this run."
+    }
+  ],
+  "certifiedAt": null,
+  "requiresRevalidation": false,
+  "execution": {
+    "activeAgent": "bubbles.design",
+    "currentPhase": "bootstrap",
+    "currentScope": null,
+    "runStartedAt": "2026-07-28T00:00:00Z",
+    "completedPhaseClaims": [],
+    "pendingTransitionRequests": [],
+    "nextRequiredOwner": "bubbles.implement",
+    "audit": {
+      "schemaVersion": "audit-run/v1",
+      "runId": null,
+      "currentAttemptId": null,
+      "attempts": []
+    }
+  },
+  "certification": {
+    "status": "not_started",
+    "completedScopes": [],
+    "certifiedCompletedPhases": [],
+    "scopeProgress": [
+      {
+        "scope": 1,
+        "scopeId": "SCOPE-01",
+        "name": "Foundation contracts and publication",
+        "status": "not_started",
+        "dependsOn": [],
+        "scopeDir": "scopes/01-foundation-contracts-and-publication",
+        "evidenceFile": "scopes/01-foundation-contracts-and-publication/report.md",
+        "certifiedAt": null
+      },
+      {
+        "scope": 2,
+        "scopeId": "SCOPE-02",
+        "name": "Fail-closed typed transport",
+        "status": "not_started",
+        "dependsOn": [
+          1
+        ],
+        "scopeDir": "scopes/02-fail-closed-typed-transport",
+        "evidenceFile": "scopes/02-fail-closed-typed-transport/report.md",
+        "certifiedAt": null
+      },
+      {
+        "scope": 3,
+        "scopeId": "SCOPE-03",
+        "name": "Applicability and consumer authority",
+        "status": "not_started",
+        "dependsOn": [
+          1
+        ],
+        "scopeDir": "scopes/03-applicability-and-consumer-authority",
+        "evidenceFile": "scopes/03-applicability-and-consumer-authority/report.md",
+        "certifiedAt": null
+      },
+      {
+        "scope": 4,
+        "scopeId": "SCOPE-04",
+        "name": "Consumption ledger and type dispatch",
+        "status": "not_started",
+        "dependsOn": [
+          1,
+          3
+        ],
+        "scopeDir": "scopes/04-consumption-ledger-and-type-dispatch",
+        "evidenceFile": "scopes/04-consumption-ledger-and-type-dispatch/report.md",
+        "certifiedAt": null
+      },
+      {
+        "scope": 5,
+        "scopeId": "SCOPE-05",
+        "name": "Prospective baseline comparison",
+        "status": "not_started",
+        "dependsOn": [
+          1,
+          4
+        ],
+        "scopeDir": "scopes/05-prospective-baseline-comparison",
+        "evidenceFile": "scopes/05-prospective-baseline-comparison/report.md",
+        "certifiedAt": null
+      },
+      {
+        "scope": 6,
+        "scopeId": "SCOPE-06",
+        "name": "Provenance by recomputation",
+        "status": "not_started",
+        "dependsOn": [
+          1,
+          4
+        ],
+        "scopeDir": "scopes/06-provenance-by-recomputation",
+        "evidenceFile": "scopes/06-provenance-by-recomputation/report.md",
+        "certifiedAt": null
+      },
+      {
+        "scope": 7,
+        "scopeId": "SCOPE-07",
+        "name": "Lab surface Simple, Power, mobile",
+        "status": "not_started",
+        "dependsOn": [
+          1,
+          3,
+          4,
+          5,
+          6
+        ],
+        "scopeDir": "scopes/07-lab-surface-simple-power-mobile",
+        "evidenceFile": "scopes/07-lab-surface-simple-power-mobile/report.md",
+        "certifiedAt": null
+      },
+      {
+        "scope": 8,
+        "scopeId": "SCOPE-08",
+        "name": "Brief and Journey context",
+        "status": "not_started",
+        "dependsOn": [
+          1,
+          4,
+          7
+        ],
+        "scopeDir": "scopes/08-brief-and-journey-context",
+        "evidenceFile": "scopes/08-brief-and-journey-context/report.md",
+        "certifiedAt": null
+      },
+      {
+        "scope": 9,
+        "scopeId": "SCOPE-09",
+        "name": "Published exchange end to end",
+        "status": "not_started",
+        "dependsOn": [
+          1,
+          2,
+          3,
+          4,
+          5,
+          6,
+          7,
+          8
+        ],
+        "scopeDir": "scopes/09-published-exchange-end-to-end",
+        "evidenceFile": "scopes/09-published-exchange-end-to-end/report.md",
+        "certifiedAt": null
+      },
+      {
+        "scope": 10,
+        "scopeId": "SCOPE-10",
+        "name": "As-of replay vintage integrity",
+        "status": "not_started",
+        "dependsOn": [
+          9
+        ],
+        "scopeDir": "scopes/10-as-of-replay-vintage-integrity",
+        "evidenceFile": "scopes/10-as-of-replay-vintage-integrity/report.md",
+        "certifiedAt": null
+      },
+      {
+        "scope": 11,
+        "scopeId": "SCOPE-11",
+        "name": "Registry registration",
+        "status": "not_started",
+        "dependsOn": [
+          1,
+          2,
+          3,
+          4,
+          5,
+          6,
+          7,
+          8
+        ],
+        "scopeDir": "scopes/11-registry-registration",
+        "evidenceFile": "scopes/11-registry-registration/report.md",
+        "certifiedAt": null
+      }
+    ],
+    "lockdownState": {
+      "active": false,
+      "lockedScenarioIds": []
+    }
+  },
+  "policySnapshot": {
+    "grill": {
+      "mode": "off",
+      "source": "repo-default"
+    },
+    "tdd": {
+      "mode": "scenario-first",
+      "source": "repo-default"
+    },
+    "autoCommit": {
+      "mode": "off",
+      "source": "repo-default"
+    },
+    "lockdown": {
+      "mode": "off",
+      "source": "repo-default"
+    },
+    "regression": {
+      "mode": "protected-scenarios",
+      "source": "repo-default"
+    },
+    "validation": {
+      "mode": "certification-required",
+      "source": "repo-default"
+    }
+  },
+  "transitionRequests": [],
+  "reworkQueue": [],
+  "executionHistory": [
+    {
+      "agent": "bubbles.plan",
+      "phasesExecuted": [
+        "bootstrap"
+      ],
+      "statusBefore": "not_started",
+      "statusAfter": "not_started",
+      "startedAt": "2026-07-28T00:00:00Z",
+      "finishedAt": "2026-07-28T00:00:00Z",
+      "outcome": "completed_owned",
+      "summary": "Bounded planning pass, part 1 of 2. CREATED the per-scope directory layout under scopes/ and authored scopes/_index.md plus the first four scope.md files. _index.md records: the per-scope layout note; an execution outline (11-scope phase order with a one-line rationale each, the new types/signatures each scope introduces, and the validation checkpoint that must be green before the next scope starts); a dependency table with a mermaid dependency graph; the scope table (ID / name / status / tags / depends-on / BS owned); a COMPLETE Business-Scenario ownership map covering BS-014-001..035 with 35 scenarios, 35 distinct owners, zero orphans and zero duplicates (owner counts 01:6 02:3 03:5 04:7 05:4 06:2 07:1 08:4 09:2 10:1 11:0, sum 35); a refusal-code ownership table assigning all 47 cyc-* codes from the authoritative registry enumeration to exactly one scope each (the design records the part-1 heading count of 44 as wrong and routes the correction as OQ-1; the plan consumes the enumeration and does not edit design.md); seven binding cross-cutting sequencing rules; and the verified command surface. Scope 01 (foundation:true) is the pure rlcycx.js foundation and appears in the Depends On chain of every other scope directly or transitively, satisfying foundation-first ordering. Scope 02 is the HC-4 fail-closed transport hardening, sequenced immediately after the foundation because it needs no Feature 006 publication and is demonstrable today against the live putToolRead; its regression is required to be recorded FAILING against unmodified rldata.js before the conditional split lands (red-then-green), and it asserts the absent-contractVersion case plus all five compact-path publishers (sector-rotation-owner-state/v1, volatility-owner-state/v1, ai-capex-portfolio-owner-state/v1, real-asset-driver-owner-state/v1, str-scenario-owner-state/v1) remain admitted. Scopes 09 and 10 carry blocked-on-006-scope-4 and blocked-on-006-scope-5 and are explicitly not schedulable as satisfied by fixtures. Scope 11 is the LAST, isolated registration scope, strictly serialised after Feature 013 SCOPE-5 lands on the mainline, re-reading counts at execution time rather than hardcoding forward; while it is unscheduled 014 runs unregistered. Every file named in every scope is drawn from design.md Implementation Boundary (MAY CREATE / MAY MODIFY); no scope names a Protected Surface. Test Plans use only the four verified command forms (node scripts/selftest.mjs, node scripts/validate-shared-cycle-exchange.mjs, node --test tests/<file>.mjs, npx --no-install playwright test ... --project=system-chrome), every owned refusal code has a named negative test asserting the exact refusalCode string plus its companion field, and every negative row is constructed so reverting the guarded behaviour makes it fail. Test-Plan-row to test-DoD-item parity holds exactly per scope (01: 13/13, 02: 9/9, 03: 10/10, 04: 11/11). No product source, registry, spec.md, design.md, or other feature's artifacts were touched.",
+      "nextRequiredOwner": "bubbles.plan"
+    },
+    {
+      "agent": "bubbles.design",
+      "phasesExecuted": [
+        "bootstrap"
+      ],
+      "statusBefore": "not_started",
+      "statusAfter": "not_started",
+      "startedAt": "2026-07-28T00:00:00Z",
+      "finishedAt": "2026-07-28T00:00:00Z",
+      "outcome": "completed_owned",
+      "summary": "Bounded design pass, part 2 of 2 (final design chunk). APPENDED eight sections to design.md with part 1 preserved byte-for-byte (part-1 prefix sha256 4f3f58535a5f5fa8986d85da7f75de8676005bb65ece4da43bd46e8414cdcddd unchanged; 642 lines appended, 625 -> 1267). Sections: Data Flow And Sequencing (7-stage pipeline, mermaid sequence + refusal-fan-out flow, four structural reasons refusal is terminal, explicit retry semantics that never collapse a refusal row); Failure Handling And Degradation (four binding laws L-1..L-4 plus a per-group does/sees/resolves table for all eight refusal groups, and an explicit no-graceful-degradation policy); Determinism And Reproducibility (canonicalisation CR-1..CR-7, float rules FP-1..FP-5, the five-input recomputation identity, why not-reproducible is binary, and why external corroboration cannot override it - enforced by the verifyProvenance signature, not by policy); Test Strategy (repo-real categories only - node --test, Playwright system-chrome, node scripts/selftest.mjs - with a 47-row refusal-code-to-negative-test mapping, adversarial construction per row, three banned anti-patterns, a mandatory pre-fix failing demonstration for the HC-4 regression, three coordination regressions, fixture strategy, and a contract-to-category matrix); Performance And Resource Budgets (adopted verbatim from tool-experience.config.json experience-performance-policy/v2: validationMaxMs 100, interactionMaxMs 100, localRecomputeMaxMs 250, standardSimpleMaxMs 100, heavySimpleMaxMs 1000, cooperativeChunkMaxMs 16, layoutShiftMax 0.1, plus rendererBudgets 160/360/240 and artifactBudgets 65536/524288/1048576, with a five-rule cooperative-yield contract that cannot block first paint and cannot change accumulation order); Observability And Diagnostics (honesty band, provenance line, consumption ledger, five diagnostic invariants, and an absolute structural credential prohibition - no contract has a field for a secret and rlcycx.js cannot reach one); Rollout And Reversibility (six phases R-0..R-5, unregistered-first, the binding rebase-and-recoordinate rule for the rldata.js change, and a per-file reversal path for all ten modified shared files with an all-or-nothing atomicity rule on the five counted registries); Open Design Questions (OQ-1..OQ-4 with named owners). REUSED part 1 verbatim - same contracts C-1..C-7 plus cycle-context-surface/v1, same EP-1..EP-5, same CI-1..CI-6, same VA-1..VA-7, same cyc-* registry, same Implementation Boundary file names; invented no new contract, code, extension point, or file. FINDING (routed as OQ-1, not silently fixed): the closed registry enumerates 47 distinct cyc-* codes while part 1's heading reads 44; the enumeration is authoritative and all 47 are mapped to named negative tests (verified programmatically: 47 registry codes, 47 mapping rows, 0 unmapped, 0 extraneous). Part 1's three routed items (adapter-allowlist alternative, Feature 006 Scope 4/5 dependency, 013 registry-count coupling) are carried forward as OQ-2/OQ-3/OQ-4 unchanged and un-decided. HC-4 restated literally: the fail-closed rule fires ONLY on a payload declaring a KNOWN typed contract id that then fails validation - a blanket unknown-contractVersion refusal is forbidden because it would break sector-rotation-owner-state/v1, volatility-owner-state/v1, ai-capex-portfolio-owner-state/v1, real-asset-driver-owner-state/v1, and str-scenario-owner-state/v1. Test commands verified against the working tree (playwright.config.mjs declares system-chrome and chromium; scripts/selftest.mjs exists; the .unit/.functional/.integration/.e2e/.stress/.spec/.support suffixes match the repo's 116 existing test files). Wrote nothing to spec.md, created no scopes.md/report.md/uservalidation.md, touched no product source, no registry, no other feature, and nothing under specs/001-* .. specs/013-* or specs/_bugs/*. status, certification.*, and certifiedAt unchanged.",
+      "nextRequiredOwner": "bubbles.plan"
+    },
+    {
+      "agent": "bubbles.analyst",
+      "phasesExecuted": [
+        "analyze"
+      ],
+      "statusBefore": "not_started",
+      "statusAfter": "not_started",
+      "startedAt": "2026-07-28T00:00:00Z",
+      "finishedAt": "2026-07-28T00:00:00Z",
+      "outcome": "route_required",
+      "summary": "Bounded chunk 1 of 4. Created the new feature folder specs/014-shared-cycle-and-seasonality-exchange with exactly two artifacts: spec.md (Problem, Outcome Contract, Domain Capability Model only) and this state.json. Established 014 as the sharing/exchange capability over the Feature 006 engine, NOT a re-implementation of it. Verified every cited evidence item before writing: the six M13-M18 engine methods and tdcEvaluateCycle in trend-dynamics-cycle-lab.html; tdcRenderProduction emitting no cycle conclusion and publicationState 'No owner read has been published.' with ownerReadPublished:false; tdcSharedBarsEnvelope hardcoding the '1d' interval; 18 methods, 10 cycle domains, 6 cycle types and one production series (spy-daily) in trend-dynamics-cycle-universe.json; Feature 006 Scopes 1-3 Done with Scopes 4 and 5 Not Started and state status not_started; the validator printing owner-publication=false; the rldata.js putToolRead typed branch whose own comment states a non-conforming tool-model-read/v1 falls through to the legacy compact store (fail-open defect); and buildToolCoverage in scripts/brief-refresh.mjs testing key existence only. Modelled 15 domain primitives, 7 relationship rules, and 15 business policies encoding descriptive-only claims, mandatory multiplicity, evidence-family identity, cycle-type invariance, explicit subject applicability, first-class negative states, as-of-safe point-in-time resolution, ex-ante frozen prospective comparison against an identical unadjusted baseline, recorded adjustment posture, fail-closed additive typed transport, model provenance as deterministic reproducibility rather than external corroboration, one closed persistence vocabulary, declared consumer authority with a consumption record, coverage from checked records rather than key presence, and the educational-research-only boundary. Enforced the 014-vs-013 boundary: 014 claims no trend-structure facet, composes and names no regime, touches no ratio-pair/archetype/sleeve registry, and records the protected rldata.js cache schema as a named cross-feature risk in HC-4 and BP-014-010. No Actors, Use Cases, Business Scenarios, functional requirements, or non-functional requirements were written (chunks 2-4). No design.md, scopes.md, report.md, uservalidation.md, or UX artifact was created. No product source, registry, sibling spec, bug artifact, or git index operation was touched; the concurrent uncommitted Feature 013 edits were left intact. Routed next to bubbles.analyst for chunk 2 (Capability Inventory, Actors, Use Cases)."
+    },
+    {
+      "agent": "bubbles.analyst",
+      "phasesExecuted": [
+        "analyze"
+      ],
+      "statusBefore": "not_started",
+      "statusAfter": "not_started",
+      "startedAt": "2026-07-28T00:00:00Z",
+      "finishedAt": "2026-07-28T00:00:00Z",
+      "outcome": "route_required",
+      "summary": "Bounded chunk 2 of 4. Appended exactly three sections to spec.md - Capability Inventory (22 rows in five groups), Actors And Personas (7 actors), and Use Cases (UC-001 through UC-010) - reusing the chunk-1 primitive ids P1-P15 and policy ids BP-014-001 through BP-014-015 without restating them. Chunk-1 content preserved byte-for-byte, verified by md5 of the first 313 lines matching the pre-append digest 2a702a77bb91e37c3c31504f8d0f7d58; file grew 313 to 649 lines with section order Problem, Outcome Contract, Domain Capability Model, Capability Inventory, Actors And Personas, Use Cases. Every capability row was grounded in code read during this run: the M13-M18 methods and typed evaluator; the closed 10-entry catalog whose per-entry type, scope, minimumEvidence, stateVocabulary and invalidation were enumerated directly from trend-dynamics-cycle-universe.json (deterministic-calendar x2, empirical-seasonality x2, quasi-periodic-oscillation x3, lifecycle x1, regime x1, event x1); the Benjamini-Hochberg and Holm correction constants; revision-aware vintage handling with the replayPosture revision-safe vs observation-cutoff-only distinction at trend-dynamics-cycle-lab.html:1179 and per-row observedAt/availableAt/vintageId/revisedAt at :1138; the single spy-daily series with hardcoded 1d interval; the explicit non-publication at :3453/:3460/:3461 and the validator owner-publication=false at scripts/validate-trend-dynamics-cycle.mjs:511; validateToolModelRead at rldata.js:378 and the fail-open putToolRead admission path at :433/:448/:450/:454-461 against the protected persisted shape at :77-78/:363/:465; the canonicalization and content-hash primitives at rlcontracts.js:403/:421/:426/:519; the per-evidence-type applicability status set at rldata.js:405-408 with producers at scripts/brief-refresh.mjs:262/:295; the per-tool permittedSubjectBoundary at :265-270; buildNonOwnerApplicabilityRead at :285 as an existing refusal-as-a-record pattern; the frozen-briefing-registry/v1 freeze machinery at :315/:350/:597/:740 and tests/distributed-briefs.contract.mjs; key-presence-only coverage in buildToolCoverage at :1173; and the closed-vocabulary consumer rendering maps at rlbrief.js:236-247/:485-542. Four absences were established by repo-wide search rather than asserted: no consumptionRecord/consumedBy/consumerAuthority symbol outside specs; no adjustmentPosture/seasonallyAdjusted symbol outside specs; zero cycle or seasonal mentions in market-brief.html; and zero registration of trend-dynamics-cycle-lab in tools.json, journeys.json, simple-models.json or tool-experience.config.json. Actors A1-A7 each carry an explicit non-authority half, and the cross-actor invariant records that no role may convert a negative availability state into a positive one. Use cases cover publication, eligible-subject consumption, subject-inapplicability refusal, the terminal ineligible long cycle grounded in the financial/credit entry requiring four repetitions over roughly 32 years, calendar and lifecycle typed consumption without oscillatory re-reading, malformed-typed-read refusal without downgrade, consumption recording including adjusted versus unadjusted posture, ex-ante frozen baseline comparison, honest Brief and Journey degradation, and reproducibility audit by deterministic recomputation. The 013 boundary was preserved throughout: no trend-structure facet is claimed, no regime is named or composed, no ratio-pair/archetype/sleeve registry is referenced as owned, and HC-4 persisted-cache-schema protection is restated in CI-11 and UC-006. No Business Scenarios, functional requirements, non-functional requirements, or UI scenario matrix were written (chunks 3-4). No design.md, scopes.md, report.md, uservalidation.md, or UX artifact was created. No product source, registry, sibling spec, or bug artifact was modified and no git index operation was performed; the concurrent uncommitted Feature 013 edits were left intact. Status, certification, and certifiedAt are unchanged. Routed next to bubbles.analyst for chunk 3 (Business Scenarios)."
+    },
+    {
+      "agent": "bubbles.analyst",
+      "phasesExecuted": [
+        "analyze"
+      ],
+      "statusBefore": "not_started",
+      "statusAfter": "not_started",
+      "startedAt": "2026-07-28T00:00:00Z",
+      "finishedAt": "2026-07-28T00:00:00Z",
+      "outcome": "route_required",
+      "summary": "Bounded chunk 3 of 5. Appended exactly one section to spec.md - Business Scenarios - containing 35 entries BS-014-001 through BS-014-035, each a single fenced gherkin block with one Scenario using explicit Given/When/Then/And and asserting exactly one falsifiable exchange behaviour. Prior content preserved byte-for-byte: sha256 of the first 649 lines after the append equals the pre-append digest 01739461dc80a393cc9b99834918e41a2c788d332a41bca8b512090d1677bb29; the file grew 649 to 1101 lines with section order Problem, Outcome Contract, Domain Capability Model, Capability Inventory, Actors And Personas, Use Cases, Business Scenarios. Fences balance at 35 gherkin opens and 35 closes in the appended region, with the single pre-existing mermaid block untouched. Every scenario reuses only the already-declared closed vocabularies without restating them: subject kinds instrument/aggregate/sector/geography/population, the six cycle types, P7 availability states active/contextual/candidate/drifting/unavailable/ineligible/not-applicable, P6 applicable/not-applicable/transfer-requires-declaration, P8 adjusted/unadjusted, P9 resolved/unresolved-at-cutoff, P10 reproducible/not-reproducible, P11 admitted/refused, P12 authorised/unauthorised, P13 consumed/refused-applicability/refused-authority/refused-transport/refused-vintage, P14 frozen/accruing/insufficient/reported, P15 context-present/context-refused/context-absent, the deterministic-calendar entry vocabulary scheduled/observed/expired, actors A1-A7, primitives P1-P15, policies BP-014-001 through BP-014-015, and constraints HC-1 through HC-8. No scenario asserts a market outcome, win rate, probability of profit, allocation, exposure, or direction, and that prohibition is stated explicitly in the section preamble. Every mandated refusal is carried by at least one dedicated scenario: subject-inapplicable transfer refused with absence of an assertion treated as not-applicable (BS-014-012, BS-014-013) and declared transfer recorded as declared (BS-014-014); an insufficient-repetition long cycle terminal at ineligible yielding no phase, no phase angle, no amplitude and no next-turn date end to end (BS-014-015); a lifecycle rendered as a stage with period/phase refused and a deterministic-calendar occurrence rendered as scheduled/observed/expired with turn and direction refused (BS-014-017, BS-014-018), plus coerced-type transport refusal (BS-014-019); a malformed typed read refused with nothing written and no compact stand-in, leaving a prior admitted record byte-identical, while a legitimately declared compact record is still admitted so the hardening stays additive to the admission path under HC-4 (BS-014-020, BS-014-021, BS-014-022); a consumer forbidden from upgrading ineligible/unavailable/not-applicable into a value and forbidden from re-deriving a corrected p-value (BS-014-016, BS-014-011); correlated findings sharing series, mechanism and sweep identity resolving to one evidence family rather than three confirmations (BS-014-003); search breadth with benjamini-hochberg discovery, holm activation and the held-out gate travelling on the record so a swept periodicity cannot be re-shared as confirmed, and publication refused outright when breadth is unattachable (BS-014-004, BS-014-002); a prospective comparison frozen ex ante against the identical unadjusted baseline accruing only post-freeze data and reported as a comparison, with a back-dated freeze and any in-sample superiority claim refused, a cross-posture baseline refused rather than reconciled, and a short window reported as insufficient (BS-014-026, BS-014-027, BS-014-028, BS-014-029); model provenance established by deterministic recomputation from recorded inputs, lineage, engine version and configuration version, with two agreeing independent external web origins explicitly failing to rescue a not-reproducible verdict (BS-014-034, BS-014-035); as-of-safe only, with a revision-contaminated or hindsight-smoothed history refused at publication and an unservable cutoff refused at consumption without substituting an earlier vintage (BS-014-006, BS-014-010); a consumption record capturing whether the consumer read adjusted or unadjusted inputs and refusing when the posture is undeterminable rather than defaulting to unadjusted, with refusals recorded as completely as consumptions (BS-014-023, BS-014-024, BS-014-025); and Brief and Journey consumption degrading honestly, asserting coverage only from consumed applicable as-of-valid consumption records rather than envelope presence, naming staleness, stating context-absent or context-refused instead of a neutral, zero or last-known value, and refusing participant override (BS-014-030, BS-014-031, BS-014-032, BS-014-033). The section closes with a UC to BS coverage map proving UC-001 through UC-010 are each covered - 7, 4, 3, 2, 3, 3, 3, 4, 4 and 2 scenarios respectively - totalling 35 scenarios with Uncovered use cases: 0. The 013 boundary was preserved: no trend-structure facet is claimed, no regime is named or composed, no ratio-pair/archetype/sleeve registry is referenced as owned, and the HC-4 persisted-cache-schema protection is asserted as a scenario postcondition in BS-014-022. No functional requirements, non-functional requirements, or UI scenario matrix were written (chunk 4). No design.md, scopes.md, report.md, uservalidation.md, or UX artifact was created. No product source, registry, sibling spec, or bug artifact was modified and no git index operation was performed; the concurrent uncommitted Feature 013 edits were left intact. Status, certification, and certifiedAt are unchanged. The stale notes field, which still claimed only Problem, Outcome Contract and Domain Capability Model existed, was corrected to match the file as it now stands. Routed next to bubbles.analyst for chunk 4 (functional requirements, non-functional requirements, UI scenario matrix)."
+    },
+    {
+      "agent": "bubbles.analyst",
+      "phasesExecuted": [
+        "analyze"
+      ],
+      "statusBefore": "not_started",
+      "statusAfter": "not_started",
+      "startedAt": "2026-07-28T00:00:00Z",
+      "finishedAt": "2026-07-28T00:00:00Z",
+      "outcome": "route_required",
+      "summary": "Bounded chunk 4 of 5. Appended exactly three sections to spec.md and changed nothing else in it: Functional Requirements (FR-001 through FR-062), Non-Functional Requirements (NFR-001 through NFR-023), and the UI Scenario Matrix (35 rows, UI-01 through UI-35). Prior spec.md content was verified byte-for-byte intact: the pre-append 93633-byte prefix hashes to sha256 08e346a6d7f21b02c202e70c0afef9edd291fb8c2c9b3b2a0ea10162af9db80d both before and after the append, with 39507 bytes added and no in-place edit anywhere above the append point. The 62 functional requirements are grouped by the seven surfaces this feature owns: A evidence publication (15), B cycle-catalog exchange (7), C subject applicability (6), D consumer authority and consumption record (14), E prospective baseline comparison (6), F fail-closed typed transport (7), G consumer surfaces Market Brief and guided Journey (7). Every requirement states one falsifiable MUST behaviour, is implementation-free, and carries an italic Traces line naming the business scenarios it is falsifiable against. Traceability was verified mechanically in both directions: 62 of 62 requirements carry a trace line, all 35 declared business scenarios BS-014-001 through BS-014-035 are covered by at least one requirement, zero business scenarios are uncovered, zero requirements are untraced, no requirement traces a scenario that does not exist, and the summary FR to BS table matches every inline Traces line with zero mismatches. The requirement set encodes the mandated invariants: refusal over coercion as a cross-cutting rule (FR-015) plus per-surface refusals; ineligible, unavailable and not-applicable as first-class terminal states that may not be upgraded or substituted (FR-011, FR-035 through FR-039); evidence-family identity for correlated findings derived from series, mechanism and sweep together (FR-005, FR-006); search breadth and multiplicity correction travelling with the shared evidence and refusing publication when absent (FR-004, FR-007); as-of-safe revision-aware point-in-time resolution with unresolved-at-cutoff refusals at publication and at consumption (FR-009, FR-010, FR-033); explicit subject identity and applicability decision with absence resolving to not-applicable and declared transfers labelled as such (FR-023 through FR-028); a consumption record naming consumer, evidence, as-of used, applicability decision, outcome and adjusted-versus-unadjusted, with an undeterminable posture refusing rather than defaulting (FR-040, FR-041, FR-042); ex-ante frozen prospective comparison against the identical unadjusted baseline with back-dated freeze and cross-posture baseline both refused and a short close reported insufficient (FR-043 through FR-048); malformed typed reads REFUSED rather than downgraded, whole-or-nothing admission, refusal inert with respect to prior records, the compact path retained, and the persisted cache schema Feature 013 depends on explicitly unchanged per HC-4 (FR-049 through FR-055); model provenance verified by recorded inputs, lineage, engine and configuration version and deterministic recomputation rather than by counting external web origins, with external agreement unable to change a not-reproducible verdict (FR-012, FR-013, FR-062); and no predictive, allocation, exposure, position-sizing or advisory output anywhere on the path (FR-014). The 23 non-functional requirements cover build-free single-file delivery, shared-shell participation and data-status honesty, cache-first auto-hydrate first paint with no manual fetch click, static-first evidence reads, null-safe first paint using the strict Number.isFinite check and never the global isFinite, determinism for identical inputs and cutoffs, Simple-default with Power drill-in from one computation, synchronous canvas draws inside the render pass with no animation-frame deferral plus redraw on activation and resize, chart text/table fallback with accessible labelling, chart hover discoverability, universal two-part contextual tooltips stating what an item is and what its current reading means, shared tooltipped ticker links, scroll containment with no body-level horizontal scroll, keyboard operability with visible focus, live-region announcement of state and refusal changes, state never carried by colour alone, refusal visually distinct from loading and from zero, no credentials in any read export or published evidence, an educational-only notice adjacent to the decision surface and carried into exports, export fidelity for closed-vocabulary values, and first-paint and recompute performance budgets. The UI Scenario Matrix maps 35 scenarios to business scenario ids, actor, entry point, user action, expected observable outcome and surface across Simple, Power, Brief and Journey; all 35 business scenarios appear in at least one row, and the matrix covers the eligible-evidence path, publication refusals, transport refusals, consumption refusals, terminal and non-upgradable negative states, type-invariance refusals, comparison refusals, consumer-surface degradation, and the consumption-record path. Competitive Landscape, Improvement Proposals, Acceptance Criteria, Known Risks and Downstream Owner Handoffs are deliberately deferred to chunk 5. No design.md, scopes.md, report.md, uservalidation.md, or UX artifact was created. No product source, registry, sibling spec, or bug artifact was modified and no git index operation was performed; the concurrent uncommitted Feature 013 edits were left intact. Status, certification, and certifiedAt are unchanged. Routed next to bubbles.analyst for chunk 5."
+    },
+    {
+      "agent": "bubbles.analyst",
+      "phasesExecuted": [
+        "analyze"
+      ],
+      "statusBefore": "not_started",
+      "statusAfter": "not_started",
+      "startedAt": "2026-07-28T00:00:00Z",
+      "finishedAt": "2026-07-28T00:00:00Z",
+      "outcome": "route_required",
+      "summary": "Bounded chunk 5 of 5, final analyst chunk. Appended exactly five sections to spec.md and changed nothing else: Competitive Landscape, Improvement Proposals, Acceptance Criteria, Known Risks And Honest Limitations, and Downstream Owner Handoffs. Prior content verified byte-for-byte intact: sha256 of the first 1614 lines after the append equals the pre-append whole-file digest efe5523108352d36e217dd149a123fdcb3922c054fe5b1429a3333fd404a9f81; the file grew 1614 to 2110 lines with section order Problem, Outcome Contract, Domain Capability Model, Capability Inventory, Actors And Personas, Use Cases, Business Scenarios, Functional Requirements, Non-Functional Requirements, UI Scenario Matrix, Competitive Landscape, Improvement Proposals, Acceptance Criteria, Known Risks And Honest Limitations, Downstream Owner Handoffs. No RESULT-ENVELOPE section was embedded in the artifact. Competitive Landscape holds 6 surface-class rows (dedicated seasonality products, community cycle indicators, macro dashboards, institutional terminals, retail cycle newsletters, and Research Lab's own honest internal baseline) compared on how each answers the seasonal/cyclical-context question, subject and applicability handling, multiplicity handling, missing-data handling, reuse and citability, and what 014 does differently. No competitor was fetched or measured during this run and no proprietary-methodology claim is made: entitlement-gated or non-public methodology cells are explicitly marked 'Not publicly inspectable' in both directions, and the absence of any committed competitive-research artifact in the repository is recorded as 'None found'. The closing positioning paragraph states plainly that 014 does not compete on data quality, universe breadth, latency, vendor coverage, or predictive power, and that its only differentiator is inspectable, subject-scoped, multiplicity-corrected, refusal-capable reuse - a plumbing and honesty differentiator, not an alpha differentiator. Improvement Proposals holds 7 ranked foundation-first proposals, each with Problem, Proposal, Evidence Basis with file:line citations verified during this run, Competitive Advantage, Impact, Effort, and owning Business Scenarios: IP-001 typed subject-scoped cycle-evidence contract, IP-002 cross-domain catalog exchange preserving type invariants, IP-003 applicability assertions plus consumption record, IP-004 ex-ante frozen prospective baseline comparison, IP-005 fail-closed typed transport hardening confined to the admission path, IP-006 checked consumer context in the Market Brief and guided Journey, IP-007 provenance by deterministic recomputation rather than corroboration. Acceptance Criteria holds 34 criteria AC-001 through AC-034 in eight groups; mechanical verification confirms all 35 declared business scenarios BS-014-001 through BS-014-035 are referenced by at least one criterion with 0 unmapped scenarios, 0 stray references to undeclared scenarios, and 0 criteria lacking a scenario reference. 20 of the 34 are negative criteria satisfied only by an observed active refusal. Known Risks And Honest Limitations holds 9 real unresolved risks: R-1 the Feature 006 publication dependency (Scope 4 at scopes.md#L1617 Not Started at #L1619, Scope 5 at #L1725 Not Started at #L1727, 006 state status not_started, validator printing owner-publication=false at scripts/validate-trend-dynamics-cycle.mjs#L511) with the consequence stated plainly that 014 cannot exchange evidence that is never published; R-2 the single spy-daily production series at a hardcoded 1d interval making cross-domain breadth catalog-declared rather than measured; R-3 multiplicity and data-mining risk surviving BH/Holm plus held-out gating because regime and subject slicing multiply trials and an undeclared wider search is undetectable; R-4 small-sample and long-cycle insufficiency being terminal rather than estimable, with the honest product cost named; R-5 revision and point-in-time contamination beyond simple truncation, unmitigated because 006 Scope 5 as-of replay is Not Started; R-6 cross-feature contention with Feature 013 over the protected rldata.js persisted cache schema under HC-4, additive admission-path hardening only, with 013 concurrently in flight across 19 modified working-tree files by a separate session; R-7 no predictive claim, a prospective comparison being a comparison and not an edge; R-8 coupling risk of shared cycle evidence being double-counted by a consumer that also counts its constituent inputs, auditable after the fact but not preventable; R-9 the adoption cost of a refusal-heavy design in the current repository state. Downstream Owner Handoffs holds 3 owner-targeted handoffs. bubbles.ux receives the 35-row UI matrix across Simple, Power, Brief and Journey with refusal as a first-class rendered state, negative states visually distinguishable from loading and zero, insufficient never styled as progress, no override affordance for refused applicability or posture mismatch or type coercion, repository Simple-first and tooltip doctrine unchanged, and honest vintage and posture labelling. bubbles.design is told explicitly that the rldata.js persisted cache schema is protected under HC-4 and only additive admission-path hardening is permitted, that Feature 013 is concurrently in flight on that exact surface with 19 modified files and owns the sole regime composer and the trend-structure facet so 014 must claim neither, that the Feature 006 publication dependency must be sequenced honestly by naming which parts of 014 are demonstrable before 006 publishes and which are blocked, that 014 does not re-implement the 006 engine, that every closed vocabulary stays closed, and that determinism is a design property. bubbles.plan is told foundation-first ordering matching the IP order, exactly one owning scope per business scenario, and that refusal and negative criteria must become adversarial tests that fail loudly rather than review checklist items, plus visible sequencing of the 006 dependency, a coordination gate for the transport hardening, and no fallback introduced to make a test pass. No design.md, scopes.md, report.md, uservalidation.md, or UX wireframe was created; those remain downstream-owned and artifact-lint correctly reports them missing at analyst stage. Nothing under specs/001-* through specs/013-* or specs/_bugs/* was read for mutation or modified; the 19 concurrent Feature 013 working-tree edits are untouched. No product source, registry, or git state-changing command was touched. Status, certification.status, and certifiedAt remain at their baseline not_started, not_started, and null; execution.nextRequiredOwner advances to bubbles.ux."
+    },
+    {
+      "agent": "bubbles.ux",
+      "phasesExecuted": [
+        "analyze"
+      ],
+      "statusBefore": "not_started",
+      "statusAfter": "not_started",
+      "startedAt": "2026-07-28T00:00:00Z",
+      "finishedAt": "2026-07-28T00:00:00Z",
+      "outcome": "route_required",
+      "summary": "Bounded UX pass, part 1 of 2. Appended exactly one section to spec.md and changed nothing else: '## UI Wireframes', holding the shell preamble, '### Screen Inventory', '### UI Primitives', '### Screen: Simple - Cycle Context Cockpit', and '### Screen: Power - Cycle Evidence Exchange Workbench'. Prior content verified byte-for-byte intact: sha256 of the first 2110 lines after the append equals the pre-append whole-file digest 040769a0bd1be2c40b5d536e32825f3ab65b288184f2cf103856383f95c12613; the file grew 2110 to 2575 lines with '## UI Wireframes' appended last, after '## Downstream Owner Handoffs', and the 15 analyst-owned top-level sections unchanged in order. No RESULT-ENVELOPE section was embedded in the artifact. The shell preamble declares one Research Lab tool page on the shared shell with four views simple, power, brief, journey through the standard #rlviews control, simple as the persisted default with a blank-proof fallback resolving route hash then persisted local mode record then simple and mounting all four view panels in the DOM toggled by hidden so a failed toggle can never blank the page, plus the compute-once rule: one computeExchangeState() result object read by all four views, a lever change recomputing through a single render() call and never refetching, and canvases drawn synchronously from inside render() and never behind requestAnimationFrame because a hidden view never fires rAF. Repository doctrine restated as binding here: cache-first auto-hydrate then delta-only fetch, Number.isFinite rather than the global isFinite so a null cannot throw during the half-empty first paint, every ticker linked and tooltipped, every value carrying a two-part contextual tooltip, and every canvas carrying a hover tooltip via the shared chart helper. No framework design language is enabled in .github/bubbles-project.yaml, so no '### Design Language' section was written and the feature renders under the repository's local UI skills only. Screen Inventory holds 5 rows: S1 Simple Cycle Context Cockpit, S2 Power Cycle Evidence Exchange Workbench, S3 Brief Market Brief Cycle Context Block, S4 Journey Guided Cycle Step, and S5 Mobile Simple at 560px and below; S3, S4 and S5 are declared as part 2 work. The five screens jointly cover BS-014-001 through BS-014-035 with no gap. A supplementary Power panel map binds the seven Power panels (publication control, evidence family, evidence detail, admission log, consumption ledger, comparison, provenance) to their UI matrix rows and business scenarios, and a Simple region map binds the cycle context panel and the provenance echo to theirs. UI Primitives holds 13 primitives P-UX-01 through P-UX-13, each consumed by two or more of the five inventoried screens, each with an explicit composition rule, and the section states plainly that a per-screen copy of any primitive is a defect because it re-opens a closed vocabulary under BP-014-012. The refusal-first requirement is met: P-UX-01 evidence verdict header, P-UX-02 finding row carrying subject identity plus type plus as-of plus eligibility as four mandatory non-collapsible parts, P-UX-03 refusal and negative-state block rendering reason plus what-would-resolve and never blank, spinner, dash, zero, neutral midpoint or last-known, P-UX-04 multiplicity and search-breadth disclosure, P-UX-05 evidence-family grouping indicator with explicit anti-confirmation wording, P-UX-06 subject-applicability badge, P-UX-07 consumption-record row showing adjusted versus unadjusted, P-UX-08 provenance line carrying inputs, lineage, engine version, config version and the deterministic recomputation identity, P-UX-09 data-freshness and truth band, P-UX-10 two-part contextual tooltip stating what a thing is and what the current reading means, P-UX-11 ticker link, P-UX-12 adjustment-posture marker with no third value, and P-UX-13 canvas paired with an always-present text fallback that is type-dispatched and refuses to draw an oscillation for a lifecycle or deterministic-calendar record. Two full screen contracts were authored, each in the mandated order of ASCII wireframe, Interactions, Responsive behavior, Accessibility, States. S1 covers UI-02, UI-09, UI-10, UI-12, UI-13, UI-14, UI-15, UI-17, UI-18, UI-24 and UI-35 with 11 interactions, 3 breakpoints and a 12-row States table. S2 covers UI-01, UI-03, UI-04, UI-05, UI-06, UI-07, UI-08, UI-11, UI-16, UI-19, UI-20, UI-21, UI-22, UI-23, UI-25, UI-26, UI-27, UI-28, UI-29, UI-34 and UI-35 with 22 interactions, 4 breakpoints and a 15-row States table. Both States tables cover current, stale, partial, unavailable, recomputing, ineligible as terminal with no phase and no next-turn date, not-applicable, and refused expanded into its closed sub-vocabulary of refused-applicability, refused-authority, refused-vintage and refused-transport, plus context-absent; S2 additionally covers insufficient and not-reproducible. Every row names its non-colour mark and its forbidden rendering, and no state renders as a confident-looking blank, a zero or a neutral value. Accessibility for both screens specifies state as text plus a distinct non-colour glyph so the page stays readable with all colour removed, keyboard reachability in DOM order with a visible 2px focus-visible outline, role=status live regions with aria-live polite and aria-atomic true announcing entry into recomputing and the terminal outcome with its reason and resolution path as one sentence, real th cells with scope col and scope row plus a caption, canvas aria-label paired with an always-present text or table fallback never set to display none, tooltip content wired through aria-describedby so no reason, resolution path, unit or meaning-of-current-reading sentence exists only in the hover layer, and the absence of any override affordance in the DOM for a refused applicability decision, a posture-mismatched baseline or a cycle-type coercion. No sidecar UX file exists: ux.md, wireframes.md, flows.md, user-flows.md and screens.md are all absent, satisfying UX8. The '## User Flows' section, the Brief screen S3, the Journey screen S4 and the Mobile Simple screen S5 are deliberately not written in this pass and are owned by part 2. No design.md, scopes.md, report.md or uservalidation.md was created. Nothing under specs/001-* through specs/013-* or specs/_bugs/* was read for mutation or modified; the concurrent Feature 013 working-tree edits are untouched. No product source, registry, or git state-changing command was touched. Status, certification.status and certifiedAt remain at their baseline not_started, not_started and null; execution.nextRequiredOwner remains bubbles.ux for part 2."
+    },
+    {
+      "agent": "bubbles.ux",
+      "phasesExecuted": [
+        "analyze"
+      ],
+      "statusBefore": "not_started",
+      "statusAfter": "not_started",
+      "startedAt": "2026-07-28T00:00:00Z",
+      "finishedAt": "2026-07-28T00:00:00Z",
+      "outcome": "completed_owned",
+      "summary": "Bounded UX pass, part 2 of 2 - final UX chunk. Appended three screens INSIDE the existing '## UI Wireframes' section and then one new top-level '## User Flows' section, and changed nothing else in spec.md. Prior content verified byte-for-byte intact: the pre-append 240485-byte prefix (lines 1-2575, covering the 15 analyst-owned sections plus the part-1 UX preamble, Screen Inventory, UI Primitives, S1 Simple and S2 Power) hashes to md5 e959a9cc0a92c25b71bc5bfa091f5445 both before and after this run, identical to the part-1 post-append digest; the file grew 2575 to 3334 lines and 240485 to 317135 bytes, all of it appended below the part-1 content with zero in-place edits above the append point. Final whole-file sha256 712933959235c24459904977c7319d03ae393824b79c322c687fed676d1aaaa9. UX8 holds: the feature directory contains exactly spec.md and state.json, with no ux.md, wireframes.md, flows.md, user-flows.md, screens.md or ui.md sidecar; UX1 holds with exactly one '## UI Wireframes' heading and exactly one '## User Flows' heading. No RESULT-ENVELOPE section was embedded in the artifact. Three screens authored, each carrying the four required subsections in the mandated order - ASCII wireframe, then Interactions, then Responsive behavior, then Accessibility, then a States table - verified mechanically at 12 subsection headings across the three screens. S3 'Screen: Brief - Market Brief Cycle Context Block' (view brief, actor A5 Market Brief Operator, UI-30/31/32 plus the read-only echo of UI-34/35) is declared a pure consumer with no measurement, re-derivation, correction, or freshening path, and renders the two verification classes as two visually distinct bands: class M model-derived claims - every cycle, seasonal, phase, stage, occurrence, eligibility and availability fact - verified ONLY by reproducible inputs plus lineage plus engine version plus configuration version plus a deterministic recomputation identity ending in reproducible or not-reproducible, in a solid-ruled REPRODUCIBILITY band headed RECOMPUTED; and class O externally-observed factual claims verified by two or more independent origins each carrying its own source_url and as_of_date, in a dashed-ruled EXTERNAL OBSERVATION band headed CORROBORATED. The two bands never share a rule, heading, glyph, or verdict word, the class distinction is carried by three redundant non-colour signals (rule style, heading word, literal class label), and the class O band carries the literal sentence that independent-origin agreement is not provenance for a class M claim and cannot change a not-reproducible verdict per BS-014-035. Coverage on S3 is asserted from consumption records only, with envelope existence, cache-key presence, and a non-empty toolReads slot all explicitly excluded per BS-014-030, and the basis is stated in words on the coverage line. Stale evidence is stated stale relative to the run with the signed distance shown and no later vintage substituted (BS-014-031); ineligible, not-applicable, context-absent and every refusal degrade through P-UX-03 with a named reason and a named what-would-resolve line, with no neutral value, no zero, no dash, no blank and no last-known substitution anywhere (BS-014-032). S4 'Screen: Journey - Guided Cycle Step' (view journey, actor A6, UI-33) is declared noExecution: true with no order, submission, publication, allocation or authorisation path in the DOM including disabled and keyboard-only paths. It renders an ordered ladder of evidence-gated steps, each requiring an explicit human signoff, where a step advances only when ALL of its required evidence qualifies - admitted, authority-declared, resolvable at the declared cutoff, applicable for the participant's subject, eligible where eligibility applies, and reproducible where the claim is class M - and an unmet gate renders the sign-off control inert with an accessible name stating the reason, unreachable by pointer, keyboard, or programmatic activation. On upstream staleness or withdrawal the journey walks the step dependency graph forward, invalidates every transitively dependent step, re-renders each prior signoff as WITHDRAWN with the invalidating cause named rather than silently keeping it or leaving it reading SIGNED, backtracks the active position to the earliest invalidated step, and makes everything downstream unreachable until that step is re-satisfied and re-signed. The completion packet is declared a reading record only: it carries evidence identities, applicability decisions, as-of vintages used, postures, outcome codes, provenance verdicts, signoff statuses and withdrawal history, and it carries no weight, no allocation, no exposure, no position size, no direction, no order, no submission and no authorisation - it grants nothing and triggers nothing, and it is retracted if any step is later invalidated. Signoff status PENDING/SIGNED/WITHDRAWN is documented explicitly as a human-act axis separate from the closed evidence-state vocabulary so it does not extend it. S5 'Screen: Mobile - Simple (560 px and below)' (responsive variant of S1, same UI matrix row set) declares the same 560 px narrow breakpoint S1 and S2 already name, so the page has one narrow layout contract rather than three, and binds four non-negotiable rules: single column with every region full-width and stacked in reading order; NO body-level horizontal scroll at any width, stated as a global invariant that also holds above 560 px because the wide layouts contain their overflow in the same labelled regions rather than widening the document, and verified at 560, 480, 360 and below-360 px; refusal, ineligible and not-applicable blocks NEVER collapsed, truncated, ellipsised or hidden behind a disclosure, with long reasons and long what-would-resolve lines wrapping to as many lines as they need and no show-more, no clamp, no text-overflow ellipsis and no accordion on any P-UX-03 block, because hiding a refusal is the exact failure this feature exists to prevent; and wide tables scrolling only inside their own labelled focusable role=region container with an accessible name naming what it holds and that it scrolls, tabindex 0 so keyboard and switch users can scroll it, and visible overflow affordances - the only horizontally scrolling element on the page - with every lever, expander, ticker link and #rlviews tab meeting the 44 px minimum tap target and safe-area insets honoured on the docked view control. Primitive reuse verified mechanically: the appended content references only ids in the closed part-1 set P-UX-01 through P-UX-13, with zero out-of-range ids, and invents no new primitive; P-UX-11 is cited by id in the S3 and S5 accessibility sections so every primitive the Screen Inventory assigns to those screens is traceable. State vocabulary reuse verified mechanically: S3 declares 14 states, S4 declares 14 states, and S5 declares 13 states, and every state word across all three tables is drawn from the closed part-1 vocabulary - current, stale, partial, recomputing, unavailable, ineligible, not-applicable, refused with the four sub-codes refused-applicability, refused-authority, refused-vintage and refused-transport, context-absent, insufficient and not-reproducible - with zero invented state words. Every state row names its trigger, its rendering, its non-colour mark, the user action offered, and the forbidden rendering, and no state on any of the three screens renders as a blank, a zero, a dash, a neutral midpoint or a last-known value, or exposes a control - visible, disabled or keyboard-only - that would produce the value it withheld. The new '## User Flows' section holds seven mermaid diagrams, taking the file from 1 pre-existing analyst mermaid block to 8 total: Flow 1 boot cache-first auto-hydrate with the first paint marked CACHED and never live, delta-only refresh, one computeExchangeState result object and one render feeding all four views; Flow 2 applicability decision resolving to applicable native scope, applicable via an explicitly declared and labelled transfer, or a not-applicable refusal that distinguishes an ABSENT assertion from a negative declaration; Flow 3 eligibility resolving to eligible or a terminal ineligible that yields no phase, no phase angle, no amplitude and no next-turn date and no progress affordance; Flow 4 transport admission as a state diagram where a conforming typed read is admitted, a malformed typed read is REFUSED with its specific validation reason and is never downgraded to the legacy compact shape, no partial admission or re-typing occurs, a prior admitted record is left byte-identical, and the legacy compact path still admits records that declare and satisfy it; Flow 5 consumption where the consumer's authority is checked, the cutoff is resolved point-in-time, applicability and posture are decided, an undeterminable posture refuses rather than defaults, and EVERY path - consumed and refused alike - terminates in a written consumption record carrying the as-of used and the adjusted-versus-unadjusted posture, with refusals as full durable rows and coverage asserted from these records only; Flow 6 prospective comparison with an ex-ante freeze against the identical unadjusted baseline, forward-only accrual, a reported comparison that is never called superiority, an insufficient close that is never called partial, early or preliminary, a posture-mismatched baseline refused with no reconcile or rescale control, and a back-dated freeze refused as invalid and recorded as an audit finding; and Flow 7 the journey gating, withdrawal, transitive invalidation, backtrack and reading-record completion packet. Every terminal refusal node across the seven flows is documented as rendering through P-UX-03 with a named reason and a named resolution path. Scope discipline held: only specs/014-shared-cycle-and-seasonality-exchange/spec.md and this state.json were written; nothing under specs/001-* through specs/013-* or specs/_bugs/* was read for mutation or modified, and the concurrent Feature 013 session's in-flight working-tree edits were left untouched; no design.md, scopes.md, report.md or uservalidation.md was created, since those remain owned by bubbles.design, bubbles.plan and bubbles.validate; no product source, registry, tools.json, simple-models.json or journeys.json was touched; and no git add, commit, checkout, stash or restore was run. status, certification.status and certifiedAt remain at their baseline not_started/not_started/null. UX authoring for 014 is now COMPLETE across both passes: five screens S1 through S5 covering BS-014-001 through BS-014-035 with no gap, thirteen shared primitives each consumed by two or more screens, one closed state vocabulary applied identically on every screen, and seven user flows. Next required owner is bubbles.design."
+    },
+    {
+      "agent": "bubbles.design",
+      "phasesExecuted": [
+        "bootstrap"
+      ],
+      "statusBefore": "not_started",
+      "statusAfter": "not_started",
+      "startedAt": "2026-07-28T00:00:00Z",
+      "finishedAt": "2026-07-28T00:00:00Z",
+      "outcome": "completed_owned",
+      "summary": "Bounded design pass, part 1 of 2. Created design.md with exactly five sections: Architecture Overview (T0-T3 tier model + mermaid + explicit one-way dependency direction), Capability Foundation (rlcycx.js foundation-contract table, 5 extension points EP-1..EP-5, 12 foundation-owned behaviors), Concrete Implementations (CI-1..CI-6 plus 7 variation axes VA-1..VA-7 with an Owned-By-Foundation column, satisfying DE4), Contracts And Schemas (7 versioned contracts C-1..C-7 plus the consumer-surface state, and a closed 44-code cyc-* refusal registry), and Implementation Boundary (14 creatable files, 10 narrowly-modifiable files, an exhaustive Protected Surfaces list, the binding 013 registry-count sequencing rule, the adapter-allowlist contract-change decision, and the explicit Feature 006 deliverable-now vs blocked split). Verified against the working tree: rldata.js putToolRead has exactly one fail-open hole (the tool-model-read/v1 branch falls through to the legacy compact store); the rl-tool-read/v1 branch is already fail-closed. Established that the fail-closed rule must fire ONLY on a declared KNOWN typed contract id, because contractVersion is a repo-wide field name and at least five in-repo owner-state producers would break under a broader rule. Wrote nothing to spec.md, created no scopes.md/report.md/uservalidation.md, and touched no product source, registry, or other feature. Test strategy, failure/rollout handling, performance budgets, and observability are deferred to part 2.",
+      "nextRequiredOwner": "bubbles.design"
+    },
+    {
+      "agent": "bubbles.plan",
+      "phasesExecuted": [
+        "bootstrap"
+      ],
+      "statusBefore": "not_started",
+      "statusAfter": "not_started",
+      "startedAt": "2026-07-28T00:00:00Z",
+      "finishedAt": "2026-07-28T00:00:00Z",
+      "outcome": "completed_owned",
+      "summary": "Bounded planning pass, part 2 of 3. Created scope.md for scopes 05 (05-prospective-baseline-comparison), 06 (06-provenance-by-recomputation), 07 (07-lab-surface-simple-power-mobile), and 08 (08-brief-and-journey-context) under scopes/, matching scopes/_index.md exactly on scope name, id, Status, Depends On, Tags, and Business-Scenario ownership: 05 owns BS-014-026/027/028/029, 06 owns BS-014-034/035, 07 owns BS-014-016, 08 owns BS-014-030/031/032/033. Gherkin reused verbatim from spec.md; no scenario invented. Refusal-code ownership honoured per _index.md: 05 carries named negative tests for the 5 comparison codes, 06 for cyc-provenance-not-reproducible, 07 for cyc-negative-state-upgrade-attempted and cyc-override-attempted, 08 for the 4 surface context codes; every negative row asserts the exact refusalCode string plus its companion field. Test Plan / test-DoD parity: 05 = 10/10, 06 = 9/9, 07 = 9/9, 08 = 10/10. Every named change target is drawn from design.md Implementation Boundary (MAY CREATE / MAY MODIFY); no Protected Surface appears as a change target. Commands drawn only from the verified surface: node scripts/selftest.mjs, node scripts/validate-shared-cycle-exchange.mjs, node --test tests/<file>.mjs, and the system-chrome Playwright form. Wrote nothing to spec.md, design.md, or scopes/_index.md; created no report.md or uservalidation.md; touched no product source and no registry.",
+      "nextRequiredOwner": "bubbles.plan"
+    },
+    {
+      "agent": "bubbles.plan",
+      "phasesExecuted": [
+        "bootstrap"
+      ],
+      "statusBefore": "not_started",
+      "statusAfter": "not_started",
+      "startedAt": "2026-07-28T00:00:00Z",
+      "finishedAt": "2026-07-28T00:00:00Z",
+      "outcome": "completed_owned",
+      "summary": "Bounded planning pass, part 3 of 3 (final planning chunk). CREATED scope.md for scopes 09, 10, and 11 matching the structure of scopes 01-08 and the authoritative scopes/_index.md ordering, tags, Depends On, and Business-Scenario and refusal-code ownership. Scope 09 (blocked-on-006-scope-4, 7 Test Plan rows / 7 test DoD items) and Scope 10 (blocked-on-006-scope-5, 5 rows / 5 items) each state in their DoD that they are NOT schedulable until Feature 006 Scope 4 publishes a real owner read, respectively until Feature 006 Scope 5 delivers real revision/vintage replay, and that fixtures prove the contract but can never satisfy the scope. Scope 11 (closure:true, 6 rows / 6 items) is the LAST, isolated, sole toucher of the five counted registries, strictly serialised after Feature 013 SCOPE-5 lands on the mainline, with the 22/4/48/48 counts re-read at execution time and never hardcoded forward; its DoD requires 'node scripts/validate-tool-experience.mjs' green after registration and carries the atomic all-or-nothing single-commit revert rule from design.md Rollout And Reversibility. CREATED report.md as an execution-evidence TEMPLATE only, with per-scope sections for scopes 01-11 and every evidence slot an explicit empty placeholder; zero exit codes, zero command output, and zero pass/fail claims are recorded because this feature has executed nothing. CREATED uservalidation.md with 40 checked-by-default [x] acceptance items grounded in the spec.md UI Scenario Matrix (UI-01..UI-35) and the refusal-first states. MODIFIED NOTHING ELSE: spec.md, design.md, scopes/_index.md, and scopes 01-08 were not touched, and no product source, registry, or other spec folder was opened. Planning does not certify: status, certification.status, and certifiedAt remain not_started / not_started / null. ROUTED FINDINGS (not fixed here, foreign-owned or outside this bounded task): (1) artifact-lint reports 11 missing per-scope scopes/NN-name/report.md files because the per-scope directory layout requires one report.md per scope directory, while this task specified a single top-level report.md; the layout question needs an owner decision. (2) artifact-lint reports all 11 scope.md files missing a '### Definition of Done' heading because scopes 01-08 use '## Definition of Done' (H2) and scopes 09-11 were authored to match them; a single uniform sweep across all 11 files resolves it. (3) state.json scopeLayout is 'single-file' while the feature is per-scope-directory, and artifacts.scopes points at a scopes.md that does not exist. (4) design.md 'Files 014 MAY CREATE/MODIFY' omits rlexperience-adapters/market-structure.js even though the Adapter-allowlist decision and Rollout reversal row 9 both sanction registering 014's Simple-model adapter inside it; the boundary table needs the file added by its owner."
+    },
+    {
+      "agent": "bubbles.plan",
+      "phasesExecuted": [
+        "bootstrap"
+      ],
+      "statusBefore": "not_started",
+      "statusAfter": "not_started",
+      "startedAt": "2026-07-28T00:00:00Z",
+      "finishedAt": "2026-07-28T00:00:00Z",
+      "outcome": "completed_owned",
+      "summary": "Bounded plan-owned remediation of four mechanical planning findings on this feature; no other feature folder, product source, or registry was opened for mutation. Baseline before the pass: artifact-lint.sh exit 1 with 22 issues (11 missing per-scope reports plus 11 scope files missing a '### Definition of Done' section) and artifact-freshness-guard.sh exit 1 with 11 failures (every scope directory 01-11 unreferenced from the scopes/_index.md Dependency Graph). FINDING 1 - CREATED the 11 required scopes/NN-name/report.md files that the per-scope-directory layout demands. Each is an empty evidence template carrying only the lint-required Summary, Test Evidence, and Completion Statement headings plus five named empty evidence slots, with every slot set to the explicit placeholder '_Empty - awaiting execution._'. Zero exit codes, zero command output, zero pass or fail claims, zero checkmarks, and zero fenced blocks are recorded in any of them, because this feature has executed nothing; each file also states in prose that a slot which was never run stays empty rather than being described. The pre-existing top-level report.md was left byte-for-byte unchanged. FINDING 2 - CHANGED HEADING LEVELS ONLY in all 11 scope.md files so the DoD section is reachable by the linter: '## Test Plan' to '### Test Plan', '## Definition of Done' to '### Definition of Done', and the DoD sub-groups '### Core items', '### Test items', and (in scopes 01-04, the only ones that carry it) '### Build Quality Gate' each demoted one level to H4. The H4 demotion of the sub-groups is required, not cosmetic: artifact-lint.sh extracts the DoD body with an awk range that terminates at the next '### ' heading, so leaving the sub-groups at H3 would have yielded an empty DoD section and traded one lint failure for another. The resulting outline matches the convention already used by the passing per-scope layout in specs/013. No DoD item text, no checkbox state, no ordering, and no non-heading content was altered anywhere; the pre-existing 0 checked / all unchecked DoD state is unchanged. FINDING 3 - artifact-freshness-guard.sh matches the literal H2 heading '## Dependency Graph' and then reads two-digit scope numbers from table rows beneath it. The rows carrying scope numbers 01-11 lived under '## Dependency table', while '### Dependency graph' held only a mermaid diagram with no table rows, so promoting the mermaid heading alone would have resolved zero scope numbers and left all 11 failures standing. RENAMED the heading of the section that actually holds the rows to '## Dependency Graph' and renamed the nested mermaid subsection to '### Dependency diagram' to keep the two distinct. Nothing else in scopes/_index.md was touched. FINDING 4 - CORRECTED state.json drift against on-disk reality: scopeLayout changed from 'single-file' to 'per-scope-directory', and artifacts.scopes repointed from the nonexistent 'scopes.md' to 'scopes/_index.md'. Populated certification.scopeProgress with 11 entries, one per scope directory, each carrying scope number, scopeId, name, status not_started, the dependsOn set transcribed from the scopes/_index.md dependency rows, scopeDir, evidenceFile pointing at the newly created per-scope report.md, and certifiedAt null. The freshness guard reads scopeProgress.scopeDir as the second half of its Check 3, so this entry set and the Dependency Graph heading are a single coupled fix. NOT CERTIFIED AND NOT PROMOTED: top-level status, certification.status, and certifiedAt remain not_started / not_started / null, and no DoD item was checked. FOREIGN-OWNED AND DELIBERATELY UNTOUCHED: spec.md and design.md were not modified, and the design.md Implementation Boundary omission of rlexperience-adapters/market-structure.js remains open and belongs to bubbles.design.",
+      "nextRequiredOwner": "bubbles.design"
+    },
+    {
+      "agent": "bubbles.design",
+      "phasesExecuted": [
+        "bootstrap"
+      ],
+      "statusBefore": "not_started",
+      "statusAfter": "not_started",
+      "startedAt": "2026-07-28T00:00:00Z",
+      "finishedAt": "2026-07-28T00:00:00Z",
+      "outcome": "completed_owned",
+      "summary": "Bounded design-owned remediation of exactly two design-owned findings on design.md. No other artifact in this feature and no other feature folder, product source, or registry was opened for mutation; spec.md, scopes/**, report.md, and uservalidation.md were left byte-for-byte unchanged, and both linters were exit 0 before and after. FINDING 5 - Implementation Boundary omitted an already-sanctioned file. The document's own Adapter-allowlist decision chooses to register 014's Simple-model adapter INSIDE the existing rlexperience-adapters/market-structure.js module precisely because that avoids widening tool-experience.config.json adapterPolicy.moduleAllowlist (a contract change), and both the R-5 phase row and Reversal row 9 already name that file - but it was absent from 'Files 014 MAY MODIFY'. Since bubbles.plan may only name in-boundary files, the sanctioned non-contractual path was unplannable while the contract-changing alternative was the only listed path. ADDED a rlexperience-adapters/market-structure.js row to the MAY MODIFY table with a narrow explicit envelope: 014 may add ONLY (a) its own new adapter id, (b) the single declared definition id that adapter supports, (c) its factory function plus the one line wiring that factory into the module's adapter map, and (d) appending only the new adapter id to the module's supportedAdapterIds array - nothing else in the file. FORBIDDEN in the same row: any change to an existing adapter (breadth, conditional-volatility, session-auction, swing-transition, technical-five-gate), to any existing supportedAdapterIds entry or its ordering, or to any owner primitive / shared helper in the module used by other tools. COUPLING STATED: the row is marked SEQUENCED and records that this registration is part of the atomic registry group and reverts with it (reversal row 9), never on its own. PRE-WRITE VERIFICATION: the file exists (rlexperience-adapters/market-structure.js, 98694 bytes); it already hosts five simple-adapter/*/v1 registrations (market-breadth, conditional-volatility, session-auction, swing-transition, technical-five-gate) declared in a supportedAdapterIds array, so 014 adds a sixth alongside them. PROTECTED-SURFACES CONTRADICTION CHECK: no contradiction - the Protected Surfaces list names rlexperience.js (the runtime foundation), which is a DIFFERENT file; rlexperience-adapters/market-structure.js appears nowhere in Protected Surfaces, so it is not listed in both. A short explanatory paragraph beneath the table records why the file is in boundary, the five-existing-adapters fact, the rlexperience.js-versus-adapters-module distinction, and that listing the file does not pre-decide OQ-2 - if review routes the allowlist alternative, the row is withdrawn with it. FINDING OQ-1 - refusal-code count mismatch. The enumerated cyc-* codes in the registry's fenced block were COUNTED DIRECTLY rather than either stated number being trusted: 14 Publication + 4 Catalog + 4 Envelope + 3 Admission + 4 Applicability + 7 Consumption + 5 Comparison + 6 Surface = 47 distinct codes, no duplicates and none missing. The TRUE count is 47, confirming the enumeration and refuting the '44' label. CORRECTED three stated-count locations: the part-1 section heading 'Refusal-code registry (closed - 44 codes)' to 'closed - 47 codes'; the Feature-006-dependency bullet 'all 44 refusal codes' to 'all 47 refusal codes'; and part 2's Enumeration note, which previously declared the heading wrong and routed the correction to OQ-1, now records that heading and enumeration agree at 47 and that OQ-1 is resolved. Unrelated occurrences of the digits 44 (FR-044 requirement references and the table row index 44) were deliberately left untouched. OQ-1 was NOT deleted: its row in Open Design Questions is retained and re-labelled 'OQ-1 - RESOLVED', recording the direct count, the per-group breakdown, every location corrected, and that this was a count-label defect only with no contract, code, or test-mapping change. The section preamble was updated from 'Four genuinely unresolved items' to three unresolved (OQ-2, OQ-3, OQ-4) plus one resolved in place (OQ-1). NOT CERTIFIED AND NOT PROMOTED: top-level status, certification.status, and certifiedAt remain not_started / not_started / null; no DoD item was checked; no scope status changed. The enumeration block itself is unchanged - re-counted after the edit and still 47 codes.",
+      "nextRequiredOwner": "bubbles.implement"
+    }
+  ],
+  "activeBugs": [],
+  "resolvedBugs": [],
+  "failures": [],
+  "lastUpdatedAt": "2026-07-28T00:00:00Z",
+  "scopeLayout": "per-scope-directory",
+  "artifacts": {
+    "spec": "spec.md",
+    "design": "design.md",
+    "scopes": "scopes/_index.md",
+    "report": "report.md",
+    "uservalidation": "uservalidation.md",
+    "scenarioManifest": "scenario-manifest.json",
+    "lockdownApprovals": "lockdown-approvals.json",
+    "invalidationLedger": "invalidation-ledger.json",
+    "transitionRequests": "transition-requests.json",
+    "reworkQueue": "rework-queue.json"
+  },
+  "statusDiscipline": {
+    "validStatuses": [
+      "not_started",
+      "in_progress",
+      "blocked",
+      "specs_hardened",
+      "docs_updated",
+      "validated",
+      "done"
+    ],
+    "scopePickupRule": "All dependsOn scopes must be Done. Pick the lowest-numbered eligible scope.",
+    "scopeDoneGates": [
+      "G020",
+      "G021",
+      "G022",
+      "G023",
+      "G024",
+      "G025",
+      "G055",
+      "G056",
+      "G057",
+      "G058",
+      "G059",
+      "G060",
+      "G061"
+    ],
+    "specDoneRequires": "All scopes done. certification.completedScopes contains all scope IDs and bubbles.validate has certified promotion."
+  },
+  "notes": "Analyst authoring COMPLETE (chunk 5 of 5). spec.md holds all fifteen analyst-owned sections: Problem, Outcome Contract (HC-1 to HC-8), Domain Capability Model (P1-P15, BP-014-001 to BP-014-015), Capability Inventory (CI-01 to CI-22), Actors And Personas (A1-A7), Use Cases (UC-001 to UC-010), Business Scenarios (BS-014-001 to BS-014-035), Functional Requirements (FR-001 to FR-062), Non-Functional Requirements (NFR-001 to NFR-023), UI Scenario Matrix (UI-01 to UI-35), Competitive Landscape (6 surface-class rows), Improvement Proposals (IP-001 to IP-007), Acceptance Criteria (AC-001 to AC-034), Known Risks And Honest Limitations (R-1 to R-9), and Downstream Owner Handoffs (ux, design, plan). Traceability is complete in both directions: 0 uncovered business scenarios and 0 untraced requirements for FR to BS; 0 unmapped business scenarios for AC to BS. Downstream artifacts design.md, scopes.md, report.md, and uservalidation.md are deliberately NOT created - they are owned by bubbles.design, bubbles.plan, and bubbles.validate, and artifact-lint correctly reports them missing at analyst stage. Two dependencies remain live and are named in the risks: Feature 006 is implemented-but-unpublished (Scopes 4 and 5 Not Started, validator prints owner-publication=false) so 014 cannot exchange evidence that is never published, and Feature 013 is concurrently in flight over the protected rldata.js persisted cache schema (HC-4, additive admission path only). Status, certification.status, and certifiedAt remain at their baseline. Next required owner is bubbles.ux."
+}

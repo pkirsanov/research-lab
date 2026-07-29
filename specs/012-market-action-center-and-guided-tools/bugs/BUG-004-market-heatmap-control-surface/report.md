@@ -319,6 +319,8 @@ git -C <each-worktree> status --porcelain=v1 --untracked-files=all
 
 **Exit Code:** 0
 
+**Claim Source:** executed
+
 **Output:**
 
 ```text
@@ -568,6 +570,8 @@ current production source into the old page.
 
 **Exit Code:** 0
 
+**Claim Source:** executed
+
 **Output:**
 
 ```text
@@ -587,6 +591,8 @@ detached immutable worktree started clean.
 **Command:** `BUG004_IMMUTABLE_ROOT=/tmp/research-lab-bug004-31ea9942-vscode-eb9cb76de5cf2a992bf149706789fb73-b-red BUG004_HISTORICAL_CONTROLS_RED=1 timeout 1200 npx --no-install playwright test --config=playwright.config.mjs --project=system-chrome tests/market-heatmap-control-surface.spec.mjs --grep "BUG-004 SCN-B004-B: ready Simple" --reporter=list`
 
 **Exit Code:** 1 (expected RED)
+
+**Claim Source:** executed
 
 **Output:**
 
@@ -642,6 +648,8 @@ dependency, setup, timeout, or test-discovery failure masked the discriminator.
 
 **Exit Code:** 0
 
+**Claim Source:** executed
+
 **Output:**
 
 ```text
@@ -660,6 +668,8 @@ clean. The final inventory proves it was removed and only main remained.
 **Command:** `timeout 1200 npx --no-install playwright test --config=playwright.config.mjs --project=system-chrome tests/market-heatmap-control-surface.spec.mjs --grep "BUG-004 SCN-B004-B: ready Simple" --reporter=list`
 
 **Exit Code:** 0
+
+**Claim Source:** executed
 
 **Output:**
 
@@ -683,6 +693,8 @@ open and retained `assertNoModeToggle`; the historical hook did not execute.
 **Command:** `timeout 600 bash .github/bubbles/scripts/regression-quality-guard.sh --bugfix tests/market-heatmap-control-surface.spec.mjs`
 
 **Exit Code:** 0
+
+**Claim Source:** executed
 
 **Output:**
 
@@ -994,3 +1006,368 @@ TEST_COUNT=1
 
 **Result:** PASS - exactly one direct-Power test ran and passed with all native
 treemap controls functional and zero post-hydration requests.
+
+## Protected Control-Wiring Regression Evidence: TP-B004-10
+
+**Phase:** implement
+
+**Executed:** YES (in current session by the active workflow runner)
+
+**Command:** `timeout 1200 npx --no-install playwright test --config=playwright.config.mjs --project=system-chrome tests/simple-production-wiring.spec.mjs --reporter=list`
+
+**Exit Code:** 0
+
+**Claim Source:** executed
+
+**Output:**
+
+```text
+Running 4 tests using 1 worker
+
+	✓  1 …Simple renders the real adapter panel in the real owner-mode flow (2.0s)
+	✓  2 …ctuating one recomputes the production projection with no refetch (3.6m)
+	✓  3 …ol paints its real Simple adapter panel with an owner-parity fact (7.1m)
+TP-15-04 swept 19 wired tools: market-heatmap-lab=ready(x1) options-flow-feed-lab=ready(x1) intraday-tape-lab=unavailable(x1) swing-structure-lab=ready(x1) options-structure-lab=ready(x1) gamma-trading-lab=ready(x1) sector-research-lab=ready(x1) global-rotation-lab=ready(x1) real-assets-lab=ready(x1) bond-regime-lab=ready(x1) ai-capex-strategy-lab=ready(x1) company-fundamentals-lab=ready(x1) etf-momentum-lab=ready(x1) strategy-self-improvement-lab=ready(x1) strategy-validation-lab=ready(x1) smart-money-flow-lab=ready(x1) waterfront-polo-lab=ready(x1) volatility-sizing-lab=ready(x1) technical-analysis-decision-lab=unavailable(x1)
+	✓  4 …s, and the honest-degradation cases are registry/provider derived (47ms)
+
+	Slow test file: [system-chrome] › tests/simple-production-wiring.spec.mjs (10.8m)
+	Consider running tests from slow files in parallel. See: https://playwright.dev/docs/test-parallel
+	4 passed (10.8m)
+```
+
+**Result:** PASS - all four protected production-wiring tests passed. This run
+preserves the existing registry-derived controls, production recomputation,
+owner-parity sweep, and honest-degradation assertions; it is local implementation
+evidence and is not represented as deployment or independent certification.
+
+### Focused TP-15-03 Marker-Aware Harness Confirmation
+
+**Phase:** implement
+
+**Executed:** YES (in current session by the active workflow runner)
+
+**Command:** The handoff packet did not preserve the focused command argv; it
+identified the run as the focused `TP-15-03` selection after the marker-aware
+harness edit. No command line is reconstructed here.
+
+**Exit Code:** 0
+
+**Claim Source:** interpreted
+
+**Interpretation:** The supplied focused result directly confirms one selected
+TP-15-03 test passed after the harness edit, but its missing argv prevents this
+supplement from being used as a standalone Test Plan evidence block. The complete
+four-test TP-B004-10 run above is the evidence of record.
+
+```text
+1 passed (3.6m)
+EXIT_CODE=0
+```
+
+The marker-aware repair changes only the protected Playwright harness. It replaces
+network-quiet timing as the definition of owner readiness with the page-owned
+`body[data-heatmap-hydration="ready"]` terminal marker, and resets the passive
+request ledger immediately before keyboard actuation. It neither changes product
+logic nor intercepts, fulfills, or modifies requests. The full TP-B004-10 run
+proves the repaired harness still carries all four protected assertions.
+
+### Code Diff Evidence
+
+**Phase:** implement
+
+**Executed:** YES (in current session)
+
+**Commands:** `git --no-pager log --oneline -15 -- <BUG-004 source/test paths>`;
+`git --no-pager diff --name-status 2f65a02a..HEAD -- <BUG-004 source/test paths>`;
+`git --no-pager diff 2f65a02a..HEAD -- <BUG-004 source/test paths>`
+
+**Exit Code:** 0
+
+**Claim Source:** executed
+
+**Output:**
+
+```text
+5c77e1f1 fix(012/BUG-004): grouping lever recomputes without refetching; queued Simple run cannot outlive its view
+b674ffc1 test(012/scope-15): sample owner evidence at the page's declared hydration boundary
+087ad2ad fix(012/BUG-004): restore market-heatmap control surface in both views
+2f65a02a feat(012/scope-15): make the Simple bridge genuinely steerable + author TP-15-03/TP-15-04
+M       market-heatmap-lab.html
+M       rlexperience.js
+A       tests/market-heatmap-control-surface.spec.mjs
+M       tests/simple-production-bridge.unit.mjs
+M       tests/simple-production-wiring.spec.mjs
+```
+
+The full unfiltered diff was inspected. Relative to protected baseline
+`2f65a02a`, the committed delta is confined to the two approved production files,
+the dedicated regression, the coordinator canary file, and the protected wiring
+harness. Its inverse removes the public refresh/coordinator changes, terminal
+heatmap refresh and boot-union/local-recompute changes, native lever relocation,
+and BUG-004 tests while retaining `2f65a02a`. No cache, provider, registry,
+dependency, route, schema, migration, deployment, storage, or secret path appears.
+
+## Implementation Closeout Checks
+
+### Touched JavaScript Parse Checks
+
+**Phase:** implement
+
+**Executed:** YES (in current session)
+
+**Command:** `for file in rlexperience.js tests/simple-production-bridge.unit.mjs tests/market-heatmap-control-surface.spec.mjs scripts/selftest.mjs tests/simple-production-wiring.spec.mjs; do timeout 60 node --check "$file"; done`
+
+**Exit Code:** 0
+
+**Claim Source:** executed
+
+**Output:**
+
+```text
+PARSE_CHECK=rlexperience.js
+EXIT_CODE=0
+PARSE_CHECK=tests/simple-production-bridge.unit.mjs
+EXIT_CODE=0
+PARSE_CHECK=tests/market-heatmap-control-surface.spec.mjs
+EXIT_CODE=0
+PARSE_CHECK=scripts/selftest.mjs
+EXIT_CODE=0
+PARSE_CHECK=tests/simple-production-wiring.spec.mjs
+EXIT_CODE=0
+PARSE_CHECKS_EXIT=0
+```
+
+### Implementation Closeout Focused Artifact Lint
+
+**Phase:** implement
+
+**Executed:** YES (in current session)
+
+**Command:** `timeout 600 bash .github/bubbles/scripts/artifact-lint.sh specs/012-market-action-center-and-guided-tools/bugs/BUG-004-market-heatmap-control-surface`
+
+**Exit Code:** 0
+
+**Claim Source:** executed
+
+**Output:**
+
+```text
+✅ Required artifact exists: spec.md
+✅ Required artifact exists: design.md
+✅ Required artifact exists: uservalidation.md
+✅ Required artifact exists: state.json
+✅ Required artifact exists: scopes.md
+✅ Required artifact exists: report.md
+✅ No forbidden sidecar artifacts present
+✅ Found DoD section in scopes.md
+✅ scopes.md DoD contains checkbox items
+✅ All DoD bullet items use checkbox syntax in scopes.md
+✅ Found Checklist section in uservalidation.md
+✅ uservalidation checklist contains checkbox entries
+✅ uservalidation checklist has checked-by-default entries
+✅ All checklist bullet items use checkbox syntax
+✅ Detected state.json status: in_progress
+✅ Detected state.json workflowMode: bugfix-fastlane
+✅ state.json v3 has required field: status
+✅ state.json v3 has required field: execution
+✅ state.json v3 has required field: certification
+✅ state.json v3 has required field: policySnapshot
+✅ state.json v3 has recommended field: transitionRequests
+✅ state.json v3 has recommended field: reworkQueue
+✅ state.json v3 has recommended field: executionHistory
+✅ Top-level status matches certification.status
+✅ report.md contains section matching: Summary
+✅ report.md contains section matching: Completion Statement
+✅ report.md contains section matching: Test Evidence
+✅ Mode-specific report gates skipped (status not in promotion set)
+✅ All checked DoD items in scopes.md have evidence blocks
+✅ No unfilled evidence template placeholders in scopes.md
+✅ No unfilled evidence template placeholders in report.md
+Artifact lint PASSED.
+```
+
+### Implementation Reality Scan
+
+**Phase:** implement
+
+**Executed:** YES (in current session)
+
+**Command:** `timeout 600 bash .github/bubbles/scripts/implementation-reality-scan.sh specs/012-market-action-center-and-guided-tools/bugs/BUG-004-market-heatmap-control-surface --verbose`
+
+**Exit Code:** 0
+
+**Claim Source:** executed
+
+**Output:**
+
+```text
+ℹ️  INFO: Scopes yielded 0 files — falling back to design.md for file discovery
+⚠️  WARN: Resolved 6 file(s) from design.md fallback — scopes.md should reference these directly
+ℹ️  INFO: Resolved 6 implementation file(s) to scan
+--- Scan 1: Gateway/Backend Stub Patterns ---
+--- Scan 1B: Handler / Endpoint Execution Depth ---
+--- Scan 1C: Endpoint Not-Implemented / Placeholder Responses ---
+--- Scan 1D: External Integration Authenticity ---
+--- Scan 2: Frontend Hardcoded Data Patterns ---
+--- Scan 2B: Sensitive Client Storage ---
+--- Scan 3: Frontend API Call Absence ---
+--- Scan 4: Prohibited Simulation Helpers in Production ---
+--- Scan 5: Default/Fallback Value Patterns ---
+--- Scan 6: Live-System Test Interception ---
+ℹ️  INFO: No live-system test files referenced in scope artifacts for interception scan
+--- Scan 7: IDOR / Auth Bypass Detection (Gate G047) ---
+--- Scan 8: Silent Decode Failure Detection (Gate G048) ---
+============================================================
+	IMPLEMENTATION REALITY SCAN RESULT
+============================================================
+	Files scanned:  6
+	Violations:     0
+	Warnings:       1
+🟡 PASSED with 1 warning(s) — manual review advised
+```
+
+**Interpretation:** All six resolved implementation files have zero reality
+violations. The warning is retained, not laundered: scanner discovery fell back
+from `scopes.md` to `design.md`. Because the Build Quality Gate requires zero
+warnings, that DoD item remains unchecked for independent ownership review.
+
+### Current In-Progress State Transition Guard
+
+**Phase:** implement
+
+**Executed:** YES (in current session)
+
+**Command:** `timeout 600 bash .github/bubbles/scripts/state-transition-guard.sh specs/012-market-action-center-and-guided-tools/bugs/BUG-004-market-heatmap-control-surface`
+
+**Exit Code:** 1
+
+**Claim Source:** executed
+
+The command ran with unfiltered output. Per the evidence window rule for output
+over 100 lines, the final machine envelope and decisive nonterminal blockers are
+preserved here rather than duplicating the entire 21 KB stream.
+
+**Output (final verdict window):**
+
+```text
+--- Check 4: DoD Completion (Zero Unchecked) ---
+ℹ️  INFO: DoD items total: 19 (checked: 0, unchecked: 19)
+🔴 BLOCK: Resolved scope artifacts have 19 UNCHECKED DoD items — ALL must be [x] for 'done'
+--- Check 5: Scope Status Cross-Reference ---
+ℹ️  INFO: Resolved scopes: total=1, Done=0, In Progress=0, Not Started=1, Blocked=0
+🔴 BLOCK: Resolved scope artifacts have 1 scope(s) still marked 'Not Started' — ALL scopes must be Done
+--- Check 6: Specialist Phase Completion ---
+🔴 BLOCK: Required phase 'implement' NOT in execution/certification phase records (Gate G022 violation)
+🔴 BLOCK: Required phase 'test' NOT in execution/certification phase records (Gate G022 violation)
+🔴 BLOCK: Required phase 'validate' NOT in execution/certification phase records (Gate G022 violation)
+🔴 BLOCK: Required phase 'audit' NOT in execution/certification phase records (Gate G022 violation)
+============================================================
+	TRANSITION GUARD VERDICT
+============================================================
+🔴 TRANSITION BLOCKED: 32 failure(s), 1 warning(s)
+state.json status MUST NOT be set to 'done'.
+BEGIN TRANSITION_GUARD_RESULT_V1
+schemaVersion: transition-guard-result/v1
+workflowMode: bugfix-fastlane
+auditProfile: delivery-completion-v1
+targetStatus: done
+failedGateIds: [G004,G061,G022,G053,G040,G068]
+failedChecks: [Check-4-completion,Check-5-all-done]
+blockingCode: DELIVERY_COMPLETION_FAILED
+failureCount: 32
+exitStatus: 1
+verdict: FAIL
+END TRANSITION_GUARD_RESULT_V1
+```
+
+**Result:** EXPECTED NONTERMINAL REFUSAL - implementation does not promote the
+scope or spec. Independent test, regression, validate, and audit phases remain
+outside this phase; top-level and certification status stay `in_progress`.
+
+### Closeout Regression-Quality Guard
+
+**Phase:** implement
+
+**Executed:** YES (in current session)
+
+**Command:** `timeout 600 bash .github/bubbles/scripts/regression-quality-guard.sh --bugfix tests/market-heatmap-control-surface.spec.mjs`
+
+**Exit Code:** 0
+
+**Claim Source:** executed
+
+**Output:**
+
+```text
+============================================================
+	BUBBLES REGRESSION QUALITY GUARD
+	Repo: /home/redacted/research-lab
+	Timestamp: 2026-07-29T23:10:27Z
+	Bugfix mode: true
+============================================================
+ℹ️  Scanning tests/market-heatmap-control-surface.spec.mjs
+✅ Adversarial signal detected in tests/market-heatmap-control-surface.spec.mjs
+============================================================
+	REGRESSION QUALITY RESULT: 0 violation(s), 0 warning(s)
+	Files scanned: 1
+	Files with adversarial signals: 1
+============================================================
+```
+
+### Implementation Closeout Uncertainty
+
+**Phase:** implement
+
+**Claim Source:** not-run
+
+The Build Quality Gate remains unchecked. The closeout implementation-reality
+scan executed and found zero violations, but it also emitted one warning because
+its scope parser found zero implementation files and fell back to six files from
+`design.md`. Resolving whether the planned scope text should be changed belongs
+to `bubbles.plan`; independent test can also determine whether the warning is a
+scanner-discovery false positive. This implementation phase does not rewrite the
+planned scope or relabel a warning as zero warnings.
+
+### Implementation Change Boundary And Rollback Audit
+
+**Phase:** implement
+
+**Executed:** YES (in current session)
+
+**Command:** path-scoped and full `git status --short`; path-scoped
+`git diff --name-status`; `git diff --cached --name-status`; `git diff --check`;
+`git worktree list --porcelain`, each under an explicit 30-second timeout
+
+**Exit Code:** 0
+
+**Claim Source:** executed
+
+**Output:**
+
+```text
+=== CHANGED-PATH BOUNDARY AUDIT: FULL STATUS ===
+ M .github/bubbles-project.yaml
+ M specs/012-market-action-center-and-guided-tools/bugs/BUG-004-market-heatmap-control-surface/report.md
+ M specs/012-market-action-center-and-guided-tools/bugs/BUG-004-market-heatmap-control-surface/scopes.md
+ M specs/012-market-action-center-and-guided-tools/scopes/15-production-simple-adapter-wiring/report.md
+=== BUG-004 ALLOWED PATH STATUS ===
+ M specs/012-market-action-center-and-guided-tools/bugs/BUG-004-market-heatmap-control-surface/report.md
+ M specs/012-market-action-center-and-guided-tools/bugs/BUG-004-market-heatmap-control-surface/scopes.md
+=== BUG-004 ALLOWED PATH DIFF ===
+M       specs/012-market-action-center-and-guided-tools/bugs/BUG-004-market-heatmap-control-surface/report.md
+M       specs/012-market-action-center-and-guided-tools/bugs/BUG-004-market-heatmap-control-surface/scopes.md
+=== STAGED PATHS ===
+=== DIFF CHECK ===
+DIFF_CHECK_EXIT=0
+=== WORKTREE LIST ===
+worktree /home/redacted/research-lab
+HEAD bc3b7303ea022906fcc2f268465e733fdf649173
+branch refs/heads/main
+BOUNDARY_AUDIT_EXIT=0
+```
+
+**Result:** PASS - the active implementation delta is confined to allowed
+BUG-004 execution artifacts, no path is staged, whitespace validation passes,
+and no temporary worktree remains. The unrelated `.github/bubbles-project.yaml`
+and parent Scope-15 report modifications are visible and were not edited,
+staged, reset, stashed, reverted, or claimed by this phase.

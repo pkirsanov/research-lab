@@ -3,7 +3,7 @@
   "featureDir": "specs/012-market-action-center-and-guided-tools/bugs/BUG-004-market-heatmap-control-surface",
   "featureName": "BUG-004 Market Heatmap Control Surface",
   "createdAt": "2026-07-29T15:42:55Z",
-  "lastUpdatedAt": "2026-07-29T17:15:54Z",
+  "lastUpdatedAt": "2026-07-29T23:15:20Z",
   "completedAt": null,
   "status": "in_progress",
   "blockedReason": null,
@@ -14,27 +14,38 @@
   "completedScopes": [],
   "completedPhases": [],
   "execution": {
-    "activeAgent": "bubbles.plan",
-    "currentPhase": "planning",
+    "activeAgent": "bubbles.implement",
+    "currentPhase": "implement",
     "currentPhaseStatus": "route_required",
-    "substate": "plan_reconciled_implementation_routed_certification_shape_resolved",
+    "substate": "implementation_complete_awaiting_independent_test",
     "currentScope": "SCOPE-01",
     "runStartedAt": "2026-07-29T16:59:52Z",
-    "completedAt": "2026-07-29T17:02:42Z",
+    "completedAt": "2026-07-29T23:15:20Z",
     "executionModel": "direct-authorized-runner",
     "parentAgent": null,
-    "nextRequiredOwner": "bubbles.implement",
-    "nextRequiredTarget": "Adopt the concurrent BUG-004 source/test patch without overwrite, finalize the exact persistent titles, capture immutable-baseline RED without mutating the active tree, and implement only missing approved behavior inside SCOPE-01. Preserve 2f65a02a and every excluded path.",
-    "completedPhaseClaims": [],
+    "nextRequiredOwner": "bubbles.test",
+    "nextRequiredTarget": "Independently re-execute all 11 SCOPE-01 Test Plan rows against the current tree without trusting implementation evidence, verify all three immutable RED→GREEN discriminators, adjudicate the retained implementation-reality discovery warning, and preserve the excluded paths and nonterminal certification boundary.",
+    "completedPhaseClaims": [
+      {
+        "phase": "implement",
+        "claimedBy": "bubbles.implement",
+        "claimedAt": "2026-07-29T23:15:20Z",
+        "scopeId": "SCOPE-01",
+        "evidenceFile": "report.md",
+        "evidenceSection": "report.md#immutable-before-fix-red-evidence; report.md#current-tree-implementation-evidence-tp-b004-0608; report.md#protected-control-wiring-regression-evidence-tp-b004-10; report.md#implementation-closeout-checks",
+        "claimType": "executed-not-certifying",
+        "detail": "Implementation-owned behavior and Test Plan evidence are complete: valid immutable A/C RED at 2f65a02a, valid historical B RED at 31ea9942, current A/B/C GREEN, TP-B004-01..11 implementation runs recorded, protected wiring 4/4, broad selftest 968/0, integration 6/0, regression guard clean, parse checks clean, zero implementation-reality violations, and boundary/worktree audit clean. SCOPE-01 remains In Progress with 18/19 DoD checked because the Build Quality Gate requires zero warnings and the reality scan retained one scope-discovery fallback warning. Independent testing and certification are not claimed."
+      }
+    ],
     "pendingTransitionRequests": [
-      "TR-BUG004-IMPLEMENT"
+      "TR-BUG004-TEST"
     ],
     "scopeInventory": [
       {
         "scope": 1,
         "scopeId": "SCOPE-01",
         "name": "Restore Automatic Simple Readiness And Both Control Surfaces",
-        "status": "not_started",
+        "status": "in_progress",
         "dependsOn": [],
         "foundation": false,
         "capabilityRole": "existing-production-simple-bridge-bugfix-overlay",
@@ -104,45 +115,65 @@
       "site": "rlexperience.js and market-heatmap-lab.html",
       "scenario": "SCN-B004-A",
       "class": "cold-open-owner-readiness",
-      "state": "OPEN",
+      "state": "RESOLVED",
       "disposition": "route-to-design",
-      "detail": "The bridge runs on rlviews:change only. Heatmap owner hydration later reaches ready without a tool-scoped bridge refresh, so direct Simple remains unavailable until a mode toggle."
+      "detail": "The bridge runs on rlviews:change only. Heatmap owner hydration later reaches ready without a tool-scoped bridge refresh, so direct Simple remains unavailable until a mode toggle.",
+      "resolvedAt": "2026-07-29T23:15:20Z",
+      "resolvedBy": "bubbles.implement",
+      "evidenceRefs": ["report.md#tp-b004-06---valid-immutable-red-at-2f65a02a", "report.md#tp-b004-06---direct-simple-a"],
+      "resolutionSummary": "Immutable 2f65a02a reproduced the stale unavailable panel after terminal hydration; current direct-Simple GREEN requalified automatically without a mode change."
     },
     {
       "findingId": "F-BUG004-B",
       "site": "rlexperience.js and deployed market-heatmap-lab",
       "scenario": "SCN-B004-B",
       "class": "simple-control-absence",
-      "state": "OPEN",
+      "state": "RESOLVED",
       "disposition": "integrate-collision-sensitive-patch",
-      "detail": "Deployed Simple exposed no controls at discovery. The concurrent generic-control patch was committed locally as 2f65a02a during filing, but does not cover cold-open requalification or prove deployment and must be preserved."
+      "detail": "Deployed Simple exposed no controls at discovery. The concurrent generic-control patch was committed locally as 2f65a02a during filing, but does not cover cold-open requalification or prove deployment and must be preserved.",
+      "resolvedAt": "2026-07-29T23:15:20Z",
+      "resolvedBy": "bubbles.implement",
+      "evidenceRefs": ["report.md#surgical-tp-b004-07-reproduction-increment", "report.md#protected-control-wiring-regression-evidence-tp-b004-10"],
+      "resolutionSummary": "Historical 31ea9942 reproduced the absent generic renderer, current B GREEN exercised all five production controls with owner parity and zero requests, and the protected wiring sweep passed without a deployment claim."
     },
     {
       "findingId": "F-BUG004-C",
       "site": "market-heatmap-lab.html",
       "scenario": "SCN-B004-C",
       "class": "power-control-visibility",
-      "state": "OPEN",
+      "state": "RESOLVED",
       "disposition": "page-local-control-relocation",
-      "detail": "winSeg, sizeSeg, and grpSeg are inside the simple-only panel hidden by Power. Their handlers exist but the controls have no visible Power surface."
+      "detail": "winSeg, sizeSeg, and grpSeg are inside the simple-only panel hidden by Power. Their handlers exist but the controls have no visible Power surface.",
+      "resolvedAt": "2026-07-29T23:15:20Z",
+      "resolvedBy": "bubbles.implement",
+      "evidenceRefs": ["report.md#tp-b004-08---valid-immutable-red-at-2f65a02a", "report.md#tp-b004-08---direct-power-c"],
+      "resolutionSummary": "Immutable 2f65a02a reproduced hidden native controls; current direct-Power GREEN proved one visible instance of each control with keyboard-selected and owned-output changes and zero post-hydration requests."
     },
     {
       "findingId": "F-BUG004-D",
       "site": "tests/simple-production-wiring.spec.mjs",
       "scenario": "SCN-B004-A",
       "class": "masked-cold-open-regression",
-      "state": "OPEN",
+      "state": "RESOLVED",
       "disposition": "persistent-adversarial-regression",
-      "detail": "The current heatmap test waits for hydration and explicitly clicks Power then Simple before requiring ready, generating the refresh whose absence on cold-open is the defect."
+      "detail": "The current heatmap test waits for hydration and explicitly clicks Power then Simple before requiring ready, generating the refresh whose absence on cold-open is the defect.",
+      "resolvedAt": "2026-07-29T23:15:20Z",
+      "resolvedBy": "bubbles.implement",
+      "evidenceRefs": ["report.md#tp-b004-06---valid-immutable-red-at-2f65a02a", "report.md#tp-b004-06---direct-simple-a", "report.md#tp-b004-11---regression-quality-guard"],
+      "resolutionSummary": "The persistent A regression opens directly in Simple, records no mode change, fails at the immutable stale-panel discriminator, passes on current bytes, and clears the bugfix regression-quality guard."
     },
     {
       "findingId": "F-BUG004-E",
       "site": "tests/simple-production-wiring.spec.mjs",
       "scenario": "SCN-B004-C",
       "class": "missing-power-control-assertion",
-      "state": "OPEN",
+      "state": "RESOLVED",
       "disposition": "persistent-adversarial-regression",
-      "detail": "The current Power assertion proves only that the adapter panel is hidden and rlv-focused is absent; it does not assert native heatmap control visibility or function."
+      "detail": "The current Power assertion proves only that the adapter panel is hidden and rlv-focused is absent; it does not assert native heatmap control visibility or function.",
+      "resolvedAt": "2026-07-29T23:15:20Z",
+      "resolvedBy": "bubbles.implement",
+      "evidenceRefs": ["report.md#tp-b004-08---valid-immutable-red-at-2f65a02a", "report.md#tp-b004-08---direct-power-c", "report.md#tp-b004-11---regression-quality-guard"],
+      "resolutionSummary": "The persistent C regression fails on immutable hidden #winSeg, then passes current visibility, keyboard operation, selected-state, treemap/table output, and zero-request assertions for all three controls."
     },
     {
       "findingId": "F-BUG004-F",
@@ -151,7 +182,11 @@
       "class": "concurrent-worktree-collision",
       "state": "PRESERVED",
       "disposition": "route-conflict-to-current-owner",
-      "detail": "Path-scoped status recorded both files as modified before this packet. This filing did not edit, stash, reset, or revert them; their owner committed them as 2f65a02a during packet validation."
+      "detail": "Path-scoped status recorded both files as modified before this packet. This filing did not edit, stash, reset, or revert them; their owner committed them as 2f65a02a during packet validation.",
+      "resolvedAt": "2026-07-29T23:15:20Z",
+      "resolvedBy": "bubbles.implement",
+      "evidenceRefs": ["report.md#code-diff-evidence", "report.md#implementation-change-boundary-and-rollback-audit"],
+      "resolutionSummary": "Collision accounting remains PRESERVED: 2f65a02a was retained, its marker-aware successor was inspected and tested, no stash/reset/revert occurred, and the final boundary audit shows no staged or temporary-worktree residue."
     }
   ],
   "transitionRequests": [
@@ -222,7 +257,7 @@
     },
     {
       "id": "TR-BUG004-IMPLEMENT",
-      "status": "open",
+      "status": "resolved",
       "requestedBy": "bubbles.plan",
       "routedTo": "bubbles.implement",
       "requestedAt": "2026-07-29T17:02:42Z",
@@ -249,7 +284,15 @@
         "scopes.md#rollback-and-restore-proof",
         "test-plan.json",
         "scenario-manifest.json"
-      ]
+      ],
+      "routedToCommit": "bc3b7303ea022906fcc2f268465e733fdf649173",
+      "routedToSpec": "specs/012-market-action-center-and-guided-tools/bugs/BUG-004-market-heatmap-control-surface",
+      "productAction": "none",
+      "crossRepoFollowUp": false,
+      "routingClass": "same-repo-specialist",
+      "resolvedAt": "2026-07-29T23:15:20Z",
+      "resolvedBy": "bubbles.implement",
+      "resolutionSummary": "Adopted the protected 2f65a02a controls without overwrite; delivered and recorded the approved coordinator, automatic terminal owner refresh, boot-union local recompute, native lever visibility, three persistent RED→GREEN discriminators, all 11 implementation Test Plan runs, rollback/boundary proof, and nonterminal execution evidence."
     },
     {
       "id": "TR-BUG004-CERTIFICATION-SHAPE",
@@ -269,6 +312,35 @@
       "resolvedAt": "2026-07-29T17:15:54Z",
       "resolvedBy": "bubbles.validate",
       "resolutionSummary": "Added only the canonical version-3 nonterminal certification shape: certification.status remains in_progress, certifiedAt is null, certified completed scopes and phases are empty, SCOPE-01 remains not_started, and lockdown accepts no scenarios. Focused artifact lint passed after the repair, proving packet shape only. No runtime test, behavior certification, scope completion, phase completion, assurance, report evidence, or top-level promotion was claimed. TR-BUG004-IMPLEMENT remains open and routed to bubbles.implement."
+    },
+    {
+      "id": "TR-BUG004-TEST",
+      "status": "open",
+      "requestedBy": "bubbles.implement",
+      "routedTo": "bubbles.test",
+      "requestedAt": "2026-07-29T23:15:20Z",
+      "reason": "Independently re-execute every synchronized SCOPE-01 Test Plan row and the three immutable RED→GREEN discriminators without trusting implementation evidence; adjudicate the retained implementation-reality discovery warning before any scope completion claim.",
+      "routedToCommit": "bc3b7303ea022906fcc2f268465e733fdf649173",
+      "routedToSpec": "specs/012-market-action-center-and-guided-tools/bugs/BUG-004-market-heatmap-control-surface",
+      "productAction": "none",
+      "crossRepoFollowUp": false,
+      "routingClass": "same-repo-specialist",
+      "scenarioIds": [
+        "SCN-B004-A",
+        "SCN-B004-B",
+        "SCN-B004-C",
+        "SCN-B004-D"
+      ],
+      "findingIds": [],
+      "evidenceRefs": [
+        "report.md#immutable-before-fix-red-evidence",
+        "report.md#focused-implementation-test-evidence-tp-b004-0105-tp-b004-09-tp-b004-11",
+        "report.md#current-tree-implementation-evidence-tp-b004-0608",
+        "report.md#protected-control-wiring-regression-evidence-tp-b004-10",
+        "report.md#implementation-closeout-checks",
+        "scopes.md#test-plan",
+        "scopes.md#definition-of-done"
+      ]
     }
   ],
   "reworkQueue": [],

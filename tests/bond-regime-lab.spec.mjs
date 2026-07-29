@@ -5,8 +5,13 @@
  *
  * That evidence is carried by tests ALREADY IN THIS FILE. This block only makes the
  * declared row locatable by its TP id; it adds no assertion, changes no title, and
- * changes nothing any test verifies. The proof is split across two carriers, and
- * BOTH are required:
+ * changes nothing any test verifies.
+ *
+ * THE ROW IS A LIVE-STACK ROW, so its carrier must be a live-stack test. Carrier 3 below
+ * is that carrier. Carriers 1 and 2 remain accurate descriptions of what those tests
+ * verify and are listed because they still bound the same behaviour from other angles —
+ * but carrier 2 installs `page.route`, which makes it MOCKED under this repo's Live-Stack
+ * Test Authenticity rule, so it is expressly NOT the live carrier for this row.
  *
  *   1. `openNativeResearchSurface` (below) — the "native content shows in POWER" half.
  *      It drives the shell exactly as a production user does and then asserts
@@ -14,11 +19,13 @@
  *      and that this page's own native control `#treasuryShock` is VISIBLE. Every
  *      test that must see or drive the native research surface goes through it
  *      (BS-004, BS-005, BS-012, BS-014 …), so the "native content lives under Power"
- *      fact is exercised repeatedly, not once.
+ *      fact is exercised repeatedly, not once. Note that its callers reach it through
+ *      `openFromSharedCache`'s default treasury route, so they too are mocked paths.
  *
  *   2. `Regression BUG-003: Ready waits for auto-hydration before Simple and Power
- *      comparison` — the "NOT Simple" half plus the BUG-003 closure itself. On the
- *      shell's Simple view it asserts the production ADAPTER panel
+ *      comparison` — MOCKED (holds the treasury response with `page.route` in order to
+ *      sample the pre-Ready window). It is the "NOT Simple" half plus the BUG-003 closure
+ *      itself. On the shell's Simple view it asserts the production ADAPTER panel
  *      `[data-rlexperience-panel="simple"]` is the VISIBLE Simple surface and that it
  *      carries the adapter id the REGISTRY binds to this tool (read from
  *      simple-models.json, never hard-coded), while this page's own `#simpleView`
@@ -26,7 +33,15 @@
  *      rlviews.js's `body.rlv-focused>*:not(#rlviews)…{display:none!important}`.
  *      It then keeps the original anti-divergence check intact: `#simpleView` and
  *      `#powerView` model digests must stay byte-identical across a real
- *      Simple→Power change, with zero new requests.
+ *      Simple→Power change, with zero new requests. Held for what only it can prove;
+ *      it does not carry this row.
+ *
+ *   3. `TP-15-05 live-stack: shell Simple shows the registry adapter panel with native
+ *      content hidden, shell Power shows the native content` — THE LIVE CARRIER. Zero
+ *      interception on its path (`routeTreasury: false`), the page's own declared
+ *      readiness boundary rather than a timing heuristic, registry-derived adapter id,
+ *      and BOTH halves of the declared row asserted in one run against explicitly named
+ *      singular roots.
  *
  * MEASURED, not assumed (real page, no fixture preseed, zero interception): this tool's
  * production owner-state provider yields owner state and the Simple panel reaches
@@ -495,6 +510,81 @@ test('Regression BUG-003: Ready waits for auto-hydration before Simple and Power
   expect(powerDigest).toBe(simpleDigest);
   expect(powerAssumptions).toEqual(assumptions);
   expect(requests.length).toBe(beforeModeSwitch);
+});
+
+// TP-15-05 LIVE-STACK CARRIER (Feature 012 / Scope 15) — SCN-012-039, SCN-012-041.
+//
+// WHY THIS EXISTS. The BUG-003 test directly above installs `page.route` to hold the treasury
+// response open, which is what lets it pin Ready ordering against auto-hydration. Under this
+// repo's Live-Stack Test Authenticity rule that makes it a MOCKED test, and a mocked test cannot
+// satisfy a live-stack DoD row. Nothing about it is wrong and nothing about it is removed — it
+// remains the only test that holds hydration mid-flight and the only one that compares the
+// #simpleView and #powerView digests across a mode change. It simply is not the live carrier.
+//
+// This test is. It runs with ZERO interception: `routeTreasury: false` means no route handler is
+// installed on this path, so the page's treasury request leaves for its real origin and its
+// outcome — reached or unavailable — is the page's own. Readiness is the page's OWN declared
+// boundary, not a timing heuristic: `openFromSharedCache` waits until BondRegimeLab's refresh
+// promise has settled, `#decisionGrid`'s rendered digest equals the live view model's, and
+// `#appStatus` reads Ready; the shell's own `data-rlexperience-shell="ready"` is waited on
+// separately. The adapter id is read from the registry rather than written here, so a rebinding
+// in simple-models.json cannot slip past.
+//
+// It asserts BOTH halves of the declared row against explicitly named roots, each proven singular
+// first so a duplicate id fails here rather than being hidden behind `.first()`.
+//
+// LINE COMMENTS, DELIBERATELY — and no block-comment delimiters anywhere in this text. The repo's
+// interception audit strips comments with a naive non-greedy block-comment regex before counting.
+// The wildcard glob string passed to the `Cache-first refresh` test's router above happens to
+// contain a slash immediately followed by a star, so that stripper reads it as a block-comment
+// opener. Today nothing after it closes that opener, so the stripper drops nothing and the count
+// is honest. Introducing either delimiter here — as a real block comment OR merely quoted inside
+// prose — closes it, and the stripper then silently swallows every line in between, including
+// that test's real router call, under-reporting interception by one. Measured, not theorised:
+// writing this note as a block comment reported 2 instead of 3. Keep this text delimiter-free.
+test('TP-15-05 live-stack: shell Simple shows the registry adapter panel with native content hidden, shell Power shows the native content', async ({ page }) => {
+  const { readFileSync } = await import('node:fs');
+  const registryAdapterId = JSON.parse(readFileSync(new URL('../simple-models.json', import.meta.url), 'utf8'))
+    .definitions.find((definition) => definition.toolId === 'bond-regime-lab').adapterId;
+
+  await openFromSharedCache(page, { routeTreasury: false });
+  await expect(page.locator('#rlviews[data-rlexperience-shell="ready"]')).toBeVisible();
+
+  const body = page.locator('body');
+  const adapterPanel = page.locator('[data-rlexperience-panel="simple"]');
+  const nativeSimpleView = page.locator('#simpleView');
+  const nativeSimpleContent = page.locator('#simpleView #decisionGrid');
+  const nativePowerView = page.locator('#powerView');
+  const nativePowerContent = page.locator('#powerView #powerParity');
+  const nativeControl = page.locator('#treasuryShock');
+  await expect(adapterPanel).toHaveCount(1);
+  await expect(nativeSimpleView).toHaveCount(1);
+  await expect(nativeSimpleContent).toHaveCount(1);
+  await expect(nativePowerView).toHaveCount(1);
+  await expect(nativePowerContent).toHaveCount(1);
+  await expect(nativeControl).toHaveCount(1);
+
+  // HALF 1 — shell Simple: the adapter panel is the surface on screen, the native surface is not.
+  // #simpleView must still be ATTACHED: the claim is that native content moved off screen, not
+  // that it was deleted, and an absent node would satisfy a bare not-visible check.
+  await expect(body).toHaveAttribute('data-rlview', 'simple');
+  await expect(body).toHaveClass(/\brlv-focused\b/);
+  await expect(adapterPanel).toBeVisible();
+  await expect(adapterPanel).toHaveAttribute('data-rlexperience-adapter', registryAdapterId);
+  await expect(nativeSimpleView).toBeAttached();
+  await expect(nativeSimpleView).not.toBeVisible();
+  await expect(nativeSimpleContent).toBeAttached();
+  await expect(nativeSimpleContent).not.toBeVisible();
+  await expect(nativeControl).not.toBeVisible();
+
+  // HALF 2 — shell Power: the native surface is on screen and the adapter panel steps aside.
+  await page.locator('#rlviews button[data-rlview-mode="power"]').click();
+  await expect(body).toHaveAttribute('data-rlview', 'power');
+  await expect(body).not.toHaveClass(/\brlv-focused\b/);
+  await expect(nativePowerView).toBeVisible();
+  await expect(nativePowerContent).toBeVisible();
+  await expect(nativeControl).toBeVisible();
+  await expect(adapterPanel).not.toBeVisible();
 });
 
 test('BS-011 Simple and Power share one model digest', async ({ page }) => {

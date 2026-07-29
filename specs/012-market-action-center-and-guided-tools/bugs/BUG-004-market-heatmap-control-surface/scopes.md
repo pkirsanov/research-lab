@@ -48,7 +48,7 @@ are deployed is unproven and MUST NOT be inferred from local ancestry.
 
 | Scope | Outcome | Surfaces | Status |
 |---|---|---|---|
-| SCOPE-01 | Direct Simple requalifies and both views remain steerable without refetch | shared bridge, heatmap page, focused tests, selftest canaries | Not Started |
+| SCOPE-01 | Direct Simple requalifies and both views remain steerable without refetch | shared bridge, heatmap page, focused tests, selftest canaries | In Progress (implementation_complete_awaiting_independent_test) |
 
 ## Finding Coverage
 
@@ -68,7 +68,7 @@ to another lane and must be integrated without overwrite, reset, stash, or rever
 
 ## SCOPE-01 - Restore Automatic Simple Readiness And Both Control Surfaces
 
-- **Status:** Not Started
+- **Status:** In Progress (implementation_complete_awaiting_independent_test)
 - **Depends On:** none
 - **Owner agent:** `bubbles.implement` after `bubbles.design` and `bubbles.plan` approval
 - **Change class:** shared bridge lifecycle plus one page-local control relocation
@@ -175,6 +175,15 @@ Scenario: SCN-B004-D Shared refresh and owner reuse are bounded and latest-resul
 9. Run checkpoints in order. Stop on a shared-canary failure before interpreting
    browser output, then prove rollback and route certification to `bubbles.validate`.
 
+### Implementation Files
+
+- `rlexperience.js`
+- `market-heatmap-lab.html`
+- `tests/simple-production-bridge.unit.mjs`
+- `tests/market-heatmap-control-surface.spec.mjs`
+- `tests/simple-production-wiring.spec.mjs`
+- `scripts/selftest.mjs`
+
 ### Shared Infrastructure Impact Sweep
 
 `rlexperience.js` is a protected high-fan-out bridge used by every wired ordinary
@@ -275,34 +284,39 @@ classification must contain no excluded family.
 
 ### Definition of Done
 
-All items below have **Claim Source: not-run**. Planning makes no implementation,
-test, deployment, rollback, or certification claim. Every unchecked item links
-to the shared [Planning Uncertainty Declaration](report.md#planning-uncertainty-declaration).
+Checked items below reference implementation-phase evidence with explicit claim
+provenance. Unchecked items retain a specific uncertainty declaration; no scope,
+deployment, independent-test, validation, or certification completion is claimed.
 
 #### Core Outcomes
 
-- [ ] F-BUG004-A and F-BUG004-D are resolved: direct Simple requalifies after terminal hydration without a mode toggle, reload, manual refresh, synthetic view event, interception, or service worker. → Uncertainty: [planning not-run declaration](report.md#planning-uncertainty-declaration)
-- [ ] F-BUG004-B is resolved: direct ready Simple exposes and applies all five registry controls over the production owner snapshot while preserving `2f65a02a`; local ancestry is not represented as deployment evidence. → Uncertainty: [planning not-run declaration](report.md#planning-uncertainty-declaration)
-- [ ] F-BUG004-C and F-BUG004-E are resolved: direct Power exposes the single existing `#winSeg`, `#sizeSeg`, and `#grpSeg` nodes in Map, and keyboard actuation changes selected state and owned output. → Uncertainty: [planning not-run declaration](report.md#planning-uncertainty-declaration)
-- [ ] SCN-B004-D is resolved: one boot union supports both grouping modes; all five Simple controls and all three Power controls recompute from shared owner evidence with zero post-hydration acquisition. → Uncertainty: [planning not-run declaration](report.md#planning-uncertainty-declaration)
-- [ ] The shared coordinator enforces exact current-tool/current-Simple filtering, one active plus one latest pending successor, provider read at run start, and `(generation, runSequence)` commit authority across ready, unavailable, controls, and focus restoration. → Uncertainty: [planning not-run declaration](report.md#planning-uncertainty-declaration)
-- [ ] The Shared Infrastructure Impact Sweep passes before browser acceptance, preserving ordinary-tool parity, Brief exclusion, low-level API compatibility, focus ownership, authority boundaries, honest unavailable behavior, and `2f65a02a` controls. → Uncertainty: [planning not-run declaration](report.md#planning-uncertainty-declaration)
-- [ ] The Change Boundary and Rollback And Restore Proof are satisfied with zero excluded-family changes, no concurrent-lane overwrite/reset/stash/revert, and no data/cache/provider/registry/dependency/deployment/storage operation. → Uncertainty: [planning not-run declaration](report.md#planning-uncertainty-declaration)
+- [x] F-BUG004-A and F-BUG004-D are resolved: direct Simple requalifies after terminal hydration without a mode toggle, reload, manual refresh, synthetic view event, interception, or service worker. → Evidence: [TP-B004-06 direct Simple GREEN](report.md#tp-b004-06---direct-simple-a)
+- [x] F-BUG004-B is resolved: direct ready Simple exposes and applies all five registry controls over the production owner snapshot while preserving `2f65a02a`; local ancestry is not represented as deployment evidence. → Evidence: [surgical TP-B004-07 RED→GREEN](report.md#surgical-tp-b004-07-reproduction-increment)
+- [x] F-BUG004-C and F-BUG004-E are resolved: direct Power exposes the single existing `#winSeg`, `#sizeSeg`, and `#grpSeg` nodes in Map, and keyboard actuation changes selected state and owned output. → Evidence: [TP-B004-08 direct Power GREEN](report.md#tp-b004-08---direct-power-c)
+- [x] SCN-B004-D is resolved: one boot union supports both grouping modes; all five Simple controls and all three Power controls recompute from shared owner evidence with zero post-hydration acquisition. → Evidence: [TP-B004-06..08 current-tree outcomes](report.md#current-tree-implementation-evidence-tp-b004-0608)
+- [x] The shared coordinator enforces exact current-tool/current-Simple filtering, one active plus one latest pending successor, provider read at run start, and `(generation, runSequence)` commit authority across ready, unavailable, controls, and focus restoration. → Evidence: [TP-B004-01..04 coordinator canaries](report.md#tp-b004-0104---coordinator-canaries)
+- [x] The Shared Infrastructure Impact Sweep passes before browser acceptance, preserving ordinary-tool parity, Brief exclusion, low-level API compatibility, focus ownership, authority boundaries, honest unavailable behavior, and `2f65a02a` controls. → Evidence: [TP-B004-05 broad selftest](report.md#tp-b004-05---broad-selftest)
+- [x] The Change Boundary and Rollback And Restore Proof are satisfied with zero excluded-family changes, no concurrent-lane overwrite/reset/stash/revert, and no data/cache/provider/registry/dependency/deployment/storage operation. → Evidence: [implementation boundary and rollback audit](report.md#implementation-change-boundary-and-rollback-audit)
 
 #### Test Evidence - Exact Parity With 11 Test Plan Rows
 
-- [ ] TP-B004-01 passes exact wrong-tool, non-Simple, non-ordinary, leaving-Simple invalidation, zero-provider-read, zero-panel-write, and Brief-exclusion assertions. → Uncertainty: [planning not-run declaration](report.md#planning-uncertainty-declaration)
-- [ ] TP-B004-02 passes pre-start duplicate coalescing and one-active/one-latest-pending behavior. → Uncertainty: [planning not-run declaration](report.md#planning-uncertainty-declaration)
-- [ ] TP-B004-03 passes stale-generation suppression and current-generation `runSequence` ordering. → Uncertainty: [planning not-run declaration](report.md#planning-uncertainty-declaration)
-- [ ] TP-B004-04 passes honest current failure rendering and stale-failure suppression. → Uncertainty: [planning not-run declaration](report.md#planning-uncertainty-declaration)
-- [ ] TP-B004-05 passes the early executable-source authority, public/low-level API compatibility, wired-tool parity, no-heatmap-branch, and Brief canaries. → Uncertainty: [planning not-run declaration](report.md#planning-uncertainty-declaration)
-- [ ] TP-B004-06 records immutable `2f65a02a` RED for absent automatic requalification, then passes direct-Simple GREEN in the active implementation without leaving Simple. → Uncertainty: [planning not-run declaration](report.md#planning-uncertainty-declaration)
-- [ ] TP-B004-07 records immutable discovery RED for the absent generic renderer without claiming current deployment state, then passes all five Simple controls with production owner parity and an empty request ledger. → Uncertainty: [planning not-run declaration](report.md#planning-uncertainty-declaration)
-- [ ] TP-B004-08 records immutable `2f65a02a` RED for hidden native controls, then passes all three direct-Power controls, including grouping, with keyboard operation, visible output changes, and an empty request ledger. → Uncertainty: [planning not-run declaration](report.md#planning-uncertainty-declaration)
-- [ ] TP-B004-09 passes the existing production bridge registry/runtime/owner-parity/honest-unavailable integration sweep. → Uncertainty: [planning not-run declaration](report.md#planning-uncertainty-declaration)
-- [ ] TP-B004-10 passes the protected `2f65a02a` control-wiring and all-wired-tool browser sweep without weakening, deleting, or replacing its assertions. → Uncertainty: [planning not-run declaration](report.md#planning-uncertainty-declaration)
-- [ ] TP-B004-11 accepts all three persistent adversarial regressions and rejects masking mode toggles, request interception, service workers, silent-pass patterns, optional assertions, grouping request exemptions, and incomplete control actuation. → Uncertainty: [planning not-run declaration](report.md#planning-uncertainty-declaration)
+- [x] TP-B004-01 passes exact wrong-tool, non-Simple, non-ordinary, leaving-Simple invalidation, zero-provider-read, zero-panel-write, and Brief-exclusion assertions. → Evidence: [TP-B004-01..04 coordinator canaries](report.md#tp-b004-0104---coordinator-canaries)
+- [x] TP-B004-02 passes pre-start duplicate coalescing and one-active/one-latest-pending behavior. → Evidence: [TP-B004-01..04 coordinator canaries](report.md#tp-b004-0104---coordinator-canaries)
+- [x] TP-B004-03 passes stale-generation suppression and current-generation `runSequence` ordering. → Evidence: [TP-B004-01..04 coordinator canaries](report.md#tp-b004-0104---coordinator-canaries)
+- [x] TP-B004-04 passes honest current failure rendering and stale-failure suppression. → Evidence: [TP-B004-01..04 coordinator canaries](report.md#tp-b004-0104---coordinator-canaries)
+- [x] TP-B004-05 passes the early executable-source authority, public/low-level API compatibility, wired-tool parity, no-heatmap-branch, and Brief canaries. → Evidence: [TP-B004-05 broad selftest](report.md#tp-b004-05---broad-selftest)
+- [x] TP-B004-06 records immutable `2f65a02a` RED for absent automatic requalification, then passes direct-Simple GREEN in the active implementation without leaving Simple. → Evidence: [immutable A RED](report.md#tp-b004-06---valid-immutable-red-at-2f65a02a) and [current A GREEN](report.md#tp-b004-06---direct-simple-a)
+- [x] TP-B004-07 records immutable discovery RED for the absent generic renderer without claiming current deployment state, then passes all five Simple controls with production owner parity and an empty request ledger. → Evidence: [surgical B RED→GREEN](report.md#surgical-tp-b004-07-reproduction-increment)
+- [x] TP-B004-08 records immutable `2f65a02a` RED for hidden native controls, then passes all three direct-Power controls, including grouping, with keyboard operation, visible output changes, and an empty request ledger. → Evidence: [immutable C RED](report.md#tp-b004-08---valid-immutable-red-at-2f65a02a) and [current C GREEN](report.md#tp-b004-08---direct-power-c)
+- [x] TP-B004-09 passes the existing production bridge registry/runtime/owner-parity/honest-unavailable integration sweep. → Evidence: [TP-B004-09 integration sweep](report.md#tp-b004-09---production-bridge-integration-sweep)
+- [x] TP-B004-10 passes the protected `2f65a02a` control-wiring and all-wired-tool browser sweep without weakening, deleting, or replacing its assertions. → Evidence: [TP-B004-10 protected wiring sweep](report.md#protected-control-wiring-regression-evidence-tp-b004-10)
+- [x] TP-B004-11 accepts all three persistent adversarial regressions and rejects masking mode toggles, request interception, service workers, silent-pass patterns, optional assertions, grouping request exemptions, and incomplete control actuation. → Evidence: [TP-B004-11 regression-quality guard](report.md#tp-b004-11---regression-quality-guard)
 
 #### Build Quality Gate
 
 - [ ] Changed JavaScript parses; focused and broad commands finish within executor limits with zero warnings or skips; planning/runtime evidence carries honest claim provenance; Markdown and machine planning artifacts remain synchronized; applicable governance checks pass at the workflow-owned status; no placeholder, bypass, fabricated claim, hidden incompleteness, or certification self-promotion remains. → Uncertainty: [planning not-run declaration](report.md#planning-uncertainty-declaration)
+   > **Uncertainty Declaration**
+   > **What was attempted:** touched-JavaScript parse checks, focused artifact lint, implementation-reality scan, current-state transition guard, and regression-quality guard.
+   > **What was observed:** parse, artifact lint, and regression quality passed; the reality scan found zero violations but emitted one scope-discovery fallback warning; the transition guard correctly refused terminal promotion while later phases remain open.
+   > **Why this is uncertain:** the DoD text requires zero warnings and synchronized planning discovery, which this implementation-owned evidence does not establish.
+   > **What would resolve this:** the planning owner must reconcile scanner-visible implementation paths or independent testing must establish that the warning is non-applicable, then rerun the quality checks.

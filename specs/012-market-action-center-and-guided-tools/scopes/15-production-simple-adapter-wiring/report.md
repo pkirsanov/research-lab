@@ -39,14 +39,12 @@ One is a deliberate architecture opt-out (`msft-july-print-model`); two —
 GitHub Pages deploy gate asserts that absence, so wiring them would mean fabricating the
 economic layer the owner intentionally withheld.
 
-Three Test-Plan ↔ implementation drifts (TP-15-03/TP-15-04 declared titles, TP-15-07
-bridge canaries) remain **routed to `bubbles.plan`** and are deliberately not resolved
-here. A third drift — a stale Implementation Files allowlist — is recorded under
-[Change-Boundary Check](#change-boundary-check-all-12-commits); a fourth — TP-15-05's
-declared title being absent while the nearest existing BUG-003 test uses `page.route`
-interception — is recorded as [D4](#d4--tp-15-05s-declared-title-does-not-exist-and-the-nearest-test-is-mocked);
-and a fifth — TP-15-06's declared title being absent even though its behaviour is now
-proven — is newly recorded as [D5](#d5--tp-15-06s-declared-title-does-not-exist-behaviour-proven-title-absent).
+Of the six recorded Test-Plan ↔ implementation drifts, **D1, D2 and D5 are CLOSED**
+(TP-15-03/TP-15-04 declared titles, the TP-15-07 bridge canaries, and TP-15-06's declared
+title). **D3** (a stale Implementation Files allowlist), **D4 half 2** (TP-15-05's
+BUG-003 carrier uses `page.route` interception) and **D6** (the TP-15-05 traceability
+comment names the wrong carriers) remain open with `bubbles.plan` and are deliberately
+not resolved here.
 
 No completion of the scope, and no completion of Feature 012, is claimed.
 
@@ -59,6 +57,282 @@ Power (nothing deleted), and close the BUG-003 native-view breakage. The verifie
 gap analysis, rendering contract, the full 23-tool owner-state-source mapping, and
 the test strategy are in
 [design-addendum-production-simple-wiring.md](../../design-addendum-production-simple-wiring.md).
+
+## Reconciliation Verification Run — 2026-07-29, HEAD `0890348a` (fully attributable)
+
+**Claim Source:** executed (2026-07-29, this agent, this session). Every command in this
+section was run by this agent and its output below is verbatim. This run supersedes the
+partially-attributable session recorded further down: the concurrent session that blocked
+attribution has ended, and every one of the seven Test Plan rows now has first-party
+executed evidence rather than borrowed evidence.
+
+**Tree state at execution (disclosed, because it affects reproducibility).** HEAD was
+`0890348a`. `git status --porcelain` reported three modified files, **one of which is a
+scope-15 Implementation File**:
+
+```text
+ M .github/bubbles-project.yaml
+ M specs/002-distributed-tool-briefs-and-history/state.json
+ M tests/simple-production-wiring.spec.mjs
+```
+
+The delta on `tests/simple-production-wiring.spec.mjs` (+11/-26) replaces a
+request-timing "network quiet" heuristic in the TP-15-03 carrier with the page's own
+declared terminal-hydration contract (`awaitDeclaredHydrationBoundary(page,
+'data-heatmap-hydration')`). **No assertion was relaxed, no tolerance widened, and no
+check removed** — the non-vacuity assertion (`moving a real model input must change the
+rendered projection`) and the empty-request-window assertion both survive unchanged; the
+change makes owner-state sampling start at a page-owned boundary instead of inferring
+hydration from traffic. The TP-15-03/TP-15-04 results below therefore reflect the
+**working tree**, not `0890348a` exactly. Anyone reproducing them must apply that
+uncommitted delta first. This is disclosed rather than elided because the delta is on
+the exact file under test.
+
+### Command 0 — repository binding preflight
+
+```text
+$ bash .github/bubbles/scripts/repo-binding-preflight.sh \
+    --repo-root ~/research-lab --agent-source research-lab
+[repo-binding-preflight] OK — agent source 'research-lab' matches target repo 'research-lab'.
+PREFLIGHT_EXIT=0
+```
+
+### Command 1 — TP-15-07 broad selftest (968 passed, 0 failed)
+
+Run with **no pipe, filter, `head`, or `tail`**. The suite emits roughly one line per
+assertion across 968 assertions, which exceeds this agent's inline result budget, so the
+harness spilled stdout to a capture file; the two lines below are a verbatim excerpt of
+that captured stdout — the bridge forbidden-authority canary and the summary banner —
+located by line number in the capture, not reconstructed.
+
+```text
+$ node scripts/selftest.mjs
+1133:  ✓ the production bridge path (renderSimpleBridgeInternal + installSimpleProjectionBridge) contains no rlv-focused write and, once comments are stripped, no rlv-focused reference at all (21933 source chars)
+1142:Research-Lab self-test: 968 passed, 0 failed
+SELFTEST_EXIT=0
+```
+
+**Why the total moved 952 → 968.** The delta is exactly the **+16 TP-15-07 production
+Simple-view bridge canaries** added under Implementation Plan step 7. Nothing was
+removed or renamed; the pre-existing 952 assertions all still run and still pass. The
+canary group is present and greppable — the prior session's grep for it returned no
+matches, this one returns 19 lines:
+
+```text
+$ grep -cE 'renderSimpleBridge|installSimpleProjectionBridge|ownerModes|production bridge' scripts/selftest.mjs
+19
+
+$ grep -nE 'renderSimpleBridge|installSimpleProjectionBridge|ownerModes|production bridge' scripts/selftest.mjs
+4517:  /* (8) The production bridge path carries no rlv-focused mutation — and after comment-stripping no
+4519:  const bridgePathSrc = extractFn(bridgeSrc, 'renderSimpleBridgeInternal') + '\n' + extractFn(bridgeSrc, 'installSimpleProjectionBridge');
+4526:  /* (9) The ownerModes contract: rlapp.js's OWN expression, extracted verbatim and executed. */
+4534:  assert(ownerModesExpr.length > 0 && JSON.stringify(wiredModes) === '["power"]' && JSON.stringify(unwiredModes) === '["simple","power"]' && JSON.stringify(briefModes) === '["brief"]', 'rlapp.js's own ownerModes expression yields ["power"] for a provider-wired ordinary tool, ["simple","power"] for an unwired one (no regression), and ["brief"] for a brief-only tool');
+4536:  /* (10) SCN-012-041: feeding those REAL ownerModes into rlviews.js's REAL toggle predicate proves a
+4543:  assert(typeof bridgeApi.renderSimpleBridge === 'function', 'RLEXPERIENCE.renderSimpleBridge is exposed on the production API');
+   (19 matching lines total; 6 shown)
+```
+
+### Command 2 — TP-15-01 unit (7/7)
+
+```text
+$ node --test tests/simple-production-bridge.unit.mjs
+✔ renderSimpleBridge is exposed on the production API (4.8265ms)
+✔ provider present + real owner state → renders the REAL market-breadth adapter (ready), never mutates rlv-focused (41.300603ms)
+✔ no owner-state provider → honest unavailable, no invented signal, never mutates rlv-focused (5.478901ms)
+✔ owner evidence does not permit a run (unhydrated) → honest unavailable, never mutates rlv-focused (17.862401ms)
+✔ missing adapter module → honest unavailable (no crash), never mutates rlv-focused (5.5465ms)
+✔ a queued Simple run does not survive an invalidation, and its promise settles (37.164303ms)
+✔ leaving Simple altogether also settles the queued run without painting (4.823ms)
+ℹ tests 7
+ℹ suites 0
+ℹ pass 7
+ℹ fail 0
+ℹ cancelled 0
+ℹ skipped 0
+ℹ todo 0
+ℹ duration_ms 272.220719
+TP1501_EXIT=0
+```
+
+The file grew from 5 to 7 tests — the two new cases are the BUG-004 queued-run
+invalidation guarantees. **The TP-15-01 gap is unchanged:** the file still carries no
+`ownerModes` and no forbidden-authority assertion.
+
+```text
+$ grep -nE 'ownerModes|forbidden|providerFetch|localStorage|fetch\(' tests/simple-production-bridge.unit.mjs
+unit_grep_exit=1
+```
+
+### Command 3 — TP-15-02 integration (6/6, 19 wired, 18 of 19 strict parity)
+
+```text
+$ node --test tests/simple-production-bridge.integration.mjs
+[TP-15-02] wired (19): market-heatmap-lab, options-flow-feed-lab, intraday-tape-lab, swing-structure-lab, options-structure-lab, gamma-trading-lab, sector-research-lab, global-rotation-lab, real-assets-lab, bond-regime-lab, ai-capex-strategy-lab, company-fundamentals-lab, etf-momentum-lab, strategy-self-improvement-lab, strategy-validation-lab, smart-money-flow-lab, waterfront-polo-lab, volatility-sizing-lab, technical-analysis-decision-lab
+[TP-15-02] not wired (4): market-brief, msft-july-print-model, palm-springs-rental-market-lab, ocean-shores-rental-market-lab
+[TP-15-02] strict parity (module loaded by the page): 18 of 19
+[TP-15-02] honest generic unavailable (module deliberately absent, SCN-012-034 lock): technical-analysis-decision-lab
+✔ TP-15-02 the wired-tool set is derived from the production registry + the production pages (never a hard-coded list) (55.761106ms)
+✔ TP-15-02 registry-derived loop: each wired tool prepares through the REAL runtime and paints the REAL panel (1077.542114ms)
+✔ TP-15-02 owner parity: every wired tool's Simple facts EQUAL the owner/Power-path values (1014.19971ms)
+✔ TP-15-02 the production bridge reaches the SAME projection as the explicit runtime path for every module-backed wired tool (and the honest generic unavailable where the module is deliberately absent) (1799.071124ms)
+✔ TP-15-02 honest unavailable: a wired tool whose provider yields NO owner state degrades truthfully (no invented signal) (71.421503ms)
+✔ TP-15-02 honest unavailable: owner evidence that does not permit a run degrades truthfully rather than inventing a read (31.556901ms)
+ℹ tests 6
+ℹ suites 0
+ℹ pass 6
+ℹ fail 0
+ℹ duration_ms 4187.50517
+TP1502_EXIT=0
+```
+
+### Command 4 — TP-15-03 + TP-15-04 wiring spec (4/4, system-chrome)
+
+The declared file's whole-file run. All four tests — both TP-15-03 carriers and both
+TP-15-04 carriers — are green. The TP-15-04 sweep visited **all 19 wired tools** and
+every one converged at `x1` (a single settled projection, no oscillation).
+
+```text
+$ npx --no-install playwright test tests/simple-production-wiring.spec.mjs \
+    --config=playwright.config.mjs --project=system-chrome --reporter=list --workers=1
+START 22:38:53Z
+
+Running 4 tests using 1 worker
+
+  ✓  1 …Simple renders the real adapter panel in the real owner-mode flow (2.9s)
+  ✓  2 …ctuating one recomputes the production projection with no refetch (4.1m)
+  ✓  3 …ol paints its real Simple adapter panel with an owner-parity fact (7.2m)
+TP-15-04 swept 19 wired tools: market-heatmap-lab=ready(x1) options-flow-feed-lab=ready(x1) intraday-tape-lab=unavailable(x1) swing-structure-lab=ready(x1) options-structure-lab=ready(x1) gamma-trading-lab=ready(x1) sector-research-lab=ready(x1) global-rotation-lab=ready(x1) real-assets-lab=ready(x1) bond-regime-lab=ready(x1) ai-capex-strategy-lab=ready(x1) company-fundamentals-lab=ready(x1) etf-momentum-lab=ready(x1) strategy-self-improvement-lab=ready(x1) strategy-validation-lab=ready(x1) smart-money-flow-lab=ready(x1) waterfront-polo-lab=ready(x1) volatility-sizing-lab=ready(x1) technical-analysis-decision-lab=unavailable(x1)
+  ✓  4 …s, and the honest-degradation cases are registry/provider derived (49ms)
+
+  Slow test file: [system-chrome] › tests/simple-production-wiring.spec.mjs (11.4m)
+  4 passed (11.4m)
+WIRING_EXIT=0
+END 22:50:20Z
+```
+
+**Honest note on the sweep result — two tools reported `unavailable`, not `ready`.**
+In THIS run `intraday-tape-lab` degraded to an honest `unavailable`, alongside the
+expected `technical-analysis-decision-lab` (the SCN-012-034 registry lock). The sweep
+asserts *a real adapter panel carrying an owner-parity fact and converging at x1* — a
+truthful `unavailable` satisfies it, an invented signal does not. `intraday-tape-lab` is
+a live intraday-data tool, so an honest `unavailable` outside data hours is the designed
+behaviour, not a failure; the test passed on that basis. Recording it verbatim rather
+than quoting a run in which every tool happened to be `ready`.
+
+The declared file is interception-free — all five pattern matches are inside comment
+blocks that *state* the constraint:
+
+```text
+$ grep -nE 'page\.route|context\.route|intercept\(|cy\.intercept|msw|nock|wiremock' tests/simple-production-wiring.spec.mjs
+16: * production bridge's rendered panel. There is NO page.route / context.route /
+17: * intercept / msw / nock — the owner data is the page's real cached owner state,
+110: * a request LISTENER (`page.on('request')`) — an observer, never `page.route`/`intercept`.
+374:      `page.route`/`intercept`. */
+413: * page.route / context.route / intercept / msw / nock anywhere in this file — the owner
+```
+
+### Command 5 — TP-15-05 bond-regime spec (27/27, system-chrome)
+
+```text
+$ npx --no-install playwright test tests/bond-regime-lab.spec.mjs \
+    --config=playwright.config.mjs --project=system-chrome --reporter=list
+
+Running 27 tests using 1 worker
+
+  ✓  17 …ady waits for auto-hydration before Simple and Power comparison (928ms)
+  ✓  18 …spec.mjs:500:1 › BS-011 Simple and Power share one model digest (839ms)
+  ✓  19 …-012 lever change recomputes without fetch or observed mutation (747ms)
+
+  27 passed (30.7s)
+TP1505_EXIT=0
+```
+
+Green, but **D4 half 2 still disqualifies the row.** Re-verified this run: the
+`Regression BUG-003:` carrier spans lines 413-514 and contains executable `page.route`
+interception at line 426, so it is a mocked test and cannot close a live `e2e-ui` row.
+
+```text
+$ grep -nE 'page\.route|context\.route|intercept\(|cy\.intercept|msw|nock|wiremock' tests/bond-regime-lab.spec.mjs
+311:    await page.route(/home\.treasury\.gov\/.*daily_treasury_(?:real_)?yield_curve/, async (route) => {
+378:  await page.route('**/*', async (route) => {
+426:  await page.route(/home\.treasury\.gov\/.*daily_treasury_(?:real_)?yield_curve/, async (route) => {
+
+$ grep -nE "^test\(" tests/bond-regime-lab.spec.mjs | grep -iE 'BUG-003|BS-012'
+413:test('Regression BUG-003: Ready waits for auto-hydration before Simple and Power comparison', async ({ page }) => {
+515:test('BS-012 lever change recomputes without fetch or observed mutation', async ({ page }) => {
+```
+
+### Command 6 — TP-15-06 volatility-sizing spec (16/16, system-chrome)
+
+```text
+$ npx --no-install playwright test tests/volatility-sizing-lab.spec.mjs \
+    --config=playwright.config.mjs --project=system-chrome --reporter=list
+
+Running 16 tests using 1 worker
+
+  ✓   5 …n BS-009: insufficient history is unavailable with exact counts (765ms)
+  ✓  16 …le THROUGH the shared rlnav registration, not just by direct URL (1.1s)
+
+  16 passed (14.6s)
+TP1506_EXIT=0
+```
+
+Both declared carriers exist verbatim and the file is interception-free (its single
+pattern match is the comment that states the constraint):
+
+```text
+$ grep -nE "^test\(" tests/volatility-sizing-lab.spec.mjs | grep -E 'TP-02-04|BS-009'
+221:test('Regression BS-009: insufficient history is unavailable with exact counts', async ({ page }) => {
+405:test('TP-02-04: the volatility tool is reachable THROUGH the shared rlnav registration, not just by direct URL', async ({ page }) => {
+
+$ grep -nE 'page\.route|context\.route|intercept\(|cy\.intercept|msw|nock|wiremock' tests/volatility-sizing-lab.spec.mjs
+9: * page.route / route.fulfill / route.abort / response interception anywhere in this file.
+```
+
+### Command 7 — Pages deploy gate + briefs + simple-model adapters (53/53, system-chrome)
+
+```text
+$ npx --no-install playwright test tests/palm-springs-rental-market-lab.spec.mjs \
+    tests/distributed-briefs.spec.mjs tests/simple-models.spec.mjs \
+    tests/simple-model-adapters-market.spec.mjs \
+    --config=playwright.config.mjs --project=system-chrome --reporter=line
+
+Running 53 tests using 4 workers
+…on: SCN-005-027 acquisition baselines disclose sample status and legal unknowns
+[SCN-005-027] luxurySamples=2
+[SCN-005-027] status=active-ask
+[SCN-005-027] sampleStates=sparse,unclean
+[SCN-005-027] legalUnknowns=visible
+[SCN-005-027] baseline=unavailable
+[SCN-005-027] purchasePriceUsd=UNAVAILABLE
+  53 passed (50.4s)
+BATCH4_EXIT=0
+```
+
+This run is the **direct executed proof of the rental-tool product decision**:
+`tests/palm-springs-rental-market-lab.spec.mjs` — which is also the GitHub Pages deploy
+gate — asserts `purchasePriceUsd=UNAVAILABLE` and `baseline=unavailable`. Wiring an
+owner-state provider that produced a `ready` acquisition projection would have to
+fabricate exactly the economic layer this gate protects.
+
+### Not re-run by this agent — borrowed evidence, honestly attributed
+
+`tests/market-heatmap-control-surface.spec.mjs` (BUG-004's control-surface spec,
+**4 passed, 15.1m, exit 0**) was executed by the **orchestrating session** at this same
+commit, not by this agent. It is recorded here for continuity only. It is **not a
+declared scope-15 Test Plan row and is not used to close any DoD item in this scope.**
+
+### Net effect of this run on the DoD
+
+| Row | Before | After | Why |
+|---|---|---|---|
+| TP-15-01 | open | **open** | executed 7/7, but the named file still has no `ownerModes` / forbidden-authority assertion |
+| TP-15-02 | checked | **checked** | re-executed 6/6, evidence refreshed to 19 wired / 18-of-19 |
+| TP-15-03 | open | **checked** | both declared carriers executed green in the declared file |
+| TP-15-04 | open | **checked** | both declared carriers executed green; sweep covered all 19 wired tools at x1 |
+| TP-15-05 | open | **open** | executed 27/27, but the BUG-003 carrier still uses `page.route` (D4 half 2) |
+| TP-15-06 | open | **checked** | both declared carriers executed green and interception-free |
+| TP-15-07 | open | **checked** | 968/0 with the 16-canary group present |
 
 ## Verification Run — 2026-07-29, HEAD `8a2d3ce0` (partially attributable)
 
@@ -1174,7 +1448,7 @@ Prose annotation only; no DoD item is created or altered here.
 | 4. Remaining delegating tools in adapter-module batches | **Partially complete** — 18 of the 19 delegating tools wired across `9a713001`…`30326253`; only `msft-july-print-model` outstanding (deliberate shell opt-out, reason 1 above) |
 | 5. Reconcile the 8 `#simpleView` tools + BUG-003 regression | **Partially complete** — 7 of the 8 `#simpleView` pages are wired (`bond-regime`, `etf-momentum`, `gamma-trading`, `intraday-tape`, `sector-research`, `swing-structure`, `volatility-sizing`); `bond-regime`'s spec was reconciled to the shell in `fed8f9ab` and `volatility-sizing`'s in `30326253`. The 1 unwired `#simpleView` page (`msft-july-print-model`) is blocked on the owner opt-out decision; `tests/msft-july-market-refresh.spec.mjs` remains unmodified. **No BUG-003 closure is claimed in this report** — see TP-15-05 |
 | 6. Handle the 4 non-delegating tools | **Partially complete** — `technical-analysis-decision-lab` done (intentional registry-gated honest-`unavailable`, `ab1d4879`); `volatility-sizing` **RESOLVED and wired** in `30326253` (provider re-sampled wall-clock time → fixed by single-sourcing `asOf`/`decisionTime` off the displayed decision); `palm-springs` + `ocean-shores` **declined by product decision** (owner published `purchasePriceUsd: null`; the Pages gate asserts that absence) |
-| 7. `scripts/selftest.mjs` bridge canaries | **Outstanding** — the broad suite is 0-fail (952 passed), but no bridge canary exists (`grep` for `renderSimpleBridge` / `ownerModes` / `installSimpleProjectionBridge` in `scripts/selftest.mjs` returns nothing) |
+| 7. `scripts/selftest.mjs` bridge canaries | **Complete** (2026-07-29, HEAD `0890348a`) — the canaries exist as a named `Feature 012 Scope 15 production Simple-view bridge canaries (TP-15-07)` group of **16**; the same `grep` that previously returned nothing now returns **19** matching lines, and the suite is **968 passed / 0 failed**. The row previously read "Outstanding … 952 passed … no bridge canary exists"; that is superseded — 952 → 968 is exactly the +16 canaries |
 
 ## Known Drift — Routed to `bubbles.plan` (NOT resolved here)
 
@@ -1262,15 +1536,43 @@ is ever introduced; the row-command selection contract added to `scope.md` guard
 **Not closed by this edit:** D4 half 2 (TP-15-05's carrier uses `page.route`
 interception) — see D4 below. That is an independent disqualifier and is untouched.
 
-### D2 — TP-15-07 bridge canaries are absent from `scripts/selftest.mjs`
+### D2 — CLOSED 2026-07-29 — TP-15-07 bridge canaries were absent from `scripts/selftest.mjs`
+
+**Status: CLOSED.** Entry retained for audit; the original finding follows unmodified,
+then the closure record.
+
+*Original finding (2026-07-28, accurate as of the state it describes):*
 
 ```text
 $ grep -n 'renderSimpleBridge\|installSimpleProjectionBridge\|ownerModes\|production bridge' scripts/selftest.mjs
    (NO MATCHES — no bridge canary exists in selftest.mjs)
 ```
 
-The 0-fail preservation half of TP-15-07 is met (952 passed / 0 failed); the "new
-bridge canaries" half is not. Owned by `bubbles.plan` (Implementation Plan step 7).
+The 0-fail preservation half of TP-15-07 was met (952 passed / 0 failed); the "new
+bridge canaries" half was not. Owned by `bubbles.plan` (Implementation Plan step 7).
+
+#### Closure record (2026-07-29, re-verified by this agent at HEAD `0890348a`)
+
+The canaries were authored as a named `Feature 012 Scope 15 production Simple-view
+bridge canaries (TP-15-07)` group of **16**. The identical grep now returns 19 lines,
+and the suite total moved **952 → 968 — a delta of exactly the +16 canaries**, with
+nothing removed or renamed and 0 failures:
+
+```text
+$ grep -cE 'renderSimpleBridge|installSimpleProjectionBridge|ownerModes|production bridge' scripts/selftest.mjs
+19
+
+$ node scripts/selftest.mjs
+Research-Lab self-test: 968 passed, 0 failed
+SELFTEST_EXIT=0
+```
+
+The three behaviours TP-15-07 names each map to a named canary: forbidden authority to
+the `no forbidden authority` + `local compute only` canaries, provider-absent honest
+unavailable to the `a wired tool with no owner state degrades to an honest unavailable`
+canary, and the `ownerModes` contract to the `rlapp.js's own ownerModes expression`
+canary. Full output under
+[Command 1](#command-1--tp-15-07-broad-selftest-968-passed-0-failed).
 
 ### D3 — Implementation Files allowlist is stale (newly recorded)
 
@@ -1355,39 +1657,44 @@ and outside this task's change boundary; routed to the owning executor.
 
 ## Evidence Anchors
 
-- [`tp-15-01`](#tp-15-01) — **partial**: executed and green (5/5, exit 0), but the file carries no `ownerModes` or forbidden-authority assertion, so the DoD item stays unchecked
+- [`tp-15-01`](#tp-15-01) — **partial**: executed and green (7/7, exit 0), but the file carries no `ownerModes` or forbidden-authority assertion, so the DoD item stays unchecked
 - [`tp-15-02`](#tp-15-02) — **satisfied**: executed and green (6/6, exit 0), exact file/command/title match
-- [`tp-15-03`](#tp-15-03) — **title drift closed; awaiting an attributable run**: both carriers now live in the declared file and are declared verbatim; the reconciled command selects 2 tests (D1 CLOSED 2026-07-29)
-- [`tp-15-04`](#tp-15-04) — **title drift closed; awaiting an attributable run**: the declared file now holds both TP-15-04 carriers; `--grep "TP-15-04"` selects 2 tests (D1 CLOSED 2026-07-29)
-- [`tp-15-05`](#tp-15-05) — **executed, still not satisfied**: `tests/bond-regime-lab.spec.mjs` was run this session (27/27, exit 0) and the declared titles now resolve (D4 half 1 CLOSED 2026-07-29), but the `Regression BUG-003:` carrier still uses `page.route` interception, so it cannot close a live `e2e-ui` row (**D4 half 2 OPEN**)
-- [`tp-15-06`](#tp-15-06) — **title drift closed; awaiting an attributable run**: `volatility-sizing-lab` is wired at HEAD, both carriers are interception-free, and the reconciled command selects 16 tests (D5 CLOSED 2026-07-29); the earlier "unwired at HEAD" note is obsolete
-- [`tp-15-07`](#tp-15-07) — **partial**: broad suite is 952 passed / 0 failed (exit 0), but the new bridge canaries do not exist (drift D2)
+- [`tp-15-03`](#tp-15-03) — **satisfied**: both declared carriers live in the declared file and were executed green by this agent (whole-file run 4/4, exit 0)
+- [`tp-15-04`](#tp-15-04) — **satisfied**: both declared carriers executed green by this agent; the `e2e-ui` sweep covered all 19 wired tools, each converging at x1
+- [`tp-15-05`](#tp-15-05) — **executed, still not satisfied**: `tests/bond-regime-lab.spec.mjs` was run by this agent (27/27, exit 0) and the declared titles resolve (D4 half 1 CLOSED), but the `Regression BUG-003:` carrier still uses `page.route` interception at line 426, so it cannot close a live `e2e-ui` row (**D4 half 2 OPEN**)
+- [`tp-15-06`](#tp-15-06) — **satisfied**: executed green by this agent (16/16, exit 0); both declared carriers are verbatim and interception-free (D5 CLOSED)
+- [`tp-15-07`](#tp-15-07) — **satisfied**: broad suite is **968 passed / 0 failed** (exit 0) and the 16-canary bridge group exists (D2 CLOSED 2026-07-29). The earlier "952 passed … canaries do not exist" reading is superseded — 952 → 968 is exactly the +16 canaries
 
 ## Completion Statement
 
 Scope 15 is **In Progress** and is **not** Done. The production bridge is delivered and
-proven; **18 of 22 ordinary tools are wired, 17 in strict projection parity**, with the
-18th (`technical-analysis-decision-lab`) an intended registry-gated honest `unavailable`
-rather than a gap. **Four ordinary tools remain unwired**, each blocked by an
-architecture opt-out, live-data nondeterminism, or a forbidden shared-engine formula
-extraction — all requiring an owner decision this scope may not take unilaterally.
+proven; **19 of 22 ordinary tools are wired, 18 in strict projection parity**, with the
+19th (`technical-analysis-decision-lab`) an intended registry-gated honest `unavailable`
+rather than a gap. **Three ordinary tools remain unwired**, each a recorded outcome
+rather than an unfinished task: `msft-july-print-model` is a deliberate shared-shell
+opt-out, and `palm-springs-rental-market-lab` / `ocean-shores-rental-market-lab` are a
+deliberate data-availability decision whose absence the Pages deploy gate asserts.
 `market-brief` is excluded by design and is not one of the 22.
 
-Two Test Plan rows (TP-15-04, TP-15-06) have no passing evidence under their declared
-contract, four rows (TP-15-01, TP-15-03, TP-15-05, TP-15-07) are executed-and-green but
-still unsatisfied against their DoD text, and four drifts (D1, D2, D3, D4) are routed to
-`bubbles.plan`. **Of the 14 DoD items, 4 are checked and 10 remain open** — none of the
-10 could be honestly closed against executed evidence. **No completion of the scope, and
-no completion of Feature 012, is claimed.**
+All seven Test Plan rows now carry first-party executed evidence, and **five of the
+seven are satisfied** (TP-15-02, TP-15-03, TP-15-04, TP-15-06, TP-15-07). Two are
+executed-and-green but still unsatisfied against their own DoD text: TP-15-01 (its named
+file carries no `ownerModes` or forbidden-authority assertion) and TP-15-05 (its BUG-003
+carrier uses `page.route` interception, so a mocked test cannot close a live `e2e-ui`
+row). Drifts **D1, D2 and D5 are CLOSED**; **D3, D4 half 2 and D6 remain open** with
+`bubbles.plan`. **Of the 14 DoD items, 8 are checked and 6 remain open** — none of the 6
+could be honestly closed against executed evidence. **No completion of the scope, and no
+completion of Feature 012, is claimed.**
 
 ## Test Evidence
 
 ### TP-15-01
 
 **Command:** `node --test tests/simple-production-bridge.unit.mjs`
-**Claim Source:** executed (2026-07-28, this session)
-**Result:** PASSED (5/5, exit 0) — full raw output under
-[Command 2](#command-2--tp-15-01-unit). See the uncertainty note below.
+**Claim Source:** executed (2026-07-29, this agent, HEAD `0890348a`)
+**Result:** PASSED (**7/7**, exit 0) — full raw output under
+[Command 2](#command-2--tp-15-01-unit-77). See the uncertainty note below. *(The file
+grew 5 → 7 tests; the two additions are the BUG-004 queued-run invalidation guarantees.)*
 
 **Uncertainty Declaration.** The DoD item for TP-15-01 requires the unit evidence to
 prove *`ownerModes`* and *no forbidden authority* in addition to the bridge contract
@@ -1405,63 +1712,77 @@ unit proof the DoD row asks for. The DoD item therefore remains `- [ ]`.
 ### TP-15-02
 
 **Command:** `node --test tests/simple-production-bridge.integration.mjs`
-**Claim Source:** executed (2026-07-28, this session)
+**Claim Source:** executed (2026-07-29, this agent, HEAD `0890348a`)
 **Result:** PASSED (6/6, exit 0). **Exact match to the Test Plan row** — the file, the
 command, and all six persistent titles exist and pass, including the registry-derived
 loop and the owner-parity assertion. Full raw output under
-[Command 1](#command-1--tp-15-02-integration). Key derived facts from that run:
+[Command 3](#command-3--tp-15-02-integration-66-19-wired-18-of-19-strict-parity). Key
+derived facts from that run *(the 18-wired / 5-not-wired / 17-of-18 figures previously
+quoted here were genuine but are superseded — they predate `volatility-sizing-lab` being
+wired)*:
 
 ```text
-[TP-15-02] wired (18): market-heatmap-lab, options-flow-feed-lab, intraday-tape-lab, swing-structure-lab, options-structure-lab, gamma-trading-lab, sector-research-lab, global-rotation-lab, real-assets-lab, bond-regime-lab, ai-capex-strategy-lab, company-fundamentals-lab, etf-momentum-lab, strategy-self-improvement-lab, strategy-validation-lab, smart-money-flow-lab, waterfront-polo-lab, technical-analysis-decision-lab
-[TP-15-02] not wired (5): market-brief, msft-july-print-model, volatility-sizing-lab, palm-springs-rental-market-lab, ocean-shores-rental-market-lab
-[TP-15-02] strict parity (module loaded by the page): 17 of 18
+[TP-15-02] wired (19): market-heatmap-lab, options-flow-feed-lab, intraday-tape-lab, swing-structure-lab, options-structure-lab, gamma-trading-lab, sector-research-lab, global-rotation-lab, real-assets-lab, bond-regime-lab, ai-capex-strategy-lab, company-fundamentals-lab, etf-momentum-lab, strategy-self-improvement-lab, strategy-validation-lab, smart-money-flow-lab, waterfront-polo-lab, volatility-sizing-lab, technical-analysis-decision-lab
+[TP-15-02] not wired (4): market-brief, msft-july-print-model, palm-springs-rental-market-lab, ocean-shores-rental-market-lab
+[TP-15-02] strict parity (module loaded by the page): 18 of 19
 [TP-15-02] honest generic unavailable (module deliberately absent, SCN-012-034 lock): technical-analysis-decision-lab
 ℹ pass 6
 ℹ fail 0
-===TP1502_EXIT=0===
+TP1502_EXIT=0
 ```
-
-This is the **only** DoD test-evidence row that is checked.
 
 ### TP-15-03
 
-**Command:** the 5-spec Simple-adapter / production-wiring batch.
-**Claim Source:** executed (2026-07-28, this session)
-**Result:** PASSED (27/27, exit 0) — full raw output under
-[Command 4](#command-4--simple-adapter--production-wiring-playwright-batch-5-specs-system-chrome).
-The Test Plan row's persistent title does not match the repo, so the DoD item stays
-unchecked.
+**Command:** the declared file's whole-file run,
+`npx --no-install playwright test tests/simple-production-wiring.spec.mjs --config=playwright.config.mjs --project=system-chrome --reporter=list --workers=1`.
+**Claim Source:** executed (2026-07-29, this agent) at HEAD `0890348a` plus the disclosed
+working-tree delta on the spec file.
+**Result:** **PASSED (4/4, exit 0) — both declared carriers green.**
 
-**Uncertainty Declaration.** The Test Plan declares TP-15-03's persistent title as
-`Regression: market-heatmap Simple renders the real adapter panel and one control
-recomputes owner leadership` in `tests/simple-production-wiring.spec.mjs`. That file
-contains exactly one test, with a different title, and the "control recomputes" half
-lives in a different (Scope-05) spec:
+The earlier reading of this row — *"that file contains exactly one test, with a different
+title, and the 'control recomputes' half lives in a different (Scope-05) spec"* — is
+**superseded and false at HEAD**. Both halves now live in the declared file and the Test
+Plan declares both verbatim:
 
 ```text
-$ grep -n "test('" tests/simple-production-wiring.spec.mjs
-47:test('Regression: market-heatmap Simple renders the real adapter panel in the real owner-mode flow', async ({ page }) => {
-
-$ grep -rn 'recompute owner leadership' tests/*.mjs
-tests/simple-model-adapters-market.spec.mjs:310:    title: 'Regression: market heatmap Simple breadth controls recompute owner leadership sensitivity',
+$ grep -nE "^test\(" tests/simple-production-wiring.spec.mjs
+48:test('Regression: market-heatmap Simple renders the real adapter panel in the real owner-mode flow', async ({ page }) => {
+198:test('TP-15-03 market-heatmap Simple renders real steerable controls and actuating one recomputes the production projection with no refetch', async ({ page }) => {
 ```
 
-Both behaviours are genuinely proven by passing tests, but they are split across two
-files and neither carries the declared persistent title. This is a Test-Plan ↔
-implementation drift that `bubbles.plan` owns; the DoD item remains `- [ ]` rather
-than being closed against a title that does not exist.
+The control-recompute half was a genuine **production** gap when this row was first
+written — the wired Simple panel rendered no controls at all — and it was closed by the
+BUG-004 fix rather than by relaxing the row. The carrier asserts non-vacuously (`moving a
+real model input must change the rendered projection`) and asserts an empty request
+window across the recompute, using a request **listener**, never `page.route`. Full raw
+output under
+[Command 4](#command-4--tp-15-03--tp-15-04-wiring-spec-44-system-chrome). The DoD item
+is `- [x]`.
 
 ### TP-15-04
 
-**Claim Source:** not-run — the declared test does not exist.
-**Result:** NOT IMPLEMENTED.
+**Command:** `npx --no-install playwright test tests/simple-production-wiring.spec.mjs --config=playwright.config.mjs --project=system-chrome --grep "TP-15-04" --reporter=list` (executed as the whole-file run).
+**Claim Source:** executed (2026-07-29, this agent) at HEAD `0890348a` plus the disclosed
+working-tree delta on the spec file.
+**Result:** **PASSED — both declared carriers green; the sweep covered all 19 wired tools.**
 
-The Test Plan declares the persistent title `Regression: each wired ordinary tool
-shows a ready adapter panel in Simple with an owner-parity fact` in
-`tests/simple-production-wiring.spec.mjs`. That file contains only the single test
-shown under TP-15-03. The registry-derived per-wired-tool loop is currently proven at
-the **integration** layer by TP-15-02, not by an `e2e-ui` test. The DoD item remains
-`- [ ]`.
+The earlier reading of this row — *"not-run — the declared test does not exist … NOT
+IMPLEMENTED … that file contains only the single test shown under TP-15-03 … proven at
+the integration layer by TP-15-02, not by an `e2e-ui` test"* — is **superseded and
+false at HEAD**. `tests/simple-production-wiring.spec.mjs` holds 4 tests, two of them
+this row's carriers, both declared verbatim in the Test Plan:
+
+```text
+$ grep -nE "^test\(" tests/simple-production-wiring.spec.mjs
+716:test('TP-15-04 every wired ordinary tool paints its real Simple adapter panel with an owner-parity fact', async ({ page }) => {
+807:test('TP-15-04 the swept set is derived from the production registry + pages, and the honest-degradation cases are registry/provider derived', () => {
+```
+
+The registry-derived per-wired-tool loop is therefore now proven at the **`e2e-ui`**
+layer, in a real browser, in addition to TP-15-02's integration-layer proof. Full raw
+output including the 19-tool sweep line under
+[Command 4](#command-4--tp-15-03--tp-15-04-wiring-spec-44-system-chrome). The DoD item
+is `- [x]`.
 
 ### TP-15-05
 
@@ -1469,8 +1790,10 @@ the **integration** layer by TP-15-02, not by an `e2e-ui` test. The DoD item rem
 **Result:** SPEC GREEN 27/27 exit 0 — but the DoD row stays `- [ ]` on two independent
 disqualifiers.
 
-`tests/bond-regime-lab.spec.mjs` was executed this session — the first executed
-evidence this row has ever carried:
+`tests/bond-regime-lab.spec.mjs` was re-executed by this agent on 2026-07-29 at HEAD
+`0890348a` (27/27, exit 0 — see
+[Command 5](#command-5--tp-15-05-bond-regime-spec-2727-system-chrome)). The 2026-07-28
+run below is the earlier, superseded capture and is retained for audit:
 
 ```text
 $ npx --no-install playwright test tests/bond-regime-lab.spec.mjs --config=playwright.config.mjs --project=system-chrome --reporter=list
@@ -1558,12 +1881,16 @@ The DoD item therefore remains `- [ ]`. **No BUG-003 closure is claimed.**
 ### TP-15-06
 
 **Command:** `npx --no-install playwright test tests/volatility-sizing-lab.spec.mjs
---config=playwright.config.mjs --project=system-chrome --reporter=list --workers=1`
-**Claim Source:** executed (2026-07-28, this session, HEAD `30326253`)
-**Result:** 16 passed / 0 failed, exit 0 — the **behaviour** this row describes is now
-proven; the **declared persistent title** still does not exist, so the DoD row stays
-open. Full raw output under
-[Command 4](#command-4--tp-15-06-volatility-sizing-spec-standalone-system-chrome).
+--config=playwright.config.mjs --project=system-chrome --reporter=list`
+**Claim Source:** executed (2026-07-29, this agent, HEAD `0890348a`)
+**Result:** **16 passed / 0 failed, exit 0 — the row is satisfied.** Both the behaviour
+and the declared contract now hold: the declared persistent titles are the verbatim
+titles of two real, interception-free tests, and this agent executed the declared
+whole-file command itself. Full raw output under
+[Command 6](#command-6--tp-15-06-volatility-sizing-spec-1616-system-chrome). *(The
+earlier "the declared persistent title still does not exist, so the DoD row stays open"
+reading is superseded — D5 is CLOSED and the awaited attributable run has now been
+performed.)*
 
 **Supersedes the prior entry.** An earlier revision of this section read "not-run at
 HEAD — attempted in-session and deliberately reverted … The tool is unwired at HEAD".
@@ -1587,19 +1914,25 @@ $ grep -nE 'page\.route|context\.route|intercept\(|cy\.intercept|msw|nock|wiremo
 (1 match — inside the comment block that STATES the constraint; zero executable interception)
 ```
 
-**Why the DoD row nevertheless remains `- [ ]` (drift D5).** The persistent title this
-Test Plan row declares does not exist anywhere in `tests/`:
+**Why the DoD row is now `- [x]` (drift D5 CLOSED).** The reason previously recorded
+here — *"the persistent title this Test Plan row declares does not exist anywhere in
+`tests/`"* — is **obsolete**. The Test Plan row no longer declares the phantom title
+`Regression: volatility-sizing native Simple moves to Power`; it declares this row's two
+**real** carriers verbatim, and both were confirmed present and executed green by this
+agent:
 
 ```text
-$ grep -rn 'Regression: volatility-sizing native Simple moves to Power' tests/
-(exit 1 — declared title NOT FOUND)
+$ grep -nE "^test\(" tests/volatility-sizing-lab.spec.mjs | grep -E 'TP-02-04|BS-009'
+221:test('Regression BS-009: insufficient history is unavailable with exact counts', async ({ page }) => {
+405:test('TP-02-04: the volatility tool is reachable THROUGH the shared rlnav registration, not just by direct URL', async ({ page }) => {
 ```
 
-This is the **same disqualifier already applied to TP-15-03 and TP-15-04 (D1) and
-TP-15-05 (D4)**. Closing this row against a title that does not exist would be
-fabrication, and making an exception for it purely because its underlying behaviour
-improved would apply a weaker standard to this row than to its three siblings. Recorded
-as **D5** and routed to `bubbles.plan`. The DoD item remains `- [ ]`.
+The standard applied to its siblings is preserved rather than weakened: TP-15-03 and
+TP-15-04 close for the same reason (declared titles resolve to real tests **and** an
+executed run exists), while **TP-15-05 stays open** because it carries a second,
+independent disqualifier this row does not — request interception. Reconciling a title is
+not sufficient on its own; an executed run is also required, and for TP-15-05 an
+interception-free carrier is required on top of both.
 
 ### TP-15-07
 
@@ -1642,19 +1975,36 @@ returns the group above, so **D2 is resolved** and the DoD item is `- [x]`.
 
 ## Status
 
-- **Status:** In Progress (scope) — **9 of 14 DoD items remain open** after this
-  session closed TP-15-07, so `Done` would be fabrication; the remaining work is *mixed*
-  (part agent-actionable in-allowlist, part owner/product decisions and drifts routed to
-  `bubbles.plan`), so `Blocked` would also be inaccurate
-- **Phase:** implement (increments committed and pushed; HEAD `8a2d3ce0` at the close of
-  this session, with `087ad2ad` — the BUG-004 fix — still an ancestor)
-- **Session-blocking condition:** a concurrent session held **uncommitted modifications
-  to four scope-15 Implementation Files** (`market-heatmap-lab.html`, `rlexperience.js`,
-  `tests/market-heatmap-control-surface.spec.mjs`,
-  `tests/simple-production-bridge.unit.mjs`) while the browser suites ran, and HEAD moved
-  twice. Every Playwright result from this session is therefore recorded but marked NOT
-  ATTRIBUTABLE, and none of them is used to close a DoD item. The three node suites ran
-  before the first foreign write and are attributable
+- **Status:** In Progress (scope) — **6 of 14 DoD items remain open** after this
+  reconciliation closed TP-15-03, TP-15-04, TP-15-06 and TP-15-07, so `Done` would be
+  fabrication; the remaining work is *mixed* (part agent-actionable in-allowlist, part
+  owner/product decisions and drifts routed to `bubbles.plan`), so `Blocked` would also
+  be inaccurate
+- **Phase:** implement (HEAD `0890348a` at the close of this reconciliation; `087ad2ad`
+  and `5c77e1f1` — the BUG-004 fix — are ancestors)
+- **Attribution:** the prior session's blocking condition has **cleared**. All seven Test
+  Plan rows were re-executed by this agent against a tree whose only scope-15 delta is
+  the disclosed uncommitted change to `tests/simple-production-wiring.spec.mjs`; every
+  result is first-party and attributable. The single piece of borrowed evidence
+  (`tests/market-heatmap-control-surface.spec.mjs`, 4 passed / 15.1m, run by the
+  orchestrating session) is labelled as such and closes nothing
+- **The 6 open items and exactly what blocks each:**
+  1. **SCN-012-039** — the item's own text names the END state as "every ordinary tool
+     wired"; 19 of 22 are. The mechanism halves are now automated-proven by the
+     TP-15-07 canaries, so only the coverage clause fails. Its wording is routed to
+     `bubbles.plan`
+  2. **SCN-012-041** — 7 of the 8 `#simpleView` pages are reconciled;
+     `msft-july-print-model` is not, and BUG-003's live `e2e-ui` closure carrier is
+     interception-based (D4 half 2)
+  3. **Change boundary + rollback** — D3 (5 delivered paths outside the declared
+     allowlist) is open, and the documented rollback path has never been exercised
+  4. **TP-15-01** — the named file still carries no `ownerModes` and no
+     forbidden-authority assertion; both are now proven, but in TP-15-07's file
+  5. **TP-15-05** — the `Regression BUG-003:` carrier uses `page.route` at line 426, so
+     a mocked test cannot close a live `e2e-ui` row (D4 half 2)
+  6. **Build Quality Gate** — 3 of its 4 blockers stand (no per-tool RED/GREEN for the 3
+     unwired tools; D3 allowlist; executable interception in a spec this scope modified).
+     Its forbidden-authority-canary blocker is **resolved**
 - **Coverage:** **19 of 22 ordinary tools wired** — 18 module-backed in strict
   projection parity + `technical-analysis-decision-lab` as the intended registry-gated
   honest `unavailable`
@@ -1675,22 +2025,27 @@ returns the group above, so **D2 is resolved** and the DoD item is `- [x]`.
     shared `RLRENTAL` engine, so extraction would also require editing shared code or
     duplicating a formula (both forbidden)
 - **Excluded by design:** `market-brief` (`experience.kind = market-action-center`)
-- **Drift status after this session:** **D2 is RESOLVED** — the TP-15-07 bridge canaries
-  now exist in `scripts/selftest.mjs` (16 canaries, suite 968/0). **D1, D3, D4 and D5
-  remain open with `bubbles.plan`**: the TP-15-03/TP-15-04/TP-15-05/TP-15-06 persistent
-  titles the Test Plan declares still select nothing (all four greps exit 1), the
-  Implementation Files allowlist is still stale, and TP-15-05's carrier test still
-  contains executable `page.route` interception. What did change is that every TP
-  **identifier** is now present in the suite and real TP-15-03 and TP-15-04 tests exist
-  where previously there was one test in total — a genuine delivery, but not the same
-  fact as the declared titles existing
-- **BUG-004:** its fix is committed at `087ad2ad` and remains an ancestor of HEAD, but
-  its state could **not** be established from this tree — `SCN-B004-C` failed against a
-  working copy whose `market-heatmap-lab.html` had been reverted to the pre-fix shape by
-  the concurrent session mid-run
-- **Evidence:** TP-15-01, TP-15-02 and TP-15-07 executed this session with attributable
-  results (all exit 0); the TP-15-03/TP-15-04 wiring spec and the BUG-004 control-surface
-  spec were executed but are not attributable. **TP-15-02 and TP-15-07** are the closed
-  test-evidence DoD items — **5 of 14 DoD items checked, 9 open**
+- **Drift status after this reconciliation:** **D1, D2 and D5 are CLOSED.** D1 — the
+  TP-15-03 and TP-15-04 declared titles now resolve to real tests in the declared file,
+  and this agent executed them. D2 — the TP-15-07 bridge canaries exist in
+  `scripts/selftest.mjs` (16 canaries; suite 952 → 968, 0 failures). D5 — TP-15-06's row
+  declares its two real, interception-free carriers verbatim and this agent executed
+  them. **D3, D4 half 2 and D6 remain open with `bubbles.plan`**: the Implementation
+  Files allowlist is still stale (5 delivered paths outside it), TP-15-05's carrier still
+  contains executable `page.route` interception at line 426, and the TP-15-05
+  traceability comment still names the wrong carriers. The earlier claim that "the
+  TP-15-03/TP-15-04/TP-15-05/TP-15-06 persistent titles still select nothing (all four
+  greps exit 1)" is **superseded** — every declared title now resolves to a real test
+- **BUG-004:** fixed and committed (`087ad2ad`, `5c77e1f1`), both ancestors of HEAD. The
+  prior session could not establish its state because a concurrent session had reverted
+  `market-heatmap-lab.html` mid-run; that condition has cleared. Its effect is visible in
+  this reconciliation's evidence: the TP-15-03 control-recompute carrier — which was a
+  genuine production capability gap when the row was written — now passes, and the
+  TP-15-01 unit file carries two new queued-run invalidation tests (5 → 7)
+- **Evidence:** all seven Test Plan rows were executed by this agent at HEAD `0890348a`
+  with attributable results (all exit 0): TP-15-01 7/7, TP-15-02 6/6, TP-15-03 + TP-15-04
+  4/4 (11.4m, 19-tool sweep), TP-15-05 27/27, TP-15-06 16/16, TP-15-07 968/0, plus the
+  53/53 Pages-gate batch. **TP-15-02, TP-15-03, TP-15-04, TP-15-06 and TP-15-07** are the
+  closed test-evidence DoD items \u2014 **8 of 14 DoD items checked, 6 open**
 
 

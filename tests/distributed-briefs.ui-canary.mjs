@@ -15,7 +15,8 @@ import { ENTRIES } from './fixtures/feature-002/ui/ui-fixture-builder.mjs';
 
 test('Canary: enabled source pages render briefs and retain controls/RLDATA/credential lifecycle; the aggregator stays idle', async (t) => {
     let chromium;
-    try { ({ chromium } = await loadPlaywright()); } catch (e) { t.skip('Playwright runtime unavailable'); return; }
+    // Playwright is REQUIRED here; skipping would let this required test pass silently (GAP-F5).
+    try { ({ chromium } = await loadPlaywright()); } catch (e) { throw new Error('Playwright runtime is REQUIRED for this test and failed to load: ' + e.message); }
 
     // No graphDir => /briefs/* falls through to the real ROOT/briefs/ graph, so the enabled pages
     // render against the actually-published briefs exactly as production (GitHub Pages) serves them.

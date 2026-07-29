@@ -23,7 +23,8 @@ async function openBriefView(page) {
 
 test('static loader verifies coherent current objects and fetches history only after selection', async (t) => {
     let chromium;
-    try { ({ chromium } = await loadPlaywright()); } catch (e) { t.skip('Playwright runtime unavailable'); return; }
+    // Playwright is REQUIRED here; skipping would let this required test pass silently (GAP-F5).
+    try { ({ chromium } = await loadPlaywright()); } catch (e) { throw new Error('Playwright runtime is REQUIRED for this test and failed to load: ' + e.message); }
 
     const g = buildGraph({ toolId: 'sector-research-lab', session: 'pre-market' });
     const dir = writeGraphToTemp(g.files);

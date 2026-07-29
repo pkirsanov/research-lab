@@ -268,6 +268,40 @@ Business-logic coverage for the Scope 02 vertical is exercised by the unit + fun
 
 Full unfiltered output for each command above is recorded verbatim in [Test Evidence](#test-evidence-one-block-per-test-plan-row) and [Reproduced Delivery Validation](#reproduced-delivery-validation-summary-claim-source-executed); this section restates those recorded results and adds no new claim.
 
+**Independent-canary re-verification executed 2026-07-29 (raw output).** The delivery-time numbers above
+are preserved as recorded. These are current re-runs of the same canary commands; two counts have moved
+because the repository has grown since delivery, and that is stated rather than smoothed over: the
+selftest baseline is now 968 (was 572) and the brief cache now holds 357 JSON files (was 354).
+
+```text
+$ node scripts/validate-brief-cache.mjs
+[brief-cache] PASS: 357 JSON cache files parsed; indexes are coherent
+EXIT=0
+
+$ node scripts/validate-brief-payload.mjs market-brief.payload.json
+[brief-contract] PASS: all visible sections, registry coverage, model-specific real assets, and next-session actions are valid
+EXIT=0
+
+$ node --test tests/distributed-briefs-shared-canary.mjs tests/distributed-briefs-owner-canary.mjs
+ok 1 - Canary: five current publisher reads and four headless reads preserve pre-evidence semantics
+ok 2 - Canary: Bond Regime and browser credential boundaries exclude restricted and private fields
+ok 3 - Canary: observed registry retains 23 ordered links and one Market Brief aggregator
+ok 4 - Canary: five browser publishers four headless reads and RLAPP statuses preserve semantics
+# tests 4
+# suites 0
+# pass 4
+# fail 0
+# cancelled 0
+# skipped 0
+EXIT=0
+
+$ node scripts/selftest.mjs
+Research-Lab self-test: 968 passed, 0 failed
+EXIT=0
+```
+
+**Claim Source:** executed.
+
 ## Validation Summary
 
 Delivery evidence reproduced and recorded (executed). Independent certification is owned by bubbles.validate; `state.json.certification.*` is unchanged and `certified` is false on the implement claim.

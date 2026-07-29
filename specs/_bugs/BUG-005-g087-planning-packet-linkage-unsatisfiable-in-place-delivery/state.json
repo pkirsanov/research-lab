@@ -1,0 +1,149 @@
+{
+  "version": 3,
+  "featureDir": "specs/_bugs/BUG-005-g087-planning-packet-linkage-unsatisfiable-in-place-delivery",
+  "featureName": "BUG-005 G087 Planning-Packet Linkage Unsatisfiable Under In-Place Delivery",
+  "createdAt": "2026-07-29T19:26:27Z",
+  "lastUpdatedAt": "2026-07-29T19:26:27Z",
+  "completedAt": null,
+  "certifiedAt": null,
+  "status": "blocked",
+  "blockedReason": "Resolution requires an owner / framework classification decision that no agent may make. Gate G087 (planning_packet_implementation_linkage_gate) offers exactly two remedies and BOTH are untruthful under this repository's in-place delivery model: linkedImplementationSpec would name a spec that does not exist, and planningOnly:true would misstate intent for scopes that are meant to be built. Candidate directions D1-D4 are enumerated in design.md and NONE has been selected. This packet documents the finding only; it fixes nothing.",
+  "workflowMode": "bugfix-fastlane",
+  "planningOnly": false,
+  "planningOnlyJustification": null,
+  "linkedImplementationSpec": null,
+  "linkedPlanningPacket": null,
+  "specDependsOn": [],
+  "requiresRevalidation": false,
+  "scopeLayout": "single-file",
+  "artifacts": {
+    "bug": "bug.md",
+    "spec": "spec.md",
+    "design": "design.md",
+    "scopes": "scopes.md",
+    "report": "report.md",
+    "uservalidation": "uservalidation.md"
+  },
+  "execution": {
+    "activeAgent": "bubbles.bug",
+    "currentPhase": "documentation",
+    "currentPhaseStatus": "blocked",
+    "executionModel": "direct-authorized-runner",
+    "parentAgent": null,
+    "runStartedAt": "2026-07-29T19:26:27Z",
+    "completedAt": null,
+    "currentScope": null,
+    "nextRequiredOwner": "repository-owner",
+    "nextRequiredTarget": "01-owner-decision-on-resolution-direction",
+    "completedPhaseClaims": [
+      {
+        "phase": "discovery",
+        "agent": "bubbles.bug",
+        "claimSource": "executed",
+        "partial": false,
+        "claimedAt": "2026-07-29T19:26:27Z",
+        "evidenceRef": "report.md#test-evidence",
+        "note": "Finding independently re-verified, not re-derived. G087 violation reproduced at commit b525326d with exit 1; gate confirmed wired and live via tail-delegated-gates.sh (count 3) while state-transition-guard.sh shows 0; no grandfather clause (0 mentions vs 1 each for G094 and G130); spec 013 confirmed LATENT (passes at HEAD, exit 0); spec 016 confirmed ACTIVELY BLOCKED with failedGateIds [G087] and a fully reverted promotion; repo-wide sweep confirmed zero specs use either remedy."
+      },
+      {
+        "phase": "documentation",
+        "agent": "bubbles.bug",
+        "claimSource": "executed",
+        "partial": false,
+        "claimedAt": "2026-07-29T19:26:27Z",
+        "evidenceRef": "bug.md",
+        "note": "Six artifacts authored: bug.md, spec.md, design.md, scopes.md, report.md, uservalidation.md. Two corrections to the originally reported framing were found and recorded truthfully: (1) the linkage keys at b525326d were PRESENT with falsy values, not absent; (2) spec 016's reverted promotion IS durably recorded, at top-level .executionHistory rather than .execution.executionHistory. Neither correction changes the conclusion."
+      }
+    ],
+    "pendingTransitionRequests": [],
+    "scopeInventory": [
+      "01-owner-decision-on-resolution-direction",
+      "02-registry-wiring-description-correction",
+      "03-disposition-of-spec-013-historical-certification"
+    ],
+    "audit": []
+  },
+  "certification": {
+    "status": "blocked",
+    "completedAt": null,
+    "certifiedAt": null,
+    "completedScopes": [],
+    "certifiedCompletedPhases": [],
+    "scopeProgress": [],
+    "assurance": null,
+    "lockdownState": null,
+    "note": "NO CERTIFICATION IS ASSERTED. Every field here is null or empty by intent. This packet documents a finding and is blocked on an owner decision; nothing has been certified, no scope is complete, and no DoD box is checked."
+  },
+  "policySnapshot": {
+    "workflowMode": "bugfix-fastlane",
+    "grill": false,
+    "tdd": false,
+    "autoCommit": false,
+    "lockdown": false,
+    "regression": false,
+    "validation": false
+  },
+  "transitionRequests": [],
+  "reworkQueue": [],
+  "executionHistory": [
+    {
+      "agent": "bubbles.bug",
+      "phasesExecuted": [
+        "discovery",
+        "documentation"
+      ],
+      "statusBefore": "not_started",
+      "statusAfter": "blocked",
+      "startedAt": "2026-07-29T19:20:00Z",
+      "finishedAt": "2026-07-29T19:26:27Z",
+      "outcome": "blocked",
+      "summary": "DOCUMENT-ONLY RUN. Recorded a verified cross-cutting finding: Gate G087 (planning_packet_implementation_linkage_gate) has no truthful satisfaction path under this repository's in-place delivery model. TWO LINKED CONCERNS. (A) SPEC-013-SPECIFIC, LATENT: commit b525326d certified specs/013-market-regime-stack-and-strategy-playbook to specs_hardened while G087 was wired and live; replaying planning-packet-linkage-guard.sh against a git-archive of that commit exits 1 with 'has status specs_hardened and planningOnly is not true, but linkedImplementationSpec is missing or empty'. The risk is LATENT, NOT ACTIVE and is deliberately not overstated: 013 graduated at commit 602f32db to full-delivery / in_progress, G087 fires only at specs_hardened, and the guard exits 0 against 013 at HEAD. (B) SYSTEMIC, ACTIVE: bubbles.validate attempted to certify specs/016-auction-gamma-playbook to specs_hardened, the guard returned failedGateIds [G087] / blockingCode PLANNING_GATE_FAILED, and validate REVERTED THE PROMOTION IN FULL; 016 remains not_started / not_started / null with 0 of 197 DoD boxes checked across 9 scopes. ROOT CAUSE VERIFIED, NOT ASSUMED: G087 assumes a planning-packet-to-SEPARATE-implementation-spec topology; this repository delivers IN PLACE, a packet graduating its own workflowMode and implementing its own scopes, as recorded in 013's own modeTransition object (authority operator-directed) which states 'G087 governs planning packets that hand off to a separate implementation spec; it does not govern self-delivered specs' and that both mechanical escapes were 'refused at the time as untruthful'. A repo-wide sweep confirmed ZERO specs carry planningOnly:true and ZERO carry a non-null linkedImplementationSpec. FALSE-NEGATIVE TRAP RECORDED: the G087 registry entry says state-transition-guard.sh invokes it as Check 29, but that script greps 0 while guards/tail-delegated-gates.sh greps 3, so checking only the documented script wrongly suggests the gate was unwired. NO GRANDFATHER CLAUSE: the guard has 0 createdAt/grandfather mentions versus 1 each for G094 and G130, and G130's clause exists explicitly 'so adopting this gate never retroactively blocks already-closed work'. TWO FRAMING CORRECTIONS recorded truthfully rather than silently accepted: the linkage keys at b525326d were PRESENT with falsy values (linkedImplementationSpec null, planningOnly false, planningOnlyJustification null) rather than absent, and 016's reverted promotion IS durably recorded at top-level .executionHistory rather than the nested .execution.executionHistory path that returns empty; neither changes the conclusion. FOUR CANDIDATE RESOLUTION DIRECTIONS were recorded WITHOUT selecting one, since the choice is an owner / framework decision: D1 explicit in-place delivery classification, D2 self-referencing linkedImplementationSpec (recorded but already refused as untruthful by 013's own record), D3 G087 framework amendment, D4 repository convention that packets graduate directly and never occupy specs_hardened. Plus orthogonal follow-ups F1 registry wiring description fix and F2 disposition of 013's historical certification. SCOPE OF THIS RUN: no fix attempted, no resolution direction chosen or implemented, zero DoD boxes checked across all three scopes, no certification field asserting anything, no .html/.js/.mjs file created or modified, specs/013-* and specs/016-* read only and never written, no file under .github/bubbles/** patched, and the concurrent BUG-004 packet's files (market-heatmap-lab.html, rlexperience.js, rlbrief.js and related tests) not touched, reverted, stashed or committed."
+    }
+  ],
+  "activeBugs": [],
+  "resolvedBugs": [],
+  "addressedFindings": [],
+  "unresolvedFindings": [
+    {
+      "id": "DISC-005-001",
+      "severity": "medium",
+      "summary": "G087 has no truthful satisfaction path under in-place delivery; actively blocks spec 016 and every future planning packet.",
+      "owner": "repository-owner",
+      "status": "open"
+    },
+    {
+      "id": "DISC-005-002",
+      "severity": "medium",
+      "summary": "Spec 013 was certified to specs_hardened at commit b525326d in a state the live G087 guard rejects. Latent today because 013 graduated to full-delivery.",
+      "owner": "repository-owner",
+      "status": "open"
+    },
+    {
+      "id": "DISC-005-003",
+      "severity": "low",
+      "summary": "G087 registry description names state-transition-guard.sh, but the invocation lives in guards/tail-delegated-gates.sh, producing a false negative for grep-based investigation.",
+      "owner": "framework-maintainer",
+      "status": "open"
+    }
+  ],
+  "failures": [],
+  "routing": {
+    "currentOwner": "bubbles.bug",
+    "nextRequiredOwner": "repository-owner",
+    "implementationDispatchAllowed": false,
+    "dispatchReason": "Implementation is BLOCKED pending an owner decision among candidate directions D1-D4 in design.md. No agent may select a delivery-topology classification, and both of G087's mechanical remedies would require a false claim. This packet is document-only by explicit instruction."
+  },
+  "statusDiscipline": {
+    "validStatuses": [
+      "not_started",
+      "in_progress",
+      "blocked",
+      "specs_hardened",
+      "docs_updated",
+      "validated",
+      "done"
+    ],
+    "specDoneRequires": "An owner decision selecting a resolution direction, then a separate implementation packet. This documentation-only packet CANNOT reach done on its own and does not attempt to."
+  },
+  "notes": "Documentation-only bug packet. Status is blocked, which is truthful and non-terminal. No DoD box is checked in scopes.md. No certification field asserts anything: certifiedAt is null, certification.completedScopes and certification.scopeProgress are empty, and certification.status mirrors the non-terminal top-level status. The uservalidation.md checklist uses checked-by-default [x] entries following the BUG-004 convention, where a checked box means the acceptance QUESTION IS RECORDED and explicitly does NOT claim the repository satisfies it; those are not DoD boxes. This packet's own linkedImplementationSpec is deliberately null and its status is never specs_hardened, so it does not itself trip G087."
+}

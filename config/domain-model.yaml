@@ -1,0 +1,21 @@
+entities:
+  Tool:
+    states: [ live ]
+    terminal: []
+  ToolRead:
+    states: [ fresh, stale, unavailable, not-run, not-applicable, browser-or-agent-read, fresh-headless ]
+    terminal: [ fresh, stale, unavailable, not-run, not-applicable, browser-or-agent-read, fresh-headless ]
+
+invariants:
+- id: INV-RL-REGISTRY-COMPLETE-TOOL-READS
+  rule: "Every non-aggregator Tool in tools.json produces exactly one ToolRead in a brief run, including a Tool added only through the registry"
+  kind: cardinality
+  enforcedBy: [ check ]
+  provedBy:
+  - "tests/distributed-briefs.contract.mjs::SCN-002-003 added-source mutation derives 24 participants and 23 sources generically"
+- id: INV-RL-UNAVAILABLE-READS-NOT-ACTIONABLE
+  rule: "A ToolRead that is unavailable, non-live, or not applicable cannot become eligible for a market recommendation"
+  kind: disjointness
+  enforcedBy: [ check ]
+  provedBy:
+  - "tests/distributed-briefs.contract.mjs::SCN-002-002 profile status applicability privacy and eligibility boundaries fail loud"

@@ -29,6 +29,11 @@ scans:
     patterns:
     errorHandling: ''
 
+# Product-domain SST (G130/G131). Research Lab is build-free, so this model
+# federates its browser registry/read contracts rather than inventing services.
+domainModel:
+  $ref: config/domain-model.yaml
+
 # Managed-doc registry overrides
 docsRegistryOverrides:
   managedDocs:

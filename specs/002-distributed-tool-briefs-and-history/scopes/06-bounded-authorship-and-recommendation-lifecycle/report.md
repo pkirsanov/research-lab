@@ -175,6 +175,42 @@ brief re-validates through `validateToolBrief`.
 
 **Claim Source:** executed.
 
+**GREEN re-verification executed 2026-07-29 (raw output).** The RED stages above are historical (the
+production mutations were reverted byte-for-byte at the time), so this re-run reproduces the GREEN side
+only. It is not a re-execution of the RED discriminators and is not presented as one.
+
+```text
+$ node --test tests/distributed-briefs.author-boundary.functional.mjs      # TP-06-05
+TAP version 13
+# Subtest: External author timeout malformed unsafe illegal and duplicate responses are bounded redacted and rejected
+ok 1 - External author timeout malformed unsafe illegal and duplicate responses are bounded redacted and rejected
+  ---
+  duration_ms: 798.056736
+  type: 'test'
+  ...
+1..1
+# tests 1
+# suites 0
+# pass 1
+# fail 0
+# cancelled 0
+# skipped 0
+EXIT=0
+```
+
+```text
+$ node --test tests/distributed-briefs.authorship.integration.mjs         # TP-06-06
+ok 1 - production pool resolves all 22 source outcomes with at most four active author processes
+# tests 1
+# pass 1
+# fail 0
+# cancelled 0
+# skipped 0
+EXIT=0
+```
+
+**Claim Source:** executed.
+
 ### [TP-06-07] Stress — concurrency, retry, and run token ceilings
 
 `node tests/distributed-briefs.authorship.stress.mjs` produced 16 passed, 0 failed, exit 0:
@@ -220,6 +256,26 @@ lifecycle preserves prior terms merges origins and exposes conflicts`.
 
 **Claim Source:** executed.
 
+**GREEN re-verification executed 2026-07-29 (raw output).** All three SCN regressions in one run. The
+RED stages above are historical; this reproduces the GREEN side only and is not presented as a re-run of
+the RED discriminators.
+
+```text
+$ node --test tests/distributed-briefs.authorship.e2e.mjs                 # TP-06-08 / TP-06-09 / TP-06-10
+ok 1 - Regression: SCN-002-004 all 22 source reads reach one truthful validated brief outcome
+ok 2 - Regression: SCN-002-005 unchanged and duplicate work creates no author prose event or cost churn
+ok 3 - Regression: SCN-002-006 recommendation lifecycle preserves prior terms merges origins and exposes conflicts
+# tests 3
+# suites 0
+# pass 3
+# fail 0
+# cancelled 0
+# skipped 0
+EXIT=0
+```
+
+**Claim Source:** executed.
+
 ### [TP-06-11] / [TP-06-12] — Broader E2E regression and baseline selftest
 
 **[TP-06-11] Broader E2E regression — registry-owner-authorship**
@@ -240,7 +296,53 @@ is proven by the contract test's `Function(…)` browser eval (no `fetch`/`XMLHt
 `document`).
 
 **Claim Source:** executed.
+**Re-verification executed 2026-07-29 (raw output).** Two honest deltas from the historical record above,
+stated rather than smoothed over: (1) the broader-E2E re-run enumerates the seven distributed-briefs
+suites explicitly and yields 13 tests, not the 25 recorded at delivery, because the delivery-time run
+covered a wider Scope 01–06 file set; (2) the baseline selftest is now 968, not the 616 recorded at
+delivery, because the repository has grown since. Both are current, executed numbers.
 
+```text
+$ node --test tests/distributed-briefs-foundation.e2e.mjs \
+    tests/distributed-briefs-owner-reads.e2e.mjs \
+    tests/distributed-briefs.authorship.e2e.mjs \
+    tests/distributed-briefs-owner-reads.integration.mjs \
+    tests/distributed-briefs-read-adapters.integration.mjs \
+    tests/distributed-briefs-shared-canary.mjs \
+    tests/distributed-briefs-owner-canary.mjs                             # TP-06-11
+ok 1 - Regression: SCN-002-001 current registry freezes 22 source reads and one non-recursive final aggregator
+ok 2 - Regression: SCN-002-002 unavailable non-live and off-theme evidence never becomes a market recommendation
+ok 3 - Regression: SCN-002-003 registry-only addition joins every read consumer without inventory edits
+ok 4 - Canary: five current publisher reads and four headless reads preserve pre-evidence semantics
+ok 5 - Canary: Bond Regime and browser credential boundaries exclude restricted and private fields
+ok 6 - Regression: SCN-002-026 final-eligible evidence exists only after an owning read publishes its interpretation
+ok 7 - six declared owners consume typed evidence refs through production model reads
+ok 8 - all observed 22 source adapters emit truthful production ToolModelRead outcomes
+ok 9 - Canary: observed registry retains 23 ordered links and one Market Brief aggregator
+ok 10 - Canary: five browser publishers four headless reads and RLAPP statuses preserve semantics
+ok 11 - Regression: SCN-002-004 all 22 source reads reach one truthful validated brief outcome
+ok 12 - Regression: SCN-002-005 unchanged and duplicate work creates no author prose event or cost churn
+ok 13 - Regression: SCN-002-006 recommendation lifecycle preserves prior terms merges origins and exposes conflicts
+# tests 13
+# suites 0
+# pass 13
+# fail 0
+# cancelled 0
+# skipped 0
+EXIT=0
+```
+
+```text
+$ node scripts/selftest.mjs                                               # TP-06-12
+  ✓ Feature 009 refresh failure with no prior accepted quote reports refresh-failed with a null spot and never resurrects a value
+
+================================================
+Research-Lab self-test: 968 passed, 0 failed
+================================================
+EXIT=0
+```
+
+**Claim Source:** executed.
 ## Uncertainty Declarations
 
 None. Every DoD item is backed by a directly executed command whose output proves the specific claim.

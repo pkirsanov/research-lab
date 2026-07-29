@@ -23,6 +23,7 @@
  * exhaustively by TP-05-01/TP-05-02; this surface proves the shell BRIDGE decision).
  */
 import assert from 'node:assert/strict';
+import { readFileSync } from 'node:fs';
 import { createRequire } from 'node:module';
 import test from 'node:test';
 import { loadProductionApi, readJson } from './tool-experience.support.mjs';
@@ -357,3 +358,151 @@ test('leaving Simple altogether also settles the queued run without painting', a
     harness.restore();
   }
 });
+
+/* ────────────────────────────────────────────────────────────────────────────
+   TP-15-01's two remaining declared halves: `ownerModes` resolution, and no
+   forbidden authority.
+
+   DEFENCE IN DEPTH, NOT DUPLICATION. The TP-15-07 selftest canaries prove these
+   same two facts at the DEPLOYED-SOURCE level — across every shipped page and
+   every wired tool, in the fast broad gate. The two tests below prove them at the
+   UNIT/API level: the gate expression is executed here against the production view
+   vocabulary, and the authority contract is read off a runtime this file builds
+   and registers through the PUBLIC API — the surface a caller actually gets. A
+   regression that breaks only one of those levels is still caught.
+
+   NOTHING BELOW RESTATES A CONSTANT. The gate is rlapp.js's OWN ternary, sliced
+   verbatim out of the deployed source and EXECUTED; the mode vocabulary is read
+   from the production experience config; the authority flags are the runtime's
+   OWN diagnostic. Flip the gate or grant a flag in production and these fail.
+   ──────────────────────────────────────────────────────────────────────────── */
+
+/* rlapp.js's OWN ownerModes ternary, extracted verbatim and compiled — never a copy. */
+function productionOwnerModesResolver() {
+  const appSrc = readFileSync(new URL('../rlapp.js', import.meta.url), 'utf8');
+  const start = appSrc.indexOf('ownerModes: resolved.value.kind');
+  assert.ok(start >= 0, 'rlapp.js must still declare the ownerModes gate this contract is derived from');
+  const expression = appSrc.slice(start + 'ownerModes:'.length, appSrc.indexOf('\n        };', start)).trim();
+  assert.ok(expression.length > 0, 'the ownerModes expression must be extractable from rlapp.js');
+  assert.match(expression, /__rlOwnerStateProvider/, 'the extracted expression must be the real provider-gated rule, not unrelated source');
+  return { expression, resolve: Function('resolved', 'root', 'toolId', 'return (' + expression + ');') };
+}
+
+/* The mode vocabulary, read from the production experience config: the generic
+   ordinary view set is the one bound to no particular tool; the brief-only set is
+   the one bound to a named registry tool. */
+function productionViewSets() {
+  const config = readJson('tool-experience.config.json');
+  const sets = Object.keys(config.viewSets).map((viewSetId) => config.viewSets[viewSetId]);
+  const ordinary = sets.find((viewSet) => viewSet.registryToolId === null);
+  const briefOnly = sets.find((viewSet) => typeof viewSet.registryToolId === 'string' && viewSet.registryToolId.length > 0);
+  assert.ok(ordinary, 'the production config must declare a generic ordinary view set (registryToolId null)');
+  assert.ok(briefOnly, 'the production config must declare a tool-bound brief-only view set');
+  return { ordinary, briefOnly };
+}
+
+test('ownerModes resolution: provider wiring hands Simple to the adapter panel and never regresses an unwired tool', () => {
+  const { expression, resolve } = productionOwnerModesResolver();
+  const { ordinary, briefOnly } = productionViewSets();
+  assert.ok(expression.includes(JSON.stringify(ordinary.kind)), `the extracted gate must branch on the config-declared ordinary kind "${ordinary.kind}"`);
+
+  // The uniform owner-state provider seam a wired page installs; an unwired page has no such root.
+  const wiredRoot = { __rlOwnerStateProvider: { [TOOL_ID]: () => realOwnerState() } };
+  const briefToolId = briefOnly.registryToolId;
+
+  const wired = resolve({ value: { kind: ordinary.kind } }, wiredRoot, TOOL_ID);
+  const unwired = resolve({ value: { kind: ordinary.kind } }, {}, TOOL_ID);
+  const brief = resolve({ value: { kind: briefOnly.kind } }, { __rlOwnerStateProvider: { [briefToolId]: () => null } }, briefToolId);
+
+  // No invented mode: every resolved mode is a view id its own view set declares.
+  for (const mode of [...wired, ...unwired]) assert.ok(ordinary.viewIds.includes(mode), `ordinary ownerModes may only contain declared ordinary view ids (saw "${mode}")`);
+  for (const mode of brief) assert.ok(briefOnly.viewIds.includes(mode), `brief-only ownerModes may only contain declared brief view ids (saw "${mode}")`);
+
+  // The contract, derived rather than restated: wiring removes exactly the ordinary
+  // set's default view (the tool's native Simple) so the shell adapter panel takes it
+  // over, and changes nothing else. An unwired tool keeps it — the no-regression half.
+  assert.ok(unwired.includes(ordinary.defaultViewId), `an unwired ordinary tool must keep its native "${ordinary.defaultViewId}" view — losing it is the Model B regression this gate exists to prevent`);
+  assert.ok(!wired.includes(ordinary.defaultViewId), `a provider-wired ordinary tool must hand "${ordinary.defaultViewId}" to the adapter panel`);
+  assert.deepEqual(wired, unwired.filter((mode) => mode !== ordinary.defaultViewId), 'wiring must remove exactly the default view and nothing else');
+  assert.deepEqual(brief, [briefOnly.defaultViewId], 'a brief-only tool resolves to its view set\u2019s default view alone');
+
+  // The concrete shapes TP-15-01 declares, checked against the production ternary's
+  // EXECUTED output above — the values come from running rlapp.js, not from a copy.
+  assert.deepEqual(wired, ['power'], 'a provider-wired ordinary tool resolves to ["power"]');
+  assert.deepEqual(unwired, ['simple', 'power'], 'an unwired ordinary tool resolves to ["simple","power"]');
+  assert.deepEqual(brief, ['brief'], 'a brief-only tool resolves to ["brief"]');
+});
+
+/* Record-only accessors over the global authority surfaces a browser bridge could
+   reach. They never block — the assertion is that the production path touches none. */
+function trapGlobalAuthority(names, touches) {
+  const saved = names.map((name) => ({ name, descriptor: Object.getOwnPropertyDescriptor(globalThis, name) }));
+  const untrappable = saved.filter((entry) => entry.descriptor && entry.descriptor.configurable === false).map((entry) => entry.name);
+  // Asserted BEFORE anything is installed, so a failure here cannot leave globals trapped.
+  assert.deepEqual(untrappable, [], `every declared authority surface must be observable (untrappable: ${untrappable.join(', ')})`);
+  for (const entry of saved) {
+    const original = entry.descriptor && Object.prototype.hasOwnProperty.call(entry.descriptor, 'value') ? entry.descriptor.value : undefined;
+    Object.defineProperty(globalThis, entry.name, {
+      configurable: true,
+      get() { touches.push(entry.name); return original; },
+      set() { touches.push(entry.name + ' (write)'); }
+    });
+  }
+  return () => {
+    for (const entry of saved) {
+      delete globalThis[entry.name];
+      if (entry.descriptor) Object.defineProperty(globalThis, entry.name, entry.descriptor);
+    }
+  };
+}
+
+test('no forbidden authority: the runtime declares none, and running the real bridge touches no network, provider, storage or cookie surface', async () => {
+  const api = loadProductionApi();
+  const config = readJson('tool-experience.config.json');
+  const definition = breadthDefinition();
+
+  /* Declared half — the runtime's OWN diagnostic, read after a REAL adapter
+     registration through the public API (the same runtime+registrar pair the
+     bridge builds internally). */
+  const created = api.createSimpleRuntime(config, { contractVersion: 'simple-model-registry/v1', definitions: [definition] });
+  assert.equal(created.ok, true, 'the production runtime must be constructible through the public API');
+  const runtime = created.value;
+  const registered = loadMarketStructure()[REGISTER_FN](runtime, api, [definition], { rlvol: globalThis.RLVOL });
+  assert.equal(registered && registered[ADAPTER_ID] && registered[ADAPTER_ID].ok, true, 'the real registrar must register the declared adapter id before the authority contract is read');
+  assert.equal(runtime.diagnostic().value.registeredAdapterCount, 1, 'the diagnostic must be read from a runtime that actually has the adapter registered');
+
+  const authority = runtime.diagnostic().value.authority;
+  const flags = Object.keys(authority || {});
+  assert.ok(flags.length > 0, 'the runtime must publish a non-empty authority contract — an empty one would pass "all false" vacuously');
+  for (const domain of ['network', 'provider', 'storage']) {
+    assert.ok(flags.includes(domain), `the authority contract must still declare a "${domain}" flag — deleting it would let "all false" pass vacuously`);
+  }
+  assert.deepEqual(
+    flags.filter((flag) => authority[flag] !== false),
+    [],
+    'the runtime must own no authority after adapter registration (every declared flag must be false)'
+  );
+
+  /* Behavioural half — the declaration must be true of the executed path. Covers the
+     cookie surface the diagnostic has no flag for, and catches an authority grant a
+     source-token scan would miss. */
+  const touches = [];
+  const harness = makeHarness();
+  Object.defineProperty(harness.documentRef, 'cookie', {
+    configurable: true,
+    get() { touches.push('document.cookie'); return ''; },
+    set() { touches.push('document.cookie (write)'); }
+  });
+  const restoreGlobals = trapGlobalAuthority(['fetch', 'XMLHttpRequest', 'localStorage', 'sessionStorage', 'indexedDB', 'RLDATA'], touches);
+  let projection = null;
+  try {
+    projection = await api.renderSimpleBridge(baseOptions({ panel: harness.panel, api }));
+  } finally {
+    restoreGlobals();
+  }
+
+  assert.equal(projection.state, 'ready', 'the authority check must observe the full ready path, not an early unavailable return');
+  assert.deepEqual(touches, [], `the production bridge must perform local compute only (touched: ${touches.join(', ') || 'none'})`);
+  assert.deepEqual(harness.bodyClassOps, [], 'the bridge must not mutate body.classList while under authority observation');
+});
+

@@ -3589,5 +3589,140 @@ Because both remaining blocks are real (one genuine open gap, one framework defe
 
 **Claim Source:** executed
 
+---
+
+## Spec Review (bubbles.spec-review)
+
+**Date:** 2026-07-29
+**Agent:** `bubbles.spec-review`
+**Scope reviewed:** `spec.md`, `design.md`, `scopes.md`, `scopes/_index.md`, all ten `scopes/*/scope.md`,
+`scenario-manifest.json`, `test-plan.json`, against the working tree at `~/research-lab`.
+**Phase context:** `full-delivery` declares `specReviewDefault: once-before-implement`. This phase was
+never executed at that point; it is being run late rather than skipped or opted out.
+
+### Trust Classification: **MINOR_DRIFT**
+
+> Spec is usable but verify specific details against code. Flag for spec update when convenient.
+
+`design.md` — the design authority — is **fully current** and carries **zero** stale dated numerics.
+Every architectural decision, contract, file reference, and scenario linkage resolves against the live
+implementation. The drift is confined to `spec.md` and consists of **one stale numeric constant repeated
+across eight normative clauses** plus **two stale self-status sentences**. No design decision has shifted,
+so this is deliberately **not** classified `MAJOR_DRIFT`: telling a downstream agent "do not rely on the
+spec for design decisions" would be wrong advice here.
+
+### Baseline verified (not assumed)
+
+| Check | Command | Bare exit / value |
+| --- | --- | --- |
+| Artifact lint | `artifact-lint.sh <spec>` | `0` |
+| Transition guard | `state-transition-guard.sh <spec>` | `0`, `0` blocks |
+| DoD | `grep -h '^- \[x\]' scopes/*/scope.md` | 206 checked / 0 unchecked |
+| Status | `state.json` | `in_progress` / cert `in_progress` |
+| Repo selftest | `node scripts/selftest.mjs` | `0` — 968 passed, 0 failed |
+
+### Findings
+
+#### SR-F1 — `spec.md` hardcodes the legacy migration corpus at literal `26` rows (MINOR, stale normative constant)
+
+The legacy corpus is **102 rows / 2,225,761 bytes** today. `market-brief` appends up to 4×/day, so the
+count is a moving target by design. `spec.md` still fixes it at `26` in clauses that are **normative**,
+not descriptive:
+
+| `spec.md` line | Clause | Text |
+| --- | --- | --- |
+| `spec.md:57` | Goals | "Migrate the existing 26-row `brief-history.jsonl` corpus" |
+| `spec.md:359` | UC-007 preconditions | "The 26-row legacy history … available read-only" |
+| `spec.md:367` | UC-007 postconditions | "All 26 source rows are accounted for" |
+| `spec.md:487` | **FR-050** | "Migration must account for all 26 legacy `brief-history.jsonl` rows" |
+| `spec.md:754` | BS-002-014 title | "The 26-row legacy history is migrated" |
+| `spec.md:757` | BS-002-014 Then | "Then all 26 rows are accounted for in run history" |
+| `spec.md:1111` | Migration Contract 2 | "Parse each of the 26 rows independently" |
+| `spec.md:1116` | Migration Contract 7 | "preserving all 26 run occurrences" |
+| `spec.md:1118` | Migration Contract 9 | "Prove parity for 26 source rows" |
+| `spec.md:1181` | **AC-014** | "Migration accounts for all 26 source rows" |
+
+**The implementation is correct; the spec clause is stale.** `scripts/migrate-brief-history.mjs:6`
+states the corpus size is read "from the live file at run time — never a fixed literal such as 26 or 55",
+and `scripts/migrate-brief-history.mjs:142` sets `rowCount: rows.length, // DERIVED from the live file —
+never a fixed literal.` Executed against the real corpus, `node scripts/migrate-brief-history.mjs --check`
+exits `0` and reports `rowCount` 102, `byteLength` 2225761, `bytesUnchanged: true`.
+
+**This divergence is already known and was deliberate.** Commit `d2e39992` ("spec(002): reconcile Scope 07
+history-corpus drift (26 -> derive-from-actual)") converted 9 migration-count spots in `design.md`, plus
+scope-07/scope-10, `_index.md`, `report.md`, `uservalidation.md`, `scenario-manifest.json` and
+`test-plan.json`, to derive-from-actual — and recorded "Frozen intentionally: spec.md dated 26-row/194,012-byte
+snapshot, state.json". Verified isolation: `design.md`, `scopes/07-…/scope.md`, `scopes/_index.md`,
+`scenario-manifest.json` and `uservalidation.md` each now contain **zero** `26` references. The governing
+rule is already stated at `scopes.md:9`: "no executable scope or test may require a stale literal
+participant/source count."
+
+**Why it still matters:** FR-050 and AC-014 are a requirement and an acceptance criterion, not dated
+evidence. A maintenance agent reading either literally would conclude the shipped migration violates the
+spec. Every artifact an implementer actually executes against is correct, so this is a documentation
+freshness defect, not a behavioral one.
+
+**Not actioned here** — `spec.md` is `bubbles.analyst`-owned; spec-review is read-only. Recommended
+remedy: restate the eight normative clauses as "all rows present in the frozen legacy corpus at migration
+time (derived, not literal)", matching `design.md`, and leave the dated-snapshot mentions untouched.
+
+#### SR-F2 — `spec.md` still declares the feature and all ten scopes `not_started` (MINOR, stale self-status)
+
+- `spec.md:1136`: "… Feature 002 remains `not_started`, so reconciling its active business truth before
+  implementation is safer than splitting one coherent run contract across two specs."
+- `spec.md:1138`: "Feature 002 and all ten scopes remain `not_started`; implementation and certification
+  have not begun."
+
+Contradicted by the live artifacts: `scopes/_index.md:42-51` lists all ten scopes `Done`; each
+`scopes/*/scope.md` carries `**Status:** Done`; `state.json` is `in_progress` with 206/206 DoD items
+checked and 21 recorded phase claims. Both sentences sit in the `## Amendment Ownership Decision` section,
+which was written pre-implementation and never revisited.
+
+**Not actioned here** — same ownership boundary as SR-F1. Recommended remedy: rewrite the two sentences to
+reflect delivered-but-uncertified state, or scope them explicitly as "at the time this amendment was
+authored".
+
+### Examined and found clean (no drift)
+
+| Technique | Result |
+| --- | --- |
+| **File existence** | 80/80 distinct repo paths referenced in `design.md` exist. The two initial "missing" hits (`history-current.json`, `spec.md`) were false positives from path-prefix stripping in a tree diagram; both resolve (`briefs/history-current.json` exists). |
+| **Contract alignment** | 53 backticked `Name/vN` identifiers in `design.md`. 19 resolve through the repo's PascalCase-type → kebab-case-wire convention (e.g. `SessionObservation/v1` → `session-observation/v1` in `rlsession.js`). The remaining 9 (`Recommendation/v1`, `BriefValidationResult/v1`, `XNYSCalendar/v1`, `canonical-json/v1`, `BriefingRegistryEntry/v1`, `ReportSourceAdapter/v1`, `bls-cpi-request/v1`, `bls-cpi-schedule/v1`, `BriefHistoryPointer/v1`) are design-level type names for shapes that **are** implemented — spot-verified: `XNYSCalendar/v1` → `data/calendars/xnys/` + `scripts/generate-xnys-calendar.mjs`; `canonical-json/v1` → `stableStringify` in `brief-publication.mjs:30`, `brief-author.mjs:80`, `brief-distributed-publish.mjs:63`; `BriefingRegistryEntry/v1` → the `briefing` block on all 23 `tools.json` entries. |
+| **Behavioral / scenario linkage** | 28/28 `scenario-manifest.json` scenarios resolve to a linked test file that exists on disk. 0 missing. |
+| **FR-002 compliance** | All 23 `tools.json` entries declare exactly one `briefing.role` **and** one `briefing.profile`. 0 entries missing either. |
+| **Registry auto-discovery (FR-010 / UC-008)** | Registry grew 18 → 23 since the spec's snapshot. All five new entries (`company-fundamentals-lab`, `ocean-shores-rental-market-lab`, `palm-springs-rental-market-lab`, `technical-analysis-decision-lab`, `volatility-sizing-lab`) carry valid profiles/adapters with no spec edit — this is the designed behavior working, not drift. |
+| **Dated-snapshot claims** | `spec.md:5,85,986,996,1023,1227` cite the 2026-07-12/07-14 baselines (26 rows/194,012 B; payload 85,544 B; snapshot 37,140 B; 18 entries; five publishers). Live values are 102 rows/2,225,761 B, 165,433 B, 45,847 B, 23 entries. These are explicitly self-labelled dated evidence — `spec.md:5` states "Those counts describe the observed snapshot; they are not a fixed participant inventory" — so they are **correct as written** and are not counted as drift. |
+| **Cross-feature claim** | `spec.md:1228` asserts spec 001 "remains `not_started`". Verified still true: `specs/001-causal-rotation-intelligence/state.json` is `not_started`, and no causal entry exists in `tools.json`. FR-087 holds. |
+| **Redundancy / superseded truth** | No duplicated active scope inventory. `scopes.md` is an explicit 9-line compatibility pointer to `scopes/_index.md`, and the superseded five-scope plan is quarantined in `test-plan.json` under `supersededScopes` with `doNotExecute: true`. |
+
+### Known-recorded items — confirmed truthfully described, not re-litigated
+
+1. **GAP-F1 (Scope 10 cutover deliberately not flipped) — artifacts are truthful.** Both cited source
+   comments exist verbatim: `scripts/validate-distributed-briefs.mjs:114-117` ("the deterministic
+   activation deliberately keeps market-brief.* as the legacy narrative, so the graph is legitimately
+   published without pointer-bound root projections") and `scripts/brief-refresh.mjs:1271-1277`
+   (`--distributed-run` "is implemented and test-proven but not live-wired yet (Scope 10 cutover)").
+   Reproduced live this phase: `validate-distributed-briefs.mjs --root . --graph-only` exits `0`
+   (the owned `briefs/` graph is valid), while default mode exits `1` with
+   `reason: "compat-projection-run-mismatch"`, `detail: "market-brief.payload.json"` — exactly the state
+   `report.md:1537` and the Validate phase record. The spec artifacts describe this honestly; no drift.
+2. **SCN-002-015 amendment (`8c222084`) — landed correctly.** The manifest entry now reads "Preserve
+   accessibility responsive safety compatibility and registry auto-discovery" with no pointer/projection
+   run-coherence clause, matching the property `scenario-manifest.json` actually defines. Commit exists.
+3. **TP-08-10 stress coverage (`e3e03ef3`) — present.** Carried as `planItemId: "TP-08-10"` at
+   `test-plan.json:1234`, with the DoD item at
+   `scopes/08-window-aware-final-aggregation/scope.md:111` and the test file
+   `tests/distributed-briefs.final-budget.stress.mjs`. Commit exists and touched exactly those four paths.
+
+### Handoff (advisory — no auto-dispatch)
+
+Trust level `MINOR_DRIFT` does **not** trigger the mandatory `MAJOR_DRIFT`/`OBSOLETE` routing, so no
+`route_required` packet is emitted and `bubbles.docs` was **not** invoked. SR-F1 and SR-F2 are recorded
+here for `bubbles.analyst` to fold into the next `spec.md` revision. Neither blocks certification; neither
+is a behavioral defect. Certification remains validate-owned and blocked by GAP-F1 and the FW-01 framework
+false positive already recorded above — this review changes nothing about that.
+
+**Claim Source:** executed
+
 
 

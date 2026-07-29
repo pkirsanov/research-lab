@@ -323,9 +323,15 @@
 
     <!-- SIMPLE cockpit -->
     <div id="simpleWrap">
-        <div class="panel simple-only">
-            <div class="verdict" id="verdict">—</div>
-            <div class="vsub" id="verdictSub">Reading the map…</div>
+        <!-- BUG-004 F-BUG004-C: .simple-only scopes the Simple-only VERDICT COPY, never the
+             native levers. Power replaces the verdict with its own richer diagnostics, but it
+             still has to steer the treemap, so #winSeg/#sizeSeg/#grpSeg live outside the
+             Power-hidden block. Marking the whole panel .simple-only hid all three. -->
+        <div class="panel">
+            <div class="simple-only">
+                <div class="verdict" id="verdict">—</div>
+                <div class="vsub" id="verdictSub">Reading the map…</div>
+            </div>
             <div class="levers">
                 <div class="ctl"><span class="lbl">Color</span>
                     <div class="seg" id="winSeg" aria-label="Color window">
@@ -908,8 +914,30 @@
             function yieldToInteraction() {
                 return new Promise(function (resolve) { window.setTimeout(resolve, 0); });
             }
+            /* THE single terminal-hydration boundary (BUG-004 F-BUG004-A). Every path that
+               ends an acquisition cycle — the settled fetch and the last-resort boot failure —
+               finishes here, so the "ready" marker and the owner-readiness notification are
+               emitted from one place and can never drift apart. Order is fixed: settle, paint,
+               mark, then notify, because the shared bridge rereads this page's provider the
+               moment it is told, and it must see fully-settled owner state.
+               A boot failure still reaches here: "ready" means the attempt is TERMINAL, not
+               that a model result exists — the bridge then paints its honest unavailable. */
+            function markHydrationTerminal() {
+                HYDRATION.active = false;
+                try { render(); }
+                catch (e) { try { localStorage.removeItem("rlData"); } catch (_) { } try { render(); } catch (_) { } }
+                document.body.setAttribute("data-heatmap-hydration", "ready");
+                /* Owner state just became readable. This states a fact about THIS tool; the
+                   shared bridge owns whether to act on it. It recomputes over evidence already
+                   loaded — no acquisition is started here or there. */
+                if (window.RLEXPERIENCE && typeof RLEXPERIENCE.requestSimpleRefresh === "function") {
+                    RLEXPERIENCE.requestSimpleRefresh({ toolId: "market-heatmap-lab" });
+                }
+            }
             function fetchDelta() {
-                if (!window.RLDATA || !RLDATA.ensureBars) return Promise.resolve();
+                /* No acquisition is possible, so this cycle is already terminal — go through the
+                   same boundary rather than leaving the marker stuck on "loading" forever. */
+                if (!window.RLDATA || !RLDATA.ensureBars) { markHydrationTerminal(); return Promise.resolve(); }
                 var syms = symList(), i = 0;
                 HYDRATION = { done: 0, total: syms.length, active: true };
                 document.body.setAttribute("data-heatmap-hydration", "loading");
@@ -927,11 +955,7 @@
                 }
                 var running = [];
                 for (var w = 0; w < Math.min(CONCURRENCY, syms.length); w++) running.push(worker());
-                return Promise.all(running).then(function () {
-                    HYDRATION.active = false;
-                    render();
-                    document.body.setAttribute("data-heatmap-hydration", "ready");
-                });
+                return Promise.all(running).then(markHydrationTerminal);
             }
 
             /* ═══════ wiring ═══════ */
@@ -991,10 +1015,11 @@
                     try { render(); }
                     catch (e) { try { localStorage.removeItem("rlData"); } catch (_) { } try { render(); } catch (_) { } }
                 }).catch(function () {
-                    /* last-resort: never leave the tool wedged on a rejected boot chain — drop cache and repaint */
+                    /* last-resort: never leave the tool wedged on a rejected boot chain — drop cache,
+                       then close the cycle through the ONE terminal boundary so this path marks ready
+                       and notifies exactly like the settled path. */
                     try { localStorage.removeItem("rlData"); } catch (_) { }
-                    try { render(); } catch (_) { }
-                    document.body.setAttribute("data-heatmap-hydration", "ready");
+                    markHydrationTerminal();
                 });
             }
             if (document.readyState === "loading") document.addEventListener("DOMContentLoaded", boot); else boot();

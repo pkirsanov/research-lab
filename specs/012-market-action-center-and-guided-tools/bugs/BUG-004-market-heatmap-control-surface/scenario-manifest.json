@@ -1,0 +1,226 @@
+{
+  "schemaVersion": 1,
+  "version": 1,
+  "spec": "BUG-004",
+  "featureDir": "specs/012-market-action-center-and-guided-tools/bugs/BUG-004-market-heatmap-control-surface",
+  "generatedAt": "2026-07-29T16:59:52Z",
+  "generatedBy": "bubbles.plan",
+  "planningStatus": "approved-design-plan-reconciled-runtime-not-run",
+  "implementationGate": {
+    "dispatchAllowed": true,
+    "nextOwner": "bubbles.implement",
+    "requiredPersistentTests": ["TP-B004-06", "TP-B004-07", "TP-B004-08"],
+    "redMustPrecedeImplementationAcceptance": true,
+    "activeWorktreeMustRemainUntouchedForRed": true,
+    "deploymentProven": false,
+    "preservedCommit": "2f65a02a"
+  },
+  "scenarios": [
+    {
+      "id": "SCN-B004-A",
+      "scenarioId": "SCN-B004-A",
+      "scopeRef": "SCOPE-01",
+      "scope": "SCOPE-01-restore-automatic-simple-readiness-and-both-control-surfaces",
+      "title": "Direct Simple cold-open requalifies after owner hydration",
+      "behaviorClass": "ui-owner-readiness",
+      "changeType": "bugfix",
+      "findingIds": ["F-BUG004-A", "F-BUG004-D"],
+      "requiredTestType": "e2e-ui",
+      "requiredTestTypes": ["e2e-ui", "integration"],
+      "regressionRequired": true,
+      "lockdown": { "state": "unlocked" },
+      "testPlanIds": ["TP-B004-06", "TP-B004-09"],
+      "linkedTests": [
+        {
+          "testPlanId": "TP-B004-06",
+          "testPath": "tests/market-heatmap-control-surface.spec.mjs",
+          "testTitle": "BUG-004 SCN-B004-A: direct Simple cold-open requalifies after owner hydration without a mode change",
+          "category": "e2e-ui"
+        },
+        {
+          "testPlanId": "TP-B004-09",
+          "testPath": "tests/simple-production-bridge.integration.mjs",
+          "testTitle": "TP-15-02 the production bridge reaches the SAME projection as the explicit runtime path for every module-backed wired tool (and the honest generic unavailable where the module is deliberately absent)",
+          "category": "integration"
+        }
+      ],
+      "plannedRegressions": [
+        {
+          "testPath": "tests/market-heatmap-control-surface.spec.mjs",
+          "testTitle": "BUG-004 SCN-B004-A: direct Simple cold-open requalifies after owner hydration without a mode change",
+          "command": "npx --no-install playwright test tests/market-heatmap-control-surface.spec.mjs --config=playwright.config.mjs --project=system-chrome --grep \"^BUG-004 SCN-B004-A: direct Simple cold-open requalifies after owner hydration without a mode change$\" --reporter=list",
+          "adversarial": true,
+          "liveSystem": true,
+          "classification": "e2e-ui real local page and same-origin static server with request and view-event observation only",
+          "requestInterceptionAllowed": false,
+          "serviceWorkerAllowed": false,
+          "redBaselineRevision": "2f65a02a",
+          "discriminator": "The test never leaves Simple. Production accepts the terminal owner snapshot, so a panel that remains unavailable is stale rather than honestly insufficient."
+        }
+      ],
+      "expectedAssertions": [
+        "the initial Simple projection is honestly unavailable",
+        "terminal hydration reaches 135 priced constituents",
+        "the panel becomes ready automatically without a mode change",
+        "the adapter is simple-adapter/market-breadth/v1",
+        "the current shell view remains Simple"
+      ],
+      "evidenceRefs": ["report.md#planned-verification-evidence", "scopes.md#red-first-sequence"]
+    },
+    {
+      "id": "SCN-B004-B",
+      "scenarioId": "SCN-B004-B",
+      "scopeRef": "SCOPE-01",
+      "scope": "SCOPE-01-restore-automatic-simple-readiness-and-both-control-surfaces",
+      "title": "Ready Simple applies all five production registry controls",
+      "behaviorClass": "ui-production-model-controls",
+      "changeType": "bugfix",
+      "findingIds": ["F-BUG004-B"],
+      "requiredTestType": "e2e-ui",
+      "requiredTestTypes": ["e2e-ui", "integration", "functional"],
+      "regressionRequired": true,
+      "lockdown": { "state": "unlocked" },
+      "testPlanIds": ["TP-B004-07", "TP-B004-10", "TP-B004-11"],
+      "linkedTests": [
+        {
+          "testPlanId": "TP-B004-07",
+          "testPath": "tests/market-heatmap-control-surface.spec.mjs",
+          "testTitle": "BUG-004 SCN-B004-B: ready Simple applies all five registry controls with owner parity and zero post-hydration requests",
+          "category": "e2e-ui"
+        },
+        {
+          "testPlanId": "TP-B004-10",
+          "testPath": "tests/simple-production-wiring.spec.mjs",
+          "testTitle": "TP-15-03 market-heatmap Simple renders real steerable controls and actuating one recomputes the production projection with no refetch",
+          "category": "e2e-ui"
+        }
+      ],
+      "plannedRegressions": [
+        {
+          "testPath": "tests/market-heatmap-control-surface.spec.mjs",
+          "testTitle": "BUG-004 SCN-B004-B: ready Simple applies all five registry controls with owner parity and zero post-hydration requests",
+          "command": "npx --no-install playwright test tests/market-heatmap-control-surface.spec.mjs --config=playwright.config.mjs --project=system-chrome --grep \"^BUG-004 SCN-B004-B: ready Simple applies all five registry controls with owner parity and zero post-hydration requests$\" --reporter=list",
+          "adversarial": true,
+          "liveSystem": true,
+          "classification": "e2e-ui real local page and same-origin static server with request observation only",
+          "requestInterceptionAllowed": false,
+          "serviceWorkerAllowed": false,
+          "redBaselineRevision": "31ea9942",
+          "deploymentClaimAllowedFromLocalRed": false,
+          "discriminator": "The control set is registry-derived and every declared control must be actuated. Each rendered projection is compared with production runtime output over the same owner snapshot, so static relabeling or testing only window cannot pass."
+        }
+      ],
+      "expectedAssertions": [
+        "window, grouping, size-metric, breadth-threshold, and outlier-sigma each expose their registry-declared accessible control",
+        "every declared control changes its model input and rendered production projection",
+        "each result equals production runtime output over the same owner snapshot",
+        "the request ledger remains empty after hydration",
+        "local commit 2f65a02a is preserved without a deployment claim"
+      ],
+      "evidenceRefs": ["report.md#planned-verification-evidence", "scopes.md#ui-scenario-matrix"]
+    },
+    {
+      "id": "SCN-B004-C",
+      "scenarioId": "SCN-B004-C",
+      "scopeRef": "SCOPE-01",
+      "scope": "SCOPE-01-restore-automatic-simple-readiness-and-both-control-surfaces",
+      "title": "Direct Power applies the existing native treemap controls",
+      "behaviorClass": "ui-native-power-controls",
+      "changeType": "bugfix",
+      "findingIds": ["F-BUG004-C", "F-BUG004-E"],
+      "requiredTestType": "e2e-ui",
+      "requiredTestTypes": ["e2e-ui", "functional"],
+      "regressionRequired": true,
+      "lockdown": { "state": "unlocked" },
+      "testPlanIds": ["TP-B004-08", "TP-B004-11"],
+      "linkedTests": [
+        {
+          "testPlanId": "TP-B004-08",
+          "testPath": "tests/market-heatmap-control-surface.spec.mjs",
+          "testTitle": "BUG-004 SCN-B004-C: direct Power applies native treemap controls with zero post-hydration requests",
+          "category": "e2e-ui"
+        }
+      ],
+      "plannedRegressions": [
+        {
+          "testPath": "tests/market-heatmap-control-surface.spec.mjs",
+          "testTitle": "BUG-004 SCN-B004-C: direct Power applies native treemap controls with zero post-hydration requests",
+          "command": "npx --no-install playwright test tests/market-heatmap-control-surface.spec.mjs --config=playwright.config.mjs --project=system-chrome --grep \"^BUG-004 SCN-B004-C: direct Power applies native treemap controls with zero post-hydration requests$\" --reporter=list",
+          "adversarial": true,
+          "liveSystem": true,
+          "classification": "e2e-ui real local page and same-origin static server with request observation only",
+          "requestInterceptionAllowed": false,
+          "serviceWorkerAllowed": false,
+          "redBaselineRevision": "2f65a02a",
+          "discriminator": "The page opens directly in Power. Each existing control needs a layout box, keyboard activation, selected-state change, owned output change, and an empty request ledger including grouping."
+        }
+      ],
+      "expectedAssertions": [
+        "winSeg, sizeSeg, and grpSeg are visible in the existing Map panel",
+        "each control is keyboard-operable",
+        "each selected state changes to the actuated value",
+        "each owned treemap or table interpretation visibly changes",
+        "grouping performs no fetch and the complete post-hydration request ledger remains empty"
+      ],
+      "evidenceRefs": ["report.md#planned-verification-evidence", "scopes.md#change-boundary"]
+    },
+    {
+      "id": "SCN-B004-D",
+      "scenarioId": "SCN-B004-D",
+      "scopeRef": "SCOPE-01",
+      "scope": "SCOPE-01-restore-automatic-simple-readiness-and-both-control-surfaces",
+      "title": "Shared refresh and owner reuse are bounded and latest-result-wins",
+      "behaviorClass": "shared-bridge-lifecycle-and-owner-parity",
+      "changeType": "bugfix",
+      "findingIds": ["F-BUG004-A", "F-BUG004-B", "F-BUG004-C"],
+      "requiredTestType": "unit",
+      "requiredTestTypes": ["unit", "integration", "e2e-ui"],
+      "regressionRequired": true,
+      "lockdown": { "state": "unlocked" },
+      "testPlanIds": ["TP-B004-01", "TP-B004-02", "TP-B004-03", "TP-B004-04", "TP-B004-05", "TP-B004-07", "TP-B004-08", "TP-B004-09", "TP-B004-10"],
+      "linkedTests": [
+        {
+          "testPlanId": "TP-B004-01",
+          "testPath": "tests/simple-production-bridge.unit.mjs",
+          "testTitle": "requestSimpleRefresh filters wrong tool, non-Simple, non-ordinary, and invalidates work when leaving Simple",
+          "category": "unit"
+        },
+        {
+          "testPlanId": "TP-B004-02",
+          "testPath": "tests/simple-production-bridge.unit.mjs",
+          "testTitle": "requestSimpleRefresh coalesces pre-start duplicates and retains only the latest pending successor",
+          "category": "unit"
+        },
+        {
+          "testPlanId": "TP-B004-03",
+          "testPath": "tests/simple-production-bridge.unit.mjs",
+          "testTitle": "requestSimpleRefresh commits only the latest generation and preserves current-generation control ordering",
+          "category": "unit"
+        },
+        {
+          "testPlanId": "TP-B004-04",
+          "testPath": "tests/simple-production-bridge.unit.mjs",
+          "testTitle": "requestSimpleRefresh renders current failure unavailable and suppresses stale failure",
+          "category": "unit"
+        },
+        {
+          "testPlanId": "TP-B004-09",
+          "testPath": "tests/simple-production-bridge.integration.mjs",
+          "testTitle": "TP-15-02 owner parity: every wired tool's Simple facts EQUAL the owner/Power-path values",
+          "category": "integration"
+        }
+      ],
+      "expectedAssertions": [
+        "only the exact current ordinary tool in current Simple reads its provider",
+        "pre-start duplicates coalesce into one provider read",
+        "one active run retains only the latest pending successor",
+        "stale ready and unavailable completions perform no panel mutation",
+        "current controls remain ordered by runSequence",
+        "one boot union serves sector and constituent grouping",
+        "all Simple and Power levers reuse owner evidence and emit no acquisition request",
+        "the coordinator has no network, storage, cookie, beacon, publication, author, or focus-class authority"
+      ],
+      "evidenceRefs": ["report.md#planned-verification-evidence", "scopes.md#shared-infrastructure-impact-sweep", "scopes.md#rollback-and-restore-proof"]
+    }
+  ]
+}

@@ -1,0 +1,412 @@
+{
+  "version": 3,
+  "featureDir": "specs/012-market-action-center-and-guided-tools/bugs/BUG-004-market-heatmap-control-surface",
+  "featureName": "BUG-004 Market Heatmap Control Surface",
+  "createdAt": "2026-07-29T15:42:55Z",
+  "lastUpdatedAt": "2026-07-29T17:15:54Z",
+  "completedAt": null,
+  "status": "in_progress",
+  "blockedReason": null,
+  "workflowMode": "bugfix-fastlane",
+  "linkedImplementationSpec": "specs/012-market-action-center-and-guided-tools",
+  "requiresRevalidation": true,
+  "flagsIntroduced": [],
+  "completedScopes": [],
+  "completedPhases": [],
+  "execution": {
+    "activeAgent": "bubbles.plan",
+    "currentPhase": "planning",
+    "currentPhaseStatus": "route_required",
+    "substate": "plan_reconciled_implementation_routed_certification_shape_resolved",
+    "currentScope": "SCOPE-01",
+    "runStartedAt": "2026-07-29T16:59:52Z",
+    "completedAt": "2026-07-29T17:02:42Z",
+    "executionModel": "direct-authorized-runner",
+    "parentAgent": null,
+    "nextRequiredOwner": "bubbles.implement",
+    "nextRequiredTarget": "Adopt the concurrent BUG-004 source/test patch without overwrite, finalize the exact persistent titles, capture immutable-baseline RED without mutating the active tree, and implement only missing approved behavior inside SCOPE-01. Preserve 2f65a02a and every excluded path.",
+    "completedPhaseClaims": [],
+    "pendingTransitionRequests": [
+      "TR-BUG004-IMPLEMENT"
+    ],
+    "scopeInventory": [
+      {
+        "scope": 1,
+        "scopeId": "SCOPE-01",
+        "name": "Restore Automatic Simple Readiness And Both Control Surfaces",
+        "status": "not_started",
+        "dependsOn": [],
+        "foundation": false,
+        "capabilityRole": "existing-production-simple-bridge-bugfix-overlay",
+        "class": "bugfix",
+        "evidenceFile": "report.md"
+      }
+    ],
+    "audit": {
+      "schemaVersion": "audit-run/v1",
+      "runId": null,
+      "currentAttemptId": null,
+      "attempts": []
+    }
+  },
+  "certification": {
+    "status": "in_progress",
+    "certifiedAt": null,
+    "completedScopes": [],
+    "certifiedCompletedPhases": [],
+    "scopeProgress": [
+      {
+        "scope": 1,
+        "scopeId": "SCOPE-01",
+        "name": "Restore Automatic Simple Readiness And Both Control Surfaces",
+        "status": "not_started",
+        "dependsOn": [],
+        "scopeDir": null,
+        "evidenceFile": "report.md",
+        "certifiedAt": null
+      }
+    ],
+    "lockdownState": {
+      "active": false,
+      "lockedScenarioIds": []
+    }
+  },
+  "policySnapshot": {
+    "workflowMode": "bugfix-fastlane",
+    "grill": {
+      "mode": "off",
+      "source": "repo-default"
+    },
+    "tdd": {
+      "mode": "scenario-first",
+      "source": "workflow-forced"
+    },
+    "autoCommit": {
+      "mode": "off",
+      "source": "user-request"
+    },
+    "lockdown": {
+      "mode": "off",
+      "source": "repo-default"
+    },
+    "regression": {
+      "mode": "protected-scenarios",
+      "source": "repo-default"
+    },
+    "validation": {
+      "mode": "certification-required",
+      "source": "repo-default"
+    }
+  },
+  "findingsLedger": [
+    {
+      "findingId": "F-BUG004-A",
+      "site": "rlexperience.js and market-heatmap-lab.html",
+      "scenario": "SCN-B004-A",
+      "class": "cold-open-owner-readiness",
+      "state": "OPEN",
+      "disposition": "route-to-design",
+      "detail": "The bridge runs on rlviews:change only. Heatmap owner hydration later reaches ready without a tool-scoped bridge refresh, so direct Simple remains unavailable until a mode toggle."
+    },
+    {
+      "findingId": "F-BUG004-B",
+      "site": "rlexperience.js and deployed market-heatmap-lab",
+      "scenario": "SCN-B004-B",
+      "class": "simple-control-absence",
+      "state": "OPEN",
+      "disposition": "integrate-collision-sensitive-patch",
+      "detail": "Deployed Simple exposed no controls at discovery. The concurrent generic-control patch was committed locally as 2f65a02a during filing, but does not cover cold-open requalification or prove deployment and must be preserved."
+    },
+    {
+      "findingId": "F-BUG004-C",
+      "site": "market-heatmap-lab.html",
+      "scenario": "SCN-B004-C",
+      "class": "power-control-visibility",
+      "state": "OPEN",
+      "disposition": "page-local-control-relocation",
+      "detail": "winSeg, sizeSeg, and grpSeg are inside the simple-only panel hidden by Power. Their handlers exist but the controls have no visible Power surface."
+    },
+    {
+      "findingId": "F-BUG004-D",
+      "site": "tests/simple-production-wiring.spec.mjs",
+      "scenario": "SCN-B004-A",
+      "class": "masked-cold-open-regression",
+      "state": "OPEN",
+      "disposition": "persistent-adversarial-regression",
+      "detail": "The current heatmap test waits for hydration and explicitly clicks Power then Simple before requiring ready, generating the refresh whose absence on cold-open is the defect."
+    },
+    {
+      "findingId": "F-BUG004-E",
+      "site": "tests/simple-production-wiring.spec.mjs",
+      "scenario": "SCN-B004-C",
+      "class": "missing-power-control-assertion",
+      "state": "OPEN",
+      "disposition": "persistent-adversarial-regression",
+      "detail": "The current Power assertion proves only that the adapter panel is hidden and rlv-focused is absent; it does not assert native heatmap control visibility or function."
+    },
+    {
+      "findingId": "F-BUG004-F",
+      "site": "rlexperience.js and tests/simple-production-wiring.spec.mjs",
+      "scenario": null,
+      "class": "concurrent-worktree-collision",
+      "state": "PRESERVED",
+      "disposition": "route-conflict-to-current-owner",
+      "detail": "Path-scoped status recorded both files as modified before this packet. This filing did not edit, stash, reset, or revert them; their owner committed them as 2f65a02a during packet validation."
+    }
+  ],
+  "transitionRequests": [
+    {
+      "id": "TR-BUG004-DESIGN",
+      "status": "resolved",
+      "requestedBy": "bubbles.bug",
+      "routedTo": "bubbles.design",
+      "requestedAt": "2026-07-29T15:42:55Z",
+      "reason": "Adopt or refine the grounded three-defect root cause and approve the generic tool-scoped owner-state refresh plus page-local native-control relocation before implementation.",
+      "scenarioIds": [
+        "SCN-B004-A",
+        "SCN-B004-B",
+        "SCN-B004-C",
+        "SCN-B004-D"
+      ],
+      "findingIds": [
+        "F-BUG004-A",
+        "F-BUG004-B",
+        "F-BUG004-C",
+        "F-BUG004-D",
+        "F-BUG004-E",
+        "F-BUG004-F"
+      ],
+      "evidenceRefs": [
+        "bug.md#root-cause",
+        "design.md#root-cause-analysis",
+        "design.md#public-refresh-contract",
+        "report.md#findings"
+      ],
+      "resolvedAt": "2026-07-29T16:41:57Z",
+      "resolvedBy": "bubbles.design",
+      "resolutionSummary": "Approved and reconciled one active design truth: public RLEXPERIENCE.requestSimpleRefresh({toolId}) rather than a raw event, exact tool/current-Simple filtering, one-active-plus-one-latest-pending coalescing, cross-invocation generation commits, terminal heatmap hydration signaling, one boot-time union hydration for no-refetch controls, relocation of the existing native levers into the Map panel, high-fan-out canaries, and atomic rollback. Protected commit 2f65a02a remains intact."
+    },
+    {
+      "id": "TR-BUG004-PLAN",
+      "status": "resolved",
+      "requestedBy": "bubbles.design",
+      "routedTo": "bubbles.plan",
+      "requestedAt": "2026-07-29T16:41:57Z",
+      "reason": "Reconcile the plan-owned scope, Test Plan, DoD, and artifact shape to the approved design. Preserve the direct-Simple no-toggle and direct-Power discriminators; add coordinator filtering/coalescing/stale-generation canaries; ensure one boot hydration union makes every Power lever local-only; preserve 2f65a02a; and account for artifact lint requiring plan-owned uservalidation.md while routing the validate-owned missing certification shape without editing certification.",
+      "scenarioIds": [
+        "SCN-B004-A",
+        "SCN-B004-B",
+        "SCN-B004-C",
+        "SCN-B004-D"
+      ],
+      "findingIds": [
+        "F-BUG004-A",
+        "F-BUG004-B",
+        "F-BUG004-C",
+        "F-BUG004-D",
+        "F-BUG004-E",
+        "F-BUG004-F"
+      ],
+      "evidenceRefs": [
+        "design.md#public-refresh-contract",
+        "design.md#tool-scoped-refresh-lifecycle",
+        "design.md#coalescing-and-latest-result-wins",
+        "design.md#heatmap-data-and-no-refetch-contract",
+        "design.md#power-control-relocation",
+        "design.md#high-fan-out-canary-plan",
+        "design.md#risk-and-rollback"
+      ],
+      "resolvedAt": "2026-07-29T17:02:42Z",
+      "resolvedBy": "bubbles.plan",
+      "resolutionSummary": "Reconciled one vertical runtime scope to the approved public requestSimpleRefresh contract; locked four established scenarios, three independent browser titles, immutable-baseline RED ordering, 11-row Test Plan/DoD parity, high-fan-out coordinator canaries, one boot union and zero-refetch controls, collision-safe change boundaries, bounded rollback, user validation, and machine handoffs. No product test, deployment, or certification claim was made."
+    },
+    {
+      "id": "TR-BUG004-IMPLEMENT",
+      "status": "open",
+      "requestedBy": "bubbles.plan",
+      "routedTo": "bubbles.implement",
+      "requestedAt": "2026-07-29T17:02:42Z",
+      "reason": "Adopt the concurrent BUG-004 patch, split and finalize the exact direct-Simple/direct-Power regressions, capture immutable-baseline RED without mutating the active tree, and implement only missing approved behavior inside the declared change boundary.",
+      "scenarioIds": [
+        "SCN-B004-A",
+        "SCN-B004-B",
+        "SCN-B004-C",
+        "SCN-B004-D"
+      ],
+      "findingIds": [
+        "F-BUG004-A",
+        "F-BUG004-B",
+        "F-BUG004-C",
+        "F-BUG004-D",
+        "F-BUG004-E",
+        "F-BUG004-F"
+      ],
+      "evidenceRefs": [
+        "scopes.md#execution-outline",
+        "scopes.md#red-first-sequence",
+        "scopes.md#shared-infrastructure-impact-sweep",
+        "scopes.md#test-plan",
+        "scopes.md#rollback-and-restore-proof",
+        "test-plan.json",
+        "scenario-manifest.json"
+      ]
+    },
+    {
+      "id": "TR-BUG004-CERTIFICATION-SHAPE",
+      "status": "resolved",
+      "requestedBy": "bubbles.plan",
+      "routedTo": "bubbles.validate",
+      "requestedAt": "2026-07-29T17:02:42Z",
+      "reason": "Focused artifact lint now clears every plan-owned shape and fails only because state.json v3 lacks the validate-owned certification object and certification.status. Add the required shape without certifying behavior, promoting status, or changing planning execution claims.",
+      "scenarioIds": [],
+      "findingIds": [
+        "BUG004-ARTIFACT-LINT-MISSING-VALIDATE-OWNED-CERTIFICATION-SHAPE"
+      ],
+      "evidenceRefs": [
+        "report.md#planning-uncertainty-declaration",
+        "uservalidation.md#checklist"
+      ],
+      "resolvedAt": "2026-07-29T17:15:54Z",
+      "resolvedBy": "bubbles.validate",
+      "resolutionSummary": "Added only the canonical version-3 nonterminal certification shape: certification.status remains in_progress, certifiedAt is null, certified completed scopes and phases are empty, SCOPE-01 remains not_started, and lockdown accepts no scenarios. Focused artifact lint passed after the repair, proving packet shape only. No runtime test, behavior certification, scope completion, phase completion, assurance, report evidence, or top-level promotion was claimed. TR-BUG004-IMPLEMENT remains open and routed to bubbles.implement."
+    }
+  ],
+  "reworkQueue": [],
+  "executionHistory": [
+    {
+      "agent": "bubbles.bug",
+      "workflowMode": "bugfix-fastlane",
+      "executionModel": "direct-authorized-runner",
+      "parentAgent": null,
+      "startedAt": "2026-07-29T15:42:55Z",
+      "completedAt": "2026-07-29T15:42:55Z",
+      "statusBefore": "not_created",
+      "statusAfter": "in_progress",
+      "phasesExecuted": [
+        "discovery",
+        "documentation",
+        "analysis"
+      ],
+      "scopesCompleted": [],
+      "outcome": "route_required",
+      "addressedFindings": [
+        "BUG004-REPOSITORY-BINDING-VALIDATED",
+        "BUG004-ID-RESOLVED",
+        "BUG004-SIX-ARTIFACT-PACKET-CREATED",
+        "BUG004-SOURCE-HISTORY-GROUNDED",
+        "BUG004-COLLISION-BOUNDARY-PRESERVED",
+        "BUG004-CONCURRENT-CONTROL-COMMIT-RECONCILED",
+        "F-BUG004-F"
+      ],
+      "unresolvedFindings": [
+        "F-BUG004-A",
+        "F-BUG004-B",
+        "F-BUG004-C",
+        "F-BUG004-D",
+        "F-BUG004-E"
+      ],
+      "nextRequiredOwner": "bubbles.design",
+      "summary": "Filed the complete six-artifact BUG-004 discovery/planning packet, grounded three separately testable defects in source/history and deployed-page corroboration, selected a generic tool-scoped owner-state refresh plus page-local control relocation, designed no-toggle and direct-Power adversarial regressions, preserved all product/test/parent/certification bytes, and reconciled the concurrent control patch's owner commit 2f65a02a without touching it."
+    },
+    {
+      "agent": "bubbles.design",
+      "workflowMode": "bugfix-fastlane",
+      "executionModel": "direct-authorized-runner",
+      "parentAgent": null,
+      "startedAt": "2026-07-29T16:24:33Z",
+      "completedAt": "2026-07-29T16:41:57Z",
+      "statusBefore": "in_progress",
+      "statusAfter": "in_progress",
+      "phasesExecuted": [
+        "bootstrap"
+      ],
+      "scopesCompleted": [],
+      "outcome": "route_required",
+      "addressedFindings": [
+        "TR-BUG004-DESIGN",
+        "BUG004-EVENT-VS-PUBLIC-API-RESOLVED",
+        "BUG004-REFRESH-LIFECYCLE-COALESCING-DESIGNED",
+        "BUG004-CROSS-INVOCATION-RACE-DESIGNED",
+        "BUG004-POWER-CONTROL-PLACEMENT-DESIGNED",
+        "BUG004-NO-REFETCH-CONTRADICTION-RECONCILED",
+        "BUG004-HIGH-FAN-OUT-CANARIES-DESIGNED",
+        "BUG004-ROLLBACK-DESIGNED",
+        "F-BUG004-F"
+      ],
+      "unresolvedFindings": [
+        "F-BUG004-A",
+        "F-BUG004-B",
+        "F-BUG004-C",
+        "F-BUG004-D",
+        "F-BUG004-E",
+        "BUG004-ARTIFACT-LINT-MISSING-PLAN-OWNED-USERVALIDATION",
+        "BUG004-ARTIFACT-LINT-MISSING-VALIDATE-OWNED-CERTIFICATION-SHAPE"
+      ],
+      "nextRequiredOwner": "bubbles.plan",
+      "summary": "Reconciled and approved BUG-004 design at local HEAD 8fc65030 without touching implementation, tests, parent artifacts, scopes, report evidence, or certification. Selected the public requestSimpleRefresh coordinator, exact tool/current-Simple lifecycle, one-active-plus-one-latest-pending coalescing, generation-gated commits, one boot hydration union for zero-refetch controls, Map-panel native lever placement, high-fan-out canaries, and atomic rollback. Focused artifact lint reached the design but remained nonzero only for pre-existing foreign-owned omissions: uservalidation.md and certification.*."
+    },
+    {
+      "agent": "bubbles.plan",
+      "workflowMode": "bugfix-fastlane",
+      "executionModel": "direct-authorized-runner",
+      "parentAgent": null,
+      "startedAt": "2026-07-29T16:59:52Z",
+      "completedAt": "2026-07-29T17:02:42Z",
+      "statusBefore": "in_progress",
+      "statusAfter": "in_progress",
+      "phasesExecuted": [
+        "planning"
+      ],
+      "scopesCompleted": [],
+      "outcome": "route_required",
+      "addressedFindings": [
+        "TR-BUG004-PLAN",
+        "BUG004-SCOPES-RECONCILED",
+        "BUG004-EXACT-TEST-TITLES-LOCKED",
+        "BUG004-RED-FIRST-SEQUENCE-LOCKED",
+        "BUG004-TEST-DOD-PARITY-11",
+        "BUG004-HIGH-FAN-OUT-CANARIES-LOCKED",
+        "BUG004-CHANGE-BOUNDARY-ROLLBACK-LOCKED",
+        "BUG004-USERVALIDATION-CREATED",
+        "BUG004-MACHINE-HANDOFFS-CREATED",
+        "F-BUG004-F"
+      ],
+      "unresolvedFindings": [
+        "F-BUG004-A",
+        "F-BUG004-B",
+        "F-BUG004-C",
+        "F-BUG004-D",
+        "F-BUG004-E",
+        "BUG004-ARTIFACT-LINT-MISSING-VALIDATE-OWNED-CERTIFICATION-SHAPE"
+      ],
+      "nextRequiredOwner": "bubbles.implement",
+      "summary": "Reconciled the approved design into one small vertical implementation scope with four established scenarios, three independent browser regressions, 11-row Test Plan/DoD parity, immutable-baseline RED ordering, high-fan-out bridge canaries, one boot union and zero-refetch controls, collision-safe boundaries, bounded rollback, and synchronized machine handoffs. Product tests were not run. Artifact lint now fails only on the foreign validate-owned certification shape, routed separately to bubbles.validate."
+    },
+    {
+      "agent": "bubbles.validate",
+      "workflowMode": "bugfix-fastlane",
+      "executionModel": "direct-authorized-runner",
+      "parentAgent": null,
+      "startedAt": "2026-07-29T17:15:07Z",
+      "completedAt": "2026-07-29T17:15:54Z",
+      "statusBefore": "in_progress",
+      "statusAfter": "in_progress",
+      "phasesExecuted": [],
+      "scopesCompleted": [],
+      "outcome": "route_required",
+      "addressedFindings": [
+        "TR-BUG004-CERTIFICATION-SHAPE",
+        "BUG004-ARTIFACT-LINT-MISSING-VALIDATE-OWNED-CERTIFICATION-SHAPE"
+      ],
+      "unresolvedFindings": [
+        "F-BUG004-A",
+        "F-BUG004-B",
+        "F-BUG004-C",
+        "F-BUG004-D",
+        "F-BUG004-E"
+      ],
+      "nextRequiredOwner": "bubbles.implement",
+      "summary": "Resolved only TR-BUG004-CERTIFICATION-SHAPE by adding the required truthful nonterminal version-3 certification object. Focused artifact lint changed from two certification-shape errors to exit 0. This proves packet structure only: no runtime tests ran, no behavior was certified, certifiedAt remains null, completion arrays and phases remain empty, SCOPE-01 remains not_started, and no scenario is accepted or locked. TR-BUG004-IMPLEMENT remains open with bubbles.implement as nextRequiredOwner; concurrent product and test files were not touched."
+    }
+  ]
+}

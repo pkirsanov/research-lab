@@ -1424,6 +1424,18 @@
     var adapterId = options.adapterId || (definition && definition.simpleAdapterId) || (experience && experience.simpleAdapterId) || null;
     var definitionId = (definition && definition.definitionId) || (experience && experience.simpleModelDefinitionId) || null;
 
+    /* Cross-invocation paint guard (BUG-004 FR-B004-09). `runSequence` below already
+       supersedes a stale run WITHIN one invocation. This claims the caller's shared
+       generation so a stale invocation cannot paint over a NEWER one either: the
+       boot-time run that resolves to "unavailable" must not land after an
+       owner-readiness refresh has already painted "ready". Absent the seam (the
+       public renderSimpleBridge API, and every existing caller) the bridge behaves
+       exactly as before — nothing is gated. */
+    var claimGeneration = typeof options.claimGeneration === "function" ? options.claimGeneration : null;
+    var isCurrentGeneration = typeof options.isCurrentGeneration === "function" ? options.isCurrentGeneration : null;
+    var generation = claimGeneration ? claimGeneration() : null;
+    function mayPaint() { return !isCurrentGeneration || isCurrentGeneration(generation); }
+
     function honestUnavailable(reason) {
       var projection = projectSimpleStateInternal("unavailable", {
         toolId: toolId,
@@ -1438,7 +1450,7 @@
         uncertainty: { state: "unavailable", reason: reason || "The declared owner adapter is not available." },
         deepLinks: { power: "#power", journey: "#journey" }
       });
-      renderSimpleProjectionInternal(panel, projection);
+      if (mayPaint()) renderSimpleProjectionInternal(panel, projection);
       return projection;
     }
 
@@ -1500,6 +1512,9 @@
       }
       if (next === parameterValues[parameter.parameterId]) return;
       parameterValues[parameter.parameterId] = next;
+      /* A user actuation makes THIS invocation the live one again: its controls are the
+         ones on screen, so its result must outrank any older pending run (FR-B004-09). */
+      if (claimGeneration) generation = claimGeneration();
       var keepFocus = !!(panelDocument && panelDocument.activeElement === node);
       run(new Date().toISOString(), keepFocus ? parameter.parameterId : null);
     }
@@ -1618,7 +1633,7 @@
         scenarioIds: ["baseline"],
         computedAt: computedAt
       })).then(function (prepared) {
-        if (mySequence !== runSequence) return null;
+        if (mySequence !== runSequence || !mayPaint()) return null;
         if (!prepared || !prepared.ok) return honestUnavailable("The owner evidence does not currently permit a model run.");
         var settled = runtime.snapshot().value;
         var projection = settled.projection;
@@ -1629,7 +1644,7 @@
         }
         return projection;
       }).catch(function () {
-        if (mySequence !== runSequence) return null;
+        if (mySequence !== runSequence || !mayPaint()) return null;
         return honestUnavailable("The owner adapter run failed.");
       });
     }
@@ -1637,18 +1652,49 @@
     return run(options.computedAt || new Date().toISOString(), null);
   }
 
+  /* BUG-004 F-BUG004-A — the tool-scoped Simple requalification coordinator.
+
+     The bridge used to run on exactly ONE trigger: rlviews:change into Simple. A page
+     whose owner evidence hydrates AFTER shell boot therefore painted one honest
+     "unavailable" and never ran again, so a cold-open Simple stayed unavailable until
+     the user changed views — the mode toggle was manufacturing the only refresh the
+     bridge understood. The coordinator adds the missing trigger as a public, tool-scoped
+     request and routes BOTH triggers through one render path so the two cannot drift.
+
+     Deliberately NOT a poller and NOT a global data-status listener: owner readiness is
+     an edge the owning page already knows about, so the page states it once. */
+  var SIMPLE_REFRESH_COORDINATOR = null;
+
   function installSimpleProjectionBridge() {
-    if (typeof globalThis === "undefined" || typeof globalThis.addEventListener !== "function") return;
-    globalThis.addEventListener("rlviews:change", function (event) {
-      var detail = event && event.detail;
-      if (!detail || detail.mode !== "simple" || typeof document === "undefined") return;
+    /* Per-TOOL state. A request naming tool A must never repaint tool B, and A's
+       generation counter must never invalidate B's in-flight run. */
+    var toolStates = Object.create(null);
+
+    function toolState(toolId) {
+      var entry = toolStates[toolId];
+      if (!entry) {
+        entry = { generation: 0, running: false, scheduled: null, successor: null };
+        toolStates[toolId] = entry;
+      }
+      return entry;
+    }
+
+    /* Everything one run needs, resolved from the CURRENT registration and globals.
+       Returns null whenever the request must be declined WITHOUT touching the panel:
+       no registration, a different tool than the shell owns, a non-ordinary tool, no
+       adapter panel, or the shell is not currently showing Simple. Declining is silent
+       by contract — painting here would let a background tool or a view the user has
+       already left overwrite what is on screen. */
+    function resolveSimpleContext(toolId) {
+      if (!toolId || typeof document === "undefined" || !document.body) return null;
       var registration = globalThis.__rlviewsRegistration;
-      if (!registration || !registration.registry || !Array.isArray(registration.registry.tools)) return;
-      var toolId = detail.toolId;
+      if (!registration || !registration.shell || registration.shell.toolId !== toolId) return null;
+      if (!registration.registry || !Array.isArray(registration.registry.tools)) return null;
       var tool = registration.registry.tools.find(function (candidate) { return candidate && candidate.id === toolId; });
-      if (!tool || !tool.experience || tool.experience.kind !== "ordinary") return;
+      if (!tool || !tool.experience || tool.experience.kind !== "ordinary") return null;
+      if (document.body.getAttribute("data-rlview") !== "simple") return null;
       var panel = document.querySelector('[data-rlexperience-panel="simple"]');
-      if (!panel) return;
+      if (!panel) return null;
 
       var definition = null;
       var models = registration.simpleModels;
@@ -1657,29 +1703,120 @@
           if (models.definitions[i] && models.definitions[i].toolId === toolId) { definition = models.definitions[i]; break; }
         }
       }
+      var modulePath = definition ? definition.adapterModule : (tool.experience.simpleAdapterModule || null);
+      var binding = modulePath ? ADAPTER_MODULE_BINDINGS[modulePath] : null;
+      return { panel: panel, tool: tool, definition: definition, binding: binding, config: registration.config };
+    }
 
+    /* THE single render path. A view change into Simple and an owner-readiness request
+       both land here, so there is one registry lookup, one provider read, one binding
+       resolution and one bridge invocation for every trigger.
+
+       The owner provider is read WHEN THE RUN STARTS, never when it was queued, so a
+       coalesced request always projects the newest owner state. That read is a plain
+       synchronous call into state the page has already hydrated — the coordinator
+       acquires nothing. Missing provider or empty owner state is passed through as-is
+       so the bridge renders its honest "unavailable"; readiness is never forced. */
+    function renderSimpleForTool(toolId, context) {
       var ownerState = null;
       var providers = globalThis.__rlOwnerStateProvider;
       if (providers && typeof providers[toolId] === "function") {
         try { ownerState = providers[toolId](); } catch (providerError) { ownerState = null; }
       }
-
-      var modulePath = definition ? definition.adapterModule : (tool.experience.simpleAdapterModule || null);
-      var binding = modulePath ? ADAPTER_MODULE_BINDINGS[modulePath] : null;
-
-      renderSimpleBridgeInternal({
-        panel: panel,
+      var state = toolState(toolId);
+      return Promise.resolve(renderSimpleBridgeInternal({
+        panel: context.panel,
         toolId: toolId,
-        toolExperience: tool.experience,
-        definition: definition,
+        toolExperience: context.tool.experience,
+        definition: context.definition,
         ownerState: ownerState,
-        moduleObject: binding ? globalThis[binding.global] : null,
-        registerFnName: binding ? binding.register : null,
-        adapterId: tool.experience.simpleAdapterId,
+        moduleObject: context.binding ? globalThis[context.binding.global] : null,
+        registerFnName: context.binding ? context.binding.register : null,
+        adapterId: context.tool.experience.simpleAdapterId,
         api: globalThis.RLEXPERIENCE,
-        config: registration.config,
-        computedAt: new Date().toISOString()
+        config: context.config,
+        computedAt: new Date().toISOString(),
+        /* The cross-invocation commit guard. Claiming makes this run the live one;
+           an older run's captured claim then fails isCurrentGeneration and paints
+           nothing, so a slow boot "unavailable" can never land on top of a newer
+           "ready". Per tool, so tools never invalidate each other. */
+        claimGeneration: function () { state.generation += 1; return state.generation; },
+        isCurrentGeneration: function (claimed) { return claimed === state.generation; }
+      }));
+    }
+
+    function startSimpleRun(toolId) {
+      var state = toolState(toolId);
+      /* Re-validated at START, not at queue time: the user may have left Simple while
+         this run was waiting, and a superseded request must resolve null untouched. */
+      var context = resolveSimpleContext(toolId);
+      if (!context) return Promise.resolve(null);
+      state.running = true;
+      return renderSimpleForTool(toolId, context).catch(function () { return null; }).then(function (projection) {
+        state.running = false;
+        var successor = state.successor;
+        state.successor = null;
+        if (successor) successor.begin();
+        return projection;
       });
+    }
+
+    function successorSlot(toolId) {
+      var slot = {};
+      slot.promise = new Promise(function (resolve) {
+        slot.begin = function () { resolve(startSimpleRun(toolId)); };
+        slot.cancel = function () { resolve(null); };
+      });
+      return slot;
+    }
+
+    /* Public entry point. Filters first, then coalesces; it never renders directly. */
+    function requestSimpleRefresh(options) {
+      var toolId = options && options.toolId;
+      if (!toolId || !resolveSimpleContext(toolId)) return Promise.resolve(null);
+      var state = toolState(toolId);
+
+      /* One run at a time per tool with at most ONE queued successor: extra requests
+         arriving mid-run join that single successor rather than stacking runs, so a
+         burst of N notifications costs one extra render, never N. */
+      if (state.running) {
+        if (!state.successor) state.successor = successorSlot(toolId);
+        return state.successor.promise;
+      }
+
+      /* Idle: fold every same-turn request into ONE scheduled run. Because the provider
+         is read when that run starts, the coalesced result carries the newest owner
+         state rather than the first caller's snapshot. */
+      if (!state.scheduled) {
+        state.scheduled = Promise.resolve().then(function () {
+          state.scheduled = null;
+          return startSimpleRun(toolId);
+        });
+      }
+      return state.scheduled;
+    }
+
+    /* A view transition supersedes prior Simple work: an in-flight run may no longer
+       commit, and nothing queued survives leaving the view. The cancelled successor is
+       resolved (never dropped) so its awaiters settle instead of hanging. */
+    function invalidateSimpleGeneration(toolId) {
+      if (!toolId) return;
+      var state = toolState(toolId);
+      state.generation += 1;
+      var successor = state.successor;
+      state.successor = null;
+      if (successor) successor.cancel();
+    }
+
+    SIMPLE_REFRESH_COORDINATOR = { request: requestSimpleRefresh };
+
+    if (typeof globalThis === "undefined" || typeof globalThis.addEventListener !== "function") return;
+    globalThis.addEventListener("rlviews:change", function (event) {
+      var detail = event && event.detail;
+      if (!detail) return;
+      invalidateSimpleGeneration(detail.toolId);
+      if (detail.mode !== "simple") return;
+      requestSimpleRefresh({ toolId: detail.toolId });
       /* BUG-003 closure: NO body.classList mutation here. applyVisual (rlviews.js)
          is the sole owner of rlv-focused; the stub's classList.add is removed. */
     });
@@ -2148,6 +2285,14 @@
     projectSimpleState: function (state, options) { return capture(function () { return projectSimpleStateInternal(state, options); }); },
     renderSimpleProjection: function (host, projection) { return capture(function () { return renderSimpleProjectionInternal(host, projection); }); },
     renderSimpleBridge: function (options) { return renderSimpleBridgeInternal(options); },
+    /* Tool-scoped Simple requalification (BUG-004 F-BUG004-A). A page whose owner state
+       becomes readable after shell boot calls this once, naming ITS tool; the coordinator
+       decides whether that request is current, rereads the page's already-hydrated owner
+       provider, and reruns the same bridge path a view change uses. It resolves null when
+       the request is not current and never forces readiness. */
+    requestSimpleRefresh: function (options) {
+      return SIMPLE_REFRESH_COORDINATOR ? SIMPLE_REFRESH_COORDINATOR.request(options) : Promise.resolve(null);
+    },
     createSimpleRuntime: function (config, models) { return capture(function () { return createSimpleRuntimeInternal(config, models); }); },
     runtimeDiagnostic: function () { return capture(function () { return runtimeDiagnosticInternal(); }); },
     validateConfig: function (config) { return capture(function () { return validateConfigInternal(config); }); },

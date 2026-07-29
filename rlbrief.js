@@ -603,7 +603,7 @@
   if (typeof document === "undefined") return; /* Node (selftest) — stop before DOM renderers */
 
   /* ── DOM renderers ── */
-  function esc(s) { return (s == null ? "" : String(s)).replace(/[&<>]/g, function (c) { return { "&": "&amp;", "<": "&lt;", ">": "&gt;" }[c]; }); }
+  function esc(s) { return (s == null ? "" : String(s)).replace(/[&<>"']/g, function (c) { return { "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;", "'": "&#39;" }[c]; }); }
   function pct(n, d) { return Number.isFinite(n) ? (n >= 0 ? "+" : "") + n.toFixed(d == null ? 1 : d) + "%" : "—"; }
   function confPill(n) { var cls = n >= 70 ? "live" : n >= 45 ? "warn" : "bad"; return '<span class="pill ' + cls + '">conf ' + (Number.isFinite(n) ? Math.round(n) : "—") + '</span>'; }
   function link(href, txt) { return href ? '<a class="dl" href="' + esc(href) + '">' + esc(txt || "open ▸") + '</a>' : ""; }

@@ -1496,10 +1496,16 @@ the shell-ready wait and the tab click.
 
 `tests/distributed-briefs.support.mjs` is a real shared module imported by both
 files, so one-sided extraction is *possible*. It is not *net-positive*: the sibling
-`mountReady` is Feature-002-owned and outside this diff's scope, so its inline copy
-would remain. The result would be **three** locations (support export + sibling copy
-+ an import hop) in place of two. Two-sided extraction would require editing a
-sibling-owned test file that this bug did not touch — out of scope, and it is the
+`mountReady` lives in `tests/distributed-briefs.spec.mjs`, a file this bug is
+forbidden to edit, so its inline copy would remain. The result would be **three**
+locations (support export + sibling copy + an import hop) in place of two.
+Two-sided extraction is not work left undone — it is **prohibited by an explicit
+requirement of this bug**. `FR-B003-06`, authored at line 69 of
+`specs/012-market-action-center-and-guided-tools/bugs/BUG-003-shell-brief-panel-adoption-hides-feature-002-mount/spec.md`,
+mandates that the 13 sibling tests in `tests/distributed-briefs.spec.mjs` "MUST
+remain green and unmodified", and `design.md` line 203 records that the same file
+must stay byte-identical. Sharing one function across both files necessarily edits
+it, which `FR-B003-06` forbids — so the option is closed by contract, and it is the
 same file family whose blast radius the regression phase deliberately bounded.
 
 **Claim Source:** executed
@@ -3202,14 +3208,54 @@ $ (same scan on scopes.md)
 ```
 
 Exactly one hit, in the **simplify** phase's justification for not hoisting `openBriefView`
-into the shared support module. The reasoning is sound — `design.md` calls it *"out of scope by
-boundary, not by convenience"* because FR-B003-06 requires the sibling file stay byte-identical
-— but the citation lives in `design.md`, not in the same paragraph of `report.md`, which is what
-G095 requires.
+into the shared support module. The reasoning was sound on its merits: `design.md` line 202
+classifies the omission as a boundary exclusion rather than a convenience one, because
+`FR-B003-06` — cited on the next line, 203 — requires the sibling file stay byte-identical. The
+defect was therefore purely one of **citation placement**: the supporting reference lived in
+`design.md`, whereas G095 requires it in the same paragraph of `report.md`. The `design.md`
+wording, retrieved verbatim rather than retyped:
+
+```text
+$ grep -n "out of scope by boundary" design.md
+202:one function) is **out of scope by boundary, not by convenience**: it would edit
+exit code: 0
+```
 
 **Remediation (either):** (a) cite the concrete reference (`FR-B003-06`) in that paragraph, or
 (b) add a `## Discovered Issues` row dated 2026-07-29 with disposition + reference.
 **Owner: `bubbles.simplify`** (author of that section). Not remediated by audit.
+
+**✅ RESOLVED 2026-07-29 — `bubbles.simplify` closed AUD-F3 via path (a).** Re-verified by this
+auditor **before** recording this note, rather than taken on report: the paragraph now cites
+`FR-B003-06` and names its authority, and the flagged phrase is gone from it. The citation is a
+genuine authored requirement, not a reference invented to satisfy the gate:
+
+```text
+$ grep -n "FR-B003-06" report.md | head -2
+1503:requirement of this bug**. `FR-B003-06`, authored at line 69 of
+1508:it, which `FR-B003-06` forbids — so the option is closed by contract, and it is the
+exit code: 0
+
+$ sed -n "69p" spec.md
+| FR-B003-06 | The 13 sibling tests in `tests/distributed-briefs.spec.mjs` MUST remain green and unmodified. |
+exit code: 0
+
+$ sed -n "1494,1512p" report.md | grep -cE "out.of.scope"
+0
+exit code: 1
+```
+
+Disposition is recorded as row **DI-01** in `## Discovered Issues` (end of this file). The
+finding text above is retained **unedited** as the audit trail: AUD-F3 was raised against real
+prose, routed to `bubbles.simplify`, and closed by that agent — not withdrawn by audit.
+
+Two scope notes, so this note is not read as more than it is. First, the remediation is present
+in the **working tree and is not yet committed** — `git status` reports `report.md` as modified,
+and the newest commit touching it is `d09f0bc7`, which is this audit's own phase record. Second,
+the `RESULT-ENVELOPE` below is left exactly as this audit emitted it, still naming
+`bubbles.simplify` as `nextRequiredOwner`; it is an as-of record of the audit run, and the
+closure happened after that run. Rewriting it would misrepresent when the audit executed. AUD-F1
+and AUD-F2 remain open, so the verdict is unchanged.
 
 ---
 
@@ -3247,9 +3293,14 @@ items for a human to verify by hand, in priority order:
    commit that predates the fix. Run `git show bd239938 --stat` and read its message: it should
    describe reconciling `mountReady` **and** an independent `rlbrief.js` product fix. If that
    commit were actually authored under Feature 012, the "already ratified" argument weakens.
-3. **Read `report.md` L1488-1503 in full.** This is the only prose blocking on G040/G095, and
-   whether its "out of scope" reasoning is genuine engineering judgement or a soft deferral is
-   a judgement call an auditor should not make unilaterally.
+3. **Read `report.md` L1488-1512 in full — the AUD-F3 remediation.** This paragraph was the
+   only prose blocking G040/G095, and `bubbles.simplify` closed it by citing `FR-B003-06`.
+   Judge for yourself whether its boundary-exclusion reasoning is genuine engineering
+   judgement or a soft deferral now wearing a citation — that is a judgement call an auditor
+   should not make unilaterally, and a citation makes it *checkable*, not automatically true.
+   Cross-check against `spec.md` line 69 and `design.md` lines 202-203, and satisfy yourself the
+   cited requirement actually **forbids** the omitted extraction rather than merely naming
+   the file.
 4. **Verify the three missing phase claims correspond to real work.** Open `## Regression
    Phase` (L1159), `## Simplify Phase` (L1468), `## Stabilize Phase` (L1593) and confirm each
    contains substantive executed evidence. This audit treated AUD-F2 as a recording gap rather
@@ -3287,7 +3338,7 @@ items for a human to verify by hand, in priority order:
 
 | # | Finding | Gate | Owner | Required action |
 |---|---------|------|-------|-----------------|
-| AUD-F3 | `out of scope` at `report.md:1502` lacks an in-paragraph disposition citation | G040, G095 | `bubbles.simplify` | Cite `FR-B003-06` in that paragraph **or** add a `## Discovered Issues` row dated 2026-07-29 with disposition + reference |
+| AUD-F3 **✅ RESOLVED** | Boundary-exclusion phrase at `report.md:1502` lacked an in-paragraph disposition citation | G040, G095 | `bubbles.simplify` | **Closed 2026-07-29 via path (a)** — the paragraph now cites `FR-B003-06` (authority: `spec.md` line 69), re-verified by audit. Disposition recorded as row `DI-01` in `## Discovered Issues` |
 | AUD-F2 | `regression`, `simplify`, `stabilize` absent from `execution.completedPhaseClaims` | G022 | `bubbles.regression`, `bubbles.simplify`, `bubbles.stabilize` | Each mirrors its own executed phase into `execution.completedPhaseClaims` (audit must not forge another agent's claim) |
 | AUD-F1 | Final DoD item evidenced against the feature dir; its "zero deferral language" clause is stale | — | `bubbles.validate` | Re-scope + re-evidence the Build Quality Gate item against the **bug** packet after AUD-F2/AUD-F3 close, then certify |
 
@@ -3301,3 +3352,23 @@ runtime probes referenced in AUD-1.2/AUD-1.3 live outside the repository under `
 mutate no repository state.
 
 **Verdict: 🟠 REWORK_REQUIRED — the fix is legitimate and complete; the packet is not.**
+
+---
+
+## Discovered Issues
+
+Disposition register for phrases this packet's prose flags under G040/G095. Every row carries
+an explicit disposition and a concrete reference, per the disposition contract in
+`agents/bubbles_shared/operating-baseline.md`.
+
+| ID | Date | Issue | Raised by | Disposition | Reference |
+|----|------|-------|-----------|-------------|-----------|
+| DI-01 | 2026-07-29 | Simplify-phase justification for not hoisting `openBriefView` into the shared support module used a boundary-exclusion phrase at `report.md:1502` with no in-paragraph disposition citation (raised as audit finding AUD-F3). | `bubbles.audit` | **fixed-in-session** — `bubbles.simplify` amended the paragraph to cite `FR-B003-06`, which forbids editing `tests/distributed-briefs.spec.mjs` and therefore closes the extraction option by contract rather than by preference. Re-verified by `bubbles.audit` against source before this row was written. | `specs/012-market-action-center-and-guided-tools/bugs/BUG-003-shell-brief-panel-adoption-hides-feature-002-mount/spec.md` line 69 (`FR-B003-06`); `design.md` lines 202-203; `report.md` L1494-1512; audit finding AUD-F3 above |
+| DI-02 | 2026-07-29 | The audit narrative and route table quote the flagged phrase verbatim while describing and routing AUD-F3, so the scanner reads the quotations as this packet's own prose. | `bubbles.audit` | **fixed-in-session** — verbatim quotations relocated into fenced blocks (which G040 excludes); surrounding prose reworded to describe the finding without reproducing the phrase. No finding was withdrawn, softened, or deleted; AUD-F3 remains legible as raised-then-remediated. | `report.md` — AUD-F3 narrative, Spot-Check item 3, and the `## ROUTE-REQUIRED` AUD-F3 row |
+
+**Scope of this register.** These two rows dispose of the G040/G095 surface only. They record
+**nothing** about AUD-F1 or AUD-F2, which remain open and unrouted-to-closure, and they carry no
+certification meaning: this audit still writes no `certification.*` field, marks no scope Done,
+checks no DoD box, and leaves `status: in_progress`. The verdict above stands at
+**REWORK_REQUIRED**.
+

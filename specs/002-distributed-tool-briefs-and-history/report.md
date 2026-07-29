@@ -2443,5 +2443,103 @@ saying otherwise would be as much a fabrication as suppressing it.
 
 **Claim Source:** executed
 
+---
+
+## Docs Phase
+
+**Phase:** `docs` · **Provenance:** `specialist` · **Executed:** 2026-07-29 · **Claim Source:** executed
+
+Objective: verify that this feature's documentation matches delivered execution truth, and that no
+managed doc makes a claim the code does not honor.
+
+### Scope of this feature's documentation surface
+
+Measured, not assumed:
+
+```
+scope files under specs/002-.../scopes/           : 10
+notes/*.md, docs/*.md, README.md refs in scopes   : 0
+```
+
+**Finding DOC-F2 (INFO) — this feature declares no managed-docs surface.** None of the 10 scope
+Change Boundary blocks names a `notes/*.md`, `docs/*.md`, or `README.md` target. Feature 002's
+documentation lives entirely in its own spec artifacts and in source-level comments. There is
+therefore no 002-owned prose doc for this phase to bring into alignment — and I am not going to
+invent one to manufacture phase output.
+
+### The one adjacent doc that does describe this pipeline
+
+`notes/market-brief.md` (597 lines) is the operating runbook. It self-declares as authoritative:
+
+> line 7 — *"Keep it current: it is the single source of truth for what the agent does each run."*
+
+That claim is what makes the next finding material rather than cosmetic.
+
+**Finding DOC-F1 (MEDIUM) — the SST runbook is silent on the published pointer it now produces.**
+
+The distributed pointer is live and heavily exercised:
+
+```
+briefs/current.json runId  : dist-2026-07-29-morning-4cec59876481
+git revisions of pointer   : 37
+```
+
+The runbook mentions none of the machinery behind it:
+
+| Term searched in `notes/market-brief.md` | Hits |
+|---|---|
+| `current.json` | 0 |
+| `briefs/current` | 0 |
+| `runId` | 0 |
+| `runFingerprint` | 0 |
+| `cutover` | 0 |
+| `pointer` | 0 |
+
+The runbook is not *wrong* about what it covers — §4 correctly states the graph publisher
+"publishes `briefs/` from the exact pre-final tool bundle", and that is exactly what happens. Its
+§9 output contract also faithfully documents the *legacy* `market-brief.payload.json` shape
+(`toolId`, `window`, `asOf`, `generatedAt`, `regime`, `backdrop`, …) with no run-identity fields —
+which is a truthful description of the file as it exists on disk today.
+
+The gap is one of **completeness, not accuracy**: a pointer with 37 committed revisions is now a
+first-class published artifact of every run, and the self-declared single source of truth never
+mentions it. An operator following this runbook would not know the pointer exists, that it
+advances each run, or that its run identity diverges from the payload's.
+
+### Relationship to GAP-F1 — third independent corroboration
+
+This is the same half-cutover condition already recorded in the Gaps and Harden phases, now
+observed from the documentation angle. All three views agree and none contradict:
+
+| View | Observation |
+|---|---|
+| Gaps (GAP-F1) | `validate-distributed-briefs.mjs` exits 1, `compat-projection-run-mismatch` |
+| Harden | payload + snapshot carry `runId=None`; pointer advanced across 3 consecutive cycles |
+| **Docs (DOC-F1)** | **SST runbook documents the legacy payload shape and never mentions the pointer** |
+
+The docs state is *internally consistent with the current half-cutover code*. That is precisely why
+this is not a doc-only fix: correcting the runbook to describe run identity before the projection
+actually carries run identity would make the doc describe a behavior the code does not yet have —
+trading a completeness gap for an accuracy defect. **DOC-F1 must be resolved together with GAP-F1,
+in that order (code first, doc second), not independently.**
+
+### Disposition
+
+| ID | Severity | Type | Owner | Actioned here |
+|---|---|---|---|---|
+| DOC-F1 | MEDIUM | INCOMPLETE-DOC | `bubbles.design` (with GAP-F1) | No — see below |
+| DOC-F2 | INFO | OBSERVATION | — | No action required |
+
+**Why DOC-F1 is routed, not fixed here.** `notes/market-brief.md` is not in feature 002's change
+boundary (0 scope refs, above), it is the live operating runbook for the market-brief pipeline
+owned by the concurrent session, and its correct wording depends on a cutover decision that has not
+been made. Editing it from this lane would breach the change boundary and would document an
+intention rather than a behavior. Routed with GAP-F1 as a single unit of work.
+
+I ran no doc edits this phase. Two findings recorded, one INFO and one MEDIUM, both routed. Claiming
+a docs alignment I did not perform would be a fabrication.
+
+**Claim Source:** executed
+
 
 

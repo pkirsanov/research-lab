@@ -88,6 +88,37 @@ Corrected diagnosis (an earlier version of this block asserted the wrong cause a
 
 This failure is NOT a contradiction of the delivery-time TP-10-21 record, and it is not a regression in Scope 10 code. At delivery the validator returned `ok:true` because no current pointer was published in the repository root, so the compatibility-projection reconciliation had nothing to compare and passed vacuously — the scope's one unchecked DoD item says exactly that and predicted this. A current pointer has since been published (`briefs/current.json` selects run `dist-2026-07-28-after-hours-44b10805a92a`) while `market-brief.payload.json` and `market-brief.snapshot.json` still carry no matching run identity, so the reconciliation now runs for real and reports the mismatch. The clause is therefore now positively testable rather than vacuous, which is the precondition the unchecked item named for closing itself. It remains unchecked here because the projections and the pointer do not yet agree.
 
+**TP-10-21 mode correction (2026-07-29) — the graph itself is healthy.** Re-reading the validator settled what the exit-code correction above could not. `scripts/validate-distributed-briefs.mjs` documents its own two modes at lines 114-117:
+
+> `--graph-only` validates the `briefs/` graph the distributed publisher OWNS (current + history) and skips the compatibility-projection check. That check requires `market-brief.*` to be pointer-bound projections; **the deterministic activation deliberately keeps `market-brief.*` as the legacy narrative, so the graph is legitimately published without pointer-bound root projections.**
+
+So the default invocation asserts a POST-cutover invariant against a repository that is deliberately PRE-cutover. `scripts/brief-refresh.mjs:1271-1277` confirms the same intent from the producer side — `--distributed-run` is an intentional no-op whose message reads *"evidence-first publication is implemented and test-proven but not live-wired yet (Scope 10 cutover)"*.
+
+Both modes executed on the current tree, bare exit codes, no pipeline:
+
+```text
+$ node scripts/validate-distributed-briefs.mjs --root .
+exit=1   "ok": false, "code": "B002-PUBLISH-SET", "reason": "compat-projection-run-mismatch"
+
+$ node scripts/validate-distributed-briefs.mjs --root . --graph-only
+exit=0
+{
+  "ok": true,
+  "mode": "graph-only",
+  "root": ".",
+  "currentGraph":  { "ok": true, "present": true, "runId": "dist-2026-07-29-pre-close-6edc93a2f20e", "sources": 22 },
+  "historyGraph":  { "ok": true, "present": true, "partitions": 26,
+                     "indexFingerprint": "sha256:917f18f2720fe60e27bf96bb4e90fe90c906f6e8b27350ee0f8926bf3dd165f3" },
+  "compatibilityProjection": { "ok": true, "skipped": true, "reason": "graph-only" }
+}
+```
+
+**Claim Source:** executed
+
+This narrows the finding materially. The distributed artifact graph — 22 current sources, 26 history partitions, coherent index fingerprint — is **healthy and fully validated**. The single failure is confined to the compatibility projection, which the validator itself declares out of force until the cutover.
+
+TP-10-21's own subject is *"the complete UI-consumed distributed artifact **graph**"*. `--graph-only` is precisely the check for that claim; the `--root .` citation was broader than the item's own wording and additionally asserts the legacy root projections, which this item never claimed. The citation is corrected to `--graph-only` accordingly. This does **not** weaken any gate: the pointer-coherence claim lives in the still-unchecked SCN-002-015 clause above, which genuinely requires the cutover and stays unchecked.
+
 ## Regression Remediation Evidence — Brief-view reveal restore (2026-07-27)
 
 The later `rlviews` shell ("brief lives only in Brief view") regressed this scope's acceptance suite to 0/13. Fix: `mountReady` drives the real `#rlviews` Brief-view control; `rlbrief.js briefSetState` clears `data-rlbrief-mounting` on settle. Working-tree change is confined to `rlbrief.js` (+8/-1) and `tests/distributed-briefs.spec.mjs` (+7) — `git diff --stat`: `2 files changed, 14 insertions(+), 1 deletion(-)`. All three green-bar commands re-run 2026-07-27, full output, exit 0.

@@ -49,6 +49,7 @@ bubbles/scripts/claim-source-lint-selftest.sh
 bubbles/scripts/claim-source-lint.sh
 bubbles/scripts/cli.sh
 bubbles/scripts/code-search.sh
+bubbles/scripts/codeindex-adapter-contract-selftest.sh
 bubbles/scripts/codeindex-resolve-selftest.sh
 bubbles/scripts/codeindex-resolve.sh
 bubbles/scripts/compaction-discipline-guard-selftest.sh
@@ -166,6 +167,7 @@ bubbles/scripts/interop-registry.sh
 bubbles/scripts/inventory-parity-check-selftest.sh
 bubbles/scripts/inventory-parity-check.sh
 bubbles/scripts/is-terminal-for-mode.sh
+bubbles/scripts/judge-adapter-contract-selftest.sh
 bubbles/scripts/macos-portability-guard-selftest.sh
 bubbles/scripts/macos-portability-guard.sh
 bubbles/scripts/management-truth-lint-selftest.sh
@@ -311,6 +313,8 @@ bubbles/scripts/strict-terminal-status-guard.sh
 bubbles/scripts/super-surface-selftest.sh
 bubbles/scripts/test-impact-plan-selftest.sh
 bubbles/scripts/test-impact-plan.sh
+bubbles/scripts/test-impact-shadow-selftest.sh
+bubbles/scripts/test-impact-shadow.sh
 bubbles/scripts/tool-capture-shim-selftest.sh
 bubbles/scripts/tool-capture-shim.sh
 bubbles/scripts/tool-log-selftest.sh
@@ -369,6 +373,7 @@ bubbles/scripts/guards/tail-convergence-gates.sh
 bubbles/scripts/guards/tail-delegated-gates.sh
 bubbles/adapters/codeindex/codegraph.sh
 bubbles/adapters/codeindex/none.sh
+bubbles/adapters/judge/ollama.sh
 bubbles/adapters/observability/none.sh
 bubbles/adapters/observability/prometheus.sh
 bubbles/schemas/adoption-profiles.schema.json
@@ -539,6 +544,7 @@ docs/recipes/update-docs.md
 docs/recipes/upgrade-to-v6.md
 docs/recipes/upgrade-to-v7.md
 docs/recipes/upkeep-monthly.md
+docs/recipes/use-a-code-index.md
 docs/recipes/ux-single-file-sweep.md
 docs/recipes/validation-latency-budgets.md
 docs/v4.1.0-delivered-pending-activation.md

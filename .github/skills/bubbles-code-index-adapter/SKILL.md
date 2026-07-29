@@ -35,8 +35,9 @@ selftest that runs with no provider installed.
 
 ## The contract
 
-Five verbs. Four return a JSON **array** of records; `status` returns a JSON
-**map**. Neutral empty values are `[]` and `{}` respectively.
+Eight verbs. Four return a JSON **array** of records; `status`, `freshness`, and
+`sync` return a JSON **map**; `indexed` returns an **array** of file records.
+Neutral empty values are `[]` and `{}`.
 
 | Verb | Args | Shape | Neutral | Answers |
 |---|---|---|---|---|
@@ -44,7 +45,23 @@ Five verbs. Four return a JSON **array** of records; `status` returns a JSON
 | `impact` | `<symbol>` | array | `[]` | blast radius — what breaks if this changes |
 | `affected` | `<file>...` | array | `[]` | which tests can this diff actually reach |
 | `routes` | — | array | `[]` | full route/endpoint inventory |
-| `status` | — | map | `{}` | index freshness and health |
+| `indexed` | — | array | `[]` | **which files carry graph nodes** (see below) |
+| `status` | — | map | `{}` | index health and statistics |
+| `freshness` | — | map | `{}` | **is the index still true?** (see exit 2) |
+| `sync` | — | map | `{}` | bring a stale index up to date (only mutating verb) |
+
+`indexed` exists to disambiguate an empty result. "Zero affected tests" has two
+causes that demand opposite reactions: nothing graph-participating changed
+(correct and boring), or the graph missed an edge (a correctness risk). They look
+identical in a subset count. Each record carries a `nodeCount`; **`nodeCount == 0`
+means the file is known to the index but carries no symbols**, so it can never
+yield a dependent. A consumer that reports a would-skip percentage without this
+triage will raise false alarms — and, worse, teach its readers to ignore real ones.
+
+
+`<file>` arguments are **repo-relative** — relative to `CODEINDEX_ROOT`, not to
+the caller's CWD. The adapter may be invoked from anywhere in a multi-root
+workspace, so caller-relative paths have no stable meaning.
 
 Plus `selftest <verb>`, which emits the canonical shape **with no provider
 installed** so a shape lint can validate any adapter offline.
@@ -55,12 +72,28 @@ installed** so a shape lint can validate any adapter offline.
 |---|---|---|
 | 0 + neutral value | indexed, nothing found | proceed; absence is a real answer |
 | 0 + records | indexed, facts available | may use as advisory input |
+| **2** (`freshness` only) | indexed but **STALE** — the code moved | treat facts as untrustworthy; `sync`, or degrade |
 | 1 | provider missing / no index / provider failed | degrade to existing behavior |
 
 A provider adapter MUST NOT emit a neutral value when it is merely unavailable.
 `[]` means "I looked and found nothing"; exit 1 means "I could not look." A
 consumer that conflates them will silently report a clean result for an
 unindexed repository — the exact false-green this seam exists to prevent.
+
+`freshness` extends the same principle to time. An index is a point-in-time
+snapshot: the moment a file changes, every fact derived from it may be wrong,
+and nothing about `symbols`/`impact`/`affected`/`routes` output looks any
+different. Exit 2 makes "confidently answering from last week's code" a
+detectable state rather than an invisible one.
+
+Critically, an adapter that **cannot determine** freshness MUST exit 2, not 0.
+"I don't know whether I'm stale" is not "I am fresh" — defaulting to fresh
+reintroduces the silent-wrong-answer failure this verb exists to close.
+
+`sync` is the only verb permitted to mutate anything, and it mutates only the
+index — never the working tree, never git state. Because `none` returns `{}`
+exit 0, a repository can wire `freshness || sync` unconditionally into a CLI or
+git hook and stay correct whether or not a provider is ever adopted.
 
 ## Wiring a repository (opt-in)
 
@@ -114,6 +147,43 @@ adopting — this is the most common selection error.
 Measure the repository first (`git ls-files | sed -E 's/.*\.//' | sort | uniq -c
 | sort -rn`) rather than assuming. A provider that cannot parse the dominant
 language of a repository provides no value there regardless of its benchmarks.
+
+## Two access paths (do not confuse them)
+
+| Path | Consumer | Mechanism | Freshness |
+|---|---|---|---|
+| **MCP** | agents, interactively | the provider's own MCP server, registered in the editor's MCP config | provider-managed (watcher + debounced sync + connect-time catch-up) |
+| **Adapter** | scripts, gates, CLIs | `adapters/codeindex/<provider>.sh <verb>` | caller-managed: `freshness \|\| sync` |
+
+An agent asking "who calls this?" should use the MCP path. A lint deriving an
+inventory should use the adapter path. Registering one does not give you the
+other, and **neither is created by setting `codeIndex.adapter`** — that config
+only tells the adapter path which provider to use.
+
+## When an agent should reach for the index
+
+Availability is not usage. An agent handed a new tool with no guidance keeps
+grepping, and the integration stays inert. Reach for the index FIRST on
+structural questions — these are exactly the cases where grep is weakest:
+
+| Question | Why grep is worse |
+|---|---|
+| Where is this symbol defined? | grep finds every mention, not the definition |
+| Who calls this? | grep cannot distinguish call from comment, string, or import |
+| What breaks if I change this? | grep has no transitive closure |
+| Which tests can this diff reach? | grep has no dependency graph at all |
+| What endpoints exist? | grep misses builder-wired and nested registrations |
+
+Fall back to grep or direct reads when the index returns empty, reports stale,
+or exits non-zero — and when the question is textual rather than structural
+("where do we mention this TODO"), grep was always the right tool.
+
+Two habits that keep this honest:
+
+- **Confirm before escalating.** A derived fact is a claim. Open the source for a
+  sample before acting on a count.
+- **Prefer it while editing, not only while investigating.** Blast radius is most
+  useful *before* the change, not after the review.
 
 ## Legitimate consumers
 

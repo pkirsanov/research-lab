@@ -47,7 +47,7 @@ All commands re-run this session (2026-07-19):
 - `node scripts/migrate-brief-history.mjs --check` = **ok:true, bytesUnchanged:true** (`brief-history.jsonl` untouched). [TP-10-22]
 - `node scripts/validate-brief-cache.mjs` = PASS (354); `node scripts/validate-brief-payload.mjs market-brief.payload.json` = PASS.
 
-**Re-verification — Claim Source: executed (2026-07-29).** Every row above that does not need a browser, plus the full Scope-10 acceptance spec, was re-run against the current tree. One row does NOT reproduce: the all-page ui-canary now fails on exactly one of the 23 pages. That is a live cross-feature regression owned by Feature 012, recorded here rather than smoothed over.
+**Re-verification — Claim Source: executed (2026-07-29).** Every row above that does not need a browser, plus the full Scope-10 acceptance spec, was re-run against the current tree. The all-page ui-canary FAILED on the first attempt and PASSED on a second attempt with no code change in between; the difference is machine load, and the detail is recorded below because the first result was initially mis-diagnosed.
 
 ```text
 $ node scripts/selftest.mjs
@@ -70,14 +70,17 @@ $ npx --no-install playwright test tests/distributed-briefs.spec.mjs --config=pl
   13 passed (15.8s)
 exit=0
 
-$ node --test --test-timeout=300000 tests/distributed-briefs.ui-canary.mjs
+$ node --test --test-timeout=300000 tests/distributed-briefs.ui-canary.mjs     # attempt 1, load average ~12
 not ok 1 - Canary: enabled source pages render briefs and retain controls/RLDATA/credential lifecycle; the aggregator stays idle
   options-flow-feed-lab: canary failed: page.waitForSelector: Timeout 30000ms exceeded.
     waiting for locator('[data-rlbrief-mount][data-rlbrief-ready="1"]')
-pass 0 / fail 1   (the other 22 of 23 pages still pass)                                          [TP-10-03]
+duration_ms: 66273   pass 0 / fail 1   (the other 22 of 23 pages passed)
+
+$ node --test --test-timeout=300000 tests/distributed-briefs.ui-canary.mjs     # attempt 2, load average 7.35, no code change
+duration_ms: 36712   tests 1 / pass 1 / fail 0                                                   [TP-10-03]
 ```
 
-Diagnosis of the single failing page: `options-flow-feed-lab.html` was provider-wired by Feature 012 scope 15 (commit `5c83d9d7`), so `rlapp.js` now yields `ownerModes: ["power"]` for it. Its Scope-10 mount is declared `data-simple-target="rlbrief-simple"` (line 657), so with no Simple view present the mount never reaches `data-rlbrief-ready="1"`. That is the exact mechanism of BUG-003, which was repaired for `sector-research-lab` (commit `8206c89c`) but not for the remaining provider-wired pages — `options-flow-feed-lab.html`, `volatility-sizing-lab.html` and `options-structure-lab.html` each still carry three `__rlOwnerStateProvider` registrations alongside a `data-simple-target` mount. BUG-003 is still `in_progress` and is owned by Feature 012; Scope 10 does not modify those pages, so the repair belongs to its owner.
+Corrected diagnosis (an earlier version of this block asserted the wrong cause and is superseded by the run above). The first attempt was initially attributed to BUG-003, because `options-flow-feed-lab.html` is provider-wired by Feature 012 scope 15 (commit `5c83d9d7`) and declares its mount `data-simple-target="rlbrief-simple"` at line 657. That explanation does NOT survive its own evidence: `volatility-sizing-lab.html` and `options-structure-lab.html` carry the identical shape (three `__rlOwnerStateProvider` registrations plus a `data-simple-target` mount) and passed in the same run, and the page then passed unchanged on attempt 2. The actual cause is machine load: the canary's internal `page.waitForSelector` allows 30s per page, the first attempt ran with three other agent sessions driving Playwright and a framework validation concurrently (total run 66s versus 7.3s at delivery), and one page exceeded that per-page budget. This is test fragility under contention, not a product regression — the delivery-time TP-10-03 claim still holds, and no Feature 012 defect is implicated.
 
 ## Regression Remediation Evidence — Brief-view reveal restore (2026-07-27)
 

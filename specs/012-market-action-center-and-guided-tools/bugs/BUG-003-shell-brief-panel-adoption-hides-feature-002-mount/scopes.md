@@ -250,11 +250,87 @@ uservalidation.md
 
 - [x] Build Quality Gate — artifact lint and state-transition guard pass, zero deferral language, zero unresolved work
 
-```text
-$ bash .github/bubbles/scripts/artifact-lint.sh specs/012-market-action-center-and-guided-tools
-Artifact lint PASSED.
-LINT_EXIT=0
+Re-scoped 2026-07-29 per audit finding AUD-F1. The evidence previously pasted here was produced
+against `specs/012-market-action-center-and-guided-tools` — the FEATURE directory — while this item
+governs the BUG packet. Both tools are re-run below against the bug packet itself.
 
-$ bash .github/bubbles/scripts/state-transition-guard.sh specs/012-market-action-center-and-guided-tools
+```text
+$ bash .github/bubbles/scripts/artifact-lint.sh specs/012-market-action-center-and-guided-tools/bugs/BUG-003-shell-brief-panel-adoption-hides-feature-002-mount
+✅ Required artifact exists: spec.md
+✅ Required artifact exists: design.md
+✅ Required artifact exists: uservalidation.md
+✅ Required artifact exists: state.json
+✅ Required artifact exists: scopes.md
+✅ Required artifact exists: report.md
+✅ No forbidden sidecar artifacts present
+✅ Found DoD section in scopes.md
+✅ scopes.md DoD contains checkbox items
+✅ All DoD bullet items use checkbox syntax in scopes.md
+⚠️  uservalidation.md is using legacy checklist layout without '## Checklist' section
+✅ Detected state.json status: in_progress
+✅ Detected state.json workflowMode: bugfix-fastlane
+✅ state.json v3 has required field: status
+✅ state.json v3 has required field: execution
+✅ state.json v3 has required field: certification
+✅ state.json v3 has required field: policySnapshot
+✅ state.json v3 has recommended field: transitionRequests
+✅ state.json v3 has recommended field: reworkQueue
+⚠️  state.json v3 missing recommended field: executionHistory
+✅ Top-level status matches certification.status
+ℹ️  Workflow mode 'bugfix-fastlane' allows status 'done'; current status is 'in_progress'
+✅ report.md contains section matching: ###[[:space:]]+Summary|^##[[:space:]]+Summary
+✅ report.md contains section matching: ###[[:space:]]+Completion Statement|^##[[:space:]]+Completion Statement
+✅ report.md contains section matching: ###[[:space:]]+Test Evidence|^##[[:space:]]+Test Evidence
+✅ Mode-specific report gates skipped (status not in promotion set)
+✅ Value-first selection rationale lint skipped (not a value-first report)
+✅ Scenario path-placeholder lint skipped (no matching scenario sections found)
+
+=== Anti-Fabrication Evidence Checks ===
+✅ All checked DoD items in scopes.md have evidence blocks
+✅ No unfilled evidence template placeholders in scopes.md
+✅ No unfilled evidence template placeholders in report.md
+
+=== End Anti-Fabrication Checks ===
+
+Artifact lint PASSED.
+ARTIFACT_LINT_EXIT=0
+```
+
+```text
+$ bash .github/bubbles/scripts/state-transition-guard.sh specs/012-market-action-center-and-guided-tools/bugs/BUG-003-shell-brief-panel-adoption-hides-feature-002-mount
+  BUBBLES STATE TRANSITION GUARD
+ℹ️  INFO: Current workflowMode: bugfix-fastlane
+⚠️  WARN: report.md has 36 of 108 evidence blocks that lack terminal output signals (potentially fabricated)
+⚠️  WARN: report.md has 1 narrative summary phrases outside code blocks (fabrication indicator)
+--- Check 13: Artifact Lint ---
+✅ PASS: Artifact lint passes (exit 0)
+--- Check 18: Deferral Language Scan (Gate G040) ---
+✅ PASS: Zero deferral language found in scope and report artifacts (Gate G040)
+  TRANSITION GUARD VERDICT
+🟡 TRANSITION PERMITTED with 2 warning(s)
+BEGIN TRANSITION_GUARD_RESULT_V1
+workflowMode: bugfix-fastlane
+auditProfile: delivery-completion-v1
+targetStatus: done
+failedGateIds: []
+failedChecks: []
+blockingCode: none
+failureCount: 0
+exitStatus: 0
+verdict: PASS
+END TRANSITION_GUARD_RESULT_V1
 GUARD_EXIT=0
 ```
+
+Both tools pass against the bug packet: `ARTIFACT_LINT_EXIT=0` and `GUARD_EXIT=0` with
+`failureCount: 0` / `verdict: PASS`. The "zero deferral language" clause is carried by guard
+Check 18 (G040), which passes; the residual deferral-shaped strings in `report.md` are fenced
+audit quotations of the already-remediated AUD-F3 phrase (disposition `DI-02`), which G040
+excludes. The two remaining items are advisory WARNs, not failures, and both are pre-existing:
+the 36 thin evidence blocks predate this pass (the count held at 36 while the denominator rose
+from 106 to 108 as this pass appended two blocks of its own).
+
+Scope note: this item's "zero unresolved work" clause is satisfied **for the Build Quality Gate at
+the packet's current status**. It is not a certification claim — promotion of this packet to `done`
+is separately blocked, and the blockers plus their owners are recorded in `report.md` §
+`Validation Phase (bubbles.validate) — 2026-07-29`, CERT-5 and CERT-7.

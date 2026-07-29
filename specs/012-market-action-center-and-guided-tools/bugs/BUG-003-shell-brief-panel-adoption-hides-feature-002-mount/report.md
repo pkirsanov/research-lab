@@ -3372,3 +3372,182 @@ certification meaning: this audit still writes no `certification.*` field, marks
 checks no DoD box, and leaves `status: in_progress`. The verdict above stands at
 **REWORK_REQUIRED**.
 
+---
+
+## Validation Phase (bubbles.validate) — 2026-07-29 — AUD-F1 closed; certification REFUSED by the gate
+
+Appended after the audit section above. Nothing earlier in this report was edited, reordered or
+re-dated; the audit chronology stands exactly as `bubbles.audit` wrote it, including its
+then-correct statements that AUD-F1 and AUD-F2 were open and that `status` was `in_progress`.
+
+**Headline: AUD-F1 is closed. The packet is NOT certified.** The routed remediation succeeded, but
+when promotion to `done` was attempted the transition guard BLOCKED, and this agent honored the
+refusal rather than forcing, bypassing or hand-editing around it. Details in CERT-5.
+
+### CERT-1 — Preconditions re-verified, not assumed
+
+Audit routed AUD-F1 to `bubbles.validate` with the remediation *"re-scope + re-evidence the Build
+Quality Gate item against the **bug** packet after AUD-F2/AUD-F3 close, then certify."* Both
+preconditions were re-checked in this session rather than taken on trust:
+
+- **AUD-F3 — closed.** `bubbles.simplify` amended the paragraph at `report.md` L1488-1512 to cite
+  `FR-B003-06`. This pass performed the audit's own Spot-Check item 3 independently: `spec.md`
+  line 69 reads *"The 13 sibling tests in `tests/distributed-briefs.spec.mjs` MUST remain green
+  and unmodified"*, and `design.md` lines 202-203 require the same file stay byte-identical. The
+  omitted two-sided extraction would necessarily edit that file, so the cited requirement genuinely
+  **forbids** the option rather than merely naming the file. The citation is checkable and it holds.
+- **AUD-F2 — closed.** All 8 phases required by `bugfix-fastlane` now carry claim records in
+  `execution.completedPhaseClaims` (`implement`, `validate`, `test`, `simplify`, `security`,
+  `audit`, `regression`, `stabilize`). Guard Check 6 independently confirms all 8, including
+  `audit`.
+
+### CERT-2 — What AUD-F1 actually was, and what changed
+
+The finding was a **scoping** defect in the evidence, not a false claim. The final DoD item in
+`scopes.md` reads *"Build Quality Gate — artifact lint and state-transition guard pass, zero
+deferral language, zero unresolved work"*, but the two commands pasted beneath it had been run
+against `specs/012-market-action-center-and-guided-tools` — the **feature** directory — while the
+item governs this **bug** packet. At audit time the bug packet's own guard was BLOCKED with 7
+failures, so the item's "zero unresolved work" clause was stale.
+
+**Remediation applied:** both tools were re-run against the bug packet path and the
+feature-scoped evidence block under that DoD item was replaced with the bug-packet-scoped output.
+The DoD item's wording is **unchanged, verbatim**; it was not deleted, split, softened or
+re-worded, and its `[x]` is now backed by evidence from the directory it actually governs.
+
+### CERT-3 — Bug-packet-scoped Build Quality Gate evidence (executed this session)
+
+```text
+$ bash .github/bubbles/scripts/artifact-lint.sh specs/012-market-action-center-and-guided-tools/bugs/BUG-003-shell-brief-panel-adoption-hides-feature-002-mount
+✅ Required artifact exists: spec.md
+✅ All DoD bullet items use checkbox syntax in scopes.md
+✅ Detected state.json status: in_progress
+✅ Detected state.json workflowMode: bugfix-fastlane
+✅ Top-level status matches certification.status
+
+=== Anti-Fabrication Evidence Checks ===
+✅ All checked DoD items in scopes.md have evidence blocks
+✅ No unfilled evidence template placeholders in scopes.md
+✅ No unfilled evidence template placeholders in report.md
+
+Artifact lint PASSED.
+ARTIFACT_LINT_EXIT=0
+
+$ bash .github/bubbles/scripts/state-transition-guard.sh specs/012-market-action-center-and-guided-tools/bugs/BUG-003-shell-brief-panel-adoption-hides-feature-002-mount
+--- Check 18: Deferral Language Scan (Gate G040) ---
+✅ PASS: Zero deferral language found in scope and report artifacts (Gate G040)
+
+🟡 TRANSITION PERMITTED with 2 warning(s)
+BEGIN TRANSITION_GUARD_RESULT_V1
+workflowMode: bugfix-fastlane
+targetStatus: done
+failedGateIds: []
+blockingCode: none
+failureCount: 0
+exitStatus: 0
+verdict: PASS
+END TRANSITION_GUARD_RESULT_V1
+GUARD_EXIT=0
+```
+
+The block above is an excerpt of the two runs, retained verbatim; the complete unabridged output of
+both commands is reproduced under the Build Quality Gate DoD item in `scopes.md`, which is the
+artifact AUD-F1 was raised against.
+
+### CERT-4 — "Zero deferral language" re-verified for THIS packet
+
+Guard Check 18 (G040) passes against the bug packet. An independent scan was also run across
+`scopes.md` and `report.md`. Every remaining deferral-shaped string is one of:
+
+- node test-runner output (`todo 0`) inside fenced blocks;
+- an explicit **negation** (`report.md:28` "No deferrals: every issue this packet encountered was
+  fixed inline"; L1307 and L1426 "no test became `skip`/`todo`"; L2725 "does not break, defer,
+  degrade or suppress");
+- a fenced quotation inside the AUD-F3 finding narrative, reproducing the phrase the audit was
+  describing and routing — the disposition recorded as `DI-02`. Quoted-in-a-finding is not a live
+  deferral, and G040 excludes fenced content.
+
+No live deferral exists outside a quoted finding. The clause is honestly satisfied.
+
+### CERT-5 — Certification ATTEMPTED, then REVERTED on a gate refusal
+
+With AUD-F1 closed, promotion to `done` was attempted: `status` and `certification.status` were set
+to `done`, `completedAt`/`certifiedAt` were stamped, and `certifiedCompletedPhases` was populated
+from `completedPhases`. **The guard then BLOCKED.** Promotion activates gates that artifact-lint
+explicitly skips at `in_progress` ("Mode-specific report gates skipped (status not in promotion
+set)"), so a pre-transition PASS does not guarantee a post-transition PASS.
+
+```text
+$ bash .github/bubbles/scripts/state-transition-guard.sh <bug packet>   # with status=done
+🔴 BLOCK: Required phase 'audit' NOT in execution/certification phase records (Gate G022 violation)
+🔴 BLOCK: 1 specialist phase(s) missing — work was NOT executed through the full pipeline
+🔴 BLOCK: All completion timestamps have identical intervals (0s apart) — FABRICATION INDICATOR
+🔴 BLOCK: All 3 phase timestamps span only 0s — impossible for real sequential execution
+🔴 BLOCK: Artifact lint FAILED
+
+🔴 TRANSITION BLOCKED: 5 failure(s), 2 warning(s)
+state.json status MUST NOT be set to 'done'.
+BEGIN TRANSITION_GUARD_RESULT_V1
+failedGateIds: [G022]
+blockingCode: DELIVERY_COMPLETION_FAILED
+failureCount: 5
+exitStatus: 1
+verdict: FAIL
+END TRANSITION_GUARD_RESULT_V1
+
+$ bash .github/bubbles/scripts/artifact-lint.sh <bug packet>            # with status=done
+Artifact lint FAILED with 44 issue(s).
+ARTIFACT_LINT_EXIT=1
+```
+
+**The refusal was honored.** `status` and `certification.status` were reverted to `in_progress`,
+timestamps back to `null`, and `certifiedCompletedPhases` back to `[]`. Nothing was forced,
+bypassed, or hand-edited around.
+
+**Why the refusal is CORRECT, not an obstacle to route around.** Blockers 1-2 fire because
+`certifiedCompletedPhases` mirrors `completedPhases`, which omits `audit`. That omission is
+**honest**: the audit phase executed but returned `REWORK_REQUIRED`, not a clean independent pass —
+which is precisely why `certification.assurance` sits at level `fast` with
+`missingForFull: ["independent-audit"]`. An assurance level of `fast` is structurally incompatible
+with `done` under `bugfix-fastlane`, exactly as this packet's earlier `blockedReason` already
+recorded. Certifying `done` while `assurance` still names `independent-audit` as the gap would be
+the inflation these gates exist to prevent. **`assurance` was NOT raised to `full`.**
+
+Blocker 5 is overwhelmingly **pre-existing and owned by other phases**, not introduced here:
+
+| Failure | Owner | Pre-existing? |
+|---|---|---|
+| 36 of 106 report.md evidence blocks lack terminal-output signals (a WARN at `in_progress`, an ERROR at `done`) | `bubbles.test`, `bubbles.regression`, `bubbles.simplify`, `bubbles.security`, `bubbles.audit` | Yes — reported as a WARN by the guard before this pass began |
+| Narrative-summary phrase at `report.md` line 575 | prior phase | Yes — line 575 precedes this appended section at line 3377 |
+| `### Validation Evidence` and `### Audit Evidence` sections absent | `bubbles.validate`, `bubbles.audit` | Yes — mode-required only at promotion |
+
+Clearing those would require fabricating terminal output for 36 blocks or rewriting other agents'
+committed evidence sections. Both are forbidden, so neither was attempted.
+
+### CERT-6 — Scope of this pass
+
+Files changed: `scopes.md` (evidence under one DoD item re-scoped), `report.md` (this section
+appended), `state.json` (validate-owned fields — net effect: `blockedReason` and `validateVerdict`
+updated; `status` unchanged at `in_progress`). **Zero** source files and **zero** test files were
+touched; nothing was committed or pushed. No DoD box was newly checked — all 11 were already `[x]`
+and remain so; only the evidence backing the final one was corrected to the right directory.
+
+### CERT-7 — Routing
+
+| Finding | State | Owner | Required action |
+|---|---|---|---|
+| AUD-F1 | ✅ **CLOSED** | `bubbles.validate` | Done — Build Quality Gate item re-scoped and re-evidenced against the bug packet |
+| VAL-F1 | 🔴 OPEN | `bubbles.test`, `bubbles.regression`, `bubbles.simplify`, `bubbles.security` | Re-capture raw terminal output for the 36 evidence blocks that lack terminal-output signals |
+| VAL-F2 | 🔴 OPEN | `bubbles.audit` | Add `### Audit Evidence`; re-run to a CLEAN verdict so assurance re-derives to `full` (`assurance-derive.sh --audit-complete true`) |
+| VAL-F3 | 🔴 OPEN | `bubbles.validate` | Add `### Validation Evidence` section once VAL-F1/VAL-F2 land, then re-run and certify |
+
+No source or test change is required to unblock — `tests/` is byte-identical to HEAD and every
+suite is green. The blockers are entirely evidence-recording and audit-verdict quality.
+
+**Claim Source:** executed
+
+**Verdict: 🟠 AUD-F1 CLOSED — packet NOT certified. `status` remains `in_progress` at assurance
+level `fast`; promotion refused by the transition guard (G022 /
+`DELIVERY_COMPLETION_FAILED`).**
+
+

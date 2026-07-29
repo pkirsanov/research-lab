@@ -1153,3 +1153,312 @@ additive and non-weakening.
 remains `in_progress` and is **not** certifiable from here: `regression`, `simplify`,
 `stabilize`, `security` and an independent `audit` are still unexecuted, and certification
 remains validate-owned. This phase changed no certification field and no status.
+
+---
+
+## Regression Phase (bubbles.regression)
+
+**Agent:** bubbles.regression · **Executed:** 2026-07-29 · **Verdict:** 🟢 REGRESSION_FREE
+
+Delta under review: fix commit `8206c89c`, `+13 / −0`, a single purely-additive
+`openBriefView()` helper in **one Feature 002-authored test file**. No product, shell,
+or source file changed. `git diff --stat HEAD -- tests/` is empty at regression time,
+so the tree under test is byte-identical to the committed fix.
+
+### RG-0 Repository-binding preflight
+
+**Claim Source:** direct execution, this session.
+
+```text
+$ bash .github/bubbles/scripts/repo-binding-preflight.sh \
+    --repo-root ~/research-lab --agent-source research-lab
+[repo-binding-preflight] OK — agent source 'research-lab' matches target repo 'research-lab'.
+PREFLIGHT_EXIT=0
+```
+
+### RG-1 Corrected test-path finding (evidence-integrity, NOT a product regression)
+
+The regression request named `tests/distributed-briefs-scope10.spec.mjs` as the
+reconciled straggler. **That file does not exist**, and it is not the file the fix
+touched. Recording a green result against it would have been fabricated evidence, so
+the path was corrected against the commit itself before any baseline was accepted.
+
+```text
+$ ls -la tests/distributed-briefs-scope10.spec.mjs
+ls: cannot access 'tests/distributed-briefs-scope10.spec.mjs': No such file or directory
+ls_exit=2
+
+$ git show --stat --oneline 8206c89c | tail -3
+ .../uservalidation.md                              |  13 +
+ tests/distributed-briefs.static.integration.mjs    |  13 +
+ 8 files changed, 1157 insertions(+)
+
+$ grep -rn 'TP-10-02' tests/
+tests/web-evidence.functional.mjs:5: * Feature 012 Scope 10 — TP-10-02 acquisition functional tests.
+tests/distributed-briefs.static.integration.mjs:2: * Feature 002 Scope 10 — TP-10-02 integration (node --test + real browser).
+```
+
+The real reconciled file is **`tests/distributed-briefs.static.integration.mjs`** — a
+`node --test` file, not a Playwright spec — exactly as commit `8206c89c` states. This
+matches the `test` phase's own TPH-13 table above, which already cites the correct file.
+
+**Silent-pass hazard actually demonstrated.** Playwright exits **0** when *one* of
+several file arguments matches nothing, so the requested combined invocation reports a
+clean `13 passed` while contributing **zero** tests from the intended file:
+
+```text
+$ npx --no-install playwright test tests/distributed-briefs-scope10.spec.mjs \
+    tests/distributed-briefs.spec.mjs --config=playwright.config.mjs \
+    --project=system-chrome --reporter=list
+Running 13 tests using 1 worker
+  ✓   1 …wer keep official close separate and disclose comparable volume (957ms)
+  ✓  13 …y source receives the shared mount with no page-specific branch (456ms)
+  13 passed (11.1s)
+EXIT_CODE=0
+
+$ npx --no-install playwright test tests/distributed-briefs-scope10.spec.mjs \
+    --config=playwright.config.mjs --project=system-chrome --reporter=list
+Error: No tests found.
+Make sure that arguments are regular expressions matching test files.
+EXIT_SCOPE10=1
+```
+
+All 13 tests in the combined run came from `distributed-briefs.spec.mjs` alone (RG-3).
+The reconciled test is therefore verified separately and explicitly in RG-2.
+
+### RG-2 Reconciled TP-10-02 — the actual fixed test
+
+**Claim Source:** direct execution, this session.
+
+```text
+$ node --test tests/distributed-briefs.static.integration.mjs
+✔ static loader verifies coherent current objects and fetches history only after selection (6556.265115ms)
+ℹ tests 1
+ℹ suites 0
+ℹ pass 1
+ℹ fail 0
+ℹ cancelled 0
+ℹ skipped 0
+ℹ todo 0
+ℹ duration_ms 6738.248369
+EXIT_CODE=0
+```
+
+1 pass / 0 fail / 0 skipped, exit 0 — reproduces the commit's stated GREEN result.
+
+### RG-3 Feature 002 sibling suite — cross-spec conflict check
+
+The reconciliation touched **only** a Feature 002-authored test file (header:
+`Feature 002 Scope 10 — TP-10-02`). No Feature 012 test, no shared helper, no product
+module. The single credible cross-spec risk is therefore Feature 002's own suite, run
+here in isolation:
+
+```text
+$ npx --no-install playwright test tests/distributed-briefs.spec.mjs \
+    --config=playwright.config.mjs --project=system-chrome --reporter=list
+Running 13 tests using 1 worker
+  ✓   1 …wer keep official close separate and disclose comparable volume (797ms)
+  ✓   2 … the exact published pre-market thesis with owner read evidence (451ms)
+  ✓   3 …inal never labels a partial regular print as the official close (550ms)
+  ✓   4 …erve official close and label every post-close print indicative (563ms)
+  ✓   5 … strips use explicit calendar boundaries and next valid session (752ms)
+  ✓   6 …ming to released without stale actual or post-release consensus (803ms)
+  ✓   7 …ay separate and revisions append without rewriting the original (881ms)
+  ✓   8 … and history exclude look-ahead and retain immutable chronology (494ms)
+  ✓   9 …ed unusual evidence remains context and consumes no action slot (447ms)
+  ✓  10 …emains truthful and non-current failures cannot replace current (996ms)
+  ✓  11 …fetches only the selected partition and opened evidence objects (587ms)
+  ✓  12 …ory UI is accessible safe and stable at desktop mobile and zoom (653ms)
+  ✓  13 …y source receives the shared mount with no page-specific branch (361ms)
+  13 passed (10.4s)
+EXIT_SIBLINGS=0
+```
+
+**No cross-spec conflict.** Feature 002's own 13-test suite is fully green after the
+change to its file. There is no route collision, no shared-table mutation, no API
+contract change, and no shared-component modification — the delta cannot reach any
+other spec because it is confined to one test body's view-navigation preamble.
+
+### RG-4 Full project selftest — coverage regression check
+
+**Claim Source:** direct execution, this session.
+
+```text
+$ node scripts/selftest.mjs
+  ✓ etf-momentum-lab.html: delegates etfCompositeScore to the single source
+  ✓ etf page carries no inline composite-score formula (single-sourced to RLMACROROTATION)
+  ✓ etfMomentumSignal is byte-parity with the owner trailing/blend signal (null when absent)
+  ✓ etfCompositeScore is byte-parity with the owner composite (raw/balanced weights, null when no momentum)
+
+Feature 012 Scope 08 RLJOURNEY runtime + all-tool + no-execution canaries
+  ✓ RLJOURNEY validates all 22 ordinary tools (>=2 goals) + the 4 Market Action Center goals across 48 definitions
+  ✓ the 48-definition journey registry compiles under the runtime
+  ✓ a function value anywhere in Journey data is rejected (no-executable-code invariant)
+  ✓ a signed-off JourneyCompletionPacket records review locally and executes NOTHING (no execution entry point exists)
+  ✓ backtracking an assumption stales only its transitive dependent (b) and preserves the unrelated completed step (d)
+...
+================================================
+Research-Lab self-test: 952 passed, 0 failed
+================================================
+EXIT_CODE=0
+```
+
+**952 passed / 0 failed**, exit 0 — identical to the declared baseline. Zero coverage
+regression: the suite total did not drop, no test became `skip`/`todo`, and the fix
+added no test-count delta (it is a helper inside an existing test body).
+
+### RG-5 Simple-view production wiring + model adapters
+
+**Claim Source:** direct execution, this session.
+
+```text
+$ npx --no-install playwright test tests/simple-production-wiring.spec.mjs \
+    tests/simple-models.spec.mjs tests/simple-model-adapters-market.spec.mjs \
+    tests/simple-model-adapters-macro-fundamental.spec.mjs \
+    tests/simple-model-adapters-strategy-property.spec.mjs \
+    --config=playwright.config.mjs --project=system-chrome --reporter=list --workers=1
+Running 27 tests using 1 worker
+  ✓   1 … rotation Simple controls recompute owner transition and ETF fit (1.5s)
+  ✓  10 …mple auction controls recompute from truthful snapshot evidence (570ms)
+  ✓  14 …trols recompute without trade-side inference or new chain owner (20.4s)
+  ✓  23 …controls recompute bounded action or no-action inside Brief only (2.5s)
+  ✓  24 …r stays unavailable without defaults fetch or fabricated result (611ms)
+  ✓  25 …ast valid run across invalid stale missing and non-finite input (579ms)
+  ✓  26 … under Power (Simple stays honest-unavailable, nothing deleted) (448ms)
+  ✓  27 …imple renders the real adapter panel in the real owner-mode flow (1.5s)
+  27 passed (45.0s)
+EXIT_CODE=0
+```
+
+27 passed / 0 failed, exit 0. Test 23 (`…recompute bounded action or no-action inside
+Brief only`) is the shell Brief-view contract asserted from the Feature 012 side and is
+green — the two contracts remain mutually consistent, confirming the fix's premise.
+
+### RG-6 Simple production bridge — integration (TP-15-02 wired count)
+
+**Claim Source:** direct execution, this session.
+
+```text
+$ node --test tests/simple-production-bridge.integration.mjs
+[TP-15-02] wired (19): market-heatmap-lab, options-flow-feed-lab, intraday-tape-lab, swing-structure-lab, options-structure-lab, gamma-trading-lab, sector-research-lab, global-rotation-lab, real-assets-lab, bond-regime-lab, ai-capex-strategy-lab, company-fundamentals-lab, etf-momentum-lab, strategy-self-improvement-lab, strategy-validation-lab, smart-money-flow-lab, waterfront-polo-lab, volatility-sizing-lab, technical-analysis-decision-lab
+[TP-15-02] not wired (4): market-brief, msft-july-print-model, palm-springs-rental-market-lab, ocean-shores-rental-market-lab
+[TP-15-02] strict parity (module loaded by the page): 18 of 19
+[TP-15-02] honest generic unavailable (module deliberately absent, SCN-012-034 lock): technical-analysis-decision-lab
+✔ TP-15-02 the wired-tool set is derived from the production registry + the production pages (never a hard-coded list) (59.062252ms)
+✔ TP-15-02 registry-derived loop: each wired tool prepares through the REAL runtime and paints the REAL panel (1141.410374ms)
+✔ TP-15-02 owner parity: every wired tool's Simple facts EQUAL the owner/Power-path values (1040.968655ms)
+✔ TP-15-02 the production bridge reaches the SAME projection as the explicit runtime path for every module-backed wired tool (and the honest generic unavailable where the module is deliberately absent) (1640.853366ms)
+✔ TP-15-02 honest unavailable: a wired tool whose provider yields NO owner state degrades truthfully (no invented signal) (63.118549ms)
+✔ TP-15-02 honest unavailable: owner evidence that does not permit a run degrades truthfully rather than inventing a read (34.378072ms)
+ℹ tests 6
+ℹ pass 6
+ℹ fail 0
+ℹ skipped 0
+EXIT_INTEGRATION=0
+```
+
+**6/6 passed**, `[TP-15-02] wired (19)`, exit 0 — exact baseline match. The wired-tool
+set is registry-derived, so an unnoticed shell/mount regression would have moved this
+count; it did not.
+
+### RG-7 Simple production bridge — unit
+
+**Claim Source:** direct execution, this session.
+
+```text
+$ node --test tests/simple-production-bridge.unit.mjs
+✔ renderSimpleBridge is exposed on the production API (8.655393ms)
+✔ provider present + real owner state → renders the REAL market-breadth adapter (ready), never mutates rlv-focused (31.168876ms)
+✔ no owner-state provider → honest unavailable, no invented signal, never mutates rlv-focused (6.510295ms)
+✔ owner evidence does not permit a run (unhydrated) → honest unavailable, never mutates rlv-focused (11.521591ms)
+✔ missing adapter module → honest unavailable (no crash), never mutates rlv-focused (5.326696ms)
+ℹ tests 5
+ℹ suites 0
+ℹ pass 5
+ℹ fail 0
+ℹ cancelled 0
+ℹ skipped 0
+ℹ todo 0
+ℹ duration_ms 169.356872
+EXIT_UNIT=0
+```
+
+**5/5 passed**, exit 0 — exact baseline match.
+
+### RG-8 Palm Springs rental market lab — GitHub Pages deploy gate
+
+**Claim Source:** direct execution, this session.
+
+```text
+$ npx --no-install playwright test tests/palm-springs-rental-market-lab.spec.mjs \
+    --config=playwright.config.mjs --project=system-chrome --reporter=list
+Running 29 tests using 1 worker
+  ✓   1 …002 missing configuration blocks payload fetch and every output (507ms)
+  ✓   2 …: SCN-005-004 invalid payload produces errors and no conclusion (356ms)
+  ✓   6 …duction unavailable financing fails loud without numeric output (661ms)
+  ✓  19 …5-003 stale research stays stale in Simple Power and owner read (696ms)
+  ✓  20 …: SCN-005-005 pair levers recompute with zero post-boot requests (2.8s)
+  ✓  23 …both routes keep desktop mobile Simple Power decisions identical (4.3s)
+  ✓  26 …05-019 market and segment switching commits one matching result (935ms)
+  ✓  27 …24 Ocean Shores coastal inputs change nights costs and cash flow (1.0s)
+  ✓  28 …05-025 Palm Springs luxury keeps legal and operating boundaries (637ms)
+  ✓  29 …n cockpit — model + sliders in Simple, deep-dive lives in Power (669ms)
+  29 passed (26.5s)
+EXIT_CODE=0
+```
+
+**29 passed / 0 failed**, exit 0 — exact baseline match. The deploy gate is clear.
+
+### RG-9 Regression verdict
+
+| # | Check | Baseline | Observed | Exit | Status |
+|---|-------|----------|----------|------|--------|
+| RG-0 | repo-binding preflight | OK | OK | 0 | 🟢 |
+| RG-2 | TP-10-02 reconciled test (`distributed-briefs.static.integration.mjs`) | 1/0 | 1 pass / 0 fail | 0 | 🟢 |
+| RG-3 | Feature 002 siblings (`distributed-briefs.spec.mjs`) | 13 | 13 passed | 0 | 🟢 |
+| RG-4 | `scripts/selftest.mjs` | 952 / 0 | 952 passed / 0 failed | 0 | 🟢 |
+| RG-5 | simple wiring + 4 adapter suites | green | 27 passed | 0 | 🟢 |
+| RG-6 | bridge integration | 6/6, wired 19 | 6/6, wired (19) | 0 | 🟢 |
+| RG-7 | bridge unit | 5/5 | 5/5 | 0 | 🟢 |
+| RG-8 | palm-springs (Pages deploy gate) | 29 | 29 passed | 0 | 🟢 |
+
+**Test-baseline delta:** zero. No previously-passing test now fails; no suite total
+decreased; no new `skip`/`todo`/`ignore` marker was introduced.
+
+**Cross-spec impact:** one file changed (`tests/distributed-briefs.static.integration.mjs`,
+Feature 002-authored). Its owning suite is green (RG-3) and the Feature 012 side of the
+same contract is green (RG-5 test 23). No route collision, shared-table mutation, API
+contract change, or shared-component modification exists in the delta.
+
+**Design coherence:** no `design.md` in any spec changed; the fix is test-side only and
+ratifies the already-committed `ordinary-four-view/v1` Brief-view contract rather than
+contradicting it.
+
+**Coverage regression:** none (RG-4, 952/952 unchanged; the fix adds no test and removes
+no assertion — diff is `+13/−0`, all helper lines).
+
+**Deployment regression scan:** **N/A** — this repo is build-free GitHub Pages with no
+`deploy/`, no `.github/workflows/build.yml` image build, and no `scripts/deploy/`. No
+deployment surface appears in the delta. The Pages deploy gate itself (RG-8) is green.
+
+## 🟢 REGRESSION_FREE
+
+```text
+All regression checks passed.
+
+Test baseline: 952/952 selftest + 13 F002 e2e + 1 TP-10-02 + 27 simple + 6 bridge-int
+               + 5 bridge-unit + 29 palm-springs  (stable — zero delta)
+Cross-spec conflicts:   0
+Design contradictions:  0
+Coverage:               952 passed / 0 failed (unchanged)
+Deployment regressions: N/A (build-free Pages repo; deploy gate green)
+```
+
+**One non-blocking finding, recorded not suppressed:** the regression request named a
+non-existent spec file (RG-1). No product defect; it is corrected here so no future
+reader mistakes the combined-command `13 passed` for proof that the reconciled test ran.
+
+**Scope of this verdict.** `regression` is one phase of the `bugfix-fastlane` chain.
+`simplify`, `stabilize`, `security` and an independent `audit` remain unexecuted, and
+certification stays validate-owned. This phase changed **no** source file, **no** test
+file (`git diff HEAD -- tests/` empty), **no** certification field, and **no** status.

@@ -1599,6 +1599,84 @@ supplies the execution RG-F2's own truth boundary declared it lacked.
 **Disposition:** routed to `bubbles.design` / `bubbles.plan` as the existing RG-F2 finding, now
 execution-backed.
 
+#### GAP-F1a — corroboration: the failure is systematic, and the fix site is known
+
+Recorded after the gaps phase, while merging concurrent work. Two facts sharpen GAP-F1 from "the
+validator fails" into "here is why it will keep failing and where the fix belongs". Both are executed,
+not asserted.
+
+**1. Not a stale pointer — every refresh reproduces it.** The gaps phase observed the mismatch against
+`runId dist-2026-07-28-after-hours-44b10805a92a`. The concurrent brief workstream then published a
+fresh run in commit `b102fc09` (`market-brief: auto-refresh + narrative 2026-07-29 07:23 EDT
+(pre-market)`), which advanced `briefs/current.json` and rewrote **both** projection files in the same
+commit. After merging that commit the pointer advanced, `currentGraph` and `historyGraph` both still
+report `ok: true` — and the projections still carry no run identity at all:
+
+**Command:** `node scripts/validate-distributed-briefs.mjs --root .` (run with no pipeline, so `$?` is
+node's own status)
+**Exit Code:** 1
+**Claim Source:** executed
+
+```text
+POINTER briefs/current.json:
+  runId         : dist-2026-07-29-pre-market-b9b25a87f2f6
+  runFingerprint: sha256:b9b25a87f2f667acca775f573605621ba42fc10ee58c06eff051c1e3e8c6cc8b
+market-brief.payload.json:
+  runId         : None
+  runFingerprint: None
+  match         : False
+market-brief.snapshot.json:
+  runId         : None
+  runFingerprint: None
+  match         : False
+```
+
+A refresh that rewrites the pointer and both projections together still produces the mismatch. So this
+is not drift from an abandoned run that a re-publish would clear — the live publish path reproduces it
+every cycle. GAP-F1 is systematic.
+
+**2. The correct writer already exists; it is gated behind a deliberately inert seam.** The repository
+holds two projection writers, and the wrong one is live:
+
+- `scripts/brief-publication.mjs:238-239` already emits the pointer-bound shape the validator wants —
+  `{ contractVersion: 'brief-compat-payload/v1', runId: run.runId, runFingerprint: run.runFingerprint, … }`.
+- `scripts/brief-refresh.mjs:1258`, reached from `main()` (the live launchd path), writes the legacy
+  browser-cockpit shape instead. The committed `market-brief.payload.json` confirms which one ran: it
+  has **no** `contractVersion` and carries legacy UI keys (`regime`, `backdrop`, `psychology`,
+  `toolReads`, …).
+
+`scripts/brief-refresh.mjs:1274-1280` states the gating decision verbatim:
+
+```text
+// Scope 09 dispatch seam. The evidence-first distributed transaction (runBriefRefresh above) is fully
+// implemented and test-proven, but is deliberately NOT wired into the live launchd path here: the
+// browser UI still consumes the legacy market-brief.payload.json until the Scope 10 cutover flips
+// production loading.
+```
+
+**What this means.** The distributed *graph* publish went live (a pointer and per-run manifests are
+committed) while the *projection* write was intentionally left on the legacy path pending the Scope 10
+production-loading cutover. The repository is therefore in a half-cutover state, and
+`validate-distributed-briefs` is correctly reporting it: `validateCompatibilityProjection` treats
+"pointer present" as "cutover complete" (`scripts/validate-distributed-briefs.mjs:97-105`), but pointer
+publication and UI cutover are two distinct milestones that have not landed together.
+
+**This is a true positive, not validator over-strictness.** The clause SCN-002-015 asserts is
+"the compatibility projections and current pointer select the same run"; on the current tree they
+demonstrably do not.
+
+**Not actioned here, and why.** The fix belongs in the live brief-refresh/publication path
+(`scripts/brief-refresh.mjs`, `scripts/brief-publication.mjs`), which is the concurrently-active brief
+workstream's surface — it ran that pipeline and pushed `b102fc09` during this phase. Editing another
+session's live 4×/day publish path from this feature's phase work would risk a production brief
+regression to close a reporting box, which is the wrong trade. The two candidate resolutions are a
+design decision, not a mechanical edit: either complete the cutover so the live path emits pointer-bound
+projections, or teach `validateCompatibilityProjection` to distinguish "pointer published" from "cutover
+complete" so the pre-cutover state is legitimately representable. Ownership stays with
+`bubbles.design` / `bubbles.plan` as already routed by GAP-F1.
+
+**Claim Source:** executed
+
 ---
 
 ### GAP-F2 — A checked DoD item cites a command that no longer passes

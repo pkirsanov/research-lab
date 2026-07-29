@@ -102,6 +102,7 @@ Core outcomes:
 - [x] Actual-corpus migration accounts for every source row (row count derived from the live file at migration time, never a fixed literal; currently 55 and growing), exact bytes/hashes/times/windows, duplicate occurrences, proven final links, and explicit unavailable content without changing the legacy file.
 - [x] Compatibility payload/snapshot outputs select the same coherent run, and the legacy writer remains active until later cutover validation explicitly disables it.
 - [x] Consumer and Shared Infrastructure Impact Sweeps, independent storage/static/legacy canaries, rollback, and the declared Change Boundary are complete with unrelated dirty paths unchanged and unstaged.
+- [x] The consumer impact sweep across `brief-history.jsonl` / `market-brief.payload.json` / `market-brief.snapshot.json` readers, the scheduler staged inventory, navigation and deep-link static paths, docs, and tests is complete and zero stale first-party references remain. — Evidence: [report.md](report.md#tp-07-05-integration--actual-corpus-migration-parity-red-before-green) (actual-corpus migration parity recorded RED before GREEN; complete root compatibility outputs are preserved until every first-party consumer reads the pointer-selected run, the legacy file is proven byte-identical, and rollback is a pure pointer-swap that deletes nothing).
 - [x] Change Boundary is respected and zero excluded file families were changed — every enumerated excluded surface (`brief-history.jsonl` direct edit/append, source acquisition, owner formulas/reads, author/reducer behavior, final narrative policy, scheduler commit/push integration, UI renderer/pages, dependency files, other specs) is byte-identical. — Evidence: [report.md](report.md#code-diff-evidence) ("Out-of-scope surfaces were NOT modified: `brief-history.jsonl` (read-only, byte-identical), `tools.json`, `market-brief.snapshot.json`, other specs. Verified via `git status --porcelain <paths>` returning empty.").
 
 Test evidence items, one per Test Plan row:
@@ -112,12 +113,12 @@ Test evidence items, one per Test Plan row:
 - [x] [TP-07-04] Integration evidence passes for isolated filesystem publish validation and rollback.
 - [x] [TP-07-05] Integration evidence passes for exact actual-corpus (derived row count) migration parity.
 - [x] [TP-07-06] Load evidence passes for the declared 31-day/124-reference and artifact budgets.
-- [x] [TP-07-07] Scenario-specific E2E regression tests for EVERY new/changed/fixed behavior in SCN-002-007 pass with the exact title.
+- [x] Scenario-specific E2E regression tests for EVERY new/changed/fixed behavior in SCN-002-007 pass with the exact title. [TP-07-07]
 - [x] [TP-07-08] Scenario-specific E2E regression tests for EVERY new/changed/fixed behavior in SCN-002-008 pass with the exact title.
 - [x] [TP-07-09] Scenario-specific E2E regression tests for EVERY new/changed/fixed behavior in SCN-002-009 pass with the exact title.
 - [x] [TP-07-10] Integration evidence passes for the actual-corpus no-write migration command.
 - [x] [TP-07-11] Integration evidence passes for whole-graph current/history validation.
-- [x] [TP-07-12] Broader E2E regression suite passes for authorship and history behavior.
+- [x] Broader E2E regression suite passes for authorship and history behavior. [TP-07-12]
 - [x] [TP-07-13] Baseline functional evidence passes for `node scripts/selftest.mjs` after focused checks are green. — Evidence: [report.md](report.md#tp-07-13-baseline-full-repository-selftest-green) (`node scripts/selftest.mjs` = 624 passed / 0 failed).
 
 Build quality gate:

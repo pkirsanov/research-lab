@@ -86,6 +86,18 @@ Scenario: SCN-002-022 rejects evidence that cannot be aligned truthfully
 
 ### Consumer Impact Sweep
 
+This build-free repository exposes no HTTP route, endpoint, or URL surface, so the
+sweep covers the consumer surfaces that actually exist here: module-import reads and
+page script-order declarations. Navigation, breadcrumb, redirect, and deep link
+surfaces are enumerated below and are not applicable to this scope.
+
+| Consumer surface | First-party reader | Sweep result |
+| --- | --- | --- |
+| Module import (`require` / global) | `rlrental.js` (Feature 005) and `rlportfolio.js` (Feature 008) read `rlcontracts.js` via `require("./rlcontracts.js")` / `root.RLCONTRACTS` | Unaffected — `rlcontracts.js` is byte-identical to HEAD, so no stale-reference is created |
+| Page script-order declaration | `scripts/validate-place-based-rental-market.mjs` lists `rlcontracts.js` in its script-order check | Unaffected — the ordering entry is unchanged |
+| Module import (`rlsession.js`) | No first-party importer outside Feature 002 and its owning tests | No stale-reference surface |
+| Navigation / breadcrumb / redirect / deep link | None — this scope adds no page, route, or navigable identifier | Not applicable |
+
 No route, path, identifier, UI target, or existing contract is removed in this scope. Before completion, search first-party imports/usages of `RLSESSION`, `RLCONTRACTS`, planned contract version strings, and B002 error codes to prove there is no accidental duplicate implementation or stale name. Later consumers remain blocked on their declared scope dependencies and may not copy these algorithms.
 
 ### Shared Infrastructure Impact Sweep
@@ -147,6 +159,9 @@ Core outcomes:
 - [x] Deterministic semantic/occurrence identities include the specified contract/policy/source/calendar/cutoff material and exclude only the explicitly volatile fields.
 - [x] Calendar/session aggregation, official-versus-indicative separation, exact-bucket comparability, missing-versus-zero semantics, robust statistics, state precedence, and fail-loud error behavior satisfy SCN-002-016, SCN-002-018, SCN-002-021, and SCN-002-022, including a real whole-graph closed-date bundle with closure/prior-close/next-open proof, typed not-applicable live aggregate/baseline fields, available closed/no-action semantics, and refusal of uncovered or invalid proof.
 - [x] Consumer and Shared Infrastructure Impact Sweeps are complete; independent dual-runtime/selftest canaries pass and the narrow rollback restores the pre-scope baseline with excluded paths unchanged.
+- [x] The consumer impact sweep across module-import, page script-order, and navigation/deep-link surfaces is complete and zero stale first-party references remain. — Evidence: [report.md](report.md#core-outcome-sweep-and-build-quality-gate-evidence-2026-07-19) (`rlcontracts.js` byte-identical to HEAD so its Feature 005 `rlrental.js` and Feature 008 `rlportfolio.js` consumers are unaffected; `rlsession.js` has no first-party importer outside Feature 002; the 558/0 baseline exercises Features 005 and 008 through the unchanged module).
+- [x] Scenario-specific E2E regression tests for EVERY new/changed/fixed behavior in SCN-002-016, SCN-002-018, SCN-002-021, and SCN-002-022 pass with their exact titles. [TP-01-07 through TP-01-10] — Evidence: [report.md](report.md#tp-01-07--scn-002-016-frozen-boundary-membership-e2e) (each row records a controlled-mutation RED before GREEN in the one fresh current-certification window `SCOPE01-CERT-20260719T042504Z`).
+- [x] Broader E2E regression suite passes for the complete existing repository baseline. [TP-01-11] — Evidence: [report.md](report.md#tp-01-11--complete-repository-baseline-green) (`node scripts/selftest.mjs` GREEN after the focused checks are green).
 - [x] The declared Change Boundary is respected, with zero changes to source adapters, existing shared/UI/scheduler/model surfaces, other specs, dependency manifests, or unrelated dirty/untracked paths.
 - [x] Change Boundary is respected and zero excluded file families were changed — every enumerated excluded surface (`tools.json`, source transport, Yahoo/BLS/NYSE acquisition, `rldata.js`, `rlapp.js`, `rlbrief.js`, owning tool formulas/pages, scheduler/publication, current/history artifacts, legacy history, author processes, docs outside the feature packet, other specs, package/dependency manifests) is byte-identical. — Evidence: [report.md](report.md#final-same-window-boundary-audit) (final byte-identity audit `FINAL_WINDOW_AUDIT_BEGIN … allSevenByteIdentical=PASS … FINAL_WINDOW_AUDIT_END`: all seven candidate files identical to HEAD; `git status --porcelain` for those seven paths returned empty, and the owned `report.md`/`scope.md`/`state.json` are the only modified artifacts).
 

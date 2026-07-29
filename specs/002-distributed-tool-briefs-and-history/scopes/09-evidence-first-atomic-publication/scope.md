@@ -116,11 +116,11 @@ Test evidence items, one per Test Plan row:
 - [x] [TP-09-06] Integration evidence passes for duplicate/concurrent/commit/push/crash/rollback idempotency. — Evidence: [report.md](report.md#red-before-green-per-row-controlled-mutation-observed-failure-byte-exact-restore) (real evidence)
 - [x] [TP-09-07] Integration evidence passes for dirty-root and remote-overlap isolation. — Evidence: [report.md](report.md#red-before-green-per-row-controlled-mutation-observed-failure-byte-exact-restore) (real evidence)
 - [x] [TP-09-08] Stress evidence passes for concurrent attempts and declared acquisition/artifact/call budgets. — Evidence: [report.md](report.md#green-consolidated-after-all-restores-byte-exact-exit-0) (real evidence)
-- [x] [TP-09-09] Scenario-specific E2E regression tests for EVERY new/changed/fixed behavior in SCN-002-010 pass with the exact amended title. — Evidence: [report.md](report.md#red-before-green-per-row-controlled-mutation-observed-failure-byte-exact-restore) (real evidence)
+- [x] Scenario-specific E2E regression tests for EVERY new/changed/fixed behavior in SCN-002-010 pass with the exact amended title. [TP-09-09] — Evidence: [report.md](report.md#red-before-green-per-row-controlled-mutation-observed-failure-byte-exact-restore) (real evidence)
 - [x] [TP-09-10] Scenario-specific E2E regression tests for EVERY new/changed/fixed behavior in SCN-002-011 pass with the exact amended title. — Evidence: [report.md](report.md#red-before-green-per-row-controlled-mutation-observed-failure-byte-exact-restore) (real evidence)
 - [x] [TP-09-11] Scenario-specific E2E regression tests for EVERY new/changed/fixed behavior in SCN-002-012 pass with the exact amended title. — Evidence: [report.md](report.md#red-before-green-per-row-controlled-mutation-observed-failure-byte-exact-restore) (real evidence)
 - [x] [TP-09-12] Integration evidence passes for complete current/history/publication graph validation. — Evidence: [report.md](report.md#green-consolidated-after-all-restores-byte-exact-exit-0) (real evidence)
-- [x] [TP-09-13] Broader E2E regression suite passes for final/history/scheduler behavior. — Evidence: [report.md](report.md#green-consolidated-after-all-restores-byte-exact-exit-0) (real evidence)
+- [x] Broader E2E regression suite passes for final/history/scheduler behavior. [TP-09-13] — Evidence: [report.md](report.md#green-consolidated-after-all-restores-byte-exact-exit-0) (real evidence)
 - [x] [TP-09-14] Baseline functional evidence passes for `node scripts/selftest.mjs` after focused checks are green. — Evidence: [report.md](report.md#green-consolidated-after-all-restores-byte-exact-exit-0) (real evidence)
 
 Build quality gate:

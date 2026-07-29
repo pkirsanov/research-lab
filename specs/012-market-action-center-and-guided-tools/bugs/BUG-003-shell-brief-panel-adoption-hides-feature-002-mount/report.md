@@ -1587,3 +1587,515 @@ are what stand. The conclusion is unaffected (the idiom is more widespread, not 
 an independent `audit` remain unexecuted, and certification stays validate-owned.
 This phase changed **no** source file, **no** test file, **no** certification field,
 and **no** status.
+
+---
+
+## Stabilize Phase (bubbles.stabilize)
+
+**Executed:** 2026-07-29 · **Agent:** `bubbles.stabilize` · **Mode:** `bugfix-fastlane`
+**Change surface under assessment:** `tests/distributed-briefs.static.integration.mjs`
+(+13 / −0, commit `8206c89c`). Test-side only; zero product/shell/config/page files.
+
+### Applicability triage (stated before findings, not after)
+
+Research Lab is a **build-free static site** served by GitHub Pages: no build step, no
+services, no containers, no orchestrator, no database, no deploy pipeline beyond the
+Pages workflow. The following standard stabilize domains are therefore **N/A**, and are
+listed explicitly so their absence is not mistaken for an unperformed check:
+
+| Domain | Verdict | Why |
+|---|---|---|
+| Container/runtime health, restart loops, startup order | **N/A** | No containers. No `docker-compose.yml`, no service runtime in this repo. |
+| Deployment reliability beyond Pages | **N/A** | Only deploy path is `.github/workflows/pages.yml` → `upload-pages-artifact` on repo root. Assessed under Category 3. |
+| Configuration drift / generated-config pipeline | **N/A** | No config generation step. `tool-experience.config.json` is a committed, hand-authored static asset consumed by the browser. |
+| DB connection pools, N+1 queries, query plans | **N/A** | No database, no server-side data layer. |
+| Backpressure, retries, timeouts, idempotency of a service tier | **N/A** | No service tier. Client-side fetch of static JSON only. |
+| Build reproducibility / toolchain pinning | **Not a finding — already sound** | No build step to make reproducible. The one pinned toolchain that matters (the Playwright runner) is version-gated in CI (`Version 1.61.1`) and matched locally (evidence E4). |
+| Resource usage (memory/CPU/FD/log volume) of a deployed process | **N/A** | Nothing is deployed as a process. Client-side per-page cost is assessed under Category 1. |
+
+The three categories that genuinely apply are assessed below.
+
+---
+
+### Category 1 — Runtime/perf risk of the shell reparent
+
+**Question:** does `panel.appendChild(ANCHOR)` in `rlviews.js` introduce reflow,
+observer, or listener risk, double-mount, or a leak?
+
+**Verdict: 🟢 no defect found.** Five independent structural properties were verified
+mechanically (not inferred), each of which independently bounds the risk:
+
+**1. The reparent happens OFF-DOM → it causes no layout thrash.**
+`buildPanels()` creates `panel` via `document.createElement` (rlviews.js:121), moves the
+anchor into it at line 126, and only appends `panel` to the document at line 138. The
+`appendChild(ANCHOR)` therefore mutates a **detached** subtree. The single reflow is the
+one body append, which occurs for every panel regardless of the brief. Evidence E6[G].
+
+**2. It executes exactly once per page → no double-mount.**
+`MODES` is `SHELL.viewIds`; `tool-experience.config.json` authors
+`["simple","power","brief","journey"]` for `ordinary-four-view/v1` and
+`["brief","portfolio","red-alert","journey"]` for the Center — `"brief"` appears
+**exactly once** in each, so the `mode === "brief"` branch runs once per `buildPanels()`
+call. `build()` itself is single-entry: guarded by `root.__rlviewsInit` (rlviews.js:6,9)
+and dispatched through an `if/else` on `readyState` (line 276-277), never both. Evidence E6[C][D].
+
+**3. `appendChild` MOVES, it does not clone → no orphan, no duplicated listeners.**
+The anchor is the same node object before and after; `rlviews.js` attaches **no**
+listeners to `ANCHOR` at all (its only `addEventListener` calls are on `shellControl`,
+lines 235/239, and `popstate`, line 266). Nothing to duplicate, nothing to leak.
+
+**4. The consumer is independently idempotent → even a hypothetical re-mount is safe.**
+`BriefMount()` short-circuits on either `data-rlbrief-ready="1"` or
+`data-rlbrief-mounting="1"` **before** creating its `.rlbrief-mount` child
+(rlbrief.js:1570-1574). So duplicate `.rlbrief-mount` children are structurally
+impossible even if the anchor were reparented repeatedly. Evidence E6[E].
+
+**5. No visibility-gated observer exists → the reparent cannot stall the load.**
+`rlbrief.js` contains **0** `IntersectionObserver` and **0** `ResizeObserver`
+(evidence E6[B]). The brief loads irrespective of whether its panel is displayed. This is
+the load-bearing corroboration of the fix's premise: the mount was **loading correctly
+all along and was merely not visible**, so a tab click is the semantically correct
+remedy — the bug was never a load failure being papered over.
+
+**Bounded observations (reported for completeness; neither is a defect):**
+
+- **One observer wakes on every view switch.** `rlbrief.js:1506-1509` installs a
+  `MutationObserver` on `document.body` with `{attributes:true, attributeFilter:["class"]}`
+  (no `subtree`), and `applyVisual()` toggles three body classes per switch
+  (`power`, `rlv-brief`, `rlv-focused`). Each switch therefore fires one batched callback
+  whose entire body is a `classList.contains()` test plus a possible property set — O(1),
+  and it is a single instance per page (guaranteed by the BriefMount guard in point 4).
+  It is never disconnected, but its lifetime is the page's. **Not a leak.**
+- **Hidden panels use `display:none`, not `visibility:hidden`**
+  (`[data-rlexperience-panel][hidden]{display:none!important}`, rlviews.js:53). This is
+  strictly *better* for perf — the unselected brief subtree is excluded from the layout
+  tree entirely and costs zero layout/paint. The trade is a single one-time layout of the
+  brief subtree when its tab is first selected; for a brief-sized DOM this is negligible
+  and bounded. Evidence E6[H].
+
+**Additional soundness confirmation of the fix itself:** the fix's inline comment claims
+the view switch "issues no brief request of its own, so it is placed BEFORE every
+network-window baseline below … and cannot invalidate them." That claim is load-bearing —
+if false, the test's cache-header and history-partition assertions would be corrupted.
+It is **true**: `rlviews.js` contains **0** occurrences of `fetch(`, `XMLHttpRequest`,
+`.src =`, or dynamic `import(` (evidence E6[F]). The shell is network-silent.
+
+---
+
+### Category 2 — Determinism / flake risk of the added tab click
+
+**Question:** the fix adds a tab click plus a visibility wait. Is it deterministic under load?
+
+**Verdict: 🟢 deterministic; 8/8 green including 3 runs under 2× core oversubscription.**
+
+The added helper is:
+
+```js
+async function openBriefView(page) {
+    await page.waitForSelector('#rlviews[data-rlexperience-shell="ready"]', { timeout: 20000 });
+    await page.locator('#rlviews button[data-rlview-mode="brief"]').click();
+}
+```
+
+**Why this is structurally sound (not merely observed-green):** it waits on the shell's
+**own** readiness attribute write before acting, rather than sampling instantaneously.
+This is exactly the pattern that resolved the separate `driveSimple` race in
+`tests/simple-model-adapters-*.spec.mjs` this session. The downstream wait
+(`[data-rlbrief-mount][data-rlbrief-ready="1"]`) is likewise anchored to a
+component-authored settled-state attribute — `rlbrief.js:1204-1207` documents in-source
+that `data-rlbrief-ready` "signals a SETTLED load attempt, so it is set on terminal
+states only — a consumer that waits for `data-rlbrief-ready="1"` must not race the load."
+Both waits are edge-triggered on producer writes; neither polls a derived value.
+
+**Empirical margin (measured, evidence E5 and E7):**
+
+| Condition | Runs | Result | Elapsed | Budget | Headroom |
+|---|---|---|---|---|---|
+| Idle | 5 | 5 pass / 0 fail, exit 0 ×5 | 2229–2475 ms | 15 000 ms mount wait | ~6.5× |
+| loadavg ≈ 8–12 (16 CPU burners on 8 cores) | 3 | 3 pass / 0 fail, exit 0 ×3 | 6094–6209 ms | 15 000 ms mount wait | ~2.5× |
+
+Idle spread is ±5 % across five runs — no bimodality, no outliers, i.e. no latent race
+manifesting intermittently. Under deliberate 2× CPU oversubscription the suite degrades
+by ~2.65× and still clears the budget with ~2.5× to spare. **Reported honestly: the
+margin is real but it is not unbounded** — a CI runner roughly 6× slower than this host's
+idle baseline would begin to encroach on the 15 s wait. That budget is pre-existing and
+unchanged by this fix (the fix altered no timeout), so this is a property of the suite,
+not a regression the fix introduced.
+
+**Fail-closed analysis of the click's silent-failure paths.** Two paths exist where the
+click performs no state change:
+- `selectMode()` early-returns when `mode === current` (rlviews.js:202). Reachable only
+  if the page already booted into the Brief view, in which case the panel is already
+  visible and the subsequent assertion passes correctly.
+- `selectMode()` early-returns when `transition.ok` is false (rlviews.js:216).
+
+In **both** cases the failure mode is that the mount never becomes visible, so
+`waitForSelector(..., {timeout: 15000})` times out and the test goes **RED**. Neither
+path can produce a false GREEN. The fix is fail-closed.
+
+**One latent ordering smell — verified NOT currently reachable, reported so it is on the
+record rather than discovered later.** In `buildControl()`, the shell publishes its
+readiness contract *before* it wires its click handler:
+
+- line 228 — `setAttribute("data-rlexperience-shell", "ready")`
+- line 233 — `appendChild(shellControl)` → the element enters the DOM already carrying `ready`, so `waitForSelector` can match here
+- line 235 — `addEventListener("click", …)` → handler attached only now
+
+A test that matched at line 233 and clicked before line 235 would dispatch onto a
+button with no handler. **This is not reachable today**: lines 223–253 contain **zero**
+`await` / `async` / `setTimeout` / `setInterval` / `requestAnimationFrame` / `Promise` /
+`queueMicrotask` boundaries (mechanically counted, evidence E6[A]), so append-and-wire is
+one synchronous task. A browser cannot dispatch input, and Playwright's selector polling
+cannot run, mid-task. The 8/8 green runs are consistent with this.
+
+**It would become a genuine race the moment any async boundary is introduced between
+lines 233 and 235.** Recommended (NOT applied here — stabilize is diagnostic and this
+bug's mandate is test-side only): move the `data-rlexperience-shell="ready"` write to
+*after* the two `addEventListener` calls, so the published contract means "wired", not
+merely "rendered". Filing this as a hardening note for the Feature 012 shell owner; it is
+**not** a defect in BUG-003 and does not block this bug.
+
+---
+
+### Category 3 — Pages deploy risk
+
+**Question:** does the Pages gate pass?
+
+**Verdict: 🟢 pass — 29/29, exit 0.**
+
+The gate was confirmed by reading `.github/workflows/pages.yml` rather than assumed: job
+`verify` runs `npx --no-install playwright test tests/palm-springs-rental-market-lab.spec.mjs
+--config=playwright.config.mjs --project=system-chrome --reporter=list`, and job `deploy`
+declares `needs: verify` — so a red gate blocks the Pages deploy. Executed locally with
+the same runner version the workflow pins (`Version 1.61.1`, asserted by the workflow's
+own version check and matched locally, evidence E4): **29 passed, exit 0** (evidence E2).
+
+The workflow's two other guards were noted but are unaffected by a test-only change:
+`node scripts/validate-node-source-lock.mjs` (dependency source lock) and the runner
+version assertion. The deploy step uploads the repo root verbatim — since this fix touches
+only `tests/`, which is not consumed by any page at runtime, **the deployed artifact is
+byte-identical in behaviour**.
+
+---
+
+### Scope-integrity attestation for this phase
+
+- `git status --porcelain -- tests/` returned **empty** (evidence E5): the tree under
+  test is byte-identical to `HEAD`, so every result above describes committed code, not
+  local drift.
+- This phase modified **no** source file, **no** test file, **no** certification field,
+  and **no** status. It appended this section to `report.md` and added `"stabilize"` to
+  `completedPhases` in `state.json`. Nothing else.
+- No file outside this bug folder was written. `specs/002-*`, `specs/013-*`, `specs/014-*`,
+  `specs/015-*`, `specs/016-*` were not read for mutation and not touched.
+
+### Real defects found
+
+**One latent (not currently reachable) ordering smell**, Category 2: `rlviews.js` publishes
+`data-rlexperience-shell="ready"` at line 228/233 before wiring its click listener at line
+235. Mechanically verified non-reachable today (zero async boundaries in that window).
+**Reported, not fixed** — it is shell/product code, outside this bug's test-only mandate.
+Owner: Feature 012 shell.
+
+**No other defect found.** No fabricated finding is recorded for the N/A domains above.
+
+---
+
+## 🟢 STABLE
+
+All applicable stability domains clean. 71 tests executed across three suites plus an
+8-run determinism probe; every run exit 0. One latent (non-reachable) ordering smell
+reported to the Feature 012 shell owner; zero blocking findings for BUG-003.
+
+```
+Domains audited (applicable): reparent runtime/perf, determinism/flake, Pages deploy
+Domains declared N/A (no service tier / no build / no containers): 7 — enumerated above
+Blocking issues found: 0
+Latent non-blocking observations reported: 1
+Files changed by this phase: report.md, state.json (this bug folder only)
+```
+
+---
+
+### Stabilize Evidence
+
+#### E1 — Repository-binding preflight (Claim Source: EXECUTED 2026-07-29)
+
+```
+$ bash .github/bubbles/scripts/repo-binding-preflight.sh \
+    --repo-root <repo-root> --agent-source research-lab
+[repo-binding-preflight] OK — agent source 'research-lab' matches target repo 'research-lab'.
+EXIT=0
+```
+
+#### E2 — Required command 1/3: sibling brief suite (Claim Source: EXECUTED 2026-07-29)
+
+```
+$ npx --no-install playwright test tests/distributed-briefs.spec.mjs \
+    --config=playwright.config.mjs --project=system-chrome --reporter=list
+
+Running 13 tests using 1 worker
+
+  ✓   1 …wer keep official close separate and disclose comparable volume (604ms)
+  ✓   2 … the exact published pre-market thesis with owner read evidence (373ms)
+  ✓   3 …inal never labels a partial regular print as the official close (458ms)
+  ✓   4 …erve official close and label every post-close print indicative (450ms)
+  ✓   5 … strips use explicit calendar boundaries and next valid session (543ms)
+  ✓   6 …ming to released without stale actual or post-release consensus (694ms)
+  ✓   7 …ay separate and revisions append without rewriting the original (677ms)
+  ✓   8 … and history exclude look-ahead and retain immutable chronology (379ms)
+  ✓   9 …ed unusual evidence remains context and consumes no action slot (358ms)
+  ✓  10 …emains truthful and non-current failures cannot replace current (785ms)
+  ✓  11 …fetches only the selected partition and opened evidence objects (470ms)
+  ✓  12 …ory UI is accessible safe and stable at desktop mobile and zoom (489ms)
+  ✓  13 …y source receives the shared mount with no page-specific branch (253ms)
+
+  13 passed (8.4s)
+EXIT=0
+```
+
+> Note recorded for accuracy: this file is the **sibling** suite whose `mountReady()`
+> already clicked the Brief tab — it is the contract TP-10-02 was reconciled *to*. It is
+> not the file the fix edited. The edited file is exercised separately in E5/E7.
+
+#### E3 — Required command 2/3: Pages deploy gate (Claim Source: EXECUTED 2026-07-29)
+
+```
+$ npx --no-install playwright test tests/palm-springs-rental-market-lab.spec.mjs \
+    --config=playwright.config.mjs --project=system-chrome --reporter=list
+
+Running 29 tests using 1 worker
+
+  ✓   1 …002 missing configuration blocks payload fetch and every output (626ms)
+  ✓   2 …: SCN-005-004 invalid payload produces errors and no conclusion (375ms)
+  ✓   3 …06 occupancy equation clamps and rejects an invalid denominator (472ms)
+  ✓   4 …005-008 buyer economics use standard amortization in one result (478ms)
+  ✓   5 …86:1 › Regression: SCN-005-009 zero-rate financing stays finite (518ms)
+  ✓   6 …duction unavailable financing fails loud without numeric output (627ms)
+  ✓   7 …ression: SCN-005-020 five bedrooms alone never qualifies luxury (381ms)
+  ✓   8 …Regression: SCN-005-021 sparse segment evidence remains visible (369ms)
+  ✓   9 …22 whole-market values never become observed luxury performance (414ms)
+  ✓  10 …on: SCN-005-023 deltas require aligned market and segment bases (377ms)
+  ✓  11 …ed payload exposes four truthful units and no fixture authority (527ms)
+  ✓  12 …013 compared refresh accounts for every material entity by pair (466ms)
+  ✓  13 …egression: SCN-005-014 baseline refresh invents no prior change (471ms)
+  ✓  14 …N-005-015 inaccessible research remains unknown without a value (471ms)
+  ✓  15 …bserved assumptions inference and modeled outputs stay distinct (446ms)
+  ✓  16 …026 refresh accounts independently for all four mandatory units (453ms)
+  ✓  17 …acquisition baselines disclose sample status and legal unknowns (449ms)
+  ✓  18 …emaining-2026 and 2027 scenarios remain falsifiable not factual (617ms)
+  ✓  19 …5-003 stale research stays stale in Simple Power and owner read (566ms)
+  ✓  20 …: SCN-005-005 pair levers recompute with zero post-boot requests (2.7s)
+  ✓  21 …mpatible occupancy definitions remain separate and unaggregated (568ms)
+  ✓  22 …5-010 negative cash flow remains signed and explicit everywhere (497ms)
+  ✓  23 …both routes keep desktop mobile Simple Power decisions identical (3.8s)
+  ✓  24 …2 source inspector resolves provenance and restores exact focus (622ms)
+  ✓  25 …gal and active supply remain separate from scenario assumptions (428ms)
+  ✓  26 …05-019 market and segment switching commits one matching result (643ms)
+  ✓  27 …4 Ocean Shores coastal inputs change nights costs and cash flow (786ms)
+  ✓  28 …05-025 Palm Springs luxury keeps legal and operating boundaries (487ms)
+  ✓  29 …n cockpit — model + sliders in Simple, deep-dive lives in Power (643ms)
+
+  29 passed (22.4s)
+EXIT=0
+```
+
+> The per-test `[SCN-005-*]` diagnostic stdout lines emitted between results are omitted
+> here for length; every one of the 29 results and the summary line are reproduced verbatim.
+
+#### E4 — Pages gate identity + runner pin (Claim Source: EXECUTED 2026-07-29)
+
+```
+$ cat .github/workflows/pages.yml     # relevant excerpt, verbatim
+      - name: Verify checkout-local Playwright runner
+        run: |
+          runner_version="$(npx --no-install playwright --version)"
+          printf '%s\n' "$runner_version"
+          if [[ "$runner_version" != "Version 1.61.1" ]]; then
+            printf 'Expected Version 1.61.1, got %s\n' "$runner_version" >&2
+            exit 1
+          fi
+      - name: Run Palm Springs system Chrome suite
+        run: npx --no-install playwright test tests/palm-springs-rental-market-lab.spec.mjs --config=playwright.config.mjs --project=system-chrome --reporter=list
+  deploy:
+    needs: verify
+
+$ npx --no-install playwright --version
+Version 1.61.1
+EXIT=0
+```
+
+#### E5 — Required command 3/3: repo selftest (Claim Source: EXECUTED 2026-07-29)
+
+Full output is ~20 KB; the exit code was captured separately and the summary tail is
+reproduced verbatim.
+
+```
+$ node scripts/selftest.mjs > /dev/null 2>&1; echo "selftest EXIT=$?"
+selftest EXIT=0
+
+$ node scripts/selftest.mjs 2>&1 | tail -20
+  ✓ SCN-012-022 public matrix labels every row `Public watchlist` with one explicit applicable/state cell per domain (never neutral by omission)
+  ✓ the composed public matrix validates round-trip and matches the validator row count
+  ✓ the public composer refuses a smuggled Feature 008 private field (RLMKT-PRIVACY) and never echoes the private value
+  ✓ SCN-012-019 the Center composes exactly four views (brief/portfolio/red-alert/journey), three exact dependency-pending gates, and a truthful no-action Brief that fabricates no action/catalyst/confidence
+  ✓ the market-action contract validator reports four views, three pending gates, and seven distinct closed RLMKT-* adversarial refusals
+
+Feature 012 Scope 10 Bounded WebEvidence Acquisition (fail-closed acquisition + validator)
+  ✓ every committed web-evidence fixture (>= 11) evaluates deterministically against the REAL acquire() production transform
+  ✓ web-evidence-acquire.mjs imports ONLY node:crypto and owns zero fetch/provider-key/repo-write/current-pointer/author-publication authority
+  ✓ the web-evidence validator refuses twelve distinct closed adversarial mutations, each with an E012-* code
+  ✓ SCN-012-006/007 single & syndicated origins leave a material claim uncorroborated while two DISTINCT origins corroborate; the safe bundle is frozen with no raw markup (SCN-012-037)
+
+Feature 012 Scope 12 Dynamic Red Alert discovery/qualification/projection
+  ✓ SCN-012-023 a dynamically corroborated, market-confirmed, high-severity candidate qualifies with every falsifiable field and an admission score (never a probability/confidence/crash-odds field), publication Feature-002 gated
+  ✓ SCN-012-024 a single-origin dramatic candidate consumes no visible slot, is a safe insufficient-corroboration count, and never echoes its dramatic title
+  ✓ SCN-012-025 a no-candidate window renders an honest empty state with cutoff/channels/owner coverage and no illustrative topic
+
+================================================
+Research-Lab self-test: 952 passed, 0 failed
+================================================
+```
+
+#### E6 — Determinism probe, idle: the file the fix actually changed (Claim Source: EXECUTED 2026-07-29)
+
+```
+$ git status --porcelain -- tests/
+(empty above = clean)
+
+$ for i in 1 2 3 4 5; do S=$(date +%s%N); node --test tests/distributed-briefs.static.integration.mjs > /tmp/dbsi.$i.log 2>&1; RC=$?; E=$(date +%s%N); \
+    echo "run#$i exit=$RC elapsed=$(( (E-S)/1000000 ))ms $(grep -E '^# (pass|fail|skipped)' /tmp/dbsi.$i.log | tr '\n' ' ')"; done
+run#1 exit=0 elapsed=2365ms # pass 1 # fail 0 # skipped 0
+run#2 exit=0 elapsed=2311ms # pass 1 # fail 0 # skipped 0
+run#3 exit=0 elapsed=2475ms # pass 1 # fail 0 # skipped 0
+run#4 exit=0 elapsed=2311ms # pass 1 # fail 0 # skipped 0
+run#5 exit=0 elapsed=2229ms # pass 1 # fail 0 # skipped 0
+
+$ cat /tmp/dbsi.1.log
+TAP version 13
+# Subtest: static loader verifies coherent current objects and fetches history only after selection
+ok 1 - static loader verifies coherent current objects and fetches history only after selection
+  ---
+  duration_ms: 2216.034836
+  type: 'test'
+  ...
+1..1
+# tests 1
+# suites 0
+# pass 1
+# fail 0
+# cancelled 0
+# skipped 0
+# todo 0
+# duration_ms 2320.146153
+```
+
+#### E7 — Determinism probe UNDER LOAD (Claim Source: EXECUTED 2026-07-29)
+
+16 busy-loop CPU burners spawned on an 8-core host (2× oversubscription), sustained
+through three consecutive runs, then killed.
+
+```
+$ NPROC=$(nproc); for i in $(seq 1 $((NPROC*2))); do (while :; do :; done) & done
+cores=8 — spawning 16 CPU burners to contend
+
+$ cut -d' ' -f1-3 /proc/loadavg
+load avg during test: 8.07 7.53 8.21
+
+$ for i in 1 2 3; do S=$(date +%s%N); node --test tests/distributed-briefs.static.integration.mjs > /tmp/load.$i.log 2>&1; RC=$?; E=$(date +%s%N); \
+    echo "LOADED run#$i exit=$RC elapsed=$(( (E-S)/1000000 ))ms $(grep -E '^# (pass|fail)' /tmp/load.$i.log | tr '\n' ' ')"; done
+LOADED run#1 exit=0 elapsed=6094ms # pass 1 # fail 0
+LOADED run#2 exit=0 elapsed=6209ms # pass 1 # fail 0
+LOADED run#3 exit=0 elapsed=6111ms # pass 1 # fail 0
+
+$ kill $BURNERS; cut -d' ' -f1-3 /proc/loadavg
+burners killed; loadavg now: 11.92 8.40 8.48
+```
+
+Degradation under 2× oversubscription: 2.3 s → 6.1 s (≈2.65×), against an unchanged
+15 000 ms mount-wait budget. 3/3 pass, exit 0 each.
+
+#### E8 — Structural verification of every Category 1 & 2 claim (Claim Source: EXECUTED 2026-07-29)
+
+Each assertion in this phase was verified by executing a check, not by reading alone.
+
+```
+$ echo "[A] async boundary between append(233) and listener(235)? (expect ZERO)"
+$ sed -n '223,253p' rlviews.js | grep -cE 'await|async |setTimeout|setInterval|requestAnimationFrame|Promise|queueMicrotask'
+0
+
+$ echo "[B] visibility-gated observers in rlbrief.js (expect 0 Intersection/Resize)"
+$ echo "IntersectionObserver=$(grep -c 'IntersectionObserver' rlbrief.js) ResizeObserver=$(grep -c 'ResizeObserver' rlbrief.js) MutationObserver=$(grep -c 'new MutationObserver' rlbrief.js)"
+IntersectionObserver=0 ResizeObserver=0 MutationObserver=1
+
+$ echo "[C] viewIds (a duplicate 'brief' would double-append)"
+$ grep -n '"viewIds"' -A6 tool-experience.config.json
+8:      "viewIds": ["simple", "power", "brief", "journey"],
+9-      "labels": ["Simple", "Power", "Brief", "Journey"],
+10-      "defaultViewId": "simple"
+16:      "viewIds": ["brief", "portfolio", "red-alert", "journey"],
+17-      "labels": ["Brief", "Portfolio", "Red Alert", "Journey"],
+18-      "defaultViewId": "brief"
+
+$ echo "[D] build() re-entry guards"
+$ grep -n '__rlviewsInit\|readyState === "loading"' rlviews.js
+6:  if (typeof document === "undefined" || root.__rlviewsInit) return;
+9:  root.__rlviewsInit = 1;
+276:  if (document.readyState === "loading") document.addEventListener("DOMContentLoaded", build);
+
+$ echo "[E] BriefMount idempotency guard"
+$ sed -n '1568,1575p' rlbrief.js
+  async function BriefMount(anchor, host) {
+    host = host || {};
+    if (!anchor || anchor.getAttribute("data-rlbrief-ready") === "1" || anchor.getAttribute("data-rlbrief-mounting") === "1") return;
+    anchor.setAttribute("data-rlbrief-mounting", "1");
+    var toolId = anchor.getAttribute("data-tool-id");
+    briefInjectCss();
+    var mount = briefEl("div", { cls: "rlbrief-mount" }); anchor.appendChild(mount);
+
+$ echo "[F] does rlviews.js issue ANY network request? (expect 0)"
+$ grep -cE 'fetch\(|XMLHttpRequest|\.src *=|import\(' rlviews.js
+0
+
+$ echo "[G] is the panel still DETACHED when the ANCHOR is moved into it?"
+$ sed -n '119,140p' rlviews.js
+  function buildPanels() {
+    for (var index = 0; index < MODES.length; index += 1) {
+      var mode = MODES[index];
+      var panel = document.createElement("section");        // <- created detached
+      panel.className = "rlexperience-placeholder";
+      if (mode === "brief" && ANCHOR) {
+        panel.appendChild(ANCHOR);                          // <- reparent while DETACHED
+      ...
+      panel.hidden = true;
+      panels[mode] = panel;
+      (document.body || document.documentElement).appendChild(panel);   // <- single attach
+    }
+  }
+
+$ echo "[H] hidden-panel mechanism (display vs visibility)"
+$ sed -n '40,58p' rlviews.js        # relevant rule
+      "[data-rlexperience-panel][hidden]{display:none!important}",
+```
+
+#### E9 — Host precondition (Claim Source: EXECUTED 2026-07-29)
+
+Recorded because this host has a documented history of OOM-killing test runs under memory
+pressure; the runs above were executed with ample headroom, so no result is an
+OOM artefact.
+
+```
+$ free -g
+               total        used        free      shared  buff/cache   available
+Mem:              47           9           6           0          32          38
+Swap:             16           0          15
+```
+
+---
+
+### Phase attestation
+
+`stabilize` executed and is complete. It is one phase of the `bugfix-fastlane` chain;
+`security` and an independent `audit` remain unexecuted, and certification remains
+validate-owned. This phase performed **no** terminal-status transition and wrote **no**
+certification field.

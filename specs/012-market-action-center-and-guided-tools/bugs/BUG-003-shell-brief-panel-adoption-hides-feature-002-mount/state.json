@@ -13,7 +13,7 @@
   "requiresRevalidation": true,
   "flagsIntroduced": [],
   "completedScopes": ["SCOPE-01"],
-  "completedPhases": ["implement", "validate", "test", "regression", "simplify"],
+  "completedPhases": ["implement", "validate", "test", "regression", "simplify", "stabilize"],
   "execution": {
     "activeAgent": "bubbles.validate",
     "currentPhase": "validate",

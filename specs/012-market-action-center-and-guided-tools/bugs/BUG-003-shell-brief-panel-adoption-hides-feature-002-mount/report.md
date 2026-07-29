@@ -2099,3 +2099,521 @@ Swap:             16           0          15
 `security` and an independent `audit` remain unexecuted, and certification remains
 validate-owned. This phase performed **no** terminal-status transition and wrote **no**
 certification field.
+
+---
+
+## Security Phase (bubbles.security)
+
+**Agent:** `bubbles.security` · **Executed:** 2026-07-29 · **Verdict:** 🔒 **SECURE**
+
+**Transcript hygiene note:** every block below is real captured output. Shell prompt echo
+(`user@host:~/research-lab$`) and terminal soft-wrap artifacts were removed and long lines
+re-joined; **command text and output content are otherwise verbatim and unaltered**. No
+output was synthesized.
+
+### SEC-0 — Scope statement (read this before the findings)
+
+The change under review is **+13 insertions / 0 deletions in exactly one test file**,
+`tests/distributed-briefs.static.integration.mjs`. **No product code changed.** The
+attack surface of a test-only change to a build-free static site is genuinely small, and
+this report says so plainly rather than manufacturing findings.
+
+```text
+$ git show 8206c89c --numstat --format=''
+165     0       specs/.../BUG-003-.../bug.md
+198     0       specs/.../BUG-003-.../design.md
+318     0       specs/.../BUG-003-.../report.md
+223     0       specs/.../BUG-003-.../scopes.md
+90      0       specs/.../BUG-003-.../spec.md
+137     0       specs/.../BUG-003-.../state.json
+13      0       specs/.../BUG-003-.../uservalidation.md
+13      0       tests/distributed-briefs.static.integration.mjs
+
+$ git show 8206c89c --name-only --format='' | grep -v '^specs/'
+tests/distributed-briefs.static.integration.mjs
+GREP_EXIT=0
+```
+
+The complete added surface — 6 comment lines, a 4-line helper, one blank line, two call
+sites:
+
+```text
+$ git show 8206c89c -- tests/distributed-briefs.static.integration.mjs | grep -E '^\+' | grep -vE '^\+\+\+'
++// The shared brief renders inside the shell's "Brief" view (feat(brief): brief lives only in Brief
++// view). Ordinary tools boot in their default "simple" view, so drive the real rlviews control to the
++// Brief view — exactly as every other shell regression does (tests/distributed-briefs.spec.mjs
++// ::mountReady) — before asserting the brief is visible. The switch only reveals the already-loaded
++// mount and issues no brief request of its own, so it is placed BEFORE every network-window baseline
++// below (`no history partition before Open history`, `beforePower`) and cannot invalidate them.
++async function openBriefView(page) {
++    await page.waitForSelector('#rlviews[data-rlexperience-shell="ready"]', { timeout: 20000 });
++    await page.locator('#rlviews button[data-rlview-mode="brief"]').click();
++}
++
++        await openBriefView(page);
++        await openBriefView(page);
+ADDED_EXIT=0
+```
+
+---
+
+### SEC-1 — Secret / credential exposure — ✅ PASS, no finding
+
+**Claim Source:** `executed`
+
+Four independent probes. All negative.
+
+```text
+$ grep -nEi 'api[_-]?key|secret|token|passwd|password|bearer|authorization|credential|rlProviderConfig|rlApiKeys|RLDATA\.key|setKey\(|private[_-]?key|BEGIN [A-Z ]*PRIVATE KEY' tests/distributed-briefs.static.integration.mjs
+SCAN1_EXIT=1 (1 == zero matches)
+
+$ git show 8206c89c -- tests/distributed-briefs.static.integration.mjs | grep -E '^\+' | grep -vE '^\+\+\+' | grep -nEi 'api[_-]?key|secret|token|password|bearer|authorization|credential|rlProviderConfig|rlApiKeys|providerFetch'
+SCAN2_EXIT=1 (1 == zero matches)
+
+$ grep -nE "https?://" tests/distributed-briefs.static.integration.mjs
+OUTBOUND_EXIT=1 (1 == no hardcoded URLs)
+
+$ grep -nE "rlProviderConfig|providerFetch|rlApiKeys|RLDATA|fetch\(|XMLHttpRequest" rlviews.js
+SEAM_EXIT=1 (1 == shell issues no network and reads no key)
+```
+
+`rlviews.js` — the shell path the fix exercises — contains **zero** references to
+`RLDATA`, `providerFetch`, `rlProviderConfig`, `rlApiKeys`, `fetch(`, or
+`XMLHttpRequest`. It cannot bypass the provider seam because it never touches it.
+
+The seam itself is intact and singly-owned. Repo-wide, `rlProviderConfig` is referenced
+in **exactly one** non-test file — the seam owner:
+
+```text
+$ git ls-files -- '*.js' '*.html' | grep -v '^tests/' | while read -r f; do grep -nH 'rlProviderConfig' "$f"; done
+rldata.js:65:  var PROVIDER_CFG_KEY = "rlProviderConfig";
+SEAM_OWNER_EXIT=1
+```
+
+The brief renderer on the revealed path also holds no credential authority:
+
+```text
+$ grep -nE 'rlProviderConfig|providerFetch|rlApiKeys|RLDATA\.key|setKey\(|Authorization|Bearer|apikey|api_key|token=' rlbrief.js
+BRIEF_SEAM_EXIT=1 (1 == no direct key access)
+
+$ grep -nE 'fetch\(' rlbrief.js
+1158:    try { res = await fetch(url, noStore ? { cache: "no-store" } : undefined); }
+BRIEF_FETCH_EXIT=0
+```
+
+One plain, header-less, tokenless `fetch`. No `Authorization`, no `Bearer`, no query
+token.
+
+The test harness is loopback-bound on an ephemeral port, so the suite performs no
+outbound network I/O at all:
+
+```text
+$ grep -nE "listen\(|127\.0\.0\.1|localhost|0\.0\.0\.0" tests/distributed-briefs.support.mjs
+107:    await new Promise((ready) => server.listen(0, '127.0.0.1', ready));
+108:    const baseUrl = `http://127.0.0.1:${server.address().port}`;
+LISTEN_EXIT=0
+```
+
+**Finding: none.** The change introduces, logs and hard-codes no key or token; it does
+not bypass `providerFetch` and does not read `rlProviderConfig`.
+
+---
+
+### SEC-2 — DOM / XSS surface of the reparent — ✅ PASS, no vulnerability
+
+**Claim Source:** `executed`
+
+#### SEC-2a — The reparent itself introduces no injection path
+
+```text
+$ sed -n '125,134p' rlviews.js
+      if (mode === "brief" && ANCHOR) {
+        panel.appendChild(ANCHOR);
+        if (SHELL.kind === "ordinary") panel.insertAdjacentHTML("beforeend", dependencyMarkup("FEATURE002"));
+      } else if (mode === "journey") {
+        panel.innerHTML = '<h2>Journey</h2><p>Choose a tool goal to begin a guided research workflow. Runtime activation is delivered by the Journey foundation.</p>';
+      } else if (mode === "portfolio") {
+        panel.innerHTML = '<h2>Portfolio</h2><p>Public watchlist research remains available without implying holdings.</p>' + dependencyMarkup("FEATURE008");
+      } else if (mode === "red-alert") {
+        panel.innerHTML = '<h2>Red Alert</h2><p>No current evidence-qualified alert is published by this shell foundation.</p>';
+      }
+SED_EXIT=0
+```
+
+`ANCHOR` is an **existing DOM `Node`**, not a string — obtained by `querySelectorAll`
+over the page's own authored markup:
+
+```text
+$ grep -n '__rlviewsRegistration' --include='*.js' --include='*.mjs' --include='*.html' -r . | grep -v node_modules | grep -v '^\./tests/fixtures'
+./scripts/selftest.mjs:3901:    appSource02.includes('root.__rlviewsRegistration = {') &&
+./rlapp.js:283:        root.__rlviewsRegistration = {
+./rlexperience.js:1408:      var registration = globalThis.__rlviewsRegistration;
+./rlviews.js:7:  var registration = root.__rlviewsRegistration;
+REG_EXIT=0
+
+$ sed -n '253,257p' rlapp.js
+  function mountExperienceShell() {
+    var anchors = document.querySelectorAll ? document.querySelectorAll("[data-rlbrief-mount][data-tool-id]") : [];
+    if (anchors.length !== 1) return Promise.resolve(false);
+    var anchor = anchors[0];
+```
+
+`appendChild(Node)` **moves** an existing node; it performs no HTML parsing and evaluates
+no markup. There is therefore **no injection path in the reparent**. This is the
+structural reason the reparent is safe, independent of any escaping.
+
+#### SEC-2b — `escapeHtml` is applied to EVERY interpolated value (mechanically verified)
+
+```text
+$ node -e '<audit: classify every dynamic value reaching an HTML sink in rlviews.js>'
+dependencyMarkup(): escapeHtml calls = 8 | raw '+ gate.' interpolations = 0 => PRE-ESCAPED PRODUCER: true
+
+L231 template VERBATIM:
+return '<button type="button" role="tab" data-rlview-mode="' + escapeHtml(mode) + '" aria-selected="false" title="Switch to ' + escapeHtml(labels[mode]) + '">' + escapeHtml(labels[mode]) + '</button>';
+
+L231 dynamic interpolations = 3 | escapeHtml() wrappers = 3
+L231 any interpolation NOT wrapped in escapeHtml? false
+
+L127 arg: insertAdjacentHTML("beforeend", dependencyMarkup("FEATURE002")
+L131 dynamic part: dependencyMarkup("FEATURE008")
+
+VERDICT: sinks fed only by (a) static literals, (b) escapeHtml()-wrapped values,
+ (c) dependencyMarkup() which is itself fully escaped.
+AUDIT2_EXIT=0
+```
+
+Every HTML sink in `rlviews.js` accounted for:
+
+| Sink | Content | Escaped? |
+|---|---|---|
+| L126 `appendChild(ANCHOR)` | existing DOM Node | N/A — no HTML parse |
+| L127 `insertAdjacentHTML` | `dependencyMarkup("FEATURE002")` | pre-escaped producer (8 `escapeHtml`, 0 raw) |
+| L129 `innerHTML` | static literal | N/A |
+| L131 `innerHTML` | static literal + `dependencyMarkup("FEATURE008")` | pre-escaped producer |
+| L133 `innerHTML` | static literal | N/A |
+| L231 `innerHTML` | 3 interpolations | **3/3 wrapped, 0 unwrapped** |
+
+**Retracted false positive (honesty record).** A first, crude per-line heuristic
+(`interpolations > escapeHtml calls`) flagged **L131 as `UNESCAPED!!`**. That was a defect
+in *my probe*, not in the code: L131's only dynamic part is `dependencyMarkup("FEATURE008")`,
+which is itself fully escaped (8 `escapeHtml` calls, 0 raw `+ gate.` interpolations). The
+same crude probe also *missed* L231 because the template lives on the line after the one
+containing `innerHTML`. Both were corrected by the precise audit above. **L131 is NOT a
+finding and is not reported as one.**
+
+#### SEC-2c — `escapeHtml` correctness, proven by executing the real committed function
+
+The function was extracted verbatim from `rlviews.js` and reconstructed with
+`new Function`, so hostile inputs ran through the **actual shipped code**, not a retyped
+copy:
+
+```text
+=== escapeHtml EXTRACTED VERBATIM FROM rlviews.js ===
+function escapeHtml(value) {
+    return String(value == null ? "" : value).replace(/[&<>"]/g, function (character) {
+      return { "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;" }[character];
+    });
+  }
+
+=== hostile inputs through the REAL function ===
+script tag             "<script>alert(1)</script>" -> "&lt;script&gt;alert(1)&lt;/script&gt;"
+dquote attr breakout   "\" onmouseover=\"alert(1)" -> "&quot; onmouseover=&quot;alert(1)"
+squote attr breakout   "' onmouseover='alert(1)" -> "' onmouseover='alert(1)"
+element breakout       "</button><img src=x onerror=alert(1)>" -> "&lt;/button&gt;&lt;img src=x onerror=alert(1)&gt;"
+ampersand              "a&b" -> "a&amp;b"
+backtick+equals        "`x`=y" -> "`x`=y"
+null                   null -> ""
+undefined              undefined -> ""
+
+=== rendered buildControl markup with a HOSTILE label (context test) ===
+<button type="button" role="tab" data-rlview-mode="brief" aria-selected="false" title="Switch to &quot;&gt;&lt;img src=x onerror=alert(1)&gt;&lt;span a=&quot;">&quot;&gt;&lt;img src=x onerror=alert(1)&gt;&lt;span a=&quot;</button>
+
+breakout achieved (extra < beyond the 2 template tags)? false
+single-quote escaped by escapeHtml? false
+single-quoted attributes present in rlviews.js markup? false
+ESCAPE_PROBE_EXIT=0
+```
+
+**Result:** `&`, `<`, `>`, `"` are all correctly escaped. A double-quote attribute-breakout
+payload placed in the `title=` and text positions produced **no breakout** — the rendered
+markup contains exactly the two template tags and zero injected elements.
+
+`'` and `` ` `` are **not** escaped. This is **not exploitable in the current code**: the
+same probe mechanically confirms **no single-quoted HTML attribute exists anywhere in
+`rlviews.js` markup** (`single-quoted attributes present? false`), and every attribute is
+double-quoted with `"` escaped. Recorded as hardening note **INFO-1**, not a finding.
+
+#### SEC-2d — Defence in depth: the escaped values are contract-pinned
+
+Even a tampered `tool-experience.config.json` cannot get a payload into `labels`/`viewIds`.
+`rlexperience.js` validates them against **hardcoded closed-contract literals** and rejects
+on any deviation, so the shell simply never registers:
+
+```text
+$ sed -n '327,336p;360,373p' rlexperience.js
+  function validateViewSet(viewSet, expected, path) {
+    exactKeys(viewSet, VIEW_SET_KEYS, path, "E012-REGISTRY", "config", "tool-experience-config/v1");
+    if (viewSet.viewSetId !== expected.viewSetId || viewSet.kind !== expected.kind ||
+      viewSet.registryToolId !== expected.registryToolId || viewSet.defaultViewId !== expected.defaultViewId ||
+      !equalArray(viewSet.labels, expected.labels)) {
+      reject("E012-VIEWSET", "config", "tool-experience-config/v1", path, "view-set identity or labels do not match the closed contract");
+    }
+    if (!equalArray(viewSet.viewIds, expected.viewIds)) {
+      reject("E012-VIEWSET", "config", "tool-experience-config/v1", path + ".viewIds", "view order does not match the closed contract");
+    }
+  }
+      viewIds: ["simple", "power", "brief", "journey"],
+      labels: ["Simple", "Power", "Brief", "Journey"], defaultViewId: "simple"
+      viewIds: ["brief", "portfolio", "red-alert", "journey"],
+      labels: ["Brief", "Portfolio", "Red Alert", "Journey"], defaultViewId: "brief"
+```
+
+**Finding: none.** No XSS or DOM-injection vulnerability in the reparent or in
+`buildControl()`.
+
+---
+
+### SEC-3 — Supply chain — ✅ PASS
+
+**Claim Source:** `executed`
+
+```text
+$ node scripts/validate-node-source-lock.mjs
+[node-source-lock] manifest=PASS private=true runtimeDependencies=0 scripts=0 playwright=1.61.1 node=>=20
+[node-source-lock] npmrc=PASS registry=https://registry.npmjs.org/ entries=5 ignoreScripts=true
+[node-source-lock] lockfile=PASS version=3 externalPackages=3 integrity=sha512
+[node-source-lock] graph=PASS playwright=1.61.1 playwright-core=1.61.1 fsevents=2.3.2
+[node-source-lock] adversarial=missing-file result=REJECTED code=FILE-MISSING
+[node-source-lock] adversarial=manifest-drift result=REJECTED code=MANIFEST-KEYS
+[node-source-lock] adversarial=manifest-range result=REJECTED code=MANIFEST-PLAYWRIGHT
+[node-source-lock] adversarial=manifest-wrong-version result=REJECTED code=MANIFEST-PLAYWRIGHT
+[node-source-lock] adversarial=second-registry result=REJECTED code=NPMRC-DUPLICATE
+[node-source-lock] adversarial=scoped-registry result=REJECTED code=NPMRC-SCOPED-REGISTRY
+[node-source-lock] adversarial=verification-disabled result=REJECTED code=NPMRC-VERIFICATION
+[node-source-lock] adversarial=lifecycle-relaxation result=REJECTED code=NPMRC-IGNORE-SCRIPTS
+[node-source-lock] adversarial=untrusted-resolved-url result=REJECTED code=LOCK-SOURCE
+[node-source-lock] adversarial=missing-integrity result=REJECTED code=LOCK-INTEGRITY
+[node-source-lock] adversarial=git-source result=REJECTED code=LOCK-SOURCE
+[node-source-lock] adversarial=file-source result=REJECTED code=LOCK-SOURCE
+[node-source-lock] adversarial=path-source result=REJECTED code=LOCK-SOURCE
+[node-source-lock] adversarial=http-source result=REJECTED code=LOCK-SOURCE
+[node-source-lock] adversarial=external-version-range result=REJECTED code=LOCK-PACKAGE-VERSION
+[node-source-lock] adversarial=extra-package result=REJECTED code=LOCK-GRAPH
+[node-source-lock] actual=PASS
+[node-source-lock] OK adversarial=16 unexpectedAcceptances=0
+SOURCELOCK_EXIT=0
+```
+
+**What it actually enforces** (read from the output, not assumed):
+
+| Surface | Enforced invariant |
+|---|---|
+| `package.json` | `private=true`, **0 runtime dependencies**, **0 lifecycle scripts**, `playwright` pinned to the exact version `1.61.1` (ranges rejected), `node>=20` |
+| `.npmrc` | exactly one registry `https://registry.npmjs.org/`, `ignoreScripts=true`; a second registry, a scoped registry, or any verification-disabling entry is rejected |
+| `package-lock.json` | `lockfileVersion 3`, exactly 3 external packages, `sha512` integrity required on each |
+| dependency graph | closed and exact — `playwright@1.61.1`, `playwright-core@1.61.1`, `fsevents@2.3.2`; an extra package is rejected |
+| resolution source | `git:`, `file:`, `path:`, `http:` and any untrusted resolved URL are rejected (`LOCK-SOURCE`) |
+
+Sixteen adversarial mutations, **all REJECTED**, `unexpectedAcceptances=0` — so the gate is
+proven non-tautological rather than merely green.
+
+It is a **blocking CI gate on the publish path**, with no bypass:
+
+```text
+$ grep -rn 'validate-node-source-lock' .github/workflows/ scripts/ package.json | grep -v 'scripts/validate-node-source-lock.mjs:'
+.github/workflows/pages.yml:24:        run: node scripts/validate-node-source-lock.mjs
+WIRE_EXIT=0
+
+$ grep -nEi '\-\-skip|\-\-force|\-\-ignore|\-\-no-verify|ALLOW_ONCE|BYPASS|INSECURE' scripts/validate-node-source-lock.mjs
+BYPASS_EXIT=1 (1 == no bypass)
+```
+
+This satisfies the `bubbles-supply-chain-source-locking` policy (single pinned registry,
+committed lockfile with integrity, lifecycle scripts disabled, no bypass flag).
+**Finding: none.**
+
+---
+
+### SEC-4 — Committed secrets — ✅ PASS
+
+**Claim Source:** `executed`
+
+```text
+$ git show 8206c89c --name-only --format='' | while read -r f; do [ -f "$f" ] && grep -nEHi 'BEGIN [A-Z ]*PRIVATE KEY|sk-[A-Za-z0-9]{16,}|ghp_[A-Za-z0-9]{20,}|AKIA[0-9A-Z]{16}|xox[baprs]-|(api[_-]?key|secret|token|password)["\x27 ]*[:=]["\x27 ]*[A-Za-z0-9/+_-]{12,}' "$f"; done
+SECRET_DIFF_SCAN_EXIT=1 (1 == zero matches)
+
+$ git ls-files -- '*.js' '*.mjs' '*.html' '*.json' | grep -v '^tests/' | grep -v '^specs/' | while read -r f; do grep -nEHi 'BEGIN [A-Z ]*PRIVATE KEY|sk-[A-Za-z0-9]{16,}|ghp_[A-Za-z0-9]{20,}|AKIA[0-9A-Z]{16}|xox[baprs]-' "$f"; done
+SECRET_RUNTIME_SCAN_EXIT=1 (1 == zero matches)
+
+$ ls -1 .gitleaks.toml .github/workflows/
+.github/workflows/:
+pages.yml
+CFG_EXIT=2   (.gitleaks.toml absent)
+```
+
+Zero credential-shaped matches across **all 8 files** touched by `8206c89c`, and zero
+across the **entire tracked runtime surface**. This is consistent with the repo's design:
+provider keys live either server-side behind the tailnet proxy or per-browser in
+`localStorage.rlProviderConfig` — never in the committed tree.
+
+The absence of `.gitleaks.toml` is recorded as **INFO-2** (pre-existing repo-level gap, not
+introduced by this change).
+
+---
+
+### SEC-5 — Categories that DO NOT APPLY (stated explicitly, with reason)
+
+Not fabricated as findings. Each is genuinely inapplicable:
+
+| Category | Status | Reason |
+|---|---|---|
+| **Broken access control / authz / IDOR (G047)** | **N/A** | No server, no session, no user identity, no role, and no authorization decision anywhere in the runtime. There is nothing to bypass or escalate. |
+| **Injection (SQL / OS command / LDAP)** | **N/A** | No database, no server process, no shell execution in the runtime. The repo is a build-free static site published to GitHub Pages. |
+| **SSRF** | **N/A for this change** | Runtime fetches use relative same-origin paths (`tools.json`, `tool-experience.config.json`, `simple-models.json`, and three committed `specs/**/state.json` paths). Adapter modules are constrained by `SAFE_MODULE_PATTERN = /^rlexperience-adapters\/[a-z0-9-]+\.js$/` **plus** an explicit allowlist — the character class excludes `.` and `/`, so no scheme, no host and no `..` traversal is expressible. |
+| **Auth failures (session, credential stuffing)** | **N/A** | No accounts, no login, no session state. |
+| **Cryptographic failures** | **N/A for this change** | No crypto was added or altered. *(Positive observation, not a finding: brief bodies are SHA-256 digest-verified and fail closed — see SEC-6.)* |
+| **Data protection / PII** | **N/A** | No PII and no server-side data. Repo policy keeps the watchlist tickers-only; the change touches neither. |
+| **Rate limiting / resource exhaustion** | **N/A** | No server and no endpoints to rate-limit. |
+| **Insecure deserialization** | **N/A** | `JSON.parse` is applied only to same-origin committed static files inside `try/catch` returning `null`. The change adds no parsing and no prototype-pollution sink. |
+| **Silent decode failures (G048)** | **PASS, no finding** | The added helper `await`s both operations and swallows nothing. No `try{}catch{}`, no `.ok()`-style discard, no default substitution was introduced. |
+| **Build-Once Deploy-Many supply chain (G081)** | **N/A** | No container images, no `deploy/<target>/` adapter, no build manifest, no cosign/SBOM/SLSA/Trivy surface. Publication is a static GitHub Pages deploy. |
+| **Logging failures (A09)** | **N/A for this change** | The change adds no logging. No credential is logged anywhere on the reviewed path (SEC-1). |
+
+---
+
+### SEC-6 — Positive controls observed (context, not findings)
+
+Worth recording because the fix's **second** call site lands precisely on the fail-closed
+integrity path:
+
+```text
+$ sed -n '1150,1163p' rlbrief.js
+    var digest = await crypto.subtle.digest("SHA-256", buf);
+    ...
+  /* fetch a text body; pointers use cache:no-store. Returns a safe state on 404/redirect/error. */
+  async function briefFetchText(url, noStore) {
+    var res;
+    try { res = await fetch(url, noStore ? { cache: "no-store" } : undefined); }
+    catch (e) { return { ok: false, state: "integrity-error", reason: "network" }; }
+    if (res.status === 404) return { ok: false, state: "empty", reason: "not-found" };
+    if (res.redirected) return { ok: false, state: "integrity-error", reason: "redirected" };
+    if (!res.ok) return { ok: false, state: "integrity-error", reason: "http-" + res.status };
+CTX_EXIT=0
+```
+
+- Brief bodies are **SHA-256 digest-verified**; a hash mismatch fails closed to
+  `integrity-error` — the exact assertion the fix's second call site now reaches.
+- **Redirects are rejected** (`res.redirected` → `integrity-error`), an anti-substitution
+  control.
+- Failures return explicit typed states rather than being swallowed.
+
+Repo selftest also enforces least-authority and output-sanitization controls on the
+untrusted-content path:
+
+```text
+$ grep -nE 'no raw markup|never echoes|provider-key' scripts/selftest.mjs
+1603: ... !/rlApiKeys/.test(appSource), 'the landing page exposes the two-tier provider editor (tailnet proxy URL + per-provider local key inputs)'
+4312: ... 'the public composer refuses a smuggled Feature 008 private field (RLMKT-PRIVACY) and never echoes the private value'
+4340: ... 'web-evidence-acquire.mjs imports ONLY node:crypto and owns zero fetch/provider-key/repo-write/current-pointer/author-publication authority'
+4354: ... !JSON.stringify(prim10.acquireResult.value).includes('<p>'), '... the safe bundle is frozen with no raw markup (SCN-012-037)'
+4387: ... !JSON.stringify(weak.value).includes('SENSATIONAL'), '... never echoes its dramatic title'
+SANITIZE_COV_EXIT=0
+```
+
+Green baseline, executed in this phase:
+
+```text
+$ node scripts/selftest.mjs
+  ✓ SCN-012-022 public matrix labels every row `Public watchlist` with one explicit applicable/state cell per domain (never neutral by omission)
+  ✓ the composed public matrix validates round-trip and matches the validator row count
+  ✓ the public composer refuses a smuggled Feature 008 private field (RLMKT-PRIVACY) and never echoes the private value
+  ✓ SCN-012-019 the Center composes exactly four views (brief/portfolio/red-alert/journey), three exact dependency-pending gates, and a truthful no-action Brief that fabricates no action/catalyst/confidence
+  ✓ the market-action contract validator reports four views, three pending gates, and seven distinct closed RLMKT-* adversarial refusals
+  ✓ every committed web-evidence fixture (>= 11) evaluates deterministically against the REAL acquire() production transform
+  ✓ web-evidence-acquire.mjs imports ONLY node:crypto and owns zero fetch/provider-key/repo-write/current-pointer/author-publication authority
+  ✓ the web-evidence validator refuses twelve distinct closed adversarial mutations, each with an E012-* code
+  ✓ SCN-012-006/007 single & syndicated origins leave a material claim uncorroborated while two DISTINCT origins corroborate; the safe bundle is frozen with no raw markup (SCN-012-037)
+
+================================================
+Research-Lab self-test: 952 passed, 0 failed
+================================================
+SELFTEST_EXIT=0
+```
+
+---
+
+### SEC-7 — Informational hardening notes (NOT vulnerabilities, NOT fixed here)
+
+Per the bug's hard rules this phase **reports only**; it changed no source or test file.
+
+| ID | Severity | Observation | Reachable today? |
+|---|---|---|---|
+| **INFO-1** | Informational | `escapeHtml` (`rlviews.js:29`) does not escape `'` or `` ` ``. Safe now because every attribute in `rlviews.js` markup is double-quoted and `"` **is** escaped — mechanically confirmed `single-quoted attributes present? false`. Becomes a real XSS vector only if a single-quoted or unquoted attribute is ever introduced into an `escapeHtml`-fed template. | **No** — unreachable in current code |
+| **INFO-2** | Low (informational) | No automated committed-secret scanner in CI. `.gitleaks.toml` is absent and `pages.yml` is the only workflow. SEC-4 found zero secrets by manual scan, so this is a missing *safety net*, not an active exposure. Pre-existing; not introduced by BUG-003. | N/A — process gap |
+| **INFO-3** | Informational | `scripts/selftest.mjs` contains **zero** direct assertions on `escapeHtml` (`grep -c escapeHtml scripts/selftest.mjs` → `0`, exit 1). Escaping is protected indirectly by the closed view-set contract (SEC-2d) rather than by a dedicated escaping test. Coverage observation only. | N/A — coverage gap |
+
+None of the three is attributable to this change, and none blocks it.
+
+---
+
+### SEC-8 — Read-only attestation
+
+This phase modified **no** source file, **no** test file and **no** configuration. All
+probes were read-only greps, `sed`, `git show` and non-writing `node -e` evaluations.
+
+```text
+$ git status --porcelain
+ M specs/002-distributed-tool-briefs-and-history/report.md
+ M specs/002-distributed-tool-briefs-and-history/state.json
+?? specs/014-shared-cycle-and-seasonality-exchange/
+?? specs/015-recommendation-outcome-ledger-and-track-record/
+?? specs/016-auction-gamma-playbook/
+STATUS_EXIT=0
+```
+
+The five entries above belong to **concurrent sessions** (`specs/002-*`, `specs/014-*`,
+`specs/015-*`, `specs/016-*`) and were neither created nor touched by this phase, which is
+explicitly barred from them. Critically: **`tests/` is unmodified, `rlviews.js` /
+`rlbrief.js` / `rlapp.js` / `rlexperience.js` are unmodified, and the BUG-003 folder was
+untouched at the time of this capture** — the only subsequent writes are this `report.md`
+section and the `completedPhases` update in `state.json`.
+
+Repository-binding preflight for this phase:
+
+```text
+$ bash .github/bubbles/scripts/repo-binding-preflight.sh --repo-root /home/redacted/research-lab --agent-source research-lab
+[repo-binding-preflight] OK — agent source 'research-lab' matches target repo 'research-lab'.
+PREFLIGHT_EXIT=0
+```
+
+---
+
+### 🔒 SECURE
+
+All security checks passed for the change under review.
+
+- **Threat model:** complete for the actual surface — a test-only `+13/−0` change to a
+  build-free static site with no server, auth, database, PII or network-exposed endpoint.
+- **Secret exposure:** none. No key or token introduced, logged or hard-coded; the
+  `providerFetch` seam is not bypassed and `rlProviderConfig` is not read. The shell
+  (`rlviews.js`) holds zero network and zero credential authority.
+- **XSS / DOM injection:** none. The reparent is an `appendChild` of an existing DOM
+  **Node** (no HTML parse). `escapeHtml` is applied to **3/3** interpolations in
+  `buildControl()` with **0** unwrapped, is **correct for every context in which it is
+  used** (proven by executing the real function against hostile payloads — no breakout),
+  and its inputs are additionally pinned by a closed view-set contract.
+- **Supply chain:** `validate-node-source-lock.mjs` exit 0, 16/16 adversarial mutations
+  rejected, `unexpectedAcceptances=0`, wired blocking in `pages.yml`, no bypass flag.
+- **Committed secrets:** zero matches across the change and the whole runtime surface.
+
+**Vulnerabilities found: 0.** Three informational hardening notes (INFO-1, INFO-2, INFO-3)
+are recorded above; none is reachable or attributable to this change, and none was fixed
+here per the bug's report-only rule.
+
+### Phase attestation
+
+`security` executed and is complete. It is one phase of the `bugfix-fastlane` chain; an
+independent `audit` remains unexecuted, and certification remains validate-owned. This
+phase is **diagnostic**: it performed **no** terminal-status transition, wrote **no**
+`certification.*` field, and modified no artifact outside this bug folder's `report.md`
+and `state.json`.

@@ -119,6 +119,53 @@ This narrows the finding materially. The distributed artifact graph — 22 curre
 
 TP-10-21's own subject is *"the complete UI-consumed distributed artifact **graph**"*. `--graph-only` is precisely the check for that claim; the `--root .` citation was broader than the item's own wording and additionally asserts the legacy root projections, which this item never claimed. The citation is corrected to `--graph-only` accordingly. This does **not** weaken any gate: the pointer-coherence claim lives in the still-unchecked SCN-002-015 clause above, which genuinely requires the cutover and stays unchecked.
 
+### SCN-002-015 scope correction (2026-07-29)
+
+Owner-approved correction. The SCN-002-015 DoD item previously carried a fourth clause, *"the compatibility projections and current pointer select the same run"*, which over-reached the scenario it names.
+
+**Why it over-reached — read from the canonical artifacts, not inferred.** `scenario-manifest.json` defines the scenario as:
+
+```json
+{ "id": "SCN-002-015",
+  "title": "Preserve accessibility responsive safety compatibility and registry auto-discovery",
+  "requiredTestType": "e2e-ui",
+  "linkedTests": ["tests/distributed-briefs.spec.mjs#Regression: shared brief and history UI is accessible safe and stable at desktop mobile and zoom"] }
+```
+
+That single linked test asserts only UI properties — literal `<script>` text with zero live script elements, a visible rejected-link marker, a ≥44 px control box, and no horizontal overflow at desktop, mobile and zoom. It asserts nothing about run identity. A manifest-wide search found **no scenario that owns pointer-coherence**; the two whose titles match `/pointer|projection|compat|cutover|same run/` are SCN-002-006 ("compatible origins") and SCN-002-015 itself ("compatibility" grouped with accessibility, responsive safety and registry auto-discovery — UI compatibility).
+
+Pointer-coherence is a publication property of the Scope 10 cutover. Both sides of the pipeline record that cutover as deliberate and not yet flipped: `validate-distributed-briefs.mjs:114-117` ("the deterministic activation deliberately keeps `market-brief.*` as the legacy narrative, so the graph is legitimately published without pointer-bound root projections") and `brief-refresh.mjs:1271-1277` ("implemented and test-proven but not live-wired yet (Scope 10 cutover)").
+
+**The clause is not lost.** It remains tracked as GAP-F1 in the feature report's Discovered Issues. This is the second of the two remedies `bubbles.validate` itself sanctioned — *"either make the compatibility projections pointer-bound or amend SCN-002-015"*. The first would require flipping live production loading on a pipeline that publishes four times daily, which is a product change, not a correctness fix.
+
+**Every retained clause re-executed 2026-07-29, bare exit codes, no pipeline:**
+
+```text
+$ npx --no-install playwright test tests/distributed-briefs.spec.mjs --project=system-chrome \
+    --grep "accessible safe and stable at desktop mobile and zoom"
+1 passed (2.7s)
+exit=0
+
+$ npx --no-install playwright test tests/distributed-briefs.spec.mjs --project=system-chrome \
+    --grep "valid added registry source receives the shared mount with no page-specific branch"
+1 passed (4.3s)
+exit=0
+
+$ node --test tests/distributed-briefs.ui-canary.mjs
+# pass 1
+# fail 0
+exit=0
+
+$ node --test tests/distributed-briefs.renderer.unit.mjs
+# pass 1
+# fail 0
+exit=0
+```
+
+**Claim Source:** executed
+
+With the over-reaching clause removed, every clause SCN-002-015 actually asserts is proven by a passing linked test, and the item is checked on that basis.
+
 ## Regression Remediation Evidence — Brief-view reveal restore (2026-07-27)
 
 The later `rlviews` shell ("brief lives only in Brief view") regressed this scope's acceptance suite to 0/13. Fix: `mountReady` drives the real `#rlviews` Brief-view control; `rlbrief.js briefSetState` clears `data-rlbrief-mounting` on settle. Working-tree change is confined to `rlbrief.js` (+8/-1) and `tests/distributed-briefs.spec.mjs` (+7) — `git diff --stat`: `2 files changed, 14 insertions(+), 1 deletion(-)`. All three green-bar commands re-run 2026-07-27, full output, exit 0.

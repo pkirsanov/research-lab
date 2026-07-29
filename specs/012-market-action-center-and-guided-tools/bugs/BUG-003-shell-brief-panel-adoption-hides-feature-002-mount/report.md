@@ -2617,3 +2617,687 @@ independent `audit` remains unexecuted, and certification remains validate-owned
 phase is **diagnostic**: it performed **no** terminal-status transition, wrote **no**
 `certification.*` field, and modified no artifact outside this bug folder's `report.md`
 and `state.json`.
+
+---
+
+## Audit Phase (bubbles.audit)
+
+**Agent:** `bubbles.audit` · **Executed:** 2026-07-29T01:56:59Z · **HEAD:** `ac15277ad4cb7ef94d8a2aa217900895f66c2ee7`
+**Audit profile:** `delivery-completion-v1` · **Workflow mode:** `bugfix-fastlane`
+
+**VERDICT: 🟠 REWORK_REQUIRED** — the *fix itself* is independently verified **legitimate
+and complete**; the *packet* cannot reach a terminal status because three blocking gates
+(G022, G040, G095) fail on artifacts this agent does not own.
+
+This audit was conducted adversarially: the goal was to **falsify** the claim that BUG-003
+is done. Every load-bearing claim was re-derived from first-hand execution rather than read
+from the prior phases' evidence.
+
+---
+
+### AUD-0 — Repository binding preflight
+
+```text
+$ bash .github/bubbles/scripts/repo-binding-preflight.sh --repo-root /home/redacted/research-lab --agent-source research-lab
+[repo-binding-preflight] OK — agent source 'research-lab' matches target repo 'research-lab'.
+PREFLIGHT_EXIT=0
+```
+
+**Claim Source:** executed
+
+---
+
+### AUD-1 — CENTRAL QUESTION: does this fix mask a product defect?
+
+The decisive question is whether Feature 002's mount was **working but not visible**
+(→ test reconciliation correct) or whether the Feature 012 shell genuinely **breaks**
+Feature 002 (→ the fix hides a product bug). Four independent lines of evidence were
+gathered. All four converge on *legitimate*.
+
+#### AUD-1.1 — `rlbrief.js` has no visibility-gated loading
+
+If the brief lazily loaded on intersection/resize, hidden-ness would block loading and the
+Brief-tab click would be papering over a broken feature.
+
+```text
+$ grep -nE 'IntersectionObserver|ResizeObserver|MutationObserver|offsetParent|getBoundingClientRect|checkVisibility|offsetWidth|offsetHeight|clientHeight|clientWidth|:visible|isVisible|requestIdleCallback|hidden' rlbrief.js
+788:    if (!briefView || typeof briefView !== "object") { host.hidden = true; host.innerHTML = ""; return; }
+801:    host.hidden = false;
+1000:      host.hidden = false;
+1053:    host.hidden = false;
+1506:      if (typeof MutationObserver !== "undefined" && document.body) {
+1507:        var mo = new MutationObserver(function () { if (document.body.classList.contains("power")) powerDetails.open = true; });
+GREP_EXIT=0
+
+$ wc -l rlbrief.js
+1628 rlbrief.js
+```
+
+**Zero `IntersectionObserver`. Zero `ResizeObserver`.** The single `MutationObserver`
+(L1506-1507) watches `document.body` for the `power` class to auto-open a `<details>` — it
+has no bearing on load gating. The `host.hidden` writes are the brief's own
+invalid-payload path, not a viewport gate. **Loading is not visibility-gated.**
+
+#### AUD-1.2 — DECISIVE: direct runtime probe of the hidden mount
+
+Rather than trust the pasted RED log, this audit ran an **independent probe** replicating
+TP-10-02's exact fixture/server/harness setup but **never clicking the Brief tab**, then
+interrogated the live DOM. The probe lives outside the repository (`/tmp`) and mutates
+nothing.
+
+```text
+$ timeout 300 node /tmp/bug003-audit-probe.mjs
+=========== BUG-003 INDEPENDENT AUDIT PROBE (no Brief-tab click) ===========
+current shell view          : simple
+mount parent panel          : brief
+panel .hidden               : true
+mount visible to Playwright : false
+computed display            : block
+bounding box (w x h)        : 0 x 0
+---------------------------------------------------------------------------
+data-rlbrief-ready          : 1
+data-rlbrief-state          : ready
+data-rlexperience-state     : registered
+rendered text length (chars): 909
+[data-rlbrief-part] nodes   : 16
+---------------------------------------------------------------------------
+brief network requests made while hidden (4):
+    /briefs/current.json
+    /briefs/runs/2026-07/run-2026-07-15T0730/manifest.json
+    /briefs/objects/reads/sector-research-lab/read.json
+    /briefs/objects/tool-briefs/sector-research-lab/brief.json
+---------------------------------------------------------------------------
+PROBE VERDICT: H_LEGIT — brief FULLY LOADED + RENDERED while hidden; only visibility is withheld
+===========================================================================
+PROBE_EXIT=0
+```
+
+This is dispositive. With **no** Brief-tab click, in the default `simple` view, the mount
+is inside a `hidden` panel with a 0×0 box and `isVisible === false` — **and it has already
+fetched all four brief objects, verified them, settled to `ready`, and rendered 16
+`[data-rlbrief-part]` nodes containing 909 characters of real content.** The shell withholds
+*visibility only*. It does not break, defer, degrade or suppress Feature 002's brief.
+
+The masking hypothesis is **falsified**.
+
+#### AUD-1.3 — the reveal is a reveal, not a refetch
+
+The fix's own comment asserts the switch "issues no brief request of its own", which is what
+licenses placing it before TP-10-02's network-window baselines. If false, the fix would be
+silently perturbing the very windows the test measures.
+
+```text
+$ timeout 300 node /tmp/bug003-audit-probe2.mjs
+=========== BUG-003 AUDIT PROBE #2 — reveal is not a refetch ===========
+brief requests BEFORE click (4):
+    /briefs/current.json
+    /briefs/runs/2026-07/run-2026-07-15T0730/manifest.json
+    /briefs/objects/reads/sector-research-lab/read.json
+    /briefs/objects/tool-briefs/sector-research-lab/brief.json
+brief requests AFTER  click (4):
+    /briefs/current.json
+    /briefs/runs/2026-07/run-2026-07-15T0730/manifest.json
+    /briefs/objects/reads/sector-research-lab/read.json
+    /briefs/objects/tool-briefs/sector-research-lab/brief.json
+-----------------------------------------------------------------------
+DELTA requests caused by the reveal : 0
+mount visible BEFORE click          : false
+mount visible AFTER  click          : true
+data-rlbrief-state AFTER click      : ready
+[data-rlbrief-part] nodes AFTER     : 16
+live [data-rlbrief-mount] nodes     : 1 (1 == reparented, not duplicated)
+-----------------------------------------------------------------------
+PROBE#2 VERDICT: CONFIRMED — reveal issues ZERO extra brief requests, single mount, state unchanged
+=======================================================================
+PROBE2_EXIT=0
+```
+
+Delta = **0** requests. Exactly **one** live mount (`appendChild` moves the node; it is not
+cloned), so there is no double-render/double-fetch risk. The claim is verified.
+
+#### AUD-1.4 — root cause re-derived from source
+
+```text
+$ awk 'NR>=120 && NR<=151 {printf "%d| %s\n", NR, $0}' rlviews.js
+120| function buildPanels() {
+121|   for (var index = 0; index < MODES.length; index += 1) {
+122|     var mode = MODES[index];
+123|     var panel = document.createElement("section");
+124|     panel.className = "rlexperience-placeholder";
+125|     if (mode === "brief" && ANCHOR) {
+126|       panel.appendChild(ANCHOR);
+...
+136|     panel.hidden = true;
+...
+142| function applyVisual(mode) {
+...
+150|       panels[panelMode].hidden = panelMode !== mode || ownerPlaceholder;
+```
+
+Confirms the documented mechanism exactly: L125-126 reparent the authored anchor into the
+`brief` panel, L136 hides every panel at construction, L150 unhides only the current mode.
+
+**AUD-1 CONCLUSION: the fix is LEGITIMATE.** It reconciles a test to a real, working
+product behaviour. It does **not** mask a defect.
+
+---
+
+### AUD-2 — is the authored contract real, and is the "already ratified" argument circular?
+
+The packet's central argument is that Feature 002 had *already* adopted the Brief-view
+contract. If that adoption had instead been made *by Feature 012* to paper over its own
+shell change, the argument would be circular. This was tested directly.
+
+```text
+$ grep -n 'ordinary-four-view' -A 8 tool-experience.config.json
+4:    "ordinary-four-view/v1": {
+5:      "viewSetId": "ordinary-four-view/v1",
+6-      "kind": "ordinary",
+7-      "registryToolId": null,
+8-      "viewIds": ["simple", "power", "brief", "journey"],
+9-      "labels": ["Simple", "Power", "Brief", "Journey"],
+10-      "defaultViewId": "simple"
+11-    },
+
+$ awk 'NR>=19 && NR<=27 {printf "%d| %s\n", NR, $0}' tests/distributed-briefs.spec.mjs
+19| async function mountReady(page, ctx, toolId) {
+20|     await page.goto(harnessUrl(ctx.server.baseUrl, toolId), { waitUntil: 'load' });
+21|     // The shared brief renders inside the shell's "Brief" view (feat(brief): brief lives only in Brief
+22|     // view). Ordinary tools boot in their default "simple" view, so drive the real rlviews control to the
+23|     // Brief view — exactly as every other shell regression does — before asserting the brief is visible.
+24|     await page.waitForSelector('#rlviews[data-rlexperience-shell="ready"]', { timeout: 20000 });
+25|     await page.locator('#rlviews button[data-rlview-mode="brief"]').click();
+26|     await page.waitForSelector('[data-rlbrief-mount][data-rlbrief-ready="1"]', { timeout: 20000 });
+27| }
+
+$ git --no-pager log --oneline -S 'rlview-mode="brief"' -- tests/distributed-briefs.spec.mjs
+bd239938 fix(002): green Scope-10 shared-UI acceptance — brief mount reveal under four-view shell
+
+$ git merge-base --is-ancestor bd239938 8206c89c && echo "YES — bd239938 predates the BUG-003 fix (exit 0)"
+YES — bd239938 predates the BUG-003 fix (exit 0)
+
+$ git --no-pager log -1 --format='%h  %ad  %s' c81d808d   # Feature 012 shell lands
+c81d808d  Fri Jul 24 07:21:06 2026 +0000  feat(012): Market Action Center Scopes 01-04 + BUG-004 two-tier provider access
+$ git --no-pager log -1 --format='%h  %ad  %s' bd239938   # Feature 002 ADOPTS the contract
+bd239938  Mon Jul 27 07:30:39 2026 +0000  fix(002): green Scope-10 shared-UI acceptance — brief mount reveal under four-view shell
+$ git --no-pager log -1 --format='%h  %ad  %s' 8206c89c   # BUG-003 reconciles the straggler
+8206c89c  Tue Jul 28 19:34:55 2026 +0000  fix(012/BUG-003): reconcile TP-10-02 to the shell Brief-view contract
+```
+
+**NOT circular, and the ratification is genuine:**
+
+1. `brief` is an **authored** member of `ordinary-four-view/v1` with `defaultViewId: simple`
+   — a deliberate committed contract, not an artefact of the shell refactor.
+2. The Brief-tab click entered `mountReady` in **`bd239938`, a Feature 002 commit**, on
+   **Jul 27** — a full day *before* the BUG-003 fix and three days *after* the shell landed.
+   `git merge-base --is-ancestor` confirms the ancestry. Feature 002 adopted this contract in
+   **its own** acceptance suite; Feature 012 did not impose it retroactively.
+3. **The strongest anti-masking signal:** in that same commit Feature 002 *also* changed
+   `rlbrief.js` (`+8/−1`) to fix a genuine product defect (a `data-rlbrief-mounting`
+   attribute stuck at `'1'`). The owner demonstrably **distinguished** "real product bug →
+   fix the product" from "reveal sequencing → drive the real control in the test". That
+   discrimination is precisely what a masking narrative cannot explain.
+
+#### AUD-2.1 — the contract is coherent across the entire test surface
+
+An inconsistent contract would betray a patch-over. It is consistent:
+
+```text
+$ for f in $(grep -rln 'data-rlbrief-mount' tests/); do echo "  $f : brief-clicks=$(grep -c 'rlview-mode="brief"' $f) mount-refs=$(grep -c data-rlbrief-mount $f)"; done
+  tests/distributed-briefs.spec.mjs : brief-clicks=1  mount-refs=7
+  tests/bond-regime-lab.spec.mjs : brief-clicks=0  mount-refs=1
+  tests/distributed-briefs.support.mjs : brief-clicks=0  mount-refs=1
+  tests/palm-springs-rental-market-lab.spec.mjs : brief-clicks=0  mount-refs=2
+  tests/tool-experience-shell.functional.mjs : brief-clicks=0  mount-refs=1
+  tests/distributed-briefs.static.integration.mjs : brief-clicks=1  mount-refs=4
+  tests/market-action-center.spec.mjs : brief-clicks=0  mount-refs=1
+  tests/distributed-briefs.consumer-trace.mjs : brief-clicks=0  mount-refs=2
+  tests/distributed-briefs.ui-canary.mjs : brief-clicks=0  mount-refs=3
+
+$ grep -rn "waitForSelector('\[data-rlbrief-mount\]" tests/
+tests/distributed-briefs.spec.mjs:26:    ... { timeout: 20000 });                      <- inside mountReady, AFTER the click
+tests/distributed-briefs.spec.mjs:231:   ... { timeout: 20000 });                      <- shell-less fixture (see below)
+tests/bond-regime-lab.spec.mjs:286:      ... { state: 'attached', ... }
+tests/palm-springs-rental-market-lab.spec.mjs:33:  ... { state: 'attached', ... }
+tests/palm-springs-rental-market-lab.spec.mjs:48:  ... { state: 'attached', ... }
+tests/distributed-briefs.static.integration.mjs:39:  ... { timeout: 15000 });           <- AFTER openBriefView (L38)
+tests/distributed-briefs.static.integration.mjs:94:  ... { timeout: 15000 });           <- AFTER openBriefView (L93)
+tests/distributed-briefs.ui-canary.mjs:35:            ... { state: 'attached', ... }
+```
+
+Every site that asserts **visibility** drives the Brief view first. Every site that does
+not click uses `state: 'attached'` and therefore asserts presence, not visibility. The one
+apparent exception is principled and documented:
+
+```text
+$ awk 'NR>=224 && NR<=232 {printf "%d| %s\n", NR, $0}' tests/distributed-briefs.spec.mjs
+224| test('Regression: valid added registry source receives the shared mount with no page-specific branch', async ({ page }) => {
+225|     const g = buildGraph({ toolId: 'added-source-fixture-lab', session: 'pre-market', addedSource: true });
+226|     const ctx = await serve(g);
+227|     try {
+228|         // An added registry source with a briefing block but no experience view-set resolves NO shell,
+229|         // so the shared brief renders standalone (directly visible) rather than inside a Brief-view panel.
+230|         await page.goto(harnessUrl(ctx.server.baseUrl, 'added-source-fixture-lab'), { waitUntil: 'load' });
+231|         await page.waitForSelector('[data-rlbrief-mount][data-rlbrief-ready="1"]', { timeout: 20000 });
+```
+
+Shell present → brief lives in the Brief view. **No** shell resolved → brief renders
+standalone and is directly visible. That is a single coherent rule with a principled
+branch, and sibling test #13 proves the standalone path still works.
+
+---
+
+### AUD-3 — Evidence integrity
+
+Six commands were re-executed independently and compared against the recorded evidence.
+
+#### AUD-3.1 — sibling suite (TP-B003-02)
+
+```text
+$ timeout 900 npx --no-install playwright test tests/distributed-briefs.spec.mjs --config=playwright.config.mjs --project=system-chrome --reporter=list
+Running 13 tests using 1 worker
+  ✓   1 …wer keep official close separate and disclose comparable volume (725ms)
+  ✓   2 … the exact published pre-market thesis with owner read evidence (450ms)
+  ✓   3 …inal never labels a partial regular print as the official close (500ms)
+  ✓   4 …erve official close and label every post-close print indicative (456ms)
+  ✓   5 … strips use explicit calendar boundaries and next valid session (696ms)
+  ✓   6 …ming to released without stale actual or post-release consensus (715ms)
+  ✓   7 …ay separate and revisions append without rewriting the original (801ms)
+  ✓   8 … and history exclude look-ahead and retain immutable chronology (425ms)
+  ✓   9 …ed unusual evidence remains context and consumes no action slot (399ms)
+  ✓  10 …emains truthful and non-current failures cannot replace current (958ms)
+  ✓  11 …fetches only the selected partition and opened evidence objects (586ms)
+  ✓  12 …ory UI is accessible safe and stable at desktop mobile and zoom (667ms)
+  ✓  13 …y source receives the shared mount with no page-specific branch (381ms)
+  13 passed (9.7s)
+PW_SIBLING_EXIT=0
+```
+
+MATCHES the recorded `13 passed` / exit 0 (wall-clock differs, as it must between runs).
+
+#### AUD-3.2 — the reconciled TP-10-02 (TP-B003-01)
+
+```text
+$ timeout 600 node --test tests/distributed-briefs.static.integration.mjs
+✔ static loader verifies coherent current objects and fetches history only after selection (2205.536773ms)
+ℹ tests 1
+ℹ suites 0
+ℹ pass 1
+ℹ fail 0
+ℹ cancelled 0
+ℹ skipped 0
+ℹ todo 0
+ℹ duration_ms 2308.364503
+STATIC_EXIT=0
+```
+
+MATCHES. Note the **2.2 s** completion against an unchanged **15000 ms** wait — the test
+passes by *satisfying* the wait, not by outlasting it. That independently corroborates the
+claim that no timeout was extended to mask anything.
+
+#### AUD-3.3 — project selftest (TP-B003-03)
+
+```text
+$ timeout 900 node scripts/selftest.mjs
+  ✓ SCN-012-023 a dynamically corroborated, market-confirmed, high-severity candidate qualifies with every falsifiable field and an admission score (never a probability/confidence/crash-odds field), publication Feature-002 gated
+  ✓ SCN-012-024 a single-origin dramatic candidate consumes no visible slot, is a safe insufficient-corroboration count, and never echoes its dramatic title
+  ✓ SCN-012-025 a no-candidate window renders an honest empty state with cutoff/channels/owner coverage and no illustrative topic
+
+================================================
+Research-Lab self-test: 952 passed, 0 failed
+================================================
+SELFTEST_EXIT=0
+```
+
+MATCHES the recorded `952 passed, 0 failed`.
+
+#### AUD-3.4 — bridge integration (TP-B003-04)
+
+```text
+$ timeout 600 node --test tests/simple-production-bridge.integration.mjs
+ok 6 - TP-15-02 honest unavailable: owner evidence that does not permit a run degrades truthfully rather than inventing a read
+1..6
+# tests 6
+# suites 0
+# pass 6
+# fail 0
+# cancelled 0
+# skipped 0
+# todo 0
+# duration_ms 3541.848297
+BRIDGE_EXIT=0
+```
+
+MATCHES the recorded `6/6`.
+
+#### AUD-3.5 — artifact lint (both scopes)
+
+```text
+$ bash .github/bubbles/scripts/artifact-lint.sh specs/012-market-action-center-and-guided-tools/bugs/BUG-003-shell-brief-panel-adoption-hides-feature-002-mount
+Artifact lint PASSED.
+LINT_BUG_EXIT=0
+
+$ bash .github/bubbles/scripts/artifact-lint.sh specs/012-market-action-center-and-guided-tools
+Artifact lint PASSED.
+LINT_FEATURE_EXIT=0
+```
+
+#### AUD-3.6 — recorded numeric claims re-derived
+
+Every quantitative claim in `scopes.md`/`design.md` was re-run:
+
+```text
+$ grep -l 'data-rlbrief-mount' *.html | wc -l
+23                                                    <- claim: 23 pages. MATCH.
+
+$ git --no-pager show 8206c89c --numstat --format='' -- tests/distributed-briefs.static.integration.mjs
+13      0       tests/distributed-briefs.static.integration.mjs   <- claim: +13/-0. MATCH.
+
+$ git show 8206c89c^:tests/distributed-briefs.static.integration.mjs | grep -c 'assert\.'
+15                                                    <- pre-fix assertions. claim: 15. MATCH.
+$ grep -c 'assert\.' tests/distributed-briefs.static.integration.mjs
+15                                                    <- post-fix assertions. claim: 15. MATCH (none weakened).
+
+$ grep -c "state: *'attached'" tests/distributed-briefs.static.integration.mjs
+0                                                     <- claim: 0. MATCH (visibility still asserted).
+
+$ git show 8206c89c^:tests/distributed-briefs.static.integration.mjs | grep -c '\.skip'
+1
+$ grep -c '\.skip' tests/distributed-briefs.static.integration.mjs
+1                                                     <- claim: 1 -> 1. MATCH (no new skip).
+
+$ grep -n 'waitForSelector' tests/distributed-briefs.static.integration.mjs
+20:    await page.waitForSelector('#rlviews[data-rlexperience-shell="ready"]', { timeout: 20000 });   <- NEW wait only
+39:        await page.waitForSelector('[data-rlbrief-mount][data-rlbrief-ready="1"]', { timeout: 15000 });  <- UNCHANGED
+58:        await page.waitForSelector('[data-rlbrief-part="price"]', { timeout: 5000 });
+66:        await page.waitForSelector('#rlbrief-hist-select', { timeout: 8000 });
+73:        await page.waitForSelector('[data-rlbrief-part="history-timeline"]', { timeout: 8000 });
+94:        await page.waitForSelector('[data-rlbrief-mount][data-rlbrief-ready="1"]', { timeout: 15000 });  <- UNCHANGED
+```
+
+All six reproduce exactly. **Zero discrepancies between recorded evidence and independent
+re-execution.**
+
+#### AUD-3.7 — fabrication forensics
+
+```text
+$ grep -nE '\[ACTUAL|\[PASTE|\[INSERT|TODO|FIXME|XXX|<output>|TBD' report.md
+(no template placeholders — the only '...' hits are TAP YAML terminators and the
+ literal source token "rlexperience-placeholder")
+
+$ python3 (sha256 of every fenced block, groups with >1 identical member)
+total fenced blocks: 82
+byte-identical duplicate groups (len>80): 1
+  DUPLICATE GROUP — lines [(614, 618), (2583, 2587)]
+   | $ bash .github/bubbles/scripts/repo-binding-preflight.sh --repo-root /home/redacted/research-lab --agent-source research-lab
+   | [repo-binding-preflight] OK — agent source 'research-lab' matches target repo 'research-lab'.
+   | PREFLIGHT_EXIT=0
+
+$ grep -nE 'static loader verifies coherent.*\([0-9.]+ms\)' report.md   # per-run durations
+42:   ✖ ... (16117.402095ms)     55:  ✖ ... (16117.402095ms)   <- same run (node restates the failure)
+223:  ✔ ... (2216.53705ms)       367: ✔ ... (2038.159444ms)
+432:  ✖ ... (16003.976926ms)     450: ✖ ... (1314.021282ms)
+474:  ✔ ... (2414.024845ms)      658: ✔ ... (2979.783849ms)
+756:  ✖ ... (16917.793401ms)     769: ✖ ... (16917.793401ms)   <- same run (node restates the failure)
+810:  ✔ ... (3035.270226ms)      962: ✔ ... (5968.016387ms)
+1235: ✔ ... (6556.265115ms)
+```
+
+The **only** byte-identical duplicate is the `repo-binding-preflight` block — a script whose
+output is a single deterministic line, so two phases running it necessarily produce identical
+text (this audit's own AUD-0 run produced the same string). Every **distinct execution** of
+`node --test` carries a **distinct** millisecond duration; the two repeated durations are
+`node --test`'s own restatement of a failure inside a *single* run. This is the signature of
+real, separate executions — **not** copy-paste.
+
+The guard warns that "26 of 82 evidence blocks lack terminal output signals". Re-classified
+independently with a broader signal set (`$ `, `#`, `ok`/`not ok`, `✔`/`✖`, `PASS`/`FAIL`,
+`exit`, `passed`/`failed`), only **3** of 82 blocks contain no command output, and all three
+are legitimately non-command content: a markdown Test Plan table (L1135), a JS source excerpt
+of `openBriefView` (L1693), and a stabilize-phase domain list (L1810). The divergence is a
+heuristic difference, not concealed fabrication.
+
+Zero `**Claim Source:** interpreted` blocks exist, so the mandatory interpreted-claim review
+is vacuous for this packet — every provenance-tagged claim asserts direct execution.
+
+**AUD-3 RESULT: EVIDENCE INTEGRITY VERIFIED. No fabricated, templated, or copy-pasted
+evidence detected.**
+
+---
+
+### AUD-4 — Scope discipline: is the change really test-only?
+
+```text
+$ git --no-pager show 8206c89c --name-status --format=''
+A       specs/.../BUG-003-.../bug.md
+A       specs/.../BUG-003-.../design.md
+A       specs/.../BUG-003-.../report.md
+A       specs/.../BUG-003-.../scopes.md
+A       specs/.../BUG-003-.../spec.md
+A       specs/.../BUG-003-.../state.json
+A       specs/.../BUG-003-.../uservalidation.md
+M       tests/distributed-briefs.static.integration.mjs
+
+$ git --no-pager show 8206c89c -- tests/distributed-briefs.static.integration.mjs   (patch body)
++// The shared brief renders inside the shell's "Brief" view (feat(brief): brief lives only in Brief
++// view). Ordinary tools boot in their default "simple" view, so drive the real rlviews control to the
++// Brief view — exactly as every other shell regression does (tests/distributed-briefs.spec.mjs
++// ::mountReady) — before asserting the brief is visible. The switch only reveals the already-loaded
++// mount and issues no brief request of its own, so it is placed BEFORE every network-window baseline
++// below (`no history partition before Open history`, `beforePower`) and cannot invalidate them.
++async function openBriefView(page) {
++    await page.waitForSelector('#rlviews[data-rlexperience-shell="ready"]', { timeout: 20000 });
++    await page.locator('#rlviews button[data-rlview-mode="brief"]').click();
++}
+...
+         await page.goto(harnessUrl(server.baseUrl, 'sector-research-lab'), { waitUntil: 'load' });
++        await openBriefView(page);
+         await page.waitForSelector('[data-rlbrief-mount][data-rlbrief-ready="1"]', { timeout: 15000 });
+...
+         await page.goto(harnessUrl(badServer.baseUrl, 'sector-research-lab'), { waitUntil: 'load' });
++        await openBriefView(page);
+         await page.waitForSelector('[data-rlbrief-mount][data-rlbrief-ready="1"]', { timeout: 15000 });
+```
+
+**CONFIRMED test-only.** Exactly one non-packet file. The diff is purely additive — the two
+`waitForSelector` mount waits appear as **unchanged context lines** (leading space, no `+`),
+so they are byte-identical to the pre-fix bytes: same selector, same `visible` default
+semantics, same 15000 ms budget. No assertion was deleted, relaxed, or re-scoped. The one new
+20000 ms timeout belongs to the *newly introduced* shell-ready wait and is copied verbatim
+from the ratified sibling.
+
+Independently corroborated by AUD-1.3: because the reveal issues zero requests, the switch
+cannot have perturbed the network-window baselines it precedes.
+
+---
+
+### AUD-5 — DoD honesty
+
+Every checked DoD item in `scopes.md` was cross-examined against first-hand evidence.
+**Eleven of twelve are honestly satisfied** (AUD-3.1 – AUD-3.6 re-verify the executable ones;
+AUD-2 re-verifies the four evidence points; AUD-4 re-verifies additivity and boundary).
+
+**One item is not honestly satisfiable as written — AUD-F1 below.**
+
+---
+
+### AUD-6 — Blocking findings
+
+#### 🔴 AUD-F1 — final DoD item's Build-Quality-Gate evidence is scoped to the FEATURE, and its "zero deferral language" clause is now false for this packet
+
+The item reads *"Build Quality Gate — artifact lint and **state-transition guard pass**, **zero
+deferral language**, zero unresolved work"*, but the evidence beneath it runs both tools against
+`specs/012-market-action-center-and-guided-tools` — the **feature** directory — while the item
+sits in the **bug** packet's `scopes.md`. The bug packet's own guard has never passed:
+
+```text
+$ bash .github/bubbles/scripts/state-transition-guard.sh specs/012-market-action-center-and-guided-tools/bugs/BUG-003-shell-brief-panel-adoption-hides-feature-002-mount
+🔴 TRANSITION BLOCKED: 7 failure(s), 2 warning(s)
+GUARD_BEFORE_EXIT=1
+```
+
+This is **not** fabrication. The fix commit message states plainly *"Bug packet stays
+in_progress - transition guard still reports artifact gaps"*, and the chronology shows the
+clause went stale rather than being written falsely:
+
+```text
+$ git --no-pager log --oneline -- .../scopes.md
+0a963801 docs(012/BUG-003): certify SCOPE-01 via bubbles.validate, honest fast assurance
+8206c89c fix(012/BUG-003): reconcile TP-10-02 to the shell Brief-view contract
+
+$ git --no-pager log --oneline -S 'sibling-owned test file that this bug did not touch' -- .../report.md
+109e671d docs(BUG-003): record simplify phase — no simplification warranted
+
+$ git merge-base --is-ancestor 8206c89c 109e671d && echo CONFIRMED
+CONFIRMED: 8206c89c (DoD written, Jul 28 19:34) PRECEDES 109e671d (deferral prose added, Jul 29 01:09)
+```
+
+**Disposition:** the DoD item must be re-scoped to the bug packet and re-evidenced once the
+gates below are cleared. **Owner: `bubbles.validate`** (the scopes.md/DoD owner for this
+packet). Not remediated by audit — rewriting another agent's DoD evidence to turn a gate
+green is precisely what an auditor must not do.
+
+#### 🔴 AUD-F2 — G022: three executed phases are absent from the machine-readable claim record
+
+```text
+$ python3 -c "compare state.json phase records"
+legacy completedPhases           (7): ['implement','validate','test','regression','simplify','stabilize','security']
+execution.completedPhaseClaims   (4): ['implement','validate','test','security']
+certification.certifiedPhases    (0): []
+IN legacy BUT NOT in claims : ['regression', 'simplify', 'stabilize']
+```
+
+The guard reads `execution.completedPhaseClaims` / `certification.certifiedCompletedPhases`,
+not the legacy array, and therefore blocks:
+
+```text
+🔴 BLOCK: Required phase 'regression' NOT in execution/certification phase records (Gate G022 violation)
+🔴 BLOCK: Required phase 'simplify' NOT in execution/certification phase records (Gate G022 violation)
+🔴 BLOCK: Required phase 'stabilize' NOT in execution/certification phase records (Gate G022 violation)
+🔴 BLOCK: Required phase 'audit' NOT in execution/certification phase records (Gate G022 violation)
+🔴 BLOCK: 4 specialist phase(s) missing — work was NOT executed through the full pipeline
+```
+
+**The work genuinely happened** — commits `02a2e7f2` (regression), `109e671d` (simplify),
+`c827661b` (stabilize) each append a substantive report section (`## Regression Phase` L1159,
+`## Simplify Phase` L1468, `## Stabilize Phase` L1593). This is a **recording gap, not
+fabricated work**. Audit records only its own claim; forging three other agents' claim records
+would itself be fabrication. **Owner: `bubbles.regression`, `bubbles.simplify`,
+`bubbles.stabilize`** (each to mirror its own claim), then `bubbles.validate` to certify.
+
+#### 🔴 AUD-F3 — G040 + G095: one deferral phrase in the simplify-phase prose
+
+Both gates fire on the **same single line**, independently reproduced:
+
+```text
+$ awk '/^```/{f=!f;next} !f{printf "%d|%s\n", NR, $0}' report.md | grep -iE "$deferral_pattern"
+1502|sibling-owned test file that this bug did not touch — out of scope, and it is the
+
+$ (same scan on scopes.md)
+(empty == scopes.md clean)
+
+🔴 BLOCK: Report artifact contains 1 deferral language hit(s): report.md (Gate G040)
+🔴 G095 BLOCK: report.md:1497 — forbidden deferral phrase 'out of scope' without disposition
+   citation and no '## Discovered Issues' row for 2026-07-29
+```
+
+Exactly one hit, in the **simplify** phase's justification for not hoisting `openBriefView`
+into the shared support module. The reasoning is sound — `design.md` calls it *"out of scope by
+boundary, not by convenience"* because FR-B003-06 requires the sibling file stay byte-identical
+— but the citation lives in `design.md`, not in the same paragraph of `report.md`, which is what
+G095 requires.
+
+**Remediation (either):** (a) cite the concrete reference (`FR-B003-06`) in that paragraph, or
+(b) add a `## Discovered Issues` row dated 2026-07-29 with disposition + reference.
+**Owner: `bubbles.simplify`** (author of that section). Not remediated by audit.
+
+---
+
+### AUD-7 — Non-blocking observations
+
+- **OBS-1 (low)** — 11 advisory Claim-Source provenance findings: values `direct execution,
+  this session.` (×7) and `` `executed` `` (×5, backticked) are not in the accepted
+  `executed|interpreted|not-run` vocabulary. Advisory-only under the repo's current
+  `claimSourceProvenanceGuard` setting; exit 0. Cosmetic, but worth normalising.
+- **OBS-2 (low)** — the "Bug packet artifacts complete" DoD evidence lists 7 files and omits
+  `scenario-manifest.json`, which was added later (Jul 28 22:33). All 7 claimed artifacts do
+  exist; the listing is simply a point-in-time snapshot. Not a violation.
+
+---
+
+### AUD-8 — Post-record transition guard
+
+Re-run after this audit phase was recorded (see the RESULT block below for the machine-readable
+verdict). The guard still refuses, as expected, because AUD-F2 and AUD-F3 remain open. **This
+audit therefore leaves `status: in_progress` and writes no `certification.*` field.**
+
+---
+
+### Spot-Check Recommendations
+
+Automation bias grows as an audit sounds more confident. The following are the highest-value
+items for a human to verify by hand, in priority order:
+
+1. **Re-run the hidden-mount probe yourself.** `AUD-1.2` is the single load-bearing fact of
+   this entire audit — if the brief did *not* load while hidden, the fix would be masking a
+   product defect and everything else changes. The probe is `/tmp/bug003-audit-probe.mjs`;
+   confirm `data-rlbrief-state: ready` and `[data-rlbrief-part] nodes: 16` while
+   `mount visible to Playwright: false`.
+2. **Confirm the Jul-27 ancestry claim.** `AUD-2` rests on `bd239938` being a *Feature 002*
+   commit that predates the fix. Run `git show bd239938 --stat` and read its message: it should
+   describe reconciling `mountReady` **and** an independent `rlbrief.js` product fix. If that
+   commit were actually authored under Feature 012, the "already ratified" argument weakens.
+3. **Read `report.md` L1488-1503 in full.** This is the only prose blocking on G040/G095, and
+   whether its "out of scope" reasoning is genuine engineering judgement or a soft deferral is
+   a judgement call an auditor should not make unilaterally.
+4. **Verify the three missing phase claims correspond to real work.** Open `## Regression
+   Phase` (L1159), `## Simplify Phase` (L1468), `## Stabilize Phase` (L1593) and confirm each
+   contains substantive executed evidence. This audit treated AUD-F2 as a recording gap rather
+   than absent work on the strength of those sections plus their commits.
+5. **Sanity-check that `+13/−0` is the whole delivery.** Run `git show 8206c89c --name-status`.
+   The entire legitimacy argument assumes no product behaviour changed.
+
+---
+
+### RESULT-ENVELOPE
+
+```json
+{
+  "agent": "bubbles.audit",
+  "roleClass": "certification",
+  "outcome": "route_required",
+  "featureDir": "specs/012-market-action-center-and-guided-tools/bugs/BUG-003-shell-brief-panel-adoption-hides-feature-002-mount",
+  "scopeIds": ["SCOPE-01"],
+  "dodItems": ["Build Quality Gate — artifact lint and state-transition guard pass, zero deferral language, zero unresolved work"],
+  "scenarioIds": ["SCN-B003-01", "SCN-B003-02", "SCN-B003-03", "SCN-B003-04"],
+  "artifactsCreated": [],
+  "artifactsUpdated": ["report.md", "state.json"],
+  "evidenceRefs": [
+    "report.md#audit-phase-bubblesaudit",
+    "report.md#aud-1--central-question-does-this-fix-mask-a-product-defect",
+    "report.md#aud-6--blocking-findings"
+  ],
+  "nextRequiredOwner": "bubbles.simplify",
+  "packetRef": "AUD-F3",
+  "blockedReason": null
+}
+```
+
+## ROUTE-REQUIRED
+
+| # | Finding | Gate | Owner | Required action |
+|---|---------|------|-------|-----------------|
+| AUD-F3 | `out of scope` at `report.md:1502` lacks an in-paragraph disposition citation | G040, G095 | `bubbles.simplify` | Cite `FR-B003-06` in that paragraph **or** add a `## Discovered Issues` row dated 2026-07-29 with disposition + reference |
+| AUD-F2 | `regression`, `simplify`, `stabilize` absent from `execution.completedPhaseClaims` | G022 | `bubbles.regression`, `bubbles.simplify`, `bubbles.stabilize` | Each mirrors its own executed phase into `execution.completedPhaseClaims` (audit must not forge another agent's claim) |
+| AUD-F1 | Final DoD item evidenced against the feature dir; its "zero deferral language" clause is stale | — | `bubbles.validate` | Re-scope + re-evidence the Build Quality Gate item against the **bug** packet after AUD-F2/AUD-F3 close, then certify |
+
+### Phase attestation
+
+`audit` executed and is complete. This phase is **diagnostic**: it performed **no**
+terminal-status transition, wrote **no** `certification.*` field, marked **no** scope Done,
+checked **no** DoD box, and modified **no** file outside this bug folder's `report.md` and
+`state.json`. No source or test file was touched; nothing was committed or pushed. The two
+runtime probes referenced in AUD-1.2/AUD-1.3 live outside the repository under `/tmp` and
+mutate no repository state.
+
+**Verdict: 🟠 REWORK_REQUIRED — the fix is legitimate and complete; the packet is not.**

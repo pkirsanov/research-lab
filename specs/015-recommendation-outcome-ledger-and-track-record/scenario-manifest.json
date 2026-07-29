@@ -1,0 +1,406 @@
+{
+  "schemaVersion": 1,
+  "version": 1,
+  "spec": "specs/015-recommendation-outcome-ledger-and-track-record",
+  "featureDir": "specs/015-recommendation-outcome-ledger-and-track-record",
+  "generatedAt": "2026-07-29T02:20:00Z",
+  "generatedBy": "bubbles.plan",
+  "planningStatus": "planned-not-executed",
+  "scenarios": [
+    {
+      "id": "SCN-015-001",
+      "scenarioId": "SCN-015-001",
+      "businessScenarioId": "BS-001",
+      "scope": "01-frozen-claim-contract",
+      "scopeRef": "scopes/01-frozen-claim-contract/scope.md",
+      "title": "A claim is proposed with a frozen predicate",
+      "behaviorClass": "contract",
+      "changeType": "new",
+      "requiredTestType": "unit",
+      "regressionRequired": true,
+      "linkedTests": [
+        "tests/recommendation-track-record.unit.mjs",
+        "tests/recommendation-track-record.functional.mjs"
+      ],
+      "expectedAssertions": [
+        "a claim object persists subject, direction, predicate, horizon, and outcome-magnitude definition",
+        "the ledger row resolves to that claim by hash",
+        "any change to a hashed field yields a different claimHash"
+      ],
+      "evidenceRefs": [
+        "scopes/01-frozen-claim-contract/report.md#scenario-scn-015-001"
+      ],
+      "lockdown": {
+        "state": "unlocked"
+      }
+    },
+    {
+      "id": "SCN-015-002",
+      "scenarioId": "SCN-015-002",
+      "businessScenarioId": "BS-002",
+      "scope": "04-deterministic-outcome-resolver",
+      "scopeRef": "scopes/04-deterministic-outcome-resolver/scope.md",
+      "title": "A satisfied claim resolves to a positive outcome",
+      "behaviorClass": "contract",
+      "changeType": "new",
+      "requiredTestType": "functional",
+      "regressionRequired": true,
+      "linkedTests": [
+        "tests/recommendation-track-record.functional.mjs",
+        "tests/recommendation-track-record.integration.mjs"
+      ],
+      "expectedAssertions": [
+        "exactly one satisfied closure event is appended through reduceRecommendationEvents",
+        "a positive signed outcome is recorded in the claim's declared magnitude unit"
+      ],
+      "evidenceRefs": [
+        "scopes/04-deterministic-outcome-resolver/report.md#scenario-scn-015-002"
+      ],
+      "lockdown": {
+        "state": "unlocked"
+      }
+    },
+    {
+      "id": "SCN-015-003",
+      "scenarioId": "SCN-015-003",
+      "businessScenarioId": "BS-003",
+      "scope": "04-deterministic-outcome-resolver",
+      "scopeRef": "scopes/04-deterministic-outcome-resolver/scope.md",
+      "title": "An invalidated claim resolves to a negative outcome",
+      "behaviorClass": "contract",
+      "changeType": "new",
+      "requiredTestType": "functional",
+      "regressionRequired": true,
+      "linkedTests": [
+        "tests/recommendation-track-record.functional.mjs",
+        "tests/recommendation-track-record.integration.mjs"
+      ],
+      "expectedAssertions": [
+        "exactly one invalidated closure event is appended",
+        "a negative signed outcome is recorded"
+      ],
+      "evidenceRefs": [
+        "scopes/04-deterministic-outcome-resolver/report.md#scenario-scn-015-003"
+      ],
+      "lockdown": {
+        "state": "unlocked"
+      }
+    },
+    {
+      "id": "SCN-015-004",
+      "scenarioId": "SCN-015-004",
+      "businessScenarioId": "BS-004",
+      "scope": "03-resolved-flat-sentinel-and-resolution-record",
+      "scopeRef": "scopes/03-resolved-flat-sentinel-and-resolution-record/scope.md",
+      "title": "A resolved-flat outcome is not reported as unresolved",
+      "behaviorClass": "contract",
+      "changeType": "new",
+      "requiredTestType": "unit",
+      "regressionRequired": true,
+      "linkedTests": [
+        "tests/recommendation-track-record.unit.mjs"
+      ],
+      "expectedAssertions": [
+        "a resolved-flat outcome is distinguishable from an unresolved claim",
+        "it is not silently absorbed into the unresolved count derived by rlvSummarizeOutcomes",
+        "the array handed to rlvSummarizeOutcomes contains only strictly non-zero finite elements"
+      ],
+      "evidenceRefs": [
+        "scopes/03-resolved-flat-sentinel-and-resolution-record/report.md#scenario-scn-015-004"
+      ],
+      "lockdown": {
+        "state": "unlocked"
+      }
+    },
+    {
+      "id": "SCN-015-005",
+      "scenarioId": "SCN-015-005",
+      "businessScenarioId": "BS-005",
+      "scope": "05-cohort-and-scoring-model",
+      "scopeRef": "scopes/05-cohort-and-scoring-model/scope.md",
+      "title": "Legacy anonymous rows are never back-filled",
+      "behaviorClass": "contract",
+      "changeType": "new",
+      "requiredTestType": "functional",
+      "regressionRequired": true,
+      "linkedTests": [
+        "tests/recommendation-track-record.functional.mjs"
+      ],
+      "expectedAssertions": [
+        "pre-contract rows are reported as an explicit unresolvable-legacy count computed at render time",
+        "no outcome is imputed, estimated, or inferred for any of them",
+        "the track record's start date is stated plainly",
+        "no legacy-count literal ships in any 015-authored source"
+      ],
+      "evidenceRefs": [
+        "scopes/05-cohort-and-scoring-model/report.md#scenario-scn-015-005"
+      ],
+      "lockdown": {
+        "state": "unlocked"
+      }
+    },
+    {
+      "id": "SCN-015-006",
+      "scenarioId": "SCN-015-006",
+      "businessScenarioId": "BS-006",
+      "scope": "07-simple-view-and-shared-shell",
+      "scopeRef": "scopes/07-simple-view-and-shared-shell/scope.md",
+      "title": "A hit rate is never shown without its interval",
+      "behaviorClass": "ui",
+      "changeType": "new",
+      "requiredTestType": "e2e-ui",
+      "regressionRequired": true,
+      "linkedTests": [
+        "tests/recommendation-track-record-lab.spec.mjs",
+        "tests/recommendation-track-record.e2e.mjs"
+      ],
+      "expectedAssertions": [
+        "every rendered rate carries its Wilson interval and its sample count",
+        "a cohort below the declared minimum size renders an explicit insufficient-sample state",
+        "the interval is still shown in the insufficient-sample state"
+      ],
+      "evidenceRefs": [
+        "scopes/07-simple-view-and-shared-shell/report.md#scenario-scn-015-006"
+      ],
+      "lockdown": {
+        "state": "unlocked"
+      }
+    },
+    {
+      "id": "SCN-015-007",
+      "scenarioId": "SCN-015-007",
+      "businessScenarioId": "BS-007",
+      "scope": "04-deterministic-outcome-resolver",
+      "scopeRef": "scopes/04-deterministic-outcome-resolver/scope.md",
+      "title": "Resolution never reads the future",
+      "behaviorClass": "contract",
+      "changeType": "new",
+      "requiredTestType": "functional",
+      "regressionRequired": true,
+      "linkedTests": [
+        "tests/recommendation-track-record.functional.mjs",
+        "tests/recommendation-track-record.integration.mjs"
+      ],
+      "expectedAssertions": [
+        "only observations dated at or before the resolution date are consulted",
+        "a resolution attempted with data unavailable at the resolution date is refused",
+        "session counting treats an early-close day with a non-null regular block as a trading session"
+      ],
+      "evidenceRefs": [
+        "scopes/04-deterministic-outcome-resolver/report.md#scenario-scn-015-007"
+      ],
+      "lockdown": {
+        "state": "unlocked"
+      }
+    },
+    {
+      "id": "SCN-015-008",
+      "scenarioId": "SCN-015-008",
+      "businessScenarioId": "BS-008",
+      "scope": "01-frozen-claim-contract",
+      "scopeRef": "scopes/01-frozen-claim-contract/scope.md",
+      "title": "A predicate amended after the fact is refused",
+      "behaviorClass": "contract",
+      "changeType": "new",
+      "requiredTestType": "unit",
+      "regressionRequired": true,
+      "linkedTests": [
+        "tests/recommendation-track-record.unit.mjs"
+      ],
+      "expectedAssertions": [
+        "an amendment to a frozen predicate is refused with the closed code RTR-PREDICATE-AMEND",
+        "the original frozen predicate remains the scoring basis"
+      ],
+      "evidenceRefs": [
+        "scopes/01-frozen-claim-contract/report.md#scenario-scn-015-008"
+      ],
+      "lockdown": {
+        "state": "unlocked"
+      }
+    },
+    {
+      "id": "SCN-015-009",
+      "scenarioId": "SCN-015-009",
+      "businessScenarioId": "BS-009",
+      "scope": "04-deterministic-outcome-resolver",
+      "scopeRef": "scopes/04-deterministic-outcome-resolver/scope.md",
+      "title": "Re-running the resolver changes nothing",
+      "behaviorClass": "contract",
+      "changeType": "new",
+      "requiredTestType": "functional",
+      "regressionRequired": true,
+      "linkedTests": [
+        "tests/recommendation-track-record.functional.mjs"
+      ],
+      "expectedAssertions": [
+        "a second pass over an unchanged ledger appends no duplicate closure event",
+        "the resulting track record is byte-identical",
+        "the reducer is shown to accept a double closure when the due-set gate is bypassed, proving the gate is what enforces idempotence"
+      ],
+      "evidenceRefs": [
+        "scopes/04-deterministic-outcome-resolver/report.md#scenario-scn-015-009"
+      ],
+      "lockdown": {
+        "state": "unlocked"
+      }
+    },
+    {
+      "id": "SCN-015-010",
+      "scenarioId": "SCN-015-010",
+      "businessScenarioId": "BS-010",
+      "scope": "04-deterministic-outcome-resolver",
+      "scopeRef": "scopes/04-deterministic-outcome-resolver/scope.md",
+      "title": "A claim with no committed series is not-evaluable",
+      "behaviorClass": "contract",
+      "changeType": "new",
+      "requiredTestType": "functional",
+      "regressionRequired": true,
+      "linkedTests": [
+        "tests/recommendation-track-record.functional.mjs"
+      ],
+      "expectedAssertions": [
+        "the claim closes as not-evaluable with a closed reason code",
+        "it is excluded from rate denominators",
+        "it remains visibly counted rather than silently dropped"
+      ],
+      "evidenceRefs": [
+        "scopes/04-deterministic-outcome-resolver/report.md#scenario-scn-015-010"
+      ],
+      "lockdown": {
+        "state": "unlocked"
+      }
+    },
+    {
+      "id": "SCN-015-011",
+      "scenarioId": "SCN-015-011",
+      "businessScenarioId": "BS-011",
+      "scope": "08-power-view-and-charts",
+      "scopeRef": "scopes/08-power-view-and-charts/scope.md",
+      "title": "An apparent edge is discounted for multiplicity",
+      "behaviorClass": "ui",
+      "changeType": "new",
+      "requiredTestType": "e2e-ui",
+      "regressionRequired": true,
+      "linkedTests": [
+        "tests/recommendation-track-record-lab.spec.mjs"
+      ],
+      "expectedAssertions": [
+        "the family count and trial count are displayed with the statistic",
+        "the multiple-testing-discounted statistic is shown alongside the raw one",
+        "the discounted figure is labelled as directional evidence rather than a significance test"
+      ],
+      "evidenceRefs": [
+        "scopes/08-power-view-and-charts/report.md#scenario-scn-015-011"
+      ],
+      "lockdown": {
+        "state": "unlocked"
+      }
+    },
+    {
+      "id": "SCN-015-012",
+      "scenarioId": "SCN-015-012",
+      "businessScenarioId": "BS-012",
+      "scope": "07-simple-view-and-shared-shell",
+      "scopeRef": "scopes/07-simple-view-and-shared-shell/scope.md",
+      "title": "The tool emits no action",
+      "behaviorClass": "ui",
+      "changeType": "new",
+      "requiredTestType": "e2e-ui",
+      "regressionRequired": true,
+      "linkedTests": [
+        "tests/recommendation-track-record-lab.spec.mjs"
+      ],
+      "expectedAssertions": [
+        "no order, position size, allocation, or instruction to act is emitted in any state",
+        "the surface states it is a measurement surface, educational only",
+        "the assertion scans aria-label and title in addition to text content"
+      ],
+      "evidenceRefs": [
+        "scopes/07-simple-view-and-shared-shell/report.md#scenario-scn-015-012"
+      ],
+      "lockdown": {
+        "state": "unlocked"
+      }
+    },
+    {
+      "id": "SCN-015-013",
+      "scenarioId": "SCN-015-013",
+      "businessScenarioId": null,
+      "scope": "02-additive-ledger-row-extension",
+      "scopeRef": "scopes/02-additive-ledger-row-extension/scope.md",
+      "title": "A v2 row references the claim minted in the same pass",
+      "behaviorClass": "contract",
+      "changeType": "new",
+      "requiredTestType": "unit",
+      "regressionRequired": true,
+      "linkedTests": [
+        "tests/recommendation-track-record.unit.mjs",
+        "tests/recommendation-track-record.integration.mjs"
+      ],
+      "expectedAssertions": [
+        "the row declares contractVersion brief-recommendation-history-row/v2",
+        "the row carries claimRef equal to that claim's claimHash",
+        "eventId and recommendationKey are byte-identical to the values the v1 path produced"
+      ],
+      "evidenceRefs": [
+        "scopes/02-additive-ledger-row-extension/report.md#scenario-scn-015-013"
+      ],
+      "lockdown": {
+        "state": "unlocked"
+      }
+    },
+    {
+      "id": "SCN-015-014",
+      "scenarioId": "SCN-015-014",
+      "businessScenarioId": null,
+      "scope": "02-additive-ledger-row-extension",
+      "scopeRef": "scopes/02-additive-ledger-row-extension/scope.md",
+      "title": "A v1 row and a v2 row are both valid, and an unaware reader is unaffected",
+      "behaviorClass": "contract",
+      "changeType": "preserved",
+      "requiredTestType": "integration",
+      "regressionRequired": true,
+      "linkedTests": [
+        "tests/recommendation-track-record.integration.mjs",
+        "tests/recommendation-track-record.functional.mjs"
+      ],
+      "expectedAssertions": [
+        "every row in a mixed v1/v2 partition is read successfully by a seven-field projector",
+        "v1 rows are absent claimRef rather than carrying a null",
+        "no historical row is rewritten, migrated, or re-hashed"
+      ],
+      "evidenceRefs": [
+        "scopes/02-additive-ledger-row-extension/report.md#scenario-scn-015-014"
+      ],
+      "lockdown": {
+        "state": "unlocked"
+      }
+    },
+    {
+      "id": "SCN-015-015",
+      "scenarioId": "SCN-015-015",
+      "businessScenarioId": null,
+      "scope": "02-additive-ledger-row-extension",
+      "scopeRef": "scopes/02-additive-ledger-row-extension/scope.md",
+      "title": "A resolution cannot be written against a claimless row",
+      "behaviorClass": "contract",
+      "changeType": "new",
+      "requiredTestType": "unit",
+      "regressionRequired": true,
+      "linkedTests": [
+        "tests/recommendation-track-record.unit.mjs"
+      ],
+      "expectedAssertions": [
+        "the write is refused with the closed code RTR-LEGACY-BACKFILL",
+        "no resolution object exists for that row",
+        "no predicate, outcome, or horizon is imputed for it"
+      ],
+      "evidenceRefs": [
+        "scopes/02-additive-ledger-row-extension/report.md#scenario-scn-015-015"
+      ],
+      "lockdown": {
+        "state": "unlocked"
+      }
+    }
+  ]
+}

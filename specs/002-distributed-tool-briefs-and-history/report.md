@@ -3476,5 +3476,100 @@ honestly and correctly** because 7 of 10 scopes are Done, and pretending otherwi
 
 **Claim Source:** executed
 
+## Validate Phase Re-Run 2026-07-29
+
+Re-assessment after the repository changed materially since the prior refusal. This phase decides
+**step 3** of the prior blocking path — whether scopes 01, 02 and 03 are certifiable as `Done`.
+
+Repository binding preflight: `PREFLIGHT_COMMITTED decision=rb:vscode-93b8cbfaa3b47932d280e44f81822c28:38
+revision=38 repository=research-lab root=/home/redacted/research-lab`, `actionable=true`.
+
+### Decision: scopes 01, 02, 03 are CERTIFIED `Done`
+
+The prior refusal parked these three scopes on "pending independent validation/certification". That
+condition names *this* phase as the actor, so it cannot be discharged by their owners — only by
+`bubbles.validate` executing the evidence. It has now been executed rather than accepted on trust.
+
+**Every declared Test Plan command re-executed against the CURRENT tree (bare exit codes, no pipe):**
+
+| # | Command | Exit | Result |
+| --- | --- | --- | --- |
+| 1 | `node --test tests/market-session-evidence.unit.mjs` | 0 | 9 pass / 0 fail |
+| 2 | `node --test tests/distributed-briefs.contract.mjs` | 0 | 6 pass / 0 fail |
+| 3 | `node --test tests/market-session-evidence.foundation.functional.mjs` | 0 | 1 pass / 0 fail |
+| 4 | `node --test tests/market-session-evidence.foundation.e2e.mjs` | 0 | 4 pass / 0 fail |
+| 5 | `node --test tests/market-session-evidence.functional.mjs` | 0 | 4 pass / 0 fail |
+| 6 | `node --test tests/market-session-evidence.source.e2e.mjs` | 0 | 2 pass / 0 fail |
+| 7 | `node --test tests/released-report-evidence.e2e.mjs` | 0 | 3 pass / 0 fail |
+| 8 | `node --test .../foundation.e2e.mjs .../source.e2e.mjs` (TP-02-08) | 0 | 7 pass / 0 fail |
+| 9 | `node --test .../released-report-evidence.e2e.mjs .../foundation.e2e.mjs` (TP-03-10) | 0 | 7 pass / 0 fail |
+| 10 | `node scripts/generate-xnys-calendar.mjs --config market-brief.config.json --check` | 0 | 365 rows, 251 open |
+| 11 | `node scripts/validate-brief-cache.mjs` | 0 | PASS, 357 files |
+| 12 | `node scripts/validate-brief-payload.mjs market-brief.payload.json` | 0 | PASS |
+| 13 | `node scripts/validate-node-source-lock.mjs` | 0 | PASS, 16 adversarial REJECTED |
+| 14 | `node scripts/market-session-evidence-live-check.mjs --symbols SPY --no-write` | 0 | OK, honest `unavailable` |
+| 15 | `node scripts/market-session-evidence-live-check.mjs --reports cpi --no-write` | 0 | OK, honest `unavailable` |
+| 16 | `node scripts/selftest.mjs` | 0 | **968 passed, 0 failed** |
+
+Every exact declared test title named in the three Test Plans was observed in the passing output.
+
+**Anti-tautology and integrity checks (independent, non-trusting):**
+
+- **AUD-F1 re-verified independently** — `node /tmp/rowsha-002.mjs` recomputes sha256 over the actual
+  Markdown row bytes (a second implementation, not a re-read of the recorded digest):
+  `ROWSHA_MATCH=122 MISMATCH=0 NO_ROW=0 TOTAL=122`, exit 0. The drift is genuinely reconciled.
+- **All 48 DoD evidence anchors resolve** to real report headings — `ANCHORS_RESOLVED=48
+  ANCHORS_UNRESOLVED=0`. No fabricated link survives.
+- **Scope 01 RED-before-GREEN is real** — all 11 TP rows carry a controlled-mutation RED whose GREEN
+  counterpart appears later in the same file with `Exit Code: 0`: `REDGREEN_OK=11 REDGREEN_BAD=0`.
+  This is the anti-tautology proof: each row's declared production mutation makes the exact unmodified
+  test fail, so the tests are fail-sensitive rather than self-satisfying.
+- **Test Plan ↔ DoD parity exact** — 11/11 (scope 01), 9/9 (scope 02), 11/11 (scope 03).
+- **Live-stack authenticity** — zero `page.route` / `context.route` / `intercept(` / `msw` / `nock` /
+  `jest.fn` / `sinon.stub` / `vi.fn` across all 7 test files (grep exit 1 = no matches); **653 real
+  assertions**; **0 skipped/todo** tests. No proxy tests.
+- **Traceability guard** — `RESULT: PASSED (0 warnings)`, exit 0. 28/28 scenarios map to rows, concrete
+  test files, and report evidence; 28/28 map to DoD items with 0 unmapped.
+- **Artifact lint** — `Artifact lint PASSED`, exit 0.
+- **Implementation reality scan** — 17 files scanned, **0 violations**, 1 advisory warning, exit 0.
+- **Working tree** — all scope 01/02/03 production and test files are tracked and byte-clean at HEAD.
+
+Certification written (validate is the sole writer of `certification.*`): `scopeProgress` entries 1-3
+flipped `in_progress` → `done` with `certifiedAt: 2026-07-29T18:30:00Z`; `completedScopes` extended to
+all 10 scope directories. `scope.md` and `scopes/_index.md` status lines were mirrored so the two
+surfaces agree — the guard correctly flagged the divergence as a fabrication indicator when only
+`scope.md` had been updated, and it was fixed rather than suppressed.
+
+### Guard delta
+
+| | Before | After |
+| --- | --- | --- |
+| BLOCK count | 4 | **2** |
+| `failedGateIds` | `[G027]` | **`[]`** |
+| `failedChecks` | `[Check-4-completion, Check-5-all-done]` | `[Check-4-completion]` |
+| exit | 1 | 1 |
+
+G027 (phase-scope incoherence) is fully cleared: 10 of 10 scopes are now Done.
+
+### Spec status remains `in_progress` — two blocks stand, neither is scope 01/02/03
+
+1. **1 UNCHECKED DoD item** — scope 10's SCN-002-015 pointer-coherence clause, gated by the still-open
+   **GAP-F1 / VAL-F1**: `node scripts/validate-distributed-briefs.mjs --root .` exits 1
+   (`B002-PUBLISH-SET`, `compat-projection-run-mismatch`) because `briefs/current.json` carries a
+   `runId` that `market-brief.payload.json` does not. That is owned by the concurrent session's
+   `brief-refresh.mjs` cutover decision. **Not fixed here, not papered over.**
+2. **G026 on scope 08** — confirmed **FRAMEWORK FALSE POSITIVE (FW-01)**, reproduced independently this
+   phase. `state-transition-guard.sh:1367` uses an unanchored alternation
+   `grep -Eiq 'latency|throughput|p95|p99|response time|sla|slo'`, so the token `slo` matches inside the
+   ordinary word **`slot`**. Reproduction: `echo "one action slot per participant" | grep -Eic '...'`
+   → `1`. Scope 08's only 3 hits are all `action slot`; `latency`/`throughput`/`p95`/`p99`/
+   `response time`/`sla` each have **0** hits, and the scope declares no performance commitment. Routed
+   upstream as a Discovered Issue rather than worked around by editing the scope text.
+
+Because both remaining blocks are real (one genuine open gap, one framework defect), `status` and
+`certification.status` both stay **`in_progress`**. Promoting to `done` would be fabrication.
+
+**Claim Source:** executed
+
 
 

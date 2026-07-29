@@ -208,6 +208,9 @@
     "certification": {
         "status": "in_progress",
         "completedScopes": [
+            "01-market-session-evidence-foundation",
+            "02-yahoo-extended-hours-evidence",
+            "03-cpi-release-evidence",
             "04-event-reaction-and-owner-integration",
             "05-registry-wide-normalized-reads",
             "06-bounded-authorship-and-recommendation-lifecycle",
@@ -222,35 +225,35 @@
                 "scope": 1,
                 "scopeId": "SCOPE-01",
                 "name": "MarketSessionEvidence Foundation",
-                "status": "in_progress",
+                "status": "done",
                 "dependsOn": [],
                 "scopeDir": "scopes/01-market-session-evidence-foundation",
                 "evidenceFile": "scopes/01-market-session-evidence-foundation/report.md",
-                "certifiedAt": null
+                "certifiedAt": "2026-07-29T18:30:00Z"
             },
             {
                 "scope": 2,
                 "scopeId": "SCOPE-02",
                 "name": "Yahoo Extended-Hours Evidence",
-                "status": "in_progress",
+                "status": "done",
                 "dependsOn": [
                     1
                 ],
                 "scopeDir": "scopes/02-yahoo-extended-hours-evidence",
                 "evidenceFile": "scopes/02-yahoo-extended-hours-evidence/report.md",
-                "certifiedAt": null
+                "certifiedAt": "2026-07-29T18:30:00Z"
             },
             {
                 "scope": 3,
                 "scopeId": "SCOPE-03",
                 "name": "CPI Release Evidence",
-                "status": "in_progress",
+                "status": "done",
                 "dependsOn": [
                     1
                 ],
                 "scopeDir": "scopes/03-cpi-release-evidence",
                 "evidenceFile": "scopes/03-cpi-release-evidence/report.md",
-                "certifiedAt": null
+                "certifiedAt": "2026-07-29T18:30:00Z"
             },
             {
                 "scope": 4,

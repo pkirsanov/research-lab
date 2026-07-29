@@ -1,8 +1,8 @@
 # Scope 01: MarketSessionEvidence Foundation
 
-**Status:** In Progress
+**Status:** Done (certified by bubbles.validate 2026-07-29)
 
-Implemented — DoD met via fresh current-certification window `SCOPE01-CERT-20260719T042504Z` (TP-01-01..11 all passed; see [report.md](report.md)); pending independent validation/certification (bubbles.validate).
+Implemented — DoD met via fresh current-certification window `SCOPE01-CERT-20260719T042504Z` (TP-01-01..11 all passed; see [report.md](report.md)). Independent validation/certification completed 2026-07-29 by `bubbles.validate`: all 11 TP rows carry controlled-mutation RED-before-GREEN pairs whose GREEN records exit 0, all 12 DoD evidence anchors resolve to real report headings, and every declared Test Plan command was re-executed exit 0 against the current tree — see [../../report.md](../../report.md#validate-phase-re-run-2026-07-29).
 
 **Depends On:** -
 **Scope-Kind:** runtime-behavior

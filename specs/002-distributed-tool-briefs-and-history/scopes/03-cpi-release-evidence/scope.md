@@ -1,8 +1,8 @@
 # Scope 03: CPI Release Evidence
 
-**Status:** In Progress
+**Status:** Done (certified by bubbles.validate 2026-07-29)
 
-Implemented — DoD met (TP-03-01..11 all passed; see [report.md](report.md)); implementation complete in the working tree, pending independent validation/certification (bubbles.validate).
+Implemented — DoD met (TP-03-01..11 all passed; see [report.md](report.md)). The Scope 03 surface is now committed and byte-clean at HEAD. Independent validation/certification completed 2026-07-29 by `bubbles.validate`: all 11 DoD evidence anchors resolve and every declared Test Plan command was re-executed exit 0 against the current tree — see [../../report.md](../../report.md#validate-phase-re-run-2026-07-29).
 
 **Depends On:** 01
 **Scope-Kind:** runtime-behavior

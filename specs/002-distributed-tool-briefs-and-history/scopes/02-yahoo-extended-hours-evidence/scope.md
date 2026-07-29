@@ -1,6 +1,6 @@
 # Scope 02: Yahoo Extended-Hours Evidence
 
-**Status:** In Progress (implementation complete; certification owned by bubbles.validate)
+**Status:** Done (certified by bubbles.validate 2026-07-29; all 9 declared Test Plan commands re-executed exit 0 on the current tree — see [../../report.md](../../report.md#validate-phase-re-run-2026-07-29))
 **Depends On:** 01
 **Scope-Kind:** runtime-behavior
 **Requirements:** FR-093 through FR-109, FR-120, FR-131 through FR-132; NFR-016 through NFR-023

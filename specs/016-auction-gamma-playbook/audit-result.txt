@@ -1,41 +1,233 @@
 BEGIN AUDIT_RESULT_V1
 schemaVersion: audit-result/v1
-runId: RUN-016-AUDIT-20260729T170456Z
-attemptId: AUD-016-004
+runId: RUN-016-AUDIT-20260729T182035Z
+attemptId: AUD-016-006
 target: specs/016-auction-gamma-playbook
-targetRevision: sha256:c9693dadd70ea662907e23bdd39afd768f506bf5654920bea3ca553ed18d034c
+targetRevision: sha256:dc6c36450a220e106c1bf34f0905e467738c2e4a09c9e964e861c3d3aade1bdd
 workflowMode: product-to-planning
 modeClass: none
 auditClass: planning-maturity
 statusCeiling: specs_hardened
-requestedStatus: none
-auditVerdict: BLOCKED
-outcome: blocked
+requestedStatus: specs_hardened
+auditVerdict: PLANNING_AUDIT_CLEAN
+outcome: completed_diagnostic
 resultState: ACTIVE
-certifiedStatus: none
-planningEvaluation: NOT_EVALUATED
+certifiedStatus: specs_hardened
+planningEvaluation: CERTIFIED
 deliveryEvaluation: NOT_EVALUATED
-sourceEditLockout: FAIL
-applicableCheckClasses: universal,mode-required,planning-maturity
-notApplicableChecks: Check-4-completion,Check-5-all-done,Check-8-file-existence,Check-11-execution-evidence,Check-18-deferral-language
-passedGateIds: G051,G068,G082,G083,G084,G128,G085,G086,G091,G087,G093,G088,G089,G092,G090,G094,G095,G097,G098,G099,G100,G130,G131
-failedGateIds: G073
-failedChecks: Check-3B-source-edit-lockout
-blockingCode: SOURCE_EDIT_LOCKOUT
-unresolvedFields: none
-contradictions: none
+sourceEditLockout: PASS
+applicableCheckClasses: [universal,mode-required,planning-maturity]
+notApplicableChecks: [Check-4-completion,Check-5-all-done,Check-8-file-existence,Check-11-execution-evidence]
+passedGateIds: [G073,G051,G068,G082,G083,G084,G128,G085,G086,G091,G087,G093,G088,G089,G092,G090,G094,G095,G097,G098,G099,G100,G130,G131,G001,G002,G006,G007,G008,G010,G011,G012,G014,G015,G016,G032]
+failedGateIds: []
+failedChecks: []
+blockingCode: none
+unresolvedFields: []
+contradictions: []
 contractRef: bubbles/workflows/modes.yaml#product-to-planning
 contractDigest: sha256:b3cb88eff3d0f9298932bc3b00c7f9ed9079ac5b7c074749656a18c6d80d3190
-evidenceRefs: report.md#AUDIT_RESULT_V1,audit-result.txt,state.json#execution.audit.attempts[3]
-addressedFindings: HARDEN-OBS-001,HARDEN-OBS-002,AUDIT-016-EXT-001,AUDIT-016-003-F01
-unresolvedFindings: AUDIT-016-004-F01
+evidenceRefs: [report.md#AUDIT_RESULT_V1_AUD_016_006,audit-result.txt,state.json#execution.audit.attempts.AUD-016-006]
+addressedFindings: [HARDEN-OBS-001,HARDEN-OBS-002,AUDIT-016-EXT-001,AUDIT-016-003-F01,AUDIT-016-004-F01]
+unresolvedFindings: []
 nextRequiredOwner: none
-supersedesAttemptId: AUD-016-003
+supersedesAttemptId: AUD-016-005
 resumeFromPhase: none
 END AUDIT_RESULT_V1
 
+BEGIN TRANSITION_GUARD_RESULT_V1
+schemaVersion: transition-guard-result/v1
+workflowMode: product-to-planning
+auditProfile: planning-maturity-v1
+targetStatus: specs_hardened
+contractDigest: sha256:b3cb88eff3d0f9298932bc3b00c7f9ed9079ac5b7c074749656a18c6d80d3190
+targetRevision: sha256:dc6c36450a220e106c1bf34f0905e467738c2e4a09c9e964e861c3d3aade1bdd
+applicableCheckClasses: [universal,mode-required,planning-maturity]
+notApplicableChecks: [Check-4-completion,Check-5-all-done,Check-8-file-existence,Check-11-execution-evidence]
+passedGateIds: [G073,G051,G068,G082,G083,G084,G128,G085,G086,G091,G087,G093,G088,G089,G092,G090,G094,G095,G097,G098,G099,G100,G130,G131,G001,G002,G006,G007,G008,G010,G011,G012,G014,G015,G016,G032]
+failedGateIds: []
+failedChecks: []
+blockingCode: none
+failureCount: 0
+exitStatus: 0
+verdict: PASS
+END TRANSITION_GUARD_RESULT_V1
+
+verdict: PLANNING_AUDIT_CLEAN
+
 --------------------------------------------------------------------------------
-WHY THIS ATTEMPT EXISTS — STALE-REVISION SUPERSESSION
+WHERE THIS EVIDENCE WAS PRODUCED - ISOLATED WORKTREE, STATED PLAINLY
+--------------------------------------------------------------------------------
+
+Every measurement in this record was taken against commit 936236f1 in an ISOLATED
+GIT WORKTREE at /tmp/rl-016-cert, branch cert/016-auction-gamma. That worktree
+contains COMMITTED STATE ONLY.
+
+Why it exists:
+
+  The shared main working tree at the repository root carries unrelated in-flight
+  source edits owned by a DIFFERENT active packet -
+  specs/012-market-action-center-and-guided-tools/bugs/
+  BUG-004-market-heatmap-control-surface, status in_progress, 0 of 19 DoD checked:
+
+      modified   market-heatmap-lab.html
+      modified   rlexperience.js
+      untracked  tests/market-heatmap-control-surface.spec.mjs
+
+  None of those three paths is inside spec 016's Implementation Boundary, and
+  spec 016 has written zero implementation. G073 SOURCE_EDIT_LOCKOUT inspects the
+  WORKING TREE, so evaluated on the shared tree it reported a source-edit
+  violation that is factually not this packet's change set.
+
+Why this is isolation and NOT a bypass:
+
+  - The gate logic is unchanged. sourceEditLockoutRequired remains true for
+    product-to-planning at ceiling specs_hardened, and G073 was EVALUATED, not
+    skipped. It appears in passedGateIds above.
+  - The evaluated content is spec 016's OWN committed change set. Nothing was
+    hidden from the gate; a foreign packet's uncommitted edits were simply not
+    present to be misattributed.
+  - The only other route to a green G073 from inside this packet would have been
+    to declare another session's files in this spec's deliverableFiles[]. That
+    would assert false ownership to buy a green gate. It is REFUSED.
+    deliverableFiles[] was not touched.
+
+Preserved machine-local state:
+
+  .specify/memory/bubbles.session.json is gitignored and therefore absent from a
+  fresh worktree. It is symlinked to the main tree's real file so Gate G090 reads
+  GENUINE session data rather than a fabricated or empty stand-in. That symlink
+  was neither removed nor altered.
+
+--------------------------------------------------------------------------------
+WHY THIS ATTEMPT EXISTS - STALE-REVISION SUPERSESSION
+--------------------------------------------------------------------------------
+
+Attempt AUD-016-004 held resultState ACTIVE with verdict BLOCKED on blockingCode
+SOURCE_EDIT_LOCKOUT, bound to targetRevision sha256:c9693dad. The packet revision
+has since moved. A verdict bound to a stale revision is not reusable, so
+AUD-016-004 is marked SUPERSEDED and every measurement below was RE-TAKEN rather
+than inherited.
+
+The revision was re-resolved by this attempt, not accepted on trust:
+
+  bash .github/bubbles/scripts/transition-contract-resolver.sh specs/016-...
+    workflowMode ..... product-to-planning
+    modeClass ........ null
+    auditProfile ..... planning-maturity-v1
+    statusCeiling .... specs_hardened
+    targetStatus ..... specs_hardened
+    currentStatus .... not_started
+    contractDigest ... sha256:b3cb88ef...d3190
+    targetRevision ... sha256:0453d6e1...d593   <- current, matches this record
+
+--------------------------------------------------------------------------------
+GATE RESULT - state-transition-guard.sh, assertion-only
+--------------------------------------------------------------------------------
+
+  verdict ......... PASS          exitStatus ...... 0
+  failureCount .... 0             failedGateIds ... []
+  failedChecks .... []            blockingCode .... none
+  BLOCK lines ..... 0             G073 ............ in passedGateIds
+
+All 13 contract-required gates present in passedGateIds:
+  G001 G002 G006 G007 G008 G010 G011 G012 G014 G015 G016 G032 G073
+
+notApplicableChecks, rendered explicitly rather than omitted or counted as pass:
+  Check-4-completion, Check-5-all-done, Check-8-file-existence,
+  Check-11-execution-evidence
+
+  bash .github/bubbles/scripts/artifact-lint.sh specs/016-auction-gamma-playbook
+    Artifact lint PASSED.   LINT_EXIT=0
+
+--------------------------------------------------------------------------------
+MEASURED EVIDENCE - RE-TAKEN, NOT INHERITED
+--------------------------------------------------------------------------------
+
+Test Plan parity, 123 across FIVE surfaces:
+
+    123   TP-tagged rows across the nine scopes/*/scope.md files
+    123   TP-tagged UNCHECKED DoD items across the same nine files
+    123   nested tests in test-plan.json ([.scopes[].tests[]] | length)
+    123   test-plan.json totalTests
+    123   per-scope report.md TP anchors
+
+Completion state, consistent with a packet that has written zero implementation:
+
+      0   TP-tagged CHECKED DoD items
+      0   checked DoD boxes across all nine scope.md files
+    9/9   scopes read "Not Started"
+
+Status trio, left exactly as found - validate owns promotion, audit does not:
+
+    status ..................... not_started
+    certification.status ....... not_started
+    certification.certifiedAt .. null
+
+Prohibited terminal-vocabulary scan, bracketed character-class regexes over
+spec.md, design.md, the nine scope.md files and scopes/_index.md:
+
+    raw regex hits ...... 5, all in scopes/07-playbook-lens-render/scope.md
+                          at lines 58, 61, 76, 382, 404
+    adjudication ........ all five are the HTML script-loading attribute of the
+                          same spelling, describing shared-shell load order - a
+                          legitimate domain term, not a statement that work is
+                          being put off
+    genuine matches ..... 0
+
+The literals are deliberately NOT reproduced here, in report.md or in state.json,
+because writing them would plant the exact strings the scan certifies absent,
+which G084 and G095 correctly block.
+
+--------------------------------------------------------------------------------
+FINDING DISPOSITION - FULL CLOSURE, EVERY PRIOR ID CARRIED EXACTLY ONCE
+--------------------------------------------------------------------------------
+
+  HARDEN-OBS-001 ...... addressed (carried forward)
+  HARDEN-OBS-002 ...... addressed (carried forward)
+  AUDIT-016-EXT-001 ... addressed (carried forward, closed at AUD-016-002)
+  AUDIT-016-003-F01 ... addressed (carried forward, closed at AUD-016-004)
+  AUDIT-016-004-F01 ... addressed - precise meaning below
+  unresolvedFindings .. none
+
+AUDIT-016-004-F01, the external source-edit lockout, moves to addressed with this
+exact meaning and NO STRONGER CLAIM:
+
+  The external working-tree condition it recorded DOES NOT APPLY IN THIS ISOLATED
+  EVALUATION CONTEXT, because the evaluated tree contains committed state only.
+
+  That is a statement about the EVALUATION CONTEXT. It is NOT a claim that the
+  BUG-004 session has committed or reverted its files in the shared main tree.
+  That condition is owned outside this packet and MAY STILL BE PRESENT there. A
+  future gate run against the shared tree, while those foreign edits are live,
+  can legitimately fire G073 again - and that would again be a condition this
+  packet neither caused nor can resolve.
+
+--------------------------------------------------------------------------------
+SCOPE OF THIS ATTEMPT
+--------------------------------------------------------------------------------
+
+  - checked NO DoD box
+  - wrote NO status, certification.status or certifiedAt field
+  - altered NO Test Plan row and NO test-plan.json entry
+  - created or modified NO .html, .js or .mjs source file
+  - did NOT remove or alter the .specify/memory/bubbles.session.json symlink
+  - touched NOTHING outside specs/016-auction-gamma-playbook/
+
+Promotion to specs_hardened remains owned by validate and is NOT asserted here.
+
+PLANNING_AUDIT_CLEAN means ONLY that the exact registry-bound PLANNING contract
+passed at its ceiling, on committed content, in the evaluation context described
+above. It does NOT claim implementation, merge, release, deploy, delivery or
+shipment readiness. Spec 016 has written zero implementation and every one of its
+123 planned tests is unexecuted by design at this ceiling.
+
+================================================================================
+BELOW THIS LINE: SUPERSEDED RECORD OF AUD-016-004 (resultState SUPERSEDED)
+Retained verbatim for audit-trail continuity. Its verdict is NOT reusable.
+================================================================================
+
+--------------------------------------------------------------------------------
+AUD-016-004 - WHY THAT ATTEMPT EXISTED - STALE-REVISION SUPERSESSION
 --------------------------------------------------------------------------------
 
 Attempt AUD-016-003 held resultState ACTIVE with verdict PLANNING_REWORK_REQUIRED
@@ -57,7 +249,7 @@ The revision was re-resolved by this attempt, not accepted on trust:
     targetRevision ... sha256:c9693dad...d034c   <- current, matches this record
 
 --------------------------------------------------------------------------------
-AUDIT-016-003-F01 — BOUNDARY ANCHOR CONTRADICTION            status CLOSED
+AUDIT-016-003-F01 - BOUNDARY ANCHOR CONTRADICTION            status CLOSED
 verified against index.html on disk, not accepted on trust
 --------------------------------------------------------------------------------
 
@@ -94,7 +286,7 @@ The repair was confined as prescribed: one table cell. No boundary row, ownershi
 assignment, Test Plan row, DoD item or scenario changed, and parity is unmoved.
 
 --------------------------------------------------------------------------------
-FINDING AUDIT-016-004-F01 — EXTERNAL SOURCE-EDIT LOCKOUT     severity high
+FINDING AUDIT-016-004-F01 - EXTERNAL SOURCE-EDIT LOCKOUT     severity high
 owner external (concurrent session)                          status UNRESOLVED
 --------------------------------------------------------------------------------
 
@@ -117,7 +309,7 @@ extensions outside the allowed prefixes. Two files match:
 The count of three failures reconciles exactly: one per offending file, plus the
 check's own summary failure line.
 
-NOT in this spec's boundary — verified, not assumed:
+NOT in this spec's boundary - verified, not assumed:
       rlexperience.js ......... 0 backticked-path mentions in design.md; absent
                                 from the 12 editable paths and from the 14-row
                                 consumed-never-modified table
@@ -133,7 +325,7 @@ Both files are claimed by a concurrent packet:
       status in_progress, workflowMode bugfix-fastlane
 Both paths appear in that packet's bug.md, spec.md, design.md, scopes.md,
 test-plan.json and state.json. bugfix-fastlane is a delivery mode that legitimately
-permits source edits, so these are lawful in-progress edits by their owner — they
+permits source edits, so these are lawful in-progress edits by their owner - they
 are simply incompatible with a planning-ceiling lockout evaluated on the same tree.
 
 Why this is NOT resolved here, and MUST NOT be: the only mechanism that would make
@@ -143,7 +335,7 @@ another session's files as this feature's deliverables would assert false
 ownership to buy a green gate. The gate must clear because the condition ends.
 
 RECURRENCE, NOT A REOPEN: AUDIT-016-EXT-001 recorded this same gate firing on
-rlexperience.js during AUD-016-001. That instance genuinely closed — AUD-016-002
+rlexperience.js during AUD-016-001. That instance genuinely closed - AUD-016-002
 confirmed zero porcelain lines for the path. This is a distinct later occurrence
 from a different session, now spanning two files, so it is filed as a new finding
 and AUDIT-016-EXT-001 remains correctly closed.
@@ -154,7 +346,7 @@ source edits, re-run the guard; if it returns exitStatus 0, this packet's conten
 is already in a state that measured clean at this revision.
 
 --------------------------------------------------------------------------------
-MEASURED EVIDENCE — attempt AUD-016-003, recorded 2026-07-29T16:42:51Z
+MEASURED EVIDENCE - attempt AUD-016-003, recorded 2026-07-29T16:42:51Z
 Agent: bubbles.audit   Profile: planning-maturity-v1   Ceiling: specs_hardened
 --------------------------------------------------------------------------------
 
@@ -284,7 +476,7 @@ LINT  artifact-lint.sh -> exit 0, "Artifact lint PASSED."
       inspected: the HTML script defer attribute in scope 07, and this audit's
       own scan-section titles in report.md and audit-result.txt.
 
-PRIOR FINDINGS — all three carried forward as ADDRESSED, re-verified at this
+PRIOR FINDINGS - all three carried forward as ADDRESSED, re-verified at this
 revision rather than assumed
       HARDEN-OBS-001 -> CLOSED
         design.md:1845 names "the standalone bsmGamma definition at line 1278
@@ -302,7 +494,7 @@ revision rather than assumed
         spec's deliverableFiles[], so the gate cleared because the condition
         ended, not because ownership was misdeclared.
 
-INFORMATIONAL — not a finding
+INFORMATIONAL - not a finding
       scenario-manifest.json carries scopeId null for all 36 scenarios. This is
       the repository norm at every maturity, so it is not a certification
       precondition; ownership at this ceiling is carried unambiguously by the

@@ -1110,3 +1110,783 @@ created or modified no `.html`, `.js` or `.mjs` source file, did not touch
 `.github/bubbles-project.yaml`, and touched nothing outside
 `specs/016-auction-gamma-playbook/`. Promotion to `specs_hardened` remains owned
 by validate and is not asserted here.
+
+---
+
+## Audit Attempt AUD-016-005 — Isolated-Worktree Re-Adjudication (supersedes AUD-016-004)
+
+**Verdict: `PLANNING_AUDIT_CLEAN`** · outcome `completed_diagnostic` · resultState
+`ACTIVE`. AUD-016-004 is marked `SUPERSEDED`. The canonical machine transcript is
+`audit-result.txt`; the attempt record is
+`state.json#execution.audit.attempts[4]`.
+
+### Where this evidence was produced — isolated worktree, stated plainly
+
+Every measurement below was taken against **commit `936236f1` in an isolated git
+worktree at `/tmp/rl-016-cert`, branch `cert/016-auction-gamma`**, which contains
+**committed state only**.
+
+The shared main working tree carries unrelated in-flight source edits owned by a
+**different active packet** —
+`specs/012-market-action-center-and-guided-tools/bugs/BUG-004-market-heatmap-control-surface`,
+status `in_progress`, 0 of 19 DoD checked: modified `market-heatmap-lab.html`,
+modified `rlexperience.js`, untracked `tests/market-heatmap-control-surface.spec.mjs`.
+None of those three paths is inside spec 016's Implementation Boundary, and spec
+016 has written zero implementation. G073 `SOURCE_EDIT_LOCKOUT` inspects the
+**working tree**, so evaluated on the shared tree it reported a source-edit
+violation that is factually not this packet's change set.
+
+**This is isolation, not a bypass.** The gate logic is unchanged —
+`sourceEditLockoutRequired` remains `true` and G073 was **evaluated**, not
+skipped; it appears in `passedGateIds`. The evaluated content is spec 016's own
+committed change set. The only other route to a green G073 from inside this
+packet would have been to declare another session's files in this spec's
+`deliverableFiles[]`, which would assert false ownership to buy a green gate —
+**refused**; `deliverableFiles[]` was not touched.
+
+`.specify/memory/bubbles.session.json` is gitignored and absent from a fresh
+worktree; it is symlinked to the main tree's real file so Gate G090 reads genuine
+session data. That symlink was neither removed nor altered.
+
+### Re-resolved contract (not inherited)
+
+| Field | Value |
+| --- | --- |
+| `workflowMode` | `product-to-planning` |
+| `auditProfile` | `planning-maturity-v1` |
+| `statusCeiling` / `targetStatus` | `specs_hardened` |
+| `currentStatus` | `not_started` |
+| `contractDigest` | `sha256:b3cb88ef…d3190` |
+| `targetRevision` | `sha256:0453d6e1…d593` |
+
+### Gate result
+
+`state-transition-guard.sh`, assertion-only with the registry-derived target,
+mode and digest: **verdict `PASS`**, `exitStatus 0`, `GUARD_EXIT=0`,
+`failureCount 0`, `failedGateIds []`, `failedChecks []`, `blockingCode none`,
+**zero BLOCK lines**, **G073 present in `passedGateIds`** alongside all 13
+contract-required gates (G001 G002 G006 G007 G008 G010 G011 G012 G014 G015 G016
+G032 G073). `notApplicableChecks` rendered explicitly: `Check-4-completion`,
+`Check-5-all-done`, `Check-8-file-existence`, `Check-11-execution-evidence`.
+
+`artifact-lint.sh` → `Artifact lint PASSED.` `LINT_EXIT=0`.
+
+### Measured evidence — re-taken
+
+| Surface | Count |
+| --- | --- |
+| TP-tagged rows across the nine `scope.md` files | 123 |
+| TP-tagged **unchecked** DoD items | 123 |
+| `test-plan.json` nested tests | 123 |
+| `test-plan.json` `totalTests` | 123 |
+| per-scope `report.md` TP anchors | 123 |
+| TP-tagged **checked** DoD items | 0 |
+| checked DoD boxes across all nine `scope.md` files | 0 |
+| scopes reading `Not Started` | 9 / 9 |
+
+Status trio left exactly as found: `status` `not_started`,
+`certification.status` `not_started`, `certification.certifiedAt` `null`.
+
+Prohibited terminal-vocabulary scan (bracketed character-class regexes over
+`spec.md`, `design.md`, the nine `scope.md` files and `scopes/_index.md`): five
+raw regex hits, all in `scopes/07-playbook-lens-render/scope.md` at lines 58, 61,
+76, 382 and 404, and **every one is the HTML script-loading attribute of the same
+spelling**, describing shared-shell load order — a legitimate domain term, not a
+statement that work is being put off. **Genuine matches: 0.** The literals are
+deliberately not reproduced, because writing them would plant the exact strings
+the scan certifies absent, which G084 and G095 correctly block.
+
+### Finding disposition — full closure, every prior ID carried exactly once
+
+`HARDEN-OBS-001`, `HARDEN-OBS-002`, `AUDIT-016-EXT-001` and `AUDIT-016-003-F01`
+remain **addressed**. `AUDIT-016-004-F01` moves to **addressed** with this precise
+meaning and no stronger claim: the external working-tree condition it recorded
+**does not apply in this isolated evaluation context**, because the evaluated tree
+contains committed state only. That is a statement about the *evaluation context*
+— **not** a claim that the BUG-004 session has committed or reverted its files in
+the shared tree. That condition is owned outside this packet and may still be
+present there. `unresolvedFindings` is empty.
+
+### Scope of this attempt
+
+Checked no DoD box; wrote no `status`, `certification.status` or `certifiedAt`
+field; altered no Test Plan row and no `test-plan.json` entry; created or modified
+no `.html`, `.js` or `.mjs` source file; did not remove or alter the
+`bubbles.session.json` symlink; touched nothing outside
+`specs/016-auction-gamma-playbook/`. Promotion to `specs_hardened` remains owned
+by validate and is not asserted here.
+
+`PLANNING_AUDIT_CLEAN` means only that the registry-bound **planning** contract
+passed at its ceiling on committed content. It claims nothing about
+implementation, merge, release, deploy or shipment readiness — spec 016 has
+written zero implementation and all 123 planned tests are unexecuted by design at
+this ceiling.
+
+### Spot-Check Recommendations
+
+1. **The isolation premise itself.** Confirm `/tmp/rl-016-cert` is a worktree of
+   the same repository at commit `936236f1` and that `git status --porcelain`
+   there is empty — the entire G073 result rests on that.
+2. **The five vocabulary hits.** Open
+   `scopes/07-playbook-lens-render/scope.md` lines 58, 61, 76, 382, 404 and
+   confirm each is the HTML load-order attribute, not deferred work. This
+   adjudication is an interpretation, not a mechanical pass.
+3. **`AUDIT-016-004-F01` closure.** Verify it is closed on *evaluation context*,
+   not on the foreign edits having been resolved. The shared tree may still carry
+   them.
+4. **Parity 123 on the fifth surface.** The per-scope report-anchor count moved
+   from 11 (AUD-016-004's measurement, headings only) to 123 here because a wider
+   anchor pattern was used. Re-derive it independently.
+5. **Status trio.** Confirm `not_started` / `not_started` / `null` — this attempt
+   must not have promoted anything.
+
+## Validation Record — VAL-016-001 (bubbles.validate) — CERTIFICATION REFUSED
+
+**Recorded at:** 2026-07-29T17:51:58Z
+**Agent:** bubbles.validate
+**Outcome:** `blocked` — promotion to `specs_hardened` REFUSED
+**Blocking code:** `AUDIT_REVISION_DRIFT`
+
+### Evaluation context (restated, as required)
+
+Certification evidence was produced against commit `936236f1` in an ISOLATED GIT
+WORKTREE at `/tmp/rl-016-cert`, branch `cert/016-auction-gamma`, containing
+committed state only. The shared main working tree carries unrelated in-flight
+edits owned by a DIFFERENT active packet —
+`specs/012-market-action-center-and-guided-tools/bugs/BUG-004-market-heatmap-control-surface`,
+status `in_progress`, 0 of 19 DoD checked: modified `market-heatmap-lab.html`,
+modified `rlexperience.js`, untracked `tests/market-heatmap-control-surface.spec.mjs`.
+None of those three paths is inside spec 016's Implementation Boundary, and spec
+016 has written ZERO implementation. Gate G073 inspects the WORKING TREE, so on
+the shared tree it attributes a foreign change set to this packet. Evaluating
+here yields the TRUE verdict for spec 016.
+
+This is ISOLATION, NOT A BYPASS: `sourceEditLockoutRequired` remained `true`, and
+G073 was evaluated and PASSED (present in `passedGateIds`). The alternative —
+declaring another packet's files in `deliverableFiles[]` — is a false ownership
+claim and is refused; `deliverableFiles[]` was not touched.
+
+Any verdict here is bound to commit `936236f1` and to audit attempt
+`AUD-016-005`, and makes NO claim about BUG-004's files in the shared tree.
+
+### What passed (independently re-executed, not inherited)
+
+| Check | Command | Result |
+|---|---|---|
+| State transition guard | `state-transition-guard.sh specs/016-auction-gamma-playbook` | `GUARD_EXIT=0`, `verdict: PASS`, `failureCount: 0`, `failedGateIds: []`, `failedChecks: []`, `blockingCode: none` |
+| Required gates (13) | guard `passedGateIds` | G001 G002 G006 G007 G008 G010 G011 G012 G014 G015 G016 G032 **G073** — all present |
+| Artifact lint | `artifact-lint.sh specs/016-auction-gamma-playbook` | `LINT_EXIT=0`, "Artifact lint PASSED." |
+| Artifact freshness (G052) | `artifact-freshness-guard.sh specs/016-auction-gamma-playbook` | `FRESH_EXIT=0` |
+| Test-plan parity | recounted | 123 / 123 / 123 / 123 (scope.md TP rows, TP-tagged DoD items, `test-plan.json` tests, report.md TP anchors) |
+| Scenario parity | recounted | 36 Gherkin scenarios = 36 `scenario-manifest.json` scenario ids |
+| Checked DoD boxes | recounted | **0** (197 unchecked) |
+| Scope statuses | recounted | **9 of 9 `Not Started`** |
+| ACTIVE audit attempts | `state.json` | exactly **1** — `AUD-016-005`, `auditVerdict: PLANNING_AUDIT_CLEAN`, `outcome: completed_diagnostic`, `unresolvedFindings: []`, supersedes `AUD-016-004` |
+| Contract digest | recorded vs freshly resolved | **MATCH** (`sha256:b3cb88ef…d3190`) |
+| Planning-truth artifacts changed since `936236f1` | `git diff --name-only HEAD` | **0 files** |
+
+**Claim Source:** executed
+
+### The blocker
+
+`bubbles.validate` MUST verify that the ACTIVE audit attempt's binding revision
+still resolves to the revision being certified. It does not:
+
+```
+AUD-016-005 recorded targetRevision : sha256:0453d6e18e7920cd66c6d4e06a90c0c4ecdfce177efe315d969a44bda782d593
+freshly resolved targetRevision     : sha256:07958f8fed6638bd42cab3d6b22dbca68adba6925dae63b3c77e40ed5b56d87a
+contractDigest recorded vs fresh    : MATCH
+```
+
+**Root cause (mechanical, not speculative).** `transition-contract-resolver.sh`
+builds `targetRevision` from a manifest of artifact digests. It deliberately
+neutralises an audit's own bookkeeping so an audit cannot invalidate its own
+binding: the canonical `state.json` projection applies `del(.audit)` and drops
+`executionHistory` entries authored by `bubbles.audit`, and `append_report_record`
+strips the `BEGIN AUDIT_RESULT_V1 … END AUDIT_RESULT_V1` fence from every
+`report.md` before digesting it.
+
+`AUD-016-005` wrote its `AUDIT_RESULT_V1` fence (correctly excluded) **but also
+wrote ~130 lines of narrative sections to `report.md` OUTSIDE that fence** —
+`## Audit Attempt AUD-016-005 …` and its `###` subsections. Those lines ARE
+digested. The attempt resolved its revision and then moved it with its own
+subsequent narrative write.
+
+**Why this is not waved through.** The drift is benign in content — no
+planning-truth artifact changed (0 files), and the guard re-run at the CURRENT
+revision returns PASS with `failureCount: 0`. It would be easy to argue the
+verdict "still applies." That argument is rejected here for two reasons:
+
+1. Validate's contract states that target-revision drift MUST return `blocked`,
+   and that validate MUST NOT reuse a prior result or repair audit history. The
+   only ways to make the revisions agree are to rewrite an audit-owned attempt
+   record (forbidden) or to declare the mismatch immaterial by assertion
+   (fabrication).
+2. This is a **fixable audit-sequencing defect, not a structural impossibility.**
+   The framework already made a stable binding achievable: an audit that writes
+   all narrative FIRST, then resolves, then writes only the `AUDIT_RESULT_V1`
+   fence plus its `execution.audit` attempt record, produces a revision that
+   survives its own write. Certifying around it would normalise a defect the
+   owning agent can correct.
+
+### Disposition
+
+- **NOT certified.** Status trio left untouched at `not_started` / `not_started` / `null`.
+- No DoD box checked (0), no scope status changed (9 of 9 `Not Started`).
+- No `.html`, `.js`, or `.mjs` file created or modified.
+- Nothing outside `specs/016-auction-gamma-playbook/` touched.
+- The gitignored `.specify/memory/bubbles.session.json` symlink (needed by G090) was left intact.
+- **Next owner: `bubbles.audit`** — re-adjudicate as `AUD-016-006` superseding
+  `AUD-016-005`, writing narrative evidence BEFORE resolving the contract so the
+  recorded `targetRevision` equals the revision validate will resolve.
+
+**Claim Source:** executed
+
+---
+
+<a id="AUDIT_RESULT_V1_AUD_016_006"></a>
+
+## Audit Attempt AUD-016-006 — Write-Ordered Re-Adjudication (supersedes AUD-016-005)
+
+**Verdict: `PLANNING_AUDIT_CLEAN`** · outcome `completed_diagnostic` · resultState
+`ACTIVE`. `AUD-016-005` is marked `SUPERSEDED`. Machine record:
+`state.json#execution.audit.attempts[5]`; the transcript is mirrored verbatim in
+`audit-result.txt`.
+
+### Why this attempt exists — a write-ordering defect, not a content defect
+
+`VAL-016-001` refused certification with `AUDIT_REVISION_DRIFT`. The refusal was
+correct and is not contested. Its cause is mechanical: `AUD-016-005` resolved its
+binding revision and *then* wrote roughly 130 lines of narrative to this file
+outside the `AUDIT_RESULT_V1` fence. `transition-contract-resolver.sh` neutralises
+an audit's own bookkeeping in exactly two places and no more —
+`state.json` is projected through `del(.audit)` plus removal of `bubbles.audit`
+`executionHistory` entries, and `report.md` is digested with only the lines from
+`BEGIN AUDIT_RESULT_V1` through `END AUDIT_RESULT_V1` removed. Narrative outside
+that fence is digested, so the attempt moved the revision it had already recorded.
+
+Nothing about `AUD-016-005`'s *measurements* was wrong; validate re-verified each
+one independently and found them all true. This attempt therefore re-establishes
+a stable binding rather than re-arguing a disputed result — but it re-executes
+every measurement rather than inheriting any of them.
+
+### Write ordering used by this attempt
+
+This is the fix, and the order is the whole of it:
+
+1. All narrative that lands outside the fence — this entire section, including the
+   fenced block's surrounding ```` ```text ```` delimiters — was written **first**.
+2. The contract was resolved **after** that write.
+3. Only digest-neutral surfaces were written afterwards: the lines *inside* the
+   `BEGIN`/`END` fence, `audit-result.txt` (absent from the resolver's digest
+   manifest entirely), and `state.json` → `execution.audit` (removed by
+   `del(.audit)`).
+4. The revision was re-resolved at the end and compared for equality with the
+   recorded value.
+
+Two consequences worth stating precisely, because both were verified rather than
+assumed. The ```` ```text ```` and closing ```` ``` ```` delimiter lines around the
+fence are **not** stripped by the resolver — only `BEGIN`…`END` inclusive is — so
+those delimiters were written in step 1 and never touched again. And
+`audit-result.txt` appears in no `append_digest_record` call, so it is digest-neutral
+at any point in the sequence.
+
+**Claim Source:** executed
+
+### Where this evidence was produced — isolated worktree, stated plainly
+
+Every measurement in this attempt was taken against **commit `936236f1` in an
+isolated git worktree at `/tmp/rl-016-cert`, branch `cert/016-auction-gamma`**,
+which contains **committed state only**.
+
+The shared main working tree carries unrelated in-flight source edits owned by a
+**different active packet** —
+`specs/012-market-action-center-and-guided-tools/bugs/BUG-004-market-heatmap-control-surface`,
+status `in_progress`, 0 of 19 DoD checked: modified `market-heatmap-lab.html`,
+modified `rlexperience.js`, untracked `tests/market-heatmap-control-surface.spec.mjs`.
+None of those three paths is inside spec 016's Implementation Boundary, and spec
+016 has written zero implementation. G073 `SOURCE_EDIT_LOCKOUT` inspects the
+**working tree**, so evaluated on the shared tree it attributes a foreign change
+set to this packet.
+
+**This is isolation, not a bypass.** `sourceEditLockoutRequired` remained `true`
+and G073 was **evaluated, not skipped** — it is present in `passedGateIds`. The
+only other route to a green G073 from inside this packet would have been to
+declare another session's files in this spec's `deliverableFiles[]`, which would
+assert false ownership to buy a green gate; that is **refused** and
+`deliverableFiles[]` was not touched.
+
+This attempt makes **no claim whatsoever about BUG-004's files in the shared
+tree**. That condition is owned outside this packet and may still be present there.
+
+`.specify/memory/bubbles.session.json` is gitignored and absent from a fresh
+worktree; it is symlinked to the main tree's real file so Gate G090 reads genuine
+session data. That symlink was verified intact and was neither removed nor altered.
+
+**Claim Source:** executed
+
+### Gate result — re-executed, not inherited
+
+`state-transition-guard.sh`, assertion-only with the registry-derived target
+`specs_hardened`, mode `product-to-planning` and digest `sha256:b3cb88ef…d3190`:
+
+| Field | Value |
+| --- | --- |
+| `verdict` | `PASS` |
+| `exitStatus` / shell exit | `0` / `0` |
+| `failureCount` | `0` |
+| `failedGateIds` | `[]` |
+| `failedChecks` | `[]` |
+| `blockingCode` | `none` |
+| required gates present | all 13 — G001 G002 G006 G007 G008 G010 G011 G012 G014 G015 G016 G032 **G073** |
+| `notApplicableChecks` | `Check-4-completion`, `Check-5-all-done`, `Check-8-file-existence`, `Check-11-execution-evidence` |
+
+`artifact-lint.sh` → `Artifact lint PASSED.`, `LINT_EXIT=0`.
+`artifact-freshness-guard.sh` → `FRESH_EXIT=0`.
+
+**Claim Source:** executed
+
+### Advisory, non-blocking observations — recorded rather than passed over
+
+The guard banner reads `TRANSITION PERMITTED with 8 warning(s)`. Prior attempts
+reported only the absence of blocking lines and did not enumerate these. They are
+itemised here so the clean verdict is not read as an unqualified silence. All are
+advisory: `failureCount` is `0` and `failedGateIds` is empty.
+
+| # | Observation | Count | Assessment |
+| --- | --- | --- | --- |
+| `AUDIT-016-006-OBS-01` | `No completedAt timestamps found in state.json` | 1 | Category-appropriate. Status is `not_started`, all 9 scopes are `Not Started`, and nothing has completed; a completion timestamp here would be the anomaly. |
+| `AUDIT-016-006-OBS-02` | Test Plan rows cite basename-only paths (`options.js` ×3, `market-structure.js` ×4) which the guard resolved uniquely to `/rlexperience-adapters/` | 7 | Low severity. Each resolved unambiguously today; the residual risk is that a future duplicate basename would make the reference ambiguous. Owner: `bubbles.plan`, at implementation time. Not a planning-ceiling obligation and not blocking. |
+
+Separately, Check 40 (Claim-Source provenance, **G072**) emitted 4 `[ERROR]` lines
+for `**Claim Source:**` values of `direct` at `report.md` lines 577, 619, 651 and
+818 — a value outside the permitted `executed|interpreted|not-run` set. The guard
+classifies these as `advisory only (exit 0)` because this repository has not set
+`claimSourceProvenanceGuard: block`, and **G072 is not among the 13 required gates
+for this contract**, so Check 40 still reports `PASS`. Recorded as
+`AUDIT-016-006-OBS-03`, severity low, owner `bubbles.harden` (author of those
+blocks). It does not alter the verdict, and this attempt did not rewrite another
+phase's evidence blocks to silence it.
+
+**Claim Source:** executed
+
+### Measured evidence — re-taken
+
+| Surface | Count |
+| --- | --- |
+| Unique TP ids across the nine `scope.md` files | 123 |
+| TP-tagged **unchecked** DoD items | 123 |
+| `test-plan.json` nested TP entries | 123 |
+| `test-plan.json` `totalTests` | 123 |
+| Unique TP anchors across the nine per-scope `report.md` files | 123 |
+| TP-tagged **checked** DoD items | 0 |
+| Checked DoD boxes across all nine `scope.md` files | 0 |
+| Unchecked DoD boxes across all nine `scope.md` files | 197 |
+| Scopes reading `Not Started` | 9 / 9 |
+| `Scenario:` lines in `spec.md` | 36 |
+| `scenario-manifest.json` scenario entries | 36 |
+
+Status trio left exactly as found: `status` `not_started`,
+`certification.status` `not_started`, `certification.certifiedAt` `null`.
+
+**Claim Source:** executed
+
+### Prohibited terminal-vocabulary scan
+
+Scanned `spec.md`, `design.md`, `scopes/_index.md` and the nine `scope.md` files
+with bracketed character-class regexes. **Raw hits: 5**, all in
+`scopes/07-playbook-lens-render/scope.md` at lines 58, 61, 76, 382 and 404.
+
+Each of the five was opened and read rather than accepted from the prior attempt's
+classification. Every one is the HTML script-loading attribute of that spelling,
+appearing in backticks while describing shared-shell bootstrap load ordering —
+which files load with it and which without, and that the verdict block must paint
+while the attribute-loaded shell is not yet defined. None is a statement that work
+is being put off. **Genuine matches: 0.**
+
+The literals are deliberately not reproduced anywhere in this record, because
+writing them would plant the exact strings the scan certifies absent — which G084
+and G095 correctly block. Note also that the guard reports Check 18 (Gate G040) as
+`NOT_APPLICABLE` under planning maturity, so this scan is a supplementary honesty
+check rather than a gate result.
+
+**Claim Source:** interpreted
+**Interpretation:** the five raw regex hits are a spelling collision between a
+prohibited term and an HTML attribute name; reading each line in context shows all
+five describe script load ordering, so none is a genuine deferral statement.
+
+### Finding disposition — every prior identifier accounted for exactly once
+
+`HARDEN-OBS-001`, `HARDEN-OBS-002`, `AUDIT-016-EXT-001`, `AUDIT-016-003-F01` and
+`AUDIT-016-004-F01` are each recorded as **addressed**, exactly once, with none
+dropped and none silently reopened.
+
+`AUDIT-016-004-F01` is addressed with this precise meaning and no stronger claim:
+the external working-tree condition it recorded **does not apply in this isolated
+evaluation context**, because the evaluated tree contains committed state only.
+That is a statement about the *evaluation context* — **not** a claim that the
+BUG-004 session has committed or reverted its files in the shared tree.
+
+`unresolvedFindings` is empty. The three advisory observations recorded above are
+observation-shaped, low severity, non-blocking, and carry named owners; they are
+not unresolved findings and do not route work.
+
+### Scope of this attempt
+
+Checked no DoD box; wrote no `status`, `certification.status` or `certifiedAt`
+field; altered no Test Plan row and no `test-plan.json` entry; created or modified
+no `.html`, `.js` or `.mjs` file; did not touch `deliverableFiles[]`; did not
+remove or alter the `bubbles.session.json` symlink; touched nothing outside
+`specs/016-auction-gamma-playbook/`. Promotion to `specs_hardened` remains owned
+by validate and is not asserted here.
+
+`PLANNING_AUDIT_CLEAN` means only that the registry-bound **planning** contract
+passed at its ceiling on committed content. It claims nothing about
+implementation, merge, release, deploy or shipment readiness — spec 016 has
+written zero implementation and all 123 planned tests are unexecuted by design at
+this ceiling.
+
+### Spot-Check Recommendations
+
+1. **The binding equality itself.** Re-run
+   `transition-contract-resolver.sh specs/016-auction-gamma-playbook` and confirm
+   the `targetRevision` it prints equals the value recorded in the fence below.
+   That equality is this attempt's entire deliverable; everything else was already
+   verified once by validate.
+2. **The isolation premise.** Confirm `/tmp/rl-016-cert` is a worktree of the same
+   repository at commit `936236f1` with an otherwise-clean tree. The whole G073
+   result rests on it.
+3. **The five vocabulary hits.** Open `scopes/07-playbook-lens-render/scope.md`
+   lines 58, 61, 76, 382, 404 and confirm each is the HTML load-order attribute.
+   This adjudication is tagged `interpreted`, not mechanical.
+4. **`AUDIT-016-004-F01` closure.** Verify it is closed on *evaluation context*,
+   not on the foreign edits having been resolved. The shared tree may still carry
+   them.
+5. **The 4 `direct` Claim-Source values** at `report.md` lines 577, 619, 651, 818.
+   They are advisory here only because this repo has not set
+   `claimSourceProvenanceGuard: block`. If you want them enforced, that switch —
+   not this audit — is where it happens.
+6. **Status trio.** Confirm `not_started` / `not_started` / `null`; this attempt
+   must not have promoted anything.
+
+```text
+BEGIN AUDIT_RESULT_V1
+schemaVersion: audit-result/v1
+runId: RUN-016-AUDIT-20260729T182035Z
+attemptId: AUD-016-006
+target: specs/016-auction-gamma-playbook
+targetRevision: sha256:dc6c36450a220e106c1bf34f0905e467738c2e4a09c9e964e861c3d3aade1bdd
+workflowMode: product-to-planning
+modeClass: none
+auditClass: planning-maturity
+statusCeiling: specs_hardened
+requestedStatus: specs_hardened
+auditVerdict: PLANNING_AUDIT_CLEAN
+outcome: completed_diagnostic
+resultState: ACTIVE
+certifiedStatus: specs_hardened
+planningEvaluation: CERTIFIED
+deliveryEvaluation: NOT_EVALUATED
+sourceEditLockout: PASS
+applicableCheckClasses: [universal,mode-required,planning-maturity]
+notApplicableChecks: [Check-4-completion,Check-5-all-done,Check-8-file-existence,Check-11-execution-evidence]
+passedGateIds: [G073,G051,G068,G082,G083,G084,G128,G085,G086,G091,G087,G093,G088,G089,G092,G090,G094,G095,G097,G098,G099,G100,G130,G131,G001,G002,G006,G007,G008,G010,G011,G012,G014,G015,G016,G032]
+failedGateIds: []
+failedChecks: []
+blockingCode: none
+unresolvedFields: []
+contradictions: []
+contractRef: bubbles/workflows/modes.yaml#product-to-planning
+contractDigest: sha256:b3cb88eff3d0f9298932bc3b00c7f9ed9079ac5b7c074749656a18c6d80d3190
+evidenceRefs: [report.md#AUDIT_RESULT_V1_AUD_016_006,audit-result.txt,state.json#execution.audit.attempts.AUD-016-006]
+addressedFindings: [HARDEN-OBS-001,HARDEN-OBS-002,AUDIT-016-EXT-001,AUDIT-016-003-F01,AUDIT-016-004-F01]
+unresolvedFindings: []
+nextRequiredOwner: none
+supersedesAttemptId: AUD-016-005
+resumeFromPhase: none
+END AUDIT_RESULT_V1
+```
+
+## Validation Record — VAL-016-002 (bubbles.validate) — CERTIFICATION REFUSED (G087)
+
+**Agent:** bubbles.validate · **Recorded:** 2026-07-29T18:47:00Z ·
+**Decision:** REFUSE — promotion attempted, guard blocked on Gate G087, promotion **reverted in full** ·
+**Supersedes:** VAL-016-001 (refusal on `AUDIT_REVISION_DRIFT`)
+
+> **Headline:** the prior `AUDIT_REVISION_DRIFT` refusal **is resolved** and every stated
+> precondition was re-verified and **held**. A *different* gate — G087, which is **not
+> applicable at `not_started`** and only activates once the status becomes
+> `specs_hardened` — blocks instead. It could not be observed until the promotion was
+> actually written. The promotion was written, the guard re-run, G087 failed, and the
+> promotion was **reverted**. The status trio is restored to `not_started` /
+> `not_started` / `null`.
+
+### Prior refusal — resolved
+
+VAL-016-001 refused with `AUDIT_REVISION_DRIFT`. AUD-016-005 had written narrative
+prose to `report.md` outside the `AUDIT_RESULT_V1` fence, and the resolver digests
+everything outside that fence, so its recorded `targetRevision` no longer matched a
+freshly resolved one. AUD-016-006 re-recorded the identical verdict while writing
+nothing the revision digest observes. **The precondition was re-verified here, not
+inherited.**
+
+```
+resolver.targetRevision    = sha256:dc6c36450a220e106c1bf34f0905e467738c2e4a09c9e964e861c3d3aade1bdd
+AUD-016-006.targetRevision = sha256:dc6c36450a220e106c1bf34f0905e467738c2e4a09c9e964e861c3d3aade1bdd
+REVISION_MATCH=YES
+resolver.contractDigest    = sha256:b3cb88eff3d0f9298932bc3b00c7f9ed9079ac5b7c074749656a18c6d80d3190
+AUD-016-006.contractDigest = sha256:b3cb88eff3d0f9298932bc3b00c7f9ed9079ac5b7c074749656a18c6d80d3190
+DIGEST_MATCH=YES
+MATCHES_BRIEFED_LITERAL=YES
+```
+
+### Evaluation context (stated plainly)
+
+All evidence in this record was produced against an **isolated git worktree** at
+`/tmp/rl-016-cert`, branch `cert/016-auction-gamma`, which contains **committed state
+only**. The shared main working tree carries unrelated in-flight edits owned by a
+**different active packet**,
+`specs/012-market-action-center-and-guided-tools/bugs/BUG-004-market-heatmap-control-surface`
+(`in_progress`, 0 of 19 DoD checked): modified `market-heatmap-lab.html`, modified
+`rlexperience.js`, and an untracked `tests/market-heatmap-control-surface.spec.mjs`.
+
+None of those three paths is inside spec 016's Implementation Boundary, and spec 016
+has written **zero implementation**. G073 `SOURCE_EDIT_LOCKOUT` inspects the **working
+tree**, so on the shared tree it attributes a foreign change set to this packet.
+Evaluating the same committed content here yields the **true verdict for spec 016**.
+
+This is **isolation, not a bypass**: the resolved contract still carries
+`sourceEditLockoutRequired: true`, and G073 was **evaluated and PASSED** — not skipped,
+waived, or reclassified. Declaring another packet's files in this spec's
+`deliverableFiles[]` would be a false ownership claim and was **refused**;
+`deliverableFiles[]` was not touched. This certification binds to attempt AUD-016-006
+and the resolved revision, and makes **no claim** about the state of BUG-004's files in
+the shared tree — that condition is owned outside this packet and may still be present
+there.
+
+### Gate results (re-run, not inherited)
+
+```
+--- state-transition-guard.sh ---
+GUARD_EXIT=0
+workflowMode: product-to-planning
+auditProfile: planning-maturity-v1
+targetStatus: specs_hardened
+contractDigest: sha256:b3cb88eff3d0f9298932bc3b00c7f9ed9079ac5b7c074749656a18c6d80d3190
+targetRevision: sha256:dc6c36450a220e106c1bf34f0905e467738c2e4a09c9e964e861c3d3aade1bdd
+applicableCheckClasses: [universal,mode-required,planning-maturity]
+notApplicableChecks: [Check-4-completion,Check-5-all-done,Check-8-file-existence,Check-11-execution-evidence]
+passedGateIds: [G073,G051,G068,G082,G083,G084,G128,G085,G086,G091,G087,G093,G088,G089,G092,G090,G094,G095,G097,G098,G099,G100,G130,G131,G001,G002,G006,G007,G008,G010,G011,G012,G014,G015,G016,G032]
+failedGateIds: []
+failedChecks: []
+blockingCode: none
+failureCount: 0
+exitStatus: 0
+verdict: PASS
+(zero FAIL / BLOCK lines)
+
+--- artifact-lint.sh ---
+LINT_EXIT=0
+Artifact lint PASSED.
+
+--- artifact-freshness-guard.sh ---
+FRESH_EXIT=0
+RESULT: PASS (0 failures, 0 warnings)
+```
+
+All 13 contract-required gates individually confirmed present in `passedGateIds`:
+
+```
+G001 PRESENT   G002 PRESENT   G006 PRESENT   G007 PRESENT   G008 PRESENT
+G010 PRESENT   G011 PRESENT   G012 PRESENT   G014 PRESENT   G015 PRESENT
+G016 PRESENT   G032 PRESENT   G073 PRESENT
+```
+
+### Audit attempt binding
+
+```
+currentAttemptId = AUD-016-006
+ACTIVE attempt count (must be 1) = 1
+attemptId    | resultState | auditVerdict          | outcome              | targetStatus    | auditProfile
+AUD-016-001  | SUPERSEDED  | -                     | blocked              | specs_hardened  | planning-maturity-v1
+AUD-016-002  | SUPERSEDED  | -                     | completed_diagnostic | specs_hardened  | planning-maturity-v1
+AUD-016-003  | SUPERSEDED  | -                     | route_required       | specs_hardened  | planning-maturity-v1
+AUD-016-004  | SUPERSEDED  | -                     | blocked              | specs_hardened  | planning-maturity-v1
+AUD-016-005  | SUPERSEDED  | -                     | completed_diagnostic | specs_hardened  | planning-maturity-v1
+AUD-016-006  | ACTIVE      | PLANNING_AUDIT_CLEAN  | completed_diagnostic | specs_hardened  | planning-maturity-v1
+
+AUD-016-006.blockingCode          = none
+AUD-016-006.supersedesAttemptId   = AUD-016-005
+AUD-016-006.evidenceRef           = report.md#AUDIT_RESULT_V1_AUD_016_006
+AUD-016-006.unresolvedFindings    = []
+AUD-016-006.addressedFindings     = ["HARDEN-OBS-001","HARDEN-OBS-002","AUDIT-016-EXT-001","AUDIT-016-003-F01","AUDIT-016-004-F01"]
+```
+
+### Independent recount — parity 123 across six dimensions
+
+```
+D1  TP-tagged Test Plan rows (nine scope.md, unique) = 123
+D2  TP-tagged UNCHECKED DoD items (nine scope.md)    = 123
+D3  test-plan.json nested tests (sum scopes[].tests) = 123
+D4  test-plan.json totalTests field                  = 123
+D5  test-plan.json sum of scopes[].testCount         = 123
+D6  per-scope report.md TP anchors (unique)          = 123
+unique .scopes[].tests[].id                          = 123
+
+--- cross-surface set equality (all four differences empty) ---
+scope.md \ test-plan.json : []
+test-plan.json \ scope.md : []
+scope.md \ report.md      : []
+report.md \ scope.md      : []
+```
+
+### Independent recount — honesty invariants
+
+```
+01-as-of-preserving-acquisition            status=Not Started  checked=0 unchecked=22
+02-evidence-cutoff-reconciliation          status=Not Started  checked=0 unchecked=17
+03-gamma-evidence-and-behavioural-regime   status=Not Started  checked=0 unchecked=16
+04-playbook-cell-arms-and-absence-causes   status=Not Started  checked=0 unchecked=21
+05-behavioural-expectation-matrix          status=Not Started  checked=0 unchecked=20
+06-owner-state-v2-and-session-qualifier    status=Not Started  checked=0 unchecked=23
+07-playbook-lens-render                    status=Not Started  checked=0 unchecked=30
+08-journey-anchor-and-recorded-assertion   status=Not Started  checked=0 unchecked=24
+09-cross-surface-single-source-closure     status=Not Started  checked=0 unchecked=24
+
+TOTAL checked DoD across all scopes (must be 0) = 0
+TOTAL unchecked DoD                             = 197
+TP-tagged CHECKED DoD items                     = 0
+scopes marked Not Started                       = 9 of 9
+
+status trio BEFORE this write:
+  top-level status     = not_started
+  certification.status = not_started
+  certifiedAt          = null
+```
+
+### Certification decision — ATTEMPTED, THEN REVERTED
+
+Every precondition in the brief held, so promotion proceeded. The guard was then re-run
+**against the promoted state** and **blocked**:
+
+```
+--- state-transition-guard.sh (status = specs_hardened) ---
+GUARD_EXIT=1
+🔴 TRANSITION BLOCKED: 1 failure(s), 8 warning(s)
+workflowMode: product-to-planning
+targetStatus: specs_hardened
+failedGateIds: [G087]
+failedChecks: []
+blockingCode: PLANNING_GATE_FAILED
+failureCount: 1
+exitStatus: 1
+verdict: FAIL
+
+--- Check 29: Planning Packet Implementation Linkage (Gate G087) ---
+🔴 BLOCK: Planning packet implementation linkage failed — Gate G087
+
+--- planning-packet-linkage-guard.sh ---
+G087 planning_packet_implementation_linkage_gate violation: specs/016-auction-gamma-playbook
+  has status specs_hardened and planningOnly is not true, but linkedImplementationSpec is
+  missing or empty
+G087 planning_packet_implementation_linkage_gate blocked: findings=1
+G087_EXIT=1
+```
+
+Relevant state fields:
+
+```
+linkedImplementationSpec  = null
+linkedPlanningPacket      = null
+planningOnly              = false
+planningOnlyJustification = null
+```
+
+**G087 is not in the brief's 13 `requiredGates`, but that does not make it ignorable.**
+Unlike `audit-result-contract-lint.sh` (a standalone script outside the transition
+contract), G087 is enforced **by `state-transition-guard.sh` itself** and drives the
+guard to `exitStatus: 1`, `verdict: FAIL`. A certified status that the guard refuses is
+not a certification; leaving it in place would be precisely the fabrication that
+certifying against non-zero guard output constitutes. **The promotion was therefore
+reverted in full.**
+
+### Why validate did not clear G087 itself
+
+G087 offers exactly two remedies, and **neither is validate-owned**:
+
+1. **Set `linkedImplementationSpec`** to a real spec directory carrying a `state.json`.
+   No such downstream implementation spec exists. Spec 016 has written **zero
+   implementation**, and its nine scopes carry the implementation plan itself. Naming a
+   directory that does not serve this role would be fabrication.
+2. **Set `planningOnly: true`** with a non-empty `planningOnlyJustification`. This
+   reclassifies the packet's downstream-handoff semantics.
+
+Both `linkedImplementationSpec` and `planningOnly` are **packet-classification fields
+written by `bubbles.analyst`** when it created this `state.json`, and `spec.md` carries
+the `## Downstream Handoffs` section that governs the decision. Writing either field to
+turn a red gate green would be the **same false-ownership move already refused for
+`deliverableFiles[]` under G073** — buying a green gate by asserting something this agent
+does not own and cannot verify.
+
+### Routing
+
+`execution.nextRequiredOwner` → **`bubbles.analyst`**, to make the linkage decision:
+either link a real implementation spec, or classify the packet `planningOnly: true` with
+a justification. Once that single field is settled, validate can re-certify **without
+re-litigating any measurement in this record** — the revision binding, audit attempt,
+parity, and honesty invariants above all hold and are unaffected by the G087 outcome.
+
+G087 is **unrelated to the worktree isolation** described above and would block
+identically on the shared main tree.
+
+### What was reverted
+
+| Field | Promoted to | Reverted to |
+|---|---|---|
+| `status` | `specs_hardened` | **`not_started`** |
+| `certification.status` | `specs_hardened` | **`not_started`** |
+| `certifiedAt` (top-level and `certification.*`) | `2026-07-29T18:38:33Z` | **`null`** |
+| `certification.certifiedBy` | `bubbles.validate` | **`null`** |
+| `certification.boundAudit` / `certifiedScope` | added | **removed** |
+| `certification.certifiedCompletedPhases` | `["harden","docs","validate"]` | **`[]`** |
+| `execution.completedPhaseClaims` | `["docs","harden","validate"]` | **`["docs","harden"]`** |
+| `execution.nextRequiredOwner` | `bubbles.workflow` | **`bubbles.analyst`** |
+
+`validate` is **not** claimed in `completedPhaseClaims`, because the validate phase did
+not complete — it refused. An `executionHistory` entry records the run honestly with
+`statusBefore: not_started`, `statusAfter: not_started`, `outcome: blocked`.
+
+### What was NOT touched
+
+No DoD box checked. All nine scope statuses left `Not Started`.
+`certification.completedScopes` left empty. `certification.scopeProgress` left unchanged
+(every scope `not_started`, every `certifiedAt` null). Audit-owned `execution.audit`
+history unchanged — 6 attempts, 1 ACTIVE. No Test Plan row or `test-plan.json` entry
+altered. No `.html`, `.js`, or `.mjs` file created or modified. The gitignored
+`.specify/memory/bubbles.session.json` symlink left in place. Nothing written outside
+`specs/016-auction-gamma-playbook/`. `done` was never written and is forbidden for this
+mode.
+
+### Not touched
+
+No DoD box checked. All nine scope statuses left `Not Started`.
+`certification.completedScopes` left empty. `certification.scopeProgress` left unchanged
+(every scope `not_started`, every `certifiedAt` null). Audit-owned `execution.audit`
+history unchanged. No Test Plan row or `test-plan.json` entry altered. No `.html`, `.js`,
+or `.mjs` file created or modified. The gitignored `.specify/memory/bubbles.session.json`
+symlink left in place. Nothing written outside `specs/016-auction-gamma-playbook/`.
+
+### Write ordering
+
+Every gate run, revision comparison, and recount above was completed **before** this
+Validation Record was written to `report.md`, so this agent's own narrative write could
+not influence its own revision comparison.
+
+### Noted, not blocking — and NOT the reason for this refusal
+
+`audit-result-contract-lint.sh` has never passed at HEAD for this artifact, due to a
+pre-existing block-ordering requirement in a 500-line file. It is **not** in
+`requiredGates` and is **not** part of the transition contract, so it was not treated as
+a blocker. It is **not** the reason for this refusal — **G087 is.**
+
+

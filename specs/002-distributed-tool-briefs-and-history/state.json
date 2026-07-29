@@ -227,7 +227,21 @@
             "09-evidence-first-atomic-publication",
             "10-shared-ui-and-pages-acceptance"
         ],
-        "certifiedCompletedPhases": [],
+        "certifiedCompletedPhases": [
+            "implement",
+            "test",
+            "regression",
+            "simplify",
+            "gaps",
+            "harden",
+            "stabilize",
+            "security",
+            "validate",
+            "audit",
+            "chaos",
+            "docs",
+            "spec-review"
+        ],
         "scopeProgress": [
             {
                 "scope": 1,

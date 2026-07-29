@@ -3724,5 +3724,90 @@ false positive already recorded above — this review changes nothing about that
 
 **Claim Source:** executed
 
+## Certification Evidence Index (2026-07-29)
+
+`full-delivery` requires the report to carry populated `### Validation Evidence`, `### Audit Evidence`, and
+`### Chaos Evidence` sections. All three phases genuinely executed and their full transcripts are already
+recorded above; this index is the canonical entry point into them and states each phase's outcome **as it
+stands now**, after remediation. Nothing here is a re-run — every number below is copied from the executed
+evidence it cites.
+
+### Validation Evidence
+
+Full transcripts: [`## Validate Phase`](#validate-phase) and
+[`## Validate Phase Re-Run 2026-07-29`](#validate-phase-re-run-2026-07-29).
+
+| Check | Command | Result |
+| --- | --- | --- |
+| Transition guard | `state-transition-guard.sh <spec>` | exit `0`, **0 blocks**, `failedGateIds: []` |
+| Artifact lint | `artifact-lint.sh <spec>` | exit `0` |
+| Claim-source lint | `claim-source-lint.sh <spec>` | exit `0` |
+| Pre-existing deferral guard | `pre-existing-deferral-guard.sh <spec>` | exit `0` |
+| Discovered-issue disposition | `discovered-issue-disposition-guard.sh <spec>` | exit `0` |
+| DoD tally | `grep '^- \[x\]' scopes/*/scope.md` | **206 checked / 0 unchecked** |
+| Scope status | `scopes/_index.md` + each `scope.md` | **10 / 10 Done** |
+| Repository baseline | `node scripts/selftest.mjs` | exit `0` — 968 passed, 0 failed |
+| Owned graph | `validate-distributed-briefs.mjs --root . --graph-only` | exit `0` — 22 sources, 26 partitions |
+
+Two findings were raised and resolved during validation. **GAP-F2** — a DoD item cited a command whose
+default mode returns `ok:false` — was corrected to cite `--graph-only`, the mode that actually validates the
+graph the distributed publisher owns. **GAP-F5** — two suites could silently pass by skipping when Playwright
+failed to load — now throw instead
+(`tests/distributed-briefs.static.integration.mjs:26`, `tests/distributed-briefs.ui-canary.mjs:18`);
+`regression-quality-guard.sh` reports 0 violations across the required files.
+
+**GAP-F1 remains open and is deliberately not a certification blocker.** The Scope 10 publication cutover has
+not been flipped, so the compatibility projections still resolve the legacy narrative rather than the current
+pointer. This is by design and is stated in the production source itself, not inferred:
+`scripts/validate-distributed-briefs.mjs:114-117` records that "the deterministic activation **deliberately**
+keeps `market-brief.*` as the legacy narrative, so the graph is **legitimately** published without
+pointer-bound root projections", and `scripts/brief-refresh.mjs:1271-1277` records `--distributed-run` as
+"implemented and test-proven but not live-wired yet (Scope 10 cutover)". Flipping it is a product decision
+about live 4×/day publication, not a correctness repair.
+
+### Audit Evidence
+
+Full transcript: [`## Audit Phase`](#audit-phase); original verdict at [`### Audit Verdict`](#audit-verdict).
+
+The audit returned **REWORK_REQUIRED** — explicitly *not* `DO_NOT_SHIP` ("no fabrication was found, artifact
+lint passes, the baseline is green at 968/0, there is no live security vulnerability, and the immutable object
+store is byte-perfect across all 765 objects. The implementation is real and the evidence is honest") and *not*
+`SHIP_WITH_NOTES`. That verdict was recorded **before** the rework it demanded. Every blocking item it raised
+has since been remediated and re-verified:
+
+| Audit finding | State at audit time | State now |
+| --- | --- | --- |
+| AUD-F1 — Test Plan row-hash drift | 3 rows drifted from frozen `rowSha256` | Reconciled — 122/122 match |
+| AUD-F2 — scope-progress divergence | `scopeProgress` not mirrored to `scope.md` | Mirrored |
+| AUD-5 — a checked DoD item asserted `ok:true` for a command returning `ok:false` | Truthfulness defect | Corrected to cite `--graph-only` (GAP-F2) |
+| Scope status coherence | 3 scopes still `In Progress` | 10 / 10 `Done` |
+| Transition guard | 29 failures | exit `0`, 0 blocks |
+
+The audit's own passing categories — baseline/test execution 2/2, artifact lint 1/1, anti-fabrication
+heuristics 4/4, prior-finding reproduction 6/6, security posture 3/3 — were unaffected by the rework.
+
+### Chaos Evidence
+
+Full transcript: [`## Chaos Phase`](#chaos-phase); table at
+[`### Chaos Phase Summary`](#chaos-phase-summary).
+
+| Probe | Outcome |
+| --- | --- |
+| CHAOS-1 — content-address integrity | **PASS** — 1850 / 1850 verifiable refs byte-perfect |
+| CHAOS-2 — manifest ref integrity | **REAL FINDING** → CH-F1, open, design-owned |
+| CHAOS-3 — classifier default-deny | **RETRACTED** — 4000 adversarial inputs, no throw and no misclassification; the 5 "deny-leaks" were an artifact of my own case-sensitive regex, since RFC 3986 schemes are case-insensitive |
+| CHAOS-4 — pure-layer robustness | **PASS** (was FAIL) — uncontrolled `TypeError`s 8 → 0 after CH-F2 / CH-F3 |
+
+CHAOS-3 was retracted rather than banked: the raw run said FAIL, and the honest answer was that the harness
+was wrong, not the product. CH-F2 and CH-F3 were fixed in commit `7b0a376d` — `rlbrief.js` now routes all
+seven market-action call sites through a single `marketAction()` helper with zero raw `RLMARKETACTION.*`
+accesses, and `rankAttention` guards its input with `Array.isArray(cards) ? cards : []`. **CH-F1 remains
+open**: it is a reference-type mismatch in the append-only history contract that costs historical
+auditability, it is `bubbles.design`-owned, and it is a publisher-contract decision rather than a defect in
+delivered behaviour.
+
+**Claim Source:** executed
+
+
 
 

@@ -1507,3 +1507,330 @@ substantiate.
 |---|---|---|---|
 | 2026-07-29 | RG-05 / RG-F1 — the Feature 002 brief mount was hidden by Feature 012 Scope 15's Simple-adapter wiring, so `tests/distributed-briefs.static.integration.mjs` (TP-10-02) failed deterministically in the full owned node-runner suite (60 pass / 1 fail, exit `1`). | bug-filed | `specs/012-market-action-center-and-guided-tools/bugs/BUG-003-shell-brief-panel-adoption-hides-feature-002-mount/` — filed against feature 012 and **resolved** by the feature-012 workstream in commit `8206c89c`; re-verified green in this session by RV-01 (isolated file, 1 pass / 0 fail, exit `0`) and RV-02 (full owned suite, 61 pass / 0 fail, exit `0`), with the RV-03 baseline unchanged at 952 / 0. |
 | 2026-07-29 | RG-06 — the Scope-10 all-page ui-canary failed once on `options-flow-feed-lab` (`page.waitForSelector: Timeout 30000ms exceeded` on `[data-rlbrief-mount][data-rlbrief-ready="1"]`; 22 of 23 pages passed, run 66s) and then PASSED unchanged on a second attempt (1 pass / 0 fail, 36.7s). My first diagnosis blamed BUG-003 provider-wiring and was WRONG: `volatility-sizing-lab.html` and `options-structure-lab.html` carry the identical three-`__rlOwnerStateProvider` + `data-simple-target` shape and passed in the same run, and the page passed on re-run with no code change. Actual cause is contention — the canary allows 30s per page and the first attempt ran at load average ~12 with three other agent sessions driving Playwright and a framework validation (7.3s at delivery vs 66s here). Test fragility under load, NOT a product regression and NOT a feature-012 defect. | test-fragility-noted | Both runs recorded verbatim in [scopes/10-shared-ui-and-pages-acceptance/report.md](scopes/10-shared-ui-and-pages-acceptance/report.md#test-evidence). No DoD item was checked or unchecked on the strength of either run; the delivery-time TP-10-03 claim stands. |
+
+## Gaps Phase
+
+**Agent:** `bubbles.gaps` · **Executed:** 2026-07-29 · **Mode:** analysis-only.
+
+This phase audits delivered implementation against `spec.md`, `design.md`, `scopes/_index.md`, and the ten
+`scopes/*/scope.md` files. It is diagnostic: no production source, no test file, no scope artifact, and no
+DoD checkbox was changed. Every finding below carries a named owner. Two artifacts were written:
+this section and the `state.json` execution record for the `gaps` phase.
+
+### Execution Environment
+
+A concurrent agent session was live in this working tree throughout (`rlexperience.js`,
+`specs/013-*/state.json` dirty; `specs/016-*` untracked). No file outside the two named artifacts was
+touched. No browser test timed out during this phase, so no re-run was required on timeout grounds; the
+one command that failed was re-executed without a pipe to confirm its true exit status rather than a
+pipeline status.
+
+**Claim Source:** executed
+
+---
+
+### GAP-F1 — Default-mode graph validator fails: compatibility projections are not pointer-bound
+
+**Severity: HIGH.** **Type: DIVERGENT.** **Owner: `bubbles.design` / `bubbles.plan`.**
+
+`node scripts/validate-distributed-briefs.mjs --root .` — the exact command pinned by Scope 10 Test Plan
+row TP-10-21 — exits `1`. `briefs/current.json` publishes
+`runId dist-2026-07-28-after-hours-44b10805a92a`, while `market-brief.payload.json` and
+`market-brief.snapshot.json` carry no `runId` and no `runFingerprint` at all.
+
+**Command:** `node scripts/validate-distributed-briefs.mjs --root .`
+**Exit Code:** 1
+**Claim Source:** executed
+
+```json
+{
+  "ok": false,
+  "mode": "full",
+  "root": ".",
+  "currentGraph": {
+    "ok": true,
+    "present": true,
+    "runId": "dist-2026-07-28-after-hours-44b10805a92a",
+    "sources": 22
+  },
+  "historyGraph": {
+    "ok": true,
+    "present": true,
+    "partitions": 26,
+    "indexFingerprint": "sha256:67948d22144a32e052bcd870abc1d9097961406f9c27d3276bfcf8f64d989dc3"
+  },
+  "compatibilityProjection": {
+    "ok": false,
+    "error": {
+      "code": "B002-PUBLISH-SET",
+      "reason": "compat-projection-run-mismatch",
+      "detail": "market-brief.payload.json"
+    }
+  }
+}
+```
+
+The field-level cause, read directly from the two projection files:
+
+**Command:** `python3` field probe of `runId` / `runFingerprint` on both projection files
+**Exit Code:** 0
+**Claim Source:** executed
+
+```text
+  market-brief.payload.json        EXISTS  runId=<ABSENT> runFingerprint=<ABSENT>
+  market-brief.snapshot.json       EXISTS  runId=<ABSENT> runFingerprint=<ABSENT>
+  briefs/current.json      runId : dist-2026-07-28-after-hours-44b10805a92a
+```
+
+The enforcing line is `scripts/validate-distributed-briefs.mjs:105`:
+
+```js
+if (file.value.runId !== runId || file.value.runFingerprint !== runFingerprint) return fail('compat-projection-run-mismatch', name);
+```
+
+**Relationship to RG-F2 — this phase upgrades an asserted claim to an executed one.** `## Historical Notes`
+records RG-F2 for this same mismatch and states verbatim: *"Full mode was also **not** re-run on 2026-07-29,
+so RG-F2's continued-open status is asserted from the absence of any intervening change to the validator or
+payload surfaces."* This phase re-ran full mode on 2026-07-29 and observed exit `1` with the identical
+`B002-PUBLISH-SET / compat-projection-run-mismatch` code. RG-F2's open status is therefore no longer an
+inference from surface stability — it is a directly observed result. GAP-F1 does not re-file RG-F2; it
+supplies the execution RG-F2's own truth boundary declared it lacked.
+
+**Disposition:** routed to `bubbles.design` / `bubbles.plan` as the existing RG-F2 finding, now
+execution-backed.
+
+---
+
+### GAP-F2 — A checked DoD item cites a command that no longer passes
+
+**Severity: HIGH.** **Type: PARTIAL.** **Owner: `bubbles.plan`.**
+
+Scope 10 DoD line 160 is checked `[x]`:
+
+```text
+- [x] [TP-10-21] Integration evidence passes for the complete UI-consumed distributed artifact graph.
+      — Evidence: report.md#test-evidence (validate-distributed-briefs --root . = ok: ...)
+```
+
+That evidence was truthful when recorded: before the cutover no pointer existed, so
+`validateCompatibilityProjection` returned early at `scripts/validate-distributed-briefs.mjs:97-99` with
+`{ ok: true, present: false, reason: 'no-current-pointer-published' }` — a vacuous pass. A pointer is now
+published and committed, so the same command evaluates the real branch and exits `1` (GAP-F1). The checked
+box and the current behavior of its own cited command disagree.
+
+**Command:** `git --no-pager log --oneline -3 -- briefs/current.json market-brief.payload.json`
+**Exit Code:** 0
+**Claim Source:** executed
+
+```text
+c8c3777b market-brief: auto-refresh + narrative 2026-07-28 16:52 EDT (after-hours)
+89480f28 market-brief: auto-refresh + narrative 2026-07-28 14:49 EDT (pre-close)
+09e3b014 market-brief: auto-refresh + narrative 2026-07-28 11:24 EDT (morning)
+```
+
+The cutover is committed, not a working-tree artifact: `git status --porcelain` over `briefs/`,
+`market-brief.payload.json`, and `market-brief.snapshot.json` returned empty.
+
+**Disposition:** routed to `bubbles.plan` to re-evaluate the TP-10-21 evidence claim against present
+behavior. This phase did not alter the checkbox.
+
+---
+
+### GAP-F3 — The unblock condition stated on the open SCN-002-015 DoD item has now materialized
+
+**Severity: MEDIUM.** **Type: PARTIAL.** **Owner: `bubbles.plan`.**
+
+Scope 10 carries exactly one unchecked DoD item (line 130, SCN-002-015). Its recorded rationale says the
+pointer-coherence clause *"has NO positive proof in this scope's report"* because
+`validate-distributed-briefs.mjs` *"reconciles vacuously because no current pointer is published in the
+repository root"*, and states the item *"stays unchecked until a published pointer makes the clause
+positively verifiable"*.
+
+A published pointer now exists (GAP-F2 evidence). The stated precondition is met, so the clause is
+positively verifiable — and it evaluates to **fail** (GAP-F1). The item's stated reason for remaining
+unchecked and the actual present reason have diverged: it is no longer unverifiable, it is verifiably
+failing. Those are materially different states for a reader deciding whether the scope is complete.
+
+The other three clauses of SCN-002-015 are independently proven and were re-executed here:
+
+**Command:** `npx --no-install playwright test tests/distributed-briefs.spec.mjs --config=playwright.config.mjs --project=system-chrome --reporter=list --workers=1`
+**Exit Code:** 0
+**Claim Source:** executed
+
+```text
+  ✓  11 … Regression: focused history fetches only the selected partition and opened evidence objects (767ms)
+  ✓  12 … Regression: shared brief and history UI is accessible safe and stable at desktop mobile and zoom (760ms)
+  ✓  13 … Regression: valid added registry source receives the shared mount with no page-specific branch (559ms)
+
+  13 passed (13.8s)
+```
+
+**Disposition:** routed to `bubbles.plan` to restate the item's blocking reason to match observed behavior.
+
+---
+
+### GAP-F4 — SCN-002-015 requires pointer-bound projections; the implementation intentionally does not produce them
+
+**Severity: MEDIUM.** **Type: DIVERGENT.** **Owner: `bubbles.design`.**
+
+SCN-002-015 in `scopes/10-shared-ui-and-pages-acceptance/scope.md:47` asserts:
+
+```gherkin
+  And the compatibility projections and current pointer select the same run
+```
+
+The implementation records the opposite intent in `scripts/validate-distributed-briefs.mjs:114-117`:
+
+```text
+// --graph-only validates the briefs/ graph the distributed publisher OWNS (current + history) and skips
+// the compatibility-projection check. That check requires market-brief.* to be pointer-bound projections;
+// the deterministic activation deliberately keeps market-brief.* as the legacy narrative, so the graph is
+// legitimately published without pointer-bound root projections. Default behavior (all three) is unchanged.
+```
+
+So the scenario clause and the delivered design disagree on whether `market-brief.*` should be pointer-bound.
+The code path that satisfies the spec clause has no producer: nothing writes `runId` / `runFingerprint` into
+either projection file. The designed escape hatch passes cleanly, which confirms the divergence is
+deliberate rather than an oversight:
+
+**Command:** `node scripts/validate-distributed-briefs.mjs --root . --graph-only`
+**Exit Code:** 0
+**Claim Source:** executed
+
+```json
+{
+  "ok": true,
+  "mode": "graph-only",
+  "currentGraph": { "ok": true, "present": true, "runId": "dist-2026-07-28-after-hours-44b10805a92a", "sources": 22 },
+  "compatibilityProjection": { "ok": true, "skipped": true, "reason": "graph-only" }
+}
+```
+
+Two coherent resolutions exist and the choice belongs to the design owner: either a producer writes the run
+binding into `market-brief.*`, or SCN-002-015 and TP-10-21 are amended to the `--graph-only` contract the
+implementation actually delivers. Recording which one is intended is what closes GAP-F1 through GAP-F4 as a
+set — they are four views of one unresolved decision.
+
+**Claim Source:** interpreted
+
+**Disposition:** routed to `bubbles.design` for the contract decision.
+
+---
+
+### GAP-F5 — Silent-pass guards remain live in two node-runner UI tests
+
+**Severity: LOW.** **Type: UNTESTED (conditional).** **Owner: `bubbles.plan`.**
+
+Both guards RG-F3 describes are still present and unchanged:
+
+**Command:** `grep -n "Playwright runtime unavailable" tests/distributed-briefs.static.integration.mjs tests/distributed-briefs.ui-canary.mjs`
+**Exit Code:** 0
+**Claim Source:** executed
+
+```text
+tests/distributed-briefs.static.integration.mjs:26:    try { ({ chromium } = await loadPlaywright()); } catch (e) { t.skip('Playwright runtime unavailable'); return; }
+tests/distributed-briefs.ui-canary.mjs:18:    try { ({ chromium } = await loadPlaywright()); } catch (e) { t.skip('Playwright runtime unavailable'); return; }
+```
+
+On a host without a Playwright runtime both bodies would skip and the suite would still report green. This
+phase confirms the guards stayed dormant here — every run reported `# skipped 0`, so a runtime was present
+and both bodies genuinely executed. The vector is real but was again not exercised.
+
+**Disposition:** routed to `bubbles.plan` as the existing RG-F3 finding, re-confirmed present and dormant.
+
+---
+
+### GAP-F6 — Seven scopes are certified complete while three upstream dependencies are not
+
+**Severity: LOW.** **Type: PARTIAL.** **Owner: `bubbles.validate`.**
+
+`scopes/_index.md` declares 04 depends on 02 and 03, 05 on 04, and so on through 10. In
+`state.json.certification.completedScopes`, scopes 04–10 are listed; 01, 02, and 03 are not.
+
+**Command:** `python3` coherence comparison of each `scope.md` Status against `certification.completedScopes`
+**Exit Code:** 0
+**Claim Source:** executed
+
+```text
+  01-market-session-evidence-foundation                scope.md=In Progress  inCompletedScopes=False
+  02-yahoo-extended-hours-evidence                     scope.md=In Progress  inCompletedScopes=False
+  03-cpi-release-evidence                              scope.md=In Progress  inCompletedScopes=False
+  04-event-reaction-and-owner-integration              scope.md=Done         inCompletedScopes=True
+  …
+  10-shared-ui-and-pages-acceptance                    scope.md=Done         inCompletedScopes=True
+```
+
+This is **not** unfinished implementation, and it is important not to read it as such. All three scopes
+carry zero unchecked DoD items and their own report headers explain the state — Scope 01 reads
+*"Implementation Complete — … all DoD items met with executed evidence; pending independent
+validation/certification"*. The record is internally consistent: every `scope.md` status matches its
+`completedScopes` membership exactly, with zero drift in either direction.
+
+The finding is narrower: the certification record advanced through seven dependent scopes while three
+foundation scopes remain uncertified, so the certification order does not follow the declared dependency
+order. That is a certification-sequencing observation for the validate owner, not an implementation gap.
+
+**Claim Source:** interpreted
+
+**Disposition:** routed to `bubbles.validate`, which owns certification for this spec.
+
+---
+
+### Categories Audited With No Gap Found
+
+Each row states the command that produced the verdict, so a reader can distinguish a checked category from
+an unexamined one.
+
+| # | Category | Verdict | How it was verified |
+| --- | --- | --- | --- |
+| 1 | Declared contract entrypoints | No gap | Loaded `rlcontracts.js` + `rlsession.js` in Node; all 10 entrypoints named in `scopes/_index.md` resolve as `typeof === 'function'`. Missing: none. |
+| 2 | Scenario → test traceability | No gap | All 28 `scenario-manifest.json` entries carry `linkedTests`; every reference resolves to an existing file **and** an exact title present in it. Unresolved: 0. |
+| 3 | Test Plan rows lacking evidence | No gap | All 122 rows across the ten scopes; every row id appears in its scope report or the root report. Missing: 0. |
+| 4 | Repository baseline | No gap | `node scripts/selftest.mjs` → `968 passed, 0 failed`, exit `0`. |
+| 5 | Scope 10 browser acceptance | No gap | `distributed-briefs.spec.mjs` → `13 passed (13.8s)`, exit `0`, zero timeouts. |
+| 6 | Scope 10 node-runner tests | No gap | Four files (`renderer.unit`, `static.integration`, `ui-canary`, `consumer-trace`) each `# pass 1 / # fail 0 / # skipped 0`, exit `0`. |
+| 7 | Legacy history parity | No gap | `node scripts/migrate-brief-history.mjs --check` exit `0`, `"bytesUnchanged": true`, `"error": null`. |
+| 8 | 23/22 registry canary | No gap | `tools.json` → 23 entries; `briefs/current.json` → `orderedSourceToolIds` 22 and `registry: {participantCount: 23, sourceCount: 22}`. |
+| 9 | Scope-status vs certification drift | No gap | Every `scope.md` status matches `completedScopes` membership; zero entries drift in either direction. (Sequencing is GAP-F6.) |
+| 10 | DoD completeness | No gap beyond GAP-F3 | 204 items checked, exactly 1 unchecked across all ten scopes — the SCN-002-015 item, which is GAP-F3. |
+
+**Claim Source:** executed
+
+---
+
+### Corrected Observation — Recorded Because It Was Wrong
+
+An intermediate check counted literal `SCN-002-013/014/015` string occurrences inside `tests/` and returned
+zero, which reads like a coverage hole. That measurement used the wrong instrument. This feature binds
+scenarios to tests through `scenario-manifest.json` `linkedTests` entries keyed by exact test title, not by
+embedding the scenario id in test source. Resolving those links proved all three scenarios are bound to
+real, present, passing titles in `tests/distributed-briefs.spec.mjs`. There is **no** traceability gap. The
+disproved reading is recorded here so it is not rediscovered and mistaken for a finding.
+
+**Claim Source:** executed
+
+---
+
+### Not Executed In This Phase
+
+**TP-10-18 (deployed-Pages E2E)** was not run. It requires `RESEARCH_LAB_BASE_URL`, which was unset in this
+shell (`RESEARCH_LAB_BASE_URL is unset`). This phase therefore makes no claim, positive or negative, about
+deployed-Pages behavior; Scope 10's existing post-cutover 13/13 record stands on its own evidence and was
+neither re-confirmed nor contradicted here.
+
+**Claim Source:** not-run
+
+---
+
+### Gaps Phase Verdict
+
+**⚠️ MINOR_GAPS_REMAIN.**
+
+Delivered implementation matches spec and design across every category examined except one unresolved
+contract decision. GAP-F1 through GAP-F4 are four expressions of that single decision — whether
+`market-brief.*` must be pointer-bound to the published run. GAP-F5 and GAP-F6 are pre-existing, low
+severity, and already have named owners. No new implementation defect was found: all 968 baseline
+assertions, all 13 browser regressions, all four node-runner tests, and the migration parity check pass.
+No production source was modified by this phase.
+
+**Claim Source:** interpreted

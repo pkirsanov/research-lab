@@ -43,7 +43,7 @@ All commands re-run this session (2026-07-19):
 - `node --test tests/distributed-briefs.static.integration.mjs` = **1 test / 1 pass / 0 fail / 0 skipped**. [TP-10-02]
 - `node --test --test-timeout=300000 tests/distributed-briefs.ui-canary.mjs` = **1 test / 1 pass / 0 fail** (7.3s) — all 23 pages retain owner controls, Simple/Power state, the RLDATA shell, and the credential lifecycle; the mount is inert (`idle`) pre-cutover and makes zero briefs network requests. (Wait condition corrected to `state:'attached'`; see Decision Record.) [TP-10-03]
 - `node --test tests/distributed-briefs.consumer-trace.mjs` = **1/1** (no stale first-party assumptions). [TP-10-17]
-- `node scripts/validate-distributed-briefs.mjs --root .` = **ok:true**. [TP-10-21]
+- `node scripts/validate-distributed-briefs.mjs --root .` = **ok:true**. [TP-10-21] — superseded on the current tree; see the TP-10-21 exit-code correction below.
 - `node scripts/migrate-brief-history.mjs --check` = **ok:true, bytesUnchanged:true** (`brief-history.jsonl` untouched). [TP-10-22]
 - `node scripts/validate-brief-cache.mjs` = PASS (354); `node scripts/validate-brief-payload.mjs market-brief.payload.json` = PASS.
 
@@ -60,7 +60,9 @@ $ node --test tests/distributed-briefs.consumer-trace.mjs        -> tests 1 / pa
 exit=0 for all three
 
 $ node scripts/validate-distributed-briefs.mjs --root .
-exit=0                                                                                          [TP-10-21]
+  "ok": false,
+  "error": { "code": "B002-PUBLISH-SET", "reason": "compat-projection-run-mismatch" }
+exit=1   <-- FAILS on the current tree                                                           [TP-10-21]
 
 $ node scripts/migrate-brief-history.mjs --check
 "error": null
@@ -81,6 +83,10 @@ duration_ms: 36712   tests 1 / pass 1 / fail 0                                  
 ```
 
 Corrected diagnosis (an earlier version of this block asserted the wrong cause and is superseded by the run above). The first attempt was initially attributed to BUG-003, because `options-flow-feed-lab.html` is provider-wired by Feature 012 scope 15 (commit `5c83d9d7`) and declares its mount `data-simple-target="rlbrief-simple"` at line 657. That explanation does NOT survive its own evidence: `volatility-sizing-lab.html` and `options-structure-lab.html` carry the identical shape (three `__rlOwnerStateProvider` registrations plus a `data-simple-target` mount) and passed in the same run, and the page then passed unchanged on attempt 2. The actual cause is machine load: the canary's internal `page.waitForSelector` allows 30s per page, the first attempt ran with three other agent sessions driving Playwright and a framework validation concurrently (total run 66s versus 7.3s at delivery), and one page exceeded that per-page budget. This is test fragility under contention, not a product regression — the delivery-time TP-10-03 claim still holds, and no Feature 012 defect is implicated.
+
+**TP-10-21 exit-code correction (2026-07-29).** An earlier version of the fence above recorded `exit=0` for `validate-distributed-briefs`. That reading was wrong: the command had been run as `node … | tail -3` and the shell's `$?` reported the exit status of `tail`, not of `node`. Re-run without a pipeline, the validator exits `1` with `"ok": false`, `"code": "B002-PUBLISH-SET"`, `"reason": "compat-projection-run-mismatch"`. Every other command in the fence was re-checked the same way and its `exit=0` is confirmed genuine.
+
+This failure is NOT a contradiction of the delivery-time TP-10-21 record, and it is not a regression in Scope 10 code. At delivery the validator returned `ok:true` because no current pointer was published in the repository root, so the compatibility-projection reconciliation had nothing to compare and passed vacuously — the scope's one unchecked DoD item says exactly that and predicted this. A current pointer has since been published (`briefs/current.json` selects run `dist-2026-07-28-after-hours-44b10805a92a`) while `market-brief.payload.json` and `market-brief.snapshot.json` still carry no matching run identity, so the reconciliation now runs for real and reports the mismatch. The clause is therefore now positively testable rather than vacuous, which is the precondition the unchecked item named for closing itself. It remains unchecked here because the projections and the pointer do not yet agree.
 
 ## Regression Remediation Evidence — Brief-view reveal restore (2026-07-27)
 

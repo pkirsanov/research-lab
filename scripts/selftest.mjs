@@ -12,7 +12,7 @@
  * Usage:  node scripts/selftest.mjs
  * Exit:   0 = all invariants hold, 1 = at least one failed.
  */
-import { readFileSync } from 'node:fs';
+import { existsSync, readdirSync, readFileSync } from 'node:fs';
 import { fileURLToPath } from 'node:url';
 import { dirname, join } from 'node:path';
 import { validateBriefPayload } from './validate-brief-payload.mjs';
@@ -4391,6 +4391,179 @@ try {
   const empty12Text = empty12.ok ? JSON.stringify(empty12.value.emptyState).toLowerCase() : '';
   assert(empty12.ok && empty12.value.visibleAlerts.length === 0 && empty12.value.emptyState && empty12.value.emptyState.cutoffAt === CUT12 && empty12.value.emptyState.channelsReviewed.length > 0 && empty12.value.emptyState.ownerCoverage.anomalySeedCount >= 1 && !['usd/jpy', 'private credit', 'capex', 'war'].some((t) => empty12Text.includes(t)) && RA12.validateRedAlertProjection(empty12.value).ok, 'SCN-012-025 a no-candidate window renders an honest empty state with cutoff/channels/owner coverage and no illustrative topic');
 } catch (e) { failures++; console.log('  \u2717 FAIL (Feature 012 Scope 12 Red Alert canaries threw): ' + e.message); }
+
+/* ---------- Feature 012 Scope 15 production Simple-view bridge canaries (TP-15-07) ----------
+   SCN-012-038 / SCN-012-039 / SCN-012-040 / SCN-012-041 / SCN-012-042. TP-15-01 (unit) proves the
+   BRIDGE DECISION on one adapter and TP-15-02 (integration) proves the whole wired set end-to-end;
+   TP-15-03..06 prove it in a real browser. These canaries put the bridge CONTRACT into the fast broad
+   gate so a broken wiring fact fails here, in seconds, instead of only in the slow Playwright sweep.
+
+   EVERY fact is DERIVED from production sources — there is no hard-coded tool list, no duplicated
+   formula, no canned expectation:
+     • the wired set          = simple-models.json definitions x the deployed page that registers
+                                `__rlOwnerStateProvider["<toolId>"]` (the same fact rlapp.js keys
+                                ownerModes on), so a tool wired in a future batch joins automatically;
+     • the module bindings    = the ADAPTER_MODULE_BINDINGS literal parsed out of rlexperience.js;
+     • the ownerModes rule    = rlapp.js's OWN ternary, extracted verbatim and EXECUTED;
+     • the rlv-focused rule   = rlviews.js's OWN toggle predicate, extracted verbatim and EXECUTED;
+     • no-forbidden-authority = the production runtime's OWN diagnostic().value.authority contract.
+
+   The rlv-focused ownership scan runs against RAW (un-stripped) source on purpose: a comment-stripper
+   that over-reached could HIDE a real re-introduced write, so the safety-critical assertion never
+   depends on it. Comment-stripping is used only for the additional "not even mentioned" checks.
+
+   NODE, NO BROWSER, NO NETWORK, NO WALL-CLOCK: computedAt is a fixed instant and the DOM host is a
+   minimal recording stub, so every canary is deterministic. */
+try {
+  group('Feature 012 Scope 15 production Simple-view bridge canaries (TP-15-07)');
+  const bridgeRequire = (await import('node:module')).createRequire(import.meta.url);
+  const loadFresh = (rel) => { const p = bridgeRequire.resolve('../' + rel); delete bridgeRequire.cache[p]; return bridgeRequire(p); };
+  const countOf = (text, re) => (text.match(re) || []).length;
+  const stripComments = (s) => s.replace(/\/\*[\s\S]*?\*\//g, '').replace(/(^|[^:])\/\/[^\n]*/g, '$1');
+  const RLV_FOCUSED_WRITE = /classList\s*\.\s*(?:add|remove|toggle|replace)\s*\(\s*["'`]rlv-focused/g;
+
+  const bridgeSrc = read('rlexperience.js'), viewsSrc = read('rlviews.js'), appSrc = read('rlapp.js');
+  const registry = JSON.parse(read('simple-models.json'));
+  const experienceConfig = JSON.parse(read('tool-experience.config.json'));
+  const bridgeApi = loadFresh('rlexperience.js');
+
+  /* (1) The bridge's OWN module-binding table, parsed out of its source (never restated here). */
+  const bindingsBlock = /var ADAPTER_MODULE_BINDINGS\s*=\s*\{([\s\S]*?)\n\s*\};/.exec(bridgeSrc);
+  const moduleBindings = Object.create(null);
+  const bindingRe = /"([^"]+)":\s*\{\s*global:\s*"([^"]+)",\s*register:\s*"([^"]+)"\s*\}/g;
+  let bindingMatch;
+  while (bindingsBlock && (bindingMatch = bindingRe.exec(bindingsBlock[1]))) moduleBindings[bindingMatch[1]] = { global: bindingMatch[2], register: bindingMatch[3] };
+  const bindingPaths = Object.keys(moduleBindings);
+  assert(!!bindingsBlock && bindingPaths.length > 0 && bindingPaths.every((p) => moduleBindings[p].global && moduleBindings[p].register), 'the bridge publishes a non-empty adapter-module binding table, each entry naming a browser global and a registrar (' + bindingPaths.length + ' bindings parsed from rlexperience.js)');
+
+  /* (2) The wired set: every deployed page that registers the uniform owner-state provider seam. */
+  const providerRe = /__rlOwnerStateProvider\[\s*["']([a-z0-9-]+)["']\s*\]/g;
+  const productionPages = readdirSync(ROOT).filter((f) => f.endsWith('.html'));
+  const providerRegistrations = [];
+  for (const page of productionPages) {
+    const pageSrc = read(page);
+    const seen = new Set();
+    let providerMatch;
+    providerRe.lastIndex = 0;
+    while ((providerMatch = providerRe.exec(pageSrc))) seen.add(providerMatch[1]);
+    for (const toolId of seen) providerRegistrations.push({ page, toolId });
+  }
+  const definitionByToolId = new Map(registry.definitions.map((d) => [d.toolId, d]));
+  const wired = registry.definitions.filter((d) => providerRegistrations.some((r) => r.toolId === d.toolId));
+  assert(productionPages.length > 0 && providerRegistrations.length > 0 && wired.length === providerRegistrations.length, 'the wired set is derived from the production registry + the deployed pages and is non-empty (' + wired.length + ' wired of ' + registry.definitions.length + ' registry definitions, scanned ' + productionPages.length + ' pages)');
+
+  /* (3) Registry/page coherence, BOTH directions: a page wired without a registry definition — or a
+         definition with no adapter identity — would leave the bridge permanently honest-unavailable. */
+  const orphanWiring = providerRegistrations.filter((r) => !definitionByToolId.has(r.toolId));
+  const identityGaps = wired.filter((d) => !d.adapterId || !d.adapterModule || !d.definitionId);
+  assert(orphanWiring.length === 0 && identityGaps.length === 0, 'every page-registered owner-state provider resolves to a registry definition carrying a non-empty adapterId/adapterModule/definitionId (0 orphan wirings, 0 identity gaps across ' + wired.length + ' wired tools)');
+
+  /* (4) Every wired tool's declared adapter module is a real file the bridge can actually bind. */
+  const missingModuleFile = wired.filter((d) => !existsSync(join(ROOT, d.adapterModule)));
+  const unboundModule = wired.filter((d) => !moduleBindings[d.adapterModule]);
+  assert(missingModuleFile.length === 0 && unboundModule.length === 0, 'every wired tool\u2019s declared adapter module exists on disk and has a bridge binding (' + new Set(wired.map((d) => d.adapterModule)).size + ' distinct modules across ' + wired.length + ' wired tools)');
+
+  /* (5) Each wired module resolves under Node and exports the registrar its binding names. */
+  const registrarGaps = [];
+  const wiredModules = new Map();
+  for (const d of wired) {
+    const binding = moduleBindings[d.adapterModule];
+    let moduleObject = null;
+    try { moduleObject = loadFresh(d.adapterModule); } catch (loadError) { registrarGaps.push(d.toolId + ':load'); continue; }
+    wiredModules.set(d.toolId, moduleObject);
+    if (typeof moduleObject[binding.register] !== 'function') registrarGaps.push(d.toolId + ':' + binding.register);
+  }
+  assert(wiredModules.size === wired.length && registrarGaps.length === 0, 'every wired tool\u2019s adapter module loads and exports the registrar its binding names (' + wiredModules.size + '/' + wired.length + ' resolved, gaps: ' + (registrarGaps.join(', ') || 'none') + ')');
+
+  /* (6) Registration parity against the REAL runtime: the registrar must register the exact adapterId
+         the registry declares, for the exact definitionId it declares. `rlvol` reproduces the
+         foundation-module global the deployed page installs and the bridge injects. A tool whose
+         binding/module already failed (4)/(5) is counted as unchecked rather than thrown on, so one
+         broken wiring fact cannot mask the remaining canaries — the checked-count assertion below
+         still fails loud when any wired tool was skipped. */
+  const rlvolModule = loadFresh('rlvol.js');
+  const registrationGaps = [];
+  let registrationChecked = 0, authorityKeys = 0, authorityOwned = 0;
+  for (const d of wired) {
+    const binding = moduleBindings[d.adapterModule];
+    const moduleObject = wiredModules.get(d.toolId);
+    if (!binding || !moduleObject || typeof moduleObject[binding.register] !== 'function') continue;
+    const runtime = bridgeApi.createSimpleRuntime(experienceConfig, { contractVersion: 'simple-model-registry/v1', definitions: [d] }).value;
+    const registered = moduleObject[binding.register](runtime, bridgeApi, [d], { rlvol: rlvolModule });
+    const entry = registered && registered[d.adapterId];
+    if (!entry || entry.ok !== true || !entry.value || entry.value.registered !== true || !Array.isArray(entry.value.supportedDefinitionIds) || entry.value.supportedDefinitionIds.indexOf(d.definitionId) < 0) registrationGaps.push(d.toolId);
+    const authority = runtime.diagnostic().value.authority;
+    const owned = Object.keys(authority || {});
+    registrationChecked += 1;
+    authorityKeys = owned.length;
+    authorityOwned += owned.filter((k) => authority[k] !== false).length;
+  }
+  assert(registrationChecked === wired.length && registrationGaps.length === 0, 'registering every wired module into the REAL runtime registers the registry-declared adapterId for the registry-declared definitionId (' + registrationChecked + '/' + wired.length + ' checked, gaps: ' + (registrationGaps.join(', ') || 'none') + ')');
+  assert(registrationChecked === wired.length && authorityKeys > 0 && authorityOwned === 0, 'no forbidden authority: the runtime\u2019s own diagnostic reports every authority false after adapter registration (' + authorityKeys + ' authority flags x ' + registrationChecked + ' wired tools, owned: ' + authorityOwned + ')');
+
+  /* (7) SCN-012-039 sole ownership of rlv-focused. Scanned RAW so a re-introduced write can never be
+         stripped away; BUG-003's cause was exactly `classList.add("rlv-focused")` in the Simple stub. */
+  const scannedSources = [...readdirSync(ROOT).filter((f) => f.endsWith('.js') || f.endsWith('.html')), ...readdirSync(join(ROOT, 'rlexperience-adapters')).filter((f) => f.endsWith('.js')).map((f) => 'rlexperience-adapters/' + f)];
+  const focusWriters = [];
+  let focusWriteTotal = 0;
+  for (const file of scannedSources) {
+    const hits = countOf(read(file), RLV_FOCUSED_WRITE);
+    if (hits) { focusWriters.push(file + ' x' + hits); focusWriteTotal += hits; }
+  }
+  assert(scannedSources.length > 0 && focusWriteTotal === 1 && focusWriters.length === 1 && focusWriters[0] === 'rlviews.js x1', 'exactly one executable rlv-focused write exists across all production sources and it lives in rlviews.js (scanned ' + scannedSources.length + ' files, writers: ' + (focusWriters.join(', ') || 'none') + ')');
+  const applyVisualSrc = extractFn(viewsSrc, 'applyVisual');
+  assert(countOf(applyVisualSrc, RLV_FOCUSED_WRITE) === 1, 'applyVisual (rlviews.js) is the function that owns that sole rlv-focused write');
+
+  /* (8) The production bridge path carries no rlv-focused mutation — and after comment-stripping no
+         mention at all, so the class name survives only in the invariant comments. */
+  const bridgePathSrc = extractFn(bridgeSrc, 'renderSimpleBridgeInternal') + '\n' + extractFn(bridgeSrc, 'installSimpleProjectionBridge');
+  const bridgePathCode = stripComments(bridgePathSrc);
+  assert(bridgePathSrc.length > 0 && bridgePathCode.indexOf('installSimpleProjectionBridge') >= 0 && countOf(bridgePathSrc, RLV_FOCUSED_WRITE) === 0 && countOf(bridgePathCode, /rlv-focused/g) === 0, 'the production bridge path (renderSimpleBridgeInternal + installSimpleProjectionBridge) contains no rlv-focused write and, once comments are stripped, no rlv-focused reference at all (' + bridgePathSrc.length + ' source chars)');
+  const authorityTokens = ['fetch(', 'providerFetch', 'XMLHttpRequest', 'localStorage', 'sessionStorage', 'indexedDB', 'sendBeacon', 'document.cookie'];
+  const bridgeTokenHits = authorityTokens.filter((t) => bridgePathCode.indexOf(t) >= 0);
+  assert(bridgeTokenHits.length === 0, 'the bridge path performs local compute only \u2014 no network, provider, storage, or cookie authority in its executable source (' + authorityTokens.length + ' tokens checked, hits: ' + (bridgeTokenHits.join(', ') || 'none') + ')');
+
+  /* (9) The ownerModes contract: rlapp.js's OWN expression, extracted verbatim and executed. */
+  const ownerModesStart = appSrc.indexOf('ownerModes: resolved.value.kind');
+  const ownerModesExpr = ownerModesStart >= 0 ? appSrc.slice(ownerModesStart + 'ownerModes:'.length, appSrc.indexOf('\n        };', ownerModesStart)).trim() : '';
+  const ownerModesOf = Function('resolved', 'root', 'toolId', 'return (' + ownerModesExpr + ');');
+  const providerRoot = { __rlOwnerStateProvider: { 'wired-tool': function () { return null; } } };
+  const wiredModes = ownerModesOf({ value: { kind: 'ordinary' } }, providerRoot, 'wired-tool');
+  const unwiredModes = ownerModesOf({ value: { kind: 'ordinary' } }, {}, 'wired-tool');
+  const briefModes = ownerModesOf({ value: { kind: 'market-action-center' } }, providerRoot, 'brief-tool');
+  assert(ownerModesExpr.length > 0 && JSON.stringify(wiredModes) === '["power"]' && JSON.stringify(unwiredModes) === '["simple","power"]' && JSON.stringify(briefModes) === '["brief"]', 'rlapp.js\u2019s own ownerModes expression yields ["power"] for a provider-wired ordinary tool, ["simple","power"] for an unwired one (no regression), and ["brief"] for a brief-only tool');
+
+  /* (10) SCN-012-041: feeding those REAL ownerModes into rlviews.js's REAL toggle predicate proves a
+          wired tool gets the focused adapter Simple while an unwired tool keeps its native Simple. */
+  const focusPredicateMatch = /classList\s*\.\s*toggle\s*\(\s*["']rlv-focused["']\s*,\s*([^;]*?)\s*\)\s*;/.exec(viewsSrc);
+  const focusPredicate = Function('ownerModes', 'mode', 'return (' + (focusPredicateMatch ? focusPredicateMatch[1] : 'undefined') + ');');
+  assert(!!focusPredicateMatch && focusPredicate(wiredModes, 'simple') === true && focusPredicate(wiredModes, 'power') === false && focusPredicate(unwiredModes, 'simple') === false && focusPredicate(briefModes, 'brief') === false, 'rlviews.js\u2019s own rlv-focused predicate, fed those real ownerModes, focuses a wired tool\u2019s Simple, leaves Power unfocused, and never focuses an unwired native Simple or a brief view');
+
+  /* (11) SCN-012-042 truthful degradation, driven through the REAL exposed bridge. */
+  assert(typeof bridgeApi.renderSimpleBridge === 'function', 'RLEXPERIENCE.renderSimpleBridge is exposed on the production API');
+  const bodyClassOps = [];
+  let bridgeDocument = null;
+  const makeNode = (tagName) => ({
+    tagName, ownerDocument: bridgeDocument, textContent: '', className: '', hidden: true, attrs: Object.create(null), children: [],
+    setAttribute(name, value) { this.attrs[name] = String(value); },
+    getAttribute(name) { return Object.prototype.hasOwnProperty.call(this.attrs, name) ? this.attrs[name] : null; },
+    appendChild(child) { this.children.push(child); return child; },
+    hasDescendantAttribute(name) { return this.children.some((c) => Object.prototype.hasOwnProperty.call(c.attrs, name)); }
+  });
+  bridgeDocument = { createElement: makeNode, body: { classList: { add: (n) => bodyClassOps.push(['add', n]), remove: (n) => bodyClassOps.push(['remove', n]), toggle: (n, f) => bodyClassOps.push(['toggle', n, f]) } } };
+  const priorDocument = Object.prototype.hasOwnProperty.call(globalThis, 'document') ? globalThis.document : undefined;
+  globalThis.document = bridgeDocument;
+  try {
+    const probeDefinition = wired[0];
+    const panel = makeNode('section');
+    const projection = await bridgeApi.renderSimpleBridge({ panel, toolId: probeDefinition.toolId, definition: probeDefinition, ownerState: null, moduleObject: null, registerFnName: null, adapterId: probeDefinition.adapterId, api: bridgeApi, config: experienceConfig, computedAt: '2026-07-25T20:02:00.000Z' });
+    const message = String(projection && projection.message);
+    assert(!!projection && projection.state === 'unavailable' && projection.numericValue === null && panel.getAttribute('data-rlexperience-simple-state') === 'unavailable' && !panel.hasDescendantAttribute('data-simple-numeric-value') && message.indexOf(probeDefinition.adapterId) >= 0 && !/neutral|average|prior result/i.test(message), 'a wired tool with no owner state degrades to an honest unavailable that names the missing owner adapter, publishes a null numeric, paints no numeric node, and invents no signal (' + probeDefinition.toolId + ')');
+    assert(bodyClassOps.length === 0, 'the bridge never mutates body.classList on the unavailable path \u2014 applyVisual stays the sole owner of rlv-focused (BUG-003 invariant, ' + bodyClassOps.length + ' recorded mutations)');
+  } finally {
+    if (priorDocument === undefined) delete globalThis.document; else globalThis.document = priorDocument;
+  }
+} catch (e) { failures++; console.log('  \u2717 FAIL (Feature 012 Scope 15 production bridge canaries threw): ' + e.message); }
 
 /* ---------- summary ---------- */
 console.log('\n' + '='.repeat(48));

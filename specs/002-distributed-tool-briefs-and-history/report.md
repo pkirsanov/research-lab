@@ -2689,5 +2689,681 @@ answer is that my harness was wrong.
 
 **Claim Source:** executed
 
+## Audit Phase
+
+**Agent:** `bubbles.audit` · **Executed:** 2026-07-29 · **Mode:** analysis-only · **Verdict: REWORK_REQUIRED.**
+
+Repository-binding preflight was committed before any repository-local read
+(`PREFLIGHT_COMMITTED decision=rb:vscode-93b8cbfaa3b47932d280e44f81822c28:36 revision=36
+repository=research-lab root=/home/redacted/research-lab`, `actionable: true`).
+
+This phase is the last line of defence against fabricated work. It does **not** repeat the test,
+regression, simplify, gaps, harden, stabilize, security, docs, or chaos phases — it independently
+re-executes their load-bearing claims and asks whether those claims hold. Two artifacts were written:
+this section and the `state.json` `audit` execution record. No production source, test, `scripts/`,
+`.github/`, `scopes/**`, or doc file was modified; no DoD checkbox was ticked; no scope was marked Done;
+`status` and `certification.*` are unchanged.
+
+Every exit code below was captured **bare** (`cmd; RC=$?`), never through a pipeline — a piped command
+reports the pipeline's status rather than its own, which is the exact mistake that produced a false
+`exit=0` claim earlier in this spec.
+
+### Audit Execution Environment
+
+A concurrent agent session was live in this working tree throughout. Its dirty paths
+(`.github/bubbles-project.yaml`, `market-heatmap-lab.html`, `rlexperience.js`,
+`specs/012-*/bugs/BUG-004-*`, `specs/016-*`, `tests/market-heatmap-control-surface.spec.mjs`) were read
+where relevant but never written or staged. HEAD at audit time was `4577556a`.
+
+**Claim Source:** executed
+
+---
+
+### AUD-1 — Independent baseline re-execution
+
+The harden phase claims `node scripts/selftest.mjs` = 968 passed / 0 failed. Audit does not accept that
+on report; it re-ran the command.
+
+**Command:** `node scripts/selftest.mjs`
+**Exit Code:** 0
+**Claim Source:** executed
+
+```text
+  ✓ exactly one executable rlv-focused write exists across all production sources and it lives in rlviews.js (scanned 54 files, writers: rlviews.js x1)
+  ✓ applyVisual (rlviews.js) is the function that owns that sole rlv-focused write
+  ✓ the production bridge path (renderSimpleBridgeInternal + installSimpleProjectionBridge) contains no rlv-focused write and, once comments are stripped, no rlv-focused reference at all (15008 source chars)
+  ✓ the bridge path performs local compute only — no network, provider, storage, or cookie authority in its executable source (8 tokens checked, hits: none)
+  ✓ rlapp.js’s own ownerModes expression yields ["power"] for a provider-wired ordinary tool, ["simple","power"] for an unwired one (no regression), and ["brief"] for a brief-only tool
+  ✓ rlviews.js’s own rlv-focused predicate, fed those real ownerModes, focuses a wired tool’s Simple, leaves Power unfocused, and never focuses an unwired native Simple or a brief view
+  ✓ RLEXPERIENCE.renderSimpleBridge is exposed on the production API
+  ✓ a wired tool with no owner state degrades to an honest unavailable that names the missing owner adapter, publishes a null numeric, paints no numeric node, and invents no signal (market-heatmap-lab)
+  ✓ the bridge never mutates body.classList on the unavailable path — applyVisual stays the sole owner of rlv-focused (BUG-003 invariant, 0 recorded mutations)
+
+================================================
+Research-Lab self-test: 968 passed, 0 failed
+================================================
+```
+
+**Verdict: the harden claim is accurate.** 968 / 0, exit 0, matching HD-2 exactly.
+
+---
+
+### AUD-2 — Mandatory artifact lint
+
+**Command:** `bash .github/bubbles/scripts/artifact-lint.sh specs/002-distributed-tool-briefs-and-history`
+**Exit Code:** 0
+**Claim Source:** executed
+
+```text
+✅ All checked DoD items in scopes/10-shared-ui-and-pages-acceptance/scope.md have evidence blocks
+✅ No unfilled evidence template placeholders in scopes/01-market-session-evidence-foundation/scope.md
+✅ No unfilled evidence template placeholders in scopes/02-yahoo-extended-hours-evidence/scope.md
+✅ No unfilled evidence template placeholders in scopes/03-cpi-release-evidence/scope.md
+✅ No unfilled evidence template placeholders in scopes/04-event-reaction-and-owner-integration/scope.md
+✅ No unfilled evidence template placeholders in scopes/05-registry-wide-normalized-reads/scope.md
+✅ No unfilled evidence template placeholders in scopes/06-bounded-authorship-and-recommendation-lifecycle/scope.md
+✅ No unfilled evidence template placeholders in scopes/07-bounded-history-and-legacy-migration/scope.md
+✅ No unfilled evidence template placeholders in scopes/08-window-aware-final-aggregation/scope.md
+✅ No unfilled evidence template placeholders in scopes/09-evidence-first-atomic-publication/scope.md
+✅ No unfilled evidence template placeholders in scopes/10-shared-ui-and-pages-acceptance/scope.md
+✅ No unfilled evidence template placeholders in scopes/01-market-session-evidence-foundation/report.md
+
+=== End Anti-Fabrication Checks ===
+
+Artifact lint PASSED.
+```
+
+---
+
+### AUD-3 — Anti-fabrication sweep on `report.md` (no fabrication detected)
+
+Four independent fabrication heuristics were run over this file. All four are clean.
+
+**Command:** placeholder scan, Claim-Source census, and fenced-block digest analysis
+**Exit Code:** 0
+**Claim Source:** executed
+
+```text
+placeholder_hits=0                      ([ACTUAL / [PASTE / [INSERT / <placeholder>)
+
+Claim Source census
+  executed:    64
+  interpreted: 3
+  asserted:    0
+  total:       68
+
+fenced_blocks=68  distinct=68  duplicated_digests=0
+blocks_with_lt10_nonblank_lines=29
+```
+
+| Heuristic | Result |
+|---|---|
+| Unfilled template placeholders | **0** — clean |
+| Duplicate / copy-pasted evidence blocks | **0 of 68** digests repeat — clean |
+| Narrative-only evidence (`asserted` with no execution) | **0** `asserted` claims — clean |
+| Batch-completed DoD items | Not observed; phase claims are separately timestamped and each carries `dodComplete: false` |
+
+The 29 blocks under ten non-blank lines are short probe outputs (single-line JSON field probes, digest
+listings, `git status` empties). Every one is paired with its command and exit code, so the shortfall is
+brevity of a genuinely short result rather than a missing transcript. **No fabrication was found in this
+feature's evidence.**
+
+---
+
+### AUD-4 — GAP-F1 re-executed and independently strengthened
+
+The gaps phase observed the graph validator failing against `runId dist-2026-07-28-after-hours-44b10805a92a`.
+Audit re-ran the exact TP-10-21 command today, bare.
+
+**Command:** `node scripts/validate-distributed-briefs.mjs --root .`
+**Exit Code:** 1
+**Claim Source:** executed
+
+```json
+{
+  "ok": false,
+  "mode": "full",
+  "root": ".",
+  "currentGraph": {
+    "ok": true,
+    "present": true,
+    "runId": "dist-2026-07-29-morning-4cec59876481",
+    "sources": 22
+  },
+  "historyGraph": {
+    "ok": true,
+    "present": true,
+    "partitions": 26,
+    "indexFingerprint": "sha256:f9584deeaa70faa00077e976b3ab8675a41c484dedc68e52ac063177baed7b17"
+  },
+  "compatibilityProjection": {
+    "ok": false,
+    "error": {
+      "code": "B002-PUBLISH-SET",
+      "reason": "compat-projection-run-mismatch",
+      "detail": "market-brief.payload.json"
+    }
+  }
+}
+```
+
+**Verdict: GAP-F1 is confirmed, and this run strengthens it.** The failure reproduces against a *third,
+newer* run identity (`dist-2026-07-29-morning-4cec59876481`) than either the gaps observation
+(`…07-28-after-hours-44b10805a92a`) or the GAP-F1a corroboration. Three distinct pointer generations, three
+identical failures — the mismatch is structural, not a stale artifact, exactly as GAP-F1a argued.
+
+---
+
+### AUD-5 — GAP-F2 confirmed: a checked DoD item cites a command that fails
+
+**Command:** `sed -n '160p' scopes/10-shared-ui-and-pages-acceptance/scope.md`
+**Exit Code:** 0
+**Claim Source:** executed
+
+```text
+- [x] [TP-10-21] Integration evidence passes for the complete UI-consumed distributed artifact graph. — Evidence: [report.md](report.md#test-evidence) (validate-distributed-briefs --root . = ok:true).
+```
+
+The item is checked `[x]` and states `= ok:true`. AUD-4 ran that identical command and received
+`"ok": false` with exit 1. **This is the single most serious artifact defect in the feature**: a completed
+DoD item makes a truth claim that the repository now contradicts. It was truthful when written (pre-cutover
+the validator returned the vacuous `no-current-pointer-published` branch); the cutover invalidated it.
+GAP-F2's classification and HIGH severity are correct.
+
+---
+
+### AUD-6 — GAP-F3 confirmed: the stated unblock condition has materialized
+
+The one unchecked DoD item in the feature (Scope 10, line 130) declares its own unblock condition
+verbatim: *"This item stays unchecked until a published pointer makes the clause positively verifiable."*
+
+**Command:** DoD checkbox census across all ten scopes
+**Exit Code:** 0
+**Claim Source:** executed
+
+```text
+SCOPE                                                CHECKED UNCHECKED   TOTAL
+01-market-session-evidence-foundation                     21         0      21
+02-yahoo-extended-hours-evidence                          17         0      17
+03-cpi-release-evidence                                   19         0      19
+04-event-reaction-and-owner-integration                   16         0      16
+05-registry-wide-normalized-reads                         17         0      17
+06-bounded-authorship-and-recommendation-lifecycle        19         0      19
+07-bounded-history-and-legacy-migration                   23         0      23
+08-window-aware-final-aggregation                         16         0      16
+09-evidence-first-atomic-publication                      23         0      23
+10-shared-ui-and-pages-acceptance                         33         1      34
+TOTAL                                                    204         1     205
+```
+
+A pointer **is** published (AUD-4: `present: true`, `runId dist-2026-07-29-morning-4cec59876481`). The
+clause is therefore verifiable, and it evaluates to **fail**. GAP-F3 is correct: the recorded blocking
+reason no longer describes the actual blocker.
+
+---
+
+### AUD-7 — Test Plan ↔ DoD parity is exact (no finding on parity)
+
+**Command:** set-difference of TP identifiers between `test-plan.json` and the ten `scope.md` files
+**Exit Code:** 0
+**Claim Source:** executed
+
+```text
+test-plan.json tests[] per scope
+SCOPE-01     11
+SCOPE-02      9
+SCOPE-03     11
+SCOPE-04     10
+SCOPE-05     11
+SCOPE-06     12
+SCOPE-07     13
+SCOPE-08      9
+SCOPE-09     14
+SCOPE-10     22
+TOTAL_JSON_TESTS= 122
+
+json ids: 122  md ids: 122
+ONLY_IN_JSON: 0
+ONLY_IN_MD  : 0
+```
+
+**122 = 122, zero drift in either direction.** Test Plan ↔ DoD parity is intact and no row is orphaned or
+invented. Stating this explicitly because it is a clean result, not an omission.
+
+---
+
+### AUD-F1 — NEW: three Test Plan rows have drifted from their frozen `rowSha256`
+
+**Severity: MEDIUM.** **Type: ARTIFACT-INTEGRITY.** **Owner: `bubbles.plan`.** **Not previously reported.**
+
+`test-plan.json` declares a byte-level integrity contract over the Markdown Test Plan:
+
+```json
+"testPlanRepresentation": {
+  "sourceOfTruth": "Per-scope Markdown Test Plan tables",
+  "hashAlgorithm": "sha256",
+  "hashInput": "Exact Markdown table row bytes followed by LF",
+  "ordering": "Tests and TP Definition of Done items are one-based and positional within each scope"
+}
+```
+
+No prior phase verified it. Audit did.
+
+**Command:** recompute `sha256(row bytes + LF)` for all 122 positional rows and compare to `rowSha256`
+**Exit Code:** 0
+**Claim Source:** executed
+
+```text
+ROWSHA_MATCH=119  MISMATCH=3  NO_ROW=0  TOTAL=122
+  SCOPE-02 TP-02-09 idx=9
+     got=sha256:8fa356a439117db6a67c362445130fc895fbe03c7a24d4d47c1644daa04ca00a
+     exp=sha256:ef6d6ae5c9e2ae8113a344d6843c914e869e3bede8e4699e2a8b93ba341ff055
+  SCOPE-03 TP-03-11 idx=11
+     got=sha256:fd7d41d622b72070fa31c45b7bb35599e5212f33308a1a44249fe383f352069c
+     exp=sha256:f5072404e1ecbb1d140419809d6e3d3f95a0367cdfde1a27dc52e4a92a688b9c
+  SCOPE-10 TP-10-10 idx=10
+     got=sha256:93d2b5c6bc2cdff3044d7be9596c282ac248886bb06c2311eb1319826d442a30
+     exp=sha256:600e0fafaeff94c10a14032f4dfa3360ec1c6e6a32539fdd06cc9adb0f5d7a50
+```
+
+**119 of 122 rows verify. Three do not.** The 119 matches are what establish the extraction is correct —
+a broken harness would not reproduce 119 exact digests.
+
+**Cause, read from git rather than inferred.** `test-plan.json` was last written on 2026-07-19; all three
+rows were last edited on 2026-07-29.
+
+**Command:** `git log -1` on the plan and the three scope files, plus `git blame` of the three lines
+**Exit Code:** 0
+**Claim Source:** executed
+
+```text
+test-plan.json           d2e39992 2026-07-19 04:53:28 -0700  spec(002): reconcile Scope 07 history-corpus drift
+02-yahoo-extended-hours  083c7205 2026-07-29 05:06:43 +0000  plan(002): satisfy Checks 8A/8B/8C planning requirements (87 -> 63 blocks)
+03-cpi-release-evidence  083c7205 2026-07-29 05:06:43 +0000  plan(002): satisfy Checks 8A/8B/8C planning requirements (87 -> 63 blocks)
+10-shared-ui-and-pages   083c7205 2026-07-29 05:06:43 +0000  plan(002): satisfy Checks 8A/8B/8C planning requirements (87 -> 63 blocks)
+
+blame 02/scope.md:78   083c72051  2026-07-29  | Baseline Canary: shared foundation contracts | functional | …
+blame 03/scope.md:94   083c72051  2026-07-29  | Baseline Canary: shared foundation contracts | functional | …
+blame 10/scope.md:108  54aef1bea  2026-07-29  | Regression E2E | e2e-ui | SCN-002-013, SCN-002-014, …
+```
+
+The exact byte change in Scope 10 is a single word:
+
+```text
+-  … Red: values average/replace; Green: separate providers and linked original/revision rows pass. |
++  … Red: values average/replace; Green: distinct providers and linked original/revision rows pass. |
+```
+
+**What makes this finding worth recording rather than pedantic.** Commit `083c7205`'s own message states
+the relabel was chosen *specifically to protect this contract*:
+
+> "the existing Baseline row was RELABELLED … rather than adding a new row — it already runs the exact
+> command the sweep cites as its canary, and **adding a row would have desynchronized scope.md from
+> test-plan.json** (the same defect I introduced in spec 013 and had to repair)."
+
+The mitigation was reasoned and it worked for the invariant it targeted — row **count and position** are
+perfectly preserved (AUD-7: 122 = 122). But `rowSha256` is a contract over row **bytes**, and relabelling a
+row changes its bytes. The author guarded the axis they had previously been burned on and did not notice a
+second axis existed. That is a precise, mechanical gap, not carelessness.
+
+**Bounded impact — this is a provenance defect, not a coverage defect.** In all three rows the test file
+and the executed command are unchanged; only the descriptive Type label (02/03) and one Red/Green
+adjective (10) moved. No test was added, removed, weakened, or repointed. The consequence is narrow and
+real: `test-plan.json` can no longer prove that the Markdown plan it froze is the Markdown plan in the tree,
+which is the entire purpose of storing the hashes.
+
+**Remediation:** regenerate `test-plan.json` from the current Markdown so all 122 rows re-verify.
+**Not actioned here** — `test-plan.json` is a planning artifact owned by `bubbles.plan`, and audit is
+diagnostic. Routed.
+
+---
+
+### AUD-F2 — NEW: `state.json` contradicts itself on scope completion
+
+**Severity: MEDIUM.** **Type: ARTIFACT-INTEGRITY.** **Owner: `bubbles.validate`.** **Not previously reported.**
+
+Scope completion is represented in three places. Audit compared all three.
+
+**Command:** three-way comparison of `scope.md` status, `certification.scopeProgress[].status`, and `certification.completedScopes`
+**Exit Code:** 0
+**Claim Source:** executed
+
+```text
+scopeId  scope.md Status        scopeProgress.status   inCompletedScopes
+SCOPE-01  In Progress            not_started            no
+SCOPE-02  In Progress            not_started            no
+SCOPE-03  In Progress            not_started            no
+SCOPE-04  Done                   not_started            YES
+SCOPE-05  Done                   not_started            YES
+SCOPE-06  Done                   not_started            YES
+SCOPE-07  Done                   not_started            YES
+SCOPE-08  Done                   not_started            YES
+SCOPE-09  Done                   not_started            YES
+SCOPE-10  Done                   not_started            YES
+
+completedScopes count: 7
+scopeProgress with status!=not_started: 0
+```
+
+`certification.completedScopes` asserts seven scopes complete while every one of the ten
+`certification.scopeProgress` entries reads `not_started`. Those two fields live inside the same
+`certification` object and disagree about the same seven scopes.
+
+**Ruling out "this field is simply vestigial here."** If `scopeProgress` were unmaintained repo-wide this
+would be noise. It is not.
+
+**Command:** `scopeProgress` vs `completedScopes` coherence across every spec in the repository
+**Exit Code:** 0
+**Claim Source:** executed
+
+```text
+001-causal-rotation-intelligence                   status=not_started   completedScopes= 0 scopeProgress advanced=0/0
+002-distributed-tool-briefs-and-history            status=in_progress   completedScopes= 7 scopeProgress advanced=0/10
+003-bond-regime-and-scenario-lab                   status=done          completedScopes= 5 scopeProgress advanced=5/5
+005-palm-springs-rental-market-lab                 status=in_progress   completedScopes= 2 scopeProgress advanced=2/5
+011-volatility-regime-and-sizing-lab               status=done          completedScopes= 4 scopeProgress advanced=4/4
+012-market-action-center-and-guided-tools          status=blocked       completedScopes= 0 scopeProgress advanced=0/0
+013-market-regime-stack-and-strategy-playbook      status=in_progress   completedScopes= 0 scopeProgress advanced=0/0
+014-shared-cycle-and-seasonality-exchange          status=not_started   completedScopes= 0 scopeProgress advanced=0/11
+015-recommendation-outcome-ledger-and-track-reco   status=blocked       completedScopes= 0 scopeProgress advanced=0/10
+016-auction-gamma-playbook                         status=not_started   completedScopes= 0 scopeProgress advanced=0/9
+```
+
+Every other spec with a non-empty `completedScopes` keeps `scopeProgress` in lockstep — 003 at 5/5, 011 at
+4/4, 005 at 2/5. **Feature 002 is the only spec in the repository with a non-empty `completedScopes` and
+zero advancement in `scopeProgress`.** The field is live convention here; 002 has drifted from it.
+
+**Why the guard does not catch this.** `state-transition-guard.sh` derives scope status from the `scope.md`
+files ("3 scope(s) still marked 'In Progress'"), not from `scopeProgress`, so the stale block passes
+through unreported. This finding exists because audit compared the artifacts the guard does not cross-check.
+
+**Not actioned here — and deliberately so.** `certification.*` is owned exclusively by `bubbles.validate`;
+`bubbles.audit` writing it would be precisely the ownership violation the audit role exists to prevent.
+Routed to `bubbles.validate` to reconcile when it certifies.
+
+---
+
+### AUD-8 — Prior findings re-executed: every one reproduces
+
+Audit independently re-ran the load-bearing measurement behind each open finding rather than accepting it
+on report. All figures below are from this session.
+
+**Command:** content-address verification of every object in `briefs/objects`, footprint measurement, and full manifest-ref verification
+**Exit Code:** 0
+**Claim Source:** executed
+
+```text
+briefs/ file counts by subtree: {"current.json":1,"history":26,"history-current.json":1,"indexes":37,"objects":765,"runs":37}
+objects checked: 765  content-address OK: 765  MISMATCH: 0
+
+brief-history.jsonl bytes: 2168319  rows: 100
+briefs/indexes files: 37   briefs/runs manifests: 37
+briefs/ total size: 6.8M   objects: 3.5M   indexes: 1.5M
+history partitions: 26
+
+NEWEST (current pointer)  2026-07/dist-2026-07-29-morning-4cec59876481/manifest.json
+  refs=76 missing=0
+   objects   checked=  48 mismatched=0
+   indexes   checked=   2 mismatched=0
+   history   checked=  26 mismatched=0
+
+OLDEST  2026-07/dist-2026-07-19-after-hours-2116a85fb14a/manifest.json
+  refs=76 missing=0
+   objects   checked=  48 mismatched=0
+   indexes   checked=   2 mismatched=0
+   history   checked=  26 mismatched=26
+
+ALL 37 MANIFESTS: refs=2812 mismatched=936 missing=0
+```
+
+| Prior finding | Audit result |
+|---|---|
+| **CHAOS-1** content-address integrity | **Confirmed and strengthened.** Chaos sampled 180 objects; audit verified **all 765**, zero mismatches. |
+| **CH-F1** manifest ref integrity | **Reproduced exactly** — 2812 refs, 936 mismatched, 0 missing; newest manifest 0/26, older manifests 26/26; objects 0/1776 and indexes 0/74 clean. Classification as a reference-type mismatch (not corruption) is correct. |
+| **ST-F1** unbounded `brief-history.jsonl` | **Confirmed.** 2,168,319 bytes / 100 rows. `appendFileSync(join(ROOT,'brief-history.jsonl'), …)` at `scripts/brief-refresh.mjs:1253` is unconditional; the only `prune`/`rotate` tokens in the file are sector-rotation prose (`Rotate-INTO / Rotate-OUT`), so **no cap exists** — audit checked rather than assumed. |
+| **ST-F2** index accumulation | **Confirmed.** 37 indexes against 37 run manifests — exact 1:1, 1.5M, nothing collected. |
+| **DOC-F2** no managed-doc surface | **Confirmed.** Zero `notes/`, `docs/`, or `README.md` references across all ten Change Boundary blocks. |
+| **GAP-F5 / RG-F3** silent-pass guards | **Confirmed and narrowed** — see AUD-9. |
+
+---
+
+### AUD-9 — GAP-F5 confirmed, narrowed to two sites, and qualified as latent
+
+Audit's first scan reported five hits. That was **my regex being wrong**, and it is recorded rather than
+quietly corrected: the pattern `xit\(` matched inside `process.exit(`. Re-run with a precise pattern:
+
+**Command:** `grep -rnE '\bt\.skip\(' tests/distributed-briefs*.mjs tests/market-session-evidence*.mjs tests/released-report-evidence*.mjs`
+**Exit Code:** 0
+**Claim Source:** executed
+
+```text
+tests/distributed-briefs.static.integration.mjs:26:    try { ({ chromium } = await loadPlaywright()); } catch (e) { t.skip('Playwright runtime unavailable'); return; }
+tests/distributed-briefs.ui-canary.mjs:18:    try { ({ chromium } = await loadPlaywright()); } catch (e) { t.skip('Playwright runtime unavailable'); return; }
+true_skip_markers=2
+```
+
+Exactly two, precisely where GAP-F5 and RG-F3 said. Audit adds the reachability half neither recorded:
+
+**Command:** `node -e 'import("playwright")…'`
+**Exit Code:** 0
+**Claim Source:** executed
+
+```text
+playwright RESOLVES, chromium=object
+```
+
+**The guards are latent here, not active.** Playwright resolves in this environment, so the `catch` never
+fires and both tests genuinely execute — consistent with the regression phase's RV-01 (1 test, 1 pass) and
+with AUD-1's green baseline. They are a real silent-pass risk **in an environment without Playwright**,
+which is the correct reading of GAP-F5 and does not currently mask any failure. Severity LOW stands.
+
+---
+
+### AUD-10 — SEC-F1 verified structurally, and its blast radius is wider than recorded
+
+Audit re-derived SEC-F1's two structural claims from source rather than trusting the write-up.
+
+**Command:** `grep -n 'function esc(s)' rlbrief.js`, `grep -n 'briefClassifyLink' rlbrief.js`, `link(` call-site census
+**Exit Code:** 0
+**Claim Source:** executed
+
+```text
+606:  function esc(s) { return (s == null ? "" : String(s)).replace(/[&<>]/g, function (c) { return { "&": "&amp;", "<": "&lt;", ">": "&gt;" }[c]; }); }
+609:  function link(href, txt) { return href ? '<a class="dl" href="' + esc(href) + '">' + esc(txt || "open ▸") + '</a>' : ""; }
+
+briefClassifyLink:  293 (definition)   576 (API export)   1139 (only call site)
+link() call sites:  647   664   696   732   773           → exactly 5
+```
+
+Both claims hold exactly: `esc()` escapes `&<>` and **not** `"`, its output lands inside a double-quoted
+attribute, and the default-deny classifier guards one path while the legacy path has five unguarded ones.
+
+**Reachability re-verified against the current config, not the recorded sample.** SEC-F1's probe listed 8
+`deepLinks` keys; the file has since grown, so audit re-measured rather than reusing a stale sample:
+
+**Command:** quote/angle-character probe over every `deepLinks` value in `market-brief.config.json`
+**Exit Code:** 0
+**Claim Source:** executed
+
+```text
+  nested: stockModels object
+deepLinks scalar keys: 19  values_with_quote_or_angle: 0
+```
+
+Nineteen values now, still **zero** containing `"`, `'`, `<`, or `>`. SEC-F1's LOW severity and its
+"not a live XSS" conclusion both survive re-measurement on the larger surface.
+
+#### AUD-O1 — the same root cause reaches more sites than SEC-F1 enumerated
+
+**Severity: LOW.** **Type: DEFENSE-IN-DEPTH.** **Owner: `bubbles.design`.** **Amplifies SEC-F1; not a new class.**
+
+SEC-F1 names `link()` (609) and `tkr()` (610). The identical shape — `esc()` output interpolated into a
+double-quoted attribute — also appears at:
+
+```text
+628:  '<span class="pill ' + biasCls + '" title="' + esc(biasTip) + '">' …
+629:  '<span class="pill" title="' + esc(fgTip) + '">F&amp;G ' …
+630:  '<span class="pill ' + vixCls + '" title="' + esc(vixTip) + '">VIX ' …
+712:  '<span class="scn" title="' + esc(st) + '">' …
+763:  '<span class="gm ' + cls + '" title="' + esc(tip) + '">' …
+1067: '<span class="pill hz ' + cls + '" title="' + esc(tip) + '">' …
+1081: '<div class="bd-h" title="' + esc(tip) + '">' …
+```
+
+Seven further `title="…"` interpolations. This does not raise the severity — the same reachability argument
+applies and no untrusted input reaches them — but it materially changes the **fix**: routing `link()`
+through `briefClassifyLink` alone would leave seven sites untouched, whereas adding `"` and `'` to `esc()`
+closes all of them at once. Recorded so the cheaper and more complete remedy is the one chosen.
+
+---
+
+### AUD-11 — Security posture independently re-scanned (no finding)
+
+**Command:** secret-literal and private-key scan across the Feature 002 owned surface
+**Exit Code:** 0
+**Claim Source:** executed
+
+```text
+secret_literal_hits=0
+private_key_files=0
+```
+
+Zero credential literals across `rlbrief.js`, `rlcontracts.js`, `rlsession.js`, and the five
+`scripts/brief-*` / `scripts/*-distributed-briefs*` modules; zero `BEGIN … PRIVATE KEY` blocks anywhere in
+those modules or under `briefs/`. **SEC-2 confirmed.** Stating this as an explicit clean result.
+
+---
+
+### AUD-O2 — Observation: the guard's "potentially fabricated" warnings are largely a heuristic misfire
+
+**Severity: LOW.** **Type: OBSERVATION.** **Owner: `bubbles.validate` (spot-check).** **Not a fabrication finding.**
+
+The transition guard emits eleven warnings of the form *"scopes/NN/report.md has X of Y evidence blocks
+that lack terminal output signals (potentially fabricated)"* — worst case scope 09 at 8 of 9. Audit is
+required to take a fabrication warning seriously, so it sampled the worst case directly instead of
+repeating the label.
+
+**Command:** per-block terminal-signal analysis of `scopes/09-evidence-first-atomic-publication/report.md`
+**Exit Code:** 0
+**Claim Source:** executed
+
+```text
+--- block 1 @line 63  lines=4  terminal_signal=NO  ---   (git diffstat: "3 files changed, 515 insertions(+)")
+--- block 2 @line 82  lines=2  terminal_signal=NO  ---   (sha256 digests of two production files)
+--- block 3 @line 123 lines=11 terminal_signal=YES ---   node --test … → ℹ tests 10 ℹ pass 10 ℹ fail 0 NODE_TEST_ALL_EXIT=0
+--- block 4 @line 139 lines=3  terminal_signal=YES ---   node …scheduler.stress.mjs → PASS  STRESS_EXIT=0
+--- block 5 @line 147 lines=6  terminal_signal=YES ---   node scripts/validate-distributed-briefs.mjs --root . → { "ok": true, …
+--- block 6 @line 162 lines=4  terminal_signal=YES ---   node --test …final.e2e …history.e2e …scheduler.e2e → ℹ tests 7 ℹ pass 7 BROADER_E2E_EXIT=0
+--- block 7 @line 171 lines=3  terminal_signal=YES ---   node scripts/selftest.mjs → 639 passed, 0 failed  SELFTEST_EXIT=0
+--- block 8 @line 181 lines=3  terminal_signal=YES ---   shellcheck -x … → SHELLCHECK_WRAPPER_EXIT=0
+--- block 9 @line 223 lines=7  terminal_signal=YES ---   git status --porcelain … → (empty)  validate-brief-cache → PASS 354 (exit 0)
+total fenced blocks: 9
+```
+
+**Seven of nine carry a command, an exit code, and result counts.** The two that do not are a `git`
+diffstat and a file-digest listing — artifacts that legitimately have no exit-code line. The guard's
+"potentially fabricated" characterisation is **not supported** for this scope.
+
+What *is* true, and worth recording honestly: those blocks are **condensed** — arrow notation (`→`),
+wrapped command lines, aggregated `*_EXIT=0` sentinels — rather than verbatim raw transcript. That is a
+formatting divergence from the raw-output evidence standard, and it is what the heuristic is reacting to.
+It is a presentation issue, not fabrication. Flagged for spot-check rather than filed as a finding, because
+inflating it into a fabrication finding would be exactly the kind of manufactured severity this phase is
+supposed to catch.
+
+---
+
+### Assessment of the open routed findings
+
+Item 4 of the audit brief: are the open findings correctly classified and correctly left unactioned?
+
+| Finding | Severity | Classification | Correctly unactioned? |
+|---|---|---|---|
+| GAP-F1 | HIGH | Correct — DIVERGENT; a design contract the implementation deliberately does not satisfy | **Yes.** Fixing it means either emitting run identity into the projections or amending SCN-002-015. Both are `bubbles.design`/`bubbles.plan` decisions, not audit repairs. |
+| GAP-F2 | HIGH | Correct — PARTIAL; truthful when written, invalidated by the cutover | **Yes.** Unticking a DoD checkbox is an artifact-owner action; audit is explicitly barred from it. |
+| GAP-F3 | MEDIUM | Correct — the recorded blocking reason is stale | **Yes.** Same owner boundary. |
+| GAP-F4 | MEDIUM | Correct — DIVERGENT, the contract-level twin of GAP-F1 | **Yes.** Resolving it is a spec amendment. |
+| GAP-F5 / RG-F3 | LOW | Correct, and AUD-9 confirms the site count and adds that the guards are latent here | **Yes.** Test-file edits are out of an analysis-only phase's scope. |
+| GAP-F6 | MEDIUM | Correct — the dependency-order anomaly is real; AUD-F2 shows the bookkeeping is worse than GAP-F6 described | **Yes.** Certification state is validate-owned. |
+| SEC-F1 | LOW | Correct — DEFENSE-IN-DEPTH, not a vulnerability; reachability re-verified in AUD-10 | **Yes.** `rlbrief.js` is shared shell source; AUD-O2 widens the fix but not the severity. |
+| ST-F1 / ST-F2 | MEDIUM | Correct — RESOURCE-GROWTH; both figures reproduced in AUD-8 | **Yes.** Retention policy is a design decision. |
+| DOC-F1 | MEDIUM | Correct — INCOMPLETE-DOC, not an accuracy defect | **Yes.** `notes/market-brief.md` is not in any 002 Change Boundary. |
+| DOC-F2 | INFO | Correct — recorded rather than inventing a doc to manufacture output | **Yes.** No action exists to take. |
+| CH-F1 | MEDIUM | Correct — DESIGN; reference-type mismatch, not corruption. Reproduced exactly in AUD-8 | **Yes.** Publisher contract decision touching concurrently-owned `briefs/`. |
+| CH-F2 / CH-F3 | LOW / INFO | Correct | **Yes.** Shared shell source. |
+
+**All twelve are correctly classified and correctly left unactioned.** No finding was inflated, and the
+chaos phase's self-retraction of CHAOS-3 is the behaviour this audit wants to see rather than a gap.
+
+---
+
+### Audit Verdict
+
+**REWORK_REQUIRED.**
+
+Not `DO_NOT_SHIP`: no fabrication was found, artifact lint passes, the baseline is green at 968/0, there is
+no live security vulnerability, and the immutable object store is byte-perfect across all 765 objects. The
+implementation is real and the evidence is honest.
+
+Not `SHIP_WITH_NOTES`: the transition guard blocks with 29 failures, two HIGH findings remain open, three
+scopes are still `In Progress`, and — most seriously — a **checked** DoD item asserts `ok:true` for a
+command that returns `ok:false` (AUD-5). A completed item that contradicts the repository is a truthfulness
+defect, and it must be repaired before any completion claim.
+
+| Category | Checks | Passed | Failed |
+|---|---|---|---|
+| Baseline / test execution | 2 | 2 | 0 |
+| Artifact lint | 1 | 1 | 0 |
+| Anti-fabrication heuristics | 4 | 4 | 0 |
+| Test Plan ↔ DoD parity | 2 | 1 | 1 (AUD-F1 row-hash drift) |
+| Scope status coherence | 2 | 0 | 2 (3 scopes In Progress; AUD-F2) |
+| Prior-finding reproduction | 6 | 6 | 0 |
+| Security posture | 3 | 3 | 0 |
+| Specialist phase completion (G022) | 12 | 10 | 2 (`validate`, `audit`) |
+| **Total** | **32** | **27** | **5** |
+
+**Audit-owned findings**
+
+| ID | Severity | Type | Owner | Actioned here |
+|---|---|---|---|---|
+| AUD-F1 | MEDIUM | ARTIFACT-INTEGRITY | `bubbles.plan` | No — planning artifact |
+| AUD-F2 | MEDIUM | ARTIFACT-INTEGRITY | `bubbles.validate` | No — `certification.*` is validate-owned |
+| AUD-O1 | LOW | DEFENSE-IN-DEPTH | `bubbles.design` | No — amplifies SEC-F1; shared shell source |
+| AUD-O2 | LOW | OBSERVATION | `bubbles.validate` | No — spot-check item, not a finding |
+
+**Blocking path to completion**, in dependency order:
+
+1. `bubbles.plan` — resolve GAP-F2 (the `[x]` item citing a now-failing command) and GAP-F3 (the stale
+   blocking reason), and regenerate `test-plan.json` for AUD-F1.
+2. `bubbles.design` / `bubbles.plan` — decide GAP-F1 / GAP-F4: either make the compatibility projections
+   pointer-bound, or amend SCN-002-015 so the contract matches the intended implementation.
+3. Scope owners — drive Scopes 01, 02, 03 from `In Progress` to `Done`.
+4. `bubbles.validate` — reconcile AUD-F2 and certify.
+
+`bubbles.validate` is the only remaining unexecuted phase; it must not certify until items 1-3 close.
+
+### Spot-Check Recommendations
+
+Automation bias grows as an agent's prose gets more confident. These are the specific places to look
+manually, and what to look for:
+
+1. **The three `interpreted` evidence claims** (`report.md` lines 1813, 1872, 1935, all in the Gaps phase).
+   These are the only non-`executed` claims in 68. Read each interpretation against its raw output and
+   confirm the conclusion is the only reasonable reading.
+2. **Scope 10 DoD line 160** — run `node scripts/validate-distributed-briefs.mjs --root .` yourself. It
+   exits 1. The line says `ok:true`. Confirm the contradiction before accepting any completion claim.
+3. **The three drifted Test Plan rows** (AUD-F1: scope 02 line 78, scope 03 line 94, scope 10 line 108).
+   Confirm the drift is wording-only and that no test command changed — that judgement is what keeps
+   AUD-F1 at MEDIUM instead of HIGH.
+4. **The condensed scope-level evidence blocks** (AUD-O2). Open `scopes/09-*/report.md` and judge for
+   yourself whether arrow-notation summaries with `*_EXIT=0` sentinels meet your bar for raw evidence.
+   Audit found them substantive; that is a judgement call worth a second opinion.
+5. **`certification.scopeProgress`** (AUD-F2). Ten entries read `not_started` while seven scopes are listed
+   complete. Verify against `scope.md` before certification writes anything.
+6. **The two `t.skip` guards** (AUD-9). They are latent here because Playwright resolves. If CI ever runs
+   without Playwright, both tests pass silently. Confirm the CI image installs it.
+
+**Claim Source:** executed
+
 
 

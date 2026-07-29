@@ -1462,3 +1462,128 @@ reader mistakes the combined-command `13 passed` for proof that the reconciled t
 `simplify`, `stabilize`, `security` and an independent `audit` remain unexecuted, and
 certification stays validate-owned. This phase changed **no** source file, **no** test
 file (`git diff HEAD -- tests/` empty), **no** certification field, and **no** status.
+
+---
+
+## Simplify Phase (bubbles.simplify)
+
+Owner: `bubbles.simplify`. Repository-binding preflight passed first
+(`repo-binding-preflight.sh --repo-root <repo> --agent-source research-lab`, exit 0).
+
+### Verdict: NO SIMPLIFICATION WARRANTED — zero files changed
+
+### What was reviewed
+
+The fix commit `8206c89c` diff **only**: `+13 / −0` in a single file,
+`tests/distributed-briefs.static.integration.mjs` — the `openBriefView()` helper
+(6 comment lines + 3 code lines) and its two call sites. Compared line-by-line
+against the sibling helper it cites, `tests/distributed-briefs.spec.mjs::mountReady`
+(lines 19–27), and against the shared module both files already import,
+`tests/distributed-briefs.support.mjs`.
+
+Review dimensions: duplication vs the sibling helper, dead code, over-complication,
+naming, and whether the preamble is the simplest correct expression of the contract.
+
+### Finding 1 — duplication is 2 lines, and extraction would make it worse, not better
+
+`openBriefView(page)` and `mountReady(page, ctx, toolId)` are **not** the same
+function. `mountReady` owns navigation (`page.goto`) plus the view switch plus the
+mount wait. `openBriefView` owns **only** the view switch, because the static
+integration test cannot delegate navigation: it must install its
+`page.on('response', …)` cache-header listener **before** `goto`, and its second
+(corrupt-fixture) block navigates a *different* server. The two overlapping lines are
+the shell-ready wait and the tab click.
+
+`tests/distributed-briefs.support.mjs` is a real shared module imported by both
+files, so one-sided extraction is *possible*. It is not *net-positive*: the sibling
+`mountReady` is Feature-002-owned and outside this diff's scope, so its inline copy
+would remain. The result would be **three** locations (support export + sibling copy
++ an import hop) in place of two. Two-sided extraction would require editing a
+sibling-owned test file that this bug did not touch — out of scope, and it is the
+same file family whose blast radius the regression phase deliberately bounded.
+
+**Claim Source:** executed
+
+```
+$ grep -rn 'data-rlview-mode="brief"' --include='*.mjs' --include='*.js' --include='*.html' . | grep -v node_modules
+./tests/distributed-briefs.spec.mjs:25:    await page.locator('#rlviews button[data-rlview-mode="brief"]').click();
+./tests/distributed-briefs.static.integration.mjs:21:    await page.locator('#rlviews button[data-rlview-mode="brief"]').click();
+
+$ grep -rn 'data-rlexperience-shell="ready"' --include='*.mjs' . | grep -v node_modules | wc -l
+25
+$ grep -rln 'data-rlexperience-shell="ready"' --include='*.mjs' . | grep -v node_modules | wc -l
+12
+```
+
+The brief-tab click exists in exactly **2** places — the diff proliferated nothing.
+The shell-ready gate is inlined in **25 places across 12 test files** — the two brief
+files plus **10 others** (`volatility-sizing-lab`, `tool-experience`,
+`company-fundamentals-lab`, `bond-regime-lab`, `simple-models`,
+`simple-production-wiring`, `tool-experience-mobile`,
+`tool-experience-shell.functional`, `simple-model-adapters-macro-fundamental`,
+`simple-model-adapters-market`). Inlining that wait is the **established house
+idiom**. Hoisting it into a shared export for these two files alone would make them
+the inconsistent outlier among twelve.
+
+### Finding 2 — no dead code, no over-complication, correct naming
+
+- **Dead code:** none. `openBriefView` has exactly two call sites (lines 37 and 92),
+  both reached; every line of the helper executes on both paths.
+- **Complexity:** two statements, no branching, no `try`/`catch`, no options object,
+  no return value. There is no smaller correct form — dropping the
+  `#rlviews[data-rlexperience-shell="ready"]` gate would let the click race a
+  partially-initialized shell, which weakens the test and diverges from the sibling.
+- **Naming:** `openBriefView` states precisely what it does and nothing more.
+  It deliberately does **not** reuse the name `mountReady`, which would over-promise
+  (that helper also navigates and waits for the mount). Distinct responsibility,
+  distinct name — correct, not inconsistent.
+- **Timeouts:** the new shell-ready wait uses `20000`, matching the sibling exactly.
+  The pre-existing mount waits stayed at `15000` — untouched by the diff, neither
+  weakened nor silently retuned.
+- **Comment ratio (6 lines of comment : 3 of code):** justified. The comment is pure
+  *why*, per repo policy: it records the product contract, cites the ratifying
+  sibling, and — the genuinely non-obvious part — pins the **ordering invariant**
+  that the switch must precede every network-window baseline
+  (`no history partition before Open history`, `beforePower`). A future editor moving
+  the call would otherwise silently corrupt the request-accounting assertions. This
+  comment prevents a real, non-obvious regression and earns its place.
+
+### Finding 3 — the preamble is the simplest correct expression of the contract
+
+The bug was that TP-10-02 asserted visibility of a mount the Feature 012 shell
+reparents into the hidden Brief panel. The minimal correct fix is to drive the real
+user-facing control into the Brief view before asserting — which is exactly what the
+13 sibling tests already do. The diff is additive, changes no assertion, no
+`visible` semantics, and no timeout. There is no smaller change that still proves
+the contract.
+
+### What was changed
+
+**Nothing.** No source file, no test file, no documentation outside this report
+section, no `state.json` field other than appending `"simplify"` to
+`completedPhases`. Because no code changed, the `node --test` / `scripts/selftest.mjs`
+re-run gate does not apply; the regression-phase baselines (selftest 952 passed /
+0 failed, reconciled test 1 pass) remain the current, unperturbed truth.
+
+**Claim Source:** executed
+
+```
+$ git --no-pager status --porcelain -- tests/distributed-briefs.static.integration.mjs tests/distributed-briefs.spec.mjs tests/distributed-briefs.support.mjs
+(no output — all three files byte-identical to commit 8206c89c)
+```
+
+Inventing a refactor here would have added an abstraction the repo's own twelve-file
+convention rejects, in order to look busy. "No simplification warranted" is the
+honest and correct outcome for a 13-line, contract-conforming test fix.
+
+**Correction recorded, not silently fixed:** the two counts above were first drafted
+from a visual read of prior output as `24` / `11`. They were then re-derived by
+executing the exact commands shown, which returned `25` / `12`. The executed values
+are what stand. The conclusion is unaffected (the idiom is more widespread, not less).
+
+### Scope of this verdict
+
+`simplify` is one phase of the `bugfix-fastlane` chain. `stabilize`, `security` and
+an independent `audit` remain unexecuted, and certification stays validate-owned.
+This phase changed **no** source file, **no** test file, **no** certification field,
+and **no** status.

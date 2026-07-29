@@ -343,11 +343,22 @@ and pass only after the bridge + `ownerModes` change.
 |---|---|---|---|---|---|---|---|---|
 | TP-15-01 | Unit | unit | SCN-012-038, SCN-012-039, SCN-012-042 | `tests/simple-production-bridge.unit.mjs` | The production bridge resolves the adapter by toolId, calls the owner-state provider, runs the runtime, renders a ready projection, never mutates `rlv-focused`, renders honest unavailable when the provider is absent, and carries no forbidden authority; ordinary `ownerModes` is `["power"]` and brief-only is unchanged | `node --test tests/simple-production-bridge.unit.mjs` | No | `report.md#tp-15-01` |
 | TP-15-02 | Integration | integration | SCN-012-038, SCN-012-040 | `tests/simple-production-bridge.integration.mjs` | Registry-derived loop drives each wired tool's provider → `runtime.prepare` → ready projection into the panel and proves owner-parity facts equal the Power path | `node --test tests/simple-production-bridge.integration.mjs` | No | `report.md#tp-15-02` |
-| TP-15-03 | Regression E2E | e2e-ui | SCN-012-038 | `tests/simple-production-wiring.spec.mjs` | `Regression: market-heatmap Simple renders the real adapter panel and one control recomputes owner leadership` | `npx --no-install playwright test tests/simple-production-wiring.spec.mjs --config=playwright.config.mjs --project=system-chrome --grep "Regression: market-heatmap Simple renders the real adapter panel and one control recomputes owner leadership" --reporter=list` | Yes | `report.md#tp-15-03` |
-| TP-15-04 | Regression E2E | e2e-ui | SCN-012-038, SCN-012-040 | `tests/simple-production-wiring.spec.mjs` | `Regression: each wired ordinary tool shows a ready adapter panel in Simple with an owner-parity fact` | `npx --no-install playwright test tests/simple-production-wiring.spec.mjs --config=playwright.config.mjs --project=system-chrome --grep "Regression: each wired ordinary tool shows a ready adapter panel in Simple with an owner-parity fact" --reporter=list` | Yes | `report.md#tp-15-04` |
-| TP-15-05 | Regression E2E | e2e-ui | SCN-012-039, SCN-012-041 | `tests/bond-regime-lab.spec.mjs` | `Regression: bond-regime native content shows in Power not Simple and the adapter panel is the Simple surface (BUG-003 closure)` | `npx --no-install playwright test tests/bond-regime-lab.spec.mjs --config=playwright.config.mjs --project=system-chrome --grep "Regression: bond-regime native content shows in Power not Simple and the adapter panel is the Simple surface" --reporter=list` | Yes | `report.md#tp-15-05` |
-| TP-15-06 | Regression E2E | e2e-ui | SCN-012-041, SCN-012-042 | `tests/volatility-sizing-lab.spec.mjs` | `Regression: volatility-sizing native Simple moves to Power and Simple shows the adapter panel or an honest unavailable until the RLVOL provider is wired` | `npx --no-install playwright test tests/volatility-sizing-lab.spec.mjs --config=playwright.config.mjs --project=system-chrome --grep "Regression: volatility-sizing native Simple moves to Power and Simple shows the adapter panel or an honest unavailable until the RLVOL provider is wired" --reporter=list` | Yes | `report.md#tp-15-06` |
+| TP-15-03 | Regression E2E | e2e-ui | SCN-012-038 | `tests/simple-production-wiring.spec.mjs` | 2 carriers, each a verbatim test title — (a) `Regression: market-heatmap Simple renders the real adapter panel in the real owner-mode flow` (panel-render half); (b) `TP-15-03 market-heatmap Simple renders real steerable controls and actuating one recomputes the production projection with no refetch` (control-recompute half) | `npx --no-install playwright test tests/simple-production-wiring.spec.mjs --config=playwright.config.mjs --project=system-chrome --grep "market-heatmap Simple renders" --reporter=list` — selects **2** | Yes | `report.md#tp-15-03` |
+| TP-15-04 | Regression E2E | e2e-ui | SCN-012-038, SCN-012-040 | `tests/simple-production-wiring.spec.mjs` | 2 carriers, each a verbatim test title — (a) `TP-15-04 every wired ordinary tool paints its real Simple adapter panel with an owner-parity fact` (the wired-tool sweep); (b) `TP-15-04 the swept set is derived from the production registry + pages, and the honest-degradation cases are registry/provider derived` (anti-hardcoding guard on the swept set) | `npx --no-install playwright test tests/simple-production-wiring.spec.mjs --config=playwright.config.mjs --project=system-chrome --grep "TP-15-04" --reporter=list` — selects **2** | Yes | `report.md#tp-15-04` |
+| TP-15-05 | Regression E2E | e2e-ui | SCN-012-039, SCN-012-041 | `tests/bond-regime-lab.spec.mjs` | 2 carriers, each a verbatim test title — (a) `Regression BUG-003: Ready waits for auto-hydration before Simple and Power comparison` (the "NOT Simple" half + BUG-003 closure; **uses `page.route` interception — see D4**); (b) `BS-012 lever change recomputes without fetch or observed mutation` (a verified, interception-free caller of `openNativeResearchSurface`, which asserts the "native content shows in POWER" half) | `npx --no-install playwright test tests/bond-regime-lab.spec.mjs --config=playwright.config.mjs --project=system-chrome --reporter=list` — whole-file run, selects **27** (the two carriers share no id prefix, so no single pipe-free `--grep` selects exactly both) | Yes | `report.md#tp-15-05` |
+| TP-15-06 | Regression E2E | e2e-ui | SCN-012-041, SCN-012-042 | `tests/volatility-sizing-lab.spec.mjs` | 2 carriers, each a verbatim test title, both interception-free — (a) `TP-02-04: the volatility tool is reachable THROUGH the shared rlnav registration, not just by direct URL` (native Simple moved to Power **and** Simple shows the panel); (b) `Regression BS-009: insufficient history is unavailable with exact counts` (the honest-unavailable arm) | `npx --no-install playwright test tests/volatility-sizing-lab.spec.mjs --config=playwright.config.mjs --project=system-chrome --reporter=list` — whole-file run, selects **16** (the two carriers share no id prefix, so no single pipe-free `--grep` selects exactly both) | Yes | `report.md#tp-15-06` |
 | TP-15-07 | Broad regression | unit | SCN-012-038, SCN-012-039, SCN-012-040, SCN-012-041, SCN-012-042 | `scripts/selftest.mjs` | Preserve all existing invariants and add production-bridge canaries (no forbidden authority, provider-absent honest unavailable, `ownerModes` contract); suite stays 0-fail | `node scripts/selftest.mjs` | No | `report.md#tp-15-07` |
+
+**Row-command selection contract (added 2026-07-29 — closes drift D1's title half).** Every
+`Command` cell above is required to select **≥1 test**; a cell whose `--grep` selects nothing is a
+defect, not a pass. Each cell records its measured selection count, verified with `--list`:
+TP-15-01 → 7, TP-15-02 → 6, TP-15-03 → 2, TP-15-04 → 2, TP-15-05 → 27, TP-15-06 → 16,
+TP-15-07 → 968. Two conventions make this durable: **(1)** every declared persistent title is the
+verbatim title of a real test, so a title-grep can never resolve to zero; **(2)** where a row's
+proof is split across carriers that share no id prefix, the command is the whole-file run rather
+than an alternation, because a `|` inside a markdown table cell would corrupt the table. Re-verify
+any row with `--list` — a zero-selection grep prints `Total: 0 tests` and exits 1 on Playwright
+1.61.1 (it becomes a silent exit-0 only under `--pass-with-no-tests`, which this repo never sets).
 
 ### Definition of Done - Tiered Validation
 
@@ -626,16 +637,20 @@ and pass only after the bridge + `ownerModes` change.
 
 - [ ] TP-15-03 E2E evidence proves market-heatmap Simple renders the real adapter panel and a control recomputes.
 
-  **Uncertainty Declaration.** Both behaviours are proven by real passing tests, but
-  neither carries the persistent title this Test Plan row declares, and they live in two
-  different files: `tests/simple-production-wiring.spec.mjs:47` is
-  `Regression: market-heatmap Simple renders the real adapter panel in the real
-  owner-mode flow` (not "…and one control recomputes owner leadership"), while the
-  recompute half is `tests/simple-model-adapters-market.spec.mjs:310`
-  (`Regression: market heatmap Simple breadth controls recompute owner leadership
-  sensitivity`, a Scope-05 adapter e2e). Closing this row against a persistent title
-  that does not exist would be fabrication. This is a Test-Plan ↔ implementation drift
-  owned by `bubbles.plan`. Item stays open. See [report.md](report.md#tp-15-03).
+  **Title drift RESOLVED 2026-07-29 (D1 half 2); item still open pending an executed,
+  attributable run.** The reason previously recorded here — "neither carries the
+  persistent title this Test Plan row declares, and they live in two different files" —
+  is **obsolete**. Both halves now live in the declared file and the Test Plan row
+  declares both verbatim: `tests/simple-production-wiring.spec.mjs:48`
+  (`Regression: market-heatmap Simple renders the real adapter panel in the real
+  owner-mode flow`, panel-render half) and `:198`
+  (`TP-15-03 market-heatmap Simple renders real steerable controls and actuating one
+  recomputes the production projection with no refetch`, control-recompute half). The
+  reconciled command selects **2** tests (`--list` verified), so it can no longer
+  resolve to zero. What remains before this box may be checked is an executed,
+  attributable run of the reconciled command recorded in `report.md` — which
+  `bubbles.plan` does not own and did not perform. Item stays open.
+  See [report.md](report.md#tp-15-03).
 
   Re-verified this session at HEAD `30326253` (the 5 adapter/wiring specs containing
   both halves ran inside the 8-spec, 102-test regression at exit 0 —
@@ -648,11 +663,19 @@ and pass only after the bridge + `ownerModes` change.
 
 - [ ] TP-15-04 E2E evidence proves each wired ordinary tool shows a ready adapter panel in Simple with an owner-parity fact.
 
-  NOT IMPLEMENTED — the declared persistent title
-  (`Regression: each wired ordinary tool shows a ready adapter panel in Simple with an
-  owner-parity fact`) does not exist in `tests/simple-production-wiring.spec.mjs`, which
-  contains exactly one test (see TP-15-03). The per-wired-tool loop is currently proven
-  at the **integration** layer by TP-15-02, not by an `e2e-ui` test. Item stays open.
+  **Title drift RESOLVED 2026-07-29 (D1 half 2); item still open pending an executed,
+  attributable run.** The reason previously recorded here — "NOT IMPLEMENTED … does not
+  exist in `tests/simple-production-wiring.spec.mjs`, which contains exactly one test"
+  — is **obsolete**: that file now contains 4 tests, two of them this row's carriers.
+  The Test Plan row now declares both verbatim:
+  `TP-15-04 every wired ordinary tool paints its real Simple adapter panel with an
+  owner-parity fact` (`:731`, the `e2e-ui` sweep across all 19 wired tools) and
+  `TP-15-04 the swept set is derived from the production registry + pages, and the
+  honest-degradation cases are registry/provider derived` (`:822`, the anti-hardcoding
+  guard). The reconciled `--grep "TP-15-04"` selects **2** tests (`--list` verified), so
+  the row is no longer proven only at the integration layer. What remains before this
+  box may be checked is an executed, attributable run recorded in `report.md` — which
+  `bubbles.plan` does not own and did not perform. Item stays open.
 
   Re-verified this session at HEAD `30326253`:
 
@@ -690,9 +713,23 @@ and pass only after the bridge + `ownerModes` change.
   ===BONDREGIME_EXIT=0===
   ```
 
-  The row nonetheless stays open, for the same anti-fabrication reason as TP-15-03 and
-  TP-15-04: **the persistent title this Test Plan row declares does not exist**, so
-  there is no test carrying the declared BUG-003-closure contract.
+  **Title drift RESOLVED 2026-07-29 (D4 half 1).** The reason previously recorded here
+  — "the persistent title this Test Plan row declares does not exist, so there is no
+  test carrying the declared BUG-003-closure contract" — is **obsolete**. The Test Plan
+  row now declares its two real carriers verbatim:
+  `Regression BUG-003: Ready waits for auto-hydration before Simple and Power
+  comparison` (`:413`, the "NOT Simple" half + BUG-003 closure) and
+  `BS-012 lever change recomputes without fetch or observed mutation` (`:515`, a
+  mechanically verified caller of `openNativeResearchSurface`, which carries the
+  "native content shows in POWER" half). Carrier attribution was verified by mapping
+  every `openNativeResearchSurface(` call site to its enclosing test rather than by
+  trusting the file's traceability comment — which lists `BS-004, BS-005, BS-012,
+  BS-014` but whose **actual** callers are `BS-006`, `BS-007`,
+  `Scenario controls reject nonfinite input…` and `BS-012`.
+
+  **The row nevertheless stays open on its SECOND, independent disqualifier (D4 half 2,
+  still OPEN):** carrier (a) uses `page.route` interception, so it cannot close a live
+  `e2e-ui` row. Reconciling the title does not and must not launder that.
 
   ```text
   $ grep -rn 'bond-regime native content shows in Power not Simple' tests/
@@ -752,13 +789,17 @@ and pass only after the bridge + `ownerModes` change.
     (read from `simple-models.json`, not hard-coded), reports
     `data-rlexperience-simple-state="unavailable"`, and is visible.
 
-  **Why the box nevertheless stays open.** The persistent title this Test Plan row
-  declares does not exist anywhere in `tests/`, so no test carries the declared
-  contract — exactly the disqualifier already applied to TP-15-03 (D1), TP-15-04 (D1)
-  and TP-15-05 (D4). Closing this row against a title that does not exist would be
-  fabrication, so the same standard is applied here rather than making an exception for
-  a row whose underlying behaviour happens to have improved. Recorded as drift **D5**
-  and routed to `bubbles.plan`. Re-verified this session:
+  **Title drift RESOLVED 2026-07-29 (D5).** The reason previously recorded here — "the
+  persistent title this Test Plan row declares does not exist anywhere in `tests/`, so
+  no test carries the declared contract" — is **obsolete**. The Test Plan row now
+  declares its two real, interception-free carriers verbatim:
+  `TP-02-04: the volatility tool is reachable THROUGH the shared rlnav registration,
+  not just by direct URL` (`:405`) and
+  `Regression BS-009: insufficient history is unavailable with exact counts` (`:221`).
+  Both were confirmed present by `--list`, and the whole-file command selects **16**
+  tests. **Why the box nevertheless stays open:** what remains is an executed,
+  attributable run of the reconciled command recorded in `report.md` — which
+  `bubbles.plan` does not own and did not perform. Superseded evidence follows:
 
   ```text
   $ npx --no-install playwright test tests/volatility-sizing-lab.spec.mjs \

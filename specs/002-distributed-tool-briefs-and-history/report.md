@@ -2528,6 +2528,20 @@ actually carries run identity would make the doc describe a behavior the code do
 trading a completeness gap for an accuracy defect. **DOC-F1 must be resolved together with GAP-F1,
 in that order (code first, doc second), not independently.**
 
+> **Correction (2026-07-29) — the ordering claim above is WRONG, and I am the one who made it.**
+> It assumed the repository was in an unintended half-cutover state, so any doc describing the
+> pointer would be describing something provisional. Later evidence disproves that premise:
+> `validate-distributed-briefs.mjs:114-117` and `brief-refresh.mjs:1271-1277` both state that keeping
+> `market-brief.*` as the legacy narrative is **deliberate** and that the graph is **legitimately**
+> published without pointer-bound root projections. The current state is therefore a stable,
+> intentional configuration — not a transient one — and is fully documentable **today**: the pointer
+> is published and advancing, the payload deliberately stays legacy, and the cutover is pending.
+> DOC-F1 does **not** have to wait for GAP-F1. It stays routed for one reason only, the one that was
+> always independently sufficient: `notes/market-brief.md` has **0 references** across 002's ten scope
+> Change Boundary blocks and is the concurrent session's live operating runbook, so editing it from
+> this lane would breach the change boundary. The dependency was my error; the ownership boundary is
+> the real constraint.
+
 ### Disposition
 
 | ID | Severity | Type | Owner | Actioned here |

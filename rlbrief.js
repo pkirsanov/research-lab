@@ -57,17 +57,24 @@
     return Math.abs(spot / flip - 1) * 100;
   }
 
+  /* RLMARKETACTION comes from rlexperience-adapters/market-action.js. Name the missing
+     dependency instead of throwing an opaque property-of-undefined TypeError. */
+  function marketAction() {
+    if (!root.RLMARKETACTION) throw new Error("RLBRIEF: RLMARKETACTION is not loaded - load rlexperience-adapters/market-action.js before calling this");
+    return root.RLMARKETACTION;
+  }
+
   /* Normalize the two historical recommendation shapes used by the payload.
      Single-sourced in rlexperience-adapters/market-action.js (RLMARKETACTION); the Brief delegates. */
   function normalizeRecommendation(item) {
-    return root.RLMARKETACTION.normalizeRecommendation(item);
+    return marketAction().normalizeRecommendation(item);
   }
 
   /* Immediately actionable next-session recommendations only. Watch-only ideas,
      missing triggers, and low-confidence observations stay out of the action block.
      Single-sourced in rlexperience-adapters/market-action.js (RLMARKETACTION); the Brief delegates. */
   function nextSessionActions(recommendations, max, minConfidence) {
-    return root.RLMARKETACTION.nextSessionActions(recommendations, max, minConfidence);
+    return marketAction().nextSessionActions(recommendations, max, minConfidence);
   }
 
   /* Attention is still analysis, but the brief's visible feed is action-gated: it
@@ -75,20 +82,20 @@
      watch/noise. Lower-confidence material belongs in owning tools, not the brief.
      Single-sourced in rlexperience-adapters/market-action.js (RLMARKETACTION); the Brief delegates. */
   function actionableAttention(cards, minConfidence) {
-    return root.RLMARKETACTION.actionableAttention(cards, minConfidence);
+    return marketAction().actionableAttention(cards, minConfidence);
   }
 
   /* Keep the visible event slate focused on the next ~10 trading days (14 calendar
      days by default). Invalid/far-out dates remain in config/payload but not the cockpit.
      Single-sourced in rlexperience-adapters/market-action.js (RLMARKETACTION); the Brief delegates. */
   function nearTermEvents(events, asOf, maxCalendarDays) {
-    return root.RLMARKETACTION.nearTermEvents(events, asOf, maxCalendarDays);
+    return marketAction().nearTermEvents(events, asOf, maxCalendarDays);
   }
 
   /* rank attention cards by confidence × domain importance, capped to `max`. */
   function rankAttention(cards, max) {
     var W = { regime: 1.3, gamma: 1.2, rotation: 1.15, event: 1.1, momentum: 1.0, flows: 0.9 };
-    var scored = (cards || []).map(function (c, i) {
+    var scored = (Array.isArray(cards) ? cards : []).map(function (c, i) {
       var w = W[c.domain] || 1, conf = isFinite(c.confidence) ? c.confidence : 50;
       return { c: c, k: conf * w, i: i };
     });
@@ -127,7 +134,7 @@
      confidence so an intraday wiggle can never look as strong as a structural signal.
      Single-sourced in rlexperience-adapters/market-action.js (RLMARKETACTION); the Brief delegates. */
   function capConfidence(conf, horizon, cap) {
-    return root.RLMARKETACTION.capConfidence(conf, horizon, cap);
+    return marketAction().capConfidence(conf, horizon, cap);
   }
 
   /* the tail consecutive same-direction run in a series (oldest→newest), beyond eps.
@@ -135,14 +142,14 @@
      micro-delta must persist across snapshots before it becomes an action.
      Single-sourced in rlexperience-adapters/market-action.js (RLMARKETACTION); the Brief delegates. */
   function consecutiveRun(values, eps) {
-    return root.RLMARKETACTION.consecutiveRun(values, eps);
+    return marketAction().consecutiveRun(values, eps);
   }
 
   /* is a momentum/RS delta a persistent SIGNAL (not intraday noise)? True when the tail
      run is ≥ minRun snapshots in one direction (the §6c persistence gate).
      Single-sourced in rlexperience-adapters/market-action.js (RLMARKETACTION); the Brief delegates. */
   function isPersistentSignal(values, minRun, eps) {
-    return root.RLMARKETACTION.isPersistentSignal(values, minRun, eps);
+    return marketAction().isPersistentSignal(values, minRun, eps);
   }
 
   /* ── §7a mega-cap / thematic group helpers (pure, tested) ── */

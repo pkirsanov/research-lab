@@ -492,12 +492,22 @@ function wiredTools() {
     }));
 }
 
+async function awaitDeclaredHydrationBoundary(page, attributeName) {
+  const declaredState = await page.locator('body').getAttribute(attributeName);
+  if (declaredState === null) return;
+  await page.waitForFunction(
+    (name) => document.body.getAttribute(name) === 'ready',
+    attributeName,
+    { timeout: 300000 }
+  );
+}
+
 /* Open one wired tool's REAL page and give its owner evidence a fair chance to hydrate.
 
-   A provider that yields owner state is definitive the moment it does, so the wait ends
-   early. A provider that yields nothing is only accepted as the settled answer AFTER the
-   full hydration window has elapsed, so a slow page can never be misread as "no owner
-   evidence". Returns whether the provider yielded owner state.
+   A page that declares a terminal hydration marker is sampled only after that marker is
+   ready. Pages without the marker retain the provider-driven wait: yielded owner state ends
+   the wait early, while no owner state is accepted only after the full hydration window.
+   Returns whether the provider yielded owner state.
 
    EVERY wait here carries an EXPLICIT budget, sized for a loaded machine rather than an
    idle one. A budget bounds how long the sweep waits; it never decides an outcome. The
@@ -515,6 +525,7 @@ async function openAndAwaitOwnerEvidence(page, toolId) {
     toolId,
     { timeout: 30000 }
   );
+  await awaitDeclaredHydrationBoundary(page, 'data-heatmap-hydration');
   const yieldsOwnerState = () => page.evaluate((id) => {
     try { return !!globalThis.__rlOwnerStateProvider[id](); } catch { return false; }
   }, toolId);

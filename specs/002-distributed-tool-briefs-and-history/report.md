@@ -1635,6 +1635,27 @@ A refresh that rewrites the pointer and both projections together still produces
 is not drift from an abandoned run that a re-publish would clear — the live publish path reproduces it
 every cycle. GAP-F1 is systematic.
 
+Confirmed a third time later the same day, after the brief workstream published its next scheduled run
+(`market-brief: auto-refresh + narrative 2026-07-29 10:58 EDT (morning)`, merged as
+`dist-2026-07-29-morning-4cec59876481`):
+
+**Command:** `node scripts/validate-distributed-briefs.mjs --root .` (no pipeline)
+**Exit Code:** 1
+**Claim Source:** executed
+
+```text
+  pointer runId : dist-2026-07-29-morning-4cec59876481
+  validator ok  : False
+  compat ok     : False | compat-projection-run-mismatch
+  market-brief.payload.json: runId=None
+  market-brief.snapshot.json: runId=None
+```
+
+Three consecutive independent publish cycles — `dist-2026-07-28-after-hours-44b10805a92a` (gaps phase),
+`dist-2026-07-29-pre-market-b9b25a87f2f6`, and `dist-2026-07-29-morning-4cec59876481` — each advanced
+the pointer and each left both projections with no run identity. The behavior is deterministic across
+the live schedule, not a transient.
+
 **2. The correct writer already exists; it is gated behind a deliberately inert seam.** The repository
 holds two projection writers, and the wrong one is live:
 

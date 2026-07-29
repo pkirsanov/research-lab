@@ -3365,5 +3365,115 @@ manually, and what to look for:
 
 **Claim Source:** executed
 
+---
+
+## Validate Phase
+
+**Agent:** `bubbles.validate` · **Executed:** 2026-07-29 · **HEAD:** `867db88a` ·
+**Verdict: VALIDATION FAILED — CERTIFICATION REFUSED.**
+
+Twelfth and final required phase. `bubbles.validate` holds exclusive certification authority, so this
+phase is the only one permitted to write `certification.*`.
+
+Every exit code below was captured **bare** (`cmd; RC=$?`), never through a pipeline.
+
+### Validation runs
+
+| Command | Exit | Result |
+|---|---|---|
+| `node scripts/selftest.mjs` | 0 | 968 passed, 0 failed |
+| `artifact-lint.sh` | 0 | PASSED |
+| `traceability-guard.sh` | 0 | PASSED, 0 warnings — 28 scenarios, 122 test rows, 28 scenario→row mappings, 0 unmapped |
+| `implementation-reality-scan.sh` | 0 | clean |
+| `artifact-freshness-guard.sh` | 0 | clean |
+| `done-spec-audit.sh --profile changed` | 0 | clean |
+| `state-transition-guard.sh` | **1** | blocking failures remain |
+
+Three of these were **independently re-verified** after the phase rather than taken on report:
+`traceability-guard.sh` exit 0 (`RESULT: PASSED (0 warnings)`, `DoD fidelity: 28 scenarios checked, 28
+mapped to DoD, 0 unmapped`), `artifact-lint.sh` exit 0, and `selftest` exit 0 at 968/0. All reproduced.
+
+### Outcome contract (G070) fails on the Success Signal
+
+```
+node scripts/validate-distributed-briefs.mjs --root .
+  exit 1 · ok=false · code B002-PUBLISH-SET · reason compat-projection-run-mismatch
+  detail market-brief.payload.json
+```
+
+Root cause derived, not inferred: `briefs/current.json` carries
+`runId=dist-2026-07-29-morning-4cec59876481` while `market-brief.payload.json` has **no `runId` key at
+all** (top keys: `toolId, window, asOf, generatedAt, nextSession, dataAsOf, regime, backdrop, attention,
+recommendations, events, psychology, groups, toolReads, toolCoverage, watchlistNotes, experimental`).
+
+The declared Success Signal requires an agent to *"reconstruct the exact successful run"*. A
+compatibility projection cannot be bound to a run identity it does not carry, so the contract is not met.
+
+**This is the fourth independent reproduction of GAP-F1, across a fourth pointer generation** — the
+condition is structural, not a stale artifact.
+
+### AUD-F2 resolved — and the routed hypothesis corrected
+
+`certification.completedScopes` listed 7 scopes complete while all 10 `certification.scopeProgress`
+entries read `not_started`. Reproduced independently before fixing, then fixed by setting each
+`scopeProgress.status` to mirror the **observed `scope.md` status**:
+
+| scopes | `scope.md` | `scopeProgress.status` now |
+|---|---|---|
+| SCOPE-01, 02, 03 | In Progress | `in_progress` |
+| SCOPE-04 … SCOPE-10 | Done | `done` |
+
+`completedScopes=7` now equals `scopeProgress done=7`. `certifiedAt` was deliberately left `null` on all
+ten, because **validate certified nothing this run** — `scopeProgress.status` mirrors the scope artifact,
+whereas `certifiedAt` would record a certification act that did not occur. No other certification field
+was touched: `status`, `completedScopes`, `certifiedCompletedPhases` and `lockdownState` are
+byte-identical to their pre-phase values.
+
+> **Correction to the routed hypothesis.** The audit routed AUD-F2 on the assumption it was driving
+> G027. Validate checked the guard source instead of assuming, and that assumption is wrong:
+> `state-transition-guard.sh` contains **zero** references to `scopeProgress` (independently confirmed:
+> `grep -c scopeProgress … = 0`). G027 fires on `claimed_phase_count >= 5 AND done_scopes(7) <
+> total_scopes(10)`, derived from `scope.md`. The AUD-F2 fix therefore correctly does **not** clear
+> G027 — and forcing it clear would require marking scopes 01-03 Done, which is false.
+
+### VAL-F1 — NEW (HIGH, ARTIFACT-INTEGRITY, owner `bubbles.plan`)
+
+Scope 10 is marked `Done` **and** listed in `completedScopes` while carrying:
+- **1 unchecked DoD item** (SCN-002-015, line 130), and
+- a **checked** DoD item (line 160, TP-10-21) whose truth claim the repository contradicts — it asserts
+  `validate-distributed-briefs --root . = ok:true`, while that exact command returns `ok:false`, exit 1.
+
+A scope cannot be truthfully `Done` with an open DoD item. `completedScopes` was left mirroring the
+`scope.md` artifact rather than unilaterally edited, because `scope.md` is `bubbles.plan`-owned and
+removing scope 10 would create a fresh 6-vs-7 guard mismatch. Routed, not patched.
+
+### Audit spot-checks — all six executed
+
+Notably #3: all 122 `rowSha256` digests were independently recomputed with validate's own harness →
+`ROWSHA_MATCH=119 MISMATCH=3`, identical rows and digests to AUD-F1. A column-by-column diff against the
+freezing commit (`d2e39992`) shows File/Title and Command columns **byte-identical** in all three; only
+Test Type and one Red→Green adjective moved. **AUD-F1 upheld as MEDIUM, wording-only drift.**
+
+The first harness attempt was **wrong** (0/122, 117 rows unresolved — bad row filter and a bad
+`sha256:` prefix assumption). It was recorded rather than silently discarded, repaired, and re-run.
+
+### Certification decision
+
+**REFUSED.** `status` and `certification.status` both remain `in_progress` — deliberately **not**
+`blocked`, because every open item is agent-actionable (`bubbles.plan` / `bubbles.design` own them all)
+and no operator-only blocker exists.
+
+Blocking path to `done`:
+1. `bubbles.plan` resolves GAP-F2 / GAP-F3 / VAL-F1 and regenerates `test-plan.json` for AUD-F1.
+2. `bubbles.design` / `bubbles.plan` decide GAP-F1 / GAP-F4 — either make the compatibility projections
+   pointer-bound, or amend SCN-002-015.
+3. Scope owners drive scopes 01, 02, 03 to `Done`.
+4. `bubbles.validate` re-runs and certifies.
+
+Guard after this phase: **exit 1**. G022's phase-record block is cleared by this record; **G027 persists
+honestly and correctly** because 7 of 10 scopes are Done, and pretending otherwise would be fabrication.
+
+**Claim Source:** executed
+
 
 

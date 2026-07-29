@@ -187,6 +187,14 @@
                 "dodComplete": false,
                 "certified": false,
                 "summary": "Audit phase EXECUTED by bubbles.audit on 2026-07-29 against the working tree at /home/redacted/research-lab (HEAD 4577556a); VERDICT REWORK_REQUIRED. ANALYSIS-ONLY - report.md '## Audit Phase' (676 lines) plus this state.json record; no production source, test, scripts/, .github/, scopes/** or doc file modified, no DoD checkbox ticked, no scope marked Done, status and certification.* unchanged. The specialist wrote report.md but did NOT write this state.json record, so the record was completed after INDEPENDENTLY RE-VERIFYING its two load-bearing claims with bare exit-code capture: artifact-lint.sh exit=0 ('Artifact lint PASSED') and node scripts/selftest.mjs exit=0 (968 passed, 0 failed) - both reproduce exactly as the audit reported, so the section is genuine and is accepted rather than trusted. The audit did not repeat earlier phases; it independently re-executed their load-bearing claims. AUD-1 re-ran the baseline and confirmed the harden claim of 968/0 is accurate. AUD-2 ran mandatory artifact lint, PASSED. AUD-3 ran four fabrication heuristics over report.md - placeholder_hits=0, Claim-Source census clean - no fabrication detected. AUD-4 re-executed GAP-F1 and STRENGTHENED it against a third independent run. AUD-5 confirmed GAP-F2 (a checked DoD item cites a command that fails). AUD-6 confirmed GAP-F3 (the stated unblock condition has materialized). AUD-7 found Test Plan/DoD parity EXACT (no finding). AUD-8 re-executed every prior finding and all reproduce. AUD-9 confirmed GAP-F5, narrowed to two sites, qualified as latent. AUD-10 verified SEC-F1 structurally and found its blast radius WIDER than recorded. AUD-11 re-scanned security posture, no finding. TWO NEW FINDINGS NOT PREVIOUSLY REPORTED. AUD-F1 (MEDIUM, ARTIFACT-INTEGRITY, owner bubbles.plan): test-plan.json declares a byte-level integrity contract (sha256 over exact Markdown row bytes + LF) that NO prior phase verified; recomputing all 122 positional rows gives ROWSHA_MATCH=119 MISMATCH=3 NO_ROW=0, and the 119 matches are what prove the extraction is correct since a broken harness would not reproduce 119 exact digests. The three drifted rows are SCOPE-02 TP-02-09, SCOPE-03 TP-03-11 and SCOPE-10 TP-10-10. Cause was read from git rather than inferred: test-plan.json was last written 2026-07-19 (d2e39992) while all three rows were last edited 2026-07-29 (083c7205 / 54aef1bea), and the Scope 10 byte change is a single word, 'separate providers' -> 'distinct providers'. NOTE FOR THE RECORD: that relabel was made in THIS session as a deliberate workaround for a framework bug in gate G040, whose unanchored substring pattern 'separate PR' matches the innocent word 'separate PRoviders'; the workaround was correct for G040 but silently invalidated the frozen rowSha256 because test-plan.json was not reconciled in the same change. AUD-F2 (MEDIUM, ARTIFACT-INTEGRITY, owner bubbles.validate): certification.completedScopes asserts seven scopes complete while all ten certification.scopeProgress entries read not_started - two fields inside the same certification object disagreeing about the same seven scopes. Audit ruled out 'vestigial field' by comparing every spec in the repository: 003 is 5/5, 011 is 4/4, 005 is 2/5, and every other spec with a non-empty completedScopes keeps scopeProgress in lockstep, making feature 002 THE ONLY spec in the repo with a non-empty completedScopes and zero scopeProgress advancement. The guard does not catch this because state-transition-guard.sh derives scope status from the scope.md files rather than from scopeProgress, so the stale block passes through unreported; the finding exists precisely because audit cross-checked artifacts the guard does not. Neither new finding was actioned: AUD-F1 is a planning artifact owned by bubbles.plan, and AUD-F2 touches certification.* which is owned exclusively by bubbles.validate. Additional observations AUD-O1 (LOW, DEFENSE-IN-DEPTH, amplifies SEC-F1, shared shell source) and AUD-O2 (LOW, OBSERVATION - the guard's 'potentially fabricated' warnings are largely a heuristic misfire). A concurrent agent session was live in the tree throughout; its dirty paths were read where relevant but never written or staged."
+            },
+            {
+                "phase": "validate",
+                "agent": "bubbles.validate",
+                "claimedAt": "2026-07-29T00:00:00Z",
+                "dodComplete": false,
+                "certified": false,
+                "summary": "Validate phase EXECUTED by bubbles.validate on 2026-07-29 against the working tree at /home/redacted/research-lab (HEAD 867db88a). VERDICT: VALIDATION FAILED - CERTIFICATION REFUSED. Repository-binding preflight committed before any repository-local read (PREFLIGHT_COMMITTED decision=rb:vscode-93b8cbfaa3b47932d280e44f81822c28:37 revision=37, actionable=true). Every exit code below was captured BARE (cmd; RC=$?), never through a pipeline. VALIDATION RUNS: node scripts/selftest.mjs exit=0 (968 passed, 0 failed); artifact-lint.sh exit=0; traceability-guard.sh exit=0 (RESULT: PASSED, 0 warnings; 28 scenarios, 122 test rows, 28 scenario-to-row mappings, 28 concrete test file references, 28 report evidence references, 0 unmapped DoD scenarios); implementation-reality-scan.sh exit=0; artifact-freshness-guard.sh exit=0; done-spec-audit.sh --profile changed exit=0; state-transition-guard.sh exit=1 (29 failures, 11 warnings). OUTCOME CONTRACT (G070) FAILS on the Success Signal: node scripts/validate-distributed-briefs.mjs --root . exits 1 with ok=false, code B002-PUBLISH-SET, reason compat-projection-run-mismatch, detail market-brief.payload.json. Root cause independently derived, not inferred: briefs/current.json carries runId dist-2026-07-29-morning-4cec59876481 while market-brief.payload.json has NO runId key at all (top keys: toolId,window,asOf,generatedAt,nextSession,dataAsOf,regime,backdrop,attention,recommendations,events,psychology,groups,toolReads,toolCoverage,watchlistNotes,experimental). The declared Success Signal requires an agent to 'reconstruct the exact successful run'; the compatibility projection cannot be bound to a run identity it does not carry, so the contract is not met. This is a FOURTH independent reproduction of GAP-F1 across a fourth pointer generation - structural, not stale. AUD-F2 RESOLVED (this phase's only owned write to certification.*): certification.completedScopes listed 7 scopes complete while all 10 certification.scopeProgress entries read not_started - two fields inside the same certification object contradicting each other. Independently reproduced before fixing (three-way scope.md / scopeProgress / completedScopes comparison: 01-03 In Progress + not_started + not-in-completedScopes; 04-10 Done + not_started + YES-in-completedScopes; completedScopes=7, scopeProgress advanced=0). Fixed by setting each scopeProgress.status to mirror the observed scope.md status - SCOPE-01/02/03 to in_progress, SCOPE-04..10 to done - giving completedScopes=7 == scopeProgress done=7. certifiedAt deliberately left null on all ten because validate certified nothing this run; scopeProgress.status mirrors the scope artifact (the same source state-transition-guard.sh reads), certifiedAt records validate's certification act, which did not occur. All values are snake_case members of this spec's own statusDiscipline.validStatuses. No other certification field was touched: status, completedScopes, certifiedCompletedPhases and lockdownState are byte-identical to their pre-phase values. AUD-F2 IS NOT THE G027 DRIVER - this is a correction to the routed hypothesis, verified against the guard source rather than assumed: state-transition-guard.sh contains ZERO references to scopeProgress (grep -c = 0); G027 fires at lines 3124-3125 on claimed_phase_count>=5 AND done_scopes(7) < total_scopes(10), derived from scope.md. The AUD-F2 fix therefore correctly does NOT clear G027, and forcing it clear would require marking scopes 01-03 Done, which is false. The guard's own completedScopes-vs-Done cross-check (line 3129-3131) already passed at 7==7 and still passes. AUDIT SPOT-CHECKS ALL SIX EXECUTED. #2: scope 10 DoD line 160 reads '[x] [TP-10-21] ... (validate-distributed-briefs --root . = ok:true)' while that exact command returns ok:false exit 1 - contradiction CONFIRMED. #3: independently recomputed all 122 rowSha256 digests with an own harness - ROWSHA_MATCH=119 MISMATCH=3 NO_ROW=0, identical rows and digests to AUD-F1 (SCOPE-02 TP-02-09, SCOPE-03 TP-03-11, SCOPE-10 TP-10-10); column-by-column diff against the commit that froze test-plan.json (d2e39992) shows File/Title and Command columns BYTE-IDENTICAL in all three, only Test Type (02/03: 'Baseline' -> 'Baseline Canary: shared foundation contracts') and one Red->Green adjective (10: 'separate' -> 'distinct') moved - drift is wording-only, AUD-F1 MEDIUM upheld. First harness attempt was WRONG (0/122, 117 rows unresolved) because the row filter and the sha256: prefix assumption were both incorrect; recorded rather than silently discarded, repaired, re-run. #4: scope 09 report evidence blocks independently measured 7 of 9 carrying terminal signals - matches AUD-O2, condensed-but-substantive, not fabrication. #5: AUD-F2, see above. #6: playwright RESOLVES (chromium=object), so the two t.skip guards are latent here - AUD-9 upheld. VALIDATE-OWNED FINDING VAL-F1 (HIGH, ARTIFACT-INTEGRITY, owner bubbles.plan): scope 10 is marked Done AND listed in completedScopes while carrying 1 unchecked DoD item (SCN-002-015, line 130) and a checked DoD item whose truth claim the repository contradicts (line 160). A scope cannot be truthfully Done with an open DoD item; certification.completedScopes was left mirroring the scope.md artifact rather than unilaterally edited, because scope.md is bubbles.plan-owned and removing 10 would create a fresh 6-vs-7 guard mismatch. Routed. CERTIFICATION REFUSED. status and certification.status both remain in_progress - NOT set to blocked, because the blocking work is agent-actionable (bubbles.plan and bubbles.design own every open item) and no operator-only blocker exists. Blocking path unchanged from audit: (1) bubbles.plan resolves GAP-F2/GAP-F3/VAL-F1 and regenerates test-plan.json for AUD-F1; (2) bubbles.design/bubbles.plan decide GAP-F1/GAP-F4 - either make the compatibility projections pointer-bound or amend SCN-002-015; (3) scope owners drive scopes 01, 02, 03 to Done; (4) bubbles.validate re-runs and certifies. Guard after this phase: exit 1, 27 failures (down from 29 - G022 'Required phase validate NOT in phase records' and the companion 'specialist phase(s) missing' both cleared by this record); G027 persists honestly and correctly."
             }
         ],
         "pendingTransitionRequests": [],
@@ -214,7 +222,7 @@
                 "scope": 1,
                 "scopeId": "SCOPE-01",
                 "name": "MarketSessionEvidence Foundation",
-                "status": "not_started",
+                "status": "in_progress",
                 "dependsOn": [],
                 "scopeDir": "scopes/01-market-session-evidence-foundation",
                 "evidenceFile": "scopes/01-market-session-evidence-foundation/report.md",
@@ -224,7 +232,7 @@
                 "scope": 2,
                 "scopeId": "SCOPE-02",
                 "name": "Yahoo Extended-Hours Evidence",
-                "status": "not_started",
+                "status": "in_progress",
                 "dependsOn": [
                     1
                 ],
@@ -236,7 +244,7 @@
                 "scope": 3,
                 "scopeId": "SCOPE-03",
                 "name": "CPI Release Evidence",
-                "status": "not_started",
+                "status": "in_progress",
                 "dependsOn": [
                     1
                 ],
@@ -248,7 +256,7 @@
                 "scope": 4,
                 "scopeId": "SCOPE-04",
                 "name": "Event Reaction and Owner Integration",
-                "status": "not_started",
+                "status": "done",
                 "dependsOn": [
                     2,
                     3
@@ -261,7 +269,7 @@
                 "scope": 5,
                 "scopeId": "SCOPE-05",
                 "name": "Registry-Wide Normalized Reads",
-                "status": "not_started",
+                "status": "done",
                 "dependsOn": [
                     4
                 ],
@@ -273,7 +281,7 @@
                 "scope": 6,
                 "scopeId": "SCOPE-06",
                 "name": "Bounded Authorship and Recommendation Lifecycle",
-                "status": "not_started",
+                "status": "done",
                 "dependsOn": [
                     5
                 ],
@@ -285,7 +293,7 @@
                 "scope": 7,
                 "scopeId": "SCOPE-07",
                 "name": "Bounded History and Legacy Migration",
-                "status": "not_started",
+                "status": "done",
                 "dependsOn": [
                     6
                 ],
@@ -297,7 +305,7 @@
                 "scope": 8,
                 "scopeId": "SCOPE-08",
                 "name": "Window-Aware Final Aggregation",
-                "status": "not_started",
+                "status": "done",
                 "dependsOn": [
                     6,
                     7
@@ -310,7 +318,7 @@
                 "scope": 9,
                 "scopeId": "SCOPE-09",
                 "name": "Evidence-First Atomic Publication",
-                "status": "not_started",
+                "status": "done",
                 "dependsOn": [
                     8
                 ],
@@ -322,7 +330,7 @@
                 "scope": 10,
                 "scopeId": "SCOPE-10",
                 "name": "Shared UI and Pages Acceptance",
-                "status": "not_started",
+                "status": "done",
                 "dependsOn": [
                     9
                 ],
@@ -584,6 +592,18 @@
             "startedAt": "2026-07-29T00:00:00Z",
             "finishedAt": "2026-07-29T00:00:00Z",
             "summary": "bubbles.audit executed the audit phase for feature 002 and returned VERDICT REWORK_REQUIRED, recording 676 lines of evidence in report.md under '## Audit Phase'. Analysis-only: no production source, test, scripts/, .github/, scopes/** or doc file modified, no DoD ticked, no scope marked Done, status and certification.* unchanged. The specialist wrote report.md but not this state.json record, so before accepting the section its two load-bearing claims were INDEPENDENTLY re-run with bare exit-code capture - artifact-lint.sh exit=0 and node scripts/selftest.mjs exit=0 at 968 passed / 0 failed - both reproducing exactly as reported, so the phase is recorded as genuine rather than taken on trust. The audit re-executed rather than repeated prior phases: it confirmed the harden 968/0 baseline, passed artifact lint, ran four fabrication heuristics over report.md with placeholder_hits=0 and no fabrication detected, re-confirmed GAP-F1 (strengthened against a third independent run), GAP-F2, GAP-F3, GAP-F5 and SEC-F1 (blast radius wider than recorded), found Test Plan/DoD parity exact, and re-scanned security posture with no finding. It surfaced TWO NEW findings no prior phase had. AUD-F1 (MEDIUM, ARTIFACT-INTEGRITY, owner bubbles.plan): test-plan.json's byte-level sha256 row contract had never been verified; 119 of 122 rows match and 3 drift (TP-02-09, TP-03-11, TP-10-10), with git showing the plan last written 2026-07-19 and all three rows edited 2026-07-29 - the Scope 10 delta being the single word 'separate providers' -> 'distinct providers', a relabel made in this session to work around the G040 framework bug whose unanchored pattern 'separate PR' matches 'separate PRoviders', correct for G040 but never reconciled back into test-plan.json. AUD-F2 (MEDIUM, ARTIFACT-INTEGRITY, owner bubbles.validate): certification.completedScopes claims 7 complete while all 10 scopeProgress entries read not_started; audit ruled out a vestigial field by surveying every spec in the repo (003 5/5, 011 4/4, 005 2/5) and showed 002 is the ONLY spec with non-empty completedScopes and zero scopeProgress advancement, invisible to the guard because state-transition-guard.sh reads scope.md rather than scopeProgress. Neither new finding actioned - AUD-F1 is a bubbles.plan artifact and AUD-F2 touches validate-owned certification.*. Plus AUD-O1 (LOW, amplifies SEC-F1) and AUD-O2 (LOW, the guard's 'potentially fabricated' warnings are largely a heuristic misfire)."
+        },
+        {
+            "agent": "bubbles.validate",
+            "provenanceMode": "specialist",
+            "phasesExecuted": [
+                "validate"
+            ],
+            "statusBefore": "in_progress",
+            "statusAfter": "in_progress",
+            "startedAt": "2026-07-29T00:00:00Z",
+            "finishedAt": "2026-07-29T00:00:00Z",
+            "summary": "bubbles.validate executed the twelfth and final required phase for feature 002 at HEAD 867db88a and returned VERDICT: VALIDATION FAILED - CERTIFICATION REFUSED, recording the evidence in report.md under '## Validate Phase'. Every exit code was captured BARE (cmd; RC=$?), never through a pipeline. VALIDATION RUNS: node scripts/selftest.mjs exit=0 (968 passed, 0 failed); artifact-lint.sh exit=0; traceability-guard.sh exit=0 (PASSED, 0 warnings - 28 scenarios, 122 test rows, 28 scenario-to-row mappings, 28 concrete test file references, 28 report evidence references, 0 unmapped DoD scenarios); implementation-reality-scan.sh exit=0; artifact-freshness-guard.sh exit=0; done-spec-audit.sh --profile changed exit=0; state-transition-guard.sh exit=1. THREE of these were INDEPENDENTLY RE-VERIFIED after the phase rather than taken on report - traceability-guard.sh exit 0 with 'RESULT: PASSED (0 warnings)' and 'DoD fidelity: 28 scenarios checked, 28 mapped to DoD, 0 unmapped', artifact-lint.sh exit 0, and selftest exit 0 at 968/0 - and all three reproduced exactly. OUTCOME CONTRACT (G070) FAILS on the Success Signal: node scripts/validate-distributed-briefs.mjs --root . exits 1 with ok=false, code B002-PUBLISH-SET, reason compat-projection-run-mismatch, detail market-brief.payload.json; root cause derived rather than inferred - briefs/current.json carries runId dist-2026-07-29-morning-4cec59876481 while market-brief.payload.json has NO runId key at all, and since the declared Success Signal requires reconstructing the exact successful run, a compatibility projection cannot be bound to a run identity it does not carry. This is the FOURTH independent reproduction of GAP-F1 across a fourth pointer generation, confirming the condition is structural rather than a stale artifact. AUD-F2 RESOLVED - this phase's only owned write to certification.*: completedScopes listed 7 complete while all 10 scopeProgress entries read not_started; reproduced independently before fixing, then fixed by setting each scopeProgress.status to mirror the OBSERVED scope.md status (SCOPE-01/02/03 to in_progress, SCOPE-04..10 to done), giving completedScopes=7 == scopeProgress done=7. certifiedAt deliberately left null on all ten because validate certified nothing this run - scopeProgress.status mirrors the scope artifact whereas certifiedAt would record a certification act that did not occur - and no other certification field was touched, with status, completedScopes, certifiedCompletedPhases and lockdownState byte-identical to their pre-phase values. IMPORTANT CORRECTION TO THE ROUTED HYPOTHESIS: the audit routed AUD-F2 assuming it drove G027, and validate checked the guard SOURCE instead of assuming - state-transition-guard.sh contains ZERO references to scopeProgress (independently confirmed, grep -c = 0), and G027 fires on claimed_phase_count>=5 AND done_scopes(7) < total_scopes(10) derived from scope.md, so the AUD-F2 fix correctly does NOT clear G027 and forcing it clear would require marking scopes 01-03 Done, which is false. NEW FINDING VAL-F1 (HIGH, ARTIFACT-INTEGRITY, owner bubbles.plan): scope 10 is marked Done AND listed in completedScopes while carrying 1 unchecked DoD item (SCN-002-015, line 130) and a CHECKED DoD item (line 160, TP-10-21) whose truth claim the repository contradicts - it asserts validate-distributed-briefs --root . = ok:true while that exact command returns ok:false exit 1; a scope cannot be truthfully Done with an open DoD item, and completedScopes was left mirroring the scope.md artifact rather than unilaterally edited because scope.md is bubbles.plan-owned and removing scope 10 would create a fresh 6-vs-7 guard mismatch. All six audit spot-checks were executed; notably #3 independently recomputed all 122 rowSha256 digests giving ROWSHA_MATCH=119 MISMATCH=3 identical to AUD-F1, with a column-by-column diff against the freezing commit d2e39992 showing File/Title and Command columns BYTE-IDENTICAL in all three and only Test Type plus one Red-to-Green adjective moved, upholding AUD-F1 as MEDIUM wording-only drift; the first harness attempt was WRONG (0/122, 117 rows unresolved, from a bad row filter and a bad sha256: prefix assumption) and was recorded rather than silently discarded, repaired and re-run. CERTIFICATION REFUSED with status and certification.status both remaining in_progress, deliberately NOT blocked because every open item is agent-actionable (bubbles.plan and bubbles.design own them all) and no operator-only blocker exists. Blocking path to done: (1) bubbles.plan resolves GAP-F2/GAP-F3/VAL-F1 and regenerates test-plan.json for AUD-F1; (2) bubbles.design/bubbles.plan decide GAP-F1/GAP-F4, either making the compatibility projections pointer-bound or amending SCN-002-015; (3) scope owners drive scopes 01, 02, 03 to Done; (4) bubbles.validate re-runs and certifies. G027 persists honestly and correctly because 7 of 10 scopes are Done and pretending otherwise would be fabrication."
         }
     ],
     "activeBugs": [],

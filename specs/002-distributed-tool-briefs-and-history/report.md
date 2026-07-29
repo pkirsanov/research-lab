@@ -1156,6 +1156,297 @@ for the `regression` phase. No scope was marked Done, SCOPE-01/02/03 are unchang
 
 ---
 
+## Simplify Phase
+
+Post-implementation simplification review executed by `bubbles.simplify` on 2026-07-29. This pass was
+**review-only by operator instruction**: a concurrent session is live in this working tree and the
+Feature 002 implementation is complete with green owned tests, so no production source, test, `*-lab.html`,
+`scripts/`, or `.github/` file was modified. The only files written this session are this `report.md`
+section and the `simplify` entries in `state.json`.
+
+### What was inspected
+
+The review surface is the Feature 002 owned implementation set, derived from the `### Change Boundary`
+block of each of the ten scope artifacts under `scopes/*/scope.md` — 13 files, **11,488 lines** (SPX-01).
+Files named in a Change Boundary but owned elsewhere were held out: `rldata.js` / `rlapp.js` (Scopes 04/05/10
+declare only narrow additive fields and a mount bridge in them), and the `scripts/brief-*` files that no
+Feature 002 scope claims (`brief-data-cache-selftest.mjs`, `brief-nudge.sh`, `brief-refresh-scheduled.sh`)
+or that other features own (`brief-narrative-parallel.mjs` → feature 012, `brief-distributed-publish.mjs` →
+features 013/015).
+
+Three review passes were run over that surface: **code reuse** (cross-file and intra-file duplication),
+**code quality** (dead code, unreferenced exports, complexity), and **efficiency**. Findings were then
+verified individually — a name collision was only accepted as duplication after the two bodies were
+compared, and a candidate was only accepted as dead after both its in-module references and its export
+object were checked.
+
+### Findings
+
+Six findings. All are small, local, and behavior-preserving; none indicates a defect in delivered behavior,
+and no owned test currently fails because of any of them.
+
+| # | Severity | File(s) | Issue | Why it matters | Concrete change |
+|---|---|---|---|---|---|
+| SPX-F1 | Medium | `scripts/brief-publication.mjs:29-42,103-107` vs `rlcontracts.js:403-408` | The publication module already imports `RLCONTRACTS` (line 23) but computes the `brief-history-index/v1` `indexFingerprint` with its own local `stableStringify`/`sortValue`, which only sorts keys. `RLCONTRACTS.canonicalize` additionally rejects `undefined` members and sorts + de-duplicates `SET_LIKE_ARRAY_KEYS` arrays (`subjects`, `evidenceIds`, `evidenceRefs`, `provenanceRefs`, `diagnostics`, `peerRefs`, `corporateActionRefs`). Divergence proven in SPX-05. | Two canonicalizers exist for `contractVersion`-bearing bodies in one pipeline. Any consumer that recomputes that fingerprint through the contract layer would disagree the moment the index body gains a set-like key or an optional member. Today nothing cross-checks it — `validate-distributed-briefs.mjs` re-hashes raw bytes only — so this is a latent divergence, not an observed failure. | At the index-fingerprint site use `RLCONTRACTS.canonicalize(body, 'brief-history-index/v1')`; keep the local serializer only for non-contract bodies (JSONL rows). Requires a fingerprint-stability check because emitted bytes can change. |
+| SPX-F2 | Low | `scripts/migrate-brief-history.mjs:165` | `` `sha256:${sha256Hex(RLCONTRACTS.canonicalize(content, 'legacy-migrated-read/v1'))}` `` is character-for-character the body of the already-exported `RLCONTRACTS.contentSha256(value, contractVersion)`, and `RLCONTRACTS` is imported at line 22. | An exported contract helper is re-implemented inline, so a change to the contract-layer digest rule would silently miss this call site. | Replace with `RLCONTRACTS.contentSha256(content, 'legacy-migrated-read/v1')`. Proven digest-identical in SPX-04, so the substitution is behavior-preserving. |
+| SPX-F3 | Low | `scripts/generate-xnys-calendar.mjs` vs `rlsession.js:183` | `localWallAt` is forked: same algorithm (`Intl.DateTimeFormat('en-CA')` → `formatToParts` → `YYYY-MM-DDTHH:mm:ss.000`) rewritten in ESM style. The generator imports only `node:fs`, `node:crypto`, `node:path` — it does not consume `rlsession.js`, although that pattern is already established (`scripts/market-session-evidence.mjs:28` does `require('../rlsession.js')`). | The generator **produces** `data/calendars/xnys/calendar.json`; `rlsession.js` **validates** bars against it (`rlsession.js:219-220,518,2411`). Nothing pins the two projections together — `scripts/selftest.mjs:3389-3391` exercises `materializeXNYSCalendar` against the generator's own output only. A DST-edge change to one copy would desynchronize producer and consumer silently. | Export `localWallAt` from `rlsession.js`, consume it in the generator via `createRequire`, delete the local copy. |
+| SPX-F4 | Low | `scripts/brief-publication.mjs:486` and `:663` | `export function isRunPublished(state)` has zero consumers repo-wide (SPX-06), while line 663 in the same file re-expresses the predicate inline as `if (phase === 'pushed')`. | An extracted terminal-phase predicate was never adopted at its own call site, so the run-state vocabulary lives in two places. | Use it at line 663 (`isRunPublished({ phase })`), or drop the export. Adopting is preferred — the predicate is part of the documented `BRIEF_RUN_PHASES` run-state API. |
+| SPX-F5 | Low | `rlsession.js:1475-1483` and `1495-1503` | Inside `normalizeReleasedReport`, the `matches` and `previous` branches build byte-identical 7-field projections (`metricId`, `period`, `value`, `unit`, `seasonalBasis`, `transform`, `sourceRef`). | The `actual` and `previous` record shapes are only field-symmetric by convention. A field added to one branch and not the other would produce asymmetric released-report records with no compile-time or test signal. | Extract `projectMetric(metric, sourceRef)` and call it from both branches. |
+| SPX-F6 | Low | `rlbrief.js:607` | `function pct(n, d)` is defined once, never called, and not on the module's export object — the export-block hit is the distinct `pctFromLevel` (line 121). `rlbrief.js` is a single IIFE, so an unexported local is unreachable. | Dead code in a shared renderer module. | Delete line 607. |
+
+### Candidates inspected and rejected
+
+Recorded so the review surface is auditable and these are not re-raised as findings:
+
+- **`sha256Hex` × 6** — not duplication across the browser/Node split. The `rlcontracts.js` copy is a
+  hand-rolled pure-JS SHA-256 required because that module runs in the browser with no build step, and the
+  Node copies wrap `node:crypto` over raw file **bytes**, which `contentSha256` (object canonicalization)
+  cannot express. Four of them are byte-identical (SPX-03), but extracting a one-line stdlib wrapper into a
+  new shared module would add an import edge to a no-build repository for negative value.
+- **`hasOnlyFields`, `success`, `failure` in `rlcontracts.js` vs `rlsession.js`** — distinct bodies
+  (SPX-03 shows different digests), distinct signatures, and distinct error vocabularies
+  (`rlsession.js` stamps `evidence-error/v1`; `rlcontracts.js` returns contract failures). Correctly
+  separate, not duplication.
+- **`isPlainObject`** — byte-identical in both modules (`8652f732…`), and `rlsession.js:6-10` already hard-depends
+  on `RLCONTRACTS`. De-duplicating would mean widening a frozen public API (`Object.freeze({…})`,
+  `rlcontracts.js:1930`) to expose a four-line internal predicate. Judged not worth the API surface.
+- **`normalizeRecommendation` in `rlbrief.js` vs `rlcontracts.js`** — `rlbrief.js:62-64` is a two-line façade
+  delegating to `RLMARKETACTION`, deliberately re-exported at line 209 so callers use `RLBRIEF`. Different
+  layer, same name only.
+- **`main` × 6, `fail` × 3, `argValue` × 2** — per-script CLI entry points and local error shapes with
+  different failure codes (for example `validate-distributed-briefs.mjs` stamps `B002-PUBLISH-SET`).
+  Unifying them would couple otherwise independent executables.
+- **Long functions** — `buildMarketSessionEvidence` (253), `normalizeReleasedReport` (199),
+  `aggregateSession` (179), `validateFinalBrief` (171), `runBriefRefresh` (159). Measured nesting depth is
+  ≈4 with 35-47 guard/return lines each: these are flat linear validation chains, one `return failure(...)`
+  per rule, not deep control flow. Splitting them would add indirection without reducing complexity, so no
+  finding was raised. The one genuinely deeper region (`normalizeReleasedReport`, depth ≈7) is nested object
+  literals, addressed narrowly by SPX-F5.
+- **`pointerBytes`, `acquireReportEvidence`, `acquireMarketSessionEvidence`** — flagged by the coarse
+  in-file reference scan but proven live by their test and live-check consumers (SPX-06). Not dead.
+- **Efficiency pass** — no finding. The hot paths are per-run batch operations over bounded committed
+  fixtures and bounded generated artifacts; no repeated-IO-in-loop, unbounded accumulation, or redundant
+  re-serialization was found that a measurement would justify changing.
+
+### Disposition
+
+All six findings are **routed** to `bubbles.implement` as the owner of Feature 002 production source; they
+are recorded in the table above with exact file and line references and the concrete edit each one needs.
+No code change was applied in this pass because the operator scoped this invocation review-only and another
+session is live in this tree. No artifact under `specs/012-*`, `specs/013-*`, `specs/014-*`, `specs/015-*`,
+or `specs/016-*` was read for disposition purposes or modified.
+
+### SPX-01 — Review scope (Feature 002 owned implementation set)
+
+**Command:** `wc -l rlcontracts.js rlsession.js rlbrief.js scripts/brief-refresh.mjs scripts/brief-author.mjs scripts/brief-publication.mjs scripts/brief-refresh-and-push.sh scripts/migrate-brief-history.mjs scripts/market-session-evidence.mjs scripts/market-session-evidence-live-check.mjs scripts/generate-xnys-calendar.mjs scripts/validate-brief-payload.mjs scripts/validate-distributed-briefs.mjs`
+**Exit Code:** `0`
+**Result:** PASSED — 13 files, 11,488 lines under review
+**Claim Source:** executed
+
+```text
+  1948 rlcontracts.js
+  2866 rlsession.js
+  1628 rlbrief.js
+  1284 scripts/brief-refresh.mjs
+   340 scripts/brief-author.mjs
+   667 scripts/brief-publication.mjs
+   490 scripts/brief-refresh-and-push.sh
+   460 scripts/migrate-brief-history.mjs
+   998 scripts/market-session-evidence.mjs
+   214 scripts/market-session-evidence-live-check.mjs
+   320 scripts/generate-xnys-calendar.mjs
+   137 scripts/validate-brief-payload.mjs
+   136 scripts/validate-distributed-briefs.mjs
+ 11488 total
+WC_EXIT=0
+```
+
+### SPX-02 — Code-reuse pass: duplicate function names across the owned surface
+
+**Command:** `for f in <the 12 .js/.mjs files above>; do grep -oE '^[[:space:]]*(export )?(async )?function [A-Za-z0-9_]+' "$f" | grep -oE '[A-Za-z0-9_]+$' | sed "s#\$#|$f#"; done | sort | awk -F'|' '{n[$1]=n[$1]" "$2; c[$1]++} END{for(k in c) if(c[k]>1) printf "%-26s x%d :%s\n", k, c[k], n[k]}' | sort`
+**Exit Code:** `0`
+**Result:** PASSED — 11 name collisions surfaced for triage
+**Claim Source:** executed
+
+```text
+argValue                   x2 : scripts/generate-xnys-calendar.mjs scripts/market-session-evidence-live-check.mjs
+fail                       x3 : scripts/generate-xnys-calendar.mjs scripts/market-session-evidence.mjs scripts/validate-distributed-briefs.mjs
+failure                    x2 : rlcontracts.js rlsession.js
+hasOnlyFields              x2 : rlcontracts.js rlsession.js
+isPlainObject              x2 : rlcontracts.js rlsession.js
+localWallAt                x2 : rlsession.js scripts/generate-xnys-calendar.mjs
+main                       x6 : scripts/brief-refresh.mjs scripts/generate-xnys-calendar.mjs scripts/market-session-evidence-live-check.mjs scripts/migrate-brief-history.mjs scripts/validate-brief-payload.mjs scripts/validate-distributed-briefs.mjs
+normalizeRecommendation    x2 : rlbrief.js rlcontracts.js
+sha256Hex                  x6 : rlcontracts.js scripts/brief-author.mjs scripts/brief-publication.mjs scripts/market-session-evidence.mjs scripts/migrate-brief-history.mjs scripts/validate-distributed-briefs.mjs
+stableStringify            x2 : scripts/brief-author.mjs scripts/brief-publication.mjs
+success                    x2 : rlcontracts.js rlsession.js
+DUPSCAN_EXIT=0
+```
+
+### SPX-03 — Duplication triage: body digests separate real duplicates from name-only collisions
+
+**Command:** `printf` header, then per-function `awk '<extract body>' "$f" | tr -d ' \n' | md5sum` for `isPlainObject`/`hasOnlyFields`/`success`/`failure` (rlcontracts vs rlsession), `localWallAt` (rlsession vs generator), and `sha256Hex` (four Node scripts)
+**Exit Code:** `0`
+**Result:** PASSED — only `isPlainObject` and 3 of 4 `sha256Hex` bodies are byte-identical
+**Claim Source:** executed
+
+```text
+FUNCTION                   FILE               BODY_MD5
+isPlainObject              rlcontracts.js     8652f732f1cb9d2736e095b690a5c819
+isPlainObject              rlsession.js       8652f732f1cb9d2736e095b690a5c819
+hasOnlyFields              rlcontracts.js     3cfe4012b3236ab7075af83dec8b2da5
+hasOnlyFields              rlsession.js       c397ba442d7181a425e34c81173eb568
+success                    rlcontracts.js     b588bb62138c154a264cd2c8243eeed9
+success                    rlsession.js       e25dc723da8f843a7eb2430122042016
+failure                    rlcontracts.js     6c7ccac9909ff366127cc8eb2fe81e24
+failure                    rlsession.js       b02e22f00bb40d8ecd08f45eac7be4a5
+localWallAt                rlsession.js       c11a90f20cb92b140973ab4406f319d1
+localWallAt                generate-xnys-calendar.mjs b3af961746ff7669c8c85ba0a21d66fc
+sha256Hex                  brief-author.mjs   4cf25f3ebebff98023ad6cf7913b583f
+sha256Hex                  brief-publication.mjs c151e036ffeb6026cb525a03d53a975b
+sha256Hex                  migrate-brief-history.mjs c151e036ffeb6026cb525a03d53a975b
+sha256Hex                  validate-distributed-briefs.mjs c151e036ffeb6026cb525a03d53a975b
+TRIAGE_EXIT=0
+```
+
+### SPX-04 — SPX-F2 proof: the inline digest is identical to `RLCONTRACTS.contentSha256`
+
+**Command:** `node -e '<load rlcontracts; compare "sha256:"+createHash(canonicalize(x)) against RLCONTRACTS.contentSha256(x)>'`
+**Exit Code:** `0`
+**Result:** PASSED — `EQUAL: true`; the SPX-F2 substitution is behavior-preserving
+**Claim Source:** executed
+
+```text
+$ node -e '
+const { createHash } = require("node:crypto");
+const RL = require("./rlcontracts.js");
+const content = { contractVersion: "legacy-migrated-read/v1", toolId: "t", read: "r", n: 1, arr: [1,2] };
+const cv = "legacy-migrated-read/v1";
+const canon = RL.canonicalize(content, cv);
+const inline = "sha256:" + createHash("sha256").update(canon).digest("hex");
+const viaApi = RL.contentSha256(content, cv);
+console.log("canonical    :", canon);
+console.log("inline (node):", inline);
+console.log("contentSha256:", viaApi);
+console.log("EQUAL        :", inline === viaApi);
+'
+canonical    : {"arr":[1,2],"contractVersion":"legacy-migrated-read/v1","n":1,"read":"r","toolId":"t"}
+inline (node): sha256:f39ac7bd0dde64be48c30552a32ddd35b4b3918c4afe92ce1680f242c4b1b856
+contentSha256: sha256:f39ac7bd0dde64be48c30552a32ddd35b4b3918c4afe92ce1680f242c4b1b856
+EQUAL        : true
+NODE_EXIT=0
+```
+
+The browser module's hand-rolled SHA-256 and `node:crypto` agree, so replacing the inline composition with
+the exported helper cannot change the emitted fingerprint.
+
+### SPX-05 — SPX-F1 proof: `sortValue` and `canonicalize` diverge on set-like keys and absent members
+
+**Command:** `node -e '<compare JSON.stringify(sortValue(x)) against RLCONTRACTS.canonicalize(x, cv) for a set-like key, a timestamp key, and an undefined member>'`
+**Exit Code:** `0`
+**Result:** PASSED — diverges on set-like arrays and on `undefined`; does not diverge on the timestamp sample
+**Claim Source:** executed
+
+```text
+$ node -e '<sortValue vs RLCONTRACTS.canonicalize, three payloads>'
+subjects (set-like, unsorted+dup)
+   sortValue   : {"contractVersion":"x/v1","subjects":["ZZ","AA","AA"]}
+   canonicalize: {"contractVersion":"x/v1","subjects":["AA","ZZ"]}
+   DIVERGES    : true
+generatedAt (timestamp key)
+   sortValue   : {"contractVersion":"x/v1","generatedAt":"2026-07-29T00:00:00+00:00"}
+   canonicalize: {"contractVersion":"x/v1","generatedAt":"2026-07-29T00:00:00+00:00"}
+   DIVERGES    : false
+undefined member
+   sortValue   : {"contractVersion":"x/v1"}
+   canonicalize: THROWS:undefined-value
+   DIVERGES    : true
+NODE_EXIT=0
+```
+
+Recorded precisely rather than broadly: the timestamp-key case did **not** diverge for this sample, and an
+earlier hypothesis that `-0` would diverge was disproven (`JSON.stringify` already normalizes `-0` to `0`).
+The finding rests only on the two vectors that reproduce. The current index body
+(`{ contractVersion, partitions }`) carries no set-like key today, which is why SPX-F1 is recorded as a
+latent divergence rather than an active defect.
+
+### SPX-06 — Code-quality pass: dead-code and unreferenced-export verification
+
+**Command:** `for pair in <5 candidates>; do own=$(grep -cE "\b$fn\b" "$f"); ext=$(grep -rn "\b$fn\b" --include='*.js' --include='*.mjs' --include='*.html' . | grep -v node_modules | grep -v "^\./$f:" | wc -l); ...; done` then `grep -n "phase === 'pushed'" scripts/brief-publication.mjs`
+**Exit Code:** `0`
+**Result:** PASSED — `isRunPublished` confirmed DEAD; 3 candidates confirmed LIVE; `pct` needed the scoped re-check below
+**Claim Source:** executed
+
+```text
+pct                              rlbrief.js                         in-file=1   repo-elsewhere=210  LIVE
+isRunPublished                   scripts/brief-publication.mjs      in-file=1   repo-elsewhere=0    DEAD
+pointerBytes                     scripts/brief-publication.mjs      in-file=1   repo-elsewhere=6    LIVE
+acquireReportEvidence            scripts/market-session-evidence.mjs in-file=1  repo-elsewhere=44   LIVE
+acquireMarketSessionEvidence     scripts/market-session-evidence.mjs in-file=1  repo-elsewhere=24   LIVE
+---
+isRunPublished predicate re-expressed inline in the SAME file:
+487:  return Boolean(state) && state.phase === 'pushed';
+663:  if (phase === 'pushed') return { ok: true, resume: { action: 'noop-idempotent', reacquire: false, reauthor: false, commit: journal.commit || null } };
+DEADSCAN_EXIT=0
+```
+
+The `LIVE` verdict printed for `pct` is a **false negative of this coarse scan**: the 210 repo-wide hits are
+unrelated same-named locals in other tools (for example `strategy-self-improvement-lab.html:784`), not
+references to `rlbrief.js`'s copy. Correcting it required scoping the check to the IIFE module — SPX-07.
+
+### SPX-07 — SPX-F6 confirmation: `pct` scoped correctly to the `rlbrief.js` IIFE
+
+**Command:** `grep -n '\bpct\b' rlbrief.js` and `grep -n 'pct' rlbrief.js`
+**Exit Code:** `0`
+**Result:** PASSED — one word-boundary occurrence (the definition); the export-block hit is `pctFromLevel`
+**Claim Source:** executed
+
+```text
+$ grep -cn '\bpct\b' rlbrief.js
+1
+
+$ grep -n 'pct' rlbrief.js
+121:  function pctFromLevel(price, level) {
+206:    maStackLabel: maStackLabel, pctFromLevel: pctFromLevel, capConfidence: capConfidence,
+607:  function pct(n, d) { return Number.isFinite(n) ? (n >= 0 ? "+" : "") + n.toFixed(d == null ? 1 : d) + "%" : "—"; }
+
+$ sed -n '205,215p' rlbrief.js | grep -n 'pct'
+2:    maStackLabel: maStackLabel, pctFromLevel: pctFromLevel, capConfidence: capConfidence,
+
+VERDICT: rlbrief.js:607 pct() is defined once, never called, never exported => dead.
+PCT2_EXIT=0
+```
+
+### SPX-08 — Working tree unchanged outside this report and `state.json`
+
+**Command:** `git --no-pager status --porcelain`
+**Exit Code:** `0`
+**Result:** PASSED — no production source, test, `*-lab.html`, `scripts/`, or `.github/` file modified by this pass
+**Claim Source:** executed
+
+```text
+ M specs/002-distributed-tool-briefs-and-history/report.md
+ M specs/002-distributed-tool-briefs-and-history/state.json
+ M tests/simple-production-wiring.spec.mjs
+?? specs/014-shared-cycle-and-seasonality-exchange/
+?? specs/015-recommendation-outcome-ledger-and-track-record/
+?? specs/016-auction-gamma-playbook/
+?? tests/_tp1504-settle-probe.spec.mjs
+GITSTATUS_EXIT=0
+```
+
+`tests/simple-production-wiring.spec.mjs`, `tests/_tp1504-settle-probe.spec.mjs`, and the untracked
+`specs/014-*`, `specs/015-*`, `specs/016-*` directories belong to the concurrent session and were left
+untouched; they were already present before this pass began.
+
+### This section does NOT claim completion
+
+The `simplify` phase claim is recorded with `dodComplete: false` and `certified: false`. No scope was marked
+Done, no DoD checkbox was changed, feature status remains `in_progress`, and `certification.*` was not
+written — certification remains owned by `bubbles.validate`.
+
+---
+
 ## Historical Notes
 
 Provenance record for the two findings whose supporting language is a statement of the repository's prior

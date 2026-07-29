@@ -2275,4 +2275,173 @@ through the same retention decision. No DoD item was checked on the strength of 
 
 **Claim Source:** executed
 
+---
+
+## Security Phase
+
+**Agent:** `bubbles.security` · **Executed:** 2026-07-29 · **Mode:** analysis-only.
+
+This phase threat-models the DELIVERED Feature 002 surface. It is diagnostic: no production source, no
+test file, no scope artifact, and no DoD checkbox was changed. Two artifacts were written: this section
+and the `state.json` execution record for the `security` phase.
+
+**Threat model.** Research Lab is a build-free static site served from the repository root by GitHub
+Pages, with no server, no session, and no user accounts. That removes most of the usual categories —
+there is no authn/authz surface, no server-side injection, no CSRF target, no secret held at runtime. What
+remains, and what this phase actually examined, is: (1) **content injection**, because brief text and
+citation links flow from generated JSON into the DOM; (2) **link safety**, because a brief can carry an
+authored href; and (3) **secret exposure**, because the repository is world-readable and is itself the
+deployed artifact.
+
+**Claim Source:** executed
+
+---
+
+### SEC-1 — Feature 002's own renderer is properly hardened (verified, no finding)
+
+The distributed-brief renderer does not build links by string concatenation at all. `briefSafeAnchor`
+(`rlbrief.js:1138`) routes every href through `briefClassifyLink` and then constructs the node with
+`briefEl`, which is pure DOM API:
+
+```js
+function briefEl(tag, opts) {
+  var e = document.createElement(tag);
+  if (opts) {
+    if (opts.text != null) e.textContent = String(opts.text);
+    if (opts.cls) e.className = opts.cls;
+    if (opts.part) e.setAttribute("data-rlbrief-part", opts.part);
+    if (opts.attrs) for (var k in opts.attrs) if (opts.attrs[k] != null) e.setAttribute(k, String(opts.attrs[k]));
+  }
+  return e;
+}
+```
+
+`textContent` and `setAttribute` are structurally immune to HTML injection — there is no parse step for a
+payload to escape from. That is the correct construction, not merely an adequate one.
+
+`briefClassifyLink` (`rlbrief.js:293`) is a **default-deny** classifier, and a thorough one:
+
+```text
+empty                      -> unsafe
+contains whitespace        -> unsafe
+javascript|data|vbscript|file|blob:  -> unsafe (forbidden-scheme, case-insensitive)
+leading //                 -> unsafe (protocol-relative)
+http(s):  non-https        -> unsafe (not-https)
+          username/password-> unsafe (credentialed)
+          #fragment        -> unsafe (fragment)
+          malformed URL    -> unsafe (malformed)
+path:     registry allowlist hit, *.html (allowHtml), or safe slug -> registry-path
+          anything else    -> unsafe (unrecognized-path)      <- default deny
+```
+
+Rejected links are not silently dropped or rendered as live anchors — they are downgraded to an inert
+`<span data-rlbrief-link="rejected">` carrying the rejection reason, and surviving https citations get
+`target="_blank"`, `rel="noopener noreferrer"`, and `referrerpolicy="no-referrer"`. This satisfies the
+SCN-002-015 clause "authored markup renders literally while only validated registry or HTTPS citation
+links navigate". **No finding.**
+
+### SEC-F1 — The legacy cockpit `link()` path is unclassified and its escaper does not cover attributes
+
+**Severity: LOW.** **Type: DEFENSE-IN-DEPTH.** **Owner: `bubbles.design`.**
+**Not exploitable on the current tree — see "Reachability" below.**
+
+Alongside the hardened path, `rlbrief.js` retains the older market-brief cockpit renderer, which builds
+anchors by string concatenation into `innerHTML`:
+
+```js
+function esc(s) { return (s == null ? "" : String(s)).replace(/[&<>]/g, function (c) { return { "&": "&amp;", "<": "&lt;", ">": "&gt;" }[c]; }); }
+function link(href, txt) { return href ? '<a class="dl" href="' + esc(href) + '">' + esc(txt || "open ▸") + '</a>' : ""; }
+```
+
+Two properties combine here. First, `esc()` escapes `&`, `<`, `>` — but **not** `"`. Second, its output is
+interpolated into a **double-quoted attribute** (`href="` + esc(href) + `"`). An escaper that does not
+neutralise the attribute's own delimiter cannot, on its own, keep a value inside that attribute. The same
+shape appears in `tkr()` (`rlbrief.js:610`), which places `esc(T)` inside both `href="…"` and `title="…"`.
+
+And the classifier is not applied on this path. `briefClassifyLink` has exactly **one** call site —
+`briefSafeAnchor` at line 1139 — while `link()` is called at five (lines 647, 664, 696, 732, 773), each
+fed by `deepLink(cfg, key, ticker)`, which returns raw values straight out of config:
+
+```js
+function deepLink(cfg, key, ticker) {
+  if (!cfg || !cfg.deepLinks) return "";
+  if (ticker && cfg.deepLinks.stockModels && cfg.deepLinks.stockModels[ticker]) return cfg.deepLinks.stockModels[ticker];
+  return cfg.deepLinks[key] || "";
+}
+```
+
+**Reachability — why this is LOW and not a vulnerability.** I checked the actual inputs rather than
+stopping at the shape:
+
+**Command:** field probe of `market-brief.config.json` `deepLinks`
+**Exit Code:** 0
+**Claim Source:** executed
+
+```text
+  deepLinks keys: ['regime', 'fearGreedVix', 'rotation', 'momentum', 'globalRotation', 'realAssets', 'gold', 'bitcoin']
+    regime       -> 'swing-structure-lab.html'
+    fearGreedVix -> 'swing-structure-lab.html'
+    rotation     -> 'sector-research-lab.html'
+    momentum     -> 'etf-momentum-lab.html'
+```
+
+Every value is a repo-committed, author-controlled filename containing no quote character. The
+`toolReads[].deepLink` values that reach line 696 are likewise hardcoded in the generator functions
+(`deepLink: 'global-rotation-lab.html'`). **There is no untrusted-input path into `link()` on this tree**,
+so this is not a live XSS and is deliberately not reported as one. Anyone able to alter
+`market-brief.config.json` already has commit access to a repository that *is* the deployed artifact, and
+would not need this.
+
+It is recorded because it is a genuine defense-in-depth gap in a codebase that has already built the
+correct tool: a rigorous default-deny classifier exists, the feature's own renderer uses it, and the
+legacy renderer beside it does not — relying instead on an escaper that structurally cannot protect an
+attribute. The cheap hardening is to escape `"` (and `'`) in `esc()`, which costs nothing and removes the
+class entirely; the thorough fix is to route `link()` through `briefClassifyLink` like `briefSafeAnchor`
+does.
+
+**Disposition:** routed to `bubbles.design`. Not actioned here — `rlbrief.js` is shared shell source
+outside this phase's write scope, and it is being actively edited by a concurrent session.
+
+### SEC-2 — No committed secrets or key material (verified, no finding)
+
+**Command:** `git grep` for credential-shaped assignments and private-key blocks across tracked files
+**Exit Code:** 0
+**Claim Source:** executed
+
+```text
+=== secrets scan (tracked files) ===
+rlexperience.js:1527:          var token = controlOptionToken(option.value);
+
+=== private key blocks ===
+.github/bubbles/scripts/security-gate.sh
+specs/012-.../BUG-003-.../report.md
+```
+
+All three hits are false positives, checked individually rather than assumed: the first is a local
+variable named `token` holding a UI control option, not a credential; the second is the Bubbles security
+scanner containing the `BEGIN … PRIVATE KEY` pattern it searches *for*; the third is a bug report quoting
+that scanner. **No secret, API key, or private key is committed.** This matters more than usual here
+because the repository is world-readable and is served verbatim by Pages — anything committed is
+published.
+
+Consistent with the architecture: Research Lab holds no server credentials by design, and provider access
+is configured per-browser in `localStorage` or proxied, never committed.
+
+---
+
+### Security Phase Summary
+
+| ID | Severity | Type | Owner | Actioned here |
+|---|---|---|---|---|
+| SEC-F1 | LOW | DEFENSE-IN-DEPTH | `bubbles.design` | No — shared shell source, concurrent session |
+
+No exploitable vulnerability was found. The feature's own rendering path is correctly hardened
+(default-deny classifier plus DOM construction), no secrets are committed, and the single finding is an
+unexploited defense-in-depth gap on the legacy cockpit path whose inputs are all repo-committed. I have
+deliberately not inflated SEC-F1 into an XSS report: the shape is real, the reachability is not, and
+saying otherwise would be as much a fabrication as suppressing it.
+
+**Claim Source:** executed
+
+
 

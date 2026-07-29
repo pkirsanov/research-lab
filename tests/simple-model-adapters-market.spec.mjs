@@ -474,8 +474,32 @@ async function driveSimple(page, toolId) {
   //   • tool wired but its provider yields null in this harness (no hydratable owner evidence)
   //     -> honest truthful degradation ('unavailable').
   // Either way we start from the real page — the pre-drive state is captured here.
+  //
+  // The production Simple bridge renders ASYNCHRONOUSLY: installSimpleProjectionBridge
+  // (rlexperience.js) handles rlviews:change synchronously but paints through
+  // `Promise.resolve(runtime.prepare(...)).then(...)`, and prepare's cooperative
+  // `control.yield()` uses `setTimeout(..., 0)` — a real TASK boundary. The sole writer of
+  // data-rlexperience-simple-state is renderSimpleProjectionInternal, which runs only in that
+  // continuation. Until it lands the panel still carries the PREVIOUS (boot-time) render, so an
+  // unsynchronized getAttribute samples a stale value: observed on options-flow-feed-lab, whose
+  // panel reads 'unavailable' at click time and settles to 'ready' a few tens of ms later.
+  //
+  // The bridge publishes no settled/hydrated marker (its states — ready/partial/stale/
+  // unavailable/disputed/rejected — are all terminal truth states, and no promise or counter is
+  // exposed), so we observe the bridge's OWN write instead. This wait is value-agnostic: it never
+  // looks at the expected state, so it cannot mask a wrong one. The read and every assertion below
+  // are unchanged — a wired tool that renders 'unavailable' still fails exactly as before.
   await page.getByRole('tab', { name: 'Power', exact: true }).click();
+  await page.evaluate(() => {
+    const node = document.querySelector('[data-rlexperience-panel="simple"]');
+    globalThis.__rlSimpleBridgeRendered = false;
+    new MutationObserver(() => { globalThis.__rlSimpleBridgeRendered = true; })
+      .observe(node, { attributes: true, attributeFilter: ['data-rlexperience-simple-state'] });
+  });
   await page.getByRole('tab', { name: 'Simple', exact: true }).click();
+  // MutationObserver reports every setAttribute, including a same-value write, so this settles on
+  // the unwired 'unavailable' → 'unavailable' render too.
+  await page.waitForFunction(() => globalThis.__rlSimpleBridgeRendered === true, null, { timeout: 20000 });
   const placeholderState = await page.locator('[data-rlexperience-panel="simple"]').getAttribute('data-rlexperience-simple-state');
 
   // Inject the REAL production adapter UMD module (the same file the owning pages load).
@@ -653,6 +677,15 @@ test(TOOLS['intraday-tape-lab'].title, async ({ page }) => { await assertVisible
 test(TOOLS['swing-structure-lab'].title, async ({ page }) => { await assertVisibleSensitivity(page, 'swing-structure-lab'); });
 test(TOOLS['volatility-sizing-lab'].title, async ({ page }) => { await assertVisibleSensitivity(page, 'volatility-sizing-lab'); });
 test(TOOLS['technical-analysis-decision-lab'].title, async ({ page }) => { await assertVisibleSensitivity(page, 'technical-analysis-decision-lab'); });
-test(TOOLS['options-flow-feed-lab'].title, async ({ page }) => { await assertVisibleSensitivity(page, 'options-flow-feed-lab'); });
+// test.slow() (3x the 30s default) for the ONE genuinely long real-page load in this suite. Measured,
+// not guessed: options-flow-feed-lab.html hydrates its same-origin option-chain snapshots on the main
+// thread, so the real shell's Power tab alone spends ~15s in Playwright actionability and the whole
+// test costs ~18-20s in isolation — against a 30s default. Under the 4-worker batch it exceeds 30s.
+// That budget overrun is INDEPENDENT of the settled-read fix above and predates it: with driveSimple
+// reverted to its unsynchronized form this same test still failed the same batch with
+// "Test timeout of 30000ms exceeded" (35.1s) at the Simple tab click. Extra wall clock cannot make a
+// wrong value pass — every assertion is unchanged, and a wired tool that renders 'unavailable' still
+// fails. This is real page cost, not tolerance added to mask the race.
+test(TOOLS['options-flow-feed-lab'].title, async ({ page }) => { test.slow(); await assertVisibleSensitivity(page, 'options-flow-feed-lab'); });
 test(TOOLS['options-structure-lab'].title, async ({ page }) => { await assertVisibleSensitivity(page, 'options-structure-lab'); });
 test(TOOLS['gamma-trading-lab'].title, async ({ page }) => { await assertVisibleSensitivity(page, 'gamma-trading-lab'); });

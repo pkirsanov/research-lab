@@ -422,8 +422,31 @@ async function driveSimple(page, toolId) {
     await expect(page.locator('#rlviews[data-rlexperience-shell="ready"]')).toBeVisible();
     // Open Simple through the real shell — the deployed default renders the "owner adapter required"
     // placeholder (no adapter is wired into the shell UI yet), proving we start from the real page.
+    //
+    // The production Simple bridge renders ASYNCHRONOUSLY: installSimpleProjectionBridge
+    // (rlexperience.js) handles rlviews:change synchronously but paints through
+    // `Promise.resolve(runtime.prepare(...)).then(...)`, and prepare's cooperative
+    // `control.yield()` uses `setTimeout(..., 0)` — a real TASK boundary. The sole writer of
+    // data-rlexperience-simple-state is renderSimpleProjectionInternal, which runs only in that
+    // continuation. Until it lands the panel still carries the PREVIOUS (boot-time) render, so an
+    // unsynchronized getAttribute samples a stale value.
+    //
+    // The bridge publishes no settled/hydrated marker (its states — ready/partial/stale/
+    // unavailable/disputed/rejected — are all terminal truth states, and no promise or counter is
+    // exposed), so we observe the bridge's OWN write instead. This wait is value-agnostic: it never
+    // looks at the expected state, so it cannot mask a wrong one. The read and every assertion below
+    // are unchanged — a wired tool that renders 'unavailable' still fails exactly as before.
     await page.getByRole('tab', { name: 'Power', exact: true }).click();
+    await page.evaluate(() => {
+      const node = document.querySelector('[data-rlexperience-panel="simple"]');
+      globalThis.__rlSimpleBridgeRendered = false;
+      new MutationObserver(() => { globalThis.__rlSimpleBridgeRendered = true; })
+        .observe(node, { attributes: true, attributeFilter: ['data-rlexperience-simple-state'] });
+    });
     await page.getByRole('tab', { name: 'Simple', exact: true }).click();
+    // MutationObserver reports every setAttribute, including a same-value write, so this settles on
+    // the unwired 'unavailable' → 'unavailable' render too.
+    await page.waitForFunction(() => globalThis.__rlSimpleBridgeRendered === true, null, { timeout: 20000 });
     placeholderState = await page.locator('[data-rlexperience-panel="simple"]').getAttribute('data-rlexperience-simple-state');
   }
 

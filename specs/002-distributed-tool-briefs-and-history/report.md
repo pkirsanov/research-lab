@@ -799,7 +799,10 @@ Coverage delta assessment:
   run Playwright **was** available and both files genuinely executed (`static.integration` failed,
   `ui-canary` passed in 38.4s), so neither skipped. Flagged as a latent silent-pass vector: on a host
   without a Playwright runtime, both node-runner UI tests would skip and the suite would still report
-  green. Advisory, pre-existing, and not introduced by this spec.
+  green. Advisory only; recorded as open finding RG-F3 (P2, owner `bubbles.plan`) in
+  `### Regression Phase Open Findings` below. Its provenance — that these guards predate this spec's
+  regression phase rather than being added by it, and the exact evidence that does and does not support
+  that — is stated under `## Historical Notes` at the end of this report.
 
 ### RG-10 — Silent-pass / adversarial guard
 
@@ -1067,7 +1070,12 @@ EXIT_B=0
 Test-count parity is the anti-regression check that matters here: the suite reports the **same 61 tests**
 as the failing run, with `skipped 0` and `todo 0`. Green was not obtained by deleting, skipping, or
 disabling the previously-failing test — the same test now emits `✔` (visible in the tail above, directly
-above `tests/distributed-briefs.support.mjs`).
+above `tests/distributed-briefs.support.mjs`). The single recovered assertion is the RG-05 cross-feature
+regression, filed as `BUG-003` at
+`specs/012-market-action-center-and-guided-tools/bugs/BUG-003-shell-brief-panel-adoption-hides-feature-002-mount/`
+and fixed by the feature-012 workstream in commit `8206c89c`; the recovery is therefore attributable to
+that filed-and-fixed change, not to any coverage change made in this spec. Its disposition row is
+`## Discovered Issues` (`2026-07-29`) at the end of this report.
 
 #### RV-03 — Baseline re-confirmation (no coverage decrease)
 
@@ -1145,3 +1153,65 @@ a clean bill of health for the whole feature.
 **This subsection still does NOT claim completion.** `dodComplete` and `certified` are recorded `false`
 for the `regression` phase. No scope was marked Done, SCOPE-01/02/03 are unchanged, feature status remains
 `in_progress`, and `certification.*` was not written — certification remains owned by `bubbles.validate`.
+
+---
+
+## Historical Notes
+
+Provenance record for the two findings whose supporting language is a statement of the repository's prior
+state rather than a description of work this spec chose not to do. Both are still **OPEN** in
+`### Regression Phase Open Findings` and `#### Updated open-findings state` above. Nothing in this section
+closes, waives, re-dispositions, or claims a fix for either one.
+
+### RG-F2 / RG-04 — full-mode `validate-distributed-briefs.mjs` compat-projection mismatch
+
+`node scripts/validate-distributed-briefs.mjs --root .` exits `1` with
+`B002-PUBLISH-SET / compat-projection-run-mismatch` because `market-brief.payload.json` and
+`market-brief.snapshot.json` carry no `runId` / `runFingerprint` field while `briefs/current.json` does.
+Per the recorded git trace, the payload has carried no `runId` since the pointer was first published on
+2026-07-19, and production wires only `--graph-only`, so full mode is bound by no existing gate. The
+mismatch is therefore historical: it is pre-existing and not introduced by this spec, and the 2026-07-28
+regression phase is the first run that *recorded* it, not the change that *created* it.
+
+**Truth boundary.** The "never green" characterisation rests on the git trace of the payload's absent
+`runId`, not on a re-executed historical full-mode run — already declared verbatim in
+`### Regression Phase Uncertainty Declarations` ("RG-F2 is not gate-observable"). This section restates
+that provenance; it does not upgrade it to an executed claim. Full mode was also **not** re-run on
+2026-07-29, so RG-F2's continued-open status is asserted from the absence of any intervening change to the
+validator or payload surfaces.
+
+**Still OPEN.** RG-F2 (P1), owner `bubbles.design` / `bubbles.plan`. Not fixed here.
+
+### RG-F3 — conditional `t.skip('Playwright runtime unavailable')` environment guards
+
+`tests/distributed-briefs.static.integration.mjs` and `tests/distributed-briefs.ui-canary.mjs` each open
+their UI assertion with `t.skip('Playwright runtime unavailable')` on a runtime-load failure. On a host
+without a Playwright runtime both node-runner UI tests would skip and the suite would still report green —
+a latent silent-pass vector. Advisory, pre-existing, and not introduced by this spec.
+
+**Truth boundary.** "Not introduced by this spec" is supported here by this report's own recorded fact that
+**zero test files were modified** by either the 2026-07-28 regression phase
+(`### Regression Phase Scope and Limits` → `Test files modified: **None**`) or the 2026-07-29
+re-verification (`#### Post-re-verification tree integrity`). It is **not** supported by a `git blame` of
+when the guards were first added; no such command was executed in either session.
+
+**Observed dormant, never exercised.** In RG-09, RV-01, and RV-02 a Playwright runtime *was* available and
+both bodies genuinely executed (`skipped 0` in every run), so neither guard fired. The silent-pass vector
+is a property of a Playwright-less host, which this feature has never exercised on record.
+
+**Still OPEN.** RG-F3 (P2), owner `bubbles.plan`. Not fixed here.
+
+### Why RG-F2 and RG-F3 carry no `## Discovered Issues` row
+
+Neither has a tracked artifact yet, so no honest disposition token applies to them: no bug/spec/ops
+artifact exists on disk for either, and no transition packet naming an owner was emitted. Their recorded
+state is the OPEN row in the finding tables above with a named owner. Creating those artifacts is a filing
+action that this report-only edit did not perform, and it remains owed to `bubbles.design` /
+`bubbles.plan`. Recording that honestly is preferred over writing a disposition token this session cannot
+substantiate.
+
+## Discovered Issues
+
+| Observed | Description | Disposition | Reference |
+|---|---|---|---|
+| 2026-07-29 | RG-05 / RG-F1 — the Feature 002 brief mount was hidden by Feature 012 Scope 15's Simple-adapter wiring, so `tests/distributed-briefs.static.integration.mjs` (TP-10-02) failed deterministically in the full owned node-runner suite (60 pass / 1 fail, exit `1`). | bug-filed | `specs/012-market-action-center-and-guided-tools/bugs/BUG-003-shell-brief-panel-adoption-hides-feature-002-mount/` — filed against feature 012 and **resolved** by the feature-012 workstream in commit `8206c89c`; re-verified green in this session by RV-01 (isolated file, 1 pass / 0 fail, exit `0`) and RV-02 (full owned suite, 61 pass / 0 fail, exit `0`), with the RV-03 baseline unchanged at 952 / 0. |

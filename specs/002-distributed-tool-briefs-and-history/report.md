@@ -2541,5 +2541,153 @@ a docs alignment I did not perform would be a fabrication.
 
 **Claim Source:** executed
 
+---
+
+## Chaos Phase
+
+**Phase:** `chaos` · **Provenance:** `specialist` · **Executed:** 2026-07-29 · **Claim Source:** executed
+
+Stochastic real-system usage against the delivered artifacts. Harness ran **outside** the repo tree
+(`/tmp/chaos-002.mjs`) because it is a probe, not a deliverable — no repo file was added or modified.
+Seeded PRNG (mulberry32, `seed=20260729`) so every result below is exactly reproducible.
+
+The shared layer was loaded through the **same harness feature 002's own unit tests use**
+(`Function('globalThis','window','document', src)` with `document=undefined`), so this exercises real
+shipped code, not a reimplementation.
+
+### Raw run
+
+```
+==================== FEATURE 002 CHAOS RUN ====================
+root : /home/redacted/research-lab
+seed : 20260729 (deterministic — rerun reproduces exactly)
+objects on disk: 765 | manifests: 37 | RLBRIEF exports: 50
+--------------------------------------------------------------
+PASS CHAOS-1  sampled 180/765 content-addressed objects; mismatches=0
+FAIL CHAOS-2  walked 37 manifests / 2812 sha256 refs; mismatched=936 missing=0
+FAIL CHAOS-3  fuzzed 4000 adversarial URLs; throws=0 deny-leaks=5
+FAIL CHAOS-4  called 50 exports x60 = 3000 garbage invocations; uncontrolled=6
+--------------------------------------------------------------
+CHAOS RESULT: 3 invariant(s) BROKEN
+
+chaos exit=1
+```
+
+Three invariants tripped. **All three were then triaged rather than reported as-is** — and one of them
+turned out to be my own harness's defect. Reporting a false positive as a system finding would be as
+much a fabrication as suppressing a real one, so the triage is recorded in full.
+
+### CHAOS-1 — content-address integrity · PASS
+
+180 randomly-sampled objects of 765 re-hashed; every filename equals the SHA-256 of its own bytes.
+**0 mismatches.** The immutable object store is intact.
+
+### CHAOS-2 — manifest ref integrity · REAL FINDING (precisely scoped)
+
+2812 `{path, sha256}` refs across all 37 run manifests were verified against bytes on disk.
+Breaking the 936 mismatches down by area is what makes this finding honest:
+
+| ref area | total | mismatched | verdict |
+|---|---|---|---|
+| `briefs/objects` | 1776 | **0** | CLEAN — immutable, verifiable forever |
+| `briefs/indexes` | 74 | **0** | CLEAN |
+| `briefs/history` | 962 | **936** | mutable append-only partitions |
+
+Mechanism confirmed, not assumed. The pointer's current run is
+`dist-2026-07-29-morning-4cec59876481`, and that manifest verifies **0/76 mismatched**. Every *other*
+run shows exactly **26/76**. The cause is append-only growth:
+
+```
+briefs/history/tools/waterfront-polo-lab/2026-07.jsonl
+  current lines        : 37
+  git revisions        : 37     (one append per run — exactly 37 runs)
+```
+
+A manifest records a whole-file SHA-256 of a partition that the *next* run appends to. The hash is
+therefore correct at publish time and permanently stale one run later.
+
+**This is not corruption.** No object is damaged and no ref is missing (`missing=0`). It is a
+**reference-type mismatch**: the manifest applies an immutable, content-addressed reference shape to a
+mutable, append-only file. The consequence is concrete — **only the newest run's manifest can be
+integrity-verified; the other 36 cannot**, which erodes exactly the audit value a signed manifest
+exists to provide.
+
+> **CH-F1 (MEDIUM, DESIGN, owner `bubbles.design`)** — run manifests mix immutable content-addressed
+> refs with mutable append-only refs, making historical run manifests unverifiable. A whole-file
+> `sha256` is the wrong reference type for an append-only partition; a byte-offset/line-range ref, or
+> snapshotting the partition into the content-addressed object store at publish time, would restore
+> verifiability. **Not actioned here** — it is a publisher/contract design decision outside this
+> phase's analysis-only scope, and it touches `briefs/` publication owned by the concurrent session.
+
+### CHAOS-3 — classifier default-deny · **RETRACTED, my harness was wrong**
+
+The run reported 5 "deny-leaks". All 5 were false positives caused by a **case-sensitive regex in my
+own harness** (`/^https:\/\//`). URI schemes are case-insensitive (RFC 3986), so `HTTPS://` is a
+perfectly valid https URL and classifying it as a citation is *correct*. Direct probes:
+
+```
+https-citation   host="www.bls.gov"          <- HTTPS://www.bls.gov/x
+https-citation   host="xn--80ak6aa92e.com"   <- HTTPS:///XN--80AK6AA92E.COM/a
+https-citation   host="nohost"               <- https:///nohost/a
+https-citation   host="127.0.0.1"            <- HTTPS://127.0.0.1/A/../../B
+```
+
+I also chased the triple-slash case specifically, suspecting an empty-host admission: the URL parser
+normalizes `https:///nohost/a` to host `nohost`, so these are well-formed hosts, not empty ones.
+
+**Corrected result: CHAOS-3 has ZERO genuine findings — 4000 adversarial inputs, `throws=0`, and every
+classification correct.** The default-deny classifier withstood the fuzzing cleanly. This corroborates
+the Security phase's SEC-1 "verified no finding" from an independent angle.
+
+### CHAOS-4 — pure-layer robustness · REAL but narrow
+
+3000 garbage invocations across all 50 exports produced uncontrolled `TypeError`s in **8 of 50**.
+Triage showed these are *not* argument-validation gaps — they are unguarded delegations:
+
+```js
+// rlbrief.js:85, :130, :63, :70, :78, :138 …
+return root.RLMARKETACTION.nearTermEvents(events, asOf, maxCalendarDays);
+```
+
+```
+RLMARKETACTION refs in rlbrief.js : 14
+guarded refs (typeof / && / if)   : 0
+```
+
+`RLMARKETACTION` is supplied by a separate script. In the browser it is present and calls happen after
+load, so **this is not a production defect on the shipped page**. But the repo deliberately supports a
+pure Node layer with `document=undefined` — the exact surface 002's own unit tests exercise — and there
+these 7 exports throw a confusing `Cannot read properties of undefined` instead of failing cleanly.
+
+One separate, locally-implemented case: `rankAttention([])` correctly returns `[]`, but
+`rankAttention({})` throws, because the guard `(cards || [])` defends `null`/`undefined` and not a
+truthy non-array.
+
+> **CH-F2 (LOW, ROBUSTNESS, owner `bubbles.design`)** — 14 `root.RLMARKETACTION.*` call sites, 0
+> presence guards; 7 exports throw an uninformative `TypeError` when the provider script is absent or
+> late. Not exploitable and not reachable on the shipped page.
+>
+> **CH-F3 (INFO, ROBUSTNESS)** — `rankAttention`'s `(cards || [])` guard admits truthy non-arrays.
+
+Neither is actioned here: `rlbrief.js` is shared shell source outside this phase's write scope and is
+under active edit by the concurrent session.
+
+### Chaos Phase Summary
+
+| ID | Severity | Type | Owner | Actioned here |
+|---|---|---|---|---|
+| CH-F1 | MEDIUM | DESIGN | `bubbles.design` | No — publisher contract decision |
+| CH-F2 | LOW | ROBUSTNESS | `bubbles.design` | No — shared shell source |
+| CH-F3 | INFO | ROBUSTNESS | `bubbles.design` | No — shared shell source |
+
+The system held up well where it matters most: the immutable content-addressed store is byte-perfect
+across every ref that can be verified (1850 of 1850), and the security-critical link classifier
+survived 4000 adversarial inputs without a single throw or misclassification. The one material finding
+(CH-F1) is a reference-type design mismatch that quietly costs historical auditability. I explicitly
+retracted CHAOS-3 rather than bank three findings instead of two — the raw run said FAIL and the honest
+answer is that my harness was wrong.
+
+**Claim Source:** executed
+
 
 

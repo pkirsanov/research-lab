@@ -47,6 +47,38 @@ All commands re-run this session (2026-07-19):
 - `node scripts/migrate-brief-history.mjs --check` = **ok:true, bytesUnchanged:true** (`brief-history.jsonl` untouched). [TP-10-22]
 - `node scripts/validate-brief-cache.mjs` = PASS (354); `node scripts/validate-brief-payload.mjs market-brief.payload.json` = PASS.
 
+**Re-verification — Claim Source: executed (2026-07-29).** Every row above that does not need a browser, plus the full Scope-10 acceptance spec, was re-run against the current tree. One row does NOT reproduce: the all-page ui-canary now fails on exactly one of the 23 pages. That is a live cross-feature regression owned by Feature 012, recorded here rather than smoothed over.
+
+```text
+$ node scripts/selftest.mjs
+Research-Lab self-test: 968 passed, 0 failed
+exit=0
+
+$ node --test tests/distributed-briefs.renderer.unit.mjs         -> tests 1 / pass 1 / fail 0   [TP-10-01]
+$ node --test tests/distributed-briefs.static.integration.mjs    -> tests 1 / pass 1 / fail 0   [TP-10-02]
+$ node --test tests/distributed-briefs.consumer-trace.mjs        -> tests 1 / pass 1 / fail 0   [TP-10-17]
+exit=0 for all three
+
+$ node scripts/validate-distributed-briefs.mjs --root .
+exit=0                                                                                          [TP-10-21]
+
+$ node scripts/migrate-brief-history.mjs --check
+"error": null
+exit=0                                                                                          [TP-10-22]
+
+$ npx --no-install playwright test tests/distributed-briefs.spec.mjs --config=playwright.config.mjs --project=system-chrome --reporter=list --workers=1
+  13 passed (15.8s)
+exit=0
+
+$ node --test --test-timeout=300000 tests/distributed-briefs.ui-canary.mjs
+not ok 1 - Canary: enabled source pages render briefs and retain controls/RLDATA/credential lifecycle; the aggregator stays idle
+  options-flow-feed-lab: canary failed: page.waitForSelector: Timeout 30000ms exceeded.
+    waiting for locator('[data-rlbrief-mount][data-rlbrief-ready="1"]')
+pass 0 / fail 1   (the other 22 of 23 pages still pass)                                          [TP-10-03]
+```
+
+Diagnosis of the single failing page: `options-flow-feed-lab.html` was provider-wired by Feature 012 scope 15 (commit `5c83d9d7`), so `rlapp.js` now yields `ownerModes: ["power"]` for it. Its Scope-10 mount is declared `data-simple-target="rlbrief-simple"` (line 657), so with no Simple view present the mount never reaches `data-rlbrief-ready="1"`. That is the exact mechanism of BUG-003, which was repaired for `sector-research-lab` (commit `8206c89c`) but not for the remaining provider-wired pages — `options-flow-feed-lab.html`, `volatility-sizing-lab.html` and `options-structure-lab.html` each still carry three `__rlOwnerStateProvider` registrations alongside a `data-simple-target` mount. BUG-003 is still `in_progress` and is owned by Feature 012; Scope 10 does not modify those pages, so the repair belongs to its owner.
+
 ## Regression Remediation Evidence — Brief-view reveal restore (2026-07-27)
 
 The later `rlviews` shell ("brief lives only in Brief view") regressed this scope's acceptance suite to 0/13. Fix: `mountReady` drives the real `#rlviews` Brief-view control; `rlbrief.js briefSetState` clears `data-rlbrief-mounting` on settle. Working-tree change is confined to `rlbrief.js` (+8/-1) and `tests/distributed-briefs.spec.mjs` (+7) — `git diff --stat`: `2 files changed, 14 insertions(+), 1 deletion(-)`. All three green-bar commands re-run 2026-07-27, full output, exit 0.

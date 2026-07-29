@@ -214,6 +214,33 @@ Research-Lab self-test: 572 passed, 0 failed
 - **Consumer Impact Sweep (Claim Source: executed):** the new `scripts/market-session-evidence.mjs` adapter is additive. `grep -rn "market-session-evidence" --include='*.mjs' --include='*.js' --include='*.json'` shows the only `import`/`require` of the adapter MODULE (`./market-session-evidence.mjs`) is `scripts/selftest.mjs:2455` (the additive Scope 02 selftest group) plus the Scope 02 test files; every other match is a Scope 01 contract-name string (`market-session-evidence-config/v1`, `market-session-evidence/v1`, …) in `rlsession.js`/`rlcontracts.js`/`market-brief.config.json` or the config-key read in `generate-xnys-calendar.mjs:282` — not an adapter import. `scripts/fetch-bars.mjs`, daily snapshots, and Market Brief window labels are untouched, so daily-bar semantics are not repointed and no existing caller is silently changed.
 - **Shared Infrastructure Impact Sweep (Claim Source: executed):** the independent canaries `node scripts/selftest.mjs` (572/0), `node scripts/validate-brief-cache.mjs` (PASS, 354 files), and `node scripts/validate-brief-payload.mjs market-brief.payload.json` (PASS) all pass, confirming the pre-existing daily fetch / Market Brief behavior is unchanged by the additive calendar, source-policy, and acquisition modules. `node scripts/generate-xnys-calendar.mjs --config market-brief.config.json --check` (TP-02-04) proves the committed calendar bytes are byte-stable against the reviewed source.
 - **Rollback (Claim Source: interpreted):** the change boundary is additive-only (new scripts, new tests, new fixtures, one additive `marketSessionEvidence` config block). Narrow rollback is removal of those additive files/block, which restores the previous daily-only consumer path; the green baseline canaries above confirm that daily path already runs independently of the Scope 02 additions. No committed evidence/history object is mutated by the additive change, so rollback touches no unrelated root state.
+**Canary re-verification (Claim Source: executed, 2026-07-29).** The three independent
+canaries cited above were re-run against the current tree to confirm the shared
+foundation contracts still hold and that the documented narrow rollback remains a
+no-op for every pre-existing consumer. The delivery-time counts recorded above
+(selftest 572/0, brief-cache 354 files) are left exactly as they were observed;
+the repository has grown since, so the current run reports higher totals.
+
+```text
+$ node scripts/selftest.mjs
+================================================
+Research-Lab self-test: 968 passed, 0 failed
+================================================
+exit=0
+
+$ node scripts/validate-brief-cache.mjs
+[brief-cache] PASS: 357 JSON cache files parsed; indexes are coherent
+exit=0
+
+$ node scripts/validate-brief-payload.mjs market-brief.payload.json
+[brief-contract] PASS: all visible sections, registry coverage, model-specific real assets, and next-session actions are valid
+exit=0
+```
+
+No existing caller was repointed by the additive Scope 02 surface, so the rollback
+documented above (remove the additive scripts/tests/fixtures and the additive
+`marketSessionEvidence` config block) restores the prior daily-only consumer path
+with these same canaries still green.
 
 ## Uncertainty Declarations
 

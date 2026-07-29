@@ -223,6 +223,33 @@ Research-Lab self-test: 589 passed, 0 failed
 - **Consumer Impact Sweep (Claim Source: executed):** `grep -rnE "(from |require\().*market-session-evidence" --include='*.mjs' --include='*.js' scripts tests` shows the only importers of the adapter MODULE are the additive Scope 02/03 surfaces — `scripts/market-session-evidence-live-check.mjs`, `tests/released-report-evidence.e2e.mjs`, `tests/market-session-evidence.{source.e2e,unit,functional}.mjs` — plus the additive dynamic `await import('./market-session-evidence.mjs')` in the Scope 02/03 selftest groups. No first-party narrative/config/daily-bar consumer (`scripts/brief-refresh.mjs`, `scripts/fetch-bars.mjs`, Bond Regime inflation inputs, Market Brief event notes) imports or is repointed by the additive CPI adapter, so no existing `schedule == released`, prior-period-as-current, unitless-consensus, mutable-revision, or surprise-without-comparable-basis assumption is changed.
 - **Shared Infrastructure Impact Sweep (Claim Source: executed):** the independent canaries `node scripts/selftest.mjs` (589/0), `node scripts/validate-brief-cache.mjs` (PASS, 354 files), and `node scripts/validate-brief-payload.mjs market-brief.payload.json` (PASS) all pass with the additive CPI vertical in place, confirming pre-existing macro/Bond/Market-Brief behavior is unchanged when no released-report ref is supplied. The dual-runtime canary (`node -e` requiring `rlsession.js` + `rlcontracts.js`) shows both consumed foundations load frozen with the report primitives (`normalizeReleasedReport`, `validateReleasedReportEvidence`, `semanticFingerprint`, `validateSourceProvenance`) present.
 - **Rollback (Claim Source: interpreted):** the change is additive-only (CPI block in `market-session-evidence.mjs`, new `--reports` branch in the live-check, new tests/fixtures, additive selftest group; no config or generated report projection was written — `data/reports/cpi` is `absent`). Narrow rollback is removal of those additive files/blocks, which restores the previous daily-only/session-only path; the green baseline canaries confirm that path already runs independently of the CPI additions, and no committed accepted-evidence/history object is mutated.
+**Canary re-verification (Claim Source: executed, 2026-07-29).** The three independent
+canaries cited above were re-run against the current tree to confirm the shared CPI
+evidence contract still holds for its macro/Bond/Market-Brief consumers and that the
+documented narrow rollback remains a no-op. The delivery-time counts recorded above
+(selftest 589/0, brief-cache 354 files) are left exactly as they were observed; the
+repository has grown since, so the current run reports higher totals.
+
+```text
+$ node scripts/selftest.mjs
+================================================
+Research-Lab self-test: 968 passed, 0 failed
+================================================
+exit=0
+
+$ node scripts/validate-brief-cache.mjs
+[brief-cache] PASS: 357 JSON cache files parsed; indexes are coherent
+exit=0
+
+$ node scripts/validate-brief-payload.mjs market-brief.payload.json
+[brief-contract] PASS: all visible sections, registry coverage, model-specific real assets, and next-session actions are valid
+exit=0
+```
+
+No consumer was repointed by the additive CPI vertical, so the rollback documented
+above (remove the additive CPI block, the `--reports` live-check branch, and the
+additive tests/fixtures/selftest group) restores the prior daily-only/session-only
+path with these same canaries still green.
 
 ## Uncertainty Declarations
 

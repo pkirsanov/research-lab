@@ -404,6 +404,16 @@ Research-Lab self-test: 558 passed, 0 failed
 [tool-log] recorded exit=0 duration=776ms → .specify/runtime/tool-calls.jsonl
 ```
 
+**Baseline re-verification — Command:** `node scripts/selftest.mjs` — **Exit Code: 0** — Claim Source: executed (2026-07-29). Re-run against the current tree to confirm the Scope 01 foundation still holds after later scopes landed. The delivery-time count above (558/0) is left exactly as it was observed; the repository has grown since, so the current run reports a higher total.
+
+```text
+$ node scripts/selftest.mjs
+================================================
+Research-Lab self-test: 968 passed, 0 failed
+================================================
+exit=0
+```
+
 #### Final Same-Window Boundary Audit
 
 **Command:** durable `node -e` byte-identity audit (tags `final-audit,window-boundary,byte-identity`) — **Exit Code: 0** — Claim Source: executed.

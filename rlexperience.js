@@ -1770,6 +1770,24 @@
       return slot;
     }
 
+    /* A queued run is a SLOT for the same reason a successor is: queued work must be
+       cancellable. Left as a bare promise it could only be abandoned, and abandoning it
+       does not stop it — `startSimpleRun` mints a FRESH generation when it begins, so a
+       generation bump cannot reach work that has not started yet. Cancelling resolves the
+       promise (never drops it) so awaiters settle instead of hanging. */
+    function scheduledSlot(toolId, state) {
+      var slot = { cancelled: false };
+      slot.promise = new Promise(function (resolve) {
+        slot.cancel = function () { slot.cancelled = true; resolve(null); };
+        Promise.resolve().then(function () {
+          if (slot.cancelled) return;
+          if (state.scheduled === slot) state.scheduled = null;
+          resolve(startSimpleRun(toolId));
+        });
+      });
+      return slot;
+    }
+
     /* Public entry point. Filters first, then coalesces; it never renders directly. */
     function requestSimpleRefresh(options) {
       var toolId = options && options.toolId;
@@ -1787,22 +1805,27 @@
       /* Idle: fold every same-turn request into ONE scheduled run. Because the provider
          is read when that run starts, the coalesced result carries the newest owner
          state rather than the first caller's snapshot. */
-      if (!state.scheduled) {
-        state.scheduled = Promise.resolve().then(function () {
-          state.scheduled = null;
-          return startSimpleRun(toolId);
-        });
-      }
-      return state.scheduled;
+      if (!state.scheduled) state.scheduled = scheduledSlot(toolId, state);
+      return state.scheduled.promise;
     }
 
     /* A view transition supersedes prior Simple work: an in-flight run may no longer
-       commit, and nothing queued survives leaving the view. The cancelled successor is
-       resolved (never dropped) so its awaiters settle instead of hanging. */
+       commit, and nothing queued survives leaving the view. Both queued slots — the
+       scheduled run and the successor — are cancelled, and each cancellation resolves
+       (never drops) its promise so awaiters settle instead of hanging. Cancelling the
+       scheduled slot is what makes the second half of that sentence true: the generation
+       bump above only reaches a run that has already STARTED and captured a claim.
+       `resolveSimpleContext` re-validating at run start is a separate guard for a
+       separate purpose, and it does not fire when the view attribute is unchanged — a
+       same-mode popstate re-entry, which rlviews `selectMode` deliberately does not
+       short-circuit, previously let a stale queued run land after its invalidation. */
     function invalidateSimpleGeneration(toolId) {
       if (!toolId) return;
       var state = toolState(toolId);
       state.generation += 1;
+      var scheduled = state.scheduled;
+      state.scheduled = null;
+      if (scheduled) scheduled.cancel();
       var successor = state.successor;
       state.successor = null;
       if (successor) successor.cancel();

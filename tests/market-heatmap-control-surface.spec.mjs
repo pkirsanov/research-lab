@@ -10,8 +10,9 @@
  *               model input, and actuating all five recomputes production over the
  *               owner state already loaded (no new data request).
  *   SCN-B004-C  A DIRECT Power open shows the native treemap levers #winSeg,
- *               #sizeSeg and #grpSeg, each keyboard-operable and each visibly
- *               changing the output it owns.
+ *               #sizeSeg and #grpSeg alongside the full treemap and the Power
+ *               diagnostics, each keyboard-operable, each visibly changing the
+ *               output it owns AND repainting the treemap it steers.
  *
  * WHY THIS FILE EXISTS AT ALL — the anti-masking rule.
  * The pre-existing TP-15-03/TP-15-04 heatmap coverage clicks Power and then
@@ -50,6 +51,8 @@ const TOOL_ID = 'market-heatmap-lab';
 const ADAPTER_ID = 'simple-adapter/market-breadth/v1';
 const ACTIVE_ROOT = resolve(dirname(fileURLToPath(import.meta.url)), '..');
 const SOURCE_ROOT = resolve(process.env.BUG004_IMMUTABLE_ROOT || ACTIVE_ROOT);
+const HISTORICAL_CONTROLS_RED = process.env.BUG004_HISTORICAL_CONTROLS_RED === '1'
+  && SOURCE_ROOT !== ACTIVE_ROOT;
 /* The native treemap levers, with the output each one owns. Grouping owns the
    sector-breadth panel; window and size own the constituents table. */
 const NATIVE_LEVERS = Object.freeze([
@@ -80,6 +83,34 @@ function declaredParameters() {
   return definition.parameterDefinitions || [];
 }
 
+/* UNIVERSE-DERIVED, never a hand-written ticker list: the symbols the "sectors"
+   grouping needs that the "constituents" grouping does not. Because the page boots
+   in "constituents", these are exactly the symbols a grouping-scoped hydration
+   would have to acquire on the switch — so requiring them to be cached at boot is
+   the direct test of "the lever recomputes over evidence already loaded".
+   Restricted to symbols with a committed snapshot, mirroring the page's own
+   groupMembers() AVAIL filter, so the expectation can never demand a 404. */
+function sectorsOnlySymbols() {
+  const universe = JSON.parse(readFileSync(resolve(SOURCE_ROOT, 'sector-universe.json'), 'utf8'));
+  const available = new Set(
+    JSON.parse(readFileSync(resolve(SOURCE_ROOT, 'data/bars/index.json'), 'utf8')).tickers.map((entry) => entry.sym)
+  );
+  const constituents = new Set();
+  for (const sectorId of Object.keys(universe.sectorMap || {})) {
+    for (const member of universe.sectorMap[sectorId].constituents || []) constituents.add(member.ticker);
+  }
+  const sectorsOnly = new Set();
+  for (const entry of universe.entries || []) {
+    if (!entry || entry.on === false) continue;
+    const symbols = entry.type === 'group'
+      ? (entry.members || []).filter((member) => available.has(member))
+      : (entry.ticker ? [entry.ticker] : []);
+    for (const symbol of symbols) if (!constituents.has(symbol) && available.has(symbol)) sectorsOnly.add(symbol);
+  }
+  if (!sectorsOnly.size) throw new Error('sector-universe.json exposes no sectors-only symbol — this test would be vacuous');
+  return [...sectorsOnly];
+}
+
 /* Observers only. `__bug004Modes` records every shell view transition so the
    no-toggle claim is PROVEN rather than merely intended. */
 async function installObservers(page) {
@@ -101,23 +132,87 @@ async function assertNoModeToggle(page) {
   ).toHaveLength(0);
 }
 
+/* Observer only. Records every distinct value of the page's own hydration marker.
+   `fetchDelta()` sets it to "loading" SYNCHRONOUSLY before it issues anything, so a
+   second "loading" is a timing-independent proof that acquisition was started —
+   it cannot be missed by a request listener that samples too early. */
+async function installHydrationObserver(page) {
+  await page.addInitScript(() => {
+    globalThis.__bug004Hydration = [];
+    const record = () => {
+      const value = document.body.getAttribute('data-heatmap-hydration');
+      if (value === null) return;
+      const seen = globalThis.__bug004Hydration;
+      if (!seen.length || seen[seen.length - 1] !== value) seen.push(value);
+    };
+    const start = () => {
+      record();
+      new MutationObserver(record).observe(document.body, { attributes: true, attributeFilter: ['data-heatmap-hydration'] });
+    };
+    if (document.body) start();
+    else document.addEventListener('DOMContentLoaded', start);
+  });
+}
+
+/* A BUDGET, NEVER AN ORACLE. Boot hydration now covers the UNION of both groupings — 161
+   symbols, up from the 135 of the constituents-only boot — and RLDATA rewrites the whole
+   cache after every accepted symbol, so per-symbol cost climbs as the cache grows. A
+   measured cold open reached symbol 135 at 105s but symbol 161 only at 218s, and flipped
+   the marker to "ready" at 228s: past the previous 240s budget once browser start-up and a
+   loaded host are added. Every symbol resolves from a committed same-origin snapshot and
+   the observed marker sequence was exactly ["loading","ready"], so this is arrival latency,
+   not a stall. Raising the bound only extends how long we WAIT — never reaching "ready"
+   still fails. */
+const OWNER_HYDRATION_TIMEOUT_MS = 480000;
+
 /* The page's own end-of-hydration signal. `boot()` marks "loading" and the final
    fetchDelta() marks "ready" — this is the exact transition after which the owner
-   provider holds the fully hydrated universe. */
+   provider holds the fully hydrated universe. On expiry it reports what the page actually
+   settled on, so a stuck marker (a product hang) can never be misread as a slow host. */
 async function awaitOwnerHydration(page) {
-  await page.waitForFunction(
-    () => document.body.getAttribute('data-heatmap-hydration') === 'ready',
-    null,
-    { timeout: 240000 }
+  const reached = await page
+    .waitForFunction(
+      () => document.body.getAttribute('data-heatmap-hydration') === 'ready',
+      null,
+      { timeout: OWNER_HYDRATION_TIMEOUT_MS }
+    )
+    .then(() => true)
+    .catch(() => false);
+  if (reached) return;
+  const observed = await page.evaluate(() => ({
+    hydration: document.body.getAttribute('data-heatmap-hydration'),
+    status: (document.getElementById('status') || {}).textContent || null,
+    view: document.body.getAttribute('data-rlview')
+  }));
+  throw new Error(
+    `owner hydration never reached "ready" within ${OWNER_HYDRATION_TIMEOUT_MS}ms. Observed ${JSON.stringify(observed)}. ` +
+    'A marker stuck on "loading" with a non-advancing symbol count is a product hang, not a slow host.'
   );
+}
+
+/* Pixel fingerprint of the PAINTED treemap. This is what makes "the lever steers the map"
+   an assertion rather than an assumption: `drawTreemap()` owns this canvas, and reading it
+   back with getImageData proves the actuation reached the rendered output instead of only
+   moving a button's selected class. Same-origin canvas, plain read — nothing is stubbed. */
+async function treemapFingerprint(page) {
+  return page.evaluate(() => {
+    const canvas = document.querySelector('#tm');
+    if (!canvas || typeof canvas.getContext !== 'function' || !canvas.width || !canvas.height) return null;
+    const context = canvas.getContext('2d');
+    if (!context) return null;
+    const { data } = context.getImageData(0, 0, canvas.width, canvas.height);
+    let hash = 0x811c9dc5;
+    for (let index = 0; index < data.length; index += 1) hash = Math.imul(hash ^ data[index], 0x01000193);
+    return `${canvas.width}x${canvas.height}:${(hash >>> 0).toString(16)}`;
+  });
 }
 
 /* Run the PRODUCTION path in-page on the page's live owner state, exactly the way
    the bridge does — same provider seam, same registry definition, same runtime,
    same defaults. It renders nothing, so the panel under assertion is untouched.
    No formula is restated and no expected value is hard-coded here. */
-async function productionResultForLiveOwnerState(page, toolId, parameterValues) {
-  return page.evaluate(async ({ id, requestedValues }) => {
+async function productionResultForLiveOwnerState(page, toolId, parameterValues, options = {}) {
+  return page.evaluate(async ({ id, requestedValues, renderSimplePanel }) => {
     const providers = globalThis.__rlOwnerStateProvider;
     if (!providers || typeof providers[id] !== 'function') return { fatal: `no owner-state provider registered for ${id}` };
     let ownerState = null;
@@ -149,6 +244,32 @@ async function productionResultForLiveOwnerState(page, toolId, parameterValues) 
     if (registrars.length !== 1) return { fatal: `expected exactly one register*Adapters export, saw ${JSON.stringify(registrars)}` };
 
     try {
+      /* Immutable-baseline reproduction only. Invoke the PAGE'S OWN low-level
+         production bridge after its real hydration so 31ea9942 can reach the
+         missing-control assertion without manufacturing a mode transition. */
+      if (renderSimplePanel) {
+        const panel = document.querySelector('[data-rlexperience-panel="simple"]');
+        const tools = registration.registry && registration.registry.tools;
+        const tool = Array.isArray(tools) ? tools.find((candidate) => candidate && candidate.id === id) : null;
+        if (!panel) return { fatal: 'the page exposes no Simple panel' };
+        if (!tool || !tool.experience) return { fatal: `the page exposes no production experience for ${id}` };
+        const projection = await api.renderSimpleBridge({
+          panel,
+          toolId: id,
+          toolExperience: tool.experience,
+          definition,
+          ownerState,
+          moduleObject,
+          registerFnName: registrars[0],
+          adapterId: definition.adapterId,
+          api,
+          config,
+          computedAt: new Date().toISOString()
+        });
+        if (!projection) return { ok: false, reason: 'bridge-render-returned-null' };
+        return { ok: true, state: projection.state, adapter: projection.adapterId };
+      }
+
       const created = api.createSimpleRuntime(config, { contractVersion: 'simple-model-registry/v1', definitions: [definition] });
       if (!created || !created.ok) return { ok: false, reason: 'runtime-create-failed' };
       const runtime = created.value;
@@ -189,7 +310,11 @@ async function productionResultForLiveOwnerState(page, toolId, parameterValues) 
     } catch (error) {
       return { ok: false, reason: `threw: ${error && error.message}` };
     }
-  }, { id: toolId, requestedValues: parameterValues || null });
+  }, {
+    id: toolId,
+    requestedValues: parameterValues || null,
+    renderSimplePanel: options.renderSimplePanel === true
+  });
 }
 
 async function readSimpleControlValues(page) {
@@ -298,10 +423,10 @@ async function awaitPanelReadyUntouched(page, timeout) {
 }
 
 test('BUG-004 SCN-B004-A: direct Simple cold-open requalifies after owner hydration without a mode change', async ({ page }) => {
-  /* One full 135-symbol hydration plus an in-page production re-run; the default
+  /* One full 161-symbol union hydration plus an in-page production re-run; the default
      30s budget cannot express that. Generous on purpose — it bounds the run, it
      never relaxes an assertion. */
-  test.setTimeout(600000);
+  test.setTimeout(900000);
 
   await installObservers(page);
   const requests = [];
@@ -347,7 +472,7 @@ test('BUG-004 SCN-B004-A: direct Simple cold-open requalifies after owner hydrat
 });
 
 test('BUG-004 SCN-B004-B: ready Simple applies all five registry controls with owner parity and zero post-hydration requests', async ({ page }) => {
-  test.setTimeout(600000);
+  test.setTimeout(900000);
 
   await installObservers(page);
   const requests = [];
@@ -359,6 +484,18 @@ test('BUG-004 SCN-B004-B: ready Simple applies all five registry controls with o
   await awaitOwnerHydration(page);
 
   const panel = page.locator('[data-rlexperience-panel="simple"]');
+  if (HISTORICAL_CONTROLS_RED) {
+    const historical = await productionResultForLiveOwnerState(
+      page,
+      TOOL_ID,
+      null,
+      { renderSimplePanel: true }
+    );
+    expect(historical.fatal, `historical production bridge failed: ${historical.fatal}`).toBeUndefined();
+    expect(historical.ok, `historical production bridge did not render (${historical.reason})`).toBe(true);
+    expect(historical.state, 'historical production bridge must reach ready before control assertions').toBe('ready');
+    expect(historical.adapter).toBe(ADAPTER_ID);
+  }
   await awaitPanelReadyUntouched(page, 60000);
   await expect(panel).toHaveAttribute('data-rlexperience-adapter', ADAPTER_ID);
   await assertNoModeToggle(page);
@@ -418,7 +555,7 @@ test('BUG-004 SCN-B004-B: ready Simple applies all five registry controls with o
 });
 
 test('BUG-004 SCN-B004-C: direct Power applies native treemap controls with zero post-hydration requests', async ({ page }) => {
-  test.setTimeout(600000);
+  test.setTimeout(900000);
 
   const requests = [];
   page.on('request', (request) => requests.push(request.url()));
@@ -431,14 +568,25 @@ test('BUG-004 SCN-B004-C: direct Power applies native treemap controls with zero
 
   await awaitOwnerHydration(page);
 
-  const mapPanel = page.locator('#simpleWrap > .panel').filter({ has: page.locator('#tm') });
-  await expect(mapPanel).toHaveCount(1);
+  /* THE AUTHORED CONTRACT, NOT THE MARKUP SHAPE. bug.md Expected Behavior #3 is "Power
+     exposes the native heatmap controls #winSeg, #sizeSeg, and #grpSeg ALONGSIDE the full
+     treemap and diagnostics". "Alongside" is co-presence in the Power view; neither spec.md
+     nor design.md states any containment requirement. Asserting a shared DOM ancestor would
+     test nesting instead — and would contradict the shipped fix, which deliberately keeps
+     the levers OUT of the `.simple-only` block precisely so Power can drop the Simple
+     verdict copy while keeping the levers (see the markup comment in market-heatmap-lab.html).
+     So the requirement is asserted as: every lever visible (that IS finding F-BUG004-C —
+     Power hid all three), the full treemap visible in the same view, the Power diagnostics
+     visible, and — in the loop below — every lever provably steering the rendered output. */
+  await expect(page.locator('#tm'), 'the full treemap must be visible alongside the levers').toBeVisible();
   await expect(page.locator('#heatmap-table-panel')).toBeVisible();
   await expect(page.locator('#tbl')).toBeVisible();
   for (const lever of NATIVE_LEVERS) {
+    const group = page.locator(`#${lever.id}`);
+    await expect(group, `#${lever.id} ("${lever.label}") must exist exactly once`).toHaveCount(1);
     await expect(
-      mapPanel.locator(`#${lever.id}`),
-      `the single native lever #${lever.id} ("${lever.label}") must be visible inside Map`
+      group,
+      `the native lever #${lever.id} ("${lever.label}") must be visible in Power — F-BUG004-C hid all three`
     ).toBeVisible();
   }
 
@@ -458,6 +606,8 @@ test('BUG-004 SCN-B004-C: direct Power applies native treemap controls with zero
     expect(targetValue, `#${lever.id} must offer a setting other than the current one`).not.toBe(selectedBefore);
 
     const ownedBefore = await page.locator(lever.ownedOutput).textContent();
+    const treemapBefore = await treemapFingerprint(page);
+    expect(treemapBefore, `#${lever.id}: the treemap must already be painted before actuation`).not.toBeNull();
 
     // Keyboard operation, not a synthetic click: focus the real button and press Enter.
     await target.focus();
@@ -468,10 +618,95 @@ test('BUG-004 SCN-B004-C: direct Power applies native treemap controls with zero
     await expect
       .poll(async () => group.locator('button.on').getAttribute(lever.attribute), { timeout: 20000 })
       .toBe(targetValue);
-    // ...and the output this lever owns visibly changed.
+    // ...the output this lever owns visibly changed...
     await expect
       .poll(async () => (await page.locator(lever.ownedOutput).textContent()) !== ownedBefore, { timeout: 30000 })
       .toBe(true);
+    /* ...and the TREEMAP ITSELF repainted differently. This is the assertion that makes
+       "the levers steer the map" real: without it a lever could pass by changing only a
+       side panel while the map it owns stayed frozen. */
+    await expect
+      .poll(async () => (await treemapFingerprint(page)) !== treemapBefore, {
+        timeout: 30000,
+        message: `#${lever.id} ("${lever.label}") must repaint the treemap it steers, not just its own label`
+      })
+      .toBe(true);
     expect(requests, `#${lever.id} must recompute from the boot-hydrated union without acquisition`).toHaveLength(0);
   }
+});
+
+test('BUG-004 SCN-B004-D: boot hydrates the union of both groupings, so the grouping lever acquires nothing', async ({ page }) => {
+  /* Grouping is one of the five declared Simple levers, and BUG-004 Expected Behavior #4
+     says a lever "changes real production computation over already-loaded owner data.
+     Lever changes do not refetch data." The page booted in "constituents", so if
+     hydration were scoped to the CURRENT grouping the switch to "sectors" would have to
+     acquire every sectors-only symbol. This test asserts the union directly (the symbols
+     are cached before the lever is touched) AND that actuating the lever acquires nothing. */
+  test.setTimeout(900000);
+
+  const requests = [];
+  page.on('request', (request) => requests.push(request.url()));
+  await installHydrationObserver(page);
+
+  // Power: the native grouping lever is operable here, exactly as SCN-B004-C establishes.
+  await page.goto(`${site.baseUrl}/${TOOL_ID}.html#power`);
+  await expect(page.locator('#rlviews[data-rlexperience-shell="ready"]')).toBeVisible();
+  await expect(page.locator('body')).toHaveAttribute('data-rlview', 'power');
+  await awaitOwnerHydration(page);
+  await page.waitForLoadState('networkidle');
+
+  const grouping = page.locator('#grpSeg');
+  const bootedGrouping = await grouping.locator('button.on').getAttribute('data-g');
+  expect(bootedGrouping, 'the page must boot into a concrete grouping').not.toBeNull();
+
+  /* THE UNION DISCRIMINATOR. Read through the page's OWN cache accessor — no fetch, no
+     interception — and require a cached bar series for every symbol only the OTHER
+     grouping needs. A grouping-scoped hydration leaves these null. */
+  const sectorsOnly = sectorsOnlySymbols();
+  const uncached = await page.evaluate((symbols) => {
+    if (!globalThis.RLDATA || typeof RLDATA.bars !== 'function') return { fatal: 'the page exposes no RLDATA.bars cache accessor' };
+    return { missing: symbols.filter((symbol) => !(RLDATA.bars(symbol, '1d') || []).length) };
+  }, sectorsOnly);
+  expect(uncached.fatal, `cache probe failed: ${uncached.fatal}`).toBeUndefined();
+  expect(
+    uncached.missing,
+    `boot hydrated only the "${bootedGrouping}" grouping. Switching grouping would have to acquire ` +
+    `${uncached.missing ? uncached.missing.length : '?'} of ${sectorsOnly.length} sectors-only symbols ` +
+    `(${JSON.stringify(uncached.missing)}), so the grouping lever is not a pure recompute.`
+  ).toEqual([]);
+
+  const hydrationBefore = await page.evaluate(() => globalThis.__bug004Hydration.slice());
+  expect(hydrationBefore[hydrationBefore.length - 1], 'boot hydration must have settled before the lever is touched').toBe('ready');
+
+  const breadthBefore = await page.locator('#breadth').textContent();
+  requests.length = 0;
+
+  // Keyboard operation of the real lever — no synthetic click, no injected event.
+  const target = grouping.locator('button:not(.on)').first();
+  const targetValue = await target.getAttribute('data-g');
+  expect(targetValue, '#grpSeg must offer a grouping other than the booted one').not.toBe(bootedGrouping);
+  await target.focus();
+  await expect(target).toBeFocused();
+  await page.keyboard.press('Enter');
+
+  await expect
+    .poll(async () => grouping.locator('button.on').getAttribute('data-g'), { timeout: 20000 })
+    .toBe(targetValue);
+  // The declared output actually recomputed — this is a real model change, not a label swap.
+  await expect
+    .poll(async () => (await page.locator('#breadth').textContent()) !== breadthBefore, { timeout: 30000 })
+    .toBe(true);
+
+  /* Settle any request the actuation could have issued so the count below cannot pass by
+     sampling too early; `networkidle` waits for the network to go quiet, it intercepts nothing. */
+  await page.waitForLoadState('networkidle');
+
+  expect(
+    await page.evaluate(() => globalThis.__bug004Hydration.slice()),
+    'the grouping lever must not re-enter hydration — a second "loading" is an acquisition'
+  ).toEqual(hydrationBefore);
+  expect(
+    requests,
+    `the grouping lever must issue no request; observed ${requests.length}: ${JSON.stringify(requests.slice(0, 8))}`
+  ).toHaveLength(0);
 });

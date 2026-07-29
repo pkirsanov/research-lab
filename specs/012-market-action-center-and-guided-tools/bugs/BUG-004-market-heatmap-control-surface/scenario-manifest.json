@@ -48,7 +48,7 @@
         {
           "testPath": "tests/market-heatmap-control-surface.spec.mjs",
           "testTitle": "BUG-004 SCN-B004-A: direct Simple cold-open requalifies after owner hydration without a mode change",
-          "command": "npx --no-install playwright test tests/market-heatmap-control-surface.spec.mjs --config=playwright.config.mjs --project=system-chrome --grep \"^BUG-004 SCN-B004-A: direct Simple cold-open requalifies after owner hydration without a mode change$\" --reporter=list",
+          "command": "npx --no-install playwright test --config=playwright.config.mjs --project=system-chrome tests/market-heatmap-control-surface.spec.mjs --grep \"BUG-004 SCN-B004-A: direct Simple\" --reporter=list",
           "adversarial": true,
           "liveSystem": true,
           "classification": "e2e-ui real local page and same-origin static server with request and view-event observation only",
@@ -99,7 +99,7 @@
         {
           "testPath": "tests/market-heatmap-control-surface.spec.mjs",
           "testTitle": "BUG-004 SCN-B004-B: ready Simple applies all five registry controls with owner parity and zero post-hydration requests",
-          "command": "npx --no-install playwright test tests/market-heatmap-control-surface.spec.mjs --config=playwright.config.mjs --project=system-chrome --grep \"^BUG-004 SCN-B004-B: ready Simple applies all five registry controls with owner parity and zero post-hydration requests$\" --reporter=list",
+          "command": "npx --no-install playwright test --config=playwright.config.mjs --project=system-chrome tests/market-heatmap-control-surface.spec.mjs --grep \"BUG-004 SCN-B004-B: ready Simple\" --reporter=list",
           "adversarial": true,
           "liveSystem": true,
           "classification": "e2e-ui real local page and same-origin static server with request observation only",
@@ -145,7 +145,7 @@
         {
           "testPath": "tests/market-heatmap-control-surface.spec.mjs",
           "testTitle": "BUG-004 SCN-B004-C: direct Power applies native treemap controls with zero post-hydration requests",
-          "command": "npx --no-install playwright test tests/market-heatmap-control-surface.spec.mjs --config=playwright.config.mjs --project=system-chrome --grep \"^BUG-004 SCN-B004-C: direct Power applies native treemap controls with zero post-hydration requests$\" --reporter=list",
+          "command": "npx --no-install playwright test --config=playwright.config.mjs --project=system-chrome tests/market-heatmap-control-surface.spec.mjs --grep \"BUG-004 SCN-B004-C: direct Power\" --reporter=list",
           "adversarial": true,
           "liveSystem": true,
           "classification": "e2e-ui real local page and same-origin static server with request observation only",

@@ -323,15 +323,15 @@
 
     <!-- SIMPLE cockpit -->
     <div id="simpleWrap">
-        <!-- BUG-004 F-BUG004-C: .simple-only scopes the Simple-only VERDICT COPY, never the
-             native levers. Power replaces the verdict with its own richer diagnostics, but it
-             still has to steer the treemap, so #winSeg/#sizeSeg/#grpSeg live outside the
-             Power-hidden block. Marking the whole panel .simple-only hid all three. -->
+        <div class="panel simple-only">
+            <div class="verdict" id="verdict">—</div>
+            <div class="vsub" id="verdictSub">Reading the map…</div>
+        </div>
         <div class="panel">
-            <div class="simple-only">
-                <div class="verdict" id="verdict">—</div>
-                <div class="vsub" id="verdictSub">Reading the map…</div>
-            </div>
+            <h2>Map <span class="hint" id="mapHint"></span></h2>
+            <!-- BUG-004 F-BUG004-C: Power replaces only the Simple verdict. The single
+                 native lever node stays beside the treemap it owns; controls are moved,
+                 never cloned, so IDs, state, handlers, and accessible names remain stable. -->
             <div class="levers">
                 <div class="ctl"><span class="lbl">Color</span>
                     <div class="seg" id="winSeg" aria-label="Color window">
@@ -354,9 +354,6 @@
                     </div>
                 </div>
             </div>
-        </div>
-        <div class="panel">
-            <h2>Map <span class="hint" id="mapHint"></span></h2>
             <div class="cvwrap"><canvas id="tm" height="460"
                     aria-label="Market heatmap treemap: tiles grouped by sector, sized by the chosen metric, colored by return. The Power view has an equivalent sortable table."></canvas>
             </div>
@@ -671,12 +668,14 @@
                 if (e.type === "group") return groupMembers(e);
                 return e.ticker ? [e.ticker] : [];   /* guard: never emit undefined (was → data/bars/undefined.json 404) */
             }
+            /* The UNION of BOTH groupings, never only the current one. Grouping is one of the
+               five declared Simple levers, and a lever recomputes over evidence already loaded.
+               Scoping this to state.grp is what forced the grouping switch to acquire the other
+               grouping's symbols; hydrating the union once at boot makes the switch pure compute. */
             function symList() {
                 var out = {}, i, s, cs, j, ss, q;
-                if (state.grp === "sectors") {
-                    for (i = 0; i < UNI.entries.length; i++) { ss = entrySyms(UNI.entries[i]); for (q = 0; q < ss.length; q++) out[ss[q]] = 1; }
-                }
-                else { for (s in UNI.sectorMap) { cs = UNI.sectorMap[s].constituents || []; for (j = 0; j < cs.length; j++) out[cs[j].ticker] = 1; } }
+                for (i = 0; i < UNI.entries.length; i++) { ss = entrySyms(UNI.entries[i]); for (q = 0; q < ss.length; q++) out[ss[q]] = 1; }
+                for (s in UNI.sectorMap) { cs = UNI.sectorMap[s].constituents || []; for (j = 0; j < cs.length; j++) out[cs[j].ticker] = 1; }
                 return Object.keys(out);
             }
 
@@ -976,7 +975,8 @@
                 seg("modeSeg", "m", setMode);
                 seg("winSeg", "w", function (v) { state.win = v; saveState(); render(); });
                 seg("sizeSeg", "s", function (v) { state.size = v; saveState(); render(); });
-                seg("grpSeg", "g", function (v) { state.grp = v; saveState(); fetchDelta(); render(); });
+                /* No fetchDelta(): boot hydrated the union, so every grouping is already loaded. */
+                seg("grpSeg", "g", function (v) { state.grp = v; saveState(); render(); });
                 var th = document.querySelectorAll("#tbl th");
                 for (var i = 0; i < th.length; i++) th[i].addEventListener("click", function (e) {
                     var k = e.currentTarget.getAttribute("data-k"); if (state.sortK === k) state.sortDir *= -1; else { state.sortK = k; state.sortDir = (k === "ticker" || k === "sector") ? 1 : -1; } renderTable();

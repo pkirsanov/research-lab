@@ -201,3 +201,159 @@ test('missing adapter module → honest unavailable (no crash), never mutates rl
   assert.equal(projection.state, 'unavailable', 'absent adapter module must degrade to honest unavailable');
   assert.deepEqual(harness.bodyClassOps, [], 'the bridge must not mutate body.classList when the module is absent');
 });
+
+/* ────────────────────────────────────────────────────────────────────────────
+   The Simple refresh coordinator's invalidation contract.
+
+   `invalidateSimpleGeneration` documents that "an in-flight run may no longer
+   commit, and nothing queued survives leaving the view". The generation bump
+   delivers the first half: an in-flight run captured a claim, so bumping the
+   counter makes its `mayPaint()` false. It cannot deliver the second half —
+   `startSimpleRun` mints a FRESH claim when it begins, so a run that has not
+   started yet is untouched by the bump.
+
+   The scenario below is the faithful one, not a contrived DOM state. `rlviews`
+   `selectMode` deliberately does NOT short-circuit a same-mode transition when
+   the source is "popstate", and `apply()` re-dispatches `rlviews:change` while
+   `applyVisual` leaves `data-rlview` on the mode it already had. So Back/Forward
+   landing on the same Simple view is a real invalidation whose view attribute is
+   unchanged — the one case `resolveSimpleContext`'s re-validation cannot catch.
+
+   REAL PRODUCTION COORDINATOR, no interception: the real rlexperience.js
+   installs its listener on a real EventTarget, the real registered adapter runs
+   over the real reducer's owner snapshot. Only the DOM host is minimal.
+   ──────────────────────────────────────────────────────────────────────────── */
+
+function makeCoordinatorHarness() {
+  const saved = {
+    document: globalThis.document,
+    addEventListener: globalThis.addEventListener,
+    dispatchEvent: globalThis.dispatchEvent,
+    registration: globalThis.__rlviewsRegistration,
+    providers: globalThis.__rlOwnerStateProvider,
+    marketStructure: globalThis.RLMARKETSTRUCTURE,
+    experience: globalThis.RLEXPERIENCE
+  };
+
+  const bus = new EventTarget();
+  globalThis.addEventListener = bus.addEventListener.bind(bus);
+  globalThis.dispatchEvent = bus.dispatchEvent.bind(bus);
+
+  const bodyClassOps = [];
+  const documentRef = { createElement: (tag) => makeElement(tag, documentRef) };
+  const panel = makeElement('section', documentRef);
+  documentRef.body = makeElement('body', documentRef);
+  documentRef.body.classList = {
+    add: (name) => bodyClassOps.push(['add', name]),
+    remove: (name) => bodyClassOps.push(['remove', name]),
+    toggle: (name, force) => bodyClassOps.push(['toggle', name, force])
+  };
+  documentRef.body.setAttribute('data-rlview', 'simple');
+  documentRef.querySelector = (selector) => (selector === '[data-rlexperience-panel="simple"]' ? panel : null);
+  globalThis.document = documentRef;
+
+  const definition = breadthDefinition();
+  globalThis.RLMARKETSTRUCTURE = loadMarketStructure();
+
+  // Re-required AFTER the bus exists, so the production coordinator binds to it.
+  const api = loadProductionApi();
+  globalThis.RLEXPERIENCE = api;
+
+  globalThis.__rlviewsRegistration = {
+    shell: { toolId: TOOL_ID },
+    registry: {
+      tools: [{
+        id: TOOL_ID,
+        experience: { kind: 'ordinary', simpleAdapterId: ADAPTER_ID, simpleAdapterModule: ADAPTER_MODULE, simpleModelDefinitionId: definition.definitionId }
+      }]
+    },
+    simpleModels: { definitions: [definition] },
+    config: readJson('tool-experience.config.json')
+  };
+  globalThis.__rlOwnerStateProvider = { [TOOL_ID]: () => realOwnerState() };
+
+  return {
+    api,
+    panel,
+    bodyClassOps,
+    /* rlviews `apply()`: `applyVisual` writes data-rlview FIRST, then dispatches. A
+       same-mode popstate re-entry therefore dispatches with the attribute unchanged. */
+    viewChange(mode) {
+      documentRef.body.setAttribute('data-rlview', mode);
+      globalThis.dispatchEvent(new CustomEvent('rlviews:change', { detail: { mode, previousMode: 'simple', baseMode: mode, toolId: TOOL_ID } }));
+    },
+    restore() {
+      globalThis.document = saved.document;
+      globalThis.__rlviewsRegistration = saved.registration;
+      globalThis.__rlOwnerStateProvider = saved.providers;
+      globalThis.RLMARKETSTRUCTURE = saved.marketStructure;
+      globalThis.RLEXPERIENCE = saved.experience;
+      if (saved.addEventListener === undefined) delete globalThis.addEventListener; else globalThis.addEventListener = saved.addEventListener;
+      if (saved.dispatchEvent === undefined) delete globalThis.dispatchEvent; else globalThis.dispatchEvent = saved.dispatchEvent;
+    }
+  };
+}
+
+/* Resolve to the promise's value, or to the HUNG sentinel if it never settles.
+   A dropped (never-resolved) slot is a hang, and a hang must fail loudly rather
+   than time the suite out with no explanation. */
+const HUNG = Symbol('never settled');
+function settledValue(promise, ms) {
+  let timer = null;
+  return Promise.race([
+    promise,
+    new Promise((resolve) => { timer = setTimeout(() => resolve(HUNG), ms); })
+  ]).finally(() => clearTimeout(timer));
+}
+
+test('a queued Simple run does not survive an invalidation, and its promise settles', async () => {
+  const harness = makeCoordinatorHarness();
+  try {
+    // Queued, not yet started: `requestSimpleRefresh` defers the run by a microtask.
+    const queued = harness.api.requestSimpleRefresh({ toolId: TOOL_ID });
+
+    // Same synchronous turn: a same-mode popstate re-entry invalidates before the run begins.
+    harness.viewChange('simple');
+
+    // A caller asking AFTER the invalidation must not be handed the invalidated work.
+    const afterInvalidation = harness.api.requestSimpleRefresh({ toolId: TOOL_ID });
+    assert.notEqual(
+      queued,
+      afterInvalidation,
+      'the invalidated queued run must not be reused: a request made after the invalidation must receive fresh work'
+    );
+
+    const queuedValue = await settledValue(queued, 2000);
+    assert.notEqual(queuedValue, HUNG, 'the cancelled queued run must resolve, never be dropped — its awaiters must settle');
+    assert.equal(
+      queuedValue,
+      null,
+      'the queued run was invalidated before it started, so it must resolve null rather than land a result'
+    );
+
+    // Non-weakening: cancelling the stale slot must not cost the re-entry its repaint.
+    const fresh = await settledValue(afterInvalidation, 5000);
+    assert.notEqual(fresh, HUNG, 'the post-invalidation request must settle');
+    assert.equal(fresh && fresh.state, 'ready', 'the re-entry into Simple must still paint the real adapter projection');
+    assert.equal(harness.panel.getAttribute('data-rlexperience-simple-state'), 'ready');
+    assert.deepEqual(harness.bodyClassOps, [], 'the coordinator must not mutate body.classList');
+  } finally {
+    harness.restore();
+  }
+});
+
+test('leaving Simple altogether also settles the queued run without painting', async () => {
+  const harness = makeCoordinatorHarness();
+  try {
+    const queued = harness.api.requestSimpleRefresh({ toolId: TOOL_ID });
+    harness.viewChange('power');
+
+    const queuedValue = await settledValue(queued, 2000);
+    assert.notEqual(queuedValue, HUNG, 'the queued run must settle when the view is left');
+    assert.equal(queuedValue, null, 'nothing queued may land after leaving the view');
+    assert.equal(harness.panel.getAttribute('data-rlexperience-simple-state'), null, 'no projection may be painted after leaving Simple');
+    assert.deepEqual(harness.bodyClassOps, [], 'the coordinator must not mutate body.classList');
+  } finally {
+    harness.restore();
+  }
+});

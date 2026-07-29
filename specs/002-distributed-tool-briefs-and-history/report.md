@@ -1933,3 +1933,191 @@ assertions, all 13 browser regressions, all four node-runner tests, and the migr
 No production source was modified by this phase.
 
 **Claim Source:** interpreted
+
+---
+
+## Harden Phase
+
+**Agent:** `bubbles.harden` · **Executed:** 2026-07-29 · **Mode:** analysis-only.
+
+This phase pressure-tests the DELIVERED Feature 002 surface for robustness. It is diagnostic: no
+production source, no test file, no scope artifact, and no DoD checkbox was changed. Two artifacts were
+written: this section and the `state.json` execution record for the `harden` phase.
+
+### Harden Execution Environment
+
+A concurrent agent session was running Playwright (`tests/simple-production-wiring.spec.mjs`) throughout,
+at load average 6.42. Because of that contention this phase deliberately exercised the **node-runner**
+surface, which needs no browser and therefore cannot be perturbed by — or perturb — the other session's
+browser run. No browser test was executed here, so no timeout re-run was required.
+
+Every command below was run **bare**, with `$?` captured directly. No command was piped, because a
+pipeline reports the *last* stage's status rather than the command's own — the mistake that produced one
+false `exit=0` claim earlier in this spec and had to be publicly corrected.
+
+**Claim Source:** executed
+
+---
+
+### HD-1 — Owned node-runner suite: 81 / 81 green
+
+**Command:** `node --test` over the 34 owned non-Playwright test files (`tests/distributed-briefs*.mjs`
+plus `tests/brief-refresh-atomicity.test.mjs`, excluding `*.spec.mjs` and the browser canaries)
+**Exit Code:** 0
+**Claim Source:** executed
+
+`tests/distributed-briefs.spec.mjs` is excluded deliberately: it is a Playwright file matched by
+`testMatch: '**/*.spec.mjs'`, and running it under `node --test` aborts the worker before any assertion
+(already recorded at line 131-134 of this report).
+
+```text
+ok 9 - tests/distributed-briefs.authorship.stress.mjs
+ok 22 - tests/distributed-briefs.history.load.mjs
+ok 31 - tests/distributed-briefs.scheduler.stress.mjs
+ok 34 - tests/distributed-briefs.support.mjs
+1..81
+# tests 81
+# suites 0
+# pass 81
+# fail 0
+# cancelled 0
+# skipped 0
+# todo 0
+# duration_ms 54019.333996
+```
+
+This is a broader surface than the 61-test subset used during the regression phase: it additionally
+covers the stress and load files (`authorship.stress`, `history.load`, `scheduler.stress`). Zero
+failures, zero skips, zero todo.
+
+### HD-2 — Repository baseline unchanged
+
+**Command:** `node scripts/selftest.mjs`
+**Exit Code:** 0
+**Claim Source:** executed
+
+```text
+  * rlapp.js own ownerModes expression yields ["power"] for a provider-wired ordinary tool,
+    ["simple","power"] for an unwired one (no regression), and ["brief"] for a brief-only tool
+  * rlviews.js own rlv-focused predicate, fed those real ownerModes, focuses a wired tool Simple,
+    leaves Power unfocused, and never focuses an unwired native Simple or a brief view
+  * RLEXPERIENCE.renderSimpleBridge is exposed on the production API
+  * a wired tool with no owner state degrades to an honest unavailable that names the missing owner
+    adapter, publishes a null numeric, paints no numeric node, and invents no signal (market-heatmap-lab)
+  * the bridge never mutates body.classList on the unavailable path - applyVisual stays the sole owner
+    of rlv-focused (BUG-003 invariant, 0 recorded mutations)
+
+================================================
+Research-Lab self-test: 968 passed, 0 failed
+================================================
+```
+
+Note the last line of that excerpt: the BUG-003 invariant that caused the RG-05 regression is still
+asserted and still green, so the cross-feature fix in `8206c89c` has not silently eroded.
+
+---
+
+### HD-F1 — Crash-recovery (`resumePublish`) has no production caller
+
+**Severity: MEDIUM.** **Type: UNREACHABLE.** **Owner: `bubbles.design` / `bubbles.plan`.**
+
+`scripts/brief-publication.mjs:654` implements `resumePublish(journal, options)` — the crash/interrupt
+recovery path. It is well-designed: it re-validates staged-byte hashes before resuming and refuses on
+`resume-hash-drift`; it maps `pushed` to an idempotent no-op, `committed` to `push-exact-commit`, and
+`promoted`/`staged` to `commit-exact-staged`; and every resume carries `reacquire:false` and
+`reauthor:false`, so a resume can never re-fetch a source or re-author a brief.
+
+It is also genuinely adversarially tested — two independent drift injections, not a tautology:
+`scripts/selftest.mjs:3788` (`sha256:bb` against `sha256:aa`) and
+`tests/distributed-briefs.scheduler-failures.integration.mjs:132` (`'sha256:deadbeef'`), both asserting
+`resume-hash-drift`.
+
+**But nothing in production calls it.**
+
+**Command:** caller census across `scripts/` and `tests/`
+**Exit Code:** 0
+**Claim Source:** executed
+
+```text
+resumePublish in brief-refresh.mjs: 0 occurrence(s)
+resumePublish in any non-test script:
+  scripts/brief-publication.mjs        <- its own definition, nothing else
+```
+
+`scripts/brief-refresh.mjs:25-29` imports ten symbols from `brief-publication.mjs` and `resumePublish`
+is not among them:
+
+```js
+import {
+  buildPublishSet, validatePublishSet, validateRunIdentity, promotePublishSet,
+  stagePublishSet, commitPublication, pushPublication, classifyRemoteOverlap,
+  createRunState, advanceRunState
+} from './brief-publication.mjs';
+```
+
+**Consequence.** If a live scheduled publish were interrupted between `promote` and `push`, the
+implemented recovery would not run, because no live code path reaches it. The capability is real and
+proven in test, but unreachable in production.
+
+**This is consistent with — and explained by — GAP-F1a, not a separate defect.** The whole evidence-first
+distributed transaction is gated behind the `--distributed-run` seam that
+`scripts/brief-refresh.mjs:1274-1280` documents as *"deliberately NOT wired into the live launchd path
+… until the Scope 10 cutover flips production loading."* `resumePublish` is one more capability sitting
+behind that same gate. It is recorded separately because the blast radius differs: GAP-F1a is a
+reporting/coherence mismatch, whereas this one only bites during an actual interrupted publish.
+
+**Disposition:** routed to `bubbles.design` / `bubbles.plan` as a rider on the existing cutover decision
+already tracked by GAP-F1. Not actioned here — the fix is in the concurrently-active brief workstream's
+live publish path, and the resolution is the same cutover decision, not an independent edit.
+
+### HD-O1 — Observation: happy-path resume tests self-compare, though the drift path is properly adversarial
+
+**Severity: LOW.** **Type: TEST-STRENGTH.** **Owner: `bubbles.test`.**
+
+The *success*-path resume assertions supply `currentHashes` by reading it out of the journal being
+tested — `resumePublish(journal, { currentHashes: journal.stagedHashes })` at
+`tests/distributed-briefs.scheduler.e2e.mjs:108`, `…scheduler.stress.mjs:69`, and
+`…scheduler-failures.integration.mjs:116`. Comparing a value against itself cannot drift, so those three
+assertions prove the *no-drift* branch is reachable but prove nothing about reconciling the journal
+against real on-disk bytes.
+
+This is explicitly **not** a claim that the drift guard is untested — HD-F1 records two genuine
+adversarial injections that do assert `resume-hash-drift`. The narrower point is that the happy path is
+self-referential, so a defect in how on-disk hashes are actually gathered would not be caught by these
+three.
+
+**Disposition:** recorded, not actioned. Fixing it means editing files under `tests/`, which this phase
+is scoped out of. Low severity because the failure branch — the one that protects correctness — is
+adversarially covered.
+
+### HD-3 — Concurrency handling reviewed and found sound (no finding)
+
+`classifyRemoteOverlap` (`scripts/brief-publication.mjs:635`) was reviewed specifically because this
+working tree is under genuine concurrent-push pressure: three separate agent sessions pushed during this
+phase and this feature's work had to be merged three times. The function intersects remote-changed paths
+against the run's declared inventory and refuses with `B002-REMOTE-OVERLAP / declared-path-overlap` on
+any intersection, otherwise reporting `reconcilable: true`. That is the correct shape for this object
+store — content-addressed objects under `briefs/objects/**` cannot collide by construction, so only the
+small set of *declared* mutable paths (the pointer, the indexes) can genuinely conflict, and those are
+exactly what it guards.
+
+No finding. Recorded because "reviewed and sound" is a real result, and because leaving it unmentioned
+would make it look unexamined given the concurrency conditions this phase actually ran under.
+
+---
+
+### Harden Phase Summary
+
+| ID | Severity | Type | Owner | Actioned here |
+|---|---|---|---|---|
+| HD-F1 | MEDIUM | UNREACHABLE | `bubbles.design` / `bubbles.plan` | No — rider on the GAP-F1 cutover decision |
+| HD-O1 | LOW | TEST-STRENGTH | `bubbles.test` | No — requires editing `tests/` |
+
+Both executed surfaces are green (81/81 owned, 968/0 baseline). No new *defect* was found in the
+delivered Feature 002 code: HD-F1 is an unreachability that the already-routed cutover decision governs,
+and HD-O1 is a test-strength observation whose corresponding failure branch is adversarially covered. No
+finding was invented to make this phase look productive, and no DoD item was checked on the strength of
+anything above.
+
+**Claim Source:** executed
+

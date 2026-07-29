@@ -262,26 +262,10 @@ test('TP-15-03 market-heatmap Simple renders real steerable controls and actuati
   const target = Number(lever.max);
   expect(target, 'the actuated value must differ from the default, or nothing is being steered').not.toBe(declaredThreshold.defaultValue);
 
-  /* ── 3. LET HYDRATION FINISH. market-heatmap-lab rebuilds its owner state on every
-     provider call from 135 progressively-hydrating constituents, so while the page is
-     still fetching, the panel's render and any re-run are taken from different owner
-     states by construction. Waiting for the page's own traffic to go quiet settles that —
-     and it doubles as the baseline for the no-refetch window below. Failure to reach quiet
-     is a FAILURE, never a skip. */
-  const waitForNetworkQuiet = async (quietMs, budgetMs) => {
-    const deadline = Date.now() + budgetMs;
-    let seen = requests.length;
-    let since = Date.now();
-    while (Date.now() < deadline && Date.now() - since < quietMs) {
-      await page.waitForTimeout(250);
-      if (requests.length !== seen) {
-        seen = requests.length;
-        since = Date.now();
-      }
-    }
-    expect(Date.now() - since, 'the page never went network-quiet, so owner state cannot settle and a no-refetch window cannot be measured').toBeGreaterThanOrEqual(quietMs);
-  };
-  await waitForNetworkQuiet(3000, 240000);
+  /* ── 3. WAIT FOR THE PAGE'S TERMINAL HYDRATION CONTRACT. market-heatmap-lab owns
+     completion through body[data-heatmap-hydration="ready"], so owner-state sampling
+     starts only after that declared boundary. Request timing does not define hydration. */
+  await awaitDeclaredHydrationBoundary(page, 'data-heatmap-hydration');
 
   /* ── 4. THE PARAMETER IS A REAL MODEL INPUT (spec.md L492), proved DRIFT-FREE: both
      production runs happen inside ONE evaluate on ONE owner-state read, so the only
@@ -383,15 +367,16 @@ test('TP-15-03 market-heatmap Simple renders real steerable controls and actuati
   // NON-VACUOUS: the value the user reads really changed. An unchanged render fails here.
   expect(after.message, 'moving a real model input must change the rendered projection').not.toBe(before.message);
 
-  /* ── 5. NO REFETCH. Let the page go quiet again, zero the recorded requests, then
-     actuate the lever once more (Home → declared minimum, a real in-domain change that
-     forces a real recompute) and require that window to be empty. Requests are recorded by
-     a LISTENER — never `page.route`/`intercept`. */
-  await waitForNetworkQuiet(2000, 90000);
+  /* ── 5. NO REFETCH. Reconfirm the page-owned terminal hydration boundary (idempotent
+     once body[data-heatmap-hydration="ready"]), then zero the request ledger immediately
+     before actuating the lever (Home → declared minimum, a real in-domain change that
+     forces a real recompute). Requests are recorded by a LISTENER — never
+     `page.route`/`intercept`. */
+  await awaitDeclaredHydrationBoundary(page, 'data-heatmap-hydration');
 
   const seenBeforeRecompute = await bridgeWrites();
-  requests.length = 0;
   await threshold.focus();
+  requests.length = 0;
   await page.keyboard.press('Home');
   await awaitBridgeWrite(seenBeforeRecompute);
   const recomputeRequests = requests.slice();

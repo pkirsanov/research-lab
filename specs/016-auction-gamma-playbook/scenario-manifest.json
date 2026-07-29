@@ -1,0 +1,515 @@
+{
+  "contractVersion": 1,
+  "schemaVersion": 1,
+  "version": 1,
+  "spec": "016",
+  "featureDir": "specs/016-auction-gamma-playbook",
+  "generatedBy": "bubbles.analyst",
+  "evidenceBoundary": "Analyst-owned scenario contract only. Feature 016 has not been designed, planned or implemented: the feature folder contains spec.md and this manifest plus state.json and nothing else, no scopes exist, and no Test Plan command has been run. Every scenario therefore carries scopeId null, empty linkedTests and empty evidenceRefs. scopeId is deliberately unassigned because bubbles.plan owns scope decomposition and scope ownership; inventing a scope id here would be fabrication. Each requiredTestType is an ANALYST-PROPOSED classification derived from that scenario's own Then-clauses - e2e-ui where the assertion is about what is displayed, labelled, scanned or visually distinguishable; functional where the assertion is a classification, a derivation, a refusal outcome or a confidence bound checkable without the rendered surface; integration where the assertion spans two surfaces or a session boundary. spec.md '## Downstream Handoffs' assigns binding test-plan category selection to bubbles.plan under item 5 ('Test-plan categories must match the host's build-free reality'), so bubbles.plan may override any classification here. Titles are transcribed verbatim from the '### BS-016-NNN:' headings in spec.md. Each scenario carries both scenarioId and id with the same value: traceability-guard.sh counts scenarios by grepping '\"scenarioId\"', while schemas/scenario-manifest.schema.json declares 'id' required.",
+  "scenarios": [
+    {
+      "scenarioId": "BS-016-001",
+      "id": "BS-016-001",
+      "specSection": "## Business Scenarios",
+      "title": "Balancing auction under a suppressive regime expects the value-area edge to hold",
+      "scopeId": null,
+      "requiredTestType": "e2e-ui",
+      "regressionRequired": true,
+      "lockdown": {
+        "state": "unlocked"
+      },
+      "linkedTests": [],
+      "evidenceRefs": []
+    },
+    {
+      "scenarioId": "BS-016-002",
+      "id": "BS-016-002",
+      "specSection": "## Business Scenarios",
+      "title": "Balancing auction under an amplifying regime downgrades the rotation expectation",
+      "scopeId": null,
+      "requiredTestType": "e2e-ui",
+      "regressionRequired": true,
+      "lockdown": {
+        "state": "unlocked"
+      },
+      "linkedTests": [],
+      "evidenceRefs": []
+    },
+    {
+      "scenarioId": "BS-016-003",
+      "id": "BS-016-003",
+      "specSection": "## Business Scenarios",
+      "title": "Balancing auction near the flip asserts neither hold nor break",
+      "scopeId": null,
+      "requiredTestType": "functional",
+      "regressionRequired": true,
+      "lockdown": {
+        "state": "unlocked"
+      },
+      "linkedTests": [],
+      "evidenceRefs": []
+    },
+    {
+      "scenarioId": "BS-016-004",
+      "id": "BS-016-004",
+      "specSection": "## Business Scenarios",
+      "title": "Imbalanced auction under a suppressive regime expects the extension to be dampened",
+      "scopeId": null,
+      "requiredTestType": "e2e-ui",
+      "regressionRequired": true,
+      "lockdown": {
+        "state": "unlocked"
+      },
+      "linkedTests": [],
+      "evidenceRefs": []
+    },
+    {
+      "scenarioId": "BS-016-005",
+      "id": "BS-016-005",
+      "specSection": "## Business Scenarios",
+      "title": "Imbalanced auction under an amplifying regime expects continuation",
+      "scopeId": null,
+      "requiredTestType": "e2e-ui",
+      "regressionRequired": true,
+      "lockdown": {
+        "state": "unlocked"
+      },
+      "linkedTests": [],
+      "evidenceRefs": []
+    },
+    {
+      "scenarioId": "BS-016-006",
+      "id": "BS-016-006",
+      "specSection": "## Business Scenarios",
+      "title": "Imbalanced auction near the flip withholds the behavioural expectation",
+      "scopeId": null,
+      "requiredTestType": "functional",
+      "regressionRequired": true,
+      "lockdown": {
+        "state": "unlocked"
+      },
+      "linkedTests": [],
+      "evidenceRefs": []
+    },
+    {
+      "scenarioId": "BS-016-007",
+      "id": "BS-016-007",
+      "specSection": "## Business Scenarios",
+      "title": "Identical structure under opposite regimes yields opposite expectations",
+      "scopeId": null,
+      "requiredTestType": "functional",
+      "regressionRequired": true,
+      "lockdown": {
+        "state": "unlocked"
+      },
+      "linkedTests": [],
+      "evidenceRefs": []
+    },
+    {
+      "scenarioId": "BS-016-008",
+      "id": "BS-016-008",
+      "specSection": "## Business Scenarios",
+      "title": "A ready gamma context with no auction state asserts nothing",
+      "scopeId": null,
+      "requiredTestType": "functional",
+      "regressionRequired": true,
+      "lockdown": {
+        "state": "unlocked"
+      },
+      "linkedTests": [],
+      "evidenceRefs": []
+    },
+    {
+      "scenarioId": "BS-016-009",
+      "id": "BS-016-009",
+      "specSection": "## Business Scenarios",
+      "title": "No level, target or direction originates from a gamma primitive",
+      "scopeId": null,
+      "requiredTestType": "functional",
+      "regressionRequired": true,
+      "lockdown": {
+        "state": "unlocked"
+      },
+      "linkedTests": [],
+      "evidenceRefs": []
+    },
+    {
+      "scenarioId": "BS-016-010",
+      "id": "BS-016-010",
+      "specSection": "## Business Scenarios",
+      "title": "A forming auction state converts gamma context into an asserted cell on readiness",
+      "scopeId": null,
+      "requiredTestType": "e2e-ui",
+      "regressionRequired": true,
+      "lockdown": {
+        "state": "unlocked"
+      },
+      "linkedTests": [],
+      "evidenceRefs": []
+    },
+    {
+      "scenarioId": "BS-016-011",
+      "id": "BS-016-011",
+      "specSection": "## Business Scenarios",
+      "title": "A pairing with no definable falsifier is not asserted",
+      "scopeId": null,
+      "requiredTestType": "functional",
+      "regressionRequired": true,
+      "lockdown": {
+        "state": "unlocked"
+      },
+      "linkedTests": [],
+      "evidenceRefs": []
+    },
+    {
+      "scenarioId": "BS-016-012",
+      "id": "BS-016-012",
+      "specSection": "## Business Scenarios",
+      "title": "Every asserted cell exposes a falsifier the user can check unaided",
+      "scopeId": null,
+      "requiredTestType": "e2e-ui",
+      "regressionRequired": true,
+      "lockdown": {
+        "state": "unlocked"
+      },
+      "linkedTests": [],
+      "evidenceRefs": []
+    },
+    {
+      "scenarioId": "BS-016-013",
+      "id": "BS-016-013",
+      "specSection": "## Business Scenarios",
+      "title": "The regime carries its own falsifier, distinct from the expectation's",
+      "scopeId": null,
+      "requiredTestType": "functional",
+      "regressionRequired": true,
+      "lockdown": {
+        "state": "unlocked"
+      },
+      "linkedTests": [],
+      "evidenceRefs": []
+    },
+    {
+      "scenarioId": "BS-016-014",
+      "id": "BS-016-014",
+      "specSection": "## Business Scenarios",
+      "title": "A missing gamma half yields a named auction-only read",
+      "scopeId": null,
+      "requiredTestType": "functional",
+      "regressionRequired": true,
+      "lockdown": {
+        "state": "unlocked"
+      },
+      "linkedTests": [],
+      "evidenceRefs": []
+    },
+    {
+      "scenarioId": "BS-016-015",
+      "id": "BS-016-015",
+      "specSection": "## Business Scenarios",
+      "title": "An absent regime is never rendered as a neutral one",
+      "scopeId": null,
+      "requiredTestType": "e2e-ui",
+      "regressionRequired": true,
+      "lockdown": {
+        "state": "unlocked"
+      },
+      "linkedTests": [],
+      "evidenceRefs": []
+    },
+    {
+      "scenarioId": "BS-016-016",
+      "id": "BS-016-016",
+      "specSection": "## Business Scenarios",
+      "title": "A reduced read is structurally distinguishable from a qualified cell",
+      "scopeId": null,
+      "requiredTestType": "e2e-ui",
+      "regressionRequired": true,
+      "lockdown": {
+        "state": "unlocked"
+      },
+      "linkedTests": [],
+      "evidenceRefs": []
+    },
+    {
+      "scenarioId": "BS-016-017",
+      "id": "BS-016-017",
+      "specSection": "## Business Scenarios",
+      "title": "A reduced read re-qualifies when usable gamma evidence arrives",
+      "scopeId": null,
+      "requiredTestType": "integration",
+      "regressionRequired": true,
+      "lockdown": {
+        "state": "unlocked"
+      },
+      "linkedTests": [],
+      "evidenceRefs": []
+    },
+    {
+      "scenarioId": "BS-016-018",
+      "id": "BS-016-018",
+      "specSection": "## Business Scenarios",
+      "title": "A cutoff mismatch reduces the read instead of silently fusing",
+      "scopeId": null,
+      "requiredTestType": "functional",
+      "regressionRequired": true,
+      "lockdown": {
+        "state": "unlocked"
+      },
+      "linkedTests": [],
+      "evidenceRefs": []
+    },
+    {
+      "scenarioId": "BS-016-019",
+      "id": "BS-016-019",
+      "specSection": "## Business Scenarios",
+      "title": "The declared cutoff is never widened to admit a stale input",
+      "scopeId": null,
+      "requiredTestType": "functional",
+      "regressionRequired": true,
+      "lockdown": {
+        "state": "unlocked"
+      },
+      "linkedTests": [],
+      "evidenceRefs": []
+    },
+    {
+      "scenarioId": "BS-016-020",
+      "id": "BS-016-020",
+      "specSection": "## Business Scenarios",
+      "title": "A prior-session snapshot never renders as a current reading",
+      "scopeId": null,
+      "requiredTestType": "e2e-ui",
+      "regressionRequired": true,
+      "lockdown": {
+        "state": "unlocked"
+      },
+      "linkedTests": [],
+      "evidenceRefs": []
+    },
+    {
+      "scenarioId": "BS-016-021",
+      "id": "BS-016-021",
+      "specSection": "## Business Scenarios",
+      "title": "Fusion never upgrades an input's provenance class",
+      "scopeId": null,
+      "requiredTestType": "functional",
+      "regressionRequired": true,
+      "lockdown": {
+        "state": "unlocked"
+      },
+      "linkedTests": [],
+      "evidenceRefs": []
+    },
+    {
+      "scenarioId": "BS-016-022",
+      "id": "BS-016-022",
+      "specSection": "## Business Scenarios",
+      "title": "Stated confidence cannot exceed the weakest participating input",
+      "scopeId": null,
+      "requiredTestType": "functional",
+      "regressionRequired": true,
+      "lockdown": {
+        "state": "unlocked"
+      },
+      "linkedTests": [],
+      "evidenceRefs": []
+    },
+    {
+      "scenarioId": "BS-016-023",
+      "id": "BS-016-023",
+      "specSection": "## Business Scenarios",
+      "title": "Thin snapshot coverage bounds confidence and is named in the cell's own basis",
+      "scopeId": null,
+      "requiredTestType": "functional",
+      "regressionRequired": true,
+      "lockdown": {
+        "state": "unlocked"
+      },
+      "linkedTests": [],
+      "evidenceRefs": []
+    },
+    {
+      "scenarioId": "BS-016-024",
+      "id": "BS-016-024",
+      "specSection": "## Business Scenarios",
+      "title": "Coverage too thin to support any regime yields a reduced read",
+      "scopeId": null,
+      "requiredTestType": "functional",
+      "regressionRequired": true,
+      "lockdown": {
+        "state": "unlocked"
+      },
+      "linkedTests": [],
+      "evidenceRefs": []
+    },
+    {
+      "scenarioId": "BS-016-025",
+      "id": "BS-016-025",
+      "specSection": "## Business Scenarios",
+      "title": "Hinge proximity refuses a suppressive or amplifying claim",
+      "scopeId": null,
+      "requiredTestType": "functional",
+      "regressionRequired": true,
+      "lockdown": {
+        "state": "unlocked"
+      },
+      "linkedTests": [],
+      "evidenceRefs": []
+    },
+    {
+      "scenarioId": "BS-016-026",
+      "id": "BS-016-026",
+      "specSection": "## Business Scenarios",
+      "title": "A flip outside the sampled band is stated as not locatable",
+      "scopeId": null,
+      "requiredTestType": "functional",
+      "regressionRequired": true,
+      "lockdown": {
+        "state": "unlocked"
+      },
+      "linkedTests": [],
+      "evidenceRefs": []
+    },
+    {
+      "scenarioId": "BS-016-027",
+      "id": "BS-016-027",
+      "specSection": "## Business Scenarios",
+      "title": "A ticker outside the published snapshot set has no same-origin gamma evidence",
+      "scopeId": null,
+      "requiredTestType": "functional",
+      "regressionRequired": true,
+      "lockdown": {
+        "state": "unlocked"
+      },
+      "linkedTests": [],
+      "evidenceRefs": []
+    },
+    {
+      "scenarioId": "BS-016-028",
+      "id": "BS-016-028",
+      "specSection": "## Business Scenarios",
+      "title": "The signed-volume series is never presented as order flow",
+      "scopeId": null,
+      "requiredTestType": "e2e-ui",
+      "regressionRequired": true,
+      "lockdown": {
+        "state": "unlocked"
+      },
+      "linkedTests": [],
+      "evidenceRefs": []
+    },
+    {
+      "scenarioId": "BS-016-029",
+      "id": "BS-016-029",
+      "specSection": "## Business Scenarios",
+      "title": "The value area is labelled a bar-derived bucket approximation",
+      "scopeId": null,
+      "requiredTestType": "e2e-ui",
+      "regressionRequired": true,
+      "lockdown": {
+        "state": "unlocked"
+      },
+      "linkedTests": [],
+      "evidenceRefs": []
+    },
+    {
+      "scenarioId": "BS-016-030",
+      "id": "BS-016-030",
+      "specSection": "## Business Scenarios",
+      "title": "The early-session balance is labelled a declared window, not a classical interval",
+      "scopeId": null,
+      "requiredTestType": "e2e-ui",
+      "regressionRequired": true,
+      "lockdown": {
+        "state": "unlocked"
+      },
+      "linkedTests": [],
+      "evidenceRefs": []
+    },
+    {
+      "scenarioId": "BS-016-031",
+      "id": "BS-016-031",
+      "specSection": "## Business Scenarios",
+      "title": "The playbook adds no fifth top-level view",
+      "scopeId": null,
+      "requiredTestType": "e2e-ui",
+      "regressionRequired": true,
+      "lockdown": {
+        "state": "unlocked"
+      },
+      "linkedTests": [],
+      "evidenceRefs": []
+    },
+    {
+      "scenarioId": "BS-016-032",
+      "id": "BS-016-032",
+      "specSection": "## Business Scenarios",
+      "title": "Excluding gamma context yields a labelled auction-only read",
+      "scopeId": null,
+      "requiredTestType": "e2e-ui",
+      "regressionRequired": true,
+      "lockdown": {
+        "state": "unlocked"
+      },
+      "linkedTests": [],
+      "evidenceRefs": []
+    },
+    {
+      "scenarioId": "BS-016-033",
+      "id": "BS-016-033",
+      "specSection": "## Business Scenarios",
+      "title": "An excluded gamma half is distinguishable from an unavailable one",
+      "scopeId": null,
+      "requiredTestType": "e2e-ui",
+      "regressionRequired": true,
+      "lockdown": {
+        "state": "unlocked"
+      },
+      "linkedTests": [],
+      "evidenceRefs": []
+    },
+    {
+      "scenarioId": "BS-016-034",
+      "id": "BS-016-034",
+      "specSection": "## Business Scenarios",
+      "title": "An asserted expectation is recoverable and gradeable after the session",
+      "scopeId": null,
+      "requiredTestType": "integration",
+      "regressionRequired": true,
+      "lockdown": {
+        "state": "unlocked"
+      },
+      "linkedTests": [],
+      "evidenceRefs": []
+    },
+    {
+      "scenarioId": "BS-016-035",
+      "id": "BS-016-035",
+      "specSection": "## Business Scenarios",
+      "title": "A regime-change invalidation is recorded distinctly from a falsified expectation",
+      "scopeId": null,
+      "requiredTestType": "integration",
+      "regressionRequired": true,
+      "lockdown": {
+        "state": "unlocked"
+      },
+      "linkedTests": [],
+      "evidenceRefs": []
+    },
+    {
+      "scenarioId": "BS-016-036",
+      "id": "BS-016-036",
+      "specSection": "## Business Scenarios",
+      "title": "The session qualifier reconciles with the deeper options evidence",
+      "scopeId": null,
+      "requiredTestType": "integration",
+      "regressionRequired": true,
+      "lockdown": {
+        "state": "unlocked"
+      },
+      "linkedTests": [],
+      "evidenceRefs": []
+    }
+  ]
+}

@@ -1,0 +1,366 @@
+{
+  "version": 3,
+  "featureDir": "specs/016-auction-gamma-playbook",
+  "featureName": "Auction × Gamma Playbook",
+  "createdAt": "2026-07-28T16:09:22Z",
+  "status": "not_started",
+  "workflowMode": "product-to-planning",
+  "linkedImplementationSpec": null,
+  "linkedPlanningPacket": null,
+  "planningOnly": false,
+  "planningOnlyJustification": null,
+  "specDependsOn": [],
+  "certifiedAt": null,
+  "requiresRevalidation": false,
+  "execution": {
+    "activeAgent": "bubbles.validate",
+    "currentPhase": "validate",
+    "currentScope": null,
+    "runStartedAt": "2026-07-28T16:09:22Z",
+    "completedPhaseClaims": [
+      "docs",
+      "harden"
+    ],
+    "pendingTransitionRequests": [],
+    "nextRequiredOwner": "bubbles.validate",
+    "audit": {
+      "schemaVersion": "audit-run/v1",
+      "runId": "RUN-016-AUDIT-20260729T164251Z",
+      "currentAttemptId": "AUD-016-004",
+      "attempts": [
+        {
+          "attemptId": "AUD-016-001",
+          "resultState": "SUPERSEDED",
+          "agent": "bubbles.audit",
+          "recordedAt": "2026-07-29T06:05:25Z",
+          "targetRevision": "sha256:2fcdecde84da2da0ddf7925a8b9bf625adf6fc73acb46a8973e3769cf160349a",
+          "contractDigest": "sha256:b3cb88eff3d0f9298932bc3b00c7f9ed9079ac5b7c074749656a18c6d80d3190",
+          "auditProfile": "planning-maturity-v1",
+          "targetStatus": "specs_hardened",
+          "auditVerdict": "BLOCKED",
+          "outcome": "blocked",
+          "blockedReason": "SOURCE_EDIT_LOCKOUT (EXTERNAL, not attributable to this spec). Gate G073 blocks because the working-tree file rlexperience.js is modified. That file is outside spec 016's declared Implementation Boundary entirely: design.md mentions bare rlexperience.js 0 times, so it is neither an editable path nor a consumed-never-modified path for this feature. It was modified at 2026-07-29T06:14:29Z, 26 minutes AFTER this audit's first guard run at 2026-07-29T05:48:18Z, which had G073 in passedGateIds. It belongs to a concurrent session that also owns the only other modified path in the tree, specs/013-market-regime-stack-and-strategy-playbook/state.json. Per the audit's operating constraint it is recorded as an external condition and MUST NOT be added to this spec's deliverableFiles[]. This audit modified nothing outside specs/016-auction-gamma-playbook/. The blocker clears with no change to spec 016 once the concurrent session commits, reverts or declares its own edit; no bubbles agent owns a repair inside this packet, so nextRequiredOwner is null.",
+          "evidenceRef": "report.md#AUDIT_RESULT_V1",
+          "nextRequiredOwner": null,
+          "supersedesAttemptId": null,
+          "addressedFindings": [
+            "HARDEN-OBS-001",
+            "HARDEN-OBS-002"
+          ],
+          "unresolvedFindings": [
+            "AUDIT-016-EXT-001"
+          ],
+          "summary": "Planning-maturity audit of the product-to-planning packet at ceiling specs_hardened. VERDICT IS BLOCKED ON AN EXTERNAL CONDITION, NOT ON A DEFECT IN THIS PACKET: every planning-maturity content obligation measured below is clean, but gate G073 SOURCE_EDIT_LOCKOUT now fails on the working-tree file rlexperience.js, which is outside this spec's boundary and belongs to a concurrent session (finding AUDIT-016-EXT-001, see blockedReason). The first guard run of this audit, at 2026-07-29T05:48:18Z, returned verdict PASS, exitStatus 0, failureCount 0, failedGateIds [], failedChecks [], blockingCode none, with all 13 contract-required gates (G001 G002 G006 G007 G008 G010 G011 G012 G014 G015 G016 G032 G073) in passedGateIds and 8 non-blocking INFO/NOT_APPLICABLE advisories (notApplicableChecks: Check-4-completion, Check-5-all-done, Check-8-file-existence, Check-11-execution-evidence); the later failure is solely the external edit landing mid-audit. SCENARIOS: 36 in spec.md, 36 in scenario-manifest.json (array length 36, no duplicates), 36 in uservalidation.md, and the three sets are set-identical with empty symmetric differences. The Scenario Ownership Register in scopes/_index.md carries exactly 36 rows and 36 distinct scenarios with 0 doubly-owned and 0 unowned; per-scope owned counts SCOPE-01 2, SCOPE-02 2, SCOPE-03 5, SCOPE-04 8, SCOPE-05 10, SCOPE-06 1, SCOPE-07 4, SCOPE-08 3, SCOPE-09 1 sum to 36; the Scope Table agrees with the register for all nine scopes, and each scope.md 'Business scenarios owned:' declaration matches its register slice exactly (total 36). The three scenarios appearing in a second scope file (BS-016-001 and BS-016-006 in scope 08's TP-08-17 stress row, BS-016-036 in scope 03 prose at line 176) are non-owner references, not competing ownership claims. PARITY: exactly 123 across all six required dimensions - scope.md TP table rows 123, unchecked TP-tagged DoD items 123, per-scope report.md TP evidence anchors 123, feature report.md distinct TP ids 123, test-plan.json nested scopes[].tests 123 (14+9+10+13+13+14+18+17+15 across 9 scopes), test-plan.json totalTests 123. PLANNING HONESTY: 0 checked DoD boxes across all nine scope.md files, 197 unchecked (123 TP-tagged plus 74 untagged), all 9 scopes read 'Not Started', status trio is not_started / certification.status not_started / certifiedAt null, all 123 per-scope evidence slots carry the single literal phrase 'Awaiting execution - no command has been run for this row.' (the feature report.md count of 124 is 123 slots plus one line-12 legend defining the convention), and a scan for execution assertions (Exit Code: 0, exit 0, tests passed, all tests pass, PASS markers, passed N) returned 0 hits. BOUNDARY: design.md Implementation Boundary (design.md lines 1827-1896) declares 12 editable paths and 13 consumed-never-modified rows; the union of all nine scopes' Implementation Files tables is exactly those 12 paths, giving 0 unauthorized claims, 0 consumed-table paths claimed as editable, and 0 editable-but-unowned. Scope 01 and scope 09 are line-disjoint on intraday-tape-lab.html: scope 01 holds the as-of seams (parseOptChain 1280, RLDATA.putOptions call site 1301, parsePagesChain 1305-1312, fetchOptionLevelsAny 1315) while scope 09 holds the bsmGamma seams (standalone definition 1278, band 1293, gammaAt 1294); the intersection is empty, and scope 09 explicitly routes the 1294 occurrence through SCOPE-06's declared delegation of computeOptLevels rather than leaving the co-location inside computeOptLevels (1283-1302) unaddressed. EXISTENCE: 11 of the 12 editable paths were confirmed present on disk; the twelfth, tests/auction-gamma-playbook.spec.mjs, is explicitly declared 'NEW file created by this feature' and was confirmed absent, which is the consistent state; all 17 consumed paths (including watchlist.json and the three universe JSON files carried in one multi-path cell) were confirmed present. DEFERRAL-LANGUAGE SCAN: all five G040 deferral-language tokens were scanned case-insensitively as fixed strings across spec.md, design.md, report.md, uservalidation.md and scopes/, returning 0 hits for every token and 0 hits total; the literal tokens are deliberately not reproduced in this record or in report.md, because writing them into the packet would plant the exact strings the scan certifies absent, which G095 correctly blocks - an earlier draft of this audit did exactly that and was caught by G095 and corrected, and the post-correction rescan returns 0 hits for all five tokens across the entire spec directory. PRIOR FINDINGS: both low-severity bubbles.harden observations were verified closed against the real files rather than assumed - HARDEN-OBS-001 is closed because the design.md intraday-tape-lab.html boundary row at line 1845 now names 'the standalone bsmGamma definition at line 1278 and the gammaAt call site at line 1294 (3 tokens across those 2 lines)', and that falsifiable count was confirmed on disk (line 1278 holds 1 bsmGamma token, line 1294 holds 2, whole-file total 3); HARDEN-OBS-002 is closed because design.md line 1883 cites OWNER_EVIDENCE_DECLARATIONS at scripts/brief-refresh.mjs lines 141-142 with adapterId intraday-tape-owning-model-v1, owningModelVersion intraday-tape/v1, profile live-market and deepLink intraday-tape-lab.html, and the real file lines 141-142 carry exactly those fields, while the related design.md line 911 citation of line 143 for the SPY/QQQ symbol pair also matches the real symbols: Object.freeze(['SPY', 'QQQ']) at line 143. INFORMATIONAL, NOT A FINDING: scenario-manifest.json carries scopeId null for all 36 scenarios, but this is the repository norm at every maturity - across all 15 spec manifests only 013 (in_progress, past planning) populates it, and both certified done specs (003 and 011) carry 0 populated, so scopeId population is not a certification precondition and ownership at this ceiling is carried unambiguously by the Scenario Ownership Register. This packet contains zero implementation by design; absent implementation is category-appropriate at planning maturity and was not treated as a defect. No DoD box was checked, no status or certification field was written, and parity was not altered by this audit."
+        },
+        {
+          "attemptId": "AUD-016-002",
+          "resultState": "SUPERSEDED",
+          "agent": "bubbles.audit",
+          "recordedAt": "2026-07-29T06:27:25Z",
+          "targetRevision": "sha256:2fcdecde84da2da0ddf7925a8b9bf625adf6fc73acb46a8973e3769cf160349a",
+          "contractDigest": "sha256:b3cb88eff3d0f9298932bc3b00c7f9ed9079ac5b7c074749656a18c6d80d3190",
+          "auditProfile": "planning-maturity-v1",
+          "targetStatus": "specs_hardened",
+          "auditVerdict": "PLANNING_AUDIT_CLEAN",
+          "outcome": "completed_diagnostic",
+          "evidenceRef": "report.md#AUDIT_RESULT_V1",
+          "nextRequiredOwner": null,
+          "supersedesAttemptId": "AUD-016-001",
+          "addressedFindings": [
+            "HARDEN-OBS-001",
+            "HARDEN-OBS-002",
+            "AUDIT-016-EXT-001"
+          ],
+          "unresolvedFindings": [],
+          "summary": "Re-audit opened after the external condition that blocked attempt AUD-016-001 cleared. AUDIT-016-EXT-001 is now ADDRESSED, not silently dropped: the working-tree modification to rlexperience.js, a file outside this spec's Implementation Boundary (design.md mentions bare rlexperience.js 0 times, so it is neither an editable nor a consumed path here), was cleared by its owning concurrent session at 2026-07-29T06:21:31Z; git porcelain now reports 0 lines for that path. It was never added to this spec's deliverableFiles[], so the gate cleared because the condition ended rather than because ownership was misdeclared. state-transition-guard.sh, run assertion-only with the registry-derived target/mode/digest, then returned verdict PASS, exitStatus 0, failureCount 0, failedGateIds [], failedChecks [], blockingCode none on two consecutive stability runs, with all 13 contract-required gates (G001 G002 G006 G007 G008 G010 G011 G012 G014 G015 G016 G032 G073) in passedGateIds. Every planning-maturity content measurement from attempt AUD-016-001 stands unchanged and is restated here. SCENARIOS: 36 in spec.md, 36 in scenario-manifest.json (array length 36, no duplicates), 36 in uservalidation.md, set-identical with empty symmetric differences. The Scenario Ownership Register in scopes/_index.md carries exactly 36 rows and 36 distinct scenarios, 0 doubly-owned and 0 unowned; per-scope owned counts SCOPE-01 2, SCOPE-02 2, SCOPE-03 5, SCOPE-04 8, SCOPE-05 10, SCOPE-06 1, SCOPE-07 4, SCOPE-08 3, SCOPE-09 1 sum to 36; the Scope Table agrees with the register for all nine scopes; each scope.md 'Business scenarios owned:' declaration matches its register slice exactly (total 36). The three scenarios appearing in a second scope file (BS-016-001 and BS-016-006 in scope 08's TP-08-17 stress row, BS-016-036 in scope 03 prose at line 176) are non-owner references, not competing ownership claims. PARITY: exactly 123 across all six required dimensions - scope.md TP table rows 123, unchecked TP-tagged DoD items 123, per-scope report.md TP evidence anchors 123, feature report.md distinct TP ids 123, test-plan.json nested scopes[].tests 123 (14+9+10+13+13+14+18+17+15 across 9 scopes), test-plan.json totalTests 123. PLANNING HONESTY: 0 checked DoD boxes across all nine scope.md files, 197 unchecked (123 TP-tagged plus 74 untagged), all 9 scopes read 'Not Started', status trio is not_started / certification.status not_started / certifiedAt null, all 123 per-scope evidence slots carry the single literal phrase 'Awaiting execution - no command has been run for this row.' (the feature report.md count of 124 is 123 slots plus one line-12 legend), and a scan for execution assertions returned 0 hits. BOUNDARY: design.md Implementation Boundary (design.md lines 1827-1896) declares 12 editable paths and 13 consumed-never-modified rows; the union of all nine scopes' Implementation Files tables is exactly those 12 paths, giving 0 unauthorized claims, 0 consumed-table paths claimed as editable, and 0 editable-but-unowned. Scope 01 and scope 09 are line-disjoint on intraday-tape-lab.html: scope 01 holds the as-of seams (parseOptChain 1280, RLDATA.putOptions call site 1301, parsePagesChain 1305-1312, fetchOptionLevelsAny 1315) while scope 09 holds the bsmGamma seams (standalone definition 1278, band 1293, gammaAt 1294); the intersection is empty, and scope 09 explicitly routes the 1294 occurrence through SCOPE-06's declared delegation of computeOptLevels rather than leaving the co-location inside computeOptLevels (1283-1302) unaddressed. EXISTENCE: 11 of the 12 editable paths confirmed present on disk; the twelfth, tests/auction-gamma-playbook.spec.mjs, is explicitly declared 'NEW file created by this feature' and was confirmed absent, which is the consistent state; all 17 consumed paths confirmed present. DEFERRAL-LANGUAGE SCAN: all five G040 tokens scanned case-insensitively as fixed strings across spec.md, design.md, report.md, uservalidation.md and scopes/, returning 0 hits for every token and 0 hits total; the literals are deliberately not reproduced in this record or in report.md, because writing them into the packet would plant the exact strings the scan certifies absent - an earlier draft of this audit did exactly that, G095 caught it, it was corrected, and the post-correction rescan returns 0 hits for all five tokens across the entire spec directory. PRIOR FINDINGS: HARDEN-OBS-001 closed - design.md line 1845 now names 'the standalone bsmGamma definition at line 1278 and the gammaAt call site at line 1294 (3 tokens across those 2 lines)', and that falsifiable count was confirmed on disk (line 1278 holds 1 bsmGamma token, line 1294 holds 2, whole-file total 3). HARDEN-OBS-002 closed - design.md line 1883 cites OWNER_EVIDENCE_DECLARATIONS at scripts/brief-refresh.mjs lines 141-142 with adapterId intraday-tape-owning-model-v1, owningModelVersion intraday-tape/v1, profile live-market and deepLink intraday-tape-lab.html, and the real file lines 141-142 carry exactly those fields; the related design.md line 911 citation of line 143 for the SPY/QQQ pair also matches symbols: Object.freeze(['SPY', 'QQQ']) at line 143. INFORMATIONAL, NOT A FINDING: scenario-manifest.json carries scopeId null for all 36 scenarios, which is the repository norm at every maturity - across all 15 spec manifests only 013 (in_progress, past planning) populates it, and both certified done specs (003 and 011) carry 0 populated, so scopeId population is not a certification precondition and ownership at this ceiling is carried unambiguously by the Scenario Ownership Register. This packet contains zero implementation by design; absent implementation is category-appropriate at planning maturity and was not treated as a defect. No DoD box was checked, no status or certification field was written, parity was not altered, and no file outside specs/016-auction-gamma-playbook/ was modified by this audit. Promotion to specs_hardened remains owned by validate."
+        },
+        {
+          "attemptId": "AUD-016-003",
+          "resultState": "SUPERSEDED",
+          "agent": "bubbles.audit",
+          "recordedAt": "2026-07-29T16:42:51Z",
+          "targetRevision": "sha256:ad6192efed1d9911d5015e004cc29cdd64b04cd0bc95007bc77e943d3d9be2e3",
+          "contractDigest": "sha256:b3cb88eff3d0f9298932bc3b00c7f9ed9079ac5b7c074749656a18c6d80d3190",
+          "auditProfile": "planning-maturity-v1",
+          "targetStatus": "specs_hardened",
+          "auditVerdict": "PLANNING_REWORK_REQUIRED",
+          "outcome": "route_required",
+          "blockingCode": "PLANNING_ARTIFACT_CONTRADICTION",
+          "evidenceRef": "report.md#AUDIT_RESULT_V1",
+          "nextRequiredOwner": "bubbles.harden",
+          "supersedesAttemptId": "AUD-016-002",
+          "addressedFindings": [
+            "HARDEN-OBS-001",
+            "HARDEN-OBS-002",
+            "AUDIT-016-EXT-001"
+          ],
+          "unresolvedFindings": [
+            "AUDIT-016-003-F01"
+          ],
+          "summary": "Re-audit opened because the ACTIVE attempt AUD-016-002 was bound to targetRevision sha256:2fcdecde84da2da0ddf7925a8b9bf625adf6fc73acb46a8973e3769cf160349a, which the harden phase superseded when it rewrote report.md and state.json at 15:50Z. The revision was re-resolved independently by this attempt via transition-contract-resolver.sh, not accepted on trust, and returned sha256:ad6192efed1d9911d5015e004cc29cdd64b04cd0bc95007bc77e943d3d9be2e3 with workflowMode product-to-planning, auditProfile planning-maturity-v1, statusCeiling specs_hardened, targetStatus specs_hardened and contractDigest sha256:b3cb88ef...d3190. A prior verdict bound to a stale revision is not reusable, so every measurement below was re-taken against the current packet rather than carried forward. VERDICT IS PLANNING_REWORK_REQUIRED ON ONE PACKET-INTERNAL CONTRADICTION, NOT ON AN EXTERNAL CONDITION AND NOT ON MISSING IMPLEMENTATION. GATE RESULT: state-transition-guard.sh, run assertion-only with the registry-derived target/mode/digest, returned verdict PASS, exitStatus 0, failureCount 0, failedGateIds [], failedChecks [], blockingCode none, with all 13 contract-required gates (G001 G002 G006 G007 G008 G010 G011 G012 G014 G015 G016 G032 G073) present in passedGateIds and notApplicableChecks Check-4-completion, Check-5-all-done, Check-8-file-existence, Check-11-execution-evidence. artifact-lint.sh returned exit 0 with 139 checks passing and 0 failing. The finding below is an audit-detected content contradiction that no mechanical gate covers, which is why the gates are green and the audit verdict is not. FINDING AUDIT-016-003-F01, severity medium, owner bubbles.harden: scopes/09-cross-surface-single-source-closure/scope.md declares its index.html edit target as 'entry at lines 514-535', while design.md section Implementation Boundary declares the same entry as lines 513-524 under an explicit 'Anchor precision' heading and states that the very next entry, lines 525-536, is swing-structure-lab and 'its descriptive text is not an edit target under this row'. Adjudicated against the real file: index.html line 513 is the opening brace of the intraday-tape-lab entry, 514 is its id, 524 is its closing brace, 525 is the opening brace of the swing-structure-lab entry, 526 is its id, 535 is its tags line and 536 is its closing brace. design.md is exact on both ranges; the scope is wrong in two directions at once - it omits the opening brace at 513 and it extends 11 lines (525-535) into another tool's registry entry that design.md explicitly places out of bounds for that row. The file-level claim is not the defect: index.html is a properly authorized editable path and the scope legitimately owns it. The defect is the sub-anchor line range, which an implementer reading scope.md would take as authorization to edit a neighbouring tool's blurb and tags. Repair is a single-cell correction of the range in that one table row to match design.md; no boundary row, ownership assignment, Test Plan row or DoD item changes. EVERYTHING ELSE MEASURED CLEAN. SCENARIOS: 36 distinct ids in spec.md, 36 in scenario-manifest.json (array length 36, 36 distinct, 0 duplicates) and 36 in uservalidation.md, three-way set-identical with empty symmetric differences on both comparisons. OWNERSHIP: the Scenario Ownership Register at scopes/_index.md lines 113-157 carries 36 rows and 36 distinct scenarios with 0 doubly-owned and 0 unowned; register per-scope counts SCOPE-01 2, SCOPE-02 2, SCOPE-03 5, SCOPE-04 8, SCOPE-05 10, SCOPE-06 1, SCOPE-07 4, SCOPE-08 3, SCOPE-09 1 sum to 36 and match each scope.md 'Business scenarios owned' declaration exactly, scope for scope. PARITY: exactly 123 across all six dimensions - scope.md TP table rows 123, unchecked TP-tagged DoD items 123, per-scope report.md TP anchors 123, feature report.md distinct TP ids 123, test-plan.json nested scopes[].tests 123 (14+9+10+13+13+14+18+17+15 across 9 scopes) and test-plan.json totalTests 123. Parity was additionally checked as set identity, not only as counts: the TP id set from the scope tables is identical to the TP id set from the unchecked DoD items and identical to the TP id set in test-plan.json. HONESTY: 0 checked DoD boxes across all nine scope.md files, 197 unchecked (123 TP-tagged plus 74 untagged), all 9 scopes read Not Started, and the status trio is status not_started / certification.status not_started / certifiedAt null. The only 36 checked boxes anywhere in the packet are in uservalidation.md, which is the framework's checked-by-default convention for agent-created validation items and not a completion claim. A scan for execution assertions found no fabricated evidence: 'Exit Code: 0' 0 hits, 'tests passed' 0 hits, 'Executed: YES' 0 hits; the single 'exit 0' hit is report.md line 918 recording the artifact-lint.sh governance-tool run, the single 'all tests pass' hit is report.md line 917 inside a scan-pattern cell whose own result column reads 0, and all 6 'PASSED' hits are gate-id lists or the English words 'passed in' and 'passed to' in prose. The 123 per-scope evidence slots all carry the single literal awaiting-execution placeholder; the feature report.md count of 126 reconciles exactly as 123 slots plus the line-12 legend defining the convention plus 2 references inside the embedded audit record. BOUNDARY: design.md section Implementation Boundary spans lines 1827-1896 and declares 12 editable paths and 14 consumed-never-modified rows covering 17 consumed paths. The prior attempt AUD-016-002 recorded 13 consumed rows; the measured count is 14, and that off-by-one is corrected here rather than inherited - the 17-path figure was and remains right. The union of all nine scopes' Implementation Files tables is exactly the 12 authorized paths, giving 0 unauthorized claims, 0 editable-but-unowned paths and 0 consumed-table paths claimed as editable. Shared files are explicitly delegated: swing-structure-lab.html and gamma-trading-lab.html are each claimed by exactly SCOPE-01 and SCOPE-09, and each scope names the other as excluded by line - SCOPE-01 takes the as-of re-key seam (swing line 1289, gamma-trading line 1114) and disclaims the gamma model, SCOPE-09 takes the single-source retirement and disclaims those same putOptions lines by number. EXISTENCE: 11 of 12 editable paths confirmed present on disk; the twelfth, tests/auction-gamma-playbook.spec.mjs, is confirmed absent and is declared 'NEW file created by this feature' in design.md and in all nine scope.md files, which is the consistent state. All 17 consumed paths confirmed present. FALSIFIABLE ANCHORS: every other on-disk claim the packet makes was re-verified exact - bsmGamma occupies lines 1278 and 1294 in intraday-tape-lab.html (3 tokens, 1 function definition), lines 1053, 1068, 1069, 1075, 1097 and 1098 in gamma-trading-lab.html (7 tokens, 1 definition) and lines 1266 and 1282 in swing-structure-lab.html (3 tokens, 1 definition); each page holds exactly one RLDATA.putOptions call site, at 1301, 1114 and 1289 respectively; and the frozen registry counts hold at tools.json 23, index.html 23, simple-models.json 23, journeys.json 48 definitions and 48 steps, tool-experience.config.json moduleAllowlist 7 and data/options/index.json expected 22 count 22. The index.html range in SCOPE-09 is the lone outlier in an otherwise exact line-precision discipline, which is what makes it worth correcting rather than tolerating. DEFERRAL-LANGUAGE SCAN: all five prohibited planning-deferral token classes were scanned case-insensitively across the whole spec directory and every one returned 0 hits. The literal tokens are deliberately not reproduced in this record, in report.md or in audit-result.txt, because writing them into the packet would plant the exact strings the scan certifies absent, which G084 and G095 correctly block; the scan was run with bracketed character-class regexes so the literals never entered any written artifact. A bare 'defer' substring returns 13 hits, all benign and individually inspected: the HTML script defer attribute in scope 07 and this audit's own scan-section titles in report.md and audit-result.txt. PRIOR FINDINGS, all three carried forward as ADDRESSED and re-verified at this revision rather than assumed: HARDEN-OBS-001 remains closed because design.md line 1845 names the standalone bsmGamma definition at line 1278 and the gammaAt call site at line 1294 as 3 tokens across those 2 lines, and disk confirms exactly that; HARDEN-OBS-002 remains closed because design.md line 1883 cites scripts/brief-refresh.mjs lines 141-142 for adapterId intraday-tape-owning-model-v1, owningModelVersion intraday-tape/v1, profile live-market and deepLink intraday-tape-lab.html, and those real lines carry exactly those fields, with the related line-143 SPY/QQQ citation also exact; AUDIT-016-EXT-001 remains closed because the external rlexperience.js modification that blocked AUD-016-001 is gone from git porcelain and G073 passes, and it was never added to this spec's deliverableFiles[], so the gate cleared because the condition ended rather than because ownership was misdeclared. INFORMATIONAL, NOT A FINDING: scenario-manifest.json carries scopeId null for all 36 scenarios, which is the repository norm at every maturity, so ownership at this ceiling is carried by the Scenario Ownership Register. SCOPE OF THIS AUDIT: this packet contains zero implementation by design, and absent implementation is category-appropriate at planning maturity and was not treated as a defect. This attempt checked no DoD box, wrote no status, certification.status or certifiedAt field, altered no Test Plan row and no test-plan.json entry, created or modified no .html, .js or .mjs source file, and touched nothing outside specs/016-auction-gamma-playbook/. Promotion to specs_hardened remains owned by validate and is not asserted here."
+        },
+        {
+          "attemptId": "AUD-016-004",
+          "resultState": "ACTIVE",
+          "agent": "bubbles.audit",
+          "recordedAt": "2026-07-29T17:14:40Z",
+          "targetRevision": "sha256:c9693dadd70ea662907e23bdd39afd768f506bf5654920bea3ca553ed18d034c",
+          "contractDigest": "sha256:b3cb88eff3d0f9298932bc3b00c7f9ed9079ac5b7c074749656a18c6d80d3190",
+          "auditProfile": "planning-maturity-v1",
+          "targetStatus": "specs_hardened",
+          "auditVerdict": "BLOCKED",
+          "outcome": "blocked",
+          "blockingCode": "SOURCE_EDIT_LOCKOUT",
+          "evidenceRef": "report.md#AUDIT_RESULT_V1",
+          "nextRequiredOwner": "none",
+          "supersedesAttemptId": "AUD-016-003",
+          "addressedFindings": [
+            "HARDEN-OBS-001",
+            "HARDEN-OBS-002",
+            "AUDIT-016-EXT-001",
+            "AUDIT-016-003-F01"
+          ],
+          "unresolvedFindings": [
+            "AUDIT-016-004-F01"
+          ],
+          "summary": "DELTA RE-ADJUDICATION at revision sha256:c9693dad, re-resolved by this attempt via transition-contract-resolver.sh rather than inherited. AUD-016-003 held ACTIVE with PLANNING_REWORK_REQUIRED on one finding at revision sha256:ad6192ef; that finding is repaired and the repair moved the packet revision, so a verdict bound to sha256:ad6192ef is not reusable and AUD-016-003 is marked SUPERSEDED. AUDIT-016-003-F01 BOUNDARY ANCHOR CONTRADICTION is CLOSED, adjudicated against index.html on disk and not against any document's claim: line 513 is the opening brace of the intraday-tape-lab registry entry, 514 its id, 524 its closing brace, 525 the opening brace of the NEXT entry, 526 that entry's id swing-structure-lab, and 536 its closing brace. scopes/09-cross-surface-single-source-closure/scope.md line 52 now states the range 513-524 with the six-anchor breakdown and carries an explicit Limit naming 525-536 as swing-structure-lab and NOT an edit target; design.md line 1855 states the identical range, breakdown and limit, so the claiming row and the authorizing row agree. The superseded range no longer appears anywhere in the authoring artifacts: the count of its occurrences in that scope.md is zero. The repair was confined to the single table cell it was scoped to. INVARIANTS a cell edit could plausibly disturb were re-measured and all hold: Test Plan parity is 123 across all four surfaces, being 123 TP rows across the nine scope.md files, 123 TP-tagged unchecked DoD items, 123 nested tests in test-plan.json and totalTests 123; per-scope report anchors number 11 headings; checked DoD boxes total zero; all 9 of 9 scopes read Not Started; and the status trio is unchanged at status not_started, certification.status not_started and certifiedAt null. artifact-lint.sh returns exit 0. THE PACKET CONTENT MEASURED CLEAN. The attempt is nonetheless BLOCKED, not PLANNING_AUDIT_CLEAN, on a GATE PRECONDITION owned outside this packet: state-transition-guard.sh returns exitStatus 1, verdict FAIL, failureCount 3, failedGateIds [G073], blockingCode SOURCE_EDIT_LOCKOUT. The mode contract sets sourceEditLockoutRequired true for product-to-planning at ceiling specs_hardened, and the shared tracked working tree carries two modified source files, market-heatmap-lab.html and rlexperience.js, plus an untracked test spec. Neither modified file belongs to this spec: rlexperience.js has zero backticked-path mentions in design.md and is absent from both the editable-paths list and the consumed-never-modified table, and market-heatmap-lab.html is mentioned once at design.md line 1808, which falls outside the Implementation Boundary span, as test-design prose citing an established assertion pattern rather than as an editable or consumed path. Both paths are claimed by a concurrent in_progress bugfix-fastlane packet, specs/012-market-action-center-and-guided-tools/bugs/BUG-004-market-heatmap-control-surface, a delivery mode that lawfully permits source edits; they are simply incompatible with a planning-ceiling lockout evaluated on the same tree. This is NOT resolvable from inside this packet and MUST NOT be: the only mechanism that would turn G073 green from here is adding another session's files to this spec's deliverableFiles[], which is absent and stays absent, because declaring foreign files as this feature's deliverables would assert false ownership to buy a green gate. The gate must clear because the condition ends. AUDIT-016-004-F01 is filed as a RECURRENCE, not a reopen: AUDIT-016-EXT-001 recorded the same gate firing on rlexperience.js during AUD-016-001 and genuinely closed when AUD-016-002 confirmed zero porcelain lines for that path; this is a distinct later occurrence from a different session now spanning two files, so AUDIT-016-EXT-001 remains correctly closed and is carried as addressed. The prohibited-vocabulary scan was run with bracketed character-class regexes and returned no prohibited terminal token in this packet's authoring artifacts; the literals are deliberately not reproduced in this record, in report.md or in audit-result.txt, because writing them would plant the exact strings the scan certifies absent, which G084 and G095 correctly block. SCOPE OF THIS ATTEMPT: it checked no DoD box, wrote no status, certification.status or certifiedAt field, altered no Test Plan row and no test-plan.json entry, created or modified no .html, .js or .mjs source file, did not touch .github/bubbles-project.yaml which a concurrent session owns, and touched nothing outside specs/016-auction-gamma-playbook/. Promotion to specs_hardened remains owned by validate and is not asserted here. Unblock condition, owned outside this packet: the BUG-004 session commits or reverts its two working-tree files, after which re-running the guard on this already-clean content should return exitStatus 0."
+        }
+      ]
+    }
+  },
+  "certification": {
+    "status": "not_started",
+    "completedScopes": [],
+    "certifiedCompletedPhases": [],
+    "scopeProgress": [
+      {
+        "scope": 1,
+        "scopeId": "SCOPE-01",
+        "name": "As-of-preserving evidence acquisition",
+        "status": "not_started",
+        "dependsOn": [],
+        "scopeDir": "scopes/01-as-of-preserving-acquisition",
+        "evidenceFile": "scopes/01-as-of-preserving-acquisition/report.md",
+        "certifiedAt": null
+      },
+      {
+        "scope": 2,
+        "scopeId": "SCOPE-02",
+        "name": "Evidence cutoff reconciliation",
+        "status": "not_started",
+        "dependsOn": [
+          "SCOPE-01"
+        ],
+        "scopeDir": "scopes/02-evidence-cutoff-reconciliation",
+        "evidenceFile": "scopes/02-evidence-cutoff-reconciliation/report.md",
+        "certifiedAt": null
+      },
+      {
+        "scope": 3,
+        "scopeId": "SCOPE-03",
+        "name": "Gamma evidence and behavioural regime",
+        "status": "not_started",
+        "dependsOn": [
+          "SCOPE-01",
+          "SCOPE-02"
+        ],
+        "scopeDir": "scopes/03-gamma-evidence-and-behavioural-regime",
+        "evidenceFile": "scopes/03-gamma-evidence-and-behavioural-regime/report.md",
+        "certifiedAt": null
+      },
+      {
+        "scope": 4,
+        "scopeId": "SCOPE-04",
+        "name": "Playbook cell arms and absence causes",
+        "status": "not_started",
+        "dependsOn": [
+          "SCOPE-02",
+          "SCOPE-03"
+        ],
+        "scopeDir": "scopes/04-playbook-cell-arms-and-absence-causes",
+        "evidenceFile": "scopes/04-playbook-cell-arms-and-absence-causes/report.md",
+        "certifiedAt": null
+      },
+      {
+        "scope": 5,
+        "scopeId": "SCOPE-05",
+        "name": "Behavioural expectation matrix, origin rule and falsifiers",
+        "status": "not_started",
+        "dependsOn": [
+          "SCOPE-04"
+        ],
+        "scopeDir": "scopes/05-behavioural-expectation-matrix",
+        "evidenceFile": "scopes/05-behavioural-expectation-matrix/report.md",
+        "certifiedAt": null
+      },
+      {
+        "scope": 6,
+        "scopeId": "SCOPE-06",
+        "name": "Owner state v2 boundary and session-qualifier repair",
+        "status": "not_started",
+        "dependsOn": [
+          "SCOPE-03",
+          "SCOPE-05"
+        ],
+        "scopeDir": "scopes/06-owner-state-v2-and-session-qualifier",
+        "evidenceFile": "scopes/06-owner-state-v2-and-session-qualifier/report.md",
+        "certifiedAt": null
+      },
+      {
+        "scope": 7,
+        "scopeId": "SCOPE-07",
+        "name": "Playbook lens render across Simple and Power",
+        "status": "not_started",
+        "dependsOn": [
+          "SCOPE-06"
+        ],
+        "scopeDir": "scopes/07-playbook-lens-render",
+        "evidenceFile": "scopes/07-playbook-lens-render/report.md",
+        "certifiedAt": null
+      },
+      {
+        "scope": 8,
+        "scopeId": "SCOPE-08",
+        "name": "Journey anchor, recorded assertion and published tool read",
+        "status": "not_started",
+        "dependsOn": [
+          "SCOPE-07"
+        ],
+        "scopeDir": "scopes/08-journey-anchor-and-recorded-assertion",
+        "evidenceFile": "scopes/08-journey-anchor-and-recorded-assertion/report.md",
+        "certifiedAt": null
+      },
+      {
+        "scope": 9,
+        "scopeId": "SCOPE-09",
+        "name": "Cross-surface single source and published-surface closure",
+        "status": "not_started",
+        "dependsOn": [
+          "SCOPE-03",
+          "SCOPE-06",
+          "SCOPE-07",
+          "SCOPE-08"
+        ],
+        "scopeDir": "scopes/09-cross-surface-single-source-closure",
+        "evidenceFile": "scopes/09-cross-surface-single-source-closure/report.md",
+        "certifiedAt": null
+      }
+    ],
+    "lockdownState": {
+      "active": false,
+      "lockedScenarioIds": []
+    }
+  },
+  "policySnapshot": {
+    "grill": {
+      "mode": "off",
+      "source": "repo-default"
+    },
+    "tdd": {
+      "mode": "scenario-first",
+      "source": "repo-default"
+    },
+    "autoCommit": {
+      "mode": "off",
+      "source": "repo-default"
+    },
+    "lockdown": {
+      "mode": "off",
+      "source": "repo-default"
+    },
+    "regression": {
+      "mode": "protected-scenarios",
+      "source": "repo-default"
+    },
+    "validation": {
+      "mode": "certification-required",
+      "source": "repo-default"
+    }
+  },
+  "transitionRequests": [],
+  "reworkQueue": [],
+  "executionHistory": [
+    {
+      "agent": "bubbles.analyst",
+      "phasesExecuted": [
+        "analyze"
+      ],
+      "statusBefore": "not_started",
+      "statusAfter": "not_started",
+      "startedAt": "2026-07-28T16:09:22Z",
+      "finishedAt": "2026-07-28T16:09:22Z",
+      "outcome": "completed_owned",
+      "summary": "State-record bootstrap pass. CREATED exactly two files, specs/016-auction-gamma-playbook/state.json and specs/016-auction-gamma-playbook/scenario-manifest.json, closing the missing-state.json gap in a feature folder that previously held spec.md alone. spec.md was NOT modified by this run; no design.md, scopes, report.md, uservalidation.md or test-plan.json was created, because those are owned by bubbles.ux, bubbles.design and bubbles.plan. No DoD checkbox exists to check and none was created. status and certification.status are both not_started and certifiedAt is null, which is the truthful state: nothing is designed, planned or implemented. The scenario manifest carries all 36 business scenarios BS-016-001 through BS-016-036 with titles transcribed verbatim from the '### BS-016-NNN:' headings in spec.md, every scopeId null and every linkedTests and evidenceRefs array empty. Schema shape was taken from specs/013-market-regime-stack-and-strategy-playbook, the guard-passing product-to-planning packet in this repository, cross-checked against .github/agents/bubbles_shared/feature-templates.md and against specs/015-recommendation-outcome-ledger-and-track-record, which is the closest analogue because it is the same repository, the same product-to-planning mode and the same not_started status. Three findings recorded rather than papered over. FIRST, no releaseTrain value was written. Neither specs/013 nor any of the other 14 state.json files in this repository declares releaseTrain, config/release-trains.yaml does not exist, and specs/010-company-fundamentals-and-brief-lab/spec.md line 63 records that no train id can be truthfully assigned in this repository. Inventing one would be fabrication, so the field is absent and the release-train owner still owns that decision. flagsIntroduced is likewise absent for the same reason and because no scenario in spec.md requires a feature flag. SECOND, each scenario carries both scenarioId and id holding the same BS-016-NNN value, because .github/bubbles/scripts/traceability-guard.sh line 582 counts scenarios by grepping for the literal '\"scenarioId\"' while .github/bubbles/schemas/scenario-manifest.schema.json declares 'id' required; carrying both satisfies the guard that actually runs and the schema as written. That schema also constrains id to the pattern ^SCN-[A-Z0-9]+-[0-9]+$, which BS-016-NNN does not match, but the ids are fixed by spec.md's own headings and specs/013 uses the same BS-NNN-NNN convention, so the convention is repository-wide and is not resolved here. THIRD, running .github/bubbles/scripts/yaml-schema-validate.sh reported 'SKIP specs/**/scenario-manifest.json (none present)' while passing four bubbles/*.yaml registries, because the script sets REPO_ROOT to SCRIPT_DIR/../.. which resolves to .github/ in a downstream install, so its glob searches .github/specs/ which does not exist. The manifest JSON Schema is therefore unreachable in this repository today. That is framework-owned path resolution and was left untouched. certification.scopeProgress is an empty array because no scopes exist; populating it, or writing any scopeDir value, would assert a decomposition that bubbles.plan has not made."
+    },
+    {
+      "agent": "bubbles.docs",
+      "phasesExecuted": [
+        "docs"
+      ],
+      "statusBefore": "not_started",
+      "statusAfter": "not_started",
+      "startedAt": "2026-07-29T15:08:00Z",
+      "finishedAt": "2026-07-29T15:10:00Z",
+      "outcome": "completed_owned",
+      "summary": "Docs phase resolved to a no-change verdict on evidence; no managed doc and no notes/** handoff doc was modified. THREE independent findings converged. FIRST, the notes/<tool>.md candidates are not managed docs: the effective registry is .github/bubbles/docs-registry.yaml plus docsRegistryOverrides, resolving to README.md, docs/DomainModel.md and four unadopted docs/*.md paths; neither notes/intraday-tape-lab.md nor notes/gamma-trading-lab.md appears in either layer, and unmanagedDocsRequireExplicitTarget is true. SECOND, spec.md already assigns every documentation obligation to a scope and gates it on shipped behaviour: SCOPE-01 through SCOPE-05 each carry a notes/intraday-tape-lab.md DoD item worded 'matching the behaviour this scope shipped', SCOPE-09 owns the README.md line-31 closure, and all nine scopes are Not Started; SCOPE-07 line 180 records both notes files as absent from its Implementation Files and its line 410 DoD REQUIRES them unchanged, so editing either now would contradict a written DoD constraint. THIRD, the mandatory drift scan found nothing to correct, verified against code rather than against the spec's claims: all spec-016 identifiers resolve to zero files, tests/auction-gamma-playbook.spec.mjs is absent, and bsmGamma counts of 6/2/2 match SCOPE-09's recorded analysis exactly; the single apparent hit, evidenceCutoff across 29 files, is the pre-existing brief-read contract field and a false positive on a generic name. intraday-tape-lab.html line 1768 (RLDATA.options(tk)) independently confirms README line 31's shared-cache claim is accurate today. Documenting the auction-by-gamma lens now would describe behaviour the repository does not have. Verification: artifact-lint PASSED exit 0 with 139 checks and zero failures; state.json valid JSON; 123 Test Plan rows across all four dimensions; 0 checked DoD items against 197 unchecked; status trio not_started/not_started/null; nine scopes Not Started; zero .html/.js/.mjs files touched. ONE non-blocking observation recorded for the repository owner and deliberately not acted on because it is not spec-016 work: docs/API.md, docs/Testing.md, docs/Deployment.md and docs/Operations.md are required:true in the framework registry but absent in this build-free repository, which is a repo-level registry-adoption decision."
+    },
+    {
+      "agent": "bubbles.harden",
+      "phasesExecuted": [
+        "harden"
+      ],
+      "statusBefore": "not_started",
+      "statusAfter": "not_started",
+      "startedAt": "2026-07-29T15:17:03Z",
+      "finishedAt": "2026-07-29T15:33:00Z",
+      "outcome": "completed_owned",
+      "summary": "Re-harden at the current revision; verdict HARDENED with 0 packet-internal blocking findings. A prior harden run reached the same verdict but never persisted it and left no executionHistory provenance, so this entry closes that Gate G022 provenance gap; because the packet changed since that run (scopes 01 and 09 expanded to 123 Test Plan rows, swing-structure-lab.html authorized in design.md Implementation Boundary and owned by scopes 01/09, two low-severity design observations closed, Concrete Implementations / Variation Axes / UI Primitives headings normalised, docs phase no-change verdict) every measurement was re-taken by command, not carried forward. BOUNDARY: set-diff of design.md authorized paths against the union of all nine Implementation Files tables gives 12 authorized == 12 claimed, 0 claimed-but-unauthorized, 0 authorized-but-unowned, and 0 intersection with the consumed-never-modified table. The one shared file, swing-structure-lab.html, is split without contradiction: design.md declares exactly two bounded changes, SCOPE-01 claims change (2) as-of key and SCOPE-09 claims change (1) single source, each naming the other as excluded and both naming line 1289 RLDATA.putOptions as SCOPE-01's boundary. PARITY: 123 holds across all six dimensions (scope-table rows, unique TP ids, TP-tagged unchecked DoD items, report.md anchors, test-plan.json entries, raw row lines) with 0 rows lacking a DoD item, 0 DoD items lacking a row, 0 rows lacking a report anchor and 0 rows missing from test-plan.json. HONESTY: 0 checked DoD boxes against 197 unchecked, 9/9 scopes Not Started, 0 forbidden deferral terms across scopes/_index.md/design.md/spec.md, and 0 fabricated-evidence or test-ran claims. No test was run against product code and none is claimed to have run. GATES: artifact-lint.sh exit 0; state-transition-guard.sh exit 1 with failedGateIds [G073] and 23 gates passing. The sole G073 SOURCE_EDIT_LOCKOUT failure is EXTERNAL, raised by the concurrent session's dirty rlexperience.js, which is not among this spec's twelve authorized paths (set-membership test returned 0) and is claimed by no scope; the other dirty foreign paths (tests/simple-production-wiring.spec.mjs, config/domain-model.yaml, docs/DomainModel.md, .github/bubbles-project.yaml) are likewise foreign. It was deliberately NOT resolved and NOT added to deliverableFiles[], because declaring another session's file as this feature's deliverable would be a false ownership claim; deliverableFiles[] stays absent. Consequence recorded honestly: the packet is hardened but not guard-promotable until that session's owner commits or reverts its edits, and promotion to specs_hardened remains owned by bubbles.validate. TWO low-severity non-blocking observations, from the guard's 8 warnings. OBS-H1: seven Test Plan rows use basename-only paths options.js and market-structure.js, each uniquely resolved by the guard to rlexperience-adapters/, harmless today but ambiguous if a same-basename sibling ever lands; followUpOwner bubbles.plan, followUpAction optionally qualify those rows to the full path at the next planning touch. OBS-H2: 'No completedAt timestamps found in state.json' is correct and expected for a not_started planning packet; followUpOwner none, no action. FILES: report.md gained the Harden Record and state.json gained this entry plus the harden phase claim. No .html/.js/.mjs, managed doc, notes/**, test-plan.json, Test Plan row or DoD checkbox was touched; status, certification.status and certifiedAt remain not_started / not_started / null; and no concurrent-session file was touched, reverted, stashed or committed. SELF-CORRECTIONS during this phase, recorded rather than hidden: the first draft of the Harden Record tripped Gate G084 by quoting the prohibited deferral vocabulary verbatim while reporting its own zero-hit scan, and by reusing two of those terms as ordinary prose in a sentence and a table header, and tripped Gate G095 on the same quoted vocabulary; all three occurrences were reworded and both gates now pass. The first draft of THIS entry also carried fabricated forward timestamps, startedAt 15:41Z and finishedAt 15:45Z, written before the clock was checked, against a real preflight start of 15:17:03Z and an actual completion near 15:33Z; they were corrected to the measured values. All lint and guard results reported above are from the final revision."
+    }
+  ],
+  "activeBugs": [],
+  "resolvedBugs": [],
+  "failures": [],
+  "lastUpdatedAt": "2026-07-29T16:42:51Z",
+  "scopeLayout": "per-scope-directory",
+  "artifacts": {
+    "spec": "spec.md",
+    "design": "design.md",
+    "scopes": "scopes/_index.md",
+    "report": "report.md",
+    "uservalidation": "uservalidation.md",
+    "scenarioManifest": "scenario-manifest.json",
+    "lockdownApprovals": "lockdown-approvals.json",
+    "invalidationLedger": "invalidation-ledger.json",
+    "transitionRequests": "transition-requests.json",
+    "reworkQueue": "rework-queue.json"
+  },
+  "statusDiscipline": {
+    "validStatuses": [
+      "not_started",
+      "in_progress",
+      "blocked",
+      "specs_hardened",
+      "docs_updated",
+      "validated",
+      "done"
+    ],
+    "scopePickupRule": "All dependsOn scopes must be Done. Pick the lowest-numbered eligible scope.",
+    "scopeDoneGates": [
+      "G020",
+      "G021",
+      "G022",
+      "G023",
+      "G024",
+      "G025",
+      "G055",
+      "G056",
+      "G057",
+      "G058",
+      "G059",
+      "G060",
+      "G061"
+    ],
+    "specDoneRequires": "All scopes done. certification.completedScopes contains all scope IDs and bubbles.validate has certified promotion. Workflow mode product-to-planning has ceiling specs_hardened, so this packet cannot reach done under the current mode without a mode change."
+  },
+  "notes": "Analyst authoring is complete and the feature folder holds spec.md, this state.json and scenario-manifest.json. design.md, scopes/, report.md, uservalidation.md and test-plan.json are absent because they are owned by bubbles.ux, bubbles.design and bubbles.plan, and artifact-lint will correctly report them missing until those owners run. status and certification.status are both not_started: nothing is designed, planned or built, and the ceiling for product-to-planning is specs_hardened, which only bubbles.validate may write after bubbles.audit produces a clean planning-maturity-v1 attempt. scopeLayout is declared per-scope-directory as a RECOMMENDATION, not a decision: spec.md states 40 functional requirements, 11 non-functional requirements, 47 acceptance criteria and 36 business scenarios, and its '## Downstream Handoffs' section tells bubbles.plan that every requirement must trace to a scope and that refusal behaviour needs scopes that build it rather than only tests that check it, which points past six scopes. bubbles.plan owns the final layout and may override this. certification.scopeProgress is intentionally empty and no scopeDir is written anywhere, because no scope exists to name. The single most load-bearing planning input is spec.md's ordering constraint that FR-016-001, the replacement of a wall-position qualifier with a sign-and-distance regime resolution, enables FR-016-005 through FR-016-010, so the dependency is real rather than nominal; the second is that degradation requirements FR-016-017 through FR-016-020 and FR-016-027 must land with, not behind, the assertion path, because the Outcome Contract names asserting-without-being-able-to-degrade-honestly as the failure condition. Sequencing risk: the declared host surface is owned by feature 012, whose state.json status reads blocked at the time of this run."
+}

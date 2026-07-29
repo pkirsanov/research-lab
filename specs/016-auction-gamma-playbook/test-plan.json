@@ -1,0 +1,1355 @@
+{
+  "contractVersion": 1,
+  "schemaVersion": 1,
+  "version": 1,
+  "specId": "016",
+  "featureDir": "specs/016-auction-gamma-playbook",
+  "featureName": "Auction × Gamma Playbook",
+  "generatedBy": "bubbles.plan",
+  "evidenceBoundary": "Planning-owned structured mirror of the Markdown Test Plan tables in scopes/NN-*/scope.md. Feature 016 has not been implemented and no command below has been run, so every test carries status 'planned'. The 'type', 'file' and 'description' values are copied verbatim from the 'Test Type', 'File / Location' and 'What it proves' cells of the source tables; 'category' and 'command' have only their wrapping Markdown backticks removed. An execution agent flips a test's status only after running its command and recording the raw output under the matching report.md anchor.",
+  "totalTests": 123,
+  "scopes": [
+    {
+      "scopeId": "SCOPE-01",
+      "scopeName": "As-of-preserving evidence acquisition",
+      "scopeDir": "scopes/01-as-of-preserving-acquisition",
+      "foundation": true,
+      "dependsOn": [],
+      "testCount": 14,
+      "tests": [
+        {
+          "id": "TP-01-01",
+          "type": "Unit",
+          "category": "unit",
+          "file": "`scripts/selftest.mjs` group `Feature 016 Scope 01 as-of-preserving evidence acquisition (intraday-tape-lab)`",
+          "description": "`parsePagesChain` carries `asof`, `fetched`, `refreshDate` and `refreshWindow` onto its return verbatim, none of them normalized, rounded or re-stamped",
+          "command": "node scripts/selftest.mjs",
+          "liveSystem": false,
+          "status": "planned"
+        },
+        {
+          "id": "TP-01-02",
+          "type": "Unit — adversarial",
+          "category": "unit",
+          "file": "`scripts/selftest.mjs` group `Feature 016 Scope 01 as-of-preserving evidence acquisition (intraday-tape-lab)`",
+          "description": "Adversarial input: a published snapshot whose `asof` names a prior session while the run date is later. The parsed snapshot's as-of is that prior-session date and never the run date, so the assertion fails if the pre-change parse that drops `asof` returns",
+          "command": "node scripts/selftest.mjs",
+          "liveSystem": false,
+          "status": "planned"
+        },
+        {
+          "id": "TP-01-03",
+          "type": "Unit — adversarial",
+          "category": "unit",
+          "file": "`scripts/selftest.mjs` group `Feature 016 Scope 01 as-of-preserving evidence acquisition (intraday-tape-lab)`",
+          "description": "Adversarial input: the same prior-session snapshot. The options cache key is the snapshot's own as-of, not `optTodayKey()`; under the line-1301 keying the key would be the run date, so the assertion fails if that keying returns. A snapshot carrying no as-of is filed under no substituted date at all",
+          "command": "node scripts/selftest.mjs",
+          "liveSystem": false,
+          "status": "planned"
+        },
+        {
+          "id": "TP-01-04",
+          "type": "Unit",
+          "category": "unit",
+          "file": "`scripts/selftest.mjs` group `Feature 016 Scope 01 as-of-preserving evidence acquisition (intraday-tape-lab)`",
+          "description": "`parseOptChain` returns `asof`, `fetched`, `refreshDate` and `refreshWindow` as present-and-`null` keys rather than omitting them, keeping a known-absent value distinguishable from an unasked question",
+          "command": "node scripts/selftest.mjs",
+          "liveSystem": false,
+          "status": "planned"
+        },
+        {
+          "id": "TP-01-05",
+          "type": "Unit",
+          "category": "unit",
+          "file": "`scripts/selftest.mjs` group `Feature 016 Scope 01 as-of-preserving evidence acquisition (intraday-tape-lab)`",
+          "description": "`fetchOptionLevelsAny` records `sourceKind` on the returned snapshot and preserves its same-origin-first order, so a proxied read that can supply no as-of stays structurally distinguishable from a published one",
+          "command": "node scripts/selftest.mjs",
+          "liveSystem": false,
+          "status": "planned"
+        },
+        {
+          "id": "TP-01-06",
+          "type": "Unit",
+          "category": "unit",
+          "file": "`scripts/selftest.mjs` group `Feature 016 Scope 01 as-of-preserving evidence acquisition (intraday-tape-lab)`",
+          "description": "A ticker outside the twenty-two-ticker set `data/options/index.json` declares yields no same-origin gamma evidence, and `options:gamma` is reported `missing` through the vocabulary fixed at `rldata.js` line 245 with the ticker carried on the resource label",
+          "command": "node scripts/selftest.mjs",
+          "liveSystem": false,
+          "status": "planned"
+        },
+        {
+          "id": "TP-01-07",
+          "type": "Unit",
+          "category": "unit",
+          "file": "`scripts/selftest.mjs` group `Feature 016 Scope 01 as-of-preserving evidence acquisition (intraday-tape-lab)`",
+          "description": "Every new numeric path guards through `isNum` (line 1233) before `.toFixed()`, so a `null` as-of or a `null` spot on an uncovered ticker renders an em dash and the first paint completes instead of throwing",
+          "command": "node scripts/selftest.mjs",
+          "liveSystem": false,
+          "status": "planned"
+        },
+        {
+          "id": "TP-01-08",
+          "type": "E2E UI — live stack",
+          "category": "e2e-ui",
+          "file": "`tests/auction-gamma-playbook.spec.mjs` test `prior-session snapshot renders with its own as-of and an estimate label`",
+          "description": "Asserted against the real page with no `page.route`, no `context.route` and no request interception of any kind: every gamma-derived element displays its snapshot as-of, is labelled a convention-dependent estimate from prior-session open interest, and none renders as a live intraday reading",
+          "command": "npx --no-install playwright test tests/auction-gamma-playbook.spec.mjs --config=playwright.config.mjs --project=system-chrome --reporter=list",
+          "liveSystem": true,
+          "status": "planned"
+        },
+        {
+          "id": "TP-01-09",
+          "type": "E2E UI — live stack",
+          "category": "e2e-ui",
+          "file": "`tests/auction-gamma-playbook.spec.mjs` test `uncovered ticker issues a named auction-only reduced read`",
+          "description": "Asserted against the real page with no `page.route`, no `context.route` and no request interception of any kind: a ticker outside the published set renders an auction-only reduced read naming the missing input and the reason, asserts no behavioural regime, substitutes no source, and leaves the first paint intact",
+          "command": "npx --no-install playwright test tests/auction-gamma-playbook.spec.mjs --config=playwright.config.mjs --project=system-chrome --reporter=list",
+          "liveSystem": true,
+          "status": "planned"
+        },
+        {
+          "id": "TP-01-10",
+          "type": "Regression E2E",
+          "category": "e2e-ui",
+          "file": "`tests/auction-gamma-playbook.spec.mjs` test `Regression: BS-016-020 prior-session snapshot keeps its own as-of through parse and cache keying`",
+          "description": "The persistent regression case for the two behaviours this scope changes, asserted on the real page with no `page.route`, no `context.route` and no request interception: a published snapshot whose `asof` names a prior session renders that prior-session date on every gamma-derived element, and the options cache entry for that ticker is filed under that same prior-session date. `grep -c 'asof' intraday-tape-lab.html` returns `0` today and `RLDATA.putOptions(tk, optTodayKey(), snap)` at line 1301 keys by the run date, so this case fails if either the as-of-dropping parse or the `optTodayKey()` keying is reintroduced",
+          "command": "npx --no-install playwright test tests/auction-gamma-playbook.spec.mjs --config=playwright.config.mjs --project=system-chrome --grep \"Regression: BS-016-020 prior-session snapshot keeps its own as-of through parse and cache keying\" --reporter=list",
+          "liveSystem": true,
+          "status": "planned"
+        },
+        {
+          "id": "TP-01-11",
+          "type": "Stress",
+          "category": "stress",
+          "file": "`scripts/selftest.mjs` group `Feature 016 Scope 01 as-of-preserving evidence acquisition (intraday-tape-lab)`",
+          "description": "The widened parse is driven over the entire published set `data/options/index.json` declares — 22 tickers, 39,190 contracts and 4.69 MB of snapshot JSON on disk, the largest single file `data/options/NDX.json` carrying 6,066 contracts — parsed back-to-back in one pass. Every parse returns all four provenance fields; the slowest single-ticker parse stays inside the 250 ms `performancePolicy.maxComputeMs` this page's owner seam feeds, declared at `simple-models.json` line 111; and the resulting cache-key set holds exactly one key per distinct snapshot as-of, so re-keying by as-of neither drops a ticker nor multiplies keys for one ticker under the full load",
+          "command": "node scripts/selftest.mjs",
+          "liveSystem": false,
+          "status": "planned"
+        },
+        {
+          "id": "TP-01-12",
+          "type": "Unit — adversarial",
+          "category": "unit",
+          "file": "`scripts/selftest.mjs` group `Feature 016 Scope 01 as-of-preserving evidence acquisition (shared options slot co-writers)`",
+          "description": "Adversarial input: a shared-ticker snapshot whose `asof` names a prior session while the run date is later, written through the `gamma-trading-lab.html` co-writer seam. `mirrorSnap` (line 1112) files the shared options slot entry under that prior-session as-of; under the line-1114 `RLDATA.putOptions(tk, optTodayKey(), slim)` keying the key would be the run date, so the assertion fails if that keying returns. The `slim` projection at line 1113 keeps its current field set, and the page's inline gamma model is unread by this row",
+          "command": "node scripts/selftest.mjs",
+          "liveSystem": false,
+          "status": "planned"
+        },
+        {
+          "id": "TP-01-13",
+          "type": "Unit — adversarial",
+          "category": "unit",
+          "file": "`scripts/selftest.mjs` group `Feature 016 Scope 01 as-of-preserving evidence acquisition (shared options slot co-writers)`",
+          "description": "Adversarial input: the same prior-session snapshot written through the `swing-structure-lab.html` co-writer seam. `computeOptLevels` (line 1271) files the shared options slot entry under that prior-session as-of; under the line-1289 `RLDATA.putOptions(tk, optTodayKey(), snap)` keying the key would be the run date, so the assertion fails if that keying returns. `parseOptChain`, `parsePagesChain`, `fetchOptionLevels`, `fetchOptionLevelsPages` and `fetchOptionLevelsAny` keep their current behaviour and their same-origin-first order",
+          "command": "node scripts/selftest.mjs",
+          "liveSystem": false,
+          "status": "planned"
+        },
+        {
+          "id": "TP-01-14",
+          "type": "Unit — adversarial",
+          "category": "unit",
+          "file": "`scripts/selftest.mjs` group `Feature 016 Scope 01 as-of-preserving evidence acquisition (shared options slot co-writers)`",
+          "description": "Adversarial across the **full writer set**, so it fails if any single one of the three is left un-re-keyed. (a) A scan of all three committed pages `design.md` § Implementation Boundary names as writers of `rldata.js` `putOptions` (line 351) — `intraday-tape-lab.html`, `gamma-trading-lab.html` and `swing-structure-lab.html` — resolves `optTodayKey()` to zero occurrences as a `putOptions` day argument on any of them. (b) The three writer seams write `SPY`, one of the 13 tickers common to all three universes, in sequence from that one prior-session snapshot, after which the slot holds exactly one entry for `SPY` keyed by the snapshot's own as-of and no entry keyed by the run date. Today all three pass `optTodayKey()`, so this row fails now; leaving any one of the three un-re-keyed re-files `SPY` under the calendar date and fails part (b) even when the other two are correct",
+          "command": "node scripts/selftest.mjs",
+          "liveSystem": false,
+          "status": "planned"
+        }
+      ]
+    },
+    {
+      "scopeId": "SCOPE-02",
+      "scopeName": "Evidence cutoff reconciliation",
+      "scopeDir": "scopes/02-evidence-cutoff-reconciliation",
+      "foundation": true,
+      "dependsOn": [
+        "SCOPE-01"
+      ],
+      "testCount": 9,
+      "tests": [
+        {
+          "id": "TP-02-01",
+          "type": "Unit",
+          "category": "unit",
+          "file": "`scripts/selftest.mjs` group `Feature 016 Scope 02 evidence cutoff reconciliation (market-structure)`",
+          "description": "A candidate as-of inside the declared window returns the reconciling state with its own named reason, and `declaredAsOf` echoes the input",
+          "command": "node scripts/selftest.mjs",
+          "liveSystem": false,
+          "status": "planned"
+        },
+        {
+          "id": "TP-02-02",
+          "type": "Unit",
+          "category": "unit",
+          "file": "`scripts/selftest.mjs` group `Feature 016 Scope 02 evidence cutoff reconciliation (market-structure)`",
+          "description": "A candidate as-of outside the declared window returns the stale state, and the reason names both the candidate as-of and the cutoff it failed rather than reporting an unqualified failure",
+          "command": "node scripts/selftest.mjs",
+          "liveSystem": false,
+          "status": "planned"
+        },
+        {
+          "id": "TP-02-03",
+          "type": "Unit",
+          "category": "unit",
+          "file": "`scripts/selftest.mjs` group `Feature 016 Scope 02 evidence cutoff reconciliation (market-structure)`",
+          "description": "A candidate carrying no as-of returns a third distinct named state with its own reason; the function returns neither `null` nor a bare boolean on any of the three paths, because neither can carry a reason",
+          "command": "node scripts/selftest.mjs",
+          "liveSystem": false,
+          "status": "planned"
+        },
+        {
+          "id": "TP-02-04",
+          "type": "Unit",
+          "category": "unit",
+          "file": "`scripts/selftest.mjs` group `Feature 016 Scope 02 evidence cutoff reconciliation (market-structure)`",
+          "description": "Every returned state carries both `state` and `reason`, satisfying `calibrationPolicy.requiredFields: [\"state\",\"reason\"]` at `simple-models.json` line 109",
+          "command": "node scripts/selftest.mjs",
+          "liveSystem": false,
+          "status": "planned"
+        },
+        {
+          "id": "TP-02-05",
+          "type": "Unit — adversarial",
+          "category": "unit",
+          "file": "`scripts/selftest.mjs` group `Feature 016 Scope 02 evidence cutoff reconciliation (market-structure)`",
+          "description": "Adversarial input: a candidate as-of well outside the declared window. `declaredAsOf` in the result is byte-identical to the `declaredAsOf` argument and is never the candidate's value, and the returned object exposes no field able to express a second or larger window — so the assertion fails if a relaxed bound is ever emitted",
+          "command": "node scripts/selftest.mjs",
+          "liveSystem": false,
+          "status": "planned"
+        },
+        {
+          "id": "TP-02-06",
+          "type": "Unit — adversarial",
+          "category": "unit",
+          "file": "`scripts/selftest.mjs` group `Feature 016 Scope 02 evidence cutoff reconciliation (market-structure)`",
+          "description": "Adversarial input: the gamma as-of offered in every argument position in turn. It reconciles only as `candidateAsOf`; no call shape routes it into the declared bound, so the excluded stale input stays excluded rather than becoming the cutoff",
+          "command": "node scripts/selftest.mjs",
+          "liveSystem": false,
+          "status": "planned"
+        },
+        {
+          "id": "TP-02-07",
+          "type": "Unit",
+          "category": "unit",
+          "file": "`scripts/selftest.mjs` group `Feature 016 Scope 02 evidence cutoff reconciliation (market-structure)`",
+          "description": "The same three arguments evaluated twice produce an identical result, with no clock read, no randomness and no I/O, keeping `seedPolicy.randomnessClass: \"none\"` at `simple-models.json` line 107 true of the addition",
+          "command": "node scripts/selftest.mjs",
+          "liveSystem": false,
+          "status": "planned"
+        },
+        {
+          "id": "TP-02-08",
+          "type": "Regression E2E",
+          "category": "e2e-ui",
+          "file": "`tests/auction-gamma-playbook.spec.mjs` test `Regression: BS-016-019 the declared evidence cutoff is echoed unchanged and never widened`",
+          "description": "The persistent regression case for the behaviour this scope adds, asserted on the real `intraday-tape-lab.html` page with the real `rlexperience-adapters/market-structure.js` file injected — the same real-module-into-real-page technique `tests/simple-model-adapters-market.spec.mjs` already applies to this module — and with no `page.route`, no `context.route` and no request interception: calling `RLMARKETSTRUCTURE.reconcileEvidenceCutoff` in the page with a candidate as-of well outside the declared window returns `declaredAsOf` byte-identical to the supplied bound and exposes no field carrying a second or larger window. A build that echoes the candidate into that slot or emits a relaxed bound fails this case in the browser, not only in Node",
+          "command": "npx --no-install playwright test tests/auction-gamma-playbook.spec.mjs --config=playwright.config.mjs --project=system-chrome --grep \"Regression: BS-016-019 the declared evidence cutoff is echoed unchanged and never widened\" --reporter=list",
+          "liveSystem": true,
+          "status": "planned"
+        },
+        {
+          "id": "TP-02-09",
+          "type": "Stress",
+          "category": "stress",
+          "file": "`scripts/selftest.mjs` group `Feature 016 Scope 02 evidence cutoff reconciliation (market-structure)`",
+          "description": "`reconcileEvidenceCutoff` is driven over every as-of the published set carries — the 22 `asof` stamps in `data/options/index.json` — crossed with all three reachable states and evaluated back-to-back in one pass. Every call returns both `state` and `reason`; the slowest single evaluation stays inside the 250 ms `performancePolicy.maxComputeMs` declared for this adapter module at `simple-models.json` line 111; and the last pass over identical arguments returns a result identical to the first, so no clock read and no accumulated state leaks into the predicate at volume",
+          "command": "node scripts/selftest.mjs",
+          "liveSystem": false,
+          "status": "planned"
+        }
+      ]
+    },
+    {
+      "scopeId": "SCOPE-03",
+      "scopeName": "Gamma evidence and behavioural regime",
+      "scopeDir": "scopes/03-gamma-evidence-and-behavioural-regime",
+      "foundation": true,
+      "dependsOn": [
+        "SCOPE-01",
+        "SCOPE-02"
+      ],
+      "testCount": 10,
+      "tests": [
+        {
+          "id": "TP-03-01",
+          "type": "Unit",
+          "category": "unit",
+          "file": "`scripts/selftest.mjs` group `Feature 016 Scope 03 gamma evidence and behavioural regime (options)`",
+          "description": "`readGammaEvidence` returns a complete C1 record on every path; an unusable chain returns `availability: { state: \"unavailable\", reason }` and never `null`, because a `null` carries no reason",
+          "command": "node scripts/selftest.mjs",
+          "liveSystem": false,
+          "status": "planned"
+        },
+        {
+          "id": "TP-03-02",
+          "type": "Unit",
+          "category": "unit",
+          "file": "`scripts/selftest.mjs` group `Feature 016 Scope 03 gamma evidence and behavioural regime (options)`",
+          "description": "`coverage.usableContracts` counts contracts with the same predicate `gammaAt` already applies — strike present, `iv > 0`, `openInterest > 0` — so the ratio cannot drift from the model it describes",
+          "command": "node scripts/selftest.mjs",
+          "liveSystem": false,
+          "status": "planned"
+        },
+        {
+          "id": "TP-03-03",
+          "type": "Unit",
+          "category": "unit",
+          "file": "`scripts/selftest.mjs` group `Feature 016 Scope 03 gamma evidence and behavioural regime (options)`",
+          "description": "A thin-but-usable snapshot bounds the resolved regime's stated confidence by coverage quality and names coverage as the bounding input on the record itself, not only in a general disclosure",
+          "command": "node scripts/selftest.mjs",
+          "liveSystem": false,
+          "status": "planned"
+        },
+        {
+          "id": "TP-03-04",
+          "type": "Unit",
+          "category": "unit",
+          "file": "`scripts/selftest.mjs` group `Feature 016 Scope 03 gamma evidence and behavioural regime (options)`",
+          "description": "Coverage below the supplied `coverageFloor` resolves the regime unavailable with coverage named as the cause, and no regime value is populated on that record",
+          "command": "node scripts/selftest.mjs",
+          "liveSystem": false,
+          "status": "planned"
+        },
+        {
+          "id": "TP-03-05",
+          "type": "Unit — adversarial",
+          "category": "unit",
+          "file": "`scripts/selftest.mjs` group `Feature 016 Scope 03 gamma evidence and behavioural regime (options)`",
+          "description": "Adversarial input: a modelled profile with no sign change anywhere in `spot * 0.9 … spot * 1.1` at `N = 60`. The record returns `flipLocatable: false` with `searchBand` stating the bounds and the sample count, and carries no flip distance — not `flip: 0`, not the band edge, not an interpolated value. Any of those substitutes fails the assertion",
+          "command": "node scripts/selftest.mjs",
+          "liveSystem": false,
+          "status": "planned"
+        },
+        {
+          "id": "TP-03-06",
+          "type": "Unit — adversarial",
+          "category": "unit",
+          "file": "`scripts/selftest.mjs` group `Feature 016 Scope 03 gamma evidence and behavioural regime (options)`",
+          "description": "Adversarial input: two snapshots with **identical** `callWall` and `putWall`, differing only in flip distance — one inside `hingeBandPct`, one outside. The wall-position-only logic returns one value for both; `resolveBehaviouralRegime` returns hinge-proximate for the first and a stable regime for the second",
+          "command": "node scripts/selftest.mjs",
+          "liveSystem": false,
+          "status": "planned"
+        },
+        {
+          "id": "TP-03-07",
+          "type": "Unit — adversarial",
+          "category": "unit",
+          "file": "`scripts/selftest.mjs` group `Feature 016 Scope 03 gamma evidence and behavioural regime (options)`",
+          "description": "Adversarial input: two snapshots with **identical** `callWall` and `putWall` and opposite `netGEX` sign. The wall-position-only logic returns one value for both; `resolveBehaviouralRegime` returns suppressive against one and amplifying against the other, following `gammaEnv`'s existing precedence at line 530 unchanged. The hinge-proximate record carries neither the suppressive nor the amplifying value, so no downstream consumer can recover a directional claim the resolver refused",
+          "command": "node scripts/selftest.mjs",
+          "liveSystem": false,
+          "status": "planned"
+        },
+        {
+          "id": "TP-03-08",
+          "type": "Unit",
+          "category": "unit",
+          "file": "`scripts/selftest.mjs` group `Feature 016 Scope 03 gamma evidence and behavioural regime (options)`",
+          "description": "The C3 record carries the observation that would indicate the regime itself has changed as its own field, populated independently of any expectation-level falsifier, so the two stay separable wherever they are read together",
+          "command": "node scripts/selftest.mjs",
+          "liveSystem": false,
+          "status": "planned"
+        },
+        {
+          "id": "TP-03-09",
+          "type": "Unit",
+          "category": "unit",
+          "file": "`scripts/selftest.mjs` group `Feature 016 Scope 03 gamma evidence and behavioural regime (options)`",
+          "description": "`gammaEvidenceFingerprint` over an `unavailable` C1 record differs from the fingerprint of any record carrying a resolved regime, so an absent gamma half can never report as agreeing with a present one",
+          "command": "node scripts/selftest.mjs",
+          "liveSystem": false,
+          "status": "planned"
+        },
+        {
+          "id": "TP-03-10",
+          "type": "Regression E2E",
+          "category": "e2e-ui",
+          "file": "`tests/auction-gamma-playbook.spec.mjs` test `Regression: BS-016-024 an unavailable gamma record never fingerprints as a resolved one`",
+          "description": "The persistent regression case for the availability contract this scope introduces, asserted on the real `gamma-trading-lab.html` page with the real `rlexperience-adapters/options.js` file injected — the same real-module-into-real-page technique `tests/simple-model-adapters-market.spec.mjs` already applies to this module — and with no `page.route`, no `context.route` and no request interception: `readGammaEvidence` over a chain whose contracts are all unusable returns an `availability.state` of `\"unavailable\"` carrying a reason rather than `null`, and `gammaEvidenceFingerprint` over that record differs from the fingerprint of a record carrying a resolved regime. A build that returns a bare `null` on the unusable path, or that fingerprints the two alike, fails this case in the browser",
+          "command": "npx --no-install playwright test tests/auction-gamma-playbook.spec.mjs --config=playwright.config.mjs --project=system-chrome --grep \"Regression: BS-016-024 an unavailable gamma record never fingerprints as a resolved one\" --reporter=list",
+          "liveSystem": true,
+          "status": "planned"
+        }
+      ]
+    },
+    {
+      "scopeId": "SCOPE-04",
+      "scopeName": "Playbook cell arms and absence causes",
+      "scopeDir": "scopes/04-playbook-cell-arms-and-absence-causes",
+      "foundation": true,
+      "dependsOn": [
+        "SCOPE-02",
+        "SCOPE-03"
+      ],
+      "testCount": 13,
+      "tests": [
+        {
+          "id": "TP-04-01",
+          "type": "Unit",
+          "category": "unit",
+          "file": "`scripts/selftest.mjs` group `Feature 016 Scope 04 playbook cell arms and absence causes (market-structure)`",
+          "description": "An auction half that has not reached readiness selects the `context-only` arm, which names the absent auction state and populates no expectation, no direction and no trade shape",
+          "command": "node scripts/selftest.mjs",
+          "liveSystem": false,
+          "status": "planned"
+        },
+        {
+          "id": "TP-04-02",
+          "type": "Unit",
+          "category": "unit",
+          "file": "`scripts/selftest.mjs` group `Feature 016 Scope 04 playbook cell arms and absence causes (market-structure)`",
+          "description": "Re-resolving the same ticker once the auction half reaches readiness under the same cutoff moves the arm from `context-only` to `fused`, and the two results are distinguishable by arm rather than by inspecting their contents",
+          "command": "node scripts/selftest.mjs",
+          "liveSystem": false,
+          "status": "planned"
+        },
+        {
+          "id": "TP-04-03",
+          "type": "Unit",
+          "category": "unit",
+          "file": "`scripts/selftest.mjs` group `Feature 016 Scope 04 playbook cell arms and absence causes (market-structure)`",
+          "description": "A ready auction half with no usable gamma evidence selects the `reduced` arm, naming the missing input, its availability state and the reason, while the auction-only expectation still carries its own falsifier",
+          "command": "node scripts/selftest.mjs",
+          "liveSystem": false,
+          "status": "planned"
+        },
+        {
+          "id": "TP-04-04",
+          "type": "Unit — adversarial",
+          "category": "unit",
+          "file": "`scripts/selftest.mjs` group `Feature 016 Scope 04 playbook cell arms and absence causes (market-structure)`",
+          "description": "Adversarial input: a `reduced` arm resolved from owner state offering `\"wall-context\"` and a mid-range value in the regime position. The regime slot admits neither; it carries only the availability state and the named cause, so a rendering surface has no balanced, neutral or mid-range value to display",
+          "command": "node scripts/selftest.mjs",
+          "liveSystem": false,
+          "status": "planned"
+        },
+        {
+          "id": "TP-04-05",
+          "type": "Unit",
+          "category": "unit",
+          "file": "`scripts/selftest.mjs` group `Feature 016 Scope 04 playbook cell arms and absence causes (market-structure)`",
+          "description": "A `fused` arm over a bar-reconstructed input, an up/down-volume proxy and a convention-dependent gamma input leaves each primitive's provenance class as it entered, using the four classes at `simple-models.json` line 110 and introducing no parallel vocabulary",
+          "command": "node scripts/selftest.mjs",
+          "liveSystem": false,
+          "status": "planned"
+        },
+        {
+          "id": "TP-04-06",
+          "type": "Unit",
+          "category": "unit",
+          "file": "`scripts/selftest.mjs` group `Feature 016 Scope 04 playbook cell arms and absence causes (market-structure)`",
+          "description": "Stated confidence equals what the weakest participating primitive supports and the cell names that primitive; a fixture whose primitives differ in strength proves the value is neither averaged across them nor taken from the strongest",
+          "command": "node scripts/selftest.mjs",
+          "liveSystem": false,
+          "status": "planned"
+        },
+        {
+          "id": "TP-04-07",
+          "type": "Unit",
+          "category": "unit",
+          "file": "`scripts/selftest.mjs` group `Feature 016 Scope 04 playbook cell arms and absence causes (market-structure)`",
+          "description": "Selecting the declared parameter value that excludes gamma context yields a `reduced` arm whose cause is `parameter-excluded` with `recoverable: true`, and whose auction-only expectation still carries its own falsifier",
+          "command": "node scripts/selftest.mjs",
+          "liveSystem": false,
+          "status": "planned"
+        },
+        {
+          "id": "TP-04-08",
+          "type": "Unit — adversarial",
+          "category": "unit",
+          "file": "`scripts/selftest.mjs` group `Feature 016 Scope 04 playbook cell arms and absence causes (market-structure)`",
+          "description": "Adversarial input: two `reduced` arms whose rendered gamma halves are both absent — one `parameter-excluded`, one evidence-side. They differ in cause and in `recoverable`, and flipping the parameter back to the including value restores a `fused` arm for the first and leaves the second reduced",
+          "command": "node scripts/selftest.mjs",
+          "liveSystem": false,
+          "status": "planned"
+        },
+        {
+          "id": "TP-04-09",
+          "type": "Unit — adversarial",
+          "category": "unit",
+          "file": "`scripts/selftest.mjs` group `Feature 016 Scope 04 playbook cell arms and absence causes (market-structure)`",
+          "description": "Adversarial input: `sessionSummaryPath('summary.playbook')` specifically. It returns a fingerprintable path rather than the `null` the lines 1101–1106 enumeration returns today, and `SESSION_OUTPUT_PATHS` carries `summary.playbook` for `gamma-context`, so `compareSensitivity` at line 1185 can observe the cell moving",
+          "command": "node scripts/selftest.mjs",
+          "liveSystem": false,
+          "status": "planned"
+        },
+        {
+          "id": "TP-04-10",
+          "type": "Unit — adversarial",
+          "category": "unit",
+          "file": "`scripts/selftest.mjs` group `Feature 016 Scope 04 playbook cell arms and absence causes (market-structure)`",
+          "description": "Adversarial input: `gamma-context` varied while the gamma half is already unavailable, so `summary.playbook` genuinely does not move. `flatRegionProof.reason` names the specific C5 cause; the generic sentence at lines 1206–1209 does not satisfy the assertion, so a non-empty-reason check alone cannot pass it",
+          "command": "node scripts/selftest.mjs",
+          "liveSystem": false,
+          "status": "planned"
+        },
+        {
+          "id": "TP-04-11",
+          "type": "Registry",
+          "category": "registry",
+          "file": "`scripts/validate-tool-experience.mjs` `invariant(...)` assertions at lines 493–496",
+          "description": "After the `simple-models.json` edit, `gamma-context.affectsOutputPaths` carries `summary.playbook` while the definition count stays 23 and `inputRequirements.stalePolicy`, `seedPolicy`, `calibrationPolicy`, `provenancePolicy`, `performancePolicy` and `deepLinkTargets` are unchanged — so the parameter the user selects is the declared one and not a newly introduced definition",
+          "command": "node scripts/validate-tool-experience.mjs",
+          "liveSystem": false,
+          "status": "planned"
+        },
+        {
+          "id": "TP-04-12",
+          "type": "Regression E2E",
+          "category": "e2e-ui",
+          "file": "`tests/auction-gamma-playbook.spec.mjs` test `Regression: BS-016-033 the playbook cell path is fingerprintable and an excluded gamma half stays distinguishable from an unavailable one`",
+          "description": "The persistent regression case for the two behaviours this scope repairs, asserted on the real `intraday-tape-lab.html` page with the real `rlexperience-adapters/market-structure.js` file injected — the same real-module-into-real-page technique `tests/simple-model-adapters-market.spec.mjs` already applies to this module at line 482 — and with no `page.route`, no `context.route` and no request interception. In the page, `sessionSummaryPath` resolves `summary.playbook` to a fingerprintable value rather than the `null` the lines 1101–1106 enumeration returns today; a `parameter-excluded` reduced arm and an evidence-side reduced arm return two different C5 causes with two different `recoverable` values; and the flat-region proof raised when `gamma-context` moves against an already-absent gamma half names that specific cause rather than the generic sentence at lines 1206–1209. A build that reinstates the `null`-returning path enumeration or the generic proof sentence fails this case in the browser, not only in Node",
+          "command": "npx --no-install playwright test tests/auction-gamma-playbook.spec.mjs --config=playwright.config.mjs --project=system-chrome --grep \"Regression: BS-016-033 the playbook cell path is fingerprintable and an excluded gamma half stays distinguishable from an unavailable one\" --reporter=list",
+          "liveSystem": true,
+          "status": "planned"
+        },
+        {
+          "id": "TP-04-13",
+          "type": "Stress",
+          "category": "stress",
+          "file": "`scripts/selftest.mjs` group `Feature 016 Scope 04 playbook cell arms and absence causes (market-structure)`",
+          "description": "`resolvePlaybookCell` is driven over the entire published set `data/options/index.json` declares — 22 tickers, 39,190 contracts and 4,692,202 bytes of snapshot JSON on disk, the largest single file `data/options/NDX.json` carrying 6,066 contracts in 570,547 bytes — crossed with all three C4 arms and all five C5 causes, resolved back-to-back in one pass. Every call returns a named arm and never `null`; every non-fused arm carries both its cause and its `recoverable` flag; the slowest single resolution stays inside the 250 ms `performancePolicy.maxComputeMs` declared for this module at `simple-models.json` line 111; and the last pass over identical arguments returns a result identical to the first, so no clock read and no accumulated state leaks into the resolver at volume",
+          "command": "node scripts/selftest.mjs",
+          "liveSystem": false,
+          "status": "planned"
+        }
+      ]
+    },
+    {
+      "scopeId": "SCOPE-05",
+      "scopeName": "Behavioural expectation matrix, origin rule and falsifiers",
+      "scopeDir": "scopes/05-behavioural-expectation-matrix",
+      "foundation": true,
+      "dependsOn": [
+        "SCOPE-04"
+      ],
+      "testCount": 13,
+      "tests": [
+        {
+          "id": "TP-05-01",
+          "type": "Unit",
+          "category": "unit",
+          "file": "`scripts/selftest.mjs` group `Feature 016 Scope 05 behavioural expectation matrix (market-structure)`",
+          "description": "Balancing crossed with suppressive expects the value-area edge to hold with rotation toward the point of control, names the balancing state as the level's supplier and the suppressive regime as the expectation's, states a rotation-consistent trade shape and one observable falsifier",
+          "command": "node scripts/selftest.mjs",
+          "liveSystem": false,
+          "status": "planned"
+        },
+        {
+          "id": "TP-05-02",
+          "type": "Unit",
+          "category": "unit",
+          "file": "`scripts/selftest.mjs` group `Feature 016 Scope 05 behavioural expectation matrix (market-structure)`",
+          "description": "Balancing crossed with amplifying states the edge is more likely to break than hold despite the balancing structure, names the amplifying regime as the reason the structural expectation is downgraded, states an acceptance-below trade shape and the condition that would restore the rotation case",
+          "command": "node scripts/selftest.mjs",
+          "liveSystem": false,
+          "status": "planned"
+        },
+        {
+          "id": "TP-05-03",
+          "type": "Unit",
+          "category": "unit",
+          "file": "`scripts/selftest.mjs` group `Feature 016 Scope 05 behavioural expectation matrix (market-structure)`",
+          "description": "Balancing crossed with hinge-proximate states the structure is two-sided, claims neither hold nor break, names flip proximity as the cause of the instability, states a resolving condition on each side, and carries a confidence lower than the stable-regime cell over the same auction half",
+          "command": "node scripts/selftest.mjs",
+          "liveSystem": false,
+          "status": "planned"
+        },
+        {
+          "id": "TP-05-04",
+          "type": "Unit",
+          "category": "unit",
+          "file": "`scripts/selftest.mjs` group `Feature 016 Scope 05 behavioural expectation matrix (market-structure)`",
+          "description": "Imbalanced crossed with suppressive expects the extension to be dampened and to retrace toward value, names the suppressive regime as the qualifier of the directional structure, states a trade shape that respects the dampening, and states the condition that would confirm genuine acceptance beyond the level",
+          "command": "node scripts/selftest.mjs",
+          "liveSystem": false,
+          "status": "planned"
+        },
+        {
+          "id": "TP-05-05",
+          "type": "Unit",
+          "category": "unit",
+          "file": "`scripts/selftest.mjs` group `Feature 016 Scope 05 behavioural expectation matrix (market-structure)`",
+          "description": "Imbalanced crossed with amplifying expects the level to break with shallow retracement, names the imbalanced state as the supplier of level and direction and the amplifying regime as the supplier of the expectation, states a continuation trade shape and one falsifier that would end the continuation case",
+          "command": "node scripts/selftest.mjs",
+          "liveSystem": false,
+          "status": "planned"
+        },
+        {
+          "id": "TP-05-06",
+          "type": "Unit",
+          "category": "unit",
+          "file": "`scripts/selftest.mjs` group `Feature 016 Scope 05 behavioural expectation matrix (market-structure)`",
+          "description": "Imbalanced crossed with hinge-proximate presents the auction direction and level while asserting neither dampening nor extension, names the instability inside the cell's own `basis`, and carries a confidence lower than the stable-regime cell over the same auction half",
+          "command": "node scripts/selftest.mjs",
+          "liveSystem": false,
+          "status": "planned"
+        },
+        {
+          "id": "TP-05-07",
+          "type": "Unit — adversarial",
+          "category": "unit",
+          "file": "`scripts/selftest.mjs` group `Feature 016 Scope 05 behavioural expectation matrix (market-structure)`",
+          "description": "Adversarial input: two cells whose auction half is **byte-identical** — same auction class, same level, one stated cutoff — differing only in regime. They state opposite expectations and two falsifiers naming different observations. Because the auction halves cannot differ, an implementation that derived the expectation from structure rather than regime fails this assertion",
+          "command": "node scripts/selftest.mjs",
+          "liveSystem": false,
+          "status": "planned"
+        },
+        {
+          "id": "TP-05-08",
+          "type": "Unit — adversarial",
+          "category": "unit",
+          "file": "`scripts/selftest.mjs` group `Feature 016 Scope 05 behavioural expectation matrix (market-structure)`",
+          "description": "Adversarial input: owner state offering a gamma primitive as a candidate level, target and direction. Every `origin`-role `basis` entry still traces to an auction primitive; the offered gamma primitive appears only with a `qualifier` role and reaches no `origin` slot on any of the three",
+          "command": "node scripts/selftest.mjs",
+          "liveSystem": false,
+          "status": "planned"
+        },
+        {
+          "id": "TP-05-09",
+          "type": "Unit",
+          "category": "unit",
+          "file": "`scripts/selftest.mjs` group `Feature 016 Scope 05 behavioural expectation matrix (market-structure)`",
+          "description": "A pairing for which no observable falsifier can be stated asserts no expectation and names the missing falsifier as the reason; no partial expectation stripped of its falsifier is emitted on any path",
+          "command": "node scripts/selftest.mjs",
+          "liveSystem": false,
+          "status": "planned"
+        },
+        {
+          "id": "TP-05-10",
+          "type": "Unit",
+          "category": "unit",
+          "file": "`scripts/selftest.mjs` group `Feature 016 Scope 05 behavioural expectation matrix (market-structure)`",
+          "description": "Every asserted cell's falsifier names a level, a direction and a confirming condition, and travels on the cell alongside the expectation rather than in a separate disclosure, so a user can grade it without re-deriving the model",
+          "command": "node scripts/selftest.mjs",
+          "liveSystem": false,
+          "status": "planned"
+        },
+        {
+          "id": "TP-05-11",
+          "type": "Unit",
+          "category": "unit",
+          "file": "`scripts/selftest.mjs` group `Feature 016 Scope 05 behavioural expectation matrix (market-structure)`",
+          "description": "Across all six populated cells, every `basis` entry names its source, the provenance class it carried into the fusion and its as-of; an entry missing any of the three is not emitted",
+          "command": "node scripts/selftest.mjs",
+          "liveSystem": false,
+          "status": "planned"
+        },
+        {
+          "id": "TP-05-12",
+          "type": "Regression E2E",
+          "category": "e2e-ui",
+          "file": "`tests/auction-gamma-playbook.spec.mjs` test `Regression: BS-016-009 a gamma primitive offered as a level reaches no origin slot in an asserted cell`",
+          "description": "The persistent regression case for the assembly invariant this scope adds, asserted on the real `intraday-tape-lab.html` page with the real `rlexperience-adapters/market-structure.js` file injected — the same real-module-into-real-page technique `tests/simple-model-adapters-market.spec.mjs` already applies to this module at line 482 — and with no `page.route`, no `context.route` and no request interception. In the page, `RLMARKETSTRUCTURE.resolvePlaybookCell` is called with owner state offering a gamma primitive as a candidate level, target and direction: every `origin`-role `basis` entry in the returned cell still traces to an auction primitive, the offered gamma primitive appears only with a `qualifier` role, and the same call over a pairing with no statable falsifier asserts no expectation at all rather than emitting a falsifier-stripped partial one. A build that lets a gamma primitive occupy an `origin` slot, or that emits an expectation without its falsifier, fails this case in the browser, not only in Node",
+          "command": "npx --no-install playwright test tests/auction-gamma-playbook.spec.mjs --config=playwright.config.mjs --project=system-chrome --grep \"Regression: BS-016-009 a gamma primitive offered as a level reaches no origin slot in an asserted cell\" --reporter=list",
+          "liveSystem": true,
+          "status": "planned"
+        },
+        {
+          "id": "TP-05-13",
+          "type": "Stress",
+          "category": "stress",
+          "file": "`scripts/selftest.mjs` group `Feature 016 Scope 05 behavioural expectation matrix (market-structure)`",
+          "description": "The matrix is driven over the entire published set `data/options/index.json` declares — 22 tickers, 39,190 contracts and 4,692,202 bytes of snapshot JSON on disk, the largest single file `data/options/NDX.json` carrying 6,066 contracts in 570,547 bytes — crossed with both auction classes and all three regime values, giving every one of the six cells over every ticker, assembled back-to-back in one pass. Every asserted cell carries an expectation, a trade shape and a falsifier naming a level, a direction and a confirming condition; every `origin`-role `basis` entry traces to an auction primitive across the whole run; the slowest single assembly stays inside the 250 ms `performancePolicy.maxComputeMs` declared for this module at `simple-models.json` line 111; and the last pass over identical arguments returns a result identical to the first, so no clock read and no accumulated state leaks into the assembly at volume",
+          "command": "node scripts/selftest.mjs",
+          "liveSystem": false,
+          "status": "planned"
+        }
+      ]
+    },
+    {
+      "scopeId": "SCOPE-06",
+      "scopeName": "Owner state v2 boundary and session-qualifier repair",
+      "scopeDir": "scopes/06-owner-state-v2-and-session-qualifier",
+      "foundation": false,
+      "dependsOn": [
+        "SCOPE-03",
+        "SCOPE-05"
+      ],
+      "testCount": 14,
+      "tests": [
+        {
+          "id": "TP-06-01",
+          "type": "Unit",
+          "category": "unit",
+          "file": "`scripts/selftest.mjs` group `Feature 016 Scope 06 owner state v2 boundary and session qualifier (intraday-tape-lab, market-structure)`",
+          "description": "`__rlOwnerStateProvider` on `./intraday-tape-lab.html` declares `contractVersion: 'session-auction-owner-state/v2'`, and its `gamma` field carries the full C1 record rather than the three-field `callWall`/`putWall`/`flip` projection, so the net-gamma sign crosses the boundary at all",
+          "command": "node scripts/selftest.mjs",
+          "liveSystem": false,
+          "status": "planned"
+        },
+        {
+          "id": "TP-06-02",
+          "type": "Unit",
+          "category": "unit",
+          "file": "`scripts/selftest.mjs` group `Feature 016 Scope 06 owner state v2 boundary and session qualifier (intraday-tape-lab, market-structure)`",
+          "description": "The provider carries a sibling `regime` field holding the C3 record alongside `gamma`, and both are plain data rather than functions, so the record survives the structural clone the consumer receives",
+          "command": "node scripts/selftest.mjs",
+          "liveSystem": false,
+          "status": "planned"
+        },
+        {
+          "id": "TP-06-03",
+          "type": "Unit",
+          "category": "unit",
+          "file": "`scripts/selftest.mjs` group `Feature 016 Scope 06 owner state v2 boundary and session qualifier (intraday-tape-lab, market-structure)`",
+          "description": "`rlexperience-adapters/market-structure.js` adds no import of `RLOPTIONS`: the regime arrives as a value on frozen owner state, so the rule at its line 15 holds and no edge is added in either direction",
+          "command": "node scripts/selftest.mjs",
+          "liveSystem": false,
+          "status": "planned"
+        },
+        {
+          "id": "TP-06-04",
+          "type": "Unit",
+          "category": "unit",
+          "file": "`scripts/selftest.mjs` group `Feature 016 Scope 06 owner state v2 boundary and session qualifier (intraday-tape-lab, market-structure)`",
+          "description": "The repaired `sessionGammaTag` reads the net-gamma sign that now crosses the boundary and the `flip` that always crossed and was never read, and it keeps returning wall-position context for the P-05 reading",
+          "command": "node scripts/selftest.mjs",
+          "liveSystem": false,
+          "status": "planned"
+        },
+        {
+          "id": "TP-06-05",
+          "type": "Unit — adversarial",
+          "category": "unit",
+          "file": "`scripts/selftest.mjs` group `Feature 016 Scope 06 owner state v2 boundary and session qualifier (intraday-tape-lab, market-structure)`",
+          "description": "Adversarial input: an owner state whose wall position would imply a behavioural regime. `sessionGammaTag`'s `\"wall-context\"` return keeps its wall meaning and reaches no regime slot, so an implementation that resolved a regime from wall position fails this assertion",
+          "command": "node scripts/selftest.mjs",
+          "liveSystem": false,
+          "status": "planned"
+        },
+        {
+          "id": "TP-06-06",
+          "type": "Unit — adversarial",
+          "category": "unit",
+          "file": "`scripts/selftest.mjs` group `Feature 016 Scope 06 owner state v2 boundary and session qualifier (intraday-tape-lab, market-structure)`",
+          "description": "Adversarial input: a v1-shaped owner state carrying the three-field gamma projection and no `regime` sibling. `resolvePlaybookCell` returns a `reduced` arm with a named absence cause and `sessionGammaTag` degrades rather than throwing, so an older page shape produces a truthful reduced read",
+          "command": "node scripts/selftest.mjs",
+          "liveSystem": false,
+          "status": "planned"
+        },
+        {
+          "id": "TP-06-07",
+          "type": "Unit",
+          "category": "unit",
+          "file": "`scripts/selftest.mjs` group `Feature 016 Scope 06 owner state v2 boundary and session qualifier (intraday-tape-lab, market-structure)`",
+          "description": "`ownerStateFingerprint` and `evidenceIdentity` both change when the record widens, and a lookup against a superseded identity yields the unavailable-for-this-identity message rather than a wrong answer computed from stale state",
+          "command": "node scripts/selftest.mjs",
+          "liveSystem": false,
+          "status": "planned"
+        },
+        {
+          "id": "TP-06-08",
+          "type": "Unit",
+          "category": "unit",
+          "file": "`scripts/selftest.mjs` group `Feature 016 Scope 06 owner state v2 boundary and session qualifier (intraday-tape-lab, market-structure)`",
+          "description": "`captureEvidence` receives a deep-frozen structural clone of the widened record: no live page reference is reachable through it and the clone carries no cycle, so the record backing a re-qualified cell cannot be mutated after capture",
+          "command": "node scripts/selftest.mjs",
+          "liveSystem": false,
+          "status": "planned"
+        },
+        {
+          "id": "TP-06-09",
+          "type": "Unit",
+          "category": "unit",
+          "file": "`scripts/selftest.mjs` group `Feature 016 Scope 06 owner state v2 boundary and session qualifier (intraday-tape-lab, market-structure)`",
+          "description": "`computeOptLevels` on `./intraday-tape-lab.html` calls `RLOPTIONS.readGammaEvidence` with `r = 0.045`, `q = 0` and the recorded `sourceKind`, and the page's inline `bsmGamma`, its band and its flip search are gone, so the full C1 record the provider emits has a single producer",
+          "command": "node scripts/selftest.mjs",
+          "liveSystem": false,
+          "status": "planned"
+        },
+        {
+          "id": "TP-06-10",
+          "type": "Unit",
+          "category": "unit",
+          "file": "`scripts/selftest.mjs` group `Feature 016 Scope 06 owner state v2 boundary and session qualifier (intraday-tape-lab, market-structure)`",
+          "description": "`normOpt` carries as-of, coverage and availability through the cache round-trip instead of the eight-field projection, so a cached read is not silently narrower than a fresh one and a newly arrived snapshot's as-of survives to be stated",
+          "command": "node scripts/selftest.mjs",
+          "liveSystem": false,
+          "status": "planned"
+        },
+        {
+          "id": "TP-06-11",
+          "type": "Unit — adversarial",
+          "category": "unit",
+          "file": "`scripts/selftest.mjs` group `Feature 016 Scope 06 owner state v2 boundary and session qualifier (intraday-tape-lab, market-structure)`",
+          "description": "Adversarial scan of the whole repository rather than the enumerated consumer set: no surface reads the literal string `session-auction-owner-state/v1`, and no surface reads `gamma.callWall` or `gamma.putWall` expecting the three-field projection, so a consumer left on the narrow shape fails wherever it sits",
+          "command": "node scripts/selftest.mjs",
+          "liveSystem": false,
+          "status": "planned"
+        },
+        {
+          "id": "TP-06-12",
+          "type": "E2E UI — live stack",
+          "category": "e2e-ui",
+          "file": "`tests/auction-gamma-playbook.spec.mjs` test `reduced read re-qualifies across a hydration delta`",
+          "description": "Asserted against the real page with no `page.route`, no `context.route` and no request interception of any kind: a reduced read showing a named missing gamma input re-qualifies into a fully asserted cell once usable gamma evidence arrives under the same cutoff, the cell states the newly available snapshot's as-of, and the reduced read stops presenting as the current read",
+          "command": "npx --no-install playwright test tests/auction-gamma-playbook.spec.mjs --config=playwright.config.mjs --project=system-chrome --reporter=list",
+          "liveSystem": true,
+          "status": "planned"
+        },
+        {
+          "id": "TP-06-13",
+          "type": "Regression E2E",
+          "category": "e2e-ui",
+          "file": "`tests/auction-gamma-playbook.spec.mjs` test `Regression: BS-016-017 owner state v2 carries the net-gamma sign and the session qualifier reads it`",
+          "description": "The persistent regression case for the two behaviours this scope repairs, asserted on the real `intraday-tape-lab.html` page with the real `rlexperience-adapters/market-structure.js` file injected — the same real-module-into-real-page technique `tests/simple-model-adapters-market.spec.mjs` already applies to this module at line 482, against the `intraday-tape-lab.html` descriptor at line 327, under the file header at line 17 recording that there is no `page.route` and no `context.route` — and with no request interception. In the page, `__rlOwnerStateProvider[\"intraday-tape-lab\"]()` returns `contractVersion: 'session-auction-owner-state/v2'` and a `gamma` field carrying the net-gamma sign, which the three-field `callWall`/`putWall`/`flip` projection at line 1373 does not carry at all today; `sessionGammaTag` reads that sign and the `flip` that crossed and was never read, rather than the `callWall`/`putWall`-only pair at lines 959–967; and a v1-shaped record still yields a `reduced` arm with a named cause instead of throwing. A build that reinstates `/v1`, narrows `gamma` back to the three-field projection, or reverts the qualifier to reading only the two walls fails this case in the browser, not only in Node",
+          "command": "npx --no-install playwright test tests/auction-gamma-playbook.spec.mjs --config=playwright.config.mjs --project=system-chrome --grep \"Regression: BS-016-017 owner state v2 carries the net-gamma sign and the session qualifier reads it\" --reporter=list",
+          "liveSystem": true,
+          "status": "planned"
+        },
+        {
+          "id": "TP-06-14",
+          "type": "Stress",
+          "category": "stress",
+          "file": "`scripts/selftest.mjs` group `Feature 016 Scope 06 owner state v2 boundary and session qualifier (intraday-tape-lab, market-structure)`",
+          "description": "The widened boundary is driven over the entire published set `data/options/index.json` declares — 22 tickers, 39,190 contracts and 4,692,202 bytes of snapshot JSON on disk, the largest single file `data/options/NDX.json` carrying 6,066 contracts in 570,547 bytes — with every ticker's record built at v2, deep-frozen through the `deepFreeze(JSON.parse(JSON.stringify(ownerState)))` clone at `market-structure.js` line 1155, fingerprinted, registered through the `ownerByIdentity.set(evidence.evidenceIdentity, frozen)` at line 1157 and re-read back, plus the v1-shaped record interleaved so the degrade path is exercised at volume rather than once. Every record clones without throwing and carries no cycle; `ownerStateFingerprint` (line 321) yields a distinct identity per distinct record and the same identity for an identical one, so a lookup never returns another ticker's state; the slowest single provider-to-qualifier resolution stays inside the 250 ms `performancePolicy.maxComputeMs` declared for this module at `simple-models.json` line 111; and the last pass over identical arguments returns a result identical to the first, satisfying the `deterministic: true` declared beside it, so no clock read and no accumulated state leaks into the widened boundary at volume",
+          "command": "node scripts/selftest.mjs",
+          "liveSystem": false,
+          "status": "planned"
+        }
+      ]
+    },
+    {
+      "scopeId": "SCOPE-07",
+      "scopeName": "Playbook lens render across Simple and Power",
+      "scopeDir": "scopes/07-playbook-lens-render",
+      "foundation": false,
+      "dependsOn": [
+        "SCOPE-06"
+      ],
+      "testCount": 18,
+      "tests": [
+        {
+          "id": "TP-07-01",
+          "type": "E2E UI — live stack",
+          "category": "e2e-ui",
+          "file": "`tests/auction-gamma-playbook.spec.mjs` test `fused read composes the verdict block from one record`",
+          "description": "Asserted against the real page with no `page.route`, no `context.route` and no request interception of any kind: a fully qualified cell renders its regime badge, expectation verdict, confidence-bound bar, falsifier card and the regime-change watch item into the existing `#verdict` container, with the watch item adjacent to and visually distinguishable from the falsifier card, and no new panel introduced",
+          "command": "npx --no-install playwright test tests/auction-gamma-playbook.spec.mjs --config=playwright.config.mjs --project=system-chrome --reporter=list",
+          "liveSystem": true,
+          "status": "planned"
+        },
+        {
+          "id": "TP-07-02",
+          "type": "E2E UI — live stack — adversarial",
+          "category": "e2e-ui",
+          "file": "`tests/auction-gamma-playbook.spec.mjs` test `reduced and qualified reads differ structurally, not only stylistically`",
+          "description": "Adversarial assertion against the real page: a scanned set containing both forms is compared on DOM structure rather than on colour, so an implementation that distinguished the reduced frame only by styling fails",
+          "command": "npx --no-install playwright test tests/auction-gamma-playbook.spec.mjs --config=playwright.config.mjs --project=system-chrome --reporter=list",
+          "liveSystem": true,
+          "status": "planned"
+        },
+        {
+          "id": "TP-07-03",
+          "type": "E2E UI — live stack",
+          "category": "e2e-ui",
+          "file": "`tests/auction-gamma-playbook.spec.mjs` test `no reduced read carries the qualified confidence presentation`",
+          "description": "Asserted against the real page: across every reduced read in the scanned set, the confidence-bound presentation a fully qualified cell carries is absent",
+          "command": "npx --no-install playwright test tests/auction-gamma-playbook.spec.mjs --config=playwright.config.mjs --project=system-chrome --reporter=list",
+          "liveSystem": true,
+          "status": "planned"
+        },
+        {
+          "id": "TP-07-04",
+          "type": "E2E UI — live stack",
+          "category": "e2e-ui",
+          "file": "`tests/auction-gamma-playbook.spec.mjs` test `reduced read names its auction-only expectation, missing input and reason`",
+          "description": "Asserted against the real page: each reduced read states its auction-only expectation, and its absence-cause chip names both the missing input and that input's reason",
+          "command": "npx --no-install playwright test tests/auction-gamma-playbook.spec.mjs --config=playwright.config.mjs --project=system-chrome --reporter=list",
+          "liveSystem": true,
+          "status": "planned"
+        },
+        {
+          "id": "TP-07-05",
+          "type": "E2E UI — live stack",
+          "category": "e2e-ui",
+          "file": "`tests/auction-gamma-playbook.spec.mjs` test `options panel renders the gamma half that discriminates the two forms`",
+          "description": "Asserted against the real page: `#optbox` renders the net-gamma sign, the flip-distance readout including its `flipLocatable: false` state, the wall-proximity meter and the snapshot-staleness chip, and the wall meter does not appear in the regime badge's basis",
+          "command": "npx --no-install playwright test tests/auction-gamma-playbook.spec.mjs --config=playwright.config.mjs --project=system-chrome --reporter=list",
+          "liveSystem": true,
+          "status": "planned"
+        },
+        {
+          "id": "TP-07-06",
+          "type": "E2E UI — live stack",
+          "category": "e2e-ui",
+          "file": "`tests/auction-gamma-playbook.spec.mjs` test `gamma-participation lever recomputes through the single render path`",
+          "description": "Asserted against the real page: the P-15 lever renders in `#simpleView`, steering it recomputes through the page's single `render()` path with no network request issued, and Simple and the Power basis panel show the same read afterwards rather than divergent copies",
+          "command": "npx --no-install playwright test tests/auction-gamma-playbook.spec.mjs --config=playwright.config.mjs --project=system-chrome --reporter=list",
+          "liveSystem": true,
+          "status": "planned"
+        },
+        {
+          "id": "TP-07-07",
+          "type": "E2E UI — live stack",
+          "category": "e2e-ui",
+          "file": "`tests/auction-gamma-playbook.spec.mjs` test `excluded lever position renders a named recoverable reduced read`",
+          "description": "Asserted against the real page: the lever's excluded position renders a reduced read naming a recoverable `parameter-excluded` cause, and returning the lever restores the fully qualified cell in the same view",
+          "command": "npx --no-install playwright test tests/auction-gamma-playbook.spec.mjs --config=playwright.config.mjs --project=system-chrome --reporter=list",
+          "liveSystem": true,
+          "status": "planned"
+        },
+        {
+          "id": "TP-07-08",
+          "type": "E2E UI — live stack",
+          "category": "e2e-ui",
+          "file": "`tests/auction-gamma-playbook.spec.mjs` test `signed-volume series is labelled an up/down-volume proxy`",
+          "description": "Asserted against the real page: wherever the signed-volume series is cited, it is labelled an up/down-volume proxy and stated as not bid/ask, depth or trade-level aggression data",
+          "command": "npx --no-install playwright test tests/auction-gamma-playbook.spec.mjs --config=playwright.config.mjs --project=system-chrome --reporter=list",
+          "liveSystem": true,
+          "status": "planned"
+        },
+        {
+          "id": "TP-07-09",
+          "type": "E2E UI — live stack — adversarial",
+          "category": "e2e-ui",
+          "file": "`tests/auction-gamma-playbook.spec.mjs` test `signed-volume series is never the sole basis of an expectation`",
+          "description": "Adversarial fixture against the real page: the signed-volume series is the only flow evidence present. No asserted expectation is founded on it alone, it appears only as corroborating evidence, and it is neither drawn nor described as real order flow",
+          "command": "npx --no-install playwright test tests/auction-gamma-playbook.spec.mjs --config=playwright.config.mjs --project=system-chrome --reporter=list",
+          "liveSystem": true,
+          "status": "planned"
+        },
+        {
+          "id": "TP-07-10",
+          "type": "E2E UI — live stack",
+          "category": "e2e-ui",
+          "file": "`tests/auction-gamma-playbook.spec.mjs` test `profile canvas hover tip carries the proxy disclosure`",
+          "description": "Asserted against the real page: hovering `#cProfile` returns a tip that names the up/down series and carries the same proxy disclosure the cited figure carries, so the label survives where the series is drawn rather than cited",
+          "command": "npx --no-install playwright test tests/auction-gamma-playbook.spec.mjs --config=playwright.config.mjs --project=system-chrome --reporter=list",
+          "liveSystem": true,
+          "status": "planned"
+        },
+        {
+          "id": "TP-07-11",
+          "type": "E2E UI — live stack",
+          "category": "e2e-ui",
+          "file": "`tests/auction-gamma-playbook.spec.mjs` test `value-area element is labelled a bar-derived model estimate`",
+          "description": "Asserted against the real page: the value-area element is labelled a model estimate reconstructed from bars and states that intrabar distribution is not observed",
+          "command": "npx --no-install playwright test tests/auction-gamma-playbook.spec.mjs --config=playwright.config.mjs --project=system-chrome --reporter=list",
+          "liveSystem": true,
+          "status": "planned"
+        },
+        {
+          "id": "TP-07-12",
+          "type": "E2E UI — live stack — adversarial",
+          "category": "e2e-ui",
+          "file": "`tests/auction-gamma-playbook.spec.mjs` test `value-area granularity moves with the session range`",
+          "description": "Adversarial fixture against the real page: two sessions of different range are compared. The element states that bucket resolution scales with the session range across the forty-four buckets and the stated granularity differs between them, so a fixed label fails. The element is not presented as tick or time-price-opportunity data",
+          "command": "npx --no-install playwright test tests/auction-gamma-playbook.spec.mjs --config=playwright.config.mjs --project=system-chrome --reporter=list",
+          "liveSystem": true,
+          "status": "planned"
+        },
+        {
+          "id": "TP-07-13",
+          "type": "E2E UI — live stack",
+          "category": "e2e-ui",
+          "file": "`tests/auction-gamma-playbook.spec.mjs` test `early-session balance names its declared window`",
+          "description": "Asserted against the real page: the early-session balance element states the window value it was computed against and states that the window is a declared parameter rather than the classical initial-balance interval",
+          "command": "npx --no-install playwright test tests/auction-gamma-playbook.spec.mjs --config=playwright.config.mjs --project=system-chrome --reporter=list",
+          "liveSystem": true,
+          "status": "planned"
+        },
+        {
+          "id": "TP-07-14",
+          "type": "E2E UI — live stack — adversarial",
+          "category": "e2e-ui",
+          "file": "`tests/auction-gamma-playbook.spec.mjs` test `changing the declared window changes the rendered element`",
+          "description": "Adversarial fixture against the real page: the declared window is changed and the rendered element changes with it, and the element states that the window resolves to a whole number of bars at the selected interval. A static label that never moves with the parameter fails",
+          "command": "npx --no-install playwright test tests/auction-gamma-playbook.spec.mjs --config=playwright.config.mjs --project=system-chrome --reporter=list",
+          "liveSystem": true,
+          "status": "planned"
+        },
+        {
+          "id": "TP-07-15",
+          "type": "E2E UI — live stack",
+          "category": "e2e-ui",
+          "file": "`tests/auction-gamma-playbook.spec.mjs` test `narrow viewport reflow preserves the two read forms`",
+          "description": "Asserted against the real page at a narrow viewport: the reflowed Simple and Power views keep each reduced read structurally distinguishable from each fully qualified cell, `#cSession` and `#cProfile` redraw on resize rather than rendering blank, and the `data-m` segment still carries exactly two buttons",
+          "command": "npx --no-install playwright test tests/auction-gamma-playbook.spec.mjs --config=playwright.config.mjs --project=system-chrome --reporter=list",
+          "liveSystem": true,
+          "status": "planned"
+        },
+        {
+          "id": "TP-07-16",
+          "type": "Regression E2E",
+          "category": "e2e-ui",
+          "file": "`tests/auction-gamma-playbook.spec.mjs` test `Regression: BS-016-016 a reduced read never renders with the qualified confidence presentation`",
+          "description": "The persistent regression case for the distinction this scope's render exists to make, asserted on the real `intraday-tape-lab.html` page with no `page.route`, no `context.route` and no request interception. In the page, a scanned set holding both forms is compared on DOM structure rather than on colour, so a build that distinguished the reduced frame only by styling fails; the confidence-bound presentation a fully qualified cell carries is absent from every reduced read; each reduced read's absence-cause chip names both the missing input and that input's reason; and steering the P-15 lever to its excluded position renders a recoverable `parameter-excluded` reduced read that returns to a fully qualified cell when the lever returns, through the single `render()` path the delegated handler at line 2168 already uses and with no network request issued. A build that collapses the two forms into one, drops the confidence presentation from the qualified cell instead of from the reduced read, or lets the lever leave the two views showing divergent copies fails this case in the browser",
+          "command": "npx --no-install playwright test tests/auction-gamma-playbook.spec.mjs --config=playwright.config.mjs --project=system-chrome --grep \"Regression: BS-016-016 a reduced read never renders with the qualified confidence presentation\" --reporter=list",
+          "liveSystem": true,
+          "status": "planned"
+        },
+        {
+          "id": "TP-07-17",
+          "type": "Fixture Canary",
+          "category": "e2e-ui",
+          "file": "`tests/auction-gamma-playbook.spec.mjs` test `Canary: shared shell and spec-file bootstrap contracts are unchanged`",
+          "description": "The independent canary over the four shared surfaces the Shared Infrastructure Impact Sweep enumerates, run first and alone before any broad rerun, on the real page with no request interception. It proves: the page paints its `#verdict` block with the `defer`-loaded shell not yet defined, so every new `RLCHART.attach` registration carries the `typeof RLCHART !== 'undefined'` guard the line-2095 registration already carries and no cold first paint halts; the `rlData` schema version at `rldata.js` line 77 and the whole `toolReads` map are byte-identical before and after a full render plus a P-15 steer plus a Simple/Power toggle, so the four downstream readers of that cache — `market-brief.html`, `rlbrief.js`, `rlmarketaction.js` and `scripts/brief-refresh.mjs` — see exactly what they saw before, mirroring the `shared canary: RLDATA cache and toolReads contracts remain unchanged` assertion `scripts/selftest.mjs` carries at line 1732; the tip element `RLCHART` owns is the only tooltip element present after a steer, so no parallel hover mechanism was introduced beside the dual-shape `attach` at `rlchart.js` line 365; and the default browser context holds — full viewport, no persisted `mode` override in the `intradayTapeLab` key at lines 1379–1381 — so the viewport TP-07-15 resizes and the pointer TP-07-10 moves are restored rather than inherited by a later case in this shared file",
+          "command": "npx --no-install playwright test tests/auction-gamma-playbook.spec.mjs --config=playwright.config.mjs --project=system-chrome --grep \"Canary: shared shell and spec-file bootstrap contracts are unchanged\" --reporter=list",
+          "liveSystem": true,
+          "status": "planned"
+        },
+        {
+          "id": "TP-07-18",
+          "type": "Stress",
+          "category": "stress",
+          "file": "`tests/auction-gamma-playbook.spec.mjs` test `Stress: the lens re-renders both views inside the declared per-recompute budget across the full declared lever domain`",
+          "description": "The lens render is driven at the maximum distinct one-at-a-time load this tool's own registry entry admits, against the real page with no `page.route`, no `context.route` and no request interception of any kind. `simple-models.json` declares `sensitivityPolicy.method: \"one-at-a-time\"` at line 108 for `simple-model/session-auction/v1`, and five identity-bearing levers whose declared domains admit 70 distinct single-lever positions — `opening-range` 5–60 step 5 (12 positions, line 100), `vwap-band` 0.5–4 step 0.25 (15), `profile-window` 1–20 step 1 (20), `control-threshold` 0–1 step 0.05 (21) and the P-15 `gamma-context` enum `exclude`/`include` (2, line 104). Every position is steered through the page's single `render()` path — the delegated `#simpleView` handler at line 2168 — in Simple and in the Power basis panel, at the full viewport and at the narrow viewport TP-07-15 exercises, giving 280 renders with no network request issued at any of them. It proves: every one of those renders completes inside the 250 ms `performancePolicy.maxComputeMs` this tool's model declares at `simple-models.json` line 111, which is the declared per-recompute budget NFR-016-002 binds the fusion to; no render halts against a half-empty cache, because every numeric path guards through `isNum` at line 1233 and renders an em dash rather than throwing; each reduced read stays structurally distinguishable from each fully qualified cell at every one of the 70 positions and at both viewports, so the distinction TP-07-02 asserts once holds across the whole declared lever domain rather than at one position; and the last pass over an identical lever position renders a read identical to the first, satisfying the `deterministic: true` declared beside the budget at line 111, so no clock read and no accumulated render state leaks into the lens under load",
+          "command": "npx --no-install playwright test tests/auction-gamma-playbook.spec.mjs --config=playwright.config.mjs --project=system-chrome --reporter=list",
+          "liveSystem": true,
+          "status": "planned"
+        }
+      ]
+    },
+    {
+      "scopeId": "SCOPE-08",
+      "scopeName": "Journey anchor, recorded assertion and published tool read",
+      "scopeDir": "scopes/08-journey-anchor-and-recorded-assertion",
+      "foundation": false,
+      "dependsOn": [
+        "SCOPE-07"
+      ],
+      "testCount": 17,
+      "tests": [
+        {
+          "id": "TP-08-01",
+          "type": "E2E UI — live stack",
+          "category": "e2e-ui",
+          "file": "`tests/auction-gamma-playbook.spec.mjs` test `journey shell mounts at the new anchor inside Power`",
+          "description": "Asserted against the real page with no `page.route`, no `context.route` and no request interception of any kind: a `<section id=\"journey\" data-rljourney-mount>` exists inside the existing Power view and the shared shell mounts at it, so the Journey view is reachable rather than nominal",
+          "command": "npx --no-install playwright test tests/auction-gamma-playbook.spec.mjs --config=playwright.config.mjs --project=system-chrome --reporter=list",
+          "liveSystem": true,
+          "status": "planned"
+        },
+        {
+          "id": "TP-08-02",
+          "type": "E2E UI — live stack",
+          "category": "e2e-ui",
+          "file": "`tests/auction-gamma-playbook.spec.mjs` test `both registered journeys are reachable through the mounted anchor`",
+          "description": "Asserted against the real page: the declared deep-link target `intraday-tape-lab.html#journey` resolves to that anchor, and both registered journey definitions are reachable through the mounted packet without any registry edit",
+          "command": "npx --no-install playwright test tests/auction-gamma-playbook.spec.mjs --config=playwright.config.mjs --project=system-chrome --reporter=list",
+          "liveSystem": true,
+          "status": "planned"
+        },
+        {
+          "id": "TP-08-03",
+          "type": "E2E UI — live stack — adversarial",
+          "category": "e2e-ui",
+          "file": "`tests/auction-gamma-playbook.spec.mjs` test `top-level view contract stays exactly four`",
+          "description": "Adversarial assertion against the real page: the `data-m` segment carries exactly two buttons and the mounted section introduces no fifth top-level view, no duplicate top-level toggle and no parallel tool entry, so adding a fifth control fails the count",
+          "command": "npx --no-install playwright test tests/auction-gamma-playbook.spec.mjs --config=playwright.config.mjs --project=system-chrome --reporter=list",
+          "liveSystem": true,
+          "status": "planned"
+        },
+        {
+          "id": "TP-08-04",
+          "type": "E2E UI — live stack",
+          "category": "e2e-ui",
+          "file": "`tests/auction-gamma-playbook.spec.mjs` test `each of the four surfaces expresses the record distinctly`",
+          "description": "Asserted against the real page: Simple carries the verdict and lever, Power the basis and the record panel, Brief the one-line published read and Journey the packet, and no surface repeats another verbatim",
+          "command": "npx --no-install playwright test tests/auction-gamma-playbook.spec.mjs --config=playwright.config.mjs --project=system-chrome --reporter=list",
+          "liveSystem": true,
+          "status": "planned"
+        },
+        {
+          "id": "TP-08-05",
+          "type": "E2E UI — live stack",
+          "category": "e2e-ui",
+          "file": "`tests/auction-gamma-playbook.spec.mjs` test `asserting a cell writes a complete record and renders the record panel`",
+          "description": "Asserted against the real page: asserting a cell stores the complete record with an empty outcome list, and the new `.pw` record panel renders the recovered rows inside Power alongside the existing `.pw` panels",
+          "command": "npx --no-install playwright test tests/auction-gamma-playbook.spec.mjs --config=playwright.config.mjs --project=system-chrome --reporter=list",
+          "liveSystem": true,
+          "status": "planned"
+        },
+        {
+          "id": "TP-08-06",
+          "type": "E2E UI — live stack",
+          "category": "e2e-ui",
+          "file": "`tests/auction-gamma-playbook.spec.mjs` test `recovered row states expectation, cutoff and falsifier`",
+          "description": "Asserted against the real page: each recovered row states what was expected, the evidence cutoff it was asserted against and its falsifier, and carries its own provenance tags, so the user can determine whether that falsifier triggered without re-deriving the model",
+          "command": "npx --no-install playwright test tests/auction-gamma-playbook.spec.mjs --config=playwright.config.mjs --project=system-chrome --reporter=list",
+          "liveSystem": true,
+          "status": "planned"
+        },
+        {
+          "id": "TP-08-07",
+          "type": "E2E UI — live stack — adversarial",
+          "category": "e2e-ui",
+          "file": "`tests/auction-gamma-playbook.spec.mjs` test `grading appends and alters no recorded field`",
+          "description": "Adversarial assertion against the real page: the recorded expectation, cutoff and falsifier are captured before the grade and compared after it. Grading appends to the outcome list and touches nothing else, so an implementation that rewrote the assertion in place fails",
+          "command": "npx --no-install playwright test tests/auction-gamma-playbook.spec.mjs --config=playwright.config.mjs --project=system-chrome --reporter=list",
+          "liveSystem": true,
+          "status": "planned"
+        },
+        {
+          "id": "TP-08-08",
+          "type": "E2E UI — live stack — adversarial",
+          "category": "e2e-ui",
+          "file": "`tests/auction-gamma-playbook.spec.mjs` test `a fingerprint mismatch presents the record as untrustworthy`",
+          "description": "Adversarial fixture against the real page: a stored record whose fingerprint recomputed over cell and cutoff no longer matches presents as untrustworthy rather than being accepted and rendered as a valid assertion",
+          "command": "npx --no-install playwright test tests/auction-gamma-playbook.spec.mjs --config=playwright.config.mjs --project=system-chrome --reporter=list",
+          "liveSystem": true,
+          "status": "planned"
+        },
+        {
+          "id": "TP-08-09",
+          "type": "E2E UI — live stack",
+          "category": "e2e-ui",
+          "file": "`tests/auction-gamma-playbook.spec.mjs` test `a ticker with no assertions renders an empty record list`",
+          "description": "Asserted against the real page: a ticker with no stored assertions yields an empty list and renders no placeholder record",
+          "command": "npx --no-install playwright test tests/auction-gamma-playbook.spec.mjs --config=playwright.config.mjs --project=system-chrome --reporter=list",
+          "liveSystem": true,
+          "status": "planned"
+        },
+        {
+          "id": "TP-08-10",
+          "type": "E2E UI — live stack",
+          "category": "e2e-ui",
+          "file": "`tests/auction-gamma-playbook.spec.mjs` test `recovered rows are reachable from the journey packet`",
+          "description": "Asserted against the real page: the same recovered rows are reachable from the packet at the Journey anchor, whose registered definition carries human sign-off required and no execution, so the record is gradeable through the journey the registry already declares",
+          "command": "npx --no-install playwright test tests/auction-gamma-playbook.spec.mjs --config=playwright.config.mjs --project=system-chrome --reporter=list",
+          "liveSystem": true,
+          "status": "planned"
+        },
+        {
+          "id": "TP-08-11",
+          "type": "E2E UI — live stack",
+          "category": "e2e-ui",
+          "file": "`tests/auction-gamma-playbook.spec.mjs` test `falsifier-triggered and regime-change outcomes are separate values`",
+          "description": "Asserted against the real page: a falsifier-triggered outcome and a regime-change invalidation are stored as separate recorded values rather than two labels on one field, and render distinguishably in the record panel",
+          "command": "npx --no-install playwright test tests/auction-gamma-playbook.spec.mjs --config=playwright.config.mjs --project=system-chrome --reporter=list",
+          "liveSystem": true,
+          "status": "planned"
+        },
+        {
+          "id": "TP-08-12",
+          "type": "E2E UI — live stack",
+          "category": "e2e-ui",
+          "file": "`tests/auction-gamma-playbook.spec.mjs` test `a regime-change invalidation names the observation that indicated it`",
+          "description": "Asserted against the real page: the regime-change record names the observation that indicated the regime had changed, taken from the regime-level watch item rather than reconstructed from the expectation-level falsifier",
+          "command": "npx --no-install playwright test tests/auction-gamma-playbook.spec.mjs --config=playwright.config.mjs --project=system-chrome --reporter=list",
+          "liveSystem": true,
+          "status": "planned"
+        },
+        {
+          "id": "TP-08-13",
+          "type": "E2E UI — live stack",
+          "category": "e2e-ui",
+          "file": "`tests/auction-gamma-playbook.spec.mjs` test `the page publishes a valid tool read on every render`",
+          "description": "Asserted against the real page: a `tool-model-read/v1` read is written on every render whose `role`, `profile` and `adapter.adapterId` match the values the registry declares, and which passes the shared validator",
+          "command": "npx --no-install playwright test tests/auction-gamma-playbook.spec.mjs --config=playwright.config.mjs --project=system-chrome --reporter=list",
+          "liveSystem": true,
+          "status": "planned"
+        },
+        {
+          "id": "TP-08-14",
+          "type": "E2E UI — live stack — adversarial",
+          "category": "e2e-ui",
+          "file": "`tests/auction-gamma-playbook.spec.mjs` test `a reduced read is never published as fresh`",
+          "description": "Adversarial fixture against the real page supplying a snapshot-stale reduced arm and a context-only arm: a `fused` arm publishes fresh against the declared as-of, a snapshot-stale reduced arm publishes stale against that same cutoff, every other reduced cause and the context-only arm publish unavailable, and a `null` provider publishes not-run",
+          "command": "npx --no-install playwright test tests/auction-gamma-playbook.spec.mjs --config=playwright.config.mjs --project=system-chrome --reporter=list",
+          "liveSystem": true,
+          "status": "planned"
+        },
+        {
+          "id": "TP-08-15",
+          "type": "E2E UI — live stack — adversarial",
+          "category": "e2e-ui",
+          "file": "`tests/auction-gamma-playbook.spec.mjs` test `the published cutoff is never replaced by the current time`",
+          "description": "Adversarial assertion against the real page: the published evidence cutoff is never re-stamped with the run time, so freshness projects a `null` rather than a fabricated recency; the published one-line read names the absence cause on a reduced arm; and the Brief mounted section renders that read unchanged in both its Simple and Power targets",
+          "command": "npx --no-install playwright test tests/auction-gamma-playbook.spec.mjs --config=playwright.config.mjs --project=system-chrome --reporter=list",
+          "liveSystem": true,
+          "status": "planned"
+        },
+        {
+          "id": "TP-08-16",
+          "type": "Regression E2E",
+          "category": "e2e-ui",
+          "file": "`tests/auction-gamma-playbook.spec.mjs` test `Regression: BS-016-031 BS-016-034 BS-016-035 journey anchor mounts, grading appends only, and no reduced read publishes as fresh`",
+          "description": "The persistent regression case for the three host behaviours this scope changes, asserted on the real page with no `page.route`, no `context.route` and no request interception of any kind: the `<section id=\"journey\" data-rljourney-mount>` anchor is present and the shared shell mounts at it; the recorded expectation, cutoff and falsifier are captured before a grade and are identical after it; and a snapshot-stale reduced arm publishes stale against the declared as-of while a context-only arm publishes unavailable. `grep -c 'id=\"journey\"'`, `grep -c 'data-rljourney-mount'`, `grep -c 'putToolRead'` and `grep -c 'toolReads'` each return `0` from `intraday-tape-lab.html` today, so this case fails if the anchor that `rlapp.js` line 571 queries regresses to those zero occurrences, if grading rewrites the assertion in place, or if the publication slot regresses to absent or re-stamps a reduced arm as fresh",
+          "command": "npx --no-install playwright test tests/auction-gamma-playbook.spec.mjs --config=playwright.config.mjs --project=system-chrome --reporter=list",
+          "liveSystem": true,
+          "status": "planned"
+        },
+        {
+          "id": "TP-08-17",
+          "type": "Stress",
+          "category": "stress",
+          "file": "`tests/auction-gamma-playbook.spec.mjs` test `Stress: the full asserted-cell set publishes and recovers inside the declared per-recompute budget`",
+          "description": "The record store is driven at the maximum distinct load the published universe admits — all six behavioural cells of BS-016-001 through BS-016-006 asserted for each of the 22 tickers `data/options/index.json` declares (`expected: 22`, `count: 22`), 132 records — and the render loop is then exercised against the real page. Every render publishes the `tool-model-read/v1` read and recovers the record panel inside the 250 ms `performancePolicy.maxComputeMs` this page's owner seam declares at `simple-models.json` line 111, which is the host model's declared per-recompute budget NFR-016-002 binds the fusion to; the panel recovers exactly 132 rows with no dropped and no duplicated fingerprint; grading under that full load still appends only, leaving the recorded expectation, cutoff and falsifier identical; and every read published across those renders still passes `validateToolModelRead` at `rldata.js` line 378 with no reduced arm published as fresh",
+          "command": "npx --no-install playwright test tests/auction-gamma-playbook.spec.mjs --config=playwright.config.mjs --project=system-chrome --reporter=list",
+          "liveSystem": true,
+          "status": "planned"
+        }
+      ]
+    },
+    {
+      "scopeId": "SCOPE-09",
+      "scopeName": "Cross-surface single source and published-surface closure",
+      "scopeDir": "scopes/09-cross-surface-single-source-closure",
+      "foundation": false,
+      "dependsOn": [
+        "SCOPE-03",
+        "SCOPE-06",
+        "SCOPE-07",
+        "SCOPE-08"
+      ],
+      "testCount": 15,
+      "tests": [
+        {
+          "id": "TP-09-01",
+          "type": "Unit — adversarial",
+          "category": "unit",
+          "file": "`scripts/selftest.mjs` group `Feature 016 Scope 09 enumerated-surface gamma single-source closure (options, intraday-tape-lab, gamma-trading-lab, swing-structure-lab)`",
+          "description": "Adversarial scan of every committed page: zero `bsmGamma` tokens outside `rlexperience-adapters/options.js`, asserted at token level rather than at definition level, because a page can drop the definition and keep calls to it. The three surfaces holding the duplicate today carry `./intraday-tape-lab.html` 3 tokens across 2 lines, `./gamma-trading-lab.html` 7 tokens across 6 lines and `./swing-structure-lab.html` 3 tokens across 2 lines — each page's `gammaAt` line carries two call tokens — and each must reach `0` tokens. Reintroducing an inline copy on any of those three, or on any other page, reinstates a second source of truth and fails this assertion",
+          "command": "node scripts/selftest.mjs",
+          "liveSystem": false,
+          "status": "planned"
+        },
+        {
+          "id": "TP-09-02",
+          "type": "Unit — adversarial",
+          "category": "unit",
+          "file": "`scripts/selftest.mjs` group `Feature 016 Scope 09 enumerated-surface gamma single-source closure (options, intraday-tape-lab, gamma-trading-lab, swing-structure-lab)`",
+          "description": "Adversarial framing: the assertion asserts one producer directly rather than asserting two outputs happen to match. Both surfaces resolve their gamma evidence through `RLOPTIONS.readGammaEvidence`, so a second implementation returning a coincidentally identical sign and flip still fails",
+          "command": "node scripts/selftest.mjs",
+          "liveSystem": false,
+          "status": "planned"
+        },
+        {
+          "id": "TP-09-03",
+          "type": "Unit",
+          "category": "unit",
+          "file": "`scripts/selftest.mjs` group `Feature 016 Scope 09 enumerated-surface gamma single-source closure (options, intraday-tape-lab, gamma-trading-lab, swing-structure-lab)`",
+          "description": "For one snapshot consumed by both surfaces, the net-gamma sign and the flip agree, and the agreement follows from the shared producing function rather than from a post-hoc comparison of two independently computed results",
+          "command": "node scripts/selftest.mjs",
+          "liveSystem": false,
+          "status": "planned"
+        },
+        {
+          "id": "TP-09-04",
+          "type": "Unit",
+          "category": "unit",
+          "file": "`scripts/selftest.mjs` group `Feature 016 Scope 09 enumerated-surface gamma single-source closure (options, intraday-tape-lab, gamma-trading-lab, swing-structure-lab)`",
+          "description": "`./gamma-trading-lab.html` surfaces the as-of of the snapshot it consumed, so the reconciliation the user performs has both operands rather than one",
+          "command": "node scripts/selftest.mjs",
+          "liveSystem": false,
+          "status": "planned"
+        },
+        {
+          "id": "TP-09-05",
+          "type": "Unit — adversarial",
+          "category": "unit",
+          "file": "`scripts/selftest.mjs` group `Feature 016 Scope 09 enumerated-surface gamma single-source closure (options, intraday-tape-lab, gamma-trading-lab, swing-structure-lab)`",
+          "description": "Adversarial fixture: two snapshots with deliberately different as-of values, one per surface. Each surface states its own cutoff and the divergence resolves to that stated cutoff difference; a surface reporting the other's cutoff, or suppressing its own, fails",
+          "command": "node scripts/selftest.mjs",
+          "liveSystem": false,
+          "status": "planned"
+        },
+        {
+          "id": "TP-09-06",
+          "type": "Unit",
+          "category": "unit",
+          "file": "`scripts/selftest.mjs` group `Feature 016 Scope 09 enumerated-surface gamma single-source closure (options, intraday-tape-lab, gamma-trading-lab, swing-structure-lab)`",
+          "description": "`gammaEvidenceFingerprint` digests the fields that determine the regime, so the reconciliation is answerable from the fingerprints alone and neither surface recomputes the other's numbers to answer it",
+          "command": "node scripts/selftest.mjs",
+          "liveSystem": false,
+          "status": "planned"
+        },
+        {
+          "id": "TP-09-07",
+          "type": "Unit — adversarial",
+          "category": "unit",
+          "file": "`scripts/selftest.mjs` group `Feature 016 Scope 09 enumerated-surface gamma single-source closure (options, intraday-tape-lab, gamma-trading-lab, swing-structure-lab)`",
+          "description": "Adversarial regression on the host page: `./intraday-tape-lab.html` is confirmed to still resolve its gamma evidence through the shared producer, so every surface in the enumerated set resolves through one producer rather than some fraction of them. A regression of the host page's delegation fails this assertion",
+          "command": "node scripts/selftest.mjs",
+          "liveSystem": false,
+          "status": "planned"
+        },
+        {
+          "id": "TP-09-08",
+          "type": "E2E UI — live stack",
+          "category": "e2e-ui",
+          "file": "`tests/auction-gamma-playbook.spec.mjs` test `both surfaces state their as-of and agree on sign and flip`",
+          "description": "Asserted against both real pages with no `page.route`, no `context.route` and no request interception of any kind: each page displays the as-of of the snapshot it consumed, and for one shared snapshot both display the same net-gamma sign and the same flip",
+          "command": "npx --no-install playwright test tests/auction-gamma-playbook.spec.mjs --config=playwright.config.mjs --project=system-chrome --reporter=list",
+          "liveSystem": true,
+          "status": "planned"
+        },
+        {
+          "id": "TP-09-09",
+          "type": "E2E UI — live stack — adversarial",
+          "category": "e2e-ui",
+          "file": "`tests/auction-gamma-playbook.spec.mjs` test `a different as-of renders as a stated cutoff difference`",
+          "description": "Adversarial fixture against both real pages holding snapshots of different as-of values: each page displays its own cutoff and the difference presents as a stated cutoff difference rather than as a modelling contradiction. A rendering that hid either cutoff, leaving the divergence unattributable, fails",
+          "command": "npx --no-install playwright test tests/auction-gamma-playbook.spec.mjs --config=playwright.config.mjs --project=system-chrome --reporter=list",
+          "liveSystem": true,
+          "status": "planned"
+        },
+        {
+          "id": "TP-09-10",
+          "type": "Regression E2E",
+          "category": "e2e-ui",
+          "file": "`tests/auction-gamma-playbook.spec.mjs` test `Regression: BS-016-036 both surfaces resolve one gamma producer and state the as-of each consumed`",
+          "description": "The persistent regression case for the behaviours this scope changes, asserted against both real pages with no `page.route`, no `context.route` and no request interception of any kind: `./gamma-trading-lab.html` resolves its gamma evidence through `RLOPTIONS.readGammaEvidence` rather than an inline model, both pages display the as-of of the snapshot each consumed, and a fixture pairing two snapshots of deliberately different as-of values renders the divergence as a stated cutoff difference. `grep -c 'bsmGamma' gamma-trading-lab.html` returns `6` today, with the model at line 1053 and the identical `spot * 0.9 … spot * 1.1` band carrying `N = 60` at line 1074, so this case fails if an inline duplicate is reintroduced on either page, if either page suppresses the cutoff it consumed, or if the divergence renders as a modelling contradiction",
+          "command": "npx --no-install playwright test tests/auction-gamma-playbook.spec.mjs --config=playwright.config.mjs --project=system-chrome --reporter=list",
+          "liveSystem": true,
+          "status": "planned"
+        },
+        {
+          "id": "TP-09-11",
+          "type": "Unit",
+          "category": "unit",
+          "file": "`scripts/selftest.mjs` group `Feature 016 Scope 09 enumerated-surface gamma single-source closure (options, intraday-tape-lab, gamma-trading-lab, swing-structure-lab)`",
+          "description": "`./intraday-tape-lab.html` retirement: the standalone `function bsmGamma` at line 1278 — the occurrence that sits outside `computeOptLevels` (lines 1283–1302) and is therefore reached by no other scope's declared seam — is gone from the page source, and the page's gamma resolves through `RLOPTIONS.readGammaEvidence`. `git grep -c 'bsmGamma' intraday-tape-lab.html` returns `2` today, at lines 1278 and 1294; this row is what takes that page to `0` rather than to `1`",
+          "command": "node scripts/selftest.mjs",
+          "liveSystem": false,
+          "status": "planned"
+        },
+        {
+          "id": "TP-09-12",
+          "type": "Unit",
+          "category": "unit",
+          "file": "`scripts/selftest.mjs` group `Feature 016 Scope 09 enumerated-surface gamma single-source closure (options, intraday-tape-lab, gamma-trading-lab, swing-structure-lab)`",
+          "description": "`./swing-structure-lab.html` retirement: `function bsmGamma` at line 1266, the `gCoef` / `spot * 0.9 … spot * 1.1` / `N = 60` band at line 1281 and `gammaAt` at line 1282 are gone from the page source, the page resolves its gamma through `RLOPTIONS.readGammaEvidence`, and `netGEX` at line 1283 takes its value from that record. `git grep -c 'bsmGamma' swing-structure-lab.html` returns `2` today, at lines 1266 and 1282; this row is what takes that page to `0`",
+          "command": "node scripts/selftest.mjs",
+          "liveSystem": false,
+          "status": "planned"
+        },
+        {
+          "id": "TP-09-13",
+          "type": "Unit — adversarial",
+          "category": "unit",
+          "file": "`scripts/selftest.mjs` group `Feature 016 Scope 09 enumerated-surface gamma single-source closure (options, intraday-tape-lab, gamma-trading-lab, swing-structure-lab)`",
+          "description": "Adversarial closure written over the full enumerated surface set rather than over a named pair: feeding one snapshot through `RLOPTIONS.readGammaEvidence` yields one fingerprint for the delegating call on each of `./intraday-tape-lab.html`, `./gamma-trading-lab.html` and `./swing-structure-lab.html`, and no page source in the repository still matches `function bsmGamma`. The trimmed definition line hashes to `f7d5400d052232c2d5d146887f456e98` on all three today, so a private copy reintroduced on any one of the three — or on a fourth page that later acquires one — fails this assertion and no surface escapes the closure by not being named",
+          "command": "node scripts/selftest.mjs",
+          "liveSystem": false,
+          "status": "planned"
+        },
+        {
+          "id": "TP-09-14",
+          "type": "Regression E2E",
+          "category": "e2e-ui",
+          "file": "`tests/auction-gamma-playbook.spec.mjs` test `Regression: BS-016-036 the enumerated surface set resolves one gamma producer`",
+          "description": "The persistent regression case for the two surfaces this scope newly owns, asserted against all three real pages with no `page.route`, no `context.route` and no request interception of any kind: `./intraday-tape-lab.html`, `./gamma-trading-lab.html` and `./swing-structure-lab.html` each render a net-gamma sign and a flip drawn from `RLOPTIONS.readGammaEvidence`, and for one shared snapshot the three agree on both. `git grep -c 'bsmGamma'` returns `2`, `6` and `2` on those pages today, so this case fails if a private copy is reintroduced on any of the three or if any of them renders a gamma value the shared producer did not supply",
+          "command": "npx --no-install playwright test tests/auction-gamma-playbook.spec.mjs --config=playwright.config.mjs --project=system-chrome --reporter=list",
+          "liveSystem": true,
+          "status": "planned"
+        },
+        {
+          "id": "TP-09-15",
+          "type": "Stress",
+          "category": "stress",
+          "file": "`scripts/selftest.mjs` group `Feature 016 Scope 09 enumerated-surface gamma single-source closure (options, intraday-tape-lab, gamma-trading-lab, swing-structure-lab)`",
+          "description": "The single-source delegation is driven across the whole enumerated surface set under the whole published load rather than over one snapshot: each of `./intraday-tape-lab.html`, `./gamma-trading-lab.html` and `./swing-structure-lab.html` resolves every one of the 22 tickers `data/options/index.json` declares at `expected: 22, count: 22` through `RLOPTIONS.readGammaEvidence`, which is 66 delegating resolutions over 39,190 contracts and 4,690,110 bytes of snapshot JSON across the 22 files — the index's own 2,092 bytes excluded — with the largest single file `data/options/NDX.json` carrying 6,066 contracts in 570,547 bytes. Three properties are asserted at that volume. First, one producer: for each ticker the three surfaces yield one identical `gammaEvidenceFingerprint`, so 22 fingerprints answer 66 resolutions and a fourth implementation returning coincidentally equal numbers still fails. Second, attributable divergence on real data: the published set carries 6 distinct `asof` values — `2026-07-28T15:50:17`, `2026-07-28T15:59:59`, `2026-07-28T16:00:00`, `2026-07-28T16:14:23`, `2026-07-28T16:14:31` and `2026-07-28T16:14:42` — so every cross-surface pair drawn from tickers on different cutoffs resolves to a stated cutoff difference rather than to a modelling contradiction, exercised by the real set instead of by one synthetic pair. Third, the declared budget: the slowest single delegating resolution stays inside the 250 ms `performancePolicy.maxComputeMs` declared for each of the three surfaces — `simple-models.json` line 111 for `intraday-tape-lab`/`session-auction`, line 142 for `swing-structure-lab`/`swing-transition` and line 201 for `gamma-trading-lab`/`dealer-gamma-playbook` — and the last pass over identical arguments returns a result identical to the first, satisfying the `deterministic: true` declared beside each of those three budgets, so no clock read and no accumulated state leaks into the shared producer at volume. `data/options/**` is read and never written",
+          "command": "node scripts/selftest.mjs",
+          "liveSystem": false,
+          "status": "planned"
+        }
+      ]
+    }
+  ]
+}

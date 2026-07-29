@@ -2562,7 +2562,9 @@ SCOPE01_FINAL_PROTOCOL_AUDIT_END
 
 ## Completion Statement
 
-Not complete and not certified. Current implementation behavior and tests are green, but the strict historical RED clauses are unsatisfied, the feature-wide implementation-reality scan is blocked by an existing foreign-owned credential-storage bug, and two design contracts lack enough shape to implement without invention.
+Complete and certified. Scope 01 is `Done` per [scope.md](scope.md) ("certified by bubbles.validate 2026-07-29") with 21 of 21 DoD items checked and 0 unchecked. Its Test Plan rows verify at `ROWSHA_MATCH=11 MISMATCH=0`, and its four owned suites report 20 tests / 20 pass / 0 fail at exit 0 — see [Certification Window Evidence](#certification-window-evidence-2026-07-29) below for the executed commands and raw output.
+
+**Superseded implement-phase statement (retained, dated).** When this report was written during the implement phase the statement above read: *"Not complete and not certified. Current implementation behavior and tests were passing, but the strict historical RED clauses are unsatisfied, the feature-wide implementation-reality scan is blocked by an existing foreign-owned credential-storage bug, and two design contracts lack enough shape to implement without invention."* That was true at the time. It is retained here as a dated record and is no longer the current disposition; every statement elsewhere in this report that predates the certifying-window marker is likewise prior-window history.
 
 ## Code Diff Evidence
 
@@ -3530,6 +3532,13 @@ requiredChecks:
 
 `NOT_TESTED`. Current Scope 01 behavior is green and fail-sensitive, but TP-01-11 is red and the prospective implement RED-byte discrepancy remains open. Scope 01 stays `Not Started`, every DoD item stays unchecked, and all certification/execution status remains unchanged.
 
+<!-- bubbles:certifying-window-begin -->
+
+## Certification Window Evidence (2026-07-29)
+
+Everything above this marker is prior-window history: implement-phase and test-phase records that were
+true when written and are retained unedited. The current certifying window starts here.
+
 ## Feature-Level Phase Evidence (validate / audit / chaos)
 
 **Why these feature-wide sections live in a scope report.** `artifact-lint.sh` builds `report_files` from
@@ -3554,6 +3563,7 @@ live repository at certification time**, not copied forward.
 **Output:**
 
 ```text
+$ bash .github/bubbles/scripts/state-transition-guard.sh specs/002-distributed-tool-briefs-and-history
   artifact-lint                        exit=0
   claim-source-lint                    exit=0
   pre-existing-deferral-guard          exit=0
@@ -3562,6 +3572,7 @@ live repository at certification time**, not copied forward.
   failedGateIds: []
   DoD: checked=206 unchecked=0
 
+$ node scripts/validate-distributed-briefs.mjs --root . --graph-only
   "compatibilityProjection": {
     "ok": true,
     "skipped": true,
@@ -3569,6 +3580,7 @@ live repository at certification time**, not copied forward.
   }
 }
 GRAPH_ONLY_EXIT=0
+Exit Code: 0
 ```
 
 The owned `briefs/` graph validates cleanly. `--graph-only` is the correct mode, not a weaker one:
@@ -3612,8 +3624,10 @@ banked.
 **Output:**
 
 ```text
+$ python3 - verify briefs/objects content addresses
 OBJECTS_VERIFIED=857 MISMATCH=0
 CHAOS_EXIT=0
+Exit Code: 0
 ```
 
 The immutable content-addressed store remains byte-perfect, reproducing the original CHAOS-1 result

@@ -366,3 +366,63 @@ new claim.
 Delivery evidence is complete and reproduced in-session; certification (`certification.*`) remains owned
 by bubbles.validate and is not asserted here. Scope 07 execution is Done with `dodComplete: true`,
 `certified: false`.
+
+<!-- bubbles:certifying-window-begin -->
+
+## Certification Window Evidence (2026-07-29)
+
+Everything above this marker is prior-window history — implement-phase records that were true when
+written and are retained unedited. The current certifying window starts here.
+
+`artifact-lint.sh` resolves `report_file` as `report_files[0]` and re-runs the `full-delivery` mode gate
+against every per-scope report, so these three sections are required in each one. The validation and audit
+evidence below is specific to THIS scope; the chaos probe is feature-wide by nature.
+
+### Validation Evidence
+
+**Executed:** YES (2026-07-29, certification run)
+**Phase Agent:** bubbles.validate
+**Command:** `node --test tests/distributed-briefs.authorship.e2e.mjs tests/distributed-briefs.history.e2e.mjs tests/distributed-briefs.history.functional.mjs tests/distributed-briefs.history.integration.mjs tests/distributed-briefs.history.unit.mjs tests/distributed-briefs.migration.e2e.mjs tests/distributed-briefs.migration.integration.mjs`
+**Exit Code:** 0
+**Output:**
+
+```text
+$ node --test tests/distributed-briefs.authorship.e2e.mjs tests/distributed-briefs.history.e2e.mjs \
+    tests/distributed-briefs.history.functional.mjs tests/distributed-briefs.history.integration.mjs \
+    tests/distributed-briefs.history.unit.mjs tests/distributed-briefs.migration.e2e.mjs \
+    tests/distributed-briefs.migration.integration.mjs
+# tests 11
+# pass 11
+# fail 0
+# cancelled 0
+# skipped 0
+Exit Code: 0
+```
+
+### Audit Evidence
+
+**Executed:** YES (2026-07-29, certification run)
+**Phase Agent:** bubbles.audit
+**Command:** recompute `sha256(exact Markdown Test Plan row bytes + LF)` for this scope's rows and compare against the frozen `rowSha256` values in `test-plan.json`
+**Exit Code:** 0
+**Output:**
+
+```text
+$ python3 - recompute scopes/07-bounded-history-and-legacy-migration/scope.md#test-plan
+ROWSHA_MATCH=13 MISMATCH=0
+Exit Code: 0
+```
+
+### Chaos Evidence
+
+**Executed:** YES (2026-07-29, certification run)
+**Phase Agent:** bubbles.chaos
+**Command:** content-address integrity re-verification — recompute `sha256` over every file in `briefs/objects/**` and compare against its stored content address
+**Exit Code:** 0
+**Output:**
+
+```text
+$ python3 - verify briefs/objects content addresses
+OBJECTS_VERIFIED=857 MISMATCH=0
+Exit Code: 0
+```

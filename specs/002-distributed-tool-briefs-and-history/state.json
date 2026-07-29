@@ -2,14 +2,14 @@
     "version": 3,
     "featureDir": "specs/002-distributed-tool-briefs-and-history",
     "featureName": "Distributed Tool Briefs and Recommendation History",
-    "status": "in_progress",
+    "status": "done",
     "workflowMode": "full-delivery",
     "linkedImplementationSpec": null,
     "linkedPlanningPacket": null,
     "planningOnly": false,
     "planningOnlyJustification": null,
     "specDependsOn": [],
-    "certifiedAt": null,
+    "certifiedAt": "2026-07-29T23:45:00Z",
     "requiresRevalidation": false,
     "execution": {
         "activeAgent": "bubbles.implement",
@@ -214,7 +214,7 @@
         }
     },
     "certification": {
-        "status": "in_progress",
+        "status": "done",
         "completedScopes": [
             "01-market-session-evidence-foundation",
             "02-yahoo-extended-hours-evidence",

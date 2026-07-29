@@ -2121,3 +2121,158 @@ anything above.
 
 **Claim Source:** executed
 
+---
+
+## Stabilize Phase
+
+**Agent:** `bubbles.stabilize` · **Executed:** 2026-07-29 · **Mode:** analysis-only.
+
+This phase looks for performance, resource-usage, and reliability risk in the DELIVERED Feature 002
+surface. It is diagnostic: no production source, no test file, no scope artifact, and no DoD checkbox
+was changed. Two artifacts were written: this section and the `state.json` execution record for the
+`stabilize` phase.
+
+The material question for this feature is **growth**. Feature 002 replaced a single flat history file
+with a content-addressed object store that a scheduled job writes to four times a day, forever, in a
+repository that is itself the deployment artifact (GitHub Pages serves the repo root). So the risk worth
+measuring is not latency — it is unbounded accumulation.
+
+**Claim Source:** executed
+
+---
+
+### ST-1 — Current footprint (measured, not estimated)
+
+**Command:** `du` / `find` / `wc` census of the brief store and repository
+**Exit Code:** 0
+**Claim Source:** executed
+
+```text
+briefs/                6.8M
+  objects:   765 files, 3.5M
+  runs:       37 manifests
+  history:    26 partitions, 568K
+  indexes:    37 files,   1.5M
+
+brief-history.jsonl:  2168319 bytes, 100 rows
+repo total:            343M
+  .git:                254M      (74% of the repository)
+```
+
+Two ratios stand out. `briefs/indexes` holds exactly **37 files against 37 run manifests** — one index
+per run, not one index per partition-set. And `brief-history.jsonl` averages **21.2 KB per row**, which
+is large for a single history record.
+
+### ST-F1 — `brief-history.jsonl` is unbounded and grows one 21 KB row per refresh
+
+**Severity: MEDIUM.** **Type: RESOURCE-GROWTH.** **Owner: `bubbles.design` / `bubbles.plan`.**
+
+The legacy history file is appended by `scripts/brief-refresh.mjs` on every run
+(`appendFileSync(join(ROOT, 'brief-history.jsonl'), JSON.stringify(snap) + '\n')`) with **no cap, no
+roll, and no prune**. Row counts read directly out of git across the five most recent commits that
+touched the file show strict monotonic growth:
+
+**Command:** `git show <commit>:brief-history.jsonl | wc -l` for the last 5 commits touching it
+**Exit Code:** 0
+**Claim Source:** executed
+
+```text
+  f5c8516d -> 100 rows
+  b102fc09 ->  99 rows
+  c8c3777b ->  98 rows
+  89480f28 ->  97 rows
+  09e3b014 ->  96 rows
+```
+
++1 row per refresh, every refresh. I searched `brief-refresh.mjs` for a cap, roll, or trim on this file
+and found none — the `slice(-…)` hits in that file are all windowing on price bars
+(`pctFrom52wHigh`, `ranked`), not on history rows. The file has been touched by **96 commits**.
+
+### ST-F2 — `briefs/indexes` accumulates one full ~41 KB index per run
+
+**Severity: MEDIUM.** **Type: RESOURCE-GROWTH.** **Owner: `bubbles.design` / `bubbles.plan`.**
+
+`briefs/indexes` contains 37 files for 37 run manifests — a 1:1 correspondence — totalling 1.5 MB, with
+a sampled entry at 45,449 bytes. Each index is keyed by `indexFingerprint`, so a new fingerprint
+produces a new sibling directory rather than replacing the previous one. Superseded indexes are never
+collected.
+
+Observed run cadence confirms the schedule is real and steady:
+
+```text
+  3  2026-07-22
+  4  2026-07-23
+  2  2026-07-24
+  1  2026-07-25
+  4  2026-07-26
+  5  2026-07-27
+  4  2026-07-28
+  2  2026-07-29   (partial day at time of measurement)
+```
+
+### ST-2 — Combined projection
+
+Taking the measured per-refresh costs and the documented 4×/day cadence:
+
+```text
+=== per-refresh cost ===
+  brief-history.jsonl row : 21.2 KB
+  briefs/indexes entry    : 41.5 KB
+  combined per refresh    : 62.7 KB
+
+=== projection at 4 refreshes/day ===
+  30 days   history +  2.5 MB | indexes +  4.9 MB | total +  7.3 MB
+  90 days   history +  7.4 MB | indexes + 14.6 MB | total + 22.0 MB
+  1 year    history + 30.2 MB | indexes + 59.2 MB | total + 89.4 MB
+```
+
+**Claim Source:** executed
+
+**Why this matters here specifically, and why it is MEDIUM rather than HIGH.** Nothing is broken today —
+6.8 MB of briefs is trivial, and the tools load fine. The reason to record it is that this repository
+*is* the deployed artifact: GitHub Pages serves the repo root, and `.git` is already 254 MB of a 343 MB
+checkout. ~89 MB/year of monotonic, never-collected growth in the deployed tree is the kind of thing
+that is invisible for two quarters and then becomes a clone-time and Pages-payload problem all at once.
+It is MEDIUM, not HIGH, because the horizon is long, the growth is linear rather than compounding, and
+the remedy (a retention/prune policy) is cheap whenever it is chosen — this is a decision that wants
+making deliberately, not an incident.
+
+**Note on the content-addressed objects.** `briefs/objects` (765 files, 3.5 MB) is deliberately excluded
+from these two findings. Content addressing means an unchanged tool read re-hashes to the same object
+and is written once, so that directory grows with *distinct content*, not with run count — which is the
+designed and correct behavior. The growth problem is specific to the two surfaces that are keyed
+per-run rather than per-content.
+
+**Disposition:** routed to `bubbles.design` / `bubbles.plan` as a retention-policy decision. Not actioned
+here: the fix is a prune/roll policy in `scripts/brief-refresh.mjs` and the index writer, both of which
+are the concurrently-active brief workstream's live 4×/day publish path, and a retention rule is a
+product decision about how much history to keep rather than a mechanical edit.
+
+### ST-3 — Reliability surfaces reviewed, no new finding
+
+Two reliability questions were checked and neither produced a new finding:
+
+- **Publish interruption.** Already recorded as HD-F1 in the Harden phase — the recovery path exists and
+  is drift-tested but has no production caller. Not re-filed here.
+- **Concurrent-push contention.** Already recorded as HD-3 — `classifyRemoteOverlap` correctly refuses
+  declared-path overlap, which is the right guarantee for a content-addressed store. Not re-filed here.
+
+Recording them as *checked* rather than silently omitting them, since a stabilize phase that ignored
+crash-recovery and concurrency would be an incomplete one.
+
+---
+
+### Stabilize Phase Summary
+
+| ID | Severity | Type | Owner | Actioned here |
+|---|---|---|---|---|
+| ST-F1 | MEDIUM | RESOURCE-GROWTH | `bubbles.design` / `bubbles.plan` | No — retention policy decision |
+| ST-F2 | MEDIUM | RESOURCE-GROWTH | `bubbles.design` / `bubbles.plan` | No — retention policy decision |
+
+No performance defect and no reliability defect was found in the delivered code. Both findings are
+unbounded-growth risks measured from real on-disk and in-git data rather than estimated, and both resolve
+through the same retention decision. No DoD item was checked on the strength of anything above.
+
+**Claim Source:** executed
+
+

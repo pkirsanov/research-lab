@@ -263,3 +263,100 @@ selftest baseline) and the Implement Tier 2 profile pass. Delivery certification
 ## Audit Verdict
 
 Not audited. Audit ownership belongs to `bubbles.audit` / `bubbles.validate`.
+
+### TP-08-10 final budget boundary stress (2026-07-29)
+
+**Why this row was added after the original Scope 08 delivery.** The Implementation Plan
+item 2 promises the final aggregator will "enforce the explicit final input/output/run
+budgets **without truncating** participant, recommendation terms, conflicts, provenance,
+or required context". TP-08-03 proves that promise at exactly **one** point — a single
+`maxInputTokens: 12` overflow that returns `B002-BUDGET`
+(`tests/distributed-briefs.final-author.functional.mjs:71-74`). One point cannot prove a
+boundary holds: a compactor that quietly shed a source envelope, a group, or a conflict at
+some intermediate budget would still have passed that single check. TP-08-10 sweeps the
+whole accept/refuse boundary instead.
+
+**What it sweeps.** `maxInputTokens` from 200 to 9000 in steps of 20 (441 budgets), for
+three scenario shapes (single-source, conflict, merged) in both authoring windows
+(`morning`, `after-hours`) — 2,646 boundary compactions — plus 200 repeat compactions per
+combination for byte-stability. Both sides of the boundary are genuinely exercised in every
+combination (measured accepted 136-190, refused 251-305), and the suite asserts
+`accepted > 0 && refused > 0` per combination so it can never silently become vacuous.
+
+**Invariants asserted.** (1) monotone — no budget increase turns an accepted input into a
+refused one; (2) no silent loss — at every accepted budget all nine mandatory fields
+(`contractVersion`, `runHeader`, `registry`, `marketSessionEvidenceRef`, `sourceEnvelopes`,
+`groups`, `lowNoiseResults`, `lifecycle`, `actionThresholds`) are byte-identical to the
+unconstrained result and `optionalFacts` is the only field permitted to differ;
+(3) honest refusal — every refusal is exactly `B002-BUDGET` /
+`final-mandatory-material-exceeds-cap`, never a variant code and never a silent degrade;
+(4) determinism — repeated compaction of identical inputs is byte-stable.
+
+**Command:** `node --test tests/distributed-briefs.final-budget.stress.mjs`
+
+```text
+TAP version 13
+# Subtest: Final budget boundary refuses honestly and never truncates mandatory material under sweep
+ok 1 - Final budget boundary refuses honestly and never truncates mandatory material under sweep
+# Subtest: Repeated final compaction of identical inputs is byte-stable
+ok 2 - Repeated final compaction of identical inputs is byte-stable
+1..2
+# tests 2
+# suites 0
+# pass 2
+# fail 0
+# cancelled 0
+# skipped 0
+# todo 0
+# duration_ms 1461.041089
+```
+
+Bare exit code (captured without a pipe, so `$?` is the runner's status and not a pipeline's):
+`BARE_EXIT_1=0`.
+
+**Adversarial proof — the suite is not tautological.** A passing stress test proves nothing
+unless it fails when the invariant breaks. Six failure modes were injected by wrapping the
+REAL `compactFinalAuthorInput` with fault injectors and re-running the suite's own assertion
+logic. No repository file was mutated to run this proof. Every injected fault was caught and
+the unmodified baseline still passed:
+
+```text
+  ✓ BASELINE (no fault) — must PASS
+  ✓ CAUGHT — FAULT 1: sheds a source envelope to fit the cap
+      → budget 5240 truncated mandatory field 'sourceEnvelopes'
+  ✓ CAUGHT — FAULT 2: drops a recommendation group to fit the cap
+      → budget 5240 truncated mandatory field 'groups'
+  ✓ CAUGHT — FAULT 3: silently degrades instead of refusing (accepts everything)
+      → sweep never refused — boundary was not exercised
+  ✓ CAUGHT — FAULT 4: refuses with an undocumented error code
+      → budget 200 refusal code
+  ✓ CAUGHT — FAULT 5: non-monotone (refuses again above the boundary)
+      → budget 7020 refused after acceptance (non-monotone)
+  ✓ CAUGHT — FAULT 6: mutates required run context (provenance drift)
+      → budget 5240 truncated mandatory field 'runHeader'
+
+faults caught: 6/6   misses: 0
+```
+
+Bare exit code: `BARE_EXIT_2=0`.
+
+**Test Plan digest contract.** The new row was **appended** as position 10 rather than
+inserted next to the other typed rows, so every existing `rowIndex` and `rowSha256` for
+TP-08-01..TP-08-09 stays valid. Verified after the edit: rows 1-9 still hash-match their
+frozen digests ("rows 1-9 still matching: ALL"), and `test-plan.json` records TP-08-10 at
+`rowIndex: 10` with `rowSha256: 1a081b2179cb42bdc9e2f2e76fe74313a57ae35537da78627718232a40600702`,
+recomputed with the declared recipe `sha256(exact Markdown row bytes + LF)`. Reconciling the
+digest in the same change is the direct lesson of AUD-F1, where a Markdown row was edited
+without updating `test-plan.json`.
+
+**Gate note (framework defect FW-01).** Gate G026 had been reporting Scope 08 as an
+"SLA-sensitive scope missing explicit stress coverage". Scope 08 declares **no** latency or
+throughput SLA; the gate's trigger
+`grep -Eiq 'latency|throughput|p95|p99|response time|sla|slo'`
+(`state-transition-guard.sh:1367`) is unanchored, so the token `slo` matches inside the
+ordinary word **`slot`** — Scope 08 uses "action slot" / "action-slot" three times. The
+correct fix is to word-anchor the tokens upstream (`\b(sla|slo)\b`), which remains recorded
+as FW-01; the wording was deliberately **not** changed to dodge the regex, because rewording
+to satisfy an unanchored pattern is precisely what produced AUD-F1. TP-08-10 is genuine
+coverage of a real budget boundary and stands on its own merit independently of that gate.
+

@@ -232,11 +232,51 @@ function actualPacket() {
   };
 }
 
+// BUG-002 (Feature 012 moving-HEAD baseline drift): the Scope 01 rollback authority must be
+// HEAD-INDEPENDENT. `git show HEAD:` returned the modern bytes the moment Scope 01 landed, so
+// the rollback comparison silently degraded into comparing the registry against itself. This
+// pins the immutable parent of c81d808d (where `experience` first appeared) — the same anchor
+// the already-GREEN SCN-012-031 reference fix uses. The two guards below fail LOUD if the pin
+// is ever repointed at post-Scope-01 content, keeping SCN-012-033 adversarial.
+const LEGACY_BASELINE_COMMIT = '767732db04e0cd32bf107b2a95030a6771bd16f2';
+const LEGACY_BASELINE_FORBIDDEN_MARKER = Object.freeze({
+  'tools.json': '"experience"',
+  'scripts/selftest.mjs': 'Feature 012'
+});
+const LEGACY_BASELINE_SHA256 = Object.freeze({
+  'tools.json': '6c4e5e02add0e04783a57f45d0fa697d7f19614d9a17515b3454e71a0fbc543f',
+  'scripts/selftest.mjs': 'fe706d9900f0623108604a2e2adb80a0290c70bad90506e5b1db52980a739965'
+});
+
+function baselineRepositoryRoot() {
+  return process.env.RL_SCOPE01_BASELINE_REPOSITORY || new URL('..', import.meta.url);
+}
+
+function baselineBytes(relativePath) {
+  const bytes = execFileSync('git', ['show', `${LEGACY_BASELINE_COMMIT}:${relativePath}`], {
+    cwd: baselineRepositoryRoot()
+  });
+  const forbidden = LEGACY_BASELINE_FORBIDDEN_MARKER[relativePath];
+  if (forbidden) {
+    assert.equal(
+      bytes.includes(forbidden),
+      false,
+      `legacy baseline ${relativePath} @ ${LEGACY_BASELINE_COMMIT} must not contain the modern marker ${forbidden}`
+    );
+  }
+  const expectedSha256 = LEGACY_BASELINE_SHA256[relativePath];
+  if (expectedSha256) {
+    assert.equal(
+      sha256(bytes),
+      expectedSha256,
+      `legacy baseline ${relativePath} @ ${LEGACY_BASELINE_COMMIT} sha256 drifted from the pinned pre-Scope-01 bytes`
+    );
+  }
+  return bytes;
+}
+
 function baselineRegistry() {
-  return JSON.parse(execFileSync('git', ['show', 'HEAD:tools.json'], {
-    cwd: process.env.RL_SCOPE01_BASELINE_REPOSITORY || new URL('..', import.meta.url),
-    encoding: 'utf8'
-  }));
+  return JSON.parse(baselineBytes('tools.json').toString('utf8'));
 }
 
 function withoutExperience(tool) {
@@ -402,8 +442,8 @@ test('SCN-012-033 rollback rehearsal replays RED then restores exact Scope 01 by
     copySnapshot(sandboxRoot, protectedSnapshot);
     writeFileSync(probePath, SANDBOX_PROBE_SOURCE);
 
-    const baselineToolsBytes = execFileSync('git', ['show', 'HEAD:tools.json'], { cwd: REPOSITORY_ROOT });
-    const baselineSelftestBytes = execFileSync('git', ['show', 'HEAD:scripts/selftest.mjs'], { cwd: REPOSITORY_ROOT });
+    const baselineToolsBytes = baselineBytes('tools.json');
+    const baselineSelftestBytes = baselineBytes('scripts/selftest.mjs');
     const rolledBackTools = removeExperienceObjects(scopeSnapshot.get('tools.json').bytes);
     const rolledBackSelftest = removeFeature012SelftestBlock(scopeSnapshot.get('scripts/selftest.mjs').bytes);
 

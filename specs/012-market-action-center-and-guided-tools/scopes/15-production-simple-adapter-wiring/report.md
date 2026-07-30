@@ -2572,4 +2572,290 @@ Infrastructure Impact Sweep. Minor, gates no row on its own.
   53/53 Pages-gate batch. **TP-15-02, TP-15-03, TP-15-04, TP-15-06 and TP-15-07** are the
   closed test-evidence DoD items \u2014 **8 of 14 DoD items checked, 6 open**
 
+---
+
+## 2026-07-30 — Rollback rehearsal (change-boundary DoD row, half (b))
+
+**What this closes.** The change-boundary DoD row is
+`The change remains within the exact bridge/ownerModes/page-provider boundary; rollback
+restores the prior stub behavior without data loss.` Half (a) (the allowlist) was closed by
+D3. Half (b) — the documented rollback path — had **never been exercised by any executed
+command**; every prior search for a rollback rehearsal in this scope's artifacts returned
+only prose stating that no such rehearsal had been performed. This section is that
+rehearsal, executed. It records evidence only; it does not check the DoD box.
+
+**Isolation.** The rehearsal ran in a disposable detached worktree
+(`git worktree add --detach /tmp/rl-rollback-rehearsal HEAD`, HEAD `d5c05ce6`), never in the
+live checkout, because concurrent sessions are active in this repo and an earlier in-place
+proof left a product page truncated. The live checkout was read-only for the whole
+rehearsal except this report file. The worktree was removed afterwards.
+
+### 1. Rollback target — verified, not assumed
+
+```
+$ git log -1 --format='%H%n%s' f216be0d
+f216be0d2f28bf69b232174d9b0810d8482009d4
+feat(experience): production Simple-view owner-state bridge (Scope 15, BUG-003 closure)
+
+$ git log -1 --format='%H%n%s' f216be0d^
+737d1d177c02b6d8b67f8b72574ea664fd5cec57
+fix(pages): restore ordinary tool view routing
+```
+
+`f216be0d` is the Scope 15 bridge commit; `f216be0d^` = `737d1d17` is the pre-bridge state
+and therefore the rollback target.
+
+### 2. Derived rollback path set (git-derived, not hand-listed)
+
+The scope's documented Rollback section names the surface: *"Restore the stub
+`installSimpleProjectionBridge`, revert the `rlapp.js` `ownerModes` change, revert each
+page's provider registration…"*. That is the bridge / ownerModes / page-provider boundary.
+Derivation = paths changed in `f216be0d^..HEAD` **intersected with** executable source that
+assigns or consumes the provider seam:
+
+```
+$ git diff --name-only f216be0d^..HEAD | grep -E '^[^/]+\.html$' \
+    | while read -r f; do grep -qE '__rlOwnerStateProvider\[' "$f" && echo "$f"; done
+ai-capex-strategy-lab.html          options-structure-lab.html
+bond-regime-lab.html                real-assets-lab.html
+company-fundamentals-lab.html       sector-research-lab.html
+etf-momentum-lab.html               smart-money-flow-lab.html
+gamma-trading-lab.html              strategy-self-improvement-lab.html
+global-rotation-lab.html            strategy-validation-lab.html
+intraday-tape-lab.html              swing-structure-lab.html
+market-heatmap-lab.html             technical-analysis-decision-lab.html
+options-flow-feed-lab.html          volatility-sizing-lab.html
+                                    waterfront-polo-lab.html
+  pages=19
++ rlexperience.js (bridge)  + rlapp.js (ownerModes gate)
+ROLLBACK_PATH_COUNT=21
+```
+
+A first, looser derivation (marker match over *all* changed paths) returned 44 and was
+**rejected**: it swept in `specs/002-*`, `specs/016-*` and test artifacts that merely
+*mention* the seam in prose and that do carry heavy unrelated concurrent work. The
+boundary is executable source, not prose.
+
+**Purity check** — no unrelated concurrent work is entangled in the 21-path set:
+
+```
+$ while read -r f; do git log --format='%h %s' f216be0d^..HEAD -- "$f"; done \
+    < rollback-paths.txt | sort -u \
+    | grep -viE 'scope-15|BUG-003|BUG-004|style\(experience\): align continuation'
+  (no output)
+```
+
+Every commit touching those 21 paths in the range is Scope-15 lineage (the wiring commits,
+the two BUG-004 fixes *to the bridge*, and one style commit *inside* the bridge). So a
+path-level restore reverts Scope 15 and nothing else. `rlchart.js` (+5 lines in the Scope-15
+increment commit `ab1d4879`) is deliberately **excluded** — it is a shared chart helper
+outside the bridge/ownerModes/page-provider boundary and additive.
+
+### 3. Rollback executed
+
+```
+$ git checkout f216be0d^ -- $(cat rollback-paths.txt)
+ROLLBACK_EXIT=0
+MODIFIED_COUNT=21
+```
+
+Clean, no conflicts, exactly the derived set.
+
+**Structural verification — all 21 files byte-identical to the pre-bridge state:**
+
+```
+=== A. BRIDGE (rlexperience.js) ===
+  installSimpleProjectionBridge (STUB) occurrences : 2
+  renderSimpleBridge          (BRIDGE) occurrences: 0
+  __rlOwnerStateProvider consumed             : 0
+  identical to f216be0d^ : YES
+
+=== B. ownerModes GATE (rlapp.js) ===
+  287:  ownerModes: resolved.value.kind === "ordinary" ? ["simple", "power"] : ["brief"]
+  simple-models.json fetch present: 0
+  identical to f216be0d^ : YES
+
+=== C. PAGE PROVIDERS ===
+  pages still registering __rlOwnerStateProvider[: 0
+  all 19 pages byte-identical to f216be0d^ : 19/19
+```
+
+### 4. Prior stub behaviour restored — RED half (the bridge is genuinely gone)
+
+Tests were **left at HEAD** rather than rolled back, so the current canaries act as
+detectors. If the rollback were a no-op they would stay green.
+
+```
+$ node scripts/selftest.mjs        # at rolled-back source
+  ✗ FAIL: the bridge publishes a non-empty adapter-module binding table … (0 bindings
+          parsed from rlexperience.js)
+  ✗ FAIL: the wired set is derived from the production registry + the deployed pages and
+          is non-empty (0 wired of 23 registry definitions, scanned 26 pages)
+  ✗ FAIL: no forbidden authority … (0 authority flags x 0 wired tools, owned: 0)
+  ✗ FAIL (Feature 012 Scope 15 production bridge canaries threw): function not found:
+          renderSimpleBridgeInternal
+
+================================================
+Research-Lab self-test: 958 passed, 4 failed
+================================================
+SELFTEST_EXIT=1
+```
+
+All four failures are Scope-15 bridge canaries; **zero collateral failures** across the
+other 958 assertions.
+
+```
+$ npx playwright test tests/simple-production-wiring.spec.mjs --project=system-chrome
+  4 failed
+    … Regression: market-heatmap Simple renders the real adapter panel in the real
+      owner-mode flow
+    … TP-15-03 market-heatmap Simple renders real steerable controls …
+    … TP-15-04 every wired ordinary tool paints its real Simple adapter panel …
+    … TP-15-04 the swept set is derived from the production registry + pages …
+WIRING_EXIT=1
+
+    expect(wired.length).toBeGreaterThan(0)
+    Expected: > 0
+    Received:   0
+```
+
+### 5. Prior stub behaviour restored — GREEN half (native Simple returns, shell functions)
+
+Observed in a real browser on a formerly-wired page at the rolled-back source (read-only
+probe, kept outside the repo tree, asserting nothing):
+
+```
+=== OBSERVED BROWSER STATE AT ROLLED-BACK SOURCE (market-heatmap-lab, Simple view) ===
+  bodyHasRlvFocused         = false
+  bodyClasses               = "rlapp-status"
+  adapterPanelExists        = true
+  adapterPanelState         = "unavailable"
+  adapterPanelAdapterId     = "simple-adapter/market-breadth/v1"
+  adapterPanelVisible       = true
+  adapterPanelText          = "Simple model unavailable\n\nOwner model adapter required: …"
+  nativeFirstBlockVisible   = true
+  nativeVisiblePanelCount   = 2
+  providerRegisteredOnPage  = false
+  bridgeFnPresent           = false
+PROBE_EXIT=0
+```
+
+This is exactly the RED state the wiring spec's own header declared in advance for the
+pre-Scope-15 stub: *"under the dead-code stub the panel stays
+`data-rlexperience-simple-state="unavailable"` … so the 'ready' + adapter-id assertions
+fail."* `body.rlv-focused` is **false**, so native page content is **not** hidden and two
+native panels render — native Simple is restored.
+
+**Precision note.** "No adapter panel" is not literally accurate and should not be recorded
+that way: the panel *element* still exists and is visible, but it renders the stub's honest
+`Simple model unavailable` placeholder instead of a real adapter projection. The spec header
+also says the stub panel carries "no adapter id"; observed, it *does* carry
+`data-rlexperience-adapter="simple-adapter/market-breadth/v1"` (the stub names the required
+adapter). The RED comes from the state attribute, not the adapter-id attribute.
+
+**Shell still functions** — the two shell-contract specs that predate Scope 15 and were
+untouched in `f216be0d^..HEAD`:
+
+```
+$ npx playwright test tests/tool-experience.spec.mjs tests/tool-experience-mobile.spec.mjs \
+    --project=system-chrome
+  1 failed
+    … Regression: SCN-012-028 uncertified Feature 002 exposes exact Brief gate …
+  4 passed (30.6s)
+SHELL_SPEC_EXIT=1
+```
+
+The single failure is **pre-existing, not rollback-caused**. Control run, same test, same
+worktree restored to HEAD with the bridge present:
+
+```
+$ git checkout HEAD -- $(cat rollback-paths.txt)   # worktree back at HEAD
+$ npx playwright test tests/tool-experience.spec.mjs -g "SCN-012-028" --project=system-chrome
+    > 70 |   await expect(gate).toContainText('Observed status: not_started');
+    - unexpected value "Dependency pending: Feature 002Observed status: done…"
+  1 failed
+CONTROL_EXIT=1
+```
+
+Identical assertion, identical line 70, identical failure with the bridge present. It is
+Feature 002 certification drift (Feature 002 is now `done`; the test still expects
+`not_started`), unrelated to Scope 15.
+
+### 6. "Without data loss" — definition and proof
+
+The scope's Rollback section defines the term: *"No source data, option snapshots, provider
+config, or user-local history is deleted or reset."* Proof is a byte-level fingerprint of
+those four classes, taken **before** the rollback and again **after** the rollback and after
+every test run:
+
+| Class | Files | SHA-256 (first 16) before | after all runs |
+|---|---|---|---|
+| `data/bars` (source data) | 289 | `3a97aeb6f108a02b` | `3a97aeb6f108a02b` |
+| `data/options` (option snapshots) | 23 | `e8ffe32ab30d2233` | `e8ffe32ab30d2233` |
+| `briefs/**` (committed snapshots/history) | 963 | `c9c9cc8f7e3019e3` | `c9c9cc8f7e3019e3` |
+| root `*.json` (registries + provider config) | 34 | `05b3974fbfcffb90` | `05b3974fbfcffb90` |
+| root `*.jsonl` (append-only history) | 2 | `6d32da79adebc821` | `6d32da79adebc821` |
+
+```
+  deleted files: 0
+  registries intact: simple-models.json=yes tools.json=yes tool-experience.config.json=yes
+```
+
+All five classes are byte-identical and the rollback deleted nothing. `simple-models.json`
+notably **survives** because it predates Scope 15 (added by `c81d808d`, Scopes 01-04); only
+`rlapp.js`'s *fetch* of it is Scope-15 and is what reverts. The 19 page provider
+registrations are cleanly **absent by design** — they are the reverted delivery itself, not
+lost data, and each page returns byte-identical to its pre-bridge content.
+
+### 7. Verdict and one real finding
+
+**The documented rollback path works.** It restores the prior stub behaviour exactly
+(21/21 files byte-identical to `f216be0d^`; bridge canaries go RED; native Simple returns;
+shell functions with zero collateral failures) and loses no data.
+
+**Finding ROLL-01 (documentation accuracy, LOW, does not block the rollback claim).** The
+bridge commit's message and a comment still live in production source assert something the
+diff disproves. `f216be0d` claims *"Removes the stub's `body.classList.add('rlv-focused')`"*
+and `rlexperience.js:1844` at HEAD still states *"the stub's classList.add is removed."*
+But:
+
+```
+$ git show f216be0d -- rlexperience.js | grep -nE '^[-+].*rlv-focused'
+45:+     INVARIANT (BUG-003 closure): this bridge NEVER mutates body.rlv-focused —
+173:+         is the sole owner of rlv-focused; the stub's classList.add is removed. */
+```
+
+Only `+` lines — the commit removed **zero** `rlv-focused` lines, and the pre-bridge
+`rlexperience.js` contains **0** occurrences of `rlv-focused` at all. There was no stub
+`classList.add` to remove. The sole executable owner is `rlviews.js:146`
+(`document.body.classList.toggle("rlv-focused", ownerModes.indexOf(mode) === -1)`) at both
+states, which is why the "exactly one executable rlv-focused write … lives in rlviews.js"
+canary passes **before and after** the rollback. The BUG-003 mechanism was the shell's
+relocation of `[data-rlbrief-mount]` into the hidden `brief` panel, introduced by
+`c81d808d` (Scopes 01-04) and resolved by owner decision + TP-10-02 reconciliation — not by
+this bridge removing a stub write. Routed to `bubbles.plan` / `bubbles.docs`: the in-source
+comment overstates what the change did.
+
+### 8. Cleanup and live-tree integrity
+
+```
+$ git worktree remove --force /tmp/rl-rollback-rehearsal   # WORKTREE_REMOVE_EXIT=0
+$ git worktree prune                                       # PRUNE_EXIT=0
+$ git worktree list
+/home/redacted/research-lab  d5c05ce6 [main]
+
+$ git status --porcelain          # live checkout — no source edits
+ M .github/bubbles-project.yaml
+ M specs/012-…/bugs/BUG-004-market-heatmap-control-surface/report.md
+ M specs/012-…/bugs/BUG-004-market-heatmap-control-surface/scopes.md
+ M specs/012-…/bugs/BUG-004-market-heatmap-control-surface/state.json
+
+$ node scripts/selftest.mjs
+Research-Lab self-test: 968 passed, 0 failed
+LIVE_SELFTEST_EXIT=0
+```
+
+The four dirty files are pre-existing concurrent-session work and were not touched. The
+live checkout is byte-unchanged in product source and still 968/0.
+
 

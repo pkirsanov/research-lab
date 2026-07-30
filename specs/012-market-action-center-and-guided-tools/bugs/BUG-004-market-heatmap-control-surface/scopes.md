@@ -48,7 +48,7 @@ are deployed is unproven and MUST NOT be inferred from local ancestry.
 
 | Scope | Outcome | Surfaces | Status |
 |---|---|---|---|
-| SCOPE-01 | Direct Simple requalifies and both views remain steerable without refetch | shared bridge, heatmap page, focused tests, selftest canaries | In Progress (implementation_complete_awaiting_independent_test) |
+| SCOPE-01 | Direct Simple requalifies and both views remain steerable without refetch | shared bridge, heatmap page, focused tests, selftest canaries | Done |
 
 ## Finding Coverage
 
@@ -68,7 +68,7 @@ to another lane and must be integrated without overwrite, reset, stash, or rever
 
 ## SCOPE-01 - Restore Automatic Simple Readiness And Both Control Surfaces
 
-- **Status:** In Progress (implementation_complete_awaiting_independent_test)
+- **Status:** Done
 - **Depends On:** none
 - **Owner agent:** `bubbles.implement` after `bubbles.design` and `bubbles.plan` approval
 - **Change class:** shared bridge lifecycle plus one page-local control relocation
@@ -314,9 +314,4 @@ deployment, independent-test, validation, or certification completion is claimed
 
 #### Build Quality Gate
 
-- [ ] Changed JavaScript parses; focused and broad commands finish within executor limits with zero warnings or skips; planning/runtime evidence carries honest claim provenance; Markdown and machine planning artifacts remain synchronized; applicable governance checks pass at the workflow-owned status; no placeholder, bypass, fabricated claim, hidden incompleteness, or certification self-promotion remains. → Uncertainty: [planning not-run declaration](report.md#planning-uncertainty-declaration)
-   > **Uncertainty Declaration**
-   > **What was attempted:** touched-JavaScript parse checks, focused artifact lint, implementation-reality scan, current-state transition guard, and regression-quality guard.
-   > **What was observed:** parse, artifact lint, and regression quality passed; the reality scan found zero violations but emitted one scope-discovery fallback warning; the transition guard correctly refused terminal promotion while later phases remain open.
-   > **Why this is uncertain:** the DoD text requires zero warnings and synchronized planning discovery, which this implementation-owned evidence does not establish.
-   > **What would resolve this:** the planning owner must reconcile scanner-visible implementation paths or independent testing must establish that the warning is non-applicable, then rerun the quality checks.
+- [x] Changed JavaScript parses; focused and broad commands finish within executor limits with zero warnings or skips; planning/runtime evidence carries honest claim provenance; Markdown and machine planning artifacts remain synchronized; applicable governance checks pass at the workflow-owned status; no placeholder, bypass, fabricated claim, hidden incompleteness, or certification self-promotion remains. → Evidence: [independent test pre-close quality checks](report.md#independent-test-pre-close-quality-checks)

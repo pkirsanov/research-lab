@@ -4,21 +4,25 @@ Links: [bug.md](bug.md) | [spec.md](spec.md) | [design.md](design.md) | [scopes.
 
 ## Summary
 
-The six-artifact bug packet is filed. Source, history, deployed-page fetch, and
-worktree-boundary evidence support three distinct defects: no cold-open Simple
-requalification after asynchronous hydration, no controls in deployed Simple at
-discovery, and native controls hidden in Power. The concurrent generic-control
-patch was committed as `2f65a02a` during filing; it does not cover the other two
-defects. No product source, test, parent artifact, or certification field was
-changed by this invocation.
+The independent TEST phase is complete for BUG-004 SCOPE-01. Independent
+execution reproduced three valid immutable RED discriminators, passed all 11
+Test Plan rows on current behavior, and closed the pre-close quality checks with
+zero reality-scan violations or warnings and zero regression-quality violations
+or warnings. A source/test identity audit found one later concurrent change in
+the shared TP-B004-10 test file; only that affected row was rerun against current
+blob `4a65659588dec6d58d16afdfaf205c6d8a6cbf5c`, where all four tests passed with
+zero skipped, unexpected, or flaky results. No product source, test,
+certification field, parent artifact, or unrelated dirty path was changed by
+this closeout.
 
 ## Completion Statement
 
-Discovery, design, and planning ownership are reconciled. Implementation,
-regression execution, deployment verification, full validation, and
-certification are not complete and are not claimed. The primary execution route
-is `bubbles.implement`; the missing v3 `certification` shape remains a separate
-foreign-owned route to `bubbles.validate` and was not filled by planning.
+Independent testing and the execution-side SCOPE-01 Definition of Done are
+complete. The required later `regression`, `simplify`, `gaps`, `harden`,
+`stabilize`, `devops`, `security`, `validate`, `audit`, and `finalize` phases
+remain unclaimed. Deployment verification and certification are also unclaimed;
+top-level and certification status remain `in_progress`, and the next required
+owner is `bubbles.regression`.
 
 ## Findings
 
@@ -2699,3 +2703,45 @@ BUG004_DIFF_CHECK_EXIT=0
 **Result:** PASS - the three permitted BUG-004 artifacts had no diagnostics,
 staged bytes, pre-existing diff, or whitespace errors. The two unrelated dirty
 paths were observed and left untouched.
+
+### Current-Blob TP-B004-10 Drift Revalidation
+
+**Executed:** YES (in current session)
+
+**Commands:** current worktree-versus-evidence blob comparison; `PLAYWRIGHT_JSON_OUTPUT_NAME=/tmp/research-lab-bug004-tp10-current-4a656595.json timeout 1200 npx --no-install playwright test --config=playwright.config.mjs --project=system-chrome tests/simple-production-wiring.spec.mjs --reporter=json`; fail-closed `jq -e` result validation; `timeout 60 node --check tests/simple-production-wiring.spec.mjs`; matching-process residue check
+
+**Exit Code:** 0
+
+**Claim Source:** executed
+
+The shared TP-B004-10 file changed after its recorded independent run from blob
+`2c45ea0fbf85b53f1487b8196456300febf193cd` to current worktree blob
+`4a65659588dec6d58d16afdfaf205c6d8a6cbf5c`. All other BUG-004 production,
+dedicated browser, integration, selftest, and Playwright-config blobs remained
+stable. The later shared-file change added registry-derived SCN-012-041
+assertions, so only TP-B004-10 required re-execution. Those concurrent bytes
+were preserved unchanged.
+
+**Output:**
+
+```text
+TP_B004_10_JSON_VALIDATE_EXIT=0
+TP_B004_10_STATS expected=4 skipped=0 unexpected=0 flaky=0 duration_ms=604884.86
+TEST title=Regression: market-heatmap Simple renders the real adapter panel in the real owner-mode flow ok=true result=passed duration_ms=1943
+TEST title=TP-15-03 market-heatmap Simple renders real steerable controls and actuating one recomputes the production projection with no refetch ok=true result=passed duration_ms=206074
+TEST title=TP-15-04 every wired ordinary tool paints its real Simple adapter panel with an owner-parity fact ok=true result=passed duration_ms=395192
+TEST title=TP-15-04 the swept set is derived from the production registry + pages, and the honest-degradation cases are registry/provider derived ok=true result=passed duration_ms=73
+TP-15-04/SCN-012-041 derived native #simpleView tools: 7 of 19 wired (4 also declare #powerView) — intraday-tape-lab swing-structure-lab gamma-trading-lab sector-research-lab+#powerView bond-regime-lab+#powerView etf-momentum-lab+#powerView volatility-sizing-lab+#powerView
+TP-15-04 swept 19 wired tools: market-heatmap-lab=ready(x1) options-flow-feed-lab=ready(x1) intraday-tape-lab=unavailable(x1) swing-structure-lab=ready(x1) options-structure-lab=ready(x1) gamma-trading-lab=ready(x1) sector-research-lab=ready(x1) global-rotation-lab=ready(x1) real-assets-lab=ready(x1) bond-regime-lab=ready(x1) ai-capex-strategy-lab=ready(x1) company-fundamentals-lab=ready(x1) etf-momentum-lab=ready(x1) strategy-self-improvement-lab=ready(x1) strategy-validation-lab=ready(x1) smart-money-flow-lab=ready(x1) waterfront-polo-lab=ready(x1) volatility-sizing-lab=ready(x1) technical-analysis-decision-lab=unavailable(x1)
+TP-15-04/SCN-012-041 native demotion verified on 7 tools: intraday-tape-lab[simple 0/3 native visible -> power 2/3] swing-structure-lab[simple 0/3 native visible -> power 2/3] gamma-trading-lab[simple 0/3 native visible -> power 2/3] sector-research-lab[simple 0/1 native visible -> power 1/1 +#powerView visible] bond-regime-lab[simple 0/4 native visible -> power 3/4 +#powerView visible] etf-momentum-lab[simple 0/1 native visible -> power 1/1 +#powerView visible] volatility-sizing-lab[simple 0/2 native visible -> power 2/2 +#powerView visible]
+TP_B004_10_JSON_SUMMARY_EXIT=0
+TP_B004_10_CURRENT_BLOB=4a65659588dec6d58d16afdfaf205c6d8a6cbf5c
+TP_B004_10_CURRENT_PARSE_EXIT=0
+TP_B004_10_PROCESS_MATCH_EXIT=1
+```
+
+**Result:** PASS - the only drift-affected row passed on the current shared test
+blob: four expected and four passed, zero skipped, unexpected, or flaky, the
+registry-derived 19-tool sweep remained 17 ready plus two honestly unavailable,
+all seven newly derived native-Simple demotion checks passed, JavaScript parsed,
+and no matching Playwright process remained.

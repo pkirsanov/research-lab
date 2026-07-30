@@ -3,7 +3,7 @@
   "featureDir": "specs/012-market-action-center-and-guided-tools/bugs/BUG-004-market-heatmap-control-surface",
   "featureName": "BUG-004 Market Heatmap Control Surface",
   "createdAt": "2026-07-29T15:42:55Z",
-  "lastUpdatedAt": "2026-07-29T23:15:20Z",
+  "lastUpdatedAt": "2026-07-30T01:47:53Z",
   "completedAt": null,
   "status": "in_progress",
   "blockedReason": null,
@@ -11,20 +11,20 @@
   "linkedImplementationSpec": "specs/012-market-action-center-and-guided-tools",
   "requiresRevalidation": true,
   "flagsIntroduced": [],
-  "completedScopes": [],
+  "completedScopes": ["SCOPE-01"],
   "completedPhases": [],
   "execution": {
-    "activeAgent": "bubbles.implement",
-    "currentPhase": "implement",
-    "currentPhaseStatus": "route_required",
-    "substate": "implementation_complete_awaiting_independent_test",
+    "activeAgent": "bubbles.test",
+    "currentPhase": "test",
+    "currentPhaseStatus": "completed",
+    "substate": "independently_verified",
     "currentScope": "SCOPE-01",
-    "runStartedAt": "2026-07-29T16:59:52Z",
-    "completedAt": "2026-07-29T23:15:20Z",
+    "runStartedAt": "2026-07-29T23:30:21Z",
+    "completedAt": "2026-07-30T01:47:53Z",
     "executionModel": "direct-authorized-runner",
     "parentAgent": null,
-    "nextRequiredOwner": "bubbles.test",
-    "nextRequiredTarget": "Independently re-execute all 11 SCOPE-01 Test Plan rows against the current tree without trusting implementation evidence, verify all three immutable RED→GREEN discriminators, adjudicate the retained implementation-reality discovery warning, and preserve the excluded paths and nonterminal certification boundary.",
+    "nextRequiredOwner": "bubbles.regression",
+    "nextRequiredTarget": "Execute the mandatory bugfix-fastlane regression phase against the independently verified BUG-004 SCOPE-01 current bytes, preserving all protected scenarios, unrelated dirty paths, and the nonterminal certification boundary.",
     "completedPhaseClaims": [
       {
         "phase": "implement",
@@ -35,17 +35,27 @@
         "evidenceSection": "report.md#immutable-before-fix-red-evidence; report.md#current-tree-implementation-evidence-tp-b004-0608; report.md#protected-control-wiring-regression-evidence-tp-b004-10; report.md#implementation-closeout-checks",
         "claimType": "executed-not-certifying",
         "detail": "Implementation-owned behavior and Test Plan evidence are complete: valid immutable A/C RED at 2f65a02a, valid historical B RED at 31ea9942, current A/B/C GREEN, TP-B004-01..11 implementation runs recorded, protected wiring 4/4, broad selftest 968/0, integration 6/0, regression guard clean, parse checks clean, zero implementation-reality violations, and boundary/worktree audit clean. SCOPE-01 remains In Progress with 18/19 DoD checked because the Build Quality Gate requires zero warnings and the reality scan retained one scope-discovery fallback warning. Independent testing and certification are not claimed."
+      },
+      {
+        "phase": "test",
+        "claimedBy": "bubbles.test",
+        "claimedAt": "2026-07-30T01:47:53Z",
+        "scopeId": "SCOPE-01",
+        "evidenceFile": "report.md",
+        "evidenceSection": "report.md#independent-test-verification; report.md#independent-current-tree-test-phase-tp-b004-0105-tp-b004-09-tp-b004-11; report.md#independent-current-tree-browser-test-phase-tp-b004-0608; report.md#independent-final-test-phase-tp-b004-10; report.md#independent-test-pre-close-quality-checks",
+        "claimType": "executed-not-certifying",
+        "detail": "Independent TEST phase completed all 11 synchronized rows and three immutable RED discriminators without trusting implementation evidence: A/C RED at 2f65a02a, historical-only production-bridge B RED at 31ea9942, four focused unit rows green, selftest 968/0, integration 6/0, regression-quality 0 violations/0 warnings, browser A/B/C each 1/1, and TP-B004-10 4/4. A post-evidence drift in shared tests/simple-production-wiring.spec.mjs was isolated to TP-B004-10 and revalidated on current blob 4a65659588dec6d58d16afdfaf205c6d8a6cbf5c: 4 expected/4 passed, 0 skipped/unexpected/flaky, 19 tools swept with 17 ready and 2 honestly unavailable. Artifact lint passed, reality scan reported 0 violations/0 warnings, JavaScript parsed, and no process or worktree residue remained. This is execution-side test completion only; certification remains unclaimed."
       }
     ],
     "pendingTransitionRequests": [
-      "TR-BUG004-TEST"
+      "TR-BUG004-REGRESSION"
     ],
     "scopeInventory": [
       {
         "scope": 1,
         "scopeId": "SCOPE-01",
         "name": "Restore Automatic Simple Readiness And Both Control Surfaces",
-        "status": "in_progress",
+        "status": "done",
         "dependsOn": [],
         "foundation": false,
         "capabilityRole": "existing-production-simple-bridge-bugfix-overlay",
@@ -315,7 +325,7 @@
     },
     {
       "id": "TR-BUG004-TEST",
-      "status": "open",
+      "status": "resolved",
       "requestedBy": "bubbles.implement",
       "routedTo": "bubbles.test",
       "requestedAt": "2026-07-29T23:15:20Z",
@@ -339,6 +349,36 @@
         "report.md#protected-control-wiring-regression-evidence-tp-b004-10",
         "report.md#implementation-closeout-checks",
         "scopes.md#test-plan",
+        "scopes.md#definition-of-done"
+      ],
+      "resolvedAt": "2026-07-30T01:47:53Z",
+      "resolvedBy": "bubbles.test",
+      "resolutionSummary": "Independently reproduced all three accepted immutable RED discriminators, executed all 11 synchronized Test Plan rows on current behavior, revalidated the only post-evidence test-blob drift by rerunning TP-B004-10, closed the final Build Quality Gate from zero-warning pre-close checks, marked execution-side SCOPE-01 done, and preserved the nonterminal certification boundary."
+    },
+    {
+      "id": "TR-BUG004-REGRESSION",
+      "status": "open",
+      "requestedBy": "bubbles.test",
+      "routedTo": "bubbles.regression",
+      "requestedAt": "2026-07-30T01:47:53Z",
+      "reason": "Independent testing and all 19 SCOPE-01 DoD items are complete. Execute the next mandatory bugfix-fastlane regression phase against current bytes, including the protected shared wiring surface, without modifying certification or unrelated concurrent work.",
+      "routedToSpec": "specs/012-market-action-center-and-guided-tools/bugs/BUG-004-market-heatmap-control-surface",
+      "productAction": "none",
+      "crossRepoFollowUp": false,
+      "routingClass": "same-repo-specialist",
+      "scenarioIds": [
+        "SCN-B004-A",
+        "SCN-B004-B",
+        "SCN-B004-C",
+        "SCN-B004-D"
+      ],
+      "findingIds": [],
+      "evidenceRefs": [
+        "report.md#independent-test-verification",
+        "report.md#independent-current-tree-test-phase-tp-b004-0105-tp-b004-09-tp-b004-11",
+        "report.md#independent-current-tree-browser-test-phase-tp-b004-0608",
+        "report.md#independent-final-test-phase-tp-b004-10",
+        "report.md#independent-test-pre-close-quality-checks",
         "scopes.md#definition-of-done"
       ]
     }
@@ -479,6 +519,46 @@
       ],
       "nextRequiredOwner": "bubbles.implement",
       "summary": "Resolved only TR-BUG004-CERTIFICATION-SHAPE by adding the required truthful nonterminal version-3 certification object. Focused artifact lint changed from two certification-shape errors to exit 0. This proves packet structure only: no runtime tests ran, no behavior was certified, certifiedAt remains null, completion arrays and phases remain empty, SCOPE-01 remains not_started, and no scenario is accepted or locked. TR-BUG004-IMPLEMENT remains open with bubbles.implement as nextRequiredOwner; concurrent product and test files were not touched."
+    },
+    {
+      "agent": "bubbles.test",
+      "workflowMode": "bugfix-fastlane",
+      "executionModel": "direct-authorized-runner",
+      "parentAgent": null,
+      "startedAt": "2026-07-29T23:30:21Z",
+      "completedAt": "2026-07-30T01:47:53Z",
+      "statusBefore": "in_progress",
+      "statusAfter": "in_progress",
+      "phasesExecuted": [
+        "test"
+      ],
+      "scopesCompleted": [
+        "SCOPE-01"
+      ],
+      "outcome": "route_required",
+      "addressedFindings": [
+        "TR-BUG004-TEST",
+        "BUG004-TEST-IMMUTABLE-RED",
+        "BUG004-TEST-CURRENT-MATRIX",
+        "BUG004-TEST-TP10-BLOB-DRIFT-REVALIDATED",
+        "BUG004-TEST-PRECLOSE-QUALITY",
+        "BUG004-BUILD-QUALITY-GATE",
+        "BUG004-SCOPE-01-EXECUTION-DONE"
+      ],
+      "unresolvedFindings": [
+        "BUG004-REGRESSION-PHASE-PENDING",
+        "BUG004-SIMPLIFY-PHASE-PENDING",
+        "BUG004-GAPS-PHASE-PENDING",
+        "BUG004-HARDEN-PHASE-PENDING",
+        "BUG004-STABILIZE-PHASE-PENDING",
+        "BUG004-DEVOPS-PHASE-PENDING",
+        "BUG004-SECURITY-PHASE-PENDING",
+        "BUG004-VALIDATE-PHASE-PENDING",
+        "BUG004-AUDIT-PHASE-PENDING",
+        "BUG004-FINALIZE-PHASE-PENDING"
+      ],
+      "nextRequiredOwner": "bubbles.regression",
+      "summary": "Completed the independent TEST phase from already-recorded evidence plus a surgical rerun of the only drift-affected row. All 11 Test Plan rows and all 19 DoD items are now complete with evidence; SCOPE-01 is execution-side done. Top-level and certification status remain in_progress, certification completion arrays remain empty, and later bugfix-fastlane phases remain unclaimed."
     }
   ]
 }

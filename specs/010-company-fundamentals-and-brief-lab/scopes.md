@@ -302,17 +302,17 @@ Scenario: SCN-010-027 optional source failure preserves the last valid dossier w
 
 **Test Evidence Items — Exact Parity With 7 Test Plan Rows**
 
-- [x] TP-2-01 unit evidence proves derived-metric, diagnostic, and archetype-prioritization production behavior with byte-stable shared facts.
-- [x] TP-2-02 selftest evidence preserves all existing checks and proves the additive metric/diagnostic/archetype group.
-- [x] TP-2-03 validator evidence proves the regenerated publication keeps shared facts byte-stable under the new derived layer.
-- [x] TP-2-04 Regression E2E evidence proves SCN-010-010/011/012 on the real route.
-- [x] TP-2-05 Regression E2E evidence proves SCN-010-001/008/009 on the real route.
-- [x] TP-2-06 Regression E2E evidence proves SCN-010-027 on the real route.
+- [x] TP-2-01 unit evidence proves derived-metric, diagnostic, and archetype-prioritization production behavior with byte-stable shared facts. (evidence: [report.md](report.md#tp-2-01-node---test-testscompany-fundamentals-contractsunitmjs-exit-0))
+- [x] TP-2-02 selftest evidence preserves all existing checks and proves the additive metric/diagnostic/archetype group. (evidence: [report.md](report.md#tp-2-02-node-scriptsselftestmjs-exit-0))
+- [x] TP-2-03 validator evidence proves the regenerated publication keeps shared facts byte-stable under the new derived layer. (evidence: [report.md](report.md#tp-2-03-node-scriptsvalidate-company-fundamentalsmjs-exit-0))
+- [x] TP-2-04 Regression E2E evidence proves SCN-010-010/011/012 on the real route. (evidence: [report.md](report.md#tp-2-04-npx---no-install-playwright-test-testscompany-fundamentals-labspecmjs---configplaywrightconfigmjs---projectsystem-chrome---grep-scn-010-010scn-010-011scn-010-012---reporterlist-exit-0))
+- [x] TP-2-05 Regression E2E evidence proves SCN-010-001/008/009 on the real route. (evidence: [report.md](report.md#tp-2-05-npx---no-install-playwright-test-testscompany-fundamentals-labspecmjs---configplaywrightconfigmjs---projectsystem-chrome---grep-scn-010-001scn-010-008scn-010-009---reporterlist-exit-0))
+- [x] TP-2-06 Regression E2E evidence proves SCN-010-027 on the real route. (evidence: [report.md](report.md#tp-2-06-npx---no-install-playwright-test-testscompany-fundamentals-labspecmjs---configplaywrightconfigmjs---projectsystem-chrome---grep-scn-010-027---reporterlist-exit-0))
 - [x] TP-2-07 broader E2E evidence proves the complete cumulative Scope 2 browser behavior without interception. (evidence: [report.md](report.md#scope-2-execution) — TP-2-07 full cumulative suite, 13 passed, exit 0)
 
 **Build Quality Gate**
 
-- [x] Exact RED/GREEN ledger, shared-fact byte-stability proof, no-universal-score scan, no-credential/no-private-data scans, selftest baseline parity, editor diagnostics, `git diff --check`, artifact lint, capability-foundation check, and framework write guard are current and every finding is individually accounted for in `report.md`.
+- [x] Exact RED/GREEN ledger, shared-fact byte-stability proof, no-universal-score scan, no-credential/no-private-data scans, selftest baseline parity, editor diagnostics, `git diff --check`, artifact lint, capability-foundation check, and framework write guard are current and every finding is individually accounted for in `report.md`. (evidence: [report.md](report.md#build-quality-scope-2))
 
 ## Scope 3: MSFT Linked Model & User-Owned Accepted State (Increment A)
 
@@ -408,11 +408,11 @@ Scenario: SCN-010-023 proposal arrival is inert and confirmation alone creates a
 
 **Test Evidence Items — Exact Parity With 6 Test Plan Rows**
 
-- [x] TP-3-01 unit evidence proves model recompute, reducer, and actual/estimate production behavior.
-- [x] TP-3-02 selftest evidence preserves all existing checks and proves the additive model/state group.
-- [x] TP-3-03 validator evidence proves the non-null model-pack publication recomputes from one generation with drift rejection.
-- [x] TP-3-04 Regression E2E evidence proves SCN-010-014/016 on the real route.
-- [x] TP-3-05 Regression E2E evidence proves SCN-010-013/023 on the real route.
+- [x] TP-3-01 unit evidence proves model recompute, reducer, and actual/estimate production behavior. (evidence: [report.md](report.md#tp-3-01-node---test-testscompany-fundamentals-contractsunitmjs-exit-0))
+- [x] TP-3-02 selftest evidence preserves all existing checks and proves the additive model/state group. (evidence: [report.md](report.md#tp-3-02-node-scriptsselftestmjs-exit-0))
+- [x] TP-3-03 validator evidence proves the non-null model-pack publication recomputes from one generation with drift rejection. (evidence: [report.md](report.md#tp-3-03-node-scriptsvalidate-company-fundamentalsmjs-exit-0))
+- [x] TP-3-04 Regression E2E evidence proves SCN-010-014/016 on the real route. (evidence: [report.md](report.md#tp-3-04-npx---no-install-playwright-test-testscompany-fundamentals-labspecmjs---configplaywrightconfigmjs---projectsystem-chrome---grep-scn-010-014scn-010-016---reporterlist-exit-0))
+- [x] TP-3-05 Regression E2E evidence proves SCN-010-013/023 on the real route. (evidence: [report.md](report.md#tp-3-05-npx---no-install-playwright-test-testscompany-fundamentals-labspecmjs---configplaywrightconfigmjs---projectsystem-chrome---grep-scn-010-013scn-010-023---reporterlist-exit-0))
 - [x] TP-3-06 broader E2E evidence proves the complete cumulative Scope 3 browser behavior without interception. (evidence: [report.md](report.md#scope-3-execution) — TP-3-06 full cumulative suite, 17 passed, exit 0)
 
 **Build Quality Gate**
@@ -813,11 +813,11 @@ Scenario: SCN-010-003 JPMorgan uses bank capital credit and liquidity rules with
 
 **Test Evidence Items — Exact Parity With 6 Test Plan Rows**
 
-- [x] TP-7-01 unit evidence proves CMG lease/treasury context and JPM bank applicability production behavior over shared facts.
-- [x] TP-7-02 selftest evidence preserves all existing checks and proves the additive CMG/JPM overlay group.
-- [x] TP-7-03 validator evidence proves CMG and JPM publications are coherent and MSFT is unchanged.
-- [x] TP-7-04 Regression E2E evidence proves SCN-010-002 on the real route.
-- [x] TP-7-05 Regression E2E evidence proves SCN-010-003 on the real route.
+- [x] TP-7-01 unit evidence proves CMG lease/treasury context and JPM bank applicability production behavior over shared facts. (evidence: [report.md](report.md#tp-7-01-node---test-testscompany-fundamentals-contractsunitmjs-exit-0))
+- [x] TP-7-02 selftest evidence preserves all existing checks and proves the additive CMG/JPM overlay group. (evidence: [report.md](report.md#tp-7-02-node-scriptsselftestmjs-exit-0))
+- [x] TP-7-03 validator evidence proves CMG and JPM publications are coherent and MSFT is unchanged. (evidence: [report.md](report.md#tp-7-03-node-scriptsvalidate-company-fundamentalsmjs-exit-0))
+- [x] TP-7-04 Regression E2E evidence proves SCN-010-002 on the real route. (evidence: [report.md](report.md#tp-7-04-tp-7-05-tp-7-06-playwright-system-chrome-exit-0))
+- [x] TP-7-05 Regression E2E evidence proves SCN-010-003 on the real route. (evidence: [report.md](report.md#tp-7-04-tp-7-05-tp-7-06-playwright-system-chrome-exit-0))
 - [x] TP-7-06 broader E2E evidence proves the complete cumulative three-archetype browser behavior without interception. (evidence: [report.md](report.md#scope-7-execution) — full suite 29 passed, exit 0)
 
 **Build Quality Gate**

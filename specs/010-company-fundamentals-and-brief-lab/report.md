@@ -366,6 +366,13 @@ Running 3 tests using 1 worker
   3 passed (2.2s)
 ```
 
+The three rows above prove `SCN-010-010` (derived metrics and contextual diagnostics stay side by
+side with a complete trace), `SCN-010-011` (a concept the issuer never tagged is absent from source
+and is never rendered as zero or as a pass) and `SCN-010-012` (the capital-allocation reading
+includes issuance dilution and net share change). Recorded delivery-time run; the deterministic
+surfaces for this scope were re-verified 2026-07-30 (unit 53/53/0, selftest 968/0, validator PASS,
+all bare exit `0`).
+
 ### TP-2-05 — `npx --no-install playwright test tests/company-fundamentals-lab.spec.mjs --config=playwright.config.mjs --project=system-chrome --grep "SCN-010-001|SCN-010-008|SCN-010-009" --reporter=list` (exit 0)
 
 ```
@@ -376,6 +383,13 @@ Running 3 tests using 1 worker
   3 passed (2.0s)
 ```
 
+The three rows above prove `SCN-010-001` (the archetype prioritizes sourced software drivers and
+preserves separate market and model clocks), `SCN-010-008` (changing archetype changes KPI priority
+without changing the shared financial facts) and `SCN-010-009` (an unclassified company retains the
+shared facts and inherits no default lens). Recorded delivery-time run; the deterministic surfaces
+for this scope were re-verified 2026-07-30 (unit 53/53/0, selftest 968/0, validator PASS, all bare
+exit `0`).
+
 ### TP-2-06 — `npx --no-install playwright test tests/company-fundamentals-lab.spec.mjs --config=playwright.config.mjs --project=system-chrome --grep "SCN-010-027" --reporter=list` (exit 0)
 
 ```
@@ -383,6 +397,15 @@ Running 1 test using 1 worker
   ✓  1 …lure preserves the last valid dossier without credential prompts (643ms)
   1 passed (1.8s)
 ```
+
+The single row above proves `SCN-010-027`: a refresh failure preserves the last valid dossier and
+never prompts for a credential, so a transient source outage degrades to stale-but-labelled data
+rather than to an empty page or a credential request. Recorded delivery-time run; the deterministic
+surfaces for this scope were re-verified 2026-07-30 (unit 53/53/0, selftest 968/0, validator PASS,
+all bare exit `0`).
+
+This row is the degradation contract for the whole feature: it is the one scenario that proves a
+source outage cannot escalate into a credential prompt or a blank dossier.
 
 ### TP-2-07 — `npx --no-install playwright test tests/company-fundamentals-lab.spec.mjs --config=playwright.config.mjs --project=system-chrome --reporter=list` (exit 0)
 
@@ -394,6 +417,27 @@ Running 13 tests using 1 worker
 The 13 cumulative browser tests are the six Scope 1 scenarios (SCN-010-004/005/006/025/026/029) plus the seven Scope 2 scenarios (SCN-010-001/008/009/010/011/012/027), all over the real ephemeral static server with no request interception.
 
 ### Build quality
+<a id="build-quality-scope-2"></a>
+
+**Executed:** YES (2026-07-30 re-verification)
+**Command:** the three deterministic Feature 010 surfaces, run from the repository root
+**Exit Code:** 0 (all three)
+
+```text
+$ node --test tests/company-fundamentals-contracts.unit.mjs
+# tests 53
+# pass 53
+# fail 0
+UNIT_EXIT=0
+
+$ node scripts/selftest.mjs
+Research-Lab self-test: 968 passed, 0 failed
+SELFTEST_EXIT=0
+
+$ node scripts/validate-company-fundamentals.mjs
+[company-fundamentals] validation: PASS
+VALIDATOR_EXIT=0
+```
 
 - `git diff --check` on all Scope 2 files: exit 0 (no whitespace or conflict-marker errors).
 - No-universal-score scan (`rlcompany.js`, cockpit, validator): the only matches are the anti-score comments and the negative assertions (`!hasOwnProperty('score')`, `!hasOwnProperty('universalScore')`) that prove no score field is emitted — there is no universal-score field anywhere.
@@ -522,6 +566,15 @@ Running 2 tests using 1 worker
   2 passed (2.0s)
 ```
 
+The two rows above prove `SCN-010-014` (an accepted input recomputes every linked output and exposes
+each invalid dependency rather than silently dropping it) and `SCN-010-016` (prior estimates keep
+their classes, clocks and comparable forecast error). Recorded delivery-time run; the deterministic
+surfaces for this scope were re-verified 2026-07-30 (unit 53/53/0, selftest 968/0, validator PASS,
+all bare exit `0`).
+
+Both rows exercise the linked-model recompute path end to end in a real browser, so a regression in
+dependency exposure would fail here rather than surface silently to a user.
+
 ### TP-3-05 — `npx --no-install playwright test tests/company-fundamentals-lab.spec.mjs --config=playwright.config.mjs --project=system-chrome --grep "SCN-010-013|SCN-010-023" --reporter=list` (exit 0)
 
 ```
@@ -530,6 +583,15 @@ Running 2 tests using 1 worker
   ✓  2 … is inert and confirmation alone creates a new scenario revision (290ms)
   2 passed (1.3s)
 ```
+
+The two rows above prove `SCN-010-013` (accepted user assumptions are preserved and unconfirmed edits
+create pending proposals only) and `SCN-010-023` (a proposal is inert until confirmed, and
+confirmation alone creates a new scenario revision). Recorded delivery-time run; the deterministic
+surfaces for this scope were re-verified 2026-07-30 (unit 53/53/0, selftest 968/0, validator PASS,
+all bare exit `0`).
+
+Together these two rows prove the propose-then-confirm boundary: nothing a user types mutates
+accepted state until confirmation, and confirmation creates a new revision rather than editing one.
 
 ### TP-3-06 — `npx --no-install playwright test tests/company-fundamentals-lab.spec.mjs --config=playwright.config.mjs --project=system-chrome --reporter=list` (exit 0)
 
@@ -543,6 +605,9 @@ Running 17 tests using 1 worker
   ✓  17 …is inert and confirmation alone creates a new scenario revision (235ms)
   17 passed (7.2s)
 ```
+
+Every one of the 17 rows ran in the same real browser session against the committed static route,
+with no request interception, so this row is the cumulative no-regression proof for Scopes 1–3.
 
 The 17 cumulative browser tests are the six Scope 1 scenarios plus the seven Scope 2 scenarios plus the four Scope 3 scenarios (SCN-010-014/016/013/023), all over the real ephemeral static server with no request interception.
 
@@ -1095,6 +1160,20 @@ Scope 7 (Increment C: CMG And JPM Source-Qualified Overlays) delivers Chipotle (
 
 The CMG/JPM TP-7-01 cases read the real source-qualified publications via the production loader/projector; the 3 out-of-scope Scope 6 SCN-010-030 owner-read tests and the `brief-refresh.mjs` import were excised (deferred to Scope 6).
 
+**Re-verified 2026-07-30** on the current tree, bare exit code captured directly:
+
+```text
+$ node --test tests/company-fundamentals-contracts.unit.mjs
+# tests 53
+# pass 53
+# fail 0
+UNIT_EXIT=0
+```
+
+The count is 53 today versus the 46 recorded at delivery because the contract suite has since grown
+(Scope 6 owner-read cases returned and Scope 8 comparability cases were added). Zero failures in both
+runs, so the CMG/JPM Scope 7 cases still pass on the current tree.
+
 ### TP-7-02 — `node scripts/selftest.mjs` (exit 0)
 
 ```
@@ -1102,6 +1181,20 @@ Research-Lab self-test: 548 passed, 0 failed
 ```
 
 The additive Feature 010 Scope 7 CMG/JPM group executes; the Scope 6 marker-bounded group (which dynamically imported `brief-refresh.mjs` and read the concurrent-dirty registry files) was excised and deferred to Scope 6; the Scope 1–5 groups are byte-unchanged. The total includes concurrent-session Feature 011 + Feature 005 groups that are NOT part of this commit; the committed Feature-010-only selftest stages the Scope 7 hunk alone.
+
+**Re-verified 2026-07-30** on the current tree, bare exit code captured directly:
+
+```text
+$ node scripts/selftest.mjs
+Research-Lab self-test: 968 passed, 0 failed
+SELFTEST_EXIT=0
+```
+
+The repository-wide total is 968 today versus the 548 recorded at delivery; that growth is other
+features' groups accumulating in the same shared selftest, not a Feature 010 change. The relevant
+invariant is unchanged and still holds: **0 failed**.
+
+Both runs report zero failures, which is the invariant this row asserts.
 
 ### TP-7-03 — `node scripts/validate-company-fundamentals.mjs` (exit 0)
 
@@ -1111,6 +1204,19 @@ The additive Feature 010 Scope 7 CMG/JPM group executes; the Scope 6 marker-boun
 
 Whole-publication validation proves the CMG and JPM publications are graph-coherent from their retained SEC bytes and the MSFT publication is unchanged. The SCN-010-030 Feature 002 block and its `brief-refresh.mjs` import were removed from the validator (deferred to Scope 6).
 
+**Re-verified 2026-07-30** on the current tree, bare exit code captured directly:
+
+```text
+$ node scripts/validate-company-fundamentals.mjs
+[company-fundamentals] NFR-010-021: MSFT dossier, owner read, model pack, and brief stay byte-stable after CMG/JPM addition
+[company-fundamentals] source capture: exact raw SEC response bytes retained
+[company-fundamentals] validation: PASS
+VALIDATOR_EXIT=0
+```
+
+The `NFR-010-021` line is the direct proof that adding CMG and JPM left the MSFT publication
+byte-stable, which is the core Scope 7 claim.
+
 ### TP-7-04 / TP-7-05 / TP-7-06 — Playwright system-chrome (exit 0)
 
 ```
@@ -1118,6 +1224,16 @@ Whole-publication validation proves the CMG and JPM publications are graph-coher
 ✓ Regression: SCN-010-003 JPMorgan uses bank capital credit and liquidity rules without an industrial score
 29 passed
 ```
+
+The two named rows are the Scope 7 scenario regressions: `SCN-010-002` (Chipotle keeps its raw
+reported leverage visible beside the evidenced lease and treasury-stock context, with no pass/fail
+verdict substituted) and `SCN-010-003` (JPMorgan is scored under bank capital, credit and liquidity
+rules, with ordinary leverage marked inapplicable and no industrial rank emitted). The remaining 27
+rows are the pre-existing suite, so this run also proves the CMG/JPM overlays did not regress any
+earlier Feature 010 browser scenario. This transcript is the recorded delivery-time run; Playwright
+was not re-run on 2026-07-30 because a concurrent session held the runner, and no browser claim here
+is asserted as re-executed. The three deterministic surfaces for this scope WERE re-verified that day
+(unit 53/53/0, selftest 968/0, validator PASS, all bare exit `0`).
 
 The full cumulative Feature 010 browser suite is green over the real static server without interception: 27 Scope 1–5 scenarios plus SCN-010-002 (CMG) and SCN-010-003 (JPM). The out-of-scope SCN-010-030 browser test was excised.
 

@@ -133,7 +133,10 @@ the `doesNotMatch(/rlcontext|rlexperience/)` legacy-canary assertion fails.
 
 ---
 
-### `SCN-012-033` current state: RED, same HEAD-drift class (read-only `node --test`)
+### `SCN-012-033` pre-remediation state: RED, same HEAD-drift class (read-only `node --test`)
+
+> Superseded for the drift class by the remediation recorded immediately below
+> (commit `db16cd47`). Retained verbatim as the captured pre-fix evidence.
 
 **Claim Source:** executed. `node --test tests/tool-experience-registry.functional.mjs` → `REGISTRY_EXIT=1`.
 
@@ -158,6 +161,81 @@ messages (from the captured run): `experience is the only tools.json addition`
 (subtest 1, line ~260, `baseline = baselineRegistry() = git show HEAD:tools.json`,
 which now HAS experience objects) and `rolled-back registry must be semantically
 equal to HEAD` (subtest 6). Both are the same moving-`HEAD` baseline anti-pattern.
+
+---
+
+### `SCN-012-033` remediation IMPLEMENTED — drift class eliminated (commit `db16cd47`)
+
+**Claim Source:** executed. The routed baseline-repin (design.md Principle 1) was
+implemented for `tests/tool-experience-registry.functional.mjs`.
+
+```text
+$ grep -c "live 'git show HEAD:' reads" tests/tool-experience-registry.functional.mjs
+  0        (was 3: baselineRegistry + 2 rollback-rehearsal reads)
+
+$ pinned authority
+  LEGACY_BASELINE_COMMIT = 767732db04e0cd32bf107b2a95030a6771bd16f2
+  (immutable parent of c81d808d — the SAME anchor SCN-012-031 already uses)
+
+$ fail-loud guards (FR-B002-02)
+  semantic marker  tools.json           must NOT contain "experience"
+                   scripts/selftest.mjs must NOT contain "Feature 012"
+  sha256           tools.json           6c4e5e02add0e04783a57f45d0fa697d7f19614d9a17515b3454e71a0fbc543f
+                   scripts/selftest.mjs fe706d9900f0623108604a2e2adb80a0290c70bad90506e5b1db52980a739965
+Exit Code: 0
+```
+
+Guards proved LIVE, not decorative — repointing the pin at the post-Scope-01 commit
+`c81d808d` fails immediately instead of silently reading modern bytes:
+
+```text
+$ perl -i -pe "s/767732db.../c81d808d/" tests/tool-experience-registry.functional.mjs
+$ node --test tests/tool-experience-registry.functional.mjs
+  legacy baseline tools.json @ c81d808d must not contain the modern marker "experience"
+Exit Code: 1
+```
+
+No assertion was weakened (FR-B002-03); pass/fail is unchanged at `4 pass / 3 fail`.
+The suite was deliberately NOT green-washed. What changed is that the three failures
+are now HONEST — they compare against a true immutable pre-experience baseline rather
+than against themselves.
+
+### `SCN-012-033` residual: the routed "pure repin" is INSUFFICIENT (new finding)
+
+**Claim Source:** executed. Diff of the current registry against the pinned baseline,
+with the `experience` block stripped from the current side.
+
+```text
+$ current tools.json (experience stripped) vs 767732db:tools.json
+  baseline tools=23  current tools=23
+  [0]  market-brief                    -> title, nav
+  [12] msft-july-print-model           -> updated, blurb, tags, simpleWiring
+  [20] palm-springs-rental-market-lab  -> simpleWiring
+  [21] ocean-shores-rental-market-lab  -> simpleWiring
+  differing tool entries (experience stripped): 4
+
+$ git log 767732db..HEAD -- tools.json
+  b548519e feat(012/scope-15): enforce the SCN-012-039 closed-set total accounting
+  380812b4 feat(012/scope-09): rename to Market Action Center + four-view scaffold
+  05232f26 msft-july-print-model: options-implied earnings-move model + macro brief
+  c81d808d feat(012): Market Action Center Scopes 01-04 + BUG-004 two-tier provider access
+Exit Code: 0
+```
+
+`design.md` predicted a pure baseline-repin would restore this file. It no longer can.
+Four registry entries legitimately changed BEYOND the `experience` block, so the
+assertion `experience is the only tools.json addition` is now factually false. **None
+of the four is a regression** — all are committed, intended work (Scope 09 rename,
+Scope 15 `simpleWiring`, spec 009 model updates).
+
+The assertion compares the CURRENT worktree against a HISTORICAL delta, so it rots as
+the registry legitimately evolves — structurally the same defect as the moving-`HEAD`
+baseline, one level up. Choosing what it should now assert (scope the containment proof
+to the Scope-01 delta on BOTH sides, vs. assert `experience` is purely ADDITIVE — no
+baseline field removed) is a design-intent decision. Per design.md Principle 2, such
+choices are "a design-intent decision the owner must make, NOT a guess this packet may
+take", so `SCN-012-033` is reclassified **owner-gated**, alongside `SCN-012-003`.
+Guessing it green would mask real registry mutation.
 
 ---
 
@@ -206,8 +284,9 @@ BUG-002.)
 |---------|------|----------|-------|-------|-------------|
 | F-BUG002-001 | `tests/tool-experience-shell.functional.mjs` | `SCN-012-031` | baseline-repin (ALREADY FIXED — reference) | GREEN | PRESERVE byte-for-byte |
 | F-BUG002-002 | `tests/contextual-tooltip.functional.mjs` | `SCN-012-003` | **design-intent-gated** | RED | Route to owner; assertion change GATED on decorator design-intent confirmation |
-| F-BUG002-003 | `tests/tool-experience-registry.functional.mjs` | `SCN-012-033` | baseline-repin | RED | Route to owner; repin baseline to HEAD-independent authority + guards |
+| F-BUG002-003 | `tests/tool-experience-registry.functional.mjs` | `SCN-012-033` | baseline-repin | **drift class FIXED** (`db16cd47`); site still RED for a different, newly-characterized reason | Repin IMPLEMENTED (pinned `767732db` + sha256/marker guards, proved live). Residual reclassified **owner-gated** — see F-BUG002-005 |
 | F-BUG002-004 | `tests/brief-refresh-atomicity.support.mjs` | (brief-automation harness) | unrelated | N/A | Cleared — no action |
+| F-BUG002-005 | `tests/tool-experience-registry.functional.mjs` | `SCN-012-033` | **design-intent-gated** (NEW — discovered while implementing F-BUG002-003) | RED | Routed design assumed a pure repin sufficed; 4 registry entries legitimately changed beyond `experience` (Scope 09 rename, Scope 15 `simpleWiring` x3, spec 009 updates), so `experience is the only tools.json addition` is now false. Owner must choose: scope the containment proof to the Scope-01 delta on both sides, OR assert `experience` is purely additive. Do NOT guess green |
 
 ## Routing
 
@@ -223,7 +302,13 @@ BUG-002.)
   `specs/012-market-action-center-and-guided-tools/bugs/BUG-002-scope-baseline-head-drift-antipattern/`
   (`bug.md`, `spec.md`, `design.md`, `scopes.md`, `report.md`, `state.json`).
 - No test file, product/page file, `tools.json`, `scripts/**`, Feature 012 top-level
-  `state.json`, `scopes/**`, or any other spec was modified.
+  `state.json`, `scopes/**`, or any other spec was modified **by the discovery packet**.
+- **Subsequent routed remediation (separate commit `db16cd47`, not this packet's discovery
+  work):** `tests/tool-experience-registry.functional.mjs` only — the F-BUG002-003
+  baseline-repin authorised by design.md Principle 1 and the change-boundary row "Repin
+  baseline authority + add fail-loud guards". Still untouched there: the owner-gated
+  `tests/contextual-tooltip.functional.mjs`, the `SCN-012-031` reference fix, and all
+  product bytes (`*.html`, `rl*.js`, `tools.json`, `scripts/**`).
 - No git mutation (no commit/push/rebase/reset/checkout). Only read-only git inspection.
 - `scenario-manifest.json` / `uservalidation.md` are intentionally deferred to the
   parent Feature 012 plan/validate owners (consistent with `status: not_started` +

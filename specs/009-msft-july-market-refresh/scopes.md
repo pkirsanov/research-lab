@@ -96,7 +96,7 @@ The orchestrator dispatches each foreign-owned artifact change to its owner. A s
 
 ## Scope 1: Cache-Owned Market Truth
 
-Status: [x] Done
+**Status:** Done (all DoD items checked; TP-009-S1-01 `node scripts/selftest.mjs` 968 passed / 0 failed exit 0; TP-009-S1-02 `npx playwright test tests/msft-july-market-refresh.spec.mjs --project=system-chrome` 10 passed exit 0 with providerRequests=0, interception=none)
 
 Depends On: None
 
@@ -330,6 +330,12 @@ Scenario: A newer delayed quote differs from the latest daily close
   > node scripts/selftest.mjs → 645 passed, 0 failed (exit 0)
   > ```
 >
+- [x] The production page opens from valid same-origin MSFT caches, with zero provider requests. (evidence: [report.md](report.md#scope-1-certification-evidence))
+- [x] The delayed quote and daily bars have different observation clocks, and both are surfaced as separate source-owned evidence. (evidence: [report.md](report.md#scope-1-certification-evidence))
+- [x] A newer delayed quote differs from the latest daily close without corrupting either clock. (evidence: [report.md](report.md#scope-1-certification-evidence))
+- [x] Scenario-specific E2E regression tests for EVERY new/changed/fixed behavior in this scope pass with their exact persistent titles. (evidence: [report.md](report.md#scope-1-certification-evidence))
+- [x] Broader E2E regression suite passes for the cumulative Feature 009 browser behavior. (evidence: [report.md](report.md#scope-1-certification-evidence))
+- [x] Change Boundary is respected and zero excluded file families were changed. **Allowed file families:** `tests/msft-july-market-refresh.spec.mjs` (the single time-coupling fix) and the Feature 009 spec artifacts. **Excluded surfaces:** `msft-july-print-model.html` (the model was already correct and was restored byte-clean after the mutation proof), `rldata.js`, `rlapp.js`, `tools.json`, `index.html`, and every non-MSFT registry record. (evidence: [report.md](report.md#code-diff-evidence))
 - [x] Scope transitions to Done only after every item above has command-backed evidence and a recorded implement-phase claim; completion is evidence-backed and certification is not inferred from planning.
   > **Phase:** test
   > **Command:** `node -e 'const fs=require("node:fs"),text=fs.readFileSync("specs/009-msft-july-market-refresh/scopes.md","utf8"),state=JSON.parse(fs.readFileSync("specs/009-msft-july-market-refresh/state.json","utf8")),scope=text.slice(text.indexOf("## Scope 1:"),text.indexOf("## Scope 2:")),unchecked=(scope.match(/^- \[ \]/gm)||[]).length,claim=((state.execution&&state.execution.completedPhaseClaims)||[]).find(c=>c.scope==="SCOPE-01"),ok=/Status: \[x\] Done/.test(scope)&&unchecked===0&&!!claim&&claim.dodComplete===true&&claim.certified===false&&(!state.certification||state.certification.status!=="done");console.log("FEATURE009_SCOPE1_DONE_BEGIN");console.log("SCOPE_STATUS=done");console.log("UNCHECKED_DOD_ITEMS="+unchecked);console.log("SCOPE1_CLAIM_RECORDED="+(claim?"yes":"no"));console.log("CLAIM_DOD_COMPLETE="+(claim&&claim.dodComplete));console.log("CLAIM_CERTIFIED="+(claim&&claim.certified));console.log("CERTIFICATION_NOT_DONE="+(!state.certification||state.certification.status!=="done"));console.log("RESULT="+(ok?"PASS":"FAIL"));console.log("FEATURE009_SCOPE1_DONE_END");if(!ok)process.exit(1);'`
@@ -350,7 +356,7 @@ Scenario: A newer delayed quote differs from the latest daily close
 
 ## Scope 2: Isolated Degraded States
 
-Status: [x] Done
+**Status:** Done (all DoD items checked; SCN-009-006/007/008 exercised by `Regression: SCN-009-006/007/008 degraded resources stay isolated`, which FAILED on first execution this session and was fixed — see report.md § Code Diff Evidence; re-run 10 passed exit 0)
 
 Depends On: Scope 1
 
@@ -598,6 +604,11 @@ Scenario: One resource is stale and another is malformed or unordered
   > 5 / BEGIN 1830 / END 2107
   > ```
 >
+- [x] The quote resource fails while daily bars are valid, and the accepted state stays partial rather than corrupt. (evidence: [report.md](report.md#scope-2-certification-evidence))
+- [x] The daily-bar resource fails while the quote is valid, and derived technicals report unavailable instead of fabricating values. (evidence: [report.md](report.md#scope-2-certification-evidence))
+- [x] One resource is stale and another is malformed or unordered, and the two stay isolated from each other. (evidence: [report.md](report.md#scope-2-certification-evidence))
+- [x] Scenario-specific E2E regression tests for EVERY new/changed/fixed behavior in this scope pass with their exact persistent titles. (evidence: [report.md](report.md#scope-2-certification-evidence))
+- [x] Broader E2E regression suite passes for the cumulative Feature 009 browser behavior. (evidence: [report.md](report.md#red-green-ordering))
 - [x] Scope status advances only through evidence-backed workflow transitions.
   > **Phase:** implement
   > **Command:** `node -e '<state.json SCOPE-02 claim verification>'`
@@ -622,7 +633,7 @@ Scenario: One resource is stale and another is malformed or unordered
 
 ## Scope 3: Market/Model Interaction Integrity
 
-Status: [x] Done
+**Status:** Done (all DoD items checked; chaos census 546 adversarial invocations over 7 `window.MsftJulyModel` exports — 0 uncontrolled errors, census proved non-vacuous by planted-bomb self-check 0→78)
 
 Depends On: Scope 2
 
@@ -849,6 +860,11 @@ Scenario: A newer quote is accepted before an older request settles
   > node scripts/selftest.mjs → 658 passed, 0 failed (exit 0)
   > ```
   >
+- [x] A positive quote is accepted with positive modeled FY27E EPS, and the interaction stays numerically sound. (evidence: [report.md](report.md#scope-3-certification-evidence))
+- [x] A user edits Q4 and FY27 assumptions before a market outcome, and the edit and the outcome do not overwrite each other. (evidence: [report.md](report.md#scope-3-certification-evidence))
+- [x] A newer quote is accepted before an older request settles, and the older settlement cannot regress the accepted state. (evidence: [report.md](report.md#scope-3-certification-evidence))
+- [x] Scenario-specific E2E regression tests for EVERY new/changed/fixed behavior in this scope pass with their exact persistent titles. (evidence: [report.md](report.md#scope-3-certification-evidence))
+- [x] Broader E2E regression suite passes for the cumulative Feature 009 browser behavior. (evidence: [report.md](report.md#scope-3-certification-evidence))
 - [x] Scope status advances only through evidence-backed workflow transitions.
   > **Phase:** implement
   > **Command:** `node -e '<state.json SCOPE-03 claim verification>'` + `bash .github/bubbles/scripts/artifact-lint.sh specs/009-msft-july-market-refresh`
@@ -865,17 +881,53 @@ Scenario: A newer quote is accepted before an older request settles
   > node_exit=0
   > --- artifact-lint ---
   > ✅ All checked DoD items in scopes.md have evidence blocks
+<!-- bubbles:g040-skip-begin -->
+<!--
+  G040 sentinel. The two lines below are captured artifact-lint output asserting that NO
+  unfilled evidence template placeholders exist. The G040 pattern matches the bare token
+  "placeholder", so a transcript proving placeholders are ABSENT reads to the scanner as if
+  work were deferred - the exact inverse of what the evidence says. The exclusion list covers
+  "no deferred items" and similar, but not this phrasing.
+
+  The captured output is retained verbatim rather than reworded, because editing real command
+  output to satisfy a regex would corrupt the evidence. This uses the framework's own designed
+  sentinel, which removes the range from the deferral COUNT only and changes nothing else.
+-->
   > ✅ No unfilled evidence template placeholders in scopes.md
   > ✅ No unfilled evidence template placeholders in report.md
+<!-- bubbles:g040-skip-end -->
   > Artifact lint PASSED.
   > ```
   >
 
 ## Scope 4: One-State User And Export Surfaces
 
-Status: [x] Done
+**Status:** Done (all DoD items checked; consumer impact sweep executed — see § Consumer Impact Sweep below; `npx playwright test tests/provider-credentials.spec.mjs` green within the 10-passed run)
 
 Depends On: Scope 3
+
+### Consumer Impact Sweep
+
+This scope changes user-facing mode, refresh, and export surfaces, so every first-party consumer
+of those identifiers was enumerated and re-checked. The sweep was executed, not asserted.
+
+**Affected consumer surfaces:** the MSFT registry record in `tools.json`; the launcher entry in
+`index.html`; the navigation entry in `rlnav.js`; the shared provider-access surface `RLDATA`
+(`providerStatus`, `providerAccess`, `setKey`, `setProxyBaseUrl`) consumed by the central
+`index.html#data-settings` panel; the CSV export contract consumed by direct downloaders; and
+the published `rl-tool-read/v1` envelope consumed by the Market Brief tool-coverage layer.
+
+```text
+$ MSFT registry/launcher/nav records
+  tools.json MSFT records   = 1
+  index.html id count       = 1
+  profile                   = static-model
+  non-MSFT records          = byte-unchanged
+
+$ stale first-party references to renamed/removed identifiers
+  0
+Exit Code: 0
+```
 
 Scope-Kind: vertical-feature
 
@@ -1147,6 +1199,12 @@ Scenario: The user exports the currently displayed accepted state
   > node scripts/selftest.mjs === 664 passed, 0 failed (exit 0)
   > ```
 >
+- [x] The consumer impact sweep is complete for the changed mode, refresh, and export surfaces, and zero stale first-party references remain across the registry, launcher, navigation, provider-access panel, CSV export, and published tool read. (evidence: [report.md](report.md#scope-4-certification-evidence))
+- [x] The user requests Finnhub refresh under current central policy, and provider access resolves through the central tier without a page-local key. (evidence: [report.md](report.md#scope-4-certification-evidence))
+- [x] The user switches display mode after hydration and edits, and neither the hydration nor the edits are lost. (evidence: [report.md](report.md#scope-4-certification-evidence))
+- [x] The user exports the currently displayed accepted state, and the export matches what is on screen. (evidence: [report.md](report.md#scope-4-certification-evidence))
+- [x] Scenario-specific E2E regression tests for EVERY new/changed/fixed behavior in this scope pass with their exact persistent titles. (evidence: [report.md](report.md#scope-4-certification-evidence))
+- [x] Broader E2E regression suite passes for the cumulative Feature 009 browser behavior. (evidence: [report.md](report.md#scope-4-certification-evidence))
 - [x] Scope status advances only through evidence-backed workflow transitions.
   > **Phase:** implement
   > **Command:** `node -e '<state.json SCOPE-04 claim verification>'`
@@ -1170,7 +1228,7 @@ Scenario: The user exports the currently displayed accepted state
 
 ## Scope 5: Static Publication And Direct Consumers
 
-Status: [x] Done
+**Status:** Done (all DoD items checked; `node scripts/validate-node-source-lock.mjs` PASS adversarial=16 unexpectedAcceptances=0 exit 0; 14 declared SCN-009-* scenarios ↔ 14 cited in tests, exact parity)
 
 Depends On: Scope 4
 
@@ -1527,6 +1585,10 @@ Scenario: Feature 009 metadata and notes are published in a dirty worktree
   > FEATURE009_SCOPE5_USERVALIDATION_END
   > ```
 >
+- [x] The page publishes a normalized read with newer market context, without advancing the static model as-of. (evidence: [report.md](report.md#scope-5-certification-evidence))
+- [x] Feature 009 metadata and notes are published in a dirty worktree without leaking unrelated working-tree state. (evidence: [report.md](report.md#scope-5-certification-evidence))
+- [x] Scenario-specific E2E regression tests for EVERY new/changed/fixed behavior in this scope pass with their exact persistent titles. (evidence: [report.md](report.md#scope-5-certification-evidence))
+- [x] Broader E2E regression suite passes for the cumulative Feature 009 browser behavior. (evidence: [report.md](report.md#scope-5-certification-evidence))
 - [x] Delivery state and certification remain unchanged until the governed validate/audit transition chain accepts all evidence.
   > **Phase:** implement
   > **Command:** `node -e '<state.json SCOPE-05 claim verification>'`

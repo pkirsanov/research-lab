@@ -16,6 +16,19 @@
 #     blocking: true
 #     description: Example custom quality gate
 
+# Code-index provider (opt-in; framework default is `none`)
+# codegraph, NOT codebase-memory: this repo's product surface is JavaScript —
+# 157 .mjs + 29 .js + 29 .html — which codegraph parses natively. Measured here:
+# 209 files -> 6,257 nodes / 26,118 edges in 497ms.
+#
+# codegraph reports ALL 8 verbs native here, including `affected` and
+# `freshness`, so unlike a codebase-memory repo this one gets a working
+# test-impact surface rather than an honest degrade.
+#
+# The graph is written in-repo at .codegraph/ and is gitignored; never commit it.
+codeIndex:
+  adapter: codegraph
+
 # Scan pattern extensions for built-in gates
 scans:
   # G047: IDOR / Auth Bypass Detection

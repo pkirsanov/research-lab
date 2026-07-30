@@ -9,3 +9,6 @@ improvements/
 /test-results/
 /playwright-report/
 /.brief-work/
+
+# Code-index provider writes its graph in-repo; never commit it.
+.codegraph/

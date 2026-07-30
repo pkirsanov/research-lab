@@ -50,6 +50,13 @@ these is a precondition of any DoD row it sits under; each is recorded rather th
 across that surface. Closing validation at `b63d3606`: `node scripts/selftest.mjs` →
 **968 passed, 0 failed** (exit 0); `artifact-lint.sh specs/012-…` → **PASSED** (exit 0).
 
+*(Selftest count re-measured 2026-07-30 at HEAD `72d419e1`: `node scripts/selftest.mjs` now
+reports **970 passed, 0 failed**. The 968 above is retained as the accurate record of
+`b63d3606` and is deliberately not restated as current. `77dcd85c` — "ratchet guard:
+spec-declared test paths must exist" — is the **only** commit touching `scripts/selftest.mjs`
+in `b63d3606..HEAD`, and it adds exactly 2 assertions, so the delta is `968 + 2 = 970`.
+The drift is **upward**: coverage was added, none was lost.)*
+
 *(The block immediately below is the prior-HEAD record at `1220cc4b`, retained verbatim as
 audit trail. Its "3 open" verdict is **SUPERSEDED** by the above.)*
 
@@ -526,20 +533,53 @@ and pass only after the bridge + `ownerModes` change.
 | TP-15-02 | Integration | integration | SCN-012-038, SCN-012-040 | `tests/simple-production-bridge.integration.mjs` | Registry-derived loop drives each wired tool's provider → `runtime.prepare` → ready projection into the panel and proves owner-parity facts equal the Power path | `node --test tests/simple-production-bridge.integration.mjs` | No | `report.md#tp-15-02` |
 | TP-15-03 | Regression E2E | e2e-ui | SCN-012-038 | `tests/simple-production-wiring.spec.mjs` | 2 carriers, each a verbatim test title — (a) `Regression: market-heatmap Simple renders the real adapter panel in the real owner-mode flow` (panel-render half); (b) `TP-15-03 market-heatmap Simple renders real steerable controls and actuating one recomputes the production projection with no refetch` (control-recompute half) | `npx --no-install playwright test tests/simple-production-wiring.spec.mjs --config=playwright.config.mjs --project=system-chrome --grep "market-heatmap Simple renders" --reporter=list` — selects **2** | Yes | `report.md#tp-15-03` |
 | TP-15-04 | Regression E2E | e2e-ui | SCN-012-038, SCN-012-040 | `tests/simple-production-wiring.spec.mjs` | 2 carriers, each a verbatim test title — (a) `TP-15-04 every wired ordinary tool paints its real Simple adapter panel with an owner-parity fact` (the wired-tool sweep); (b) `TP-15-04 the swept set is derived from the production registry + pages, and the honest-degradation cases are registry/provider derived` (anti-hardcoding guard on the swept set) | `npx --no-install playwright test tests/simple-production-wiring.spec.mjs --config=playwright.config.mjs --project=system-chrome --grep "TP-15-04" --reporter=list` — selects **2** | Yes | `report.md#tp-15-04` |
-| TP-15-05 | Regression E2E | e2e-ui | SCN-012-039, SCN-012-041 | `tests/bond-regime-lab.spec.mjs` | 2 carriers, each a verbatim test title — (a) `Regression BUG-003: Ready waits for auto-hydration before Simple and Power comparison` (the "NOT Simple" half + BUG-003 closure; **uses `page.route` interception — see D4**); (b) `BS-012 lever change recomputes without fetch or observed mutation` (a verified, interception-free caller of `openNativeResearchSurface`, which asserts the "native content shows in POWER" half) | `npx --no-install playwright test tests/bond-regime-lab.spec.mjs --config=playwright.config.mjs --project=system-chrome --reporter=list` — whole-file run, selects **27** (the two carriers share no id prefix, so no single pipe-free `--grep` selects exactly both) | Yes | `report.md#tp-15-05` |
+| TP-15-05 | Regression E2E | e2e-ui | SCN-012-039, SCN-012-041 | `tests/bond-regime-lab.spec.mjs` | 2 carriers, each a verbatim test title — (a) `Regression BUG-003: Ready waits for auto-hydration before Simple and Power comparison` (the "NOT Simple" half + BUG-003 closure; **uses `page.route` interception — see D4**); (b) `BS-012 lever change recomputes without fetch or observed mutation` (a verified, interception-free caller of `openNativeResearchSurface`, which asserts the "native content shows in POWER" half) | `npx --no-install playwright test tests/bond-regime-lab.spec.mjs --config=playwright.config.mjs --project=system-chrome --reporter=list` — whole-file run, selects **28** (the two carriers share no id prefix, so no single pipe-free `--grep` selects exactly both) — *count corrected 2026-07-30: was **27**, a figure that predated the interception-free live carrier commit `28099a4d` added to this file; drift is upward, no coverage lost* | Yes | `report.md#tp-15-05` |
 | TP-15-06 | Regression E2E | e2e-ui | SCN-012-041, SCN-012-042 | `tests/volatility-sizing-lab.spec.mjs` | 2 carriers, each a verbatim test title, both interception-free — (a) `TP-02-04: the volatility tool is reachable THROUGH the shared rlnav registration, not just by direct URL` (native Simple moved to Power **and** Simple shows the panel); (b) `Regression BS-009: insufficient history is unavailable with exact counts` (the honest-unavailable arm) | `npx --no-install playwright test tests/volatility-sizing-lab.spec.mjs --config=playwright.config.mjs --project=system-chrome --reporter=list` — whole-file run, selects **16** (the two carriers share no id prefix, so no single pipe-free `--grep` selects exactly both) | Yes | `report.md#tp-15-06` |
 | TP-15-07 | Broad regression | unit | SCN-012-038, SCN-012-039, SCN-012-040, SCN-012-041, SCN-012-042 | `scripts/selftest.mjs` | Preserve all existing invariants and add production-bridge canaries (no forbidden authority, provider-absent honest unavailable, `ownerModes` contract); suite stays 0-fail | `node scripts/selftest.mjs` | No | `report.md#tp-15-07` |
 
 **Row-command selection contract (added 2026-07-29 — closes drift D1's title half).** Every
 `Command` cell above is required to select **≥1 test**; a cell whose `--grep` selects nothing is a
 defect, not a pass. Each cell records its measured selection count, verified with `--list`:
-TP-15-01 → 7, TP-15-02 → 6, TP-15-03 → 2, TP-15-04 → 2, TP-15-05 → 27, TP-15-06 → 16,
-TP-15-07 → 968. Two conventions make this durable: **(1)** every declared persistent title is the
+TP-15-01 → 9, TP-15-02 → 6, TP-15-03 → 2, TP-15-04 → 2, TP-15-05 → 28, TP-15-06 → 16,
+TP-15-07 → 970. Two conventions make this durable: **(1)** every declared persistent title is the
 verbatim title of a real test, so a title-grep can never resolve to zero; **(2)** where a row's
 proof is split across carriers that share no id prefix, the command is the whole-file run rather
 than an alternation, because a `|` inside a markdown table cell would corrupt the table. Re-verify
 any row with `--list` — a zero-selection grep prints `Total: 0 tests` and exits 1 on Playwright
 1.61.1 (it becomes a silent exit-0 only under `--pass-with-no-tests`, which this repo never sets).
+
+*(Counts corrected 2026-07-30 at HEAD `72d419e1`. Superseded figures: TP-15-01 → **7**,
+TP-15-05 → **27**, TP-15-07 → **968**. **Every correction is upward — tests were ADDED and
+none was lost; do not read this edit as reduced coverage.** Three rows moved and four were
+re-confirmed unchanged:*
+
+- *TP-15-01 **7 → 9**, measured by `node --test tests/simple-production-bridge.unit.mjs`
+  (`tests 9 / pass 9 / fail 0`, exit 0). The gain predates this correction: `a7631b36`
+  ("TP-15-01's named unit file now carries all four declared halves") took the file from 7
+  to 9 declarations, which the TP-15-01 evidence block below already narrates — this
+  contract line was simply never updated alongside it.*
+- *TP-15-05 **27 → 28**. `28099a4d` ("give TP-15-05 a genuine live-stack carrier") took
+  `tests/bond-regime-lab.spec.mjs` from 27 to 28, and this scope's own TP-15-05 evidence
+  block already records an executed **28/28** at HEAD `a7631b36`. Only this line and the
+  row's `Command` cell still said 27, so the file was internally inconsistent with itself.*
+- *TP-15-07 **968 → 970**, measured by `node scripts/selftest.mjs` (`970 passed, 0 failed`,
+  exit 0). `77dcd85c` ("ratchet guard — spec-declared test paths must exist") is the only
+  commit touching `scripts/selftest.mjs` since the 968 capture and adds exactly 2
+  assertions, so the delta is fully accounted: `968 + 2 = 970`.*
+- *Unchanged and re-confirmed: TP-15-02 → 6 by execution
+  (`node --test tests/simple-production-bridge.integration.mjs`, `tests 6 / pass 6 / fail 0`,
+  exit 0); TP-15-03 → 2, TP-15-04 → 2, TP-15-06 → 16 statically.*
+
+***Evidence-strength disclosure for the four Playwright rows.*** *TP-15-03/04/05/06 were
+**not** re-measured with `--list` in this session — a Playwright sweep held the browser
+surface, so running any Playwright command was barred. They were checked statically instead:
+`tests/simple-production-wiring.spec.mjs` declares 4 top-level `test(`,
+`tests/bond-regime-lab.spec.mjs` 28, `tests/volatility-sizing-lab.spec.mjs` 16, and all three
+contain **zero** `test.describe` blocks — so full title == `test()` title and a title-grep is
+an exact emulation of `--grep` (selecting 2 for TP-15-03 and 2 for TP-15-04). That emulation
+is genuine but weaker than a `--list` run; TP-15-05's 28 is independently corroborated by the
+executed 28/28 capture below. A future agent with the browser free should re-confirm all four
+with `--list`.)*
 
 ### Definition of Done - Tiered Validation
 

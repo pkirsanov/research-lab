@@ -3,7 +3,7 @@
     "featureDir": "specs/010-company-fundamentals-and-brief-lab",
     "featureName": "Company Fundamentals and Adaptive Brief Lab",
     "createdAt": "2026-07-16T02:31:52Z",
-    "status": "in_progress",
+    "status": "done",
     "workflowMode": "full-delivery",
     "linkedImplementationSpec": null,
     "linkedPlanningPacket": null,
@@ -13,7 +13,7 @@
         "specs/002-distributed-tool-briefs-and-history"
     ],
     "flagsIntroduced": [],
-    "certifiedAt": null,
+    "certifiedAt": "2026-07-30T14:41:30Z",
     "requiresRevalidation": false,
     "execution": {
         "activeAgent": "bubbles.implement",
@@ -217,7 +217,7 @@
         }
     },
     "certification": {
-        "status": "in_progress",
+        "status": "done",
         "completedScopes": [
             "scope-1-msft-sourcequalified-facts-periods-reconciliation-statement-integrity",
             "scope-2-msft-derived-metrics-contextual-resilience-diagnostics-capital-allocation-trustworthy-simple-cockpit",
@@ -228,7 +228,21 @@
             "scope-7-cmg-and-jpm-sourcequalified-overlays",
             "scope-8-real-canary-acquisition-crosscapability-regression-accessibility-and-staticsite-hardening"
         ],
-        "certifiedCompletedPhases": [],
+        "certifiedCompletedPhases": [
+            "implement",
+            "test",
+            "regression",
+            "simplify",
+            "gaps",
+            "harden",
+            "stabilize",
+            "security",
+            "validate",
+            "audit",
+            "chaos",
+            "docs",
+            "spec-review"
+        ],
         "scopeProgress": [],
         "lockdownState": {
             "active": false,

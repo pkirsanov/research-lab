@@ -466,6 +466,15 @@ function registryDeclaresUnavailable(definition) {
   return limitations.some((limitation) => /must return unavailable/i.test(String(limitation)));
 }
 
+/* SCN-012-041 membership: a page owns a NATIVE Simple (or Power) surface iff its DEPLOYED
+   source declares that element — the same page-source derivation pageRegistersProvider
+   uses, never a hard-coded tool list. A page that gains or loses #simpleView / #powerView
+   joins or leaves the native-demotion assertion automatically. */
+function pageDeclaresElementId(toolId, elementId) {
+  const source = readRepoFile(`${toolId}.html`);
+  return !!source && new RegExp(`id="${elementId}"`).test(source);
+}
+
 function wiredTools() {
   const registry = readJson('simple-models.json');
   return registry.definitions
@@ -473,7 +482,9 @@ function wiredTools() {
     .map((definition) => ({
       toolId: definition.toolId,
       adapterId: definition.adapterId,
-      declaredUnavailable: registryDeclaresUnavailable(definition)
+      declaredUnavailable: registryDeclaresUnavailable(definition),
+      nativeSimpleView: pageDeclaresElementId(definition.toolId, 'simpleView'),
+      nativePowerView: pageDeclaresElementId(definition.toolId, 'powerView')
     }));
 }
 
@@ -546,6 +557,108 @@ async function driveSimpleAndAwaitBridge(page) {
   });
   await page.getByRole('tab', { name: 'Simple', exact: true }).click();
   await page.waitForFunction(() => globalThis.__rlTp1504BridgeWrote === true, null, { timeout: 30000 });
+}
+
+/* ─────────── SCN-012-041 — "Native Simple is demoted to Power, nothing deleted" ───────────
+ *
+ * Measure how much of the page's NATIVE top-level surface is actually rendering.
+ *
+ * The native/shell split is NOT invented here — it is read straight out of the PRODUCTION
+ * RULE. rlviews.js injects
+ *   body.rlv-focused>*:not(#rlviews):not(#rlnav)…{display:none!important}
+ * into <style id="rlviews-css">, and the selector after that child combinator IS the
+ * shell's own definition of "native". Reading it means a shell element added to (or
+ * removed from) the exclusion list moves this measurement with it, and no tool, wrapper or
+ * shell id is ever named by this test.
+ *
+ * "Rendering" is the geometric fact: a display:none child (directly or through the focus
+ * rule) has no client rects. visibility:hidden is excluded too, so a page cannot satisfy
+ * the Power half with an invisible box. */
+async function readNativeTopLevelSurface(page) {
+  return page.evaluate(() => {
+    const styleNode = document.getElementById('rlviews-css');
+    const css = styleNode ? styleNode.textContent || '' : '';
+    const marker = 'body.rlv-focused>';
+    const start = css.indexOf(marker);
+    if (start < 0) return { fatal: 'the production rlviews stylesheet declares no body.rlv-focused focus rule' };
+    const brace = css.indexOf('{', start);
+    if (brace < 0) return { fatal: 'the production body.rlv-focused rule has no declaration block' };
+    const nativeSelector = css.slice(start + marker.length, brace).trim();
+    let native = 0;
+    let visible = 0;
+    for (const child of Array.from(document.body.children)) {
+      if (!child.matches(nativeSelector)) continue;
+      native += 1;
+      if (child.getClientRects().length > 0 && getComputedStyle(child).visibility !== 'hidden') visible += 1;
+    }
+    return { nativeSelector, native, visible, view: document.body.getAttribute('data-rlview') };
+  });
+}
+
+/* Assert SCN-012-041 on ONE derived native-#simpleView tool, in the tool's real page, in
+ * the real shell flow. Called while the shell is already in Simple (driveUntilOwnerParity
+ * leaves it there), and it leaves the page in Power — the next tool re-navigates.
+ *
+ * The scenario, verbatim:
+ *   When the view is "simple"  → the adapter panel is visible and the native #simpleView
+ *                                content is not visible
+ *   When the view is "power"   → the native #powerView / #modeSeg content is visible and
+ *                                the adapter panel is hidden
+ * plus the DoD's "nothing deleted" clause: #simpleView stays ATTACHED, merely not visible.
+ *
+ * #modeSeg is deliberately NOT asserted visible: the shell's own stylesheet declares
+ * "#modeSeg,#simpleTab,#powerTab{display:none!important}" unconditionally, so the legacy
+ * control is never visible once the shell mounts — it is driven, not shown. The scenario's
+ * "native #powerView / #modeSeg content" is therefore measured as (a) #powerView on the
+ * pages that declare one, and (b) the generic native-top-level surface for every page,
+ * which is exactly what the focus rule governs.
+ *
+ * The Power switch settles on the OBSERVABLE data-rlview attribute — no timer, no
+ * network-quiet heuristic. applyVisual writes data-rlview, toggles rlv-focused and hides
+ * the panels synchronously, and drives the page's own legacy control in the same task, so
+ * observing data-rlview="power" from outside means that whole task already completed. */
+async function assertNativeSimpleDemotion(page, entry) {
+  const simpleView = page.locator('#simpleView');
+  const panel = page.locator('[data-rlexperience-panel="simple"]');
+
+  // Precondition: the Simple half is only meaningful while the shell really is in Simple.
+  expect(
+    await page.locator('body').getAttribute('data-rlview'),
+    `${entry.toolId}: SCN-012-041 Simple half must be measured with the shell in Simple`
+  ).toBe('simple');
+
+  // NOTHING DELETED: the native Simple surface is still attached — it is demoted, not removed.
+  await expect(simpleView, `${entry.toolId}: SCN-012-041 native #simpleView must stay ATTACHED in Simple (nothing deleted)`).toHaveCount(1);
+  await expect(simpleView, `${entry.toolId}: SCN-012-041 native #simpleView must NOT be visible in Simple`).toBeHidden();
+  await expect(panel, `${entry.toolId}: SCN-012-041 the adapter panel is the Simple surface`).toBeVisible();
+
+  const inSimple = await readNativeTopLevelSurface(page);
+  expect(inSimple.fatal, `${entry.toolId}: ${inSimple.fatal}`).toBeUndefined();
+  // Non-vacuity: a page with no native top-level surface could not fail the next assertion.
+  expect(inSimple.native, `${entry.toolId}: the page must own native top-level content for the demotion to mean anything`).toBeGreaterThan(0);
+  expect(inSimple.visible, `${entry.toolId}: SCN-012-041 no native top-level content may render in Simple (shell rule selector: ${inSimple.nativeSelector})`).toBe(0);
+
+  // ── and when the view is "power" ──
+  await page.getByRole('tab', { name: 'Power', exact: true }).click();
+  await page.waitForFunction(() => document.body.getAttribute('data-rlview') === 'power', null, { timeout: 30000 });
+
+  await expect(panel, `${entry.toolId}: SCN-012-041 the adapter panel must be HIDDEN in Power`).toBeHidden();
+  await expect(page.locator('body'), `${entry.toolId}: SCN-012-041 Power must release the shell focus class`).not.toHaveClass(/rlv-focused/);
+  if (entry.nativePowerView) {
+    await expect(page.locator('#powerView'), `${entry.toolId}: SCN-012-041 the native #powerView must be VISIBLE in Power`).toBeVisible();
+  }
+
+  const inPower = await readNativeTopLevelSurface(page);
+  expect(inPower.fatal, `${entry.toolId}: ${inPower.fatal}`).toBeUndefined();
+  expect(inPower.visible, `${entry.toolId}: SCN-012-041 native content must be VISIBLE in Power (0 of ${inPower.native} native top-level children rendered)`).toBeGreaterThan(0);
+
+  return {
+    toolId: entry.toolId,
+    nativeTopLevel: inSimple.native,
+    visibleInSimple: inSimple.visible,
+    visibleInPower: inPower.visible,
+    powerView: entry.nativePowerView
+  };
 }
 
 /* Read what the panel RENDERED, then compute the owner-parity expectation with PRODUCTION
@@ -725,6 +838,17 @@ test('TP-15-04 every wired ordinary tool paints its real Simple adapter panel wi
   // Non-vacuity: an empty or truncated derivation must fail here, not pass silently.
   expect(wired.length).toBeGreaterThan(0);
 
+  /* SCN-012-041 membership, derived from the DEPLOYED PAGES by the same page-source rule
+     that derives wiring — never a hard-coded list, and never a count assumed by this test.
+     Printed so the number is evidence produced by the run rather than an assertion of the
+     author's. #powerView membership is derived the same way and is not assumed to be the
+     same set. */
+  const nativeSimpleTools = wired.filter((entry) => entry.nativeSimpleView);
+  const nativePowerTools = nativeSimpleTools.filter((entry) => entry.nativePowerView);
+  expect(nativeSimpleTools.length, 'SCN-012-041 must actually cover native #simpleView tools').toBeGreaterThan(0);
+  console.log(`TP-15-04/SCN-012-041 derived native #simpleView tools: ${nativeSimpleTools.length} of ${wired.length} wired (${nativePowerTools.length} also declare #powerView) — ${nativeSimpleTools.map((entry) => `${entry.toolId}${entry.nativePowerView ? '+#powerView' : ''}`).join(' ')}`);
+
+  const nativeDemotion = [];
   const results = [];
   for (const entry of wired) {
     const settledOwnerEvidence = await openAndAwaitOwnerEvidence(page, entry.toolId);
@@ -769,6 +893,9 @@ test('TP-15-04 every wired ordinary tool paints its real Simple adapter panel wi
       if (observed.adapterModuleLoaded === false) {
         expect(entry.declaredUnavailable, `${entry.toolId}: a wired tool whose page omits the adapter module must be registry-declared unavailable`).toBe(true);
       }
+      // SCN-012-041 is a shell-visibility contract, independent of whether the adapter
+      // reached ready — an honestly-unavailable tool must still demote its native Simple.
+      if (entry.nativeSimpleView) nativeDemotion.push(await assertNativeSimpleDemotion(page, entry));
       results.push({ toolId: entry.toolId, outcome: 'unavailable', attempts });
       continue;
     }
@@ -795,13 +922,19 @@ test('TP-15-04 every wired ordinary tool paints its real Simple adapter panel wi
     const control = observed.withoutOwnerState;
     expect(control.ok && control.state === 'ready', `${entry.toolId}: the ready panel must depend on real owner state, but the adapter still reached ready with no owner state`).toBe(false);
 
+    // SCN-012-041 — native Simple demoted to Power, nothing deleted.
+    if (entry.nativeSimpleView) nativeDemotion.push(await assertNativeSimpleDemotion(page, entry));
+
     results.push({ toolId: entry.toolId, outcome: 'ready', numeric: observed.rendered.numeric, attempts });
   }
 
   // Non-vacuity guards: the sweep really covered the derived set, and really saw ready panels.
   expect(results.length, 'every wired tool must be swept').toBe(wired.length);
   expect(results.filter((row) => row.outcome === 'ready').length, 'the sweep must observe real ready adapter panels').toBeGreaterThan(0);
+  // Every derived native-#simpleView tool was really exercised — a silently skipped one fails here.
+  expect(nativeDemotion.length, 'every derived native #simpleView tool must be checked for SCN-012-041').toBe(nativeSimpleTools.length);
   console.log(`TP-15-04 swept ${results.length} wired tools: ${results.map((row) => `${row.toolId}=${row.outcome}(x${row.attempts})`).join(' ')}`);
+  console.log(`TP-15-04/SCN-012-041 native demotion verified on ${nativeDemotion.length} tools: ${nativeDemotion.map((row) => `${row.toolId}[simple ${row.visibleInSimple}/${row.nativeTopLevel} native visible -> power ${row.visibleInPower}/${row.nativeTopLevel}${row.powerView ? ' +#powerView visible' : ''}]`).join(' ')}`);
 });
 
 test('TP-15-04 the swept set is derived from the production registry + pages, and the honest-degradation cases are registry/provider derived', () => {

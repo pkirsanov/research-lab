@@ -11,6 +11,22 @@
     "specDependsOn": [],
     "certifiedAt": "2026-07-29T23:45:00Z",
     "requiresRevalidation": false,
+    "milestones": [
+        "current-graph",
+        "owner-coverage",
+        "powerless-author",
+        "atomic-publication"
+    ],
+    "milestonesProvenance": {
+        "purpose": "Machine-readable publication of capabilities this feature ALREADY delivered and certified. Consumers (currently Feature 012 dependencyGates.FEATURE002) read state.milestones directly; see rlexperience.js evaluateDependencyGates. Publishing a marker that was not genuinely delivered would be fabrication, so each entry below cites the delivered production code, the certified scope, and the test surface that proves it.",
+        "addedAt": "2026-07-30T19:00:00Z",
+        "evidence": {
+            "current-graph": "validateCurrentGraph(root) is exported at scripts/validate-distributed-briefs.mjs:39 and documented there as 'pointer/manifest/object/hash coherence'; consumed by scripts/brief-distributed-publish.mjs:530. Certified scope: 05-registry-wide-normalized-reads (Status Done).",
+            "owner-coverage": "Certified scope 05-registry-wide-normalized-reads DoD: all 23 observed registry entries carry valid briefing metadata, runtime validation derives exactly 22 source IDs plus one non-recursive final aggregator, and EVERY current source receives one truthful production ToolModelRead outcome. Cardinality is enforced at runtime in rlbrief.js:449 (coverage.length must equal registry.participantCount).",
+            "powerless-author": "scripts/brief-author.mjs:5-9 declares the SOLE external author boundary and states it is deliberately powerless with no repository-write, no shell, no source-fetch and no browser-state authority; scripts/brief-refresh.mjs:392-398 routes authorship through that boundary. Certified scope: 06-bounded-authorship-and-recommendation-lifecycle (Status Done).",
+            "atomic-publication": "scripts/brief-publication.mjs:416 and scripts/brief-refresh.mjs:663 implement Evidence-First Atomic Publication; covered by the selftest group at scripts/selftest.mjs:3751. Certified scope: 09-evidence-first-atomic-publication (Status Done), whose DoD records pointer-last promotion, prior-publication preservation on required failure, and at most one authoritative content event under concurrent attempts."
+        }
+    },
     "execution": {
         "activeAgent": "bubbles.implement",
         "currentPhase": "implement",

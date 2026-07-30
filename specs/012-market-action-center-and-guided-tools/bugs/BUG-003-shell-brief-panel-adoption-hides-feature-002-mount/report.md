@@ -3556,4 +3556,210 @@ suite is green. The blockers are entirely evidence-recording and audit-verdict q
 level `fast`; promotion refused by the transition guard (G022 /
 `DELIVERY_COMPLETION_FAILED`).**
 
+---
+
+### Audit Evidence
+
+**Agent:** `bubbles.audit` · **Attempt:** `AUD-BUG003-A1` (resumed from `resumeFromPhase: 4`, not re-opened)
+**Run:** `AUDIT-RUN-BUG003-20260730` · **Profile:** `delivery-completion-v1` · **Target status:** `done`
+**Executed:** YES (all output below captured in this session)
+**Claim Source:** executed
+**Verdict:** 🔴 `REWORK_REQUIRED` · **Outcome:** `route_required` · **Next required owner:** `bubbles.validate`
+
+#### A. Binding and provenance
+
+Host binding preflight, then the contract re-resolved and asserted against the already-open attempt.
+
+```text
+$ bash .github/bubbles/scripts/repo-binding-preflight.sh --repo-root /home/redacted/research-lab --agent-source research-lab
+[repo-binding-preflight] OK — agent source 'research-lab' matches target repo 'research-lab'.
+===PREFLIGHT_EXIT=0===
+
+$ bash .github/bubbles/scripts/transition-contract-resolver.sh <BUG-003>
+  schemaVersion     : transition-contract/v1
+  workflowMode      : bugfix-fastlane
+  auditProfile      : delivery-completion-v1
+  statusCeiling     : done
+  targetStatus      : done
+  currentStatus     : in_progress
+  contractDigest    : sha256:aa91472c047d3d985d38c1d308feb1e6081955b2aa553816deb5987d9cdc449f
+  targetRevision    : sha256:c42fb6da1733efd1e11880a1da45403a839717fe99f7db265f6de4ba8102c8a3
+```
+
+Both digests match the values bound to `AUD-BUG003-A1` at open time, so there is no
+`AUDIT_PROVENANCE_CONFLICT` and the same attempt is legitimately resumable.
+
+#### B. Transition guard (assertion-only, no state mutation)
+
+```text
+$ bash .github/bubbles/scripts/state-transition-guard.sh <BUG-003> \
+    --target-status done --expect-workflow-mode bugfix-fastlane \
+    --expect-contract-digest sha256:aa91472c...
+BEGIN TRANSITION_GUARD_RESULT_V1
+contractDigest: sha256:aa91472c047d3d985d38c1d308feb1e6081955b2aa553816deb5987d9cdc449f
+targetRevision: sha256:c42fb6da1733efd1e11880a1da45403a839717fe99f7db265f6de4ba8102c8a3
+failedGateIds: []
+failureCount: 0
+exitStatus: 0
+verdict: PASS
+END TRANSITION_GUARD_RESULT_V1
+===GUARD_EXIT=0===
+```
+
+G095 / DI-03 is confirmed cleared — `failedGateIds` is empty.
+
+#### C. Independent test execution (trust-but-verify, not report-trusting)
+
+The audit re-executed TP-B003-01 itself rather than accepting the recorded green, and first
+scanned the file for silent-pass bailouts.
+
+```text
+$ grep -nE "t\.skip|return;|\.only\(|\.todo" tests/distributed-briefs.static.integration.mjs
+(no matches)
+
+$ node --test tests/distributed-briefs.static.integration.mjs
+TAP version 13
+# Subtest: static loader verifies coherent current objects and fetches history only after selection
+ok 1 - static loader verifies coherent current objects and fetches history only after selection
+  ---
+  duration_ms: 2816.063759
+  type: 'test'
+  ...
+1..1
+# tests 1
+# suites 0
+# pass 1
+# fail 0
+# cancelled 0
+# skipped 0
+# todo 0
+# duration_ms 2960.826637
+===TP01_EXIT=0===
+```
+
+`skipped 0` with a ~2.9s real-browser duration proves the green is a genuine execution, not a
+Playwright-unavailable skip. Zero bailout patterns exist in the file.
+
+#### D. Ruling on the crux — legitimate contract alignment, NOT defect-masking
+
+The load-bearing assertions present in the file **after** the fix:
+
+```text
+$ grep -nE "integrity-error|fails closed|no history partition|assert\.(equal|ok)" \
+    tests/distributed-briefs.static.integration.mjs
+43:  assert.equal(state, 'ready', 'coherent current graph renders ready');
+54:  assert.equal(server.briefRequests().some(...history/...), false, 'no history partition before Open history');
+60:  assert.equal(server.briefRequests().length, beforePower, 'mode switch performs no refetch');
+76:  assert.equal(partitions.length, 1, 'exactly one selected partition fetched');
+97:  assert.equal(st, 'integrity-error', 'hash mismatch fails closed');
+98:  assert.equal(await page.$('[data-rlbrief-part="price"]'), null, 'no partial evidence rendered on integrity failure');
+```
+
+Ruling and its basis:
+
+1. Commit `8206c89c` is **purely additive** to the test (`+13/−0`). No assertion was weakened,
+   relaxed, retimed, or removed — the `[data-rlbrief-mount][data-rlbrief-ready="1"]` gate and its
+   15000 ms timeout are byte-identical.
+2. The added `openBriefView()` helper drives the **real** shell control
+   `#rlviews button[data-rlview-mode="brief"]` after awaiting
+   `#rlviews[data-rlexperience-shell="ready"]`. It does not stub, mock, or intercept anything.
+3. **The decisive adversarial property:** to mask a product defect, a test-alignment change must
+   make the test pass while the product is broken. This one cannot. A brief that fails to mount
+   still times out on `[data-rlbrief-mount][data-rlbrief-ready="1"]`; a brief that fails *open*
+   still fails `assert.equal(st, 'integrity-error')`. The change only navigates to the view where
+   the feature is authored to live before asserting the feature is visible.
+4. The two network-window baselines the commit claimed to preserve (`no history partition before
+   Open history`, `mode switch performs no refetch`) are verified present and passing, with the
+   view switch ordered before them.
+5. `brief` is a first-class authored view in the committed `ordinary-four-view/v1` config
+   (`viewIds ['simple','power','brief','journey']`), and Feature 002's own 13 sibling tests in
+   `tests/distributed-briefs.spec.mjs` already ratified the identical contract via `mountReady()`.
+   TP-10-02 was the sole unreconciled member of the family.
+
+**Ruling: the fix is legitimate contract alignment. It is not masking a product defect.**
+
+#### E. Ruling on the two carried warnings — VAL-F1 adjudicated NON-BLOCKING
+
+The load-bearing question is whether any flagged block backs a DoD item. It does not:
+
+```text
+$ grep -c '^- \[x\]' scopes.md
+11
+$ grep -c '^- \[ \]' scopes.md
+0
+$ grep -cE '^- \[x\].*→ Evidence: \[report\.md' scopes.md
+0
+$ grep -c 'git status --porcelain' report.md
+4
+```
+
+All 11 checked DoD items carry **inline** evidence in `scopes.md` per the DoD Evidence Format
+rule; **zero** delegate to a `report.md` link. Therefore none of the 36 flagged blocks backs a DoD
+item. The `git status --porcelain` count is exactly 4, matching the "empty by design"
+classification — for that command, empty output *is* the signal. The remaining blocks are
+short-output commands carrying a `$ ` prompt, plus quoted excerpts that are prose citations rather
+than evidence claims. The single narrative phrase outside a code fence likewise backs no DoD item.
+`artifact-lint.sh` corroborates mechanically:
+
+```text
+✅ All checked DoD items in scopes.md have evidence blocks
+✅ No unfilled evidence template placeholders in scopes.md
+✅ No unfilled evidence template placeholders in report.md
+```
+
+**Ruling: both warnings are non-blocking observations, not evidence-integrity defects. VAL-F1 is
+adjudicated closed; no re-capture is required.**
+
+#### F. The remaining blocker to `done`
+
+`artifact-lint.sh` passes today **only** because the promotion gate is skipped at `in_progress`:
+
+```text
+$ bash .github/bubbles/scripts/artifact-lint.sh <BUG-003>
+✅ Detected state.json status: in_progress
+✅ Detected state.json workflowMode: bugfix-fastlane
+✅ Mode-specific report gates skipped (status not in promotion set)
+✅ All checked DoD items in scopes.md have evidence blocks
+Artifact lint PASSED.
+===LINT_EXIT=0===
+```
+
+For `workflowMode: bugfix-fastlane` at a promotion status the lint requires **both**
+`^### Validation Evidence` and `^### Audit Evidence`. This section satisfies the second. The first
+is `bubbles.validate`'s owned artifact — `artifact-lint` itself encodes that ownership mapping
+(`Validation Evidence|bubbles.validate`, `Audit Evidence|bubbles.audit`), so `bubbles.audit` does
+not author it.
+
+#### G. Finding carry (each prior finding carried exactly once)
+
+| Finding | Disposition | Owner | Basis |
+|---|---|---|---|
+| `AUD-F1` | already CLOSED | `bubbles.validate` | Closed in the prior cycle |
+| `AUD-F2` | satisfied | — | `execution.completedPhaseClaims` now contains `regression`, `simplify`, `stabilize` |
+| `VAL-F1` | ✅ **addressed** | `bubbles.audit` | Adjudicated non-blocking — see §E |
+| `VAL-F2` | 🔴 **unresolved** | `bubbles.audit` | `### Audit Evidence` authored here, but the conjunctive clause "re-run to a CLEAN verdict" is not met while VAL-F3 stands |
+| `VAL-F3` | 🔴 **unresolved** | `bubbles.validate` | `### Validation Evidence` absent — the single remaining blocker to `done` |
+
+#### H. Spot-Check Recommendations
+
+Automation-bias mitigation — items worth manual confirmation despite this audit's conclusions:
+
+1. **The crux ruling itself (§D).** This audit concluded the additive test change is legitimate.
+   Verify independently by reverting `openBriefView()` locally and confirming TP-B003-01 goes RED
+   with a mount timeout — that is the claim the whole verdict rests on.
+2. **VAL-F1 adjudication (§E).** This audit closed a finding that four other agents had left open.
+   Confirm the judgement that "no flagged block backs a DoD item" matches your expectation for
+   evidence quality, since the grep proves linkage but not richness.
+3. **The 36-block classification counts.** Only the `git status --porcelain` sub-count (4) was
+   independently reproduced here; the 31/5 split between short-output and quoted-excerpt blocks is
+   carried from the prior cycle and was not re-derived.
+4. **DoD inline evidence depth.** `artifact-lint` proves every checked item *has* an evidence
+   block; it does not judge whether each block is substantive. A sampling of 2–3 items is worthwhile.
+
+**Verdict: 🔴 `REWORK_REQUIRED` — the fix is sound and the packet has narrowed to a single
+owner-attributable gap. `done` is blocked solely by VAL-F3 (`### Validation Evidence`,
+owner `bubbles.validate`). No status, certification, scope, or DoD state was modified by this
+attempt.**
+
+
 

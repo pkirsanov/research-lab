@@ -127,9 +127,68 @@
     ],
     "audit": {
       "schemaVersion": "audit-run/v1",
-      "runId": null,
-      "currentAttemptId": null,
-      "attempts": []
+      "runId": "AUDIT-RUN-BUG003-20260730",
+      "currentAttemptId": "AUD-BUG003-A1",
+      "attempts": [
+        {
+          "attemptId": "AUD-BUG003-A1",
+          "resultState": "ACTIVE",
+          "openedAt": "2026-07-30T18:30:03Z",
+          "closedAt": "2026-07-30T18:52:30Z",
+          "targetRevision": "sha256:c42fb6da1733efd1e11880a1da45403a839717fe99f7db265f6de4ba8102c8a3",
+          "contractDigest": "sha256:aa91472c047d3d985d38c1d308feb1e6081955b2aa553816deb5987d9cdc449f",
+          "auditProfile": "delivery-completion-v1",
+          "targetStatus": "done",
+          "auditVerdict": "REWORK_REQUIRED",
+          "outcome": "route_required",
+          "evidenceRef": "report.md#audit-evidence",
+          "addressedFindings": [
+            "VAL-F1"
+          ],
+          "unresolvedFindings": [
+            "VAL-F2",
+            "VAL-F3"
+          ],
+          "nextRequiredOwner": "bubbles.validate",
+          "supersedesAttemptId": null,
+          "resumeFromPhase": null,
+          "findings": [
+            {
+              "id": "VAL-F1",
+              "disposition": "addressed",
+              "severity": "low",
+              "owner": "bubbles.audit",
+              "priorOwners": [
+                "bubbles.test",
+                "bubbles.regression",
+                "bubbles.simplify",
+                "bubbles.security"
+              ],
+              "summary": "ADJUDICATED NON-BLOCKING. The 36/108 evidence blocks lacking terminal-output signals are detector heuristics, not evidence-integrity defects; no re-capture is required.",
+              "evidence": "Load-bearing test: none of the 36 blocks backs a DoD item. grep -cE '^- \\[x\\].*Evidence: \\[report\\.md' scopes.md = 0, i.e. 0 of 11 checked DoD items delegate their evidence to a report.md link; all 11 carry inline evidence in scopes.md per the DoD Evidence Format rule. artifact-lint.sh independently confirms 'All checked DoD items in scopes.md have evidence blocks' and 'No unfilled evidence template placeholders in report.md'. Sub-class corroboration: grep -c 'git status --porcelain' report.md = 4, exactly matching the 'empty by design' classification where empty output IS the signal; the remaining blocks are short-output commands carrying a '$ ' prompt, plus quoted excerpts that are prose citations rather than evidence claims. Same disposition applies to the single narrative phrase outside code fences: it backs no DoD item."
+            },
+            {
+              "id": "VAL-F2",
+              "disposition": "unresolved",
+              "severity": "high",
+              "owner": "bubbles.audit",
+              "gate": "artifact-lint/mode-required-evidence-headers",
+              "summary": "PARTIALLY addressed, conjunction unmet. The '### Audit Evidence' section is authored by bubbles.audit in this attempt, but the finding's second clause -- 're-run to a CLEAN verdict so assurance re-derives to full' -- is NOT satisfied: this attempt's verdict is REWORK_REQUIRED because VAL-F3 still stands. Recorded unresolved rather than addressed because the acceptance criterion is conjunctive.",
+              "evidence": "artifact-lint.sh maps workflowMode 'bugfix-fastlane' at a promotion status to required headers ['^### Validation Evidence','^### Audit Evidence']. The gate is skipped today only because status is in_progress ('Mode-specific report gates skipped (status not in promotion set)'), so it would FAIL the moment status flips to done."
+            },
+            {
+              "id": "VAL-F3",
+              "disposition": "unresolved",
+              "severity": "high",
+              "owner": "bubbles.validate",
+              "gate": "artifact-lint/mode-required-evidence-headers",
+              "summary": "report.md is missing the '### Validation Evidence' section that workflowMode 'bugfix-fastlane' requires at status 'done'. bubbles.audit MUST NOT author it -- it is bubbles.validate's owned artifact.",
+              "evidence": "Same mechanical gate as VAL-F2. artifact-lint's own strict-section table encodes the ownership mapping explicitly: 'Validation Evidence|bubbles.validate', 'Audit Evidence|bubbles.audit'. This is the single remaining blocker to status 'done'."
+            }
+          ],
+          "note": "Attempt RESUMED from resumeFromPhase 4 and closed by bubbles.audit; no competing attempt was opened. Provenance re-verified before resuming: transition-contract-resolver.sh exit 0 returned the identical workflowMode bugfix-fastlane, auditProfile delivery-completion-v1, statusCeiling/targetStatus done, contractDigest sha256:aa91472c... and targetRevision sha256:c42fb6da... already bound to this attempt, so there is no AUDIT_PROVENANCE_CONFLICT. state-transition-guard.sh in assertion-only form (--target-status done --expect-workflow-mode bugfix-fastlane --expect-contract-digest sha256:aa91472c...) returned TRANSITION_GUARD_RESULT_V1 verdict PASS / failureCount 0 / failedGateIds [] / exit 0. EVALUATION OUTCOME: the FIX is sound and the earlier packet-level condition has NARROWED but not cleared. Crux ruled LEGITIMATE CONTRACT ALIGNMENT, not defect-masking: commit 8206c89c is purely additive (+13/-0) to tests/distributed-briefs.static.integration.mjs, weakens zero assertions, and drives the real shell control '#rlviews button[data-rlview-mode=brief]' rather than stubbing/mocking/intercepting; every defect-detecting assertion survives verbatim and still passes (ready=1 mount gate, 'hash mismatch fails closed' integrity-error, 'no partial evidence rendered on integrity failure', and both network-window baselines 'no history partition before Open history' and 'mode switch performs no refetch'). Adversarially: for this change to mask a product defect it would have to pass while the product is broken, which it cannot -- a brief that fails to mount still times out on [data-rlbrief-mount][data-rlbrief-ready=1] and a brief that fails open still fails assert.equal(st,'integrity-error'). bubbles.audit independently re-executed TP-B003-01 (node --test tests/distributed-briefs.static.integration.mjs): pass 1 / fail 0 / SKIPPED 0, exit 0, duration 2.96s, and grep for t.skip|.only|.todo|bare-return bailouts returned ZERO matches, so the green is a real execution and not a silent skip. G095/DI-03 is confirmed cleared (failedGateIds []), DoD is 11 checked / 0 unchecked, and all four Test Plan rows are green. The two carried warnings are ruled NON-BLOCKING OBSERVATIONS, mechanically corroborated: 0 of 11 checked DoD items delegate evidence to a report.md link (grep -cE '^- \\[x\\].*Evidence: \\[report\\.md' = 0), so none of the 36 flagged blocks backs a DoD item; 'git status --porcelain' occurs exactly 4 times, matching the 'empty by design' classification, where empty output IS the signal; quoted excerpts are prose citations, not evidence claims; and the single narrative phrase outside code fences backs no DoD item. artifact-lint separately confirms 'All checked DoD items in scopes.md have evidence blocks' and 'No unfilled evidence template placeholders in report.md'. FINDING CARRY: the three findings left OPEN by the prior cycle are each carried exactly once -- VAL-F1 addressed (adjudicated non-blocking), VAL-F2 and VAL-F3 unresolved. AUD-F1 was already CLOSED; AUD-F2 is satisfied by the current execution.completedPhaseClaims, which now contains regression, simplify and stabilize. REMAINING BLOCKER: status 'done' is NOT reachable while VAL-F3 stands, because artifact-lint currently passes ONLY by virtue of the in_progress status skipping the promotion gate; it would fail on the missing '### Validation Evidence' header the moment status flips to done. bubbles.audit authors '### Audit Evidence' (VAL-F2's first clause) in this same session; '### Validation Evidence' (VAL-F3) is bubbles.validate's owned artifact and is ROUTED, not authored here. No status, certification, scope, or DoD state was modified by this attempt."
+        }
+      ]
     }
   },
   "certification": {

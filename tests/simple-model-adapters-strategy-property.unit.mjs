@@ -1612,7 +1612,10 @@ test('TP-07-01 rlbrief.js single-sources its window/action-gating from market-ac
   // The Brief delegates every window/action-gating primitive to the module (RLMARKETACTION.*) — one source.
   const delegated = ['normalizeRecommendation', 'nextSessionActions', 'actionableAttention', 'nearTermEvents', 'capConfidence', 'consecutiveRun', 'isPersistentSignal'];
   for (const name of delegated) {
-    assert.ok(new RegExp('RLMARKETACTION\\.' + name + '\\s*\\(').test(RLBRIEF_SOURCE), `rlbrief.js delegates ${name} to RLMARKETACTION`);
+    // Accept the guarded marketAction() accessor introduced by the CH-F2/CH-F3 fix (7b0a376d),
+    // which names the missing module instead of throwing an opaque property-of-undefined error.
+    const delegates = new RegExp('(?:RLMARKETACTION|marketAction\\(\\))\\.' + name + '\\s*\\(');
+    assert.ok(delegates.test(RLBRIEF_SOURCE), `rlbrief.js delegates ${name} to RLMARKETACTION`);
   }
   // rlbrief.js carries NO inline copy of the moved action-gate bodies (the single source lives in market-action.js).
   assert.equal(/item\.action !== "watch" && !!item\.trigger && !!item\.invalidation/.test(RLBRIEF_SOURCE), false, 'rlbrief.js has no inline nextSessionActions filter copy');

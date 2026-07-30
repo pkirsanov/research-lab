@@ -4,7 +4,7 @@
 
 Planning authority: [spec.md](../../spec.md), [design.md](../../design.md), and the [scope index](../_index.md). Execution evidence belongs in [report.md](report.md).
 
-**Status:** Blocked
+**Status:** Not Started (external gate `feature-002` SATISFIED — re-executed verdict status=done/done, matched 4/4; XFC-01 resolved for this gate in commit `85a9ce1d` by the producer publishing `state.milestones` for capabilities it genuinely delivered, with `tool-experience.config.json` byte-unchanged. No implementation work has begun.)
 
 **Scope-Kind:** runtime-behavior
 

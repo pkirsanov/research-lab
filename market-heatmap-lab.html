@@ -1011,9 +1011,6 @@
                     try { hydrateFromCache(); }
                     catch (e) { try { localStorage.removeItem("rlData"); } catch (_) { } }
                     return fetchDelta();
-                }).then(function () {
-                    try { render(); }
-                    catch (e) { try { localStorage.removeItem("rlData"); } catch (_) { } try { render(); } catch (_) { } }
                 }).catch(function () {
                     /* last-resort: never leave the tool wedged on a rejected boot chain — drop cache,
                        then close the cycle through the ONE terminal boundary so this path marks ready

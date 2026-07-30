@@ -127,10 +127,43 @@ function listFiles(relativeDirectory) {
     });
 }
 
+// The rehearsal sandbox must carry every production module the validator actually loads, or the
+// restored GREEN probe fails on a missing dependency instead of on anything the rehearsal is
+// testing. Deriving that set from the validator source — rather than keeping a second
+// hand-maintained list — means the sandbox cannot silently drift again the way it did when
+// Scope 08 added rljourney.js (a8efa69d) without updating any manifest here. Entries already
+// covered by SCOPE_ARTIFACTS are excluded, because those are deliberately REMOVED by the
+// rollback and must not simultaneously be asserted unchanged as protected data.
+const VALIDATOR_ENTRY = 'scripts/validate-tool-experience.mjs';
+
+function validatorProductionDependencies() {
+  const source = readFileSync(join(REPOSITORY_ROOT, VALIDATOR_ENTRY), 'utf8');
+  const referenced = new Set();
+  for (const match of source.matchAll(/(?:require\(|path:\s*)(['"])\.\.\/([^'"]+)\1/g)) {
+    referenced.add(match[2]);
+  }
+  const dependencies = [...referenced]
+    .filter((relativePath) => !SCOPE_ARTIFACTS.includes(relativePath))
+    .sort();
+  assert.ok(
+    dependencies.length > 0,
+    'validator must declare at least one external production dependency for the sandbox to carry'
+  );
+  for (const relativePath of dependencies) {
+    assert.equal(
+      existsSync(join(REPOSITORY_ROOT, relativePath)),
+      true,
+      `validator dependency ${relativePath} must exist in the repository`
+    );
+  }
+  return dependencies;
+}
+
 function protectedPaths() {
   const registry = JSON.parse(readFileSync(join(REPOSITORY_ROOT, 'tools.json'), 'utf8'));
   return [...new Set([
     ...STATIC_PROTECTED_PATHS,
+    ...validatorProductionDependencies(),
     ...registry.tools.map((tool) => tool.file),
     ...listFiles('data/options')
   ])].sort();
@@ -279,6 +312,41 @@ function baselineRegistry() {
   return JSON.parse(baselineBytes('tools.json').toString('utf8'));
 }
 
+// SCN-012-033 proves exactly ONE claim about the registry: the Scope 01 change added
+// `experience` and nothing else to tools.json. That claim is about the Scope 01 DELTA, so BOTH
+// sides of the containment proof must be pinned to that delta — the pre-Scope-01 parent above,
+// and the Scope 01 commit itself. Comparing TODAY's registry against the pre-Scope-01 parent
+// instead silently re-asserts a second, unintended claim ("tools.json has never changed since
+// Scope 01"), which is false by design: later certified work legitimately edited four entries —
+// market-brief (title, nav) in the Scope 09 rename 380812b4; msft-july-print-model (updated,
+// blurb, tags) in 05232f26; and simpleWiring on msft-july-print-model,
+// palm-springs-rental-market-lab and ocean-shores-rental-market-lab in b548519e. Pinning both
+// sides keeps the real assertion adversarial while making it immune to that lawful drift.
+const SCOPE01_REGISTRY_COMMIT = 'c81d808d';
+const SCOPE01_REGISTRY_REQUIRED_MARKER = '"experience"';
+const SCOPE01_REGISTRY_SHA256 = 'f77fde77c4a3e55151c52794dbf0758911e7bd2e9f6d651a195f7eac8af00fee';
+
+function scope01RegistryBytes() {
+  const bytes = execFileSync('git', ['show', `${SCOPE01_REGISTRY_COMMIT}:tools.json`], {
+    cwd: baselineRepositoryRoot()
+  });
+  assert.equal(
+    bytes.includes(SCOPE01_REGISTRY_REQUIRED_MARKER),
+    true,
+    `Scope 01 registry @ ${SCOPE01_REGISTRY_COMMIT} must contain ${SCOPE01_REGISTRY_REQUIRED_MARKER} — the pin is not the Scope 01 delta`
+  );
+  assert.equal(
+    sha256(bytes),
+    SCOPE01_REGISTRY_SHA256,
+    `Scope 01 registry @ ${SCOPE01_REGISTRY_COMMIT} sha256 drifted from the pinned Scope 01 bytes`
+  );
+  return bytes;
+}
+
+function scope01Registry() {
+  return JSON.parse(scope01RegistryBytes().toString('utf8'));
+}
+
 function withoutExperience(tool) {
   const copy = clone(tool);
   delete copy.experience;
@@ -297,7 +365,31 @@ test('SCN-012-033 actual registry resolves all 23 entries and preserves every pr
   assert.equal(result.value.simpleModelDefinitionCount, 23);
   assert.equal(result.value.journeyDefinitionCount, 48);
   assert.deepEqual(result.value.toolIds, packet.registry.tools.map((tool) => tool.id));
-  assert.deepEqual(packet.registry.tools.map(withoutExperience), baseline.tools, 'experience is the only tools.json addition');
+  // The Scope 01 delta itself: strip `experience` from the Scope 01 registry and the remainder
+  // must be semantically identical to its pre-Scope-01 parent. This is the SCN-012-033 claim.
+  assert.deepEqual(scope01Registry().tools.map(withoutExperience), baseline.tools, 'experience is the only tools.json addition made by Scope 01');
+  // ...and that claim must still be LIVE at HEAD: every current entry carries `experience`, and
+  // no field present on its pre-Scope-01 counterpart was dropped. This keeps the test's
+  // "preserves every pre-existing field" promise adversarial against today's registry without
+  // falsely forbidding the later certified value edits enumerated above.
+  for (const tool of packet.registry.tools) {
+    assert.ok(
+      Object.prototype.hasOwnProperty.call(tool, 'experience'),
+      `${tool.id} must still carry the Scope 01 experience field`
+    );
+    const priorEntry = baseline.tools.find((entry) => entry.id === tool.id);
+    if (!priorEntry) {
+      continue;
+    }
+    const dropped = Object.keys(priorEntry).filter(
+      (key) => !Object.prototype.hasOwnProperty.call(tool, key)
+    );
+    assert.deepEqual(
+      dropped,
+      [],
+      `${tool.id} dropped pre-existing field(s) [${dropped.join(', ')}] — experience must remain purely additive`
+    );
+  }
   assert.deepEqual(packet.registry.tools.map((tool) => tool.briefing), baseline.tools.map((tool) => tool.briefing), 'all briefing blocks remain byte-semantic equals');
 });
 
@@ -452,9 +544,26 @@ test('SCN-012-033 rollback rehearsal replays RED then restores exact Scope 01 by
     writeFileSync(join(sandboxRoot, 'scripts/selftest.mjs'), rolledBackSelftest);
 
     assert.equal(rolledBackTools.removed, 23, 'rollback must remove one real experience declaration per current tool');
-    assert.deepEqual(rolledBackTools.value, JSON.parse(baselineToolsBytes.toString('utf8')), 'rolled-back registry must be semantically equal to HEAD');
-    assert.equal(rolledBackTools.bytes.equals(baselineToolsBytes), true, 'rolled-back registry bytes must equal HEAD');
-    assert.equal(rolledBackSelftest.equals(baselineSelftestBytes), true, 'rolled-back selftest bytes must equal HEAD');
+      // Exactness of the rollback transform is proved against the Scope 01 DELTA, where it is
+      // achievable: stripping `experience` from the Scope 01 registry must reproduce its
+      // pre-Scope-01 parent byte-for-byte. Proving it against HEAD instead would demand that
+      // tools.json never changed after Scope 01, which is false by design (see the pin comment).
+      const scope01RolledBackTools = removeExperienceObjects(scope01RegistryBytes());
+      assert.equal(scope01RolledBackTools.removed, 23, 'the Scope 01 registry must carry exactly one experience declaration per tool');
+      assert.deepEqual(scope01RolledBackTools.value, JSON.parse(baselineToolsBytes.toString('utf8')), 'rolling Scope 01 back must be semantically equal to the pre-Scope-01 registry');
+      assert.equal(scope01RolledBackTools.bytes.equals(baselineToolsBytes), true, 'rolling Scope 01 back must reproduce the pre-Scope-01 registry bytes exactly');
+      // The rolled-back selftest CANNOT be byte-compared to the pre-Scope-01 parent: c81d808d
+      // landed Scopes 01-04 together, so removing the *named Scope 01 block* still leaves the
+      // Scope 02/03/04 assertions behind (a 7-line residual: COMPANY_ROUTE_SCRIPTS,
+      // resolveArchetypeView, RLCOMPANY.evaluateModel, data-mode-seg). No commit isolates the
+      // Scope 01 selftest delta, so byte-equality is unachievable by construction and asserting
+      // it would assert something false. Recorded as F-BUG002-006. What IS provable — and what
+      // the rehearsal actually depends on — is asserted instead.
+      const rolledBackSelftestSource = rolledBackSelftest.toString('utf8');
+      assert.equal(rolledBackSelftestSource.includes(SELFTEST_BLOCK_START), false, 'rolled-back selftest must no longer declare the Feature 012 Scope 01 block');
+      assert.equal(rolledBackSelftestSource.includes(SELFTEST_SUMMARY_START), true, 'rollback must splice out only the Scope 01 block and leave the summary marker intact');
+      assert.equal(baselineSelftestBytes.includes(SELFTEST_BLOCK_START), false, 'the pre-Scope-01 selftest must not contain the Feature 012 Scope 01 block');
+      assert.ok(rolledBackSelftest.length < scopeSnapshot.get('scripts/selftest.mjs').bytes.length, 'rollback must shrink the selftest by the removed Scope 01 block');
     assert.deepEqual(hashInventory(sandboxRoot, protectedArtifactPaths), new Map([...protectedSnapshot].map(([path, entry]) => [path, entry.hash])));
 
     const red = runSandboxProbe(probePath, sandboxRoot);
@@ -472,7 +581,7 @@ test('SCN-012-033 rollback rehearsal replays RED then restores exact Scope 01 by
 
     console.log(`[rollback-canary] snapshot scopeArtifacts=${SCOPE_ARTIFACTS.length} protectedFiles=${protectedArtifactPaths.length}`);
     console.log(`[rollback-canary] rollback removedArtifacts=${NEW_SCOPE_ARTIFACTS.length} removedExperienceObjects=${rolledBackTools.removed}`);
-    console.log(`[rollback-canary] baseline toolsByteEqual=true toolsSemanticEqual=true selftestByteEqual=true`);
+      console.log('[rollback-canary] scope01 delta toolsByteEqual=true toolsSemanticEqual=true; selftest blockRemoved=true summaryIntact=true (byte-equality unachievable — see F-BUG002-006)');
     console.log(`[rollback-canary] RED exit=${red.status} ${red.stderr.trim()}`);
     console.log(`[rollback-canary] GREEN exit=${green.status} ${green.stdout.trim()}`);
     console.log('[rollback-canary] restore scopeHashesEqual=true protectedHashesEqual=true worktreeHashesEqual=true');

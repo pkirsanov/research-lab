@@ -286,7 +286,73 @@ BUG-002.)
 | F-BUG002-002 | `tests/contextual-tooltip.functional.mjs` | `SCN-012-003` | **design-intent-gated** | RED | Route to owner; assertion change GATED on decorator design-intent confirmation |
 | F-BUG002-003 | `tests/tool-experience-registry.functional.mjs` | `SCN-012-033` | baseline-repin | **drift class FIXED** (`db16cd47`); site still RED for a different, newly-characterized reason | Repin IMPLEMENTED (pinned `767732db` + sha256/marker guards, proved live). Residual reclassified **owner-gated** — see F-BUG002-005 |
 | F-BUG002-004 | `tests/brief-refresh-atomicity.support.mjs` | (brief-automation harness) | unrelated | N/A | Cleared — no action |
-| F-BUG002-005 | `tests/tool-experience-registry.functional.mjs` | `SCN-012-033` | **design-intent-gated** (NEW — discovered while implementing F-BUG002-003) | RED | Routed design assumed a pure repin sufficed; 4 registry entries legitimately changed beyond `experience` (Scope 09 rename, Scope 15 `simpleWiring` x3, spec 009 updates), so `experience is the only tools.json addition` is now false. Owner must choose: scope the containment proof to the Scope-01 delta on both sides, OR assert `experience` is purely additive. Do NOT guess green |
+| F-BUG002-005 | `tests/tool-experience-registry.functional.mjs` | `SCN-012-033` | **design-intent-gated** (NEW — discovered while implementing F-BUG002-003) | **RESOLVED** (`<pending>`) | Routed design assumed a pure repin sufficed; 4 registry entries legitimately changed beyond `experience` (Scope 09 rename, Scope 15 `simpleWiring` x3, spec 009 updates), so `experience is the only tools.json addition` is now false. Owner approved resolution **(a)**: scope the containment proof to the Scope-01 delta on BOTH sides — pin `c81d808d` (marker `"experience"` REQUIRED + sha256 `f77fde77…`) and compare `strip(experience)` against the pre-Scope-01 parent `767732db`. Verified to hold byte-for-byte before adoption. A HEAD-side additive assertion was ADDED (not substituted): every current entry still carries `experience`, and no pre-existing field was dropped. Net assertions increased |
+| F-BUG002-006 | `tests/tool-experience-registry.functional.mjs` | `SCN-012-033` (rollback rehearsal) | **unachievable-by-construction** (NEW — discovered while implementing F-BUG002-005) | **RESOLVED** (`<pending>`) | The rehearsal asserted `removeFeature012SelftestBlock(HEAD selftest) === pre-Scope-01 selftest`. This is false at HEAD *and at every commit*: `c81d808d` landed Scopes 01–04 together, so removing the named Scope 01 block still leaves a 7-line Scope 02/03/04 residual (`COMPANY_ROUTE_SCRIPTS`, `resolveArchetypeView`, `RLCOMPANY.evaluateModel`, `data-mode-seg`). No commit isolates the Scope 01 selftest delta, so byte-equality cannot be asserted truthfully. Replaced with provable structural assertions the rehearsal actually depends on: block marker removed, summary marker intact, baseline free of the marker, file strictly shrunk. **This is the one place an assertion was retired rather than retargeted** — recorded explicitly for owner visibility rather than silently dropped |
+| F-BUG002-007 | `tests/tool-experience-registry.functional.mjs` | `SCN-012-033` (rollback rehearsal) | **sandbox-manifest-drift** (NEW — masked by F-BUG002-005/006 until they were fixed) | **RESOLVED** (`<pending>`) | Once the baseline conflations were corrected, the restored GREEN probe still failed: `Cannot find module '../rljourney.js'`. The sandbox copies only `SCOPE_ARTIFACTS` + `protectedPaths()`, neither of which had been updated when Scope 08 (`a8efa69d`) made the validator require `rljourney.js` — plus 7 `rlexperience-adapters/*.js`, `rlrental.js`, `rlvol.js` (10 files total). Fixed by DERIVING the dependency set from the validator source instead of adding a third hand-maintained list, so the sandbox cannot drift again; entries already in `SCOPE_ARTIFACTS` are excluded because the rollback deliberately removes those. Protected-file count 56 → 66 |
+
+## Adversarial Proof For F-BUG002-005/006/007
+
+Site state: `tests/tool-experience-registry.functional.mjs` **4 pass / 3 fail → 7 pass / 0 fail (exit 0)**.
+Repository selftest unchanged at **970 passed / 0 failed (exit 0)**.
+
+Every changed or added assertion was mutation-tested in a throwaway copy of the repository
+(`/tmp/rl-mutate-*`, removed afterwards) so the live worktree was never mutated — confirmed by
+`git status --porcelain tools.json rljourney.js` staying empty throughout. Control runs pass
+before and after each mutation:
+
+```
+  MUT-A: strip experience from one live tool
+    exit=1  CAUGHT  Expected values to be strictly equal:
+  MUT-B: drop a pre-existing field (blurb) from one live tool
+    exit=1  CAUGHT  options-structure-lab dropped pre-existing field(s) [blurb] — experience must remain purely additive
+  MUT-C: repoint SCOPE01_REGISTRY_COMMIT at a later commit (380812b4)
+    exit=1  CAUGHT  Scope 01 registry @ 380812b4 sha256 drifted from the pinned Scope 01 bytes
+  MUT-D: repoint SCOPE01_REGISTRY_COMMIT at the PRE-Scope-01 baseline (767732db)
+    exit=1  CAUGHT  Scope 01 registry @ 767732db must contain "experience" — the pin is not the Scope 01 delta
+  CONTROL (test 6, unmutated):
+    exit=0  PASS
+  MUT-E: make the selftest rollback a no-op (block NOT removed)
+    exit=1  CAUGHT  rolled-back selftest must no longer declare the Feature 012 Scope 01 block
+  MUT-F: delete rljourney.js from the sandbox source tree
+    exit=1  CAUGHT  validator dependency rljourney.js must exist in the repository
+  RESTORED control:
+    exit=0  PASS
+```
+
+The rehearsal canary confirms the functional force of the rollback is intact and that the
+protected-file set grew by exactly the 10 derived validator dependencies:
+
+```
+  # [rollback-canary] snapshot scopeArtifacts=11 protectedFiles=66
+  # [rollback-canary] rollback removedArtifacts=9 removedExperienceObjects=23
+  # [rollback-canary] scope01 delta toolsByteEqual=true toolsSemanticEqual=true; selftest blockRemoved=true summaryIntact=true (byte-equality unachievable — see F-BUG002-006)
+  # [rollback-canary] RED exit=17 [scope01-sandbox-probe] RED missing-contract=tool-experience.config.json,simple-models.json,journeys.json,rlexperience.js,scripts/validate…
+  # [rollback-canary] GREEN exit=0 [scope01-sandbox-probe] GREEN tools=23 models=23 journeys=48 adversarial=13
+  # [rollback-canary] restore scopeHashesEqual=true protectedHashesEqual=true worktreeHashesEqual=true
+```
+
+Pre-adoption verification that the retargeted claim is true (run before any assertion was
+written, so the pin was chosen from evidence rather than fitted to a passing result):
+
+```
+  baseline commit : 767732db tools: 23 has experience: false
+  scope01  commit : c81d808d tools: 23 has experience: true
+  scope01 tools.json sha256: f77fde77c4a3e55151c52794dbf0758911e7bd2e9f6d651a195f7eac8af00fee
+
+  CLAIM: strip(experience) from Scope-01 registry === pre-Scope-01 baseline
+  RESULT: HOLDS (exact)
+```
+
+And the disproof that motivated F-BUG002-006 (the same transform on the selftest, which does
+**not** hold at the Scope 01 commit):
+
+```
+  CLAIM 1  removeExperienceObjects(scope01 tools.json) === pre-Scope-01 tools.json
+    removed: 23   byte-equal: true
+  CLAIM 2  removeFeature012SelftestBlock(scope01 selftest) === pre-Scope-01 selftest
+    block found+unique+summary: true   byte-equal: false
+  => residual delta vs baseline: 7 lines   (Scope 02/03/04 content)
+```
 
 ## Routing
 

@@ -222,7 +222,13 @@ test('Regression: SCN-009-006/007/008 degraded resources stay isolated', async (
   await expect.poll(() => page.evaluate(() => window.MsftJulyModel?.runtime?.acceptedState?.marketStatus || null)).toBe('complete');
 
   const expected = expectedDailyTechnicals(barsEnvelope.rows);
-  const staleEvaluationTime = new Date(Date.parse(barsEnvelope.fetched) + 90000000).toISOString();
+  // Judge the quote against the QUOTE envelope's own fetch time. Deriving this from
+  // barsEnvelope.fetched only held while both caches were written in the same run:
+  // data/options/MSFT.json refreshes on every brief run (4x/day) while data/bars/MSFT.json
+  // refreshes only after-hours, so the two drift apart by up to ~18h during a trading day
+  // and this offset stopped clearing the quote's 24h threshold. 25h past the quote's own
+  // retrievedAt is the property this scenario actually asserts.
+  const staleEvaluationTime = new Date(Date.parse(quoteEnvelope.fetched) + 90000000).toISOString();
 
   // SCN-009-006: the quote resource fails while daily bars stay valid.
   const quoteMissing = await page.evaluate(() => structuredClone(

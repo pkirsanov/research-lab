@@ -167,6 +167,98 @@ other product source are untouched. Neither gate is weakened, relaxed, or bypass
 checkbox, `status`, or `certification` value was altered. Recording the defect *is* the
 deliverable.
 
+---
+
+**Second finding-ID prefix (declared here, first use).** `XFC-` is reserved above for a
+defect in an agreement between a consuming feature and a **producing feature/bug**. The
+defect below is not that: its two parties are this feature's scope artifacts and the
+**governance tooling**, so reusing `XFC-` would misuse the prefix its own declaration
+fixed. Following the same precedent this report set for `XFC-`, a fourth prefix is
+declared: **`GVG-<nn>` — Governance Gate**, reserved for a defect in the fit between a
+Bubbles gate and the artifact convention it is pointed at. A repository scan for
+`\bGVG-[0-9]{2}\b` across `*.md`, `*.json`, `*.js`, `*.mjs`, `*.html`, `*.yaml` returned
+**0 occurrences**, so `GVG-01` is stable and collision-free.
+
+### Finding GVG-01 — `state-transition-guard.sh` cannot gate a scope-level transition (cross-cutting, governance; recorded 2026-07-30)
+
+**Severity.** Blocking for any scope-level certification in this repository that is
+required to produce a green feature guard first. Not resolvable by Feature 012 alone.
+
+**Statement.** The guard has no invocation that evaluates a **scope→Done** transition.
+Both available invocations were executed read-only against HEAD `4ad447c1` while
+recording this finding, and the working tree was proven unchanged afterwards (identical
+`git status --porcelain` checksum before and after, 11 dirty files both times — all owned
+by a concurrent session).
+
+| Invocation | Exit | What it actually reports |
+|---|---|---|
+| `state-transition-guard.sh scopes/15-production-simple-adapter-wiring` | **2** | `E009-STATE-MALFORMED: state.json is missing or is not valid JSON` — a scope directory holds only `scope.md` and `report.md`; the guard requires a `FEATURE_DIR` carrying `state.json`. |
+| `state-transition-guard.sh specs/012-market-action-center-and-guided-tools` | **1** | `workflowMode: full-delivery`, `auditProfile: delivery-completion-v1`, **`targetStatus: done`**, `failureCount: 186`, `failedGateIds: [G022,G053,G027,G040,G084,G089]`, `verdict: FAIL`. |
+
+**Why neither can gate this transition.**
+
+1. **Wrong transition.** The feature-directory invocation resolves `targetStatus: done`
+   for **Feature 012**, which must remain `blocked` while Feature 008 is `not_started`.
+   The transition actually being made is Scope 15 → `Done`. Forcing the guard green with
+   `--target-status` would make it evaluate a *different* transition and is correctly
+   refusable as manipulation.
+2. **No scope-targeting mode exists.** The guard parses exactly four flags —
+   `--revert-on-fail`, `--target-status`, `--expect-workflow-mode`,
+   `--expect-contract-digest`. Every internal `scope`-bearing token in the script
+   (8 matches) is the `per-scope-directory` **layout**-detection string, not a target
+   selector.
+3. **The failures are repo-wide, not a Scope 15 defect.** The 186 failures name scopes
+   `01, 03, 05, 06, 07, 08, 09, 10, 11, 12, 13, 14, 15`. Nine of those (`01, 03, 05–10,
+   12`) are already `Done`. Gate G040's deferral-language scan alone fires on the
+   `report.md` of scopes `03, 05, 06, 07, 08, 09, 10` — every one of them `Done`. A
+   condition that fails on already-certified scopes is measuring a mismatch between the
+   guard and this repository's authoring convention, not the readiness of Scope 15.
+4. **Inconsistent application.** All **11** already-`Done` scopes in this feature were
+   certified without any such guard result. Requiring it only for Scope 15 applies a
+   standard to one scope that was applied to none of its eleven predecessors.
+5. **Unreachable by construction.** While Feature 008 keeps Feature 012 `blocked`, a
+   feature-level exit 0 is unreachable. Making it a precondition therefore renders
+   **every** scope in this feature permanently uncertifiable.
+
+**Same defect class as the three clauses already corrected here.** This is the **fourth**
+instance of the shape recorded above — *a gate whose closure condition is not reachable by
+any action available to the party the gate binds*: (1) the withdrawn *"every ordinary tool
+wired"* END-state clause, unreachable because 4 of 22 ordinary tools are
+declared-unwired-by-design; (2) the **file-level** no-interception scan, unreachable
+because the offending sites belong to Feature 003 at an ancestor commit; (3) `XFC-01`,
+unreachable because the required marker vocabulary was never published; and now (4) this
+guard precondition, unreachable because the guard evaluates a different transition than
+the one being made. In (1) and (2) the remedy was to re-aim the clause at the thing
+actually at stake without weakening it. The same standard applies here.
+
+**Remedy needed** (either is sufficient; both are owned by the framework, not by this
+feature):
+
+- **(a) A scope-scoped guard mode** — e.g. `--scope-id <nn-name>` resolving the parent
+  `FEATURE_DIR` for `state.json` while evaluating only the named scope's checks, so a
+  scope transition is gated by conditions that scope can actually satisfy; **or**
+- **(b) An explicit recorded convention** that scope-level transitions are gated by
+  artifact lint plus that scope's own DoD evidence, and that
+  `state-transition-guard.sh` is a **feature**-transition instrument only. This merely
+  writes down what the eleven prior certifications in this feature already did.
+
+Until one exists, a scope certification in this repository should record which gates it
+did run, and why the feature guard was not among them.
+
+**Adjacent drift observed while recording this (reported, not changed).**
+`scopes/_index.md` carries two Status tables covering scopes 01–14; both still read
+`Not Started` for scopes `03–10` and `12`, which are `Done` in `state.json` and in their
+own `scope.md`, and `Not Started` for `13`/`14`, which are `Blocked`. Scope 15 has **no
+row in either table**. Correcting those rows would edit scopes 11/13/14, which this
+session is constrained from touching, so the drift is recorded here for its owner.
+
+**Not changed by this finding.** No product source, test, `tools.json`, or
+`.github/bubbles/**` file was modified. Feature 012's top-level `status`,
+`certification`, and `blockedReason` are untouched and remain `blocked`;
+`certification.completedScopes` remains `[]`. No gate was weakened, relaxed, or bypassed —
+the two guard invocations above were run, reported, and left failing. Recording the defect
+*is* the deliverable.
+
 ## Scenario Contract Evidence
 
 The plan maps all 32 analyst acceptance scenarios plus five technical planning scenarios (`SCN-012-033` through `SCN-012-037`) in `scenario-manifest.json`, exact Markdown Test Plan rows, exact DoD test-evidence items, and `test-plan.json`.

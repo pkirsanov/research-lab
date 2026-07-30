@@ -307,7 +307,7 @@
         "scope": 15,
         "scopeId": "15-production-simple-adapter-wiring",
         "name": "Production Simple-View Adapter Wiring (Model B)",
-        "status": "not_started",
+        "status": "done",
         "dependsOn": [5, 6, 7],
         "scopeDir": "scopes/15-production-simple-adapter-wiring",
         "scopeArtifact": "scopes/15-production-simple-adapter-wiring/scope.md",

@@ -2,9 +2,43 @@
 
 ## 15-production-simple-adapter-wiring
 
-**Status:** In Progress
+**Status:** Done
 
-**Current — 2026-07-30, HEAD `2b6e4d19`. 14 of 14 DoD items checked, 0 open.** The three
+**Certified 2026-07-30 (validate), HEAD `4ad447c1`.** Certification rests on gates
+re-executed in the certifying session, not inherited from the prior pass:
+
+| Gate | Command | Result | Exit |
+|------|---------|--------|------|
+| Artifact lint | `artifact-lint.sh specs/012-market-action-center-and-guided-tools` | `Artifact lint PASSED.`, 0 failures | 0 |
+| Repo selftest | `node scripts/selftest.mjs` | `970 passed, 0 failed` (run twice, identical) | 0 |
+| Bridge unit | `node --test tests/simple-production-bridge.unit.mjs` | 14/14 — the 9 Scope-15 titles plus 5 BUG-004 titles | 0 |
+| Bridge integration | `node --test tests/simple-production-bridge.integration.mjs` | 6/6, `ordinary=22 wired=19 declared-unwired=3 unaccounted=0` | 0 |
+
+DoD stands at 14 checked / 0 unchecked; no checkbox was altered by this certification.
+The closed-set accounting reconciles with nothing unaccounted, which is the substantive
+END-state condition this scope was re-aimed at.
+
+**Provenance disclosure — the browser-backed rows were not re-executed here.** TP-15-03,
+TP-15-04, TP-15-05, TP-15-06 and the per-tool RED/GREEN + no-interception scan item carry
+`Claim Source: executed` tags from the 2026-07-29 session at HEAD `a7631b36`. The
+certifying session did not re-run the Playwright sweep and asserts nothing about it. That
+provenance is materially older than the tree certified here: `rlexperience.js` has since
+advanced by two commits (`b548519e`, `abe04baf`) and additionally carries 77 inserted /
+27 deleted uncommitted lines belonging to a concurrent BUG-004 session. The bridge
+invariants those browser rows assert — real adapter panel render, native content demoted
+to Power, honest unavailable, sole `rlv-focused` writer, zero forbidden authority — are
+re-covered against the current tree by the three Node suites above, including the
+TP-15-07 canaries that parse the current `rlexperience.js` (6 bindings, 19 wired tools).
+Browser-level rendering itself is not re-attested by this certification.
+
+**Transition-guard applicability.** `state-transition-guard.sh` was not used as a
+precondition for this scope-level transition, and could not be: see finding `GVG-01` in
+the feature `report.md`. Both invocations were executed read-only here and reproduced —
+scope directory exits 2 (`E009-STATE-MALFORMED`, the directory holds only `scope.md` and
+`report.md`), feature directory exits 1 resolving `targetStatus: done` for a feature that
+must remain `blocked`. Neither evaluates a scope transition.
+
+**Prior — 2026-07-30, HEAD `2b6e4d19`. 14 of 14 DoD items checked, 0 open.** The three
 rows that were open at `1220cc4b` were reconciled this session against first-hand executed
 evidence. Each closed for a different reason, and none closed by relaxing a check:
 

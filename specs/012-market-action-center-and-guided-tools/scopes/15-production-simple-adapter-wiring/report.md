@@ -2884,8 +2884,8 @@ The opt-out comment states two blockers. They do not hold equally:
 
 | # | Stated blocker | Verdict |
 |---|---|---|
-| 1 | "this tool's Playwright spec still couples to the legacy Simple/Power tabs… Migrate the spec, then remove this meta." | **REAL.** `tests/msft-july-market-refresh.spec.mjs` carries 23 legacy-tab references, and the shared shell deliberately suppresses those elements. This is a genuine product migration. |
-| 2 | the shared simple-model runtime is "a stub that hardcodes 'Simple model unavailable' for EVERY ordinary tool" | **STALE — disproven empirically.** `ai-capex-strategy-lab`, the page the comment itself cites as proof, now renders a real model result ("Grid & Electrical leads the beneficiary distribution; median return 0.085955"), as does `options-structure-lab`. `sector-research-lab` shows an honest per-tool "adapter required" message, not a hardcoded universal placeholder. |
+| 1 | "this tool's Playwright spec still couples to the legacy Simple/Power tabs… Migrate the spec, then remove this meta." | **REAL, but far smaller than stated.** The "23 legacy-tab references" figure counts textual occurrences; measured, only **2 of 6 tests** actually fail when the opt-out is removed. See the runtime measurement below. |
+| 2 | the shared simple-model runtime is "a stub that hardcodes 'Simple model unavailable' for EVERY ordinary tool" | **STALE — disproven twice.** By comparison: `ai-capex-strategy-lab`, the page the comment itself cites as proof, now renders a real model result ("Grid & Electrical leads the beneficiary distribution; median return 0.085955"), as does `options-structure-lab`; `sector-research-lab` shows an honest per-tool "adapter required" message, not a hardcoded universal placeholder. And at runtime on msft itself: with the opt-out removed the native Simple view renders real data and is **not** hijacked (see below). |
 
 msft is also already fully wired for adoption: `simple-model/msft-margin-eps/v1`,
 its adapter living in the module the page already loads, a real `msftAnnualBridge`,
@@ -2899,6 +2899,59 @@ asserts **all 23** registry pages bootstrap the shell. Both cannot be right. Eit
 the test's population is narrowed to the pages this scope actually claims, or the
 opt-out is retired by migrating `msft-july-market-refresh.spec.mjs` off the legacy
 tabs. That is a product decision for this scope's owner.
+
+### Runtime measurement of retiring the opt-out (decision-ready)
+
+Rather than estimate, the opt-out was removed in a **throwaway detached worktree**
+(`git worktree add --detach`, removed afterwards; the live tree was never modified
+— confirmed by `git status --porcelain msft-july-print-model.html
+tests/msft-july-market-refresh.spec.mjs` = 0 dirty). Observed behavior with lines
+775–795 deleted:
+
+| Observation | Result |
+|---|---|
+| Shared shell mounts | **yes** — `#rlviews[data-rlexperience-shell="ready"]`, count 1 |
+| Page or console errors | **none** |
+| Shell tabs | `Simple, Power, Brief, Journey` |
+| Shell tabs drive the native panels | **yes** — shell Power click → `powerView` visible / `simpleView` hidden; shell Simple click → reverses |
+| Native `#modeSeg` after adoption | present in DOM but **auto-hidden by the shell** (`display/visibility` computed hidden), so there is no duplicated visible tab strip |
+| Native Simple content under the shell | **real, not a placeholder** — "DELAYED SPOT $448.82 … DAILY TECHNICAL STACK Bear stack (20 < 50 < 200)" |
+
+This is the runtime disproof of blocker 2. The opt-out comment predicted the shell
+would "hijack 'simple' mode with rlv-focused, hiding the native Simple view"; in
+current code the shell is only a **tablist** (`#rlviews` has `role="tablist"` and
+no panels of its own) and it *drives* the page's own `#simpleView` / `#powerView`.
+The native Simple view is preserved, not hidden.
+
+**Exact cost of adoption — 2 tests, not 23 references.** The "23 legacy-tab
+references" figure counts textual occurrences, most of which are in asserted object
+literals that still hold. Measured against `tests/msft-july-market-refresh.spec.mjs`:
+
+| State | Result |
+|---|---|
+| At HEAD, opt-out intact | **6 passed** |
+| Opt-out removed | **4 passed, 2 failed** |
+
+The two failures are both native-tab-control assertions that the shared shell
+replaces by design:
+
+- `:439` `SCN-009-009/011/012 one state drives modes refresh and export` —
+  `locator.click` timeout, because it clicks the now-hidden native `#simpleTab`/`#powerTab`.
+- `:596` (asserting at `:713`) `SCN-009-011 viewport accessibility and canvas matrix` —
+  expected `{ focused: "powerTab", mode: "power" }`, received `{ focused: "", mode: "simple" }`,
+  because native-tab keyboard navigation no longer applies.
+
+Migration is therefore bounded: repoint those two at the shell's tabs
+(`#rlviews [role="tab"][data-rlview-mode="simple"|"power"]`) and delete the
+21-line opt-out. Adopting it would also take `tests/tool-experience-shell.functional.mjs`
+from 2 pass / 1 fail to 3 pass / 0 fail.
+
+**Deliberately NOT applied here.** Doing it would mean rewriting Feature 009's
+regression assertions (`SCN-009-009/011/012`) so that a UI change introduced in the
+same edit passes — the "change the test so the change passes" antipattern — while
+also overriding this scope's recorded decision that msft is out of scope. The
+measurement is supplied so the owner can decide with facts instead of an estimate;
+the code change is theirs to authorize.
 
 **Secondary finding — scenario-ID collision.** The shell test labels its cases
 `SCN-012-028` / `SCN-012-029`, but those IDs belong to different scenarios —

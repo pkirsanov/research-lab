@@ -3754,7 +3754,11 @@ default mode returns `ok:false` — was corrected to cite `--graph-only`, the mo
 graph the distributed publisher owns. **GAP-F5** — two suites could silently pass by skipping when Playwright
 failed to load — now throw instead
 (`tests/distributed-briefs.static.integration.mjs:26`, `tests/distributed-briefs.ui-canary.mjs:18`);
-`regression-quality-guard.sh` reports 0 violations across the required files.
+`regression-quality-guard.sh` reports 0 violations across the required files. GAP-F5's full disposition
+(`fixed-in-session`, with the adversarial old-vs-new proof) is recorded in the `## Discovered Issues` table
+above and in
+[specs/002-distributed-tool-briefs-and-history/scopes/10-shared-ui-and-pages-acceptance/report.md](scopes/10-shared-ui-and-pages-acceptance/report.md);
+neither suite is deferred or excluded.
 
 **GAP-F1 remains open and is deliberately not a certification blocker.** The Scope 10 publication cutover has
 not been flipped, so the compatibility projections still resolve the legacy narrative rather than the current

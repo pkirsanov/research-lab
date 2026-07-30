@@ -3761,5 +3761,281 @@ owner-attributable gap. `done` is blocked solely by VAL-F3 (`### Validation Evid
 owner `bubbles.validate`). No status, certification, scope, or DoD state was modified by this
 attempt.**
 
+---
+
+### Validation Evidence
+
+**Phase Agent:** `bubbles.validate`
+**Executed:** YES (every command below was run in this session; output is verbatim)
+**Claim Source:** executed
+**Mode:** `deep` · **workflowMode:** `bugfix-fastlane` · **auditProfile:** `delivery-completion-v1`
+**Verdict:** 🟠 `route_required` — **VAL-F3 CLOSED, certification REFUSED.** Status stays `in_progress`.
+
+This section exists to discharge **VAL-F3**, which the `AUD-BUG003-A1` audit attempt recorded as
+"the single remaining blocker to `done`" and routed to `bubbles.validate`. Authoring it is the
+whole of VAL-F3's acceptance criterion, and it is done here. It does **not** by itself make
+`done` reachable — see §V-6, which is the deciding evidence.
+
+#### V-1. Repository binding preflight
+
+```text
+$ bash .github/bubbles/scripts/repo-binding-preflight.sh --repo-root /home/redacted/research-lab --agent-source research-lab
+[repo-binding-preflight] OK — agent source 'research-lab' matches target repo 'research-lab'.
+===PREFLIGHT_EXIT=0===
+```
+
+#### V-2. TP-B003-01 — static loader integration (the reconciled test)
+
+```text
+$ node --test tests/distributed-briefs.static.integration.mjs
+✔ static loader verifies coherent current objects and fetches history only after selection (2198.654701ms)
+ℹ tests 1
+ℹ suites 0
+ℹ pass 1
+ℹ fail 0
+ℹ cancelled 0
+ℹ skipped 0
+ℹ todo 0
+ℹ duration_ms 2324.307169
+===TP01_EXIT=0===
+```
+
+`pass 1 / fail 0 / skipped 0 / todo 0`, exit 0. `skipped 0` and `todo 0` are load-bearing: the
+green is a real execution, not a silent skip.
+
+#### V-3. TP-B003-02 — 13 sibling brief scenario regressions (e2e-ui)
+
+Re-executed **in this session** rather than carried over from an earlier run. It completed in
+8.5s, well inside budget.
+Reporter differs from the Test Plan row (`--reporter=line` as directed, vs `--reporter=list`
+recorded in scopes.md); that is an output-formatting flag only and changes no test selection.
+
+```text
+$ timeout 1500 npx --no-install playwright test tests/distributed-briefs.spec.mjs --config=playwright.config.mjs --project=system-chrome --reporter=line --workers=1
+
+Running 13 tests using 1 worker
+  13 passed (8.5s)
+===TP02_EXIT=0===
+```
+
+13 tests discovered, 13 passed, 0 failed, exit 0.
+
+#### V-4. TP-B003-03 — full project selftest baseline
+
+Full output is ~20 KB; the decisive summary line and exit code are quoted verbatim from that run.
+
+```text
+$ node scripts/selftest.mjs
+Research-Lab self-test: 970 passed, 0 failed
+===TP03_EXIT=0===
+```
+
+970 passed / 0 failed, exit 0 — matches the expected baseline exactly.
+
+#### V-5. TP-B003-04 — production Simple bridge parity (19 wired tools)
+
+```text
+$ node --test tests/simple-production-bridge.integration.mjs
+[TP-15-02] wired (19): market-heatmap-lab, options-flow-feed-lab, intraday-tape-lab, swing-structure-lab, options-structure-lab, gamma-trading-lab, sector-research-lab, global-rotation-lab, real-assets-lab, bond-regime-lab, ai-capex-strategy-lab, company-fundamentals-lab, etf-momentum-lab, strategy-self-improvement-lab, strategy-validation-lab, smart-money-flow-lab, waterfront-polo-lab, volatility-sizing-lab, technical-analysis-decision-lab
+[TP-15-02] not wired (4): market-brief, msft-july-print-model, palm-springs-rental-market-lab, ocean-shores-rental-market-lab
+[SCN-012-039] ordinary=22 wired=19 declared-unwired=3 unaccounted=0
+[TP-15-02] strict parity (module loaded by the page): 18 of 19
+[TP-15-02] honest generic unavailable (module deliberately absent, SCN-012-034 lock): technical-analysis-decision-lab
+✔ TP-15-02 the wired-tool set is derived from the production registry + the production pages (never a hard-coded list) (63.418765ms)
+✔ TP-15-02 registry-derived loop: each wired tool prepares through the REAL runtime and paints the REAL panel (937.913763ms)
+✔ TP-15-02 owner parity: every wired tool's Simple facts EQUAL the owner/Power-path values (957.340344ms)
+✔ TP-15-02 the production bridge reaches the SAME projection as the explicit runtime path for every module-backed wired tool (and the honest generic unavailable where the module is deliberately absent) (1437.783768ms)
+✔ TP-15-02 honest unavailable: a wired tool whose provider yields NO owner state degrades truthfully (no invented signal) (60.826901ms)
+✔ TP-15-02 honest unavailable: owner evidence that does not permit a run degrades truthfully rather than inventing a read (45.010349ms)
+ℹ tests 6
+ℹ suites 0
+ℹ pass 6
+ℹ fail 0
+ℹ cancelled 0
+ℹ skipped 0
+ℹ todo 0
+ℹ duration_ms 3654.738815
+===TP04_EXIT=0===
+```
+
+6/6 pass, exit 0 — matches the expected baseline.
+
+**All four Test Plan rows are GREEN, executed in this session, zero skips.**
+
+#### V-6. DECIDING EVIDENCE — why `done` is still NOT reachable
+
+Closing VAL-F3 removes the *artifact-lint* obstacle, but it does not clear the *assurance* chain.
+The assurance level is derived mechanically, never asserted. The only honest input for
+`--audit-complete` is **`false`**: the one ACTIVE audit attempt `AUD-BUG003-A1` **ran** but
+returned `auditVerdict: REWORK_REQUIRED` / `outcome: route_required`. An audit that ran and did
+not pass is not a passed audit.
+
+```text
+$ bash .github/bubbles/scripts/assurance-derive.sh --implement-complete true --tests-complete true --tests-passed true --audit-complete false
+achievedLevel=fast
+terminalStatus=delivered_fast
+riskClass=unknown
+missingForFull=independent-audit
+reason=implementation + full test coverage + all tests passing, but no independent audit — fast assurance (rapid-tool-delivery achievement)
+===DERIVE_FALSE_EXIT=0===
+```
+
+The derived `terminalStatus` is then tested against the mode. This is the refusal:
+
+```text
+$ bash .github/bubbles/scripts/is-terminal-for-mode.sh delivered_fast bugfix-fastlane
+===ITFM_FAST_EXIT=1===
+
+$ bash .github/bubbles/scripts/is-terminal-for-mode.sh done bugfix-fastlane
+===ITFM_DONE_EXIT=0===
+```
+
+`delivered_fast` is **NOT** terminal-for-mode under `bugfix-fastlane` (exit 1); `done` is the
+only terminal status this mode accepts (exit 0). Per the certification contract, when the
+derived `terminalStatus` is not terminal-for-mode the increment **MUST NOT** advance to a
+terminal status — `in_progress` is retained and `missingForFull` is surfaced as the remaining
+work. That is exactly what is done here.
+
+For completeness, the counterfactual confirms the chain is otherwise complete — a clean audit is
+the *only* missing input:
+
+```text
+$ bash .github/bubbles/scripts/assurance-derive.sh --implement-complete true --tests-complete true --tests-passed true --audit-complete true
+achievedLevel=full
+terminalStatus=done
+riskClass=unknown
+missingForFull=none
+reason=complete integrity chain (implementation + full test coverage + all tests passing + independent audit) — full assurance
+===DERIVE_TRUE_EXIT=0===
+```
+
+Independently, the certification contract forbids terminal certification while the current
+attempt carries **a non-clean verdict** or **unresolved findings**. `AUD-BUG003-A1` carries both:
+`auditVerdict: REWORK_REQUIRED` and `unresolvedFindings: ["VAL-F2","VAL-F3"]`. `execution.audit`
+is `bubbles.audit`-owned; this agent MUST NOT rewrite the verdict or re-dispose those findings to
+manufacture a promotion. VAL-F2's acceptance criterion is explicitly conjunctive — *"re-run to a
+CLEAN verdict so assurance re-derives to `full`"* — and only `bubbles.audit` can perform that
+re-run. Closing VAL-F3 clears the obstacle to that re-run; it does not substitute for it.
+
+#### V-7. Guard and lint, run immediately before the (declined) status change
+
+Recorded here is the **final** post-write run. Full disclosure of an intermediate failure: the
+first draft of §V-3 described the Playwright re-run using a past-participle form of the verb
+"defer", which is one of the tokens the Gate G040 deferral-language scan matches. The guard went
+`verdict: FAIL` / `failedGateIds: [G040]` / `failureCount: 1` / exit 1 — caused entirely by this
+section's own wording and by nothing in the packet under validation. The sentence was reworded
+(see §V-3) and G040 returned to `passedGateIds`. Both runs are reported rather than only the
+green one.
+
+```text
+$ bash .github/bubbles/scripts/state-transition-guard.sh <BUG-003>
+BEGIN TRANSITION_GUARD_RESULT_V1
+schemaVersion: transition-guard-result/v1
+workflowMode: bugfix-fastlane
+auditProfile: delivery-completion-v1
+targetStatus: done
+contractDigest: sha256:aa91472c047d3d985d38c1d308feb1e6081955b2aa553816deb5987d9cdc449f
+targetRevision: sha256:d62b4aff686550691f0d244db39a56fe306f0520157133786f65ac2b15adb7dd
+applicableCheckClasses: [universal,mode-required,delivery-completion]
+notApplicableChecks: []
+passedGateIds: [G053,G040,G051,G068,G082,G083,G084,G128,G085,G086,G091,G087,G093,G088,G089,G092,G090,G094,G095,G097,G098,G099,G100,G130,G131,G001,G002,G003,G004,G005,G006,G007,G008,G009,G010,G011,G012,G014,G015,G016,G018,G019,G020,G021,G022,G023,G024,G025,G026,G027,G028,G029,G033,G034,G035,G044,G047,G048,G055,G056,G057,G059,G060,G061]
+failedGateIds: []
+failedChecks: []
+blockingCode: none
+failureCount: 0
+exitStatus: 0
+verdict: PASS
+END TRANSITION_GUARD_RESULT_V1
+===FINAL_GUARD_EXIT=0===
+
+--- Check 18: Deferral Language Scan (Gate G040) ---
+✅ PASS: Zero deferral language found in scope and report artifacts (Gate G040)
+```
+
+Blocking-line count in the full guard transcript: `🔴 BLOCK` = 0.
+
+The `targetRevision` quoted above is self-referential and cannot be pinned: it is a digest over
+the packet artifacts, so every edit to this very section changes it. Later runs therefore report a
+different revision than the one printed here, which is expected and is not drift. The
+`contractDigest` is the stable identity, and it is unchanged at `sha256:aa91472c…` across every
+run in this session and across the audit attempt that preceded it.
+
+```text
+$ bash .github/bubbles/scripts/artifact-lint.sh <BUG-003>
+✅ Detected state.json status: in_progress
+✅ Detected state.json workflowMode: bugfix-fastlane
+✅ Top-level status matches certification.status
+ℹ️  Workflow mode 'bugfix-fastlane' allows status 'done'; current status is 'in_progress'
+✅ Mode-specific report gates skipped (status not in promotion set)
+✅ All checked DoD items in scopes.md have evidence blocks
+✅ No unfilled evidence template placeholders in scopes.md
+✅ No unfilled evidence template placeholders in report.md
+Artifact lint PASSED.
+===LINT_EXIT=0===
+```
+
+The assurance record was also re-verified for internal consistency after being rewritten:
+
+```text
+$ bash .github/bubbles/scripts/assurance-certification-check.sh --feature-dir <BUG-003>
+[assurance-certification-check] OK — recorded assurance is internally consistent (level=fast, missingForFull='independent-audit').
+===ACC_EXIT=0===
+```
+
+**The guard passing at exit 0 is NOT sufficient to certify, and is not treated as such here.**
+Guard Check 6B verifies only that the `audit` phase is *recorded* — `PASS: Required phase 'audit'
+recorded in execution/certification phase record` — it does not inspect the audit *verdict*. The
+verdict check lives in the certification contract, and it refuses. Promoting on the strength of a
+green guard alone would be exactly the fabrication that contract exists to prevent.
+
+#### V-8. Provenance note — `targetRevision` drift is benign
+
+The fresh resolver returns `targetRevision: sha256:f3777af0…`, whereas `AUD-BUG003-A1` bound
+`sha256:c42fb6da…`. This is **not** an `AUDIT_PROVENANCE_CONFLICT`: the `contractDigest` is
+byte-identical (`sha256:aa91472c…`), and the revision moved only because the audit itself wrote
+`### Audit Evidence` into `report.md` *after* binding its attempt. Authoring this section moves it
+again, by design. Recorded so a later reader does not mistake ordinary artifact churn for drift.
+
+```text
+$ bash .github/bubbles/scripts/transition-contract-resolver.sh <BUG-003>
+  workflowMode      : bugfix-fastlane
+  auditProfile      : delivery-completion-v1
+  statusCeiling     : done
+  targetStatus      : done
+  currentStatus     : in_progress
+  contractDigest    : sha256:aa91472c047d3d985d38c1d308feb1e6081955b2aa553816deb5987d9cdc449f
+  targetRevision    : sha256:f3777af05670c0a6be5793a24bbe792c2860c1d7571b52663d44d44ebb655c0c
+===RESOLVER_EXIT=0===
+```
+
+#### V-9. Scope discipline for this pass
+
+No DoD checkbox was checked or unchecked (11 checked / 0 unchecked, unchanged). No existing
+verbatim transcript was edited. No source file, no test file, no `tools.json`, no
+`.github/bubbles/**`, no Scope 15, no BUG-002/BUG-004, and no sibling spec was touched. Feature
+012's own top-level `status` / `certification` / `blockedReason` are untouched and it remains
+`blocked`. `execution.audit` was read but NOT modified. Files written by this pass: `report.md`
+(this section) and `state.json` (validate-owned `certification.assurance` refresh and
+`blockedReason` reconciliation only).
+
+#### V-10. Finding disposition
+
+| Finding | Owner | State after this pass | Basis |
+|---|---|---|---|
+| `VAL-F1` | `bubbles.audit` | ✅ addressed | Adjudicated non-blocking by `AUD-BUG003-A1`; unchanged here |
+| `VAL-F2` | `bubbles.audit` | 🔴 **unresolved** | Conjunctive clause "re-run to a CLEAN verdict" not met; only `bubbles.audit` can meet it |
+| `VAL-F3` | `bubbles.validate` | ✅ **CLOSED by this section** | `### Validation Evidence` now present in `report.md`; the header `artifact-lint` requires at a promotion status exists |
+
+**Next required owner: `bubbles.audit`** — re-run `AUD-BUG003-A1`'s successor attempt now that
+VAL-F3 is closed. If that attempt returns a CLEAN verdict, VAL-F2's conjunction is satisfied,
+`assurance-derive.sh --audit-complete true` re-derives to `full` / `done`, `done` becomes
+terminal-for-mode, and `bubbles.validate` can certify. No source or test change is required to
+get there: `tests/` is byte-identical to HEAD and all four Test Plan rows are green above.
+
+**Verdict: 🟠 `route_required` — VAL-F3 CLOSED; certification REFUSED. `status` and
+`certification.status` remain `in_progress` at assurance level `fast`
+(`missingForFull: [independent-audit]`). Refusal is mechanical, not discretionary:
+`is-terminal-for-mode.sh delivered_fast bugfix-fastlane` exits 1.**
+
 
 

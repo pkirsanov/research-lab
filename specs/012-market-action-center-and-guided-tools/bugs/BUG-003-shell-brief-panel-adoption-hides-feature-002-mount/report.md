@@ -3365,12 +3365,18 @@ an explicit disposition and a concrete reference, per the disposition contract i
 |----|------|-------|-----------|-------------|-----------|
 | DI-01 | 2026-07-29 | Simplify-phase justification for not hoisting `openBriefView` into the shared support module used a boundary-exclusion phrase at `report.md:1502` with no in-paragraph disposition citation (raised as audit finding AUD-F3). | `bubbles.audit` | **fixed-in-session** — `bubbles.simplify` amended the paragraph to cite `FR-B003-06`, which forbids editing `tests/distributed-briefs.spec.mjs` and therefore closes the extraction option by contract rather than by preference. Re-verified by `bubbles.audit` against source before this row was written. | `specs/012-market-action-center-and-guided-tools/bugs/BUG-003-shell-brief-panel-adoption-hides-feature-002-mount/spec.md` line 69 (`FR-B003-06`); `design.md` lines 202-203; `report.md` L1494-1512; audit finding AUD-F3 above |
 | DI-02 | 2026-07-29 | The audit narrative and route table quote the flagged phrase verbatim while describing and routing AUD-F3, so the scanner reads the quotations as this packet's own prose. | `bubbles.audit` | **fixed-in-session** — verbatim quotations relocated into fenced blocks (which G040 excludes); surrounding prose reworded to describe the finding without reproducing the phrase. No finding was withdrawn, softened, or deleted; AUD-F3 remains legible as raised-then-remediated. | `report.md` — AUD-F3 narrative, Spot-Check item 3, and the `## ROUTE-REQUIRED` AUD-F3 row |
+| DI-03 | 2026-07-30 | G095 reported 3 BLOCKs at `report.md` lines 3198, 3205 and 3218. All three are false positives: each sits inside a fenced `text` block reproducing verbatim evidence — an `awk`/`grep` result, the guard's own earlier BLOCK output, and a `grep` of `design.md`. The file's 216 fence lines are balanced, and the guard's own out-of-fence fence-toggle scan (reproduced verbatim at `report.md` L3199) returns zero matches, so no narrative prose in this packet carries an undispositioned deferral phrase. | `bubbles.docs` (G095 guard run) | **fixed-in-session** — root cause fixed upstream in the Bubbles framework source at commit `360453a`, which makes the guard's `scan_file()` strip fenced blocks line-count-preservingly before paragraph splitting, keeps out-of-fence detection intact, and fails safe on unbalanced fences. research-lab's `.github/bubbles/**` is a framework-managed install, so the installed guard was deliberately NOT patched locally; it picks the fix up on the next installer refresh. The three transcript blocks were left byte-for-byte unedited — rewriting a recorded terminal capture to clear a gate would be fabrication. | bubbles commit `360453a` (`fix(G095): stop the discovered-issue guard scanning fenced code blocks`); `report.md` L3198-3208 and L3218-3221; underlying finding AUD-F3 already closed as DI-01 (2026-07-29) |
 
 **Scope of this register.** These two rows dispose of the G040/G095 surface only. They record
 **nothing** about AUD-F1 or AUD-F2, which remain open and unrouted-to-closure, and they carry no
 certification meaning: this audit still writes no `certification.*` field, marks no scope Done,
 checks no DoD box, and leaves `status: in_progress`. The verdict above stands at
 **REWORK_REQUIRED**.
+
+**DI-03 was appended 2026-07-30, after the audit above.** The preceding paragraph is that
+audit's own scoped statement about its two rows (DI-01, DI-02) and is left verbatim. DI-03
+disposes of a separate, later G095 surface and likewise carries no certification meaning: the
+pass that added it writes no `certification.*` field, marks no scope Done, and checks no DoD box.
 
 ---
 

@@ -192,7 +192,9 @@ test('SCN-012-028 dependency projection exposes the exact Brief gate with no byp
   assert.deepEqual(gate.withheldCapabilities, ['dynamic-tool-brief-v2', 'live-web-evidence', 'public-alert-publication']);
   assert.deepEqual(gate.preservedCapabilities, ['simple', 'power', 'journey', 'deterministic-local-evidence']);
   assert.equal(gate.bypassAllowed, false);
-  assert.equal(gate.acceptanceGate, 'status=done; certification=done; milestones=4/4');
+  assert.equal(gate.requirementName, 'milestones');
+  assert.equal(gate.acceptanceGate, 'status=done; certification=done; milestones=all-4-required');
+  assert.equal(gate.acceptanceGate.includes('4/4'), false);
 });
 
 test('SCN-012-029 dependency projection preserves public Portfolio and creates no private-store contract', () => {

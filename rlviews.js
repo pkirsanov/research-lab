@@ -110,6 +110,7 @@
       '<h2>' + escapeHtml(gate.heading) + '</h2>' +
       '<p>Observed status: ' + escapeHtml(gate.observed.status || "unknown") + '</p>' +
       '<p>Observed certification: ' + escapeHtml(gate.observed.certificationStatus || "unknown") + '</p>' +
+      '<p>Observed ' + escapeHtml(gate.requirementName) + ' matched: ' + escapeHtml(String(gate.observed.matchedRequirementCount)) + ' of ' + escapeHtml(String(gate.observed.requiredRequirementCount)) + '</p>' +
       '<p>Withheld: ' + escapeHtml(gate.withheldCapabilities.join(", ")) + '</p>' +
       '<p>Available now: ' + escapeHtml(gate.preservedCapabilities.join(", ")) + '</p>' +
       '<p>Acceptance gate: ' + escapeHtml(gate.acceptanceGate) + '</p>' +

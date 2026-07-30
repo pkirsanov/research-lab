@@ -629,7 +629,7 @@
       "requiredTestType": "e2e-ui",
       "regressionRequired": true,
       "linkedTests": [
-        "tests/tool-experience.spec.mjs :: Regression: SCN-012-028 uncertified Feature 002 exposes exact Brief gate and no author request"
+        "tests/tool-experience.spec.mjs :: Regression: SCN-012-028 Feature 002 without published milestones exposes exact Brief gate and no author request"
       ],
       "expectedAssertions": [
         "exact dependency observed state withheld capability preserved capability and gate are visible",

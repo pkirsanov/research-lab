@@ -2256,12 +2256,15 @@
       gateId: gate.gateId,
       gateCode: "E012-DEPENDENCY:" + gate.gateId,
       evidencePath: gate.statePath,
+      requirementName: requirementName,
       observed: cloneCanonical(projection.observed),
       withheldCapabilities: cloneCanonical(projection.withheldCapabilities),
       preservedCapabilities: cloneCanonical(projection.preservedCapabilities),
+      /* Criteria only. Encoded "all-N-required", never "N/N", so the requirement can never be
+         misread as progress; observed progress is observed.matchedRequirementCount. */
       acceptanceGate: "status=" + gate.acceptedPredicate.statuses.join("|") +
         "; certification=" + gate.acceptedPredicate.certificationStatuses.join("|") +
-        "; " + requirementName + "=" + required.length + "/" + required.length,
+        "; " + requirementName + "=all-" + required.length + "-required",
       bypassAllowed: false
     });
   }

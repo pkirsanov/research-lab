@@ -16,6 +16,7 @@ import { existsSync, readdirSync, readFileSync } from 'node:fs';
 import { fileURLToPath } from 'node:url';
 import { dirname, join } from 'node:path';
 import { validateBriefPayload } from './validate-brief-payload.mjs';
+import { formatSpecTestPathFindings, validateSpecTestPaths } from './validate-spec-test-paths.mjs';
 import { buildCompanyFundamentalsOwnerRead } from './brief-refresh.mjs';
 
 const ROOT = join(dirname(fileURLToPath(import.meta.url)), '..');
@@ -4564,6 +4565,15 @@ try {
     if (priorDocument === undefined) delete globalThis.document; else globalThis.document = priorDocument;
   }
 } catch (e) { failures++; console.log('  \u2717 FAIL (Feature 012 Scope 15 production bridge canaries threw): ' + e.message); }
+
+/* ---------- spec artifacts — every referenced test path exists (ratchet) ---------- */
+try {
+  group('spec artifacts \u2014 referenced tests/*.mjs paths exist (Playwright silently ignores absent file args)');
+  const specTestPaths = validateSpecTestPaths(ROOT);
+  assert(!specTestPaths.vacuous && specTestPaths.baselinePresent, 'the scan matched at least one tests/*.mjs reference against a present baseline, so the guard is not vacuously green (' + specTestPaths.referenceCount + ' reference(s) across ' + specTestPaths.scannedFiles + ' artifact(s), baseline ' + specTestPaths.baselineCount + ' entr' + (specTestPaths.baselineCount === 1 ? 'y' : 'ies') + ')');
+  for (const line of formatSpecTestPathFindings(specTestPaths, 1)) console.log('    ' + line);
+  assert(specTestPaths.newMissing.length === 0, 'no tests/*.mjs path named by a spec artifact is missing outside the frozen baseline \u2014 a stale path makes a multi-file verification command silently cover less than it claims (' + specTestPaths.newMissing.length + ' new, ' + specTestPaths.knownMissing.length + ' known-missing, ' + specTestPaths.staleBaseline.length + ' stale of ' + specTestPaths.referencedPathCount + ' referenced)');
+} catch (e) { failures++; console.log('  \u2717 FAIL (spec artifact test-path guard threw): ' + e.message); }
 
 /* ---------- summary ---------- */
 console.log('\n' + '='.repeat(48));

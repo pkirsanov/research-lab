@@ -1,0 +1,145 @@
+# validate-spec-test-paths baseline — Research Lab
+#
+# `tests/*.mjs` paths named by a committed spec artifact that do NOT exist on
+# disk. Frozen so the guard can fail on NEW stale references while this
+# pre-existing set is triaged.
+#
+# Keyed on the missing PATH, not on the referencing site. A new reference to a
+# path already listed here passes; a reference to a path NOT listed here FAILS.
+# That is the regression this guard exists to stop.
+#
+# THIS LIST MUST SHRINK, NEVER GROW. Every entry is one of:
+#   - planned but never written   -> write the test, or drop the plan row
+#   - renamed or moved            -> repoint the reference
+#   - naming-convention drift     -> reconcile the plan against disk
+#   - captured terminal evidence of a since-deleted scratch file -> a
+#     transcript, not a coverage claim; historical and grandfathered
+#
+# A baseline entry that is no longer missing is reported as STALE and the run
+# still exits 0. Remove it. Do NOT regenerate the baseline to silence a
+# genuine new finding.
+#
+# Regenerate ONLY when deliberately accepting the current set:
+#   node scripts/validate-spec-test-paths.mjs --update-baseline
+#
+# There is no --skip / --force / --ignore / --bypass flag and there never will
+# be. A bypass-shaped flag exits non-zero.
+#
+# FROZEN: 86 missing path(s) across 1775 reference site(s), on 2026-07-30.
+#
+# ---- debt attribution ------------------------------------------------------
+#   paths | sites | spec | status
+#      31 |   102 | specs/002-distributed-tool-briefs-and-history | status=done  <-- see NOTE
+#      20 |   128 | specs/012-market-action-center-and-guided-tools | status=blocked
+#      10 |   427 | specs/008-portfolio-survival-and-brief-lab | status=not_started
+#       8 |   287 | specs/014-shared-cycle-and-seasonality-exchange | status=not_started
+#       8 |   377 | specs/015-recommendation-outcome-ledger-and-track-record | status=blocked
+#       6 |    81 | specs/001-causal-rotation-intelligence | status=not_started
+#       3 |   120 | specs/013-market-regime-stack-and-strategy-playbook | status=in_progress
+#       1 |   253 | specs/016-auction-gamma-playbook | status=not_started
+#
+# ---- NOTE: a status=done spec is carrying frozen debt -----------------------
+#
+# A not_started spec whose Test Plan names an unwritten test is expected debt.
+# A status=done spec is a materially different class and is called out here so
+# it stays visible to whoever pays this down rather than lost in the list.
+#
+#   specs/002-distributed-tool-briefs-and-history — status=done
+#     31 distinct missing path(s) across 102 reference site(s)
+#         98 site(s) in plan context — a forward-looking coverage claim
+#          4 site(s) in report.md — an EVIDENCE context, not a plan context
+#
+# `report.md` is captured-transcript and gap-declaration space. A stale path
+# there may be a verbatim terminal capture of a scratch file that has since
+# been deleted, or the report explicitly documenting that a planned path does
+# NOT exist. Read the site before treating it as a false coverage claim; the
+# remedy is usually owned by the planning artifact, not by the report.
+#
+# ---- frozen paths (LC_ALL=C sorted) -----------------------------------------
+
+tests/_tp1504-settle-probe.spec.mjs
+tests/auction-gamma-playbook.spec.mjs
+tests/causal-rotation-adversarial.spec.mjs
+tests/causal-rotation-brief.spec.mjs
+tests/causal-rotation-consumers.spec.mjs
+tests/causal-rotation-delivery.spec.mjs
+tests/causal-rotation-pages.spec.mjs
+tests/causal-rotation-registry.spec.mjs
+tests/distributed-briefs-authorship-adversarial.test.mjs
+tests/distributed-briefs-authorship.e2e.mjs
+tests/distributed-briefs-authorship.integration.test.mjs
+tests/distributed-briefs-authorship.stress.mjs
+tests/distributed-briefs-authorship.test.mjs
+tests/distributed-briefs-consumer-trace.test.mjs
+tests/distributed-briefs-contracts.test.mjs
+tests/distributed-briefs-final-validator.test.mjs
+tests/distributed-briefs-git-isolation.integration.test.mjs
+tests/distributed-briefs-history-adversarial.test.mjs
+tests/distributed-briefs-history.e2e.mjs
+tests/distributed-briefs-history.integration.test.mjs
+tests/distributed-briefs-history.load.mjs
+tests/distributed-briefs-history.test.mjs
+tests/distributed-briefs-migration.e2e.mjs
+tests/distributed-briefs-migration.integration.test.mjs
+tests/distributed-briefs-playwright.mjs
+tests/distributed-briefs-read-adapters.integration.test.mjs
+tests/distributed-briefs-recommendations.test.mjs
+tests/distributed-briefs-registry.e2e.mjs
+tests/distributed-briefs-renderer.test.mjs
+tests/distributed-briefs-run-state.test.mjs
+tests/distributed-briefs-scheduler-canary.test.mjs
+tests/distributed-briefs-scheduler-failures.integration.test.mjs
+tests/distributed-briefs-scheduler.e2e.mjs
+tests/distributed-briefs-scheduler.integration.test.mjs
+tests/distributed-briefs-scheduler.stress.mjs
+tests/distributed-briefs-scope10.spec.mjs
+tests/distributed-briefs-shared-canary.test.mjs
+tests/distributed-briefs-static-server.integration.test.mjs
+tests/distributed-briefs-ui-canary.test.mjs
+tests/feature-012.acceptance.spec.mjs
+tests/feature-012.acceptance.unit.mjs
+tests/feature-012.consumer-trace.mjs
+tests/feature-012.mobile-accessibility.spec.mjs
+tests/feature-012.performance.spec.mjs
+tests/feature-012.privacy-security.functional.mjs
+tests/feature-012.qf-portability.contract.mjs
+tests/feature-012.rollback.integration.mjs
+tests/market-action-publication.integration.mjs
+tests/market-regime-consumer-migration.spec.mjs
+tests/market-regime-lab.spec.mjs
+tests/market-regime-lab.stress.spec.mjs
+tests/portfolio-allocation.functional.mjs
+tests/portfolio-analytics.unit.mjs
+tests/portfolio-brief.functional.mjs
+tests/portfolio-matrix-privacy.functional.mjs
+tests/portfolio-private.spec.mjs
+tests/portfolio-publisher-boundary.functional.mjs
+tests/portfolio-stress-journey.functional.mjs
+tests/portfolio-survival-allocation.spec.mjs
+tests/portfolio-survival-brief.spec.mjs
+tests/portfolio-survival-diversification.spec.mjs
+tests/portfolio-survival-mobile.spec.mjs
+tests/portfolio-survival-paths.spec.mjs
+tests/portfolio-survival-risk.spec.mjs
+tests/private-portfolio-adapter.unit.mjs
+tests/recommendation-track-record-lab.spec.mjs
+tests/recommendation-track-record.canary.mjs
+tests/recommendation-track-record.e2e.mjs
+tests/recommendation-track-record.functional.mjs
+tests/recommendation-track-record.integration.mjs
+tests/recommendation-track-record.stress.mjs
+tests/recommendation-track-record.support.mjs
+tests/recommendation-track-record.unit.mjs
+tests/rldata-admission-fail-closed.integration.mjs
+tests/shared-cycle-exchange.e2e.mjs
+tests/shared-cycle-exchange.functional.mjs
+tests/shared-cycle-exchange.integration.mjs
+tests/shared-cycle-exchange.spec.mjs
+tests/shared-cycle-exchange.stress.mjs
+tests/shared-cycle-exchange.support.mjs
+tests/shared-cycle-exchange.unit.mjs
+tests/tool-brief-v2-author-boundary.functional.mjs
+tests/tool-brief-v2-publication.integration.mjs
+tests/tool-brief-v2.spec.mjs
+tests/tool-brief-v2.stress.mjs
+tests/tool-brief-v2.unit.mjs

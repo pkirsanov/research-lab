@@ -4,17 +4,20 @@
 
 **Status:** In Progress
 
-**Delivered state — 2026-07-28, HEAD `30326253`, re-executed this session.** The
+**Delivered state — 2026-07-29, HEAD `a7631b36`, DoD reconciled this session.** The
 production bridge is delivered and proven, and **19 of the 22 ordinary tools are
 wired, 18 in strict projection parity**; the 19th
 (`technical-analysis-decision-lab`) is the intended registry-gated honest
-`unavailable` under the SCN-012-034 lock, not a gap. Every suite executed this
-session is green at exit 0: TP-15-02 integration 6/6, TP-15-01 unit 5/5,
-`scripts/selftest.mjs` 952 passed / 0 failed, the 8-spec Simple-adapter +
-wired-tool Playwright regression 102 passed, `tests/volatility-sizing-lab.spec.mjs`
-16/16, and the `tests/palm-springs-rental-market-lab.spec.mjs` Pages deploy gate
-29 passed. Full raw output in
-[report.md](report.md#final-verification-run--2026-07-28-head-30326253).
+`unavailable` under the SCN-012-034 lock, not a gap. **All 7 Test Plan rows are now
+closed with executed, attributable evidence**, the last two by this session:
+TP-15-01 unit **9/9** (commit `a7631b36` added the missing `ownerModes` and
+forbidden-authority assertions, so the declared file finally carries all four halves)
+and TP-15-05 **28/28** (commit `28099a4d` added a genuine interception-free live-stack
+carrier). Also green at exit 0: TP-15-02 integration 6/6, `scripts/selftest.mjs`
+**968 passed / 0 failed** with the 16-canary bridge group, TP-15-03 + TP-15-04
+`tests/simple-production-wiring.spec.mjs` 4/4, TP-15-06
+`tests/volatility-sizing-lab.spec.mjs` 16/16, and the Pages deploy gate 53/53. Full raw
+output in [report.md](report.md#dod-reconciliation-run--2026-07-29-head-a7631b36).
 
 **`volatility-sizing-lab` is now WIRED — the earlier block was a real defect, and
 it was fixed rather than assumed away.** A previous revision of this document
@@ -62,14 +65,16 @@ stand, and the *decisive* one is data, not engineering.
    Formula-ownership rule. This reason alone would make the work expensive; reason 1
    makes it wrong.
 
-**Why `In Progress` rather than `Done` or `Blocked`.** 10 of the 14 DoD items are
-open, so `Done` would be fabrication. `Blocked` would also be inaccurate, because
-the remaining work is *mixed*: part is still agent-actionable inside this scope's
-own allowlist — the Implementation Plan step-7 `scripts/selftest.mjs` bridge
-canaries, and the absent `ownerModes` / forbidden-authority assertions in
-`tests/simple-production-bridge.unit.mjs` (both files are declared Implementation
-Files) — while the rest is externally blocked on owner decisions for the unwired
-tools and on drifts D1-D5 routed to `bubbles.plan`. `In Progress` is the only
+**Why `In Progress` rather than `Done` or `Blocked`.** **10 of the 14 DoD items are
+now checked** and 4 remain open, so `Done` would be fabrication. The 4 open items are
+**not test gaps** — every Test Plan row is green and attributable. They are:
+(1) SCN-012-039's parenthetical END-state clause "every ordinary tool wired" (19 of 22);
+(2) SCN-012-041's 8th `#simpleView` page, the same root; (3) the change-boundary row,
+whose allowlist half is drift **D3** and whose rollback half has never been rehearsed;
+and (4) the Build Quality Gate, which inherits (1) and (3). `Blocked` would overstate
+it: three of the four are externally blocked on owner decisions for the unwired tools
+and on a `bubbles.plan` wording/allowlist amendment, but the rollback rehearsal is
+still agent-actionable work that simply has not been done. `In Progress` is the only
 label that misrepresents neither half.
 
 **Scope-Kind:** runtime-behavior
@@ -409,8 +414,16 @@ any row with `--list` — a zero-selection grep prints `Total: 0 tests` and exit
 
 - [ ] SCN-012-039: Provider-gated ordinary `ownerModes` resolves to `["power"]` once a page registers its owner-state provider (else `["simple", "power"]`; END state = every ordinary tool wired); `applyVisual` is the sole owner of `rlv-focused`; Simple shows the panel (native hidden) and Power shows native content (panel hidden); the bridge never mutates `rlv-focused`.
 
-  NOT SATISFIED — the item's own text names the END state as "every ordinary tool
-  wired", and **3 of the 22 ordinary tools are unwired at HEAD `30326253`**:
+  NOT SATISFIED — **on the coverage clause alone; every mechanism clause is now proven.**
+  Proven at HEAD `a7631b36`: provider-gated `ownerModes` (unit test 8, `ownerModes
+  resolution: provider wiring hands Simple to the adapter panel and never regresses an
+  unwired tool`, plus the TP-15-07 canary that executes `rlapp.js`'s **own** `ownerModes`
+  expression); `applyVisual` as sole owner of `rlv-focused` (the canary scan finds exactly
+  one executable `rlv-focused` write across 54 files, and it lives in `rlviews.js`);
+  Simple-panel-vs-Power-native (the TP-15-05 live carrier asserts both directions); and
+  never-mutates-`rlv-focused` (asserted on every unit fallback path, 0 recorded
+  mutations). What fails is the item's own parenthetical naming the END state as "every
+  ordinary tool wired", and **3 of the 22 ordinary tools are unwired at HEAD `a7631b36`**:
   `msft-july-print-model`, `palm-springs-rental-market-lab`,
   `ocean-shores-rental-market-lab`. The provider-gating mechanism itself and the
   never-mutates-`rlv-focused` half are both proven (SCN-012-038 evidence; TP-15-02
@@ -470,8 +483,9 @@ any row with `--list` — a zero-selection grep prints `Total: 0 tests` and exit
 
 - [ ] SCN-012-041: The 8 `#simpleView` tools' native Simple content is reachable under Power with nothing deleted; BUG-003 is closed.
 
-  NOT SATISFIED — **7 of the 8 `#simpleView` tools are reconciled, 1 is not**, and
-  BUG-003 closure is not claimable. *(Correction 2026-07-28 at HEAD `30326253`: earlier
+  NOT SATISFIED — **on the 8th `#simpleView` page alone; the BUG-003 half is now met.**
+  7 of the 8 are reconciled with executed proof; the 8th is not. *(Correction 2026-07-28
+  at HEAD `30326253`: earlier
   revisions of this reason said "no `#simpleView` tool has been reconciled" and then
   "6 of 8", and listed `bond-regime-lab` and `volatility-sizing-lab` as unwired. All of
   those statements are false at HEAD.)*
@@ -501,13 +515,24 @@ any row with `--list` — a zero-selection grep prints `Total: 0 tests` and exit
   `openNativeResearchSurface()` helper that drives the shell to Power before touching
   the native controls, and both specs were **executed this session inside the 102-test
   regression at exit 0** (`tests/volatility-sizing-lab.spec.mjs` additionally standalone
-  at 16/16 — see [report.md](report.md#tp-15-06)). Two clauses still fail: (a) the 1
-  unwired `#simpleView` page (`msft-july-print-model`) is not reconciled and its spec is
-  untouched; (b) **BUG-003 is not closed** — the Test Plan's TP-15-05 persistent title
-  (`Regression: bond-regime native content shows in Power not Simple and the adapter
-  panel is the Simple surface`) does not exist anywhere in `tests/`
-  (`grep -rn` exit 1), so no test carries the declared BUG-003-closure contract. That
-  title drift is recorded as **D4** and routed to `bubbles.plan`.
+  at 16/16 — see [report.md](report.md#tp-15-06)).
+
+  **Clause (b) — BUG-003 — is now MET.** *(The reason previously recorded here — "BUG-003
+  is not closed — the Test Plan's TP-15-05 persistent title … does not exist anywhere in
+  `tests/`, so no test carries the declared BUG-003-closure contract" — is **obsolete**:
+  D4 half 1 closed 2026-07-29, and `28099a4d` added an interception-free live-stack
+  carrier that asserts both directions of the contract. Executed 28/28 at HEAD
+  `a7631b36` — see the TP-15-05 row.)* The bond-regime BUG-003 in `specs/_bugs/` is at
+  status `done`.
+
+  **Clause (a) is what keeps this row open:** the 1 unwired `#simpleView` page
+  (`msft-july-print-model`) is not reconciled and its spec is untouched by this scope.
+  It is also the one page where the shell **deliberately never runs** (a
+  `window.__rlviewsInit = 1` opt-out), so it has no Power view for its native content to
+  be "reachable under" — nothing there is hidden or deleted, but neither is the clause
+  demonstrated as literally worded. Whether the clause is even applicable to a page that
+  opts out of the shell is the same wording question as SCN-012-039's END-state clause,
+  and is routed to `bubbles.plan`. Not closable by executing anything.
 
 - [x] SCN-012-042: Tools without a wired provider, and `technical-analysis-decision-lab` (no owner model), render an explicit honest `unavailable` with no invented signal; `market-brief` (brief-only) is unaffected.
 
@@ -580,28 +605,52 @@ any row with `--list` — a zero-selection grep prints `Total: 0 tests` and exit
   the `rlapp.js` `ownerModes` change, revert each page's provider registration). The
   item therefore stays open on both halves.
 
+  **Re-checked 2026-07-29 at HEAD `a7631b36`: both halves still stand.** D3 remains open
+  with `bubbles.plan` (the allowlist has not been amended), and a repository-wide search
+  for any recorded rollback exercise across this scope's artifacts returns nothing.
+  Neither half is closable by executing a test — (a) needs a `bubbles.plan` allowlist
+  amendment, (b) needs a rollback rehearsal that no one has performed.
+
 
 #### Test Evidence Items - Exact Parity With 7 Test Plan Rows
 
-- [ ] TP-15-01 unit evidence proves the bridge contract, `ownerModes`, honest-unavailable fallback, and no forbidden authority.
+- [x] TP-15-01 unit evidence proves the bridge contract, `ownerModes`, honest-unavailable fallback, and no forbidden authority.
 
-  **Uncertainty Declaration.** `node --test tests/simple-production-bridge.unit.mjs`
-  was re-executed this session at HEAD `30326253` and is green (5/5, exit 0 — evidence
-  under SCN-012-038), proving the bridge contract and the honest-unavailable fallback.
-  But the file contains **no** `ownerModes` assertion and **no** forbidden-authority
-  assertion, so two of the four claims in this DoD row are not proven by the named
-  test. Re-verified this session:
+  **Claim Source:** executed (2026-07-29, this agent, HEAD `a7631b36`). *(The prior
+  Uncertainty Declaration recorded here — "the file contains **no** `ownerModes`
+  assertion and **no** forbidden-authority assertion, so two of the four claims are not
+  proven by the named test" — was accurate at HEAD `30326253`/`0890348a` and is
+  **superseded**: commit `a7631b36` added exactly those two assertions to the declared
+  file, taking it from 7 tests to 9.)* All four declared claims are now named tests in
+  `tests/simple-production-bridge.unit.mjs` — bridge contract → tests 1-2;
+  honest-unavailable fallback → tests 3-5; `ownerModes` → test 8; no forbidden
+  authority → test 9. The forbidden-authority proof is no longer a manual static scan:
+  test 9 runs the real bridge and asserts it touches no network, provider, storage or
+  cookie surface.
 
   ```text
-  $ grep -n 'ownerModes\|forbidden\|providerFetch\|localStorage\|fetch(' tests/simple-production-bridge.unit.mjs
-  (exit 1 — no matches)
+  $ node --test tests/simple-production-bridge.unit.mjs
+  ✔ renderSimpleBridge is exposed on the production API (4.526289ms)
+  ✔ provider present + real owner state → renders the REAL market-breadth adapter (ready), never mutates rlv-focused (28.047632ms)
+  ✔ no owner-state provider → honest unavailable, no invented signal, never mutates rlv-focused (4.755089ms)
+  ✔ owner evidence does not permit a run (unhydrated) → honest unavailable, never mutates rlv-focused (12.74387ms)
+  ✔ missing adapter module → honest unavailable (no crash), never mutates rlv-focused (3.89799ms)
+  ✔ a queued Simple run does not survive an invalidation, and its promise settles (19.714953ms)
+  ✔ leaving Simple altogether also settles the queued run without painting (3.348991ms)
+  ✔ ownerModes resolution: provider wiring hands Simple to the adapter panel and never regresses an unwired tool (1.077198ms)
+  ✔ no forbidden authority: the runtime declares none, and running the real bridge touches no network, provider, storage or cookie surface (21.220249ms)
+  ℹ tests 9
+  ℹ suites 0
+  ℹ pass 9
+  ℹ fail 0
+  ℹ cancelled 0
+  ℹ skipped 0
+  ℹ todo 0
+  ℹ duration_ms 199.425417
+  UNIT_EXIT=0
   ```
 
-  The bridge's zero-forbidden-authority property was confirmed by a manual static
-  scan, but that is not the automated unit proof this row requires. Adding those two
-  assertions is **in-allowlist, agent-actionable** work
-  (`tests/simple-production-bridge.unit.mjs` is a declared Implementation File) that
-  has simply not been done. Item stays open. See [report.md](report.md#tp-15-01).
+  See [report.md](report.md#command-1--tp-15-01-unit-all-four-declared-halves-99).
 
 - [x] TP-15-02 integration evidence proves the registry-derived provider→runtime→panel loop and owner-parity for wired tools.
 
@@ -635,22 +684,49 @@ any row with `--list` — a zero-selection grep prints `Total: 0 tests` and exit
   ===TP1502_EXIT=0===
   ```
 
-- [ ] TP-15-03 E2E evidence proves market-heatmap Simple renders the real adapter panel and a control recomputes.
+- [x] TP-15-03 E2E evidence proves market-heatmap Simple renders the real adapter panel and a control recomputes.
 
-  **Title drift RESOLVED 2026-07-29 (D1 half 2); item still open pending an executed,
-  attributable run.** The reason previously recorded here — "neither carries the
-  persistent title this Test Plan row declares, and they live in two different files" —
-  is **obsolete**. Both halves now live in the declared file and the Test Plan row
-  declares both verbatim: `tests/simple-production-wiring.spec.mjs:48`
-  (`Regression: market-heatmap Simple renders the real adapter panel in the real
-  owner-mode flow`, panel-render half) and `:198`
-  (`TP-15-03 market-heatmap Simple renders real steerable controls and actuating one
-  recomputes the production projection with no refetch`, control-recompute half). The
-  reconciled command selects **2** tests (`--list` verified), so it can no longer
-  resolve to zero. What remains before this box may be checked is an executed,
-  attributable run of the reconciled command recorded in `report.md` — which
-  `bubbles.plan` does not own and did not perform. Item stays open.
-  See [report.md](report.md#tp-15-03).
+  **Claim Source:** executed (2026-07-29, whole-file run 4/4, exit 0 —
+  [Command 4](report.md#command-4--tp-15-03--tp-15-04-wiring-spec-44-system-chrome)).
+
+  ```text
+  $ npx --no-install playwright test tests/simple-production-wiring.spec.mjs \
+      --config=playwright.config.mjs --project=system-chrome --reporter=list --workers=1
+  Running 4 tests using 1 worker
+    ✓  1 …Simple renders the real adapter panel in the real owner-mode flow (2.9s)
+    ✓  2 …ctuating one recomputes the production projection with no refetch (4.1m)
+    ✓  3 …ol paints its real Simple adapter panel with an owner-parity fact (7.2m)
+    ✓  4 …s, and the honest-degradation cases are registry/provider derived (49ms)
+    4 passed (11.4m)
+  WIRING_EXIT=0
+  ```
+
+  Tests 1 and 2 are this row's two carriers — the panel-render half
+  (`tests/simple-production-wiring.spec.mjs:48`) and the control-recompute half (`:198`).
+  Both prior reasons are superseded. *Title drift (D1)* closed 2026-07-29: both halves
+  now live in the declared file and the Test Plan declares them verbatim, so the
+  reconciled command selects **2** tests (`--list` verified) and can no longer resolve to
+  zero. *Missing attributable run* closed by Command 4. The declared file is
+  interception-free — all five pattern matches are inside comment blocks that state the
+  constraint.
+
+  **Reproducibility note (disclosed, not elided).** Command 4 ran against a tree carrying
+  an uncommitted +11/-26 delta on `tests/simple-production-wiring.spec.mjs`, which
+  replaced a request-timing "network quiet" heuristic with the page's own declared
+  terminal-hydration boundary (`awaitDeclaredHydrationBoundary(page, 'data-heatmap-hydration')`).
+  That delta is byte-identical to what commit `bc3b7303` subsequently committed, and no
+  commit since has touched the file — so the recorded run covers the content at HEAD
+  `a7631b36` exactly. No assertion was relaxed, no tolerance widened, no check removed:
+  the non-vacuity assertion (moving a real model input must change the rendered
+  projection) and the empty-request-window assertion both survive unchanged.
+
+  ```text
+  $ npx --no-install playwright test tests/simple-production-wiring.spec.mjs --config=playwright.config.mjs --project=system-chrome --reporter=line --workers=1
+    4 passed (11.4m)
+  WIRING_EXIT=0
+  ```
+
+  Superseded evidence follows:
 
   Re-verified this session at HEAD `30326253` (the 5 adapter/wiring specs containing
   both halves ran inside the 8-spec, 102-test regression at exit 0 —
@@ -661,23 +737,27 @@ any row with `--list` — a zero-selection grep prints `Total: 0 tests` and exit
   (exit 1 — declared title NOT FOUND)
   ```
 
-- [ ] TP-15-04 E2E evidence proves each wired ordinary tool shows a ready adapter panel in Simple with an owner-parity fact.
+- [x] TP-15-04 E2E evidence proves each wired ordinary tool shows a ready adapter panel in Simple with an owner-parity fact.
 
-  **Title drift RESOLVED 2026-07-29 (D1 half 2); item still open pending an executed,
-  attributable run.** The reason previously recorded here — "NOT IMPLEMENTED … does not
-  exist in `tests/simple-production-wiring.spec.mjs`, which contains exactly one test"
-  — is **obsolete**: that file now contains 4 tests, two of them this row's carriers.
-  The Test Plan row now declares both verbatim:
-  `TP-15-04 every wired ordinary tool paints its real Simple adapter panel with an
-  owner-parity fact` (`:731`, the `e2e-ui` sweep across all 19 wired tools) and
-  `TP-15-04 the swept set is derived from the production registry + pages, and the
+  **Claim Source:** executed (2026-07-29, `bubbles.validate`, whole-file run 4/4, exit 0 —
+  [Command 4](report.md#command-4--tp-15-03--tp-15-04-wiring-spec-44-system-chrome)).
+  Both prior reasons are superseded. *Title drift (D1)* closed 2026-07-29: the declared
+  file now contains 4 tests, two of them this row's carriers, and the Test Plan declares
+  both verbatim — `TP-15-04 every wired ordinary tool paints its real Simple adapter
+  panel with an owner-parity fact` (`:731`, the `e2e-ui` sweep across all 19 wired tools)
+  and `TP-15-04 the swept set is derived from the production registry + pages, and the
   honest-degradation cases are registry/provider derived` (`:822`, the anti-hardcoding
-  guard). The reconciled `--grep "TP-15-04"` selects **2** tests (`--list` verified), so
-  the row is no longer proven only at the integration layer. What remains before this
-  box may be checked is an executed, attributable run recorded in `report.md` — which
-  `bubbles.plan` does not own and did not perform. Item stays open.
+  guard). *Missing attributable run* closed by Command 4. The sweep is registry-derived
+  rather than hard-coded, so it cannot silently shrink: all 19 wired tools converge and
+  the swept set is re-derived from the production registry and pages on every run.
 
-  Re-verified this session at HEAD `30326253`:
+  ```text
+  $ npx --no-install playwright test tests/simple-production-wiring.spec.mjs --config=playwright.config.mjs --project=system-chrome --reporter=line --workers=1
+    4 passed (11.4m)
+  WIRING_EXIT=0
+  ```
+
+  Superseded evidence follows:
 
   ```text
   $ grep -rn 'each wired ordinary tool shows a ready adapter panel' tests/
@@ -688,12 +768,44 @@ any row with `--list` — a zero-selection grep prints `Total: 0 tests` and exit
   (exactly one test in the declared file)
   ```
 
-- [ ] TP-15-05 E2E evidence proves bond-regime native content shows in Power not Simple (BUG-003 closure).
+- [x] TP-15-05 E2E evidence proves bond-regime native content shows in Power not Simple (BUG-003 closure).
 
-  **Uncertainty Declaration — declared title does not exist (drift D4).** *(Correction
-  2026-07-28: an earlier revision of this reason said "NOT STARTED — `bond-regime-lab`
-  is unwired, its spec still asserts native `#simpleView [data-model-digest]` on the
-  default Simple view". Both statements are false at HEAD `30326253`.)*
+  **Claim Source:** executed (2026-07-29, this agent, HEAD `a7631b36`, 28/28, exit 0 —
+  [Command 2](report.md#command-2--tp-15-05-live-stack-carrier-2828-system-chrome)).
+
+  ```text
+  $ npx --no-install playwright test tests/bond-regime-lab.spec.mjs --config=playwright.config.mjs --project=system-chrome --reporter=list --workers=1
+  Running 28 tests using 1 worker
+    ✓  17 …ady waits for auto-hydration before Simple and Power comparison (738ms)
+    ✓  18 …ith native content hidden, shell Power shows the native content (11.0s)
+    ✓  19 …spec.mjs:590:1 › BS-011 Simple and Power share one model digest (721ms)
+    ✓  20 …-012 lever change recomputes without fetch or observed mutation (764ms)
+    28 passed (41.5s)
+  TP1505_EXIT=0
+  ```
+
+  **Both prior disqualifiers are now resolved.** Test 18 is the carrier commit `28099a4d`
+  added — `TP-15-05 live-stack: shell Simple shows the registry adapter panel with native
+  content hidden, shell Power shows the native content` (`tests/bond-regime-lab.spec.mjs:545`),
+  taking the file from 27 to 28 tests. It opens with
+  `openFromSharedCache(page, { routeTreasury: false })`, so there is **zero interception
+  on its own path**; it resolves the adapter id from `simple-models.json` rather than
+  hard-coding it; and it asserts BOTH halves of the declared row in one run. Its
+  `toBeAttached()` + `not.toBeVisible()` pairing is deliberately adversarial — an absent
+  node would satisfy a bare not-visible check, so a deletion cannot masquerade as a
+  demotion.
+
+  **D4 half 2 does not survive this, and is not laundered by it.** The old reason was
+  that the row's only carrier (`Regression BUG-003:`) installs `page.route` and so, being
+  mocked, cannot close a live `e2e-ui` row. That test **is still mocked and is expressly
+  still not the carrier** — the row is now carried by an interception-free test instead.
+  The three `page.route` sites at `:267/:334/:428` are pre-existing Feature-003 fixture
+  pinning, untouched by this scope. *(Correction 2026-07-28: an earlier revision said
+  "NOT STARTED — `bond-regime-lab` is unwired, its spec still asserts native
+  `#simpleView [data-model-digest]` on the default Simple view". Both statements are
+  false at HEAD.)*
+
+  Superseded evidence and the original disqualifier analysis follow:
 
   `bond-regime-lab` **is wired**, `fed8f9ab` reconciled `tests/bond-regime-lab.spec.mjs`
   to the shell, and the spec was **re-executed this session at HEAD `30326253` inside
@@ -762,12 +874,32 @@ any row with `--list` — a zero-selection grep prints `Total: 0 tests` and exit
   constraint. Recorded as drift **D4**, routed to `bubbles.plan`. **BUG-003 is not
   claimed closed.**
 
-- [ ] TP-15-06 E2E evidence proves volatility-sizing native Simple moved to Power and Simple shows the panel or an honest unavailable pending the RLVOL provider.
+- [x] TP-15-06 E2E evidence proves volatility-sizing native Simple moved to Power and Simple shows the panel or an honest unavailable pending the RLVOL provider.
 
-  **Uncertainty Declaration — the BEHAVIOUR is now proven; the DECLARED CONTRACT still
-  does not exist.** The previous reason recorded here ("wiring was attempted and
-  deliberately reverted … the tool is unwired") is **obsolete and false at HEAD
-  `30326253`**. `volatility-sizing-lab` is WIRED: the page registers
+  **Claim Source:** executed (2026-07-29, 16/16, exit 0 —
+  [Command 6](report.md#command-6--tp-15-06-volatility-sizing-spec-1616-system-chrome)).
+
+  ```text
+  $ npx --no-install playwright test tests/volatility-sizing-lab.spec.mjs \
+      --config=playwright.config.mjs --project=system-chrome --reporter=list
+  Running 16 tests using 1 worker
+    ✓   5 …n BS-009: insufficient history is unavailable with exact counts (765ms)
+    ✓  16 …le THROUGH the shared rlnav registration, not just by direct URL (1.1s)
+    16 passed (14.6s)
+  TP1506_EXIT=0
+  ```
+
+  Tests 5 and 16 are this row's two declared carriers, and
+  `tests/volatility-sizing-lab.spec.mjs` is untouched by every commit since, so that run
+  covers the content at HEAD `a7631b36`. Both prior reasons are superseded: *D5 title
+  drift* closed 2026-07-29 (the Test Plan now declares both real carriers verbatim), and
+  the *missing attributable run* closed by Command 6. Both carriers are
+  interception-free — the file's only `page.route` match is the comment block that
+  **states** the zero-interception constraint.
+
+  **The BEHAVIOUR is proven on both halves.** *(Correction: the previous reason here
+  — "wiring was attempted and deliberately reverted … the tool is unwired" — is
+  **obsolete and false** at HEAD.)* `volatility-sizing-lab` is WIRED: the page registers
   `__rlOwnerStateProvider["volatility-sizing-lab"]`, loads its declared `adapterModule`
   `rlexperience-adapters/market-structure.js` (line 663, after `rlvol.js`), and appears
   in `[TP-15-02] wired (19)` inside the 18-of-19 strict-parity set. The earlier parity
@@ -818,13 +950,37 @@ any row with `--list` — a zero-selection grep prints `Total: 0 tests` and exit
   (1 match, inside the comment block that STATES the constraint — zero executable interception)
   ```
 
-  Item stays open on the declared-title drift alone. See [report.md](report.md#tp-15-06).
+  Item satisfied on both halves. See [report.md](report.md#tp-15-06).
 
-- [ ] TP-15-07 broad selftest evidence proves existing Research Lab behavior remains green (0 failures) with the new bridge canaries.
+- [x] TP-15-07 broad selftest evidence proves existing Research Lab behavior remains green (0 failures) with the new bridge canaries.
 
-  **Uncertainty Declaration.** `node scripts/selftest.mjs` was re-executed this session
-  at HEAD `30326253`: **952 passed, 0 failed, exit 0** — the 0-failure preservation half
-  is met. But the "new bridge canaries" half is not; re-verified this session:
+  **Claim Source:** executed (2026-07-29, this agent, HEAD `a7631b36`). *(The prior
+  Uncertainty Declaration — "**952 passed, 0 failed** … the 0-failure preservation half
+  is met. But the 'new bridge canaries' half is not" — was accurate at HEAD `30326253`
+  and is **superseded**: drift **D2** was closed 2026-07-29 by adding the Implementation
+  Plan step-7 canaries as a named `Feature 012 Scope 15 production Simple-view bridge
+  canaries (TP-15-07)` group of **16**. The delta 952 → 968 is exactly those 16
+  canaries.)* Both halves are now met: the suite is green at 0 failures **and** the
+  bridge canaries exist, executing `rlapp.js`'s own `ownerModes` expression and
+  `rlviews.js`'s own `rlv-focused` predicate rather than a restated copy.
+
+  ```text
+  $ node scripts/selftest.mjs
+    ✓ rlviews.js’s own rlv-focused predicate, fed those real ownerModes, focuses a wired tool’s Simple, leaves Power unfocused, and never focuses an unwired native Simple or a brief view
+    ✓ RLEXPERIENCE.renderSimpleBridge is exposed on the production API
+    ✓ a wired tool with no owner state degrades to an honest unavailable that names the missing owner adapter, publishes a null numeric, paints no numeric node, and invents no signal (market-heatmap-lab)
+    ✓ the bridge never mutates body.classList on the unavailable path — applyVisual stays the sole owner of rlv-focused (BUG-003 invariant, 0 recorded mutations)
+
+  ================================================
+  Research-Lab self-test: 968 passed, 0 failed
+  ================================================
+  SELFTEST_EXIT=0
+  ```
+
+  See [report.md](report.md#command-3--tp-15-07-broad-selftest-968-passed-0-failed).
+
+  Superseded evidence (HEAD `30326253`, retained for audit) — this is the capture that
+  justified keeping the row open, and it is exactly what the D2 closure overturned:
 
   ```text
   $ node scripts/selftest.mjs
@@ -836,10 +992,6 @@ any row with `--list` — a zero-selection grep prints `Total: 0 tests` and exit
   $ grep -n 'renderSimpleBridge\|installSimpleProjectionBridge\|ownerModes\|production bridge' scripts/selftest.mjs
   (exit 1 — no matches; no bridge canary exists)
   ```
-
-  Adding those canaries is Implementation Plan step 7 and is **in-allowlist,
-  agent-actionable** work (`scripts/selftest.mjs` is a declared Implementation File)
-  that has simply not been done. Item stays open. See [report.md](report.md#tp-15-07).
 
 
 #### Build Quality Gate
@@ -876,8 +1028,12 @@ any row with `--list` — a zero-selection grep prints `Total: 0 tests` and exit
      2026-07-28: earlier revisions of this reason said 6 and then 4 remaining tools;
      both counts predated `bond-regime-lab`, `company-fundamentals-lab` and
      `volatility-sizing-lab` being wired.)*
-  2. The automated bridge/provider forbidden-authority canary **does not exist**
-     (Implementation Plan step 7); only a manual static scan was performed.
+  2. ~~The automated bridge/provider forbidden-authority canary **does not exist**~~ —
+     **CLOSED 2026-07-29 at HEAD `a7631b36`.** Implementation Plan step 7 landed the
+     16-canary bridge group in `scripts/selftest.mjs` (952 → 968), and unit test 9 (`no
+     forbidden authority: the runtime declares none, and running the real bridge touches
+     no network, provider, storage or cookie surface`) makes it an automated assertion
+     rather than a manual scan.
   3. The **changed-path boundary is not clean against the allowlist** — 5 delivered
      paths fall outside the declared Implementation Files (drift **D3**); see the
      change-boundary DoD item above.
@@ -887,6 +1043,10 @@ any row with `--list` — a zero-selection grep prints `Total: 0 tests` and exit
      scan is **not** clean across every spec this scope touched, so the gate's own
      wording is not met.
 
-  This gate cannot close while 3 ordinary tools remain unwired, the step-7 canary is
-  missing, and drifts D1-D5 are open with `bubbles.plan`.
+  Reason 2 is closed and reason 4 no longer decides any DoD row (TP-15-05's carrier is
+  now interception-free; the pre-existing Feature-003 `page.route` sites remain, so the
+  gate's literal "across every spec this scope touched" wording is still not met). But
+  **reasons 1 and 3 stand independently**, so this gate cannot close: per-tool RED/GREEN
+  is absent for the 3 unwired ordinary tools, and the changed-path boundary is not clean
+  against the declared Implementation Files allowlist (**D3**, open with `bubbles.plan`).
 

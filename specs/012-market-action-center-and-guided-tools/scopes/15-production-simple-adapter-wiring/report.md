@@ -1973,6 +1973,163 @@ canary, and the `ownerModes` contract to the `rlapp.js's own ownerModes expressi
 canary. The prior session's `grep` for these canaries returned no matches; it now
 returns the group above, so **D2 is resolved** and the DoD item is `- [x]`.
 
+## DoD Reconciliation Run — 2026-07-29, HEAD `a7631b36`
+
+**Claim Source:** executed (2026-07-29, this agent, this session). This run exists to
+close the two DoD rows whose delivering commits — `a7631b36` (TP-15-01's four halves)
+and `28099a4d` (TP-15-05's live-stack carrier) — shipped the code but recorded **no
+execution evidence**. Both are landed at HEAD; neither had an attributable run until now.
+`git status --porcelain` reported no modification to any file under test.
+
+The three Playwright suites longer than a minute (`tests/simple-production-wiring.spec.mjs`
+4/4 at 11.4m, `tests/volatility-sizing-lab.spec.mjs` 16/16, `tests/market-heatmap-control-surface.spec.mjs`)
+were **not** re-run here: their evidence at HEAD `0890348a`
+([Commands 4/6](#command-4--tp-15-03--tp-15-04-wiring-spec-44-system-chrome)) already
+covers the current committed content of those files — the disclosed working-tree delta
+in that run (+11/-26 on `tests/simple-production-wiring.spec.mjs`) is byte-identical to
+what `bc3b7303` later committed, and no commit since has touched either spec.
+
+### Command 0 — repository binding preflight
+
+```text
+$ bash .github/bubbles/scripts/repo-binding-preflight.sh \
+    --repo-root ~/research-lab --agent-source research-lab
+[repo-binding-preflight] OK — agent source 'research-lab' matches target repo 'research-lab'.
+PREFLIGHT_EXIT=0
+```
+
+### Command 1 — TP-15-01 unit, all four declared halves (9/9)
+
+The row names four claims. At HEAD `0890348a` the file carried two of them (7/7) and the
+row stayed open; `a7631b36` added the missing `ownerModes` and forbidden-authority
+assertions. All four are now named tests in the declared file:
+
+```text
+$ node --test tests/simple-production-bridge.unit.mjs
+✔ renderSimpleBridge is exposed on the production API (4.526289ms)
+✔ provider present + real owner state → renders the REAL market-breadth adapter (ready), never mutates rlv-focused (28.047632ms)
+✔ no owner-state provider → honest unavailable, no invented signal, never mutates rlv-focused (4.755089ms)
+✔ owner evidence does not permit a run (unhydrated) → honest unavailable, never mutates rlv-focused (12.74387ms)
+✔ missing adapter module → honest unavailable (no crash), never mutates rlv-focused (3.89799ms)
+✔ a queued Simple run does not survive an invalidation, and its promise settles (19.714953ms)
+✔ leaving Simple altogether also settles the queued run without painting (3.348991ms)
+✔ ownerModes resolution: provider wiring hands Simple to the adapter panel and never regresses an unwired tool (1.077198ms)
+✔ no forbidden authority: the runtime declares none, and running the real bridge touches no network, provider, storage or cookie surface (21.220249ms)
+ℹ tests 9
+ℹ suites 0
+ℹ pass 9
+ℹ fail 0
+ℹ cancelled 0
+ℹ skipped 0
+ℹ todo 0
+ℹ duration_ms 199.425417
+UNIT_EXIT=0
+```
+
+Half-to-test mapping: bridge contract → tests 1-2; honest-unavailable fallback → tests
+3-5; `ownerModes` → test 8; no forbidden authority → test 9.
+
+### Command 2 — TP-15-05 live-stack carrier (28/28, system-chrome)
+
+`28099a4d` added `TP-15-05 live-stack: shell Simple shows the registry adapter panel with
+native content hidden, shell Power shows the native content` (`tests/bond-regime-lab.spec.mjs:545`),
+taking the file from 27 to 28 tests. It runs `openFromSharedCache(page, { routeTreasury: false })`
+— **zero interception on its own path** — resolves the adapter id from `simple-models.json`
+rather than hard-coding it, and asserts both halves of the declared row. Its
+`toBeAttached()` + `not.toBeVisible()` pairing is deliberate: an absent node would satisfy
+a bare not-visible check, so deletion cannot masquerade as demotion. It is test 18 below
+(11.0s — the live fetch):
+
+```text
+$ npx --no-install playwright test tests/bond-regime-lab.spec.mjs --config=playwright.config.mjs --project=system-chrome --reporter=list --workers=1
+
+Running 28 tests using 1 worker
+
+  ✓   1 …js:164:1 › BS-001 duration-driven ratio improvement stays mixed (720ms)
+  ✓   8 …js:261:1 › BS-006 six month mixed shock decomposes every sleeve (871ms)
+  ✓  17 …ady waits for auto-hydration before Simple and Power comparison (738ms)
+  ✓  18 …ith native content hidden, shell Power shows the native content (11.0s)
+  ✓  19 …spec.mjs:590:1 › BS-011 Simple and Power share one model digest (721ms)
+  ✓  20 …-012 lever change recomputes without fetch or observed mutation (764ms)
+  ✓  28 …landmarks names focus and noncolor states at 390 and 1440 widths (1.1s)
+
+  28 passed (41.5s)
+TP1505_EXIT=0
+```
+
+This supersedes the D4-half-2 disqualifier recorded under [TP-15-05](#tp-15-05): that
+reason was that the row's only carrier (`Regression BUG-003:`, which installs
+`page.route`) is mocked and so cannot close a live `e2e-ui` row. It still is mocked, and
+it is still **not** the carrier — the row is now carried by an interception-free test.
+The three `page.route` sites at `:267/:334/:428` are pre-existing Feature-003 fixture
+pinning and are untouched.
+
+### Command 3 — TP-15-07 broad selftest (968 passed, 0 failed)
+
+Re-executed at HEAD `a7631b36` to confirm the `a7631b36` unit additions introduced no
+regression. Unchanged from the `0890348a` result, including the 16-canary bridge group:
+
+```text
+$ node scripts/selftest.mjs
+  ✓ rlviews.js's own rlv-focused predicate, fed those real ownerModes, focuses a wired tool's Simple, leaves Power unfocused, and never focuses an unwired native Simple or a brief view
+  ✓ RLEXPERIENCE.renderSimpleBridge is exposed on the production API
+  ✓ a wired tool with no owner state degrades to an honest unavailable that names the missing owner adapter, publishes a null numeric, paints no numeric node, and invents no signal (market-heatmap-lab)
+  ✓ the bridge never mutates body.classList on the unavailable path — applyVisual stays the sole owner of rlv-focused (BUG-003 invariant, 0 recorded mutations)
+
+================================================
+Research-Lab self-test: 968 passed, 0 failed
+================================================
+SELFTEST_EXIT=0
+```
+
+### Command 4 — TP-15-02 integration (6/6, 19 wired, 18 of 19 strict parity)
+
+```text
+$ node --test tests/simple-production-bridge.integration.mjs
+[TP-15-02] wired (19): market-heatmap-lab, options-flow-feed-lab, intraday-tape-lab, swing-structure-lab, options-structure-lab, gamma-trading-lab, sector-research-lab, global-rotation-lab, real-assets-lab, bond-regime-lab, ai-capex-strategy-lab, company-fundamentals-lab, etf-momentum-lab, strategy-self-improvement-lab, strategy-validation-lab, smart-money-flow-lab, waterfront-polo-lab, volatility-sizing-lab, technical-analysis-decision-lab
+[TP-15-02] not wired (4): market-brief, msft-july-print-model, palm-springs-rental-market-lab, ocean-shores-rental-market-lab
+[TP-15-02] strict parity (module loaded by the page): 18 of 19
+[TP-15-02] honest generic unavailable (module deliberately absent, SCN-012-034 lock): technical-analysis-decision-lab
+ℹ tests 6
+ℹ pass 6
+ℹ fail 0
+INTEGRATION_EXIT=0
+```
+
+### Net effect of this run on the DoD
+
+**Closed:** TP-15-01 (four halves now asserted in the declared file, 9/9) and TP-15-05
+(interception-free live carrier, executed 28/28). Together with the four rows the
+`0890348a` reconciliation closed but never flipped in `scope.md` (TP-15-03, TP-15-04,
+TP-15-06, TP-15-07), **10 of 14 DoD items are now checked**.
+
+**Still open — 4 rows, and none is closable by executing anything:**
+
+1. **SCN-012-039** — every mechanism clause is now proven (`ownerModes` at unit level in
+   Command 1 and at canary level in Command 3; `applyVisual` sole `rlv-focused` owner;
+   never-mutates). The row nevertheless fails on its own parenthetical **"END state =
+   every ordinary tool wired"**: 19 of 22 are. The 3 remaining are owner decisions, not
+   engineering gaps — `msft-july-print-model` (deliberate `window.__rlviewsInit = 1`
+   shell opt-out) and the two rental tools (**declined by product decision**; the owner
+   published `purchasePriceUsd: null` and the Pages gate asserts that absence). Routed
+   to `bubbles.plan` as a wording question.
+2. **SCN-012-041** — 7 of the 8 `#simpleView` tools are reconciled with executed proof;
+   the 8th is `msft-july-print-model`, whose spec this scope never touched and where the
+   shell deliberately never runs, so "reachable under Power" has no Power view to be
+   reachable through. Same owner-decision root as (1).
+3. **Change boundary / rollback** — both halves stand. (a) **D3 is still OPEN**: 5
+   delivered paths fall outside the declared Implementation Files allowlist, owned by
+   `bubbles.plan`. (b) The documented rollback path has still never been exercised by
+   any executed command.
+4. **Build Quality Gate** — blocker 2 (missing forbidden-authority canary) is now
+   closed by Command 1 + Command 3, but blockers 1 and 3 stand independently: per-tool
+   RED/GREEN is absent for the 3 unwired tools, and the changed-path boundary is not
+   clean against the allowlist (D3).
+
+**D6** (the TP-15-05 traceability comment naming the wrong carriers) was rewritten by
+`28099a4d` into an explicit 3-carrier enumeration that flags carrier 2 as mocked and
+names carrier 3 as the live carrier. It gates no DoD row and is non-blocking.
+
 ## Status
 
 - **Status:** In Progress (scope) — **6 of 14 DoD items remain open** after this

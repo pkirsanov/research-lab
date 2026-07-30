@@ -207,6 +207,29 @@ Running 6 tests using 1 worker
   `evaluateStatementIntegrity`) and the closed error code `C010-INTEGRITY-BALANCE-SHEET` are still
   exercised green by those three runs, so this scope's build quality holds on today's tree.
 
+**Executed:** YES (2026-07-30 re-verification)
+**Command:** the three deterministic Feature 010 surfaces, run from the repository root
+**Exit Code:** 0 (all three)
+
+```text
+$ node --test tests/company-fundamentals-contracts.unit.mjs
+# tests 53
+# pass 53
+# fail 0
+UNIT_EXIT=0
+
+$ node scripts/selftest.mjs
+Research-Lab self-test: 968 passed, 0 failed
+SELFTEST_EXIT=0
+
+$ node scripts/validate-company-fundamentals.mjs
+[company-fundamentals] NFR-010-021: MSFT dossier, owner read, model pack, and brief stay byte-stable after CMG/JPM addition
+[company-fundamentals] SCN-010-007: mixed-fiscal MSFT/CMG comparison withholds growth, statistic, and rank
+[company-fundamentals] source capture: exact raw SEC response bytes retained
+[company-fundamentals] validation: PASS
+VALIDATOR_EXIT=0
+```
+
 ## Scope 2 Execution
 
 **Executed evidence at a glance.** Every row below was executed for this scope; the full
@@ -647,6 +670,26 @@ The 19 cumulative browser tests are the six Scope 1 + seven Scope 2 + four Scope
   `node scripts/validate-company-fundamentals.mjs` → `validation: PASS`, exit `0`.
   The Scope 4 export/owner-read projections remain green under those runs.
 
+**Executed:** YES (2026-07-30 re-verification)
+**Command:** the three deterministic Feature 010 surfaces, run from the repository root
+**Exit Code:** 0 (all three)
+
+```text
+$ node --test tests/company-fundamentals-contracts.unit.mjs
+# tests 53
+# pass 53
+# fail 0
+UNIT_EXIT=0
+
+$ node scripts/selftest.mjs
+Research-Lab self-test: 968 passed, 0 failed
+SELFTEST_EXIT=0
+
+$ node scripts/validate-company-fundamentals.mjs
+[company-fundamentals] validation: PASS
+VALIDATOR_EXIT=0
+```
+
 - Export/owner-read privacy scan: `buildAcceptedExport` and `buildFundamentalsToolRead` project summary-only content with no `type="password"`/`name*=credential|token|secret` field and no raw private-research payload; the Scope 4 selftest and browser tests re-assert the absence.
 - `rldata.js`/`rlapp.js` unmodified proof: the shared shell is included and called by `company-fundamentals-lab.html` but neither source file is in the Scope 4 change set (`git status` shows neither modified by this scope).
 - `git diff --check` on all Scope 4 files: exit 0 (no whitespace or conflict-marker errors).
@@ -815,6 +858,26 @@ The 27 cumulative browser tests are the Scope 1-4 scenarios plus the eight Scope
 
 ### Build quality (Scope 5)
 <a id="build-quality-scope-5"></a>
+
+**Executed:** YES (2026-07-30 re-verification)
+**Command:** the three deterministic Feature 010 surfaces, run from the repository root
+**Exit Code:** 0 (all three)
+
+```text
+$ node --test tests/company-fundamentals-contracts.unit.mjs
+# tests 53
+# pass 53
+# fail 0
+UNIT_EXIT=0
+
+$ node scripts/selftest.mjs
+Research-Lab self-test: 968 passed, 0 failed
+SELFTEST_EXIT=0
+
+$ node scripts/validate-company-fundamentals.mjs
+[company-fundamentals] validation: PASS
+VALIDATOR_EXIT=0
+```
 
 - Scenario-first RED → GREEN ledger: two genuine reds (stale fingerprint; Scope 2 owner-clock expectation) captured with verbatim RED and identical-command GREEN above.
 - Brief/history dedup proof: TP-5-03 validator (`SCN-010-024/031`), TP-5-02 selftest ("identical evidence replay creates no duplicate brief history event"), and TP-5-01 unit (SCN-010-031 `second.appended === false`, length 1) each exercise production `appendAdaptiveBriefHistory` and prove a semantic replay adds no event.
@@ -1237,6 +1300,28 @@ surfaces were re-verified 2026-07-30 (unit 53/53, selftest 968/0, validator PASS
   `node scripts/validate-company-fundamentals.mjs` → `validation: PASS`, exit `0`, with the
   `SCN-010-007` mixed-fiscal MSFT/CMG withholding assertion and the `NFR-010-021` byte-stability
   assertion both reported green in that run.
+
+**Executed:** YES (2026-07-30 re-verification)
+**Command:** the three deterministic Feature 010 surfaces, run from the repository root
+**Exit Code:** 0 (all three)
+
+```text
+$ node --test tests/company-fundamentals-contracts.unit.mjs
+# tests 53
+# pass 53
+# fail 0
+UNIT_EXIT=0
+
+$ node scripts/selftest.mjs
+Research-Lab self-test: 968 passed, 0 failed
+SELFTEST_EXIT=0
+
+$ node scripts/validate-company-fundamentals.mjs
+[company-fundamentals] NFR-010-021: MSFT dossier, owner read, model pack, and brief stay byte-stable after CMG/JPM addition
+[company-fundamentals] SCN-010-007: mixed-fiscal MSFT/CMG comparison withholds growth, statistic, and rank
+[company-fundamentals] validation: PASS
+VALIDATOR_EXIT=0
+```
 
 - **Scenario-first RED/GREEN:** captured for both new behaviors — comparability (unit RED `TypeError: … is not a function` + browser RED comparability-tab timeout → GREEN) and accessibility (browser RED `tabindex` null → GREEN). (evidence: [report.md](report.md#scope-8-execution))
 - **Controlled real acquisitions:** the three MSFT/CMG/JPM publications are the retained-SEC-byte source-qualified publications from Scope 1/7; Scope 8 changes no accepted fact and the `configFingerprint` (`sha256:65d294cf…`) is unchanged, so the acquisitions and their exact retained bytes remain the source proof (validator TP-8-03 revalidates them). No invented or self-validating fixture output is used as source proof.

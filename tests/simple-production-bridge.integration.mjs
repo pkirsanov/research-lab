@@ -110,12 +110,21 @@ function extractPageLine(source, marker) {
 
 /* A tool is WIRED iff its production page registers the owner-state provider the shared bridge
    reads. This is derived from the deployed page source — the same fact rlapp.js keys its
-   provider-gated ownerModes on — so a tool wired in a future batch joins this loop automatically. */
-function pageRegistersProvider(toolId) {
-  const source = readPage(`${toolId}.html`);
+   provider-gated ownerModes on — so a tool wired in a future batch joins this loop automatically.
+
+   The page is named explicitly so the SCN-012-039 closed-set check can read the page the REGISTRY
+   declares (`tool.file`), which is authoritative even where it currently equals `${id}.html`: a
+   tool whose file is renamed in tools.json stays correctly classified instead of silently
+   dropping out of `wired`. */
+function pageFileRegistersProvider(file, toolId) {
+  const source = typeof file === 'string' ? readPage(file) : null;
   if (!source) return false;
   return source.includes(`__rlOwnerStateProvider["${toolId}"]`)
     || source.includes(`__rlOwnerStateProvider['${toolId}']`);
+}
+
+function pageRegistersProvider(toolId) {
+  return pageFileRegistersProvider(`${toolId}.html`, toolId);
 }
 
 /* Whether the tool's OWN production page loads its adapter module <script>. This is the exact fact
@@ -2083,6 +2092,60 @@ test('TP-15-02 the wired-tool set is derived from the production registry + the 
   }
   console.log(`[TP-15-02] wired (${wired.length}): ${wired.map((entry) => entry.toolId).join(', ')}`);
   console.log(`[TP-15-02] not wired (${unwired.length}): ${unwired.map((definition) => definition.toolId).join(', ')}`);
+
+  /* ───────── SCN-012-039 closed-set total accounting (design addendum §5.4) ─────────
+     The assertions above only establish that SOME tool is unwired; they never establish that the
+     unwired ones are ACCOUNTED FOR, and they enumerate from simple-models.json (which carries
+     `market-brief`, not an ordinary tool). This block closes that gap over the live ordinary
+     population: every ordinary tool must sit in EXACTLY ONE bucket — WIRED (its registry-declared
+     page registers the provider) or DECLARED-UNWIRED-BY-DESIGN (a `simpleWiring` block recording
+     the decision in tools.json).
+
+     Both sets are DERIVED — the population from the live registry, `wired` from deployed page
+     source — so a newly added ordinary tool enters `ordinary` automatically, and if its page
+     registers no provider and no one wrote a declaration it lands in `unaccounted` and fails here
+     naming itself. The author's only two exits are the two legitimate ones: wire it, or declare it
+     with a reason. Silence is not an exit. No roster of tool ids and no expected count appears
+     below — a frozen number would pass unchanged after a new tool was added and forgotten. */
+  const ordinary = readJson('tools.json').tools
+    .filter((tool) => tool.experience && tool.experience.kind === 'ordinary');
+  const wiredOrdinaryIds = new Set(ordinary
+    .filter((tool) => pageFileRegistersProvider(tool.file, tool.id))
+    .map((tool) => tool.id));
+  const declaredOrdinary = ordinary
+    .filter((tool) => tool.simpleWiring && tool.simpleWiring.state === 'declared-unwired');
+  const declaredOrdinaryIds = new Set(declaredOrdinary.map((tool) => tool.id));
+
+  // (4) Anti-vacuity FIRST: a derivation that silently collapses to empty must fail, never pass trivially.
+  assert.ok(ordinary.length > 0, 'SCN-012-039: the ordinary population derived EMPTY from tools.json, so the closed-set check would pass vacuously');
+  assert.ok(wiredOrdinaryIds.size > 0, 'SCN-012-039: the wired set derived EMPTY from the deployed pages, so the closed-set check would pass vacuously');
+
+  // (1) Total accounting — the load-bearing assertion; this is what fails for a newly-added tool.
+  const unaccounted = ordinary
+    .filter((tool) => !wiredOrdinaryIds.has(tool.id) && !declaredOrdinaryIds.has(tool.id))
+    .map((tool) => tool.id);
+  assert.deepEqual(unaccounted, [], `SCN-012-039: ordinary tool(s) neither wired nor declared-unwired: ${unaccounted.join(', ')} — either register __rlOwnerStateProvider["<id>"] on the tool's page, or add a tools.json simpleWiring block recording the decision and its decisionRef`);
+
+  // (2) Disjointness — a declared tool that gained a provider is stale; the declaration must not outlive its reason.
+  const bothBuckets = declaredOrdinary.filter((tool) => wiredOrdinaryIds.has(tool.id)).map((tool) => tool.id);
+  assert.deepEqual(bothBuckets, [], `SCN-012-039: stale simpleWiring declaration(s) — these tools DO register an owner-state provider: ${bothBuckets.join(', ')} — remove the declaration, the tool is wired`);
+
+  // (3) Declaration substance — a declaration without a reason is an omission wearing a decision's clothes.
+  for (const tool of declaredOrdinary) {
+    const wiring = tool.simpleWiring;
+    assert.equal(wiring.contractVersion, 'simple-wiring/v1', `SCN-012-039: ${tool.id} simpleWiring.contractVersion must be simple-wiring/v1`);
+    assert.equal(wiring.state, 'declared-unwired', `SCN-012-039: ${tool.id} simpleWiring.state must be the closed enum value declared-unwired`);
+    for (const field of ['reason', 'decisionRef']) {
+      assert.equal(typeof wiring[field], 'string', `SCN-012-039: ${tool.id} simpleWiring.${field} must be a string`);
+      assert.ok(wiring[field].trim().length > 0, `SCN-012-039: ${tool.id} simpleWiring.${field} must be a non-empty string`);
+    }
+    /* The ref must actually RESOLVE, so an exclusion can never be justified by a path that does not
+       exist. Without this, "recorded decision" degrades to "plausible-looking string". */
+    const decisionPath = wiring.decisionRef.replace(/:\d+(?:[,-]\d+)*$/, '');
+    assert.equal(existsSync(new URL(decisionPath, ROOT)), true, `SCN-012-039: ${tool.id} simpleWiring.decisionRef does not resolve to a file in this repo: ${decisionPath}`);
+  }
+  console.log(`[SCN-012-039] ordinary=${ordinary.length} wired=${wiredOrdinaryIds.size} declared-unwired=${declaredOrdinaryIds.size} unaccounted=${unaccounted.length}`);
+  console.log(`[SCN-012-039] declared-unwired: ${declaredOrdinary.map((tool) => `${tool.id} <- ${tool.simpleWiring.decisionRef}`).join('; ') || 'none'}`);
 });
 
 test('TP-15-02 registry-derived loop: each wired tool prepares through the REAL runtime and paints the REAL panel', async () => {

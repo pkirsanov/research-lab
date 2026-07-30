@@ -788,6 +788,12 @@
         "contextPolicyId": "contextual-tooltip/v1",
         "matrixDomains": ["fundamentals", "catalyst"],
         "publicAliases": []
+      },
+      "simpleWiring": {
+        "contractVersion": "simple-wiring/v1",
+        "state": "declared-unwired",
+        "reason": "Deliberate shared-shell opt-out by architecture decision: the page declares meta name=\"rlviews\" content=\"off\" and pre-sets window.__rlviewsInit = 1 to short-circuit the rlviews.js load that rlapp.js:302 gates on, so the shared Simple bridge never runs and an owner-state provider would be dead code, while the page's own #modeSeg/#simpleView/#powerView keeps its native Simple content reachable.",
+        "decisionRef": "msft-july-print-model.html:778"
       }
     },
     {
@@ -1259,6 +1265,12 @@
         "contextPolicyId": "contextual-tooltip/v1",
         "matrixDomains": ["fundamentals", "catalyst", "gaps"],
         "publicAliases": []
+      },
+      "simpleWiring": {
+        "contractVersion": "simple-wiring/v1",
+        "state": "declared-unwired",
+        "reason": "Owner extraction is declined by product decision: the acquisition baseline publishes purchasePriceUsd: null because the research found insufficient data and the GitHub Pages deploy gate asserts that absence, so wiring a ready Simple projection would fabricate the economic layer the owner deliberately withheld.",
+        "decisionRef": "tests/palm-springs-rental-market-lab.spec.mjs:531"
       }
     },
     {
@@ -1310,6 +1322,12 @@
         "contextPolicyId": "contextual-tooltip/v1",
         "matrixDomains": ["fundamentals", "catalyst", "gaps"],
         "publicAliases": []
+      },
+      "simpleWiring": {
+        "contractVersion": "simple-wiring/v1",
+        "state": "declared-unwired",
+        "reason": "Owner extraction is declined by the same product decision on the shared RLRENTAL engine: this market's acquisition baseline also publishes purchasePriceUsd: null, so wiring a ready Simple projection would fabricate the withheld economic layer here exactly as it would for the Palm Springs sibling.",
+        "decisionRef": "ocean-shores-rental-market.payload.json:1859"
       }
     },
     {

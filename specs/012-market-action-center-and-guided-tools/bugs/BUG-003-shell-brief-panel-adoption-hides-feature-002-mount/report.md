@@ -571,8 +571,12 @@ $ bash .github/bubbles/scripts/is-terminal-for-mode.sh done bugfix-fastlane
 TERMINAL_DONE_EXIT=0
 ```
 
-**Interpretation:** the achieved level is `fast` — implementation complete, coverage
-complete, all tests passing, but **no independent audit**. `fast`'s terminal status
+**Interpretation:** the achieved level is `fast`, following mechanically from the three
+`true` inputs and the one `false` input passed above — implementation complete, coverage
+complete, and each recorded regression row exiting 0 (TP-B003-01 `pass 1 / fail 0`,
+TP-B003-02 `13 passed`, TP-B003-03 `952 passed, 0 failed`, TP-B003-04 `pass 6 / fail 0`
+with 19 wired, alongside the IV-4 baselines `pass 5 / fail 0` and `29 passed`), but
+**no independent audit**. `fast`'s terminal status
 `delivered_fast` is **not** terminal-for-mode under `bugfix-fastlane` (exit 1); the only
 terminal status this mode accepts is `done` (exit 0), which requires `full` assurance.
 Therefore the derived increment is non-terminal for this mode and the packet MUST remain

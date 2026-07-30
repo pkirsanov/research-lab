@@ -33,6 +33,16 @@ A tool is wired to its notes in three consistent places:
 
 On the live GitHub Pages site a `.md` link serves raw markdown (readable); on github.com it renders. Keeping notes as relative `.md` files preserves the site's offline-capable, no-dependency ethos.
 
+## Cross-cutting notes
+
+A few notes span several tools rather than describing one. They live in this folder under a descriptive name instead of a tool id, and are not listed in the per-tool index below.
+
+| Note | Covers |
+| --- | --- |
+| [shared-data-layer.md](shared-data-layer.md) | The shared fetch/cache/proxy data layer used by every tool. |
+| [place-based-rental-market-research.md](place-based-rental-market-research.md) | The place-based rental-market method shared by the Palm Springs and Ocean Shores labs. |
+| [volatility-drag-research.md](volatility-drag-research.md) | Where volatility drag is depended on but not shown — split Sharpe definitions, the `1/σ` vs `1/σ²` sizing gap, and the missing shared drag primitive. |
+
 ## Index
 
 | Tool | Notes | Next-run focus |

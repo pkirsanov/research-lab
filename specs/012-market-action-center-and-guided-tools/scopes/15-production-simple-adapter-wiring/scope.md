@@ -11,9 +11,15 @@ first-hand at this HEAD; **neither could be honestly checked, so both stay `- [ 
 three open rows are:
 
 1. **SCN-012-039** — root blocker. Every mechanism clause is proven; its own parenthetical
-   END-state clause ("every ordinary tool wired") is **unsatisfiable as written**, because
-   4 of the 22 ordinary tools are deliberately excluded by recorded product/architecture
-   decision. An amendment is **proposed** on that row and awaits an **owner decision**.
+   END-state clause ("every ordinary tool wired") was **unsatisfiable as written** and
+   contradicted SCN-012-042. **AMENDED 2026-07-30 on owner direction** to a closed-set
+   total accounting (every ordinary tool WIRED or DECLARED-UNWIRED-BY-DESIGN, none
+   unaccounted, none in both). **The row stays `- [ ]`:** the contract changed, the
+   verification has not run — the mechanical assertion specified in addendum §5.4.5 must
+   be implemented and RED-proven first. Verified population: 22 ordinary = 19 wired + 3
+   declared-unwired (`msft-july-print-model`, `palm-springs-rental-market-lab`,
+   `ocean-shores-rental-market-lab`); earlier revisions of this line said 4, which
+   double-counted `technical-analysis-decision-lab` — that tool **is** wired.
 2. **Build Quality Gate** — its D3 blocker is closed and its scan-currency concern is now
    fully answered (selftest 968/0, source-lock OK, `git diff --check` clean, unit 9/9,
    integration 6/6, interception scan re-measured — all exit 0 at this HEAD). It stays
@@ -100,10 +106,11 @@ stand, and the *decisive* one is data, not engineering.
 **Why `In Progress` rather than `Done` or `Blocked`.** **11 of the 14 DoD items are now
 checked** and 3 remain open, so `Done` would be fabrication. The 3 open items are **not
 test gaps** — every Test Plan row is green and attributable. They are:
-(1) **SCN-012-039**'s parenthetical END-state clause "every ordinary tool wired" (19 of
-22) — the single **root** blocker, and unsatisfiable as written because 4 tools are
-deliberately excluded by product/architecture decision (an amendment is proposed on that
-row, for owner decision); (2) the **Build Quality Gate**, which is purely derivative — it
+(1) **SCN-012-039**'s parenthetical END-state clause, which as originally written ("every
+ordinary tool wired") was unsatisfiable and contradicted SCN-012-042 — **amended
+2026-07-30 on owner direction** to a closed-set total accounting over the ordinary
+population (19 wired + 3 declared-unwired = 22, verified); the row remains open because
+the amended clause's mechanical assertion has not yet been implemented or executed; (2) the **Build Quality Gate**, which is purely derivative — it
 inherits (1)'s coverage clause verbatim, its D3 blocker is closed and its scans were
 re-run current at HEAD `acf042bb`; and (3) the **change-boundary/rollback** row, whose
 allowlist half is now closed by D3 and which stays open solely because the documented
@@ -165,7 +172,13 @@ And no provider request, storage mutation, author call, publication, or fabricat
 
 ### SCN-012-039 - ownerModes make the panel visible in simple and native in power
 
-**Authoritative mechanism — provider-gating (resolves the tension with the flat `["power"]` phrasing):** `ownerModes` is resolved per ordinary tool by `rlapp.js`, gated on the page's owner-state provider — a page that has registered `__rlOwnerStateProvider[toolId]` resolves to `["power"]`; an un-provided page keeps `["simple", "power"]` so unwired tools do not regress. The rollout is incremental (one provider registration per tool); the END state (scope fully Done) is every ordinary tool wired, at which point every ordinary tool's resolved `ownerModes` is `["power"]`. The Gherkin below is therefore the per-wired-tool contract AND the all-ordinary-tools END-state contract.
+**Authoritative mechanism — provider-gating (resolves the tension with the flat `["power"]` phrasing):** `ownerModes` is resolved per ordinary tool by `rlapp.js`, gated on the page's owner-state provider — a page that has registered `__rlOwnerStateProvider[toolId]` resolves to `["power"]`; an un-provided page keeps `["simple", "power"]` so unwired tools do not regress. The rollout is incremental (one provider registration per tool).
+
+**END state — closed-set total accounting (AMENDED 2026-07-30; supersedes "every ordinary tool wired").** Every ordinary tool is in **exactly one** of two declared buckets: **WIRED** (its page registers `__rlOwnerStateProvider[toolId]`, so its resolved `ownerModes` is `["power"]`) or **DECLARED-UNWIRED-BY-DESIGN** (a recorded product/architecture decision declared in `tools.json` as a tool-level `simpleWiring` block carrying a non-empty `reason` and `decisionRef`, rendering the honest-unavailable projection per SCN-012-042). **No ordinary tool may be unaccounted for, and no tool may be in both buckets.** The prior clause ("every ordinary tool wired") is withdrawn as unsatisfiable and self-contradictory — it contradicted SCN-012-042, which treats an ordinary tool without a wired provider as a permanent correct state, and it contradicted the recorded decision declining `RLRENTAL` owner extraction. Full diagnosis, the SST decision, and the mechanical assertion specification are in [`../../design-addendum-production-simple-wiring.md`](../../design-addendum-production-simple-wiring.md) §5.4.
+
+**Scope boundary — two orthogonal axes.** SCN-012-039 governs the **Wiring** axis (does the page register a provider → what `ownerModes` resolves to). Whether a wired tool's adapter yields `ready` or honest `unavailable` is the **Availability** axis, owned by SCN-012-042. A tool can be wired *and* honestly unavailable (`technical-analysis-decision-lab`); that is conformant, not a gap. Collapsing the two axes is what made the prior clause self-contradictory.
+
+The Gherkin below is therefore the per-wired-tool contract AND the all-ordinary-tools END-state contract.
 
 ```
 Given a wired ordinary tool (its page registered an owner-state provider) so its resolved ownerModes are ["power"]
@@ -174,6 +187,15 @@ Then body.rlv-focused is ON, the adapter panel is visible, and native content is
 And when the view is "power"
 Then body.rlv-focused is OFF, native content is visible, and the adapter panel is hidden
 And the bridge never mutates body.rlv-focused (applyVisual is the sole owner).
+
+Given the ordinary tool population derived from tools.json (experience.kind == "ordinary")
+And the WIRED set derived from each tool page registering __rlOwnerStateProvider[toolId]
+And the DECLARED-UNWIRED set derived from each tool's tools.json simpleWiring.state == "declared-unwired"
+When the two sets are differenced against the ordinary population
+Then no ordinary tool is unaccounted for (ordinary - (wired union declared) is empty)
+And no ordinary tool is in both sets (wired intersect declared is empty)
+And every declared entry carries a non-empty reason and decisionRef
+And an ordinary tool added later that is neither wired nor declared FAILS this contract.
 ```
 
 ### SCN-012-040 - Per-page owner-state provider preserves owner parity
@@ -209,17 +231,21 @@ And no invented signal, default, or reinterpreted foundation receipt is shown.
 
 ## Adapter And Owner Map
 
-The full verified per-tool owner-state-source mapping for all 23 tools (19
-delegating, 3 open, 1 brief-only) is in
+The full verified per-tool owner-state-source mapping for all 23 tools is in
 [`../../design-addendum-production-simple-wiring.md`](../../design-addendum-production-simple-wiring.md)
-§5.3. Summary:
+§5.3, reconciled to delivered reality in §5.3.1.
 
-| Class | Count | Tools | Owner-state seam |
+**Summary — the SCN-012-039 closed set, verified 2026-07-30 (22 ordinary = 19 wired + 3
+declared-unwired; +1 brief-only, outside the ordinary set).** This table is a *reader's
+summary*; the authoritative machine-readable declaration of the unwired bucket is the
+tool-level `simpleWiring` block in `tools.json` (addendum §5.4.3), and the wired bucket is
+derived from page source — never from this table.
+
+| Bucket | Count | Tools | Owner-state seam |
 |---|---|---|---|
-| Delegating (straightforward provider) | 19 | market-heatmap, options-flow-feed, intraday-tape, swing-structure, options-structure, gamma-trading, sector-research, global-rotation, real-assets, bond-regime, ai-capex-strategy, msft-july-print-model, company-fundamentals, etf-momentum, strategy-self-improvement, strategy-validation, smart-money-flow, waterfront-polo, volatility-sizing | page already delegates to its adapter module (`RL<MODULE>.*`); provider returns that same owner input |
-| Open extraction | 2 | palm-springs + ocean-shores (`RLRENTAL`) | owner seam documented but page does not yet load the adapter module; extraction is **declined by product decision** — the owner published `purchasePriceUsd: null` and the Pages gate asserts that absence |
-| Intentional unavailable | 1 | technical-analysis-decision-lab | adapter declared "unavailable until owner model exists"; honest unavailable panel, native content under power |
-| Brief-only (out of scope) | 1 | market-brief | `market-action-triage` runs inside Brief; `ownerModes` unchanged |
+| **WIRED** — registers `__rlOwnerStateProvider[toolId]`, resolved `ownerModes` = `["power"]` | 19 | market-heatmap, options-flow-feed, intraday-tape, swing-structure, options-structure, gamma-trading, sector-research, global-rotation, real-assets, bond-regime, ai-capex-strategy, company-fundamentals, etf-momentum, strategy-self-improvement, strategy-validation, smart-money-flow, waterfront-polo, volatility-sizing, technical-analysis-decision-lab | page delegates to its adapter module (`RL<MODULE>.*`); the provider returns that same owner input. 18 reach strict projection parity; `technical-analysis-decision-lab` is wired but deliberately loads no adapter module, so it renders the honest `unavailable` (Availability axis, SCN-012-042) |
+| **DECLARED-UNWIRED-BY-DESIGN** — no provider; declared in `tools.json` with a reason | 3 | palm-springs + ocean-shores (`RLRENTAL`); msft-july-print-model | RLRENTAL pair: extraction **declined by product decision** — the owner published `purchasePriceUsd: null` and the Pages gate asserts that absence. `msft-july-print-model`: deliberate shared-shell opt-out (`meta rlviews=off` → `window.__rlviewsInit = 1`), so the bridge never runs and a provider would be dead code |
+| *Brief-only (not an ordinary tool; outside this contract)* | 1 | market-brief | `market-action-triage` runs inside Brief; `kind = market-action-center`; `ownerModes` unchanged (`["brief"]`) |
 
 ## UI Scenario Matrix
 
@@ -293,7 +319,8 @@ another adapter, or a test helper.
    `body.rlv-focused`). Provider-gate ordinary `ownerModes` in `rlapp.js`: resolve
    `["power"]` when the page has registered `__rlOwnerStateProvider[toolId]`, else
    keep `["simple", "power"]` so unwired tools do not regress (the authoritative
-   incremental mechanism; the END state is every ordinary tool wired).
+   incremental mechanism; the END state is the closed-set total accounting —
+   every ordinary tool either wired or declared-unwired-by-design, none unaccounted).
    Confirm `market-brief` (brief-only) is unchanged.
 3. **Proven single-tool end-to-end.** Wire `market-heatmap-lab` (its
    `reduceOwnerState` already exists): register its provider from the page's live
@@ -489,9 +516,12 @@ any row with `--list` — a zero-selection grep prints `Total: 0 tests` and exit
   (2 matches, both inside the constraint comment — zero executable occurrences)
   ```
 
-- [ ] SCN-012-039: Provider-gated ordinary `ownerModes` resolves to `["power"]` once a page registers its owner-state provider (else `["simple", "power"]`; END state = every ordinary tool wired); `applyVisual` is the sole owner of `rlv-focused`; Simple shows the panel (native hidden) and Power shows native content (panel hidden); the bridge never mutates `rlv-focused`.
+- [ ] SCN-012-039: Provider-gated ordinary `ownerModes` resolves to `["power"]` once a page registers its owner-state provider (else `["simple", "power"]`; END state = every ordinary tool is in exactly one declared bucket — WIRED, or DECLARED-UNWIRED-BY-DESIGN via a `tools.json` `simpleWiring` block with a non-empty reason — with no ordinary tool unaccounted for and none in both); `applyVisual` is the sole owner of `rlv-focused`; Simple shows the panel (native hidden) and Power shows native content (panel hidden); the bridge never mutates `rlv-focused`.
 
   NOT SATISFIED — **on the coverage clause alone; every mechanism clause is now proven.**
+  *(This assessment was made against the **PRIOR** END-state clause and is **SUPERSEDED
+  2026-07-30** — that clause has since been withdrawn as unsatisfiable; see AMENDMENT
+  APPLIED below. The original text follows unmodified as audit trail.)*
   Proven at HEAD `a7631b36`: provider-gated `ownerModes` (unit test 8, `ownerModes
   resolution: provider wiring hands Simple to the adapter panel and never regresses an
   unwired tool`, plus the TP-15-07 canary that executes `rlapp.js`'s **own** `ownerModes`
@@ -514,6 +544,67 @@ any row with `--list` — a zero-selection grep prints `Total: 0 tests` and exit
   `company-fundamentals-lab` and `volatility-sizing-lab`; all three are wired at HEAD —
   see the `[TP-15-02] wired (19)` line in
   [report.md](report.md#command-1--tp-15-02-integration).)*
+
+  **AMENDMENT APPLIED — 2026-07-30, `bubbles.design`, on owner direction.** The
+  amendment proposed below on 2026-07-30 by `bubbles.plan` was routed to the owner, and
+  the owner directed that the clause be amended. The row's clause text above has been
+  rewritten accordingly. **The checkbox is deliberately left `- [ ]`:** this change amends
+  the *contract*, it does not verify it. Checkbox reconciliation happens separately, after
+  the mechanical assertion specified in addendum §5.4.5 exists and has been executed with
+  a RED proof. Marking it now would be fabrication.
+
+  *What changed.* The parenthetical END-state clause "END state = every ordinary tool
+  wired" is **withdrawn**. It is replaced by a closed-set total accounting: every ordinary
+  tool is in exactly one of **WIRED** or **DECLARED-UNWIRED-BY-DESIGN**, none unaccounted
+  for, none in both. Every mechanism clause (provider-gated `ownerModes`; `applyVisual`
+  sole owner of `rlv-focused`; Simple-shows-panel / Power-shows-native; bridge never
+  mutates `rlv-focused`) survives **verbatim in substance** and is unweakened.
+
+  *Why the prior clause had to go — it was self-contradictory, not merely unmet.* It
+  contradicted **SCN-012-042**, whose Gherkin treats "an ordinary tool without a wired
+  owner-state provider" as a permanent, correct, honest state, while this clause asserted
+  that same state must eventually cease to exist. Both cannot be true. It also
+  contradicted a **recorded product decision** declining `RLRENTAL` owner extraction. This
+  is a correction of a defective clause, **not a scope reduction**: no wiring work was
+  dropped, and the three declared tools were already excluded by decisions predating the
+  clause.
+
+  *Why the replacement is stronger.* The prior clause could never go green, so it carried
+  no signal and discriminated nothing. The replacement is a machine-checkable set
+  difference over the **live** tool population that **fails when a newly-added ordinary
+  tool lands in neither bucket** — a regression the prior clause could never detect. It
+  also fails on a silent un-wiring, on a stale declaration (a declared tool that later
+  gains a provider is in both buckets), and on a declaration with no recorded reason. It
+  is deliberately **not** a count: "19 wired" would be trivially satisfiable and would
+  pass unchanged after a 23rd ordinary tool was added and forgotten. No frozen number
+  appears in the clause.
+
+  *Where the declared set lives.* One machine-readable SST: a tool-level `simpleWiring`
+  block in `tools.json` (sibling of `experience`), carrying `contractVersion`, `state`,
+  `reason`, `decisionRef`. It is **not** duplicated anywhere; the summary tables in this
+  scope are reader's summaries that cite it. Placement was verified empirically against
+  the real `RLEXPERIENCE.validateFoundation` — a field inside `experience` is **rejected**
+  (`E012-REGISTRY`, closed `EXPERIENCE_KEYS`), a tool-level field is accepted with no
+  product-source change. Full justification against the rejected alternatives
+  (`simple-models.json`, registry root, a markdown block) is in addendum §5.4.3.
+
+  *Verified population at the time of amendment* (derived from `tools.json` + deployed
+  page source, not copied from any prior note): **23 registry tools = 22 ordinary + 1
+  brief-only**; of the 22 ordinary, **19 wired** and **3 declared-unwired**
+  (`msft-july-print-model`, `palm-springs-rental-market-lab`,
+  `ocean-shores-rental-market-lab`). Note `technical-analysis-decision-lab` **is wired**
+  — it registers a provider, so its `ownerModes` is `["power"]`; it renders honest
+  `unavailable` because it deliberately loads no adapter module, which is SCN-012-042's
+  Availability axis, not a wiring gap.
+
+  *Knock-on.* The Build Quality Gate's blocker 1 ("per-tool RED/GREEN is absent for the 3
+  unwired ordinary tools") inherits this clause verbatim and needs the same treatment —
+  RED/GREEN required for every **wired** tool, and a declaration record for each declared
+  one. That row is **not** amended here and remains open.
+
+  *(The originally-proposed amendment follows unmodified as audit trail. Its diagnosis
+  table counted 4 excluded tools while simultaneously noting the 4th was wired — that
+  internal inconsistency is resolved above at 3, verified.)*
 
   **RECOMMENDED AMENDMENT — PROPOSED 2026-07-30 by `bubbles.plan`, NOT self-approved.
   Requires owner decision. This row stays `- [ ]` until the owner rules.**
@@ -691,8 +782,10 @@ any row with `--list` — a zero-selection grep prints `Total: 0 tests` and exit
 
   **Why this closes but SCN-012-039 does not — the distinction is deliberate, not
   convenient.** SCN-012-039's open clause is a *coverage* assertion about a population
-  ("every ordinary tool wired"); four tools are deliberately unwired, so that assertion
-  is **false**. SCN-012-041's clause is a *preservation* assertion ("reachable … with
+  ("every ordinary tool wired"); three tools are deliberately unwired, so that assertion
+  is **false**. *(Count corrected 2026-07-30: this line previously said "four", which
+  double-counted `technical-analysis-decision-lab` — that tool is wired. The clause itself
+  was subsequently amended; see AMENDMENT APPLIED on the SCN-012-039 row.)* SCN-012-041's clause is a *preservation* assertion ("reachable … with
   nothing deleted"); for the msft page it is **true** — nothing is unreachable and
   nothing is deleted — and the risk it guards against (content lost to the shell's
   demotion) is structurally absent because the shell never runs. A false assertion cannot

@@ -220,6 +220,9 @@ present; provider extraction is straightforward) — 18 tools:**
 **B. Ordinary — page does NOT currently delegate to its adapter module
 (owner-parity / provider extraction is an OPEN implementation item) — 4 tools:**
 
+*(Pre-delivery planning snapshot. Rows 19 and 22 are **superseded by delivery** — both
+are now wired. Read this table through §5.3.1.)*
+
 | # | Tool | Adapter id | Module | Owner-state source (documented, but NOT yet fed to the adapter) | Open item |
 |---|---|---|---|---|---|
 | 19 | `volatility-sizing-lab` | `conditional-volatility/v1` | `market-structure.js` | native engine `rlvol.js` / `RLVOL` (`buildVolDecisionRead`, `projectVolToolRead`, `validateUniverse`). Page loads `rlvol.js`, **not** `market-structure.js`. Registry: adapter "wraps RLVOL"; Scope 05 owner map: seam = `rlvol.js`. | Establish owner-parity provider from the page's RLVOL compute to the `conditional-volatility` `ownerState`. Page HAS native `#simpleView`. |
@@ -233,8 +236,199 @@ present; provider extraction is straightforward) — 18 tools:**
 |---|---|---|---|---|
 | 23 | `market-brief` | `market-action-triage/v1` | `market-action.js` / `RLMARKETACTION` | `kind = market-action-center`; adapter runs **inside Brief** (registry: "no top-level Simple"). Not rendered via `[data-rlexperience-panel="simple"]`. `ownerModes` unchanged (`["brief"]`). Owner state = `market-brief` Brief compute (`market-brief.payload.json` path), handled by the Market Action Center Brief surface, not this Simple wiring. |
 
-Totals: **18 straightforward + 4 open (3 extractions + 1 intentional-unavailable)
-= 22 ordinary + 1 brief-only = 23.**
+Totals (pre-delivery plan): **18 straightforward + 4 open (3 extractions + 1
+intentional-unavailable) = 22 ordinary + 1 brief-only = 23.** Superseded by §5.3.1.
+
+### 5.3.1 Delivered reconciliation (2026-07-30, verified against the working tree)
+
+Tables A/B/C are the **pre-delivery planning snapshot**, retained as the record of what
+was mapped before wiring began. They map *module delegation*. Delivery has since moved
+three rows, so the tables MUST be read through this reconciliation:
+
+| Row | Pre-delivery text | Delivered reality (verified) |
+|---|---|---|
+| B#19 `volatility-sizing-lab` | "OPEN — establish owner-parity provider" | **WIRED.** The page registers `__rlOwnerStateProvider["volatility-sizing-lab"]`. |
+| B#22 `technical-analysis-decision-lab` | "**No provider until then.**" | **WIRED.** The page registers `__rlOwnerStateProvider["technical-analysis-decision-lab"]`, so its resolved `ownerModes` is `["power"]`. It deliberately does **not** load its adapter module, so the bridge renders the honest `unavailable` panel. That is SCN-012-042's second limb, not a wiring gap. |
+| A#12 `msft-july-print-model` | "delegates to `RLFUNDAMENTALS`" (implying straightforward) | **NOT WIRED.** The page carries `<meta name="rlviews" content="off">` and pre-sets `window.__rlviewsInit = 1`, so the shared view shell never loads and a provider would be dead code. It registers no provider. |
+
+**Two orthogonal axes — this distinction is what the old END-state clause collapsed.**
+
+| Axis | Question | Owner | Values |
+|---|---|---|---|
+| **Wiring** | Does the page register `__rlOwnerStateProvider[toolId]`? | `rlapp.js` provider-gated `ownerModes` | wired → `["power"]`; unwired → `["simple", "power"]` |
+| **Availability** | Does the wired tool's adapter produce a `ready` projection? | the bridge + the adapter registry | `ready`, or honest `unavailable` |
+
+A tool can be **wired and honestly unavailable** (`technical-analysis-decision-lab`).
+Collapsing the two axes into one count is what made the old clause self-contradictory
+against SCN-012-042. **SCN-012-039 governs the Wiring axis only.**
+
+**Reconciled totals (verified 2026-07-30 against `tools.json` + the deployed pages):**
+23 registry tools = **22 ordinary + 1 brief-only** (`market-brief`, `kind:
+market-action-center`). Of the 22 ordinary: **19 register an owner-state provider**;
+**3 do not** — `msft-july-print-model`, `palm-springs-rental-market-lab`,
+`ocean-shores-rental-market-lab`.
+
+Derivation (re-runnable, no hard-coded roster; `file` is `<id>.html` for all 23 entries):
+
+```text
+ordinary = tools.json .tools[] | select(.experience.kind == "ordinary")          → 22
+wired    = ordinary | select(<file> contains __rlOwnerStateProvider["<id>"])     → 19
+unwired  = ordinary − wired                                                      →  3
+```
+
+## 5.4 Simple-Wiring Closed-Set Contract (SCN-012-039 END state)
+
+### 5.4.1 What was wrong
+
+The prior END-state clause read, verbatim:
+
+> END state = every ordinary tool wired
+
+It is **unsatisfiable** and **self-contradictory**, on two independent grounds:
+
+1. **It contradicts SCN-012-042.** That scenario's Gherkin contemplates "an ordinary tool
+   without a wired owner-state provider" as a permanent, correct, honest state. The old
+   clause asserts that state must eventually cease to exist. Both cannot be true.
+2. **It contradicts a recorded product decision.** `palm-springs-rental-market-lab` and
+   `ocean-shores-rental-market-lab` publish `"purchasePriceUsd": null`, and
+   `tests/palm-springs-rental-market-lab.spec.mjs` — the GitHub Pages deploy gate —
+   asserts that absence. Wiring them to a `ready` projection would fabricate the exact
+   economic layer the owner deliberately withheld. The work is **declined**, not deferred.
+
+A clause that can only be satisfied by violating a product decision is a defective
+clause, not outstanding work. It is also **inert**: because it can never go green, it
+stops discriminating between "work remaining" and "work correctly declined".
+
+### 5.4.2 The replacement clause
+
+> **END state = every ordinary tool is in exactly one of two declared buckets — WIRED
+> (its page registers `__rlOwnerStateProvider[toolId]`, so its resolved `ownerModes` is
+> `["power"]`) or DECLARED-UNWIRED-BY-DESIGN (a recorded product/architecture decision,
+> declared in `tools.json`, rendering the honest-unavailable projection per
+> SCN-012-042). No ordinary tool may be unaccounted for, and no tool may be in both
+> buckets.**
+
+**This is strictly stronger, not weaker.** The old clause asserted a state of the world
+that can never obtain, so it could never be evaluated. The replacement is a **total
+accounting over the live tool population** and adds a machine check that does not exist
+today:
+
+- It **fails on a newly-added ordinary tool** that is neither wired nor declared — the
+  exact regression the old clause could never catch, because the old clause was already
+  failing for unrelated reasons and therefore carried no signal.
+- It **fails on a silent un-wiring** — a tool that loses its provider registration
+  without gaining a declaration drops out of `wired` and lands in the unaccounted set.
+- It **fails on a stale declaration** — a declared tool that later gains a provider is in
+  both buckets, which is rejected, so the declaration cannot quietly outlive its reason.
+- It makes each exclusion a **named, reviewable decision with a recorded reason**, rather
+  than a footnote or an ambient count.
+
+It is deliberately **not** a count. "19 tools are wired" would be trivially satisfiable,
+would freeze on the day it was written, and would pass unchanged after a 23rd ordinary
+tool was added and forgotten. No frozen number appears in this contract.
+
+### 5.4.3 Single source of truth for the declared-unwired set
+
+**Decision: a tool-level `simpleWiring` block in `tools.json`, sibling of `experience`.**
+
+```jsonc
+// tools.json → .tools[] entry, sibling of "briefing" and "experience"
+{
+  "id": "palm-springs-rental-market-lab",
+  "file": "palm-springs-rental-market-lab.html",
+  "briefing":   { /* … */ },
+  "experience": { /* … unchanged, closed key set … */ },
+  "simpleWiring": {
+    "contractVersion": "simple-wiring/v1",
+    "state": "declared-unwired",
+    "reason": "<one sentence, non-empty — the decision, not the symptom>",
+    "decisionRef": "<repo-relative path[:line] proving the decision exists>"
+  }
+}
+```
+
+Rules: `state` is the closed enum `"declared-unwired"` (the only declared value — a wired
+tool carries **no** `simpleWiring` block, so the wired set stays derived from the page,
+never from an editable list). `reason` and `decisionRef` MUST both be non-empty strings.
+Absence of the block means "not declared", which is what makes a new tool fail closed.
+
+**Why here, and not the alternatives.** Empirically verified against the real validator
+(`RLEXPERIENCE.validateFoundation`, in-memory clones of the live artifacts):
+
+| Candidate home | Verdict | Evidence / reason |
+|---|---|---|
+| **`tools.json`, tool level** (chosen) | **ACCEPTED** | The tool object is **not** closed-key — `rlexperience.js` validates only `tool.id` (string, unique) at that level. Needs **no product-source change**. It is exactly where this repo already stores per-tool metadata (`nav`, `file`, `status`, `briefing`, `experience`), and it sits beside `experience.kind`, the very field `rlapp.js:296` gates `ownerModes` on. It is a **required** fetch (`rlapp.js` fails the shell if `tools.json` is missing), and a Node test reads it with a plain `require`. Colocation also means it cannot drift out of sync with the tool list: delete the tool, the declaration goes with it. |
+| `tools.json`, inside `experience` | **REJECTED** | `validateFoundation` returns `E012-REGISTRY` at `$.tools[N].experience.simpleWiring`. `EXPERIENCE_KEYS` (`rlexperience.js`) is a closed 13-key allowlist with an adversarial `unknown-field → E012-REGISTRY` case in `scripts/validate-tool-experience.mjs`. Using it would require editing product source on a shared surface and widening a deliberately closed contract. |
+| `simple-models.json` | Rejected | It is the **model** registry keyed by `definitionId`, not the tool registry; it also carries `market-brief`, which is not an ordinary tool. Decisive: `rlapp.js` loads it **best-effort** ("null degrades to honest unavailable"), so a contract-critical declaration must not live there. Its `limitations` field describes a model's analytical limits, not a page's wiring decision. |
+| `tools.json` registry root (a `declaredUnwired` list) | Rejected | Accepted by the validator, but it is a **second** place holding tool identity, so it can drift — it can name a deleted tool, or be forgotten when a tool is added. Per-tool colocation cannot. |
+| A declared block in this addendum (markdown) | Rejected | Not machine-readable. A test would have to parse prose, and the fact would live away from the registry the runtime actually reads. |
+
+The declaration lives in **exactly one** place. This addendum and `scope.md` describe the
+contract and cite the entries; they do not duplicate them as an authoritative list.
+
+### 5.4.4 The declared-unwired set (3 tools, each with its recorded reason)
+
+Every entry needs a reason — the reason is what makes it a **decision** rather than an
+**omission**. All three verified in the working tree:
+
+| Tool | `reason` | `decisionRef` | Could wiring it ever be correct? |
+|---|---|---|---|
+| `palm-springs-rental-market-lab` | Owner extraction declined by product decision: the owner published `purchasePriceUsd: null` because the research found insufficient data, and the Pages deploy gate asserts that absence. A `ready` acquisition projection would fabricate the withheld economic layer. | `tests/palm-springs-rental-market-lab.spec.mjs:531` (`expect(receiptField(luxuryLine, 'purchasePriceUsd')).toBe('UNAVAILABLE')`); `palm-springs-rental-market.payload.json:1605` | **No** — it would break the gate that protects the decision. |
+| `ocean-shores-rental-market-lab` | Same product decision, same shared `RLRENTAL` engine: `purchasePriceUsd: null` published for this market too. | `ocean-shores-rental-market.payload.json:1859`; covered by the same Pages gate spec, which loads `/ocean-shores-rental-market.payload.json` (`tests/palm-springs-rental-market-lab.spec.mjs:329`) | **No** — same. |
+| `msft-july-print-model` | Deliberate shared-shell opt-out: the page sets `<meta name="rlviews" content="off">` and pre-sets `window.__rlviewsInit = 1`, which short-circuits `ensureSharedScript`, so `rlviews.js` never loads and the bridge never runs. A provider would be dead code. The page carries its own `#modeSeg`/`#simpleView`/`#powerView`, so its native Simple content stays reachable. | `msft-july-print-model.html:778,792-793`; the gate it defeats is `rlapp.js:302` | Only by reversing an architecture decision — an owner call, tracked as such. |
+
+`technical-analysis-decision-lab` is **NOT** in this set. It registers a provider and is
+therefore **wired**; it renders honest-unavailable because it deliberately does not load
+its adapter module. That is the Availability axis (SCN-012-042), not the Wiring axis.
+
+### 5.4.5 Specification of the mechanical closed-set assertion
+
+To be implemented by the scope's test owner. **No roster of tool ids may appear in the
+test.** Both sets are derived; the assertion is a set difference over the live population.
+
+**Inputs — all derived, none literal:**
+
+| Set | Derivation |
+|---|---|
+| `ordinary` | `tools.json` → `.tools[]` where `experience.kind === "ordinary"`. This is the same field `rlapp.js:296` gates `ownerModes` on, so the test population is the runtime population. |
+| `wired` | For each `t ∈ ordinary`, read the page at `t.file` (registry-declared, not `${id}.html` — currently equivalent for all 23, but the registry field is authoritative) and test whether it registers `__rlOwnerStateProvider["<t.id>"]` (either quote style). This is the existing `pageRegistersProvider` predicate in `tests/simple-production-bridge.integration.mjs`, which already derives from deployed page source. |
+| `declared` | `ordinary` where `t.simpleWiring && t.simpleWiring.state === "declared-unwired"`. |
+
+**Assertions — all four required:**
+
+1. **Total accounting (the load-bearing one).**
+   `unaccounted = ordinary − (wired ∪ declared)`; assert `unaccounted` is empty, and put
+   the offending ids in the failure message. *This is what fails for a newly-added tool.*
+2. **Disjointness.** `wired ∩ declared` is empty. A declared tool that gained a provider
+   means the declaration is stale and must be removed.
+3. **Declaration substance.** For each `t ∈ declared`: `contractVersion === "simple-wiring/v1"`,
+   `state === "declared-unwired"`, and `reason` / `decisionRef` are non-empty strings. A
+   declaration without a reason is an omission wearing a decision's clothes.
+4. **Anti-vacuity.** `ordinary.length > 0` and `wired.length > 0`, so a derivation that
+   silently collapses to empty fails instead of passing trivially.
+
+**Why it fails for a newly-added unaccounted tool — the mechanism, precisely.** Adding a
+23rd ordinary tool adds one entry to `tools.json` with `experience.kind: "ordinary"`, so
+it enters `ordinary` **automatically**. If its page registers no provider it is absent
+from `wired`; if no one wrote a `simpleWiring` block it is absent from `declared`. It
+therefore appears in `unaccounted`, and assertion 1 fails naming it. The author's only
+two exits are the two legitimate ones: **wire it**, or **declare it with a reason**.
+Silence is not an exit — which is exactly the property the old clause lacked.
+
+**Where it belongs.** Extend the existing TP-15-02 derivation test in
+`tests/simple-production-bridge.integration.mjs` (`TP-15-02 the wired-tool set is derived
+from the production registry + the production pages (never a hard-coded list)`), which
+already computes `wired` from page source. Note that its current companion assertion —
+`assert.ok(unwired.length > 0, 'this batch has not wired every tool …')` — only asserts
+that *some* tool is unwired; it never asserts the unwired ones are *accounted for*, and
+it enumerates from `simple-models.json` (which includes `market-brief`). Assertion 1
+above is what closes that gap, and the population must switch to the `tools.json`
+ordinary set.
+
+**RED proof required before the assertion is credited.** Add a temporary ordinary tool
+entry (or temporarily strip one declaration) in a clone, observe assertion 1 fail naming
+the tool, then restore. A closed-set assertion that has never been seen to fail is not
+evidence.
 
 ## 6. Native-Simple Reconciliation for the 8 `#simpleView` Tools
 

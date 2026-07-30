@@ -2414,3 +2414,288 @@ EDITOR_DIAGNOSTICS=No errors found
 
 **Result:** PASS - report whitespace validation, canonical artifact lint, and
 editor diagnostics all passed after the browser evidence was appended.
+
+## Independent Final Test Phase: TP-B004-10
+
+**Phase:** test
+
+**Executed:** YES (in current session)
+
+**Commands:** repository packet validation against private control revision 2;
+matching-Playwright process guard; `timeout 1200 npx --no-install playwright
+test --config=playwright.config.mjs --project=system-chrome
+tests/simple-production-wiring.spec.mjs --reporter=list`; same-terminal exit-code
+capture
+
+**Exit Code:** 0
+
+**Claim Source:** executed
+
+The repository packet was valid before local execution, and the corrected
+direct-shell process guard found no active Playwright process matching the
+protected wiring file. The Playwright command below is the exact current
+TP-B004-10 command requested for this test phase. Its list-reporter stream was
+unfiltered.
+
+**Output:**
+
+```text
+REPOSITORY PACKET VALID actionable=true repository=research-lab root=~/research-lab decision=rb:vscode-eb9cb76de5cf2a992bf149706789fb73:2 revision=2
+MATCHING_PLAYWRIGHT_ACTIVE=false
+PROCESS_CHECK=PASS
+
+Running 4 tests using 1 worker
+
+	✓  1 …Simple renders the real adapter panel in the real owner-mode flow (2.8s)
+	✓  2 …ctuating one recomputes the production projection with no refetch (4.3m)
+	✓  3 …ol paints its real Simple adapter panel with an owner-parity fact (7.4m)
+TP-15-04 swept 19 wired tools: market-heatmap-lab=ready(x1) options-flow-feed-lab=ready(x1) intraday-tape-lab=unavailable(x1) swing-structure-lab=ready(x1) options-structure-lab=ready(x1) gamma-trading-lab=ready(x1) sector-research-lab=ready(x1) global-rotation-lab=ready(x1) real-assets-lab=ready(x1) bond-regime-lab=ready(x1) ai-capex-strategy-lab=ready(x1) company-fundamentals-lab=ready(x1) etf-momentum-lab=ready(x1) strategy-self-improvement-lab=ready(x1) strategy-validation-lab=ready(x1) smart-money-flow-lab=ready(x1) waterfront-polo-lab=ready(x1) volatility-sizing-lab=ready(x1) technical-analysis-decision-lab=unavailable(x1)
+	✓  4 …s, and the honest-degradation cases are registry/provider derived (56ms)
+
+	Slow test file: [system-chrome] › tests/simple-production-wiring.spec.mjs (11.7m)
+	Consider running tests from slow files in parallel. See: https://playwright.dev/docs/test-parallel
+	4 passed (11.8m)
+TP_B004_10_EXIT=0
+```
+
+**Result:** PASS - exactly four tests were discovered and all four passed;
+there were zero failed or skipped tests. The 19-tool sweep completed once per
+wired tool with 17 ready projections and the two registry-derived honest
+unavailable cases (`intraday-tape-lab` and
+`technical-analysis-decision-lab`). The slow-file lines are Playwright scheduling
+advice, not a test warning, skip, failure, timeout, or weakened assertion.
+
+## Independent Test Pre-Close Quality Checks
+
+**Phase:** test
+
+**Claim Source:** executed
+
+### Focused Artifact Lint
+
+**Executed:** YES (in current session)
+
+**Command:** `timeout 600 bash .github/bubbles/scripts/artifact-lint.sh specs/012-market-action-center-and-guided-tools/bugs/BUG-004-market-heatmap-control-surface`
+
+**Exit Code:** 0
+
+**Claim Source:** executed
+
+**Output:**
+
+```text
+✅ Required artifact exists: spec.md
+✅ Required artifact exists: design.md
+✅ Required artifact exists: uservalidation.md
+✅ Required artifact exists: state.json
+✅ Required artifact exists: scopes.md
+✅ Required artifact exists: report.md
+✅ No forbidden sidecar artifacts present
+✅ Found DoD section in scopes.md
+✅ scopes.md DoD contains checkbox items
+✅ All DoD bullet items use checkbox syntax in scopes.md
+✅ Found Checklist section in uservalidation.md
+✅ uservalidation checklist contains checkbox entries
+✅ uservalidation checklist has checked-by-default entries
+✅ All checklist bullet items use checkbox syntax
+✅ Detected state.json status: in_progress
+✅ Detected state.json workflowMode: bugfix-fastlane
+✅ state.json v3 has required field: status
+✅ state.json v3 has required field: execution
+✅ state.json v3 has required field: certification
+✅ state.json v3 has required field: policySnapshot
+✅ state.json v3 has recommended field: transitionRequests
+✅ state.json v3 has recommended field: reworkQueue
+✅ state.json v3 has recommended field: executionHistory
+✅ Top-level status matches certification.status
+ℹ️  Workflow mode 'bugfix-fastlane' allows status 'done'; current status is 'in_progress'
+✅ report.md contains section matching: ###[[:space:]]+Summary|^##[[:space:]]+Summary
+✅ report.md contains section matching: ###[[:space:]]+Completion Statement|^##[[:space:]]+Completion Statement
+✅ report.md contains section matching: ###[[:space:]]+Test Evidence|^##[[:space:]]+Test Evidence
+✅ Mode-specific report gates skipped (status not in promotion set)
+✅ Value-first selection rationale lint skipped (not a value-first report)
+✅ Scenario path-placeholder lint skipped (no matching scenario sections found)
+
+=== Anti-Fabrication Evidence Checks ===
+✅ All checked DoD items in scopes.md have evidence blocks
+✅ No unfilled evidence template placeholders in scopes.md
+✅ No unfilled evidence template placeholders in report.md
+
+=== End Anti-Fabrication Checks ===
+
+Artifact lint PASSED.
+```
+
+**Result:** PASS - focused artifact lint passed at the truthful nonterminal
+state before test-owned closeout edits.
+
+### Implementation Reality Scan
+
+**Executed:** YES (in current session)
+
+**Command:** `timeout 600 bash .github/bubbles/scripts/implementation-reality-scan.sh specs/012-market-action-center-and-guided-tools/bugs/BUG-004-market-heatmap-control-surface --verbose`
+
+**Exit Code:** 0
+
+**Claim Source:** executed
+
+**Output:**
+
+```text
+ℹ️  INFO: Resolved 1 implementation file(s) to scan
+
+--- Scan 1: Gateway/Backend Stub Patterns ---
+--- Scan 1B: Handler / Endpoint Execution Depth ---
+--- Scan 1C: Endpoint Not-Implemented / Placeholder Responses ---
+--- Scan 1D: External Integration Authenticity ---
+--- Scan 2: Frontend Hardcoded Data Patterns ---
+--- Scan 2B: Sensitive Client Storage ---
+--- Scan 3: Frontend API Call Absence ---
+--- Scan 4: Prohibited Simulation Helpers in Production ---
+--- Scan 5: Default/Fallback Value Patterns ---
+--- Scan 6: Live-System Test Interception ---
+ℹ️  INFO: No live-system test files referenced in scope artifacts for interception scan
+--- Scan 7: IDOR / Auth Bypass Detection (Gate G047) ---
+--- Scan 8: Silent Decode Failure Detection (Gate G048) ---
+
+============================================================
+	IMPLEMENTATION REALITY SCAN RESULT
+============================================================
+
+	Files scanned:  1
+	Violations:     0
+	Warnings:       0
+
+🟢 PASSED: No source code reality violations detected
+```
+
+**Result:** PASS - the current canonical `### Implementation Files` section
+eliminated the prior design-fallback discovery warning. The scanner resolved
+its production implementation surface directly and reported zero violations
+and zero warnings.
+
+### Regression-Quality Guard
+
+**Executed:** YES (in current session)
+
+**Command:** `timeout 600 bash .github/bubbles/scripts/regression-quality-guard.sh --bugfix tests/market-heatmap-control-surface.spec.mjs`
+
+**Exit Code:** 0
+
+**Claim Source:** executed
+
+The repository path is recorded as `~/research-lab` per the evidence PII
+policy; the result and count lines are unchanged.
+
+**Output:**
+
+```text
+============================================================
+	BUBBLES REGRESSION QUALITY GUARD
+	Repo: ~/research-lab
+	Timestamp: 2026-07-30T00:23:43Z
+	Bugfix mode: true
+============================================================
+
+ℹ️  Scanning tests/market-heatmap-control-surface.spec.mjs
+✅ Adversarial signal detected in tests/market-heatmap-control-surface.spec.mjs
+
+============================================================
+	REGRESSION QUALITY RESULT: 0 violation(s), 0 warning(s)
+	Files scanned: 1
+	Files with adversarial signals: 1
+============================================================
+```
+
+**Result:** PASS - the persistent bugfix file retains an adversarial signal
+with zero violations and zero warnings.
+
+### Touched JavaScript Parse Checks
+
+**Executed:** YES (in current session)
+
+**Command:** `for file in rlexperience.js tests/simple-production-bridge.unit.mjs tests/market-heatmap-control-surface.spec.mjs scripts/selftest.mjs tests/simple-production-wiring.spec.mjs; do timeout 60 node --check "$file"; done`
+
+**Exit Code:** 0
+
+**Claim Source:** executed
+
+**Output:**
+
+```text
+PARSE_CHECK=rlexperience.js
+EXIT_CODE=0
+PARSE_CHECK=tests/simple-production-bridge.unit.mjs
+EXIT_CODE=0
+PARSE_CHECK=tests/market-heatmap-control-surface.spec.mjs
+EXIT_CODE=0
+PARSE_CHECK=scripts/selftest.mjs
+EXIT_CODE=0
+PARSE_CHECK=tests/simple-production-wiring.spec.mjs
+EXIT_CODE=0
+PARSE_CHECKS_EXIT=0
+```
+
+**Result:** PASS - every BUG-004 JavaScript implementation/test surface parsed.
+
+### Process And Worktree Residue
+
+**Executed:** YES (in current session)
+
+**Command:** matching TP-B004-10 process guard, `git worktree list
+--porcelain`, and type-aware `/tmp/research-lab-bug004-*` directory inventory
+
+**Exit Code:** 0
+
+**Claim Source:** executed
+
+**Output:**
+
+```text
+POST-TP-B004-10_RESIDUE_CHECK
+MATCHING_PLAYWRIGHT_ACTIVE=false
+WORKTREE_INVENTORY_BEGIN
+worktree ~/research-lab
+HEAD 0e5e75b62ead2fd31494483d2c6a15363ae25e8e
+branch refs/heads/main
+
+WORKTREE_INVENTORY_END
+BUG004_TEMP_WORKTREE_DIRECTORY_COUNT=0
+RESIDUE_CHECK_EXIT=0
+```
+
+**Result:** PASS - no matching Playwright process, registered extra worktree,
+or BUG-004 temporary worktree directory remained.
+
+### Diagnostics And Diff Boundary
+
+**Executed:** YES (in current session)
+
+**Commands:** editor diagnostics for BUG-004 `report.md`, `scopes.md`, and
+`state.json`; full `git status --short`; BUG-004 unstaged/staged name-status;
+`git diff --check` for the three permitted execution artifacts
+
+**Exit Code:** 0
+
+**Claim Source:** executed
+
+**Output:**
+
+```text
+report.md: No errors found
+scopes.md: No errors found
+state.json: No errors found
+FULL_WORKTREE_STATUS_BEGIN
+ M .github/bubbles-project.yaml
+ M specs/002-distributed-tool-briefs-and-history/report.md
+FULL_WORKTREE_STATUS_END
+BUG004_DIFF_NAME_STATUS_BEGIN
+BUG004_DIFF_NAME_STATUS_END
+BUG004_STAGED_NAME_STATUS_BEGIN
+BUG004_STAGED_NAME_STATUS_END
+BUG004_DIFF_CHECK_EXIT=0
+```
+
+**Result:** PASS - the three permitted BUG-004 artifacts had no diagnostics,
+staged bytes, pre-existing diff, or whitespace errors. The two unrelated dirty
+paths were observed and left untouched.

@@ -39,12 +39,13 @@ One is a deliberate architecture opt-out (`msft-july-print-model`); two —
 GitHub Pages deploy gate asserts that absence, so wiring them would mean fabricating the
 economic layer the owner intentionally withheld.
 
-Of the six recorded Test-Plan ↔ implementation drifts, **D1, D2 and D5 are CLOSED**
-(TP-15-03/TP-15-04 declared titles, the TP-15-07 bridge canaries, and TP-15-06's declared
-title). **D3** (a stale Implementation Files allowlist), **D4 half 2** (TP-15-05's
-BUG-003 carrier uses `page.route` interception) and **D6** (the TP-15-05 traceability
-comment names the wrong carriers) remain open with `bubbles.plan` and are deliberately
-not resolved here.
+Of the seven recorded Test-Plan ↔ implementation drifts, **D1, D2, D3 and D5 are CLOSED**
+(TP-15-03/TP-15-04 declared titles, the TP-15-07 bridge canaries, the Implementation
+Files allowlist, and TP-15-06's declared title). **D4 half 2** (TP-15-05's original
+BUG-003 carrier uses `page.route` interception — the row itself is closed, because
+`28099a4d` added a separate interception-free carrier), **D6** (the TP-15-05 traceability
+comment names the wrong carriers) and **D7** (a shared surface, `rlchart.js`, was edited
+outside the Shared Infrastructure Impact Sweep) remain open with `bubbles.plan`.
 
 No completion of the scope, and no completion of Feature 012, is claimed.
 
@@ -1574,11 +1575,101 @@ canary, and the `ownerModes` contract to the `rlapp.js's own ownerModes expressi
 canary. Full output under
 [Command 1](#command-1--tp-15-07-broad-selftest-968-passed-0-failed).
 
-### D3 — Implementation Files allowlist is stale (newly recorded)
+### D3 — CLOSED 2026-07-30 — Implementation Files allowlist was stale
+
+**Status: CLOSED.** Entry retained for audit; the original finding follows unmodified,
+then the closure record.
+
+*Original finding (2026-07-28, accurate as of the state it describes):*
 
 Five delivered paths fall outside the scope's declared allowlist — see
 [Change-boundary check](#change-boundary-check-all-scope-15-commits-re-verified-at-head-fed8f9ab).
 Owned by `bubbles.plan`.
+
+#### Closure record (2026-07-30, `bubbles.plan`, at HEAD `acf042bb`)
+
+**Why the prior derivation was structurally incomplete — the mechanism, not just the
+count.** Every earlier derivation used a *pathspec-filtered* commit selection:
+
+```text
+git log --format='%H' f216be0d~1..HEAD -- rlexperience.js rlapp.js \
+    tests/simple-production-bridge.*.mjs tests/simple-production-wiring.spec.mjs '*-lab.html'
+```
+
+That filter selects commits **by the paths already in the allowlist**, so a commit whose
+only contribution was an out-of-allowlist path could never enter the union. It is a
+derivation that cannot, even in principle, discover the drift it was run to measure.
+Re-derived here from the **commit set** instead (subject-attributed
+`git log --all --grep='scope.15'`, 31 commits, plus the 2 BUG-004 commits), which
+immediately surfaced **two Scope 15 commits absent from this report's own increments
+table**: `cc0e81ef` (*author the declared TP-15-07 production-bridge canaries* —
+`scripts/selftest.mjs`) and `3f04904b` (*make TP-15-05 and TP-15-06 declared evidence
+locatable*). `cc0e81ef` is the commit that actually delivered the D2 canaries; the D2
+closure record asserted the 952 → 968 delta without ever naming the commit that produced
+it.
+
+**Delivered set, mechanically derived (33 commits, `git show --name-only`):** 32
+non-artifact paths from the 31 Scope-15-attributed commits, plus 1 further path from the
+2 BUG-004 commits. The three-way reconciliation against the declared allowlist:
+
+```text
+=== A) DELIVERED but NOT in allowlist (Scope-15-attributed commits) ===
+    rlchart.js
+    tests/company-fundamentals-lab.spec.mjs
+    tests/simple-model-adapters-macro-fundamental.spec.mjs
+    tests/simple-model-adapters-market.spec.mjs
+    tests/simple-models.spec.mjs
+
+=== B) DELIVERED but NOT in allowlist (BUG-004 commits 087ad2ad + 5c77e1f1) ===
+    tests/market-heatmap-control-surface.spec.mjs
+
+=== C) DECLARED in allowlist but NEVER delivered ===
+    msft-july-print-model.html
+    ocean-shores-rental-market-lab.html
+    palm-springs-rental-market-lab.html
+    tests/msft-july-market-refresh.spec.mjs
+```
+
+**Group A — ADDED to the allowlist (5 paths). Genuine Scope 15 delivery.** The four
+spec files are per-tool reconciliations landed in the same commit as the tool they
+reconcile — the identical class of edit as `tests/bond-regime-lab.spec.mjs` and
+`tests/volatility-sizing-lab.spec.mjs`, which the allowlist *did* name. Delivery
+required 7 such spec files; the allowlist anticipated 3. Diffstats are additive
+reconciliations, not rewrites (`tests/company-fundamentals-lab.spec.mjs` +48/-0 in
+`44afd71b`; `tests/simple-model-adapters-macro-fundamental.spec.mjs` +90/-9 across six
+wiring commits). `rlchart.js` is +5/-0 in `ab1d4879`, restoring the `canvas.__rlhit`
+legacy alias documented in `specs/003-.../design.md` L1006 and dropped by an unrelated
+earlier refactor (`c81d808d`) — Scope 15's demotion of bond-regime's native content to
+Power is what made those Power canvases load-bearing and surfaced the latent break.
+
+**Group B — DELIBERATELY NOT ADDED (1 path). This is the honest finding, not
+bookkeeping.** `tests/market-heatmap-control-surface.spec.mjs` was created by
+`087ad2ad` / `5c77e1f1`, whose subjects are `fix(012/BUG-004)` and which carry a
+complete BUG-004 artifact set (`bug.md`, `spec.md`, `design.md`, `scopes.md`,
+`test-plan.json`, `scenario-manifest.json`, `state.json`, `uservalidation.md`). It is
+**BUG-004's carrier test, delivered under BUG-004's boundary**. Adding it to Scope 15's
+allowlist would misattribute another artifact's delivery to this scope and would
+retroactively widen this scope's boundary to cover work it does not own. It stays out.
+*(Those two commits also touched `rlexperience.js`, `market-heatmap-lab.html` and
+`tests/simple-production-bridge.unit.mjs` — all already inside Scope 15's allowlist, so
+they create no further drift. Cross-artifact editing of shared files in the same
+subsystem is expected; only the misattribution risk is a finding.)*
+
+**Group C — RETAINED as declared-but-not-delivered (4 paths).** The allowlist
+*over*-declared in exactly the shape of the scope's remaining coverage gap: the 3
+unwired ordinary tools and the msft spec. They are not stale — they record what the
+scope planned and then declined for the documented product reasons. They are now
+labelled as such in `scope.md` rather than left to read as delivered.
+
+**New finding raised, not absorbed:** `rlchart.js` is a *shared* chart helper, and this
+scope's own **Shared Infrastructure Impact Sweep** table (which names `rlviews.js`,
+`rldata.js`, the adapter modules and `market-brief`) did not cover it. The edit was
+necessary and minimal, and `rlchart.js` is not on the Excluded list — so it is
+in-boundary delivery — but it went in without the blast-radius/canary discipline the
+sweep exists to impose on shared surfaces. Recorded as **D7**.
+
+No protected path was touched; that half of the original check re-verified clean at
+HEAD `acf042bb`.
 
 ### D4 — TP-15-05's declared title does not exist, and the nearest test is mocked
 
@@ -1654,6 +1745,28 @@ assertion is affected — the helper's own assertions carry the proof either way
 future agent trusting the comment would cite a test that does not exercise the behaviour.
 Fixing a comment inside a test file is outside `bubbles.plan`'s ownership (test-file edit)
 and outside this task's change boundary; routed to the owning executor.
+
+### D7 — OPEN (new, minor) — a shared surface was edited outside the Shared Infrastructure Impact Sweep
+
+Surfaced by the D3 reconciliation (2026-07-30). `ab1d4879` edited `rlchart.js` (+5/-0,
+restoring the documented `canvas.__rlhit` legacy alias) — a **shared** chart helper used
+by every tool's canvases. This scope's own *Shared Infrastructure Impact Sweep* names
+`rlviews.js`, `rldata.js`, the 7 adapter modules and `market-brief`, but not
+`rlchart.js`, so the edit landed without the declared blast-radius / independent-canary
+discipline that the sweep exists to impose on exactly this class of surface.
+
+Not a policy violation: `rlchart.js` is not on the scope's Excluded list, the change was
+additive and minimal, and it was required to keep bond-regime's Power canvases green
+once Scope 15 demoted their native content to Power. The finding is that the sweep
+table under-enumerated the shared surfaces the work would touch. The table has been
+reconciled in `scope.md` with the entry explicitly marked as recorded retroactively —
+the retroactive entry documents the gap, it does not pretend the discipline was applied
+at the time.
+
+Gates no DoD row on its own (the change-boundary row is open on its rollback half
+regardless). Routed to `bubbles.plan` for the sweep-authoring lesson: the sweep must be
+derived from the *set of surfaces the plan will touch*, not only from the surfaces the
+plan intends to protect.
 
 ## Evidence Anchors
 
@@ -2130,7 +2243,261 @@ TP-15-06, TP-15-07), **10 of 14 DoD items are now checked**.
 `28099a4d` into an explicit 3-carrier enumeration that flags carrier 2 as mocked and
 names carrier 3 as the live carrier. It gates no DoD row and is non-blocking.
 
+## DoD Closure Run — 2026-07-30, HEAD `acf042bb` (`bubbles.plan`, artifact-only)
+
+This run edited **only** `scope.md` and `report.md`. No source, test, or `state.json`
+change; nothing committed or pushed. Its purpose was to (1) close drift **D3** by
+mechanically reconciling the Implementation Files allowlist, (2) re-judge **SCN-012-041**
+now that its stated blocker is closed, and (3) re-run the composite gate's scans at
+current HEAD so their currency is no longer in question.
+
+### Command 0 — repository binding preflight
+
+```text
+$ bash .github/bubbles/scripts/repo-binding-preflight.sh --repo-root /home/redacted/research-lab --agent-source research-lab
+[repo-binding-preflight] OK — agent source 'research-lab' matches target repo 'research-lab'.
+PREFLIGHT_EXIT=0
+```
+
+### Command 1 — no-interception scan, comment-stripped, at HEAD `acf042bb`
+
+Raw matches printed with their line text so comment-vs-executable is auditable rather
+than asserted:
+
+```text
+$ grep -nE 'page\.route|context\.route|intercept\(|cy\.intercept|msw|nock|wiremock' tests/simple-production-wiring.spec.mjs
+16: * production bridge's rendered panel. There is NO page.route / context.route /
+17: * intercept / msw / nock — the owner data is the page's real cached owner state,
+110: * a request LISTENER (`page.on('request')`) — an observer, never `page.route`/`intercept`.
+374:     `page.route`/`intercept`. */
+413: * page.route / context.route / intercept / msw / nock anywhere in this file — the owner
+(raw match count: 5 — all five inside comment blocks; EXECUTABLE = 0)
+
+$ grep -nE '…' tests/market-heatmap-control-surface.spec.mjs
+28: * hydration from its committed data/bars snapshots. There is NO page.route /
+29: * context.route / intercept / msw / nock anywhere. `page.addInitScript` and
+(raw match count: 2 — both comments; EXECUTABLE = 0)
+
+$ grep -nE '…' tests/bond-regime-lab.spec.mjs
+13: * but carrier 2 installs `page.route`, which makes it MOCKED under this repo's Live-Stack
+26: *      comparison` — MOCKED (holds the treasury response with `page.route` in order to
+326:    await page.route(/home\.treasury\.gov\/.*daily_treasury_(?:real_)?yield_curve/, async (route) => {
+393:  await page.route('**/*', async (route) => {
+441:  await page.route(/home\.treasury\.gov\/.*daily_treasury_(?:real_)?yield_curve/, async (route) => {
+517:// WHY THIS EXISTS. The BUG-003 test directly above installs `page.route` to hold the treasury
+(raw match count: 6 — 3 comments; EXECUTABLE = 3, at 326/393/441)
+```
+
+Those 3 executable sites are **pre-existing and not this scope's**, established by blame
+rather than by assertion, and the TP-15-05 live carrier adds none:
+
+```text
+$ git blame -L 326,326 -L 393,393 -L 441,441 --date=short -- tests/bond-regime-lab.spec.mjs
+943972e29 (pkirsanov 2026-07-16 326)     await page.route(/home\.treasury\.gov\/…
+943972e29 (pkirsanov 2026-07-16 393)   await page.route('**/*', async (route) => {
+943972e29 (pkirsanov 2026-07-16 441)   await page.route(/home\.treasury\.gov\/…
+
+$ git show 28099a4d -- tests/bond-regime-lab.spec.mjs | grep -n '^+.*page\.route'
+42:+ * but carrier 2 installs `page.route`, which makes it MOCKED under this repo's Live-Stack
+58:+ *      comparison` — MOCKED (holds the treasury response with `page.route` in order to
+87:+// WHY THIS EXISTS. The BUG-003 test directly above installs `page.route` to hold the treasury
+(3 added lines, ALL comments disclosing the pre-existing mocking — 0 executable added)
+
+$ git show 3f04904b -- tests/bond-regime-lab.spec.mjs | grep -c '^+.*page\.route'   → 0
+$ git show fed8f9ab -- tests/bond-regime-lab.spec.mjs | grep -c '^+.*page\.route'   → 0
+```
+
+So: **this scope introduced zero executable interception**, and the two specs it
+authored are interception-free. The gate's literal wording ("across every spec this
+scope touched") is still not met, because a spec it *modified* carries 3 pre-existing
+sites — that distinction is preserved below rather than smoothed over.
+
+### Command 2 — Node source lock
+
+```text
+$ node scripts/validate-node-source-lock.mjs
+[node-source-lock] manifest=PASS private=true runtimeDependencies=0 scripts=0 playwright=1.61.1 node=>=20
+[node-source-lock] npmrc=PASS registry=https://registry.npmjs.org/ entries=5 ignoreScripts=true
+[node-source-lock] lockfile=PASS version=3 externalPackages=3 integrity=sha512
+[node-source-lock] graph=PASS playwright=1.61.1 playwright-core=1.61.1 fsevents=2.3.2
+[node-source-lock] adversarial=missing-file result=REJECTED code=FILE-MISSING
+[node-source-lock] adversarial=manifest-drift result=REJECTED code=MANIFEST-KEYS
+[node-source-lock] adversarial=second-registry result=REJECTED code=NPMRC-DUPLICATE
+[node-source-lock] adversarial=verification-disabled result=REJECTED code=NPMRC-VERIFICATION
+[node-source-lock] adversarial=untrusted-resolved-url result=REJECTED code=LOCK-SOURCE
+[node-source-lock] adversarial=missing-integrity result=REJECTED code=LOCK-INTEGRITY
+[node-source-lock] actual=PASS
+[node-source-lock] OK adversarial=16 unexpectedAcceptances=0
+SOURCE_LOCK_EXIT=0
+```
+
+### Command 3 — whitespace / worktree hygiene
+
+```text
+$ git diff --check
+DIFF_CHECK_EXIT=0
+
+$ git diff --check -- specs/012-…/scopes/15-production-simple-adapter-wiring/
+S15_DIFF_CHECK_EXIT=0
+
+$ git status --porcelain -- specs/012-…/scopes/15-production-simple-adapter-wiring/
+(blank = clean at run time; this run's own artifact edits follow)
+```
+
+### Command 4 — broad selftest at HEAD `acf042bb`
+
+```text
+$ node scripts/selftest.mjs
+  ✓ the wired set is derived from the production registry + the deployed pages and is non-empty (19 wired of 23 registry definitions, scanned 26 pages)
+  ✓ every wired tool’s adapter module loads and exports the registrar its binding names (19/19 resolved, gaps: none)
+  ✓ no forbidden authority: the runtime’s own diagnostic reports every authority false after adapter registration (6 authority flags x 19 wired tools, owned: 0)
+  ✓ exactly one executable rlv-focused write exists across all production sources and it lives in rlviews.js (scanned 54 files, writers: rlviews.js x1)
+  ✓ applyVisual (rlviews.js) is the function that owns that sole rlv-focused write
+  ✓ the bridge path performs local compute only — no network, provider, storage, or cookie authority in its executable source (8 tokens checked, hits: none)
+  ✓ rlapp.js’s own ownerModes expression yields ["power"] for a provider-wired ordinary tool, ["simple","power"] for an unwired one (no regression), and ["brief"] for a brief-only tool
+  ✓ the bridge never mutates body.classList on the unavailable path — applyVisual stays the sole owner of rlv-focused (BUG-003 invariant, 0 recorded mutations)
+
+================================================
+Research-Lab self-test: 968 passed, 0 failed
+================================================
+SELFTEST_EXIT=0
+```
+
+### Command 5 — SCN-012-041 population re-derived from the deployed pages
+
+Independent of the sweep's own derivation, to check the sweep is measuring the real
+population and not a stale list:
+
+```text
+$ for f in $(grep -l 'id="simpleView"' *.html | sort); do
+    grep -q '__rlOwnerStateProvider' "$f" && echo "  WIRED    $f" || echo "  UNWIRED  $f"; done
+  WIRED    bond-regime-lab.html
+  WIRED    etf-momentum-lab.html
+  WIRED    gamma-trading-lab.html
+  WIRED    intraday-tape-lab.html
+  UNWIRED  msft-july-print-model.html
+  WIRED    sector-research-lab.html
+  WIRED    swing-structure-lab.html
+  WIRED    volatility-sizing-lab.html
+  -- total #simpleView pages: 8   (7 wired, 4 of the 7 also declare #powerView)
+```
+
+7 wired / 4-with-`#powerView` matches the sweep's own printed derivation
+(`TP-15-04/SCN-012-041 derived native #simpleView tools: 7 of 19 wired (4 also declare
+#powerView)`) exactly — two independent derivations agreeing.
+
+### Command 6 — the msft `#simpleView` page is structurally outside the shell
+
+Verified first-hand rather than inherited from the prior narrative:
+
+```text
+$ grep -n 'name="rlviews"' msft-july-print-model.html
+778:  <meta name="rlviews" content="off">
+
+$ grep -n '__rlviewsInit' msft-july-print-model.html
+792:        if (m && (m.getAttribute('content') || '').toLowerCase() === 'off') window.__rlviewsInit = 1;
+793:      } catch (e) { window.__rlviewsInit = 1; }
+
+$ grep -n '__rlviewsInit' rlapp.js
+302:          return !!root.__rlviewsInit;
+
+$ sed -n '<ensureSharedScript>' rlapp.js
+      function ensureSharedScript(id, src, ready) {
+        return new Promise(function (resolve) {
+          if (ready()) return resolve(true);        ← pre-set flag short-circuits the load
+
+$ grep -c '__rlOwnerStateProvider' msft-july-print-model.html   → 0
+$ grep -c 'id="simpleView"'  msft-july-print-model.html         → 1
+$ grep -c 'id="powerView"'   msft-july-print-model.html         → 1
+$ grep -c 'id="modeSeg"'     msft-july-print-model.html         → 1
+
+$ (all 33 scope-15 + BUG-004 commits) | grep -c '^msft-july-print-model.html$'   → 0
+```
+
+The chain is closed end to end: the page's `meta rlviews=off` pre-sets
+`window.__rlviewsInit = 1`, which makes `ensureSharedScript`'s `if (ready())` guard
+short-circuit, so `rlviews.js` is **never loaded**, so `body.rlv-focused` can never be
+applied, so the shell demotion this scenario describes structurally cannot run there.
+The page carries its own `#modeSeg` + `#simpleView` + `#powerView`, so its native Simple
+content is reachable under its **own** Power toggle. And **no commit in this scope ever
+touched the file** — the scope therefore hid nothing and deleted nothing on that page.
+
+### Net effect of this run on the DoD
+
+**Closed: SCN-012-041** (10 → **11 of 14 checked**). Clause (b), BUG-003, was already
+met by the `28099a4d` interception-free carrier. Clause (a) is now met on all 8
+`#simpleView` tools: 7 by per-page executed proof (`acf042bb` extended the TP-15-04
+sweep to assert both halves per tool — `#simpleView` attached-but-hidden with the panel
+visible and zero native top-level children in Simple; panel hidden, `rlv-focused`
+released and native content visible in Power; set derived from page source, anti-vacuity
+guarded so a silently-skipped tool fails, shell rule selector extracted from the
+production stylesheet with a fatal guard, RED-proven), and the 8th because it is
+structurally outside the shell and untouched by the scope (Command 6).
+
+**Closed: drift D3** — the allowlist is reconciled against a commit-set-derived delivered
+path set; see the D3 closure record.
+
+**Raised: drift D7** — `rlchart.js`, a shared surface, was edited outside the Shared
+Infrastructure Impact Sweep. Minor, gates no row on its own.
+
+**Still open — 3 rows, and all three trace to ONE root cause:**
+
+1. **SCN-012-039** — the root blocker. Every mechanism clause is proven. Its own
+   parenthetical END-state clause, "every ordinary tool wired", is **unsatisfiable as
+   written**: 4 tools are deliberately not wired by documented product/architecture
+   decision. Amendment proposed in `scope.md`; requires owner approval, not self-approval.
+2. **Change boundary / rollback** — half (a), the allowlist, is **closed** by D3. Half
+   (b), the documented rollback path, has still never been exercised by any executed
+   command. That half is genuinely agent-actionable but requires source edits, which
+   this artifact-only run does not perform.
+3. **Build Quality Gate** — its blocker 3 (D3) is now closed and its scan-currency
+   concern is answered by Commands 1-4 at HEAD `acf042bb`. It stays open on blocker 1,
+   *"per-tool RED/GREEN is absent for the 3 unwired ordinary tools"* — which is
+   SCN-012-039's coverage clause inherited verbatim. **Checking this composite gate while
+   its own constituent stays open would be self-contradictory**, so it stays `- [ ]`.
+   Blocker 4 is also recorded honestly: the scope introduced zero executable
+   interception, but a spec it modified carries 3 pre-existing sites, so the gate's
+   literal "across every spec this scope touched" wording remains unmet.
+
 ## Status
+
+**Current — 2026-07-30, HEAD `acf042bb`.**
+
+- **Status:** In Progress (scope) — **11 of 14 DoD items checked, 3 open.** `Done` would
+  be fabrication while SCN-012-039 is open; `Blocked` would overstate it, because one of
+  the three open rows (the rollback rehearsal) is ordinary agent-actionable work
+- **Phase:** implement
+- **The single root blocker:** **SCN-012-039**. All three open rows reduce to it or to
+  one independent item:
+  1. **SCN-012-039** — root. Every mechanism clause is proven; the row's own
+     parenthetical END state, *"every ordinary tool wired"*, is unsatisfiable as written
+     because 4 tools are deliberately unwired by documented decision. An amendment is
+     **proposed** in `scope.md`; it is a spec change and requires owner approval
+  2. **Build Quality Gate** — derivative of (1). Its D3 blocker is closed and its scans
+     are re-run current at this HEAD; it stays open solely on *"per-tool RED/GREEN is
+     absent for the 3 unwired ordinary tools"*, which is (1)'s coverage clause inherited
+  3. **Change boundary / rollback** — independent, and the only row not blocked by (1).
+     Half (a), the allowlist, is **closed** by the D3 reconciliation. Half (b), the
+     documented rollback path, has never been exercised; rehearsing it requires source
+     edits and is out of scope for an artifact-only run
+- **Closed this run:** **SCN-012-041** (both clauses met — 7 of 8 `#simpleView` tools by
+  per-page executed proof in the `acf042bb` sweep, the 8th structurally outside the shell
+  and untouched by the scope) and drift **D3** (allowlist reconciled against a
+  commit-set-derived delivered path set; 5 paths added, 1 deliberately refused as
+  BUG-004's, 4 retained as declared-but-not-delivered)
+- **Raised this run:** drift **D7** — `rlchart.js`, a shared surface, was edited outside
+  the Shared Infrastructure Impact Sweep. Minor; gates no row on its own
+- **Drift status:** **D1, D2, D3, D5 CLOSED.** **D4 half 2, D6, D7 open** — TP-15-05's
+  original carrier contains executable `page.route` (the row is nonetheless closed,
+  because `28099a4d` gave it a separate interception-free carrier), the TP-15-05
+  traceability comment names the wrong carriers, and D7 above
+- **Coverage:** 19 of 22 ordinary tools wired — 18 module-backed in strict projection
+  parity + `technical-analysis-decision-lab` as the intended registry-gated honest
+  `unavailable`. `market-brief` is excluded by design (`kind = market-action-center`)
+- **This run changed only** `scope.md` and `report.md`. No source, test, or `state.json`
+  change; nothing committed or pushed
+
+### Superseded status block (HEAD `0890348a`) — retained for audit
 
 - **Status:** In Progress (scope) — **6 of 14 DoD items remain open** after this
   reconciliation closed TP-15-03, TP-15-04, TP-15-06 and TP-15-07, so `Done` would be

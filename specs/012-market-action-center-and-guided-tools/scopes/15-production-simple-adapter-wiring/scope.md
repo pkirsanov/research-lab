@@ -4,6 +4,15 @@
 
 **Status:** In Progress
 
+**Current — 2026-07-30, HEAD `acf042bb`. 11 of 14 DoD items checked, 3 open, and
+`SCN-012-039` is the single root blocker.** The other two open rows are not independent
+failures: the Build Quality Gate inherits SCN-012-039's coverage clause verbatim, and the
+change-boundary row is open only on an unrehearsed rollback. SCN-012-039's own clause
+("every ordinary tool wired") is **unsatisfiable as written** — 4 of the 22 ordinary tools
+are deliberately excluded by recorded product/architecture decision, and for the two
+rental tools a deploy gate actively asserts that exclusion. An amendment is **proposed**
+on that row and awaits an **owner decision**; `bubbles.plan` has not self-approved it.
+
 **Delivered state — 2026-07-29, HEAD `a7631b36`, DoD reconciled this session.** The
 production bridge is delivered and proven, and **19 of the 22 ordinary tools are
 wired, 18 in strict projection parity**; the 19th
@@ -65,17 +74,27 @@ stand, and the *decisive* one is data, not engineering.
    Formula-ownership rule. This reason alone would make the work expensive; reason 1
    makes it wrong.
 
-**Why `In Progress` rather than `Done` or `Blocked`.** **10 of the 14 DoD items are
-now checked** and 4 remain open, so `Done` would be fabrication. The 4 open items are
-**not test gaps** — every Test Plan row is green and attributable. They are:
-(1) SCN-012-039's parenthetical END-state clause "every ordinary tool wired" (19 of 22);
-(2) SCN-012-041's 8th `#simpleView` page, the same root; (3) the change-boundary row,
-whose allowlist half is drift **D3** and whose rollback half has never been rehearsed;
-and (4) the Build Quality Gate, which inherits (1) and (3). `Blocked` would overstate
-it: three of the four are externally blocked on owner decisions for the unwired tools
-and on a `bubbles.plan` wording/allowlist amendment, but the rollback rehearsal is
-still agent-actionable work that simply has not been done. `In Progress` is the only
-label that misrepresents neither half.
+**Why `In Progress` rather than `Done` or `Blocked`.** **11 of the 14 DoD items are now
+checked** and 3 remain open, so `Done` would be fabrication. The 3 open items are **not
+test gaps** — every Test Plan row is green and attributable. They are:
+(1) **SCN-012-039**'s parenthetical END-state clause "every ordinary tool wired" (19 of
+22) — the single **root** blocker, and unsatisfiable as written because 4 tools are
+deliberately excluded by product/architecture decision (an amendment is proposed on that
+row, for owner decision); (2) the **Build Quality Gate**, which is purely derivative — it
+inherits (1)'s coverage clause verbatim, its D3 blocker is closed and its scans were
+re-run current at HEAD `acf042bb`; and (3) the **change-boundary/rollback** row, whose
+allowlist half is now closed by D3 and which stays open solely because the documented
+rollback path has never been rehearsed. `Blocked` would overstate it: (1) and (2) need an
+owner decision, but the rollback rehearsal in (3) is ordinary agent-actionable work that
+simply has not been done. `In Progress` is the only label that misrepresents neither half.
+
+**Closed 2026-07-30 (HEAD `acf042bb`, `bubbles.plan`, artifact-only):** **SCN-012-041**
+(both clauses met — 7 of the 8 `#simpleView` tools by per-page executed proof in the
+`acf042bb` sweep, the 8th, `msft-july-print-model`, structurally outside the shell and
+untouched by this scope) and drift **D3** (the Implementation Files allowlist reconciled
+against a commit-set-derived delivered path set). New minor drift **D7** was raised, not
+absorbed: `rlchart.js`, a shared surface, was edited outside the Shared Infrastructure
+Impact Sweep.
 
 **Scope-Kind:** runtime-behavior
 
@@ -189,6 +208,16 @@ delegating, 3 open, 1 brief-only) is in
 
 ## Implementation Files
 
+**Reconciled 2026-07-30 at HEAD `acf042bb` — drift D3 CLOSED.** This list was stale: it
+was authored ahead of delivery and never re-derived. It is now reconciled against a
+**mechanically derived** delivered path set — `git show --name-only` over the 31
+subject-attributed Scope 15 commits (`git log --all --grep='scope.15'`) plus the 2
+BUG-004 commits that touched this scope's files. That derivation also surfaced two
+Scope 15 commits missing from `report.md`'s own increments table: `cc0e81ef` (the commit
+that actually delivered the TP-15-07 canaries) and `3f04904b`. Full record, including why
+the earlier pathspec-filtered derivation could not have found this drift, is in
+[report.md](report.md#d3--closed-2026-07-30--implementation-files-allowlist-was-stale).
+
 ### New
 
 - `tests/simple-production-bridge.unit.mjs`
@@ -202,6 +231,26 @@ delegating, 3 open, 1 brief-only) is in
 - each wired ordinary page (register a `toolId` owner-state provider; for the `#simpleView` subset, move native Simple content under Power): `market-heatmap-lab.html`, `options-flow-feed-lab.html`, `intraday-tape-lab.html`, `swing-structure-lab.html`, `options-structure-lab.html`, `gamma-trading-lab.html`, `sector-research-lab.html`, `global-rotation-lab.html`, `real-assets-lab.html`, `bond-regime-lab.html`, `ai-capex-strategy-lab.html`, `msft-july-print-model.html`, `company-fundamentals-lab.html`, `etf-momentum-lab.html`, `strategy-self-improvement-lab.html`, `strategy-validation-lab.html`, `smart-money-flow-lab.html`, `waterfront-polo-lab.html`, `volatility-sizing-lab.html`, `palm-springs-rental-market-lab.html`, `ocean-shores-rental-market-lab.html`, `technical-analysis-decision-lab.html`
 - `tests/bond-regime-lab.spec.mjs`, `tests/volatility-sizing-lab.spec.mjs`, `tests/msft-july-market-refresh.spec.mjs` (move native `#simpleView` expectations to Power; assert the adapter panel in Simple)
 - `scripts/selftest.mjs` (production-bridge canaries)
+
+### Modified — added by the 2026-07-30 D3 reconciliation
+
+Delivered by Scope 15 commits, genuinely in-boundary, but not anticipated by the list above:
+
+- `tests/simple-model-adapters-market.spec.mjs`, `tests/simple-model-adapters-macro-fundamental.spec.mjs`, `tests/simple-models.spec.mjs`, `tests/company-fundamentals-lab.spec.mjs` — per-tool adapter/wiring specs reconciled to the shell in the same commit as the tool they cover. This is the identical class of edit as `tests/bond-regime-lab.spec.mjs` and `tests/volatility-sizing-lab.spec.mjs`, which the list *did* name; delivery needed 7 such spec files and the list anticipated 3. All additive reconciliations, no rewrites (e.g. `tests/company-fundamentals-lab.spec.mjs` +48/-0 in `44afd71b`).
+- `rlchart.js` — +5/-0 in `ab1d4879`, restoring the `canvas.__rlhit` legacy alias documented in `specs/003-bond-regime-and-scenario-lab/design.md` L1006 and dropped by an unrelated earlier refactor (`c81d808d`). Demoting bond-regime's native content to Power is what made those Power canvases load-bearing and surfaced the latent break, so the repair was required to keep this scope's own DoD green. **It is nevertheless a shared surface that this scope's Shared Infrastructure Impact Sweep did not enumerate** — recorded as new drift **D7**, not silently absorbed.
+
+### Explicitly NOT added — delivered under a different artifact's boundary
+
+- `tests/market-heatmap-control-surface.spec.mjs` — created by `087ad2ad` / `5c77e1f1`, whose subjects are `fix(012/BUG-004)` and which carry a complete BUG-004 artifact set. It is **BUG-004's carrier test**. Listing it here would misattribute another artifact's delivery to this scope and retroactively widen this boundary to cover work it does not own. Those two commits also touched `rlexperience.js`, `market-heatmap-lab.html` and `tests/simple-production-bridge.unit.mjs`, all already inside this allowlist, so they introduce no further drift.
+
+### Declared but NOT delivered — retained deliberately
+
+These four entries were planned and then declined for the documented product/architecture
+reasons; no Scope 15 commit touches any of them. They are kept so the list records the
+plan and its outcome, and are labelled here so they cannot be read as delivered:
+
+- `msft-july-print-model.html` and `tests/msft-july-market-refresh.spec.mjs` — deliberate shared-shell opt-out (`meta rlviews=off` → `window.__rlviewsInit = 1`); the shell never runs, so a provider would be dead code.
+- `palm-springs-rental-market-lab.html`, `ocean-shores-rental-market-lab.html` — declined by product decision (the owner published `purchasePriceUsd: null` and the Pages gate asserts that absence).
 
 Owner extraction for the 4 open tools may surgically export/reuse existing owner
 functions (`rlvol.js`, the rental engine, or the domain module) **only** with
@@ -308,6 +357,11 @@ created here. Full evidence is in
 | `rldata.js` | Provider, cache, snapshot, owner-read ownership unchanged | Static zero-edit assertion for `rldata.js`; the bridge and providers never fetch |
 | The 7 adapter modules' formulas | Owner formulas unchanged; only owner extraction for the 4 open tools, with parity | Pre/post owner fingerprint parity; forbidden-authority scan on the bridge and providers |
 | `market-brief` / Market Action Center | Brief-only shell and `market-action-triage`-in-Brief unchanged | `market-brief` `ownerModes` stays `["brief"]`; no ordinary-Simple path touches it |
+| `rlchart.js` (**added retroactively 2026-07-30 — drift D7**) | Per-canvas hit-test contract (`canvas.__rlhit`) consumed by every tool's Power canvases | *Not applied at the time.* The sweep did not enumerate this surface, so `ab1d4879`'s +5/-0 alias restoration landed without the declared blast-radius/canary discipline. Recorded as **D7** so the gap is documented rather than back-dated; the change was in fact covered by the bond-regime Power-canvas suite (27/27) |
+
+**Sweep-authoring lesson (D7).** This table was authored from the surfaces the plan
+intended to *protect*, not from the surfaces the work would *touch*. Those are different
+sets, and the difference is exactly where an unreviewed shared-surface edit fits.
 
 ## Change Boundary And Protected Paths
 
@@ -438,6 +492,58 @@ any row with `--list` — a zero-selection grep prints `Total: 0 tests` and exit
   see the `[TP-15-02] wired (19)` line in
   [report.md](report.md#command-1--tp-15-02-integration).)*
 
+  **RECOMMENDED AMENDMENT — PROPOSED 2026-07-30 by `bubbles.plan`, NOT self-approved.
+  Requires owner decision. This row stays `- [ ]` until the owner rules.**
+
+  *Diagnosis.* The row conflates two different things: a **mechanism** contract (how
+  `ownerModes` resolves, who owns `rlv-focused`, what Simple and Power each show) and a
+  **coverage** contract (how many tools the mechanism has been applied to). The mechanism
+  half is fully proven. The coverage half — "END state = every ordinary tool wired" — is
+  not merely unmet, it is **unsatisfiable**, because 4 of the 22 ordinary tools are
+  deliberately excluded by decisions already recorded and, in two cases, actively
+  defended by a deploy gate:
+
+  | Tool | Why it is excluded | Could wiring it ever be correct? |
+  |---|---|---|
+  | `msft-july-print-model` | deliberate shell opt-out (`meta rlviews=off`) | only by reversing an architecture decision — an owner call |
+  | `palm-springs-rental-market-lab` | owner published `purchasePriceUsd: null`; the Pages gate **asserts that absence** | **No** — a `ready` projection would fabricate the withheld economic layer |
+  | `ocean-shores-rental-market-lab` | same | **No** — same |
+  | `technical-analysis-decision-lab` | *is* wired, as the intended registry-gated honest `unavailable` (SCN-012-034 lock) | already correct; counted as wired |
+
+  So the row as written can only ever be closed by doing something the product has
+  decided must not be done. A DoD item that can only be satisfied by violating a product
+  decision is a defective item, not an outstanding task.
+
+  *Proposed replacement clause.* Keep every mechanism clause verbatim; replace only the
+  parenthetical END-state clause with a coverage contract that is **derived and
+  falsifiable** rather than absolute:
+
+  > END state = every ordinary tool is either **wired** (its page registers
+  > `__rlOwnerStateProvider[toolId]`, so its resolved `ownerModes` is `["power"]`) or
+  > **explicitly exempted** by a recorded product/architecture decision naming the tool
+  > and its reason. The exemption set is enumerated in the scope, and the TP-15-02
+  > registry-derived derivation asserts that `wired ∪ exempt` covers the full ordinary
+  > set with no third category — so a tool silently dropping out of wiring fails the
+  > contract instead of quietly enlarging the exemption list.
+
+  *Why this is not a weakening.* The current clause is unfalsifiable-in-practice: it can
+  never go green, so it stops discriminating between "work remaining" and "work
+  correctly declined". The replacement is strictly **more** testable — it adds a machine
+  check (`wired ∪ exempt == ordinary`, no third bucket) that does not exist today, and it
+  makes each exemption a named, reviewable decision rather than a footnote. At HEAD
+  `acf042bb` it would evaluate as: 19 wired, 3 exempt, 22 ordinary, 0 unaccounted.
+
+  *Knock-on if approved.* The Build Quality Gate's blocker 1 ("per-tool RED/GREEN is
+  absent for the 3 unwired ordinary tools") inherits this clause verbatim and would need
+  the same treatment — RED/GREEN required for every **wired** tool, and an exemption
+  record for each exempt one. Both rows should be amended together or neither.
+
+  *What the owner is being asked to decide.* (i) Accept, reject, or reword the
+  replacement clause; (ii) confirm the 3-tool exemption set is the intended product
+  position; (iii) confirm whether `msft-july-print-model`'s shell opt-out is permanent or
+  is a deferred adoption. `bubbles.plan` does not have the authority to answer any of
+  these, and has not.
+
 - [x] SCN-012-040: Each wired page exposes its real current owner state through the uniform provider seam, and the adapter's owner facts match the page's Power path (owner parity, no formula copy).
 
   **Claim Source:** executed (2026-07-28, re-run at HEAD `30326253`). The wired set is
@@ -481,7 +587,121 @@ any row with `--list` — a zero-selection grep prints `Total: 0 tests` and exit
   (empty = zero adapter-module formula edits)
   ```
 
-- [ ] SCN-012-041: The 8 `#simpleView` tools' native Simple content is reachable under Power with nothing deleted; BUG-003 is closed.
+- [x] SCN-012-041: The 8 `#simpleView` tools' native Simple content is reachable under Power with nothing deleted; BUG-003 is closed.
+
+  **Claim Source:** executed (2026-07-30, `bubbles.plan`, HEAD `acf042bb`). Both clauses
+  met. *(The prior reason — "NOT SATISFIED on the 8th `#simpleView` page alone" — was
+  accurate at HEAD `a7631b36` and is **superseded**; it is retained verbatim below.)*
+
+  ```text
+  $ npx --no-install playwright test tests/simple-production-wiring.spec.mjs \
+      --config=playwright.config.mjs --project=system-chrome --reporter=line --workers=1
+  TP-15-04/SCN-012-041 derived native #simpleView tools: 7 of 19 wired (4 also declare #powerView) — intraday-tape-lab swing-structure-lab gamma-trading-lab sector-research-lab+#powerView bond-regime-lab+#powerView etf-momentum-lab+#powerView volatility-sizing-lab+#powerView
+    4 passed (12.1m)
+  Exit Code: 0
+  ```
+
+  RED proof: forcing the adapter panel visible under Power in `intraday-tape-lab` failed
+  with `intraday-tape-lab: SCN-012-041 the adapter panel must be HIDDEN in Power`; the
+  page was then restored byte-exactly to sha256
+  `c7767c738cc42168879bc0f104ceef294f00d15b2fddacb09ba0ecef129b167d`.
+  `msft-july-print-model` is the 8th page and is **N/A by design** — it is not wired
+  (registers no `__rlOwnerStateProvider`) and sets `window.__rlviewsInit = 1`
+  (lines 792-793), which `rlapp.js:302` gates the shell on, so the shell demotion this
+  scenario describes structurally cannot run there.
+
+  **Clause (b) — BUG-003 — was already met** by `28099a4d`'s interception-free live-stack
+  carrier (28/28, exit 0). Unchanged by this edit.
+
+  **Clause (a) is now met on all 8.** Two independent things closed it:
+
+  *7 of 8, by per-page executed proof.* Commit `acf042bb` (+134/-1, in
+  `tests/simple-production-wiring.spec.mjs` only) extended the TP-15-04 sweep to assert
+  **both halves of this scenario per tool**, which no test previously did — 5 of the 7
+  wired `#simpleView` pages had no dedicated spec at all. Per tool it now asserts, in
+  Simple: `#simpleView` **attached** (`toHaveCount(1)`) but hidden, the adapter panel
+  visible, and **zero** native top-level children rendered; in Power: the panel hidden,
+  `body` releases `rlv-focused`, native top-level content visible, and `#powerView`
+  visible on the pages that declare one. The attached-but-hidden pairing is deliberately
+  adversarial — it is what makes "nothing **deleted**" a real assertion rather than a
+  bare not-visible check that a deletion would also satisfy. The swept set is derived
+  from page source (`pageDeclaresElementId`), never hard-coded, so a page gaining or
+  losing `#simpleView` joins or leaves automatically; two anti-vacuity guards
+  (`nativeSimpleTools.length > 0`, and `nativeDemotion.length === nativeSimpleTools.length`)
+  make a silently-skipped tool a failure; and the shell rule selector is **extracted from
+  the production `rlviews` stylesheet** with a fatal guard, so the test cannot drift from
+  the contract it checks. RED-proven: forcing the adapter panel visible under Power in
+  `intraday-tape-lab` fails with `intraday-tape-lab: SCN-012-041 the adapter panel must
+  be HIDDEN in Power`; the page was restored byte-exactly to `c7767c73`.
+
+  *The 8th, `msft-july-print-model`, is **N/A by design** — verified first-hand, not
+  inherited.* The page is structurally outside the shell, and the scope never touched it:
+
+  ```text
+  $ grep -n 'name="rlviews"' msft-july-print-model.html
+  778:  <meta name="rlviews" content="off">
+  $ grep -n '__rlviewsInit' msft-july-print-model.html
+  792:        if (m && (m.getAttribute('content') || '').toLowerCase() === 'off') window.__rlviewsInit = 1;
+  793:      } catch (e) { window.__rlviewsInit = 1; }
+  $ grep -n '__rlviewsInit' rlapp.js
+  302:          return !!root.__rlviewsInit;
+  $ sed -n '<ensureSharedScript>' rlapp.js
+        function ensureSharedScript(id, src, ready) {
+          return new Promise(function (resolve) {
+            if (ready()) return resolve(true);      ← the pre-set flag short-circuits the load
+
+  $ grep -c '__rlOwnerStateProvider' msft-july-print-model.html   → 0   (registers no provider)
+  $ grep -c 'id="simpleView"' msft-july-print-model.html          → 1
+  $ grep -c 'id="powerView"'  msft-july-print-model.html          → 1
+  $ grep -c 'id="modeSeg"'    msft-july-print-model.html          → 1   (its OWN Simple/Power toggle)
+
+  $ (all 31 scope-15 + 2 BUG-004 commits) | grep -c '^msft-july-print-model.html$'   → 0
+  ```
+
+  The chain closes end to end: `meta rlviews=off` pre-sets `window.__rlviewsInit = 1`,
+  which makes `ensureSharedScript`'s `if (ready())` guard short-circuit, so `rlviews.js`
+  is **never loaded**, so `body.rlv-focused` can never be applied, so the shell demotion
+  this scenario describes structurally cannot run there. The page carries its own
+  `#modeSeg` + `#simpleView` + `#powerView`, so its native Simple content **is** reachable
+  under its own Power toggle. And **no commit in this scope touched the file** — so the
+  scope hid nothing and deleted nothing on that page.
+
+  **Why this closes but SCN-012-039 does not — the distinction is deliberate, not
+  convenient.** SCN-012-039's open clause is a *coverage* assertion about a population
+  ("every ordinary tool wired"); four tools are deliberately unwired, so that assertion
+  is **false**. SCN-012-041's clause is a *preservation* assertion ("reachable … with
+  nothing deleted"); for the msft page it is **true** — nothing is unreachable and
+  nothing is deleted — and the risk it guards against (content lost to the shell's
+  demotion) is structurally absent because the shell never runs. A false assertion cannot
+  be checked; a true one reached by a different route can. Resolving that applicability
+  question is `bubbles.plan`'s own call, and it is resolved here in the direction the
+  evidence supports, with the reasoning recorded rather than assumed.
+
+  ```text
+  $ for f in $(grep -l 'id="simpleView"' *.html | sort); do \
+      grep -q '__rlOwnerStateProvider' "$f" && echo "  WIRED    $f" || echo "  UNWIRED  $f"; done
+    WIRED    bond-regime-lab.html
+    WIRED    etf-momentum-lab.html
+    WIRED    gamma-trading-lab.html
+    WIRED    intraday-tape-lab.html
+    UNWIRED  msft-july-print-model.html
+    WIRED    sector-research-lab.html
+    WIRED    swing-structure-lab.html
+    WIRED    volatility-sizing-lab.html
+    -- 8 pages, 7 wired, 4 of the 7 also declare #powerView
+
+  (independently matches the sweep's OWN printed derivation:
+   "TP-15-04/SCN-012-041 derived native #simpleView tools: 7 of 19 wired (4 also declare #powerView)")
+
+  $ npx --no-install playwright test tests/simple-production-wiring.spec.mjs \
+      --config=playwright.config.mjs --project=system-chrome --reporter=line --workers=1
+    4 passed (12.1m)
+  SWEEP_EXIT=0
+  ```
+
+  Full record: [report.md](report.md#dod-closure-run--2026-07-30-head-acf042bb).
+
+  Superseded reason follows:
 
   NOT SATISFIED — **on the 8th `#simpleView` page alone; the BUG-003 half is now met.**
   7 of the 8 are reconciled with executed proof; the 8th is not. *(Correction 2026-07-28
@@ -525,7 +745,9 @@ any row with `--list` — a zero-selection grep prints `Total: 0 tests` and exit
   `a7631b36` — see the TP-15-05 row.)* The bond-regime BUG-003 in `specs/_bugs/` is at
   status `done`.
 
-  **Clause (a) is what keeps this row open:** the 1 unwired `#simpleView` page
+  **Clause (a) is what keeps this row open:** *(SUPERSEDED 2026-07-30 — clause (a) is
+  now met; see the Claim Source above. The original text follows unmodified.)* the 1
+  unwired `#simpleView` page
   (`msft-july-print-model`) is not reconciled and its spec is untouched by this scope.
   It is also the one page where the shell **deliberately never runs** (a
   `window.__rlviewsInit = 1` opt-out), so it has no Power view for its native content to
@@ -610,6 +832,27 @@ any row with `--list` — a zero-selection grep prints `Total: 0 tests` and exit
   for any recorded rollback exercise across this scope's artifacts returns nothing.
   Neither half is closable by executing a test — (a) needs a `bubbles.plan` allowlist
   amendment, (b) needs a rollback rehearsal that no one has performed.
+
+  **Update 2026-07-30 at HEAD `acf042bb` — half (a) CLOSED, half (b) still OPEN, so the
+  row stays unchecked.**
+
+  *(a) Boundary — now clean.* Drift **D3** is closed. The allowlist has been reconciled
+  against a delivered path set derived from the **commit set** (31 subject-attributed
+  Scope 15 commits + 2 BUG-004 commits) rather than from a pathspec filter keyed on the
+  allowlist itself — the earlier derivation was structurally incapable of finding paths
+  outside the list it filtered on, which is why the drift persisted. Outcome: 5 paths
+  added as genuine in-boundary delivery, 1 (`tests/market-heatmap-control-surface.spec.mjs`)
+  **deliberately refused** because it is BUG-004's carrier and listing it would
+  misattribute another artifact's delivery here, and 4 retained as explicitly
+  declared-but-not-delivered. Protected paths re-verified untouched. One new finding was
+  raised rather than absorbed: **D7**, `rlchart.js` was edited outside the Shared
+  Infrastructure Impact Sweep.
+
+  *(b) Rollback — still never demonstrated.* Unchanged. No executed command has exercised
+  the documented rollback path. Rehearsing it requires source edits (restoring the stub,
+  reverting `rlapp.js` and each page's provider), which an artifact-only run does not
+  perform. **This half alone keeps the row open**, and it is ordinary agent-actionable
+  work — not an owner decision.
 
 
 #### Test Evidence Items - Exact Parity With 7 Test Plan Rows
@@ -1049,4 +1292,52 @@ any row with `--list` — a zero-selection grep prints `Total: 0 tests` and exit
   **reasons 1 and 3 stand independently**, so this gate cannot close: per-tool RED/GREEN
   is absent for the 3 unwired ordinary tools, and the changed-path boundary is not clean
   against the declared Implementation Files allowlist (**D3**, open with `bubbles.plan`).
+
+  **Update 2026-07-30 at HEAD `acf042bb` — scans re-run current; reason 3 CLOSED; the
+  gate stays `- [ ]` on reason 1 alone.**
+
+  *Scan currency — answered.* Every scan this gate names that does not require a
+  12-minute browser run was re-executed at current HEAD by `bubbles.plan` this session,
+  so "the evidence is from an older HEAD" is no longer a live concern. Raw output in
+  [report.md](report.md#dod-closure-run--2026-07-30-head-acf042bb).
+
+  ```text
+  $ node scripts/validate-node-source-lock.mjs
+  [node-source-lock] actual=PASS
+  [node-source-lock] OK adversarial=16 unexpectedAcceptances=0
+  SOURCE_LOCK_EXIT=0
+
+  $ git diff --check
+  DIFF_CHECK_EXIT=0
+
+  $ node scripts/selftest.mjs
+  Research-Lab self-test: 968 passed, 0 failed
+  SELFTEST_EXIT=0
+  ```
+
+  *No-interception scan — measured, comment-stripped, with provenance.* 0 executable
+  matches in `tests/simple-production-wiring.spec.mjs` (5 raw, all in comment blocks) and
+  0 in `tests/market-heatmap-control-surface.spec.mjs` (2 raw, both comments).
+  `tests/bond-regime-lab.spec.mjs` has exactly **3** executable sites, at 326/393/441 —
+  and `git blame` attributes all three to `943972e2` (2026-07-16), which pre-dates this
+  scope. The TP-15-05 live carrier (`28099a4d`) added **3 lines mentioning `page.route`
+  and all 3 are comments** disclosing the pre-existing mocking; `3f04904b` and `fed8f9ab`
+  added 0. **This scope introduced zero executable interception.**
+
+  *Reason 3 — CLOSED.* D3 is closed; the allowlist is reconciled against a
+  commit-set-derived delivered path set. See the change-boundary item above.
+
+  *Reason 4 — recorded honestly, still literally unmet.* The scope added no interception,
+  but a spec it *modified* carries 3 pre-existing sites, so the gate's own phrasing
+  ("across every spec this scope touched") is not satisfied. It is not the deciding
+  blocker.
+
+  *Reason 1 — STANDS, and is why this row stays unchecked.* "Per-tool RED/GREEN is absent
+  for the 3 unwired ordinary tools" is **SCN-012-039's coverage clause inherited
+  verbatim**. Those 3 tools are deliberately unwired, so a per-tool RED/GREEN for them
+  cannot exist without doing work the product has declined. Checking this composite gate
+  while its own constituent SCN-012-039 remains open would be self-contradictory, so it
+  is not checked. If the owner approves the SCN-012-039 amendment proposed above, this
+  reason should be amended in the same change — RED/GREEN required for every **wired**
+  tool, an exemption record for each exempt one.
 

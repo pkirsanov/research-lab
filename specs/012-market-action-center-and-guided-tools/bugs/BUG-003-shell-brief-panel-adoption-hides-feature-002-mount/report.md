@@ -4415,3 +4415,165 @@ product source, `tests/`, and `tools.json` were not touched.
 `certification.status` remain `in_progress` at assurance level `fast`
 (`missingForFull: [independent-audit]`). Next owner `bubbles.audit`: open a successor attempt to
 `AUD-BUG003-A2` and rule on the two items in VW-5 that carry an audit owner.**
+
+---
+
+## Validation Phase — 2026-07-30 (bubbles.validate, certifying round)
+
+### VW-7. Correction of record: the mechanical claim in VW-6 was itself mis-measured
+
+VW-6 asserted that `is-terminal-for-mode.sh` "returns **0 for every input tested**, including a
+deliberately bogus status", and concluded that the signal "cannot discriminate here, so it is cited
+as evidence by neither side". **That assertion does not hold.** Re-measured this round from the
+repository root, the script discriminates exactly as designed: `done` is the only terminal status
+for `bugfix-fastlane`, and every other input — including a status string that exists nowhere in the
+registry — exits 1.
+
+```text
+$ cd /home/redacted/research-lab && for s in done delivered_fast validated docs_updated \
+      specs_hardened blocked in_progress not_started delivered_pending_activation \
+      totally_bogus_status; do
+    bash .github/bubbles/scripts/is-terminal-for-mode.sh "$s" bugfix-fastlane >/dev/null 2>&1
+    printf "  %-30s exit=%s\n" "$s" "$?"
+  done
+  done                           exit=0
+  delivered_fast                 exit=1
+  validated                      exit=1
+  docs_updated                   exit=1
+  specs_hardened                 exit=1
+  blocked                        exit=1
+  in_progress                    exit=1
+  not_started                    exit=1
+  delivered_pending_activation   exit=1
+  totally_bogus_status           exit=1
+```
+
+**Consequence for the record: the 2026-07-29 refusal's `delivered_fast → exit 1` reasoning was
+CORRECT.** That round read the signal accurately and was entitled to rest on it. VW-6 withdrew a
+sound refusal on the strength of a bad measurement, and this entry restores it. VW-6's transcript
+is left byte-for-byte intact above; this supersedes it in place rather than editing it.
+
+**Root cause, measured rather than assumed.** VW-6's own transcript shows `ls bubbles/workflows.yaml
+# NO (install path is .github/bubbles/workflows.yaml)`, which suggests an unresolvable registry
+path. That hypothesis was tested directly and **does not** reproduce the reported behaviour — an
+unresolvable registry file exits **2**, not 0, and a bare (non-PATH) invocation exits **127**. The
+only candidate that reproduces "0 for every input including a bogus status" is reading `$?` after a
+pipeline, where `$?` is the exit status of the last pipeline element rather than of the script:
+
+```text
+$ # C1 — bare invocation, as VW-6's transcript literally shows
+  in_progress exit=127 | bogus_status exit=127 | done exit=127 | delivered_fast exit=127
+$ # C2 — BUBBLES_WORKFLOWS_FILE pointed at the non-install path
+  in_progress exit=2   | bogus_status exit=2   | done exit=0   | delivered_fast exit=2
+$ # C3 — exit read after a pipe:  script "$s" mode 2>&1 | sed 's/^/x/' >/dev/null ; echo $?
+  in_progress exit=0   | bogus_status exit=0   | done exit=0   | delivered_fast exit=0
+```
+
+C2's lone `done exit=0` is not an inconsistency: `done` is short-circuited as a universal terminal
+status at `is-terminal-for-mode.sh:69-71`, before the registry file is ever opened. So C3 is the
+mechanism of record, and the fault lay in how the exit status was captured — not in the script.
+
+### VW-8. Certification decision
+
+Every input the certification contract requires was re-executed this round rather than inherited:
+
+```text
+$ bash .github/bubbles/scripts/assurance-derive.sh --implement-complete true \
+      --tests-complete true --tests-passed true --audit-complete true
+  achievedLevel=full
+  terminalStatus=done
+  riskClass=unknown
+  missingForFull=none
+  reason=complete integrity chain (implementation + full test coverage + all tests passing
+         + independent audit) — full assurance
+  ASSURANCE_EXIT=0
+
+$ bash .github/bubbles/scripts/is-terminal-for-mode.sh done bugfix-fastlane
+  TERMINAL_EXIT=0
+
+$ bash .github/bubbles/scripts/assurance-certification-check.sh --feature-dir <BUG-003>
+  [assurance-certification-check] OK — recorded assurance is internally consistent
+  (level=full, missingForFull='<none>').
+  ACC_EXIT=0
+```
+
+The audit ledger was re-resolved from current state: `currentAttemptId` is `AUD-BUG003-A3`, which is
+the **only** attempt in `resultState: ACTIVE` (A1 and A2 are `SUPERSEDED`), carrying
+`auditVerdict: SHIP_IT`, `outcome: completed_diagnostic`, `unresolvedFindings: []`. All four
+findings ever raised — `VAL-F1`, `VAL-F2`, `VAL-F3`, `AUD-F4` — appear in A3's `addressedFindings`
+exactly once, with zero overlap between the two collections and none dropped. The freshly resolved
+contract reports `auditProfile: delivery-completion-v1`, `statusCeiling: done`, `targetStatus: done`,
+and a `contractDigest` of `sha256:aa91472c…` that **matches** the digest A3 recorded, so the audit
+adjudicated under the governing rules now in force.
+
+One difference was examined rather than waved through. A3's recorded `targetRevision`
+(`sha256:bdd0e53e…`) differs from the freshly resolved one (`sha256:e37d57a9…`). That hash covers
+`report.md` plus a canonical projection of `state.json` which deletes `.execution.audit` but retains
+`.certification` and `blockedReason` — precisely the fields a certifying write must modify — so it
+necessarily moves at the moment of certification and cannot serve as an equality gate. The stable
+identity check is `contractDigest`, and it matches. The adjudicated evidence itself is unmoved:
+`git diff --quiet HEAD -- report.md` confirms `report.md` is byte-identical to `HEAD`, and its mtime
+(20:42) precedes A3 (21:09), so nothing the audit ruled on has changed underneath it.
+
+`requiresRevalidation: true` was the one genuine mechanical obstruction, surfaced as Gate **G089**
+by the transition guard on the first certifying write. It was resolved on measurement, by
+re-executing all four Test Plan rows in this session before the flag was cleared:
+
+```text
+$ node --test tests/distributed-briefs.static.integration.mjs
+  # tests 1 | # pass 1 | # fail 0 | # skipped 0        TP01_EXIT=0
+$ npx --no-install playwright test tests/distributed-briefs.spec.mjs \
+      --config=playwright.config.mjs --project=system-chrome --reporter=list
+  13 passed (9.1s)                                     TP02_EXIT=0
+$ node scripts/selftest.mjs
+  Research-Lab self-test: 970 passed, 0 failed         TP03_EXIT=0
+$ node --test tests/simple-production-bridge.integration.mjs
+  # tests 6 | # pass 6 | # fail 0 | # skipped 0        TP04_EXIT=0
+
+$ bash .github/bubbles/scripts/inter-spec-dependency-guard.sh <BUG-003>
+  PASS Gate G089 (inter_spec_dependency_gate) — dependencies=0 acceptedDependencies=none
+  requiresRevalidation=false
+  DEP_EXIT=0
+```
+
+`specDependsOn` is absent (`dependencies=0`), so no upstream demotion contributed to the flag; it
+was self-carried from the earlier rounds and is now discharged against re-executed evidence.
+
+### Validation Evidence
+
+```text
+$ bash .github/bubbles/scripts/state-transition-guard.sh <BUG-003>
+  failedGateIds: []
+  failedChecks: []
+  blockingCode: none
+  failureCount: 0
+  verdict: PASS
+===STATE_TRANSITION_GUARD_EXIT=0===
+
+$ bash .github/bubbles/scripts/artifact-lint.sh specs/012-market-action-center-and-guided-tools
+  Artifact lint PASSED.
+===ARTIFACT_LINT_EXIT=0===
+
+$ node scripts/selftest.mjs
+  Research-Lab self-test: 970 passed, 0 failed
+===SELFTEST_EXIT=0===
+```
+
+### Boundary Attestation For This Phase
+
+Writes were confined to this packet's `state.json` and `report.md`. In `state.json`: `status` and
+`certification.status` set to `done`; `certifiedAt`, `completedAt`, and
+`certification.certifiedCompletedPhases` populated; `blockedReason` reconciled to `null` with its
+prior narrative retained verbatim under `supersededBlockerRecord`; `requiresRevalidation` cleared to
+`false` with its evidence recorded alongside. In `report.md`: this section appended only. No DoD
+checkbox was toggled (11 checked / 0 unchecked, unchanged), no scope status was altered, no existing
+transcript was edited, and `execution.audit` — which is `bubbles.audit`-owned — was read but not
+modified. Feature 012 top-level `status`, `certification`, and `blockedReason` are untouched and the
+feature remains `blocked` on Feature 008. Scope 15, BUG-002, BUG-004,
+`specs/002|008|009|010|013|014|015|016`, `.github/bubbles/**`, product source, `tests/`, and
+`tools.json` were not touched. The single window-boundary marker count remains 1.
+
+**Verdict: ✅ `completed_owned` — CERTIFIED. `status` and `certification.status` are `done` at
+assurance level `full` (`missingForFull: []`), derived mechanically from a clean `SHIP_IT` audit on
+`AUD-BUG003-A3` and confirmed terminal-for-mode. VW-6's mis-measurement is corrected in VW-7, and
+the 2026-07-29 refusal is restored to the record as having reasoned correctly.**

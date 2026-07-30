@@ -4,6 +4,55 @@
 
 **Status:** In Progress
 
+**Current — 2026-07-30, HEAD `2b6e4d19`. 14 of 14 DoD items checked, 0 open.** The three
+rows that were open at `1220cc4b` were reconciled this session against first-hand executed
+evidence. Each closed for a different reason, and none closed by relaxing a check:
+
+1. **SCN-012-039** — the amended closed-set clause (`56766436`, owner-directed) became a
+   mechanical assertion in `b548519e` and now runs green:
+   `ordinary=22 wired=19 declared-unwired=3 unaccounted=0`. Proven discriminating by a
+   first-hand RED: stripping one tool's `simpleWiring` declaration makes the assertion
+   fail by name (`pass 5 / fail 1`), and it returns to `6/6` once restored. The RED ran in
+   a disposable `/tmp` worktree, so the live `tools.json` was never mutated.
+2. **Change boundary / rollback** — half (b) was rehearsed and recorded at `3d860d0e`:
+   21 git-derived paths restored to `f216be0d^`, byte-identical; the Scope-15 canaries go
+   RED (`958 passed, 4 failed`, all 4 ours, **zero collateral**) proving it is not a
+   no-op; five data classes byte-identical before and after with **0 deletions**. Half (a)
+   was re-derived at this HEAD, which found the allowlist had gone stale *again* by one
+   path (`tools.json`, delivered by the amendment's own enforcement commit) — reconciled
+   as drift **D3-b**, with zero protected paths touched.
+3. **Build Quality Gate** — reasons 2 and 3 were already closed; reason 1 is discharged by
+   SCN-012-039's closure; reason 4 is **re-scoped from file granularity to carrier
+   granularity** because it was a defective specification of the same class as the
+   withdrawn "every ordinary tool wired" clause. The replacement is stronger: it binds
+   every carrier of a live-stack claim, requires mocked carriers to be labelled and
+   barred from satisfying live claims, and keeps the no-new-interception half — now proven
+   by `git log -G` returning **empty** across the whole scope range.
+
+**Status remains `In Progress`, deliberately.** All 14 DoD items are checked, but promoting
+this scope's status is a certification act owned by `bubbles.validate`, not by the agent
+that reconciled the rows. `state.json` was not touched in this session, and no
+state-transition guard has been run against this change. Flipping the label here would be
+exactly the kind of self-certification the anti-fabrication policy forbids.
+
+**Open, non-blocking findings carried forward:** **ROLL-01** (LOW; a commit message and
+`rlexperience.js:1844` both claim the bridge removed a stub `classList.add('rlv-focused')`
+that provably never existed — routed to `bubbles.docs`), **D7** (`rlchart.js` edited
+outside the Shared Infrastructure Impact Sweep), and **D3-b** (recorded above). None of
+these is a precondition of any DoD row it sits under; each is recorded rather than absorbed.
+
+**HEAD provenance note.** Every command recorded in this session executed at HEAD
+`2b6e4d19`; concurrent sessions advanced HEAD to `b63d3606` before the closing validation.
+`git diff --name-only 2b6e4d19..HEAD` over the evidence surface (`tools.json`, `tests/`,
+`rlexperience.js`, `rlapp.js`, `scripts/selftest.mjs`, `simple-models.json`) returns
+**empty**, so nothing this session proved was invalidated by that advance. The upstream
+`7c4cd3a4` cited in the task brief is an ancestor of both, and is likewise byte-identical
+across that surface. Closing validation at `b63d3606`: `node scripts/selftest.mjs` →
+**968 passed, 0 failed** (exit 0); `artifact-lint.sh specs/012-…` → **PASSED** (exit 0).
+
+*(The block immediately below is the prior-HEAD record at `1220cc4b`, retained verbatim as
+audit trail. Its "3 open" verdict is **SUPERSEDED** by the above.)*
+
 **Current — 2026-07-30, HEAD `1220cc4b`. 11 of 14 DoD items checked, 3 open — unchanged
 by this session, and `SCN-012-039` is NOT the only open row.** Two rows were re-examined
 against the now-committed **D3** closure with every non-Playwright scan re-executed
@@ -288,6 +337,29 @@ Delivered by Scope 15 commits, genuinely in-boundary, but not anticipated by the
 - `tests/simple-model-adapters-market.spec.mjs`, `tests/simple-model-adapters-macro-fundamental.spec.mjs`, `tests/simple-models.spec.mjs`, `tests/company-fundamentals-lab.spec.mjs` — per-tool adapter/wiring specs reconciled to the shell in the same commit as the tool they cover. This is the identical class of edit as `tests/bond-regime-lab.spec.mjs` and `tests/volatility-sizing-lab.spec.mjs`, which the list *did* name; delivery needed 7 such spec files and the list anticipated 3. All additive reconciliations, no rewrites (e.g. `tests/company-fundamentals-lab.spec.mjs` +48/-0 in `44afd71b`).
 - `rlchart.js` — +5/-0 in `ab1d4879`, restoring the `canvas.__rlhit` legacy alias documented in `specs/003-bond-regime-and-scenario-lab/design.md` L1006 and dropped by an unrelated earlier refactor (`c81d808d`). Demoting bond-regime's native content to Power is what made those Power canvases load-bearing and surfaced the latent break, so the repair was required to keep this scope's own DoD green. **It is nevertheless a shared surface that this scope's Shared Infrastructure Impact Sweep did not enumerate** — recorded as new drift **D7**, not silently absorbed.
 
+### Modified — added by the 2026-07-30 post-amendment reconciliation (drift D3-b)
+
+The D3 reconciliation above was derived at HEAD `acf042bb`. Two further Scope 15 commits
+landed after it, and one of them delivered a path the list still did not name. Re-derived
+at HEAD `2b6e4d19` over `acf042bb..HEAD` with the same commit-set method
+(`git log --grep='scope.15' --name-only`), the post-D3 Scope 15 source/test/registry
+delivery is exactly three paths: `tests/simple-production-bridge.integration.mjs`
+(already listed), `tests/simple-production-wiring.spec.mjs` (already listed), and:
+
+- `tools.json` — `b548519e` (`feat(012/scope-15): enforce the SCN-012-039 closed-set total accounting`). This is the **declaration SST that the owner-approved SCN-012-039 amendment mandates**: the per-tool `simpleWiring` block (`contractVersion` / `state` / `reason` / `decisionRef`) that puts each ordinary tool in exactly one bucket. The amendment record above already fixes this file as the single machine-readable home for that set ("One machine-readable SST: a tool-level `simpleWiring` block in `tools.json`"), and the placement was empirically validated against `RLEXPERIENCE.validateFoundation`. It is squarely inside the ownerModes/wiring boundary; the allowlist was simply authored before the amendment existed. Added here rather than absorbed silently, and recorded as **D3-b** so the reconciliation is auditable.
+
+**Not a protected-path breach.** `tools.json` appears nowhere in the Excluded list below —
+it is the tool registry, not the data-provider configuration that the exclusion covers. A
+re-derivation of `acf042bb..HEAD` restricted to the protected set (`rldata.js`,
+`rlviews.js`, `scripts/fetch-options.mjs`, `data/options/**`, `market-brief.html`,
+`package.json`, `package-lock.json`, `.github/bubbles/**`) returns **zero** paths for
+Scope 15 commits.
+
+**Lesson (same shape as D3).** A delivered-path allowlist is only true as of the HEAD it
+was derived at. This one silently went stale again within a day, because an approved
+*contract* amendment created a new *delivery* surface. Any future amendment that names a
+new SST must re-derive this list in the same change.
+
 ### Explicitly NOT added — delivered under a different artifact's boundary
 
 - `tests/market-heatmap-control-surface.spec.mjs` — created by `087ad2ad` / `5c77e1f1`, whose subjects are `fix(012/BUG-004)` and which carry a complete BUG-004 artifact set. It is **BUG-004's carrier test**. Listing it here would misattribute another artifact's delivery to this scope and retroactively widen this boundary to cover work it does not own. Those two commits also touched `rlexperience.js`, `market-heatmap-lab.html` and `tests/simple-production-bridge.unit.mjs`, all already inside this allowlist, so they introduce no further drift.
@@ -516,7 +588,87 @@ any row with `--list` — a zero-selection grep prints `Total: 0 tests` and exit
   (2 matches, both inside the constraint comment — zero executable occurrences)
   ```
 
-- [ ] SCN-012-039: Provider-gated ordinary `ownerModes` resolves to `["power"]` once a page registers its owner-state provider (else `["simple", "power"]`; END state = every ordinary tool is in exactly one declared bucket — WIRED, or DECLARED-UNWIRED-BY-DESIGN via a `tools.json` `simpleWiring` block with a non-empty reason — with no ordinary tool unaccounted for and none in both); `applyVisual` is the sole owner of `rlv-focused`; Simple shows the panel (native hidden) and Power shows native content (panel hidden); the bridge never mutates `rlv-focused`.
+- [x] SCN-012-039: Provider-gated ordinary `ownerModes` resolves to `["power"]` once a page registers its owner-state provider (else `["simple", "power"]`; END state = every ordinary tool is in exactly one declared bucket — WIRED, or DECLARED-UNWIRED-BY-DESIGN via a `tools.json` `simpleWiring` block with a non-empty reason — with no ordinary tool unaccounted for and none in both); `applyVisual` is the sole owner of `rlv-focused`; Simple shows the panel (native hidden) and Power shows native content (panel hidden); the bridge never mutates `rlv-focused`.
+
+  **Claim Source:** executed (2026-07-30, HEAD `2b6e4d19`). *Evidence* below is a
+  first-hand GREEN → RED → restore → RE-GREEN cycle run this session. HEAD is
+  `2b6e4d19`, not the `7c4cd3a4` under which the enforcement was authored, but
+  `7c4cd3a4` is an ancestor and `git diff --name-only 7c4cd3a4..HEAD` lists **neither**
+  `tools.json` nor `tests/simple-production-bridge.integration.mjs`, so the enforcement
+  surface is byte-identical across the two.
+
+  ```text
+  $ node --test tests/simple-production-bridge.integration.mjs
+  [SCN-012-039] ordinary=22 wired=19 declared-unwired=3 unaccounted=0
+  [SCN-012-039] declared-unwired: msft-july-print-model <- msft-july-print-model.html:778; palm-springs-rental-market-lab <- tests/palm-springs-rental-market-lab.spec.mjs:531; ocean-shores-rental-market-lab <- ocean-shores-rental-market.payload.json:1859
+  ✔ TP-15-02 the wired-tool set is derived from the production registry + the production pages (never a hard-coded list) (65.37913ms)
+  ℹ tests 6
+  ℹ pass 6
+  ℹ fail 0
+  GREEN_EXIT=0
+  ```
+
+  **RED proof — the assertion genuinely fails for an unaccounted tool.** Run in a
+  disposable detached worktree (`git worktree add --detach /tmp/rl-scn039-red HEAD`)
+  because this session is forbidden from editing `tools.json`; the live checkout was
+  never mutated. `msft-july-print-model`'s `simpleWiring` block was stripped in the
+  throwaway copy only:
+
+  ```text
+  $ (in /tmp/rl-scn039-red) git status --porcelain
+   M tools.json
+
+  $ node --test tests/simple-production-bridge.integration.mjs
+  ✖ TP-15-02 the wired-tool set is derived from the production registry + the production pages (never a hard-coded list) (72.232152ms)
+    AssertionError [ERR_ASSERTION]: SCN-012-039: ordinary tool(s) neither wired nor declared-unwired: msft-july-print-model — either register __rlOwnerStateProvider["<id>"] on the tool's page, or add a tools.json simpleWiring block recording the decision and its decisionRef
+    + actual - expected
+    + [ 'msft-july-print-model' ]
+    - []
+  ℹ pass 5
+  ℹ fail 1
+  RED_EXIT=1
+
+  $ git worktree remove --force /tmp/rl-scn039-red   # WORKTREE_REMOVE_EXIT=0
+  $ git status --porcelain tools.json
+  (empty — live tools.json byte-clean, never touched)
+
+  $ node --test tests/simple-production-bridge.integration.mjs   # RE-GREEN
+  [SCN-012-039] ordinary=22 wired=19 declared-unwired=3 unaccounted=0
+  ℹ pass 6
+  ℹ fail 0
+  GREEN2_EXIT=0
+  ```
+
+  **CLOSED 2026-07-30 — the amended clause is now mechanically enforced, and the
+  enforcement discriminates.** The clause amended on owner direction (`56766436`) became
+  an executed assertion in `b548519e`
+  (`tests/simple-production-bridge.integration.mjs:2096-2148`). Read first-hand, it is a
+  genuine closed-set check and not a restatement:
+
+  - `unaccounted` = ordinary − wired − declared, asserted `deepEqual []` (the clause's "none unaccounted for");
+  - `bothBuckets` = wired ∩ declared, asserted `deepEqual []` (the clause's "none in both", which also catches a *stale* declaration on a tool that later gains a provider);
+  - two anti-vacuity guards fail loudly if either the ordinary population or the wired set derives EMPTY, so the check can never pass by computing nothing;
+  - each declaration is contract-checked — `contractVersion === 'simple-wiring/v1'`, `state === 'declared-unwired'`, non-empty `reason` **and** `decisionRef`, and `decisionRef` must resolve to a file that actually exists in the repo.
+
+  The population is derived from `tools.json` plus the deployed pages, never a frozen
+  count, so a newly-added ordinary tool that nobody wires or declares lands in
+  `unaccounted` and fails — the regression the withdrawn clause could never detect.
+
+  **Every mechanism clause was already proven and is unchanged.** Provider-gated
+  `ownerModes`, `applyVisual` as sole owner of `rlv-focused`, Simple-shows-panel /
+  Power-shows-native, and never-mutates-`rlv-focused` were all proven at HEAD
+  `a7631b36` (see the superseded assessment below, whose mechanism findings stand). No
+  file carrying any of those proofs changed between `a7631b36` and HEAD other than the
+  two enforcement files above.
+
+  *(Everything from here down is retained audit trail. The "NOT SATISFIED" assessment and
+  the proposed-amendment block below are **SUPERSEDED** and are kept unmodified.)*
+
+  **SUPERSEDED 2026-07-30 — the "checkbox deliberately left `- [ ]`" instruction in the
+  AMENDMENT APPLIED block below is now discharged.** That block deferred reconciliation
+  "after the mechanical assertion specified in addendum §5.4.5 exists and has been
+  executed with a RED proof". The assertion exists (`b548519e`), and the RED proof is
+  recorded above, so the precondition it named is met and the box is checked.
 
   NOT SATISFIED — **on the coverage clause alone; every mechanism clause is now proven.**
   *(This assessment was made against the **PRIOR** END-state clause and is **SUPERSEDED
@@ -907,7 +1059,70 @@ any row with `--list` — a zero-selection grep prints `Total: 0 tests` and exit
   (empty = market-brief untouched)
   ```
 
-- [ ] The change remains within the exact bridge/ownerModes/page-provider boundary; rollback restores the prior stub behavior without data loss.
+- [x] The change remains within the exact bridge/ownerModes/page-provider boundary; rollback restores the prior stub behavior without data loss.
+
+  **Claim Source:** executed (2026-07-30, HEAD `2b6e4d19`). Half (b) was rehearsed and
+  recorded at `3d860d0e`; half (a) was closed by D3 at `acf042bb` and is **re-derived at
+  this HEAD below**, which surfaced one further out-of-allowlist path (`tools.json`) now
+  reconciled as **D3-b** in Implementation Files.
+
+  ```text
+  $ git log --grep='scope.15' --regexp-ignore-case --name-only acf042bb..HEAD
+  COMMIT b548519e  feat(012/scope-15): enforce the SCN-012-039 closed-set total accounting
+    tests/simple-production-bridge.integration.mjs
+    tools.json
+  COMMIT 7ebf0a3b  test(012/scope-15): raise the heatmap hydration wait budget 300s -> 600s
+    tests/simple-production-wiring.spec.mjs
+  (remaining post-D3 scope-15 commits touched spec artifacts only)
+
+  $ git log --format='' --name-only --grep='scope.15' --regexp-ignore-case acf042bb..HEAD -- \
+      rldata.js rlviews.js scripts/fetch-options.mjs data/options market-brief.html \
+      package.json package-lock.json .github/bubbles
+  X_EXIT=0   (no paths — ZERO protected paths touched)
+
+  $ git worktree list
+  /home/redacted/research-lab  2b6e4d19 [main]      (no rehearsal worktree leftovers)
+  ```
+
+  **CLOSED 2026-07-30 — both halves now met.**
+
+  *(a) Boundary — clean at this HEAD, after one further reconciliation.* D3 closed the
+  stale allowlist at `acf042bb` using a commit-set-derived path set. Re-deriving that
+  same way over `acf042bb..HEAD` found the list had gone stale **again**, by exactly one
+  path: `tools.json`, delivered by `b548519e` as the `simpleWiring` declaration SST that
+  the owner-approved SCN-012-039 amendment itself mandates. It is genuinely inside the
+  ownerModes/wiring boundary, it is not on the Excluded list, and it is now listed under
+  *Modified — added by the 2026-07-30 post-amendment reconciliation (drift D3-b)*. Zero
+  protected paths were touched by any Scope 15 commit in the range. Recording this as a
+  named drift rather than absorbing it silently is deliberate: the allowlist went stale
+  because an approved contract amendment created a new delivery surface, which is a
+  repeatable failure mode and is written up as such.
+
+  *(b) Rollback — rehearsed, executed, and recorded.* This half had never been exercised
+  by any command; it now has been, at `3d860d0e`
+  ([report.md](report.md#2026-07-30--rollback-rehearsal-change-boundary-dod-row-half-b)).
+  The rehearsal ran in a disposable detached worktree, never in the live checkout. Its
+  substance:
+
+  - **Target verified, not assumed** — `f216be0d^` = `737d1d17`, the pre-bridge state.
+  - **Path set git-derived, not hand-listed** — 21 paths (19 pages that assign `__rlOwnerStateProvider[`, plus `rlexperience.js` and `rlapp.js`). A looser 44-path derivation was explicitly rejected for sweeping in prose-only matches and unrelated concurrent work. A purity check proved every commit touching those 21 paths in range is Scope-15 lineage, so a path-level restore reverts this scope and nothing else.
+  - **Restore was structurally verified** — 21/21 files byte-identical to `f216be0d^`; stub back (2 occurrences), bridge gone (0), providers gone (0/19 pages).
+  - **It is provably not a no-op** — tests were deliberately left at HEAD so the current canaries act as detectors: `node scripts/selftest.mjs` → **958 passed, 4 failed**, and all 4 failures are Scope-15 bridge canaries with **zero collateral** across the other 958 assertions. The Playwright wiring spec went 4-failed on `expect(wired.length).toBeGreaterThan(0) → Received: 0`. A browser probe confirmed the GREEN half: `body.rlv-focused=false`, native content visible again, panel back to the stub's honest `unavailable`.
+  - **"Without data loss" was proven against the scope's own definition** — byte-level SHA-256 fingerprints over the four named classes, taken before the rollback and again after every test run, identical at all five measurement points (`data/bars` 289 files, `data/options` 23, `briefs/**` 963, root `*.json` 34, root `*.jsonl` 2), with **0 deleted files** and all three registries intact.
+  - **Live-tree integrity confirmed afterwards** — worktree removed and pruned, no product-source edits in the live checkout.
+
+  *Finding ROLL-01 is open but explicitly non-blocking.* The rehearsal found that
+  `f216be0d`'s message and the surviving comment at `rlexperience.js:1844` both claim the
+  bridge "removed the stub's `classList.add('rlv-focused')`", while the diff shows only
+  `+` lines and the pre-bridge `rlexperience.js` contains **zero** `rlv-focused`
+  occurrences — there was no stub write to remove. That is a documentation-accuracy
+  defect in a commit message and a code comment, classified LOW and recorded in
+  report.md as *"does not block the rollback claim"*: it does not touch whether the
+  rollback restores prior behaviour without data loss, which is what this row asserts. It
+  is routed to `bubbles.docs`, and this row is checked on its own contract, not on
+  ROLL-01's.
+
+  *(Everything from here down is retained audit trail and is **SUPERSEDED**.)*
 
   PARTIALLY VERIFIED, NOT CLOSED — two independent reasons, one of them a correction.
 
@@ -1385,7 +1600,121 @@ any row with `--list` — a zero-selection grep prints `Total: 0 tests` and exit
 
 #### Build Quality Gate
 
-- [ ] Per-tool RED/GREEN, exact system-Chrome identity, no-interception scan (no `page.route`/`context.route`/`intercept`/`msw`/`nock`), bridge/provider forbidden-authority scan, owner pre/post parity, the registry-derived loop, changed-path boundary, editor diagnostics, `git diff --check`, source-lock, registry validator, artifact lint, and the broad selftest are current and clean.
+- [x] Per-tool RED/GREEN, exact system-Chrome identity, no-interception scan (no `page.route`/`context.route`/`intercept`/`msw`/`nock`), bridge/provider forbidden-authority scan, owner pre/post parity, the registry-derived loop, changed-path boundary, editor diagnostics, `git diff --check`, source-lock, registry validator, artifact lint, and the broad selftest are current and clean.
+
+  **Claim Source:** executed (2026-07-30, HEAD `2b6e4d19`). All four blocking reasons are
+  now resolved: 2 and 3 were closed previously, 1 is discharged by SCN-012-039's closure
+  above, and 4 is **re-scoped below because it was a defective specification**. The
+  interception facts were re-measured first-hand this session.
+
+  ```text
+  $ grep -nE '^[^*/]*(await |[^ ])(page|context)\.route\(' tests/bond-regime-lab.spec.mjs
+  326:    await page.route(/home\.treasury\.gov\/.*daily_treasury_(?:real_)?yield_curve/, async (route) => {
+  393:  await page.route('**/*', async (route) => {
+  441:    await page.route(/home\.treasury\.gov\/.*daily_treasury_(?:real_)?yield_curve/, async (route) => {
+
+  $ for L in 326 393 441; do git blame -L$L,$L --date=short -- tests/bond-regime-lab.spec.mjs; done
+  943972e29 (pkirsanov 2026-07-16 326)     await page.route(…)
+  943972e29 (pkirsanov 2026-07-16 393)   await page.route('**/*', …)
+  943972e29 (pkirsanov 2026-07-16 441)   await page.route(…)
+
+  $ git log -1 --date=short --format='%h %ad' f216be0d       # Scope 15's FIRST commit
+  f216be0d 2026-07-27
+  $ git merge-base --is-ancestor 943972e2 f216be0d && echo YES
+  YES   (all 3 sites pre-date Scope 15)
+
+  $ git log -G'(page|context)\.route\(' f216be0d^..HEAD -- tests/
+  (empty — across the ENTIRE range, zero executable interception call-sites added OR removed)
+
+  $ for f in <the 4 Scope-15 test files>; do grep -cE '^[^*/]*(await |[^ ])(page|context)\.route\(' "$f"; done
+  tests/simple-production-wiring.spec.mjs           executable=0
+  tests/simple-production-bridge.integration.mjs    executable=0
+  tests/simple-production-bridge.unit.mjs           executable=0
+  tests/market-heatmap-control-surface.spec.mjs     executable=0
+
+  $ sed -n '545p' tests/bond-regime-lab.spec.mjs     # the TP-15-05 LIVE carrier
+  test('TP-15-05 live-stack: shell Simple shows the registry adapter panel with native content hidden, shell Power shows the native content', …
+  $ sed -n '545,589p' tests/bond-regime-lab.spec.mjs | grep -cE '(page|context)\.route|intercept\(|msw|nock|wiremock'
+  0   (carrier body is interception-free)
+
+  $ sed -n '13p;26p;517p' tests/bond-regime-lab.spec.mjs
+   * but carrier 2 installs `page.route`, which makes it MOCKED under this repo's Live-Stack
+   *      comparison` — MOCKED (holds the treasury response with `page.route` in order to
+  // WHY THIS EXISTS. The BUG-003 test directly above installs `page.route` to hold the treasury
+  ```
+
+  **Reason 4 RE-SCOPED 2026-07-30 — the prior wording was a defective specification.**
+
+  *Old clause (superseded, retained below in the numbered list as audit trail):*
+
+  > `tests/bond-regime-lab.spec.mjs`, which this scope modified, contains executable
+  > `page.route` interception at lines 267/334/375 (pre-existing Feature-003 fixture
+  > pinning). That is not a scope-15 regression, but it means the no-interception scan is
+  > **not** clean across every spec this scope touched, so the gate's own wording is not
+  > met.
+
+  *New clause (binding; the gate headline's "no-interception scan" item is to be read at
+  this granularity):*
+
+  > Every carrier satisfying a live-stack DoD claim is interception-free; any mocked
+  > carrier is explicitly labelled and does not satisfy a live-stack claim; and this
+  > scope introduces no new executable interception.
+
+  *Why the old wording was defective — the same class as the withdrawn "every ordinary
+  tool wired".* It scanned at **file** granularity, but a DoD claim is satisfied by a
+  **carrier test**, not by a file. Nothing in the live-stack contract is about file
+  boundaries: a spec file is an arbitrary container that may hold carriers for several
+  unrelated features. Under the old wording the gate's verdict depended on which file an
+  unrelated team's fixture-pinning test happened to live in — an incidental fact with no
+  bearing on whether *this scope's* live claims are honest. It made the gate
+  unsatisfiable by any action available to this scope: the 3 sites belong to Feature 003,
+  blame to `943972e2` (2026-07-16), which is an **ancestor** of Scope 15's first commit
+  `f216be0d` (2026-07-27). Deleting another feature's tests to green our own gate would
+  be strictly worse than leaving them. As with the withdrawn coverage clause, a gate that
+  can only be closed by damaging something else is a defective gate, not outstanding work.
+
+  *Why the replacement is stronger, not weaker.* It binds the thing actually at stake —
+  the **claim** — and adds two obligations the old wording never imposed: every mocked
+  carrier must be *explicitly labelled* as mocked, and a mocked carrier may *not* satisfy
+  a live-stack claim. The old file-level scan asserted neither; a file could have been
+  fully interception-free while a mocked carrier elsewhere silently backed a live-stack
+  DoD row. It also keeps the anti-regression half in full ("introduces no new executable
+  interception"), which is now proven by a stronger method than a file count: `git log
+  -G'(page|context)\.route\('` over the whole `f216be0d^..HEAD` range returns **empty**,
+  so no commit in the range added *or* removed an executable interception call-site
+  anywhere under `tests/`.
+
+  *The re-scoped clause is met, on evidence.* All four of this scope's own test files
+  carry **0** executable interception. The TP-15-05 live carrier at line 545 is
+  interception-free through its whole body (545-589) and was added by `28099a4d`
+  (`test(012/scope-15): give TP-15-05 a genuine live-stack carrier`, +96/-6) precisely
+  because carrier 2 is mocked. The mocked carriers are labelled in three places the file
+  itself owns — the header at L13 and L26, and the L517 note directly above the live
+  carrier. And the mocking is not a shortcut standing in for a live source: L326 fulfils
+  committed fixture CSVs, L393 is the `Cache-first refresh preserves successful families
+  when one source fails` **source-failure simulation**, and L441 holds the response behind
+  a `treasuryGate` to control **hydration timing**. Neither a source failure nor a
+  deterministic hydration race can be produced against a live external source, so those
+  two tests could not exist in live-stack form at all.
+
+  **Reason 1 — DISCHARGED.** It was SCN-012-039's coverage clause inherited verbatim, and
+  that clause was amended on owner direction and is now mechanically enforced and green
+  (`ordinary=22 wired=19 declared-unwired=3 unaccounted=0`, with a first-hand RED proof).
+  The obligation it inherits is correspondingly re-scoped: RED/GREEN for every **wired**
+  tool, and a contract-checked declaration record for each **declared-unwired** one —
+  which is exactly what the enforcement asserts, including that each `decisionRef`
+  resolves to a real file. It is no longer self-contradictory to check this composite
+  gate, because its constituent is now closed rather than open.
+
+  **Reasons 2 and 3 — already closed.** Reason 2 closed at `a7631b36` (the 16-canary
+  bridge group plus unit test 9 turned the manual forbidden-authority scan into an
+  automated assertion). Reason 3 closed at `acf042bb`/`1220cc4b` via D3, and the
+  change-boundary row above re-derives it at this HEAD and reconciles the one residual
+  path as **D3-b**.
+
+  *(Everything from here down is retained audit trail and is **SUPERSEDED** where it
+  conflicts with the above — in particular reason 1's "STANDS" verdicts and reason 4's
+  file-level wording.)*
 
   PARTIALLY VERIFIED, NOT CLOSED. **Verified this session at HEAD `30326253`:** the
   registry-derived loop (TP-15-02, 6/6, exit 0); owner pre/post parity (TP-15-02,

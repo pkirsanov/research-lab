@@ -20,7 +20,6 @@
     },
     "expectedShapeConfirmedBy": "tests/tool-experience.unit.mjs:106 already models the satisfied BUG004 state as evidenceIds: ['TP-09','TP-12'], so these are the sanctioned identifiers rather than newly invented ones."
   },
-
   "flagsIntroduced": [],
   "completedScopes": ["SCOPE-01"],
   "completedPhases": ["implement", "test", "regression", "simplify", "gaps", "harden", "stabilize", "security", "validate", "audit"],

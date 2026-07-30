@@ -3,7 +3,7 @@
   "featureDir": "specs/012-market-action-center-and-guided-tools/bugs/BUG-003-shell-brief-panel-adoption-hides-feature-002-mount",
   "featureName": "BUG-003 Reconcile TP-10-02 To The Ratified Shell Brief-View Contract",
   "createdAt": "2026-07-28T19:14:34Z",
-  "lastUpdatedAt": "2026-07-29T03:22:16Z",
+  "lastUpdatedAt": "2026-07-30T19:41:52Z",
   "completedAt": null,
   "certifiedAt": null,
   "status": "in_progress",
@@ -15,9 +15,9 @@
   "completedScopes": ["SCOPE-01"],
   "completedPhases": ["implement", "validate", "test", "regression", "simplify", "stabilize", "security"],
   "execution": {
-    "activeAgent": "bubbles.validate",
-    "currentPhase": "validate",
-    "currentPhaseStatus": "completed_diagnostic",
+    "activeAgent": "bubbles.audit",
+    "currentPhase": "audit",
+    "currentPhaseStatus": "route_required",
     "substate": "validated-non-terminal",
     "currentScope": "SCOPE-01",
     "runStartedAt": "2026-07-28T19:14:34Z",
@@ -128,11 +128,11 @@
     "audit": {
       "schemaVersion": "audit-run/v1",
       "runId": "AUDIT-RUN-BUG003-20260730",
-      "currentAttemptId": "AUD-BUG003-A1",
+      "currentAttemptId": "AUD-BUG003-A2",
       "attempts": [
         {
           "attemptId": "AUD-BUG003-A1",
-          "resultState": "ACTIVE",
+          "resultState": "SUPERSEDED",
           "openedAt": "2026-07-30T18:30:03Z",
           "closedAt": "2026-07-30T18:52:30Z",
           "targetRevision": "sha256:c42fb6da1733efd1e11880a1da45403a839717fe99f7db265f6de4ba8102c8a3",
@@ -187,6 +187,68 @@
             }
           ],
           "note": "Attempt RESUMED from resumeFromPhase 4 and closed by bubbles.audit; no competing attempt was opened. Provenance re-verified before resuming: transition-contract-resolver.sh exit 0 returned the identical workflowMode bugfix-fastlane, auditProfile delivery-completion-v1, statusCeiling/targetStatus done, contractDigest sha256:aa91472c... and targetRevision sha256:c42fb6da... already bound to this attempt, so there is no AUDIT_PROVENANCE_CONFLICT. state-transition-guard.sh in assertion-only form (--target-status done --expect-workflow-mode bugfix-fastlane --expect-contract-digest sha256:aa91472c...) returned TRANSITION_GUARD_RESULT_V1 verdict PASS / failureCount 0 / failedGateIds [] / exit 0. EVALUATION OUTCOME: the FIX is sound and the earlier packet-level condition has NARROWED but not cleared. Crux ruled LEGITIMATE CONTRACT ALIGNMENT, not defect-masking: commit 8206c89c is purely additive (+13/-0) to tests/distributed-briefs.static.integration.mjs, weakens zero assertions, and drives the real shell control '#rlviews button[data-rlview-mode=brief]' rather than stubbing/mocking/intercepting; every defect-detecting assertion survives verbatim and still passes (ready=1 mount gate, 'hash mismatch fails closed' integrity-error, 'no partial evidence rendered on integrity failure', and both network-window baselines 'no history partition before Open history' and 'mode switch performs no refetch'). Adversarially: for this change to mask a product defect it would have to pass while the product is broken, which it cannot -- a brief that fails to mount still times out on [data-rlbrief-mount][data-rlbrief-ready=1] and a brief that fails open still fails assert.equal(st,'integrity-error'). bubbles.audit independently re-executed TP-B003-01 (node --test tests/distributed-briefs.static.integration.mjs): pass 1 / fail 0 / SKIPPED 0, exit 0, duration 2.96s, and grep for t.skip|.only|.todo|bare-return bailouts returned ZERO matches, so the green is a real execution and not a silent skip. G095/DI-03 is confirmed cleared (failedGateIds []), DoD is 11 checked / 0 unchecked, and all four Test Plan rows are green. The two carried warnings are ruled NON-BLOCKING OBSERVATIONS, mechanically corroborated: 0 of 11 checked DoD items delegate evidence to a report.md link (grep -cE '^- \\[x\\].*Evidence: \\[report\\.md' = 0), so none of the 36 flagged blocks backs a DoD item; 'git status --porcelain' occurs exactly 4 times, matching the 'empty by design' classification, where empty output IS the signal; quoted excerpts are prose citations, not evidence claims; and the single narrative phrase outside code fences backs no DoD item. artifact-lint separately confirms 'All checked DoD items in scopes.md have evidence blocks' and 'No unfilled evidence template placeholders in report.md'. FINDING CARRY: the three findings left OPEN by the prior cycle are each carried exactly once -- VAL-F1 addressed (adjudicated non-blocking), VAL-F2 and VAL-F3 unresolved. AUD-F1 was already CLOSED; AUD-F2 is satisfied by the current execution.completedPhaseClaims, which now contains regression, simplify and stabilize. REMAINING BLOCKER: status 'done' is NOT reachable while VAL-F3 stands, because artifact-lint currently passes ONLY by virtue of the in_progress status skipping the promotion gate; it would fail on the missing '### Validation Evidence' header the moment status flips to done. bubbles.audit authors '### Audit Evidence' (VAL-F2's first clause) in this same session; '### Validation Evidence' (VAL-F3) is bubbles.validate's owned artifact and is ROUTED, not authored here. No status, certification, scope, or DoD state was modified by this attempt."
+        },
+        {
+          "attemptId": "AUD-BUG003-A2",
+          "resultState": "ACTIVE",
+          "openedAt": "2026-07-30T19:24:10Z",
+          "closedAt": "2026-07-30T19:41:52Z",
+          "targetRevision": "sha256:af4e98e806ad8e3b1701901ed813f775d5fc3ccb31cc1727bb1817c149f082eb",
+          "contractDigest": "sha256:aa91472c047d3d985d38c1d308feb1e6081955b2aa553816deb5987d9cdc449f",
+          "auditProfile": "delivery-completion-v1",
+          "targetStatus": "done",
+          "auditVerdict": "REWORK_REQUIRED",
+          "outcome": "route_required",
+          "evidenceRef": "report.md#audit-evidence",
+          "addressedFindings": [
+            "VAL-F1",
+            "VAL-F3"
+          ],
+          "unresolvedFindings": [
+            "VAL-F2",
+            "AUD-F4"
+          ],
+          "nextRequiredOwner": "bubbles.validate",
+          "supersedesAttemptId": "AUD-BUG003-A1",
+          "resumeFromPhase": null,
+          "findings": [
+            {
+              "id": "VAL-F1",
+              "disposition": "addressed",
+              "severity": "low",
+              "owner": "bubbles.audit",
+              "summary": "NARROW CLAIM RE-VERIFIED TRUE, BROAD INFERENCE SUPERSEDED BY AUD-F4. The narrow claim -- that no signal-poor evidence block backs a checked DoD item -- is independently re-verified TRUE, so DoD evidence integrity is intact. A1's further inference that the blocks are therefore 'non-blocking' does NOT hold and is superseded by AUD-F4; the two are separable, and only the narrow claim is closed here.",
+              "evidence": "Re-executed by bubbles.audit in attempt A2: grep -c '^- [x]' scopes.md = 11; grep -c '^- [ ]' scopes.md = 0; grep -cE '^- \\[x\\].*[Ee]vidence: \\[report\\.md' scopes.md = 0. Zero of 11 checked DoD items delegate evidence to a report.md link; all 11 carry inline evidence in scopes.md (13 fenced blocks) per the DoD Evidence Format rule. artifact-lint.sh independently reports 'All checked DoD items in scopes.md have evidence blocks' and exits 0. Therefore no signal-poor report.md block is load-bearing for any DoD claim."
+            },
+            {
+              "id": "VAL-F3",
+              "disposition": "addressed",
+              "severity": "high",
+              "owner": "bubbles.validate",
+              "gate": "artifact-lint/mode-required-evidence-headers",
+              "summary": "CLOSED. The '### Validation Evidence' section required by workflowMode bugfix-fastlane at a promotion status now exists in report.md, authored by its owner bubbles.validate, and carries all four Test Plan rows re-executed green.",
+              "evidence": "grep -c '^### Validation Evidence' report.md = 1 (matches artifact-lint's own regex), section begins at report.md L3766 and contains V-2 TP-B003-01 (pass 1 / fail 0 / skipped 0 / todo 0, exit 0), V-3 TP-B003-02 (13 passed, 8.5s, exit 0), V-4 TP-B003-03 (970 passed / 0 failed, exit 0), V-5 TP-B003-04 (pass 6 / fail 0, exit 0); 18 exit-0 citations in the section. bubbles.audit independently re-executed the V-4 row this session: node scripts/selftest.mjs -> 'Research-Lab self-test: 970 passed, 0 failed', exit 0, an exact match. bubbles.audit did NOT author this section; it verified an artifact authored by its owner."
+            },
+            {
+              "id": "VAL-F2",
+              "disposition": "unresolved",
+              "severity": "high",
+              "owner": "bubbles.audit",
+              "gate": "artifact-lint/mode-required-evidence-headers",
+              "summary": "FIRST CLAUSE SATISFIED, CONJUNCTION STILL UNMET. The '### Audit Evidence' header exists (authored in A1, extended in A2). The second clause -- 're-run to a CLEAN verdict so assurance re-derives to full' -- is not satisfied, because this A2 re-run surfaced AUD-F4. Recorded unresolved on the same conjunctive reading A1 applied. Its residual scope is now exactly one item: AUD-F4. No independent work remains under VAL-F2 itself.",
+              "evidence": "grep -c '^### Audit Evidence' report.md = 1, so the header clause is mechanically satisfied and this gate would no longer fire on a missing header. The clean-verdict clause is gated solely by AUD-F4; once AUD-F4 is closed, a successor audit attempt can satisfy VAL-F2 without any further header work."
+            },
+            {
+              "id": "AUD-F4",
+              "disposition": "unresolved",
+              "severity": "high",
+              "owner": "bubbles.validate",
+              "gate": "artifact-lint/evidence-legitimacy",
+              "summary": "NEW, MECHANICALLY PROVEN, AND BLOCKING. report.md carries 39 evidence blocks that artifact-lint will reject as fail() the moment status flips to 'done' -- 4 under the 3-line minimum and 35 below the 2-of-8 terminal-signal threshold, out of 127 blocks scanned. This supersedes the prior characterisation of these blocks as a non-blocking warning: fail() increments the failure counter and drives exit 1, so 'done' is NOT reachable today. This is an evidence-recording condition in report.md, NOT a defect in the fix, and NOT a DoD-integrity problem (see VAL-F1).",
+              "evidence": "The evidence-legitimacy loop is gated on state_status == 'done' (artifact-lint.sh L1481), which is why the packet passes at in_progress and would fail at done -- structurally the same dormant-gate pattern as VAL-F2/VAL-F3. EMPIRICAL CONTROL: specs/009-msft-july-market-refresh is at status done and its artifact-lint run DOES fire the loop, printing 'Skipped 67 evidence blocks before <<CW-MARKER-REDACTED>> (prior-window history)' and 'All 80 evidence blocks in report.md contain legitimate terminal output', exit 0 -- it passes only because it carries the certifying-window marker. The marker token is REDACTED here because it is matched by plain substring anywhere in a file, so quoting it verbatim would activate a certifying window in this packet. BUG-003 report.md carries ZERO markers: counted against HEAD, certifying-window-begin = 0, evidence-legitimacy-skip-begin = 0, evidence-legitimacy-skip-end = 0, so all 127 blocks are enforced in full. SIMULATOR VALIDATED AGAINST THE CONTROL: a faithful re-implementation of the 8 signal regexes plus the pre-window skip reproduces spec 009's lint output exactly (total 80, skipped 67, too-short 0, sub-threshold 0), then reports BUG-003 as total 127, skipped 0, too-short 4, sub-threshold 35 = 39 blocking failures. LOCALISATION: 36 of the 39 sit in prior-phase history before '### Audit Evidence' (L3561) and are owned by implement/test/regression/simplify/stabilize/security; 3 sit inside '### Audit Evidence' and are owned by bubbles.audit; 0 sit inside '### Validation Evidence'. REMEDY, owner's choice: place a single certifying-window-begin marker to scope the certifying window -- the in-repo-precedented mechanism spec 009 already uses -- and ensure every block inside the resulting window carries at least 2 signal classes; or re-capture the flagged blocks with full raw output. The marker is a certification-boundary declaration governing other agents' sections, so bubbles.audit did NOT place it. AUTHORING HAZARD DISCOVERED AND SELF-CORRECTED DURING THIS ATTEMPT: the marker is detected by plain substring match ANYWHERE in the file, including inside a fenced code block, so quoting spec 009's lint output verbatim silently ACTIVATED a certifying window in this packet (G040 began reporting 'Skipped 3869 lines before ... (prior-window history)'). bubbles.audit detected this from the guard transcript, confirmed the marker count was 0 at HEAD and 1 in the working copy, redacted the token in both quotations, and re-verified parity with HEAD at 0/0 with G040 then passing WITHOUT any window skip. The next owner must place the marker deliberately and must not paste the literal token into evidence prose."
+            }
+          ],
+          "note": "SUCCESSOR to AUD-BUG003-A1 (supersedesAttemptId AUD-BUG003-A1); A1 moved ACTIVE -> SUPERSEDED before this attempt opened, and exactly one ACTIVE attempt exists. A successor rather than a resume is correct because the bound targetRevision changed: A1 was bound to sha256:c42fb6da..., while transition-contract-resolver.sh now returns sha256:af4e98e8... after report.md and state.json were amended to close VAL-F3. PROVENANCE RE-RESOLVED, NOT INHERITED: resolver exit 0 returned the identical workflowMode bugfix-fastlane, auditProfile delivery-completion-v1, statusCeiling/targetStatus done and contractDigest sha256:aa91472c..., so there is no AUDIT_PROVENANCE_CONFLICT on the contract; only the artifact revision advanced. state-transition-guard.sh in assertion-only form (--target-status done --expect-workflow-mode bugfix-fastlane --expect-contract-digest sha256:aa91472c...) returned TRANSITION_GUARD_RESULT_V1 verdict PASS / failureCount 0 / failedGateIds [] / blockingCode none / exit 0, with 65 gates passed including G040 ('Zero deferral language found') and G084. CRUX RE-RULED INDEPENDENTLY, NOT ADOPTED ON FAITH: git show 8206c89c --numstat confirms the only non-artifact path touched is tests/distributed-briefs.static.integration.mjs at 13 insertions / 0 deletions; the 13 added lines are 6 comment lines, a 4-line openBriefView() helper, one blank line and two call sites, and the helper clicks the REAL control '#rlviews button[data-rlview-mode=brief]' after awaiting '#rlviews[data-rlexperience-shell=ready]' -- no stub, mock or intercept. Zero deletions makes it mechanically impossible for any assertion to have been removed. The authored contract was verified at source: rlexperience.js L363-367 validates viewSet 'ordinary-four-view/v1' with viewIds ['simple','power','brief','journey'] and defaultViewId 'simple', and tools.json declares the same viewIds, so 'brief' is a first-class authored view and ordinary tools boot into 'simple' -- a view switch is REQUIRED by the contract, not a workaround. The sibling suite tests/distributed-briefs.spec.mjs carries 13 tests and 18 mountReady references, and mountReady itself performs the identical shell-ready wait plus brief-tab click. RULING: legitimate contract alignment, NOT defect-masking; A1's ruling is CONFIRMED on independent evidence. TEST-TREE INTEGRITY: the four TP-B003 files (tests/distributed-briefs.static.integration.mjs, tests/distributed-briefs.spec.mjs, tests/simple-production-bridge.integration.mjs, scripts/selftest.mjs) are byte-identical to HEAD -- git status --porcelain empty for each and git diff HEAD over the four returns empty, exit 0. Three OTHER test files are modified by a concurrent unrelated session (tests/contextual-tooltip.functional.mjs, tests/market-heatmap-control-surface.spec.mjs, tests/simple-production-bridge.unit.mjs); none is a TP-B003 row, and tests/simple-production-bridge.unit.mjs is a distinct file from the TP-B003-04 integration suite. VERDICT REWORK_REQUIRED on a single newly-quantified blocker, AUD-F4. No status, certification, assurance, scope or DoD state was modified by this attempt, and no existing verbatim transcript or the A1 attempt record was rewritten."
         }
       ]
     }

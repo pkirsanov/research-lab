@@ -41,7 +41,7 @@ A few notes span several tools rather than describing one. They live in this fol
 | --- | --- |
 | [shared-data-layer.md](shared-data-layer.md) | The shared fetch/cache/proxy data layer used by every tool. |
 | [place-based-rental-market-research.md](place-based-rental-market-research.md) | The place-based rental-market method shared by the Palm Springs and Ocean Shores labs. |
-| [volatility-drag-research.md](volatility-drag-research.md) | Where volatility drag is depended on but not shown — split Sharpe definitions, the `1/σ` vs `1/σ²` sizing gap, and the missing shared drag primitive. |
+| [volatility-drag-research.md](volatility-drag-research.md) | Where volatility drag is depended on but not shown. Live item: the undisclosed `μ ∝ σ` assumption behind vol-targeting (`1/σ`) versus Kelly (`1/σ²`). Also the two documented-but-unreconciled Sharpe conventions and the missing shared drag primitive. |
 
 ## Index
 

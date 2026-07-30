@@ -10,6 +10,17 @@
   "workflowMode": "bugfix-fastlane",
   "linkedImplementationSpec": "specs/_bugs/BUG-002-two-tier-provider-access",
   "requiresRevalidation": false,
+  "evidenceIds": ["TP-09", "TP-12"],
+  "evidenceIdsProvenance": {
+    "purpose": "Publishes the evidence IDs the tool-experience BUG004 dependency gate requires (tool-experience.config.json :: dependencyGates.BUG004.acceptedPredicate.requiredEvidenceIds). The gate reads state.evidenceIds; with the key absent it evaluated 0/2 forever even though this bug is done/done, so the consumer could never open. This is the sanctioned resolution — the producer publishes evidence it genuinely delivered. tool-experience.config.json is byte-unchanged and the predicate was NOT weakened.",
+    "addedAt": "2026-07-30T21:30:00Z",
+    "evidence": {
+      "TP-09": "Scenario-specific regression e2e-ui for SCN-BUG004-003 in tests/provider-fallback-status.spec.mjs. Re-executed the row's own documented command verbatim before publication: npx --no-install playwright test tests/provider-fallback-status.spec.mjs --config=playwright.config.mjs --project=system-chrome --grep \"SCN-BUG004-003 force-local status stays masked with a reachable local proxy\" --reporter=list -> 1 passed, exit 0. DoD item DOD-TP-09 is checked in scopes.md.",
+      "TP-12": "Existing intercepted browser regression (functional) for SCN-BUG004-003 and SCN-BUG004-004 in tests/provider-credentials.spec.mjs. Re-executed the row's own documented command verbatim before publication: npx --no-install playwright test tests/provider-credentials.spec.mjs --config=playwright.config.mjs --project=system-chrome --reporter=list -> 4 passed, exit 0. DoD item DOD-TP-12 is checked in scopes.md."
+    },
+    "expectedShapeConfirmedBy": "tests/tool-experience.unit.mjs:106 already models the satisfied BUG004 state as evidenceIds: ['TP-09','TP-12'], so these are the sanctioned identifiers rather than newly invented ones."
+  },
+
   "flagsIntroduced": [],
   "completedScopes": ["SCOPE-01"],
   "completedPhases": ["implement", "test", "regression", "simplify", "gaps", "harden", "stabilize", "security", "validate", "audit"],

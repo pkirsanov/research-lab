@@ -529,7 +529,7 @@ and pass only after the bridge + `ownerModes` change.
 
 | ID | Type | Category | Scenario | File / Location | Exact Behavior / Persistent Title | Command | Live System | Evidence Anchor |
 |---|---|---|---|---|---|---|---|---|
-| TP-15-01 | Unit | unit | SCN-012-038, SCN-012-039, SCN-012-042 | `tests/simple-production-bridge.unit.mjs` | The production bridge resolves the adapter by toolId, calls the owner-state provider, runs the runtime, renders a ready projection, never mutates `rlv-focused`, renders honest unavailable when the provider is absent, and carries no forbidden authority; ordinary `ownerModes` is `["power"]` and brief-only is unchanged | `node --test tests/simple-production-bridge.unit.mjs` | No | `report.md#tp-15-01` |
+| TP-15-01 | Unit | unit | SCN-012-038, SCN-012-039, SCN-012-042 | `tests/simple-production-bridge.unit.mjs` | The production bridge resolves the adapter by toolId, calls the owner-state provider, runs the runtime, renders a ready projection, never mutates `rlv-focused`, renders honest unavailable when the provider is absent, and carries no forbidden authority; ordinary `ownerModes` is `["power"]` and brief-only is unchanged | `node --test tests/simple-production-bridge.unit.mjs` — whole-file run over a **CO-OWNED file**. Scope 15 owns **9** tests here; BUG-004 co-owns the others (its titles carry `TP-B004-*` / `SEC-BUG004-*`). What this row asserts is that those **9 Scope-15-owned titles are present and pass** — the whole-file total and the whole-file exit code are co-owned signals that move whenever BUG-004 adds or reddens a test in this file, so neither is a Scope-15 assertion. Derive the owned count mechanically rather than freezing a total: `grep -cE "^[[:space:]]*test\(" tests/simple-production-bridge.unit.mjs` minus `grep -cE "^[[:space:]]*test\('[^']*B(UG)?004" tests/simple-production-bridge.unit.mjs` (measured 2026-07-30: 14 − 5 = **9**) | No | `report.md#tp-15-01` |
 | TP-15-02 | Integration | integration | SCN-012-038, SCN-012-040 | `tests/simple-production-bridge.integration.mjs` | Registry-derived loop drives each wired tool's provider → `runtime.prepare` → ready projection into the panel and proves owner-parity facts equal the Power path | `node --test tests/simple-production-bridge.integration.mjs` | No | `report.md#tp-15-02` |
 | TP-15-03 | Regression E2E | e2e-ui | SCN-012-038 | `tests/simple-production-wiring.spec.mjs` | 2 carriers, each a verbatim test title — (a) `Regression: market-heatmap Simple renders the real adapter panel in the real owner-mode flow` (panel-render half); (b) `TP-15-03 market-heatmap Simple renders real steerable controls and actuating one recomputes the production projection with no refetch` (control-recompute half) | `npx --no-install playwright test tests/simple-production-wiring.spec.mjs --config=playwright.config.mjs --project=system-chrome --grep "market-heatmap Simple renders" --reporter=list` — selects **2** | Yes | `report.md#tp-15-03` |
 | TP-15-04 | Regression E2E | e2e-ui | SCN-012-038, SCN-012-040 | `tests/simple-production-wiring.spec.mjs` | 2 carriers, each a verbatim test title — (a) `TP-15-04 every wired ordinary tool paints its real Simple adapter panel with an owner-parity fact` (the wired-tool sweep); (b) `TP-15-04 the swept set is derived from the production registry + pages, and the honest-degradation cases are registry/provider derived` (anti-hardcoding guard on the swept set) | `npx --no-install playwright test tests/simple-production-wiring.spec.mjs --config=playwright.config.mjs --project=system-chrome --grep "TP-15-04" --reporter=list` — selects **2** | Yes | `report.md#tp-15-04` |
@@ -540,13 +540,50 @@ and pass only after the bridge + `ownerModes` change.
 **Row-command selection contract (added 2026-07-29 — closes drift D1's title half).** Every
 `Command` cell above is required to select **≥1 test**; a cell whose `--grep` selects nothing is a
 defect, not a pass. Each cell records its measured selection count, verified with `--list`:
-TP-15-01 → 9, TP-15-02 → 6, TP-15-03 → 2, TP-15-04 → 2, TP-15-05 → 28, TP-15-06 → 16,
-TP-15-07 → 970. Two conventions make this durable: **(1)** every declared persistent title is the
+TP-15-01 → **9 Scope-15-owned** (its file is co-owned with BUG-004, so the whole-file selection is a
+different and larger number — see that row's `Command` cell and the co-ownership note below),
+TP-15-02 → 6, TP-15-03 → 2, TP-15-04 → 2, TP-15-05 → 28, TP-15-06 → 16, TP-15-07 → 970.
+Two conventions make this durable: **(1)** every declared persistent title is the
 verbatim title of a real test, so a title-grep can never resolve to zero; **(2)** where a row's
 proof is split across carriers that share no id prefix, the command is the whole-file run rather
 than an alternation, because a `|` inside a markdown table cell would corrupt the table. Re-verify
 any row with `--list` — a zero-selection grep prints `Total: 0 tests` and exits 1 on Playwright
 1.61.1 (it becomes a silent exit-0 only under `--pass-with-no-tests`, which this repo never sets).
+
+**Co-ownership contract for TP-15-01 (added 2026-07-30 — please do not "refresh" this row to a new
+whole-file total).** `tests/simple-production-bridge.unit.mjs` is shared with BUG-004, so its
+whole-file total is not a Scope-15 quantity and a total written here rots on BUG-004's schedule, not
+this scope's. Measured first-hand twice this session, ninety seconds apart: the total moved **13 →
+14** when BUG-004 added `SEC-BUG004-001`, while Scope 15's owned count held at **9** across both
+readings. The whole-file exit code is co-owned in the same way — at the 14-test reading it was **1**,
+because BUG-004's newly added test is red while that packet's own work on it is in flight; the 9
+Scope-15-owned titles each reported `✔` in that same run. Two traps to avoid: **(1)** overwriting the
+**9** with whatever total the file reports today records a figure that is already drifting and
+silently attributes BUG-004's tests to this scope; **(2)** keying the split on the single prefix
+`TP-B004` under-counts BUG-004 — `SEC-BUG004-001` contains no `B004` substring, so that form yields
+**10**, not 9. The marker in the row's `Command` cell (`B(UG)?004`) matches both prefixes and was
+verified to split 14 into 5 BUG-004-owned + 9 Scope-15-owned.
+
+*Selection form evaluated and rejected, with the run that rejected it.* Node's `--test-name-pattern`
+does filter this file — the positive control `--test-name-pattern='TP-B004'` selected exactly **4**
+(`tests 4 / pass 4`, exit 0) — but the negative form `--test-name-pattern='^(?!TP-B004)'` selected
+**13 of 13**, excluding nothing, even though node evaluates that same regex as `false` against a
+`TP-B004-…` title (`node -e` check, node v22.22.0). The 9 owned titles share no common substring, and
+an alternation would need a `|`, which cannot appear inside a markdown table cell — the same
+constraint already recorded for TP-15-05/TP-15-06. So this row keeps the whole-file command plus an
+explicit ownership split rather than a selector: a selector that quietly matches the wrong set, or
+nothing at all, is precisely the failure this contract exists to catch.
+
+*Same shape elsewhere in this table, checked 2026-07-30.* TP-15-02's file is **not** co-owned — all
+six of its declarations carry the `TP-15-02` prefix, and it ran `tests 6 / pass 6 / fail 0`, exit 0,
+this session, so **6** is both the whole-file figure and this scope's owned figure. TP-15-05 (**28**)
+and TP-15-06 (**16**) are whole-file Playwright selections over spec files that other packets own,
+and TP-15-07 (**970**) is a repo-wide suite total every packet contributes to; each of those three
+cells already states in its own words that the figure is a whole-file or whole-suite selection rather
+than a count of this scope's carriers (TP-15-05 and TP-15-06 each declare **2** carriers). TP-15-07
+was re-executed here — `node scripts/selftest.mjs` → `970 passed, 0 failed`, exit 0 — and is
+unchanged. TP-15-05 and TP-15-06 were not re-measured in this session, so their figures stand exactly
+as previously recorded rather than being restated on weaker footing.
 
 *(Counts corrected 2026-07-30 at HEAD `72d419e1`. Superseded figures: TP-15-01 → **7**,
 TP-15-05 → **27**, TP-15-07 → **968**. **Every correction is upward — tests were ADDED and
@@ -558,6 +595,12 @@ re-confirmed unchanged:*
   ("TP-15-01's named unit file now carries all four declared halves") took the file from 7
   to 9 declarations, which the TP-15-01 evidence block below already narrates — this
   contract line was simply never updated alongside it.*
+  - *(Alongside note 2026-07-30, added rather than rewriting the reading above: that `7 → 9`
+    is a whole-FILE count, taken while this scope owned every test in the file. The file is
+    now co-owned with BUG-004 and carries **14** declarations; Scope 15's own share is still
+    **9**. The `tests 9 / pass 9 / fail 0` capture is a true record of the 9-declaration file
+    and stays intact. The co-ownership contract above carries the derivation that survives
+    the next BUG-004 addition.)*
 - *TP-15-05 **27 → 28**. `28099a4d` ("give TP-15-05 a genuine live-stack carrier") took
   `tests/bond-regime-lab.spec.mjs` from 27 to 28, and this scope's own TP-15-05 evidence
   block already records an executed **28/28** at HEAD `a7631b36`. Only this line and the
@@ -1295,6 +1338,13 @@ with `--list`.)*
   ```
 
   See [report.md](report.md#command-1--tp-15-01-unit-all-four-declared-halves-99).
+
+  *(Alongside note 2026-07-30, placed after the capture so the evidence block stays adjacent to
+  its DoD item. The `7 → 9` reading above, and the `tests 9 / pass 9 / fail 0` capture, count the
+  whole file as it stood when this scope owned every test in it. That file is now co-owned with
+  BUG-004 and carries **14** declarations, of which **9** remain Scope-15-owned; the capture above
+  stays exactly as recorded. The Test Plan's co-ownership contract for TP-15-01 carries the
+  derivation that survives the next BUG-004 addition.)*
 
 - [x] TP-15-02 integration evidence proves the registry-derived provider→runtime→panel loop and owner-parity for wired tools.
 

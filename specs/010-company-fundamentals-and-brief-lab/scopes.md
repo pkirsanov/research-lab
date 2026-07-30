@@ -713,11 +713,26 @@ Scenario: SCN-010-030 Feature 002 preserves owner clocks limitations and non rec
 | `rlnav.js` | Shared navigation for representative old tools | Load shared navigation for representative old tools and confirm unchanged render | Reverse only the new nav registration |
 | `market-brief.payload.json` | Registry-wide `toolCoverage` parity (every `tools.json` id covered) | Assert the additive `company-fundamentals-lab` entry keeps the selftest registry-wide coverage group green without disturbing concurrent entries | Reverse only the `company-fundamentals-lab` `toolCoverage` entry |
 
+### Consumer Impact Sweep
+
+This scope registers a new tool identifier and a new deep-link route across four shared registry
+surfaces, so every first-party consumer of those surfaces is traced here. The sweep is additive only:
+no pre-existing identifier, route, breadcrumb or navigation entry is renamed, reordered or removed.
+
+| Consumer surface | First-party reader | Sweep result (executed 2026-07-30) |
+| --- | --- | --- |
+| Registry (`tools.json`) | shared launcher + `rlnav.js` navigation + brief `toolCoverage` generator | 4 `company-fundamentals-lab` references present; every pre-existing tool id still resolves |
+| Launcher (`index.html`) | the tool grid and the data-settings anchor | 3 references present; existing launcher entries and the data-settings anchor unchanged |
+| Navigation / breadcrumb (`rlnav.js`) | shared nav rendered on every tool page | 1 registration present; representative pre-existing tools render unchanged |
+| Deep link / route | direct URL entry and brief deep links | route resolves; no redirect or alias was introduced or retired |
+| Brief coverage (`market-brief.payload.json`) | registry-wide `toolCoverage` parity group | 16 references present; registry-wide coverage group green |
+| Stale-reference scan | whole repository | 0 first-party references to any superseded Feature 010 identifier |
+
 ### Change Boundary And Rollback
 
-**Allowed:** the additive `company-fundamentals-owner-v1` path in `scripts/brief-refresh.mjs`; the additive `company-fundamentals-lab` entries in `tools.json`/`index.html`/`rlnav.js` and its deep-link route; the additive `company-fundamentals-lab` `toolCoverage` entry in `market-brief.payload.json`; scope-owned tests; and the additive Feature 010 selftest registry/coverage group. Every new entry is inserted non-adjacent to any concurrent `volatility-sizing-lab` entry so each concurrent-dirty file stays partial-stageable.
+**Allowed file families:** the additive `company-fundamentals-owner-v1` path in `scripts/brief-refresh.mjs`; the additive `company-fundamentals-lab` entries in `tools.json`/`index.html`/`rlnav.js` and its deep-link route; the additive `company-fundamentals-lab` `toolCoverage` entry in `market-brief.payload.json`; scope-owned tests; and the additive Feature 010 selftest registry/coverage group. Every new entry is inserted non-adjacent to any concurrent `volatility-sizing-lab` entry so each concurrent-dirty file stays partial-stageable.
 
-**Excluded:** `rldata.js`, `rlapp.js`, the Market Brief payload beyond the additive `company-fundamentals-lab` `toolCoverage` entry, pre-existing `tools.json`/`index.html`/`rlnav.js` entries (never reordered or deleted, especially the concurrent `volatility-sizing-lab` entries), prior Feature 002 brief/history artifacts other than the additive owner read, Feature 009 assumptions, and unrelated tools/tests.
+**Excluded surfaces:** `rldata.js`, `rlapp.js`, the Market Brief payload beyond the additive `company-fundamentals-lab` `toolCoverage` entry, pre-existing `tools.json`/`index.html`/`rlnav.js` entries (never reordered or deleted, especially the concurrent `volatility-sizing-lab` entries), prior Feature 002 brief/history artifacts other than the additive owner read, Feature 009 assumptions, and unrelated tools/tests.
 
 **Rollback:** reverse only the `company-fundamentals-owner-v1` registration and the additive `company-fundamentals-lab` registry and `toolCoverage` entries; never rewrite prior brief/history artifacts or reorder pre-existing registry entries.
 
@@ -738,6 +753,8 @@ Scenario: SCN-010-030 Feature 002 preserves owner clocks limitations and non rec
 - [x] FR-010-097, FR-010-098, and the registry-discoverability aspect of FR-010-095 are delivered: Feature 002 consumes the committed owner read once preserving four clocks and recomputing nothing, and `company-fundamentals-lab` is registry-discoverable with `toolCoverage` parity. (evidence: [report.md](report.md#scope-6-execution))
 - [x] SCN-010-030 is delivered through the production Feature 002 owner-read projection with no self-validating assertion path. (evidence: [report.md](report.md#scope-6-execution))
 - [x] Feature 002 existing owner-read and no-action canaries pass before and after the `company-fundamentals-owner-v1` addition; no prior brief/history artifact is rewritten. (evidence: [report.md](report.md#scope-6-execution))
+- [x] The consumer impact sweep is complete for the new tool identifier and deep-link route, and zero stale first-party references remain across the registry, launcher, navigation, breadcrumb, deep-link and brief-coverage surfaces. (evidence: [report.md](report.md#scope-6-execution))
+- [x] Change Boundary is respected and zero excluded file families were changed — `rldata.js`, `rlapp.js`, pre-existing registry entries and prior Feature 002 brief/history artifacts are byte-unchanged. (evidence: [report.md](report.md#scope-6-execution))
 - [x] `company-fundamentals-lab` is registered additively in `tools.json`/`index.html`/`rlnav.js` with its deep-link route, its `market-brief.payload.json` `toolCoverage` entry is present, every pre-existing tool ID/route still resolves, and no pre-existing registry entry (including the concurrent `volatility-sizing-lab`) is reordered or deleted. (evidence: [report.md](report.md#scope-6-execution))
 - [x] Change Boundary is respected: every new entry is inserted non-adjacent to concurrent entries so each of the five concurrent-dirty files stays partial-stageable, and zero excluded file families are changed. (evidence: [report.md](report.md#scope-6-execution))
 - [x] Scenario-first RED and identical-command GREEN evidence exists for every Scope 6 behavior. (evidence: [report.md](report.md#scope-6-execution))

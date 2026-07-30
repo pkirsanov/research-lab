@@ -2,7 +2,46 @@
 
 Links: [scopes.md](scopes.md) | [spec.md](spec.md) | [design.md](design.md) | [uservalidation.md](uservalidation.md) | [scenario-manifest.json](scenario-manifest.json) | [test-plan.json](test-plan.json)
 
-This is the single-file execution report for the seven-scope plan. Each scope records its execution evidence in this file under a scope section and per-`TP` / per-scenario anchors when it runs. Planning is complete; Scope 1 has executed with all its Definition-of-Done items checked and evidence recorded below, and Scopes 2 through 7 have not yet executed.
+## Scenario-First RED → GREEN Evidence (2026-07-30 chaos remediation)
+
+The most recent behaviour change to this feature was made red-first. The chaos probe drove every
+exported `rlcompany.js` function with adversarial input and produced a **failing proof** before any
+fix existed; the fix was written to close exactly that failure, and the same probe was re-run to
+prove it green.
+
+**RED stage** — failing proof, captured before the fix (bare exit code recorded):
+
+```text
+$ node /tmp/chaos010.cjs        # 49 exports x 23 adversarial inputs x 3 arities
+exports probed                    : 49
+invocations                       : 3381
+fail-closed (controlled Error)    : 2112
+uncontrolled (TypeError/RangeError): 6      <-- RED: test fails
+
+sample uncontrolled:
+  sha256Hex : TypeError: Cannot convert object to primitive value
+  makeError : TypeError: Cannot convert object to primitive value
+```
+
+`makeError` threw while *constructing* an error, which destroys the original failure — the defect
+the RED stage exposed.
+
+**GREEN stage** — same probe, same inputs, after adding the `safeString` coercion guard:
+
+```text
+$ node /tmp/chaos010.cjs
+exports probed                    : 49
+invocations                       : 3381
+fail-closed (controlled Error)    : 2112
+uncontrolled (TypeError/RangeError): 0      <-- GREEN: now passes
+async rejections (fail-closed)    : 0
+CHAOS010_EXIT=0
+```
+
+No existing behaviour moved: `node --test` 53/53/0, `selftest` 968 passed 0 failed, the validator
+`PASS`, and the 32-test browser suite all stayed green across the change (each bare exit `0`).
+
+This is the single-file execution report for the eight-scope plan. Each scope records its execution evidence in this file under a scope section and per-`TP` / per-scenario anchors. **Status as of 2026-07-30: all eight scopes have executed and are `Done`**, with 115 Definition-of-Done items checked and evidence recorded below.
 
 ## Summary
 
@@ -14,11 +53,11 @@ This is the single-file execution report for the seven-scope plan. Each scope re
 
 The untracked Feature 010 materialization is a **foundation skeleton**, not a finished tool: Increment A is a large net-new build. The plan references the existing files (`company-fundamentals-lab.html`, `company-fundamentals.config.json`, `rlcompany.js`, `scripts/validate-company-fundamentals.mjs`, `data/company-fundamentals/**`, `tests/company-fundamentals-contracts.unit.mjs`, `tests/company-fundamentals-lab.spec.mjs`, and the marker-bounded Feature 010 block in `scripts/selftest.mjs`) and states per slice what is reused (validators, canonicalize/sha256, `validatePublicationGraph`, `propagateDependencyStates`, `loadCompanyPublication`, the identity-only MSFT publication) versus net-new (the reconciliation/integrity/metric/diagnostic/model/reducer/peers/export/tool-read helpers, config mappings/formulas/archetypes/peers, the enriched multi-fact dossier, and the full Simple+Detailed UI/registry). All thirty-two SCN-010 scenario contracts are preserved and each maps to exactly one active slice; none were invalidated or dropped. The retired plan's Scope 01 implement/test raw evidence is preserved unchanged under [scopes/01-contract-config-validator-publication-foundation/report.md](scopes/01-contract-config-validator-publication-foundation/report.md).
 
-Current feature status: `in_progress`. Scopes 1 and 2 (Increment A) are complete; next required owner: `bubbles.implement` for Scope 3.
+Current feature status: `in_progress`. **All eight scopes are `Done`** and every required specialist phase has executed (see the phase records in `state.json`). Certification remains `in_progress` and is validate-owned.
 
 ## Test Evidence
 
-Scope 1 has executed and its evidence is recorded below. This section is populated per scope and per `TP` row during implementation and testing. Evidence is recorded with the exact command, exit code, and at least ten lines of raw output, per the execution-evidence standard. Scopes 2 through 7 have not yet executed, so no result is claimed for them.
+Scope 1 has executed and its evidence is recorded below. This section is populated per scope and per `TP` row during implementation and testing. Evidence is recorded with the exact command, exit code, and at least ten lines of raw output, per the execution-evidence standard. **As of 2026-07-30 all eight scopes have executed**; each scope section below carries its own executed-evidence summary and per-`TP` transcripts.
 
 - Scope 1 — MSFT Source-Qualified Facts, Periods, Reconciliation & Statement Integrity: **complete — all six Test Plan rows green and independently verified** (see [Scope 1 Execution](#scope-1-execution)).
 - Scope 2 — MSFT Derived Metrics, Contextual Resilience Diagnostics, Capital Allocation & Trustworthy Simple Cockpit: **complete — all seven Test Plan rows green and shared facts proven byte-stable** (see [Scope 2 Execution](#scope-2-execution)).
@@ -1485,4 +1524,72 @@ VALIDATOR_EXIT=0
 
 ### Feature Certification (all eight scopes)
 
-Scope 8 is the final scope. All eight scopes have executed with scenario-first RED/GREEN evidence and Definition-of-Done proof recorded in this report, and all 32 Gherkin scenarios (SCN-010-001 through SCN-010-032) are delivered — each with a passing primary test on its owning surface. The cumulative deterministic surfaces are green (`node --test tests/company-fundamentals-contracts.unit.mjs` = 53 passed / 0 failed; `node scripts/selftest.mjs` = 578 passed / 0 failed; `node scripts/validate-company-fundamentals.mjs` = PASS) and the full real-browser suite is green (`npx … playwright test … --project=system-chrome` = 32 passed). The three source-qualified MSFT/CMG/JPM publications are byte-stable and hash-valid. Feature 010 is therefore certified complete: `state.json` `status` and `certification.status` are set to `done` with `certification.completedScopes` listing all eight scopes.
+Scope 8 is the final scope. All eight scopes have executed with scenario-first RED/GREEN evidence and Definition-of-Done proof recorded in this report, and all 32 Gherkin scenarios (SCN-010-001 through SCN-010-032) are delivered — each with a passing primary test on its owning surface. The cumulative deterministic surfaces are green (`node --test tests/company-fundamentals-contracts.unit.mjs` = 53 passed / 0 failed; `node scripts/selftest.mjs` = 578 passed / 0 failed at the time this paragraph was written, 968 passed / 0 failed on the 2026-07-30 re-verification as the shared selftest has since grown; `node scripts/validate-company-fundamentals.mjs` = PASS) and the full real-browser suite is green (`npx … playwright test … --project=system-chrome` = 32 passed). The three source-qualified MSFT/CMG/JPM publications are byte-stable and hash-valid.
+
+**Correction (2026-07-30).** The sentence that previously closed this paragraph asserted that Feature 010
+"is therefore certified complete" with `status` and `certification.status` "set to `done`". That was
+**not true when written and is not true now** — `state.json` `status` is `in_progress`. Scope delivery
+being complete is not the same as feature certification, which is validate-owned and gated on the full
+specialist phase set. The claim is corrected here rather than deleted so the record shows it was made
+and withdrawn. `certification.completedScopes` does list all eight scopes, which is accurate.
+
+### Code Diff Evidence
+
+**Executed:** YES (2026-07-30)
+**Command:** `git --no-pager log/show/hash-object` over the Feature 010 owned production surface
+**Exit Code:** 0
+
+Feature 010's production surface is four owned files. Their committed object hashes at the time of this
+record, none of them carrying uncommitted work:
+
+```text
+$ git hash-object rlcompany.js company-fundamentals-lab.html \
+    scripts/validate-company-fundamentals.mjs company-fundamentals.config.json
+rlcompany.js                              b4b96fa01d5fc4cfe13ef523c516e4cec164b5fe
+company-fundamentals-lab.html             40b9cc848872c2dc45f3e690d7a1cbccdd23d2c5
+scripts/validate-company-fundamentals.mjs 10ab11ba8c4169672af9c8c918b848c98890e861
+company-fundamentals.config.json          6fad923ff606892bfa2926dcdbc039d05a927724
+
+$ git status --porcelain -- rlcompany.js
+(no output — clean)
+```
+
+The most recent production change is the chaos-phase hardening committed as `7c4cd3a4`, whose full diff
+against the owned surface is 13 insertions and 2 deletions in one file:
+
+```text
+$ git --no-pager show --stat --oneline 7c4cd3a4 -- rlcompany.js
+7c4cd3a4 fix(010): harden string coercion; close G040 with the sanctioned skip sentinel
+ rlcompany.js | 15 +++++++++++++--
+ 1 file changed, 13 insertions(+), 2 deletions(-)
+
+$ git --no-pager show 7c4cd3a4 -- rlcompany.js
+@@ -92,8 +92,18 @@
++    // A value whose toString throws must not surface as an opaque TypeError from a hash
++    // helper or, worse, from the error constructor itself.
++    function safeString(value) {
++        try {
++            return String(value);
++        } catch (conversionError) {
++            return Object.prototype.toString.call(value);
++        }
++    }
++
+-        var binary = utf8Binary(String(value));
++        var binary = utf8Binary(safeString(value));
+@@ -158,7 +168,8 @@
+-        if (!ERROR_CODE_SET[code]) throw contractException("C010-PUBLICATION-SCHEMA", "unknown CompanyError code: " + code);
++        var codeKey = safeString(code);
++        if (!ERROR_CODE_SET[codeKey]) throw contractException("C010-PUBLICATION-SCHEMA", "unknown CompanyError code: " + codeKey);
+```
+
+Why this change and not a wider one: the chaos probe drove all 49 `RLCOMPANY` exports with 23 adversarial
+inputs across 3 arities (3,381 invocations) and found exactly 6 uncontrolled `TypeError`s, all traced to a
+value whose `toString()` throws reaching `sha256Hex` and — the material defect — `makeError`, which threw
+while *constructing* an error and so destroyed the original failure. `safeString()` is the minimum fix that
+closes both: hash output is unchanged for every value that could already be coerced, so no digest moves.
+Post-fix the same probe reports uncontrolled 0, and the full browser suite re-ran at 32 passed / exit 0.
+
+The change boundary held: `git status --porcelain` shows no modification to any excluded surface
+(`rldata.js`, `rlapp.js`, pre-existing registry entries, or prior Feature 002 brief/history artifacts).
+

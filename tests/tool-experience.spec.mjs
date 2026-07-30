@@ -13,13 +13,13 @@ function readRepoJson(relativePath) {
 // Parses the same two files the shell fetches at runtime, so the expected panel text is derived
 // from the dependency's real recorded state instead of a hardcoded snapshot of another feature's
 // mutable status. The assertions below then prove the SHELL rendered that independently-read truth.
-function observeDependencyGate(gateKey, expectedRequiredMilestones) {
+function observeDependencyGate(gateKey, expectedRequiredMilestones, options = {}) {
   const gateConfig = readRepoJson('tool-experience.config.json').dependencyGates[gateKey];
   const required = gateConfig.acceptedPredicate.requiredMilestones;
   // Pin the requirement itself: an emptied list would satisfy the gate vacuously.
   expect(required).toEqual(expectedRequiredMilestones);
 
-  const state = readRepoJson(gateConfig.statePath);
+  const state = options.state || readRepoJson(gateConfig.statePath);
   const published = Array.isArray(state.milestones) ? state.milestones : [];
   const matched = required.filter((milestone) => published.includes(milestone));
   const status = typeof state.status === 'string' ? state.status : null;
@@ -31,13 +31,34 @@ function observeDependencyGate(gateKey, expectedRequiredMilestones) {
   // below pass against a panel that surfaced no real state at all.
   expect(status).not.toBeNull();
   expect(certification).not.toBeNull();
-  // This regression proves the PENDING panel, so the milestone requirement must genuinely be unmet.
-  expect(matched.length).toBeLessThan(required.length);
+  const expectation = options.expectation || 'pending';
+  if (expectation === 'pending') {
+    // This regression proves the PENDING panel, so the milestone requirement must genuinely be unmet.
+    expect(matched.length).toBeLessThan(required.length);
+  } else {
+    // ...and the SATISFIED regression must genuinely be met, or it would prove an open gate vacuously.
+    expect(matched.length).toBe(required.length);
+    expect(status).toBe('done');
+    expect(certification).toBe('done');
+  }
 
   console.log(
-    `[dependency-gate] ${gateKey} statePath=${gateConfig.statePath} status=${status} certification=${certification} milestonesMatched=${matched.length}/${required.length}`
+    `[dependency-gate] ${gateKey} statePath=${gateConfig.statePath} status=${status} certification=${certification} milestonesMatched=${matched.length}/${required.length} expectation=${expectation}`
   );
-  return { status, certification, matchedCount: matched.length, requiredCount: required.length };
+  return { status, certification, matchedCount: matched.length, requiredCount: required.length, statePath: gateConfig.statePath };
+}
+
+// Derived from the REAL recorded dependency state so the fixture tracks its shape automatically;
+// only the published milestone list is withheld, which is exactly the pre-delivery condition the
+// pending regression exists to prove. Feature 002 shipped its milestones in 85a9ce1d, so reading
+// live state alone can no longer produce a pending gate — without this fixture the withheld-
+// capability path would become permanently unprovable rather than merely un-exercised.
+function dependencyStateWithheldMilestones(gateKey) {
+  const gateConfig = readRepoJson('tool-experience.config.json').dependencyGates[gateKey];
+  const state = readRepoJson(gateConfig.statePath);
+  delete state.milestones;
+  delete state.milestonesProvenance;
+  return { statePath: gateConfig.statePath, state };
 }
 
 // Page bootstrap lazily loads scripts (rlg.js pulls rlcontext.js only once it decorates a
@@ -103,47 +124,80 @@ test('Regression: SCN-012-033 real-page shadow registry validation derives all e
 });
 
 test('Regression: SCN-012-028 Feature 002 without published milestones exposes exact Brief gate and no author request', async ({ page }) => {
+  const withheld = dependencyStateWithheldMilestones('FEATURE002');
+  const fixtureSite = await startStaticServer({
+    overrides: { [withheld.statePath]: JSON.stringify(withheld.state, null, 2) }
+  });
+  try {
+    const observed = observeDependencyGate('FEATURE002', [
+      'current-graph',
+      'owner-coverage',
+      'powerless-author',
+      'atomic-publication'
+    ], { state: withheld.state, expectation: 'pending' });
+    const requests = [];
+    page.on('request', (request) => requests.push(request.url()));
+    await page.goto(`${fixtureSite.baseUrl}/strategy-self-improvement-lab.html`);
+    await expect(page.locator('#rlviews[data-rlexperience-shell="ready"]')).toBeVisible();
+    await expect(page.getByRole('tab')).toHaveText(['Simple', 'Power', 'Brief', 'Journey']);
+    await settleThenClearRequests(page, requests);
+
+    const initialHistoryLength = await page.evaluate(() => history.length);
+    await page.getByRole('tab', { name: 'Brief', exact: true }).click();
+    await expect(page).toHaveURL(/#brief$/);
+    await expect(page.getByRole('tab', { name: 'Brief', exact: true })).toHaveAttribute('aria-selected', 'true');
+    const gate = page.locator('[data-rlexperience-gate="feature-002"]');
+    await expect(gate).toBeVisible();
+    console.log(`[gate-panel:feature-002] ${JSON.stringify(await gate.innerText())}`);
+    await expect(gate.getByRole('heading')).toHaveText('Dependency pending: Feature 002');
+    await expect(gate).toContainText(`Observed status: ${observed.status}`);
+    await expect(gate).toContainText(`Observed certification: ${observed.certification}`);
+    await expect(gate).toContainText(`Observed milestones matched: ${observed.matchedCount} of ${observed.requiredCount}`);
+    await expect(gate).toContainText('Withheld: dynamic-tool-brief-v2, live-web-evidence, public-alert-publication');
+    await expect(gate).toContainText('Available now: simple, power, journey, deterministic-local-evidence');
+    await expect(gate).toContainText('Acceptance gate: status=done; certification=done; milestones=all-4-required');
+    await expect(gate).toContainText('Gate: E012-DEPENDENCY:feature-002');
+    // The requirement must never be restated as a fraction: "4/4" reads as fully-met progress.
+    await expect(gate).not.toContainText('milestones=4/4');
+    await expect(gate.getByRole('button')).toHaveCount(0);
+    expect(await page.evaluate(() => history.length)).toBe(initialHistoryLength + 1);
+    expect(requests).toEqual([]);
+
+    await page.goBack();
+    await expect(page).toHaveURL(/#simple$/);
+    await expect(page.getByRole('tab', { name: 'Simple', exact: true })).toHaveAttribute('aria-selected', 'true');
+    await page.goForward();
+    await expect(page).toHaveURL(/#brief$/);
+    await expect(gate).toBeVisible();
+    expect(requests).toEqual([]);
+  } finally {
+    await fixtureSite.close();
+  }
+});
+
+// Companion to the withheld-milestone regression above. That one now runs against a fixture, so
+// without this the SHIPPED state of Feature 002 would have no coverage at all — the gate could
+// regress to "pending" in production and both regressions would still be green.
+test('Regression: SCN-012-028 Feature 002 with published milestones opens the Brief gate on live state', async ({ page }) => {
   const observed = observeDependencyGate('FEATURE002', [
     'current-graph',
     'owner-coverage',
     'powerless-author',
     'atomic-publication'
-  ]);
-  const requests = [];
-  page.on('request', (request) => requests.push(request.url()));
+  ], { expectation: 'satisfied' });
   await page.goto(`${site.baseUrl}/strategy-self-improvement-lab.html`);
   await expect(page.locator('#rlviews[data-rlexperience-shell="ready"]')).toBeVisible();
-  await expect(page.getByRole('tab')).toHaveText(['Simple', 'Power', 'Brief', 'Journey']);
-  await settleThenClearRequests(page, requests);
-
-  const initialHistoryLength = await page.evaluate(() => history.length);
   await page.getByRole('tab', { name: 'Brief', exact: true }).click();
   await expect(page).toHaveURL(/#brief$/);
-  await expect(page.getByRole('tab', { name: 'Brief', exact: true })).toHaveAttribute('aria-selected', 'true');
   const gate = page.locator('[data-rlexperience-gate="feature-002"]');
   await expect(gate).toBeVisible();
-  console.log(`[gate-panel:feature-002] ${JSON.stringify(await gate.innerText())}`);
-  await expect(gate.getByRole('heading')).toHaveText('Dependency pending: Feature 002');
-  await expect(gate).toContainText(`Observed status: ${observed.status}`);
-  await expect(gate).toContainText(`Observed certification: ${observed.certification}`);
+  console.log(`[gate-panel:feature-002:satisfied] ${JSON.stringify(await gate.innerText())}`);
+  await expect(gate.getByRole('heading')).toHaveText('Dependency available: Feature 002');
   await expect(gate).toContainText(`Observed milestones matched: ${observed.matchedCount} of ${observed.requiredCount}`);
-  await expect(gate).toContainText('Withheld: dynamic-tool-brief-v2, live-web-evidence, public-alert-publication');
-  await expect(gate).toContainText('Available now: simple, power, journey, deterministic-local-evidence');
   await expect(gate).toContainText('Acceptance gate: status=done; certification=done; milestones=all-4-required');
-  await expect(gate).toContainText('Gate: E012-DEPENDENCY:feature-002');
-  // The requirement must never be restated as a fraction: "4/4" reads as fully-met progress.
+  // Still never a fraction, and still no bypass affordance once the gate opens.
   await expect(gate).not.toContainText('milestones=4/4');
   await expect(gate.getByRole('button')).toHaveCount(0);
-  expect(await page.evaluate(() => history.length)).toBe(initialHistoryLength + 1);
-  expect(requests).toEqual([]);
-
-  await page.goBack();
-  await expect(page).toHaveURL(/#simple$/);
-  await expect(page.getByRole('tab', { name: 'Simple', exact: true })).toHaveAttribute('aria-selected', 'true');
-  await page.goForward();
-  await expect(page).toHaveURL(/#brief$/);
-  await expect(gate).toBeVisible();
-  expect(requests).toEqual([]);
 });
 
 test('Regression: SCN-012-029 uncertified Feature 008 preserves public Portfolio and creates no private store', async ({ page }) => {

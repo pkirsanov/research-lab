@@ -127,10 +127,24 @@ export function browserLaunchOptions() {
   return executablePath ? { executablePath, headless: true } : { headless: true };
 }
 
-export async function startStaticServer() {
+export async function startStaticServer(options) {
+  // Fixture overrides pin a DEPENDENCY's observed state without mocking the system under test:
+  // the page still performs a real HTTP fetch and the shell still renders whatever it actually
+  // observed. This is what lets a "dependency pending" regression stay provable after the real
+  // dependency ships, instead of silently becoming unprovable.
+  const overrides = new Map(Object.entries((options && options.overrides) || {}));
   const server = createServer((request, response) => {
     const requestPath = decodeURIComponent((request.url || '/').split('?')[0]);
     const relative = normalize(requestPath === '/' ? 'index.html' : requestPath.replace(/^\/+/, ''));
+    if (overrides.has(relative)) {
+      response.writeHead(200, {
+        'cache-control': 'no-store',
+        'content-type': MIME[extname(relative)] || 'application/octet-stream',
+        'referrer-policy': 'no-referrer'
+      });
+      response.end(overrides.get(relative));
+      return;
+    }
     const filePath = resolve(ROOT, relative);
     if ((filePath !== ROOT && !filePath.startsWith(ROOT + sep)) || !existsSync(filePath) || !statSync(filePath).isFile()) {
       response.writeHead(404, { 'content-type': 'text/plain; charset=utf-8' });

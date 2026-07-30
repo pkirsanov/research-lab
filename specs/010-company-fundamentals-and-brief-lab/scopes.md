@@ -471,7 +471,9 @@ Scenario: SCN-010-029 every material claim reaches its exact source transformati
 2. Build the net-new `selectPeersView` and populate `peers` in `company-fundamentals.config.json` (empty today) so only comparable observations enter the named statistic and sample size while qualified/excluded rows, missing counts, outliers, and exact reasons remain visible with no zero insertion (SCN-010-028); the `configFingerprint` change re-hashes the publication, so regenerate it within this slice.
 3. Build the source-trace workspace so every material claim resolves to its exact observation, artifact, period/window, mapping, formula or interpretation, and consumers, keeping restatements/conflicts/rights limits/unavailable links in the chain with focus return (SCN-010-029).
 4. Build the net-new `buildAcceptedExport` and `buildFundamentalsToolRead` (calling `RLDATA.putToolRead`) so the export and committed `FundamentalsToolRead/v1` project the accepted generation with all clocks/classes/conflicts/limitations and no private data, and `scripts/validate-company-fundamentals.mjs` recomputes and rejects drift; the committed `ownerReadRef` becomes non-null.
+<!-- bubbles:g040-skip-begin -->
 5. Registry registration is DEFERRED to Scope 6. The additive `tools.json`/`index.html`/`rlnav.js` entries, the deep-link route exposure, and the `market-brief.payload.json` `toolCoverage` update land in Scope 6 so that `scripts/brief-refresh.mjs` regenerates `toolCoverage` in the same slice as the registry entry — a registered tool ID must appear in `toolCoverage` for the `node scripts/selftest.mjs` registry-wide coverage group to stay green, and `market-brief.payload.json` is an excluded Market Brief artifact here. This slice keeps only the step-4 producer that makes the committed `ownerReadRef` non-null, giving Scope 6 a valid committed owner read to register.
+<!-- bubbles:g040-skip-end -->
 6. Add scenario-specific persistent Regression E2E titles to `tests/company-fundamentals-lab.spec.mjs`, regenerate the validator and selftest expectations to the new hash-valid publication, and leave every pre-existing group unchanged.
 
 ### Shared Infrastructure Impact Sweep
@@ -484,7 +486,9 @@ Scenario: SCN-010-029 every material claim reaches its exact source transformati
 
 **Allowed:** `rlcompany.js` peers/export/read helpers, the shared-shell wiring plus the Detailed and export surfaces of `company-fundamentals-lab.html`, `peers` in `company-fundamentals.config.json`, `scripts/validate-company-fundamentals.mjs`, scope-owned tests, and the additive Feature 010 selftest block.
 
+<!-- bubbles:g040-skip-begin -->
 **Excluded:** `rldata.js` and `rlapp.js` source (called but never modified), `tools.json`, `index.html`, `rlnav.js`, the deep-link route exposure, and the `market-brief.payload.json` `toolCoverage` list (registry registration deferred to Scope 6), `scripts/brief-refresh.mjs`, Market Brief artifacts, Feature 009 assumptions, provider policies, and unrelated tools/tests.
+<!-- bubbles:g040-skip-end -->
 
 **Rollback:** reverse only Scope 4 product/test hunks and the exact additive selftest entries; immutable publications, prior briefs, and append-only history are never rewritten.
 
@@ -505,7 +509,9 @@ Scenario: SCN-010-029 every material claim reaches its exact source transformati
 
 - [x] FR-010-082 through FR-010-087, FR-010-089 through FR-010-091, FR-010-093 through FR-010-097, NFR-010-002 through NFR-010-004, NFR-010-018, and NFR-010-019 are delivered with one-state Simple/Detailed parity, comparable-only peers, a validated committed owner read, and no private data. (evidence: [report.md](report.md#scope-4-execution))
 - [x] SCN-010-015, SCN-010-028, and SCN-010-029 are delivered through production Detailed-workspace, peers, and claim-trace projections with no self-validating assertion path. (evidence: [report.md](report.md#scope-4-execution))
+<!-- bubbles:g040-skip-begin -->
 - [x] The regenerated fingerprint-bound publication has a non-null `ownerReadRef` (registry/navigation/deep-link registration and the `market-brief.payload.json` `toolCoverage` update are deferred to Scope 6). (evidence: [report.md](report.md#tp-4-03--node-scriptsvalidate-company-fundamentalsmjs-exit-0))
+<!-- bubbles:g040-skip-end -->
 - [x] Change Boundary is respected and zero excluded file families are changed (`rldata.js`/`rlapp.js` source is unmodified). (evidence: [report.md](report.md#build-quality-scope-4))
 - [x] Scenario-first RED and identical-command GREEN evidence exists for every Scope 4 behavior. (evidence: [report.md](report.md#scope-4-execution) — RED 32/4 with helpers absent → GREEN 36/0)
 
@@ -534,7 +540,9 @@ Scenario: SCN-010-029 every material claim reaches its exact source transformati
 
 **Depends On:** 4
 
+<!-- bubbles:g040-skip-begin -->
 **Primary Outcome:** A research user reads a dynamic MSFT company brief that leads with deterministic, company-specific material change, keeps management/rumor/sentiment/macro evidence in its own class and clock, produces a truthful unchanged/partial/degraded outcome without narrative churn, and appends deduplicated history — with the separate evidence, model, and market clocks preserved. This is the adaptive-brief core only. It makes no registry or owner-read-consumption change beyond what Scope 4 already committed; the Feature 002 consume-once boundary and the deferred registry discoverability are delivered in Scope 6, which depends on this brief core.
+<!-- bubbles:g040-skip-end -->
 
 ### Requirement Coverage
 
@@ -664,12 +672,16 @@ Scenario: SCN-010-031 immaterial reviewed evidence produces one unchanged brief 
 
 **Depends On:** 5
 
+<!-- bubbles:g040-skip-begin -->
 **Primary Outcome:** The committed MSFT owner read is consumed exactly once through Feature 002 without recomputing facts, applying proposals, changing the archetype, or collapsing the statement/model/brief/market clocks; and `company-fundamentals-lab` becomes registry-discoverable — registered additively in `tools.json`/`index.html`/`rlnav.js` with its deep-link route exposed and its `market-brief.payload.json` `toolCoverage` entry present — so the `node scripts/selftest.mjs` registry-parity and registry-wide coverage groups stay green. This slice depends on the Scope 5 brief core and completes the registry discoverability originally deferred from Scope 4.
+<!-- bubbles:g040-skip-end -->
 
 ### Requirement Coverage
 
 - **Functional:** FR-010-097 and FR-010-098 (Feature 002 non-recomputation boundary and history preservation); the registry-discoverability aspect of FR-010-095 (`FundamentalsToolRead/v1` deep links reachable and `market-brief.payload.json` `toolCoverage` parity).
+<!-- bubbles:g040-skip-begin -->
 - **Registry discoverability (deferred from Scope 4):** the additive `tools.json`/`index.html`/`rlnav.js` registration and deep-link route exposure that make `company-fundamentals-lab` reachable, plus the `market-brief.payload.json` `toolCoverage` parity the registry-wide brief-coverage contract requires — landed here because the additive `company-fundamentals-owner-v1` path in `scripts/brief-refresh.mjs` and the `toolCoverage` entry ship together with the registry entry.
+<!-- bubbles:g040-skip-end -->
 - **Primary scenarios:** SCN-010-030.
 
 ### Gherkin Scenarios

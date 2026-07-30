@@ -92,8 +92,18 @@
         return (value >>> amount) | (value << (32 - amount));
     }
 
+    // A value whose toString throws must not surface as an opaque TypeError from a hash
+    // helper or, worse, from the error constructor itself.
+    function safeString(value) {
+        try {
+            return String(value);
+        } catch (conversionError) {
+            return Object.prototype.toString.call(value);
+        }
+    }
+
     function sha256Hex(value) {
-        var binary = utf8Binary(String(value));
+        var binary = utf8Binary(safeString(value));
         var words = [];
         var hash = [];
         var constants = [];
@@ -158,7 +168,8 @@
     }
 
     function makeError(code, scope, severity, companyId, affectedRefs, observed, required, preserveLastValid) {
-        if (!ERROR_CODE_SET[code]) throw contractException("C010-PUBLICATION-SCHEMA", "unknown CompanyError code: " + code);
+        var codeKey = safeString(code);
+        if (!ERROR_CODE_SET[codeKey]) throw contractException("C010-PUBLICATION-SCHEMA", "unknown CompanyError code: " + codeKey);
         return deepFreeze({
             contractVersion: "company-error/v1",
             code: code,

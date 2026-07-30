@@ -48,8 +48,8 @@ computed and sitting in the same object.
 | Surface | Drag status | Evidence |
 |---|---|---|
 | `etf-momentum-lab.html` | Computes **both** `cagr` and `annArith` in the same metrics object — never subtracts them | [`../etf-momentum-lab.html`](../etf-momentum-lab.html) `computeMetrics()` |
-| `etf-momentum-lab.html` Sharpe / Sortino | **Geometric numerator over arithmetic σ** | same file, two sites (`computeMetrics` and the strategy path) |
-| `scripts/brief-refresh.mjs` → `oneYearWindowMetrics` | Same geometric-numerator Sharpe | [`../scripts/brief-refresh.mjs`](../scripts/brief-refresh.mjs) |
+| `etf-momentum-lab.html` Sharpe / Sortino | Geometric numerator over arithmetic σ — a **documented, deliberate convention** | formula in the file, convention declared in [`etf-momentum-lab.md`](etf-momentum-lab.md) § Methodology |
+| `scripts/brief-refresh.mjs` → `oneYearWindowMetrics` | Same geometric-numerator Sharpe — **not documented anywhere** | [`../scripts/brief-refresh.mjs`](../scripts/brief-refresh.mjs) |
 | `rlexperience-adapters/strategy-research.js` → `metrics()` | **Arithmetic** Sharpe `(mean/sd)·√ANN` — the *other* definition | [`../rlexperience-adapters/strategy-research.js`](../rlexperience-adapters/strategy-research.js) |
 | `volatility-sizing-lab.html` (Feature 011, `done`) | Ships a $1/\sigma$ throttle whose entire economic basis is drag; drag never named | [`../volatility-sizing-lab.html`](../volatility-sizing-lab.html) |
 | `portfolio-survival-allocation-lab.html` (shipped) | **Zero** occurrences of drag / arithmetic / geometric / CAGR / Kelly / growth in 1201 lines | [`../portfolio-survival-allocation-lab.html`](../portfolio-survival-allocation-lab.html) |
@@ -99,7 +99,18 @@ regression. But the raw material is already on the page.
 
 ---
 
-### RL-2 · Two different Sharpe definitions coexist, differing by exactly σ/2 — **HIGH**
+### RL-2 · Two different Sharpe definitions coexist, differing by exactly σ/2 — **MEDIUM**
+
+> **Corrected 2026-07-30 (same day).** The first version of this note rated this
+> HIGH and asserted the choice was "undocumented". That was **wrong**.
+> [`etf-momentum-lab.md`](etf-momentum-lab.md) § *Methodology* states the formula
+> explicitly: `Sharpe = (CAGR − rf)/vol · Sortino = (CAGR − rf)/downside-dev ·
+> Calmar = CAGR/|maxDD|`. The ETF lab's geometric numerator is a **deliberate,
+> documented product decision**, not an accident. What survives is narrower — the
+> *divergence between tool families* and the undocumented copy in
+> `brief-refresh.mjs` — so this is a coherence and labelling issue, not a bug.
+> Changing the ETF lab's formula would override a documented decision and is the
+> owner's call, not a fix.
 
 Three shipped surfaces, two incompatible definitions:
 
@@ -126,28 +137,29 @@ denominator, once by the drag hidden inside the CAGR numerator.
 | 40% | 0.20 |
 | 80% | 0.40 |
 
-**Why this is a real defect and not a style choice.**
+**What is still genuinely a problem.**
 
-1. **A `sharpeFloor` gate means different things on different surfaces.**
+1. **No document states that the two families differ.** Each convention is
+   defensible on its own; nothing anywhere reconciles them. `etf-momentum-lab.md`
+   documents the geometric form for its own tool and is silent on the strategy
+   family; `brief-refresh.mjs` copies the geometric form with no note at all.
+2. **A `sharpeFloor` gate means different things on different surfaces.**
    `strategy-self-improvement-universe.json` and
    `strategy-validation-universe.json` both declare goals of the shape
    `{ targetCagr, sharpeFloor, maxDdCeiling, minTimeInMarket }`. The strategy
    family evaluates that floor with the **arithmetic** Sharpe; the ETF lab and
-   the market brief report the **geometric** one. A `sharpeFloor: 1.0` is
-   therefore a materially stricter bar on one surface than the other, with no
-   note anywhere saying so.
-2. **Cross-surface comparison is invalid.** A brief card and a strategy-lab
+   the market brief report the **geometric** one. A `sharpeFloor: 1.0` is a
+   materially stricter bar on one surface than the other.
+3. **Cross-surface comparison is invalid.** A brief card and a strategy-lab
    result are read on the same screen and are not on the same scale.
-3. **The bias is monotone in σ**, so any ranking or screen that sorts on the
-   geometric variant systematically demotes higher-volatility funds beyond what
-   the ratio's own definition intends.
-4. **External comparability is broken** for the geometric variant — a published
-   Sharpe from any provider is the arithmetic one.
+4. **The on-screen label is unqualified.** A user reading the tool UI — rather
+   than the notes file — sees only "Sharpe", so the geometric variant is not
+   distinguishable from a published Sharpe at the point of use.
 
 **Fairness notes.**
-- A deliberate "geometric Sharpe" is a defensible statistic. The defect is that
-  the choice is undocumented, unlabelled, inconsistent across the repo, and
-  inherits a name that means something else.
+- A deliberate "geometric Sharpe" is a defensible statistic, it is documented
+  for the ETF lab, and it arguably suits a buy-and-hold ETF screen better than
+  the arithmetic form. This finding is **not** a claim that the formula is wrong.
 - `strategy-validation-lab.html` uses **Deflated Sharpe**, which is defined on
   the standard arithmetic Sharpe. That family feeds it the arithmetic form, so
   DSR is *internally consistent today*. It would silently become biased if the
@@ -161,7 +173,7 @@ does not need fixing** — `cagr / |maxDD|` is the conventional Calmar definitio
 
 ---
 
-### RL-3 · `volatility-sizing-lab` is a drag tool that never says the word — **MEDIUM-HIGH**
+### RL-3 · `volatility-sizing-lab` is a drag tool that never says the word — **HIGH** (highest-severity live item)
 
 The tool's whole output is:
 
@@ -185,6 +197,24 @@ about disclosure — it explicitly withholds a multiplier on
 `INSUFFICIENT_HISTORY`, `MANAGED_SUPPRESSED`, and `STALE_BEYOND_POLICY`, and it
 refuses to be an in-tool verdict. The one unstated assumption is the load-bearing
 one.
+
+**Verified against the spec (2026-07-30).** Feature 011's `spec.md` is
+exhaustive about honesty: it declares an estimator-honesty policy, a typing
+policy, a cap-and-floor policy, a conditional-sizing policy, a no-backtest-here
+policy, a managed-market policy, a magnitude-only rule, and a whole *"Honest
+Findings, Contradictions, And Limitations"* section covering GARCH-vs-MLE, data
+reach, and manufactured low volatility.
+
+The $\mu \propto \sigma$ assumption appears in **none** of them. The only
+mentions of Kelly in the spec are in the prior-art section noting that QF already
+has `f^{*} = \mu/\sigma^{2}` *and* a `vol_target` mode — the two scaling laws are
+named side by side without observing that they differ, or when.
+
+So this is not an oversight by a careless tool. It is the one economic
+assumption missing from an otherwise rigorous disclosure regime, in the tool
+whose entire output depends on it. That makes RL-3 the **highest-severity item
+in this note that is actually a live defect** — RL-2 turned out to be a
+documented convention, and RL-1/RL-4/RL-5 are gaps rather than defects.
 
 ---
 
@@ -234,9 +264,14 @@ authors, different route — has the **same** defect class:
 
 | research-lab | QuantitativeFinance |
 |---|---|
-| `sharpe = (cagr - rf) / annVol` (RL-2) | `sharpe_ratio()` = `(annualized_return - rf) / ann_volatility`, where `annualized_return` is a compounded CAGR |
+| `sharpe = (cagr - rf) / annVol` (RL-2) — **documented** as the tool's convention | `sharpe_ratio()` = `(annualized_return - rf) / ann_volatility`, where `annualized_return` is a compounded CAGR. The formula is in a doc comment; the geometric/arithmetic mismatch and its comparability consequence are not called out |
 | Drag implicit in a $1/\sigma$ throttle, never named (RL-3) | Drag implicit in `log_returns`, then subtracted a **second** time in `kelly_criterion`'s growth term |
 | No shared drag primitive (RL-5) | A correct `compute/ergodicity.rs` exists and is unreferenced dead code |
+
+Note the asymmetry the correction pass exposed: research-lab **documented** its
+convention and QF did not, and QF's is an outright double-count rather than a
+choice. The shared pattern is still real — but research-lab is the better-behaved
+of the two here, and this note should not be read as accusing it of QF's bug.
 
 Two independent implementations converging on the same mistake is evidence that
 this is a **conceptual gap, not a typo**. The generalisable statement:
@@ -272,7 +307,7 @@ rather than a catch-up item.
 
 | # | Proposal | Impact | Effort | Addresses |
 |---|---|---|---|---|
-| **RL-IP-1** | Pick **one** Sharpe definition repo-wide (recommend the standard arithmetic numerator) and align `etf-momentum-lab` + `brief-refresh.mjs` to it; if a geometric variant is kept, give it a distinct label | **High** | S | RL-2 |
+| **RL-IP-1** | **Owner decision, not a fix.** Either (a) keep the documented geometric convention and label it at the point of use (e.g. "Sharpe (geometric)") + document the divergence + add the missing note to `brief-refresh.mjs`, or (b) standardise repo-wide on the arithmetic numerator. Do **not** silently change `etf-momentum-lab` — its formula is a declared product decision | Med | S | RL-2 |
 | **RL-IP-2** | Add a shared `volatilityDrag(returns)` helper (top-level `function`, drag `= annArith − cagr`, plus the conditional $\sigma^{2}/2$ approximation clearly labelled as conditional) with a `scripts/selftest.mjs` group | **High** | S | RL-1, RL-5 |
 | **RL-IP-3** | Surface drag in `etf-momentum-lab`: show `arithmetic / CAGR / drag` **together** instead of as an either/or dropdown | **High** | S | RL-1 |
 | **RL-IP-4** | Add a `rlg.js` glossary entry for volatility drag / geometric vs arithmetic return so it auto-explains everywhere | Med-High | S | RL-5 |
@@ -280,9 +315,19 @@ rather than a catch-up item.
 | **RL-IP-6** | Execute Feature 008's `07-return-and-drawdown-x-ray` scope, or add the drag panel directly to `portfolio-survival-allocation-lab` | Med | M | RL-4 |
 | **RL-IP-7** ⭐ | New tool or panel: leveraged / daily-reset path dependence (LETF decay, rebalance-frequency sensitivity) — the most legible real-world face of drag, and a surface neither repo has | Med | M | gap; testfol.io parity |
 
-**Sequencing.** RL-IP-2 first — it creates the primitive and its selftest group.
-RL-IP-1 and RL-IP-3 land together (same files). RL-IP-4 is independent and cheap.
-RL-IP-5 and RL-IP-6 depend on the primitive existing. RL-IP-7 last.
+**Sequencing.** **RL-IP-5 first** — it is the only live defect and it is a
+disclosure change, not a numerical one. Then RL-IP-2 (creates the primitive and
+its selftest group), then RL-IP-3 and RL-IP-4. RL-IP-1 waits on the owner
+decision. RL-IP-6 depends on the primitive existing. RL-IP-7 last.
+
+**Scope note for RL-IP-5.** Feature 011 is certified `done`, so the change is
+not a drive-by edit to the HTML: it should add the assumption to the tool's
+Power sizing card, to the spec's limitations set, and to
+[`volatility-sizing-lab.md`](volatility-sizing-lab.md) together. Two test
+constraints apply — `tests/volatility-sizing-lab.spec.mjs` asserts `#simpleView`
+contains neither `sharpe` nor `cagr`, and both views are checked against a
+directional-word regex — so the disclosure belongs in the **Power** card and
+must avoid directional vocabulary.
 
 **Glossary caution (carried forward from `sector-research-lab`):** `rlg.js`
 auto-tooltips the word **"call"** as an options call. Avoid it in any new drag
@@ -294,6 +339,13 @@ copy or heading.
 
 - No tool was executed and no live fetch was performed. All findings are from
   reading source.
+- **RL-2 was overstated in the first version of this note** and is corrected
+  above. Treat that as the calibration signal for the rest: claims of the form
+  "X is undocumented" in this note were made from source reading, and the
+  per-tool notes files and specs are a second documentation layer that must be
+  checked before acting. RL-3 has since been checked against Feature 011's
+  `spec.md`; RL-1, RL-4 and RL-5 are absence-of-code claims verified by grep
+  rather than absence-of-documentation claims.
 - The RL-2 magnitudes are **analytic derivations**, not measurements taken from
   live tool output. Confirm empirically as part of RL-IP-1.
 - The competitive scan covered **three homepages**; it cannot establish what
@@ -307,16 +359,21 @@ copy or heading.
 
 ## 9. Next-run checklist
 
-1. Decide the repo-wide Sharpe convention (RL-IP-1) — this unblocks everything
-   else and is the only decision that needs a human.
-2. Add `volatilityDrag()` as a top-level `function` in a shared `rl*.js` module,
+1. **Disclose the μ∝σ assumption in `volatility-sizing-lab` (RL-IP-5)** — the only
+   live defect. Land it across the Power sizing card, Feature 011's limitations
+   set, and [`volatility-sizing-lab.md`](volatility-sizing-lab.md) together;
+   keep the wording out of `#simpleView` and clear of directional vocabulary.
+2. Decide the repo-wide Sharpe convention (RL-IP-1) — an owner product decision,
+   **not** a bug fix. `etf-momentum-lab`'s geometric form is documented and
+   deliberate; do not change it silently.
+3. Add `volatilityDrag()` as a top-level `function` in a shared `rl*.js` module,
    and add its `scripts/selftest.mjs` group in the same change (run
    `node scripts/selftest.mjs`, full output).
-3. Re-grep after landing: `grep -rioE 'sharpe\s*=' *.html rl*.js scripts/*.mjs`
-   should show one definition.
-4. Confirm `strategy-validation-lab`'s Deflated Sharpe is still fed the
+4. Re-grep after landing: `grep -rioE 'sharpe\s*=' *.html rl*.js scripts/*.mjs`
+   should show one definition per declared convention, each documented.
+5. Confirm `strategy-validation-lab`'s Deflated Sharpe is still fed the
    **arithmetic** Sharpe after any RL-IP-1 change.
-5. Re-check whether Feature 008 has moved off `not_started` before duplicating
+6. Re-check whether Feature 008 has moved off `not_started` before duplicating
    its Risk X-Ray content in the shipped tool (RL-IP-6).
 
 ---
@@ -348,3 +405,4 @@ copy or heading.
 | Date | Change |
 |---|---|
 | 2026-07-30 | Initial cross-cutting research note. Findings RL-1..RL-5, proposals RL-IP-1..RL-IP-7. Diagnostic only — no tool, shared module, spec, or `state.json` changed. |
+| 2026-07-30 | **Correction pass.** RL-2 downgraded HIGH → MEDIUM: `etf-momentum-lab.md` § Methodology documents `Sharpe = (CAGR − rf)/vol`, so the geometric numerator is a deliberate documented convention and the original "undocumented" claim was wrong. RL-IP-1 reframed from "align to arithmetic" to an owner decision. RL-3 upgraded MEDIUM-HIGH → HIGH after verifying against Feature 011's `spec.md`: nine explicit honesty policies plus a limitations section, none of which state the μ∝σ assumption. RL-3 is now the only live defect in this note; RL-IP-5 moved to the front of the sequence with its cross-artifact scope and test constraints recorded. |

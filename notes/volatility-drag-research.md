@@ -51,7 +51,7 @@ computed and sitting in the same object.
 | `etf-momentum-lab.html` Sharpe / Sortino | Geometric numerator over arithmetic σ — a **documented, deliberate convention** | formula in the file, convention declared in [`etf-momentum-lab.md`](etf-momentum-lab.md) § Methodology |
 | `scripts/brief-refresh.mjs` → `oneYearWindowMetrics` | Same geometric-numerator Sharpe — **not documented anywhere** | [`../scripts/brief-refresh.mjs`](../scripts/brief-refresh.mjs) |
 | `rlexperience-adapters/strategy-research.js` → `metrics()` | **Arithmetic** Sharpe `(mean/sd)·√ANN` — the *other* definition | [`../rlexperience-adapters/strategy-research.js`](../rlexperience-adapters/strategy-research.js) |
-| `volatility-sizing-lab.html` (Feature 011, `done`) | Ships a $1/\sigma$ throttle whose entire economic basis is drag; drag never named | [`../volatility-sizing-lab.html`](../volatility-sizing-lab.html) |
+| `volatility-sizing-lab.html` (Feature 011, `done`) | Ships a $1/\sigma$ throttle whose entire economic basis is drag — **assumption now disclosed**, see RL-3 | [`../volatility-sizing-lab.html`](../volatility-sizing-lab.html) `[data-sizing-assumption]` |
 | `portfolio-survival-allocation-lab.html` (shipped) | **Zero** occurrences of drag / arithmetic / geometric / CAGR / Kelly / growth in 1201 lines | [`../portfolio-survival-allocation-lab.html`](../portfolio-survival-allocation-lab.html) |
 | Feature 008 (owns the drag requirements) | `status: not_started` | `specs/008-portfolio-survival-and-brief-lab/state.json` |
 | Shared modules `rlportfolio.js`, `rlvol.js`, `rlg.js` glossary | **No drag concept at all** | grep across `rl*.js` |
@@ -173,7 +173,15 @@ does not need fixing** — `cagr / |maxDD|` is the conventional Calmar definitio
 
 ---
 
-### RL-3 · `volatility-sizing-lab` is a drag tool that never says the word — **HIGH** (highest-severity live item)
+### RL-3 · `volatility-sizing-lab` is a drag tool that never says the word — ~~**HIGH**~~ **RESOLVED 2026-07-30**
+
+> **Fixed in `4ae6a292`.** The Power sizing card now carries a
+> `[data-sizing-assumption]` disclosure, spec 011 gained Honest Finding 13, and
+> [`volatility-sizing-lab.md`](volatility-sizing-lab.md) records it as a known
+> limitation (v1.1). Disclosure only — no math, policy, or computed value
+> changed. Validation: `node scripts/selftest.mjs` exit 0 and
+> `playwright test tests/volatility-sizing-lab.spec.mjs --project=system-chrome`
+> → 16 passed. The analysis below is retained as the rationale.
 
 The tool's whole output is:
 
@@ -311,23 +319,24 @@ rather than a catch-up item.
 | **RL-IP-2** | Add a shared `volatilityDrag(returns)` helper (top-level `function`, drag `= annArith − cagr`, plus the conditional $\sigma^{2}/2$ approximation clearly labelled as conditional) with a `scripts/selftest.mjs` group | **High** | S | RL-1, RL-5 |
 | **RL-IP-3** | Surface drag in `etf-momentum-lab`: show `arithmetic / CAGR / drag` **together** instead of as an either/or dropdown | **High** | S | RL-1 |
 | **RL-IP-4** | Add a `rlg.js` glossary entry for volatility drag / geometric vs arithmetic return so it auto-explains everywhere | Med-High | S | RL-5 |
-| **RL-IP-5** | State the $\mu \propto \sigma$ assumption in `volatility-sizing-lab`, and show the growth consequence of the throttle (the $1/\sigma$ vs $1/\sigma^{2}$ divergence) | Med-High | M | RL-3 |
+| **RL-IP-5** | ~~State the $\mu \propto \sigma$ assumption in `volatility-sizing-lab`~~ — **DONE `4ae6a292`**. Remaining optional extension: also *show* the growth consequence of the throttle (the $1/\sigma$ vs $1/\sigma^{2}$ divergence), which needs the RL-IP-2 primitive | Med-High | M | RL-3 |
 | **RL-IP-6** | Execute Feature 008's `07-return-and-drawdown-x-ray` scope, or add the drag panel directly to `portfolio-survival-allocation-lab` | Med | M | RL-4 |
 | **RL-IP-7** ⭐ | New tool or panel: leveraged / daily-reset path dependence (LETF decay, rebalance-frequency sensitivity) — the most legible real-world face of drag, and a surface neither repo has | Med | M | gap; testfol.io parity |
 
-**Sequencing.** **RL-IP-5 first** — it is the only live defect and it is a
-disclosure change, not a numerical one. Then RL-IP-2 (creates the primitive and
-its selftest group), then RL-IP-3 and RL-IP-4. RL-IP-1 waits on the owner
-decision. RL-IP-6 depends on the primitive existing. RL-IP-7 last.
+**Sequencing.** ~~RL-IP-5 first~~ — **done** (`4ae6a292`); it was the only live
+defect and was a disclosure change, not a numerical one. Next is RL-IP-2 (creates
+the shared primitive and its selftest group), then RL-IP-3 and RL-IP-4. RL-IP-1
+waits on the owner decision. RL-IP-6 depends on the primitive existing.
+RL-IP-7 last.
 
-**Scope note for RL-IP-5.** Feature 011 is certified `done`, so the change is
-not a drive-by edit to the HTML: it should add the assumption to the tool's
-Power sizing card, to the spec's limitations set, and to
-[`volatility-sizing-lab.md`](volatility-sizing-lab.md) together. Two test
-constraints apply — `tests/volatility-sizing-lab.spec.mjs` asserts `#simpleView`
-contains neither `sharpe` nor `cagr`, and both views are checked against a
-directional-word regex — so the disclosure belongs in the **Power** card and
-must avoid directional vocabulary.
+**How RL-IP-5 landed — reusable pattern.** Feature 011 is certified `done`, so it
+was not a drive-by HTML edit: the tool's Power card, the spec's Honest Findings,
+and the tool notes changed together. Two test constraints shaped the wording and
+will shape any follow-up — `tests/volatility-sizing-lab.spec.mjs` asserts
+`#simpleView` contains neither `sharpe` nor `cagr` (BS-007) and checks both views
+against a directional-word regex (BS-005), and the estimator test substring-bans
+`mle`, `institutional`, and `maximum likelihood` from Power. Note `mle` is an
+unanchored substring check, so ordinary words must be scanned for it.
 
 **Glossary caution (carried forward from `sector-research-lab`):** `rlg.js`
 auto-tooltips the word **"call"** as an options call. Avoid it in any new drag
@@ -359,13 +368,12 @@ copy or heading.
 
 ## 9. Next-run checklist
 
-1. **Disclose the μ∝σ assumption in `volatility-sizing-lab` (RL-IP-5)** — the only
-   live defect. Land it across the Power sizing card, Feature 011's limitations
-   set, and [`volatility-sizing-lab.md`](volatility-sizing-lab.md) together;
-   keep the wording out of `#simpleView` and clear of directional vocabulary.
+1. ~~Disclose the μ∝σ assumption in `volatility-sizing-lab` (RL-IP-5)~~ —
+   **done `4ae6a292`**.
 2. Decide the repo-wide Sharpe convention (RL-IP-1) — an owner product decision,
    **not** a bug fix. `etf-momentum-lab`'s geometric form is documented and
-   deliberate; do not change it silently.
+   deliberate; do not change it silently. This is now the only open decision
+   that needs a human.
 3. Add `volatilityDrag()` as a top-level `function` in a shared `rl*.js` module,
    and add its `scripts/selftest.mjs` group in the same change (run
    `node scripts/selftest.mjs`, full output).
@@ -405,4 +413,5 @@ copy or heading.
 | Date | Change |
 |---|---|
 | 2026-07-30 | Initial cross-cutting research note. Findings RL-1..RL-5, proposals RL-IP-1..RL-IP-7. Diagnostic only — no tool, shared module, spec, or `state.json` changed. |
-| 2026-07-30 | **Correction pass.** RL-2 downgraded HIGH → MEDIUM: `etf-momentum-lab.md` § Methodology documents `Sharpe = (CAGR − rf)/vol`, so the geometric numerator is a deliberate documented convention and the original "undocumented" claim was wrong. RL-IP-1 reframed from "align to arithmetic" to an owner decision. RL-3 upgraded MEDIUM-HIGH → HIGH after verifying against Feature 011's `spec.md`: nine explicit honesty policies plus a limitations section, none of which state the μ∝σ assumption. RL-3 is now the only live defect in this note; RL-IP-5 moved to the front of the sequence with its cross-artifact scope and test constraints recorded. |
+| 2026-07-30 | **Correction pass.** RL-2 downgraded HIGH → MEDIUM: `etf-momentum-lab.md` § Methodology documents `Sharpe = (CAGR − rf)/vol`, so the geometric numerator is a deliberate documented convention and the original "undocumented" claim was wrong. RL-IP-1 reframed from "align to arithmetic" to an owner decision. RL-3 upgraded MEDIUM-HIGH → HIGH after verifying against Feature 011's `spec.md`: nine explicit honesty policies plus a limitations section, none of which state the μ∝σ assumption. RL-3 became the only live defect in this note; RL-IP-5 moved to the front of the sequence with its cross-artifact scope and test constraints recorded. |
+| 2026-07-30 | **RL-3 resolved** in `4ae6a292`. `volatility-sizing-lab` now discloses the assumption behind its $1/\sigma$ throttle via `[data-sizing-assumption]` in the Power sizing card, spec 011 carries it as Honest Finding 13, and the tool notes record it as a known limitation (v1.1). Disclosure only. `node scripts/selftest.mjs` exit 0; `playwright … --project=system-chrome` 16 passed. No live defect remains open in this note — RL-IP-1 is an owner decision and RL-1 / RL-4 / RL-5 are gaps rather than defects. |

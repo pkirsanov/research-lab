@@ -631,6 +631,12 @@
                 <div class="kv"><span>Worked example</span><span data-worked-example>--</span></div>
                 <p class="parity" data-sizing-conditional>Conditional throttle — apply only if a separate signal fires.
                     No account currency size, no order.</p>
+                <p class="parity" data-sizing-assumption>What this assumes — the <code>1/forecastVol</code> form
+                    holds <em>risk</em> steady, not growth. It coincides with growth-optimal sizing only where
+                    expected return scales with volatility, i.e. where reward-per-unit-risk is roughly stable
+                    across regimes. Under a known edge, growth-optimal sizing scales by <code>1/vol²</code>, not
+                    <code>1/vol</code>. This tool carries no directional input and therefore no edge estimate, so
+                    it cannot test that condition and does not assert it holds.</p>
             </div>
 
             <div class="card">

@@ -29,6 +29,7 @@ The tool is a Simple/Power projection of one immutable `VolDecisionReadV1` produ
 - **Persistence / half-life**: `t½ = ln(0.5)/ln(persistence)` where persistence is `λ` (EWMA) or `α+β` (GARCH).
 - **Managed suppression**: a peg/band/halt heuristic (zero-return fraction, sub-floor daily range, identical-close run) that marks a low-vol read `MANAGED_SUPPRESSED` and withholds sizing — never "calm/full size".
 - **Sizing multiplier**: `m = min(cap, targetVol / max(floor, forecastVol))` — cap `2.0`, forecast-vol floor `0.05` (policy). `forecastVol → 0` hits the cap, never infinity. Conditional: "apply only if a separate signal fires"; no account currency size, no order.
+- **What the multiplier assumes**: scaling exposure by `1/σ` holds `f·σ` constant, which holds the volatility-drag term `½·f²·σ²` constant — that is why the throttle steadies compounding. It equals growth-optimal sizing only where expected return scales with volatility (reward-per-unit-risk roughly stable across regimes); under a *known* edge, growth-optimal sizing scales by `1/σ²`. The tool has no directional input and so no edge estimate, so it cannot test that condition. Stated in the Power sizing card at `[data-sizing-assumption]`.
 
 ## Input levers, defaults & presets
 
@@ -56,6 +57,7 @@ Policy values (`λ`, seed window, GARCH bounds, regime thresholds `25/75/95`, si
 - Default 5y reach (~1,250 daily bars) is statistically fine but is **not** the source method's 15y/50y/150y claims; long history is best-effort.
 - Daily-close model — it does not observe intraday gaps; single names can gap on earnings.
 - Managed/pegged/halt-suppressed low volatility is a limitation, not a green light for full size.
+- **Vol targeting holds *risk* steady, not growth.** The `1/σ` form matches growth-optimal sizing only where reward-per-unit-risk is roughly stable across regimes; a known edge implies `1/σ²`. The tool cannot test that condition (no directional input ⇒ no edge estimate), so it discloses the assumption instead of implying it. See `notes/volatility-drag-research.md` → RL-3 and spec 011 Honest Finding 13.
 
 ## Next-run checklist
 
@@ -68,6 +70,7 @@ Policy values (`λ`, seed window, GARCH bounds, regime thresholds `25/75/95`, si
 ## Version history
 
 - **v1 (2026-07-17)** — Initial release: RLVOL foundation (`rlvol.js`), the Simple storm-gauge + Power model/persistence/sizing tool, the closed universe, and the Market Brief owner read.
+- **v1.1 (2026-07-30)** — Disclosure only, no math or policy change. The Power sizing card now states the assumption behind the `1/σ` throttle (`[data-sizing-assumption]`): it holds risk steady rather than growth, and matches growth-optimal sizing only where reward-per-unit-risk is stable across regimes (a known edge implies `1/σ²`). Recorded as spec 011 Honest Finding 13. Surfaced by `notes/volatility-drag-research.md` → RL-3, which found this was the one economic assumption absent from an otherwise exhaustive disclosure set.
 
 ## How to edit, validate & ship
 

@@ -488,13 +488,15 @@ function wiredTools() {
     }));
 }
 
+/* Heatmap hydration measured 204–216s normally and 306s under load. This 600s
+   budget bounds waiting only; the terminal marker predicate still decides readiness. */
 async function awaitDeclaredHydrationBoundary(page, attributeName) {
   const declaredState = await page.locator('body').getAttribute(attributeName);
   if (declaredState === null) return;
   await page.waitForFunction(
     (name) => document.body.getAttribute(name) === 'ready',
     attributeName,
-    { timeout: 300000 }
+    { timeout: 600000 }
   );
 }
 

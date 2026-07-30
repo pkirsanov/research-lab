@@ -4,6 +4,29 @@
 
 **Status:** In Progress
 
+**Current — 2026-07-30, HEAD `1220cc4b`. 11 of 14 DoD items checked, 3 open — unchanged
+by this session, and `SCN-012-039` is NOT the only open row.** Two rows were re-examined
+against the now-committed **D3** closure with every non-Playwright scan re-executed
+first-hand at this HEAD; **neither could be honestly checked, so both stay `- [ ]`.** The
+three open rows are:
+
+1. **SCN-012-039** — root blocker. Every mechanism clause is proven; its own parenthetical
+   END-state clause ("every ordinary tool wired") is **unsatisfiable as written**, because
+   4 of the 22 ordinary tools are deliberately excluded by recorded product/architecture
+   decision. An amendment is **proposed** on that row and awaits an **owner decision**.
+2. **Build Quality Gate** — its D3 blocker is closed and its scan-currency concern is now
+   fully answered (selftest 968/0, source-lock OK, `git diff --check` clean, unit 9/9,
+   integration 6/6, interception scan re-measured — all exit 0 at this HEAD). It stays
+   open on **reason 1**, which is SCN-012-039's coverage clause inherited verbatim, so it
+   cannot close before the owner rules; reason 4 also remains literally unmet.
+3. **Change boundary / rollback** — half (a), the allowlist, is **closed** by D3. Half (b),
+   the documented rollback path, has **still never been exercised** by any executed
+   command. This is the one open row that is ordinary agent-actionable work rather than an
+   owner decision, and it requires source edits to rehearse.
+
+*(The block immediately below is the prior-HEAD record at `acf042bb`, retained verbatim as
+audit trail.)*
+
 **Current — 2026-07-30, HEAD `acf042bb`. 11 of 14 DoD items checked, 3 open, and
 `SCN-012-039` is the single root blocker.** The other two open rows are not independent
 failures: the Build Quality Gate inherits SCN-012-039's coverage clause verbatim, and the
@@ -854,6 +877,36 @@ any row with `--list` — a zero-selection grep prints `Total: 0 tests` and exit
   perform. **This half alone keeps the row open**, and it is ordinary agent-actionable
   work — not an owner decision.
 
+  **Re-verified 2026-07-30 at HEAD `1220cc4b` — half (a) CONFIRMED CLOSED, half (b)
+  CONFIRMED STILL OPEN, so the row remains `- [ ]`.** `1220cc4b` is the commit that
+  recorded the D3 closure ("close SCN-012-041 and drift D3"), so half (a)'s blocker is
+  now committed, not merely proposed. Half (b) was re-searched first-hand: every match
+  for a rollback rehearsal inside this scope's artifacts is **prose stating that no such
+  rehearsal has been performed** — there is no executed rollback evidence, and the only
+  real rollback rehearsals in this feature belong to BUG-001 and BUG-004, a different
+  artifact's rollback of a different code path. **The row is not checked, because half
+  (b) is genuinely unmet, not merely undocumented.**
+
+  **Claim Source:** executed (2026-07-30, HEAD `1220cc4b`).
+
+  ```text
+  $ git log --oneline -1
+  1220cc4b (HEAD -> main, origin/main, origin/HEAD) docs(012/scope-15): close SCN-012-041 and drift D3; DoD 10 to 11 checked
+
+  $ grep -rniE "rollback (rehears|exercis|demonstrat|drill)" \
+      specs/012-market-action-center-and-guided-tools/scopes/15-production-simple-adapter-wiring/
+  …/report.md:2468:  the three open rows (the rollback rehearsal) is ordinary agent-actionable work
+  …/scope.md:88:owner decision, but the rollback rehearsal in (3) is ordinary agent-actionable work that
+  …/scope.md:832:  for any recorded rollback exercise across this scope's artifacts returns nothing.
+  …/scope.md:834:  amendment, (b) needs a rollback rehearsal that no one has performed.
+  ROLLBACK_SCOPE15_EXIT=0
+  (4 matches, and all 4 are prose asserting the ABSENCE of a rehearsal — zero executed
+   rollback evidence exists for Scope 15)
+
+  $ git diff --check
+  DIFF_CHECK_EXIT=0
+  ```
+
 
 #### Test Evidence Items - Exact Parity With 7 Test Plan Rows
 
@@ -1340,4 +1393,80 @@ any row with `--list` — a zero-selection grep prints `Total: 0 tests` and exit
   is not checked. If the owner approves the SCN-012-039 amendment proposed above, this
   reason should be amended in the same change — RED/GREEN required for every **wired**
   tool, an exemption record for each exempt one.
+
+  **Re-verified 2026-07-30 at HEAD `1220cc4b` — the scan-currency concern is fully
+  answered first-hand, and the gate STILL stays `- [ ]` on reason 1.** Every scan this
+  gate names that does not require a browser run was re-executed in this session at this
+  HEAD and is clean: broad selftest **968 passed / 0 failed**, source-lock `OK
+  adversarial=16 unexpectedAcceptances=0`, `git diff --check` clean, TP-15-01 unit
+  **9/9**, TP-15-02 integration **6/6** (19 wired / 4 not wired), and the interception
+  scan re-measured. The 12-minute TP-15-03/TP-15-04 Playwright sweep was deliberately
+  **not** re-run; it is cited from the `acf042bb` capture recorded above, and nothing
+  between `acf042bb` and `1220cc4b` touched a source or test file (`1220cc4b` is a
+  docs-only commit). **"The evidence is stale" is therefore no longer a reason this row
+  is open — but it was never the deciding one.** The deciding blocker is unchanged:
+
+  - *Reason 1 — STILL STANDS.* It is SCN-012-039's coverage clause inherited verbatim,
+    and **SCN-012-039 is still `- [ ]` pending an owner decision** on the proposed
+    amendment. Checking this composite gate while its own constituent stays open would
+    be self-contradictory. No re-run of any scan can move this; only the owner ruling can.
+  - *Reason 4 — re-measured, still literally unmet.* `tests/bond-regime-lab.spec.mjs`, a
+    spec this scope modified, still carries **3 executable `page.route` sites** (326, 393,
+    441 — pre-existing Feature-003 fixture pinning). This scope introduced **zero**
+    executable interception, and its own carriers are clean, but the gate's literal
+    wording ("across every spec this scope touched") remains unsatisfied.
+
+  **Claim Source:** executed (2026-07-30, HEAD `1220cc4b`).
+
+  ```text
+  $ node scripts/selftest.mjs
+  ================================================
+  Research-Lab self-test: 968 passed, 0 failed
+  ================================================
+  SELFTEST_EXIT=0
+
+  $ node scripts/validate-node-source-lock.mjs
+  [node-source-lock] actual=PASS
+  [node-source-lock] OK adversarial=16 unexpectedAcceptances=0
+  SOURCE_LOCK_EXIT=0
+
+  $ git diff --check
+  DIFF_CHECK_EXIT=0
+
+  $ node --test tests/simple-production-bridge.unit.mjs
+  ✔ no forbidden authority: the runtime declares none, and running the real bridge touches no network, provider, storage or cookie surface (20.878589ms)
+  ℹ tests 9
+  ℹ pass 9
+  ℹ fail 0
+  UNIT_EXIT=0
+
+  $ node --test tests/simple-production-bridge.integration.mjs
+  [TP-15-02] wired (19): market-heatmap-lab, options-flow-feed-lab, intraday-tape-lab, swing-structure-lab, options-structure-lab, gamma-trading-lab, sector-research-lab, global-rotation-lab, real-assets-lab, bond-regime-lab, ai-capex-strategy-lab, company-fundamentals-lab, etf-momentum-lab, strategy-self-improvement-lab, strategy-validation-lab, smart-money-flow-lab, waterfront-polo-lab, volatility-sizing-lab, technical-analysis-decision-lab
+  [TP-15-02] not wired (4): market-brief, msft-july-print-model, palm-springs-rental-market-lab, ocean-shores-rental-market-lab
+  [TP-15-02] strict parity (module loaded by the page): 18 of 19
+  ℹ tests 6
+  ℹ pass 6
+  ℹ fail 0
+  INTEGRATION_EXIT=0
+
+  $ grep -nE 'page\.route|context\.route|intercept\(|cy\.intercept|msw|nock|wiremock' \
+      tests/simple-production-wiring.spec.mjs tests/market-heatmap-control-surface.spec.mjs \
+      tests/bond-regime-lab.spec.mjs
+  tests/simple-production-wiring.spec.mjs:16: * production bridge's rendered panel. There is NO page.route / context.route /
+  tests/simple-production-wiring.spec.mjs:17: * intercept / msw / nock — the owner data is the page's real cached owner state,
+  tests/simple-production-wiring.spec.mjs:110: * a request LISTENER (`page.on('request')`) — an observer, never `page.route`/`intercept`.
+  tests/simple-production-wiring.spec.mjs:374:     `page.route`/`intercept`. */
+  tests/simple-production-wiring.spec.mjs:413: * page.route / context.route / intercept / msw / nock anywhere in this file — the owner
+  tests/market-heatmap-control-surface.spec.mjs:28: * hydration from its committed data/bars snapshots. There is NO page.route /
+  tests/market-heatmap-control-surface.spec.mjs:29: * context.route / intercept / msw / nock anywhere. `page.addInitScript` and
+  tests/bond-regime-lab.spec.mjs:13: * but carrier 2 installs `page.route`, which makes it MOCKED under this repo's Live-Stack
+  tests/bond-regime-lab.spec.mjs:26: *      comparison` — MOCKED (holds the treasury response with `page.route` in order to
+  tests/bond-regime-lab.spec.mjs:326:    await page.route(/home\.treasury\.gov\/.*daily_treasury_(?:real_)?yield_curve/, async (route) => {
+  tests/bond-regime-lab.spec.mjs:393:  await page.route('**/*', async (route) => {
+  tests/bond-regime-lab.spec.mjs:441:    await page.route(/home\.treasury\.gov\/.*daily_treasury_(?:real_)?yield_curve/, async (route) => {
+  tests/bond-regime-lab.spec.mjs:517:// WHY THIS EXISTS. The BUG-003 test directly above installs `page.route` to hold the treasury
+  SCAN_GREP_EXIT=0
+  (this scope's own carriers: 5 + 2 raw matches, every one a comment line → 0 executable.
+   bond-regime-lab: 326/393/441 are EXECUTABLE `await page.route(` — all pre-existing)
+  ```
 

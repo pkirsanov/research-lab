@@ -111,8 +111,44 @@ function copyRepositoryForReplay(targetRoot) {
   if (existsSync(nodeModules)) symlinkSync(nodeModules, join(targetRoot, 'node_modules'), 'dir');
 }
 
+// BUG-002 (scope-baseline HEAD-drift antipattern): this file previously read `git show HEAD:`
+// and called the result the "legacy" pre-Scope-03 baseline. That was true only while HEAD was
+// still pre-Scope-03; once Scope 03 landed in c81d808d the "legacy" bytes became the MODERN
+// bytes, so `applyLegacyBaseline()` wrote decorator-carrying pages into the sandbox and the
+// legacy canary then failed on its own input. The pin below is the immutable parent of
+// c81d808d — the same anchor tests/tool-experience-registry.functional.mjs and
+// tests/tool-experience-shell.functional.mjs use (note scripts/selftest.mjs hashes identically
+// in both). The two guards fail LOUD if the pin is ever repointed at post-Scope-03 content.
+const LEGACY_BASELINE_COMMIT = '767732db04e0cd32bf107b2a95030a6771bd16f2';
+const DECORATOR_MARKER = /src="rlcontext\.js|src="rlexperience\.js/;
+const LEGACY_BASELINE_SHA256 = Object.freeze({
+  'rlg.js': '08f7efcc4cace971d24443bc4a5adae2cab3c72c38abc54adb96a1e69c46f91f',
+  'rlticker.js': '7a78677d26d5e25b3aeb16211ca943eb04adbaafe78c4e269da812a119ca7bdc',
+  'rlchart.js': 'c84d2b975ba658c7771b3d80e0f29c9fceb97b9ce8f4d265afec4beef75b394a',
+  'market-heatmap-lab.html': 'f561942ed123e6a62deb28f74c59248f53dd975fbf1a13442a2f56112f815451',
+  'options-structure-lab.html': '5331de5983c308bc6c7591a1e2fad94f4c7874d7f42199ea0c8e16c9293c747e',
+  'company-fundamentals-lab.html': '584ecbff88c93f8f48fa1b132dab1a457ce7003c43edaac1b5c9d78144bf74d3',
+  'scripts/selftest.mjs': 'fe706d9900f0623108604a2e2adb80a0290c70bad90506e5b1db52980a739965'
+});
+
 function baselineBytes(relativePath) {
-  return execFileSync('git', ['show', `HEAD:${relativePath}`], { cwd: ROOT });
+  const bytes = execFileSync('git', ['show', `${LEGACY_BASELINE_COMMIT}:${relativePath}`], {
+    cwd: ROOT
+  });
+  assert.equal(
+    DECORATOR_MARKER.test(bytes.toString('utf8')),
+    false,
+    `legacy baseline ${relativePath} @ ${LEGACY_BASELINE_COMMIT} must not contain Scope 03 decorator wiring`
+  );
+  const expectedSha256 = LEGACY_BASELINE_SHA256[relativePath];
+  if (expectedSha256) {
+    assert.equal(
+      sha256(bytes),
+      expectedSha256,
+      `legacy baseline ${relativePath} @ ${LEGACY_BASELINE_COMMIT} sha256 drifted from the pinned pre-Scope-03 bytes`
+    );
+  }
+  return bytes;
 }
 
 function applyLegacyBaseline(sandboxRoot) {
@@ -261,8 +297,8 @@ function verifyLegacyCanaryPages(root) {
   for (const [relativePath, patterns] of pageRules) {
     const bytes = readFileSync(join(root, relativePath));
     const source = bytes.toString('utf8');
-    assert.equal(bytes.equals(baselineBytes(relativePath)), true, `${relativePath} must use exact HEAD authority bytes`);
-    assert.doesNotMatch(source, /src="rlcontext\.js|src="rlexperience\.js/);
+      assert.equal(bytes.equals(baselineBytes(relativePath)), true, `${relativePath} must use exact pinned pre-Scope-03 baseline bytes`);
+      assert.doesNotMatch(source, DECORATOR_MARKER);
     for (const pattern of patterns) assert.match(source, pattern, `${relativePath} missing legacy page canary ${pattern}`);
     passed += 1;
   }
@@ -538,7 +574,7 @@ if (process.env[PROCESS_PROOF_CHILD] !== '1') {
         assert.equal(
           sha256(readFileSync(join(sandboxRoot, relativePath))),
           sha256(baselineBytes(relativePath)),
-          `${relativePath} must equal git show HEAD authority`
+            `${relativePath} must equal the pinned pre-Scope-03 baseline authority`
         );
       }
       assert.equal(existsSync(join(sandboxRoot, 'rlcontext.js')), false, 'pre-Scope-03 sandbox must not retain rlcontext.js');
@@ -551,8 +587,17 @@ if (process.env[PROCESS_PROOF_CHILD] !== '1') {
       assert.equal(legacyCanaryPages, 3);
       assert.deepEqual(hashInventory(sandboxRoot, protectedPaths), protectedHashes);
 
-      restoreSnapshot(sandboxRoot, currentSnapshot);
-      const restoredValues = loadCurrentOwnerValues(sandboxRoot);
+      restoreSnapshot(sandboxRoot, currentSnapshot);        // Companion current-state proof (BUG-002 design Principle 2). The legacy expectation
+        // above only carries meaning if the MODERN pages genuinely DO carry the Scope 03
+        // decorator wiring. Without this direction, pinning the baseline could mask a
+        // regression that stripped the decorators from production entirely.
+        for (const relativePath of CANARY_PAGES) {
+          assert.match(
+            readFileSync(join(sandboxRoot, relativePath), 'utf8'),
+            DECORATOR_MARKER,
+            `${relativePath} must carry Scope 03 decorator wiring once the current bytes are restored`
+          );
+        }      const restoredValues = loadCurrentOwnerValues(sandboxRoot);
       const restoredFingerprints = ownerValueFingerprints(restoredValues);
       assert.deepEqual(restoredFingerprints, legacyFingerprints, 'owner-value fingerprints must survive rollback and exact restore');
       assert.deepEqual(hashInventory(sandboxRoot, SCOPE03_CURRENT_PATHS), currentHashes);
@@ -570,7 +615,7 @@ if (process.env[PROCESS_PROOF_CHILD] !== '1') {
       assert.equal(existsSync(temporaryRoot), false, 'rollback rehearsal temporary root must always be removed');
     }
 
-    console.log(`[scope03-rollback] baselineAuthority=git:HEAD authorityFiles=${LEGACY_AUTHORITY_PATHS.length} currentFiles=${SCOPE03_CURRENT_PATHS.length} protectedFiles=${protectedPaths.length}`);
+    console.log(`[scope03-rollback] baselineAuthority=git:767732db authorityFiles=${LEGACY_AUTHORITY_PATHS.length} currentFiles=${SCOPE03_CURRENT_PATHS.length} protectedFiles=${protectedPaths.length}`);
     console.log(`[scope03-rollback] legacyRLG=${proof.legacyRLG} legacyTickerLink=${proof.legacyTickerLink} legacyChartAttach=${proof.legacyChartAttach}`);
     console.log(`[scope03-rollback] legacyCanaryPages=${proof.legacyCanaryPages}/3`);
     console.log(`[scope03-rollback] ownerValueFingerprints=${JSON.stringify(proof.ownerValueFingerprints)} unchanged=true`);
@@ -674,7 +719,7 @@ if (process.env[PROCESS_PROOF_CHILD] !== '1') {
       assert.equal(existsSync(temporaryRoot), false, 'exact replay temporary root must always be removed');
     }
 
-    console.log(`[scope03-exact-replay] sandbox=${basename(temporaryRoot)} baselineAuthority=git:HEAD authorityFiles=${LEGACY_AUTHORITY_PATHS.length}`);
+    console.log(`[scope03-exact-replay] sandbox=${basename(temporaryRoot)} baselineAuthority=git:767732db authorityFiles=${LEGACY_AUTHORITY_PATHS.length}`);
     for (const { entry, result } of redResults) {
       console.log(`[scope03-exact-replay] RED-stage ${entry.id} exit=${result.status} discriminator=missing-contextual-foundation`);
     }

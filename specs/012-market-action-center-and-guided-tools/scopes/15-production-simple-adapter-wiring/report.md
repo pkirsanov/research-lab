@@ -2858,4 +2858,54 @@ LIVE_SELFTEST_EXIT=0
 The four dirty files are pre-existing concurrent-session work and were not touched. The
 live checkout is byte-unchanged in product source and still 968/0.
 
+## Finding F-015-MSFT-OPTOUT — one of the two stated blockers is disproven
+
+**State:** OPEN, routed to this scope's owner. No product change made; this is a
+diagnosis, and adopting the shell is this scope's decision, not a test repair.
+
+`tests/tool-experience-shell.functional.mjs` is **2 pass / 1 fail**. The failure
+is a single page:
+
+```
+msft-july-print-model: page.waitForSelector: Timeout 10000ms exceeded.
+  waiting for locator('#rlviews[data-rlexperience-shell="ready"]') to be visible
+```
+
+Verified this reproduces at **clean HEAD** in a detached worktree, so it is not
+an artifact of the concurrent session's in-flight `rlexperience.js`.
+
+Root cause is not a defect: `msft-july-print-model.html` deliberately opts out by
+setting `meta[name=rlviews]=off` and pre-setting `__rlviewsInit=1` so rlapp skips
+shell creation. Diagnostic probe confirms the mechanism — `#rlviews count: 0`
+with **zero page errors and zero console errors**, and `RLEXPERIENCE` loaded. The
+shell is never created; nothing is broken.
+
+The opt-out comment states two blockers. They do not hold equally:
+
+| # | Stated blocker | Verdict |
+|---|---|---|
+| 1 | "this tool's Playwright spec still couples to the legacy Simple/Power tabs… Migrate the spec, then remove this meta." | **REAL.** `tests/msft-july-market-refresh.spec.mjs` carries 23 legacy-tab references, and the shared shell deliberately suppresses those elements. This is a genuine product migration. |
+| 2 | the shared simple-model runtime is "a stub that hardcodes 'Simple model unavailable' for EVERY ordinary tool" | **STALE — disproven empirically.** `ai-capex-strategy-lab`, the page the comment itself cites as proof, now renders a real model result ("Grid & Electrical leads the beneficiary distribution; median return 0.085955"), as does `options-structure-lab`. `sector-research-lab` shows an honest per-tool "adapter required" message, not a hardcoded universal placeholder. |
+
+msft is also already fully wired for adoption: `simple-model/msft-margin-eps/v1`,
+its adapter living in the module the page already loads, a real `msftAnnualBridge`,
+2 journeys, and `powerAdapterId: power-adapter/existing-owner-page/v1` (so the
+native page content belongs under Power). So blocker 2 no longer justifies the
+opt-out; only blocker 1 does.
+
+**Contradiction to resolve.** This scope records msft as "not applicable…
+structurally outside the shell and untouched by this scope", while the shell test
+asserts **all 23** registry pages bootstrap the shell. Both cannot be right. Either
+the test's population is narrowed to the pages this scope actually claims, or the
+opt-out is retired by migrating `msft-july-market-refresh.spec.mjs` off the legacy
+tabs. That is a product decision for this scope's owner.
+
+**Secondary finding — scenario-ID collision.** The shell test labels its cases
+`SCN-012-028` / `SCN-012-029`, but those IDs belong to different scenarios —
+"Feature 002 gate blocks dynamic Brief integration" and "Feature 008 gate blocks
+private Portfolio integration" — which are linked to `tests/tool-experience.spec.mjs`.
+The shell test borrowed unrelated IDs, so scenario-to-test traceability for those
+two IDs currently resolves to two different files asserting unrelated behavior.
+
+
 

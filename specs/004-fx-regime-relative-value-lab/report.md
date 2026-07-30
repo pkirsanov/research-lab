@@ -3995,3 +3995,64 @@ F004_CERTIFICATION_CONTAINMENT_END
 **Result:** PASS. The canonical `certification.*` hash is byte-for-byte
 unchanged from the pre-edit baseline; the feature and scope remain nonterminal,
 and only the pending test-owner route was added.
+
+## Finding F-004-EVIDENCE-DURABILITY — cited evidence lives in a gitignored, machine-local log
+
+**State:** OPEN. Not fixable in-repo; requires an owner decision on evidence policy.
+
+`tests/feature-004-dirty-tree-collision.test.mjs` is **0 pass / 3 fail** in this
+checkout. All three failures share one root cause:
+
+```
+error: "ENOENT: no such file or directory, open
+  '/home/redacted/research-lab/.specify/runtime/tool-calls.jsonl'"
+code: 'ENOENT'
+```
+
+`toolLogRecord()` reads that log and `assertToolLogEvidence()` asserts that
+**specific line numbers** in it contain **specific recorded commands**. So the
+test does not merely need *a* log — it needs the exact append-only capture log
+produced by the original Feature 004 execution session.
+
+That log is unrecoverable:
+
+| Check | Result |
+|---|---|
+| Present in this checkout | **no** |
+| Tracked by git | **no** — `.specify/runtime/.gitignore` is `*` + `!.gitignore` |
+| Ever committed (`git log --all -- <path>`) | **no** — never |
+| Any copy under `$HOME` | only Bubbles selftest fixtures under `~/.cache/bubbles-evidence-admission-selftest.*`, which belong to the framework's own tests, not this repo |
+| Produced by a repo script | written by the framework shim `.github/bubbles/scripts/tool-capture-shim.sh`, i.e. only as a side effect of an agent session |
+
+**Consequence.** The test is structurally unrunnable in *any* fresh clone,
+including CI. It can only pass on the exact machine where Feature 004 was first
+executed, while that session's runtime log happens to still exist. Note the test
+itself calls the path "the append-only **repository** log" — but the repository
+deliberately excludes it, so the assertion's own premise is contradicted by
+`.gitignore`.
+
+**Blast radius.** This is not isolated to Feature 004. Six spec artifacts cite
+`tool-calls.jsonl` as evidence:
+
+- `specs/004-fx-regime-relative-value-lab/report.md`
+- `specs/005-palm-springs-rental-market-lab/report.md`
+- `specs/006-trend-dynamics-cycle-lab/report.md`
+- `specs/002-distributed-tool-briefs-and-history/scopes/01-market-session-evidence-foundation/report.md`
+- `specs/_bugs/BUG-002-market-brief-session-date-drift/report.md`
+- `specs/_bugs/BUG-003-bond-regime-simple-power-model-digest-divergence/report.md`
+
+This is the same defect class as `BUG-002-scope-baseline-head-drift-antipattern`:
+evidence pinned to something that is not durably retained. There the anchor was a
+moving `HEAD`; here it is a machine-local file git is configured to discard.
+
+**Why this was not "fixed" here.** The three candidate resolutions all require an
+owner decision, and two are policy violations:
+
+1. Commit the log — contradicts `.specify/runtime/.gitignore` and would import
+   another session's runtime data. Moot regardless: the file does not exist.
+2. Let the test degrade when the log is absent — a silent-pass pattern, forbidden
+   by repo policy, and it would make the assertion permanently inert.
+3. Re-anchor the evidence contract onto something durable (committed evidence
+   excerpts, or a captured fixture) — a real fix, but it changes the evidence
+   model for all six artifacts above and is the owner's call.
+

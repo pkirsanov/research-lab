@@ -1,227 +1,227 @@
 {
-  "asOf": "2026-07-31T14:30:20.016Z",
-  "generatedAt": "2026-07-31T14:30:20.016Z",
-  "window": "morning",
+  "asOf": "2026-07-31T18:30:28.372Z",
+  "generatedAt": "2026-07-31T18:30:28.372Z",
+  "window": "pre-close",
   "marketClosed": false,
   "nextSessionDate": "2026-07-31",
   "dataFreshness": {
     "bars": {
-      "updated": "2026-07-31T14:30:12.064Z",
+      "updated": "2026-07-31T18:30:20.613Z",
       "count": 287
     },
     "options": {
-      "updated": "2026-07-31T14:30:15.629Z",
+      "updated": "2026-07-31T18:30:23.982Z",
       "count": 22
     }
   },
   "regime": {
-    "band": "VIX 18.5",
+    "band": "VIX 16.6",
     "score": 0,
-    "vix": 18.5,
+    "vix": 16.65,
     "fearGreed": null
   },
   "bench": {
-    "px": 740.45,
-    "mom126": 7.25,
-    "mom252": 18,
-    "ma50Dist": -0.49,
-    "ma200Dist": 6.18,
+    "px": 746.13,
+    "mom126": 8.08,
+    "mom252": 18.9,
+    "ma50Dist": 0.26,
+    "ma200Dist": 6.99,
     "maStack": "bull-stack",
-    "pctFrom52wHigh": -2.27
+    "pctFrom52wHigh": -1.52
   },
   "names": {
     "QQQ": {
-      "px": 684.13,
-      "mom5": -0.01,
-      "mom21": -5.66,
-      "mom63": 2.57,
-      "mom126": 8.95,
-      "mom252": 21.02,
-      "ma50Dist": -4.27,
-      "ma200Dist": 6.26,
+      "px": 688.67,
+      "mom5": 0.65,
+      "mom21": -5.03,
+      "mom63": 3.25,
+      "mom126": 9.67,
+      "mom252": 21.82,
+      "ma50Dist": -3.65,
+      "ma200Dist": 6.96,
       "maStack": "tangled",
-      "pctFrom52wHigh": -8.21
+      "pctFrom52wHigh": -7.6
     },
     "SPMO": {
-      "px": 143.99,
-      "mom5": -1.72,
-      "mom21": -7.29,
-      "mom63": 7.79,
-      "mom126": 20,
-      "mom252": 25.8,
-      "ma50Dist": -4.24,
-      "ma200Dist": 12.02,
+      "px": 144.71,
+      "mom5": -1.23,
+      "mom21": -6.83,
+      "mom63": 8.33,
+      "mom126": 20.6,
+      "mom252": 26.43,
+      "ma50Dist": -3.77,
+      "ma200Dist": 12.58,
       "maStack": "tangled",
-      "pctFrom52wHigh": -10.93
+      "pctFrom52wHigh": -10.48
     },
     "VGT": {
-      "px": 112.14,
-      "mom5": -1.02,
-      "mom21": -4.33,
-      "mom63": 8.81,
-      "mom126": 18.18,
-      "mom252": 29.75,
-      "ma50Dist": -3.63,
-      "ma200Dist": 11.47,
+      "px": 112.97,
+      "mom5": -0.29,
+      "mom21": -3.62,
+      "mom63": 9.62,
+      "mom126": 19.06,
+      "mom252": 30.72,
+      "ma50Dist": -2.92,
+      "ma200Dist": 12.3,
       "maStack": "tangled",
-      "pctFrom52wHigh": -10.73
+      "pctFrom52wHigh": -10.07
     },
     "MSFT": {
-      "px": 452.85,
-      "mom5": 18.64,
-      "mom21": 17.84,
-      "mom63": 11.29,
-      "mom126": 4.93,
-      "mom252": -11.06,
-      "ma50Dist": 13.45,
-      "ma200Dist": 4.78,
+      "px": 463,
+      "mom5": 21.3,
+      "mom21": 20.49,
+      "mom63": 13.79,
+      "mom126": 7.28,
+      "mom252": -9.07,
+      "ma50Dist": 15.94,
+      "ma200Dist": 7.11,
       "maStack": "bear-stack",
-      "pctFrom52wHigh": -15.93
+      "pctFrom52wHigh": -14.05
     }
   },
   "sectors": {
     "XLK": {
-      "rsMom1m": -5.45,
-      "rsMom3m": 6.04,
+      "rsMom1m": -5.56,
+      "rsMom3m": 6.01,
       "rsMom6m": 11.64,
-      "rsRatio": 99.02,
-      "rsMom": 99.94,
+      "rsRatio": 99,
+      "rsMom": 99.9,
       "quad": "A",
-      "accel": 0.62,
+      "accel": 0.58,
       "rrgState": "Basing ↑",
       "rotation": "into",
       "maStack": "tangled",
-      "ma200Dist": 12.31
+      "ma200Dist": 13.09
     },
     "XLC": {
-      "rsMom1m": -1.89,
-      "rsMom3m": -11.32,
-      "rsMom6m": -17.51,
-      "rsRatio": 98.76,
-      "rsMom": 98.67,
+      "rsMom1m": -1.69,
+      "rsMom3m": -11.21,
+      "rsMom6m": -17.45,
+      "rsRatio": 98.82,
+      "rsMom": 98.78,
       "quad": "A",
-      "accel": -1.98,
+      "accel": -1.87,
       "rrgState": "Lagging",
       "rotation": "neutral",
       "maStack": "bear-stack",
-      "ma200Dist": -6.07
+      "ma200Dist": -5.15
     },
     "XLY": {
-      "rsMom1m": -1.58,
-      "rsMom3m": -5.61,
-      "rsMom6m": -11.67,
-      "rsRatio": 99.69,
-      "rsMom": 100.87,
+      "rsMom1m": -1.65,
+      "rsMom3m": -5.71,
+      "rsMom6m": -11.81,
+      "rsRatio": 99.66,
+      "rsMom": 100.84,
       "quad": "I",
-      "accel": 1.04,
+      "accel": 1.01,
       "rrgState": "Improving ↑",
       "rotation": "into",
       "maStack": "bear-stack",
-      "ma200Dist": -1.13
+      "ma200Dist": -0.43
     },
     "XLP": {
-      "rsMom1m": 2.78,
-      "rsMom3m": -1.75,
-      "rsMom6m": -2.42,
-      "rsRatio": 100.65,
-      "rsMom": 99.72,
+      "rsMom1m": 2.3,
+      "rsMom3m": -2.26,
+      "rsMom6m": -2.96,
+      "rsRatio": 100.42,
+      "rsMom": 99.45,
       "quad": "W",
-      "accel": -0.99,
+      "accel": -1.26,
       "rrgState": "Weakening ↓",
       "rotation": "out",
       "maStack": "bull-stack",
-      "ma200Dist": 4.35
+      "ma200Dist": 4.64
     },
     "XLE": {
-      "rsMom1m": 11.61,
-      "rsMom3m": -4.41,
-      "rsMom6m": 10.29,
-      "rsRatio": 100.81,
-      "rsMom": 100.38,
+      "rsMom1m": 12.23,
+      "rsMom3m": -3.97,
+      "rsMom6m": 10.94,
+      "rsRatio": 100.93,
+      "rsMom": 100.51,
       "quad": "L",
-      "accel": -2.42,
+      "accel": -2.29,
       "rrgState": "Peaking ⚠",
       "rotation": "out",
       "maStack": "bull-stack",
-      "ma200Dist": 12.57
+      "ma200Dist": 13.96
     },
     "XLF": {
-      "rsMom1m": 4.45,
-      "rsMom3m": 6.09,
-      "rsMom6m": -0.22,
-      "rsRatio": 101.61,
-      "rsMom": 99.17,
+      "rsMom1m": 4.1,
+      "rsMom3m": 5.74,
+      "rsMom6m": -0.61,
+      "rsRatio": 101.52,
+      "rsMom": 99.07,
       "quad": "W",
-      "accel": -1.03,
+      "accel": -1.14,
       "rrgState": "Weakening ↓",
       "rotation": "out",
       "maStack": "bull-stack",
-      "ma200Dist": 8.26
+      "ma200Dist": 8.69
     },
     "XLV": {
-      "rsMom1m": 1.79,
-      "rsMom3m": 7.65,
-      "rsMom6m": -1.52,
-      "rsRatio": 101.13,
-      "rsMom": 98.26,
+      "rsMom1m": 2.02,
+      "rsMom3m": 7.95,
+      "rsMom6m": -1.31,
+      "rsRatio": 101.18,
+      "rsMom": 98.32,
       "quad": "W",
-      "accel": -0.79,
+      "accel": -0.72,
       "rrgState": "Weakening ↓",
       "rotation": "out",
       "maStack": "bull-stack",
-      "ma200Dist": 6.53
+      "ma200Dist": 7.57
     },
     "XLI": {
-      "rsMom1m": -1.73,
-      "rsMom3m": -0.58,
-      "rsMom6m": 1.17,
-      "rsRatio": 100.48,
-      "rsMom": 99.66,
+      "rsMom1m": -1.79,
+      "rsMom3m": -0.63,
+      "rsMom6m": 1.12,
+      "rsRatio": 100.46,
+      "rsMom": 99.64,
       "quad": "W",
-      "accel": 0.16,
+      "accel": 0.14,
       "rrgState": "Weakening ↓",
       "rotation": "out",
       "maStack": "bull-stack",
-      "ma200Dist": 7.39
+      "ma200Dist": 8.16
     },
     "XLB": {
-      "rsMom1m": -0.34,
-      "rsMom3m": -4.84,
-      "rsMom6m": -5.46,
-      "rsRatio": 99.54,
-      "rsMom": 100.12,
-      "quad": "I",
-      "accel": 0.38,
-      "rrgState": "Improving ↑",
-      "rotation": "into",
+      "rsMom1m": -0.94,
+      "rsMom3m": -5.48,
+      "rsMom6m": -6.12,
+      "rsRatio": 99.23,
+      "rsMom": 99.77,
+      "quad": "A",
+      "accel": 0.03,
+      "rrgState": "Lagging",
+      "rotation": "neutral",
       "maStack": "tangled",
-      "ma200Dist": 3.83
+      "ma200Dist": 4
     },
     "XLRE": {
-      "rsMom1m": 2.51,
-      "rsMom3m": -1.11,
-      "rsMom6m": 3.15,
-      "rsRatio": 100.7,
-      "rsMom": 99.59,
+      "rsMom1m": 2.12,
+      "rsMom3m": -1.53,
+      "rsMom6m": 2.73,
+      "rsRatio": 100.51,
+      "rsMom": 99.46,
       "quad": "W",
-      "accel": -1.54,
+      "accel": -1.68,
       "rrgState": "Weakening ↓",
       "rotation": "out",
       "maStack": "bull-stack",
-      "ma200Dist": 6.84
+      "ma200Dist": 7.23
     },
     "XLU": {
-      "rsMom1m": 0.43,
-      "rsMom3m": -7.4,
-      "rsMom6m": -2.84,
-      "rsRatio": 99.85,
-      "rsMom": 99.72,
+      "rsMom1m": -0.48,
+      "rsMom3m": -8.34,
+      "rsMom6m": -3.82,
+      "rsRatio": 99.49,
+      "rsMom": 99.26,
       "quad": "A",
-      "accel": -0.56,
+      "accel": -1.02,
       "rrgState": "Lagging",
       "rotation": "neutral",
       "maStack": "bull-stack",
-      "ma200Dist": 0.6
+      "ma200Dist": 0.44
     }
   },
   "groups": [
@@ -232,111 +232,111 @@
       "deepLink": "sector-research-lab.html",
       "read": {
         "etf": "MAGS",
-        "px": 64.75,
-        "rsMom1m": -0.94,
-        "rsMom3m": -5.54,
-        "rsMom6m": -9.7,
-        "rsRatio": 99.23,
-        "rsMom": 99.88,
+        "px": 65.49,
+        "rsMom1m": -0.59,
+        "rsMom3m": -5.23,
+        "rsMom6m": -9.42,
+        "rsRatio": 99.32,
+        "rsMom": 99.96,
         "quad": "A",
-        "accel": -0.75,
+        "accel": -0.67,
         "rrgState": "Lagging",
         "rotation": "neutral",
         "maStack": "tangled",
-        "ma200Dist": -0.02
+        "ma200Dist": 1.1
       },
       "breadth": {
         "n": 7,
         "bullStacked": 1,
         "above50": 2,
         "above200": 5,
-        "upMom": 3,
+        "upMom": 4,
         "label": "1/7 bull-stacked"
       },
       "members": {
         "AAPL": {
-          "px": 302.51,
-          "mom5": -9.16,
-          "mom21": 2.76,
-          "mom63": 11.58,
-          "mom126": 17.34,
-          "mom252": 45.28,
-          "ma50Dist": -2.22,
-          "ma200Dist": 8.96,
+          "px": 301.97,
+          "mom5": -9.32,
+          "mom21": 2.58,
+          "mom63": 11.39,
+          "mom126": 17.13,
+          "mom252": 45.02,
+          "ma50Dist": -2.39,
+          "ma200Dist": 8.77,
           "maStack": "bull-stack",
-          "pctFrom52wHigh": -11.05
+          "pctFrom52wHigh": -11.21
         },
         "MSFT": {
-          "px": 452.85,
-          "mom5": 18.64,
-          "mom21": 17.84,
-          "mom63": 11.29,
-          "mom126": 4.93,
-          "mom252": -11.06,
-          "ma50Dist": 13.45,
-          "ma200Dist": 4.78,
+          "px": 463,
+          "mom5": 21.3,
+          "mom21": 20.49,
+          "mom63": 13.79,
+          "mom126": 7.28,
+          "mom252": -9.07,
+          "ma50Dist": 15.94,
+          "ma200Dist": 7.11,
           "maStack": "bear-stack",
-          "pctFrom52wHigh": -15.93
+          "pctFrom52wHigh": -14.05
         },
         "NVDA": {
-          "px": 197.12,
-          "mom5": -4.7,
-          "mom21": -0.24,
-          "mom63": -1.12,
-          "mom126": 2.52,
-          "mom252": 10.1,
-          "ma50Dist": -4.34,
-          "ma200Dist": 2.18,
+          "px": 198.67,
+          "mom5": -3.95,
+          "mom21": 0.55,
+          "mom63": -0.33,
+          "mom126": 3.33,
+          "mom252": 10.97,
+          "ma50Dist": -3.6,
+          "ma200Dist": 2.98,
           "maStack": "tangled",
-          "pctFrom52wHigh": -16.29
+          "pctFrom52wHigh": -15.63
         },
         "AMZN": {
-          "px": 269.96,
-          "mom5": 16.31,
-          "mom21": 11.69,
-          "mom63": 1.85,
-          "mom126": 11.68,
-          "mom252": 17.28,
-          "ma50Dist": 9.47,
-          "ma200Dist": 14.87,
+          "px": 270.86,
+          "mom5": 16.69,
+          "mom21": 12.06,
+          "mom63": 2.19,
+          "mom126": 12.05,
+          "mom252": 17.67,
+          "ma50Dist": 9.83,
+          "ma200Dist": 15.26,
           "maStack": "tangled",
-          "pctFrom52wHigh": -1.83
+          "pctFrom52wHigh": -1.5
         },
         "GOOGL": {
-          "px": 347.45,
-          "mom5": 8.66,
-          "mom21": -3.81,
-          "mom63": -9.65,
-          "mom126": 2.85,
-          "mom252": 77.29,
-          "ma50Dist": -3.09,
-          "ma200Dist": 6.6,
+          "px": 356.06,
+          "mom5": 11.36,
+          "mom21": -1.43,
+          "mom63": -7.41,
+          "mom126": 5.4,
+          "mom252": 81.69,
+          "ma50Dist": -0.73,
+          "ma200Dist": 9.23,
           "maStack": "tangled",
-          "pctFrom52wHigh": -13.65
+          "pctFrom52wHigh": -11.51
         },
         "META": {
-          "px": 546.75,
-          "mom5": -8.14,
-          "mom21": -10.79,
-          "mom63": -10.57,
-          "mom126": -25.81,
-          "mom252": -21.1,
-          "ma50Dist": -9.15,
-          "ma200Dist": -13.7,
+          "px": 549.86,
+          "mom5": -7.62,
+          "mom21": -10.29,
+          "mom63": -10.06,
+          "mom126": -25.39,
+          "mom252": -20.65,
+          "ma50Dist": -8.64,
+          "ma200Dist": -13.21,
           "maStack": "tangled",
-          "pctFrom52wHigh": -30.56
+          "pctFrom52wHigh": -30.17
         },
         "TSLA": {
-          "px": 304.84,
-          "mom5": -2.62,
-          "mom21": -28.32,
-          "mom63": -20.12,
-          "mom126": -26.82,
-          "mom252": -4.45,
-          "ma50Dist": -21.96,
-          "ma200Dist": -25.93,
+          "px": 310.92,
+          "mom5": -0.67,
+          "mom21": -26.89,
+          "mom63": -18.53,
+          "mom126": -25.36,
+          "mom252": -2.55,
+          "ma50Dist": -20.43,
+          "ma200Dist": -24.46,
           "maStack": "bear-stack",
-          "pctFrom52wHigh": -37.77
+          "pctFrom52wHigh": -36.53
         }
       }
     },
@@ -347,171 +347,171 @@
       "deepLink": "sector-research-lab.html",
       "read": {
         "etf": "SOXX",
-        "px": 512.01,
-        "rsMom1m": -13.91,
-        "rsMom3m": 7.71,
-        "rsMom6m": 34.68,
-        "rsRatio": 99.04,
-        "rsMom": 100.05,
-        "quad": "I",
-        "accel": 0.98,
-        "rrgState": "Improving ↑",
+        "px": 510.7,
+        "rsMom1m": -14.89,
+        "rsMom3m": 6.64,
+        "rsMom6m": 33.49,
+        "rsRatio": 98.92,
+        "rsMom": 99.84,
+        "quad": "A",
+        "accel": 0.78,
+        "rrgState": "Basing ↑",
         "rotation": "into",
         "maStack": "tangled",
-        "ma200Dist": 27.19
+        "ma200Dist": 26.87
       },
       "breadth": {
         "n": 12,
         "bullStacked": 2,
         "above50": 0,
         "above200": 11,
-        "upMom": 1,
+        "upMom": 2,
         "label": "2/12 bull-stacked"
       },
       "members": {
         "NVDA": {
-          "px": 197.12,
-          "mom5": -4.7,
-          "mom21": -0.24,
-          "mom63": -1.12,
-          "mom126": 2.52,
-          "mom252": 10.1,
-          "ma50Dist": -4.34,
-          "ma200Dist": 2.18,
+          "px": 198.67,
+          "mom5": -3.95,
+          "mom21": 0.55,
+          "mom63": -0.33,
+          "mom126": 3.33,
+          "mom252": 10.97,
+          "ma50Dist": -3.6,
+          "ma200Dist": 2.98,
           "maStack": "tangled",
-          "pctFrom52wHigh": -16.29
+          "pctFrom52wHigh": -15.63
         },
         "AVGO": {
-          "px": 382.89,
-          "mom5": 0.25,
-          "mom21": 3.67,
-          "mom63": -8.13,
-          "mom126": 16.2,
-          "mom252": 27.45,
-          "ma50Dist": -3.04,
-          "ma200Dist": 4.94,
+          "px": 388.77,
+          "mom5": 1.79,
+          "mom21": 5.26,
+          "mom63": -6.72,
+          "mom126": 17.98,
+          "mom252": 29.41,
+          "ma50Dist": -1.58,
+          "ma200Dist": 6.55,
           "maStack": "tangled",
-          "pctFrom52wHigh": -20.37
+          "pctFrom52wHigh": -19.14
         },
         "AMD": {
-          "px": 492.83,
-          "mom5": -5.58,
-          "mom21": -8.88,
-          "mom63": 39.03,
-          "mom126": 95.43,
-          "mom252": 174.54,
-          "ma50Dist": -3.84,
-          "ma200Dist": 58.01,
+          "px": 487.7,
+          "mom5": -6.56,
+          "mom21": -9.83,
+          "mom63": 37.58,
+          "mom126": 93.39,
+          "mom252": 171.68,
+          "ma50Dist": -4.83,
+          "ma200Dist": 56.37,
           "maStack": "bull-stack",
-          "pctFrom52wHigh": -15.16
+          "pctFrom52wHigh": -16.05
         },
         "TSM": {
-          "px": 405.15,
-          "mom5": 0.43,
-          "mom21": -8.8,
-          "mom63": 2.53,
-          "mom126": 19.94,
-          "mom252": 68.63,
-          "ma50Dist": -4.68,
-          "ma200Dist": 13.81,
+          "px": 406.19,
+          "mom5": 0.69,
+          "mom21": -8.56,
+          "mom63": 2.8,
+          "mom126": 20.24,
+          "mom252": 69.07,
+          "ma50Dist": -4.44,
+          "ma200Dist": 14.1,
           "maStack": "tangled",
-          "pctFrom52wHigh": -15.16
+          "pctFrom52wHigh": -14.95
         },
         "QCOM": {
-          "px": 148.83,
-          "mom5": -10.86,
-          "mom21": -18.19,
-          "mom63": -16.82,
-          "mom126": -1.24,
-          "mom252": -4.46,
-          "ma50Dist": -24.97,
-          "ma200Dist": -11.34,
+          "px": 148.4,
+          "mom5": -11.12,
+          "mom21": -18.43,
+          "mom63": -17.06,
+          "mom126": -1.52,
+          "mom252": -4.74,
+          "ma50Dist": -25.18,
+          "ma200Dist": -11.6,
           "maStack": "tangled",
-          "pctFrom52wHigh": -40.49
+          "pctFrom52wHigh": -40.66
         },
         "TXN": {
-          "px": 276.42,
-          "mom5": -1.13,
-          "mom21": -7.37,
-          "mom63": -1.16,
-          "mom126": 27.71,
-          "mom252": 49.95,
-          "ma50Dist": -7.29,
-          "ma200Dist": 22.67,
+          "px": 276.71,
+          "mom5": -1.03,
+          "mom21": -7.27,
+          "mom63": -1.05,
+          "mom126": 27.84,
+          "mom252": 50.1,
+          "ma50Dist": -7.2,
+          "ma200Dist": 22.79,
           "maStack": "tangled",
-          "pctFrom52wHigh": -16.81
+          "pctFrom52wHigh": -16.72
         },
         "AMAT": {
-          "px": 518.05,
-          "mom5": -3.39,
-          "mom21": -20.41,
-          "mom63": 31.48,
-          "mom126": 52.15,
-          "mom252": 175.54,
-          "ma50Dist": -4.73,
-          "ma200Dist": 38.88,
+          "px": 515.9,
+          "mom5": -3.79,
+          "mom21": -20.74,
+          "mom63": 30.94,
+          "mom126": 51.52,
+          "mom252": 174.4,
+          "ma50Dist": -5.12,
+          "ma200Dist": 38.31,
           "maStack": "bull-stack",
-          "pctFrom52wHigh": -28.35
+          "pctFrom52wHigh": -28.64
         },
         "LRCX": {
-          "px": 303.81,
-          "mom5": -0.46,
-          "mom21": -22.35,
-          "mom63": 17.9,
-          "mom126": 22.65,
-          "mom252": 208.3,
-          "ma50Dist": -10.13,
-          "ma200Dist": 26.14,
+          "px": 301.33,
+          "mom5": -1.27,
+          "mom21": -22.98,
+          "mom63": 16.94,
+          "mom126": 21.65,
+          "mom252": 205.78,
+          "ma50Dist": -10.85,
+          "ma200Dist": 25.12,
           "maStack": "tangled",
-          "pctFrom52wHigh": -29.89
+          "pctFrom52wHigh": -30.46
         },
         "KLAC": {
-          "px": 186.9,
-          "mom5": -11.22,
-          "mom21": -29.79,
-          "mom63": 6.92,
-          "mom126": 11.23,
-          "mom252": 103.36,
-          "ma50Dist": -15.55,
-          "ma200Dist": 15.14,
+          "px": 186.49,
+          "mom5": -11.42,
+          "mom21": -29.94,
+          "mom63": 6.68,
+          "mom126": 10.98,
+          "mom252": 102.91,
+          "ma50Dist": -15.74,
+          "ma200Dist": 14.89,
           "maStack": "tangled",
-          "pctFrom52wHigh": -38.05
+          "pctFrom52wHigh": -38.19
         },
         "MU": {
-          "px": 851.64,
-          "mom5": -7.53,
-          "mom21": -17.49,
-          "mom63": 64.7,
-          "mom126": 95.54,
-          "mom252": 643.43,
-          "ma50Dist": -11.78,
-          "ma200Dist": 64.38,
+          "px": 836.06,
+          "mom5": -9.22,
+          "mom21": -19,
+          "mom63": 61.69,
+          "mom126": 91.96,
+          "mom252": 629.82,
+          "ma50Dist": -13.36,
+          "ma200Dist": 61.4,
           "maStack": "tangled",
-          "pctFrom52wHigh": -29.81
+          "pctFrom52wHigh": -31.1
         },
         "MRVL": {
-          "px": 192.64,
-          "mom5": -0.82,
-          "mom21": -29.17,
-          "mom63": 16.67,
-          "mom126": 137.01,
-          "mom252": 136.18,
-          "ma50Dist": -19.57,
-          "ma200Dist": 42.68,
+          "px": 192.46,
+          "mom5": -0.91,
+          "mom21": -29.24,
+          "mom63": 16.57,
+          "mom126": 136.79,
+          "mom252": 135.96,
+          "ma50Dist": -19.64,
+          "ma200Dist": 42.55,
           "maStack": "tangled",
-          "pctFrom52wHigh": -39.11
+          "pctFrom52wHigh": -39.16
         },
         "ADI": {
-          "px": 368.28,
-          "mom5": -0.96,
-          "mom21": -5.32,
-          "mom63": -8.2,
-          "mom126": 16.24,
-          "mom252": 61.49,
-          "ma50Dist": -7.33,
-          "ma200Dist": 11.61,
+          "px": 368.85,
+          "mom5": -0.81,
+          "mom21": -5.18,
+          "mom63": -8.05,
+          "mom126": 16.42,
+          "mom252": 61.74,
+          "ma50Dist": -7.19,
+          "ma200Dist": 11.78,
           "maStack": "tangled",
-          "pctFrom52wHigh": -17.33
+          "pctFrom52wHigh": -17.2
         }
       }
     }
@@ -519,50 +519,50 @@
   "toolReads": {
     "sector-research-lab": {
       "id": "sector-research-lab",
-      "asOf": "2026-07-31T14:30:18.915Z",
+      "asOf": "2026-07-31T18:30:27.206Z",
       "read": "Rotate toward XLY as XLE weakens.",
       "metrics": {
         "into": {
           "ticker": "XLY",
-          "rsMom1m": -1.58,
-          "rsMom3m": -5.61,
-          "rsMom6m": -11.67,
-          "rsRatio": 99.69,
-          "rsMom": 100.87,
+          "rsMom1m": -1.65,
+          "rsMom3m": -5.71,
+          "rsMom6m": -11.81,
+          "rsRatio": 99.66,
+          "rsMom": 100.84,
           "quad": "I",
-          "accel": 1.04,
+          "accel": 1.01,
           "rrgState": "Improving ↑",
           "rotation": "into",
           "maStack": "bear-stack",
-          "ma200Dist": -1.13
+          "ma200Dist": -0.43
         },
         "out": {
           "ticker": "XLE",
-          "rsMom1m": 11.61,
-          "rsMom3m": -4.41,
-          "rsMom6m": 10.29,
-          "rsRatio": 100.81,
-          "rsMom": 100.38,
+          "rsMom1m": 12.23,
+          "rsMom3m": -3.97,
+          "rsMom6m": 10.94,
+          "rsRatio": 100.93,
+          "rsMom": 100.51,
           "quad": "L",
-          "accel": -2.42,
+          "accel": -2.29,
           "rrgState": "Peaking ⚠",
           "rotation": "out",
           "maStack": "bull-stack",
-          "ma200Dist": 12.57
+          "ma200Dist": 13.96
         },
         "leader": {
           "ticker": "XLV",
-          "rsMom1m": 1.79,
-          "rsMom3m": 7.65,
-          "rsMom6m": -1.52,
-          "rsRatio": 101.13,
-          "rsMom": 98.26,
+          "rsMom1m": 2.02,
+          "rsMom3m": 7.95,
+          "rsMom6m": -1.31,
+          "rsRatio": 101.18,
+          "rsMom": 98.32,
           "quad": "W",
-          "accel": -0.79,
+          "accel": -0.72,
           "rrgState": "Weakening ↓",
           "rotation": "out",
           "maStack": "bull-stack",
-          "ma200Dist": 6.53
+          "ma200Dist": 7.57
         },
         "count": 11,
         "benchmark": "SPY"
@@ -573,44 +573,44 @@
     "etf-momentum-lab": {
       "id": "etf-momentum-lab",
       "asOf": "2026-07-31T13:30:00.000Z",
-      "read": "JMOM leads the default 6M balanced ETF ranking at 13.83% momentum; 13 funds scored.",
+      "read": "JMOM leads the default 6M balanced ETF ranking at 14.61% momentum; 13 funds scored.",
       "metrics": {
         "leader": "JMOM",
-        "signal": 13.83,
+        "signal": 14.61,
         "ranked": [
           {
             "ticker": "JMOM",
-            "signal": 13.83,
-            "score": 0.2846,
+            "signal": 14.61,
+            "score": 0.2952,
             "annVol": 16.56,
             "asOf": "2026-07-31T13:30:00.000Z"
           },
           {
             "ticker": "VGT",
-            "signal": 18.18,
-            "score": 0.2606,
-            "annVol": 24.35,
+            "signal": 19.06,
+            "score": 0.2711,
+            "annVol": 24.32,
             "asOf": "2026-07-31T13:30:00.000Z"
           },
           {
             "ticker": "SPMO",
-            "signal": 20,
-            "score": 0.2561,
-            "annVol": 23.95,
+            "signal": 20.6,
+            "score": 0.2628,
+            "annVol": 23.96,
             "asOf": "2026-07-31T13:30:00.000Z"
           },
           {
             "ticker": "XSMO",
-            "signal": 12.43,
-            "score": 0.2498,
-            "annVol": 19.95,
+            "signal": 13.42,
+            "score": 0.2626,
+            "annVol": 19.93,
             "asOf": "2026-07-31T13:30:00.000Z"
           },
           {
-            "ticker": "DWAS",
-            "signal": 11.51,
-            "score": 0.2176,
-            "annVol": 25.71,
+            "ticker": "MTUM",
+            "signal": 15.99,
+            "score": 0.2174,
+            "annVol": 25.61,
             "asOf": "2026-07-31T13:30:00.000Z"
           }
         ],
@@ -624,20 +624,20 @@
     "global-rotation-lab": {
       "id": "global-rotation-lab",
       "asOf": "2026-07-31T13:30:00.000Z",
-      "read": "EWS (Singapore) leads global rotation at 82.8/100 versus ACWI; EPHE is next.",
+      "read": "EWS (Singapore) leads global rotation at 82.7/100 versus ACWI; EWU is next.",
       "metrics": {
         "benchmark": "ACWI",
         "leader": {
           "ticker": "EWS",
           "country": "Singapore",
-          "score": 82.8,
-          "rel21": 8.63,
-          "rel63": 9.64,
-          "rel126": 6.82,
+          "score": 82.7,
+          "rel21": 8.55,
+          "rel63": 9.56,
+          "rel126": 6.72,
           "trend": "Strong uptrend",
           "fx": "FX headwind",
-          "fxStrength": -0.5,
-          "vol": 15.52,
+          "fxStrength": -0.53,
+          "vol": 15.39,
           "maxDrawdown": 7.82,
           "asOf": "2026-07-31T13:30:00.000Z"
         },
@@ -645,85 +645,85 @@
           {
             "ticker": "EWS",
             "country": "Singapore",
-            "score": 82.8,
-            "rel21": 8.63,
-            "rel63": 9.64,
-            "rel126": 6.82,
+            "score": 82.7,
+            "rel21": 8.55,
+            "rel63": 9.56,
+            "rel126": 6.72,
             "trend": "Strong uptrend",
             "fx": "FX headwind",
-            "fxStrength": -0.5,
-            "vol": 15.52,
+            "fxStrength": -0.53,
+            "vol": 15.39,
             "maxDrawdown": 7.82,
-            "asOf": "2026-07-31T13:30:00.000Z"
-          },
-          {
-            "ticker": "EPHE",
-            "country": "Philippines",
-            "score": 70.8,
-            "rel21": 5.77,
-            "rel63": 3.94,
-            "rel126": -5.51,
-            "trend": "Strong uptrend",
-            "fx": "FX neutral",
-            "fxStrength": 0.19,
-            "vol": 22.97,
-            "maxDrawdown": 15.9,
             "asOf": "2026-07-31T13:30:00.000Z"
           },
           {
             "ticker": "EWU",
             "country": "United Kingdom",
-            "score": 70.8,
-            "rel21": 5.53,
-            "rel63": 0.63,
-            "rel126": -1.19,
+            "score": 71.1,
+            "rel21": 5.5,
+            "rel63": 0.57,
+            "rel126": -1.25,
             "trend": "Strong uptrend",
             "fx": "FX neutral",
-            "fxStrength": 0.04,
-            "vol": 16.43,
+            "fxStrength": 0.26,
+            "vol": 16.32,
             "maxDrawdown": 9.92,
+            "asOf": "2026-07-31T13:30:00.000Z"
+          },
+          {
+            "ticker": "EPHE",
+            "country": "Philippines",
+            "score": 69,
+            "rel21": 5.55,
+            "rel63": 3.7,
+            "rel126": -5.79,
+            "trend": "Strong uptrend",
+            "fx": "FX headwind",
+            "fxStrength": -0.88,
+            "vol": 22.9,
+            "maxDrawdown": 15.9,
             "asOf": "2026-07-31T13:30:00.000Z"
           },
           {
             "ticker": "EWC",
             "country": "Canada",
-            "score": 66.8,
-            "rel21": 3.55,
-            "rel63": -1.27,
-            "rel126": -0.95,
+            "score": 66,
+            "rel21": 3.29,
+            "rel63": -1.57,
+            "rel126": -1.25,
             "trend": "Strong uptrend",
             "fx": "Confirms weakness",
-            "fxStrength": -1.49,
-            "vol": 12.06,
+            "fxStrength": -1.74,
+            "vol": 11.99,
             "maxDrawdown": 8.51,
             "asOf": "2026-07-31T13:30:00.000Z"
           },
           {
             "ticker": "EWA",
             "country": "Australia",
-            "score": 64.6,
-            "rel21": 5.87,
-            "rel63": -2.8,
-            "rel126": -2.43,
+            "score": 64.7,
+            "rel21": 5.9,
+            "rel63": -2.83,
+            "rel126": -2.45,
             "trend": "Strong uptrend",
             "fx": "Confirms weakness",
-            "fxStrength": -1.8,
-            "vol": 18.56,
+            "fxStrength": -1.77,
+            "vol": 18.28,
             "maxDrawdown": 10.01,
             "asOf": "2026-07-31T13:30:00.000Z"
           },
           {
-            "ticker": "EWG",
-            "country": "Germany",
-            "score": 61.2,
-            "rel21": 3.93,
-            "rel63": -0.28,
-            "rel126": -6.48,
+            "ticker": "EWJ",
+            "country": "Japan",
+            "score": 62.6,
+            "rel21": -0.47,
+            "rel63": 0.81,
+            "rel126": 1.05,
             "trend": "Constructive",
-            "fx": "Confirms weakness",
-            "fxStrength": -1.18,
-            "vol": 19.92,
-            "maxDrawdown": 14.54,
+            "fx": "FX neutral",
+            "fxStrength": 0.28,
+            "vol": 23.47,
+            "maxDrawdown": 13.59,
             "asOf": "2026-07-31T13:30:00.000Z"
           }
         ],
@@ -735,19 +735,19 @@
     "real-assets-lab": {
       "id": "real-assets-lab",
       "asOf": "2026-07-31T13:30:00.000Z",
-      "read": "CPER leads real assets at 52.1/100; GLD 15.6, BTC 28.7, SLV 0.",
+      "read": "CPER leads real assets at 54.1/100; GLD 16.6, BTC 30.4, SLV 0.",
       "metrics": {
         "leader": {
           "ticker": "CPER",
           "model": "industrial",
-          "score": 52.1,
+          "score": 54.1,
           "trend": "Uptrend",
-          "mom21": 5.07,
-          "mom63": 7.02,
-          "mom126": 0.99,
-          "vol": 30.42,
+          "mom21": 6.02,
+          "mom63": 7.99,
+          "mom126": 1.91,
+          "vol": 30.41,
           "maxDrawdown": 13.69,
-          "riskPenalty": 4.35,
+          "riskPenalty": 4.34,
           "confirmations": [
             {
               "label": "Commodity breadth",
@@ -764,7 +764,7 @@
               "symbols": [
                 "XLI"
               ],
-              "score": 59.05048936778874,
+              "score": 61.51959055578507,
               "detail": "Industrial-equity direction proxies cyclical demand confirmation."
             }
           ],
@@ -774,14 +774,14 @@
           {
             "ticker": "CPER",
             "model": "industrial",
-            "score": 52.1,
+            "score": 54.1,
             "trend": "Uptrend",
-            "mom21": 5.07,
-            "mom63": 7.02,
-            "mom126": 0.99,
-            "vol": 30.42,
+            "mom21": 6.02,
+            "mom63": 7.99,
+            "mom126": 1.91,
+            "vol": 30.41,
             "maxDrawdown": 13.69,
-            "riskPenalty": 4.35,
+            "riskPenalty": 4.34,
             "confirmations": [
               {
                 "label": "Commodity breadth",
@@ -798,7 +798,7 @@
                 "symbols": [
                   "XLI"
                 ],
-                "score": 59.05048936778874,
+                "score": 61.51959055578507,
                 "detail": "Industrial-equity direction proxies cyclical demand confirmation."
               }
             ],
@@ -807,11 +807,11 @@
           {
             "ticker": "PDBC",
             "model": "broad",
-            "score": 50.3,
+            "score": 50.5,
             "trend": "Uptrend",
-            "mom21": 11.25,
-            "mom63": -5.26,
-            "mom126": 16.88,
+            "mom21": 11.06,
+            "mom63": -5.42,
+            "mom126": 16.68,
             "vol": 24.58,
             "maxDrawdown": 16.55,
             "riskPenalty": 2.89,
@@ -831,7 +831,7 @@
                 "symbols": [
                   "UUP"
                 ],
-                "score": 26.373257124373197,
+                "score": 29.11706252382696,
                 "detail": "A weaker dollar supports a broad basket at the margin."
               }
             ],
@@ -840,11 +840,11 @@
           {
             "ticker": "DBC",
             "model": "broad",
-            "score": 50,
+            "score": 50.3,
             "trend": "Uptrend",
-            "mom21": 11.19,
-            "mom63": -5.43,
-            "mom126": 16.25,
+            "mom21": 11.12,
+            "mom63": -5.49,
+            "mom126": 16.18,
             "vol": 24.49,
             "maxDrawdown": 16.54,
             "riskPenalty": 2.88,
@@ -864,7 +864,7 @@
                 "symbols": [
                   "UUP"
                 ],
-                "score": 26.373257124373197,
+                "score": 29.11706252382696,
                 "detail": "A weaker dollar supports a broad basket at the margin."
               }
             ],
@@ -875,9 +875,9 @@
             "model": "agriculture",
             "score": 46,
             "trend": "Mixed",
-            "mom21": 2.46,
-            "mom63": -1.82,
-            "mom126": 6.38,
+            "mom21": 2.35,
+            "mom63": -1.93,
+            "mom126": 6.26,
             "vol": 11.46,
             "maxDrawdown": 8.67,
             "riskPenalty": 1.07,
@@ -897,7 +897,7 @@
                 "symbols": [
                   "DBC"
                 ],
-                "score": 34.905318744835405,
+                "score": 34.74722482651289,
                 "detail": "The broad basket confirms whether agriculture strength is part of a larger move."
               },
               {
@@ -905,7 +905,7 @@
                 "symbols": [
                   "UUP"
                 ],
-                "score": 26.373257124373197,
+                "score": 29.11706252382696,
                 "detail": "A weaker dollar is a modest tailwind, not a weather or crop-supply signal."
               }
             ],
@@ -914,21 +914,21 @@
           {
             "ticker": "USO",
             "model": "energy",
-            "score": 42.5,
+            "score": 42.9,
             "trend": "Uptrend",
-            "mom21": 25.75,
-            "mom63": -11.71,
-            "mom126": 64.09,
-            "vol": 60.88,
+            "mom21": 24.67,
+            "mom63": -12.47,
+            "mom126": 62.69,
+            "vol": 60.85,
             "maxDrawdown": 32.49,
-            "riskPenalty": 17.84,
+            "riskPenalty": 17.83,
             "confirmations": [
               {
                 "label": "Energy equities",
                 "symbols": [
                   "XLE"
                 ],
-                "score": 46.91419216601555,
+                "score": 50.33816581951297,
                 "detail": "Energy-equity direction confirms or diverges from the oil-linked price trend."
               },
               {
@@ -947,21 +947,21 @@
           {
             "ticker": "BNO",
             "model": "energy",
-            "score": 41.7,
+            "score": 42.4,
             "trend": "Uptrend",
-            "mom21": 27.66,
-            "mom63": -14.04,
-            "mom126": 53.43,
-            "vol": 57.94,
+            "mom21": 27.2,
+            "mom63": -14.35,
+            "mom126": 52.88,
+            "vol": 57.93,
             "maxDrawdown": 34.46,
-            "riskPenalty": 17.15,
+            "riskPenalty": 17.14,
             "confirmations": [
               {
                 "label": "Energy equities",
                 "symbols": [
                   "XLE"
                 ],
-                "score": 46.91419216601555,
+                "score": 50.33816581951297,
                 "detail": "Energy-equity direction confirms or diverges from the oil-linked price trend."
               },
               {
@@ -982,21 +982,21 @@
           "GLD": {
             "ticker": "GLD",
             "model": "gold",
-            "score": 15.6,
+            "score": 16.6,
             "trend": "Downtrend",
-            "mom21": -0.04,
-            "mom63": -12.55,
-            "mom126": -25.29,
-            "vol": 32.92,
+            "mom21": 0.26,
+            "mom63": -12.29,
+            "mom126": -25.07,
+            "vol": 32.89,
             "maxDrawdown": 25.52,
-            "riskPenalty": 10.78,
+            "riskPenalty": 10.77,
             "confirmations": [
               {
                 "label": "Inverse USD",
                 "symbols": [
                   "UUP"
                 ],
-                "score": 26.373257124373197,
+                "score": 29.11706252382696,
                 "detail": "A weaker dollar is the modeled gold tailwind."
               },
               {
@@ -1005,7 +1005,7 @@
                   "TLT",
                   "TIP"
                 ],
-                "score": 45.991227525779934,
+                "score": 45.6133188359969,
                 "detail": "TLT direction plus TIP-vs-TLT is a rough rate mix, not a direct real-yield series."
               }
             ],
@@ -1016,12 +1016,12 @@
             "model": "silver",
             "score": 0,
             "trend": "Downtrend",
-            "mom21": -3.21,
-            "mom63": -22.2,
-            "mom126": -50.88,
-            "vol": 73.53,
+            "mom21": -2.39,
+            "mom63": -21.54,
+            "mom126": -50.46,
+            "vol": 73.48,
             "maxDrawdown": 40.71,
-            "riskPenalty": 26.25,
+            "riskPenalty": 26.23,
             "confirmations": [
               {
                 "label": "Gold/silver ratio direction",
@@ -1037,7 +1037,7 @@
                 "symbols": [
                   "GLD"
                 ],
-                "score": 8.150402066411075,
+                "score": 9.023732364266117,
                 "detail": "Gold strength confirms the monetary-metal side of silver."
               },
               {
@@ -1045,7 +1045,7 @@
                 "symbols": [
                   "XLI"
                 ],
-                "score": 59.05048936778874,
+                "score": 61.51959055578507,
                 "detail": "Industrials proxy the cyclical-demand side of silver."
               }
             ],
@@ -1054,12 +1054,12 @@
           "BTC-USD": {
             "ticker": "BTC-USD",
             "model": "bitcoin",
-            "score": 28.7,
+            "score": 30.4,
             "trend": "Downtrend",
-            "mom21": -2.38,
-            "mom63": -14.68,
-            "mom126": -5.63,
-            "vol": 35.33,
+            "mom21": -1.76,
+            "mom63": -14.14,
+            "mom126": -5.03,
+            "vol": 35.18,
             "maxDrawdown": 28.71,
             "riskPenalty": 5.68,
             "confirmations": [
@@ -1068,7 +1068,7 @@
                 "symbols": [
                   "QQQ"
                 ],
-                "score": 58.02233332680591,
+                "score": 60.149362312803845,
                 "detail": "Growth-equity direction is a liquid risk-appetite proxy; no on-chain input is used."
               },
               {
@@ -1083,27 +1083,27 @@
           "IBIT": {
             "ticker": "IBIT",
             "model": "bitcoin",
-            "score": 24.8,
+            "score": 26.6,
             "trend": "Downtrend",
-            "mom21": 4.26,
-            "mom63": -18.17,
-            "mom126": -25.53,
-            "vol": 47.49,
+            "mom21": 4.94,
+            "mom63": -17.64,
+            "mom126": -25.04,
+            "vol": 47.41,
             "maxDrawdown": 29.9,
-            "riskPenalty": 6.93,
+            "riskPenalty": 6.9,
             "confirmations": [
               {
                 "label": "Equity risk appetite",
                 "symbols": [
                   "QQQ"
                 ],
-                "score": 58.02233332680591,
+                "score": 60.149362312803845,
                 "detail": "Growth-equity direction is a liquid risk-appetite proxy; no on-chain input is used."
               },
               {
                 "label": "Volatility / drawdown",
                 "symbols": [],
-                "score": 72.27597209859266,
+                "score": 72.39699378813457,
                 "detail": "Bitcoin's own realized volatility and drawdown reduce the score directly."
               }
             ],
@@ -1112,11 +1112,11 @@
           "DBC": {
             "ticker": "DBC",
             "model": "broad",
-            "score": 50,
+            "score": 50.3,
             "trend": "Uptrend",
-            "mom21": 11.19,
-            "mom63": -5.43,
-            "mom126": 16.25,
+            "mom21": 11.12,
+            "mom63": -5.49,
+            "mom126": 16.18,
             "vol": 24.49,
             "maxDrawdown": 16.54,
             "riskPenalty": 2.88,
@@ -1136,7 +1136,7 @@
                 "symbols": [
                   "UUP"
                 ],
-                "score": 26.373257124373197,
+                "score": 29.11706252382696,
                 "detail": "A weaker dollar supports a broad basket at the margin."
               }
             ],
@@ -1145,21 +1145,21 @@
           "USO": {
             "ticker": "USO",
             "model": "energy",
-            "score": 42.5,
+            "score": 42.9,
             "trend": "Uptrend",
-            "mom21": 25.75,
-            "mom63": -11.71,
-            "mom126": 64.09,
-            "vol": 60.88,
+            "mom21": 24.67,
+            "mom63": -12.47,
+            "mom126": 62.69,
+            "vol": 60.85,
             "maxDrawdown": 32.49,
-            "riskPenalty": 17.84,
+            "riskPenalty": 17.83,
             "confirmations": [
               {
                 "label": "Energy equities",
                 "symbols": [
                   "XLE"
                 ],
-                "score": 46.91419216601555,
+                "score": 50.33816581951297,
                 "detail": "Energy-equity direction confirms or diverges from the oil-linked price trend."
               },
               {

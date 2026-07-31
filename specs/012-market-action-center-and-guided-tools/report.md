@@ -167,6 +167,67 @@ other product source are untouched. Neither gate is weakened, relaxed, or bypass
 checkbox, `status`, or `certification` value was altered. Recording the defect *is* the
 deliverable.
 
+#### XFC-01 — RESOLVED AS A DEFECT CLASS (2026-07-31)
+
+*Appended, not a rewrite. Everything above is the finding as originally recorded and is
+retained unaltered; this addendum records what changed after it.*
+
+**The defect class is closed.** No declared dependency gate is unsatisfiable by
+construction any more. The finding's core claim — that all three gates were false
+*regardless of how completely the producer delivered* — no longer describes any gate.
+
+**Both resolutions took path (a), producer-side publication.** In each case the producer
+added the machine-readable array the evaluator actually reads, naming only markers it
+genuinely delivered, each verified against real code before publication:
+
+| gate | resolving commit | what the producer published | provenance key recorded alongside |
+|---|---|---|---|
+| `feature-002` | `85a9ce1d` — *spec(002): publish delivered capability milestones* | `state.milestones` (4 IDs) | `milestonesProvenance` |
+| `BUG-004` | `4ad447c1` — *spec(_bugs/BUG-004): publish delivered evidence IDs* | `state.evidenceIds` (2 IDs) | `evidenceIdsProvenance` |
+
+The original scan found `0` of 26 `state.json` files publishing either key. Re-scanned at
+HEAD `f398a9ac`: still 26 files, of which **1 publishes `milestones` and 1 publishes
+`evidenceIds`** — exactly the two producers whose gates now satisfy.
+
+**Re-executed verdicts** (same method as the original table: real
+`tool-experience.config.json`, each producer loaded from the gate's own declared
+`statePath`, evaluated with the predicate at `rlexperience.js` lines 2104–2109):
+
+| gateId | status / certification | matched / required | satisfied | delta vs original finding |
+|---|---|---|---|---|
+| `feature-002` | `done` / `done` | **4 / 4** | `true` | was 0/4 `false` |
+| `BUG-004` | `done` / `done` | **2 / 2** | `true` | was 0/2 `false` |
+| `feature-008` | `not_started` / `not_started` | **0 / 3** | `false` | unchanged |
+
+**The one remaining refusal is categorically different from the finding.** `feature-008`
+still returns `satisfied=false`, but that is **the gate working exactly as designed**, not
+the defect this finding recorded. It refuses because the producer has genuinely not
+delivered — `specs/008-portfolio-survival-and-brief-lab` is `status=not_started`,
+`certification.status=not_started`, `certifiedAt=null`, and publishes no marker array
+because it has nothing yet to publish. That is a gate correctly reporting real absence.
+
+The original finding described the opposite condition: **two producers that were fully
+`done`/`done` and still gated at 0/4 and 0/2** — closure unreachable by any action
+available to any party. That condition no longer exists anywhere in the config. A gate
+that refuses undelivered work is functioning; a gate that refuses *delivered* work is the
+defect, and that defect is gone.
+
+**No gate was weakened.** `tool-experience.config.json` is byte-unchanged: its only commit
+in the entire repository history is `c81d808d` (2026-07-24), which predates this finding
+(2026-07-30), and it is clean in the working tree. `bypassAllowed: false` still stands.
+Resolution path (b), consumer-side amendment, was not used — the marker vocabulary the
+finding called unagreed was instead genuinely delivered and then published by the
+producers themselves, which is the outcome the finding identified as legitimate.
+
+**Consequence for this feature's scopes.** Scope 11's only declared external gate is
+`feature-002`, which now satisfies, so Scope 11 carries no external gate at all; its
+`scope.md` records `Status: Not Started` with 17 unchecked DoD items and 12 Test Plan
+rows. Scopes 13 and 14 remain `Blocked`, correctly and solely on Feature 008.
+
+**Not changed by this addendum.** No product source, no gate config, no checkbox, no
+`status`, and no `certification` value was altered by recording this resolution. Feature
+012 remains `blocked`.
+
 ---
 
 **Second finding-ID prefix (declared here, first use).** `XFC-` is reserved above for a

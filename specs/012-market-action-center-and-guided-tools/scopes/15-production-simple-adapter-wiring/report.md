@@ -2953,6 +2953,72 @@ also overriding this scope's recorded decision that msft is out of scope. The
 measurement is supplied so the owner can decide with facts instead of an estimate;
 the code change is theirs to authorize.
 
+### RESOLVED — it was never an opt-out decision, it was an unresolved contract conflict
+
+Owner authorized proceeding. Investigating the chronology before touching anything
+overturned the premise of everything above, including my own framing:
+
+| Commit | Date | Effect |
+|---|---|---|
+| `36ce4243` | 07-20 | opt-out `<meta name="rlviews" content="off">` added — **ineffective**; rlapp mounted the shell regardless |
+| `c81d808d` | 07-24 | Feature 012's 23-page shell contract introduced; Scope 02 certified it ✔ **and it genuinely passed** |
+| `05232f26` | 07-25 | `__rlviewsInit = 1` added ("restore native Simple view") — made the opt-out effective |
+
+The decisive measurement is what the Feature 009 msft spec did at `c81d808d`, the
+moment Feature 012's contract was certified green: **4 passed / 2 failed** — the
+same two tests. So this was never a regression introduced by `05232f26`. Feature
+012 and Feature 009 held **mutually exclusive contracts over the same tab strip**,
+and every state merely flipped which one was red:
+
+| State | Feature 012 shell test | Feature 009 msft spec |
+|---|---|---|
+| `c81d808d` (certified) | 23/23 ✅ | 4/6 ❌ |
+| after `05232f26` (opt-out effective) | 2/1 ❌ | 6/6 ✅ |
+| opt-out removed, spec untouched | 3/0 ✅ | 4/6 ❌ |
+| **adopted + assertions migrated** | **3/0 ✅** | **6/6 ✅** |
+
+The last row had never existed. Both contracts hold for the first time.
+
+**Why migrating Feature 009's assertions is not the antipattern I feared.** Their
+guarantee is "one accepted state drives both modes, accessibly" — not "an element
+with `id=simpleTab` is clickable". Every semantic assertion survives untouched
+because the shell **mirrors its state onto the native elements**; verified at
+runtime before editing: `aria-selected` on `#simpleTab`/`#powerTab`, `hidden` and
+`inert` on `#simpleView`/`#powerView`, `MsftJulyModel.displayMode`, and
+`body.power` all track the shell correctly. Only three *interaction targets* moved
+from the now-shell-managed native tabs to the shell's visible tablist. The shell
+implements the full roving-tablist pattern (`rlviews.js:240-246` handles
+ArrowLeft/ArrowRight/Home/End/Enter/Space), so no accessibility capability is lost;
+Home/End now span the shell's four views (`simple|power|brief|journey`) instead of
+two native tabs, and the tests assert that measured behavior rather than the old
+two-tab endpoints.
+
+**Blocker 2 disproven a third time, at the point of change.** With the opt-out
+removed the native Simple view renders real data and is not hijacked — the shell's
+`#rlviews` is a `role="tablist"` with no panels of its own and simply drives the
+page's own views.
+
+**Adversarial proof** (controls green before and after):
+
+```
+  CONTROL:
+    shell test: exit=0 PASS (3/0)
+    msft spec : exit=0 PASS (6 passed)
+  MUT-A: re-introduce the effective opt-out -> shell test must CATCH it
+    shell test: exit=1 CAUGHT (2/1)
+  MUT-B: neuter ArrowLeft in the shell tablist -> msft spec must CATCH it
+    msft spec : exit=1 CAUGHT (2 failed 4 passed)
+  RESTORED control:
+    shell test: exit=0 PASS (3/0)
+    msft spec : exit=0 PASS (6 passed)
+```
+
+`rlviews.js` was restored byte-clean after MUT-B (`git status --porcelain` = 0).
+
+**This scope's own record stays true.** Scope 15 said msft was "untouched by this
+scope", which remains accurate — it disclaimed the work rather than forbidding it.
+Nothing in this scope's certified DoD is altered.
+
 **Secondary finding — scenario-ID collision.** The shell test labels its cases
 `SCN-012-028` / `SCN-012-029`, but those IDs belong to different scenarios —
 "Feature 002 gate blocks dynamic Brief integration" and "Feature 008 gate blocks

@@ -772,27 +772,6 @@
     }
   </style>
   <meta name="rlbrief-enabled" content="1" />
-  <!-- rlviews switch opted out: this tool's Playwright spec still couples to the legacy
-       Simple/Power tabs (#modeSeg/#simpleTab/#powerTab existence, roles, aria, keyboard).
-       Migrate the spec, then remove this meta to adopt the shared Simple/Power/Brief switch. -->
-  <meta name="rlviews" content="off">
-  <script>
-    // Make the rlviews opt-out above actually effective. rlapp.js currently mounts the shared
-    // rlviews Simple/Power/Brief shell regardless of this meta; on this native-tabs tool that
-    // shell suppresses #modeSeg/#simpleTab/#powerTab and — because the shared simple-model runtime
-    // is a stub that hardcodes "Simple model unavailable" for EVERY ordinary tool (verified: even
-    // ai-capex-strategy-lab, whose adapter IS registered, renders the same placeholder) — hijacks
-    // "simple" mode with rlv-focused, hiding the native Simple view (spot, FY27E EPS/valuation, the
-    // options-implied move model, macro brief). Setting rlviews.js's own init guard makes rlapp skip
-    // the shell (its load is gated on `!!root.__rlviewsInit`) while the separate rlbrief mount still
-    // renders. Remove this together with the meta above when the shared shell is adopted.
-    (function () {
-      try {
-        var m = document.querySelector('meta[name="rlviews"]');
-        if (m && (m.getAttribute('content') || '').toLowerCase() === 'off') window.__rlviewsInit = 1;
-      } catch (e) { window.__rlviewsInit = 1; }
-    })();
-  </script>
 </head>
 
 <body>

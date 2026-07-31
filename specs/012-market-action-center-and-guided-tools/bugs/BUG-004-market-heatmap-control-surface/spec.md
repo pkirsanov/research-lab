@@ -13,6 +13,16 @@ treemap controls. The fix must restore the complete control contract without
 introducing a second model, refetching data on lever changes, or overwriting the
 concurrent Simple-control work committed as `2f65a02a` during this filing.
 
+## Outcome Contract
+
+**Intent:** Restore the Market Heatmap's decision-first Simple controls and native Power controls without a mode-toggle workaround.
+
+**Success Signal:** A direct Simple cold-open automatically becomes `ready` after terminal hydration and exposes `window`, `grouping`, `size-metric`, `breadth-threshold`, and `outlier-sigma`; a direct Power open exposes and operates the original `#winSeg`, `#sizeSeg`, and `#grpSeg` controls with selected and visible-focus semantics; every control recomputes without post-hydration acquisition; and wrong-tool events have zero provider, panel, ARIA, generation, queue, or state effects (SCN-B004-A through D).
+
+**Hard Constraints:** Preserve exact-current-tool and current-Simple filtering, one active run plus only the latest pending successor, stale-control inertness, one boot hydration over the sector/constituent union, and the single existing native Power control nodes; introduce no cloned controls, provider-key or page-local acquisition/publication authority, deployment claim, or overwrite of unrelated or concurrent work including `2f65a02a` and its successors.
+
+**Failure Condition:** The outcome fails on any direct-open readiness stall, missing or inert Simple or Power lever, post-hydration refetch, stale or wrong-tool mutation, duplicate control node, or false deployment or live-data claim.
+
 ## Contract Authority
 
 Feature 012 defines the following heatmap experience:

@@ -119,34 +119,22 @@ async function openPage(page) {
   }
 }
 
-/* Inject the shipped [data-rljourney-mount] anchor and trigger the REAL production boot mount path
-   RLAPP.mountJourney() — which fetches the real config/journeys/registry, loads the real
-   rljourney.js runtime, and builds the real controller against the real browser store. Waits for
-   the shipped ready state and the controller handle the boot path itself publishes. */
+/* Activate the SHIPPED Journey view and wait for the SHIPPED mount. Nothing is injected: the
+   four-view shell renders the [data-rljourney-mount] anchor inside its Journey panel and calls the
+   REAL production boot path RLAPP.mountJourney() itself — which fetches the real
+   config/journeys/registry, loads the real rljourney.js runtime, and builds the real controller
+   against the real browser store.
+
+   This is deliberately stronger than the old self-injected host it replaces: the mobile-fit proof
+   below now measures the panel a phone actually gets, at the width it actually gets it, instead of
+   a neutral <div> the test appended to <body> and force-made visible. */
 async function mountJourneyOnPage(page) {
-  await page.evaluate(() => {
-    let anchor = document.querySelector('[data-rljourney-mount]');
-    if (!anchor) {
-      // A real page that adopts Journey provides its own visible host container. rlapp.js resolves the
-      // anchor by the [data-rljourney-mount] attribute (tag-agnostic), so a neutral normal-flow <div>
-      // stands in for that host. Some tool pages hide stray top-level body children via an injected
-      // single-active-view shell stylesheet, which would collapse the host to a zero box; opting the
-      // NEUTRAL TEST HOST into visibility (a real integration provides its own visible container) is a
-      // host-only override and never touches the shell's rendered chooser/progress/packet children —
-      // whose natural 320px reflow (and zero inline geometry) is exactly what the mobile-fit proof measures.
-      anchor = document.createElement('div');
-      anchor.setAttribute('data-rljourney-mount', 'test');
-      anchor.style.setProperty('display', 'block', 'important');
-      document.body.appendChild(anchor);
-    }
-    anchor.removeAttribute('data-rljourney-state');
-    globalThis.__rljourneyController = null;
-    globalThis.RLAPP.mountJourney();
-  });
+  await page.locator('#rlviews button[data-rlview-mode="journey"]').click();
   await page.waitForFunction(() => {
-    const anchor = document.querySelector('[data-rljourney-mount]');
-    return !!(anchor && anchor.getAttribute('data-rljourney-state') === 'ready' && globalThis.__rljourneyController);
-  }, undefined, { timeout: 12000 });
+    const panel = document.querySelector('[data-rlexperience-panel="journey"]');
+    const anchor = panel && panel.querySelector('[data-rljourney-mount]');
+    return !!(panel && !panel.hidden && anchor && anchor.getAttribute('data-rljourney-state') === 'ready' && globalThis.__rljourneyController);
+  }, undefined, { timeout: 15000 });
 }
 
 /* ═══════════════════════ TP-08-09 — mobile Journey shell: progress / evidence / backtrack / packet fit + focus ═══════════════════════ */

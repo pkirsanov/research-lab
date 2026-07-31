@@ -1,0 +1,98 @@
+name: tier-a
+
+# The computed (Tier-A) layer is fully deterministic: it reads committed data and public market
+# endpoints, and needs no model and no operator. Running it here removes the product's dependence on
+# a particular laptop being open at 07:30 ET.
+#
+# The written (Tier-B) narrative deliberately stays operator-hosted. It is not moved here because it
+# needs a model the repo does not own, and because a brief that fabricates a narrative on a schedule
+# would be worse than one that admits it missed a window. When Tier-B is absent, market-brief.html
+# renders the explicit "narrative not refreshed this window" state — that honest degradation is what
+# makes this split safe.
+
+on:
+  schedule:
+    # 07:30 / 11:00 / 15:00 / 17:00 America/New_York, expressed in UTC for both offsets, because
+    # cron has no timezone. Runs during the wrong half of the year are harmless: the refresher is
+    # idempotent and simply publishes an off-schedule snapshot.
+    - cron: "30 11 * * 1-5" # 07:30 EDT
+    - cron: "30 12 * * 1-5" # 07:30 EST
+    - cron: "0 15 * * 1-5" # 11:00 EDT
+    - cron: "0 16 * * 1-5" # 11:00 EST
+    - cron: "0 19 * * 1-5" # 15:00 EDT
+    - cron: "0 20 * * 1-5" # 15:00 EST
+    - cron: "0 21 * * 1-5" # 17:00 EDT
+    - cron: "0 22 * * 1-5" # 17:00 EST
+  workflow_dispatch:
+    inputs:
+      dry-run:
+        description: "Compute and print coverage without committing anything"
+        type: boolean
+        default: false
+
+permissions:
+  contents: write
+
+concurrency:
+  group: "tier-a"
+  cancel-in-progress: false
+
+jobs:
+  refresh:
+    runs-on: ubuntu-latest
+    timeout-minutes: 25
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0 # the recommendation backfill reads payload history from prior commits
+
+      - name: Setup Node
+        uses: actions/setup-node@v4
+        with:
+          node-version: "20"
+
+      # Tier-A: recompute the owner-model reads and the snapshot from live public data.
+      - name: Refresh Tier-A
+        run: node scripts/brief-refresh.mjs ${{ inputs.dry-run && '--dry-run' || '' }}
+
+      # Score any recommendation whose horizon has now elapsed. This is the feedback loop: it is
+      # what turns published calls into a measured error rate, and it must not depend on a human
+      # remembering to run it.
+      - name: Evaluate elapsed recommendations
+        run: node scripts/evaluate-recommendations.mjs ${{ inputs.dry-run && '--dry-run' || '' }}
+
+      - name: Rebuild the scorecard
+        if: ${{ !inputs.dry-run }}
+        run: node scripts/build-scorecard.mjs
+
+      # Keep the page's first load bounded as history grows.
+      - name: Shard brief history
+        if: ${{ !inputs.dry-run }}
+        run: node scripts/shard-brief-history.mjs
+
+      # The same gate the deploy path uses. A scheduled run must never commit an artifact that
+      # would fail the checks a human commit has to pass.
+      - name: Self-test (all assertions)
+        run: node scripts/selftest.mjs
+
+      - name: Commit refreshed artifacts
+        if: ${{ !inputs.dry-run }}
+        run: |
+          set -euo pipefail
+          git config user.name  "research-lab-tier-a[bot]"
+          git config user.email "research-lab-tier-a[bot]@users.noreply.github.com"
+          # Named paths only. A scheduled job must never sweep in unrelated working-tree changes.
+          git add -- \
+            market-brief.snapshot.json \
+            market-brief.scorecard.json \
+            brief-history.jsonl \
+            brief-history.recent.jsonl \
+            briefs/ \
+            data/ 2>/dev/null || true
+          if git diff --cached --quiet; then
+            echo "Tier-A produced no changes this window."
+            exit 0
+          fi
+          git commit -m "tier-a: scheduled refresh $(date -u +%Y-%m-%dT%H:%MZ)"
+          git push

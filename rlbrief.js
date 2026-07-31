@@ -206,6 +206,46 @@
     return scored.slice(0, max).map(function (s) { return s.item; });
   }
 
+  /* ── Narrative freshness. PURE and Node-testable: classification is separated from rendering so
+     the rule itself is asserted directly rather than inferred from pixels. Returns one of four
+     honest states and NEVER claims freshness it cannot demonstrate. An absent or unparseable
+     generatedAt is "unknown", not "fresh" — the whole point is that a brief must not present a
+     stale read as a current one. */
+  function narrativeFreshness(payload, policy, nowMs) {
+    var warnMs = (policy && policy.warnAfterHours ? policy.warnAfterHours : 18) * 3600000;
+    var staleMs = (policy && policy.staleAfterHours ? policy.staleAfterHours : 72) * 3600000;
+    if (!payload || !payload.generatedAt) {
+      return { state: "absent", ageHours: null, generatedAt: null,
+        message: "Narrative not refreshed this window — the computed layer below is current, the written read is not." };
+    }
+    var then = Date.parse(payload.generatedAt);
+    if (!isFinite(then)) {
+      return { state: "unknown", ageHours: null, generatedAt: payload.generatedAt,
+        message: "This brief does not record a usable generation time, so its freshness cannot be verified." };
+    }
+    var ageMs = (typeof nowMs === "number" ? nowMs : Date.now()) - then;
+    var ageHours = Math.round((ageMs / 3600000) * 10) / 10;
+    if (ageMs < 0) {
+      return { state: "unknown", ageHours: ageHours, generatedAt: payload.generatedAt,
+        message: "This brief is stamped in the future, so its freshness cannot be verified." };
+    }
+    if (ageMs >= staleMs) {
+      return { state: "stale", ageHours: ageHours, generatedAt: payload.generatedAt,
+        message: "This written read is " + describeAge(ageHours) + " old and has missed multiple scheduled windows. Treat it as history, not as today." };
+    }
+    if (ageMs >= warnMs) {
+      return { state: "aging", ageHours: ageHours, generatedAt: payload.generatedAt,
+        message: "This written read is " + describeAge(ageHours) + " old and has missed at least one scheduled window." };
+    }
+    return { state: "fresh", ageHours: ageHours, generatedAt: payload.generatedAt, message: "" };
+  }
+
+  function describeAge(hours) {
+    if (hours < 1) return Math.max(1, Math.round(hours * 60)) + " minutes";
+    if (hours < 48) return Math.round(hours) + " hours";
+    return Math.round(hours / 24) + " days";
+  }
+
   root.RLBRIEF = {
     regimeBias: regimeBias, momentumAccel: momentumAccel, rrgState: rrgState,
     nearRotationFlip: nearRotationFlip, normalizeProbs: normalizeProbs,
@@ -214,7 +254,8 @@
     consecutiveRun: consecutiveRun, isPersistentSignal: isPersistentSignal,
     memberArray: memberArray, groupBreadth: groupBreadth, notableMembers: notableMembers,
     normalizeRecommendation: normalizeRecommendation, nextSessionActions: nextSessionActions,
-    actionableAttention: actionableAttention, nearTermEvents: nearTermEvents
+    actionableAttention: actionableAttention, nearTermEvents: nearTermEvents,
+    narrativeFreshness: narrativeFreshness
   };
 
   /* ═══════════ Feature 002 Scope 10 — distributed-brief shared renderer (pure layer) ═══════════
@@ -622,6 +663,26 @@
     return cfg.deepLinks[key] || "";
   }
 
+  /* ── narrative freshness banner ─────────────────────────────────────────────────────────────
+     Renders nothing at all when the read is fresh: a permanent "everything is fine" strip is
+     chrome the eye learns to skip, which is exactly what you do not want the day it changes. */
+  function renderFreshness(el, verdict) {
+    if (!el) return;
+    if (!verdict || verdict.state === "fresh") { el.hidden = true; el.innerHTML = ""; el.removeAttribute("data-freshness"); return; }
+    var tone = verdict.state === "stale" ? "bad" : "warn";
+    var label = verdict.state === "absent" ? "No written read this window"
+      : verdict.state === "unknown" ? "Freshness unverifiable"
+        : verdict.state === "stale" ? "Stale written read" : "Aging written read";
+    var stamp = verdict.generatedAt
+      ? '<span class="pill" title="The exact generation timestamp recorded in the payload.">generated ' + esc(verdict.generatedAt) + "</span>"
+      : "";
+    el.hidden = false;
+    el.setAttribute("data-freshness", verdict.state);
+    el.className = "freshbar " + tone;
+    el.innerHTML = '<b title="' + esc(label) + ' — the Tier-B written narrative is operator-hosted and can stop refreshing independently of the computed Tier-A layer below.">' + esc(label) + "</b> " +
+      '<span title="Why this matters: the computed layer below recomputes in your browser from the shared cache and is current regardless. It is the written read that has aged.">' + esc(verdict.message) + "</span> " + stamp;
+  }
+
   /* ── the scorecard: this brief's own error rate, above everything it claims next ──────────────
      The one number no subscription competitor can publish. It is rendered FIRST, misses are shown
      with the same prominence as hits, and a rate the sample cannot support is withheld rather than
@@ -885,6 +946,7 @@
   root.RLBRIEF.deepLink = deepLink;
   root.RLBRIEF.renderRegimeStrip = renderRegimeStrip;
   root.RLBRIEF.renderScorecard = renderScorecard;
+  root.RLBRIEF.renderFreshness = renderFreshness;
   root.RLBRIEF.renderBackdrop = renderBackdrop;
   root.RLBRIEF.renderAttention = renderAttention;
   root.RLBRIEF.renderRecs = renderRecs;

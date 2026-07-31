@@ -253,6 +253,35 @@
             margin: 22px 0 10px
         }
 
+        /* Narrative freshness. Hidden entirely when the written read is current - a permanent
+           "all good" strip is chrome the eye learns to skip, which is exactly what you do not
+           want the day it changes. */
+        #freshbar {
+            border-radius: 12px;
+            padding: 10px 14px;
+            margin-bottom: 14px;
+            font-size: 13px;
+            line-height: 1.45
+        }
+
+        #freshbar[hidden] {
+            display: none
+        }
+
+        #freshbar.warn {
+            background: rgba(245, 185, 66, .10);
+            border: 1px solid rgba(245, 185, 66, .45)
+        }
+
+        #freshbar.bad {
+            background: rgba(239, 68, 68, .10);
+            border: 1px solid rgba(239, 68, 68, .45)
+        }
+
+        #freshbar b {
+            margin-right: 6px
+        }
+
         /* Track record — rendered above everything the brief claims next. */
         #scorecard {
             background: var(--panel);
@@ -749,6 +778,7 @@
         <h2 class="sec"
             title="How right this brief has actually been. Every call is scored only against the trigger and invalidation it published for itself. Misses are shown with the same prominence as hits.">
             Track record — this brief&rsquo;s own error rate</h2>
+        <div id="freshbar" role="status" hidden></div>
         <div id="scorecard" data-tkr-auto></div>
 
         <div class="strip" id="regimeStrip"></div>
@@ -888,6 +918,7 @@
 
             function renderAll() {
                 renderAsOf();
+                RLBRIEF.renderFreshness(el("freshbar"), RLBRIEF.narrativeFreshness(PAYLOAD, (CFG && CFG["freshness-policy/v1"]) || null));
                 RLBRIEF.renderScorecard(el("scorecard"), SCORECARD);
                 RLBRIEF.renderRegimeStrip(el("regimeStrip"), PAYLOAD && PAYLOAD.regime);
                 RLBRIEF.renderNextSession(el("nextSession"), PAYLOAD && PAYLOAD.nextSession, PAYLOAD && PAYLOAD.recommendations, CFG, SNAP);

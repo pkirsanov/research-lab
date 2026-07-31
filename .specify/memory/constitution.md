@@ -59,14 +59,30 @@
 
 ## Business Invariants (Survive Model Upgrades)
 
-Rules about your product and domain that any model or agent must follow regardless of how capable it becomes.
-These are NOT engineering practices — they are business rules and safety constraints.
+Rules about this product and domain that any model or agent must follow regardless of how capable it
+becomes. These are NOT engineering practices — they are business rules and safety constraints.
+Full rationale in [`docs/Product-Principles.md`](../../docs/Product-Principles.md).
 
-- [ ] *Example: Never disclose customer financial data in logs or responses*
-- [ ] *Example: Bookings must never result in double-charges*
-- [ ] *Example: PII must be encrypted at rest and in transit*
-
-> **TODO:** Replace examples with your project's actual business invariants.
+- **BI-1 — Provenance or nothing.** Every displayed figure carries a provenance class
+  (`observed-fact` / `user-assumption` / `model-estimate` / `unavailable`). Unprovenanced numbers
+  never render.
+- **BI-2 — Missing is missing.** Missing data renders as *unavailable* or *incomplete* — **never
+  zero, never inferred, never a plausible placeholder.** A zero is a claim; an unknown is not.
+- **BI-3 — Confidence is not probability.** Confidence describes evidence quality, **never** a win
+  probability. Only the scorecard may state realised frequencies, because only it has counted them.
+- **BI-4 — Tickers only, forever.** All committed artifacts are tickers-only. No position sizes, no
+  cost basis, no P&L in the public repo, ever.
+- **BI-5 — Misses are published with equal prominence to hits.** Selective reporting is the one
+  unrecoverable failure for this product: every other defect can be fixed by a commit; this one
+  destroys the only thing that distinguishes it.
+- **BI-6 — Works with nothing.** Every tool works with no key, no proxy and no account — degrading
+  honestly rather than breaking.
+- **BI-7 — Model text is data, never markup.** Model-authored text is escaped at every rendering
+  sink.
+- **BI-8 — Say when the read is old.** A stale or absent narrative is stated in plain language.
+  Absence is never rendered as freshness.
+- **BI-9 — The record is append-only.** History is never rewritten; a correction is a new event
+  referencing the old one. A rewritable record makes BI-5 unverifiable and therefore worthless.
 
 ---
 
@@ -80,9 +96,37 @@ Review quarterly: can this be relaxed with newer, more capable models?
 | Evidence must be ≥10 lines to catch fabrication | Models sometimes fabricate short evidence blocks | Next model upgrade |
 | Batch-checking DoD items is forbidden | Models skip individual validation when given freedom | Next model upgrade |
 | Sequential spec completion enforced | Models jump ahead before finishing current work | Next model upgrade |
-
-> **TODO:** Add project-specific model compensations and review dates.
+| Every gate carries an adversarial case proving it can fail | Models write guards whose fixtures all satisfy the broken path, so the guard passes either way | Next model upgrade |
+| A budget may only be lowered, never raised, to make a build green | Models resolve a failing budget by relaxing the budget rather than the cause | Next model upgrade |
+| A shared module must have a non-test production consumer before it lands | Models ship modules exercised only by their own specs and report them as delivered | Next model upgrade |
+| A claim that cannot be machine-checked is emitted `not-evaluable`, never dropped | Models quietly omit unscoreable claims, which inflates the measured hit rate | Next model upgrade |
 
 ---
 
-> **TODO:** Add project-specific principles (architecture constraints, language discipline, framework rules, etc.)
+## Product & Architecture Principles
+
+The full set is [`docs/Product-Principles.md`](../../docs/Product-Principles.md); the anti-drift
+contract it derives from is §12 of
+[`docs/Product-Review-and-Roadmap.md`](../../docs/Product-Review-and-Roadmap.md). The constraints an
+agent will hit first:
+
+- **Admission test (D12).** *Does this improve decision quality, or its measurement?* If neither, it
+  does not ship.
+- **UMD, never ESM (D11)** for shared browser+Node code. `file://` capability is a product feature.
+  No bundler, no build step; `scripts/*.mjs` are Node-only and are the sole exception.
+- **Reachable or removed (D2).** Nothing ships to the site root without a registry entry and a nav
+  entry.
+- **Wired or not shipped (D3).** No shared module lands without a production consumer. **Tests are
+  not consumers.**
+- **One definition per concept (D4).** A financial metric is defined once, in one module
+  (`rlmetrics.js`).
+- **Every claim is scoreable (D5).** A recommendation carries its own instrument, level,
+  invalidation, and horizon.
+- **Additive contracts only (D6).** Schemas extend; history is append-only.
+- **Budgets are assertions (D7).** Every budgeted number has a failing test behind it.
+- **Superseding closes the superseded (D8).** In the same change.
+- **Spec cap (D9) and no status-blocking (D10).** No new spec above ~40 FR or ~5 scopes without a
+  written exception; a spec blocks only on a real, named, missing capability — never on another
+  spec's *status*.
+- **Terminal discipline.** Files are written with editor tools, never shell redirection; command
+  output is never truncated; secrets are never echoed.

@@ -1530,6 +1530,46 @@ try {
   assert(renderer.liveReadView({ read: 'no-id read' }, null).read === 'no-id read', 'liveReadView: a read without an id is accepted when no toolId is enforced');
   const renderAllSource = extractFn(read('market-brief.html'), 'renderAll');
   assert(renderAllSource.indexOf('renderAsOf();') < renderAllSource.indexOf('RLBRIEF.renderBackdrop'), 'generation timestamp renders before complex brief sections');
+
+  /* ── Narrative freshness. The Tier-B written read is operator-hosted and can stop refreshing
+     while the Tier-A computed layer keeps updating; the failure this guards is the page serving
+     last week's narrative as if it were this morning's. Classification is a pure function so the
+     RULE is asserted here rather than inferred from pixels. */
+  const freshPolicy = JSON.parse(read('market-brief.config.json'))['freshness-policy/v1'];
+  assert(freshPolicy && freshPolicy.contractVersion === 'freshness-policy/v1', 'the freshness policy is declared in market-brief.config.json');
+  assert(freshPolicy.warnAfterHours === 18 && freshPolicy.staleAfterHours === 72, 'freshness thresholds are the published 18h / 72h');
+  const NOW = Date.parse('2026-07-31T12:00:00Z');
+  const at = (hoursAgo) => ({ generatedAt: new Date(NOW - hoursAgo * 3600000).toISOString() });
+  const verdict = (hoursAgo) => renderer.narrativeFreshness(at(hoursAgo), freshPolicy, NOW);
+
+  assert(verdict(1).state === 'fresh', 'an hour-old narrative is fresh');
+  /* The largest legitimate weekday gap is 17:00 ET -> 07:30 ET next morning (~14.5h). If the warn
+     state fired inside that, the banner would cry wolf every single morning and be ignored. */
+  assert(verdict(14.5).state === 'fresh', 'a normal overnight gap does NOT raise the banner');
+  assert(verdict(19).state === 'aging', 'past the warn threshold the narrative is flagged aging');
+  /* A Friday-close to Monday-open weekend is ~62h and is healthy. */
+  assert(verdict(62).state === 'aging' && verdict(62).state !== 'stale', 'a normal weekend gap does NOT reach stale');
+  assert(verdict(80).state === 'stale', 'past the stale threshold the narrative is flagged stale');
+
+  /* Absence must NEVER read as freshness — this is the honest "narrative not refreshed this
+     window" state the page owes the reader when Tier-B did not publish at all. */
+  assert(renderer.narrativeFreshness(null, freshPolicy, NOW).state === 'absent', 'a missing payload is absent, never fresh');
+  assert(renderer.narrativeFreshness({}, freshPolicy, NOW).state === 'absent', 'a payload with no generatedAt is absent, never fresh');
+  assert(/not refreshed this window/i.test(renderer.narrativeFreshness(null, freshPolicy, NOW).message), 'the absent state says so in plain words');
+  assert(renderer.narrativeFreshness({ generatedAt: 'not-a-date' }, freshPolicy, NOW).state === 'unknown', 'an unparseable timestamp is unknown, never fresh');
+  assert(renderer.narrativeFreshness({ generatedAt: new Date(NOW + 3600000).toISOString() }, freshPolicy, NOW).state === 'unknown', 'a future-stamped payload is unknown, never fresh');
+
+  /* ADVERSARIAL: a classifier that answered "fresh" for everything would satisfy the fresh cases
+     above. Require that at least one input genuinely produces each non-fresh state, so the rule
+     cannot be quietly reduced to a constant. */
+  const observed = new Set([1, 19, 80].map((h) => verdict(h).state)
+    .concat([renderer.narrativeFreshness(null, freshPolicy, NOW).state, renderer.narrativeFreshness({ generatedAt: 'x' }, freshPolicy, NOW).state]));
+  assert(observed.size === 5 && ['fresh', 'aging', 'stale', 'absent', 'unknown'].every((s) => observed.has(s)),
+    'the freshness classifier really discriminates — all five states are reachable, so it is not a constant');
+
+  const briefHtml = read('market-brief.html');
+  assert(/id="freshbar"/.test(briefHtml), 'the brief page ships the freshness banner element');
+  assert(briefHtml.indexOf('RLBRIEF.renderFreshness') < briefHtml.indexOf('RLBRIEF.renderScorecard'), 'freshness renders before the track record and everything below it');
 } catch (e) { failures++; console.log('  ✗ FAIL (market-brief group threw): ' + e.message); }
 
 /* ---------- Shared RLDATA: Simple-view tool-read contract ---------- */

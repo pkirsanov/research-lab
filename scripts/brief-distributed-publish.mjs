@@ -40,6 +40,7 @@ import {
   canonicalMonthFromEtRunDate
 } from './brief-publication.mjs';
 import { validateCurrentGraph, validateHistoryGraph } from './validate-distributed-briefs.mjs';
+import { loadInstrumentUniverse, recommendationRowsFromPayload } from './recommendation-body.mjs';
 import '../rldata.js';
 
 const require = createRequire(import.meta.url);
@@ -364,6 +365,7 @@ export function prepareToolBriefBundle(options) {
 
 export function buildDistributedRun(context) {
   const { snapshot, payload, frozen, snapshotSha, payloadSha, prior } = context;
+  const root = context.root || '.';
   const window = typeof snapshot.window === 'string' && snapshot.window ? snapshot.window : 'pre-market';
   const asOf = typeof snapshot.asOf === 'string' && snapshot.asOf
     ? snapshot.asOf
@@ -397,15 +399,18 @@ export function buildDistributedRun(context) {
   // Recommendation lifecycle events derived deterministically from the already-authored narrative actions.
   // recommendationKey is STABLE across runs (subject+family) so history reads a coherent lifecycle; eventId
   // is unique per (run, key, index) so the append-only stream never collides.
-  const actions = payload && payload.nextSession && Array.isArray(payload.nextSession.actions)
-    ? payload.nextSession.actions : [];
-  const recommendationEvents = actions.map((action, index) => {
-    const subject = typeof action.subject === 'string' ? action.subject : `action-${index}`;
-    const family = typeof action.action === 'string' ? action.action : 'note';
-    const recommendationKey = stableSha({ contractVersion: 'brief-distributed-reckey/v1', subject, family });
-    const eventId = stableSha({ contractVersion: 'brief-distributed-eventid/v1', runFingerprint, recommendationKey, index });
-    return { eventId, eventType: 'proposed', recommendationKey, occurredAt: asOf };
-  });
+  //
+  // Each event carries its own DURABLE BODY (instrument, direction, levels, trigger, invalidation,
+  // confidence). Without it the terms live only in market-brief.payload.json, which this same run
+  // overwrites — which is how 215 published calls became permanently unscoreable.
+  const recommendationEvents = recommendationRowsFromPayload(payload, {
+    root,
+    occurredAt: asOf,
+    universe: loadInstrumentUniverse(root),
+    eventIdFor: (recommendationKey, index) => stableSha({
+      contractVersion: 'brief-distributed-eventid/v1', runFingerprint, recommendationKey, index
+    })
+  }).map((event) => ({ ...event, bodySource: 'next-session-action' }));
 
   const finalBody = {
     contractVersion: 'final-brief/v1', runId, window, asOf,
@@ -480,7 +485,7 @@ export function publishDistributedBriefs(options) {
 
   const runResult = buildDistributedRun({
     snapshot: inputs.snapshot, payload: inputs.payload, frozen,
-    snapshotSha: inputs.snapshotSha, payloadSha: inputs.payloadSha, prior, toolBriefBundle
+    snapshotSha: inputs.snapshotSha, payloadSha: inputs.payloadSha, prior, toolBriefBundle, root
   });
   if (!runResult.ok) return runResult;
   const { run, richCount, coverageCount } = runResult;

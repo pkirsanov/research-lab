@@ -4566,6 +4566,66 @@ try {
   }
 } catch (e) { failures++; console.log('  \u2717 FAIL (Feature 012 Scope 15 production bridge canaries threw): ' + e.message); }
 
+/* ---------- recommendation ledger — durable bodies + honest evaluability ---------- */
+try {
+  group('recommendation ledger \u2014 every call carries its own scoreable terms');
+  const recBody = await import('./recommendation-body.mjs');
+  const backfill = await import('./backfill-recommendations.mjs');
+  const universe = recBody.loadInstrumentUniverse(ROOT);
+
+  assert(universe.has('SPY') && universe.has('QQQ') && !universe.has('CLOSE'),
+    'the instrument universe is grounded in committed data, so a call can only name something scoreable');
+
+  // The join key must stay byte-identical to the shipped formula or 215 existing rows orphan.
+  assert(recBody.recommendationKeyFor('SPY / SPMO longer-term structural core \u2014 hold, but do NOT chase the SPY 50-day approach or the tech bounce; add index/broad-momentum beta only on a CONFIRMED daily CLOSE reclaim, which the 7/30 close did NOT deliver', 'hold')
+    === 'sha256:817debd7b85cc3f6c260647bd270a2ae0dd74f46debed34d876fb4a2be872c81',
+    'recommendationKey still matches the key already published in the live ledger (lifecycle stays joined)');
+
+  // Caps emphasis is how the narrative actually writes gates; a case-sensitive reader loses them.
+  const capsLevels = recBody.extractLevels('add only on a CONFIRMED daily CLOSE that RECLAIMS the SPY 50-day (~743.9)', universe);
+  assert(capsLevels.length === 1 && capsLevels[0].instrument === 'SPY' && capsLevels[0].relation === 'above' && capsLevels[0].value === 743.9,
+    'an ALL-CAPS relation word still qualifies a level (RECLAIMS ... SPY ... ~743.9)');
+
+  // ADVERSARIAL: the bare numbers this prose is full of are periods, percentages, dates and stacks —
+  // admitting any of them would fabricate a price gate the author never published.
+  const bareNumbers = recBody.extractLevels('SPY holds its 20>50>200 bull-stack, +6.42% over the 200-day, and closes above 741.69 on 7/31', universe);
+  assert(bareNumbers.length === 0,
+    'bare numbers ("50-day", "20>50>200", "+6.42%", "7/31", a spot price) are never read as levels (' + JSON.stringify(bareNumbers) + ')');
+  assert(recBody.extractLevels('SPY reclaims ~50-day support', universe).length === 0,
+    'a "~" number with a period suffix ("~50-day") is a lookback, not a gate');
+  assert(recBody.extractLevels('closes back above ~715 on volume', universe).length === 0,
+    'a level with no instrument in scope is discarded rather than attributed by guesswork');
+
+  // Honest degradation: a call whose own prose carries no checkable level says so.
+  const noLevel = recBody.buildRecommendationBody(
+    { subject: 'MSFT position', action: 'hold', horizon: 'swing', trigger: 'stay put', invalidation: 'reassess later', confidence: 55 },
+    { universe });
+  assert(noLevel.instrument === 'MSFT' && noLevel.evaluability === 'not-evaluable' && noLevel.evaluabilityReason === 'no-attributable-price-level',
+    'a call with no checkable level resolves not-evaluable with a named reason, never a fabricated gate');
+
+  // The live ledger: bodies present, none of them empty, and immutable rows enriched not rewritten.
+  const ledgerRows = read('briefs/history/recommendations/2026-07.jsonl')
+    .split('\n').filter((line) => line.length > 0).map((line) => JSON.parse(line));
+  const withBody = ledgerRows.filter((row) => row.bodyContractVersion);
+  assert(withBody.length > 0 && withBody.every((row) => row.instrument),
+    'every body-carrying ledger row names an instrument (' + withBody.length + ' rows, 0 null)');
+  assert(withBody.every((row) => row.evaluability === 'machine-checkable' || row.evaluability === 'not-evaluable'),
+    'every body-carrying row declares an evaluability verdict');
+  const restored = ledgerRows.filter((row) => row.eventType === 'body-restored');
+  const restoredTargets = new Set(restored.map((row) => row.restoresEventId));
+  assert(restored.length > 0 && restored.every((row) => row.restoresEventId),
+    'a recovered body is appended as body-restored naming the original event, never written over it (' + restored.length + ' rows)');
+  const bodiless = ledgerRows.filter((row) => !row.bodyContractVersion);
+  assert(bodiless.every((row) => row.contractVersion === 'brief-recommendation-history-row/v1'),
+    'the pre-existing bodiless rows keep their original v1 contract — history is appended to, never edited');
+  assert(bodiless.filter((row) => restoredTargets.has(row.eventId)).length === restored.length,
+    'every body-restored row points at a real bodiless event that is still present in the ledger');
+
+  // Idempotency is what makes the recovery safe to re-run in a scheduled pipeline.
+  assert(backfill.planBackfill(ROOT).stats.newRows === 0,
+    'the backfill is idempotent against the committed ledger — a re-run proposes zero further rows');
+} catch (e) { failures++; console.log('  \u2717 FAIL (recommendation ledger group threw): ' + e.message); }
+
 /* ---------- spec artifacts — every referenced test path exists (ratchet) ---------- */
 try {
   group('spec artifacts \u2014 referenced tests/*.mjs paths exist (Playwright silently ignores absent file args)');

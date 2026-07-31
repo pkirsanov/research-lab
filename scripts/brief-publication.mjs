@@ -19,6 +19,8 @@ import { createRequire } from 'node:module';
 import { mkdirSync, readFileSync, writeFileSync } from 'node:fs';
 import path from 'node:path';
 
+import { ROW_CONTRACT_V2 } from './recommendation-body.mjs';
+
 const require = createRequire(import.meta.url);
 const RLCONTRACTS = require('../rlcontracts.js');
 
@@ -172,11 +174,39 @@ export function buildPublishSet(run) {
     contractVersion: 'brief-evidence-history-row/v1', runId: run.runId, evidenceRef: evidenceObj.fingerprint,
     state: run.evidence.state, cutoffAt: run.evidence.cutoffAt, canonicalMonth: month
   }];
-  const recRows = (run.recommendationEvents || []).map((event) => ({
-    contractVersion: 'brief-recommendation-history-row/v1', runId: run.runId, eventId: event.eventId,
-    eventType: event.eventType, recommendationKey: event.recommendationKey, occurredAt: event.occurredAt,
-    canonicalMonth: month
-  }));
+  const recRows = (run.recommendationEvents || []).map((event) => {
+    const base = {
+      contractVersion: 'brief-recommendation-history-row/v1', runId: run.runId, eventId: event.eventId,
+      eventType: event.eventType, recommendationKey: event.recommendationKey, occurredAt: event.occurredAt,
+      canonicalMonth: month
+    };
+    // ADDITIVE v2: when the caller supplies the call's durable terms, they travel WITH the event so the
+    // ledger stays scoreable after market-brief.payload.json is overwritten by the next run. Events with
+    // no body (older callers, fixtures) keep emitting the v1 shape unchanged.
+    if (!event.bodyContractVersion) return base;
+    return {
+      ...base,
+      contractVersion: ROW_CONTRACT_V2,
+      bodyContractVersion: event.bodyContractVersion,
+      bodySource: event.bodySource || null,
+      instrument: event.instrument ?? null,
+      instruments: event.instruments || [],
+      direction: event.direction ?? null,
+      directionSign: event.directionSign ?? null,
+      horizon: event.horizon ?? null,
+      subject: event.subject ?? null,
+      structuralAnchor: event.structuralAnchor ?? null,
+      levels: event.levels || [],
+      levelsText: event.levelsText ?? null,
+      trigger: event.trigger ?? null,
+      invalidation: event.invalidation ?? null,
+      rationale: event.rationale ?? null,
+      confidence: event.confidence ?? null,
+      deepLink: event.deepLink ?? null,
+      evaluability: event.evaluability ?? null,
+      evaluabilityReason: event.evaluabilityReason ?? null
+    };
+  });
   addedRows[`briefs/history/recommendations/${month}.jsonl`] = recRows;
 
   const historyPartitions = {};

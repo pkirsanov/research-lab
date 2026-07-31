@@ -38,6 +38,7 @@ https://pkirsanov.github.io/research-lab/
 | [`Bond Regime & Fixed-Income Scenario Lab`](bond-regime-lab.html) | Separate aligned JNK/LQD and HYG/LQD credit pulses from duration confounds and independent confirmation; keep curve level, curve impulse, real yield, breakeven, and duration posture distinct; then compare seven generic sleeves with transparent carry, rate, spread, convexity, break-even, stale, and reliability contracts. Simple and Power share one model. Configure via [`bond-regime-universe.json`](bond-regime-universe.json). | [`notes/bond-regime-lab.md`](notes/bond-regime-lab.md) |
 | [`AI Capex Strategy Lab`](ai-capex-strategy-lab.html) | Multi-horizon AI-infrastructure strategy playground with editable assumptions, 63 assets, 10 themes, 11 presets, five optimizer objectives, theme-aware correlation, crowding friction, and per-horizon playbooks. | [`notes/ai-capex-strategy-lab.md`](notes/ai-capex-strategy-lab.md) |
 | [`MSFT July-Print Margin & EPS Model`](msft-july-print-model.html) | Microsoft FY26 Q4 / FY27E margin bridge with verified Q1-Q3 actuals, Q4 reconciliation anchors, depreciation / price-mix / FX levers, heatmaps, and a memory-shortage cost-cycle overlay. | [`notes/msft-july-print-model.md`](notes/msft-july-print-model.md) |
+| [`🏢 Company Fundamentals & Adaptive Brief Lab`](company-fundamentals-lab.html) | Audit a **hash-validated** Microsoft company publication across one Simple/Detailed state: exact SEC identity and filing periods, **explicit evidence gaps**, a user-owned linked scenario, source trace, contextual diagnostics, peers, export, and a change-aware company brief. Statement, model, brief, market and retrieval clocks stay **separate**; the current brief is honestly **partial** because no retained SEC CompanyFacts response supplies source-qualified statement values — missing stays incomplete, never zero. Configure via [`company-fundamentals.config.json`](company-fundamentals.config.json). | [`notes/company-fundamentals-lab.md`](notes/company-fundamentals-lab.md) |
 | [`ETF Momentum Research Lab`](etf-momentum-lab.html) | Live-capable ETF research over the etfdb High-Momentum universe (plus QQQ & VGT): pull Yahoo / Twelve Data price history, then compute performance, risk, drawdowns, correlation, CAPM β/α, regime-conditional return estimates and Monte-Carlo projections. Its international section covers the country-ETF universe and routes allocation work to the dedicated FX- and local-session-aware [`Global Rotation Lab`](global-rotation-lab.html). Add/remove funds via [`etf-universe.json`](etf-universe.json). | [`notes/etf-momentum-lab.md`](notes/etf-momentum-lab.md) |
 | [`Strategy Self-Improvement & Walk-Forward Lab`](strategy-self-improvement-lab.html) | The viral "self-improving trading agent" loop **done honestly**: an explicit numeric **goal scorecard** (target CAGR, Sharpe floor, max-DD ceiling, time-in-market), a transparent trend/momentum rule with vol-targeted exposure + trailing stop, and a **scientific-method search that changes one variable at a time** — keeping only the changes that survive **out-of-sample walk-forward** scoring, with an **overfitting / multiple-testing discount** so you trust the OOS column, not the in-sample fit. Fully in-browser on **deterministic, seed-reproducible synthetic** paths (no live data); accepted improvements accrue in a per-scenario localStorage ledger. Edit scenarios/goal/lever ranges via [`strategy-self-improvement-universe.json`](strategy-self-improvement-universe.json). | [`notes/strategy-self-improvement-lab.md`](notes/strategy-self-improvement-lab.md) |
 | [`Strategy Validation & Real-Data Walk-Forward Lab`](strategy-validation-lab.html) | The **real-data sibling** of the Self-Improvement Lab: validate a mechanical rule on **live** Yahoo / Twelve Data history the honest way — **out-of-sample walk-forward** with **embargoed folds** (no leakage), **cross-instrument robustness** (held **k/N** tickers — an edge that works on only one ticker is luck), and a **Deflated Sharpe Ratio** that discounts for how many variants you tried. Answers what the signal tools can't: *is this edge real, or curve-fit?* In-browser; a clearly-labelled **synthetic-demo** path when live data is blocked. Edit the default basket / goal / lever ranges via [`strategy-validation-universe.json`](strategy-validation-universe.json). | [`notes/strategy-validation-lab.md`](notes/strategy-validation-lab.md) |
@@ -50,52 +51,58 @@ https://pkirsanov.github.io/research-lab/
 
 ## Layout
 
+The tool list itself is **not** enumerated here — [`tools.json`](tools.json) is the registry, and
+[`index.html`](index.html) / [`rlnav.js`](rlnav.js) mirror it in the same order. This section describes the
+*roles* files play, so it cannot drift as tools are added.
+
 ```text
 .
-├── index.html                  # landing page (renders from the TOOLS array inside it)
-├── intraday-tape-lab.html      # tool #6 — intraday tape (VWAP, session profile+delta, algo-vs-retail, 0DTE)
-├── intraday-tape-universe.json # editable intraday watchlist for tool #6
-├── swing-structure-lab.html    # tool #7 — swing structure (20/50/200 MA, composite profile, regime, patterns)
-├── swing-structure-universe.json # editable swing watchlist for tool #7
-├── options-structure-lab.html  # tool #5 — options structure (walls, GEX, greeks, expiries, short interest)
-├── options-structure-universe.json # editable optionable-underlyings watchlist for tool #5
-├── gamma-trading-lab.html      # tool #8 — gamma trading (JEX-flip waterfall, OVI, expiration cycle) on the shared options snapshot
-├── gamma-trading-universe.json # editable optionable watchlist for tool #8
-├── sector-research-lab.html    # tool #4 — sector rotation & momentum
-├── sector-universe.json        # editable sectors / indexes / stock groups for tool #4
-├── global-rotation-lab.html    # country ETF rotation with FX/session context
-├── global-rotation-universe.json # editable country/control ETF + FX proxy universe
-├── real-assets-lab.html        # distinct gold/silver/BTC/commodity models
-├── real-assets-universe.json   # editable real-asset candidates + driver proxies
-├── bond-regime-lab.html        # credit/duration regime + fixed-income scenario workspace
-├── bond-regime-universe.json   # source policies, thresholds, presets, instruments and sleeves
-├── ai-capex-strategy-lab.html  # tool #1
-├── msft-july-print-model.html  # tool #2
-├── etf-momentum-lab.html       # tool #3
-├── etf-universe.json           # editable ETF universe for tool #3 (add/remove funds here)
-├── strategy-self-improvement-lab.html      # tool #9 — self-improvement loop (goal scorecard, walk-forward OOS, one-variable search)
-├── strategy-self-improvement-universe.json # editable synthetic scenarios / goal / lever ranges for tool #9
-├── strategy-validation-lab.html            # tool #11 — real-data walk-forward validation (embargoed OOS, held k/N, Deflated Sharpe)
-├── strategy-validation-universe.json       # editable default basket / goal / lever ranges for tool #11
-├── smart-money-flow-lab.html   # tool #10 — smart-money / congressional copy-trade reality check (disclosure-lag edge decay)
-├── rlnav.js                    # shared collapsible left-nav drawer (loaded by every page)
-├── rlg.js                      # shared glossary tooltips (loaded by the trading tools)
-├── notes/                      # per-tool notes — notes/<tool-id>.md (methodology, data, handoff)
-│   ├── README.md               # notes convention
-│   ├── intraday-tape-lab.md
-│   ├── swing-structure-lab.md
-│   ├── shared-data-layer.md    # cross-tool rlData cache contract (consumed by the two TA labs)
-│   ├── options-structure-lab.md
-│   ├── gamma-trading-lab.md
-│   ├── sector-research-lab.md
-│   ├── ai-capex-strategy-lab.md
-│   ├── msft-july-print-model.md
-│   ├── etf-momentum-lab.md
-│   ├── strategy-self-improvement-lab.md
-│   └── smart-money-flow-lab.md
-├── tools.json                  # machine-readable mirror of the tool registry (incl. notes path)
-├── .nojekyll                   # serve files as-is (no Jekyll)
-└── .github/workflows/pages.yml # GitHub Actions → Pages deploy (publishes repo root)
+├── index.html                        # landing page + provider-access settings (renders from its TOOLS array)
+├── <tool-id>.html                    # one self-contained tool per file — see tools.json for the registry
+├── <tool-id>-universe.json           # editable per-tool universe / watchlist
+├── <tool>.config.json                # richer per-tool configuration (brief, rentals, fundamentals, causal…)
+│
+│  ── shared browser+Node modules (UMD: module.exports + global attach; never ESM, so file:// keeps working)
+├── rldata.js                         # shared market-data cache — cache-first, append-only deltas, provider access
+├── rlapp.js                          # shared shell: "Data behind this page" status control (loads after rldata.js)
+├── rlnav.js                          # shared collapsible left-nav drawer (loaded by every page)
+├── rlg.js                            # shared glossary tooltips ("what it is")
+├── rlchart.js                        # shared canvas hover-tooltip + log-tick helpers
+├── rlticker.js                       # shared ticker → Yahoo links with rich tooltips
+├── rlcontracts.js                    # shared contract vocabulary incl. the recommendation lifecycle reducer
+├── rlexperience.js                   # Simple/Power experience runtime (views, routing, adapter registry)
+├── rlexperience-adapters/*.js        # per-domain model adapters the tools and Tier-A reads share
+├── rljourney.js                      # guided-journey runtime (mounts on [data-rljourney-mount])
+├── rlbrief.js  rlmarketaction.js     # brief rendering + market-action triage
+├── rlviews.js  rlcontext.js          # view focus + contextual tooltips
+├── rlsession.js rlvol.js rlportfolio.js rlrental.js rlcompany.js rlfx.js rlcausal.js rlvalidation.js
+│                                     # domain engines consumed by the tools that own them
+│
+│  ── registries + contracts
+├── tools.json                        # tool registry (id, file, notes, briefing role, experience wiring)
+├── simple-models.json                # declared Simple model contracts (parameters, provenance, limitations)
+├── journeys.json                     # guided-journey definitions + steps
+├── tool-experience.config.json       # view sets, adapter allow-list, performance + artifact budgets
+├── watchlist.json                    # tickers only — never sizes, cost basis or P&L
+│
+│  ── the Actionable Market Brief
+├── market-brief.html                 # the cockpit
+├── market-brief.config.json          # what it tracks
+├── market-brief.snapshot.json        # Tier-A deterministic snapshot (tool reads)
+├── market-brief.payload.json         # published payload (Tier-A + Tier-B narrative)
+├── briefs/history/                   # append-only history: per-tool briefs + the recommendation ledger
+│
+│  ── committed market data (same-origin, no CORS, no key)
+├── data/bars/<SYM>.json              # daily bars
+├── data/options/<SYM>.json           # EOD option-chain snapshots
+│
+├── scripts/                          # Node tooling: brief refresh/publish, fetchers, validators, selftest
+├── tests/                            # Playwright specs + Node unit/functional/integration suites
+├── notes/<tool-id>.md                # per-tool methodology, data, sources, handoff
+├── docs/                             # product review, domain model, roadmap
+├── specs/                            # Bubbles feature + bug artifacts
+├── .nojekyll                         # serve files as-is (no Jekyll)
+└── .github/workflows/pages.yml       # GitHub Actions → Pages deploy (publishes repo root)
 ```
 
 ## Add a new tool

@@ -383,6 +383,15 @@ if [ "$DISTRIBUTED_OK" = "1" ]; then
   SELECTED_FILES+=(briefs)
 fi
 
+# 3c) The published track record. Derived purely from the outcome ledger, so it is regenerated AFTER
+# scoring and rides the same scoped commit. It is not an owned-path refusal input: a stale scorecard
+# must never be able to block the brief itself.
+if run_with_timeout "$TIER_A_TIMEOUT" "$NODE_BIN" scripts/build-scorecard.mjs; then
+  SELECTED_FILES+=(market-brief.scorecard.json)
+else
+  echo "[brief-timer] scorecard build returned non-zero (soft) — publishing without a refreshed track record"
+fi
+
 if ! "$GIT_BIN" add -- "${SELECTED_FILES[@]}"; then
   echo "[brief-timer] scoped staging failed — restoring owned baseline"
   restore_owned_baseline || echo "[brief-timer] ERROR: owned baseline restoration failed"

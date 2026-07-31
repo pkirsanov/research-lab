@@ -4771,6 +4771,55 @@ try {
     'the evaluator is idempotent against the committed ledger \u2014 a re-run closes nothing twice');
 } catch (e) { failures++; console.log('  \u2717 FAIL (recommendation outcomes group threw): ' + e.message); }
 
+/* ---------- scorecard — the error rate is published, and withheld when the sample cannot carry it ---------- */
+try {
+  group('scorecard \u2014 the brief publishes its own error rate, misses included');
+  const scorecardModule = await import('./build-scorecard.mjs');
+
+  // (a) The committed ledger. Below the declared minimum the rate MUST be withheld.
+  const live = scorecardModule.buildScorecard(ROOT, {});
+  const all = live.windows.all;
+  assert(all.resolved === all.satisfied + all.invalidated,
+    'resolved counts only calls that reached a trigger or an invalidation (' + all.satisfied + ' + ' + all.invalidated + ' = ' + all.resolved + ')');
+  assert(all.notEvaluable > 0 && all.notEvaluable + all.satisfied + all.invalidated + all.expired + all.unresolved === all.closed,
+    'every closed call lands in exactly one outcome bucket, and not-evaluable is one of them');
+  assert(all.hitRate === null && all.insufficientSample === true,
+    'with ' + all.resolved + ' resolved against a minimum of ' + live.policy.minResolvedSample + ', the rate is WITHHELD rather than printed');
+  assert(Number.isFinite(all.notEvaluableShare) && all.notEvaluableShare > 0,
+    'the not-machine-evaluable share is published rather than hidden (' + Math.round(all.notEvaluableShare * 1000) / 10 + '%)');
+
+  // (b) ADVERSARIAL: a fixture whose sample CROSSES its declared minimum must actually print a rate.
+  // Without this, (a) would pass even if the scorecard could never publish a number at all.
+  const fixtureRoot = join(ROOT, 'tests/fixtures/scorecard');
+  const fixture = scorecardModule.buildScorecard(fixtureRoot, { asOf: '2026-07-31' });
+  const fixtureAll = fixture.windows.all;
+  assert(fixture.policy.minResolvedSample === 4 && fixtureAll.resolved === 5,
+    'the fixture resolves 5 calls against a minimum of 4, so it exercises the printing branch');
+  assert(fixtureAll.hitRate === 0.6 && fixtureAll.insufficientSample === false,
+    'above the minimum the realised rate IS published (3 of 5 in favour = 60%)');
+  assert(fixtureAll.notEvaluable === 1 && fixtureAll.resolved === 5,
+    'a not-evaluable call is counted in its own bucket and NEVER as a win (resolved stays 5, not 6)');
+  assert(fixture.openCalls === 1, 'a proposed call with no close event is reported open, not scored');
+
+  // (c) Misses are published in full — the property that makes the number trustworthy.
+  assert(fixture.recentMisses.length === 2 && fixture.recentMisses.every((miss) => miss.instrument && miss.invalidatedBy && Number.isFinite(miss.invalidatedBy.level)),
+    'misses are published with the instrument and the published level that invalidated them');
+  assert(fixture.recentMisses[0].closedAt >= fixture.recentMisses[1].closedAt, 'misses are listed most recent first');
+
+  // (d) Calibration compares STATED confidence to REALISED frequency, withholding below the minimum.
+  const bucket = fixtureAll.calibration.find((row) => row.bucket === '60-69');
+  assert(bucket && bucket.resolved === 3 && bucket.stated === 0.65,
+    'the calibration table carries the stated confidence of the calls in each bucket');
+  assert(bucket.realised === null && bucket.insufficientSample === true,
+    'a calibration bucket below the minimum withholds its realised frequency rather than claiming one from 3 calls');
+
+  // (e) The committed artifact agrees with the ledger it claims to summarize.
+  const published = JSON.parse(read('market-brief.scorecard.json'));
+  assert(published.contractVersion === scorecardModule.SCORECARD_CONTRACT
+    && published.windows.all.closed === all.closed && published.windows.all.resolved === all.resolved,
+    'the published market-brief.scorecard.json matches the committed outcome ledger');
+} catch (e) { failures++; console.log('  \u2717 FAIL (scorecard group threw): ' + e.message); }
+
 /* ---------- spec artifacts — every referenced test path exists (ratchet) ---------- */
 try {
   group('spec artifacts \u2014 referenced tests/*.mjs paths exist (Playwright silently ignores absent file args)');

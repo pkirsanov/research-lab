@@ -253,6 +253,73 @@
             margin: 22px 0 10px
         }
 
+        /* Track record — rendered above everything the brief claims next. */
+        #scorecard {
+            background: var(--panel);
+            border: 1px solid var(--line);
+            border-radius: 12px;
+            padding: 12px 14px;
+            margin-bottom: 16px
+        }
+
+        .scorecard-head {
+            display: flex;
+            gap: 8px;
+            flex-wrap: wrap;
+            align-items: center
+        }
+
+        .scorecard-body {
+            display: grid;
+            grid-template-columns: minmax(0, 1.2fr) minmax(0, 1fr);
+            gap: 14px;
+            margin-top: 12px
+        }
+
+        @media (max-width:760px) {
+            .scorecard-body {
+                grid-template-columns: 1fr
+            }
+        }
+
+        .scorecard-label {
+            font-size: 11px;
+            text-transform: uppercase;
+            letter-spacing: .6px;
+            color: var(--dim);
+            font-weight: 700;
+            margin-bottom: 6px
+        }
+
+        .scorecard-cal {
+            width: 100%;
+            border-collapse: collapse;
+            font-size: 12px
+        }
+
+        .scorecard-cal th,
+        .scorecard-cal td {
+            text-align: right;
+            padding: 4px 6px;
+            border-bottom: 1px solid var(--line)
+        }
+
+        .scorecard-cal th:first-child,
+        .scorecard-cal td:first-child {
+            text-align: left
+        }
+
+        .scorecard-cal th {
+            color: var(--dim);
+            font-weight: 600;
+            white-space: nowrap
+        }
+
+        .scorecard-body .acard {
+            margin-bottom: 8px;
+            border-left-color: var(--red, #f3766f)
+        }
+
         .feed {
             display: grid;
             gap: 10px
@@ -679,6 +746,11 @@
 
         <section id="mac-center" data-mac-center aria-live="polite"></section>
 
+        <h2 class="sec"
+            title="How right this brief has actually been. Every call is scored only against the trigger and invalidation it published for itself. Misses are shown with the same prominence as hits.">
+            Track record — this brief&rsquo;s own error rate</h2>
+        <div id="scorecard" data-tkr-auto></div>
+
         <div class="strip" id="regimeStrip"></div>
         <div class="sub" id="liveNote" style="margin:-8px 0 4px"></div>
 
@@ -747,7 +819,7 @@
                 thresholds: { attentionMaxCards: 7, macroCacheMaxAgeMin: 30, notableMemberMinMovePct: 3, notableMemberMaxCount: 4 },
                 macroEvents: []
             };
-            var CFG = null, PAYLOAD = null, WL = null, HIST = null, SNAP = null, TOOLS = null, activeWindow = null;
+            var CFG = null, PAYLOAD = null, WL = null, HIST = null, SNAP = null, TOOLS = null, SCORECARD = null, activeWindow = null;
 
             function el(id) { return document.getElementById(id); }
             function j(url) { return fetch(url, { cache: "no-store" }).then(function (r) { if (!r.ok) throw 0; return r.json(); }).catch(function () { return null; }); }
@@ -816,6 +888,7 @@
 
             function renderAll() {
                 renderAsOf();
+                RLBRIEF.renderScorecard(el("scorecard"), SCORECARD);
                 RLBRIEF.renderRegimeStrip(el("regimeStrip"), PAYLOAD && PAYLOAD.regime);
                 RLBRIEF.renderNextSession(el("nextSession"), PAYLOAD && PAYLOAD.nextSession, PAYLOAD && PAYLOAD.recommendations, CFG, SNAP);
                 RLBRIEF.renderBackdrop(el("backdrop"), PAYLOAD && PAYLOAD.backdrop);
@@ -861,8 +934,8 @@
 
             function boot() {
                 if (typeof RLBRIEF === "undefined") { var b = el("regimeStrip"); if (b) b.innerHTML = '<span class="pill bad">brief components failed to load — hard-refresh the page</span>'; return; }
-                Promise.all([j("market-brief.config.json"), j("market-brief.payload.json"), j("watchlist.json"), jl("brief-history.jsonl"), j("market-brief.snapshot.json"), j("tools.json")]).then(function (r) {
-                    CFG = r[0] || INLINE_CFG; PAYLOAD = r[1]; WL = r[2] || { items: [] }; HIST = r[3] || []; SNAP = r[4]; TOOLS = r[5] || { tools: [] };
+                Promise.all([j("market-brief.config.json"), j("market-brief.payload.json"), j("watchlist.json"), jl("brief-history.jsonl"), j("market-brief.snapshot.json"), j("tools.json"), j("market-brief.scorecard.json")]).then(function (r) {
+                    CFG = r[0] || INLINE_CFG; PAYLOAD = r[1]; WL = r[2] || { items: [] }; HIST = r[3] || []; SNAP = r[4]; TOOLS = r[5] || { tools: [] }; SCORECARD = r[6];
                     renderWindows(); wire(); renderAll(); setTimeout(refreshLive, 0);
                 });
             }

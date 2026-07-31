@@ -1,0 +1,10 @@
+{
+    "note": "Scorecard fixture root. Its ONLY job is to give the selftest a resolved sample that CROSSES the declared minimum, so the withholding guard can be proven in both directions. Without this, the committed ledger (18 resolved, minimum 20) only ever exercises the withheld branch and the assertion would be vacuous.",
+    "scorecard-policy/v1": {
+        "contractVersion": "scorecard-policy/v1",
+        "policyId": "scorecard-policy/v1",
+        "minResolvedSample": 4,
+        "recentMissCount": 2,
+        "windowDays": [30, 90]
+    }
+}

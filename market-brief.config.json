@@ -576,6 +576,14 @@
             }
         }
     },
+    "scorecard-policy/v1": {
+        "contractVersion": "scorecard-policy/v1",
+        "policyId": "scorecard-policy/v1",
+        "minResolvedSample": 20,
+        "recentMissCount": 3,
+        "windowDays": [30, 90],
+        "note": "Governs market-brief.scorecard.json. Below minResolvedSample the hit rate is WITHHELD and the sample size is shown instead - a rate over a handful of calls is noise dressed as evidence. recentMissCount misses are always published in full alongside the hits; selective reporting is the one unrecoverable failure for this product. not-evaluable is reported as its own share and never counted as a win."
+    },
     "red-alert-policy/v1": {
         "contractVersion": "red-alert-policy/v1",
         "policyId": "red-alert-policy/v1",

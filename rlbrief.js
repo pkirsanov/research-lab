@@ -622,6 +622,80 @@
     return cfg.deepLinks[key] || "";
   }
 
+  /* ── the scorecard: this brief's own error rate, above everything it claims next ──────────────
+     The one number no subscription competitor can publish. It is rendered FIRST, misses are shown
+     with the same prominence as hits, and a rate the sample cannot support is withheld rather than
+     flattered. */
+  function scorecardPct(value) { return value === null || value === undefined ? "—" : (Math.round(value * 1000) / 10) + "%"; }
+
+  function renderScorecard(el, card) {
+    if (!el) return;
+    if (!card || !card.windows || !card.windows.all) {
+      el.innerHTML = '<div class="sub">No scorecard yet — outcomes are appended once published calls resolve against their own invalidation levels.</div>';
+      return;
+    }
+    var all = card.windows.all;
+    var minimum = (card.policy && card.policy.minResolvedSample) || 0;
+    var resolvedTip = "Resolved = a call that reached its own published trigger (in favour) or its own published invalidation (against). Currently " +
+      all.resolved + " of " + all.closed + " closed calls. Expired, unresolved and not-evaluable calls are outcomes but not evidence either way, so they never enter the rate.";
+    var rateTip = all.hitRate === null
+      ? "Withheld: only " + all.resolved + " call(s) have resolved and this scorecard will not print a rate below " + minimum + ". A hit rate over a handful of calls is noise dressed as evidence."
+      : "Of the " + all.resolved + " calls that resolved, " + all.satisfied + " reached their trigger and " + all.invalidated + " hit their invalidation.";
+    var notEvalTip = "Share of closed calls whose own prose carried no machine-checkable invalidation level, so they could not be scored either way. " +
+      "This is the honest cost of prose gates — it is published rather than hidden, because the only way it falls is for the brief to write checkable invalidations.";
+    var openTip = card.openCalls + " call(s) are still inside their horizon with neither gate reached. They are deliberately unscored: silence means open, not success.";
+
+    var head =
+      '<div class="scorecard-head">' +
+      '<span class="pill ' + (all.hitRate === null ? "warn" : (all.hitRate >= 0.5 ? "live" : "bad")) + '" title="' + esc(rateTip) + '">' +
+      (all.hitRate === null ? "rate withheld — n = " + all.resolved : "resolved in favour " + scorecardPct(all.hitRate)) + '</span>' +
+      '<span class="pill" title="' + esc(resolvedTip) + '">' + all.resolved + ' resolved of ' + all.closed + ' closed</span>' +
+      '<span class="pill" title="' + esc(notEvalTip) + '">' + scorecardPct(all.notEvaluableShare) + ' not machine-evaluable</span>' +
+      '<span class="pill" title="' + esc(openTip) + '">' + card.openCalls + ' still open</span>' +
+      '</div>';
+
+    var calibrationRows = (all.calibration || []).filter(function (row) { return row.closed > 0; }).map(function (row) {
+      var tip = row.realised === null
+        ? "Stated " + scorecardPct(row.stated) + " across " + row.closed + " closed call(s), but only " + row.resolved +
+        " resolved — below the " + minimum + "-call minimum, so no realised frequency is claimed for this bucket."
+        : "Calls stated at " + scorecardPct(row.stated) + " realised " + scorecardPct(row.realised) + " over " + row.resolved +
+        " resolved call(s). " + (row.realised < row.stated ? "Stated confidence is running ahead of realised frequency." : "Realised frequency is at or above stated confidence.");
+      return '<tr title="' + esc(tip) + '"><td>' + esc(row.label) + '</td><td>' + row.closed + '</td><td>' + row.resolved + '</td><td>' +
+        scorecardPct(row.stated) + '</td><td>' + (row.realised === null ? '<span class="sub">insufficient sample</span>' : scorecardPct(row.realised)) + '</td></tr>';
+    }).join("");
+
+    var calibration = calibrationRows
+      ? '<table class="scorecard-cal"><thead><tr>' +
+      '<th title="The confidence the brief stated when it made the call.">stated confidence</th>' +
+      '<th title="Calls in this bucket that have closed for any reason.">closed</th>' +
+      '<th title="Calls in this bucket that reached a trigger or an invalidation.">resolved</th>' +
+      '<th title="Mean stated confidence of the resolved calls in this bucket.">stated</th>' +
+      '<th title="Share of those resolved calls that went in favour. This is the only frequency on the page; confidence itself is evidence quality, never a win probability.">realised</th>' +
+      '</tr></thead><tbody>' + calibrationRows + '</tbody></table>'
+      : '<div class="sub">No closed calls carry a stated confidence yet.</div>';
+
+    var misses = (card.recentMisses || []).length
+      ? (card.recentMisses || []).map(function (miss) {
+        var by = miss.invalidatedBy || {};
+        var tip = "Proposed " + (miss.proposedAt || "—") + " at " + (miss.confidence != null ? miss.confidence + "% stated confidence" : "unstated confidence") +
+          ". Invalidated when " + (by.instrument || miss.instrument || "the instrument") + " closed " + (by.close != null ? by.close : "—") +
+          ", through its published " + (by.relation || "") + " " + (by.level != null ? by.level : "—") + " level, " +
+          (by.sessionsToResolve != null ? by.sessionsToResolve + " session(s) after the call." : "after the call.");
+        return '<div class="acard" title="' + esc(tip) + '"><b>' + esc(miss.instrument || "—") + ' · ' + esc(miss.direction || "—") + ' · ' + esc(miss.horizon || "—") + '</b>' +
+          '<div class="ay">Invalidated ' + esc(by.closedAt ? String(by.closedAt).slice(0, 10) : String(miss.closedAt || "").slice(0, 10)) +
+          ' — closed ' + esc(by.close != null ? String(by.close) : "—") + ' through the published ' + esc(by.relation || "") + ' ' + esc(by.level != null ? String(by.level) : "—") + ' level' +
+          (miss.confidence != null ? ' (stated ' + miss.confidence + '%)' : '') + '.</div></div>';
+      }).join("")
+      : '<div class="sub">No call has been invalidated yet.</div>';
+
+    el.innerHTML = head +
+      '<div class="scorecard-body">' +
+      '<div><div class="scorecard-label" title="Stated confidence against the frequency those calls actually realised. A stated 60% that realises 40% is visible here rather than flattered.">Calibration — stated vs realised</div>' + calibration + '</div>' +
+      '<div><div class="scorecard-label" title="The most recent calls that hit their own invalidation, in full. A scorecard that hides its misses is marketing.">Most recent misses</div>' + misses + '</div>' +
+      '</div>' +
+      '<div class="sub" style="margin-top:6px">Every call is scored only against the trigger and invalidation it published for itself, on completed daily closes. Educational only — not investment advice.</div>';
+  }
+
   function renderRegimeStrip(el, r) {
     if (!el) return;
     if (!r) { el.innerHTML = '<span class="pill">regime: (no payload yet)</span>'; return; }
@@ -810,6 +884,7 @@
 
   root.RLBRIEF.deepLink = deepLink;
   root.RLBRIEF.renderRegimeStrip = renderRegimeStrip;
+  root.RLBRIEF.renderScorecard = renderScorecard;
   root.RLBRIEF.renderBackdrop = renderBackdrop;
   root.RLBRIEF.renderAttention = renderAttention;
   root.RLBRIEF.renderRecs = renderRecs;

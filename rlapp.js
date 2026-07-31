@@ -362,9 +362,10 @@
      progress / evidence / backtrack / packet / review into a host and persists ONLY through the
      runtime's verified local slots. It NEVER executes: recording human review mutates local
      packet state only — no trade / order / holding change / rebalance / hedge / external call.
-     It performs ZERO eager storage writes: nothing is written until the user completes a step,
-     and on every real page (which carries no [data-rljourney-mount] anchor) the boot hook is
-     inert, so the existing shell boot is unchanged. */
+     It performs ZERO eager storage writes: nothing is written until the user completes a step.
+     The boot hook is inert until the shared four-view shell builds its Journey panel, which is what
+     ships the [data-rljourney-mount] anchor and then calls mountJourney() directly; a page without
+     that panel never mounts a controller, so the existing shell boot is unchanged. */
   function journeyUnwrap(result, label) {
     if (!result || result.ok !== true) {
       var err = result && result.error ? (result.error.code + " " + result.error.fieldPath + " " + result.error.reason) : "unknown";
@@ -569,8 +570,12 @@
   }
   function mountJourney() {
     var anchors = document.querySelectorAll ? document.querySelectorAll("[data-rljourney-mount]") : [];
-    if (!anchors.length) return; /* inert on every real page → ZERO eager Journey storage writes */
+    if (!anchors.length) return; /* inert until the shell builds the Journey panel → ZERO eager storage writes */
     var anchor = anchors[0];
+    /* The shell calls this once its panel exists; boot() already tried before that. Mounting twice
+       would stack two controllers on one host. */
+    if (anchor.getAttribute("data-rljourney-state") === "ready" || anchor.__rljourneyMounting) return;
+    anchor.__rljourneyMounting = true;
     Promise.all([
       fetchRequiredJson("tool-experience.config.json"),
       fetchRequiredJson("journeys.json"),
@@ -580,7 +585,7 @@
       var config = values[0];
       var journeys = values[1];
       var registry = values[2];
-      if (!config || !journeys || !registry || values[3] !== true) { anchor.setAttribute("data-rljourney-state", "unavailable"); return; }
+      if (!config || !journeys || !registry || values[3] !== true) { anchor.__rljourneyMounting = false; anchor.setAttribute("data-rljourney-state", "unavailable"); return; }
       var controller = createJourneyController({
         runtime: root.RLJOURNEY,
         storage: (function () { try { return root.localStorage || null; } catch (e) { return null; } })(),
@@ -590,9 +595,10 @@
         registry: registry
       });
       controller.mount();
+      anchor.__rljourneyMounting = false;
       anchor.setAttribute("data-rljourney-state", "ready");
       root.__rljourneyController = controller;
-    }).catch(function () { anchor.setAttribute("data-rljourney-state", "unavailable"); });
+    }).catch(function () { anchor.__rljourneyMounting = false; anchor.setAttribute("data-rljourney-state", "unavailable"); });
   }
   function boot() {
     buildStatus(); mountSettings(document.getElementById("data-settings"));

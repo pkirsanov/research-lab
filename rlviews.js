@@ -118,6 +118,16 @@
       '</div>';
   }
 
+  /* rlviews is loaded dynamically, AFTER RLAPP exists, so the mount is a direct call rather than an
+     event. Deferred one tick so every panel is in the document before the runtime queries for the
+     anchor, and re-entrant-safe because RLAPP.boot() already made one (inert) attempt. */
+  function mountJourneyWhenReady() {
+    if (!root.RLAPP || typeof root.RLAPP.mountJourney !== "function") return;
+    root.setTimeout(function () {
+      try { root.RLAPP.mountJourney(); } catch (error) { /* a journey failure must never break the shell */ }
+    }, 0);
+  }
+
   function buildPanels() {
     for (var index = 0; index < MODES.length; index += 1) {
       var mode = MODES[index];
@@ -127,7 +137,13 @@
         panel.appendChild(ANCHOR);
         if (SHELL.kind === "ordinary") panel.insertAdjacentHTML("beforeend", dependencyMarkup("FEATURE002"));
       } else if (mode === "journey") {
-        panel.innerHTML = '<h2>Journey</h2><p>Choose a tool goal to begin a guided research workflow. Runtime activation is delivered by the Journey foundation.</p>';
+        // The 48 designed journeys shipped with no way in: this panel used to be a literal
+        // placeholder and no page carried the [data-rljourney-mount] anchor the runtime looks for,
+        // so RLAPP's boot hook was inert everywhere. The anchor lives here now, and the panel drives
+        // the SAME production mount path the journey suites exercise.
+        panel.innerHTML = '<h2>Journey</h2><p>Choose a tool goal to begin a guided research workflow. Progress is stored only in this browser.</p>'
+          + '<div data-rljourney-mount data-rljourney-state="pending"></div>';
+        mountJourneyWhenReady();
       } else if (mode === "portfolio") {
         panel.innerHTML = '<h2>Portfolio</h2><p>Public watchlist research remains available without implying holdings.</p>' + dependencyMarkup("FEATURE008");
       } else if (mode === "red-alert") {

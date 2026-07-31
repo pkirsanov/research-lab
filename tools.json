@@ -5,6 +5,7 @@
   "tools": [
     {
       "id": "market-brief",
+      "group": "Market Structure",
       "title": "Market Action Center",
       "nav": {
         "label": "Market Action Center",
@@ -62,6 +63,7 @@
     },
     {
       "id": "market-heatmap-lab",
+      "group": "Market Structure",
       "title": "Market Heatmap Lab",
       "nav": {
         "label": "Market Heatmap",
@@ -115,6 +117,7 @@
     },
     {
       "id": "options-flow-feed-lab",
+      "group": "Options & Flow",
       "title": "Unusual Options Activity Lab",
       "nav": {
         "label": "Unusual Options",
@@ -165,6 +168,7 @@
     },
     {
       "id": "intraday-tape-lab",
+      "group": "Market Structure",
       "title": "Intraday Tape & Volume-Profile Lab",
       "nav": {
         "label": "Intraday Tape",
@@ -230,6 +234,7 @@
     },
     {
       "id": "swing-structure-lab",
+      "group": "Market Structure",
       "title": "Swing Structure & Market-Regime Lab",
       "nav": {
         "label": "Swing Structure",
@@ -296,6 +301,7 @@
     },
     {
       "id": "options-structure-lab",
+      "group": "Options & Flow",
       "title": "Options Structure & Momentum Research Lab",
       "nav": {
         "label": "Options Structure",
@@ -366,6 +372,7 @@
     },
     {
       "id": "gamma-trading-lab",
+      "group": "Options & Flow",
       "title": "Gamma Trading & Dealer-Flow Playbook Lab",
       "nav": {
         "label": "Gamma Trading",
@@ -434,6 +441,7 @@
     },
     {
       "id": "sector-research-lab",
+      "group": "Rotation & Macro",
       "title": "Sector Rotation & Momentum Research Lab",
       "nav": {
         "label": "Sector Rotation",
@@ -531,6 +539,7 @@
     },
     {
       "id": "global-rotation-lab",
+      "group": "Rotation & Macro",
       "title": "Global Rotation Lab",
       "nav": {
         "label": "Global Rotation",
@@ -582,6 +591,7 @@
     },
     {
       "id": "real-assets-lab",
+      "group": "Rotation & Macro",
       "title": "Real Assets Lab",
       "nav": {
         "label": "Real Assets",
@@ -635,6 +645,7 @@
     },
     {
       "id": "bond-regime-lab",
+      "group": "Rotation & Macro",
       "title": "Bond Regime & Fixed-Income Scenario Lab",
       "nav": {
         "label": "Bond Regime",
@@ -686,6 +697,7 @@
     },
     {
       "id": "ai-capex-strategy-lab",
+      "group": "Fundamentals",
       "title": "AI Capex Strategy Lab",
       "nav": {
         "label": "AI Capex Strategy",
@@ -740,6 +752,7 @@
     },
     {
       "id": "msft-july-print-model",
+      "group": "Fundamentals",
       "title": "MSFT July-Print Margin & EPS Model",
       "nav": {
         "label": "MSFT July Print",
@@ -798,6 +811,7 @@
     },
     {
       "id": "company-fundamentals-lab",
+      "group": "Fundamentals",
       "title": "Company Fundamentals & Adaptive Brief Lab",
       "nav": {
         "label": "Company Fundamentals",
@@ -850,6 +864,7 @@
     },
     {
       "id": "etf-momentum-lab",
+      "group": "Rotation & Macro",
       "title": "ETF Momentum Research Lab",
       "nav": {
         "label": "ETF Momentum",
@@ -910,6 +925,7 @@
     },
     {
       "id": "strategy-self-improvement-lab",
+      "group": "Strategy & Validation",
       "title": "Strategy Self-Improvement & Walk-Forward Lab",
       "nav": {
         "label": "Strategy Self-Improve",
@@ -975,6 +991,7 @@
     },
     {
       "id": "strategy-validation-lab",
+      "group": "Strategy & Validation",
       "title": "Strategy Validation & Real-Data Walk-Forward Lab",
       "nav": {
         "label": "Strategy Validate",
@@ -1038,6 +1055,7 @@
     },
     {
       "id": "smart-money-flow-lab",
+      "group": "Options & Flow",
       "title": "Smart-Money & Congressional-Flow Lab",
       "nav": {
         "label": "Smart-Money Flow",
@@ -1094,6 +1112,7 @@
     },
     {
       "id": "waterfront-polo-lab",
+      "group": "Place-based",
       "title": "Florida Waterfront × Masters Water-Polo Screener",
       "nav": {
         "label": "Waterfront × Polo",
@@ -1160,6 +1179,7 @@
     },
     {
       "id": "volatility-sizing-lab",
+      "group": "Strategy & Validation",
       "title": "Volatility Regime & Vol-Targeting Sizing Lab",
       "nav": {
         "label": "Vol Sizing",
@@ -1218,6 +1238,7 @@
     },
     {
       "id": "palm-springs-rental-market-lab",
+      "group": "Place-based",
       "title": "Palm Springs Rental Market Lab",
       "nav": {
         "label": "Palm Springs Rentals",
@@ -1275,6 +1296,7 @@
     },
     {
       "id": "ocean-shores-rental-market-lab",
+      "group": "Place-based",
       "title": "Ocean Shores Rental Market Lab",
       "nav": {
         "label": "Ocean Shores Rentals",
@@ -1332,6 +1354,7 @@
     },
     {
       "id": "technical-analysis-decision-lab",
+      "group": "Market Structure",
       "title": "Technical Analysis Decision Lab",
       "nav": {
         "label": "TA Decision",

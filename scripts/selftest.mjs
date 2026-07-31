@@ -1589,6 +1589,49 @@ try {
   assert(expected.indexOf('global-rotation-lab') >= 0 && expected.indexOf('real-assets-lab') >= 0, 'global rotation and real assets are registered');
   const refresh = read('scripts/brief-refresh.mjs');
   assert(/buildGlobalToolRead/.test(refresh) && /buildRealAssetsToolRead/.test(refresh) && /buildToolCoverage/.test(refresh), 'Tier-A carries exact global/real-asset reads plus registry coverage');
+
+  /* Discovery grouping. tools.json `.group` is the source of truth; index.html and rlnav.js each
+     carry a GROUPS constant for runtime rendering (both pages must work from file://, so neither
+     can fetch the registry to lay itself out). These assertions are what make the duplication safe:
+     the moment a group assignment drifts, or a newly registered tool is not claimed by any group,
+     this fails — so a shipped tool can never quietly fall out of discovery. */
+  const ungrouped = registry.filter((tool) => typeof tool.group !== 'string' || !tool.group.trim()).map((tool) => tool.id);
+  assert(ungrouped.length === 0, 'every registered tool declares a discovery group in tools.json');
+
+  const groupsFromRegistry = {};
+  registry.forEach((tool) => { (groupsFromRegistry[tool.group] = groupsFromRegistry[tool.group] || []).push(tool.id); });
+
+  const parseGroups = (source, transform) => {
+    const block = source.match(/GROUPS\s*=\s*\[([\s\S]*?)\n\s*\];/);
+    if (!block) return null;
+    const out = {};
+    for (const entry of block[1].matchAll(/\[\s*['"]([^'"]+)['"]\s*,\s*\[([\s\S]*?)\]\s*\]/g)) {
+      out[entry[1]] = Array.from(entry[2].matchAll(/['"]([^'"]+)['"]/g)).map((m) => transform(m[1]));
+    }
+    return out;
+  };
+  const indexGroups = parseGroups(read('index.html'), (id) => id);
+  const navGroups = parseGroups(read('rlnav.js'), (file) => file.replace(/\.html$/, ''));
+  assert(indexGroups && Object.keys(indexGroups).length > 0, 'index.html declares a GROUPS constant');
+  assert(navGroups && Object.keys(navGroups).length > 0, 'rlnav.js declares a GROUPS constant');
+
+  const sortedMembers = (map) => Object.keys(map).sort().map((key) => key + ':' + map[key].slice().sort().join(',')).join('|');
+  assert(sortedMembers(indexGroups) === sortedMembers(groupsFromRegistry), 'landing-page groups match tools.json .group exactly');
+  assert(sortedMembers(navGroups) === sortedMembers(groupsFromRegistry), 'navigation groups match tools.json .group exactly');
+  assert(JSON.stringify(Object.keys(indexGroups)) === JSON.stringify(Object.keys(navGroups)), 'landing page and rail render groups in the same order');
+
+  const claimed = new Set(Object.values(indexGroups).flat());
+  const unclaimed = expected.filter((id) => !claimed.has(id));
+  assert(unclaimed.length === 0, 'no registered tool is left out of the grouped discovery surface');
+
+  /* ADVERSARIAL: a grouping check that would pass against an empty or partial registry proves
+     nothing. Prove the comparison actually binds by mutating one assignment and requiring a
+     mismatch. If this ever stops failing, the parity assertions above are vacuous. */
+  const tampered = JSON.parse(JSON.stringify(groupsFromRegistry));
+  const firstKey = Object.keys(tampered).sort()[0];
+  tampered[firstKey] = tampered[firstKey].concat(['not-a-real-tool']);
+  assert(sortedMembers(indexGroups) !== sortedMembers(tampered), 'the group parity comparison detects a single injected member');
+
 } catch (e) { failures++; console.log('  ✗ FAIL (registry coverage group threw): ' + e.message); }
 
 /* ---------- Shared application shell: central keys + automatic data deltas ---------- */

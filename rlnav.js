@@ -64,6 +64,40 @@
     { label: "Waterfront × Polo", full: "Florida Waterfront × Masters Water-Polo Screener", icon: "🤽", file: "waterfront-polo-lab.html" }
   ];
 
+  /* Discovery grouping, keyed by file. tools.json `.group` is the SOURCE OF TRUTH and the selftest
+     fails if this drifts from it or from index.html. Same order as index.html so the rail and the
+     landing page tell one story. */
+  var GROUPS = [
+    ["Market Structure", ["market-brief.html", "market-heatmap-lab.html", "intraday-tape-lab.html", "swing-structure-lab.html", "technical-analysis-decision-lab.html"]],
+    ["Options & Flow", ["options-flow-feed-lab.html", "options-structure-lab.html", "gamma-trading-lab.html", "smart-money-flow-lab.html"]],
+    ["Rotation & Macro", ["sector-research-lab.html", "global-rotation-lab.html", "real-assets-lab.html", "bond-regime-lab.html", "etf-momentum-lab.html"]],
+    ["Strategy & Validation", ["strategy-self-improvement-lab.html", "strategy-validation-lab.html", "volatility-sizing-lab.html"]],
+    ["Fundamentals", ["ai-capex-strategy-lab.html", "msft-july-print-model.html", "company-fundamentals-lab.html"]],
+    ["Place-based", ["waterfront-polo-lab.html", "palm-springs-rental-market-lab.html", "ocean-shores-rental-market-lab.html"]]
+  ];
+
+  /* Emits HOME, then one labelled block per group. A registered tool no group claims is NOT dropped —
+     it lands in a visible "Ungrouped" block, because silently hiding a shipped tool from the only
+     navigation surface is the exact failure this grouping exists to prevent. */
+  function groupedItems() {
+    var byFile = {};
+    TOOLS.forEach(function (tool) { byFile[tool.file] = tool; });
+    var items = [HOME, "sep"];
+    var placed = {};
+    GROUPS.forEach(function (pair) {
+      var members = pair[1].map(function (file) { return byFile[file]; }).filter(Boolean);
+      if (!members.length) return;
+      items.push({ heading: pair[0] });
+      members.forEach(function (tool) { placed[tool.file] = 1; items.push(tool); });
+    });
+    var strays = TOOLS.filter(function (tool) { return !placed[tool.file]; });
+    if (strays.length) {
+      items.push({ heading: "Ungrouped" });
+      strays.forEach(function (tool) { items.push(tool); });
+    }
+    return items;
+  }
+
   function currentFile() {
     var p = (location.pathname || "").split("/").pop();
     return (!p || p === "") ? "index.html" : p;
@@ -130,6 +164,7 @@
       "#rlnav a.rlnav-item.active .rlnav-tt{font-weight:650}",
       "#rlnav a.rlnav-item:focus-visible{outline:2px solid #2dd4bf;outline-offset:1px}",
       "#rlnav .rlnav-sep{height:1px;margin:6px 10px;background:#1c2836}",
+      "#rlnav .rlnav-group{margin:10px 10px 4px;font:600 10px/1.2 inherit;letter-spacing:.09em;text-transform:uppercase;color:#6f8296;white-space:nowrap;overflow:hidden}",
       "#rlnav .rlnav-foot{padding:9px 14px;border-top:1px solid #1c2836;color:#5d7186;font-size:11px;line-height:1.4}",
       "#rlnav .rlnav-foot a{color:#67d7c6;text-decoration:none;font-weight:650}",
       "@media (max-width:640px){#rlnav{width:82vw}}",
@@ -178,10 +213,14 @@
     panel.id = "rlnav";
     panel.setAttribute("aria-label", "Research Lab tools");
 
-    var items = [HOME, "sep"].concat(TOOLS);
+    var items = groupedItems();
     var listHTML = "";
     items.forEach(function (t) {
       if (t === "sep") { listHTML += '<div class="rlnav-sep"></div>'; return; }
+      if (t.heading) {
+        listHTML += '<div class="rlnav-group" role="presentation" title="' + esc(t.heading) + '">' + esc(t.heading) + "</div>";
+        return;
+      }
       var active = (t.file === cur);
       listHTML +=
         '<a class="rlnav-item' + (active ? " active" : "") + '" href="' + esc(t.file) + '"' +

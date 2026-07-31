@@ -261,6 +261,59 @@
       gap: 16px
     }
 
+    .toolfilter {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      margin: 0 0 18px
+    }
+
+    .toolfilter input {
+      flex: 1 1 auto;
+      max-width: 420px;
+      background: var(--panel);
+      border: 1px solid var(--line);
+      border-radius: 10px;
+      color: inherit;
+      font: inherit;
+      padding: 9px 12px
+    }
+
+    .toolfilter input:focus {
+      outline: 2px solid var(--accent, #2dd4bf);
+      outline-offset: 1px
+    }
+
+    .filtercount {
+      color: var(--muted);
+      font: 500 12px/1.2 inherit
+    }
+
+    .toolgroup {
+      margin: 0 0 26px
+    }
+
+    .toolgroup>h3 {
+      margin: 0 0 10px;
+      font: 600 13px/1.2 inherit;
+      letter-spacing: .08em;
+      text-transform: uppercase;
+      color: var(--muted)
+    }
+
+    .toolgroup[hidden] {
+      display: none
+    }
+
+    .sr-only {
+      position: absolute;
+      width: 1px;
+      height: 1px;
+      overflow: hidden;
+      clip: rect(0 0 0 0);
+      white-space: nowrap
+    }
+
     .card {
       display: flex;
       flex-direction: column;
@@ -450,7 +503,14 @@
     <section class="settings-band" id="data-settings" aria-label="Provider access status"></section>
 
     <h2 class="section">Tools</h2>
-    <div class="grid" id="grid"></div>
+    <div class="toolfilter">
+      <label class="sr-only" for="toolFilter">Filter tools</label>
+      <input id="toolFilter" type="search" autocomplete="off" spellcheck="false"
+        placeholder="Filter by name, description, or tag…"
+        title="Filters the groups below as you type. Matches tool title, blurb, and tags. No data is sent anywhere — this runs entirely in your browser.">
+      <span id="toolFilterCount" class="filtercount" title="How many tools match the current filter, out of every registered tool."></span>
+    </div>
+    <div id="grid"></div>
 
     <div class="disclaimer">
       <b>Educational models — NOT investment advice.</b> Every figure in these tools is a hypothetical output from
@@ -759,13 +819,29 @@
       } */
     ];
 
+    /* Discovery grouping. tools.json `.group` is the SOURCE OF TRUTH; the selftest fails this page
+       if the two ever disagree, so this list cannot silently drift from the registry. Order here is
+       the order the sections render in — deliberately market-first, place-based last. */
+    var GROUPS = [
+      ['Market Structure', ['market-brief', 'market-heatmap-lab', 'intraday-tape-lab', 'swing-structure-lab', 'technical-analysis-decision-lab']],
+      ['Options & Flow', ['options-flow-feed-lab', 'options-structure-lab', 'gamma-trading-lab', 'smart-money-flow-lab']],
+      ['Rotation & Macro', ['sector-research-lab', 'global-rotation-lab', 'real-assets-lab', 'bond-regime-lab', 'etf-momentum-lab']],
+      ['Strategy & Validation', ['strategy-self-improvement-lab', 'strategy-validation-lab', 'volatility-sizing-lab']],
+      ['Fundamentals', ['ai-capex-strategy-lab', 'msft-july-print-model', 'company-fundamentals-lab']],
+      ['Place-based', ['waterfront-polo-lab', 'palm-springs-rental-market-lab', 'ocean-shores-rental-market-lab']]
+    ];
+
     (function () {
       var grid = document.getElementById('grid');
       var live = TOOLS.filter(function (t) { return t.status === 'live'; });
-      TOOLS.forEach(function (t) {
+      var byId = {};
+      TOOLS.forEach(function (t) { byId[t.id] = t; });
+
+      function cardFor(t) {
         var soon = t.status !== 'live';
         var el = document.createElement('div');
         el.className = 'card' + (soon ? ' soon' : '');
+        el.setAttribute('data-tool-id', t.id);
         el.style.setProperty('--accent', t.accent || '#2dd4bf');
         var tags = (t.tags || []).map(function (x) { return '<span class="t">' + x + '</span>'; }).join('');
         var actions = soon ? '<span>coming soon</span>' : '<span><a class="open" href="' + t.file + '">Open tool →</a>' + (t.notes ? ' <a class="note" href="' + t.notes + '">Notes</a>' : '') + '</span>';
@@ -776,8 +852,81 @@
           '<div class="tags">' + tags + '</div>' +
           '<div class="foot"><span>' + (t.updated ? ('updated ' + t.updated) : 'in progress') + '</span>' +
           actions + '</div>';
-        grid.appendChild(el);
+        return el;
+      }
+
+      /* Within a group, most-recently-updated first. Undated ("soon") entries sort last rather than
+         being dropped — a tool that exists but has no date is still a tool. */
+      function byUpdatedDesc(a, b) {
+        var au = a.updated || '', bu = b.updated || '';
+        if (au === bu) return a.title.localeCompare(b.title);
+        if (!au) return 1;
+        if (!bu) return -1;
+        return au < bu ? 1 : -1;
+      }
+
+      var placed = {};
+      GROUPS.forEach(function (pair) {
+        var members = pair[1].map(function (id) { return byId[id]; }).filter(Boolean).sort(byUpdatedDesc);
+        if (!members.length) return;
+        var section = document.createElement('section');
+        section.className = 'toolgroup';
+        section.setAttribute('data-tool-group', pair[0]);
+        var heading = document.createElement('h3');
+        heading.textContent = pair[0];
+        heading.title = pair[0] + ' — ' + members.length + (members.length === 1 ? ' tool' : ' tools') + ' in this group.';
+        section.appendChild(heading);
+        var inner = document.createElement('div');
+        inner.className = 'grid';
+        members.forEach(function (t) { placed[t.id] = 1; inner.appendChild(cardFor(t)); });
+        section.appendChild(inner);
+        grid.appendChild(section);
       });
+
+      /* A registered tool that no group claims would otherwise vanish from discovery — the exact
+         failure this page is meant to stop. Surface it loudly instead of dropping it. */
+      var ungrouped = TOOLS.filter(function (t) { return !placed[t.id]; });
+      if (ungrouped.length) {
+        var strays = document.createElement('section');
+        strays.className = 'toolgroup';
+        strays.setAttribute('data-tool-group', 'Ungrouped');
+        strays.innerHTML = '<h3 title="These tools are registered but no group claims them. That is a registry defect, not a category.">Ungrouped</h3>';
+        var strayGrid = document.createElement('div');
+        strayGrid.className = 'grid';
+        ungrouped.sort(byUpdatedDesc).forEach(function (t) { strayGrid.appendChild(cardFor(t)); });
+        strays.appendChild(strayGrid);
+        grid.appendChild(strays);
+      }
+
+      /* Client-side filter over title + blurb + tags. No dependency, no build, no network. */
+      var haystack = {};
+      TOOLS.forEach(function (t) {
+        haystack[t.id] = (t.title + ' ' + (t.blurb || '') + ' ' + (t.tags || []).join(' ')).toLowerCase();
+      });
+      var input = document.getElementById('toolFilter');
+      var countEl = document.getElementById('toolFilterCount');
+
+      function applyFilter() {
+        var q = (input.value || '').trim().toLowerCase();
+        var shown = 0;
+        Array.prototype.forEach.call(grid.querySelectorAll('.card'), function (card) {
+          var match = !q || (haystack[card.getAttribute('data-tool-id')] || '').indexOf(q) !== -1;
+          card.hidden = !match;
+          if (match) shown += 1;
+        });
+        Array.prototype.forEach.call(grid.querySelectorAll('.toolgroup'), function (section) {
+          section.hidden = !section.querySelector('.card:not([hidden])');
+        });
+        countEl.textContent = q
+          ? (shown + ' of ' + TOOLS.length + (shown === 1 ? ' tool matches' : ' tools match'))
+          : '';
+        countEl.title = q
+          ? 'Filtering on "' + input.value.trim() + '". ' + shown + ' of ' + TOOLS.length + ' registered tools match on title, description, or tag.'
+          : 'Type to filter. All ' + TOOLS.length + ' registered tools are shown.';
+      }
+      input.addEventListener('input', applyFilter);
+      applyFilter();
+
       document.getElementById('toolCount').textContent = live.length + (live.length === 1 ? ' tool' : ' tools');
       var latest = live.map(function (t) { return t.updated; }).filter(Boolean).sort().pop();
       if (latest) document.getElementById('updated').textContent = 'updated ' + latest;

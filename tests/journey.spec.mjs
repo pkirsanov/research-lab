@@ -133,6 +133,43 @@ async function mountJourneyOnPage(page) {
   }, undefined, { timeout: 12000 });
 }
 
+/* ═══════════════ Step 8 — the journey surface must SHIP, not be test-injected ═══════════════ */
+
+test('the [data-rljourney-mount] anchor is shipped by the four-view shell, and the goal chooser mounts itself', async ({ page }) => {
+  await page.goto(`${site.baseUrl}/${PAGE}`);
+  await expect(page.locator('body')).toBeVisible();
+
+  /* Route to the shipped Journey view exactly as a user would — the shell owns #journey routing.
+     NOTHING is injected here: no addScriptTag, no createElement, no setAttribute. If the anchor
+     only existed because the other tests in this file build it, this test fails. */
+  await page.locator('#rlviews button[data-rlview-mode="journey"]').click();
+
+  const anchor = page.locator('[data-rlexperience-panel="journey"] [data-rljourney-mount]');
+  await expect(anchor).toHaveCount(1);
+  await expect(anchor).toHaveAttribute('data-rljourney-state', 'ready', { timeout: 15000 });
+
+  /* Mounted means the REAL chooser is on screen listing REAL registry goals, not a placeholder. */
+  const surface = await page.evaluate(() => {
+    const host = document.querySelector('[data-rljourney-mount]');
+    const panel = document.querySelector('[data-rlexperience-panel="journey"]');
+    return {
+      controllerLive: !!globalThis.__rljourneyController,
+      hostHasContent: host.textContent.trim().length > 0,
+      goalCount: host.querySelectorAll('[data-rljourney-goal]').length,
+      panelText: panel.textContent
+    };
+  });
+
+  expect(surface.controllerLive).toBe(true);
+  expect(surface.hostHasContent).toBe(true);
+  expect(surface.goalCount).toBeGreaterThan(0);
+
+  /* ADVERSARIAL: the old copy promised the runtime was coming later. If that sentence is still on
+     screen the panel is still the placeholder and the mount did not really happen — this assertion
+     is what would fail if someone reverted the wiring but left the anchor behind. */
+  expect(surface.panelText).not.toContain('Runtime activation is delivered');
+});
+
 /* ═══════════════════════ TP-08-04 — SCN-012-009 durable resume ═══════════════════════ */
 
 test('Regression: SCN-012-009 Journey reload restores evidence-complete progress and never completes visits', async ({ page }) => {

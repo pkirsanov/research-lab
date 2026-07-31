@@ -320,6 +320,65 @@ session is constrained from touching, so the drift is recorded here for its owne
 the two guard invocations above were run, reported, and left failing. Recording the defect
 *is* the deliverable.
 
+### Finding PERF-01 — contextual-tooltip validation saturated the main thread on data-dense pages (RESOLVED 2026-07-31)
+
+**Symptom.** `tests/distributed-briefs.ui-canary.mjs` failed (0 pass / 1 fail). The failure
+had previously been treated as unattributed background noise. It is a real, reproducible
+product defect.
+
+**Measurement.** Time from navigation to `[data-rlbrief-mount][data-rlbrief-ready="1"]`,
+three runs per page, same harness:
+
+| Page | Run 1 | Run 2 | Run 3 |
+|---|---|---|---|
+| `options-flow-feed-lab` | 31,534ms | 22,488ms | 18,481ms |
+| `gamma-trading-lab` | 916ms | 475ms | 472ms |
+| `intraday-tape-lab` | 451ms | 377ms | 371ms |
+
+~40–70× slower than its peers, straddling the canary's 30s `waitForSelector` budget — so the
+canary passed or failed depending on machine load.
+
+**Root cause.** A main-thread responsiveness probe recorded **2 stalls totalling 24,164ms =
+97% of startup**, the largest a single contiguous **23,451ms** block of synchronous
+JavaScript. CPU profiling attributed ~41% of samples to a hand-rolled SHA-256 in
+`rlexperience.js` (`encode` 17%, `sha256` 13%, `utf8Bytes` 4%, `fingerprint` 2%) plus 7%
+garbage collection. Instrumenting the call path showed:
+
+- **113,710** `validateContextInternal` calls, **0% object-identity reuse** — auto-decoration
+  mints a fresh context object per rendered table cell;
+- only **18 distinct canonical values** across all of them;
+- each call performed **three** canonicalisations (`rlcontext.js` cloneCanonical ×2 +
+  `fingerprint`) plus a SHA-256;
+- **193.4 MB** hashed in total, of which **100% were redundant**.
+
+**Why it is not a BUG-001 regression.** BUG-001
+(`options-flow-shell-startup-starvation`, `done`/certified) governs *shell-ready ordering
+before heavy hydration*; its regression test still passes. PERF-01 is a distinct mechanism —
+main-thread saturation *after* the shell is ready — which is why closing BUG-001 did not
+surface it.
+
+**Fix.** `fingerprint()` and `validateContextInternal()` are pure functions of the canonical
+form, so successful results are memoised on that string (commit `2aba9483`). Only successful
+validations are cached, so an invalid context still rejects on every call; input that cannot
+be canonicalised re-throws at its original site, preserving error ordering. Both caches are
+bounded.
+
+**Result.** Worst-case startup **31,534ms → 17,790ms (−44%)**, now clear of the 30s budget.
+`distributed-briefs.ui-canary` **1 pass / 0 fail** (was 0/1); project selftest **970 passed /
+0 failed**; `contextual-tooltip.functional` 9/0; `tool-experience-registry.functional` 7/0;
+Playwright `tool-experience` + `contextual-tooltip` **16 passed**; zero page errors.
+
+**Residual, not claimed as fixed.** One canonicalisation per decorated element remains, so
+this page is still ~13–18s versus <1s for its peers. The remaining cost is inherent to
+validating one contract per rendered cell and needs a design decision (hoisting context
+construction out of the per-cell render, or decorating lazily) rather than another cache.
+That work is **not** done and is left for its owner.
+
+**Process note.** Two selftest failures were self-inflicted during this fix: explanatory
+comments naming `options-flow-feed-lab` tripped the guard that forbids tool-specific branches
+in the generic validator. The guard was correct; the comments were made tool-agnostic rather
+than the guard weakened.
+
 ## Scenario Contract Evidence
 
 The plan maps all 32 analyst acceptance scenarios plus five technical planning scenarios (`SCN-012-033` through `SCN-012-037`) in `scenario-manifest.json`, exact Markdown Test Plan rows, exact DoD test-evidence items, and `test-plan.json`.

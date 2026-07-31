@@ -27,6 +27,7 @@ import {
   stagePublishSet, commitPublication, pushPublication, classifyRemoteOverlap,
   createRunState, advanceRunState
 } from './brief-publication.mjs';
+import * as OWNER from './owner-state.mjs';
 
 const ROOT = join(dirname(fileURLToPath(import.meta.url)), '..');
 const read = (f) => readFileSync(join(ROOT, f), 'utf8');
@@ -1064,6 +1065,37 @@ async function fearGreed() {
   } catch (e) { return null; }
 }
 
+/* Full intraday OHLCV — the session-auction model needs highs, lows and volume, which the close-only
+   yahooRows projection discards. No same-origin intraday snapshot exists, so this is the only real
+   source; on failure the caller degrades honestly rather than generating bars. */
+async function yahooIntradayBars(sym, range = '5d', interval = '5m') {
+  try {
+    const url = `https://query1.finance.yahoo.com/v8/finance/chart/${encodeURIComponent(sym)}?range=${range}&interval=${interval}`;
+    const r = await fetch(url, { headers: { 'User-Agent': 'Mozilla/5.0' } });
+    if (!r.ok) throw new Error('http ' + r.status);
+    const j = await r.json();
+    const res = j.chart.result[0], t = res.timestamp || [], q = res.indicators.quote[0];
+    const bars = [];
+    for (let i = 0; i < t.length; i++) {
+      const o = q.open[i], h = q.high[i], l = q.low[i], c = q.close[i], v = q.volume[i];
+      if (![o, h, l, c].every(Number.isFinite)) continue;
+      bars.push({ t: t[i] * 1000, o, h, l, c, v: Number.isFinite(v) ? v : 0 });
+    }
+    return bars;
+  } catch (e) { return null; }
+}
+
+/* Group intraday bars into ET civil sessions — the boundary the auction model reasons about. */
+function groupIntradaySessions(bars) {
+  const byDay = new Map();
+  for (const bar of bars) {
+    const key = new Intl.DateTimeFormat('en-CA', { timeZone: 'America/New_York', year: 'numeric', month: '2-digit', day: '2-digit' }).format(new Date(bar.t));
+    if (!byDay.has(key)) byDay.set(key, []);
+    byDay.get(key).push(bar);
+  }
+  return [...byDay.entries()].sort((a, b) => (a[0] < b[0] ? -1 : 1)).map(([key, sessionBars]) => ({ key, bars: sessionBars }));
+}
+
 function latestIso(rows) { return rows && rows.length && Number.isFinite(rows[rows.length - 1].t) ? new Date(rows[rows.length - 1].t).toISOString() : null; }
 function realizedVolDecimal(rows, lookback = 63) {
   if (!rows || rows.length < 3) return null;
@@ -1170,9 +1202,234 @@ export async function buildRealAssetsToolRead() {
   } catch (error) { return { id: 'real-assets-lab', asOf: new Date().toISOString(), read: 'Real-assets model unavailable this run.', metrics: { error: error.message }, deepLink: 'real-assets-lab.html', source: 'owning-tool-functions' }; }
 }
 
+/* ─────────────────────────────────────────────────────────────────────────────────────────────────
+   Owning-model Tier-A reads.
+
+   Each of these runs the OWNING TOOL'S OWN exported model over committed same-origin evidence and
+   publishes what that model returned. No formula is reimplemented here, and a model that cannot
+   reach a read says so with a named reason — the brief then reports an honest absence instead of
+   narrating around a gap, which is what "stale this window" used to mean in practice.
+   ───────────────────────────────────────────────────────────────────────────────────────────────── */
+
+/** An honest empty read: the tool is covered, and the reason it produced nothing is stated. */
+function unavailableToolRead(id, deepLink, reason) {
+  return { id, asOf: new Date().toISOString(), read: reason, metrics: { state: 'unavailable', reason }, deepLink, source: 'owning-tool-functions', state: 'unavailable' };
+}
+
+export function buildOptionsSurfaceToolRead(deps = {}) {
+  const id = 'options-structure-lab', deepLink = 'options-structure-lab.html';
+  try {
+    const root = deps.root || ROOT;
+    const symbol = deps.symbol || 'SPY';
+    const ownerState = OWNER.surfaceOwnerState(root, symbol);
+    if (!ownerState) return unavailableToolRead(id, deepLink, `No committed option snapshot for ${symbol}; the surface model has no chain to price.`);
+    const model = OWNER.loadAdapter(root, 'rlexperience-adapters/options.js');
+    const summary = model.computeSurfaceSummary(JSON.parse(JSON.stringify(ownerState)), OWNER.registryDefaults(root, 'simple-adapter/options-surface/v1'));
+    if (!summary || summary.surface.state !== 'ready') return unavailableToolRead(id, deepLink, `The ${symbol} option surface did not reach a ready state this run.`);
+    const { walls, gammaFlip, expectedMove } = summary;
+    const read = `${symbol} sits in ${gammaFlip.regime} dealer gamma with the flip near ${round(gammaFlip.flipLevel, 2)}; call wall ${walls.callWall ?? '—'}, put wall ${walls.putWall ?? '—'}, front expected move ±${round(expectedMove.em, 2)}.`;
+    return {
+      id, asOf: ownerState.asOf, read, deepLink, source: 'owning-tool-functions', state: 'ready',
+      metrics: {
+        symbol, spot: round(ownerState.spot, 2), regime: gammaFlip.regime,
+        flipLevel: round(gammaFlip.flipLevel, 2), signedNetGEX: gammaFlip.signedNetGEX,
+        callWall: walls.callWall, putWall: walls.putWall,
+        expectedMove: round(expectedMove.em, 2), atmIV: round(expectedMove.atmIV, 4),
+        expiriesPriced: ownerState.chains.length
+      }
+    };
+  } catch (error) { return unavailableToolRead(id, deepLink, `Options surface model unavailable this run: ${error.message}`); }
+}
+
+export function buildGammaToolRead(deps = {}) {
+  const id = 'gamma-trading-lab', deepLink = 'gamma-trading-lab.html';
+  try {
+    const root = deps.root || ROOT;
+    const symbol = deps.symbol || 'SPY';
+    const ownerState = OWNER.gammaOwnerState(root, symbol);
+    if (!ownerState) return unavailableToolRead(id, deepLink, `No committed option snapshot for ${symbol}; the dealer-gamma playbook has no snapshot to read.`);
+    const model = OWNER.loadAdapter(root, 'rlexperience-adapters/options.js');
+    const summary = model.computeGammaPlaybookSummary(JSON.parse(JSON.stringify(ownerState)), OWNER.registryDefaults(root, 'simple-adapter/dealer-gamma-playbook/v1'));
+    if (!summary || summary.gammaState.state !== 'ready') return unavailableToolRead(id, deepLink, `The ${symbol} dealer-gamma regime is unreadable from the committed snapshot.`);
+    const { playbook, gammaState, oviState, opex } = summary;
+    const read = `${symbol} dealers are ${playbook.gammaRegime} gamma — playbook ${playbook.scenario}, conviction ${playbook.conviction}; flip ${round(ownerState.snap.flip, 2)}, walls ${ownerState.snap.putWall ?? '—'}/${ownerState.snap.callWall ?? '—'}.`;
+    return {
+      id, asOf: ownerState.asOf, read, deepLink, source: 'owning-tool-functions', state: 'ready',
+      metrics: {
+        symbol, regime: playbook.gammaRegime, scenario: playbook.scenario,
+        conviction: playbook.conviction, hold: playbook.hold,
+        signedNetGEX: gammaState.signedNetGEX, flipPresent: gammaState.flipPresent,
+        flip: round(ownerState.snap.flip, 2), callWall: ownerState.snap.callWall, putWall: ownerState.snap.putWall,
+        // The OVI percentile needs a rolling snapshot history the server does not keep; the model
+        // reports that absence itself rather than showing an invented percentile.
+        oviState: oviState ? oviState.state : 'unavailable',
+        opexWindow: opex ? opex.label || null : null
+      }
+    };
+  } catch (error) { return unavailableToolRead(id, deepLink, `Dealer-gamma model unavailable this run: ${error.message}`); }
+}
+
+export function buildSwingToolRead(deps = {}) {
+  const id = 'swing-structure-lab', deepLink = 'swing-structure-lab.html';
+  try {
+    const root = deps.root || ROOT;
+    const symbol = deps.symbol || 'SPY';
+    const ownerState = OWNER.swingOwnerState(root, symbol, deps.macro || null);
+    if (!ownerState) return unavailableToolRead(id, deepLink, `No committed daily window for ${symbol}; swing structure has no bars to read.`);
+    const model = OWNER.loadAdapter(root, 'rlexperience-adapters/market-structure.js');
+    const summary = model.computeSwingTransitionSummary(JSON.parse(JSON.stringify(ownerState)), OWNER.registryDefaults(root, 'simple-adapter/swing-transition/v1'));
+    if (!summary || summary.state !== 'ready') return unavailableToolRead(id, deepLink, `Swing structure did not reach a ready state for ${symbol} this run.`);
+    const read = `${symbol} swing structure reads ${summary.swingState.label} with an active ${summary.pattern.ownerPattern} pattern in a ${summary.regime.band} regime.`;
+    return {
+      id, asOf: ownerState.asOf, read, deepLink, source: 'owning-tool-functions', state: 'ready',
+      metrics: {
+        symbol, swingState: summary.swingState.label,
+        fast: round(summary.swingState.fast, 2), slow: round(summary.swingState.slow, 2),
+        pattern: summary.pattern.ownerPattern, patternState: summary.pattern.state,
+        regime: summary.regime.band, accumulation: summary.accumulation ? summary.accumulation.label : null,
+        bars: ownerState.full.length
+      }
+    };
+  } catch (error) { return unavailableToolRead(id, deepLink, `Swing structure model unavailable this run: ${error.message}`); }
+}
+
+export function buildBreadthToolRead(deps = {}) {
+  const id = 'market-heatmap-lab', deepLink = 'market-heatmap-lab.html';
+  try {
+    const root = deps.root || ROOT;
+    const ownerState = OWNER.breadthOwnerState(root, { asOf: deps.asOf });
+    if (!ownerState) return unavailableToolRead(id, deepLink, 'Too few committed constituent snapshots to read market breadth honestly.');
+    const model = OWNER.loadAdapter(root, 'rlexperience-adapters/market-structure.js');
+    const summary = model.computeBreadthSummary(JSON.parse(JSON.stringify(ownerState)), OWNER.registryDefaults(root, 'simple-adapter/market-breadth/v1'));
+    if (!summary || !Number.isFinite(summary.breadth.pct)) return unavailableToolRead(id, deepLink, 'The breadth model produced no percentage from the committed constituents.');
+    const leaders = (summary.groups || []).slice().sort((a, b) => (b.pct ?? -Infinity) - (a.pct ?? -Infinity));
+    const read = `Leadership is ${summary.leadership.state} — ${summary.breadth.pct}% of ${summary.breadth.count} constituents are positive against a ${summary.leadership.threshold}% broad-market threshold.`;
+    return {
+      id, asOf: ownerState.asOf, read, deepLink, source: 'owning-tool-functions', state: 'ready',
+      metrics: {
+        breadthPct: summary.breadth.pct, leadership: summary.leadership.state,
+        threshold: summary.leadership.threshold, margin: summary.leadership.margin,
+        constituents: summary.breadth.count, priced: summary.pricedCount, covered: summary.coverageCount,
+        window: summary.window, grouping: summary.grouping,
+        strongest: leaders.slice(0, 3).map((group) => ({ group: group.key ?? group.label ?? null, pct: group.pct ?? null })),
+        weakest: leaders.slice(-3).reverse().map((group) => ({ group: group.key ?? group.label ?? null, pct: group.pct ?? null }))
+      }
+    };
+  } catch (error) { return unavailableToolRead(id, deepLink, `Market breadth model unavailable this run: ${error.message}`); }
+}
+
+export function buildVolatilityToolRead(deps = {}) {
+  const id = 'volatility-sizing-lab', deepLink = 'volatility-sizing-lab.html';
+  try {
+    const root = deps.root || ROOT;
+    const ownerState = OWNER.volatilityOwnerState(root, { decisionTime: deps.decisionTime });
+    if (!ownerState) return unavailableToolRead(id, deepLink, 'The committed volatility universe or its bar window is unavailable this run.');
+    const model = OWNER.loadAdapter(root, 'rlexperience-adapters/market-structure.js');
+    const rlvol = OWNER.loadAdapter(root, 'rlvol.js');
+    const summary = model.computeVolatilitySummary(rlvol, JSON.parse(JSON.stringify(ownerState)), OWNER.registryDefaults(root, 'simple-adapter/conditional-volatility/v1'));
+    if (!summary || summary.forecast.state !== 'ready') return unavailableToolRead(id, deepLink, 'The conditional-volatility forecast did not reach a ready state this run.');
+    const multiplier = summary.throttle.multiplier;
+    const read = `${ownerState.asset.symbol} conditional volatility forecasts ${summary.forecast.annualizedPct}% in a ${summary.regime.band} regime; the capped vol-target throttle sizes to ${multiplier === null ? 'withheld' : '×' + round(multiplier, 2)}.`;
+    return {
+      id, asOf: ownerState.asOf, read, deepLink, source: 'owning-tool-functions', state: 'ready',
+      metrics: {
+        symbol: ownerState.asset.symbol,
+        forecastPct: summary.forecast.annualizedPct, regime: summary.regime.band,
+        percentile: summary.regime.percentile ?? null,
+        throttle: multiplier === null ? null : round(multiplier, 3),
+        capped: summary.throttle.capped ?? null,
+        estimator: summary.forecast.estimator ?? null,
+        halfLife: summary.persistence ? summary.persistence.halfLife ?? null : null
+      }
+    };
+  } catch (error) { return unavailableToolRead(id, deepLink, `Conditional-volatility model unavailable this run: ${error.message}`); }
+}
+
+/**
+ * intraday-tape-lab. There is no same-origin INTRADAY snapshot in this repo (data/bars is daily), so
+ * the session bars are fetched live — which Node can do without CORS. If that fetch is unavailable
+ * the read degrades honestly; it never generates bars, because a generated session would be a
+ * fabricated auction read.
+ */
+export async function buildIntradayToolRead(deps = {}) {
+  const id = 'intraday-tape-lab', deepLink = 'intraday-tape-lab.html';
+  try {
+    const root = deps.root || ROOT;
+    const symbol = deps.symbol || 'SPY';
+    const bars = typeof deps.intradayBars === 'function' ? await deps.intradayBars(symbol) : await yahooIntradayBars(symbol);
+    if (!bars || bars.length < 40) return unavailableToolRead(id, deepLink, `No intraday session bars are available for ${symbol}; the auction read needs real intraday OHLCV and none is committed.`);
+    const sessions = groupIntradaySessions(bars);
+    const ownerState = OWNER.sessionOwnerState(root, {
+      symbol, sessions, source: 'live intraday bars (no same-origin intraday cache exists)',
+      gamma: deps.gamma || { callWall: null, putWall: null, flip: null }
+    });
+    if (!ownerState) return unavailableToolRead(id, deepLink, `Fewer than two complete intraday sessions are available for ${symbol}.`);
+    const model = OWNER.loadAdapter(root, 'rlexperience-adapters/market-structure.js');
+    const summary = model.computeSessionAuctionSummary(JSON.parse(JSON.stringify(ownerState)), OWNER.registryDefaults(root, 'simple-adapter/session-auction/v1'));
+    if (!summary || summary.state !== 'ready') return unavailableToolRead(id, deepLink, `The session-auction model did not reach a ready state for ${symbol} this run.`);
+    const read = `${symbol}'s session is a ${summary.sessionType.ownerType} auction under ${summary.control.label} control, with VWAP at ${round(summary.levels.vwap, 2)}.`;
+    return {
+      id, asOf: ownerState.asOf, read, deepLink, source: 'owning-tool-functions', state: 'ready',
+      metrics: {
+        symbol, sessionType: summary.sessionType.ownerType, control: summary.control.label,
+        vwap: round(summary.levels.vwap, 2), poc: round(summary.levels.poc, 2),
+        valueAreaHigh: round(summary.levels.vah, 2), valueAreaLow: round(summary.levels.val, 2),
+        gapPct: ownerState.gap === null ? null : round(ownerState.gap * 100, 2),
+        sessions: sessions.length, barsToday: sessions[sessions.length - 1].bars.length
+      }
+    };
+  } catch (error) { return unavailableToolRead(id, deepLink, `Session-auction model unavailable this run: ${error.message}`); }
+}
+
+/**
+ * technical-analysis-decision-lab. Its adapter is a foundation receipt only — computeTechnicalFiveGateSummary
+ * returns `unavailable` unconditionally because the five-gate model is not implemented behind it. So the
+ * only truthful Tier-A read is that absence, stated with the capability that is missing. That is strictly
+ * more useful than the old silent "consume its browser read", which implied a read exists.
+ */
+export function buildTechnicalToolRead(deps = {}) {
+  const id = 'technical-analysis-decision-lab', deepLink = 'technical-analysis-decision-lab.html';
+  try {
+    const root = deps.root || ROOT;
+    const symbol = deps.symbol || 'SPY';
+    const model = OWNER.loadAdapter(root, 'rlexperience-adapters/market-structure.js');
+    const bars = OWNER.dailyBars(root, symbol);
+    const ownerState = {
+      contractVersion: 'technical-foundation-owner-state/v1', toolId: id, symbol,
+      asOf: bars ? new Date(bars[bars.length - 1].t).toISOString() : new Date().toISOString(),
+      source: 'same-origin daily snapshot (data/bars)',
+      foundationReceipt: { present: !!bars, name: 'Daily close integrity', session: 'XNYS venue-local daily boundary', primary: 'Primary 1d closed', ownerReadPublished: false }
+    };
+    const summary = model.computeTechnicalFiveGateSummary(ownerState, OWNER.registryDefaults(root, 'simple-adapter/technical-five-gate/v1'));
+    const read = `The five-gate decision model publishes no read: ${summary.missingOwnerCapability || 'the owner model is not implemented'}. Its data foundation is ${summary.foundationReceipt.present ? 'present' : 'absent'}.`;
+    return {
+      id, asOf: ownerState.asOf, read, deepLink, source: 'owning-tool-functions', state: 'owner-model-unavailable',
+      metrics: {
+        symbol, state: summary.state,
+        missingOwnerCapability: summary.missingOwnerCapability || null,
+        foundationPresent: summary.foundationReceipt.present,
+        ownerReadPublished: summary.foundationReceipt.ownerReadPublished,
+        setupState: summary.setupState.state, evidenceState: summary.evidenceState.state
+      }
+    };
+  } catch (error) { return unavailableToolRead(id, deepLink, `Five-gate model unavailable this run: ${error.message}`); }
+}
+
 function buildToolCoverage(toolReads) {
   const registry = JSON.parse(read('tools.json'));
-  return (registry.tools || []).map((tool) => ({ id: tool.id, deepLink: tool.file, status: toolReads[tool.id] ? 'fresh-headless' : 'browser-or-agent-read', reason: toolReads[tool.id] ? null : 'No deterministic Tier-A adapter; consume its latest browser toolRead when present and otherwise inspect the owning tool before authoring.' }));
+  return (registry.tools || []).map((tool) => {
+    const toolRead = toolReads[tool.id];
+    if (!toolRead) {
+      return { id: tool.id, deepLink: tool.file, status: 'browser-or-agent-read', reason: 'No deterministic Tier-A adapter; consume its latest browser toolRead when present and otherwise inspect the owning tool before authoring.' };
+    }
+    // A Tier-A adapter that RAN but could not reach a read is reported `unavailable`, not
+    // `fresh-headless` — collapsing the two would let an absence be narrated as an analysis. The
+    // reason distinguishes "no evidence this run" from "the owner model publishes no read at all".
+    if (toolRead.state && toolRead.state !== 'ready') {
+      return { id: tool.id, deepLink: tool.file, status: 'unavailable', reason: toolRead.read };
+    }
+    return { id: tool.id, deepLink: tool.file, status: 'fresh-headless', reason: toolRead.read };
+  });
 }
 
 async function main() {
@@ -1242,6 +1499,24 @@ async function main() {
   for (const toolRead of parallelToolReads) toolReads[toolRead.id] = toolRead;
   const companyFundamentalsRead = buildCompanyFundamentalsOwnerRead((path) => JSON.parse(read(path)), companyObjectSha256);
   toolReads[companyFundamentalsRead.id] = companyFundamentalsRead;
+
+  // Owning-model reads over committed same-origin evidence. Each runs the owning tool's OWN exported
+  // model; a model that cannot reach a read publishes that absence with a reason.
+  const surfaceRead = buildOptionsSurfaceToolRead();
+  const gammaRead = buildGammaToolRead();
+  const macro = { fg: fg ? { score: fg.score, band: fg.band } : null, vix };
+  const ownerModelReads = [
+    surfaceRead,
+    gammaRead,
+    buildSwingToolRead({ macro }),
+    buildBreadthToolRead({ asOf: new Date().toISOString() }),
+    buildVolatilityToolRead(),
+    buildTechnicalToolRead(),
+    // The auction read reuses the gamma walls this same run already priced, so the two agree.
+    await buildIntradayToolRead({ gamma: { callWall: gammaRead.metrics.callWall ?? null, putWall: gammaRead.metrics.putWall ?? null, flip: gammaRead.metrics.flip ?? null } })
+  ];
+  for (const toolRead of ownerModelReads) toolReads[toolRead.id] = toolRead;
+
   const toolCoverage = buildToolCoverage(toolReads), nextSession = nextSessionDate(window), dataFreshness = dataSnapshotFreshness();
 
   const snap = {
@@ -1250,12 +1525,13 @@ async function main() {
     dataFreshness, bench: { px: bench && bench.length ? round(bench[bench.length - 1].c, 2) : null, ...benchStruct },
     sectors, names, groups, toolReads, toolCoverage, source: 'brief-refresh.mjs'
   };
-  appendFileSync(join(ROOT, 'brief-history.jsonl'), JSON.stringify(snap) + '\n');
+  const dryRun = process.argv.includes('--dry-run');
+  if (!dryRun) appendFileSync(join(ROOT, 'brief-history.jsonl'), JSON.stringify(snap) + '\n');
 
   // deterministic slice the browser cockpit reads (market-brief.html overlays it as the "Computed (Tier-A)" line)
   // asOf = the window this refresh anchors to; generatedAt = the actual wall-clock this refresh ran (both are the run time for Tier-A).
   const snapshot = { asOf: snap.ts, generatedAt: snap.ts, window, marketClosed, nextSessionDate: nextSession, dataFreshness, regime: { band: reg.band, score: reg.risk, vix, fearGreed: fg ? fg.score : null }, bench: snap.bench, names, sectors, groups, toolReads, toolCoverage };
-  writeFileSync(join(ROOT, 'market-brief.snapshot.json'), JSON.stringify(snapshot, null, 2) + '\n');
+  if (!dryRun) writeFileSync(join(ROOT, 'market-brief.snapshot.json'), JSON.stringify(snapshot, null, 2) + '\n');
 
   console.log(`[brief-refresh] window=${window} regime=${reg.band}(${reg.risk}) VIX=${vix ?? '—'}${vixSource ? ' [' + vixSource + ']' : ''} F&G=${fg ? fg.score + '/' + fg.band : '—'}`);
   console.log(`  structural: SPY ${benchStruct.maStack} · 200d ${benchStruct.ma200Dist ?? '—'}% · 52w-high ${benchStruct.pctFrom52wHigh ?? '—'}% · mom126 ${benchStruct.mom126 ?? '—'}% mom252 ${benchStruct.mom252 ?? '—'}%`);
@@ -1263,8 +1539,12 @@ async function main() {
   console.log(`  names:   ${Object.entries(names).map(([k, v]) => `${k} ${v.px} mom21=${v.mom21}% 200d=${v.ma200Dist ?? '—'}% ${v.maStack}`).join(' · ') || '—'}`);
   console.log(`  groups:  ${groups.map(g => `${g.label} ${g.read ? g.read.rrgState + ' (' + g.read.rsMom1m + '%)' : '—'} ${g.breadth.label}`).join(' · ') || '—'}`);
   console.log(`  tools:   ${Object.values(toolReads).map((tool) => `${tool.id}: ${tool.read}`).join(' · ')}`);
+  const coverageCounts = toolCoverage.reduce((counts, entry) => ({ ...counts, [entry.status]: (counts[entry.status] || 0) + 1 }), {});
+  console.log(`  coverage: ${Object.entries(coverageCounts).map(([status, count]) => `${count} ${status}`).join(' · ')}`);
   console.log(`  next:    ${nextSession}${marketClosed ? ' (market closed — latest completed bars)' : ''}`);
-  console.log(`  wrote market-brief.snapshot.json + appended 1 brief-history.jsonl row. Commit these + run Tier B (agent) for the narrative.`);
+  console.log(dryRun
+    ? '  --dry-run: nothing written. Re-run without the flag to publish the snapshot and append history.'
+    : '  wrote market-brief.snapshot.json + appended 1 brief-history.jsonl row. Commit these + run Tier B (agent) for the narrative.');
 }
 
 if (process.argv[1] && resolve(process.argv[1]) === fileURLToPath(import.meta.url)) {

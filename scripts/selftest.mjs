@@ -4566,6 +4566,60 @@ try {
   }
 } catch (e) { failures++; console.log('  \u2717 FAIL (Feature 012 Scope 15 production bridge canaries threw): ' + e.message); }
 
+/* ---------- Tier-A owning-model reads — the brief computes, it does not narrate around a gap ---------- */
+try {
+  group('Tier-A owning-model reads \u2014 committed evidence reaches the owning tool\u2019s own model');
+  const refresh = await import('./brief-refresh.mjs');
+  const owner = await import('./owner-state.mjs');
+
+  // Owner states are built from committed evidence, never generated.
+  assert(owner.surfaceOwnerState(ROOT, 'SPY') !== null, 'the committed SPY option chain yields a surface owner state');
+  assert(owner.swingOwnerState(ROOT, 'SPY') !== null, 'the committed SPY daily window yields a swing owner state');
+  assert(owner.breadthOwnerState(ROOT) !== null, 'the committed sector universe + bar snapshots yield a breadth owner state');
+  assert(owner.dailyBars(ROOT, 'NO-SUCH-SYMBOL') === null, 'a symbol with no committed snapshot yields null rather than an empty-but-plausible window');
+  assert(owner.sessionOwnerState(ROOT, { sessions: [] }) === null,
+    'the session builder refuses to invent intraday bars when none are supplied \u2014 no same-origin intraday cache exists');
+
+  // Each read runs the OWNING model and publishes what it returned.
+  const reads = {
+    'options-structure-lab': refresh.buildOptionsSurfaceToolRead(),
+    'gamma-trading-lab': refresh.buildGammaToolRead(),
+    'swing-structure-lab': refresh.buildSwingToolRead({ macro: { fg: { score: 55, band: 'Neutral' }, vix: 17 } }),
+    'market-heatmap-lab': refresh.buildBreadthToolRead({}),
+    'volatility-sizing-lab': refresh.buildVolatilityToolRead(),
+    'technical-analysis-decision-lab': refresh.buildTechnicalToolRead()
+  };
+  for (const [id, toolRead] of Object.entries(reads)) {
+    assert(toolRead.id === id && typeof toolRead.read === 'string' && toolRead.read.length > 0 && toolRead.deepLink && toolRead.metrics && typeof toolRead.metrics === 'object',
+      `${id} publishes a read, metrics and a deep link`);
+  }
+  const readyIds = ['options-structure-lab', 'gamma-trading-lab', 'swing-structure-lab', 'market-heatmap-lab', 'volatility-sizing-lab'];
+  for (const id of readyIds) {
+    assert(reads[id].state === 'ready', `${id} reaches a READY read from committed evidence, not a coverage-only placeholder`);
+  }
+
+  // Real model output, not a shaped placeholder.
+  assert(Number.isFinite(reads['market-heatmap-lab'].metrics.breadthPct) && reads['market-heatmap-lab'].metrics.constituents >= 20,
+    'the breadth read carries a real percentage over the page\u2019s own universe (' + reads['market-heatmap-lab'].metrics.constituents + ' constituents)');
+  assert(['positive', 'negative'].includes(reads['gamma-trading-lab'].metrics.regime) && Number.isFinite(reads['gamma-trading-lab'].metrics.signedNetGEX),
+    'the gamma read carries the owning model\u2019s own dealer regime and signed net GEX');
+  assert(Number.isFinite(reads['volatility-sizing-lab'].metrics.forecastPct) && reads['volatility-sizing-lab'].metrics.regime,
+    'the volatility read carries a real conditional forecast and its regime band');
+
+  // The five-gate adapter is a foundation receipt only. Reporting it "fresh" would be the exact
+  // fabrication this wiring exists to remove, so it must stay an honest, reasoned absence.
+  assert(reads['technical-analysis-decision-lab'].state === 'owner-model-unavailable'
+    && /not implemented/i.test(reads['technical-analysis-decision-lab'].read),
+    'the five-gate tool publishes an honest unavailable naming the missing owner capability, never a fabricated read');
+
+  // ADVERSARIAL: a read whose owner state is missing must degrade, never emit a plausible number.
+  const starved = refresh.buildOptionsSurfaceToolRead({ symbol: 'NO-SUCH-SYMBOL' });
+  assert(starved.state === 'unavailable' && starved.metrics.state === 'unavailable' && /No committed option snapshot/.test(starved.read),
+    'a read with no committed chain degrades to a named unavailable and publishes no surface numbers');
+  assert(!Number.isFinite(starved.metrics.flipLevel) && !Number.isFinite(starved.metrics.callWall),
+    'the degraded read carries no gamma flip or wall value at all');
+} catch (e) { failures++; console.log('  \u2717 FAIL (Tier-A owning-model reads group threw): ' + e.message); }
+
 /* ---------- recommendation ledger — durable bodies + honest evaluability ---------- */
 try {
   group('recommendation ledger \u2014 every call carries its own scoreable terms');

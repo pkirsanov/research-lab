@@ -9,9 +9,11 @@
  * publish-set shapes and forks no engine logic.
  *
  * Authorship is deterministic, never an LLM:
- *   - the 5 tools that carry a server-side Tier-A read (snapshot.toolReads) get a RICH read + a rich
+ *   - every tool that carries a server-side Tier-A read (snapshot.toolReads) gets a RICH read + a rich
  *     deterministic brief reduced from that read (evidenceKind: deterministic-tier-a-read);
- *   - the remaining ~17 source tools (browser-or-agent-read in snapshot.toolCoverage) get an HONEST
+ *   - a tool whose Tier-A adapter RAN but could not reach a read publishes that absence with its own
+ *     reason, so an unavailable model is never narrated as an analysis;
+ *   - the remaining source tools (browser-or-agent-read in snapshot.toolCoverage) get an HONEST
  *     coverage-only read + brief carrying their real coverage status + reason — never a fabricated read;
  *   - the final combined brief is derived deterministically from the snapshot + the already-authored
  *     narrative payload (referenced by hash), never re-authored by an LLM.

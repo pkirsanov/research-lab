@@ -4056,3 +4056,43 @@ owner decision, and two are policy violations:
    excerpts, or a captured fixture) — a real fix, but it changes the evidence
    model for all six artifacts above and is the owner's call.
 
+### Update 2026-07-31 — framework mechanism investigated; option 3 now has framework backing
+
+The open question above was whether the framework already provides a durable
+evidence-admission path to re-anchor onto. It does, and it does **not** support the
+constraint this test imposes.
+
+`.github/bubbles/scripts/evidence-tool-log-bridge.sh` is the sanctioned reader of
+`.specify/runtime/tool-calls.jsonl`. Two properties settle the question:
+
+1. **It only reads the log; it cannot reconstruct one.** The log is produced solely as a
+   side effect of running commands through `tool-capture-shim.sh` during a live session, so
+   a session that did not capture leaves nothing recoverable. This confirms the evidence is
+   unreproducible on any other machine, not merely missing here.
+2. **The framework treats the tool-log as _additive_, not mandatory.** Its own header states
+   the contract verbatim:
+
+   > "Markdown evidence stays a valid fallback when no tool-log entry exists."
+   >
+   > "Anti-fabrication is monotonically stronger: existing prose-evidence path is preserved;
+   > tool-log path is additive proof."
+
+So `feature-004-dirty-tree-collision.test.mjs` is **stricter than the framework contract it
+encodes**: it makes the tool-log the sole admissible proof *and* pins absolute line numbers
+(652, 730, 703) inside a gitignored, append-only, machine-local file. Absolute line offsets
+are not stable under any append, rotation, or replay, so the citation cannot survive even on
+the originating machine.
+
+**Still not fixed here, and deliberately so.** Relaxing the assertion to accept the
+framework's markdown fallback would make a *currently red* anti-fabrication test go green by
+loosening it. That is indistinguishable from the "change the test to make it pass"
+antipattern from the outside, and this session will not do it unilaterally to a test it does
+not own. What changed is the evidence base: option 3 is no longer a speculative redesign but
+the alignment the framework already sanctions, and options 1 and 2 remain policy violations.
+
+**Recommended remediation for the owner:** cite tool-log entries by a stable key
+(`sessionId` + `agent` + `spec` + a content hash of the recorded command) rather than by
+line number, and admit the framework's markdown-evidence fallback when no log entry exists.
+That keeps the assertion load-bearing — a fabricated or absent command still fails — while
+removing the dependency on a byte offset in a file git is configured to discard.
+

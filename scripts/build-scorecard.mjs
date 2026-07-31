@@ -198,7 +198,9 @@ export function buildScorecard(root, options = {}) {
 }
 
 function canonicalBytes(value) {
-  return Buffer.from(JSON.stringify(value, null, 2) + '\n', 'utf8');
+  // Minified: this artifact is fetched on every cockpit load and counts against the declared
+  // first-load budget. It is machine-read, so indentation buys nothing.
+  return Buffer.from(JSON.stringify(value) + '\n', 'utf8');
 }
 
 export function runBuildScorecard(root, options = {}) {

@@ -934,7 +934,10 @@
 
             function boot() {
                 if (typeof RLBRIEF === "undefined") { var b = el("regimeStrip"); if (b) b.innerHTML = '<span class="pill bad">brief components failed to load — hard-refresh the page</span>'; return; }
-                Promise.all([j("market-brief.config.json"), j("market-brief.payload.json"), j("watchlist.json"), jl("brief-history.jsonl"), j("market-brief.snapshot.json"), j("tools.json"), j("market-brief.scorecard.json")]).then(function (r) {
+                // brief-history.recent.jsonl is the BOUNDED window (last 30 runs, compact projection).
+                // The full per-run history lives in briefs/tier-a/<YYYY-MM>.jsonl and is loaded on demand;
+                // fetching all of it here cost 2.3 MB on every page load and grew without limit.
+                Promise.all([j("market-brief.config.json"), j("market-brief.payload.json"), j("watchlist.json"), jl("brief-history.recent.jsonl"), j("market-brief.snapshot.json"), j("tools.json"), j("market-brief.scorecard.json")]).then(function (r) {
                     CFG = r[0] || INLINE_CFG; PAYLOAD = r[1]; WL = r[2] || { items: [] }; HIST = r[3] || []; SNAP = r[4]; TOOLS = r[5] || { tools: [] }; SCORECARD = r[6];
                     renderWindows(); wire(); renderAll(); setTimeout(refreshLive, 0);
                 });

@@ -208,6 +208,16 @@ fi
 run_with_timeout "$TIER_A_TIMEOUT" "$NODE_BIN" scripts/evaluate-recommendations.mjs \
   || echo "[brief-timer] recommendation scoring returned non-zero (soft) — continuing"
 
+# 1b-iii) Re-shard the append-only history. brief-history.jsonl itself is never rewritten; this
+# regenerates the bounded window the cockpit loads plus the full monthly shards, so the page's
+# first-load payload stays inside its declared budget as the log keeps growing.
+if run_with_timeout "$TIER_A_TIMEOUT" "$NODE_BIN" scripts/shard-brief-history.mjs; then
+  SHARDED_HISTORY=1
+else
+  SHARDED_HISTORY=0
+  echo "[brief-timer] history sharding returned non-zero (soft) — the cockpit keeps its previous bounded window"
+fi
+
 # 1c) Freeze and validate one truthful brief outcome for every registry source BEFORE final authorship.
 # Scheduled runs require this complete barrier; the exact bytes are passed to every final-author lane and
 # later to the distributed publisher, which rejects any snapshot/registry/fingerprint drift.
@@ -381,6 +391,13 @@ else
 fi
 if [ "$DISTRIBUTED_OK" = "1" ]; then
   SELECTED_FILES+=(briefs)
+elif [ "${SHARDED_HISTORY:-0}" = "1" ]; then
+  # The tier-A shards live under briefs/ but are independent of the distributed graph, so they still
+  # ride the commit when that optional publisher did not run.
+  SELECTED_FILES+=(briefs/tier-a)
+fi
+if [ "${SHARDED_HISTORY:-0}" = "1" ]; then
+  SELECTED_FILES+=(brief-history.recent.jsonl)
 fi
 
 # 3c) The published track record. Derived purely from the outcome ledger, so it is regenerated AFTER

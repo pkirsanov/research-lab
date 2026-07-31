@@ -4887,6 +4887,53 @@ try {
     'strategy-research.js (a pure adapter that may not import) computes the SAME arithmetic Sharpe rlmetrics defines (' + adapterMetrics.sharpe.toFixed(9) + ' vs ' + canonical.toFixed(9) + ')');
 } catch (e) { failures++; console.log('  \u2717 FAIL (rlmetrics group threw): ' + e.message); }
 
+/* ---------- bounded history — the cockpit's first load stays affordable forever ---------- */
+try {
+  group('bounded history \u2014 the brief\u2019s first load is budgeted, and the budget is a failing test');
+  const shard = await import('./shard-brief-history.mjs');
+  const budgets = JSON.parse(read('market-brief.config.json'))['first-load-budget/v1'];
+  const briefPage = read('market-brief.html');
+
+  assert(budgets && Number.isFinite(budgets.briefHistoryRecentMaxBytes) && Number.isFinite(budgets.briefFirstLoadMaxBytes) && Number.isFinite(budgets.briefHistoryRecentMaxRows),
+    'the first-load budget is DECLARED in market-brief.config.json, not left implicit');
+
+  // The page must fetch the bounded window, never the unbounded append log.
+  assert(briefPage.includes('brief-history.recent.jsonl'), 'the cockpit fetches the bounded recent window');
+  assert(!/jl\("brief-history\.jsonl"\)/.test(briefPage), 'the cockpit no longer fetches the unbounded append log on page load');
+
+  const recentBytes = Buffer.byteLength(read('brief-history.recent.jsonl'), 'utf8');
+  const recentRows = read('brief-history.recent.jsonl').split('\n').filter((line) => line.length > 0);
+  assert(recentBytes <= budgets.briefHistoryRecentMaxBytes,
+    'the recent window is inside its declared byte budget (' + recentBytes + ' <= ' + budgets.briefHistoryRecentMaxBytes + ')');
+  assert(recentRows.length <= budgets.briefHistoryRecentMaxRows,
+    'the recent window is inside its declared row budget (' + recentRows.length + ' <= ' + budgets.briefHistoryRecentMaxRows + ')');
+
+  // The whole first-load payload, measured — this is the number the defect was about.
+  const firstLoad = ['market-brief.config.json', 'market-brief.payload.json', 'watchlist.json',
+    'brief-history.recent.jsonl', 'market-brief.snapshot.json', 'tools.json', 'market-brief.scorecard.json']
+    .reduce((total, file) => total + Buffer.byteLength(read(file), 'utf8'), 0);
+  assert(firstLoad <= budgets.briefFirstLoadMaxBytes,
+    'the cockpit\u2019s whole first-load payload is inside budget (' + Math.round(firstLoad / 1024) + ' KB <= ' + Math.round(budgets.briefFirstLoadMaxBytes / 1024) + ' KB)');
+
+  // ADVERSARIAL: the budget must actually bind. The unbounded log would blow it many times over, so
+  // an assertion that passed with EITHER file would be proving nothing.
+  const unboundedBytes = Buffer.byteLength(read('brief-history.jsonl'), 'utf8');
+  assert(unboundedBytes > budgets.briefFirstLoadMaxBytes,
+    'the unbounded log genuinely exceeds the budget (' + Math.round(unboundedBytes / 1024) + ' KB), so fetching it would FAIL this test rather than slip through');
+
+  // Nothing is lost: every run in the append log is present in a monthly shard.
+  const source = shard.readSourceRows(ROOT);
+  const sharded = readdirSync(join(ROOT, 'briefs/tier-a')).filter((file) => file.endsWith('.jsonl'))
+    .reduce((total, file) => total + read(`briefs/tier-a/${file}`).split('\n').filter((line) => line.length > 0).length, 0);
+  assert(sharded === source.length, 'every run in the append log is preserved in a monthly shard (' + sharded + ' = ' + source.length + ')');
+  assert(recentRows.every((line) => JSON.parse(line).contractVersion === shard.RECENT_CONTRACT),
+    'every recent row declares the compact contract, so a consumer knows it is a projection and not the full run');
+
+  // The append log itself must stay the untouched source of truth.
+  assert(shard.SOURCE === 'brief-history.jsonl' && !read('scripts/shard-brief-history.mjs').includes('writeFileSync(path.join(root, SOURCE)'),
+    'the sharder never rewrites the append log it reads from');
+} catch (e) { failures++; console.log('  \u2717 FAIL (bounded history group threw): ' + e.message); }
+
 /* ---------- spec artifacts — every referenced test path exists (ratchet) ---------- */
 try {
   group('spec artifacts \u2014 referenced tests/*.mjs paths exist (Playwright silently ignores absent file args)');

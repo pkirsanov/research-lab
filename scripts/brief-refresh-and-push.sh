@@ -202,6 +202,12 @@ else
   run_with_timeout "$TIER_A_TIMEOUT" env BRIEF_WINDOW="$WINDOW" "$NODE_BIN" scripts/brief-refresh.mjs --window "$WINDOW" || echo "[brief-timer] refresh returned non-zero (soft) — continuing"
 fi
 
+# 1b-ii) Score every open call against its OWN published trigger/invalidation BEFORE the narrative
+# lane runs, so the author sees this run's real track record rather than authoring blind. Appending
+# outcomes is additive and never blocks publication: a scoring failure must not cost us the brief.
+run_with_timeout "$TIER_A_TIMEOUT" "$NODE_BIN" scripts/evaluate-recommendations.mjs \
+  || echo "[brief-timer] recommendation scoring returned non-zero (soft) — continuing"
+
 # 1c) Freeze and validate one truthful brief outcome for every registry source BEFORE final authorship.
 # Scheduled runs require this complete barrier; the exact bytes are passed to every final-author lane and
 # later to the distributed publisher, which rejects any snapshot/registry/fingerprint drift.

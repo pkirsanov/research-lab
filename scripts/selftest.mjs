@@ -4669,7 +4669,7 @@ try {
   const restoredTargets = new Set(restored.map((row) => row.restoresEventId));
   assert(restored.length > 0 && restored.every((row) => row.restoresEventId),
     'a recovered body is appended as body-restored naming the original event, never written over it (' + restored.length + ' rows)');
-  const bodiless = ledgerRows.filter((row) => !row.bodyContractVersion);
+  const bodiless = ledgerRows.filter((row) => !row.bodyContractVersion && !row.outcomeContractVersion);
   assert(bodiless.every((row) => row.contractVersion === 'brief-recommendation-history-row/v1'),
     'the pre-existing bodiless rows keep their original v1 contract — history is appended to, never edited');
   assert(bodiless.filter((row) => restoredTargets.has(row.eventId)).length === restored.length,
@@ -4679,6 +4679,97 @@ try {
   assert(backfill.planBackfill(ROOT).stats.newRows === 0,
     'the backfill is idempotent against the committed ledger — a re-run proposes zero further rows');
 } catch (e) { failures++; console.log('  \u2717 FAIL (recommendation ledger group threw): ' + e.message); }
+
+/* ---------- recommendation outcomes — the ledger scores itself against its own terms ---------- */
+try {
+  group('recommendation outcomes \u2014 published calls are scored, and unscoreable ones say so');
+  const evaluate = await import('./evaluate-recommendations.mjs');
+  const recBody = await import('./recommendation-body.mjs');
+  const universe = recBody.loadInstrumentUniverse(ROOT);
+
+  const spy = JSON.parse(read('data/bars/SPY.json')).rows;
+  const anchor = spy[spy.length - 30];
+  const forward = spy.slice(spy.length - 29);
+  const proposedAt = new Date(anchor.t).toISOString();
+  const asOfMs = spy[spy.length - 1].t;
+  // Pick the session that closes LOWEST after session 1, so an invalidation set just above it can
+  // only break there — strictly later than a trigger set just below session 1's close.
+  let troughIndex = 1;
+  for (let i = 2; i < forward.length; i += 1) if (forward[i].c < forward[troughIndex].c) troughIndex = i;
+  const early = forward[0], trough = forward[troughIndex];
+  assert(troughIndex >= 1 && trough.c < early.c,
+    'the committed SPY window has a later trough than its first forward close, so the ordering fixture is real (session ' + (troughIndex + 1) + ')');
+
+  // ADVERSARIAL (time ordering): a trigger that fires on session 1 must WIN over an invalidation that
+  // only breaks later. Scanning every invalidation before any trigger would score this a miss, which
+  // is the exact bias that would understate the hit rate.
+  const triggerFirst = evaluate.judge({
+    occurredAt: proposedAt, horizon: 'tactical', evaluability: 'machine-checkable',
+    levels: [
+      { instrument: 'SPY', relation: 'above', value: early.c - 1, source: 'trigger' },
+      { instrument: 'SPY', relation: 'below', value: trough.c + 0.001, source: 'invalidation' }
+    ]
+  }, { root: ROOT, asOfMs });
+  assert(triggerFirst && triggerFirst.eventType === 'satisfied' && triggerFirst.detail.sessionsToResolve === 1,
+    'the gate the market reaches FIRST decides the call \u2014 an early trigger beats a later invalidation');
+
+  // ...and the mirror: an invalidation that breaks first must close the call as a miss.
+  const invalidationFirst = evaluate.judge({
+    occurredAt: proposedAt, horizon: 'tactical', evaluability: 'machine-checkable',
+    levels: [
+      { instrument: 'SPY', relation: 'below', value: early.c + 1, source: 'invalidation' },
+      { instrument: 'SPY', relation: 'above', value: early.c + 1e6, source: 'trigger' }
+    ]
+  }, { root: ROOT, asOfMs });
+  assert(invalidationFirst && invalidationFirst.eventType === 'invalidated',
+    'an invalidation that breaks first closes the call as a miss');
+
+  // Silence means open: inside the horizon with nothing breached, no event may be emitted.
+  const stillOpen = evaluate.judge({
+    occurredAt: new Date(spy[spy.length - 2].t).toISOString(), horizon: 'structural', evaluability: 'machine-checkable',
+    levels: [{ instrument: 'SPY', relation: 'above', value: 1e7, source: 'trigger' }, { instrument: 'SPY', relation: 'below', value: 1, source: 'invalidation' }]
+  }, { root: ROOT, asOfMs });
+  assert(stillOpen === null, 'a call still inside its horizon with nothing breached emits no event \u2014 silence means open');
+
+  // not-evaluable is first-class, never forced into a verdict.
+  const unscoreable = evaluate.judge({ occurredAt: proposedAt, horizon: 'swing', evaluability: 'not-evaluable', evaluabilityReason: 'no-attributable-price-level', levels: [] }, { root: ROOT, asOfMs });
+  assert(unscoreable && unscoreable.eventType === 'not-evaluable' && unscoreable.reasonCode === 'no-attributable-price-level',
+    'a call with no checkable level resolves not-evaluable with its own reason, never a forced hit or miss');
+  const noBars = evaluate.judge({
+    occurredAt: proposedAt, horizon: 'swing', evaluability: 'machine-checkable',
+    levels: [{ instrument: 'ZZZZ', relation: 'below', value: 1, source: 'invalidation' }]
+  }, { root: ROOT, asOfMs });
+  assert(noBars && noBars.eventType === 'not-evaluable' && noBars.reasonCode === 'no-committed-bars-for-instrument',
+    'a call naming an instrument we hold no bars for is not-evaluable, not a silent pass');
+
+  // ADVERSARIAL (attribution): the narrative habitually appends the UPSIDE case inside the
+  // invalidation field. Read literally, a recovering thesis would be scored as broken.
+  const upsideInInvalidation = recBody.buildRecommendationBody({
+    subject: 'MSFT core', action: 'hold', horizon: 'swing', confidence: 55,
+    trigger: 'Repair confirmation = daily CLOSES holding back above the 50-day (~401.1).',
+    invalidation: 'MSFT confirms a daily close holding above its 50-day (~401.1) and restacks, OR fails back below and breaks decisively lower.'
+  }, { universe });
+  assert(upsideInInvalidation.levels.every((level) => !(level.source === 'invalidation' && level.relation === 'above')),
+    'an upside gate written inside the invalidation field is attributed to the trigger side, so a recovering thesis is never scored as broken');
+  assert(upsideInInvalidation.evaluability === 'not-evaluable' && upsideInInvalidation.evaluabilityReason === 'no-attributable-invalidation-level',
+    'with only an upside gate published, the call is withheld from scoring rather than counted as a free win');
+
+  // A single-name call drops its ticker after the first mention; the gate must still be recovered.
+  assert(upsideInInvalidation.levels.some((level) => level.instrument === 'MSFT' && level.value === 401.1),
+    'a single-instrument call still resolves a gate written without repeating the ticker');
+
+  // The committed ledger carries real outcomes now, and re-running proposes none.
+  const ledgerRows = read('briefs/history/recommendations/2026-07.jsonl').split('\n').filter((line) => line.length > 0).map((line) => JSON.parse(line));
+  const outcomes = ledgerRows.filter((row) => row.outcomeContractVersion);
+  const outcomeTypes = new Set(outcomes.map((row) => row.eventType));
+  assert(outcomes.length > 0, 'the ledger carries close events (' + outcomes.length + ' outcomes)');
+  assert([...outcomeTypes].every((type) => ['satisfied', 'invalidated', 'expired', 'unresolved', 'not-evaluable'].includes(type)),
+    'every outcome uses the shipped close vocabulary: ' + [...outcomeTypes].sort().join(', '));
+  assert(outcomeTypes.has('not-evaluable'), 'not-evaluable is populated, proving the evaluator is not forcing verdicts');
+  assert(outcomes.every((row) => row.reasonCode && row.proposedAt), 'every outcome names its reason and the call it closes');
+  assert(evaluate.planEvaluation(ROOT, {}).rows.length === 0,
+    'the evaluator is idempotent against the committed ledger \u2014 a re-run closes nothing twice');
+} catch (e) { failures++; console.log('  \u2717 FAIL (recommendation outcomes group threw): ' + e.message); }
 
 /* ---------- spec artifacts — every referenced test path exists (ratchet) ---------- */
 try {

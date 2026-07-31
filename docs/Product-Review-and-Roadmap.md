@@ -2,7 +2,7 @@
 
 **Date:** 2026-07-31 · **Type:** product review + executable roadmap · **Scope:** whole product
 **Method:** line-by-line source reading, registry↔disk diffing, live-site HTTP checks, `node scripts/selftest.mjs`
-(970 passed / 0 failed, exit 0), competitive research. Every number is measured at HEAD unless marked *derived*.
+(983 passed / 0 failed, exit 0), competitive research. Every number is measured at HEAD unless marked *derived*.
 **Related:** [`DomainModel.md`](DomainModel.md) · [`../notes/market-brief.md`](../notes/market-brief.md) ·
 [`../notes/volatility-drag-research.md`](../notes/volatility-drag-research.md)
 
@@ -11,18 +11,17 @@
 ## 1. Verdict
 
 **The problem is correctly chosen. The architecture is sound and largely built. The product is unplugged from
-itself.**
-
-Three facts dominate:
+itself — and one unescaped line puts the user's provider keys within reach of its own AI output.**
 
 | | Fact | Meaning |
 |---|---|---|
-| **1** | The flagship brief draws real evidence from **5 of 23** tools | The cockpit synthesises the slow tools and ignores every fast one |
-| **2** | **215** recommendations proposed, **0** ever scored | The only durable competitive edge is unbuilt |
-| **3** | **~1.05 MB** of finished product is deployed but unreachable — including all **48** user journeys | The user-scenario layer ships to nobody |
+| **1** | One LLM-authored payload field renders into `innerHTML` **unescaped**, on the same origin that stores provider API keys | A credential-exfiltration path with no CSP backstop — **fix first, one line** |
+| **2** | The flagship brief draws real evidence from **5 of 23** tools | The cockpit synthesises the slow tools and ignores every fast one |
+| **3** | **579** recommendation events archived, **0** ever scored | Bodies are now durable; nothing yet closes a call |
+| **4** | **~1.05 MB** of finished product is deployed but unreachable — including all **48** user journeys | The user-scenario layer ships to nobody |
 
-None is a coding defect. All three are **wiring gaps** between components that already exist, are tested, and
-work. That is the good news: remediation is measured in days, not quarters.
+Items 2–4 are **wiring gaps** between components that already exist, are tested, and work. Remediation is
+measured in days.
 
 ---
 
@@ -38,7 +37,7 @@ work. That is the good news: remediation is measured in days, not quarters.
 | Shared adapters ([`../rlexperience-adapters/`](../rlexperience-adapters)) | 7 modules, 488 KB | UMD dual-module, Node-loadable |
 | User journeys ([`../journeys.json`](../journeys.json)) | **48** | **0 mounted** |
 | Playwright specs | 28 files, 60 tool-references | **every tool has ≥ 1**; CI runs 1 |
-| Selftest assertions | 970 | pass; **0 run in CI** |
+| Selftest assertions | 983 | pass; **0 run in CI** |
 | Committed market data | 289 daily-bar files, 23 option chains | fresh, same-origin |
 | Brief runs to date | 107 | 4×/day cadence |
 | `specs/` markdown | 199,606 lines | 742 DoD done / **1,678 open** |
@@ -60,6 +59,9 @@ work. That is the good news: remediation is measured in days, not quarters.
 - **Declared numeric budgets.** [`../tool-experience.config.json`](../tool-experience.config.json):
   `validationMaxMs 100`, `interactionMaxMs 100`, `localRecomputeMaxMs 250`, `layoutShiftMax 0.1`,
   `cooperativeChunkMaxMs 16`, plus artifact byte budgets.
+- **Locked supply chain.** [`../.npmrc`](../.npmrc) pins the registry with `save-exact=true`,
+  `package-lock=true`, `ignore-scripts=true`, `replace-registry-host=never`; lockfile committed; CI runs
+  `validate-node-source-lock.mjs`. Stronger than most projects of any size.
 - **Serious data engineering.** ET date+window cache keys, XNYS-calendar session verification,
   `zero-observed` / `thin-observed` session states, dividend/split fail-closed handling, no duplicate history
   requests across windows.
@@ -106,7 +108,7 @@ needs. The pieces were designed to fit; they were never connected.
 ### 3.4 The scenario that does not exist
 
 There is no journey, page or surface for **"show me how right this thing has been."** That absence is the
-product's largest gap and the subject of §5.2.
+product's largest gap and the subject of §5.3.
 
 ---
 
@@ -121,8 +123,8 @@ demand: SpotGamma's *Founder's Note* is cited as its most popular product; Unusu
 
 **Solved holistically — no.** The loop is open in three places:
 
-1. **Evidence does not reach the cockpit** — 18 of 23 tools cannot feed it (§5.1).
-2. **Claims are never checked** — 215 proposals, 0 outcomes (§5.2).
+1. **Evidence does not reach the cockpit** — 18 of 23 tools cannot feed it (§5.2).
+2. **Claims are never checked** — 215 proposals, 0 outcomes (§5.3).
 3. **Scenarios never reach the user** — 48 journeys, 0 mounted (§3.3).
 
 The system generates analysis, publishes opinions, and learns nothing. **A brief without feedback is opinion
@@ -148,7 +150,44 @@ This resolves most open product questions at once:
 
 Ordered by product impact. Every row is measured.
 
-### 5.1 · 18 of 23 tools are structurally invisible to the brief — **critical**
+### 5.1 · LLM-authored content reaches `innerHTML` unescaped — **critical**
+
+[`../market-brief.html`](../market-brief.html) line 785, `renderExperimental()`:
+
+```js
+var xs = (PAYLOAD && PAYLOAD.experimental) || [];
+host.innerHTML = xs.map(function (x) {
+  return '<div class="acard"><b>' + (x.title || "") + '</b><div class="ay">' + (x.note || "") + '</div></div>';
+}).join("");
+```
+
+`x.title` and `x.note` are **not escaped**. `PAYLOAD.experimental` is authored by the Tier-B Copilot lanes and
+currently holds one entry with multi-paragraph `title`, `note` and `method` prose.
+
+This is a **single outlier in an otherwise correct codebase** — `esc()` exists at
+[`../rlbrief.js`](../rlbrief.js) line 613 and at `market-brief.html` line 896, and the main renderers apply it
+properly (`renderAttention` escapes `title`, `what`, `why`, `domain`; `rlbrief.js` has 66 `esc()` calls across
+21 `innerHTML` sites). A sweep of every page and shared library found **exactly one** unescaped LLM-content
+sink — this one.
+
+**Why it matters here, specifically:**
+
+| Link in the chain | Evidence |
+|---|---|
+| Content is model-authored | Tier-B lanes generate `experimental`; web fetch enabled against an allowlist |
+| It reaches `innerHTML` unescaped | `market-brief.html:785` |
+| The origin stores provider API keys | `localStorage.rlProviderConfig` → `{ keys }`, [`../rldata.js`](../rldata.js) lines 117–123 |
+| No defence in depth | **0 of 26** pages set a Content-Security-Policy |
+
+Same-origin script can read the key store. Prompt injection via an allowlisted fetched page is the plausible
+delivery vector; a model merely emitting `<` is the mundane one. **Even ignoring security, this is a rendering
+bug** — any `<` or `&` in analysis prose renders as broken markup today.
+
+**Compounding (§5.8):** BUG-002 sanctioned `localStorage` key storage on an explicit isolation argument —
+*"local keys live only in `localStorage.rlProviderConfig` of the user's own browser"*. That argument holds only
+if the origin has no script injection. This defect breaks the premise the storage decision was approved on.
+
+### 5.2 · 18 of 23 tools are structurally invisible to the brief — **critical**
 
 Current run: **5 analyzed · 11 stale · 7 not-relevant.** Every tactical tool is `stale`: gamma, options
 structure, intraday tape, swing structure, heatmap, technical-decision, volatility sizing.
@@ -179,27 +218,28 @@ Adapters ✅ · Data **100 %** ✅ · Publish chain generic ✅ · **Missing: th
 **Knock-on:** the shipped `red-alert-policy/v1` (score ≥ 75, `minIndependentOrigins: 2`, `minOwnerEvidence: 1`)
 is starved by the same gap — a risk-alert engine that is implemented but cannot reach quorum.
 
-### 5.2 · The system proposes and never scores — **critical**
+### 5.3 · The system proposes and never scores — **critical**
 
 ```
-briefs/history/recommendations/2026-07.jsonl    215 rows
-  proposed                                       215
+briefs/history/recommendations/2026-07.jsonl    579 rows
+  proposed                                       384
+  body-restored                                  195
   satisfied / invalidated / expired / withdrawn / unresolved / not-evaluable      0
 ```
 
-The lifecycle vocabulary ([`../rlcontracts.js`](../rlcontracts.js) line 720 `CLOSE_EVENT_TYPES`) and the
-reducer (line 1134 `reduceRecommendationEvents`) exist and are tested. **Their only callers are
-`scripts/selftest.mjs` and two test files — zero production callers.**
+Recommendation **bodies are now durable** — `scripts/recommendation-body.mjs` and
+`scripts/backfill-recommendations.mjs` capture instrument, direction, levels, trigger and invalidation, and 195
+historical calls have been recovered from git. The evidence problem is solved.
 
-Compounding: archive rows are hash-keyed (`recommendationKey: sha256:…`) and carry **no body**. Instrument,
-direction, levels, trigger and invalidation live only in
-[`../market-brief.payload.json`](../market-brief.payload.json), overwritten every run — recoverable from 95 git
-commits, but nothing extracts them.
+**The scoring problem is not.** Not one call has ever been closed. The lifecycle vocabulary
+([`../rlcontracts.js`](../rlcontracts.js) line 720 `CLOSE_EVENT_TYPES`) and the reducer (line 1134
+`reduceRecommendationEvents`) exist and are tested. **Their only callers are `scripts/selftest.mjs` and two test
+files — zero production callers.**
 
-Every recommendation already carries `trigger`, `invalidation`, `levels`, `confidence`. **The scoring inputs are
-present and unused.**
+Every recommendation carries `trigger`, `invalidation`, `levels`, `confidence`, and now a durable body.
+**Every input the scorer needs is present and unused.**
 
-### 5.3 · ~1.05 MB deployed but undiscoverable — **high**
+### 5.4 · ~1.05 MB deployed but undiscoverable — **high**
 
 | Asset | Size | Live? | In any registry? |
 |---|---|---|---|
@@ -211,7 +251,7 @@ present and unused.**
 
 The project's own constitution principle *No Dead Code* already forbids this state.
 
-### 5.4 · Two contradictory Sharpe conventions in the flagship data path — **high**
+### 5.5 · Two contradictory Sharpe conventions in the flagship data path — **high**
 
 ```js
 scripts/brief-refresh.mjs:1090    sharpe: (cagr - riskFree) / annVol             // geometric → feeds the brief
@@ -224,46 +264,53 @@ Same asset, two answers, path-dependent. Separately, `etf-momentum-lab.html:1605
 `annArith` in one object and never subtracts them — volatility drag is depended on by four tools and displayed
 in none.
 
-### 5.5 · Unbounded flagship payload — **high**
+### 5.6 · Unbounded flagship payload — **high**
 
 `GET /brief-history.jsonl` → HTTP 200, **2,369,626 B**, fetched in full by
 [`../market-brief.html`](../market-brief.html) line 864 on every page load. 107 runs × 22,146 B/run × 4 runs/day
 ⇒ **~30 MB after one year** *(derived)*. No cap, no rotation, no windowing.
 
-### 5.6 · Direction undocumented, enforcement unwired — **high**
+### 5.7 · Direction undocumented, enforcement unwired — **high**
 
 - [`../.specify/memory/constitution.md`](../.specify/memory/constitution.md) is the **unmodified bootstrap
   template**, still containing `*Example: Bookings must never result in double-charges*` and
   `> **TODO:** Replace examples with your project's actual business invariants.`
 - No `docs/Product-Principles.md`.
 - CI ([`../.github/workflows/pages.yml`](../.github/workflows/pages.yml)) runs **1 of 28** Playwright specs and
-  **0 of 970** selftest assertions. The test investment is real; the enforcement is not.
+  **0 of 983** selftest assertions. The test investment is real; the enforcement is not.
 
-### 5.7 · The front door misstates the product — **medium**
+### 5.8 · A superseded High bug left open — **medium**
 
-[`../index.html`](../index.html) line 438 tells every visitor *"browser credential use is **disabled** until a
-complete same-document provider policy is approved"* — while `specs/_bugs/BUG-002-two-tier-provider-access` is
-`done` and both tiers ship. [`../README.md`](../README.md) also drifts: 22 table rows against 23 tools; the
-Layout section lists 14 of 25.
+`specs/_bugs/BUG-001-central-provider-credential-security` is **`in_progress`, severity High**, with **49
+unchecked DoD items**. Its contract mandates *memory-only* credentials: *"no raw secret may enter any client
+persistence or disclosure surface."*
 
-### 5.8 · Single-laptop cadence — **medium**
+`specs/_bugs/BUG-002-two-tier-provider-access` is **`done`** and states plainly: *"This reverses BUG-001's
+`localStorage`-credential prohibition **for Tier 2**."* That reversal shipped —
+[`../rldata.js`](../rldata.js) line 123 persists `{ keys }` to `localStorage.rlProviderConfig`.
+
+The reversal was deliberate and documented, but **BUG-001 was never closed or withdrawn.** Its 49 open DoD items
+describe work that is now partly moot — indistinguishable, from the outside, from real outstanding security
+work, on the repo's only High-severity open bug.
+
+### 5.9 · Single-laptop cadence — **medium**
 
 [`../notes/market-brief.md`](../notes/market-brief.md) §2: *"Tier A (data) + Tier B (narrative) — **on THIS
 MacBook** (macOS `launchd`, 4×/day)"*. The core cadence depends on one laptop being awake. The current payload
 is from the prior session's `after-hours` window.
 
-### 5.9 · Discovery does not scale — **medium**
+### 5.10 · Discovery does not scale — **medium**
 
 `index.html` and `rlnav.js` each render **one flat list** of 25 tools. No grouping, no search, no filter, no
 recency. Mobile and a11y are otherwise good (viewport 26/26, `aria-label` 24/26, `@media` 23/26); one gap:
 `prefers-reduced-motion` in 3/26. Heaviest pages: 305 / 245 / 242 / 226 KB — fine on desktop, heavy on mobile.
 
-### 5.10 · Planning inventory is the binding constraint — **medium**
+### 5.11 · Planning inventory is the binding constraint — **medium**
 
 199,606 spec lines against 73,274 product lines (**2.7 : 1**). 1,678 open DoD items. Specs 004 (103 FR), 006
 (83 FR) and 008 (150 FR) sit `not_started` **with their code already shipped**.
 
-Spec 015 — *the outcome ledger, i.e. the fix for §5.2* — is `blocked` by gate G089 on the **status** of other
+Spec 015 — *the outcome ledger, i.e. the fix for §5.3* — is `blocked` by gate G089 on the **status** of other
 specs. Its own `blockedReason` concedes: *"the code 015 depends on already EXISTS and is green… G089 is blocking
 on SPEC STATUS bookkeeping, not on missing capability."*
 
@@ -285,7 +332,7 @@ on SPEC STATUS bookkeeping, not on missing capability."*
 Not a feature — a **posture**: *calibrated honesty with a published track record.* No subscription competitor
 can ever publish its own miss rate; a single-operator, no-revenue, educational project can.
 
-**But the posture is worth nothing until §5.2 is fixed.** Today the product has the honesty *and* no track
+**But the posture is worth nothing until §5.3 is fixed.** Today the product has the honesty *and* no track
 record — the worst of both. Everything else here is secondary to closing that.
 
 ---
@@ -300,10 +347,11 @@ record — the worst of both. Everything else here is secondary to closing that.
 3. **No-duplication deep-link law** — architecturally correct, rare.
 4. **Anti-overfit rigor** — anti-reactivity mandate, embargoed walk-forward folds, held-k/N cross-instrument
    robustness, Deflated Sharpe Ratio.
-5. **Test discipline** — 970 assertions, adversarial regression tests, anti-tautology guards, and **every tool
+5. **Test discipline** — 983 assertions, adversarial regression tests, anti-tautology guards, and **every tool
    carries at least one Playwright spec**.
-6. **Zero-dependency, no-build, offline-capable** — elegant and genuinely working.
-7. **Contract-first model layer** — 23/23 declared with provenance, calibration and limitation policies.
+6. **Locked supply chain** — pinned registry, exact saves, committed lockfile, `ignore-scripts`, CI-enforced.
+7. **Zero-dependency, no-build, offline-capable** — elegant and genuinely working.
+8. **Contract-first model layer** — 23/23 declared with provenance, calibration and limitation policies.
 
 ---
 
@@ -317,7 +365,7 @@ Ranked by value ÷ effort.
    (stated vs realised); misses shown. Everything else is downstream.
 2. **Trigger & invalidation watcher** — the brief already publishes an `invalidation` line per call and never
    watches it. Highest value ÷ lowest effort in the repo.
-3. **Headless reads for the seven unwired tools** — closes §5.1.
+3. **Headless reads for the seven unwired tools** — closes §5.2.
 
 **Tier 2 — completeness**
 
@@ -343,14 +391,15 @@ Ranked by value ÷ effort.
 |---|---|---|
 | **A1** | **Make the ledger the product.** Recommendations become first-class persisted objects with a lifecycle; the scorecard goes above the fold. | Converts the only defensible edge from a claim into a number |
 | **A2** | **Write the product principles and real business invariants.** Replace the template constitution. | Every decision below needs a rule; the template supplies none |
-| **A3** | **Decide: personal instrument or public product.** | Today it is *deployed* public and *built* personal. That ambiguity generates §5.7, §5.8 and the key-gated tools |
+| **A3** | **Decide: personal instrument or public product.** | Today it is *deployed* public and *built* personal. That ambiguity drives §5.8, §5.9 and the key-gated tools |
 | **A4** | **Cap spec size; add an exception process.** | 2.7 : 1 planning-to-product with 1,678 open items is inventory, not rigor |
-| **A5** | **No spec may block on another spec's status** — only on a real, named, missing capability. | §5.10: the fix for the biggest gap is blocked by paperwork |
+| **A5** | **No spec may block on another spec's status** — only on a real, named, missing capability. | §5.11: the fix for the biggest gap is blocked by paperwork |
 
 ### Tactical — same shape, fixed
 
-`§5.1` wiring · `§5.3` register-or-delete · `§5.4` one metric module · `§5.5` shard history ·
-`§5.6` full CI · `§5.7` front-door copy · `§5.8` move Tier-A off the laptop · `§5.9` grouping + search.
+`§5.1` escape + CSP · `§5.2` wiring · `§5.4` register-or-delete · `§5.5` one metric module ·
+`§5.6` shard history · `§5.7` full CI · `§5.8` close BUG-001 + front-door copy · `§5.9` move Tier-A off the
+laptop · `§5.10` grouping + search.
 
 **Explicitly *not* needed:** no ESM migration (breaks `file://`), no bundler, no model rewrite, no
 re-architecture. The structure is right.
@@ -376,6 +425,8 @@ re-architecture. The structure is right.
 
 | Metric | Today | Target |
 |---|---|---|
+| Unescaped LLM-content sinks | 1 | **0** |
+| Pages with a CSP | 0 / 26 | **26 / 26** |
 | Tools contributing rich reads | 5 / 23 | **≥ 11 / 23** (all applicable) |
 | Recommendation close events | 0 | **> 0, rising daily** |
 | Published calibration surface | none | **live above the fold** |
@@ -383,8 +434,9 @@ re-architecture. The structure is right.
 | Unreachable shipped assets | ~1.05 MB | **0 B** |
 | Sharpe implementations in tree | 3 sites, 2 conventions | **1 module, 1 default** |
 | Bytes fetched on brief load | 2.37 MB | **< 200 KB** |
-| Selftest assertions in CI | 0 / 970 | **970 / 970** |
+| Selftest assertions in CI | 0 / 983 | **all of them** |
 | Playwright specs in CI | 1 / 28 | **28 / 28** |
+| Open bugs whose contract was superseded | 1 | **0** |
 
 ---
 
@@ -395,49 +447,45 @@ No step depends on a later one. No step requires unblocking a spec. Effort is *f
 
 ---
 
-### Step 1 · Truth pass — **0.5 d**
+### Step 1 · Close the injection sink — **15 min** · 🔴 *do today*
 
-**Value** — the site stops misstating its own capability; ~1.05 MB stops being invisible.
+**Value** — removes a credential-exfiltration path and fixes broken markup rendering in the same edit.
 
 **Change**
-1. Rewrite [`../index.html`](../index.html) line 438 to the shipped two-tier reality (proxy · per-browser local
-   key · public no-key paths).
-2. Per orphan (§5.3): **register or delete** — no third option. Registering means all five registries +
+1. [`../market-brief.html`](../market-brief.html) line 785 — wrap both interpolations in the `esc()` already
+   defined at line 896: `esc(x.title || "")`, `esc(x.note || "")`.
+2. Add a `Content-Security-Policy` meta to every page (`default-src 'self'; script-src 'self' 'unsafe-inline'`
+   — inline is required by the single-file design; it still blocks remote exfil endpoints via `connect-src`).
+3. Add a regression test asserting that a payload whose `experimental[0].title` contains `<img onerror>`
+   renders as **text**, not markup.
+
+**Verify**
+```bash
+grep -rnE "innerHTML\s*=.*\+\s*\(?[a-z]+\.(title|note|read|summary|why|what)" *.html rl*.js | grep -v 'esc('   # empty
+grep -L 'Content-Security-Policy' *.html                                                                        # empty
+npx --no-install playwright test tests/brief-payload-escaping.spec.mjs --config=playwright.config.mjs --project=system-chrome
+```
+**Done when** the sweep is empty, every page carries a CSP, and the escaping regression passes.
+
+---
+
+### Step 2 · Truth pass — **0.5 d**
+
+**Value** — ~1.05 MB stops being invisible; the security backlog stops lying about its size.
+
+**Change**
+1. Close or withdraw `BUG-001` (§5.8) with an explicit note that BUG-002 superseded its Tier-2 clause; retain
+   any DoD item that is still genuinely outstanding, delete the rest.
+2. Per orphan (§5.4): **register or delete** — no third option. Registering means all five registries +
    `rlnav.js` + notes.
-3. Reconcile [`../README.md`](../README.md): tool table and Layout section.
 
 **Verify**
 ```bash
 comm -3 <(ls *.html | grep -v '^index' | sed 's/.html//' | sort) <(jq -r '.tools[].id' tools.json | sort)   # empty
-grep -c 'browser credential use is disabled' index.html                                                     # 0
-[ "$(grep -cE '^\| \[`' README.md)" = "$(jq -r '.tools|length' tools.json)" ] && echo README-OK
+jq -r '.status' specs/_bugs/BUG-001-central-provider-credential-security/state.json                         # not in_progress
 node scripts/selftest.mjs
 ```
-**Done when** all four pass.
-
----
-
-### Step 2 · Capture the evidence — **1 d** · ⚠ *most urgent*
-
-**Value** — from this commit forward no recommendation is lost; 95 commits of history recovered.
-*Every day without this permanently discards ~28 recommendations.*
-
-**Change**
-1. Extend the archive row so `briefs/history/recommendations/<month>.jsonl` carries the **body** beside the
-   hash: `instrument`, `direction`, `horizon`, `levels`, `trigger`, `invalidation`, `confidence`, `deepLink`,
-   `structuralAnchor`. Keep `recommendationKey` as the join key. **Additive only.**
-2. Add `scripts/backfill-recommendations.mjs` — walk 95 commits of `market-brief.payload.json`, emit historical
-   `proposed` rows with bodies, idempotently (skip existing `eventId`).
-
-**Verify**
-```bash
-node scripts/backfill-recommendations.mjs --dry-run     # prints recoverable count, writes nothing
-node scripts/backfill-recommendations.mjs
-jq -r 'select(.instrument == null) | .eventId' briefs/history/recommendations/*.jsonl | wc -l   # 0
-node scripts/backfill-recommendations.mjs               # second run must add 0 rows
-node scripts/selftest.mjs
-```
-**Done when** every row carries a body and backfill is idempotent.
+**Done when** all three pass.
 
 ---
 
@@ -476,7 +524,7 @@ at `brief-distributed-publish.mjs:12` is corrected.
 
 ---
 
-### Step 4 · Score the ledger — **2–3 d**
+### Step 4 · Score the ledger — **2–3 d** · ⚠ *the product thesis*
 
 **Value** — the first honest hit-rate this project has ever produced.
 
@@ -513,7 +561,7 @@ not forcing verdicts.
 1. `scripts/build-scorecard.mjs` → `market-brief.scorecard.json`: rolling 30/90/all-time resolved counts;
    hit-rate by horizon, domain and confidence bucket; calibration table (stated vs realised); the N most recent
    **misses in full**; the `not-evaluable` share.
-2. Render **above** the attention feed in [`../market-brief.html`](../market-brief.html).
+2. Render **above** the attention feed in [`../market-brief.html`](../market-brief.html) — escaped, per Step 1.
 3. Below a minimum resolved sample, print *"insufficient resolved sample (n = X)"* rather than a percentage.
 
 **Verify**
@@ -539,7 +587,7 @@ already depend on it.
 2. Adopt **one** default — recommended: **arithmetic Sharpe** (Sharpe 1966/1994) as `sharpe`, with
    `sharpeGeometric` available and explicitly labelled at each use. Document in `rlmetrics.js` and
    [`../notes/volatility-drag-research.md`](../notes/volatility-drag-research.md).
-3. Replace the three call sites (§5.4).
+3. Replace the three call sites (§5.5).
 4. Show `drag = annArith − cagr` in `etf-momentum-lab`, where both terms already sit in one object.
 
 **Verify**
@@ -580,7 +628,7 @@ node scripts/selftest.mjs                                  # now includes the bu
 **Change**
 1. Mount `[data-rljourney-mount]` on the brief and on each tool page that owns journeys. Replace
    `tests/journey-mobile.spec.mjs`'s self-injected anchor with an assertion against the **real shipped**
-   surface. *(If Step 1 decided to delete, this sub-step is the deletion instead.)*
+   surface. *(If Step 2 decided to delete, this sub-step is the deletion instead.)*
 2. Add a `group` field to each `tools.json` entry — *Market Structure · Options & Flow · Rotation & Macro ·
    Strategy & Validation · Fundamentals · Place-based · Personal*. Render grouped sections in `index.html` and
    `rlnav.js` **from the registry**, never hardcoded.
@@ -602,7 +650,7 @@ npx --no-install playwright test tests/tool-discovery.spec.mjs --config=playwrig
 
 **Change**
 1. Extend the `verify` job in [`../.github/workflows/pages.yml`](../.github/workflows/pages.yml) to run
-   `node scripts/selftest.mjs` (all 970) **and** the full Playwright suite (28 specs). Deploy stays gated on it.
+   `node scripts/selftest.mjs` (all 983) **and** the full Playwright suite (28 specs). Deploy stays gated on it.
 2. Move **Tier-A** (deterministic, no LLM) to a GitHub Actions cron — it needs only `data/` and the adapters.
    Tier-B may stay operator-hosted; the page must render a truthful *"narrative not refreshed this window"*
    state when absent.
@@ -622,41 +670,43 @@ grep -c 'TODO' .specify/memory/constitution.md              # 0
 ### Sequencing
 
 ```
-1  Truth pass ................. 0.5d    credibility; 1.05 MB reachable-or-gone
-2  Capture the evidence ....... 1d      ⚠ nothing lost from here; 95 commits recovered
-3  Wire the adapters .......... 2-3d    coverage 5 → 11+;  most visible change
-4  Score the ledger ........... 2-3d    first hit-rate ever produced
-5  Surface calibration ........ 1-2d    the moat becomes a number
-6  One metric spine ........... 1-2d    numbers stop contradicting
-7  Bounded history ............ 1d      fast now, fast in year three
-8  Journeys & discovery ....... 2d      48 scenarios reachable; shelf navigable
-9  Durability ................. 1-2d    CI + cadence + written direction
-                                ≈ 12-17 focused days
+1  Close the injection sink ... 15min   🔴 credential path shut; markup renders correctly
+2  Truth pass .................. 0.5d   1.05 MB reachable-or-gone; BUG-001 closed
+3  Wire the adapters ........... 2-3d   coverage 5 → 11+;  most visible change
+4  Score the ledger ............ 2-3d   ⚠ first hit-rate ever produced
+5  Surface calibration ......... 1-2d   the moat becomes a number
+6  One metric spine ............ 1-2d   numbers stop contradicting
+7  Bounded history ............. 1d     fast now, fast in year three
+8  Journeys & discovery ........ 2d     48 scenarios reachable; shelf navigable
+9  Durability .................. 1-2d   CI + cadence + written direction
+                                ≈ 11-16 focused days
 ```
 
-Steps 1–3 are independent. Step 4 needs 2; Step 5 needs 4. Steps 6–9 are independent of all.
+Steps 1, 2 and 3 are independent. Step 5 needs 4. Steps 6–9 are independent of all.
 
-**If only one step is ever done: Step 2.**
+**Do Step 1 today — it is fifteen minutes. If only one further step is ever done: Step 4.**
 
 ---
 
 ## 12. Anti-drift contract
 
 Targets the measured drift: 1,678 open DoD items, 2.7 : 1 planning-to-product, 1.05 MB shipped-but-hidden, 215
-proposals with 0 outcomes.
+proposals with 0 outcomes, 1 superseded bug left open.
 
 | # | Rule | Enforced by |
 |---|---|---|
-| **D1** | **Reachable or removed.** Nothing ships to the site root without a registry entry and a nav entry. | selftest registry↔disk assertion (Step 1) |
-| **D2** | **Wired or not shipped.** No shared module lands without a production consumer. *Tests are not consumers.* | selftest consumer assertion |
-| **D3** | **One definition per concept.** A financial metric is defined once, in one module. | grep assertion (Step 6) |
-| **D4** | **Every claim is scoreable.** A recommendation without a machine-checkable invalidation is emitted `not-evaluable` — never silently unscoreable. | `evaluate-recommendations.mjs` |
-| **D5** | **Additive contracts only.** Schemas extend; history is never rewritten. | append-only assertion |
-| **D6** | **Budgets are assertions.** Every number in `performanceBudgets` / `artifactBudgets` has a failing test. | selftest |
-| **D7** | **Spec cap.** No new spec above ~40 FR or ~5 scopes without a written exception. Split instead. | review discipline |
-| **D8** | **No spec blocks on another spec's *status*** — only on a real, named, missing capability. | dependency-gate review |
-| **D9** | **UMD, never ESM,** for shared browser+Node code. `file://` capability is a product feature. | code review + selftest |
-| **D10** | **Admission test.** *Does this improve decision quality, or its measurement?* If neither, it does not ship. | product principles |
+| **D1** | **Escape at every sink.** No model- or config-authored string reaches `innerHTML` without `esc()`. | grep sweep in `selftest.mjs` (Step 1) |
+| **D2** | **Reachable or removed.** Nothing ships to the site root without a registry entry and a nav entry. | selftest registry↔disk assertion (Step 2) |
+| **D3** | **Wired or not shipped.** No shared module lands without a production consumer. *Tests are not consumers.* | selftest consumer assertion |
+| **D4** | **One definition per concept.** A financial metric is defined once, in one module. | grep assertion (Step 6) |
+| **D5** | **Every claim is scoreable.** A recommendation without a machine-checkable invalidation is emitted `not-evaluable` — never silently unscoreable. | `evaluate-recommendations.mjs` |
+| **D6** | **Additive contracts only.** Schemas extend; history is never rewritten. | append-only assertion |
+| **D7** | **Budgets are assertions.** Every number in `performanceBudgets` / `artifactBudgets` has a failing test. | selftest |
+| **D8** | **Superseding closes the superseded.** A bug or spec whose contract is reversed by a later artifact is closed or withdrawn in the same change. | artifact-lint / review |
+| **D9** | **Spec cap.** No new spec above ~40 FR or ~5 scopes without a written exception. Split instead. | review discipline |
+| **D10** | **No spec blocks on another spec's *status*** — only on a real, named, missing capability. | dependency-gate review |
+| **D11** | **UMD, never ESM,** for shared browser+Node code. `file://` capability is a product feature. | code review + selftest |
+| **D12** | **Admission test.** *Does this improve decision quality, or its measurement?* If neither, it does not ship. | product principles |
 
 ### Business invariants — to replace the constitution template
 
@@ -670,6 +720,7 @@ proposals with 0 outcomes.
 - **BI-5** The scorecard publishes **misses with equal prominence to hits.** Selective reporting is the one
   unrecoverable failure for this product.
 - **BI-6** Every tool works with no key, no proxy and no account — degrading honestly rather than breaking.
+- **BI-7** Model-authored text is **data, never markup.** It is escaped at every rendering sink.
 
 ---
 
@@ -682,7 +733,7 @@ proposals with 0 outcomes.
 | Add tool #24 before the scorecard ships | Tool count is not the constraint; integration and feedback are |
 | Real-time options flow | SpotGamma and Unusual Whales own it via proprietary feeds |
 | Order execution / brokerage | Composer owns it; converts an educational tool into a regulated one |
-| Finish specs 013–016 as written | 11,165 spec lines, 1,022 open DoD, zero code. Re-scope under D7 against the admission test |
+| Finish specs 013–016 as written | 11,165 spec lines, 1,022 open DoD, zero code. Re-scope under D9 against the admission test |
 | Multi-user accounts, auth, hosting | Single-operator is a **feature** — it is what permits publishing the miss rate |
 | Keep synthetic filings in `smart-money-flow-lab` | Quiver's **free** tier beats it. Use real data or cut the tool |
 
@@ -704,10 +755,11 @@ owns that math, showing the same numbers, because there is only one implementati
 If you want to be walked through something, the journeys are there: *prepare the next market session*, *define a
 level trigger and invalidation*, *decide whether an edge survives*. Forty-eight of them, reachable.
 
-Behind the page: `rlmetrics.js` defines Sharpe once. Nothing on disk is invisible. The history file the page
-downloads is under 200 KB and always will be, because a test fails if it is not. CI ran 970 assertions and 28
-browser specs before this deploy. Tier-A ran on a schedule that does not care whether a laptop was open, and if
-the narrative lane missed a window the page says so in plain language instead of showing yesterday as today.
+Behind the page: every string the model wrote is rendered as text, never markup, and a CSP stands behind that.
+`rlmetrics.js` defines Sharpe once. Nothing on disk is invisible. The history file the page downloads is under
+200 KB and always will be, because a test fails if it is not. CI ran every selftest assertion and all 28 browser
+specs before this deploy. Tier-A ran on a schedule that does not care whether a laptop was open, and if the narrative lane
+missed a window the page says so in plain language instead of showing yesterday as today.
 
 And every claim it makes this morning is already queued to be scored against tomorrow.
 
@@ -719,11 +771,12 @@ That is the product: **not another dashboard — the only market brief that publ
 
 | Claim class | Established by |
 |---|---|
-| Counts, sizes, ratios | Direct measurement (`wc`, `stat`, `jq`, `ls`, `comm`, `curl`) at HEAD, 2026-07-31 |
+| Counts, sizes, ratios | Direct measurement (`wc`, `stat`, `jq`, `ls`, `comm`, `grep`, `curl`) at HEAD, 2026-07-31 |
 | Code behaviour | Source reading with file + line citations |
-| Test health | `node scripts/selftest.mjs` → 970 passed / 0 failed, exit 0 |
+| Test health | `node scripts/selftest.mjs` → 983 passed / 0 failed, exit 0 |
 | Live-site state | HTTP checks against the published Pages site |
 | Competitive facts | Vendor pages fetched 2026-07-31 |
+| Security assessment | Static source reading of sink and storage paths; **no exploit was constructed or executed** |
 | Effort estimates | **Derived judgement**, explicitly not measured |
 
 No spec artifact, `state.json`, or scope file was modified in producing this review.

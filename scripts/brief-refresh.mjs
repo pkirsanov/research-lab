@@ -33,6 +33,7 @@ const ROOT = join(dirname(fileURLToPath(import.meta.url)), '..');
 const read = (f) => readFileSync(join(ROOT, f), 'utf8');
 const featureRequire = createRequire(import.meta.url);
 const RLCONTRACTS = featureRequire(join(ROOT, 'rlcontracts.js'));
+const RLMETRICS = featureRequire(join(ROOT, 'rlmetrics.js'));
 const cfg = JSON.parse(read('market-brief.config.json'));
 const wl = JSON.parse(read('watchlist.json'));
 const SNAPSHOT_MAX_AGE_MS = 6 * 3600e3;
@@ -1112,14 +1113,24 @@ function calendarReturnDecimal(rows, days) {
   return Number.isFinite(base) && base > 0 && Number.isFinite(last) ? last / base - 1 : null;
 }
 function oneYearWindowMetrics(rows, riskFree) {
-  if (!rows || rows.length < 3) return { annVol: null, cagr: null, sharpe: null };
+  const empty = { annVol: null, cagr: null, annArith: null, sharpe: null, sharpeGeometric: null, drag: null };
+  if (!rows || rows.length < 3) return empty;
   const cutoff = rows[rows.length - 1].t - 365 * 864e5, windowRows = rows.filter((row) => row.t >= cutoff);
-  if (windowRows.length < 3) return { annVol: null, cagr: null, sharpe: null };
-  const annVol = realizedVolDecimal(windowRows, windowRows.length - 1);
+  if (windowRows.length < 3) return empty;
+  const returns = RLMETRICS.returnsFromCloses(windowRows);
+  const annVol = RLMETRICS.annualizedVol(returns);
+  const annArith = RLMETRICS.annualizedArithmetic(returns);
   const years = (windowRows[windowRows.length - 1].t - windowRows[0].t) / (365.25 * 864e5);
-  const first = windowRows[0].c, last = windowRows[windowRows.length - 1].c;
-  const cagr = years > 0 && first > 0 ? Math.pow(last / first, 1 / years) - 1 : null;
-  return { annVol, cagr, sharpe: Number.isFinite(cagr) && Number.isFinite(annVol) && annVol > 0 ? (cagr - riskFree) / annVol : null };
+  const compounded = RLMETRICS.cagr(windowRows[0].c, windowRows[windowRows.length - 1].c, years);
+  // `sharpe` is the arithmetic default. The geometric form is kept and LABELLED because this window
+  // read is what the ETF ranking has always used; publishing both ends the ambiguity without
+  // silently re-ranking the funds.
+  return {
+    annVol, cagr: compounded, annArith,
+    sharpe: RLMETRICS.sharpeArithmetic(returns, RLMETRICS.TRADING_DAYS, riskFree),
+    sharpeGeometric: RLMETRICS.sharpeGeometric(compounded, annVol, riskFree),
+    drag: RLMETRICS.volatilityDrag(returns)
+  };
 }
 
 export async function buildEtfToolRead(deps = {}) {
@@ -1132,9 +1143,11 @@ export async function buildEtfToolRead(deps = {}) {
       const bars = await rowsFor(fund.ticker); if (!bars || bars.length < 127) continue;
       const trailing = { '3M': calendarReturnDecimal(bars, 91), '6M': calendarReturnDecimal(bars, 182), '1Y': calendarReturnDecimal(bars, 365) };
       const windowMetrics = oneYearWindowMetrics(bars, universe.riskFree || 0), annVol = windowMetrics.annVol;
-      const metrics = { trailing, annVol, sharpe: windowMetrics.sharpe };
+      // The composite score has always ranked on the GEOMETRIC Sharpe, so it is named explicitly
+      // here. Switching it to the arithmetic default would silently re-rank the funds.
+      const metrics = { trailing, annVol, sharpe: windowMetrics.sharpeGeometric };
       const signal = model.etfMomentumSignal(metrics, '6M'), score = model.etfCompositeScore(metrics, '6M', 'balanced');
-      if (Number.isFinite(score)) rows.push({ ticker: fund.ticker, signal: round(signal * 100), score: round(score, 4), annVol: round(annVol * 100), asOf: latestIso(bars) });
+      if (Number.isFinite(score)) rows.push({ ticker: fund.ticker, signal: round(signal * 100), score: round(score, 4), annVol: round(annVol * 100), sharpeGeometric: round(windowMetrics.sharpeGeometric, 3), sharpeArithmetic: round(windowMetrics.sharpe, 3), volatilityDrag: round(windowMetrics.drag * 100), asOf: latestIso(bars) });
     }
     rows.sort((a, b) => b.score - a.score);
     const leader = rows[0];

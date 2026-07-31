@@ -589,3 +589,54 @@ test(TOOLS['etf-momentum-lab'].title, async ({ page }) => { await assertVisibleS
 test(TOOLS['ai-capex-strategy-lab'].title, async ({ page }) => { await assertVisibleSensitivity(page, 'ai-capex-strategy-lab'); });
 test(TOOLS['msft-july-print-model'].title, async ({ page }) => { await assertVisibleSensitivity(page, 'msft-july-print-model'); });
 test(TOOLS['company-fundamentals-lab'].title, async ({ page }) => { await assertVisibleSensitivity(page, 'company-fundamentals-lab'); });
+
+/*
+ * etf-momentum-lab held the arithmetic annualised return and the compounded return side by side for
+ * a long time and never displayed the gap between them. It does now, and it comes from rlmetrics.js
+ * so the page cannot disagree with the brief. The invariant that makes the figure meaningful is
+ * AM >= GM: a negative drag would mean compounding BEAT the arithmetic average, which cannot happen.
+ */
+test('etf-momentum-lab publishes volatility drag from the shared metric module, and it is never negative', async ({ page }) => {
+  test.setTimeout(120_000);
+  await page.goto(`${site.baseUrl}/etf-momentum-lab.html`);
+
+  // The page must consume the single metric definition rather than an inline copy.
+  const wired = await page.evaluate(() => typeof globalThis.RLMETRICS === 'object'
+    && typeof globalThis.RLMETRICS.volatilityDrag === 'function'
+    && typeof globalThis.RLMETRICS.sharpeGeometric === 'function');
+  expect(wired).toBe(true);
+
+  await expect(page.locator('#sumHead')).toContainText('Vol drag', { timeout: 60_000 });
+  // The summary table lives in the Power panel, so it is populated but not visible in the default
+  // Simple view. Content, not visibility, is what this test is about; the view switch is covered by
+  // the shell specs above.
+  await expect.poll(() => page.locator('#sumBody tr').count(), { timeout: 60_000 }).toBeGreaterThan(0);
+
+  // Read the rendered column: the page's model state is IIFE-local, so what the USER sees is the
+  // only honest surface to assert against.
+  const column = await page.evaluate(() => {
+    const head = Array.from(document.querySelectorAll('#sumHead th')).map((th) => th.textContent.trim().replace(/\s*[\u25b4\u25be]$/, ''));
+    const index = head.indexOf('Vol drag');
+    if (index < 0) return null;
+    const cells = Array.from(document.querySelectorAll('#sumBody tr')).map((row) => row.children[index]).filter(Boolean);
+    return {
+      index,
+      values: cells.map((cell) => cell.textContent.trim()),
+      tips: cells.map((cell) => (cell.querySelector('[title]') || cell).getAttribute('title') || '')
+    };
+  });
+  expect(column).not.toBeNull();
+
+  const numeric = column.values
+    .map((text) => Number(String(text).replace('%', '')))
+    .filter((value) => Number.isFinite(value));
+  expect(numeric.length).toBeGreaterThan(0);
+  // ADVERSARIAL: this is the assertion that catches the mixed-annualisation form. Subtracting an
+  // endpoint CAGR from a linearly annualised arithmetic mean produces NEGATIVE drags on real
+  // windows, so a regression to that formula fails here rather than shipping an impossible number.
+  expect(numeric.filter((value) => value < 0)).toEqual([]);
+
+  // Every value carries a contextual tooltip saying what THIS reading means, per the house rule.
+  expect(column.tips.filter((tip) => tip.includes('Volatility drag')).length).toBe(numeric.length);
+});
+

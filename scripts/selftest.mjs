@@ -4820,6 +4820,73 @@ try {
     'the published market-brief.scorecard.json matches the committed outcome ledger');
 } catch (e) { failures++; console.log('  \u2717 FAIL (scorecard group threw): ' + e.message); }
 
+/* ---------- rlmetrics — one definition, and a drag that obeys AM ≥ GM ---------- */
+try {
+  group('rlmetrics.js \u2014 one Sharpe definition, and a volatility drag that cannot go negative');
+  const { createRequire: createMetricsRequire } = await import('node:module');
+  const RLM = createMetricsRequire(import.meta.url)(join(ROOT, 'rlmetrics.js'));
+
+  assert(typeof RLM.sharpeArithmetic === 'function' && typeof RLM.sharpeGeometric === 'function' && typeof RLM.volatilityDrag === 'function',
+    'rlmetrics exports both Sharpe conventions plus volatility drag');
+  assert(RLM.sharpe === RLM.sharpeArithmetic, 'the bare `sharpe` alias resolves to ONE convention (arithmetic), so an unqualified call is never ambiguous');
+
+  // Null, not zero. An unknown Sharpe and a zero Sharpe are different claims.
+  assert(RLM.sharpeArithmetic([], 252, 0) === null && RLM.sharpeGeometric(null, 0.2, 0) === null && RLM.volatilityDrag([]) === null,
+    'insufficient input yields null, never a plausible 0');
+  assert(RLM.annualizedVol([0.01]) === null && RLM.cagr(100, 120, 0) === null,
+    'a single observation has no volatility and a zero-length window has no CAGR — both stay null');
+
+  // ADVERSARIAL: drag must obey AM ≥ GM on REAL committed windows. The naive
+  // "annualisedArithmetic − endpointCAGR" mixes annualisation conventions and goes NEGATIVE, which
+  // is impossible; this asserts the correct per-period form on every committed bar file that has a
+  // usable year, so the defect cannot return for any single symbol.
+  const barFiles = readdirSync(join(ROOT, 'data/bars')).filter((file) => file.endsWith('.json'));
+  let checked = 0, moderateVol = 0, negativeDrag = [], driftFromTheory = [];
+  for (const file of barFiles) {
+    const rows = JSON.parse(read(`data/bars/${file}`)).rows;
+    if (!rows || rows.length < 200) continue;
+    const window = rows.filter((row) => row.t >= rows[rows.length - 1].t - 365 * 864e5);
+    if (window.length < 200) continue;
+    const returns = RLM.returnsFromCloses(window);
+    const drag = RLM.volatilityDrag(returns);
+    const vol = RLM.annualizedVol(returns);
+    const approx = RLM.volatilityDragApprox(vol);
+    if (!Number.isFinite(drag) || !Number.isFinite(approx)) continue;
+    checked += 1;
+    if (drag < 0) negativeDrag.push(file);
+    // sigma^2/2 is a SECOND-ORDER expansion: it is accurate at ordinary equity volatility and
+    // legitimately diverges at extreme volatility (^VIX runs above 100% annualised). Checking it
+    // only where it is meant to hold keeps the assertion true rather than approximately true.
+    if (vol <= 0.40) {
+      moderateVol += 1;
+      if (Math.abs(drag - approx) > 0.01) driftFromTheory.push(`${file}: vol ${(vol * 100).toFixed(0)}%, exact ${drag.toFixed(4)} vs approx ${approx.toFixed(4)}`);
+    }
+  }
+  assert(checked >= 50 && moderateVol >= 50, 'the drag invariant is checked against a real sample of committed windows (' + checked + ' symbols, ' + moderateVol + ' at ordinary volatility)');
+  assert(negativeDrag.length === 0, 'volatility drag is never negative on a real window \u2014 AM \u2265 GM (' + negativeDrag.slice(0, 5).join(', ') + ')');
+  assert(driftFromTheory.length === 0, 'at ordinary volatility the exact drag tracks its sigma-squared-over-two estimate (' + driftFromTheory.slice(0, 3).join('; ') + ')');
+
+  // The two conventions must differ by roughly the drag — that difference IS the reason both exist.
+  const spyRows = JSON.parse(read('data/bars/SPY.json')).rows;
+  const spyWindow = spyRows.filter((row) => row.t >= spyRows[spyRows.length - 1].t - 365 * 864e5);
+  const spyReturns = RLM.returnsFromCloses(spyWindow);
+  const years = (spyWindow[spyWindow.length - 1].t - spyWindow[0].t) / (365.25 * 864e5);
+  const spyCagr = RLM.cagr(spyWindow[0].c, spyWindow[spyWindow.length - 1].c, years);
+  const arithmetic = RLM.sharpeArithmetic(spyReturns, 252, 0);
+  const geometric = RLM.sharpeGeometric(spyCagr, RLM.annualizedVol(spyReturns), 0);
+  assert(Number.isFinite(arithmetic) && Number.isFinite(geometric) && arithmetic !== geometric,
+    'the two conventions genuinely differ on the same asset (arithmetic ' + arithmetic.toFixed(3) + ' vs geometric ' + geometric.toFixed(3) + ') \u2014 which is why calling both "sharpe" was a defect');
+
+  // The one non-consumer is PINNED to the canonical definition so it cannot drift.
+  const strategy = createMetricsRequire(import.meta.url)(join(ROOT, 'rlexperience-adapters/strategy-research.js'));
+  const seeded = strategy.genSeries(42, 4, [{ frac: 1, muAnnual: 0.08, sigAnnual: 0.18 }]);
+  const bt = strategy.backtest(seeded, { fast: 20, slow: 100, momLookback: 63, volTarget: 0.12, maxLeverage: 2, stopDd: 0.15 }, 0, seeded.days);
+  const adapterMetrics = strategy.metrics(bt);
+  const canonical = RLM.sharpeArithmetic(bt.r, 252, 0);
+  assert(Number.isFinite(canonical) && Math.abs(adapterMetrics.sharpe - canonical) < 1e-9,
+    'strategy-research.js (a pure adapter that may not import) computes the SAME arithmetic Sharpe rlmetrics defines (' + adapterMetrics.sharpe.toFixed(9) + ' vs ' + canonical.toFixed(9) + ')');
+} catch (e) { failures++; console.log('  \u2717 FAIL (rlmetrics group threw): ' + e.message); }
+
 /* ---------- spec artifacts — every referenced test path exists (ratchet) ---------- */
 try {
   group('spec artifacts \u2014 referenced tests/*.mjs paths exist (Playwright silently ignores absent file args)');

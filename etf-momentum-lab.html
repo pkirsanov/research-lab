@@ -1358,6 +1358,10 @@
        Simple cockpit and the registered etf-ranking Simple adapter consume the exact same owner primitives
        (no inline formula copy). Loaded before the inline model so RLMACROROTATION is available synchronously. -->
   <script src="rlexperience-adapters/macro-rotation.js"></script>
+  <!-- rlmetrics.js is the SINGLE definition of Sharpe (arithmetic default + explicitly named
+       geometric), annualised vol, CAGR and volatility drag. Loaded synchronously, before the inline
+       model, so the same asset can never yield a different Sharpe here than in the brief. -->
+  <script src="rlmetrics.js"></script>
   <script>
     "use strict";
     /* ══════════════════════════════════════════════════════════════════════════
@@ -1555,8 +1559,12 @@
       var years = (w.t[w.t.length - 1] - w.t[0]) / (365.25 * DAY) || (n / ANN);
       var winRet = last / first - 1;
       var cagr = years > 0 ? Math.pow(last / first, 1 / years) - 1 : winRet;
-      var annVol = stdev(r) * Math.sqrt(ANN);
-      var annArith = mean(r) * ANN;
+      var annVol = RLMETRICS.annualizedVol(r, ANN);
+      var annArith = RLMETRICS.annualizedArithmetic(r, ANN);
+      // Volatility drag must come from PER-PERIOD quantities. This page held annArith and cagr side
+      // by side for years and never subtracted them - which was lucky, because that subtraction
+      // mixes two annualisation conventions and can go negative, which AM-GM forbids.
+      var drag = RLMETRICS.volatilityDrag(r, ANN);
       var rfD = Math.pow(1 + state.rf, 1 / ANN) - 1;
       // drawdown
       var peak = w.adj[0], maxDD = 0, dd = [];
@@ -1565,7 +1573,10 @@
       // downside
       var down = r.map(function (x) { var e = x - rfD; return e < 0 ? e : 0; });
       var downDev = Math.sqrt(mean(down.map(function (x) { return x * x; }))) * Math.sqrt(ANN);
-      var sharpe = annVol > 0 ? (cagr - state.rf) / annVol : null;
+      // This page has always ranked on the GEOMETRIC Sharpe, so it is named explicitly rather than
+      // left to the ambiguous default. rlmetrics.js is the single definition of both conventions.
+      var sharpe = RLMETRICS.sharpeGeometric(cagr, annVol, state.rf);
+      var sharpeArith = RLMETRICS.sharpeArithmetic(r, ANN, state.rf);
       var sortino = downDev > 0 ? (cagr - state.rf) / downDev : null;
       var calmar = maxDD < 0 ? cagr / Math.abs(maxDD) : null;
       // VaR / CVaR (historical, daily 95%)
@@ -1602,7 +1613,7 @@
         'YTD': ytdBase ? la / ytdBase - 1 : null, '1Y': trail(365), '3Y': trailAnn(1095), '5Y': trailAnn(1825)
       };
       return {
-        tk: tk, n: n, winRet: winRet, cagr: cagr, annVol: annVol, annArith: annArith, sharpe: sharpe, sortino: sortino,
+        tk: tk, n: n, winRet: winRet, cagr: cagr, annVol: annVol, annArith: annArith, drag: drag, sharpe: sharpe, sharpeArith: sharpeArith, sortino: sortino,
         calmar: calmar, maxDD: maxDD, ulcer: ulcer, downDev: downDev, var95: var95, cvar95: cvar95, posDays: posDays,
         best: best, worst: worst, beta: beta, alpha: alpha, corr: corr, r2: r2, resid: resid, upC: upC, downC: downC,
         last: last, trailing: trailing, dd: dd, w: w
@@ -1853,9 +1864,9 @@
         else { var L = ({ '3M': 63, '6M': 126, '1Y': 252, 'winRet': 126 })[sig] || 126; if (idx - L < 0 || a[idx - L] == null || a[idx - L] <= 0) return; sv = a[idx] / a[idx - L] - 1; }
         var rets = []; for (var j = Math.max(1, idx - volWin + 1); j <= idx; j++) { if (a[j] != null && a[j - 1] != null && a[j - 1] > 0) rets.push(a[j] / a[j - 1] - 1); }
         if (rets.length < 10) return;
-        var mean = rets.reduce(function (p, q) { return p + q; }, 0) / rets.length;
-        var sd = Math.sqrt(rets.reduce(function (p, q) { return p + (q - mean) * (q - mean); }, 0) / rets.length) || 1e-9;
-        cands.push({ tk: tk, sig: sv, vol: sd * Math.sqrt(ANN), sharpe: isFinite(mean / sd) ? (mean / sd) * Math.sqrt(ANN) : 0 });
+        // Ranking Sharpe is the ARITHMETIC form at zero risk-free, single-sourced from rlmetrics.js.
+        var wfSharpe = RLMETRICS.sharpeArithmetic(rets, ANN, 0);
+        cands.push({ tk: tk, sig: sv, vol: RLMETRICS.annualizedVol(rets, ANN), sharpe: wfSharpe == null ? 0 : wfSharpe });
       });
       if (!cands.length) return null;
       var zs = zStats(cands, 'sig'), zh = zStats(cands, 'sharpe');
@@ -1928,8 +1939,8 @@
         var rr = []; for (var j = a0; j <= i; j++) { if (adj[j] > 0) rr.push(adj[j + 1] / adj[j] - 1); }
         var years = (endT - startT) / (365.25 * DAY) || (rr.length / ANN);  /* same year-fraction as computeMetrics */
         var cagr = (years > 0 && first > 0) ? Math.pow(last / first, 1 / years) - 1 : (first > 0 ? last / first - 1 : 0);
-        var annVol = stdev(rr) * Math.sqrt(ANN);
-        var sharpe = annVol > 0 ? (cagr - state.rf) / annVol : null;         /* (CAGR − rf)/σ, identical to computeMetrics */
+        var annVol = RLMETRICS.annualizedVol(rr, ANN);
+        var sharpe = RLMETRICS.sharpeGeometric(cagr, annVol, state.rf);   /* geometric, identical to computeMetrics */
         out.push({ t: endT, cagr: cagr, sharpe: sharpe });
       }
       return out;
@@ -2553,8 +2564,20 @@
       { k: 'winRet', t: 'Win ret', fmt: function (m) { return m ? '<span class="' + cls(m.winRet) + '">' + fmtPct(m.winRet) + '</span>' : '—'; } },
       { k: 'cagr', t: 'CAGR', fmt: function (m) { return m ? '<span class="' + cls(m.cagr) + '">' + fmtPct(m.cagr) + '</span>' : '—'; } },
       { k: 'annVol', t: 'Vol', fmt: function (m) { return m ? fmtPct(m.annVol) : '—'; } },
+      {
+        k: 'drag', t: 'Vol drag',
+        fmt: function (m) {
+          if (!m || m.drag == null || !isFinite(m.drag)) return '—';
+          var approx = RLMETRICS.volatilityDragApprox(m.annVol);
+          var tip = 'Volatility drag: what compounding costs relative to the arithmetic average return. '
+            + 'Arithmetic ' + fmtPct(m.annArith) + ' compounds to ' + fmtPct(m.cagr) + '. '
+            + 'This reading of ' + fmtPct(m.drag) + ' is ' + (m.drag > 0.05 ? 'heavy — volatility is eating a large share of the average return' : m.drag > 0.02 ? 'moderate' : 'light')
+            + (approx != null ? '; the sigma-squared-over-two estimate is ' + fmtPct(approx) + '.' : '.');
+          return '<span class="neg" title="' + tip.replace(/"/g, '&quot;') + '">' + fmtPct(m.drag) + '</span>';
+        }
+      },
       { k: 'maxDD', t: 'Max DD', fmt: function (m) { return m ? '<span class="neg">' + fmtPct(m.maxDD) + '</span>' : '—'; } },
-      { k: 'sharpe', t: 'Sharpe', fmt: function (m) { return m ? fmtNum(m.sharpe) : '—'; } },
+      { k: 'sharpe', t: 'Sharpe', fmt: function (m) { return m ? '<span title="Geometric Sharpe: (CAGR &minus; risk-free) / annualised volatility' + (m && m.sharpeArith != null && isFinite(m.sharpeArith) ? '. The arithmetic Sharpe for the same window is ' + fmtNum(m.sharpeArith) + '; the gap is the volatility drag.' : '.') + '">' + fmtNum(m.sharpe) + '</span>' : '—'; } },
       { k: 'sortino', t: 'Sortino', fmt: function (m) { return m ? fmtNum(m.sortino) : '—'; } },
       { k: 'calmar', t: 'Calmar', fmt: function (m) { return m ? fmtNum(m.calmar) : '—'; } },
       { k: 'beta', t: 'β', fmt: function (m) { return m && m.beta != null ? fmtNum(m.beta) : '—'; } },

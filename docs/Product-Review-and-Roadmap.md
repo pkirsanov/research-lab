@@ -2,7 +2,7 @@
 
 **Date:** 2026-07-31 · **Type:** product review + executable roadmap · **Scope:** whole product
 **Method:** line-by-line source reading, registry↔disk diffing, live-site HTTP checks, `node scripts/selftest.mjs`
-(983 passed / 0 failed, exit 0), competitive research. Every number is measured at HEAD unless marked *derived*.
+(1,005 passed / 0 failed, exit 0), competitive research. Every number is measured at HEAD unless marked *derived*.
 **Related:** [`DomainModel.md`](DomainModel.md) · [`../notes/market-brief.md`](../notes/market-brief.md) ·
 [`../notes/volatility-drag-research.md`](../notes/volatility-drag-research.md)
 
@@ -37,7 +37,7 @@ measured in days.
 | Shared adapters ([`../rlexperience-adapters/`](../rlexperience-adapters)) | 7 modules, 488 KB | UMD dual-module, Node-loadable |
 | User journeys ([`../journeys.json`](../journeys.json)) | **48** | **0 mounted** |
 | Playwright specs | 28 files, 60 tool-references | **every tool has ≥ 1**; CI runs 1 |
-| Selftest assertions | 983 | pass; **0 run in CI** |
+| Selftest assertions | 1,005 *(growing)* | pass; **0 run in CI** |
 | Committed market data | 289 daily-bar files, 23 option chains | fresh, same-origin |
 | Brief runs to date | 107 | 4×/day cadence |
 | `specs/` markdown | 199,606 lines | 742 DoD done / **1,678 open** |
@@ -62,6 +62,11 @@ measured in days.
 - **Locked supply chain.** [`../.npmrc`](../.npmrc) pins the registry with `save-exact=true`,
   `package-lock=true`, `ignore-scripts=true`, `replace-registry-host=never`; lockfile committed; CI runs
   `validate-node-source-lock.mjs`. Stronger than most projects of any size.
+- **Keyless-by-default data path.** `rldata.js` `pagesBars()` serves committed same-origin snapshots
+  (`data/bars/<SYM>.json`, 289 symbols; 23 option chains) with no CORS, proxy or key — tried before any keyed
+  provider. 12 of 25 tool pages hydrate through it.
+- **Gated publication.** `brief-refresh-and-push.sh` runs `validate-brief-payload.mjs` and restores the owned
+  baseline on failure, so a malformed run cannot publish.
 - **Serious data engineering.** ET date+window cache keys, XNYS-calendar session verification,
   `zero-observed` / `thin-observed` session states, dividend/split fail-closed handling, no duplicate history
   requests across windows.
@@ -277,7 +282,7 @@ in none.
   `> **TODO:** Replace examples with your project's actual business invariants.`
 - No `docs/Product-Principles.md`.
 - CI ([`../.github/workflows/pages.yml`](../.github/workflows/pages.yml)) runs **1 of 28** Playwright specs and
-  **0 of 983** selftest assertions. The test investment is real; the enforcement is not.
+  **none of the ~1,000 selftest assertions**. The test investment is real; the enforcement is not.
 
 ### 5.8 · A superseded High bug left open — **medium**
 
@@ -302,8 +307,10 @@ is from the prior session's `after-hours` window.
 ### 5.10 · Discovery does not scale — **medium**
 
 `index.html` and `rlnav.js` each render **one flat list** of 25 tools. No grouping, no search, no filter, no
-recency. Mobile and a11y are otherwise good (viewport 26/26, `aria-label` 24/26, `@media` 23/26); one gap:
-`prefers-reduced-motion` in 3/26. Heaviest pages: 305 / 245 / 242 / 226 KB — fine on desktop, heavy on mobile.
+recency. Accessibility is otherwise sound — viewport 26/26, `aria-label` 24/26, `@media` 23/26, `:focus` 18/26,
+`aria-live` 14/26, `keydown` 12/26, and **zero** inline `onclick` on non-interactive elements (no keyboard
+traps). Two polish gaps: `focus-visible` 11/26 and `prefers-reduced-motion` 3/26. Heaviest pages: 305 / 245 /
+242 / 226 KB — fine on desktop, heavy on mobile.
 
 ### 5.11 · Planning inventory is the binding constraint — **medium**
 
@@ -347,8 +354,8 @@ record — the worst of both. Everything else here is secondary to closing that.
 3. **No-duplication deep-link law** — architecturally correct, rare.
 4. **Anti-overfit rigor** — anti-reactivity mandate, embargoed walk-forward folds, held-k/N cross-instrument
    robustness, Deflated Sharpe Ratio.
-5. **Test discipline** — 983 assertions, adversarial regression tests, anti-tautology guards, and **every tool
-   carries at least one Playwright spec**.
+5. **Test discipline** — over 1,000 assertions, adversarial regression tests, anti-tautology guards, and **every
+   tool carries at least one Playwright spec**.
 6. **Locked supply chain** — pinned registry, exact saves, committed lockfile, `ignore-scripts`, CI-enforced.
 7. **Zero-dependency, no-build, offline-capable** — elegant and genuinely working.
 8. **Contract-first model layer** — 23/23 declared with provenance, calibration and limitation policies.
@@ -378,7 +385,10 @@ Ranked by value ÷ effort.
 **Tier 3 — reach**
 
 9. Email/push delivery — the brief is built for an inbox; both major competitors do this.
-10. Key-free public path — only 6 of 23 tools read same-origin snapshots today.
+10. Widen the key-free path — **12 of 25** tool pages hydrate through `RLDATA.ensure*`, which serves committed
+    same-origin snapshots with no key or proxy (289 bar symbols, 23 option chains). Extending snapshot coverage
+    is what widens keyless reach; note `pagesBars()` is http(s)-only, so `file://` falls through to keyed
+    providers.
 11. MCP server exposing tool reads — reads are already contracted and provenance-tagged.
 
 ---
@@ -434,7 +444,7 @@ re-architecture. The structure is right.
 | Unreachable shipped assets | ~1.05 MB | **0 B** |
 | Sharpe implementations in tree | 3 sites, 2 conventions | **1 module, 1 default** |
 | Bytes fetched on brief load | 2.37 MB | **< 200 KB** |
-| Selftest assertions in CI | 0 / 983 | **all of them** |
+| Selftest assertions in CI | none | **the full suite** |
 | Playwright specs in CI | 1 / 28 | **28 / 28** |
 | Open bugs whose contract was superseded | 1 | **0** |
 
@@ -650,7 +660,7 @@ npx --no-install playwright test tests/tool-discovery.spec.mjs --config=playwrig
 
 **Change**
 1. Extend the `verify` job in [`../.github/workflows/pages.yml`](../.github/workflows/pages.yml) to run
-   `node scripts/selftest.mjs` (all 983) **and** the full Playwright suite (28 specs). Deploy stays gated on it.
+   `node scripts/selftest.mjs` (the full suite) **and** the full Playwright suite (28 specs). Deploy stays gated on it.
 2. Move **Tier-A** (deterministic, no LLM) to a GitHub Actions cron — it needs only `data/` and the adapters.
    Tier-B may stay operator-hosted; the page must render a truthful *"narrative not refreshed this window"*
    state when absent.
@@ -773,7 +783,7 @@ That is the product: **not another dashboard — the only market brief that publ
 |---|---|
 | Counts, sizes, ratios | Direct measurement (`wc`, `stat`, `jq`, `ls`, `comm`, `grep`, `curl`) at HEAD, 2026-07-31 |
 | Code behaviour | Source reading with file + line citations |
-| Test health | `node scripts/selftest.mjs` → 983 passed / 0 failed, exit 0 |
+| Test health | `node scripts/selftest.mjs` → 1,005 passed / 0 failed, exit 0 (count grows with active development) |
 | Live-site state | HTTP checks against the published Pages site |
 | Competitive facts | Vendor pages fetched 2026-07-31 |
 | Security assessment | Static source reading of sink and storage paths; **no exploit was constructed or executed** |

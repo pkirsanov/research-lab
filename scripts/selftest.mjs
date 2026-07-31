@@ -1630,6 +1630,41 @@ try {
   const refresh = read('scripts/brief-refresh.mjs');
   assert(/buildGlobalToolRead/.test(refresh) && /buildRealAssetsToolRead/.test(refresh) && /buildToolCoverage/.test(refresh), 'Tier-A carries exact global/real-asset reads plus registry coverage');
 
+  /* ── D2, "reachable or removed". Anything at the site root is shipped to real users; a page that
+     is in no registry and no nav is reachable only by someone who already knows the URL, which is
+     nobody. Rather than assert "there are no orphans" (which would have to be relaxed the moment
+     one appeared, and would then stay relaxed), require every root page to be EITHER registered OR
+     a recorded exception with a reason and a decision. That makes an orphan a tracked debt instead
+     of an accident, and stops NEW ones arriving unnoticed. */
+  const exceptionsDoc = JSON.parse(read('registry-exceptions.json'));
+  assert(exceptionsDoc.contractVersion === 'registry-exceptions/v1', 'the registry-exception list declares its contract version');
+  const rootPages = readdirSync(ROOT).filter((name) => name.endsWith('.html')).sort();
+  const registeredFiles = new Set(registry.map((tool) => tool.file));
+  const excepted = new Map(exceptionsDoc.exceptions.map((entry) => [entry.file, entry]));
+
+  const unaccounted = rootPages.filter((file) => !registeredFiles.has(file) && !excepted.has(file));
+  assert(unaccounted.length === 0, 'every page at the site root is either registered or a recorded exception');
+
+  /* A stale exception is its own failure: if the list may keep naming pages that were since
+     registered, it rots into noise and stops meaning anything. */
+  const staleExceptions = [...excepted.keys()].filter((file) => registeredFiles.has(file));
+  assert(staleExceptions.length === 0, 'no exception names a page that is now registered');
+  const phantomExceptions = [...excepted.keys()].filter((file) => !rootPages.includes(file));
+  assert(phantomExceptions.length === 0, 'no exception names a page that no longer exists');
+
+  /* An exception without a reason and a decision is just a suppression. */
+  const vague = exceptionsDoc.exceptions.filter((entry) => !entry.reason || !entry.decision || !entry.detail || entry.detail.length < 60).map((entry) => entry.file);
+  assert(vague.length === 0, 'every exception records a reason, a decision, and a substantive rationale');
+  const decisions = new Set(exceptionsDoc.exceptions.map((entry) => entry.decision));
+  assert([...decisions].every((d) => ['permanent', 'register', 'hold', 'remove'].includes(d)), 'exception decisions come from the closed vocabulary');
+
+  /* ADVERSARIAL: a check that passed for any input would prove nothing. An unlisted root page MUST
+     be detected — this is the exact regression (a new orphan shipping unnoticed) the rule exists
+     for. If this assertion ever stops holding, the accounting above has gone vacuous. */
+  const injected = rootPages.concat('definitely-not-registered-page.html')
+    .filter((file) => !registeredFiles.has(file) && !excepted.has(file));
+  assert(injected.length === 1 && injected[0] === 'definitely-not-registered-page.html', 'the root-page accounting really detects an unlisted page');
+
   /* Discovery grouping. tools.json `.group` is the source of truth; index.html and rlnav.js each
      carry a GROUPS constant for runtime rendering (both pages must work from file://, so neither
      can fetch the registry to lay itself out). These assertions are what make the duplication safe:

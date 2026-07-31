@@ -15,8 +15,9 @@ are deployed is unproven and MUST NOT be inferred from local ancestry.
 2. Establish immutable RED provenance before implementation acceptance without
     stashing, resetting, reverting, or overwriting the active concurrent tree.
 3. Validate shared coordinator canaries before page/browser acceptance: exact
-    tool/mode filtering, bounded coalescing, generation ordering, honest failure,
-    stale suppression, authority boundaries, parity, and Brief exclusion.
+   title selection, tool/mode filtering, bounded coalescing, immediate accepted-
+   refresh generation invalidation, stale-control inertness, exact promise
+   settlement, authority boundaries, parity, and Brief exclusion.
 4. Validate page integration next: one boot-time union hydration, one terminal
     refresh request, local-only lever recomputation, and relocation of the single
     existing native control node into the existing Power Map panel.
@@ -35,8 +36,9 @@ are deployed is unproven and MUST NOT be inferred from local ancestry.
 
 - **Checkpoint 1 - RED provenance:** direct-Simple, immutable five-control
    baseline, and direct-Power defects are observed before patch acceptance.
-- **Checkpoint 2 - shared canaries:** coordinator unit and executable-source
-   canaries pass before any browser result is interpreted.
+- **Checkpoint 2 - shared canaries:** each focused coordinator command echoes
+   its exact top-level title and reports one discovered test; coordinator unit
+   and executable-source canaries pass before any browser result is interpreted.
 - **Checkpoint 3 - behavior:** direct-Simple and direct-Power regressions prove
    user-visible outcomes without a masking mode toggle or request interception.
 - **Checkpoint 4 - compatibility:** existing bridge, `2f65a02a` wiring, broad
@@ -52,8 +54,10 @@ are deployed is unproven and MUST NOT be inferred from local ancestry.
 
 ## Finding Coverage
 
-All five findings remain open until implementation evidence is certified by the
-owning agents.
+The original F-BUG004 findings remain represented by their recorded evidence.
+The four reopened gaps are resolved in the current runtime/test/docs record;
+certification remains open until the routed evidence repair and mandatory
+validate/audit phases complete.
 
 | Finding | Planned resolution | Primary scenario |
 |---|---|---|
@@ -65,6 +69,16 @@ owning agents.
 
 F-BUG004-F remains `PRESERVED`, not open: the current source/test collision belongs
 to another lane and must be integrated without overwrite, reset, stash, or revert.
+
+- **GAP-BUG004-001:** Exact top-level coordinator titles and fail-closed
+   file-wrapper selection are represented by TP-B004-01 through TP-B004-04.
+- **GAP-BUG004-002:** Immediate generation claims, stale-control inertness,
+   latest-pending replacement, and exact promise settlement are represented by
+   SCN-B004-D and TP-B004-01 through TP-B004-04.
+- **GAP-BUG004-003:** Native Power selected semantics and computed visible focus
+   treatment are represented by SCN-B004-C and TP-B004-08.
+- **GAP-BUG004-004:** The docs-owned canonical heatmap note is represented by
+   its recorded documentation evidence; planning does not edit that note.
 
 ## SCOPE-01 - Restore Automatic Simple Readiness And Both Control Surfaces
 
@@ -99,18 +113,25 @@ Scenario: SCN-B004-C Direct Power applies the existing native treemap controls
    When real boot hydration settles
    Then winSeg, sizeSeg, and grpSeg are visible inside the existing Map panel
   And each control is keyboard-operable
-   And each actuation updates selected state and its owned treemap or table interpretation
+    And every button exposes `aria-pressed="true|false"` with exactly one selected button per group
+    And keyboard focus matches `:focus-visible` and paints a non-transparent outline at least 2 CSS pixels wide in every group
+    And each actuation moves `aria-pressed="true"` to the target, clears it from the former selection, and updates its owned treemap or table interpretation
   And no data request is emitted
 
 Scenario: SCN-B004-D Shared refresh and owner reuse are bounded and latest-result-wins
   Given two wired ordinary tools and asynchronous Simple preparations
+   And the current generation has rendered controls while one Simple run is active
   And boot hydration loaded the deduplicated union required by sector and constituent grouping
-  When refresh requests overlap across view and owner-state generations
+   When two newer owner refreshes are accepted before the active run settles
   And Simple or Power actuates a lever after hydration
    Then only the exact current tool in the current Simple view reads its provider
    And duplicate pre-start requests coalesce into one run
-   And one active run retains only the latest pending successor
-   And a stale ready or unavailable completion cannot mutate the newest panel
+    And each accepted owner refresh claims a newer generation before returning its promise
+    And the active old generation becomes stale immediately and its rendered controls are inert
+    And one active run retains only the latest pending successor while the replaced successor resolves null
+    And stale active, ready, and unavailable completions resolve null without mutating the newest panel
+    And the latest successor reads the provider when it starts and resolves the current ready or unavailable projection
+    And every rejected, cancelled, replaced, stale, current-failure, and latest-successor promise settles without hanging
    And current-generation controls remain ordered by runSequence
   And every lever recomputes from the same owner evidence without fetchDelta, ensureBars, fetch, or providerFetch
   And no second cache, provider, adapter, or page-specific Simple model is used
@@ -122,8 +143,8 @@ Scenario: SCN-B004-D Shared refresh and owner reuse are bounded and latest-resul
 |---|---|---|---|---|
 | SCN-B004-A / F-BUG004-D | Fresh context; default Simple; cold owner state; request observation only | Open heatmap, click no mode control, observe unavailable, wait for terminal hydration | Same Simple view becomes ready with `simple-adapter/market-breadth/v1` | `BUG-004 SCN-B004-A: direct Simple cold-open requalifies after owner hydration without a mode change` |
 | SCN-B004-B | SCN-B004-A ready state | Keyboard-actuate all five registry-derived controls across changed domain values | Accessible selected/input state and production projection change for each control; request ledger stays empty | `BUG-004 SCN-B004-B: ready Simple applies all five registry controls with owner parity and zero post-hydration requests` |
-| SCN-B004-C / F-BUG004-E | Fresh context opened directly in Power | Wait for terminal hydration; keyboard-actuate `winSeg`, `sizeSeg`, and `grpSeg` | Existing controls have layout boxes in Map; selected state and owned treemap/table interpretation change; request ledger stays empty | `BUG-004 SCN-B004-C: direct Power applies native treemap controls with zero post-hydration requests` |
-| SCN-B004-D | Shared bridge unit harness plus either settled UI view | Exercise wrong-tool, wrong-mode, duplicate, pending-successor, stale-ready, stale-failure, and every lever category | Only current work commits; controls reuse the one boot-hydrated owner union | Exact unit titles in TP-B004-01 through TP-B004-04 plus the three browser titles above |
+| SCN-B004-C / GAP-BUG004-003 | Fresh context opened directly in Power | Wait for terminal hydration; keyboard-actuate `winSeg`, `sizeSeg`, and `grpSeg` | One `aria-pressed="true"` per group; target gains and former selection loses it; focused target matches `:focus-visible` with a visible >=2px outline; owned output and treemap change; request ledger stays empty | `BUG-004 SCN-B004-C: direct Power applies native treemap controls with zero post-hydration requests` |
+| SCN-B004-D / GAP-BUG004-001..002 | Shared bridge unit harness with an active run, old controls, and two accepted successors | Exercise rejected contexts, same-turn duplicates, accepted mid-run B then C, stale control actuation, stale ready/failure, current failure, and view invalidation | Exact title is discovered; accepted B/C claim generations immediately; old controls are inert; B and stale work resolve null; only C may resolve current truth; no promise hangs | Exact top-level titles in TP-B004-01 through TP-B004-04 |
 
 ### RED-First Sequence
 
@@ -139,30 +160,49 @@ Scenario: SCN-B004-D Shared refresh and owner reuse are bounded and latest-resul
    and hidden Power controls, respectively.
 4. Run the SCN-B004-B assertion from an isolated immutable checkout at discovery
    revision `31ea9942`, where the generic control renderer is absent. This is
-   historical source RED only and does not establish current deployment state.
+   immutable source RED only and does not establish current deployment state.
 5. Run the same three assertions against the active concurrent tree before
    adding implementation edits. Record actual outcomes without reclassifying a
    pre-existing green patch result as RED provenance.
 6. Preserve the immutable RED output, adopt working concurrent code, and add only
    missing approved behavior. The active worktree and index are never stashed,
    reset, reverted, or overwritten to produce evidence.
+7. Before any GAP-BUG004-002 source edit, add the four exact top-level
+   TP-B004-01..04 declarations. Run the current false-green title audit as RED,
+   then run each focused command and require its exact title plus one discovered
+   test; file-wrapper-only output is a failed non-vacuity gate even with exit 0.
+8. Exercise accepted refresh B then C against the current coordinator before
+   repair. The adversarial RED must show that generation does not advance at
+   acceptance, the prior controls can still actuate, or the pending successor is
+   joined instead of replaced; setup, discovery, or timeout failures are invalid RED.
+9. Strengthen TP-B004-08 before the accessibility source edit. Its RED must reach
+   all three visible groups and fail on missing semantic selected state or missing
+   computed focus-visible outline, while retaining output, pixel, and no-refetch
+   assertions.
 
 ### Implementation Plan
 
 1. Re-read the active diff and `2f65a02a`; adopt working concurrent changes and
    implement only missing approved behavior. Preserve registry-derived controls,
    local recompute, focus restoration, and request-observer assertions.
-2. Finalize persistent tests first with the exact titles above. Keep
+2. `bubbles.test` adds the four exact top-level coordinator tests and strengthens
+   TP-B004-08 first. Keep
    direct-Simple and direct-Power setup independent; prohibit a Power-to-Simple
    toggle, synthetic view event, request interception, service worker, optional
-   assertion, or bailout return.
+   assertion, or bailout return. No production source changes before valid RED.
 3. Add `RLEXPERIENCE.requestSimpleRefresh({ toolId })` as the only page-facing
    refresh API. Keep `renderSimpleBridge(options)` available to existing harnesses.
-4. Route view-driven and page-driven refreshes through one coordinator. Enforce
-   exact current-tool/current-Simple filtering, one active plus one latest pending
-   successor, provider read at run start, and `(generation, runSequence)` commits.
-5. Guard every panel mutation path: honest unavailable, ready output, controls,
-   and focus restoration. Leaving Simple invalidates active and pending work.
+4. Route view-driven and page-driven refreshes through one coordinator. Every
+   accepted request claims its generation synchronously before the method returns.
+   Pre-start duplicates share one scheduled promise; while active, each later
+   accepted request replaces the prior pending successor, resolves that replaced
+   promise to `null`, and leaves at most one latest successor.
+5. Pass the acceptance-time generation into the run without minting another at
+   start. Invalidate the active run and disable/inert its old controls immediately;
+   stale control events perform no claim, prepare, or panel mutation. Guard honest
+   unavailable, ready, controls, and focus restoration. Rejected/cancelled/replaced/
+   stale promises resolve `null`; current failure resolves honest `unavailable`;
+   only the latest current successor resolves its projection. Every path settles.
 6. Build one deduplicated boot symbol union for both grouping modes. Complete one
    hydration cycle, render, set the terminal marker, then issue exactly one
    `requestSimpleRefresh({ toolId: "market-heatmap-lab" })` request.
@@ -172,6 +212,8 @@ Scenario: SCN-B004-D Shared refresh and owner reuse are bounded and latest-resul
    three Power controls must prove zero requests.
 8. Move the single existing `.levers` node into the existing Power Map panel.
    Leave only the legacy verdict in `.simple-only`; do not clone IDs or panels.
+   Synchronize `aria-pressed` on every native segmented button and add the local
+   project-standard `:focus-visible` outline without replacing the `.on` styling.
 9. Run checkpoints in order. Stop on a shared-canary failure before interpreting
    browser output, then prove rollback and route certification to `bubbles.validate`.
 
@@ -183,6 +225,32 @@ Scenario: SCN-B004-D Shared refresh and owner reuse are bounded and latest-resul
 - `tests/market-heatmap-control-surface.spec.mjs`
 - `tests/simple-production-wiring.spec.mjs`
 - `scripts/selftest.mjs`
+
+### Consumer Impact Sweep
+
+No public route, path, control identifier, event name, generated client, or
+contract is renamed or removed by BUG-004. The required first-party consumer
+inventory is nevertheless explicit because the repair changes observable public
+API, event, control, and route behavior:
+
+- **Public bridge API consumers:** `market-heatmap-lab.html`, the production
+   bridge unit/integration harnesses, and the wiring/browser regressions consume
+   `RLEXPERIENCE.requestSimpleRefresh({ toolId })`; existing
+   `renderSimpleBridge(options)` callers remain supported.
+- **Event consumers:** the owner terminal-ready marker triggers one page refresh;
+   `rlviews.js::applyVisual()` remains the sole view/focus-class authority, and
+   stale-generation control events remain inert.
+- **Control consumers:** all five registry-derived Simple controls and the
+   existing `#winSeg`, `#sizeSeg`, and `#grpSeg` Power groups retain their IDs,
+   accessible names, domains, keyboard behavior, and no-request contract.
+- **Route and navigation consumers:** the canonical
+   `market-heatmap-lab.html` tool route/deep link remains unchanged; no navigation
+   link, breadcrumb, redirect, route alias, or external URL requires migration.
+- **Contract and documentation consumers:** `simple-models.json`, the market
+   structure adapter, generated-client surfaces, config, and schemas are unchanged;
+   the docs-owned heatmap note consumes the resulting behavior description only.
+- **Stale-reference conclusion:** because no identifier is renamed or removed,
+   there is no old-form caller to migrate or compatibility alias to contract.
 
 ### Shared Infrastructure Impact Sweep
 
@@ -202,13 +270,15 @@ validation:
 - one provider read for coalesced pre-start duplicates;
 - one active run plus only the latest pending successor;
 - stale ready and stale failure suppression across generations.
+- acceptance-time generation claims, inert stale controls, replaced-successor
+   cancellation, and bounded settlement of every returned promise;
 
 TP-B004-01 through TP-B004-05 are the independent canary gate. They run before
 the dedicated browser regressions and before the final broad selftest rerun.
 
 ### Change Boundary
 
-**Allowed implementation paths:**
+**Allowed file families:**
 
 - `rlexperience.js` - surgical coordinator and commit-guard integration only;
 - `market-heatmap-lab.html` - union hydration, one terminal refresh, local-only
@@ -219,7 +289,7 @@ the dedicated browser regressions and before the final broad selftest rerun.
 - `tests/simple-production-wiring.spec.mjs` only when collision coordination is
    explicit and the `2f65a02a` assertions remain intact.
 
-**Excluded paths:**
+**Excluded file families:**
 
 - `rlviews.js`, `rlapp.js`, `rldata.js`, `simple-models.json`, registry data, and
    `rlexperience-adapters/market-structure.js`;
@@ -227,6 +297,8 @@ the dedicated browser regressions and before the final broad selftest rerun.
    interception, dependencies, package manifests, routes, schemas, and migrations;
 - Feature 012 parent artifacts, unrelated specs, and all certification fields;
 - unrelated cleanup or formatting in any collision-sensitive file.
+- `notes/market-heatmap-lab.md` during implementation/test; it is docs-owned and
+   may be edited only by `bubbles.docs` after runtime and test remediation.
 
 Any controlling-path requirement outside this boundary is routed to the owning
 planner before implementation expands.
@@ -240,14 +312,14 @@ canonical command recorded below.
 
 | ID | Test Type | Category | Scenarios | File / Location | Exact Behavior / Persistent Title | Command | Live System |
 |---|---|---|---|---|---|---|---|
-| TP-B004-01 | Coordinator filter canary | `unit` | SCN-B004-D | `tests/simple-production-bridge.unit.mjs` | `requestSimpleRefresh filters wrong tool, non-Simple, non-ordinary, and invalidates work when leaving Simple` | `node --test --test-name-pattern="^requestSimpleRefresh filters wrong tool, non-Simple, non-ordinary, and invalidates work when leaving Simple$" tests/simple-production-bridge.unit.mjs` | No |
-| TP-B004-02 | Coordinator coalescing canary | `unit` | SCN-B004-D | `tests/simple-production-bridge.unit.mjs` | `requestSimpleRefresh coalesces pre-start duplicates and retains only the latest pending successor` | `node --test --test-name-pattern="^requestSimpleRefresh coalesces pre-start duplicates and retains only the latest pending successor$" tests/simple-production-bridge.unit.mjs` | No |
-| TP-B004-03 | Coordinator commit-order canary | `unit` | SCN-B004-D | `tests/simple-production-bridge.unit.mjs` | `requestSimpleRefresh commits only the latest generation and preserves current-generation control ordering` | `node --test --test-name-pattern="^requestSimpleRefresh commits only the latest generation and preserves current-generation control ordering$" tests/simple-production-bridge.unit.mjs` | No |
-| TP-B004-04 | Coordinator failure-honesty canary | `unit` | SCN-B004-D | `tests/simple-production-bridge.unit.mjs` | `requestSimpleRefresh renders current failure unavailable and suppresses stale failure` | `node --test --test-name-pattern="^requestSimpleRefresh renders current failure unavailable and suppresses stale failure$" tests/simple-production-bridge.unit.mjs` | No |
-| TP-B004-05 | High-fan-out executable-source and parity canary | `unit` | SCN-B004-D | `scripts/selftest.mjs` | Existing production-bridge block proves public/low-level API coexistence, forbidden-authority absence, wired-tool parity, no heatmap-only branch, and Brief exclusion before browser acceptance | `node scripts/selftest.mjs` | No |
+| TP-B004-01 | Coordinator rejection/invalidation canary | `unit` | SCN-B004-D | `tests/simple-production-bridge.unit.mjs` | Exact top-level title `TP-B004-01 requestSimpleRefresh rejects non-current contexts and settles invalidated queued work`; wrong-tool, absent-registration, non-ordinary, non-Simple, Brief, and leaving-Simple paths resolve `null`, read no provider, paint nothing, and never hang | `node --test --test-name-pattern="^TP-B004-01 requestSimpleRefresh rejects non-current contexts and settles invalidated queued work$" tests/simple-production-bridge.unit.mjs` | No |
+| TP-B004-02 | Coordinator coalescing/latest-pending canary | `unit` | SCN-B004-D | `tests/simple-production-bridge.unit.mjs` | Exact top-level title `TP-B004-02 requestSimpleRefresh coalesces same-turn duplicates and replaces the pending successor`; pre-start duplicates share one run/read, active B then C leaves only C pending, and replaced B resolves `null` | `node --test --test-name-pattern="^TP-B004-02 requestSimpleRefresh coalesces same-turn duplicates and replaces the pending successor$" tests/simple-production-bridge.unit.mjs` | No |
+| TP-B004-03 | Accepted-generation and stale-control canary | `unit` | SCN-B004-D | `tests/simple-production-bridge.unit.mjs` | Exact top-level title `TP-B004-03 accepted mid-run refresh immediately invalidates active generation and stale controls`; accepted B/C claim generations synchronously, old controls are disabled/inert, stale actuation performs no run or paint, active A resolves `null`, and latest C reads the provider at start | `node --test --test-name-pattern="^TP-B004-03 accepted mid-run refresh immediately invalidates active generation and stale controls$" tests/simple-production-bridge.unit.mjs` | No |
+| TP-B004-04 | Exact completion/failure settlement canary | `unit` | SCN-B004-D | `tests/simple-production-bridge.unit.mjs` | Exact top-level title `TP-B004-04 current and stale refresh promises settle without overwriting current truth`; current failure resolves and paints honest `unavailable`, stale ready/failure resolve `null` without paint, cancelled/replaced/stale promises settle `null`, and the latest current successor resolves its projection | `node --test --test-name-pattern="^TP-B004-04 current and stale refresh promises settle without overwriting current truth$" tests/simple-production-bridge.unit.mjs` | No |
+| TP-B004-05 | Canary: shared-infrastructure and high-fan-out executable-source parity | `unit` | SCN-B004-D | `scripts/selftest.mjs` | Existing production-bridge block proves public/low-level API coexistence, forbidden-authority absence, wired-tool parity, no heatmap-only branch, and Brief exclusion before browser acceptance | `node scripts/selftest.mjs` | No |
 | TP-B004-06 | Adversarial Regression E2E - direct Simple readiness | `e2e-ui` | SCN-B004-A | `tests/market-heatmap-control-surface.spec.mjs` | `BUG-004 SCN-B004-A: direct Simple cold-open requalifies after owner hydration without a mode change` | `npx --no-install playwright test --config=playwright.config.mjs --project=system-chrome tests/market-heatmap-control-surface.spec.mjs --grep "BUG-004 SCN-B004-A: direct Simple" --reporter=list` | Yes - real local page and same-origin static server; request observation only |
 | TP-B004-07 | Adversarial Regression E2E - all five Simple controls | `e2e-ui` | SCN-B004-B, SCN-B004-D | `tests/market-heatmap-control-surface.spec.mjs` | `BUG-004 SCN-B004-B: ready Simple applies all five registry controls with owner parity and zero post-hydration requests` | `npx --no-install playwright test --config=playwright.config.mjs --project=system-chrome tests/market-heatmap-control-surface.spec.mjs --grep "BUG-004 SCN-B004-B: ready Simple" --reporter=list` | Yes - real local page and same-origin static server; request observation only |
-| TP-B004-08 | Adversarial Regression E2E - direct Power controls | `e2e-ui` | SCN-B004-C, SCN-B004-D | `tests/market-heatmap-control-surface.spec.mjs` | `BUG-004 SCN-B004-C: direct Power applies native treemap controls with zero post-hydration requests` | `npx --no-install playwright test --config=playwright.config.mjs --project=system-chrome tests/market-heatmap-control-surface.spec.mjs --grep "BUG-004 SCN-B004-C: direct Power" --reporter=list` | Yes - real local page and same-origin static server; request observation only |
+| TP-B004-08 | Adversarial Regression E2E - accessible direct Power controls | `e2e-ui` | SCN-B004-C, SCN-B004-D | `tests/market-heatmap-control-surface.spec.mjs` | `BUG-004 SCN-B004-C: direct Power applies native treemap controls with zero post-hydration requests`; for all three groups require exactly one `aria-pressed="true"`, false on every alternative, semantic movement after Enter, `:focus-visible`, computed non-transparent >=2px outline, owned-output and treemap change, and zero requests | `npx --no-install playwright test --config=playwright.config.mjs --project=system-chrome tests/market-heatmap-control-surface.spec.mjs --grep "BUG-004 SCN-B004-C: direct Power" --reporter=list` | Yes - real local page and same-origin static server; request observation only |
 | TP-B004-09 | Production bridge integration sweep | `integration` | SCN-B004-A, SCN-B004-D | `tests/simple-production-bridge.integration.mjs` | Existing registry-derived runtime, panel, owner-parity, explicit-runtime parity, and honest-unavailable tests remain green | `node --test tests/simple-production-bridge.integration.mjs` | No - real production modules in deterministic Node integration harness |
 | TP-B004-10 | Protected control-wiring regression sweep | `e2e-ui` | SCN-B004-B, SCN-B004-D | `tests/simple-production-wiring.spec.mjs` | Existing `2f65a02a` registry controls, production recompute, focus restoration, all-wired-tool parity, and no-refetch assertions remain intact | `npx --no-install playwright test tests/simple-production-wiring.spec.mjs --config=playwright.config.mjs --project=system-chrome --reporter=list` | Yes - real local pages and same-origin static server |
 | TP-B004-11 | Regression and bailout quality | `functional` | SCN-B004-A, SCN-B004-B, SCN-B004-C | `tests/market-heatmap-control-surface.spec.mjs` | Reject mode-toggle masking, interception, service workers, skip/only/todo, failure-condition returns, optional assertions, grouping request exemptions, and tests that actuate fewer than all declared controls | `bash .github/bubbles/scripts/regression-quality-guard.sh --bugfix tests/market-heatmap-control-surface.spec.mjs` | No |
@@ -282,6 +354,27 @@ Rollback proof is structural and test-backed: the protected `2f65a02a` wiring
 suite must remain present on the forward path, and final changed-path
 classification must contain no excluded family.
 
+### Documentation Handoff
+
+`notes/market-heatmap-lab.md` is owned by `bubbles.docs`; planning and runtime
+owners do not edit it. After implementation and exact test evidence, the docs
+phase must make that note one current truth:
+
+- retain one unambiguous current `LIVE` status and remove the contradictory
+   proposed/not-built text and obsolete promotion checklist;
+- document all five Simple registry controls: `window`, `grouping`,
+   `size-metric`, `breadth-threshold`, and `outlier-sigma`;
+- document the three Power native groups `#winSeg`, `#sizeSeg`, and `#grpSeg`
+   beside the treemap and diagnostics, including semantic selected state and
+   visible keyboard focus;
+- state that direct Simple may begin honestly `unavailable`, automatically
+   requalifies after terminal owner hydration, and remains unavailable when the
+   settled evidence is genuinely insufficient;
+- state that one boot-hydrated owner union feeds both views and every Simple or
+   Power lever recomputes locally with zero post-hydration acquisition; and
+- update version history/status wording without claiming deployment evidence
+   not produced by the owning deployment phase.
+
 ### Definition of Done
 
 Checked items below reference implementation-phase evidence with explicit claim
@@ -290,28 +383,31 @@ deployment, independent-test, validation, or certification completion is claimed
 
 #### Core Outcomes
 
-- [x] F-BUG004-A and F-BUG004-D are resolved: direct Simple requalifies after terminal hydration without a mode toggle, reload, manual refresh, synthetic view event, interception, or service worker. → Evidence: [TP-B004-06 direct Simple GREEN](report.md#tp-b004-06---direct-simple-a)
-- [x] F-BUG004-B is resolved: direct ready Simple exposes and applies all five registry controls over the production owner snapshot while preserving `2f65a02a`; local ancestry is not represented as deployment evidence. → Evidence: [surgical TP-B004-07 RED→GREEN](report.md#surgical-tp-b004-07-reproduction-increment)
-- [x] F-BUG004-C and F-BUG004-E are resolved: direct Power exposes the single existing `#winSeg`, `#sizeSeg`, and `#grpSeg` nodes in Map, and keyboard actuation changes selected state and owned output. → Evidence: [TP-B004-08 direct Power GREEN](report.md#tp-b004-08---direct-power-c)
-- [x] SCN-B004-D is resolved: one boot union supports both grouping modes; all five Simple controls and all three Power controls recompute from shared owner evidence with zero post-hydration acquisition. → Evidence: [TP-B004-06..08 current-tree outcomes](report.md#current-tree-implementation-evidence-tp-b004-0608)
-- [x] The shared coordinator enforces exact current-tool/current-Simple filtering, one active plus one latest pending successor, provider read at run start, and `(generation, runSequence)` commit authority across ready, unavailable, controls, and focus restoration. → Evidence: [TP-B004-01..04 coordinator canaries](report.md#tp-b004-0104---coordinator-canaries)
-- [x] The Shared Infrastructure Impact Sweep passes before browser acceptance, preserving ordinary-tool parity, Brief exclusion, low-level API compatibility, focus ownership, authority boundaries, honest unavailable behavior, and `2f65a02a` controls. → Evidence: [TP-B004-05 broad selftest](report.md#tp-b004-05---broad-selftest)
-- [x] The Change Boundary and Rollback And Restore Proof are satisfied with zero excluded-family changes, no concurrent-lane overwrite/reset/stash/revert, and no data/cache/provider/registry/dependency/deployment/storage operation. → Evidence: [implementation boundary and rollback audit](report.md#implementation-change-boundary-and-rollback-audit)
+- [x] SCN-B004-A / F-BUG004-A / F-BUG004-D are resolved faithfully: a direct Simple cold-open starts honestly unavailable, clicks no shell mode control, and automatically requalifies to ready when terminal owner hydration reaches 135 priced constituents; the adapter is `simple-adapter/market-breadth/v1`, the shell remains in Simple, and no mode toggle, reload, manual refresh, synthetic view event, interception, or service worker masks the behavior. → Evidence: [TP-B004-06 direct Simple GREEN](report.md#tp-b004-06---direct-simple-a)
+- [x] SCN-B004-B / F-BUG004-B are resolved faithfully: direct ready Simple exposes and actuates all five production registry controls (`window`, `grouping`, `size-metric`, `breadth-threshold`, and `outlier-sigma`) within their declared domains; every result matches the production runtime over the same owner snapshot, the post-hydration request ledger remains empty, and `2f65a02a` is preserved without representing local ancestry as deployment evidence. → Evidence: [current TP-B004-07 GREEN](report.md#current-tree-tp-b004-07-green-with-historical-flag-absent), [immutable TP-B004-07 RED](report.md#tp-b004-07---valid-immutable-red-at-31ea9942)
+- [x] F-BUG004-C and F-BUG004-E are resolved: direct Power exposes the single existing `#winSeg`, `#sizeSeg`, and `#grpSeg` nodes in Map; exactly one button per group has `aria-pressed="true"`; keyboard actuation moves that semantic selection, paints a non-transparent >=2px `:focus-visible` outline, changes owned output and treemap pixels, and emits no request. → **Scenario:** SCN-B004-C; **Phase:** test; **Claim Source:** executed; Evidence: [TP-B004-08 direct Power Reopened Gaps Independent GREEN](report.md#exact-tp-b004-08-green-and-three-group-structure)
+- [x] SCN-B004-D is resolved: accepted owner refreshes claim generations immediately; stale controls are inert; one active run retains only the latest pending successor; replaced, cancelled, stale, current-failure, and latest-successor promises settle exactly; one boot union still supports local-only controls in both views. → **Phase:** implement; **Claim Source:** executed; Evidence: [current gap-remediation coordinator outcome](report.md#scn-b004-d-coordinator-outcome)
+- [x] The shared coordinator enforces exact current-tool/current-Simple filtering, acceptance-time generation claims, provider read at run start, immediate stale-control invalidation, one active plus one replaceable latest successor, `(generation, runSequence)` commit authority, and bounded settlement across ready, unavailable, controls, and focus restoration. → **Phase:** implement; **Claim Source:** executed; Evidence: [current focused and full coordinator carriers](report.md#scn-b004-d-coordinator-outcome)
+- [x] Independent canary suite for shared fixture/bootstrap contracts passes before broad suite reruns: TP-B004-01 through TP-B004-05 run before browser acceptance and preserve ordinary-tool parity, Brief exclusion, low-level API compatibility, focus ownership, authority boundaries, honest unavailable behavior, and `2f65a02a` controls. → **Phase:** test; **Claim Source:** executed; Evidence: [Reopened Gaps Independent GREEN](report.md#exact-tp-b004-01-through-tp-b004-04-green), [TP-B004-05 broad selftest](report.md#tp-b004-05---broad-selftest)
+- [x] Rollback or restore path for shared infrastructure changes is documented and verified: the bounded rollback/restore proof removes only BUG-004 additions and requires no data/cache/provider/registry/dependency/deployment/storage operation. → Evidence: [implementation boundary and rollback audit](report.md#implementation-change-boundary-and-rollback-audit) → **Phase:** implement; **Claim Source:** executed; Final evidence: [Final Change Boundary And Rollback Closeout](report.md#final-change-boundary-and-rollback-closeout)
+- [x] Change Boundary is respected and zero excluded file families were changed: only allowed file families participate, and concurrent-lane work is not overwritten, reset, stashed, or reverted. → **Phase:** implement; **Claim Source:** executed; Evidence: [Final Change Boundary And Rollback Closeout](report.md#final-change-boundary-and-rollback-closeout)
+- [x] The Consumer Impact Sweep enumerates the public bridge API, owner/view events, all Simple and Power controls, the stable tool route/deep link, navigation/breadcrumb/redirect surfaces, harnesses, docs, config, schemas, and generated-client applicability; zero stale first-party references remain because no identifier is renamed or removed. → **Phase:** plan; **Claim Source:** interpreted; Evidence: [Consumer Impact Sweep](#consumer-impact-sweep)
+- [x] GAP-BUG004-004 canonical documentation is aligned by `bubbles.docs` to the current five-control Simple contract, three native Power groups, terminal-readiness semantics, local-only no-refetch behavior, and one truthful delivery status; no unsupported deployment claim is added. → Evidence: [Documentation Gap Closure](report.md#tr-bug004-docs-gap-evidence)
 
 #### Test Evidence - Exact Parity With 11 Test Plan Rows
 
-- [x] TP-B004-01 passes exact wrong-tool, non-Simple, non-ordinary, leaving-Simple invalidation, zero-provider-read, zero-panel-write, and Brief-exclusion assertions. → Evidence: [TP-B004-01..04 coordinator canaries](report.md#tp-b004-0104---coordinator-canaries)
-- [x] TP-B004-02 passes pre-start duplicate coalescing and one-active/one-latest-pending behavior. → Evidence: [TP-B004-01..04 coordinator canaries](report.md#tp-b004-0104---coordinator-canaries)
-- [x] TP-B004-03 passes stale-generation suppression and current-generation `runSequence` ordering. → Evidence: [TP-B004-01..04 coordinator canaries](report.md#tp-b004-0104---coordinator-canaries)
-- [x] TP-B004-04 passes honest current failure rendering and stale-failure suppression. → Evidence: [TP-B004-01..04 coordinator canaries](report.md#tp-b004-0104---coordinator-canaries)
-- [x] TP-B004-05 passes the early executable-source authority, public/low-level API compatibility, wired-tool parity, no-heatmap-branch, and Brief canaries. → Evidence: [TP-B004-05 broad selftest](report.md#tp-b004-05---broad-selftest)
-- [x] TP-B004-06 records immutable `2f65a02a` RED for absent automatic requalification, then passes direct-Simple GREEN in the active implementation without leaving Simple. → Evidence: [immutable A RED](report.md#tp-b004-06---valid-immutable-red-at-2f65a02a) and [current A GREEN](report.md#tp-b004-06---direct-simple-a)
-- [x] TP-B004-07 records immutable discovery RED for the absent generic renderer without claiming current deployment state, then passes all five Simple controls with production owner parity and an empty request ledger. → Evidence: [surgical B RED→GREEN](report.md#surgical-tp-b004-07-reproduction-increment)
-- [x] TP-B004-08 records immutable `2f65a02a` RED for hidden native controls, then passes all three direct-Power controls, including grouping, with keyboard operation, visible output changes, and an empty request ledger. → Evidence: [immutable C RED](report.md#tp-b004-08---valid-immutable-red-at-2f65a02a) and [current C GREEN](report.md#tp-b004-08---direct-power-c)
+- [x] TP-B004-01 echoes its exact top-level title and reports `tests 1`, `pass 1`, `fail 0`, and `skipped 0`; rejected contexts and invalidated queued work settle `null` with zero provider reads or panel writes. File-wrapper-only output is failure. → **Phase:** test; **Claim Source:** executed; Evidence: [Reopened Gaps Independent GREEN](report.md#exact-tp-b004-01-through-tp-b004-04-green)
+- [x] TP-B004-02 echoes its exact top-level title and reports one passing, zero-skipped test; pre-start duplicates share one run/read, active B then C retains only C, and replaced B settles `null`. File-wrapper-only output is failure. → **Phase:** test; **Claim Source:** executed; Evidence: [Reopened Gaps Independent GREEN](report.md#exact-tp-b004-01-through-tp-b004-04-green)
+- [x] TP-B004-03 echoes its exact top-level title and reports one passing, zero-skipped test; accepted B/C claim generations immediately, old controls are inert, stale actuation cannot run or paint, active A settles `null`, and latest C reads the provider at start. File-wrapper-only output is failure. → **Phase:** test; **Claim Source:** executed; Evidence: [Reopened Gaps Independent GREEN](report.md#exact-tp-b004-01-through-tp-b004-04-green)
+- [x] TP-B004-04 echoes its exact top-level title and reports one passing, zero-skipped test; current failure resolves honest `unavailable`, stale ready/failure and all cancelled/replaced/stale work resolve `null` without paint, latest current work resolves its projection, and no promise hangs. File-wrapper-only output is failure. → **Phase:** test; **Claim Source:** executed; Evidence: [Reopened Gaps Independent GREEN](report.md#exact-tp-b004-01-through-tp-b004-04-green)
+- [x] TP-B004-05 is the explicit shared-infrastructure canary Test Plan/DoD pair and passes the early executable-source authority, public/low-level API compatibility, wired-tool parity, no-heatmap-branch, and Brief canaries before browser acceptance. → Evidence: [TP-B004-05 broad selftest](report.md#tp-b004-05---broad-selftest)
+- [x] Scenario-specific E2E regression tests for every new/changed/fixed behavior are persistent: TP-B004-06 protects direct-Simple requalification, TP-B004-07 protects all five Simple controls with owner parity and no requests, and TP-B004-08 protects direct-Power semantics, focus, output, pixels, and no requests. TP-B004-06 records immutable `2f65a02a` RED before active direct-Simple GREEN without leaving Simple. → Evidence: [immutable A RED](report.md#tp-b004-06---valid-immutable-red-at-2f65a02a), [current A GREEN](report.md#tp-b004-06---direct-simple-a), [Simple controls](report.md#surgical-tp-b004-07-reproduction-increment), and [Power controls](report.md#reopened-gaps-independent-green)
+- [x] TP-B004-07 records immutable discovery RED for the absent generic renderer without claiming current deployment state, then passes all five Simple controls with production owner parity and an empty request ledger. → Evidence: [immutable TP-B004-07 RED](report.md#tp-b004-07---valid-immutable-red-at-31ea9942), [current TP-B004-07 GREEN](report.md#current-tree-tp-b004-07-green-with-historical-flag-absent)
+- [x] TP-B004-08 retains immutable `2f65a02a` visibility RED and adds accessibility RED, then passes all three direct-Power groups with exactly one semantic selection, `aria-pressed` movement, a computed visible focus ring, owned-output and treemap change, and an empty request ledger. → **Scenario:** SCN-B004-C; **Phase:** test; **Claim Source:** executed; Evidence: [immutable C RED](report.md#tp-b004-08---valid-immutable-red-at-2f65a02a), [accessibility RED](report.md#tp-b004-08---direct-power-accessibility-red), and [TP-B004-08 direct Power Reopened Gaps Independent GREEN](report.md#reopened-gaps-independent-green)
 - [x] TP-B004-09 passes the existing production bridge registry/runtime/owner-parity/honest-unavailable integration sweep. → Evidence: [TP-B004-09 integration sweep](report.md#tp-b004-09---production-bridge-integration-sweep)
-- [x] TP-B004-10 passes the protected `2f65a02a` control-wiring and all-wired-tool browser sweep without weakening, deleting, or replacing its assertions. → Evidence: [TP-B004-10 protected wiring sweep](report.md#protected-control-wiring-regression-evidence-tp-b004-10)
+- [x] Broader E2E regression suite passes: TP-B004-10 preserves the protected `2f65a02a` control-wiring and all-wired-tool browser sweep without weakening, deleting, or replacing its assertions. → Evidence: [TP-B004-10 protected wiring sweep](report.md#protected-control-wiring-regression-evidence-tp-b004-10)
 - [x] TP-B004-11 accepts all three persistent adversarial regressions and rejects masking mode toggles, request interception, service workers, silent-pass patterns, optional assertions, grouping request exemptions, and incomplete control actuation. → Evidence: [TP-B004-11 regression-quality guard](report.md#tp-b004-11---regression-quality-guard)
 
 #### Build Quality Gate
 
-- [x] Changed JavaScript parses; focused and broad commands finish within executor limits with zero warnings or skips; planning/runtime evidence carries honest claim provenance; Markdown and machine planning artifacts remain synchronized; applicable governance checks pass at the workflow-owned status; no placeholder, bypass, fabricated claim, hidden incompleteness, or certification self-promotion remains. → Evidence: [independent test pre-close quality checks](report.md#independent-test-pre-close-quality-checks)
+- [x] Changed JavaScript parses; focused and broad commands finish within executor limits with zero warnings or skips; planning/runtime evidence carries honest claim provenance; Markdown and machine planning artifacts remain synchronized; applicable governance checks pass at the workflow-owned status; all required content is concrete, and no bypass, fabricated claim, hidden incompleteness, or certification self-promotion remains. → Evidence record: [independent test pre-close quality checks](report.md#governance-and-diff-gates) → **Phase:** test; **Claim Source:** executed; Final evidence: [Final Build Quality Evidence Pass](report.md#final-build-quality-evidence-pass)

@@ -20,6 +20,7 @@
             --mut: #8aa0b3;
             --teal: #2dd4bf;
             --amber: #f5b942;
+            --focus: #f6cf75;
             --grn: #26b46e;
             --red: #dc443d;
         }
@@ -102,6 +103,11 @@
             background: var(--teal);
             color: #04231f;
             font-weight: 700;
+        }
+
+        .seg button:focus-visible {
+            outline: 3px solid var(--focus);
+            outline-offset: -3px;
         }
 
         .ctl {
@@ -962,14 +968,23 @@
                 var el = $(id); if (!el) return;
                 el.addEventListener("click", function (e) {
                     var b = e.target.closest ? e.target.closest("button") : null; if (!b) return;
-                    var v = b.getAttribute("data-m") || b.getAttribute("data-w") || b.getAttribute("data-s") || b.getAttribute("data-g");
+                    var attr = "data-" + key;
+                    var v = b.getAttribute(attr);
                     if (v == null) return;
-                    var btns = el.getElementsByTagName("button"); for (var i = 0; i < btns.length; i++) btns[i].className = (btns[i] === b ? "on" : "");
+                    syncSeg(id, attr, v);
                     cb(v);
                 });
             }
             function setMode(m) { state.mode = m; document.body.classList.toggle("power", m === "power"); saveState(); if (m === "power" || m === "simple") drawTreemap(); }
-            function syncSeg(id, attr, val) { var el = $(id); if (!el) return; var b = el.getElementsByTagName("button"); for (var i = 0; i < b.length; i++) b[i].className = (b[i].getAttribute(attr) === val ? "on" : ""); }
+            function syncSeg(id, attr, val) {
+                var el = $(id); if (!el) return;
+                var buttons = el.getElementsByTagName("button");
+                for (var i = 0; i < buttons.length; i++) {
+                    var selected = buttons[i].getAttribute(attr) === val;
+                    buttons[i].className = selected ? "on" : "";
+                    buttons[i].setAttribute("aria-pressed", selected ? "true" : "false");
+                }
+            }
 
             function wire() {
                 seg("modeSeg", "m", setMode);

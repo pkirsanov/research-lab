@@ -93,22 +93,54 @@ function unhydratedOwnerState() {
 
 /* ── minimal DOM host + a body whose classList records every mutation ── */
 function makeElement(tagName, ownerDocument) {
-  return {
+  const listeners = Object.create(null);
+  const element = {
     tagName,
     ownerDocument,
-    textContent: '',
     className: '',
     hidden: true,
+    disabled: false,
+    value: '',
+    _textContent: '',
     _attrs: Object.create(null),
     _children: [],
     setAttribute(name, value) { this._attrs[name] = String(value); },
     getAttribute(name) { return Object.prototype.hasOwnProperty.call(this._attrs, name) ? this._attrs[name] : null; },
     appendChild(child) { this._children.push(child); return child; },
-    findByAttribute(name) {
-      for (const child of this._children) if (Object.prototype.hasOwnProperty.call(child._attrs, name)) return child;
-      return null;
+    addEventListener(type, listener) {
+      if (!listeners[type]) listeners[type] = [];
+      listeners[type].push(listener);
+    },
+    emit(type) {
+      if (this.disabled || this.getAttribute('aria-disabled') === 'true') return 0;
+      const handlers = listeners[type] || [];
+      const event = { type, target: this, currentTarget: this, preventDefault() {} };
+      for (const handler of handlers) handler(event);
+      return handlers.length;
+    },
+    focus() { ownerDocument.activeElement = this; },
+    findAllByAttribute(name, value) {
+      const matches = [];
+      for (const child of this._children) {
+        if (Object.prototype.hasOwnProperty.call(child._attrs, name)
+            && (value === undefined || child._attrs[name] === String(value))) matches.push(child);
+        matches.push(...child.findAllByAttribute(name, value));
+      }
+      return matches;
+    },
+    findByAttribute(name, value) {
+      return this.findAllByAttribute(name, value)[0] || null;
     }
   };
+  Object.defineProperty(element, 'textContent', {
+    configurable: true,
+    get() { return this._textContent; },
+    set(value) {
+      this._textContent = String(value);
+      this._children.length = 0;
+    }
+  });
+  return element;
 }
 
 function makeHarness() {
@@ -243,6 +275,27 @@ function makeCoordinatorHarness() {
   const bodyClassOps = [];
   const documentRef = { createElement: (tag) => makeElement(tag, documentRef) };
   const panel = makeElement('section', documentRef);
+  const panelWrites = [];
+  const panelSetAttribute = panel.setAttribute.bind(panel);
+  const panelAppendChild = panel.appendChild.bind(panel);
+  let panelTextContent = panel.textContent;
+  panel.setAttribute = (name, value) => {
+    panelWrites.push(['setAttribute', name, String(value)]);
+    panelSetAttribute(name, value);
+  };
+  panel.appendChild = (child) => {
+    panelWrites.push(['appendChild', child.tagName]);
+    return panelAppendChild(child);
+  };
+  Object.defineProperty(panel, 'textContent', {
+    configurable: true,
+    get() { return panelTextContent; },
+    set(value) {
+      panelWrites.push(['textContent', String(value)]);
+      panelTextContent = String(value);
+      panel._children.length = 0;
+    }
+  });
   documentRef.body = makeElement('body', documentRef);
   documentRef.body.classList = {
     add: (name) => bodyClassOps.push(['add', name]),
@@ -271,12 +324,26 @@ function makeCoordinatorHarness() {
     simpleModels: { definitions: [definition] },
     config: readJson('tool-experience.config.json')
   };
-  globalThis.__rlOwnerStateProvider = { [TOOL_ID]: () => realOwnerState() };
+  let providerReads = 0;
+  let ownerStateProvider = () => realOwnerState();
+  globalThis.__rlOwnerStateProvider = {
+    [TOOL_ID]: () => {
+      providerReads += 1;
+      return ownerStateProvider();
+    }
+  };
 
   return {
     api,
     panel,
     bodyClassOps,
+    panelWrites,
+    providerReadCount() { return providerReads; },
+    setOwnerStateProvider(provider) { ownerStateProvider = provider; },
+    resetObservations() {
+      providerReads = 0;
+      panelWrites.length = 0;
+    },
     /* rlviews `apply()`: `applyVisual` writes data-rlview FIRST, then dispatches. A
        same-mode popstate re-entry therefore dispatches with the attribute unchanged. */
     viewChange(mode) {
@@ -306,6 +373,365 @@ function settledValue(promise, ms) {
     new Promise((resolve) => { timer = setTimeout(() => resolve(HUNG), ms); })
   ]).finally(() => clearTimeout(timer));
 }
+
+async function assertSettlesNull(promise, message) {
+  const value = await settledValue(promise, 2000);
+  assert.notEqual(value, HUNG, `${message}: promise must settle within the bounded guard`);
+  assert.equal(value, null, `${message}: rejected or invalidated work must resolve null`);
+}
+
+function ownerStateWithFirstRead(ownerState, onFirstRead) {
+  let observed = false;
+  return new Proxy(ownerState, {
+    get(target, property, receiver) {
+      if (!observed) {
+        observed = true;
+        onFirstRead();
+      }
+      return Reflect.get(target, property, receiver);
+    }
+  });
+}
+
+async function waitForObservation(read, message) {
+  const deadline = Date.now() + 2000;
+  while (!read()) {
+    if (Date.now() >= deadline) assert.fail(`${message}: observation did not occur within the bounded guard`);
+    await new Promise((resolve) => setImmediate(resolve));
+  }
+  return read();
+}
+
+async function settleRefreshes(entries) {
+  const settled = {};
+  for (const [name, promise] of Object.entries(entries)) {
+    const value = await settledValue(promise, 5000);
+    assert.notEqual(value, HUNG, `${name}: refresh promise must settle within the bounded guard`);
+    settled[name] = value;
+  }
+  return settled;
+}
+
+function projectionState(projection) {
+  return projection === null ? null : projection.state;
+}
+
+function panelStateWrites(harness) {
+  return harness.panelWrites
+    .filter((entry) => entry[0] === 'setAttribute' && entry[1] === 'data-rlexperience-simple-state')
+    .map((entry) => entry[2]);
+}
+
+test('TP-B004-01 requestSimpleRefresh rejects non-current contexts and settles invalidated queued work', async () => {
+  const harness = makeCoordinatorHarness();
+  try {
+    await assertSettlesNull(
+      harness.api.requestSimpleRefresh({ toolId: 'another-tool' }),
+      'wrong-tool request'
+    );
+
+    const registration = globalThis.__rlviewsRegistration;
+    globalThis.__rlviewsRegistration = null;
+    await assertSettlesNull(
+      harness.api.requestSimpleRefresh({ toolId: TOOL_ID }),
+      'absent-registration request'
+    );
+    globalThis.__rlviewsRegistration = registration;
+
+    const experience = registration.registry.tools[0].experience;
+    const ordinaryKind = experience.kind;
+    experience.kind = 'market-action-center';
+    await assertSettlesNull(
+      harness.api.requestSimpleRefresh({ toolId: TOOL_ID }),
+      'non-ordinary request'
+    );
+    experience.kind = ordinaryKind;
+
+    harness.viewChange('power');
+    await assertSettlesNull(
+      harness.api.requestSimpleRefresh({ toolId: TOOL_ID }),
+      'non-Simple request'
+    );
+
+    registration.shell.toolId = 'market-brief';
+    registration.registry.tools[0].id = 'market-brief';
+    experience.kind = 'market-action-center';
+    document.body.setAttribute('data-rlview', 'brief');
+    await assertSettlesNull(
+      harness.api.requestSimpleRefresh({ toolId: 'market-brief' }),
+      'Brief request'
+    );
+    registration.shell.toolId = TOOL_ID;
+    registration.registry.tools[0].id = TOOL_ID;
+    experience.kind = ordinaryKind;
+
+    document.body.setAttribute('data-rlview', 'simple');
+    const queued = harness.api.requestSimpleRefresh({ toolId: TOOL_ID });
+    harness.viewChange('power');
+    await assertSettlesNull(queued, 'queued request invalidated by leaving Simple');
+
+    assert.equal(harness.providerReadCount(), 0, 'rejected and invalidated queued work must never read the provider');
+    assert.deepEqual(harness.panelWrites, [], 'rejected and invalidated queued work must never mutate the panel');
+    assert.deepEqual(harness.bodyClassOps, [], 'the coordinator must not mutate body.classList');
+  } finally {
+    harness.restore();
+  }
+});
+
+test('SEC-BUG004-001 wrong-tool rlviews change has zero coordinator and panel side effects', async () => {
+  const harness = makeCoordinatorHarness();
+  try {
+    const warm = await settledValue(harness.api.requestSimpleRefresh({ toolId: TOOL_ID }), 5000);
+    assert.notEqual(warm, HUNG, 'the non-vacuity warm render must settle');
+    assert.equal(warm && warm.state, 'ready', 'the non-vacuity warm render must reach the real ready projection');
+
+    const control = harness.panel.findAllByAttribute('data-rlexperience-control-input')[0];
+    assert.ok(control, 'the real production render must expose a declared control before the wrong-tool event');
+    assert.equal(control.disabled, false, 'the discriminator requires an enabled current control');
+    assert.equal(control.getAttribute('aria-disabled'), null, 'the discriminator requires no pre-existing ARIA disablement');
+
+    harness.resetObservations();
+    const alternatives = control._children.map((child) => child.value).filter((value) => value !== control.value);
+    control.value = alternatives[0] || String(Number(control.value) + 1);
+    assert.equal(control.emit('change'), 1, 'a real current-generation control recompute must be accepted before the wrong-tool event');
+
+    const wrongToolId = 'wrong-tool-security-regression';
+    const snapshot = () => ({
+      providerReads: harness.providerReadCount(),
+      panelState: harness.panel.getAttribute('data-rlexperience-simple-state'),
+      panelAdapter: harness.panel.getAttribute('data-rlexperience-adapter'),
+      panelText: harness.panel.textContent,
+      panelWrites: harness.panelWrites.slice(),
+      controlDisabled: control.disabled,
+      controlDisabledAttribute: control.getAttribute('disabled'),
+      controlAriaDisabled: control.getAttribute('aria-disabled'),
+      controlValue: control.value,
+      registeredTool: globalThis.__rlviewsRegistration.shell.toolId,
+      currentView: document.body.getAttribute('data-rlview')
+    });
+    const before = snapshot();
+
+    globalThis.dispatchEvent(new CustomEvent('rlviews:change', {
+      detail: {
+        mode: 'power',
+        previousMode: 'simple',
+        baseMode: 'power',
+        toolId: wrongToolId
+      }
+    }));
+    const after = snapshot();
+
+    assert.notEqual(before.registeredTool, wrongToolId, 'the adversarial event must name a different tool');
+    assert.equal(after.providerReads, 0, 'a wrong-tool event must not read the current or wrong-tool provider');
+    assert.equal(after.panelState, before.panelState, 'a wrong-tool event must not change current panel state');
+    assert.equal(after.panelAdapter, before.panelAdapter, 'a wrong-tool event must not change current panel adapter');
+    assert.equal(after.panelText, before.panelText, 'a wrong-tool event must not change current panel text');
+    assert.deepEqual(after.panelWrites, before.panelWrites, 'a wrong-tool event must not write the current panel');
+    assert.equal(after.registeredTool, before.registeredTool, 'a wrong-tool event must not change the registered tool');
+    assert.equal(after.currentView, before.currentView, 'a wrong-tool event must not change the current view');
+    assert.equal(
+      after.controlDisabled,
+      before.controlDisabled,
+      'SEC-BUG004-001 wrong-tool event must not disable the current tool control'
+    );
+    assert.equal(after.controlDisabledAttribute, before.controlDisabledAttribute, 'a wrong-tool event must not add the disabled attribute');
+    assert.equal(after.controlAriaDisabled, before.controlAriaDisabled, 'a wrong-tool event must not add ARIA disablement');
+    assert.equal(after.controlValue, before.controlValue, 'a wrong-tool event must not change the current control value');
+
+    await waitForObservation(
+      () => panelStateWrites(harness).includes('ready'),
+      'accepted current control recompute after wrong-tool event'
+    );
+    assert.equal(harness.providerReadCount(), 0, 'the accepted current control work must survive and recompute locally without a provider read');
+
+    harness.resetObservations();
+    const laterSameTool = harness.api.requestSimpleRefresh({ toolId: TOOL_ID });
+    const laterProjection = await settledValue(laterSameTool, 5000);
+    assert.notEqual(laterProjection, HUNG, 'later same-tool work must settle after the wrong-tool event');
+    assert.equal(laterProjection && laterProjection.state, 'ready', 'wrong-tool state allocation must not affect later same-tool work');
+    assert.equal(harness.providerReadCount(), 1, 'later same-tool work must perform exactly its own provider read');
+  } finally {
+    harness.restore();
+  }
+});
+
+test('TP-B004-02 requestSimpleRefresh coalesces same-turn duplicates and replaces the pending successor', async () => {
+  const harness = makeCoordinatorHarness();
+  try {
+    let successorB = null;
+    let successorC = null;
+    let providerCall = 0;
+    const currentOwner = realOwnerState();
+    const activeOwner = ownerStateWithFirstRead(currentOwner, () => {
+      successorB = harness.api.requestSimpleRefresh({ toolId: TOOL_ID });
+      successorC = harness.api.requestSimpleRefresh({ toolId: TOOL_ID });
+    });
+    harness.setOwnerStateProvider(() => {
+      providerCall += 1;
+      return providerCall === 1 ? activeOwner : currentOwner;
+    });
+
+    const activeA = harness.api.requestSimpleRefresh({ toolId: TOOL_ID });
+    const duplicateA = harness.api.requestSimpleRefresh({ toolId: TOOL_ID });
+    assert.equal(activeA, duplicateA, 'same-turn pre-start duplicates must share one scheduled promise');
+    await waitForObservation(() => successorC, 'active-run B/C requests');
+
+    const settled = await settleRefreshes({ activeA, successorB, successorC });
+    assert.notEqual(successorB, successorC, 'accepted C must replace B with a distinct latest-successor promise');
+    assert.equal(projectionState(settled.activeA), null, 'newer accepted work must make active A stale');
+    assert.equal(projectionState(settled.successorB), null, 'replaced B must settle null rather than join C');
+    assert.equal(projectionState(settled.successorC), 'ready', 'latest successor C must run and resolve current truth');
+    assert.equal(harness.providerReadCount(), 2, 'coalesced A and latest C must each read once; replaced B must never read');
+    assert.equal(harness.panel.getAttribute('data-rlexperience-simple-state'), 'ready', 'only latest C may establish current panel truth');
+  } finally {
+    harness.restore();
+  }
+});
+
+test('TP-B004-03 accepted mid-run refresh immediately invalidates active generation and stale controls', async () => {
+  const harness = makeCoordinatorHarness();
+  try {
+    const warm = await settledValue(harness.api.requestSimpleRefresh({ toolId: TOOL_ID }), 5000);
+    assert.notEqual(warm, HUNG, 'warm ready render must settle before the stale-control scenario');
+    assert.equal(warm && warm.state, 'ready', 'warm render must expose real production controls');
+    const staleControl = harness.panel.findAllByAttribute('data-rlexperience-control-input')[0];
+    assert.ok(staleControl, 'warm production render must expose at least one real declared control');
+    const alternatives = staleControl._children.map((child) => child.value).filter((value) => value !== staleControl.value);
+    const staleTarget = alternatives[0] || String(Number(staleControl.value) + 1);
+
+    harness.resetObservations();
+    let successorB = null;
+    let successorC = null;
+    let providerCall = 0;
+    let ownerVersion = 'active-A';
+    const providerSnapshots = [];
+    const acceptance = {};
+    const currentOwner = realOwnerState();
+    const activeOwner = ownerStateWithFirstRead(currentOwner, () => {
+      successorB = harness.api.requestSimpleRefresh({ toolId: TOOL_ID });
+      acceptance.staleAfterB = staleControl.disabled || staleControl.getAttribute('aria-disabled') === 'true';
+      successorC = harness.api.requestSimpleRefresh({ toolId: TOOL_ID });
+      acceptance.staleAfterC = staleControl.disabled || staleControl.getAttribute('aria-disabled') === 'true';
+      ownerVersion = 'latest-C-at-start';
+      staleControl.value = staleTarget;
+      acceptance.staleListenersInvoked = staleControl.emit('change');
+    });
+    harness.setOwnerStateProvider(() => {
+      providerCall += 1;
+      providerSnapshots.push(ownerVersion);
+      return providerCall === 1 ? activeOwner : currentOwner;
+    });
+
+    const activeA = harness.api.requestSimpleRefresh({ toolId: TOOL_ID });
+    await waitForObservation(() => successorC, 'mid-run accepted B/C requests');
+    const settled = await settleRefreshes({ activeA, successorB, successorC });
+
+    assert.notEqual(successorB, successorC, 'B and C must receive distinct acceptance-time generation claims');
+    assert.equal(acceptance.staleAfterB, true, 'accepted B must synchronously disable or mark old controls inert');
+    assert.equal(acceptance.staleAfterC, true, 'accepted C must keep old controls disabled or inert');
+    assert.equal(acceptance.staleListenersInvoked, 0, 'actuating a stale disabled control must invoke no model listener');
+    assert.equal(projectionState(settled.activeA), null, 'active A must settle null after B/C acceptance invalidates it');
+    assert.equal(projectionState(settled.successorB), null, 'replaced B must settle null');
+    assert.equal(projectionState(settled.successorC), 'ready', 'latest C must resolve the current production projection');
+    assert.deepEqual(providerSnapshots, ['active-A', 'latest-C-at-start'], 'latest C must read provider state when it starts, not when accepted');
+    assert.equal(harness.providerReadCount(), 2, 'stale control and replaced B must perform no provider read');
+    assert.deepEqual(panelStateWrites(harness), ['ready'], 'active A and stale control must not paint; only latest C may write current truth');
+  } finally {
+    harness.restore();
+  }
+});
+
+test('TP-B004-04 current and stale refresh promises settle without overwriting current truth', async () => {
+  const summary = {};
+
+  const currentFailure = makeCoordinatorHarness();
+  try {
+    currentFailure.setOwnerStateProvider(() => { throw new Error('provider failed'); });
+    const settled = await settleRefreshes({ currentFailure: currentFailure.api.requestSimpleRefresh({ toolId: TOOL_ID }) });
+    summary.currentFailure = projectionState(settled.currentFailure);
+    summary.currentFailureWrites = panelStateWrites(currentFailure);
+  } finally {
+    currentFailure.restore();
+  }
+
+  const cancelled = makeCoordinatorHarness();
+  try {
+    const queued = cancelled.api.requestSimpleRefresh({ toolId: TOOL_ID });
+    cancelled.viewChange('power');
+    const settled = await settleRefreshes({ cancelled: queued });
+    summary.cancelled = projectionState(settled.cancelled);
+    summary.cancelledReads = cancelled.providerReadCount();
+    summary.cancelledWrites = panelStateWrites(cancelled);
+  } finally {
+    cancelled.restore();
+  }
+
+  const staleReady = makeCoordinatorHarness();
+  try {
+    let successorB = null;
+    let latestC = null;
+    let providerCall = 0;
+    const currentOwner = realOwnerState();
+    const activeOwner = ownerStateWithFirstRead(currentOwner, () => {
+      successorB = staleReady.api.requestSimpleRefresh({ toolId: TOOL_ID });
+      latestC = staleReady.api.requestSimpleRefresh({ toolId: TOOL_ID });
+    });
+    staleReady.setOwnerStateProvider(() => {
+      providerCall += 1;
+      return providerCall === 1 ? activeOwner : currentOwner;
+    });
+    const activeA = staleReady.api.requestSimpleRefresh({ toolId: TOOL_ID });
+    await waitForObservation(() => latestC, 'stale-ready B/C requests');
+    const settled = await settleRefreshes({ activeA, successorB, latestC });
+    summary.staleReadyActive = projectionState(settled.activeA);
+    summary.replacedB = projectionState(settled.successorB);
+    summary.latestC = projectionState(settled.latestC);
+    summary.staleReadyReads = staleReady.providerReadCount();
+    summary.staleReadyWrites = panelStateWrites(staleReady);
+  } finally {
+    staleReady.restore();
+  }
+
+  const staleFailure = makeCoordinatorHarness();
+  try {
+    let latest = null;
+    let providerCall = 0;
+    const currentOwner = realOwnerState();
+    const failingOwner = ownerStateWithFirstRead(unhydratedOwnerState(), () => {
+      latest = staleFailure.api.requestSimpleRefresh({ toolId: TOOL_ID });
+    });
+    staleFailure.setOwnerStateProvider(() => {
+      providerCall += 1;
+      return providerCall === 1 ? failingOwner : currentOwner;
+    });
+    const active = staleFailure.api.requestSimpleRefresh({ toolId: TOOL_ID });
+    await waitForObservation(() => latest, 'stale-failure successor request');
+    const settled = await settleRefreshes({ active, latest });
+    summary.staleFailureActive = projectionState(settled.active);
+    summary.staleFailureLatest = projectionState(settled.latest);
+    summary.staleFailureReads = staleFailure.providerReadCount();
+    summary.staleFailureWrites = panelStateWrites(staleFailure);
+  } finally {
+    staleFailure.restore();
+  }
+
+  assert.deepEqual(summary, {
+    currentFailure: 'unavailable',
+    currentFailureWrites: ['unavailable'],
+    cancelled: null,
+    cancelledReads: 0,
+    cancelledWrites: [],
+    staleReadyActive: null,
+    replacedB: null,
+    latestC: 'ready',
+    staleReadyReads: 2,
+    staleReadyWrites: ['ready'],
+    staleFailureActive: null,
+    staleFailureLatest: 'ready',
+    staleFailureReads: 2,
+    staleFailureWrites: ['ready']
+  }, 'current failure must paint honest unavailable; stale/cancelled/replaced work must settle null; only latest current work may paint ready');
+});
 
 test('a queued Simple run does not survive an invalidation, and its promise settles', async () => {
   const harness = makeCoordinatorHarness();

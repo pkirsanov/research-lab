@@ -54,6 +54,5 @@ docsRegistryOverrides:
       path: README.md
     development:
       path: README.md
-
   # Add classification: or policy: overrides here only when your repo needs
   # a managed-doc shape that differs from the framework default registry.

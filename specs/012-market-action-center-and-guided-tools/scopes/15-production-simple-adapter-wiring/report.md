@@ -2836,6 +2836,69 @@ relocation of `[data-rlbrief-mount]` into the hidden `brief` panel, introduced b
 this bridge removing a stub write. Routed to `bubbles.plan` / `bubbles.docs`: the in-source
 comment overstates what the change did.
 
+> **SUPERSEDED 2026-07-31 — ROLL-01 as recorded above is incorrect.** Its diff observation
+> is sound and still reproduces: `f216be0d` adds two `+` lines and removes **zero**
+> `rlv-focused` lines. The inference drawn from that observation — *"There was no stub
+> `classList.add` to remove"* — is **false**. The stub write did exist, and it was removed
+> one commit earlier.
+>
+> **Why the original proof was insufficient.** It rested on a single sample,
+> `git show f216be0d^:rlexperience.js | grep -c 'rlv-focused'` → `0`. That number
+> reproduces, but a single parent state cannot distinguish *"never existed"* from
+> *"removed in the very commit being sampled"* — and here it is the second.
+> `f216be0d^` resolves to `737d1d17`, **which is the commit that performed the removal**.
+> The check therefore read the file immediately *after* the deletion and mistook the
+> aftermath for the original state. Establishing a never-existed claim requires walking
+> the history of the string itself, not sampling one ancestor.
+>
+> **Measured history** — `grep -c 'classList.add("rlv-focused")'` against each committed
+> blob of `rlexperience.js`, re-verified 2026-07-31:
+>
+> ```
+> $ for c in c81d808d 737d1d17 f216be0d; do
+>     git show $c:rlexperience.js | grep -c 'classList.add("rlv-focused")'; done
+>   c81d808d  2026-07-24  feat(012): Market Action Center Scopes 01-04 …     occurrences=1
+>   737d1d17  2026-07-26  fix(pages): restore ordinary tool view routing     occurrences=0
+>   f216be0d  2026-07-27  feat(experience): production Simple-view … bridge  occurrences=0
+>
+> $ git log -S'classList.add("rlv-focused")' --patch -- rlexperience.js
+>   737d1d17   -      document.body.classList.add("rlv-focused");
+>   c81d808d   +      document.body.classList.add("rlv-focused");
+>
+> $ git rev-parse --short=8 f216be0d^
+>   737d1d17          # ROLL-01's sole checkpoint IS the removing commit
+>
+> ancestry: c81d808d → 737d1d17 → f216be0d   (both `merge-base --is-ancestor` = YES)
+> ```
+>
+> The pickaxe is decisive: exactly two commits ever touched that string — `c81d808d`
+> added it, `737d1d17` removed it. The bridge is not among them.
+>
+> **Corrected facts.**
+>
+> 1. The stub's `document.body.classList.add("rlv-focused")` **did exist** — added by
+>    `c81d808d` (Scopes 01-04), present in exactly one committed version of
+>    `rlexperience.js`.
+> 2. It **was removed** by `737d1d17` (*fix(pages): restore ordinary tool view routing*),
+>    a day before the bridge landed.
+> 3. The in-source comment — *"applyVisual (rlviews.js) is the sole owner of rlv-focused;
+>    the stub's classList.add is removed"* — is therefore **factually true** as a statement
+>    about the codebase, and both halves still hold at HEAD: the committed
+>    `rlexperience.js` blob carries **0** executable `rlv-focused` writes (the comment sits
+>    at line 1860 at HEAD, not the 1844 cited above — the file has since grown), and
+>    `rlviews.js:147` carries the single `classList.toggle`. **`rlexperience.js` is
+>    deliberately left unchanged; the comment is correct as written.** ROLL-01's routing of
+>    that comment to `bubbles.plan` / `bubbles.docs` as an overstatement is withdrawn.
+> 4. The one surviving defect is **attribution**: `f216be0d`'s message frames the removal as
+>    part of the bridge work when `737d1d17` had already performed it. A published commit
+>    message is immutable, so no file edit can reach it and the correction lives here in the
+>    record instead. Severity **LOW**; no code action is warranted.
+>
+> **State:** CLOSED 2026-07-31 — the documentation-accuracy half of ROLL-01 is withdrawn as
+> incorrect. What remains is an attribution note against one commit message, LOW, carrying
+> no code action. The rollback verdict in §7 is untouched: ROLL-01 never bore on it, and
+> this correction does not change it.
+
 ### 8. Cleanup and live-tree integrity
 
 ```

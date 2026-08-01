@@ -1,16 +1,16 @@
 {
-  "asOf": "2026-08-01T11:00:22.192Z",
-  "generatedAt": "2026-08-01T11:00:22.192Z",
-  "window": "pre-market",
+  "asOf": "2026-08-01T14:30:22.858Z",
+  "generatedAt": "2026-08-01T14:30:22.858Z",
+  "window": "morning",
   "marketClosed": true,
   "nextSessionDate": "2026-08-03",
   "dataFreshness": {
     "bars": {
-      "updated": "2026-08-01T11:00:14.023Z",
+      "updated": "2026-08-01T14:30:13.602Z",
       "count": 287
     },
     "options": {
-      "updated": "2026-08-01T11:00:17.507Z",
+      "updated": "2026-08-01T14:30:17.527Z",
       "count": 22
     }
   },
@@ -519,7 +519,7 @@
   "toolReads": {
     "sector-research-lab": {
       "id": "sector-research-lab",
-      "asOf": "2026-08-01T11:00:20.933Z",
+      "asOf": "2026-08-01T14:30:21.492Z",
       "read": "Rotate toward XLY as XLE weakens.",
       "metrics": {
         "into": {
@@ -673,13 +673,13 @@
           {
             "ticker": "EWU",
             "country": "United Kingdom",
-            "score": 70.4,
+            "score": 70.6,
             "rel21": 5.18,
             "rel63": 0.25,
             "rel126": -1.59,
             "trend": "Strong uptrend",
             "fx": "FX neutral",
-            "fxStrength": 0.21,
+            "fxStrength": 0.41,
             "vol": 16.34,
             "maxDrawdown": 9.92,
             "asOf": "2026-07-31T13:30:00.000Z"
@@ -735,7 +735,7 @@
     "real-assets-lab": {
       "id": "real-assets-lab",
       "asOf": "2026-07-31T13:30:00.000Z",
-      "read": "CPER leads real assets at 54.4/100; GLD 16.6, BTC 30.4, SLV 0.",
+      "read": "CPER leads real assets at 54.4/100; GLD 16.6, BTC 30.6, SLV 0.",
       "metrics": {
         "leader": {
           "ticker": "CPER",
@@ -1005,7 +1005,7 @@
                   "TLT",
                   "TIP"
                 ],
-                "score": 46.35800687041147,
+                "score": 46.35798252980622,
                 "detail": "TLT direction plus TIP-vs-TLT is a rough rate mix, not a direct real-yield series."
               }
             ],
@@ -1054,11 +1054,11 @@
           "BTC-USD": {
             "ticker": "BTC-USD",
             "model": "bitcoin",
-            "score": 30.4,
+            "score": 30.6,
             "trend": "Downtrend",
-            "mom21": -1.27,
-            "mom63": -14.59,
-            "mom126": -5.02,
+            "mom21": -1.18,
+            "mom63": -14.51,
+            "mom126": -4.93,
             "vol": 35.25,
             "maxDrawdown": 28.71,
             "riskPenalty": 5.68,

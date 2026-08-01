@@ -167,6 +167,218 @@ other product source are untouched. Neither gate is weakened, relaxed, or bypass
 checkbox, `status`, or `certification` value was altered. Recording the defect *is* the
 deliverable.
 
+#### XFC-01 — RESOLVED AS A DEFECT CLASS (2026-07-31)
+
+*Appended, not a rewrite. Everything above is the finding as originally recorded and is
+retained unaltered; this addendum records what changed after it.*
+
+**The defect class is closed.** No declared dependency gate is unsatisfiable by
+construction any more. The finding's core claim — that all three gates were false
+*regardless of how completely the producer delivered* — no longer describes any gate.
+
+**Both resolutions took path (a), producer-side publication.** In each case the producer
+added the machine-readable array the evaluator actually reads, naming only markers it
+genuinely delivered, each verified against real code before publication:
+
+| gate | resolving commit | what the producer published | provenance key recorded alongside |
+|---|---|---|---|
+| `feature-002` | `85a9ce1d` — *spec(002): publish delivered capability milestones* | `state.milestones` (4 IDs) | `milestonesProvenance` |
+| `BUG-004` | `4ad447c1` — *spec(_bugs/BUG-004): publish delivered evidence IDs* | `state.evidenceIds` (2 IDs) | `evidenceIdsProvenance` |
+
+The original scan found `0` of 26 `state.json` files publishing either key. Re-scanned at
+HEAD `f398a9ac`: still 26 files, of which **1 publishes `milestones` and 1 publishes
+`evidenceIds`** — exactly the two producers whose gates now satisfy.
+
+**Re-executed verdicts** (same method as the original table: real
+`tool-experience.config.json`, each producer loaded from the gate's own declared
+`statePath`, evaluated with the predicate at `rlexperience.js` lines 2104–2109):
+
+| gateId | status / certification | matched / required | satisfied | delta vs original finding |
+|---|---|---|---|---|
+| `feature-002` | `done` / `done` | **4 / 4** | `true` | was 0/4 `false` |
+| `BUG-004` | `done` / `done` | **2 / 2** | `true` | was 0/2 `false` |
+| `feature-008` | `not_started` / `not_started` | **0 / 3** | `false` | unchanged |
+
+**The one remaining refusal is categorically different from the finding.** `feature-008`
+still returns `satisfied=false`, but that is **the gate working exactly as designed**, not
+the defect this finding recorded. It refuses because the producer has genuinely not
+delivered — `specs/008-portfolio-survival-and-brief-lab` is `status=not_started`,
+`certification.status=not_started`, `certifiedAt=null`, and publishes no marker array
+because it has nothing yet to publish. That is a gate correctly reporting real absence.
+
+The original finding described the opposite condition: **two producers that were fully
+`done`/`done` and still gated at 0/4 and 0/2** — closure unreachable by any action
+available to any party. That condition no longer exists anywhere in the config. A gate
+that refuses undelivered work is functioning; a gate that refuses *delivered* work is the
+defect, and that defect is gone.
+
+**No gate was weakened.** `tool-experience.config.json` is byte-unchanged: its only commit
+in the entire repository history is `c81d808d` (2026-07-24), which predates this finding
+(2026-07-30), and it is clean in the working tree. `bypassAllowed: false` still stands.
+Resolution path (b), consumer-side amendment, was not used — the marker vocabulary the
+finding called unagreed was instead genuinely delivered and then published by the
+producers themselves, which is the outcome the finding identified as legitimate.
+
+**Consequence for this feature's scopes.** Scope 11's only declared external gate is
+`feature-002`, which now satisfies, so Scope 11 carries no external gate at all; its
+`scope.md` records `Status: Not Started` with 17 unchecked DoD items and 12 Test Plan
+rows. Scopes 13 and 14 remain `Blocked`, correctly and solely on Feature 008.
+
+**Not changed by this addendum.** No product source, no gate config, no checkbox, no
+`status`, and no `certification` value was altered by recording this resolution. Feature
+012 remains `blocked`.
+
+---
+
+**Second finding-ID prefix (declared here, first use).** `XFC-` is reserved above for a
+defect in an agreement between a consuming feature and a **producing feature/bug**. The
+defect below is not that: its two parties are this feature's scope artifacts and the
+**governance tooling**, so reusing `XFC-` would misuse the prefix its own declaration
+fixed. Following the same precedent this report set for `XFC-`, a fourth prefix is
+declared: **`GVG-<nn>` — Governance Gate**, reserved for a defect in the fit between a
+Bubbles gate and the artifact convention it is pointed at. A repository scan for
+`\bGVG-[0-9]{2}\b` across `*.md`, `*.json`, `*.js`, `*.mjs`, `*.html`, `*.yaml` returned
+**0 occurrences**, so `GVG-01` is stable and collision-free.
+
+### Finding GVG-01 — `state-transition-guard.sh` cannot gate a scope-level transition (cross-cutting, governance; recorded 2026-07-30)
+
+**Severity.** Blocking for any scope-level certification in this repository that is
+required to produce a green feature guard first. Not resolvable by Feature 012 alone.
+
+**Statement.** The guard has no invocation that evaluates a **scope→Done** transition.
+Both available invocations were executed read-only against HEAD `4ad447c1` while
+recording this finding, and the working tree was proven unchanged afterwards (identical
+`git status --porcelain` checksum before and after, 11 dirty files both times — all owned
+by a concurrent session).
+
+| Invocation | Exit | What it actually reports |
+|---|---|---|
+| `state-transition-guard.sh scopes/15-production-simple-adapter-wiring` | **2** | `E009-STATE-MALFORMED: state.json is missing or is not valid JSON` — a scope directory holds only `scope.md` and `report.md`; the guard requires a `FEATURE_DIR` carrying `state.json`. |
+| `state-transition-guard.sh specs/012-market-action-center-and-guided-tools` | **1** | `workflowMode: full-delivery`, `auditProfile: delivery-completion-v1`, **`targetStatus: done`**, `failureCount: 186`, `failedGateIds: [G022,G053,G027,G040,G084,G089]`, `verdict: FAIL`. |
+
+**Why neither can gate this transition.**
+
+1. **Wrong transition.** The feature-directory invocation resolves `targetStatus: done`
+   for **Feature 012**, which must remain `blocked` while Feature 008 is `not_started`.
+   The transition actually being made is Scope 15 → `Done`. Forcing the guard green with
+   `--target-status` would make it evaluate a *different* transition and is correctly
+   refusable as manipulation.
+2. **No scope-targeting mode exists.** The guard parses exactly four flags —
+   `--revert-on-fail`, `--target-status`, `--expect-workflow-mode`,
+   `--expect-contract-digest`. Every internal `scope`-bearing token in the script
+   (8 matches) is the `per-scope-directory` **layout**-detection string, not a target
+   selector.
+3. **The failures are repo-wide, not a Scope 15 defect.** The 186 failures name scopes
+   `01, 03, 05, 06, 07, 08, 09, 10, 11, 12, 13, 14, 15`. Nine of those (`01, 03, 05–10,
+   12`) are already `Done`. Gate G040's deferral-language scan alone fires on the
+   `report.md` of scopes `03, 05, 06, 07, 08, 09, 10` — every one of them `Done`. A
+   condition that fails on already-certified scopes is measuring a mismatch between the
+   guard and this repository's authoring convention, not the readiness of Scope 15.
+4. **Inconsistent application.** All **11** already-`Done` scopes in this feature were
+   certified without any such guard result. Requiring it only for Scope 15 applies a
+   standard to one scope that was applied to none of its eleven predecessors.
+5. **Unreachable by construction.** While Feature 008 keeps Feature 012 `blocked`, a
+   feature-level exit 0 is unreachable. Making it a precondition therefore renders
+   **every** scope in this feature permanently uncertifiable.
+
+**Same defect class as the three clauses already corrected here.** This is the **fourth**
+instance of the shape recorded above — *a gate whose closure condition is not reachable by
+any action available to the party the gate binds*: (1) the withdrawn *"every ordinary tool
+wired"* END-state clause, unreachable because 4 of 22 ordinary tools are
+declared-unwired-by-design; (2) the **file-level** no-interception scan, unreachable
+because the offending sites belong to Feature 003 at an ancestor commit; (3) `XFC-01`,
+unreachable because the required marker vocabulary was never published; and now (4) this
+guard precondition, unreachable because the guard evaluates a different transition than
+the one being made. In (1) and (2) the remedy was to re-aim the clause at the thing
+actually at stake without weakening it. The same standard applies here.
+
+**Remedy needed** (either is sufficient; both are owned by the framework, not by this
+feature):
+
+- **(a) A scope-scoped guard mode** — e.g. `--scope-id <nn-name>` resolving the parent
+  `FEATURE_DIR` for `state.json` while evaluating only the named scope's checks, so a
+  scope transition is gated by conditions that scope can actually satisfy; **or**
+- **(b) An explicit recorded convention** that scope-level transitions are gated by
+  artifact lint plus that scope's own DoD evidence, and that
+  `state-transition-guard.sh` is a **feature**-transition instrument only. This merely
+  writes down what the eleven prior certifications in this feature already did.
+
+Until one exists, a scope certification in this repository should record which gates it
+did run, and why the feature guard was not among them.
+
+**Adjacent drift observed while recording this (reported, not changed).**
+`scopes/_index.md` carries two Status tables covering scopes 01–14; both still read
+`Not Started` for scopes `03–10` and `12`, which are `Done` in `state.json` and in their
+own `scope.md`, and `Not Started` for `13`/`14`, which are `Blocked`. Scope 15 has **no
+row in either table**. Correcting those rows would edit scopes 11/13/14, which this
+session is constrained from touching, so the drift is recorded here for its owner.
+
+**Not changed by this finding.** No product source, test, `tools.json`, or
+`.github/bubbles/**` file was modified. Feature 012's top-level `status`,
+`certification`, and `blockedReason` are untouched and remain `blocked`;
+`certification.completedScopes` remains `[]`. No gate was weakened, relaxed, or bypassed —
+the two guard invocations above were run, reported, and left failing. Recording the defect
+*is* the deliverable.
+
+### Finding PERF-01 — contextual-tooltip validation saturated the main thread on data-dense pages (RESOLVED 2026-07-31)
+
+**Symptom.** `tests/distributed-briefs.ui-canary.mjs` failed (0 pass / 1 fail). The failure
+had previously been treated as unattributed background noise. It is a real, reproducible
+product defect.
+
+**Measurement.** Time from navigation to `[data-rlbrief-mount][data-rlbrief-ready="1"]`,
+three runs per page, same harness:
+
+| Page | Run 1 | Run 2 | Run 3 |
+|---|---|---|---|
+| `options-flow-feed-lab` | 31,534ms | 22,488ms | 18,481ms |
+| `gamma-trading-lab` | 916ms | 475ms | 472ms |
+| `intraday-tape-lab` | 451ms | 377ms | 371ms |
+
+~40–70× slower than its peers, straddling the canary's 30s `waitForSelector` budget — so the
+canary passed or failed depending on machine load.
+
+**Root cause.** A main-thread responsiveness probe recorded **2 stalls totalling 24,164ms =
+97% of startup**, the largest a single contiguous **23,451ms** block of synchronous
+JavaScript. CPU profiling attributed ~41% of samples to a hand-rolled SHA-256 in
+`rlexperience.js` (`encode` 17%, `sha256` 13%, `utf8Bytes` 4%, `fingerprint` 2%) plus 7%
+garbage collection. Instrumenting the call path showed:
+
+- **113,710** `validateContextInternal` calls, **0% object-identity reuse** — auto-decoration
+  mints a fresh context object per rendered table cell;
+- only **18 distinct canonical values** across all of them;
+- each call performed **three** canonicalisations (`rlcontext.js` cloneCanonical ×2 +
+  `fingerprint`) plus a SHA-256;
+- **193.4 MB** hashed in total, of which **100% were redundant**.
+
+**Why it is not a BUG-001 regression.** BUG-001
+(`options-flow-shell-startup-starvation`, `done`/certified) governs *shell-ready ordering
+before heavy hydration*; its regression test still passes. PERF-01 is a distinct mechanism —
+main-thread saturation *after* the shell is ready — which is why closing BUG-001 did not
+surface it.
+
+**Fix.** `fingerprint()` and `validateContextInternal()` are pure functions of the canonical
+form, so successful results are memoised on that string (commit `2aba9483`). Only successful
+validations are cached, so an invalid context still rejects on every call; input that cannot
+be canonicalised re-throws at its original site, preserving error ordering. Both caches are
+bounded.
+
+**Result.** Worst-case startup **31,534ms → 17,790ms (−44%)**, now clear of the 30s budget.
+`distributed-briefs.ui-canary` **1 pass / 0 fail** (was 0/1); project selftest **970 passed /
+0 failed**; `contextual-tooltip.functional` 9/0; `tool-experience-registry.functional` 7/0;
+Playwright `tool-experience` + `contextual-tooltip` **16 passed**; zero page errors.
+
+**Residual, not claimed as fixed.** One canonicalisation per decorated element remains, so
+this page is still ~13–18s versus <1s for its peers. The remaining cost is inherent to
+validating one contract per rendered cell and needs a design decision (hoisting context
+construction out of the per-cell render, or decorating lazily) rather than another cache.
+That work is **not** done and is left for its owner.
+
+**Process note.** Two selftest failures were self-inflicted during this fix: explanatory
+comments naming `options-flow-feed-lab` tripped the guard that forbids tool-specific branches
+in the generic validator. The guard was correct; the comments were made tool-agnostic rather
+than the guard weakened.
+
 ## Scenario Contract Evidence
 
 The plan maps all 32 analyst acceptance scenarios plus five technical planning scenarios (`SCN-012-033` through `SCN-012-037`) in `scenario-manifest.json`, exact Markdown Test Plan rows, exact DoD test-evidence items, and `test-plan.json`.

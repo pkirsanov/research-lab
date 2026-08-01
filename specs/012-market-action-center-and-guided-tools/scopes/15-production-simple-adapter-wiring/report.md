@@ -2836,6 +2836,69 @@ relocation of `[data-rlbrief-mount]` into the hidden `brief` panel, introduced b
 this bridge removing a stub write. Routed to `bubbles.plan` / `bubbles.docs`: the in-source
 comment overstates what the change did.
 
+> **SUPERSEDED 2026-07-31 — ROLL-01 as recorded above is incorrect.** Its diff observation
+> is sound and still reproduces: `f216be0d` adds two `+` lines and removes **zero**
+> `rlv-focused` lines. The inference drawn from that observation — *"There was no stub
+> `classList.add` to remove"* — is **false**. The stub write did exist, and it was removed
+> one commit earlier.
+>
+> **Why the original proof was insufficient.** It rested on a single sample,
+> `git show f216be0d^:rlexperience.js | grep -c 'rlv-focused'` → `0`. That number
+> reproduces, but a single parent state cannot distinguish *"never existed"* from
+> *"removed in the very commit being sampled"* — and here it is the second.
+> `f216be0d^` resolves to `737d1d17`, **which is the commit that performed the removal**.
+> The check therefore read the file immediately *after* the deletion and mistook the
+> aftermath for the original state. Establishing a never-existed claim requires walking
+> the history of the string itself, not sampling one ancestor.
+>
+> **Measured history** — `grep -c 'classList.add("rlv-focused")'` against each committed
+> blob of `rlexperience.js`, re-verified 2026-07-31:
+>
+> ```
+> $ for c in c81d808d 737d1d17 f216be0d; do
+>     git show $c:rlexperience.js | grep -c 'classList.add("rlv-focused")'; done
+>   c81d808d  2026-07-24  feat(012): Market Action Center Scopes 01-04 …     occurrences=1
+>   737d1d17  2026-07-26  fix(pages): restore ordinary tool view routing     occurrences=0
+>   f216be0d  2026-07-27  feat(experience): production Simple-view … bridge  occurrences=0
+>
+> $ git log -S'classList.add("rlv-focused")' --patch -- rlexperience.js
+>   737d1d17   -      document.body.classList.add("rlv-focused");
+>   c81d808d   +      document.body.classList.add("rlv-focused");
+>
+> $ git rev-parse --short=8 f216be0d^
+>   737d1d17          # ROLL-01's sole checkpoint IS the removing commit
+>
+> ancestry: c81d808d → 737d1d17 → f216be0d   (both `merge-base --is-ancestor` = YES)
+> ```
+>
+> The pickaxe is decisive: exactly two commits ever touched that string — `c81d808d`
+> added it, `737d1d17` removed it. The bridge is not among them.
+>
+> **Corrected facts.**
+>
+> 1. The stub's `document.body.classList.add("rlv-focused")` **did exist** — added by
+>    `c81d808d` (Scopes 01-04), present in exactly one committed version of
+>    `rlexperience.js`.
+> 2. It **was removed** by `737d1d17` (*fix(pages): restore ordinary tool view routing*),
+>    a day before the bridge landed.
+> 3. The in-source comment — *"applyVisual (rlviews.js) is the sole owner of rlv-focused;
+>    the stub's classList.add is removed"* — is therefore **factually true** as a statement
+>    about the codebase, and both halves still hold at HEAD: the committed
+>    `rlexperience.js` blob carries **0** executable `rlv-focused` writes (the comment sits
+>    at line 1860 at HEAD, not the 1844 cited above — the file has since grown), and
+>    `rlviews.js:147` carries the single `classList.toggle`. **`rlexperience.js` is
+>    deliberately left unchanged; the comment is correct as written.** ROLL-01's routing of
+>    that comment to `bubbles.plan` / `bubbles.docs` as an overstatement is withdrawn.
+> 4. The one surviving defect is **attribution**: `f216be0d`'s message frames the removal as
+>    part of the bridge work when `737d1d17` had already performed it. A published commit
+>    message is immutable, so no file edit can reach it and the correction lives here in the
+>    record instead. Severity **LOW**; no code action is warranted.
+>
+> **State:** CLOSED 2026-07-31 — the documentation-accuracy half of ROLL-01 is withdrawn as
+> incorrect. What remains is an attribution note against one commit message, LOW, carrying
+> no code action. The rollback verdict in §7 is untouched: ROLL-01 never bore on it, and
+> this correction does not change it.
+
 ### 8. Cleanup and live-tree integrity
 
 ```
@@ -2857,5 +2920,174 @@ LIVE_SELFTEST_EXIT=0
 
 The four dirty files are pre-existing concurrent-session work and were not touched. The
 live checkout is byte-unchanged in product source and still 968/0.
+
+## Finding F-015-MSFT-OPTOUT — one of the two stated blockers is disproven
+
+**State:** OPEN, routed to this scope's owner. No product change made; this is a
+diagnosis, and adopting the shell is this scope's decision, not a test repair.
+
+`tests/tool-experience-shell.functional.mjs` is **2 pass / 1 fail**. The failure
+is a single page:
+
+```
+msft-july-print-model: page.waitForSelector: Timeout 10000ms exceeded.
+  waiting for locator('#rlviews[data-rlexperience-shell="ready"]') to be visible
+```
+
+Verified this reproduces at **clean HEAD** in a detached worktree, so it is not
+an artifact of the concurrent session's in-flight `rlexperience.js`.
+
+Root cause is not a defect: `msft-july-print-model.html` deliberately opts out by
+setting `meta[name=rlviews]=off` and pre-setting `__rlviewsInit=1` so rlapp skips
+shell creation. Diagnostic probe confirms the mechanism — `#rlviews count: 0`
+with **zero page errors and zero console errors**, and `RLEXPERIENCE` loaded. The
+shell is never created; nothing is broken.
+
+The opt-out comment states two blockers. They do not hold equally:
+
+| # | Stated blocker | Verdict |
+|---|---|---|
+| 1 | "this tool's Playwright spec still couples to the legacy Simple/Power tabs… Migrate the spec, then remove this meta." | **REAL, but far smaller than stated.** The "23 legacy-tab references" figure counts textual occurrences; measured, only **2 of 6 tests** actually fail when the opt-out is removed. See the runtime measurement below. |
+| 2 | the shared simple-model runtime is "a stub that hardcodes 'Simple model unavailable' for EVERY ordinary tool" | **STALE — disproven twice.** By comparison: `ai-capex-strategy-lab`, the page the comment itself cites as proof, now renders a real model result ("Grid & Electrical leads the beneficiary distribution; median return 0.085955"), as does `options-structure-lab`; `sector-research-lab` shows an honest per-tool "adapter required" message, not a hardcoded universal placeholder. And at runtime on msft itself: with the opt-out removed the native Simple view renders real data and is **not** hijacked (see below). |
+
+msft is also already fully wired for adoption: `simple-model/msft-margin-eps/v1`,
+its adapter living in the module the page already loads, a real `msftAnnualBridge`,
+2 journeys, and `powerAdapterId: power-adapter/existing-owner-page/v1` (so the
+native page content belongs under Power). So blocker 2 no longer justifies the
+opt-out; only blocker 1 does.
+
+**Contradiction to resolve.** This scope records msft as "not applicable…
+structurally outside the shell and untouched by this scope", while the shell test
+asserts **all 23** registry pages bootstrap the shell. Both cannot be right. Either
+the test's population is narrowed to the pages this scope actually claims, or the
+opt-out is retired by migrating `msft-july-market-refresh.spec.mjs` off the legacy
+tabs. That is a product decision for this scope's owner.
+
+### Runtime measurement of retiring the opt-out (decision-ready)
+
+Rather than estimate, the opt-out was removed in a **throwaway detached worktree**
+(`git worktree add --detach`, removed afterwards; the live tree was never modified
+— confirmed by `git status --porcelain msft-july-print-model.html
+tests/msft-july-market-refresh.spec.mjs` = 0 dirty). Observed behavior with lines
+775–795 deleted:
+
+| Observation | Result |
+|---|---|
+| Shared shell mounts | **yes** — `#rlviews[data-rlexperience-shell="ready"]`, count 1 |
+| Page or console errors | **none** |
+| Shell tabs | `Simple, Power, Brief, Journey` |
+| Shell tabs drive the native panels | **yes** — shell Power click → `powerView` visible / `simpleView` hidden; shell Simple click → reverses |
+| Native `#modeSeg` after adoption | present in DOM but **auto-hidden by the shell** (`display/visibility` computed hidden), so there is no duplicated visible tab strip |
+| Native Simple content under the shell | **real, not a placeholder** — "DELAYED SPOT $448.82 … DAILY TECHNICAL STACK Bear stack (20 < 50 < 200)" |
+
+This is the runtime disproof of blocker 2. The opt-out comment predicted the shell
+would "hijack 'simple' mode with rlv-focused, hiding the native Simple view"; in
+current code the shell is only a **tablist** (`#rlviews` has `role="tablist"` and
+no panels of its own) and it *drives* the page's own `#simpleView` / `#powerView`.
+The native Simple view is preserved, not hidden.
+
+**Exact cost of adoption — 2 tests, not 23 references.** The "23 legacy-tab
+references" figure counts textual occurrences, most of which are in asserted object
+literals that still hold. Measured against `tests/msft-july-market-refresh.spec.mjs`:
+
+| State | Result |
+|---|---|
+| At HEAD, opt-out intact | **6 passed** |
+| Opt-out removed | **4 passed, 2 failed** |
+
+The two failures are both native-tab-control assertions that the shared shell
+replaces by design:
+
+- `:439` `SCN-009-009/011/012 one state drives modes refresh and export` —
+  `locator.click` timeout, because it clicks the now-hidden native `#simpleTab`/`#powerTab`.
+- `:596` (asserting at `:713`) `SCN-009-011 viewport accessibility and canvas matrix` —
+  expected `{ focused: "powerTab", mode: "power" }`, received `{ focused: "", mode: "simple" }`,
+  because native-tab keyboard navigation no longer applies.
+
+Migration is therefore bounded: repoint those two at the shell's tabs
+(`#rlviews [role="tab"][data-rlview-mode="simple"|"power"]`) and delete the
+21-line opt-out. Adopting it would also take `tests/tool-experience-shell.functional.mjs`
+from 2 pass / 1 fail to 3 pass / 0 fail.
+
+**Deliberately NOT applied here.** Doing it would mean rewriting Feature 009's
+regression assertions (`SCN-009-009/011/012`) so that a UI change introduced in the
+same edit passes — the "change the test so the change passes" antipattern — while
+also overriding this scope's recorded decision that msft is out of scope. The
+measurement is supplied so the owner can decide with facts instead of an estimate;
+the code change is theirs to authorize.
+
+### RESOLVED — it was never an opt-out decision, it was an unresolved contract conflict
+
+Owner authorized proceeding. Investigating the chronology before touching anything
+overturned the premise of everything above, including my own framing:
+
+| Commit | Date | Effect |
+|---|---|---|
+| `36ce4243` | 07-20 | opt-out `<meta name="rlviews" content="off">` added — **ineffective**; rlapp mounted the shell regardless |
+| `c81d808d` | 07-24 | Feature 012's 23-page shell contract introduced; Scope 02 certified it ✔ **and it genuinely passed** |
+| `05232f26` | 07-25 | `__rlviewsInit = 1` added ("restore native Simple view") — made the opt-out effective |
+
+The decisive measurement is what the Feature 009 msft spec did at `c81d808d`, the
+moment Feature 012's contract was certified green: **4 passed / 2 failed** — the
+same two tests. So this was never a regression introduced by `05232f26`. Feature
+012 and Feature 009 held **mutually exclusive contracts over the same tab strip**,
+and every state merely flipped which one was red:
+
+| State | Feature 012 shell test | Feature 009 msft spec |
+|---|---|---|
+| `c81d808d` (certified) | 23/23 ✅ | 4/6 ❌ |
+| after `05232f26` (opt-out effective) | 2/1 ❌ | 6/6 ✅ |
+| opt-out removed, spec untouched | 3/0 ✅ | 4/6 ❌ |
+| **adopted + assertions migrated** | **3/0 ✅** | **6/6 ✅** |
+
+The last row had never existed. Both contracts hold for the first time.
+
+**Why migrating Feature 009's assertions is not the antipattern I feared.** Their
+guarantee is "one accepted state drives both modes, accessibly" — not "an element
+with `id=simpleTab` is clickable". Every semantic assertion survives untouched
+because the shell **mirrors its state onto the native elements**; verified at
+runtime before editing: `aria-selected` on `#simpleTab`/`#powerTab`, `hidden` and
+`inert` on `#simpleView`/`#powerView`, `MsftJulyModel.displayMode`, and
+`body.power` all track the shell correctly. Only three *interaction targets* moved
+from the now-shell-managed native tabs to the shell's visible tablist. The shell
+implements the full roving-tablist pattern (`rlviews.js:240-246` handles
+ArrowLeft/ArrowRight/Home/End/Enter/Space), so no accessibility capability is lost;
+Home/End now span the shell's four views (`simple|power|brief|journey`) instead of
+two native tabs, and the tests assert that measured behavior rather than the old
+two-tab endpoints.
+
+**Blocker 2 disproven a third time, at the point of change.** With the opt-out
+removed the native Simple view renders real data and is not hijacked — the shell's
+`#rlviews` is a `role="tablist"` with no panels of its own and simply drives the
+page's own views.
+
+**Adversarial proof** (controls green before and after):
+
+```
+  CONTROL:
+    shell test: exit=0 PASS (3/0)
+    msft spec : exit=0 PASS (6 passed)
+  MUT-A: re-introduce the effective opt-out -> shell test must CATCH it
+    shell test: exit=1 CAUGHT (2/1)
+  MUT-B: neuter ArrowLeft in the shell tablist -> msft spec must CATCH it
+    msft spec : exit=1 CAUGHT (2 failed 4 passed)
+  RESTORED control:
+    shell test: exit=0 PASS (3/0)
+    msft spec : exit=0 PASS (6 passed)
+```
+
+`rlviews.js` was restored byte-clean after MUT-B (`git status --porcelain` = 0).
+
+**This scope's own record stays true.** Scope 15 said msft was "untouched by this
+scope", which remains accurate — it disclaimed the work rather than forbidding it.
+Nothing in this scope's certified DoD is altered.
+
+**Secondary finding — scenario-ID collision.** The shell test labels its cases
+`SCN-012-028` / `SCN-012-029`, but those IDs belong to different scenarios —
+"Feature 002 gate blocks dynamic Brief integration" and "Feature 008 gate blocks
+private Portfolio integration" — which are linked to `tests/tool-experience.spec.mjs`.
+The shell test borrowed unrelated IDs, so scenario-to-test traceability for those
+two IDs currently resolves to two different files asserting unrelated behavior.
+
 
 

@@ -4,39 +4,46 @@
   "featureDir": "specs/012-market-action-center-and-guided-tools/bugs/BUG-004-market-heatmap-control-surface",
   "featureName": "Market Heatmap Control Surface",
   "generatedBy": "bubbles.plan",
-  "generatedAt": "2026-07-29T16:59:52Z",
-  "planningStatus": "approved-design-plan-reconciled-runtime-not-run",
-  "evidenceBoundary": "Planning is reconciled. No implementation, test pass, deployment, rollback, scope completion, or certification is claimed. Commit 2f65a02a exists locally; current deployment is unproven.",
+  "generatedAt": "2026-07-30T16:19:04Z",
+  "planningStatus": "gaps-reconciled-scope-reopened-runtime-remediation-pending",
+  "evidenceBoundary": "Gaps planning is reconciled. Historical runtime evidence is retained but does not close the reopened rows. No new implementation, test pass, docs correction, deployment, rollback, scope completion, or certification is claimed.",
   "implementationDispatchAllowed": true,
   "nextRequiredOwner": "bubbles.implement",
-  "nextRequiredAction": "Adopt the concurrent source/test patch, finalize the exact persistent titles, capture immutable-baseline RED without mutating the active tree, and implement only missing approved behavior inside the declared change boundary.",
-  "parallelForeignRoute": {
-    "owner": "bubbles.validate",
-    "findingId": "BUG004-ARTIFACT-LINT-MISSING-VALIDATE-OWNED-CERTIFICATION-SHAPE",
-    "action": "Add and validate the state.json v3 certification shape without certifying behavior or changing planning execution claims."
-  },
+  "nextRequiredAction": "Execute TR-BUG004-IMPLEMENT-GAPS within the existing boundary. Before source mutation, route exact coordinator and accessibility RED to bubbles.test; after source and GREEN evidence, route the canonical note correction to bubbles.docs.",
+  "followUpRoutes": [
+    {
+      "owner": "bubbles.test",
+      "findingIds": ["GAP-BUG004-001", "GAP-BUG004-002", "GAP-BUG004-003"],
+      "action": "Add the four exact top-level coordinator tests, strengthen TP-B004-08, prove valid RED before source repair, then execute exact GREEN and affected regression rows."
+    },
+    {
+      "owner": "bubbles.docs",
+      "findingIds": ["GAP-BUG004-004"],
+      "action": "After runtime and test remediation, align notes/market-heatmap-lab.md to the current five-control Simple, native Power, readiness, no-refetch, and status truth."
+    }
+  ],
   "dodParity": {
     "scopeId": "SCOPE-01",
     "testPlanRowCount": 11,
     "testEvidenceCheckboxCount": 11,
     "mapping": [
-      { "testPlanId": "TP-B004-01", "dodId": "DOD-TP-B004-01", "checked": false, "evidenceRef": null, "executionStatus": "not-run" },
-      { "testPlanId": "TP-B004-02", "dodId": "DOD-TP-B004-02", "checked": false, "evidenceRef": null, "executionStatus": "not-run" },
-      { "testPlanId": "TP-B004-03", "dodId": "DOD-TP-B004-03", "checked": false, "evidenceRef": null, "executionStatus": "not-run" },
-      { "testPlanId": "TP-B004-04", "dodId": "DOD-TP-B004-04", "checked": false, "evidenceRef": null, "executionStatus": "not-run" },
-      { "testPlanId": "TP-B004-05", "dodId": "DOD-TP-B004-05", "checked": false, "evidenceRef": null, "executionStatus": "not-run" },
-      { "testPlanId": "TP-B004-06", "dodId": "DOD-TP-B004-06", "checked": false, "evidenceRef": null, "executionStatus": "not-run" },
-      { "testPlanId": "TP-B004-07", "dodId": "DOD-TP-B004-07", "checked": false, "evidenceRef": null, "executionStatus": "not-run" },
-      { "testPlanId": "TP-B004-08", "dodId": "DOD-TP-B004-08", "checked": false, "evidenceRef": null, "executionStatus": "not-run" },
-      { "testPlanId": "TP-B004-09", "dodId": "DOD-TP-B004-09", "checked": false, "evidenceRef": null, "executionStatus": "not-run" },
-      { "testPlanId": "TP-B004-10", "dodId": "DOD-TP-B004-10", "checked": false, "evidenceRef": null, "executionStatus": "not-run" },
-      { "testPlanId": "TP-B004-11", "dodId": "DOD-TP-B004-11", "checked": false, "evidenceRef": null, "executionStatus": "not-run" }
+      { "testPlanId": "TP-B004-01", "dodId": "DOD-TP-B004-01", "checked": false, "evidenceRef": "report.md#gaps-phase-bubblesgaps---2026-07-30", "executionStatus": "reopened-false-green" },
+      { "testPlanId": "TP-B004-02", "dodId": "DOD-TP-B004-02", "checked": false, "evidenceRef": "report.md#gaps-phase-bubblesgaps---2026-07-30", "executionStatus": "reopened-false-green" },
+      { "testPlanId": "TP-B004-03", "dodId": "DOD-TP-B004-03", "checked": false, "evidenceRef": "report.md#gaps-phase-bubblesgaps---2026-07-30", "executionStatus": "reopened-false-green" },
+      { "testPlanId": "TP-B004-04", "dodId": "DOD-TP-B004-04", "checked": false, "evidenceRef": "report.md#gaps-phase-bubblesgaps---2026-07-30", "executionStatus": "reopened-false-green" },
+      { "testPlanId": "TP-B004-05", "dodId": "DOD-TP-B004-05", "checked": true, "evidenceRef": "report.md#tp-b004-05---broad-selftest", "executionStatus": "passed-historical" },
+      { "testPlanId": "TP-B004-06", "dodId": "DOD-TP-B004-06", "checked": true, "evidenceRef": "report.md#tp-b004-06---direct-simple-a", "executionStatus": "passed-historical" },
+      { "testPlanId": "TP-B004-07", "dodId": "DOD-TP-B004-07", "checked": true, "evidenceRef": "report.md#surgical-tp-b004-07-reproduction-increment", "executionStatus": "passed-historical" },
+      { "testPlanId": "TP-B004-08", "dodId": "DOD-TP-B004-08", "checked": false, "evidenceRef": "report.md#tp-b004-08---direct-power-c", "executionStatus": "reopened-accessibility" },
+      { "testPlanId": "TP-B004-09", "dodId": "DOD-TP-B004-09", "checked": true, "evidenceRef": "report.md#tp-b004-09---production-bridge-integration-sweep", "executionStatus": "passed-historical" },
+      { "testPlanId": "TP-B004-10", "dodId": "DOD-TP-B004-10", "checked": true, "evidenceRef": "report.md#protected-control-wiring-regression-evidence-tp-b004-10", "executionStatus": "passed-historical" },
+      { "testPlanId": "TP-B004-11", "dodId": "DOD-TP-B004-11", "checked": true, "evidenceRef": "report.md#tp-b004-11---regression-quality-guard", "executionStatus": "passed-historical" }
     ]
   },
   "scope": {
     "scopeId": "SCOPE-01",
     "scopeName": "Restore Automatic Simple Readiness And Both Control Surfaces",
-    "status": "not_started",
+    "status": "in_progress",
     "foundation": false,
     "capabilityRole": "existing-production-simple-bridge-bugfix-overlay",
     "dependsOn": [],
@@ -44,62 +51,66 @@
       {
         "id": "TP-B004-01",
         "dodId": "DOD-TP-B004-01",
-        "type": "coordinator-filter-canary",
+        "type": "coordinator-rejection-invalidation-canary",
         "category": "unit",
         "file": "tests/simple-production-bridge.unit.mjs",
         "scenarioIds": ["SCN-B004-D"],
-        "testId": "requestSimpleRefresh filters wrong tool, non-Simple, non-ordinary, and invalidates work when leaving Simple",
-        "description": "Prove exact current-tool/current-Simple/ordinary filtering, leaving-Simple invalidation, zero provider reads and panel writes for rejected requests, and Brief exclusion.",
-        "command": "node --test --test-name-pattern=\"^requestSimpleRefresh filters wrong tool, non-Simple, non-ordinary, and invalidates work when leaving Simple$\" tests/simple-production-bridge.unit.mjs",
+        "testId": "TP-B004-01 requestSimpleRefresh rejects non-current contexts and settles invalidated queued work",
+        "description": "Wrong-tool, absent-registration, non-ordinary, non-Simple, Brief, and leaving-Simple paths resolve null, read no provider, paint nothing, and settle without hanging.",
+        "command": "node --test --test-name-pattern=\"^TP-B004-01 requestSimpleRefresh rejects non-current contexts and settles invalidated queued work$\" tests/simple-production-bridge.unit.mjs",
+        "selectionContract": { "exactTitleRequired": true, "expectedTests": 1, "expectedPass": 1, "expectedFail": 0, "expectedSkipped": 0, "fileWrapperOnlyAllowed": false },
         "liveSystem": false,
         "regression": true,
-        "status": "not-run",
-        "evidenceRef": null
+        "status": "reopened-false-green",
+        "evidenceRef": "report.md#gaps-phase-bubblesgaps---2026-07-30"
       },
       {
         "id": "TP-B004-02",
         "dodId": "DOD-TP-B004-02",
-        "type": "coordinator-coalescing-canary",
+        "type": "coordinator-coalescing-latest-pending-canary",
         "category": "unit",
         "file": "tests/simple-production-bridge.unit.mjs",
         "scenarioIds": ["SCN-B004-D"],
-        "testId": "requestSimpleRefresh coalesces pre-start duplicates and retains only the latest pending successor",
-        "description": "Prove one provider read for pre-start duplicates and one active run plus only the latest pending successor.",
-        "command": "node --test --test-name-pattern=\"^requestSimpleRefresh coalesces pre-start duplicates and retains only the latest pending successor$\" tests/simple-production-bridge.unit.mjs",
+        "testId": "TP-B004-02 requestSimpleRefresh coalesces same-turn duplicates and replaces the pending successor",
+        "description": "Pre-start duplicates share one scheduled run and provider read. During active A, accepted B then C leaves only C pending; B is cancelled and resolves null rather than joining C.",
+        "command": "node --test --test-name-pattern=\"^TP-B004-02 requestSimpleRefresh coalesces same-turn duplicates and replaces the pending successor$\" tests/simple-production-bridge.unit.mjs",
+        "selectionContract": { "exactTitleRequired": true, "expectedTests": 1, "expectedPass": 1, "expectedFail": 0, "expectedSkipped": 0, "fileWrapperOnlyAllowed": false },
         "liveSystem": false,
         "regression": true,
-        "status": "not-run",
-        "evidenceRef": null
+        "status": "reopened-false-green",
+        "evidenceRef": "report.md#gaps-phase-bubblesgaps---2026-07-30"
       },
       {
         "id": "TP-B004-03",
         "dodId": "DOD-TP-B004-03",
-        "type": "coordinator-commit-order-canary",
+        "type": "accepted-generation-stale-control-canary",
         "category": "unit",
         "file": "tests/simple-production-bridge.unit.mjs",
         "scenarioIds": ["SCN-B004-D"],
-        "testId": "requestSimpleRefresh commits only the latest generation and preserves current-generation control ordering",
-        "description": "Prove stale owner/view generations cannot commit and current-generation controls remain ordered by runSequence.",
-        "command": "node --test --test-name-pattern=\"^requestSimpleRefresh commits only the latest generation and preserves current-generation control ordering$\" tests/simple-production-bridge.unit.mjs",
+        "testId": "TP-B004-03 accepted mid-run refresh immediately invalidates active generation and stale controls",
+        "description": "Accepted B and C synchronously claim newer generations. Active A becomes stale immediately; old controls are disabled/inert and cannot claim, prepare, or paint; A resolves null; latest C reads provider state when it starts.",
+        "command": "node --test --test-name-pattern=\"^TP-B004-03 accepted mid-run refresh immediately invalidates active generation and stale controls$\" tests/simple-production-bridge.unit.mjs",
+        "selectionContract": { "exactTitleRequired": true, "expectedTests": 1, "expectedPass": 1, "expectedFail": 0, "expectedSkipped": 0, "fileWrapperOnlyAllowed": false },
         "liveSystem": false,
         "regression": true,
-        "status": "not-run",
-        "evidenceRef": null
+        "status": "reopened-false-green",
+        "evidenceRef": "report.md#gaps-phase-bubblesgaps---2026-07-30"
       },
       {
         "id": "TP-B004-04",
         "dodId": "DOD-TP-B004-04",
-        "type": "coordinator-failure-honesty-canary",
+        "type": "coordinator-exact-settlement-failure-honesty-canary",
         "category": "unit",
         "file": "tests/simple-production-bridge.unit.mjs",
         "scenarioIds": ["SCN-B004-D"],
-        "testId": "requestSimpleRefresh renders current failure unavailable and suppresses stale failure",
-        "description": "Prove current setup/provider failure remains honestly unavailable while stale failure performs no panel mutation.",
-        "command": "node --test --test-name-pattern=\"^requestSimpleRefresh renders current failure unavailable and suppresses stale failure$\" tests/simple-production-bridge.unit.mjs",
+        "testId": "TP-B004-04 current and stale refresh promises settle without overwriting current truth",
+        "description": "Current provider/setup/prepare failure resolves and paints honest unavailable. Stale ready/failure and cancelled, replaced, or stale work resolve null without paint. The latest current successor resolves its projection, and every returned promise settles within the bounded HUNG guard.",
+        "command": "node --test --test-name-pattern=\"^TP-B004-04 current and stale refresh promises settle without overwriting current truth$\" tests/simple-production-bridge.unit.mjs",
+        "selectionContract": { "exactTitleRequired": true, "expectedTests": 1, "expectedPass": 1, "expectedFail": 0, "expectedSkipped": 0, "fileWrapperOnlyAllowed": false },
         "liveSystem": false,
         "regression": true,
-        "status": "not-run",
-        "evidenceRef": null
+        "status": "reopened-false-green",
+        "evidenceRef": "report.md#gaps-phase-bubblesgaps---2026-07-30"
       },
       {
         "id": "TP-B004-05",
@@ -113,8 +124,8 @@
         "command": "node scripts/selftest.mjs",
         "liveSystem": false,
         "regression": true,
-        "status": "not-run",
-        "evidenceRef": null
+        "status": "passed-historical",
+        "evidenceRef": "report.md#tp-b004-05---broad-selftest"
       },
       {
         "id": "TP-B004-06",
@@ -136,8 +147,8 @@
         "redRequiredBeforeImplementationAcceptance": true,
         "redBaselineRevision": "2f65a02a",
         "requiredRedReason": "The panel remains unavailable after terminal owner hydration because no owner-state refresh occurs.",
-        "status": "not-run",
-        "evidenceRef": null
+        "status": "passed-historical",
+        "evidenceRef": "report.md#tp-b004-06---direct-simple-a"
       },
       {
         "id": "TP-B004-07",
@@ -160,8 +171,8 @@
         "redBaselineRevision": "31ea9942",
         "requiredRedReason": "Discovery bytes predate the generic five-control renderer.",
         "deploymentClaimAllowedFromLocalRed": false,
-        "status": "not-run",
-        "evidenceRef": null
+        "status": "passed-historical",
+        "evidenceRef": "report.md#surgical-tp-b004-07-reproduction-increment"
       },
       {
         "id": "TP-B004-08",
@@ -171,7 +182,7 @@
         "file": "tests/market-heatmap-control-surface.spec.mjs",
         "scenarioIds": ["SCN-B004-C", "SCN-B004-D"],
         "testId": "BUG-004 SCN-B004-C: direct Power applies native treemap controls with zero post-hydration requests",
-        "description": "Open directly in Power, require all three existing lever groups in Map, keyboard-actuate each including grouping, require selected-state and owned-output changes, and require an empty request ledger.",
+        "description": "Open directly in Power and, for each of winSeg, sizeSeg, and grpSeg, require one aria-pressed=true and false on all alternatives; after Enter, move semantic selection, match :focus-visible with a computed non-transparent outline at least 2 CSS pixels wide, change owned output and treemap pixels, and keep the request ledger empty.",
         "command": "npx --no-install playwright test --config=playwright.config.mjs --project=system-chrome tests/market-heatmap-control-surface.spec.mjs --grep \"BUG-004 SCN-B004-C: direct Power\" --reporter=list",
         "liveSystem": true,
         "liveBoundary": "real local page and same-origin static server",
@@ -183,8 +194,8 @@
         "redRequiredBeforeImplementationAcceptance": true,
         "redBaselineRevision": "2f65a02a",
         "requiredRedReason": "The native controls remain children of the Power-hidden simple-only panel.",
-        "status": "not-run",
-        "evidenceRef": null
+        "status": "reopened-accessibility",
+        "evidenceRef": "report.md#tp-b004-08---direct-power-c"
       },
       {
         "id": "TP-B004-09",
@@ -198,8 +209,8 @@
         "liveSystem": false,
         "liveBoundary": "real production modules in deterministic Node integration harness",
         "regression": true,
-        "status": "not-run",
-        "evidenceRef": null
+        "status": "passed-historical",
+        "evidenceRef": "report.md#tp-b004-09---production-bridge-integration-sweep"
       },
       {
         "id": "TP-B004-10",
@@ -214,8 +225,8 @@
         "liveBoundary": "real local pages and same-origin static server",
         "requestInterceptionAllowed": false,
         "regression": true,
-        "status": "not-run",
-        "evidenceRef": null
+        "status": "passed-historical",
+        "evidenceRef": "report.md#protected-control-wiring-regression-evidence-tp-b004-10"
       },
       {
         "id": "TP-B004-11",
@@ -229,8 +240,8 @@
         "liveSystem": false,
         "regression": true,
         "adversarial": true,
-        "status": "not-run",
-        "evidenceRef": null
+        "status": "passed-historical",
+        "evidenceRef": "report.md#tp-b004-11---regression-quality-guard"
       }
     ]
   },
@@ -251,7 +262,8 @@
       "rlviews.js, rlapp.js, rldata.js, simple-models.json, registry data, and rlexperience-adapters/market-structure.js",
       "alternate providers, caches, adapters, formulas, service workers, request interception, dependencies, package manifests, routes, schemas, and migrations",
       "Feature 012 parent artifacts, unrelated specs, and certification fields",
-      "unrelated cleanup or formatting in collision-sensitive files"
+      "unrelated cleanup or formatting in collision-sensitive files",
+      "notes/market-heatmap-lab.md during implementation/test; bubbles.docs owns its later alignment"
     ]
   },
   "sharedInfrastructureCanary": {
@@ -264,7 +276,8 @@
       "market-brief remains brief-only",
       "coordinator has no network, storage, cookie, beacon, publication, or author authority",
       "current insufficient evidence remains honestly unavailable",
-      "2f65a02a control rendering, recompute, and focus restoration remain intact"
+      "2f65a02a control rendering, recompute, and focus restoration remain intact",
+      "accepted refreshes claim generations immediately, stale controls are inert, replaced successors settle null, and every returned promise settles"
     ]
   },
   "rollback": {
@@ -274,9 +287,10 @@
   },
   "routing": {
     "sequence": [
-      { "order": 1, "owner": "bubbles.implement", "action": "Adopt the concurrent patch, finalize exact tests, capture immutable-baseline RED, and implement only missing approved behavior." },
-      { "order": 2, "owner": "bubbles.test", "action": "Execute all 11 synchronized rows in checkpoint order and record current-session evidence." },
-      { "order": 3, "owner": "bubbles.validate", "action": "Repair the validate-owned certification shape and certify only after all required runtime evidence exists." }
+      { "order": 1, "owner": "bubbles.implement", "action": "Accept TR-BUG004-IMPLEMENT-GAPS and route exact test-first RED before source mutation; then implement GAP-BUG004-002/003 inside the existing boundary." },
+      { "order": 2, "owner": "bubbles.test", "action": "Add and execute exact non-vacuous TP-B004-01..04 plus strengthened TP-B004-08, then rerun affected shared/browser regressions." },
+      { "order": 3, "owner": "bubbles.docs", "action": "Align notes/market-heatmap-lab.md to the five-control Simple, native Power, readiness, no-refetch, and truthful status contract." },
+      { "order": 4, "owner": "bubbles.validate", "action": "Certify only after reopened runtime, test, docs, and later mandatory phase evidence is complete." }
     ]
   }
 }

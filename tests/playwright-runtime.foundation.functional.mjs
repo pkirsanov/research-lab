@@ -142,7 +142,7 @@ test('every Playwright spec uses the shared seam and sole committed browser conf
   for (const specPath of importers) {
     console.log('[playwright-runtime] importer=' + specPath.slice(ROOT.length + 1));
   }
-  assert.equal(specPaths.length, 27);
+  assert.equal(specPaths.length, 28);
   assert.deepEqual(nodeTestNames, [
     'brief-refresh-atomicity.test.mjs',
     'feature-004-dirty-tree-collision.test.mjs'
@@ -173,6 +173,7 @@ test('committed discovery boundary keeps browser specs and direct Node suites di
     'journey.spec.mjs',
     'market-action-center.spec.mjs',
     'market-brief-session-date-drift.spec.mjs',
+    'market-heatmap-control-surface.spec.mjs',
     'msft-july-market-refresh.spec.mjs',
     'palm-springs-rental-market-lab.spec.mjs',
     'portfolio-survival-foundation.spec.mjs',

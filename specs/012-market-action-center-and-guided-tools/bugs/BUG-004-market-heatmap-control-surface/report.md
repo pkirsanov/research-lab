@@ -2745,3 +2745,5882 @@ blob: four expected and four passed, zero skipped, unexpected, or flaky, the
 registry-derived 19-tool sweep remained 17 ready plus two honestly unavailable,
 all seven newly derived native-Simple demotion checks passed, JavaScript parsed,
 and no matching Playwright process remained.
+
+## Regression Phase (bubbles.regression) - 2026-07-30
+
+**Phase:** regression
+
+**Claim Source:** executed
+
+**Verdict:** `REGRESSION_FREE`
+
+This diagnostic phase independently checked current BUG-004 behavior and the
+shared Feature 012 bridge blast radius. It changed no product source, test,
+planning text, parent artifact, or certification field. The only report write is
+this regression-owned section.
+
+### Repository Binding
+
+**Executed:** YES (current session)
+
+**Command:** `timeout 120 bash .github/bubbles/scripts/repository-binding.sh validate-packet --session-id vscode-eb9cb76de5cf2a992bf149706789fb73 --session-control-file <private-control-file> --packet-file <exact-actionable-packet>`
+
+**Exit Code:** 0
+
+**Claim Source:** executed
+
+```text
+REPOSITORY PACKET VALID actionable=true repository=research-lab root=~/research-lab decision=rb:vscode-eb9cb76de5cf2a992bf149706789fb73:3 revision=3
+```
+
+### Current Blob Identity And Stale-Evidence Audit
+
+The independent TEST phase's source-identity checkpoint was compared with the
+current worktree before any regression command. One stale-evidence condition was
+found and closed: `a7631b36` added 149 lines to the shared coordinator unit file
+after the earlier TP-B004-01..04 evidence. Every affected exact row and the full
+current carrier were rerun. The protected wiring file's earlier drift had already
+been revalidated on blob `4a656595...`, and this phase reran it again by policy.
+
+| Path | Independent-test identity | Regression identity | Disposition |
+|---|---|---|---|
+| `rlexperience.js` | `b2c514dfd178f0d123701efb51f9ae69b1b00bfd` | same | byte-stable; broad rerun |
+| `market-heatmap-lab.html` | `4fea3be0cb060ef2768ed2ec0bc4ad2e91257ac6` | same | byte-stable; live rerun |
+| `tests/simple-production-bridge.unit.mjs` | `6474f6e0edda469f95fe509b0ad03535f0e351b4` | `b8c0043afccb2ea8ffb3d875f2532170aef9cecf` | drift; TP-B004-01..04 and full 9-test carrier rerun |
+| `tests/simple-production-bridge.integration.mjs` | `2146b6bc931d980fcf6851677fef28b456cd2dcd` | same | byte-stable; 6-test rerun |
+| `tests/market-heatmap-control-surface.spec.mjs` | `d81f1639771a20a6198943729434a5f4c8e619e1` | same | byte-stable; A/B/C plus grouping rerun |
+| `tests/simple-production-wiring.spec.mjs` | `4a65659588dec6d58d16afdfaf205c6d8a6cbf5c` | same | current evidence retained; full 4-test rerun |
+| `scripts/selftest.mjs` | `c3b69e8af8dcffa3c193a1fd7fbe7c1b0868d590` | same | byte-stable; 968-check rerun |
+| `playwright.config.mjs` | `d04ae12216125b710a1f94645feac2e28c1467cc` | same | exact runner config retained |
+
+**Claim Source:** executed
+
+```text
+CURRENT_BLOBS
+rlexperience.js=b2c514dfd178f0d123701efb51f9ae69b1b00bfd
+market-heatmap-lab.html=4fea3be0cb060ef2768ed2ec0bc4ad2e91257ac6
+tests/simple-production-bridge.unit.mjs=b8c0043afccb2ea8ffb3d875f2532170aef9cecf
+tests/simple-production-bridge.integration.mjs=2146b6bc931d980fcf6851677fef28b456cd2dcd
+tests/market-heatmap-control-surface.spec.mjs=d81f1639771a20a6198943729434a5f4c8e619e1
+tests/simple-production-wiring.spec.mjs=4a65659588dec6d58d16afdfaf205c6d8a6cbf5c
+scripts/selftest.mjs=c3b69e8af8dcffa3c193a1fd7fbe7c1b0868d590
+playwright.config.mjs=d04ae12216125b710a1f94645feac2e28c1467cc
+STAGED_PATHS
+WORKTREES
+worktree ~/research-lab
+branch refs/heads/main
+```
+
+### Protected Regression Substance Audit
+
+Manual review and the bugfix guard reached the same result:
+
+- no request interception, response fulfillment, service worker, skip/only/todo,
+	failure-condition bailout, or optional assertion exists in the BUG carrier;
+- A and B open directly in Simple and prove no non-Simple view transition;
+- B derives exactly the five registry parameters, keyboard-actuates every one,
+	compares rendered DOM with an independent production-runtime recomputation over
+	the live owner snapshot, and requires an empty request ledger after each;
+- C opens directly at `#power`, requires exactly one `#winSeg`, `#sizeSeg`, and
+	`#grpSeg`, keyboard-actuates all three, and requires selected state, owned
+	output, treemap-pixel change, and zero requests;
+- the grouping-only case proves the other grouping's symbol set is already in
+	the real cache and rejects a second hydration cycle;
+- production parity and changed fingerprints/pixels prevent a self-validating
+	projection assertion.
+
+**Executed:** YES (current session)
+
+**Command:** `timeout 600 bash .github/bubbles/scripts/regression-quality-guard.sh --bugfix tests/market-heatmap-control-surface.spec.mjs`
+
+**Exit Code:** 0
+
+**Claim Source:** executed
+
+```text
+============================================================
+	BUBBLES REGRESSION QUALITY GUARD
+	Repo: ~/research-lab
+	Timestamp: 2026-07-30T01:55:07Z
+	Bugfix mode: true
+============================================================
+
+INFO: Scanning tests/market-heatmap-control-surface.spec.mjs
+PASS: Adversarial signal detected in tests/market-heatmap-control-surface.spec.mjs
+
+============================================================
+	REGRESSION QUALITY RESULT: 0 violation(s), 0 warning(s)
+	Files scanned: 1
+	Files with adversarial signals: 1
+============================================================
+REGRESSION_QUALITY_EXIT=0
+```
+
+### Test Baseline Comparison
+
+| Category | Independent TEST phase | Current REGRESSION phase | Delta | Status |
+|---|---:|---:|---:|---|
+| Coordinator exact rows TP-B004-01..04 | 4/4 pass | 4/4 pass on drifted blob plus full carrier 9/9 | 0 failures; +2 parent assertions in carrier | CLEAN |
+| Broad repository selftest | 968/968 pass | 968/968 pass | 0 | CLEAN |
+| Production bridge integration | 6/6 pass | 6/6 pass | 0 | CLEAN |
+| Dedicated BUG-004 A/B/C browser | 3/3 pass | 3/3 pass in one current-tree run | 0 | CLEAN |
+| Protected 19-tool browser wiring | 4/4 pass | 4/4 pass | 0 | CLEAN |
+| SCN-B004-D grouping-union browser | covered by B/C and coordinator rows | 1/1 supplemental pass | +1 direct discriminator | IMPROVED |
+| Feature 002 shell Brief-mount canary | prior BUG-003 baseline 1/1 pass | 1/1 pass | 0 | CLEAN |
+
+Research Lab declares no numeric line-coverage command in
+`.specify/memory/agents.md`, so no line-coverage percentage is fabricated.
+Coverage regression is measured on this build-free repository by executable
+scenario/test counts, assertion substance, and protected carrier identity. All
+four `regressionRequired` scenarios in `scenario-manifest.json` remain mapped to
+current executable checks and were exercised in this phase.
+
+### Drift-Affected Unit And Shared Integration Evidence
+
+**Executed:** YES (current session)
+
+**Commands:** the four exact TP-B004-01..04 `node --test --test-name-pattern=...`
+commands from `test-plan.json`, followed by `timeout 600 node --test
+tests/simple-production-bridge.unit.mjs` and `timeout 600 node --test
+tests/simple-production-bridge.integration.mjs`
+
+**Exit Code:** 0 for every command
+
+**Claim Source:** executed
+
+```text
+TP_B004_01_EXIT=0
+TP_B004_02_EXIT=0
+TP_B004_03_EXIT=0
+TP_B004_04_EXIT=0
+FULL_UNIT_CARRIER_BEGIN
+PASS renderSimpleBridge is exposed on the production API
+PASS provider present + real owner state renders the REAL market-breadth adapter (ready), never mutates rlv-focused
+PASS no owner-state provider -> honest unavailable, no invented signal, never mutates rlv-focused
+PASS owner evidence does not permit a run (unhydrated) -> honest unavailable, never mutates rlv-focused
+PASS missing adapter module -> honest unavailable (no crash), never mutates rlv-focused
+PASS a queued Simple run does not survive an invalidation, and its promise settles
+PASS leaving Simple altogether also settles the queued run without painting
+PASS ownerModes resolution: provider wiring hands Simple to the adapter panel and never regresses an unwired tool
+PASS no forbidden authority: the runtime declares none, and running the real bridge touches no network, provider, storage or cookie surface
+tests 9
+pass 9
+fail 0
+cancelled 0
+skipped 0
+todo 0
+FULL_UNIT_CARRIER_EXIT=0
+BRIDGE_INTEGRATION_BEGIN
+[TP-15-02] wired (19): market-heatmap-lab, options-flow-feed-lab, intraday-tape-lab, swing-structure-lab, options-structure-lab, gamma-trading-lab, sector-research-lab, global-rotation-lab, real-assets-lab, bond-regime-lab, ai-capex-strategy-lab, company-fundamentals-lab, etf-momentum-lab, strategy-self-improvement-lab, strategy-validation-lab, smart-money-flow-lab, waterfront-polo-lab, volatility-sizing-lab, technical-analysis-decision-lab
+[TP-15-02] strict parity (module loaded by the page): 18 of 19
+[TP-15-02] honest generic unavailable: technical-analysis-decision-lab
+tests 6
+pass 6
+fail 0
+cancelled 0
+skipped 0
+todo 0
+BRIDGE_INTEGRATION_EXIT=0
+```
+
+### Broad Repository Canary
+
+**Executed:** YES (current session)
+
+**Command:** `timeout 1200 node scripts/selftest.mjs`
+
+**Exit Code:** 0
+
+**Claim Source:** executed
+
+```text
+Feature 012 Scope 15 production Simple-view bridge canaries (TP-15-07)
+	PASS the bridge publishes a non-empty adapter-module binding table (6 bindings)
+	PASS the wired set is derived from production registry + pages (19 wired of 23, 26 pages)
+	PASS every page provider resolves to a registry definition (0 orphan wirings, 0 identity gaps)
+	PASS every wired adapter module exists and has a bridge binding (6 modules across 19 tools)
+	PASS every wired module loads and exports its registrar (19/19)
+	PASS every wired adapter registers through the REAL runtime (19/19)
+	PASS runtime diagnostic reports every authority false (6 flags x 19 tools)
+	PASS exactly one executable rlv-focused write exists and it is in rlviews.js
+	PASS applyVisual owns that sole rlv-focused write
+	PASS the production bridge contains no rlv-focused write or executable reference
+	PASS the bridge owns no network, provider, storage, or cookie authority
+	PASS ownerModes resolves wired ordinary, unwired ordinary, and brief-only correctly
+	PASS the focus predicate preserves wired Simple, Power, unwired native Simple, and Brief
+	PASS RLEXPERIENCE.renderSimpleBridge remains exposed
+	PASS absent owner state degrades honestly with no numeric signal
+	PASS the unavailable path never mutates body.classList
+================================================
+Research-Lab self-test: 968 passed, 0 failed
+================================================
+```
+
+### Dedicated Current-Tree A/B/C Browser Evidence
+
+**Executed:** YES (current session)
+
+**Command:** `timeout 60 npx --no-install playwright --version && timeout 1200
+npx --no-install playwright test tests/market-heatmap-control-surface.spec.mjs
+--config=playwright.config.mjs --project=system-chrome --grep "BUG-004
+SCN-B004-(A|B|C):" --reporter=list`
+
+**Exit Code:** 0
+
+**Claim Source:** executed
+
+```text
+Version 1.61.1
+
+Running 3 tests using 1 worker
+
+	PASS 1 direct Simple cold-open requalifies after owner hydration without a mode change (3.3m)
+	PASS 2 ready Simple applies all five registry controls with owner parity and zero post-hydration requests (3.3m)
+	PASS 3 direct Power applies native treemap controls with zero post-hydration requests (3.6m)
+
+	Slow test file: [system-chrome] tests/market-heatmap-control-surface.spec.mjs (10.2m)
+	Consider running tests from slow files in parallel.
+	3 passed (10.2m)
+```
+
+**Result:** PASS - three expected, three passed, zero failed, and zero skipped.
+The scheduling advice is not a test warning or behavioral relaxation.
+
+### Protected 19-Tool Browser Sweep
+
+**Executed:** YES (current session)
+
+**Command:** `timeout 1200 npx --no-install playwright test
+tests/simple-production-wiring.spec.mjs --config=playwright.config.mjs
+--project=system-chrome --reporter=list`
+
+**Exit Code:** 0
+
+**Claim Source:** executed
+
+```text
+Running 4 tests using 1 worker
+
+	PASS 1 market-heatmap Simple renders the real adapter panel in the real owner-mode flow (1.9s)
+	PASS 2 actuating one control recomputes the production projection with no refetch (3.3m)
+	PASS 3 every wired ordinary tool paints its real Simple adapter panel with an owner-parity fact (6.6m)
+TP-15-04/SCN-012-041 derived native #simpleView tools: 7 of 19 wired (4 also declare #powerView)
+TP-15-04 swept 19 wired tools: market-heatmap-lab=ready(x1) options-flow-feed-lab=ready(x1) intraday-tape-lab=unavailable(x1) swing-structure-lab=ready(x1) options-structure-lab=ready(x1) gamma-trading-lab=ready(x1) sector-research-lab=ready(x1) global-rotation-lab=ready(x1) real-assets-lab=ready(x1) bond-regime-lab=ready(x1) ai-capex-strategy-lab=ready(x1) company-fundamentals-lab=ready(x1) etf-momentum-lab=ready(x1) strategy-self-improvement-lab=ready(x1) strategy-validation-lab=ready(x1) smart-money-flow-lab=ready(x1) waterfront-polo-lab=ready(x1) volatility-sizing-lab=ready(x1) technical-analysis-decision-lab=unavailable(x1)
+TP-15-04/SCN-012-041 native demotion verified on 7 tools: intraday-tape-lab swing-structure-lab gamma-trading-lab sector-research-lab bond-regime-lab etf-momentum-lab volatility-sizing-lab
+	PASS 4 swept set and honest-degradation cases are registry/provider derived (74ms)
+
+	Slow test file: [system-chrome] tests/simple-production-wiring.spec.mjs (9.9m)
+	Consider running tests from slow files in parallel.
+	4 passed (10.0m)
+```
+
+**Result:** PASS - four expected and four passed, zero failed/skipped. All 19
+wired tools were swept: 17 ready and exactly two honestly unavailable. Every
+derived native-Simple page retained visible native content in Power.
+
+### Supplemental Grouping And Cross-Feature Canaries
+
+**Executed:** YES (current session)
+
+**Commands:**
+
+- `timeout 1200 npx --no-install playwright test tests/market-heatmap-control-surface.spec.mjs --config=playwright.config.mjs --project=system-chrome --grep "BUG-004 SCN-B004-D: boot hydrates the union" --reporter=list`
+- `timeout 600 node --test tests/distributed-briefs.static.integration.mjs`
+
+**Exit Code:** 0 for both commands
+
+**Claim Source:** executed
+
+```text
+Running 1 test using 1 worker
+
+	PASS 1 boot hydrates the union of both groupings, so the grouping lever acquires nothing (3.4m)
+
+	1 passed (3.5m)
+GROUPING_UNION_EXIT=0
+PASS static loader verifies coherent current objects and fetches history only after selection (2066.464512ms)
+tests 1
+pass 1
+fail 0
+cancelled 0
+skipped 0
+todo 0
+duration_ms 2179.821074
+FEATURE_002_CANARY_EXIT=0
+```
+
+### Cross-Spec Impact And Conflict Scan
+
+The changed runtime surface is shared by Feature 012 Scopes 04/05/15 and is
+consumed by Feature 002's shell Brief integration, Feature 007's heatmap owner
+publication, and Feature 013's breadth-participation facet. The current
+production/selftest/browser matrix is the discriminating check for those
+dependencies:
+
+| Affected contract | Shared surface | Current evidence | Result |
+|---|---|---|---|
+| Feature 012 Simple runtime/market adapter | `rlexperience.js`, heatmap owner state | unit 9/9; integration 6/6; selftest 968/968 | CLEAN |
+| Feature 012 production wiring/BUG-003 invariants | focus ownership, ownerModes, native Power | protected browser 4/4 across 19 tools | CLEAN |
+| Feature 002 Brief mount | shared shell visibility | static integration 1/1 | CLEAN |
+| Feature 007 owner publication | heatmap tool read/formula ownership | selftest heatmap group | CLEAN |
+| Feature 013 breadth facet | heatmap publication shim | selftest regime-primitives groups | CLEAN |
+
+**Executed:** YES (current session)
+
+**Commands:** `timeout 600 bash .github/bubbles/scripts/regression-baseline-guard.sh
+<BUG-004> --verbose` and the same command for parent Feature 012
+
+**Exit Code:** 0 for both commands
+
+**Claim Source:** executed
+
+```text
+BUG BASELINE
+G044 Regression Baseline: no comparison table found; this phase establishes it above
+G045 Cross-Spec Regression: 2 done specs of 3 inventoried
+G046 Spec Conflict Detection: no route/endpoint collisions detected
+Regression baseline guard: PASSED
+BUG_BASELINE_EXIT=0
+
+FEATURE 012 BASELINE
+G044 Regression Baseline: no comparison table found; this phase establishes it above
+G045 Cross-Spec Regression: 5 done specs of 15 inventoried
+G046 Spec Conflict Detection: no route/endpoint collisions detected
+Regression baseline guard: PASSED
+FEATURE_BASELINE_EXIT=0
+```
+
+### Route, Mode, Navigation, And Duplicate-Control Boundary
+
+The three implementation commits and their current diff were inspected. The
+runtime/test delta contains only `market-heatmap-lab.html`, `rlexperience.js`,
+the coordinator unit carrier, dedicated BUG carrier, and protected wiring
+carrier. It does not change `rlviews.js`, `rlapp.js`, `rlnav.js`, `index.html`,
+or `tools.json`. Each native control ID occurs exactly once, and the canonical
+page parser/ID check passes.
+
+**Claim Source:** executed
+
+```text
+M market-heatmap-lab.html
+M rlexperience.js
+A tests/market-heatmap-control-surface.spec.mjs
+M tests/simple-production-bridge.unit.mjs
+M tests/simple-production-wiring.spec.mjs
+winSeg_count=1
+sizeSeg_count=1
+grpSeg_count=1
+OK page=market-heatmap-lab.html inline=1 refs=0
+BOUNDARY_EXIT=0
+```
+
+### Findings Accounting
+
+| Finding | Diagnostic disposition |
+|---|---|
+| F-BUG004-A / F-BUG004-D | Addressed: direct-Simple A passes without any mode toggle; production owner state and adapter identity are asserted. |
+| F-BUG004-B | Addressed: B derives and actuates all five registry controls with production parity and zero requests. |
+| F-BUG004-C / F-BUG004-E | Addressed: C directly opens Power and proves one visible, keyboard-operable instance of all three controls with output/pixel changes and zero requests. |
+| F-BUG004-F | Addressed: protected `2f65a02a` successor blob remains intact and its full 4-test/19-tool carrier passes. |
+| New regression findings | None. |
+
+No regression, coverage-loss, design-conflict, route-collision, or out-of-boundary
+finding remains to route to `bubbles.implement`, `bubbles.test`, or
+`bubbles.design`.
+
+### Regression Verdict
+
+`REGRESSION_FREE`
+
+All regression checks passed.
+
+Test baseline: stable or improved; no previously passing check now fails.
+Cross-spec conflicts: 0.
+Design contradictions: 0.
+Coverage: all 4/4 protected BUG scenarios remain executable; no numeric line
+coverage command exists, so no percentage is claimed.
+Gherkin traceability: 100% (4/4 scenarios).
+
+## Simplify Phase (bubbles.simplify) - 2026-07-30
+
+**Phase:** simplify
+
+**Claim Source:** executed
+
+**Verdict:** `SIMPLIFIED_REVALIDATION_REQUIRED`
+
+### Repository Binding
+
+**Command:** `timeout 120 ./.github/bubbles/scripts/repository-binding.sh validate-packet --session-id vscode-eb9cb76de5cf2a992bf149706789fb73 --session-control-file <private-control-file> --packet-file <exact-actionable-packet>`
+
+**Exit Code:** 0
+
+**Claim Source:** executed
+
+```text
+REPOSITORY PACKET VALID actionable=true repository=research-lab root=~/research-lab decision=rb:vscode-eb9cb76de5cf2a992bf149706789fb73:3 revision=3
+```
+
+### Three-Pass Review And Finding
+
+The code-reuse pass found no duplicate abstraction worth extracting. The code-
+quality pass found no branch or test-helper reduction that could be made without
+weakening the coordinator race contracts or persistent scenario evidence. The
+efficiency pass found one concrete issue in `market-heatmap-lab.html`:
+`fetchDelta()` already resolves through `markHydrationTerminal()`, whose fixed
+contract renders the settled owner state before setting `ready` and requesting
+the Simple refresh, but `boot()` immediately rendered the same state again in a
+following `.then(...)` block.
+
+**Claim Source:** interpreted
+
+**Interpretation:** `git show 087ad2ad -- market-heatmap-lab.html` shows the
+terminal helper replacing the fetch completion's former render, while the older
+post-`fetchDelta()` render remained in `boot()`. Removing that later block leaves
+the single terminal boundary as the only settled-hydration render and preserves
+its required `settle -> render -> mark -> notify` order.
+
+| Finding | Category | Severity | Disposition |
+|---|---|---|---|
+| BUG004-SIMPLIFY-EFF-001 | efficiency | medium | Addressed: removed the redundant three-line post-hydration render block; no API, control, provider, acquisition, test, title, or scenario changed. |
+
+The source delta is `0` additions and `3` deletions in
+`market-heatmap-lab.html`. No test file changed. `rlexperience.js`, all five
+Simple controls, all three Power controls, the historical-only B RED hook, the
+one boot union, the single terminal refresh call, the protected 19-tool carrier,
+and every persistent test title remain byte-unchanged.
+
+### Focused And Full Behavior Revalidation
+
+**Commands:** focused direct-Simple A; dedicated A/B/C; full bridge unit and
+integration carriers; repository selftest; protected four-test browser carrier;
+bugfix regression-quality guard; canonical per-page inline-script/ID check
+
+**Exit Code:** 0 for every command
+
+**Claim Source:** executed
+
+```text
+Running 1 test using 1 worker
+	1 passed (3.3m)
+Running 3 tests using 1 worker
+	3 passed (10.1m)
+tests 9
+pass 9
+fail 0
+skipped 0
+todo 0
+[TP-15-02] wired (19): market-heatmap-lab, options-flow-feed-lab, intraday-tape-lab, swing-structure-lab, options-structure-lab, gamma-trading-lab, sector-research-lab, global-rotation-lab, real-assets-lab, bond-regime-lab, ai-capex-strategy-lab, company-fundamentals-lab, etf-momentum-lab, strategy-self-improvement-lab, strategy-validation-lab, smart-money-flow-lab, waterfront-polo-lab, volatility-sizing-lab, technical-analysis-decision-lab
+tests 6
+pass 6
+fail 0
+skipped 0
+todo 0
+Feature 012 Scope 15 production Simple-view bridge canaries (TP-15-07)
+	✓ the wired set is derived from the production registry + the deployed pages and is non-empty (19 wired of 23 registry definitions, scanned 26 pages)
+	✓ no forbidden authority: the runtime’s own diagnostic reports every authority false after adapter registration (6 authority flags x 19 wired tools, owned: 0)
+	✓ exactly one executable rlv-focused write exists across all production sources and it lives in rlviews.js (scanned 54 files, writers: rlviews.js x1)
+	✓ the bridge path performs local compute only — no network, provider, storage, or cookie authority in its executable source (8 tokens checked, hits: none)
+Research-Lab self-test: 968 passed, 0 failed
+Running 4 tests using 1 worker
+TP-15-04 swept 19 wired tools: market-heatmap-lab=ready(x1) options-flow-feed-lab=ready(x1) intraday-tape-lab=unavailable(x1) swing-structure-lab=ready(x1) options-structure-lab=ready(x1) gamma-trading-lab=ready(x1) sector-research-lab=ready(x1) global-rotation-lab=ready(x1) real-assets-lab=ready(x1) bond-regime-lab=ready(x1) ai-capex-strategy-lab=ready(x1) company-fundamentals-lab=ready(x1) etf-momentum-lab=ready(x1) strategy-self-improvement-lab=ready(x1) strategy-validation-lab=ready(x1) smart-money-flow-lab=ready(x1) waterfront-polo-lab=ready(x1) volatility-sizing-lab=ready(x1) technical-analysis-decision-lab=unavailable(x1)
+	4 passed (10.0m)
+PROTECTED_SWEEP_EXIT=0
+REGRESSION QUALITY RESULT: 0 violation(s), 0 warning(s)
+Files scanned: 1
+Files with adversarial signals: 1
+REGRESSION_QUALITY_EXIT=0
+OK page=market-heatmap-lab.html inline=1 refs=0
+```
+
+### Phase Finding Accounting And Transition
+
+| Finding / transition | Disposition |
+|---|---|
+| TR-BUG004-SIMPLIFY | Resolved by the three-pass review, one targeted efficiency edit, and the focused-to-broad validation above. |
+| BUG004-SIMPLIFY-EFF-001 | Addressed and behavior-checked; the duplicate settled-state render is removed. |
+| TR-BUG004-TEST-REVALIDATION | Open to `bubbles.test`: production HTML changed after the prior independent TEST and REGRESSION phase claims, so those owners must re-establish current-byte test and regression provenance before the workflow can continue to gaps. |
+
+Top-level status and `certification.*` remain `in_progress` and unclaimed.
+
+## Simplify Revalidation - Fast Matrix (bubbles.test) - 2026-07-30
+
+**Phase:** test revalidation (fast, non-browser portion only)
+
+**Claim Source:** executed
+
+**Verdict:** `FAST_MATRIX_PASSED_BROWSER_ROWS_PENDING`
+
+This report-only increment handles the fast portion of
+`TR-BUG004-TEST-REVALIDATION`. It does not consume or replace browser evidence.
+The externally launched current-tree A/B/C carrier was observed running before
+any fast check, so this invocation started no Playwright process and terminated
+none. No source, test, scope, state, certification, planning, or unrelated dirty
+artifact was changed by this test-owned increment.
+
+### Repository Binding And Browser-Process Precondition
+
+**Executed:** YES (current session)
+
+**Commands:** `timeout 60 bash .github/bubbles/scripts/repository-binding.sh validate-packet --session-id vscode-eb9cb76de5cf2a992bf149706789fb73 --session-control-file <private-control-file> --packet-file <exact-actionable-packet>`; `timeout 30 pgrep -af 'playwright.*tests/market-heatmap-control-surface\.spec\.mjs|tests/market-heatmap-control-surface\.spec\.mjs.*playwright'`
+
+**Exit Code:** 0 for both commands
+
+**Claim Source:** executed
+
+```text
+REPOSITORY PACKET VALID actionable=true repository=research-lab root=~/research-lab decision=rb:vscode-eb9cb76de5cf2a992bf149706789fb73:3 revision=3
+459755 timeout 1500 npx --no-install playwright test tests/market-heatmap-control-surface.spec.mjs --config=playwright.config.mjs --project=system-chrome --reporter=line --workers=1
+459757 npm exec playwright test tests/market-heatmap-control-surface.spec.mjs --config=playwright.config.mjs --project=system-chrome --reporter=line --workers=1
+460047 sh -c playwright test tests/market-heatmap-control-surface.spec.mjs --config=playwright.config.mjs --project=system-chrome --reporter=line --workers=1
+460051 node ~/research-lab/node_modules/.bin/playwright test tests/market-heatmap-control-surface.spec.mjs --config=playwright.config.mjs --project=system-chrome --reporter=line --workers=1
+EXPECTED_EXTERNAL_BROWSER_CARRIER=ACTIVE
+PLAYWRIGHT_STARTED_BY_FAST_MATRIX=NO
+PLAYWRIGHT_TERMINATED_BY_FAST_MATRIX=NO
+PACKET_ACTIONABLE=true
+PACKET_CONTROL_REVISION=3
+```
+
+### Simplify Delta And Current Byte Identity
+
+The simplify evidence was reread against the current implementation. The
+terminal boundary still owns the required `settle -> render -> mark -> notify`
+order: `fetchDelta()` resolves through `markHydrationTerminal()`, while `boot()`
+now returns `fetchDelta()` directly. The only simplify production delta is the
+removal of the redundant following `.then(...)` render continuation: zero
+additions and three deletions in `market-heatmap-lab.html`.
+
+The regression-phase blob identities and current identities prove that every
+other implicated production/test surface is byte-stable. The current diff of
+the named source/test surfaces emits only the HTML deletion; no test changed
+under simplify.
+
+| Path | Pre-simplify Git blob | Current Git blob | Current SHA-256 | Disposition |
+|---|---|---|---|---|
+| `rlexperience.js` | `b2c514dfd178f0d123701efb51f9ae69b1b00bfd` | `b2c514dfd178f0d123701efb51f9ae69b1b00bfd` | `2b8c0af06f1e517563a2a032331a4d68607f808148a01ed53b0e5bdc783cb3c0` | unchanged |
+| `market-heatmap-lab.html` | `4fea3be0cb060ef2768ed2ec0bc4ad2e91257ac6` | `a395c0467d692ad57ab30d275bed84c2512b86f9` | `16fff53ea5e492a9d9d290c1959b15a2152478ed7214fa571741ba0fb67fcf07` | expected simplify delta only |
+| `tests/simple-production-bridge.unit.mjs` | `b8c0043afccb2ea8ffb3d875f2532170aef9cecf` | `b8c0043afccb2ea8ffb3d875f2532170aef9cecf` | `5eb9dde5a3a4617fc27ccc2d5b0a32cd4d00276e18bbfd4a0eb3a27f417dc95e` | unchanged |
+| `tests/simple-production-bridge.integration.mjs` | `2146b6bc931d980fcf6851677fef28b456cd2dcd` | `2146b6bc931d980fcf6851677fef28b456cd2dcd` | `60a81fd73582097a265f71b5fc91919599094e99ece12c9ed021f009a1d18a27` | unchanged |
+| `tests/market-heatmap-control-surface.spec.mjs` | `d81f1639771a20a6198943729434a5f4c8e619e1` | `d81f1639771a20a6198943729434a5f4c8e619e1` | `cf6b22d3d361f5f1cc5d839f614343ec3f4446e04880243f3c1bcaecc6378146` | unchanged; browser evidence pending |
+| `tests/simple-production-wiring.spec.mjs` | `4a65659588dec6d58d16afdfaf205c6d8a6cbf5c` | `4a65659588dec6d58d16afdfaf205c6d8a6cbf5c` | `ad34a182c754bc9aaf7d732f3b1f25ea5e0d8de7bb113f29779faf02fbde1460` | unchanged; TP-B004-10 pending |
+| `scripts/selftest.mjs` | `c3b69e8af8dcffa3c193a1fd7fbe7c1b0868d590` | `c3b69e8af8dcffa3c193a1fd7fbe7c1b0868d590` | `b18fb98278dd883c7e9ac43ad2ff1eb71a9ad3d294391ce560f062e698fcf563` | unchanged |
+| `playwright.config.mjs` | `d04ae12216125b710a1f94645feac2e28c1467cc` | `d04ae12216125b710a1f94645feac2e28c1467cc` | `b35e8e75984b6a21a2e0c7a505d38a85190ec46bcfe6bf2312395a44e1c222cd` | unchanged |
+
+**Executed:** YES (current session)
+
+**Commands:** `timeout 60 git --no-pager diff -- market-heatmap-lab.html tests/market-heatmap-control-surface.spec.mjs tests/simple-production-bridge.unit.mjs tests/simple-production-bridge.integration.mjs`; SHA-256 and `git hash-object` capture for the eight rows above
+
+**Exit Code:** 0 for every command
+
+**Claim Source:** executed
+
+```text
+diff --git a/market-heatmap-lab.html b/market-heatmap-lab.html
+index 4fea3be0..a395c046 100644
+--- a/market-heatmap-lab.html
++++ b/market-heatmap-lab.html
+@@ -1011,9 +1011,6 @@
+										 try { hydrateFromCache(); }
+										 catch (e) { try { localStorage.removeItem("rlData"); } catch (_) { } }
+										 return fetchDelta();
+-                }).then(function () {
+-                    try { render(); }
+-                    catch (e) { try { localStorage.removeItem("rlData"); } catch (_) { } try { render(); } catch (_) { } }
+								 }).catch(function () {
+GIT_BLOB rlexperience.js=b2c514dfd178f0d123701efb51f9ae69b1b00bfd
+GIT_BLOB market-heatmap-lab.html=a395c0467d692ad57ab30d275bed84c2512b86f9
+GIT_BLOB tests/simple-production-bridge.unit.mjs=b8c0043afccb2ea8ffb3d875f2532170aef9cecf
+GIT_BLOB tests/simple-production-bridge.integration.mjs=2146b6bc931d980fcf6851677fef28b456cd2dcd
+GIT_BLOB tests/market-heatmap-control-surface.spec.mjs=d81f1639771a20a6198943729434a5f4c8e619e1
+GIT_BLOB tests/simple-production-wiring.spec.mjs=4a65659588dec6d58d16afdfaf205c6d8a6cbf5c
+GIT_BLOB scripts/selftest.mjs=c3b69e8af8dcffa3c193a1fd7fbe7c1b0868d590
+GIT_BLOB playwright.config.mjs=d04ae12216125b710a1f94645feac2e28c1467cc
+FAST_HASH_CAPTURE_EXIT=0
+```
+
+### Fast Unit Carrier
+
+**Executed:** YES (current session)
+
+**Command:** `timeout 600 node --test tests/simple-production-bridge.unit.mjs`
+
+**Exit Code:** 0
+
+**Claim Source:** executed
+
+```text
+✔ renderSimpleBridge is exposed on the production API (7.099499ms)
+✔ provider present + real owner state → renders the REAL market-breadth adapter (ready), never mutates rlv-focused (34.589692ms)
+✔ no owner-state provider → honest unavailable, no invented signal, never mutates rlv-focused (6.311698ms)
+✔ owner evidence does not permit a run (unhydrated) → honest unavailable, never mutates rlv-focused (14.369197ms)
+✔ missing adapter module → honest unavailable (no crash), never mutates rlv-focused (6.410499ms)
+✔ a queued Simple run does not survive an invalidation, and its promise settles (20.894095ms)
+✔ leaving Simple altogether also settles the queued run without painting (3.039199ms)
+✔ ownerModes resolution: provider wiring hands Simple to the adapter panel and never regresses an unwired tool (1.2157ms)
+✔ no forbidden authority: the runtime declares none, and running the real bridge touches no network, provider, storage or cookie surface (24.575094ms)
+ℹ tests 9
+ℹ suites 0
+ℹ pass 9
+ℹ fail 0
+ℹ cancelled 0
+ℹ skipped 0
+ℹ todo 0
+ℹ duration_ms 233.460147
+FAST_UNIT_EXIT=0
+```
+
+### Fast Integration Carrier
+
+**Executed:** YES (current session)
+
+**Command:** `timeout 600 node --test tests/simple-production-bridge.integration.mjs`
+
+**Exit Code:** 0
+
+**Claim Source:** executed
+
+```text
+[TP-15-02] wired (19): market-heatmap-lab, options-flow-feed-lab, intraday-tape-lab, swing-structure-lab, options-structure-lab, gamma-trading-lab, sector-research-lab, global-rotation-lab, real-assets-lab, bond-regime-lab, ai-capex-strategy-lab, company-fundamentals-lab, etf-momentum-lab, strategy-self-improvement-lab, strategy-validation-lab, smart-money-flow-lab, waterfront-polo-lab, volatility-sizing-lab, technical-analysis-decision-lab
+[TP-15-02] not wired (4): market-brief, msft-july-print-model, palm-springs-rental-market-lab, ocean-shores-rental-market-lab
+[TP-15-02] strict parity (module loaded by the page): 18 of 19
+[TP-15-02] honest generic unavailable (module deliberately absent, SCN-012-034 lock): technical-analysis-decision-lab
+✔ TP-15-02 the wired-tool set is derived from the production registry + the production pages (never a hard-coded list) (54.347187ms)
+✔ TP-15-02 registry-derived loop: each wired tool prepares through the REAL runtime and paints the REAL panel (1212.288516ms)
+✔ TP-15-02 owner parity: every wired tool's Simple facts EQUAL the owner/Power-path values (978.183469ms)
+✔ TP-15-02 the production bridge reaches the SAME projection as the explicit runtime path for every module-backed wired tool (and the honest generic unavailable where the module is deliberately absent) (1485.31616ms)
+✔ TP-15-02 honest unavailable: a wired tool whose provider yields NO owner state degrades truthfully (no invented signal) (59.849387ms)
+✔ TP-15-02 honest unavailable: owner evidence that does not permit a run degrades truthfully rather than inventing a read (33.018993ms)
+ℹ tests 6
+ℹ suites 0
+ℹ pass 6
+ℹ fail 0
+ℹ cancelled 0
+ℹ skipped 0
+ℹ todo 0
+ℹ duration_ms 3953.062384
+FAST_INTEGRATION_EXIT=0
+```
+
+### Shared Selftest
+
+**Executed:** YES (current session)
+
+**Command:** `timeout 900 node scripts/selftest.mjs`
+
+**Exit Code:** 0
+
+**Claim Source:** executed
+
+The command ran with its full, unfiltered output stream. The terminal tool
+captured 56 KB; this is the raw final BUG-adjacent carrier and overall summary.
+
+```text
+Feature 012 Scope 15 production Simple-view bridge canaries (TP-15-07)
+	✓ the bridge publishes a non-empty adapter-module binding table, each entry naming a browser global and a registrar (6 bindings parsed from rlexperience.js)
+	✓ the wired set is derived from the production registry + the deployed pages and is non-empty (19 wired of 23 registry definitions, scanned 26 pages)
+	✓ every page-registered owner-state provider resolves to a registry definition carrying a non-empty adapterId/adapterModule/definitionId (0 orphan wirings, 0 identity gaps across 19 wired tools)
+	✓ every wired tool’s declared adapter module exists on disk and has a bridge binding (6 distinct modules across 19 wired tools)
+	✓ every wired tool’s adapter module loads and exports the registrar its binding names (19/19 resolved, gaps: none)
+	✓ registering every wired module into the REAL runtime registers the registry-declared adapterId for the registry-declared definitionId (19/19 checked, gaps: none)
+	✓ no forbidden authority: the runtime’s own diagnostic reports every authority false after adapter registration (6 authority flags x 19 wired tools, owned: 0)
+	✓ exactly one executable rlv-focused write exists across all production sources and it lives in rlviews.js (scanned 54 files, writers: rlviews.js x1)
+	✓ applyVisual (rlviews.js) is the function that owns that sole rlv-focused write
+	✓ the production bridge path (renderSimpleBridgeInternal + installSimpleProjectionBridge) contains no rlv-focused write and, once comments are stripped, no rlv-focused reference at all (21933 source chars)
+	✓ the bridge path performs local compute only — no network, provider, storage, or cookie authority in its executable source (8 tokens checked, hits: none)
+	✓ rlapp.js’s own ownerModes expression yields ["power"] for a provider-wired ordinary tool, ["simple","power"] for an unwired one (no regression), and ["brief"] for a brief-only tool
+	✓ rlviews.js’s own rlv-focused predicate, fed those real ownerModes, focuses a wired tool’s Simple, leaves Power unfocused, and never focuses an unwired native Simple or a brief view
+	✓ RLEXPERIENCE.renderSimpleBridge is exposed on the production API
+	✓ a wired tool with no owner state degrades to an honest unavailable that names the missing owner adapter, publishes a null numeric, paints no numeric node, and invents no signal (market-heatmap-lab)
+	✓ the bridge never mutates body.classList on the unavailable path — applyVisual stays the sole owner of rlv-focused (BUG-003 invariant, 0 recorded mutations)
+
+================================================
+Research-Lab self-test: 968 passed, 0 failed
+================================================
+FAST_SELFTEST_EXIT=0
+```
+
+### Regression Quality And Parse Checks
+
+**Executed:** YES (current session)
+
+**Commands:** `timeout 600 bash .github/bubbles/scripts/regression-quality-guard.sh --bugfix tests/market-heatmap-control-surface.spec.mjs`; per-file `timeout 60 node --check` for the six BUG-004 JavaScript/test surfaces below
+
+**Exit Code:** 0 for every command
+
+**Claim Source:** executed
+
+```text
+============================================================
+	BUBBLES REGRESSION QUALITY GUARD
+	Repo: ~/research-lab
+	Timestamp: 2026-07-30T04:11:45Z
+	Bugfix mode: true
+============================================================
+ℹ️  Scanning tests/market-heatmap-control-surface.spec.mjs
+✅ Adversarial signal detected in tests/market-heatmap-control-surface.spec.mjs
+============================================================
+	REGRESSION QUALITY RESULT: 0 violation(s), 0 warning(s)
+	Files scanned: 1
+	Files with adversarial signals: 1
+============================================================
+FAST_REGRESSION_QUALITY_EXIT=0
+NODE_CHECK=rlexperience.js
+NODE_CHECK_RESULT=PASS rlexperience.js
+NODE_CHECK=tests/simple-production-bridge.unit.mjs
+NODE_CHECK_RESULT=PASS tests/simple-production-bridge.unit.mjs
+NODE_CHECK=tests/simple-production-bridge.integration.mjs
+NODE_CHECK_RESULT=PASS tests/simple-production-bridge.integration.mjs
+NODE_CHECK=tests/market-heatmap-control-surface.spec.mjs
+NODE_CHECK_RESULT=PASS tests/market-heatmap-control-surface.spec.mjs
+NODE_CHECK=tests/simple-production-wiring.spec.mjs
+NODE_CHECK_RESULT=PASS tests/simple-production-wiring.spec.mjs
+NODE_CHECK=scripts/selftest.mjs
+NODE_CHECK_RESULT=PASS scripts/selftest.mjs
+FAST_NODE_CHECK_EXIT=0
+```
+
+### Artifact, Reality, And Diff Checks
+
+**Executed:** YES (current session)
+
+**Commands:** `timeout 600 bash .github/bubbles/scripts/artifact-lint.sh specs/012-market-action-center-and-guided-tools/bugs/BUG-004-market-heatmap-control-surface`; `timeout 600 bash .github/bubbles/scripts/implementation-reality-scan.sh specs/012-market-action-center-and-guided-tools/bugs/BUG-004-market-heatmap-control-surface --verbose`; `timeout 60 git diff --check`
+
+**Exit Code:** 0 for every command
+
+**Claim Source:** executed
+
+```text
+✅ Required artifact exists: spec.md
+✅ Required artifact exists: design.md
+✅ Required artifact exists: uservalidation.md
+✅ Required artifact exists: state.json
+✅ Required artifact exists: scopes.md
+✅ Required artifact exists: report.md
+✅ No forbidden sidecar artifacts present
+✅ Found DoD section in scopes.md
+✅ scopes.md DoD contains checkbox items
+✅ All DoD bullet items use checkbox syntax in scopes.md
+✅ Found Checklist section in uservalidation.md
+✅ uservalidation checklist contains checkbox entries
+✅ uservalidation checklist has checked-by-default entries
+✅ All checklist bullet items use checkbox syntax
+✅ Detected state.json status: in_progress
+✅ Detected state.json workflowMode: bugfix-fastlane
+✅ state.json v3 has required field: status
+✅ state.json v3 has required field: execution
+✅ state.json v3 has required field: certification
+✅ state.json v3 has required field: policySnapshot
+✅ state.json v3 has recommended field: transitionRequests
+✅ state.json v3 has recommended field: reworkQueue
+✅ state.json v3 has recommended field: executionHistory
+✅ Top-level status matches certification.status
+ℹ️  Workflow mode 'bugfix-fastlane' allows status 'done'; current status is 'in_progress'
+✅ report.md contains section matching: Summary
+✅ report.md contains section matching: Completion Statement
+✅ report.md contains section matching: Test Evidence
+✅ Mode-specific report gates skipped (status not in promotion set)
+✅ Value-first selection rationale lint skipped (not a value-first report)
+✅ Scenario path-placeholder lint skipped (no matching scenario sections found)
+=== Anti-Fabrication Evidence Checks ===
+✅ All checked DoD items in scopes.md have evidence blocks
+✅ No unfilled evidence template placeholders in scopes.md
+✅ No unfilled evidence template placeholders in report.md
+=== End Anti-Fabrication Checks ===
+Artifact lint PASSED.
+FAST_ARTIFACT_LINT_EXIT=0
+ℹ️  INFO: Resolved 1 implementation file(s) to scan
+--- Scan 1: Gateway/Backend Stub Patterns ---
+--- Scan 1B: Handler / Endpoint Execution Depth ---
+--- Scan 1C: Endpoint Not-Implemented / Placeholder Responses ---
+--- Scan 1D: External Integration Authenticity ---
+--- Scan 2: Frontend Hardcoded Data Patterns ---
+--- Scan 2B: Sensitive Client Storage ---
+--- Scan 3: Frontend API Call Absence ---
+--- Scan 4: Prohibited Simulation Helpers in Production ---
+--- Scan 5: Default/Fallback Value Patterns ---
+--- Scan 6: Live-System Test Interception ---
+ℹ️  INFO: No live-system test files referenced in scope artifacts for interception scan
+--- Scan 7: IDOR / Auth Bypass Detection (Gate G047) ---
+--- Scan 8: Silent Decode Failure Detection (Gate G048) ---
+============================================================
+	IMPLEMENTATION REALITY SCAN RESULT
+============================================================
+	Files scanned:  1
+	Violations:     0
+	Warnings:       0
+🟢 PASSED: No source code reality violations detected
+FAST_REALITY_SCAN_EXIT=0
+FAST_DIFF_CHECK_EXIT=0
+```
+
+### Fast Matrix Result And Remaining Browser Rows
+
+| Row | Current-byte fast result | Remaining action |
+|---|---|---|
+| TP-B004-01..05, TP-B004-09, TP-B004-11 fast/shared carriers | PASS: unit 9/9, integration 6/6, selftest 968/968, regression guard 0/0, parse/reality/artifact/diff checks clean | None for this fast increment |
+| TP-B004-06 / TP-B004-07 / TP-B004-08 - current-tree A/B/C | PENDING: deliberately not run here because the combined current-tree suite was active externally | `bubbles.test` must consume that exact current-byte A/B/C result, or rerun the combined carrier if its output cannot be consumed |
+| TP-B004-10 - protected 19-tool wiring | PENDING: deliberately not run here | `bubbles.test` must run the protected wiring carrier against the current byte identities above |
+
+`TR-BUG004-TEST-REVALIDATION` remains open. State, DoD, transition, execution
+substate, and certification remain unchanged until both browser rows have
+current-byte evidence.
+
+## Final Simplify Revalidation Browser Matrix
+
+**Phase:** test
+
+**Date:** 2026-07-30
+
+**Claim Source:** executed
+
+**Verdict:** `TEST_REVALIDATION_COMPLETE_ROUTE_REGRESSION`
+
+This section supersedes the earlier hash-mismatch blocker without deleting its
+historical record. That blocker compared supplied 40-character `git hash-object`
+blob IDs with locally computed 64-character SHA-256 digests. The comparison was
+invalid because the algorithms and output domains differ; it did not establish
+byte drift. The fail-closed Git-blob comparison below uses the correct algorithm
+and proves that all seven named current paths exactly match the identities used
+by the parent-executed browser evidence. HEAD advancement is unrelated to these
+stable named bytes.
+
+### Current Git Blob Identity
+
+**Executed:** YES (current resumed test session)
+
+**Command:** `git hash-object -- market-heatmap-lab.html`; `git hash-object -- rlexperience.js`; `git hash-object -- rlviews.js`; `git hash-object -- tests/market-heatmap-control-surface.spec.mjs`; `git hash-object -- tests/simple-production-wiring.spec.mjs`; `git hash-object -- tests/simple-production-bridge.unit.mjs`; `git hash-object -- playwright.config.mjs`; fail closed on any expected/actual mismatch; `git status --porcelain=v1` restricted to the same seven paths
+
+**Exit Code:** 0
+
+**Claim Source:** executed
+
+```text
+=== BUG-004 CURRENT GIT BLOB IDENTITY ===
+GIT_BLOB path=market-heatmap-lab.html expected=a395c0467d692ad57ab30d275bed84c2512b86f9 actual=a395c0467d692ad57ab30d275bed84c2512b86f9 result=MATCH
+GIT_BLOB path=rlexperience.js expected=459b32d4a35064d486393dcebec4fb7172ceaf6d actual=459b32d4a35064d486393dcebec4fb7172ceaf6d result=MATCH
+GIT_BLOB path=rlviews.js expected=fb1c686a09cef82175d144dbaefa79e83742a764 actual=fb1c686a09cef82175d144dbaefa79e83742a764 result=MATCH
+GIT_BLOB path=tests/market-heatmap-control-surface.spec.mjs expected=d81f1639771a20a6198943729434a5f4c8e619e1 actual=d81f1639771a20a6198943729434a5f4c8e619e1 result=MATCH
+GIT_BLOB path=tests/simple-production-wiring.spec.mjs expected=1f7a91b1ccfb99b8f4833bc54eff653b88c59639 actual=1f7a91b1ccfb99b8f4833bc54eff653b88c59639 result=MATCH
+GIT_BLOB path=tests/simple-production-bridge.unit.mjs expected=b8c0043afccb2ea8ffb3d875f2532170aef9cecf actual=b8c0043afccb2ea8ffb3d875f2532170aef9cecf result=MATCH
+GIT_BLOB path=playwright.config.mjs expected=d04ae12216125b710a1f94645feac2e28c1467cc actual=d04ae12216125b710a1f94645feac2e28c1467cc result=MATCH
+GIT_BLOB_MATCH_COUNT=7
+PATH_SCOPED_STATUS=CLEAN
+HASH_ALGORITHM=git-hash-object
+BUG004_BLOB_IDENTITY_EXIT=0
+```
+
+### Parent-Executed Final Browser Matrix
+
+**Executed:** YES (parent execution inherited by this resumed test packet)
+
+**Command:** `timeout 3000 npx --no-install playwright test tests/market-heatmap-control-surface.spec.mjs tests/simple-production-wiring.spec.mjs --config=playwright.config.mjs --project=system-chrome --reporter=list --workers=1`
+
+**Exit Code:** 0
+
+**Claim Source:** executed
+
+```text
+Exactly 8/8 passed in 33.2m:
+A 3.8m
+B 4.6m
+C 6.9m
+grouping union 4.7m
+protected panel 2.8s
+control recompute 4.9m
+19-tool parity 8.2m
+derived set 192ms
+19-tool sweep 17 ready + 2 honest unavailable
+native demotion verified on 7 tools (4 with #powerView)
+failed 0
+skipped 0
+FINAL_BROWSER_MATRIX_EXIT=0
+```
+
+No test process was started or rerun by this closeout. The existing fast
+simplify revalidation remains the non-browser current-byte evidence: unit 9/9,
+integration 6/6, repository selftest 968/968, and static gates green. The final
+combined browser command closes TP-B004-06/07/08 and TP-B004-10 on the exact
+seven Git blobs above, with no failed or skipped tests.
+
+### Test Revalidation Transition
+
+| Finding / transition | Disposition |
+|---|---|
+| `TR-BUG004-TEST-REVALIDATION` | Resolved: all seven Git blob IDs match the parent browser-evidence identities; fast checks and the final 8/8 browser matrix establish current-byte test provenance. |
+| Prior algorithm-mismatch blocker | Superseded, not deleted: comparing SHA-256 digests with Git blob IDs was invalid and never proved byte drift. |
+| `TR-BUG004-REGRESSION-REVALIDATION` | Open to `bubbles.regression` for independent regression revalidation on the stable byte identities above before gaps. |
+
+SCOPE-01 remains execution-side Done. Top-level status and
+`certification.status` remain `in_progress`; certification completion arrays
+remain untouched.
+
+## Regression Revalidation Phase (bubbles.regression) - 2026-07-30
+
+**Phase:** regression
+
+**Claim Source:** executed
+
+**Verdict:** `REGRESSION_FREE`
+
+This phase independently revalidated the post-simplify regression boundary. It
+made no source, test, scope, planning, parent Feature 012, certification, staging,
+commit, push, stash, reset, or revert change. The final browser matrix was not
+rerun because all seven browser-evidence Git blobs matched exactly. A separate
+post-evidence drift in the integration carrier was detected rather than hidden;
+the full unit, integration, and selftest carriers were therefore rerun.
+
+### Repository Binding Revalidation
+
+**Executed:** YES (current session)
+
+**Command:** `timeout 30 bash .github/bubbles/scripts/repository-binding.sh validate-packet --session-id 'vscode-eb9cb76de5cf2a992bf149706789fb73' --session-control-file "$HOME/.local/state/bubbles-session-control/vscode-eb9cb76de5cf2a992bf149706789fb73/repository-binding.json" --packet-file '/tmp/tr-bug004-regression-revalidation.packet.json'`
+
+**Exit Code:** 0
+
+**Claim Source:** executed
+
+```text
+REPOSITORY PACKET VALID actionable=true repository=research-lab root=~/research-lab decision=rb:vscode-eb9cb76de5cf2a992bf149706789fb73:4 revision=4
+REPOSITORY_BINDING_REVALIDATE_EXIT=0
+```
+
+### Stable Seven-Blob Identity
+
+**Executed:** YES (current session)
+
+**Commands:** `timeout 60 git hash-object -- <path>` for each row below; fail
+closed on any expected/actual mismatch; `timeout 60 git status --porcelain=v1 --
+<the same seven paths>`
+
+**Exit Code:** 0
+
+**Claim Source:** executed
+
+| Path | Expected Git blob | Current Git blob | Result |
+|---|---|---|---|
+| `market-heatmap-lab.html` | `a395c0467d692ad57ab30d275bed84c2512b86f9` | `a395c0467d692ad57ab30d275bed84c2512b86f9` | MATCH |
+| `rlexperience.js` | `459b32d4a35064d486393dcebec4fb7172ceaf6d` | `459b32d4a35064d486393dcebec4fb7172ceaf6d` | MATCH |
+| `rlviews.js` | `fb1c686a09cef82175d144dbaefa79e83742a764` | `fb1c686a09cef82175d144dbaefa79e83742a764` | MATCH |
+| `tests/market-heatmap-control-surface.spec.mjs` | `d81f1639771a20a6198943729434a5f4c8e619e1` | `d81f1639771a20a6198943729434a5f4c8e619e1` | MATCH |
+| `tests/simple-production-wiring.spec.mjs` | `1f7a91b1ccfb99b8f4833bc54eff653b88c59639` | `1f7a91b1ccfb99b8f4833bc54eff653b88c59639` | MATCH |
+| `tests/simple-production-bridge.unit.mjs` | `b8c0043afccb2ea8ffb3d875f2532170aef9cecf` | `b8c0043afccb2ea8ffb3d875f2532170aef9cecf` | MATCH |
+| `playwright.config.mjs` | `d04ae12216125b710a1f94645feac2e28c1467cc` | `d04ae12216125b710a1f94645feac2e28c1467cc` | MATCH |
+
+```text
+=== BUG-004 REGRESSION REVALIDATION GIT BLOBS ===
+GIT_BLOB path=market-heatmap-lab.html expected=a395c0467d692ad57ab30d275bed84c2512b86f9 actual=a395c0467d692ad57ab30d275bed84c2512b86f9 result=MATCH
+GIT_BLOB path=rlexperience.js expected=459b32d4a35064d486393dcebec4fb7172ceaf6d actual=459b32d4a35064d486393dcebec4fb7172ceaf6d result=MATCH
+GIT_BLOB path=rlviews.js expected=fb1c686a09cef82175d144dbaefa79e83742a764 actual=fb1c686a09cef82175d144dbaefa79e83742a764 result=MATCH
+GIT_BLOB path=tests/market-heatmap-control-surface.spec.mjs expected=d81f1639771a20a6198943729434a5f4c8e619e1 actual=d81f1639771a20a6198943729434a5f4c8e619e1 result=MATCH
+GIT_BLOB path=tests/simple-production-wiring.spec.mjs expected=1f7a91b1ccfb99b8f4833bc54eff653b88c59639 actual=1f7a91b1ccfb99b8f4833bc54eff653b88c59639 result=MATCH
+GIT_BLOB path=tests/simple-production-bridge.unit.mjs expected=b8c0043afccb2ea8ffb3d875f2532170aef9cecf actual=b8c0043afccb2ea8ffb3d875f2532170aef9cecf result=MATCH
+GIT_BLOB path=playwright.config.mjs expected=d04ae12216125b710a1f94645feac2e28c1467cc actual=d04ae12216125b710a1f94645feac2e28c1467cc result=MATCH
+PATH_SCOPED_STATUS=CLEAN
+GIT_BLOB_MATCH_COUNT=7
+HASH_ALGORITHM=git-hash-object
+BUG004_BLOB_REVALIDATION_EXIT=0
+```
+
+### Simplified Delta From The Original Regression Phase
+
+| Surface | Original regression identity | Revalidation identity | Classification |
+|---|---|---|---|
+| `market-heatmap-lab.html` | `4fea3be0...` | `a395c046...` | `007befaf`: intended simplify-only removal of one redundant settled-state render |
+| `rlexperience.js` | `b2c514df...` | `459b32d4...` | parent `abe04baf`: dependency-gate criteria/progress truth labeling only |
+| `rlviews.js` | not in the original identity table | `fb1c686a...` | parent `abe04baf`: one dependency-progress paragraph; no route/mode/focus transition change |
+| dedicated BUG carrier | `d81f1639...` | same | byte-stable |
+| protected wiring carrier | `4a656595...` | `1f7a91b1...` | parent Scope 15 strengthens native-demotion coverage and raises only the hydration wait budget |
+| bridge unit carrier | `b8c0043a...` | same | byte-stable |
+| Playwright config | `d04ae122...` | same | byte-stable |
+
+The initial path-only boundary probe exited 1 because parent commit `abe04baf`
+did touch `rlviews.js`. That signal was investigated, not discarded. Exact diff
+inspection showed only `requirementName`, truthful matched/required progress,
+and `all-N-required` criteria text. A corrected semantic boundary probe found
+no changed `applyVisual`, `data-rlview`, `rlviews:change`, `modeSeg`,
+`location.hash`, or `rlnav` token and exited 0.
+
+### Browser Evidence Reused By Exact Identity
+
+**Executed in this phase:** NO - intentionally not rerun after exact seven-blob
+match, as required by the packet.
+
+**Claim Source:** interpreted
+
+**Interpretation:** The current-session exact Git-blob match above admits the
+referenced executed browser block from [Final Simplify Revalidation Browser
+Matrix](#final-simplify-revalidation-browser-matrix).
+
+**Referenced command:** `timeout 3000 npx --no-install playwright test tests/market-heatmap-control-surface.spec.mjs tests/simple-production-wiring.spec.mjs --config=playwright.config.mjs --project=system-chrome --reporter=list --workers=1`
+
+**Referenced Exit Code:** 0
+
+```text
+Exactly 8/8 passed in 33.2m:
+A 3.8m
+B 4.6m
+C 6.9m
+grouping union 4.7m
+protected panel 2.8s
+control recompute 4.9m
+19-tool parity 8.2m
+derived set 192ms
+19-tool sweep 17 ready + 2 honest unavailable
+native demotion verified on 7 tools (4 with #powerView)
+failed 0
+skipped 0
+FINAL_BROWSER_MATRIX_EXIT=0
+```
+
+### Fast-Carrier Drift And Current Execution
+
+The auxiliary identity check found
+`tests/simple-production-bridge.integration.mjs` changed from referenced blob
+`2146b6bc...` to current blob `618f0c5b...`; `scripts/selftest.mjs` remained
+`c3b69e8a...`. The drift is commit `b548519e` and is test-only: it adds
+SCN-012-039 derived closed-set accounting. The current run reported 22 ordinary,
+19 wired, 3 declared-unwired, and 0 unaccounted. Because one carrier drifted,
+the packet's conditional rerun rule was applied to all three fast carriers.
+
+**Executed:** YES (current session)
+
+**Commands:** `timeout 600 node --test tests/simple-production-bridge.unit.mjs`;
+`timeout 600 node --test tests/simple-production-bridge.integration.mjs`;
+`timeout 900 node scripts/selftest.mjs`
+
+**Exit Code:** 0 for every command
+
+**Claim Source:** executed
+
+```text
+=== CURRENT FULL BRIDGE UNIT ===
+tests 9
+pass 9
+fail 0
+cancelled 0
+skipped 0
+todo 0
+CURRENT_FULL_BRIDGE_UNIT_EXIT=0
+=== CURRENT FULL BRIDGE INTEGRATION ===
+[TP-15-02] wired (19): registry-derived current set
+[SCN-012-039] ordinary=22 wired=19 declared-unwired=3 unaccounted=0
+[TP-15-02] strict parity (module loaded by the page): 18 of 19
+[TP-15-02] honest generic unavailable (module deliberately absent, SCN-012-034 lock): technical-analysis-decision-lab
+tests 6
+pass 6
+fail 0
+cancelled 0
+skipped 0
+todo 0
+CURRENT_FULL_BRIDGE_INTEGRATION_EXIT=0
+Feature 012 Scope 15 production Simple-view bridge canaries (TP-15-07)
+PASS every page-registered owner-state provider resolves to a registry definition
+PASS every wired adapter module exists and has a bridge binding
+PASS every wired module loads and exports its registrar
+PASS runtime diagnostic reports every authority false
+PASS exactly one executable rlv-focused write exists and it is in rlviews.js
+PASS ownerModes resolves wired ordinary, unwired ordinary, and brief-only correctly
+PASS RLEXPERIENCE.renderSimpleBridge remains exposed
+PASS absent owner state degrades honestly with no numeric signal
+Research-Lab self-test: 968 passed, 0 failed
+FULL_SELFTEST_EXIT=0
+```
+
+### Regression Quality, Baseline, Conflict, And Traceability
+
+**Executed:** YES (current session)
+
+**Commands:**
+
+- `timeout 600 bash .github/bubbles/scripts/regression-quality-guard.sh --bugfix tests/market-heatmap-control-surface.spec.mjs`
+- `timeout 600 bash .github/bubbles/scripts/regression-baseline-guard.sh specs/012-market-action-center-and-guided-tools/bugs/BUG-004-market-heatmap-control-surface --verbose`
+- `timeout 600 bash .github/bubbles/scripts/regression-baseline-guard.sh specs/012-market-action-center-and-guided-tools --verbose`
+- `timeout 600 bash .github/bubbles/scripts/traceability-guard.sh specs/012-market-action-center-and-guided-tools/bugs/BUG-004-market-heatmap-control-surface`
+
+**Exit Code:** 0 for every command
+
+**Claim Source:** executed
+
+```text
+REGRESSION QUALITY RESULT: 0 violation(s), 0 warning(s)
+Files scanned: 1
+Files with adversarial signals: 1
+REGRESSION_QUALITY_BUGFIX_EXIT=0
+BUG-004 G044 Regression Baseline: test baseline comparison found
+BUG-004 G045 Cross-Spec Regression: 2 done specs of 3 inventoried
+BUG-004 G046 Spec Conflict Detection: no route/endpoint collisions detected
+BUG004_REGRESSION_BASELINE_EXIT=0
+Feature 012 G044 Regression Baseline: no parent-level comparison table found
+Feature 012 G045 Cross-Spec Regression: 5 done specs of 15 inventoried
+Feature 012 G046 Spec Conflict Detection: no route/endpoint collisions detected
+FEATURE012_REGRESSION_BASELINE_EXIT=0
+scenario-manifest.json covers 4 scenario contracts
+All linked tests from scenario-manifest.json exist
+Scenarios checked: 4
+Scenario-to-row mappings: 4
+DoD fidelity scenarios: 4 (mapped: 4, unmapped: 0)
+RESULT: PASSED (0 warnings)
+BUG004_TRACEABILITY_GUARD_EXIT=0
+```
+
+The parent G044 advisory is pre-existing parent maturity, not a BUG-004
+regression: the parent command exits 0, BUG-004 has its own baseline table, and
+both G046 checks report zero collisions.
+
+### Assertion Substance And Static UI Boundary
+
+**Executed:** YES (current session)
+
+**Commands:** `timeout 60 node /tmp/bug004-assertion-substance-audit.cjs`;
+`grep -c 'id="<control-id>"' market-heatmap-lab.html` for `winSeg`, `sizeSeg`,
+and `grpSeg`; the canonical `PAGE=market-heatmap-lab.html node -e ...` inline
+script/ID check from `.specify/memory/agents.md`; commit-scoped changed-path and
+semantic-token checks for `007befaf`, `abe04baf`, `acf042bb`, and `7ebf0a3b`
+
+**Exit Code:** 0 for the final assertion audit, all duplicate checks, the page
+check, and the corrected semantic boundary check
+
+**Claim Source:** executed
+
+```text
+ASSERTION_AUDIT result=PASS check=dedicated carrier has exactly four line-start scenario tests
+ASSERTION_AUDIT result=PASS check=A proves initial unavailable and final ready
+ASSERTION_AUDIT result=PASS check=A proves no mode toggle
+ASSERTION_AUDIT result=PASS check=A has a non-vacuity production-ready gate
+ASSERTION_AUDIT result=PASS check=B derives all five registry controls
+ASSERTION_AUDIT result=PASS check=B actuates every declared control
+ASSERTION_AUDIT result=PASS check=B checks production parity and zero requests
+ASSERTION_AUDIT result=PASS check=C iterates all three native levers
+ASSERTION_AUDIT result=PASS check=C requires unique visible keyboard controls
+ASSERTION_AUDIT result=PASS check=C proves owned output and treemap pixels change
+ASSERTION_AUDIT result=PASS check=C requires zero acquisition
+ASSERTION_AUDIT result=PASS check=D proves union cache non-vacuously
+ASSERTION_AUDIT result=PASS check=D rejects a second hydration and any request
+ASSERTION_AUDIT result=PASS check=protected carrier has exactly four line-start tests
+ASSERTION_AUDIT result=PASS check=protected sweep derives nonempty wired/native sets
+ASSERTION_AUDIT result=PASS check=protected sweep checks every wired tool
+ASSERTION_AUDIT result=PASS check=protected sweep checks every native demotion
+ASSERTION_AUDIT result=PASS check=protected sweep has owner-state anti-tautology
+ASSERTION_AUDIT result=PASS check=protected sweep asserts honest unavailable and ready
+DEDICATED_TEST_DECLARATIONS=4
+PROTECTED_TEST_DECLARATIONS=4
+DEDICATED_EXPECT_COUNT=61
+PROTECTED_EXPECT_COUNT=78
+ASSERTION_AUDIT_FAILURES=0
+ASSERTION_SUBSTANCE_AUDIT_EXIT=0
+CONTROL_ID id=winSeg count=1
+CONTROL_ID id=sizeSeg count=1
+CONTROL_ID id=grpSeg count=1
+PARENT_SHARED_TOKEN token=applyVisual result=ABSENT
+PARENT_SHARED_TOKEN token=data-rlview result=ABSENT
+PARENT_SHARED_TOKEN token=rlviews:change result=ABSENT
+PARENT_SHARED_TOKEN token=modeSeg result=ABSENT
+PARENT_SHARED_TOKEN token=location.hash result=ABSENT
+PARENT_SHARED_TOKEN token=rlnav result=ABSENT
+OK page=market-heatmap-lab.html inline=1 refs=0
+STATIC_BOUNDARY_REVALIDATION_EXIT=0
+```
+
+Two discarded assertion-audit probes exited 1 before the final audit: the first
+searched for double-quoted test declarations although the carrier uses single
+quotes; the second counted `test(` text in comments. In the second probe all 17
+substance checks already passed and only both declaration counts failed. The
+final line-start parser above fixes both probe defects and changes no repository
+file. These are tooling-probe corrections, not product findings.
+
+### Regression Revalidation Finding Accounting
+
+| Finding / transition | Disposition |
+|---|---|
+| `BUG004-SIMPLIFY-EFF-001` | Addressed: simplified production blob matches final browser evidence; current unit 9/9, integration 6/6, selftest 968/968, and inherited exact-blob browser 8/8 remain green. |
+| `BUG004-REGRESSION-REVALIDATION-BLOB-IDENTITY` | Addressed: all seven required Git blobs match and are path-clean. |
+| `BUG004-REGRESSION-REVALIDATION-INTEGRATION-DRIFT` | Addressed: current test-only `b548519e` drift adds SCN-012-039 closed-set accounting; current integration is 6/6 with zero unaccounted tools. |
+| `BUG004-REGRESSION-REVALIDATION-CROSS-LANE-TOUCH` | Addressed: parent `abe04baf` shared touch changes dependency progress truth labeling only; exact semantic audit plus current browser/bridge evidence preserves route/mode/navigation behavior. |
+| `BUG004-REGRESSION-REVALIDATION-ASSERTION-SUBSTANCE` | Addressed: 19/19 static substance checks pass; four dedicated and four protected tests retain non-vacuous, parity, no-refetch, and full-derived-set assertions. |
+| Parent G044 advisory | Accounted as non-blocking parent maturity: parent has no top-level baseline table, while BUG-004 has one; both guards exit 0 and report zero route collisions. |
+| Probe corrections | Accounted above: validator flag discovery, one path-only cross-lane signal, and two assertion-parser defects were corrected without repository mutation. |
+| New product/test regression findings | None. |
+| `TR-BUG004-REGRESSION-REVALIDATION` | Ready to resolve after post-edit artifact/reality/diff diagnostics. |
+
+### Regression Revalidation Verdict
+
+`REGRESSION_FREE`
+
+Test baseline: stable or improved; the post-evidence integration carrier adds
+closed-set coverage and passes 6/6. Cross-spec conflicts: 0. Design
+contradictions: 0. Numeric line coverage remains unavailable by repository
+contract, so no percentage is claimed. Gherkin traceability remains 4/4. The
+next mandatory owner after mechanical post-edit validation is `bubbles.gaps`.
+
+### Post-Transition Artifact And Diagnostic Validation
+
+**Executed:** YES (current session)
+
+**Commands:**
+
+- `timeout 60 node -e '<state transition contract assertions>'`
+- `timeout 600 bash .github/bubbles/scripts/artifact-lint.sh specs/012-market-action-center-and-guided-tools/bugs/BUG-004-market-heatmap-control-surface`
+- `timeout 600 bash .github/bubbles/scripts/implementation-reality-scan.sh specs/012-market-action-center-and-guided-tools/bugs/BUG-004-market-heatmap-control-surface --verbose`
+- `timeout 60 git diff --check -- specs/012-market-action-center-and-guided-tools/bugs/BUG-004-market-heatmap-control-surface/report.md specs/012-market-action-center-and-guided-tools/bugs/BUG-004-market-heatmap-control-surface/state.json`
+- editor diagnostics on the two allowed artifacts
+
+**Exit Code:** 0 for every executable command; zero editor diagnostics
+
+**Claim Source:** executed
+
+```text
+STATE_CHECK result=PASS check=top status in_progress
+STATE_CHECK result=PASS check=certification status in_progress
+STATE_CHECK result=PASS check=certification completedScopes untouched
+STATE_CHECK result=PASS check=certification completed phases untouched
+STATE_CHECK result=PASS check=SCOPE-01 execution done
+STATE_CHECK result=PASS check=regression request resolved
+STATE_CHECK result=PASS check=gaps request open
+STATE_CHECK result=PASS check=pending request is gaps only
+STATE_CHECK result=PASS check=next owner gaps
+STATE_CHECK result=PASS check=latest claim regression
+STATE_CHECK result=PASS check=latest history regression
+STATE_CHECK result=PASS check=latest outcome route_required
+STATE_CHECK_FAILURES=0
+POST_STATE_CONTRACT_CHECK_EXIT=0
+Artifact lint PASSED.
+FINAL_ARTIFACT_LINT_EXIT=0
+IMPLEMENTATION REALITY SCAN RESULT
+Files scanned: 1
+Violations: 0
+Warnings: 0
+PASSED: No source code reality violations detected
+FINAL_REALITY_SCAN_EXIT=0
+FINAL_ALLOWED_DIFF_CHECK_EXIT=0
+report.md: No errors found
+state.json: No errors found
+```
+
+`TR-BUG004-REGRESSION-REVALIDATION` is resolved. `TR-BUG004-GAPS` is the
+single open/pending transition and routes to `bubbles.gaps`. SCOPE-01 remains
+Done; top-level and certification status remain `in_progress`; certification
+completion arrays remain empty.
+
+## Gaps Phase (bubbles.gaps) - 2026-07-30
+
+**Phase:** gaps
+
+**Claim Source:** executed and interpreted from the exact current bytes
+
+**Verdict:** `CRITICAL_GAPS_DETECTED_ROUTE_PLAN`
+
+The actionable repository packet was validated at control revision 4 before
+repository reads. The audit compared FR-B004-01..11, AC-B004-A/B/C,
+SCN-B004-A/B/C/D, the quality attributes, change boundary, rollback contract,
+collision preservation, one-compute/no-refetch behavior, integration chain,
+accessibility, route/hash behavior, layout, deployment-claim honesty, and tool
+notes against the current source/test bytes and admitted browser evidence only
+after exact Git-blob verification.
+
+### Requirement And Scenario Matrix
+
+| Contract | Verdict | Current evidence / gap |
+|---|---|---|
+| FR-B004-01 | MATCH | Terminal heatmap hydration calls the public refresh API; exact-blob SCN-A browser evidence proves automatic requalification. |
+| FR-B004-02 | MATCH | SCN-A records all view events, remains Simple, and uses no interception, service worker, reload, or manual refresh. |
+| FR-B004-03 | MATCH | SCN-B derives and exposes exactly the five registry controls with their declared names and domains. |
+| FR-B004-04 | MATCH | SCN-B actuates every declared control, compares the rendered projection with the production runtime over the same owner snapshot, and observes zero requests. |
+| FR-B004-05 | MATCH | One native `winSeg`, `sizeSeg`, and `grpSeg` node is outside `.simple-only` and visible with the treemap and diagnostics in direct Power. |
+| FR-B004-06 | PARTIAL | Keyboard actuation, selected CSS state, owned output, and treemap repaint are covered; selected state is not exposed semantically and visible-focus rendering is not asserted (GAP-BUG004-003). |
+| FR-B004-07 | MATCH | SCN-B/C/D clear and observe the request ledger after hydration; grouping also proves no second hydration cycle. |
+| FR-B004-08 | MATCH | Page provider delegates owner reduction/formulas to `RLMARKETSTRUCTURE`; the coordinator rereads that provider and uses the existing adapter/runtime; no second cache/provider/model appears. |
+| FR-B004-09 | DIVERGENT / UNTESTED | Four required race/filter canaries do not exist, and an accepted refresh during `state.running` does not immediately claim a generation or make old controls inert as design requires (GAP-BUG004-001/002). |
+| FR-B004-10 | MATCH | Protected control and wiring blobs match the final browser evidence; no revert/reset/stash/replacement or deployment claim was introduced. |
+| FR-B004-11 | MATCH | Dedicated cold-open Simple and direct-Power adversarial regressions exist independently and retain immutable RED evidence. |
+| AC-B004-A / SCN-B004-A | MATCH | Exact-blob browser matrix: initial honest unavailable, 135/135 owner evidence, automatic ready, production adapter, no mode departure. |
+| AC-B004-B / SCN-B004-B | MATCH | Exact-blob browser matrix: five controls, declared domains, production parity, output changes, zero requests. |
+| AC-B004-C / SCN-B004-C | MATCH | Exact-blob browser matrix: direct Power, three keyboard controls, selected/output/pixel change, zero requests. |
+| SCN-B004-D | CRITICAL GAP | Boot-union/no-refetch is covered, but wrong-tool/non-ordinary filtering, duplicate coalescing, latest successor, cross-generation ordering, and stale failure guarantees lack the four planned executable tests. |
+| Accessibility | PARTIAL | Simple controls use native labels/domains. Native Power button text supplies accessible names, but selected state is CSS-only and the browser test proves DOM focus rather than a rendered visible-focus indicator; default user-agent focus behavior is therefore unverified, not claimed absent. |
+| Determinism / races | DIVERGENT / UNTESTED | Queue cancellation is tested, but the approved accepted-refresh generation and stale-control-inert contract is neither implemented exactly nor covered. |
+| Performance / one compute / no refetch | MATCH | One deduplicated boot union feeds both groupings; all post-hydration levers are local recompute. |
+| Honesty / unavailable | MATCH | Terminal means acquisition settled, not model ready; current insufficient owner state remains honestly unavailable. |
+| Integration / orphan check | MATCH | Page boot -> union hydration -> terminal marker -> public API -> coordinator -> owner provider -> adapter/runtime -> Simple controls is fully consumed; view entry uses the same coordinator; no orphan event/API was found. |
+| Route/hash and layout | MATCH | Direct `#power` is exercised; control layout flex-wraps and the table remains overflow-scrollable. No new mobile breakpoint contract exists. |
+| Change boundary / collision / rollback | MATCH | Current named product/browser blobs match admitted evidence; rollback remains source/test-only and preserves `2f65a02a`. |
+| Deployment claim honesty | MATCH | Local ancestry and browser execution are not represented as deployment verification; top/certification remain `in_progress`. |
+| Tool notes | DIVERGENT | `notes/market-heatmap-lab.md` simultaneously says LIVE and proposed/not built, and documents only three Simple levers rather than the five production registry controls (GAP-BUG004-004). |
+
+### Exact Byte Identity
+
+**Executed:** YES (current gaps session)
+
+**Command:** `git hash-object` plus path-scoped `git status --porcelain=v1` for the nine BUG-004 production/test/config carriers
+
+**Exit Code:** 0
+
+**Claim Source:** executed
+
+```text
+GIT_BLOB path=market-heatmap-lab.html actual=a395c0467d692ad57ab30d275bed84c2512b86f9
+GIT_BLOB path=rlexperience.js actual=459b32d4a35064d486393dcebec4fb7172ceaf6d
+GIT_BLOB path=rlviews.js actual=fb1c686a09cef82175d144dbaefa79e83742a764
+GIT_BLOB path=tests/market-heatmap-control-surface.spec.mjs actual=d81f1639771a20a6198943729434a5f4c8e619e1
+GIT_BLOB path=tests/simple-production-wiring.spec.mjs actual=1f7a91b1ccfb99b8f4833bc54eff653b88c59639
+GIT_BLOB path=tests/simple-production-bridge.unit.mjs actual=b8c0043afccb2ea8ffb3d875f2532170aef9cecf
+GIT_BLOB path=tests/simple-production-bridge.integration.mjs actual=618f0c5b923fd3e9cd6dadd625dcd851f919328c
+GIT_BLOB path=scripts/selftest.mjs actual=1899e945ab3c3e7bccb9f553014070d8b8def3fc
+GIT_BLOB path=playwright.config.mjs actual=d04ae12216125b710a1f94645feac2e28c1467cc
+PATH_SCOPED_STATUS scripts/selftest.mjs=modified
+```
+
+The seven browser-evidence blobs match exactly, so the 8/8, 33.2-minute browser
+matrix remains admissible by reference. The integration carrier is the already
+accounted `b548519e` test-only closed-set extension. The current selftest edit
+adds a spec-test-path ratchet after the unchanged Feature 012 bridge block; it
+does not change BUG-004 source, tests, or the admitted browser identities.
+
+### Confirmed Findings
+
+| ID | Class | Severity | Concrete evidence | Required owner |
+|---|---|---|---|---|
+| GAP-BUG004-001 | UNTESTED / false-green evidence | high | None of the four exact TP-B004-01..04 titles exists. Their commands return Node's file-wrapper success (`✔ tests/simple-production-bridge.unit.mjs`) and were incorrectly recorded as the named test passing. | `bubbles.plan` to reopen rows/DoD, then `bubbles.test` to add and execute exact non-vacuous canaries |
+| GAP-BUG004-002 | DIVERGENT coordinator contract | high | Design says every accepted owner refresh claims a generation immediately and old controls become inert. In the `state.running` branch, current code only allocates/joins `state.successor`; generation changes only when a run starts, a control actuates, or a view invalidates, and old controls are never disabled. | `bubbles.implement` plus `bubbles.test` after planning reset |
+| GAP-BUG004-003 | UNTESTED / PARTIAL accessibility | medium | Native Power buttons expose selected state only through `.on`, and SCN-C checks `toBeFocused()` rather than the rendered focus indicator. Button text supplies accessible names; default user-agent focus visibility is unverified, not claimed absent. | `bubbles.plan` to define the exact selected/focus contract, then `bubbles.implement`/`bubbles.test` as required |
+| GAP-BUG004-004 | DIVERGENT documentation | medium | Canonical notes say both LIVE and proposed/not built and retain a three-lever Simple contract while production exposes five registry controls. | `bubbles.docs` after `bubbles.plan` adds a docs-alignment DoD |
+
+### False-Green Reproduction
+
+**Executed:** YES (current gaps session)
+
+**Command:** `timeout 60 node /tmp/bug004-title-audit.mjs`
+
+**Exit Code:** 1
+
+**Claim Source:** executed
+
+```text
+=== BUG-004 TP-B004-01..04 EXACT TITLE AUDIT ===
+EXPECTED TP-B004-01 present=false title=requestSimpleRefresh filters wrong tool, non-Simple, non-ordinary, and invalidates work when leaving Simple
+EXPECTED TP-B004-02 present=false title=requestSimpleRefresh coalesces pre-start duplicates and retains only the latest pending successor
+EXPECTED TP-B004-03 present=false title=requestSimpleRefresh commits only the latest generation and preserves current-generation control ordering
+EXPECTED TP-B004-04 present=false title=requestSimpleRefresh renders current failure unavailable and suppresses stale failure
+ACTUAL index=1 title=renderSimpleBridge is exposed on the production API
+ACTUAL index=2 title=provider present + real owner state → renders the REAL market-breadth adapter (ready), never mutates rlv-focused
+ACTUAL index=3 title=no owner-state provider → honest unavailable, no invented signal, never mutates rlv-focused
+ACTUAL index=4 title=owner evidence does not permit a run (unhydrated) → honest unavailable, never mutates rlv-focused
+ACTUAL index=5 title=missing adapter module → honest unavailable (no crash), never mutates rlv-focused
+ACTUAL index=6 title=a queued Simple run does not survive an invalidation, and its promise settles
+ACTUAL index=7 title=leaving Simple altogether also settles the queued run without painting
+ACTUAL index=8 title=ownerModes resolution: provider wiring hands Simple to the adapter panel and never regresses an unwired tool
+ACTUAL index=9 title=no forbidden authority: the runtime declares none, and running the real bridge touches no network, provider, storage or cookie surface
+EXPECTED_COUNT=4
+ACTUAL_TEST_DECLARATION_COUNT=9
+MISSING_EXPECTED_COUNT=4
+TITLE_AUDIT_RESULT=FAIL
+```
+
+The unchanged canonical TP-B004-02 command was also executed. It exited 0 and
+printed only the file path as one passing wrapper, not the required test title.
+That behavior reproduces the evidence defect rather than satisfying the row.
+
+### G095 Disposition And Transition
+
+BUG-004 remains the tracked defect artifact. Execution-side SCOPE-01 is reopened
+in `state.json`, all four findings are entered in its findings ledger, and
+`TR-BUG004-PLAN-REOPEN` routes the mandatory planning-owned scenario/Test
+Plan/DoD reset to `bubbles.plan`. That transition must route implementation,
+test, and docs remediation after the reset. `TR-BUG004-HARDEN` is not opened.
+Top-level and certification status remain `in_progress`; certification arrays
+and parent Feature 012 are untouched.
+
+### Post-Edit Validation
+
+**Executed:** YES (current gaps session)
+
+**Commands:** focused `artifact-lint.sh`, `implementation-reality-scan.sh
+--verbose`, `traceability-guard.sh`, `regression-baseline-guard.sh --verbose`,
+and `git diff --check` for the two allowed artifacts
+
+**Exit Code:** 0 for every command
+
+**Claim Source:** executed
+
+```text
+Artifact lint PASSED.
+IMPLEMENTATION REALITY SCAN RESULT
+Files scanned:  1
+Violations:     0
+Warnings:       0
+PASSED: No source code reality violations detected
+scenario-manifest.json covers 4 scenario contracts
+All linked tests from scenario-manifest.json exist
+Scenarios checked: 4
+Scenario-to-row mappings: 4
+DoD fidelity scenarios: 4 (mapped: 4, unmapped: 0)
+RESULT: PASSED (0 warnings)
+G044 Regression Baseline: test baseline comparison found
+G045 Cross-Spec Regression: 2 done specs of 3 inventoried
+G046 Spec Conflict Detection: no route/endpoint collisions detected
+Regression baseline guard: PASSED
+git diff --check: exit 0, no output
+report.md: No errors found
+state.json: No errors found
+```
+
+These structural passes do not close GAP-BUG004-001: the traceability guard
+proves only that the linked file exists. The fail-closed title audit proves that
+the four required tests inside that file do not.
+
+## Discovered Issues
+
+| Observed | Description | Disposition | Reference |
+|---|---|---|---|
+| 2026-07-30 | TP-B004-01..04 commands are false green because all four exact titles are absent and Node reports only the passing file wrapper. | status-adjusted + routed | `state.json` GAP-BUG004-001 and TR-BUG004-PLAN-REOPEN |
+| 2026-07-30 | Accepted mid-run refresh does not immediately claim a generation or make old controls inert as the approved design requires. | routed | `state.json` GAP-BUG004-002 and TR-BUG004-PLAN-REOPEN |
+| 2026-07-30 | Native Power selected-state semantics are absent and visible-focus rendering is not proved by the current browser assertion. | routed | `state.json` GAP-BUG004-003 and TR-BUG004-PLAN-REOPEN |
+
+## Reopened Gaps RED Evidence
+
+**Phase:** test
+
+**Scope:** BUG-004 SCOPE-01, `TR-BUG004-IMPLEMENT-GAPS`, findings
+`GAP-BUG004-001`, `GAP-BUG004-002`, and `GAP-BUG004-003`
+
+**Claim Source:** executed
+
+This increment changed only the two test-owned files and this append-only
+evidence section. Production source, planning artifacts, documentation, and
+state/certification fields were not modified. Absolute workspace prefixes in
+stack traces are normalized to `~/research-lab`; all other runner output is
+retained.
+
+### Production Byte Identity - Before RED Tests
+
+**Executed:** YES (current RED session)
+
+**Command:** `sha256sum rlexperience.js market-heatmap-lab.html` plus byte-count
+and collision-sensitive status capture
+
+**Exit Code:** 0
+
+**Claim Source:** executed
+
+```text
+=== BUG-004 RED SOURCE HASHES BEFORE ===
+UTC 2026-07-30T16:37:04Z
+~/research-lab
+--- sha256 ---
+d3a7b7261b93e2ad82b5d5c12b106673914e1671a9c47621167f8c6b2f73730c  rlexperience.js
+16fff53ea5e492a9d9d290c1959b15a2152478ed7214fa571741ba0fb67fcf07  market-heatmap-lab.html
+--- byte counts ---
+163050 rlexperience.js
+ 57478 market-heatmap-lab.html
+220528 total
+--- collision-sensitive status ---
+ M specs/012-market-action-center-and-guided-tools/bugs/BUG-004-market-heatmap-control-surface/report.md
+=== BEFORE HASH CAPTURE COMPLETE ===
+```
+
+### TP-B004-01 - Exact Rejection And Invalidation Canary
+
+**Executed:** YES (current RED session)
+
+**Command:** `timeout 600 node --test --test-name-pattern="^TP-B004-01 requestSimpleRefresh rejects non-current contexts and settles invalidated queued work$" tests/simple-production-bridge.unit.mjs`
+
+**Exit Code:** 0
+
+**Claim Source:** executed
+
+```text
+✔ TP-B004-01 requestSimpleRefresh rejects non-current contexts and settles invalidated queued work (10.323912ms)
+ℹ tests 1
+ℹ suites 0
+ℹ pass 1
+ℹ fail 0
+ℹ cancelled 0
+ℹ skipped 0
+ℹ todo 0
+ℹ duration_ms 110.504674
+===TP-B004-01_FINAL_EXIT=0===
+```
+
+**Classification:** GREEN on current production. The exact top-level title is
+discovered as one test with zero skips; wrong-tool, absent-registration,
+non-ordinary, non-Simple, Brief, and leaving-Simple queued work all settle
+`null` with zero provider reads and zero panel writes.
+
+### TP-B004-02 - Latest Pending Successor RED
+
+**Executed:** YES (current RED session)
+
+**Command:** `timeout 600 node --test --test-name-pattern="^TP-B004-02 requestSimpleRefresh coalesces same-turn duplicates and replaces the pending successor$" tests/simple-production-bridge.unit.mjs`
+
+**Exit Code:** 1
+
+**Claim Source:** executed
+
+```text
+✖ TP-B004-02 requestSimpleRefresh coalesces same-turn duplicates and replaces the pending successor (60.609279ms)
+ℹ tests 1
+ℹ suites 0
+ℹ pass 0
+ℹ fail 1
+ℹ cancelled 0
+ℹ skipped 0
+ℹ todo 0
+ℹ duration_ms 192.18413
+
+✖ failing tests:
+
+test at tests/simple-production-bridge.unit.mjs:481:1
+✖ TP-B004-02 requestSimpleRefresh coalesces same-turn duplicates and replaces the pending successor (60.609279ms)
+	AssertionError [ERR_ASSERTION]: accepted C must replace B with a distinct latest-successor promise
+			at TestContext.<anonymous> (~/research-lab/tests/simple-production-bridge.unit.mjs:503:12)
+			at async Test.run (node:internal/test_runner/test:1054:7)
+			at async startSubtestAfterBootstrap (node:internal/test_runner/harness:296:3) {
+		generatedMessage: false,
+		code: 'ERR_ASSERTION',
+		actual: [Promise],
+		expected: [Promise],
+		operator: 'notStrictEqual',
+		diff: 'simple'
+	}
+===TP-B004-02_EXIT=1===
+```
+
+**Classification:** VALID RED. The exact title is discovered as one test with
+zero skips. Same-turn A duplicates coalesce, but current production gives B and
+C the same successor promise instead of replacing B with C.
+
+### TP-B004-03 - Acceptance-Time Invalidation And Stale Controls RED
+
+**Executed:** YES (current RED session)
+
+**Command:** `timeout 600 node --test --test-name-pattern="^TP-B004-03 accepted mid-run refresh immediately invalidates active generation and stale controls$" tests/simple-production-bridge.unit.mjs`
+
+**Exit Code:** 1
+
+**Claim Source:** executed
+
+```text
+✖ TP-B004-03 accepted mid-run refresh immediately invalidates active generation and stale controls (59.659297ms)
+ℹ tests 1
+ℹ suites 0
+ℹ pass 0
+ℹ fail 1
+ℹ cancelled 0
+ℹ skipped 0
+ℹ todo 0
+ℹ duration_ms 164.233625
+
+✖ failing tests:
+
+test at tests/simple-production-bridge.unit.mjs:514:1
+✖ TP-B004-03 accepted mid-run refresh immediately invalidates active generation and stale controls (59.659297ms)
+	AssertionError [ERR_ASSERTION]: B and C must receive distinct acceptance-time generation claims
+			at TestContext.<anonymous> (~/research-lab/tests/simple-production-bridge.unit.mjs:552:12)
+			at async Test.run (node:internal/test_runner/test:1054:7)
+			at async startSubtestAfterBootstrap (node:internal/test_runner/harness:296:3) {
+		generatedMessage: false,
+		code: 'ERR_ASSERTION',
+		actual: [Promise],
+		expected: [Promise],
+		operator: 'notStrictEqual',
+		diff: 'simple'
+	}
+===TP-B004-03_EXIT=1===
+```
+
+**Classification:** VALID RED. The real owner snapshot is observed through its
+first production read after active A has started. B and C are accepted from that
+read, all promises are bounded and settled before assertion, and the first unmet
+contract is the missing distinct acceptance-time successor/generation claim.
+The test also retains assertions that the prior rendered control becomes
+disabled/inert synchronously, invokes no stale model listener, A and B settle
+`null`, only C paints, and C rereads the provider at start.
+
+### TP-B004-04 - Exact Promise Settlement RED
+
+**Executed:** YES (current RED session)
+
+**Command:** `timeout 600 node --test --test-name-pattern="^TP-B004-04 current and stale refresh promises settle without overwriting current truth$" tests/simple-production-bridge.unit.mjs`
+
+**Exit Code:** 1
+
+**Claim Source:** executed
+
+```text
+✖ TP-B004-04 current and stale refresh promises settle without overwriting current truth (96.546623ms)
+ℹ tests 1
+ℹ suites 0
+ℹ pass 0
+ℹ fail 1
+ℹ cancelled 0
+ℹ skipped 0
+ℹ todo 0
+ℹ duration_ms 198.907796
+
+✖ failing tests:
+
+test at tests/simple-production-bridge.unit.mjs:567:1
+✖ TP-B004-04 current and stale refresh promises settle without overwriting current truth (96.546623ms)
+	AssertionError [ERR_ASSERTION]: current failure must paint honest unavailable; stale/cancelled/replaced work must settle null; only latest current work may paint ready
+	+ actual - expected
+	... Skipped lines
+
+		{
+			cancelled: null,
+			cancelledReads: 0,
+			cancelledWrites: [],
+			currentFailure: 'unavailable',
+			latestC: 'ready',
+	+   replacedB: 'ready',
+	+   staleFailureActive: 'unavailable',
+	-   replacedB: null,
+	-   staleFailureActive: null,
+			staleFailureLatest: 'ready',
+			staleFailureReads: 2,
+			staleFailureWrites: [
+	+     'unavailable',
+				'ready'
+			],
+	+   staleReadyActive: 'ready',
+	-   staleReadyActive: null,
+			staleReadyReads: 2,
+			staleReadyWrites: [
+				'ready',
+	+     'ready'
+			]
+		}
+
+			at TestContext.<anonymous> (~/research-lab/tests/simple-production-bridge.unit.mjs:641:10)
+			at async Test.run (node:internal/test_runner/test:1054:7)
+			at async startSubtestAfterBootstrap (node:internal/test_runner/harness:296:3)
+===TP-B004-04_EXIT=1===
+```
+
+**Classification:** VALID RED. Current failure already resolves and paints
+honest `unavailable`, and queued cancellation already resolves `null` with no
+read/write. The complete matrix proves the reopened defect: active stale ready
+resolves `ready`, replaced B resolves `ready`, stale failure resolves and paints
+`unavailable`, and each is followed by an additional latest-C `ready` paint.
+
+### TP-B004-08 - Direct Power Accessibility RED
+
+**Executed:** YES (current RED session)
+
+**Command:** `timeout 1500 npx --no-install playwright test --config=playwright.config.mjs --project=system-chrome tests/market-heatmap-control-surface.spec.mjs --grep "BUG-004 SCN-B004-C: direct Power" --reporter=list`
+
+**Exit Code:** 1
+
+**Claim Source:** executed
+
+```text
+Running 1 test using 1 worker
+
+	✘  1 …applies native treemap controls with zero post-hydration requests (3.8m)
+
+	1) [system-chrome] › tests/market-heatmap-control-surface.spec.mjs:557:1 › BUG-004 SCN-B004-C: direct Power applies native treemap controls with zero post-hydration requests
+
+		Error: #winSeg: exactly one button must expose aria-pressed="true" before actuation
+
+		expect(received).toHaveLength(expected)
+
+		Expected length: 1
+		Received length: 0
+		Received array:  []
+
+			607 |       semanticBefore.filter((entry) => entry.pressed === 'true'),
+			608 |       `#${lever.id}: exactly one button must expose aria-pressed="true" before actuation`
+		> 609 |     ).toHaveLength(1);
+					|       ^
+			610 |     expect(
+			611 |       semanticBefore.filter((entry) => entry.pressed === 'false'),
+			612 |       `#${lever.id}: every alternative must expose aria-pressed="false" before actuation`
+				at ~/research-lab/tests/market-heatmap-control-surface.spec.mjs:609:7
+
+		Error Context: test-results/tests-market-heatmap-contr-0775a-ero-post-hydration-requests-system-chrome/error-context.md
+
+	1 failed
+		[system-chrome] › tests/market-heatmap-control-surface.spec.mjs:557:1 › BUG-004 SCN-B004-C: direct Power applies native treemap controls with zero post-hydration requests
+===TP-B004-08_EXIT=1===
+```
+
+**Classification:** VALID RED. The real page reached terminal hydration and all
+three native groups were visible before the loop. The first unmet contract is
+`#winSeg`: zero buttons expose `aria-pressed="true"`. The unchanged test title
+now also requires false on every alternative, movement after keyboard Enter,
+`:focus-visible`, a computed non-transparent outline at least 2 CSS pixels wide,
+the existing `.on` movement, owned-output change, treemap-pixel change, and zero
+post-hydration requests for every group.
+
+### RED Test Structure, Syntax, And Regression Quality
+
+**Executed:** YES (current RED session)
+
+**Commands:** exact top-level declaration cardinality audit; `node --check` for
+both edited tests; skip/only marker scan; `timeout 600 bash
+.github/bubbles/scripts/regression-quality-guard.sh --bugfix
+tests/market-heatmap-control-surface.spec.mjs`
+
+**Exit Code:** 0 for every command
+
+**Claim Source:** executed
+
+```text
+=== BUG-004 RED TEST STRUCTURE AND SYNTAX ===
+TP-B004-01 requestSimpleRefresh rejects non-current contexts and settles invalidated queued work | top_level_declarations=1 grep_exit=0
+TP-B004-02 requestSimpleRefresh coalesces same-turn duplicates and replaces the pending successor | top_level_declarations=1 grep_exit=0
+TP-B004-03 accepted mid-run refresh immediately invalidates active generation and stale controls | top_level_declarations=1 grep_exit=0
+TP-B004-04 current and stale refresh promises settle without overwriting current truth | top_level_declarations=1 grep_exit=0
+--- node syntax ---
+simple-production-bridge.unit.mjs syntax_exit=0
+market-heatmap-control-surface.spec.mjs syntax_exit=0
+--- skip/only marker scan ---
+skip_or_only_markers=NONE
+===STRUCTURE_AND_SYNTAX_EXIT=0===
+
+============================================================
+	BUBBLES REGRESSION QUALITY GUARD
+	Repo: ~/research-lab
+	Timestamp: 2026-07-30T16:47:58Z
+	Bugfix mode: true
+============================================================
+
+ℹ️  Scanning tests/market-heatmap-control-surface.spec.mjs
+✅ Adversarial signal detected in tests/market-heatmap-control-surface.spec.mjs
+
+============================================================
+	REGRESSION QUALITY RESULT: 0 violation(s), 0 warning(s)
+	Files scanned: 1
+	Files with adversarial signals: 1
+============================================================
+===REGRESSION_QUALITY_GUARD_EXIT=0===
+```
+
+The live-test mock scan found no executable request interception. Its only text
+match is the file header's explicit statement that `context.route`, interception,
+MSW, and nock are absent. Editor diagnostics reported no errors in either edited
+test file.
+
+### Production Byte Identity - After RED Tests
+
+**Executed:** YES (current RED session)
+
+**Command:** post-edit `sha256sum` comparison against the captured pre-edit
+values plus `git diff --exit-code -- rlexperience.js market-heatmap-lab.html`
+
+**Exit Code:** 0
+
+**Claim Source:** executed
+
+```text
+=== BUG-004 RED SOURCE HASHES AFTER ===
+UTC 2026-07-30T16:48:27Z
+~/research-lab
+--- sha256 ---
+d3a7b7261b93e2ad82b5d5c12b106673914e1671a9c47621167f8c6b2f73730c  rlexperience.js
+16fff53ea5e492a9d9d290c1959b15a2152478ed7214fa571741ba0fb67fcf07  market-heatmap-lab.html
+--- expected pre-edit sha256 ---
+rlexperience.js expected=d3a7b7261b93e2ad82b5d5c12b106673914e1671a9c47621167f8c6b2f73730c
+market-heatmap-lab.html expected=16fff53ea5e492a9d9d290c1959b15a2152478ed7214fa571741ba0fb67fcf07
+rlexperience.js byte identity: MATCH
+market-heatmap-lab.html byte identity: MATCH
+production source git diff exit=0
+=== AFTER HASH CAPTURE COMPLETE ===
+```
+
+### Reopened Finding Accounting
+
+| Finding | Test-owned outcome | Current execution truth | Required owner |
+|---|---|---|---|
+| GAP-BUG004-001 | Addressed on the test surface | All four exact top-level declarations exist once; each focused selector discovers exactly one test with zero skips. TP-B004-01 is GREEN; TP-B004-02..04 are substantive behavioral RED, never file-wrapper output. | `bubbles.implement` for the source behavior exposed by TP-B004-02..04 |
+| GAP-BUG004-002 | Valid RED captured | B and C share a successor; stale active ready/failure and replaced work do not settle `null`; stale outcomes paint before latest truth. TP-B004-03 retains synchronous stale-control disabled/inert and provider-read assertions after the first unmet B/C claim. | `bubbles.implement` |
+| GAP-BUG004-003 | Valid RED captured | Direct Power reaches hydration and visible controls, then `#winSeg` has no semantic selected button. The strengthened row retains semantic movement, computed focus-visible outline, `.on`, owned output, treemap pixels, and zero requests. | `bubbles.implement` |
+
+No DoD checkbox, scope status, transition request, execution state,
+certification field, parent Feature 012 artifact, production file, note, or
+documentation file was changed in this RED increment.
+
+### Artifact Lint Boundary
+
+**Phase:** test
+
+**Executed:** YES (current RED session)
+
+**Command:** `timeout 600 bash .github/bubbles/scripts/artifact-lint.sh specs/012-market-action-center-and-guided-tools/bugs/BUG-004-market-heatmap-control-surface`
+
+**Exit Code:** 1
+
+**Claim Source:** executed
+
+**Interpretation:** The required artifact exists and the report/scopes checks
+shown below pass, but lint cannot parse the explicitly excluded `state.json`.
+The parser identifies a missing comma at line 44 column 9, immediately after an
+existing test-phase `summary`. This RED increment did not modify `state.json`.
+
+```text
+✅ Required artifact exists: spec.md
+✅ Required artifact exists: design.md
+✅ Required artifact exists: uservalidation.md
+✅ Required artifact exists: state.json
+✅ Required artifact exists: scopes.md
+✅ Required artifact exists: report.md
+✅ No forbidden sidecar artifacts present
+✅ Found DoD section in scopes.md
+✅ scopes.md DoD contains checkbox items
+✅ All DoD bullet items use checkbox syntax in scopes.md
+Traceback (most recent call last):
+	File "<stdin>", line 6, in <module>
+	File "/usr/lib/python3.12/json/__init__.py", line 293, in load
+		return loads(fp.read(),
+	File "/usr/lib/python3.12/json/decoder.py", line 337, in decode
+		obj, end = self.raw_decode(s, idx=_w(s, 0).end())
+	File "/usr/lib/python3.12/json/decoder.py", line 353, in raw_decode
+		obj, end = self.scan_once(s, idx)
+json.decoder.JSONDecodeError: Expecting ',' delimiter: line 44 column 9 (char 3458)
+✅ Detected state.json status: in_progress
+✅ All checked DoD items in scopes.md have evidence blocks
+✅ No unfilled evidence template placeholders in scopes.md
+✅ No unfilled evidence template placeholders in report.md
+Artifact lint FAILED with 1 issue(s).
+===BUG004_ARTIFACT_LINT_EXIT=1===
+```
+
+This is a foreign-artifact validation blocker, not a test-result ambiguity. The
+test-owned RED set and its production byte-identity proof remain directly
+executed; no artifact-completion or certification claim is made.
+| 2026-07-30 | Canonical Market Heatmap notes contradict current delivery status and the five-control Simple contract. | routed | `state.json` GAP-BUG004-004 and TR-BUG004-PLAN-REOPEN |
+
+## Implementation Gap Remediation - bubbles.implement - 2026-07-30
+
+**Phase:** implement
+
+**Claim Source:** executed
+
+**Outcome:** `ROUTE_REQUIRED_TEST_GAPS`
+
+Repository binding revision 4 was validated before repository-local reads. The
+existing test-owned RED evidence above was accepted as the before-fix proof:
+TP-B004-02, TP-B004-03, and TP-B004-04 each discovered one substantive failing
+test; TP-B004-08 reached the hydrated real page and failed first on absent
+`aria-pressed`. Production files retained their recorded RED hashes until the
+source repair began.
+
+### Implemented Runtime Delta
+
+`rlexperience.js` now claims a monotonic generation synchronously for every
+accepted request, updates a same-turn scheduled slot to the newest accepted
+generation, replaces and settles a prior active-run successor, reads the owner
+provider only when a surviving run starts, rejects stale generations before
+start, and disables old generated controls at acceptance. The existing local
+`runSequence` remains the within-generation control ordering authority. No
+network, storage, publication, provider-acquisition, Brief, or `rlv-focused`
+authority was added.
+
+`market-heatmap-lab.html` now synchronizes `.on` and explicit
+`aria-pressed="true|false"` for `modeSeg`, `winSeg`, `sizeSeg`, and `grpSeg` at
+boot and actuation. A page-local `button:focus-visible` rule paints a 3 CSS pixel
+non-transparent outline using the existing focus token without changing layout
+or replacing `.on` selection styling. Notes and test files were not edited.
+
+Final production identities:
+
+```text
+SHA256 rlexperience.js 08e54dd45e35dc94a0fb433209d4bc2648b6d5388230286007d126af73580a2c
+SHA256 market-heatmap-lab.html 44b0b8bb77ce8622ade230ddb772cf8fb78be5569e471fb6a7b69c7302f1ae49
+GIT_BLOB rlexperience.js 7a83f8f0525d7886874028c148b1f13eaf089d1e
+GIT_BLOB market-heatmap-lab.html eb895d976ab55113e839a00c14980b7270f08e25
+SOURCE_FILES_CHANGED=2
+TEST_FILES_CHANGED_BY_IMPLEMENT=false
+NOTES_CHANGED_BY_IMPLEMENT=false
+CERTIFICATION_CHANGED_BY_IMPLEMENT=false
+PARENT_FEATURE_CHANGED_BY_IMPLEMENT=false
+```
+
+### SCN-B004-D Coordinator Outcome
+
+**Executed:** YES (current session)
+
+**Commands:** the four exact TP-B004-01 through TP-B004-04 commands from the
+SCOPE-01 Test Plan, followed by `node --test tests/simple-production-bridge.unit.mjs`
+
+**Exit Code:** 0 for every command
+
+**Claim Source:** executed
+
+```text
+TP-B004-01 requestSimpleRefresh rejects non-current contexts and settles invalidated queued work
+tests 1 | pass 1 | fail 0 | cancelled 0 | skipped 0 | todo 0
+TP-B004-02 requestSimpleRefresh coalesces same-turn duplicates and replaces the pending successor
+tests 1 | pass 1 | fail 0 | cancelled 0 | skipped 0 | todo 0
+TP-B004-03 accepted mid-run refresh immediately invalidates active generation and stale controls
+tests 1 | pass 1 | fail 0 | cancelled 0 | skipped 0 | todo 0
+TP-B004-04 current and stale refresh promises settle without overwriting current truth
+tests 1 | pass 1 | fail 0 | cancelled 0 | skipped 0 | todo 0
+FULL_BRIDGE_UNIT_BEGIN
+renderSimpleBridge is exposed on the production API: pass
+provider present + real owner state renders ready and never mutates rlv-focused: pass
+no owner-state provider renders honest unavailable: pass
+unhydrated owner evidence renders honest unavailable: pass
+missing adapter module renders honest unavailable: pass
+queued invalidation and leaving-Simple settlement canaries: pass
+ownerModes and no-forbidden-authority canaries: pass
+tests 13 | pass 13 | fail 0 | cancelled 0 | skipped 0 | todo 0
+FULL_BRIDGE_UNIT_END
+```
+
+**Result:** PASS for the implementation-owned coordinator behavior. These runs
+are not independent TEST-phase closure for GAP-BUG004-001.
+
+### Shared Coordinator Contract And Impact Sweep
+
+**Executed:** YES (current session)
+
+**Commands:** `node --test tests/simple-production-bridge.integration.mjs` and
+`node scripts/selftest.mjs`
+
+**Exit Code:** 0 for both commands
+
+**Claim Source:** executed
+
+```text
+[TP-15-02] wired (19): market-heatmap-lab plus 18 other ordinary tools
+[TP-15-02] not wired (4): market-brief plus 3 declared ordinary exceptions
+[SCN-012-039] ordinary=22 wired=19 declared-unwired=3 unaccounted=0
+[TP-15-02] strict parity (module loaded by the page): 18 of 19
+[TP-15-02] honest generic unavailable: technical-analysis-decision-lab
+registry-derived wired-tool set: pass
+every wired tool prepares through the real runtime and paints the real panel: pass
+owner parity for every wired tool: pass
+production bridge equals the explicit runtime path: pass
+missing owner state degrades honestly: pass
+insufficient owner evidence degrades honestly: pass
+integration tests 6 | pass 6 | fail 0 | cancelled 0 | skipped 0 | todo 0
+Feature 012 Scope 15 production Simple-view bridge canaries: pass
+bridge executable source owns no network, provider, storage, cookie, or rlv-focused write: pass
+RLEXPERIENCE.renderSimpleBridge remains exposed: pass
+Research-Lab self-test: 970 passed, 0 failed
+```
+
+**Result:** PASS for low-level compatibility, 19-tool parity, Brief exclusion,
+honest unavailable behavior, focus ownership, and executable authority boundaries.
+
+### TP-B004-08 Current Browser Outcome And Test Route
+
+**Executed:** YES (current session)
+
+**Command:** `npx --no-install playwright test --config=playwright.config.mjs --project=system-chrome tests/market-heatmap-control-surface.spec.mjs --grep "BUG-004 SCN-B004-C: direct Power" --reporter=list`
+
+**Exit Code:** 1 on three executions
+
+**Claim Source:** executed
+
+```text
+Running 1 test using 1 worker
+TP-B004-08 reached terminal hydration and the visible #winSeg group.
+The pre-actuation aria-pressed cardinality assertions passed.
+The target alternative exposed aria-pressed="false" before actuation.
+Keyboard Enter moved .on and aria-pressed="true" to the target.
+The first remaining failure was:
+Error: #winSeg: keyboard target must match :focus-visible
+Expected: true
+Received: false
+tests 1
+pass 0
+fail 1
+skipped 0
+```
+
+**Uncertainty Declaration:** production now has the approved native
+`:focus-visible` CSS and semantic selection behavior, but this implement agent
+cannot record TP-B004-08 GREEN. The unchanged test calls `locator.focus()`
+programmatically before pressing Enter, then expects the already-focused button
+to enter the browser's user-modality `:focus-visible` state. CSS cannot force
+`Element.matches(':focus-visible')`; two source-side focus-restoration probes
+were ineffective and were removed. Correcting the carrier to reach the control
+through a real keyboard focus transition belongs to `bubbles.test` under the
+packet's explicit test ownership boundary. No test assertion was weakened or
+edited.
+
+Because exact TP-B004-08 did not pass, the later dedicated full browser file,
+protected wiring full file, artifact promotion checks, and scope closeout were
+not claimed. This preserves the required stop-on-focused-failure order.
+
+### Static Quality Checks
+
+**Executed:** YES (current session)
+
+**Commands:** bugfix regression-quality guard; `node --check rlexperience.js`;
+canonical `PAGE=market-heatmap-lab.html` inline-script/literal-ID check; editor
+diagnostics; final source-contract grep
+
+**Exit Code:** 0 for every executed command
+
+**Claim Source:** executed
+
+```text
+BUBBLES REGRESSION QUALITY GUARD
+Scanning tests/market-heatmap-control-surface.spec.mjs
+Adversarial signal detected in tests/market-heatmap-control-surface.spec.mjs
+REGRESSION QUALITY RESULT: 0 violation(s), 0 warning(s)
+Files scanned: 1
+Files with adversarial signals: 1
+NODE_CHECK=rlexperience.js
+NODE_CHECK_EXIT=0
+OK page=market-heatmap-lab.html inline=1 refs=0
+rlexperience.js diagnostics: No errors found
+market-heatmap-lab.html diagnostics: No errors found
+state.json diagnostics before execution update: No errors found
+report.md diagnostics before execution update: No errors found
+scopes.md diagnostics before execution update: No errors found
+SOURCE_CONTRACT=acceptedGeneration, claimAcceptedGeneration, disableRenderedControls
+SOURCE_CONTRACT=replaceable successor cancel, scheduled newest generation
+PAGE_CONTRACT=aria-pressed synchronization, button:focus-visible, 3px outline
+```
+
+**Result:** PASS for the checks executed before routing the test-owned blocker.
+
+### Reopened Finding Accounting
+
+| Finding | Implementation disposition | Required next owner |
+|---|---|---|
+| GAP-BUG004-001 | Remains open. The exact declarations are present and this implementation run observed 1/1 GREEN for each, but independent TEST-phase execution is still required. | `bubbles.test` |
+| GAP-BUG004-002 | Resolved on the production surface: acceptance-time claims, inert stale controls, replaceable latest successor, provider-at-start, and exact settlement pass TP-B004-01..04 and the 13-test carrier. | `bubbles.test` for independent exact GREEN and regressions |
+| GAP-BUG004-003 | Resolved on the production surface: semantic selected state and a local 3px non-transparent `:focus-visible` outline are implemented. The unchanged carrier's programmatic-focus setup blocks valid browser GREEN. | `bubbles.test` to correct the genuine setup defect and independently execute TP-B004-08 |
+| GAP-BUG004-004 | Remains open and untouched. Canonical note alignment is foreign-owned. | `bubbles.docs` after test evidence |
+
+No commit, stage, push, stash, reset, revert, notes edit, planning-text edit,
+certification mutation, parent Feature 012 mutation, network authority, storage
+operation, or dependency change was performed.
+
+## Reopened Gaps Independent GREEN
+
+**Phase:** test
+
+**Scope:** BUG-004 SCOPE-01 reopened rows and findings `GAP-BUG004-001`,
+`GAP-BUG004-002`, and `GAP-BUG004-003`
+
+**Claim Source:** executed
+
+**Outcome:** `ROUTE_REQUIRED_IMPLEMENTATION_STATE_CLOSEOUT`
+
+This independent TEST increment changed only the direct-Power test's focus
+setup plus test-owned evidence, DoD checkboxes, and execution/finding state.
+It did not edit production source, planning text, documentation, certification,
+parent Feature 012, dependencies, deployment state, or secrets. The target
+button now receives focus through a real Tab or Shift+Tab transition from a
+dynamically selected adjacent button. The selected and target indices are
+derived from the live group; no button position is assumed.
+
+### Repository Binding
+
+**Executed:** YES (current session)
+
+**Command:** `timeout 120 bash .github/bubbles/scripts/repository-binding.sh validate-packet --session-id vscode-eb9cb76de5cf2a992bf149706789fb73 --session-control-file <private-control-file> --packet-file <exact-actionable-packet>`
+
+**Exit Code:** 0
+
+**Claim Source:** executed
+
+```text
+REPOSITORY PACKET VALID actionable=true repository=research-lab root=~/research-lab decision=rb:vscode-eb9cb76de5cf2a992bf149706789fb73:4 revision=4
+```
+
+### TP-B004-08 Focus-Modality RED And Test-Owned Repair
+
+The pre-edit exact browser discriminator discovered one test and reached the
+post-Enter focus assertion after `aria-pressed` moved. It failed because the
+test had called `target.focus()` programmatically:
+
+**Executed:** YES (current session)
+
+**Command:** `timeout 1800 npx --no-install playwright test --config=playwright.config.mjs --project=system-chrome tests/market-heatmap-control-surface.spec.mjs --grep "BUG-004 SCN-B004-C: direct Power" --reporter=list`
+
+**Exit Code:** 1
+
+**Claim Source:** executed
+
+```text
+Running 1 test using 1 worker
+✘ 1 BUG-004 SCN-B004-C: direct Power applies native treemap controls with zero post-hydration requests
+Error: #winSeg: keyboard target must match :focus-visible
+expect(received).toBe(expected)
+Expected: true
+Received: false
+at tests/market-heatmap-control-surface.spec.mjs:673:102
+1 failed
+[system-chrome] BUG-004 SCN-B004-C: direct Power applies native treemap controls with zero post-hydration requests
+```
+
+The first keyboard-transition probe exposed a second test-only issue rather than
+a product failure: `button:not(.on)` is state-relative, so after Enter the
+locator retargeted the now-unselected former button before the focus-ring read.
+The final setup snapshots the first unselected button's dynamically derived
+index into `buttons.nth(targetIndex)`, focuses an adjacent real button solely as
+the starting point, traverses with Shift+Tab when the target index is zero and
+Tab otherwise, requires the stable target to be focused, and then presses Enter.
+All semantic, focus-visible, computed-outline, `.on`, output, treemap-pixel, and
+no-request assertions remain in place.
+
+### Exact TP-B004-01 Through TP-B004-04 GREEN
+
+Each canonical selector ran individually with `timeout 600`. Every output echoed
+the exact top-level title and reported one discovered test, one pass, zero
+failures, and zero skips. No file-wrapper-only output was accepted.
+
+**Executed:** YES (current session)
+
+**Exit Code:** 0 for all four commands
+
+**Claim Source:** executed
+
+```text
+✔ TP-B004-01 requestSimpleRefresh rejects non-current contexts and settles invalidated queued work (11.730368ms)
+ℹ tests 1
+ℹ suites 0
+ℹ pass 1
+ℹ fail 0
+ℹ cancelled 0
+ℹ skipped 0
+ℹ todo 0
+ℹ duration_ms 114.822604
+
+✔ TP-B004-02 requestSimpleRefresh coalesces same-turn duplicates and replaces the pending successor (47.676408ms)
+ℹ tests 1
+ℹ suites 0
+ℹ pass 1
+ℹ fail 0
+ℹ cancelled 0
+ℹ skipped 0
+ℹ todo 0
+ℹ duration_ms 143.549484
+
+✔ TP-B004-03 accepted mid-run refresh immediately invalidates active generation and stale controls (64.261452ms)
+ℹ tests 1
+ℹ suites 0
+ℹ pass 1
+ℹ fail 0
+ℹ cancelled 0
+ℹ skipped 0
+ℹ todo 0
+ℹ duration_ms 161.240442
+
+✔ TP-B004-04 current and stale refresh promises settle without overwriting current truth (77.754725ms)
+ℹ tests 1
+ℹ suites 0
+ℹ pass 1
+ℹ fail 0
+ℹ cancelled 0
+ℹ skipped 0
+ℹ todo 0
+ℹ duration_ms 185.804755
+```
+
+Exact commands:
+
+- `timeout 600 node --test --test-name-pattern="^TP-B004-01 requestSimpleRefresh rejects non-current contexts and settles invalidated queued work$" tests/simple-production-bridge.unit.mjs`
+- `timeout 600 node --test --test-name-pattern="^TP-B004-02 requestSimpleRefresh coalesces same-turn duplicates and replaces the pending successor$" tests/simple-production-bridge.unit.mjs`
+- `timeout 600 node --test --test-name-pattern="^TP-B004-03 accepted mid-run refresh immediately invalidates active generation and stale controls$" tests/simple-production-bridge.unit.mjs`
+- `timeout 600 node --test --test-name-pattern="^TP-B004-04 current and stale refresh promises settle without overwriting current truth$" tests/simple-production-bridge.unit.mjs`
+
+### Full Bridge Unit And Integration Carriers
+
+**Executed:** YES (current session)
+
+**Commands:** `timeout 600 node --test tests/simple-production-bridge.unit.mjs`;
+`timeout 600 node --test tests/simple-production-bridge.integration.mjs`
+
+**Exit Code:** 0 for both commands
+
+**Claim Source:** executed
+
+```text
+✔ renderSimpleBridge is exposed on the production API
+✔ provider present + real owner state renders the REAL market-breadth adapter (ready), never mutates rlv-focused
+✔ no owner-state provider renders honest unavailable, no invented signal, never mutates rlv-focused
+✔ owner evidence does not permit a run (unhydrated) and remains honest unavailable
+✔ missing adapter module remains honest unavailable
+✔ TP-B004-01 requestSimpleRefresh rejects non-current contexts and settles invalidated queued work
+✔ TP-B004-02 requestSimpleRefresh coalesces same-turn duplicates and replaces the pending successor
+✔ TP-B004-03 accepted mid-run refresh immediately invalidates active generation and stale controls
+✔ TP-B004-04 current and stale refresh promises settle without overwriting current truth
+✔ queued invalidation, leaving-Simple, ownerModes, and no-forbidden-authority canaries
+ℹ tests 13
+ℹ pass 13
+ℹ fail 0
+ℹ cancelled 0
+ℹ skipped 0
+ℹ todo 0
+[TP-15-02] wired (19); ordinary=22 wired=19 declared-unwired=3 unaccounted=0
+[TP-15-02] strict parity (module loaded by the page): 18 of 19
+[TP-15-02] honest generic unavailable: technical-analysis-decision-lab
+ℹ integration tests 6
+ℹ integration pass 6
+ℹ integration fail 0
+ℹ integration skipped 0
+```
+
+### Exact TP-B004-08 GREEN And Three-Group Structure
+
+**Executed:** YES (current session)
+
+**Commands:** exact TP-B004-08 command with `timeout 1800`; direct-C structural
+audit of native groups and retained assertions; `timeout 60 npx --no-install
+playwright --version`
+
+**Exit Code:** 0 for every command
+
+**Claim Source:** executed
+
+```text
+Version 1.61.1
+Running 1 test using 1 worker
+✓ 1 BUG-004 SCN-B004-C: direct Power applies native treemap controls with zero post-hydration requests (3.8m)
+1 passed (3.8m)
+TP_B004_08_TITLE_COUNT=1
+NATIVE_LEVER_COUNT=3
+NATIVE_LEVER id=winSeg attribute=data-w ownedOutput=#tbody
+NATIVE_LEVER id=sizeSeg attribute=data-s ownedOutput=#tbody
+NATIVE_LEVER id=grpSeg attribute=data-g ownedOutput=#breadth
+DIRECT_C_PROGRAMMATIC_TARGET_FOCUS=0
+DIRECT_C_ADJACENT_START_FOCUS=1
+DIRECT_C_KEYBOARD_TRANSITION=PRESENT
+DIRECT_C_TARGET_FOCUSED_ASSERT=1
+DIRECT_C_ARIA_PRESSED_ASSERTIONS=10
+DIRECT_C_FOCUS_VISIBLE_ASSERTIONS=6
+DIRECT_C_OUTLINE_WIDTH_ASSERTION=PRESENT
+DIRECT_C_OWNED_OUTPUT_ASSERTION=PRESENT
+DIRECT_C_TREEMAP_PIXEL_ASSERTION=PRESENT
+DIRECT_C_NO_REQUEST_ASSERTION=PRESENT
+LIVE_INTERCEPTION_CALLS=0
+```
+
+The exact TP-B004-08 run traversed `winSeg`, `sizeSeg`, and `grpSeg` through the
+single `NATIVE_LEVERS` loop. A pass therefore requires every retained assertion
+for all three groups; the structural audit proves the loop still contains all
+three and has no programmatic target focus or interception.
+
+### Dedicated Browser And Protected Wiring Carriers
+
+**Executed:** YES (current session)
+
+**Commands:** full four-test dedicated BUG-004 browser file; full four-test
+protected production-wiring browser file, both through system Chrome with one
+worker and `timeout 1800`
+
+**Exit Code:** 0 for both commands
+
+**Claim Source:** executed
+
+```text
+Running 4 tests using 1 worker
+✓ 1 direct Simple cold-open requalifies after owner hydration without a mode change (3.3m)
+✓ 2 ready Simple applies all five registry controls with owner parity and zero post-hydration requests (3.4m)
+✓ 3 direct Power applies native treemap controls with zero post-hydration requests (3.7m)
+✓ 4 boot hydrates the union of both groupings, so the grouping lever acquires nothing (3.4m)
+4 passed (13.8m)
+
+Running 4 tests using 1 worker
+✓ 1 market-heatmap Simple renders the real adapter panel in the real owner-mode flow (2.2s)
+✓ 2 actuating one control recomputes the production projection with no refetch (3.5m)
+✓ 3 every wired ordinary tool paints its real Simple adapter panel with an owner-parity fact (6.7m)
+TP-15-04/SCN-012-041 derived native #simpleView tools: 7 of 19 wired (4 also declare #powerView)
+TP-15-04 swept 19 wired tools: 17 ready, 2 honestly unavailable
+TP-15-04/SCN-012-041 native demotion verified on 7 tools
+✓ 4 swept set and honest-degradation cases are registry/provider derived (102ms)
+4 passed (10.3m)
+```
+
+### Broad Selftest, Regression Quality, Parse, And Byte Identity
+
+**Executed:** YES (current session)
+
+**Commands:** `timeout 900 node scripts/selftest.mjs`; bugfix regression-quality
+guard; `node --check` for the six BUG/shared JavaScript carriers; canonical
+heatmap inline-script/ID check; SHA-256 and Git-blob capture
+
+**Exit Code:** 0 for every command
+
+**Claim Source:** executed
+
+```text
+Feature 012 Scope 15 production Simple-view bridge canaries
+✓ wired set derived from production registry + pages: 19 wired of 23 definitions
+✓ every page provider resolves to a registry definition: 0 orphan wirings, 0 identity gaps
+✓ every wired adapter module exists, loads, exports, and registers through the REAL runtime: 19/19
+✓ runtime diagnostic reports every forbidden authority false: 6 flags x 19 tools
+✓ exactly one executable rlv-focused write exists and it remains in rlviews.js
+✓ bridge path owns no network, provider, storage, cookie, or rlv-focused authority
+✓ ownerModes and focus predicate preserve wired Simple, Power, unwired native Simple, and Brief
+✓ RLEXPERIENCE.renderSimpleBridge remains exposed
+Research-Lab self-test: 970 passed, 0 failed
+BUBBLES REGRESSION QUALITY GUARD
+Adversarial signal detected in tests/market-heatmap-control-surface.spec.mjs
+REGRESSION QUALITY RESULT: 0 violation(s), 0 warning(s)
+Files scanned: 1
+Files with adversarial signals: 1
+OK page=market-heatmap-lab.html inline=1 refs=0
+08e54dd45e35dc94a0fb433209d4bc2648b6d5388230286007d126af73580a2c  rlexperience.js
+44b0b8bb77ce8622ade230ddb772cf8fb78be5569e471fb6a7b69c7302f1ae49  market-heatmap-lab.html
+b81b755df8a30df500c90009929b7956fb1b80d23d9db5cb72e1a57362d51563  tests/market-heatmap-control-surface.spec.mjs
+b47c07b188c9840ce4e69c1ee23e85da5ae9afa9c07e36c4eeadcdc5945180e1  tests/simple-production-bridge.unit.mjs
+550cef20320cd3adce209d23245584592ea99d9f0aec3893c85a9158d8c04361  tests/simple-production-bridge.integration.mjs
+cca372f6011056f351608a53449086045d987dc623d57cf080ff6e402766f3dd  tests/simple-production-wiring.spec.mjs
+de430414dd689c7508fc27f9348c39bcce464d3f091a91940febf473ebf091be  scripts/selftest.mjs
+b35e8e75984b6a21a2e0c7a505d38a85190ec46bcfe6bf2312395a44e1c222cd  playwright.config.mjs
+GIT_BLOB rlexperience.js 7a83f8f0525d7886874028c148b1f13eaf089d1e
+GIT_BLOB market-heatmap-lab.html eb895d976ab55113e839a00c14980b7270f08e25
+GIT_BLOB dedicated-test 2f026012e6a1c3e39c9850341d63ca497f4662a2
+GIT_BLOB bridge-unit be408291c6ed128165273ff0f4b2947be9d59b1c
+GIT_BLOB bridge-integration 618f0c5b923fd3e9cd6dadd625dcd851f919328c
+GIT_BLOB protected-wiring 1f7a91b1ccfb99b8f4833bc54eff653b88c59639
+GIT_BLOB selftest 1899e945ab3c3e7bccb9f553014070d8b8def3fc
+GIT_BLOB playwright-config d04ae12216125b710a1f94645feac2e28c1467cc
+```
+
+The two production SHA-256 values exactly match the implementation owner's
+recorded final identities. No production source was altered by this test phase.
+The dedicated test's new Git blob is the expected test-owned keyboard-modality
+setup; all other listed browser/bridge identities are captured for this matrix.
+
+### Independent Finding Accounting And Handback
+
+| Finding / transition | Test-owned disposition |
+|---|---|
+| `GAP-BUG004-001` | RESOLVED: every exact selector independently discovers its named test and passes 1/1 with zero failures/skips; full carrier passes 13/13. |
+| `GAP-BUG004-002` | RESOLVED: TP-B004-02..04 and full carrier independently verify immediate generation claims, inert stale controls, latest-pending replacement, provider-at-start, and exact settlement. |
+| `GAP-BUG004-003` | RESOLVED: exact TP-B004-08 and the full dedicated file pass with real keyboard traversal, semantic selection, visible computed focus ring, output/pixel changes, and zero requests across all three groups. |
+| `GAP-BUG004-004` | OPEN: documentation remains unchecked and untouched. |
+| `TR-BUG004-IMPLEMENT-GAPS` | LEFT OPEN: `state.json` still routes this implementation-owned transition to `bubbles.implement`. Implementation must close its transition using its runtime evidence plus this independent GREEN, then open the docs route. |
+
+SCOPE-01 remains execution-side `in_progress` because documentation and the
+remaining closeout rows are unchecked. Top-level and certification status remain
+`in_progress`; certification completion arrays are untouched.
+
+### Post-Evidence Gate Validation
+
+**Executed:** YES (current session)
+
+**Commands:** focused artifact lint, BUG traceability guard, implementation
+reality scan, state-contract assertions, scoped `git diff --check`, production
+and test hash recapture, and editor diagnostics on all four edited files
+
+**Exit Code:** 0 for every final command; zero editor diagnostics
+
+**Claim Source:** executed
+
+The first post-edit traceability run reported SCN-B004-C unmapped after its
+evidence link label became generic. No planning behavior changed. The two checked
+accessibility rows were given an explicit `SCN-B004-C` evidence tag, after which
+the same guard mapped all four scenarios and returned zero warnings.
+
+```text
+STATE_CHECK PASS top status in_progress
+STATE_CHECK PASS certification status in_progress
+STATE_CHECK PASS certification scopes empty
+STATE_CHECK PASS certification phases empty
+STATE_CHECK PASS scope inventory in_progress
+STATE_CHECK PASS next owner implement
+STATE_CHECK PASS implementation transition open and pending
+STATE_CHECK PASS GAP-001 resolved
+STATE_CHECK PASS GAP-002 resolved
+STATE_CHECK PASS GAP-003 resolved
+STATE_CHECK PASS GAP-004 open
+STATE_CHECK PASS docs DoD unchecked
+STATE_CHECK PASS build quality unchecked
+STATE_CHECK PASS no open docs route
+STATE_CHECK_FAILURES=0
+Artifact lint PASSED.
+scenario-manifest.json covers 4 scenario contracts
+All linked tests from scenario-manifest.json exist
+Scenarios checked: 4
+Scenario-to-row mappings: 4
+DoD fidelity scenarios: 4 (mapped: 4, unmapped: 0)
+TRACEABILITY RESULT: PASSED (0 warnings)
+IMPLEMENTATION REALITY SCAN RESULT
+Files scanned: 1
+Violations: 0
+Warnings: 0
+PASSED: No source code reality violations detected
+08e54dd45e35dc94a0fb433209d4bc2648b6d5388230286007d126af73580a2c  rlexperience.js
+44b0b8bb77ce8622ade230ddb772cf8fb78be5569e471fb6a7b69c7302f1ae49  market-heatmap-lab.html
+b81b755df8a30df500c90009929b7956fb1b80d23d9db5cb72e1a57362d51563  tests/market-heatmap-control-surface.spec.mjs
+GIT_BLOB rlexperience.js 7a83f8f0525d7886874028c148b1f13eaf089d1e
+GIT_BLOB market-heatmap-lab.html eb895d976ab55113e839a00c14980b7270f08e25
+GIT_BLOB dedicated-test 2f026012e6a1c3e39c9850341d63ca497f4662a2
+git diff --check: exit 0, no output
+test file diagnostics: No errors found
+report.md diagnostics: No errors found
+scopes.md diagnostics: No errors found
+state.json diagnostics: No errors found
+```
+
+## Implementation Closeout By Independent Evidence
+
+**Phase:** implement
+
+**Scope:** BUG-004 SCOPE-01 reopened implementation gaps
+
+**Claim Source:** executed
+
+**Interpretation:** The exact byte-identity match admits the test outcomes from
+[Reopened Gaps Independent GREEN](#reopened-gaps-independent-green) by
+reference; no test was rerun in this closeout.
+
+**Outcome:** `ROUTE_REQUIRED_DOCS`
+
+No source or test was edited or rerun during this closeout. A current-session,
+fail-closed comparison matched all eight recorded SHA-256 identities and all
+eight Git blob identities from the independent GREEN report:
+
+```text
+SHA256 path=rlexperience.js expected=08e54dd45e35dc94a0fb433209d4bc2648b6d5388230286007d126af73580a2c actual=08e54dd45e35dc94a0fb433209d4bc2648b6d5388230286007d126af73580a2c status=MATCH
+GIT_BLOB path=rlexperience.js expected=7a83f8f0525d7886874028c148b1f13eaf089d1e actual=7a83f8f0525d7886874028c148b1f13eaf089d1e status=MATCH
+SHA256 path=market-heatmap-lab.html expected=44b0b8bb77ce8622ade230ddb772cf8fb78be5569e471fb6a7b69c7302f1ae49 actual=44b0b8bb77ce8622ade230ddb772cf8fb78be5569e471fb6a7b69c7302f1ae49 status=MATCH
+GIT_BLOB path=market-heatmap-lab.html expected=eb895d976ab55113e839a00c14980b7270f08e25 actual=eb895d976ab55113e839a00c14980b7270f08e25 status=MATCH
+SHA256 path=tests/market-heatmap-control-surface.spec.mjs expected=b81b755df8a30df500c90009929b7956fb1b80d23d9db5cb72e1a57362d51563 actual=b81b755df8a30df500c90009929b7956fb1b80d23d9db5cb72e1a57362d51563 status=MATCH
+GIT_BLOB path=tests/market-heatmap-control-surface.spec.mjs expected=2f026012e6a1c3e39c9850341d63ca497f4662a2 actual=2f026012e6a1c3e39c9850341d63ca497f4662a2 status=MATCH
+SHA256 path=tests/simple-production-bridge.unit.mjs expected=b47c07b188c9840ce4e69c1ee23e85da5ae9afa9c07e36c4eeadcdc5945180e1 actual=b47c07b188c9840ce4e69c1ee23e85da5ae9afa9c07e36c4eeadcdc5945180e1 status=MATCH
+GIT_BLOB path=tests/simple-production-bridge.unit.mjs expected=be408291c6ed128165273ff0f4b2947be9d59b1c actual=be408291c6ed128165273ff0f4b2947be9d59b1c status=MATCH
+SHA256 path=tests/simple-production-bridge.integration.mjs expected=550cef20320cd3adce209d23245584592ea99d9f0aec3893c85a9158d8c04361 actual=550cef20320cd3adce209d23245584592ea99d9f0aec3893c85a9158d8c04361 status=MATCH
+GIT_BLOB path=tests/simple-production-bridge.integration.mjs expected=618f0c5b923fd3e9cd6dadd625dcd851f919328c actual=618f0c5b923fd3e9cd6dadd625dcd851f919328c status=MATCH
+SHA256 path=tests/simple-production-wiring.spec.mjs expected=cca372f6011056f351608a53449086045d987dc623d57cf080ff6e402766f3dd actual=cca372f6011056f351608a53449086045d987dc623d57cf080ff6e402766f3dd status=MATCH
+GIT_BLOB path=tests/simple-production-wiring.spec.mjs expected=1f7a91b1ccfb99b8f4833bc54eff653b88c59639 actual=1f7a91b1ccfb99b8f4833bc54eff653b88c59639 status=MATCH
+SHA256 path=scripts/selftest.mjs expected=de430414dd689c7508fc27f9348c39bcce464d3f091a91940febf473ebf091be actual=de430414dd689c7508fc27f9348c39bcce464d3f091a91940febf473ebf091be status=MATCH
+GIT_BLOB path=scripts/selftest.mjs expected=1899e945ab3c3e7bccb9f553014070d8b8def3fc actual=1899e945ab3c3e7bccb9f553014070d8b8def3fc status=MATCH
+SHA256 path=playwright.config.mjs expected=b35e8e75984b6a21a2e0c7a505d38a85190ec46bcfe6bf2312395a44e1c222cd actual=b35e8e75984b6a21a2e0c7a505d38a85190ec46bcfe6bf2312395a44e1c222cd status=MATCH
+GIT_BLOB path=playwright.config.mjs expected=d04ae12216125b710a1f94645feac2e28c1467cc actual=d04ae12216125b710a1f94645feac2e28c1467cc status=MATCH
+IDENTITY_MATCH_COUNTS sha256=8 git_blob=8
+IDENTITY_CHECK_EXIT=0
+```
+
+The unchanged identities admit the test-owned exact TP-B004-01..04 1/1 runs,
+13/13 bridge carrier, exact TP-B004-08 1/1 run, dedicated 4/4 carrier,
+integration 6/6, selftest 970/970, protected wiring 4/4, and clean regression
+guard by reference. `GAP-BUG004-001`, `GAP-BUG004-002`, and
+`GAP-BUG004-003` therefore remain independently resolved.
+`TR-BUG004-IMPLEMENT-GAPS` is closed. `GAP-BUG004-004` remains open and is
+routed to `bubbles.docs` for `notes/market-heatmap-lab.md`; SCOPE-01, top-level
+status, and certification remain `in_progress`.
+
+## Documentation Gap Closure - bubbles.docs - 2026-07-30
+
+**Phase:** docs
+
+**Claim Source:** interpreted
+
+**Interpretation:** Current `simple-models.json`, `market-heatmap-lab.html`,
+`rlexperience.js`, and the persistent BUG-004 browser assertions agree on one
+source-level implementation contract. The canonical note now publishes that
+contract without converting local implementation or test evidence into a
+GitHub Pages deployment or remote-bundle claim.
+
+### Drift Detected And Corrected
+
+| Before | Current implementation truth | Documentation action |
+|---|---|---|
+| The note said both `LIVE` and proposed/not built. | The single-file page and its registry entries exist in the repository. | Kept one `LIVE` repository-implementation status and removed the contradictory proposal language. |
+| Simple documented only color window, size metric, and grouping. | The production registry declares `window`, `grouping`, `size-metric`, `breadth-threshold`, and `outlier-sigma`. | Documented all five controls, their exact domains, and local production recomputation over hydrated owner state. |
+| Native controls appeared only in an obsolete promotion plan. | Power exposes `#winSeg`, `#sizeSeg`, and `#grpSeg` beside the treemap and diagnostics. | Documented all three groups, explicit `aria-pressed` selection, and visible keyboard `:focus-visible` treatment. |
+| The note had no current cold-open lifecycle contract. | Direct Simple may begin honestly `unavailable`, then the shared bridge rereads terminal owner state; insufficient settled evidence remains unavailable. | Documented automatic requalification and the honest insufficient-evidence branch. |
+| The note retained an obsolete build/promotion checklist. | Boot hydrates one deduplicated union and all eight controls recompute locally after hydration. | Removed the checklist and documented one owner state, one acquisition cycle, and zero post-hydration acquisition. |
+
+The note retains the squarified-treemap model, delayed/EOD caveat, index-weight
+proxy disclosure, provider/cache provenance, canvas/table accessibility, shared
+Simple/Power computation boundary, and educational/non-advice statement.
+
+### <a name="tr-bug004-docs-gap-evidence"></a>Focused Contract And Contradiction Check
+
+**Executed:** YES (current session)
+
+**Command:** executed from the repository root:
+
+```bash
+set +e
+echo '=== ACTIVE STATUS ==='
+grep -n 'Status: LIVE' notes/market-heatmap-lab.md
+status_rc=$?
+echo '=== SIMPLE CONTROL CONTRACT ==='
+grep -nE '`window`|`grouping`|`size-metric`|`breadth-threshold`|`outlier-sigma`' notes/market-heatmap-lab.md
+simple_rc=$?
+echo '=== POWER CONTROL CONTRACT ==='
+grep -nE '`#winSeg`|`#sizeSeg`|`#grpSeg`|aria-pressed|focus-visible' notes/market-heatmap-lab.md
+power_rc=$?
+echo '=== READINESS AND ACQUISITION ==='
+grep -nE 'honest `unavailable`|automatically requalifies|terminal boundary|one deduplicated symbol union|no provider read|zero post-hydration acquisition|pure local recomputations' notes/market-heatmap-lab.md
+lifecycle_rc=$?
+echo '=== CONTRADICTION TOKENS (EXPECT NONE) ==='
+grep -niE 'proposed|not yet built|three levers|build checklist|promoting' notes/market-heatmap-lab.md
+contradiction_rc=$?
+echo "STATUS_RC=$status_rc SIMPLE_RC=$simple_rc POWER_RC=$power_rc LIFECYCLE_RC=$lifecycle_rc CONTRADICTION_RC=$contradiction_rc"
+[[ "$status_rc" -eq 0 && "$simple_rc" -eq 0 && "$power_rc" -eq 0 && "$lifecycle_rc" -eq 0 && "$contradiction_rc" -eq 1 ]]
+```
+
+**Exit Code:** 0
+
+**Claim Source:** executed
+
+```text
+=== ACTIVE STATUS ===
+3:> **Status: LIVE (repository implementation, 2026-07-30).** The single-file tool
+=== SIMPLE CONTROL CONTRACT ===
+103:| `window` | `1d`, `1w`, `1m` | Selects the return window used to classify leadership |
+104:| `grouping` | `sector`, `industry` | Selects the breadth aggregation grouping |
+105:| `size-metric` | `index-weight`, `dollar-volume`, `equal` | Selects constituent weighting |
+106:| `breadth-threshold` | 0–100%, step 1 | Sets the threshold for broad leadership |
+107:| `outlier-sigma` | 0.5–4σ, step 0.25 | Sets the within-group outlier threshold |
+=== POWER CONTROL CONTRACT ===
+119:| `#winSeg` | 1 day, 1 week, 1 month | Treemap color window and constituent returns |
+120:| `#sizeSeg` | Weight, dollar volume, Equal | Treemap tile area and constituent sizing |
+121:| `#grpSeg` | Constituents, Sectors | Treemap grouping and breadth diagnostics |
+123:Each segmented button carries explicit `aria-pressed="true|false"` state, with
+126:`:focus-visible` and paints a non-transparent 3px outline. The selected lever
+=== READINESS AND ACQUISITION ===
+90:Direct Simple can first render an honest `unavailable` projection while the
+92:terminal boundary, the page asks the shared production bridge to reread that
+93:owner state. Sufficient evidence automatically requalifies the panel to
+110:already-hydrated owner state. A control change performs no provider read, fetch,
+137:Boot paints from cache first, then hydrates one deduplicated symbol union built
+139:feeds both groupings and both views. The terminal boundary settles acquisition,
+164:| 2026-07-30 | BUG-004 source contract documented: automatic terminal-hydration requalification, five production Simple controls, accessible native Power controls, one boot-hydrated union, and zero post-hydration acquisition. No Pages or remote-bundle claim added. |
+=== CONTRADICTION TOKENS (EXPECT NONE) ===
+STATUS_RC=0 SIMPLE_RC=0 POWER_RC=0 LIFECYCLE_RC=0 CONTRADICTION_RC=1
+```
+
+### Documentation Link Integrity
+
+**Executed:** YES (current session)
+
+**Command:**
+
+```bash
+timeout 60 node --input-type=module -e 'import fs from "node:fs"; import path from "node:path"; const doc="notes/market-heatmap-lab.md"; const text=fs.readFileSync(doc,"utf8"); const links=[...text.matchAll(/\[[^\]]+\]\(([^)]+)\)/g)].map((match)=>match[1]).filter((target)=>!target.startsWith("#")&&!/^[a-z]+:/i.test(target)); let missing=0; console.log("DOC_LINK_CHECK"); console.log(`DOCUMENT=${doc}`); console.log(`DOCUMENT_DIR=${path.dirname(doc)}`); links.forEach((target,index)=>{ const withoutAnchor=target.split("#")[0]; const resolved=path.resolve(path.dirname(doc),decodeURIComponent(withoutAnchor)); const exists=fs.existsSync(resolved); if(!exists) missing+=1; console.log(`LINK_${index+1} target=${target} resolved=${path.relative(process.cwd(),resolved)} exists=${exists}`); }); console.log(`LOCAL_LINK_COUNT=${links.length}`); console.log(`LOCAL_LINK_MISSING=${missing}`); console.log(`DOC_LINK_CHECK_EXIT=${missing===0?0:1}`); if(missing!==0) process.exitCode=1;'
+```
+
+**Exit Code:** 0
+
+**Claim Source:** executed
+
+```text
+DOC_LINK_CHECK
+DOCUMENT=notes/market-heatmap-lab.md
+DOCUMENT_DIR=notes
+LINK_1 target=../market-heatmap-lab.html resolved=market-heatmap-lab.html exists=true
+LINK_2 target=../index.html resolved=index.html exists=true
+LINK_3 target=../tools.json resolved=tools.json exists=true
+LINK_4 target=../rlnav.js resolved=rlnav.js exists=true
+LINK_5 target=sector-research-lab.md resolved=notes/sector-research-lab.md exists=true
+LINK_6 target=../sector-universe.json resolved=sector-universe.json exists=true
+LINK_7 target=../sector-universe.json resolved=sector-universe.json exists=true
+LOCAL_LINK_COUNT=7
+LOCAL_LINK_MISSING=0
+DOC_LINK_CHECK_EXIT=0
+```
+
+### Stable Implementation Evidence Boundary
+
+**Executed:** YES (current session)
+
+**Command:** executed from the repository root against the exact identities in
+[Implementation Closeout By Independent Evidence](#implementation-closeout-by-independent-evidence):
+
+```bash
+timeout 60 node --input-type=module -e 'import fs from "node:fs"; import crypto from "node:crypto"; import {execFileSync} from "node:child_process"; const rows=[["rlexperience.js","08e54dd45e35dc94a0fb433209d4bc2648b6d5388230286007d126af73580a2c","7a83f8f0525d7886874028c148b1f13eaf089d1e"],["market-heatmap-lab.html","44b0b8bb77ce8622ade230ddb772cf8fb78be5569e471fb6a7b69c7302f1ae49","eb895d976ab55113e839a00c14980b7270f08e25"],["tests/market-heatmap-control-surface.spec.mjs","b81b755df8a30df500c90009929b7956fb1b80d23d9db5cb72e1a57362d51563","2f026012e6a1c3e39c9850341d63ca497f4662a2"],["tests/simple-production-bridge.unit.mjs","b47c07b188c9840ce4e69c1ee23e85da5ae9afa9c07e36c4eeadcdc5945180e1","be408291c6ed128165273ff0f4b2947be9d59b1c"],["tests/simple-production-bridge.integration.mjs","550cef20320cd3adce209d23245584592ea99d9f0aec3893c85a9158d8c04361","618f0c5b923fd3e9cd6dadd625dcd851f919328c"],["tests/simple-production-wiring.spec.mjs","cca372f6011056f351608a53449086045d987dc623d57cf080ff6e402766f3dd","1f7a91b1ccfb99b8f4833bc54eff653b88c59639"],["scripts/selftest.mjs","de430414dd689c7508fc27f9348c39bcce464d3f091a91940febf473ebf091be","1899e945ab3c3e7bccb9f553014070d8b8def3fc"],["playwright.config.mjs","b35e8e75984b6a21a2e0c7a505d38a85190ec46bcfe6bf2312395a44e1c222cd","d04ae12216125b710a1f94645feac2e28c1467cc"]]; let failures=0; for(const [file,expectedSha,expectedBlob] of rows){const sha=crypto.createHash("sha256").update(fs.readFileSync(file)).digest("hex"); const blob=execFileSync("git",["hash-object","--",file],{encoding:"utf8"}).trim(); const shaStatus=sha===expectedSha?"MATCH":"MISMATCH"; const blobStatus=blob===expectedBlob?"MATCH":"MISMATCH"; if(shaStatus!=="MATCH"||blobStatus!=="MATCH") failures+=1; console.log(`IDENTITY path=${file} sha256=${shaStatus} git_blob=${blobStatus}`);} console.log(`IDENTITY_MATCH_FILES=${rows.length-failures}`); console.log(`IDENTITY_FAILURES=${failures}`); console.log(`IDENTITY_CHECK_EXIT=${failures===0?0:1}`); if(failures) process.exitCode=1;'
+```
+
+**Exit Code:** 0
+
+**Claim Source:** executed
+
+```text
+IDENTITY path=rlexperience.js sha256=MATCH git_blob=MATCH
+IDENTITY path=market-heatmap-lab.html sha256=MATCH git_blob=MATCH
+IDENTITY path=tests/market-heatmap-control-surface.spec.mjs sha256=MATCH git_blob=MATCH
+IDENTITY path=tests/simple-production-bridge.unit.mjs sha256=MATCH git_blob=MATCH
+IDENTITY path=tests/simple-production-bridge.integration.mjs sha256=MATCH git_blob=MATCH
+IDENTITY path=tests/simple-production-wiring.spec.mjs sha256=MATCH git_blob=MATCH
+IDENTITY path=scripts/selftest.mjs sha256=MATCH git_blob=MATCH
+IDENTITY path=playwright.config.mjs sha256=MATCH git_blob=MATCH
+IDENTITY_MATCH_FILES=8
+IDENTITY_FAILURES=0
+IDENTITY_CHECK_EXIT=0
+```
+
+No browser test, deployment probe, GitHub Pages fetch, or remote-bundle check
+ran in this docs phase. The documented `LIVE` status is intentionally limited to
+the repository implementation.
+
+## Final Change Boundary And Rollback Closeout
+
+**Phase:** implement
+
+**Scope:** BUG-004 SCOPE-01 change-boundary transition
+
+**Claim Source:** executed
+
+**Outcome:** `ROUTE_REQUIRED_BUILD_QUALITY`
+
+The actionable repository packet was validated at control revision 5 before any
+repository read. The current source and test bytes match the independent GREEN
+report exactly, so this closeout admits those test results by identity and does
+not rerun them. The documentation byte is captured separately because it was
+produced by the later docs-owned correction.
+
+### Complete Implementation And Concurrent History
+
+| Revision / state | Classification | Paths and disposition |
+|---|---|---|
+| `31ea9942` | Historical RED baseline | Generic control renderer absent; retained only as the immutable B discriminator. |
+| `2f65a02a` | Protected concurrent predecessor | Adds the generic five-control renderer and low-level `renderSimpleBridge`; rollback must preserve this revision's bridge and native lever nodes. |
+| `087ad2ad` | BUG-004 implementation | Adds the BUG packet, direct-Simple/direct-Power implementation, and dedicated persistent browser carrier. |
+| `5c77e1f1` | BUG-004 implementation | Adds grouping-local recomputation, queued-run invalidation, coordinator canaries, and synchronized BUG artifacts. |
+| `007befaf` | BUG-004 simplify | Removes only the redundant second settled-state heatmap render. |
+| current working bytes | BUG-004 gap remediation and docs | Final coordinator generation semantics, native keyboard accessibility assertions/styles, dedicated tests, and canonical note alignment. |
+
+Interleaved commits `b674ffc1`, `bc3b7303`, `a7631b36`, `acf042bb`,
+`abe04baf`, `7ebf0a3b`, `b548519e`, and `77dcd85c` are retained concurrent
+Scope-15 or other-spec work. The closeout neither attributes them to BUG-004 nor
+includes them in the rollback set. During the boundary snapshot, HEAD advanced
+from `391acd92` to `1513ac92` through an unrelated BUG-003 commit; BUG-004's
+eight admitted source/test identities remained unchanged.
+
+### Exact Owned And Current Path Matrix
+
+| Class | Path | Pre-closeout worktree state | Closeout disposition |
+|---|---|---:|---|
+| production | `rlexperience.js` | modified, GREEN identity | preserve; no edit |
+| production | `market-heatmap-lab.html` | modified, GREEN identity | preserve; no edit |
+| test | `tests/market-heatmap-control-surface.spec.mjs` | modified, GREEN identity | preserve; no edit |
+| test | `tests/simple-production-bridge.unit.mjs` | modified, GREEN identity | preserve; no edit |
+| test | `tests/simple-production-bridge.integration.mjs` | clean, GREEN identity | preserve; no edit |
+| test | `tests/simple-production-wiring.spec.mjs` | clean, GREEN identity | preserve protected `2f65a02a`; no edit |
+| test | `scripts/selftest.mjs` | clean, GREEN identity | preserve; no edit |
+| test config | `playwright.config.mjs` | clean, GREEN identity | preserve; no edit |
+| docs | `notes/market-heatmap-lab.md` | modified, docs-owned identity | preserve; no edit |
+| artifact | `bug.md` | clean | foreign-owned; no edit |
+| artifact | `design.md` | clean | foreign-owned; no edit |
+| artifact | `spec.md` | clean | foreign-owned; no edit |
+| artifact | `uservalidation.md` | clean | foreign-owned; no edit |
+| artifact | `scenario-manifest.json` | modified before closeout | planning-owned; preserve; no edit |
+| artifact | `test-plan.json` | modified before closeout | planning-owned; preserve; no edit |
+| artifact | `report.md` | modified before closeout | append this implementation evidence only |
+| artifact | `scopes.md` | modified before closeout | boundary checkbox and evidence reference only |
+| artifact | `state.json` | modified before closeout | execution transition/history only |
+| concurrent | `tests/contextual-tooltip.functional.mjs` | unrelated dirty path at classification | preserve; no edit or attribution |
+
+The earlier full status snapshot also observed unrelated BUG-003 report/state
+changes immediately before their owner committed them. Both the committed
+BUG-003 movement and the later contextual-tooltip dirty path are concurrent work,
+not BUG-004 changes.
+
+### Final Source, Test, And Documentation Identities
+
+| Path | SHA-256 | Git blob | Independent GREEN |
+|---|---|---|---|
+| `rlexperience.js` | `08e54dd45e35dc94a0fb433209d4bc2648b6d5388230286007d126af73580a2c` | `7a83f8f0525d7886874028c148b1f13eaf089d1e` | exact match |
+| `market-heatmap-lab.html` | `44b0b8bb77ce8622ade230ddb772cf8fb78be5569e471fb6a7b69c7302f1ae49` | `eb895d976ab55113e839a00c14980b7270f08e25` | exact match |
+| `tests/market-heatmap-control-surface.spec.mjs` | `b81b755df8a30df500c90009929b7956fb1b80d23d9db5cb72e1a57362d51563` | `2f026012e6a1c3e39c9850341d63ca497f4662a2` | exact match |
+| `tests/simple-production-bridge.unit.mjs` | `b47c07b188c9840ce4e69c1ee23e85da5ae9afa9c07e36c4eeadcdc5945180e1` | `be408291c6ed128165273ff0f4b2947be9d59b1c` | exact match |
+| `tests/simple-production-bridge.integration.mjs` | `550cef20320cd3adce209d23245584592ea99d9f0aec3893c85a9158d8c04361` | `618f0c5b923fd3e9cd6dadd625dcd851f919328c` | exact match |
+| `tests/simple-production-wiring.spec.mjs` | `cca372f6011056f351608a53449086045d987dc623d57cf080ff6e402766f3dd` | `1f7a91b1ccfb99b8f4833bc54eff653b88c59639` | exact match |
+| `scripts/selftest.mjs` | `de430414dd689c7508fc27f9348c39bcce464d3f091a91940febf473ebf091be` | `1899e945ab3c3e7bccb9f553014070d8b8def3fc` | exact match |
+| `playwright.config.mjs` | `b35e8e75984b6a21a2e0c7a505d38a85190ec46bcfe6bf2312395a44e1c222cd` | `d04ae12216125b710a1f94645feac2e28c1467cc` | exact match |
+| `notes/market-heatmap-lab.md` | `590217dca53c5ad2db132515b93fde3884647d3492b4e2c77ffd224fa88fedf4` | `da6c93a9f229d4c057a0e892c64cc552f9829400` | docs-owned final capture |
+
+**Executed:** YES (current session)
+
+**Commands:** exact eight-row SHA-256/Git-blob comparator against
+[Reopened Gaps Independent GREEN](#reopened-gaps-independent-green); current
+documentation/artifact identity capture
+
+**Exit Code:** 0
+
+**Claim Source:** executed
+
+```text
+GREEN_IDENTITY path=rlexperience.js sha_status=MATCH blob_status=MATCH
+GREEN_IDENTITY path=market-heatmap-lab.html sha_status=MATCH blob_status=MATCH
+GREEN_IDENTITY path=tests/market-heatmap-control-surface.spec.mjs sha_status=MATCH blob_status=MATCH
+GREEN_IDENTITY path=tests/simple-production-bridge.unit.mjs sha_status=MATCH blob_status=MATCH
+GREEN_IDENTITY path=tests/simple-production-bridge.integration.mjs sha_status=MATCH blob_status=MATCH
+GREEN_IDENTITY path=tests/simple-production-wiring.spec.mjs sha_status=MATCH blob_status=MATCH
+GREEN_IDENTITY path=scripts/selftest.mjs sha_status=MATCH blob_status=MATCH
+GREEN_IDENTITY path=playwright.config.mjs sha_status=MATCH blob_status=MATCH
+CURRENT_IDENTITY path=notes/market-heatmap-lab.md sha256=590217dca53c5ad2db132515b93fde3884647d3492b4e2c77ffd224fa88fedf4 git_blob=da6c93a9f229d4c057a0e892c64cc552f9829400
+GREEN_IDENTITY_MATCH_FILES=8
+GREEN_IDENTITY_FAILURES=0
+IDENTITY_ADMISSION_EXIT=0
+```
+
+### Structural Rollback Rehearsal
+
+The rollback target is the protected `2f65a02a` byte boundary, not the older
+`31ea9942` discovery state. Its inverse is exactly these six paths:
+
+1. `rlexperience.js` - remove BUG-004 generation/coalescing/commit-guard work;
+2. `market-heatmap-lab.html` - remove terminal refresh, union/local grouping,
+	relocation, and native selected/focus treatment;
+3. `tests/market-heatmap-control-surface.spec.mjs` - remove the dedicated BUG
+	carrier;
+4. `tests/simple-production-bridge.unit.mjs` - remove BUG coordinator canaries;
+5. `tests/simple-production-wiring.spec.mjs` - remove only the post-`2f65a02a`
+	BUG delta while restoring the protected generic-control carrier; and
+6. `notes/market-heatmap-lab.md` - restore its pre-BUG source-level note.
+
+BUG artifacts remain as the audit record. The reverse check uses `git diff` piped
+to `git apply --reverse --check`; it does not apply the patch or mutate the index,
+worktree, stash, or HEAD.
+
+**Executed:** YES (current session)
+
+**Command:** `set -o pipefail && timeout 120 git --no-pager diff --binary 2f65a02a -- rlexperience.js market-heatmap-lab.html tests/market-heatmap-control-surface.spec.mjs tests/simple-production-bridge.unit.mjs tests/simple-production-wiring.spec.mjs notes/market-heatmap-lab.md | timeout 120 git apply --reverse --check --whitespace=nowarn`
+
+**Exit Code:** 0
+
+**Claim Source:** executed
+
+```text
+ROLLBACK_PATH=market-heatmap-lab.html
+ROLLBACK_PATH=notes/market-heatmap-lab.md
+ROLLBACK_PATH=rlexperience.js
+ROLLBACK_PATH=tests/market-heatmap-control-surface.spec.mjs
+ROLLBACK_PATH=tests/simple-production-bridge.unit.mjs
+ROLLBACK_PATH=tests/simple-production-wiring.spec.mjs
+ROLLBACK_SET_EXACT=PASS
+ROLLBACK_MIGRATION_REQUIREMENTS=data:none cache:none provider:none registry:none dependency:none deployment:none storage:none
+ROLLBACK_REVERSE_CHECK=PASS
+ROLLBACK_TREE_MUTATION=NONE
+ROLLBACK_REHEARSAL_EXIT=0
+```
+
+Baseline token inspection proves `2f65a02a` already contains
+`renderSimpleBridgeInternal`, the public low-level `renderSimpleBridge`, all
+generic `data-rlexperience-control*` nodes, and the existing `#winSeg`,
+`#sizeSeg`, and `#grpSeg` nodes. The inverse therefore removes BUG-004 behavior
+without removing the protected generic controls or low-level bridge.
+
+### Excluded Families, Concurrency, And Residue
+
+All paths from commits `087ad2ad`, `5c77e1f1`, and `007befaf`, plus the current
+BUG-owned dirty paths, classify inside the approved production/test/docs/BUG
+artifact families. There are zero changes to `rlviews.js`, `rlapp.js`,
+`rldata.js`, `simple-models.json`,
+`rlexperience-adapters/market-structure.js`, package/dependency manifests,
+routes, schemas, migrations, parent Feature 012 artifacts, or certification.
+No provider, cache, registry, data, dependency, deployment, storage, or secret
+operation is required for rollback.
+
+**Executed:** YES (current session)
+
+**Commands:** complete status/name-status/history snapshots; three-commit
+`git show --name-status`; state/path classifier; stash, reflog, worktree, `/tmp`,
+and process-residue probes
+
+**Exit Code:** 0 after classifying packet inputs separately from runtime residue
+
+**Claim Source:** executed
+
+```text
+EXCLUDED_CURRENT_COUNT=0
+BOUNDARY_CLASSIFICATION_FAILURES=0
+BOUNDARY_CLASSIFICATION_EXIT=0
+GIT_WORKTREE_RECORDS=1
+STASH_ENTRY_COUNT=0
+REFLOG_ENTRY_COUNT_SINCE_SNAPSHOT=1
+REFLOG_ENTRY=1513ac92 commit: docs(012/BUG-003): close VAL-F3; certification refused again, mechanically
+RESET_REVERT_STASH_REFLOG_COUNT=0
+RUNTIME_TEMP_RESIDUE_COUNT=0
+PRESERVED_PACKET_INPUT_COUNT=5
+BUG004_PROCESS_COUNT=0
+PROCESS_RESIDUE_EXIT=0
+```
+
+The five preserved packet JSON inputs belong to repository-binding control and
+other concurrent sessions; they are not Git worktrees, test output, or running
+processes and were not removed. This invocation created no commit, stage, push,
+stash, reset, revert, temporary worktree, provider request, cache mutation,
+registry mutation, dependency operation, deployment, or storage migration.
+
+The Change Boundary row is therefore execution-proven and may be checked. The
+Build Quality Gate remains the sole unchecked row and is routed to
+`bubbles.test`; SCOPE-01, top-level status, completion arrays, and certification
+remain nonterminal and unchanged.
+
+### Post-Edit Validation
+
+**Executed:** YES (current session)
+
+**Commands:** focused state/DoD diagnostics; `node --check` for all seven
+admitted JavaScript/test/config carriers; canonical heatmap inline-script and
+literal-ID check; BUG artifact lint; implementation reality scan; BUG path
+`git diff --check`; editor diagnostics across twelve source/test/docs/artifact
+paths; final full status/staged snapshot
+
+**Exit Code:** 0 for every command and zero editor diagnostics
+
+**Claim Source:** executed
+
+```text
+STATE_JSON_PARSE=PASS
+DOD_COUNTS=19/20
+UNCHECKED_ROWS=1
+PENDING=TR-BUG004-BUILD-QUALITY-CLOSEOUT
+NEXT_OWNER=bubbles.test
+FOCUSED_VALIDATION_FAILURES=0
+FOCUSED_VALIDATION_EXIT=0
+PARSE_CHECK path=rlexperience.js status=PASS
+PARSE_CHECK path=tests/market-heatmap-control-surface.spec.mjs status=PASS
+PARSE_CHECK path=tests/simple-production-bridge.unit.mjs status=PASS
+PARSE_CHECK path=tests/simple-production-bridge.integration.mjs status=PASS
+PARSE_CHECK path=tests/simple-production-wiring.spec.mjs status=PASS
+PARSE_CHECK path=scripts/selftest.mjs status=PASS
+PARSE_CHECK path=playwright.config.mjs status=PASS
+OK page=market-heatmap-lab.html inline=1 refs=0
+PARSE_AND_PAGE_CHECK_EXIT=0
+Artifact lint PASSED.
+Files scanned: 1
+Violations: 0
+Warnings: 0
+PASSED: No source code reality violations detected
+BUG004_DIFF_CHECK=PASS
+BUG004_DIFF_CHECK_EXIT=0
+EDITOR_DIAGNOSTICS checked_paths=12 errors=0
+FINAL_STAGED_PATH_COUNT=0
+FINAL_HEAD=1513ac928e7b9d81bc5905a159bb546e3b2a1c59
+FINAL_GIT_SNAPSHOT_EXIT=0
+```
+
+<a name="final-build-quality-evidence-pass"></a>
+## Final Build Quality Evidence Pass
+
+**Phase:** test
+
+**Scope:** open transition `TR-BUG004-BUILD-QUALITY-CLOSEOUT` only
+
+**Claim Source:** executed
+
+**Outcome:** `ROUTE_REQUIRED_TEST_CLOSEOUT`
+
+This evidence-only pass changed only this report section. It did not change
+`scopes.md`, `state.json`, source, tests, documentation, planning,
+certification, top-level status, staging, commits, stashes, worktrees, or
+deployment state. Commands ran with explicit time limits and unfiltered output.
+Home-directory prefixes below are normalized to `~` only.
+
+### Repository Binding
+
+**Executed:** YES (current session)
+
+**Command:** `timeout 60 bash .github/bubbles/scripts/repository-binding.sh validate-packet --session-id vscode-eb9cb76de5cf2a992bf149706789fb73 --session-control-file <private-control-file> --packet-file <exact-actionable-packet>`
+
+**Exit Code:** 0
+
+**Claim Source:** executed
+
+```text
+REPOSITORY PACKET VALID actionable=true repository=research-lab root=~/research-lab decision=rb:vscode-eb9cb76de5cf2a992bf149706789fb73:5 revision=5
+```
+
+### Fail-Closed Identity And Browser-Evidence Admission
+
+**Executed:** YES (current session)
+
+**Command:** current-session `timeout 60 node --input-type=module -e` comparator
+over the nine literal `(path, expected SHA-256, expected Git blob)` tuples
+reproduced in the raw output below
+
+**Exit Code:** 0
+
+**Claim Source:** executed
+
+```text
+BUG004_FINAL_IDENTITY_CHECK
+IDENTITY path=rlexperience.js sha256=08e54dd45e35dc94a0fb433209d4bc2648b6d5388230286007d126af73580a2c expected_sha256=08e54dd45e35dc94a0fb433209d4bc2648b6d5388230286007d126af73580a2c sha_status=MATCH git_blob=7a83f8f0525d7886874028c148b1f13eaf089d1e expected_git_blob=7a83f8f0525d7886874028c148b1f13eaf089d1e blob_status=MATCH
+IDENTITY path=market-heatmap-lab.html sha256=44b0b8bb77ce8622ade230ddb772cf8fb78be5569e471fb6a7b69c7302f1ae49 expected_sha256=44b0b8bb77ce8622ade230ddb772cf8fb78be5569e471fb6a7b69c7302f1ae49 sha_status=MATCH git_blob=eb895d976ab55113e839a00c14980b7270f08e25 expected_git_blob=eb895d976ab55113e839a00c14980b7270f08e25 blob_status=MATCH
+IDENTITY path=tests/market-heatmap-control-surface.spec.mjs sha256=b81b755df8a30df500c90009929b7956fb1b80d23d9db5cb72e1a57362d51563 expected_sha256=b81b755df8a30df500c90009929b7956fb1b80d23d9db5cb72e1a57362d51563 sha_status=MATCH git_blob=2f026012e6a1c3e39c9850341d63ca497f4662a2 expected_git_blob=2f026012e6a1c3e39c9850341d63ca497f4662a2 blob_status=MATCH
+IDENTITY path=tests/simple-production-bridge.unit.mjs sha256=b47c07b188c9840ce4e69c1ee23e85da5ae9afa9c07e36c4eeadcdc5945180e1 expected_sha256=b47c07b188c9840ce4e69c1ee23e85da5ae9afa9c07e36c4eeadcdc5945180e1 sha_status=MATCH git_blob=be408291c6ed128165273ff0f4b2947be9d59b1c expected_git_blob=be408291c6ed128165273ff0f4b2947be9d59b1c blob_status=MATCH
+IDENTITY path=tests/simple-production-bridge.integration.mjs sha256=550cef20320cd3adce209d23245584592ea99d9f0aec3893c85a9158d8c04361 expected_sha256=550cef20320cd3adce209d23245584592ea99d9f0aec3893c85a9158d8c04361 sha_status=MATCH git_blob=618f0c5b923fd3e9cd6dadd625dcd851f919328c expected_git_blob=618f0c5b923fd3e9cd6dadd625dcd851f919328c blob_status=MATCH
+IDENTITY path=tests/simple-production-wiring.spec.mjs sha256=cca372f6011056f351608a53449086045d987dc623d57cf080ff6e402766f3dd expected_sha256=cca372f6011056f351608a53449086045d987dc623d57cf080ff6e402766f3dd sha_status=MATCH git_blob=1f7a91b1ccfb99b8f4833bc54eff653b88c59639 expected_git_blob=1f7a91b1ccfb99b8f4833bc54eff653b88c59639 blob_status=MATCH
+IDENTITY path=scripts/selftest.mjs sha256=de430414dd689c7508fc27f9348c39bcce464d3f091a91940febf473ebf091be expected_sha256=de430414dd689c7508fc27f9348c39bcce464d3f091a91940febf473ebf091be sha_status=MATCH git_blob=1899e945ab3c3e7bccb9f553014070d8b8def3fc expected_git_blob=1899e945ab3c3e7bccb9f553014070d8b8def3fc blob_status=MATCH
+IDENTITY path=playwright.config.mjs sha256=b35e8e75984b6a21a2e0c7a505d38a85190ec46bcfe6bf2312395a44e1c222cd expected_sha256=b35e8e75984b6a21a2e0c7a505d38a85190ec46bcfe6bf2312395a44e1c222cd sha_status=MATCH git_blob=d04ae12216125b710a1f94645feac2e28c1467cc expected_git_blob=d04ae12216125b710a1f94645feac2e28c1467cc blob_status=MATCH
+IDENTITY path=notes/market-heatmap-lab.md sha256=590217dca53c5ad2db132515b93fde3884647d3492b4e2c77ffd224fa88fedf4 expected_sha256=590217dca53c5ad2db132515b93fde3884647d3492b4e2c77ffd224fa88fedf4 sha_status=MATCH git_blob=da6c93a9f229d4c057a0e892c64cc552f9829400 expected_git_blob=da6c93a9f229d4c057a0e892c64cc552f9829400 blob_status=MATCH
+IDENTITY_FILES=9
+IDENTITY_MATCH_FILES=9
+IDENTITY_FAILURES=0
+BROWSER_EVIDENCE_ADMISSION=EXACT_IDENTITY_MATCH
+IDENTITY_CHECK_EXIT=0
+```
+
+The exact identity match admits the existing dedicated BUG-004 browser 4/4 and
+protected production-wiring browser 4/4 evidence from
+[Reopened Gaps Independent GREEN](#reopened-gaps-independent-green). No browser
+command ran in this pass.
+
+### Exact TP-B004-01 Through TP-B004-04
+
+**Executed:** YES (current session)
+
+**Commands:**
+
+- `timeout 600 node --test --test-name-pattern="^TP-B004-01 requestSimpleRefresh rejects non-current contexts and settles invalidated queued work$" tests/simple-production-bridge.unit.mjs`
+- `timeout 600 node --test --test-name-pattern="^TP-B004-02 requestSimpleRefresh coalesces same-turn duplicates and replaces the pending successor$" tests/simple-production-bridge.unit.mjs`
+- `timeout 600 node --test --test-name-pattern="^TP-B004-03 accepted mid-run refresh immediately invalidates active generation and stale controls$" tests/simple-production-bridge.unit.mjs`
+- `timeout 600 node --test --test-name-pattern="^TP-B004-04 current and stale refresh promises settle without overwriting current truth$" tests/simple-production-bridge.unit.mjs`
+
+**Exit Code:** 0 for each command
+
+**Claim Source:** executed
+
+```text
+✔ TP-B004-01 requestSimpleRefresh rejects non-current contexts and settles invalidated queued work (12.946624ms)
+ℹ tests 1
+ℹ suites 0
+ℹ pass 1
+ℹ fail 0
+ℹ cancelled 0
+ℹ skipped 0
+ℹ todo 0
+ℹ duration_ms 135.028396
+TP_B004_01_EXIT=0
+
+✔ TP-B004-02 requestSimpleRefresh coalesces same-turn duplicates and replaces the pending successor (51.203205ms)
+ℹ tests 1
+ℹ suites 0
+ℹ pass 1
+ℹ fail 0
+ℹ cancelled 0
+ℹ skipped 0
+ℹ todo 0
+ℹ duration_ms 178.830369
+TP_B004_02_EXIT=0
+
+✔ TP-B004-03 accepted mid-run refresh immediately invalidates active generation and stale controls (71.440853ms)
+ℹ tests 1
+ℹ suites 0
+ℹ pass 1
+ℹ fail 0
+ℹ cancelled 0
+ℹ skipped 0
+ℹ todo 0
+ℹ duration_ms 175.809641
+TP_B004_03_EXIT=0
+
+✔ TP-B004-04 current and stale refresh promises settle without overwriting current truth (98.401092ms)
+ℹ tests 1
+ℹ suites 0
+ℹ pass 1
+ℹ fail 0
+ℹ cancelled 0
+ℹ skipped 0
+ℹ todo 0
+ℹ duration_ms 213.450713
+TP_B004_04_EXIT=0
+```
+
+### Full Unit, Integration, And Repository Selftest
+
+**Executed:** YES (current session)
+
+**Commands:** `timeout 600 node --test tests/simple-production-bridge.unit.mjs`;
+`timeout 600 node --test tests/simple-production-bridge.integration.mjs`;
+`timeout 900 node scripts/selftest.mjs`
+
+**Exit Code:** 0 for all three commands
+
+**Claim Source:** executed
+
+```text
+✔ renderSimpleBridge is exposed on the production API
+✔ provider present + real owner state renders the REAL market-breadth adapter (ready), never mutates rlv-focused
+✔ no owner-state provider renders honest unavailable, no invented signal, never mutates rlv-focused
+✔ owner evidence does not permit a run (unhydrated) and remains honest unavailable
+✔ missing adapter module remains honest unavailable
+✔ TP-B004-01 requestSimpleRefresh rejects non-current contexts and settles invalidated queued work
+✔ TP-B004-02 requestSimpleRefresh coalesces same-turn duplicates and replaces the pending successor
+✔ TP-B004-03 accepted mid-run refresh immediately invalidates active generation and stale controls
+✔ TP-B004-04 current and stale refresh promises settle without overwriting current truth
+✔ a queued Simple run does not survive an invalidation, and its promise settles
+✔ leaving Simple altogether also settles the queued run without painting
+✔ ownerModes resolution preserves wired Simple, Power, unwired native Simple, and Brief
+✔ no forbidden authority: the runtime declares none and the real bridge touches no network, provider, storage, or cookie surface
+ℹ tests 13
+ℹ suites 0
+ℹ pass 13
+ℹ fail 0
+ℹ cancelled 0
+ℹ skipped 0
+ℹ todo 0
+BRIDGE_UNIT_EXIT=0
+
+[TP-15-02] wired (19): market-heatmap-lab, options-flow-feed-lab, intraday-tape-lab, swing-structure-lab, options-structure-lab, gamma-trading-lab, sector-research-lab, global-rotation-lab, real-assets-lab, bond-regime-lab, ai-capex-strategy-lab, company-fundamentals-lab, etf-momentum-lab, strategy-self-improvement-lab, strategy-validation-lab, smart-money-flow-lab, waterfront-polo-lab, volatility-sizing-lab, technical-analysis-decision-lab
+[TP-15-02] not wired (4): market-brief, msft-july-print-model, palm-springs-rental-market-lab, ocean-shores-rental-market-lab
+[SCN-012-039] ordinary=22 wired=19 declared-unwired=3 unaccounted=0
+[TP-15-02] strict parity (module loaded by the page): 18 of 19
+[TP-15-02] honest generic unavailable (module deliberately absent, SCN-012-034 lock): technical-analysis-decision-lab
+✔ TP-15-02 the wired-tool set is derived from the production registry + the production pages (never a hard-coded list)
+✔ TP-15-02 registry-derived loop: each wired tool prepares through the REAL runtime and paints the REAL panel
+✔ TP-15-02 owner parity: every wired tool's Simple facts EQUAL the owner/Power-path values
+✔ TP-15-02 the production bridge reaches the SAME projection as the explicit runtime path for every module-backed wired tool
+✔ TP-15-02 honest unavailable: a wired tool whose provider yields NO owner state degrades truthfully
+✔ TP-15-02 honest unavailable: owner evidence that does not permit a run degrades truthfully rather than inventing a read
+ℹ tests 6
+ℹ suites 0
+ℹ pass 6
+ℹ fail 0
+ℹ cancelled 0
+ℹ skipped 0
+ℹ todo 0
+BRIDGE_INTEGRATION_EXIT=0
+```
+
+The selftest command produced 359 unfiltered output lines. This is the exact
+closing window, lines 325-359:
+
+```text
+	✓ exactly one executable rlv-focused write exists across all production sources and it lives in rlviews.js (scanned 54 files, writers: rlviews.js x1)
+	✓ applyVisual (rlviews.js) is the function that owns that sole rlv-focused write
+	✓ the production bridge path (renderSimpleBridgeInternal + installSimpleProjectionBridge) contains no rlv-focused write and, once comments are stripped, no rlv-focused reference at all (23659 source chars)
+	✓ the bridge path performs local compute only — no network, provider, storage, or cookie authority in its executable source (8 tokens checked, hits: none)
+	✓ rlapp.js’s own ownerModes expression yields ["power"] for a provider-wired ordinary tool, ["simple","power"] for an unwired one (no regression), and ["brief"] for a brief-only tool
+	✓ rlviews.js’s own rlv-focused predicate, fed those real ownerModes, focuses a wired tool’s Simple, leaves Power unfocused, and never focuses an unwired native Simple or a brief view
+	✓ RLEXPERIENCE.renderSimpleBridge is exposed on the production API
+	✓ a wired tool with no owner state degrades to an honest unavailable that names the missing owner adapter, publishes a null numeric, paints no numeric node, and invents no signal (market-heatmap-lab)
+	✓ the bridge never mutates body.classList on the unavailable path — applyVisual stays the sole owner of rlv-focused (BUG-003 invariant, 0 recorded mutations)
+
+spec artifacts — referenced tests/*.mjs paths exist (Playwright silently ignores absent file args)
+	✓ the scan matched at least one tests/*.mjs reference against a present baseline, so the guard is not vacuously green (9657 reference(s) across 417 artifact(s), baseline 86 entries)
+	✓ no tests/*.mjs path named by a spec artifact is missing outside the frozen baseline — a stale path makes a multi-file verification command silently cover less than it claims (0 new, 86 known-missing, 0 stale of 204 referenced)
+
+================================================
+Research-Lab self-test: 970 passed, 0 failed
+================================================
+SELFTEST_EXIT=0
+```
+
+### JavaScript, Page, Regression, And Marker Quality
+
+**Executed:** YES (current session)
+
+**Commands:** `timeout 60 node --check` for each admitted JavaScript/test/config
+carrier; the canonical `PAGE=market-heatmap-lab.html` inline-script/literal-ID
+check from `.specify/memory/agents.md`; `timeout 600 bash
+.github/bubbles/scripts/regression-quality-guard.sh --bugfix
+tests/market-heatmap-control-surface.spec.mjs`; changed implementation/test
+marker scan
+
+**Exit Code:** 0 for every command
+
+**Claim Source:** executed
+
+```text
+BUG004_NODE_CHECKS
+NODE_CHECK path=rlexperience.js status=PASS
+NODE_CHECK path=tests/market-heatmap-control-surface.spec.mjs status=PASS
+NODE_CHECK path=tests/simple-production-bridge.unit.mjs status=PASS
+NODE_CHECK path=tests/simple-production-bridge.integration.mjs status=PASS
+NODE_CHECK path=tests/simple-production-wiring.spec.mjs status=PASS
+NODE_CHECK path=scripts/selftest.mjs status=PASS
+NODE_CHECK path=playwright.config.mjs status=PASS
+OK page=market-heatmap-lab.html inline=1 refs=0
+PAGE_INLINE_ID_CHECK status=PASS
+NODE_AND_PAGE_CHECKS=7+1
+NODE_AND_PAGE_FAILURES=0
+NODE_AND_PAGE_CHECK_EXIT=0
+
+BUBBLES REGRESSION QUALITY GUARD
+Bugfix mode: true
+Scanning tests/market-heatmap-control-surface.spec.mjs
+Adversarial signal detected in tests/market-heatmap-control-surface.spec.mjs
+REGRESSION QUALITY RESULT: 0 violation(s), 0 warning(s)
+Files scanned: 1
+Files with adversarial signals: 1
+REGRESSION_QUALITY_BUGFIX_EXIT=0
+
+BUG004_CHANGED_FILE_MARKER_SCAN
+INCOMPLETE_MARKERS path=rlexperience.js count=0
+INCOMPLETE_MARKERS path=market-heatmap-lab.html count=0
+INCOMPLETE_MARKERS path=tests/market-heatmap-control-surface.spec.mjs count=0
+INCOMPLETE_MARKERS path=tests/simple-production-bridge.unit.mjs count=0
+SKIP_MARKERS path=tests/market-heatmap-control-surface.spec.mjs count=0
+SKIP_MARKERS path=tests/simple-production-bridge.unit.mjs count=0
+MARKER_SCAN_FILES=4
+SKIP_SCAN_FILES=2
+MARKER_SCAN_FINDINGS=0
+MARKER_SCAN_EXIT=0
+```
+
+### Governance And Diff Gates
+
+**Executed:** YES (current session)
+
+**Commands:**
+
+- `timeout 600 bash .github/bubbles/scripts/artifact-lint.sh specs/012-market-action-center-and-guided-tools/bugs/BUG-004-market-heatmap-control-surface`
+- `timeout 600 bash .github/bubbles/scripts/implementation-reality-scan.sh specs/012-market-action-center-and-guided-tools/bugs/BUG-004-market-heatmap-control-surface --verbose`
+- `timeout 600 bash .github/bubbles/scripts/traceability-guard.sh specs/012-market-action-center-and-guided-tools/bugs/BUG-004-market-heatmap-control-surface`
+- `timeout 600 bash .github/bubbles/scripts/regression-baseline-guard.sh specs/012-market-action-center-and-guided-tools/bugs/BUG-004-market-heatmap-control-surface --verbose`
+- `timeout 600 bash .github/bubbles/scripts/diff-evidence-guard.sh specs/012-market-action-center-and-guided-tools/bugs/BUG-004-market-heatmap-control-surface --strict`
+- `timeout 120 git diff --check`
+
+**Exit Code:** 0 for every command
+
+**Claim Source:** executed
+
+```text
+Artifact lint PASSED.
+ARTIFACT_LINT_EXIT=0
+
+IMPLEMENTATION REALITY SCAN RESULT
+Files scanned: 1
+Violations: 0
+Warnings: 0
+PASSED: No source code reality violations detected
+IMPLEMENTATION_REALITY_EXIT=0
+
+scenario-manifest.json covers 4 scenario contracts
+scenario-manifest.json records evidenceRefs
+All linked tests from scenario-manifest.json exist
+Scenarios checked: 4
+Test rows checked: 12
+Scenario-to-row mappings: 4
+Concrete test file references: 4
+Report evidence references: 4
+DoD fidelity scenarios: 4 (mapped: 4, unmapped: 0)
+RESULT: PASSED (0 warnings)
+TRACEABILITY_GUARD_EXIT=0
+
+G044 Regression Baseline: test baseline comparison found in report
+G045 Cross-Spec Regression: 2 done specs of 3 inventoried; inventory completed
+G046 Spec Conflict Detection: no route/endpoint collisions detected
+Regression baseline guard: PASSED
+REGRESSION_BASELINE_GUARD_EXIT=0
+
+diff-evidence-guard: PASS (no DoD path-claims to verify in 1 scope file(s); baseSha=087ad2add3f2)
+DIFF_EVIDENCE_GUARD_EXIT=0
+GIT_DIFF_CHECK_EXIT=0
+```
+
+No project-specific boundary gate is configured in
+`.github/bubbles-project.yaml`. The packet's explicit change boundary was
+therefore checked from the complete current Git status against its named
+allowed and excluded families.
+
+### Process, Worktree, Boundary, And Probe Corrections
+
+**Executed:** YES (current session)
+
+**Exit Code:** 0 for the final process/worktree/boundary classifier
+
+**Claim Source:** executed
+
+```text
+BUG004_CORRECTED_PROCESS_WORKTREE_RESIDUE
+DIRTY_PATH_COUNT=10
+DIRTY_PATH xy=" M" path=market-heatmap-lab.html
+DIRTY_PATH xy=" M" path=notes/market-heatmap-lab.md
+DIRTY_PATH xy=" M" path=rlexperience.js
+DIRTY_PATH xy=" M" path=specs/012-market-action-center-and-guided-tools/bugs/BUG-004-market-heatmap-control-surface/report.md
+DIRTY_PATH xy=" M" path=specs/012-market-action-center-and-guided-tools/bugs/BUG-004-market-heatmap-control-surface/scenario-manifest.json
+DIRTY_PATH xy=" M" path=specs/012-market-action-center-and-guided-tools/bugs/BUG-004-market-heatmap-control-surface/scopes.md
+DIRTY_PATH xy=" M" path=specs/012-market-action-center-and-guided-tools/bugs/BUG-004-market-heatmap-control-surface/state.json
+DIRTY_PATH xy=" M" path=specs/012-market-action-center-and-guided-tools/bugs/BUG-004-market-heatmap-control-surface/test-plan.json
+DIRTY_PATH xy=" M" path=tests/market-heatmap-control-surface.spec.mjs
+DIRTY_PATH xy=" M" path=tests/simple-production-bridge.unit.mjs
+EXPECTED_PACKET_PATH_COUNT=10
+CONCURRENT_UNRELATED_PATH_COUNT=0
+EXCLUDED_FAMILY_DIRTY_COUNT=0
+STAGED_PATH_COUNT=0
+GIT_WORKTREE_COUNT=1
+GIT_worktree=~/research-lab
+STASH_ENTRY_COUNT=0
+BUG004_PROCESS_RESIDUE_COUNT=0
+PROCESS_WORKTREE_RESIDUE_FAILURES=0
+PROCESS_WORKTREE_RESIDUE_EXIT=0
+```
+
+The first extra residue probe also searched `/tmp` names and exited 1 after
+classifying 18 pre-existing repository-packet and historical evidence-probe
+files as runtime residue. That probe was broader than the requested process and
+Git-worktree residue contract. It is retained here rather than hidden:
+
+```text
+BUG004_PROCESS_RESIDUE_COUNT=0
+BUG004_TEMP_RESIDUE_COUNT=18
+PROCESS_TEMP_RESIDUE_EXIT=1
+PROCESS_TEMP_RESIDUE_COMMAND_EXIT=1
+WORKTREE_RESIDUE_FAILURES=1
+WORKTREE_RESIDUE_EXIT=1
+
+TEMP_NAME_COUNT=18
+NEWEST_TEMP_MTIME=2026-07-30T19:22:48.573Z
+CLASSIFICATION=PREEXISTING_NON_PROCESS_NON_WORKTREE_INPUT_OR_EVIDENCE
+TEMP_CLASSIFICATION_EXIT=0
+```
+
+The newest named temp input predates the current test commands, whose guard
+output begins at `2026-07-30T19:55:34Z`. No file was deleted or changed by the
+classification.
+
+The first read-only state probe found the transition but assumed obsolete
+top-level `nextOwner` and `doD` fields, so it exited 1. The corrected probe reads
+`execution.nextRequiredOwner`, `execution.pendingTransitionRequests`, the
+transition object, and the scoped DoD block:
+
+```text
+BUG004_BUILD_QUALITY_ROUTE_ASSERTION
+STATE_STATUS=in_progress
+NEXT_OWNER=undefined
+DOD_TOTAL=0
+DOD_CHECKED=0
+DOD_UNCHECKED=0
+TRANSITION_MATCH_COUNT=1
+BUILD_QUALITY_ROUTE_ASSERTION_EXIT=1
+
+BUG004_CORRECTED_BUILD_QUALITY_ROUTE_ASSERTION
+STATE_STATUS=in_progress
+CERTIFICATION_STATUS=in_progress
+TOP_COMPLETED_SCOPES=0
+EXECUTION_NEXT_REQUIRED_OWNER=bubbles.test
+EXECUTION_SCOPE_STATUS=in_progress
+DOD_TOTAL=20
+DOD_CHECKED=19
+DOD_UNCHECKED=1
+PENDING_TRANSITION_PRESENT=true
+TRANSITION_STATUS=open
+TRANSITION_ROUTED_TO=bubbles.test
+BUILD_QUALITY_ROUTE_ASSERTION_EXIT=0
+```
+
+### Editor Diagnostics And Evidence-Pass Verdict
+
+**Executed:** YES (current session)
+
+**Tool:** VS Code diagnostics over all nine admitted source/test/docs/config
+paths plus `report.md`, `scenario-manifest.json`, `scopes.md`, `state.json`, and
+`test-plan.json`
+
+**Exit Code:** diagnostics completed; 0 errors across 14 paths
+
+**Claim Source:** executed
+
+```text
+rlexperience.js: No errors found
+market-heatmap-lab.html: No errors found
+notes/market-heatmap-lab.md: No errors found
+tests/market-heatmap-control-surface.spec.mjs: No errors found
+tests/simple-production-bridge.unit.mjs: No errors found
+tests/simple-production-bridge.integration.mjs: No errors found
+tests/simple-production-wiring.spec.mjs: No errors found
+scripts/selftest.mjs: No errors found
+playwright.config.mjs: No errors found
+report.md: No errors found
+scenario-manifest.json: No errors found
+scopes.md: No errors found
+state.json: No errors found
+test-plan.json: No errors found
+EDITOR_DIAGNOSTIC_PATHS=14
+EDITOR_DIAGNOSTIC_ERRORS=0
+```
+
+```text
+FINAL_BUILD_QUALITY identity=9/9 exact_tp=4/4 bridge_unit=13/13 bridge_integration=6/6 selftest=970/970
+FINAL_BUILD_QUALITY browser_evidence=admitted-by-exact-identity browser_rerun=0 dedicated=4/4 protected_wiring=4/4
+FINAL_BUILD_QUALITY parse_failures=0 skipped=0 regression_violations=0 warnings=0 reality_violations=0 marker_findings=0 diagnostics=0
+FINAL_BUILD_QUALITY artifact_lint=0 implementation_reality=0 traceability=0 regression_baseline=0 diff_evidence=0 git_diff_check=0 process_worktree_residue=0
+FINAL_BUILD_QUALITY_REPORT_ANCHOR=report.md#final-build-quality-evidence-pass
+FINAL_BUILD_QUALITY_EVIDENCE_PASS_EXIT=0
+```
+
+### Post-Append Validation
+
+**Executed:** YES (current session)
+
+**Commands:** focused BUG-004 artifact lint; report-only `git diff --check`;
+exact final heading/anchor/order assertion; VS Code report diagnostics
+
+**Exit Code:** 0 for every command; 0 editor errors
+
+**Claim Source:** executed
+
+```text
+Artifact lint PASSED.
+POST_APPEND_ARTIFACT_LINT_EXIT=0
+POST_APPEND_REPORT_DIFF_CHECK_EXIT=0
+FINAL_BUILD_QUALITY_HEADING_COUNT=1
+FINAL_BUILD_QUALITY_ANCHOR_COUNT=1
+FINAL_BUILD_QUALITY_SECTION_AFTER_BOUNDARY=true
+POST_APPEND_SECTION_CHECK_EXIT=0
+POST_APPEND_VALIDATION_FAILURES=0
+POST_APPEND_VALIDATION_EXIT=0
+report.md: No errors found
+POST_APPEND_EDITOR_DIAGNOSTIC_ERRORS=0
+```
+
+<a name="tr-bug004-build-quality-closeout"></a>
+## TR-BUG004 Build Quality Closeout
+
+**Phase:** test
+
+**Claim Source:** executed
+
+The exact evidence anchor remains present, and a hash-only current-byte admission
+matched all nine SHA-256 and Git-blob tuples recorded in [Final Build Quality
+Evidence Pass](#final-build-quality-evidence-pass). No test, browser, build, or
+deployment command was rerun. The Build Quality row is closed at 20/20 and
+execution-side SCOPE-01 is Done. Top-level status and certification remain
+`in_progress`; `certifiedAt` remains null and certification completion fields are
+untouched. `TR-BUG004-HARDEN` is open to `bubbles.harden`.
+
+<a name="harden-phase-bubblesharden"></a>
+## Harden Phase (bubbles.harden)
+
+**Phase:** harden
+
+**Scope:** `SCOPE-01`
+
+**Claim Source:** executed
+
+**Verdict:** `HARDENED_CLEAN`
+
+This was a bounded current-byte hardening matrix. It did not edit source, tests,
+planning, documentation, certification, top-level status, top-level
+`completedPhases`, staging, commits, stashes, worktrees, or deployment state.
+The only writes are this evidence section and execution/transition/history fields
+in BUG-004 `state.json`.
+
+### Repository Binding
+
+The exact actionable packet for `research-lab` decision
+`rb:vscode-eb9cb76de5cf2a992bf149706789fb73:6`, control revision 6, was
+validated against the private session-control file before BUG-004 was read. The
+validator's emitted projection is intentionally redacted and non-actionable.
+
+```text
+{"repositoryRoot":"<redacted-local-root>","repositoryAlias":"research-lab","repositoryResolution":{"sessionId":"vscode-eb9cb76de5cf2a992bf149706789fb73","decisionId":"rb:vscode-eb9cb76de5cf2a992bf149706789fb73:6","controlRevision":6,"controlPathDigest":"sha256:308a8e9feb4ffd49dac1dced22b497b576d5a88570bf7bf1cd0abef5e1ffb0f8","authority":"explicit-repository-root","transition":"confirmed","scopeKind":"command","scopeId":null,"targetKind":"repository-root","pathVisibility":"redacted","actionable":false}}
+REPOSITORY_BINDING_VALIDATE_PACKET_EXIT=0
+```
+
+### Corrected Identity Admission
+
+`git hash-object` below is explicitly the current working-file Git blob. HEAD is
+reported separately and is not substituted for the working value. SHA-256 is
+computed separately from file bytes.
+
+| Path | Expected/current worktree Git blob | SHA-256 result | HEAD Git blob | Path status |
+|---|---|---|---|---|
+| `rlexperience.js` | `7a83f8f0525d7886874028c148b1f13eaf089d1e` | MATCH | `459b32d4a35064d486393dcebec4fb7172ceaf6d` | ` M` |
+| `market-heatmap-lab.html` | `eb895d976ab55113e839a00c14980b7270f08e25` | MATCH | `a395c0467d692ad57ab30d275bed84c2512b86f9` | ` M` |
+| `tests/market-heatmap-control-surface.spec.mjs` | `2f026012e6a1c3e39c9850341d63ca497f4662a2` | MATCH | `d81f1639771a20a6198943729434a5f4c8e619e1` | ` M` |
+| `tests/simple-production-bridge.unit.mjs` | `be408291c6ed128165273ff0f4b2947be9d59b1c` | MATCH | `b8c0043afccb2ea8ffb3d875f2532170aef9cecf` | ` M` |
+| `tests/simple-production-bridge.integration.mjs` | `618f0c5b923fd3e9cd6dadd625dcd851f919328c` | MATCH | same | clean |
+| `tests/simple-production-wiring.spec.mjs` | `1f7a91b1ccfb99b8f4833bc54eff653b88c59639` | MATCH | same | clean |
+| `scripts/selftest.mjs` | `1899e945ab3c3e7bccb9f553014070d8b8def3fc` | MATCH | same | clean |
+| `playwright.config.mjs` | `d04ae12216125b710a1f94645feac2e28c1467cc` | MATCH | same | clean |
+| `notes/market-heatmap-lab.md` | `da6c93a9f229d4c057a0e892c64cc552f9829400` | MATCH | `f2b3d633a4ad61b1df7567cca03cc3571a2425af` | ` M` |
+
+```text
+IDENTITY_ROWS=9
+IDENTITY_FAILURES=0
+BUG004_HARDEN_IDENTITY_ADMISSION=PASS
+RLVIEWS_CONTEXT path=rlviews.js browser_context_blob=fb1c686a09cef82175d144dbaefa79e83742a764 worktree_git_blob=fb1c686a09cef82175d144dbaefa79e83742a764 head_git_blob=fb1c686a09cef82175d144dbaefa79e83742a764 path_status=CLEAN drift=false admission_role=shared-shell-context-only
+```
+
+Because all nine browser-relevant tuples match the exact Final Build Quality
+evidence and `rlviews.js` did not drift, no long browser command was rerun. The
+independently executed dedicated 4/4 and protected-wiring 4/4 browser evidence is
+admitted from [Reopened Gaps Independent GREEN](#reopened-gaps-independent-green)
+and [Final Simplify Revalidation Browser Matrix](#final-simplify-revalidation-browser-matrix).
+
+### Current Executable Matrix
+
+Commands ran from the repository root with explicit 600 or 1200 second bounds
+and unfiltered output.
+
+```text
+✔ renderSimpleBridge is exposed on the production API
+✔ provider present + real owner state → renders the REAL market-breadth adapter (ready), never mutates rlv-focused
+✔ no owner-state provider → honest unavailable, no invented signal, never mutates rlv-focused
+✔ owner evidence does not permit a run (unhydrated) → honest unavailable, never mutates rlv-focused
+✔ missing adapter module → honest unavailable (no crash), never mutates rlv-focused
+✔ TP-B004-01 requestSimpleRefresh rejects non-current contexts and settles invalidated queued work
+✔ TP-B004-02 requestSimpleRefresh coalesces same-turn duplicates and replaces the pending successor
+✔ TP-B004-03 accepted mid-run refresh immediately invalidates active generation and stale controls
+✔ TP-B004-04 current and stale refresh promises settle without overwriting current truth
+✔ a queued Simple run does not survive an invalidation, and its promise settles
+✔ leaving Simple altogether also settles the queued run without painting
+✔ ownerModes resolution: provider wiring hands Simple to the adapter panel and never regresses an unwired tool
+✔ no forbidden authority: the runtime declares none, and running the real bridge touches no network, provider, storage or cookie surface
+ℹ tests 13
+ℹ suites 0
+ℹ pass 13
+ℹ fail 0
+ℹ cancelled 0
+ℹ skipped 0
+ℹ todo 0
+BRIDGE_UNIT_EXIT=0
+```
+
+```text
+[TP-15-02] wired (19): market-heatmap-lab, options-flow-feed-lab, intraday-tape-lab, swing-structure-lab, options-structure-lab, gamma-trading-lab, sector-research-lab, global-rotation-lab, real-assets-lab, bond-regime-lab, ai-capex-strategy-lab, company-fundamentals-lab, etf-momentum-lab, strategy-self-improvement-lab, strategy-validation-lab, smart-money-flow-lab, waterfront-polo-lab, volatility-sizing-lab, technical-analysis-decision-lab
+[TP-15-02] not wired (4): market-brief, msft-july-print-model, palm-springs-rental-market-lab, ocean-shores-rental-market-lab
+[SCN-012-039] ordinary=22 wired=19 declared-unwired=3 unaccounted=0
+[TP-15-02] strict parity (module loaded by the page): 18 of 19
+[TP-15-02] honest generic unavailable (module deliberately absent, SCN-012-034 lock): technical-analysis-decision-lab
+ℹ tests 6
+ℹ suites 0
+ℹ pass 6
+ℹ fail 0
+ℹ cancelled 0
+ℹ skipped 0
+ℹ todo 0
+BRIDGE_INTEGRATION_EXIT=0
+```
+
+```text
+✔ SCN-012-031 registry resolves exact ordinary and Market Action four-view shells
+✔ SCN-012-031 route resolution keeps only public modes and allowlisted public targets
+✔ SCN-012-031 explicit hash wins over valid versioned mode-only local state
+✔ SCN-012-031 user transitions push once while Back and Forward restore without fetch
+✔ SCN-012-028 dependency projection exposes the exact Brief gate with no bypass
+✔ SCN-012-029 dependency projection preserves public Portfolio and creates no private-store contract
+✔ Scope 02 shell state helpers remain pure and contain no registry tool-ID switch
+ℹ tests 7
+ℹ suites 0
+ℹ pass 7
+ℹ fail 0
+ℹ cancelled 0
+ℹ skipped 0
+ℹ todo 0
+TOOL_EXPERIENCE_SHELL_UNIT_EXIT=0
+```
+
+```text
+	✓ exactly one executable rlv-focused write exists across all production sources and it lives in rlviews.js (scanned 54 files, writers: rlviews.js x1)
+	✓ applyVisual (rlviews.js) is the function that owns that sole rlv-focused write
+	✓ the production bridge path (renderSimpleBridgeInternal + installSimpleProjectionBridge) contains no rlv-focused write and, once comments are stripped, no rlv-focused reference at all (23659 source chars)
+	✓ the bridge path performs local compute only — no network, provider, storage, or cookie authority in its executable source (8 tokens checked, hits: none)
+	✓ rlapp.js’s own ownerModes expression yields ["power"] for a provider-wired ordinary tool, ["simple","power"] for an unwired one (no regression), and ["brief"] for a brief-only tool
+	✓ rlviews.js’s own rlv-focused predicate, fed those real ownerModes, focuses a wired tool’s Simple, leaves Power unfocused, and never focuses an unwired native Simple or a brief view
+	✓ RLEXPERIENCE.renderSimpleBridge is exposed on the production API
+	✓ a wired tool with no owner state degrades to an honest unavailable that names the missing owner adapter, publishes a null numeric, paints no numeric node, and invents no signal (market-heatmap-lab)
+	✓ the bridge never mutates body.classList on the unavailable path — applyVisual stays the sole owner of rlv-focused (BUG-003 invariant, 0 recorded mutations)
+
+spec artifacts — referenced tests/*.mjs paths exist (Playwright silently ignores absent file args)
+	✓ the scan matched at least one tests/*.mjs reference against a present baseline, so the guard is not vacuously green (9692 reference(s) across 417 artifact(s), baseline 86 entries)
+	✓ no tests/*.mjs path named by a spec artifact is missing outside the frozen baseline — a stale path makes a multi-file verification command silently cover less than it claims (0 new, 86 known-missing, 0 stale of 204 referenced)
+
+================================================
+Research-Lab self-test: 970 passed, 0 failed
+================================================
+SELFTEST_EXIT=0
+```
+
+### Static, Governance, Syntax, And Anchor Matrix
+
+```text
+BUBBLES REGRESSION QUALITY GUARD
+Bugfix mode: true
+Scanning tests/market-heatmap-control-surface.spec.mjs
+Adversarial signal detected in tests/market-heatmap-control-surface.spec.mjs
+REGRESSION QUALITY RESULT: 0 violation(s), 0 warning(s)
+Files scanned: 1
+Files with adversarial signals: 1
+REGRESSION_QUALITY_BUGFIX_EXIT=0
+
+Artifact lint PASSED.
+ARTIFACT_LINT_EXIT=0
+
+IMPLEMENTATION REALITY SCAN RESULT
+Files scanned: 1
+Violations: 0
+Warnings: 0
+PASSED: No source code reality violations detected
+IMPLEMENTATION_REALITY_EXIT=0
+
+scenario-manifest.json covers 4 scenario contracts
+Scenarios checked: 4
+Test rows checked: 12
+DoD fidelity scenarios: 4 (mapped: 4, unmapped: 0)
+RESULT: PASSED (0 warnings)
+TRACEABILITY_GUARD_EXIT=0
+
+G044 Regression Baseline: test baseline comparison found in report
+G045 Cross-Spec Regression: 2 done specs of 3 inventoried; inventory completed
+G046 Spec Conflict Detection: no route/endpoint collisions detected
+Regression baseline guard: PASSED
+REGRESSION_BASELINE_GUARD_EXIT=0
+
+diff-evidence-guard: PASS (no DoD path-claims to verify in 1 scope file(s); baseSha=087ad2add3f2)
+DIFF_EVIDENCE_GUARD_EXIT=0
+GIT_DIFF_CHECK_EXIT=0
+```
+
+```text
+NODE_CHECK path=rlexperience.js status=PASS exit=0
+NODE_CHECK path=rlviews.js status=PASS exit=0
+NODE_CHECK path=tests/market-heatmap-control-surface.spec.mjs status=PASS exit=0
+NODE_CHECK path=tests/simple-production-bridge.unit.mjs status=PASS exit=0
+NODE_CHECK path=tests/simple-production-bridge.integration.mjs status=PASS exit=0
+NODE_CHECK path=tests/simple-production-wiring.spec.mjs status=PASS exit=0
+NODE_CHECK path=tests/tool-experience-shell.unit.mjs status=PASS exit=0
+NODE_CHECK path=scripts/selftest.mjs status=PASS exit=0
+NODE_CHECK path=playwright.config.mjs status=PASS exit=0
+OK page=market-heatmap-lab.html inline=1 refs=0
+PAGE_INLINE_ID_CHECK path=market-heatmap-lab.html status=PASS exit=0
+NODE_CHECK_FILES=9
+NODE_AND_PAGE_FAILURES=0
+```
+
+```text
+DOD_ANCHOR row=1 checked=true refs=1 missing=0 status=RESOLVED
+DOD_ANCHOR row=2 checked=true refs=1 missing=0 status=RESOLVED
+DOD_ANCHOR row=3 checked=true refs=1 missing=0 status=RESOLVED
+DOD_ANCHOR row=4 checked=true refs=1 missing=0 status=RESOLVED
+DOD_ANCHOR row=5 checked=true refs=1 missing=0 status=RESOLVED
+DOD_ANCHOR row=6 checked=true refs=1 missing=0 status=RESOLVED
+DOD_ANCHOR row=7 checked=true refs=2 missing=0 status=RESOLVED
+DOD_ANCHOR row=8 checked=true refs=1 missing=0 status=RESOLVED
+DOD_ANCHOR row=9 checked=true refs=1 missing=0 status=RESOLVED
+DOD_ANCHOR row=10 checked=true refs=1 missing=0 status=RESOLVED
+DOD_ANCHOR row=11 checked=true refs=1 missing=0 status=RESOLVED
+DOD_ANCHOR row=12 checked=true refs=1 missing=0 status=RESOLVED
+DOD_ANCHOR row=13 checked=true refs=1 missing=0 status=RESOLVED
+DOD_ANCHOR row=14 checked=true refs=2 missing=0 status=RESOLVED
+DOD_ANCHOR row=15 checked=true refs=1 missing=0 status=RESOLVED
+DOD_ANCHOR row=16 checked=true refs=3 missing=0 status=RESOLVED
+DOD_ANCHOR row=17 checked=true refs=1 missing=0 status=RESOLVED
+DOD_ANCHOR row=18 checked=true refs=1 missing=0 status=RESOLVED
+DOD_ANCHOR row=19 checked=true refs=1 missing=0 status=RESOLVED
+DOD_ANCHOR row=20 checked=true refs=2 missing=0 status=RESOLVED
+DOD_ROWS=20
+DOD_CHECKED=20
+DOD_ANCHOR_FAILURES=0
+STATE_EVIDENCE_REFS=87
+STATE_EVIDENCE_UNIQUE_ANCHORS=36
+PHASE_EVIDENCE_REFS=23
+FINDING_EVIDENCE_REFS=24
+TRANSITION_EVIDENCE_REFS=39
+HISTORY_EVIDENCE_REFS=1
+OTHER_STATE_EVIDENCE_REFS=0
+STATE_EVIDENCE_ANCHOR_FAILURES=0
+BUG004_HARDEN_ANCHOR_RESOLUTION=PASS
+```
+
+### Process, Worktree, Staging, And Boundary Classification
+
+The first complete status probe found ten expected BUG-004 dirty paths, one
+concurrent BUG-003 state edit, two registered worktrees, zero staged paths, zero
+stashes, and zero active BUG-004/browser processes. The second worktree is
+read-only-classified to BUG-003 and is not BUG-004 residue; it was preserved.
+
+```text
+DIRTY_PATH_COUNT=11
+EXPECTED_IN_BOUNDARY_DIRTY_COUNT=10
+EXPECTED_IN_BOUNDARY_MISSING_COUNT=0
+CONCURRENT_UNRELATED_DIRTY_COUNT=1
+CONCURRENT_UNRELATED path=specs/012-market-action-center-and-guided-tools/bugs/BUG-003-shell-brief-panel-adoption-hides-feature-002-mount/state.json classification=PRESERVE_OUTSIDE_BOUNDARY
+STAGED_PATH_COUNT=0
+GIT_WORKTREE_COUNT=2
+GIT_STASH_COUNT=0
+BUG004_PROCESS_RESIDUE_COUNT=0
+
+OUT_OF_BOUNDARY_WORKTREE_CLASSIFICATION
+?? node_modules
+SECOND_WORKTREE_HEAD=a6163ef00e893924887ea4d2c6bf9b94815b812e
+SECOND_WORKTREE_SUBJECT=audit(012/BUG-003): successor attempt A2 overturns the 36-block classification
+SECOND_WORKTREE_COMMITTER_DATE=2026-07-30T19:54:03+00:00
+CLASSIFICATION=CONCURRENT_OUT_OF_BOUNDARY_REGISTERED_WORKTREE_PRESERVE
+BUG004_PROCESS_RESIDUE_COUNT=0
+BUG004_STAGED_RESIDUE_COUNT=0
+BUG004_OWNED_EXTRA_WORKTREE_COUNT=0
+OUT_OF_BOUNDARY_EXTRA_WORKTREE_COUNT=1
+```
+
+### Current In-Progress Transition Guard Classification
+
+The final-delivery state-transition guard was executed against the current
+`in_progress` state. Its nonzero result is not represented as a pass. The open
+harden request is resolved by this phase. Missing stabilize/security/validate/
+audit execution and certification-owned completion fields are later-phase
+requirements. The remaining G004/G040/G068 promotion checks target foreign-owned
+planning/evidence surfaces and are retained for the later stabilization and
+certification path; focused current artifact lint, reality, traceability, exact
+anchor resolution, and current executable behavior all passed. No planning or
+certification artifact was changed here.
+
+```text
+Required phase 'stabilize' NOT in execution/certification phase records
+Required phase 'security' NOT in execution/certification phase records
+Required phase 'validate' NOT in execution/certification phase records
+Required phase 'audit' NOT in execution/certification phase records
+
+TRANSITION BLOCKED: 40 failure(s), 1 warning(s)
+failedGateIds: [G004,G061,G022,G027,G040,G068]
+blockingCode: DELIVERY_COMPLETION_FAILED
+failureCount: 40
+exitStatus: 1
+verdict: FAIL
+STATE_TRANSITION_GUARD_CURRENT_IN_PROGRESS_EXIT=1
+HARDEN_OWNED_DEFECTS=0
+LATER_PHASE_OR_PROMOTION_REQUIREMENTS=40
+```
+
+### Finding Accounting And Route
+
+- Addressed: `TR-BUG004-HARDEN`, `BUG004-HARDEN-PHASE-PENDING`, exact
+	nine-carrier identity admission, current unit/integration/shell/selftest
+	matrix, governance/syntax/anchor matrix, and BUG-004 residue classification.
+- New hardening findings: none.
+- Unresolved: `TR-BUG004-STABILIZE` and
+	`BUG004-STABILIZE-PHASE-PENDING`, routed to `bubbles.stabilize`.
+- Certification, top-level status, and top-level completion phases remain
+	untouched and `in_progress`.
+
+## Stabilize Phase (bubbles.stabilize)
+
+**Phase:** stabilize
+
+**Scope:** `SCOPE-01`
+
+**Claim Source:** executed
+
+**Verdict:** `STABLE`
+
+This diagnostic pass made no source, test, planning, documentation,
+configuration, dependency, deployment, server-lifecycle, staging, stash,
+worktree, commit, or certification change. It appended this evidence and
+updated only BUG-004 execution transition/history fields in `state.json`.
+
+### Repository Binding
+
+The supplied actionable packet for `research-lab`, decision
+`rb:vscode-eb9cb76de5cf2a992bf149706789fb73:6`, control revision 6, was
+validated against its private control record before repository reads. The
+emitted projection is intentionally redacted and non-actionable.
+
+**Command:** `cd /home/redacted/research-lab && timeout 30 bash .github/bubbles/scripts/repository-binding.sh validate-packet --session-id vscode-eb9cb76de5cf2a992bf149706789fb73 --session-control-file "$HOME/.local/state/bubbles-session-control/vscode-eb9cb76de5cf2a992bf149706789fb73/repository-binding.json" --packet-file /tmp/bubbles-bug004-stabilize-final.packet.json --emit-redacted-projection`
+
+**Exit Code:** 0
+
+**Claim Source:** executed
+
+```text
+{"repositoryRoot":"<redacted-local-root>","repositoryAlias":"research-lab","repositoryResolution":{"sessionId":"vscode-eb9cb76de5cf2a992bf149706789fb73","decisionId":"rb:vscode-eb9cb76de5cf2a992bf149706789fb73:6","controlRevision":6,"controlPathDigest":"sha256:308a8e9feb4ffd49dac1dced22b497b576d5a88570bf7bf1cd0abef5e1ffb0f8","authority":"explicit-repository-root","transition":"confirmed","scopeKind":"command","scopeId":null,"targetKind":"repository-root","pathVisibility":"redacted","actionable":false}}
+REPOSITORY_BINDING_VALIDATE_PACKET_EXIT=0
+```
+
+### Stability Inventory
+
+| Domain | Current-byte evidence | Disposition |
+|---|---|---|
+| Performance | One 161-symbol boot union, two workers, one zero-delay interaction yield after each accepted symbol, one terminal render, and a 160 ms resize debounce. Identity-admitted browser evidence records 204-222 second current dedicated cold opens and a prior 306 second loaded-host marker observation. | CLEAN: bounded, progressive cold-cache acquisition; no latency/SLO threshold exists in BUG-004 and no stall or regression was observed. |
+| Reliability | Coordinator unit carrier passed 13/13: filtering, accepted generations, one active/latest pending replacement, stale controls, provider failure, cancellation, same-mode re-entry, and promise settlement. | CLEAN |
+| Infrastructure/deployment | Research Lab is build-free. No deploy or background server operation ran; the Playwright server helper matches HEAD. | CLEAN |
+| Configuration | No config value or runtime default changed. Implementation reality reported zero violations and zero warnings. | CLEAN |
+| Build/CI | No build command exists. Canonical selftest passed 970/970; artifact, traceability, regression-quality, and owned-diff checks passed. | CLEAN |
+| Resource usage | Coordinator retains fixed per-tool state plus at most one scheduled or active run and one successor; cancelled/replaced slots resolve and are dereferenced. Final process probe found zero matching processes. | CLEAN |
+| Security/compliance | Not assessed by stabilize; the dedicated mandatory security phase remains separately owned. | NOT_APPLICABLE_TO_STABILIZE |
+
+### Exact Browser-Evidence Identity Admission
+
+**Command:** `git hash-object`, `sha256sum`, and path-scoped `git status --short` for the nine BUG-004 carriers plus `rlviews.js`; `git rev-parse HEAD`
+
+**Exit Code:** 0
+
+**Claim Source:** interpreted
+
+**Interpretation:** All ten current Git blobs exactly equal the HARDEN/current
+browser-admission identities. The current SHA-256 values also equal the Final
+Build Quality evidence. Therefore the existing browser measurements remain
+byte-relevant and the packet instruction not to rerun expensive browser tests
+applies. No browser command executed in this phase.
+
+| Path | Current Git blob | Current SHA-256 | Current path state |
+|---|---|---|---|
+| `rlexperience.js` | `7a83f8f0525d7886874028c148b1f13eaf089d1e` | `08e54dd45e35dc94a0fb433209d4bc2648b6d5388230286007d126af73580a2c` | modified, preserved |
+| `market-heatmap-lab.html` | `eb895d976ab55113e839a00c14980b7270f08e25` | `44b0b8bb77ce8622ade230ddb772cf8fb78be5569e471fb6a7b69c7302f1ae49` | modified, preserved |
+| `tests/market-heatmap-control-surface.spec.mjs` | `2f026012e6a1c3e39c9850341d63ca497f4662a2` | `b81b755df8a30df500c90009929b7956fb1b80d23d9db5cb72e1a57362d51563` | modified, preserved |
+| `tests/simple-production-bridge.unit.mjs` | `be408291c6ed128165273ff0f4b2947be9d59b1c` | `b47c07b188c9840ce4e69c1ee23e85da5ae9afa9c07e36c4eeadcdc5945180e1` | modified, preserved |
+| `tests/simple-production-bridge.integration.mjs` | `618f0c5b923fd3e9cd6dadd625dcd851f919328c` | `550cef20320cd3adce209d23245584592ea99d9f0aec3893c85a9158d8c04361` | clean |
+| `tests/simple-production-wiring.spec.mjs` | `1f7a91b1ccfb99b8f4833bc54eff653b88c59639` | `cca372f6011056f351608a53449086045d987dc623d57cf080ff6e402766f3dd` | clean |
+| `scripts/selftest.mjs` | `1899e945ab3c3e7bccb9f553014070d8b8def3fc` | `de430414dd689c7508fc27f9348c39bcce464d3f091a91940febf473ebf091be` | clean |
+| `playwright.config.mjs` | `d04ae12216125b710a1f94645feac2e28c1467cc` | `b35e8e75984b6a21a2e0c7a505d38a85190ec46bcfe6bf2312395a44e1c222cd` | clean |
+| `notes/market-heatmap-lab.md` | `da6c93a9f229d4c057a0e892c64cc552f9829400` | `590217dca53c5ad2db132515b93fde3884647d3492b4e2c77ffd224fa88fedf4` | modified, preserved |
+| `rlviews.js` | `fb1c686a09cef82175d144dbaefa79e83742a764` | `76443ac631d1b81ecfdccb3979460d29c843dfeda45a501d60ee1e61ca71bf84` | clean |
+
+### Current Coordinator And Protected-Shell Execution
+
+**Commands:** `timeout 600 node --test tests/simple-production-bridge.unit.mjs`;
+`timeout 600 node --test tests/simple-production-bridge.integration.mjs`;
+`timeout 600 node --test tests/tool-experience-shell.unit.mjs`
+
+**Exit Code:** 0 for all three commands
+
+**Claim Source:** executed
+
+```text
+✔ renderSimpleBridge is exposed on the production API
+✔ provider present + real owner state -> renders the REAL market-breadth adapter (ready), never mutates rlv-focused
+✔ no owner-state provider -> honest unavailable, no invented signal, never mutates rlv-focused
+✔ owner evidence does not permit a run (unhydrated) -> honest unavailable, never mutates rlv-focused
+✔ missing adapter module -> honest unavailable (no crash), never mutates rlv-focused
+✔ TP-B004-01 requestSimpleRefresh rejects non-current contexts and settles invalidated queued work
+✔ TP-B004-02 requestSimpleRefresh coalesces same-turn duplicates and replaces the pending successor
+✔ TP-B004-03 accepted mid-run refresh immediately invalidates active generation and stale controls
+✔ TP-B004-04 current and stale refresh promises settle without overwriting current truth
+✔ a queued Simple run does not survive an invalidation, and its promise settles
+✔ leaving Simple altogether also settles the queued run without painting
+✔ ownerModes resolution: provider wiring hands Simple to the adapter panel and never regresses an unwired tool
+✔ no forbidden authority: the runtime declares none, and running the real bridge touches no network, provider, storage or cookie surface
+tests 13
+pass 13
+fail 0
+cancelled 0
+skipped 0
+duration_ms 369.553502
+```
+
+```text
+[TP-15-02] wired (19): market-heatmap-lab, options-flow-feed-lab, intraday-tape-lab, swing-structure-lab, options-structure-lab, gamma-trading-lab, sector-research-lab, global-rotation-lab, real-assets-lab, bond-regime-lab, ai-capex-strategy-lab, company-fundamentals-lab, etf-momentum-lab, strategy-self-improvement-lab, strategy-validation-lab, smart-money-flow-lab, waterfront-polo-lab, volatility-sizing-lab, technical-analysis-decision-lab
+[TP-15-02] not wired (4): market-brief, msft-july-print-model, palm-springs-rental-market-lab, ocean-shores-rental-market-lab
+[SCN-012-039] ordinary=22 wired=19 declared-unwired=3 unaccounted=0
+[TP-15-02] strict parity (module loaded by the page): 18 of 19
+[TP-15-02] honest generic unavailable (module deliberately absent, SCN-012-034 lock): technical-analysis-decision-lab
+tests 6
+pass 6
+fail 0
+cancelled 0
+skipped 0
+duration_ms 4067.086404
+```
+
+```text
+✔ SCN-012-031 registry resolves exact ordinary and Market Action four-view shells
+✔ SCN-012-031 route resolution keeps only public modes and allowlisted public targets
+✔ SCN-012-031 explicit hash wins over valid versioned mode-only local state
+✔ SCN-012-031 user transitions push once while Back and Forward restore without fetch
+✔ SCN-012-028 dependency projection exposes the exact Brief gate with no bypass
+✔ SCN-012-029 dependency projection preserves public Portfolio and creates no private-store contract
+✔ Scope 02 shell state helpers remain pure and contain no registry tool-ID switch
+tests 7
+pass 7
+fail 0
+cancelled 0
+skipped 0
+duration_ms 146.006538
+```
+
+The two honest unavailable cases are distinct and retained: a module-backed
+wired tool whose owner evidence cannot run remains unavailable, and
+`technical-analysis-decision-lab` deliberately lacks a module and uses the
+generic unavailable path. Neither case invents a ready projection.
+
+### Canonical Selftest
+
+**Command:** `timeout 1200 node scripts/selftest.mjs`
+
+**Exit Code:** 0
+
+**Claim Source:** executed
+
+**Output window:** lines 307-358 of the full 358-line output saved by the
+terminal tool.
+
+```text
+Feature 012 Scope 15 production Simple-view bridge canaries (TP-15-07)
+	✓ the bridge publishes a non-empty adapter-module binding table, each entry naming a browser global and a registrar (6 bindings parsed from rlexperience.js)
+	✓ the wired set is derived from the production registry + the deployed pages and is non-empty (19 wired of 23 registry definitions, scanned 26 pages)
+	✓ every page-registered owner-state provider resolves to a registry definition carrying a non-empty adapterId/adapterModule/definitionId (0 orphan wirings, 0 identity gaps across 19 wired tools)
+	✓ every wired tool's declared adapter module exists on disk and has a bridge binding (6 distinct modules across 19 wired tools)
+	✓ every wired tool's adapter module loads and exports the registrar its binding names (19/19 resolved, gaps: none)
+	✓ registering every wired module into the REAL runtime registers the registry-declared adapterId for the registry-declared definitionId (19/19 checked, gaps: none)
+	✓ no forbidden authority: the runtime's own diagnostic reports every authority false after adapter registration (6 authority flags x 19 wired tools, owned: 0)
+	✓ exactly one executable rlv-focused write exists across all production sources and it lives in rlviews.js (scanned 54 files, writers: rlviews.js x1)
+	✓ applyVisual (rlviews.js) is the function that owns that sole rlv-focused write
+	✓ the production bridge path performs local compute only - no network, provider, storage, or cookie authority in its executable source (8 tokens checked, hits: none)
+	✓ rlapp.js's own ownerModes expression yields ["power"] for a provider-wired ordinary tool, ["simple","power"] for an unwired one, and ["brief"] for a brief-only tool
+	✓ rlviews.js's own rlv-focused predicate focuses a wired tool's Simple, leaves Power unfocused, and never focuses an unwired native Simple or a brief view
+	✓ RLEXPERIENCE.renderSimpleBridge is exposed on the production API
+	✓ a wired tool with no owner state degrades to an honest unavailable and invents no signal
+	✓ the bridge never mutates body.classList on the unavailable path
+	✓ no tests/*.mjs path named by a spec artifact is missing outside the frozen baseline (0 new, 86 known-missing, 0 stale of 204 referenced)
+================================================
+Research-Lab self-test: 970 passed, 0 failed
+================================================
+```
+
+### Hydration, Cache, And Control Probes
+
+**Command:** bounded Node read-only probe over current
+`market-heatmap-lab.html`, `rlexperience.js`, `sector-universe.json`,
+`data/bars/index.json`, and the two current browser carriers
+
+**Exit Code:** 0
+
+**Claim Source:** interpreted
+
+**Interpretation:** The current data universe and executable structure are
+bounded as designed. `RLDATA.ensureBars` first reads cache, then stores each
+accepted snapshot through `putBars`/`save`; `save` retains the complete in-memory
+dataset and prunes only a persistence copy on quota failure. Two workers plus a
+zero-delay yield prevent hydration from monopolizing the interaction loop. The
+terminal boundary has one settle/paint/mark/notify order and clears a corrupt
+cache before one retry render. The coordinator contains no acquisition or
+storage authority; Power controls persist only their page-local preference state
+and issue no data acquisition.
+
+```text
+BOOT_UNION_SIZE=161
+ENTRY_SYMBOL_REFERENCES=47
+CONSTITUENT_REFERENCES=135
+AVAILABLE_SNAPSHOT_SYMBOLS=287
+HYDRATION_CONCURRENCY_TWO=true
+INTERACTION_YIELD_TIMER_ZERO=true
+TERMINAL_BOUNDARY_COUNT=1
+TERMINAL_ORDER_SETTLE_PAINT_MARK_NOTIFY=true
+TERMINAL_ERROR_CACHE_RESET=true
+BOOT_RETURNS_FETCH_DELTA=true
+POST_FETCH_DUPLICATE_RENDER=false
+COORDINATOR_TOOL_STATE_BOUNDED=true
+COORDINATOR_CANCEL_RESOLVES_NULL=5
+COORDINATOR_PROVIDER_READ_AT_RUN=true
+COORDINATOR_FORBIDDEN_AUTHORITY_TOKENS=none
+DEDICATED_MARKER_BUDGET_MS=480000
+DEDICATED_TEST_BOUNDS_900S=4
+PROTECTED_MARKER_BUDGET_600S=true
+PROTECTED_TEST_BOUND_600S=true
+```
+
+The first raw probe counted one `fetchDelta()` token in a comment inside
+`wire()`. A corrected comment-stripped probe proved there is no executable
+post-hydration acquisition. The false positive was not promoted into a finding.
+
+```text
+DOM_ID_COUNT winSeg=1
+DOM_ID_COUNT sizeSeg=1
+DOM_ID_COUNT grpSeg=1
+DOM_ID_COUNT tm=1
+DOM_ID_COUNT tbl=1
+EXECUTABLE_CONTROL_FETCH_DELTA_CALLS=0
+WIN_CONTROL_LOCAL_RENDER=true
+SIZE_CONTROL_LOCAL_RENDER=true
+GROUP_CONTROL_LOCAL_RENDER=true
+RENDER_REPAINTS_TABLE=true
+RENDER_REPAINTS_CANVAS=true
+NATIVE_SELECTED_ARIA=true
+FOCUS_VISIBLE_OUTLINE_3PX=true
+RESIZE_REPAINT_DEBOUNCE_160=true
+```
+
+Simple control focus restoration is source-grounded: the active parameter ID is
+captured before recompute, controls are rebuilt from the current projection, and
+the corresponding new node is focused after paint. Native Power focus behavior
+is identity-admitted from the retained three-group browser assertion: real
+Tab/Shift+Tab acquisition, `:focus-visible`, non-transparent 3 px outline,
+semantic selection, owned-output change, canvas pixel change, and no request.
+
+### Browser Duration And Timeout Classification
+
+**Claim Source:** interpreted
+
+**Interpretation:** No browser command ran in this phase. The exact-identity
+admission above binds these measurements to the current carriers in
+[Final Simplify Revalidation Browser Matrix](#final-simplify-revalidation-browser-matrix)
+and [Reopened Gaps Independent GREEN](#reopened-gaps-independent-green).
+
+| Measurement | Recorded value | Classification |
+|---|---:|---|
+| Dedicated current A cold open | 3.3 minutes (198 seconds) | Real fresh-context arrival latency |
+| Dedicated current B cold open plus five controls | 3.4 minutes (204 seconds) | Hydration plus local recomputes |
+| Dedicated current C cold open plus three Power controls | 3.7 minutes (222 seconds) | Hydration plus DOM/canvas assertions |
+| Dedicated grouping-union cold open | 3.4 minutes (204 seconds) | Full 161-symbol union hydration |
+| Earlier independent A/B/C runs | 222/236/278 seconds | Same marker-driven carrier family |
+| Loaded-host marker observation | 306 seconds | Slow but advancing cold-cache acquisition |
+| Dedicated marker wait | 480 seconds | Budget only; `ready` remains the predicate |
+| Protected 19-tool marker wait | 600 seconds | Budget only; `ready` remains the predicate |
+| Dedicated per-test bound | 900 seconds | Outer fail-closed bound |
+| Combined 8-test outer command | 3000 seconds; 33.2 minutes observed | Repeated fresh contexts with one worker |
+
+The 204-306 second cold-cache interval is production-path arrival latency, not
+fabricated test sleep. The 33.2 minute suite duration is its repeated
+fresh-context amplification. Current evidence does not establish a production
+defect: the progress count advances, interaction yields remain active, terminal
+state is explicit, repeated post-hydration controls acquire nothing, cached
+reopens reuse data, and BUG-004 declares no latency or SLO threshold. This phase
+therefore makes no unsupported latency-quality claim beyond bounded completion.
+
+### Governance And Residue
+
+**Commands:** focused artifact lint, implementation reality scan,
+traceability guard, bugfix regression-quality guard, and path-scoped
+`git diff --check`
+
+**Exit Code:** 0 for every command
+
+**Claim Source:** executed
+
+```text
+Artifact lint PASSED.
+IMPLEMENTATION REALITY SCAN RESULT
+Files scanned: 1
+Violations: 0
+Warnings: 0
+PASSED: No source code reality violations detected
+scenario-manifest.json covers 4 scenario contracts
+Scenarios checked: 4
+Test rows checked: 12
+DoD fidelity scenarios: 4 (mapped: 4, unmapped: 0)
+RESULT: PASSED (0 warnings)
+REGRESSION QUALITY RESULT: 0 violation(s), 0 warning(s)
+Files scanned: 1
+Files with adversarial signals: 1
+BUG004_REPORT_STATE_DIFF_CHECK_EXIT=0
+```
+
+An intermediate process probe observed a concurrent headless Chrome instance.
+This phase launched no browser; the process exited before ownership tracing and
+was neither killed nor modified. The final explicit probe was clean. The
+existing `/tmp/rl-clean-head` worktree remains the HARDEN-classified BUG-003
+worktree at the same detached commit and was preserved. The Playwright server
+helper matches HEAD. The exact temporary binding packet created by this phase
+was removed after the IDE delete operation proved ineffective outside the
+workspace.
+
+**Commands:** final exit-coded process probe; staged/stash/worktree inspection;
+`git hash-object tests/playwright-runtime.mjs` compared with
+`git rev-parse HEAD:tests/playwright-runtime.mjs`; exact temporary-file removal
+and presence check
+
+**Exit Code:** 0
+
+**Claim Source:** executed
+
+```text
+FINAL_BUG004_PROCESS_PROBE
+PROCESS_PGREP_EXIT=1
+ACTIVE_MATCHING_PROCESSES=0
+STAGED_PATH_COUNT=0
+GIT_STASH_COUNT=0
+GIT_WORKTREE_COUNT=2
+PRIMARY_WORKTREE=~/research-lab
+PRESERVED_EXTRA_WORKTREE=/tmp/rl-clean-head
+PRESERVED_EXTRA_WORKTREE_HEAD=a6163ef00e893924887ea4d2c6bf9b94815b812e
+CURRENT_SERVER_HELPER_BLOB=b50262e48116f614380a000d0f226617e24e2c82
+HEAD_SERVER_HELPER_BLOB=b50262e48116f614380a000d0f226617e24e2c82
+SERVER_HELPER_DRIFT=false
+TEMP_PACKET_PRESENT=false
+FINAL_PACKET_PRESENT=false
+```
+
+### Finding Accounting And Route
+
+- Addressed: `TR-BUG004-STABILIZE`, `BUG004-STABILIZE-PHASE-PENDING`,
+	current identity admission, all seven stability domains, and
+	`BUG004-STABILIZE-DIAGNOSTIC-TEMP-CLEANUP`.
+- Confirmed stability findings: none.
+- Unresolved workflow requirement: `TR-BUG004-DEVOPS` and
+	`BUG004-DEVOPS-PHASE-PENDING`, routed to `bubbles.devops`; this is the next
+	mandatory bugfix-fastlane phase, not a stability defect.
+- Top-level status and `certification.status` remain `in_progress`;
+	`certification.*` and top-level `completedPhases` remain untouched.
+
+### Post-Record Validation
+
+**Commands:** post-edit artifact lint; bounded Node state/report/DoD invariant
+check; path-scoped `git diff --check`; fail-closed ten-carrier identity check;
+editor diagnostics for `report.md` and `state.json`
+
+**Exit Code:** 0 for every executable command
+
+**Claim Source:** executed
+
+```text
+Artifact lint PASSED.
+TOP_STATUS_IN_PROGRESS=PASS
+TOP_COMPLETED_PHASES_UNTOUCHED=PASS
+EXECUTION_PHASE_STABILIZE=PASS
+NEXT_OWNER_DEVOPS=PASS
+PENDING_ONLY_DEVOPS=PASS
+STABILIZE_TRANSITION_RESOLVED_ONCE=PASS
+DEVOPS_TRANSITION_OPEN_ONCE=PASS
+STABILIZE_PHASE_CLAIM_ONCE=PASS
+STABILIZE_HISTORY_ONCE=PASS
+CERT_STATUS_UNCLAIMED=PASS
+CERT_ARRAYS_UNTOUCHED=PASS
+CERT_SCOPE_UNTOUCHED=PASS
+LOCKDOWN_UNTOUCHED=PASS
+STABILIZE_REPORT_SECTION_ONCE=PASS
+STABLE_VERDICT_RECORDED=PASS
+DOD_CHECKED_20=PASS
+DOD_UNCHECKED_ZERO=PASS
+STABILIZE_CONTINUATION_LANGUAGE_ZERO=PASS
+STATE_JSON_PARSE=PASS
+POST_EDIT_BUG004_DIFF_CHECK=PASS
+IDENTITY_FAILURES=0
+```
+
+Editor diagnostics separately returned `No errors found` for both owned files.
+
+## DevOps Phase (bubbles.devops)
+
+**Phase:** `devops`
+
+**Verdict:** `DEVOPS_CLEAN / NO_DEPLOYMENT_CHANGE_REQUIRED`
+
+**Claim Source:** executed
+
+### Operational Decision
+
+Research Lab remains a build-free GitHub Pages site. The checked-in root HTML,
+JavaScript, JSON, JSONL, data, and documentation are the publication artifact;
+the Pages workflow uploads `.` unchanged after its existing source-lock and
+browser-runner checks. BUG-004 changes fit that contract without a build,
+container, service, database, config, secret, deployment-adapter, generated
+bundle, or cache-invalidation migration.
+
+The stable public identity remains `market-heatmap-lab` at
+`market-heatmap-lab.html` in `tools.json`, `index.html`, and `rlnav.js`. The page
+continues to consume the existing shared `RLDATA` cache-first acquisition path;
+no provider key, proxy base URL, endpoint, data snapshot, universe, or shared
+data-layer file changed. No service worker or generated `dist`, `build`, `out`,
+or `public` tree exists. Rollback remains a bounded source/test/docs inverse and
+requires no state cleanup or migration.
+
+No deploy, push, upkeep, host mutation, remote Pages fetch, or remote-bundle
+verification ran. The optional local static route smoke was not needed because
+the canonical page parser, registry/static matrix, and selftest exercised the
+current root source; no deployment claim is made.
+
+### Source Lock And Pages Guard
+
+**Command:** `timeout 120 node scripts/validate-node-source-lock.mjs`
+
+**Exit Code:** 0
+
+**Claim Source:** executed
+
+```text
+[node-source-lock] manifest=PASS private=true runtimeDependencies=0 scripts=0 playwright=1.61.1 node=>=20
+[node-source-lock] npmrc=PASS registry=https://registry.npmjs.org/ entries=5 ignoreScripts=true
+[node-source-lock] lockfile=PASS version=3 externalPackages=3 integrity=sha512
+[node-source-lock] graph=PASS playwright=1.61.1 playwright-core=1.61.1 fsevents=2.3.2
+[node-source-lock] adversarial=missing-file result=REJECTED code=FILE-MISSING
+[node-source-lock] adversarial=manifest-drift result=REJECTED code=MANIFEST-KEYS
+[node-source-lock] adversarial=manifest-range result=REJECTED code=MANIFEST-PLAYWRIGHT
+[node-source-lock] adversarial=manifest-wrong-version result=REJECTED code=MANIFEST-PLAYWRIGHT
+[node-source-lock] adversarial=second-registry result=REJECTED code=NPMRC-DUPLICATE
+[node-source-lock] adversarial=scoped-registry result=REJECTED code=NPMRC-SCOPED-REGISTRY
+[node-source-lock] adversarial=verification-disabled result=REJECTED code=NPMRC-VERIFICATION
+[node-source-lock] adversarial=lifecycle-relaxation result=REJECTED code=NPMRC-IGNORE-SCRIPTS
+[node-source-lock] adversarial=untrusted-resolved-url result=REJECTED code=LOCK-SOURCE
+[node-source-lock] adversarial=missing-integrity result=REJECTED code=LOCK-INTEGRITY
+[node-source-lock] adversarial=git-source result=REJECTED code=LOCK-SOURCE
+[node-source-lock] adversarial=file-source result=REJECTED code=LOCK-SOURCE
+[node-source-lock] adversarial=path-source result=REJECTED code=LOCK-SOURCE
+[node-source-lock] adversarial=http-source result=REJECTED code=LOCK-SOURCE
+[node-source-lock] adversarial=external-version-range result=REJECTED code=LOCK-PACKAGE-VERSION
+[node-source-lock] adversarial=extra-package result=REJECTED code=LOCK-GRAPH
+[node-source-lock] actual=PASS
+[node-source-lock] OK adversarial=16 unexpectedAcceptances=0
+```
+
+### Static Publication And Ownership Matrix
+
+**Command:** bounded read-only Node matrix over `.github/workflows/pages.yml`,
+`package.json`, `tools.json`, `index.html`, `rlnav.js`,
+`market-heatmap-lab.html`, `rlexperience.js`, `scripts/selftest.mjs`, and current
+Git changed paths
+
+**Exit Code:** 0
+
+**Claim Source:** executed
+
+```text
+PAGES_MAIN_TRIGGER=PASS push branch is main
+PAGES_ROOT_ARTIFACT=PASS repository root uploaded unchanged
+PAGES_DEPLOY_ACTION=PASS standard Pages deploy action present
+PAGES_SOURCE_LOCK_GATE=PASS source-lock validator wired before deploy
+PAGES_NO_APP_BUILD=PASS no application build or bundler step
+PACKAGE_RUNTIME_DEPS=PASS zero runtime dependencies; one test-only dependency
+PACKAGE_SCRIPTS=PASS no package build/deploy scripts
+PLAYWRIGHT_PIN=PASS exact checkout-local version
+TOOL_IDENTITY_COUNT=PASS market-heatmap-lab entries=1
+TOOL_FILE_IDENTITY=PASS file=market-heatmap-lab.html
+TOOL_DATA_IDENTITY=PASS data=sector-universe.json
+INDEX_IDENTITY=PASS single id/file pair
+NAV_IDENTITY=PASS single navigation route
+ROOT_STATIC_FILE=PASS deployable HTML exists at repository root
+SHARED_SHELL_ORDER=PASS indices=12712,12860,12916
+CACHE_FIRST_OWNER_PATH=PASS page consumes shared RLDATA acquisition
+NO_PAGE_PROVIDER_CONFIG=PASS page does not own provider credentials or proxy routing
+NO_PROVIDER_CONFIG_ADDS=PASS added key/endpoint routing lines=0
+NO_SERVICE_WORKER_CODE=PASS changed production surfaces register none
+NO_SERVICE_WORKER_FILE=PASS root service-worker artifacts=0
+NO_GENERATED_BUNDLE_TREE=PASS generated roots=0
+NO_OPERATIONAL_SURFACE_DRIFT=PASS changed operational paths=0
+NO_DATA_SNAPSHOT_DRIFT=PASS provider snapshots and universe unchanged
+SELFTEST_PAGE_DISCOVERY=PASS canonical selftest reads changed page
+SELFTEST_REGISTRY_PARITY=PASS canonical registry parity checks present
+BUG_TEST_DISCOVERY=PASS spec-referenced test path guard present
+DEPLOY_ADAPTER_DRIFT=PASS no deploy adapter or deployment file changed
+CONFIG_SECRET_DRIFT=PASS no config, secret, or env path changed
+MATRIX_FAILURES=PASS failures=0
+```
+
+The only dirty non-BUG path, `.github/bubbles-project.yaml`, is unrelated
+concurrent work consisting of one blank-line deletion. It was classified and
+preserved without edit.
+
+### Canonical Static Selftest
+
+**Command:** `timeout 600 node scripts/selftest.mjs`
+
+**Exit Code:** 0
+
+**Claim Source:** executed
+
+```text
+uses an unwired native Simple or a brief view
+	✓ RLEXPERIENCE.renderSimpleBridge is exposed on the production API
+	✓ a wired tool with no owner state degrades to an honest unavailable that names the missing owner adapter, publishes a null numeric, paints no numeric node, and invents no signal (market-heatmap-lab)
+	✓ the bridge never mutates body.classList on the unavailable path — applyVisual stays the sole owner of rlv-focused (BUG-003 invariant, 0 recorded mutations)
+
+spec artifacts — referenced tests/*.mjs paths exist (Playwright silently ignores absent file args)
+	✓ the scan matched at least one tests/*.mjs reference against a present baseline, so the guard is not vacuously green (9720 reference(s) across 417 artifact(s), baseline 86 entries)
+	✓ no tests/*.mjs path named by a spec artifact is missing outside the frozen baseline — a stale path makes a multi-file verification command silently cover less than it claims (0 new, 86 known-missing, 0 stale of 204 referenced)
+
+================================================
+Research-Lab self-test: 970 passed, 0 failed
+================================================
+```
+
+The first terminal selftest run completed but its body was lost from terminal
+scrollback and is not used as evidence. The block above is from the explicit
+rerun preserved by the execution runner.
+
+### Focused Page And Governance Checks
+
+**Commands:** canonical `PAGE=market-heatmap-lab.html` inline-script/ID check;
+focused artifact lint; focused implementation-reality scan
+
+**Exit Code:** 0 for every command
+
+**Claim Source:** executed
+
+```text
+OK page=market-heatmap-lab.html inline=1 refs=0
+✅ Required artifact exists: spec.md
+✅ Required artifact exists: design.md
+✅ Required artifact exists: uservalidation.md
+✅ Required artifact exists: state.json
+✅ Required artifact exists: scopes.md
+✅ Required artifact exists: report.md
+✅ All checked DoD items in scopes.md have evidence blocks
+✅ No unfilled evidence template placeholders in scopes.md
+✅ No unfilled evidence template placeholders in report.md
+Artifact lint PASSED.
+IMPLEMENTATION REALITY SCAN RESULT
+Files scanned:  1
+Violations:     0
+Warnings:       0
+PASSED: No source code reality violations detected
+```
+
+### Git History And Bounded Rollback
+
+**Command:** protected baseline ancestry check plus reverse-apply check of the
+exact six BUG-004 source/test/docs paths
+
+**Exit Code:** 0
+
+**Claim Source:** executed
+
+```text
+BASELINE_COMMIT=2f65a02a3d3951b0756e01eb87ac42a103b28435 feat(012/scope-15): make the Simple bridge genuinely steerable + author TP-15-03/TP-15-04
+CURRENT_HEAD=91ea5adefca1eae0c51a2e9213024a157330d599 cert(012/BUG-003): CERTIFIED done — audit A3 SHIP_IT, promotion blockers 10 -> 0
+BASELINE_IS_HEAD_ANCESTOR=PASS
+ROLLBACK_PATH=rlexperience.js
+ROLLBACK_PATH=market-heatmap-lab.html
+ROLLBACK_PATH=tests/market-heatmap-control-surface.spec.mjs
+ROLLBACK_PATH=tests/simple-production-bridge.unit.mjs
+ROLLBACK_PATH=tests/simple-production-wiring.spec.mjs
+ROLLBACK_PATH=notes/market-heatmap-lab.md
+ROLLBACK_REVERSE_APPLY_CHECK=PASS
+ROLLBACK_DATA_CACHE_PROVIDER_CONFIG_DEPLOYMENT_MIGRATION=none
+```
+
+### Residue Finding And Cleanup
+
+**Claim Source:** executed
+
+The pre-edit residue matrix found no BUG-004 process, no staged path, no server
+helper drift, and only the already-classified detached BUG-003 worktree. It also
+found 22 stale BUG-004 temp artifacts plus this phase's binding packet. This was
+a real DevOps finding, not silently reclassified as clean. The IDE deletion
+reported success but did not remove files outside the workspace; an exact,
+no-glob `rm -f -- <23 explicit BUG-004 temp paths>` cleanup was then executed.
+No unrelated process was killed and `/tmp/rl-clean-head` was preserved.
+
+```text
+PROCESS pid=299563 executable=bash class=unrelated-framework
+BUG004_ACTIVE_PROCESS_COUNT=PASS count=0
+UNRELATED_ACTIVE_PROCESS_COUNT=1
+GIT_WORKTREE_COUNT=2
+WORKTREE path=primary head=91ea5adefca1eae0c51a2e9213024a157330d599 detached=false subject=cert(012/BUG-003): CERTIFIED done — audit A3 SHIP_IT, promotion blockers 10 -> 0
+WORKTREE path=/tmp/rl-clean-head head=a6163ef00e893924887ea4d2c6bf9b94815b812e detached=true subject=audit(012/BUG-003): successor attempt A2 overturns the 36-block classification
+BUG004_EXTRA_WORKTREE_COUNT=PASS known /tmp/rl-clean-head remains classified to pre-existing BUG-003 evidence
+STAGED_PATH_COUNT=PASS count=0
+GIT_STASH_COUNT=0
+SERVER_HELPER_DRIFT=PASS current=b50262e48116f614380a000d0f226617e24e2c82 head=b50262e48116f614380a000d0f226617e24e2c82
+UNEXPECTED_BUG004_TEMP_COUNT=FAIL count=22
+RESIDUE_MATRIX_FAILURES=FAIL failures=1
+BUG004_TEMP_RESIDUE_COUNT=23
+BUG004_TEMP_CLEANUP=FAIL
+BUG004_TEMP_RESIDUE_COUNT=0
+BUG004_TEMP_CLEANUP=PASS
+```
+
+### Finding Accounting And Route
+
+- Addressed: `TR-BUG004-DEVOPS`, `BUG004-DEVOPS-PHASE-PENDING`, static Pages
+	publication, source locking, route/tool identity, shared provider/data
+	ownership, no-service-worker/no-bundle posture, bounded rollback, and
+	`BUG004-DEVOPS-TEMP-RESIDUE`. Post-record validation also caught and resolved
+	`BUG004-DEVOPS-TRANSITION-STATUS-MISMATCH`: resolution metadata had been
+	appended while `TR-BUG004-DEVOPS.status` still said `open`.
+- Confirmed unresolved DevOps findings: none.
+- Unresolved workflow requirement: `TR-BUG004-SECURITY` and
+	`BUG004-SECURITY-PHASE-PENDING`, routed to `bubbles.security` as the next
+	mandatory bugfix-fastlane phase.
+- No release packet references this deployment surface because no deployment
+	surface changed; no `bubbles.releases` handoff is required.
+- Top-level status and `certification.status` remain `in_progress`;
+	`certification.*` and top-level `completedPhases` remain untouched.
+
+### Post-Record Validation
+
+**Commands:** bounded Node transition/report/DoD/certification/temp invariant
+check; post-edit artifact lint; path-scoped `git diff --check`
+
+**Exit Code:** 0 after the one locally repaired transition-status mismatch
+
+**Claim Source:** executed
+
+The first invariant run failed only
+`DEVOPS_TRANSITION_RESOLVED_ONCE`: the transition carried `resolvedAt`,
+`resolvedBy`, and `resolutionSummary` but retained `status: open`. The same
+slice was corrected to `status: resolved`, and the identical invariant matrix
+then passed in full.
+
+```text
+STATE_JSON_PARSE=PASS
+TOP_STATUS_IN_PROGRESS=PASS
+TOP_COMPLETED_PHASES_UNTOUCHED=PASS
+EXECUTION_PHASE_DEVOPS=PASS
+EXECUTION_ROUTE_REQUIRED=PASS
+NEXT_OWNER_SECURITY=PASS
+PENDING_ONLY_SECURITY=PASS
+DEVOPS_TRANSITION_RESOLVED_ONCE=PASS
+SECURITY_TRANSITION_OPEN_ONCE=PASS
+DEVOPS_PHASE_CLAIM_ONCE=PASS
+DEVOPS_HISTORY_ONCE=PASS
+CERT_STATUS_UNCLAIMED=PASS
+CERT_ARRAYS_UNTOUCHED=PASS
+CERT_SCOPE_UNTOUCHED=PASS
+LOCKDOWN_UNTOUCHED=PASS
+DEVOPS_REPORT_SECTION_ONCE=PASS
+DEVOPS_VERDICT_RECORDED=PASS
+SECURITY_NOT_CLAIMED=PASS
+DOD_CHECKED_20=PASS
+DOD_UNCHECKED_ZERO=PASS
+BUG004_TEMP_RESIDUE_ZERO=PASS
+INVARIANT_FAILURES=PASS
+Artifact lint PASSED.
+BUG004_DEVOPS_REPORT_STATE_DIFF_CHECK=PASS
+```
+
+## Security Phase (bubbles.security)
+
+**Phase:** `security`
+
+**Scope:** `SCOPE-01`
+
+**Claim Source:** executed and interpreted, identified per subsection
+
+**Verdict:** `SECURITY_FINDING`
+
+The mandatory security pass completed against current working-tree bytes. It
+made no source, test, planning, documentation, dependency, configuration,
+deployment, staging, stash, worktree, commit, push, or certification change.
+One medium trust-boundary finding is open and routes to `bubbles.implement`;
+validation is not opened while that finding remains unresolved.
+
+### Repository Binding And Current-Byte Identity
+
+The supplied actionable packet for `research-lab`, decision
+`rb:vscode-eb9cb76de5cf2a992bf149706789fb73:6`, control revision 6, was
+validated against the private session-control file before repository reads.
+
+**Claim Source:** executed
+
+```text
+REPOSITORY PACKET VALID actionable=true repository=research-lab root=~/research-lab decision=rb:vscode-eb9cb76de5cf2a992bf149706789fb73:6 revision=6
+REPOSITORY_BINDING_VALIDATE_PACKET_EXIT=0
+CURRENT_HEAD=91ea5adefca1eae0c51a2e9213024a157330d599
+STAGED_PATH_COUNT=0
+rlexperience.js=7a83f8f0525d7886874028c148b1f13eaf089d1e
+market-heatmap-lab.html=eb895d976ab55113e839a00c14980b7270f08e25
+tests/market-heatmap-control-surface.spec.mjs=2f026012e6a1c3e39c9850341d63ca497f4662a2
+tests/simple-production-bridge.unit.mjs=be408291c6ed128165273ff0f4b2947be9d59b1c
+tests/simple-production-bridge.integration.mjs=618f0c5b923fd3e9cd6dadd625dcd851f919328c
+tests/simple-production-wiring.spec.mjs=1f7a91b1ccfb99b8f4833bc54eff653b88c59639
+scripts/selftest.mjs=1899e945ab3c3e7bccb9f553014070d8b8def3fc
+playwright.config.mjs=d04ae12216125b710a1f94645feac2e28c1467cc
+notes/market-heatmap-lab.md=da6c93a9f229d4c057a0e892c64cc552f9829400
+rlviews.js=fb1c686a09cef82175d144dbaefa79e83742a764
+IDENTITY_FAILURES=0
+```
+
+All ten identities exactly match the HARDEN/STABILIZE browser-admission
+identities. The previously executed dedicated 4/4 and protected-wiring 4/4
+browser evidence therefore remains byte-relevant; this phase did not rerun the
+long browser matrix. The security-specific wrong-tool event probe below is a
+new current-session browser execution against the same bytes.
+
+### Threat Model And Trust Boundaries
+
+**Claim Source:** interpreted from current source plus executed checks below
+
+| Attack surface | Threat | OWASP 2021 | Result |
+|---|---|---|---|
+| `requestSimpleRefresh({toolId})` | Wrong tool/view reads a provider or paints another panel | A04 Insecure Design | Direct request path clean; event path has `SEC-BUG004-001` |
+| `rlviews:change` listener | Malformed/stale tool identity disables current controls or grows coordinator state | A04 Insecure Design | Open medium finding `SEC-BUG004-001` |
+| Cross-generation completion | Stale ready/failure overwrites current truth | A08 Data Integrity | Clean: TP-B004-03/04 pass |
+| Coordinator queues/promises | Burst creates unbounded work or unresolved promises | A04 Insecure Design | Accepted request path bounded; wrong-event state allocation is part of `SEC-BUG004-001` |
+| Shared bridge authority | Network/provider acquisition, storage, cookie, beacon, author, or publication side effect | A02/A05 | Clean |
+| Registry-derived controls | Label/value/ARIA/focus data becomes executable HTML or an unsafe attribute path | A03 Injection | Clean: DOM APIs use `textContent`, typed values, and `setAttribute`; no new HTML/URL sink |
+| Historical RED hook | Environment flag activates historical source in normal production | A05 Security Misconfiguration | Clean: test-only, two-condition gate; both variables absent |
+| Static Pages and RLDATA | New credential, provider-key, proxy, cross-page private state, or publication boundary | A02/A05 | Clean: shared data/authorship files and manifests unchanged |
+
+The handled data remains public market evidence plus the existing page-local
+`mktHeatmapState` display preferences. The coordinator receives no credential,
+private portfolio, account, authentication, or authoring input.
+
+### G034, Dependency Source, And Broad Authority Checks
+
+**Commands:** `timeout 600 bash .github/bubbles/scripts/security-gate.sh
+--repo-root ~/research-lab`; `timeout 120 node
+scripts/validate-node-source-lock.mjs`; `timeout 1200 node
+scripts/selftest.mjs`
+
+**Exit Code:** 0 for all three commands
+
+**Claim Source:** executed
+
+```text
+[security-gate] OK - 3068 tracked file(s), zero G034 findings
+[node-source-lock] manifest=PASS private=true runtimeDependencies=0 scripts=0 playwright=1.61.1 node=>=20
+[node-source-lock] npmrc=PASS registry=https://registry.npmjs.org/ entries=5 ignoreScripts=true
+[node-source-lock] lockfile=PASS version=3 externalPackages=3 integrity=sha512
+[node-source-lock] graph=PASS playwright=1.61.1 playwright-core=1.61.1 fsevents=2.3.2
+[node-source-lock] adversarial=second-registry result=REJECTED code=NPMRC-DUPLICATE
+[node-source-lock] adversarial=scoped-registry result=REJECTED code=NPMRC-SCOPED-REGISTRY
+[node-source-lock] adversarial=verification-disabled result=REJECTED code=NPMRC-VERIFICATION
+[node-source-lock] adversarial=untrusted-resolved-url result=REJECTED code=LOCK-SOURCE
+[node-source-lock] adversarial=missing-integrity result=REJECTED code=LOCK-INTEGRITY
+[node-source-lock] adversarial=git-source result=REJECTED code=LOCK-SOURCE
+[node-source-lock] adversarial=file-source result=REJECTED code=LOCK-SOURCE
+[node-source-lock] adversarial=path-source result=REJECTED code=LOCK-SOURCE
+[node-source-lock] adversarial=http-source result=REJECTED code=LOCK-SOURCE
+[node-source-lock] adversarial=external-version-range result=REJECTED code=LOCK-PACKAGE-VERSION
+[node-source-lock] adversarial=extra-package result=REJECTED code=LOCK-GRAPH
+[node-source-lock] actual=PASS
+[node-source-lock] OK adversarial=16 unexpectedAcceptances=0
+selftest: wired=19 definitions=23 orphanWirings=0 identityGaps=0
+selftest: registered=19/19 authorityFlags=6 authorityOwned=0
+selftest: bridge authority tokens checked=8 hits=none
+Research-Lab self-test: 970 passed, 0 failed
+```
+
+There is no runtime dependency, manifest, lockfile, npm source, Pages workflow,
+`rldata.js`, `rlapp.js`, `rlviews.js`, or `rlticker.js` diff. The installed
+staged-only PII wrapper is not configured as a repository gate because this
+checkout has no `.gitleaks.toml`; it is not represented as executed coverage.
+G034 plus the bounded current production/test/docs target scan found no key
+material, credential literal, PII token, private-key marker, local home path,
+tailnet identifier, or real deployment target in the implementation boundary.
+
+### Coordinator, Failure Honesty, And Settlement Tests
+
+**Commands:** the exact TP-B004-01 through TP-B004-04 selectors; the exact
+`no forbidden authority` selector; full current bridge unit and integration
+carriers
+
+**Exit Code:** 0 for every command
+
+**Claim Source:** executed
+
+```text
+PASS exact-selector TP-B004-01 tests=1 pass=1 fail=0 skipped=0
+PASS exact-selector TP-B004-02 tests=1 pass=1 fail=0 skipped=0
+PASS exact-selector TP-B004-03 tests=1 pass=1 fail=0 skipped=0
+PASS exact-selector TP-B004-04 tests=1 pass=1 fail=0 skipped=0
+PASS exact-selector no-forbidden-authority tests=1 pass=1 fail=0 skipped=0
+PASS renderSimpleBridge is exposed on the production API
+PASS provider present + real owner state renders ready without rlv-focused mutation
+PASS no owner-state provider renders honest unavailable
+PASS unhydrated evidence renders honest unavailable
+PASS missing adapter module renders honest unavailable
+PASS TP-B004-01 rejected contexts settle without provider/panel effects
+PASS TP-B004-02 duplicates coalesce and pending successor is replaced
+PASS TP-B004-03 accepted refresh invalidates stale generation and controls
+PASS TP-B004-04 current/stale promises settle without overwriting truth
+PASS queued invalidation settles without painting
+PASS leaving Simple settles queued work without painting
+PASS ownerModes preserves wired, unwired, and Brief boundaries
+PASS bridge runtime touches no network/provider/storage/cookie surface
+UNIT tests=13 pass=13 fail=0 cancelled=0 skipped=0
+INTEGRATION wired=19 ordinary=22 declared-unwired=3 unaccounted=0
+INTEGRATION tests=6 pass=6 fail=0 cancelled=0 skipped=0
+```
+
+The current-failure case paints honest `unavailable`. Cancelled, replaced,
+stale-ready, and stale-failure work resolves `null`; only the latest current
+successor may paint `ready`. The accepted request path retains one scheduled or
+active run plus one replaceable successor and all tested promises settle within
+bounded guards.
+
+### Storage, Injection, Hook, And Static Boundary Checks
+
+**Commands:** bounded semantic sensitive-client-storage classifier over the five
+production/test carriers; added-line token matrix over `rlexperience.js` and
+`market-heatmap-lab.html`; presence-only historical-hook environment checks;
+production/test/docs PII/target scan
+
+**Exit Code:** 0 for the semantic scanner and added-line matrix; grep exit 1
+means no PII/target match
+
+**Claim Source:** executed
+
+```text
+SENSITIVE_CLIENT_STORAGE_STDOUT=<empty>
+SENSITIVE_CLIENT_STORAGE_EXIT=0
+ADDED_PRODUCTION_LINES=80
+BRIDGE_AUTHORITY_TOKENS=0
+UNSAFE_EXECUTION_TOKENS=0
+SERVICE_WORKER_TOKENS=0
+UNSAFE_DOM_WRITE_TOKENS=0
+URL_ASSIGNMENT_TOKENS=0
+CREDENTIAL_FIELD_TOKENS=0
+PRODUCTION_ENV_HOOK_TOKENS=0
+STATIC_ADDED_LINE_FAILURES=0
+BUG004_IMMUTABLE_ROOT=absent
+BUG004_HISTORICAL_CONTROLS_RED=absent
+PRODUCTION_PII_TARGET_SCAN_MATCHES=0
+MANIFEST_WORKFLOW_SHARED_DATA_DIFF=0
+```
+
+The two hook names occur only in
+`tests/market-heatmap-control-surface.spec.mjs`. Historical controls RED requires
+both `BUG004_HISTORICAL_CONTROLS_RED === "1"` and
+`SOURCE_ROOT !== ACTIVE_ROOT`; normal browser production cannot read Node's
+`process.env`, and neither variable was present in this run. The production
+bridge contains no hook token.
+
+The changed control renderer creates elements directly, writes labels and
+readouts with `textContent`, writes typed values/ARIA through `setAttribute`,
+and never adds an HTML or URL sink. Native Power labels/attributes are static.
+Existing ticker HTML remains escaped by `RLTKR.tag`; BUG-004 adds no new call or
+trust boundary there.
+
+### Focused Governance And Code-Index Classification
+
+**Commands:** bugfix regression-quality guard; implementation-reality scan;
+artifact lint; configured codegraph `freshness`
+
+**Claim Source:** executed
+
+```text
+REGRESSION QUALITY RESULT: 0 violation(s), 0 warning(s)
+Files scanned: 1
+Files with adversarial signals: 1
+IMPLEMENTATION REALITY SCAN RESULT
+Files scanned: 1
+Violations: 0
+Warnings: 0
+PASSED: No source code reality violations detected
+Artifact lint PASSED.
+CODEINDEX_ADAPTER=codegraph
+CODEINDEX_FRESHNESS_EXIT=2
+{"stale":true,"pendingChanges":{"added":0,"modified":1,"removed":0},"reason":"1 pending change(s): added=0 modified=1 removed=0"}
+CODEINDEX_EVIDENCE_USED=false
+```
+
+The code index was not synced because this diagnostic owns no index mutation.
+Its stale result is not used as proof. The direct semantic storage classifier,
+current source review, and executed carriers provide the security evidence.
+
+### Finding SEC-BUG004-001 - Wrong-Tool Event Mutates Current Panel
+
+**Severity:** Medium
+
+**OWASP:** A04 Insecure Design
+
+`requestSimpleRefresh` correctly rejects a wrong tool before provider or panel
+effects. The `rlviews:change` listener does not apply the same boundary: it calls
+`invalidateSimpleGeneration(detail.toolId)` before checking the registered shell
+tool. `invalidateSimpleGeneration` creates `toolStates[detail.toolId]` and then
+disables controls found in the document's current Simple panel, regardless of
+which tool owns that panel.
+
+The first browser attempt reached JavaScript before the shell panel existed and
+failed setup; it is discarded. The valid rerun waited for the real shell-ready
+marker and real current panel, then dispatched one wrong-tool event. It left the
+registered tool and current view unchanged but disabled the panel control.
+
+**Command:** bounded checkout-local Playwright/Chrome probe using the committed
+static-server helper; wait for the real shell and Simple panel; append one
+selector-compatible inert probe control; dispatch
+`rlviews:change(toolId="wrong-tool-security-probe", mode="power")`; compare the
+control and current registration before/after
+
+**Exit Code:** 1, expected from the fail-closed discriminator
+
+**Claim Source:** executed
+
+**Interpretation:** The executed browser proof establishes the observed side
+effect; the source-path explanation below is interpreted from current source.
+
+```text
+REGISTERED_TOOL=market-heatmap-lab
+EVENT_TOOL=wrong-tool-security-probe
+VIEW_BEFORE=simple
+VIEW_AFTER=simple
+CONTROL_DISABLED_BEFORE=false
+CONTROL_DISABLED_AFTER=true
+ARIA_DISABLED_BEFORE=null
+ARIA_DISABLED_AFTER=true
+WRONG_TOOL_EVENT_ZERO_PANEL_SIDE_EFFECTS=FAIL
+Error: wrong-tool rlviews:change disabled the current tool panel control
+PROBE_EXIT=1
+```
+
+Impact is local availability and state-boundary integrity, not credential or
+data disclosure. A same-document event with an arbitrary ID can disable current
+controls; repeated unique IDs also allocate persistent entries in the private
+`toolStates` object. Normal `rlviews.js` emits its fixed registered ID, which
+limits exploitability, but the public DOM event surface does not enforce that
+assumption. This directly violates the requested zero-side-effect and bounded
+event-lifecycle contract.
+
+**Required remediation:** before invalidation or `toolState()` allocation, bind
+the event detail to the current registration's exact shell tool ID. Add a
+persistent production-listener regression that dispatches a wrong-tool event
+after controls exist and proves zero provider reads, zero panel/ARIA mutations,
+unchanged current generation/control behavior, and settled work. Rerun affected
+unit/integration/browser security carriers and the security phase.
+
+### Finding Accounting And Route
+
+- Addressed in this phase: `TR-BUG004-SECURITY`,
+	`BUG004-SECURITY-PHASE-PENDING`, repository binding, exact-identity browser
+	admission, G034, source lock, shared authority, semantic storage, historical
+	hook gating, injection/credential/PII/target scans, failure honesty, and
+	coordinator settlement review.
+- Unresolved: `SEC-BUG004-001`, routed through
+	`TR-BUG004-SECURITY-REMEDIATION` to `bubbles.implement`.
+- No other security finding was raised; strict finding count is one.
+- `TR-BUG004-VALIDATE` is not opened while the medium finding remains open.
+- Top-level status, top-level `completedPhases`, and all `certification.*`
+	fields remain nonterminal and untouched.
+
+## TEST-FIRST RED: SEC-BUG004-001 Wrong-Tool Event Isolation
+
+**Phase:** `test` (RED only)
+
+**Scope:** `SCOPE-01`, scenario `SCN-B004-D`
+
+**Claim Source:** executed
+
+**Verdict:** `EXPECTED_RED_ROUTE_IMPLEMENTATION`
+
+This increment added one persistent top-level unit regression to the existing
+production-listener harness. It uses the real `rlexperience.js` installation on
+an `EventTarget`, warms a real registered ordinary tool in Simple, requires a
+real rendered production control, starts accepted current-generation work by
+actuating that control, and dispatches a mismatched `rlviews:change` event in the
+same synchronous turn. The test snapshots provider reads, panel state, adapter,
+text and writes, control disabled/value/ARIA state, registered tool, and current
+view. If the immediate zero-effect assertions pass after implementation, it also
+requires the accepted local recompute and a later same-tool request to settle
+`ready`. No production internal was exposed for the test.
+
+### Repository Binding
+
+**Executed:** YES (in current session)
+
+**Command:** `timeout 30 bash .github/bubbles/scripts/repository-binding.sh validate-packet --session-id vscode-eb9cb76de5cf2a992bf149706789fb73 --session-control-file <private-session-control> --packet-file <temporary-packet>`
+
+**Exit Code:** 0
+
+**Claim Source:** executed
+
+```text
+REPOSITORY PACKET VALID actionable=true repository=research-lab root=~/research-lab decision=rb:vscode-eb9cb76de5cf2a992bf149706789fb73:6 revision=6
+```
+
+The validator requires a packet file. The packet was created verbatim at a
+unique `/tmp` path and validated. The IDE delete tool then reported success, but
+the final cleanup sentinel found that external-path deletion had not persisted.
+This invocation removed that exact file with `rm` and rechecked it as absent;
+the failed cleanup attempt is retained here rather than represented as success.
+
+### Persistent Event-Path Regression RED
+
+**Executed:** YES (in current session)
+
+**Command:** `cd ~/research-lab && timeout 120 node --test --test-name-pattern='^SEC-BUG004-001 wrong-tool rlviews change has zero coordinator and panel side effects$' tests/simple-production-bridge.unit.mjs; rc=$?; echo SEC_BUG004_001_RED_EXIT=$rc; exit "$rc"`
+
+**Exit Code:** 1 (expected RED)
+
+**Claim Source:** executed
+
+```text
+✖ SEC-BUG004-001 wrong-tool rlviews change has zero coordinator and panel side effects (65.827517ms)
+ℹ tests 1
+ℹ suites 0
+ℹ pass 0
+ℹ fail 1
+ℹ cancelled 0
+ℹ skipped 0
+ℹ todo 0
+ℹ duration_ms 193.975321
+
+✖ failing tests:
+
+test at tests/simple-production-bridge.unit.mjs:481:1
+✖ SEC-BUG004-001 wrong-tool rlviews change has zero coordinator and panel side effects (65.827517ms)
+AssertionError [ERR_ASSERTION]: SEC-BUG004-001 wrong-tool event must not disable the current tool control
+
+true !== false
+
+		at TestContext.<anonymous> (tests/simple-production-bridge.unit.mjs:532:12)
+		at async Test.run (node:internal/test_runner/test:1054:7)
+		at async startSubtestAfterBootstrap (node:internal/test_runner/harness:296:3) {
+	generatedMessage: false,
+	code: 'ERR_ASSERTION',
+	actual: true,
+	expected: false,
+	operator: 'strictEqual',
+	diff: 'simple'
+}
+SEC_BUG004_001_RED_EXIT=1
+```
+
+**Exact RED assertion:** `SEC-BUG004-001 wrong-tool event must not disable the current tool control`
+
+**Result:** EXPECTED RED. Exactly one test was discovered; setup reached a real
+ready projection and an enabled real control, accepted current local work, then
+failed at the security discriminator because the wrong-tool event changed
+`control.disabled` from `false` to `true`. It did not fail on discovery,
+dependency loading, timeout, registration, projection readiness, or missing
+control setup.
+
+### Existing Direct Rejection Remains GREEN
+
+**Executed:** YES (in current session, after the final test edit)
+
+**Command:** `cd ~/research-lab && timeout 120 node --test --test-name-pattern='^TP-B004-01 requestSimpleRefresh rejects non-current contexts and settles invalidated queued work$' tests/simple-production-bridge.unit.mjs; rc=$?; echo TP_B004_01_EXIT=$rc; exit "$rc"`
+
+**Exit Code:** 0
+
+**Claim Source:** executed
+
+```text
+✔ TP-B004-01 requestSimpleRefresh rejects non-current contexts and settles invalidated queued work (10.77647ms)
+ℹ tests 1
+ℹ suites 0
+ℹ pass 1
+ℹ fail 0
+ℹ cancelled 0
+ℹ skipped 0
+ℹ todo 0
+ℹ duration_ms 124.989265
+TP_B004_01_EXIT=0
+```
+
+**Result:** PASS. Exactly one direct-request test was discovered and passed with
+zero failures, cancellations, skips, or todos. The RED is isolated to the real
+installed event listener path; it does not weaken or contradict the existing
+direct `requestSimpleRefresh` rejection contract.
+
+### Production Source Identity Before And After Test Edit
+
+**Executed:** YES (in current session)
+
+**Commands:** pre-edit and post-test `sha256sum` plus `git hash-object` over
+`rlexperience.js`, `market-heatmap-lab.html`, `rlviews.js`, and `rlapp.js`
+
+**Exit Code:** 0
+
+**Claim Source:** executed
+
+```text
+PRODUCTION_SHA256_BEFORE
+08e54dd45e35dc94a0fb433209d4bc2648b6d5388230286007d126af73580a2c  rlexperience.js
+44b0b8bb77ce8622ade230ddb772cf8fb78be5569e471fb6a7b69c7302f1ae49  market-heatmap-lab.html
+76443ac631d1b81ecfdccb3979460d29c843dfeda45a501d60ee1e61ca71bf84  rlviews.js
+8d7f14a7939bd05bb9c94b2437c65838506616e7178f038c10b1c4d7f211ef37  rlapp.js
+PRODUCTION_GIT_BLOBS_BEFORE
+rlexperience.js=7a83f8f0525d7886874028c148b1f13eaf089d1e
+market-heatmap-lab.html=eb895d976ab55113e839a00c14980b7270f08e25
+rlviews.js=fb1c686a09cef82175d144dbaefa79e83742a764
+rlapp.js=82ba1b475cc0cd3be7f429dcd2679c5b1a262fb6
+PRODUCTION_SHA256_AFTER_TEST
+08e54dd45e35dc94a0fb433209d4bc2648b6d5388230286007d126af73580a2c  rlexperience.js
+44b0b8bb77ce8622ade230ddb772cf8fb78be5569e471fb6a7b69c7302f1ae49  market-heatmap-lab.html
+76443ac631d1b81ecfdccb3979460d29c843dfeda45a501d60ee1e61ca71bf84  rlviews.js
+8d7f14a7939bd05bb9c94b2437c65838506616e7178f038c10b1c4d7f211ef37  rlapp.js
+PRODUCTION_GIT_BLOBS_AFTER_TEST
+rlexperience.js=7a83f8f0525d7886874028c148b1f13eaf089d1e
+market-heatmap-lab.html=eb895d976ab55113e839a00c14980b7270f08e25
+rlviews.js=fb1c686a09cef82175d144dbaefa79e83742a764
+rlapp.js=82ba1b475cc0cd3be7f429dcd2679c5b1a262fb6
+```
+
+**Result:** PASS. Every production SHA-256 and Git blob identity is identical
+before and after the test edit. `rlexperience.js` and
+`market-heatmap-lab.html` were already dirty when this invocation began; those
+existing bytes were preserved and were not edited, staged, reverted, or reset.
+
+### Finding Accounting And Implementation Route
+
+- Addressed by this RED increment: persistent non-vacuous event-listener
+	regression, exact one-test RED, TP-B004-01 direct-path GREEN control, and
+	production-source identity proof.
+- Unresolved: `SEC-BUG004-001` remains `OPEN`.
+- Existing `TR-BUG004-SECURITY-REMEDIATION` remains `open` and routed to
+	`bubbles.implement`.
+- Required implementation: validate `detail.toolId` against the current
+	registered shell tool before `invalidateSimpleGeneration`, `toolState`
+	allocation, current-panel mutation, or queue/generation effects; then turn the
+	exact persistent test GREEN and rerun affected regression/security phases.
+- No production source, planning artifact, scenario manifest, certification
+	field, top-level status, scope status, stage, commit, push, stash, reset, or
+	revert was changed by this TEST-FIRST RED increment.
+
+### Test-Owned Closeout Checks
+
+**Executed:** YES (in current session, on final test bytes)
+
+**Commands:** `timeout 60 node --check tests/simple-production-bridge.unit.mjs`;
+`timeout 600 bash .github/bubbles/scripts/regression-quality-guard.sh --bugfix tests/simple-production-bridge.unit.mjs`;
+`timeout 600 bash .github/bubbles/scripts/artifact-lint.sh specs/012-market-action-center-and-guided-tools/bugs/BUG-004-market-heatmap-control-surface`;
+`git diff --check -- <three-allowed-changed-files>`
+
+**Exit Code:** 0 for every command
+
+**Claim Source:** executed
+
+```text
+NODE_CHECK_START
+FILE=tests/simple-production-bridge.unit.mjs
+CHECKED_AT=2026-07-30T22:36:30Z
+6fd38d220898e36f7cb98d06c16ae9c2649f73e16befe00c3d6c3b832e74a701  tests/simple-production-bridge.unit.mjs
+GIT_BLOB=caff6f2801bc4e5addc9b5e570d25226e49b86bf
+934 tests/simple-production-bridge.unit.mjs
+NODE_CHECK_EXIT=0
+NODE_CHECK_END
+REGRESSION QUALITY RESULT: 0 violation(s), 0 warning(s)
+Files scanned: 1
+Files with adversarial signals: 1
+REGRESSION_QUALITY_EXIT=0
+Artifact lint PASSED.
+ARTIFACT_LINT_EXIT=0
+DIFF_CHECK_EXIT=0
+FINAL_ARTIFACT_LINT_EXIT=0
+FINAL_DIFF_CHECK_EXIT=0
+FIRST_TEMP_PACKET_CLEAN=false
+TEMP_PACKET_CLEAN=true
+```
+
+**Result:** PASS. The persistent regression parses, the bugfix guard detects a
+non-vacuous adversarial signal with zero violations or warnings, the full
+BUG-004 artifact shape passes lint while remaining `in_progress`, and the three
+allowed changed files contain no diff-check error. The first cleanup sentinel
+caught the IDE external-path deletion no-op; exact-path cleanup then proved the
+temporary packet absent. These checks validate the RED packet; they do not turn
+the intentionally failing security regression GREEN.
+
+## Security Remediation GREEN
+
+**Phase:** `implement`
+
+**Scope:** `SCOPE-01`, scenario `SCN-B004-D`
+
+**Claim Source:** executed current-session evidence admitted by exact current-byte identity; no test was rerun during this closeout
+
+**Verdict:** `IMPLEMENTED_PENDING_INDEPENDENT_SECURITY_REVALIDATION`
+
+The production listener now rejects an event whose tool is not the registered
+current ordinary tool before generation invalidation, `toolState` allocation,
+panel/ARIA mutation, or queue work:
+
+```javascript
+globalThis.addEventListener("rlviews:change", function (event) {
+	var detail = event && event.detail;
+	if (!detail) return;
+	if (!resolveCurrentOrdinaryTool(detail.toolId)) return;
+	invalidateSimpleGeneration(detail.toolId);
+```
+
+The closeout captured these exact identities before changing only this report
+and `state.json`:
+
+| Path | Git blob | SHA-256 |
+|---|---|---|
+| `rlexperience.js` | `1cdf4744faedc73e551ae7c1e01c39353de719d0` | `778058e9571c954c50febd09f13f1e44fc93719db27f38018b4d4ee8ff500be0` |
+| `tests/simple-production-bridge.unit.mjs` | `caff6f2801bc4e5addc9b5e570d25226e49b86bf` | `6fd38d220898e36f7cb98d06c16ae9c2649f73e16befe00c3d6c3b832e74a701` |
+| `tests/market-heatmap-control-surface.spec.mjs` | `2f026012e6a1c3e39c9850341d63ca497f4662a2` | `b81b755df8a30df500c90009929b7956fb1b80d23d9db5cb72e1a57362d51563` |
+| `tests/simple-production-wiring.spec.mjs` | `1f7a91b1ccfb99b8f4833bc54eff653b88c59639` | `cca372f6011056f351608a53449086045d987dc623d57cf080ff6e402766f3dd` |
+| `market-heatmap-lab.html` | `eb895d976ab55113e839a00c14980b7270f08e25` | `44b0b8bb77ce8622ade230ddb772cf8fb78be5569e471fb6a7b69c7302f1ae49` |
+| `rlviews.js` | `fb1c686a09cef82175d144dbaefa79e83742a764` | `76443ac631d1b81ecfdccb3979460d29c843dfeda45a501d60ee1e61ca71bf84` |
+| `tests/simple-production-bridge.integration.mjs` | `618f0c5b923fd3e9cd6dadd625dcd851f919328c` | `550cef20320cd3adce209d23245584592ea99d9f0aec3893c85a9158d8c04361` |
+| `scripts/selftest.mjs` | `1899e945ab3c3e7bccb9f553014070d8b8def3fc` | `de430414dd689c7508fc27f9348c39bcce464d3f091a91940febf473ebf091be` |
+| `playwright.config.mjs` | `d04ae12216125b710a1f94645feac2e28c1467cc` | `b35e8e75984b6a21a2e0c7a505d38a85190ec46bcfe6bf2312395a44e1c222cd` |
+
+Path status was preserved: the existing implementation changes in
+`rlexperience.js`, `market-heatmap-lab.html`,
+`tests/simple-production-bridge.unit.mjs`, and
+`tests/market-heatmap-control-surface.spec.mjs` remained modified; the other
+five identity carriers remained clean. No source, test, stage, commit, stash,
+reset, or revert operation occurred.
+
+Already-executed current-session GREEN evidence on those bytes was admitted:
+
+- exact `SEC-BUG004-001` event-path regression: 1/1;
+- exact `TP-B004-01` through `TP-B004-04`: 1/1 each;
+- full bridge unit carrier: green;
+- bridge integration: 6/6;
+- tool-experience shell unit: green;
+- canonical selftest: 970 passed, 0 failed;
+- bugfix regression-quality guard: 0 violations, 0 warnings;
+- JavaScript syntax checks: green;
+- combined dedicated/protected system-chrome matrix: 8/8 in 25.2 minutes,
+	with 19 tools reporting 17 ready and two honestly unavailable, and native
+	demotion verified on seven tools.
+
+### Finding Accounting And Test Route
+
+- `SEC-BUG004-001` is
+	`RESOLVED_BY_IMPLEMENTATION_PENDING_INDEPENDENT_REVALIDATION`, not certified.
+- `TR-BUG004-SECURITY-REMEDIATION` is resolved by this implementation closeout.
+- `TR-BUG004-TEST-SECURITY-REVALIDATION` is open to `bubbles.test` with the
+	exact unit, integration, shell, selftest, regression, syntax, and combined
+	browser matrix above.
+- No validation transition was opened. Top-level status, scope artifacts, and
+	every `certification.*` field remain untouched.
+
+### Closeout Validation
+
+**Commands:** artifact lint; implementation reality scan; `git diff --check`
+for `report.md` and `state.json`; path-scoped status plus `git hash-object` and
+`sha256sum` for the nine identity carriers; editor diagnostics for the two
+edited artifacts
+
+**Exit Code:** 0 for each executable check
+
+**Claim Source:** executed
+
+**Interpretation:** The identity comparison interprets the printed post-edit
+identities against the exact table above.
+
+```text
+Artifact lint PASSED.
+IMPLEMENTATION REALITY SCAN RESULT
+Files scanned:  1
+Violations:     0
+Warnings:       0
+PASSED: No source code reality violations detected
+DIFF_CHECK_EXIT=0
+PATH_STATUS_PRESERVED=4 existing implementation/test modifications
+IDENTITY_CARRIERS_MATCHED=9 of 9 Git blobs and SHA-256 values
+REPORT_DIAGNOSTICS=0 errors
+STATE_DIAGNOSTICS=0 errors
+```
+
+Every printed post-edit Git blob and SHA-256 value matched the pre-edit table
+exactly. Only `report.md` and `state.json` were added to the path-scoped modified
+set by this closeout.
+
+## Security Remediation Test Revalidation
+
+**Phase:** `test`
+
+**Scope:** `SCOPE-01`, scenario `SCN-B004-D`
+
+**Claim Source:** executed
+
+**Completed:** `2026-07-31T01:10:12Z`
+
+**Verdict:** `TESTED_GREEN_PENDING_REGRESSION_SECURITY`
+
+This invocation independently validated the exact revision-6 repository packet
+before reading repository-local artifacts. It did not trust the implementation
+claim. It inspected the production listener ordering and the persistent test
+substance, then reran every required unit, integration, shell, selftest,
+regression-quality, source/authority, syntax, and browser carrier.
+
+### Source Guard Ordering And Test Substance
+
+**Claim Source:** interpreted from current source and test bytes, backed by the
+executed discriminator below
+
+The production `rlviews:change` listener reads `event.detail`, rejects a tool
+that does not resolve through `resolveCurrentOrdinaryTool(detail.toolId)`, and
+only then calls `invalidateSimpleGeneration(detail.toolId)`. Therefore a
+mismatched tool cannot reach `toolState()`, generation invalidation, current
+panel/ARIA disablement, or queue cancellation.
+
+The `SEC-BUG004-001` test is non-vacuous. It first reaches a real ready
+production projection, requires an enabled rendered control, starts accepted
+same-tool local recompute, snapshots provider/panel/adapter/text/write/ARIA/
+control/tool/view state, dispatches a different tool ID through the installed
+event listener, and proves zero mutation. It then proves the accepted local
+work and a later same-tool request both settle correctly. The test would fail
+if the guard moved below invalidation again.
+
+### Exact Current-Identity Admission Decision
+
+All nine current Git blobs and SHA-256 values matched the implementation report
+exactly:
+
+| Path | Git blob | SHA-256 |
+|---|---|---|
+| `rlexperience.js` | `1cdf4744faedc73e551ae7c1e01c39353de719d0` | `778058e9571c954c50febd09f13f1e44fc93719db27f38018b4d4ee8ff500be0` |
+| `tests/simple-production-bridge.unit.mjs` | `caff6f2801bc4e5addc9b5e570d25226e49b86bf` | `6fd38d220898e36f7cb98d06c16ae9c2649f73e16befe00c3d6c3b832e74a701` |
+| `tests/market-heatmap-control-surface.spec.mjs` | `2f026012e6a1c3e39c9850341d63ca497f4662a2` | `b81b755df8a30df500c90009929b7956fb1b80d23d9db5cb72e1a57362d51563` |
+| `tests/simple-production-wiring.spec.mjs` | `1f7a91b1ccfb99b8f4833bc54eff653b88c59639` | `cca372f6011056f351608a53449086045d987dc623d57cf080ff6e402766f3dd` |
+| `market-heatmap-lab.html` | `eb895d976ab55113e839a00c14980b7270f08e25` | `44b0b8bb77ce8622ade230ddb772cf8fb78be5569e471fb6a7b69c7302f1ae49` |
+| `rlviews.js` | `fb1c686a09cef82175d144dbaefa79e83742a764` | `76443ac631d1b81ecfdccb3979460d29c843dfeda45a501d60ee1e61ca71bf84` |
+| `tests/simple-production-bridge.integration.mjs` | `618f0c5b923fd3e9cd6dadd625dcd851f919328c` | `550cef20320cd3adce209d23245584592ea99d9f0aec3893c85a9158d8c04361` |
+| `scripts/selftest.mjs` | `1899e945ab3c3e7bccb9f553014070d8b8def3fc` | `de430414dd689c7508fc27f9348c39bcce464d3f091a91940febf473ebf091be` |
+| `playwright.config.mjs` | `d04ae12216125b710a1f94645feac2e28c1467cc` | `b35e8e75984b6a21a2e0c7a505d38a85190ec46bcfe6bf2312395a44e1c222cd` |
+
+The four browser-relevant paths `rlexperience.js`,
+`market-heatmap-lab.html`, `tests/simple-production-bridge.unit.mjs`, and
+`tests/market-heatmap-control-surface.spec.mjs` were modified. Identity-only
+browser admission was therefore refused even though every hash matched. The
+combined eight-test browser carrier was rerun on the current worktree.
+
+### Exact Security And TP-B004-01..04 Selectors
+
+**Executed:** YES (in current session)
+
+**Command:** five independent exact-title `node --test --test-name-pattern=... tests/simple-production-bridge.unit.mjs` runs
+
+**Exit Code:** 0 for every run
+
+**Claim Source:** executed
+
+```text
+=== EXACT SEC-BUG004-001 SELECTOR ===
+✔ SEC-BUG004-001 wrong-tool rlviews change has zero coordinator and panel side effects (60.469965ms)
+ℹ tests 1
+ℹ suites 0
+ℹ pass 1
+ℹ fail 0
+ℹ cancelled 0
+ℹ skipped 0
+ℹ todo 0
+ℹ duration_ms 174.772894
+SEC_BUG004_001_EXIT=0
+=== EXACT TP-B004-01 SELECTOR ===
+✔ TP-B004-01 requestSimpleRefresh rejects non-current contexts and settles invalidated queued work (10.447355ms)
+ℹ tests 1
+ℹ suites 0
+ℹ pass 1
+ℹ fail 0
+ℹ cancelled 0
+ℹ skipped 0
+ℹ todo 0
+ℹ duration_ms 108.560881
+TP_B004_01_EXIT=0
+=== EXACT TP-B004-02 SELECTOR ===
+✔ TP-B004-02 requestSimpleRefresh coalesces same-turn duplicates and replaces the pending successor (48.628648ms)
+ℹ tests 1
+ℹ suites 0
+ℹ pass 1
+ℹ fail 0
+ℹ cancelled 0
+ℹ skipped 0
+ℹ todo 0
+ℹ duration_ms 146.83343
+TP_B004_02_EXIT=0
+=== EXACT TP-B004-03 SELECTOR ===
+✔ TP-B004-03 accepted mid-run refresh immediately invalidates active generation and stale controls (59.161356ms)
+ℹ tests 1
+ℹ suites 0
+ℹ pass 1
+ℹ fail 0
+ℹ cancelled 0
+ℹ skipped 0
+ℹ todo 0
+ℹ duration_ms 153.671955
+TP_B004_03_EXIT=0
+=== EXACT TP-B004-04 SELECTOR ===
+✔ TP-B004-04 current and stale refresh promises settle without overwriting current truth (77.490182ms)
+ℹ tests 1
+ℹ suites 0
+ℹ pass 1
+ℹ fail 0
+ℹ cancelled 0
+ℹ skipped 0
+ℹ todo 0
+ℹ duration_ms 173.0022
+TP_B004_04_EXIT=0
+EXACT_SELECTOR_MATRIX_EXIT=0
+```
+
+Each selector discovered exactly one named test and passed exactly 1/1 with no
+cancelled, skipped, or todo test. No file-wrapper pass was admitted.
+
+### Full Unit, Integration, Shell, And Selftest Carriers
+
+**Executed:** YES (in current session)
+
+**Commands:** `timeout 180 node --test tests/simple-production-bridge.unit.mjs`;
+`timeout 240 node --test tests/simple-production-bridge.integration.mjs`;
+`timeout 180 node --test tests/tool-experience-shell.unit.mjs`;
+`timeout 1200 node scripts/selftest.mjs`
+
+**Exit Code:** 0 for every command
+
+**Claim Source:** executed
+
+```text
+✔ renderSimpleBridge is exposed on the production API
+✔ provider present + real owner state renders the REAL market-breadth adapter
+✔ no owner-state provider renders honest unavailable
+✔ owner evidence does not permit a run (unhydrated) renders honest unavailable
+✔ missing adapter module renders honest unavailable
+✔ TP-B004-01 requestSimpleRefresh rejects non-current contexts and settles invalidated queued work
+✔ SEC-BUG004-001 wrong-tool rlviews change has zero coordinator and panel side effects
+✔ TP-B004-02 requestSimpleRefresh coalesces same-turn duplicates and replaces the pending successor
+✔ TP-B004-03 accepted mid-run refresh immediately invalidates active generation and stale controls
+✔ TP-B004-04 current and stale refresh promises settle without overwriting current truth
+✔ a queued Simple run does not survive an invalidation, and its promise settles
+✔ leaving Simple altogether also settles the queued run without painting
+✔ ownerModes resolution preserves wired, unwired, and Brief boundaries
+✔ no forbidden authority: the runtime declares none, and running the real bridge touches no network, provider, storage or cookie surface
+ℹ tests 14
+ℹ pass 14
+ℹ fail 0
+ℹ skipped 0
+FULL_BRIDGE_UNIT_EXIT=0
+[TP-15-02] wired (19): market-heatmap-lab, options-flow-feed-lab, intraday-tape-lab, swing-structure-lab, options-structure-lab, gamma-trading-lab, sector-research-lab, global-rotation-lab, real-assets-lab, bond-regime-lab, ai-capex-strategy-lab, company-fundamentals-lab, etf-momentum-lab, strategy-self-improvement-lab, strategy-validation-lab, smart-money-flow-lab, waterfront-polo-lab, volatility-sizing-lab, technical-analysis-decision-lab
+[SCN-012-039] ordinary=22 wired=19 declared-unwired=3 unaccounted=0
+ℹ tests 6
+ℹ pass 6
+ℹ fail 0
+ℹ skipped 0
+BRIDGE_INTEGRATION_EXIT=0
+✔ SCN-012-031 registry resolves exact ordinary and Market Action four-view shells
+✔ SCN-012-031 route resolution keeps only public modes and allowlisted public targets
+✔ SCN-012-031 explicit hash wins over valid versioned mode-only local state
+✔ SCN-012-031 user transitions push once while Back and Forward restore without fetch
+✔ SCN-012-028 dependency projection exposes the exact Brief gate with no bypass
+✔ SCN-012-029 dependency projection preserves public Portfolio and creates no private-store contract
+✔ Scope 02 shell state helpers remain pure and contain no registry tool-ID switch
+ℹ tests 7
+ℹ pass 7
+ℹ fail 0
+ℹ skipped 0
+TOOL_EXPERIENCE_SHELL_UNIT_EXIT=0
+Feature 012 Scope 15 production Simple-view bridge canaries (TP-15-07)
+	✓ the wired set is derived from the production registry + the deployed pages and is non-empty (19 wired of 23 registry definitions, scanned 26 pages)
+	✓ every page-registered owner-state provider resolves to a registry definition carrying a non-empty adapterId/adapterModule/definitionId (0 orphan wirings, 0 identity gaps across 19 wired tools)
+	✓ no forbidden authority: the runtime's own diagnostic reports every authority false after adapter registration (6 authority flags x 19 wired tools, owned: 0)
+	✓ exactly one executable rlv-focused write exists across all production sources and it lives in rlviews.js (scanned 54 files, writers: rlviews.js x1)
+	✓ the bridge path performs local compute only - no network, provider, storage, or cookie authority in its executable source (8 tokens checked, hits: none)
+================================================
+Research-Lab self-test: 970 passed, 0 failed
+================================================
+CANONICAL_SELFTEST_EXIT=0
+```
+
+### Regression Quality, Source Lock, Authority, And Syntax
+
+**Executed:** YES (in current session)
+
+**Commands:** bugfix regression-quality over the SEC unit and dedicated browser
+carrier; general regression-quality over both browser carriers; Node source
+lock; exact no-forbidden-authority selector; `node --check` over nine carriers;
+Market Heatmap inline-script and literal-ID check
+
+**Exit Code:** 0 for every command
+
+**Claim Source:** executed
+
+```text
+SEC unit: REGRESSION QUALITY RESULT: 0 violation(s), 0 warning(s)
+SEC unit: Files scanned: 1
+SEC unit: Files with adversarial signals: 1
+Dedicated browser: REGRESSION QUALITY RESULT: 0 violation(s), 0 warning(s)
+Dedicated browser: Files scanned: 1
+Dedicated browser: Files with adversarial signals: 1
+Combined browser: REGRESSION QUALITY RESULT: 0 violation(s), 0 warning(s)
+Combined browser: Files scanned: 2
+[node-source-lock] manifest=PASS private=true runtimeDependencies=0 scripts=0 playwright=1.61.1 node=>=20
+[node-source-lock] npmrc=PASS registry=https://registry.npmjs.org/ entries=5 ignoreScripts=true
+[node-source-lock] lockfile=PASS version=3 externalPackages=3 integrity=sha512
+[node-source-lock] graph=PASS playwright=1.61.1 playwright-core=1.61.1 fsevents=2.3.2
+[node-source-lock] OK adversarial=16 unexpectedAcceptances=0
+✔ no forbidden authority: the runtime declares none, and running the real bridge touches no network, provider, storage or cookie surface
+ℹ tests 1
+ℹ pass 1
+ℹ fail 0
+ℹ skipped 0
+AUTHORITY_SELECTOR_EXIT=0
+NODE_CHECK path=rlexperience.js exit=0
+NODE_CHECK path=rlviews.js exit=0
+NODE_CHECK path=tests/market-heatmap-control-surface.spec.mjs exit=0
+NODE_CHECK path=tests/simple-production-bridge.unit.mjs exit=0
+NODE_CHECK path=tests/simple-production-bridge.integration.mjs exit=0
+NODE_CHECK path=tests/simple-production-wiring.spec.mjs exit=0
+NODE_CHECK path=tests/tool-experience-shell.unit.mjs exit=0
+NODE_CHECK path=scripts/selftest.mjs exit=0
+NODE_CHECK path=playwright.config.mjs exit=0
+NODE_CHECK_FILES=9
+NODE_CHECK_FAILURES=0
+OK page=market-heatmap-lab.html inline=1 refs=0
+SOURCE_AUTHORITY_SYNTAX_MATRIX_EXIT=0
+```
+
+### Forced Current-Tree Browser Revalidation
+
+**Executed:** YES (in current session)
+
+**Command:** `timeout 3000 npx --no-install playwright test tests/market-heatmap-control-surface.spec.mjs tests/simple-production-wiring.spec.mjs --config=playwright.config.mjs --project=system-chrome --reporter=list --workers=1`
+
+**Exit Code:** 0
+
+**Claim Source:** executed
+
+```text
+Version 1.61.1
+Running 8 tests using 1 worker
+	✓  1 direct Simple cold-open requalifies after owner hydration without a mode change (3.3m)
+	✓  2 ready Simple applies all five registry controls with owner parity and zero post-hydration requests (3.3m)
+	✓  3 direct Power applies native treemap controls with zero post-hydration requests (3.7m)
+	✓  4 boot hydrates the union of both groupings, so the grouping lever acquires nothing (3.8m)
+	✓  5 market-heatmap Simple renders the real adapter panel in the real owner-mode flow (2.1s)
+	✓  6 actuating one recomputes the production projection with no refetch (3.7m)
+	✓  7 every wired ordinary tool paints its real Simple adapter panel with an owner-parity fact (7.1m)
+TP-15-04/SCN-012-041 derived native #simpleView tools: 7 of 19 wired (4 also declare #powerView) - intraday-tape-lab swing-structure-lab gamma-trading-lab sector-research-lab+#powerView bond-regime-lab+#powerView etf-momentum-lab+#powerView volatility-sizing-lab+#powerView
+TP-15-04 swept 19 wired tools: market-heatmap-lab=ready(x1) options-flow-feed-lab=ready(x1) intraday-tape-lab=unavailable(x1) swing-structure-lab=ready(x1) options-structure-lab=ready(x1) gamma-trading-lab=ready(x1) sector-research-lab=ready(x1) global-rotation-lab=ready(x1) real-assets-lab=ready(x1) bond-regime-lab=ready(x1) ai-capex-strategy-lab=ready(x1) company-fundamentals-lab=ready(x1) etf-momentum-lab=ready(x1) strategy-self-improvement-lab=ready(x1) strategy-validation-lab=ready(x1) smart-money-flow-lab=ready(x1) waterfront-polo-lab=ready(x1) volatility-sizing-lab=ready(x1) technical-analysis-decision-lab=unavailable(x1)
+TP-15-04/SCN-012-041 native demotion verified on 7 tools: intraday-tape-lab[simple 0/3 native visible -> power 2/3] swing-structure-lab[simple 0/3 native visible -> power 2/3] gamma-trading-lab[simple 0/3 native visible -> power 2/3] sector-research-lab[simple 0/1 native visible -> power 1/1 +#powerView visible] bond-regime-lab[simple 0/4 native visible -> power 3/4 +#powerView visible] etf-momentum-lab[simple 0/1 native visible -> power 1/1 +#powerView visible] volatility-sizing-lab[simple 0/2 native visible -> power 2/2 +#powerView visible]
+	✓  8 the swept set is derived from the production registry + pages, and the honest-degradation cases are registry/provider derived (85ms)
+8 passed (25.0m)
+COMBINED_BROWSER_8_TEST_EXIT=0
+```
+
+The browser run used the checkout-local Playwright `1.61.1`, the committed
+configuration, system Chrome, one worker, real same-origin servers, and no
+request interception. It proved the required 17-ready/2-honestly-unavailable
+split and all seven native-demotion tools on current dirty-path bytes.
+
+### Process And Residue Closeout
+
+**Executed:** YES (in current session)
+
+**Command:** exact-path generated-output cleanup followed by process and path
+sentinels
+
+**Exit Code:** 0
+
+**Claim Source:** executed
+
+```text
+EXACT_PATH_CLEANUP_RMDIR_EXIT=0
+RESIDUE_ABSENT=~/research-lab/test-results
+RESIDUE_ABSENT=~/research-lab/playwright-report
+RESIDUE_ABSENT=~/research-lab/blob-report
+RESIDUE_ABSENT=<runtime-control>/sec-bug004-test-revalidation-packet.json
+ACTIVE_TEST_PROCESS_MATCH_EXIT=1
+```
+
+The IDE delete operation reported success without persisting for the generated
+and external paths. Exact-path cleanup, with no glob, source mutation, or Git
+operation, removed the browser result file, empty result directory, and packet;
+the final sentinels proved no active test process or owned residue remained.
+
+### Finding Accounting And Next Route
+
+- `SEC-BUG004-001` is
+	`RESOLVED_BY_TEST_PENDING_REGRESSION_SECURITY` on independent current-tree
+	evidence; this is not certification.
+- `TR-BUG004-TEST-SECURITY-REVALIDATION` is resolved by `bubbles.test`.
+- `TR-BUG004-REGRESSION-SECURITY-REVALIDATION` is open to
+	`bubbles.regression` for independent regression verification before the later
+	security revalidation route.
+- Validation remains closed. Top-level status and `certification.status` remain
+	`in_progress`; no certification field, scope artifact, production source,
+	test, stage, commit, push, stash, reset, or revert was changed.
+
+## Regression Security Revalidation
+
+**Phase:** `regression`
+
+**Scope:** `SCOPE-01`, scenario `SCN-B004-D`
+
+**Claim Source:** executed current-session checks; browser result admitted only
+by exact current-session identity against the immediately preceding independent
+TEST evidence
+
+**Completed:** `2026-07-31T01:28:08Z`
+
+**Verdict:** `REGRESSION_FREE_SECURITY_FIX`
+
+This diagnostic independently revalidated `SEC-BUG004-001` on the exact current
+source, test, shell, and browser carrier bytes. It changed no source, test,
+scope, plan, design, certification, stage, commit, push, stash, reset, or revert
+surface. The only writes are this regression-owned report section and the
+permitted execution/finding/transition updates in `state.json`.
+
+### Repository Binding
+
+**Executed:** YES (current session)
+
+**Command:** `timeout 60 bash .github/bubbles/scripts/repository-binding.sh validate-packet --session-id vscode-eb9cb76de5cf2a992bf149706789fb73 --session-control-file $HOME/.local/state/bubbles-session-control/vscode-eb9cb76de5cf2a992bf149706789fb73/repository-binding.json --packet-file $HOME/.local/state/bubbles-session-control/vscode-eb9cb76de5cf2a992bf149706789fb73/request-packet-r6.json`
+
+**Exit Code:** 0
+
+**Claim Source:** executed; caller-private paths normalized to `$HOME`
+
+```text
+REPOSITORY PACKET VALID actionable=true repository=research-lab root=~/research-lab decision=rb:vscode-eb9cb76de5cf2a992bf149706789fb73:6 revision=6
+```
+
+### Nine-Carrier Identity And Browser Admission
+
+The nine Git blobs and SHA-256 values match the independent TEST revalidation
+table before and after every regression command. The same four paths remain
+modified, but their bytes did not drift. Five carriers remain path-clean.
+
+| Path | Git blob | SHA-256 | Path status |
+|---|---|---|---|
+| `rlexperience.js` | `1cdf4744faedc73e551ae7c1e01c39353de719d0` | `778058e9571c954c50febd09f13f1e44fc93719db27f38018b4d4ee8ff500be0` | modified, identity exact |
+| `tests/simple-production-bridge.unit.mjs` | `caff6f2801bc4e5addc9b5e570d25226e49b86bf` | `6fd38d220898e36f7cb98d06c16ae9c2649f73e16befe00c3d6c3b832e74a701` | modified, identity exact |
+| `tests/market-heatmap-control-surface.spec.mjs` | `2f026012e6a1c3e39c9850341d63ca497f4662a2` | `b81b755df8a30df500c90009929b7956fb1b80d23d9db5cb72e1a57362d51563` | modified, identity exact |
+| `tests/simple-production-wiring.spec.mjs` | `1f7a91b1ccfb99b8f4833bc54eff653b88c59639` | `cca372f6011056f351608a53449086045d987dc623d57cf080ff6e402766f3dd` | clean |
+| `market-heatmap-lab.html` | `eb895d976ab55113e839a00c14980b7270f08e25` | `44b0b8bb77ce8622ade230ddb772cf8fb78be5569e471fb6a7b69c7302f1ae49` | modified, identity exact |
+| `rlviews.js` | `fb1c686a09cef82175d144dbaefa79e83742a764` | `76443ac631d1b81ecfdccb3979460d29c843dfeda45a501d60ee1e61ca71bf84` | clean |
+| `tests/simple-production-bridge.integration.mjs` | `618f0c5b923fd3e9cd6dadd625dcd851f919328c` | `550cef20320cd3adce209d23245584592ea99d9f0aec3893c85a9158d8c04361` | clean |
+| `scripts/selftest.mjs` | `1899e945ab3c3e7bccb9f553014070d8b8def3fc` | `de430414dd689c7508fc27f9348c39bcce464d3f091a91940febf473ebf091be` | clean |
+| `playwright.config.mjs` | `d04ae12216125b710a1f94645feac2e28c1467cc` | `b35e8e75984b6a21a2e0c7a505d38a85190ec46bcfe6bf2312395a44e1c222cd` | clean |
+
+**Executed:** YES (current session)
+
+**Commands:** bounded `git hash-object`, `sha256sum`, and path-scoped
+`git status --porcelain=v1` for all nine rows before execution and again after
+the full regression matrix
+
+**Exit Code:** 0
+
+**Claim Source:** executed
+
+```text
+POST_IDENTITY path=rlexperience.js result=MATCH status=modified
+POST_IDENTITY path=tests/simple-production-bridge.unit.mjs result=MATCH status=modified
+POST_IDENTITY path=tests/market-heatmap-control-surface.spec.mjs result=MATCH status=modified
+POST_IDENTITY path=tests/simple-production-wiring.spec.mjs result=MATCH status=CLEAN
+POST_IDENTITY path=market-heatmap-lab.html result=MATCH status=modified
+POST_IDENTITY path=rlviews.js result=MATCH status=CLEAN
+POST_IDENTITY path=tests/simple-production-bridge.integration.mjs result=MATCH status=CLEAN
+POST_IDENTITY path=scripts/selftest.mjs result=MATCH status=CLEAN
+POST_IDENTITY path=playwright.config.mjs result=MATCH status=CLEAN
+POST_IDENTITY_MATCH_COUNT=9
+BROWSER_RELEVANT_HASH_DRIFT_COUNT=0
+```
+
+**Browser rerun in this phase:** NO. The packet requires a browser rerun only
+when browser-relevant hash drift occurred after independent TEST. The executed
+checks above found zero drift across every browser source, carrier, and runner
+identity. Therefore the immediately preceding independent TEST result is
+admitted by exact identity rather than rerun: 8/8 system-chrome tests, 19 tools
+split 17 ready and two honestly unavailable, and seven native-demotion tools.
+This is evidence reuse under an explicit byte-identity policy, not a claim that
+the browser ran again. The final corrected process sentinel found no active
+Playwright process.
+
+### Exact Security And TP-B004-01..04 Selectors
+
+**Executed:** YES (current session)
+
+**Command:** five independent bounded exact-title `node --test --test-name-pattern=... tests/simple-production-bridge.unit.mjs` runs
+
+**Exit Code:** 0 for every run
+
+**Claim Source:** executed
+
+```text
+=== EXACT SEC-BUG004-001 SELECTOR ===
+SEC-BUG004-001 wrong-tool rlviews change has zero coordinator and panel side effects
+tests 1
+pass 1
+fail 0
+cancelled 0
+skipped 0
+todo 0
+SEC_BUG004_001_EXIT=0
+=== EXACT TP-B004-01..04 SELECTORS ===
+TP_B004_01 tests=1 pass=1 fail=0 skipped=0 exit=0
+TP_B004_02 tests=1 pass=1 fail=0 skipped=0 exit=0
+TP_B004_03 tests=1 pass=1 fail=0 skipped=0 exit=0
+TP_B004_04 tests=1 pass=1 fail=0 skipped=0 exit=0
+EXACT_SELECTOR_MATRIX_EXIT=0
+```
+
+Every selector discovered exactly one named top-level test. No file-wrapper,
+skip, cancellation, todo, or optional-selection result was admitted.
+
+### Full Bridge, Feature 012 Shell, And Selftest Matrix
+
+**Executed:** YES (current session)
+
+**Commands:** `timeout 300 node --test tests/simple-production-bridge.unit.mjs`;
+`timeout 300 node --test tests/simple-production-bridge.integration.mjs`;
+`timeout 300 node --test tests/tool-experience-shell.unit.mjs`;
+`timeout 1200 node scripts/selftest.mjs`
+
+**Exit Code:** 0 for every command
+
+**Claim Source:** executed
+
+```text
+FULL_BRIDGE_UNIT tests=14 pass=14 fail=0 cancelled=0 skipped=0 todo=0
+SEC-BUG004-001 wrong-tool rlviews change has zero coordinator and panel side effects: PASS
+TP-B004-01 requestSimpleRefresh rejects non-current contexts and settles invalidated queued work: PASS
+TP-B004-02 requestSimpleRefresh coalesces same-turn duplicates and replaces the pending successor: PASS
+TP-B004-03 accepted mid-run refresh immediately invalidates active generation and stale controls: PASS
+TP-B004-04 current and stale refresh promises settle without overwriting current truth: PASS
+FULL_BRIDGE_UNIT_EXIT=0
+INTEGRATION ordinary=22 wired=19 declared-unwired=3 unaccounted=0
+INTEGRATION strict-parity=18-of-19 honest-generic-unavailable=technical-analysis-decision-lab
+BRIDGE_INTEGRATION tests=6 pass=6 fail=0 cancelled=0 skipped=0 todo=0
+BRIDGE_INTEGRATION_EXIT=0
+TOOL_EXPERIENCE_SHELL_UNIT tests=7 pass=7 fail=0 cancelled=0 skipped=0 todo=0
+TOOL_EXPERIENCE_SHELL_UNIT_EXIT=0
+SELFTEST wired-set=19-of-23 registry-definitions pages-scanned=26
+SELFTEST orphan-wirings=0 identity-gaps=0 authority-owned=0
+SELFTEST executable-rlv-focused-writers=rlviews.js-x1
+Research-Lab self-test: 970 passed, 0 failed
+CANONICAL_SELFTEST_EXIT=0
+```
+
+The shell carrier preserves explicit-hash precedence, public route/mode
+allowlisting, Back/Forward restoration without fetch, exact Brief dependency
+gating, public Portfolio behavior, and absence of a registry tool-ID switch.
+The integration and selftest sets independently preserve the 19-tool protected
+boundary and zero unaccounted ordinary tools.
+
+### Regression Quality, Baseline, Conflict, And Traceability
+
+**Executed:** YES (current session)
+
+**Commands:** bugfix regression quality over the SEC unit and dedicated browser
+carrier; general regression quality over both browser carriers; BUG-004 and
+Feature 012 `regression-baseline-guard.sh --verbose`; BUG-004
+`traceability-guard.sh`
+
+**Exit Code:** 0 for every command
+
+**Claim Source:** executed
+
+```text
+BUGFIX_REGRESSION_QUALITY files=2 adversarial=2 violations=0 warnings=0
+COMBINED_BROWSER_REGRESSION_QUALITY files=2 violations=0 warnings=0
+BUG-004 G044 Test baseline comparison found in report
+BUG-004 G045 Cross-spec inventory completed: 2 done specs of 3 total
+BUG-004 G046 No route/endpoint collisions detected across specs
+BUG004_REGRESSION_BASELINE_EXIT=0
+Feature 012 G045 Cross-spec inventory completed: 6 done specs of 15 total
+Feature 012 G046 No route/endpoint collisions detected across specs
+FEATURE012_REGRESSION_BASELINE_EXIT=0
+scenario-manifest.json covers 4 scenario contracts
+All linked tests from scenario-manifest.json exist
+Scenarios checked: 4
+Scenario-to-row mappings: 4
+DoD fidelity scenarios: 4 mapped, 0 unmapped
+RESULT: PASSED (0 warnings)
+BUG004_TRACEABILITY_GUARD_EXIT=0
+```
+
+Feature 012 still emits its known first-run G044 advisory because the parent
+report has no parent-level baseline table. This is not a new regression or a
+BUG-004 gate failure: BUG-004 has its comparison table, both baseline guards
+exit 0, both conflict checks find zero collisions, and current Feature 012
+shell plus 19-tool executable carriers pass.
+
+Research Lab declares no numeric coverage command. Coverage delta is therefore
+measured without fabrication by executable scenario counts, exact-title
+selection, assertion-quality guards, and carrier identities. The independent
+TEST baseline and current regression result are stable: SEC 1/1, TP-B004-01..04
+4/4, bridge unit 14/14, integration 6/6, shell 7/7, selftest 970/970, and browser
+8/8 admitted on exact unchanged bytes.
+
+### Source Authority, Listener Ordering, And Duplicate Controls
+
+**Executed:** YES (current session)
+
+**Commands:** `timeout 300 node scripts/validate-node-source-lock.mjs`; exact
+no-forbidden-authority selector; bounded listener-order source audit; full HTML
+ID uniqueness audit; canonical Market Heatmap inline script/ID check; nine
+bounded `node --check` commands
+
+**Exit Code:** 0 for every command
+
+**Claim Source:** executed
+
+```text
+NODE_SOURCE_LOCK actual=PASS adversarial=16 unexpectedAcceptances=0
+AUTHORITY_SELECTOR tests=1 pass=1 fail=0 skipped=0 exit=0
+LISTENER_COUNT=1
+LISTENER_START=124195
+DETAIL_INDEX=124266
+WRONG_TOOL_GUARD_INDEX=124335
+INVALIDATE_INDEX=124397
+MODE_GUARD_INDEX=124446
+REQUEST_INDEX=124490
+ORDER_EXPECTED=listener<detail<wrong-tool-guard<invalidate<mode-guard<request
+ORDER_RESULT=PASS
+CONTROL_ID id=modeSeg count=1
+CONTROL_ID id=winSeg count=1
+CONTROL_ID id=sizeSeg count=1
+CONTROL_ID id=grpSeg count=1
+TOTAL_IDS=19
+UNIQUE_IDS=19
+DUPLICATE_ID_COUNT=0
+DUPLICATE_IDS=NONE
+OK page=market-heatmap-lab.html inline=1 refs=0
+NODE_CHECK_FILES=9
+NODE_CHECK_FAILURES=0
+```
+
+The security fix remains at the controlling boundary: a mismatched tool is
+rejected before invalidation, state allocation, panel/ARIA mutation, mode
+handling, or refresh work. The exact security test proves accepted same-tool
+work survives that event and later same-tool work remains independent.
+
+### Probe Correction And Process Closeout
+
+Two preliminary `pgrep` probes matched their own literal command arguments.
+They were diagnostic defects, not product findings. The final single bracketed
+runner pattern cannot self-match and returned the expected no-process result:
+
+```text
+ACTIVE_PLAYWRIGHT_PROCESS_MATCH_EXIT=1
+ACTIVE_PLAYWRIGHT_PROCESS_RESULT=NONE
+CURRENT_UTC=2026-07-31T01:28:08Z
+CORRECTED_PROCESS_SENTINEL_EXIT=0
+```
+
+### Finding Accounting And Route
+
+| Finding / transition | Regression disposition |
+|---|---|
+| `SEC-BUG004-001` | Regression revalidated on current bytes; advance to `RESOLVED_BY_REGRESSION_PENDING_SECURITY`. |
+| `TR-BUG004-REGRESSION-SECURITY-REVALIDATION` | Resolved by this current execution and exact-identity browser admission. |
+| `TR-BUG004-SECURITY-REVALIDATION` | Open to `bubbles.security` for mandatory independent security revalidation before validation. |
+| New regression findings | None. |
+
+Validation remains closed. Top-level status and `certification.status` remain
+`in_progress`; `certifiedAt`, certification completion arrays, scope artifacts,
+and certification scope progress are unchanged.
+
+### Regression Security Verdict
+
+`REGRESSION_FREE_SECURITY_FIX`
+
+<a name="security-revalidation-bubblessecurity"></a>
+## Security Revalidation (bubbles.security) - 2026-07-31
+
+**Phase:** `security`
+
+**Scope:** `SCOPE-01`, scenario `SCN-B004-D`
+
+**Claim Source:** executed except where an interpretation is explicitly marked
+
+**Verdict:** `SECURITY_CLEAN`
+
+This independent pass revalidated `SEC-BUG004-001` on the current worktree
+without trusting implementation, test, or regression summaries. It changed no
+source, test, planning, documentation, parent feature, certification, Git, or
+deployment surface. The only writes are this security-owned report section and
+the permitted execution/finding/transition fields in `state.json`.
+
+### Repository Binding
+
+**Executed:** YES (current session)
+
+**Command:** `timeout 60 bash .github/bubbles/scripts/repository-binding.sh validate-packet --session-id vscode-eb9cb76de5cf2a992bf149706789fb73 --session-control-file <private-control-file> --packet-file /tmp/research-lab-sec-bug004-actionable-packet.json --emit-redacted-projection`
+
+**Exit Code:** 0
+
+**Claim Source:** executed; the private control path is intentionally not
+persisted in the report
+
+```text
+REPOSITORY_PACKET repository=research-lab
+SESSION_ID=vscode-eb9cb76de5cf2a992bf149706789fb73
+DECISION_ID=rb:vscode-eb9cb76de5cf2a992bf149706789fb73:6
+CONTROL_REVISION=6
+CONTROL_PATH_DIGEST=sha256:308a8e9feb4ffd49dac1dced22b497b576d5a88570bf7bf1cd0abef5e1ffb0f8
+AUTHORITY=explicit-repository-root
+TRANSITION=confirmed
+SCOPE_KIND=command
+TARGET_KIND=repository-root
+ACTIONABLE_PACKET_VALIDATED=true
+REPOSITORY_BINDING_VALIDATE_PACKET_EXIT=0
+```
+
+### Threat Boundary Closure
+
+**Claim Source:** interpreted from current source and the executed proofs below
+
+**Interpretation:** The exact registered-tool guard dominates every stateful
+listener action, while the executed request, browser, authority, and settlement
+checks prove the corresponding trust boundaries on current bytes.
+
+| Attack surface | Security property | Result |
+|---|---|---|
+| `rlviews:change` | Exact registered ordinary tool is validated before invalidation, state allocation, panel/ARIA mutation, mode handling, or request work | CLEAN |
+| `requestSimpleRefresh({toolId})` | Direct wrong-tool request resolves `null` with zero provider or panel effect | CLEAN |
+| Current generation and queue | Wrong-tool event cannot cancel accepted current work; replaced/stale work still settles under bounded guards | CLEAN |
+| Shared bridge authority | No network acquisition, sensitive storage, cookie, beacon, publication, or service-worker authority | CLEAN |
+| Control rendering | No added HTML, URL, dynamic-code, shell-execution, or credential sink | CLEAN |
+| Historical RED hook | Test-only and gated by both explicit opt-in and immutable-root inequality | CLEAN |
+
+### Nine-Carrier Identity And Browser Admission
+
+**Executed:** YES (current session)
+
+**Command:** bounded Node SHA-256 plus `git hash-object` comparator against the
+nine literal identities in the independent TEST and REGRESSION evidence
+
+**Exit Code:** 0
+
+**Claim Source:** executed
+
+```text
+IDENTITY path=rlexperience.js result=MATCH status=modified
+IDENTITY path=tests/simple-production-bridge.unit.mjs result=MATCH status=modified
+IDENTITY path=tests/market-heatmap-control-surface.spec.mjs result=MATCH status=modified
+IDENTITY path=tests/simple-production-wiring.spec.mjs result=MATCH status=CLEAN
+IDENTITY path=market-heatmap-lab.html result=MATCH status=modified
+IDENTITY path=rlviews.js result=MATCH status=CLEAN
+IDENTITY path=tests/simple-production-bridge.integration.mjs result=MATCH status=CLEAN
+IDENTITY path=scripts/selftest.mjs result=MATCH status=CLEAN
+IDENTITY path=playwright.config.mjs result=MATCH status=CLEAN
+IDENTITY_MATCH_COUNT=9
+BROWSER_RELEVANT_HASH_DRIFT_COUNT=0
+BROWSER_FULL_MATRIX_DECISION=ADMIT_PRIOR_EXACT_8_OF_8
+STATIC_SECURITY_FAILURES=0
+```
+
+The full browser matrix was not rerun in this phase because no carrier byte
+drifted. The immediately preceding independent TEST result is admitted exactly:
+8/8 system-chrome tests, 19 tools split 17 ready and two honestly unavailable,
+and seven native-demotion tools. This is an identity-based admission, not a
+claim that the 8-test browser command ran again.
+
+### Listener Ordering And Persistent Assertion Substance
+
+**Executed:** YES (current session)
+
+**Command:** bounded source-order and persistent-assertion audit over
+`rlexperience.js` and `tests/simple-production-bridge.unit.mjs`
+
+**Exit Code:** 0
+
+**Claim Source:** executed for token/order presence; interpreted for the control
+flow conclusion
+
+**Interpretation:** Because the registered-tool guard occurs before
+`invalidateSimpleGeneration`, and that function is the only listener path to
+`toolState`, panel disablement, and queue cancellation, a rejected wrong-tool
+event cannot allocate state or cancel work.
+
+```text
+LISTENER_COUNT=1
+LISTENER_POSITION listener=124195
+LISTENER_POSITION detail=124266
+LISTENER_POSITION guard=124335
+LISTENER_POSITION invalidate=124397
+LISTENER_POSITION mode=124446
+LISTENER_POSITION request=124490
+ORDER_EXPECTED=listener<detail<registered-tool-guard<invalidate<mode-guard<request
+ORDER_RESULT=PASS
+PERSISTENT_ASSERTION check=wrong-tool-provider-zero result=PASS
+PERSISTENT_ASSERTION check=wrong-tool-panel-zero result=PASS
+PERSISTENT_ASSERTION check=wrong-tool-aria-zero result=PASS
+PERSISTENT_ASSERTION check=current-work-survives result=PASS
+PERSISTENT_ASSERTION check=later-same-tool-settles result=PASS
+PERSISTENT_ASSERTION check=promise-hung-guard result=PASS
+PERSISTENT_ASSERTION check=replaced-successor-null result=PASS
+PERSISTENT_ASSERTION check=stale-control-no-listener result=PASS
+```
+
+The guard dominates `invalidateSimpleGeneration`, whose first stateful action is
+`toolState(toolId)`. A rejected wrong-tool event therefore cannot allocate a
+wrong-tool state entry or reach queue cancellation. The persistent discriminator
+then proves that already accepted current work survives and later same-tool work
+settles with exactly its own provider read. TP-B004-02..04 retain the independent
+replacement, cancellation, stale-control, generation, and bounded-settlement
+assertions.
+
+### Exact Security And Coordinator Execution
+
+**Executed:** YES (current session)
+
+**Commands:** exact `SEC-BUG004-001` and TP-B004-01 through TP-B004-04 selectors;
+full bridge unit and integration carriers
+
+**Exit Code:** 0 for every command
+
+**Claim Source:** executed
+
+```text
+SEC-BUG004-001 wrong-tool rlviews change has zero coordinator and panel side effects
+tests 1 pass 1 fail 0 cancelled 0 skipped 0 todo 0
+SEC_BUG004_001_EXIT=0
+TP-B004-01 requestSimpleRefresh rejects non-current contexts and settles invalidated queued work
+tests 1 pass 1 fail 0 cancelled 0 skipped 0 todo 0
+TP_B004_01_EXIT=0
+TP-B004-02 requestSimpleRefresh coalesces same-turn duplicates and replaces the pending successor
+tests 1 pass 1 fail 0 cancelled 0 skipped 0 todo 0
+TP_B004_02_EXIT=0
+TP-B004-03 accepted mid-run refresh immediately invalidates active generation and stale controls
+tests 1 pass 1 fail 0 cancelled 0 skipped 0 todo 0
+TP_B004_03_EXIT=0
+TP-B004-04 current and stale refresh promises settle without overwriting current truth
+tests 1 pass 1 fail 0 cancelled 0 skipped 0 todo 0
+TP_B004_04_EXIT=0
+FULL_BRIDGE_UNIT tests=14 pass=14 fail=0 cancelled=0 skipped=0 todo=0
+FULL_BRIDGE_UNIT_EXIT=0
+INTEGRATION ordinary=22 wired=19 declared-unwired=3 unaccounted=0
+FULL_BRIDGE_INTEGRATION tests=6 pass=6 fail=0 cancelled=0 skipped=0 todo=0
+FULL_BRIDGE_INTEGRATION_EXIT=0
+```
+
+TP-B004-01 directly re-proves rejected request cleanliness. The SEC selector
+re-proves the installed listener path, current control survival, and later
+same-tool independence. No selector was admitted through a file-wrapper pass.
+
+### Real Browser Current-DOM Probe
+
+The original finding used a real browser, so this phase reran the same
+discriminator with checkout-local Playwright 1.61.1, system Chrome, the committed
+same-origin static-server helper, the current registration, and a real current
+Simple panel. It also exercised the direct wrong-tool API and one later same-tool
+request.
+
+**Executed:** YES (current session)
+
+**Command:** bounded `node --input-type=module -e` using `playwright`,
+`browserLaunchOptions()`, and `startStaticServer()` from the committed helper
+
+**Exit Code:** 0
+
+**Claim Source:** executed
+
+```text
+Version 1.61.1
+REGISTERED_TOOL=market-heatmap-lab
+EVENT_TOOL=wrong-tool-security-revalidation
+VIEW_BEFORE=simple
+VIEW_AFTER=simple
+PANEL_STATE_BEFORE=unavailable
+PANEL_STATE_AFTER=unavailable
+PANEL_ADAPTER_BEFORE=simple-adapter/market-breadth/v1
+PANEL_ADAPTER_AFTER=simple-adapter/market-breadth/v1
+PANEL_TEXT_UNCHANGED=true
+CONTROL_DISABLED_BEFORE=false
+CONTROL_DISABLED_AFTER=false
+DISABLED_ATTRIBUTE_BEFORE=null
+DISABLED_ATTRIBUTE_AFTER=null
+ARIA_DISABLED_BEFORE=null
+ARIA_DISABLED_AFTER=null
+CONTROL_VALUE_UNCHANGED=true
+CURRENT_PROVIDER_READS_DURING_WRONG_PATH=0
+WRONG_PROVIDER_READS_DURING_WRONG_PATH=0
+PANEL_MUTATION_RECORDS_DURING_WRONG_PATH=0
+DIRECT_WRONG_TOOL_RESULT_NULL=true
+LATER_SAME_TOOL_PROMISE_SETTLED=true
+LATER_SAME_TOOL_STATE=ready
+LATER_SAME_TOOL_PROVIDER_READS=1
+WRONG_TOOL_EVENT_ZERO_DOM_ARIA_PROVIDER_SIDE_EFFECTS=PASS
+REAL_BROWSER_CURRENT_DOM_PROBE_EXIT=0
+```
+
+### G034, Source Lock, Authority, Storage, Injection, And Hooks
+
+**Executed:** YES (current session)
+
+**Commands:** G034 `security-gate.sh`; Node source-lock validator; exact
+no-forbidden-authority selector; bounded executable coordinator and added-line
+security matrix
+
+**Exit Code:** 0 for every command
+
+**Claim Source:** executed
+
+```text
+[security-gate] OK - 3068 tracked file(s), zero G034 findings
+G034_SECURITY_GATE_EXIT=0
+[node-source-lock] manifest=PASS private=true runtimeDependencies=0 scripts=0 playwright=1.61.1 node=>=20
+[node-source-lock] npmrc=PASS registry=https://registry.npmjs.org/ entries=5 ignoreScripts=true
+[node-source-lock] lockfile=PASS version=3 externalPackages=3 integrity=sha512
+[node-source-lock] graph=PASS playwright=1.61.1 playwright-core=1.61.1 fsevents=2.3.2
+[node-source-lock] OK adversarial=16 unexpectedAcceptances=0
+NODE_SOURCE_LOCK_EXIT=0
+STATIC_SCAN_GROUP group=coordinatorAuthority total_hits=0 result=PASS
+STATIC_SCAN_GROUP group=addedInjection total_hits=0 result=PASS
+STATIC_SCAN_GROUP group=addedCredentials total_hits=0 result=PASS
+SENSITIVE_CLIENT_STORAGE_MATCHES=0
+HISTORICAL_HOOK name=BUG004_IMMUTABLE_ROOT production_occurrences=0 test_occurrences=1
+HISTORICAL_HOOK name=BUG004_HISTORICAL_CONTROLS_RED production_occurrences=0 test_occurrences=1
+HISTORICAL_HOOK_TWO_CONDITION_GATE=PASS
+BUG004_IMMUTABLE_ROOT_PRESENCE=
+BUG004_HISTORICAL_CONTROLS_RED_PRESENCE=
+STATIC_AUTHORITY_STORAGE_INJECTION_HOOK_FAILURES=0
+EXACT_AUTHORITY_SELECTOR tests=1 pass=1 fail=0 skipped=0
+EXACT_AUTHORITY_SELECTOR_EXIT=0
+```
+
+### Broad Regression, Artifact, Reality, Diff, And Residue Checks
+
+**Executed:** YES (current session)
+
+**Commands:** Feature 012 shell unit; canonical selftest; bugfix and browser
+regression-quality guards; BUG traceability and regression baseline; focused
+artifact lint; implementation reality scan; strict diff-evidence guard; nine
+`node --check` commands; canonical page inline/ID check; path-scoped
+`git diff --check`; editor diagnostics; generated-output/process residue probe
+
+**Exit Code:** 0 for every executable command; zero editor diagnostics
+
+**Claim Source:** executed
+
+```text
+TOOL_EXPERIENCE_SHELL_UNIT tests=7 pass=7 fail=0 skipped=0
+TOOL_EXPERIENCE_SHELL_UNIT_EXIT=0
+Research-Lab self-test: 970 passed, 0 failed
+CANONICAL_SELFTEST_EXIT=0
+BUGFIX_REGRESSION_QUALITY files=2 adversarial=2 violations=0 warnings=0
+BROWSER_REGRESSION_QUALITY files=2 violations=0 warnings=0
+TRACEABILITY scenarios=4 mappings=4 DoD-mapped=4 warnings=0
+BUG004_REGRESSION_BASELINE_EXIT=0
+ARTIFACT_LINT_EXIT=0
+IMPLEMENTATION_REALITY violations=0 warnings=0
+DIFF_EVIDENCE_GUARD_EXIT=0
+NODE_CHECK_FILES=9
+NODE_CHECK_FAILURES=0
+OK page=market-heatmap-lab.html inline=1 refs=0
+PATH_SCOPED_DIFF_CHECK_EXIT=0
+EDITOR_DIAGNOSTICS files=8 errors=0
+RESIDUE path=test-results exists=false
+RESIDUE path=playwright-report exists=false
+RESIDUE path=blob-report exists=false
+ACTIVE_PLAYWRIGHT_PROCESS_COUNT=0
+RESIDUE_PROCESS_FAILURES=0
+NO_RESIDUE_EXIT=0
+```
+
+The parent Feature 012 baseline command still emits its already-recorded
+first-run G044 advisory while exiting 0. It is outside the BUG-004 work boundary:
+the BUG-004 baseline table exists and passes, both conflict checks remain clean,
+and current shell, integration, selftest, and browser evidence cover the shared
+surface. No new parent or BUG finding is created by that unchanged advisory.
+
+### Finding Accounting And Route
+
+| Finding / transition | Security disposition |
+|---|---|
+| `SEC-BUG004-001` | `RESOLVED`: current source order, exact persistent test, direct rejected request, and real-browser DOM probe independently prove the wrong-tool path has zero coordinator, state-allocation-reachable, queue, panel, ARIA, provider, or generation effect. |
+| `TR-BUG004-SECURITY-REVALIDATION` | Resolved by this current execution with verdict `SECURITY_CLEAN`. |
+| `TR-BUG004-VALIDATE` | Open to `bubbles.validate` for independent certification. |
+| New security findings | None. |
+
+Top-level `status` and `certification.status` remain `in_progress`.
+`certifiedAt`, certification scopes, certification phases, lockdown state, and
+all planning/source/test artifacts are unchanged.
+
+### Post-Edit Transition Validation
+
+**Executed:** YES (current session)
+
+**Commands:** focused JSON state/report contract assertions followed by BUG-004
+artifact lint
+
+**Exit Code:** 0 for both commands
+
+**Claim Source:** executed
+
+```text
+STATE_REPORT_CHECK check=top-status-in-progress result=PASS
+STATE_REPORT_CHECK check=certification-status-in-progress result=PASS
+STATE_REPORT_CHECK check=certifiedAt-null result=PASS
+STATE_REPORT_CHECK check=certification-completedScopes-empty result=PASS
+STATE_REPORT_CHECK check=certification-completedPhases-empty result=PASS
+STATE_REPORT_CHECK check=finding-resolved result=PASS
+STATE_REPORT_CHECK check=security-transition-resolved result=PASS
+STATE_REPORT_CHECK check=validate-transition-open result=PASS
+STATE_REPORT_CHECK check=pending-validate-only result=PASS
+STATE_REPORT_CHECK check=next-owner-validate result=PASS
+STATE_REPORT_CHECK check=latest-claim-security result=PASS
+STATE_REPORT_CHECK check=latest-history-security result=PASS
+STATE_REPORT_CHECK check=report-security-heading result=PASS
+STATE_REPORT_CHECK check=report-security-clean result=PASS
+STATE_REPORT_CHECK check=report-anchor result=PASS
+STATE_REPORT_CHECK_FAILURES=0
+SECURITY_TRANSITION_CONTRACT_EXIT=0
+Artifact lint PASSED.
+POST_EDIT_ARTIFACT_LINT_EXIT=0
+```
+
+No previously passing current-byte check now fails, no cross-spec conflict or
+route collision was found, no protected scenario or 19-tool boundary was lost,
+and no browser-relevant byte drift occurred. Mandatory security revalidation is
+the sole next route.
+
+### Post-Edit Artifact Validation
+
+**Executed:** YES (current session)
+
+**Commands:** focused state-transition contract assertions; BUG-004 artifact
+lint; report-anchor contract; `git diff --check` over only `report.md` and
+`state.json`
+
+**Exit Code:** 0 for every command
+
+**Claim Source:** executed
+
+```text
+STATE_CHECK top-status-in-progress=PASS
+STATE_CHECK certification-status-in-progress=PASS
+STATE_CHECK certifiedAt-null=PASS
+STATE_CHECK certification-completedScopes-empty=PASS
+STATE_CHECK certification-completedPhases-empty=PASS
+STATE_CHECK regression-transition-resolved=PASS
+STATE_CHECK security-transition-open=PASS
+STATE_CHECK single-open-transition=PASS
+STATE_CHECK finding-regression-pending-security=PASS
+STATE_CHECK latest-phase-claim-regression=PASS
+STATE_CHECK latest-history-regression=PASS
+STATE_CHECK validation-remains-closed=PASS
+STATE_CHECK_FAILURES=0
+Artifact lint PASSED.
+REPORT_HEADING_COUNT=1
+STATE_EVIDENCE_REF_PRESENT=true
+STATE_JSON_PARSE=PASS
+ALLOWED_PATH_DIFF_CHECK_EXIT=0
+```

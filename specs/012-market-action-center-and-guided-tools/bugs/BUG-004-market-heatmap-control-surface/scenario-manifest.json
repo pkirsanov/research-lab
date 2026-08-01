@@ -3,17 +3,20 @@
   "version": 1,
   "spec": "BUG-004",
   "featureDir": "specs/012-market-action-center-and-guided-tools/bugs/BUG-004-market-heatmap-control-surface",
-  "generatedAt": "2026-07-29T16:59:52Z",
+  "generatedAt": "2026-07-30T16:19:04Z",
   "generatedBy": "bubbles.plan",
-  "planningStatus": "approved-design-plan-reconciled-runtime-not-run",
+  "planningStatus": "gaps-reconciled-scope-reopened-runtime-remediation-pending",
   "implementationGate": {
     "dispatchAllowed": true,
     "nextOwner": "bubbles.implement",
-    "requiredPersistentTests": ["TP-B004-06", "TP-B004-07", "TP-B004-08"],
+    "transitionId": "TR-BUG004-IMPLEMENT-GAPS",
+    "findingIds": ["GAP-BUG004-001", "GAP-BUG004-002", "GAP-BUG004-003", "GAP-BUG004-004"],
+    "requiredPersistentTests": ["TP-B004-01", "TP-B004-02", "TP-B004-03", "TP-B004-04", "TP-B004-08"],
     "redMustPrecedeImplementationAcceptance": true,
     "activeWorktreeMustRemainUntouchedForRed": true,
     "deploymentProven": false,
-    "preservedCommit": "2f65a02a"
+    "preservedCommit": "2f65a02a",
+    "followUpOwners": ["bubbles.test", "bubbles.docs"]
   },
   "scenarios": [
     {
@@ -127,7 +130,7 @@
       "title": "Direct Power applies the existing native treemap controls",
       "behaviorClass": "ui-native-power-controls",
       "changeType": "bugfix",
-      "findingIds": ["F-BUG004-C", "F-BUG004-E"],
+      "findingIds": ["F-BUG004-C", "F-BUG004-E", "GAP-BUG004-003"],
       "requiredTestType": "e2e-ui",
       "requiredTestTypes": ["e2e-ui", "functional"],
       "regressionRequired": true,
@@ -152,13 +155,15 @@
           "requestInterceptionAllowed": false,
           "serviceWorkerAllowed": false,
           "redBaselineRevision": "2f65a02a",
-          "discriminator": "The page opens directly in Power. Each existing control needs a layout box, keyboard activation, selected-state change, owned output change, and an empty request ledger including grouping."
+          "discriminator": "The page opens directly in Power. Every native group must expose exactly one aria-pressed=true button, move semantic selection after Enter, match :focus-visible with a computed non-transparent outline at least 2 CSS pixels wide, change owned output and treemap pixels, and retain an empty request ledger including grouping."
         }
       ],
       "expectedAssertions": [
         "winSeg, sizeSeg, and grpSeg are visible in the existing Map panel",
-        "each control is keyboard-operable",
-        "each selected state changes to the actuated value",
+        "every group has exactly one aria-pressed=true button and aria-pressed=false on every alternative",
+        "each control is keyboard-operable and the focused target matches :focus-visible",
+        "computed focus outline style is not none, width is at least 2 CSS pixels, and color is not transparent",
+        "aria-pressed=true moves to the actuated value and clears from the former selection",
         "each owned treemap or table interpretation visibly changes",
         "grouping performs no fetch and the complete post-hydration request ledger remains empty"
       ],
@@ -172,7 +177,7 @@
       "title": "Shared refresh and owner reuse are bounded and latest-result-wins",
       "behaviorClass": "shared-bridge-lifecycle-and-owner-parity",
       "changeType": "bugfix",
-      "findingIds": ["F-BUG004-A", "F-BUG004-B", "F-BUG004-C"],
+      "findingIds": ["F-BUG004-A", "F-BUG004-B", "F-BUG004-C", "GAP-BUG004-001", "GAP-BUG004-002"],
       "requiredTestType": "unit",
       "requiredTestTypes": ["unit", "integration", "e2e-ui"],
       "regressionRequired": true,
@@ -182,26 +187,34 @@
         {
           "testPlanId": "TP-B004-01",
           "testPath": "tests/simple-production-bridge.unit.mjs",
-          "testTitle": "requestSimpleRefresh filters wrong tool, non-Simple, non-ordinary, and invalidates work when leaving Simple",
-          "category": "unit"
+          "testTitle": "TP-B004-01 requestSimpleRefresh rejects non-current contexts and settles invalidated queued work",
+          "command": "node --test --test-name-pattern=\"^TP-B004-01 requestSimpleRefresh rejects non-current contexts and settles invalidated queued work$\" tests/simple-production-bridge.unit.mjs",
+          "category": "unit",
+          "selectionContract": { "expectedTests": 1, "expectedPass": 1, "expectedSkipped": 0, "fileWrapperOnlyAllowed": false }
         },
         {
           "testPlanId": "TP-B004-02",
           "testPath": "tests/simple-production-bridge.unit.mjs",
-          "testTitle": "requestSimpleRefresh coalesces pre-start duplicates and retains only the latest pending successor",
-          "category": "unit"
+          "testTitle": "TP-B004-02 requestSimpleRefresh coalesces same-turn duplicates and replaces the pending successor",
+          "command": "node --test --test-name-pattern=\"^TP-B004-02 requestSimpleRefresh coalesces same-turn duplicates and replaces the pending successor$\" tests/simple-production-bridge.unit.mjs",
+          "category": "unit",
+          "selectionContract": { "expectedTests": 1, "expectedPass": 1, "expectedSkipped": 0, "fileWrapperOnlyAllowed": false }
         },
         {
           "testPlanId": "TP-B004-03",
           "testPath": "tests/simple-production-bridge.unit.mjs",
-          "testTitle": "requestSimpleRefresh commits only the latest generation and preserves current-generation control ordering",
-          "category": "unit"
+          "testTitle": "TP-B004-03 accepted mid-run refresh immediately invalidates active generation and stale controls",
+          "command": "node --test --test-name-pattern=\"^TP-B004-03 accepted mid-run refresh immediately invalidates active generation and stale controls$\" tests/simple-production-bridge.unit.mjs",
+          "category": "unit",
+          "selectionContract": { "expectedTests": 1, "expectedPass": 1, "expectedSkipped": 0, "fileWrapperOnlyAllowed": false }
         },
         {
           "testPlanId": "TP-B004-04",
           "testPath": "tests/simple-production-bridge.unit.mjs",
-          "testTitle": "requestSimpleRefresh renders current failure unavailable and suppresses stale failure",
-          "category": "unit"
+          "testTitle": "TP-B004-04 current and stale refresh promises settle without overwriting current truth",
+          "command": "node --test --test-name-pattern=\"^TP-B004-04 current and stale refresh promises settle without overwriting current truth$\" tests/simple-production-bridge.unit.mjs",
+          "category": "unit",
+          "selectionContract": { "expectedTests": 1, "expectedPass": 1, "expectedSkipped": 0, "fileWrapperOnlyAllowed": false }
         },
         {
           "testPlanId": "TP-B004-09",
@@ -212,9 +225,15 @@
       ],
       "expectedAssertions": [
         "only the exact current ordinary tool in current Simple reads its provider",
-        "pre-start duplicates coalesce into one provider read",
-        "one active run retains only the latest pending successor",
-        "stale ready and unavailable completions perform no panel mutation",
+        "rejected contexts and invalidated queued work resolve null with zero provider reads or panel writes",
+        "pre-start duplicates share one scheduled promise and one provider read",
+        "every accepted owner refresh claims a distinct newer generation before requestSimpleRefresh returns",
+        "one active run retains only the latest pending successor; a replaced successor resolves null",
+        "the active old generation becomes stale immediately and its rendered controls are disabled or behaviorally inert",
+        "stale control actuation performs no generation claim, runtime prepare, or panel mutation",
+        "stale active, ready, and unavailable completions resolve null and perform no panel mutation",
+        "current failure resolves an honest unavailable projection while the latest successor resolves its current projection",
+        "every rejected, cancelled, replaced, stale, current-failure, and latest-successor promise settles within the bounded HUNG guard",
         "current controls remain ordered by runSequence",
         "one boot union serves sector and constituent grouping",
         "all Simple and Power levers reuse owner evidence and emit no acquisition request",

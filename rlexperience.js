@@ -221,8 +221,24 @@
     return hash.map(function (value) { return value.toString(16).padStart(8, "0"); }).join("");
   }
 
+  /* Fingerprints are pure over the canonical form, so identical canonical input always
+     yields an identical digest. Data-dense pages re-derive the same handful of contexts
+     per rendered cell: a data-dense lab page measured 113,710 derivations of only 18
+     distinct canonical values, hashing 193.4 MB through the block loop below and blocking
+     the main thread ~23s during startup. Caching on the canonical string is transparent
+     (pure function memoisation) and keeps that work off the critical path. */
+  var fingerprintCache = new Map();
+  var FINGERPRINT_CACHE_LIMIT = 4096;
+
   function fingerprint(value) {
-    return "sha256:" + sha256(canonicalize(value));
+    var canonical = canonicalize(value);
+    var cached = fingerprintCache.get(canonical);
+    if (typeof cached === "string") return cached;
+    var computed = "sha256:" + sha256(canonical);
+    /* Bounded so a page churning unique contexts cannot grow this without limit. */
+    if (fingerprintCache.size >= FINGERPRINT_CACHE_LIMIT) fingerprintCache.clear();
+    fingerprintCache.set(canonical, computed);
+    return computed;
   }
 
   function cloneCanonical(value) {
@@ -1433,7 +1449,8 @@
        exactly as before — nothing is gated. */
     var claimGeneration = typeof options.claimGeneration === "function" ? options.claimGeneration : null;
     var isCurrentGeneration = typeof options.isCurrentGeneration === "function" ? options.isCurrentGeneration : null;
-    var generation = claimGeneration ? claimGeneration() : null;
+    var hasAcceptedGeneration = Object.prototype.hasOwnProperty.call(options, "acceptedGeneration");
+    var generation = hasAcceptedGeneration ? options.acceptedGeneration : (claimGeneration ? claimGeneration() : null);
     function mayPaint() { return !isCurrentGeneration || isCurrentGeneration(generation); }
 
     function honestUnavailable(reason) {
@@ -1500,6 +1517,7 @@
        painted the first projection — local compute over the owner state already
        captured for this render. No provider request, no re-read, no new data. */
     function commitControl(parameter, node) {
+      if (!mayPaint()) return;
       var next;
       if (controlIsChoice(parameter)) {
         var decoded = controlOptionFromToken(parameter, String(node.value));
@@ -1514,7 +1532,7 @@
       parameterValues[parameter.parameterId] = next;
       /* A user actuation makes THIS invocation the live one again: its controls are the
          ones on screen, so its result must outrank any older pending run (FR-B004-09). */
-      if (claimGeneration) generation = claimGeneration();
+      if (claimGeneration && !hasAcceptedGeneration) generation = claimGeneration();
       var keepFocus = !!(panelDocument && panelDocument.activeElement === node);
       run(new Date().toISOString(), keepFocus ? parameter.parameterId : null);
     }
@@ -1581,6 +1599,7 @@
         /* "input" only moves the readout (free); the model re-runs on the committed
            "change", so dragging a slider stays smooth and every commit is a real run. */
         node.addEventListener("input", function () {
+          if (!mayPaint()) return;
           if (controlIsChoice(parameter)) return;
           var live = Number(node.value);
           if (!Number.isFinite(live)) return;
@@ -1679,6 +1698,16 @@
       return entry;
     }
 
+    function resolveCurrentOrdinaryTool(toolId) {
+      if (!toolId) return null;
+      var registration = globalThis.__rlviewsRegistration;
+      if (!registration || !registration.shell || registration.shell.toolId !== toolId) return null;
+      if (!registration.registry || !Array.isArray(registration.registry.tools)) return null;
+      var tool = registration.registry.tools.find(function (candidate) { return candidate && candidate.id === toolId; });
+      if (!tool || !tool.experience || tool.experience.kind !== "ordinary") return null;
+      return { registration: registration, tool: tool };
+    }
+
     /* Everything one run needs, resolved from the CURRENT registration and globals.
        Returns null whenever the request must be declined WITHOUT touching the panel:
        no registration, a different tool than the shell owns, a non-ordinary tool, no
@@ -1687,11 +1716,10 @@
        already left overwrite what is on screen. */
     function resolveSimpleContext(toolId) {
       if (!toolId || typeof document === "undefined" || !document.body) return null;
-      var registration = globalThis.__rlviewsRegistration;
-      if (!registration || !registration.shell || registration.shell.toolId !== toolId) return null;
-      if (!registration.registry || !Array.isArray(registration.registry.tools)) return null;
-      var tool = registration.registry.tools.find(function (candidate) { return candidate && candidate.id === toolId; });
-      if (!tool || !tool.experience || tool.experience.kind !== "ordinary") return null;
+      var current = resolveCurrentOrdinaryTool(toolId);
+      if (!current) return null;
+      var registration = current.registration;
+      var tool = current.tool;
       if (document.body.getAttribute("data-rlview") !== "simple") return null;
       var panel = document.querySelector('[data-rlexperience-panel="simple"]');
       if (!panel) return null;
@@ -1708,6 +1736,29 @@
       return { panel: panel, tool: tool, definition: definition, binding: binding, config: registration.config };
     }
 
+    function disableRenderedControls(panel) {
+      if (!panel) return;
+      var nodes = [];
+      if (typeof panel.querySelectorAll === "function") {
+        nodes = Array.prototype.slice.call(panel.querySelectorAll("[data-rlexperience-control-input]"));
+      } else if (typeof panel.findAllByAttribute === "function") {
+        nodes = panel.findAllByAttribute("data-rlexperience-control-input");
+      }
+      for (var i = 0; i < nodes.length; i += 1) {
+        nodes[i].disabled = true;
+        if (typeof nodes[i].setAttribute === "function") {
+          nodes[i].setAttribute("disabled", "disabled");
+          nodes[i].setAttribute("aria-disabled", "true");
+        }
+      }
+    }
+
+    function claimAcceptedGeneration(state, panel) {
+      state.generation += 1;
+      disableRenderedControls(panel);
+      return state.generation;
+    }
+
     /* THE single render path. A view change into Simple and an owner-readiness request
        both land here, so there is one registry lookup, one provider read, one binding
        resolution and one bridge invocation for every trigger.
@@ -1717,7 +1768,7 @@
        synchronous call into state the page has already hydrated — the coordinator
        acquires nothing. Missing provider or empty owner state is passed through as-is
        so the bridge renders its honest "unavailable"; readiness is never forced. */
-    function renderSimpleForTool(toolId, context) {
+    function renderSimpleForTool(toolId, context, acceptedGeneration) {
       var ownerState = null;
       var providers = globalThis.__rlOwnerStateProvider;
       if (providers && typeof providers[toolId] === "function") {
@@ -1736,23 +1787,22 @@
         api: globalThis.RLEXPERIENCE,
         config: context.config,
         computedAt: new Date().toISOString(),
-        /* The cross-invocation commit guard. Claiming makes this run the live one;
-           an older run's captured claim then fails isCurrentGeneration and paints
-           nothing, so a slow boot "unavailable" can never land on top of a newer
-           "ready". Per tool, so tools never invalidate each other. */
-        claimGeneration: function () { state.generation += 1; return state.generation; },
+        acceptedGeneration: acceptedGeneration,
         isCurrentGeneration: function (claimed) { return claimed === state.generation; }
       }));
     }
 
-    function startSimpleRun(toolId) {
+    function startSimpleRun(toolId, acceptedGeneration) {
       var state = toolState(toolId);
+      if (acceptedGeneration !== state.generation) return Promise.resolve(null);
       /* Re-validated at START, not at queue time: the user may have left Simple while
          this run was waiting, and a superseded request must resolve null untouched. */
       var context = resolveSimpleContext(toolId);
       if (!context) return Promise.resolve(null);
       state.running = true;
-      return renderSimpleForTool(toolId, context).catch(function () { return null; }).then(function (projection) {
+      return Promise.resolve().then(function () {
+        return renderSimpleForTool(toolId, context, acceptedGeneration);
+      }).catch(function () { return null; }).then(function (projection) {
         state.running = false;
         var successor = state.successor;
         state.successor = null;
@@ -1761,11 +1811,19 @@
       });
     }
 
-    function successorSlot(toolId) {
-      var slot = {};
+    function successorSlot(toolId, acceptedGeneration) {
+      var slot = { generation: acceptedGeneration, settled: false };
       slot.promise = new Promise(function (resolve) {
-        slot.begin = function () { resolve(startSimpleRun(toolId)); };
-        slot.cancel = function () { resolve(null); };
+        slot.begin = function () {
+          if (slot.settled) return;
+          slot.settled = true;
+          resolve(startSimpleRun(toolId, slot.generation));
+        };
+        slot.cancel = function () {
+          if (slot.settled) return;
+          slot.settled = true;
+          resolve(null);
+        };
       });
       return slot;
     }
@@ -1775,14 +1833,14 @@
        does not stop it — `startSimpleRun` mints a FRESH generation when it begins, so a
        generation bump cannot reach work that has not started yet. Cancelling resolves the
        promise (never drops it) so awaiters settle instead of hanging. */
-    function scheduledSlot(toolId, state) {
-      var slot = { cancelled: false };
+    function scheduledSlot(toolId, state, acceptedGeneration) {
+      var slot = { cancelled: false, generation: acceptedGeneration };
       slot.promise = new Promise(function (resolve) {
         slot.cancel = function () { slot.cancelled = true; resolve(null); };
         Promise.resolve().then(function () {
           if (slot.cancelled) return;
           if (state.scheduled === slot) state.scheduled = null;
-          resolve(startSimpleRun(toolId));
+          resolve(startSimpleRun(toolId, slot.generation));
         });
       });
       return slot;
@@ -1791,21 +1849,25 @@
     /* Public entry point. Filters first, then coalesces; it never renders directly. */
     function requestSimpleRefresh(options) {
       var toolId = options && options.toolId;
-      if (!toolId || !resolveSimpleContext(toolId)) return Promise.resolve(null);
+      var context = toolId ? resolveSimpleContext(toolId) : null;
+      if (!context) return Promise.resolve(null);
       var state = toolState(toolId);
+      var acceptedGeneration = claimAcceptedGeneration(state, context.panel);
 
       /* One run at a time per tool with at most ONE queued successor: extra requests
-         arriving mid-run join that single successor rather than stacking runs, so a
-         burst of N notifications costs one extra render, never N. */
+         arriving mid-run replace that successor rather than stacking runs, so a burst
+         of N notifications costs one extra render and only the latest caller remains. */
       if (state.running) {
-        if (!state.successor) state.successor = successorSlot(toolId);
+        if (state.successor) state.successor.cancel();
+        state.successor = successorSlot(toolId, acceptedGeneration);
         return state.successor.promise;
       }
 
       /* Idle: fold every same-turn request into ONE scheduled run. Because the provider
          is read when that run starts, the coalesced result carries the newest owner
          state rather than the first caller's snapshot. */
-      if (!state.scheduled) state.scheduled = scheduledSlot(toolId, state);
+      if (!state.scheduled) state.scheduled = scheduledSlot(toolId, state, acceptedGeneration);
+      else state.scheduled.generation = acceptedGeneration;
       return state.scheduled.promise;
     }
 
@@ -1823,6 +1885,9 @@
       if (!toolId) return;
       var state = toolState(toolId);
       state.generation += 1;
+      if (typeof document !== "undefined" && typeof document.querySelector === "function") {
+        disableRenderedControls(document.querySelector('[data-rlexperience-panel="simple"]'));
+      }
       var scheduled = state.scheduled;
       state.scheduled = null;
       if (scheduled) scheduled.cancel();
@@ -1837,6 +1902,7 @@
     globalThis.addEventListener("rlviews:change", function (event) {
       var detail = event && event.detail;
       if (!detail) return;
+      if (!resolveCurrentOrdinaryTool(detail.toolId)) return;
       invalidateSimpleGeneration(detail.toolId);
       if (detail.mode !== "simple") return;
       requestSimpleRefresh({ toolId: detail.toolId });

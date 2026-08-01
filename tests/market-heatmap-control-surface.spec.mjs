@@ -598,19 +598,47 @@ test('BUG-004 SCN-B004-C: direct Power applies native treemap controls with zero
     expect(count, `#${lever.id} must offer more than one setting to be steerable`).toBeGreaterThan(1);
 
     const selectedBefore = await group.locator('button.on').getAttribute(lever.attribute);
+    const semanticBefore = await buttons.evaluateAll((nodes) => nodes.map((node) => ({
+      value: node.getAttribute([...node.attributes].find((attribute) => attribute.name.startsWith('data-'))?.name || ''),
+      pressed: node.getAttribute('aria-pressed'),
+      selected: node.classList.contains('on')
+    })));
+    expect(
+      semanticBefore.filter((entry) => entry.pressed === 'true'),
+      `#${lever.id}: exactly one button must expose aria-pressed="true" before actuation`
+    ).toHaveLength(1);
+    expect(
+      semanticBefore.filter((entry) => entry.pressed === 'false'),
+      `#${lever.id}: every alternative must expose aria-pressed="false" before actuation`
+    ).toHaveLength(count - 1);
+    expect(
+      semanticBefore.filter((entry) => entry.pressed !== 'true' && entry.pressed !== 'false'),
+      `#${lever.id}: aria-pressed must be explicit on every native button`
+    ).toEqual([]);
+    expect(
+      await group.locator('button[aria-pressed="true"]').getAttribute(lever.attribute),
+      `#${lever.id}: semantic selection must agree with the existing .on selection`
+    ).toBe(selectedBefore);
     /* `button:not(.on)`, NOT `filter({hasNot})`: the selected marker is a class on the
        button ITSELF, and hasNot only excludes elements with a matching DESCENDANT — it
        would hand back the already-selected button and the actuation would be a no-op. */
-    const target = group.locator('button:not(.on)').first();
+    const targetIndex = semanticBefore.findIndex((entry) => !entry.selected);
+    expect(targetIndex, `#${lever.id}: target must belong to its native button group`).toBeGreaterThanOrEqual(0);
+    const target = buttons.nth(targetIndex);
     const targetValue = await target.getAttribute(lever.attribute);
     expect(targetValue, `#${lever.id} must offer a setting other than the current one`).not.toBe(selectedBefore);
+    await expect(target, `#${lever.id}: an alternative must be semantically unselected before actuation`).toHaveAttribute('aria-pressed', 'false');
 
     const ownedBefore = await page.locator(lever.ownedOutput).textContent();
     const treemapBefore = await treemapFingerprint(page);
     expect(treemapBefore, `#${lever.id}: the treemap must already be painted before actuation`).not.toBeNull();
 
-    // Keyboard operation, not a synthetic click: focus the real button and press Enter.
-    await target.focus();
+    // Enter the target through keyboard modality so :focus-visible is meaningful.
+    const adjacentIndex = targetIndex === 0 ? 1 : targetIndex - 1;
+    const adjacent = buttons.nth(adjacentIndex);
+    await adjacent.focus();
+    await expect(adjacent).toBeFocused();
+    await page.keyboard.press(targetIndex === 0 ? 'Shift+Tab' : 'Tab');
     await expect(target).toBeFocused();
     await page.keyboard.press('Enter');
 
@@ -618,6 +646,40 @@ test('BUG-004 SCN-B004-C: direct Power applies native treemap controls with zero
     await expect
       .poll(async () => group.locator('button.on').getAttribute(lever.attribute), { timeout: 20000 })
       .toBe(targetValue);
+    await expect
+      .poll(async () => group.locator('button[aria-pressed="true"]').getAttribute(lever.attribute), {
+        timeout: 20000,
+        message: `#${lever.id}: keyboard Enter must move aria-pressed="true" to the target`
+      })
+      .toBe(targetValue);
+    const semanticAfter = await buttons.evaluateAll((nodes) => nodes.map((node) => ({
+      pressed: node.getAttribute('aria-pressed'),
+      selected: node.classList.contains('on')
+    })));
+    expect(
+      semanticAfter.filter((entry) => entry.pressed === 'true' && entry.selected),
+      `#${lever.id}: exactly one target must own both semantic and visual selection after Enter`
+    ).toHaveLength(1);
+    expect(
+      semanticAfter.filter((entry) => entry.pressed === 'false' && !entry.selected),
+      `#${lever.id}: every former/alternative button must be aria-pressed="false" after Enter`
+    ).toHaveLength(count - 1);
+    const focusRing = await target.evaluate((node) => {
+      const style = getComputedStyle(node);
+      const color = style.outlineColor;
+      const rgba = color.match(/^rgba?\([^)]*,\s*([0-9.]+)\)$/i);
+      return {
+        matchesFocusVisible: node.matches(':focus-visible'),
+        outlineStyle: style.outlineStyle,
+        outlineWidth: Number.parseFloat(style.outlineWidth),
+        outlineColor: color,
+        transparent: color === 'transparent' || (rgba ? Number(rgba[1]) === 0 : false)
+      };
+    });
+    expect(focusRing.matchesFocusVisible, `#${lever.id}: keyboard target must match :focus-visible`).toBe(true);
+    expect(focusRing.outlineStyle, `#${lever.id}: focus-visible outline style must be painted`).not.toBe('none');
+    expect(focusRing.outlineWidth, `#${lever.id}: focus-visible outline must be at least 2 CSS pixels`).toBeGreaterThanOrEqual(2);
+    expect(focusRing.transparent, `#${lever.id}: focus-visible outline color ${focusRing.outlineColor} must be non-transparent`).toBe(false);
     // ...the output this lever owns visibly changed...
     await expect
       .poll(async () => (await page.locator(lever.ownedOutput).textContent()) !== ownedBefore, { timeout: 30000 })

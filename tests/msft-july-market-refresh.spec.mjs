@@ -485,8 +485,9 @@ test('Regression: SCN-009-009/011/012 one state drives modes refresh and export'
   const csvSimple = await page.evaluate(() => window.MsftJulyModel.buildCsvSnapshot());
   const simpleMap = Object.fromEntries(csvSimple);
 
-  // Switch Simple -> Power by pointer.
-  await page.locator('#powerTab').click();
+  // Switch Simple -> Power by pointer. The shared shell owns the visible tablist and mirrors its
+  // state onto the native #simpleTab/#powerTab + #simpleView/#powerView, which stay asserted below.
+  await page.locator('#rlviews [role="tab"][data-rlview-mode="power"]').click();
   const afterPointer = await page.evaluate(() => ({
     displayMode: window.MsftJulyModel.displayMode,
     bodyPower: document.body.classList.contains('power'),
@@ -513,16 +514,16 @@ test('Regression: SCN-009-009/011/012 one state drives modes refresh and export'
   expect(inputsAfterSwitch, 'mode switch must not mutate any scenario input').toEqual(inputsBeforeSwitch);
 
   // Switch Power -> Simple by keyboard (roving tablist, automatic activation).
-  await page.locator('#powerTab').focus();
+  await page.locator('#rlviews [role="tab"][data-rlview-mode="power"]').focus();
   await page.keyboard.press('ArrowLeft');
   const afterKeyboard = await page.evaluate(() => ({
     displayMode: window.MsftJulyModel.displayMode,
     bodyPower: document.body.classList.contains('power'),
     simpleSelected: document.getElementById('simpleTab').getAttribute('aria-selected'),
-    focused: document.activeElement ? document.activeElement.id : null
+    focused: document.activeElement ? (document.activeElement.dataset.rlviewMode || document.activeElement.id) : null
   }));
   expect(afterKeyboard, 'keyboard activation returns to Simple and keeps focus on the selected tab').toEqual({
-    displayMode: 'simple', bodyPower: false, simpleSelected: 'true', focused: 'simpleTab'
+    displayMode: 'simple', bodyPower: false, simpleSelected: 'true', focused: 'simple'
   });
 
   // ---- SCN-009-012: CSV reconstructs the accepted state; schema v1; no data_as_of. ----
@@ -705,19 +706,25 @@ test('Regression: SCN-009-011 viewport accessibility and canvas matrix', async (
   }
 
   // Keyboard cycling: ArrowRight/ArrowLeft/Home/End move + activate; focus stays on the selected tab.
+  // The shared shell owns the visible tablist, so Home/End span its four views
+  // (simple|power|brief|journey) rather than the two native tabs this tool carried before adoption.
   await page.setViewportSize({ width: 1440, height: 1000 });
   await page.evaluate(() => window.MsftJulyModel.setMode('simple'));
-  await page.locator('#simpleTab').focus();
+  const shellTab = (mode) => page.locator(`#rlviews [role="tab"][data-rlview-mode="${mode}"]`);
+  const focusedMode = () => page.evaluate(() => (document.activeElement ? (document.activeElement.dataset.rlviewMode || document.activeElement.id) : null));
+  await shellTab('simple').focus();
   await page.keyboard.press('ArrowRight');
-  const afterRight = await page.evaluate(() => ({ mode: window.MsftJulyModel.displayMode, focused: document.activeElement ? document.activeElement.id : null }));
-  expect(afterRight).toEqual({ mode: 'power', focused: 'powerTab' });
+  const afterRight = await page.evaluate(() => ({ mode: window.MsftJulyModel.displayMode, focused: document.activeElement ? (document.activeElement.dataset.rlviewMode || document.activeElement.id) : null }));
+  expect(afterRight).toEqual({ mode: 'power', focused: 'power' });
   await page.keyboard.press('ArrowLeft');
-  const afterLeft = await page.evaluate(() => ({ mode: window.MsftJulyModel.displayMode, focused: document.activeElement ? document.activeElement.id : null }));
-  expect(afterLeft).toEqual({ mode: 'simple', focused: 'simpleTab' });
+  const afterLeft = await page.evaluate(() => ({ mode: window.MsftJulyModel.displayMode, focused: document.activeElement ? (document.activeElement.dataset.rlviewMode || document.activeElement.id) : null }));
+  expect(afterLeft).toEqual({ mode: 'simple', focused: 'simple' });
   await page.keyboard.press('End');
-  expect(await page.evaluate(() => document.activeElement ? document.activeElement.id : null)).toBe('powerTab');
+  expect(await focusedMode()).toBe('journey');
+  expect(await page.evaluate(() => document.body.dataset.rlview)).toBe('journey');
   await page.keyboard.press('Home');
-  expect(await page.evaluate(() => document.activeElement ? document.activeElement.id : null)).toBe('simpleTab');
+  expect(await focusedMode()).toBe('simple');
+  expect(await page.evaluate(() => document.body.dataset.rlview)).toBe('simple');
 
   // Partial-state screenshots (desktop + mobile) after the quote resource is cleared; no NaN/Infinity/stale spot.
   await page.evaluate(() => window.MsftJulyModel.applyResourceOutcome({ resource: 'quote', outcome: 'missing', reasonCode: 'MSFT-QUOTE-HTTP' }));

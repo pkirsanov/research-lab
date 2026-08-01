@@ -194,7 +194,28 @@
     }
   }
 
+  /* Auto-decorated pages validate one context per rendered element. A data-dense lab page
+     measured 113,710 validations of only 18 distinct canonical values, each doing three
+     canonicalisations plus a SHA-256, which blocked the main thread ~23s during startup.
+     Validation is a pure function of the context value, so a successful result may be
+     replayed for an identical canonical form. */
+  var validatedContextCache = new Map();
+  var VALIDATED_CONTEXT_CACHE_LIMIT = 4096;
+
   function validateContextInternal(context) {
+    /* Attempted before validation purely as a cache probe. Non-canonicalisable input is
+       swallowed here and re-thrown at its original site below, preserving error ordering. */
+    var canonicalContext = null;
+    try { canonicalContext = canonicalize(context); } catch (error) { canonicalContext = null; }
+    if (canonicalContext !== null) {
+      var replayFingerprint = validatedContextCache.get(canonicalContext);
+      if (typeof replayFingerprint === "string") {
+        var replayed = JSON.parse(canonicalContext);
+        replayed.contextFingerprint = replayFingerprint;
+        return replayed;
+      }
+    }
+
     var toolId = isPlainObject(context) && isPlainObject(context.provenance)
       ? context.provenance.ownerId
       : null;
@@ -256,14 +277,20 @@
     if (context.contextFingerprint !== null && typeof context.contextFingerprint !== "string") {
       reject("$.contextFingerprint", "fingerprint must be null or canonical SHA-256", toolId);
     }
-    var fingerprintInput = cloneCanonical(context);
+    /* Re-thrown here, at the original canonicalisation site, when the probe above failed. */
+    if (canonicalContext === null) canonicalContext = canonicalize(context);
+    var fingerprintInput = JSON.parse(canonicalContext);
     fingerprintInput.contextFingerprint = null;
     var computed = fingerprint(fingerprintInput);
     if (context.contextFingerprint !== null && context.contextFingerprint !== computed) {
       reject("$.contextFingerprint", "context fingerprint mismatch", toolId);
     }
-    var projected = cloneCanonical(context);
+    var projected = JSON.parse(canonicalContext);
     projected.contextFingerprint = computed;
+    /* Only successful validations are cached. A rejecting context never reaches here, so
+       invalid input keeps throwing on every call. */
+    if (validatedContextCache.size >= VALIDATED_CONTEXT_CACHE_LIMIT) validatedContextCache.clear();
+    validatedContextCache.set(canonicalContext, computed);
     return projected;
   }
 

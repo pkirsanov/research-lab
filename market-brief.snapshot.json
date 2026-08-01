@@ -1,16 +1,16 @@
 {
-  "asOf": "2026-07-31T20:30:17.899Z",
-  "generatedAt": "2026-07-31T20:30:17.899Z",
-  "window": "after-hours",
-  "marketClosed": false,
+  "asOf": "2026-08-01T11:00:22.192Z",
+  "generatedAt": "2026-08-01T11:00:22.192Z",
+  "window": "pre-market",
+  "marketClosed": true,
   "nextSessionDate": "2026-08-03",
   "dataFreshness": {
     "bars": {
-      "updated": "2026-07-31T20:30:12.725Z",
+      "updated": "2026-08-01T11:00:14.023Z",
       "count": 287
     },
     "options": {
-      "updated": "2026-07-31T20:30:17.345Z",
+      "updated": "2026-08-01T11:00:17.507Z",
       "count": 22
     }
   },
@@ -431,15 +431,15 @@
         },
         "TXN": {
           "px": 275.74,
-          "mom5": -1.37,
-          "mom21": -7.6,
-          "mom63": -1.4,
-          "mom126": 27.39,
-          "mom252": 49.57,
-          "ma50Dist": -7.52,
-          "ma200Dist": 22.37,
+          "mom5": -0.87,
+          "mom21": -7.12,
+          "mom63": -0.9,
+          "mom126": 28.04,
+          "mom252": 50.34,
+          "ma50Dist": -7.05,
+          "ma200Dist": 22.99,
           "maStack": "tangled",
-          "pctFrom52wHigh": -17.02
+          "pctFrom52wHigh": -16.59
         },
         "AMAT": {
           "px": 507.67,
@@ -519,7 +519,7 @@
   "toolReads": {
     "sector-research-lab": {
       "id": "sector-research-lab",
-      "asOf": "2026-07-31T20:30:17.874Z",
+      "asOf": "2026-08-01T11:00:20.933Z",
       "read": "Rotate toward XLY as XLE weakens.",
       "metrics": {
         "into": {
@@ -624,19 +624,19 @@
     "global-rotation-lab": {
       "id": "global-rotation-lab",
       "asOf": "2026-07-31T13:30:00.000Z",
-      "read": "EWS (Singapore) leads global rotation at 83/100 versus ACWI; EPHE is next.",
+      "read": "EWS (Singapore) leads global rotation at 83.2/100 versus ACWI; EPHE is next.",
       "metrics": {
         "benchmark": "ACWI",
         "leader": {
           "ticker": "EWS",
           "country": "Singapore",
-          "score": 83,
+          "score": 83.2,
           "rel21": 8.49,
           "rel63": 9.5,
           "rel126": 6.66,
           "trend": "Strong uptrend",
           "fx": "FX neutral",
-          "fxStrength": -0.27,
+          "fxStrength": -0.16,
           "vol": 15.38,
           "maxDrawdown": 7.82,
           "asOf": "2026-07-31T13:30:00.000Z"
@@ -645,13 +645,13 @@
           {
             "ticker": "EWS",
             "country": "Singapore",
-            "score": 83,
+            "score": 83.2,
             "rel21": 8.49,
             "rel63": 9.5,
             "rel126": 6.66,
             "trend": "Strong uptrend",
             "fx": "FX neutral",
-            "fxStrength": -0.27,
+            "fxStrength": -0.16,
             "vol": 15.38,
             "maxDrawdown": 7.82,
             "asOf": "2026-07-31T13:30:00.000Z"
@@ -659,13 +659,13 @@
           {
             "ticker": "EPHE",
             "country": "Philippines",
-            "score": 71.5,
+            "score": 71.3,
             "rel21": 5.64,
             "rel63": 3.79,
             "rel126": -5.73,
             "trend": "Strong uptrend",
             "fx": "Confirms leadership",
-            "fxStrength": 0.91,
+            "fxStrength": 0.72,
             "vol": 22.87,
             "maxDrawdown": 15.9,
             "asOf": "2026-07-31T13:30:00.000Z"
@@ -673,13 +673,13 @@
           {
             "ticker": "EWU",
             "country": "United Kingdom",
-            "score": 70.3,
+            "score": 70.4,
             "rel21": 5.18,
             "rel63": 0.25,
             "rel126": -1.59,
             "trend": "Strong uptrend",
             "fx": "FX neutral",
-            "fxStrength": 0.18,
+            "fxStrength": 0.21,
             "vol": 16.34,
             "maxDrawdown": 9.92,
             "asOf": "2026-07-31T13:30:00.000Z"
@@ -687,13 +687,13 @@
           {
             "ticker": "EWC",
             "country": "Canada",
-            "score": 65.6,
+            "score": 65.7,
             "rel21": 2.78,
             "rel63": -2.07,
             "rel126": -1.77,
             "trend": "Strong uptrend",
             "fx": "Confirms weakness",
-            "fxStrength": -1.28,
+            "fxStrength": -1.25,
             "vol": 12.05,
             "maxDrawdown": 8.51,
             "asOf": "2026-07-31T13:30:00.000Z"
@@ -701,13 +701,13 @@
           {
             "ticker": "EWA",
             "country": "Australia",
-            "score": 64.4,
+            "score": 63.9,
             "rel21": 5.72,
             "rel63": -3.01,
             "rel126": -2.64,
             "trend": "Strong uptrend",
             "fx": "Confirms weakness",
-            "fxStrength": -1.73,
+            "fxStrength": -2.07,
             "vol": 18.29,
             "maxDrawdown": 10.01,
             "asOf": "2026-07-31T13:30:00.000Z"
@@ -721,7 +721,7 @@
             "rel126": -6.7,
             "trend": "Constructive",
             "fx": "Confirms weakness",
-            "fxStrength": -0.83,
+            "fxStrength": -0.81,
             "vol": 19.87,
             "maxDrawdown": 14.54,
             "asOf": "2026-07-31T13:30:00.000Z"
@@ -735,7 +735,7 @@
     "real-assets-lab": {
       "id": "real-assets-lab",
       "asOf": "2026-07-31T13:30:00.000Z",
-      "read": "CPER leads real assets at 54.4/100; GLD 16.6, BTC 30.2, SLV 0.",
+      "read": "CPER leads real assets at 54.4/100; GLD 16.6, BTC 30.4, SLV 0.",
       "metrics": {
         "leader": {
           "ticker": "CPER",
@@ -1054,12 +1054,12 @@
           "BTC-USD": {
             "ticker": "BTC-USD",
             "model": "bitcoin",
-            "score": 30.2,
+            "score": 30.4,
             "trend": "Downtrend",
-            "mom21": -1.85,
-            "mom63": -14.22,
-            "mom126": -5.12,
-            "vol": 35.2,
+            "mom21": -1.27,
+            "mom63": -14.59,
+            "mom126": -5.02,
+            "vol": 35.25,
             "maxDrawdown": 28.71,
             "riskPenalty": 5.68,
             "confirmations": [
@@ -1078,7 +1078,7 @@
                 "detail": "Bitcoin's own realized volatility and drawdown reduce the score directly."
               }
             ],
-            "asOf": "2026-07-31T00:00:00.000Z"
+            "asOf": "2026-08-01T00:00:00.000Z"
           },
           "IBIT": {
             "ticker": "IBIT",

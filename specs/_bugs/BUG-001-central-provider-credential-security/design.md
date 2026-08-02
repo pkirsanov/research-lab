@@ -4,17 +4,319 @@ Links: [bug.md](bug.md) | [spec.md](spec.md) | [scopes.md](scopes.md) | [report.
 
 **Authoritative owner:** `bubbles.design`
 
-**Active design status (2026-07-15):** Reconciled to the analyst-owned current-document-memory and erase-only contract. The active design ends immediately before `## Superseded Design Decisions`. Nothing below that boundary is an implementation, test, rollout, or certification contract.
+**Active design status (2026-08-01):** Reconciled to the analyst-owned retained pre-BUG-002 legacy-container erasure contract. [BUG-002 Two-Tier Provider Access](../BUG-002-two-tier-provider-access/design.md) is the sole active provider-access design. The active BUG-001 design ends immediately before `## Superseded Design Decisions`; everything below that boundary is non-executable history.
 
 ## Design Brief
 
 ### Current State
 
+`rldata.js` implements BUG-002's provider-access foundation. `localStorage.rlProviderConfig` is the only current persisted provider surface and stores the user-configured Tier-1 proxy URL plus this browser's Tier-2 provider keys. `providerFetch()` selects the reachable proxy or the local-key transport under BUG-002's contract.
+
+The same shared data layer contains `LEGACY_CREDENTIAL_CONTAINERS`, `detectLegacyCredentialContainers()`, and `eraseLegacyCredentialContainers()` for exact containers that predate BUG-002. `rlapp.js::mountSettings()` renders the current proxy and local-key controls alongside a separate legacy-cleanup panel.
+
+BUG-001's active spec retains only SCOPE-01 and `SCN-BUG001-004`. The former memory-only runtime, lifecycle clearing, provider disablement, header-only transport, and no-proxy/query design is superseded.
+
+### Target State
+
+BUG-001 remains a bounded retirement capability for exact pre-BUG-002 containers. It reports redacted registry metadata, discloses whole-container preference loss, supports dismissal or explicit confirmation, removes only selected historical names, and reports complete only after verifying those names are absent.
+
+Detection and every cleanup outcome preserve BUG-002's proxy settings, durable `localStorage.rlProviderConfig`, current provider controls, provider transport, and non-secret `localStorage.rlData`. BUG-001 neither configures nor disables a provider.
+
+### Patterns To Follow
+
+- Keep `rldata.js` as the shared owner of both BUG-002 provider access and the isolated legacy-retirement functions.
+- Keep `LEGACY_CREDENTIAL_CONTAINERS` frozen and limited to exact historical names with registry-owned provider, storage-class, location-class, and destructive-effect metadata.
+- Use storage name enumeration for detection and `removeItem(exactName)` plus a second name enumeration for verified erasure.
+- Keep `rlapp.js::renderLegacyCleanup()` visually separate from the active proxy URL, local-key, tier, recheck, force-local, and clear-provider-config controls.
+- Preserve `localStorage.rlProviderConfig` and `localStorage.rlData` byte-for-byte through detection, dismissal, complete cleanup, unavailable cleanup, and incomplete cleanup.
+
+### Patterns To Avoid
+
+- Do not classify `rlProviderConfig`, its `proxyBaseUrl`, its `keys`, `rlData`, or an unknown name as legacy material.
+- Do not read, parse, hash, compare, copy, migrate, activate, or selectively rewrite a registered legacy value.
+- Do not use BUG-001 to disable providers, clear current keys, clear the proxy URL, alter tier selection, or replace `providerFetch()`.
+- Do not reinstate memory-only, lifecycle-clearing, header-only, no-query, no-proxy, or disabled-provider rules as active BUG-001 behavior.
+- Do not report cleanup success after a deletion exception, inaccessible storage surface, or remaining selected name.
+
+### Resolved Decisions
+
+- BUG-002 exclusively owns current provider configuration, persistence, tier resolution, transport, and settings controls.
+- BUG-001 owns only exact pre-BUG-002 container detection, disclosure, confirmation, deletion, and absence verification.
+- The protected current container name `rlProviderConfig` is structurally absent from the legacy registry; `rlData` and unknown names are also excluded.
+- Legacy presence is derived from registry metadata after exact name matching, never from stored contents.
+- Dismissal performs no mutation. Confirmation authorizes deletion only.
+- `complete` requires every selected historical name to be absent after deletion. Storage unavailability and any remainder are non-success outcomes.
+- Deleting a historical mixed container may destroy nested non-secret preferences; explicit disclosure is the safety boundary because those contents are intentionally not opened.
+
+### Open Questions
+
+None. The active spec, current source contracts, and BUG-002 authority resolve the retained design boundary.
+
+## Purpose And Scope
+
+This design defines the technical contract for retiring exact credential-bearing containers created before BUG-002 without changing current provider access. It covers the closed historical-name registry, redacted name-only detection, destructive disclosure, dismissal, confirmed whole-container deletion, post-delete absence verification, protected-current-configuration invariants, UI outcomes, and scenario-focused validation.
+
+It does not redesign provider access, provider storage, transport tiers, settings controls, non-secret market-data caching, or deployment. It does not authorize changes to source, tests, planning, report evidence, state, certification, BUG-002, BUG-004, or framework-managed files by `bubbles.design`.
+
+## Authority And Integration Boundary
+
+| Surface | Active authority | BUG-001 obligation |
+| --- | --- | --- |
+| Tier-1 proxy URL and reachability | BUG-002 | Preserve unchanged |
+| Tier-2 local provider keys | BUG-002 `localStorage.rlProviderConfig` | Preserve unchanged |
+| Tier resolution and `providerFetch()` | BUG-002 | Do not intercept, disable, or reinterpret |
+| Provider settings controls | BUG-002 `rlapp.js::mountSettings()` | Keep available beside cleanup |
+| Non-secret market-data cache | `localStorage.rlData` | Preserve unchanged |
+| Exact pre-BUG-002 containers | BUG-001 SCOPE-01 | Detect, disclose, erase on confirmation, verify absence |
+| Unknown storage names | Their owning features or user | Ignore |
+
+BUG-001 cleanup and BUG-002 provider access share `rldata.js` but have no state transition between them. A detected historical container never becomes current provider configuration, and current provider configuration never becomes a cleanup candidate.
+
+## Architecture Overview
+
+```mermaid
+flowchart LR
+    PC[BUG-002 rlProviderConfig] --> PA[Provider access]
+    PA --> T1[Tier-1 proxy]
+    PA --> T2[Tier-2 local key]
+
+    LR[Exact legacy registry] --> NE[Storage-name enumeration]
+    NE --> PS[Redacted presence summary]
+    PS --> CH{User choice}
+    CH -->|dismiss| NM[No mutation]
+    CH -->|confirm| WD[Whole-container deletion]
+    WD --> VE[Exact-name re-enumeration]
+    VE --> CO[Complete]
+    VE --> IC[Incomplete or unavailable]
+
+    LR -. excludes .-> PC
+    LR -. excludes .-> RD[localStorage.rlData]
+    PS -. no value flow .-> PA
+    WD -. no current-config mutation .-> PC
+```
+
+### Single-Implementation Justification
+
+This is one bounded cleanup implementation inside the existing BUG-002 provider-access foundation. It adds no provider, transport, screen, service, or reusable provider-access contract. A second foundation would duplicate `rldata.js` ownership and blur the required BUG-001/BUG-002 authority boundary.
+
+## Data Model
+
+### Legacy Registry
+
+The active registry is a frozen list of metadata records:
+
+```text
+LegacyCredentialContainerPolicy {
+  storageClass: "localStorage" | "sessionStorage"
+  containerName: exact historical string
+  providerId: closed redacted provider class
+  locationClass: closed redacted location class
+  destructiveEffect: "whole-container" | "whole-container-with-preferences"
+}
+```
+
+The retained exact names are:
+
+| Storage class | Exact names | Destructive behavior |
+| --- | --- | --- |
+| `localStorage` central | `rlApiKeys` | Remove whole container |
+| `localStorage` scalar | `tdKey`, `etfMomTdKey`, `msftFhKey`, `etfMomFhKey` | Remove whole container |
+| `localStorage` historical tool state | `etfMomLab`, `sectorLab`, `rlStratVal`, `strategyValidationLab`, `aiCapexApi` | Remove whole container after preference-loss disclosure |
+| `sessionStorage` historical | `rlSessionProviderCredentialsV1` | Remove whole container |
+
+`rlProviderConfig`, `rlData`, proxy settings, current key fields, and unknown names are not registry entries. The registry has no field path, decoder, parser, migration target, current-provider destination, preservation callback, or wildcard.
+
+### Protected Current Configuration
+
+```text
+ProtectedCurrentConfiguration {
+  providerConfigContainer: localStorage.rlProviderConfig
+  providerConfigShape: { v, proxyBaseUrl, keys }
+  nonSecretDataContainer: localStorage.rlData
+}
+```
+
+Protection is behavioral, not a second stored model: detection and cleanup must leave the pre-operation serialized values and BUG-002 public status unchanged in every outcome.
+
+### Result Contracts
+
+```text
+LegacyPresenceSummary {
+  detected: boolean
+  providerIds: readonly ProviderId[]
+  locationClasses: readonly LegacyLocationClass[]
+  containerCount: non-negative integer
+}
+
+LegacyEraseResult {
+  ok: boolean
+  status: "complete" | "incomplete" | "unavailable"
+  removedContainerCount: non-negative integer
+  remainingProviderIds: readonly ProviderId[]
+  remainingLocationClasses: readonly LegacyLocationClass[]
+  remainingContainerCount: non-negative integer
+  code: null | "LEGACY_ERASE_INCOMPLETE" | "LEGACY_ERASE_UNAVAILABLE"
+}
+```
+
+Results contain registry metadata and counts only. They contain no stored value, derived credential signal, proxy URL, current key status detail, raw exception, or storage object.
+
+## Public Contracts And Error Model
+
+### Detection
+
+`RLDATA.detectLegacyCredentialContainers()` enumerates names through storage `length` and `key(index)`, matches exact own registry entries, and returns `LegacyPresenceSummary`. It does not call a value-returning storage operation for a registered legacy name and does not invoke `setKey()`, `setProxyBaseUrl()`, or `providerFetch()`.
+
+### Confirmed Erasure
+
+`RLDATA.eraseLegacyCredentialContainers()` performs this closed sequence:
+
+1. Enumerate exact registered names currently present.
+2. Freeze that selected historical set for the operation.
+3. Call `removeItem(containerName)` only for each selected registry entry.
+4. Re-enumerate storage names.
+5. Intersect remaining registered entries with the selected set.
+6. Return `complete` only when storage was available and the intersection is empty.
+7. Return `unavailable` when a required storage surface could not be enumerated, or `incomplete` when a selected name remains.
+
+The operation never writes a replacement legacy container and never calls any BUG-002 provider-config mutation method.
+
+### Behavioral Invariants
+
+| ID | Invariant |
+| --- | --- |
+| LCR-01 | The selected set is a subset of exact `LEGACY_CREDENTIAL_CONTAINERS` entries present at operation start. |
+| LCR-02 | `rlProviderConfig`, `rlData`, and unknown names cannot enter the selected set. |
+| LCR-03 | Detection and erasure derive public metadata from registry records, not stored contents. |
+| LCR-04 | Dismissal leaves every storage surface unchanged. |
+| LCR-05 | Complete, incomplete, and unavailable paths preserve current BUG-002 provider configuration and non-secret `rlData`. |
+| LCR-06 | `ok` is true exactly when `status` is `complete`. |
+| LCR-07 | A remaining selected name or inaccessible storage prevents a success claim. |
+
+There is no HTTP endpoint, network request, provider adapter, or cross-document contract in BUG-001 cleanup.
+
+## UI And Interaction Contract
+
+`index.html#data-settings` remains the single screen. The existing BUG-002 provider-access editor continues to render the proxy URL, masked local-key inputs, live tier, recheck, force-local, per-provider save/clear, and clear-all-provider-config actions.
+
+The separate legacy panel renders:
+
+- no-cleanup state when no registered historical name is present;
+- redacted provider classes, location classes, and count when legacy names are present;
+- disclosure that whole-container deletion may remove old non-secret preferences;
+- an `Erase legacy containers` action;
+- native confirmation before deletion;
+- cancellation copy confirming that no containers changed;
+- complete copy only after verified absence; and
+- incomplete or unavailable copy that explicitly says current proxy and local-key settings were not changed.
+
+The cleanup action does not reuse the BUG-002 `Clear all keys + proxy` action. The two controls remain distinct in purpose, selection set, result copy, and mutation boundary.
+
+## Security And Privacy
+
+- Exact-name allowlisting prevents current and unknown containers from becoming cleanup targets.
+- Detection reads storage names only. Historical values are not exposed to application code for inspection or reuse.
+- Whole-container deletion avoids parsing mixed historical structures and therefore avoids copying credential-bearing fields.
+- Public results and UI use provider/location classes and counts only.
+- No cleanup path changes `rlProviderConfig`, current local keys, the proxy URL, force-local state, tier reachability state, or provider requests.
+- Tier-2 key durability in `localStorage.rlProviderConfig` is intentional current behavior under BUG-002 and is not a BUG-001 security finding.
+- Preference loss inside a historical mixed container is disclosed before confirmation and cannot be reversed by BUG-001 because the value is intentionally never opened.
+
+## Configuration, Migration, And Rollout
+
+No new configuration, dependency, backend, proxy, environment variable, storage schema, or deploy step is introduced. BUG-002's `rlProviderConfig` version and provider-access APIs remain unchanged.
+
+Legacy retirement is deletion, not migration. No old value is copied into `rlProviderConfig` or another destination. Adding a registry name requires evidence that the exact container predates BUG-002 and does not name current or unrelated state; browser contents never expand the registry dynamically.
+
+There is no data rollback after a user confirms whole-container deletion. The safety controls are precise selection, destructive-effect disclosure, explicit confirmation, and preservation of current configuration. An implementation rollback must not restore deleted legacy credential material or reinstate the superseded provider-access design.
+
+## Observability And Failure Handling
+
+Research Lab emits no cleanup telemetry, credential logs, traces, or analytics. The observable contract is the frozen result plus visible Data settings status.
+
+| Condition | Required result |
+| --- | --- |
+| No registered historical name | `detected=false`; no erase action |
+| Registered names present | Redacted classes and count; provider access remains current |
+| User dismisses confirmation | No mutation; cancellation message |
+| Every selected name absent after deletion | `complete`, `ok=true`, verified count |
+| A selected name remains | `incomplete`, `ok=false`, redacted remaining classes/count |
+| Storage unavailable before or after deletion | `unavailable`, `ok=false`; no success claim |
+| Unknown or current container exists | Ignored by BUG-001 cleanup |
+
+Raw exceptions and stored values do not enter result text. Failure does not trigger provider disablement, current-key clearing, proxy clearing, alternate cleanup, or migration.
+
+## Testing And Validation Strategy
+
+Only `SCN-BUG001-004` is active. Validation must test the retained behavior while treating BUG-002 current provider access as protected state, not as a legacy condition.
+
+| Scenario assertion | Test category | Existing location | Required proof |
+| --- | --- | --- | --- |
+| Registry is exact and excludes `rlProviderConfig`, `rlData`, and unknown names | unit | `tests/provider-credentials.unit.mjs` | Current containers cannot be selected |
+| Detection returns registry metadata without legacy-value activation | unit, functional | `tests/provider-credentials.unit.mjs`, `tests/provider-credentials.functional.mjs` | Classes/counts match exact names; no current key is created |
+| Dismissal performs no mutation | e2e-ui | `tests/provider-credentials.spec.mjs` | Legacy, current provider, and `rlData` state remain unchanged |
+| Confirmation precedes whole-container deletion | functional, e2e-ui | `tests/provider-credentials.functional.mjs`, `tests/provider-credentials.spec.mjs` | Disclosure is visible and deletion occurs only after confirmation |
+| Complete requires selected-name absence | unit, functional, e2e-ui | provider credential suites | Every selected exact name is absent before success appears |
+| Forced deletion failure remains explicit | functional, e2e-ui | provider credential suites | `ok=false`; incomplete or unavailable copy; no success text |
+| BUG-002 proxy and local-key behavior remains intact | regression, e2e-ui | provider credential suites and `scripts/selftest.mjs` | Proxy URL, keys, tier controls, provider status, and transport contract are unchanged |
+| Non-secret cache remains intact | regression | `scripts/selftest.mjs` | Serialized `localStorage.rlData` remains unchanged |
+
+Adversarial fixtures must colocate at least one registered historical container with valid `rlProviderConfig`, `rlData`, and an unknown storage name. The complete path must remove only the historical name. Separate forced-failure fixtures must leave one selected name present and prove the UI cannot claim success. Tests may seed opaque legacy values but must not rely on those values as production outputs.
+
+Design validation consists of artifact lint, active-prefix coherence checks against `spec.md` and BUG-002, and a path-scoped diff proving that only this `design.md` changed. This design task does not claim product-test execution or certification.
+
+## Alternatives And Tradeoffs
+
+| Alternative | Decision | Rationale |
+| --- | --- | --- |
+| Reinstate a memory-only provider runtime | Rejected | Contradicts BUG-002's active durable Tier-2 contract |
+| Disable browser providers | Rejected | Current providers are intentionally enableable under BUG-002 |
+| Forbid proxy or query-key transport | Rejected | Provider transport belongs to BUG-002, not BUG-001 cleanup |
+| Include `rlProviderConfig` in cleanup | Rejected | It is current protected configuration, not legacy material |
+| Discover candidates by prefix or wildcard | Rejected | Browser contents cannot grant deletion authority |
+| Parse mixed historical containers to preserve preferences | Rejected | Opens credential-bearing contents and creates selective-rewrite risk |
+| Migrate legacy values into current keys | Rejected | Retirement is erase-only and must not activate obsolete credentials |
+| Delete silently | Rejected | Whole-container preference loss requires explicit disclosure and confirmation |
+| Treat delete attempts as success | Rejected | Success requires verified absence |
+| Add a second cleanup service or provider foundation | Rejected | One narrow operation in the existing shared data layer is sufficient |
+
+## Complexity Tracking
+
+None - simplest viable approach used.
+
+## Risks And Mitigations
+
+| Risk | Mitigation |
+| --- | --- |
+| A current container is accidentally added to the legacy registry | Exact exclusion tests for `rlProviderConfig` and `rlData`; review requires pre-BUG-002 evidence |
+| Whole-container deletion removes old preferences | Visible destructive-effect disclosure and explicit confirmation |
+| Storage becomes inaccessible during cleanup | Return `unavailable`; never claim success |
+| A deletion silently fails | Re-enumerate exact names and return `incomplete` when any selected name remains |
+| Cleanup copy implies providers are disabled or memory-only | Keep BUG-002 controls visible and state explicitly that current proxy/local-key settings are unchanged |
+| Superseded design is mistaken for current authority | Hard active/superseded boundary and collapsed historical snapshot below |
+
+## Open Questions
+
+None found - BUG-001's active spec, BUG-002's provider-access contract, and current source symbols establish one complete retained design.
+
+## Superseded Design Decisions
+
+> **Historical, non-active, and prohibited for implementation, testing, rollout, or certification.** The complete prior BUG-001 design snapshot below was superseded by BUG-002. It is retained only to explain the design conflict resolved on 2026-08-01. Current authority is the active BUG-001 legacy-retirement design above plus BUG-002 for provider access.
+
+<details>
+<summary>Historical snapshot: memory-only, disabled-provider, header-only, and no-proxy design</summary>
+
+> Every heading, status label, API shape, state machine, provider disposition, transport restriction, lifecycle rule, test matrix, rollout step, and risk statement inside this block is non-executable history. Historical report evidence remains unchanged and does not certify the active contract.
+
+### History: Design Brief
+
+#### History: Current State
+
 `rldata.js` currently persists provider credentials in `sessionStorage`, exposes raw values through shared APIs, reads durable legacy values, and supports requests from those values. `rlapp.js`, `index.html`, direct tool consumers, `scripts/selftest.mjs`, and the provider suites encode reload or navigation continuity and value-preserving legacy handling.
 
 Feature 004 classifies the session envelope and raw legacy handling as genuine High findings. It separately protects non-secret schema-1 `localStorage.rlData` behavior and records `F004-COLLISION-001` for the distinct `scripts/selftest.mjs` hunk hash `ab27e89cd0dd8c6dd640254615a10d15a2be008596ec72834ca4512766c646fc`.
 
-### Target State
+#### History: Target State
 
 All current production providers are disabled for browser credential use. `index.html` owns no approved same-document provider operation, so it exposes no current credential-entry or credential-backed refresh path. Existing public/no-key acquisition and non-secret `rlData` behavior remain available.
 
@@ -22,7 +324,7 @@ The shared foundation retains only a future current-loaded-document memory capab
 
 Known legacy material is handled by exact registered name only. The product can report provider/location classes and counts, disclose that whole-container removal can destroy nested non-secret preferences, let the user dismiss, remove selected registered containers as whole units, and verify those names are absent. No legacy value enters application memory for inspection or reuse. Partial removal is explicitly incomplete, and clear all empties current-document memory before cleanup starts.
 
-### Patterns To Follow
+#### History: Patterns To Follow
 
 - Keep `rldata.js` as the single shared capability owner and `rlapp.js` as the renderer of non-secret status and cleanup outcomes.
 - Keep a frozen own-property-only provider registry with exact provider, document, operation, origin, authorization-evidence, transport, and CSP fields.
@@ -30,7 +332,7 @@ Known legacy material is handled by exact registered name only. The product can 
 - Derive complete page coverage from `tools.json`; include `index.html`, `rlnav.js`, `scripts/selftest.mjs`, and all provider suites in the consumer inventory.
 - Capture a just-in-time dirty-tree baseline and change only proved BUG-001 hunks.
 
-### Patterns To Avoid
+#### History: Patterns To Avoid
 
 - No browser storage, cookie, URL, history, form, opener, message, worker, cache, file, or DOM handoff for credential material.
 - No public raw credential getter, bulk map, header exporter, arbitrary request builder, tool-local credential helper, or compatibility alias.
@@ -39,7 +341,7 @@ Known legacy material is handled by exact registered name only. The product can 
 - No inferred provider authorization, query authentication, alternate origin, proxy, provider, retry transport, or default operation.
 - No deletion or relabeling of valid `rlData`, identifier obfuscation, downstream framework patch, stash, reset, clean, checkout overwrite, staging, broad formatting, or whole-file source replacement.
 
-### Resolved Decisions
+#### History: Resolved Decisions
 
 - Closure-private memory in one current loaded document is the only credential lifetime.
 - Reload, route/history transition, cross-document navigation, bfcache traversal, close/reopen, crash/reopen, tab, window, iframe document, browser context, and explicit clear all end or begin unconfigured.
@@ -51,19 +353,19 @@ Known legacy material is handled by exact registered name only. The product can 
 - `DEP-BUG013-SEMANTIC-CLASSIFIER` remains the upstream dependency for classifying valid `rlData`, name enumeration, whole-container deletion, and name-absence verification without weakening G028.
 - `F004-COLLISION-001` remains open under its existing owner and exact hash. Ambiguous hunk ownership stops delivery or rollback with provider transport disabled.
 
-### Open Questions
+#### History: Open Questions
 
 None in the active technical design. Provider enablement is a future policy decision requiring exact evidence; no current entry is eligible by assumption.
 
-## Purpose And Scope
+### History: Purpose And Scope
 
 This design removes credential persistence and legacy-value call graphs without changing Research Lab's static, build-free, multi-page architecture. It defines one provider-neutral current-document runtime, a closed provider/document/operation policy, truthful current disabled behavior, metadata-only legacy presence, destructive whole-container cleanup, status-only result contracts, exact-origin future transport, complete consumer coverage, BUG-013/G028 routing, and dirty-hunk-safe rollback.
 
 It does not authorize source, test, plan, report-evidence, user-validation, framework-managed, or certification changes by `bubbles.design`.
 
-## Root Cause Analysis
+### History: Root Cause Analysis
 
-### Controlling Paths
+#### History: Controlling Paths
 
 | Path | Current behavior | Security consequence | Active target |
 | --- | --- | --- | --- |
@@ -77,13 +379,13 @@ It does not authorize source, test, plan, report-evidence, user-validation, fram
 | Registered `hasKey/providerFetch` consumers | Depend on raw shared credentials | Tool documents bypass current-document isolation | Consume public/no-key paths and non-secret cache/status only |
 | Provider tests and `scripts/selftest.mjs` | Treat persistence and old value handling as success | Regression coverage preserves the vulnerability | Invert to lifecycle clearing, zero value access, whole-container removal, and disabled providers |
 
-### Root Cause
+#### History: Root Cause
 
 The prior design optimized convenience instead of honoring the trust boundary. Any reload or index-to-tool continuity in a static multi-page application requires persistence or a bridge, both prohibited. A shorter-lived store does not change that category.
 
 The prior cleanup path also valued preservation of nested non-secret preferences over avoiding secret access. Once a credential-bearing container is treated as mixed structured data, opening and transforming it becomes unavoidable. The active spec resolves that conflict deliberately: registered legacy containers are opaque erase-only material. The user is warned about collateral preference loss, and the product removes the entire container without opening it.
 
-## Capability Foundation
+### History: Capability Foundation
 
 ```mermaid
 flowchart LR
@@ -113,7 +415,7 @@ flowchart LR
     R -. no persistence or bridge .-> T
 ```
 
-### Foundation Contract
+#### History: Foundation Contract
 
 | Contract | Responsibility | Consumers |
 | --- | --- | --- |
@@ -123,14 +425,14 @@ flowchart LR
 | Result records | Return frozen non-secret states, IDs, counts, projections, and closed codes | `rlapp.js` and approved data consumers |
 | `rlData` cache contract | Persist normalized non-secret market data and tool reads | Index and every registered tool |
 
-### Extension Points
+#### History: Extension Points
 
 - A provider policy supplies every mandatory field and independently verified authorization evidence. Missing data disables it.
 - A provider operation binds one method, exact origin/path, non-secret parameters, approved header, response validator, and non-secret projection.
 - An eligible document is listed only when that same loaded document owns shared input and the approved operation.
 - A legacy-location entry supplies an exact container name, storage class, provider ID, redacted location class, and disclosure text ID. It supplies no field path, decoder, or transformation hook.
 
-### Runtime State Machines
+#### History: Runtime State Machines
 
 ```mermaid
 stateDiagram-v2
@@ -159,7 +461,7 @@ stateDiagram-v2
 
 The legacy-presence state machine has no edge to `DocumentCredentialRuntime`.
 
-## Data Model And Storage
+### History: Data Model And Storage
 
 There is no credential persistence model, schema version, compatibility envelope, serialized status, or data conversion. The only credential state is a closure-private null-prototype map created with the loaded document and discarded with that document or an explicit clear.
 
@@ -196,23 +498,23 @@ LegacyLocationPolicy {
 
 `LegacyLocationPolicy` intentionally has no nested field path, decoder, serializer, preservation callback, value validator, equality rule, or destination. Existing schema-1 `localStorage.rlData` remains outside this registry.
 
-## Concrete Implementations
+### History: Concrete Implementations
 
-### Current Index Status And Cleanup Surface
+#### History: Current Index Status And Cleanup Surface
 
 `index.html#data-settings` renders public provider metadata, a disabled reason for every current provider, legacy-presence metadata, destructive-effect disclosure, dismissal, erase-only cleanup, clear all, and complete/incomplete outcomes. It renders no current credential input, authorization action, or credential-backed refresh action because index owns no approved same-document operation.
 
-### Registered Tool Documents
+#### History: Registered Tool Documents
 
 Registered tools expose no credential input, getter, setter, writer, store, request broker, or bridge. They retain existing public/no-key behavior and consume normalized non-secret `rlData`. Missing public data remains the existing unavailable or cached-status behavior; tools do not request a browser credential as fallback.
 
-### Future Eligible Same-Document Capability
+#### History: Future Eligible Same-Document Capability
 
 A future document may expose the shared transient control only after one exact policy authorizes that document and one operation. The control mounts blank, has no value-bearing attribute or submission name, passes a non-empty value directly to `authorizeCredential`, is blanked immediately, and receives only status. The same document may then call `useCredential` for the approved operation. No other document can retrieve or observe the credential.
 
 This does not make index eligible automatically. Adding eligibility requires provider-policy, design, security, scenario, and test review. Until then every current provider remains disabled and no production credential collection occurs.
 
-### Provider Dispositions
+#### History: Provider Dispositions
 
 | Provider | Active disposition | Reason |
 | --- | --- | --- |
@@ -222,7 +524,7 @@ This does not make index eligible automatically. Adding eligibility requires pro
 | FRED | Disabled | No complete browser-origin, exact-operation, same-document, and CSP evidence record |
 | Every other current entry | Disabled | Registry membership alone is not approval |
 
-### Variation Axes
+#### History: Variation Axes
 
 | Axis | Variants | Foundation ownership |
 | --- | --- | --- |
@@ -232,7 +534,7 @@ This does not make index eligible automatically. Adding eligibility requires pro
 | Operation projection | bars, quotes, options, macro, another registered non-secret schema | Validate and normalize without raw response exposure |
 | Legacy cleanup outcome | absent, detected, dismissed, complete, incomplete, unavailable | Own metadata, ordering, and vocabulary |
 
-## Provider Registry And Request Construction
+### History: Provider Registry And Request Construction
 
 There is no default provider, origin, operation, transport, header, evidence record, document, or CSP profile. Unknown, empty, inherited, `constructor`, and `__proto__` identifiers fail before lookup or mutation. The current committed registry records every production provider disabled. A controlled test policy may exercise the generic eligible path without implying production approval.
 
@@ -240,7 +542,7 @@ For a future eligible policy, `useCredential(providerId, operationId, params)` r
 
 There is no credential-bearing redirect, query, proxy, alternate origin/provider/transport, or authentication retry. Raw `Request`, `Headers`, `Response`, provider body, URL, exception, stack, or cause never crosses the capability boundary.
 
-## Public API And Typed Results
+### History: Public API And Typed Results
 
 The capability exposes no raw getter, bulk map, storage handle, legacy value API, header exporter, arbitrary URL builder, or compatibility alias.
 
@@ -292,7 +594,7 @@ ClearAllResult {
 }
 ```
 
-### Closed Reason Codes
+#### History: Closed Reason Codes
 
 ```text
 UNKNOWN_PROVIDER
@@ -316,9 +618,9 @@ CLEAR_INCOMPLETE
 
 Results expose no free-form provider message, URL, headers, value length, digest, prefix, suffix, equality signal, body, stack, or serialized cause.
 
-## Legacy Presence And Erase-Only Cleanup
+### History: Legacy Presence And Erase-Only Cleanup
 
-### Exact Location Registry
+#### History: Exact Location Registry
 
 | Storage class | Exact registered container names | Active behavior |
 | --- | --- | --- |
@@ -329,27 +631,27 @@ Results expose no free-form provider message, URL, headers, value length, digest
 
 `localStorage.rlData` is deliberately absent. Unknown names are untouched. Prefix or wildcard discovery does not create authority to inspect or remove a container.
 
-### Metadata-Only Detection
+#### History: Metadata-Only Detection
 
 Detection uses storage `length` and `key(index)` name enumeration plus exact own-property lookup. It does not use a value-returning storage operation for a registered legacy container and does not open cookies, Cache Storage bodies, IndexedDB records, or another value-bearing surface. Provider IDs and classes come from registry metadata, not stored content.
 
 For a registered legacy container, the implementation never calls `getItem()` or an equivalent value-returning operation and never reads, parses, hashes, compares, copies, stages, migrates, selectively rewrites, or activates its value. There is no consent nonce, value transaction, preservation callback, or destination runtime for legacy material.
 
-### Destructive Disclosure And Dismissal
+#### History: Destructive Disclosure And Dismissal
 
 Before removal, the UI explains that each registered container is opaque and whole-container deletion can remove non-secret preferences. Confirmation identifies provider/location classes and counts only. Dismissal performs no storage mutation and no value access; a later detection repeats name enumeration only.
 
-### Whole-Container Removal And Verification
+#### History: Whole-Container Removal And Verification
 
 Cleanup snapshots selected exact names and redacted metadata from the registry, calls the platform whole-container deletion operation for each name, records only success/failure by redacted class, re-enumerates names, and reports `complete` only when every selected name is absent. Otherwise it reports `incomplete` or `unavailable` with remaining classes/counts.
 
 It never uses a raw value API, creates a replacement container, writes a transformed remainder, preserves a nested field, or configures current-document memory.
 
-### Clear-All Ordering
+#### History: Clear-All Ordering
 
 `clearAllCredentials()` synchronously removes current-document references, blanks any shared transient input, and sets status unconfigured before erase-only cleanup. If deletion throws or a selected name remains, it returns `CLEAR_INCOMPLETE`; memory stays empty and no value is restored.
 
-## UI And Interaction Contract
+### History: UI And Interaction Contract
 
 Current index may show public provider labels and disabled reasons, detected provider/location classes and count, destructive disclosure, `Dismiss`, `Erase legacy containers`, `Clear all`, and complete/incomplete/unavailable status. It does not show a current credential input or credential-backed command.
 
@@ -357,7 +659,7 @@ The future shared transient input appears only in the exact eligible consuming d
 
 Every registered tool starts unconfigured and has no credential control. Index navigation never claims to transfer configuration. Tools retain public/no-key and non-secret cache behavior.
 
-## Security, Privacy, And Failure Handling
+### History: Security, Privacy, And Failure Handling
 
 - Memory-only handling does not protect against malicious JavaScript already executing in the same document. Script provenance, CSP, dependency integrity, and XSS prevention remain provider-eligibility gates.
 - No encoding or client encryption changes the storage prohibition.
@@ -382,7 +684,7 @@ Every registered tool starts unconfigured and has no credential control. Index n
 | Forbidden request input | Typed failure; zero request |
 | Provider failure | One sanitized result; no alternate attempt or raw diagnostic |
 
-### Authorization Matrix
+#### History: Authorization Matrix
 
 | Operation | Current index | Current tool | Future eligible document | Unknown/disabled provider |
 | --- | --- | --- | --- | --- |
@@ -393,31 +695,31 @@ Every registered tool starts unconfigured and has no credential control. Index n
 | Use credential-backed operation | Deny | Deny | Exact approved operation only | Deny with zero requests |
 | Consume normalized `rlData` | Allow | Allow | Allow | Allow when non-secret data exists |
 
-### CSP Eligibility
+#### History: CSP Eligibility
 
 A future `credential-capable-v1` document requires self-only/hash-bound scripts without unsafe or remote execution, `object-src 'none'`, `base-uri 'none'`, `form-action 'none'`, exact `connect-src`, no inspecting third-party scripts, safe rendering, no-referrer policy, and a static binding between document, provider policy, and CSP. No current document is approved.
 
-### Output Disclosure Boundary
+#### History: Output Disclosure Boundary
 
 Credential values never appear in HTML, text, attributes, input remounts, accessibility output, events, history, logs, errors, analytics, telemetry, screenshots, traces, snapshots, assertion messages, request URLs, document URLs, referrers, resource entries, diagnostics, browser storage, cache data, worker messages, or generated test artifacts.
 
 A controlled eligible test policy uses a unique sentinel and scans DOM/accessibility, public result objects, console/errors, URLs/redirects/referrers/performance entries, every client-storage and bridge class used by the product, and generated browser-test artifacts. Failure messages use a fixed sentinel label and never print the sentinel.
 
-## Observability And Failure Handling
+### History: Observability And Failure Handling
 
 Research Lab emits no credential logs, metrics, traces, analytics, or remote status events. The only operational visibility for this static capability is current-document UI state using closed provider IDs, location classes, counts, and reason codes. Complete cleanup, incomplete cleanup, disabled provider, rejected operation, and sanitized provider failure remain distinguishable without recording a credential-derived signal.
 
 Tests observe behavior through returned frozen records, DOM status, storage-name enumeration, request metadata, and sentinel-absence scans. They do not add a debug mode, secret-bearing diagnostic hook, or telemetry sink. A failure to inspect a raw value is not an observability gap; it is the intended security boundary.
 
-## Compatibility And Protected Shared Behavior
+**Archived section: Compatibility And Protected Shared Behavior**
 
-### Non-Secret `rlData` And Feature 004
+**Archived subsection: Non-Secret `rlData` And Feature 004**
 
 Schema-1 `localStorage.rlData` remains the durable non-secret cache. `load`, `save`, quota pruning, `_mem`, bars, quotes, options, macro, events, `toolReads`, freshness, and request status remain unchanged. No credential API writes into it.
 
 BUG-001 also preserves `seriesMetaValid`, `putBarSeries`, `barSeries`, `ensureBarSeries`, optional bar-bucket `seriesMeta` and source/retrieval/rights clocks, versioned `putToolRead` for `rl-tool-read/v1`, unversioned non-secret behavior, browser/CommonJS/source-rights canaries, and `F004-COLLISION-001` with hash `ab27e89cd0dd8c6dd640254615a10d15a2be008596ec72834ca4512766c646fc`.
 
-## Complete Consumer Inventory
+**Archived section: Complete Consumer Inventory**
 
 | Surface | Required reconciliation | Protected behavior |
 | --- | --- | --- |
@@ -444,13 +746,13 @@ The registry-derived page sweep covers `market-brief.html`, `market-heatmap-lab.
 
 Docs owners must reconcile stale claims in `.github/copilot-instructions.md`, `.specify/memory/agents.md`, `README.md`, `notes/shared-data-layer.md`, `notes/market-brief.md`, `notes/options-structure-lab.md`, `notes/sector-research-lab.md`, and relevant tool notes. Cross-spec owners must reconcile old provider-canary assumptions in `specs/001-causal-rotation-intelligence/design.md`, Feature 004 planning, and `specs/006-trend-dynamics-cycle-lab/spec.md`. Historical report evidence remains unchanged.
 
-## Configuration, Removal, And Rollout
+**Archived section: Configuration, Removal, And Rollout**
 
 No dependency, backend, service worker, environment variable, generated credential file, credential schema, compatibility configuration, data conversion, or credential destination is introduced. Provider policies remain committed closed records; missing fields disable the provider. Registered legacy containers are opaque removal targets only.
 
 Delivery order is scenario-first failures, just-in-time dirty-hunk baseline, surgical removal of unsafe call graphs/consumers, metadata-only erase behavior and future foundation, focused provider/cache/collision checks, provider E2E/stress/load, Bond/Causal/FX canaries, then G028 one-to-one reconciliation against canonical BUG-013. No rollout step enables a current provider.
 
-## Testing And Validation Strategy
+**Archived section: Testing And Validation Strategy**
 
 | Scenario | Technical assertion | Categories |
 | --- | --- | --- |
@@ -470,7 +772,7 @@ Legacy cleanup tests seed opaque registered containers during setup, then fail i
 
 Required checks include provider unit/functional/E2E/stress/load, `node scripts/selftest.mjs`, `node --test tests/feature-004-dirty-tree-collision.test.mjs`, and the complete `system-chrome` suites in `tests/bond-regime-lab.spec.mjs`, `tests/causal-rotation-lab.spec.mjs`, and `tests/fx-regime-relative-value-lab.spec.mjs`. Artifact lint, freshness, traceability, capability foundation, framework-write, and path-scoped diff checks remain required. No historical persistence, continuity, credential-control, or legacy-value result proves this contract.
 
-## Surgical Rollback And Dirty-Tree Safety
+**Archived section: Surgical Rollback And Dirty-Tree Safety**
 
 Before shared-file edits, implementation records path status, tracked index OID, worktree SHA-256, and distinct hunk-body hashes. For `scripts/selftest.mjs`, it compares the Feature 004 baseline and exact `F004-COLLISION-001` hash. A mismatch or ambiguous owner stops the edit.
 
@@ -478,7 +780,7 @@ Rollback applies an inverse patch only to verified BUG-001 hunks after confirmin
 
 The fail-closed rollback state has provider entry/transport disabled, current-document runtime empty, metadata-only detection and whole-container removal retained only when ownership is unambiguous, no persistence/raw/legacy-value/bridge path restored, and `rlData`, Feature 004, collision validator, and concurrent hunks preserved. If inverse ownership cannot be proved, rollback leaves the file untouched and provider transport disabled.
 
-## G028 And BUG-013 Reconciliation
+**Archived section: G028 And BUG-013 Reconciliation**
 
 This design requests no sensitive-client-storage exception. Product implementation removes active browser credential persistence/use and all legacy value access/reuse.
 
@@ -486,7 +788,7 @@ This design requests no sensitive-client-storage exception. Product implementati
 
 G028-01 through G028-09 and the central-store blind spot each require exactly one addressed or owner-routed disposition. Duplicate rows do not permit duplicate closure. Research Lab adds no exception, evasion rename, cache deletion, or downstream `.github/bubbles/**` edit.
 
-## Alternatives And Tradeoffs
+**Archived section: Alternatives And Tradeoffs**
 
 | Alternative | Decision | Rationale |
 | --- | --- | --- |
@@ -502,7 +804,7 @@ G028-01 through G028-09 and the central-store blind spot each require exactly on
 | Keep current providers disabled | Selected | No current policy clears every gate |
 | Delete `rlData` or rename code for scanner | Rejected | Breaks valid behavior or evades truthful closure |
 
-## Complexity Tracking
+**Archived section: Complexity Tracking**
 
 | Decision | Simpler alternative | Why insufficient |
 | --- | --- | --- |
@@ -515,7 +817,7 @@ G028-01 through G028-09 and the central-store blind spot each require exactly on
 | Registry-derived consumer sweep | Patch known callers only | New or indirect pages could retain stale behavior |
 | Hunk-aware inverse rollback | Restore prior file | Prior file restores unsafe paths and overwrites concurrent work |
 
-## Risks And Finding Dispositions
+**Archived section: Risks And Finding Dispositions**
 
 | Finding | Active disposition | Owner |
 | --- | --- | --- |
@@ -1309,3 +1611,5 @@ Historical record: Owner Decisions To Freeze.
 - Upstream G028 semantics for same-tab third-party provider credentials and scrub false positives.
 
 None of these decisions permits product-code changes during the `bubbles.bug` phase.
+
+</details>

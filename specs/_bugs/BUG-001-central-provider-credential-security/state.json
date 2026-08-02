@@ -3,7 +3,17 @@
     "featureDir": "specs/_bugs/BUG-001-central-provider-credential-security",
     "featureName": "BUG-001 Central Provider Credential Security",
     "createdAt": "2026-07-13T04:19:44Z",
-    "status": "in_progress",
+    "status": "blocked",
+    "blockedReason": {
+        "recordedBy": "orchestrator",
+        "recordedAt": "2026-08-02T05:03:12Z",
+        "blocker": "The required `audit` phase cannot be executed: the `bubbles.audit` subagent terminates without returning any output. Six attempts are recorded (AUD-BUG001-001..006); the last three (004, 005, 006) all died at the identical point, `resumeFromPhase: 2` (\"Code Quality Audit\"), leaving `completedAt: null` and `auditVerdict: INTERRUPTED`. A follow-up `bubbles.validate` dispatch also terminated mid-run without recording anything, so this is an environment-level subagent reliability failure, not a defect in this bug's artifacts.",
+        "whyNotDone": "Promotion to `done` is blocked by exactly 4 guard failures on gates G022 and G027: the `audit` phase is absent from phase records, and `certification.completedScopes` is empty while `execution.completedPhaseClaims` claims implement/test/regression/simplify/stabilize/security/validate. Both can only be cleared by a genuinely completed audit followed by `bubbles.validate` certification. `certification.pendingAuditReconciliation.status` is `awaiting_current_audit`, so validate is correctly parked.",
+        "whyNotFabricated": "The orchestrator deliberately did NOT write an `audit` phase claim and did NOT touch any `certification.*` field (validate-owned). Forging either would manufacture exactly the evidence gates G022/G027 exist to detect. Recording this honest blocker is the prescribed alternative to a false `done`.",
+        "hypothesisTestedAndRejected": "Artifact bloat was tested as a cause and is NOT supported: BUG-001 totals 804 KB while `specs/012-market-action-center-and-guided-tools/bugs/BUG-004-market-heatmap-control-surface` totals 780 KB and reached a certified `done`. Size alone does not explain the failure, so no root cause is asserted.",
+        "operatorAction": "Re-dispatch `bubbles.audit` for this bug in a fresh session/context. If it again returns no output at the \"Code Quality Audit\" step, treat it as a `bubbles.audit` runtime defect and file it against the Bubbles framework repo. Once one audit attempt completes with a real `auditVerdict` and `completedAt`, dispatch `bubbles.validate` to publish the audit phase and certify SCOPE-01; the remaining G022/G027 failures clear automatically.",
+        "productImpactAssessment": "None outstanding on the shipped product. The BUG-001 remediation itself is implemented and green in CI: the two-tier provider path, legacy credential erasure, and CSP enforcement are covered by the passing suites (selftest 1124/0; full browser suite 249/249). This blocker is a governance-record gap, not a runtime defect."
+    },
     "workflowMode": "bugfix-fastlane",
     "linkedImplementationSpec": null,
     "linkedPlanningPacket": null,
@@ -13,74 +23,602 @@
     "certifiedAt": null,
     "requiresRevalidation": true,
     "execution": {
-        "activeAgent": "bubbles.bug",
-        "currentPhase": "implement",
+        "activeAgent": "bubbles.audit",
+        "currentPhase": "audit",
         "currentScope": "SCOPE-01",
-        "runStartedAt": "2026-07-15T17:30:09Z",
+        "runStartedAt": "2026-08-02T04:06:17Z",
         "completedPhaseClaims": [
-            "bootstrap"
+            "implement",
+            "test",
+            "regression",
+            "simplify",
+            "stabilize",
+            "security",
+            "validate"
         ],
-        "pendingTransitionRequests": [],
+        "administrativeDisposition": {
+            "status": "validate_pre_audit_clean_routed_to_audit",
+            "reason": "Current source lock, exact unit and functional suites, repository selftest, real provider browser suite, artifact lint, traceability, freshness, implementation reality, regression quality, changed-spec audit, framework integrity, and repository readiness checks are clean. The resolved delivery contract still requires audit, so validate records only its execution claim and routes bubbles.audit without changing terminal certification inventory or status.",
+            "supersededBy": "specs/_bugs/BUG-002-two-tier-provider-access",
+            "supersededScope": "Tier-2 memory-only, no-persistence, lifecycle-clearing, disabled-provider, header-only, and no-proxy/query requirements",
+            "retainedFindingIds": [
+                "RET-BUG001-LEGACY-ERASURE"
+            ],
+            "nextRequiredOwner": "bubbles.audit",
+            "certificationUnchanged": true
+        },
+        "pendingTransitionRequests": [
+            "TR-BUG-001-VALIDATE-AUDIT"
+        ],
         "scopeInventory": [
             {
                 "scope": 1,
                 "scopeId": "SCOPE-01",
-                "name": "Current-Document Runtime Foundation",
-                "status": "not_started",
+                "name": "Pre-BUG-002 Legacy Credential Erasure",
+                "status": "done",
+                "executionStatus": "validated_pre_audit_pending_audit",
                 "dependsOn": [],
-                "foundation": true,
-                "evidenceFile": "report.md#active-scope-01-evidence"
-            },
-            {
-                "scope": 2,
-                "scopeId": "SCOPE-02",
-                "name": "Metadata-Only Legacy Cleanup And Clear-All",
-                "status": "not_started",
-                "dependsOn": [
-                    1
-                ],
                 "foundation": false,
-                "evidenceFile": "report.md#active-scope-02-evidence"
-            },
-            {
-                "scope": 3,
-                "scopeId": "SCOPE-03",
-                "name": "Same-Document Ownership And Zero Transfer",
-                "status": "not_started",
-                "dependsOn": [
-                    2
-                ],
-                "foundation": false,
-                "evidenceFile": "report.md#active-scope-03-evidence"
-            },
-            {
-                "scope": 4,
-                "scopeId": "SCOPE-04",
-                "name": "Fail-Closed Provider Transport And Disclosure",
-                "status": "not_started",
-                "dependsOn": [
-                    3
-                ],
-                "foundation": false,
-                "evidenceFile": "report.md#active-scope-04-evidence"
-            },
-            {
-                "scope": 5,
-                "scopeId": "SCOPE-05",
-                "name": "G028 Collision Cache And Cross-Feature Closure",
-                "status": "not_started",
-                "dependsOn": [
-                    4
-                ],
-                "foundation": false,
-                "evidenceFile": "report.md#active-scope-05-evidence"
+                "evidenceFile": "report.md#validate-pre-audit-replay-2026-08-01t214514z"
             }
         ],
         "audit": {
             "schemaVersion": "audit-run/v1",
-            "runId": null,
+            "runId": "RUN-BUG001-AUDIT-20260802T024148Z",
             "currentAttemptId": null,
-            "attempts": []
+            "attempts": [
+                {
+                    "attemptId": "AUD-BUG001-001",
+                    "resultState": "SUPERSEDED",
+                    "agent": "bubbles.audit",
+                    "phase": "audit",
+                    "startedAt": "2026-08-01T22:01:49Z",
+                    "completedAt": "2026-08-01T22:25:53Z",
+                    "auditClass": "delivery-completion",
+                    "auditProfile": "delivery-completion-v1",
+                    "targetStatus": "done",
+                    "targetRevision": "sha256:465537ccdbcaa4ee024a662415ad6da759e106d407c79c9191ef533456b4a9f3",
+                    "contractDigest": "sha256:aa91472c047d3d985d38c1d308feb1e6081955b2aa553816deb5987d9cdc449f",
+                    "auditVerdict": "SHIP_IT",
+                    "antiFabricationVerdict": "CLEAN",
+                    "result": "PASSED",
+                    "outcome": "completed_diagnostic",
+                    "blockingCode": "none",
+                    "evidenceRef": "report.md#audit-attempt-aud-bug001-001",
+                    "nextRequiredOwner": "bubbles.validate",
+                    "resumeFromPhase": null,
+                    "transitionGuard": {
+                        "exitCode": 1,
+                        "verdict": "FAIL",
+                        "failureCount": 4,
+                        "failedGateIds": [
+                            "G022",
+                            "G027"
+                        ],
+                        "blockingCode": "DELIVERY_COMPLETION_FAILED",
+                        "auditOwnedFailures": [],
+                        "validateOwnedFailures": [
+                            "G027"
+                        ],
+                        "phasePublicationDeferredToValidate": true
+                    },
+                    "addressedFindings": [
+                        "BUG001-G022-AUDIT"
+                    ],
+                    "unresolvedFindings": [],
+                    "summary": "Audit independently confirmed the frozen BUG-001 target revision, all substantive artifact and behavior checks, anti-fabrication integrity, and standalone artifact lint. The transition guard reports only audit-phase publication and validate-owned completed-scope/certification coherence; audit does not mutate those global or certification fields because doing so changes the frozen target or crosses ownership. The attempt is clean and passed with zero unresolved audit findings, and routes to bubbles.validate for terminal certification reconciliation."
+                },
+                {
+                    "attemptId": "AUD-BUG001-002",
+                    "resultState": "SUPERSEDED",
+                    "agent": "bubbles.audit",
+                    "phase": "audit",
+                    "startedAt": "2026-08-02T02:18:16Z",
+                    "completedAt": "2026-08-02T02:24:10Z",
+                    "auditClass": "delivery-completion",
+                    "auditProfile": "delivery-completion-v1",
+                    "targetStatus": "done",
+                    "targetRevision": "sha256:b25ceea578c2708544ce772e28a25a65bd1bf039ce349b82bdc68adaff3fe010",
+                    "contractDigest": "sha256:aa91472c047d3d985d38c1d308feb1e6081955b2aa553816deb5987d9cdc449f",
+                    "auditVerdict": "BLOCKED",
+                    "antiFabricationVerdict": "REVIEWED_WITH_ADVISORIES",
+                    "result": "BLOCKED",
+                    "outcome": "blocked",
+                    "blockingCode": "AUDIT_PROVENANCE_CONFLICT",
+                    "evidenceRef": "report.md#audit-attempt-aud-bug001-002",
+                    "nextRequiredOwner": "bubbles.audit",
+                    "resumeFromPhase": null,
+                    "supersedesAttemptId": "AUD-BUG001-001",
+                    "transitionGuard": {
+                        "exitCode": 1,
+                        "verdict": "FAIL",
+                        "failureCount": 4,
+                        "failedGateIds": [
+                            "G022",
+                            "G027"
+                        ],
+                        "blockingCode": "DELIVERY_COMPLETION_FAILED",
+                        "phasePublicationDeferredToValidate": true
+                    },
+                    "addressedFindings": [
+                        "AUD-BUG001-001-STALE-REVISION"
+                    ],
+                    "unresolvedFindings": [
+                        "AUD-BUG001-002-TARGET-REVISION-MISMATCH",
+                        "BUG001-G022-AUDIT",
+                        "BUG001-G027-CERTIFICATION",
+                        "BUG001-USERVALIDATION-ACTIVE-CONTRACT"
+                    ],
+                    "summary": "Fresh current-byte verification passed the active SCOPE-01 unit, functional, repository, and real-browser checks, but the attempt is blocked. After audit evidence persistence, the resolver no longer reproduced the attempt's frozen target revision, which is an AUDIT_PROVENANCE_CONFLICT. The assertion-bound transition guard also fails G022 and G027, and uservalidation.md still presents the superseded memory-only multi-scope contract as active. The stale AUD-BUG001-001 result was not reused."
+                },
+                {
+                    "attemptId": "AUD-BUG001-003",
+                    "resultState": "SUPERSEDED",
+                    "agent": "bubbles.audit",
+                    "phase": "audit",
+                    "startedAt": "2026-08-02T02:41:48Z",
+                    "completedAt": "2026-08-02T02:46:29Z",
+                    "auditClass": "delivery-completion",
+                    "auditProfile": "delivery-completion-v1",
+                    "targetStatus": "done",
+                    "targetRevision": "sha256:6663e7d350abc8840a70771cbcc4c03cf33833a030bacaa35d5165c7aa4be8d3",
+                    "contractDigest": "sha256:aa91472c047d3d985d38c1d308feb1e6081955b2aa553816deb5987d9cdc449f",
+                    "auditVerdict": "REWORK_REQUIRED",
+                    "antiFabricationVerdict": "REVIEWED_WITH_ADVISORIES",
+                    "result": "FAILED",
+                    "outcome": "route_required",
+                    "blockingCode": "DELIVERY_COMPLETION_FAILED",
+                    "evidenceRef": "report.md#audit-attempt-aud-bug001-003",
+                    "nextRequiredOwner": "bubbles.plan",
+                    "resumeFromPhase": null,
+                    "supersedesAttemptId": "AUD-BUG001-002",
+                    "transitionGuard": {
+                        "exitCode": 1,
+                        "verdict": "FAIL",
+                        "failureCount": 4,
+                        "failedGateIds": [
+                            "G022",
+                            "G027"
+                        ],
+                        "blockingCode": "DELIVERY_COMPLETION_FAILED",
+                        "phasePublicationDeferredToValidate": true
+                    },
+                    "addressedFindings": [
+                        "AUD-BUG001-001-STALE-REVISION",
+                        "AUD-BUG001-002-TARGET-REVISION-MISMATCH"
+                    ],
+                    "unresolvedFindings": [
+                        "BUG001-G022-AUDIT",
+                        "BUG001-G027-CERTIFICATION",
+                        "BUG001-USERVALIDATION-ACTIVE-CONTRACT"
+                    ],
+                    "summary": "Fresh current-byte verification passed the active SCOPE-01 unit, functional, repository, real-browser, source-lock, security-probe, adversarial-quality, artifact-lint, traceability, freshness, and implementation-reality checks. Delivery completion is refused because the assertion-bound transition guard fails G022 and G027 and active uservalidation.md still asserts the superseded multi-scope memory-only contract. The post-evidence resolver remains stable, closing the prior audit provenance conflict. First repair ownership is bubbles.plan, followed by bubbles.validate for execution/certification reconciliation."
+                },
+                {
+                    "attemptId": "AUD-BUG001-004",
+                    "resultState": "SUPERSEDED",
+                    "agent": "bubbles.audit",
+                    "phase": "audit",
+                    "startedAt": "2026-08-02T03:43:35Z",
+                    "completedAt": null,
+                    "auditClass": "delivery-completion",
+                    "auditProfile": "delivery-completion-v1",
+                    "targetStatus": "done",
+                    "targetRevision": "sha256:ab81c73f4c68b5230286d1ae0b448a31e3e72b8012d9f05088d00017190c664d",
+                    "contractDigest": "sha256:aa91472c047d3d985d38c1d308feb1e6081955b2aa553816deb5987d9cdc449f",
+                    "auditVerdict": "INTERRUPTED",
+                    "antiFabricationVerdict": "NOT_EVALUATED",
+                    "result": "INCOMPLETE",
+                    "outcome": "blocked",
+                    "blockingCode": "AUDIT_INCOMPLETE",
+                    "evidenceRef": "report.md#audit-attempt-aud-bug001-004",
+                    "nextRequiredOwner": "bubbles.audit",
+                    "resumeFromPhase": 2,
+                    "supersedesAttemptId": "AUD-BUG001-003",
+                    "transitionGuard": {
+                        "exitCode": 1,
+                        "verdict": "FAIL",
+                        "failureCount": 4,
+                        "failedGateIds": [
+                            "G022",
+                            "G027"
+                        ],
+                        "blockingCode": "DELIVERY_COMPLETION_FAILED",
+                        "phasePublicationDeferredToValidate": true
+                    },
+                    "addressedFindings": [
+                        "AUD-BUG001-001-STALE-REVISION",
+                        "AUD-BUG001-002-TARGET-REVISION-MISMATCH"
+                    ],
+                    "unresolvedFindings": [
+                        "BUG001-G022-AUDIT",
+                        "BUG001-G027-CERTIFICATION",
+                        "BUG001-USERVALIDATION-ACTIVE-CONTRACT"
+                    ],
+                    "summary": "Fresh audit attempt opened against the current delivery contract and product commit e38615ea. Evaluation was interrupted and superseded by AUD-BUG001-005; no positive verdict or certification claim is made."
+                },
+                {
+                    "attemptId": "AUD-BUG001-005",
+                    "resultState": "SUPERSEDED",
+                    "agent": "bubbles.audit",
+                    "phase": "audit",
+                    "startedAt": "2026-08-02T04:06:17Z",
+                    "completedAt": null,
+                    "auditClass": "delivery-completion",
+                    "auditProfile": "delivery-completion-v1",
+                    "targetStatus": "done",
+                    "targetRevision": "sha256:d97cdc4e3b5e7834c8e7645ac48ebfea27e2d576d4b17b152acdf1f5dc42f2e7",
+                    "contractDigest": "sha256:aa91472c047d3d985d38c1d308feb1e6081955b2aa553816deb5987d9cdc449f",
+                    "auditVerdict": "INTERRUPTED",
+                    "antiFabricationVerdict": "NOT_EVALUATED",
+                    "result": "INCOMPLETE",
+                    "outcome": "blocked",
+                    "blockingCode": "AUDIT_INCOMPLETE",
+                    "evidenceRef": "report.md#audit-attempt-aud-bug001-005",
+                    "nextRequiredOwner": "bubbles.audit",
+                    "resumeFromPhase": 2,
+                    "supersedesAttemptId": "AUD-BUG001-004",
+                    "transitionGuard": {
+                        "exitCode": 1,
+                        "verdict": "FAIL",
+                        "failureCount": 4,
+                        "failedGateIds": [
+                            "G022",
+                            "G027"
+                        ],
+                        "blockingCode": "DELIVERY_COMPLETION_FAILED",
+                        "phasePublicationDeferredToValidate": true
+                    },
+                    "addressedFindings": [
+                        "AUD-BUG001-001-STALE-REVISION",
+                        "AUD-BUG001-002-TARGET-REVISION-MISMATCH"
+                    ],
+                    "unresolvedFindings": [
+                        "BUG001-G022-AUDIT",
+                        "BUG001-G027-CERTIFICATION",
+                        "BUG001-USERVALIDATION-ACTIVE-CONTRACT"
+                    ],
+                    "summary": "New current-byte audit attempt opened after superseding interrupted AUD-BUG001-004. Evaluation is incomplete; no positive verdict or certification claim is made."
+                },
+                {
+                    "attemptId": "AUD-BUG001-006",
+                    "resultState": "ABANDONED",
+                    "agent": "bubbles.audit",
+                    "phase": "audit",
+                    "startedAt": "2026-08-02T05:12:00Z",
+                    "completedAt": "2026-08-02T05:03:12Z",
+                    "auditClass": "delivery-completion",
+                    "auditProfile": "delivery-completion-v1",
+                    "targetStatus": "done",
+                    "targetRevision": "sha256:d97cdc4e3b5e7834c8e7645ac48ebfea27e2d576d4b17b152acdf1f5dc42f2e7",
+                    "contractDigest": "sha256:aa91472c047d3d985d38c1d308feb1e6081955b2aa553816deb5987d9cdc449f",
+                    "auditVerdict": "INTERRUPTED",
+                    "antiFabricationVerdict": "NOT_EVALUATED",
+                    "result": "INCOMPLETE",
+                    "outcome": "blocked",
+                    "blockingCode": "AUDIT_INCOMPLETE",
+                    "evidenceRef": "report.md#audit-attempt-aud-bug001-006",
+                    "nextRequiredOwner": "bubbles.audit",
+                    "resumeFromPhase": 2,
+                    "supersedesAttemptId": "AUD-BUG001-005",
+                    "addressedFindings": [],
+                    "unresolvedFindings": [
+                        "BUG001-G022-AUDIT",
+                        "BUG001-G027-CERTIFICATION",
+                        "BUG001-USERVALIDATION-ACTIVE-CONTRACT"
+                    ],
+                    "summary": "Attempt opened by bubbles.audit, then the agent terminated without returning any output; no audit evaluation was performed and no verdict is claimed. Closed as ABANDONED by the orchestrator so the ledger does not carry a permanently open attempt. See orchestratorCorrection for the two demonstrably invalid values this stub recorded.",
+                    "orchestratorCorrection": {
+                        "correctedBy": "orchestrator",
+                        "correctedAt": "2026-08-02T05:03:12Z",
+                        "reason": "bubbles.audit returned no output on dispatch; the stub it left behind contained values that cannot be true. Original field values are preserved above rather than rewritten, per append-a-correction ledger policy.",
+                        "invalidRecordedValues": [
+                            "startedAt '2026-08-02T05:12:00Z' is FUTURE-DATED relative to the verified wall clock 2026-08-02T05:03:12Z (captured via `date -u`) at which this stub already existed on disk; it therefore cannot be a real start time.",
+                            "targetRevision 'sha256:d97cdc4e3b5e7834c8e7645ac48ebfea27e2d576d4b17b152acdf1f5dc42f2e7' is copied verbatim from superseded attempt AUD-BUG001-005 and is STALE; the audited tree advanced to commit b5b24dd2 (pushed to origin/main, 0 behind) before this attempt was opened."
+                        ],
+                        "notClaimed": "No audit phase claim, no certification field, and no verdict were written on behalf of bubbles.audit. Forging those is precisely the fabrication gates G022/G027 exist to catch."
+                    }
+                }
+            ]
+        },
+        "lastEvidenceReplay": {
+            "recordedAt": "2026-08-01T17:27:23Z",
+            "producer": "bubbles.bug",
+            "scopeId": "SCOPE-01",
+            "claimSource": "executed",
+            "testRows": [
+                {
+                    "id": "S1-T01",
+                    "command": "node --test tests/provider-credentials.unit.mjs",
+                    "exitCode": 0
+                },
+                {
+                    "id": "S1-T02",
+                    "command": "node --test tests/provider-credentials.functional.mjs",
+                    "exitCode": 0
+                },
+                {
+                    "id": "S1-T03",
+                    "command": "node --test tests/provider-credentials.functional.mjs",
+                    "exitCode": 0
+                },
+                {
+                    "id": "S1-T04",
+                    "command": "node scripts/selftest.mjs",
+                    "exitCode": 0
+                },
+                {
+                    "id": "S1-T05",
+                    "command": "npx --no-install playwright test tests/provider-credentials.spec.mjs --config=playwright.config.mjs --project=system-chrome --reporter=list",
+                    "exitCode": 0
+                },
+                {
+                    "id": "S1-T06",
+                    "command": "npx --no-install playwright test tests/provider-credentials.spec.mjs --config=playwright.config.mjs --project=system-chrome --reporter=list",
+                    "exitCode": 0
+                }
+            ],
+            "qualityChecks": {
+                "regressionQuality": "passed",
+                "bugfixAdversarialQuality": "passed",
+                "liveInterceptionMatches": 0,
+                "artifactLint": "passed",
+                "editedFileErrors": 0,
+                "pathScopedDiffCheckExitCode": 0
+            },
+            "evidenceRef": "report.md#scope-01-completion-replay---2026-08-01t172723z",
+            "outcome": "route_required",
+            "nextRequiredOwner": "bubbles.validate",
+            "certificationChanged": false
+        },
+        "lastRegressionReplay": {
+            "recordedAt": "2026-08-01T19:26:12Z",
+            "producer": "bubbles.regression",
+            "scopeId": "SCOPE-01",
+            "scenarioId": "SCN-BUG001-004",
+            "claimSource": "executed",
+            "repositoryBindingDecision": "rb:vscode-9a7293b2dab62e384ebe03875bcef375:10",
+            "verdict": "REGRESSION_FREE",
+            "testCounts": {
+                "unit": "3/3",
+                "functional": "13/13",
+                "repository": "1101/1101",
+                "browser": "6/6",
+                "feature007": "5/5",
+                "crossFeature": "83/83",
+                "requiredSkips": 0
+            },
+            "designCoherence": "BUG-002 sole provider-access authority; BUG-001 exact legacy retirement only; one active SCOPE-01 and SCN-BUG001-004",
+            "qualityChecks": {
+                "regressionQuality": "passed",
+                "bugfixAdversarialQuality": "passed",
+                "designContradictions": 0,
+                "crossSpecConflicts": 0
+            },
+            "evidenceRef": "report.md#regression-final-replay-after-feature-007-correction---2026-08-01t192612z",
+            "outcome": "route_required",
+            "nextRequiredOwner": "bubbles.simplify",
+            "certificationChanged": false
+        },
+        "lastSimplifyReview": {
+            "recordedAt": "2026-08-01T19:38:14Z",
+            "producer": "bubbles.simplify",
+            "scopeId": "SCOPE-01",
+            "scenarioId": "SCN-BUG001-004",
+            "claimSource": "executed",
+            "repositoryBindingDecision": "rb:vscode-9a7293b2dab62e384ebe03875bcef375:11",
+            "verdict": "SIMPLIFIED_REGRESSION_FREE",
+            "reviewDimensions": {
+                "reuse": "One medium finding addressed by centralizing three identical legacy-name fixtures in the existing provider test support module.",
+                "quality": "No production simplification justified; scanner, result states, disclosure, and confirmation are already bounded and single-purpose.",
+                "efficiency": "No production simplification justified; before and after scans are required to verify selected names absent without reading credential values."
+            },
+            "changes": {
+                "productionFilesChanged": 0,
+                "testFilesChanged": [
+                    "tests/provider-credentials.support.mjs",
+                    "tests/provider-credentials.unit.mjs",
+                    "tests/provider-credentials.functional.mjs",
+                    "tests/provider-credentials.spec.mjs"
+                ],
+                "fixtureDefinitionsBefore": 3,
+                "fixtureDefinitionsAfter": 1
+            },
+            "testCounts": {
+                "unitAndFunctional": "16/16",
+                "repository": "1101/1101",
+                "browser": "6/6",
+                "requiredSkips": 0
+            },
+            "qualityChecks": {
+                "regressionQuality": "passed",
+                "bugfixAdversarialQuality": "passed",
+                "editedFileErrors": 0,
+                "pathScopedDiffCheckExitCode": 0
+            },
+            "evidenceRef": "report.md#simplify-phase-evidence---2026-08-01t193814z",
+            "outcome": "route_required",
+            "nextRequiredOwner": "bubbles.stabilize",
+            "certificationChanged": false
+        },
+        "lastStabilizeReview": {
+            "recordedAt": "2026-08-01T20:34:38Z",
+            "producer": "bubbles.stabilize",
+            "scopeId": "SCOPE-01",
+            "scenarioId": "SCN-BUG001-004",
+            "claimSource": "executed",
+            "repositoryBindingDecision": "rb:vscode-9a7293b2dab62e384ebe03875bcef375:16",
+            "verdict": "STABILITY_GREEN",
+            "severityCounts": {
+                "incident": 0,
+                "high": 0,
+                "medium": 0,
+                "low": 0
+            },
+            "domainsReviewed": [
+                "cleanup-reliability",
+                "idempotency",
+                "unavailable-and-partial-storage",
+                "race-and-reentrancy",
+                "resource-and-performance",
+                "bug002-provider-preservation"
+            ],
+            "testCounts": {
+                "stabilityProbe": "2/2",
+                "unit": "3/3",
+                "functional": "14/14",
+                "repository": "1101/1101",
+                "browser": "6/6",
+                "requiredSkips": 0
+            },
+            "addressedFindings": [
+                "BUG001-STAB-001-UNVERIFIED-REMOVAL-COUNT",
+                "BUG001-G022-STABILIZE"
+            ],
+            "qualityChecks": {
+                "artifactLint": "passed",
+                "regressionQuality": "passed",
+                "bugfixAdversarialQuality": "passed",
+                "pathScopedDiffCheckExitCode": 0,
+                "editedFileErrors": 0
+            },
+            "evidenceRef": "report.md#stabilize-replay-evidence---2026-08-01t203438z",
+            "outcome": "route_required",
+            "nextRequiredOwner": "bubbles.security",
+            "certificationChanged": false
+        },
+        "lastSecurityReview": {
+            "recordedAt": "2026-08-01T20:47:35Z",
+            "producer": "bubbles.security",
+            "scopeId": "SCOPE-01",
+            "scenarioId": "SCN-BUG001-004",
+            "claimSource": "interpreted",
+            "repositoryBindingDecision": "rb:vscode-9a7293b2dab62e384ebe03875bcef375:17",
+            "verdict": "SECURITY_CLEAN",
+            "severityCounts": {
+                "critical": 0,
+                "high": 0,
+                "medium": 0,
+                "low": 0
+            },
+            "domainsReviewed": [
+                "exact-legacy-container-selection",
+                "legacy-value-read-and-disclosure",
+                "complete-incomplete-unavailable-outcomes",
+                "destructive-ui-confirmation",
+                "bug002-provider-config-and-rldata-preservation",
+                "provider-credential-exfiltration",
+                "csp-and-html-sinks",
+                "dependencies-and-source-lock",
+                "g034-mechanical-floor"
+            ],
+            "testCounts": {
+                "unit": "3/3",
+                "functional": "14/14",
+                "repository": "1101/1101",
+                "browser": "6/6",
+                "requiredSkips": 0
+            },
+            "addressedFindings": [
+                "BUG001-G022-SECURITY",
+                "TR-BUG-001-STABILIZE-SECURITY"
+            ],
+            "unresolvedFindings": [
+                "BUG001-G022-VALIDATE-AUDIT",
+                "BUG001-G027-CERTIFICATION"
+            ],
+            "qualityChecks": {
+                "g034": "passed-zero-findings",
+                "npmAudit": "passed-zero-vulnerabilities",
+                "sourceLock": "passed-16-adversarial-rejections",
+                "implementationReality": "passed-zero-violations-one-discovery-warning",
+                "regressionQuality": "passed",
+                "bugfixAdversarialQuality": "passed",
+                "browserProcessResidue": 0
+            },
+            "evidenceRef": "report.md#security-phase-evidence-bubblessecurity-2026-08-01",
+            "outcome": "route_required",
+            "nextRequiredOwner": "bubbles.validate",
+            "certificationChanged": false
+        },
+        "lastImplementationReplay": {
+            "recordedAt": "2026-08-01T20:21:10Z",
+            "producer": "bubbles.implement",
+            "scopeId": "SCOPE-01",
+            "scenarioId": "SCN-BUG001-004",
+            "claimSource": "executed",
+            "repositoryBindingDecision": "rb:vscode-9a7293b2dab62e384ebe03875bcef375:15",
+            "verdict": "GREEN_IMPLEMENTATION",
+            "addressedFindings": [
+                "BUG001-STAB-001-UNVERIFIED-REMOVAL-COUNT"
+            ],
+            "sourceFilesChanged": [
+                "rldata.js"
+            ],
+            "testCounts": {
+                "unit": "3/3",
+                "functional": "14/14",
+                "repository": "1101/1101",
+                "browser": "6/6",
+                "requiredSkips": 0
+            },
+            "qualityChecks": {
+                "regressionQuality": "passed",
+                "bugfixAdversarialQuality": "passed",
+                "pathScopedDiffCheckExitCode": 0,
+                "editedFileErrors": 0
+            },
+            "evidenceRef": "report.md#implement-phase-evidence---2026-08-01t202110z",
+            "outcome": "route_required",
+            "nextRequiredOwner": "bubbles.stabilize",
+            "certificationChanged": false
+        },
+        "lastValidationReview": {
+            "recordedAt": "2026-08-01T21:45:14Z",
+            "producer": "bubbles.validate",
+            "scopeId": "SCOPE-01",
+            "scenarioId": "SCN-BUG001-004",
+            "claimSource": "interpreted",
+            "interpretation": "The current product and governance checks are clean. Audit remains in the resolved phase order with no current attempt, so this is pre-audit validation and terminal certification fields remain unchanged.",
+            "repositoryBindingDecision": "rb:vscode-9a7293b2dab62e384ebe03875bcef375:21",
+            "verdict": "PRE_AUDIT_CLEAN",
+            "testCounts": {
+                "unit": "3/3",
+                "functional": "14/14",
+                "repository": "1101/1101",
+                "browser": "6/6",
+                "requiredSkips": 0
+            },
+            "qualityChecks": {
+                "sourceLock": "passed-16-adversarial-rejections",
+                "artifactLint": "passed",
+                "traceability": "passed-zero-warnings",
+                "artifactFreshness": "passed-zero-failures-zero-warnings",
+                "implementationReality": "passed-zero-violations-one-discovery-warning",
+                "regressionQuality": "passed",
+                "bugfixAdversarialQuality": "passed",
+                "frameworkWriteIntegrity": "passed",
+                "repoReadiness": "passed"
+            },
+            "verifiedResolvedFindings": [
+                "BUG001-G052-DESIGN-FRESHNESS",
+                "BUG001-G024-SCOPE-STATUS",
+                "BUG001-PLAN-EXECUTION-STATE",
+                "BUG001-G001-TEST-FILE-ROWS",
+                "BUG001-G025-EVIDENCE-ANCHOR",
+                "BUG001-G022-BOOTSTRAP-PROVENANCE"
+            ],
+            "addressedFindings": [
+                "BUG001-G022-VALIDATE"
+            ],
+            "unresolvedFindings": [
+                "BUG001-G022-AUDIT",
+                "BUG001-G027-CERTIFICATION"
+            ],
+            "evidenceRef": "report.md#validate-pre-audit-replay-2026-08-01t214514z",
+            "outcome": "route_required",
+            "nextRequiredOwner": "bubbles.audit",
+            "certificationChanged": false
         }
     },
     "certification": {
@@ -91,62 +629,32 @@
             {
                 "scope": 1,
                 "scopeId": "SCOPE-01",
-                "name": "Current-Document Runtime Foundation",
+                "name": "Pre-BUG-002 Legacy Credential Erasure",
                 "status": "not_started",
                 "dependsOn": [],
                 "scopeDir": null,
-                "evidenceFile": "report.md",
-                "certifiedAt": null
-            },
-            {
-                "scope": 2,
-                "scopeId": "SCOPE-02",
-                "name": "Metadata-Only Legacy Cleanup And Clear-All",
-                "status": "not_started",
-                "dependsOn": [
-                    1
-                ],
-                "scopeDir": null,
-                "evidenceFile": "report.md",
-                "certifiedAt": null
-            },
-            {
-                "scope": 3,
-                "scopeId": "SCOPE-03",
-                "name": "Same-Document Ownership And Zero Transfer",
-                "status": "not_started",
-                "dependsOn": [
-                    2
-                ],
-                "scopeDir": null,
-                "evidenceFile": "report.md",
-                "certifiedAt": null
-            },
-            {
-                "scope": 4,
-                "scopeId": "SCOPE-04",
-                "name": "Fail-Closed Provider Transport And Disclosure",
-                "status": "not_started",
-                "dependsOn": [
-                    3
-                ],
-                "scopeDir": null,
-                "evidenceFile": "report.md",
-                "certifiedAt": null
-            },
-            {
-                "scope": 5,
-                "scopeId": "SCOPE-05",
-                "name": "G028 Collision Cache And Cross-Feature Closure",
-                "status": "not_started",
-                "dependsOn": [
-                    4
-                ],
-                "scopeDir": null,
-                "evidenceFile": "report.md",
+                "evidenceFile": "report.md#scope-01-completion-replay---2026-08-01t172723z",
                 "certifiedAt": null
             }
         ],
+        "pendingAuditReconciliation": {
+            "scopeIds": [
+                "SCOPE-01"
+            ],
+            "completedPhaseClaims": [
+                "implement",
+                "test",
+                "regression",
+                "simplify",
+                "stabilize",
+                "security",
+                "validate"
+            ],
+            "auditProfile": "delivery-completion-v1",
+            "targetStatus": "done",
+            "status": "awaiting_current_audit",
+            "evidenceRef": "report.md#validate-pre-audit-replay-2026-08-01t214514z"
+        },
         "lockdownState": {
             "active": false,
             "lockedScenarioIds": []
@@ -181,8 +689,373 @@
     },
     "transitionRequests": [
         {
+            "id": "TR-BUG-001-SCOPE01-VALIDATE",
+            "status": "resolved",
+            "requestedBy": "bubbles.bug",
+            "routedTo": "bubbles.validate",
+            "reason": "Validate SCOPE-01 Pre-BUG-002 Legacy Credential Erasure using the current RED/GREEN evidence for all six exact test rows and all ten DoD execution claims. Reconcile the stale validate-owned certification inventory to the active one-scope plan. Do not alter BUG-002 certification or reinstate superseded Tier-2 restrictions.",
+            "scenarioIds": [
+                "SCN-BUG001-004"
+            ],
+            "findingIds": [
+                "BUG001-LEGACY-CONTAINER-CLOSURE",
+                "BUG001-CERTIFICATION"
+            ],
+            "requestedAt": "2026-08-01T17:16:42Z",
+            "evidenceRefs": [
+                "scopes.md#scope-1-scope-01-pre-bug-002-legacy-credential-erasure",
+                "test-plan.json",
+                "report.md#active-scope-01-implementation-and-test-evidence---2026-08-01"
+            ],
+            "resolvedBy": "bubbles.validate",
+            "resolutionSummary": "Validation consumed the SCOPE-01 request without changing certification and routed active-contract, plan-shape, evidence-anchor, phase, and certification blockers to their owners."
+        },
+        {
+            "id": "TR-BUG-001-VALIDATE-PLAN-REWORK",
+            "status": "resolved",
+            "requestedBy": "bubbles.bug",
+            "routedTo": "bubbles.plan",
+            "routedToSpec": "specs/_bugs/BUG-001-central-provider-credential-security",
+            "productAction": "none",
+            "routingClass": "specialist",
+            "crossRepoFollowUp": false,
+            "reason": "Consume validation findings by reconciling only plan-owned superseded-history DoD counting, active SCOPE-01 DoD shape, and evidence-anchor references. Preserve the implemented pre-BUG-002 legacy-container erasure, BUG-002 current provider behavior, source, tests, report evidence, and certification.",
+            "scenarioIds": [
+                "SCN-BUG001-004"
+            ],
+            "findingIds": [
+                "BUG001-G001-SUPERSEDED-DOD",
+                "BUG001-G001-ACTIVE-DOD-SHAPE",
+                "BUG001-G001-EVIDENCE-ANCHOR"
+            ],
+            "evidenceRefs": [
+                "report.md#blocking-finding-accounting",
+                "bug.md#active-ownership-route",
+                "scopes.md#scope-1-scope-01-pre-bug-002-legacy-credential-erasure"
+            ],
+            "resolvedAt": "2026-08-01T18:34:27Z",
+            "resolvedBy": "bubbles.plan",
+            "outcome": "route_required",
+            "resolutionSummary": "Reconciled the active runtime-behavior scope to canonical tiered DoD shape, removed executable checkbox and heading syntax from superseded history, mapped every active completed item to an exact current command-backed replay subsection, reduced scenario-manifest discovery to the sole active scenario, and proved artifact lint plus G001/G061 planning checks clean. Certification remains unchanged; required specialist phases route next."
+        },
+        {
+            "id": "TR-BUG-001-REGRESSION",
+            "status": "resolved",
+            "requestedBy": "bubbles.plan",
+            "routedTo": "bubbles.regression",
+            "routedToSpec": "specs/_bugs/BUG-001-central-provider-credential-security",
+            "productAction": "none",
+            "routingClass": "specialist",
+            "crossRepoFollowUp": false,
+            "reason": "Execute the required regression phase against the reconciled one-scope BUG-001 contract and preserved current replay evidence. Preserve BUG-002 behavior, source, tests, report evidence, certification, BUG-004, unrelated work, and framework-managed files. Route next to bubbles.simplify when regression evidence is complete.",
+            "scenarioIds": [
+                "SCN-BUG001-004"
+            ],
+            "findingIds": [
+                "BUG001-G022-REGRESSION"
+            ],
+            "evidenceRefs": [
+                "scopes.md#scope-1-scope-01-pre-bug-002-legacy-credential-erasure",
+                "scenario-manifest.json",
+                "test-plan.json",
+                "report.md#scope-01-completion-replay---2026-08-01t172723z"
+            ],
+            "resolvedAt": "2026-08-01T19:26:12Z",
+            "resolvedBy": "bubbles.regression",
+            "outcome": "route_required",
+            "resolutionSummary": "After bubbles.design reconciled the active design and Feature 007 corrected its regression to open the shipped Power workspace, the current focused and cross-feature matrix passed: 3/3 unit, 13/13 functional, 1101/1101 repository, 6/6 provider browser, 5/5 Feature 007, and 83/83 cross-feature. The phase verdict is REGRESSION_FREE and the workflow routes to bubbles.simplify."
+        },
+        {
+            "id": "TR-BUG-001-DESIGN-CONFLICT",
+            "status": "resolved",
+            "requestedBy": "bubbles.regression",
+            "routedTo": "bubbles.design",
+            "routedToSpec": "specs/_bugs/BUG-001-central-provider-credential-security",
+            "productAction": "none",
+            "routingClass": "specialist",
+            "crossRepoFollowUp": false,
+            "reason": "Reconcile active design.md to the BUG-002 proxy-first plus durable per-browser local-key authority and retain only exact pre-BUG-002 legacy-container erasure under BUG-001. Do not edit source, tests, certification, BUG-004, unrelated work, or framework-managed files.",
+            "scenarioIds": [
+                "SCN-BUG001-004"
+            ],
+            "findingIds": [
+                "BUG001-REGRESSION-DESIGN-CONFLICT"
+            ],
+            "requestedAt": "2026-08-01T18:45:21Z",
+            "evidenceRefs": [
+                "report.md#regression-phase-evidence---2026-08-01t184521z",
+                "design.md#design-brief",
+                "spec.md#authority-and-supersession",
+                "../BUG-002-two-tier-provider-access/spec.md"
+            ],
+            "resolvedAt": "2026-08-01T19:09:08Z",
+            "resolvedBy": "bubbles.design",
+            "outcome": "route_required",
+            "resolutionSummary": "Reconciled the active design prefix to BUG-002's proxy plus durable per-browser local-key authority and retained only exact pre-BUG-002 legacy-container retirement under SCOPE-01. Regression verified the resolved contract before routing onward."
+        },
+        {
+            "id": "TR-BUG-001-SIMPLIFY",
+            "status": "resolved",
+            "requestedBy": "bubbles.regression",
+            "routedTo": "bubbles.simplify",
+            "routedToSpec": "specs/_bugs/BUG-001-central-provider-credential-security",
+            "productAction": "none",
+            "routingClass": "specialist",
+            "crossRepoFollowUp": false,
+            "reason": "Execute behavior-preserving simplification after the REGRESSION_FREE replay. Preserve BUG-002 current provider behavior, exact SCOPE-01 legacy-erasure semantics, source/test behavior, certification, BUG-004, unrelated work, and framework-managed files; then route to bubbles.stabilize.",
+            "scenarioIds": [
+                "SCN-BUG001-004"
+            ],
+            "findingIds": [
+                "BUG001-G022-SIMPLIFY"
+            ],
+            "requestedAt": "2026-08-01T19:26:12Z",
+            "evidenceRefs": [
+                "report.md#regression-final-replay-after-feature-007-correction---2026-08-01t192612z",
+                "design.md#design-brief",
+                "scopes.md#scope-1-scope-01-pre-bug-002-legacy-credential-erasure"
+            ],
+            "resolvedAt": "2026-08-01T19:38:14Z",
+            "resolvedBy": "bubbles.simplify",
+            "outcome": "route_required",
+            "resolutionSummary": "Completed the required reuse, quality, and efficiency review over the exact BUG-001 source/test delta. Centralized three identical legacy-name test fixtures into one frozen support fixture, changed no production code, and preserved current behavior with 16/16 focused Node tests, 6/6 provider browser tests, 1101/1101 repository selftests, clean diagnostics, and clean regression-quality guards. Certification was not changed; execution routes to bubbles.stabilize."
+        },
+        {
+            "id": "TR-BUG-001-STABILIZE",
+            "status": "resolved",
+            "requestedBy": "bubbles.simplify",
+            "routedTo": "bubbles.stabilize",
+            "routedToSpec": "specs/_bugs/BUG-001-central-provider-credential-security",
+            "productAction": "none",
+            "routingClass": "specialist",
+            "crossRepoFollowUp": false,
+            "reason": "Execute the required stabilize phase against the simplified current test bytes and unchanged production legacy-container implementation. Preserve BUG-002 current provider behavior, certification, BUG-004, unrelated work, and framework-managed files; then route to bubbles.security.",
+            "scenarioIds": [
+                "SCN-BUG001-004"
+            ],
+            "findingIds": [
+                "BUG001-G022-STABILIZE"
+            ],
+            "requestedAt": "2026-08-01T19:38:14Z",
+            "evidenceRefs": [
+                "report.md#simplify-phase-evidence---2026-08-01t193814z",
+                "scopes.md#scope-1-scope-01-pre-bug-002-legacy-credential-erasure"
+            ],
+            "resolvedAt": "2026-08-01T19:50:47Z",
+            "resolvedBy": "bubbles.stabilize",
+            "outcome": "route_required",
+            "resolutionSummary": "Reviewed cleanup reliability, idempotency, unavailable and partial storage, race and reentrancy, resource cost, and BUG-002 preservation. Current focused suites remained green, but a deterministic probe reproduced false removedContainerCount accounting when deletion fails and post-delete verification becomes unavailable. Certification was unchanged and security was not dispatched."
+        },
+        {
+            "id": "TR-BUG-001-STABILITY-PLAN-REWORK",
+            "status": "resolved",
+            "requestedBy": "bubbles.stabilize",
+            "routedTo": "bubbles.plan",
+            "routedToSpec": "specs/_bugs/BUG-001-central-provider-credential-security",
+            "productAction": "none",
+            "routingClass": "specialist",
+            "crossRepoFollowUp": false,
+            "reason": "Reconcile the Done SCOPE-01 status and S1-T03 obligation to cover deletion failure followed by unavailable post-delete enumeration. Route scenario-first persistent regression ownership, then implementation correction, then a clean stabilize replay before security. Preserve BUG-002 current provider behavior, certification, BUG-004, unrelated work, and framework-managed files.",
+            "scenarioIds": [
+                "SCN-BUG001-004"
+            ],
+            "findingIds": [
+                "BUG001-STAB-001-UNVERIFIED-REMOVAL-COUNT"
+            ],
+            "requestedAt": "2026-08-01T19:50:47Z",
+            "evidenceRefs": [
+                "report.md#stabilize-phase-evidence---2026-08-01t195047z",
+                "scopes.md#scope-1-scope-01-pre-bug-002-legacy-credential-erasure"
+            ],
+            "resolvedAt": "2026-08-01T20:21:10Z",
+            "resolvedBy": "bubbles.implement",
+            "outcome": "route_required",
+            "resolutionSummary": "The plan reopened SCOPE-01 and S1-T03, the persistent functional regression reproduced the finding, and implementation corrected verified-removal accounting with the focused and repository suites green. Execution routes to a clean stabilize replay."
+        },
+        {
+            "id": "TR-BUG-001-IMPLEMENT-STABILIZE",
+            "status": "resolved",
+            "requestedBy": "bubbles.implement",
+            "routedTo": "bubbles.stabilize",
+            "routedToSpec": "specs/_bugs/BUG-001-central-provider-credential-security",
+            "productAction": "none",
+            "routingClass": "specialist",
+            "crossRepoFollowUp": false,
+            "reason": "Replay cleanup reliability, unavailable and partial storage behavior, idempotency, and BUG-002 preservation against the corrected verified-removal accounting. Preserve certification, BUG-004, unrelated work, and framework-managed files.",
+            "scenarioIds": [
+                "SCN-BUG001-004"
+            ],
+            "findingIds": [
+                "BUG001-STAB-001-UNVERIFIED-REMOVAL-COUNT",
+                "BUG001-G022-STABILIZE"
+            ],
+            "requestedAt": "2026-08-01T20:21:10Z",
+            "evidenceRefs": [
+                "report.md#implement-phase-evidence---2026-08-01t202110z",
+                "scopes.md#scope-1-scope-01-pre-bug-002-legacy-credential-erasure"
+            ],
+            "resolvedAt": "2026-08-01T20:34:38Z",
+            "resolvedBy": "bubbles.stabilize",
+            "outcome": "route_required",
+            "resolutionSummary": "Replayed cleanup reliability against the corrected accounting. The exact prior deterministic probe passed 2/2; current unit, 14-case functional, real provider browser, repository selftest, regression-quality, diagnostics, diff, and artifact checks are green. BUG001-STAB-001 and the stabilize phase rework are resolved without changing certification."
+        },
+        {
+            "id": "TR-BUG-001-STABILIZE-SECURITY",
+            "status": "resolved",
+            "requestedBy": "bubbles.stabilize",
+            "routedTo": "bubbles.security",
+            "routedToSpec": "specs/_bugs/BUG-001-central-provider-credential-security",
+            "productAction": "none",
+            "routingClass": "specialist",
+            "crossRepoFollowUp": false,
+            "reason": "Execute the required security review over exact pre-BUG-002 legacy-container erasure and preservation of BUG-002 proxy plus localStorage.rlProviderConfig behavior after the STABILITY_GREEN replay. Preserve certification, BUG-004, unrelated work, and framework-managed files; then route to pre-audit validation.",
+            "scenarioIds": [
+                "SCN-BUG001-004"
+            ],
+            "findingIds": [
+                "BUG001-G022-SECURITY"
+            ],
+            "requestedAt": "2026-08-01T20:34:38Z",
+            "evidenceRefs": [
+                "report.md#stabilize-replay-evidence---2026-08-01t203438z",
+                "scopes.md#scope-1-scope-01-pre-bug-002-legacy-credential-erasure",
+                "report.md#security-phase-evidence-bubblessecurity-2026-08-01"
+            ],
+            "resolvedAt": "2026-08-01T20:47:35Z",
+            "resolvedBy": "bubbles.security",
+            "outcome": "route_required",
+            "resolutionSummary": "Completed the required security phase with SECURITY_CLEAN. Exact legacy-name selection, zero legacy value reads, redacted outputs, whole-container confirmation, complete/incomplete/unavailable outcomes, BUG-002 configuration and rlData preservation, provider non-exfiltration, G034, dependency/source-lock, implementation-reality, regression-quality, browser, and repository checks are clean. No BUG-001 defect or bubbles.bug route is required; certification remains unchanged."
+        },
+        {
+            "id": "TR-BUG-001-SECURITY-VALIDATE",
+            "status": "resolved",
+            "requestedBy": "bubbles.security",
+            "routedTo": "bubbles.validate",
+            "routedToSpec": "specs/_bugs/BUG-001-central-provider-credential-security",
+            "productAction": "none",
+            "routingClass": "specialist",
+            "crossRepoFollowUp": false,
+            "reason": "Execute the pre-audit validation boundary after SECURITY_CLEAN. Resolve the fresh bugfix-fastlane delivery contract, verify current artifacts and execution evidence, preserve certification until an independent positive audit, and route that audit without changing BUG-002, BUG-004, unrelated work, or framework-managed files.",
+            "scenarioIds": [
+                "SCN-BUG001-004"
+            ],
+            "findingIds": [
+                "BUG001-G022-VALIDATE-AUDIT",
+                "BUG001-G027-CERTIFICATION"
+            ],
+            "requestedAt": "2026-08-01T20:47:35Z",
+            "workflowMode": "bugfix-fastlane",
+            "auditProfile": "delivery-completion-v1",
+            "targetStatus": "done",
+            "contractDigest": "sha256:aa91472c047d3d985d38c1d308feb1e6081955b2aa553816deb5987d9cdc449f",
+            "contractRef": "bubbles/workflows/modes.yaml#bugfix-fastlane",
+            "evidenceRefs": [
+                "report.md#security-phase-evidence-bubblessecurity-2026-08-01",
+                "report.md#stabilize-replay-evidence---2026-08-01t203438z",
+                "scopes.md#scope-1-scope-01-pre-bug-002-legacy-credential-erasure",
+                "scenario-manifest.json",
+                "state.json"
+            ],
+            "resolvedAt": "2026-08-01T21:48:28Z",
+            "resolvedBy": "bubbles.validate",
+            "outcome": "route_required",
+            "resolutionSummary": "Re-ran the fresh delivery contract, exact SCOPE-01 product tests, artifact lint, traceability, freshness, implementation reality, regression quality, changed-spec audit, framework integrity, and repository readiness. The repaired packet is clean at the pre-audit boundary; validate provenance is recorded and terminal certification remains unchanged pending audit."
+        },
+        {
+            "id": "TR-BUG-001-VALIDATE-AUDIT",
+            "status": "open",
+            "requestedBy": "bubbles.validate",
+            "routedTo": "bubbles.audit",
+            "routedToSpec": "specs/_bugs/BUG-001-central-provider-credential-security",
+            "productAction": "none",
+            "routingClass": "specialist",
+            "crossRepoFollowUp": false,
+            "reason": "Run the independent delivery-completion-v1 audit against the current PRE_AUDIT_CLEAN BUG-001 packet. Verify the one Done SCOPE-01, all 18 checked DoD items, exact SCN-BUG001-004 evidence, phase provenance, finding accounting, and preserved BUG-002 current provider behavior. Do not change product code, BUG-004, unrelated work, framework-managed files, or terminal certification fields.",
+            "scenarioIds": [
+                "SCN-BUG001-004"
+            ],
+            "findingIds": [
+                "BUG001-G022-AUDIT",
+                "BUG001-G027-CERTIFICATION"
+            ],
+            "requestedAt": "2026-08-01T21:48:28Z",
+            "workflowMode": "bugfix-fastlane",
+            "auditProfile": "delivery-completion-v1",
+            "targetStatus": "done",
+            "contractDigest": "sha256:aa91472c047d3d985d38c1d308feb1e6081955b2aa553816deb5987d9cdc449f",
+            "contractRef": "bubbles/workflows/modes.yaml#bugfix-fastlane",
+            "evidenceRefs": [
+                "report.md#validate-pre-audit-replay-2026-08-01t214514z",
+                "report.md#security-phase-evidence-bubblessecurity-2026-08-01",
+                "report.md#stabilize-replay-evidence---2026-08-01t203438z",
+                "scopes.md#scope-1-scope-01-pre-bug-002-legacy-credential-erasure",
+                "scenario-manifest.json",
+                "state.json"
+            ]
+        },
+        {
+            "id": "TR-BUG-001-STEP2-PLAN",
+            "status": "resolved",
+            "requestedBy": "bubbles.bug",
+            "routedTo": "bubbles.plan",
+            "reason": "Product Review Step 2 withdrew BUG-001 because BUG-002 superseded its active Tier-2 contract. Remove the obsolete five-scope executable inventory and its moot DoD items from active planning. Retain only RET-BUG001-LEGACY-ERASURE as a routed requirement; do not mark superseded implementation work Done.",
+            "findingIds": [
+                "RET-BUG001-LEGACY-ERASURE"
+            ],
+            "evidenceRefs": [
+                "bug.md#supersession-disposition",
+                "../BUG-002-two-tier-provider-access/bug.md",
+                "../BUG-002-two-tier-provider-access/spec.md",
+                "../BUG-002-two-tier-provider-access/report.md#validation-evidence"
+            ],
+            "resolvedAt": "2026-08-01T16:55:27Z",
+            "resolvedBy": "bubbles.plan",
+            "resolutionSummary": "Plan-owned artifacts now contain one active SCOPE-01 for retained legacy-container erasure and explicitly protect BUG-002 current provider configuration."
+        },
+        {
+            "id": "TR-BUG-001-STEP2-LEGACY-PACKET",
+            "status": "resolved",
+            "requestedBy": "bubbles.bug",
+            "routedTo": "bubbles.bug",
+            "dependsOn": [
+                "TR-BUG-001-STEP2-PLAN"
+            ],
+            "reason": "Create a focused complete bug packet for RET-BUG001-LEGACY-ERASURE after the plan owner extracts the requirement. Preserve the distinction between accepted BUG-002 Tier-2 local storage and stale credential copies left in pre-BUG-002 legacy containers.",
+            "findingIds": [
+                "RET-BUG001-LEGACY-ERASURE"
+            ],
+            "evidenceRefs": [
+                "bug.md#supersession-disposition",
+                "../BUG-002-two-tier-provider-access/report.md#s3"
+            ],
+            "resolvedAt": "2026-08-01T17:16:42Z",
+            "resolvedBy": "bubbles.bug",
+            "resolutionSummary": "The retained finding is implemented in the existing complete BUG-001 packet under the plan-owned active SCOPE-01; six mapped tests and ten DoD execution claims are recorded in report.md."
+        },
+        {
+            "id": "TR-BUG-001-STEP2-VALIDATE",
+            "status": "resolved",
+            "requestedBy": "bubbles.bug",
+            "routedTo": "bubbles.validate",
+            "dependsOn": [
+                "TR-BUG-001-STEP2-PLAN",
+                "TR-BUG-001-STEP2-LEGACY-PACKET"
+            ],
+            "reason": "After the plan owner removes superseded executable scope content and routes the retained legacy-erasure finding, record the valid control-plane terminal/blocking disposition for this withdrawn packet. Do not certify BUG-001 implementation or alter BUG-002 certification.",
+            "findingIds": [
+                "BUG001-SUPERSESSION-STATUS"
+            ],
+            "evidenceRefs": [
+                "bug.md#supersession-disposition",
+                "../BUG-002-two-tier-provider-access/state.json"
+            ],
+            "supersededAt": "2026-08-01T17:16:42Z",
+            "supersededBy": "TR-BUG-001-SCOPE01-VALIDATE",
+            "supersessionReason": "The retained legacy-erasure finding became an implemented active scope; validation now consumes its exact current execution evidence instead of recording only a withdrawn-packet disposition."
+        },
+        {
             "id": "TR-BUG-001-DESIGN",
-            "status": "superseded",
+            "status": "resolved",
             "requestedBy": "bubbles.bug",
             "routedTo": "bubbles.design",
             "reason": "Confirm the root cause and reconcile the same-tab credential, provider authorization, migration, transport, and G028 compatibility design before planning or implementation.",
@@ -224,7 +1097,7 @@
         },
         {
             "id": "TR-BUG-001-F004-DESIGN",
-            "status": "superseded",
+            "status": "resolved",
             "requestedBy": "bubbles.bug",
             "routedTo": "bubbles.design",
             "reason": "Feature 004 executed security evidence classifies raw legacy credential staging and the active sessionStorage envelope as genuine High violations. Reconcile design.md to memory-only current-page credentials, reload/navigation clearing, redacted erase-only legacy handling, provider disablement, disclosure controls, blast radius, canaries, and fail-closed rollback while preserving historical evidence and F004-COLLISION-001.",
@@ -309,27 +1182,22 @@
             "resolutionSummary": "Reconciled five active scopes, 11 stable scenario contracts, 12 exact Playwright titles, the machine Test Plan, acceptance checklist, and execution routing to current-document memory plus erase-only legacy cleanup. Historical session evidence remains non-active and certification fields remain validate-owned."
         }
     ],
-    "reworkQueue": [
-        {
-            "id": "BUG001-SPEC-MIGRATION-CONFLICT",
-            "status": "resolved",
-            "owner": "bubbles.plan",
-            "sourceTransitionRequest": "TR-BUG-001-F004-PLAN",
-            "reason": "The corrected spec and active design prohibit legacy-value access and define exact-name metadata detection, inert dismissal, destructive whole-container deletion, and name-absence verification with no credential destination.",
-            "requiredResolution": "Resolved in plan-owned artifacts: every active scenario, test, DoD item, acceptance row, and route is erase-only and contains no legacy-value ingress, transfer, selective rewrite, or activation contract.",
-            "scenarioIds": [
-                "SCN-BUG001-004",
-                "SCN-BUG001-006",
-                "SCN-BUG001-011"
-            ],
-            "resolvedAt": "2026-07-15T17:30:09Z",
-            "resolvedBy": "bubbles.plan"
-        }
-    ],
+    "reworkQueue": [],
     "routing": {
-        "currentOwner": "bubbles.bug",
-        "nextRequiredOwner": "bubbles.implement",
-        "foreignOwnedRoutes": [],
+        "currentOwner": "bubbles.validate",
+        "nextRequiredOwner": "bubbles.validate",
+        "foreignOwnedRoutes": [
+            {
+                "findingId": "BUG001-G022-VALIDATE-AUDIT",
+                "owner": "bubbles.validate",
+                "action": "Run pre-audit validation after the required phases, route an independent delivery audit, and make the terminal decision only after a positive audit."
+            },
+            {
+                "findingId": "BUG001-G027-CERTIFICATION",
+                "owner": "bubbles.validate",
+                "action": "Reconcile validate-owned completed-scope and certification coherence only after required phases and a positive audit; do not alter BUG-002."
+            }
+        ],
         "historicalResolvedRoutes": [
             {
                 "findingId": "BUG001-CERTIFICATION-INVENTORY-STALE",
@@ -359,67 +1227,71 @@
         "sequence": [
             {
                 "order": 1,
-                "owner": "bubbles.implement",
-                "scope": "SCOPE-01",
-                "action": "Capture scenario-first RED against current production before any source change, then implement closure-private current-document memory, remove serialized credential APIs, clear every required lifecycle boundary, reject non-closed identifiers without mutation, and preserve the just-in-time dirty-tree baseline."
+                "owner": "bubbles.regression",
+                "action": "Execute regression against SCN-BUG001-004 and preserved replay evidence."
             },
             {
                 "order": 2,
-                "owner": "bubbles.test",
-                "action": "Execute the reconciled targeted, broader, E2E, stress, load, Feature 004, collision, regression-quality, and implementation-reality checks and record current-session evidence."
+                "owner": "bubbles.simplify",
+                "action": "Execute behavior-preserving simplification within the existing boundary."
             },
             {
                 "order": 3,
+                "owner": "bubbles.stabilize",
+                "action": "Execute stability review and required verification."
+            },
+            {
+                "order": 4,
+                "owner": "bubbles.plan",
+                "action": "Reconcile the completed scope and test obligation for BUG001-STAB-001."
+            },
+            {
+                "order": 5,
+                "owner": "bubbles.test",
+                "action": "Add a persistent scenario-faithful unavailable-verification regression under the reconciled SCOPE-01 plan."
+            },
+            {
+                "order": 6,
+                "owner": "bubbles.implement",
+                "action": "Correct verified-removal accounting without changing BUG-002 provider configuration or transport."
+            },
+            {
+                "order": 7,
+                "owner": "bubbles.stabilize",
+                "action": "Replay the stability probe and focused preservation suites after remediation."
+            },
+            {
+                "order": 8,
+                "owner": "bubbles.security",
+                "action": "Execute security review of legacy erasure and BUG-002 preservation."
+            },
+            {
+                "order": 9,
                 "owner": "bubbles.validate",
-                "action": "Consume implementation and test evidence only after both delivery owners return; the reconciled certification inventory remains in_progress with zero completed scopes, and no routing run certifies completion."
+                "action": "Run the pre-audit validation boundary and route an independent audit."
+            },
+            {
+                "order": 10,
+                "owner": "bubbles.audit",
+                "action": "Run the independent delivery-completion audit."
+            },
+            {
+                "order": 11,
+                "owner": "bubbles.validate",
+                "action": "Reconcile G027 and make the terminal certification decision only from a positive current audit."
             }
         ],
-        "implementationDispatchAllowed": true,
-        "scope01DispatchAllowed": true,
+        "implementationDispatchAllowed": false,
+        "scope01DispatchAllowed": false,
         "constraints": [
             {
-                "id": "SCENARIO-FIRST-RED",
-                "status": "required-at-scope-entry",
-                "effect": "SCOPE-01 must execute its exact regression scenarios against current production and retain observed failing proof before implementation changes."
-            },
-            {
-                "id": "CURRENT-DOCUMENT-CLOSURE-PRIVATE-MEMORY",
-                "status": "active",
-                "effect": "Credential state may exist only in closure-private memory for the currently loaded document and may not cross a document boundary."
-            },
-            {
-                "id": "NO-SERIALIZED-CREDENTIAL-APIS",
-                "status": "active",
-                "effect": "The envelope, storage adapters, raw getters, bulk maps, header exporters, and transferable credential representations must be removed without a replacement serialization API."
-            },
-            {
-                "id": "LIFECYCLE-CLEARING",
-                "status": "active",
-                "effect": "Reload, route or history transition, bfcache traversal, page navigation, pagehide, close or reopen, new realm, and explicit clear must leave the affected document unconfigured."
-            },
-            {
-                "id": "CLOSED-IDENTIFIERS",
-                "status": "active",
-                "effect": "Unknown, empty, inherited, constructor, and prototype-shaped identifiers must fail closed without runtime, registry, storage-surface, or prototype mutation."
-            },
-            {
-                "id": "DEP-BUG013-SEMANTIC-CLASSIFIER",
-                "status": "unresolved",
-                "effect": "Canonical scanner semantics gate SCOPE-05 closure but do not authorize downstream framework edits or block SCOPE-01 pickup."
-            },
-            {
-                "id": "F004-COLLISION-001",
-                "status": "unresolved",
-                "effect": "The open collision and exact protected hash ab27e89cd0dd8c6dd640254615a10d15a2be008596ec72834ca4512766c646fc must remain unchanged; ambiguous shared-file edits stop."
-            },
-            {
-                "id": "BUG001-DIRTY-TREE-BOUNDARY",
-                "status": "active",
-                "effect": "Implementation must capture just-in-time status, index OID, worktree hash, and distinct hunk hashes, preserve unrelated dirty work, and stop on ambiguous ownership."
+                "id": "RET-BUG001-LEGACY-ERASURE",
+                "status": "security_clean_pre_audit_validation_required",
+                "effect": "Complete, partial, unavailable-verification, and idempotent cleanup preserve BUG-002 current provider configuration with verified removal accounting and a clean security review. Pre-audit validation is the next required specialist phase."
             }
         ],
-        "dispatchReason": "Active spec, design, plan, scenario, machine test-plan, user-validation, and certification inventory surfaces now agree on five sequential not_started scopes. SCOPE-01 has no dependency and may dispatch to bubbles.implement under scenario-first RED, closure-private current-document memory, no serialized credential APIs, lifecycle clearing, closed identifiers, the dirty-tree baseline, DEP-BUG013 semantics, and F004-COLLISION-001 preservation.",
-        "validationCaveat": "Current production still contains the bug. Historical BUG-001 evidence remains explicitly historical and cannot certify the active memory-only contract; the 12 Playwright titles are planning identifiers, not pass claims. Certification inventory is reconciled but remains in_progress with zero completed scopes. Canonical BUG-013, F004-COLLISION-001, and dirty-hunk ownership remain active constraints."
+        "dispatchReason": "The security phase completed with zero BUG-001 findings: G034, npm advisory and source-lock checks, implementation reality, regression quality, exact unit/functional/browser behavior, and repository selftest are clean. bubbles.validate is the next required owner for pre-audit validation.",
+        "validationCaveat": "Security records an execution-phase diagnostic verdict only. No certification field, top-level status, Fixed, Verified, Closed, or done claim changed; BUG-002 remains authoritative for Tier-1 proxy plus Tier-2 localStorage.rlProviderConfig behavior."
     },
     "executionHistory": [
         {
@@ -553,6 +1425,266 @@
             "deliveryOwner": "bubbles.implement",
             "scope01DispatchAllowed": true,
             "summary": "Reconciled all plan-owned BUG-001 artifacts to five sequential current-document and erase-only scopes, established exact 12-title parity, preserved unresolved BUG-013/collision/dirty-tree constraints, left certification untouched, and routed foreign-owned inventory and status prose."
+        },
+        {
+            "agent": "bubbles.bug",
+            "workflowMode": "bugfix-fastlane",
+            "startedAt": "2026-08-01T16:55:27Z",
+            "completedAt": "2026-08-01T17:16:42Z",
+            "statusBefore": "in_progress",
+            "statusAfter": "in_progress",
+            "phasesExecuted": [
+                "implement",
+                "test"
+            ],
+            "scopesCompleted": [],
+            "executionScopesCompletedPendingCertification": [
+                "SCOPE-01"
+            ],
+            "outcome": "route_required",
+            "addressedFindings": [
+                "BUG001-LEGACY-CONTAINER-CLOSURE"
+            ],
+            "unresolvedFindings": [
+                "BUG001-CERTIFICATION"
+            ],
+            "nextRequiredOwner": "bubbles.validate",
+            "summary": "Implemented exact pre-BUG-002 legacy-container detection, destructive disclosed erase, verified absence, explicit redacted incomplete cleanup, and adversarial current-store preservation. All six plan rows and quality checks have current evidence in report.md; certification remains untouched."
+        },
+        {
+            "agent": "bubbles.regression",
+            "workflowMode": "bugfix-fastlane",
+            "startedAt": "2026-08-01T18:41:45Z",
+            "completedAt": "2026-08-01T18:45:21Z",
+            "statusBefore": "in_progress",
+            "statusAfter": "in_progress",
+            "phasesExecuted": [
+                "regression"
+            ],
+            "scopesCompleted": [],
+            "outcome": "route_required",
+            "addressedFindings": [
+                "BUG001-G022-REGRESSION"
+            ],
+            "unresolvedFindings": [
+                "BUG001-REGRESSION-DESIGN-CONFLICT"
+            ],
+            "nextRequiredOwner": "bubbles.design",
+            "evidenceRefs": [
+                "report.md#regression-phase-evidence---2026-08-01t184521z"
+            ],
+            "summary": "Executed the current exact provider unit, functional, repository, browser, first-party consumer, Bond, Causal, FX, Palm Springs, contract-validator, and adversarial regression-quality checks with zero failures or skips. Active design.md remains incompatible with BUG-002 proxy and durable Tier-2 behavior, so no REGRESSION_FREE or simplify handoff is claimed."
+        },
+        {
+            "agent": "bubbles.regression",
+            "workflowMode": "bugfix-fastlane",
+            "recordedAt": "2026-08-01T19:26:12Z",
+            "statusBefore": "in_progress",
+            "statusAfter": "in_progress",
+            "phasesExecuted": [
+                "regression"
+            ],
+            "scopesCompleted": [],
+            "outcome": "route_required",
+            "verdict": "REGRESSION_FREE",
+            "addressedFindings": [
+                "BUG001-G022-REGRESSION"
+            ],
+            "verifiedResolvedFindings": [
+                "BUG001-REGRESSION-DESIGN-CONFLICT"
+            ],
+            "unresolvedFindings": [
+                "BUG001-G022-SIMPLIFY",
+                "BUG001-G022-STABILIZE",
+                "BUG001-G022-SECURITY",
+                "BUG001-G022-VALIDATE-AUDIT",
+                "BUG001-G027-CERTIFICATION"
+            ],
+            "nextRequiredOwner": "bubbles.simplify",
+            "evidenceRefs": [
+                "report.md#regression-final-replay-after-feature-007-correction---2026-08-01t192612z"
+            ],
+            "summary": "Verified the reconciled active design against BUG-002 and the retained one-scope contract; replayed 3/3 unit, 13/13 functional, 1101/1101 repository, 6/6 provider browser, 5/5 corrected Feature 007, and 83/83 cross-feature checks plus both regression-quality modes; recorded REGRESSION_FREE; and routed to bubbles.simplify without changing certification or product behavior."
+        },
+        {
+            "agent": "bubbles.simplify",
+            "workflowMode": "bugfix-fastlane",
+            "executionModel": "direct-surgical-invocation",
+            "parentAgent": null,
+            "startedAt": "2026-08-01T19:33:29Z",
+            "completedAt": "2026-08-01T19:38:14Z",
+            "statusBefore": "in_progress",
+            "statusAfter": "in_progress",
+            "phasesExecuted": [
+                "simplify"
+            ],
+            "scopesCompleted": [],
+            "outcome": "route_required",
+            "verdict": "SIMPLIFIED_REGRESSION_FREE",
+            "addressedFindings": [
+                "BUG001-SIMPLIFY-REUSE-001",
+                "BUG001-G022-SIMPLIFY"
+            ],
+            "unresolvedFindings": [
+                "BUG001-G022-STABILIZE",
+                "BUG001-G022-SECURITY",
+                "BUG001-G022-VALIDATE-AUDIT",
+                "BUG001-G027-CERTIFICATION"
+            ],
+            "nextRequiredOwner": "bubbles.stabilize",
+            "evidenceRefs": [
+                "report.md#simplify-phase-evidence---2026-08-01t193814z"
+            ],
+            "repositoryBindingDecision": "rb:vscode-9a7293b2dab62e384ebe03875bcef375:11",
+            "summary": "Reviewed only the active BUG-001 legacy-container source/test delta across reuse, quality, and efficiency. Centralized three identical legacy-name test fixtures into one frozen support fixture; production code remained unchanged. Current-byte preservation passed 16/16 focused unit and functional tests, 6/6 provider browser tests, 1101/1101 repository selftests, both regression-quality modes, path-scoped diff check, and edited-file diagnostics. Top-level and certification status remain in_progress; execution routes to bubbles.stabilize."
+        },
+        {
+            "agent": "bubbles.stabilize",
+            "workflowMode": "bugfix-fastlane",
+            "executionModel": "direct-surgical-invocation",
+            "parentAgent": null,
+            "recordedAt": "2026-08-01T19:50:47Z",
+            "statusBefore": "in_progress",
+            "statusAfter": "in_progress",
+            "phasesExecuted": [
+                "stabilize"
+            ],
+            "scopesCompleted": [],
+            "outcome": "route_required",
+            "verdict": "UNSTABLE",
+            "addressedFindings": [
+                "BUG001-G022-STABILIZE"
+            ],
+            "unresolvedFindings": [
+                "BUG001-STAB-001-UNVERIFIED-REMOVAL-COUNT",
+                "BUG001-G022-SECURITY",
+                "BUG001-G022-VALIDATE-AUDIT",
+                "BUG001-G027-CERTIFICATION"
+            ],
+            "nextRequiredOwner": "bubbles.plan",
+            "evidenceRefs": [
+                "report.md#stabilize-phase-evidence---2026-08-01t195047z"
+            ],
+            "repositoryBindingDecision": "rb:vscode-9a7293b2dab62e384ebe03875bcef375:12",
+            "summary": "Reviewed cleanup reliability, idempotency, unavailable and partial storage behavior, race and reentrancy, resource cost, and BUG-002 preservation. The current 16/16 focused Node, 6/6 browser, and 1101/1101 repository checks remained green, while a deterministic probe reproduced one medium false removal-count defect under unavailable verification. Certification and product code/tests were unchanged; the route returns to bubbles.plan before test, implementation, stabilize replay, and security."
+        },
+        {
+            "agent": "bubbles.implement",
+            "workflowMode": "bugfix-fastlane",
+            "executionModel": "direct-surgical-invocation",
+            "parentAgent": null,
+            "recordedAt": "2026-08-01T20:21:10Z",
+            "statusBefore": "in_progress",
+            "statusAfter": "in_progress",
+            "phasesExecuted": [
+                "implement"
+            ],
+            "scopesCompleted": [],
+            "outcome": "route_required",
+            "verdict": "GREEN_IMPLEMENTATION",
+            "addressedFindings": [
+                "BUG001-STAB-001-UNVERIFIED-REMOVAL-COUNT"
+            ],
+            "unresolvedFindings": [
+                "BUG001-G022-STABILIZE",
+                "BUG001-G022-SECURITY",
+                "BUG001-G022-VALIDATE-AUDIT",
+                "BUG001-G027-CERTIFICATION"
+            ],
+            "nextRequiredOwner": "bubbles.stabilize",
+            "evidenceRefs": [
+                "report.md#implement-phase-evidence---2026-08-01t202110z"
+            ],
+            "repositoryBindingDecision": "rb:vscode-9a7293b2dab62e384ebe03875bcef375:15",
+            "summary": "Consumed the persistent expected RED, corrected verified-removal accounting in the existing BUG-001 cleanup function, and passed 3/3 focused unit, 14/14 functional, 6/6 provider browser, 1101/1101 repository selftests, regression-quality guards, diagnostics, and path-scoped diff validation. Certification remained unchanged and execution routes to bubbles.stabilize."
+        },
+        {
+            "agent": "bubbles.stabilize",
+            "workflowMode": "bugfix-fastlane",
+            "executionModel": "direct-surgical-invocation",
+            "parentAgent": null,
+            "recordedAt": "2026-08-01T20:34:38Z",
+            "statusBefore": "in_progress",
+            "statusAfter": "in_progress",
+            "phasesExecuted": [
+                "stabilize"
+            ],
+            "scopesCompleted": [],
+            "outcome": "route_required",
+            "verdict": "STABILITY_GREEN",
+            "addressedFindings": [
+                "BUG001-STAB-001-UNVERIFIED-REMOVAL-COUNT",
+                "BUG001-G022-STABILIZE"
+            ],
+            "unresolvedFindings": [
+                "BUG001-G022-SECURITY",
+                "BUG001-G022-VALIDATE-AUDIT",
+                "BUG001-G027-CERTIFICATION"
+            ],
+            "nextRequiredOwner": "bubbles.security",
+            "evidenceRefs": [
+                "report.md#stabilize-replay-evidence---2026-08-01t203438z"
+            ],
+            "repositoryBindingDecision": "rb:vscode-9a7293b2dab62e384ebe03875bcef375:16",
+            "summary": "Replayed cleanup reliability, idempotency, unavailable and partial storage behavior, race and reentrancy, bounded resource cost, and BUG-002 preservation against the corrected verified-removal accounting. The exact prior probe passed 2/2; current 3/3 unit, 14/14 functional, 6/6 provider browser, and 1101/1101 repository checks plus quality gates are green. Certification remained unchanged and execution routes to bubbles.security."
+        },
+        {
+            "agent": "bubbles.security",
+            "workflowMode": "bugfix-fastlane",
+            "executionModel": "direct-surgical-invocation",
+            "parentAgent": null,
+            "startedAt": "2026-08-01T20:42:55Z",
+            "completedAt": "2026-08-01T20:47:35Z",
+            "statusBefore": "in_progress",
+            "statusAfter": "in_progress",
+            "phasesExecuted": [
+                "security"
+            ],
+            "scopesCompleted": [],
+            "outcome": "route_required",
+            "verdict": "SECURITY_CLEAN",
+            "addressedFindings": [
+                "BUG001-G022-SECURITY",
+                "TR-BUG-001-STABILIZE-SECURITY"
+            ],
+            "unresolvedFindings": [
+                "BUG001-G022-VALIDATE-AUDIT",
+                "BUG001-G027-CERTIFICATION"
+            ],
+            "nextRequiredOwner": "bubbles.validate",
+            "evidenceRefs": [
+                "report.md#security-phase-evidence-bubblessecurity-2026-08-01"
+            ],
+            "repositoryBindingDecision": "rb:vscode-9a7293b2dab62e384ebe03875bcef375:17",
+            "summary": "Threat-modeled and verified exact pre-BUG-002 container selection/erasure, zero legacy value reads or disclosure, protected current rlProviderConfig/rlData, complete/incomplete/unavailable outcomes, native UI confirmation, CSP/sink posture, dependency integrity, G034, and BUG-002 provider non-exfiltration. No BUG-001 security defect was found; certification remained unchanged and execution routes to bubbles.validate for pre-audit validation."
+        },
+        {
+            "agent": "bubbles.validate",
+            "workflowMode": "bugfix-fastlane",
+            "executionModel": "direct-surgical-invocation",
+            "parentAgent": null,
+            "recordedAt": "2026-08-01T21:45:14Z",
+            "statusBefore": "in_progress",
+            "statusAfter": "in_progress",
+            "phasesExecuted": [
+                "validate"
+            ],
+            "scopesCompleted": [],
+            "outcome": "route_required",
+            "verdict": "PRE_AUDIT_CLEAN",
+            "addressedFindings": [
+                "BUG001-G022-VALIDATE"
+            ],
+            "unresolvedFindings": [
+                "BUG001-G022-AUDIT",
+                "BUG001-G027-CERTIFICATION"
+            ],
+            "nextRequiredOwner": "bubbles.audit",
+            "evidenceRefs": [
+                "report.md#validate-pre-audit-replay-2026-08-01t214514z"
+            ],
+            "repositoryBindingDecision": "rb:vscode-9a7293b2dab62e384ebe03875bcef375:21",
+            "summary": "Re-ran the current transition contract, exact SCOPE-01 product tests, and required governance checks; verified the repaired design, plan, evidence anchors, and bootstrap provenance; recorded only validate's execution claim; and preserved all terminal certification fields pending a current delivery-completion audit."
         }
     ],
     "activeBugs": [
@@ -560,7 +1692,7 @@
     ],
     "resolvedBugs": [],
     "failures": [],
-    "lastUpdatedAt": "2026-07-15T18:01:31Z",
+    "lastUpdatedAt": "2026-08-01T22:13:51Z",
     "scopeLayout": "single-file",
     "artifacts": {
         "bug": "bug.md",
@@ -607,7 +1739,7 @@
             "G067",
             "G069"
         ],
-        "specDoneRequires": "All five scopes Done, every DoD item evidenced, all eleven scenarios replayed, every finding closed one-to-one, and bubbles.validate certification."
+        "specDoneRequires": "The single active SCOPE-01 must satisfy the canonical bug-closure DoD for SCN-BUG001-004, all required workflow phases and findings must close, and bubbles.validate must certify completion."
     },
-    "notes": "BUG-001 active spec, design, plan, scenario, machine test-plan, user-validation, and certification inventory surfaces now agree on five sequential current-loaded-document memory-only and erase-only scopes, all not_started. This bug-owner reconciliation changed only bug.md active status/routing prose and state.json execution/routing metadata; product code, tests, report evidence, framework-managed files, certification fields, top-level status, and completion checkboxes remain unchanged. Current production still contains the bug. SCOPE-01 may dispatch to bubbles.implement under scenario-first RED, closure-private current-document memory, no serialized credential APIs, lifecycle clearing, closed identifiers, the dirty-tree baseline, DEP-BUG013 semantics, and F004-COLLISION-001 preservation."
+    "notes": "BUG-002 remains authoritative for current Tier-1 proxy and Tier-2 localStorage.rlProviderConfig behavior. BUG-001 describes only pre-BUG-002 legacy-container closure under active SCOPE-01. SCOPE-01 execution is Done and PRE_AUDIT_CLEAN is recorded with current product and governance evidence. Top-level status, certification.status, certification.completedScopes, certification.scopeProgress, and certification.certifiedCompletedPhases remain nonterminal and unchanged pending a current delivery-completion audit; the route is bubbles.audit."
 }

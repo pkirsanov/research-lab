@@ -6,15 +6,247 @@ Links: [bug.md](bug.md) | [spec.md](spec.md) | [design.md](design.md) | [report.
 
 **Authoritative owner:** `bubbles.plan`  
 **Workflow mode:** `bugfix-fastlane`  
-**Plan outcome:** `in_progress`  
-**Implementation dispatch allowed:** `true`  
-**Next required owner:** `bubbles.implement`
+**Plan outcome:** `route_required`
+**Implementation dispatch allowed:** `false`
+**Next required owner:** `bubbles.bug`
 
-The active execution contract follows the corrected [spec.md](spec.md) and [design.md](design.md): credentials may exist only in closure-private memory for one future eligible loaded document that owns both collection and a fully authorized request. Legacy handling is erase-only. Detection uses exact registered names and metadata; dismissal is inert; confirmed cleanup deletes whole credential-bearing containers after destructive-effect disclosure and verifies name absence only. No active path may read, parse, hash, compare, copy, stage, migrate, selectively rewrite, or activate a legacy value, even with consent. No current production provider is eligible.
+BUG-002 explicitly supersedes BUG-001's broad Tier-2 memory-only and client-storage prohibition. The approved Tier-2 contract stores a per-browser local provider key in `localStorage.rlProviderConfig`; this BUG-001 plan must not remove, reject, clear, or classify that canonical container as legacy. The only active BUG-001 delivery work is a bounded closure for credentials already present in exact pre-BUG-002 legacy browser containers.
 
-[spec.md](spec.md), [design.md](design.md), source, tests, historical [report.md](report.md) evidence, and `state.json.certification` are foreign-owned and are not modified by this plan. Stable contracts remain `SCN-BUG001-001` through `SCN-BUG001-011`. The Playwright plan has 12 active literal titles because SCN-BUG001-001 has both a bootstrap canary and a persistent regression. Every active title and assertion states the current-document, erase-only contract directly.
+[spec.md](spec.md), [design.md](design.md), source, tests, BUG-002, BUG-004, historical [report.md](report.md) evidence, `state.json`, and `state.json.certification` are foreign-owned and unchanged by this planning revision. `SCN-BUG001-004` remains the active behavioral anchor because it already specifies detect-and-erase behavior for legacy containers. All other former BUG-001 scenarios, scopes, checked DoD claims, and Tier-2 memory-only tests are superseded for this bug and cannot support implementation or certification.
 
 ## Execution Outline
+
+### Phase Order
+
+1. **SCOPE-01:** Detect exact pre-BUG-002 legacy credential containers, disclose destructive cleanup, erase those containers, and verify absence while preserving BUG-002's canonical proxy and Tier-2 local-key configuration. **Done with current post-fix stability and security evidence.**
+
+No second active scope exists. The reopened `BUG001-STAB-001-UNVERIFIED-REMOVAL-COUNT` branch is fixed and green: the exact S1-T03 adversarial path, focused functional and unit suites, provider browser suite, repository selftest, stability marker, and security marker are recorded at the current post-fix evidence anchor. Remaining work is foreign-owned bootstrap provenance reconciliation routed to `bubbles.bug` before validate may make a certification decision.
+
+### New Types And Signatures
+
+- `LegacyCredentialContainerPolicy { storageClass, containerName, providerId, locationClass, destructiveEffect }`: closed metadata for pre-BUG-002 containers only.
+- `detectLegacyCredentialContainers() -> LegacyPresenceSummary`: reports registered names through provider/location classes and counts without activating legacy credentials.
+- `eraseLegacyCredentialContainers() -> LegacyEraseResult`: removes exact registered legacy containers and verifies their names are absent.
+- Protected existing contract: BUG-002's proxy configuration and `localStorage.rlProviderConfig` remain outside the legacy registry and byte-for-byte unchanged by BUG-001 cleanup.
+
+### Validation Checkpoints
+
+- Before implementation, capture path status and hunk identity for every allowed shared file; stop on ownership ambiguity.
+- Establish a failing regression with both a pre-BUG-002 legacy container and a valid BUG-002 `rlProviderConfig` fixture.
+- Focused functional checks must prove exact-name deletion, explicit incomplete results, and zero mutation of the canonical BUG-002 container.
+- The reopened S1-T03 checkpoint must force one selected-container deletion failure followed by unavailable post-delete enumeration and prove that the still-present container is excluded from `removedContainerCount`, `status` is `unavailable`, `ok` is false, and no complete/success claim is produced.
+- Live Playwright checks must prove the cleanup interaction removes legacy containers while current Tier-1 proxy and Tier-2 local-key behavior remains usable.
+- `node scripts/selftest.mjs`, the provider credential suites, and a path-scoped diff check must pass before routing to validation.
+
+| Scope | Outcome | Depends On | Surfaces | Status |
+| --- | --- | --- | --- | --- |
+| SCOPE-01 | Erase and verify exact pre-BUG-002 credential containers without changing current provider access | None | Shared data layer, cleanup UI, provider tests, selftest | Done |
+
+## Test Taxonomy Applicability
+
+| Category | Applicability | Reason |
+| --- | --- | --- |
+| unit | Required | The closed legacy registry must exclude BUG-002's canonical container and reject unknown names. |
+| functional | Required | Exact-name deletion, incomplete deletion, and canonical-container preservation need deterministic browser-storage instrumentation. |
+| integration | Required | The shared scripts and repository selftest must agree on the superseded and protected container sets. |
+| ui-unit | Not applicable | Research Lab has no component-test runtime; the real static cleanup surface is covered by Playwright. |
+| e2e-api | Not applicable | No first-party service API participates in browser-container cleanup. |
+| e2e-ui | Required | The user-visible disclosure, confirmation, success, and incomplete states run against the real static page. |
+| stress | Not applicable | This bounded one-time cleanup has no throughput or latency contract. |
+| load | Not applicable | Cross-context concurrency is not part of legacy-container closure and remains governed by BUG-002. |
+
+No project `testImpact` or `traceContracts` map is configured; G079/G080 planning rows are not applicable.
+
+## Protected Change Boundary
+
+Allowed implementation paths are credential-cleanup hunks in `rldata.js`, `rlapp.js`, and `index.html`; BUG-001 assertions in `tests/provider-credentials.{support,unit,functional,spec}.mjs`; and the matching BUG-001 checks in `scripts/selftest.mjs`. The implementation owner must narrow this list further when the controlling cleanup path is confirmed.
+
+Excluded surfaces are BUG-002 artifacts and behavior, BUG-004, `localStorage.rlProviderConfig`, proxy configuration, provider acquisition semantics, `.github/bubbles/**`, unrelated specs/docs/source/tests, generated data, and every pre-existing hunk outside exact BUG-001 cleanup symbols. No stash, reset, clean, checkout overwrite, staging, broad formatting, whole-file replacement, dependency installation, or unrelated cleanup is authorized.
+
+## Scope 1: SCOPE-01 Pre-BUG-002 Legacy Credential Erasure
+
+**Status:** Done
+**Depends On:** None
+**Scope-Kind:** runtime-behavior
+
+### Gherkin Scenario - SCOPE-01
+
+```gherkin
+Scenario: SCN-BUG001-004 - Pre-BUG-002 credential containers are erased without disturbing current provider access
+  Given exact registered pre-BUG-002 legacy credential containers are present
+  And BUG-002 proxy configuration and localStorage.rlProviderConfig contain valid current configuration
+  When the product detects legacy credential presence
+  Then it reports only registered provider ids location classes and counts
+  And it does not activate a credential from a legacy container
+  When the user confirms destructive legacy cleanup
+  Then every selected pre-BUG-002 container is removed and verified absent by exact name
+  And BUG-002 proxy configuration and localStorage.rlProviderConfig are unchanged
+  And an incomplete deletion reports explicit redacted failure without claiming success
+  When deletion of a selected pre-BUG-002 container fails
+  And post-delete exact-name enumeration is unavailable
+  Then the result is unavailable with ok false
+  And removedContainerCount excludes the still-present selected container
+  And the product does not claim complete or render success
+  And BUG-002 proxy configuration and localStorage.rlProviderConfig are unchanged
+```
+
+### UI Scenario Matrix - SCOPE-01
+
+| Scenario | Preconditions | Steps | Expected visible result | Test |
+| --- | --- | --- | --- | --- |
+| Legacy presence | Legacy containers and valid BUG-002 configuration are seeded | Open Data settings | Redacted provider/location classes and counts appear; current provider access remains configured. | e2e-ui |
+| Confirm erase | Legacy presence is visible | Review disclosure and confirm cleanup | Registered legacy containers are absent; current proxy and Tier-2 local-key configuration remain unchanged. | e2e-ui |
+| Incomplete erase | One registered legacy deletion is forced to fail | Confirm cleanup | Explicit incomplete status names only redacted classes/counts; no success claim is shown. | functional/e2e-ui |
+
+### Implementation Plan - SCOPE-01
+
+1. Freeze the exact pre-BUG-002 legacy container registry from established historical names; explicitly exclude `rlProviderConfig` and all current BUG-002 configuration.
+2. Add scenario-first failures that seed legacy containers beside valid proxy and Tier-2 configuration.
+3. Detect legacy presence from exact registered names and metadata only; do not make legacy content an active provider credential.
+4. Render destructive-effect disclosure and explicit confirmation before deleting whole registered legacy containers.
+5. Verify each selected legacy name is absent and return `complete` only when all selected names are gone. Count a selected container as removed only when absence is verified; when deletion fails and post-delete enumeration is unavailable, return `unavailable` with `ok=false`, exclude the unverified still-present container from `removedContainerCount`, and make no complete/success claim.
+6. Prove cleanup does not write, remove, normalize, migrate, or reinterpret BUG-002's canonical provider configuration.
+7. Run focused provider checks, the persistent live regression, repository selftest, and path-boundary validation.
+
+### Shared Infrastructure Impact Sweep - SCOPE-01
+
+- Protected contracts: BUG-002 Tier-1 proxy routing, Tier-2 `localStorage.rlProviderConfig`, shared data status, public/no-key behavior, and non-secret `rlData` cache behavior.
+- Blast radius: exact legacy containers can include mixed historical tool state; disclosure must explain whole-container deletion before confirmation.
+- Independent canaries: canonical BUG-002 configuration round-trip, current provider access after cleanup, non-secret `rlData` round-trip, and the repository selftest.
+- Rollback: inverse only verified BUG-001 cleanup hunks after confirming unrelated hunk identity; ambiguity leaves current BUG-002 behavior and all files untouched.
+
+### Change Boundary - SCOPE-01
+
+SCOPE-01 inherits the [Protected Change Boundary](#protected-change-boundary). Any newly discovered required path returns to `bubbles.plan` for an explicit boundary revision before implementation touches it.
+
+### Test Plan
+
+| ID | Type | Category | Scenario | File / exact test title | Required assertion | Exact command | Live |
+| --- | --- | --- | --- | --- | --- | --- | --- |
+| S1-T01 | Unit adversarial | unit | SCN-BUG001-004 | `tests/provider-credentials.unit.mjs` - `SCN-BUG001-004 legacy registry excludes BUG-002 provider configuration` | The closed legacy registry contains only pre-BUG-002 names; unknown names and `rlProviderConfig` cannot be selected for cleanup. | `node --test tests/provider-credentials.unit.mjs` | No |
+| S1-T02 | Functional regression | functional | SCN-BUG001-004 | `tests/provider-credentials.functional.mjs` - `SCN-BUG001-004 exact legacy containers erase while BUG-002 configuration remains unchanged` | Exact legacy names are removed and verified absent while proxy and Tier-2 local-key configuration remain byte-compatible. | `node --test tests/provider-credentials.functional.mjs` | No |
+| S1-T03 | Functional adversarial | functional | SCN-BUG001-004 | `tests/provider-credentials.functional.mjs` - `SCN-BUG001-004 deletion failure plus unavailable verification does not count a still-present container as removed` | When deletion of a selected container fails and post-delete enumeration is unavailable, the result is `unavailable` with `ok=false`, the still-present selected container is excluded from `removedContainerCount`, no complete/success claim is produced, and BUG-002 configuration remains unchanged. | `node --test tests/provider-credentials.functional.mjs` | No |
+| S1-T04 | Repository integration | integration | SCN-BUG001-004 | `scripts/selftest.mjs` - legacy registry and BUG-002 configuration contract | Static/runtime checks distinguish pre-BUG-002 legacy names from current proxy, `rlProviderConfig`, and non-secret `rlData` contracts. | `node scripts/selftest.mjs` | No |
+| S1-T05 | Regression E2E adversarial | e2e-ui | SCN-BUG001-004 | `tests/provider-credentials.spec.mjs` - `Regression BUG-001: legacy cleanup erases pre-BUG-002 containers and preserves current provider access` | The real Data settings flow discloses and erases legacy containers, verifies absence, and leaves current proxy/Tier-2 access configured. | `npx --no-install playwright test tests/provider-credentials.spec.mjs --config=playwright.config.mjs --project=system-chrome --reporter=list` | Yes |
+| S1-T06 | Regression E2E adversarial | e2e-ui | SCN-BUG001-004 | `tests/provider-credentials.spec.mjs` - `Regression BUG-001: incomplete legacy cleanup is explicit and does not alter BUG-002 configuration` | Forced incomplete cleanup stays redacted, makes no success claim, and preserves current provider configuration. | `npx --no-install playwright test tests/provider-credentials.spec.mjs --config=playwright.config.mjs --project=system-chrome --reporter=list` | Yes |
+
+### Definition of Done - Tiered Format
+
+All checked items remain backed by their item-specific evidence. The reopened S1-T03 branch and the post-fix stability/security replay are terminal at the current implementation evidence anchor below.
+
+#### Core Items
+
+- [x] Reopened S1-T03 adversarial coverage passes for deletion failure followed by unavailable post-delete enumeration: the still-present selected container is not counted as removed, the result remains `unavailable` with `ok=false`, no complete/success claim is emitted, and BUG-002 proxy configuration, `localStorage.rlProviderConfig`, and `rlData` remain unchanged. **Claim Source:** executed. [Evidence](report.md#s1-t03-and-focused-functional-green)
+  > **Phase:** implement
+  > **Executed:** YES (current session)
+  > **Command:** `cd ~/research-lab && timeout 120 node --test tests/provider-credentials.functional.mjs`
+  > **Exit Code:** 0
+  > **Output:**
+  >
+  > ```text
+  > ✔ SCN-BUG001-004 exact legacy containers erase while BUG-002 configuration remains unchanged (1.392043ms)
+  > ✔ SCN-BUG001-004 partial legacy deletion reports incomplete and preserves BUG-002 configuration (0.576038ms)
+  > ✔ SCN-BUG001-004 deletion failure plus unavailable verification does not count a still-present container as removed (0.819082ms)
+  > ℹ tests 14
+  > ℹ suites 0
+  > ℹ pass 14
+  > ℹ fail 0
+  > ℹ cancelled 0
+  > ℹ skipped 0
+  > ℹ todo 0
+  > ℹ duration_ms 133.139671
+  > ```
+  > **Result:** PASS
+- [x] SCN-BUG001-004 passes for detection, disclosure, confirmed erase, verified absence, and explicit incomplete cleanup while current BUG-002 provider access remains unchanged. **Claim Source:** executed. [Evidence](report.md#s1-t06-current-browser-adversarial-replay)
+- [x] The legacy registry contains only exact pre-BUG-002 containers and cannot select `localStorage.rlProviderConfig`, proxy configuration, `rlData`, or unknown containers. **Claim Source:** executed. [Evidence](report.md#s1-t01-current-unit-replay)
+- [x] Shared Infrastructure Impact Sweep proves current provider access, non-secret cache behavior, and unrelated dirty work are preserved. **Claim Source:** executed. [Evidence](report.md#current-quality-and-boundary-replay)
+- [x] Scenario-specific E2E regression tests for every new/changed/fixed behavior pass for SCN-BUG001-004, including complete and forced-incomplete cleanup on the real Data settings flow. **Claim Source:** executed. [Evidence](report.md#s1-t06-current-browser-adversarial-replay)
+- [x] Broader E2E regression suite passes for the complete provider credential Playwright file, including BUG-002 behavior. **Claim Source:** executed. [Evidence](report.md#s1-t05-current-browser-replay)
+- [x] Consumer Impact Sweep confirms zero stale first-party references remain across the legacy registry, current provider configuration, Data settings cleanup surface, and provider test consumers. **Claim Source:** executed. [Evidence](report.md#current-quality-and-boundary-replay)
+- [x] Independent canary suite for shared fixture/bootstrap contracts passes before broad suite reruns, covering the repository selftest, current BUG-002 configuration, and non-secret `rlData` behavior. **Claim Source:** executed. [Evidence](report.md#s1-t04-current-repository-integration-replay)
+- [x] Rollback or restore path for shared infrastructure changes is documented and verified as inverse verified BUG-001 hunks that preserve current-provider, cache, and unrelated work. **Claim Source:** executed. [Evidence](report.md#current-quality-and-boundary-replay)
+- [x] Change Boundary is respected and zero excluded file families were changed; source, tests, BUG-002, BUG-004, certification, and framework-managed paths remain untouched. **Claim Source:** executed. [Evidence](report.md#current-quality-and-boundary-replay)
+- [x] S1-T01 passes with current raw evidence. **Claim Source:** executed. [Evidence](report.md#s1-t01-current-unit-replay)
+- [x] S1-T02 passes with current raw evidence. **Claim Source:** executed. [Evidence](report.md#s1-t02-current-functional-replay)
+- [x] The prior S1-T03 forced-incomplete baseline passes with current raw evidence; this preserved evidence predates and does not satisfy the reopened unavailable-enumeration assertion. **Claim Source:** executed. [Evidence](report.md#s1-t03-current-functional-adversarial-replay)
+- [x] S1-T04 passes with current raw evidence. **Claim Source:** executed. [Evidence](report.md#s1-t04-current-repository-integration-replay)
+- [x] S1-T05 passes with current raw evidence. **Claim Source:** executed. [Evidence](report.md#s1-t05-current-browser-replay)
+- [x] S1-T06 passes with current raw evidence. **Claim Source:** executed. [Evidence](report.md#s1-t06-current-browser-adversarial-replay)
+
+#### Build Quality Gate
+
+- [x] Post-fix Build Quality Gate: the exact S1-T03 regression, complete focused provider functional and unit files, provider browser suite, repository selftest, stability verdict, and security verdict pass after the runtime correction, with no change outside the protected BUG-001 boundary. **Claim Source:** executed. [Product verification](report.md#current-product-verification) [Stability](report.md#stability-replay-inventory) [Security](report.md#security-phase-evidence-bubblessecurity-2026-08-01)
+  > **Phase:** implement
+  > **Executed:** YES (current session)
+  > **Commands:** focused unit and functional suites, provider Playwright, repository selftest, both regression-quality modes, path-scoped diff check, and edited-file diagnostics recorded in the linked evidence.
+  > **Exit Codes:** 0 for every post-fix command.
+  > **Output:**
+  >
+  > ```text
+  > ℹ pass 14
+  > ℹ fail 0
+  > ℹ pass 3
+  > ℹ fail 0
+  >   6 passed (4.5s)
+  > ================================================================
+  >   REGRESSION QUALITY RESULT: 0 violation(s), 0 warning(s)
+  >   Files scanned: 2
+  >   Files with adversarial signals: 2
+  > Research-Lab self-test: 1101 passed, 0 failed
+  > No errors found: rldata.js
+  > No errors found: tests/provider-credentials.functional.mjs
+  > ```
+  > **Result:** PASS
+- [x] Build Quality Gate: focused tests, the complete provider credential Playwright file, `node scripts/selftest.mjs`, regression-quality checks, artifact lint, diagnostics, and a path-scoped diff check all have current successful results. **Claim Source:** executed. [Evidence](report.md#current-quality-and-boundary-replay)
+
+Prior completion evidence remains intact, and the current post-fix implementation anchor closes the reopened S1-T03 obligation. SCOPE-01 is terminal. Bootstrap provenance remains owned by `bubbles.bug`; validation and certification remain owned by `bubbles.validate`.
+
+## Finding Accounting And Transition Routing
+
+| Finding ID | Planning disposition | Owner / route |
+| --- | --- | --- |
+| BUG002-TIER2-SUPERSESSION | Addressed: active planning protects the approved proxy and `localStorage.rlProviderConfig` contracts and removes Tier-2 memory-only/prohibition work. | `bubbles.plan` |
+| BUG001-OBSOLETE-FIVE-SCOPE-PLAN | Addressed: the former current-document runtime, zero-transfer, provider-disablement, transport, and broad G028 scopes are historical and non-executable. | `bubbles.plan` |
+| BUG001-LEGACY-CONTAINER-CLOSURE | Addressed: current execution evidence satisfies SCOPE-01 and all six mapped test rows. | `bubbles.plan` |
+| BUG001-G001-SUPERSEDED-DOD | Addressed: superseded DoD records no longer use checkbox syntax or executable scope/DoD headings. | `bubbles.plan` |
+| BUG001-G001-ACTIVE-DOD-SHAPE | Addressed: active SCOPE-01 uses `runtime-behavior`, explicit Core Items and Build Quality Gate tiers, and all canonical regression/consumer/canary/rollback/boundary rows. | `bubbles.plan` |
+| BUG001-G001-EVIDENCE-ANCHOR | Addressed: every active completed item and Test Plan row points to its exact current command-backed replay subsection. | `bubbles.plan` |
+| BUG001-G061-CONTROL-STATE | Addressed for planning: the current plan route is canonical and the guard reports G061 passed with an empty rework queue. | `bubbles.plan` |
+| TR-BUG-001-STABILITY-PLAN-REWORK | Addressed: the exact deletion-failure plus unavailable-enumeration regression is implemented and green at the current post-fix anchor. | `bubbles.plan` |
+| BUG001-STAB-001-UNVERIFIED-REMOVAL-COUNT | Addressed: S1-T03 proves a still-present selected container is excluded from `removedContainerCount` and cannot be represented as complete when verification is unavailable. | `bubbles.plan` |
+| BUG001-G024-SCOPE-STATUS | Addressed: active SCOPE-01 is terminal in the execution outline, scope table, scope header, and structured test plan. | `bubbles.plan` |
+| BUG001-PLAN-EXECUTION-STATE | Addressed: active plan execution state no longer routes to test or blocks on the resolved stability defect. | `bubbles.plan` |
+| BUG001-G001-TEST-FILE-ROWS | Addressed: active test rows point to concrete repository files; superseded records remain explicitly non-executable and certification-ineligible. | `bubbles.plan` |
+| BUG001-G025-EVIDENCE-ANCHOR | Addressed: active S1-T03, its DoD item, and SCN-BUG001-004 now point to the current post-fix implementation anchor. | `bubbles.plan` |
+| BUG001-G022-BOOTSTRAP-PROVENANCE | Route required: reconcile the unattributed bootstrap claim through the bug owner without changing plan-owned terminal evidence. | `bubbles.bug` |
+| BUG001-G027-CERTIFICATION | Route required after bootstrap provenance: reconcile validate-owned completed-scope/certification coherence and make the terminal decision only after the required owner-attributed phase chain. | `bubbles.validate` |
+
+## Structured Handoff
+
+```yaml
+packet: BUG-001-central-provider-credential-security
+workflowMode: bugfix-fastlane
+currentOwner: bubbles.plan
+currentOutcome: route_required
+implementationDispatchAllowedNow: false
+activeScopeIds: [SCOPE-01]
+supersededScopeIds: [OLD-SCOPE-01, OLD-SCOPE-02, OLD-SCOPE-03, OLD-SCOPE-04, OLD-SCOPE-05]
+addressedFindingIds: [BUG002-TIER2-SUPERSESSION, BUG001-OBSOLETE-FIVE-SCOPE-PLAN, BUG001-LEGACY-CONTAINER-CLOSURE, BUG001-G001-SUPERSEDED-DOD, BUG001-G001-ACTIVE-DOD-SHAPE, BUG001-G001-EVIDENCE-ANCHOR, BUG001-G061-CONTROL-STATE, TR-BUG-001-STABILITY-PLAN-REWORK, BUG001-STAB-001-UNVERIFIED-REMOVAL-COUNT, BUG001-G024-SCOPE-STATUS, BUG001-PLAN-EXECUTION-STATE, BUG001-G001-TEST-FILE-ROWS, BUG001-G025-EVIDENCE-ANCHOR]
+unresolvedFindingIds: [BUG001-G022-BOOTSTRAP-PROVENANCE, BUG001-G027-CERTIFICATION]
+nextRequiredOwner: bubbles.bug
+requestedAction: reconcile and owner-attribute bootstrap provenance without changing source, report, state, certification, BUG-004, unrelated work, or framework-managed artifacts; then route to bubbles.validate
+foreignRoutes:
+  - { order: 1, owner: bubbles.bug, phase: bootstrap-provenance }
+  - { order: 2, owner: bubbles.validate, phase: validate-pre-audit }
+  - { order: 3, owner: bubbles.audit, phase: audit }
+  - { order: 4, owner: bubbles.validate, phase: validate-terminal }
+```
+
+## Superseded BUG-001 Tier-2 Plan (Do Not Execute)
+
+Everything below this boundary is historical context from BUG-001's pre-BUG-002 five-scope plan. Its statuses, checked DoD items, test titles, findings, and handoffs are non-active and cannot support implementation, validation, or certification.
+
+### Historical Execution Outline
 
 ### Phase Order
 
@@ -52,7 +284,7 @@ No later scope starts until the preceding scope is Done with item-specific evide
 | SCOPE-04 | Fail-closed production providers, controlled header transport, and disclosure safety | SCOPE-03 | Policy, request path, unit/functional/E2E/stress | Not Started |
 | SCOPE-05 | G028 collision, cache, and cross-feature closure | SCOPE-04 | Scanner ledger, selftest, collision, provider/Bond/Causal/FX | Not Started |
 
-## Test Taxonomy Applicability
+### Historical Test Taxonomy Applicability
 
 | Category | Applicability | Reason |
 | --- | --- | --- |
@@ -67,15 +299,15 @@ No later scope starts until the preceding scope is Done with item-specific evide
 
 No project `testImpact` or `traceContracts` map is configured; G079/G080 planning rows are not applicable.
 
-## Protected Change Boundary
+### Historical Protected Change Boundary
 
 Allowed implementation paths are `rldata.js`, credential-owned hunks in `rlapp.js`, `index.html`, and proven consumers, BUG-001 assertions in `scripts/selftest.mjs`, and `tests/provider-credentials.{support,unit,functional,spec,stress,load}.mjs`. Every other current dirty or untracked path is protected, including installed framework files, package/source-lock files, generated payload/history/universe files, Market Brief, Bond, Causal, FX, Palm Springs, Trend Dynamics, distributed-brief work, unrelated docs/specs/tests, and every pre-existing hunk outside exact BUG-001 symbols.
 
 No stash, reset, clean, checkout overwrite, staging, commit, broad formatting, whole-file replacement, generated-data refresh, dependency installation, or unrelated cleanup is authorized. A newly proven consumer requires a plan-owner boundary update. Rollback uses an inverse patch only for verified BUG-001 hunks; ambiguity leaves provider transport disabled and files untouched.
 
-## Scope 1: SCOPE-01 Current-Document Runtime Foundation
+**Historical scope record: SCOPE-01 Current-Document Runtime Foundation**
 
-**Status:** In Progress  
+**Historical status:** In Progress under the superseded pre-BUG-002 contract
 **Depends On:** None  
 **Scope-Kind:** runtime-behavior  
 **Tags:** foundation:true
@@ -83,19 +315,19 @@ No stash, reset, clean, checkout overwrite, staging, commit, broad formatting, w
 ### Gherkin Scenarios - SCOPE-01
 
 ```gherkin
-Scenario: SCN-BUG001-001 - One shared current-document capability owns credential behavior
+Historical scenario record: SCN-BUG001-001 - One shared current-document capability owns credential behavior
   Given every registered Research Lab page is available
   When the index and every tool source and live page are inspected
   Then no page defines a tool-local credential editor getter setter writer store or request broker
   And one shared capability owns current-document status authorization use clear and erase-only cleanup
 
-Scenario: SCN-BUG001-002 - Every lifecycle and document boundary clears configured state
+Historical scenario record: SCN-BUG001-002 - Every lifecycle and document boundary clears configured state
   Given a controlled eligible credential is configured in the current loaded document
   When reload route navigation bfcache page navigation close reopen new tab new window iframe or new context is exercised
   Then every resulting or restored document is unconfigured
   And no URL message worker cookie opener storage history DOM or browser bridge carries the credential
 
-Scenario: SCN-BUG001-005 - Unknown identifiers fail without mutation
+Historical scenario record: SCN-BUG001-005 - Unknown identifiers fail without mutation
   Given the runtime and frozen registry have a known baseline
   When unknown empty inherited constructor and prototype-shaped identifiers are supplied
   Then each call returns a safe unknown-provider reason
@@ -131,7 +363,7 @@ Scenario: SCN-BUG001-005 - Unknown identifiers fail without mutation
 
 SCOPE-01 inherits the exact [Protected Change Boundary](#protected-change-boundary). It may touch only credential-owned hunks in the named shared runtime/index/test families. All generated data, foreign specs, installed framework files, and unrelated dirty hunks remain excluded.
 
-### Test Plan - SCOPE-01
+**Historical test-plan record: SCOPE-01**
 
 | ID | Type | Category | Scenario | File / exact test title | Required assertion | Exact command | Live |
 | --- | --- | --- | --- | --- | --- | --- | --- |
@@ -143,43 +375,20 @@ SCOPE-01 inherits the exact [Protected Change Boundary](#protected-change-bounda
 | S1-T06 | Regression E2E adversarial | e2e-ui | SCN-BUG001-002 | `tests/provider-credentials.spec.mjs` - `Regression BUG-001: every lifecycle and document boundary starts unconfigured` | Reload, route/history, bfcache, HTML navigation, close/reopen, tab, window, iframe, and context boundaries expose no configured state or bridge payload. | `npx --no-install playwright test tests/provider-credentials.spec.mjs --config=playwright.config.mjs --project=system-chrome --reporter=list` | Yes |
 | S1-T07 | Regression E2E adversarial | e2e-ui | SCN-BUG001-005 | `tests/provider-credentials.spec.mjs` - `Regression BUG-001: unknown and prototype-shaped providers fail without mutation` | Browser-visible state and built-in prototypes remain unchanged for every rogue ID variant. | `npx --no-install playwright test tests/provider-credentials.spec.mjs --config=playwright.config.mjs --project=system-chrome --reporter=list` | Yes |
 
-### Definition of Done - SCOPE-01 Tiered Validation
+**Historical DoD record: SCOPE-01**
 
-- [x] SCN-BUG001-001 - Credential behavior is confined to the shared current-document capability with one owner and no tool-local or persisted credential surface. → Evidence: [Final GREEN replay](report.md#final-green-replay)
-- [x] SCN-BUG001-002 - Every lifecycle and document boundary begins unconfigured and transfers no credential through any browser bridge. → Evidence: [Final GREEN replay](report.md#final-green-replay)
-- [x] SCN-BUG001-005 - Unknown and prototype-shaped identifiers are rejected without runtime, policy, storage-surface, or prototype mutation. → Evidence: [Final GREEN replay](report.md#final-green-replay)
-- [ ] Shared bootstrap impact, inverse-hunk rollback, and excluded-path preservation are verified against the just-in-time baseline.
-  > **Uncertainty Declaration**
-  > **What was attempted:** Captured target status, index OIDs, worktree hashes, full diffs, path-scoped diff check, and pre/post Feature 004 collision output.
-  > **What was observed:** The full pre-edit diff was retained only as terminal-wrapped text, four `rldata.js` hunk identities are no longer distinct, and protected `scripts/selftest.mjs` changed concurrently without an edit call from this invocation.
-  > **Why this is uncertain:** Distinct pre-edit hunk-body hashes and complete excluded-path byte identity cannot be proven from the retained baseline.
-  > **What would resolve this:** An authoritative pre-edit snapshot or owner-approved replacement collision/boundary baseline.
-- [x] S1-T01 passes with current raw evidence. → Evidence: [Final GREEN replay](report.md#final-green-replay)
-- [x] S1-T02 passes with current raw evidence. → Evidence: [Final GREEN replay](report.md#final-green-replay)
-- [x] S1-T03 passes with current raw evidence. → Evidence: [Final GREEN replay](report.md#final-green-replay)
-- [x] S1-T04 passes with current raw evidence. → Evidence: [Final GREEN replay](report.md#final-green-replay)
-- [x] S1-T05 passes with current raw evidence. → Evidence: [Final GREEN replay](report.md#final-green-replay)
-- [x] S1-T06 passes with current raw evidence. → Evidence: [Final GREEN replay](report.md#final-green-replay)
-- [x] S1-T07 passes with current raw evidence. → Evidence: [Final GREEN replay](report.md#final-green-replay)
-- [ ] Build Quality Gate: focused checks, the full credential Playwright file, `node scripts/selftest.mjs`, regression integrity scans, collision validation, and path-scoped diff checks have current results.
-  > **Uncertainty Declaration**
-  > **What was attempted:** Ran every named command plus artifact lint, freshness, foundation, traceability, implementation reality, framework-write, diagnostics, and integrity scans.
-  > **What was observed:** Focused checks and exact Playwright pass, but `node scripts/selftest.mjs`, implementation reality, and Feature 004 collision each exit 1.
-  > **Why this is uncertain:** The grouped quality claim requires every named command to resolve; current nonzero results cannot support completion.
-  > **What would resolve this:** Owner-routed resolution followed by exact reruns of all three nonzero commands.
+The superseded SCOPE-01 DoD and its uncertainty records are retained in Git history only. They are not checkboxes, execution obligations, evidence claims, or certification inputs in this active plan.
 
-> **Planning Uncertainty Declaration:** No delivery command was used as active proof. Every item remains unchecked until the implementation and test owners execute the named checks.
+**Historical scope record: SCOPE-02 Metadata-Only Legacy Cleanup And Clear-All**
 
-## Scope 2: SCOPE-02 Metadata-Only Legacy Cleanup And Clear-All
-
-**Status:** Not Started  
+**Historical status:** Not Started under the superseded pre-BUG-002 contract
 **Depends On:** SCOPE-01  
 **Scope-Kind:** runtime-behavior
 
 ### Gherkin Scenarios - SCOPE-02
 
 ```gherkin
-Scenario: SCN-BUG001-004 - Legacy presence is metadata-only and cleanup is erase-only
+Historical scenario record: SCN-BUG001-004 - Legacy presence is metadata-only and cleanup is erase-only
   Given exact registered credential-bearing container names are present
   When detection runs and the user dismisses or confirms cleanup
   Then detection reports provider ids location classes and counts from registry metadata only
@@ -187,7 +396,7 @@ Scenario: SCN-BUG001-004 - Legacy presence is metadata-only and cleanup is erase
   And confirmed cleanup follows destructive-effect disclosure removes whole registered containers and verifies their names absent
   And the current-document runtime remains unconfigured
 
-Scenario: SCN-BUG001-006 - Clear all removes memory before legacy erasure
+Historical scenario record: SCN-BUG001-006 - Clear all removes memory before legacy erasure
   Given the current document may hold an eligible credential and registered legacy containers may exist
   When the user selects Clear all
   Then current-document references and shared fields are cleared before durable deletion begins
@@ -225,7 +434,7 @@ Scenario: SCN-BUG001-006 - Clear all removes memory before legacy erasure
 
 SCOPE-02 inherits the exact [Protected Change Boundary](#protected-change-boundary). No product/test file outside the named credential cleanup families may change, and `localStorage.rlData` is explicitly excluded from the legacy location registry.
 
-### Test Plan - SCOPE-02
+**Historical test-plan record: SCOPE-02**
 
 | ID | Type | Category | Scenario | File / exact test title | Required assertion | Exact command | Live |
 | --- | --- | --- | --- | --- | --- | --- | --- |
@@ -235,38 +444,27 @@ SCOPE-02 inherits the exact [Protected Change Boundary](#protected-change-bounda
 | S2-T04 | Regression E2E adversarial | e2e-ui | SCN-BUG001-006 | `tests/provider-credentials.spec.mjs` - `Regression BUG-001: clear all empties current memory before whole-container erase` | Current status becomes unconfigured before deletion; complete and forced-incomplete branches remain leak-free and never restore memory. | `npx --no-install playwright test tests/provider-credentials.spec.mjs --config=playwright.config.mjs --project=system-chrome --reporter=list` | Yes |
 | S2-T05 | Stress regression | stress | SCN-BUG001-004, SCN-BUG001-006 | `tests/provider-credentials.stress.mjs` - `250 detect dismiss erase clear and partial-failure cycles perform zero legacy value reads` | Every cycle remains bounded, touches exact names only, reports redacted metadata, and leaves runtime empty after cleanup. | `node tests/provider-credentials.stress.mjs` | Yes |
 
-### Definition of Done - SCOPE-02 Tiered Validation
+**Historical DoD record: SCOPE-02**
 
-- [ ] SCN-BUG001-004 - Detection uses exact names and registry metadata only; dismissal is inert; confirmed cleanup erases whole containers after disclosure and verifies name absence only.
-- [ ] SCN-BUG001-006 - Clear all removes current-document memory first and reports incomplete deletion without restoring any credential state.
-- [ ] Storage instrumentation proves zero raw legacy value access or credential-derived signal across detection, dismissal, erasure, verification, and clear-all.
-- [ ] Shared Infrastructure Impact Sweep proves exact-name scope, unknown-container preservation, byte-compatible non-secret `rlData`, public/no-key behavior, and inverse-hunk rollback.
-- [ ] S2-T01 passes with current raw evidence.
-- [ ] S2-T02 passes with current raw evidence.
-- [ ] S2-T03 passes with current raw evidence.
-- [ ] S2-T04 passes with current raw evidence.
-- [ ] S2-T05 passes with current raw evidence.
-- [ ] Build Quality Gate: the full credential Playwright file, `rlData`, public/no-key, collision, regression-quality, and path-boundary canaries have current results.
+The superseded SCOPE-02 DoD is retained in Git history only and supplies no active checkbox, test obligation, or certification input.
 
-> **Planning Uncertainty Declaration:** No cleanup row is treated as passing until instrumentation proves zero value access and the implementation/test owners execute complete, dismissed, and forced-incomplete branches.
+**Historical scope record: SCOPE-03 Same-Document Ownership And Zero Transfer**
 
-## Scope 3: SCOPE-03 Same-Document Ownership And Zero Transfer
-
-**Status:** Not Started  
+**Historical status:** Not Started under the superseded pre-BUG-002 contract
 **Depends On:** SCOPE-02  
 **Scope-Kind:** runtime-behavior
 
 ### Gherkin Scenarios - SCOPE-03
 
 ```gherkin
-Scenario: SCN-BUG001-003 - An eligible document owns collection and use without disclosure
+Historical scenario record: SCN-BUG001-003 - An eligible document owns collection and use without disclosure
   Given a controlled policy authorizes one provider operation in the current loaded document
   When the user enters a sentinel credential and invokes that operation without leaving the document
   Then the shared field is blanked immediately and only configured status and a sanitized result are visible
   And no caller receives the credential request headers raw response or transferable credential object
   And every lifecycle boundary leaves the document unconfigured
 
-Scenario: SCN-BUG001-008 - Index-to-tool navigation transfers no credential
+Historical scenario record: SCN-BUG001-008 - Index-to-tool navigation transfers no credential
   Given index and every registered tool are separate HTML documents
   When the user follows a tool link after viewing provider status or legacy cleanup on index
   Then the tool starts unconfigured and exposes no credential editor writer getter store or request broker
@@ -311,7 +509,7 @@ Scenario: SCN-BUG001-008 - Index-to-tool navigation transfers no credential
 
 SCOPE-03 inherits the exact [Protected Change Boundary](#protected-change-boundary). Only proven credential-owned hunks in index, navigation, registered consumers, support harness, and provider tests may change; active docs and foreign artifacts route to their owners rather than being folded into implementation.
 
-### Test Plan - SCOPE-03
+**Historical test-plan record: SCOPE-03**
 
 | ID | Type | Category | Scenario | File / exact test title | Required assertion | Exact command | Live |
 | --- | --- | --- | --- | --- | --- | --- | --- |
@@ -321,42 +519,31 @@ SCOPE-03 inherits the exact [Protected Change Boundary](#protected-change-bounda
 | S3-T04 | Regression E2E adversarial | e2e-ui | SCN-BUG001-008 | `tests/provider-credentials.spec.mjs` - `Regression BUG-001: index-to-tool navigation transfers no credential and every tool starts unconfigured` | Index makes no continuity promise; every registered tool starts empty and receives zero data through all named bridges. | `npx --no-install playwright test tests/provider-credentials.spec.mjs --config=playwright.config.mjs --project=system-chrome --reporter=list` | Yes |
 | S3-T05 | Load regression | load | SCN-BUG001-008 | `tests/provider-credentials.load.mjs` - `parallel pages windows and contexts start unconfigured with zero credential bridge` | Concurrent registered documents and independent contexts remain empty without storage, opener, worker, message, URL, cookie, history, or DOM transfer. | `node tests/provider-credentials.load.mjs` | Yes |
 
-### Definition of Done - SCOPE-03 Tiered Validation
+**Historical DoD record: SCOPE-03**
 
-- [ ] SCN-BUG001-003 - A controlled eligible document owns both transient collection and the approved request, exposes status/sanitized output only, and clears at every lifecycle boundary.
-- [ ] SCN-BUG001-008 - Index-to-tool navigation transfers no credential, makes no continuity claim, and every registered tool has zero local credential surface.
-- [ ] Consumer and bridge sweeps find zero stale first-party credential getter, writer, broker, transfer channel, or credential-backed fallback while public/no-key and `rlData` behavior remain intact.
-- [ ] Shared Infrastructure Impact Sweep and inverse-hunk rollback protect registry coverage, navigation behavior, support harnesses, non-secret cache consumers, and unrelated dirty work.
-- [ ] S3-T01 passes with current raw evidence.
-- [ ] S3-T02 passes with current raw evidence.
-- [ ] S3-T03 passes with current raw evidence.
-- [ ] S3-T04 passes with current raw evidence.
-- [ ] S3-T05 passes with current raw evidence.
-- [ ] Build Quality Gate: the full credential Playwright file, load suite, `node scripts/selftest.mjs`, `rlData`, page-integrity, collision, and path-boundary canaries have current results.
+The superseded SCOPE-03 DoD is retained in Git history only and supplies no active checkbox, test obligation, or certification input.
 
-> **Planning Uncertainty Declaration:** No production provider is enabled by the controlled fixture, and no same-document or zero-transfer row is treated as passing until the implementation and test owners execute the named checks.
+**Historical scope record: SCOPE-04 Fail-Closed Provider Transport And Disclosure**
 
-## Scope 4: SCOPE-04 Fail-Closed Provider Transport And Disclosure
-
-**Status:** Not Started  
+**Historical status:** Not Started under the superseded pre-BUG-002 contract
 **Depends On:** SCOPE-03  
 **Scope-Kind:** runtime-behavior
 
 ### Gherkin Scenarios - SCOPE-04
 
 ```gherkin
-Scenario: SCN-BUG001-007 - Credential values do not enter output or navigation surfaces
+Historical scenario record: SCN-BUG001-007 - Credential values do not enter output or navigation surfaces
   Given a unique sentinel is configured in a controlled eligible document
   When rendering failures clear lifecycle boundaries and disclosure scans run
   Then the sentinel is absent from DOM accessibility events diagnostics analytics URLs referrers storage bridges and test artifacts
 
-Scenario: SCN-BUG001-009 - Twelve Data browser-key use fails closed while authorization is unverified
+Historical scenario record: SCN-BUG001-009 - Twelve Data browser-key use fails closed while authorization is unverified
   Given no complete Twelve Data browser-origin and non-URL policy exists
   When a credential-backed Twelve Data operation is requested
   Then no Twelve Data request is sent
   And only a safe provider-disabled status is visible
 
-Scenario: SCN-BUG001-010 - Header-capable provider credentials never enter URLs
+Historical scenario record: SCN-BUG001-010 - Header-capable provider credentials never enter URLs
   Given a controlled policy verifies browser use operation origin same-document ownership and header authentication
   When the request is sent and authentication fails
   Then exactly one approved-header attempt occurs
@@ -380,7 +567,7 @@ Scenario: SCN-BUG001-010 - Header-capable provider credentials never enter URLs
 | Disabled production provider | Invoke a Twelve Data credential-backed action | Safe provider-disabled status appears and no request is sent | functional/e2e-ui |
 | Controlled header request | Invoke the exact approved controlled operation and force auth failure | One sanitized failure appears; no URL credential or fallback attempt occurs | unit/functional/e2e-ui |
 
-### Test Plan - SCOPE-04
+**Historical test-plan record: SCOPE-04**
 
 | ID | Type | Category | Scenario | File / exact test title | Required assertion | Exact command | Live |
 | --- | --- | --- | --- | --- | --- | --- | --- |
@@ -392,33 +579,20 @@ Scenario: SCN-BUG001-010 - Header-capable provider credentials never enter URLs
 | S4-T06 | Regression E2E adversarial | e2e-ui | SCN-BUG001-010 | `tests/provider-credentials.spec.mjs` - `Regression BUG-001: approved header auth never places credentials in URLs or retries with query auth` | A controlled eligible policy performs one exact-origin approved-header attempt with no credential URL, redirect, referrer, provider, origin, proxy, or transport fallback. | `npx --no-install playwright test tests/provider-credentials.spec.mjs --config=playwright.config.mjs --project=system-chrome --reporter=list` | Yes |
 | S4-T07 | Stress regression | stress | SCN-BUG001-007, SCN-BUG001-010 | `tests/provider-credentials.stress.mjs` - `250 authorized failure clear and navigation cycles emit zero credential output and zero fallback` | Repeated controlled cycles remain bounded, disclose no sentinel, and perform no fallback attempt. | `node tests/provider-credentials.stress.mjs` | Yes |
 
-### Definition of Done - SCOPE-04 Tiered Validation
+**Historical DoD record: SCOPE-04**
 
-- [ ] SCN-BUG001-007 - Credential values do not enter output or navigation surfaces and the sentinel is absent from every named disclosure surface.
-- [ ] SCN-BUG001-009 - Twelve Data browser-key use fails closed with zero request and safe disabled status.
-- [ ] SCN-BUG001-010 - Header-capable credentials never enter URLs and exactly one approved-header attempt occurs with zero fallback.
-- [ ] Missing eligibility disables collection and sends zero credential request; no default or alternate path exists.
-- [ ] S4-T01 passes with current raw evidence.
-- [ ] S4-T02 passes with current raw evidence.
-- [ ] S4-T03 passes with current raw evidence.
-- [ ] S4-T04 passes with current raw evidence.
-- [ ] S4-T05 passes with current raw evidence.
-- [ ] S4-T06 passes with current raw evidence.
-- [ ] S4-T07 passes with current raw evidence.
-- [ ] Disclosure, regression-integrity, collision, selftest, and path-boundary checks have current results.
+The superseded SCOPE-04 DoD is retained in Git history only and supplies no active checkbox, test obligation, or certification input.
 
-> **Planning Uncertainty Declaration:** No production provider has a complete eligible policy; only disabled production behavior and a controlled policy path are planned.
+**Historical scope record: SCOPE-05 G028 Collision Cache And Cross-Feature Closure**
 
-## Scope 5: SCOPE-05 G028 Collision Cache And Cross-Feature Closure
-
-**Status:** Not Started  
+**Historical status:** Not Started under the superseded pre-BUG-002 contract
 **Depends On:** SCOPE-04  
 **Scope-Kind:** runtime-behavior
 
 ### Gherkin Scenarios - SCOPE-05
 
 ```gherkin
-Scenario: SCN-BUG001-011 - The nine G028 findings receive truthful one-to-one closure
+Historical scenario record: SCN-BUG001-011 - The nine G028 findings receive truthful one-to-one closure
   Given G028-01 through G028-09 the blind spot the rlData contract F004-COLLISION-001 and the protected dirty tree
   When memory-only remediation scanner disposition and cross-feature canaries are assessed
   Then every finding has one addressed or owner-routed disposition
@@ -442,7 +616,7 @@ Scenario: SCN-BUG001-011 - The nine G028 findings receive truthful one-to-one cl
 | G028 closure | Run the provider closure workflow with non-secret cache fixtures and protected cross-feature pages | No credential persistence is available; `rlData`-backed and provider/Bond/Causal/FX behaviors retain their user-visible contracts | integration/e2e-ui |
 | Collision constraint | Exercise the Feature 004 collision canary before shared-file changes | Ambiguous hunk ownership stops mutation while provider transport remains disabled | integration |
 
-### Test Plan - SCOPE-05
+**Historical test-plan record: SCOPE-05**
 
 | ID | Type | Category | Scenario | File / exact test title | Required assertion | Exact command | Live |
 | --- | --- | --- | --- | --- | --- | --- | --- |
@@ -458,27 +632,11 @@ Scenario: SCN-BUG001-011 - The nine G028 findings receive truthful one-to-one cl
 | S5-T10 | Causal canary | e2e-ui | SCN-BUG001-011 | `tests/causal-rotation-lab.spec.mjs` - complete Causal suite | Causal Rotation retains its live user-visible contract after shared credential changes. | `npx --no-install playwright test tests/causal-rotation-lab.spec.mjs --config=playwright.config.mjs --project=system-chrome --reporter=list` | Yes |
 | S5-T11 | FX canary | e2e-ui | SCN-BUG001-011 | `tests/fx-regime-relative-value-lab.spec.mjs` - complete FX suite | FX Regime retains its live user-visible contract and protected Feature 004 behavior. | `npx --no-install playwright test tests/fx-regime-relative-value-lab.spec.mjs --config=playwright.config.mjs --project=system-chrome --reporter=list` | Yes |
 
-### Definition of Done - SCOPE-05 Tiered Validation
+**Historical DoD record: SCOPE-05**
 
-- [ ] SCN-BUG001-011 - The nine G028 findings receive truthful one-to-one closure while `rlData`, dirty hunks, framework immutability, and provider/Bond/Causal/FX canaries remain intact.
-- [ ] `DEP-BUG013-SEMANTIC-CLASSIFIER` arrives from canonical Bubbles with no downstream edit, bypass, or identifier obfuscation.
-- [ ] Consumer Impact Sweep finds zero stale credential persistence, legacy-value ingress, raw-read, DOM-holder, transport, or continuity references.
-- [ ] S5-T01 passes with current raw evidence.
-- [ ] S5-T02 passes with current raw evidence.
-- [ ] S5-T03 records the exact collision disposition with no new collision.
-- [ ] S5-T04 passes with current raw evidence.
-- [ ] S5-T05 passes with current raw evidence.
-- [ ] S5-T06 passes with current raw evidence.
-- [ ] S5-T07 passes with current raw evidence.
-- [ ] S5-T08 passes with current raw evidence.
-- [ ] S5-T09 passes with current raw evidence.
-- [ ] S5-T10 passes with current raw evidence.
-- [ ] S5-T11 passes with current raw evidence.
-- [ ] Artifact lint, freshness, traceability, foundation, framework-write, and path-scoped diff checks have current results.
+The superseded SCOPE-05 DoD is retained in Git history only and supplies no active checkbox, test obligation, or certification input.
 
-> **Planning Uncertainty Declaration:** `DEP-BUG013-SEMANTIC-CLASSIFIER` and `F004-COLLISION-001` remain owner-routed constraints; planning claims no execution outcome.
-
-## Finding Accounting And Transition Routing
+### Historical Finding Accounting And Transition Routing
 
 | Finding ID | Planning disposition | Owner / route |
 | --- | --- | --- |
@@ -495,7 +653,7 @@ Scenario: SCN-BUG001-011 - The nine G028 findings receive truthful one-to-one cl
 | BUG001-SPEC-PLAN-STATUS-STALE | Unresolved foreign-owned prose: `spec.md` still describes every planning handoff as stale even though the plan owner has now reconciled them | `bubbles.analyst` |
 | BUG001-BUG-ROUTE-STALE | Unresolved foreign-owned route: `bug.md#active-ownership-route` still routes design first and says implementation dispatch is false | `bubbles.bug` |
 
-## Structured Handoff
+### Historical Structured Handoff
 
 ```yaml
 packet: BUG-001-central-provider-credential-security
@@ -518,11 +676,11 @@ foreignRoutes:
     findingId: BUG001-BUG-ROUTE-STALE
 ```
 
-## Superseded Scopes (Do Not Execute)
+### Earlier Superseded Scopes (Do Not Execute)
 
 The content below preserves the prior two-scope session/migration plan as history only. Its statuses, checked items, test titles, and handoff are not part of the active execution inventory and cannot support implementation or certification.
 
-### Historical Scope 1: Central Same-Tab Credential Lifecycle And Index UX
+**Earlier historical scope record: Central Same-Tab Credential Lifecycle And Index UX**
 
 **Historical status:** In Progress under the superseded contract  
 **Priority:** P0  
@@ -631,7 +789,7 @@ Allowed delivery families for this scope: `rldata.js`, `rlapp.js`, `index.html`,
 
 Excluded families: market models, universe files, generated snapshots/history, Causal Rotation product artifacts, distributed-brief implementation, installed `.github/bubbles/**` files, and unrelated dirty paths. Delivery must preserve pre-existing hunks in allowed files and prove excluded families unchanged. No stash, reset, clean, checkout overwrite, wholesale rewrite, or broad formatting command is permitted.
 
-### Historical Test Matrix - SCOPE-01
+**Earlier historical test-matrix record: SCOPE-01**
 
 | Historical record type | Category | Scenario | File / exact test title | Command | Live System | Expected proof |
 | --- | --- | --- | --- | --- | --- | --- |
@@ -649,7 +807,7 @@ Excluded families: market models, universe files, generated snapshots/history, C
 | Stress | stress | SCN-BUG001-003, SCN-BUG001-006 | `tests/provider-credentials.stress.mjs` - `250 save clear remount cycles retain bounded state and zero rendered secrets` | `node tests/provider-credentials.stress.mjs` | Yes | Bounded store/status and zero sentinel output |
 | Load | load | SCN-BUG001-002 | `tests/provider-credentials.load.mjs` - `parallel browser contexts and tabs never share provider credentials` | `node tests/provider-credentials.load.mjs` | Yes | No cross-context or independent-tab crossover |
 
-### Historical Completion Record - SCOPE-01
+**Earlier historical completion record: SCOPE-01**
 
 - Historical complete: Root cause recorded against the old G028 ledger.
 - Historical complete: The superseded session/migration implementation was exercised.
@@ -665,7 +823,7 @@ Excluded families: market models, universe files, generated snapshots/history, C
 - Historical complete: Old `rlData`/shell/load canaries passed.
 - Historical open: All project checks were not green.
 
-### Historical Scope 2: Tool Consumer Purge, Provider Transport, And G028 Reconciliation
+**Earlier historical scope record: Tool Consumer Purge, Provider Transport, And G028 Reconciliation**
 
 **Historical status:** In Progress under the superseded contract  
 **Priority:** P0  
@@ -761,7 +919,7 @@ Allowed delivery families are the central shared files, the registered tool page
 
 Excluded families are tool analytics/formulas, market data snapshots/history, universes, unrelated specifications, deployment surfaces, and all pre-existing dirty hunks unrelated to credentials. The downstream installed framework is read-only. No broad search-and-replace may rewrite complete HTML pages.
 
-### Historical Test Matrix - SCOPE-02
+**Earlier historical test-matrix record: SCOPE-02**
 
 | Historical record type | Category | Scenario | File / exact test title | Command | Live System | Expected proof |
 | --- | --- | --- | --- | --- | --- | --- |
@@ -782,7 +940,7 @@ Excluded families are tool analytics/formulas, market data snapshots/history, un
 | Stress | stress | SCN-BUG001-007, SCN-BUG001-010 | `tests/provider-credentials.stress.mjs` - `provider failures and navigation churn emit zero secret-bearing output` | `node tests/provider-credentials.stress.mjs` | Yes | Repeated failures remain redacted |
 | Load | load | SCN-BUG001-008 | `tests/provider-credentials.load.mjs` - `all registered pages load concurrently without recreating credential writers` | `node tests/provider-credentials.load.mjs` | Yes | Registry-wide concurrent consumer contract |
 
-### Historical Completion Record - SCOPE-02
+**Earlier historical completion record: SCOPE-02**
 
 - Historical complete: Old product-side genuine findings were addressed.
 - Historical open: Scanner semantic rows remained unresolved.

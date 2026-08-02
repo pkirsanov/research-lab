@@ -2,9 +2,27 @@
 
 Links: [spec.md](spec.md) | [design.md](design.md) | [scopes.md](scopes.md) | [report.md](report.md) | [uservalidation.md](uservalidation.md)
 
+> **Active contract after BUG-002 supersession (2026-08-01).**
+> Certified-done [BUG-002](../BUG-002-two-tier-provider-access/bug.md) is the
+> sole authority for current provider access: Tier 1 uses the configured proxy,
+> and Tier 2 intentionally persists this browser's local keys in
+> `localStorage.rlProviderConfig`.
+>
+> BUG-001 retains exactly one active requirement: erase and verify exact
+> credential containers left by the pre-BUG-002 model without changing current
+> BUG-002 configuration or non-secret `localStorage.rlData`. SCOPE-01 has
+> implementation and test evidence, but BUG-001 remains In Progress because
+> plan-owned transition blockers and validate-owned certification remain open.
+
 ## Summary
 
-Research Lab currently retains third-party provider credentials in a same-tab `sessionStorage` envelope and reads raw legacy credential values from durable browser storage. Feature 004's executed security review classifies both paths as genuine High exposure under the binding No Sensitive Client Storage policy. The safe contract is now memory-only for the current page execution: reload or navigation clears active credentials, legacy discovery is redacted erase-only, browser-disabled providers remain disabled, and no raw secret may enter any client persistence or disclosure surface.
+Research Lab browsers that predate BUG-002 can retain credential-bearing data
+under exact historical container names. BUG-001's only active contract is the
+implemented SCOPE-01 cleanup: report redacted legacy presence, disclose and
+confirm whole-container deletion, erase and verify only registered historical
+names, and report incomplete deletion honestly. The cleanup must preserve
+BUG-002's current proxy behavior, `localStorage.rlProviderConfig`, and
+non-secret `localStorage.rlData` unchanged.
 
 ## Severity
 
@@ -17,14 +35,34 @@ Research Lab currently retains third-party provider credentials in a same-tab `s
 
 - [ ] Reported
 - [ ] Confirmed by an executed pre-fix regression
-- [x] In Progress
+- [x] In Progress - withdrawal routed to artifact owners
 - [ ] Fixed
 - [ ] Verified
 - [ ] Closed
 
-No fix or test execution is claimed by this packet. Active spec, design, planning, scenario, test-plan, user-validation, and certification inventory reconciliation is complete, so SCOPE-01 may dispatch to `bubbles.implement` under the active route below. Current production still exhibits the reproduced `sessionStorage` and raw legacy-value paths, so the bug remains In Progress; this routing reconciliation is not a Fixed, Verified, or Closed claim.
+SCOPE-01 implementation and test evidence is recorded, but no Fixed, Verified,
+Closed, or certified completion claim is made. BUG-002 remains authoritative
+for current provider access. The bug remains In Progress while `bubbles.plan`
+reconciles validate's remaining plan-owned DoD/history/anchor findings; only
+`bubbles.validate` may subsequently change certification.
 
-## Discovery Source
+## Supersession Disposition
+
+| BUG-001 requirement family | Product Review disposition | Evidence / route |
+| --- | --- | --- |
+| Memory-only credentials; reload/navigation clearing; no browser persistence; no index editor; no cross-page credential availability | Superseded for Tier 2 | BUG-002 `spec.md` FR-2 through FR-6 and SCN-BUG002-002 explicitly require per-browser `localStorage.rlProviderConfig` persistence and cross-page availability. |
+| All production browser providers disabled; header-only transport; no proxy/query transport | Superseded | BUG-002 `spec.md` FR-3 through FR-5 deliberately enable proxy-first and provider-query Tier-2 transport. |
+| One shared provider owner and closed registry; prototype-safe unknown-provider rejection | Addressed by BUG-002 | BUG-002 SCOPE-01 and `report.md#s1` / `report.md#s3` record the frozen registry, centralized API, old-API removal, and prototype-safe regression. |
+| No key in rendered status, logs, errors, tool reads, exports, or non-owning transport | Addressed by BUG-002 | BUG-002 FR-7 plus validation/audit evidence record `KEY_LEAKS=0`, `PROXY_KEY_LEAKS=0`, and no key disclosure. |
+| Clear active provider configuration; preserve non-secret `localStorage.rlData`; remove stale first-party credential consumers | Addressed by BUG-002 | BUG-002 SCN-BUG002-007, SCOPE-01 consumer sweep, SCOPE-02 editor, and SCOPE-05 rewire are certified done. |
+| Erase and verify credentials already present in pre-BUG-002 legacy browser containers | Retained; not proven by BUG-002 | `RET-BUG001-LEGACY-ERASURE` -> `bubbles.plan` to extract the requirement, then `bubbles.bug` to create a focused bug packet before any implementation. |
+| Canonical G028 semantic refinement and Feature 004 collision ownership | Not resolved here and not a reason to execute the superseded BUG-001 contract | Preserve the existing canonical BUG-013 / Feature 004 owner routes; this withdrawal makes no resolution claim for either foreign finding. |
+
+## Historical Discovery Source - Broad Contract Superseded
+
+This section records why BUG-001 was originally opened. It is provenance only;
+its memory-only and provider-transport conclusions are not active BUG-001
+requirements after BUG-002.
 
 - Discoverer: `bubbles.security`
 - Mechanical gate: G028 `implementation_reality_scan_gate`
@@ -37,13 +75,19 @@ No fix or test execution is claimed by this packet. Active spec, design, plannin
 
 ## Active Reproduction Steps
 
-1. Open `index.html#data-settings`, save a sentinel credential for an approved browser provider, and inspect browser storage.
-2. Observe that `rldata.js` writes the raw value into `sessionStorage.rlSessionProviderCredentialsV1` through `setKey()` and `writeCredentialEnvelope()`.
-3. Reload or navigate in the same tab and observe that the envelope restores the credential, demonstrating persistence beyond the current page execution.
-4. Seed `localStorage.rlApiKeys` or a known credential-bearing legacy object, invoke legacy detection, and trace `collectLegacyCredentials()` into `_legacyDetection.credentials`.
-5. Observe that migration can pass those raw values to `writeCredentialEnvelope()` instead of treating the legacy material as erase-only.
-6. Separately inspect the non-secret `localStorage.rlData` cache comment and the `removeItem()` plus absence-readback scrub line. They do not carry credential values and are scanner false positives, not remediation targets.
-7. Run the future design/plan-owned regression matrix against the memory-only contract. It must reject all credential persistence, prove reload/navigation clearing, prove redacted erase-only legacy handling, keep browser-disabled providers disabled, and scan DOM/log/error/URL/referrer surfaces for the sentinel.
+1. Seed one or more exact registered pre-BUG-002 credential containers beside
+  valid BUG-002 proxy configuration, `localStorage.rlProviderConfig`, and
+  non-secret `localStorage.rlData`.
+2. Open `index.html#data-settings` and observe only redacted legacy
+  provider/location classes and counts plus the whole-container deletion
+  disclosure.
+3. Dismiss cleanup and verify that no legacy or current container changes.
+4. Confirm cleanup and verify that only selected registered historical names
+  are absent while all BUG-002 and `rlData` state remains unchanged.
+5. Force one registered deletion to remain and verify an explicit redacted
+  incomplete result with no success claim and no current-configuration change.
+6. Use the preserved SCOPE-01 evidence in `report.md` for execution results;
+  this artifact reconciliation does not rerun or rewrite that evidence.
 
 ## Historical Reproduction Steps (Superseded Contract)
 
@@ -60,16 +104,21 @@ The following steps are preserved verbatim as the original 2026-07-13 packet rec
 
 ## Active Expected Behavior
 
-- Provider credential values exist only in JavaScript memory for the current page execution.
-- No provider credential value is written to `localStorage`, `sessionStorage`, IndexedDB, Cache Storage, cookies, URL state, committed files, or any equivalent browser/client persistence surface.
-- Same-tab reload and navigation clear every active provider credential. Continuity across reload or navigation is explicitly forbidden.
-- Legacy discovery may expose only redacted provider IDs, location classes, and counts. Raw legacy values are erase-only material and are never copied, activated, returned, rendered, logged, transmitted, or migrated into another client store.
-- Erase and clear operations remove known durable legacy copies and verify absence without activating their values.
-- Browser-disabled providers remain disabled. No request is sent for a disabled provider, and no fallback transport is attempted.
-- A provider that is explicitly authorized for browser use may consume a credential only from current-page memory and only through its approved origin/header contract.
-- Unknown and prototype-shaped provider identifiers fail explicitly without mutation.
-- No raw credential appears in the DOM, status text, input remount, console, error, analytics, request URL, document URL, referrer, or test artifact.
-- Non-secret `localStorage.rlData` market/cache behavior remains intact.
+- Current provider access continues to follow BUG-002: Tier 1 uses the configured
+  proxy, and Tier 2 uses this browser's keys from
+  `localStorage.rlProviderConfig`.
+- BUG-001 detects only exact registered pre-BUG-002 container names and reports
+  redacted provider/location classes and counts without activating or migrating
+  their contents.
+- Whole-container deletion discloses its destructive effect and requires
+  explicit confirmation.
+- Confirmed cleanup removes only selected registered historical names and
+  reports complete only after verifying every selected name is absent.
+- Detection, dismissal, complete cleanup, and incomplete cleanup leave BUG-002
+  proxy configuration, `localStorage.rlProviderConfig`, and non-secret
+  `localStorage.rlData` unchanged.
+- Any selected name that remains yields an explicit redacted incomplete result,
+  never a success claim.
 
 ## Historical Expected Behavior (Explicitly Superseded 2026-07-15)
 
@@ -88,11 +137,19 @@ The following original contract is retained for traceability. Its requirements f
 
 ## Current Actual Behavior
 
-- `rldata.js` writes raw provider credentials to the versioned `sessionStorage.rlSessionProviderCredentialsV1` envelope and reads them back for provider authentication.
-- Same-tab reload/navigation continuity is implemented and tested, but that continuity is now itself a High policy violation.
-- `collectLegacyCredentials()` reads raw values from `localStorage.rlApiKeys`, scalar keys, and known tool-state objects; `detectLegacyCredentials()` stages those values in `_legacyDetection.credentials`; migration can activate them in the prohibited envelope.
-- The non-secret `localStorage.rlData` cache comment and verified legacy `removeItem()` plus readback operation are mechanical scanner false positives and must be preserved.
-- Existing BUG-001 product tests still encode the superseded session-continuity and legacy-migration behavior. Active spec, design, plan, scenario, machine test-plan, user-validation, and certification inventory surfaces now encode five sequential memory-only/erase-only scopes, all Not Started. Prior execution evidence remains historical evidence, not proof of the new safe contract.
+- SCOPE-01 implementation removes and verifies exact pre-BUG-002 legacy
+  containers, exposes redacted complete/incomplete outcomes, and protects
+  current BUG-002 configuration.
+- Preserved report evidence maps six test rows to `SCN-BUG001-004`, including
+  current-container preservation and forced incomplete deletion. This bug
+  artifact does not reinterpret or replace that evidence.
+- BUG-002's proxy and durable per-browser `localStorage.rlProviderConfig`
+  behavior remains current and intentionally outside BUG-001 cleanup authority.
+- Plan-owned active scope/DoD shape and evidence-anchor findings still block
+  transition, and certification remains `in_progress` and unchanged.
+- The former five-scope memory-only/no-persistence behavior is superseded
+  history only and supplies no active implementation, test, or certification
+  requirement.
 
 ## Historical Actual Behavior (Original Baseline)
 
@@ -121,10 +178,13 @@ Line numbers identify the baseline revision and must be refreshed after implemen
 | G028-08 | `rlapp.js:36` | Direct durable read of `localStorage.rlApiKeys` | Genuine | Remove fallback storage ownership; use central status/read API only |
 | G028-09 | `rlapp.js:44` | Direct durable write of `localStorage.rlApiKeys` | Genuine | Remove fallback storage ownership; index UI writes through the central same-tab API |
 
-## Current Feature 004 Security Classification
+## Historical Feature 004 Security Classification - Not Active
 
 **Claim Source:** interpreted  
-**Interpretation:** Feature 004 records a current-session executed implementation-reality scan and security call-graph classification. This bug phase consumes that evidence and does not represent the scan as newly executed here.
+**Interpretation:** Feature 004 recorded the prior broad-contract security
+classification. The evidence remains preserved, but its memory-only and
+provider-transport dispositions are superseded by BUG-002 and are not active
+BUG-001 requirements.
 
 | Finding | Classification | Current disposition |
 | --- | --- | --- |
@@ -135,7 +195,7 @@ Line numbers identify the baseline revision and must be refreshed after implemen
 | F004-COLLISION-001 | Open protected collision | Preserve the exact `scripts/selftest.mjs` hunk-identity failure and all current dirty work. This bug phase does not repair or rewrite it. |
 | BUG001-CONTRACT-SESSION-STORAGE | Planning contract reconciled; delivery open | Active spec, design, plan, scenario, machine test-plan, user-validation, and certification inventory surfaces now prohibit same-tab continuity and value migration. SCOPE-01 may dispatch, but current product code and tests still require scenario-first RED and implementation. |
 
-### Scanner Blind Spot
+### Historical Scanner Blind Spot
 
 G028 does not directly report `rldata.js` central credential reads/writes that use the `KEY_STORE` variable instead of a literal credential-shaped key. Those paths are genuine findings even though they are outside the nine emitted rows. Closing only the literal scanner rows would leave the durable store intact and would not fix the bug.
 
@@ -147,7 +207,13 @@ The installed G028 policy also treats any `sessionStorage` API-key storage as bl
 
 ## Current Root Cause
 
-The prior remediation treated browser lifetime reduction as a sufficient security boundary and encoded provider credentials as a versioned `sessionStorage` data model. That was a category error: third-party provider API keys are sensitive trust material under the binding No Sensitive Client Storage policy, and `sessionStorage` remains client persistence readable by same-origin code. The same continuity goal also shaped legacy handling, so raw durable values were collected and staged for migration instead of being treated as redacted erase-only material. Tests and planning then promoted reload continuity and migration into success criteria, creating a direct conflict between packet truth and binding policy.
+BUG-002 replaced the provider-access model and removed ownership of the older
+credential APIs, but existing browsers could still retain containers written by
+that pre-BUG-002 model. Fresh contexts and current API removal cannot erase
+already-persisted client state. The retained defect was therefore a bounded
+lifecycle gap: exact historical containers needed a disclosed, confirmed,
+verified retirement path that structurally excludes BUG-002's current proxy,
+`localStorage.rlProviderConfig`, and non-secret `rlData` state.
 
 ## Prior Root Cause (Historical)
 
@@ -175,37 +241,35 @@ This bug-discovery phase may create only this new folder. It must not edit, stas
 ## Active Ownership Route
 
 ```yaml
-routeVersion: 3
+routeVersion: 4
 bug: BUG-001
 target: specs/_bugs/BUG-001-central-provider-credential-security
 outcome: route_required
 workflowMode: bugfix-fastlane
 currentOwner: bubbles.bug
-nextRequiredOwner: bubbles.implement
+nextRequiredOwner: bubbles.plan
 scope: SCOPE-01
-implementationDispatchAllowedNow: true
+implementationDispatchAllowedNow: false
+addressedFindingIds:
+  - BUG001-G070-ACTIVE-CONTRACT
+  - BUG001-BUG-STATUS-CONTRACT
+  - BUG001-G061-CONTROL-STATE
+unresolvedFindingIds:
+  - BUG001-G001-SUPERSEDED-DOD
+  - BUG001-G001-ACTIVE-DOD-SHAPE
+  - BUG001-G001-EVIDENCE-ANCHOR
 sequence:
   - order: 1
-    owner: bubbles.implement
-    action: Begin SCOPE-01 only. Capture scenario-first RED before source changes, then implement the current-document runtime foundation surgically within the protected dirty-tree boundary.
+    owner: bubbles.plan
+    action: Reconcile only plan-owned superseded-history DoD counting, active SCOPE-01 DoD shape, and evidence-anchor references identified by validation; preserve the implemented legacy-erasure scope and BUG-002 current provider behavior.
 activeConstraints:
-  - id: SCENARIO-FIRST-RED
-    requirement: Execute the exact SCOPE-01 regression scenarios against current production first and retain the observed failing proof before changing implementation.
-  - id: CURRENT-DOCUMENT-CLOSURE-PRIVATE-MEMORY
-    requirement: Credentials may exist only in closure-private memory for the currently loaded document; no cross-document continuity or transfer is permitted.
-  - id: NO-SERIALIZED-CREDENTIAL-APIS
-    requirement: Remove the serialized envelope, storage adapters, raw getters, bulk maps, header exporters, and every transferable credential representation; add no replacement serialization API.
-  - id: LIFECYCLE-CLEARING
-    requirement: Reload, route or history transition, bfcache traversal, page navigation, pagehide, close or reopen, new realm, and explicit clear must leave the affected document unconfigured.
-  - id: CLOSED-IDENTIFIERS
-    requirement: Unknown, empty, inherited, constructor, and prototype-shaped provider identifiers fail closed without runtime, registry, storage-surface, or prototype mutation.
-  - id: BUG001-DIRTY-TREE-BOUNDARY
-    requirement: Capture the just-in-time status, index OID, worktree hash, and distinct hunk hashes before edits; stop on ambiguous ownership and preserve every unrelated dirty hunk.
-  - id: DEP-BUG013-SEMANTIC-CLASSIFIER
-    requirement: Preserve the canonical semantic dependency and make no downstream framework edit; it gates later G028 closure but does not block SCOPE-01 pickup.
-  - id: F004-COLLISION-001
-    requirement: Preserve the open collision and exact protected hash ab27e89cd0dd8c6dd640254615a10d15a2be008596ec72834ca4512766c646fc; do not repair or rewrite its owner evidence.
-entryGateForImplementation: Satisfied for SCOPE-01 only. The active five-scope plan is coherent, every scope remains Not Started, SCOPE-01 has no scope dependency, and no delivery or completion evidence is claimed.
+  - id: BUG002-CURRENT-PROVIDER-AUTHORITY
+    requirement: BUG-002 remains authoritative for Tier-1 proxy behavior and Tier-2 localStorage.rlProviderConfig persistence; BUG-001 cleanup must not restrict or mutate either.
+  - id: PRESERVE-EXECUTION-EVIDENCE
+    requirement: Preserve current source, tests, report evidence, and the implemented SCOPE-01 legacy-erasure behavior without redispatching implementation.
+  - id: CERTIFICATION-OWNERSHIP
+    requirement: Do not change certification; validation resumes only after plan-owned blockers are reconciled.
+entryGateForImplementation: Closed. SCOPE-01 implementation and test evidence already exist; the next action is plan-owned artifact reconciliation, not source or test work.
 ```
 
 ## Prior Ownership Route (Superseded 2026-07-15)

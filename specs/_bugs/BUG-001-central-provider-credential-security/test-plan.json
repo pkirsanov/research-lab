@@ -1,4 +1,140 @@
 {
+  "version": 1,
+  "specId": "BUG-001",
+  "generatedBy": "bubbles.plan",
+    "generatedAt": "2026-08-01T20:02:10Z",
+        "evidenceBoundary": "Prior SCOPE-01 evidence remains preserved. The current post-fix functional and product-verification anchors close the reopened S1-T03 deletion-failure plus unavailable-enumeration branch and record GREEN functional 14/14, unit 3/3, browser 6/6, selftest 1101/0, STABILITY_GREEN, and SECURITY_CLEAN. SCOPE-01 and S1-T03 are terminal; certification remains unchanged.",
+    "implementationDispatchAllowed": false,
+        "nextRequiredOwner": "bubbles.bug",
+    "blockedBy": [
+        "BUG001-G022-BOOTSTRAP-PROVENANCE"
+    ],
+  "constraints": [
+    "BUG-002 explicitly supersedes BUG-001 Tier-2 memory-only and client-storage-prohibition work",
+    "localStorage.rlProviderConfig and Tier-1 proxy configuration are protected current contracts, not legacy containers",
+    "BUG-004, .github/bubbles/**, state.json, certification state, and unrelated artifacts remain unchanged"
+  ],
+  "activeScenarioIds": [
+    "SCN-BUG001-004"
+  ],
+  "supersededScopeIds": [
+    "OLD-SCOPE-01",
+    "OLD-SCOPE-02",
+    "OLD-SCOPE-03",
+    "OLD-SCOPE-04",
+    "OLD-SCOPE-05"
+  ],
+    "supersededRecordPolicy": {
+        "executable": false,
+        "certificationEligible": false,
+        "testRowsAreHistoricalOnly": true
+    },
+  "scopes": [
+    {
+      "scopeId": "SCOPE-01",
+      "scopeName": "Pre-BUG-002 Legacy Credential Erasure",
+        "status": "done",
+      "dependsOn": [],
+      "tests": [
+        {
+          "id": "S1-T01",
+          "type": "unit-adversarial",
+          "category": "unit",
+          "file": "tests/provider-credentials.unit.mjs",
+          "scenarioId": "SCN-BUG001-004",
+          "description": "SCN-BUG001-004 legacy registry excludes BUG-002 provider configuration",
+          "requiredAssertion": "The closed legacy registry contains only pre-BUG-002 names; unknown names and rlProviderConfig cannot be selected for cleanup.",
+          "command": "node --test tests/provider-credentials.unit.mjs",
+          "liveSystem": false,
+          "regression": true,
+          "adversarial": true,
+          "status": "passed",
+          "evidenceRef": "report.md#s1-t01-current-unit-replay"
+        },
+        {
+          "id": "S1-T02",
+          "type": "functional-regression",
+          "category": "functional",
+          "file": "tests/provider-credentials.functional.mjs",
+          "scenarioId": "SCN-BUG001-004",
+          "description": "SCN-BUG001-004 exact legacy containers erase while BUG-002 configuration remains unchanged",
+          "requiredAssertion": "Exact legacy names are removed and verified absent while proxy and Tier-2 local-key configuration remain byte-compatible.",
+          "command": "node --test tests/provider-credentials.functional.mjs",
+          "liveSystem": false,
+          "regression": true,
+          "status": "passed",
+          "evidenceRef": "report.md#s1-t02-current-functional-replay"
+        },
+        {
+          "id": "S1-T03",
+          "type": "functional-adversarial",
+          "category": "functional",
+          "file": "tests/provider-credentials.functional.mjs",
+          "scenarioId": "SCN-BUG001-004",
+          "description": "SCN-BUG001-004 deletion failure plus unavailable verification does not count a still-present container as removed",
+          "testId": "SCN-BUG001-004 deletion failure plus unavailable verification does not count a still-present container as removed",
+          "requiredAssertion": "When deletion of a selected container fails and post-delete enumeration is unavailable, the result is unavailable with ok false, the still-present selected container is excluded from removedContainerCount, no complete or success claim is produced, and BUG-002 configuration remains unchanged.",
+          "command": "node --test tests/provider-credentials.functional.mjs",
+          "liveSystem": false,
+          "regression": true,
+          "adversarial": true,
+          "status": "passed",
+          "evidenceRef": "report.md#s1-t03-and-focused-functional-green",
+          "preservedPriorEvidenceRef": "report.md#s1-t03-current-functional-adversarial-replay"
+        },
+        {
+          "id": "S1-T04",
+          "type": "repository-integration",
+          "category": "integration",
+          "file": "scripts/selftest.mjs",
+          "scenarioId": "SCN-BUG001-004",
+          "description": "legacy registry and BUG-002 configuration contract",
+          "requiredAssertion": "Static and runtime checks distinguish pre-BUG-002 legacy names from current proxy, rlProviderConfig, and non-secret rlData contracts.",
+          "command": "node scripts/selftest.mjs",
+          "liveSystem": false,
+          "regression": true,
+          "sharedCanary": true,
+          "status": "passed",
+          "evidenceRef": "report.md#s1-t04-current-repository-integration-replay"
+        },
+        {
+          "id": "S1-T05",
+          "type": "e2e-ui-adversarial",
+          "category": "e2e-ui",
+          "file": "tests/provider-credentials.spec.mjs",
+          "scenarioId": "SCN-BUG001-004",
+          "description": "Regression BUG-001: legacy cleanup erases pre-BUG-002 containers and preserves current provider access",
+          "testId": "Regression BUG-001: legacy cleanup erases pre-BUG-002 containers and preserves current provider access",
+          "requiredAssertion": "The real Data settings flow discloses and erases legacy containers, verifies absence, and leaves current proxy and Tier-2 access configured.",
+          "command": "npx --no-install playwright test tests/provider-credentials.spec.mjs --config=playwright.config.mjs --project=system-chrome --reporter=list",
+          "liveSystem": true,
+          "regression": true,
+          "adversarial": true,
+          "status": "passed",
+          "evidenceRef": "report.md#s1-t05-current-browser-replay"
+        },
+        {
+          "id": "S1-T06",
+          "type": "e2e-ui-adversarial",
+          "category": "e2e-ui",
+          "file": "tests/provider-credentials.spec.mjs",
+          "scenarioId": "SCN-BUG001-004",
+          "description": "Regression BUG-001: incomplete legacy cleanup is explicit and does not alter BUG-002 configuration",
+          "testId": "Regression BUG-001: incomplete legacy cleanup is explicit and does not alter BUG-002 configuration",
+          "requiredAssertion": "Forced incomplete cleanup stays redacted, makes no success claim, and preserves current provider configuration.",
+          "command": "npx --no-install playwright test tests/provider-credentials.spec.mjs --config=playwright.config.mjs --project=system-chrome --reporter=list",
+          "liveSystem": true,
+          "regression": true,
+          "adversarial": true,
+          "status": "passed",
+          "evidenceRef": "report.md#s1-t06-current-browser-adversarial-replay"
+        }
+      ]
+    }
+    ],
+    "supersededPlan": {
+    "executable": false,
+    "certificationEligible": false,
     "version": 1,
     "specId": "BUG-001",
     "generatedBy": "bubbles.plan",
@@ -1319,4 +1455,5 @@
             ]
         }
     ]
+  }
 }

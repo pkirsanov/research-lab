@@ -30,6 +30,1409 @@ Evidence destination for disabled production providers, exact-origin header tran
 
 Evidence destination for one-to-one G028 accounting, canonical BUG-013 semantics, `F004-COLLISION-001`, complete dirty-hunk preservation, framework immutability, and provider/Bond/Causal/FX canaries.
 
+## Active SCOPE-01 Implementation And Test Evidence - 2026-08-01
+
+**Scope:** `SCOPE-01 Pre-BUG-002 Legacy Credential Erasure`
+**Scenario:** `SCN-BUG001-004`
+**Execution phase:** implementation and test evidence complete; certification pending
+**Claim Source:** executed
+**Certification boundary:** This section records implementation-owned evidence only. No `state.json.certification` field, plan-owned checkbox, or top-level terminal status is changed. The completed execution is routed to `bubbles.validate` below.
+
+### Protected Boundary Baseline
+
+The first implementation action narrowed the plan's allowed list to `rldata.js`, `rlapp.js`, the four provider credential test/support files, and the provider block in `scripts/selftest.mjs`. `index.html` did not need an implementation edit. Before the first edit, all narrowed product/test files were clean; `scripts/selftest.mjs` and `state.json` already contained foreign concurrent hunks. No BUG-004 artifact or framework-managed `.github/bubbles/**` file was edited.
+
+**Claim Source:** executed
+**Command:** `git status --short -- rldata.js rlapp.js tests/provider-credentials.support.mjs tests/provider-credentials.unit.mjs tests/provider-credentials.functional.mjs tests/provider-credentials.spec.mjs scripts/selftest.mjs specs/_bugs/BUG-001-central-provider-credential-security/report.md specs/_bugs/BUG-001-central-provider-credential-security/state.json && git ls-files -s -- rldata.js rlapp.js tests/provider-credentials.support.mjs tests/provider-credentials.unit.mjs tests/provider-credentials.functional.mjs tests/provider-credentials.spec.mjs scripts/selftest.mjs specs/_bugs/BUG-001-central-provider-credential-security/report.md specs/_bugs/BUG-001-central-provider-credential-security/state.json && sha256sum rldata.js rlapp.js tests/provider-credentials.support.mjs tests/provider-credentials.unit.mjs tests/provider-credentials.functional.mjs tests/provider-credentials.spec.mjs scripts/selftest.mjs specs/_bugs/BUG-001-central-provider-credential-security/report.md specs/_bugs/BUG-001-central-provider-credential-security/state.json`
+**Exit Code:** 0
+**Output:**
+
+```text
+ M scripts/selftest.mjs
+ M specs/_bugs/BUG-001-central-provider-credential-security/state.json
+100644 cbaa7f1b1562f49ae60a5b186d8b2ce4f2ca63a3 0 rlapp.js
+100644 c0e67032ca652edad51832dd74e2e3d1803a794d 0 rldata.js
+100644 ded524bd2736cfee47e39e6860e2faa1c64ba305 0 scripts/selftest.mjs
+100644 d449730e801e64b04febf19dba1c20af0402109b 0 tests/provider-credentials.functional.mjs
+100644 f48cd05b6f2270be54cb2a79e98b90f3dd467c43 0 tests/provider-credentials.spec.mjs
+100644 642ea8fae1178ea82206556347a50d0467cc20c2 0 tests/provider-credentials.support.mjs
+100644 7c474a59012a7cbed8d7b1cd6c7bb8ba55603253 0 tests/provider-credentials.unit.mjs
+6841de3f70959082c4ac50831060252d0d8786c2e31d97a1827f8b443950be72  rldata.js
+f0edf5324a00fb463d6fbcb21d7ae6c1d23c7064d3cab93169194bfc8a8b4421  rlapp.js
+022349bc4f613fa60f31247edb01108c54b2483363a0eac10791d576091236a0  tests/provider-credentials.support.mjs
+ba0608d3ed8e501b317bdab4e625995d0cbdada005458026bc28d8cddb5b54f6  tests/provider-credentials.unit.mjs
+520fe6272876343d0a034de52b9409be403d7e14929b44e888f20e5f41e8a3b0  tests/provider-credentials.functional.mjs
+6351e2f267db561312480e237fe8a29a795cb37704a7d2dbff7b20f6a9583daa  tests/provider-credentials.spec.mjs
+fa5afceab6d83835106c25004a75ccda7bfe6c91912be06e9149b154ec9f3ef4  scripts/selftest.mjs
+```
+
+**Result:** PASS - the just-in-time ownership baseline was captured before edits.
+
+### Scenario-First RED - Before Product Changes
+
+#### S1-T01 Unit RED
+
+**Claim Source:** executed
+**Command:** `node --test tests/provider-credentials.unit.mjs`
+**Exit Code:** 1
+**Output:**
+
+```text
+✔ SCN-BUG002-001 providers start unconfigured; two-tier API present; local key configures then clears
+✔ SCN-BUG002-004 fail-closed transport and prototype-safe unknown providers
+✖ SCN-BUG001-004 legacy registry excludes BUG-002 provider configuration
+ℹ tests 3
+ℹ suites 0
+ℹ pass 2
+ℹ fail 1
+ℹ cancelled 0
+ℹ skipped 0
+ℹ todo 0
+✖ failing tests:
+AssertionError [ERR_ASSERTION]: Expected values to be strictly equal:
+actual: 'undefined'
+expected: 'function'
+```
+
+**Result:** FAIL as required - the legacy detection API did not exist while both BUG-002 canaries remained green.
+
+#### S1-T02 And S1-T03 Functional RED
+
+**Claim Source:** executed
+**Command:** `node --test tests/provider-credentials.functional.mjs`
+**Exit Code:** 1
+**Output:**
+
+```text
+✔ SCN-BUG002-002 local keys persist across lifecycle signals (Tier-2 is durable, not memory-only)
+✔ SCN-BUG002-002b same browser shares keys across pages; separate browsers stay isolated
+✔ Regression BUG-004: proxy HTTP failure falls back once to same-provider local key
+✔ Regression BUG-004: key-bearing full URL stays keyless at proxy and singular at direct fallback
+✔ Regression BUG-004: registry-reserved query fields are stripped before proxy and canonicalized once for direct
+✔ Regression BUG-004: proxy transport rejection falls back once to same-provider local key
+✔ Regression BUG-004: proxy timeout rejection falls back once to same-provider local key
+✔ Regression BUG-004: proxy JSON decode failure falls back once to same-provider local key
+✔ Regression BUG-004: fallback never crosses provider or retries
+✔ Regression BUG-004: no same-provider key fails closed without disclosure
+✔ SCN-BUG004-003 force-local uses the shared direct provider path
+✖ SCN-BUG001-004 exact legacy containers erase while BUG-002 configuration remains unchanged
+✖ SCN-BUG001-004 partial legacy deletion reports incomplete and preserves BUG-002 configuration
+ℹ tests 13
+ℹ pass 11
+ℹ fail 2
+TypeError: realm.api.detectLegacyCredentialContainers is not a function
+TypeError: realm.api.eraseLegacyCredentialContainers is not a function
+```
+
+**Result:** FAIL as required - only the two new cleanup cases failed; all current provider-access and BUG-004 cases remained green.
+
+#### S1-T05 And S1-T06 Browser RED
+
+**Claim Source:** executed
+**Command:** `npx --no-install playwright test tests/provider-credentials.spec.mjs --config=playwright.config.mjs --project=system-chrome --reporter=list`
+**Exit Code:** 1
+**Output:**
+
+```text
+Running 6 tests using 1 worker
+✓ editor renders both tiers with the two-tier API and providers start unconfigured
+✓ Tier-2: a local key set through the editor is stored only in this browser and never leaked
+✘ Tier-1: a reachable proxy flips the active tier, and force-local overrides it
+✓ unknown/prototype-shaped providers fail closed, and "clear all" wipes this browser
+✘ Regression BUG-001: legacy cleanup erases pre-BUG-002 containers and preserves current provider access
+✘ Regression BUG-001: incomplete legacy cleanup is explicit and does not alter BUG-002 configuration
+Locator: locator('#data-settings .settings-legacy')
+Expected: visible
+Error: element(s) not found
+Call log:
+  - waiting for locator('#data-settings .settings-legacy')
+Locator: locator('#data-settings .settings-erase-legacy')
+Error: page.click: Test timeout of 30000ms exceeded
+3 failed
+3 passed
+```
+
+**Result:** FAIL as required - both exact cleanup interactions were absent. The run also exposed that the existing Tier-1 canary's intercepted fake origin was CSP-blocked; it was converted to the repository's real localhost proxy-health server without changing BUG-002 behavior.
+
+### Implemented Behavior
+
+| File | Owned change |
+| --- | --- |
+| `rldata.js` | Frozen registry of 11 exact pre-BUG-002 names; metadata/name-only detection; whole-container deletion; absence verification; redacted complete/incomplete/unavailable results; no legacy value reads. |
+| `rlapp.js` | Redacted presence summary, destructive whole-container disclosure, explicit confirmation, complete/incomplete status, and no mutation of current provider settings. |
+| `tests/provider-credentials.support.mjs` | Deterministic storage operation ledger and forced-remove behavior for real production-code tests. |
+| `tests/provider-credentials.unit.mjs` | S1-T01 exact registry, unknown-container non-erasure, and canonical-store preservation regression. |
+| `tests/provider-credentials.functional.mjs` | S1-T02 complete erase and S1-T03 forced-incomplete adversarial regressions with zero legacy `getItem` calls. |
+| `tests/provider-credentials.spec.mjs` | Exact S1-T05/S1-T06 real-browser flows; BUG-002 Tier-1 canary now uses a real local proxy server instead of interception. |
+| `scripts/selftest.mjs` | Narrow provider-block integration assertions only; all pre-existing foreign hunks were retained. |
+
+### Six-Row GREEN Evidence
+
+#### S1-T01 - Unit Adversarial
+
+**Claim Source:** executed
+**Command:** `node --test tests/provider-credentials.unit.mjs`
+**Exit Code:** 0
+**Output:**
+
+```text
+✔ SCN-BUG002-001 providers start unconfigured; two-tier API present; local key configures then clears
+✔ SCN-BUG002-004 fail-closed transport and prototype-safe unknown providers
+✔ SCN-BUG001-004 legacy registry excludes BUG-002 provider configuration
+ℹ tests 3
+ℹ suites 0
+ℹ pass 3
+ℹ fail 0
+ℹ cancelled 0
+ℹ skipped 0
+ℹ todo 0
+ℹ duration_ms 87.618515
+```
+
+**Result:** PASS
+
+#### S1-T02 And S1-T03 - Functional Regression And Adversarial Failure
+
+**Claim Source:** executed
+**Command:** `node --test tests/provider-credentials.functional.mjs`
+**Exit Code:** 0
+**Output:**
+
+```text
+BUG004_CREDENTIAL_NORMALIZATION_MATRIX_BEGIN
+REGISTRY_PROVIDER_COUNT=4
+TOTAL_PROXY_CREDENTIAL_LEAKS=0
+TOTAL_DIRECT_UNEXPECTED_CREDENTIALS=0
+EXTERNAL_NETWORK=false
+MATRIX_FAILURES=0
+BUG004_CREDENTIAL_NORMALIZATION_MATRIX_END
+✔ SCN-BUG002-002 local keys persist across lifecycle signals (Tier-2 is durable, not memory-only)
+✔ SCN-BUG002-002b same browser shares keys across pages; separate browsers stay isolated
+✔ Regression BUG-004: proxy HTTP failure falls back once to same-provider local key
+✔ Regression BUG-004: key-bearing full URL stays keyless at proxy and singular at direct fallback
+✔ Regression BUG-004: registry-reserved query fields are stripped before proxy and canonicalized once for direct
+✔ Regression BUG-004: proxy transport rejection falls back once to same-provider local key
+✔ Regression BUG-004: proxy timeout rejection falls back once to same-provider local key
+✔ Regression BUG-004: proxy JSON decode failure falls back once to same-provider local key
+✔ Regression BUG-004: fallback never crosses provider or retries
+✔ Regression BUG-004: no same-provider key fails closed without disclosure
+✔ SCN-BUG004-003 force-local uses the shared direct provider path
+✔ SCN-BUG001-004 exact legacy containers erase while BUG-002 configuration remains unchanged
+✔ SCN-BUG001-004 partial legacy deletion reports incomplete and preserves BUG-002 configuration
+ℹ tests 13
+ℹ pass 13
+ℹ fail 0
+ℹ skipped 0
+ℹ todo 0
+```
+
+**Result:** PASS - S1-T02 and S1-T03 both execute through production `rldata.js`; the adversarial branch forces one registered `removeItem` failure and proves no success claim or current-config mutation.
+
+#### S1-T04 - Repository Integration
+
+**Claim Source:** executed
+**Command:** `node scripts/selftest.mjs`
+**Exit Code:** 0
+**Output:**
+
+```text
+spec artifacts — referenced tests/*.mjs paths exist (Playwright silently ignores absent file args)
+  ✓ the scan matched at least one tests/*.mjs reference against a present baseline, so the guard is not vacuously green
+  ✓ no tests/*.mjs path named by a spec artifact is missing outside the frozen baseline
+  ✓ market-brief.page.json is byte-current with its full source artifacts
+  ✓ market-brief.config.page.json is byte-current with its full source artifacts
+  ✓ market-brief.snapshot.page.json is byte-current with its full source artifacts
+  ✓ market-brief.tools.page.json is byte-current with its full source artifacts
+  ✓ market-brief.experimental.json is byte-current with its full source artifacts
+  ✓ the cockpit's whole first-load payload is inside budget (144 KB <= 200 KB)
+================================================
+Research-Lab self-test: 1101 passed, 0 failed
+================================================
+```
+
+**Result:** PASS - the provider block inside this exact run includes legacy exact-name detection/erase, byte-stable `rlProviderConfig`, byte-stable `rlData`, and still-configured Finnhub assertions.
+
+#### S1-T05 And S1-T06 - Real Browser E2E
+
+**Claim Source:** executed
+**Command:** `npx --no-install playwright test tests/provider-credentials.spec.mjs --config=playwright.config.mjs --project=system-chrome --reporter=list`
+**Exit Code:** 0
+**Output:**
+
+```text
+Running 6 tests using 1 worker
+✓ editor renders both tiers with the two-tier API and providers start unconfigured
+✓ Tier-2: a local key set through the editor is stored only in this browser and never leaked
+✓ Tier-1: a reachable proxy flips the active tier, and force-local overrides it
+✓ unknown/prototype-shaped providers fail closed, and "clear all" wipes this browser
+✓ Regression BUG-001: legacy cleanup erases pre-BUG-002 containers and preserves current provider access
+✓ Regression BUG-001: incomplete legacy cleanup is explicit and does not alter BUG-002 configuration
+
+6 passed (4.1s)
+```
+
+**Result:** PASS - no request interception remains in this file; the Tier-1 canary uses the real local HTTP server and the cleanup tests exercise the real page and browser storage.
+
+### Regression Quality Evidence
+
+**Claim Source:** executed
+**Command:** `bash .github/bubbles/scripts/regression-quality-guard.sh --bugfix tests/provider-credentials.unit.mjs tests/provider-credentials.functional.mjs tests/provider-credentials.spec.mjs`
+**Exit Code:** 0
+**Output:**
+
+```text
+============================================================
+  BUBBLES REGRESSION QUALITY GUARD
+  Repo: ~/research-lab
+  Timestamp: 2026-08-01T17:14:46Z
+  Bugfix mode: true
+============================================================
+Scanning tests/provider-credentials.unit.mjs
+Adversarial signal detected in tests/provider-credentials.unit.mjs
+Scanning tests/provider-credentials.functional.mjs
+Adversarial signal detected in tests/provider-credentials.functional.mjs
+Scanning tests/provider-credentials.spec.mjs
+Adversarial signal detected in tests/provider-credentials.spec.mjs
+============================================================
+REGRESSION QUALITY RESULT: 0 violation(s), 0 warning(s)
+Files scanned: 3
+Files with adversarial signals: 3
+============================================================
+```
+
+**Result:** PASS
+
+### SCOPE-01 DoD Execution Accounting
+
+| Plan DoD item | Execution evidence status |
+| --- | --- |
+| SCN-BUG001-004 detection, disclosure, confirmed erase, absence verification, explicit incomplete result, current provider preservation | Satisfied by S1-T01, S1-T02, S1-T03, S1-T05, and S1-T06; pending validate certification. |
+| Exact pre-BUG-002 registry excludes `rlProviderConfig`, proxy config, `rlData`, and unknown containers | Satisfied by S1-T01 and S1-T04; pending validate certification. |
+| Shared impact sweep and inverse-hunk boundary preserve current access, non-secret cache, and unrelated work | Baseline/post hashes, BUG-002 canaries, selftest, no-interception scan, and path-scoped diff checks are current; pending validate certification. |
+| S1-T01 | PASS with current raw evidence above. |
+| S1-T02 | PASS with current raw evidence above. |
+| S1-T03 | PASS with current raw evidence above. |
+| S1-T04 | PASS with current raw evidence above. |
+| S1-T05 | PASS with current raw evidence above. |
+| S1-T06 | PASS with current raw evidence above. |
+| Build Quality Gate | Focused tests, full provider Playwright file, full selftest, both regression-quality modes, zero-interception scan, diagnostics, and path-scoped diff checks pass; final artifact lint evidence follows after the execution-artifact update. |
+
+### SCOPE-01 Completion Replay - 2026-08-01T17:27:23Z
+
+This replay completes the existing implementation evidence after removing only the trailing Markdown hard-break spaces that caused the report-scoped `git diff --check` failure. It does not add or change product behavior, BUG-004 artifacts, framework-managed files, plan-owned checkboxes, top-level status, or certification.
+
+#### S1-T01 Current Unit Replay
+
+**Phase:** bug
+**Claim Source:** executed
+**Command:** `node --test tests/provider-credentials.unit.mjs`
+**Exit Code:** 0
+**Output:**
+
+```text
+✔ SCN-BUG002-001 providers start unconfigured; two-tier API present; local key configures then clears (5.787132ms)
+✔ SCN-BUG002-004 fail-closed transport and prototype-safe unknown providers (4.899327ms)
+✔ SCN-BUG001-004 legacy registry excludes BUG-002 provider configuration (1.279207ms)
+ℹ tests 3
+ℹ suites 0
+ℹ pass 3
+ℹ fail 0
+ℹ cancelled 0
+ℹ skipped 0
+ℹ todo 0
+ℹ duration_ms 94.032711
+```
+
+**Result:** PASS
+
+#### S1-T02 Current Functional Replay
+
+**Phase:** bug
+**Claim Source:** executed
+**Command:** `node --test tests/provider-credentials.functional.mjs`
+**Exit Code:** 0
+**Output (final 15 lines of the full current terminal output):**
+
+```text
+✔ Regression BUG-004: fallback never crosses provider or retries (1.537888ms)
+✔ Regression BUG-004: no same-provider key fails closed without disclosure (2.197784ms)
+✔ SCN-BUG004-003 force-local uses the shared direct provider path (2.122985ms)
+✔ SCN-BUG001-004 exact legacy containers erase while BUG-002 configuration remains unchanged (1.849987ms)
+✔ SCN-BUG001-004 partial legacy deletion reports incomplete and preserves BUG-002 configuration (0.718694ms)
+ℹ tests 13
+ℹ suites 0
+ℹ pass 13
+ℹ fail 0
+ℹ cancelled 0
+ℹ skipped 0
+ℹ todo 0
+ℹ duration_ms 173.381039
+```
+
+**Result:** PASS
+
+#### S1-T03 Current Functional Adversarial Replay
+
+**Phase:** bug
+**Claim Source:** executed
+**Command:** `node --test tests/provider-credentials.functional.mjs`
+**Exit Code:** 0
+**Output (final 15 lines of the independent full current terminal output):**
+
+```text
+✔ Regression BUG-004: fallback never crosses provider or retries (1.051595ms)
+✔ Regression BUG-004: no same-provider key fails closed without disclosure (1.478394ms)
+✔ SCN-BUG004-003 force-local uses the shared direct provider path (1.256995ms)
+✔ SCN-BUG001-004 exact legacy containers erase while BUG-002 configuration remains unchanged (1.316494ms)
+✔ SCN-BUG001-004 partial legacy deletion reports incomplete and preserves BUG-002 configuration (0.661797ms)
+ℹ tests 13
+ℹ suites 0
+ℹ pass 13
+ℹ fail 0
+ℹ cancelled 0
+ℹ skipped 0
+ℹ todo 0
+ℹ duration_ms 154.563153
+```
+
+**Result:** PASS
+
+#### S1-T04 Current Repository Integration Replay
+
+**Phase:** bug
+**Claim Source:** executed
+**Command:** `node scripts/selftest.mjs`
+**Exit Code:** 0
+**Output (final current terminal window from the preserved full output):**
+
+```text
+  ✓ the recent window is inside its declared byte budget (10110 <= 204800)
+  ✓ the recent window is inside its declared row budget (30 <= 30)
+  ✓ the cockpit’s whole first-load payload is inside budget (144 KB <= 200 KB)
+  ✓ the unbounded log genuinely exceeds the budget (2314 KB), so fetching it would FAIL this test rather than slip through
+  ✓ every run in the append log is preserved in a monthly shard (107 = 107)
+  ✓ every recent row declares the compact contract, so a consumer knows it is a projection and not the full run
+  ✓ the sharder never rewrites the append log it reads from
+
+spec artifacts — referenced tests/*.mjs paths exist (Playwright silently ignores absent file args)
+  ✓ the scan matched at least one tests/*.mjs reference against a present baseline, so the guard is not vacuously green (9876 reference(s) across 421 artifact(s), baseline 86 entries)
+  ✓ no tests/*.mjs path named by a spec artifact is missing outside the frozen baseline — a stale path makes a multi-file verification command silently cover less than it claims (0 new, 86 known-missing, 0 stale of 204 referenced)
+
+================================================
+Research-Lab self-test: 1101 passed, 0 failed
+================================================
+```
+
+**Result:** PASS
+
+#### S1-T05 Current Browser Replay
+
+**Phase:** bug
+**Claim Source:** executed
+**Command:** `npx --no-install playwright test tests/provider-credentials.spec.mjs --config=playwright.config.mjs --project=system-chrome --reporter=list`
+**Exit Code:** 0
+**Output:**
+
+```text
+Running 6 tests using 1 worker
+
+  ✓  1 …oth tiers with the two-tier API and providers start unconfigured (448ms)
+  ✓  2 …rough the editor is stored only in this browser and never leaked (385ms)
+  ✓  3 …chable proxy flips the active tier, and force-local overrides it (455ms)
+  ✓  4 …shaped providers fail closed, and "clear all" wipes this browser (231ms)
+  ✓  5 …ses pre-BUG-002 containers and preserves current provider access (422ms)
+  ✓  6 …acy cleanup is explicit and does not alter BUG-002 configuration (466ms)
+
+  6 passed (4.2s)
+```
+
+**Result:** PASS
+
+#### S1-T06 Current Browser Adversarial Replay
+
+**Phase:** bug
+**Claim Source:** executed
+**Command:** `npx --no-install playwright test tests/provider-credentials.spec.mjs --config=playwright.config.mjs --project=system-chrome --reporter=list`
+**Exit Code:** 0
+**Output:**
+
+```text
+Running 6 tests using 1 worker
+
+  ✓  1 …oth tiers with the two-tier API and providers start unconfigured (432ms)
+  ✓  2 …rough the editor is stored only in this browser and never leaked (359ms)
+  ✓  3 …chable proxy flips the active tier, and force-local overrides it (452ms)
+  ✓  4 …shaped providers fail closed, and "clear all" wipes this browser (268ms)
+  ✓  5 …ses pre-BUG-002 containers and preserves current provider access (505ms)
+  ✓  6 …acy cleanup is explicit and does not alter BUG-002 configuration (443ms)
+
+  6 passed (4.1s)
+```
+
+**Result:** PASS
+
+#### Current Quality And Boundary Replay
+
+**Phase:** bug
+**Claim Source:** executed
+**Commands:** standard and `--bugfix` regression-quality guards; live-interception scan; BUG-001 artifact lint; edited-file diagnostics; BUG-001 path-scoped `git diff --check`
+**Exit Code:** 0 for every command/tool
+**Output:**
+
+```text
+REGRESSION QUALITY RESULT: 0 violation(s), 0 warning(s)
+Files scanned: 3
+Bugfix mode: true
+Adversarial signal detected in tests/provider-credentials.unit.mjs
+Adversarial signal detected in tests/provider-credentials.functional.mjs
+Adversarial signal detected in tests/provider-credentials.spec.mjs
+Files with adversarial signals: 3
+BUG001_LIVE_INTERCEPTION_SCAN=PASS
+MATCHES=0
+Artifact lint PASSED.
+rldata.js: No errors found
+rlapp.js: No errors found
+tests/provider-credentials.support.mjs: No errors found
+tests/provider-credentials.unit.mjs: No errors found
+tests/provider-credentials.functional.mjs: No errors found
+tests/provider-credentials.spec.mjs: No errors found
+scripts/selftest.mjs: No errors found
+report.md: No errors found
+state.json: No errors found
+BUG001_PATH_SCOPED_DIFF_CHECK_EXIT=0
+```
+
+**Result:** PASS. This is implementation/test evidence only. Validation and certification remain owned by `bubbles.validate`.
+
+### Validation Route
+
+```yaml
+packet: BUG-001-central-provider-credential-security
+workflowMode: bugfix-fastlane
+currentOwner: bubbles.bug
+currentOutcome: route_required
+activeScopeIds: [SCOPE-01]
+addressedFindingIds: [BUG001-LEGACY-CONTAINER-CLOSURE]
+unresolvedFindingIds: [BUG001-CERTIFICATION]
+nextRequiredOwner: bubbles.validate
+requestedAction: validate the six mapped rows and ten DoD execution claims, reconcile the stale certification inventory to the active one-scope plan, run transition guards, and write certification only if every gate passes
+certificationChangedByImplementation: false
+```
+
+## Regression Phase Evidence - 2026-08-01T18:45:21Z
+
+**Phase:** regression
+**Agent:** `bubbles.regression`
+**Scope:** `SCOPE-01 Pre-BUG-002 Legacy Credential Erasure`
+**Active scenario:** `SCN-BUG001-004`
+**Claim Source:** executed
+**Repository binding:** `research-lab`, decision `rb:vscode-9a7293b2dab62e384ebe03875bcef375:7`, revision `7`
+**Boundary:** No source, test, BUG-002, BUG-004, certification, unrelated main-agent, or `.github/bubbles/**` file was edited by this phase.
+
+### Test Baseline Comparison
+
+The comparison baseline is the current SCOPE-01 replay above plus BUG-002's independently executed audit baseline. Test additions from BUG-004 and later cross-feature work are counted as additive rather than treated as baseline drift.
+
+| Category | Before | Current | Delta | Result |
+| --- | ---: | ---: | ---: | --- |
+| Provider unit | 3/3 | 3/3 | 0 | CLEAN |
+| Provider functional | 13/13 | 13/13 | 0 | CLEAN |
+| Repository selftest | 1101/1101 | 1101/1101 | 0 | CLEAN |
+| Provider browser | 6/6 | 6/6 | 0 | CLEAN |
+| BUG-002 three-file browser set | 15/15 | 17/17 | +2 | IMPROVED |
+| Distributed provider-owner canary | 2/2 current baseline | 2/2 | 0 | CLEAN |
+| Required skips/todos | 0 | 0 | 0 | CLEAN |
+
+### Runner And Source-Lock Provenance
+
+**Claim Source:** executed
+**Commands:** `timeout 120 node scripts/validate-node-source-lock.mjs`; `timeout 60 npx --no-install playwright --version`
+**Exit Code:** 0 for both commands
+**Output:**
+
+```text
+[node-source-lock] manifest=PASS private=true runtimeDependencies=0 scripts=0 playwright=1.61.1 node=>=20
+[node-source-lock] npmrc=PASS registry=https://registry.npmjs.org/ entries=5 ignoreScripts=true
+[node-source-lock] lockfile=PASS version=3 externalPackages=3 integrity=sha512
+[node-source-lock] graph=PASS playwright=1.61.1 playwright-core=1.61.1 fsevents=2.3.2
+[node-source-lock] adversarial=missing-file result=REJECTED code=FILE-MISSING
+[node-source-lock] adversarial=manifest-drift result=REJECTED code=MANIFEST-KEYS
+[node-source-lock] adversarial=second-registry result=REJECTED code=NPMRC-DUPLICATE
+[node-source-lock] adversarial=verification-disabled result=REJECTED code=NPMRC-VERIFICATION
+[node-source-lock] adversarial=untrusted-resolved-url result=REJECTED code=LOCK-SOURCE
+[node-source-lock] adversarial=missing-integrity result=REJECTED code=LOCK-INTEGRITY
+[node-source-lock] adversarial=git-source result=REJECTED code=LOCK-SOURCE
+[node-source-lock] adversarial=file-source result=REJECTED code=LOCK-SOURCE
+[node-source-lock] adversarial=path-source result=REJECTED code=LOCK-SOURCE
+[node-source-lock] adversarial=http-source result=REJECTED code=LOCK-SOURCE
+[node-source-lock] adversarial=external-version-range result=REJECTED code=LOCK-PACKAGE-VERSION
+[node-source-lock] adversarial=extra-package result=REJECTED code=LOCK-GRAPH
+[node-source-lock] actual=PASS
+[node-source-lock] OK adversarial=16 unexpectedAcceptances=0
+Version 1.61.1
+```
+
+**Result:** PASS
+
+### Focused Legacy-Erasure And Current-Provider Regression
+
+#### Unit Baseline
+
+**Claim Source:** executed
+**Command:** `timeout 120 node --test tests/provider-credentials.unit.mjs`
+**Exit Code:** 0
+**Output:**
+
+```text
+✔ SCN-BUG002-001 providers start unconfigured; two-tier API present; local key configures then clears (5.972518ms)
+✔ SCN-BUG002-004 fail-closed transport and prototype-safe unknown providers (4.762814ms)
+✔ SCN-BUG001-004 legacy registry excludes BUG-002 provider configuration (2.705708ms)
+ℹ tests 3
+ℹ suites 0
+ℹ pass 3
+ℹ fail 0
+ℹ cancelled 0
+ℹ skipped 0
+ℹ todo 0
+ℹ duration_ms 88.94486
+```
+
+**Result:** PASS
+
+#### Functional Baseline And Forced-Incomplete Adversary
+
+**Claim Source:** executed
+**Command:** `timeout 180 node --test tests/provider-credentials.functional.mjs`
+**Exit Code:** 0
+**Output:**
+
+```text
+TOTAL_PROXY_CREDENTIAL_LEAKS=0
+TOTAL_DIRECT_UNEXPECTED_CREDENTIALS=0
+EXTERNAL_NETWORK=false
+MATRIX_FAILURES=0
+BUG004_CREDENTIAL_NORMALIZATION_MATRIX_END
+✔ SCN-BUG002-002 local keys persist across lifecycle signals (Tier-2 is durable, not memory-only) (6.555621ms)
+✔ SCN-BUG002-002b same browser shares keys across pages; separate browsers stay isolated (3.16831ms)
+✔ Regression BUG-004: fallback never crosses provider or retries (1.054603ms)
+✔ Regression BUG-004: no same-provider key fails closed without disclosure (1.346304ms)
+✔ SCN-BUG004-003 force-local uses the shared direct provider path (1.950106ms)
+✔ SCN-BUG001-004 exact legacy containers erase while BUG-002 configuration remains unchanged (1.811505ms)
+✔ SCN-BUG001-004 partial legacy deletion reports incomplete and preserves BUG-002 configuration (0.700303ms)
+ℹ tests 13
+ℹ suites 0
+ℹ pass 13
+ℹ fail 0
+ℹ cancelled 0
+ℹ skipped 0
+ℹ todo 0
+ℹ duration_ms 147.643862
+```
+
+**Result:** PASS. The adversarial branch forces one exact legacy deletion to fail, requires an explicit redacted incomplete result, and proves `rlProviderConfig` remains unchanged and usable.
+
+#### Repository Integration Baseline
+
+**Claim Source:** executed
+**Command:** `timeout 300 node scripts/selftest.mjs`
+**Exit Code:** 0
+**Output (final raw lines from the fully captured 365-line output):**
+
+```text
+  ✓ market-brief.page.json is byte-current with its full source artifacts
+  ✓ market-brief.config.page.json is byte-current with its full source artifacts
+  ✓ market-brief.snapshot.page.json is byte-current with its full source artifacts
+  ✓ market-brief.tools.page.json is byte-current with its full source artifacts
+  ✓ market-brief.experimental.json is byte-current with its full source artifacts
+  ✓ the recent window is inside its declared byte budget (10110 <= 204800)
+  ✓ the recent window is inside its declared row budget (30 <= 30)
+  ✓ the cockpit’s whole first-load payload is inside budget (144 KB <= 200 KB)
+  ✓ the unbounded log genuinely exceeds the budget (2314 KB), so fetching it would FAIL this test rather than slip through
+  ✓ every run in the append log is preserved in a monthly shard (107 = 107)
+  ✓ every recent row declares the compact contract, so a consumer knows it is a projection and not the full run
+  ✓ the sharder never rewrites the append log it reads from
+
+spec artifacts — referenced tests/*.mjs paths exist (Playwright silently ignores absent file args)
+  ✓ the scan matched at least one tests/*.mjs reference against a present baseline, so the guard is not vacuously green (9895 reference(s) across 421 artifact(s), baseline 86 entries)
+  ✓ no tests/*.mjs path named by a spec artifact is missing outside the frozen baseline — a stale path makes a multi-file verification command silently cover less than it claims (0 new, 86 known-missing, 0 stale of 204 referenced)
+
+================================================
+Research-Lab self-test: 1101 passed, 0 failed
+================================================
+```
+
+**Result:** PASS
+
+#### Real Browser Provider Baseline
+
+**Claim Source:** executed
+**Command:** `timeout 600 npx --no-install playwright test tests/provider-credentials.spec.mjs --config=playwright.config.mjs --project=system-chrome --reporter=list`
+**Exit Code:** 0
+**Output:**
+
+```text
+Running 6 tests using 1 worker
+
+  ✓  1 …oth tiers with the two-tier API and providers start unconfigured (919ms)
+  ✓  2 …rough the editor is stored only in this browser and never leaked (386ms)
+  ✓  3 …chable proxy flips the active tier, and force-local overrides it (450ms)
+  ✓  4 …shaped providers fail closed, and "clear all" wipes this browser (265ms)
+  ✓  5 …ses pre-BUG-002 containers and preserves current provider access (502ms)
+  ✓  6 …acy cleanup is explicit and does not alter BUG-002 configuration (442ms)
+
+  6 passed (5.2s)
+```
+
+**Result:** PASS. The provider E2E file contains no `page.route` or `context.route` interception and exercises the real static page, browser storage, confirmation dialog, and local proxy-health server.
+
+### First-Party Provider And Cross-Feature Regression
+
+**Claim Source:** executed
+**Commands:**
+
+- `timeout 120 node --test tests/distributed-briefs-owner-canary.mjs`
+- `timeout 600 npx --no-install playwright test tests/msft-july-market-refresh.spec.mjs tests/technical-analysis-decision-lab.spec.mjs --config=playwright.config.mjs --project=system-chrome --reporter=list`
+- `timeout 600 npx --no-install playwright test tests/bond-regime-lab.spec.mjs --config=playwright.config.mjs --project=system-chrome --reporter=list`
+- `timeout 600 npx --no-install playwright test tests/causal-rotation-lab.spec.mjs --config=playwright.config.mjs --project=system-chrome --reporter=list`
+- `timeout 600 npx --no-install playwright test tests/fx-regime-relative-value-lab.spec.mjs --config=playwright.config.mjs --project=system-chrome --reporter=list`
+- `timeout 600 npx --no-install playwright test tests/palm-springs-rental-market-lab.spec.mjs --config=playwright.config.mjs --project=system-chrome --reporter=list`
+
+**Exit Code:** 0 for every command
+**Output (raw suite verdicts):**
+
+```text
+✔ Canary: five current publisher reads and four headless reads preserve pre-evidence semantics (13.979551ms)
+✔ Canary: Bond Regime and browser credential boundaries exclude restricted and private fields (1.561606ms)
+ℹ tests 2
+ℹ suites 0
+ℹ pass 2
+ℹ fail 0
+ℹ cancelled 0
+ℹ skipped 0
+ℹ todo 0
+ℹ duration_ms 110.807096
+Running 11 tests using 2 workers
+  ✓  1 …:47:1 › Regression: SCN-009-001/002/005 cache-first market truth (1.1s)
+  ✓  4 …Regression: SCN-009-006/007/008 degraded resources stay isolated (1.5s)
+  ✓  8 …ssion: SCN-009-003/004/010 market outcomes preserve the scenario (1.4s)
+  ✓  9 …: SCN-009-009/011/012 one state drives modes refresh and export (899ms)
+  ✓  10 …Regression: SCN-009-011 viewport accessibility and canvas matrix (1.9s)
+  ✓  11 …ession: SCN-009-013/014 static publication and direct consumers (524ms)
+  11 passed (9.2s)
+Running 28 tests using 1 worker
+  28 passed (31.9s)
+Running 4 tests using 1 worker
+  4 passed (2.3s)
+Running 9 tests using 1 worker
+  9 passed (3.3s)
+Running 29 tests using 1 worker
+  29 passed (22.1s)
+```
+
+**Result:** PASS. The complete current set totals 83/83 checks across these provider-owner and shared-shell canaries, with zero skips or todos.
+
+### Contract Validators
+
+**Claim Source:** executed
+**Commands:** `timeout 120 node scripts/validate-brief-payload.mjs`; `timeout 120 node scripts/validate-causal-rotation.mjs`; `timeout 120 node scripts/session-review.mjs --selftest`
+**Exit Code:** 0 for all commands
+**Output:**
+
+```text
+[brief-contract] PASS: all visible sections, registry coverage, model-specific real assets, and next-session actions are valid
+[causal-contract] checks passed: 39
+[causal-contract] checks failed: 0
+[causal-contract] candidates: 5
+[causal-contract] source observations: 6
+[causal-contract] adversarial fixtures: 8
+[causal-contract] result: PASS
+classifyBranch — strict precedence & buckets
+  ✓ ahead=0 => MERGED_CLUTTER
+  ✓ bullet 1 [feat/089]: recent + checked-out + dirty + unbacked=3 => ACTIVE (was ORPHAN before the reorder)
+  ✓ bullet 3 [qf-091-style]: NOT recent (5d) + unbacked=25 + not-checked-out => ORPHAN_RISK (classic forgotten work)
+  ✓ unbacked=0 + old + not-live => STALE (backed under a different name, but idle) — NOT orphan
+assertReadOnlyGit — refuses every non-read-only shape
+  ✓ allows rev-parse --git-dir
+  ✓ refuses fetch (network)
+  ✓ refuses push
+  ✓ refuses checkout
+  ✓ refuses reset
+================================================
+session-review self-test: 59 passed, 0 failed
+================================================
+```
+
+**Result:** PASS
+
+### Regression Quality And Coverage Delta
+
+**Claim Source:** executed
+**Commands:** standard and `--bugfix` `regression-quality-guard.sh` against the three active provider test files
+**Exit Code:** 0 for both commands
+**Output:**
+
+```text
+BUBBLES REGRESSION QUALITY GUARD
+Repo: ~/research-lab
+Timestamp: 2026-08-01T18:41:45Z
+Bugfix mode: false
+Scanning tests/provider-credentials.unit.mjs
+Scanning tests/provider-credentials.functional.mjs
+Scanning tests/provider-credentials.spec.mjs
+REGRESSION QUALITY RESULT: 0 violation(s), 0 warning(s)
+Files scanned: 3
+BUBBLES REGRESSION QUALITY GUARD
+Timestamp: 2026-08-01T18:41:46Z
+Bugfix mode: true
+Adversarial signal detected in tests/provider-credentials.unit.mjs
+Adversarial signal detected in tests/provider-credentials.functional.mjs
+Adversarial signal detected in tests/provider-credentials.spec.mjs
+REGRESSION QUALITY RESULT: 0 violation(s), 0 warning(s)
+Files scanned: 3
+Files with adversarial signals: 3
+```
+
+**Result:** PASS
+
+Research Lab declares no line-coverage command, so no percentage is fabricated. Executable coverage is stable or improved on the available axes: one active Gherkin scenario remains mapped 1/1, both linked live browser regressions execute 2/2, all six Test Plan rows execute, focused counts do not decrease, and no required test is skipped or weakened.
+
+### Cross-Spec Impact And Design Coherence
+
+The changed shared surfaces (`rldata.js`, `rlapp.js`, provider tests, and `scripts/selftest.mjs`) affect BUG-002's provider foundation and every first-party consumer of shared cache/status behavior. The current runs above cover BUG-002's proxy, durable local-key, fail-closed, force-local, and clear contracts; the MSFT and technical-analysis consumers; the distributed owner boundary; and the Bond, Causal, FX, Palm Springs, brief, and session-review canaries. No runtime, test-count, scenario-coverage, or UI-flow regression was observed.
+
+One design-level conflict remains:
+
+| Finding | Current evidence | Required owner |
+| --- | --- | --- |
+| `BUG001-REGRESSION-DESIGN-CONFLICT` | Active `design.md` still says all providers are disabled, credentials are current-document memory only, and the index has no provider editor. Active `spec.md`, `bug.md`, BUG-002, and the green current tests instead require the proxy-first plus durable per-browser `localStorage.rlProviderConfig` model while retaining only exact legacy-container erasure in BUG-001. | `bubbles.design` |
+
+This is not a source regression, so no source or test edit was made and no `bubbles.bug` remediation route is opened. It is a fundamental active-design contradiction and prevents the `REGRESSION_FREE` verdict required for a direct `bubbles.simplify` handoff.
+
+### Post-Record Artifact Validation
+
+**Claim Source:** executed
+**Commands:** `timeout 300 bash .github/bubbles/scripts/artifact-lint.sh specs/_bugs/BUG-001-central-provider-credential-security`; `timeout 300 bash .github/bubbles/scripts/traceability-guard.sh specs/_bugs/BUG-001-central-provider-credential-security`; path-scoped `git diff --check`; edited-file diagnostics
+**Exit Code:** 0 for all commands and tools
+**Output:**
+
+```text
+Required artifact exists: spec.md
+Required artifact exists: design.md
+Required artifact exists: uservalidation.md
+Required artifact exists: state.json
+Required artifact exists: scopes.md
+Required artifact exists: report.md
+Detected state.json status: in_progress
+Detected state.json workflowMode: bugfix-fastlane
+Top-level status matches certification.status
+All checked DoD items in scopes.md have evidence blocks
+No unfilled evidence template placeholders in scopes.md
+No unfilled evidence template placeholders in report.md
+Artifact lint PASSED.
+BUBBLES TRACEABILITY GUARD
+Feature: ~/research-lab/specs/_bugs/BUG-001-central-provider-credential-security
+scenario-manifest.json covers 1 scenario contract(s)
+Scope 1: SCOPE-01 Pre-BUG-002 Legacy Credential Erasure summary: scenarios=1 test_rows=7
+DoD fidelity: 1 scenarios checked, 1 mapped to DoD, 0 unmapped
+Edge confidence (IMP-015 Scope B): declared=2 inferred=0 ambiguous=0
+RESULT: PASSED (0 warnings)
+report.md: No errors found
+state.json: No errors found
+BUG001_REGRESSION_PATH_DIFF_CHECK_EXIT=0
+pre-existing-deferral-guard: specDir=specs/_bugs/BUG-001-central-provider-credential-security scannedFiles=1 violations=0
+PASS Gate G084 (pre_existing_deferral_block_gate) — scannedFiles=1 violations=0, specDir=specs/_bugs/BUG-001-central-provider-credential-security
+```
+
+**Result:** PASS
+
+### Regression Verdict
+
+🔴 CONFLICT_DETECTED
+
+One fundamental design conflict was detected. Executable regressions: 0. Test failures: 0. Coverage losses: 0 on the declared executable axes. Design contradictions: 1.
+
+```yaml
+packet: BUG-001-central-provider-credential-security
+workflowMode: bugfix-fastlane
+currentOwner: bubbles.regression
+currentOutcome: route_required
+activeScopeIds: [SCOPE-01]
+addressedFindingIds: [BUG001-G022-REGRESSION]
+unresolvedFindingIds: [BUG001-REGRESSION-DESIGN-CONFLICT]
+nextRequiredOwner: bubbles.design
+requestedAction: reconcile only the active BUG-001 design to BUG-002 authority plus retained exact legacy-container erasure; preserve source, tests, report history, certification, BUG-004, unrelated work, and framework-managed files, then return to the required simplify phase
+certificationChangedByRegression: false
+```
+
+## Regression Recheck After Design Reconciliation - 2026-08-01T19:09:08Z
+
+**Phase:** regression
+**Agent:** `bubbles.regression`
+**Scope:** `SCOPE-01 Pre-BUG-002 Legacy Credential Erasure`
+**Active scenario:** `SCN-BUG001-004`
+**Claim Source:** executed
+**Repository binding:** `research-lab`, decision `rb:vscode-9a7293b2dab62e384ebe03875bcef375:9`, revision `9`
+**Boundary:** This phase edited only this regression evidence and execution/routing metadata in `state.json`. It did not edit source, tests, certification, BUG-002, BUG-004, unrelated main-agent work, or `.github/bubbles/**`.
+
+### Reconciled Design Coherence
+
+The active design prefix now matches the analyst-owned contract and BUG-002: BUG-002 exclusively owns current proxy and durable per-browser local-key access, while BUG-001 retains only exact pre-BUG-002 legacy-container retirement under SCOPE-01 and `SCN-BUG001-004`. The first `## Superseded Design Decisions` heading is a hard non-executable boundary.
+
+**Claim Source:** executed
+**Command:** `awk '/^## Superseded Design Decisions/{exit} /Active design status|sole active provider-access design|retains only SCOPE-01|only exact pre-BUG-002|localStorage\.rlProviderConfig|SCN-BUG001-004|BUG-001 owns only/{print NR ":" $0}' specs/_bugs/BUG-001-central-provider-credential-security/design.md`
+**Exit Code:** 0
+**Output:**
+
+```text
+7:**Active design status (2026-08-01):** Reconciled to the analyst-owned retained pre-BUG-002 legacy-container erasure contract. [BUG-002 Two-Tier Provider Access](../BUG-002-two-tier-provider-access/design.md) is the sole active provider-access design. The active BUG-001 design ends immediately before `## Superseded Design Decisions`; everything below that boundary is non-executable history.
+13:`rldata.js` implements BUG-002's provider-access foundation. `localStorage.rlProviderConfig` is the only current persisted provider surface and stores the user-configured Tier-1 proxy URL plus this browser's Tier-2 provider keys. `providerFetch()` selects the reachable proxy or the local-key transport under BUG-002's contract.
+17:BUG-001's active spec retains only SCOPE-01 and `SCN-BUG001-004`. The former memory-only runtime, lifecycle clearing, provider disablement, header-only transport, and no-proxy/query design is superseded.
+23:Detection and every cleanup outcome preserve BUG-002's proxy settings, durable `localStorage.rlProviderConfig`, current provider controls, provider transport, and non-secret `localStorage.rlData`. BUG-001 neither configures nor disables a provider.
+31:- Preserve `localStorage.rlProviderConfig` and `localStorage.rlData` byte-for-byte through detection, dismissal, complete cleanup, unavailable cleanup, and incomplete cleanup.
+44:- BUG-001 owns only exact pre-BUG-002 container detection, disclosure, confirmation, deletion, and absence verification.
+66:| Tier-2 local provider keys | BUG-002 `localStorage.rlProviderConfig` | Preserve unchanged |
+133:  providerConfigContainer: localStorage.rlProviderConfig
+222:- Tier-2 key durability in `localStorage.rlProviderConfig` is intentional current behavior under BUG-002 and is not a BUG-001 security finding.
+251:Only `SCN-BUG001-004` is active. Validation must test the retained behavior while treating BUG-002 current provider access as protected state, not as a legacy condition.
+```
+
+**Result:** PASS
+
+### Test Baseline Comparison
+
+The before column is the executed regression baseline at [Regression Phase Evidence - 2026-08-01T18:45:21Z](#regression-phase-evidence---2026-08-01t184521z). The design reconciliation changed no source or test contract, so the broad 83/83 first-party and cross-feature run remains reusable; the behavior-controlling provider suites and repository canary were replayed after reconciliation.
+
+| Category | Before | Current | Delta | Status |
+| --- | ---: | ---: | ---: | --- |
+| Provider unit | 3/3 | 3/3 | 0 | CLEAN |
+| Provider functional | 13/13 | 13/13 | 0 | CLEAN |
+| Repository selftest | 1101/1101 | 1101/1101 | 0 | CLEAN |
+| Provider browser | 6/6 | 6/6 | 0 | CLEAN |
+| Required skips/todos | 0 | 0 | 0 | CLEAN |
+| Prior cross-feature canaries | 83/83 | 83/83 reused | 0 | CLEAN |
+
+### Focused Executable Replay
+
+#### Unit - Exact Registry And Protected Current Configuration
+
+**Claim Source:** executed
+**Command:** `timeout 120 node --test tests/provider-credentials.unit.mjs`
+**Exit Code:** 0
+**Output:**
+
+```text
+✔ SCN-BUG002-001 providers start unconfigured; two-tier API present; local key configures then clears (5.250246ms)
+✔ SCN-BUG002-004 fail-closed transport and prototype-safe unknown providers (2.942226ms)
+✔ SCN-BUG001-004 legacy registry excludes BUG-002 provider configuration (1.882216ms)
+ℹ tests 3
+ℹ suites 0
+ℹ pass 3
+ℹ fail 0
+ℹ cancelled 0
+ℹ skipped 0
+ℹ todo 0
+ℹ duration_ms 78.052482
+```
+
+**Result:** PASS
+
+#### Functional - Complete And Forced-Incomplete Legacy Erasure
+
+**Claim Source:** executed
+**Command:** `timeout 180 node --test tests/provider-credentials.functional.mjs`
+**Exit Code:** 0
+**Output:**
+
+```text
+BUG004_CREDENTIAL_NORMALIZATION_MATRIX_BEGIN
+REGISTRY_PROVIDER_COUNT=4
+REGISTRY_RESERVED_QUERY_NAME_COUNT=3
+REGISTRY_RESERVED_QUERY_NAMES=apikey,token,api_key
+CALLER_RESERVED_QUERY_ENTRY_COUNT_PER_PROVIDER=18
+TOTAL_PROXY_CREDENTIAL_LEAKS=0
+TOTAL_DIRECT_UNEXPECTED_CREDENTIALS=0
+EXTERNAL_NETWORK=false
+MATRIX_FAILURES=0
+BUG004_CREDENTIAL_NORMALIZATION_MATRIX_END
+✔ SCN-BUG002-002 local keys persist across lifecycle signals (Tier-2 is durable, not memory-only) (6.500959ms)
+✔ SCN-BUG002-002b same browser shares keys across pages; separate browsers stay isolated (2.906326ms)
+✔ Regression BUG-004: fallback never crosses provider or retries (1.068909ms)
+✔ Regression BUG-004: no same-provider key fails closed without disclosure (1.276411ms)
+✔ SCN-BUG004-003 force-local uses the shared direct provider path (1.341912ms)
+✔ SCN-BUG001-004 exact legacy containers erase while BUG-002 configuration remains unchanged (1.437213ms)
+✔ SCN-BUG001-004 partial legacy deletion reports incomplete and preserves BUG-002 configuration (0.686207ms)
+ℹ tests 13
+ℹ suites 0
+ℹ pass 13
+ℹ fail 0
+ℹ cancelled 0
+ℹ skipped 0
+ℹ todo 0
+ℹ duration_ms 133.84521
+```
+
+**Result:** PASS
+
+#### Repository Integration Canary
+
+**Claim Source:** executed
+**Command:** `timeout 300 node scripts/selftest.mjs`
+**Exit Code:** 0
+**Output (final raw lines from the full current run):**
+
+```text
+  ✓ market-brief.page.json is byte-current with its full source artifacts
+  ✓ market-brief.config.page.json is byte-current with its full source artifacts
+  ✓ market-brief.snapshot.page.json is byte-current with its full source artifacts
+  ✓ market-brief.tools.page.json is byte-current with its full source artifacts
+  ✓ market-brief.experimental.json is byte-current with its full source artifacts
+  ✓ the recent window is inside its declared byte budget (10110 <= 204800)
+  ✓ the recent window is inside its declared row budget (30 <= 30)
+  ✓ the cockpit’s whole first-load payload is inside budget (144 KB <= 200 KB)
+  ✓ the unbounded log genuinely exceeds the budget (2314 KB), so fetching it would FAIL this test rather than slip through
+  ✓ every run in the append log is preserved in a monthly shard (107 = 107)
+  ✓ every recent row declares the compact contract, so a consumer knows it is a projection and not the full run
+  ✓ the sharder never rewrites the append log it reads from
+
+spec artifacts — referenced tests/*.mjs paths exist (Playwright silently ignores absent file args)
+  ✓ the scan matched at least one tests/*.mjs reference against a present baseline, so the guard is not vacuously green (9917 reference(s) across 421 artifact(s), baseline 86 entries)
+  ✓ no tests/*.mjs path named by a spec artifact is missing outside the frozen baseline — a stale path makes a multi-file verification command silently cover less than it claims (0 new, 86 known-missing, 0 stale of 204 referenced)
+
+================================================
+Research-Lab self-test: 1101 passed, 0 failed
+================================================
+```
+
+**Result:** PASS
+
+#### Real Browser Provider And Cleanup Flow
+
+**Claim Source:** executed
+**Command:** `timeout 600 npx --no-install playwright test tests/provider-credentials.spec.mjs --config=playwright.config.mjs --project=system-chrome --reporter=list`
+**Exit Code:** 0
+**Output:**
+
+```text
+Running 6 tests using 1 worker
+
+  ✓  1 …oth tiers with the two-tier API and providers start unconfigured (480ms)
+  ✓  2 …rough the editor is stored only in this browser and never leaked (353ms)
+  ✓  3 …chable proxy flips the active tier, and force-local overrides it (456ms)
+  ✓  4 …shaped providers fail closed, and "clear all" wipes this browser (273ms)
+  ✓  5 …ses pre-BUG-002 containers and preserves current provider access (464ms)
+  ✓  6 …acy cleanup is explicit and does not alter BUG-002 configuration (494ms)
+
+  6 passed (4.2s)
+```
+
+**Result:** PASS
+
+#### Regression Quality And Adversarial Durability
+
+**Claim Source:** executed
+**Commands:** standard and `--bugfix` regression-quality guards against the three active provider test files
+**Exit Code:** 0 for both commands
+**Output:**
+
+```text
+BUBBLES REGRESSION QUALITY GUARD
+Timestamp: 2026-08-01T19:09:05Z
+Bugfix mode: false
+Scanning tests/provider-credentials.unit.mjs
+Scanning tests/provider-credentials.functional.mjs
+Scanning tests/provider-credentials.spec.mjs
+REGRESSION QUALITY RESULT: 0 violation(s), 0 warning(s)
+Files scanned: 3
+BUBBLES REGRESSION QUALITY GUARD
+Timestamp: 2026-08-01T19:09:06Z
+Bugfix mode: true
+Adversarial signal detected in tests/provider-credentials.unit.mjs
+Adversarial signal detected in tests/provider-credentials.functional.mjs
+Adversarial signal detected in tests/provider-credentials.spec.mjs
+REGRESSION QUALITY RESULT: 0 violation(s), 0 warning(s)
+Files scanned: 3
+Files with adversarial signals: 3
+```
+
+**Result:** PASS
+
+### Cross-Spec, Coverage, And TDD Verdict
+
+- **Claim Source: executed.** BUG-002's durable Tier-2, proxy, force-local, fail-closed, and clear behavior remains green in the current unit, functional, and browser runs.
+- **Claim Source: executed.** SCOPE-01 complete and forced-incomplete cleanup remains green and preserves current configuration.
+- **Claim Source: executed.** The repository selftest remains 1101/1101, so shared-shell and registered artifact behavior did not regress.
+- **Claim Source: executed.** The scenario-first adversarial proof remains durable in all three active provider test files; no bailout or weakened assertion was detected.
+- **Claim Source: interpreted from executed evidence.** Research Lab declares no line-coverage command, so no percentage is invented. Available coverage axes remain stable: one active scenario mapped 1/1, six Test Plan rows retained, two linked browser regressions executed 2/2, and zero required skips/todos.
+- **Claim Source: executed earlier in this session and reused.** The 83/83 first-party and cross-feature canaries in the prior regression section remain the broad baseline because the intervening owner change was confined to `design.md`; the current 1101/1101 repository canary provides a fresh broad check.
+
+### Regression Verdict
+
+🟢 REGRESSION_FREE
+
+All regression checks passed after design reconciliation.
+
+Test baseline: stable at 3/3 unit, 13/13 functional, 1101/1101 repository, and 6/6 browser
+Cross-spec conflicts: 0
+Design contradictions: 0
+Coverage: stable on every declared executable axis; no line-coverage command exists
+Gherkin traceability: 100% for the sole active `SCN-BUG001-004`
+
+```yaml
+packet: BUG-001-central-provider-credential-security
+workflowMode: bugfix-fastlane
+currentOwner: bubbles.regression
+currentOutcome: route_required
+activeScopeIds: [SCOPE-01]
+addressedFindingIds: [BUG001-G022-REGRESSION]
+verifiedResolvedFindingIds: [BUG001-REGRESSION-DESIGN-CONFLICT]
+unresolvedFindingIds: [BUG001-G022-SIMPLIFY, BUG001-G022-STABILIZE, BUG001-G022-SECURITY, BUG001-G022-VALIDATE-AUDIT, BUG001-G027-CERTIFICATION]
+nextRequiredOwner: bubbles.simplify
+requestedAction: execute behavior-preserving simplification within the existing SCOPE-01 boundary, preserve BUG-002 current provider behavior and all excluded surfaces, then route to bubbles.stabilize
+certificationChangedByRegression: false
+```
+
+## Regression Final Replay After Feature 007 Correction - 2026-08-01T19:26:12Z
+
+**Phase:** regression
+**Agent:** `bubbles.regression`
+**Scope:** `SCOPE-01 Pre-BUG-002 Legacy Credential Erasure`
+**Active scenario:** `SCN-BUG001-004`
+**Claim Source:** executed
+**Repository binding:** `research-lab`, decision `rb:vscode-9a7293b2dab62e384ebe03875bcef375:10`, revision `10`
+**Boundary:** This replay changed only regression-owned evidence and execution/routing metadata. It did not edit source, tests, certification, BUG-002, BUG-004, unrelated main-agent work, or `.github/bubbles/**`.
+
+This section supersedes the clean-candidate replay immediately above for routing purposes because it independently executes the corrected full Feature 007 file instead of reusing its earlier combined count.
+
+### Reconciled Design And Feature 007 Contract
+
+**Claim Source:** executed
+**Commands:** active-prefix design scan; path-scoped `git diff -- tests/technical-analysis-decision-lab.spec.mjs`
+**Exit Code:** 0 for both commands
+**Output:**
+
+```text
+7:**Active design status (2026-08-01):** Reconciled to the analyst-owned retained pre-BUG-002 legacy-container erasure contract. [BUG-002 Two-Tier Provider Access](../BUG-002-two-tier-provider-access/design.md) is the sole active provider-access design. The active BUG-001 design ends immediately before `## Superseded Design Decisions`; everything below that boundary is non-executable history.
+13:`rldata.js` implements BUG-002's provider-access foundation. `localStorage.rlProviderConfig` is the only current persisted provider surface and stores the user-configured Tier-1 proxy URL plus this browser's Tier-2 provider keys. `providerFetch()` selects the reachable proxy or the local-key transport under BUG-002's contract.
+17:BUG-001's active spec retains only SCOPE-01 and `SCN-BUG001-004`. The former memory-only runtime, lifecycle clearing, provider disablement, header-only transport, and no-proxy/query design is superseded.
+23:Detection and every cleanup outcome preserve BUG-002's proxy settings, durable `localStorage.rlProviderConfig`, current provider controls, provider transport, and non-secret `localStorage.rlData`. BUG-001 neither configures nor disables a provider.
+31:- Preserve `localStorage.rlProviderConfig` and `localStorage.rlData` byte-for-byte through detection, dismissal, complete cleanup, unavailable cleanup, and incomplete cleanup.
+44:- BUG-001 owns only exact pre-BUG-002 container detection, disclosure, confirmation, deletion, and absence verification.
+251:Only `SCN-BUG001-004` is active. Validation must test the retained behavior while treating BUG-002 current provider access as protected state, not as a legacy condition.
+@@ -195,6 +195,10 @@ test('Regression: Feature 007 qualified series and RLVALID preserve legacy shared behavior'
+   await page.goto(`${baseUrl}/strategy-validation-lab.html`);
++  // Feature 007 and the shared shell both define Simple as the default. The legacy native
++  // validation workspace is the Power projection, so exercise it through the shipped mode control
++  // instead of treating a correctly hidden Power panel as a regression.
++  await page.locator('#rlviews button[data-rlview-mode="power"]').click();
+   await expect(page.locator('#verdict')).toBeVisible();
+   const verdictText = await page.locator('#verdict').innerText();
+   expect(verdictText).toMatch(/GOAL MET \(OOS\)|GOAL NOT MET \(OOS\)|No validation yet/);
+```
+
+**Result:** PASS. The design now makes BUG-002 authoritative for current provider access. Feature 007 and the shared shell define Simple as the default; the existing native validation workspace is Power. The correction uses the shipped mode control and retains every substantive visibility, verdict, numeric-safety, and parity assertion.
+
+### Test Baseline Comparison
+
+The before column is the executed regression baseline at [Regression Phase Evidence - 2026-08-01T18:45:21Z](#regression-phase-evidence---2026-08-01t184521z). Current counts come only from commands executed for this final replay.
+
+| Category | Before | Current | Delta | Status |
+| --- | ---: | ---: | ---: | --- |
+| Provider unit | 3/3 | 3/3 | 0 | CLEAN |
+| Provider functional | 13/13 | 13/13 | 0 | CLEAN |
+| Repository selftest | 1101/1101 | 1101/1101 | 0 | CLEAN |
+| Provider browser | 6/6 | 6/6 | 0 | CLEAN |
+| Feature 007 full browser file | 5/5 | 5/5 | 0 | CLEAN |
+| Other first-party and cross-feature checks | 78/78 | 78/78 | 0 | CLEAN |
+| Complete cross-feature matrix | 83/83 | 83/83 | 0 | CLEAN |
+| Required skips/todos | 0 | 0 | 0 | CLEAN |
+
+### Runner And Source-Lock Provenance
+
+**Claim Source:** executed
+**Commands:** `timeout 120 node scripts/validate-node-source-lock.mjs`; `timeout 60 npx --no-install playwright --version`
+**Exit Code:** 0 for both commands
+**Output:**
+
+```text
+[node-source-lock] manifest=PASS private=true runtimeDependencies=0 scripts=0 playwright=1.61.1 node=>=20
+[node-source-lock] npmrc=PASS registry=https://registry.npmjs.org/ entries=5 ignoreScripts=true
+[node-source-lock] lockfile=PASS version=3 externalPackages=3 integrity=sha512
+[node-source-lock] graph=PASS playwright=1.61.1 playwright-core=1.61.1 fsevents=2.3.2
+[node-source-lock] adversarial=missing-file result=REJECTED code=FILE-MISSING
+[node-source-lock] adversarial=manifest-drift result=REJECTED code=MANIFEST-KEYS
+[node-source-lock] adversarial=manifest-range result=REJECTED code=MANIFEST-PLAYWRIGHT
+[node-source-lock] adversarial=manifest-wrong-version result=REJECTED code=MANIFEST-PLAYWRIGHT
+[node-source-lock] adversarial=second-registry result=REJECTED code=NPMRC-DUPLICATE
+[node-source-lock] adversarial=scoped-registry result=REJECTED code=NPMRC-SCOPED-REGISTRY
+[node-source-lock] adversarial=verification-disabled result=REJECTED code=NPMRC-VERIFICATION
+[node-source-lock] adversarial=lifecycle-relaxation result=REJECTED code=NPMRC-IGNORE-SCRIPTS
+[node-source-lock] adversarial=untrusted-resolved-url result=REJECTED code=LOCK-SOURCE
+[node-source-lock] adversarial=missing-integrity result=REJECTED code=LOCK-INTEGRITY
+[node-source-lock] adversarial=git-source result=REJECTED code=LOCK-SOURCE
+[node-source-lock] adversarial=file-source result=REJECTED code=LOCK-SOURCE
+[node-source-lock] adversarial=path-source result=REJECTED code=LOCK-SOURCE
+[node-source-lock] adversarial=http-source result=REJECTED code=LOCK-SOURCE
+[node-source-lock] adversarial=external-version-range result=REJECTED code=LOCK-PACKAGE-VERSION
+[node-source-lock] adversarial=extra-package result=REJECTED code=LOCK-GRAPH
+[node-source-lock] actual=PASS
+[node-source-lock] OK adversarial=16 unexpectedAcceptances=0
+Version 1.61.1
+```
+
+**Result:** PASS
+
+### Focused Provider And Repository Replay
+
+**Claim Source:** executed
+**Commands:** provider unit; provider functional; repository selftest; provider Playwright file
+**Exit Code:** 0 for every command
+**Output (selected literal lines from the full unfiltered command output):**
+
+```text
+✔ SCN-BUG002-001 providers start unconfigured; two-tier API present; local key configures then clears (5.237492ms)
+✔ SCN-BUG002-004 fail-closed transport and prototype-safe unknown providers (3.325595ms)
+✔ SCN-BUG001-004 legacy registry excludes BUG-002 provider configuration (2.185796ms)
+ℹ tests 3
+ℹ suites 0
+ℹ pass 3
+ℹ fail 0
+ℹ cancelled 0
+ℹ skipped 0
+ℹ todo 0
+ℹ duration_ms 86.099866
+BUG004_CREDENTIAL_NORMALIZATION_MATRIX_BEGIN
+REGISTRY_PROVIDER_COUNT=4
+REGISTRY_RESERVED_QUERY_NAME_COUNT=3
+REGISTRY_RESERVED_QUERY_NAMES=apikey,token,api_key
+CALLER_RESERVED_QUERY_ENTRY_COUNT_PER_PROVIDER=18
+TOTAL_PROXY_CREDENTIAL_LEAKS=0
+TOTAL_DIRECT_UNEXPECTED_CREDENTIALS=0
+EXTERNAL_NETWORK=false
+MATRIX_FAILURES=0
+BUG004_CREDENTIAL_NORMALIZATION_MATRIX_END
+✔ SCN-BUG001-004 exact legacy containers erase while BUG-002 configuration remains unchanged (1.438403ms)
+✔ SCN-BUG001-004 partial legacy deletion reports incomplete and preserves BUG-002 configuration (0.742901ms)
+ℹ tests 13
+ℹ suites 0
+ℹ pass 13
+ℹ fail 0
+ℹ cancelled 0
+ℹ skipped 0
+ℹ todo 0
+ℹ duration_ms 162.952752
+spec artifacts — referenced tests/*.mjs paths exist (Playwright silently ignores absent file args)
+  ✓ the scan matched at least one tests/*.mjs reference against a present baseline, so the guard is not vacuously green (9926 reference(s) across 421 artifact(s), baseline 86 entries)
+  ✓ no tests/*.mjs path named by a spec artifact is missing outside the frozen baseline — a stale path makes a multi-file verification command silently cover less than it claims (0 new, 86 known-missing, 0 stale of 204 referenced)
+================================================
+Research-Lab self-test: 1101 passed, 0 failed
+================================================
+Running 6 tests using 1 worker
+  ✓  1 …oth tiers with the two-tier API and providers start unconfigured (428ms)
+  ✓  2 …rough the editor is stored only in this browser and never leaked (334ms)
+  ✓  3 …chable proxy flips the active tier, and force-local overrides it (437ms)
+  ✓  4 …shaped providers fail closed, and "clear all" wipes this browser (241ms)
+  ✓  5 …ses pre-BUG-002 containers and preserves current provider access (409ms)
+  ✓  6 …acy cleanup is explicit and does not alter BUG-002 configuration (411ms)
+  6 passed (3.8s)
+```
+
+**Result:** PASS. The focused controlling path remains 3/3 unit, 13/13 functional, 1101/1101 repository, and 6/6 real browser with zero skips or todos.
+
+### Corrected Feature 007 Full-File Replay
+
+**Claim Source:** executed
+**Command:** `timeout 600 npx --no-install playwright test tests/technical-analysis-decision-lab.spec.mjs --config=playwright.config.mjs --project=system-chrome --reporter=list`
+**Exit Code:** 0
+**Output (literal full suite output):**
+
+```text
+Running 5 tests using 1 worker
+  ✓  1 …four-hour profile exposes session remainder and variant identity (492ms)
+[SCN-007-005] session=09:30-16:00 America/New_York
+[SCN-007-005] segments=240,150
+[SCN-007-005] remainder=partial/non-confirming
+[SCN-007-005] variant=tad-variant:657e29fc90e16e875a2cc77d5e4b486282623741f0337ecc1c0c0930924fb07d
+[SCN-007-005] ownerReadPublished=false
+  ✓  2 …continuous-market four-hour profile has equal session boundaries (392ms)
+[SCN-007-006] session=00:00-24:00 UTC
+[SCN-007-006] segments=240,240,240,240,240,240
+[SCN-007-006] partialWarning=false
+[SCN-007-006] roles=1w/1d/4h
+[SCN-007-006] ownerReadPublished=false
+  ✓  3 …07-007 provisional weekly break never rewrites confirmed history (550ms)
+[SCN-007-007] confirmed=week-2026-07-10
+[SCN-007-007] provisional=week-2026-07-17
+[SCN-007-007] provisionalStatus=provisional
+[SCN-007-007] reloadConfirmedUnchanged=true
+[SCN-007-007] ownerReadPublished=false
+  ✓  4 …030 failed delta refresh preserves cached source-qualified truth (401ms)
+[SCN-007-030] deltaStatus=404
+[SCN-007-030] cachedClose=127.40
+[SCN-007-030] exactAge=26h
+[SCN-007-030] truth=STALE
+[SCN-007-030] neutralEvidence=omitted
+  ✓  5 …007 qualified series and RLVALID preserve legacy shared behavior (700ms)
+[Feature-007-canary] legacyRldataBytesEqual=true
+[Feature-007-canary] qualifiedRows=2
+[Feature-007-canary] credentialApi=preserved
+[Feature-007-canary] rlvalidDeclarations=7
+[Feature-007-canary] strategyParity=true
+  5 passed (4.0s)
+```
+
+**Result:** PASS. The corrected test reaches the native validation workspace through the shipped Power tab and still proves all legacy shared behavior and RLVALID parity.
+
+### First-Party And Cross-Feature Matrix
+
+**Claim Source:** executed
+**Commands:** distributed owner canary plus complete MSFT, Bond, Causal, FX, and Palm Springs browser files
+**Exit Code:** 0 for every command
+**Output (selected literal lines from the full unfiltered command output):**
+
+```text
+✔ Canary: five current publisher reads and four headless reads preserve pre-evidence semantics (13.873621ms)
+✔ Canary: Bond Regime and browser credential boundaries exclude restricted and private fields (2.041003ms)
+ℹ tests 2
+ℹ suites 0
+ℹ pass 2
+ℹ fail 0
+ℹ cancelled 0
+ℹ skipped 0
+ℹ todo 0
+ℹ duration_ms 123.44489
+Running 6 tests using 1 worker
+  ✓  1 …:47:1 › Regression: SCN-009-001/002/005 cache-first market truth (621ms)
+  ✓  2 … Regression: SCN-009-006/007/008 degraded resources stay isolated (1.2s)
+  ✓  3 …ession: SCN-009-003/004/010 market outcomes preserve the scenario (1.1s)
+  ✓  4 …n: SCN-009-009/011/012 one state drives modes refresh and export (846ms)
+  ✓  5 … Regression: SCN-009-011 viewport accessibility and canvas matrix (1.8s)
+  ✓  6 …ression: SCN-009-013/014 static publication and direct consumers (505ms)
+  6 passed (7.7s)
+Running 28 tests using 1 worker
+  28 passed (30.8s)
+Running 4 tests using 1 worker
+  4 passed (2.3s)
+Running 9 tests using 1 worker
+  9 passed (3.2s)
+Running 29 tests using 1 worker
+  29 passed (20.4s)
+```
+
+**Result:** PASS. The cross-feature matrix is 83/83: 5/5 Feature 007 plus 78/78 other current first-party checks. Adding the focused provider browser file gives 89/89 checks across the affected shared-consumer matrix.
+
+### Contract Validators And Regression Integrity
+
+**Claim Source:** executed
+**Commands:** brief validator; causal validator; session-review selftest; standard and `--bugfix` regression-quality guards over the three provider tests plus Feature 007; live interception/skip scan
+**Exit Code:** 0 for every command
+**Output (selected literal lines from the full unfiltered command output):**
+
+```text
+[brief-contract] PASS: all visible sections, registry coverage, model-specific real assets, and next-session actions are valid
+[causal-contract] checks passed: 39
+[causal-contract] checks failed: 0
+[causal-contract] candidates: 5
+[causal-contract] source observations: 6
+[causal-contract] adversarial fixtures: 8
+[causal-contract] result: PASS
+================================================
+session-review self-test: 59 passed, 0 failed
+================================================
+  BUBBLES REGRESSION QUALITY GUARD
+  Timestamp: 2026-08-01T19:25:44Z
+  Bugfix mode: false
+ℹ️  Scanning tests/provider-credentials.unit.mjs
+ℹ️  Scanning tests/provider-credentials.functional.mjs
+ℹ️  Scanning tests/provider-credentials.spec.mjs
+ℹ️  Scanning tests/technical-analysis-decision-lab.spec.mjs
+  REGRESSION QUALITY RESULT: 0 violation(s), 0 warning(s)
+  Files scanned: 4
+  BUBBLES REGRESSION QUALITY GUARD
+  Timestamp: 2026-08-01T19:25:46Z
+  Bugfix mode: true
+ℹ️  Scanning tests/provider-credentials.unit.mjs
+✅ Adversarial signal detected in tests/provider-credentials.unit.mjs
+ℹ️  Scanning tests/provider-credentials.functional.mjs
+✅ Adversarial signal detected in tests/provider-credentials.functional.mjs
+ℹ️  Scanning tests/provider-credentials.spec.mjs
+✅ Adversarial signal detected in tests/provider-credentials.spec.mjs
+ℹ️  Scanning tests/technical-analysis-decision-lab.spec.mjs
+✅ Adversarial signal detected in tests/technical-analysis-decision-lab.spec.mjs
+  REGRESSION QUALITY RESULT: 0 violation(s), 0 warning(s)
+  Files scanned: 4
+  Files with adversarial signals: 4
+LIVE_INTERCEPTION_OR_SKIP_MATCHES=0
+```
+
+**Result:** PASS
+
+### Cross-Spec, Coverage, And TDD Verdict
+
+The shared provider and shell surfaces affect BUG-002 and the distributed-brief, Feature 007, MSFT, Bond, Causal, FX, and Palm Springs consumers. Every named dependent suite passed. The active BUG-001 design and BUG-002 current-provider contract agree, and the Feature 007 test now agrees with its owning Simple-default/Power-workspace contract. No route, data-model, provider, shared-cache, mode, or UI-flow conflict remains.
+
+Research Lab declares no line-coverage command, so no percentage is fabricated. Available executable coverage is stable: one active BUG-001 scenario maps 1/1; all six Test Plan rows remain represented; both linked BUG-001 browser regressions execute; the corrected Feature 007 file executes 5/5; repository coverage remains 1101/1101; and required skips/todos remain zero. The Feature 007 diff adds only the shipped Power-tab interaction and retains the existing visibility, result-shape, finite-value, and parity assertions. Standard and bugfix guards found zero violations or warnings, all four scanned files retain adversarial signals, and the live files contain no interception or skip markers.
+
+Deployment regression scanning is not applicable: this replay changes no deployment, workflow, config, image-pinning, or promote/rollback surface.
+
+### Regression Verdict
+
+🟢 REGRESSION_FREE
+
+All required regression checks passed on current bytes after design reconciliation and the Feature 007 correction.
+
+Test baseline: stable at 3/3 unit, 13/13 functional, 1101/1101 repository, 6/6 provider browser, and 83/83 cross-feature
+Cross-spec conflicts: 0
+Design contradictions: 0
+Coverage: stable on every declared executable axis; no line-coverage command exists
+Gherkin traceability: 100% for the sole active `SCN-BUG001-004`
+
+```yaml
+packet: BUG-001-central-provider-credential-security
+workflowMode: bugfix-fastlane
+currentOwner: bubbles.regression
+currentOutcome: route_required
+activeScopeIds: [SCOPE-01]
+addressedFindingIds: [BUG001-G022-REGRESSION, BUG001-REGRESSION-DESIGN-CONFLICT, FEATURE007-POWER-WORKSPACE-REGRESSION]
+unresolvedFindingIds: [BUG001-G022-SIMPLIFY, BUG001-G022-STABILIZE, BUG001-G022-SECURITY, BUG001-G022-VALIDATE-AUDIT, BUG001-G027-CERTIFICATION]
+nextRequiredOwner: bubbles.simplify
+requestedAction: execute behavior-preserving simplification within the existing SCOPE-01 boundary, preserve BUG-002 current provider behavior and all excluded surfaces, then route to bubbles.stabilize
+certificationChangedByRegression: false
+```
+
+### Post-Record Artifact Validation
+
+**Claim Source:** executed
+**Commands:** artifact lint; traceability guard; path-scoped `git diff --check`; edited-file diagnostics
+**Exit Code:** 0 for every command and tool
+**Output:**
+
+```text
+✅ Required artifact exists: spec.md
+✅ Required artifact exists: design.md
+✅ Required artifact exists: uservalidation.md
+✅ Required artifact exists: state.json
+✅ Required artifact exists: scopes.md
+✅ Required artifact exists: report.md
+✅ Detected state.json status: in_progress
+✅ Detected state.json workflowMode: bugfix-fastlane
+✅ Top-level status matches certification.status
+✅ All checked DoD items in scopes.md have evidence blocks
+✅ No unfilled evidence template placeholders in scopes.md
+✅ No unfilled evidence template placeholders in report.md
+Artifact lint PASSED.
+BUBBLES TRACEABILITY GUARD
+✅ scenario-manifest.json covers 1 scenario contract(s)
+ℹ️  Scope 1: SCOPE-01 Pre-BUG-002 Legacy Credential Erasure summary: scenarios=1 test_rows=7
+ℹ️  DoD fidelity: 1 scenarios checked, 1 mapped to DoD, 0 unmapped
+ℹ️  Edge confidence (IMP-015 Scope B): declared=2 inferred=0 ambiguous=0
+RESULT: PASSED (0 warnings)
+BUG001_REGRESSION_PATH_DIFF_CHECK_EXIT=0
+```
+
+**Result:** PASS. `TR-BUG-001-REGRESSION` is resolved, `TR-BUG-001-SIMPLIFY` is open, execution routes to `bubbles.simplify`, top-level status remains `in_progress`, and certification is unchanged.
+
+## Historical Superseded Evidence - Preserved
+
 ## Summary
 
 - Reconciled the partially landed central credential owner with the planned versioned `rlSessionProviderCredentialsV1` envelope, index-only mutation UX, explicit migration/scrub lifecycle, closed provider policy, and header-only request builder.
@@ -2769,3 +4172,2243 @@ gate are unresolved. The scope remains `In Progress`; no later scope has been
 started and no terminal result is claimed.
 
 <!-- markdownlint-restore MD010 -->
+
+## Validate Pre-Audit Certification Result - 2026-08-01T18:01:09Z
+
+**Outcome:** `route_required`
+**Resolved transition contract:** `bugfix-fastlane` -> `done`, audit profile
+`delivery-completion-v1`, contract digest
+`sha256:aa91472c047d3d985d38c1d308feb1e6081955b2aa553816deb5987d9cdc449f`,
+target revision
+`sha256:03956a16ea53da1b5a8ce0bf9cdb0828c6a0dde3af1fb4cb702536a0568ed671`.
+
+### Outcome Contract Verification (G070)
+
+**Phase:** validate
+**Claim Source:** interpreted
+**Interpretation:** The active one-scope plan and executed product behavior
+preserve BUG-002 Tier-1 proxy plus Tier-2 `localStorage.rlProviderConfig`.
+The active `spec.md` Outcome Contract and `bug.md` expected behavior instead
+require memory-only credentials and prohibit persistence. Those two contracts
+cannot both be true, so G070 fails before terminal certification.
+
+| Field | Declared active contract | Current evidence | Status |
+| --- | --- | --- | --- |
+| Intent | Memory-only current-document credentials | Active SCOPE-01 protects BUG-002 durable local keys | FAIL |
+| Success Signal | Reload/navigation leaves provider unconfigured | BUG-002 regression proves durable same-browser configuration | FAIL |
+| Hard Constraints | No persistence or cross-document transport | Functional and browser suites preserve `rlProviderConfig` and proxy behavior | FAIL |
+| Failure Condition | Any serialized/surviving credential fails remediation | Current approved BUG-002 Tier-2 behavior deliberately persists the local key | FAIL |
+
+### Current Provider Behavior Replay
+
+**Phase:** validate
+**Claim Source:** executed
+**Command:** `node --test tests/provider-credentials.unit.mjs`
+**Exit Code:** 0
+**Output:**
+
+```text
+✔ SCN-BUG002-001 providers start unconfigured; two-tier API present; local key configures then clears (4.626701ms)
+✔ SCN-BUG002-004 fail-closed transport and prototype-safe unknown providers (2.6651ms)
+✔ SCN-BUG001-004 legacy registry excludes BUG-002 provider configuration (1.979201ms)
+ℹ tests 3
+ℹ suites 0
+ℹ pass 3
+ℹ fail 0
+ℹ cancelled 0
+ℹ skipped 0
+ℹ todo 0
+ℹ duration_ms 84.217016
+```
+
+**Result:** PASS
+
+**Phase:** validate
+**Claim Source:** executed
+**Command:** `npx --no-install playwright test tests/provider-credentials.spec.mjs --config=playwright.config.mjs --project=system-chrome --reporter=list`
+**Exit Code:** 0
+**Output:**
+
+```text
+Running 6 tests using 1 worker
+
+  ✓  1 …both tiers with the two-tier API and providers start unconfigured (1.8s)
+  ✓  2 …rough the editor is stored only in this browser and never leaked (547ms)
+  ✓  3 …chable proxy flips the active tier, and force-local overrides it (497ms)
+  ✓  4 …shaped providers fail closed, and "clear all" wipes this browser (264ms)
+  ✓  5 …ses pre-BUG-002 containers and preserves current provider access (569ms)
+  ✓  6 …acy cleanup is explicit and does not alter BUG-002 configuration (408ms)
+
+  6 passed (9.8s)
+```
+
+**Result:** PASS
+
+The current functional replay also passed `13/13`, including
+`SCN-BUG002-002` durable Tier-2 lifecycle behavior and both BUG-001 complete
+and incomplete legacy-cleanup branches. `node scripts/selftest.mjs` passed
+`1101/1101`. Standard and `--bugfix` regression-quality guards reported zero
+violations and zero warnings; all three provider test files exposed
+adversarial signals.
+
+### Mechanical Validation Result
+
+| Command | Exit | Result |
+| --- | ---: | --- |
+| `node scripts/validate-node-source-lock.mjs` | 0 | PASS; 16 adversarial source-lock cases rejected |
+| `npx --no-install playwright --version` | 0 | PASS; `Version 1.61.1` |
+| `bash .github/bubbles/scripts/artifact-lint.sh specs/_bugs/BUG-001-central-provider-credential-security` | 0 | PASS |
+| `bash .github/bubbles/scripts/traceability-guard.sh specs/_bugs/BUG-001-central-provider-credential-security` | 0 | PASS; active scenario maps to concrete executed tests |
+| `bash .github/bubbles/scripts/implementation-reality-scan.sh specs/_bugs/BUG-001-central-provider-credential-security --verbose` | 0 | PASS with one planning-path fallback warning |
+| `bash .github/bubbles/scripts/artifact-freshness-guard.sh specs/_bugs/BUG-001-central-provider-credential-security` | 0 | PASS |
+| `bash .github/bubbles/scripts/done-spec-audit.sh --profile changed specs/_bugs/BUG-001-central-provider-credential-security` | 0 | PASS for current `in_progress` state; done checks not applicable |
+| `bash .github/bubbles/scripts/cli.sh doctor` | 0 | PASS; 18 passed, 0 failed, 8 advisory |
+| `bash .github/bubbles/scripts/cli.sh framework-write-guard` | 0 | PASS; managed files match installed snapshot |
+| `bash .github/bubbles/scripts/cli.sh repo-readiness .` | 0 | PASS; 9 passed, 0 failed |
+| Asserted `state-transition-guard.sh` for target `done` | 1 | FAIL; 37 failures, 3 warnings |
+
+**Phase:** validate
+**Claim Source:** executed
+**Command:** `bash .github/bubbles/scripts/state-transition-guard.sh specs/_bugs/BUG-001-central-provider-credential-security --target-status done --expect-workflow-mode bugfix-fastlane --expect-contract-digest sha256:aa91472c047d3d985d38c1d308feb1e6081955b2aa553816deb5987d9cdc449f`
+**Exit Code:** 1
+**Output (verdict and blocking classes from the preserved full output):**
+
+```text
+TRANSITION GUARD VERDICT
+TRANSITION BLOCKED: 37 failure(s), 3 warning(s)
+state.json status MUST NOT be set to 'done'.
+workflowMode: bugfix-fastlane
+auditProfile: delivery-completion-v1
+targetStatus: done
+contractDigest: sha256:aa91472c047d3d985d38c1d308feb1e6081955b2aa553816deb5987d9cdc449f
+targetRevision: sha256:03956a16ea53da1b5a8ce0bf9cdb0828c6a0dde3af1fb4cb702536a0568ed671
+failedGateIds: [G061,G022,G001,G027]
+failedChecks: [Check-4-completion,Check-9-evidence]
+blockingCode: DELIVERY_COMPLETION_FAILED
+failureCount: 37
+exitStatus: 1
+verdict: FAIL
+```
+
+### Blocking Finding Accounting
+
+| Finding | Exact defect | Owner |
+| --- | --- | --- |
+| `BUG001-G070-ACTIVE-CONTRACT` | `spec.md` Outcome Contract still requires memory-only/no-persistence behavior that BUG-002 superseded and the active SCOPE-01 protects. | `bubbles.analyst` |
+| `BUG001-BUG-STATUS-CONTRACT` | `bug.md` Summary, Status, Active Expected Behavior, and Current Actual Behavior still describe the withdrawn five-scope memory-only bug rather than the retained one-scope closure. | `bubbles.bug` |
+| `BUG001-G001-SUPERSEDED-DOD` | The transition guard counts 49 unchecked DoD items in superseded history; active planning is therefore not transition-clean. | `bubbles.plan` |
+| `BUG001-G001-ACTIVE-DOD-SHAPE` | Active SCOPE-01 lacks separately recognizable scenario-regression, broader-regression, consumer-sweep, canary, rollback/restore, and change-boundary DoD items; `bug-closure` is not a recognized scope kind. | `bubbles.plan` |
+| `BUG001-G001-EVIDENCE-ANCHOR` | All ten active checked items reference `report.md#scope-01-completion-replay---2026-08-01t172723z`, but the transition guard cannot resolve that implicit heading anchor. | `bubbles.plan` for DoD references; `bubbles.validate` may add an explicit report anchor after planning selects the canonical reference |
+| `BUG001-G061-CONTROL-STATE` | Four transition requests use noncanonical `pending`/`superseded` statuses and `reworkQueue` remains non-empty despite its entry being marked resolved. | `bubbles.bug` and `bubbles.plan` for their execution/routing records |
+| `BUG001-G022-PHASES` | Required `regression`, `simplify`, `stabilize`, `security`, `validate`, and `audit` phases are absent; the `bootstrap` claim lacks execution-history provenance. | Owning specialists through the authorized workflow; `bubbles.audit` is the mandatory next certification phase after validation gates are clean |
+| `BUG001-G027-CERTIFICATION` | The plan reports one Done scope while `certification.completedScopes` is empty. Pre-audit validate is prohibited from writing terminal completion inventory, so this remains unchanged until a clean audit attempt exists. | `bubbles.validate` after upstream blockers and audit are complete |
+
+### Resulting State
+
+No `state.json` field changed in this validation pass. The truthful state remains:
+
+```text
+status=in_progress
+certification.status=in_progress
+certification.completedScopes=[]
+certification.scopeProgress[0].scopeId=SCOPE-01
+certification.scopeProgress[0].status=not_started
+execution.audit.currentAttemptId=null
+execution.audit.attempts=[]
+requiresRevalidation=true
+```
+
+The first required owner is `bubbles.analyst` because G070 precedes mechanical
+promotion and the active business Outcome Contract must be reconciled before
+design, planning, specialist, audit, or certification state can truthfully
+advance.
+
+## Simplify Phase Evidence - 2026-08-01T19:38:14Z
+
+**Phase:** simplify
+**Agent:** `bubbles.simplify`
+**Scope:** `SCOPE-01 Pre-BUG-002 Legacy Credential Erasure`
+**Active scenario:** `SCN-BUG001-004`
+**Claim Source:** executed
+**Repository binding:** `research-lab`, decision
+`rb:vscode-9a7293b2dab62e384ebe03875bcef375:11`, revision `11`
+
+### Change Boundary And Three-Pass Review
+
+The review covered only the active BUG-001 legacy-container implementation and
+provider test delta. BUG-002 behavior, BUG-004 artifacts, unrelated main-agent
+work, certification, and `.github/bubbles/**` stayed outside the edit boundary.
+
+| Pass | Finding | Severity | Disposition |
+| --- | --- | --- | --- |
+| Code reuse | The same ten local-storage names and one session-storage name were defined separately in unit, functional, and browser tests. | medium | Addressed as `BUG001-SIMPLIFY-REUSE-001`: one frozen test fixture now lives in `tests/provider-credentials.support.mjs`; all three suites import it. |
+| Code quality | The production registry, scanner, detector, eraser, result states, disclosure, and confirmation path are already single-purpose and self-contained. | none | No production edit. Splitting the bounded functions or adding another abstraction would increase indirection without reducing behavior or risk. |
+| Efficiency | The before/after scans are bounded by browser storage size and are required to prove selected names absent without reading credential values. | none | No production edit. Removing either scan would weaken the explicit complete/incomplete contract. |
+
+The simplification reduces three independent fixture definitions to one frozen
+test-side source while keeping the production registry independently asserted.
+No production file changed in this phase. Four BUG-001 test files changed only
+to export/import the shared fixture and preserve their existing assertions.
+
+### Focused Unit And Functional Preservation
+
+**Claim Source:** executed
+**Command:** `timeout 300 node --test tests/provider-credentials.unit.mjs tests/provider-credentials.functional.mjs`
+**Exit Code:** 0
+**Output:**
+
+```text
+BUG004_CREDENTIAL_NORMALIZATION_MATRIX_BEGIN
+REGISTRY_PROVIDER_COUNT=4
+REGISTRY_RESERVED_QUERY_NAME_COUNT=3
+REGISTRY_RESERVED_QUERY_NAMES=apikey,token,api_key
+CALLER_RESERVED_QUERY_ENTRY_COUNT_PER_PROVIDER=18
+PROVIDER=twelvedata PROXY_CREDENTIAL_LEAKS=0 DIRECT_UNEXPECTED_CREDENTIALS=0 DIRECT_CONFIGURED_CANONICAL=1 DIRECT_REQUESTS=1 CROSS_PROVIDER_REQUESTS=0 ORDER_EXACT=true PROXY_NONCREDENTIAL_ORDER=true DIRECT_NONCREDENTIAL_ORDER=true
+PROVIDER=finnhub PROXY_CREDENTIAL_LEAKS=0 DIRECT_UNEXPECTED_CREDENTIALS=0 DIRECT_CONFIGURED_CANONICAL=1 DIRECT_REQUESTS=1 CROSS_PROVIDER_REQUESTS=0 ORDER_EXACT=true PROXY_NONCREDENTIAL_ORDER=true DIRECT_NONCREDENTIAL_ORDER=true
+PROVIDER=alphavantage PROXY_CREDENTIAL_LEAKS=0 DIRECT_UNEXPECTED_CREDENTIALS=0 DIRECT_CONFIGURED_CANONICAL=1 DIRECT_REQUESTS=1 CROSS_PROVIDER_REQUESTS=0 ORDER_EXACT=true PROXY_NONCREDENTIAL_ORDER=true DIRECT_NONCREDENTIAL_ORDER=true
+PROVIDER=fred PROXY_CREDENTIAL_LEAKS=0 DIRECT_UNEXPECTED_CREDENTIALS=0 DIRECT_CONFIGURED_CANONICAL=1 DIRECT_REQUESTS=1 CROSS_PROVIDER_REQUESTS=0 ORDER_EXACT=true PROXY_NONCREDENTIAL_ORDER=true DIRECT_NONCREDENTIAL_ORDER=true
+TOTAL_PROXY_CREDENTIAL_LEAKS=0
+TOTAL_DIRECT_UNEXPECTED_CREDENTIALS=0
+EXTERNAL_NETWORK=false
+MATRIX_FAILURES=0
+BUG004_CREDENTIAL_NORMALIZATION_MATRIX_END
+✔ SCN-BUG002-002 local keys persist across lifecycle signals (Tier-2 is durable, not memory-only) (6.884799ms)
+✔ SCN-BUG002-002b same browser shares keys across pages; separate browsers stay isolated (3.0907ms)
+✔ Regression BUG-004: proxy HTTP failure falls back once to same-provider local key (4.3062ms)
+✔ Regression BUG-004: key-bearing full URL stays keyless at proxy and singular at direct fallback (2.461299ms)
+✔ Regression BUG-004: registry-reserved query fields are stripped before proxy and canonicalized once for direct (6.5863ms)
+✔ Regression BUG-004: proxy transport rejection falls back once to same-provider local key (1.2885ms)
+✔ Regression BUG-004: proxy timeout rejection falls back once to same-provider local key (1.4627ms)
+✔ Regression BUG-004: proxy JSON decode failure falls back once to same-provider local key (1.087499ms)
+✔ Regression BUG-004: fallback never crosses provider or retries (1.084ms)
+✔ Regression BUG-004: no same-provider key fails closed without disclosure (1.2862ms)
+✔ SCN-BUG004-003 force-local uses the shared direct provider path (1.2842ms)
+✔ SCN-BUG001-004 exact legacy containers erase while BUG-002 configuration remains unchanged (1.2205ms)
+✔ SCN-BUG001-004 partial legacy deletion reports incomplete and preserves BUG-002 configuration (0.7213ms)
+✔ SCN-BUG002-001 providers start unconfigured; two-tier API present; local key configures then clears (3.5727ms)
+✔ SCN-BUG002-004 fail-closed transport and prototype-safe unknown providers (2.8958ms)
+✔ SCN-BUG001-004 legacy registry excludes BUG-002 provider configuration (1.1982ms)
+ℹ tests 16
+ℹ suites 0
+ℹ pass 16
+ℹ fail 0
+ℹ cancelled 0
+ℹ skipped 0
+ℹ todo 0
+ℹ duration_ms 138.240888
+```
+
+**Result:** PASS
+
+### Browser Preservation
+
+**Claim Source:** executed
+**Command:** `timeout 300 npx --no-install playwright --version && timeout 600 npx --no-install playwright test tests/provider-credentials.spec.mjs --config=playwright.config.mjs --project=system-chrome --reporter=list`
+**Exit Code:** 0
+**Output:**
+
+```text
+Version 1.61.1
+
+Running 6 tests using 1 worker
+
+  ✓  1 …oth tiers with the two-tier API and providers start unconfigured (481ms)
+  ✓  2 …rough the editor is stored only in this browser and never leaked (359ms)
+  ✓  3 …chable proxy flips the active tier, and force-local overrides it (439ms)
+  ✓  4 …shaped providers fail closed, and "clear all" wipes this browser (244ms)
+  ✓  5 …ses pre-BUG-002 containers and preserves current provider access (449ms)
+  ✓  6 …acy cleanup is explicit and does not alter BUG-002 configuration (412ms)
+
+  6 passed (4.3s)
+```
+
+**Result:** PASS
+
+### Repository Canary
+
+**Claim Source:** executed
+**Command:** `timeout 600 node scripts/selftest.mjs`
+**Exit Code:** 0
+**Output (final raw lines from the full 365-line run):**
+
+```text
+  ✓ the cockpit does not fetch full artifact market-brief.payload.json on first load
+  ✓ the cockpit does not fetch full artifact market-brief.snapshot.json on first load
+  ✓ the cockpit does not fetch full artifact tools.json on first load
+  ✓ hidden experimental prose is fetched only through the drawer load path
+  ✓ market-brief.page.json is byte-current with its full source artifacts
+  ✓ market-brief.config.page.json is byte-current with its full source artifacts
+  ✓ market-brief.snapshot.page.json is byte-current with its full source artifacts
+  ✓ market-brief.tools.page.json is byte-current with its full source artifacts
+  ✓ market-brief.experimental.json is byte-current with its full source artifacts
+  ✓ the recent window is inside its declared byte budget (10110 <= 204800)
+  ✓ the recent window is inside its declared row budget (30 <= 30)
+  ✓ the cockpit’s whole first-load payload is inside budget (144 KB <= 200 KB)
+  ✓ the unbounded log genuinely exceeds the budget (2314 KB), so fetching it would FAIL this test rather than slip through
+  ✓ every run in the append log is preserved in a monthly shard (107 = 107)
+  ✓ every recent row declares the compact contract, so a consumer knows it is a projection and not the full run
+  ✓ the sharder never rewrites the append log it reads from
+
+spec artifacts — referenced tests/*.mjs paths exist (Playwright silently ignores absent file args)
+  ✓ the scan matched at least one tests/*.mjs reference against a present baseline, so the guard is not vacuously green (9940 reference(s) across 421 artifact(s), baseline 86 entries)
+  ✓ no tests/*.mjs path named by a spec artifact is missing outside the frozen baseline — a stale path makes a multi-file verification command silently cover less than it claims (0 new, 86 known-missing, 0 stale of 204 referenced)
+
+================================================
+Research-Lab self-test: 1101 passed, 0 failed
+================================================
+```
+
+**Result:** PASS
+
+### Simplification Quality Checks
+
+**Claim Source:** executed
+**Commands:** standard and `--bugfix` regression-quality guards; path-scoped
+`git diff --check`; edited-file diagnostics; fixture-definition scan
+**Exit Code:** 0 for both guards, diff check, and fixture scan; diagnostics found
+zero errors
+**Output:**
+
+```text
+============================================================
+  BUBBLES REGRESSION QUALITY GUARD
+  Repo: ~/research-lab
+  Timestamp: 2026-08-01T19:37:49Z
+  Bugfix mode: false
+============================================================
+
+ℹ️  Scanning tests/provider-credentials.spec.mjs
+
+============================================================
+  REGRESSION QUALITY RESULT: 0 violation(s), 0 warning(s)
+  Files scanned: 1
+============================================================
+============================================================
+  BUBBLES REGRESSION QUALITY GUARD
+  Repo: ~/research-lab
+  Timestamp: 2026-08-01T19:37:50Z
+  Bugfix mode: true
+============================================================
+
+ℹ️  Scanning tests/provider-credentials.spec.mjs
+✅ Adversarial signal detected in tests/provider-credentials.spec.mjs
+
+============================================================
+  REGRESSION QUALITY RESULT: 0 violation(s), 0 warning(s)
+  Files scanned: 1
+  Files with adversarial signals: 1
+============================================================
+tests/provider-credentials.support.mjs:19:export const LEGACY_LOCAL_NAMES = Object.freeze([
+tests/provider-credentials.support.mjs:31:export const LEGACY_SESSION_NAMES = Object.freeze(['rlSessionProviderCredentialsV1']);
+```
+
+The home path in guard output is normalized to `~/research-lab` per repository
+evidence policy. `git diff --check` produced no output at exit 0. VS Code
+diagnostics reported `No errors found` for all four edited provider test files.
+
+**Result:** PASS
+
+### Simplify Finding Accounting And Route
+
+| Finding | Disposition | Evidence |
+| --- | --- | --- |
+| `BUG001-SIMPLIFY-REUSE-001` | Addressed: three identical legacy-name fixtures became one frozen support fixture with no assertion or production change. | Focused 16/16, browser 6/6, repository 1101/1101 |
+| `BUG001-G022-SIMPLIFY` | Addressed: required three-pass simplify review and preservation replay completed. | This section |
+| `BUG001-G022-STABILIZE` | Unresolved and routed to `bubbles.stabilize`. | `TR-BUG-001-STABILIZE` |
+| `BUG001-G022-SECURITY` | Unresolved; remains sequenced after stabilize. | Existing workflow route |
+| `BUG001-G022-VALIDATE-AUDIT` | Unresolved; remains sequenced after security. | Existing workflow route |
+| `BUG001-G027-CERTIFICATION` | Unresolved and validate-owned; certification was not changed. | `state.json.certification` unchanged |
+
+```yaml
+packet: BUG-001-central-provider-credential-security
+workflowMode: bugfix-fastlane
+currentOwner: bubbles.simplify
+currentOutcome: route_required
+activeScopeIds: [SCOPE-01]
+addressedFindingIds: [BUG001-SIMPLIFY-REUSE-001, BUG001-G022-SIMPLIFY]
+unresolvedFindingIds: [BUG001-G022-STABILIZE, BUG001-G022-SECURITY, BUG001-G022-VALIDATE-AUDIT, BUG001-G027-CERTIFICATION]
+nextRequiredOwner: bubbles.stabilize
+requestedAction: execute stability review against the simplified current test bytes and unchanged production implementation, preserve BUG-002 behavior and all excluded surfaces, then route to bubbles.security
+certificationChangedBySimplify: false
+```
+
+## Stabilize Phase Evidence - 2026-08-01T19:50:47Z
+
+**Phase:** stabilize
+**Agent:** `bubbles.stabilize`
+**Scope:** `SCOPE-01 Pre-BUG-002 Legacy Credential Erasure`
+**Active scenario:** `SCN-BUG001-004`
+**Claim Source:** executed
+**Repository binding:** `research-lab`, decision
+`rb:vscode-9a7293b2dab62e384ebe03875bcef375:12`, revision `12`
+
+### Stability Inventory
+
+| Domain | Evidence-backed result | Finding |
+| --- | --- | --- |
+| Cleanup reliability | Complete cleanup and ordinary `removeItem` failure remain correctly separated by the focused functional and browser suites. A deterministic unavailable-verification probe exposed false removal accounting after a deletion exception. | `BUG001-STAB-001-UNVERIFIED-REMOVAL-COUNT` (`medium`) |
+| Idempotency | Two direct cleanup calls produce `complete/11 removed` followed by `complete/0 removed`; `rlProviderConfig` and `rlData` remain byte-identical. | None |
+| Unavailable and partial storage | The existing partial-deletion path stays `incomplete`, `ok=false`, and preserves BUG-002 state. When deletion throws and the post-delete storage enumeration is unavailable, status stays fail-closed (`unavailable`, `ok=false`) but `removedContainerCount` incorrectly reports the still-present selected container as removed. | `BUG001-STAB-001-UNVERIFIED-REMOVAL-COUNT` |
+| Race and reentrancy | The operation is synchronous, freezes the initial selected set, and repeated direct invocation is a no-op after verified cleanup. SCOPE-01 explicitly excludes cross-context concurrency, so this phase makes no broader cross-tab atomicity claim. | None within the active contract |
+| Resource and performance | Detection performs one linear name enumeration per available storage surface. Erasure performs bounded before/after enumerations over the same two surfaces and 11 frozen registry entries, with no network request, timer, worker, or retained queue. No latency SLO exists for this one-shot user-confirmed operation. | None |
+| BUG-002 preservation | Current focused Node tests passed 16/16, the live provider browser file passed 6/6, and the repository selftest passed 1101/1101. Proxy/local-key behavior, `rlProviderConfig`, and `rlData` remain intact on covered complete and ordinary incomplete paths. | None |
+
+**Claim Source:** interpreted
+**Interpretation:** Source review establishes the operation-count and
+synchronous-control-flow statements. Executed tests establish idempotency,
+current-provider preservation, ordinary partial failure, and the unavailable
+accounting defect. No performance threshold or cross-context concurrency claim
+is inferred because the active scope declares neither contract.
+
+### Medium Finding - Unverified Containers Counted As Removed
+
+`eraseLegacyCredentialContainers()` computes `removedContainerCount` as
+`selected.length - remaining.length`. The post-delete scanner omits every name
+from a storage class it cannot enumerate. If `removeItem()` throws and that same
+storage class becomes unavailable before verification, the still-present name
+is absent from `remaining` and is therefore counted as removed.
+
+The public result remains fail-closed at `status: "unavailable"` and `ok: false`,
+so the current UI does not claim complete cleanup. The count is nevertheless
+false operational metadata and is unsafe for any current or future result
+consumer. The correction must count a selected entry as removed only when its
+storage class was successfully enumerated after deletion and the exact selected
+name was verified absent.
+
+This finding requires a persistent S1-T03 regression for deletion failure plus
+post-delete enumeration loss, followed by the source correction and a clean
+stabilize replay. Because that changes a completed scope's test obligation and
+status, planning ownership must reconcile SCOPE-01 before test or implementation
+work resumes.
+
+### Deterministic Stability Probe
+
+**Phase:** stabilize
+**Command:** `timeout 300 node --test /tmp/bug001-stability-probe.mjs`
+**Exit Code:** 1
+**Claim Source:** executed
+**Output:**
+
+```text
+✔ repeated legacy cleanup is idempotent and preserves BUG-002 bytes (3.865919ms)
+✖ unavailable verification cannot count a still-present container as removed (3.036315ms)
+ℹ tests 2
+ℹ suites 0
+ℹ pass 1
+ℹ fail 1
+ℹ cancelled 0
+ℹ skipped 0
+ℹ todo 0
+ℹ duration_ms 108.938842
+
+✖ failing tests:
+
+test at ../../../tmp/bug001-stability-probe.mjs:46:1
+✖ unavailable verification cannot count a still-present container as removed (3.036315ms)
+  AssertionError [ERR_ASSERTION]: a still-present unverified container is not removed
+
+  1 !== 0
+
+      at TestContext.<anonymous> (file:///tmp/bug001-stability-probe.mjs:82:10)
+      at Test.runInAsyncScope (node:async_hooks:214:14)
+      at Test.run (node:internal/test_runner/test:1047:25)
+      at Test.processPendingSubtests (node:internal/test_runner/test:744:18)
+      at Test.postRun (node:internal/test_runner/test:1173:19)
+      at Test.run (node:internal/test_runner/test:1101:12)
+      at async startSubtestAfterBootstrap (node:internal/test_runner/harness:296:3) {
+    generatedMessage: false,
+    code: 'ERR_ASSERTION',
+    actual: 1,
+    expected: 0,
+    operator: 'strictEqual',
+    diff: 'simple'
+  }
+```
+
+**Result:** FAIL - one idempotency check passed and one unavailable-verification
+accounting check reproduced the defect. The temporary probe was removed after
+execution and was never added to the repository.
+
+### Focused Node Preservation Replay
+
+**Phase:** stabilize
+**Command:** `timeout 300 node --test tests/provider-credentials.unit.mjs tests/provider-credentials.functional.mjs`
+**Exit Code:** 0
+**Claim Source:** executed
+**Output:**
+
+```text
+BUG004_CREDENTIAL_NORMALIZATION_MATRIX_BEGIN
+REGISTRY_PROVIDER_COUNT=4
+REGISTRY_RESERVED_QUERY_NAME_COUNT=3
+REGISTRY_RESERVED_QUERY_NAMES=apikey,token,api_key
+CALLER_RESERVED_QUERY_ENTRY_COUNT_PER_PROVIDER=18
+PROVIDER=twelvedata PROXY_CREDENTIAL_LEAKS=0 DIRECT_UNEXPECTED_CREDENTIALS=0 DIRECT_CONFIGURED_CANONICAL=1 DIRECT_REQUESTS=1 CROSS_PROVIDER_REQUESTS=0 ORDER_EXACT=true PROXY_NONCREDENTIAL_ORDER=true DIRECT_NONCREDENTIAL_ORDER=true
+PROVIDER=finnhub PROXY_CREDENTIAL_LEAKS=0 DIRECT_UNEXPECTED_CREDENTIALS=0 DIRECT_CONFIGURED_CANONICAL=1 DIRECT_REQUESTS=1 CROSS_PROVIDER_REQUESTS=0 ORDER_EXACT=true PROXY_NONCREDENTIAL_ORDER=true DIRECT_NONCREDENTIAL_ORDER=true
+PROVIDER=alphavantage PROXY_CREDENTIAL_LEAKS=0 DIRECT_UNEXPECTED_CREDENTIALS=0 DIRECT_CONFIGURED_CANONICAL=1 DIRECT_REQUESTS=1 CROSS_PROVIDER_REQUESTS=0 ORDER_EXACT=true PROXY_NONCREDENTIAL_ORDER=true DIRECT_NONCREDENTIAL_ORDER=true
+PROVIDER=fred PROXY_CREDENTIAL_LEAKS=0 DIRECT_UNEXPECTED_CREDENTIALS=0 DIRECT_CONFIGURED_CANONICAL=1 DIRECT_REQUESTS=1 CROSS_PROVIDER_REQUESTS=0 ORDER_EXACT=true PROXY_NONCREDENTIAL_ORDER=true DIRECT_NONCREDENTIAL_ORDER=true
+TOTAL_PROXY_CREDENTIAL_LEAKS=0
+TOTAL_DIRECT_UNEXPECTED_CREDENTIALS=0
+EXTERNAL_NETWORK=false
+MATRIX_FAILURES=0
+BUG004_CREDENTIAL_NORMALIZATION_MATRIX_END
+✔ SCN-BUG002-002 local keys persist across lifecycle signals (Tier-2 is durable, not memory-only) (6.223832ms)
+✔ SCN-BUG002-002b same browser shares keys across pages; separate browsers stay isolated (2.637514ms)
+✔ Regression BUG-004: proxy HTTP failure falls back once to same-provider local key (3.95982ms)
+✔ Regression BUG-004: key-bearing full URL stays keyless at proxy and singular at direct fallback (2.711614ms)
+✔ Regression BUG-004: registry-reserved query fields are stripped before proxy and canonicalized once for direct (7.331737ms)
+✔ Regression BUG-004: proxy transport rejection falls back once to same-provider local key (0.998905ms)
+✔ Regression BUG-004: proxy timeout rejection falls back once to same-provider local key (1.713908ms)
+✔ Regression BUG-004: proxy JSON decode failure falls back once to same-provider local key (1.174406ms)
+✔ Regression BUG-004: fallback never crosses provider or retries (1.207106ms)
+✔ Regression BUG-004: no same-provider key fails closed without disclosure (1.231706ms)
+✔ SCN-BUG004-003 force-local uses the shared direct provider path (0.818804ms)
+✔ SCN-BUG001-004 exact legacy containers erase while BUG-002 configuration remains unchanged (1.750009ms)
+✔ SCN-BUG001-004 partial legacy deletion reports incomplete and preserves BUG-002 configuration (0.655503ms)
+✔ SCN-BUG002-001 providers start unconfigured; two-tier API present; local key configures then clears (3.660119ms)
+✔ SCN-BUG002-004 fail-closed transport and prototype-safe unknown providers (2.800914ms)
+✔ SCN-BUG001-004 legacy registry excludes BUG-002 provider configuration (1.016205ms)
+ℹ tests 16
+ℹ suites 0
+ℹ pass 16
+ℹ fail 0
+ℹ cancelled 0
+ℹ skipped 0
+ℹ todo 0
+ℹ duration_ms 135.858579
+```
+
+**Result:** PASS
+
+### Live Browser Preservation Replay
+
+**Phase:** stabilize
+**Command:** `timeout 300 npx --no-install playwright --version && timeout 600 npx --no-install playwright test tests/provider-credentials.spec.mjs --config=playwright.config.mjs --project=system-chrome --reporter=list`
+**Exit Code:** 0
+**Claim Source:** executed
+**Output:**
+
+```text
+Version 1.61.1
+
+Running 6 tests using 1 worker
+
+  ✓  1 …oth tiers with the two-tier API and providers start unconfigured (585ms)
+  ✓  2 …rough the editor is stored only in this browser and never leaked (355ms)
+  ✓  3 …chable proxy flips the active tier, and force-local overrides it (499ms)
+  ✓  4 …shaped providers fail closed, and "clear all" wipes this browser (251ms)
+  ✓  5 …ses pre-BUG-002 containers and preserves current provider access (420ms)
+  ✓  6 …acy cleanup is explicit and does not alter BUG-002 configuration (428ms)
+
+  6 passed (4.3s)
+```
+
+**Result:** PASS
+
+### Repository Canary Replay
+
+**Phase:** stabilize
+**Command:** `timeout 600 node scripts/selftest.mjs`
+**Exit Code:** 0
+**Claim Source:** executed
+**Output:** lines 1008-1030 of the 1030-line VS Code capture
+
+```text
+  ✓ the recent window is inside its declared byte budget (10110 <= 204800)
+  ✓ the recent window is inside its declared row budget (30 <= 30)
+  ✓ the cockpit’s whole first-load payload is inside budget (144 KB <= 200 KB)
+  ✓ the unbounded log genuinely exceeds the budget (2314 KB), so fetching it would FAIL this test rather than slip through
+  ✓ every run in the append log is preserved in a monthly shard (107 = 107)
+  ✓ every recent row declares the compact contract, so a consumer knows it is a projection and not the full run
+  ✓ the sharder never rewrites the append log it reads from
+
+spec artifacts — referenced tests/*.mjs paths exist (Playwright silently ignores absent file args)
+  ✓ the scan matched at least one tests/*.mjs reference against a present baseline, so the guard is not vacuously green (9953 reference(s) across 421 artifact(s), baseline 86 entries)
+  ✓ no tests/*.mjs path named by a spec artifact is missing outside the frozen baseline — a stale path makes a multi-file verification command silently cover less than it claims (0 new, 86 known-missing, 0 stale of 204 referenced)
+
+================================================
+Research-Lab self-test: 1101 passed, 0 failed
+================================================
+```
+
+**Result:** PASS
+
+### Regression Quality And Diagnostics
+
+**Phase:** stabilize
+**Commands:** standard and `--bugfix` regression-quality guards; VS Code
+diagnostics for `rldata.js`, `rlapp.js`, and the four provider credential files
+**Exit Code:** 0 for both guards; diagnostics found zero errors
+**Claim Source:** executed
+**Output:**
+
+```text
+============================================================
+  BUBBLES REGRESSION QUALITY GUARD
+  Repo: ~/research-lab
+  Timestamp: 2026-08-01T19:50:43Z
+  Bugfix mode: false
+============================================================
+
+ℹ️  Scanning tests/provider-credentials.spec.mjs
+
+============================================================
+  REGRESSION QUALITY RESULT: 0 violation(s), 0 warning(s)
+  Files scanned: 1
+============================================================
+============================================================
+  BUBBLES REGRESSION QUALITY GUARD
+  Repo: ~/research-lab
+  Timestamp: 2026-08-01T19:50:45Z
+  Bugfix mode: true
+============================================================
+
+ℹ️  Scanning tests/provider-credentials.spec.mjs
+✅ Adversarial signal detected in tests/provider-credentials.spec.mjs
+
+============================================================
+  REGRESSION QUALITY RESULT: 0 violation(s), 0 warning(s)
+  Files scanned: 1
+  Files with adversarial signals: 1
+============================================================
+VS Code diagnostics: rldata.js - No errors found
+VS Code diagnostics: rlapp.js - No errors found
+VS Code diagnostics: provider credential support/unit/functional/spec - No errors found
+```
+
+**Result:** PASS
+
+### Stabilize Finding Accounting And Route
+
+| Finding | Severity | Disposition |
+| --- | --- | --- |
+| `BUG001-G022-STABILIZE` | n/a | Addressed: all requested stability domains were reviewed, focused checks executed, and the real defect was reproduced and routed. |
+| `BUG001-STAB-001-UNVERIFIED-REMOVAL-COUNT` | medium | Unresolved: route to `bubbles.plan` because SCOPE-01 is marked Done and its current S1-T03 obligation does not cover post-delete enumeration loss; plan must restore an executable test/fix/recheck path. |
+| `BUG001-G022-SECURITY` | n/a | Sequenced but not dispatched: security review starts only after the stability finding is corrected and a clean stabilize replay is recorded. |
+| `BUG001-G022-VALIDATE-AUDIT` | n/a | Remains validate-owned after security. |
+| `BUG001-G027-CERTIFICATION` | n/a | Remains validate-owned; certification was not changed. |
+
+```yaml
+packet: BUG-001-central-provider-credential-security
+workflowMode: bugfix-fastlane
+currentOwner: bubbles.stabilize
+currentOutcome: route_required
+verdict: UNSTABLE
+activeScopeIds: [SCOPE-01]
+addressedFindingIds: [BUG001-G022-STABILIZE]
+unresolvedFindingIds: [BUG001-STAB-001-UNVERIFIED-REMOVAL-COUNT, BUG001-G022-SECURITY, BUG001-G022-VALIDATE-AUDIT, BUG001-G027-CERTIFICATION]
+nextRequiredOwner: bubbles.plan
+requestedAction: reconcile SCOPE-01 status and its S1-T03 test obligation for deletion failure followed by unavailable verification, then route scenario-first test ownership, implementation correction, and a clean stabilize replay before security
+certificationChangedByStabilize: false
+```
+
+<a name="security-phase-evidence-bubblessecurity-2026-08-01"></a>
+## Security Phase Evidence (bubbles.security) - 2026-08-01
+
+**Scope:** `SCOPE-01 Pre-BUG-002 Legacy Credential Erasure`
+
+**Phase:** security
+
+**Claim Source:** interpreted
+
+**Interpretation:** The active cleanup path is security-clean for its bounded
+contract. The frozen registry selects 11 exact pre-BUG-002 names; detection
+uses storage-name enumeration only; erasure calls `removeItem(exactName)` and
+re-enumerates names; public results contain closed registry metadata and counts
+only. Current BUG-002 proxy configuration, `localStorage.rlProviderConfig`, and
+non-secret `localStorage.rlData` remain unchanged in complete, incomplete, and
+unavailable-verification branches. No BUG-001 security defect was found, so no
+source or test correction and no `bubbles.bug` route is required.
+
+### Threat Model
+
+| Attack surface | Threat | OWASP | Disposition |
+| --- | --- | --- | --- |
+| Legacy candidate discovery | Browser contents expand deletion authority or disclose stored values | A01, A02 | Mitigated: exact frozen registry plus `length`/`key(index)` enumeration; no legacy `getItem` call |
+| Whole-container erasure | Current or unknown containers are deleted, or mixed legacy contents are opened | A01, A04, A08 | Mitigated: exact registered names only, destructive-effect disclosure, explicit native confirmation, whole-container deletion |
+| Post-delete accounting | Failed or unverifiable deletion is represented as complete | A08, A09 | Mitigated: post-delete enumeration; `incomplete` or `unavailable` forces `ok=false`; unverified entries are excluded from `removedContainerCount` |
+| Cleanup UI | Stored legacy data reaches an HTML sink or status text | A03 | Mitigated: only closed provider/location classes and counts reach `renderLegacyCleanup`; all dynamic fields pass through `esc()` |
+| BUG-002 current configuration | Cleanup rewrites, clears, activates, or exposes current proxy/local keys | A01, A02, A08 | Mitigated: current containers are outside the registry; unit, functional, browser, and repository canaries remain green |
+| Provider transport | Cleanup or fallback sends credentials to the wrong provider/origin | A02, A10 | Mitigated: cleanup has no network path; the current provider matrix reports zero proxy credential leaks, zero unexpected direct credentials, and zero cross-provider requests |
+| Locked test dependency | A substituted or vulnerable browser-test dependency changes evidence behavior | A06, A08 | Mitigated: exact Playwright 1.61.1 source lock, trusted registry/integrity checks, 16 adversarial source-lock rejections, and zero npm advisories |
+
+### Exact Erasure, No-Read, And Protected-State Evidence
+
+**Executed:** YES (current session)
+
+**Command:** `cd ~/research-lab && timeout 120 node --test tests/provider-credentials.functional.mjs`
+
+**Exit Code:** 0
+
+**Claim Source:** executed
+
+```text
+TOTAL_PROXY_CREDENTIAL_LEAKS=0
+TOTAL_DIRECT_UNEXPECTED_CREDENTIALS=0
+EXTERNAL_NETWORK=false
+MATRIX_FAILURES=0
+BUG004_CREDENTIAL_NORMALIZATION_MATRIX_END
+✔ SCN-BUG002-002 local keys persist across lifecycle signals (Tier-2 is durable, not memory-only)
+✔ SCN-BUG002-002b same browser shares keys across pages; separate browsers stay isolated
+✔ Regression BUG-004: fallback never crosses provider or retries
+✔ Regression BUG-004: no same-provider key fails closed without disclosure
+✔ SCN-BUG004-003 force-local uses the shared direct provider path
+✔ SCN-BUG001-004 exact legacy containers erase while BUG-002 configuration remains unchanged
+✔ SCN-BUG001-004 partial legacy deletion reports incomplete and preserves BUG-002 configuration
+✔ SCN-BUG001-004 deletion failure plus unavailable verification does not count a still-present container as removed
+ℹ tests 14
+ℹ suites 0
+ℹ pass 14
+ℹ fail 0
+ℹ cancelled 0
+ℹ skipped 0
+ℹ todo 0
+ℹ duration_ms 144.208746
+```
+
+The exact functional assertions also report zero `getItem` operations for every
+registered local/session legacy name, byte-compatible `rlProviderConfig` and
+`rlData`, preserved unknown containers, redacted incomplete results, and
+`removedContainerCount=0` for the forced deletion-failure plus unavailable
+verification branch.
+
+### UI Confirmation And BUG-002 Non-Exfiltration Evidence
+
+**Executed:** YES (current session)
+
+**Commands:** `cd ~/research-lab && timeout 30 npx --no-install playwright --version`; `timeout 300 npx --no-install playwright test tests/provider-credentials.spec.mjs --config=playwright.config.mjs --project=system-chrome --reporter=list --workers=1`; one-shot system-Chrome unavailable-verification probe through the same production `index.html`, `rldata.js`, and `rlapp.js`
+
+**Exit Code:** 0 for every command
+
+**Claim Source:** executed
+
+```text
+Version 1.61.1
+Running 6 tests using 1 worker
+  ✓  1 …oth tiers with the two-tier API and providers start unconfigured (492ms)
+  ✓  2 …rough the editor is stored only in this browser and never leaked (414ms)
+  ✓  3 …chable proxy flips the active tier, and force-local overrides it (477ms)
+  ✓  4 …shaped providers fail closed, and "clear all" wipes this browser (249ms)
+  ✓  5 …ses pre-BUG-002 containers and preserves current provider access (391ms)
+  ✓  6 …acy cleanup is explicit and does not alter BUG-002 configuration (414ms)
+  6 passed (4.0s)
+state=unavailable
+mentionsUnavailable=true
+claimsSuccess=false
+claimsComplete=false
+providerConfigUnchanged=true
+dataCacheUnchanged=true
+legacyStillPresent=true
+providerConfigured=true
+proxyUnchanged=true
+sentinelInDom=false
+BUG001_UNAVAILABLE_UI_PROBE=PASS
+browser_process_scan_exit=1 matches=0
+```
+
+The persistent browser suite directly requires a native confirmation dialog,
+whole-container disclosure, verified complete state, explicit incomplete state
+without success wording, and unchanged BUG-002 provider configuration. Its
+Tier-2 test also asserts the local key is absent from DOM, URL, and cookie
+surfaces. The one-shot probe covers the visible `unavailable` state without
+adding a test or repository file.
+
+### Mechanical Security, Dependency, And Regression Guards
+
+**Executed:** YES (current session)
+
+**Commands:** G034 `security-gate.sh`; `validate-node-source-lock.mjs`; `npm audit --audit-level=high --ignore-scripts`; BUG-001 implementation reality scan; standard and `--bugfix` regression-quality guards; `node scripts/selftest.mjs`
+
+**Exit Code:** 0 for every command
+
+**Claim Source:** executed
+
+```text
+[security-gate] OK — 3087 tracked file(s), zero G034 findings
+[node-source-lock] manifest=PASS private=true runtimeDependencies=0 scripts=0 playwright=1.61.1 node=>=20
+[node-source-lock] npmrc=PASS registry=https://registry.npmjs.org/ entries=5 ignoreScripts=true
+[node-source-lock] lockfile=PASS version=3 externalPackages=3 integrity=sha512
+[node-source-lock] graph=PASS playwright=1.61.1 playwright-core=1.61.1 fsevents=2.3.2
+[node-source-lock] OK adversarial=16 unexpectedAcceptances=0
+found 0 vulnerabilities
+Files scanned:  15
+Violations:     0
+Warnings:       1
+PASSED with 1 warning(s) — manual review advised
+REGRESSION QUALITY RESULT: 0 violation(s), 0 warning(s)
+Files scanned: 2
+Files with adversarial signals: 2
+Research-Lab self-test: 1101 passed, 0 failed
+```
+
+The single reality-scan warning is the explicit discovery warning that active
+`scopes.md` yielded no implementation paths and the scanner used 15 paths from
+`design.md`; it is not a source violation. G047, G048, sensitive-client-storage,
+stub, fake-data, fallback, and interception scans produced zero violations.
+
+### CSP And Sink Disposition
+
+**Executed:** YES (current session)
+
+**Command:** fail-closed Node source probe over the exact legacy registry, `legacyStorage` through `probeProxy`, cleanup renderer, and index CSP
+
+**Exit Code:** 1 for an over-broad initial audit probe, then 0 after correcting only its source-slice boundary
+
+**Claim Source:** interpreted
+
+**Interpretation:** The initial audit-only probe began before `legacyStorage`
+and therefore included BUG-002's protected `loadProviderConfig()` getter; it
+failed `NO_LEGACY_VALUE_READ_OR_PARSE` without exposing a product defect. The
+corrected probe separates the registry from the cleanup-function slice and
+passes every unchanged substantive assertion. `index.html` blocks objects,
+base URL changes, forms, frames, workers, media, and referrers, but its static
+single-file architecture still permits `'unsafe-inline'`; CSP is therefore
+defense in depth, not evidence that same-origin script injection is impossible.
+The BUG-001 pass rests on the absence of legacy-value taint and escaped closed
+metadata at every cleanup HTML sink.
+
+```text
+EXACT_LEGACY_NAMES_11=PASS
+PROTECTED_NAMES_EXCLUDED=PASS
+NAME_ENUMERATION_ONLY=PASS
+NO_LEGACY_VALUE_READ_OR_PARSE=PASS
+EXACT_REMOVE_ITEM=PASS
+NO_ACTIVATION_OR_NETWORK_PATH=PASS
+UNAVAILABLE_ACCOUNTING_FAILS_CLOSED=PASS
+CONFIRM_PRECEDES_ERASE=PASS
+CLEANUP_METADATA_ESCAPED=PASS
+UI_HAS_NO_STORAGE_VALUE_PATH=PASS
+CSP_PRESENT=PASS
+CSP_SCRIPT_POLICY_DECLARED=PASS
+CSP_DANGEROUS_SURFACES_BLOCKED=PASS
+REFERRER_POLICY_NO_REFERRER=PASS
+CSP_UNSAFE_INLINE=ACKNOWLEDGED_DEFENSE_IN_DEPTH_ONLY
+BUG001_STATIC_SECURITY_PROBE=PASS
+```
+
+### Verdict And Routing
+
+**Verdict:** `SECURITY_CLEAN`
+
+| Finding | Disposition |
+| --- | --- |
+| `BUG001-G022-SECURITY` | Addressed: threat model, exact-name/no-read review, complete/incomplete/unavailable behavior, UI confirmation, BUG-002 preservation/non-exfiltration, G034, dependency, regression, and repository checks are current and clean. |
+| `TR-BUG-001-STABILIZE-SECURITY` | Resolved by this phase without source, test, planning, certification, BUG-002, BUG-004, framework, or unrelated-main-agent mutation. |
+| BUG-001 security defects | None found; no `bubbles.bug` route required. |
+| `BUG001-G022-VALIDATE-AUDIT` | Routed to `bubbles.validate` for the pre-audit boundary; security does not certify completion. |
+| `BUG001-G027-CERTIFICATION` | Remains validate-owned and untouched. |
+
+```yaml
+packet: BUG-001-central-provider-credential-security
+workflowMode: bugfix-fastlane
+currentOwner: bubbles.security
+currentOutcome: route_required
+verdict: SECURITY_CLEAN
+activeScopeIds: [SCOPE-01]
+addressedFindingIds: [BUG001-G022-SECURITY, TR-BUG-001-STABILIZE-SECURITY]
+unresolvedFindingIds: [BUG001-G022-VALIDATE-AUDIT, BUG001-G027-CERTIFICATION]
+nextRequiredOwner: bubbles.validate
+requestedAction: execute the pre-audit validation boundary, preserve certification until an independent positive audit, and route that audit through the registry-resolved delivery-completion contract
+certificationChangedBySecurity: false
+```
+
+## Reopened S1-T03 Pre-Fix RED Evidence
+
+### BUG001-STAB-001 Persistent Functional Adversarial Regression
+
+**Phase:** test
+**Claim Source:** executed
+**Executed:** YES (current session)
+**Command:** `cd ~/research-lab && timeout 300 node --test --test-name-pattern="SCN-BUG001-004 deletion failure plus unavailable verification does not count a still-present container as removed" tests/provider-credentials.functional.mjs`
+**Exit Code:** 1
+**Output:**
+
+```text
+✖ SCN-BUG001-004 deletion failure plus unavailable verification does not count a still-present container as removed (5.163262ms)
+ℹ tests 1
+ℹ suites 0
+ℹ pass 0
+ℹ fail 1
+ℹ cancelled 0
+ℹ skipped 0
+ℹ todo 0
+ℹ duration_ms 99.924819
+
+✖ failing tests:
+
+test at tests/provider-credentials.functional.mjs:624:1
+✖ SCN-BUG001-004 deletion failure plus unavailable verification does not count a still-present container as removed (5.163262ms)
+  AssertionError [ERR_ASSERTION]: a still-present unverified container is not removed
+
+  1 !== 0
+
+      at TestContext.<anonymous> (file://~/research-lab/tests/provider-credentials.functional.mjs:666:10)
+      at Test.runInAsyncScope (node:async_hooks:214:14)
+      at Test.run (node:internal/test_runner/test:1047:25)
+      at Test.start (node:internal/test_runner/test:944:17)
+      at startSubtestAfterBootstrap (node:internal/test_runner/harness:296:17) {
+    generatedMessage: false,
+    code: 'ERR_ASSERTION',
+    actual: 1,
+    expected: 0,
+    operator: 'strictEqual',
+    diff: 'simple'
+  }
+```
+
+**Result:** EXPECTED RED - the persistent S1-T03 case reaches its final assertion only after proving `status: "unavailable"`, `ok: false`, the selected container remains present, no complete/success claim appears, BUG-002 `rlProviderConfig` bytes remain unchanged, non-secret `rlData` bytes remain unchanged, and current proxy/Tier-2 access remains configured. Current production code then reports `removedContainerCount: 1`; the plan requires `0` because absence was not verified.
+
+### Test-to-Implementation Route
+
+```yaml
+packet: BUG-001-central-provider-credential-security
+workflowMode: bugfix-fastlane
+currentOwner: bubbles.test
+currentOutcome: route_required
+verdict: EXPECTED_RED
+activeScopeIds: [SCOPE-01]
+addressedFindingIds: [TR-BUG-001-STABILITY-PLAN-REWORK]
+unresolvedFindingIds: [BUG001-STAB-001-UNVERIFIED-REMOVAL-COUNT]
+nextRequiredOwner: bubbles.implement
+requestedAction: correct removal accounting so a selected legacy container contributes to removedContainerCount only when post-delete enumeration verifies its exact name absent; preserve BUG-002 proxy and localStorage.rlProviderConfig behavior
+testToTurnGreen: tests/provider-credentials.functional.mjs - SCN-BUG001-004 deletion failure plus unavailable verification does not count a still-present container as removed
+sourceChangedByTest: false
+planningChangedByTest: false
+certificationChangedByTest: false
+```
+
+## Implement Phase Evidence - 2026-08-01T20:21:10Z
+
+### BUG001-STAB-001 Root-Cause Correction
+
+**Phase:** implement
+**Claim Source:** executed
+
+`eraseLegacyCredentialContainers()` previously derived `removedContainerCount` as selected containers minus containers visible in the post-delete scan. When that scan could not enumerate a selected container's storage class, the container disappeared from the observed remaining set even though its absence was not verified. The correction excludes every selected container in an unavailable post-delete storage class from removal accounting. Complete and observable-incomplete accounting retain the same formula because their post-delete storage classes remain enumerable. No BUG-002 provider configuration path or BUG-004 source was changed.
+
+### Expected RED Consumed Before Source Change
+
+**Phase:** implement
+**Claim Source:** executed
+**Executed:** YES (current session)
+**Command:** `cd ~/research-lab && timeout 120 node --test tests/provider-credentials.functional.mjs`
+**Exit Code:** 1
+**Output:**
+
+```text
+ℹ tests 14
+ℹ suites 0
+ℹ pass 13
+ℹ fail 1
+ℹ cancelled 0
+ℹ skipped 0
+ℹ todo 0
+ℹ duration_ms 143.7998
+
+✖ failing tests:
+
+test at tests/provider-credentials.functional.mjs:624:1
+✖ SCN-BUG001-004 deletion failure plus unavailable verification does not count a still-present container as removed (1.280484ms)
+  AssertionError [ERR_ASSERTION]: a still-present unverified container is not removed
+
+  1 !== 0
+
+      at TestContext.<anonymous> (file://~/research-lab/tests/provider-credentials.functional.mjs:666:10)
+  {
+    generatedMessage: false,
+    code: 'ERR_ASSERTION',
+    actual: 1,
+    expected: 0,
+    operator: 'strictEqual',
+    diff: 'simple'
+  }
+```
+
+**Result:** EXPECTED RED - the persistent adversarial regression reproduced the stabilize finding before the implementation edit.
+
+### S1-T03 And Focused Functional GREEN
+
+**Phase:** implement
+**Claim Source:** executed
+**Executed:** YES (current session)
+**Command:** `cd ~/research-lab && timeout 120 node --test tests/provider-credentials.functional.mjs`
+**Exit Code:** 0
+**Output:**
+
+```text
+✔ SCN-BUG001-004 exact legacy containers erase while BUG-002 configuration remains unchanged (1.392043ms)
+✔ SCN-BUG001-004 partial legacy deletion reports incomplete and preserves BUG-002 configuration (0.576038ms)
+✔ SCN-BUG001-004 deletion failure plus unavailable verification does not count a still-present container as removed (0.819082ms)
+ℹ tests 14
+ℹ suites 0
+ℹ pass 14
+ℹ fail 0
+ℹ cancelled 0
+ℹ skipped 0
+ℹ todo 0
+ℹ duration_ms 133.139671
+```
+
+**Result:** PASS - the unavailable-verification branch now reports zero verified removals, while complete, incomplete, BUG-002, and BUG-004 focused cases remain green.
+
+### Focused Provider Unit GREEN
+
+**Phase:** implement
+**Claim Source:** executed
+**Executed:** YES (current session)
+**Command:** `cd ~/research-lab && timeout 120 node --test tests/provider-credentials.unit.mjs`
+**Exit Code:** 0
+**Output:**
+
+```text
+✔ SCN-BUG002-001 providers start unconfigured; two-tier API present; local key configures then clears (4.093399ms)
+✔ SCN-BUG002-004 fail-closed transport and prototype-safe unknown providers (2.755876ms)
+✔ SCN-BUG001-004 legacy registry excludes BUG-002 provider configuration (1.020103ms)
+ℹ tests 3
+ℹ suites 0
+ℹ pass 3
+ℹ fail 0
+ℹ cancelled 0
+ℹ skipped 0
+ℹ todo 0
+ℹ duration_ms 118.851453
+```
+
+**Result:** PASS - the closed legacy registry and current two-tier provider contracts remain intact.
+
+### Full Provider Playwright GREEN
+
+**Phase:** implement
+**Claim Source:** executed
+**Executed:** YES (current session)
+**Command:** `cd ~/research-lab && timeout 300 npx --no-install playwright test tests/provider-credentials.spec.mjs --config=playwright.config.mjs --project=system-chrome --reporter=list`
+**Exit Code:** 0
+**Output:**
+
+```text
+Running 6 tests using 1 worker
+
+  ✓  1 …oth tiers with the two-tier API and providers start unconfigured (584ms)
+  ✓  2 …rough the editor is stored only in this browser and never leaked (345ms)
+  ✓  3 …chable proxy flips the active tier, and force-local overrides it (447ms)
+  ✓  4 …shaped providers fail closed, and "clear all" wipes this browser (240ms)
+  ✓  5 …ses pre-BUG-002 containers and preserves current provider access (403ms)
+  ✓  6 …acy cleanup is explicit and does not alter BUG-002 configuration (489ms)
+
+  6 passed (4.5s)
+```
+
+**Result:** PASS - the real Data settings cleanup flows and current BUG-002 browser behavior remain green.
+
+### Repository Selftest GREEN
+
+**Phase:** implement
+**Claim Source:** executed
+**Executed:** YES (current session)
+**Command:** `cd ~/research-lab && timeout 300 node scripts/selftest.mjs`
+**Exit Code:** 0
+**Output:**
+
+```text
+  ✓ the cockpit does not fetch full artifact tools.json on first load
+  ✓ hidden experimental prose is fetched only through the drawer load path
+  ✓ market-brief.page.json is byte-current with its full source artifacts
+  ✓ market-brief.config.page.json is byte-current with its full source artifacts
+  ✓ market-brief.snapshot.page.json is byte-current with its full source artifacts
+  ✓ market-brief.tools.page.json is byte-current with its full source artifacts
+  ✓ market-brief.experimental.json is byte-current with its full source artifacts
+  ✓ no tests/*.mjs path named by a spec artifact is missing outside the frozen baseline — a stale path makes a multi-file verification command silently cover less than it claims (0 new, 86 known-missing, 0 stale of 204 referenced)
+
+================================================
+Research-Lab self-test: 1101 passed, 0 failed
+================================================
+```
+
+**Result:** PASS - the full repository integration baseline remains green.
+
+### Regression Quality And Diagnostics
+
+**Phase:** implement
+**Claim Source:** executed
+**Executed:** YES (current session)
+**Command:** `cd ~/research-lab && timeout 120 bash .github/bubbles/scripts/regression-quality-guard.sh --bugfix tests/provider-credentials.functional.mjs tests/provider-credentials.spec.mjs`
+**Exit Code:** 0
+**Output:**
+
+```text
+============================================================
+  BUBBLES REGRESSION QUALITY GUARD
+  Repo: ~/research-lab
+  Timestamp: 2026-08-01T20:20:23Z
+  Bugfix mode: true
+============================================================
+
+ℹ️  Scanning tests/provider-credentials.functional.mjs
+✅ Adversarial signal detected in tests/provider-credentials.functional.mjs
+ℹ️  Scanning tests/provider-credentials.spec.mjs
+✅ Adversarial signal detected in tests/provider-credentials.spec.mjs
+
+============================================================
+  REGRESSION QUALITY RESULT: 0 violation(s), 0 warning(s)
+  Files scanned: 2
+  Files with adversarial signals: 2
+============================================================
+```
+
+**Result:** PASS - both focused files carry adversarial signals. The non-bugfix guard also reported 0 violations and 0 warnings; editor diagnostics reported no errors in `rldata.js` or `tests/provider-credentials.functional.mjs`; and `git diff --check -- rldata.js tests/provider-credentials.functional.mjs` exited 0.
+
+### Finding Closure And Stabilize Route
+
+| Finding ID | Implementation disposition |
+| --- | --- |
+| `BUG001-STAB-001-UNVERIFIED-REMOVAL-COUNT` | Addressed: removal accounting now excludes selected containers whose post-delete storage class could not be enumerated, and the persistent adversarial regression is GREEN. |
+
+```yaml
+packet: BUG-001-central-provider-credential-security
+workflowMode: bugfix-fastlane
+currentOwner: bubbles.implement
+currentOutcome: route_required
+verdict: GREEN_IMPLEMENTATION
+activeScopeIds: [SCOPE-01]
+addressedFindingIds: [BUG001-STAB-001-UNVERIFIED-REMOVAL-COUNT]
+unresolvedFindingIds: [BUG001-G022-STABILIZE, BUG001-G022-SECURITY, BUG001-G022-VALIDATE-AUDIT, BUG001-G027-CERTIFICATION]
+nextRequiredOwner: bubbles.stabilize
+requestedAction: replay cleanup reliability and unavailable-verification stability against the corrected accounting, then continue the governed specialist chain only on a clean stabilize verdict
+sourceChangedByImplement: [rldata.js]
+planningChangedByImplement: false
+certificationChangedByImplement: false
+```
+
+## Stabilize Replay Evidence - 2026-08-01T20:34:38Z
+
+**Phase:** stabilize
+**Agent:** `bubbles.stabilize`
+**Scope:** `SCOPE-01 Pre-BUG-002 Legacy Credential Erasure`
+**Active scenario:** `SCN-BUG001-004`
+**Verdict:** `STABILITY_GREEN`
+**Claim Source:** executed
+**Repository binding:** `research-lab`, decision
+`rb:vscode-9a7293b2dab62e384ebe03875bcef375:16`, revision `16`
+
+### Stability Replay Inventory
+
+| Domain | Evidence-backed result | Finding |
+| --- | --- | --- |
+| Cleanup reliability | The exact prior deterministic probe now passes both complete/idempotent cleanup and deletion-failure plus unavailable-verification accounting. | None |
+| Idempotency | The first cleanup removes all 11 exact legacy containers; the second removes zero; `rlProviderConfig` and `rlData` remain byte-identical. | None |
+| Unavailable and partial storage | The functional suite proves ordinary failed deletion remains `incomplete`; unavailable post-delete enumeration remains `unavailable`, `ok=false`, and reports zero verified removals for the still-present selected container. | None |
+| Race and reentrancy | The bounded synchronous operation still freezes the selected set before deletion and repeated same-document invocation is a verified no-op. No cross-context atomicity claim is made. | None within the active contract |
+| Resource and performance | The correction adds one bounded filter over at most the 11 frozen selected entries; no network, timer, worker, retry loop, retained queue, or new storage write is introduced. | None |
+| BUG-002 preservation | Current checks pass 3/3 unit, 14/14 functional, 6/6 real browser, and 1101/1101 repository selftest with zero required skips. | None |
+
+**Claim Source:** interpreted
+**Interpretation:** The executed probe and functional cases directly establish
+the corrected accounting, idempotency, ordinary partial behavior, unavailable
+behavior, and protected BUG-002 bytes. Source review establishes that the
+accounting change is bounded to the selected-entry filter and introduces no
+asynchronous or external-resource path. The active scope defines no latency SLO
+or cross-context concurrency guarantee, so none is inferred.
+
+### Prior Deterministic Stability Probe - GREEN
+
+**Executed:** YES (current session)
+**Phase:** stabilize
+**Command:** `cd ~/research-lab && timeout 300 node --test /tmp/bug001-stability-probe.mjs`
+**Exit Code:** 0
+**Claim Source:** executed
+**Output:**
+
+```text
+✔ repeated legacy cleanup is idempotent and preserves BUG-002 bytes (3.756616ms)
+✔ unavailable verification cannot count a still-present container as removed (2.006991ms)
+ℹ tests 2
+ℹ suites 0
+ℹ pass 2
+ℹ fail 0
+ℹ cancelled 0
+ℹ skipped 0
+ℹ todo 0
+ℹ duration_ms 97.395619
+```
+
+**Result:** PASS - the exact two-case probe that previously failed 1/2 now
+passes 2/2 against the corrected verified-removal accounting.
+
+### Current Provider Functional Replay - 14/14
+
+**Executed:** YES (current session)
+**Phase:** stabilize
+**Command:** `cd ~/research-lab && timeout 300 node --test tests/provider-credentials.functional.mjs`
+**Exit Code:** 0
+**Claim Source:** executed
+**Output:**
+
+```text
+TOTAL_PROXY_CREDENTIAL_LEAKS=0
+TOTAL_DIRECT_UNEXPECTED_CREDENTIALS=0
+EXTERNAL_NETWORK=false
+MATRIX_FAILURES=0
+BUG004_CREDENTIAL_NORMALIZATION_MATRIX_END
+✔ SCN-BUG002-002 local keys persist across lifecycle signals (Tier-2 is durable, not memory-only) (7.160125ms)
+✔ SCN-BUG002-002b same browser shares keys across pages; separate browsers stay isolated (2.829477ms)
+✔ Regression BUG-004: proxy HTTP failure falls back once to same-provider local key (4.787587ms)
+✔ Regression BUG-004: key-bearing full URL stays keyless at proxy and singular at direct fallback (2.745766ms)
+✔ Regression BUG-004: registry-reserved query fields are stripped before proxy and canonicalized once for direct (6.452957ms)
+✔ Regression BUG-004: proxy transport rejection falls back once to same-provider local key (1.765602ms)
+✔ Regression BUG-004: proxy timeout rejection falls back once to same-provider local key (1.847098ms)
+✔ Regression BUG-004: proxy JSON decode failure falls back once to same-provider local key (1.271189ms)
+✔ Regression BUG-004: fallback never crosses provider or retries (0.99346ms)
+✔ Regression BUG-004: no same-provider key fails closed without disclosure (1.497645ms)
+✔ SCN-BUG004-003 force-local uses the shared direct provider path (1.436195ms)
+✔ SCN-BUG001-004 exact legacy containers erase while BUG-002 configuration remains unchanged (1.475382ms)
+✔ SCN-BUG001-004 partial legacy deletion reports incomplete and preserves BUG-002 configuration (0.594948ms)
+✔ SCN-BUG001-004 deletion failure plus unavailable verification does not count a still-present container as removed (0.726207ms)
+ℹ tests 14
+ℹ suites 0
+ℹ pass 14
+ℹ fail 0
+ℹ cancelled 0
+ℹ skipped 0
+ℹ todo 0
+ℹ duration_ms 145.306266
+```
+
+**Result:** PASS - complete, ordinary partial, and unavailable-verification
+branches all pass while current BUG-002 and BUG-004 behavior remains green.
+
+### Current Provider Unit Replay - 3/3
+
+**Executed:** YES (current session)
+**Phase:** stabilize
+**Command:** `cd ~/research-lab && timeout 300 node --test tests/provider-credentials.unit.mjs`
+**Exit Code:** 0
+**Claim Source:** executed
+**Output:**
+
+```text
+✔ SCN-BUG002-001 providers start unconfigured; two-tier API present; local key configures then clears (3.475854ms)
+✔ SCN-BUG002-004 fail-closed transport and prototype-safe unknown providers (2.883921ms)
+✔ SCN-BUG001-004 legacy registry excludes BUG-002 provider configuration (1.006414ms)
+ℹ tests 3
+ℹ suites 0
+ℹ pass 3
+ℹ fail 0
+ℹ cancelled 0
+ℹ skipped 0
+ℹ todo 0
+ℹ duration_ms 114.629934
+```
+
+**Result:** PASS - the protected provider API, fail-closed path, and exact
+legacy registry remain intact.
+
+### Current Provider Browser Replay - 6/6
+
+**Executed:** YES (current session)
+**Phase:** stabilize
+**Commands:** `cd ~/research-lab && timeout 60 npx --no-install playwright --version`; `timeout 300 npx --no-install playwright test tests/provider-credentials.spec.mjs --config=playwright.config.mjs --project=system-chrome --reporter=list`
+**Exit Code:** 0
+**Claim Source:** executed
+**Output:**
+
+```text
+PROVIDER_BROWSER_EVIDENCE_BEGIN
+Version 1.61.1
+PROVIDER_BROWSER_SUITE_BEGIN
+Running 6 tests using 1 worker
+  ✓  1 …oth tiers with the two-tier API and providers start unconfigured (480ms)
+  ✓  2 …rough the editor is stored only in this browser and never leaked (344ms)
+  ✓  3 …chable proxy flips the active tier, and force-local overrides it (451ms)
+  ✓  4 …shaped providers fail closed, and "clear all" wipes this browser (247ms)
+  ✓  5 …ses pre-BUG-002 containers and preserves current provider access (497ms)
+  ✓  6 …acy cleanup is explicit and does not alter BUG-002 configuration (443ms)
+  6 passed (4.2s)
+PROVIDER_BROWSER_SUITE_EXIT=0
+PROVIDER_BROWSER_EVIDENCE_END
+```
+
+**Result:** PASS - the source-locked Playwright 1.61.1 runner exercised six real
+system-Chrome provider flows with no skipped or failed scenario.
+
+### Current Repository Selftest - 1101/1101
+
+**Executed:** YES (current session)
+**Phase:** stabilize
+**Command:** `cd ~/research-lab && timeout 300 node scripts/selftest.mjs`
+**Exit Code:** 0
+**Claim Source:** executed
+**Output:** final lines 338-365 of the 365-line terminal capture.
+
+```text
+  ✓ market-brief.snapshot.page.json is byte-current with its full source artifacts
+  ✓ market-brief.tools.page.json is byte-current with its full source artifacts
+  ✓ market-brief.experimental.json is byte-current with its full source artifacts
+  ✓ the recent window is inside its declared byte budget (10110 <= 204800)
+  ✓ the recent window is inside its declared row budget (30 <= 30)
+  ✓ the cockpit’s whole first-load payload is inside budget (144 KB <= 200 KB)
+  ✓ the unbounded log genuinely exceeds the budget (2314 KB), so fetching it would FAIL this test rather than slip through
+  ✓ every run in the append log is preserved in a monthly shard (107 = 107)
+  ✓ every recent row declares the compact contract, so a consumer knows it is a projection and not the full run
+  ✓ the sharder never rewrites the append log it reads from
+spec artifacts — referenced tests/*.mjs paths exist (Playwright silently ignores absent file args)
+  ✓ the scan matched at least one tests/*.mjs reference against a present baseline, so the guard is not vacuously green (9978 reference(s) across 421 artifact(s), baseline 86 entries)
+  ✓ no tests/*.mjs path named by a spec artifact is missing outside the frozen baseline — a stale path makes a multi-file verification command silently cover less than it claims (0 new, 86 known-missing, 0 stale of 204 referenced)
+================================================
+Research-Lab self-test: 1101 passed, 0 failed
+================================================
+```
+
+**Result:** PASS - the repository-wide shared-shell, generated-artifact, and
+spec-reference baseline remains green.
+
+### Stability Quality Checks
+
+**Executed:** YES (current session)
+**Phase:** stabilize
+**Commands:** standard and `--bugfix` regression-quality guards over all three provider files; path-scoped `git diff --check`; edited-file diagnostics
+**Exit Code:** 0
+**Claim Source:** executed
+**Output:**
+
+```text
+============================================================
+  BUBBLES REGRESSION QUALITY GUARD
+  Repo: ~/research-lab
+  Timestamp: 2026-08-01T20:33:31Z
+  Bugfix mode: true
+============================================================
+ℹ️  Scanning tests/provider-credentials.unit.mjs
+✅ Adversarial signal detected in tests/provider-credentials.unit.mjs
+ℹ️  Scanning tests/provider-credentials.functional.mjs
+✅ Adversarial signal detected in tests/provider-credentials.functional.mjs
+ℹ️  Scanning tests/provider-credentials.spec.mjs
+✅ Adversarial signal detected in tests/provider-credentials.spec.mjs
+============================================================
+  REGRESSION QUALITY RESULT: 0 violation(s), 0 warning(s)
+  Files scanned: 3
+  Files with adversarial signals: 3
+============================================================
+path_scoped_diff_check_exit=0
+rldata.js: No errors found
+provider-credentials.support.mjs: No errors found
+provider-credentials.unit.mjs: No errors found
+provider-credentials.functional.mjs: No errors found
+provider-credentials.spec.mjs: No errors found
+selftest.mjs: No errors found
+```
+
+**Result:** PASS - both regression-quality modes reported zero violations and
+warnings, all three provider files carried adversarial signals, the path-scoped
+diff check exited zero, and every touched source/test file had zero diagnostics.
+
+### Stabilize Finding Closure And Security Route
+
+| Finding | Severity | Disposition |
+| --- | --- | --- |
+| `BUG001-STAB-001-UNVERIFIED-REMOVAL-COUNT` | medium | Addressed: the same deterministic unavailable-verification probe now passes and the persistent 14-case functional suite proves the still-present container is excluded from verified-removal accounting. |
+| `BUG001-G022-STABILIZE` | n/a | Addressed: all stability domains were replayed against the corrected bytes with current executed evidence. |
+| `BUG001-G022-SECURITY` | n/a | Routed to `bubbles.security` as the next required specialist phase. |
+| `BUG001-G022-VALIDATE-AUDIT` | n/a | Remains validate-owned after security. |
+| `BUG001-G027-CERTIFICATION` | n/a | Remains validate-owned; no certification field changed. |
+
+```yaml
+packet: BUG-001-central-provider-credential-security
+workflowMode: bugfix-fastlane
+currentOwner: bubbles.stabilize
+currentOutcome: route_required
+verdict: STABILITY_GREEN
+activeScopeIds: [SCOPE-01]
+addressedFindingIds: [BUG001-STAB-001-UNVERIFIED-REMOVAL-COUNT, BUG001-G022-STABILIZE]
+unresolvedFindingIds: [BUG001-G022-SECURITY, BUG001-G022-VALIDATE-AUDIT, BUG001-G027-CERTIFICATION]
+nextRequiredOwner: bubbles.security
+requestedAction: execute the required security review over exact legacy-container erasure and BUG-002 provider preservation, then route to pre-audit validation
+planningChangedByStabilize: false
+certificationChangedByStabilize: false
+```
+
+<a name="validate-pre-audit-boundary-2026-08-01t211217z"></a>
+## Validate Pre-Audit Boundary - 2026-08-01T21:12:17Z
+
+**Outcome:** `route_required`
+**Phase:** validate
+**Claim Source:** interpreted
+**Interpretation:** Current BUG-001 product behavior is green, but pre-audit
+certification is mechanically blocked by foreign-owned design and planning
+state plus an unsupported bootstrap phase claim. Because Tier 1 and Tier 2
+validation did not pass, this run did not record the `validate` phase, alter
+`certification.*`, resolve the incoming transition request, or dispatch audit.
+
+### Fresh Transition Contract
+
+**Executed:** YES (current session)
+**Command:** `cd ~/research-lab && timeout 60 bash .github/bubbles/scripts/transition-contract-resolver.sh specs/_bugs/BUG-001-central-provider-credential-security`
+**Exit Code:** 0
+**Claim Source:** executed
+
+```text
+schemaVersion=transition-contract/v1
+workflowMode=bugfix-fastlane
+auditProfile=delivery-completion-v1
+statusCeiling=done
+targetStatus=done
+currentStatus=in_progress
+phaseOrder=select,bootstrap,implement,test,regression,simplify,gaps,harden,stabilize,devops,security,validate,audit,finalize
+contractRef=bubbles/workflows/modes.yaml#bugfix-fastlane
+contractDigest=sha256:aa91472c047d3d985d38c1d308feb1e6081955b2aa553816deb5987d9cdc449f
+targetRevision=sha256:3958275e7bd4a861c5b103d0f7bb01710803f6ce1314e254a169af692053c608
+sourceEditLockoutRequired=false
+resolver_exit=0
+```
+
+The fresh mode, target, profile, and digest match
+`TR-BUG-001-SECURITY-VALIDATE`. That request does not carry the fresh target
+revision, so this run used the resolver result as the only revision authority.
+
+### Outcome Contract Verification (G070)
+
+**Claim Source:** interpreted
+**Interpretation:** The focused unit, functional, real-browser, and repository
+executions directly exercise the declared outcome. Their combined result proves
+the current behavior, while the process/certification gates below remain
+independently blocking.
+
+| Field | Declared | Current evidence | Status |
+| --- | --- | --- | --- |
+| Intent | Retire exact pre-BUG-002 containers without changing BUG-002 access | Unit registry exclusion plus functional and browser preservation checks | PASS |
+| Success Signal | Redacted detection, confirmed erase, verified absence, explicit incomplete result, current config unchanged | Functional 14/14 and system-Chrome 6/6 | PASS |
+| Hard Constraints | Exact closed registry, no activation/migration, confirmation before whole-container deletion, one active scenario/scope | Unit 3/3, functional 14/14, browser 6/6, implementation-reality zero violations | PASS |
+| Failure Condition | No current/unknown selection, current-config/cache mutation, legacy activation, false success, or superseded-rule reinstatement | Focused tests and repository selftest report none of those outcomes | PASS |
+
+### Current Product Verification
+
+**Executed:** YES (current session)
+**Commands:** source-lock validator; exact Playwright version; provider unit and
+functional suites; provider system-Chrome suite; repository selftest; standard
+and bugfix regression-quality guards
+**Exit Code:** 0 for every command
+**Claim Source:** executed
+
+```text
+[node-source-lock] graph=PASS playwright=1.61.1 playwright-core=1.61.1 fsevents=2.3.2
+[node-source-lock] OK adversarial=16 unexpectedAcceptances=0
+Version 1.61.1
+SCN-BUG001-004 legacy registry excludes BUG-002 provider configuration
+tests 3
+pass 3
+fail 0
+SCN-BUG001-004 exact legacy containers erase while BUG-002 configuration remains unchanged
+SCN-BUG001-004 partial legacy deletion reports incomplete and preserves BUG-002 configuration
+SCN-BUG001-004 deletion failure plus unavailable verification does not count a still-present container as removed
+tests 14
+pass 14
+fail 0
+Running 6 tests using 1 worker
+6 passed (3.9s)
+Research-Lab self-test: 1101 passed, 0 failed
+REGRESSION QUALITY RESULT: 0 violation(s), 0 warning(s)
+Files scanned: 2
+Files with adversarial signals: 2
+```
+
+### Governance Gate Evidence
+
+**Executed:** YES (current session)
+**Command:** `cd ~/research-lab && timeout 600 bash .github/bubbles/scripts/state-transition-guard.sh specs/_bugs/BUG-001-central-provider-credential-security --target-status done --expect-workflow-mode bugfix-fastlane --expect-contract-digest sha256:aa91472c047d3d985d38c1d308feb1e6081955b2aa553816deb5987d9cdc449f`
+**Exit Code:** 1
+**Claim Source:** executed
+
+```text
+TRANSITION GUARD VERDICT
+TRANSITION BLOCKED: 13 failure(s), 2 warning(s)
+state.json status MUST NOT be set to 'done'.
+BEGIN TRANSITION_GUARD_RESULT_V1
+schemaVersion: transition-guard-result/v1
+workflowMode: bugfix-fastlane
+auditProfile: delivery-completion-v1
+targetStatus: done
+contractDigest: sha256:aa91472c047d3d985d38c1d308feb1e6081955b2aa553816deb5987d9cdc449f
+targetRevision: sha256:3958275e7bd4a861c5b103d0f7bb01710803f6ce1314e254a169af692053c608
+applicableCheckClasses: [universal,mode-required,delivery-completion]
+failedGateIds: [G022,G027]
+failedChecks: [Check-5-all-done,Check-8-contract,Check-8-file-existence,Check-9-evidence]
+blockingCode: DELIVERY_COMPLETION_FAILED
+failureCount: 13
+exitStatus: 1
+verdict: FAIL
+END TRANSITION_GUARD_RESULT_V1
+```
+
+**Executed:** YES (current session)
+**Command:** `cd ~/research-lab && timeout 300 bash .github/bubbles/scripts/artifact-freshness-guard.sh specs/_bugs/BUG-001-central-provider-credential-security`
+**Exit Code:** 1
+**Claim Source:** executed
+
+```text
+BUBBLES ARTIFACT FRESHNESS GUARD
+Check 1: Freshness Boundary Isolation (spec.md / design.md)
+spec.md isolates superseded/suppressed sections at the end
+design.md line 714 has active-looking heading after freshness boundary
+design.md line 716 has active-looking heading after freshness boundary
+design.md line 722 has active-looking heading after freshness boundary
+design.md line 749 has active-looking heading after freshness boundary
+design.md line 755 has active-looking heading after freshness boundary
+design.md line 775 has active-looking heading after freshness boundary
+design.md line 783 has active-looking heading after freshness boundary
+design.md line 791 has active-looking heading after freshness boundary
+design.md line 807 has active-looking heading after freshness boundary
+design.md line 820 has active-looking heading after freshness boundary
+scopes.md keeps superseded scope history non-executable
+RESULT: BLOCKED (10 failures, 0 warnings)
+```
+
+### Governance Summary
+
+| Check | Exit | Current result |
+| --- | ---: | --- |
+| Transition resolver | 0 | PASS; fresh delivery-completion contract recorded above |
+| State transition guard | 1 | BLOCKED; 13 failures, two warnings |
+| Artifact lint | 0 | PASS |
+| Traceability guard | 0 | PASS; one active scenario, concrete tests and report evidence |
+| Artifact freshness guard (G052) | 1 | BLOCKED; ten design headings remain active-looking below the superseded boundary |
+| Implementation reality scan (G028) | 0 | PASS; zero violations, one plan-path discovery warning |
+| Changed-spec audit | 0 | PASS for current `in_progress` state; terminal checks not applicable |
+| Observability SLO guard (G100) | 0 | PASS no-op; no observability block |
+| Bubbles doctor | 0 | PASS; 18 passed, zero failed, eight advisory |
+| Framework write guard | 0 | PASS; installed managed bytes match their snapshot |
+| Repo readiness | 0 | PASS; 9 passed, zero failed |
+| Handoff-cycle checker | N/A | The script expects agent-definition input and refused this feature directory; no handoff verdict was inferred |
+
+### Blocking Finding Accounting
+
+| Finding | Gate/check | Exact blocker | Owner |
+| --- | --- | --- | --- |
+| `BUG001-G052-DESIGN-FRESHNESS` | G052 | Ten active-looking headings remain below `design.md`'s `Superseded Design Decisions` boundary. | `bubbles.design` |
+| `BUG001-G024-SCOPE-STATUS` | Check 5 / G024 / G027 | The sole active scope still reads `Status: In Progress`; validate cannot certify it as Done from checked boxes alone. | `bubbles.plan` |
+| `BUG001-PLAN-EXECUTION-STATE` | Check 8 / G027 | `test-plan.json` still marks SCOPE-01 and S1-T03 `in_progress`/`not_started`, blocks implementation dispatch, and retains the resolved stabilize finding. | `bubbles.plan` |
+| `BUG001-G001-TEST-FILE-ROWS` | Check 8 | Two active-plan table rows are parsed as non-existent `bubbles.test` files. | `bubbles.plan` |
+| `BUG001-G025-EVIDENCE-ANCHOR` | Check 9 / G025 | The checked Build Quality item links to an implement-phase report block that the guard resolves as missing or shorter than ten non-blank lines. | `bubbles.plan` for the DoD link; existing implementation evidence remains unchanged |
+| `BUG001-G022-BOOTSTRAP-PROVENANCE` | G022 | `bootstrap` is claimed in `execution.completedPhaseClaims` without specialist or parent-expanded provenance. | `bubbles.bug` or the originating authorized runner |
+| `BUG001-G022-VALIDATE-AUDIT` | G022 | `validate` cannot be recorded while the gates above fail; `audit` remains intentionally unexecuted until a clean pre-audit pass. | `bubbles.validate` after foreign blockers, then `bubbles.audit` |
+| `BUG001-G027-CERTIFICATION` | G027 | Validate-owned scope inventory cannot be advanced while the authoritative scope and plan remain nonterminal. | `bubbles.validate` only after plan/design/provenance gates pass |
+
+### State And Routing Disposition
+
+No `state.json`, `scenario-manifest.json`, source, test, BUG-004, unrelated
+main-agent, or `.github/bubbles/**` byte was changed by this validation run.
+Spec and certification status remain `in_progress`; `certification.completedScopes`
+remains empty; no audit attempt exists. The first required owner is
+`bubbles.design` for G052. Planning and originating-runner repairs remain
+mandatory before `bubbles.validate` may rerun and record its own phase.
+
+## RESULT-ENVELOPE
+
+```json
+{
+  "agent": "bubbles.validate",
+  "roleClass": "certification",
+  "outcome": "route_required",
+  "featureDir": "specs/_bugs/BUG-001-central-provider-credential-security",
+  "scopeIds": ["SCOPE-01"],
+  "dodItems": ["Build Quality Gate"],
+  "scenarioIds": ["SCN-BUG001-004"],
+  "artifactsCreated": [],
+  "artifactsUpdated": ["report.md"],
+  "evidenceRefs": ["report.md#validate-pre-audit-boundary-2026-08-01t211217z"],
+  "addressedFindings": [],
+  "unresolvedFindings": [
+    "BUG001-G052-DESIGN-FRESHNESS",
+    "BUG001-G024-SCOPE-STATUS",
+    "BUG001-PLAN-EXECUTION-STATE",
+    "BUG001-G001-TEST-FILE-ROWS",
+    "BUG001-G025-EVIDENCE-ANCHOR",
+    "BUG001-G022-BOOTSTRAP-PROVENANCE",
+    "BUG001-G022-VALIDATE-AUDIT",
+    "BUG001-G027-CERTIFICATION"
+  ],
+  "nextRequiredOwner": "bubbles.design",
+  "packetRef": "report.md#blocking-finding-accounting",
+  "blockedReason": null
+}
+```
+
+## ROUTE-REQUIRED
+
+`bubbles.design`: isolate the ten G052 headings beneath the superseded design
+boundary without changing active BUG-001 behavior or any excluded surface.
+
+<a name="validate-pre-audit-replay-2026-08-01t214514z"></a>
+## Validate Pre-Audit Replay - 2026-08-01T21:45:14Z
+
+**Outcome:** `route_required`
+**Phase:** validate
+**Claim Source:** interpreted
+**Interpretation:** The repaired active design boundary, terminal SCOPE-01
+plan, evidence anchors, and bootstrap provenance now pass their current
+mechanical checks. Current product behavior also passes the exact unit,
+functional, repository, and real-browser contract. The resolved
+`bugfix-fastlane` phase order still contains `audit` and no audit attempt
+exists, so this is a pre-audit result: top-level and certification status stay
+`in_progress`, terminal certification inventory stays unchanged, and the
+registry-required next owner is `bubbles.audit`.
+
+### Repository Binding And Transition Contract
+
+**Executed:** YES (current session)
+**Commands:** repository-binding host adapter and preflight with the supplied
+VS Code session log plus all ten host workspace roots; then
+`cd ~/research-lab && timeout 120 bash .github/bubbles/scripts/transition-contract-resolver.sh specs/_bugs/BUG-001-central-provider-credential-security`
+**Exit Code:** 0 for each command
+**Claim Source:** executed
+
+```text
+REPOSITORY PREFLIGHT CONFIRMED repository=research-lab root=~/research-lab source=concrete-target affinity=confirmed
+PREFLIGHT_COMMITTED decision=rb:vscode-9a7293b2dab62e384ebe03875bcef375:21 revision=21 repository=research-lab root=~/research-lab
+schemaVersion=transition-contract/v1
+featureDir=specs/_bugs/BUG-001-central-provider-credential-security
+workflowMode=bugfix-fastlane
+auditProfile=delivery-completion-v1
+statusCeiling=done
+targetStatus=done
+currentStatus=in_progress
+phaseOrder=select,bootstrap,implement,test,regression,simplify,gaps,harden,stabilize,devops,security,validate,audit,finalize
+contractRef=bubbles/workflows/modes.yaml#bugfix-fastlane
+contractDigest=sha256:aa91472c047d3d985d38c1d308feb1e6081955b2aa553816deb5987d9cdc449f
+targetRevision=sha256:58f15b86f039ce0fb6f37a6115d3fcc3a7e53eae335faf1d6a39420e51c84cb1
+sourceEditLockoutRequired=false
+```
+
+The fresh workflow mode, profile, target status, and digest exactly match
+`TR-BUG-001-SECURITY-VALIDATE`. The resolver-provided revision is the current
+revision authority for this replay.
+
+### Outcome Contract Verification (G070)
+
+**Claim Source:** interpreted
+**Interpretation:** The current executions below directly exercise the one
+active scenario. Together they prove the observable success signal and reject
+the declared failure condition without treating process-gate status as product
+behavior evidence.
+
+| Field | Declared | Current executed evidence | Status |
+| --- | --- | --- | --- |
+| Intent | Retire exact pre-BUG-002 containers without changing BUG-002 access | Unit registry exclusion plus functional and browser preservation checks | PASS |
+| Success Signal | Redacted detection, confirmed erase, verified absence, explicit incomplete result, current configuration unchanged | Functional `14/14` and system-Chrome `6/6` | PASS |
+| Hard Constraints | Closed exact registry, no value activation or migration, confirmation before deletion, one active scenario and scope | Unit `3/3`, functional `14/14`, browser `6/6`, G028 zero violations | PASS |
+| Failure Condition | No current or unknown selection, current configuration/cache mutation, legacy activation, false success, or superseded-rule reinstatement | Exact adversarial tests and repository selftest report none of those outcomes | PASS |
+
+### Current Product Verification
+
+**Executed:** YES (current session)
+**Commands:**
+`timeout 120 node scripts/validate-node-source-lock.mjs`;
+`timeout 60 npx --no-install playwright --version`;
+`timeout 120 node --test tests/provider-credentials.unit.mjs`;
+`timeout 120 node --test tests/provider-credentials.functional.mjs`;
+`timeout 300 node scripts/selftest.mjs`;
+`timeout 300 npx --no-install playwright test tests/provider-credentials.spec.mjs --config=playwright.config.mjs --project=system-chrome --reporter=list`
+**Exit Code:** 0 for every command
+**Claim Source:** executed
+
+```text
+[node-source-lock] manifest=PASS private=true runtimeDependencies=0 scripts=0 playwright=1.61.1 node=>=20
+[node-source-lock] npmrc=PASS registry=https://registry.npmjs.org/ entries=5 ignoreScripts=true
+[node-source-lock] lockfile=PASS version=3 externalPackages=3 integrity=sha512
+[node-source-lock] graph=PASS playwright=1.61.1 playwright-core=1.61.1 fsevents=2.3.2
+[node-source-lock] actual=PASS
+[node-source-lock] OK adversarial=16 unexpectedAcceptances=0
+Version 1.61.1
+SCN-BUG001-004 legacy registry excludes BUG-002 provider configuration
+tests 3
+pass 3
+fail 0
+SCN-BUG001-004 exact legacy containers erase while BUG-002 configuration remains unchanged
+SCN-BUG001-004 partial legacy deletion reports incomplete and preserves BUG-002 configuration
+SCN-BUG001-004 deletion failure plus unavailable verification does not count a still-present container as removed
+tests 14
+pass 14
+fail 0
+Running 6 tests using 1 worker
+Regression BUG-001: legacy cleanup erases pre-BUG-002 containers and preserves current provider access
+Regression BUG-001: incomplete legacy cleanup is explicit and does not alter BUG-002 configuration
+6 passed (4.9s)
+Research-Lab self-test: 1101 passed, 0 failed
+```
+
+### Current Governance Verification
+
+**Executed:** YES (current session)
+**Commands:** artifact lint, traceability guard, artifact freshness guard,
+implementation reality scan, both regression-quality modes, changed-spec
+audit, observability SLO guard, Bubbles doctor, framework write guard, and repo
+readiness through the committed Research Lab command surfaces
+**Exit Code:** 0 for every command
+**Claim Source:** executed
+
+```text
+Artifact lint PASSED.
+RESULT: PASSED (0 warnings)
+BUBBLES ARTIFACT FRESHNESS GUARD
+spec.md isolates superseded/suppressed sections at the end
+design.md isolates superseded/suppressed sections at the end
+scopes.md keeps superseded scope history non-executable
+RESULT: PASS (0 failures, 0 warnings)
+IMPLEMENTATION REALITY SCAN RESULT
+Files scanned: 15
+Violations: 0
+Warnings: 1
+PASSED with 1 warning(s) - design.md fallback discovery found the explicit implementation inventory
+REGRESSION QUALITY RESULT: 0 violation(s), 0 warning(s)
+Files scanned: 2
+Files with adversarial signals: 2
+Done-spec audit summary
+specs scanned: 1
+artifact lint passed: 1
+artifact lint failed: 0
+Observability SLO gate: no traceContracts.observability block - G100 no-op (G100 OK)
+Bubbles Doctor Result: 18 passed, 0 failed, 8 advisory
+Managed-file integrity: downstream framework-managed files still match the installed upstream snapshot
+Repo-readiness Summary: pass=9 warn=0 fail=0
+```
+
+The G028 discovery warning is non-blocking and was reviewed: the scanner found
+the explicit 15-file design inventory after scope-path extraction returned no
+files, then scanned all 15 and reported zero violations. No validation claim
+depends on treating that warning as a clean scope-path extraction.
+
+### Initial Transition Guard Replay
+
+**Executed:** YES (current session)
+**Command:** `cd ~/research-lab && timeout 600 bash .github/bubbles/scripts/state-transition-guard.sh specs/_bugs/BUG-001-central-provider-credential-security --target-status done --expect-workflow-mode bugfix-fastlane --expect-contract-digest sha256:aa91472c047d3d985d38c1d308feb1e6081955b2aa553816deb5987d9cdc449f`
+**Exit Code:** 1
+**Claim Source:** interpreted
+**Interpretation:** The guard now passes every repaired artifact and behavior
+check. Its five remaining failures are the expected pre-audit state boundary:
+the Done scope is not yet in terminal certification inventory, validate and
+audit were not yet recorded, and G027 therefore remains nonterminal. This
+validate replay may record only its own execution-phase claim; audit and
+terminal certification remain unexecuted.
+
+```text
+Check 3F: transitionRequest TR-BUG-001-SECURITY-VALIDATE is open-but-routed to bubbles.validate
+Check 4: DoD items total: 18 (checked: 18, unchecked: 0)
+Check 5: Resolved scopes: total=1, Done=1, In Progress=0, Not Started=0, Blocked=0
+BLOCK: Resolved scope artifacts report 1 Done scope(s) but state.json completedScopes is EMPTY
+Check 6: Required phase implement recorded
+Check 6: Required phase test recorded
+Check 6: Required phase regression recorded
+Check 6: Required phase simplify recorded
+Check 6: Required phase stabilize recorded
+Check 6: Required phase security recorded
+BLOCK: Required phase validate NOT in execution/certification phase records
+BLOCK: Required phase audit NOT in execution/certification phase records
+Check 13: Artifact lint passes
+Check 13A: Artifact freshness guard passes
+Check 16: Implementation reality scan passed
+TRANSITION BLOCKED: 5 failure(s), 2 warning(s)
+state.json status MUST NOT be set to done.
+```
+
+### Pre-Audit Finding Accounting
+
+| Finding | Disposition | Owner |
+| --- | --- | --- |
+| `BUG001-G052-DESIGN-FRESHNESS` | Verified resolved: freshness guard passes with zero failures and warnings. | `bubbles.design` work verified by `bubbles.validate` |
+| `BUG001-G024-SCOPE-STATUS` | Verified resolved: one active scope is Done and all 18 DoD items are checked. | `bubbles.plan` work verified by `bubbles.validate` |
+| `BUG001-PLAN-EXECUTION-STATE` | Verified resolved: active machine Test Plan marks SCOPE-01 and all six rows passed. | `bubbles.plan` work verified by `bubbles.validate` |
+| `BUG001-G001-TEST-FILE-ROWS` | Verified resolved: traceability guard resolves the active scenario to concrete existing tests and evidence. | `bubbles.plan` work verified by `bubbles.validate` |
+| `BUG001-G025-EVIDENCE-ANCHOR` | Verified resolved: artifact lint and transition guard resolve all 18 checked-item evidence blocks. | `bubbles.plan` work verified by `bubbles.validate` |
+| `BUG001-G022-BOOTSTRAP-PROVENANCE` | Verified resolved: unsupported bootstrap is absent from the current completed-phase claim set; historical execution records remain attributed. | `bubbles.bug` work verified by `bubbles.validate` |
+| `BUG001-G022-VALIDATE` | Addressed by this current-session replay and the validate execution provenance recorded after its checks. | `bubbles.validate` |
+| `BUG001-G022-AUDIT` | Open by design: no audit attempt exists yet. | `bubbles.audit` |
+| `BUG001-G027-CERTIFICATION` | Open until one current positive delivery-completion audit exists; pre-audit validation does not write terminal certification inventory. | `bubbles.validate` after audit |
+
+### Pre-Audit Disposition
+
+No product, test, planning, BUG-004, unrelated main-agent, or
+`.github/bubbles/**` byte was changed by this replay. The validate phase may be
+recorded in execution state because its current Tier 1 and Tier 2 checks are
+complete. The resolved contract still requires an independent
+`delivery-completion-v1` audit before validate may reconcile
+`certification.completedScopes`, `certification.scopeProgress`,
+`certification.certifiedCompletedPhases`, `certification.status`, or top-level
+`status`.
+<a name="audit-attempt-aud-bug001-001"></a>
+### Audit Attempt AUD-BUG001-001 - 2026-08-01T22:25:53Z
+
+**Phase:** audit
+**Claim Source:** interpreted
+**Interpretation:** The resolver exactly reproduces the attempt's frozen target
+revision after global audit phase metadata is removed. The transition guard
+passes every substantive artifact, behavior, evidence, security, regression,
+and policy check. Its remaining G022 publication and G027 completion-inventory
+failures are post-audit integration owned by `bubbles.validate`; they are not
+unresolved audit findings and audit does not mutate their global/certification
+fields.
+
+#### Frozen Contract Replay
+
+```text
+schemaVersion: transition-contract/v1
+workflowMode: bugfix-fastlane
+auditProfile: delivery-completion-v1
+statusCeiling: done
+targetStatus: done
+currentStatus: in_progress
+contractRef: bubbles/workflows/modes.yaml#bugfix-fastlane
+contractDigest: sha256:aa91472c047d3d985d38c1d308feb1e6081955b2aa553816deb5987d9cdc449f
+targetRevision: sha256:465537ccdbcaa4ee024a662415ad6da759e106d407c79c9191ef533456b4a9f3
+sourceEditLockoutRequired: false
+```
+
+#### Transition Guard Replay
+
+```text
+BEGIN TRANSITION_GUARD_RESULT_V1
+schemaVersion: transition-guard-result/v1
+workflowMode: bugfix-fastlane
+auditProfile: delivery-completion-v1
+targetStatus: done
+contractDigest: sha256:aa91472c047d3d985d38c1d308feb1e6081955b2aa553816deb5987d9cdc449f
+targetRevision: sha256:465537ccdbcaa4ee024a662415ad6da759e106d407c79c9191ef533456b4a9f3
+applicableCheckClasses: [universal,mode-required,delivery-completion]
+notApplicableChecks: []
+passedGateIds: [G061,G053,G040,G051,G068,G082,G083,G084,G128,G085,G086,G091,G087,G093,G088,G089,G092,G090,G094,G095,G097,G098,G099,G100,G130,G131]
+failedGateIds: [G022,G027]
+failedChecks: []
+blockingCode: DELIVERY_COMPLETION_FAILED
+failureCount: 4
+exitStatus: 1
+verdict: FAIL
+END TRANSITION_GUARD_RESULT_V1
+```
+
+#### Standalone Artifact Lint
+
+```text
+Required artifacts: PASS
+DoD checkbox syntax: PASS
+User-validation checklist syntax: PASS
+state.json v3 required fields: PASS
+Top-level and certification status parity: PASS
+Required report sections: PASS
+Checked DoD evidence blocks: PASS
+Template placeholders: NONE
+Anti-fabrication checks: PASS
+Artifact lint: PASSED
+```
+
+#### Audit Result
+
+```text
+attemptId: AUD-BUG001-001
+resultState: ACTIVE
+auditVerdict: SHIP_IT
+antiFabricationVerdict: CLEAN
+result: PASSED
+outcome: completed_diagnostic
+addressedFindings: [BUG001-G022-AUDIT]
+unresolvedFindings: []
+nextRequiredOwner: bubbles.validate
+certificationChanged: false
+```
+
+BEGIN AUDIT_RESULT_V1
+schemaVersion: audit-result/v1
+runId: RUN-BUG001-AUDIT-20260801T220149Z
+attemptId: AUD-BUG001-001
+target: specs/_bugs/BUG-001-central-provider-credential-security
+targetRevision: sha256:465537ccdbcaa4ee024a662415ad6da759e106d407c79c9191ef533456b4a9f3
+workflowMode: bugfix-fastlane
+modeClass: none
+auditClass: delivery-completion
+statusCeiling: done
+requestedStatus: done
+auditVerdict: SHIP_IT
+outcome: completed_diagnostic
+resultState: ACTIVE
+certifiedStatus: done
+planningEvaluation: NOT_EVALUATED
+deliveryEvaluation: CERTIFIED
+sourceEditLockout: NOT_EVALUATED
+applicableCheckClasses: [universal,mode-required,delivery-completion]
+notApplicableChecks: []
+passedGateIds: [G061,G053,G040,G051,G068,G082,G083,G084,G128,G085,G086,G091,G087,G093,G088,G089,G092,G090,G094,G095,G097,G098,G099,G100,G130,G131]
+failedGateIds: [G022,G027]
+failedChecks: []
+blockingCode: none
+unresolvedFields: []
+contradictions: []
+contractRef: bubbles/workflows/modes.yaml#bugfix-fastlane
+contractDigest: sha256:aa91472c047d3d985d38c1d308feb1e6081955b2aa553816deb5987d9cdc449f
+evidenceRefs: [report.md#audit-attempt-aud-bug001-001]
+addressedFindings: [BUG001-G022-AUDIT]
+unresolvedFindings: []
+nextRequiredOwner: none
+supersedesAttemptId: none
+resumeFromPhase: none
+END AUDIT_RESULT_V1
+
+#### Spot-Check Recommendations
+
+1. Review the interpreted G022/G027 ownership conclusion against the raw guard
+  block and confirm validate, not audit, performs global phase publication and
+  terminal scope/certification reconciliation.
+2. Review the validate pre-audit interpreted evidence block because the final
+  audit relies on its already-executed product and governance replay while this
+  resume independently re-executed the resolver, transition guard, and artifact
+  lint.
+
+<a name="audit-attempt-aud-bug001-002"></a>
+### Audit Attempt AUD-BUG001-002 - 2026-08-02T02:24:10Z
+
+**Phase:** audit
+**Claim Source:** interpreted
+**Interpretation:** Current-byte behavior for the sole active SCOPE-01 and
+SCN-BUG001-004 contract is green, but the attempt is blocked. After this
+audit-owned evidence was persisted, the resolver no longer reproduced the
+attempt's frozen target revision. The attempt is therefore an
+`AUDIT_PROVENANCE_CONFLICT`; it is not rebound to a moving target. The
+assertion-bound transition guard also fails G022 and G027, and the active
+`uservalidation.md` content still describes the superseded memory-only,
+no-persistence, multi-scope contract. The stale AUD-BUG001-001 result is
+superseded and was not reused.
+
+#### Freshness And Contract
+
+```text
+priorAttemptId: AUD-BUG001-001
+priorResultState: SUPERSEDED
+priorTargetRevision: sha256:465537ccdbcaa4ee024a662415ad6da759e106d407c79c9191ef533456b4a9f3
+currentAttemptId: AUD-BUG001-002
+currentTargetRevision: sha256:b25ceea578c2708544ce772e28a25a65bd1bf039ce349b82bdc68adaff3fe010
+targetRevisionMatch: false
+workflowMode: bugfix-fastlane
+auditProfile: delivery-completion-v1
+targetStatus: done
+contractDigest: sha256:aa91472c047d3d985d38c1d308feb1e6081955b2aa553816deb5987d9cdc449f
+contractDigestMatch: true
+staleResultReused: false
+```
+
+#### Independent Current-Byte Verification
+
+**Claim Source:** executed
+
+```text
+node --test tests/provider-credentials.unit.mjs
+tests 4
+pass 4
+fail 0
+SCN-BUG001-004 legacy registry excludes BUG-002 provider configuration: PASS
+node --test tests/provider-credentials.functional.mjs
+tests 14
+pass 14
+fail 0
+SCN-BUG001-004 exact legacy containers erase while BUG-002 configuration remains unchanged: PASS
+SCN-BUG001-004 partial legacy deletion reports incomplete and preserves BUG-002 configuration: PASS
+SCN-BUG001-004 deletion failure plus unavailable verification excludes the still-present container: PASS
+node scripts/selftest.mjs
+Research-Lab self-test: 1123 passed, 0 failed
+npx --no-install playwright test tests/provider-credentials.spec.mjs --config=playwright.config.mjs --project=system-chrome --reporter=list
+Running 8 tests using 1 worker
+8 passed (4.8s)
+skip_marker_scan_exit=1 (zero matches)
+live_interception_scan_exit=1 (zero matches)
+regression-quality normal: 0 violations, 0 warnings
+regression-quality bugfix: 0 violations, 0 warnings; adversarial signals in both files
+```
+
+Standalone artifact lint passed. Traceability passed with one active scenario,
+seven parsed rows, declared scenario-to-row and scenario-to-DoD mappings, and
+zero warnings. Artifact freshness passed with zero failures and zero warnings.
+Implementation reality scanned 15 design-discovered paths with zero violations
+and one discovery warning. Framework-managed files match the installed snapshot;
+the framework-write guard also reported that the installed local source checkout
+itself is dirty. A supplemental path-scoped `git diff --check` was nonzero only
+on pre-existing/historical `report.md` Markdown hard-break whitespace; no such
+line was added by this audit section, and that supplemental command is not used
+as a profile gate.
+
+#### Finding Accounting
+
+| Finding | Disposition | Owner |
+| --- | --- | --- |
+| `AUD-BUG001-001-STALE-REVISION` | Addressed: the old ACTIVE attempt was superseded and no evidence or verdict was reused. | `bubbles.audit` |
+| `AUD-BUG001-002-TARGET-REVISION-MISMATCH` | Unresolved: post-persistence resolution no longer matches the attempt's frozen revision. The attempt is blocked rather than rebound. | `bubbles.audit` |
+| `BUG001-G022-AUDIT` | Unresolved: the required audit phase is absent from execution/certification phase records. Audit cannot publish global or certified phase claims. | `bubbles.validate` / workflow runner |
+| `BUG001-G027-CERTIFICATION` | Unresolved: SCOPE-01 is Done in `scopes.md`, while validate-owned `certification.completedScopes` remains empty and scope progress remains nonterminal. | `bubbles.validate` |
+| `BUG001-USERVALIDATION-ACTIVE-CONTRACT` | Unresolved: `uservalidation.md` still presents superseded memory-only/no-persistence goals, obsolete multi-scope journeys, and stale evidence targets as active. | `bubbles.plan` |
+
+BEGIN TRANSITION_GUARD_RESULT_V1
+schemaVersion: transition-guard-result/v1
+workflowMode: bugfix-fastlane
+auditProfile: delivery-completion-v1
+targetStatus: done
+contractDigest: sha256:aa91472c047d3d985d38c1d308feb1e6081955b2aa553816deb5987d9cdc449f
+targetRevision: sha256:b25ceea578c2708544ce772e28a25a65bd1bf039ce349b82bdc68adaff3fe010
+applicableCheckClasses: [universal,mode-required,delivery-completion]
+notApplicableChecks: []
+passedGateIds: [G061,G053,G040,G051,G068,G082,G083,G084,G128,G085,G086,G091,G087,G093,G088,G089,G092,G090,G094,G095,G097,G098,G099,G100,G130,G131]
+failedGateIds: [G022,G027]
+failedChecks: []
+blockingCode: DELIVERY_COMPLETION_FAILED
+failureCount: 4
+exitStatus: 1
+verdict: FAIL
+END TRANSITION_GUARD_RESULT_V1
+
+AUDIT RESULT
+target: specs/_bugs/BUG-001-central-provider-credential-security
+mode: bugfix-fastlane
+audit class: delivery-completion
+ceiling: done
+verdict: BLOCKED
+
+EVALUATION
+Current behavior passed, but the frozen attempt revision no longer matches the
+post-persistence resolver result. Delivery evaluation is not certified or
+refused from a mismatched target. Terminal/certification fields remain unchanged.
+
+BEGIN AUDIT_RESULT_V1
+schemaVersion: audit-result/v1
+runId: RUN-BUG001-AUDIT-20260802T021816Z
+attemptId: AUD-BUG001-002
+target: specs/_bugs/BUG-001-central-provider-credential-security
+targetRevision: sha256:b25ceea578c2708544ce772e28a25a65bd1bf039ce349b82bdc68adaff3fe010
+workflowMode: bugfix-fastlane
+modeClass: none
+auditClass: delivery-completion
+statusCeiling: done
+requestedStatus: done
+auditVerdict: BLOCKED
+outcome: blocked
+resultState: ACTIVE
+certifiedStatus: none
+planningEvaluation: NOT_EVALUATED
+deliveryEvaluation: NOT_EVALUATED
+sourceEditLockout: NOT_EVALUATED
+applicableCheckClasses: [universal,mode-required,delivery-completion]
+notApplicableChecks: []
+passedGateIds: [G061,G053,G040,G051,G068,G082,G083,G084,G128,G085,G086,G091,G087,G093,G088,G089,G092,G090,G094,G095,G097,G098,G099,G100,G130,G131]
+failedGateIds: [G022,G027]
+failedChecks: []
+blockingCode: AUDIT_PROVENANCE_CONFLICT
+unresolvedFields: []
+contradictions: [TARGET_REVISION_MISMATCH,USERVALIDATION_ACTIVE_CONTRACT_MISMATCH]
+contractRef: bubbles/workflows/modes.yaml#bugfix-fastlane
+contractDigest: sha256:aa91472c047d3d985d38c1d308feb1e6081955b2aa553816deb5987d9cdc449f
+evidenceRefs: [report.md#audit-attempt-aud-bug001-002]
+addressedFindings: [AUD-BUG001-001-STALE-REVISION]
+unresolvedFindings: [AUD-BUG001-002-TARGET-REVISION-MISMATCH,BUG001-G022-AUDIT,BUG001-G027-CERTIFICATION,BUG001-USERVALIDATION-ACTIVE-CONTRACT]
+nextRequiredOwner: bubbles.audit
+supersedesAttemptId: AUD-BUG001-001
+resumeFromPhase: none
+END AUDIT_RESULT_V1
+
+#### Spot-Check Recommendations
+
+1. Review the active `uservalidation.md` checklist, goal, and journey links
+  against the retained SCOPE-01 contract before planning rewrites that
+  foreign-owned file.
+2. Review the implementation-reality discovery warning: the scanner used 15
+  design-discovered paths because scope-path extraction returned none, though
+  it reported zero violations.
+3. Review historical interpreted evidence and minimum-size evidence separately;
+  none was reused to establish the current-byte test verdict.
+4. Review the framework-write warning that the installed local Bubbles source
+  checkout is dirty; managed downstream files themselves matched checksums.
+
+## ROUTE-REQUIRED
+
+`bubbles.audit` must start a new attempt from a stable current revision without
+reusing AUD-BUG001-001 or AUD-BUG001-002. That attempt must preserve the routed
+`bubbles.plan` user-validation repair and subsequent `bubbles.validate` G022/G027
+reconciliation; certification cannot change before a clean current audit exists.
+
+<a name="audit-attempt-aud-bug001-003"></a>
+### Audit Attempt AUD-BUG001-003 - Current-Byte Evidence
+
+**Phase:** audit
+**Claim Source:** interpreted
+**Interpretation:** The active SCOPE-01 / SCN-BUG001-004 implementation passes
+fresh unit, functional, repository, real-browser, source-lock, adversarial,
+traceability, freshness, reality, and static-security checks against the exact
+current source and test hashes below. Delivery completion is nevertheless
+refused because the registry-bound transition guard fails G022 and G027, and
+the active `uservalidation.md` still states the superseded memory-only,
+no-persistence, multi-scope contract. No prior audit verdict is reused.
+
+#### Current-Byte Identity And Contract
+
+**Claim Source:** executed
+**Commands:** SHA-256 over the active runtime/test files; transition contract
+resolver against the bug directory
+**Exit Code:** 0
+
+```text
+rldata.js sha256=fc65480db17ad92600e46832ea86548378acc334e1b3454f5bac133966088772
+provider-credentials.support.mjs sha256=3d110218c8f5a8075d70bf7795d88baf2c08a0ac055dd072c2840dea8399ca90
+provider-credentials.unit.mjs sha256=ebf4171271d57629328adae8657bd12e2acdc4a4cf4828268d50181718da8372
+provider-credentials.functional.mjs sha256=a0f0378cdf413169f8a0060910e21f473125808c229122673632214ea436431a
+provider-credentials.spec.mjs sha256=68272062ac19c847a60a2319fc33e2b655e61fb074a39cd30bb9bf14a0a6359c
+WORKFLOW_MODE=bugfix-fastlane
+MODE_CLASS=none
+AUDIT_PROFILE=delivery-completion-v1
+STATUS_CEILING=done
+TARGET_STATUS=done
+CURRENT_STATUS=in_progress
+CONTRACT_DIGEST=sha256:aa91472c047d3d985d38c1d308feb1e6081955b2aa553816deb5987d9cdc449f
+PRE_PERSISTENCE_TARGET_REVISION=sha256:40ed7fea05e105775ac909a8547bfcdb2618ca1a0664a67e25817c86dfda19aa
+```
+
+#### Independent Active-Scenario Verification
+
+**Claim Source:** executed
+**Commands:** active provider unit and functional suites, repository selftest,
+and the real system-Chrome provider Playwright file
+**Exit Code:** 0 for every command
+
+```text
+SCN-BUG001-004 legacy registry excludes BUG-002 provider configuration: PASS
+SCN-BUG001-004 inaccessible legacy storage never becomes a false clear result: PASS
+unit tests=4 pass=4 fail=0 skipped=0
+UNIT_EXIT=0
+SCN-BUG001-004 exact legacy containers erase while BUG-002 configuration remains unchanged: PASS
+SCN-BUG001-004 partial legacy deletion reports incomplete and preserves BUG-002 configuration: PASS
+SCN-BUG001-004 deletion failure plus unavailable verification excludes the still-present container: PASS
+functional tests=14 pass=14 fail=0 skipped=0
+FUNCTIONAL_EXIT=0
+Research-Lab self-test: 1123 passed, 0 failed
+SELFTEST_EXIT=0
+Running 8 tests using 1 worker
+complete cleanup browser scenario: PASS
+incomplete cleanup browser scenario: PASS
+inaccessible storage browser scenario: PASS
+cancelled destructive cleanup browser scenario: PASS
+8 passed (5.1s)
+PLAYWRIGHT_EXIT=0
+```
+
+The active test bodies cross production `rldata.js`, `rlapp.js`, real browser
+storage, native confirmation, DOM state, and exact cleanup results. They are
+not self-validating setup assertions: replacing the production cleanup with an
+identity return or unconditional success would fail the asserted absent names,
+byte-preserved current configuration, unavailable accounting, and visible
+status checks.
+
+#### Compliance, Security, And Governance Verification
+
+**Claim Source:** executed
+**Exit Code:** 0 for every positive gate; grep exit 1 means the required zero
+matches; the transition guard alone exits 1 with the blocking result below.
+
+```text
+TEST_FILE_EXISTENCE_EXIT=0
+SKIP_MARKER_SCAN_EXIT=1 EXPECTED_NO_MATCH=1
+LIVE_MOCK_SCAN_EXIT=1 EXPECTED_NO_MATCH=1
+PROXY_ASSERTION_SCAN_EXIT=1 EXPECTED_NO_MATCH=1
+REGRESSION_QUALITY_EXIT=0 violations=0 warnings=0
+BUGFIX_REGRESSION_QUALITY_EXIT=0 adversarial_files=2
+ARTIFACT_LINT_EXIT=0
+TRACEABILITY_GUARD_EXIT=0 scenarios=1 warnings=0
+IMPLEMENTATION_REALITY_EXIT=0 violations=0 warnings=1
+ARTIFACT_FRESHNESS_EXIT=0 failures=0 warnings=0
+SOURCE_LOCK_EXIT=0 adversarial_rejections=16 unexpected_acceptances=0
+STATIC_SECURITY_PROBE_EXIT=0 assertions=16
+EXACT_LEGACY_NAMES_11=PASS
+PROTECTED_NAMES_EXCLUDED=PASS
+NAME_ENUMERATION_ONLY=PASS
+NO_LEGACY_VALUE_READ_OR_PARSE=PASS
+EXACT_REMOVE_ITEM=PASS
+NO_ACTIVATION_OR_NETWORK_PATH=PASS
+UNAVAILABLE_ACCOUNTING_FAILS_CLOSED=PASS
+CONFIRM_PRECEDES_ERASE=PASS
+CLEANUP_METADATA_ESCAPED=PASS
+UI_HAS_NO_STORAGE_VALUE_PATH=PASS
+BUG001_STATIC_SECURITY_PROBE=PASS
+STATE_TRANSITION_GUARD_EXIT=1
+failedGateIds=[G022,G027]
+blockingCode=DELIVERY_COMPLETION_FAILED
+```
+
+The implementation-reality warning is limited to discovery: active scopes
+yielded no direct implementation paths, so the scanner used the explicit
+15-path design inventory and found zero violations. It does not support a
+clean scope-path extraction claim.
+
+#### Evidence Provenance Review
+
+All 24 interpreted claim-source blocks in `report.md` were reviewed. The
+active stabilize, security, and pre-audit interpretations are reasonable and
+are corroborated by this attempt's fresh executions. Historical blocks
+explicitly preserve missing raw RED output, concurrent-dirty attribution
+limits, prior scanner false positives, or superseded-contract uncertainty;
+they were not reused as current delivery proof. Four historical Uncertainty
+Declaration locations remain in the append-only report, but no active SCOPE-01
+DoD item is unchecked or relies on them.
+
+#### Finding Accounting And Disposition
+
+| Finding | Disposition | Required owner |
+| --- | --- | --- |
+| `AUD-BUG001-001-STALE-REVISION` | Addressed: AUD-BUG001-001 remains superseded and no verdict or evidence was reused. | `bubbles.audit` |
+| `AUD-BUG001-002-TARGET-REVISION-MISMATCH` | Pending final stable-revision replay after this human evidence block. | `bubbles.audit` |
+| `BUG001-G022-AUDIT` | Unresolved: audit phase publication is absent from execution/certification phase records; audit does not write those global/certified claims. | workflow runner / `bubbles.validate` |
+| `BUG001-G027-CERTIFICATION` | Unresolved: SCOPE-01 is Done in planning while validate-owned completedScopes remains empty and scopeProgress remains nonterminal. | `bubbles.validate` |
+| `BUG001-USERVALIDATION-ACTIVE-CONTRACT` | Unresolved: active checklist, Goal, Journey Steps, and evidence targets still assert the superseded multi-scope memory-only contract. | `bubbles.plan` |
+
+#### Audit Disposition
+
+The current product behavior is green, but A1 and A5 fail. The tentative
+delivery verdict is `REWORK_REQUIRED`, with first repair ownership routed to
+`bubbles.plan`; `bubbles.validate` owns the subsequent G022/G027 reconciliation.
+The final target revision, guard result, and linted machine contract are
+persisted separately so this human evidence block cannot create another
+self-referential target-revision conflict.
+
+#### Spot-Check Recommendations
+
+1. Review the active security and validate interpreted blocks against their raw
+  functional, browser, static-probe, and transition-guard output.
+2. Review the 22 exactly-ten-line report fences identified by the current scan;
+  they meet the minimum threshold but may omit nearby context.
+3. Review the four historical Uncertainty Declaration locations and confirm
+  they remain superseded rather than active SCOPE-01 obligations.
+4. Review the implementation-reality discovery warning and confirm the 15-file
+  design fallback remains the intended scanner inventory.
+
+BEGIN AUDIT_RESULT_V1
+schemaVersion: audit-result/v1
+runId: RUN-BUG001-AUDIT-20260802T024148Z
+attemptId: AUD-BUG001-003
+target: specs/_bugs/BUG-001-central-provider-credential-security
+targetRevision: sha256:6663e7d350abc8840a70771cbcc4c03cf33833a030bacaa35d5165c7aa4be8d3
+workflowMode: bugfix-fastlane
+modeClass: none
+auditClass: delivery-completion
+statusCeiling: done
+requestedStatus: done
+auditVerdict: REWORK_REQUIRED
+outcome: route_required
+resultState: ACTIVE
+certifiedStatus: none
+planningEvaluation: NOT_EVALUATED
+deliveryEvaluation: REFUSED
+sourceEditLockout: NOT_EVALUATED
+applicableCheckClasses: [universal,mode-required,delivery-completion]
+notApplicableChecks: []
+passedGateIds: [G061,G053,G040,G051,G068,G082,G083,G084,G128,G085,G086,G091,G087,G093,G088,G089,G092,G090,G094,G095,G097,G098,G099,G100,G130,G131]
+failedGateIds: [G022,G027]
+failedChecks: []
+blockingCode: DELIVERY_COMPLETION_FAILED
+unresolvedFields: []
+contradictions: [CERTIFICATION_SCOPE_INVENTORY_MISMATCH,USERVALIDATION_ACTIVE_CONTRACT_MISMATCH]
+contractRef: bubbles/workflows/modes.yaml#bugfix-fastlane
+contractDigest: sha256:aa91472c047d3d985d38c1d308feb1e6081955b2aa553816deb5987d9cdc449f
+evidenceRefs: [report.md#audit-attempt-aud-bug001-003]
+addressedFindings: [AUD-BUG001-001-STALE-REVISION,AUD-BUG001-002-TARGET-REVISION-MISMATCH]
+unresolvedFindings: [BUG001-G022-AUDIT,BUG001-G027-CERTIFICATION,BUG001-USERVALIDATION-ACTIVE-CONTRACT]
+nextRequiredOwner: bubbles.plan
+supersedesAttemptId: AUD-BUG001-002
+resumeFromPhase: none
+END AUDIT_RESULT_V1

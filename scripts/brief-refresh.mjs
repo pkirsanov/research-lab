@@ -892,10 +892,32 @@ function cachedVixSpot() {
 
 function dataSnapshotFreshness() {
   function indexOf(kind) {
+    /* Every field is named for exactly what it counts. The previous shape exposed
+       `count` alone, which a brief author read as a SESSION count: the 2026-08-02
+       brief reported "bars n=287 = 7/29 close; 7/30 AND 7/31 bars STILL not appended"
+       and hedged multiple recommendations on that premise. 287 was the SYMBOL count,
+       and this same index already recorded expectedSessionDate 2026-07-31 with
+       freshCount 287 of 287 and carriedCount 0 — the data was fully current. The
+       facts that settle staleness are surfaced here so the question cannot be
+       answered by inference again. */
     try {
       const index = JSON.parse(read(`data/${kind}/index.json`));
-      return { updated: index.updated || null, count: Number.isFinite(index.count) ? index.count : null };
-    } catch { return { updated: null, count: null }; }
+      return {
+        updated: index.updated || null,
+        symbolCount: Number.isFinite(index.count) ? index.count : null,
+        expectedSessionDate: index.expectedSessionDate || null,
+        refreshDate: index.refreshDate || null,
+        refreshWindow: index.refreshWindow || null,
+        freshSymbolCount: Number.isFinite(index.freshCount) ? index.freshCount : null,
+        carriedSymbolCount: Number.isFinite(index.carriedCount) ? index.carriedCount : null,
+        missingSymbolCount: Array.isArray(index.missing) ? index.missing.length : null
+      };
+    } catch {
+      return {
+        updated: null, symbolCount: null, expectedSessionDate: null, refreshDate: null,
+        refreshWindow: null, freshSymbolCount: null, carriedSymbolCount: null, missingSymbolCount: null
+      };
+    }
   }
   return { bars: indexOf('bars'), options: indexOf('options') };
 }

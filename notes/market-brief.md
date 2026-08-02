@@ -186,6 +186,16 @@ narrative interactively in VS Code with `/market-brief-update` when you want to 
 - **Refresh before analysis.** The unattended wrapper refreshes canonical `data/bars/` first, then `data/options/`
   attaches those same rows before Tier A. Tier A records both snapshot indexes under
   `snapshot.dataFreshness`; Tier B must label a carried/failed input stale rather than treating it as current.
+- **Read staleness from the named fields, never infer it from a count.** `snapshot.dataFreshness.bars` carries
+  `expectedSessionDate` (the session the refresh targeted), `freshSymbolCount` / `carriedSymbolCount` /
+  `missingSymbolCount`, and `symbolCount` (how many TICKERS are indexed — **not** how many sessions a series
+  holds). Bars are current when `freshSymbolCount` equals `symbolCount` with `carriedSymbolCount` and
+  `missingSymbolCount` at 0; the covered session is `expectedSessionDate`. To count SESSIONS, read
+  `data/bars/<TICKER>.json` `rows.length` — a 2y daily series is ~500 rows.
+  This rule exists because the 2026-08-02 brief read `symbolCount` (287 tickers) as a session count, published
+  "bars n=287 = 7/29 close; 7/30 AND 7/31 bars STILL not appended", and hedged several recommendations on it —
+  while the same index recorded `expectedSessionDate: 2026-07-31`, `freshCount: 287/287`, `carriedCount: 0`
+  and SPY held 506 rows through 7/31. A false staleness claim costs actionability exactly like a missed one.
 
 ---
 

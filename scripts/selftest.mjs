@@ -1798,6 +1798,18 @@ try {
   const missingSection = JSON.parse(JSON.stringify(payload));
   delete missingSection.events;
   assert(validateBriefPayload(missingSection, registry, config, snapshot).some((error) => /events must be/.test(error)), 'contract rejects a missing visible brief section');
+
+  /* Staleness must be readable as a FACT, never inferred from an ambiguous count. The
+     2026-08-02 brief read the symbol count (287 tickers) as a session count, published
+     "7/30 AND 7/31 bars STILL not appended", and hedged real recommendations on it while
+     the index recorded expectedSessionDate 2026-07-31 and freshCount 287/287. */
+  const freshnessSource = read('scripts/brief-refresh.mjs');
+  const freshnessBlock = freshnessSource.slice(freshnessSource.indexOf('function dataSnapshotFreshness'));
+  ['symbolCount', 'expectedSessionDate', 'freshSymbolCount', 'carriedSymbolCount', 'missingSymbolCount']
+    .forEach((field) => assert(freshnessBlock.slice(0, freshnessBlock.indexOf('\n}\n')).includes(field + ':'),
+      'the bars freshness record names ' + field + ', so staleness is read rather than inferred'));
+  assert(!/^\s*count:/m.test(freshnessBlock.slice(0, freshnessBlock.indexOf('\n}\n'))),
+    'the freshness record exposes no bare `count` — that name was read as a session count and produced a false staleness claim');
   const incompleteBackdrop = JSON.parse(JSON.stringify(payload));
   delete incompleteBackdrop.backdrop.whatWouldChangeIt;
   assert(validateBriefPayload(incompleteBackdrop, registry, config, snapshot).some((error) => /backdrop\.whatWouldChangeIt/.test(error)), 'contract rejects an incomplete structural backdrop');

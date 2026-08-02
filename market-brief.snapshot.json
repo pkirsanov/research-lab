@@ -1,17 +1,29 @@
 {
-  "asOf": "2026-08-02T03:07:05.490Z",
-  "generatedAt": "2026-08-02T03:07:05.490Z",
-  "window": "after-hours",
+  "asOf": "2026-08-02T11:00:24.826Z",
+  "generatedAt": "2026-08-02T11:00:24.826Z",
+  "window": "pre-market",
   "marketClosed": true,
   "nextSessionDate": "2026-08-03",
   "dataFreshness": {
     "bars": {
-      "updated": "2026-08-02T03:07:00.580Z",
-      "count": 287
+      "updated": "2026-08-02T11:00:14.806Z",
+      "symbolCount": 287,
+      "expectedSessionDate": "2026-07-31",
+      "refreshDate": "2026-08-02",
+      "refreshWindow": "pre-market",
+      "freshSymbolCount": 287,
+      "carriedSymbolCount": 0,
+      "missingSymbolCount": 0
     },
     "options": {
-      "updated": "2026-08-02T03:07:00.651Z",
-      "count": 22
+      "updated": "2026-08-02T11:00:18.866Z",
+      "symbolCount": 22,
+      "expectedSessionDate": null,
+      "refreshDate": "2026-08-02",
+      "refreshWindow": "pre-market",
+      "freshSymbolCount": 22,
+      "carriedSymbolCount": 0,
+      "missingSymbolCount": 0
     }
   },
   "regime": {
@@ -519,7 +531,7 @@
   "toolReads": {
     "sector-research-lab": {
       "id": "sector-research-lab",
-      "asOf": "2026-08-02T03:07:03.787Z",
+      "asOf": "2026-08-02T11:00:23.265Z",
       "read": "Rotate toward XLY as XLE weakens.",
       "metrics": {
         "into": {
@@ -581,36 +593,51 @@
           {
             "ticker": "JMOM",
             "signal": 14.45,
-            "score": 0.2932,
-            "annVol": 16.56,
+            "score": 0.2936,
+            "annVol": 16.52,
+            "sharpeGeometric": 1.311,
+            "sharpeArithmetic": 1.225,
+            "volatilityDrag": 1.37,
             "asOf": "2026-07-31T13:30:00.000Z"
           },
           {
             "ticker": "VGT",
             "signal": 19.25,
-            "score": 0.2732,
-            "annVol": 24.32,
+            "score": 0.2737,
+            "annVol": 24.27,
+            "sharpeGeometric": 1.129,
+            "sharpeArithmetic": 1.083,
+            "volatilityDrag": 2.95,
             "asOf": "2026-07-31T13:30:00.000Z"
           },
           {
             "ticker": "XSMO",
             "signal": 13.09,
-            "score": 0.2583,
-            "annVol": 19.94,
+            "score": 0.2588,
+            "annVol": 19.9,
+            "sharpeGeometric": 1.212,
+            "sharpeArithmetic": 1.145,
+            "volatilityDrag": 1.97,
             "asOf": "2026-07-31T13:30:00.000Z"
           },
           {
             "ticker": "SPMO",
             "signal": 19.86,
-            "score": 0.2546,
-            "annVol": 23.95,
+            "score": 0.255,
+            "annVol": 23.9,
+            "sharpeGeometric": 0.882,
+            "sharpeArithmetic": 0.89,
+            "volatilityDrag": 2.86,
             "asOf": "2026-07-31T13:30:00.000Z"
           },
           {
             "ticker": "QQQ",
             "signal": 9.56,
-            "score": 0.2081,
-            "annVol": 19.41,
+            "score": 0.2085,
+            "annVol": 19.37,
+            "sharpeGeometric": 0.933,
+            "sharpeArithmetic": 0.921,
+            "volatilityDrag": 1.88,
             "asOf": "2026-07-31T13:30:00.000Z"
           }
         ],
@@ -624,19 +651,19 @@
     "global-rotation-lab": {
       "id": "global-rotation-lab",
       "asOf": "2026-07-31T13:30:00.000Z",
-      "read": "EWS (Singapore) leads global rotation at 82.6/100 versus ACWI; EPHE is next.",
+      "read": "EWS (Singapore) leads global rotation at 83.5/100 versus ACWI; EPHE is next.",
       "metrics": {
         "benchmark": "ACWI",
         "leader": {
           "ticker": "EWS",
           "country": "Singapore",
-          "score": 82.6,
+          "score": 83.5,
           "rel21": 8.49,
           "rel63": 9.5,
           "rel126": 6.66,
           "trend": "Strong uptrend",
-          "fx": "FX headwind",
-          "fxStrength": -0.61,
+          "fx": "FX neutral",
+          "fxStrength": 0.09,
           "vol": 15.38,
           "maxDrawdown": 7.82,
           "asOf": "2026-07-31T13:30:00.000Z"
@@ -645,13 +672,13 @@
           {
             "ticker": "EWS",
             "country": "Singapore",
-            "score": 82.6,
+            "score": 83.5,
             "rel21": 8.49,
             "rel63": 9.5,
             "rel126": 6.66,
             "trend": "Strong uptrend",
-            "fx": "FX headwind",
-            "fxStrength": -0.61,
+            "fx": "FX neutral",
+            "fxStrength": 0.09,
             "vol": 15.38,
             "maxDrawdown": 7.82,
             "asOf": "2026-07-31T13:30:00.000Z"
@@ -659,13 +686,13 @@
           {
             "ticker": "EPHE",
             "country": "Philippines",
-            "score": 70.8,
+            "score": 70.6,
             "rel21": 5.64,
             "rel63": 3.79,
             "rel126": -5.73,
             "trend": "Strong uptrend",
             "fx": "FX neutral",
-            "fxStrength": 0.34,
+            "fxStrength": 0.18,
             "vol": 22.87,
             "maxDrawdown": 15.9,
             "asOf": "2026-07-31T13:30:00.000Z"
@@ -673,55 +700,55 @@
           {
             "ticker": "EWU",
             "country": "United Kingdom",
-            "score": 69.2,
+            "score": 70.6,
             "rel21": 5.18,
             "rel63": 0.25,
             "rel126": -1.59,
             "trend": "Strong uptrend",
             "fx": "FX neutral",
-            "fxStrength": -0.64,
+            "fxStrength": 0.41,
             "vol": 16.34,
             "maxDrawdown": 9.92,
             "asOf": "2026-07-31T13:30:00.000Z"
           },
           {
-            "ticker": "EWA",
-            "country": "Australia",
-            "score": 63.4,
-            "rel21": 5.72,
-            "rel63": -3.01,
-            "rel126": -2.64,
-            "trend": "Strong uptrend",
-            "fx": "Confirms weakness",
-            "fxStrength": -2.48,
-            "vol": 18.29,
-            "maxDrawdown": 10.01,
-            "asOf": "2026-07-31T13:30:00.000Z"
-          },
-          {
             "ticker": "EWC",
             "country": "Canada",
-            "score": 63.2,
+            "score": 66.1,
             "rel21": 2.78,
             "rel63": -2.07,
             "rel126": -1.77,
             "trend": "Strong uptrend",
             "fx": "Confirms weakness",
-            "fxStrength": -3.04,
+            "fxStrength": -0.89,
             "vol": 12.05,
             "maxDrawdown": 8.51,
             "asOf": "2026-07-31T13:30:00.000Z"
           },
           {
+            "ticker": "EWA",
+            "country": "Australia",
+            "score": 64.7,
+            "rel21": 5.72,
+            "rel63": -3.01,
+            "rel126": -2.64,
+            "trend": "Strong uptrend",
+            "fx": "Confirms weakness",
+            "fxStrength": -1.5,
+            "vol": 18.29,
+            "maxDrawdown": 10.01,
+            "asOf": "2026-07-31T13:30:00.000Z"
+          },
+          {
             "ticker": "EWG",
             "country": "Germany",
-            "score": 60.3,
+            "score": 61.5,
             "rel21": 3.78,
             "rel63": -0.47,
             "rel126": -6.7,
             "trend": "Constructive",
             "fx": "Confirms weakness",
-            "fxStrength": -1.61,
+            "fxStrength": -0.71,
             "vol": 19.87,
             "maxDrawdown": 14.54,
             "asOf": "2026-07-31T13:30:00.000Z"
@@ -735,7 +762,7 @@
     "real-assets-lab": {
       "id": "real-assets-lab",
       "asOf": "2026-07-31T13:30:00.000Z",
-      "read": "CPER leads real assets at 54.4/100; GLD 16.6, BTC 31.4, SLV 0.",
+      "read": "CPER leads real assets at 54.4/100; GLD 16.6, BTC 31.1, SLV 0.",
       "metrics": {
         "leader": {
           "ticker": "CPER",
@@ -1005,7 +1032,7 @@
                   "TLT",
                   "TIP"
                 ],
-                "score": 46.35800589756059,
+                "score": 46.35800687041147,
                 "detail": "TLT direction plus TIP-vs-TLT is a rough rate mix, not a direct real-yield series."
               }
             ],
@@ -1054,12 +1081,12 @@
           "BTC-USD": {
             "ticker": "BTC-USD",
             "model": "bitcoin",
-            "score": 31.4,
+            "score": 31.1,
             "trend": "Downtrend",
-            "mom21": -0.69,
-            "mom63": -14.09,
-            "mom126": -4.46,
-            "vol": 35.28,
+            "mom21": -0.97,
+            "mom63": -14.19,
+            "mom126": -4.27,
+            "vol": 35.25,
             "maxDrawdown": 28.71,
             "riskPenalty": 5.68,
             "confirmations": [
@@ -1344,6 +1371,169 @@
       },
       "fingerprint": "sha256:f5219992e1ff8e1e7dea8bb02d0593db5f50f95d077d0bd9536999243df554c0",
       "source": "company-fundamentals-owner-v1"
+    },
+    "options-structure-lab": {
+      "id": "options-structure-lab",
+      "asOf": "2026-07-31T16:00:00.000Z",
+      "read": "SPY sits in positive dealer gamma with the flip near 740.09; call wall 749, put wall 741, front expected move ±4.27.",
+      "deepLink": "options-structure-lab.html",
+      "source": "owning-tool-functions",
+      "state": "ready",
+      "metrics": {
+        "symbol": "SPY",
+        "spot": 747.03,
+        "regime": "positive",
+        "flipLevel": 740.09,
+        "signedNetGEX": 2198908030.4679,
+        "callWall": 749,
+        "putWall": 741,
+        "expectedMove": 4.27,
+        "atmIV": 0.0772,
+        "expiriesPriced": 3
+      }
+    },
+    "gamma-trading-lab": {
+      "id": "gamma-trading-lab",
+      "asOf": "2026-07-31T16:00:00.000Z",
+      "read": "SPY dealers are positive gamma — playbook pin-to-maxpain, conviction patient; flip 740.09, walls 741/749.",
+      "deepLink": "gamma-trading-lab.html",
+      "source": "owning-tool-functions",
+      "state": "ready",
+      "metrics": {
+        "symbol": "SPY",
+        "regime": "positive",
+        "scenario": "pin-to-maxpain",
+        "conviction": "patient",
+        "hold": "same-session-fade",
+        "signedNetGEX": 2198908030.47,
+        "flipPresent": true,
+        "flip": 740.09,
+        "callWall": 749,
+        "putWall": 741,
+        "oviState": "unavailable",
+        "opexWindow": null
+      }
+    },
+    "swing-structure-lab": {
+      "id": "swing-structure-lab",
+      "asOf": "2026-07-31T13:30:00.000Z",
+      "read": "SPY swing structure reads Bull-stacked (20>50>200) with an active Double top pattern in a Unknown regime.",
+      "deepLink": "swing-structure-lab.html",
+      "source": "owning-tool-functions",
+      "state": "ready",
+      "metrics": {
+        "symbol": "SPY",
+        "swingState": "Bull-stacked (20>50>200)",
+        "fast": 745.69,
+        "slow": 697.41,
+        "pattern": "Double top",
+        "patternState": "below-threshold",
+        "regime": "Unknown",
+        "accumulation": null,
+        "bars": 506
+      }
+    },
+    "market-heatmap-lab": {
+      "id": "market-heatmap-lab",
+      "asOf": "2026-08-02T11:00:24.720Z",
+      "read": "Leadership is narrow — 48.64% of 135 constituents are positive against a 60% broad-market threshold.",
+      "deepLink": "market-heatmap-lab.html",
+      "source": "owning-tool-functions",
+      "state": "ready",
+      "metrics": {
+        "breadthPct": 48.64,
+        "leadership": "narrow",
+        "threshold": 60,
+        "margin": -11.36,
+        "constituents": 135,
+        "priced": 135,
+        "covered": 135,
+        "window": "1d",
+        "grouping": "sector",
+        "strongest": [
+          {
+            "group": null,
+            "pct": null
+          },
+          {
+            "group": null,
+            "pct": null
+          },
+          {
+            "group": null,
+            "pct": null
+          }
+        ],
+        "weakest": [
+          {
+            "group": null,
+            "pct": null
+          },
+          {
+            "group": null,
+            "pct": null
+          },
+          {
+            "group": null,
+            "pct": null
+          }
+        ]
+      }
+    },
+    "volatility-sizing-lab": {
+      "id": "volatility-sizing-lab",
+      "asOf": "2026-07-31",
+      "read": "SPY conditional volatility forecasts 13.9101% in a normal regime; the capped vol-target throttle sizes to ×1.08.",
+      "deepLink": "volatility-sizing-lab.html",
+      "source": "owning-tool-functions",
+      "state": "ready",
+      "metrics": {
+        "symbol": "SPY",
+        "forecastPct": 13.9101,
+        "regime": "normal",
+        "percentile": 56.746,
+        "throttle": 1.078,
+        "capped": null,
+        "estimator": "ewma",
+        "halfLife": null
+      }
+    },
+    "technical-analysis-decision-lab": {
+      "id": "technical-analysis-decision-lab",
+      "asOf": "2026-07-31T13:30:00.000Z",
+      "read": "The five-gate decision model publishes no read: The owner five-gate model (context/location/confirmation/validation gate scoring plus setup-state and expectancy) is not implemented in technical-analysis-decision-lab.html, a Scope-01 foundation-receipt validator that publishes no analytic result (ownerReadPublished:false).. Its data foundation is present.",
+      "deepLink": "technical-analysis-decision-lab.html",
+      "source": "owning-tool-functions",
+      "state": "owner-model-unavailable",
+      "metrics": {
+        "symbol": "SPY",
+        "state": "unavailable",
+        "missingOwnerCapability": "The owner five-gate model (context/location/confirmation/validation gate scoring plus setup-state and expectancy) is not implemented in technical-analysis-decision-lab.html, a Scope-01 foundation-receipt validator that publishes no analytic result (ownerReadPublished:false).",
+        "foundationPresent": true,
+        "ownerReadPublished": false,
+        "setupState": "unavailable",
+        "evidenceState": "unavailable"
+      }
+    },
+    "intraday-tape-lab": {
+      "id": "intraday-tape-lab",
+      "asOf": "2026-07-31T20:00:00.000Z",
+      "read": "SPY's session is a Trend day · up auction under Mixed control, with VWAP at 744.46.",
+      "deepLink": "intraday-tape-lab.html",
+      "source": "owning-tool-functions",
+      "state": "ready",
+      "metrics": {
+        "symbol": "SPY",
+        "sessionType": "Trend day · up",
+        "control": "Mixed",
+        "vwap": 744.46,
+        "poc": null,
+        "valueAreaHigh": null,
+        "valueAreaLow": null,
+        "gapPct": 0.4,
+        "sessions": 5,
+        "barsToday": 79
+      }
     }
   },
   "toolCoverage": [
@@ -1356,8 +1546,8 @@
     {
       "id": "market-heatmap-lab",
       "deepLink": "market-heatmap-lab.html",
-      "status": "browser-or-agent-read",
-      "reason": "No deterministic Tier-A adapter; consume its latest browser toolRead when present and otherwise inspect the owning tool before authoring."
+      "status": "fresh-headless",
+      "reason": "Leadership is narrow — 48.64% of 135 constituents are positive against a 60% broad-market threshold."
     },
     {
       "id": "options-flow-feed-lab",
@@ -1368,44 +1558,44 @@
     {
       "id": "intraday-tape-lab",
       "deepLink": "intraday-tape-lab.html",
-      "status": "browser-or-agent-read",
-      "reason": "No deterministic Tier-A adapter; consume its latest browser toolRead when present and otherwise inspect the owning tool before authoring."
+      "status": "fresh-headless",
+      "reason": "SPY's session is a Trend day · up auction under Mixed control, with VWAP at 744.46."
     },
     {
       "id": "swing-structure-lab",
       "deepLink": "swing-structure-lab.html",
-      "status": "browser-or-agent-read",
-      "reason": "No deterministic Tier-A adapter; consume its latest browser toolRead when present and otherwise inspect the owning tool before authoring."
+      "status": "fresh-headless",
+      "reason": "SPY swing structure reads Bull-stacked (20>50>200) with an active Double top pattern in a Unknown regime."
     },
     {
       "id": "options-structure-lab",
       "deepLink": "options-structure-lab.html",
-      "status": "browser-or-agent-read",
-      "reason": "No deterministic Tier-A adapter; consume its latest browser toolRead when present and otherwise inspect the owning tool before authoring."
+      "status": "fresh-headless",
+      "reason": "SPY sits in positive dealer gamma with the flip near 740.09; call wall 749, put wall 741, front expected move ±4.27."
     },
     {
       "id": "gamma-trading-lab",
       "deepLink": "gamma-trading-lab.html",
-      "status": "browser-or-agent-read",
-      "reason": "No deterministic Tier-A adapter; consume its latest browser toolRead when present and otherwise inspect the owning tool before authoring."
+      "status": "fresh-headless",
+      "reason": "SPY dealers are positive gamma — playbook pin-to-maxpain, conviction patient; flip 740.09, walls 741/749."
     },
     {
       "id": "sector-research-lab",
       "deepLink": "sector-research-lab.html",
       "status": "fresh-headless",
-      "reason": null
+      "reason": "Rotate toward XLY as XLE weakens."
     },
     {
       "id": "global-rotation-lab",
       "deepLink": "global-rotation-lab.html",
       "status": "fresh-headless",
-      "reason": null
+      "reason": "EWS (Singapore) leads global rotation at 83.5/100 versus ACWI; EPHE is next."
     },
     {
       "id": "real-assets-lab",
       "deepLink": "real-assets-lab.html",
       "status": "fresh-headless",
-      "reason": null
+      "reason": "CPER leads real assets at 54.4/100; GLD 16.6, BTC 31.1, SLV 0."
     },
     {
       "id": "bond-regime-lab",
@@ -1429,13 +1619,13 @@
       "id": "company-fundamentals-lab",
       "deepLink": "company-fundamentals-lab.html",
       "status": "fresh-headless",
-      "reason": null
+      "reason": "sec-cik-0000789019 fundamentals are partial; direction Unavailable; statement 2026-03-31, model 2026-03-31, brief 2026-04-29T20:06:24.000Z, market unavailable."
     },
     {
       "id": "etf-momentum-lab",
       "deepLink": "etf-momentum-lab.html",
       "status": "fresh-headless",
-      "reason": null
+      "reason": "JMOM leads the default 6M balanced ETF ranking at 14.45% momentum; 13 funds scored."
     },
     {
       "id": "strategy-self-improvement-lab",
@@ -1464,8 +1654,8 @@
     {
       "id": "volatility-sizing-lab",
       "deepLink": "volatility-sizing-lab.html",
-      "status": "browser-or-agent-read",
-      "reason": "No deterministic Tier-A adapter; consume its latest browser toolRead when present and otherwise inspect the owning tool before authoring."
+      "status": "fresh-headless",
+      "reason": "SPY conditional volatility forecasts 13.9101% in a normal regime; the capped vol-target throttle sizes to ×1.08."
     },
     {
       "id": "palm-springs-rental-market-lab",
@@ -1482,8 +1672,8 @@
     {
       "id": "technical-analysis-decision-lab",
       "deepLink": "technical-analysis-decision-lab.html",
-      "status": "browser-or-agent-read",
-      "reason": "No deterministic Tier-A adapter; consume its latest browser toolRead when present and otherwise inspect the owning tool before authoring."
+      "status": "unavailable",
+      "reason": "The five-gate decision model publishes no read: The owner five-gate model (context/location/confirmation/validation gate scoring plus setup-state and expectancy) is not implemented in technical-analysis-decision-lab.html, a Scope-01 foundation-receipt validator that publishes no analytic result (ownerReadPublished:false).. Its data foundation is present."
     }
   ]
 }

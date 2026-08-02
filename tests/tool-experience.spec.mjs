@@ -1,6 +1,7 @@
 import { readFileSync } from 'node:fs';
 import { test, expect } from './playwright-runtime.mjs';
 import { startStaticServer } from './tool-experience.support.mjs';
+import { GATES_FILE } from '../scripts/build-dependency-gates.mjs';
 
 let site;
 test.beforeAll(async () => { site = await startStaticServer(); });
@@ -48,17 +49,23 @@ function observeDependencyGate(gateKey, expectedRequiredMilestones, options = {}
   return { status, certification, matchedCount: matched.length, requiredCount: required.length, statePath: gateConfig.statePath };
 }
 
-// Derived from the REAL recorded dependency state so the fixture tracks its shape automatically;
+// Derived from the REAL published gate projection so the fixture tracks its shape automatically;
 // only the published milestone list is withheld, which is exactly the pre-delivery condition the
 // pending regression exists to prove. Feature 002 shipped its milestones in 85a9ce1d, so reading
 // live state alone can no longer produce a pending gate — without this fixture the withheld-
 // capability path would become permanently unprovable rather than merely un-exercised.
+//
+// Overrides tool-experience.gates.json, NOT the spec statePath: gate verdicts are resolved at
+// build time into that public artifact, because the deployed site never ships `specs/` and a
+// runtime fetch of a governance path 404s there. Overriding statePath would leave the runtime
+// reading the real, satisfied projection and silently turn this regression green.
 function dependencyStateWithheldMilestones(gateKey) {
-  const gateConfig = readRepoJson('tool-experience.config.json').dependencyGates[gateKey];
-  const state = readRepoJson(gateConfig.statePath);
+  const document = readRepoJson(GATES_FILE);
+  const state = document.states[gateKey];
+  if (!state) throw new Error(`gate projection has no state for ${gateKey}`);
   delete state.milestones;
   delete state.milestonesProvenance;
-  return { statePath: gateConfig.statePath, state };
+  return { gatesPath: GATES_FILE, document, state };
 }
 
 // Page bootstrap lazily loads scripts (rlg.js pulls rlcontext.js only once it decorates a
@@ -126,7 +133,7 @@ test('Regression: SCN-012-033 real-page shadow registry validation derives all e
 test('Regression: SCN-012-028 Feature 002 without published milestones exposes exact Brief gate and no author request', async ({ page }) => {
   const withheld = dependencyStateWithheldMilestones('FEATURE002');
   const fixtureSite = await startStaticServer({
-    overrides: { [withheld.statePath]: JSON.stringify(withheld.state, null, 2) }
+    overrides: { [withheld.gatesPath]: JSON.stringify(withheld.document, null, 2) }
   });
   try {
     const observed = observeDependencyGate('FEATURE002', [

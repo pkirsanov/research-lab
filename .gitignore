@@ -11,6 +11,7 @@ improvements/
 /test-results/
 /playwright-report/
 /_site/
+/.rl-site-*/
 /.brief-work/
 
 # Code-index provider writes its graph in-repo; never commit it.

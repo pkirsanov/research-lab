@@ -160,6 +160,10 @@ export async function startStaticServer(options) {
   // dependency ships, instead of silently becoming unprovable.
   const overrides = new Map(Object.entries((options && options.overrides) || {}));
   const missing = new Set((options && options.missing) || []);
+  // Defaults to the repo root. Pass `root` to serve the built `_site` projection instead —
+  // that is what GitHub Pages actually deploys, and it omits non-public paths, so a page
+  // dependency that only exists at the repo root 404s there and nowhere else.
+  const serveRoot = resolve((options && options.root) || ROOT);
   const server = createServer((request, response) => {
     const requestPath = decodeURIComponent((request.url || '/').split('?')[0]);
     const relative = normalize(requestPath === '/' ? 'index.html' : requestPath.replace(/^\/+/, ''));
@@ -177,8 +181,8 @@ export async function startStaticServer(options) {
       response.end(overrides.get(relative));
       return;
     }
-    const filePath = resolve(ROOT, relative);
-    if ((filePath !== ROOT && !filePath.startsWith(ROOT + sep)) || !existsSync(filePath) || !statSync(filePath).isFile()) {
+    const filePath = resolve(serveRoot, relative);
+    if ((filePath !== serveRoot && !filePath.startsWith(serveRoot + sep)) || !existsSync(filePath) || !statSync(filePath).isFile()) {
       response.writeHead(404, { 'content-type': 'text/plain; charset=utf-8' });
       response.end('not found');
       return;

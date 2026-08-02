@@ -5,7 +5,9 @@
 improvements/
 
 # Feature 005 browser-test generated outputs
-/node_modules/
+# No trailing slash: a trailing slash matches ONLY a directory, so a stray
+# `node_modules` SYMLINK slips past it and can be committed by `git add -A`.
+/node_modules
 /test-results/
 /playwright-report/
 /_site/

@@ -272,17 +272,19 @@
     anchor.setAttribute("data-rlexperience-state", "unavailable");
     anchor.setAttribute("data-rlexperience-error", message);
   }
+  /* Gate verdicts come from a build-time projection, never from `specs/`.
+     The config's `statePath` is the BUILD-time source of truth; the deployed
+     site never ships `specs/`, so fetching those paths here 404s on Pages and
+     silently degrades every gate to pending. tool-experience.gates.json is a
+     public root artifact carrying only the four fields the predicate reads. */
   function fetchDependencyStates(config) {
     var gates = config && config.dependencyGates;
     if (!gates || typeof gates !== "object") return Promise.resolve(null);
-    var keys = Object.keys(gates);
-    return Promise.all(keys.map(function (key) {
-      return fetchRequiredJson(gates[key].statePath).then(function (state) {
-        return { key: key, state: state };
-      });
-    })).then(function (rows) {
+    return fetchRequiredJson("tool-experience.gates.json").then(function (document) {
+      if (!document || typeof document !== "object" || !document.states) return null;
       var states = {};
-      for (var i = 0; i < rows.length; i++) states[rows[i].key] = rows[i].state;
+      var keys = Object.keys(gates);
+      for (var i = 0; i < keys.length; i++) states[keys[i]] = document.states[keys[i]] || null;
       return states;
     });
   }

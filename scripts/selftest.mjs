@@ -5142,6 +5142,35 @@ try {
   assert(pagesPlan.orphanIndexDirectories.every((directory) => directory !== pagesPlan.historyIndexDirectory),
     'orphan history indexes are identified separately and cannot replace the current pointer target');
 
+  /* Dependency gates: a gate verdict is a property of the committed tree, so it is resolved at
+     build time. The browser must never fetch a `specs/` path — the deployed site does not ship
+     `specs/`, so such a fetch 404s, degrades to null, and silently withholds delivered
+     capabilities from real users while every local test still passes. */
+  const gateBuilder = await import('./build-dependency-gates.mjs');
+  assert(read(gateBuilder.GATES_FILE) === gateBuilder.serializeDependencyGates(gateBuilder.buildDependencyGates(ROOT)),
+    'the committed dependency-gate projection matches its source specs — a stale projection misreports delivery');
+  assert(pagesPlan.rootFiles.includes(gateBuilder.GATES_FILE),
+    'the projected site ships the dependency-gate projection, so gates resolve identically on Pages');
+
+  const gateDocument = JSON.parse(read(gateBuilder.GATES_FILE));
+  const experienceConfig = JSON.parse(read('tool-experience.config.json'));
+  assert(Object.keys(gateDocument.states).length === Object.keys(experienceConfig.dependencyGates).length
+    && Object.keys(experienceConfig.dependencyGates).every((key) => gateDocument.states[key]),
+    'every declared dependency gate is represented in the projection');
+  /* The projection is a PROJECTION: leaking whole governance files into a public artifact would
+     publish spec internals that no runtime predicate reads. */
+  assert(Object.values(gateDocument.states).every((state) => Object.keys(state)
+    .every((field) => ['status', 'certification', 'milestones', 'evidenceIds'].includes(field))),
+    'the public gate projection carries only the fields the runtime predicate reads');
+
+  const browserRuntime = read('rlapp.js');
+  assert(browserRuntime.includes(gateBuilder.GATES_FILE) && !/fetchRequiredJson\(\s*gates\[[^\]]+\]\.statePath/.test(browserRuntime),
+    'the browser resolves gates from the public projection and never fetches a governance statePath');
+  /* ADVERSARIAL: the pre-fix runtime shape must fail the predicate above, so this cannot pass vacuously. */
+  const preFixRuntime = browserRuntime.replace(/fetchRequiredJson\("tool-experience\.gates\.json"\)/, 'fetchRequiredJson(gates[key].statePath)');
+  assert(/fetchRequiredJson\(\s*gates\[[^\]]+\]\.statePath/.test(preFixRuntime),
+    'the statePath-fetch check is non-vacuous — it still matches the regressed shape');
+
   /* ADVERSARIAL: a reduced browser gate or direct root upload must fail these exact predicates. */
   const weakenedWorkflow = pagesWorkflow.replace('Full browser suite (blocking)', 'Selected browser suite').replace('path: "_site"', 'path: "."');
   assert(!/- name: Full browser suite \(blocking\)/.test(weakenedWorkflow) && !/path: "_site"/.test(weakenedWorkflow),

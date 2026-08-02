@@ -1,0 +1,38 @@
+{
+  "contractVersion": "tool-experience-dependency-gates/v1",
+  "sources": {
+    "BUG004": "specs/_bugs/BUG-004-proxy-route-local-key-fallback/state.json",
+    "FEATURE002": "specs/002-distributed-tool-briefs-and-history/state.json",
+    "FEATURE008": "specs/008-portfolio-survival-and-brief-lab/state.json"
+  },
+  "states": {
+    "BUG004": {
+      "status": "done",
+      "certification": {
+        "status": "done"
+      },
+      "evidenceIds": [
+        "TP-09",
+        "TP-12"
+      ]
+    },
+    "FEATURE002": {
+      "status": "done",
+      "certification": {
+        "status": "done"
+      },
+      "milestones": [
+        "current-graph",
+        "owner-coverage",
+        "powerless-author",
+        "atomic-publication"
+      ]
+    },
+    "FEATURE008": {
+      "status": "in_progress",
+      "certification": {
+        "status": "not_started"
+      }
+    }
+  }
+}

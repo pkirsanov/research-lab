@@ -3,7 +3,35 @@
   "featureDir": "specs/016-auction-gamma-playbook",
   "featureName": "Auction × Gamma Playbook",
   "createdAt": "2026-07-28T16:09:22Z",
-  "status": "not_started",
+  "status": "specs_hardened",
+  "statusReconciliation": {
+    "recordedBy": "orchestrator",
+    "recordedAt": "2026-08-02T05:03:12Z",
+    "previousStatus": "not_started",
+    "why": "`not_started` contradicted this spec's own execution record and the transition guard. All four planning phases had already executed and are recorded in executionHistory: bubbles.analyst (analyze, 2026-07-28), bubbles.docs (docs, 2026-07-29), bubbles.harden (harden, 2026-07-29), bubbles.validate (validate, 2026-07-29). `execution.completedPhaseClaims` holds [docs, harden]. Nothing had flipped the lifecycle status.",
+    "guardEvidence": {
+      "command": "bash .github/bubbles/scripts/cli.sh guard specs/016-auction-gamma-playbook",
+      "workflowMode": "product-to-planning",
+      "auditProfile": "planning-maturity-v1",
+      "targetStatus": "specs_hardened",
+      "verdict": "PASS",
+      "exitStatus": 0,
+      "failureCount": 0,
+      "failedGateIds": [],
+      "failedChecks": [],
+      "blockingCode": "none",
+      "passedGateCount": 36,
+      "notApplicableChecks": ["Check-4-completion", "Check-5-all-done", "Check-8-file-existence", "Check-11-execution-evidence"]
+    },
+    "whyTerminal": "`specs_hardened` is the declared statusCeiling for workflow mode `product-to-planning`; the guard confirms it as the targetStatus and passes it with zero failures. This spec is therefore terminal for its mode. It is NOT a delivery claim: the nine implementation scopes remain Not Started, which is correct and expected for a planning-only mode whose completion checks the guard marks not-applicable.",
+    "knownToolingSideEffect": {
+      "observed": "Re-running the guard AFTER this promotion returns `blockingCode: E009-TARGET-MISMATCH`, `failedChecks: [contract-resolution]`, `verdict: BLOCKED`, `exitStatus: 2`, with workflowMode/auditProfile/targetStatus all `UNRESOLVED`.",
+      "isNotARealFailure": "This is a guard ceiling-map limitation, not a defect in this spec. Control test: the already-`done` spec `specs/003-bond-regime-and-scenario-lab` re-guards cleanly at `verdict: PASS`, `exitStatus: 0`, so terminal status per se is handled — only `specs_hardened` fails to resolve. `specs_hardened` appears in `state-transition-guard.sh` solely inside comments (lines 831 and 3250), never in the ceiling resolution map.",
+      "evidenceThatPromotionWasEarned": "Before promotion the guard evaluated this exact transition and returned `targetStatus: specs_hardened`, `verdict: PASS`, `exitStatus: 0`, `failureCount: 0`, `failedGateIds: []`, with 36 gates passed including G089. That PASS is the authoritative promotion decision and is preserved verbatim under `guardEvidence` above.",
+      "operatorAction": "Track upstream in the Bubbles framework: `state-transition-guard.sh` and `artifact-lint.sh` should accept `specs_hardened` as a resolvable CURRENT status for `product-to-planning`, exactly as they accept `done` for `full-delivery`. Until then, a guard run against this spec exits 2 for contract-resolution reasons and must not be read as a content failure."
+    },
+    "notClaimed": "`certification.*` was left untouched (bubbles.validate-owned). No scope was marked complete and no implementation is claimed."
+  },
   "workflowMode": "product-to-planning",
   "linkedImplementationSpec": null,
   "linkedPlanningPacket": null,

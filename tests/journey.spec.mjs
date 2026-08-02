@@ -475,6 +475,44 @@ test('Regression: SCN-012-032 every registered tool exposes concrete goals throu
   expect(byId[centerId].goalCount).toBe(4);
 });
 
+/* ═══════════ the chooser opens on the tool the reader is standing in ═══════════ */
+
+test('the Journey chooser surfaces the current tool first without dropping any other tool', async ({ page }) => {
+  await openPage(page);
+  await mountJourneyOnPage(page);
+
+  const observed = await page.evaluate(() => {
+    const rows = Array.from(document.querySelectorAll('[data-rljourney-tool]'));
+    return {
+      order: rows.map((li) => li.getAttribute('data-rljourney-tool')),
+      markedCurrent: rows.filter((li) => li.getAttribute('data-rljourney-current') === 'true')
+        .map((li) => li.getAttribute('data-rljourney-tool')),
+      firstGoals: rows.length
+        ? Array.from(rows[0].querySelectorAll('[data-rljourney-goal]')).map((b) => b.getAttribute('data-rljourney-tool-id'))
+        : []
+    };
+  });
+
+  const pageToolId = PAGE.replace(/\.html$/, '');
+  const registryOrder = readJson('tools.json').tools.map((tool) => tool.id);
+
+  expect(observed.order[0], 'the chooser opens on the tool being read').toBe(pageToolId);
+  expect(observed.markedCurrent, 'exactly one row is marked current').toEqual([pageToolId]);
+  expect(observed.firstGoals.every((toolId) => toolId === pageToolId),
+    'the leading row carries only this tool\u2019s goals').toBe(true);
+
+  /* SCN-012-032 is not weakened: promoting a row must not drop or duplicate one. */
+  expect([...observed.order].sort()).toEqual([...registryOrder].sort());
+  expect(new Set(observed.order).size, 'no tool appears twice').toBe(registryOrder.length);
+
+  /* Non-vacuous: this only proves something because the tool is NOT already first
+     in registry order, so an unsorted chooser would fail the assertion above. */
+  expect(registryOrder.indexOf(pageToolId), 'the fixture tool must not be first in registry order')
+    .toBeGreaterThan(0);
+  expect(observed.order.slice(1), 'every other row keeps its registry order')
+    .toEqual(registryOrder.filter((toolId) => toolId !== pageToolId));
+});
+
 /* ═══════════════════════ TP-08-08 — one shared mechanism / evidence / backtrack / packet contract ═══════════════════════ */
 
 test('Regression: wizard checklist decision tree and scenario lab share evidence completion backtrack and packet rules', async ({ page }) => {

@@ -457,6 +457,10 @@
     var policy = deps.policy;
     var host = deps.host || null;
     var journeys = deps.journeys || null;
+    /* The tool the reader is actually standing in. The chooser still lists every registered
+       tool (SCN-012-032), but scanning 23 groups to reach the 2 that belong to this page is
+       not guidance. */
+    var currentToolId = deps.currentToolId || null;
     var registry = deps.registry || null;
     if (!runtime || typeof runtime.compileRegistry !== "function" || !runtime.store) throw new Error("journey controller requires the rljourney runtime");
     if (!policy) throw new Error("journey controller requires the journey storage policy");
@@ -477,15 +481,20 @@
     }
     function chooserRows() {
       var tools = (registry && (registry.tools || registry.registry)) || [];
-      return tools.map(function (tool) {
+      var rows = tools.map(function (tool) {
         var ids = (tool.experience && tool.experience.journeyDefinitionIds) || [];
         var kind = (tool.experience && tool.experience.kind) || "ordinary";
         var goals = ids.map(function (definitionId) {
           var compiled = compiledRegistry ? compiledRegistry.definitions[definitionId] : null;
           return compiled ? { definitionId: definitionId, toolId: compiled.toolId, goalId: compiled.goalId, mechanism: compiled.mechanism, title: compiled.title } : null;
         }).filter(function (row) { return !!row; });
-        return { registryId: tool.id, kind: kind, goals: goals };
+        return { registryId: tool.id, kind: kind, goals: goals, current: !!currentToolId && tool.id === currentToolId };
       });
+      /* Stable partition, not a re-sort: the current tool's row moves to the front and every
+         other row keeps its registry order. */
+      var mine = rows.filter(function (row) { return row.current; });
+      var rest = rows.filter(function (row) { return !row.current; });
+      return mine.concat(rest);
     }
     function renderChooser() {
       if (!host) return;
@@ -494,7 +503,7 @@
         var goalsHtml = row.goals.map(function (goal) {
           return '<button type="button" data-rljourney-goal="' + esc(goal.definitionId) + '" data-rljourney-tool-id="' + esc(goal.toolId) + '" data-rljourney-mechanism="' + esc(goal.mechanism) + '">' + esc(goal.title) + '</button>';
         }).join("");
-        return '<li data-rljourney-tool="' + esc(row.registryId) + '" data-rljourney-kind="' + esc(row.kind) + '" data-rljourney-goal-count="' + row.goals.length + '"><span class="rlj-tool-label">' + esc(row.registryId) + '</span>' + goalsHtml + '</li>';
+        return '<li data-rljourney-tool="' + esc(row.registryId) + '" data-rljourney-kind="' + esc(row.kind) + '"' + (row.current ? ' data-rljourney-current="true"' : '') + ' data-rljourney-goal-count="' + row.goals.length + '"><span class="rlj-tool-label">' + esc(row.registryId) + (row.current ? ' \u00b7 this tool' : '') + '</span>' + goalsHtml + '</li>';
       }).join("");
       var capHtml = '<div data-rljourney-capability="' + esc(capability.mode) + '" data-rljourney-durable="' + (capability.durable ? "true" : "false") + '">' +
         (capability.durable ? 'Durable — progress is saved locally and survives reload.' : 'Session only — local storage is unavailable; progress is not saved across reloads. Safe export remains available.') + '</div>';
@@ -630,7 +639,11 @@
         policy: config.journeyStoragePolicy,
         host: anchor,
         journeys: journeys,
-        registry: registry
+        registry: registry,
+        currentToolId: (function () {
+          var owner = document.querySelector("[data-rlbrief-mount][data-tool-id]");
+          return owner ? owner.getAttribute("data-tool-id") : null;
+        })()
       });
       controller.mount();
       anchor.__rljourneyMounting = false;

@@ -74,7 +74,6 @@ bubbles/scripts/diff-evidence-guard-selftest.sh
 bubbles/scripts/diff-evidence-guard.sh
 bubbles/scripts/discovered-issue-disposition-guard-selftest.sh
 bubbles/scripts/discovered-issue-disposition-guard.sh
-bubbles/scripts/docs-registry-effective.sh
 bubbles/scripts/docs-registry-resolve.sh
 bubbles/scripts/dod-section-lib-selftest.sh
 bubbles/scripts/dod-section-lib.sh
@@ -314,6 +313,10 @@ bubbles/scripts/state-transition-required-specialists-selftest.sh
 bubbles/scripts/strict-terminal-status-guard-selftest.sh
 bubbles/scripts/strict-terminal-status-guard.sh
 bubbles/scripts/super-surface-selftest.sh
+bubbles/scripts/surface-reachability-guard-selftest.sh
+bubbles/scripts/surface-reachability-guard.sh
+bubbles/scripts/technical-prose-lint-selftest.sh
+bubbles/scripts/technical-prose-lint.sh
 bubbles/scripts/test-impact-plan-selftest.sh
 bubbles/scripts/test-impact-plan.sh
 bubbles/scripts/test-impact-shadow-selftest.sh
@@ -494,6 +497,7 @@ docs/recipes/code-health-analysis.md
 docs/recipes/cross-model-review.md
 docs/recipes/cross-repo-scenario.md
 docs/recipes/custom-gates.md
+docs/recipes/declare-reachable-surfaces.md
 docs/recipes/design-a-capability.md
 docs/recipes/devops-release-coordination.md
 docs/recipes/devops-work.md
@@ -750,6 +754,7 @@ skills/bubbles-skills-first-discovery/SKILL.md
 skills/bubbles-spec-template-bdd/SKILL.md
 skills/bubbles-status-transition/SKILL.md
 skills/bubbles-supply-chain-source-locking/SKILL.md
+skills/bubbles-technical-prose/SKILL.md
 skills/bubbles-test-environment-isolation/SKILL.md
 skills/bubbles-test-integrity/SKILL.md
 skills/bubbles-upkeep-cadence/SKILL.md

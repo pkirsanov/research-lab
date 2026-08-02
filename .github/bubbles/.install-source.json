@@ -1,9 +1,9 @@
 {
-  "installedVersion": "7.21.0",
+  "installedVersion": "7.22.0",
   "installMode": "local-source",
   "sourceRef": "main",
-  "sourceGitSha": "01bc3dc2b1aff915544a925a0bf23ba35def3dbe",
+  "sourceGitSha": "a71f890b0bc10d9bbe5037031ea41873d0b52e66",
   "sourceDirty": true,
   "targetRepoSlug": "research-lab",
-  "installedAt": "2026-07-31T11:37:58Z"
+  "installedAt": "2026-08-02T06:31:22Z"
 }

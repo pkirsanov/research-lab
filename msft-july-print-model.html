@@ -1568,7 +1568,11 @@
         rows.push(checked.value);
       }
       if (new Date(rows[rows.length - 1].t).toISOString().slice(0, 10) !== envelope.asof) return reject('MSFT-BARS-CUTOFF');
-      var stale = evaluationAtMs - retrievedAtMs > 172800000 || (evaluationDayAtMs - cutoffAtMs) / 86400000 > 4;
+      // Bars are retrieved once per COMPLETED session, so retrieval age tracks cutoff age. A retrieval
+      // bound tighter than the cutoff window is unreachable and would call the latest completed session
+      // stale across a normal weekend, so it is derived from that window plus one publish-offset day.
+      var cutoffWindowDays = 4;
+      var stale = evaluationAtMs - retrievedAtMs > (cutoffWindowDays + 1) * 86400000 || (evaluationDayAtMs - cutoffAtMs) / 86400000 > cutoffWindowDays;
       return Object.freeze({
         ok: true,
         value: Object.freeze({

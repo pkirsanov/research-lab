@@ -85,7 +85,7 @@ function tallyInto(tally, eventType) {
 }
 
 /** A tally plus the derived rates, with the rate WITHHELD below the declared minimum sample. */
-function summarize(tally, minResolvedSample) {
+export function summarize(tally, minResolvedSample) {
   const resolved = tally.satisfied + tally.invalidated;
   const insufficient = resolved < minResolvedSample;
   return {

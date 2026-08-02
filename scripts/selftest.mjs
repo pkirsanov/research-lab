@@ -4925,20 +4925,26 @@ try {
   group('scorecard \u2014 the brief publishes its own error rate, misses included');
   const scorecardModule = await import('./build-scorecard.mjs');
 
-  // (a) The committed ledger. Below the declared minimum the rate MUST be withheld.
+  // (a) The committed ledger must select the policy branch its current sample supports.
   const live = scorecardModule.buildScorecard(ROOT, {});
   const all = live.windows.all;
   assert(all.resolved === all.satisfied + all.invalidated,
     'resolved counts only calls that reached a trigger or an invalidation (' + all.satisfied + ' + ' + all.invalidated + ' = ' + all.resolved + ')');
   assert(all.notEvaluable > 0 && all.notEvaluable + all.satisfied + all.invalidated + all.expired + all.unresolved === all.closed,
     'every closed call lands in exactly one outcome bucket, and not-evaluable is one of them');
-  assert(all.hitRate === null && all.insufficientSample === true,
-    'with ' + all.resolved + ' resolved against a minimum of ' + live.policy.minResolvedSample + ', the rate is WITHHELD rather than printed');
+  const liveHasEnoughResolved = all.resolved >= live.policy.minResolvedSample;
+  const expectedLiveRate = liveHasEnoughResolved ? Math.round((all.satisfied / all.resolved) * 1e4) / 1e4 : null;
+  assert(all.hitRate === expectedLiveRate && all.insufficientSample === !liveHasEnoughResolved,
+    'with ' + all.resolved + ' resolved against a minimum of ' + live.policy.minResolvedSample + ', the live scorecard ' + (liveHasEnoughResolved ? 'PRINTS the measured rate' : 'WITHHOLDS the rate'));
   assert(Number.isFinite(all.notEvaluableShare) && all.notEvaluableShare > 0,
     'the not-machine-evaluable share is published rather than hidden (' + Math.round(all.notEvaluableShare * 1000) / 10 + '%)');
 
+  // ADVERSARIAL: below the minimum, a plausible 2-of-3 hit rate must remain withheld.
+  const belowMinimum = scorecardModule.summarize({ closed: 4, satisfied: 2, invalidated: 1, expired: 0, unresolved: 0, notEvaluable: 1 }, 4);
+  assert(belowMinimum.resolved === 3 && belowMinimum.hitRate === null && belowMinimum.insufficientSample === true,
+    'below the minimum the realised rate stays withheld (2 of 3 is not published)');
+
   // (b) ADVERSARIAL: a fixture whose sample CROSSES its declared minimum must actually print a rate.
-  // Without this, (a) would pass even if the scorecard could never publish a number at all.
   const fixtureRoot = join(ROOT, 'tests/fixtures/scorecard');
   const fixture = scorecardModule.buildScorecard(fixtureRoot, { asOf: '2026-07-31' });
   const fixtureAll = fixture.windows.all;

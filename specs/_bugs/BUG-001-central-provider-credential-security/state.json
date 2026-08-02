@@ -90,7 +90,7 @@
         "audit": {
             "schemaVersion": "audit-run/v1",
             "runId": "RUN-BUG001-AUDIT-20260802T024148Z",
-            "currentAttemptId": "AUD-BUG001-007",
+            "currentAttemptId": "AUD-BUG001-008",
             "attempts": [
                 {
                     "attemptId": "AUD-BUG001-001",
@@ -346,7 +346,7 @@
                 },
                 {
                     "attemptId": "AUD-BUG001-007",
-                    "resultState": "ACTIVE",
+                    "resultState": "SUPERSEDED",
                     "agent": "bubbles.audit",
                     "phase": "audit",
                     "startedAt": "2026-08-02T06:54:49Z",
@@ -430,6 +430,56 @@
                         "note": "Audit wrote only its own report.md evidence section and this additive execution.audit record, per the audit ownership contract."
                     },
                     "summary": "Delivery completion is BLOCKED at contract resolution, not at a gate. The transition-contract resolver refuses with E009-TARGET-MISMATCH because top-level status 'blocked' disagrees with certification.status 'in_progress', so the guard exits 2 with an empty gate battery and workflowMode, auditProfile, targetStatus, contractDigest, and targetRevision are all genuinely UNRESOLVED. Artifact lint independently converges on the same single defect and passes every other structural and anti-fabrication check. BUG001-USERVALIDATION-ACTIVE-CONTRACT is verified addressed against current bytes. BUG001-G022-AUDIT and BUG001-G027-CERTIFICATION remain unresolved and are validate-owned. The status-mirror split, created when the honest blocker was recorded, now also blocks bubbles.validate and must be reconciled before certification can proceed."
+                },
+                {
+                    "attemptId": "AUD-BUG001-008",
+                    "resultState": "INCOMPLETE",
+                    "agent": "bubbles.audit",
+                    "phase": "audit",
+                    "startedAt": "2026-08-02T15:37:06Z",
+                    "completedAt": "2026-08-02T15:37:06Z",
+                    "auditClass": "delivery-completion",
+                    "auditProfile": "delivery-completion-v1",
+                    "targetStatus": "done",
+                    "requestedStatus": "done",
+                    "currentStatus": "in_progress",
+                    "targetRevision": "sha256:9881b60c8ebe16abf0624a27446a9035ae6662f7752f094782616aabeea70c8e",
+                    "contractDigest": "sha256:aa91472c047d3d985d38c1d308feb1e6081955b2aa553816deb5987d9cdc449f",
+                    "auditVerdict": "INTERRUPTED",
+                    "antiFabricationVerdict": "NOT_EVALUATED",
+                    "result": "INCOMPLETE",
+                    "outcome": "blocked",
+                    "blockingCode": "AUDIT_INCOMPLETE",
+                    "evidenceRef": "report.md#audit-attempt-aud-bug001-008",
+                    "nextRequiredOwner": "operator",
+                    "resumeFromPhase": 2,
+                    "supersedesAttemptId": "AUD-BUG001-007",
+                    "addressedFindings": [
+                        "BUG001-E009-STATUS-MIRROR"
+                    ],
+                    "unresolvedFindings": [
+                        "BUG001-G022-AUDIT",
+                        "BUG001-G027-CERTIFICATION"
+                    ],
+                    "ownershipBoundaryRespected": {
+                        "certificationFieldsWritten": [],
+                        "topLevelStatusWritten": false,
+                        "auditPhaseClaimPublished": false,
+                        "frameworkFilesModified": [],
+                        "note": "No audit phase claim and no certification field were written on behalf of bubbles.audit. The agent produced no output, so there is no verdict to publish and none is claimed."
+                    },
+                    "orchestratorObservation": {
+                        "observedBy": "orchestrator",
+                        "observedAt": "2026-08-02T15:37:06Z",
+                        "dispatchOutcome": "bubbles.audit returned no output on dispatch, matching the behavior of attempts 004, 005 and 006.",
+                        "whyThisDispatchWasNotARepeat": "Attempts 004-007 all ran while the two status mirrors disagreed, so transition-contract-resolver.sh refused with E009-TARGET-MISMATCH and the guard produced an empty gate battery. That refusal was corrected at commit 78532425. This dispatch therefore ran against a cleanly resolving contract for the first time.",
+                        "newFinding": "The status-mirror split was NOT the cause of the no-output dispatches. The resolver now exits 0 and returns real values, the guard runs a full 26-gate battery, and bubbles.audit still returns no output. This eliminates contract resolution as the explanation and isolates the fault to the audit agent's ability to process this packet.",
+                        "contractFieldsAreRealNotCopied": "auditProfile, targetStatus, contractDigest and targetRevision above were read from a live transition-contract-resolver.sh run at 2026-08-02T15:37:06Z (exit 0), not copied from a prior attempt. targetRevision sha256:9881b60c differs from the stale sha256:d97cdc4e carried by attempts 005 and 006, which confirms the audited tree advanced.",
+                        "e009ClosureAttribution": "BUG001-E009-STATUS-MIRROR is listed as addressed on the orchestrator's own verification (resolver exit 0 plus a 26-gate battery), NOT on any claim by bubbles.audit. The audit agent evaluated nothing in this attempt.",
+                        "guardObserved": "26 gates PASS; failures on exactly G022 and G027; failureCount 4.",
+                        "remainingBlockerIsOperatorActionable": "G022 and G027 stay open because no audit has ever evaluated this packet. Both are audit-owned and validate-owned respectively; neither may be closed by the orchestrator without fabricating a phase claim, which is the precise failure G022 and G027 exist to detect."
+                    },
+                    "summary": "Dispatched after the E009 contract refusal was corrected, so this was the first audit attempt to run against a resolving contract. bubbles.audit again returned no output, so no evaluation was performed and no verdict is claimed. The valuable result is a negative one: because the contract now resolves and the full gate battery runs, the status-mirror split is ruled out as the cause of the repeated no-output dispatches. BUG001-E009-STATUS-MIRROR is confirmed addressed by direct orchestrator verification. G022 and G027 remain open and are not closable without an audit that actually runs."
                 }
             ]
         },

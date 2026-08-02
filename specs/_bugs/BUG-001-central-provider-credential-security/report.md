@@ -6861,3 +6861,90 @@ merits for the first time. If that attempt returns a clean verdict with empty
 `unresolvedFindings` and contract fields matching the fresh resolver output,
 validate can publish the `audit` phase claim, certify SCOPE-01, and set both status
 mirrors to `done` in one atomic write.
+
+### Audit Attempt AUD-BUG001-008
+
+**Dispatched:** 2026-08-02T15:37:06Z (verified wall clock, `date -u`)
+**Agent:** `bubbles.audit`
+**Result:** INTERRUPTED — the agent returned no output. No evaluation was
+performed and no verdict is claimed on its behalf.
+
+**Claim Source:** executed
+
+#### Why this dispatch was not a repeat of 004-007
+
+Every prior attempt ran while the two status mirrors disagreed, so
+`transition-contract-resolver.sh` refused with `E009-TARGET-MISMATCH`, the guard
+exited 2 with an EMPTY gate battery, and `auditProfile`, `targetStatus`,
+`contractDigest` and `targetRevision` were all recorded as the literal string
+`UNRESOLVED`. That refusal was corrected at commit `78532425`. This dispatch is
+the first to run against a cleanly resolving contract.
+
+#### Verified wall clock, audited revision, and resolved contract
+
+```
+$ date -u +%Y-%m-%dT%H:%M:%SZ
+2026-08-02T15:37:06Z
+
+$ git rev-parse HEAD
+ee443a49d4b909b06af01ed21ea2a59e72bf32a2
+
+$ bash .github/bubbles/scripts/transition-contract-resolver.sh \
+    specs/_bugs/BUG-001-central-provider-credential-security
+{"schemaVersion":"transition-contract/v1",
+ "featureDir":"specs/_bugs/BUG-001-central-provider-credential-security",
+ "workflowMode":"bugfix-fastlane","modeClass":null,
+ "auditProfile":"delivery-completion-v1","statusCeiling":"done",
+ "targetStatus":"done","currentStatus":"in_progress",
+ "requiredGates":["G001","G002","G003","G004","G005","G006","G007","G008","G009",
+  "G010","G011","G012","G014","G015","G016","G018","G019","G020","G021","G022",
+  "G023","G024","G025","G026","G027","G028","G029","G033","G034","G035","G040",
+  "G044","G047","G048","G051","G055","G056","G057","G059","G060","G061","G094"],
+ "contractRef":"bubbles/workflows/modes.yaml#bugfix-fastlane",
+ "contractDigest":"sha256:aa91472c047d3d985d38c1d308feb1e6081955b2aa553816deb5987d9cdc449f",
+ "targetRevision":"sha256:9881b60c8ebe16abf0624a27446a9035ae6662f7752f094782616aabeea70c8e"}
+RESOLVER_EXIT=0
+```
+
+The resolver exits 0 and returns real values. `targetRevision`
+`sha256:9881b60c` differs from the stale `sha256:d97cdc4e` that attempts 005 and
+006 carried, which independently confirms the audited tree advanced.
+
+#### Guard battery
+
+```
+$ bash .github/bubbles/scripts/cli.sh guard \
+    specs/_bugs/BUG-001-central-provider-credential-security
+passedGateIds: [G061,G053,G040,G051,G068,G082,G083,G084,G128,G085,G086,G091,
+                G087,G093,G088,G089,G092,G090,G094,G095,G097,G098,G099,G100,
+                G130,G131]
+failedGateIds: [G022,G027]
+failureCount: 4
+```
+
+26 gates PASS. Failures are exactly G022 and G027.
+
+#### The result of this attempt is a negative finding, and it is useful
+
+The contract resolves, the guard runs a complete 26-gate battery, and
+`bubbles.audit` still returns no output. That eliminates contract resolution as
+the explanation for the repeated no-output dispatches and isolates the fault to
+the audit agent's ability to process this packet. The packet is large:
+`report.md` is 6863 lines and the audit ledger now carries eight attempts.
+
+#### Finding disposition
+
+- `BUG001-E009-STATUS-MIRROR` — **ADDRESSED.** Confirmed by the orchestrator's
+  own verification above (resolver exit 0 plus a full gate battery), NOT by any
+  claim from `bubbles.audit`, which evaluated nothing in this attempt.
+- `BUG001-G022-AUDIT` — **OPEN.** `execution.completedPhaseClaims` omits
+  `audit`, because no audit has ever evaluated this packet.
+- `BUG001-G027-CERTIFICATION` — **OPEN.** Certification is owned exclusively by
+  `bubbles.validate` and cannot be written here.
+
+Neither open finding can be closed from this seat without publishing a phase
+claim for work that did not run. Manufacturing that claim is the precise
+fabrication G022 and G027 exist to detect, so both stay open and the packet
+stays `in_progress`. This is the honest state, not a stalled one: the single
+remaining action is an audit run that actually produces output.
+

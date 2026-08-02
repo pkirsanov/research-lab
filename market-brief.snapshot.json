@@ -1,26 +1,26 @@
 {
-  "asOf": "2026-08-02T14:30:22.947Z",
-  "generatedAt": "2026-08-02T14:30:22.947Z",
-  "window": "morning",
+  "asOf": "2026-08-02T18:30:23.277Z",
+  "generatedAt": "2026-08-02T18:30:23.277Z",
+  "window": "pre-close",
   "marketClosed": true,
   "nextSessionDate": "2026-08-03",
   "dataFreshness": {
     "bars": {
-      "updated": "2026-08-02T14:30:14.934Z",
+      "updated": "2026-08-02T18:30:14.252Z",
       "symbolCount": 287,
       "expectedSessionDate": "2026-07-31",
       "refreshDate": "2026-08-02",
-      "refreshWindow": "morning",
+      "refreshWindow": "pre-close",
       "freshSymbolCount": 287,
       "carriedSymbolCount": 0,
       "missingSymbolCount": 0
     },
     "options": {
-      "updated": "2026-08-02T14:30:18.478Z",
+      "updated": "2026-08-02T18:30:17.772Z",
       "symbolCount": 22,
       "expectedSessionDate": null,
       "refreshDate": "2026-08-02",
-      "refreshWindow": "morning",
+      "refreshWindow": "pre-close",
       "freshSymbolCount": 22,
       "carriedSymbolCount": 0,
       "missingSymbolCount": 0
@@ -531,7 +531,7 @@
   "toolReads": {
     "sector-research-lab": {
       "id": "sector-research-lab",
-      "asOf": "2026-08-02T14:30:21.672Z",
+      "asOf": "2026-08-02T18:30:21.691Z",
       "read": "Rotate toward XLY as XLE weakens.",
       "metrics": {
         "into": {
@@ -651,19 +651,19 @@
     "global-rotation-lab": {
       "id": "global-rotation-lab",
       "asOf": "2026-07-31T13:30:00.000Z",
-      "read": "EWS (Singapore) leads global rotation at 83.5/100 versus ACWI; EPHE is next.",
+      "read": "EWS (Singapore) leads global rotation at 83.7/100 versus ACWI; EPHE is next.",
       "metrics": {
         "benchmark": "ACWI",
         "leader": {
           "ticker": "EWS",
           "country": "Singapore",
-          "score": 83.5,
+          "score": 83.7,
           "rel21": 8.49,
           "rel63": 9.5,
           "rel126": 6.66,
           "trend": "Strong uptrend",
           "fx": "FX neutral",
-          "fxStrength": 0.09,
+          "fxStrength": 0.25,
           "vol": 15.38,
           "maxDrawdown": 7.82,
           "asOf": "2026-07-31T13:30:00.000Z"
@@ -672,13 +672,13 @@
           {
             "ticker": "EWS",
             "country": "Singapore",
-            "score": 83.5,
+            "score": 83.7,
             "rel21": 8.49,
             "rel63": 9.5,
             "rel126": 6.66,
             "trend": "Strong uptrend",
             "fx": "FX neutral",
-            "fxStrength": 0.09,
+            "fxStrength": 0.25,
             "vol": 15.38,
             "maxDrawdown": 7.82,
             "asOf": "2026-07-31T13:30:00.000Z"
@@ -712,31 +712,31 @@
             "asOf": "2026-07-31T13:30:00.000Z"
           },
           {
+            "ticker": "EWA",
+            "country": "Australia",
+            "score": 66.4,
+            "rel21": 5.72,
+            "rel63": -3.01,
+            "rel126": -2.64,
+            "trend": "Strong uptrend",
+            "fx": "FX neutral",
+            "fxStrength": -0.26,
+            "vol": 18.29,
+            "maxDrawdown": 10.01,
+            "asOf": "2026-07-31T13:30:00.000Z"
+          },
+          {
             "ticker": "EWC",
             "country": "Canada",
-            "score": 66.1,
+            "score": 66.3,
             "rel21": 2.78,
             "rel63": -2.07,
             "rel126": -1.77,
             "trend": "Strong uptrend",
             "fx": "Confirms weakness",
-            "fxStrength": -0.89,
+            "fxStrength": -0.8,
             "vol": 12.05,
             "maxDrawdown": 8.51,
-            "asOf": "2026-07-31T13:30:00.000Z"
-          },
-          {
-            "ticker": "EWA",
-            "country": "Australia",
-            "score": 64.7,
-            "rel21": 5.72,
-            "rel63": -3.01,
-            "rel126": -2.64,
-            "trend": "Strong uptrend",
-            "fx": "Confirms weakness",
-            "fxStrength": -1.5,
-            "vol": 18.29,
-            "maxDrawdown": 10.01,
             "asOf": "2026-07-31T13:30:00.000Z"
           },
           {
@@ -762,7 +762,7 @@
     "real-assets-lab": {
       "id": "real-assets-lab",
       "asOf": "2026-07-31T13:30:00.000Z",
-      "read": "CPER leads real assets at 54.4/100; GLD 16.6, BTC 30.9, SLV 0.",
+      "read": "CPER leads real assets at 54.4/100; GLD 16.6, BTC 31.3, SLV 0.",
       "metrics": {
         "leader": {
           "ticker": "CPER",
@@ -1032,7 +1032,7 @@
                   "TLT",
                   "TIP"
                 ],
-                "score": 46.35800687041147,
+                "score": 46.35798252980622,
                 "detail": "TLT direction plus TIP-vs-TLT is a rough rate mix, not a direct real-yield series."
               }
             ],
@@ -1081,12 +1081,12 @@
           "BTC-USD": {
             "ticker": "BTC-USD",
             "model": "bitcoin",
-            "score": 30.9,
+            "score": 31.3,
             "trend": "Downtrend",
-            "mom21": -1.09,
-            "mom63": -14.29,
-            "mom126": -4.39,
-            "vol": 35.24,
+            "mom21": -0.85,
+            "mom63": -14.08,
+            "mom126": -4.15,
+            "vol": 35.26,
             "maxDrawdown": 28.71,
             "riskPenalty": 5.68,
             "confirmations": [
@@ -1435,7 +1435,7 @@
     },
     "market-heatmap-lab": {
       "id": "market-heatmap-lab",
-      "asOf": "2026-08-02T14:30:22.826Z",
+      "asOf": "2026-08-02T18:30:23.122Z",
       "read": "Leadership is narrow — 48.64% of 135 constituents are positive against a 60% broad-market threshold.",
       "deepLink": "market-heatmap-lab.html",
       "source": "owning-tool-functions",
@@ -1589,13 +1589,13 @@
       "id": "global-rotation-lab",
       "deepLink": "global-rotation-lab.html",
       "status": "fresh-headless",
-      "reason": "EWS (Singapore) leads global rotation at 83.5/100 versus ACWI; EPHE is next."
+      "reason": "EWS (Singapore) leads global rotation at 83.7/100 versus ACWI; EPHE is next."
     },
     {
       "id": "real-assets-lab",
       "deepLink": "real-assets-lab.html",
       "status": "fresh-headless",
-      "reason": "CPER leads real assets at 54.4/100; GLD 16.6, BTC 30.9, SLV 0."
+      "reason": "CPER leads real assets at 54.4/100; GLD 16.6, BTC 31.3, SLV 0."
     },
     {
       "id": "bond-regime-lab",

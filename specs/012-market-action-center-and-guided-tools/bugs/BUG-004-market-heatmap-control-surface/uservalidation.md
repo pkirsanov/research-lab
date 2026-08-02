@@ -2,4 +2,8 @@
 
 ## Checklist
 
-- [x] Planning baseline recorded: final user acceptance requires automatic direct-Simple readiness, five functional Simple controls, three functional direct-Power controls, and zero post-hydration lever requests. This checklist entry does not claim implementation, deployment, test passage, or certification.
+- [x] Direct Simple cold-open automatically becomes ready after hydration without toggling modes.
+- [x] Simple exposes all five controls, and each updates the heatmap locally without refetching.
+- [x] Direct Power exposes the original time-window, size, and grouping controls with selected states, visible keyboard focus, and local recompute.
+- [x] Changing grouping uses the boot-hydrated universe without a new request.
+- [x] Wrong-tool or wrong-view events do not disable or mutate the current heatmap controls.

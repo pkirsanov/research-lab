@@ -4,36 +4,45 @@ Links: [bug.md](bug.md) | [spec.md](spec.md) | [design.md](design.md) | [scopes.
 
 ## Summary
 
-The independent TEST phase is complete for BUG-004 SCOPE-01. Independent
-execution reproduced three valid immutable RED discriminators, passed all 11
-Test Plan rows on current behavior, and closed the pre-close quality checks with
-zero reality-scan violations or warnings and zero regression-quality violations
-or warnings. A source/test identity audit found one later concurrent change in
-the shared TP-B004-10 test file; only that affected row was rerun against current
-blob `4a65659588dec6d58d16afdfaf205c6d8a6cbf5c`, where all four tests passed with
-zero skipped, unexpected, or flaky results. No product source, test,
-certification field, parent artifact, or unrelated dirty path was changed by
-this closeout.
+PRE-AUDIT validation is complete for BUG-004 SCOPE-01. Repository packet
+revision 20 was accepted against authoritative session control. Playwright
+discovery listed exactly 8 planned tests in the 2 selected files without
+executing them; the authoritative latest-run artifact retained mtime
+`2026-07-31 13:35:23.490021915 +0000`, status `passed`, and an empty
+`failedTests` array, and no Playwright, Chrome, or Chromium process remained.
+Artifact lint, Claim-Source lint, implementation reality, traceability, and the
+regression baseline are clean. The registry-bound transition guard reaches only
+the expected pre-audit boundary: certification scope state remains untouched,
+the validate claim is being recorded by this increment, and an independent
+audit has not run. No product source, test, planning artifact, parent Feature
+012 artifact, or certification field is changed by this validation closeout.
 
 ## Completion Statement
 
-Independent testing and the execution-side SCOPE-01 Definition of Done are
-complete. The required later `regression`, `simplify`, `gaps`, `harden`,
-`stabilize`, `devops`, `security`, `validate`, `audit`, and `finalize` phases
-remain unclaimed. Deployment verification and certification are also unclaimed;
-top-level and certification status remain `in_progress`, and the next required
-owner is `bubbles.regression`.
+The validate phase completed diagnostically and does not certify the bug.
+Execution-side SCOPE-01 remains Done at 22/22 checked DoD items, while top-level
+`status` and `certification.status` remain `in_progress`; certification scope
+progress, completed scopes, completed phases, and terminal timestamps remain
+unchanged. `TR-BUG004-VALIDATE` is resolved by the evidence below. The required
+next owner is `bubbles.audit` under `delivery-completion-v1`; audit, finalize,
+deployment, and terminal certification remain unclaimed.
 
 ## Findings
 
 | Finding | State | Evidence | Required disposition |
 |---|---|---|---|
-| F-BUG004-A | Open | Bridge listens to `rlviews:change` only; heatmap hydration reaches `ready` without a bridge refresh. | Add a tool-scoped shared owner-state refresh and latest-result guard. |
-| F-BUG004-B | Open | Discovery `HEAD` had no shared control renderer and deployed fetch returned `Simple model unavailable`; concurrent commit `2f65a02a` now adds local controls but deployment/direct-cold-open readiness are unverified. | Preserve `2f65a02a` and retain a persistent five-control deployment/cold-open regression. |
-| F-BUG004-C | Open | Native controls are children of `.simple-only`; Power hides that parent. | Relocate the native lever container outside the Power-hidden block. |
-| F-BUG004-D | Open | Existing test waits for hydration, then clicks Power and Simple before requiring ready. | Add a direct-Simple test that never toggles modes. |
-| F-BUG004-E | Open | Existing Power assertion checks panel hidden and `rlv-focused` absent, not `#winSeg/#sizeSeg/#grpSeg`. | Add a direct-Power visibility and functionality regression. |
-| F-BUG004-F | Preserved | `rlexperience.js` and `tests/simple-production-wiring.spec.mjs` were active concurrent edits and became commit `2f65a02a` during filing. | Build on that commit; do not overwrite, revert, stash, or reset its work. |
+| F-BUG004-A | Resolved | Immutable stale-Simple RED plus direct-Simple GREEN without a mode change. | None; independently audited disposition required. |
+| F-BUG004-B | Resolved | Historical missing-controls RED plus current five-control owner-parity GREEN and protected wiring coverage. | None; independently audited disposition required. |
+| F-BUG004-C | Resolved | Immutable hidden-Power-control RED plus current native-control visibility, semantics, output, and no-request GREEN. | None; independently audited disposition required. |
+| F-BUG004-D | Resolved | Persistent direct-Simple adversarial regression and clean bugfix regression-quality guard. | None; independently audited disposition required. |
+| F-BUG004-E | Resolved | Persistent direct-Power adversarial regression covers all three native control groups. | None; independently audited disposition required. |
+| F-BUG004-F | Preserved | Protected commit `2f65a02a` remains in the history and no stash, reset, revert, or overwrite occurred. | Preserve during audit. |
+| GAP-BUG004-001 | Resolved | Exact coordinator titles execute individually and the full bridge carrier is non-vacuous. | None; independently audited disposition required. |
+| GAP-BUG004-002 | Resolved | Accepted-generation invalidation, stale-control inertia, latest-pending replacement, and settlement are implemented and tested. | None; independently audited disposition required. |
+| GAP-BUG004-003 | Resolved | Native Power groups expose selected state and visible keyboard focus with current browser proof. | None; independently audited disposition required. |
+| GAP-BUG004-004 | Resolved | Canonical Market Heatmap notes match the implemented five-Simple/three-Power contract. | None; independently audited disposition required. |
+| SEC-BUG004-001 | Resolved | Listener ordering, exact selector tests, current-DOM probe, regression, and final security revalidation are clean. | None; independently audited disposition required. |
+| PRE-AUDIT-BOUNDARY | Routed | The asserted transition guard reports only untouched certification-scope coherence plus missing validate/audit phase records; this increment records validate but cannot claim audit. | `bubbles.audit` must run the registry-resolved independent audit before any terminal certification. |
 
 ## Repository Binding Evidence
 
@@ -4383,7 +4392,9 @@ test at tests/simple-production-bridge.unit.mjs:567:1
 	+   staleReadyActive: 'ready',
 	-   staleReadyActive: null,
 			staleReadyReads: 2,
+
 			staleReadyWrites: [
+
 				'ready',
 	+     'ready'
 			]
@@ -8624,3 +8635,1274 @@ STATE_EVIDENCE_REF_PRESENT=true
 STATE_JSON_PARSE=PASS
 ALLOWED_PATH_DIFF_CHECK_EXIT=0
 ```
+
+## Pre-Audit Validation (bubbles.validate) - 2026-07-31
+
+### Validation Evidence
+
+#### Repository Binding And Registry Contract
+
+**Phase:** validate
+
+**Executed:** YES (current session)
+
+**Command:** `export BUBBLES_SESSION_CONTROL_HOME=/home/redacted/.local/state/bubbles-session-control && timeout 30 bash .github/bubbles/scripts/repository-binding.sh validate-packet --session-id vscode-eb9cb76de5cf2a992bf149706789fb73 --session-control-file /home/redacted/.local/state/bubbles-session-control/vscode-eb9cb76de5cf2a992bf149706789fb73/repository-binding.json --packet-file /home/redacted/.local/state/bubbles-session-control/vscode-eb9cb76de5cf2a992bf149706789fb73/request-packet-r20.json`, followed by `timeout 30 bash .github/bubbles/scripts/transition-contract-resolver.sh specs/012-market-action-center-and-guided-tools/bugs/BUG-004-market-heatmap-control-surface`
+
+**Exit Code:** 0 for both commands
+
+**Claim Source:** executed
+
+```text
+=== repository packet validation ===
+REPOSITORY PACKET VALID actionable=true repository=research-lab root=/home/redacted/research-lab decision=rb:vscode-eb9cb76de5cf2a992bf149706789fb73:20 revision=20
+packet_exit=0
+session=vscode-eb9cb76de5cf2a992bf149706789fb73
+decision=rb:vscode-eb9cb76de5cf2a992bf149706789fb73:20
+revision=20
+digest=sha256:308a8e9feb4ffd49dac1dced22b497b576d5a88570bf7bf1cd0abef5e1ffb0f8
+repository_alias=research-lab
+repository_root=/home/redacted/research-lab
+=== transition contract ===
+workflowMode=bugfix-fastlane
+auditProfile=delivery-completion-v1
+statusCeiling=done
+targetStatus=done
+currentStatus=in_progress
+phaseOrder=select,bootstrap,implement,test,regression,simplify,gaps,harden,stabilize,devops,security,validate,audit,finalize
+contractDigest=sha256:aa91472c047d3d985d38c1d308feb1e6081955b2aa553816deb5987d9cdc449f
+targetRevision=sha256:e8dd881712b4eefec03cca28ad1daa3ecdc35da09754bb55281853bbba02ce7f
+resolver_exit=0
+captured_at=2026-07-31T13:45:27Z
+```
+
+The target revision above is the fresh pre-route revision. The resolver hashes
+non-audit report content and canonical non-audit state, so the audit owner must
+resolve current bytes again after this validate-owned evidence and routing
+mutation rather than treating the pre-route revision as immutable audit output.
+
+<a name="audit-evidence-bubblesaudit-2026-07-31"></a>
+## Audit Evidence (bubbles.audit) - 2026-07-31
+
+**Phase:** audit
+
+**Claim Source:** executed except for the explicitly reviewed interpreted
+evidence and the retained browser-artifact admission described below
+
+**Attempt:** `AUD-BUG004-A1` (resumed from phase 3; no second attempt created)
+
+### Audit Checklist Summary
+
+| Audit check | Result | Executed evidence |
+|---|---|---|
+| Repository packet revision 20 | PASS | `repository-binding.sh validate-packet` exit 0, actionable research-lab root |
+| Contract binding | PASS | `bugfix-fastlane`, `delivery-completion-v1`, target `done`, digest `sha256:aa91472c047d3d985d38c1d308feb1e6081955b2aa553816deb5987d9cdc449f` |
+| Unit carrier | PASS | `node --test tests/simple-production-bridge.unit.mjs`: 14/14, 0 failed/skipped |
+| Integration carrier | PASS | `node --test tests/simple-production-bridge.integration.mjs`: 6/6, 0 failed/skipped |
+| Shell boundary carrier | PASS | `node --test tests/tool-experience-shell.unit.mjs`: 7/7, 0 failed/skipped |
+| Canonical repository selftest | PASS | `node scripts/selftest.mjs`: 970 passed, 0 failed |
+| Retained browser matrix | PASS BY CURRENT TERMINAL ARTIFACT | `.last-run.json` status `passed`, `failedTests: []`, mtime `2026-07-31 13:35:23.490021915 +0000`; pre-audit discovery mechanically listed 8 tests in 2 files; no rerun per audit instruction |
+| Browser/process residue | PASS | process scan exit 1 with no Playwright/Chrome/Chromium match |
+| Artifact lint | PASS | exit 0 |
+| Claim-source lint | PASS | exit 0 |
+| Implementation reality, G047, G048 | PASS | 1 file, 0 violations, 0 warnings |
+| Traceability | PASS | 4 scenarios, 12 test rows, 4/4 DoD mappings, 0 warnings |
+| Regression baseline | PASS | exit 0; no route/endpoint collision |
+| Bugfix regression quality | PASS | 0 violations, 0 warnings; adversarial signal found |
+| Skip markers | PASS | scan exit 1, zero matches |
+| Live-test authenticity | PASS AFTER MANUAL CLASSIFICATION | all grep hits are comments documenting prohibition or observation; no executable interception call |
+| Transition guard after audit claim | REWORK REQUIRED | exit 1; failed gate `[G027]`, two validate-owned completed-scope coherence failures; audit and all prior required phases now present |
+
+### Independent Fast Verification
+
+```text
+UNIT current: tests 14 | pass 14 | fail 0 | cancelled 0 | skipped 0 | todo 0
+INTEGRATION current: tests 6 | pass 6 | fail 0 | cancelled 0 | skipped 0 | todo 0
+SHELL current: tests 7 | pass 7 | fail 0 | cancelled 0 | skipped 0 | todo 0
+SELFTEST current: Research-Lab self-test: 970 passed, 0 failed
+ARTIFACT_LINT_EXIT=0
+CLAIM_SOURCE_LINT_EXIT=0
+IMPLEMENTATION_REALITY_EXIT=0 violations=0 warnings=0
+TRACEABILITY_EXIT=0 scenarios=4 rows=12 dod=4/4 warnings=0
+REGRESSION_BASELINE_EXIT=0
+REGRESSION_QUALITY_EXIT=0 violations=0 warnings=0
+SKIP_MARKER_SCAN_EXIT=1 matches=0
+BROWSER_ARTIFACT status=passed failedTests=[] mtime=2026-07-31T13:35:23.490021915Z
+BROWSER_PLAN expected=8 files=2
+BROWSER_PROCESS_SCAN_EXIT=1 matches=0
+```
+
+### Evidence Provenance Review
+
+Every `**Claim Source:** interpreted` block was reviewed against its stated
+interpretation and raw or referenced evidence. The early reporter observation,
+planning uncertainty, and initial TP-B004-07 uncertainty are historical and are
+superseded by the persistent immutable RED and current GREEN evidence. The
+marker-aware focused result correctly declines standalone evidentiary weight
+because its argv is absent; the complete four-test carrier is the evidence of
+record. Identity-admitted browser blocks use exact source/test identities and do
+not claim a rerun. Simplify, docs, stabilize, security, test-revalidation, and
+pre-audit interpretations are consistent with their executed checks. No
+interpreted block overstates deployment, certification, or current execution.
+
+### Minimum-Length Evidence Review
+
+The eight exactly-10-line raw fences at report lines beginning 181, 3113, 3280,
+4068, 4239, 5952, 6888, and 7445 were reviewed. They respectively prove the
+protected concurrent commit, bounded route/control inventory, external browser
+process precondition, nine-carrier identity, exact TP-B004-01 non-vacuity,
+residue classification, canonical selftest summary, and direct rejection
+contract. Each carries the expected discriminating signal; none is used alone
+to establish a broader claim than its output supports.
+
+### Resolved Uncertainty Review
+
+The four uncertainty declarations are historical and resolved by later evidence:
+
+1. Reporter-only dynamic observation is superseded by immutable browser RED and current persistent GREEN.
+2. Planning's not-run uncertainty is superseded by implementation, independent test, regression, security, and pre-audit validation evidence.
+3. The initially masked TP-B004-07 immutable run is superseded by the surgical historical-controls RED that reached the missing-control discriminator.
+4. The initial TP-B004-08 focus-modality failure is superseded by the corrected real keyboard traversal and exact 1/1 plus dedicated 4/4 browser evidence.
+
+No unchecked DoD item, `observations[]`, or legacy `done_with_concerns` state
+exists. Scope `SCOPE-01` is execution-side Done at 22/22; certification scope
+progress remains intentionally nonterminal and validate-owned.
+
+### Finding Accounting
+
+| Finding | Audit disposition |
+|---|---|
+| F-BUG004-A | ADDRESSED: immutable stale-Simple RED plus persistent direct-Simple GREEN without a mode change; retained browser artifact is passed. |
+| F-BUG004-B | ADDRESSED: immutable missing-control RED plus all-five-control owner parity and zero-request regression. |
+| F-BUG004-C | ADDRESSED: immutable hidden-Power RED plus direct-Power visibility, selection, focus, output, pixel, and no-request evidence. |
+| F-BUG004-D | ADDRESSED: direct-Simple adversarial regression is persistent; bugfix regression-quality guard is clean. |
+| F-BUG004-E | ADDRESSED: direct-Power adversarial regression covers all three native groups. |
+| F-BUG004-F | ADDRESSED/PRESERVED: `2f65a02a` remains an ancestor; no staged entry, stash, reset, revert, or extra worktree was introduced. |
+| GAP-BUG004-001 | ADDRESSED: exact TP-B004-01..04 tests exist; current full unit carrier is 14/14. |
+| GAP-BUG004-002 | ADDRESSED: accepted-generation, stale-control, latest-successor, and settlement behavior is covered by current unit execution. |
+| GAP-BUG004-003 | ADDRESSED: semantic selection and visible keyboard focus are covered by persistent browser evidence and retained passed artifact. |
+| GAP-BUG004-004 | ADDRESSED: canonical note has one source-level LIVE statement, five Simple controls, three accessible Power groups, automatic requalification, and zero post-hydration acquisition; contradiction scan has zero hits. |
+| SEC-BUG004-001 | ADDRESSED: exact wrong-tool listener regression passes in the current 14/14 unit carrier; reality scan reports no G047/G048 violations and final security evidence is clean. |
+
+All 11 expected finding IDs appear exactly once in `addressedFindings`. None
+appears in `unresolvedFindings`. The only routed remainder is mechanical gate
+`G027`, which was not part of the expected finding set and belongs to
+`bubbles.validate` because it requires certification-scope coherence.
+
+## Spot-Check Recommendations
+
+These items passed their substantive checks but warrant human review:
+
+1. **Interpreted evidence blocks** - Verify the historical-to-current supersession chain, especially identity-admitted browser evidence and the docs/security interpretations; none claims a browser rerun or deployment.
+2. **Eight minimum-length evidence fences** - Verify the exact 10-line blocks still show their discriminating signal and were not promoted beyond their narrow claim.
+3. **Resolved uncertainty declarations** - Verify the immutable TP-B004-07 discriminator and corrected keyboard-focus evidence are the intended superseding records.
+4. **G027 route** - Verify `bubbles.validate` reconciles certification scope progress from this audit without treating audit itself as certification or finalize.
+
+### Final Audit Report
+
+Attempt `AUD-BUG004-A1` remains ACTIVE with verdict `REWORK_REQUIRED` and
+outcome `route_required`. All 11 expected findings remain addressed exactly
+once; `G027` remains the sole unresolved finding and is routed to
+`bubbles.validate`. The target revision, contract digest, certification, status,
+scope, transition, and finding accounting are unchanged.
+
+The authoritative ordered machine transcript is
+[audit-result-AUD-BUG004-A1.txt](audit-result-AUD-BUG004-A1.txt). This report
+retains the human audit rationale and evidence review only.
+
+## ROUTE-REQUIRED
+
+owner: bubbles.validate
+transition: TR-BUG004-POST-AUDIT-VALIDATE
+reason: G027 validate-owned certification completed-scope coherence remains nonterminal after the independent audit addressed all expected findings.
+
+#### Browser Plan And Terminal Artifact
+
+**Phase:** validate
+
+**Executed:** YES (current session; discovery and artifact inspection only)
+
+**Commands:** `timeout 3000 npx --no-install playwright test tests/market-heatmap-control-surface.spec.mjs tests/simple-production-wiring.spec.mjs --config=playwright.config.mjs --project=system-chrome --reporter=list --workers=1 --list`; `stat -c 'mtime=%y size=%s bytes' test-results/.last-run.json`; `cat test-results/.last-run.json`; process check with `pgrep -af '[p]laywright|[c]hrome|[c]hromium'`
+
+**Exit Code:** 0 for discovery and artifact/process inspection
+
+**Claim Source:** interpreted
+
+**Interpretation:** Playwright discovery directly proves the selected plan has
+8 tests in 2 files without executing them. The authoritative latest-run
+artifact directly records aggregate `passed` with no failed test IDs and its
+mtime remains the supplied terminal-run completion time after discovery. These
+two mechanical signals together prove planned count 8 and terminal aggregate
+pass; they do not reconstruct per-test stdout, so no per-test duration or result
+is invented here.
+
+```text
+Listing tests:
+	[system-chrome] › tests/market-heatmap-control-surface.spec.mjs:425:1 › BUG-004 SCN-B004-A: direct Simple cold-open requalifies after owner hydration without a mode change
+	[system-chrome] › tests/market-heatmap-control-surface.spec.mjs:474:1 › BUG-004 SCN-B004-B: ready Simple applies all five registry controls with owner parity and zero post-hydration requests
+	[system-chrome] › tests/market-heatmap-control-surface.spec.mjs:557:1 › BUG-004 SCN-B004-C: direct Power applies native treemap controls with zero post-hydration requests
+	[system-chrome] › tests/market-heatmap-control-surface.spec.mjs:700:1 › BUG-004 SCN-B004-D: boot hydrates the union of both groupings, so the grouping lever acquires nothing
+	[system-chrome] › tests/simple-production-wiring.spec.mjs:48:1 › Regression: market-heatmap Simple renders the real adapter panel in the real owner-mode flow
+	[system-chrome] › tests/simple-production-wiring.spec.mjs:198:1 › TP-15-03 market-heatmap Simple renders real steerable controls and actuating one recomputes the production projection with no refetch
+	[system-chrome] › tests/simple-production-wiring.spec.mjs:831:1 › TP-15-04 every wired ordinary tool paints its real Simple adapter panel with an owner-parity fact
+	[system-chrome] › tests/simple-production-wiring.spec.mjs:942:1 › TP-15-04 the swept set is derived from the production registry + pages, and the honest-degradation cases are registry/provider derived
+Total: 8 tests in 2 files
+=== authoritative browser artifact ===
+mtime=2026-07-31 13:35:23.490021915 +0000 size=45 bytes
+{
+	"status": "passed",
+	"failedTests": []
+}
+=== browser process check ===
+background process check: PASS (none)
+```
+
+The browser tests were not rerun by this increment.
+
+#### Canonical Governance Preflight
+
+**Phase:** validate
+
+**Executed:** YES (current session)
+
+**Commands:** focused BUG-004 artifact lint; Claim-Source lint; implementation
+reality scan `--verbose`; traceability guard; regression baseline guard
+`--verbose`; registry-asserted state-transition guard with target `done`, mode
+`bugfix-fastlane`, and contract digest
+`sha256:aa91472c047d3d985d38c1d308feb1e6081955b2aa553816deb5987d9cdc449f`
+
+**Exit Code:** artifact lint 0; Claim-Source lint 0; implementation reality 0;
+traceability 0; regression baseline 0; pre-audit transition guard 1
+
+**Claim Source:** interpreted
+
+**Interpretation:** The five green governance commands directly prove their
+named contracts. The transition guard is intentionally nonterminal: before this
+state edit it reports five failures composed solely of the untouched
+certification scope mirror, missing validate, missing audit, the aggregate
+missing-phase count, and resulting G027 coherence. It passes G061, all 22 DoD
+items, all prior required phases, artifacts, freshness, implementation delta,
+reality, G040, G068, and the remaining applicable gates. The guard output is
+therefore admissible as a clean pre-audit boundary but not as terminal
+certification.
+
+```text
+Artifact lint PASSED.
+[claim-source-lint] OK — every execution-evidence block carries a valid Claim Source tag
+IMPLEMENTATION REALITY SCAN RESULT
+Files scanned:  1
+Violations:     0
+Warnings:       0
+PASSED: No source code reality violations detected
+TRACEABILITY RESULT: PASSED (0 warnings)
+Scenarios checked: 4
+Test rows checked: 12
+Scenario-to-row mappings: 4
+DoD fidelity scenarios: 4 (mapped: 4, unmapped: 0)
+Regression baseline guard: PASSED
+--- Check 3F: Transition And Rework Packets (Gate G061) ---
+PASS: transitionRequest TR-BUG004-VALIDATE is open-but-routed to 'bubbles.validate' (Gate G061 allowance)
+PASS: state.json reworkQueue is empty
+PASS: Transition and rework routing is closed
+DoD items total: 22 (checked: 22, unchecked: 0)
+PASS: All 22 DoD items are checked [x]
+Resolved scopes: total=1, Done=1, In Progress=0, Not Started=0, Blocked=0
+BLOCK: Resolved scope artifacts report 1 Done scope(s) but state.json completedScopes is EMPTY — state.json integrity failure
+BLOCK: Required phase 'validate' NOT in execution/certification phase records (Gate G022 violation)
+BLOCK: Required phase 'audit' NOT in execution/certification phase records (Gate G022 violation)
+BLOCK: 2 specialist phase(s) missing — work was NOT executed through the full pipeline
+BLOCK: Execution/certification phases claim implement/test phases but completedScopes is EMPTY — FABRICATION (Gate G027)
+TRANSITION BLOCKED: 5 failure(s), 1 warning(s)
+workflowMode: bugfix-fastlane
+auditProfile: delivery-completion-v1
+targetStatus: done
+contractDigest: sha256:aa91472c047d3d985d38c1d308feb1e6081955b2aa553816deb5987d9cdc449f
+targetRevision: sha256:e8dd881712b4eefec03cca28ad1daa3ecdc35da09754bb55281853bbba02ce7f
+passedGateIds: [G004,G061,G053,G040,G051,G068,G082,G083,G084,G128,G085,G086,G091,G087,G093,G088,G089,G092,G090,G094,G095,G097,G098,G099,G100,G130,G131]
+failedGateIds: [G022,G027]
+blockingCode: DELIVERY_COMPLETION_FAILED
+failureCount: 5
+exitStatus: 1
+verdict: FAIL
+```
+
+#### Nonterminal State Boundary
+
+**Phase:** validate
+
+**Executed:** YES (current session)
+
+**Command:** `jq -r <nonterminal-state-projection> specs/012-market-action-center-and-guided-tools/bugs/BUG-004-market-heatmap-control-surface/state.json`
+
+**Exit Code:** 0
+
+**Claim Source:** executed
+
+```text
+status=in_progress
+certification.status=in_progress
+certification.certifiedAt=null
+certification.completedScopes.count=0
+certification.scopeProgress=[{"scope":1,"scopeId":"SCOPE-01","name":"Restore Automatic Simple Readiness And Both Control Surfaces","status":"not_started","dependsOn":[],"scopeDir":null,"evidenceFile":"report.md","certifiedAt":null}]
+certification.certifiedCompletedPhases.count=0
+execution.audit.currentAttemptId=null
+execution.audit.attempts.count=0
+execution.pendingTransitionRequests=["TR-BUG004-VALIDATE"]
+transition.open=["TR-BUG004-VALIDATE"]
+reworkQueue.count=0
+completedAt=null
+```
+
+### Pre-Audit Disposition
+
+The validate-owned boundary is clean for routing, not certification. There is
+no current audit attempt, the registry phase order still contains `audit`, and
+the resolved audit profile is `delivery-completion-v1`. `TR-BUG004-VALIDATE`
+can therefore close only by recording the validate execution claim and opening
+`TR-BUG004-AUDIT` to `bubbles.audit`. Audit must create and complete its own
+attempt before validate may revisit terminal certification. No audit, finalize,
+deployment, assurance, or terminal status claim is made here.
+
+<a name="post-audit-validation-bubblesvalidate-2026-07-31"></a>
+## Post-Audit Validation (bubbles.validate) - 2026-07-31
+
+### Repository Binding And Fresh Contract
+
+**Phase:** validate
+
+**Executed:** YES (current session)
+
+**Command:** `repository-binding.sh validate-packet` against the host-private revision-22 packet, followed by `transition-contract-resolver.sh` for the BUG-004 directory
+
+**Exit Code:** 0 for both commands
+
+**Claim Source:** executed
+
+```text
+REPOSITORY PACKET VALID actionable=true repository=research-lab root=<repo-root> decision=rb:vscode-eb9cb76de5cf2a992bf149706789fb73:22 revision=22
+workflowMode=bugfix-fastlane
+auditProfile=delivery-completion-v1
+statusCeiling=done
+targetStatus=done
+currentStatus=in_progress
+contractDigest=sha256:aa91472c047d3d985d38c1d308feb1e6081955b2aa553816deb5987d9cdc449f
+pre-repair targetRevision=sha256:f49a86a64d6b9bcfd40c461b250bc50fc95d581a0bc87a4d91e8cd51e28ddd0e
+post-repair targetRevision=sha256:7ad84c40193e5068a259dc8b2eb91d1c7fbf442ac9803c6639af471cbedfa6a7
+phaseOrder=select,bootstrap,implement,test,regression,simplify,gaps,harden,stabilize,devops,security,validate,audit,finalize
+```
+
+### G027 Certification-Scope Repair
+
+**Phase:** validate
+
+**Executed:** YES (current session)
+
+**Command:** `timeout 600 bash .github/bubbles/scripts/state-transition-guard.sh specs/012-market-action-center-and-guided-tools/bugs/BUG-004-market-heatmap-control-surface --target-status done --expect-workflow-mode bugfix-fastlane --expect-contract-digest sha256:aa91472c047d3d985d38c1d308feb1e6081955b2aa553816deb5987d9cdc449f`
+
+**Exit Code:** 0
+
+**Claim Source:** executed
+
+```text
+DoD items total: 22 (checked: 22, unchecked: 0)
+PASS: All 22 DoD items are checked [x]
+Resolved scopes: total=1, Done=1, In Progress=0, Not Started=0, Blocked=0
+PASS: All 1 scope(s) are marked Done
+PASS: completedScopes count matches artifact Done scope count (1)
+PASS: Required phase 'validate' recorded in execution/certification phase records
+PASS: Required phase 'audit' recorded in execution/certification phase records
+PASS: completedScopes (1) matches artifact Done scopes (1)
+PASS: Phase-Scope coherence verified: implementation phases align with completed scopes
+TRANSITION PERMITTED with 1 warning(s)
+workflowMode: bugfix-fastlane
+auditProfile: delivery-completion-v1
+targetStatus: done
+contractDigest: sha256:aa91472c047d3d985d38c1d308feb1e6081955b2aa553816deb5987d9cdc449f
+targetRevision: sha256:7ad84c40193e5068a259dc8b2eb91d1c7fbf442ac9803c6639af471cbedfa6a7
+failedGateIds: []
+failedChecks: []
+failureCount: 0
+exitStatus: 0
+verdict: PASS
+```
+
+The warning is the guard's existing report-evidence heuristic; it is not a
+failed gate. G027 is mechanically clear. Certification now mirrors the one
+actual Done scope and the already-executed phase records, while both statuses,
+terminal timestamps, and assurance remain nonterminal.
+
+### Audit-Verdict Compatibility
+
+**Phase:** validate
+
+**Executed:** YES (current session)
+
+**Commands:** `audit-result-contract-lint.sh --result audit-result-AUD-BUG004-A1.txt`; direct field extraction from the same standalone transcript
+
+**Exit Code:** 0 for contract lint and field extraction
+
+**Claim Source:** executed
+
+```text
+audit-result-contract-lint: PASS result audit-result-AUD-BUG004-A1.txt (delivery-completion/REWORK_REQUIRED)
+attemptId: AUD-BUG004-A1
+resultState: ACTIVE
+auditVerdict: REWORK_REQUIRED
+outcome: route_required
+deliveryEvaluation: REFUSED
+contractDigest: sha256:aa91472c047d3d985d38c1d308feb1e6081955b2aa553816deb5987d9cdc449f
+audit targetRevision: sha256:0d552499a284e6fc8508a4e722b8296ad2ff35825f45ccf8f1157265abf31015
+post-repair targetRevision: sha256:7ad84c40193e5068a259dc8b2eb91d1c7fbf442ac9803c6639af471cbedfa6a7
+unresolvedFindings: [G027]
+nextRequiredOwner: bubbles.validate
+audit-verdict-compatible-with-terminal-certification=false
+```
+
+Contract lint proves the refusal transcript is internally valid; it does not
+turn that refusal into a positive delivery verdict. Because the installed
+delivery contract requires a positive, current-revision audit before terminal
+certification, assurance derivation and terminal status writes were not run.
+`AUD-BUG004-A1` remains unchanged. `TR-BUG004-POST-AUDIT-VALIDATE` is resolved,
+and exactly one same-repo transition, `TR-BUG004-AUDIT-SUPERSEDE-A1`, routes a
+superseding delivery-completion attempt to `bubbles.audit`.
+
+### Routed-State Validation Matrix
+
+**Phase:** validate
+
+**Executed:** YES (current session)
+
+**Commands:** canonical BUG-004 artifact, provenance, reality, traceability,
+baseline, freshness, changed-spec, asserted-transition, audit-result, and
+assurance checks; complete bridge unit/integration, shell-boundary, and
+repository selftest carriers
+
+**Exit Code:** 0 for every applicable BUG-004 command
+
+**Claim Source:** executed
+
+```text
+Artifact lint PASSED.
+[claim-source-lint] OK — every execution-evidence block carries a valid Claim Source tag
+IMPLEMENTATION REALITY: files=1 violations=0 warnings=0
+TRACEABILITY: PASSED scenarios=4 rows=12 mapped=4 warnings=0
+REGRESSION BASELINE: PASSED
+ARTIFACT FRESHNESS: PASS failures=0 warnings=0
+DONE-SPEC AUDIT: specs=1 status=in_progress lint=PASS completion-gates=SKIPPED
+ASSURANCE CERTIFICATION: OK — no certification.assurance block (no-op)
+AUDIT RESULT LINT: PASS delivery-completion/REWORK_REQUIRED
+STATE GUARD: PASS failedGateIds=[] failureCount=0 exitStatus=0
+UNIT: tests=14 pass=14 fail=0 cancelled=0 skipped=0 todo=0
+INTEGRATION: tests=6 pass=6 fail=0 cancelled=0 skipped=0 todo=0
+SHELL: tests=7 pass=7 fail=0 cancelled=0 skipped=0 todo=0
+SELFTEST: Research-Lab self-test: 970 passed, 0 failed
+E2E: not rerun by this certification-only increment; the audit-owned retained browser artifact remains unchanged
+DEPLOYMENT: not run and not claimed
+```
+
+The feature-directory handoff-cycle command is not applicable because the
+target contains no `.agent.md` definitions. A diagnostic run against the
+installed framework agent directory reported pre-existing framework handoff
+cycles; those framework-managed files are outside BUG-004 ownership and were
+not changed. This does not weaken or replace any BUG-004 gate above.
+
+<a name="audit-evidence-bubblesaudit-a2-2026-07-31"></a>
+## Superseding Audit Evidence (bubbles.audit A2) - 2026-07-31
+
+**Phase:** audit
+
+**Claim Source:** executed
+
+**Attempt:** `AUD-BUG004-A2`, superseding historical refusal
+`AUD-BUG004-A1` without changing A1 evidence.
+
+### Focused Independent Audit Evidence
+
+The inherited revision-23 repository packet validated against authoritative
+session control before repository reads. The fresh resolver reproduced the
+parent contract exactly, and the assertion-bound guard passed the current
+delivery profile. The browser matrix was not rerun; A2 retains the current
+post-audit validate evidence that the authoritative artifact is `passed`, its
+`failedTests` array is empty, and the selected plan mechanically lists eight
+tests. Product source, tests, planning, certification, and deployment surfaces
+were not changed.
+
+```text
+repositoryAlias=research-lab
+decisionId=rb:vscode-eb9cb76de5cf2a992bf149706789fb73:23
+controlRevision=23
+controlPathDigest=sha256:308a8e9feb4ffd49dac1dced22b497b576d5a88570bf7bf1cd0abef5e1ffb0f8
+workflowMode=bugfix-fastlane
+auditProfile=delivery-completion-v1
+targetStatus=done
+contractDigest=sha256:aa91472c047d3d985d38c1d308feb1e6081955b2aa553816deb5987d9cdc449f
+targetRevision=sha256:d7fab1dc5012fe7d3d5a60a69d336874236fcf043556b8935e94bf128fb371c7
+GUARD_EXIT=0
+failedGateIds=[]
+failedChecks=[]
+failureCount=0
+verdict=PASS
+ARTIFACT_LINT_EXIT=0
+audit-result-contract-lint: PASS result specs/012-market-action-center-and-guided-tools/bugs/BUG-004-market-heatmap-control-surface/audit-result-AUD-BUG004-A2.txt (delivery-completion/SHIP_IT)
+A2_RESULT_LINT_EXIT=0
+```
+
+### Finding Continuity
+
+All 11 A1-addressed finding IDs plus prior unresolved `G027` are present exactly
+once in A2 `addressedFindings`; `unresolvedFindings` is empty. The current guard
+directly proves G027 closure. The positive audit result is diagnostic evidence,
+not a certification, deployment, finalize, or top-level status mutation.
+
+## Spot-Check Recommendations
+
+1. **Interpreted historical evidence** - Verify the identity-admitted browser and documentation/security interpretations still make no browser-rerun or deployment claim.
+2. **Eight exactly-10-line evidence fences** - Verify each fence still contains the narrow discriminator identified in A1's minimum-length review.
+3. **Four resolved uncertainty declarations** - Verify the later immutable RED/current GREEN records remain the intended superseding evidence.
+4. **Terminal decision boundary** - Verify `bubbles.validate` treats A2 as audit input and independently owns certification and any finalize decision.
+
+### Audit Verdict
+
+`SHIP_IT` for the registry-resolved delivery-completion audit profile. The
+ordered machine transcript is
+[audit-result-AUD-BUG004-A2.txt](audit-result-AUD-BUG004-A2.txt).
+
+## ROUTE-REQUIRED
+
+NONE
+
+### Audit Persistence And Validation Route
+
+The canonical A2 result contract lint exited 0 on invocation 2 after the same
+attempt moved from lifecycle state `INCOMPLETE` to `ACTIVE`; no additional
+attempt was created. `TR-BUG004-AUDIT-SUPERSEDE-A1` is resolved and
+`TR-BUG004-A2-VALIDATE` is the sole open same-repo route. Top-level
+`status`, `certification.status`, and `certifiedAt` remain respectively
+`in_progress`, `in_progress`, and `null`.
+
+<a name="audit-evidence-bubblesaudit-a3-2026-07-31"></a>
+## Final Superseding Audit Evidence (bubbles.audit A3) - 2026-07-31
+
+**Phase:** audit
+
+**Claim Source:** interpreted
+
+**Interpretation:** The analyst-owned Outcome Contract matches delivered
+BUG-004 behavior because the corrected focused discriminator validates every
+required field and exact behavior clause, traceability still maps all four
+SCN-B004 scenarios to concrete tests and evidence, and the assertion-bound
+done-target guard passes with no failed gates or checks. This audit does not
+reinterpret retained browser evidence as a new run.
+
+**Attempt:** `AUD-BUG004-A3`, superseding stale positive attempt
+`AUD-BUG004-A2`; historical refusal `AUD-BUG004-A1` remains superseded.
+
+### Repository, Contract, And Guard Evidence
+
+**Commands:** revision-25 `repository-binding.sh validate-packet`;
+`transition-contract-resolver.sh`; assertion-bound `state-transition-guard.sh`
+
+**Exit Code:** 0 for packet validation, resolver, and guard
+
+**Claim Source:** executed
+
+```text
+repositoryAlias=research-lab
+decisionId=rb:vscode-eb9cb76de5cf2a992bf149706789fb73:25
+controlRevision=25
+controlPathDigest=sha256:308a8e9feb4ffd49dac1dced22b497b576d5a88570bf7bf1cd0abef5e1ffb0f8
+workflowMode=bugfix-fastlane
+auditProfile=delivery-completion-v1
+targetStatus=done
+contractDigest=sha256:aa91472c047d3d985d38c1d308feb1e6081955b2aa553816deb5987d9cdc449f
+targetRevision=sha256:03b5c79245db4d228bffdc003f898d99d16d2e53d88d9344fd849962b73c90d8
+applicableCheckClasses=[universal,mode-required,delivery-completion]
+notApplicableChecks=[]
+failedGateIds=[]
+failedChecks=[]
+blockingCode=none
+failureCount=0
+exitStatus=0
+verdict=PASS
+```
+
+The target revision is intentionally the fresh pre-attempt revision. The
+installed finalize boundary explicitly rejects rebinding an audit attempt to
+its own state/report mutation, so no post-attempt revision chase was performed.
+
+### Focused Spec-Only Verification
+
+**Commands:** artifact lint; Claim-Source lint; implementation reality scan;
+traceability guard; regression baseline guard
+
+**Exit Code:** 0 for every command
+
+**Claim Source:** executed
+
+```text
+Artifact lint PASSED.
+[claim-source-lint] OK - every execution-evidence block carries a valid Claim Source tag
+IMPLEMENTATION REALITY SCAN RESULT
+Files scanned:  1
+Violations:     0
+Warnings:       0
+PASSED: No source code reality violations detected
+scenario-manifest.json covers 4 scenario contract(s)
+All linked tests from scenario-manifest.json exist
+Scenarios checked: 4
+Test rows checked: 12
+Scenario-to-row mappings: 4
+DoD fidelity scenarios: 4 (mapped: 4, unmapped: 0)
+RESULT: PASSED (0 warnings)
+Regression baseline comparison found in report
+Cross-spec inventory completed
+No route/endpoint collisions detected across specs
+Regression baseline guard: PASSED
+```
+
+Only `spec.md` planning truth changed before A3. Product and test identities
+remain those admitted by the unchanged delivery evidence, so the browser matrix
+and product tests were not rerun and are not newly claimed here.
+
+### G070 Outcome Contract Fidelity
+
+**Commands:** two focused Node field/behavior discriminators over
+`spec.md#outcome-contract`
+
+**Exit Code:** 1 for invocation 1 (audit-command parser defect), then 0 after
+correcting only the Markdown section boundary
+
+**Claim Source:** interpreted
+
+**Interpretation:** Invocation 2 directly proves the four fields and all
+enumerated BUG-004 clauses are present; the traceability and guard outputs are
+needed to connect those clauses to delivered scenario evidence.
+
+```text
+FIELD_INTENT_CHARS=0
+FIELD_SUCCESS_SIGNAL_CHARS=0
+FIELD_HARD_CONSTRAINTS_CHARS=0
+FIELD_FAILURE_CONDITION_CHARS=0
+G070_OUTCOME_CONTRACT=FAIL
+FIELD_INTENT_CHARS=119
+FIELD_SUCCESS_SIGNAL_CHARS=490
+FIELD_HARD_CONSTRAINTS_CHARS=439
+FIELD_FAILURE_CONDITION_CHARS=211
+CHECK_INTENT_SUBSTANTIVE=PASS
+CHECK_SUCCESS_SIMPLE=PASS
+CHECK_SUCCESS_FIVE_LEVERS=PASS
+CHECK_SUCCESS_NATIVE_POWER=PASS
+CHECK_SUCCESS_NO_REFETCH=PASS
+CHECK_SUCCESS_WRONG_TOOL=PASS
+CHECK_SCENARIO_SPAN=PASS
+CHECK_CONSTRAINTS_BOUNDED=PASS
+CHECK_CONSTRAINTS_AUTHORITY=PASS
+CHECK_FAILURE_COMPLETE=PASS
+G070_OUTCOME_CONTRACT=PASS
+```
+
+Invocation 1 used a regex that terminated the Markdown section at its first
+newline; it did not expose a spec defect. Invocation 2 changed only that parser
+boundary and preserved every substantive assertion. G070 is an A3 audit check,
+not a carried finding, so `G070-OUTCOME-CONTRACT-MISSING` was not invented or
+added to finding accounting.
+
+### Route And Attempt Lifecycle
+
+No open route to `bubbles.audit` remained after the parent validate response.
+That response refused A2's stale target revision
+`sha256:d7fab1dc5012fe7d3d5a60a69d336874236fcf043556b8935e94bf128fb371c7`
+against fresh pre-attempt revision
+`sha256:03b5c79245db4d228bffdc003f898d99d16d2e53d88d9344fd849962b73c90d8`.
+The installed boundary classifies this exact mismatch as
+`AUDIT_PROVENANCE_CONFLICT`. `TR-BUG004-A3-AUDIT` records and resolves that
+same-repo audit route; `TR-BUG004-A3-VALIDATE` is the only open route.
+
+The canonical A3 result lint behaved fail-closed across lifecycle activation:
+
+```text
+audit-result-contract-lint: FAIL [VERDICT]: delivery certification field combination is inconsistent
+audit-result-contract-lint: PASS result specs/012-market-action-center-and-guided-tools/bugs/BUG-004-market-heatmap-control-surface/audit-result-AUD-BUG004-A3.txt (delivery-completion/SHIP_IT)
+```
+
+The first result is the expected refusal while A3 was `INCOMPLETE`; the second
+is the final active transcript, exit 0. No second A3 attempt was created.
+
+### Finding Continuity
+
+A3 addresses exactly once each of `F-BUG004-A` through `F-BUG004-F`,
+`GAP-BUG004-001` through `GAP-BUG004-004`, `SEC-BUG004-001`, and `G027`.
+`unresolvedFindings` is empty. No finding disappeared between A2 and A3.
+
+## Spot-Check Recommendations
+
+1. **Interpreted evidence blocks** - Verify the retained identity-admitted browser, documentation, and security interpretations still support only their stated narrow claims.
+2. **Eight unchanged exactly-10-line evidence fences** - Verify each minimum-length fence still contains the discriminator identified by the prior audit review.
+3. **Four resolved uncertainty declarations** - Verify the later immutable RED/current GREEN evidence remains the intended superseding proof.
+4. **G070 interpreted synthesis** - Verify the four new Outcome Contract fields remain aligned with SCN-B004-A through D and do not overstate deployment or live-data status.
+
+### Audit Verdict
+
+`SHIP_IT` for the registry-resolved `delivery-completion-v1` profile. The
+ordered machine transcript is
+[audit-result-AUD-BUG004-A3.txt](audit-result-AUD-BUG004-A3.txt).
+
+## ROUTE-REQUIRED
+
+NONE
+
+### Status And Validation Route
+
+A1 and A2 are `SUPERSEDED`; A3 is the sole `ACTIVE` attempt and supersedes A2.
+Top-level `status`, `certification.status`, and `certifiedAt` remain
+`in_progress`, `in_progress`, and `null`. Audit made no certification,
+finalize, deployment, product, test, README, index, recommendation, parent, or
+framework mutation. `TR-BUG004-A3-VALIDATE` routes the clean diagnostic to
+`bubbles.validate` for its independently owned terminal decision.
+
+<!-- bubbles:certifying-window-begin -->
+<a name="terminal-certification-bubblesvalidate-2026-07-31"></a>
+## Terminal Certification (bubbles.validate) - 2026-07-31
+
+### Audit Evidence
+
+The sole `ACTIVE` A3 audit is the authoritative lint-clean `SHIP_IT` input:
+[audit-result-AUD-BUG004-A3.txt](audit-result-AUD-BUG004-A3.txt), with its
+corresponding evidence at
+[report.md#audit-evidence-bubblesaudit-a3-2026-07-31](report.md#audit-evidence-bubblesaudit-a3-2026-07-31).
+
+**Phase:** validate
+
+**Executed:** YES (current session)
+
+**Claim Source:** interpreted
+
+**Interpretation:** The installed delivery contract permits terminal
+certification because the current asserted guard has zero failed gates, the
+canonical A3 result lint accepts the audit's pre-attempt revision binding, G070
+maps all four Outcome Contract fields to delivered A-D evidence, assurance
+derives to `full`, and `done` is terminal for `bugfix-fastlane`. No browser,
+deployment, product, test, planning, audit-history, README, index, recommendation,
+framework, Git staging, commit, push, stash, reset, or revert action is claimed.
+
+### Outcome Contract Verification (G070)
+
+| Field | Declared | Delivered evidence | Status |
+|---|---|---|---|
+| Intent | Restore direct Simple and native Power controls without a mode-toggle workaround | `report.md#tp-b004-06---direct-simple-a`, `report.md#exact-tp-b004-08-green-and-three-group-structure` | PASS |
+| Success Signal | Automatic readiness, five Simple controls, three native Power groups, no post-hydration acquisition, wrong-tool isolation | `report.md#current-tree-tp-b004-07-green-with-historical-flag-absent`, `report.md#scn-b004-d-coordinator-outcome`, `report.md#security-revalidation-bubblessecurity` | PASS |
+| Hard Constraints | Exact filtering, bounded coordinator, stale-control inertness, one boot union, single control nodes, no authority/deployment/overwrite drift | A3 focused G070 discriminator plus current asserted guard and traceability evidence | PASS |
+| Failure Condition | No readiness stall, inert control, refetch, wrong-tool mutation, duplicate node, or false deployment/live-data claim | A3 evidence and current direct discriminator report zero failed checks | PASS |
+
+### Registry, Audit, Guard, And Assurance Evidence
+
+**Commands:** `transition-contract-resolver.sh`; `audit-result-contract-lint.sh
+--result audit-result-AUD-BUG004-A3.txt`; asserted
+`state-transition-guard.sh --target-status done --expect-workflow-mode
+bugfix-fastlane --expect-contract-digest
+sha256:aa91472c047d3d985d38c1d308feb1e6081955b2aa553816deb5987d9cdc449f`;
+read-only G070 Node discriminator; `assurance-derive.sh`;
+`assurance-certification-check.sh`; `is-terminal-for-mode.sh done
+bugfix-fastlane`
+
+**Exit Code:** 0 for every authoritative invocation; three superseded G070
+parser invocations exited 1 before the final exact Markdown discriminator
+exited 0.
+
+**Claim Source:** executed
+
+```text
+workflowMode=bugfix-fastlane
+auditProfile=delivery-completion-v1
+targetStatus=done
+contractDigest=sha256:aa91472c047d3d985d38c1d308feb1e6081955b2aa553816deb5987d9cdc449f
+fresh targetRevision=sha256:c7f5e88ec9dd5ade374131481311011f2d15eb94682289a2aa3f88b319def790
+audit-result-contract-lint: PASS result audit-result-AUD-BUG004-A3.txt (delivery-completion/SHIP_IT)
+failedGateIds=[]
+failedChecks=[]
+failureCount=0
+Exit Code: 0
+verdict=PASS
+G070_FAILED_CHECKS=none
+G070_OUTCOME_CONTRACT=PASS
+achievedLevel=full
+terminalStatus=done
+missingForFull=none
+[assurance-certification-check] OK - recorded assurance is internally consistent
+is-terminal-for-mode done bugfix-fastlane exit=0
+```
+
+### Terminal Decision
+
+Top-level `status` and `certification.status` are `done`; `completedAt` and
+`certifiedAt` are `2026-07-31T16:51:37Z`; `requiresRevalidation` is `false`;
+assurance is `full` with no missing items. A1 and A2 remain `SUPERSEDED`, A3
+remains the sole `ACTIVE` attempt, and all 12 A3 findings remain addressed with
+none unresolved. `TR-BUG004-A3-VALIDATE` is resolved and the pending transition
+list is empty. Finalize is owned by `activeWorkflowRunner`; no deployment is
+performed or claimed.
+
+<a name="terminal-certification-reopened-bubblesvalidate-2026-07-31"></a>
+## Terminal Certification Reopened (bubbles.validate) - 2026-07-31
+
+### G088 Invalidation Basis
+
+The parent invocation directly executed the pre-demotion
+`post-cert-spec-edit-guard.sh` and reported exit `1` with this sole G088 entry:
+
+<!-- bubbles:evidence-legitimacy-skip-begin -->
+```text
+commit=WORKTREE date=uncommitted file=specs/012-market-action-center-and-guided-tools/bugs/BUG-004-market-heatmap-control-surface/spec.md subject=uncommitted planning truth edit
+```
+<!-- bubbles:evidence-legitimacy-skip-end -->
+
+That uncommitted `spec.md` Outcome Contract was added after the terminal
+`certifiedAt` value `2026-07-31T16:51:37Z`. The earlier terminal certification
+therefore cannot remain current even though its completed scope/phase evidence,
+full assurance assessment, and ACTIVE `SHIP_IT` audit attempt A3 remain valid
+historical evidence for the pre-certification revision.
+
+### Validate-Owned Reopening
+
+Top-level `status` and `certification.status` are now `blocked`; top-level
+`completedAt` and both terminal `certifiedAt` values are `null`;
+`requiresRevalidation` is `true`; and execution is blocked in `finalize`.
+Completed scope/phase evidence, `certification.assurance`, A1/A2/A3 lifecycle
+history, and all three audit result files are preserved.
+
+The required owner is `repository-owner`. The operator must commit only the
+BUG-004 `spec.md` Outcome Contract using normal hooks with no bypass, then obtain
+a fresh independent audit and validate-owned certification against committed
+planning truth. An agent commit is prohibited because
+`policySnapshot.autoCommit.mode` is `off` and no user authorization permits it.
+No specialist transition is pending because the remaining action changes Git
+history and belongs to the operator.
+
+### Post-Demotion Validation Evidence
+
+**Phase:** validate
+
+**Executed:** YES (current session)
+
+**Commands:** focused G088 guard; BUG-004 artifact lint; blocked-state transition
+guard; Claim-Source lint; assurance consistency check; `git diff --check`; audit
+result immutability check
+
+**Exit Code:** `0` for every current-session command
+
+**Claim Source:** executed
+
+<!-- bubbles:evidence-legitimacy-skip-begin -->
+```text
+post-cert-spec-edit-guard: PASS Gate G088 (post_certification_spec_edit_gate) -
+spec=specs/012-market-action-center-and-guided-tools/bugs/BUG-004-market-heatmap-control-surface status=blocked is not certified done
+Detected state.json status: blocked
+Top-level status matches certification.status
+All checked DoD items in scopes.md have evidence blocks
+No unfilled evidence template placeholders in scopes.md
+No unfilled evidence template placeholders in report.md
+Artifact lint PASSED.
+Current state.json status: blocked
+Post-certification planning truth is aligned with certification state (Gate G088)
+failedGateIds: []
+failedChecks: []
+failureCount: 0
+exitStatus: 0
+verdict: PASS
+[claim-source-lint] OK - every execution-evidence block carries a valid Claim Source tag
+[assurance-certification-check] OK - recorded assurance is internally consistent (level=full, missingForFull='<none>').
+git diff --check exit=0 (stdout empty)
+AUD-BUG004-A3 sha256=0de5c0ea6905053340f63ed6d168cea1b97f13a450855222fb0c71c0420c3fb3
+audit result diff check exit=0
+```
+<!-- bubbles:evidence-legitimacy-skip-end -->
+
+The state-transition guard retained one nonblocking warning for historical
+report evidence shape. It reported zero failed gates and zero failed checks.
+Git status identifies the three audit-result files as untracked, so the audit
+diff exit is recorded but is not used as a committed-baseline hash proof. This
+invocation edited only `state.json` and `report.md`; it did not edit A1, A2, or
+A3, and the current A3 SHA-256 is recorded above.
+
+<a name="authorized-commit-recovery-bubblesvalidate-2026-07-31"></a>
+## Authorized Commit Recovery (bubbles.validate) - 2026-07-31
+
+Commit `5a7cac51` resolved the sole operator-owned G088 blocker. It contains
+exactly one changed path, this bug's `spec.md`, with 10 insertions; `spec.md`
+has no residual worktree diff. Both status mirrors are `in_progress`,
+`blockedReason` is `null`, `requiresRevalidation` remains `true`, and terminal
+timestamps remain `null`. Completed scope/phase evidence and the historical
+full-assurance assessment are preserved.
+
+`AUD-BUG004-A1` and `AUD-BUG004-A2` remain `SUPERSEDED` and
+`AUD-BUG004-A3` remains the sole `ACTIVE` historical attempt. No A4 attempt or
+audit-result file was created. `TR-BUG004-AUDIT-A4` is the sole open transition
+and requires `bubbles.audit` to resolve the then-current contract and bind one
+fresh delivery audit to the audit-time current revision.
+
+### Finding Accounting
+
+| Finding | Disposition | Evidence |
+|---|---|---|
+| `G088-OPERATOR-COMMIT-AND-FRESH-RECERTIFICATION` | Addressed by authorized normal-hook commit `5a7cac51`; removed from current unresolved findings | Executed commit-scope, residual-diff, and G088 checks below |
+
+Current unresolved validation findings: none. The open A4 transition is phase
+routing, not an unresolved operator blocker.
+
+### Validate Recovery Evidence
+
+**Phase:** validate
+
+**Executed:** YES (current session)
+
+**Commands:** `git show --stat --oneline --no-renames 5a7cac51`; `git show
+--format=fuller --name-status --no-renames 5a7cac51`; `git diff --exit-code --
+specs/012-market-action-center-and-guided-tools/bugs/BUG-004-market-heatmap-control-surface/spec.md`;
+`bash .github/bubbles/scripts/post-cert-spec-edit-guard.sh specs/012-market-action-center-and-guided-tools/bugs/BUG-004-market-heatmap-control-surface`;
+`bash .github/bubbles/scripts/artifact-lint.sh specs/012-market-action-center-and-guided-tools/bugs/BUG-004-market-heatmap-control-surface`;
+`bash .github/bubbles/scripts/claim-source-lint.sh specs/012-market-action-center-and-guided-tools/bugs/BUG-004-market-heatmap-control-surface`;
+`bash .github/bubbles/scripts/state-transition-guard.sh specs/012-market-action-center-and-guided-tools/bugs/BUG-004-market-heatmap-control-surface`;
+`bash .github/bubbles/scripts/traceability-guard.sh specs/012-market-action-center-and-guided-tools/bugs/BUG-004-market-heatmap-control-surface`;
+`git diff --check`
+
+**Exit Code:** `0` for every command
+
+**Claim Source:** executed
+
+```text
+5a7cac51 spec(012/BUG-004): add heatmap outcome contract
+ .../bugs/BUG-004-market-heatmap-control-surface/spec.md | 10 ++++++++++
+ 1 file changed, 10 insertions(+)
+M       specs/012-market-action-center-and-guided-tools/bugs/BUG-004-market-heatmap-control-surface/spec.md
+SPEC_RESIDUAL_DIFF_EXIT=0
+post-cert-spec-edit-guard: PASS Gate G088 (post_certification_spec_edit_gate) - status=in_progress is not certified done
+POST_CERT_G088_POST_STATE_EXIT=0
+Artifact lint PASSED.
+ARTIFACT_LINT_EXIT=0
+[claim-source-lint] OK — every execution-evidence block carries a valid Claim Source tag
+CLAIM_SOURCE_LINT_EXIT=0
+✅ PASS: transitionRequest TR-BUG004-AUDIT-A4 is open-but-routed to 'bubbles.audit' (Gate G061 allowance)
+✅ PASS: Post-certification planning truth is aligned with certification state (Gate G088)
+failedGateIds: []
+failedChecks: []
+failureCount: 0
+exitStatus: 0
+verdict: PASS
+STATE_TRANSITION_GUARD_EXIT=0
+ℹ️  Scenarios checked: 4
+ℹ️  Scenario-to-row mappings: 4
+ℹ️  DoD fidelity scenarios: 4 (mapped: 4, unmapped: 0)
+RESULT: PASSED (0 warnings)
+TRACEABILITY_GUARD_EXIT=0
+GIT_DIFF_CHECK_EXIT=0
+```
+
+No product, browser, build, deployment, or Git mutation command ran in this
+recovery.
+
+<a name="audit-evidence-bubblesaudit-a4-2026-07-31"></a>
+## Fresh Delivery Audit Evidence (bubbles.audit A4) - 2026-07-31
+
+**Phase:** audit
+
+**Claim Source:** interpreted
+
+**Interpretation:** Authorized commit `5a7cac51` changes only the BUG-004
+Outcome Contract, the current G070 discriminator maps all four fields to the
+unchanged delivered scenario evidence, G088 is closed, and the registry-bound
+done-target guard has no failed gate or check. Product and browser tests are
+admitted from their already-verified unchanged evidence and are not represented
+as rerun by A4.
+
+**Attempt:** `AUD-BUG004-A4`, superseding historical positive attempt
+`AUD-BUG004-A3`; A1 and A2 remain superseded.
+
+### Repository, Contract, And Guard
+
+**Commands:** revision-35 `repository-binding.sh validate-packet`;
+`transition-contract-resolver.sh`; assertion-bound `state-transition-guard.sh`
+
+**Exit Code:** 0 for packet validation, resolver, and guard
+
+**Claim Source:** executed
+
+<!-- bubbles:evidence-legitimacy-skip-begin -->
+```text
+repositoryAlias=research-lab
+decisionId=rb:vscode-eb9cb76de5cf2a992bf149706789fb73:35
+controlRevision=35
+controlPathDigest=sha256:308a8e9feb4ffd49dac1dced22b497b576d5a88570bf7bf1cd0abef5e1ffb0f8
+workflowMode=bugfix-fastlane
+auditProfile=delivery-completion-v1
+targetStatus=done
+contractDigest=sha256:aa91472c047d3d985d38c1d308feb1e6081955b2aa553816deb5987d9cdc449f
+targetRevision=sha256:ef0d03ffd89b814844dcfce1e3573ba8c89344fb2733bf09d59604050286a8cc
+applicableCheckClasses=[universal,mode-required,delivery-completion]
+notApplicableChecks=[]
+failedGateIds=[]
+failedChecks=[]
+blockingCode=none
+failureCount=0
+exitStatus=0
+verdict=PASS
+```
+<!-- bubbles:evidence-legitimacy-skip-end -->
+
+The target revision is the fresh pre-attempt revision. It is not rebound to
+A4's own audit-owned state and report mutations.
+
+### Authorized Commit, G070, And G088
+
+**Commands:** `git show --numstat 5a7cac51`; exact commit diff; residual
+`spec.md` diff; focused Outcome Contract discriminator; focused G088 guard
+
+**Exit Code:** commit inspection 0; commit diff 0; residual diff 0; G070 probe
+sequence 1, 1, 0; G088 0
+
+**Claim Source:** interpreted
+
+**Interpretation:** The first two G070 invocations failed closed because their
+audit-only parsers truncated multiline Markdown fields. The third invocation
+changed only field-boundary extraction and passed every unchanged substantive
+assertion. Git independently proves the authorized commit object and payload;
+normal-hook execution is inherited from the validate recovery record because a
+Git commit object does not encode hook execution.
+
+```text
+COMMIT 5a7cac51e0d4b2073c9162534cde76e15e8d3645
+SUBJECT spec(012/BUG-004): add heatmap outcome contract
+10 0 specs/012-market-action-center-and-guided-tools/bugs/BUG-004-market-heatmap-control-surface/spec.md
+SPEC_RESIDUAL_DIFF_EXIT=0
+FIELD_INTENT_CHARS=119
+FIELD_SUCCESS_SIGNAL_CHARS=490
+FIELD_HARD_CONSTRAINTS_CHARS=439
+FIELD_FAILURE_CONDITION_CHARS=211
+CHECK_INTENT_SUBSTANTIVE=PASS
+CHECK_SUCCESS_SIMPLE=PASS
+CHECK_SUCCESS_FIVE_LEVERS=PASS
+CHECK_SUCCESS_NATIVE_POWER=PASS
+CHECK_SUCCESS_NO_REFETCH=PASS
+CHECK_SUCCESS_WRONG_TOOL=PASS
+CHECK_SCENARIO_SPAN=PASS
+CHECK_CONSTRAINTS_BOUNDED=PASS
+CHECK_CONSTRAINTS_AUTHORITY=PASS
+CHECK_FAILURE_COMPLETE=PASS
+G070_OUTCOME_CONTRACT=PASS
+post-cert-spec-edit-guard: PASS Gate G088 - status=in_progress is not certified done
+```
+
+Result: authorized commit fidelity PASS; G070 fidelity PASS; G088 closure PASS.
+No additional finding ID is created for an audit-command parser defect or for
+the already-addressed operator blocker.
+
+### Focused Governance And Evidence Review
+
+**Commands:** artifact lint; Claim-Source lint; implementation reality scan;
+traceability guard; regression baseline guard; interpreted/minimum-fence/
+uncertainty/observation inventory; residual process check
+
+**Exit Code:** 0 for every command
+
+**Claim Source:** executed
+
+<!-- bubbles:evidence-legitimacy-skip-begin -->
+```text
+Artifact lint PASSED.
+[claim-source-lint] OK - every execution-evidence block carries a valid Claim Source tag
+IMPLEMENTATION REALITY SCAN RESULT
+Files scanned: 1
+Violations: 0
+Warnings: 0
+PASSED: No source code reality violations detected
+Scenarios checked: 4
+Test rows checked: 12
+Scenario-to-row mappings: 4
+DoD fidelity scenarios: 4 (mapped: 4, unmapped: 0)
+RESULT: PASSED (0 warnings)
+Regression baseline guard: PASSED
+INTERPRETED_PRE_A4_BLOCK_COUNT=17
+EXACT_TEN_LINE_FENCE_COUNT=9
+UNCERTAINTY_DECLARATION_COUNT=4
+CERTIFICATION_OBSERVATION_COUNT=1
+A4_BROWSER_PROCESS_CHECK=PASS
+```
+<!-- bubbles:evidence-legitimacy-skip-end -->
+
+All 17 pre-A4 interpreted claims were individually reviewed against adjacent
+raw evidence, including the inline Consumer Impact Sweep claim. Each remains
+reasonable and narrow. This A4 synthesis is the eighteenth interpreted claim.
+The four uncertainty declarations are historical and resolved by later exact
+RED/current GREEN evidence. The one low observation remains nonblocking and
+describes only the guard's historical evidence-shape heuristic.
+
+### Finding Continuity
+
+A4 addresses exactly once each of `F-BUG004-A` through `F-BUG004-F`,
+`GAP-BUG004-001` through `GAP-BUG004-004`, `SEC-BUG004-001`, and `G027`.
+`unresolvedFindings` is empty. No prior finding disappeared, and the previously
+addressed G088 operator blocker is not reintroduced as a thirteenth finding.
+
+## Spot-Check Recommendations
+
+1. **Eighteen interpreted claims** - Verify the identity-admitted browser, documentation, security, commit-hook provenance, and A4 G070 synthesis remain limited to their stated claims.
+2. **Nine exactly-10-line evidence fences** - Verify every minimum-length fence still contains its stated discriminator.
+3. **Four resolved uncertainty declarations** - Verify the later immutable RED/current GREEN records remain the intended superseding evidence.
+4. **One low certification observation** - Verify `OBS-BUG004-HISTORICAL-EVIDENCE-HEURISTIC` remains acceptable as a nonblocking historical-shape note.
+5. **Committed Outcome Contract** - Verify the four fields remain aligned with SCN-B004-A through D and do not overstate deployment or live-data status.
+
+### Audit Verdict
+
+`SHIP_IT` for the registry-resolved `delivery-completion-v1` profile. The
+ordered machine transcript is
+[audit-result-AUD-BUG004-A4.txt](audit-result-AUD-BUG004-A4.txt).
+
+## ROUTE-REQUIRED
+
+NONE
+
+### Status And Validation Route
+
+A1, A2, and A3 are `SUPERSEDED`; A4 is the sole `ACTIVE` attempt and
+supersedes A3. Top-level `status`, `certification.status`, `completedAt`,
+`certifiedAt`, and `requiresRevalidation` remain `in_progress`, `in_progress`,
+`null`, `null`, and `true`. `TR-BUG004-AUDIT-A4` is resolved and
+`TR-BUG004-A4-VALIDATE` is the sole open same-repo route to `bubbles.validate`.
+Audit made no certification, finalize, deployment, product, browser, README,
+index, recommendation, parent, framework, Git staging, commit, push, stash,
+reset, or revert mutation.
+
+<a name="terminal-certification-a4-bubblesvalidate-2026-07-31"></a>
+## Terminal Certification A4 (bubbles.validate) - 2026-07-31
+
+**Phase:** validate
+
+**Executed:** YES (current session)
+
+**Claim Source:** interpreted
+
+**Interpretation:** Terminal certification is permitted because repository
+decision 36 is actionable for research-lab, the fresh registry contract matches
+the ACTIVE A4 audit on mode, profile, target, ceiling, and digest, the canonical
+A4 lint accepts its pre-attempt revision binding and complete finding continuity,
+the asserted done-target guard has zero failed gates or checks, G070 and G088
+pass against committed planning truth, assurance derives to `full`, and `done`
+is terminal for `bugfix-fastlane`. The one guard warning is the preserved
+nonblocking historical report-evidence heuristic already recorded as
+`OBS-BUG004-HISTORICAL-EVIDENCE-HEURISTIC`.
+
+### Outcome Contract Verification (G070)
+
+| Field | Evidence | Status |
+|---|---|---|
+| Intent | Direct Simple and native Power delivery evidence | PASS |
+| Success Signal | Five Simple controls, three native Power groups, local recompute, and wrong-tool isolation evidence | PASS |
+| Hard Constraints | Bounded coordinator, one boot union, single control nodes, and no deployment-authority drift | PASS |
+| Failure Condition | No recorded readiness stall, inert control, refetch, wrong-tool mutation, duplicate node, or false deployment claim | PASS |
+
+### Terminal Evidence
+
+**Commands:** repository packet validation; `transition-contract-resolver.sh`;
+`audit-result-contract-lint.sh --result audit-result-AUD-BUG004-A4.txt`;
+asserted `state-transition-guard.sh`; focused G070 discriminator;
+`post-cert-spec-edit-guard.sh`; `assurance-derive.sh`;
+`assurance-certification-check.sh`; `is-terminal-for-mode.sh`
+
+**Claim Source:** executed
+
+**Exit Code:** `0` for every authoritative invocation. One superseded G070
+selector invocation exited `1` because it expected an explicit HTML anchor
+instead of the report's Markdown heading; the corrected selector reran and
+passed. One superseded assurance invocation exited `2` because the installed
+CLI requires `true|false` rather than the mode shorthand `t|f`; the corrected
+invocation reran and derived the terminal result below.
+
+```text
+REPOSITORY PACKET VALID actionable=true repository=research-lab decision=rb:vscode-eb9cb76de5cf2a992bf149706789fb73:36 revision=36
+workflowMode=bugfix-fastlane
+auditProfile=delivery-completion-v1
+targetStatus=done
+contractDigest=sha256:aa91472c047d3d985d38c1d308feb1e6081955b2aa553816deb5987d9cdc449f
+freshTargetRevision=sha256:dd5b43a11bb5e7f0897b3ebc3a73d0c6c26ad0d39bc4a23e7d44410f64b48457
+A4PreAttemptRevision=sha256:ef0d03ffd89b814844dcfce1e3573ba8c89344fb2733bf09d59604050286a8cc
+audit-result-contract-lint: PASS result specs/012-market-action-center-and-guided-tools/bugs/BUG-004-market-heatmap-control-surface/audit-result-AUD-BUG004-A4.txt (delivery-completion/SHIP_IT)
+Exit Code: 0
+failedGateIds=[]
+failedChecks=[]
+failureCount=0
+exitStatus=0
+guardVerdict=PASS
+guardWarnings=1
+G070_OUTCOME_CONTRACT=PASS
+G088_POST_CERT_SPEC_EDIT_GUARD=PASS
+achievedLevel=full
+terminalStatus=done
+missingForFull=none
+assurance-certification-check=OK
+IS_TERMINAL_FOR_MODE_EXIT=0
+```
+
+### Terminal Decision
+
+Top-level `status` and `certification.status` are `done`; `completedAt`,
+top-level `certifiedAt`, and `certification.certifiedAt` are all
+`2026-07-31T21:35:17Z`; `requiresRevalidation` is `false`; assurance remains
+`full` with no missing items. A1, A2, and A3 remain `SUPERSEDED`; A4 remains the
+sole `ACTIVE` attempt with all 12 findings addressed and none unresolved.
+`TR-BUG004-A4-VALIDATE` is resolved and `pendingTransitionRequests` is empty.
+Finalize remains owned by `activeWorkflowRunner`. No deployment, Git mutation,
+browser rerun, server start, or persistent background process occurred or is
+claimed by this certification increment.
+
+<a name="finalize-activeworkflowrunner-2026-07-31"></a>
+## Finalize (activeWorkflowRunner) - 2026-07-31
+
+**Phase:** finalize
+
+**Executed:** YES (current session)
+
+**Claim Source:** interpreted
+
+**Interpretation:** Finalize re-resolved the terminal contract and independently
+checked the sole ACTIVE A4 audit, certified state, evidence, user validation,
+managed framework integrity, and process residue. It records workflow closeout
+only; it does not rewrite certification, audit history, product behavior, or
+deployment state.
+
+### Finalize Evidence
+
+**Commands:** transition contract resolver; A4 audit-result contract lint;
+state-transition guard; artifact lint; Claim-Source lint; implementation reality
+scan; traceability guard; regression baseline guard; artifact freshness guard;
+assurance certification check; terminal-for-mode check; changed-spec audit;
+framework write guard; `git diff --check`; user-validation and process checks
+
+**Exit Code:** `0` for every authoritative command
+
+**Claim Source:** executed
+
+```text
+workflowMode=bugfix-fastlane
+auditProfile=delivery-completion-v1
+targetStatus=done
+audit-result-contract-lint: PASS result audit-result-AUD-BUG004-A4.txt (delivery-completion/SHIP_IT)
+failedGateIds=[]
+failedChecks=[]
+failureCount=0
+exitStatus=0
+guardVerdict=PASS
+Artifact lint PASSED.
+IMPLEMENTATION REALITY: violations=0 warnings=0
+TRACEABILITY RESULT: PASSED (0 warnings)
+Regression baseline guard: PASSED
+ARTIFACT FRESHNESS: PASS (0 failures, 0 warnings)
+assurance-certification-check=OK level=full missingForFull=none
+done-spec-audit: artifact=PASS guard=PASS traceability=PASS
+Managed-file integrity: PASS
+userValidationChecked=5 userValidationUnchecked=0
+activeTestProcesses=0
+```
+
+### Finalize Decision
+
+BUG-004 is finalized at `done` with `full` assurance. A1, A2, and A3 remain
+`SUPERSEDED`; A4 remains the sole `ACTIVE` `SHIP_IT` audit; all 12 findings are
+addressed and none unresolved. No deployment was performed or claimed.

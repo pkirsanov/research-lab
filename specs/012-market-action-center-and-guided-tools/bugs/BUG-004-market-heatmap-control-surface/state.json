@@ -3,33 +3,34 @@
   "featureDir": "specs/012-market-action-center-and-guided-tools/bugs/BUG-004-market-heatmap-control-surface",
   "featureName": "BUG-004 Market Heatmap Control Surface",
   "createdAt": "2026-07-29T15:42:55Z",
-  "lastUpdatedAt": "2026-07-31T03:54:28Z",
-  "completedAt": null,
-  "status": "in_progress",
+  "lastUpdatedAt": "2026-07-31T22:03:01Z",
+  "completedAt": "2026-07-31T21:35:17Z",
+  "certifiedAt": "2026-07-31T21:35:17Z",
+  "status": "done",
   "blockedReason": null,
   "workflowMode": "bugfix-fastlane",
   "linkedImplementationSpec": "specs/012-market-action-center-and-guided-tools",
-  "requiresRevalidation": true,
+  "requiresRevalidation": false,
   "flagsIntroduced": [],
   "completedScopes": [
     "SCOPE-01"
   ],
   "completedPhases": [],
   "execution": {
-    "activeAgent": "bubbles.test",
-    "currentPhase": "test",
-    "currentPhaseStatus": "route_required",
-    "substate": "validation_pending",
+    "activeAgent": "bubbles.goal",
+    "currentPhase": "finalize",
+    "currentPhaseStatus": "complete",
+    "substate": "finalized_done",
     "currentScope": "SCOPE-01",
     "completedScopes": [
       "SCOPE-01"
     ],
-    "runStartedAt": "2026-07-31T03:45:21Z",
-    "completedAt": "2026-07-31T03:54:28Z",
+    "runStartedAt": "2026-07-31T22:03:01Z",
+    "completedAt": "2026-07-31T22:03:01Z",
     "executionModel": "direct-authorized-runner",
     "parentAgent": null,
-    "nextRequiredOwner": "bubbles.validate",
-    "nextRequiredTarget": "Execute TR-BUG004-VALIDATE for validate-owned certification against the repaired BUG-004 evidence chain.",
+    "nextRequiredOwner": null,
+    "nextRequiredTarget": null,
     "completedPhaseClaims": [
       {
         "phase": "implement",
@@ -230,11 +231,99 @@
         "evidenceSection": "report.md#security-revalidation-bubblessecurity",
         "claimType": "executed-not-certifying",
         "detail": "Completed final independent SECURITY revalidation with verdict SECURITY_CLEAN. Revision-6 private packet validation passed; all nine carrier Git blobs and SHA-256 identities matched; listener order rejects the wrong tool before invalidation/state allocation; exact SEC-BUG004-001 and TP-B004-01..04 passed 1/1 each; full bridge unit 14/14, integration 6/6, shell 7/7, and selftest 970/970 passed. A real system-Chrome current-DOM probe proved zero panel, ARIA, provider, or mutation effects, direct wrong-tool null settlement, and later same-tool ready settlement. G034, source lock, authority/storage/injection/hook, regression, artifact, reality, diff, diagnostics, and residue checks were clean. The unchanged exact 8/8 browser matrix was admitted without rerun. SEC-BUG004-001 and TR-BUG004-SECURITY-REVALIDATION are resolved; TR-BUG004-VALIDATE routes to bubbles.validate. Certification remains unclaimed."
+      },
+      {
+        "phase": "validate",
+        "claimedBy": "bubbles.validate",
+        "claimedAt": "2026-07-31T13:48:42Z",
+        "scopeId": "SCOPE-01",
+        "evidenceFile": "report.md",
+        "evidenceSection": "report.md#pre-audit-validation-bubblesvalidate---2026-07-31; report.md#validation-evidence; report.md#pre-audit-disposition",
+        "claimType": "executed-not-certifying",
+        "detail": "Completed only the PRE-AUDIT validate boundary. Repository packet revision 20 was accepted. Playwright --list discovered exactly 8 tests in 2 files without execution; the authoritative latest-run artifact retained status passed with failedTests empty at mtime 2026-07-31 13:35:23.490021915 +0000; no browser process remained. Artifact lint, Claim-Source lint, implementation reality 0 violations/0 warnings, traceability 4/4 with 0 warnings, and regression baseline passed. The registry contract resolved bugfix-fastlane, target done, audit profile delivery-completion-v1, contract digest sha256:aa91472c047d3d985d38c1d308feb1e6081955b2aa553816deb5987d9cdc449f, and pre-route target revision sha256:e8dd881712b4eefec03cca28ad1daa3ecdc35da09754bb55281853bbba02ce7f. The asserted guard passed G061 and all nonterminal prerequisites while refusing done only on untouched certification scope coherence plus missing validate/audit phase records. This claim records validate execution only; no certification or terminal field changed and audit remains unclaimed."
+      },
+      {
+        "phase": "audit",
+        "claimedBy": "bubbles.audit",
+        "claimedAt": "2026-07-31T14:23:25Z",
+        "scopeId": "SCOPE-01",
+        "evidenceFile": "report.md",
+        "evidenceSection": "report.md#audit-evidence-bubblesaudit-2026-07-31",
+        "claimType": "executed-not-certifying",
+        "detail": "Completed the resumed independent delivery audit attempt AUD-BUG004-A1 from phase 3. All 11 expected finding IDs are addressed exactly once. Current fast execution passed unit 14/14, integration 6/6, shell 7/7, and canonical selftest 970/970; focused governance checks passed; the retained browser artifact remains status passed with failedTests empty and no browser process. The asserted done-target guard still refuses only validate-owned certification completed-scope coherence under G027 after the audit phase record is present. Audit does not certify or change top-level status."
+      },
+      {
+        "phase": "validate",
+        "claimedBy": "bubbles.validate",
+        "claimedAt": "2026-07-31T15:14:28Z",
+        "scopeId": "SCOPE-01",
+        "evidenceFile": "report.md",
+        "evidenceSection": "report.md#post-audit-validation-bubblesvalidate-2026-07-31",
+        "claimType": "executed-not-certifying",
+        "detail": "Completed the POST-AUDIT validate increment under accepted repository packet revision 22. Reconciled certification.completedScopes, certification.scopeProgress, and certifiedCompletedPhases from the actual Done SCOPE-01 and 22/22 checked evidence. The registry-asserted done-target guard then passed with zero failed gates at post-repair target revision sha256:7ad84c40193e5068a259dc8b2eb91d1c7fbf442ac9803c6639af471cbedfa6a7. Terminal certification remains prohibited because ACTIVE attempt AUD-BUG004-A1 is still REWORK_REQUIRED, route_required, deliveryEvaluation REFUSED, and bound to stale target revision sha256:0d552499a284e6fc8508a4e722b8296ad2ff35825f45ccf8f1157265abf31015. No assurance or terminal status was written; one superseding audit route is open."
+      },
+      {
+        "phase": "audit",
+        "claimedBy": "bubbles.audit",
+        "claimedAt": "2026-07-31T15:42:09Z",
+        "scopeId": "SCOPE-01",
+        "evidenceFile": "report.md",
+        "evidenceSection": "report.md#audit-evidence-bubblesaudit-a2-2026-07-31; audit-result-AUD-BUG004-A2.txt",
+        "claimType": "executed-not-certifying",
+        "detail": "Completed exactly one superseding independent delivery audit attempt, AUD-BUG004-A2. The inherited revision-23 packet validated, the fresh contract resolved bugfix-fastlane/delivery-completion-v1/done at target revision sha256:d7fab1dc5012fe7d3d5a60a69d336874236fcf043556b8935e94bf128fb371c7, and the assertion-bound guard passed with G027 and all applicable gates clear. Artifact lint passed; the canonical A2 result contract lint passed on the second invocation after the lifecycle activation step. All 11 A1-addressed findings plus G027 are addressed exactly once, unresolved findings are empty, and A1 is SUPERSEDED. Browser tests were not rerun. Audit does not certify or change top-level status."
+      },
+      {
+        "phase": "audit",
+        "claimedBy": "bubbles.audit",
+        "claimedAt": "2026-07-31T16:29:56Z",
+        "scopeId": "SCOPE-01",
+        "evidenceFile": "report.md",
+        "evidenceSection": "report.md#audit-evidence-bubblesaudit-a3-2026-07-31; audit-result-AUD-BUG004-A3.txt",
+        "claimType": "executed-not-certifying",
+        "detail": "Completed exactly one final superseding delivery audit attempt, AUD-BUG004-A3, after the analyst-owned Outcome Contract edit. Revision-25 repository binding validated; the fresh contract resolved bugfix-fastlane/delivery-completion-v1/done at pre-attempt target revision sha256:03b5c79245db4d228bffdc003f898d99d16d2e53d88d9344fd849962b73c90d8; and the assertion-bound guard passed with zero failed gates or checks. Artifact, Claim-Source, reality, traceability, and regression-baseline checks passed. The corrected G070 discriminator passed all four substantive fields and exact BUG-004 outcome constraints. The canonical A3 result lint passed after lifecycle activation. All 12 inherited findings are addressed exactly once, unresolved findings are empty, A1 and A2 are SUPERSEDED, and A3 is ACTIVE. Browser and product tests were not rerun because product/test identities did not change. Audit does not certify or change top-level status."
+      },
+      {
+        "phase": "validate",
+        "claimedBy": "bubbles.validate",
+        "claimedAt": "2026-07-31T16:51:37Z",
+        "scopeId": "SCOPE-01",
+        "evidenceFile": "report.md",
+        "evidenceSection": "report.md#terminal-certification-bubblesvalidate-2026-07-31",
+        "claimType": "executed-certifying",
+        "detail": "Validated revision-26 repository authority, resolved the fresh bugfix-fastlane delivery contract, linted sole ACTIVE attempt AUD-BUG004-A3, preserved the A1/A2 supersession chain and all 12 addressed findings, passed the asserted done-target guard, directly verified G070 against delivered A-D evidence, derived full assurance with no missing items, and confirmed done is terminal for bugfix-fastlane. Certified both statuses done with no deployment claim; finalize remains activeWorkflowRunner-owned."
+      },
+      {
+        "phase": "validate",
+        "claimedBy": "bubbles.validate",
+        "claimedAt": "2026-07-31T18:17:03Z",
+        "scopeId": "SCOPE-01",
+        "evidenceFile": "report.md",
+        "evidenceSection": "report.md#terminal-certification-reopened-bubblesvalidate-2026-07-31",
+        "claimType": "executed-not-certifying",
+        "detail": "Reopened the false terminal certification after the parent directly observed G088 reject the uncommitted post-certification spec.md Outcome Contract edit. Both status mirrors are blocked, terminal completion and certification timestamps are null, requiresRevalidation is true, and finalize is blocked on the repository owner committing spec.md with normal hooks before a fresh independent audit and validate-owned certification. Focused post-demotion G088, artifact lint, state-transition guard, Claim-Source lint, assurance consistency, and diff checks pass. Completed scope and phase evidence, full assurance, all audit attempts, and ACTIVE SHIP_IT attempt AUD-BUG004-A3 remain historical and unchanged."
+      },
+      {
+        "phase": "audit",
+        "claimedBy": "bubbles.audit",
+        "claimedAt": "2026-07-31T21:14:49Z",
+        "scopeId": "SCOPE-01",
+        "evidenceFile": "report.md",
+        "evidenceSection": "report.md#audit-evidence-bubblesaudit-a4-2026-07-31; audit-result-AUD-BUG004-A4.txt",
+        "claimType": "executed-not-certifying",
+        "detail": "Completed exactly one fresh delivery audit attempt, AUD-BUG004-A4, after authorized commit 5a7cac51. Repository decision 35 validated; the fresh contract resolved bugfix-fastlane/delivery-completion-v1/done at pre-attempt target revision sha256:ef0d03ffd89b814844dcfce1e3573ba8c89344fb2733bf09d59604050286a8cc; the asserted guard passed with zero failed gates; artifact, Claim-Source, reality, traceability, baseline, G070, G088, commit-scope, residual-diff, and process checks passed. All 12 inherited findings are addressed exactly once, unresolved findings are empty, A1-A3 are SUPERSEDED, and A4 is ACTIVE. Product and browser tests were not rerun because only committed planning history changed. Audit does not certify or change top-level status."
+      },
+      {
+        "phase": "validate",
+        "claimedBy": "bubbles.validate",
+        "claimedAt": "2026-07-31T21:35:17Z",
+        "scopeId": "SCOPE-01",
+        "evidenceFile": "report.md",
+        "evidenceSection": "report.md#terminal-certification-a4-bubblesvalidate-2026-07-31",
+        "claimType": "executed-certifying",
+        "detail": "Validated repository decision 36, resolved the fresh bugfix-fastlane delivery contract, linted sole ACTIVE attempt AUD-BUG004-A4, preserved the A1/A2/A3 supersession chain and all 12 addressed findings, passed the asserted done-target guard and committed G070/G088 checks, mechanically derived full assurance with no missing items, and confirmed done is terminal for bugfix-fastlane. Certified both status mirrors done at 2026-07-31T21:35:17Z with no deployment claim; finalize remains activeWorkflowRunner-owned."
       }
     ],
-    "pendingTransitionRequests": [
-      "TR-BUG004-VALIDATE"
-    ],
+    "pendingTransitionRequests": [],
     "scopeInventory": [
       {
         "scope": 1,
@@ -250,32 +339,279 @@
     ],
     "audit": {
       "schemaVersion": "audit-run/v1",
-      "runId": null,
-      "currentAttemptId": null,
-      "attempts": []
+      "runId": "AUDIT-RUN-BUG004-20260731",
+      "currentAttemptId": "AUD-BUG004-A4",
+      "attempts": [
+        {
+          "attemptId": "AUD-BUG004-A1",
+          "resultState": "SUPERSEDED",
+          "openedAt": "2026-07-31T14:00:40Z",
+          "closedAt": "2026-07-31T14:23:25Z",
+          "targetRevision": "sha256:0d552499a284e6fc8508a4e722b8296ad2ff35825f45ccf8f1157265abf31015",
+          "contractDigest": "sha256:aa91472c047d3d985d38c1d308feb1e6081955b2aa553816deb5987d9cdc449f",
+          "auditProfile": "delivery-completion-v1",
+          "targetStatus": "done",
+          "auditVerdict": "REWORK_REQUIRED",
+          "outcome": "route_required",
+          "evidenceRef": "specs/012-market-action-center-and-guided-tools/bugs/BUG-004-market-heatmap-control-surface/audit-result-AUD-BUG004-A1.txt",
+          "addressedFindings": [
+            "F-BUG004-A",
+            "F-BUG004-B",
+            "F-BUG004-C",
+            "F-BUG004-D",
+            "F-BUG004-E",
+            "F-BUG004-F",
+            "GAP-BUG004-001",
+            "GAP-BUG004-002",
+            "GAP-BUG004-003",
+            "GAP-BUG004-004",
+            "SEC-BUG004-001"
+          ],
+          "unresolvedFindings": [
+            "G027"
+          ],
+          "nextRequiredOwner": "bubbles.validate",
+          "supersedesAttemptId": null,
+          "resumeFromPhase": null,
+          "findings": [
+            {
+              "findingId": "G027",
+              "severity": "high",
+              "state": "UNRESOLVED",
+              "class": "validate-owned-certification-scope-coherence",
+              "detail": "The done-target transition guard reports execution and scope artifacts complete, but certification.completedScopes and certification.scopeProgress remain nonterminal. Audit cannot mutate certification.",
+              "evidenceRefs": [
+                "report.md#audit-evidence-bubblesaudit-2026-07-31",
+                "scopes.md#definition-of-done"
+              ],
+              "nextRequiredOwner": "bubbles.validate",
+              "transitionId": "TR-BUG004-POST-AUDIT-VALIDATE"
+            }
+          ]
+        },
+        {
+          "attemptId": "AUD-BUG004-A2",
+          "resultState": "SUPERSEDED",
+          "openedAt": "2026-07-31T15:36:27Z",
+          "closedAt": "2026-07-31T15:42:09Z",
+          "targetRevision": "sha256:d7fab1dc5012fe7d3d5a60a69d336874236fcf043556b8935e94bf128fb371c7",
+          "contractDigest": "sha256:aa91472c047d3d985d38c1d308feb1e6081955b2aa553816deb5987d9cdc449f",
+          "auditProfile": "delivery-completion-v1",
+          "targetStatus": "done",
+          "auditVerdict": "SHIP_IT",
+          "outcome": "completed_diagnostic",
+          "evidenceRef": "specs/012-market-action-center-and-guided-tools/bugs/BUG-004-market-heatmap-control-surface/audit-result-AUD-BUG004-A2.txt",
+          "evidenceRefs": [
+            "specs/012-market-action-center-and-guided-tools/bugs/BUG-004-market-heatmap-control-surface/audit-result-AUD-BUG004-A2.txt",
+            "report.md#audit-evidence-bubblesaudit-a2-2026-07-31",
+            "report.md#post-audit-validation-bubblesvalidate-2026-07-31",
+            "audit-result-AUD-BUG004-A1.txt",
+            "scopes.md#definition-of-done",
+            "scenario-manifest.json"
+          ],
+          "addressedFindings": [
+            "F-BUG004-A",
+            "F-BUG004-B",
+            "F-BUG004-C",
+            "F-BUG004-D",
+            "F-BUG004-E",
+            "F-BUG004-F",
+            "GAP-BUG004-001",
+            "GAP-BUG004-002",
+            "GAP-BUG004-003",
+            "GAP-BUG004-004",
+            "SEC-BUG004-001",
+            "G027"
+          ],
+          "unresolvedFindings": [],
+          "nextRequiredOwner": null,
+          "supersedesAttemptId": "AUD-BUG004-A1",
+          "resumeFromPhase": null,
+          "findings": [
+            {
+              "findingId": "G027",
+              "severity": "high",
+              "state": "RESOLVED",
+              "class": "validate-owned-certification-scope-coherence",
+              "detail": "A1 refused because G027 was unresolved at its target revision. A2 independently resolved the current contract and observed the asserted done-target guard pass G027 with no failed gates or checks.",
+              "evidenceRefs": [
+                "report.md#post-audit-validation-bubblesvalidate-2026-07-31",
+                "audit-result-AUD-BUG004-A2.txt",
+                "scopes.md#definition-of-done"
+              ],
+              "nextRequiredOwner": null,
+              "transitionId": "TR-BUG004-AUDIT-SUPERSEDE-A1"
+            }
+          ]
+        },
+        {
+          "attemptId": "AUD-BUG004-A3",
+          "resultState": "SUPERSEDED",
+          "openedAt": "2026-07-31T16:23:45Z",
+          "closedAt": "2026-07-31T16:29:56Z",
+          "targetRevision": "sha256:03b5c79245db4d228bffdc003f898d99d16d2e53d88d9344fd849962b73c90d8",
+          "contractDigest": "sha256:aa91472c047d3d985d38c1d308feb1e6081955b2aa553816deb5987d9cdc449f",
+          "auditProfile": "delivery-completion-v1",
+          "targetStatus": "done",
+          "auditVerdict": "SHIP_IT",
+          "outcome": "completed_diagnostic",
+          "evidenceRef": "specs/012-market-action-center-and-guided-tools/bugs/BUG-004-market-heatmap-control-surface/audit-result-AUD-BUG004-A3.txt",
+          "evidenceRefs": [
+            "specs/012-market-action-center-and-guided-tools/bugs/BUG-004-market-heatmap-control-surface/audit-result-AUD-BUG004-A3.txt",
+            "report.md#audit-evidence-bubblesaudit-a3-2026-07-31",
+            "spec.md#outcome-contract",
+            "audit-result-AUD-BUG004-A2.txt",
+            "audit-result-AUD-BUG004-A1.txt",
+            "scopes.md#definition-of-done",
+            "scenario-manifest.json"
+          ],
+          "addressedFindings": [
+            "F-BUG004-A",
+            "F-BUG004-B",
+            "F-BUG004-C",
+            "F-BUG004-D",
+            "F-BUG004-E",
+            "F-BUG004-F",
+            "GAP-BUG004-001",
+            "GAP-BUG004-002",
+            "GAP-BUG004-003",
+            "GAP-BUG004-004",
+            "SEC-BUG004-001",
+            "G027"
+          ],
+          "unresolvedFindings": [],
+          "nextRequiredOwner": null,
+          "supersedesAttemptId": "AUD-BUG004-A2",
+          "resumeFromPhase": null,
+          "findings": [
+            {
+              "findingId": "G027",
+              "severity": "high",
+              "state": "RESOLVED",
+              "class": "validate-owned-certification-scope-coherence",
+              "detail": "A1 refused because G027 was unresolved at its target revision. A3 independently resolved the current contract after the analyst-owned Outcome Contract edit and observed the asserted done-target guard pass G027 with no failed gates or checks.",
+              "evidenceRefs": [
+                "report.md#post-audit-validation-bubblesvalidate-2026-07-31",
+                "report.md#audit-evidence-bubblesaudit-a3-2026-07-31",
+                "audit-result-AUD-BUG004-A3.txt",
+                "scopes.md#definition-of-done"
+              ],
+              "nextRequiredOwner": null,
+              "transitionId": "TR-BUG004-A3-AUDIT"
+            }
+          ]
+        },
+        {
+          "attemptId": "AUD-BUG004-A4",
+          "resultState": "ACTIVE",
+          "openedAt": "2026-07-31T21:09:08Z",
+          "closedAt": "2026-07-31T21:14:49Z",
+          "targetRevision": "sha256:ef0d03ffd89b814844dcfce1e3573ba8c89344fb2733bf09d59604050286a8cc",
+          "contractDigest": "sha256:aa91472c047d3d985d38c1d308feb1e6081955b2aa553816deb5987d9cdc449f",
+          "auditProfile": "delivery-completion-v1",
+          "targetStatus": "done",
+          "auditVerdict": "SHIP_IT",
+          "outcome": "completed_diagnostic",
+          "evidenceRef": "specs/012-market-action-center-and-guided-tools/bugs/BUG-004-market-heatmap-control-surface/audit-result-AUD-BUG004-A4.txt",
+          "evidenceRefs": [
+            "specs/012-market-action-center-and-guided-tools/bugs/BUG-004-market-heatmap-control-surface/audit-result-AUD-BUG004-A4.txt",
+            "report.md#audit-evidence-bubblesaudit-a4-2026-07-31",
+            "report.md#authorized-commit-recovery-bubblesvalidate-2026-07-31",
+            "spec.md#outcome-contract",
+            "audit-result-AUD-BUG004-A3.txt",
+            "audit-result-AUD-BUG004-A2.txt",
+            "audit-result-AUD-BUG004-A1.txt",
+            "scopes.md#definition-of-done",
+            "scenario-manifest.json"
+          ],
+          "addressedFindings": [
+            "F-BUG004-A",
+            "F-BUG004-B",
+            "F-BUG004-C",
+            "F-BUG004-D",
+            "F-BUG004-E",
+            "F-BUG004-F",
+            "GAP-BUG004-001",
+            "GAP-BUG004-002",
+            "GAP-BUG004-003",
+            "GAP-BUG004-004",
+            "SEC-BUG004-001",
+            "G027"
+          ],
+          "unresolvedFindings": [],
+          "nextRequiredOwner": null,
+          "supersedesAttemptId": "AUD-BUG004-A3",
+          "resumeFromPhase": null,
+          "findings": [
+            {
+              "findingId": "G027",
+              "severity": "high",
+              "state": "RESOLVED",
+              "class": "validate-owned-certification-scope-coherence",
+              "detail": "A1 refused because G027 was unresolved at its target revision. A4 independently resolved the current contract after authorized commit 5a7cac51 and observed the asserted done-target guard pass G027 with no failed gates or checks.",
+              "evidenceRefs": [
+                "report.md#post-audit-validation-bubblesvalidate-2026-07-31",
+                "report.md#audit-evidence-bubblesaudit-a4-2026-07-31",
+                "audit-result-AUD-BUG004-A4.txt",
+                "scopes.md#definition-of-done"
+              ],
+              "nextRequiredOwner": null,
+              "transitionId": "TR-BUG004-AUDIT-A4"
+            }
+          ]
+        }
+      ]
     }
   },
   "certification": {
-    "status": "in_progress",
-    "certifiedAt": null,
-    "completedScopes": [],
-    "certifiedCompletedPhases": [],
+    "status": "done",
+    "certifiedAt": "2026-07-31T21:35:17Z",
+    "completedScopes": [
+      "SCOPE-01"
+    ],
+    "certifiedCompletedPhases": [
+      "implement",
+      "test",
+      "regression",
+      "simplify",
+      "gaps",
+      "harden",
+      "stabilize",
+      "devops",
+      "security",
+      "validate",
+      "audit"
+    ],
     "scopeProgress": [
       {
         "scope": 1,
         "scopeId": "SCOPE-01",
         "name": "Restore Automatic Simple Readiness And Both Control Surfaces",
-        "status": "not_started",
+        "status": "done",
         "dependsOn": [],
         "scopeDir": null,
         "evidenceFile": "report.md",
-        "certifiedAt": null
+        "certifiedAt": "2026-07-31T15:12:14Z"
       }
     ],
     "lockdownState": {
       "active": false,
       "lockedScenarioIds": []
-    }
+    },
+    "assurance": {
+      "level": "full",
+      "missingForFull": []
+    },
+    "observations": [
+      {
+        "id": "OBS-BUG004-HISTORICAL-EVIDENCE-HEURISTIC",
+        "severity": "low",
+        "summary": "The terminal guard passed with zero failed gates while retaining its nonblocking historical report-evidence heuristic for legacy prose-only and duplicate evidence shapes.",
+        "followUpOwner": "human",
+        "followUpAction": "accept",
+        "agent": "bubbles.validate"
+      }
+    ]
   },
   "policySnapshot": {
     "workflowMode": "bugfix-fastlane",
@@ -1242,7 +1578,7 @@
     },
     {
       "id": "TR-BUG004-VALIDATE",
-      "status": "open",
+      "status": "resolved",
       "requestedBy": "bubbles.security",
       "routedTo": "bubbles.validate",
       "requestedAt": "2026-07-31T01:42:20Z",
@@ -1264,8 +1600,299 @@
         "report.md#security-revalidation-bubblessecurity",
         "report.md#regression-security-revalidation",
         "report.md#security-remediation-test-revalidation",
-        "scopes.md#definition-of-done"
-      ]
+        "scopes.md#definition-of-done",
+        "report.md#pre-audit-validation-bubblesvalidate---2026-07-31"
+      ],
+      "resolvedAt": "2026-07-31T13:48:42Z",
+      "resolvedBy": "bubbles.validate",
+      "outcome": "route_required",
+      "resolutionSummary": "Completed the validate-owned PRE-AUDIT boundary with accepted repository packet revision 20, browser plan count 8 in 2 files, authoritative terminal artifact status passed with failedTests empty, no browser process residue, clean artifact/Claim-Source/reality/traceability/regression-baseline checks, and fresh registry contract provenance. The asserted guard remains nonterminal only because certification scope state is untouched and audit has not run. Validate execution is recorded without certification; routing moves to TR-BUG004-AUDIT."
+    },
+    {
+      "id": "TR-BUG004-AUDIT",
+      "status": "resolved",
+      "requestedBy": "bubbles.validate",
+      "routedTo": "bubbles.audit",
+      "requestedAt": "2026-07-31T13:48:42Z",
+      "reason": "Execute the first independent audit attempt for BUG-004 under the registry-resolved delivery-completion-v1 profile. The fresh pre-route contract resolved workflowMode bugfix-fastlane, targetStatus done, contractDigest sha256:aa91472c047d3d985d38c1d308feb1e6081955b2aa553816deb5987d9cdc449f, and targetRevision sha256:e8dd881712b4eefec03cca28ad1daa3ecdc35da09754bb55281853bbba02ce7f. Because validate-owned report and routing mutations participate in targetRevision, audit must independently resolve current bytes and bind its attempt to the newly resolved revision rather than reuse the pre-route value. Account for every listed finding exactly once, produce a complete AUDIT_RESULT_V1 transcript, and return the audit result to bubbles.validate without changing certification or terminal fields.",
+      "routedToSpec": "specs/012-market-action-center-and-guided-tools/bugs/BUG-004-market-heatmap-control-surface",
+      "productAction": "none",
+      "crossRepoFollowUp": false,
+      "routingClass": "same-repo-specialist",
+      "workflowMode": "bugfix-fastlane",
+      "auditProfile": "delivery-completion-v1",
+      "targetStatus": "done",
+      "contractDigest": "sha256:aa91472c047d3d985d38c1d308feb1e6081955b2aa553816deb5987d9cdc449f",
+      "targetRevision": "sha256:e8dd881712b4eefec03cca28ad1daa3ecdc35da09754bb55281853bbba02ce7f",
+      "contractRef": "bubbles/workflows/modes.yaml#bugfix-fastlane",
+      "phaseOrder": [
+        "select",
+        "bootstrap",
+        "implement",
+        "test",
+        "regression",
+        "simplify",
+        "gaps",
+        "harden",
+        "stabilize",
+        "devops",
+        "security",
+        "validate",
+        "audit",
+        "finalize"
+      ],
+      "scenarioIds": [
+        "SCN-B004-A",
+        "SCN-B004-B",
+        "SCN-B004-C",
+        "SCN-B004-D"
+      ],
+      "findingIds": [
+        "F-BUG004-A",
+        "F-BUG004-B",
+        "F-BUG004-C",
+        "F-BUG004-D",
+        "F-BUG004-E",
+        "F-BUG004-F",
+        "GAP-BUG004-001",
+        "GAP-BUG004-002",
+        "GAP-BUG004-003",
+        "GAP-BUG004-004",
+        "SEC-BUG004-001"
+      ],
+      "evidenceRefs": [
+        "report.md#pre-audit-validation-bubblesvalidate---2026-07-31",
+        "report.md#security-revalidation-bubblessecurity",
+        "report.md#regression-security-revalidation",
+        "report.md#security-remediation-test-revalidation",
+        "report.md#final-simplify-revalidation-browser-matrix",
+        "scopes.md#definition-of-done",
+        "scenario-manifest.json"
+      ],
+      "resolvedAt": "2026-07-31T14:23:25Z",
+      "resolvedBy": "bubbles.audit",
+      "outcome": "route_required",
+      "resolutionSummary": "Completed the first and only independent attempt AUD-BUG004-A1 from resume phase 3. All 11 expected findings are addressed exactly once and current fast/governance checks are clean. The registry-asserted delivery guard still refuses validate-owned certification completed-scope coherence under G027, so the audit verdict is REWORK_REQUIRED and remediation routes to bubbles.validate without changing certification or top-level status."
+    },
+    {
+      "id": "TR-BUG004-POST-AUDIT-VALIDATE",
+      "status": "resolved",
+      "requestedBy": "bubbles.audit",
+      "routedTo": "bubbles.validate",
+      "requestedAt": "2026-07-31T14:23:25Z",
+      "reason": "AUD-BUG004-A1 addressed every expected finding, but the asserted done-target delivery guard still blocks G027 because certification.completedScopes and certification.scopeProgress remain validate-owned and nonterminal. Reconcile certification scope coherence from the audit evidence, then independently decide certification and any finalize route without treating audit as certification.",
+      "routedToSpec": "specs/012-market-action-center-and-guided-tools/bugs/BUG-004-market-heatmap-control-surface",
+      "productAction": "none",
+      "crossRepoFollowUp": false,
+      "routingClass": "same-repo-specialist",
+      "scenarioIds": [
+        "SCN-B004-A",
+        "SCN-B004-B",
+        "SCN-B004-C",
+        "SCN-B004-D"
+      ],
+      "findingIds": [
+        "G027"
+      ],
+      "evidenceRefs": [
+        "report.md#audit-evidence-bubblesaudit-2026-07-31",
+        "scopes.md#definition-of-done",
+        "state.json",
+        "report.md#post-audit-validation-bubblesvalidate-2026-07-31"
+      ],
+      "resolvedAt": "2026-07-31T15:14:28Z",
+      "resolvedBy": "bubbles.validate",
+      "outcome": "route_required",
+      "resolutionSummary": "Reconciled the validate-owned certification scope and phase mirrors from Done SCOPE-01 and 22/22 checked evidence. The registry-asserted done-target guard now exits 0 with G027 passed at target revision sha256:7ad84c40193e5068a259dc8b2eb91d1c7fbf442ac9803c6639af471cbedfa6a7. Terminal certification remains prohibited because AUD-BUG004-A1 is still REWORK_REQUIRED with deliveryEvaluation REFUSED and targets sha256:0d552499a284e6fc8508a4e722b8296ad2ff35825f45ccf8f1157265abf31015; one superseding audit route was opened without editing audit-owned history."
+    },
+    {
+      "id": "TR-BUG004-AUDIT-SUPERSEDE-A1",
+      "status": "resolved",
+      "requestedBy": "bubbles.validate",
+      "routedTo": "bubbles.audit",
+      "requestedAt": "2026-07-31T15:14:28Z",
+      "reason": "The post-G027 registry-asserted done-target guard exits 0 at target revision sha256:7ad84c40193e5068a259dc8b2eb91d1c7fbf442ac9803c6639af471cbedfa6a7, but ACTIVE attempt AUD-BUG004-A1 remains REWORK_REQUIRED, outcome route_required, deliveryEvaluation REFUSED, and targets stale revision sha256:0d552499a284e6fc8508a4e722b8296ad2ff35825f45ccf8f1157265abf31015. Preserve A1 unchanged, resolve the fresh current revision at dispatch, and create exactly one superseding delivery-completion attempt that independently verifies G027 closure and returns a positive audit verdict before validate can derive assurance or certify terminal status.",
+      "routedToSpec": "specs/012-market-action-center-and-guided-tools/bugs/BUG-004-market-heatmap-control-surface",
+      "productAction": "none",
+      "crossRepoFollowUp": false,
+      "routingClass": "same-repo-specialist",
+      "scenarioIds": [
+        "SCN-B004-A",
+        "SCN-B004-B",
+        "SCN-B004-C",
+        "SCN-B004-D"
+      ],
+      "findingIds": [
+        "G027"
+      ],
+      "evidenceRefs": [
+        "report.md#post-audit-validation-bubblesvalidate-2026-07-31",
+        "audit-result-AUD-BUG004-A1.txt",
+        "scopes.md#definition-of-done",
+        "state.json"
+      ],
+      "resolvedAt": "2026-07-31T15:42:09Z",
+      "resolvedBy": "bubbles.audit",
+      "outcome": "completed_diagnostic",
+      "resolutionSummary": "Created exactly one superseding attempt, AUD-BUG004-A2, bound to fresh target revision sha256:d7fab1dc5012fe7d3d5a60a69d336874236fcf043556b8935e94bf128fb371c7. The asserted guard and artifact lint pass, A2 result lint exits 0, G027 is addressed, all 12 inherited findings are accounted for exactly once, A1 is SUPERSEDED, and certification remains unchanged."
+    },
+    {
+      "id": "TR-BUG004-A2-VALIDATE",
+      "status": "resolved",
+      "requestedBy": "bubbles.audit",
+      "routedTo": "bubbles.validate",
+      "requestedAt": "2026-07-31T15:42:09Z",
+      "reason": "AUD-BUG004-A2 is the current ACTIVE SHIP_IT delivery audit at the fresh pre-attempt revision with all 12 inherited findings addressed and no unresolved findings. Validate retains sole ownership of terminal certification, assurance derivation, top-level status, and any finalize decision.",
+      "routedToSpec": "specs/012-market-action-center-and-guided-tools/bugs/BUG-004-market-heatmap-control-surface",
+      "productAction": "none",
+      "crossRepoFollowUp": false,
+      "routingClass": "same-repo-specialist",
+      "scenarioIds": [
+        "SCN-B004-A",
+        "SCN-B004-B",
+        "SCN-B004-C",
+        "SCN-B004-D"
+      ],
+      "findingIds": [],
+      "evidenceRefs": [
+        "audit-result-AUD-BUG004-A2.txt",
+        "report.md#audit-evidence-bubblesaudit-a2-2026-07-31",
+        "report.md#post-audit-validation-bubblesvalidate-2026-07-31",
+        "scopes.md#definition-of-done",
+        "state.json"
+      ],
+      "resolvedAt": "2026-07-31T16:23:45Z",
+      "resolvedBy": "bubbles.validate",
+      "outcome": "route_required",
+      "resolutionSummary": "Recorded the parent terminal validation refusal at A3 intake: A2 remained internally lint-valid but its target revision sha256:d7fab1dc5012fe7d3d5a60a69d336874236fcf043556b8935e94bf128fb371c7 no longer matched the fresh pre-attempt revision sha256:03b5c79245db4d228bffdc003f898d99d16d2e53d88d9344fd849962b73c90d8 after the analyst-owned Outcome Contract edit. The installed finalize boundary classifies that mismatch as AUDIT_PROVENANCE_CONFLICT and requires a fresh ACTIVE audit. No certification or status changed."
+    },
+    {
+      "id": "TR-BUG004-A3-AUDIT",
+      "status": "resolved",
+      "requestedBy": "bubbles.validate",
+      "routedTo": "bubbles.audit",
+      "requestedAt": "2026-07-31T16:23:45Z",
+      "reason": "No open audit route remained after the parent validate response refused stale ACTIVE attempt A2. Resolve the current contract after the analyst-owned Outcome Contract edit, preserve all 12 inherited findings, and create exactly one fresh superseding delivery-completion attempt bound to the pre-attempt revision.",
+      "routedToSpec": "specs/012-market-action-center-and-guided-tools/bugs/BUG-004-market-heatmap-control-surface",
+      "productAction": "none",
+      "crossRepoFollowUp": false,
+      "routingClass": "same-repo-specialist",
+      "scenarioIds": [
+        "SCN-B004-A",
+        "SCN-B004-B",
+        "SCN-B004-C",
+        "SCN-B004-D"
+      ],
+      "findingIds": [],
+      "evidenceRefs": [
+        "report.md#audit-evidence-bubblesaudit-a3-2026-07-31",
+        "audit-result-AUD-BUG004-A3.txt",
+        "audit-result-AUD-BUG004-A2.txt",
+        "spec.md#outcome-contract",
+        "state.json"
+      ],
+      "resolvedAt": "2026-07-31T16:29:56Z",
+      "resolvedBy": "bubbles.audit",
+      "outcome": "completed_diagnostic",
+      "resolutionSummary": "Created exactly one final superseding attempt, AUD-BUG004-A3, bound to pre-attempt revision sha256:03b5c79245db4d228bffdc003f898d99d16d2e53d88d9344fd849962b73c90d8. The asserted guard and focused checks pass, the corrected G070 discriminator confirms Outcome Contract fidelity, the active A3 result lint exits 0, all 12 inherited findings are addressed exactly once, A1 and A2 are SUPERSEDED, and certification remains unchanged."
+    },
+    {
+      "id": "TR-BUG004-A3-VALIDATE",
+      "status": "resolved",
+      "requestedBy": "bubbles.audit",
+      "routedTo": "bubbles.validate",
+      "requestedAt": "2026-07-31T16:29:56Z",
+      "reason": "AUD-BUG004-A3 is the current ACTIVE SHIP_IT delivery audit at the fresh pre-attempt revision with all 12 inherited findings addressed, no unresolved findings, and an independently audited Outcome Contract. Validate retains sole ownership of terminal certification, assurance derivation, top-level status, and any finalize decision.",
+      "routedToSpec": "specs/012-market-action-center-and-guided-tools/bugs/BUG-004-market-heatmap-control-surface",
+      "productAction": "none",
+      "crossRepoFollowUp": false,
+      "routingClass": "same-repo-specialist",
+      "scenarioIds": [
+        "SCN-B004-A",
+        "SCN-B004-B",
+        "SCN-B004-C",
+        "SCN-B004-D"
+      ],
+      "findingIds": [],
+      "evidenceRefs": [
+        "audit-result-AUD-BUG004-A3.txt",
+        "report.md#audit-evidence-bubblesaudit-a3-2026-07-31",
+        "spec.md#outcome-contract",
+        "scopes.md#definition-of-done",
+        "scenario-manifest.json",
+        "state.json"
+      ],
+      "resolvedAt": "2026-07-31T16:51:37Z",
+      "resolvedBy": "bubbles.validate",
+      "outcome": "completed_diagnostic",
+      "resolutionSummary": "Validated ACTIVE attempt AUD-BUG004-A3 against the installed delivery contract, preserved the pre-attempt revision binding accepted by the canonical audit-result lint, passed the current asserted done-target guard and G070 outcome check, derived full assurance, certified done, and routed only activeWorkflowRunner-owned finalize."
+    },
+    {
+      "id": "TR-BUG004-AUDIT-A4",
+      "status": "resolved",
+      "requestedBy": "bubbles.validate",
+      "routedTo": "bubbles.audit",
+      "requestedAt": "2026-07-31T20:34:06Z",
+      "reason": "Authorized commit 5a7cac51 resolved the sole G088 operator blocker by committing exactly the BUG-004 spec.md Outcome Contract through normal hooks with no residual spec.md diff. Preserve AUD-BUG004-A1, AUD-BUG004-A2, and ACTIVE historical AUD-BUG004-A3 unchanged; resolve the current contract at audit dispatch and create exactly one fresh delivery-completion attempt AUD-BUG004-A4 bound to the audit-time current revision rather than reusing this pre-recovery targetRevision.",
+      "routedToSpec": "specs/012-market-action-center-and-guided-tools/bugs/BUG-004-market-heatmap-control-surface",
+      "productAction": "none",
+      "crossRepoFollowUp": false,
+      "routingClass": "same-repo-specialist",
+      "workflowMode": "bugfix-fastlane",
+      "auditProfile": "delivery-completion-v1",
+      "targetStatus": "done",
+      "contractDigest": "sha256:aa91472c047d3d985d38c1d308feb1e6081955b2aa553816deb5987d9cdc449f",
+      "targetRevision": "sha256:0e6259564500b0595ad6e74273cfcc987a38b8edc0f477baf7b30eef62b76476",
+      "contractRef": "bubbles/workflows/modes.yaml#bugfix-fastlane",
+      "scenarioIds": [
+        "SCN-B004-A",
+        "SCN-B004-B",
+        "SCN-B004-C",
+        "SCN-B004-D"
+      ],
+      "findingIds": [],
+      "evidenceRefs": [
+        "report.md#authorized-commit-recovery-bubblesvalidate-2026-07-31",
+        "spec.md#outcome-contract",
+        "audit-result-AUD-BUG004-A3.txt",
+        "state.json"
+      ],
+      "resolvedAt": "2026-07-31T21:14:49Z",
+      "resolvedBy": "bubbles.audit",
+      "outcome": "completed_diagnostic",
+      "resolutionSummary": "Created exactly one fresh superseding attempt, AUD-BUG004-A4, bound to pre-attempt revision sha256:ef0d03ffd89b814844dcfce1e3573ba8c89344fb2733bf09d59604050286a8cc. The asserted guard and focused governance checks pass; commit 5a7cac51 is exactly the authorized one-file, 10-line Outcome Contract change with no residual spec diff; G070 and G088 pass; all 12 inherited findings are addressed exactly once; A1-A3 are SUPERSEDED; and certification remains unchanged."
+    },
+    {
+      "id": "TR-BUG004-A4-VALIDATE",
+      "status": "resolved",
+      "requestedBy": "bubbles.audit",
+      "routedTo": "bubbles.validate",
+      "requestedAt": "2026-07-31T21:14:49Z",
+      "reason": "AUD-BUG004-A4 is the current ACTIVE SHIP_IT delivery audit at the fresh pre-attempt revision with all 12 inherited findings addressed, no unresolved findings, committed Outcome Contract fidelity, and G088 closure. Validate retains sole ownership of terminal certification, assurance derivation, top-level status, and any finalize decision.",
+      "routedToSpec": "specs/012-market-action-center-and-guided-tools/bugs/BUG-004-market-heatmap-control-surface",
+      "productAction": "none",
+      "crossRepoFollowUp": false,
+      "routingClass": "same-repo-specialist",
+      "scenarioIds": [
+        "SCN-B004-A",
+        "SCN-B004-B",
+        "SCN-B004-C",
+        "SCN-B004-D"
+      ],
+      "findingIds": [],
+      "evidenceRefs": [
+        "audit-result-AUD-BUG004-A4.txt",
+        "report.md#audit-evidence-bubblesaudit-a4-2026-07-31",
+        "report.md#authorized-commit-recovery-bubblesvalidate-2026-07-31",
+        "spec.md#outcome-contract",
+        "scopes.md#definition-of-done",
+        "scenario-manifest.json",
+        "state.json"
+      ],
+      "resolvedAt": "2026-07-31T21:35:17Z",
+      "resolvedBy": "bubbles.validate",
+      "outcome": "completed_diagnostic",
+      "resolutionSummary": "Validated ACTIVE attempt AUD-BUG004-A4 against the fresh bugfix-fastlane delivery contract, preserved its accepted pre-attempt revision binding and A1-A3 supersession chain, passed the asserted done-target guard plus G070 and G088, derived full assurance, certified both status mirrors done, cleared the pending transition list, and left finalize to activeWorkflowRunner without a deployment claim."
     }
   ],
   "reworkQueue": [],
@@ -2049,6 +2676,316 @@
       ],
       "nextRequiredOwner": "bubbles.validate",
       "summary": "Completed the bounded BUG-004 evidence-only repair. Claim-source lint reports zero findings, artifact lint passes, and the pre-resolution transition guard reports all 22 checked DoD evidence links resolved with G040 clean. No production source, test, documentation, planning semantics, scope status, completion array, finding record, or certification field changed. TR-BUG004-TEST-EVIDENCE-REPAIR is resolved and TR-BUG004-VALIDATE remains the sole pending route for validate-owned certification."
+    },
+    {
+      "agent": "bubbles.validate",
+      "workflowMode": "bugfix-fastlane",
+      "executionModel": "direct-authorized-runner",
+      "parentAgent": null,
+      "startedAt": "2026-07-31T13:36:43Z",
+      "completedAt": "2026-07-31T13:48:42Z",
+      "statusBefore": "in_progress",
+      "statusAfter": "in_progress",
+      "phasesExecuted": [
+        "validate"
+      ],
+      "scopesCompleted": [],
+      "outcome": "route_required",
+      "addressedFindings": [
+        "TR-BUG004-VALIDATE",
+        "BUG004-PRE-AUDIT-REPOSITORY-BINDING-R20",
+        "BUG004-PRE-AUDIT-BROWSER-PLAN-8",
+        "BUG004-PRE-AUDIT-GOVERNANCE"
+      ],
+      "unresolvedFindings": [
+        "TR-BUG004-AUDIT"
+      ],
+      "nextRequiredOwner": "bubbles.audit",
+      "summary": "Completed only the registry-bound PRE-AUDIT validate boundary. The browser command was not rerun; --list proved 8 planned tests in 2 files, the authoritative latest-run artifact recorded passed with no failed test IDs, and no browser process remained. Artifact lint, Claim-Source lint, implementation reality, traceability, and regression baseline are clean. The asserted transition guard passed G061 and all prior execution prerequisites; its remaining refusal is the required independent audit plus certification fields deliberately left unchanged. TR-BUG004-VALIDATE is resolved, TR-BUG004-AUDIT is open, and no audit/finalize/deployment/terminal claim was made."
+    },
+    {
+      "agent": "bubbles.audit",
+      "workflowMode": "bugfix-fastlane",
+      "executionModel": "direct-authorized-runner",
+      "parentAgent": null,
+      "startedAt": "2026-07-31T14:00:40Z",
+      "completedAt": "2026-07-31T14:23:25Z",
+      "statusBefore": "in_progress",
+      "statusAfter": "in_progress",
+      "phasesExecuted": [
+        "audit"
+      ],
+      "scopesCompleted": [],
+      "outcome": "route_required",
+      "addressedFindings": [
+        "F-BUG004-A",
+        "F-BUG004-B",
+        "F-BUG004-C",
+        "F-BUG004-D",
+        "F-BUG004-E",
+        "F-BUG004-F",
+        "GAP-BUG004-001",
+        "GAP-BUG004-002",
+        "GAP-BUG004-003",
+        "GAP-BUG004-004",
+        "SEC-BUG004-001"
+      ],
+      "unresolvedFindings": [
+        "G027"
+      ],
+      "nextRequiredOwner": "bubbles.validate",
+      "summary": "Resumed the only independent audit attempt at phase 3. Reviewed every interpreted block, all eight exactly-10-line evidence fences, four resolved uncertainty declarations, and the absence of observations or legacy concern status. Independently reran fast unit/integration/shell/selftest and focused governance checks, retained the current passed browser artifact without rerun as instructed, and addressed all 11 expected findings. The done-target guard remains nonzero only for validate-owned certification scope coherence under G027, so audit routes rework to bubbles.validate without changing certification or status."
+    },
+    {
+      "agent": "bubbles.validate",
+      "workflowMode": "bugfix-fastlane",
+      "executionModel": "direct-authorized-runner",
+      "parentAgent": null,
+      "startedAt": "2026-07-31T15:12:14Z",
+      "completedAt": "2026-07-31T15:14:28Z",
+      "statusBefore": "in_progress",
+      "statusAfter": "in_progress",
+      "phasesExecuted": [
+        "validate"
+      ],
+      "scopesCompleted": [
+        "SCOPE-01"
+      ],
+      "outcome": "route_required",
+      "addressedFindings": [
+        "G027",
+        "TR-BUG004-POST-AUDIT-VALIDATE",
+        "BUG004-POST-AUDIT-GUARD-PASS"
+      ],
+      "unresolvedFindings": [
+        "AUD-BUG004-A1-REWORK-VERDICT",
+        "AUD-BUG004-A1-TARGET-REVISION-MISMATCH"
+      ],
+      "nextRequiredOwner": "bubbles.audit",
+      "summary": "Accepted repository packet revision 22, reconciled validate-owned certification scope and phase coherence, and proved the registry-asserted done-target guard passes with G027 cleared. Refused terminal certification because the sole ACTIVE audit remains REWORK_REQUIRED with deliveryEvaluation REFUSED and its target revision predates the G027 repair. Resolved TR-BUG004-POST-AUDIT-VALIDATE and opened exactly one same-repo superseding audit route; top-level and certification status remain in_progress, certifiedAt and completedAt remain null, and no assurance block or audit-owned field changed."
+    },
+    {
+      "agent": "bubbles.audit",
+      "workflowMode": "bugfix-fastlane",
+      "executionModel": "direct-authorized-runner",
+      "parentAgent": null,
+      "startedAt": "2026-07-31T15:36:27Z",
+      "completedAt": "2026-07-31T15:42:09Z",
+      "statusBefore": "in_progress",
+      "statusAfter": "in_progress",
+      "phasesExecuted": [
+        "audit"
+      ],
+      "scopesCompleted": [],
+      "outcome": "completed_diagnostic",
+      "addressedFindings": [
+        "F-BUG004-A",
+        "F-BUG004-B",
+        "F-BUG004-C",
+        "F-BUG004-D",
+        "F-BUG004-E",
+        "F-BUG004-F",
+        "GAP-BUG004-001",
+        "GAP-BUG004-002",
+        "GAP-BUG004-003",
+        "GAP-BUG004-004",
+        "SEC-BUG004-001",
+        "G027"
+      ],
+      "unresolvedFindings": [],
+      "nextRequiredOwner": "bubbles.validate",
+      "summary": "Completed exactly one superseding audit attempt, AUD-BUG004-A2. Repository packet revision 23 validated, the fresh registry contract and asserted done-target guard passed with zero failed gates, focused artifact lint passed, and A2 result lint passed on invocation 2 after lifecycle activation. All 12 inherited findings are addressed exactly once; A1 is SUPERSEDED and A2 is ACTIVE. Browser tests were not rerun. Opened TR-BUG004-A2-VALIDATE for validate-owned terminal certification and finalize decision while both statuses remain in_progress."
+    },
+    {
+      "agent": "bubbles.audit",
+      "workflowMode": "bugfix-fastlane",
+      "executionModel": "direct-authorized-runner",
+      "parentAgent": null,
+      "startedAt": "2026-07-31T16:23:45Z",
+      "completedAt": "2026-07-31T16:29:56Z",
+      "statusBefore": "in_progress",
+      "statusAfter": "in_progress",
+      "phasesExecuted": [
+        "audit"
+      ],
+      "scopesCompleted": [],
+      "outcome": "completed_diagnostic",
+      "addressedFindings": [
+        "F-BUG004-A",
+        "F-BUG004-B",
+        "F-BUG004-C",
+        "F-BUG004-D",
+        "F-BUG004-E",
+        "F-BUG004-F",
+        "GAP-BUG004-001",
+        "GAP-BUG004-002",
+        "GAP-BUG004-003",
+        "GAP-BUG004-004",
+        "SEC-BUG004-001",
+        "G027"
+      ],
+      "unresolvedFindings": [],
+      "nextRequiredOwner": "bubbles.validate",
+      "summary": "Completed exactly one final superseding audit attempt, AUD-BUG004-A3. Revision-25 repository binding validated; the fresh registry contract and asserted done-target guard passed with zero failed gates; focused artifact, Claim-Source, reality, traceability, and baseline checks passed; and the corrected G070 discriminator confirmed the substantive Outcome Contract matches the delivered scenario set. The active A3 transcript lint passed. All 12 inherited findings are addressed exactly once; A1 and A2 are SUPERSEDED and A3 is ACTIVE. Browser and product tests were not rerun because their identities did not change. Opened TR-BUG004-A3-VALIDATE while both statuses remain in_progress."
+    },
+    {
+      "agent": "bubbles.validate",
+      "workflowMode": "bugfix-fastlane",
+      "executionModel": "direct-authorized-runner",
+      "parentAgent": null,
+      "startedAt": "2026-07-31T16:42:18Z",
+      "completedAt": "2026-07-31T16:51:37Z",
+      "statusBefore": "in_progress",
+      "statusAfter": "done",
+      "phasesExecuted": [
+        "validate"
+      ],
+      "scopesCompleted": [
+        "SCOPE-01"
+      ],
+      "outcome": "completed_diagnostic",
+      "addressedFindings": [
+        "TR-BUG004-A3-VALIDATE",
+        "AUD-BUG004-A3-COMPATIBILITY",
+        "G070",
+        "ASSURANCE-FULL",
+        "TERMINAL-DONE"
+      ],
+      "unresolvedFindings": [],
+      "nextRequiredOwner": "activeWorkflowRunner",
+      "summary": "Validated repository decision 26, current contract assertions, ACTIVE A3 audit compatibility, G070 outcome fidelity, full assurance, and terminal-for-mode status. Certified top-level and certification status done at 2026-07-31T16:51:37Z, resolved TR-BUG004-A3-VALIDATE, preserved all audit-owned attempts and delivery evidence, recorded one low nonblocking historical evidence-shape observation, and made no deployment claim. Finalize remains owned by activeWorkflowRunner."
+    },
+    {
+      "agent": "bubbles.validate",
+      "workflowMode": "bugfix-fastlane",
+      "executionModel": "direct-authorized-runner",
+      "parentAgent": null,
+      "startedAt": "2026-07-31T18:15:09Z",
+      "completedAt": "2026-07-31T18:17:03Z",
+      "statusBefore": "done",
+      "statusAfter": "blocked",
+      "phasesExecuted": [
+        "validate"
+      ],
+      "scopesCompleted": [
+        "SCOPE-01"
+      ],
+      "outcome": "blocked",
+      "addressedFindings": [
+        "G088-FALSE-TERMINAL-CERTIFICATION",
+        "BUG004-TERMINAL-CERTIFICATION-REOPENED"
+      ],
+      "unresolvedFindings": [
+        "G088-OPERATOR-COMMIT-AND-FRESH-RECERTIFICATION"
+      ],
+      "nextRequiredOwner": "repository-owner",
+      "summary": "Reopened terminal certification after the parent directly observed G088 reject the uncommitted post-certification spec.md Outcome Contract edit. Status mirrors are blocked, terminal timestamps are cleared, requiresRevalidation is true, and current finalize is blocked on a repository-owner commit with normal hooks followed by a fresh audit and certification. Auto-commit is off and no user authorization permits an agent commit. Post-demotion G088, artifact lint, state-transition guard, Claim-Source lint, assurance consistency, and diff checks pass; A1/A2/A3 history and ACTIVE SHIP_IT A3 remain unchanged."
+    },
+    {
+      "agent": "bubbles.validate",
+      "workflowMode": "bugfix-fastlane",
+      "executionModel": "direct-authorized-runner",
+      "parentAgent": null,
+      "startedAt": "2026-07-31T20:34:06Z",
+      "completedAt": "2026-07-31T20:37:34Z",
+      "statusBefore": "blocked",
+      "statusAfter": "in_progress",
+      "phasesExecuted": [
+        "validate"
+      ],
+      "scopesCompleted": [
+        "SCOPE-01"
+      ],
+      "outcome": "route_required",
+      "addressedFindings": [
+        "G088-OPERATOR-COMMIT-AND-FRESH-RECERTIFICATION"
+      ],
+      "unresolvedFindings": [],
+      "nextRequiredOwner": "bubbles.audit",
+      "summary": "Authorized commit 5a7cac51 contains exactly the BUG-004 spec.md Outcome Contract change (one file, 10 insertions), spec.md has no residual diff, and G088 passes. Recovered both status mirrors to in_progress, cleared blockedReason, retained requiresRevalidation and null terminal timestamps, preserved completed scope/phase evidence, full assurance, all A1/A2/A3 audit history, and ACTIVE historical A3, and opened only TR-BUG004-AUDIT-A4 for a fresh delivery audit bound to the audit-time current revision. Artifact lint, Claim-Source lint, post-cert guard, state-transition guard, traceability guard, and git diff --check exited 0; no product or browser test ran."
+    },
+    {
+      "agent": "bubbles.audit",
+      "workflowMode": "bugfix-fastlane",
+      "executionModel": "direct-authorized-runner",
+      "parentAgent": null,
+      "startedAt": "2026-07-31T21:09:08Z",
+      "completedAt": "2026-07-31T21:14:49Z",
+      "statusBefore": "in_progress",
+      "statusAfter": "in_progress",
+      "phasesExecuted": [
+        "audit"
+      ],
+      "scopesCompleted": [],
+      "outcome": "completed_diagnostic",
+      "addressedFindings": [
+        "F-BUG004-A",
+        "F-BUG004-B",
+        "F-BUG004-C",
+        "F-BUG004-D",
+        "F-BUG004-E",
+        "F-BUG004-F",
+        "GAP-BUG004-001",
+        "GAP-BUG004-002",
+        "GAP-BUG004-003",
+        "GAP-BUG004-004",
+        "SEC-BUG004-001",
+        "G027"
+      ],
+      "unresolvedFindings": [],
+      "nextRequiredOwner": "bubbles.validate",
+      "summary": "Completed exactly one fresh delivery audit attempt, AUD-BUG004-A4. Repository decision 35 validated; the fresh contract and asserted done-target guard passed; artifact, Claim-Source, reality, traceability, baseline, commit-scope, residual-diff, G070, G088, and process checks passed. All 12 inherited findings are addressed exactly once, A1-A3 are SUPERSEDED, A4 is ACTIVE, and TR-BUG004-A4-VALIDATE is the sole pending route. Product and browser tests were not rerun; status and certification remain in_progress."
+    },
+    {
+      "agent": "bubbles.validate",
+      "workflowMode": "bugfix-fastlane",
+      "executionModel": "direct-authorized-runner",
+      "parentAgent": null,
+      "startedAt": "2026-07-31T21:27:00Z",
+      "completedAt": "2026-07-31T21:35:17Z",
+      "statusBefore": "in_progress",
+      "statusAfter": "done",
+      "phasesExecuted": [
+        "validate"
+      ],
+      "scopesCompleted": [
+        "SCOPE-01"
+      ],
+      "outcome": "completed_diagnostic",
+      "addressedFindings": [
+        "TR-BUG004-A4-VALIDATE",
+        "AUD-BUG004-A4-COMPATIBILITY",
+        "G070",
+        "G088",
+        "ASSURANCE-FULL",
+        "TERMINAL-DONE"
+      ],
+      "unresolvedFindings": [],
+      "nextRequiredOwner": "activeWorkflowRunner",
+      "summary": "Validated repository decision 36, the fresh registry contract, ACTIVE A4 audit compatibility, committed Outcome Contract fidelity, full assurance, and terminal-for-mode status. Certified top-level and certification status done at 2026-07-31T21:35:17Z, resolved TR-BUG004-A4-VALIDATE, preserved all scope/phase and audit-owned evidence, recorded no new observation, and made no deployment claim. Finalize remains owned by activeWorkflowRunner."
+    },
+    {
+      "agent": "bubbles.goal",
+      "workflowMode": "bugfix-fastlane",
+      "executionModel": "direct-authorized-runner",
+      "parentAgent": null,
+      "startedAt": "2026-07-31T22:03:01Z",
+      "completedAt": "2026-07-31T22:03:01Z",
+      "statusBefore": "done",
+      "statusAfter": "done",
+      "phasesExecuted": [
+        "finalize"
+      ],
+      "scopesCompleted": [
+        "SCOPE-01"
+      ],
+      "outcome": "completed_diagnostic",
+      "addressedFindings": [
+        "BUG004-FINALIZE-COMPLETE"
+      ],
+      "unresolvedFindings": [],
+      "nextRequiredOwner": null,
+      "summary": "Completed the active-runner finalize boundary after independently re-resolving the transition contract, validating ACTIVE A4, and passing every terminal artifact, governance, assurance, changed-spec, managed-framework, user-validation, and process-residue check. Certification and audit-owned evidence were preserved unchanged; no deployment or Git operation was performed."
     }
   ]
 }

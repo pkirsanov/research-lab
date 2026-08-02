@@ -3,7 +3,15 @@
     "featureDir": "specs/006-trend-dynamics-cycle-lab",
     "featureName": "Trend Dynamics and Cycle Lab",
     "createdAt": "2026-07-14T19:45:05Z",
-    "status": "not_started",
+    "status": "in_progress",
+    "statusReconciliation": {
+        "recordedBy": "orchestrator",
+        "recordedAt": "2026-08-02T05:03:12Z",
+        "previousStatus": "not_started",
+        "why": "`not_started` was the most clear-cut contradiction in the repository. `scopes.md` declares Scopes 1, 2 and 3 as `**Status:** Done` and Scopes 4-5 as `Not Started`, while `execution` records `activeAgent: bubbles.implement`, `currentPhase: implement`, `currentScope: Scope 4`, and completed phase claims `[implement, test]`. The page `trend-dynamics-cycle-lab.html` and `trend-dynamics-cycle-universe.json` are shipped on disk.",
+        "remaining": "Publication is intentionally withheld: `site-exclusions.json` excludes both files because production diagnostics carry `ownerReadPublished=false` and Scopes 4-5 are incomplete. The tool is correctly absent from `tools.json`.",
+        "noScopeClaimed": "`certification.completedScopes` was deliberately left empty — populating it is `bubbles.validate`-owned and requires certification evidence this orchestrator did not produce. Only the lifecycle status was corrected."
+    },
     "workflowMode": "full-delivery",
     "linkedImplementationSpec": null,
     "linkedPlanningPacket": null,

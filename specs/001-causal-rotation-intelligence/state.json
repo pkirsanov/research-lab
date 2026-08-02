@@ -2,7 +2,15 @@
     "version": 3,
     "featureDir": "specs/001-causal-rotation-intelligence",
     "featureName": "Causal Rotation Intelligence",
-    "status": "not_started",
+    "status": "blocked",
+    "statusReconciliation": {
+        "recordedBy": "orchestrator",
+        "recordedAt": "2026-08-02T05:03:12Z",
+        "previousStatus": "not_started",
+        "why": "`not_started` contradicted this spec's own artifacts. `scopes.md` line 81 declares SCOPE-01 `**Status:** Blocked (route_required)`, and the SCOPE-01 Uncertainty Declaration states its production code, source contracts, validator, fixtures, selftests and live-browser regressions are implemented and passing. Shipped surfaces exist on disk (`rlcausal.js`, `causal-rotation-ledger.jsonl`, `causal-rotation-observations.json`, `causal-rotation.config.json`). Work has demonstrably begun, so `not_started` was false.",
+        "blocker": "SCOPE-01 is route_required: the canonical transition guard did not pass. Per the scope's own resolution note, `bubbles.plan` must normalize the scope-status/runtime traceability contract and the Bubbles framework/onboarding owner must restore the repo-local workflow/session surfaces; only then may the final DoD item be marked.",
+        "noScopeClaimed": "No scope was marked complete and no certification field was touched. This edit corrects the lifecycle status only."
+    },
     "workflowMode": "full-delivery",
     "linkedImplementationSpec": null,
     "linkedPlanningPacket": null,

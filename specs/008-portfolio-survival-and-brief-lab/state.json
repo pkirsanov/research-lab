@@ -3,7 +3,15 @@
     "featureDir": "specs/008-portfolio-survival-and-brief-lab",
     "featureName": "Portfolio Survival and Brief Lab",
     "createdAt": "2026-07-15T17:29:27Z",
-    "status": "not_started",
+    "status": "in_progress",
+    "statusReconciliation": {
+        "recordedBy": "orchestrator",
+        "recordedAt": "2026-08-02T05:03:12Z",
+        "previousStatus": "not_started",
+        "why": "`not_started` contradicted this spec's own artifacts. `scopes.md` declares 1 scope `In Progress` and 15 `Not Started`, and `execution` records `activeAgent: bubbles.test`, `currentPhase: test`, `currentScope: 1`. Shipped surfaces exist on disk: `portfolio-survival-allocation-lab.html`, `rlportfolio.js`, and `portfolio-survival-allocation.config.json`.",
+        "remaining": "15 of 16 scopes are not started. Publication is intentionally withheld: `site-exclusions.json` excludes all three files, and the spec's own Scope 16 declares registration in `tools.json` as the atomic release boundary — which has not been crossed.",
+        "noScopeClaimed": "No scope was marked complete and no certification field was touched. This edit corrects the lifecycle status only."
+    },
     "workflowMode": "full-delivery",
     "linkedImplementationSpec": null,
     "linkedPlanningPacket": null,

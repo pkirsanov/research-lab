@@ -3,7 +3,16 @@
     "featureDir": "specs/007-technical-analysis-decision-lab",
     "featureName": "Technical Analysis Decision Lab",
     "createdAt": "2026-07-15T15:54:54Z",
-    "status": "not_started",
+    "status": "blocked",
+    "statusReconciliation": {
+        "recordedBy": "orchestrator",
+        "recordedAt": "2026-08-02T05:03:12Z",
+        "previousStatus": "not_started",
+        "why": "`not_started` contradicted this spec's own artifacts. `scopes/01-capability-foundation/scope.md` line 5 declares `**Status:** Blocked`, `execution` records `activeAgent: bubbles.implement` / `currentPhase: implement` / `currentScope: 01-capability-foundation`, and `execution.nextRequiredOwner` is already `bubbles.bug`. The tool `technical-analysis-decision-lab.html` is shipped AND registered in `tools.json`, and it is swept live by the TP-15-04 owner-parity browser test.",
+        "blocker": "Recorded verbatim in the Scope 01 Uncertainty Declaration: the canonical traceability guard exits 1 with 37 findings — 28 originating from not-started Scopes 02-09 because the guard has no scope-status filter for sequential execution, plus 9 G068 'no DoD items' findings caused by the extractor stopping at artifact-lint-accepted tiered DoD subheadings. Implementation reality itself exits 0 with zero violations. This is a guard-tooling limitation, not a product defect, and its nonzero verdict cannot be overridden by interpretation.",
+        "resolution": "A canonical traceability run that evaluates Scope 01 under sequential scope semantics and recognizes tiered DoD checkboxes, exiting 0 without rewriting plan-owned scenarios, Test Plan rows, or DoD claims.",
+        "noScopeClaimed": "No scope was marked complete and no certification field was touched. This edit corrects the lifecycle status only."
+    },
     "workflowMode": "full-delivery",
     "linkedImplementationSpec": null,
     "linkedPlanningPacket": null,

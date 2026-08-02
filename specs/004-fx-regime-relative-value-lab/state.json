@@ -2,7 +2,15 @@
     "version": 3,
     "featureDir": "specs/004-fx-regime-relative-value-lab",
     "featureName": "FX Regime and Relative-Value Lab",
-    "status": "not_started",
+    "status": "in_progress",
+    "statusReconciliation": {
+        "recordedBy": "orchestrator",
+        "recordedAt": "2026-08-02T05:03:12Z",
+        "previousStatus": "not_started",
+        "why": "`not_started` contradicted this spec's own artifacts. `scopes.md` declares 1 scope `In Progress` and 3 `Not Started`; `execution` records `activeAgent: bubbles.test`, `currentPhase: test`, `currentScope: SCOPE-01` with a completed `bootstrap` phase claim and 15 executionHistory entries. Shipped surfaces exist on disk (`rlfx.js`, `fx-regime-universe.json`), both listed in `site-exclusions.json` because no registered production page consumes them yet.",
+        "remaining": "No FX page is registered in `tools.json`, so the feature is not publicly reachable. Scopes 2-4 are not started.",
+        "noScopeClaimed": "No scope was marked complete and no certification field was touched. This edit corrects the lifecycle status only."
+    },
     "workflowMode": "full-delivery",
     "linkedImplementationSpec": null,
     "linkedPlanningPacket": null,

@@ -465,9 +465,9 @@
       reject("E012-REGISTRY", "config", performanceVersion, "$.performanceBudgets", "Simple runtime budgets are internally inconsistent");
     }
 
-    exactKeys(config.artifactBudgets, ["contractVersion", "configMaxBytes", "simpleModelsMaxBytes", "journeysMaxBytes"], "$.artifactBudgets", "E012-REGISTRY", "config", config.contractVersion);
+    exactKeys(config.artifactBudgets, ["contractVersion", "configMaxBytes", "simpleModelsMaxBytes", "journeysMaxBytes", "briefHistoryRecentMaxBytes", "briefHistoryRecentMaxRows", "briefFirstLoadMaxBytes"], "$.artifactBudgets", "E012-REGISTRY", "config", config.contractVersion);
     requireVersion(config.artifactBudgets.contractVersion, "experience-artifact-budget/v1", "$.artifactBudgets.contractVersion", "config");
-    ["configMaxBytes", "simpleModelsMaxBytes", "journeysMaxBytes"].forEach(function (key) { requireFinitePositive(config.artifactBudgets[key], "$.artifactBudgets." + key, "E012-REGISTRY", "config", config.artifactBudgets.contractVersion); });
+    ["configMaxBytes", "simpleModelsMaxBytes", "journeysMaxBytes", "briefHistoryRecentMaxBytes", "briefHistoryRecentMaxRows", "briefFirstLoadMaxBytes"].forEach(function (key) { requireFinitePositive(config.artifactBudgets[key], "$.artifactBudgets." + key, "E012-REGISTRY", "config", config.artifactBudgets.contractVersion); });
 
     exactKeys(config.migrationPolicy, ["contractVersion", "phase", "shadowOnly", "visibleModeCutover", "panelBootstrap"], "$.migrationPolicy", "E012-REGISTRY", "config", config.contractVersion);
     requireVersion(config.migrationPolicy.contractVersion, "experience-migration-policy/v1", "$.migrationPolicy.contractVersion", "config");

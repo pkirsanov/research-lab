@@ -3,6 +3,7 @@
 
 <head>
     <meta charset="UTF-8" />
+    <meta http-equiv="Content-Security-Policy" content="default-src 'self'; script-src 'self' 'unsafe-inline'; style-src 'self' 'unsafe-inline'; img-src 'self' data:; connect-src 'self' http://127.0.0.1:* https://*.ts.net:* https://api.nasdaq.com https://api.stlouisfed.org https://api.twelvedata.com https://cdn.cboe.com https://data.sec.gov https://finnhub.io https://home.treasury.gov https://production.dataviz.cnn.io https://query1.finance.yahoo.com https://query2.finance.yahoo.com https://stockanalysis.com https://www.alphavantage.co; font-src 'self' data:; object-src 'none'; base-uri 'none'; form-action 'none'; frame-src 'none'; worker-src 'none'; media-src 'none'; manifest-src 'self'">
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <title>Gamma Trading &amp; Dealer-Flow Playbook Lab — JEX-flip, OVI, expiration cycle</title>
     <link rel="icon"
@@ -883,16 +884,11 @@
             <datalist id="tkList"></datalist>
             <div class="ctl"><label>Source</label>
                 <select id="prov"
-                    title="GitHub Pages (cached) reads a same-origin option-chain snapshot this site refreshes a few times per trading day — no key, no proxy, works on GitHub Pages (default). CBOE = best live free data (delayed ~15min, full chain + greeks) but has no CORS, so on Pages it needs a Custom proxy. Yahoo pulls the chain via public CORS proxies (often blocked on Pages). Shared with — and reused from — the Options Structure Lab.">
+                    title="GitHub Pages (cached) reads a same-origin option-chain snapshot this site refreshes a few times per trading day — no key or proxy (default). Direct CBOE/Yahoo are best-effort and may be blocked by browser CORS; provider access is configured centrally on the home page.">
                     <option value="pages">GitHub Pages (cached · no proxy)</option>
-                    <option value="cboe">CBOE (live · delayed · needs proxy on Pages)</option>
-                    <option value="yahoo">Yahoo (chain via proxy)</option>
+                    <option value="cboe">CBOE (live · delayed · direct)</option>
+                    <option value="yahoo">Yahoo (direct · best effort)</option>
                 </select>
-            </div>
-            <div class="ctl"><label>Custom proxy · optional</label><input id="proxyUrl" type="text"
-                    placeholder="https://you.workers.dev/?url=" autocomplete="off" spellcheck="false"
-                    style="width:150px"
-                    title="Optional CORS-proxy base (a tiny free Cloudflare Worker) for live CBOE / Yahoo on GitHub Pages — the tool appends ?url=<encoded target> (or replaces a {url} placeholder). Tried before the public proxies. Not needed for the default GitHub Pages (cached) source." />
             </div>
             <div class="ctl"><label>&nbsp;</label><label
                     style="display:flex;align-items:center;gap:5px;font-size:11.5px;color:var(--muted);cursor:pointer"><input
@@ -1033,8 +1029,7 @@
             })();
 
             /* ═══════════ fetch layer (same source model as the Options Structure Lab) ═══════════ */
-            function withProxy(base, target) { base = (base || '').trim(); if (!base) return null; if (base.indexOf('{url}') >= 0) return base.replace('{url}', encodeURIComponent(target)); if (/[?&](url|quest|q)=$/.test(base)) return base + encodeURIComponent(target); return base + (base.indexOf('?') >= 0 ? '&' : '?') + 'url=' + encodeURIComponent(target); }
-            function proxied(t) { var arr = [], cp = withProxy(state.proxy, t); if (cp) arr.push(cp); arr.push(t, 'https://corsproxy.io/?url=' + encodeURIComponent(t), 'https://api.allorigins.win/raw?url=' + encodeURIComponent(t), 'https://api.codetabs.com/v1/proxy/?quest=' + encodeURIComponent(t)); return arr; }
+            function proxied(t) { return [t]; }
             /* same-origin / CORS-native direct fetch (GitHub Pages cached snapshot — no proxy, DNS-filter-proof) */
             function fetchJSONdirect(url) { var ac = ('AbortController' in window) ? new AbortController() : null; var to = setTimeout(function () { if (ac) ac.abort(); }, 12000); return fetch(url, ac ? { signal: ac.signal, cache: 'no-store' } : { cache: 'no-store' }).then(function (r) { return r.ok ? r.json() : null; }).then(function (j) { clearTimeout(to); return j; }).catch(function () { clearTimeout(to); return null; }); }
             function fetchJSONproxy(target) {
@@ -1138,7 +1133,7 @@
             function frontToSnap(tk, c) { return (c && isNum(c.spot)) ? computeGamma(tk, c) : null; }
             function fetchGammaYahoo(tk) { return fetchJSONproxy(optChainUrl(tk)).then(function (j) { return frontToSnap(tk, j ? parseOptChain(j) : null); }); }
             function fetchGammaCBOE(tk) { return fetchJSONproxy(cboeUrl(tk)).then(function (j) { var s = frontToSnap(tk, j ? parseCBOEFront(j) : null); return s || fetchGammaYahoo(tk); }); }
-            function fetchGammaPages(tk) { return fetchJSONdirect(pagesUrl(tk)).then(function (j) { var s = frontToSnap(tk, parsePagesFront(j)); if (s) return s; return state.proxy ? fetchGammaCBOE(tk) : null; }); }
+            function fetchGammaPages(tk) { return fetchJSONdirect(pagesUrl(tk)).then(function (j) { return frontToSnap(tk, parsePagesFront(j)) || null; }); }
             function fetchGamma(tk) { var s = state.provider; if (s === 'cboe') return fetchGammaCBOE(tk); if (s === 'yahoo') return fetchGammaYahoo(tk); return fetchGammaPages(tk); }
 
             /* ═══════════ rolling per-ticker gamma history (days-in-regime + OVI percentile), kept in localStorage ═══════════ */
@@ -1303,7 +1298,7 @@
             };
             var busy = false;
 
-            function saveState() { try { localStorage.setItem('gammaTradingLab', JSON.stringify({ provider: state.provider, proxy: state.proxy, ticker: state.ticker, mode: state.mode, stance: state.stance, aggr: state.aggr, horizon: state.horizon, acct: state.acct, riskPct: state.riskPct, dealerFlip: state.dealerFlip })); } catch (e) { } }
+            function saveState() { try { localStorage.setItem('gammaTradingLab', JSON.stringify({ provider: state.provider, ticker: state.ticker, mode: state.mode, stance: state.stance, aggr: state.aggr, horizon: state.horizon, acct: state.acct, riskPct: state.riskPct, dealerFlip: state.dealerFlip })); } catch (e) { } }
             function loadState() { try { return JSON.parse(localStorage.getItem('gammaTradingLab') || 'null'); } catch (e) { return null; } }
 
             /* ═══════════ Scope 15 production Simple-view owner-state provider (Model B) ═══════════
@@ -1362,7 +1357,7 @@
             function doFetch(forceRefresh) {
                 if (busy) return; var tk = (el('ticker').value || '').trim().toUpperCase();
                 if (!tk) { setStatus('type a ticker first', 'bad'); return; }
-                state.ticker = tk; state.provider = el('prov').value; state.proxy = (el('proxyUrl').value || '').trim(); busy = true; saveState();
+                state.ticker = tk; state.provider = el('prov').value; busy = true; saveState();
                 setStatus('reading gamma for ' + tk + '…');
                 /* the Power view needs the FULL chain (per-strike gexRows + per-contract volume for the OVI split); the shared cache only stores a slim summary, so always try the fresh same-origin chain first and fall back to a shared snapshot only when the fresh read yields nothing */
                 state.src = 'gamma-lab';
@@ -1684,7 +1679,6 @@
                 el('go').addEventListener('click', function () { doFetch(!!(el('forceRefresh') && el('forceRefresh').checked)); });
                 el('ticker').addEventListener('keydown', function (e) { if (e.key === 'Enter') doFetch(!!(el('forceRefresh') && el('forceRefresh').checked)); });
                 el('prov').addEventListener('change', function () { state.provider = el('prov').value; saveState(); });
-                el('proxyUrl').addEventListener('change', function () { state.proxy = (el('proxyUrl').value || '').trim(); saveState(); });
                 el('oviFetch').addEventListener('click', function () { refreshOVI(); });
                 el('modeSeg').addEventListener('click', function (e) { var b = e.target.closest ? e.target.closest('button') : null; if (b && b.getAttribute('data-m')) setMode(b.getAttribute('data-m')); });
                 /* delegated Simple-cockpit lever wiring — recompute the recommendation only, never re-fetch */
@@ -1711,10 +1705,9 @@
             }
             function boot() {
                 var st = loadState();
-                if (st) { state.provider = st.provider || 'pages'; state.ticker = st.ticker || 'SPY'; state.mode = st.mode || 'simple'; state.stance = st.stance || 'neutral'; if (isNum(st.aggr)) state.aggr = st.aggr; state.horizon = st.horizon || 'intraday'; if (isNum(st.acct)) state.acct = st.acct; if (isNum(st.riskPct)) state.riskPct = st.riskPct; state.dealerFlip = !!st.dealerFlip; if (st.proxy) state.proxy = st.proxy; }
+                if (st) { state.provider = st.provider || 'pages'; state.ticker = st.ticker || 'SPY'; state.mode = st.mode || 'simple'; state.stance = st.stance || 'neutral'; if (isNum(st.aggr)) state.aggr = st.aggr; state.horizon = st.horizon || 'intraday'; if (isNum(st.acct)) state.acct = st.acct; if (isNum(st.riskPct)) state.riskPct = st.riskPct; state.dealerFlip = !!st.dealerFlip; }
                 if (state.provider === 'auto' || state.provider === 'twelvedata') state.provider = 'pages';
                 el('ticker').value = state.ticker; el('prov').value = state.provider;
-                el('proxyUrl').value = state.proxy || '';
                 setMode(state.mode, true);
                 wire(); loadUniverse();
                 if (state.provider === 'pages' || RLDATA.options(state.ticker, optTodayKey())) doFetch(); /* auto-load on boot \u2014 the Pages snapshot is same-origin, no Fetch click needed */

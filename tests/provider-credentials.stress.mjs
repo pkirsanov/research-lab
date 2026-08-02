@@ -10,7 +10,7 @@ import { browserLaunchOptions, loadPlaywright, startStaticServer } from './provi
 const CYCLES = 250;
 const PROVIDERS = ['twelvedata', 'finnhub', 'alphavantage', 'fred'];
 const PROVIDER_HOST_RE = /^https:\/\/(?:finnhub\.io|api\.twelvedata\.com|www\.alphavantage\.co|api\.stlouisfed\.org)\//;
-const PROXY_BASE = 'https://rl-proxy.invalid:41443';
+const PROXY_BASE = 'https://rl-proxy.test.ts.net:41443';
 const KEY_RE = /RL2-STRESS-\d+/;
 
 const site = await startStaticServer();

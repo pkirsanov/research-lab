@@ -95,6 +95,11 @@ export function createBriefRefreshFixture(options = {}) {
   copyFileSync(resolve(ROOT, 'scripts/brief-narrative-parallel.mjs'), resolve(repoRoot, 'scripts/brief-narrative-parallel.mjs'));
   copyFileSync(resolve(ROOT, 'scripts/brief-distributed-publish.mjs'), resolve(repoRoot, 'scripts/brief-distributed-publish.mjs'));
   copyFileSync(resolve(ROOT, 'scripts/brief-publication.mjs'), resolve(repoRoot, 'scripts/brief-publication.mjs'));
+  copyFileSync(resolve(ROOT, 'scripts/recommendation-body.mjs'), resolve(repoRoot, 'scripts/recommendation-body.mjs'));
+  copyFileSync(resolve(ROOT, 'scripts/evaluate-recommendations.mjs'), resolve(repoRoot, 'scripts/evaluate-recommendations.mjs'));
+  copyFileSync(resolve(ROOT, 'scripts/shard-brief-history.mjs'), resolve(repoRoot, 'scripts/shard-brief-history.mjs'));
+  copyFileSync(resolve(ROOT, 'scripts/build-scorecard.mjs'), resolve(repoRoot, 'scripts/build-scorecard.mjs'));
+  copyFileSync(resolve(ROOT, 'scripts/build-brief-page-artifacts.mjs'), resolve(repoRoot, 'scripts/build-brief-page-artifacts.mjs'));
   copyFileSync(resolve(ROOT, 'scripts/validate-distributed-briefs.mjs'), resolve(repoRoot, 'scripts/validate-distributed-briefs.mjs'));
   copyFileSync(resolve(ROOT, 'scripts/validate-brief-cache.mjs'), resolve(repoRoot, 'scripts/validate-brief-cache.mjs'));
   copyFileSync(resolve(ROOT, 'rlcontracts.js'), resolve(repoRoot, 'rlcontracts.js'));
@@ -127,6 +132,7 @@ if (count === 3) {
   fixturePayload.nextSession.sessionDate = baselineDate;
   writeFileSync(fixturePayloadPath, JSON.stringify(fixturePayload, null, 2) + '\n');
   copyFileSync(resolve(ROOT, 'market-brief.config.json'), resolve(repoRoot, 'market-brief.config.json'));
+  copyFileSync(resolve(ROOT, 'market-brief.scorecard.json'), resolve(repoRoot, 'market-brief.scorecard.json'));
   copyFileSync(resolve(ROOT, 'tools.json'), resolve(repoRoot, 'tools.json'));
   copyFileSync(resolve(ROOT, 'watchlist.json'), resolve(repoRoot, 'watchlist.json'));
   // Serve the exact set of scripts market-brief.html declares via <script src> so the
@@ -253,6 +259,13 @@ if (process.env.BUG002_NARRATIVE_MODE === 'post-write-hang' && lane === 'core') 
 }
 `);
   }
+
+  // Build the same selected-history, scorecard, and compact projections the production transaction
+  // owns before the baseline commit. Failed/retained runs can then prove byte-identity instead of
+  // manufacturing first-run derived files that obscure atomicity.
+  execFileSync(process.execPath, ['scripts/shard-brief-history.mjs'], { cwd: repoRoot, stdio: 'ignore' });
+  execFileSync(process.execPath, ['scripts/build-scorecard.mjs'], { cwd: repoRoot, stdio: 'ignore' });
+  execFileSync(process.execPath, ['scripts/build-brief-page-artifacts.mjs'], { cwd: repoRoot, stdio: 'ignore' });
 
   runGit(repoRoot, ['init']);
   runGit(repoRoot, ['checkout', '-b', 'main']);

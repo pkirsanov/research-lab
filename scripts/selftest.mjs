@@ -62,6 +62,40 @@ function hasExactCompanyRouteScripts(sources) {
   return JSON.stringify(sources) === JSON.stringify(COMPANY_ROUTE_SCRIPTS);
 }
 
+/* ---------- Step 1: model text is data + CSP defense in depth ---------- */
+try {
+  group('Step 1 security — escaped model sinks and CSP on every page');
+  const htmlPages = readdirSync(ROOT).filter((file) => file.endsWith('.html')).sort();
+  const cspPattern = /<meta\s+http-equiv="Content-Security-Policy"\s+content="([^"]+)"\s*\/?\s*>/i;
+  const policies = htmlPages.map((file) => ({ file, match: cspPattern.exec(read(file)) }));
+  const missingCsp = policies.filter((entry) => !entry.match).map((entry) => entry.file);
+  assert(missingCsp.length === 0, 'every shipped HTML page carries a Content-Security-Policy meta');
+
+  const uniquePolicies = new Set(policies.filter((entry) => entry.match).map((entry) => entry.match[1]));
+  assert(uniquePolicies.size === 1, 'all pages use one identical CSP instead of drifting per page');
+  const csp = uniquePolicies.size === 1 ? [...uniquePolicies][0] : '';
+  assert(/default-src 'self'/.test(csp) && /script-src 'self' 'unsafe-inline'/.test(csp), 'CSP keeps the single-file inline-script design while defaulting to self');
+  assert(/object-src 'none'/.test(csp) && /base-uri 'none'/.test(csp) && /form-action 'none'/.test(csp), 'CSP blocks object, base-tag, and form exfiltration paths');
+  const connectTokens = ((/connect-src\s+([^;]+)/.exec(csp) || [])[1] || '').trim().split(/\s+/).filter(Boolean);
+  assert(connectTokens.includes("'self'") && !connectTokens.includes('https:') && !connectTokens.includes('*'), 'CSP connect-src is an explicit origin allowlist, never wildcard https');
+  assert(/https:\/\/query1\.finance\.yahoo\.com/.test(csp) && /https:\/\/api\.twelvedata\.com/.test(csp) && /https:\/\/\*\.ts\.net:\*/.test(csp) && /https:\/\/stockanalysis\.com/.test(csp),
+    'CSP preserves fixed providers, StockAnalysis, and custom-port tailnet proxy paths');
+  const relayHosts = ['corsproxy.io', 'api.allorigins.win', 'api.codetabs.com'];
+  assert(relayHosts.every((host) => !csp.includes(host)), 'CSP allows no open URL-forwarding relay origin');
+  const productionNetworkSources = htmlPages.concat(readdirSync(ROOT).filter((file) => /^rl.*\.js$/.test(file)));
+  assert(productionNetworkSources.every((file) => relayHosts.every((host) => !read(file).includes(host))),
+    'production pages and shared runtime contain no open URL-forwarding relay chain');
+
+  const sinkPattern = /innerHTML\s*=.*\+\s*\(?[a-z]+\.(?:title|note|read|summary|why|what)/i;
+  const sinkFiles = htmlPages.concat(readdirSync(ROOT).filter((file) => /^rl.*\.js$/.test(file)));
+  const unescapedSinks = sinkFiles.filter((file) => read(file).split(/\r?\n/).some((line) => sinkPattern.test(line) && !/esc\s*\(/.test(line)));
+  assert(unescapedSinks.length === 0, 'no model/config-authored field reaches innerHTML without esc()');
+
+  /* ADVERSARIAL: prove the static sink detector catches the exact original defect. */
+  const originalDefect = 'host.innerHTML = "<b>" + x.title + "</b>";';
+  assert(sinkPattern.test(originalDefect) && !/esc\s*\(/.test(originalDefect), 'the sink detector catches an unescaped model-authored title');
+} catch (error) { failures++; console.log('  \u2717 FAIL (Step 1 security group threw): ' + error.message); }
+
 /* ---------- Feature 004: RLFX/RLDATA foundation ---------- */
 try {
   group('Feature 004 RLFX/RLDATA foundation');
@@ -1576,8 +1610,9 @@ try {
 try {
   group('rldata.js — shared toolReads round-trip + freshness');
   const source = read('rldata.js'), store = {}, session = {}, root = { location: { pathname: '/index.html', protocol: 'https:' } };
-  const storage = { getItem: (key) => store[key] || null, setItem: (key, value) => { store[key] = value; }, removeItem: (key) => { delete store[key]; } };
-  const sessionStorage = { getItem: (key) => session[key] || null, setItem: (key, value) => { session[key] = value; }, removeItem: (key) => { delete session[key]; } };
+  let rlDataWriteCount = 0;
+  const storage = { getItem: (key) => store[key] || null, key: (index) => Object.keys(store)[index] ?? null, get length() { return Object.keys(store).length; }, setItem: (key, value) => { if (key === 'rlData') rlDataWriteCount += 1; store[key] = value; }, removeItem: (key) => { delete store[key]; } };
+  const sessionStorage = { getItem: (key) => session[key] || null, key: (index) => Object.keys(session)[index] ?? null, get length() { return Object.keys(session).length; }, setItem: (key, value) => { session[key] = value; }, removeItem: (key) => { delete session[key]; } };
   const api = Function('globalThis', 'localStorage', 'sessionStorage', 'fetch', 'location', source + '\nreturn globalThis.RLDATA;')(root, storage, sessionStorage, undefined, root.location);
   const saved = api.putToolRead('probe-tool', { asOf: '2026-07-12T12:00:00Z', read: 'Actionable probe', metrics: { score: 72 }, deepLink: 'probe.html' });
   const loaded = api.toolRead('probe-tool'), freshness = api.freshness();
@@ -1592,14 +1627,42 @@ try {
   assert(Object.isFrozen(policies) && policies.length > 0 && policies.every((policy) => Object.isFrozen(policy) && policy.state === 'unconfigured'), 'provider registry is frozen; every provider starts unconfigured (no proxy, no local key)');
   assert(typeof api.detectLegacyCredentials === 'undefined' && typeof api.migrateLegacyCredentials === 'undefined', 'legacy credential value detection and migration APIs are absent');
   assert(Object.keys(session).length === 0 && !!store.rlData, 'non-secret rlData cache remains durable; session storage holds no provider config');
-  assert(typeof api.providerFetch === 'function' && typeof api.setKey === 'function' && typeof api.setProxyBaseUrl === 'function' && typeof api.clearAllProviderConfig === 'function' && typeof api.recheckProxy === 'function', 'two-tier provider access API is exposed (tailnet proxy + local key)');
+  assert(typeof api.providerFetch === 'function' && typeof api.setKey === 'function' && typeof api.setProxyBaseUrl === 'function' && typeof api.clearAllProviderConfig === 'function' && typeof api.recheckProxy === 'function' && typeof api.detectLegacyCredentialContainers === 'function' && typeof api.eraseLegacyCredentialContainers === 'function', 'two-tier provider access and pre-BUG-002 legacy cleanup APIs are exposed');
   const localSet = api.setKey('finnhub', 'selftest-local-key');
   assert(localSet.ok && api.providerStatus('finnhub').state === 'configured' && api.providerStatus('finnhub').localConfigured === true, 'a local key configures a provider (Tier-2, this-browser-only)');
+  const providerConfigBeforeLegacyErase = store.rlProviderConfig, dataCacheBeforeLegacyErase = store.rlData;
+  const legacyPresence = api.detectLegacyCredentialContainers();
+  assert(legacyPresence.detected === true && legacyPresence.containerCount === 3 && legacyPresence.locationClasses.join(',') === 'legacy-scalar-key,legacy-tool-state', 'legacy registry detects exact pre-BUG-002 names through redacted metadata only');
+  const legacyErase = api.eraseLegacyCredentialContainers();
+  assert(legacyErase.ok === true && legacyErase.status === 'complete' && legacyErase.removedContainerCount === 3 && !store.etfMomLab && !store.msftFhKey && !store.rlStratVal && store.rlProviderConfig === providerConfigBeforeLegacyErase && store.rlData === dataCacheBeforeLegacyErase && api.providerStatus('finnhub').state === 'configured', 'legacy cleanup verifies exact-name absence while BUG-002 provider config and non-secret rlData remain byte-compatible');
   assert(api.clearAllProviderConfig().ok && api.providerStatus('finnhub').state === 'unconfigured', 'clearing all provider config resets local keys and the proxy URL');
   api.reportData('bars:SPY:1d', 'refreshing', { label: 'SPY daily bars' });
   assert(api.dataState().counts.refreshing === 1, 'data lifecycle reports an in-flight resource');
   api.reportData('bars:SPY:1d', 'ready', { label: 'SPY daily bars', rows: 500 });
   assert(api.dataState().counts.ready === 1 && api.dataState().resources[0].rows === 500, 'data lifecycle reports a completed resource with context');
+
+  const batchRows = [{ t: 1700000000000, o: 100, h: 101, l: 99, c: 100.5, v: 1000 }];
+  const beforeSuccessfulBatch = rlDataWriteCount;
+  await api.withPersistenceBatch(async () => {
+    api.putBars('BATCH-A', '1d', batchRows, 'test');
+    api.putBars('BATCH-B', '1d', batchRows, 'test');
+    api.putBars('BATCH-C', '1d', batchRows, 'test');
+    assert(api.bars('BATCH-A', '1d').length === 1 && api.bars('BATCH-C', '1d').length === 1, 'persistence batching never delays in-memory visibility');
+  });
+  assert(rlDataWriteCount - beforeSuccessfulBatch === 1, 'three updates in one persistence batch serialize durable rlData exactly once');
+
+  const beforeRejectedBatch = rlDataWriteCount;
+  let rejectedBatch = false;
+  try {
+    await api.withPersistenceBatch(async () => {
+      api.putBars('BATCH-REJECTED', '1d', batchRows, 'test');
+      throw new Error('expected-batch-rejection');
+    });
+  } catch (error) { rejectedBatch = error.message === 'expected-batch-rejection'; }
+  assert(rejectedBatch && rlDataWriteCount - beforeRejectedBatch === 1 && api.bars('BATCH-REJECTED', '1d').length === 1,
+    'a rejected persistence batch still flushes accepted in-memory updates exactly once');
+  assert(/RLDATA\.withPersistenceBatch\s*\(/.test(read('market-heatmap-lab.html')),
+    'market heatmap batches durable cache writes across its bulk symbol hydration');
 
   const quotaStore = {};
   const quotaStorage = {
@@ -1630,82 +1693,50 @@ try {
   const refresh = read('scripts/brief-refresh.mjs');
   assert(/buildGlobalToolRead/.test(refresh) && /buildRealAssetsToolRead/.test(refresh) && /buildToolCoverage/.test(refresh), 'Tier-A carries exact global/real-asset reads plus registry coverage');
 
-  /* ── D2, "reachable or removed". Anything at the site root is shipped to real users; a page that
-     is in no registry and no nav is reachable only by someone who already knows the URL, which is
-     nobody. Rather than assert "there are no orphans" (which would have to be relaxed the moment
-     one appeared, and would then stay relaxed), require every root page to be EITHER registered OR
-     a recorded exception with a reason and a decision. That makes an orphan a tracked debt instead
-     of an accident, and stops NEW ones arriving unnoticed. */
-  const exceptionsDoc = JSON.parse(read('registry-exceptions.json'));
-  assert(exceptionsDoc.contractVersion === 'registry-exceptions/v1', 'the registry-exception list declares its contract version');
+    /* ── D2/D3, "reachable or removed" / "wired or not shipped". Source for an in-progress feature
+      may remain in the repository, but the Pages artifact contains registered product surfaces and
+      their runtime dependencies only. */
+    const pagesSite = await import('./build-pages-site.mjs');
+    const sitePlan = pagesSite.planPagesSite(ROOT);
   const rootPages = readdirSync(ROOT).filter((name) => name.endsWith('.html')).sort();
-  const registeredFiles = new Set(registry.map((tool) => tool.file));
-  const excepted = new Map(exceptionsDoc.exceptions.map((entry) => [entry.file, entry]));
-
-  const unaccounted = rootPages.filter((file) => !registeredFiles.has(file) && !excepted.has(file));
-  assert(unaccounted.length === 0, 'every page at the site root is either registered or a recorded exception');
-
-  /* A stale exception is its own failure: if the list may keep naming pages that were since
-     registered, it rots into noise and stops meaning anything. */
-  const staleExceptions = [...excepted.keys()].filter((file) => registeredFiles.has(file));
-  assert(staleExceptions.length === 0, 'no exception names a page that is now registered');
-  const phantomExceptions = [...excepted.keys()].filter((file) => !rootPages.includes(file));
-  assert(phantomExceptions.length === 0, 'no exception names a page that no longer exists');
-
-  /* An exception without a reason and a decision is just a suppression. */
-  const vague = exceptionsDoc.exceptions.filter((entry) => !entry.reason || !entry.decision || !entry.detail || entry.detail.length < 60).map((entry) => entry.file);
-  assert(vague.length === 0, 'every exception records a reason, a decision, and a substantive rationale');
-  const decisions = new Set(exceptionsDoc.exceptions.map((entry) => entry.decision));
-  assert([...decisions].every((d) => ['permanent', 'register', 'hold', 'remove'].includes(d)), 'exception decisions come from the closed vocabulary');
+    const registeredFiles = new Set(registry.map((tool) => tool.file));
+    assert(sitePlan.registeredPages.length === registry.length, 'the Pages artifact includes every registered tool page');
+    assert(sitePlan.registeredPages.every((file) => registeredFiles.has(file)), 'the Pages artifact includes no unregistered tool page');
+    assert(sitePlan.excludedPaths.includes('trend-dynamics-cycle-lab.html') && sitePlan.excludedPaths.includes('portfolio-survival-allocation-lab.html'),
+     'in-progress root pages are explicitly removed from the public artifact');
+    assert(sitePlan.excludedPaths.includes('rlfx.js') && sitePlan.excludedPaths.includes('rlcausal.js') && sitePlan.excludedPaths.includes('rlportfolio.js'),
+     'shared modules with no registered production consumer are removed from the public artifact');
 
   /* ADVERSARIAL: a check that passed for any input would prove nothing. An unlisted root page MUST
-     be detected — this is the exact regression (a new orphan shipping unnoticed) the rule exists
-     for. If this assertion ever stops holding, the accounting above has gone vacuous. */
-  const injected = rootPages.concat('definitely-not-registered-page.html')
-    .filter((file) => !registeredFiles.has(file) && !excepted.has(file));
+      be detected — this is the exact regression the deploy projection exists to stop. */
+    const injected = pagesSite.findUnaccountedPages(
+     rootPages.concat('definitely-not-registered-page.html'),
+     registeredFiles,
+     new Set(sitePlan.excludedPaths)
+    );
   assert(injected.length === 1 && injected[0] === 'definitely-not-registered-page.html', 'the root-page accounting really detects an unlisted page');
 
-  /* Discovery grouping. tools.json `.group` is the source of truth; index.html and rlnav.js each
-     carry a GROUPS constant for runtime rendering (both pages must work from file://, so neither
-     can fetch the registry to lay itself out). These assertions are what make the duplication safe:
-     the moment a group assignment drifts, or a newly registered tool is not claimed by any group,
-     this fails — so a shipped tool can never quietly fall out of discovery. */
+    /* Discovery grouping. tools.json `.group` is the source of truth. The two file://-compatible
+      local registry mirrors carry the same field, and both render by filtering records on that
+      field. There is no separate membership list to drift. */
   const ungrouped = registry.filter((tool) => typeof tool.group !== 'string' || !tool.group.trim()).map((tool) => tool.id);
   assert(ungrouped.length === 0, 'every registered tool declares a discovery group in tools.json');
 
-  const groupsFromRegistry = {};
-  registry.forEach((tool) => { (groupsFromRegistry[tool.group] = groupsFromRegistry[tool.group] || []).push(tool.id); });
-
-  const parseGroups = (source, transform) => {
-    const block = source.match(/GROUPS\s*=\s*\[([\s\S]*?)\n\s*\];/);
-    if (!block) return null;
-    const out = {};
-    for (const entry of block[1].matchAll(/\[\s*['"]([^'"]+)['"]\s*,\s*\[([\s\S]*?)\]\s*\]/g)) {
-      out[entry[1]] = Array.from(entry[2].matchAll(/['"]([^'"]+)['"]/g)).map((m) => transform(m[1]));
-    }
-    return out;
-  };
-  const indexGroups = parseGroups(read('index.html'), (id) => id);
-  const navGroups = parseGroups(read('rlnav.js'), (file) => file.replace(/\.html$/, ''));
-  assert(indexGroups && Object.keys(indexGroups).length > 0, 'index.html declares a GROUPS constant');
-  assert(navGroups && Object.keys(navGroups).length > 0, 'rlnav.js declares a GROUPS constant');
-
-  const sortedMembers = (map) => Object.keys(map).sort().map((key) => key + ':' + map[key].slice().sort().join(',')).join('|');
-  assert(sortedMembers(indexGroups) === sortedMembers(groupsFromRegistry), 'landing-page groups match tools.json .group exactly');
-  assert(sortedMembers(navGroups) === sortedMembers(groupsFromRegistry), 'navigation groups match tools.json .group exactly');
-  assert(JSON.stringify(Object.keys(indexGroups)) === JSON.stringify(Object.keys(navGroups)), 'landing page and rail render groups in the same order');
-
-  const claimed = new Set(Object.values(indexGroups).flat());
-  const unclaimed = expected.filter((id) => !claimed.has(id));
-  assert(unclaimed.length === 0, 'no registered tool is left out of the grouped discovery surface');
+    const expectedGroups = Object.fromEntries(registry.map((tool) => [tool.id, tool.group]));
+    const indexSource = read('index.html');
+    const navSource = read('rlnav.js');
+    const indexGroups = Object.fromEntries(Array.from(indexSource.matchAll(/\bid:\s*'([^']+)'\s*,\s*\n\s*group:\s*'([^']+)'/g)).map((match) => [match[1], match[2]]));
+    const navGroups = Object.fromEntries(Array.from(navSource.matchAll(/\bfile:\s*"([^"]+\.html)"\s*,\s*group:\s*"([^"]+)"/g)).map((match) => [match[1].replace(/\.html$/, ''), match[2]]));
+    assert(JSON.stringify(indexGroups) === JSON.stringify(expectedGroups), 'landing-page registry groups match tools.json .group exactly');
+    assert(JSON.stringify(navGroups) === JSON.stringify(expectedGroups), 'navigation registry groups match tools.json .group exactly');
+    assert(!/\b(?:var|const|let)\s+GROUPS\b/.test(indexSource + '\n' + navSource), 'neither discovery surface carries a hardcoded group-membership list');
+    assert(/TOOLS\.filter\(function \(tool\) \{ return tool\.group === group; \}\)/.test(indexSource) && /TOOLS\.filter\(function \(tool\) \{ return tool\.group === group; \}\)/.test(navSource),
+     'landing page and rail both derive members by filtering registry records on .group');
 
   /* ADVERSARIAL: a grouping check that would pass against an empty or partial registry proves
-     nothing. Prove the comparison actually binds by mutating one assignment and requiring a
-     mismatch. If this ever stops failing, the parity assertions above are vacuous. */
-  const tampered = JSON.parse(JSON.stringify(groupsFromRegistry));
-  const firstKey = Object.keys(tampered).sort()[0];
-  tampered[firstKey] = tampered[firstKey].concat(['not-a-real-tool']);
-  assert(sortedMembers(indexGroups) !== sortedMembers(tampered), 'the group parity comparison detects a single injected member');
+      nothing. Prove the comparison binds by mutating one assignment and requiring a mismatch. */
+    const tampered = { ...expectedGroups, [expected[0]]: 'not-a-real-group' };
+    assert(JSON.stringify(indexGroups) !== JSON.stringify(tampered), 'the group parity comparison detects a single reassigned tool');
 
 } catch (e) { failures++; console.log('  ✗ FAIL (registry coverage group threw): ' + e.message); }
 
@@ -3965,9 +3996,9 @@ try {
     'Feature 012 Scope 01 registry-derived tool, model, Journey, and step identities remain unique and complete'
   );
   assert(
-    feature012.artifacts.length === 3 &&
+    feature012.artifacts.length === 6 &&
     feature012.artifacts.every((artifact) => artifact.bytes > 0 && artifact.bytes <= artifact.budget),
-    'Feature 012 Scope 01 config, model, and Journey artifacts remain inside their configured byte budgets'
+    'Feature 012 Scope 01 registries, recent history, and brief first load remain inside their configured budgets'
   );
   assert(
     feature012.scaling.toolId === 'feature-012-scaling-probe' &&
@@ -4995,29 +5026,47 @@ try {
   assert(Number.isFinite(arithmetic) && Number.isFinite(geometric) && arithmetic !== geometric,
     'the two conventions genuinely differ on the same asset (arithmetic ' + arithmetic.toFixed(3) + ' vs geometric ' + geometric.toFixed(3) + ') \u2014 which is why calling both "sharpe" was a defect');
 
-  // The one non-consumer is PINNED to the canonical definition so it cannot drift.
+  // The strategy owner delegates to the canonical definition; a second formula is forbidden.
+  const strategySource = read('rlexperience-adapters/strategy-research.js');
+  assert(/RLMETRICS\.sharpeArithmetic\s*\(/.test(strategySource)
+    && !/\(mean\s*\/\s*sd\)\s*\*\s*Math\.sqrt\s*\(ANN\)/.test(strategySource),
+    'strategy-research delegates arithmetic Sharpe to rlmetrics and carries no inline duplicate');
   const strategy = createMetricsRequire(import.meta.url)(join(ROOT, 'rlexperience-adapters/strategy-research.js'));
   const seeded = strategy.genSeries(42, 4, [{ frac: 1, muAnnual: 0.08, sigAnnual: 0.18 }]);
   const bt = strategy.backtest(seeded, { fast: 20, slow: 100, momLookback: 63, volTarget: 0.12, maxLeverage: 2, stopDd: 0.15 }, 0, seeded.days);
   const adapterMetrics = strategy.metrics(bt);
-  const canonical = RLM.sharpeArithmetic(bt.r, 252, 0);
+  const canonical = RLM.sharpeArithmetic(bt.r, RLM.TRADING_DAYS, 0);
   assert(Number.isFinite(canonical) && Math.abs(adapterMetrics.sharpe - canonical) < 1e-9,
-    'strategy-research.js (a pure adapter that may not import) computes the SAME arithmetic Sharpe rlmetrics defines (' + adapterMetrics.sharpe.toFixed(9) + ' vs ' + canonical.toFixed(9) + ')');
+    'strategy-research.js returns the SAME arithmetic Sharpe delegated to rlmetrics (' + adapterMetrics.sharpe.toFixed(9) + ' vs ' + canonical.toFixed(9) + ')');
 } catch (e) { failures++; console.log('  \u2717 FAIL (rlmetrics group threw): ' + e.message); }
 
 /* ---------- bounded history — the cockpit's first load stays affordable forever ---------- */
 try {
   group('bounded history \u2014 the brief\u2019s first load is budgeted, and the budget is a failing test');
   const shard = await import('./shard-brief-history.mjs');
-  const budgets = JSON.parse(read('market-brief.config.json'))['first-load-budget/v1'];
+  const pageArtifacts = await import('./build-brief-page-artifacts.mjs');
+  const budgets = JSON.parse(read('tool-experience.config.json')).artifactBudgets;
   const briefPage = read('market-brief.html');
 
   assert(budgets && Number.isFinite(budgets.briefHistoryRecentMaxBytes) && Number.isFinite(budgets.briefFirstLoadMaxBytes) && Number.isFinite(budgets.briefHistoryRecentMaxRows),
-    'the first-load budget is DECLARED in market-brief.config.json, not left implicit');
+    'the first-load budget is DECLARED in tool-experience.config.json artifactBudgets, not left implicit');
 
   // The page must fetch the bounded window, never the unbounded append log.
   assert(briefPage.includes('brief-history.recent.jsonl'), 'the cockpit fetches the bounded recent window');
   assert(!/jl\("brief-history\.jsonl"\)/.test(briefPage), 'the cockpit no longer fetches the unbounded append log on page load');
+  ['market-brief.config.page.json', 'market-brief.page.json', 'market-brief.snapshot.page.json', 'market-brief.tools.page.json'].forEach((file) => {
+    assert(briefPage.includes(file), 'the cockpit fetches compact first-load artifact ' + file);
+  });
+  ['market-brief.config.json', 'market-brief.payload.json', 'market-brief.snapshot.json', 'tools.json'].forEach((file) => {
+    assert(!briefPage.includes('j("' + file + '")'), 'the cockpit does not fetch full artifact ' + file + ' on first load');
+  });
+  assert(briefPage.includes('fetch("market-brief.experimental.json"') && briefPage.includes('experimentalDrawer'),
+    'hidden experimental prose is fetched only through the drawer load path');
+
+  const expectedPageArtifacts = pageArtifacts.buildBriefPageArtifacts(ROOT);
+  Object.entries(expectedPageArtifacts).forEach(([file, value]) => {
+    assert(read(file) === JSON.stringify(value) + '\n', file + ' is byte-current with its full source artifacts');
+  });
 
   const recentBytes = Buffer.byteLength(read('brief-history.recent.jsonl'), 'utf8');
   const recentRows = read('brief-history.recent.jsonl').split('\n').filter((line) => line.length > 0);
@@ -5027,8 +5076,8 @@ try {
     'the recent window is inside its declared row budget (' + recentRows.length + ' <= ' + budgets.briefHistoryRecentMaxRows + ')');
 
   // The whole first-load payload, measured — this is the number the defect was about.
-  const firstLoad = ['market-brief.config.json', 'market-brief.payload.json', 'watchlist.json',
-    'brief-history.recent.jsonl', 'market-brief.snapshot.json', 'tools.json', 'market-brief.scorecard.json']
+  const firstLoad = ['market-brief.config.page.json', 'market-brief.page.json', 'watchlist.json',
+    'brief-history.recent.jsonl', 'market-brief.snapshot.page.json', 'market-brief.tools.page.json', 'market-brief.scorecard.json']
     .reduce((total, file) => total + Buffer.byteLength(read(file), 'utf8'), 0);
   assert(firstLoad <= budgets.briefFirstLoadMaxBytes,
     'the cockpit\u2019s whole first-load payload is inside budget (' + Math.round(firstLoad / 1024) + ' KB <= ' + Math.round(budgets.briefFirstLoadMaxBytes / 1024) + ' KB)');
@@ -5051,6 +5100,47 @@ try {
   assert(shard.SOURCE === 'brief-history.jsonl' && !read('scripts/shard-brief-history.mjs').includes('writeFileSync(path.join(root, SOURCE)'),
     'the sharder never rewrites the append log it reads from');
 } catch (e) { failures++; console.log('  \u2717 FAIL (bounded history group threw): ' + e.message); }
+
+/* ---------- Step 9 durability — blocking CI, ET cadence, and public artifact projection ---------- */
+try {
+  group('Step 9 durability — CI gates the whole product and scheduled output is bounded');
+  const pagesWorkflow = read('.github/workflows/pages.yml');
+  const tierAWorkflow = read('.github/workflows/tier-a.yml');
+
+  assert(/- name: Self-test \(all assertions\)[\s\S]*?run: node scripts\/selftest\.mjs/.test(pagesWorkflow),
+    'Pages verify runs the complete selftest');
+  assert(/- name: Full browser suite \(blocking\)[\s\S]*?playwright test --config=playwright\.config\.mjs --project=system-chrome/.test(pagesWorkflow),
+    'Pages verify runs the full Playwright suite, not a selected file list');
+  assert(!/continue-on-error:\s*true/.test(pagesWorkflow), 'no Pages verification job is allowed to fail softly');
+  assert(/deploy:[\s\S]*?needs: verify/.test(pagesWorkflow) && /path: "_site"/.test(pagesWorkflow),
+    'Pages deploy waits on verify and uploads only the projected _site artifact');
+
+  const cronRows = Array.from(tierAWorkflow.matchAll(/- cron: "([^"]+)"/g)).map((match) => match[1]);
+  assert(cronRows.length === 8, 'Tier-A declares both UTC sides of four ET windows for DST coverage');
+  assert(/github\.event\.schedule/.test(tierAWorkflow) && /TZ=America\/New_York date \+%z/.test(tierAWorkflow) && /-0400/.test(tierAWorkflow) && /-0500/.test(tierAWorkflow),
+    'Tier-A resolves the firing cron plus ET offset, so delayed starts still retain the intended window');
+  assert((tierAWorkflow.match(/if: steps\.window\.outputs\.run == 'true'/g) || []).length >= 7,
+    'every mutating Tier-A step is gated by the resolved ET window');
+  assert(!/inputs\.dry-run/.test(tierAWorkflow) && /inputs\['dry-run'\]/.test(tierAWorkflow),
+    'Tier-A uses bracket notation for the hyphenated dry-run input');
+  assert(/brief-refresh\.mjs --window "\$\{\{ steps\.window\.outputs\.window \}\}"/.test(tierAWorkflow),
+    'Tier-A passes the resolved ET window explicitly into deterministic refresh');
+
+  const pagesPlan = (await import('./build-pages-site.mjs')).planPagesSite(ROOT);
+  assert(pagesPlan.registeredPages.length === JSON.parse(read('tools.json')).tools.length,
+    'the projected site contains every registered tool');
+  assert(pagesPlan.excludedPaths.every((path) => !pagesPlan.rootFiles.includes(path)),
+    'the projected site root excludes every explicitly non-public artifact');
+  assert(pagesPlan.rootFiles.includes('.nojekyll'), 'the projected site preserves the GitHub Pages .nojekyll marker');
+  assert(/^briefs\/indexes\/[a-f0-9]{64}$/.test(pagesPlan.historyIndexDirectory), 'the projected site resolves one canonical current history index');
+  assert(pagesPlan.orphanIndexDirectories.every((directory) => directory !== pagesPlan.historyIndexDirectory),
+    'orphan history indexes are identified separately and cannot replace the current pointer target');
+
+  /* ADVERSARIAL: a reduced browser gate or direct root upload must fail these exact predicates. */
+  const weakenedWorkflow = pagesWorkflow.replace('Full browser suite (blocking)', 'Selected browser suite').replace('path: "_site"', 'path: "."');
+  assert(!/- name: Full browser suite \(blocking\)/.test(weakenedWorkflow) && !/path: "_site"/.test(weakenedWorkflow),
+    'the workflow checks detect a reduced browser gate and a repo-root deployment');
+} catch (e) { failures++; console.log('  \u2717 FAIL (Step 9 durability group threw): ' + e.message); }
 
 /* ---------- spec artifacts — every referenced test path exists (ratchet) ---------- */
 try {

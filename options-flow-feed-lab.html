@@ -3,6 +3,7 @@
 
 <head>
   <meta charset="utf-8" />
+  <meta http-equiv="Content-Security-Policy" content="default-src 'self'; script-src 'self' 'unsafe-inline'; style-src 'self' 'unsafe-inline'; img-src 'self' data:; connect-src 'self' http://127.0.0.1:* https://*.ts.net:* https://api.nasdaq.com https://api.stlouisfed.org https://api.twelvedata.com https://cdn.cboe.com https://data.sec.gov https://finnhub.io https://home.treasury.gov https://production.dataviz.cnn.io https://query1.finance.yahoo.com https://query2.finance.yahoo.com https://stockanalysis.com https://www.alphavantage.co; font-src 'self' data:; object-src 'none'; base-uri 'none'; form-action 'none'; frame-src 'none'; worker-src 'none'; media-src 'none'; manifest-src 'self'">
   <meta name="viewport" content="width=device-width, initial-scale=1" />
   <link rel="icon"
     href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'%3E%3Crect width='32' height='32' rx='7' fill='%230e141c'/%3E%3Cpath d='M4 21 h6.5 l3.5 -12 l4 18 l3 -9 h6' fill='none' stroke='%232dd4bf' stroke-width='2.2' stroke-linecap='round' stroke-linejoin='round'/%3E%3Ccircle cx='18' cy='9' r='2.4' fill='%23f5b942'/%3E%3C/svg%3E" />
@@ -495,10 +496,7 @@
         } catch (e) { return null; }
       }
 
-      /* live Yahoo chain via public CORS proxies (works locally; often blocked on GitHub Pages). */
-      function proxied(url) {
-        return [url, "https://corsproxy.io/?url=" + encodeURIComponent(url), "https://api.allorigins.win/raw?url=" + encodeURIComponent(url), "https://api.codetabs.com/v1/proxy/?quest=" + encodeURIComponent(url)];
-      }
+      function proxied(url) { return [url]; }
       function fetchJson(url) {
         if (typeof fetch === "undefined") return Promise.reject(new Error("no fetch"));
         var chain = proxied(url), i = 0;

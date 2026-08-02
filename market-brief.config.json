@@ -576,14 +576,6 @@
             }
         }
     },
-    "first-load-budget/v1": {
-        "contractVersion": "first-load-budget/v1",
-        "policyId": "first-load-budget/v1",
-        "briefHistoryRecentMaxBytes": 65536,
-        "briefHistoryRecentMaxRows": 30,
-        "briefFirstLoadMaxBytes": 368640,
-        "note": "Every byte market-brief.html fetches on load is budgeted here and asserted by scripts/selftest.mjs, so the page cannot silently get heavier. The unbounded item is gone: brief-history.jsonl (2.3 MB and growing ~22 KB per run, four runs a day) was fetched IN FULL and assigned to a variable nothing read; the page now fetches brief-history.recent.jsonl, a 30-run compact projection, while the full runs live in briefs/tier-a/<YYYY-MM>.jsonl. The remaining payload is fixed-size CONTENT, not growth: the Tier-B narrative (~165 KB) is what the reader came for, tools.json is the registry, and the Tier-A snapshot is the evidence behind it. Reaching the 200 KB aspiration means trimming the narrative payload or serving a projection of tools.json - a contract change, not a caching one. Lower this ceiling whenever the real figure drops; never raise it to make a red build green."
-    },
     "freshness-policy/v1": {
         "contractVersion": "freshness-policy/v1",
         "policyId": "freshness-policy/v1",

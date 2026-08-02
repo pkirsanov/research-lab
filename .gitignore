@@ -8,6 +8,7 @@ improvements/
 /node_modules/
 /test-results/
 /playwright-report/
+/_site/
 /.brief-work/
 
 # Code-index provider writes its graph in-repo; never commit it.

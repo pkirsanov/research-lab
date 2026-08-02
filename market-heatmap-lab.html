@@ -3,6 +3,7 @@
 
 <head>
     <meta charset="utf-8" />
+    <meta http-equiv="Content-Security-Policy" content="default-src 'self'; script-src 'self' 'unsafe-inline'; style-src 'self' 'unsafe-inline'; img-src 'self' data:; connect-src 'self' http://127.0.0.1:* https://*.ts.net:* https://api.nasdaq.com https://api.stlouisfed.org https://api.twelvedata.com https://cdn.cboe.com https://data.sec.gov https://finnhub.io https://home.treasury.gov https://production.dataviz.cnn.io https://query1.finance.yahoo.com https://query2.finance.yahoo.com https://stockanalysis.com https://www.alphavantage.co; font-src 'self' data:; object-src 'none'; base-uri 'none'; form-action 'none'; frame-src 'none'; worker-src 'none'; media-src 'none'; manifest-src 'self'">
     <meta name="viewport" content="width=device-width, initial-scale=1" />
     <link rel="icon"
         href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'%3E%3Crect width='32' height='32' rx='7' fill='%230e141c'/%3E%3Crect x='6' y='6' width='9' height='9' rx='1.5' fill='%2326b46e'/%3E%3Crect x='17' y='6' width='9' height='9' rx='1.5' fill='%23f5b942'/%3E%3Crect x='6' y='17' width='9' height='9' rx='1.5' fill='%23dc443d'/%3E%3Crect x='17' y='17' width='9' height='9' rx='1.5' fill='%232dd4bf'/%3E%3C/svg%3E" />
@@ -946,9 +947,10 @@
                 var syms = symList(), i = 0;
                 HYDRATION = { done: 0, total: syms.length, active: true };
                 document.body.setAttribute("data-heatmap-hydration", "loading");
-                     /* RLDATA persists the complete cache after each accepted symbol. Keep only two
-                         writes in flight so automatic delta hydration cannot starve UI interactions. */
-                     var CONCURRENCY = 2;
+                /* Every accepted symbol updates RLDATA's in-memory source immediately, while one
+                   persistence batch defers the growing localStorage serialization until all workers
+                   settle. Keep only two fetches in flight so delta hydration stays responsive. */
+                var CONCURRENCY = 2;
                 function worker() {
                     if (i >= syms.length) return Promise.resolve();
                     var s = syms[i++];
@@ -958,9 +960,11 @@
                         return yieldToInteraction().then(worker);
                     });
                 }
-                var running = [];
-                for (var w = 0; w < Math.min(CONCURRENCY, syms.length); w++) running.push(worker());
-                return Promise.all(running).then(markHydrationTerminal);
+                return RLDATA.withPersistenceBatch(function () {
+                    var running = [];
+                    for (var w = 0; w < Math.min(CONCURRENCY, syms.length); w++) running.push(worker());
+                    return Promise.all(running);
+                }).then(markHydrationTerminal);
             }
 
             /* ═══════ wiring ═══════ */

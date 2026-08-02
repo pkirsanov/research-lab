@@ -27,7 +27,7 @@
   }
   function credentialApi() {
     var api = root.RLDATA;
-    if (!api || typeof api.providerAccess !== "function" || typeof api.setKey !== "function" || typeof api.setProxyBaseUrl !== "function" || typeof api.clearAllProviderConfig !== "function") return null;
+    if (!api || typeof api.providerAccess !== "function" || typeof api.setKey !== "function" || typeof api.setProxyBaseUrl !== "function" || typeof api.clearAllProviderConfig !== "function" || typeof api.detectLegacyCredentialContainers !== "function" || typeof api.eraseLegacyCredentialContainers !== "function") return null;
     return api;
   }
   function ageText(at) {
@@ -131,7 +131,31 @@
         '<em data-provider-status="' + esc(p.providerId) + '" class="' + stateClass + '">' + esc(stateText) + '</em></div>';
     }).join("");
   }
-  function wireSettings(host, api, paint) {
+  function legacyMetadataText(values) {
+    return values.map(function (value) { return String(value).replace(/-/g, " "); }).join(", ");
+  }
+  function renderLegacyCleanup(summary, result) {
+    var resultHtml = "";
+    if (result && result.status === "complete") {
+      resultHtml = '<p class="settings-message" data-legacy-cleanup-status data-state="complete">' + esc(result.removedContainerCount) + ' legacy credential containers erased and verified absent.</p>';
+    } else if (result && result.status === "incomplete") {
+      resultHtml = '<p class="settings-message" data-legacy-cleanup-status data-state="incomplete">Cleanup incomplete: ' + esc(result.remainingContainerCount) + ' legacy credential container' + (result.remainingContainerCount === 1 ? "" : "s") + ' remains. Current proxy and local-key settings were not changed.</p>';
+    } else if (result && result.status === "unavailable") {
+      resultHtml = '<p class="settings-message" data-legacy-cleanup-status data-state="unavailable">Legacy cleanup unavailable. Current proxy and local-key settings were not changed.</p>';
+    }
+    if (summary.status === "unavailable" && !summary.detected && !result) {
+      return '<div class="settings-provider settings-legacy" data-legacy-detection-state="unavailable"><span><b>Legacy credential cleanup</b><small>Legacy storage inspection unavailable for ' + esc(legacyMetadataText(summary.unavailableStorageClasses)) + '. No absence claim is made; current proxy and local-key settings are unchanged.</small></span></div>';
+    }
+    if (summary.status === "clear" && !result) {
+      return '<div class="settings-provider settings-legacy"><span><b>Legacy credential cleanup</b><small>No pre-BUG-002 credential containers detected.</small></span></div>';
+    }
+    var details = summary.detected
+      ? '<span><b>Legacy credential cleanup</b><small><b data-legacy-container-count>' + esc(summary.containerCount) + '</b> pre-BUG-002 credential container' + (summary.containerCount === 1 ? "" : "s") + ' detected for ' + esc(legacyMetadataText(summary.providerIds)) + ' in ' + esc(legacyMetadataText(summary.locationClasses)) + '.</small>' + (summary.status === "unavailable" ? '<small data-legacy-detection-state="unavailable">Some storage classes could not be inspected: ' + esc(legacyMetadataText(summary.unavailableStorageClasses)) + '.</small>' : '') + '<small class="settings-legacy-disclosure">Cleanup deletes whole containers and may also remove old non-secret preferences. It never reads those legacy values and does not change the current proxy or local keys.</small></span>'
+      : '<span><b>Legacy credential cleanup</b><small><b data-legacy-container-count>0</b> pre-BUG-002 credential containers remain.</small></span>';
+    var action = summary.detected ? '<div class="settings-actions"><button type="button" class="settings-erase-legacy">Erase legacy containers</button></div>' : "";
+    return '<div class="settings-provider settings-legacy">' + details + resultHtml + action + '</div>';
+  }
+  function wireSettings(host, api, paint, settingsState) {
     var message = host.querySelector(".settings-message");
     function msg(text) { if (message) message.textContent = text; }
     host.querySelector(".settings-saveproxy").addEventListener("click", function () {
@@ -161,6 +185,15 @@
     host.querySelector(".settings-clear").addEventListener("click", function () {
       api.clearAllProviderConfig(); msg("All local keys and the proxy URL were cleared from this browser."); paint();
     });
+    var eraseLegacy = host.querySelector(".settings-erase-legacy");
+    if (eraseLegacy) eraseLegacy.addEventListener("click", function () {
+      var summary = api.detectLegacyCredentialContainers();
+      if (!summary.detected) { settingsState.legacyResult = null; paint(); return; }
+      var confirmed = typeof root.confirm === "function" && root.confirm("Erase " + summary.containerCount + " whole pre-BUG-002 containers? Old non-secret preferences inside them may also be removed. Current proxy and local-key settings will be preserved.");
+      if (!confirmed) { msg("Legacy cleanup cancelled; no containers were changed."); return; }
+      settingsState.legacyResult = api.eraseLegacyCredentialContainers();
+      paint();
+    });
   }
   function mountSettings(host) {
     if (!host || host.getAttribute("data-mounted") === "1") return;
@@ -170,14 +203,17 @@
       host.innerHTML = '<div class="settings-head"><div><h2>Provider access</h2><p>Provider settings are unavailable because the shared data layer did not load.</p></div></div>';
       return;
     }
+    var settingsState = { legacyResult: null };
     function paint() {
       var access = api.providerAccess();
+      var legacySummary = api.detectLegacyCredentialContainers();
       host.innerHTML =
         '<div class="settings-head"><div><h2>Provider access</h2><p>Two tiers: a tailnet <b>proxy</b> (keys held on your server, never in the browser) with automatic fallback to <b>local keys</b> stored only in this browser.</p></div><span class="settings-privacy" data-tier>' + esc(tierLabel(access)) + '</span></div>' +
         '<div class="settings-proxy"><label>Tailnet proxy URL <input type="url" inputmode="url" autocomplete="off" placeholder="https://host.tailnet.ts.net:PORT" data-proxy-url value="' + esc(access.proxyBaseUrl) + '"></label><button type="button" class="settings-saveproxy">Save proxy</button><button type="button" class="settings-recheck">Recheck</button><label class="settings-forcelocal"><input type="checkbox" data-force-local' + (access.forceLocal ? " checked" : "") + '> force local keys</label></div>' +
         '<div class="settings-grid">' + renderProviderRows(access) + '</div>' +
-        '<div class="settings-actions"><button type="button" class="settings-clear">Clear all keys + proxy</button><span class="settings-message" role="status"></span></div>';
-      wireSettings(host, api, paint);
+        '<div class="settings-actions"><button type="button" class="settings-clear">Clear all keys + proxy</button><span class="settings-message" role="status"></span></div>' +
+        renderLegacyCleanup(legacySummary, settingsState.legacyResult);
+      wireSettings(host, api, paint, settingsState);
     }
     paint();
   }

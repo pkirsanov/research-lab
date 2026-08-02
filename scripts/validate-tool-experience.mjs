@@ -71,6 +71,17 @@ function loadActualPacket() {
   const registryBytes = readRequired('tools.json');
   const modelBytes = readRequired(modelPath);
   const journeyBytes = readRequired(journeyPath);
+  const recentHistoryBytes = readRequired('brief-history.recent.jsonl');
+  const firstLoadPaths = [
+    'market-brief.config.page.json',
+    'market-brief.page.json',
+    'watchlist.json',
+    'brief-history.recent.jsonl',
+    'market-brief.snapshot.page.json',
+    'market-brief.tools.page.json',
+    'market-brief.scorecard.json'
+  ];
+  const firstLoadBytes = firstLoadPaths.reduce((total, path) => total + readRequired(path).length, 0);
 
   return {
     packet: {
@@ -82,7 +93,10 @@ function loadActualPacket() {
     bytes: {
       config: configBytes.length,
       models: modelBytes.length,
-      journeys: journeyBytes.length
+      journeys: journeyBytes.length,
+      briefHistoryRecent: recentHistoryBytes.length,
+      briefHistoryRecentRows: recentHistoryBytes.toString('utf8').split(/\r?\n/).filter(Boolean).length,
+      briefFirstLoad: firstLoadBytes
     },
     paths: {
       config: 'tool-experience.config.json',
@@ -97,7 +111,10 @@ function validateArtifactBudgets(packet, byteInventory) {
   const checks = [
     { artifact: 'config', bytes: byteInventory.config, budget: budgets.configMaxBytes },
     { artifact: 'models', bytes: byteInventory.models, budget: budgets.simpleModelsMaxBytes },
-    { artifact: 'journeys', bytes: byteInventory.journeys, budget: budgets.journeysMaxBytes }
+    { artifact: 'journeys', bytes: byteInventory.journeys, budget: budgets.journeysMaxBytes },
+    { artifact: 'brief-history-recent', bytes: byteInventory.briefHistoryRecent, budget: budgets.briefHistoryRecentMaxBytes },
+    { artifact: 'brief-history-recent-rows', bytes: byteInventory.briefHistoryRecentRows, budget: budgets.briefHistoryRecentMaxRows },
+    { artifact: 'brief-first-load', bytes: byteInventory.briefFirstLoad, budget: budgets.briefFirstLoadMaxBytes }
   ];
   for (const check of checks) {
     invariant(Number.isInteger(check.bytes) && check.bytes > 0, `${check.artifact} byte inventory is invalid`);

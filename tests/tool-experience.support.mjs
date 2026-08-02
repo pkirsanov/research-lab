@@ -183,7 +183,10 @@ export function makeConfig() {
       contractVersion: 'experience-artifact-budget/v1',
       configMaxBytes: 65536,
       simpleModelsMaxBytes: 524288,
-      journeysMaxBytes: 1048576
+      journeysMaxBytes: 1048576,
+      briefHistoryRecentMaxBytes: 204800,
+      briefHistoryRecentMaxRows: 30,
+      briefFirstLoadMaxBytes: 204800
     },
     migrationPolicy: {
       contractVersion: 'experience-migration-policy/v1',

@@ -1,7 +1,7 @@
 name: pages
 on:
   push:
-    branches: ["main"]
+    branches: [ "main" ]
   workflow_dispatch: {}
 permissions:
   contents: read
@@ -17,83 +17,49 @@ jobs:
   #    people learn to ignore, and an ignored gate is worse than no gate.
   verify:
     runs-on: ubuntu-latest
-    timeout-minutes: 20
+    timeout-minutes: 90
     steps:
-      - name: Checkout
-        uses: actions/checkout@v4
-      - name: Setup Node
-        uses: actions/setup-node@v4
-        with:
-          node-version: "20"
-      - name: Validate Node dependency source lock
-        run: node scripts/validate-node-source-lock.mjs
+    - name: Checkout
+      uses: actions/checkout@v4
+    - name: Setup Node
+      uses: actions/setup-node@v4
+      with:
+        node-version: "20"
+    - name: Validate Node dependency source lock
+      run: node scripts/validate-node-source-lock.mjs
 
-      # The whole self-test — every assertion, not a sample. No browser, no network, seconds to run.
-      # This is the single highest-value line in this file: it was previously not run in CI at all.
-      - name: Self-test (all assertions)
-        run: node scripts/selftest.mjs
+    # The whole self-test — every assertion, not a sample. No browser, no network, seconds to run.
+    # This is the single highest-value line in this file: it was previously not run in CI at all.
+    - name: Self-test (all assertions)
+      run: node scripts/selftest.mjs
 
-      - name: Install source-locked browser test runner
-        run: PLAYWRIGHT_SKIP_BROWSER_DOWNLOAD=1 npm ci --ignore-scripts
-      - name: Verify checkout-local Playwright runner
-        run: |
-          runner_version="$(npx --no-install playwright --version)"
-          printf '%s\n' "$runner_version"
-          if [[ "$runner_version" != "Version 1.61.1" ]]; then
-            printf 'Expected Version 1.61.1, got %s\n' "$runner_version" >&2
-            exit 1
-          fi
+    - name: Install source-locked browser test runner
+      run: PLAYWRIGHT_SKIP_BROWSER_DOWNLOAD=1 npm ci --ignore-scripts
+    - name: Verify checkout-local Playwright runner
+      run: |
+        runner_version="$(npx --no-install playwright --version)"
+        printf '%s\n' "$runner_version"
+        if [[ "$runner_version" != "Version 1.61.1" ]]; then
+          printf 'Expected Version 1.61.1, got %s\n' "$runner_version" >&2
+          exit 1
+        fi
 
-      # The hermetic browser specs: served from the checkout, committed fixtures only, no provider
-      # calls. These cover the claims the product is judged on — the published error rate, the
-      # freshness of the written read, whether the tools can be found, and whether the journeys
-      # actually mount.
-      - name: Browser specs (hermetic, blocking)
-        run: >
-          npx --no-install playwright test
-          tests/market-brief-scorecard.spec.mjs
-          tests/market-brief-freshness.spec.mjs
-          tests/tool-discovery.spec.mjs
-          tests/journey.spec.mjs
-          tests/journey-mobile.spec.mjs
-          tests/palm-springs-rental-market-lab.spec.mjs
-          --config=playwright.config.mjs --project=system-chrome --reporter=list
-
-  # ── REPORTED, NOT BLOCKING. The full 237-test suite. Several specs drive live provider data and
-  #    at least one can stall for tens of minutes on a slow upstream; one more is independently
-  #    flaky. Making the site's ability to deploy depend on all of that would hand a third party a
-  #    veto over publishing a documentation fix.
-  #
-  #    This is deliberately NOT the end state. The exit condition is explicit: as specs are made
-  #    hermetic (committed fixtures instead of live calls) they move UP into `verify`, and the day
-  #    this job is reliably green it gains `needs`-blocking status too. Until then its result is
-  #    visible on every run instead of unknown — still a large improvement on running one spec file
-  #    out of twenty-eight.
-  browser-full:
-    runs-on: ubuntu-latest
-    timeout-minutes: 45
-    continue-on-error: true
-    steps:
-      - name: Checkout
-        uses: actions/checkout@v4
-      - name: Setup Node
-        uses: actions/setup-node@v4
-        with:
-          node-version: "20"
-      - name: Install source-locked browser test runner
-        run: PLAYWRIGHT_SKIP_BROWSER_DOWNLOAD=1 npm ci --ignore-scripts
-      - name: Full browser suite (reported)
-        run: npx --no-install playwright test --config=playwright.config.mjs --project=system-chrome --reporter=list
-      - name: Upload report
-        if: always()
-        uses: actions/upload-artifact@v4
-        with:
-          name: playwright-full-report
-          path: |
-            playwright-report/
-            test-results/
-          retention-days: 7
-          if-no-files-found: ignore
+    # Every Playwright spec is part of the deploy gate. The previously flaky options-flow ordering
+    # regression is explicitly synchronized on the shipped rlviews:change signal and passes repeated
+    # parallel execution; no external-provider availability is accepted as a reason to publish a
+    # red build.
+    - name: Full browser suite (blocking)
+      run: npx --no-install playwright test --config=playwright.config.mjs --project=system-chrome --workers=2 --reporter=list
+    - name: Upload browser report
+      if: always()
+      uses: actions/upload-artifact@v4
+      with:
+        name: playwright-report
+        path: |
+          playwright-report/
+          test-results/
+        retention-days: 7
+        if-no-files-found: ignore
 
   deploy:
     needs: verify
@@ -102,14 +68,20 @@ jobs:
       url: ${{ steps.deployment.outputs.page_url }}
     runs-on: ubuntu-latest
     steps:
-      - name: Checkout
-        uses: actions/checkout@v4
-      - name: Configure Pages
-        uses: actions/configure-pages@v5
-      - name: Upload site artifact (repo root)
-        uses: actions/upload-pages-artifact@v3
-        with:
-          path: "."
-      - name: Deploy to GitHub Pages
-        id: deployment
-        uses: actions/deploy-pages@v4
+    - name: Checkout
+      uses: actions/checkout@v4
+    - name: Setup Node
+      uses: actions/setup-node@v4
+      with:
+        node-version: "20"
+    - name: Build registered Pages artifact
+      run: node scripts/build-pages-site.mjs
+    - name: Configure Pages
+      uses: actions/configure-pages@v5
+    - name: Upload registered site artifact
+      uses: actions/upload-pages-artifact@v3
+      with:
+        path: "_site"
+    - name: Deploy to GitHub Pages
+      id: deployment
+      uses: actions/deploy-pages@v4

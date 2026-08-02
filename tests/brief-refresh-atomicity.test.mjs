@@ -75,7 +75,7 @@ if (process.env.NODE_TEST_CONTEXT) {
     assert.ok(!publication.snapshotBytes.equals(fixture.baseline['market-brief.snapshot.json']));
     assert.ok(!publication.historyBytes.equals(fixture.baseline['brief-history.jsonl']));
     assert.ok(publication.payloadBytes.equals(fixture.baseline['market-brief.payload.json']));
-    assert.deepEqual(new Set(publication.lastCommitPaths), new Set(['brief-history.jsonl', 'data/raw-refresh.json', 'market-brief.snapshot.json']));
+    assert.deepEqual(new Set(publication.lastCommitPaths), new Set(['brief-history.jsonl', 'brief-history.recent.jsonl', 'briefs/tier-a/2026-07.jsonl', 'data/raw-refresh.json', 'market-brief.scorecard.json', 'market-brief.snapshot.json', 'market-brief.snapshot.page.json']));
   });
 
   test('matching generated Tier B advances snapshot payload and history together', (context) => {
@@ -718,7 +718,7 @@ if (process.env.NODE_TEST_CONTEXT) {
     assert.match(result.stdout, /committed: market-data: cache refresh/);
     assert.ok(publication.snapshotBytes.equals(invalidSnapshotBytes));
     assert.ok(publication.payloadBytes.equals(payloadBytes));
-    assert.deepEqual(publication.lastCommitPaths, ['data/raw-refresh.json']);
+    assert.deepEqual(publication.lastCommitPaths, ['data/raw-refresh.json', 'market-brief.scorecard.json', 'market-brief.snapshot.page.json']);
     assert.notEqual(publication.head, invalidHead);
     assert.equal(gitFixture(fixture, ['rev-parse', 'origin/main']), publication.head);
   });

@@ -36,7 +36,14 @@
  */
 (function (factory) {
   "use strict";
-  var api = Object.freeze(factory());
+  var root = (typeof globalThis !== "undefined") ? globalThis :
+    ((typeof window !== "undefined") ? window : {});
+  var metrics = root.RLMETRICS;
+  if (!metrics && typeof module === "object" && module && module.exports && typeof require === "function") {
+    metrics = require("../rlmetrics.js");
+  }
+  if (!metrics) throw new Error("RLMETRICS must be loaded before RLSTRATEGY");
+  var api = Object.freeze(factory(metrics));
   if (typeof module === "object" && module && module.exports) {
     module.exports = api;
     return;
@@ -45,13 +52,13 @@
     throw new Error("RLSTRATEGY_BROWSER_GLOBAL_UNAVAILABLE");
   }
   globalThis.RLSTRATEGY = api;
-})(function () {
+})(function (RLMETRICS) {
   "use strict";
 
   /* Owner backtest constants — byte-identical to strategy-self-improvement-lab.html
      (VOL_WIN = 20, ANN = 252). Single-sourcing these here keeps the extracted seeded
      evaluation engine identical to the delegating page. */
-  var VOL_WIN = 20, ANN = 252;
+  var VOL_WIN = 20, ANN = RLMETRICS.TRADING_DAYS;
 
   /* ═══════════ seeded-path owner primitives (single source; consumed by Power + Simple) ═══════════
      These mirror the strategy-self-improvement-lab.html owner helpers EXACTLY. The page delegates
@@ -150,22 +157,23 @@
   }
 
   /* metrics: CAGR / annualised vol / Sharpe / max draw-down / time-in-market / hit-rate over a backtest.
-     Byte-identical to the page's metrics. */
+     Shared annualisation and arithmetic Sharpe delegate to rlmetrics.js; the strategy-specific
+     draw-down, exposure, and hit-rate reductions remain here. */
   function metrics(bt) {
     var r = bt.r, n = r.length;
     if (n < 5) return { cagr: 0, vol: 0, sharpe: 0, maxDd: 0, tim: 0, hit: 0, n: n };
-    var mean = 0, i;
-    for (i = 0; i < n; i++) mean += r[i]; mean /= n;
-    var v = 0; for (i = 0; i < n; i++) { var d = r[i] - mean; v += d * d; } v /= n;
-    var sd = Math.sqrt(v);
+    var i;
     var eq = bt.curve[n - 1] || 1;
     var cagr = eq > 0 ? Math.pow(eq, ANN / n) - 1 : -1;
-    var sharpe = sd > 1e-9 ? (mean / sd) * Math.sqrt(ANN) : 0;
+    var canonicalVol = RLMETRICS.annualizedVol(r, ANN);
+    var canonicalSharpe = RLMETRICS.sharpeArithmetic(r, ANN, 0);
+    var vol = canonicalVol === null ? 0 : canonicalVol;
+    var sharpe = canonicalSharpe === null ? 0 : canonicalSharpe;
     var peak = -Infinity, maxDd = 0;
     for (i = 0; i < n; i++) { if (bt.curve[i] > peak) peak = bt.curve[i]; var dd = 1 - bt.curve[i] / peak; if (dd > maxDd) maxDd = dd; }
     var inMkt = 0, up = 0;
     for (i = 0; i < n; i++) { if (bt.expo[i] > 0) { inMkt++; if (r[i] > 0) up++; } }
-    return { cagr: cagr, vol: sd * Math.sqrt(ANN), sharpe: sharpe, maxDd: maxDd, tim: inMkt / n, hit: inMkt ? up / inMkt : 0, n: n };
+    return { cagr: cagr, vol: vol, sharpe: sharpe, maxDd: maxDd, tim: inMkt / n, hit: inMkt ? up / inMkt : 0, n: n };
   }
 
   /* walkForward: per-fold in-sample / out-of-sample split with concatenated OOS metrics. The headline

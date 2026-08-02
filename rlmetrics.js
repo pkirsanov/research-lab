@@ -21,11 +21,8 @@
  * Every function is NULL-SAFE in the honest direction: insufficient or invalid input returns null,
  * never 0. A zero Sharpe and an unknown Sharpe are different claims.
  *
- * ONE KNOWN NON-CONSUMER, stated plainly: rlexperience-adapters/strategy-research.js computes the
- * arithmetic Sharpe of its seeded synthetic backtest inline. That module is a PURE adapter whose
- * contract forbids importing another module, and its formula is byte-matched to the page it owns, so
- * it is not converted here. It is instead PINNED: scripts/selftest.mjs asserts its Sharpe equals
- * sharpeArithmetic on identical inputs, so the two definitions cannot silently diverge.
+ * rlexperience-adapters/strategy-research.js consumes this module through the same UMD dependency
+ * pattern used by the shared foundations. It owns strategy reductions, not a second metric formula.
  */
 (function (factory) {
   "use strict";

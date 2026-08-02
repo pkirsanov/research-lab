@@ -2,7 +2,7 @@
 import assert from 'node:assert/strict';
 import { readFileSync } from 'node:fs';
 import test from 'node:test';
-import { createStorage, loadRldata } from './provider-credentials.support.mjs';
+import { createStorage, LEGACY_LOCAL_NAMES, LEGACY_SESSION_NAMES, loadRldata } from './provider-credentials.support.mjs';
 
 const PROXY_BASE_URL = 'https://proxy.research.invalid';
 const FINNHUB_REQUEST_PATH = 'api/v1/quote?symbol=MSFT';
@@ -12,6 +12,28 @@ const DIRECT_PROVIDER_BY_ORIGIN = new Map([
   ['https://www.alphavantage.co', 'alphavantage'],
   ['https://api.stlouisfed.org', 'fred']
 ]);
+const CURRENT_PROVIDER_CONFIG = '{"v":1,"proxyBaseUrl":"https://proxy.current.invalid","keys":{"finnhub":"current-finnhub-key"}}';
+const CURRENT_DATA_CACHE = '{"v":1,"bars":{"SPY":{"1d":{"at":1,"rows":[]}}}}';
+
+function legacyStorageFixture({ failRemove = [] } = {}) {
+  const localInitial = {
+    rlProviderConfig: CURRENT_PROVIDER_CONFIG,
+    rlData: CURRENT_DATA_CACHE,
+    unknownCredentialContainer: 'unknown-local-value'
+  };
+  const sessionInitial = { unknownSessionCredentialContainer: 'unknown-session-value' };
+  LEGACY_LOCAL_NAMES.forEach((name) => { localInitial[name] = `legacy-local-${name}`; });
+  LEGACY_SESSION_NAMES.forEach((name) => { sessionInitial[name] = `legacy-session-${name}`; });
+  return {
+    localStorage: createStorage({ initial: localInitial, failRemove }),
+    sessionStorage: createStorage({ initial: sessionInitial, failRemove })
+  };
+}
+
+function legacyValueReads(storage) {
+  const legacyNames = new Set(LEGACY_LOCAL_NAMES.concat(LEGACY_SESSION_NAMES));
+  return storage.operations().filter(({ operation, key }) => operation === 'getItem' && legacyNames.has(key));
+}
 
 function providerContractsFromProduction() {
   const source = readFileSync(new URL('../rldata.js', import.meta.url), 'utf8');
@@ -536,4 +558,112 @@ test('SCN-BUG004-003 force-local uses the shared direct provider path', async ()
   assert.equal(requests.filter(({ url }) => requestClass(url) === 'direct-finnhub').length, 1);
   assert.equal(requests.some(({ url }) => requestClass(url) === 'proxy-finnhub'), false);
   assert.equal(new URL(requests[1].url).searchParams.get('token'), localKey);
+});
+
+test('SCN-BUG001-004 exact legacy containers erase while BUG-002 configuration remains unchanged', () => {
+  const fixture = legacyStorageFixture();
+  const realm = loadRldata(fixture);
+  const providerConfigBefore = fixture.localStorage.snapshot().rlProviderConfig;
+  const dataCacheBefore = fixture.localStorage.snapshot().rlData;
+
+  const presence = realm.api.detectLegacyCredentialContainers();
+  assert.deepEqual(presence, {
+    status: 'detected',
+    detected: true,
+    providerIds: ['alphavantage', 'finnhub', 'shared', 'twelvedata'],
+    locationClasses: ['legacy-central-config', 'legacy-scalar-key', 'legacy-session-config', 'legacy-tool-state'],
+    containerCount: LEGACY_LOCAL_NAMES.length + LEGACY_SESSION_NAMES.length,
+    unavailableStorageClasses: []
+  });
+  assert.equal(JSON.stringify(presence).includes('legacy-local-'), false, 'presence reports registry metadata, never legacy values');
+
+  const result = realm.api.eraseLegacyCredentialContainers();
+  const localAfter = fixture.localStorage.snapshot();
+  const sessionAfter = fixture.sessionStorage.snapshot();
+  assert.equal(result.ok, true);
+  assert.equal(result.status, 'complete');
+  assert.equal(result.removedContainerCount, LEGACY_LOCAL_NAMES.length + LEGACY_SESSION_NAMES.length);
+  assert.equal(result.remainingContainerCount, 0);
+  assert.equal(LEGACY_LOCAL_NAMES.every((name) => !Object.hasOwn(localAfter, name)), true, 'every exact local legacy name must be absent');
+  assert.equal(LEGACY_SESSION_NAMES.every((name) => !Object.hasOwn(sessionAfter, name)), true, 'every exact session legacy name must be absent');
+  assert.equal(localAfter.rlProviderConfig, providerConfigBefore, 'BUG-002 provider config bytes must remain unchanged');
+  assert.equal(localAfter.rlData, dataCacheBefore, 'non-secret rlData bytes must remain unchanged');
+  assert.equal(localAfter.unknownCredentialContainer, 'unknown-local-value', 'unknown local containers must survive');
+  assert.equal(sessionAfter.unknownSessionCredentialContainer, 'unknown-session-value', 'unknown session containers must survive');
+  assert.equal(realm.api.providerAccess().proxyBaseUrl, 'https://proxy.current.invalid');
+  assert.equal(realm.api.providerStatus('finnhub').state, 'configured');
+  assert.deepEqual(legacyValueReads(fixture.localStorage), [], 'cleanup must never read a local legacy value');
+  assert.deepEqual(legacyValueReads(fixture.sessionStorage), [], 'cleanup must never read a session legacy value');
+});
+
+test('SCN-BUG001-004 partial legacy deletion reports incomplete and preserves BUG-002 configuration', () => {
+  const blockedName = 'etfMomLab';
+  const fixture = legacyStorageFixture({ failRemove: [blockedName] });
+  const realm = loadRldata(fixture);
+  const providerConfigBefore = fixture.localStorage.snapshot().rlProviderConfig;
+
+  const result = realm.api.eraseLegacyCredentialContainers();
+  const localAfter = fixture.localStorage.snapshot();
+  assert.deepEqual(result, {
+    ok: false,
+    status: 'incomplete',
+    removedContainerCount: LEGACY_LOCAL_NAMES.length + LEGACY_SESSION_NAMES.length - 1,
+    remainingProviderIds: ['shared'],
+    remainingLocationClasses: ['legacy-tool-state'],
+    remainingContainerCount: 1,
+    code: 'LEGACY_ERASE_INCOMPLETE'
+  });
+  assert.equal(localAfter[blockedName], `legacy-local-${blockedName}`, 'the forced deletion failure must remain observable as incomplete');
+  assert.equal(localAfter.rlProviderConfig, providerConfigBefore, 'partial cleanup must not rewrite BUG-002 provider config');
+  assert.equal(realm.api.providerAccess().proxyBaseUrl, 'https://proxy.current.invalid');
+  assert.equal(realm.api.providerStatus('finnhub').state, 'configured');
+  assert.equal(JSON.stringify(result).includes(blockedName), false, 'incomplete results must not disclose exact legacy container names');
+  assert.equal(JSON.stringify(result).includes('legacy-local-'), false, 'incomplete results must not disclose legacy values');
+  assert.deepEqual(legacyValueReads(fixture.localStorage), [], 'partial cleanup must never read a local legacy value');
+  assert.deepEqual(legacyValueReads(fixture.sessionStorage), [], 'partial cleanup must never read a session legacy value');
+});
+
+test('SCN-BUG001-004 deletion failure plus unavailable verification does not count a still-present container as removed', () => {
+  const blockedName = 'etfMomLab';
+  const localStorage = createStorage({
+    initial: {
+      rlProviderConfig: CURRENT_PROVIDER_CONFIG,
+      rlData: CURRENT_DATA_CACHE,
+      [blockedName]: `legacy-local-${blockedName}`
+    },
+    failRemove: [blockedName]
+  });
+  const sessionStorage = createStorage();
+  const removeItem = localStorage.removeItem.bind(localStorage);
+  const key = localStorage.key.bind(localStorage);
+  let deletionAttempted = false;
+  localStorage.removeItem = (name) => {
+    try {
+      return removeItem(name);
+    } finally {
+      if (String(name) === blockedName) deletionAttempted = true;
+    }
+  };
+  localStorage.key = (index) => {
+    if (deletionAttempted) throw new Error('post-delete storage enumeration unavailable');
+    return key(index);
+  };
+  const realm = loadRldata({ localStorage, sessionStorage });
+  const providerConfigBefore = localStorage.snapshot().rlProviderConfig;
+  const dataCacheBefore = localStorage.snapshot().rlData;
+
+  const result = realm.api.eraseLegacyCredentialContainers();
+  const localAfter = localStorage.snapshot();
+  const resultText = JSON.stringify(result).toLowerCase();
+  assert.equal(result.status, 'unavailable');
+  assert.equal(result.ok, false);
+  assert.equal(localAfter[blockedName], `legacy-local-${blockedName}`, 'the failed deletion must leave the selected container present');
+  assert.equal(resultText.includes('complete'), false, 'unavailable verification must not claim complete cleanup');
+  assert.equal(resultText.includes('success'), false, 'unavailable verification must not claim success');
+  assert.equal(localAfter.rlProviderConfig, providerConfigBefore, 'unavailable verification must preserve BUG-002 provider config bytes');
+  assert.equal(localAfter.rlData, dataCacheBefore, 'unavailable verification must preserve non-secret rlData bytes');
+  assert.equal(realm.api.providerAccess().proxyBaseUrl, 'https://proxy.current.invalid');
+  assert.equal(realm.api.providerStatus('finnhub').state, 'configured');
+  assert.deepEqual(legacyValueReads(localStorage), [], 'unavailable verification must never read a legacy value');
+  assert.equal(result.removedContainerCount, 0, 'a still-present unverified container is not removed');
 });

@@ -3,6 +3,7 @@
 
 <head>
   <meta charset="UTF-8" />
+  <meta http-equiv="Content-Security-Policy" content="default-src 'self'; script-src 'self' 'unsafe-inline'; style-src 'self' 'unsafe-inline'; img-src 'self' data:; connect-src 'self' http://127.0.0.1:* https://*.ts.net:* https://api.nasdaq.com https://api.stlouisfed.org https://api.twelvedata.com https://cdn.cboe.com https://data.sec.gov https://finnhub.io https://home.treasury.gov https://production.dataviz.cnn.io https://query1.finance.yahoo.com https://query2.finance.yahoo.com https://stockanalysis.com https://www.alphavantage.co; font-src 'self' data:; object-src 'none'; base-uri 'none'; form-action 'none'; frame-src 'none'; worker-src 'none'; media-src 'none'; manifest-src 'self'">
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <title>Options Structure &amp; Momentum Research Lab — walls, gamma, greeks, volume &amp; short interest</title>
   <link rel="icon"
@@ -943,8 +944,8 @@
           <label>Status</label>
           <div class="status" id="status">Type a liquid optionable ticker (<b>SPY</b>, <b>NVDA</b>, <b>TSLA</b>…) and
             click <b>Fetch chain</b>. The default <b>GitHub Pages (cached)</b> source reads a same-origin snapshot this
-            site refreshes a few times per trading day — no key, no proxy, works on GitHub Pages. For live intraday data
-            pick <b>CBOE</b> (set a <b>Custom proxy</b> below when on Pages).
+            site refreshes a few times per trading day — no key or proxy, and it works on GitHub Pages. Direct live
+            CBOE/Yahoo requests are best-effort; configure supported provider access centrally on the home page.
           </div>
         </div>
       </div>
@@ -954,9 +955,6 @@
         <button class="btn mini" id="btnAdd">+ add</button>
         <label class="dim" style="font-size:11px;display:flex;align-items:center;gap:5px"><input type="checkbox"
             id="forceRefresh" style="vertical-align:-1px"> force refresh</label>
-        <span class="dim" style="font-size:11px;display:flex;align-items:center;gap:5px">proxy <input type="text"
-            id="proxyUrl" placeholder="https://you.workers.dev/?url=" style="width:200px"
-            title="Optional CORS-proxy base for CBOE / Yahoo on GitHub Pages — a tiny free Cloudflare Worker that fetches the target and adds the CORS header. The tool appends ?url=<encoded target> (or replaces a {url} placeholder). Tried before the public proxies." /></span>
         <span class="dim" style="font-size:11px" id="siWrap">short interest: <input type="number" id="siManual"
             placeholder="man. %float" style="width:96px"
             title="Optional manual short-%-of-float if the Yahoo short-interest fetch is blocked." /></span>
@@ -1244,7 +1242,7 @@
     };
 
     var state = {
-      provider: 'pages', ticker: 'SPY', nExp: 3, sign: 'A', zoom: 18, minOI: 0, rate: 0.043, div: 0.0, proxy: '',
+      provider: 'pages', ticker: 'SPY', nExp: 3, sign: 'A', zoom: 18, minOI: 0, rate: 0.043, div: 0.0,
       acct: 10000, riskPct: 1,
       universe: [], asOf: '', dataAt: 0, busy: false,
       spot: null, name: '', expDates: [], chains: [], /* [{exp,epoch,T,calls,puts}] */
@@ -1258,7 +1256,7 @@
       try {
         localStorage.setItem('optStructLab', JSON.stringify({
           provider: state.provider, ticker: state.ticker, nExp: state.nExp, sign: state.sign, zoom: state.zoom,
-          minOI: state.minOI, rate: state.rate, div: state.div, proxy: state.proxy, acct: state.acct, riskPct: state.riskPct,
+          minOI: state.minOI, rate: state.rate, div: state.div, acct: state.acct, riskPct: state.riskPct,
           on: state.universe.map(function (e) { return { id: e.id, on: e.on }; }),
           added: state.universe.filter(function (e) { return e.added; }).map(function (e) { return { id: e.id, label: e.label, group: e.group, alt: e.alt }; })
         }));
@@ -1350,17 +1348,7 @@
 
     /* ══════════════════ data fetch ══════════════════ */
     function setStatus(s, kind) { var e = el('status'); if (e) e.innerHTML = (kind ? '<span class="' + kind + '">' : '') + s + (kind ? '</span>' : ''); if (window.RLAPP) RLAPP.report('options:structure', kind === 'bad' ? 'error' : kind === 'ok' ? 'ready' : /fetch|load/i.test(s) ? 'refreshing' : 'fresh', { label: state.ticker + ' option chain' }); }
-    function withProxy(base, target) {
-      base = (base || '').trim(); if (!base) return null;
-      if (base.indexOf('{url}') >= 0) return base.replace('{url}', encodeURIComponent(target));
-      if (/[?&](url|quest|q)=$/.test(base)) return base + encodeURIComponent(target);
-      return base + (base.indexOf('?') >= 0 ? '&' : '?') + 'url=' + encodeURIComponent(target);
-    }
-    function proxied(target) {
-      var arr = [], cp = withProxy(state.proxy, target); if (cp) arr.push(cp);
-      arr.push(target, 'https://corsproxy.io/?url=' + encodeURIComponent(target), 'https://api.allorigins.win/raw?url=' + encodeURIComponent(target), 'https://api.codetabs.com/v1/proxy/?quest=' + encodeURIComponent(target));
-      return arr;
-    }
+    function proxied(target) { return [target]; }
     function fetchJSONproxy(target) {
       var urls = proxied(target), idx = 0;
       function attempt() {
@@ -1573,7 +1561,7 @@
         var parsed = j ? parseCBOEChain(j) : null;
         if (tk !== state.ticker) return; // superseded
         if (!parsed || !parsed.chains.length) {
-          return fetchChainYahoo(tk, 'CBOE chain unavailable for ' + tk + (state.proxy ? '' : ' — set a Custom proxy for CBOE on GitHub Pages') + ' — trying Yahoo proxy');
+          return fetchChainYahoo(tk, 'CBOE chain unavailable for ' + tk + ' — trying direct Yahoo');
         }
         state.chains = parsed.chains; state.expDates = parsed.exps; state.name = state.name || tk;
         if (parsed.spot != null) state.spot = parsed.spot;
@@ -1610,11 +1598,10 @@
         var parsed = j ? parsePagesChain(j) : null;
         if (tk !== state.ticker) return; // superseded by a newer ticker selection
         if (!parsed || !parsed.chains.length) {
-          // Not in the cached snapshot. Only chase live CBOE/Yahoo when a Custom proxy is set —
-          // otherwise those cross-origin fetches just grind on blocked/absent proxies. Report instead.
-          if (state.proxy) return fetchChainCBOE(tk);
+            // Not in the cached snapshot. Do not route through an arbitrary URL-forwarding relay;
+            // users can choose a direct fixed-origin source explicitly.
           busy = false; var b = el('btnFetch'); if (b) b.classList.remove('busy');
-          setStatus('<b>' + tk + '</b> is not in the cached snapshot — add it to the watchlist (it refreshes a few times per trading day), or pick a live source (CBOE/Yahoo) and set a Custom proxy.', 'bad');
+          setStatus('<b>' + tk + '</b> is not in the cached snapshot — add it to the watchlist (it refreshes a few times per trading day), or explicitly pick a direct live source.', 'bad');
           return;
         }
         state.chains = parsed.chains; state.expDates = parsed.exps; state.name = state.name || tk;
@@ -2418,7 +2405,6 @@
       el('btnAdd').addEventListener('click', function () { addTicker(el('addTk').value); el('addTk').value = ''; });
       el('btnCsv').addEventListener('click', exportCsv);
       el('provider').addEventListener('change', function () { state.provider = this.value; saveState(); });
-      el('proxyUrl').addEventListener('change', function () { state.proxy = (this.value || '').trim(); saveState(); });
       el('nExp').addEventListener('change', function () { state.nExp = +this.value; saveState(); });
       el('sign').addEventListener('change', function () { state.sign = this.value; saveState(); computeAll(); render(); });
       el('zoom').addEventListener('change', function () { state.zoom = clamp(+this.value || 18, 4, 60); saveState(); computeAll(); render(); });
@@ -2438,7 +2424,6 @@
         if (saved.provider) state.provider = saved.provider; if (saved.ticker) state.ticker = saved.ticker;
         if (saved.nExp) state.nExp = +saved.nExp; if (saved.sign) state.sign = saved.sign; if (saved.zoom) state.zoom = +saved.zoom;
         if (saved.minOI != null) state.minOI = +saved.minOI; if (saved.rate != null) state.rate = +saved.rate; if (saved.div != null) state.div = +saved.div;
-        if (saved.proxy != null) state.proxy = saved.proxy;
         if (saved.acct != null) state.acct = +saved.acct; if (saved.riskPct != null) state.riskPct = +saved.riskPct;
         (saved.added || []).forEach(function (a) { if (!findE(a.id)) state.universe.push({ id: a.id, label: a.label || a.id, group: a.group || 'Added', alt: a.alt || null, on: false, added: true }); });
         var onMap = {}; (saved.on || []).forEach(function (o) { onMap[o.id] = o.on; }); state.universe.forEach(function (e) { if (onMap.hasOwnProperty(e.id)) e.on = onMap[e.id]; });
@@ -2446,7 +2431,6 @@
       // reflect UI
       el('ticker').value = state.ticker; el('provider').value = state.provider; el('nExp').value = state.nExp; el('sign').value = state.sign;
       el('zoom').value = state.zoom; el('minOI').value = state.minOI; el('rate').value = (state.rate * 100).toFixed(1); el('divy').value = (state.div * 100).toFixed(1);
-      el('proxyUrl').value = state.proxy || '';
       bind(); renderChips(); updatePills(); setTimeout(function () { fetchAll(true); }, 0);
       var snote = el('snapNote'); var days = snapDays(state.ticker); if (days.length) snote.textContent = days.length + ' local snapshot day(s) for ' + state.ticker;
     }

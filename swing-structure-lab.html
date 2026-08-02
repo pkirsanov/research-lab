@@ -3,6 +3,7 @@
 
 <head>
     <meta charset="UTF-8" />
+    <meta http-equiv="Content-Security-Policy" content="default-src 'self'; script-src 'self' 'unsafe-inline'; style-src 'self' 'unsafe-inline'; img-src 'self' data:; connect-src 'self' http://127.0.0.1:* https://*.ts.net:* https://api.nasdaq.com https://api.stlouisfed.org https://api.twelvedata.com https://cdn.cboe.com https://data.sec.gov https://finnhub.io https://home.treasury.gov https://production.dataviz.cnn.io https://query1.finance.yahoo.com https://query2.finance.yahoo.com https://stockanalysis.com https://www.alphavantage.co; font-src 'self' data:; object-src 'none'; base-uri 'none'; form-action 'none'; frame-src 'none'; worker-src 'none'; media-src 'none'; manifest-src 'self'">
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <title>Swing Structure &amp; Market-Regime Lab — 20/50/200 MA, volume profile, regime, patterns</title>
     <link rel="icon"
@@ -1344,7 +1345,7 @@
 
             /* ═══════════ fetch ═══════════ */
             function setStatus(s, cls) { var e = el('status'); if (e) { e.textContent = s; e.style.color = cls === 'bad' ? '#f0556b' : cls === 'ok' ? '#39d98a' : ''; } if (window.RLAPP) RLAPP.report('bars:swing', cls === 'bad' ? 'error' : cls === 'ok' ? 'ready' : /fetch|load/i.test(s) ? 'refreshing' : 'fresh', { label: state.ticker + ' daily bars' }); }
-            function proxied(t) { return [t, 'https://corsproxy.io/?url=' + encodeURIComponent(t), 'https://api.allorigins.win/raw?url=' + encodeURIComponent(t), 'https://api.codetabs.com/v1/proxy/?quest=' + encodeURIComponent(t)]; }
+            function proxied(t) { return [t]; }
             function fetchJSONproxy(target) {
                 var urls = proxied(target), i = 0;
                 function attempt() {

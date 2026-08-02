@@ -3,6 +3,7 @@
 
 <head>
     <meta charset="UTF-8" />
+    <meta http-equiv="Content-Security-Policy" content="default-src 'self'; script-src 'self' 'unsafe-inline'; style-src 'self' 'unsafe-inline'; img-src 'self' data:; connect-src 'self' http://127.0.0.1:* https://*.ts.net:* https://api.nasdaq.com https://api.stlouisfed.org https://api.twelvedata.com https://cdn.cboe.com https://data.sec.gov https://finnhub.io https://home.treasury.gov https://production.dataviz.cnn.io https://query1.finance.yahoo.com https://query2.finance.yahoo.com https://stockanalysis.com https://www.alphavantage.co; font-src 'self' data:; object-src 'none'; base-uri 'none'; form-action 'none'; frame-src 'none'; worker-src 'none'; media-src 'none'; manifest-src 'self'">
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <link rel="icon"
         href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'%3E%3Crect width='32' height='32' rx='7' fill='%230e141c'/%3E%3Ccircle cx='16' cy='16' r='9' fill='none' stroke='%232dd4bf' stroke-width='2'/%3E%3Ccircle cx='16' cy='16' r='3.4' fill='%23f5b942'/%3E%3Cpath d='M16 3v4M16 25v4M3 16h4M25 16h4' stroke='%232dd4bf' stroke-width='2' stroke-linecap='round'/%3E%3C/svg%3E" />
@@ -817,7 +818,7 @@
             <div class="body" id="toolReads"></div>
         </details>
 
-        <details class="drawer">
+        <details class="drawer" id="experimentalDrawer">
             <summary>⌄ Experimental / in-progress analysis (hidden by default)</summary>
             <div class="body" id="experimental"></div>
         </details>
@@ -849,9 +850,10 @@
                 thresholds: { attentionMaxCards: 7, macroCacheMaxAgeMin: 30, notableMemberMinMovePct: 3, notableMemberMaxCount: 4 },
                 macroEvents: []
             };
-            var CFG = null, PAYLOAD = null, WL = null, HIST = null, SNAP = null, TOOLS = null, SCORECARD = null, activeWindow = null;
+            var CFG = null, PAYLOAD = null, WL = null, HIST = null, SNAP = null, TOOLS = null, SCORECARD = null, EXPERIMENTAL = null, experimentalLoading = false, activeWindow = null;
 
             function el(id) { return document.getElementById(id); }
+            function esc(value) { return (value == null ? "" : String(value)).replace(/[&<>"']/g, function (character) { return { "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;", "'": "&#39;" }[character]; }); }
             function j(url) { return fetch(url, { cache: "no-store" }).then(function (r) { if (!r.ok) throw 0; return r.json(); }).catch(function () { return null; }); }
             function jl(url) { return fetch(url, { cache: "no-store" }).then(function (r) { if (!r.ok) throw 0; return r.text(); }).then(function (t) { return t.trim().split(/\n+/).filter(Boolean).map(function (x) { try { return JSON.parse(x); } catch (e) { return null; } }).filter(Boolean); }).catch(function () { return []; }); }
 
@@ -883,8 +885,31 @@
             }
             function renderExperimental() {
                 var host = el("experimental"); if (!host) return;
-                var xs = (PAYLOAD && PAYLOAD.experimental) || [];
-                host.innerHTML = xs.length ? xs.map(function (x) { return '<div class="acard"><b>' + (x.title || "") + '</b><div class="ay">' + (x.note || "") + '</div></div>'; }).join("") : '<div class="sub">Nothing experimental in the current payload.</div>';
+                if (!EXPERIMENTAL) { host.innerHTML = '<div class="sub">Open this section to load the experimental analysis.</div>'; return; }
+                if (EXPERIMENTAL.state === "unavailable") {
+                    host.innerHTML = '<div class="sub" data-experimental-state="unavailable">Experimental analysis unavailable — the core brief remains current. Retry after the next publication.</div>';
+                    return;
+                }
+                var xs = EXPERIMENTAL.items || [];
+                host.innerHTML = xs.length ? xs.map(function (x) { return '<div class="acard"><b>' + esc(x.title || "") + '</b><div class="ay">' + esc(x.note || "") + '</div></div>'; }).join("") : '<div class="sub">Nothing experimental in the current payload.</div>';
+            }
+            function loadExperimental() {
+                if (EXPERIMENTAL || experimentalLoading) return;
+                experimentalLoading = true;
+                var host = el("experimental"); if (host) host.innerHTML = '<div class="sub">Loading experimental analysis…</div>';
+                fetch("market-brief.experimental.json", { cache: "no-store" }).then(function (response) {
+                    if (!response.ok) throw new Error("experimental http " + response.status);
+                    return response.json();
+                }).then(function (value) {
+                    if (!value || value.contractVersion !== "market-brief-experimental/v1" || !Array.isArray(value.items)) throw new Error("experimental contract invalid");
+                    experimentalLoading = false;
+                    EXPERIMENTAL = value;
+                    renderExperimental();
+                }).catch(function () {
+                    experimentalLoading = false;
+                    EXPERIMENTAL = { state: "unavailable", items: [] };
+                    renderExperimental();
+                });
             }
             /* format an ISO timestamp to a short local string; falls back to the raw value if unparseable. */
             function fmtTs(iso) { if (!iso) return ""; var d = new Date(iso); return isNaN(d.getTime()) ? String(iso) : d.toLocaleString(undefined, { month: "short", day: "numeric", hour: "2-digit", minute: "2-digit" }); }
@@ -911,7 +936,7 @@
                     if (arr.length) mv = " · biggest 21d mover " + arr[0].k + " " + (arr[0].m > 0 ? "+" : "") + arr[0].m + "%";
                 } catch (e) { }
                 var tools = SNAP.toolReads || {}, globalRead = tools['global-rotation-lab'], realRead = tools['real-assets-lab'];
-                note.innerHTML = "Computed (Tier-A) as of " + (SNAP.generatedAt || SNAP.asOf || "—") + ": regime " + (reg.band || "—") + " · VIX " + (reg.vix != null ? reg.vix : "—") + (reg.fearGreed != null ? " · F&G " + reg.fearGreed : "") + mv + (globalRead ? " · " + globalRead.read : "") + (realRead ? " · " + realRead.read : "") + ". Press ↻ Refresh for shared-cache updates.";
+                note.textContent = "Computed (Tier-A) as of " + (SNAP.generatedAt || SNAP.asOf || "—") + ": regime " + (reg.band || "—") + " · VIX " + (reg.vix != null ? reg.vix : "—") + (reg.fearGreed != null ? " · F&G " + reg.fearGreed : "") + mv + (globalRead ? " · " + globalRead.read : "") + (realRead ? " · " + realRead.read : "") + ". Press ↻ Refresh for shared-cache updates.";
             }
 
             function localToolReads() { try { return (typeof RLDATA !== 'undefined' && RLDATA.toolRead) ? (RLDATA.toolRead() || {}) : {}; } catch (e) { return {}; } }
@@ -961,6 +986,7 @@
 
             function wire() {
                 var rb = el("refreshBtn"); if (rb) rb.addEventListener("click", refreshLive);
+                var drawer = el("experimentalDrawer"); if (drawer) drawer.addEventListener("toggle", function () { if (drawer.open) loadExperimental(); });
             }
 
             function boot() {
@@ -968,7 +994,7 @@
                 // brief-history.recent.jsonl is the BOUNDED window (last 30 runs, compact projection).
                 // The full per-run history lives in briefs/tier-a/<YYYY-MM>.jsonl and is loaded on demand;
                 // fetching all of it here cost 2.3 MB on every page load and grew without limit.
-                Promise.all([j("market-brief.config.json"), j("market-brief.payload.json"), j("watchlist.json"), jl("brief-history.recent.jsonl"), j("market-brief.snapshot.json"), j("tools.json"), j("market-brief.scorecard.json")]).then(function (r) {
+                Promise.all([j("market-brief.config.page.json"), j("market-brief.page.json"), j("watchlist.json"), jl("brief-history.recent.jsonl"), j("market-brief.snapshot.page.json"), j("market-brief.tools.page.json"), j("market-brief.scorecard.json")]).then(function (r) {
                     CFG = r[0] || INLINE_CFG; PAYLOAD = r[1]; WL = r[2] || { items: [] }; HIST = r[3] || []; SNAP = r[4]; TOOLS = r[5] || { tools: [] }; SCORECARD = r[6];
                     renderWindows(); wire(); renderAll(); setTimeout(refreshLive, 0);
                 });

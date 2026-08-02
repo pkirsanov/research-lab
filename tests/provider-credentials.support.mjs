@@ -16,17 +16,41 @@ const MIME = {
   '.jsonl': 'application/x-ndjson; charset=utf-8'
 };
 
+export const LEGACY_LOCAL_NAMES = Object.freeze([
+  'rlApiKeys',
+  'tdKey',
+  'etfMomTdKey',
+  'msftFhKey',
+  'etfMomFhKey',
+  'etfMomLab',
+  'sectorLab',
+  'rlStratVal',
+  'strategyValidationLab',
+  'aiCapexApi'
+]);
+export const LEGACY_SESSION_NAMES = Object.freeze(['rlSessionProviderCredentialsV1']);
+
 export function createStorage(options = {}) {
   const values = new Map(Object.entries(options.initial || {}));
+  const operations = [];
   const failRemove = new Set(options.failRemove || []);
   const failSet = new Set(options.failSet || []);
   return {
-    clear() { values.clear(); },
-    getItem(key) { return values.has(String(key)) ? values.get(String(key)) : null; },
-    key(index) { return Array.from(values.keys())[index] ?? null; },
+    clear() { operations.push({ operation: 'clear' }); values.clear(); },
+    getItem(key) {
+      key = String(key);
+      operations.push({ operation: 'getItem', key });
+      return values.has(key) ? values.get(key) : null;
+    },
+    key(index) {
+      const key = Array.from(values.keys())[index] ?? null;
+      operations.push({ operation: 'key', index, key });
+      return key;
+    },
     get length() { return values.size; },
     removeItem(key) {
       key = String(key);
+      operations.push({ operation: 'removeItem', key });
       if (failRemove.has(key)) throw new Error('storage remove failed');
       values.delete(key);
     },
@@ -34,9 +58,11 @@ export function createStorage(options = {}) {
     failSet(key) { failSet.add(String(key)); },
     setItem(key, value) {
       key = String(key);
+      operations.push({ operation: 'setItem', key });
       if (failSet.has(key)) throw new Error('storage write failed');
       values.set(key, String(value));
     },
+    operations() { return operations.map((entry) => ({ ...entry })); },
     snapshot() { return Object.fromEntries(values); }
   };
 }
@@ -133,9 +159,15 @@ export async function startStaticServer(options) {
   // observed. This is what lets a "dependency pending" regression stay provable after the real
   // dependency ships, instead of silently becoming unprovable.
   const overrides = new Map(Object.entries((options && options.overrides) || {}));
+  const missing = new Set((options && options.missing) || []);
   const server = createServer((request, response) => {
     const requestPath = decodeURIComponent((request.url || '/').split('?')[0]);
     const relative = normalize(requestPath === '/' ? 'index.html' : requestPath.replace(/^\/+/, ''));
+    if (missing.has(relative)) {
+      response.writeHead(404, { 'content-type': 'text/plain; charset=utf-8', 'referrer-policy': 'no-referrer' });
+      response.end('not found');
+      return;
+    }
     if (overrides.has(relative)) {
       response.writeHead(200, {
         'cache-control': 'no-store',

@@ -63,12 +63,27 @@
     return names;
   }, []));
   var PROVIDER_CFG_KEY = "rlProviderConfig";
+  var LEGACY_CREDENTIAL_CONTAINERS = Object.freeze([
+    Object.freeze({ storageClass: "localStorage", containerName: "rlApiKeys", providerId: "shared", locationClass: "legacy-central-config", destructiveEffect: "whole-container" }),
+    Object.freeze({ storageClass: "localStorage", containerName: "tdKey", providerId: "twelvedata", locationClass: "legacy-scalar-key", destructiveEffect: "whole-container" }),
+    Object.freeze({ storageClass: "localStorage", containerName: "etfMomTdKey", providerId: "twelvedata", locationClass: "legacy-scalar-key", destructiveEffect: "whole-container" }),
+    Object.freeze({ storageClass: "localStorage", containerName: "msftFhKey", providerId: "finnhub", locationClass: "legacy-scalar-key", destructiveEffect: "whole-container" }),
+    Object.freeze({ storageClass: "localStorage", containerName: "etfMomFhKey", providerId: "finnhub", locationClass: "legacy-scalar-key", destructiveEffect: "whole-container" }),
+    Object.freeze({ storageClass: "localStorage", containerName: "etfMomLab", providerId: "shared", locationClass: "legacy-tool-state", destructiveEffect: "whole-container-with-preferences" }),
+    Object.freeze({ storageClass: "localStorage", containerName: "sectorLab", providerId: "twelvedata", locationClass: "legacy-tool-state", destructiveEffect: "whole-container-with-preferences" }),
+    Object.freeze({ storageClass: "localStorage", containerName: "rlStratVal", providerId: "twelvedata", locationClass: "legacy-tool-state", destructiveEffect: "whole-container-with-preferences" }),
+    Object.freeze({ storageClass: "localStorage", containerName: "strategyValidationLab", providerId: "twelvedata", locationClass: "legacy-tool-state", destructiveEffect: "whole-container-with-preferences" }),
+    Object.freeze({ storageClass: "localStorage", containerName: "aiCapexApi", providerId: "alphavantage", locationClass: "legacy-tool-state", destructiveEffect: "whole-container-with-preferences" }),
+    Object.freeze({ storageClass: "sessionStorage", containerName: "rlSessionProviderCredentialsV1", providerId: "shared", locationClass: "legacy-session-config", destructiveEffect: "whole-container" })
+  ]);
   var _proxyReachable = null;   /* null=unprobed, true/false after probe */
   var _proxyCheckedAt = 0;
   var _forceLocal = false;
   function frozenResult(value) { return Object.freeze(value); }
   var _mem = null;   /* in-memory source of truth — keeps the session working even when localStorage is full (QuotaExceededError) */
   var _activity = { resources: {}, updatedAt: null };
+  var _persistenceBatchDepth = 0;
+  var _persistencePending = false;
 
   function load() {
     if (_mem) return _mem;
@@ -88,8 +103,7 @@
     } catch (e) { }
   }
   function oldestAt(intervalMap) { var m = Infinity, k; for (k in intervalMap) { if (intervalMap[k] && intervalMap[k].at < m) m = intervalMap[k].at; } return isFinite(m) ? m : 0; }
-  function save(d) {
-    _mem = d;   /* always retain the complete session dataset, even when persistence must be compacted */
+  function persist(d) {
     if (!HAS_LS) return;
     try { localStorage.setItem(KEY, JSON.stringify(d)); }
     catch (e) {
@@ -101,6 +115,32 @@
         localStorage.setItem(KEY, JSON.stringify(persisted));
       } catch (e2) { /* quota exceeded — the complete in-memory copy still serves this session */ }
     }
+  }
+  function save(d) {
+    _mem = d;   /* always retain the complete session dataset, even when persistence must be compacted */
+    if (_persistenceBatchDepth > 0) { _persistencePending = true; return; }
+    persist(d);
+  }
+  function finishPersistenceBatch() {
+    _persistenceBatchDepth--;
+    if (_persistenceBatchDepth === 0 && _persistencePending) {
+      _persistencePending = false;
+      persist(_mem);
+    }
+  }
+  function withPersistenceBatch(work) {
+    if (typeof work !== "function") return Promise.reject(new Error("RLDATA_PERSISTENCE_BATCH_WORK_REQUIRED"));
+    _persistenceBatchDepth++;
+    var result;
+    try { result = work(); }
+    catch (error) { finishPersistenceBatch(); return Promise.reject(error); }
+    return Promise.resolve(result).then(function (value) {
+      finishPersistenceBatch();
+      return value;
+    }, function (error) {
+      finishPersistenceBatch();
+      throw error;
+    });
   }
 
   function providerSpec(provider) {
@@ -150,6 +190,82 @@
     saveProviderConfig({ proxyBaseUrl: "", keys: {} });
     _proxyReachable = null; _proxyCheckedAt = 0;
     return frozenResult({ ok: true, runtimeState: "unconfigured" });
+  }
+  function legacyStorage(storageClass) {
+    try {
+      if (storageClass === "localStorage" && typeof localStorage !== "undefined" && localStorage) return localStorage;
+      if (storageClass === "sessionStorage" && typeof sessionStorage !== "undefined" && sessionStorage) return sessionStorage;
+    } catch (e) { }
+    return null;
+  }
+  function enumerateStorageNames(storage) {
+    var names = Object.create(null), index, name;
+    for (index = 0; index < storage.length; index++) {
+      name = storage.key(index);
+      if (typeof name === "string") names[name] = true;
+    }
+    return names;
+  }
+  function scanLegacyCredentialContainers() {
+    var namesByStorage = Object.create(null), unavailable = [], present = [], storageClass, storage;
+    ["localStorage", "sessionStorage"].forEach(function (candidate) {
+      storage = legacyStorage(candidate);
+      if (!storage) { unavailable.push(candidate); return; }
+      try { namesByStorage[candidate] = enumerateStorageNames(storage); }
+      catch (e) { unavailable.push(candidate); }
+    });
+    LEGACY_CREDENTIAL_CONTAINERS.forEach(function (policy) {
+      storageClass = policy.storageClass;
+      if (namesByStorage[storageClass] && Object.prototype.hasOwnProperty.call(namesByStorage[storageClass], policy.containerName)) present.push(policy);
+    });
+    return { present: present, unavailable: unavailable };
+  }
+  function uniqueLegacyMetadata(policies, field) {
+    var seen = Object.create(null), values = [];
+    policies.forEach(function (policy) {
+      var value = policy[field];
+      if (!seen[value]) { seen[value] = true; values.push(value); }
+    });
+    return Object.freeze(values.sort());
+  }
+  function legacyPresenceResult(policies, unavailable) {
+    unavailable = unavailable || [];
+    return frozenResult({
+      status: unavailable.length ? "unavailable" : (policies.length ? "detected" : "clear"),
+      detected: policies.length > 0,
+      providerIds: uniqueLegacyMetadata(policies, "providerId"),
+      locationClasses: uniqueLegacyMetadata(policies, "locationClass"),
+      containerCount: policies.length,
+      unavailableStorageClasses: Object.freeze(unavailable.slice().sort())
+    });
+  }
+  function detectLegacyCredentialContainers() {
+    var scan = scanLegacyCredentialContainers();
+    return legacyPresenceResult(scan.present, scan.unavailable);
+  }
+  function eraseLegacyCredentialContainers() {
+    var before = scanLegacyCredentialContainers(), selected = before.present.slice(), selectedIds = Object.create(null);
+    selected.forEach(function (policy) {
+      var storage = legacyStorage(policy.storageClass);
+      selectedIds[policy.storageClass + "\u0000" + policy.containerName] = true;
+      if (!storage) return;
+      try { storage.removeItem(policy.containerName); } catch (e) { }
+    });
+    var after = scanLegacyCredentialContainers();
+    var remaining = after.present.filter(function (policy) { return !!selectedIds[policy.storageClass + "\u0000" + policy.containerName]; });
+    var unverified = selected.filter(function (policy) { return after.unavailable.indexOf(policy.storageClass) !== -1; });
+    var unavailable = before.unavailable.concat(after.unavailable).filter(function (value, index, values) { return values.indexOf(value) === index; });
+    var status = unavailable.length ? "unavailable" : (remaining.length ? "incomplete" : "complete");
+    var code = status === "unavailable" ? "LEGACY_ERASE_UNAVAILABLE" : (status === "incomplete" ? "LEGACY_ERASE_INCOMPLETE" : null);
+    return frozenResult({
+      ok: status === "complete",
+      status: status,
+      removedContainerCount: selected.length - remaining.length - unverified.length,
+      remainingProviderIds: uniqueLegacyMetadata(remaining, "providerId"),
+      remainingLocationClasses: uniqueLegacyMetadata(remaining, "locationClass"),
+      remainingContainerCount: remaining.length,
+      code: code
+    });
   }
   /* one-shot proxy /health probe, session-cached ~60s. Off-tailnet the MagicDNS
      name does not resolve -> fetch rejects fast -> local tier. */
@@ -471,17 +587,15 @@
 
   /* ── fetch/ensure (browser only; Node callers use scripts/brief-refresh.mjs) ── */
   function proxied(url) {
-    /* Prefer the Tier-1 evo-x2 proxy for Yahoo (keyless passthrough) when reachable;
-       otherwise the same free-proxy chain the other labs use. */
+     /* Prefer the Tier-1 tailnet proxy for Yahoo (keyless passthrough) when reachable,
+       then try the fixed provider origin directly. Open URL-forwarding relays are deliberately
+       excluded: allowing them in connect-src would turn CSP into a credential-exfiltration path. */
     var chain = [];
     if (proxyActive()) {
       var m = /^https?:\/\/query[12]\.finance\.yahoo\.com\/(.*)$/i.exec(url);
       if (m) chain.push(proxyBaseUrl() + "/yahoo/" + m[1]);
     }
-    chain.push(url,
-      "https://corsproxy.io/?url=" + encodeURIComponent(url),
-      "https://api.allorigins.win/raw?url=" + encodeURIComponent(url),
-      "https://api.codetabs.com/v1/proxy/?quest=" + encodeURIComponent(url));
+    chain.push(url);
     return chain;
   }
   /* fetch with an abort timeout so a hung request can never stall a caller (default 9s). */
@@ -624,8 +738,10 @@
     events: getEvents, putEvents: putEvents, toolRead: getToolRead, putToolRead: putToolRead,
     validateToolModelRead: validateToolModelRead,
     freshness: freshness, barInfo: barInfo, dataState: dataState, reportData: reportData,
+    withPersistenceBatch: withPersistenceBatch,
     providerPolicies: providerPolicies, providerAccess: providerAccess, providerStatus: providerStatus,
     setProxyBaseUrl: setProxyBaseUrl, setKey: setKey, clearKey: clearKey, clearAllProviderConfig: clearAllProviderConfig,
+    detectLegacyCredentialContainers: detectLegacyCredentialContainers, eraseLegacyCredentialContainers: eraseLegacyCredentialContainers,
     recheckProxy: recheckProxy, setForceLocal: setForceLocal, providerFetch: providerFetch,
     // fetch/ensure
     ensureBars: ensureBars, ensureMacro: ensureMacro,

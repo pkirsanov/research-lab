@@ -391,7 +391,13 @@ const TOOLS = {
     moduleFile: 'rlexperience-adapters/fundamental-models.js',
     owner: () => companyOwnerFixture(),
     changes: () => [['growth-assumption', 25], ['margin-change', 5]],
-    adapterId: 'simple-adapter/company-scenario-bridge/v1'
+    adapterId: 'simple-adapter/company-scenario-bridge/v1',
+    // The page registers companyScenarioOwnerState before the shared shell boots, then upgrades its
+    // honest unavailable first paint after the accepted same-origin publication resolves. Under
+    // parallel load that publication can settle after the first bridge mutation, so wait for the
+    // production-wired ready state rather than misclassifying the first asynchronous paint as the
+    // final shell contract.
+    wiredInProduction: true
   }
 };
 
@@ -444,9 +450,14 @@ async function driveSimple(page, toolId) {
         .observe(node, { attributes: true, attributeFilter: ['data-rlexperience-simple-state'] });
     });
     await page.getByRole('tab', { name: 'Simple', exact: true }).click();
-    // MutationObserver reports every setAttribute, including a same-value write, so this settles on
-    // the unwired 'unavailable' → 'unavailable' render too.
-    await page.waitForFunction(() => globalThis.__rlSimpleBridgeRendered === true, null, { timeout: 20000 });
+    if (descriptor.wiredInProduction) {
+      await page.waitForFunction(() => document.querySelector('[data-rlexperience-panel="simple"]')
+        ?.getAttribute('data-rlexperience-simple-state') === 'ready', null, { timeout: 20000 });
+    } else {
+      // MutationObserver reports every setAttribute, including a same-value write, so this settles
+      // on the unwired 'unavailable' → 'unavailable' render too.
+      await page.waitForFunction(() => globalThis.__rlSimpleBridgeRendered === true, null, { timeout: 20000 });
+    }
     placeholderState = await page.locator('[data-rlexperience-panel="simple"]').getAttribute('data-rlexperience-simple-state');
   }
 

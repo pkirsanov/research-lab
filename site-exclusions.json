@@ -1,0 +1,46 @@
+{
+  "contractVersion": "pages-site-exclusions/v1",
+  "note": "These are retained implementation or research artifacts that are not part of the public product. scripts/build-pages-site.mjs refuses any unregistered root HTML not listed here and refuses a listed file once it becomes a registered tool. This is the deploy-time form of D2/D3: source may remain available for an in-progress feature, but Pages ships only reachable product surfaces and their production dependencies.",
+  "files": [
+    {
+      "path": "trend-dynamics-cycle-lab.html",
+      "reason": "Feature 006 publication remains disabled: production diagnostics explicitly carry ownerReadPublished=false and scopes 4-5 are not complete."
+    },
+    {
+      "path": "trend-dynamics-cycle-universe.json",
+      "reason": "Configuration is consumed only by the excluded in-progress Trend Dynamics page."
+    },
+    {
+      "path": "portfolio-survival-allocation-lab.html",
+      "reason": "Feature 008 is in progress and its own Scope 16 declares registration as the atomic release boundary."
+    },
+    {
+      "path": "portfolio-survival-allocation.config.json",
+      "reason": "Configuration is consumed only by the excluded in-progress Portfolio page."
+    },
+    {
+      "path": "rlportfolio.js",
+      "reason": "Private portfolio foundation is consumed only by the excluded in-progress Portfolio page; tests are not production consumers."
+    },
+    {
+      "path": "rlfx.js",
+      "reason": "No registered production page consumes this shared module; tests are not production consumers."
+    },
+    {
+      "path": "fx-regime-universe.json",
+      "reason": "No registered production page consumes this FX universe."
+    },
+    {
+      "path": "rlcausal.js",
+      "reason": "No registered production page consumes this shared module; tests are not production consumers."
+    },
+    {
+      "path": "causal-rotation-ledger.jsonl",
+      "reason": "No registered production page consumes this causal research ledger."
+    },
+    {
+      "path": "causal-rotation-observations.json",
+      "reason": "No registered production page consumes these causal observations."
+    }
+  ]
+}

@@ -16,7 +16,7 @@ import { startStaticServer } from './provider-credentials.support.mjs';
  * intercept / msw / nock: the page fetches a real file over HTTP and the shipped renderer decides.
  */
 
-const REAL_PAYLOAD = JSON.parse(readFileSync(new URL('../market-brief.payload.json', import.meta.url), 'utf8'));
+const REAL_PAYLOAD = JSON.parse(readFileSync(new URL('../market-brief.page.json', import.meta.url), 'utf8'));
 const POLICY = JSON.parse(readFileSync(new URL('../market-brief.config.json', import.meta.url), 'utf8'))['freshness-policy/v1'];
 
 /** The committed payload, restamped — same content, different generation time. */
@@ -32,7 +32,7 @@ async function openBrief(page, server) {
 test('a narrative refreshed within the window shows no banner at all', async ({ page }) => {
   test.setTimeout(90_000);
   const server = await startStaticServer({
-    overrides: { 'market-brief.payload.json': payloadAgedHours(2) }
+    overrides: { 'market-brief.page.json': payloadAgedHours(2) }
   });
   try {
     await openBrief(page, server);
@@ -49,7 +49,7 @@ test('a normal overnight gap does NOT raise the banner', async ({ page }) => {
   // The largest legitimate weekday gap is 17:00 ET to 07:30 ET (~14.5h). If the banner fired inside
   // that, it would cry wolf every single morning and be ignored on the morning it mattered.
   const server = await startStaticServer({
-    overrides: { 'market-brief.payload.json': payloadAgedHours(POLICY.warnAfterHours - 3.5) }
+    overrides: { 'market-brief.page.json': payloadAgedHours(POLICY.warnAfterHours - 3.5) }
   });
   try {
     await openBrief(page, server);
@@ -62,7 +62,7 @@ test('a normal overnight gap does NOT raise the banner', async ({ page }) => {
 test('a narrative past the warn threshold says so, in plain words, above the brief', async ({ page }) => {
   test.setTimeout(90_000);
   const server = await startStaticServer({
-    overrides: { 'market-brief.payload.json': payloadAgedHours(POLICY.warnAfterHours + 2) }
+    overrides: { 'market-brief.page.json': payloadAgedHours(POLICY.warnAfterHours + 2) }
   });
   try {
     await openBrief(page, server);
@@ -86,7 +86,7 @@ test('a narrative past the warn threshold says so, in plain words, above the bri
 test('a long-stale narrative is called stale, not merely aging', async ({ page }) => {
   test.setTimeout(90_000);
   const server = await startStaticServer({
-    overrides: { 'market-brief.payload.json': payloadAgedHours(POLICY.staleAfterHours + 6) }
+    overrides: { 'market-brief.page.json': payloadAgedHours(POLICY.staleAfterHours + 6) }
   });
   try {
     await openBrief(page, server);
@@ -104,7 +104,7 @@ test('a missing narrative renders the honest not-refreshed state, never a fresh 
   // Tier-B did not publish at all this window. The computed layer below is still current, and the
   // page must say exactly that rather than silently showing whatever it last had.
   const server = await startStaticServer({
-    overrides: { 'market-brief.payload.json': '{}' }
+    overrides: { 'market-brief.page.json': '{}' }
   });
   try {
     await openBrief(page, server);

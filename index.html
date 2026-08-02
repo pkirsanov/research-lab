@@ -3,6 +3,7 @@
 
 <head>
   <meta charset="UTF-8" />
+  <meta http-equiv="Content-Security-Policy" content="default-src 'self'; script-src 'self' 'unsafe-inline'; style-src 'self' 'unsafe-inline'; img-src 'self' data:; connect-src 'self' http://127.0.0.1:* https://*.ts.net:* https://api.nasdaq.com https://api.stlouisfed.org https://api.twelvedata.com https://cdn.cboe.com https://data.sec.gov https://finnhub.io https://home.treasury.gov https://production.dataviz.cnn.io https://query1.finance.yahoo.com https://query2.finance.yahoo.com https://stockanalysis.com https://www.alphavantage.co; font-src 'self' data:; object-src 'none'; base-uri 'none'; form-action 'none'; frame-src 'none'; worker-src 'none'; media-src 'none'; manifest-src 'self'">
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <meta name="referrer" content="no-referrer" />
   <title>Research Lab — Quant &amp; AI-Buildout Tools</title>
@@ -537,6 +538,7 @@
     var TOOLS = [
       {
         id: 'market-brief',
+        group: 'Market Structure',
         title: 'Market Action Center',
         icon: '🛰️',
         accent: '#2dd4bf',
@@ -549,6 +551,7 @@
       },
       {
         id: 'market-heatmap-lab',
+        group: 'Market Structure',
         title: 'Market Heatmap Lab',
         icon: '🗺️',
         accent: '#f5b942',
@@ -561,6 +564,7 @@
       },
       {
         id: 'options-flow-feed-lab',
+        group: 'Options & Flow',
         title: 'Unusual Options Activity Lab',
         icon: '🐋',
         accent: '#f3766f',
@@ -573,6 +577,7 @@
       },
       {
         id: 'intraday-tape-lab',
+        group: 'Market Structure',
         title: 'Intraday Tape & Volume-Profile Lab',
         icon: '🎯',
         accent: '#5aa9f0',
@@ -585,6 +590,7 @@
       },
       {
         id: 'swing-structure-lab',
+        group: 'Market Structure',
         title: 'Swing Structure & Market-Regime Lab',
         icon: '🌊',
         accent: '#2dd4bf',
@@ -597,6 +603,7 @@
       },
       {
         id: 'options-structure-lab',
+        group: 'Options & Flow',
         title: 'Options Structure & Momentum Research Lab',
         icon: '🧱',
         accent: '#f5b942',
@@ -609,6 +616,7 @@
       },
       {
         id: 'gamma-trading-lab',
+        group: 'Options & Flow',
         title: 'Gamma Trading & Dealer-Flow Playbook Lab',
         icon: '🧨',
         accent: '#f0556b',
@@ -621,6 +629,7 @@
       },
       {
         id: 'sector-research-lab',
+        group: 'Rotation & Macro',
         title: 'Sector Rotation & Momentum Research Lab',
         icon: '🧭',
         accent: '#2dd4bf',
@@ -633,6 +642,7 @@
       },
       {
         id: 'global-rotation-lab',
+        group: 'Rotation & Macro',
         title: 'Global Rotation Lab',
         icon: '🌐',
         accent: '#4fd1b5',
@@ -645,6 +655,7 @@
       },
       {
         id: 'real-assets-lab',
+        group: 'Rotation & Macro',
         title: 'Real Assets Lab',
         icon: '🪙',
         accent: '#e8b84b',
@@ -657,6 +668,7 @@
       },
       {
         id: 'bond-regime-lab',
+        group: 'Rotation & Macro',
         title: 'Bond Regime & Fixed-Income Scenario Lab',
         icon: '📉',
         accent: '#55d6a6',
@@ -670,6 +682,7 @@
       },
       {
         id: 'ai-capex-strategy-lab',
+        group: 'Fundamentals',
         title: 'AI Capex Strategy Lab',
         icon: '⚡',
         accent: '#2dd4bf',
@@ -682,6 +695,7 @@
       },
       {
         id: 'msft-july-print-model',
+        group: 'Fundamentals',
         title: 'MSFT July-Print Margin & EPS Model',
         icon: '📊',
         accent: '#5aa9f0',
@@ -694,6 +708,7 @@
       },
       {
         id: 'company-fundamentals-lab',
+        group: 'Fundamentals',
         title: 'Company Fundamentals & Adaptive Brief Lab',
         icon: '🏢',
         accent: '#f0b35a',
@@ -706,6 +721,7 @@
       },
       {
         id: 'etf-momentum-lab',
+        group: 'Rotation & Macro',
         title: 'ETF Momentum Research Lab',
         icon: '📈',
         accent: '#39d98a',
@@ -718,6 +734,7 @@
       },
       {
         id: 'strategy-self-improvement-lab',
+        group: 'Strategy & Validation',
         title: 'Strategy Self-Improvement & Walk-Forward Lab',
         icon: '🔬',
         accent: '#a98bf0',
@@ -730,6 +747,7 @@
       },
       {
         id: 'strategy-validation-lab',
+        group: 'Strategy & Validation',
         title: 'Strategy Validation & Real-Data Walk-Forward Lab',
         icon: '🧪',
         accent: '#3ec7b3',
@@ -742,6 +760,7 @@
       },
       {
         id: 'smart-money-flow-lab',
+        group: 'Options & Flow',
         title: 'Smart-Money & Congressional-Flow Lab',
         icon: '🏛️',
         accent: '#d4a72c',
@@ -754,6 +773,7 @@
       },
       {
         id: 'waterfront-polo-lab',
+        group: 'Place-based',
         title: 'Florida Waterfront × Masters Water-Polo Screener',
         icon: '🤽',
         accent: '#5aa9f0',
@@ -766,6 +786,7 @@
       },
       {
         id: 'volatility-sizing-lab',
+        group: 'Strategy & Validation',
         title: 'Volatility Regime & Vol-Targeting Sizing Lab',
         icon: '🌪️',
         accent: '#2dd4bf',
@@ -778,6 +799,7 @@
       },
       {
         id: 'palm-springs-rental-market-lab',
+        group: 'Place-based',
         title: 'Palm Springs Rental Market Lab',
         icon: '🌴',
         accent: '#e0a458',
@@ -790,6 +812,7 @@
       },
       {
         id: 'ocean-shores-rental-market-lab',
+        group: 'Place-based',
         title: 'Ocean Shores Rental Market Lab',
         icon: '🏖️',
         accent: '#4aa3c7',
@@ -802,6 +825,7 @@
       },
       {
         id: 'technical-analysis-decision-lab',
+        group: 'Market Structure',
         title: 'Technical Analysis Decision Lab',
         icon: '📐',
         accent: '#8ab4f8',
@@ -819,23 +843,9 @@
       } */
     ];
 
-    /* Discovery grouping. tools.json `.group` is the SOURCE OF TRUTH; the selftest fails this page
-       if the two ever disagree, so this list cannot silently drift from the registry. Order here is
-       the order the sections render in — deliberately market-first, place-based last. */
-    var GROUPS = [
-      ['Market Structure', ['market-brief', 'market-heatmap-lab', 'intraday-tape-lab', 'swing-structure-lab', 'technical-analysis-decision-lab']],
-      ['Options & Flow', ['options-flow-feed-lab', 'options-structure-lab', 'gamma-trading-lab', 'smart-money-flow-lab']],
-      ['Rotation & Macro', ['sector-research-lab', 'global-rotation-lab', 'real-assets-lab', 'bond-regime-lab', 'etf-momentum-lab']],
-      ['Strategy & Validation', ['strategy-self-improvement-lab', 'strategy-validation-lab', 'volatility-sizing-lab']],
-      ['Fundamentals', ['ai-capex-strategy-lab', 'msft-july-print-model', 'company-fundamentals-lab']],
-      ['Place-based', ['waterfront-polo-lab', 'palm-springs-rental-market-lab', 'ocean-shores-rental-market-lab']]
-    ];
-
     (function () {
       var grid = document.getElementById('grid');
       var live = TOOLS.filter(function (t) { return t.status === 'live'; });
-      var byId = {};
-      TOOLS.forEach(function (t) { byId[t.id] = t; });
 
       function cardFor(t) {
         var soon = t.status !== 'live';
@@ -866,15 +876,17 @@
       }
 
       var placed = {};
-      GROUPS.forEach(function (pair) {
-        var members = pair[1].map(function (id) { return byId[id]; }).filter(Boolean).sort(byUpdatedDesc);
+      var groups = [];
+      TOOLS.forEach(function (tool) { if (groups.indexOf(tool.group) === -1) groups.push(tool.group); });
+      groups.forEach(function (group) {
+        var members = TOOLS.filter(function (tool) { return tool.group === group; }).sort(byUpdatedDesc);
         if (!members.length) return;
         var section = document.createElement('section');
         section.className = 'toolgroup';
-        section.setAttribute('data-tool-group', pair[0]);
+        section.setAttribute('data-tool-group', group);
         var heading = document.createElement('h3');
-        heading.textContent = pair[0];
-        heading.title = pair[0] + ' — ' + members.length + (members.length === 1 ? ' tool' : ' tools') + ' in this group.';
+        heading.textContent = group;
+        heading.title = group + ' — ' + members.length + (members.length === 1 ? ' tool' : ' tools') + ' in this group.';
         section.appendChild(heading);
         var inner = document.createElement('div');
         inner.className = 'grid';

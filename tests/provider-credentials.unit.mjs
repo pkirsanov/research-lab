@@ -2,6 +2,7 @@
 import assert from 'node:assert/strict';
 import { readFileSync } from 'node:fs';
 import test from 'node:test';
+import { LEGACY_LOCAL_NAMES, LEGACY_SESSION_NAMES } from './provider-credentials.support.mjs';
 
 const source = readFileSync(new URL('../rldata.js', import.meta.url), 'utf8');
 
@@ -18,9 +19,9 @@ function createStorage() {
   };
 }
 
-function loadRldata({ pathname = '/index.html' } = {}) {
-  const localStorage = createStorage();
-  const sessionStorage = createStorage();
+function loadRldata({ pathname = '/index.html', localStorage: suppliedLocalStorage = null, sessionStorage: suppliedSessionStorage = null } = {}) {
+  const localStorage = suppliedLocalStorage || createStorage();
+  const sessionStorage = suppliedSessionStorage || createStorage();
   const requests = [];
   const fetchStub = (...args) => {
     requests.push(args);
@@ -105,4 +106,64 @@ test('SCN-BUG002-004 fail-closed transport and prototype-safe unknown providers'
   assert.deepEqual(Object.getOwnPropertyNames(Function.prototype).sort(), functionPrototypeBefore);
   assert.deepEqual(localStorage.snapshot(), configBefore, 'unknown providers must not mutate provider configuration');
   assert.deepEqual(requests, [], 'missing, unknown, and prototype-shaped providers must fail before transport access');
+});
+
+test('SCN-BUG001-004 legacy registry excludes BUG-002 provider configuration', () => {
+  const { api, localStorage, sessionStorage } = loadRldata();
+  const currentProviderConfig = '{"v":1,"proxyBaseUrl":"https://proxy.current.invalid","keys":{"finnhub":"current-key"}}';
+  const currentDataCache = '{"v":1,"bars":{"SPY":{"1d":{"at":1,"rows":[]}}}}';
+
+  localStorage.setItem('rlProviderConfig', currentProviderConfig);
+  localStorage.setItem('rlData', currentDataCache);
+  localStorage.setItem('unknownCredentialContainer', 'unknown-local-value');
+  sessionStorage.setItem('unknownSessionCredentialContainer', 'unknown-session-value');
+  LEGACY_LOCAL_NAMES.forEach((name) => localStorage.setItem(name, `legacy-local-${name}`));
+  LEGACY_SESSION_NAMES.forEach((name) => sessionStorage.setItem(name, `legacy-session-${name}`));
+
+  assert.equal(typeof api.detectLegacyCredentialContainers, 'function');
+  assert.equal(typeof api.eraseLegacyCredentialContainers, 'function');
+  assert.deepEqual(api.detectLegacyCredentialContainers(), {
+    status: 'detected',
+    detected: true,
+    providerIds: ['alphavantage', 'finnhub', 'shared', 'twelvedata'],
+    locationClasses: ['legacy-central-config', 'legacy-scalar-key', 'legacy-session-config', 'legacy-tool-state'],
+    containerCount: LEGACY_LOCAL_NAMES.length + LEGACY_SESSION_NAMES.length,
+    unavailableStorageClasses: []
+  });
+
+  const result = api.eraseLegacyCredentialContainers();
+  assert.deepEqual(result, {
+    ok: true,
+    status: 'complete',
+    removedContainerCount: LEGACY_LOCAL_NAMES.length + LEGACY_SESSION_NAMES.length,
+    remainingProviderIds: [],
+    remainingLocationClasses: [],
+    remainingContainerCount: 0,
+    code: null
+  });
+  LEGACY_LOCAL_NAMES.forEach((name) => assert.equal(localStorage.getItem(name), null, `${name} must be erased by exact name`));
+  LEGACY_SESSION_NAMES.forEach((name) => assert.equal(sessionStorage.getItem(name), null, `${name} must be erased by exact name`));
+  assert.equal(localStorage.getItem('rlProviderConfig'), currentProviderConfig, 'BUG-002 provider configuration must remain byte-for-byte unchanged');
+  assert.equal(localStorage.getItem('rlData'), currentDataCache, 'non-secret rlData must remain byte-for-byte unchanged');
+  assert.equal(localStorage.getItem('unknownCredentialContainer'), 'unknown-local-value', 'unknown local containers must not be selected');
+  assert.equal(sessionStorage.getItem('unknownSessionCredentialContainer'), 'unknown-session-value', 'unknown session containers must not be selected');
+});
+
+test('SCN-BUG001-004 inaccessible legacy storage never becomes a false clear result', () => {
+  const inaccessible = {
+    get length() { throw new Error('SecurityError: storage unavailable'); },
+    key() { throw new Error('SecurityError: storage unavailable'); },
+    getItem() { throw new Error('SecurityError: storage unavailable'); },
+    setItem() { throw new Error('SecurityError: storage unavailable'); },
+    removeItem() { throw new Error('SecurityError: storage unavailable'); }
+  };
+  const { api } = loadRldata({ localStorage: inaccessible, sessionStorage: inaccessible });
+  assert.deepEqual(api.detectLegacyCredentialContainers(), {
+    status: 'unavailable',
+    detected: false,
+    providerIds: [],
+    locationClasses: [],
+    containerCount: 0,
+    unavailableStorageClasses: ['localStorage', 'sessionStorage']
+  });
 });

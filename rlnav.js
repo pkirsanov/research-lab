@@ -43,51 +43,39 @@
   /* ── tool registry — order mirrors index.html's TOOLS array ── */
   var HOME = { label: "All tools", full: "Research Lab — home", icon: "🏠", file: "index.html" };
   var TOOLS = [
-    { label: "Market Action Center", full: "Market Action Center", icon: "🛰️", file: "market-brief.html" },
-    { label: "Market Heatmap", full: "Market Heatmap Lab", icon: "🗺️", file: "market-heatmap-lab.html" },
-    { label: "Unusual Options", full: "Unusual Options Activity Lab", icon: "🐋", file: "options-flow-feed-lab.html" },
-    { label: "Intraday Tape", full: "Intraday Tape & Volume-Profile Lab", icon: "🎯", file: "intraday-tape-lab.html" },
-    { label: "Swing Structure", full: "Swing Structure & Market-Regime Lab", icon: "🌊", file: "swing-structure-lab.html" },
-    { label: "Options Structure", full: "Options Structure & Momentum Research Lab", icon: "🧱", file: "options-structure-lab.html" },
-    { label: "Gamma Trading", full: "Gamma Trading & Dealer-Flow Playbook Lab", icon: "🧨", file: "gamma-trading-lab.html" },
-    { label: "Sector Rotation", full: "Sector Rotation & Momentum Research Lab", icon: "🧭", file: "sector-research-lab.html" },
-    { label: "Global Rotation", full: "Global Rotation Lab", icon: "🌐", file: "global-rotation-lab.html" },
-    { label: "Real Assets", full: "Real Assets Lab", icon: "🪙", file: "real-assets-lab.html" },
-    { label: "Bond Regime", full: "Bond Regime & Fixed-Income Scenario Lab", icon: "📉", file: "bond-regime-lab.html" },
-    { label: "AI Capex Strategy", full: "AI Capex Strategy Lab", icon: "⚡", file: "ai-capex-strategy-lab.html" },
-    { label: "MSFT July Print", full: "MSFT July-Print Margin & EPS Model", icon: "📊", file: "msft-july-print-model.html" },
-    { label: "Company Fundamentals", full: "Company Fundamentals & Adaptive Brief Lab", icon: "🏢", file: "company-fundamentals-lab.html" },
-    { label: "ETF Momentum", full: "ETF Momentum Research Lab", icon: "📈", file: "etf-momentum-lab.html" },
-    { label: "Strategy Self-Improve", full: "Strategy Self-Improvement & Walk-Forward Lab", icon: "🔬", file: "strategy-self-improvement-lab.html" },
-    { label: "Strategy Validate", full: "Strategy Validation & Real-Data Walk-Forward Lab", icon: "🧪", file: "strategy-validation-lab.html" },
-    { label: "Smart-Money Flow", full: "Smart-Money & Congressional-Flow Lab", icon: "🏛️", file: "smart-money-flow-lab.html" },
-    { label: "Waterfront × Polo", full: "Florida Waterfront × Masters Water-Polo Screener", icon: "🤽", file: "waterfront-polo-lab.html" }
-  ];
-
-  /* Discovery grouping, keyed by file. tools.json `.group` is the SOURCE OF TRUTH and the selftest
-     fails if this drifts from it or from index.html. Same order as index.html so the rail and the
-     landing page tell one story. */
-  var GROUPS = [
-    ["Market Structure", ["market-brief.html", "market-heatmap-lab.html", "intraday-tape-lab.html", "swing-structure-lab.html", "technical-analysis-decision-lab.html"]],
-    ["Options & Flow", ["options-flow-feed-lab.html", "options-structure-lab.html", "gamma-trading-lab.html", "smart-money-flow-lab.html"]],
-    ["Rotation & Macro", ["sector-research-lab.html", "global-rotation-lab.html", "real-assets-lab.html", "bond-regime-lab.html", "etf-momentum-lab.html"]],
-    ["Strategy & Validation", ["strategy-self-improvement-lab.html", "strategy-validation-lab.html", "volatility-sizing-lab.html"]],
-    ["Fundamentals", ["ai-capex-strategy-lab.html", "msft-july-print-model.html", "company-fundamentals-lab.html"]],
-    ["Place-based", ["waterfront-polo-lab.html", "palm-springs-rental-market-lab.html", "ocean-shores-rental-market-lab.html"]]
+    { label: "Market Action Center", full: "Market Action Center", icon: "🛰️", file: "market-brief.html", group: "Market Structure" },
+    { label: "Market Heatmap", full: "Market Heatmap Lab", icon: "🗺️", file: "market-heatmap-lab.html", group: "Market Structure" },
+    { label: "Unusual Options", full: "Unusual Options Activity Lab", icon: "🐋", file: "options-flow-feed-lab.html", group: "Options & Flow" },
+    { label: "Intraday Tape", full: "Intraday Tape & Volume-Profile Lab", icon: "🎯", file: "intraday-tape-lab.html", group: "Market Structure" },
+    { label: "Swing Structure", full: "Swing Structure & Market-Regime Lab", icon: "🌊", file: "swing-structure-lab.html", group: "Market Structure" },
+    { label: "Options Structure", full: "Options Structure & Momentum Research Lab", icon: "🧱", file: "options-structure-lab.html", group: "Options & Flow" },
+    { label: "Gamma Trading", full: "Gamma Trading & Dealer-Flow Playbook Lab", icon: "🧨", file: "gamma-trading-lab.html", group: "Options & Flow" },
+    { label: "Sector Rotation", full: "Sector Rotation & Momentum Research Lab", icon: "🧭", file: "sector-research-lab.html", group: "Rotation & Macro" },
+    { label: "Global Rotation", full: "Global Rotation Lab", icon: "🌐", file: "global-rotation-lab.html", group: "Rotation & Macro" },
+    { label: "Real Assets", full: "Real Assets Lab", icon: "🪙", file: "real-assets-lab.html", group: "Rotation & Macro" },
+    { label: "Bond Regime", full: "Bond Regime & Fixed-Income Scenario Lab", icon: "📉", file: "bond-regime-lab.html", group: "Rotation & Macro" },
+    { label: "AI Capex Strategy", full: "AI Capex Strategy Lab", icon: "⚡", file: "ai-capex-strategy-lab.html", group: "Fundamentals" },
+    { label: "MSFT July Print", full: "MSFT July-Print Margin & EPS Model", icon: "📊", file: "msft-july-print-model.html", group: "Fundamentals" },
+    { label: "Company Fundamentals", full: "Company Fundamentals & Adaptive Brief Lab", icon: "🏢", file: "company-fundamentals-lab.html", group: "Fundamentals" },
+    { label: "ETF Momentum", full: "ETF Momentum Research Lab", icon: "📈", file: "etf-momentum-lab.html", group: "Rotation & Macro" },
+    { label: "Strategy Self-Improve", full: "Strategy Self-Improvement & Walk-Forward Lab", icon: "🔬", file: "strategy-self-improvement-lab.html", group: "Strategy & Validation" },
+    { label: "Strategy Validate", full: "Strategy Validation & Real-Data Walk-Forward Lab", icon: "🧪", file: "strategy-validation-lab.html", group: "Strategy & Validation" },
+    { label: "Smart-Money Flow", full: "Smart-Money & Congressional-Flow Lab", icon: "🏛️", file: "smart-money-flow-lab.html", group: "Options & Flow" },
+    { label: "Waterfront × Polo", full: "Florida Waterfront × Masters Water-Polo Screener", icon: "🤽", file: "waterfront-polo-lab.html", group: "Place-based" }
   ];
 
   /* Emits HOME, then one labelled block per group. A registered tool no group claims is NOT dropped —
      it lands in a visible "Ungrouped" block, because silently hiding a shipped tool from the only
      navigation surface is the exact failure this grouping exists to prevent. */
   function groupedItems() {
-    var byFile = {};
-    TOOLS.forEach(function (tool) { byFile[tool.file] = tool; });
     var items = [HOME, "sep"];
     var placed = {};
-    GROUPS.forEach(function (pair) {
-      var members = pair[1].map(function (file) { return byFile[file]; }).filter(Boolean);
+    var groups = [];
+    TOOLS.forEach(function (tool) { if (groups.indexOf(tool.group) === -1) groups.push(tool.group); });
+    groups.forEach(function (group) {
+      var members = TOOLS.filter(function (tool) { return tool.group === group; });
       if (!members.length) return;
-      items.push({ heading: pair[0] });
+      items.push({ heading: group });
       members.forEach(function (tool) { placed[tool.file] = 1; items.push(tool); });
     });
     var strays = TOOLS.filter(function (tool) { return !placed[tool.file]; });
@@ -104,14 +92,14 @@
   }
 
   TOOLS.push(
-    { label: "Vol Sizing", full: "Volatility Regime & Vol-Targeting Sizing Lab", icon: "🌪️", file: "volatility-sizing-lab.html" }
+    { label: "Vol Sizing", full: "Volatility Regime & Vol-Targeting Sizing Lab", icon: "🌪️", file: "volatility-sizing-lab.html", group: "Strategy & Validation" }
   );
   TOOLS.push(
-    { label: "Palm Springs Rentals", full: "Palm Springs Rental Market Lab", icon: "🌴", file: "palm-springs-rental-market-lab.html" },
-    { label: "Ocean Shores Rentals", full: "Ocean Shores Rental Market Lab", icon: "🏖️", file: "ocean-shores-rental-market-lab.html" }
+    { label: "Palm Springs Rentals", full: "Palm Springs Rental Market Lab", icon: "🌴", file: "palm-springs-rental-market-lab.html", group: "Place-based" },
+    { label: "Ocean Shores Rentals", full: "Ocean Shores Rental Market Lab", icon: "🏖️", file: "ocean-shores-rental-market-lab.html", group: "Place-based" }
   );
   TOOLS.push(
-    { label: "TA Decision", full: "Technical Analysis Decision Lab", icon: "📐", file: "technical-analysis-decision-lab.html" }
+    { label: "TA Decision", full: "Technical Analysis Decision Lab", icon: "📐", file: "technical-analysis-decision-lab.html", group: "Market Structure" }
   );
 
   var LSKEY = "rlnav.pinned";

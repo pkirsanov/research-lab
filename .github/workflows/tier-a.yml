@@ -12,19 +12,28 @@ name: tier-a
 
 on:
   schedule:
-    # 07:30 / 11:00 / 15:00 / 17:00 America/New_York, expressed in UTC for both offsets, because
-    # cron has no timezone. Runs during the wrong half of the year are harmless: the refresher is
-    # idempotent and simply publishes an off-schedule snapshot.
-    - cron: "30 11 * * 1-5" # 07:30 EDT
-    - cron: "30 12 * * 1-5" # 07:30 EST
-    - cron: "0 15 * * 1-5" # 11:00 EDT
-    - cron: "0 16 * * 1-5" # 11:00 EST
-    - cron: "0 19 * * 1-5" # 15:00 EDT
-    - cron: "0 20 * * 1-5" # 15:00 EST
-    - cron: "0 21 * * 1-5" # 17:00 EDT
-    - cron: "0 22 * * 1-5" # 17:00 EST
+  # 07:30 / 11:00 / 15:00 / 17:00 America/New_York, expressed in UTC for both offsets, because
+  # cron has no timezone. Resolve scheduled wall-clock time in America/New_York and skip the
+  # inactive side of each pair, so exactly four windows execute in either DST season.
+  - cron: "30 11 * * 1-5" # 07:30 EDT
+  - cron: "30 12 * * 1-5" # 07:30 EST
+  - cron: "0 15 * * 1-5" # 11:00 EDT
+  - cron: "0 16 * * 1-5" # 11:00 EST
+  - cron: "0 19 * * 1-5" # 15:00 EDT
+  - cron: "0 20 * * 1-5" # 15:00 EST
+  - cron: "0 21 * * 1-5" # 17:00 EDT
+  - cron: "0 22 * * 1-5" # 17:00 EST
   workflow_dispatch:
     inputs:
+      window:
+        description: "ET brief window to compute"
+        type: choice
+        required: true
+        options:
+        - pre-market
+        - morning
+        - pre-close
+        - after-hours
       dry-run:
         description: "Compute and print coverage without committing anything"
         type: boolean
@@ -42,57 +51,105 @@ jobs:
     runs-on: ubuntu-latest
     timeout-minutes: 25
     steps:
-      - name: Checkout
-        uses: actions/checkout@v4
-        with:
-          fetch-depth: 0 # the recommendation backfill reads payload history from prior commits
+    - name: Resolve scheduled ET window
+      id: window
+      run: |
+        if [[ "${{ github.event_name }}" == "workflow_dispatch" ]]; then
+          echo "run=true" >> "$GITHUB_OUTPUT"
+          echo "window=${{ inputs.window }}" >> "$GITHUB_OUTPUT"
+          exit 0
+        fi
+        event_schedule="${{ github.event.schedule }}"
+        et_offset="$(TZ=America/New_York date +%z)"
+        case "$event_schedule|$et_offset" in
+          "30 11 * * 1-5|-0400"|"30 12 * * 1-5|-0500")
+            echo "run=true" >> "$GITHUB_OUTPUT"
+            echo "window=pre-market" >> "$GITHUB_OUTPUT"
+            ;;
+          "0 15 * * 1-5|-0400"|"0 16 * * 1-5|-0500")
+            echo "run=true" >> "$GITHUB_OUTPUT"
+            echo "window=morning" >> "$GITHUB_OUTPUT"
+            ;;
+          "0 19 * * 1-5|-0400"|"0 20 * * 1-5|-0500")
+            echo "run=true" >> "$GITHUB_OUTPUT"
+            echo "window=pre-close" >> "$GITHUB_OUTPUT"
+            ;;
+          "0 21 * * 1-5|-0400"|"0 22 * * 1-5|-0500")
+            echo "run=true" >> "$GITHUB_OUTPUT"
+            echo "window=after-hours" >> "$GITHUB_OUTPUT"
+            ;;
+          *)
+            echo "run=false" >> "$GITHUB_OUTPUT"
+            echo "window=inactive-cron-pair" >> "$GITHUB_OUTPUT"
+            echo "Skipping inactive cron pair schedule=$event_schedule ET-offset=$et_offset."
+            ;;
+        esac
 
-      - name: Setup Node
-        uses: actions/setup-node@v4
-        with:
-          node-version: "20"
+    - name: Checkout
+      if: steps.window.outputs.run == 'true'
+      uses: actions/checkout@v4
+      with:
+        fetch-depth: 0 # the recommendation backfill reads payload history from prior commits
 
-      # Tier-A: recompute the owner-model reads and the snapshot from live public data.
-      - name: Refresh Tier-A
-        run: node scripts/brief-refresh.mjs ${{ inputs.dry-run && '--dry-run' || '' }}
+    - name: Setup Node
+      if: steps.window.outputs.run == 'true'
+      uses: actions/setup-node@v4
+      with:
+        node-version: "20"
 
-      # Score any recommendation whose horizon has now elapsed. This is the feedback loop: it is
-      # what turns published calls into a measured error rate, and it must not depend on a human
-      # remembering to run it.
-      - name: Evaluate elapsed recommendations
-        run: node scripts/evaluate-recommendations.mjs ${{ inputs.dry-run && '--dry-run' || '' }}
+    # Tier-A: recompute the owner-model reads and the snapshot from live public data.
+    - name: Refresh Tier-A
+      if: steps.window.outputs.run == 'true'
+      run: node scripts/brief-refresh.mjs --window "${{ steps.window.outputs.window }}" ${{ inputs['dry-run'] && '--dry-run' || '' }}
 
-      - name: Rebuild the scorecard
-        if: ${{ !inputs.dry-run }}
-        run: node scripts/build-scorecard.mjs
+    # Score any recommendation whose horizon has now elapsed. This is the feedback loop: it is
+    # what turns published calls into a measured error rate, and it must not depend on a human
+    # remembering to run it.
+    - name: Evaluate elapsed recommendations
+      if: steps.window.outputs.run == 'true'
+      run: node scripts/evaluate-recommendations.mjs ${{ inputs['dry-run'] && '--dry-run' || '' }}
 
-      # Keep the page's first load bounded as history grows.
-      - name: Shard brief history
-        if: ${{ !inputs.dry-run }}
-        run: node scripts/shard-brief-history.mjs
+    - name: Rebuild the scorecard
+      if: steps.window.outputs.run == 'true' && inputs['dry-run'] != true
+      run: node scripts/build-scorecard.mjs
 
-      # The same gate the deploy path uses. A scheduled run must never commit an artifact that
-      # would fail the checks a human commit has to pass.
-      - name: Self-test (all assertions)
-        run: node scripts/selftest.mjs
+    # Keep the page's first load bounded as history grows.
+    - name: Shard brief history
+      if: steps.window.outputs.run == 'true' && inputs['dry-run'] != true
+      run: node scripts/shard-brief-history.mjs
 
-      - name: Commit refreshed artifacts
-        if: ${{ !inputs.dry-run }}
-        run: |
-          set -euo pipefail
-          git config user.name  "research-lab-tier-a[bot]"
-          git config user.email "research-lab-tier-a[bot]@users.noreply.github.com"
-          # Named paths only. A scheduled job must never sweep in unrelated working-tree changes.
-          git add -- \
-            market-brief.snapshot.json \
-            market-brief.scorecard.json \
-            brief-history.jsonl \
-            brief-history.recent.jsonl \
-            briefs/ \
-            data/ 2>/dev/null || true
-          if git diff --cached --quiet; then
-            echo "Tier-A produced no changes this window."
-            exit 0
-          fi
-          git commit -m "tier-a: scheduled refresh $(date -u +%Y-%m-%dT%H:%MZ)"
-          git push
+    - name: Build compact page artifacts
+      if: steps.window.outputs.run == 'true'
+      run: node scripts/build-brief-page-artifacts.mjs ${{ inputs['dry-run'] && '--dry-run' || '' }}
+
+    # The same gate the deploy path uses. A scheduled run must never commit an artifact that
+    # would fail the checks a human commit has to pass.
+    - name: Self-test (all assertions)
+      if: steps.window.outputs.run == 'true'
+      run: node scripts/selftest.mjs
+
+    - name: Commit refreshed artifacts
+      if: steps.window.outputs.run == 'true' && inputs['dry-run'] != true
+      run: |
+        set -euo pipefail
+        git config user.name  "research-lab-tier-a[bot]"
+        git config user.email "research-lab-tier-a[bot]@users.noreply.github.com"
+        # Named paths only. A scheduled job must never sweep in unrelated working-tree changes.
+        git add -- \
+          market-brief.snapshot.json \
+          market-brief.scorecard.json \
+          market-brief.page.json \
+          market-brief.config.page.json \
+          market-brief.snapshot.page.json \
+          market-brief.tools.page.json \
+          market-brief.experimental.json \
+          brief-history.jsonl \
+          brief-history.recent.jsonl \
+          briefs/ \
+          data/ 2>/dev/null || true
+        if git diff --cached --quiet; then
+          echo "Tier-A produced no changes this window."
+          exit 0
+        fi
+        git commit -m "tier-a: scheduled refresh $(date -u +%Y-%m-%dT%H:%MZ)"
+        git push

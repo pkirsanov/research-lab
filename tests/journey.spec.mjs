@@ -111,26 +111,15 @@ async function openPage(page) {
   }
 }
 
-/* Inject the shipped [data-rljourney-mount] anchor and trigger the REAL production boot mount path
-   RLAPP.mountJourney() — which fetches the real config/journeys/registry, loads the real rljourney.js
-   runtime, and builds the real controller against the real browser store. Waits for the shipped
-   ready state and the controller handle the boot path itself publishes. */
+/* Activate the SHIPPED Journey view and wait for the SHIPPED mount. The four-view shell owns both
+   the host and the call to RLAPP.mountJourney(); tests must never manufacture either one. */
 async function mountJourneyOnPage(page) {
-  await page.evaluate(() => {
-    let anchor = document.querySelector('[data-rljourney-mount]');
-    if (!anchor) {
-      anchor = document.createElement('section');
-      anchor.setAttribute('data-rljourney-mount', 'test');
-      document.body.appendChild(anchor);
-    }
-    anchor.removeAttribute('data-rljourney-state');
-    globalThis.__rljourneyController = null;
-    globalThis.RLAPP.mountJourney();
-  });
+  await page.locator('#rlviews button[data-rlview-mode="journey"]').click();
   await page.waitForFunction(() => {
-    const anchor = document.querySelector('[data-rljourney-mount]');
-    return !!(anchor && anchor.getAttribute('data-rljourney-state') === 'ready' && globalThis.__rljourneyController);
-  }, undefined, { timeout: 12000 });
+    const panel = document.querySelector('[data-rlexperience-panel="journey"]');
+    const anchor = panel && panel.querySelector('[data-rljourney-mount]');
+    return !!(panel && !panel.hidden && anchor && anchor.getAttribute('data-rljourney-state') === 'ready' && globalThis.__rljourneyController);
+  }, undefined, { timeout: 15000 });
 }
 
 /* ═══════════════ Step 8 — the journey surface must SHIP, not be test-injected ═══════════════ */
@@ -245,6 +234,11 @@ test('Regression: SCN-012-009 disabled browser storage reports session-only and 
       removeItem() { throw new Error('SecurityError: storage is disabled'); }
     };
     try { Object.defineProperty(globalThis, 'localStorage', { configurable: true, get() { return throwing; } }); } catch (error) { globalThis.localStorage = throwing; }
+    const anchor = document.querySelector('[data-rlexperience-panel="journey"] [data-rljourney-mount]');
+    anchor.removeAttribute('data-rljourney-state');
+    anchor.__rljourneyMounting = false;
+    globalThis.__rljourneyController = null;
+    globalThis.RLAPP.mountJourney();
   });
   await mountJourneyOnPage(page);
 

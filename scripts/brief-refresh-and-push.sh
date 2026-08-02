@@ -76,7 +76,10 @@ fi
 DATA_FILES=(market-brief.snapshot.json brief-history.jsonl)
 PAYLOAD="market-brief.payload.json"
 CONFIG="market-brief.config.json"
-OWNED_PATHS=("${DATA_FILES[@]}" "$PAYLOAD" "$CONFIG" data)
+PAGE_FILES=(market-brief.page.json market-brief.config.page.json market-brief.snapshot.page.json market-brief.tools.page.json market-brief.experimental.json)
+DERIVED_FILES=(brief-history.recent.jsonl market-brief.scorecard.json)
+DERIVED_DIRS=(briefs/tier-a)
+OWNED_PATHS=("${DATA_FILES[@]}" "$PAYLOAD" "$CONFIG" "${PAGE_FILES[@]}" "${DERIVED_FILES[@]}" "${DERIVED_DIRS[@]}" data)
 
 # Refuse before any fetch or refresh when a wrapper-owned path is staged,
 # unstaged, or untracked. Unrelated dirt is intentionally outside this query.
@@ -107,9 +110,16 @@ cleanup_baseline() {
 }
 trap cleanup_baseline EXIT
 
-for baseline_file in "${DATA_FILES[@]}" "$PAYLOAD" "$CONFIG"; do
+for baseline_file in "${DATA_FILES[@]}" "$PAYLOAD" "$CONFIG" "${PAGE_FILES[@]}" "${DERIVED_FILES[@]}"; do
   cp "$baseline_file" "$BASELINE_DIR/$baseline_file" || {
     echo "[brief-timer] cannot capture baseline bytes for $baseline_file"
+    exit 1
+  }
+done
+for baseline_dir in "${DERIVED_DIRS[@]}"; do
+  mkdir -p "$BASELINE_DIR/$(dirname "$baseline_dir")" || exit 1
+  cp -R "$baseline_dir" "$BASELINE_DIR/$baseline_dir" || {
+    echo "[brief-timer] cannot capture baseline directory $baseline_dir"
     exit 1
   }
 done
@@ -126,6 +136,25 @@ restore_narrative_baseline() {
   cp "$BASELINE_DIR/$PAYLOAD" "$PAYLOAD" && cp "$BASELINE_DIR/$CONFIG" "$CONFIG"
 }
 
+restore_page_baseline() {
+  local page_file
+  for page_file in "${PAGE_FILES[@]}"; do
+    cp "$BASELINE_DIR/$page_file" "$page_file" || return 1
+  done
+}
+
+restore_derived_baseline() {
+  local derived_file derived_dir
+  for derived_file in "${DERIVED_FILES[@]}"; do
+    cp "$BASELINE_DIR/$derived_file" "$derived_file" || return 1
+  done
+  for derived_dir in "${DERIVED_DIRS[@]}"; do
+    rm -rf "$derived_dir"
+    mkdir -p "$(dirname "$derived_dir")" || return 1
+    cp -R "$BASELINE_DIR/$derived_dir" "$derived_dir" || return 1
+  done
+}
+
 restore_pair_baseline() {
   cp "$BASELINE_DIR/${DATA_FILES[0]}" "${DATA_FILES[0]}" && cp "$BASELINE_DIR/${DATA_FILES[1]}" "${DATA_FILES[1]}"
 }
@@ -134,6 +163,8 @@ restore_owned_baseline() {
   "$GIT_BIN" restore --staged -- "${OWNED_PATHS[@]}" 2>/dev/null || true
   restore_pair_baseline || return 1
   restore_narrative_baseline || return 1
+  restore_page_baseline || return 1
+  restore_derived_baseline || return 1
   rm -rf data
   if [ ! -f "$BASELINE_DIR/data-absent" ]; then
     cp -R "$BASELINE_DIR/data" data || return 1
@@ -208,15 +239,7 @@ fi
 run_with_timeout "$TIER_A_TIMEOUT" "$NODE_BIN" scripts/evaluate-recommendations.mjs \
   || echo "[brief-timer] recommendation scoring returned non-zero (soft) — continuing"
 
-# 1b-iii) Re-shard the append-only history. brief-history.jsonl itself is never rewritten; this
-# regenerates the bounded window the cockpit loads plus the full monthly shards, so the page's
-# first-load payload stays inside its declared budget as the log keeps growing.
-if run_with_timeout "$TIER_A_TIMEOUT" "$NODE_BIN" scripts/shard-brief-history.mjs; then
-  SHARDED_HISTORY=1
-else
-  SHARDED_HISTORY=0
-  echo "[brief-timer] history sharding returned non-zero (soft) — the cockpit keeps its previous bounded window"
-fi
+SHARDED_HISTORY=0
 
 # 1c) Freeze and validate one truthful brief outcome for every registry source BEFORE final authorship.
 # Scheduled runs require this complete barrier; the exact bytes are passed to every final-author lane and
@@ -350,6 +373,15 @@ else
   echo "[brief-timer] selected transaction=raw-data-only; cache validation passed; published brief pair left unchanged"
 fi
 
+# 3a) Re-shard only the SELECTED append-only history. This must run after any retained-pair
+# restoration; sharding the rejected candidate first would publish a recent/monthly projection that
+# disagreed with the restored source log.
+if run_with_timeout "$TIER_A_TIMEOUT" "$NODE_BIN" scripts/shard-brief-history.mjs; then
+  SHARDED_HISTORY=1
+else
+  echo "[brief-timer] history sharding returned non-zero (soft) — the cockpit keeps its previous bounded window"
+fi
+
 # 3b) Distributed per-tool brief graph (ADDITIVE + SOFT-FAIL, briefs/-only). Regenerate the
 # content-addressed briefs/ graph (per-tool tool-briefs + per-tool history + final brief + indexes +
 # briefs/current.json) from the just-published snapshot + narrative and ride it in the SAME scoped
@@ -407,6 +439,25 @@ if run_with_timeout "$TIER_A_TIMEOUT" "$NODE_BIN" scripts/build-scorecard.mjs; t
   SELECTED_FILES+=(market-brief.scorecard.json)
 else
   echo "[brief-timer] scorecard build returned non-zero (soft) — publishing without a refreshed track record"
+fi
+
+# 3d) Build the page-specific projections AFTER payload, snapshot, scorecard, and registry are final.
+# The full artifacts remain the immutable research/audit records; the page consumes only the fields
+# it renders on first paint, while hidden experimental prose is fetched on demand. A stale projection
+# is a contradictory public surface, so unlike optional distributed publication this is fail-closed.
+if [ "$DRY_RUN" = "1" ]; then
+  run_with_timeout "$TIER_A_TIMEOUT" "$NODE_BIN" scripts/build-brief-page-artifacts.mjs --dry-run \
+    || { echo "[brief-timer] compact page projection dry-run failed"; exit 1; }
+else
+  run_with_timeout "$TIER_A_TIMEOUT" "$NODE_BIN" scripts/build-brief-page-artifacts.mjs \
+    || { echo "[brief-timer] compact page projection failed — restoring owned baseline"; restore_owned_baseline || true; exit 1; }
+  SELECTED_FILES+=(
+    market-brief.page.json
+    market-brief.config.page.json
+    market-brief.snapshot.page.json
+    market-brief.tools.page.json
+    market-brief.experimental.json
+  )
 fi
 
 if ! "$GIT_BIN" add -- "${SELECTED_FILES[@]}"; then

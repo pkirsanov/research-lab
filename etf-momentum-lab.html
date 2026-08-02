@@ -3,6 +3,7 @@
 
 <head>
   <meta charset="UTF-8" />
+  <meta http-equiv="Content-Security-Policy" content="default-src 'self'; script-src 'self' 'unsafe-inline'; style-src 'self' 'unsafe-inline'; img-src 'self' data:; connect-src 'self' http://127.0.0.1:* https://*.ts.net:* https://api.nasdaq.com https://api.stlouisfed.org https://api.twelvedata.com https://cdn.cboe.com https://data.sec.gov https://finnhub.io https://home.treasury.gov https://production.dataviz.cnn.io https://query1.finance.yahoo.com https://query2.finance.yahoo.com https://stockanalysis.com https://www.alphavantage.co; font-src 'self' data:; object-src 'none'; base-uri 'none'; form-action 'none'; frame-src 'none'; worker-src 'none'; media-src 'none'; manifest-src 'self'">
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <title>ETF Momentum Research Lab — performance, risk &amp; regime modeling</title>
   <link rel="icon"
@@ -2037,7 +2038,7 @@
         localStorage.setItem('etfMomSeries', JSON.stringify({ at: state.dataAt, s: slim }));
       } catch (e) { }
     }
-    function yahooUrls(tk) { var y = 'https://query1.finance.yahoo.com/v8/finance/chart/' + encodeURIComponent(tk) + '?interval=1d&range=5y&includeAdjustedClose=true'; return [y, 'https://corsproxy.io/?url=' + encodeURIComponent(y), 'https://api.allorigins.win/raw?url=' + encodeURIComponent(y), 'https://api.codetabs.com/v1/proxy/?quest=' + encodeURIComponent(y)]; }
+    function yahooUrls(tk) { return ['https://query1.finance.yahoo.com/v8/finance/chart/' + encodeURIComponent(tk) + '?interval=1d&range=5y&includeAdjustedClose=true']; }
     function fetchYahooOne(tk) {
       var urls = yahooUrls(tk), idx = 0;
       function attempt() {
@@ -2147,7 +2148,7 @@
       if (px == null || !isFinite(px)) return null; var pct = (pc ? px / pc - 1 : null);
       return { px: px, pct: pct, t: (m.regularMarketTime ? m.regularMarketTime * 1000 : Date.now()) };
     }
-    function yahooQuoteUrls(tk) { var y = 'https://query1.finance.yahoo.com/v8/finance/chart/' + encodeURIComponent(tk) + '?interval=1d&range=1d'; return [y, 'https://corsproxy.io/?url=' + encodeURIComponent(y), 'https://api.allorigins.win/raw?url=' + encodeURIComponent(y), 'https://api.codetabs.com/v1/proxy/?quest=' + encodeURIComponent(y)]; }
+    function yahooQuoteUrls(tk) { return ['https://query1.finance.yahoo.com/v8/finance/chart/' + encodeURIComponent(tk) + '?interval=1d&range=1d']; }
     function fetchYahooQuoteOne(tk) {
       var urls = yahooQuoteUrls(tk), idx = 0;
       function attempt() {
@@ -2720,13 +2721,8 @@
     }
 
     /* ══════════════════ TREASURY YIELDS (10Y vs 2Y) ══════════════════ */
-    /* Reuses the SAME public CORS proxies the price fetch uses (see yahooUrls / fetchYahooOne):
-       allorigins /raw and codetabs — no new proxy is introduced. */
     function ratesProxyUrls(target) {
-      return [target,
-        'https://corsproxy.io/?url=' + encodeURIComponent(target),
-        'https://api.allorigins.win/raw?url=' + encodeURIComponent(target),
-        'https://api.codetabs.com/v1/proxy/?quest=' + encodeURIComponent(target)];
+      return [target];
     }
     function fetchTextViaProxy(target) {
       var urls = ratesProxyUrls(target), idx = 0;

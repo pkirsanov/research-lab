@@ -195,6 +195,10 @@ test('Regression: Feature 007 qualified series and RLVALID preserve legacy share
   ]);
 
   await page.goto(`${baseUrl}/strategy-validation-lab.html`);
+  // Feature 007 and the shared shell both define Simple as the default. The legacy native
+  // validation workspace is the Power projection, so exercise it through the shipped mode control
+  // instead of treating a correctly hidden Power panel as a regression.
+  await page.locator('#rlviews button[data-rlview-mode="power"]').click();
   await expect(page.locator('#verdict')).toBeVisible();
   const verdictText = await page.locator('#verdict').innerText();
   expect(verdictText).toMatch(/GOAL MET \(OOS\)|GOAL NOT MET \(OOS\)|No validation yet/);

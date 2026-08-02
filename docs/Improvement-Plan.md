@@ -184,6 +184,40 @@ content over it, and that content is the empty grid of N4.
 48 definitions exist and the chooser works, but the panel that hosts it ships only where the four-view shell
 ships. 21 tools declare their own 2 goals in `tools.json` that a reader standing on that tool cannot start.
 
+### N10 · Every view was global; none was scoped to the tool the reader is in — **high** · *journey part delivered*
+
+**The rule.** A tool page shows **that tool's** journeys, brief and actions. The Market Action Center is the
+only **global** surface. Guidance that lists everything is a directory.
+
+**Measured before the fix** — `node scripts/audit-reader-legibility.mjs`:
+
+```
+every one of the 23 pages:  journeyToolRows=23   journeyGoals=48
+```
+
+All 23 pages — including all 22 tool pages — rendered the complete 23-tool, 48-goal inventory. A reader on
+`bond-regime-lab` had to scan 23 groups to reach the 2 that belong to that page.
+
+**Measured after the fix:**
+
+```
+market-brief (Action Center):  journeyToolRows=23  journeyGoals=48   <- global, correct
+every tool page:              journeyToolRows=1   journeyGoals=2    <- scoped, correct
+```
+
+**Scenario reconciliation.** `SCN-012-032` requires that *every registered tool resolves concrete goals* —
+registry completeness. It does **not** require every page to list every tool. Completeness is still proven
+page-free by `tests/journey-definitions.functional.mjs` and, in the browser, on the Center where global is the
+specification. The two browser assertions that tested completeness from a *tool* page were re-pointed at the
+Center, and a new assertion pins tool-page scoping. No scenario was weakened.
+
+**Outstanding.** The same rule must reach **briefs** and **actions**: a tool page shows its own brief and its
+own actions; the Center aggregates. The audit's `briefSections` / `actionRows` probes currently read `0`
+because the brief mount uses `.rlbrief-mount` / `data-rlbrief-part` rather than the selectors probed — that
+measurement is **not yet trustworthy and is not claimed**. Correcting the probe is the first task of Step 2b.
+
+---
+
 ### N9 · Superseded bug still open — **medium**
 
 `BUG-001-central-provider-credential-security` remains `in_progress` at High severity although
@@ -496,6 +530,9 @@ independent of everything else.
 |---|---|---|---|
 | Reader-visible framework leaks (23 tools × all views) | **157** | **0** | `node scripts/audit-reader-legibility.mjs` |
 | Tools with at least one leak | **23 / 23** | **0 / 23** | same |
+| Journey rows on a tool page | **23** → **1** ✅ | **1** | same (`journeyToolRows`) |
+| Journey rows on the Action Center | **23** ✅ | **23** | same |
+| Brief / action scoping on a tool page | **not yet measured** | own tool only | Step 2b probe fix |
 | Tools sharing the generic Simple heading | 10 | **0** | same |
 | Parameter levers without a contextual tooltip | most | **0** | selftest static scan |
 | Covered watchlist matrix cells | **0** / 24 | **≥ 15** | `jq .scopeSummary.coveredCellCount` |

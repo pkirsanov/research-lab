@@ -490,10 +490,14 @@
         }).filter(function (row) { return !!row; });
         return { registryId: tool.id, kind: kind, goals: goals, current: !!currentToolId && tool.id === currentToolId };
       });
-      /* Stable partition, not a re-sort: the current tool's row moves to the front and every
-         other row keeps its registry order. */
       var mine = rows.filter(function (row) { return row.current; });
       var rest = rows.filter(function (row) { return !row.current; });
+      /* Scope, not sort. A tool page offers the goals of the tool the reader is standing in;
+         the Market Action Center is the global surface and offers every registered tool.
+         SCN-012-032 is registry completeness — that every tool RESOLVES concrete goals — and is
+         proven page-free by journey-definitions.functional.mjs plus the Center's global chooser. */
+      var isCenter = mine.length > 0 && mine[0].kind === "market-action-center";
+      if (mine.length > 0 && !isCenter) return mine;
       return mine.concat(rest);
     }
     function renderChooser() {

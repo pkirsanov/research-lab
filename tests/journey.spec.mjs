@@ -122,6 +122,17 @@ async function mountJourneyOnPage(page) {
   }, undefined, { timeout: 15000 });
 }
 
+/* The Market Action Center is the GLOBAL journey surface; a tool page is scoped to its own
+   goals. Registry completeness (SCN-012-032) is therefore asserted here, on the Center. */
+const CENTER_PAGE = 'market-brief.html';
+
+async function openCenter(page) {
+  await page.goto(`${site.baseUrl}/${CENTER_PAGE}`);
+  await expect(page.locator('body')).toBeVisible();
+  const rlappReady = () => !!(globalThis.RLAPP && typeof globalThis.RLAPP.mountJourney === 'function' && typeof globalThis.RLAPP.journey === 'function');
+  await page.waitForFunction(rlappReady, undefined, { timeout: 8000 });
+}
+
 /* ═══════════════ Step 8 — the journey surface must SHIP, not be test-injected ═══════════════ */
 
 test('the [data-rljourney-mount] anchor is shipped by the four-view shell, and the goal chooser mounts itself', async ({ page }) => {
@@ -412,7 +423,7 @@ test('Regression: SCN-012-011 human review changes only local packet state and t
 /* ═══════════════════════ TP-08-07 — SCN-012-032 every registered tool exposes concrete goals ═══════════════════════ */
 
 test('Regression: SCN-012-032 every registered tool exposes concrete goals through one Journey shell', async ({ page }) => {
-  await openPage(page);
+  await openCenter(page);
   await mountJourneyOnPage(page);
 
   const chooser = await page.evaluate(() => {
@@ -477,7 +488,7 @@ test('Regression: SCN-012-032 every registered tool exposes concrete goals throu
 
 /* ═══════════ the chooser opens on the tool the reader is standing in ═══════════ */
 
-test('the Journey chooser surfaces the current tool first without dropping any other tool', async ({ page }) => {
+test('the Journey chooser on a tool page is scoped to that tool', async ({ page }) => {
   await openPage(page);
   await mountJourneyOnPage(page);
 
@@ -501,16 +512,28 @@ test('the Journey chooser surfaces the current tool first without dropping any o
   expect(observed.firstGoals.every((toolId) => toolId === pageToolId),
     'the leading row carries only this tool\u2019s goals').toBe(true);
 
-  /* SCN-012-032 is not weakened: promoting a row must not drop or duplicate one. */
-  expect([...observed.order].sort()).toEqual([...registryOrder].sort());
-  expect(new Set(observed.order).size, 'no tool appears twice').toBe(registryOrder.length);
+  /* A tool page is SCOPED to the tool the reader is standing in. Listing all 23 tools here is a
+     directory, not guidance; the global inventory belongs to the Market Action Center, where
+     SCN-012-032 registry completeness is asserted. */
+  expect(observed.order, 'a tool page offers only its own goals').toEqual([pageToolId]);
 
-  /* Non-vacuous: this only proves something because the tool is NOT already first
-     in registry order, so an unsorted chooser would fail the assertion above. */
-  expect(registryOrder.indexOf(pageToolId), 'the fixture tool must not be first in registry order')
-    .toBeGreaterThan(0);
-  expect(observed.order.slice(1), 'every other row keeps its registry order')
-    .toEqual(registryOrder.filter((toolId) => toolId !== pageToolId));
+  /* Non-vacuous: the registry holds many tools, so an unscoped chooser would fail the
+     assertion above rather than pass it by accident. */
+  expect(registryOrder.length, 'the registry must hold more than one tool').toBeGreaterThan(1);
+  expect(registryOrder, 'the fixture tool is a real registry entry').toContain(pageToolId);
+});
+
+test('the Market Action Center remains the global journey surface', async ({ page }) => {
+  await openCenter(page);
+  await mountJourneyOnPage(page);
+
+  const order = await page.evaluate(() => Array.from(document.querySelectorAll('[data-rljourney-tool]'))
+    .map((li) => li.getAttribute('data-rljourney-tool')));
+  const registry = readJson('tools.json').tools.map((tool) => tool.id);
+
+  expect([...order].sort(), 'the Center lists every registered tool').toEqual([...registry].sort());
+  expect(new Set(order).size, 'no tool appears twice').toBe(registry.length);
+  expect(order[0], 'the Center opens on itself').toBe('market-brief');
 });
 
 /* ═══════════════════════ TP-08-08 — one shared mechanism / evidence / backtrack / packet contract ═══════════════════════ */

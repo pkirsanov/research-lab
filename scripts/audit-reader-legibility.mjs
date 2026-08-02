@@ -85,6 +85,21 @@ async function visibleText(page) {
   }).catch(() => '');
 }
 
+/* Scoping rule: a tool page shows ITS OWN journeys, brief and actions. Only the Action
+   Center is global. A tool page that lists every tool's goals is a directory, not guidance.
+   These counts make that rule measurable instead of a matter of opinion. */
+async function scopeCounts(page) {
+  return page.evaluate(() => {
+    const count = (sel) => document.querySelectorAll(sel).length;
+    return {
+      journeyToolRows: count('[data-rljourney-tool]'),
+      journeyGoalButtons: count('[data-rljourney-goal]'),
+      briefSections: count('[data-rlbrief-tool], [data-brief-tool], [data-rlbrief-section]'),
+      actionRows: count('[data-mac-action], [data-rlbrief-recommendation], [data-rlbrief-action]')
+    };
+  }).catch(() => ({ journeyToolRows: -1, journeyGoalButtons: -1, briefSections: -1, actionRows: -1 }));
+}
+
 async function main() {
   let site;
   let browser;
@@ -125,6 +140,9 @@ async function main() {
           leaks: findLeaks(text),
           head: text.slice(0, 220)
         };
+        if (view === 'Journey' || view === 'Brief') {
+          entry.views[view].scope = await scopeCounts(page);
+        }
       }
       if (!Object.keys(entry.views).length) {
         const text = await visibleText(page);
@@ -152,6 +170,14 @@ async function main() {
       totalLeaks += leakCount;
       const flag = entry.error ? 'ERROR' : (leakCount ? `${leakCount} leak(s)` : 'clean');
       console.log(`${entry.id.padEnd(34)} views=[${viewNames.join('|') || 'none'}] ${flag}`);
+      const jScope = entry.views.Journey && entry.views.Journey.scope;
+      const bScope = entry.views.Brief && entry.views.Brief.scope;
+      if (jScope || bScope) {
+        console.log(`    scope: journeyToolRows=${jScope ? jScope.journeyToolRows : '-'}`
+          + ` journeyGoals=${jScope ? jScope.journeyGoalButtons : '-'}`
+          + ` briefSections=${bScope ? bScope.briefSections : '-'}`
+          + ` actionRows=${bScope ? bScope.actionRows : '-'}`);
+      }
       if (entry.error) console.log(`    ! ${entry.error}`);
       for (const v of viewNames) {
         for (const leak of entry.views[v].leaks) {

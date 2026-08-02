@@ -1,27 +1,36 @@
 # Research Lab — Product Review & Delivery Roadmap
 
-**Date:** 2026-07-31 · **Type:** product review + executable roadmap · **Scope:** whole product
-**Method:** line-by-line source reading, registry↔disk diffing, live-site HTTP checks, `node scripts/selftest.mjs`
-(1,005 passed / 0 failed, exit 0), competitive research. Every number is measured at HEAD unless marked *derived*.
-**Related:** [`DomainModel.md`](DomainModel.md) · [`../notes/market-brief.md`](../notes/market-brief.md) ·
-[`../notes/volatility-drag-research.md`](../notes/volatility-drag-research.md)
+**Date:** 2026-08-02 · **Type:** product review + executable roadmap (sixth pass) · **Scope:** whole product
+**Method:** line-by-line source reading, registry↔disk diffing, payload/ledger reduction, `node scripts/selftest.mjs`
+(1,138 passed / 0 failed, exit 0). Every number is re-measured at HEAD `64ff26e6` unless marked *derived*.
+**Related:** [`Improvement-Plan.md`](Improvement-Plan.md) · [`DomainModel.md`](DomainModel.md) ·
+[`Product-Principles.md`](Product-Principles.md) · [`../notes/market-brief.md`](../notes/market-brief.md)
+
+> **Supersession note.** The fifth-pass edition of this document described a pre-Step-1 product. Steps 1–9 of
+> its own roadmap have since shipped (commits `393f543e`, `f806d99f`, `ab309151`, `57e9f713`, `fcfba7db`,
+> `6f913ad3`, `3c4919fc`, `fc83365e`, `0aa884da`). §5 below now records each original finding with its
+> **measured** disposition, and §5N records the frontier those fixes exposed. Nothing here is carried
+> forward on trust.
 
 ---
 
 ## 1. Verdict
 
-**The problem is correctly chosen. The architecture is sound and largely built. The product is unplugged from
-itself — and one unescaped line puts the user's provider keys within reach of its own AI output.**
+**The nine-step roadmap landed. The security defect, the coverage gap, the unscored ledger, the unbounded
+payload and the unreachable assets are all closed and asserted. What the fixes exposed is a deeper and more
+interesting problem: the product now measures itself honestly, and the honest measurement says it is mostly
+blind.**
 
-| | Fact | Meaning |
+| | Measured at HEAD | Meaning |
 |---|---|---|
-| **1** | One LLM-authored payload field renders into `innerHTML` **unescaped**, on the same origin that stores provider API keys | A credential-exfiltration path with no CSP backstop — **fix first, one line** |
-| **2** | The flagship brief draws real evidence from **5 of 23** tools | The cockpit synthesises the slow tools and ignores every fast one |
-| **3** | **579** recommendation events archived, **0** ever scored | Bodies are now durable; nothing yet closes a call |
-| **4** | **~1.05 MB** of finished product is deployed but unreachable — including all **48** user journeys | The user-scenario layer ships to nobody |
+| **1** | **0** unescaped LLM-content sinks; **26/26** pages carry a CSP | The credential path is shut and asserted |
+| **2** | **11 of 23** tools feed the brief with live evidence (was 5) | The original coverage target is met; **5** tools remain `stale` |
+| **3** | **180** recommendations closed — but **150 of them (83%)** are `not-evaluable` | The ledger closes calls it cannot actually score |
+| **4** | The public watchlist matrix has **0 covered cells** of 24 applicable | The watchlist never reaches the tools; the Portfolio view is an empty grid |
 
-Items 2–4 are **wiring gaps** between components that already exist, are tested, and work. Remediation is
-measured in days.
+Item 1 is done. Item 2 is a finite wiring list. **Items 3 and 4 are the same problem seen from two ends:**
+nothing produces a *level-bearing, per-ticker* fact, so the matrix has nothing to show and the ledger has
+nothing to check. That is the subject of §16 and of [`Improvement-Plan.md`](Improvement-Plan.md).
 
 ---
 
@@ -31,17 +40,18 @@ measured in days.
 
 | Surface | Count / size | State |
 |---|---|---|
-| Registered tools ([`../tools.json`](../tools.json)) | 23 | all `live` |
-| Tool pages on disk | 25 (+ `index.html`) | 2 unregistered |
+| Registered tools ([`../tools.json`](../tools.json)) | 23 | all `live`, all carry a `group` |
+| Tool pages on disk | 25 (+ `index.html`) | 2 unregistered — now **accounted** in [`../site-exclusions.json`](../site-exclusions.json) |
 | Declared model contracts ([`../simple-models.json`](../simple-models.json)) | **23 / 23** | complete |
-| Shared adapters ([`../rlexperience-adapters/`](../rlexperience-adapters)) | 7 modules, 488 KB | UMD dual-module, Node-loadable |
-| User journeys ([`../journeys.json`](../journeys.json)) | **48** | **0 mounted** |
-| Playwright specs | 28 files, 60 tool-references | **every tool has ≥ 1**; CI runs 1 |
-| Selftest assertions | 1,005 *(growing)* | pass; **0 run in CI** |
-| Committed market data | 289 daily-bar files, 23 option chains | fresh, same-origin |
-| Brief runs to date | 107 | 4×/day cadence |
-| `specs/` markdown | 199,606 lines | 742 DoD done / **1,678 open** |
-| Product code (tool HTML + shared JS) | 73,274 lines | — |
+| Shared adapters ([`../rlexperience-adapters/`](../rlexperience-adapters)) | 7 modules | UMD dual-module, Node-loadable |
+| User journeys ([`../journeys.json`](../journeys.json)) | **48 definitions / 48 steps** | mountable — but the panel ships on **2 of 25** pages |
+| Playwright specs | **33** files | CI runs the **full** suite, blocking |
+| Selftest assertions | **1,138** | pass, exit 0; CI runs **all** of them, blocking |
+| Committed market data | **289** daily-bar files, **22** option chains | same-origin, keyless |
+| Brief runs to date | **120** (sharded) | 4×/day, now on a GitHub Actions clock |
+| Recommendation events | **849** across 189 distinct calls | 180 closed, **9 open** |
+| Brief first-load payload | **159 KB** (budget 200 KB) | budget is a failing test |
+| `specs/` lifecycle | 16 features + 6 bugs | 5 `done`, 1 `specs_hardened`, 5 `in_progress`, 4 `blocked`, 1 `not_started` |
 
 ### 2.2 Architecture — the parts that are right
 

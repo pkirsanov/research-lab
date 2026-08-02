@@ -1,26 +1,26 @@
 {
-  "asOf": "2026-08-02T11:00:24.826Z",
-  "generatedAt": "2026-08-02T11:00:24.826Z",
-  "window": "pre-market",
+  "asOf": "2026-08-02T14:30:22.947Z",
+  "generatedAt": "2026-08-02T14:30:22.947Z",
+  "window": "morning",
   "marketClosed": true,
   "nextSessionDate": "2026-08-03",
   "dataFreshness": {
     "bars": {
-      "updated": "2026-08-02T11:00:14.806Z",
+      "updated": "2026-08-02T14:30:14.934Z",
       "symbolCount": 287,
       "expectedSessionDate": "2026-07-31",
       "refreshDate": "2026-08-02",
-      "refreshWindow": "pre-market",
+      "refreshWindow": "morning",
       "freshSymbolCount": 287,
       "carriedSymbolCount": 0,
       "missingSymbolCount": 0
     },
     "options": {
-      "updated": "2026-08-02T11:00:18.866Z",
+      "updated": "2026-08-02T14:30:18.478Z",
       "symbolCount": 22,
       "expectedSessionDate": null,
       "refreshDate": "2026-08-02",
-      "refreshWindow": "pre-market",
+      "refreshWindow": "morning",
       "freshSymbolCount": 22,
       "carriedSymbolCount": 0,
       "missingSymbolCount": 0
@@ -531,7 +531,7 @@
   "toolReads": {
     "sector-research-lab": {
       "id": "sector-research-lab",
-      "asOf": "2026-08-02T11:00:23.265Z",
+      "asOf": "2026-08-02T14:30:21.672Z",
       "read": "Rotate toward XLY as XLE weakens.",
       "metrics": {
         "into": {
@@ -762,7 +762,7 @@
     "real-assets-lab": {
       "id": "real-assets-lab",
       "asOf": "2026-07-31T13:30:00.000Z",
-      "read": "CPER leads real assets at 54.4/100; GLD 16.6, BTC 31.1, SLV 0.",
+      "read": "CPER leads real assets at 54.4/100; GLD 16.6, BTC 30.9, SLV 0.",
       "metrics": {
         "leader": {
           "ticker": "CPER",
@@ -1081,12 +1081,12 @@
           "BTC-USD": {
             "ticker": "BTC-USD",
             "model": "bitcoin",
-            "score": 31.1,
+            "score": 30.9,
             "trend": "Downtrend",
-            "mom21": -0.97,
-            "mom63": -14.19,
-            "mom126": -4.27,
-            "vol": 35.25,
+            "mom21": -1.09,
+            "mom63": -14.29,
+            "mom126": -4.39,
+            "vol": 35.24,
             "maxDrawdown": 28.71,
             "riskPenalty": 5.68,
             "confirmations": [
@@ -1435,7 +1435,7 @@
     },
     "market-heatmap-lab": {
       "id": "market-heatmap-lab",
-      "asOf": "2026-08-02T11:00:24.720Z",
+      "asOf": "2026-08-02T14:30:22.826Z",
       "read": "Leadership is narrow — 48.64% of 135 constituents are positive against a 60% broad-market threshold.",
       "deepLink": "market-heatmap-lab.html",
       "source": "owning-tool-functions",
@@ -1595,7 +1595,7 @@
       "id": "real-assets-lab",
       "deepLink": "real-assets-lab.html",
       "status": "fresh-headless",
-      "reason": "CPER leads real assets at 54.4/100; GLD 16.6, BTC 31.1, SLV 0."
+      "reason": "CPER leads real assets at 54.4/100; GLD 16.6, BTC 30.9, SLV 0."
     },
     {
       "id": "bond-regime-lab",

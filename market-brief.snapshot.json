@@ -1,12 +1,12 @@
 {
-  "asOf": "2026-08-02T20:30:23.326Z",
-  "generatedAt": "2026-08-02T20:30:23.326Z",
+  "asOf": "2026-08-02T22:08:43.166Z",
+  "generatedAt": "2026-08-02T22:08:43.166Z",
   "window": "after-hours",
   "marketClosed": true,
   "nextSessionDate": "2026-08-03",
   "dataFreshness": {
     "bars": {
-      "updated": "2026-08-02T20:30:14.799Z",
+      "updated": "2026-08-02T22:08:37.813Z",
       "symbolCount": 287,
       "expectedSessionDate": "2026-07-31",
       "refreshDate": "2026-08-02",
@@ -16,7 +16,7 @@
       "missingSymbolCount": 0
     },
     "options": {
-      "updated": "2026-08-02T20:30:18.540Z",
+      "updated": "2026-08-02T22:08:37.890Z",
       "symbolCount": 22,
       "expectedSessionDate": null,
       "refreshDate": "2026-08-02",
@@ -531,7 +531,7 @@
   "toolReads": {
     "sector-research-lab": {
       "id": "sector-research-lab",
-      "asOf": "2026-08-02T20:30:21.823Z",
+      "asOf": "2026-08-02T22:08:41.824Z",
       "read": "Rotate toward XLY as XLE weakens.",
       "metrics": {
         "into": {
@@ -1435,7 +1435,7 @@
     },
     "market-heatmap-lab": {
       "id": "market-heatmap-lab",
-      "asOf": "2026-08-02T20:30:23.230Z",
+      "asOf": "2026-08-02T22:08:43.064Z",
       "read": "Leadership is narrow — 48.64% of 135 constituents are positive against a 60% broad-market threshold.",
       "deepLink": "market-heatmap-lab.html",
       "source": "owning-tool-functions",

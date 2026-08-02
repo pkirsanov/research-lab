@@ -4,43 +4,38 @@ Links: [spec.md](spec.md) | [scopes.md](scopes.md) | [report.md](report.md)
 
 ## Checklist
 
-- [x] Acceptance criterion recorded: one shared capability owns credential behavior for exactly one currently loaded document.
-- [x] Acceptance criterion recorded: reload, hash/history route change, bfcache traversal, HTML-page navigation, close/reopen, tab, window, iframe, and browser context all begin unconfigured.
-- [x] Acceptance criterion recorded: no credential is written to any browser/client storage or carried by a URL, message, worker, cookie, opener, DOM, history, or equivalent bridge.
-- [x] Acceptance criterion recorded: production pages expose no credential-bearing password/text input, hidden field, attribute, event, or remounted value.
-- [x] Acceptance criterion recorded: browser credential use remains disabled unless one loaded document owns both user-gesture collection and a fully authorized request path.
-- [x] Acceptance criterion recorded: boot-time legacy detection reports registered provider/location metadata and counts without reading or activating values.
-- [x] Acceptance criterion recorded: dismissal leaves legacy containers untouched and inactive; destructive confirmation authorizes whole-container deletion only, and success requires registered-name absence without value access.
-- [x] Acceptance criterion recorded: unknown and prototype-shaped provider IDs fail without mutation.
-- [x] Acceptance criterion recorded: clear-all removes current-document references first, then performs whole-container erase, and never restores memory after incomplete cleanup.
-- [x] Acceptance criterion recorded: registered tools start unconfigured and expose no editor, raw getter, writer, broker, legacy-value helper, or credential transport.
-- [x] Acceptance criterion recorded: a sentinel stays out of DOM/accessibility output, events, logs, errors, analytics, URLs/referrers, storage/bridges, screenshots/traces/snapshots, and test artifacts.
-- [x] Acceptance criterion recorded: Twelve Data and every other incomplete production policy send zero credential-backed browser requests.
-- [x] Acceptance criterion recorded: a controlled eligible request uses one exact-origin approved header attempt and has no query, proxy, provider, origin, or transport fallback.
-- [x] Acceptance criterion recorded: public/no-key data, normalized non-secret `rlData`, Feature 004 collision state, all protected dirty hunks, and provider/Bond/Causal/FX canaries remain intact.
-- [x] Acceptance criterion recorded: every G028 row and blind spot has one addressed or owner-routed disposition, with BUG-013 semantics arriving only from canonical Bubbles.
+- [x] Acceptance question recorded: does detection identify only exact registered pre-BUG-002 credential containers and report redacted provider IDs, location classes, and counts without activating or migrating their contents?
+- [x] Acceptance question recorded: before cleanup, does the user see that deleting a whole legacy container can also remove nested non-secret preferences?
+- [x] Acceptance question recorded: does dismissal leave every legacy container, current provider configuration, and non-secret `localStorage.rlData` unchanged?
+- [x] Acceptance question recorded: does explicit confirmation erase only the selected registered pre-BUG-002 containers as whole containers?
+- [x] Acceptance question recorded: is cleanup reported complete only after every selected legacy container name is verified absent?
+- [x] Acceptance question recorded: does a failed or unverifiable deletion produce an explicit redacted incomplete result without a complete or success claim?
+- [x] Acceptance question recorded: do detection, dismissal, complete cleanup, and incomplete cleanup preserve BUG-002 proxy configuration, `localStorage.rlProviderConfig`, and non-secret `localStorage.rlData` unchanged?
+- [x] Acceptance question recorded: are current BUG-002 containers and unknown container names structurally excluded from BUG-001 cleanup?
 
-These checked items confirm the acceptance questions are present in the packet. They do not assert that the implementation already satisfies them. Executed acceptance evidence belongs in [report.md](report.md) after delivery and certification.
+These checked items confirm the acceptance questions are present in the packet. They do not assert that the implementation satisfies them. Executed acceptance evidence belongs in [report.md](report.md), and certification remains validate-owned.
 
 ## Goal
 
-- Goal: remove client persistence, cross-document credential transport, and every legacy-value ingress while retaining only a same-loaded-document capability behind complete provider authorization.
-- Success signal: every lifecycle boundary clears state, production providers remain disabled without full evidence, legacy detection uses names and registry metadata only, confirmed cleanup deletes whole containers and verifies name absence, clear-all is complete or explicitly incomplete, and a sentinel is absent from every prohibited surface.
+- Goal: retire exact pre-BUG-002 credential containers without changing current provider access or non-secret market-data storage.
+- Acceptance question: does the Data settings flow detect registered legacy containers through redacted metadata, disclose the whole-container effect, require explicit confirmation, erase only selected historical names, verify name absence before reporting completion, and preserve BUG-002 proxy configuration, `localStorage.rlProviderConfig`, and non-secret `localStorage.rlData` in every outcome?
+- Authority boundary: BUG-002 is authoritative for current Tier-1 proxy and Tier-2 per-browser local-key provider access. BUG-001 acceptance is limited to SCOPE-01 and `SCN-BUG001-004` legacy-container retirement.
 
 ## Journey Steps
 
 | Step | User Intent | Expected observation | Evidence target | Friction vocabulary |
 | --- | --- | --- | --- | --- |
-| 1 | Inspect provider state | Non-secret disabled/unconfigured status appears; no credential-bearing input exists | `report.md#active-scope-01-evidence` | works, unclear, broken |
-| 2 | Use public data | Existing public/no-key and normalized `rlData` paths remain usable without credential fallback | `report.md#active-scope-05-evidence` | works, missing, broken |
-| 3 | Exercise an eligible controlled provider | One loaded document owns shared transient input and one approved request; the field blanks and only status/sanitized result appears | `report.md#active-scope-03-evidence` | works, missing, broken |
-| 4 | Reload or navigate | Route, reload, page, bfcache, tab, window, iframe, and context boundaries all start unconfigured | `report.md#active-scope-01-evidence` | works, broken |
-| 5 | Inspect legacy presence | Provider/location classes and counts appear; detection reads parses hashes compares copies stages and activates no value | `report.md#active-scope-02-evidence` | works, unclear, broken |
-| 6 | Dismiss or erase legacy containers | Dismissal is inert; destructive disclosure precedes confirmation; whole-container deletion verifies registered names absent | `report.md#active-scope-02-evidence` | works, unclear, broken |
-| 7 | Clear all | Current memory clears first; whole-container cleanup is complete or explicitly incomplete without restoration | `report.md#active-scope-02-evidence` | works, broken |
-| 8 | Request an ineligible provider | No request is sent and a safe disabled state appears | `report.md#active-scope-04-evidence` | works, missing, broken |
-| 9 | Inspect disclosure surfaces | No sentinel appears in output, storage, bridges, navigation, diagnostics, or artifacts | `report.md#active-scope-04-evidence` | works, broken |
+| 1 | Inspect legacy presence | Only registered pre-BUG-002 provider IDs, location classes, and counts appear; no legacy content becomes active provider configuration | `SCN-BUG001-004` detection acceptance | works, unclear, broken |
+| 2 | Review cleanup impact | The flow explains that deleting a whole legacy container can also remove nested non-secret preferences | `SCN-BUG001-004` disclosure acceptance | works, unclear, broken |
+| 3 | Dismiss cleanup | Legacy containers, BUG-002 proxy configuration, `localStorage.rlProviderConfig`, and non-secret `localStorage.rlData` remain unchanged | `SCN-BUG001-004` dismissal acceptance | works, broken |
+| 4 | Confirm cleanup | Only selected registered pre-BUG-002 containers are erased as whole containers after explicit confirmation | `SCN-BUG001-004` confirmed-erase acceptance | works, unclear, broken |
+| 5 | Review cleanup result | Completion appears only after every selected legacy name is verified absent; failed or unavailable verification is explicitly incomplete and never presented as success | `SCN-BUG001-004` verification acceptance | works, unclear, broken |
+| 6 | Continue current provider and market-data use | BUG-002 proxy configuration, `localStorage.rlProviderConfig`, and non-secret `localStorage.rlData` remain unchanged after detection and every cleanup outcome | `SCN-BUG001-004` preservation acceptance | works, broken |
 
 ## Open Refinements
 
-No live user-journey ambiguity is recorded. Planning follows the corrected active design: current-document closure-private memory, metadata/name-only legacy detection, inert dismissal, whole-container deletion, name-absence verification, fail-closed provider authorization, exact header-only transport, and no tool credential surface. Delivery evidence remains execution-owned; `DEP-BUG013-SEMANTIC-CLASSIFIER`, `F004-COLLISION-001`, and the dirty-tree boundary remain visible implementation and test constraints.
+No open acceptance refinement or user-reported unchecked regression is recorded for the active BUG-001 contract. The checklist covers only exact pre-BUG-002 legacy-container detection, destructive-effect disclosure, dismissal, confirmed whole-container erase, name-absence verification, explicit incomplete outcomes, and preservation of BUG-002 current configuration plus non-secret `localStorage.rlData`.
+
+BUG-002 remains authoritative for current provider access. The former BUG-001 memory-only, no-persistence, lifecycle-clearing, disabled-provider, header-only, no-proxy, and no-query clauses are superseded history and are not current acceptance questions. Checked items record the presence of questions only; execution evidence and certification remain with their owning workflows.
+
+This planning reconciliation consumes `BUG001-USERVALIDATION-ACTIVE-CONTRACT` from completed audit attempt `AUD-BUG001-003`. A fresh current-revision audit remains audit-owned.

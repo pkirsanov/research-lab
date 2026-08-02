@@ -102,20 +102,36 @@
     if (legacyRoot) observer.observe(legacyRoot, { attributes: true, attributeFilter: ["aria-hidden", "tabindex"], subtree: true });
   }
 
+  /* Capability slugs are engineering nouns. A reader needs to know what is missing from the
+     view in front of them, not the slug, the gate code or the acceptance predicate. */
+  var CAPABILITY_LABEL = {
+    "dynamic-tool-brief-v2": "the live tool brief",
+    "live-web-evidence": "live web evidence",
+    "public-alert-publication": "published alerts",
+    "private-portfolio-overlay": "your own portfolio overlay",
+    "portfolio-stress-journey": "the portfolio stress journey"
+  };
+
+  function capabilityPhrase(slugs) {
+    var labels = (slugs || []).map(function (slug) { return CAPABILITY_LABEL[slug] || slug; });
+    if (!labels.length) return "";
+    if (labels.length === 1) return labels[0];
+    return labels.slice(0, -1).join(", ") + " and " + labels[labels.length - 1];
+  }
+
   function dependencyMarkup(gateKey) {
     var result = EXPERIENCE.projectDependencyGate(CONFIG, gateKey, DEPENDENCY_STATES);
     if (!result.ok) return "";
     var gate = result.value;
-    return '<div data-rlexperience-gate="' + escapeHtml(gate.gateId) + '">' +
-      '<h2>' + escapeHtml(gate.heading) + '</h2>' +
-      '<p>Observed status: ' + escapeHtml(gate.observed.status || "unknown") + '</p>' +
-      '<p>Observed certification: ' + escapeHtml(gate.observed.certificationStatus || "unknown") + '</p>' +
-      '<p>Observed ' + escapeHtml(gate.requirementName) + ' matched: ' + escapeHtml(String(gate.observed.matchedRequirementCount)) + ' of ' + escapeHtml(String(gate.observed.requiredRequirementCount)) + '</p>' +
-      '<p>Withheld: ' + escapeHtml(gate.withheldCapabilities.join(", ")) + '</p>' +
-      '<p>Available now: ' + escapeHtml(gate.preservedCapabilities.join(", ")) + '</p>' +
-      '<p>Acceptance gate: ' + escapeHtml(gate.acceptanceGate) + '</p>' +
-      '<p>Gate: ' + escapeHtml(gate.gateCode) + '</p>' +
-      '</div>';
+    /* A satisfied dependency is not news. It used to render a "Dependency available" heading
+       followed by a Withheld: list, an acceptance predicate and a gate code — governance
+       bookkeeping shown to a reader who never asked for it. The full projection remains
+       available to Power as an evidence disclosure, which is where provenance belongs. */
+    if (gate.state === "available") return "";
+    var phrase = capabilityPhrase(gate.withheldCapabilities);
+    return '<p data-rlexperience-gate="' + escapeHtml(gate.gateId) + '" data-rlexperience-gate-state="pending">'
+      + 'Not in this view yet' + (phrase ? ': ' + escapeHtml(phrase) : '') + '.'
+      + '</p>';
   }
 
   /* rlviews is loaded dynamically, AFTER RLAPP exists, so the mount is a direct call rather than an

@@ -48,7 +48,10 @@ test('Regression: SCN-012-031 narrow ordinary shell preserves four full modes fo
 
   await page.getByRole('tab', { name: 'Brief', exact: true }).click();
   await expect(page).toHaveURL(/#brief$/);
-  await expect(page.locator('[data-rlexperience-gate="feature-002"]')).toBeVisible();
+  /* Feature 002 is satisfied in the live state, so its gate renders nothing at all. Route to
+     the Brief panel itself rather than to a governance box that should not exist. */
+  await expect(page.locator('[data-rlexperience-panel="brief"]')).toBeVisible();
+  await expect(page.locator('[data-rlexperience-gate="feature-002"]')).toHaveCount(0);
   await page.goBack();
   await expect(page).toHaveURL(/#journey$/);
   await page.goForward();

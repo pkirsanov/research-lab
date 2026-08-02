@@ -156,15 +156,18 @@ test('Regression: SCN-012-028 Feature 002 without published milestones exposes e
     const gate = page.locator('[data-rlexperience-gate="feature-002"]');
     await expect(gate).toBeVisible();
     console.log(`[gate-panel:feature-002] ${JSON.stringify(await gate.innerText())}`);
-    await expect(gate.getByRole('heading')).toHaveText('Dependency pending: Feature 002');
-    await expect(gate).toContainText(`Observed status: ${observed.status}`);
-    await expect(gate).toContainText(`Observed certification: ${observed.certification}`);
-    await expect(gate).toContainText(`Observed milestones matched: ${observed.matchedCount} of ${observed.requiredCount}`);
-    await expect(gate).toContainText('Withheld: dynamic-tool-brief-v2, live-web-evidence, public-alert-publication');
-    await expect(gate).toContainText('Available now: simple, power, journey, deterministic-local-evidence');
-    await expect(gate).toContainText('Acceptance gate: status=done; certification=done; milestones=all-4-required');
-    await expect(gate).toContainText('Gate: E012-DEPENDENCY:feature-002');
-    // The requirement must never be restated as a fraction: "4/4" reads as fully-met progress.
+    /* A pending dependency states what is missing from THIS view in product language. Gate
+       codes, acceptance predicates, observed-status dumps and capability slugs are evidence;
+       evidence belongs in Power, never in a reader's default view (D13). */
+    await expect(gate).toContainText('Not in this view yet');
+    await expect(gate).toContainText('the live tool brief');
+    await expect(gate).not.toContainText(`Observed status: ${observed.status}`);
+    await expect(gate).not.toContainText(`Observed certification: ${observed.certification}`);
+    await expect(gate).not.toContainText('Withheld:');
+    await expect(gate).not.toContainText('Available now:');
+    await expect(gate).not.toContainText('Acceptance gate:');
+    await expect(gate).not.toContainText('E012-DEPENDENCY');
+    await expect(gate).not.toContainText('dynamic-tool-brief-v2');
     await expect(gate).not.toContainText('milestones=4/4');
     await expect(gate.getByRole('button')).toHaveCount(0);
     expect(await page.evaluate(() => history.length)).toBe(initialHistoryLength + 1);
@@ -197,14 +200,16 @@ test('Regression: SCN-012-028 Feature 002 with published milestones opens the Br
   await page.getByRole('tab', { name: 'Brief', exact: true }).click();
   await expect(page).toHaveURL(/#brief$/);
   const gate = page.locator('[data-rlexperience-gate="feature-002"]');
-  await expect(gate).toBeVisible();
-  console.log(`[gate-panel:feature-002:satisfied] ${JSON.stringify(await gate.innerText())}`);
-  await expect(gate.getByRole('heading')).toHaveText('Dependency available: Feature 002');
-  await expect(gate).toContainText(`Observed milestones matched: ${observed.matchedCount} of ${observed.requiredCount}`);
-  await expect(gate).toContainText('Acceptance gate: status=done; certification=done; milestones=all-4-required');
-  // Still never a fraction, and still no bypass affordance once the gate opens.
-  await expect(gate).not.toContainText('milestones=4/4');
-  await expect(gate.getByRole('button')).toHaveCount(0);
+  /* Non-vacuity: the live state really is satisfied, so absence below is the satisfied
+     rendering and not a missing panel. */
+  expect(observed.matchedCount).toBe(observed.requiredCount);
+  /* A satisfied dependency is not news. It used to print "Dependency available: Feature 002"
+     over a Withheld: list, an acceptance predicate and a gate code. It now renders nothing. */
+  await expect(gate).toHaveCount(0);
+  const brief = page.locator('[data-rlexperience-panel="brief"]');
+  await expect(brief).not.toContainText('E012-DEPENDENCY');
+  await expect(brief).not.toContainText('Acceptance gate:');
+  await expect(brief).not.toContainText('Withheld:');
 });
 
 test('Regression: SCN-012-029 uncertified Feature 008 preserves public Portfolio and creates no private store', async ({ page }) => {
@@ -227,14 +232,14 @@ test('Regression: SCN-012-029 uncertified Feature 008 preserves public Portfolio
   const gate = page.locator('[data-rlexperience-gate="feature-008"]');
   await expect(gate).toBeVisible();
   console.log(`[gate-panel:feature-008] ${JSON.stringify(await gate.innerText())}`);
-  await expect(gate.getByRole('heading')).toHaveText('Dependency pending: Feature 008');
-  await expect(gate).toContainText(`Observed status: ${observed.status}`);
-  await expect(gate).toContainText(`Observed certification: ${observed.certification}`);
-  await expect(gate).toContainText(`Observed milestones matched: ${observed.matchedCount} of ${observed.requiredCount}`);
-  await expect(gate).toContainText('Withheld: private-portfolio-overlay, portfolio-stress-journey');
-  await expect(gate).toContainText('Available now: public-watchlist-matrix, public-scope-journeys');
-  await expect(gate).toContainText('Acceptance gate: status=done; certification=done; milestones=all-3-required');
-  await expect(gate).toContainText('Gate: E012-DEPENDENCY:feature-008');
+  await expect(gate).toContainText('Not in this view yet');
+  await expect(gate).toContainText('your own portfolio overlay');
+  await expect(gate).not.toContainText(`Observed status: ${observed.status}`);
+  await expect(gate).not.toContainText('Withheld:');
+  await expect(gate).not.toContainText('Available now:');
+  await expect(gate).not.toContainText('Acceptance gate:');
+  await expect(gate).not.toContainText('E012-DEPENDENCY');
+  await expect(gate).not.toContainText('private-portfolio-overlay');
   await expect(gate).not.toContainText('milestones=3/3');
   await expect(gate.getByRole('button')).toHaveCount(0);
 

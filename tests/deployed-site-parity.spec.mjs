@@ -120,7 +120,10 @@ test('a satisfied gate renders available on the deployed artifact', async ({ pag
   await page.getByRole('tab', { name: 'Brief', exact: true }).click();
   for (const [, gate] of satisfied) {
     const panel = page.locator(`[data-rlexperience-gate="${gate.gateId}"]`);
+    /* A satisfied dependency renders nothing: it is not news to a reader. If it does render,
+       it must be the pending form and must never carry framework vocabulary (D13). */
     if (await panel.count() === 0) continue;
-    await expect(panel.getByRole('heading')).toContainText('Dependency available');
+    await expect(panel).toHaveAttribute('data-rlexperience-gate-state', 'pending');
+    await expect(panel).not.toContainText('E012-DEPENDENCY');
   }
 });

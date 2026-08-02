@@ -70,15 +70,21 @@ test('the deployed artifact does not publish governance state', async ({ request
 
 for (const toolId of toolIds) {
   test(`deployed ${toolId} loads with no failed request and no governance fetch`, async ({ page }) => {
+    const origin = new URL(site.baseUrl).origin;
     const failures = [];
     const governanceFetches = [];
+    /* Scoped to SAME-ORIGIN. Whether a third-party market-data provider answers is not a
+       property of the deployed artifact, and folding it in here would make the gate go red
+       for reasons unrelated to the change — the exact failure mode people learn to ignore. */
+    const isOwn = (url) => url.startsWith(origin);
     page.on('response', (response) => {
       const url = response.url();
       if (url.includes('/specs/')) governanceFetches.push(`${response.status()} ${url}`);
-      /* A page that 404s its own dependency is broken even when the shell still paints. */
-      if (response.status() >= 400) failures.push(`${response.status()} ${url}`);
+      if (isOwn(url) && response.status() >= 400) failures.push(`${response.status()} ${url}`);
     });
-    page.on('requestfailed', (request) => failures.push(`FAILED ${request.url()} :: ${request.failure()?.errorText || ''}`));
+    page.on('requestfailed', (request) => {
+      if (isOwn(request.url())) failures.push(`FAILED ${request.url()} :: ${request.failure()?.errorText || ''}`);
+    });
 
     const response = await page.goto(`${site.baseUrl}/${pageFor(toolId)}`, { waitUntil: 'domcontentloaded' });
     expect(response.status(), `${toolId} page must be reachable`).toBe(200);

@@ -2435,7 +2435,7 @@
         if (booted) return Promise.resolve(acceptedState);
         booted = true;
         var evaluationTime = new Date().toISOString();
-        var quoteTask = fetchMsftJson('/data/options/MSFT.json', 'MSFT-QUOTE').then(function (outcome) {
+        var quoteTask = fetchMsftJson('data/options/MSFT.json', 'MSFT-QUOTE').then(function (outcome) {
           // Capture the raw option chain (o:[...]) for the additive options-implied earnings-move read. This does NOT
           // add a fetch — it piggybacks on the single cache-first quote fetch — and never writes any accepted state or
           // the user-owned implied-move input. The presentation script computes the move as its own market read.
@@ -2444,7 +2444,7 @@
           }
           return outcome;
         }).then(afterStaticPaint).then(function (outcome) { settleQuote(outcome, evaluationTime); });
-        var barsTask = fetchMsftJson('/data/bars/MSFT.json', 'MSFT-BARS').then(function (outcome) {
+        var barsTask = fetchMsftJson('data/bars/MSFT.json', 'MSFT-BARS').then(function (outcome) {
           // Capture the raw daily bars (rows:[...]) for the additive realized-earnings-reaction history in the brief.
           // No extra fetch — piggybacks on the single cache-first bars fetch — and never mutates accepted state.
           if (outcome && outcome.ok && outcome.value && Array.isArray(outcome.value.rows)) {
@@ -3016,11 +3016,11 @@
       }
       function fetchCtxBars() {
         var tasks = MSFT_CTX.map(function (row) {
-          return fetchOneJson('/data/bars/' + row.sym + '.json').then(function (j) {
+          return fetchOneJson('data/bars/' + row.sym + '.json').then(function (j) {
             CTX[row.sym] = (j && Array.isArray(j.rows)) ? { read: ctxRead(j.rows), asof: j.asof || null, refreshDate: j.refreshDate || null } : { read: null, asof: null };
           });
         });
-        tasks.push(fetchOneJson('/data/options/VIX.json').then(function (j) { if (j && Number.isFinite(j.spot)) CTX_VIX = { spot: j.spot, asof: j.asof || null }; }));
+        tasks.push(fetchOneJson('data/options/VIX.json').then(function (j) { if (j && Number.isFinite(j.spot)) CTX_VIX = { spot: j.spot, asof: j.asof || null }; }));
         return Promise.all(tasks).then(function () { try { renderBrief(); } catch (e) { } });
       }
       function applyEarningsMove() {
@@ -3129,11 +3129,11 @@
         if (btn) { btn.disabled = true; btn.setAttribute('aria-busy', 'true'); }
         setLiveStatus('Refreshing same-origin option chain + bars + macro context…');
         var evalTime = new Date().toISOString(), tasks = [];
-        tasks.push(fetchOneJson('/data/options/MSFT.json').then(function (j) {
+        tasks.push(fetchOneJson('data/options/MSFT.json').then(function (j) {
           if (j && Array.isArray(j.o)) window.__msftOptChain = j;
           if (j && window.MsftJulyModel && typeof window.MsftJulyModel.applyRefreshOutcome === 'function') window.MsftJulyModel.applyRefreshOutcome({ resource: 'quote', envelope: j, evaluationTime: evalTime });
         }));
-        tasks.push(fetchOneJson('/data/bars/MSFT.json').then(function (j) {
+        tasks.push(fetchOneJson('data/bars/MSFT.json').then(function (j) {
           if (j && Array.isArray(j.rows)) { window.__msftBarsRows = j.rows; EARN_HIST = msftRealizedEarningsReactions(j.rows, MSFT_PAST_EARNINGS); }
           if (j && window.MsftJulyModel && typeof window.MsftJulyModel.applyRefreshOutcome === 'function') window.MsftJulyModel.applyRefreshOutcome({ resource: 'bars', envelope: j, evaluationTime: evalTime });
         }));

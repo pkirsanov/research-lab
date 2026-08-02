@@ -5183,6 +5183,20 @@ try {
   assert(/fetchRequiredJson\(\s*gates\[[^\]]+\]\.statePath/.test(preFixRuntime),
     'the statePath-fetch check is non-vacuous — it still matches the regressed shape');
 
+  /* Root-absolute asset paths resolve against the DOMAIN root, so on a project Pages site
+     (…github.io/<repo>/) they drop the repo segment and 404. msft-july-print-model.html shipped
+     six of them and fetched …github.io/data/bars/MSFT.json in production while passing every
+     local test, because a repo-root server makes the two forms indistinguishable. */
+  const rootAbsoluteAssetOffenders = pagesPlan.registeredPages
+    .map((page) => (typeof page === 'string' ? page : page.path || page.file))
+    .filter((file) => typeof file === 'string' && file.endsWith('.html'))
+    .filter((file) => /["'`]\/(?:data|briefs|rlexperience-adapters)\//.test(read(file)));
+  assert(rootAbsoluteAssetOffenders.length === 0,
+    'no registered page fetches a root-absolute asset path — it loses the repo segment on project Pages: ' + rootAbsoluteAssetOffenders.join(', '));
+  /* ADVERSARIAL: the detector must still match the exact shape that shipped. */
+  assert(/["'`]\/(?:data|briefs|rlexperience-adapters)\//.test("fetchOneJson('/data/bars/MSFT.json')"),
+    'the root-absolute asset detector still matches the regressed shape');
+
   /* ADVERSARIAL: a reduced browser gate or direct root upload must fail these exact predicates. */
   const weakenedWorkflow = pagesWorkflow.replace('Full browser suite (blocking)', 'Selected browser suite').replace('path: "_site"', 'path: "."');
   assert(!/- name: Full browser suite \(blocking\)/.test(weakenedWorkflow) && !/path: "_site"/.test(weakenedWorkflow),

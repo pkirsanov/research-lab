@@ -4813,6 +4813,37 @@ try {
   assert(recBody.extractLevels('closes back above ~715 on volume', universe).length === 0,
     'a level with no instrument in scope is discarded rather than attributed by guesswork');
 
+  // ADVERSARIAL (risk-side recovery): an EXACT decimal gate is real and must be read on the
+  // invalidation side. Before this, only "~"-prefixed numbers counted, so "a break below the
+  // 740.09 flip" extracted NOTHING and the call was published unscoreable. This assertion fails
+  // if the tilde-only pattern returns.
+  const exactInvalidation = recBody.extractLevels('a break below the 740.09 flip into negative gamma', universe,
+    { defaultInstrument: 'SPY', allowBareDecimal: true });
+  assert(exactInvalidation.length === 1 && exactInvalidation[0].relation === 'below' && exactInvalidation[0].value === 740.09,
+    'an EXACT decimal gate ("below the 740.09 flip") is read on the invalidation side (' + JSON.stringify(exactInvalidation) + ')');
+
+  // ADVERSARIAL (the asymmetry itself): the SAME bare decimal must stay invisible without the
+  // opt-in, because a descriptive spot price ("closes above 741.69 on 7/31") is syntactically
+  // identical to a gate and admitting it as a TRIGGER would manufacture a free "satisfied" and
+  // inflate the published hit rate. Fails if the widening is ever made unconditional.
+  assert(recBody.extractLevels('a break below the 740.09 flip into negative gamma', universe,
+    { defaultInstrument: 'SPY' }).length === 0,
+    'a bare decimal is NOT read without the invalidation-only opt-in — a fabricated trigger would inflate the hit rate');
+
+  // ADVERSARIAL (direction of the phrase): "re-opens the structural downside" is invalidation
+  // language. It was matching the upside-clause pattern, which flipped the level to a trigger and
+  // erased the risk side of the call. Measured across every published brief, the loose
+  // "re-?opens? the" form matched 26 times and was wrong all 26. Fails if it is loosened again.
+  const reopens = recBody.buildRecommendationBody(
+    { subject: 'MSFT core', action: 'hold', horizon: 'swing',
+      trigger: 'hold above the 200-day (~432.3)',
+      invalidation: 'A gap-fade back below the 200-day (~432.3) on the close re-opens the structural downside', confidence: 60 },
+    { universe });
+  assert(reopens.levels.some((level) => level.source === 'invalidation'),
+    're-opens the structural downside is read as INVALIDATION, not as an upside trigger (' + JSON.stringify(reopens.levels) + ')');
+  assert(reopens.evaluability === 'machine-checkable',
+    'a call with a real break level is scoreable rather than published as not-evaluable');
+
   // Honest degradation: a call whose own prose carries no checkable level says so.
   const noLevel = recBody.buildRecommendationBody(
     { subject: 'MSFT position', action: 'hold', horizon: 'swing', trigger: 'stay put', invalidation: 'reassess later', confidence: 55 },

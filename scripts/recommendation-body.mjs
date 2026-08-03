@@ -121,7 +121,14 @@ const BELOW_WORDS = /^(?:below|under|beneath|loses?|losing|lost|breaks?|breakdow
    the core into an add." Read literally, that upside gate would be scored as an invalidation — so a
    thesis that IMPROVED would be recorded as broken. These markers re-attribute such a clause to the
    trigger side, where it belongs. */
-const UPSIDE_CLAUSE = /\b(?:upside|turns? (?:the )?(?:core|call|stance) into|opens? the (?:add[- ]?gate|gate)|would (?:turn|open)|re-?opens? the)\b/i;
+/* The improvement branch a narrative appends to an invalidation field ("... OR confirms a daily
+   close holding above its 50-day and restacks"). A match flips the level from invalidation to
+   trigger, so a FALSE match deletes the risk side of a call and makes it unscoreable.
+
+   `re-?opens? the` used to be listed bare. Measured against every published brief, it matched
+   26 times and was WRONG all 26: 25x "re-opens the structural DOWNSIDE" and 1x "re-open the
+   crack" — invalidation language, not upside. It now requires an actual upside object. */
+const UPSIDE_CLAUSE = /\b(?:upside|turns? (?:the )?(?:core|call|stance) into|opens? the (?:add[- ]?gate|gate)|would (?:turn|open)|re-?opens? the (?:add[- ]?gate|gate|upside|long))\b/i;
 
 /**
  * extractLevels(text, universe) — machine-checkable {instrument, relation, value} triples parsed from a
@@ -140,6 +147,8 @@ const UPSIDE_CLAUSE = /\b(?:upside|turns? (?:the )?(?:core|call|stance) into|ope
 export function extractLevels(text, universe, options) {
   if (typeof text !== 'string' || !text) return [];
   const defaultInstrument = (options && options.defaultInstrument) || null;
+  // Opt-in, invalidation-only. See the asymmetry note at the number pattern below.
+  const allowBareDecimal = !!(options && options.allowBareDecimal);
   const levels = [];
   const seen = new Set();
   // Split on sentence-ish boundaries so a relation word cannot leak across unrelated clauses.
@@ -150,7 +159,23 @@ export function extractLevels(text, universe, options) {
     // safe when the call names exactly one, which is why the caller decides.
     let current = defaultInstrument;
     let relation = null;
-    for (const match of clause.matchAll(/\^?[A-Za-z][A-Za-z0-9.'-]{0,9}|~\d[\d,]*\.?\d*/g)) {
+    // A level is normally a tilde-approximated number ("~432.3"). Requiring the tilde EVERYWHERE
+    // lost every precisely-authored gate — "a break below the 740.09 flip" extracted nothing — which
+    // was the largest single cause of unscoreable calls.
+    //
+    // But a bare decimal is ambiguous: "closes above 741.69 on 7/31" is a DESCRIPTION of a past
+    // close, syntactically identical to a gate. So the widening is deliberately ASYMMETRIC and is
+    // opted into only by the invalidation scan:
+    //   - a missed level      -> the call is withheld from scoring. Honest, conservative.
+    //   - a fabricated trigger -> a free "satisfied", which INFLATES the hit rate. Unacceptable.
+    //   - a fabricated invalidation -> a "miss". Costs us, never flatters us.
+    // Recovering the risk side is therefore safe; recovering the win side is not.
+    // A bare INTEGER is still refused on both sides: in this corpus integers are periods and
+    // thresholds ("the 50-day", "20>50>200", "rsMom >100"), not prices.
+    const NUMBER = allowBareDecimal
+      ? /\^?[A-Za-z][A-Za-z0-9.'-]{0,9}|~\d[\d,]*\.?\d*|\d[\d,]*\.\d+/g
+      : /\^?[A-Za-z][A-Za-z0-9.'-]{0,9}|~\d[\d,]*\.?\d*/g;
+    for (const match of clause.matchAll(NUMBER)) {
       const token = match[0];
       if (/[A-Za-z]/.test(token)) {
         // Relation words win over ticker membership: the narrative writes them in caps for emphasis
@@ -166,7 +191,11 @@ export function extractLevels(text, universe, options) {
       // percentage or a date, never a price gate.
       const trailing = clause.slice(match.index + token.length, match.index + token.length + 6);
       if (/^\s*(?:%|-?\s*(?:day|week|month|year|session|bar)|\/|>|<|x\b)/i.test(trailing)) continue;
-      const numeric = Number(token.slice(1).replace(/,/g, ''));
+      // Reject a number that is the TAIL of a date or a ratio ("7/31", "20>50>200"). The trailing
+      // guard cannot see this because the disqualifier sits BEFORE the digits.
+      const preceding = clause.slice(Math.max(0, match.index - 1), match.index);
+      if (/[\/>>=<]/.test(preceding)) continue;
+      const numeric = Number(token.replace(/^~/, '').replace(/,/g, ''));
       if (!Number.isFinite(numeric) || numeric <= 0) continue;
       if (!current || !relation) continue;
       const key = `${current}|${relation}|${numeric}`;
@@ -213,7 +242,7 @@ export function buildRecommendationBody(action, options) {
     return { instrument: level.instrument, relation: level.relation, value: level.value, source: improvement ? 'trigger' : defaultSource };
   };
   const fromTrigger = extractLevels([subject, trigger].filter(Boolean).join(' \u2014 '), universe, levelOptions).map((level) => classify(level, 'trigger'));
-  const fromInvalidation = extractLevels(invalidation || '', universe, levelOptions).map((level) => classify(level, 'invalidation'));
+  const fromInvalidation = extractLevels(invalidation || '', universe, { ...levelOptions, allowBareDecimal: true }).map((level) => classify(level, 'invalidation'));
   const levels = fromTrigger.concat(fromInvalidation);
   const invalidationLevels = levels.filter((level) => level.source === 'invalidation');
   const triggerLevels = levels.filter((level) => level.source === 'trigger');

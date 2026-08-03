@@ -534,7 +534,7 @@ node scripts/selftest.mjs
 ```
 1  Correct the pinning tests ....... 0.5d   ✅ done  af1a6375..00cee721
 2  Simple speaks to a human ........ 1.5d   ✅ done  00cee721  leaks 66 -> 37
-3  Governance out of product copy .. 0.5d   ◐ 157 -> 17 leaks; 17 remain (see below)
+3  Governance out of product copy .. 0.5d   ✅ done  b4bcc7c8  leaks 157 -> 0
 4  Watchlist routed into tools ..... 2-3d   ◐ owned 0 -> 28, covered 0 -> 8; target >=15
 5  Red Alert + Portfolio real ...... 1d     depends on 4
 6  Recommendations born evaluable .. 2d     ⚠ notEvaluableShare 0.83 -> <=0.25  ← the moat
@@ -547,14 +547,24 @@ Steps 1→2→3 are the legibility track. Step 4 is the coverage track and gates
 independent. Step 8 is withdrawn — journey reach was already 23/23; the genuine defect there (every page
 showing every tool's journeys) was N10 and is fixed.
 
-**Remaining 17 reader-visible leaks**, measured by `node scripts/audit-reader-legibility.mjs`:
+**Reader legibility is closed.** `node scripts/audit-reader-legibility.mjs` — *pages audited: 23, with view tabs: 23,
+errored: 0, **total leaks: 0***. Every registered tool renders `Simple · Power · Brief · Journey` with no framework
+vocabulary in reader-visible copy, down from 157 occurrences across 23 of 23 tools at `af1a6375`.
 
-| Class | Count | Where | Fix |
-|---|---|---|---|
-| `contract-version` | 9 | Simple "no result yet" message names the raw adapter id, e.g. `technical-five-gate/v1` | Name the capability in words. **`tests/simple-models.spec.mjs:22` pins the slug — correct that assertion first (D14).** |
-| `scope-number` | 5 | 3× Power (`Scope 4`, `Scope 01`), Portfolio + Journey (`Scope 13`) | Remove the citation from reader copy |
-| `dependency-slug` | 2 | Brief + Portfolio render `dependency-pending` | Say what is not available yet, in words |
-| `integration-state` | 1 | Brief renders `coverage-only` | Already mapped in `rlbrief.js`; one path still emits the raw code |
+Two of the last three were **authored content, not renderer bugs**, and were fixed at the authoring source as
+well as in the artifact — `scripts/brief-narrative-parallel.mjs` now carries an explicit vocabulary rule mapping
+each status code to plain words. Without that the 4×/day cron would have re-emitted the codes within hours and
+silently undone the fix.
+
+| Was | Now |
+|---|---|
+| `Simple model result` (every tool, every state) | the verdict itself, or `Partial result` / `Result may be out of date` / `No result yet` |
+| `Owner model adapter required: simple-adapter/technical-five-gate/v1` | "This tool's own model is not loaded, so there is no result to show." |
+| `Withheld: dynamic-tool-brief-v2, live-web-evidence, public-alert-publication` | "Not in this view yet: …" in words |
+| `Gate: E012-DEPENDENCY:…` / `Acceptance gate:…` | removed from reader copy; still enforced |
+| `dependency-pending:feature-002` | "not available in this view yet" (code kept as a data attribute) |
+| `journey/market-action/prepare-session/v1` | "Prepare the next market session" |
+| `returned coverage-only` in brief prose | `returned no call` |
 
 **Do Step 6 next.** Steps 1–3 made the product legible; Step 4 gave the matrix real cells. Step 6 is the only
 remaining step that changes what the product *is* rather than how it reads: a recommendation that is born with

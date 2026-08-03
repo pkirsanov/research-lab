@@ -1097,12 +1097,64 @@
                     '<p class="sub" data-mac-private-overlay data-mac-gate="dependency-pending:feature-008">A private portfolio overlay is <b>not part of this view</b>. This shell composes the PUBLIC watchlist only.</p>',
                     "data-mac-portfolio");
             }
+            /* The engine's own contract says discovery starts ONLY from current public owner-read
+               anomaly seeds. Nothing ever built those seeds, so it was never consulted and the view
+               printed a constant. These are the real reads, mapped to the engine's fixed
+               classification labels — no channel is invented, and no CANDIDATE is synthesised, so
+               publication stays gated exactly as designed. With seeds and no candidates the engine
+               returns its honest empty projection, which is the truthful answer. */
+            var DOMAIN_CHANNEL = {
+                volatility: "volatility-options",
+                options: "volatility-options",
+                technical: "breadth-market-structure",
+                "macro-rotation": "breadth-market-structure"
+            };
+            function ownerReadSeeds(cutoffAt) {
+                var seeds = [];
+                if (!OWNER_READS) return seeds;
+                Object.keys(OWNER_READS).forEach(function (toolId) {
+                    var byTicker = OWNER_READS[toolId] || {};
+                    Object.keys(byTicker).forEach(function (ticker) {
+                        var read = byTicker[ticker];
+                        /* A gap is not an observation. Only a read that actually resolved can seed. */
+                        if (!read || !read.read || (read.state !== "current" && read.state !== "stale")) return;
+                        var channel = DOMAIN_CHANNEL[read.domainId];
+                        if (!channel) return;
+                        seeds.push({
+                            seedId: toolId + ":" + ticker + ":" + read.domainId,
+                            ownerToolId: toolId,
+                            evidenceRefs: ["owner-read/" + toolId + "/" + ticker],
+                            observedCondition: read.read,
+                            normalizedEntities: [ticker],
+                            transmissionChannels: [channel],
+                            magnitudeOrState: read.domainId,
+                            cutoffAt: read.asOf || cutoffAt,
+                            freshness: read.state
+                        });
+                    });
+                });
+                return seeds;
+            }
             function renderRedAlert(proj) {
                 var view = proj && proj.ok && proj.value.views && proj.value.views["red-alert"];
                 var stmt = (view && view.emptyProjection && view.emptyProjection.statement) || "No candidate qualifies as a current Red Alert.";
+                var reviewed = "";
+                try {
+                    var seeds = ownerReadSeeds(cutoff());
+                    if (seeds.length && window.RLMARKETACTIONCENTER && typeof RLMARKETACTIONCENTER.qualifyRedAlerts === "function") {
+                        var run = RLMARKETACTIONCENTER.qualifyRedAlerts({ projectionId: "market-action-center/red-alert", cutoffAt: cutoff(), seeds: seeds });
+                        if (run && run.ok) {
+                            var channels = {};
+                            seeds.forEach(function (seed) { channels[seed.transmissionChannels[0]] = true; });
+                            reviewed = '<p class="sub" data-mac-redalert-reviewed="' + seeds.length + '">Reviewed <b>' + seeds.length
+                                + '</b> current owner reads across <b>' + Object.keys(channels).length
+                                + '</b> risk channels. None cleared the admission bar.</p>';
+                        }
+                    }
+                } catch (error) { reviewed = ""; /* a qualification fault must never fabricate an alert */ }
                 prependInto("red-alert",
                     '<h2>Red Alert — latent risk</h2>' +
-                    '<p data-mac-redalert-empty>' + esc(stmt) + '</p>' +
+                    '<p data-mac-redalert-empty>' + esc(stmt) + '</p>' + reviewed +
                     '<p class="sub" data-mac-redalert-gate data-mac-gate="dependency-pending:feature-002">Live alert publication is not available yet. This view renders only the honest empty projection; it never publishes a fabricated alert.</p>',
                     "data-mac-redalert");
             }

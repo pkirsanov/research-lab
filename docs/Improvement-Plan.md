@@ -179,10 +179,18 @@ content over it, and that content is the empty grid of N4.
 `ai-capex-strategy-lab`, `bond-regime-lab`, `options-flow-feed-lab`, `smart-money-flow-lab`,
 `technical-analysis-decision-lab`. Each shows *“Coverage only — Not run this cycle”* rather than a read.
 
-### N8 · Journeys are reachable from 2 of 25 pages — **medium**
+### ~~N8 · Journeys are reachable from 2 of 25 pages~~ — **WITHDRAWN, never a defect**
 
-48 definitions exist and the chooser works, but the panel that hosts it ships only where the four-view shell
-ships. 21 tools declare their own 2 goals in `tools.json` that a reader standing on that tool cannot start.
+> This entry was **my measurement error**, not a product gap. I grepped the HTML for a static
+> `<script src="rlviews.js">` tag, found it on 2 pages, and concluded the journey panel shipped on 2 of 25.
+> But [`../rlapp.js`](../rlapp.js) line 339 loads that shell *dynamically* via `ensureSharedScript`, so the
+> panel exists on pages whose HTML never names the file.
+>
+> Browser-measured truth (`node scripts/audit-reader-legibility.mjs`): **23 of 23** tool pages expose
+> `Simple · Power · Brief · Journey`, each rendering `journeyToolRows=1 journeyGoals=2`. Reach was always 100%.
+>
+> The real defect in this area was **N10** below — every page showed *all* tools' journeys. See Step 8 (void)
+> and anti-drift **D17**.
 
 ### N10 · Every view was global; none was scoped to the tool the reader is in — **high** · *journey part delivered*
 
@@ -468,19 +476,38 @@ node scripts/selftest.mjs
 
 ---
 
-### Step 8 · A journey entry on every tool page — **1 d**
+### Step 8 · A journey entry on every tool page — ~~1 d~~ **VOID — premise was a measurement error**
 
-**Change** — every registered tool page exposes its own 2 goals. The chooser already prioritises the current
-tool; the panel simply has to exist where the reader is standing.
+> **Withdrawn, not delivered-by-luck.** This step existed because I measured journey reach by grepping the HTML
+> for a static `<script src="rlviews.js">` tag and found **2 of 25** pages. That measurement was wrong.
+> [`../rlapp.js`](../rlapp.js) line 339 loads the view shell *dynamically* through `ensureSharedScript`, so the
+> `[data-rljourney-mount]` anchor is created at runtime on pages whose HTML never names the file. A static grep
+> is blind to that.
+>
+> Re-measured in a real browser via
+> [`../scripts/audit-reader-legibility.mjs`](../scripts/audit-reader-legibility.mjs):
+>
+> ```
+> pages audited: 23   with view tabs: 23
+> every tool page   views=[Simple|Power|Brief|Journey]  journeyToolRows=1 journeyGoals=2
+> market-brief      + [Portfolio|Red Alert]             journeyToolRows=23 journeyGoals=48
+> ```
+>
+> Reach was already **23/23**. The acceptance metric `2/25 → 25/25` was therefore unachievable *and* meaningless:
+> it measured a quantity that was never 2.
+>
+> The **real** defect in this area was different and is already fixed (`e0bed8cd`): every page rendered *all 23
+> tools'* journeys, so a reader on one tool got the whole catalogue instead of that tool's two goals. Scoping
+> now holds — tool pages show their own, the Action Center shows all.
+>
+> **Retained obligation.** One clause of the original "done when" is still live and moves to Step 9's paperwork
+> sweep: *no test may inject its own mount anchor*. `tests/journey-mobile.spec.mjs` still does, which means it
+> proves the controller works but not that the page ships the anchor. That is a test-integrity item (**D14**),
+> not a product gap.
 
-**Acceptance metric** — journey reach rises **2/25 → 25/25** pages.
-
-```bash
-npx --no-install playwright test tests/journey-reach.spec.mjs --config=playwright.config.mjs --project=system-chrome
-node scripts/selftest.mjs
-```
-
-**Done when** every registered tool page can start its own journeys and no test injects its own mount anchor.
+**Lesson recorded as anti-drift D17.** A reach/coverage claim about a browser product must be measured **in a
+browser**. Static grep may be used to *locate* code, never to assert what a reader can reach. This document
+asserted a wrong number twice before the browser audit contradicted it.
 
 ---
 
@@ -505,22 +532,33 @@ node scripts/selftest.mjs
 ### Sequencing
 
 ```
-1  Correct the pinning tests ....... 0.5d   ⚠ blocks 2 — the assertion must fail first
-2  Simple speaks to a human ........ 1.5d   🔴 highest perceived value
-3  Governance out of product copy .. 0.5d   no E012-/Withheld:/Scope NN in any default view
-4  Watchlist routed into tools ..... 2-3d   ⚠ covered cells 0 -> >=15
+1  Correct the pinning tests ....... 0.5d   ✅ done  af1a6375..00cee721
+2  Simple speaks to a human ........ 1.5d   ✅ done  00cee721  leaks 66 -> 37
+3  Governance out of product copy .. 0.5d   ◐ 157 -> 17 leaks; 17 remain (see below)
+4  Watchlist routed into tools ..... 2-3d   ◐ owned 0 -> 28, covered 0 -> 8; target >=15
 5  Red Alert + Portfolio real ...... 1d     depends on 4
-6  Recommendations born evaluable .. 2d     ⚠ notEvaluableShare 0.83 -> <=0.25
+6  Recommendations born evaluable .. 2d     ⚠ notEvaluableShare 0.83 -> <=0.25  ← the moat
 7  Last five stale tools ........... 1.5d   analyzed 11 -> 16
-8  Journey on every tool page ...... 1d     reach 2/25 -> 25/25
+8  Journey on every tool page ...... ----   ✖ VOID — premise was a measurement error (D17)
 9  Paperwork reconciled ............ 1d     zero status/code contradictions
-                                   ≈ 11-13 focused days
 ```
 
-Steps 1→2→3 are the legibility track. Step 4 is the coverage track and gates 5 and 6. Steps 7, 8 and 9 are
-independent of everything else.
+Steps 1→2→3 are the legibility track. Step 4 is the coverage track and gates 5 and 6. Steps 7 and 9 are
+independent. Step 8 is withdrawn — journey reach was already 23/23; the genuine defect there (every page
+showing every tool's journeys) was N10 and is fixed.
 
-**Do Step 1 and Step 2 first — they are what makes the product usable at all.**
+**Remaining 17 reader-visible leaks**, measured by `node scripts/audit-reader-legibility.mjs`:
+
+| Class | Count | Where | Fix |
+|---|---|---|---|
+| `contract-version` | 9 | Simple "no result yet" message names the raw adapter id, e.g. `technical-five-gate/v1` | Name the capability in words. **`tests/simple-models.spec.mjs:22` pins the slug — correct that assertion first (D14).** |
+| `scope-number` | 5 | 3× Power (`Scope 4`, `Scope 01`), Portfolio + Journey (`Scope 13`) | Remove the citation from reader copy |
+| `dependency-slug` | 2 | Brief + Portfolio render `dependency-pending` | Say what is not available yet, in words |
+| `integration-state` | 1 | Brief renders `coverage-only` | Already mapped in `rlbrief.js`; one path still emits the raw code |
+
+**Do Step 6 next.** Steps 1–3 made the product legible; Step 4 gave the matrix real cells. Step 6 is the only
+remaining step that changes what the product *is* rather than how it reads: a recommendation that is born with
+an attributable level and invalidation can be scored, and a system that scores itself is the defensible edge.
 
 ---
 
@@ -557,6 +595,7 @@ The frontier requires four more.
 | **D14** | **A test may not assert a placeholder.** Any assertion pinning generic contract copy as correct output is a defect in the test. Tests encode the specification, never the current implementation. | review + Step 1 |
 | **D15** | **Every rendered control carries a contextual tooltip** stating what it is and what the current value implies. A value with no contextual tooltip is a defect. | selftest scan over the shell renderer |
 | **D16** | **No unscoreable tactical or swing call is published.** If a level cannot be attributed, the claim is withheld rather than emitted as `not-evaluable`. | `scripts/evaluate-recommendations.mjs` + scorecard threshold |
+| **D17** | **A reach or coverage claim about a browser product is measured in a browser.** Static grep may locate code; it may never assert what a reader can reach. Shared modules load dynamically, so the HTML does not name what the page runs. | `scripts/audit-reader-legibility.mjs --explain` (prints the selector that matched, so a false "this view exists" is visible) |
 
 ---
 

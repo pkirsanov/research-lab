@@ -44,7 +44,7 @@ nothing to check. That is the subject of §16 and of [`Improvement-Plan.md`](Imp
 | Tool pages on disk | 25 (+ `index.html`) | 2 unregistered — now **accounted** in [`../site-exclusions.json`](../site-exclusions.json) |
 | Declared model contracts ([`../simple-models.json`](../simple-models.json)) | **23 / 23** | complete |
 | Shared adapters ([`../rlexperience-adapters/`](../rlexperience-adapters)) | 7 modules | UMD dual-module, Node-loadable |
-| User journeys ([`../journeys.json`](../journeys.json)) | **48 definitions / 48 steps** | mountable — but the panel ships on **2 of 25** pages |
+| User journeys ([`../journeys.json`](../journeys.json)) | **48 definitions / 48 steps** | mounted and reachable on **23 of 23** tool pages |
 | Playwright specs | **33** files | CI runs the **full** suite, blocking |
 | Selftest assertions | **1,138** | pass, exit 0; CI runs **all** of them, blocking |
 | Committed market data | **289** daily-bar files, **22** option chains | same-origin, keyless |
@@ -74,7 +74,7 @@ nothing to check. That is the subject of §16 and of [`Improvement-Plan.md`](Imp
   `validate-node-source-lock.mjs`. Stronger than most projects of any size.
 - **Keyless-by-default data path.** `rldata.js` `pagesBars()` serves committed same-origin snapshots
   (`data/bars/<SYM>.json`, 289 symbols; 23 option chains) with no CORS, proxy or key — tried before any keyed
-  provider. 12 of 25 tool pages hydrate through it.
+  provider. **11 of 23 registered tools** hydrate through it.
 - **Gated publication.** `brief-refresh-and-push.sh` runs `validate-brief-payload.mjs` and restores the owned
   baseline on failure, so a malformed run cannot publish.
 - **Serious data engineering.** ET date+window cache keys, XNYS-calendar session verification,
@@ -99,7 +99,7 @@ to, and an AI agent doing real research four times a day.
 | **Depth** | Why? show me the working | the 23 tools | strong |
 | **Feedback** | *Was I right?* | nothing | **absent** |
 
-### 3.3 The 48 designed journeys — built, unmounted
+### 3.3 The 48 designed journeys — reachable, and now scoped
 
 [`../journeys.json`](../journeys.json) defines 48 concrete goals, roughly two per tool. They are well-chosen
 and specific:
@@ -113,12 +113,27 @@ and specific:
 | Validation | *Decide whether an edge survives* · *Explain an out-of-sample failure* · *Test ETF ranking robustness* |
 | Risk | *Explain the volatility throttle* · *Investigate an estimator conflict* · *Stress FX and risk penalties* |
 
-**None is reachable.** No page carries the `[data-rljourney-mount]` anchor; [`../rlapp.js`](../rlapp.js)
-line 366 states the boot hook is *"inert"* on every real page, and `tests/journey-mobile.spec.mjs` injects the
-anchor itself in order to test it.
+> **Correction (measured at HEAD).** Earlier passes of this document said *"None is reachable. No page carries
+> the `[data-rljourney-mount]` anchor."* **That was a measurement error on my part, not a product defect.** It came
+> from grepping the HTML for a static `<script src="rlviews.js">` tag, which finds 2 pages. But
+> [`../rlapp.js`](../rlapp.js) line 339 loads the view shell *dynamically* via `ensureSharedScript`, so the anchor
+> is created at runtime on every page. A static grep cannot see that; a browser can.
+>
+> Re-measured with [`../scripts/audit-reader-legibility.mjs`](../scripts/audit-reader-legibility.mjs), which renders
+> each page in Chrome and activates each view:
+>
+> | Surface | Views reachable | Journey rows / goals shown |
+> |---|---|---|
+> | 23 of 23 tool pages | `Simple · Power · Brief · Journey` | **1 row / 2 goals** — that tool's own |
+> | `market-brief.html` (Action Center) | + `Portfolio · Red Alert` | **23 rows / 48 goals** — the whole catalogue |
+>
+> Journeys were always reachable. What was genuinely wrong is that *every* page showed *all 23 tools' journeys*,
+> so a reader on one tool was handed the entire catalogue instead of that tool's two goals. Fixed in `e0bed8cd`
+> by scoping the chooser to the current tool and keeping the global list on the Action Center only.
 
 Note *"Define a level trigger and invalidation"* — that journey is the exact input the recommendation ledger
-needs. The pieces were designed to fit; they were never connected.
+needs. The pieces were designed to fit; they were never connected. **That connection is still missing** and is
+the subject of §5.3 and of the recommendation-evaluability work in [`Improvement-Plan.md`](Improvement-Plan.md).
 
 ### 3.4 The scenario that does not exist
 
@@ -395,7 +410,7 @@ Ranked by value ÷ effort.
 **Tier 3 — reach**
 
 9. Email/push delivery — the brief is built for an inbox; both major competitors do this.
-10. Widen the key-free path — **12 of 25** tool pages hydrate through `RLDATA.ensure*`, which serves committed
+10. Widen the key-free path — **11 of 23 registered tools** hydrate through `RLDATA.ensure*`, which serves committed
     same-origin snapshots with no key or proxy (289 bar symbols, 23 option chains). Extending snapshot coverage
     is what widens keyless reach; note `pagesBars()` is http(s)-only, so `file://` falls through to keyed
     providers.

@@ -1,0 +1,67 @@
+{
+  "contractVersion": "public-owner-reads/v1",
+  "generatedAt": "2026-08-03T01:05:52.808Z",
+  "asOf": "2026-08-03",
+  "source": "committed same-origin snapshots via rlmetrics",
+  "tickers": [
+    "QQQ",
+    "SPMO",
+    "VGT",
+    "MSFT"
+  ],
+  "domainsProduced": [
+    "volatility"
+  ],
+  "ownerReads": {
+    "volatility-sizing-lab": {
+      "QQQ": {
+        "state": "current",
+        "read": "Realized 63-session volatility 25.3% annualized.",
+        "asOf": "2026-07-31T00:00:00.000Z",
+        "provenance": "same-origin-snapshot",
+        "gapReason": null,
+        "metrics": {
+          "annualizedVol": 0.253036,
+          "window": 63
+        },
+        "ownerDeepLink": "volatility-sizing-lab.html#power"
+      },
+      "SPMO": {
+        "state": "current",
+        "read": "Realized 63-session volatility 36.9% annualized.",
+        "asOf": "2026-07-31T00:00:00.000Z",
+        "provenance": "same-origin-snapshot",
+        "gapReason": null,
+        "metrics": {
+          "annualizedVol": 0.368931,
+          "window": 63
+        },
+        "ownerDeepLink": "volatility-sizing-lab.html#power"
+      },
+      "VGT": {
+        "state": "current",
+        "read": "Realized 63-session volatility 31.1% annualized.",
+        "asOf": "2026-07-31T00:00:00.000Z",
+        "provenance": "same-origin-snapshot",
+        "gapReason": null,
+        "metrics": {
+          "annualizedVol": 0.310949,
+          "window": 63
+        },
+        "ownerDeepLink": "volatility-sizing-lab.html#power"
+      },
+      "MSFT": {
+        "state": "current",
+        "read": "Realized 63-session volatility 44.8% annualized.",
+        "asOf": "2026-07-31T00:00:00.000Z",
+        "provenance": "same-origin-snapshot",
+        "gapReason": null,
+        "metrics": {
+          "annualizedVol": 0.44848,
+          "window": 63
+        },
+        "ownerDeepLink": "volatility-sizing-lab.html#power"
+      }
+    }
+  }
+}

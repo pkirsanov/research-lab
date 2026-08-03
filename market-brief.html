@@ -1024,7 +1024,7 @@
         (function macCenterController() {
             "use strict";
             if (typeof document === "undefined") return;
-            var JOURNEY_IDS = null, WATCHLIST = null, OWNER_PRECEDENCE = null, lastMatrix = null, lastProjection = null, enhanced = false;
+            var JOURNEY_IDS = null, WATCHLIST = null, OWNER_PRECEDENCE = null, OWNER_READS = null, lastMatrix = null, lastProjection = null, enhanced = false;
 
             function esc(s) { return (s == null ? "" : String(s)).replace(/[&<>"]/g, function (c) { return { "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;" }[c]; }); }
             function panel(mode) { return document.querySelector('[data-rlexperience-panel="' + mode + '"]'); }
@@ -1062,7 +1062,7 @@
             function composeMatrix() {
                 if (!window.RLMARKETACTIONCENTER || !WATCHLIST) return null;
                 var items = Array.isArray(WATCHLIST.items) ? WATCHLIST.items : [];
-                return RLMARKETACTIONCENTER.composePublicMatrix({ matrixId: "market-action-public-matrix/live", cutoffAt: cutoff(), generationRef: "legacy-market-brief-payload", domainMapVersion: "matrix-domain-map/v1", watchlist: { items: items }, applicability: applicabilityFor(items), ownerPrecedence: OWNER_PRECEDENCE || {} });
+                return RLMARKETACTIONCENTER.composePublicMatrix({ matrixId: "market-action-public-matrix/live", cutoffAt: cutoff(), generationRef: "legacy-market-brief-payload", domainMapVersion: "matrix-domain-map/v1", watchlist: { items: items }, applicability: applicabilityFor(items), ownerPrecedence: OWNER_PRECEDENCE || {}, ownerReads: OWNER_READS || {} });
             }
             function composeProjection(briefInput) {
                 if (!window.RLMARKETACTIONCENTER || !(Array.isArray(JOURNEY_IDS) && JOURNEY_IDS.length === 4)) return null;
@@ -1147,10 +1147,13 @@
                 };
             }
             function boot() {
-                Promise.all([readJson("watchlist.json"), readJson("tools.json")]).then(function (r) {
+                Promise.all([readJson("watchlist.json"), readJson("tools.json"), readJson("market-brief.owner-reads.json")]).then(function (r) {
                     WATCHLIST = r[0] || { items: [] };
                     var reg = r[1] && Array.isArray(r[1].tools) ? r[1].tools : [];
                     OWNER_PRECEDENCE = ownerPrecedenceFrom(reg);
+                    /* Absent or malformed reads leave every cell an explicit reasoned gap; the
+                       matrix never fabricates a covered cell to fill the grid. */
+                    OWNER_READS = (r[2] && typeof r[2].ownerReads === "object" && r[2].ownerReads) || {};
                     for (var i = 0; i < reg.length; i++) { if (reg[i] && reg[i].id === "market-brief" && reg[i].experience && Array.isArray(reg[i].experience.journeyDefinitionIds)) { JOURNEY_IDS = reg[i].experience.journeyDefinitionIds.slice(); break; } }
                     var tries = 0;
                     (function pump() { enhance(); if (!enhanced && tries++ < 120) setTimeout(pump, 50); })();

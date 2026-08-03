@@ -300,8 +300,12 @@ async function productionResultForLiveOwnerState(page, toolId, parameterValues, 
         adapter: projection.adapterId,
         heading: projection.heading,
         message: projection.message,
+        /* The panel renders the READER form of the value line. valueText + unit is the machine
+           contract; readableValueText is what the reader sees, and it is what render-parity must
+           be checked against. Comparing against the raw pair asserted that the panel prints a
+           unit slug at a human. */
         numeric: projection.state === 'ready' && projection.numericValue !== null
-          ? projection.valueText + (projection.unit ? ` ${projection.unit}` : '')
+          ? (projection.readableValueText || projection.valueText + (projection.unit ? ` ${projection.unit}` : ''))
           : null,
         summaryFingerprint: summary ? api.fingerprint(summary) : null,
         pricedCount: summary ? summary.pricedCount : null,

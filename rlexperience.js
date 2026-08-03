@@ -835,6 +835,16 @@
       valueText: valueText,
       numericValue: numericValue,
       unit: typeof options.unit === "string" ? options.unit : null,
+      /* What the reader ACTUALLY sees on the value line. valueText/unit stay the machine
+         contract; this is the rendered form (grouped digits, unit slug spelled out). Declaring
+         it keeps render-versus-projection parity checkable without forcing the panel to print
+         a raw slug like "pct-of-universe" at a human. */
+      readableValueText: (function () {
+        if (state !== "ready" || numericValue === null) return null;
+        var readableNumber = readableSimpleNumber(numericValue);
+        var readableUnit = readableSimpleUnit(typeof options.unit === "string" ? options.unit : null);
+        return (readableNumber || valueText) + (readableUnit ? " " + readableUnit : "");
+      })(),
       requiredEvidence: cloneCanonical(options.requiredEvidence),
       observedEvidence: cloneCanonical(options.observedEvidence),
       lastValidComputeIdentity: options.lastValidRun && typeof options.lastValidRun.computeIdentity === "string" ? options.lastValidRun.computeIdentity : null,
@@ -1325,7 +1335,7 @@
          this line carries the figure itself. */
       var readable = readableSimpleNumber(projection.numericValue);
       var unitText = readableSimpleUnit(projection.unit);
-      value.textContent = (readable || projection.valueText) + (unitText ? " " + unitText : "");
+      value.textContent = projection.readableValueText || ((readable || projection.valueText) + (unitText ? " " + unitText : ""));
       host.appendChild(value);
     }
     /* The preserved-run compute identity is provenance, not a reader fact. It stays on the

@@ -214,7 +214,12 @@ test('Regression: SCN-005-008/009 production unavailable financing fails loud wi
   const { requestedPaths } = await loadProductionPage(page);
   const requestCountBeforeInteractions = requestedPaths.length;
   await expect(page.locator('#fixtureBand')).toBeHidden();
-  await expect(page.locator('#publicationState')).toContainText('UNCOMMITTED FOR REVIEW');
+  /* The requirement is that the reader is told this read is NOT part of the published record.
+     The assertion used to pin the literal 'UNCOMMITTED FOR REVIEW; owner-read publication
+     deferred until Scope 4', which cited an internal scope number at the reader (D13) and
+     pinned the wording rather than the guarantee (D14). */
+  await expect(page.locator('#publicationState')).toContainText('not part of the published record yet');
+  await expect(page.locator('#publicationState')).not.toContainText(/Scope \d/);
 
   await page.getByRole('button', { name: 'Run amortization proof', exact: true }).click();
   await page.getByRole('button', { name: 'Run zero-rate proof', exact: true }).click();
@@ -229,12 +234,12 @@ test('Regression: SCN-005-008/009 production unavailable financing fails loud wi
   }
 
   await expect(page.locator('#fixtureBand')).toBeHidden();
-  await expect(page.locator('#publicationState')).toContainText('UNCOMMITTED FOR REVIEW');
+  await expect(page.locator('#publicationState')).toContainText('not part of the published record yet');
   expect(pageErrors).toEqual([]);
   expect(requestedPaths).toHaveLength(requestCountBeforeInteractions);
   console.log('[SCN-005-008/009] route=production');
   console.log('[SCN-005-008/009] fixtureAuthority=false');
-  console.log('[SCN-005-008/009] publication=UNCOMMITTED FOR REVIEW');
+  console.log('[SCN-005-008/009] publication=not-published-yet');
   console.log('[SCN-005-008/009] amortization=' + amortizationReceipt.replace(/\n/g, ' | '));
   console.log('[SCN-005-008/009] zeroRate=' + zeroRateReceipt.replace(/\n/g, ' | '));
   console.log('[SCN-005-008/009] pageErrors=' + pageErrors.length);

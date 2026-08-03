@@ -1024,7 +1024,7 @@
         (function macCenterController() {
             "use strict";
             if (typeof document === "undefined") return;
-            var JOURNEY_IDS = null, WATCHLIST = null, OWNER_PRECEDENCE = null, OWNER_READS = null, lastMatrix = null, lastProjection = null, enhanced = false;
+            var JOURNEY_IDS = null, JOURNEY_TITLES = null, WATCHLIST = null, OWNER_PRECEDENCE = null, OWNER_READS = null, lastMatrix = null, lastProjection = null, enhanced = false;
 
             function esc(s) { return (s == null ? "" : String(s)).replace(/[&<>"]/g, function (c) { return { "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;" }[c]; }); }
             function panel(mode) { return document.querySelector('[data-rlexperience-panel="' + mode + '"]'); }
@@ -1111,7 +1111,10 @@
                 var refs = (view && view.definitionRefs) || JOURNEY_IDS || [];
                 var cards = refs.map(function (ref) {
                     var isStress = /portfolio-stress/.test(ref);
-                    return '<li data-mac-journey-goal="' + esc(ref) + '"' + (isStress ? ' data-mac-gate="dependency-pending:feature-008"' : '') + '><code>' + esc(ref) + '</code>' + (isStress ? ' — needs a private portfolio, which this public shell does not have' : '') + '</li>';
+                    /* No title means the definition is not published; show the id rather than
+                       inventing a friendly name for a goal we cannot describe. */
+                    var title = (JOURNEY_TITLES && JOURNEY_TITLES[ref]) || ref;
+                    return '<li data-mac-journey-goal="' + esc(ref) + '"' + (isStress ? ' data-mac-gate="dependency-pending:feature-008"' : '') + '><b>' + esc(title) + '</b>' + (isStress ? ' — needs a private portfolio, which this public shell does not have' : '') + '</li>';
                 }).join("");
                 prependInto("journey",
                     '<h2>Journey — guided Market Action goals</h2>' +
@@ -1147,13 +1150,22 @@
                 };
             }
             function boot() {
-                Promise.all([readJson("watchlist.json"), readJson("tools.json"), readJson("market-brief.owner-reads.json")]).then(function (r) {
+                Promise.all([readJson("watchlist.json"), readJson("tools.json"), readJson("market-brief.owner-reads.json"), readJson("journeys.json")]).then(function (r) {
                     WATCHLIST = r[0] || { items: [] };
                     var reg = r[1] && Array.isArray(r[1].tools) ? r[1].tools : [];
                     OWNER_PRECEDENCE = ownerPrecedenceFrom(reg);
                     /* Absent or malformed reads leave every cell an explicit reasoned gap; the
                        matrix never fabricates a covered cell to fill the grid. */
                     OWNER_READS = (r[2] && typeof r[2].ownerReads === "object" && r[2].ownerReads) || {};
+                    /* A reader picks a GOAL, not a contract id. The id stays as the
+                       data-mac-journey-goal attribute so the surface is still machine-checkable. */
+                    JOURNEY_TITLES = (function (doc) {
+                        var map = {}, defs = doc && Array.isArray(doc.definitions) ? doc.definitions : [];
+                        for (var k = 0; k < defs.length; k++) {
+                            if (defs[k] && defs[k].definitionId && defs[k].title) map[defs[k].definitionId] = defs[k].title;
+                        }
+                        return map;
+                    })(r[3]);
                     for (var i = 0; i < reg.length; i++) { if (reg[i] && reg[i].id === "market-brief" && reg[i].experience && Array.isArray(reg[i].experience.journeyDefinitionIds)) { JOURNEY_IDS = reg[i].experience.journeyDefinitionIds.slice(); break; } }
                     var tries = 0;
                     (function pump() { enhance(); if (!enhanced && tries++ < 120) setTimeout(pump, 50); })();

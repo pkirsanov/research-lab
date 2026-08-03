@@ -390,7 +390,7 @@
           cells: cells,
           /* authored per-ticker catalyst Brief is a Feature 002 dependency-pending gate;
              the composer never fabricates a catalyst. */
-          catalyst: { state: GATE.authoredBriefV2, ref: null, note: "Authored public catalyst Brief is gated to Feature 002 certification (Scope 11)." },
+          catalyst: { state: GATE.authoredBriefV2, ref: null, note: "A published catalyst read is not available yet." },
           gaps: gaps,
           publicBriefState: GATE.authoredBriefV2,
           localOverlayState: GATE.privatePortfolioOverlay

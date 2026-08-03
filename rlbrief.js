@@ -941,7 +941,7 @@
     var provenance = esc(briefView.legacyProvenance || "legacy-market-brief-payload");
     var authorState = esc(briefView.authorState || "dependency-pending:feature-002");
     var parts = ['<div class="sub" data-mac-provenance="' + provenance + '" data-mac-author-state="' + authorState + '">' +
-      'Viewport provenance: <b>' + provenance + '</b>. Authored ToolBrief v2 Brief: <b>' + authorState + '</b> (Feature 002 · Scope 11) — the first viewport is the actual legacy public projection, never a v2 / frozen-bundle claim.</div>'];
+      'Viewport provenance: <b>' + provenance + '</b>. Authored ToolBrief v2 Brief: <b>' + authorState + '</b> — the first viewport is the actual legacy public projection, never a v2 / frozen-bundle claim.</div>'];
     var na = briefView.noAction;
     if (na && typeof na === "object") {
       parts.push('<div class="acard" data-mac-noaction data-mac-noaction-fabricated="false" style="border-left:3px solid var(--teal);background:rgba(45,212,191,.06)">' +
@@ -1162,7 +1162,7 @@
     var parts = [];
     parts.push('<div class="sub" data-web-evidence-author-state="' + esc(safe.authorState) + '">' +
       'Evidence audit only — <b>no ToolBrief is authored or published by this acquisition scope</b> (' +
-      esc(safe.authorState) + ' · Feature 002 · Scope 11). Frozen bundle <b>' + esc(safe.bundleId) +
+      esc(safe.authorState) + '). Frozen bundle <b>' + esc(safe.bundleId) +
       '</b> · tool ' + esc(safe.toolId) + ' · policy ' + esc(safe.policyId) + ' · query-plan ' +
       esc(safe.queryPlanRef) + ' · cutoff ' + esc(safe.cutoffAt) + ' · frozen ' + esc(safe.frozenAt) + '.</div>');
 

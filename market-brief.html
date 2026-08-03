@@ -1071,7 +1071,7 @@
                 }).join("");
                 prependInto("portfolio",
                     '<h2>Portfolio — public watchlist matrix</h2>' +
-                    '<p class="sub" data-mac-portfolio-provenance>Every row is scoped <b>' + esc(matrix.scopeSummary.scopeLabel) + '</b> and derived from the ticker-only public <code>watchlist.json</code> — public research scope only; a watchlist is not a portfolio. Live per-ticker owner reads arrive with the Feature-002 authored Brief (Scope 11); until then an applicable domain is an EXPLICIT <b>unavailable</b> gap, never neutral by omission.</p>' +
+                    '<p class="sub" data-mac-portfolio-provenance>Every row is scoped <b>' + esc(matrix.scopeSummary.scopeLabel) + '</b> and derived from the ticker-only public <code>watchlist.json</code> — public research scope only; a watchlist is not a portfolio. Per-ticker owner reads are not published yet; until they are, an applicable domain is an EXPLICIT <b>unavailable</b> gap, never neutral by omission.</p>' +
                     '<div style="overflow-x:auto"><table data-mac-matrix style="border-collapse:collapse;width:100%;font-size:12.5px"><thead><tr>' + head + '</tr></thead><tbody>' + body + '</tbody></table></div>' +
                     '<p class="sub" data-mac-private-overlay data-mac-gate="dependency-pending:feature-008">Private portfolio overlay: <b>dependency-pending</b> — gated to Feature 008 (Scope 13). This shell composes the PUBLIC watchlist only.</p>',
                     "data-mac-portfolio");
@@ -1082,7 +1082,7 @@
                 prependInto("red-alert",
                     '<h2>Red Alert — latent risk</h2>' +
                     '<p data-mac-redalert-empty>' + esc(stmt) + '</p>' +
-                    '<p class="sub" data-mac-redalert-gate data-mac-gate="dependency-pending:feature-002">Live Red Alert publication is <b>dependency-pending</b> — gated to Feature 002 (Scope 12). This shell renders only the honest empty projection; it never publishes a fabricated alert.</p>',
+                    '<p class="sub" data-mac-redalert-gate data-mac-gate="dependency-pending:feature-002">Live alert publication is not available yet. This view renders only the honest empty projection; it never publishes a fabricated alert.</p>',
                     "data-mac-redalert");
             }
             function renderJourney(proj) {
@@ -1094,7 +1094,7 @@
                 }).join("");
                 prependInto("journey",
                     '<h2>Journey — guided Market Action goals</h2>' +
-                    '<p class="sub">Four committed global Market Action journey goals (Scope 08 runtime). Choose a goal to begin a guided, non-executing research workflow.</p>' +
+                    '<p class="sub">Four committed global Market Action journey goals. Choose a goal to begin a guided, non-executing research workflow.</p>' +
                     '<ul data-mac-journey-list>' + cards + '</ul>',
                     "data-mac-journey");
             }

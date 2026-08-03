@@ -535,7 +535,7 @@ node scripts/selftest.mjs
 1  Correct the pinning tests ....... 0.5d   ✅ done  af1a6375..00cee721
 2  Simple speaks to a human ........ 1.5d   ✅ done  00cee721  leaks 66 -> 37
 3  Governance out of product copy .. 0.5d   ✅ done  b4bcc7c8  leaks 157 -> 0
-4  Watchlist routed into tools ..... 2-3d   ◐ owned 0 -> 28, covered 0 -> 8; target >=15
+4  Watchlist routed into tools ..... 2-3d   ✅ af221a89  owned 0 -> 28, covered 0 -> 14/28
 5  Red Alert + Portfolio real ...... 1d     depends on 4
 6  Recommendations born evaluable .. 2d     ◐ 32692325  live payload 40% -> 80% scoreable
 7  Last five stale tools ........... 1.5d   analyzed 11 -> 16
@@ -566,7 +566,36 @@ silently undone the fix.
 | `journey/market-action/prepare-session/v1` | "Prepare the next market session" |
 | `returned coverage-only` in brief prose | `returned no call` |
 
-**Do Step 7 next** (the five tools still stale in the brief), then Step 9 (paperwork).
+**Do Step 5 next** (Red Alert and Portfolio panels are still hardcoded prose), then Step 7 (the five tools still
+stale in the brief), then Step 9 (paperwork).
+
+### Step 4 — coverage is bounded by evidence, not by effort
+
+`covered 0 → 14 of 28` public-matrix cells, each computed from committed same-origin data through
+`scripts/build-owner-reads.mjs`. The original target was ≥15; the real ceiling is what the repo can honestly
+compute, and 14 is that ceiling today.
+
+| Domain | Owner | Cells | Read |
+|---|---|---|---|
+| volatility | `volatility-sizing-lab` | 4 | realized 63-session annualized volatility |
+| technical | `swing-structure-lab` | 4 | 20/50/200 stack + distance from the 200-session average |
+| macro-rotation | `etf-momentum-lab` | 4 | trailing 63-session return relative to `SPY`, in points |
+| options | `options-structure-lab` | 2 | nearest-expiry at-the-money implied move |
+
+The other 14 cells stay **explicit reasoned gaps** (BI-2), and the reasons are not interchangeable:
+
+- **options for SPMO / VGT** — no committed chain. Borrowing a proxy symbol's volatility would render as *this*
+  ticker's own, and be false.
+- **fundamentals, catalyst** — no committed statement or event data.
+- **`gaps`** — **eight unrelated tools claim this domain and nothing in the registry defines what it means.**
+  Producing a read would be inventing a semantic. This is a registry defect worth resolving deliberately, not a
+  data gap to fill.
+
+**A real defect surfaced while doing this.** Reads were keyed `(tool, ticker)` only, but a tool owns several
+domains — `options-structure-lab` owns options, technical *and* volatility. The moment it had a read, the
+precedence walk would have served one implied-move figure as the answer to three different questions. Reads now
+carry `domainId` and `resolveCell` skips a domain mismatch. This is also why `covered` moved `8 → 10` before the
+technical producer existed: the old volatility read had been silently doubling as the technical cell.
 
 ### Step 6 — what was actually wrong
 

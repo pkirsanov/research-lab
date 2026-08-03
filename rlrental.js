@@ -1946,7 +1946,7 @@
             renderSources(candidate.unit);
             renderControls(candidate);
             renderResult(candidate);
-            setText("publicationState", fixtureMode ? "TEST FIXTURE: owner-read publication disabled." : "UNCOMMITTED FOR REVIEW; owner-read publication deferred until Scope 4.");
+            setText("publicationState", fixtureMode ? "TEST FIXTURE: owner-read publication disabled." : "Under review \u2014 this read is not part of the published record yet.");
             setText("storageState", fixtureMode ? "TEST FIXTURE: persistence disabled" : (node("storageState").textContent || "PAIR-ONLY LOCAL STATE"));
             node("segmentWhole").setAttribute("aria-pressed", candidate.unit.segmentId === "whole-market" ? "true" : "false");
             node("segmentLuxury").setAttribute("aria-pressed", isLuxurySegment(candidate.unit.segmentId) ? "true" : "false");

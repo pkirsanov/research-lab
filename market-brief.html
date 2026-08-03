@@ -1092,9 +1092,9 @@
                 }).join("");
                 prependInto("portfolio",
                     '<h2>Portfolio — public watchlist matrix</h2>' +
-                    '<p class="sub" data-mac-portfolio-provenance>Every row is scoped <b>' + esc(matrix.scopeSummary.scopeLabel) + '</b> and derived from the ticker-only public <code>watchlist.json</code> — public research scope only; a watchlist is not a portfolio. Per-ticker owner reads are not published yet; until they are, an applicable domain is an EXPLICIT <b>unavailable</b> gap, never neutral by omission.</p>' +
+                    '<p class="sub" data-mac-portfolio-provenance>Every row is scoped <b>' + esc(matrix.scopeSummary.scopeLabel) + '</b> and derived from the ticker-only public <code>watchlist.json</code> — public research scope only; a watchlist is not a portfolio. Where a tool has published a per-ticker read, the cell links to that tool; where none is published, the domain stays an EXPLICIT <b>unavailable</b> gap, never neutral by omission.</p>' +
                     '<div style="overflow-x:auto"><table data-mac-matrix style="border-collapse:collapse;width:100%;font-size:12.5px"><thead><tr>' + head + '</tr></thead><tbody>' + body + '</tbody></table></div>' +
-                    '<p class="sub" data-mac-private-overlay data-mac-gate="dependency-pending:feature-008">Private portfolio overlay: <b>dependency-pending</b> — gated to Feature 008 (Scope 13). This shell composes the PUBLIC watchlist only.</p>',
+                    '<p class="sub" data-mac-private-overlay data-mac-gate="dependency-pending:feature-008">A private portfolio overlay is <b>not part of this view</b>. This shell composes the PUBLIC watchlist only.</p>',
                     "data-mac-portfolio");
             }
             function renderRedAlert(proj) {
@@ -1111,7 +1111,7 @@
                 var refs = (view && view.definitionRefs) || JOURNEY_IDS || [];
                 var cards = refs.map(function (ref) {
                     var isStress = /portfolio-stress/.test(ref);
-                    return '<li data-mac-journey-goal="' + esc(ref) + '"' + (isStress ? ' data-mac-gate="dependency-pending:feature-008"' : '') + '><code>' + esc(ref) + '</code>' + (isStress ? ' — private portfolio-stress prerequisite <b>blocked</b> (Feature 008 · Scope 13)' : '') + '</li>';
+                    return '<li data-mac-journey-goal="' + esc(ref) + '"' + (isStress ? ' data-mac-gate="dependency-pending:feature-008"' : '') + '><code>' + esc(ref) + '</code>' + (isStress ? ' — needs a private portfolio, which this public shell does not have' : '') + '</li>';
                 }).join("");
                 prependInto("journey",
                     '<h2>Journey — guided Market Action goals</h2>' +

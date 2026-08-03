@@ -18,10 +18,15 @@ test('Regression: SCN-012-034 missing owner adapter stays unavailable without de
   const panel = page.locator('[data-rlexperience-panel="simple"][data-rlexperience-simple-state="unavailable"]');
   await expect(panel).toBeVisible();
   await expect(panel.getByRole('heading')).toHaveText('No result yet');
-  await expect(panel).toContainText('Owner model adapter required');
-  await expect(panel).toContainText('simple-adapter/technical-five-gate/v1');
-  await expect(panel).toContainText('No model result is available');
-  await expect(panel).toContainText('No provider request, storage mutation, author call, publication, formula substitution, or behavioral default was used.');
+  /* The reader is told, in words, that the model is missing and that nothing was
+     invented to cover for it. The adapter id is provenance, so per D13 it stays
+     machine-readable on the host and out of the visible copy. */
+  await expect(panel).toContainText("This tool's own model is not loaded, so there is no result to show.");
+  await expect(panel).toContainText('Nothing was requested, saved, published, or filled in from a default.');
+  await expect(panel).not.toContainText('simple-adapter/technical-five-gate/v1');
+  await expect(panel).not.toContainText(/simple-adapter\//);
+  const host = page.locator('[data-rlexperience-adapter]');
+  await expect(host).toHaveAttribute('data-rlexperience-adapter', 'simple-adapter/technical-five-gate/v1');
   await expect(panel.locator('[data-simple-numeric-value]')).toHaveCount(0);
   await expect(panel.locator('input, select, textarea, button')).toHaveCount(0);
   await expect(panel).not.toContainText(/neutral|average|prior result/i);

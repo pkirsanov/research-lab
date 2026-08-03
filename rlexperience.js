@@ -1486,7 +1486,7 @@
         toolId: toolId,
         definitionId: definitionId,
         adapterId: adapterId,
-        message: "Owner model adapter required: " + (adapterId || "unavailable") + ". No model result is available. No provider request, storage mutation, author call, publication, formula substitution, or behavioral default was used.",
+        message: "This tool's own model is not loaded, so there is no result to show. Nothing was requested, saved, published, or filled in from a default.",
         requiredEvidence: ["owner-evidence"],
         observedEvidence: [],
         lastValidRun: null,

@@ -1024,7 +1024,7 @@
         (function macCenterController() {
             "use strict";
             if (typeof document === "undefined") return;
-            var JOURNEY_IDS = null, WATCHLIST = null, lastMatrix = null, lastProjection = null, enhanced = false;
+            var JOURNEY_IDS = null, WATCHLIST = null, OWNER_PRECEDENCE = null, lastMatrix = null, lastProjection = null, enhanced = false;
 
             function esc(s) { return (s == null ? "" : String(s)).replace(/[&<>"]/g, function (c) { return { "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;" }[c]; }); }
             function panel(mode) { return document.querySelector('[data-rlexperience-panel="' + mode + '"]'); }
@@ -1038,6 +1038,21 @@
                every other public domain applies but carries no live per-ticker owner read yet (scheduled
                public per-ticker reads are a Feature-002 / Scope-11 dependency-pending capability), so those
                cells resolve to an EXPLICIT `unavailable` gap, never neutral by omission. */
+            /* Which tool answers for a domain is a registry fact, not a page opinion: each tool
+               declares experience.matrixDomains, and registry order is the precedence order.
+               Without this the matrix had no owner for any cell, so every gap was anonymous and
+               deep-linked nowhere. */
+            function ownerPrecedenceFrom(registryTools) {
+                var domains = (window.RLMARKETACTIONCENTER && RLMARKETACTIONCENTER.MATRIX_DOMAINS) || [];
+                var map = {};
+                domains.forEach(function (d) { map[d] = []; });
+                (registryTools || []).forEach(function (tool) {
+                    var owned = tool && tool.experience && Array.isArray(tool.experience.matrixDomains)
+                        ? tool.experience.matrixDomains : [];
+                    owned.forEach(function (d) { if (map[d] && map[d].indexOf(tool.id) === -1) map[d].push(tool.id); });
+                });
+                return map;
+            }
             function applicabilityFor(items) {
                 var domains = (window.RLMARKETACTIONCENTER && RLMARKETACTIONCENTER.MATRIX_DOMAINS) || [];
                 var map = {};
@@ -1047,7 +1062,7 @@
             function composeMatrix() {
                 if (!window.RLMARKETACTIONCENTER || !WATCHLIST) return null;
                 var items = Array.isArray(WATCHLIST.items) ? WATCHLIST.items : [];
-                return RLMARKETACTIONCENTER.composePublicMatrix({ matrixId: "market-action-public-matrix/live", cutoffAt: cutoff(), generationRef: "legacy-market-brief-payload", domainMapVersion: "matrix-domain-map/v1", watchlist: { items: items }, applicability: applicabilityFor(items) });
+                return RLMARKETACTIONCENTER.composePublicMatrix({ matrixId: "market-action-public-matrix/live", cutoffAt: cutoff(), generationRef: "legacy-market-brief-payload", domainMapVersion: "matrix-domain-map/v1", watchlist: { items: items }, applicability: applicabilityFor(items), ownerPrecedence: OWNER_PRECEDENCE || {} });
             }
             function composeProjection(briefInput) {
                 if (!window.RLMARKETACTIONCENTER || !(Array.isArray(JOURNEY_IDS) && JOURNEY_IDS.length === 4)) return null;
@@ -1066,7 +1081,13 @@
                 var domains = matrix.rows.length ? matrix.rows[0].cells.map(function (c) { return c.domainId; }) : ((window.RLMARKETACTIONCENTER && RLMARKETACTIONCENTER.MATRIX_DOMAINS) || []);
                 var head = '<th scope="col">Ticker</th><th scope="col">Scope</th>' + domains.map(function (d) { return '<th scope="col">' + esc(d) + '</th>'; }).join("");
                 var body = matrix.rows.map(function (row) {
-                    var cells = row.cells.map(function (c) { return '<td data-mac-cell data-mac-state="' + esc(c.state) + '" data-mac-applicability="' + esc(c.applicability) + '" title="' + esc(STATE_TIP[c.state] || c.state) + (c.gapReason ? " — " + c.gapReason : "") + '">' + esc(c.state) + '</td>'; }).join("");
+                    var cells = row.cells.map(function (c) {
+                        /* A gap is only useful if it says who can close it. */
+                        var label = esc(c.state);
+                        var inner = c.ownerDeepLink ? '<a href="' + esc(c.ownerDeepLink) + '">' + label + '</a>' : label;
+                        var tip = esc(STATE_TIP[c.state] || c.state) + (c.gapReason ? " — " + esc(c.gapReason) : "") + (c.ownerToolId ? " — owned by " + esc(c.ownerToolId) : "");
+                        return '<td data-mac-cell data-mac-state="' + esc(c.state) + '" data-mac-applicability="' + esc(c.applicability) + '" data-mac-owner="' + esc(c.ownerToolId || "") + '" title="' + tip + '">' + inner + '</td>';
+                    }).join("");
                     return '<tr data-mac-row data-mac-ticker="' + esc(row.ticker) + '"><th scope="row">' + esc(row.ticker) + '</th><td data-mac-scope-label>' + esc(row.scopeLabel) + '</td>' + cells + '</tr>';
                 }).join("");
                 prependInto("portfolio",
@@ -1129,6 +1150,7 @@
                 Promise.all([readJson("watchlist.json"), readJson("tools.json")]).then(function (r) {
                     WATCHLIST = r[0] || { items: [] };
                     var reg = r[1] && Array.isArray(r[1].tools) ? r[1].tools : [];
+                    OWNER_PRECEDENCE = ownerPrecedenceFrom(reg);
                     for (var i = 0; i < reg.length; i++) { if (reg[i] && reg[i].id === "market-brief" && reg[i].experience && Array.isArray(reg[i].experience.journeyDefinitionIds)) { JOURNEY_IDS = reg[i].experience.journeyDefinitionIds.slice(); break; } }
                     var tries = 0;
                     (function pump() { enhance(); if (!enhanced && tries++ < 120) setTimeout(pump, 50); })();

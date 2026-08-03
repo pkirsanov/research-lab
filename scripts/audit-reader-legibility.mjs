@@ -99,8 +99,11 @@ async function scopeCounts(page) {
     return {
       journeyToolRows: count('[data-rljourney-tool]'),
       journeyGoalButtons: count('[data-rljourney-goal]'),
-      briefSections: count('[data-rlbrief-tool], [data-brief-tool], [data-rlbrief-section]'),
-      actionRows: count('[data-mac-action], [data-rlbrief-recommendation], [data-rlbrief-action]')
+      briefSections: count('.rlbrief-mount, [data-rlbrief-state]'),
+      actionRows: count('[data-rlbrief-part]'),
+      matrixCells: count('[data-mac-cell]'),
+      matrixOwnedCells: count('[data-mac-cell][data-mac-owner]:not([data-mac-owner=""])'),
+      matrixCoveredCells: count('[data-mac-cell][data-mac-state="current"]')
     };
   }).catch(() => ({ journeyToolRows: -1, journeyGoalButtons: -1, briefSections: -1, actionRows: -1 }));
 }
@@ -145,7 +148,7 @@ async function main() {
           leaks: findLeaks(text, view),
           head: text.slice(0, 220)
         };
-        if (view === 'Journey' || view === 'Brief') {
+        if (view === 'Journey' || view === 'Brief' || view === 'Portfolio') {
           entry.views[view].scope = await scopeCounts(page);
         }
       }
@@ -177,11 +180,15 @@ async function main() {
       console.log(`${entry.id.padEnd(34)} views=[${viewNames.join('|') || 'none'}] ${flag}`);
       const jScope = entry.views.Journey && entry.views.Journey.scope;
       const bScope = entry.views.Brief && entry.views.Brief.scope;
-      if (jScope || bScope) {
+      const pScope = entry.views.Portfolio && entry.views.Portfolio.scope;
+      if (jScope || bScope || pScope) {
         console.log(`    scope: journeyToolRows=${jScope ? jScope.journeyToolRows : '-'}`
           + ` journeyGoals=${jScope ? jScope.journeyGoalButtons : '-'}`
-          + ` briefSections=${bScope ? bScope.briefSections : '-'}`
-          + ` actionRows=${bScope ? bScope.actionRows : '-'}`);
+          + ` briefMounts=${bScope ? bScope.briefSections : '-'}`
+          + ` briefParts=${bScope ? bScope.actionRows : '-'}`
+          + ` matrixCells=${pScope ? pScope.matrixCells : '-'}`
+          + ` owned=${pScope ? pScope.matrixOwnedCells : '-'}`
+          + ` covered=${pScope ? pScope.matrixCoveredCells : '-'}`);
       }
       if (entry.error) console.log(`    ! ${entry.error}`);
       for (const v of viewNames) {

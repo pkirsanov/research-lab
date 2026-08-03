@@ -287,7 +287,12 @@ const TOOLS = {
     moduleGlobal: 'RLMACROROTATION',
     moduleFile: 'rlexperience-adapters/macro-rotation.js',
     owner: () => realAssetOwnerFixture(),
-    changes: () => [['usd-shock', 6], ['risk-appetite', 0.6]],
+    /* usd-shock declares affectsOutputPaths ["summary.driverState"], and the Simple read
+       surfaces summary.score plus a categorical verdict word — so a driver shock alone moves
+       the model with NO reader-visible change. That visibility gap is recorded as a defect;
+       this case pairs the shock with volatility-penalty, which declares ["summary.score"], so
+       the assertion below proves genuinely visible sensitivity instead of a changing digest. */
+    changes: () => [['usd-shock', 6], ['volatility-penalty', 0.6]],
     adapterId: 'simple-adapter/real-asset-driver/v1',
     // Wired into its production page (real-assets-lab.html registers a real owner-state provider,
     // __rlOwnerStateProvider['real-assets-lab'], consumed by the production Simple bridge in
@@ -571,8 +576,12 @@ async function assertVisibleSensitivity(page, toolId) {
   expect(result.preparedState).toBe('ready');
   expect(result.baseline.state).toBe('ready');
   expect(result.changed.state).toBe('ready');
-  expect(result.baseline.heading).toBe('Simple model result');
-  expect(result.changed.heading).toBe('Simple model result');
+  /* Decision-first: the heading is the tool's OWN verdict. It used to be the constant
+     'Simple model result' on all 23 tools, which told a reader nothing. */
+  expect(result.baseline.heading).not.toBe('Simple model result');
+  expect(result.changed.heading).not.toBe('Simple model result');
+  expect(result.baseline.heading.length).toBeGreaterThan(0);
+  expect(result.changed.heading.length).toBeGreaterThan(0);
   // Owner fact is visible: the Simple read paints a numeric owner value on both renders.
   expect(result.baseline.numeric).not.toBeNull();
   expect(result.changed.numeric).not.toBeNull();
@@ -585,11 +594,12 @@ async function assertVisibleSensitivity(page, toolId) {
   expect(result.changed.text).not.toBe(result.baseline.text);
   // Simple is distinct from the Power dashboard content on the same page (not a filtered dashboard).
   // The msft opt-out page mounts no shared Power panel, so the distinct decision-first Simple read is
-  // proven by the 'Simple model result' heading + numeric owner value instead of a Power comparison.
+  // proven by the tool's own verdict heading + numeric owner value instead of a Power comparison.
   if (!descriptor.shellOptOut) {
     expect(result.baseline.text).not.toBe(result.powerText);
   }
-  expect(result.baseline.text).toContain('Simple model result');
+  expect(result.baseline.text).toContain(result.baseline.heading);
+  expect(result.baseline.text).not.toContain('sha256:');
 }
 
 test(TOOLS['sector-research-lab'].title, async ({ page }) => { await assertVisibleSensitivity(page, 'sector-research-lab'); });

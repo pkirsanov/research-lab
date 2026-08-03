@@ -17,7 +17,7 @@ test('Regression: SCN-012-034 missing owner adapter stays unavailable without de
   await page.getByRole('tab', { name: 'Simple', exact: true }).click();
   const panel = page.locator('[data-rlexperience-panel="simple"][data-rlexperience-simple-state="unavailable"]');
   await expect(panel).toBeVisible();
-  await expect(panel.getByRole('heading')).toHaveText('Simple model unavailable');
+  await expect(panel.getByRole('heading')).toHaveText('No result yet');
   await expect(panel).toContainText('Owner model adapter required');
   await expect(panel).toContainText('simple-adapter/technical-five-gate/v1');
   await expect(panel).toContainText('No model result is available');
@@ -233,7 +233,10 @@ test('Regression: Simple core preserves last valid run across invalid stale miss
   expect(result.states.every((state) => state.projectionIdentity === result.validIdentity)).toBe(true);
   expect(result.states.every((state) => state.numericValue === null)).toBe(true);
   expect(result.hostState).toBe('rejected');
-  expect(result.hostText).toContain('Last valid model run preserved');
+  /* Preservation is proven on the PROJECTION above (lastValidIdentity / projectionIdentity).
+     The reader is never shown the run digest: provenance belongs in Power (D13). */
+  expect(result.hostText).not.toContain('Last valid model run preserved');
+  expect(result.hostText).not.toMatch(/sha256:/);
   expect(result.hostText).not.toMatch(/neutral|average|prior unlabeled/i);
   expect(result.numericNodes).toBe(0);
 });

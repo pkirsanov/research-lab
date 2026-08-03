@@ -4163,7 +4163,9 @@ try {
   assert(
     runtimeSource04.includes('simple-cancellation-token/v1') &&
     runtimeSource04.includes('stale completion discarded') &&
-    runtimeSource04.includes('Last valid model run preserved'),
+    /* The last-valid run is preserved on the projection. It is no longer printed to the
+       reader as a sha256 line; provenance belongs in the Power evidence disclosure. */
+    runtimeSource04.includes('lastValidComputeIdentity'),
     'Feature 012 Scope 04 carries cancellation, stale-completion rejection, and explicit last-valid projection contracts'
   );
 } catch (e) { failures++; console.log('  ✗ FAIL (Feature 012 Scope 04 group threw): ' + e.message); }

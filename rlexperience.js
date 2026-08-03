@@ -75,6 +75,15 @@
   var SIMPLE_TRUTH_STATES = Object.freeze([
     "ready", "partial", "stale", "unavailable", "disputed", "rejected"
   ]);
+  /* Reader-facing wording for a non-ready result. The truth state itself stays machine-readable
+     on data-rlexperience-simple-state; only the prose changes. */
+  var SIMPLE_STATE_HEADING = Object.freeze({
+    partial: "Partial result",
+    stale: "Result may be out of date",
+    unavailable: "No result yet",
+    disputed: "Sources disagree",
+    rejected: "Result rejected"
+  });
   var SIMPLE_EVIDENCE_KEYS = [
     "contractVersion", "toolId", "state", "evidenceCutoff", "evidenceRefs",
     "parameterValues", "assumptions", "limitations", "invalidationConditions",
@@ -814,7 +823,11 @@
     return deepFreeze({
       contractVersion: "simple-projection/v1",
       state: state,
-      heading: state === "ready" ? "Simple model result" : "Simple model " + state,
+      /* Simple is a decision-first cockpit, so the heading is the tool's own verdict. It used to
+         be the constant "Simple model result" on every tool, which told a reader nothing. */
+      heading: state === "ready"
+        ? ((typeof options.heading === "string" && options.heading.trim()) ? options.heading.trim() : valueText)
+        : (SIMPLE_STATE_HEADING[state] || "Result unavailable"),
       message: options.message,
       toolId: typeof options.toolId === "string" ? options.toolId : null,
       definitionId: typeof options.definitionId === "string" ? options.definitionId : null,
@@ -1277,6 +1290,18 @@
     });
   }
 
+  /* Reader-facing formatting for the Simple value line. The unit is a contract id such as
+     "country-score"; a reader needs "country score". */
+  function readableSimpleUnit(unit) {
+    return (typeof unit === "string" && unit) ? unit.replace(/-/g, " ") : "";
+  }
+  function readableSimpleNumber(value) {
+    if (!Number.isFinite(value)) return "";
+    var magnitude = Math.abs(value);
+    var digits = magnitude >= 100 ? 0 : (magnitude >= 1 ? 2 : 4);
+    return value.toFixed(digits);
+  }
+
   function renderSimpleProjectionInternal(host, projection) {
     if (!host || typeof host.appendChild !== "function" || !host.ownerDocument) reject("E012-SIMPLE-INPUT", "simple-projection", "simple-projection/v1", "$.host", "DOM host required", projection && projection.toolId);
     var documentRef = host.ownerDocument;
@@ -1294,14 +1319,17 @@
     if (projection.state === "ready" && projection.numericValue !== null) {
       var value = documentRef.createElement("p");
       value.setAttribute("data-simple-numeric-value", "current");
-      value.textContent = projection.valueText + (projection.unit ? " " + projection.unit : "");
+      /* The owner model computes a number and the projection carries it, but the renderer used
+         to print only valueText — a fixed label like "Rotate toward EWY". Steering a control
+         moved the number and the reader saw nothing change. The label is now the heading, so
+         this line carries the figure itself. */
+      var readable = readableSimpleNumber(projection.numericValue);
+      var unitText = readableSimpleUnit(projection.unit);
+      value.textContent = (readable || projection.valueText) + (unitText ? " " + unitText : "");
       host.appendChild(value);
     }
-    if (projection.lastValidComputeIdentity) {
-      var lastValid = documentRef.createElement("p");
-      lastValid.textContent = "Last valid model run preserved: " + projection.lastValidComputeIdentity + ".";
-      host.appendChild(lastValid);
-    }
+    /* The preserved-run compute identity is provenance, not a reader fact. It stays on the
+       projection for the Power evidence disclosure and no longer prints a sha256 here. */
     var limitation = documentRef.createElement("p");
     limitation.textContent = "Limitation: " + projection.limitations.join(" ");
     host.appendChild(limitation);

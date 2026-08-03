@@ -177,9 +177,16 @@ async function heatmapProductionProjection(page, toolId, overrides) {
         adapter: projection.adapterId,
         heading: projection.heading,
         message: projection.message,
-        // Exactly how renderSimpleProjectionInternal paints the numeric line.
+        // Exactly how renderSimpleProjectionInternal paints the numeric line: the FIGURE plus a
+        // readable unit. The label is the heading now, so it is not repeated here.
         numeric: projection.state === 'ready' && projection.numericValue !== null
-          ? projection.valueText + (projection.unit ? ' ' + projection.unit : '')
+          ? (function () {
+            const magnitude = Math.abs(projection.numericValue);
+            const digits = magnitude >= 100 ? 0 : (magnitude >= 1 ? 2 : 4);
+            const figure = Number.isFinite(projection.numericValue) ? projection.numericValue.toFixed(digits) : '';
+            const unitText = projection.unit ? String(projection.unit).replace(/-/g, ' ') : '';
+            return (figure || projection.valueText) + (unitText ? ' ' + unitText : '');
+          })()
           : null
       };
     } catch (error) {
@@ -762,9 +769,16 @@ async function readPanelAndOwnerParity(page, toolId, adapterId) {
           adapter: projection.adapterId,
           heading: projection.heading,
           message: projection.message,
-          // Exactly how renderSimpleProjectionInternal paints the numeric line.
+          // Exactly how renderSimpleProjectionInternal paints the numeric line: the FIGURE plus a
+          // readable unit. The label is the heading now, so it is not repeated here.
           numeric: projection.state === 'ready' && projection.numericValue !== null
-            ? projection.valueText + (projection.unit ? ' ' + projection.unit : '')
+            ? (function () {
+              const magnitude = Math.abs(projection.numericValue);
+              const digits = magnitude >= 100 ? 0 : (magnitude >= 1 ? 2 : 4);
+              const figure = Number.isFinite(projection.numericValue) ? projection.numericValue.toFixed(digits) : '';
+              const unitText = projection.unit ? String(projection.unit).replace(/-/g, ' ') : '';
+              return (figure || projection.valueText) + (unitText ? ' ' + unitText : '');
+            })()
             : null
         };
       } catch (error) {

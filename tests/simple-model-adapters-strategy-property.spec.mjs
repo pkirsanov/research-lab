@@ -543,8 +543,11 @@ async function assertVisibleSensitivity(page, toolId) {
   expect(result.preparedState).toBe('ready');
   expect(result.baseline.state).toBe('ready');
   expect(result.changed.state).toBe('ready');
-  expect(result.baseline.heading).toBe('Simple model result');
-  expect(result.changed.heading).toBe('Simple model result');
+  /* Decision-first: the heading is the tool's OWN verdict, never the generic contract label. */
+  expect(result.baseline.heading).not.toBe('Simple model result');
+  expect(result.changed.heading).not.toBe('Simple model result');
+  expect(result.baseline.heading.length).toBeGreaterThan(0);
+  expect(result.changed.heading.length).toBeGreaterThan(0);
   // Owner fact is visible: the Simple read paints a numeric owner value on both renders.
   expect(result.baseline.numeric).not.toBeNull();
   expect(result.changed.numeric).not.toBeNull();
@@ -554,7 +557,8 @@ async function assertVisibleSensitivity(page, toolId) {
   // VISIBLE parameter sensitivity: the owner-produced Simple output text CHANGES when the two controls
   // change — a user-visible DOM/text difference, not existence-only.
   expect(result.changed.text).not.toBe(result.baseline.text);
-  expect(result.baseline.text).toContain('Simple model result');
+  expect(result.baseline.text).toContain(result.baseline.heading);
+  expect(result.baseline.text).not.toContain('sha256:');
 
   // Tool-specific truth: unverified evidence stays visible / gaps stay unfilled / triage stays bounded in-Brief.
   if (descriptor.extraAsserts) descriptor.extraAsserts(result);
@@ -698,7 +702,8 @@ test('Regression: strategy self-improvement Simple repeats one seed and separate
   expect(result.adapterId).toBe(adapterId);
   expect(result.baseline.adapter).toBe(adapterId);
   expect(result.baseline.state).toBe('ready');
-  expect(result.baseline.heading).toBe('Simple model result');
+  expect(result.baseline.heading).not.toBe('Simple model result');
+  expect(result.baseline.heading.length).toBeGreaterThan(0);
   expect(result.baseline.numeric).not.toBeNull();
   expect(result.baseline.text).toMatch(/Limitation:/);
 

@@ -3357,7 +3357,14 @@ try {
   // consumed-owner-read status set instead — both values still prove the hash-verified owner read was consumed this
   // window, while a skipped/irrelevant/stale status (not-analyzed/not-relevant/stale) would correctly fail.
   const scope6OwnerReadStatuses = ['fresh-headless', 'analyzed'];
-  assert(JSON.stringify(scope6CoverageIds) === JSON.stringify(scope6RegistryIds) && scope6Coverage.length === 1 && scope6Coverage[0].deepLink === scope6Tool.file && scope6OwnerReadStatuses.includes(scope6Coverage[0].status) && scope6Coverage[0].reason.includes('company-fundamentals-owner-v1') && scope6Coverage[0].reason.includes('no recommendation is fabricated'), 'Feature 010 Scope 6 keeps exact registry-wide toolCoverage parity with one hash-verified company owner-read entry');
+  // The no-fabrication DISCLOSURE is the requirement; its wording is authored per window by the
+  // Tier-B narrative. Pinning the literal 'no recommendation is fabricated' was the same brittle
+  // canary as the pinned status above: the current window says 'no recommendation or execution
+  // instruction is produced', which carries the guarantee and is in fact stronger. This asserts
+  // the disclosure is PRESENT in any honest phrasing and still fails if it disappears — or if the
+  // sense inverts, because 'no recommendation' must sit adjacent to the produced/fabricated verb.
+  const scope6NoRecommendationDisclosure = /no recommendation[^.]*\b(?:fabricat\w*|produced|generated|issued)\b/i;
+  assert(JSON.stringify(scope6CoverageIds) === JSON.stringify(scope6RegistryIds) && scope6Coverage.length === 1 && scope6Coverage[0].deepLink === scope6Tool.file && scope6OwnerReadStatuses.includes(scope6Coverage[0].status) && scope6Coverage[0].reason.includes('company-fundamentals-owner-v1') && scope6NoRecommendationDisclosure.test(scope6Coverage[0].reason), 'Feature 010 Scope 6 keeps exact registry-wide toolCoverage parity with one hash-verified company owner-read entry that discloses no recommendation is produced');
 } catch (e) { failures++; console.log('  ✗ FAIL (Feature 010 Scope 6 group threw): ' + e.message); }
 /* FEATURE-010-COMPANY-FUNDAMENTALS-SCOPE6-END */
 

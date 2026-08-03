@@ -536,7 +536,7 @@ node scripts/selftest.mjs
 2  Simple speaks to a human ........ 1.5d   ✅ done  00cee721  leaks 66 -> 37
 3  Governance out of product copy .. 0.5d   ✅ done  b4bcc7c8  leaks 157 -> 0
 4  Watchlist routed into tools ..... 2-3d   ✅ af221a89  owned 0 -> 28, covered 0 -> 14/28
-5  Red Alert + Portfolio real ...... 1d     depends on 4
+5  Red Alert + Portfolio real ...... 1d     ✅ done  86254c09  constant -> computed coverage
 6  Recommendations born evaluable .. 2d     ◐ 32692325  live payload 40% -> 80% scoreable
 7  Last five stale tools ........... 1.5d   analyzed 11 -> 16
 8  Journey on every tool page ...... ----   ✖ VOID — premise was a measurement error (D17)
@@ -566,8 +566,31 @@ silently undone the fix.
 | `journey/market-action/prepare-session/v1` | "Prepare the next market session" |
 | `returned coverage-only` in brief prose | `returned no call` |
 
-**Do Step 5 next** (Red Alert and Portfolio panels are still hardcoded prose), then Step 7 (the five tools still
-stale in the brief), then Step 9 (paperwork).
+**Do Step 7 next** (the five tools still stale in the brief), then Step 9 (paperwork), then reconcile
+`Product-Review-and-Roadmap.md` sections 5, 10.2, 11 and 14 against its corrected sections 1 and 2.
+
+### Suite intermittency — measured, NOT a repo defect
+
+Four clean full-suite runs of an identical tree gave a **shifting** failure set: one run failed
+`red-alert.spec.mjs:284`, another failed a different pair including
+`technical-analysis-decision-lab.spec.mjs:130`, and another exited **0** with everything green. Each failure was
+a page-readiness timeout, and each failing spec passes in isolation (`red-alert` 4/4 alone).
+
+The obvious "fix" is to widen the 15 s readiness budget. **Do not.** Measured on the Action Center, the exact
+condition those helpers wait for — shell `ready` + `RLMARKETACTIONCENTER` + the `red-alert` panel — resolves in:
+
+    run 1: 551 ms      run 2: 388 ms      run 3: 361 ms      (budget 15 000 ms)
+
+That is 27–40x headroom. A gate with that much slack does not expire because the page is *slow*; it expires
+because the worker was starved or stalled. Widening it would convert a visible environmental problem into an
+invisible one and would make the suite slower to fail when something is genuinely wrong.
+
+These runs executed on a workstation concurrently running builds and greps in several other repositories, which
+is the most probable cause. **Before treating this as a repo defect, re-run the suite on an otherwise idle
+machine.** If it still flakes there, investigate worker isolation (per-worker static server) — not the timeout.
+Recorded as **D18**.
+
+---
 
 ### Step 4 — coverage is bounded by evidence, not by effort
 
@@ -665,6 +688,7 @@ The frontier requires four more.
 | **D15** | **Every rendered control carries a contextual tooltip** stating what it is and what the current value implies. A value with no contextual tooltip is a defect. | selftest scan over the shell renderer |
 | **D16** | **No unscoreable tactical or swing call is published.** If a level cannot be attributed, the claim is withheld rather than emitted as `not-evaluable`. | `scripts/evaluate-recommendations.mjs` + scorecard threshold |
 | **D17** | **A reach or coverage claim about a browser product is measured in a browser.** Static grep may locate code; it may never assert what a reader can reach. Shared modules load dynamically, so the HTML does not name what the page runs. | `scripts/audit-reader-legibility.mjs --explain` (prints the selector that matched, so a false "this view exists" is visible) |
+| **D18** | **Never widen a timeout to make an intermittent suite green until the underlying latency is measured.** A readiness gate that is exceeded despite large headroom is starvation or a stall, not slowness, and widening it hides the real cause. Measure first; widen only with the measurement recorded. | measured probe against the readiness condition (see note below) |
 
 ---
 

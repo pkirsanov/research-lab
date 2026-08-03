@@ -326,6 +326,14 @@
       var toolId = precedence[i];
       var toolReads = isPlainObject(reads[toolId]) ? reads[toolId] : {};
       var read = toolReads[ticker];
+      /* A tool owns SEVERAL domains, so a read keyed only by (tool, ticker) would be served
+         into every one of them — an options implied-move rendered as the technical cell and
+         again as the volatility cell. A read that declares its domain is only ever used for
+         that domain. A read with no domainId is domain-agnostic and stays usable, so this is
+         additive to any producer that has not been updated. */
+      if (isPlainObject(read) && isNonEmptyString(read.domainId) && read.domainId !== domainId) {
+        continue;
+      }
       if (isPlainObject(read) && isNonEmptyString(read.state)) {
         if (CELL_STATES.indexOf(read.state) === -1 || read.state === "not-applicable") {
           reject("RLMKT-CELL", "$.ownerReads." + toolId + "." + ticker + ".state", "owner read state must be one of current|partial|stale|disputed|unavailable");

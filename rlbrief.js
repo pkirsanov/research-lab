@@ -541,6 +541,16 @@
       "no-recommendation": "No recommendation", "coverage-only": "Coverage only"
     }[outcome] || "Unknown outcome";
   }
+  /* Reason codes are contract vocabulary. A reader needs the reason, not the slug. */
+  function briefNoRecommendationReason(code) {
+    return {
+      "not-integrated": "this tool does not feed the brief yet",
+      "coverage-only": "this cycle covered the tool without producing a call",
+      "not-eligible": "no call cleared the evidence bar",
+      "insufficient-evidence": "there was not enough evidence to publish a call",
+      "stale-evidence": "the evidence behind this tool is out of date"
+    }[code] || "no call cleared the evidence bar";
+  }
   /* extended-hours latest is ALWAYS labeled with its session kind and "indicative"; the prior
      official close is a SEPARATE anchor and is never aliased to the latest. */
   function briefIndicativeLabel(kind) {
@@ -1474,7 +1484,7 @@
       });
       simple.appendChild(rl);
     } else {
-      simple.appendChild(briefEl("p", { part: "no-recommendation", text: "No recommendation - " + (brief.noRecommendationReason || (read.recommendationEligibility && read.recommendationEligibility.reasonCode) || "not eligible") }));
+      simple.appendChild(briefEl("p", { part: "no-recommendation", text: "No recommendation \u2014 " + briefNoRecommendationReason(brief.noRecommendationReason || (read.recommendationEligibility && read.recommendationEligibility.reasonCode)) }));
     }
     /* low-noise context (below action rows; consumes no action slot) */
     if (read.display && read.display.lowNoise) simple.appendChild(briefEl("p", { part: "low-noise", cls: "rlbrief-sub", text: briefLowNoiseLabel() }));

@@ -25,7 +25,7 @@
       "calibrationPolicy": {"class":"owner-evidence-relative","requiredFields":["state","reason"]},
       "provenancePolicy": {"allowedClasses":["observed-fact","user-assumption","model-estimate","unavailable"],"requireEvidenceCutoff":true},
       "performancePolicy": {"maxComputeMs":250,"deterministic":true},
-      "limitations": ["Scope 01 validates declaration metadata only and makes no adapter-execution claim."],
+      "limitations": ["This view validates the model's declared setup only and makes no adapter-execution claim."],
       "deepLinkTargets": {"power":"market-brief.html#brief","journey":"market-brief.html#journey"},
       "definitionFingerprint": null
     },
@@ -53,7 +53,7 @@
       "calibrationPolicy": {"class":"owner-evidence-relative","requiredFields":["state","reason"]},
       "provenancePolicy": {"allowedClasses":["observed-fact","user-assumption","model-estimate","unavailable"],"requireEvidenceCutoff":true},
       "performancePolicy": {"maxComputeMs":250,"deterministic":true},
-      "limitations": ["Scope 01 validates declaration metadata only and makes no adapter-execution claim."],
+      "limitations": ["This view validates the model's declared setup only and makes no adapter-execution claim."],
       "deepLinkTargets": {"power":"market-heatmap-lab.html#power","journey":"market-heatmap-lab.html#journey"},
       "definitionFingerprint": null
     },
@@ -81,7 +81,7 @@
       "calibrationPolicy": {"class":"owner-evidence-relative","requiredFields":["state","reason"]},
       "provenancePolicy": {"allowedClasses":["observed-fact","user-assumption","model-estimate","unavailable"],"requireEvidenceCutoff":true},
       "performancePolicy": {"maxComputeMs":250,"deterministic":true},
-      "limitations": ["Scope 01 validates declaration metadata only and makes no trade-side-inference claim."],
+      "limitations": ["This view validates the model's declared setup only and makes no trade-side-inference claim."],
       "deepLinkTargets": {"power":"options-flow-feed-lab.html#power","journey":"options-flow-feed-lab.html#journey"},
       "definitionFingerprint": null
     },
@@ -109,7 +109,7 @@
       "calibrationPolicy": {"class":"owner-evidence-relative","requiredFields":["state","reason"]},
       "provenancePolicy": {"allowedClasses":["observed-fact","user-assumption","model-estimate","unavailable"],"requireEvidenceCutoff":true},
       "performancePolicy": {"maxComputeMs":250,"deterministic":true},
-      "limitations": ["Scope 01 validates declaration metadata only and makes no live-session adapter claim."],
+      "limitations": ["This view validates the model's declared setup only and makes no live-session adapter claim."],
       "deepLinkTargets": {"power":"intraday-tape-lab.html#power","journey":"intraday-tape-lab.html#journey"},
       "definitionFingerprint": null
     },
@@ -140,7 +140,7 @@
       "calibrationPolicy": {"class":"owner-evidence-relative","requiredFields":["state","reason"]},
       "provenancePolicy": {"allowedClasses":["observed-fact","user-assumption","model-estimate","unavailable"],"requireEvidenceCutoff":true},
       "performancePolicy": {"maxComputeMs":250,"deterministic":true},
-      "limitations": ["Scope 01 validates declaration metadata only and makes no owner-model execution claim."],
+      "limitations": ["This view validates the model's declared setup only and makes no owner-model execution claim."],
       "deepLinkTargets": {"power":"swing-structure-lab.html#power","journey":"swing-structure-lab.html#journey"},
       "definitionFingerprint": null
     },
@@ -170,7 +170,7 @@
       "calibrationPolicy": {"class":"owner-evidence-relative","requiredFields":["state","reason"]},
       "provenancePolicy": {"allowedClasses":["observed-fact","user-assumption","model-estimate","unavailable"],"requireEvidenceCutoff":true},
       "performancePolicy": {"maxComputeMs":250,"deterministic":true},
-      "limitations": ["Scope 01 validates declaration metadata only and makes no live-chain execution claim."],
+      "limitations": ["This view validates the model's declared setup only and makes no live-chain execution claim."],
       "deepLinkTargets": {"power":"options-structure-lab.html#power","journey":"options-structure-lab.html#journey"},
       "definitionFingerprint": null
     },
@@ -199,7 +199,7 @@
       "calibrationPolicy": {"class":"owner-evidence-relative","requiredFields":["state","reason"]},
       "provenancePolicy": {"allowedClasses":["observed-fact","user-assumption","model-estimate","unavailable"],"requireEvidenceCutoff":true},
       "performancePolicy": {"maxComputeMs":250,"deterministic":true},
-      "limitations": ["Scope 01 validates declaration metadata only and makes no trading-execution claim."],
+      "limitations": ["This view validates the model's declared setup only and makes no trading-execution claim."],
       "deepLinkTargets": {"power":"gamma-trading-lab.html#power","journey":"gamma-trading-lab.html#journey"},
       "definitionFingerprint": null
     },
@@ -229,7 +229,7 @@
       "calibrationPolicy": {"class":"owner-evidence-relative","requiredFields":["state","reason"]},
       "provenancePolicy": {"allowedClasses":["observed-fact","user-assumption","model-estimate","unavailable"],"requireEvidenceCutoff":true},
       "performancePolicy": {"maxComputeMs":250,"deterministic":true},
-      "limitations": ["Scope 01 validates declaration metadata only and makes no allocation claim."],
+      "limitations": ["This view validates the model's declared setup only and makes no allocation claim."],
       "deepLinkTargets": {"power":"sector-research-lab.html#power","journey":"sector-research-lab.html#journey"},
       "definitionFingerprint": null
     },
@@ -259,7 +259,7 @@
       "calibrationPolicy": {"class":"owner-evidence-relative","requiredFields":["state","reason"]},
       "provenancePolicy": {"allowedClasses":["observed-fact","user-assumption","model-estimate","unavailable"],"requireEvidenceCutoff":true},
       "performancePolicy": {"maxComputeMs":250,"deterministic":true},
-      "limitations": ["Scope 01 validates declaration metadata only and makes no allocation claim."],
+      "limitations": ["This view validates the model's declared setup only and makes no allocation claim."],
       "deepLinkTargets": {"power":"global-rotation-lab.html#power","journey":"global-rotation-lab.html#journey"},
       "definitionFingerprint": null
     },
@@ -288,7 +288,7 @@
       "calibrationPolicy": {"class":"owner-evidence-relative","requiredFields":["state","reason"]},
       "provenancePolicy": {"allowedClasses":["observed-fact","user-assumption","model-estimate","unavailable"],"requireEvidenceCutoff":true},
       "performancePolicy": {"maxComputeMs":250,"deterministic":true},
-      "limitations": ["Scope 01 validates declaration metadata only and makes no live-adapter execution claim."],
+      "limitations": ["This view validates the model's declared setup only and makes no live-adapter execution claim."],
       "deepLinkTargets": {"power":"real-assets-lab.html#power","journey":"real-assets-lab.html#journey"},
       "definitionFingerprint": null
     },
@@ -319,7 +319,7 @@
       "calibrationPolicy": {"class":"owner-evidence-relative","requiredFields":["state","reason"]},
       "provenancePolicy": {"allowedClasses":["observed-fact","user-assumption","model-estimate","unavailable"],"requireEvidenceCutoff":true},
       "performancePolicy": {"maxComputeMs":250,"deterministic":true},
-      "limitations": ["Scope 01 validates declaration metadata only and makes no sleeve-selection claim."],
+      "limitations": ["This view validates the model's declared setup only and makes no sleeve-selection claim."],
       "deepLinkTargets": {"power":"bond-regime-lab.html#power","journey":"bond-regime-lab.html#journey"},
       "definitionFingerprint": null
     },
@@ -349,7 +349,7 @@
       "calibrationPolicy": {"class":"owner-evidence-relative","requiredFields":["state","reason"]},
       "provenancePolicy": {"allowedClasses":["observed-fact","user-assumption","model-estimate","simulation","unavailable"],"requireEvidenceCutoff":true},
       "performancePolicy": {"maxComputeMs":250,"deterministic":true},
-      "limitations": ["Scope 01 validates declaration metadata only and makes no portfolio-execution claim."],
+      "limitations": ["This view validates the model's declared setup only and makes no portfolio-execution claim."],
       "deepLinkTargets": {"power":"ai-capex-strategy-lab.html#power","journey":"ai-capex-strategy-lab.html#journey"},
       "definitionFingerprint": null
     },
@@ -379,7 +379,7 @@
       "calibrationPolicy": {"class":"owner-evidence-relative","requiredFields":["state","reason"]},
       "provenancePolicy": {"allowedClasses":["observed-fact","user-assumption","model-estimate","unavailable"],"requireEvidenceCutoff":true},
       "performancePolicy": {"maxComputeMs":250,"deterministic":true},
-      "limitations": ["Scope 01 validates declaration metadata only and makes no earnings-forecast claim."],
+      "limitations": ["This view validates the model's declared setup only and makes no earnings-forecast claim."],
       "deepLinkTargets": {"power":"msft-july-print-model.html#power","journey":"msft-july-print-model.html#journey"},
       "definitionFingerprint": null
     },
@@ -407,7 +407,7 @@
       "calibrationPolicy": {"class":"owner-evidence-relative","requiredFields":["state","reason"]},
       "provenancePolicy": {"allowedClasses":["observed-fact","user-assumption","model-estimate","unavailable"],"requireEvidenceCutoff":true},
       "performancePolicy": {"maxComputeMs":250,"deterministic":true},
-      "limitations": ["Scope 01 validates declaration metadata only and preserves unavailable evidence as unavailable."],
+      "limitations": ["This view validates the model's declared setup only and preserves unavailable evidence as unavailable."],
       "deepLinkTargets": {"power":"company-fundamentals-lab.html#power","journey":"company-fundamentals-lab.html#journey"},
       "definitionFingerprint": null
     },
@@ -436,7 +436,7 @@
       "calibrationPolicy": {"class":"owner-evidence-relative","requiredFields":["state","reason"]},
       "provenancePolicy": {"allowedClasses":["observed-fact","user-assumption","model-estimate","unavailable"],"requireEvidenceCutoff":true},
       "performancePolicy": {"maxComputeMs":250,"deterministic":true},
-      "limitations": ["Scope 01 validates declaration metadata only and makes no allocation claim."],
+      "limitations": ["This view validates the model's declared setup only and makes no allocation claim."],
       "deepLinkTargets": {"power":"etf-momentum-lab.html#power","journey":"etf-momentum-lab.html#journey"},
       "definitionFingerprint": null
     },
@@ -466,7 +466,7 @@
       "calibrationPolicy": {"class":"walk-forward-out-of-sample","requiredFields":["state","reason"]},
       "provenancePolicy": {"allowedClasses":["user-assumption","model-estimate","simulation","unavailable"],"requireEvidenceCutoff":true},
       "performancePolicy": {"maxComputeMs":250,"deterministic":true},
-      "limitations": ["Scope 01 validates declaration metadata only and makes no strategy-acceptance claim."],
+      "limitations": ["This view validates the model's declared setup only and makes no strategy-acceptance claim."],
       "deepLinkTargets": {"power":"strategy-self-improvement-lab.html#power","journey":"strategy-self-improvement-lab.html#journey"},
       "definitionFingerprint": null
     },
@@ -496,7 +496,7 @@
       "calibrationPolicy": {"class":"walk-forward-out-of-sample","requiredFields":["state","reason"]},
       "provenancePolicy": {"allowedClasses":["observed-fact","user-assumption","model-estimate","unavailable"],"requireEvidenceCutoff":true},
       "performancePolicy": {"maxComputeMs":250,"deterministic":true},
-      "limitations": ["Scope 01 validates declaration metadata only and makes no edge-survival claim."],
+      "limitations": ["This view validates the model's declared setup only and makes no edge-survival claim."],
       "deepLinkTargets": {"power":"strategy-validation-lab.html#power","journey":"strategy-validation-lab.html#journey"},
       "definitionFingerprint": null
     },
@@ -524,7 +524,7 @@
       "calibrationPolicy": {"class":"owner-evidence-relative","requiredFields":["state","reason"]},
       "provenancePolicy": {"allowedClasses":["observed-fact","user-assumption","model-estimate","unavailable"],"requireEvidenceCutoff":true},
       "performancePolicy": {"maxComputeMs":250,"deterministic":true},
-      "limitations": ["Scope 01 validates declaration metadata only and makes no copy-trade claim."],
+      "limitations": ["This view validates the model's declared setup only and makes no copy-trade claim."],
       "deepLinkTargets": {"power":"smart-money-flow-lab.html#power","journey":"smart-money-flow-lab.html#journey"},
       "definitionFingerprint": null
     },
@@ -554,7 +554,7 @@
       "calibrationPolicy": {"class":"source-qualified-screen","requiredFields":["state","reason"]},
       "provenancePolicy": {"allowedClasses":["observed-fact","user-assumption","model-estimate","unavailable"],"requireEvidenceCutoff":true},
       "performancePolicy": {"maxComputeMs":250,"deterministic":true},
-      "limitations": ["Scope 01 validates declaration metadata only; travel time remains an approximate research screen."],
+      "limitations": ["This view validates the model's declared setup only; travel time remains an approximate research screen."],
       "deepLinkTargets": {"power":"waterfront-polo-lab.html#power","journey":"waterfront-polo-lab.html#journey"},
       "definitionFingerprint": null
     },
@@ -615,7 +615,7 @@
       "calibrationPolicy": {"class":"source-qualified-scenario","requiredFields":["state","reason"]},
       "provenancePolicy": {"allowedClasses":["observed-fact","user-assumption","model-estimate","unavailable"],"requireEvidenceCutoff":true},
       "performancePolicy": {"maxComputeMs":250,"deterministic":true},
-      "limitations": ["Scope 01 validates declaration metadata only; missing property economics remain unavailable."],
+      "limitations": ["This view validates the model's declared setup only; missing property economics remain unavailable."],
       "deepLinkTargets": {"power":"palm-springs-rental-market-lab.html#power","journey":"palm-springs-rental-market-lab.html#journey"},
       "definitionFingerprint": null
     },
@@ -646,7 +646,7 @@
       "calibrationPolicy": {"class":"source-qualified-scenario","requiredFields":["state","reason"]},
       "provenancePolicy": {"allowedClasses":["observed-fact","user-assumption","model-estimate","unavailable"],"requireEvidenceCutoff":true},
       "performancePolicy": {"maxComputeMs":250,"deterministic":true},
-      "limitations": ["Scope 01 validates declaration metadata only; missing property economics remain unavailable."],
+      "limitations": ["This view validates the model's declared setup only; missing property economics remain unavailable."],
       "deepLinkTargets": {"power":"ocean-shores-rental-market-lab.html#power","journey":"ocean-shores-rental-market-lab.html#journey"},
       "definitionFingerprint": null
     },

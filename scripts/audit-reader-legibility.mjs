@@ -38,9 +38,14 @@ const LEAKS = [
   { id: 'integration-state', label: 'integration-state jargon', re: /not-integrated|coverage-only/ }
 ];
 
-function findLeaks(text) {
+function findLeaks(text, view) {
+  /* D13 puts provenance in Power on purpose. A compute digest or a contract version is
+     evidence there, not a leak; everywhere else it is framework vocabulary in reader copy. */
+  const provenanceAllowed = view === 'Power';
+  const provenanceClasses = new Set(['compute-digest', 'contract-version']);
   const found = [];
   for (const leak of LEAKS) {
+    if (provenanceAllowed && provenanceClasses.has(leak.id)) continue;
     const m = text.match(leak.re);
     if (m) found.push({ id: leak.id, label: leak.label, sample: m[0] });
   }
@@ -137,7 +142,7 @@ async function main() {
         const text = await visibleText(page);
         entry.views[view] = {
           chars: text.length,
-          leaks: findLeaks(text),
+          leaks: findLeaks(text, view),
           head: text.slice(0, 220)
         };
         if (view === 'Journey' || view === 'Brief') {
@@ -146,7 +151,7 @@ async function main() {
       }
       if (!Object.keys(entry.views).length) {
         const text = await visibleText(page);
-        entry.views['(no view tabs)'] = { chars: text.length, leaks: findLeaks(text), head: text.slice(0, 220) };
+        entry.views['(no view tabs)'] = { chars: text.length, leaks: findLeaks(text, null), head: text.slice(0, 220) };
       }
     } catch (error) {
       entry.error = error.message.split('\n')[0];

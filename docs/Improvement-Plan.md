@@ -538,7 +538,7 @@ node scripts/selftest.mjs
 4  Watchlist routed into tools ..... 2-3d   ✅ af221a89  owned 0 -> 28, covered 0 -> 14/28
 5  Red Alert + Portfolio real ...... 1d     ✅ done  86254c09  constant -> computed coverage
 6  Recommendations born evaluable .. 2d     ◐ 32692325  live payload 40% -> 80% scoreable
-7  Last five stale tools ........... 1.5d   analyzed 11 -> 16
+7  Last five stale tools ........... 1.5d   ◐ specified below; honest ceiling analyzed 11 -> 14
 8  Journey on every tool page ...... ----   ✖ VOID — premise was a measurement error (D17)
 9  Paperwork reconciled ............ 1d     zero status/code contradictions
 ```
@@ -568,6 +568,29 @@ silently undone the fix.
 
 **Do Step 7 next** (the five tools still stale in the brief), then Step 9 (paperwork), then reconcile
 `Product-Review-and-Roadmap.md` sections 5, 10.2, 11 and 14 against its corrected sections 1 and 2.
+
+### Step 7 — specified, and the target lowered to what the evidence supports
+
+Measured in the published payload: `toolCoverage` is **analyzed 11 · stale 5 · not-relevant 7**.
+
+A tool reaches `fresh-headless` only when a **deterministic Tier-A adapter** produces a `toolRead`
+(`scripts/brief-refresh.mjs` → `buildToolCoverage`); with no adapter it falls to `browser-or-agent-read`, and
+the Tier-B narrative then reports it `stale`. So "wire the five stale tools" means *write adapters* — and only
+where committed evidence exists to run one.
+
+| Stale tool | Committed evidence | Verdict |
+|---|---|---|
+| `bond-regime-lab` | `data/bars/` TLT, IEF, SHY, LQD, HYG, TIP | **feasible** — curve slope from SHY/IEF/TLT, credit spread from HYG/LQD |
+| `options-flow-feed-lab` | 23 committed chains in `data/options/` | **feasible** |
+| `ai-capex-strategy-lab` | `ai-capex-universe.json` + bars | **feasible** |
+| `smart-money-flow-lab` | `data/` holds only bars, calendars, company-fundamentals, options | **BLOCKED** — filings/congressional-flow data is not committed. An adapter would have to invent its input. |
+| `technical-analysis-decision-lab` | adapter EXISTS and runs | **different defect** — the five-gate owner model returns `owner-model-unavailable`, so coverage is correctly `unavailable`. Fixing this is an owner-model gap, not an adapter gap. |
+
+**The original `11 -> 16` target was unreachable and should not be chased.** Three adapters are buildable, so
+the honest ceiling is **`11 -> 14`**. The remaining two are named blockers, not effort gaps — the same
+evidence-bounded framing as Step 4. Do not close the number by giving `smart-money-flow-lab` a synthetic input.
+
+---
 
 ### Suite intermittency — measured, NOT a repo defect
 

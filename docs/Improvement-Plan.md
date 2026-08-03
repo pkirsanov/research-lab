@@ -537,7 +537,7 @@ node scripts/selftest.mjs
 3  Governance out of product copy .. 0.5d   ✅ done  b4bcc7c8  leaks 157 -> 0
 4  Watchlist routed into tools ..... 2-3d   ◐ owned 0 -> 28, covered 0 -> 8; target >=15
 5  Red Alert + Portfolio real ...... 1d     depends on 4
-6  Recommendations born evaluable .. 2d     ⚠ notEvaluableShare 0.83 -> <=0.25  ← the moat
+6  Recommendations born evaluable .. 2d     ◐ 32692325  live payload 40% -> 80% scoreable
 7  Last five stale tools ........... 1.5d   analyzed 11 -> 16
 8  Journey on every tool page ...... ----   ✖ VOID — premise was a measurement error (D17)
 9  Paperwork reconciled ............ 1d     zero status/code contradictions
@@ -566,9 +566,39 @@ silently undone the fix.
 | `journey/market-action/prepare-session/v1` | "Prepare the next market session" |
 | `returned coverage-only` in brief prose | `returned no call` |
 
-**Do Step 6 next.** Steps 1–3 made the product legible; Step 4 gave the matrix real cells. Step 6 is the only
-remaining step that changes what the product *is* rather than how it reads: a recommendation that is born with
-an attributable level and invalidation can be scored, and a system that scores itself is the defensible edge.
+**Do Step 7 next** (the five tools still stale in the brief), then Step 9 (paperwork).
+
+### Step 6 — what was actually wrong
+
+The scorecard said 150 of 180 closed calls (83.3%) were unscoreable, swing 98.1% and tactical 97.5%. The
+natural reading is *"authors are not supplying levels."* That reading was **wrong**. The levels were authored;
+**the parser could not read them.** Two defects, both measured against the product's own published text:
+
+| Defect | Evidence | Fix |
+|---|---|---|
+| A level had to carry a tilde. `"a break below the 740.09 flip"` extracted **nothing**. | Ran `extractLevels` on the live payload's own invalidation fields. | Accept a bare decimal — **invalidation scan only**. |
+| `UPSIDE_CLAUSE` contained a bare `re-?opens? the`, which matches `"re-opens the structural DOWNSIDE"` and flips the level to a trigger, deleting the risk side. | Across every published brief that form matched **26 times and was wrong all 26** (25× *"the structural downside"*, 1× *"re-open the crack"*). It never once matched a real upside. | Require an actual upside object. |
+
+The widening is **deliberately asymmetric**, and that asymmetry is the design:
+
+- a *missed* level → the call is withheld from scoring. Honest.
+- a *fabricated invalidation* → scores as a **miss**. Costs us, never flatters us.
+- a *fabricated trigger* → a free `satisfied` that **inflates the published hit rate**. Unacceptable.
+
+So the risk side may be recovered aggressively; the win side may not. A bare decimal is genuinely ambiguous —
+`closes above 741.69 on 7/31` is a *description of a past close*, syntactically identical to a gate. An existing
+adversarial assertion already pinned that, and it **caught my first, unconditional widening**. I narrowed the
+fix rather than weakening the test.
+
+**Measured:** live payload `machine-checkable` **2/5 → 4/5**. The one remaining call is a sector-rotation thesis
+expressed in relative-strength momentum rather than price — genuinely not price-evaluable, and correctly
+withheld. Historical verdicts are **not** retroactively rewritten (the ledger is append-only), so 83.3% remains
+a true statement about calls already closed; the improvement lands on new calls.
+
+**Authoring was closed at the same time.** `scripts/brief-narrative-parallel.mjs` now requires every tactical or
+swing call to carry a numeric price level on a named committed instrument in its invalidation field, and to
+**withhold** the call otherwise (**D16**). Without that, the next brief would mint unscoreable calls faster than
+the parser recovers them — the same trap as the vocabulary fix in Step 3.
 
 ---
 

@@ -96,16 +96,18 @@ async function visibleText(page) {
 async function scopeCounts(page) {
   return page.evaluate(() => {
     const count = (sel) => document.querySelectorAll(sel).length;
+    const briefMounts = Array.from(document.querySelectorAll('[data-rlbrief-mount]'));
     return {
       journeyToolRows: count('[data-rljourney-tool]'),
       journeyGoalButtons: count('[data-rljourney-goal]'),
-      briefSections: count('.rlbrief-mount, [data-rlbrief-state]'),
-      actionRows: count('[data-rlbrief-part]'),
+      briefMounts: briefMounts.length,
+      briefToolIds: Array.from(new Set(briefMounts.map((n) => n.getAttribute('data-tool-id') || '?'))).join('+'),
+      briefParts: count('[data-rlbrief-part]'),
       matrixCells: count('[data-mac-cell]'),
       matrixOwnedCells: count('[data-mac-cell][data-mac-owner]:not([data-mac-owner=""])'),
       matrixCoveredCells: count('[data-mac-cell][data-mac-state="current"]')
     };
-  }).catch(() => ({ journeyToolRows: -1, journeyGoalButtons: -1, briefSections: -1, actionRows: -1 }));
+  }).catch(() => null);
 }
 
 async function main() {
@@ -184,8 +186,8 @@ async function main() {
       if (jScope || bScope || pScope) {
         console.log(`    scope: journeyToolRows=${jScope ? jScope.journeyToolRows : '-'}`
           + ` journeyGoals=${jScope ? jScope.journeyGoalButtons : '-'}`
-          + ` briefMounts=${bScope ? bScope.briefSections : '-'}`
-          + ` briefParts=${bScope ? bScope.actionRows : '-'}`
+          + ` briefMounts=${bScope ? bScope.briefMounts : '-'}`
+          + ` briefTools=${bScope ? bScope.briefToolIds : '-'}`
           + ` matrixCells=${pScope ? pScope.matrixCells : '-'}`
           + ` owned=${pScope ? pScope.matrixOwnedCells : '-'}`
           + ` covered=${pScope ? pScope.matrixCoveredCells : '-'}`);

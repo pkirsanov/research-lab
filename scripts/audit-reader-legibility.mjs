@@ -22,6 +22,9 @@ import { startStaticServer } from '../tests/provider-credentials.support.mjs';
 
 const ROOT = resolve(dirname(fileURLToPath(import.meta.url)), '..');
 const asJson = process.argv.includes('--json');
+const explain = process.argv.includes('--explain');
+const onlyIdx = process.argv.indexOf('--only');
+const onlyFilter = onlyIdx >= 0 ? process.argv[onlyIdx + 1] : null;
 
 /* Each pattern is a leak of framework vocabulary into product copy. `label` is what
    gets reported; `re` is what proves it. Kept literal so a finding is never inferred. */
@@ -53,8 +56,13 @@ function findLeaks(text, view) {
 }
 
 const registry = JSON.parse(readFileSync(resolve(ROOT, 'tools.json'), 'utf8'));
-const pages = registry.tools.map((t) => ({ id: t.id, file: t.file, group: t.group }));
+const allPages = registry.tools.map((t) => ({ id: t.id, file: t.file, group: t.group }));
+const pages = onlyFilter ? allPages.filter((p) => p.id.includes(onlyFilter)) : allPages;
 
+/* Returns the selector that matched, or null. Callers treat a non-null return as
+   "this view is reachable by a reader" — so a false positive here silently
+   invents a view that does not exist. --explain prints the matched selector so
+   that claim stays auditable. */
 async function activateView(page, label) {
   /* Three tab shapes coexist: the MAC shell (data-rlview-mode), the legacy segmented
      control (#simpleTab/#powerTab) and generic role=tab buttons. A hidden-but-present
@@ -77,9 +85,9 @@ async function activateView(page, label) {
       if (!clicked) continue;
     }
     await page.waitForTimeout(350);
-    return true;
+    return sel;
   }
-  return false;
+  return null;
 }
 
 async function visibleText(page) {
@@ -142,14 +150,16 @@ async function main() {
       await page.goto(`${site.baseUrl}/${spec.file}`, { waitUntil: 'load', timeout: 20000 });
       await page.waitForTimeout(1200);
       for (const view of VIEWS) {
-        const present = await activateView(page, view);
-        if (!present) continue;
+        const matchedBy = await activateView(page, view);
+        if (!matchedBy) continue;
         const text = await visibleText(page);
         entry.views[view] = {
           chars: text.length,
+          matchedBy,
           leaks: findLeaks(text, view),
           head: text.slice(0, 220)
         };
+        if (explain) console.log(`    [explain] ${spec.id} ${view} <- ${matchedBy}`);
         if (view === 'Journey' || view === 'Brief' || view === 'Portfolio') {
           entry.views[view].scope = await scopeCounts(page);
         }

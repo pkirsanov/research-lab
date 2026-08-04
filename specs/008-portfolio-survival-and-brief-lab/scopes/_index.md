@@ -124,3 +124,34 @@ The ranges below are execution ownership, not exclusions. Cross-cutting privacy,
 ## Release Transaction
 
 The route remains directly testable and unregistered through Scopes 01-15. Scope 16 adds `index.html`, `tools.json`, `rlnav.js`, `README.md`, and `notes/portfolio-survival-allocation-lab.md` only after the route, tests, privacy boundary, mobile/accessibility behavior, and canvas/table parity satisfy their focused gates. Registry rollback removes that additive transaction without touching generic Market Brief artifacts or browser personal keys.
+
+## Feature Completion Gate
+
+Feature 008 has no separate feature-level report artifact. This section is the feature-level completion gate, and **Scope 16 is its execution site** because Scope 16 is the last scope, is tagged `release:atomic`, and transitively depends on all fifteen predecessors.
+
+### Two Traceability Levels, Deliberately Separated
+
+A per-scope Build Quality Gate that demanded whole-feature traceability would make every scope unclosable until all sixteen shipped, which inverts scope isolation and forces big-bang delivery. The two levels are therefore split:
+
+| Level | Command | Enforced at | Passes when |
+|-------|---------|-------------|-------------|
+| Scope-local | `bash .github/bubbles/scripts/traceability-guard.sh specs/008-portfolio-survival-and-brief-lab --current-scope` | Every scope's Build Quality Gate | No failure names that scope's own files, while that scope is the active scope in `state.json` |
+| Whole-feature | `bash .github/bubbles/scripts/traceability-guard.sh specs/008-portfolio-survival-and-brief-lab --all-scopes` | This gate, executed in Scope 16 | `RESULT: PASSED` across all 36 scenarios and all 16 scopes |
+
+The scope-local mode is the guard's own `--current-scope` scope-universe mode. It derives its universe only from `state.json`, so a scope cannot widen or narrow its own slice.
+
+### Whole-Feature Requirements (Scope 16 Only)
+
+Relocated here from the per-scope gates; nothing is dropped.
+
+- [ ] `--all-scopes` traceability reports `RESULT: PASSED` with zero failures.
+- [ ] Every `scenario-manifest.json` `linkedTest` path exists on disk, including `tests/portfolio-survival-brief.spec.mjs`, `tests/portfolio-survival-risk.spec.mjs`, `tests/portfolio-survival-paths.spec.mjs`, `tests/portfolio-survival-diversification.spec.mjs`, `tests/portfolio-survival-allocation.spec.mjs`, and `tests/portfolio-survival-mobile.spec.mjs`.
+- [ ] Every one of the 36 `SCN-008-*` scenarios maps to a Test Plan row that references an existing concrete test file.
+- [ ] Gate G068 Gherkin-to-DoD content fidelity reports zero unmapped scenarios across all 16 scopes.
+
+### Known Cross-Scope Blockers
+
+These are recorded so no scope silently inherits them. Neither is closable by an implementing scope on its own.
+
+1. **`certification.status` divergence.** `state.json` top-level `status` is `in_progress` while `certification.status` is `not_started`. This fails `artifact-lint.sh` and makes `--current-scope` refuse with exit 2 (`scope-universe-resolver: top-level status and certification.status disagree`). `certification.*` is validate-owned; route to `bubbles.validate`.
+2. **Scope 01 G068 fidelity.** Scope 01's two Gherkin scenarios have no faithful DoD item, so two G068 failures name Scope 01 directly. This is scope-local to Scope 01 and planning-owned; it does not resolve by shipping other scopes.

@@ -6,6 +6,14 @@
 >
 > **v5 (2026-07-25):** added the **options-implied post-earnings move** (computed live from the same-origin `data/options/MSFT.json` chain — see §3d), a **fully-regenerated macro brief** (§3e), and a **Refresh data + brief** control. These are **market-clock** reads (their own clock, per §0b); they never advance the fundamental as-of (2026-07-06) and never write the user-owned implied-move input. The scheduled Q4 print stays **2026-07-29** (a scenario, not an actual).
 >
+> **⚠️ STALE AS OF 2026-08-04 — the print has landed and the model has not been refreshed.** Microsoft
+> reported FY26 Q4 on **2026-07-29**. The committed model still carries Q4 as a **scenario**, so the
+> tool's fundamental layer is now ~4 weeks stale against reported fact. The verified actuals and a
+> full scenario-vs-actual scorecard are recorded in **§2a** below; **§2a is evidence, not a model
+> refresh** — the page defaults, the `2026-07-06` as-of, and the `q4Status: scenario-not-actual`
+> contract are unchanged and still describe the shipped tool truthfully. Refreshing the model itself
+> is a spec-governed change (see §2a "What a refresh must touch").
+>
 > **Educational only — NOT investment advice.** The fundamental model is a mechanical function of editable assumptions; the delayed quote and daily technicals are cache-first market context on their own clocks (see §0b), never a fundamental input.
 
 This file is the full handoff for the next analysis run: what the tool does, the verified data behind it, the model math, every input lever, the key findings/corrections, the cost-cycle thesis with sources, known limitations, and a next-run checklist.
@@ -36,7 +44,7 @@ The fundamental model and the market context are **separate source-owned clocks*
 ## 1. What the tool computes
 
 | Block | What it shows |
-|---|---|
+| --- | --- |
 | **Margin trajectory** | Q1/Q2/Q3 actual OM + Q4 scenario, with QoQ deltas |
 | **Q4 anchors** | Consensus-implied, seasonality-implied, flat-vs-Q3, and the pasted "47%" claim side by side |
 | **Q4 print view** | Q4 revenue vs guide, sequential growth, operating EPS, capex intensity |
@@ -56,7 +64,7 @@ The fundamental model and the market context are **separate source-owned clocks*
 All figures GAAP, from Microsoft IR press releases &amp; financial statements. Reading the IR `press-release-webcast` pages gives the full income statement, balance sheet, and cash-flow statement per quarter.
 
 | Metric | Q1 FY26 (Sep'25) | Q2 FY26 (Dec'25) | Q3 FY26 (Mar'26) | 9-mo |
-|---|---|---|---|---|
+| --- | --- | --- | --- | --- |
 | Reported | Oct 29, 2025 | Jan 28, 2026 | Apr 29, 2026 | — |
 | Revenue ($B) | 77.673 | 81.273 | 82.886 | **241.832** |
 | Operating income ($B) | 37.961 | 38.275 | 38.398 | **114.634** |
@@ -81,6 +89,110 @@ All figures GAAP, from Microsoft IR press releases &amp; financial statements. R
 - **Jul-6 overhangs (new since last run):** Copilot functionality issues drove a ~10% drop → securities-fraud class action filed Jul 6; third layoff round in a year (~5k, "AI-spending" framing); Copilot reset + a $2.5B "Frontier" enterprise-AI unit; Haleon 5-yr AI/cloud deal (+4% Jul 1). Net: sharpens the "show-me" margin discount into the Jul 29 print.
 - **Q4 FY26 guide:** revenue **$86.7–87.8B**; capex **>$40B**. Earnings call **July 29, 2026** (confirmed).
 - **FY26 consensus (external, user-adjustable):** revenue ~**$329.5B**, EBIT margin ~**46.63%** (e.g., MarketScreener-style).
+
+---
+
+## 2a. FY26 Q4 ACTUAL print — reported 2026-07-29 (evidence only; the model is NOT yet refreshed)
+
+**Source (primary):** Microsoft IR, *Earnings Release FY26 Q4* — "Microsoft Cloud and AI Strength Fuels
+Fourth Quarter Results", REDMOND, Wash., **July 29, 2026**, for the quarter ended **June 30, 2026**
+(`https://www.microsoft.com/en-us/investor/earnings/fy-2026-q4/press-release-webcast`). Retrieved
+2026-08-04. All figures GAAP $M unless noted.
+
+### The print
+
+| Metric | Q4 FY26 (Jun'26) | Q4 FY25 | YoY | FY26 full year | FY25 | YoY |
+| --- | --- | --- | --- | --- | --- | --- |
+| Revenue | **90,007** | 76,441 | +18% (+17% cc) | **331,839** | 281,724 | +18% (+16% cc) |
+| Cost of revenue | 29,525 | 24,014 | — | 106,374 | 87,831 | — |
+| Gross margin | 60,482 (67.20%) | 52,427 | — | 225,465 (67.94%) | 193,893 | — |
+| R&amp;D / S&amp;M / G&amp;A | 9,997 / 7,595 / 2,287 | 8,829 / 7,285 / 1,990 | — | 35,562 / 26,710 / 7,956 | 32,488 / 25,654 / 7,223 | — |
+| **Operating income** | **40,603** | 34,323 | **+18%** | **155,237** | 128,528 | **+21%** (+19% cc) |
+| **Operating margin** | **45.11%** | 44.90% | **+21 bps** | **46.78%** | 45.62% | +116 bps |
+| Other income (expense), net | 3,444 | (1,707) | — | 10,697 | (4,901) | — |
+| Pre-tax income | 44,047 | 32,616 | — | 165,934 | 123,627 | — |
+| Tax (effective rate) | 8,281 (**18.80%**) | 5,383 | — | 32,185 (**19.40%**) | 21,795 | — |
+| Net income (GAAP / non-GAAP) | **35,766** / 35,286 | 27,233 / 28,808 | +31% / +22% | **133,749** / 128,786 | 101,832 / 105,452 | +31% / +22% |
+| Diluted EPS (GAAP / non-GAAP) | **$4.81** / $4.74 | $3.65 / $3.86 | +32% / +23% | **$17.95** / $17.28 | $13.64 / $14.13 | +32% / +22% |
+| Diluted shares (M) | 7,443 | 7,461 | — | 7,453 | 7,465 | — |
+| D&amp;A (cash-flow) | 11,022 | 9,317 | +18% | 38,534 | 29,433 | **+30.9%** |
+| Capex — additions to PP&amp;E | **35,802** | 17,079 | +110% | **115,948** | 64,551 | **+80%** |
+| Capex intensity (% of revenue) | **39.78%** | 22.34% | — | **34.94%** | 22.91% | — |
+| Operating cash flow | 55,441 | 42,647 | — | 182,935 | 136,162 | — |
+| FCF (OCF − capex) | 19,639 | 25,568 | −23% | 66,987 | 71,611 | −6% |
+
+**Segments (Q4):** Productivity &amp; Business Processes **37,847** (+14%) · Intelligent Cloud **39,306**
+(+32%, +31% cc) · More Personal Computing **12,854** (−4%). **Azure +43%** · Microsoft Cloud **$59.3B**
+(+27%) · commercial RPO **+84% to $678B** · M365 Copilot >30M paid seats · Azure annual revenue passed
+**$100B** for the first time. Shareholder returns $10.2B in the quarter.
+
+**Non-recurring:** discrete items produced a **+$0.27 diluted-EPS benefit vs the April 29 guidance** — a
+**$3.2B Anthropic investment gain** and lower-than-expected Voluntary Retirement Program expense,
+partly offset by severance and **XBOX impairment charges**. OpenAI marks added +$480M / +$0.07 in Q4
+and +$4,963M / +$0.67 for FY26 (hence the GAAP↔non-GAAP split).
+
+**Balance sheet (Jun 30, 2026):** total assets **758,376** · PP&amp;E net **313,076** (accumulated
+depreciation **118,691**, up from 93,653) · cash + short-term investments 76,843 · debt 9,227 current +
+31,067 long-term · total equity 442,387.
+
+### Scenario-vs-actual scorecard (committed **Base** preset vs the print)
+
+The model's 9-month anchors reconcile **exactly** to the reported full year, which validates the
+arithmetic frame: `331.839 − 241.832 = 90.007` revenue and `155.237 − 114.634 = 40.603` operating
+income. So every gap below is a genuine forecast error, not a definitional one.
+
+| Input | Base preset | **Actual** | Error |
+| --- | --- | --- | --- |
+| `q4Revenue` ($B) | 87.7 | **90.007** | −2.31 (**−2.6%**, and above the $86.7–87.8B guide) |
+| `q4OperatingMargin` | 45.0% | **45.11%** | **−11 bps — effectively exact** |
+| `q4DaEstimate` ($B) | 11.0 | **11.022** | −0.02 — effectively exact |
+| `q4Capex` ($B) | 42 | **35.802** | +6.2 (**over-forecast**; guide was ">$40B") |
+| `revFY26` ($B) | 329.5 | **331.839** | −2.34 |
+| `om26` | 46.6% | **46.78%** | −18 bps |
+| `shares` (B) | 7.45 | **7.453** | exact |
+| `taxRate` | 19% | **19.40%** | −40 bps |
+| `otherIncome` ($B) | 2 | **10.697** | **−8.7 — the one material miss** (investment marks) |
+
+**Calls that were RIGHT (recorded for method credibility):**
+
+1. **The pasted "~47% Q4 operating margin" claim WAS a bull-stretch.** Actual **45.11%** landed inside
+   the model's internally-derived **44.5–45.6%** base band, and nowhere near 47%. The §0 thesis holds.
+2. **Margin compression continued for a 4th straight quarter:** 48.87% → 47.10% → 46.33% → **45.11%**.
+   The Q3→Q4 step was **−122 bps**, *steeper* than the −77 bps FY25 seasonality the preset assumed — so
+   compression ran slightly ahead of the base case even as the level was hit almost exactly.
+3. **The depreciation wave is now visibly loading.** FY26 capex **$115.9B** (+80% YoY, **34.9% of
+   revenue**); PP&amp;E net 205.0 → **313.1**; accumulated depreciation 93.7 → **118.7**; D&amp;A +30.9%.
+   This is the input the FY27 bridge's `deltaDep` lever exists to absorb.
+
+**Calls that were WRONG / need rework:**
+
+- **`otherIncome` is structurally mis-modeled.** A flat $2B assumption cannot represent FY26's
+  **$10.697B** of net other income, which is dominated by volatile equity marks (OpenAI, Anthropic).
+  A refreshed model should either exclude marks and model operating EPS, or make the mark a first-class
+  labelled scenario input — averaging it away hides the single largest GAAP-EPS swing factor.
+- **Capex over-forecast by ~$6B in the quarter** even though the annual trajectory was directionally
+  right; the quarterly phasing lever is too blunt.
+- **Note also that YoY Q4 margin actually ROSE** (44.90% → 45.11%). The compression story is a
+  *sequential* one; a refresh must not present it as a YoY decline.
+
+### What a refresh must touch (spec-governed — do NOT hand-edit piecemeal)
+
+Moving the model from "Q4 scenario" to "Q4 actual" is a contract change, not a number swap. The
+`2026-07-06` as-of and `q4Status: 'scenario-not-actual'` are pinned in **at least** these places, and
+they must move together or the suites go red:
+
+| Surface | What is pinned |
+| --- | --- |
+| `msft-july-print-model.html` | `#asOfNote`, `#ts_model`, the §sources line, the published-read `asOf`/`q4Status` defaults and their fallbacks, the age banner, the CSV `model_as_of`, and the three `PRESETS` blocks |
+| `tests/msft-july-market-refresh.spec.mjs` | `MODEL_CUTOFF = '2026-07-06'` + ~12 assertions |
+| `scripts/selftest.mjs` | 6 fixtures asserting `asOf: '2026-07-06'` / `q4Status: 'scenario-not-actual'` |
+| `tools.json`, `index.html` | `updated: '2026-07-06'` |
+| `specs/009-msft-july-market-refresh/**` | `spec.md`, `design.md`, `scopes.md`, `scenario-manifest.json`, `test-plan.json` all encode the two-clock contract with this cutoff |
+
+Spec 009 explicitly anticipated this: *"The fundamental/model date remains 2026-07-06 **unless
+independently sourced fundamental work explicitly changes it**."* This section is that independently
+sourced work. The refresh itself should run as a proper scoped change against spec 009 so the
+two-clock contract, the tests, and the published read stay consistent.
 
 ---
 
@@ -176,7 +288,7 @@ A single shared card (visible in Simple **and** Power), **fully regenerated on e
 ### Cost-cycle phase presets (illustrative single-year snapshots — NOT a chained projection)
 
 | Phase | vol% | price% | volMargin | ΔDep | P/E | → OM | EPS | implied |
-|---|---|---|---|---|---|---|---|---|
+| --- | --- | --- | --- | --- | --- | --- | --- | --- |
 | 🔥 Inflation '26–'28 | 12.0 | 5.0 | 63 | 28 | 20 | ~40.4% | ~$16.80 | ~$336 |
 | 🔁 Transition '28–'29 | 11.0 | 4.5 | 66 | 22 | 24 | ~42.1% | ~$17.24 | ~$414 |
 | ❄️ Deflation '29–'30+ | 9.0 | 4.0 | 70 | 14 | 27 | ~44.2% | ~$17.71 | ~$478 |
@@ -230,6 +342,7 @@ A single shared card (visible in Simple **and** Power), **fully regenerated on e
 - [ ] Consider **new factors**: power/energy constraints, regulatory (Italy AGCM outcome + new probes), rate environment, FX regime, neoclouds / new entrants, antitrust.
 - [ ] Add or re-cut **time horizons** as needed (e.g., explicit 1M/3M/6M/1Y like the AI Capex Lab).
 - [ ] Re-run the **validation** in Section 9 before commit.
+
 ---
 
 ## 9. How to edit, validate &amp; ship

@@ -1,12 +1,18 @@
 {
     "version": "0.1",
-    "asOf": "2026-07-06",
+    "asOf": "2026-08-04",
     "note": "Watchlist for the Actionable Market Brief. TICKERS ONLY — never store position sizes, share counts, cost basis, or P&L in this file (it is committed to a PUBLIC repo). If sizing is ever needed it MUST live in localStorage or a gitignored local file only. Each item optionally points at a bespoke deep-analysis tool via 'model'; absence means the brief renders a computed status card. Educational only — not investment advice.",
     "items": [
         {
+            "ticker": "MSFT",
+            "type": "stock",
+            "label": "Microsoft",
+            "model": "msft-july-print-model.html"
+        },
+        {
             "ticker": "QQQ",
             "type": "etf",
-            "label": "Invesco Nasdaq-100 ETF"
+            "label": "Invesco QQQ Trust (Nasdaq-100)"
         },
         {
             "ticker": "SPMO",
@@ -14,15 +20,44 @@
             "label": "Invesco S&P 500 Momentum ETF"
         },
         {
+            "ticker": "FMTM",
+            "type": "etf",
+            "label": "MarketDesk Focused U.S. Momentum ETF"
+        },
+        {
+            "ticker": "XLK",
+            "type": "etf",
+            "label": "Technology Select Sector SPDR Fund"
+        },
+        {
             "ticker": "VGT",
             "type": "etf",
             "label": "Vanguard Information Technology ETF"
         },
         {
-            "ticker": "MSFT",
+            "ticker": "SPCX",
             "type": "stock",
-            "label": "Microsoft",
-            "model": "msft-july-print-model.html"
+            "label": "Space Exploration Technologies Corp."
+        },
+        {
+            "ticker": "FBTC",
+            "type": "etf",
+            "label": "Fidelity Wise Origin Bitcoin Fund"
+        },
+        {
+            "ticker": "FETH",
+            "type": "etf",
+            "label": "Fidelity Ethereum Fund"
+        },
+        {
+            "ticker": "GLD",
+            "type": "etf",
+            "label": "SPDR Gold Shares"
+        },
+        {
+            "ticker": "XLE",
+            "type": "etf",
+            "label": "Energy Select Sector SPDR Fund"
         }
     ]
 }

@@ -1592,6 +1592,8 @@ The recorded resolution condition names three things that must be shown: no part
 
 ### Scenario Behavioral Claim Verdict
 
+> **Superseded for SCN-008-001.** This verdict is the prior-session record and is retained unedited as evidence. The SCN-008-001 row below is no longer current: both blockers it rests on were discharged in [SCN-008-001 Resolution - Current-Session Re-Verification](#scn-008-001-resolution---current-session-re-verification), and that item is now checked. The SCN-008-002 row still stands.
+
 Both items remain unchecked. Each one's own resolution condition requires every clause to be separately confirmed, and each has at least one clause that no named row asserts.
 
 | DoD item | Blocking uncovered clause | Owner of the gap |
@@ -1600,3 +1602,194 @@ Both items remain unchecked. Each one's own resolution condition requires every 
 | SCN-008-002 | `no rejected value enters ... committed artifacts` — no row scans a committed surface, and the run-time sentinel cannot appear in one. Secondary: the `row and field` half of the rejection-reason clause is rendered but unasserted, and sink absence is proven only in durable mode. | A new or extended verifying row is required. This is a test-plan addition, which is planning-owned. |
 
 No DoD item text was modified. Narrowing either claim to match what the rows assert is precisely the inversion Gate G068 exists to detect, and these two items were authored to close finding `F008-IMPL-008`; weakening them would reopen it under a green checkbox.
+
+## SCN-008-001 Resolution - Current-Session Re-Verification
+
+This section resolves the SCN-008-001 `Scenario Behavioral Claims` DoD item. Its prior `Uncertainty Declaration` named exactly two blockers, and both are addressed below.
+
+1. **Stale run.** The recorded evidence was from a prior session, so the Execution Evidence Standard required re-execution. The rows were re-executed in this session; the output is transcribed verbatim below.
+2. **Empty-workspace-only instantiation.** TP-01-03 now performs a real second import over an existing revision, closing the `one existing revision` precondition allowed by this scope's UI Scenario Matrix.
+
+**Scope boundary, restated so it is not silently widened.** The delegated `portfolio analyses` conjunct is NOT resolved here and is NOT claimed here. Its verifying row is Scope 16 TP-16-05 under SCN-008-036, recorded in [Cross-Scope Conjunct Discharge](../_index.md#cross-scope-conjunct-discharge). The five analysis tabs still render `disabled` on this route, so any Scope 01 assertion about them would be false.
+
+**Phase attribution.** The DoD item was planned with `**Phase:** validate`. It was resolved in the implement phase because the resolution it names is exactly re-execution plus clause re-reading, both of which are execution work. The phase field is set to `implement` so provenance matches what actually ran. `bubbles.validate` remains free to re-confirm; nothing here writes `certification.*`.
+
+### Repository Binding
+
+**Phase:** implement
+**Tool:** `repository-binding.sh preflight`
+**Exit Code:** 0
+**Claim Source:** executed
+**Output:**
+
+```text
+REPOSITORY PREFLIGHT CONFIRMED repository=research-lab root=/home/redacted/research-lab source=explicit-repositoryRoot affinity=confirmed
+PREFLIGHT_COMMITTED decision=rb:vscode-3f9885bdcb27069975a1a8cdff1d890c:12 revision=12 repository=research-lab root=/home/redacted/research-lab
+{"repositoryRoot":"/home/redacted/research-lab","repositoryAlias":"research-lab","repositoryResolution":{"sessionId":"vscode-3f9885bdcb27069975a1a8cdff1d890c","decisionId":"rb:vscode-3f9885bdcb27069975a1a8cdff1d890c:12","controlRevision":12,"controlPathDigest":"sha256:a2f0aa23989f26cd749bc76a9421e71fc41c54db2c75e3e5f1da19f8cf6983d9","authority":"explicit-repository-root","transition":"confirmed","scopeKind":"command","scopeId":null,"targetKind":"repository-root","pathVisibility":"local","actionable":true}}
+PREFLIGHT_EXIT=0
+```
+
+The host adapter first refused with `session control home must be caller-owned, mode 0700, and free of symlinks`. The cause was environmental, not a policy failure: this host exports `XDG_RUNTIME_DIR=/run/user/1000/` with a trailing slash, so the derived control home contained an empty path component (`/run/user/1000//bubbles/...`), which `path_has_symlink_component` rejects. It was resolved with the adapter's documented `BUBBLES_SESSION_CONTROL_HOME` knob pointing at the identical physical directory the default derivation targets, not by relaxing a check.
+
+### Environment Gates
+
+**Phase:** implement
+**Command:** `node scripts/validate-node-source-lock.mjs` then `npx --no-install playwright --version`
+**Exit Code:** 0 / 0
+**Claim Source:** executed
+**Output:**
+
+```text
+[node-source-lock] manifest=PASS private=true runtimeDependencies=0 scripts=0 playwright=1.61.1 node=>=20
+[node-source-lock] npmrc=PASS registry=https://registry.npmjs.org/ entries=5 ignoreScripts=true
+[node-source-lock] lockfile=PASS version=3 externalPackages=3 integrity=sha512
+[node-source-lock] graph=PASS playwright=1.61.1 playwright-core=1.61.1 fsevents=2.3.2
+[node-source-lock] adversarial=missing-file result=REJECTED code=FILE-MISSING
+[node-source-lock] adversarial=manifest-drift result=REJECTED code=MANIFEST-KEYS
+[node-source-lock] adversarial=second-registry result=REJECTED code=NPMRC-DUPLICATE
+[node-source-lock] adversarial=verification-disabled result=REJECTED code=NPMRC-VERIFICATION
+[node-source-lock] adversarial=untrusted-resolved-url result=REJECTED code=LOCK-SOURCE
+[node-source-lock] adversarial=missing-integrity result=REJECTED code=LOCK-INTEGRITY
+[node-source-lock] actual=PASS
+[node-source-lock] OK adversarial=16 unexpectedAcceptances=0
+SOURCE_LOCK_EXIT=0
+Version 1.61.1
+RUNNER_VERSION_EXIT=0
+```
+
+The runner prints exactly `Version 1.61.1`, satisfying the Test Plan's pre-browser requirement.
+
+### Named Verifying Rows - Current-Session Execution
+
+TP-01-03, TP-01-04, and TP-01-05 all live in `tests/portfolio-survival-foundation.spec.mjs`, so one invocation executes the named set with no substitution and no `--grep` narrowing. The suite has grown from 3 rows to 6 since the prior transcript, because Scope 02 added the three SCN-008-003/SCN-008-004 mandate rows.
+
+**Phase:** implement
+**Tool:** Playwright, `system-chrome` project
+**Command:** `npx --no-install playwright test --config=playwright.config.mjs --project=system-chrome tests/portfolio-survival-foundation.spec.mjs`
+**Exit Code:** 0
+**Claim Source:** executed
+**Repository HEAD:** `1ae48dd5eca4cb5fc69faf7fca62d24ebd907a51`
+**Output:**
+
+```text
+Running 6 tests using 1 worker
+
+  ✓  1 …SCN-008-003 explicit mandate alone supplies every hard constraint (1.5s)
+[SCN-008-003] mandateId=sha256:acf8af8a49927b400f109579609edc00c782e5a4c22fbddfde0d8dfe467b61c9
+[SCN-008-003] portfolioUnchanged=true
+[SCN-008-003] hardConstraints=2
+[SCN-008-003] researchConstraints=0
+[SCN-008-003] cashNeeds=1
+[SCN-008-003] absentFields=4
+[SCN-008-003] routesCiting=3
+[SCN-008-003] behaviorContribution=none
+[SCN-008-003] behaviorDraftRefused=P008-MANDATE-AUTHORITY
+[SCN-008-003] mandateUnchangedAfterNoise=true
+[SCN-008-003] remotePersonalRequests=0
+  ✓  2 …: SCN-008-004 no mandate leaves goal fit and survival unavailable (1.3s)
+[SCN-008-004] currentMandateId=null
+[SCN-008-004] descriptiveAvailable=true
+[SCN-008-004] goalFit=unavailable:mandate-absent
+[SCN-008-004] survivalToGoal=unavailable:mandate-absent
+[SCN-008-004] constraintFeasibility=unavailable:mandate-absent
+[SCN-008-004] cashNeedCollision=unavailable:mandate-absent
+[SCN-008-004] inferredValues=0
+[SCN-008-004] placeholderNumbers=0
+[SCN-008-004] educationalBoundary=visible
+[SCN-008-004] routes=3
+  ✓  3 …ting mandate stays visibly infeasible with no constraint relaxed (882ms)
+[SCN-008-003-conflict] conflicts=4
+[SCN-008-003-conflict] confirmDisabled=true
+[SCN-008-003-conflict] declaredConstraintsPreserved=2
+[SCN-008-003-conflict] declaredCashNeedsPreserved=3
+[SCN-008-003-conflict] declaredOrderPreserved=true
+[SCN-008-003-conflict] currentMandateUnchanged=true
+[SCN-008-003-conflict] currentPortfolioUnchanged=true
+[SCN-008-003-conflict] constraintsRelaxed=0
+  ✓  4 …008-001 valid local portfolio import creates one current revision (1.1s)
+[SCN-008-001] route=served
+[SCN-008-001] previewAccepted=3
+[SCN-008-001] duplicateChoice=merge
+[SCN-008-001] generation=1
+[SCN-008-001] revisions=1
+[SCN-008-001] holdings=2
+[SCN-008-001] storageMode=durable
+[SCN-008-001] localKeys=rlPortfolioWorkspaceV1.pointer,rlPortfolioWorkspaceV1.slotA
+[SCN-008-001] remoteRequests=0
+  ✓  5 …-008-002 invalid or secret-bearing import is atomic and redacted (663ms)
+[SCN-008-002] confirmation=disabled
+[SCN-008-002] redaction=value-not-echoed
+[SCN-008-002] generation=1
+[SCN-008-002] currentUnchanged=true
+[SCN-008-002] storageSentinel=false
+[SCN-008-002] consoleSentinel=false
+[SCN-008-002] urlSentinel=false
+[SCN-008-002] requestSentinel=false
+  ✓  6 …preserve last valid portfolio in durable session and memory modes (2.1s)
+[TP-01-05] modes=durable:1:durable,session:1:session,memory:1:memory
+[TP-01-05] durable=true
+[TP-01-05] session=true
+[TP-01-05] memory=true
+[TP-01-05] priorRevisionPreserved=true
+[TP-01-05] falseDurableClaim=false
+[TP-01-05] sessionWarning=true
+[TP-01-05] externalProviders=0
+
+  6 passed (9.9s)
+SUITE_EXIT=0
+```
+
+### Diagnostic-Print Caveat - Read Before The Clause Ledger
+
+**The `[SCN-008-001]` console lines above are first-import snapshots and do NOT describe the end state of the row.** They must not be read as contradicting the second-import verdicts below.
+
+`tests/portfolio-survival-foundation.spec.mjs:359-363` prints from the `reloaded` and `first` captures, both taken before the second import at line 310. So the transcript shows `generation=1`, `revisions=1`, and a two-key `localKeys` set ending at `slotA`, while the row's own assertions at lines 328-348 require `generation=2`, `revisionCount=2`, and a three-key set including `slotB`. A green Playwright test means every `expect` in it held, so the second-import assertions passed; the prints simply lag them.
+
+This is an evidence-readability defect, not a behavior defect, and it is recorded rather than silently patched because the diagnostics are not what carries the claim. It is filed as `F008-IMPL-009` below. Anyone reading only the console lines would understate this row's coverage.
+
+### Second-Instantiation Coverage - TP-01-03
+
+The `one existing revision` precondition is now exercised. The second import is a real one, not a state poke: `importValid(page, secondName)` at line 310 is the same helper the first import uses, so it re-runs the full review-and-confirm path — fill name, set the CSV file, assert `previewAccepted` 3 and `previewDuplicates` 2, select the `merge` duplicate choice, check the local-only acknowledgement, wait for `#confirmImport` to be enabled, click it, and wait for `#currentRevision`.
+
+The row is discriminating, not tautological. If the second import were a no-op, line 312 (`toContainText(secondName)`) would time out and line 328 (`generation).toBe(2)`) would fail against `1`. The wait at line 312 is on a rendered state change — `renderCurrent()` writes the committed revision name into `#briefWorkspace #currentRevision` — rather than on a longer clock, so no timeout was widened.
+
+| Asserted property | Line | Assertion |
+| --- | --- | --- |
+| Generation advances | 328 | `expect(second.diagnostics.generation).toBe(2)` |
+| Exactly one revision added | 329 | `expect(second.diagnostics.revisionCount).toBe(2)` |
+| New revision is distinct | 331 | `expect(secondRevisionId).not.toBe(revisionId)` |
+| Prior revision retained in order | 332 | `expect(second.revisionIds).toEqual([revisionId, secondRevisionId])` |
+| Lineage recorded | 333 | `expect(second.supersedes).toEqual([null, revisionId])` |
+| Both names retained | 334 | `expect(second.revisionNames).toEqual(['Scope 01 portfolio', secondName])` |
+| Atomic slot alternation | 335 | `expect(second.activeSlot).toBe('slotB')` |
+| Durable across reload | 346-348 | `currentPortfolioId` is `secondRevisionId`, `revisionCount` 2, `generation` 2 |
+
+### SCN-008-001 Clause Ledger - Re-Read Against Current-Session Output
+
+Claim under test, unchanged: one new local portfolio revision becomes current, its holdings/quantities/optional cost fields/derived values remain local-only, and the Portfolio Brief **and portfolio analyses** reference the new revision.
+
+Only the three Scope-01-owned clauses are re-read here. Each was re-read against the run above, not inferred from the exit code.
+
+| Scope 01 clause | Carrying assertion (file:line) | Verdict |
+| --- | --- | --- |
+| One new local portfolio revision becomes current | First instantiation: lines 294-295 (`generation` 1, `revisionCount` 1), line 303 (Brief revision line shows the id), lines 305-306 (identity survives reload). Second instantiation over an existing revision: line 328 (`generation` 2), line 329 (`revisionCount` 2 — exactly one added), line 331 (new id distinct), line 332 (prior revision retained, not replaced in place), line 333 (`supersedes` `[null, revisionId]` — the new revision supersedes the prior one), line 335 (`activeSlot` `slotB` — the write landed in the alternate slot), lines 346-348 (the new revision is still current after reload). | CONFIRMED |
+| Holdings, quantities, optional cost fields, and derived values remain local-only | Line 336 exact three-key `rlPortfolioWorkspaceV1.*` local set with no foreign namespace; line 337 `sessionKeys` empty; lines 338-339 the URL carries no holding symbol, `quantity`, `costBasis`, or portfolio name; line 352 every server-side request is a same-origin `GET` with no `https?://` pathname; line 353 no request line contains a portfolio name, `MSFT`, `BND`, or `costBasis`; line 354 every browser request origin equals `server.baseUrl`; line 355 no service worker is registered. `requestStart` is captured at line 285, so lines 350-355 cover both imports, not just the first. | CONFIRMED |
+| The Portfolio Brief references the new revision | Line 286 `openRoute()` asserts the `Portfolio Brief` heading is visible and `#workspaceTabBrief` is `aria-selected="true"`. `#currentRevision` sits inside `<section id="briefWorkspace" class="brief" aria-label="Portfolio Brief workspace">` (`portfolio-survival-allocation-lab.html:613,633`), so `#briefWorkspace #currentRevision` is the Brief's own revision line. After the second import: line 342 it shows `secondRevisionId`, line 343 it shows `secondName`, and line 344 it no longer shows the superseded `revisionId`. | CONFIRMED |
+| *(delegated)* portfolio analyses reference the new revision | Not asserted in Scope 01 and not claimed here. Verified by Scope 16 TP-16-05 under SCN-008-036 per [Cross-Scope Conjunct Discharge](../_index.md#cross-scope-conjunct-discharge). | DELEGATED - out of scope for this item |
+
+Two notes on the strength of the evidence, so the verdicts are not read as stronger than they are.
+
+- The **local-only** clause names `derived values`, and no assertion enumerates a derived value by name; the negative regexes list `MSFT`, `BND`, `quantity`, `costBasis`, and the portfolio name. The clause is nonetheless carried, because the coverage is structural rather than value-by-value: lines 352-355 establish that no request leaves the origin, that every request is a `GET` to a relative path, and that no service worker exists. With no egress channel open, no derived value can leave either. This is stronger than a value enumeration, not weaker, since it does not depend on guessing which derived values exist.
+- The **Portfolio Brief** clause is confirmed by the negative assertion at line 344 as much as by the positive ones. Showing the new id would be satisfiable by a Brief that appends revisions; also ceasing to show the superseded id is what proves the Brief tracks the *current* revision.
+
+### SCN-008-001 Verdict
+
+Every clause Scope 01 owns is carried by a named assertion, re-read against a current-session run at exit code 0. Both blockers named in the prior `Uncertainty Declaration` are discharged: the run is from this session, and the `one existing revision` instantiation is now exercised by a real second import. The DoD item is checked.
+
+The item is not checked on the exit code. Exit 0 was the precondition for reading the assertions; the verdicts above cite specific assertion lines, and the second-import verdicts were re-read against source precisely because the console transcript understates them.
+
+### New Finding
+
+| ID | Severity | Finding | Owner |
+| --- | --- | --- | --- |
+| `F008-IMPL-009` | Low - evidence readability, no behavior impact | `tests/portfolio-survival-foundation.spec.mjs:359-363` prints the pre-second-import `reloaded`/`first` captures, so the TP-01-03 transcript reports `generation=1`, `revisions=1`, and `localKeys` ending at `slotA` while the row asserts `2`, `2`, and a set including `slotB` at lines 328-336. The assertions are correct and passing; only the diagnostics lag. A reader who trusts the transcript over the source will understate this row's coverage, and a future regression that broke the second import would still print a plausible-looking `generation=1`. | `bubbles.test` — repoint lines 359-363 at the `second`/`afterSecondReload` captures, or print both instantiations. Not fixed here because the diagnostics are not what carries the claim, and rewriting a passing row's output is outside this item's resolution. |

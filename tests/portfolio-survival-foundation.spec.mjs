@@ -353,14 +353,19 @@ test('Regression: SCN-008-001 valid local portfolio import creates one current r
   expect(JSON.stringify(requests)).not.toMatch(/Scope 01 portfolio|MSFT|BND|costBasis/i);
   expect(browserRequests.every((url) => new URL(url).origin === server.baseUrl)).toBe(true);
   expect(await page.evaluate(async () => !navigator.serviceWorker.controller && (await navigator.serviceWorker.getRegistrations()).length === 0)).toBe(true);
+  // Unprefixed lines report the final committed state the assertions above pin; firstImport.* is the earlier snapshot.
   console.log('[SCN-008-001] route=served');
   console.log('[SCN-008-001] previewAccepted=3');
   console.log('[SCN-008-001] duplicateChoice=merge');
-  console.log('[SCN-008-001] generation=' + reloaded.generation);
-  console.log('[SCN-008-001] revisions=' + reloaded.revisionCount);
-  console.log('[SCN-008-001] holdings=' + reloaded.holdingCount);
-  console.log('[SCN-008-001] storageMode=' + reloaded.storageMode);
-  console.log('[SCN-008-001] localKeys=' + first.localKeys.join(','));
+  console.log('[SCN-008-001] firstImport.generation=' + first.diagnostics.generation);
+  console.log('[SCN-008-001] firstImport.revisionCount=' + first.diagnostics.revisionCount);
+  console.log('[SCN-008-001] firstImport.holdings=' + first.diagnostics.holdingCount);
+  console.log('[SCN-008-001] firstImport.localKeys=' + first.localKeys.join(','));
+  console.log('[SCN-008-001] generation=' + afterSecondReload.generation);
+  console.log('[SCN-008-001] revisionCount=' + afterSecondReload.revisionCount);
+  console.log('[SCN-008-001] storageMode=' + second.diagnostics.storageMode);
+  console.log('[SCN-008-001] activeSlot=' + second.activeSlot);
+  console.log('[SCN-008-001] localKeys=' + second.localKeys.join(','));
   console.log('[SCN-008-001] remoteRequests=0');
 });
 

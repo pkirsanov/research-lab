@@ -91,6 +91,64 @@
             "weight": "weight"
         }
     },
+    "mandate": {
+        "contractVersion": "portfolio-mandate-policy/v1",
+        "inputAuthority": "user",
+        "horizonUnits": [
+            "calendar-date"
+        ],
+        "constraintKinds": [
+            "hard",
+            "research"
+        ],
+        "constraintTypes": [
+            "asset-eligibility",
+            "exclusion",
+            "leverage-limit",
+            "liquidity-reserve",
+            "maximum-exposure",
+            "minimum-exposure",
+            "turnover-budget"
+        ],
+        "constraintUnits": [
+            "currency",
+            "portfolio-fraction"
+        ],
+        "cashNeedUnits": [
+            "currency",
+            "portfolio-fraction"
+        ],
+        "treatmentTimings": [
+            "end-of-step",
+            "start-of-step"
+        ],
+        "maxConstraints": 50,
+        "maxCashNeeds": 50,
+        "forbiddenInputSources": [
+            "actionOutcomes",
+            "behaviorEvents",
+            "interestSignals",
+            "settings"
+        ],
+        "mandateDependentStates": [
+            "cash-need-collision",
+            "constraint-feasibility",
+            "goal-fit",
+            "survival-to-goal"
+        ],
+        "descriptiveRouteStates": [
+            "allocation",
+            "path-lab",
+            "risk-xray"
+        ],
+        "neverInferredFields": [
+            "expectedReturn",
+            "horizon",
+            "liquidityNeed",
+            "riskTolerance",
+            "survivalFloor"
+        ]
+    },
     "behavior": {
         "contractVersion": "portfolio-behavior-policy/v1",
         "minimumDistinctCompletions": 2,

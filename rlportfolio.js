@@ -17,6 +17,11 @@
   var POINTER_VERSION = "portfolio-workspace-pointer/v1";
   var PREVIEW_VERSION = "portfolio-import-preview/v1";
   var STORAGE_STATE_VERSION = "portfolio-storage-state/v1";
+  var MANDATE_VERSION = "MandateRevision/v1";
+  var CASH_NEED_VERSION = "CashNeed/v1";
+  var CONSTRAINT_VERSION = "MandateConstraint/v1";
+  var MANDATE_PREVIEW_VERSION = "portfolio-mandate-preview/v1";
+  var ROUTE_STATE_VERSION = "portfolio-route-state/v1";
   var HASH_PATTERN = /^sha256:[a-f0-9]{64}$/;
   var CURRENCY_PATTERN = /^[A-Z]{3}$/;
   var DATE_PATTERN = /^\d{4}-\d{2}-\d{2}$/;
@@ -32,6 +37,8 @@
     "P008-MIGRATION": true,
     "P008-IMPORT-SHAPE": true,
     "P008-IMPORT-SECRET": true,
+    "P008-MANDATE-SHAPE": true,
+    "P008-MANDATE-AUTHORITY": true,
     "P008-IDENTITY": true,
     "P008-CURRENCY": true,
     "P008-NUMERIC": true,
@@ -45,7 +52,7 @@
     "P008-EXPORT": true
   });
   var TOP_POLICY_FIELDS = Object.freeze([
-    "analytics", "behavior", "calibration", "contractVersion", "display", "import", "queue", "solver", "storage"
+    "analytics", "behavior", "calibration", "contractVersion", "display", "import", "mandate", "queue", "solver", "storage"
   ]);
   var POLICY_SECTION_FIELDS = Object.freeze({
     storage: Object.freeze([
@@ -55,6 +62,11 @@
     import: Object.freeze([
       "allowedFileKinds", "assetTypes", "contractVersion", "duplicateChoices", "fieldAliases", "maxBytes", "maxRows",
       "secretFieldTokens", "secretValueMinimumLength", "secretValuePrefixes", "weightTolerance"
+    ]),
+    mandate: Object.freeze([
+      "cashNeedUnits", "constraintKinds", "constraintTypes", "constraintUnits", "contractVersion",
+      "descriptiveRouteStates", "forbiddenInputSources", "horizonUnits", "inputAuthority",
+      "mandateDependentStates", "maxCashNeeds", "maxConstraints", "neverInferredFields", "treatmentTimings"
     ]),
     behavior: Object.freeze([
       "contractVersion", "halfLifeDays", "highScore", "maximumEvidenceAgeDays", "mediumScore",
@@ -79,6 +91,7 @@
   var POLICY_SECTION_VERSIONS = Object.freeze({
     storage: "portfolio-storage-policy/v1",
     import: "portfolio-import-policy/v1",
+    mandate: "portfolio-mandate-policy/v1",
     behavior: "portfolio-behavior-policy/v1",
     analytics: "portfolio-analytics-policy/v1",
     solver: "portfolio-solver-policy/v1",
@@ -103,6 +116,31 @@
   ]);
   var ERROR_FIELDS = Object.freeze([
     "code", "contractVersion", "field", "reason", "recoverable", "row", "valueEchoed"
+  ]);
+  var MANDATE_FIELDS = Object.freeze([
+    "cashNeeds", "constraints", "contractVersion", "costPolicy", "createdAt", "expectedReturnPolicy", "horizon",
+    "inputAuthority", "mandateId", "objectiveLabel", "rebalancePolicy", "semanticFingerprint", "supersedes",
+    "survivalDefinition", "valuationCurrency"
+  ]);
+  var MANDATE_DRAFT_FIELDS = Object.freeze([
+    "cashNeeds", "constraints", "costPolicy", "expectedReturnPolicy", "horizon", "objectiveLabel",
+    "rebalancePolicy", "survivalDefinition", "valuationCurrency"
+  ]);
+  var HORIZON_FIELDS = Object.freeze(["endDate", "unit"]);
+  var CONSTRAINT_FIELDS = Object.freeze([
+    "constraintId", "constraintKind", "contractVersion", "inputAuthority", "kind", "maximum", "minimum", "subject", "unit"
+  ]);
+  var CONSTRAINT_DRAFT_FIELDS = Object.freeze([
+    "constraintKind", "kind", "maximum", "minimum", "subject", "unit"
+  ]);
+  var CASH_NEED_FIELDS = Object.freeze([
+    "amount", "cashNeedId", "contractVersion", "currency", "date", "inputAuthority", "priority", "treatmentTiming", "unit"
+  ]);
+  var CASH_NEED_DRAFT_FIELDS = Object.freeze([
+    "amount", "currency", "date", "priority", "treatmentTiming", "unit"
+  ]);
+  var MANDATE_NULLABLE_POLICY_FIELDS = Object.freeze([
+    "costPolicy", "expectedReturnPolicy", "rebalancePolicy", "survivalDefinition"
   ]);
   var FOUNDATION_LOCAL_KEYS = Object.freeze([
     "rlPortfolioWorkspaceV1.pointer",
@@ -265,6 +303,20 @@
         })) {
       return failure("P008-CONFIG", "invalid-policy", "import", null, false);
     }
+    var mandatePolicy = value.mandate;
+    if (mandatePolicy.inputAuthority !== "user" ||
+        !exactStringSet(mandatePolicy.horizonUnits, ["calendar-date"]) ||
+        !exactStringSet(mandatePolicy.constraintKinds, ["hard", "research"]) ||
+        !exactStringSet(mandatePolicy.constraintUnits, ["currency", "portfolio-fraction"]) ||
+        !exactStringSet(mandatePolicy.cashNeedUnits, ["currency", "portfolio-fraction"]) ||
+        !exactStringSet(mandatePolicy.treatmentTimings, ["start-of-step", "end-of-step"]) ||
+        !exactStringSet(mandatePolicy.descriptiveRouteStates, ["risk-xray", "path-lab", "allocation"]) ||
+        !stringArray(mandatePolicy.constraintTypes, false) || !stringArray(mandatePolicy.forbiddenInputSources, false) ||
+        !stringArray(mandatePolicy.mandateDependentStates, false) || !stringArray(mandatePolicy.neverInferredFields, false) ||
+        !Number.isInteger(mandatePolicy.maxConstraints) || mandatePolicy.maxConstraints <= 0 ||
+        !Number.isInteger(mandatePolicy.maxCashNeeds) || mandatePolicy.maxCashNeeds <= 0) {
+      return failure("P008-CONFIG", "invalid-policy", "mandate", null, false);
+    }
     if (!Number.isInteger(value.analytics.targetHistoryCalendarYears) || value.analytics.targetHistoryCalendarYears <= 0 ||
         !Number.isInteger(value.analytics.minimumRiskObservations) || value.analytics.minimumRiskObservations <= 0 ||
         !Number.isInteger(value.analytics.minimumCapmObservations) || value.analytics.minimumCapmObservations <= 0 ||
@@ -278,13 +330,14 @@
       return failure("P008-CONFIG", "invalid-policy", "analytics", null, false);
     }
     var numericSections = [value.behavior, value.solver, value.calibration, value.queue];
+    var numericSectionNames = ["behavior", "solver", "calibration", "queue"];
     for (var numericIndex = 0; numericIndex < numericSections.length; numericIndex += 1) {
       var numericKeys = Object.keys(numericSections[numericIndex]).filter(function (key) { return key !== "contractVersion"; });
       if (!numericKeys.every(function (key) {
         var item = numericSections[numericIndex][key];
         if (Array.isArray(item)) return item.length > 0 && item.every(finiteNonNegative);
         return finiteNonNegative(item);
-      })) return failure("P008-CONFIG", "invalid-policy", sectionNames[numericIndex], null, false);
+      })) return failure("P008-CONFIG", "invalid-policy", numericSectionNames[numericIndex], null, false);
     }
     if (value.display.defaultMode !== "simple" || value.display.defaultWorkspaceHash !== "#brief" ||
         value.display.localNetworkPolicy !== "same-origin-only" || !nonEmptyString(value.display.policyLabel) ||
@@ -807,6 +860,7 @@
       schemaVersion: WORKSPACE_VERSION,
       storagePolicyVersion: policy.storage.contractVersion,
       importPolicyVersion: policy.import.contractVersion,
+      mandatePolicyVersion: policy.mandate.contractVersion,
       behaviorPolicyVersion: policy.behavior.contractVersion,
       analyticsPolicyVersion: policy.analytics.contractVersion,
       calibrationPolicyVersion: policy.calibration.contractVersion,
@@ -858,15 +912,23 @@
     }));
   }
 
-  function revisionIdentityPayload(value) {
+  function revisionSemanticPayload(value) {
     return {
-      contractVersion: "portfolio-revision-identity/v1",
+      contractVersion: "portfolio-revision-semantic/v1",
       name: value.name,
       valuationCurrency: value.valuationCurrency,
       inputBasis: value.inputBasis,
-      holdings: value.holdings,
-      supersedes: value.supersedes
+      holdings: value.holdings
     };
+  }
+
+  // Lineage identity is content identity plus supersedes; derived from the semantic
+  // payload so the two can never drift apart.
+  function revisionIdentityPayload(value) {
+    var payload = revisionSemanticPayload(value);
+    payload.contractVersion = "portfolio-revision-identity/v1";
+    payload.supersedes = value.supersedes;
+    return payload;
   }
 
   function validatePortfolioRevision(value, policy) {
@@ -888,7 +950,7 @@
       if (seen[value.holdings[index].holdingId]) return failure("P008-IDENTITY", "duplicate-holding-id", "holdings", null, false);
       seen[value.holdings[index].holdingId] = true;
     }
-    var expectedSemantic = contracts.fingerprint("portfolio-revision-semantic", revisionIdentityPayload(value));
+    var expectedSemantic = contracts.fingerprint("portfolio-revision-semantic", revisionSemanticPayload(value));
     var expectedId = contracts.fingerprint("portfolio-revision", revisionIdentityPayload(value));
     if (value.semanticFingerprint !== expectedSemantic || value.portfolioId !== expectedId) return failure("P008-IDENTITY", "revision-identity-mismatch", "portfolioId", null, false);
     return success(clone(value));
@@ -931,7 +993,7 @@
       supersedes: currentWorkspace.currentPortfolioId,
       semanticFingerprint: null
     };
-    revision.semanticFingerprint = contracts.fingerprint("portfolio-revision-semantic", revisionIdentityPayload(revision));
+    revision.semanticFingerprint = contracts.fingerprint("portfolio-revision-semantic", revisionSemanticPayload(revision));
     revision.portfolioId = contracts.fingerprint("portfolio-revision", revisionIdentityPayload(revision));
     return success(revision);
   }
@@ -971,11 +1033,21 @@
         !Array.isArray(value.interestSignals) || !Array.isArray(value.actionOutcomes) || !isPlainObject(value.policyRefs) ||
         !canonicalTimestamp(value.createdAt) || !canonicalTimestamp(value.updatedAt) || !HASH_PATTERN.test(value.semanticFingerprint || "") ||
         !HASH_PATTERN.test(value.contentSha256 || "") || (value.currentPortfolioId !== null && !HASH_PATTERN.test(value.currentPortfolioId || "")) ||
-        value.currentMandateId !== null) {
+        (value.currentMandateId !== null && !HASH_PATTERN.test(value.currentMandateId || ""))) {
       return failure("P008-SCHEMA-CORRUPT", "workspace-invalid", "workspace", null, false);
     }
-    if (value.mandateRevisions.length > 0 || value.behaviorEvents.length > 0 || value.interestSignals.length > 0 || value.actionOutcomes.length > 0) {
+    if (value.behaviorEvents.length > 0 || value.interestSignals.length > 0 || value.actionOutcomes.length > 0) {
       return failure("P008-SCHEMA-CORRUPT", "unsupported-contract-scope", "workspace", null, false);
+    }
+    var mandateIds = Object.create(null);
+    for (var mandateIndex = 0; mandateIndex < value.mandateRevisions.length; mandateIndex += 1) {
+      var mandateResult = validateMandateRevision(value.mandateRevisions[mandateIndex], policy);
+      if (!mandateResult.ok) return mandateResult;
+      if (mandateIds[value.mandateRevisions[mandateIndex].mandateId]) return failure("P008-IDENTITY", "duplicate-mandate-id", "mandateRevisions", null, false);
+      mandateIds[value.mandateRevisions[mandateIndex].mandateId] = true;
+    }
+    if (value.currentMandateId !== null && !mandateIds[value.currentMandateId]) {
+      return failure("P008-IDENTITY", "current-mandate-missing", "currentMandateId", null, false);
     }
     var revisionIds = Object.create(null);
     for (var revisionIndex = 0; revisionIndex < value.portfolioRevisions.length; revisionIndex += 1) {
@@ -994,8 +1066,505 @@
     return success(clone(value));
   }
 
-  function storageState(mode, policy, lastVerifiedWrite, generation) {
-    return deepFreeze({
+  function mandateConflict(reason, subject, indexes, error) {
+    return {
+      contractVersion: "portfolio-mandate-conflict/v1",
+      reason: reason,
+      subject: subject,
+      indexes: indexes.slice(),
+      error: error
+    };
+  }
+
+  function constraintIdentityPayload(constraint, declaredIndex) {
+    var payload = clone(constraint);
+    delete payload.constraintId;
+    payload.contractVersion = "portfolio-mandate-constraint-identity/v1";
+    payload.declaredIndex = declaredIndex;
+    return payload;
+  }
+
+  function cashNeedIdentityPayload(cashNeed, declaredIndex) {
+    var payload = clone(cashNeed);
+    delete payload.cashNeedId;
+    payload.contractVersion = "portfolio-cash-need-identity/v1";
+    payload.declaredIndex = declaredIndex;
+    return payload;
+  }
+
+  function mandateSemanticPayload(value) {
+    return {
+      contractVersion: "portfolio-mandate-semantic/v1",
+      objectiveLabel: value.objectiveLabel,
+      valuationCurrency: value.valuationCurrency,
+      horizon: value.horizon,
+      survivalDefinition: value.survivalDefinition,
+      rebalancePolicy: value.rebalancePolicy,
+      costPolicy: value.costPolicy,
+      expectedReturnPolicy: value.expectedReturnPolicy,
+      constraints: value.constraints,
+      cashNeeds: value.cashNeeds,
+      inputAuthority: value.inputAuthority
+    };
+  }
+
+  // Lineage identity is content identity plus supersedes; derived from the semantic
+  // payload so the two can never drift apart.
+  function mandateIdentityPayload(value) {
+    var payload = mandateSemanticPayload(value);
+    payload.contractVersion = "portfolio-mandate-identity/v1";
+    payload.supersedes = value.supersedes;
+    return payload;
+  }
+
+  function normalizeConstraintDraft(entry, index, policy, errors) {
+    var field = "constraints[" + index + "]";
+    if (!isPlainObject(entry)) {
+      errors.push(portfolioError("P008-MANDATE-SHAPE", "constraint-object-required", field, index + 1, true));
+      return null;
+    }
+    var unknown = hasOnlyFields(entry, CONSTRAINT_DRAFT_FIELDS);
+    if (unknown) {
+      errors.push(portfolioError("P008-MANDATE-SHAPE", "unknown-field", field + "." + unknown, index + 1, true));
+      return null;
+    }
+    var invalid = false;
+    if (policy.mandate.constraintTypes.indexOf(entry.kind) < 0) {
+      errors.push(portfolioError("P008-MANDATE-SHAPE", "constraint-kind-invalid", field + ".kind", index + 1, true));
+      invalid = true;
+    }
+    if (policy.mandate.constraintKinds.indexOf(entry.constraintKind) < 0) {
+      errors.push(portfolioError("P008-MANDATE-SHAPE", "constraint-authority-invalid", field + ".constraintKind", index + 1, true));
+      invalid = true;
+    }
+    if (policy.mandate.constraintUnits.indexOf(entry.unit) < 0) {
+      errors.push(portfolioError("P008-MANDATE-SHAPE", "constraint-unit-invalid", field + ".unit", index + 1, true));
+      invalid = true;
+    }
+    if (!nonEmptyString(entry.subject)) {
+      errors.push(portfolioError("P008-MANDATE-SHAPE", "constraint-subject-required", field + ".subject", index + 1, true));
+      invalid = true;
+    }
+    ["minimum", "maximum"].forEach(function (bound) {
+      var boundValue = entry[bound];
+      if (boundValue === null) return;
+      if (!finiteNonNegative(boundValue)) {
+        errors.push(portfolioError("P008-MANDATE-SHAPE", "constraint-bound-invalid", field + "." + bound, index + 1, true));
+        invalid = true;
+        return;
+      }
+      if (entry.unit === "portfolio-fraction" && boundValue > 1) {
+        errors.push(portfolioError("P008-MANDATE-SHAPE", "constraint-fraction-out-of-range", field + "." + bound, index + 1, true));
+        invalid = true;
+      }
+    });
+    if (entry.minimum === null && entry.maximum === null && entry.kind !== "exclusion") {
+      errors.push(portfolioError("P008-MANDATE-SHAPE", "constraint-bound-required", field, index + 1, true));
+      invalid = true;
+    }
+    if (invalid) return null;
+    var constraint = {
+      contractVersion: CONSTRAINT_VERSION,
+      constraintId: null,
+      kind: entry.kind,
+      subject: entry.subject.trim(),
+      constraintKind: entry.constraintKind,
+      unit: entry.unit,
+      minimum: entry.minimum,
+      maximum: entry.maximum,
+      inputAuthority: policy.mandate.inputAuthority
+    };
+    constraint.constraintId = contracts.fingerprint("portfolio-mandate-constraint", constraintIdentityPayload(constraint, index));
+    return constraint;
+  }
+
+  function normalizeCashNeedDraft(entry, index, policy, errors) {
+    var field = "cashNeeds[" + index + "]";
+    if (!isPlainObject(entry)) {
+      errors.push(portfolioError("P008-MANDATE-SHAPE", "cash-need-object-required", field, index + 1, true));
+      return null;
+    }
+    var unknown = hasOnlyFields(entry, CASH_NEED_DRAFT_FIELDS);
+    if (unknown) {
+      errors.push(portfolioError("P008-MANDATE-SHAPE", "unknown-field", field + "." + unknown, index + 1, true));
+      return null;
+    }
+    var invalid = false;
+    if (!calendarDate(entry.date)) {
+      errors.push(portfolioError("P008-MANDATE-SHAPE", "cash-need-date-invalid", field + ".date", index + 1, true));
+      invalid = true;
+    }
+    if (!finitePositive(entry.amount)) {
+      errors.push(portfolioError("P008-MANDATE-SHAPE", "cash-need-amount-invalid", field + ".amount", index + 1, true));
+      invalid = true;
+    }
+    if (!CURRENCY_PATTERN.test(entry.currency || "")) {
+      errors.push(portfolioError("P008-CURRENCY", "cash-need-currency-invalid", field + ".currency", index + 1, true));
+      invalid = true;
+    }
+    if (!Number.isInteger(entry.priority) || entry.priority <= 0) {
+      errors.push(portfolioError("P008-MANDATE-SHAPE", "cash-need-priority-invalid", field + ".priority", index + 1, true));
+      invalid = true;
+    }
+    if (policy.mandate.cashNeedUnits.indexOf(entry.unit) < 0) {
+      errors.push(portfolioError("P008-MANDATE-SHAPE", "cash-need-unit-invalid", field + ".unit", index + 1, true));
+      invalid = true;
+    }
+    if (policy.mandate.treatmentTimings.indexOf(entry.treatmentTiming) < 0) {
+      errors.push(portfolioError("P008-MANDATE-SHAPE", "cash-need-timing-invalid", field + ".treatmentTiming", index + 1, true));
+      invalid = true;
+    }
+    if (entry.unit === "portfolio-fraction" && finitePositive(entry.amount) && entry.amount > 1) {
+      errors.push(portfolioError("P008-MANDATE-SHAPE", "cash-need-fraction-out-of-range", field + ".amount", index + 1, true));
+      invalid = true;
+    }
+    if (invalid) return null;
+    var cashNeed = {
+      contractVersion: CASH_NEED_VERSION,
+      cashNeedId: null,
+      date: entry.date,
+      amount: entry.amount,
+      currency: entry.currency.toUpperCase(),
+      priority: entry.priority,
+      unit: entry.unit,
+      treatmentTiming: entry.treatmentTiming,
+      inputAuthority: policy.mandate.inputAuthority
+    };
+    cashNeed.cashNeedId = contracts.fingerprint("portfolio-cash-need", cashNeedIdentityPayload(cashNeed, index));
+    return cashNeed;
+  }
+
+  function detectMandateConflicts(body, now, policy) {
+    var conflicts = [];
+    var subjects = Object.create(null);
+    body.constraints.forEach(function (constraint, index) {
+      if (!subjects[constraint.subject]) subjects[constraint.subject] = [];
+      subjects[constraint.subject].push({ constraint: constraint, index: index });
+      if (constraint.minimum !== null && constraint.maximum !== null && constraint.minimum > constraint.maximum) {
+        conflicts.push(mandateConflict("constraint-bounds-inverted", constraint.subject, [index],
+          portfolioError("P008-INFEASIBLE", "constraint-bounds-inverted", "constraints[" + index + "]", index + 1, true)));
+      }
+    });
+    Object.keys(subjects).sort().forEach(function (subject) {
+      var group = subjects[subject];
+      var floors = group.filter(function (entry) { return entry.constraint.minimum !== null; });
+      var caps = group.filter(function (entry) { return entry.constraint.maximum !== null; });
+      floors.forEach(function (floor) {
+        caps.forEach(function (cap) {
+          if (floor.index === cap.index || floor.constraint.unit !== cap.constraint.unit) return;
+          if (floor.constraint.minimum > cap.constraint.maximum) {
+            conflicts.push(mandateConflict("constraint-bounds-conflict", subject, [floor.index, cap.index],
+              portfolioError("P008-INFEASIBLE", "constraint-bounds-conflict", "constraints[" + floor.index + "]", floor.index + 1, true)));
+          }
+        });
+      });
+      floors.forEach(function (floor) {
+        caps.forEach(function (cap) {
+          if (floor.index === cap.index || floor.constraint.unit === cap.constraint.unit) return;
+          if (floor.constraint.minimum > 0) {
+            conflicts.push(mandateConflict("constraint-unit-mismatch", subject, [floor.index, cap.index],
+              portfolioError("P008-INFEASIBLE", "constraint-unit-mismatch", "constraints[" + floor.index + "]", floor.index + 1, true)));
+          }
+        });
+      });
+      group.filter(function (entry) { return entry.constraint.kind === "exclusion"; }).forEach(function (excluded) {
+        group.forEach(function (entry) {
+          if (entry.constraint.minimum !== null && entry.constraint.minimum > 0) {
+            conflicts.push(mandateConflict("exclusion-minimum-conflict", subject, [excluded.index, entry.index],
+              portfolioError("P008-INFEASIBLE", "exclusion-minimum-conflict", "constraints[" + entry.index + "]", entry.index + 1, true)));
+          }
+        });
+      });
+    });
+    var seenPriorities = Object.create(null);
+    body.cashNeeds.forEach(function (cashNeed, index) {
+      var field = "cashNeeds[" + index + "]";
+      if (cashNeed.date <= now.slice(0, 10)) {
+        conflicts.push(mandateConflict("cash-need-date-past", cashNeed.date, [index],
+          portfolioError("P008-INFEASIBLE", "cash-need-date-past", field + ".date", index + 1, true)));
+      }
+      if (body.horizon && cashNeed.date > body.horizon.endDate) {
+        conflicts.push(mandateConflict("cash-need-after-horizon", cashNeed.date, [index],
+          portfolioError("P008-INFEASIBLE", "cash-need-after-horizon", field + ".date", index + 1, true)));
+      }
+      if (index > 0 && cashNeed.date < body.cashNeeds[index - 1].date) {
+        conflicts.push(mandateConflict("cash-need-declared-order-invalid", cashNeed.date, [index - 1, index],
+          portfolioError("P008-INFEASIBLE", "cash-need-declared-order-invalid", field + ".date", index + 1, true)));
+      }
+      if (cashNeed.unit === "currency" && cashNeed.currency !== body.valuationCurrency) {
+        conflicts.push(mandateConflict("cash-need-currency-unavailable", cashNeed.currency, [index],
+          portfolioError("P008-CURRENCY", "cash-need-currency-unavailable", field + ".currency", index + 1, true)));
+      }
+      if (seenPriorities[cashNeed.priority]) {
+        conflicts.push(mandateConflict("cash-need-priority-duplicate", String(cashNeed.priority), [seenPriorities[cashNeed.priority] - 1, index],
+          portfolioError("P008-INFEASIBLE", "cash-need-priority-duplicate", field + ".priority", index + 1, true)));
+      }
+      seenPriorities[cashNeed.priority] = index + 1;
+    });
+    return conflicts;
+  }
+
+  function validateMandateDraft(raw, currentWorkspace, options, policy) {
+    var policyResult = validatePolicy(policy);
+    if (!policyResult.ok) return policyResult;
+    if (!isPlainObject(options) || !canonicalTimestamp(options.now)) return failure("P008-MANDATE-SHAPE", "mandate-options-invalid", "options", null, true);
+    if (!isPlainObject(raw)) return failure("P008-MANDATE-SHAPE", "mandate-object-required", "mandate", null, true);
+    var forbidden = policy.mandate.forbiddenInputSources.filter(function (source) {
+      return Object.prototype.hasOwnProperty.call(raw, source);
+    });
+    if (forbidden.length > 0) {
+      return failure("P008-MANDATE-AUTHORITY", "forbidden-input-source", forbidden.sort()[0], null, true);
+    }
+    var secretPath = findSecretPath(raw, policy, "mandate");
+    if (secretPath) return failure("P008-IMPORT-SECRET", "secret-shaped-field", secretPath, null, false);
+    var errors = [];
+    var unknown = hasOnlyFields(raw, MANDATE_DRAFT_FIELDS);
+    if (unknown) errors.push(portfolioError("P008-MANDATE-SHAPE", "unknown-field", unknown, null, true));
+    if (!nonEmptyString(raw.objectiveLabel)) errors.push(portfolioError("P008-MANDATE-SHAPE", "objective-label-required", "objectiveLabel", null, true));
+    if (!CURRENCY_PATTERN.test(raw.valuationCurrency || "")) errors.push(portfolioError("P008-CURRENCY", "valuation-currency-invalid", "valuationCurrency", null, true));
+    var horizon = null;
+    if (!isPlainObject(raw.horizon) || hasOnlyFields(raw.horizon, HORIZON_FIELDS) ||
+        !calendarDate(raw.horizon.endDate) || policy.mandate.horizonUnits.indexOf(raw.horizon.unit) < 0) {
+      errors.push(portfolioError("P008-MANDATE-SHAPE", "horizon-invalid", "horizon", null, true));
+    } else if (raw.horizon.endDate <= options.now.slice(0, 10)) {
+      errors.push(portfolioError("P008-MANDATE-SHAPE", "horizon-not-future", "horizon.endDate", null, true));
+    } else {
+      horizon = { endDate: raw.horizon.endDate, unit: raw.horizon.unit };
+    }
+    MANDATE_NULLABLE_POLICY_FIELDS.forEach(function (name) {
+      if (raw[name] !== null && !nonEmptyString(raw[name])) {
+        errors.push(portfolioError("P008-MANDATE-SHAPE", "explicit-null-or-text-required", name, null, true));
+      }
+    });
+    if (!Array.isArray(raw.constraints) || raw.constraints.length > policy.mandate.maxConstraints) {
+      errors.push(portfolioError("P008-MANDATE-SHAPE", "constraints-invalid", "constraints", null, true));
+    }
+    if (!Array.isArray(raw.cashNeeds) || raw.cashNeeds.length > policy.mandate.maxCashNeeds) {
+      errors.push(portfolioError("P008-MANDATE-SHAPE", "cash-needs-invalid", "cashNeeds", null, true));
+    }
+    var rawConstraints = Array.isArray(raw.constraints) ? raw.constraints : [];
+    var rawCashNeeds = Array.isArray(raw.cashNeeds) ? raw.cashNeeds : [];
+    var constraints = rawConstraints.map(function (entry, index) { return normalizeConstraintDraft(entry, index, policy, errors); });
+    var cashNeeds = rawCashNeeds.map(function (entry, index) { return normalizeCashNeedDraft(entry, index, policy, errors); });
+    var constraintsComplete = constraints.every(function (entry) { return entry !== null; });
+    var cashNeedsComplete = cashNeeds.every(function (entry) { return entry !== null; });
+    var body = {
+      objectiveLabel: nonEmptyString(raw.objectiveLabel) ? raw.objectiveLabel.trim() : null,
+      valuationCurrency: CURRENCY_PATTERN.test(raw.valuationCurrency || "") ? raw.valuationCurrency : null,
+      horizon: horizon,
+      survivalDefinition: raw.survivalDefinition === null ? null : (nonEmptyString(raw.survivalDefinition) ? raw.survivalDefinition.trim() : null),
+      rebalancePolicy: raw.rebalancePolicy === null ? null : (nonEmptyString(raw.rebalancePolicy) ? raw.rebalancePolicy.trim() : null),
+      costPolicy: raw.costPolicy === null ? null : (nonEmptyString(raw.costPolicy) ? raw.costPolicy.trim() : null),
+      expectedReturnPolicy: raw.expectedReturnPolicy === null ? null : (nonEmptyString(raw.expectedReturnPolicy) ? raw.expectedReturnPolicy.trim() : null),
+      constraints: constraints.filter(function (entry) { return entry !== null; }),
+      cashNeeds: cashNeeds.filter(function (entry) { return entry !== null; })
+    };
+    var conflicts = (constraintsComplete && cashNeedsComplete && horizon !== null && body.valuationCurrency !== null)
+      ? detectMandateConflicts(body, options.now, policy) : [];
+    var absentFields = MANDATE_NULLABLE_POLICY_FIELDS.filter(function (name) { return body[name] === null; });
+    var workspacePresent = isPlainObject(currentWorkspace);
+    return success({
+      contractVersion: MANDATE_PREVIEW_VERSION,
+      mandate: errors.length === 0 ? clone(body) : null,
+      declaredConstraints: rawConstraints.length,
+      declaredCashNeeds: rawCashNeeds.length,
+      errors: errors,
+      conflicts: conflicts,
+      absentFields: absentFields,
+      summary: {
+        constraints: body.constraints.length,
+        hardConstraints: body.constraints.filter(function (entry) { return entry.constraintKind === "hard"; }).length,
+        researchConstraints: body.constraints.filter(function (entry) { return entry.constraintKind === "research"; }).length,
+        cashNeeds: body.cashNeeds.length,
+        absent: absentFields.length,
+        conflicts: conflicts.length,
+        rejected: errors.length
+      },
+      impact: {
+        contractVersion: "portfolio-mandate-impact/v1",
+        currentPortfolioId: workspacePresent ? currentWorkspace.currentPortfolioId : null,
+        currentMandateId: workspacePresent ? currentWorkspace.currentMandateId : null,
+        portfolioUnchanged: true,
+        mandateUnchangedUntilConfirm: true,
+        dependentStates: policy.mandate.mandateDependentStates.slice(),
+        behaviorContribution: "none",
+        settingsContribution: "none"
+      },
+      canConfirm: errors.length === 0 && conflicts.length === 0 &&
+        body.constraints.length === rawConstraints.length && body.cashNeeds.length === rawCashNeeds.length
+    });
+  }
+
+  function validateMandateConstraint(value, policy, declaredIndex) {
+    if (!isPlainObject(value)) return failure("P008-SCHEMA-CORRUPT", "constraint-required", "constraint", null, false);
+    var unknown = hasOnlyFields(value, CONSTRAINT_FIELDS);
+    if (unknown || Object.keys(value).length !== CONSTRAINT_FIELDS.length) return failure("P008-SCHEMA-CORRUPT", "unknown-field", unknown || "constraint", null, false);
+    if (value.contractVersion !== CONSTRAINT_VERSION || value.inputAuthority !== policy.mandate.inputAuthority ||
+        policy.mandate.constraintTypes.indexOf(value.kind) < 0 || policy.mandate.constraintKinds.indexOf(value.constraintKind) < 0 ||
+        policy.mandate.constraintUnits.indexOf(value.unit) < 0 || !nonEmptyString(value.subject) ||
+        (value.minimum !== null && !finiteNonNegative(value.minimum)) || (value.maximum !== null && !finiteNonNegative(value.maximum))) {
+      return failure("P008-SCHEMA-CORRUPT", "constraint-invalid", "constraint", null, false);
+    }
+    if (value.constraintId !== contracts.fingerprint("portfolio-mandate-constraint", constraintIdentityPayload(value, declaredIndex))) {
+      return failure("P008-IDENTITY", "constraint-identity-mismatch", "constraintId", null, false);
+    }
+    return success(clone(value));
+  }
+
+  function validateCashNeed(value, policy, declaredIndex) {
+    if (!isPlainObject(value)) return failure("P008-SCHEMA-CORRUPT", "cash-need-required", "cashNeed", null, false);
+    var unknown = hasOnlyFields(value, CASH_NEED_FIELDS);
+    if (unknown || Object.keys(value).length !== CASH_NEED_FIELDS.length) return failure("P008-SCHEMA-CORRUPT", "unknown-field", unknown || "cashNeed", null, false);
+    if (value.contractVersion !== CASH_NEED_VERSION || value.inputAuthority !== policy.mandate.inputAuthority ||
+        !calendarDate(value.date) || !finitePositive(value.amount) || !CURRENCY_PATTERN.test(value.currency || "") ||
+        !Number.isInteger(value.priority) || value.priority <= 0 ||
+        policy.mandate.cashNeedUnits.indexOf(value.unit) < 0 ||
+        policy.mandate.treatmentTimings.indexOf(value.treatmentTiming) < 0) {
+      return failure("P008-SCHEMA-CORRUPT", "cash-need-invalid", "cashNeed", null, false);
+    }
+    if (value.cashNeedId !== contracts.fingerprint("portfolio-cash-need", cashNeedIdentityPayload(value, declaredIndex))) {
+      return failure("P008-IDENTITY", "cash-need-identity-mismatch", "cashNeedId", null, false);
+    }
+    return success(clone(value));
+  }
+
+  function validateMandateRevision(value, policy) {
+    var policyResult = validatePolicy(policy);
+    if (!policyResult.ok) return policyResult;
+    if (!isPlainObject(value)) return failure("P008-SCHEMA-CORRUPT", "mandate-required", "mandate", null, false);
+    var unknown = hasOnlyFields(value, MANDATE_FIELDS);
+    if (unknown || Object.keys(value).length !== MANDATE_FIELDS.length) return failure("P008-SCHEMA-CORRUPT", "unknown-field", unknown || "mandate", null, false);
+    if (value.contractVersion !== MANDATE_VERSION || !HASH_PATTERN.test(value.mandateId || "") ||
+        !HASH_PATTERN.test(value.semanticFingerprint || "") || value.inputAuthority !== policy.mandate.inputAuthority ||
+        !nonEmptyString(value.objectiveLabel) || !CURRENCY_PATTERN.test(value.valuationCurrency || "") ||
+        !isPlainObject(value.horizon) || hasOnlyFields(value.horizon, HORIZON_FIELDS) ||
+        !calendarDate(value.horizon.endDate) || policy.mandate.horizonUnits.indexOf(value.horizon.unit) < 0 ||
+        !Array.isArray(value.constraints) || !Array.isArray(value.cashNeeds) ||
+        value.constraints.length > policy.mandate.maxConstraints || value.cashNeeds.length > policy.mandate.maxCashNeeds ||
+        !canonicalTimestamp(value.createdAt) || (value.supersedes !== null && !HASH_PATTERN.test(value.supersedes || ""))) {
+      return failure("P008-SCHEMA-CORRUPT", "mandate-invalid", "mandate", null, false);
+    }
+    var nullableInvalid = MANDATE_NULLABLE_POLICY_FIELDS.some(function (name) {
+      return value[name] !== null && !nonEmptyString(value[name]);
+    });
+    if (nullableInvalid) return failure("P008-SCHEMA-CORRUPT", "mandate-invalid", "mandate", null, false);
+    var index;
+    for (index = 0; index < value.constraints.length; index += 1) {
+      var constraintResult = validateMandateConstraint(value.constraints[index], policy, index);
+      if (!constraintResult.ok) return constraintResult;
+    }
+    for (index = 0; index < value.cashNeeds.length; index += 1) {
+      var cashNeedResult = validateCashNeed(value.cashNeeds[index], policy, index);
+      if (!cashNeedResult.ok) return cashNeedResult;
+    }
+    if (value.semanticFingerprint !== contracts.fingerprint("portfolio-mandate-semantic", mandateSemanticPayload(value)) ||
+        value.mandateId !== contracts.fingerprint("portfolio-mandate", mandateIdentityPayload(value))) {
+      return failure("P008-IDENTITY", "mandate-identity-mismatch", "mandateId", null, false);
+    }
+    return success(clone(value));
+  }
+
+  function buildMandateRevision(draft, currentWorkspace, options, policy) {
+    if (!isPlainObject(draft) || draft.contractVersion !== MANDATE_PREVIEW_VERSION) return failure("P008-MANDATE-SHAPE", "mandate-draft-invalid", "draft", null, true);
+    if (!draft.canConfirm || !isPlainObject(draft.mandate)) return failure("P008-MANDATE-SHAPE", "mandate-draft-not-confirmable", "draft", null, true);
+    if (draft.conflicts.length > 0) return failure("P008-INFEASIBLE", "mandate-conflicts-unresolved", "conflicts", null, true);
+    if (!isPlainObject(options) || !canonicalTimestamp(options.now)) return failure("P008-MANDATE-SHAPE", "mandate-options-invalid", "options", null, true);
+    var mandate = {
+      contractVersion: MANDATE_VERSION,
+      mandateId: null,
+      objectiveLabel: draft.mandate.objectiveLabel,
+      valuationCurrency: draft.mandate.valuationCurrency,
+      horizon: clone(draft.mandate.horizon),
+      survivalDefinition: draft.mandate.survivalDefinition,
+      rebalancePolicy: draft.mandate.rebalancePolicy,
+      costPolicy: draft.mandate.costPolicy,
+      expectedReturnPolicy: draft.mandate.expectedReturnPolicy,
+      constraints: clone(draft.mandate.constraints),
+      cashNeeds: clone(draft.mandate.cashNeeds),
+      inputAuthority: policy.mandate.inputAuthority,
+      createdAt: options.now,
+      supersedes: currentWorkspace.currentMandateId,
+      semanticFingerprint: null
+    };
+    mandate.semanticFingerprint = contracts.fingerprint("portfolio-mandate-semantic", mandateSemanticPayload(mandate));
+    mandate.mandateId = contracts.fingerprint("portfolio-mandate", mandateIdentityPayload(mandate));
+    return success(mandate);
+  }
+
+  function buildMandateCandidate(draft, currentWorkspace, options, policy) {
+    var workspaceResult = validateWorkspace(currentWorkspace, policy);
+    if (!workspaceResult.ok) return workspaceResult;
+    var mandateResult = buildMandateRevision(draft, currentWorkspace, options, policy);
+    if (!mandateResult.ok) return mandateResult;
+    if (currentWorkspace.mandateRevisions.some(function (entry) { return entry.semanticFingerprint === mandateResult.value.semanticFingerprint; })) {
+      return failure("P008-IDENTITY", "mandate-revision-unchanged", "mandateId", null, true);
+    }
+    var candidate = clone(currentWorkspace);
+    candidate.mandateRevisions.push(mandateResult.value);
+    candidate.currentMandateId = mandateResult.value.mandateId;
+    candidate.updatedAt = options.now;
+    candidate.policyRefs = policyRefs(policy);
+    return success(withWorkspaceHashes(candidate));
+  }
+
+  function buildMandateClearCandidate(currentWorkspace, now, policy) {
+    var workspaceResult = validateWorkspace(currentWorkspace, policy);
+    if (!workspaceResult.ok) return workspaceResult;
+    if (!canonicalTimestamp(now)) return failure("P008-SCHEMA-CORRUPT", "timestamp-invalid", "now", null, false);
+    var candidate = clone(currentWorkspace);
+    candidate.currentMandateId = null;
+    candidate.updatedAt = now;
+    candidate.policyRefs = policyRefs(policy);
+    return success(withWorkspaceHashes(candidate));
+  }
+
+  function currentMandateRevision(workspace) {
+    if (!workspace || workspace.currentMandateId === null) return null;
+    var matches = workspace.mandateRevisions.filter(function (entry) { return entry.mandateId === workspace.currentMandateId; });
+    return matches.length === 1 ? matches[0] : null;
+  }
+
+  function projectRouteStates(workspace, policy) {
+    var workspaceResult = validateWorkspace(workspace, policy);
+    if (!workspaceResult.ok) return workspaceResult;
+    var mandate = currentMandateRevision(workspace);
+    var portfolioPresent = workspace.currentPortfolioId !== null;
+    var inferredValues = {};
+    policy.mandate.neverInferredFields.forEach(function (name) { inferredValues[name] = null; });
+    var routes = policy.mandate.descriptiveRouteStates.map(function (route) {
+      return {
+        route: route,
+        descriptive: {
+          available: portfolioPresent,
+          reason: portfolioPresent ? null : "portfolio-absent",
+          citedPortfolioId: portfolioPresent ? workspace.currentPortfolioId : null
+        },
+        mandateDependent: policy.mandate.mandateDependentStates.map(function (name) {
+          return {
+            state: name,
+            available: mandate !== null,
+            reason: mandate !== null ? null : "mandate-absent",
+            citedMandateId: mandate !== null ? mandate.mandateId : null
+          };
+        }),
+        horizon: mandate !== null ? clone(mandate.horizon) : null,
+        constraints: mandate !== null ? clone(mandate.constraints) : [],
+        cashNeeds: mandate !== null ? clone(mandate.cashNeeds) : [],
+        inferredValues: clone(inferredValues)
+      };
+    });
+    return success({
+      contractVersion: ROUTE_STATE_VERSION,
+      currentPortfolioId: workspace.currentPortfolioId,
+      currentMandateId: workspace.currentMandateId,
+      citedMandateFingerprint: mandate !== null ? mandate.semanticFingerprint : null,
+      behaviorContribution: "none",
+      settingsContribution: "none",
+      routes: routes
+    });
+  }
+
+  function storageState(mode, policy, lastVerifiedWrite, generation) {    return deepFreeze({
       contractVersion: STORAGE_STATE_VERSION,
       mode: mode,
       durable: mode === "durable",
@@ -1346,6 +1915,8 @@
 
   var api = Object.freeze({
     applyDraftRemoval: applyDraftRemoval,
+    buildMandateCandidate: buildMandateCandidate,
+    buildMandateClearCandidate: buildMandateClearCandidate,
     buildPortfolioClearCandidate: buildPortfolioClearCandidate,
     buildWorkspaceCandidate: buildWorkspaceCandidate,
     commitWorkspace: commitWorkspace,
@@ -1356,9 +1927,12 @@
     exportPrivate: exportPrivate,
     foundationPrivacyInventory: foundationPrivacyInventory,
     openWorkspace: openWorkspace,
+    projectRouteStates: projectRouteStates,
     resolveDuplicates: resolveDuplicates,
     validateHoldingEntry: validateHoldingEntry,
     validateImport: validateImport,
+    validateMandateDraft: validateMandateDraft,
+    validateMandateRevision: validateMandateRevision,
     validateManualDraft: validateManualDraft,
     validatePolicy: validatePolicy,
     validatePortfolioError: validatePortfolioError,

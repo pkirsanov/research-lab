@@ -68,6 +68,14 @@ test('holding revision and workspace identities are strict deterministic contrac
   assert.equal(api.validatePortfolioRevision(revision, policy).ok, true);
   assert.equal(api.validateHoldingEntry({ ...revision.holdings[0], hidden: true }, policy).error.reason, 'unknown-field');
   assert.equal(api.validateWorkspace({ ...candidateA.value, unexpected: true }, policy).error.reason, 'unknown-field');
+  const chained = api.buildWorkspaceCandidate(draft, candidateA.value, { name: 'Retirement research', now: NOW }, policy);
+  assert.equal(chained.ok, true);
+  const superseding = chained.value.portfolioRevisions[1];
+  assert.equal(superseding.supersedes, revision.portfolioId);
+  assert.equal(superseding.semanticFingerprint, revision.semanticFingerprint, 'identical content must keep one semantic identity regardless of lineage');
+  assert.notEqual(superseding.portfolioId, revision.portfolioId, 'the revision id must still distinguish position in the lineage chain');
+  assert.equal(api.validatePortfolioRevision(superseding, policy).ok, true, 'the validator must re-derive both fingerprints exactly as the builder did');
+  assert.equal(api.validateWorkspace(chained.value, policy).ok, true);
 });
 
 test('valid CSV preview exposes accepted normalized and unresolved duplicate states before confirmation', () => {
@@ -283,4 +291,185 @@ test('foundation privacy inventory and verified clear remain available without p
   assert.equal(cleared.value.remainingPersonalKeys.length, 0);
   assert.equal(localStorage.getItem('rlData'), 'public-cache');
   assert.equal(localStorage.getItem('rlApiKeys'), 'central-credential-owner');
+});
+
+function mandateFixture(name) {
+  return JSON.parse(fixture(name));
+}
+
+function mandateDraft(api, policy, name, now = NOW) {
+  const result = api.validateMandateDraft(mandateFixture(name), api.createEmptyWorkspace(policy, now).value, { now }, policy);
+  assert.equal(result.ok, true);
+  return result.value;
+}
+
+test('explicit mandate draft is a closed user-authority contract over units dates currencies and hard research classification', () => {
+  const { api, policy } = loadContracts();
+  const draft = mandateDraft(api, policy, 'mandate-explicit.json');
+  assert.equal(draft.contractVersion, 'portfolio-mandate-preview/v1');
+  assert.equal(draft.canConfirm, true);
+  assert.deepEqual(draft.errors, []);
+  assert.deepEqual(draft.conflicts, []);
+  assert.equal(draft.summary.hardConstraints, 2);
+  assert.equal(draft.summary.researchConstraints, 0);
+  assert.equal(draft.mandate.horizon.unit, 'calendar-date');
+  assert.equal(draft.mandate.horizon.endDate, '2036-12-31');
+  assert.equal(draft.mandate.valuationCurrency, 'USD');
+  assert.equal(draft.mandate.cashNeeds[0].unit, 'currency');
+  assert.equal(draft.mandate.cashNeeds[0].treatmentTiming, 'start-of-step');
+  assert.equal(draft.mandate.cashNeeds[0].priority, 1);
+  assert.equal(draft.mandate.constraints.every((entry) => entry.inputAuthority === 'user'), true);
+  assert.equal(draft.mandate.cashNeeds.every((entry) => entry.inputAuthority === 'user'), true);
+  const raw = mandateFixture('mandate-explicit.json');
+  assert.equal(api.validateMandateDraft({ ...raw, inputAuthority: 'user' }, null, { now: NOW }, policy).value.errors.some((error) => error.reason === 'unknown-field'), true);
+  assert.equal(api.validateMandateDraft({ ...raw, horizon: { endDate: '2036-12-31', unit: 'trading-day' } }, null, { now: NOW }, policy).value.errors.some((error) => error.reason === 'horizon-invalid'), true);
+  assert.equal(api.validateMandateDraft({ ...raw, horizon: { endDate: '2020-01-31', unit: 'calendar-date' } }, null, { now: NOW }, policy).value.errors.some((error) => error.reason === 'horizon-not-future'), true);
+  assert.equal(api.validateMandateDraft({ ...raw, valuationCurrency: 'dollars' }, null, { now: NOW }, policy).value.errors.some((error) => error.reason === 'valuation-currency-invalid'), true);
+  const badUnit = { ...raw, constraints: [{ ...raw.constraints[0], unit: 'basis-points' }] };
+  assert.equal(api.validateMandateDraft(badUnit, null, { now: NOW }, policy).value.errors.some((error) => error.reason === 'constraint-unit-invalid'), true);
+  const badAuthority = { ...raw, constraints: [{ ...raw.constraints[0], constraintKind: 'inferred' }] };
+  assert.equal(api.validateMandateDraft(badAuthority, null, { now: NOW }, policy).value.errors.some((error) => error.reason === 'constraint-authority-invalid'), true);
+  const badTiming = { ...raw, cashNeeds: [{ ...raw.cashNeeds[0], treatmentTiming: 'whenever' }] };
+  assert.equal(api.validateMandateDraft(badTiming, null, { now: NOW }, policy).value.errors.some((error) => error.reason === 'cash-need-timing-invalid'), true);
+  const pastNeed = { ...raw, cashNeeds: [{ ...raw.cashNeeds[0], date: '2026-01-31' }] };
+  assert.equal(api.validateMandateDraft(pastNeed, null, { now: NOW }, policy).value.conflicts.some((conflict) => conflict.reason === 'cash-need-date-past'), true);
+});
+
+test('absent mandate fields stay null and no default horizon floor objective or expected return is created', () => {
+  const { api, policy } = loadContracts();
+  const draft = mandateDraft(api, policy, 'mandate-explicit.json');
+  assert.deepEqual(draft.absentFields.slice().sort(), ['costPolicy', 'expectedReturnPolicy', 'rebalancePolicy', 'survivalDefinition']);
+  assert.equal(draft.mandate.survivalDefinition, null);
+  assert.equal(draft.mandate.rebalancePolicy, null);
+  assert.equal(draft.mandate.costPolicy, null);
+  assert.equal(draft.mandate.expectedReturnPolicy, null);
+  const committed = api.buildMandateCandidate(draft, api.createEmptyWorkspace(policy, NOW).value, { now: NOW }, policy);
+  assert.equal(committed.ok, true);
+  const mandate = committed.value.mandateRevisions[0];
+  assert.deepEqual(
+    ['survivalDefinition', 'rebalancePolicy', 'costPolicy', 'expectedReturnPolicy'].map((field) => mandate[field]),
+    [null, null, null, null]
+  );
+  const emptyRoutes = api.projectRouteStates(api.createEmptyWorkspace(policy, NOW).value, policy);
+  assert.equal(emptyRoutes.ok, true);
+  assert.equal(emptyRoutes.value.currentMandateId, null);
+  assert.equal(emptyRoutes.value.routes.every((route) => Object.values(route.inferredValues).every((entry) => entry === null)), true);
+  assert.equal(emptyRoutes.value.routes.every((route) => route.horizon === null && route.constraints.length === 0 && route.cashNeeds.length === 0), true);
+});
+
+test('conflicting mandate stays infeasible with every declared constraint and cash need preserved in declared order', () => {
+  const { api, policy } = loadContracts();
+  const draft = mandateDraft(api, policy, 'mandate-conflicting.json');
+  assert.equal(draft.canConfirm, false);
+  assert.deepEqual(draft.errors, []);
+  assert.equal(draft.declaredConstraints, 2);
+  assert.equal(draft.declaredCashNeeds, 3);
+  assert.equal(draft.mandate.constraints.length, 2);
+  assert.equal(draft.mandate.cashNeeds.length, 3);
+  assert.deepEqual(draft.mandate.cashNeeds.map((entry) => entry.date), ['2029-03-31', '2027-09-30', '2034-01-31']);
+  assert.deepEqual(draft.mandate.constraints.map((entry) => `${entry.kind}:${entry.minimum}:${entry.maximum}`), ['minimum-exposure:0.4:null', 'maximum-exposure:null:0.2']);
+  const reasons = draft.conflicts.map((conflict) => conflict.reason).sort();
+  assert.deepEqual(reasons, ['cash-need-after-horizon', 'cash-need-currency-unavailable', 'cash-need-declared-order-invalid', 'constraint-bounds-conflict']);
+  assert.equal(draft.conflicts.every((conflict) => conflict.error.contractVersion === 'PortfolioError/v1' && conflict.error.valueEchoed === false), true);
+  assert.equal(draft.summary.conflicts, 4);
+  const built = api.buildMandateCandidate(draft, api.createEmptyWorkspace(policy, NOW).value, { now: NOW }, policy);
+  assert.equal(built.ok, false);
+  assert.equal(built.error.code, 'P008-MANDATE-SHAPE');
+  assert.equal(built.error.reason, 'mandate-draft-not-confirmable');
+});
+
+test('mandate revision identity is deterministic supersedes the prior mandate and never mutates the portfolio', () => {
+  const { api, policy } = loadContracts();
+  const localStorage = createStorage();
+  const store = api.createPortfolioStore({ localStorage, sessionStorage: createStorage() }, policy);
+  const portfolio = store.commitWorkspace(api.buildWorkspaceCandidate(validDraft(api, policy), store.openWorkspace(NOW).value.workspace, { name: 'Mandate host portfolio', now: NOW }, policy).value, 0, NOW);
+  assert.equal(portfolio.ok, true);
+  const base = portfolio.value.workspace;
+  const draft = mandateDraft(api, policy, 'mandate-explicit.json');
+  const first = api.buildMandateCandidate(draft, base, { now: NOW }, policy);
+  const repeat = api.buildMandateCandidate(draft, base, { now: NOW }, policy);
+  assert.equal(first.ok, true);
+  assert.equal(first.value.currentMandateId, repeat.value.currentMandateId);
+  assert.match(first.value.currentMandateId, /^sha256:[a-f0-9]{64}$/);
+  assert.equal(first.value.currentPortfolioId, base.currentPortfolioId);
+  assert.deepEqual(first.value.portfolioRevisions, base.portfolioRevisions);
+  assert.equal(api.validateWorkspace(first.value, policy).ok, true);
+  assert.equal(api.validateMandateRevision(first.value.mandateRevisions[0], policy).ok, true);
+  assert.equal(first.value.mandateRevisions[0].supersedes, null);
+  assert.equal(api.validateMandateRevision({ ...first.value.mandateRevisions[0], hiddenDefault: true }, policy).error.reason, 'unknown-field');
+  assert.equal(api.validateMandateRevision({ ...first.value.mandateRevisions[0], objectiveLabel: 'Rewritten without re-identity' }, policy).error.reason, 'mandate-identity-mismatch');
+  const committed = store.commitWorkspace(first.value, base.generation, NOW);
+  assert.equal(committed.ok, true);
+  const second = api.buildMandateCandidate(mandateDraft(api, policy, 'mandate-explicit.json'), committed.value.workspace, { now: NOW }, policy);
+  assert.equal(second.ok, false);
+  assert.equal(second.error.reason, 'mandate-revision-unchanged');
+  const revised = api.validateMandateDraft({ ...mandateFixture('mandate-explicit.json'), objectiveLabel: 'Second explicit objective' }, committed.value.workspace, { now: NOW }, policy);
+  const supersede = api.buildMandateCandidate(revised.value, committed.value.workspace, { now: NOW }, policy);
+  assert.equal(supersede.ok, true);
+  assert.equal(supersede.value.mandateRevisions[1].supersedes, committed.value.workspace.currentMandateId);
+  assert.equal(supersede.value.mandateRevisions.length, 2);
+  assert.equal(supersede.value.currentPortfolioId, base.currentPortfolioId);
+  const cleared = api.buildMandateClearCandidate(committed.value.workspace, '2026-07-15T13:40:00.000Z', policy);
+  assert.equal(cleared.value.currentMandateId, null);
+  assert.equal(cleared.value.mandateRevisions.length, 1);
+  assert.equal(cleared.value.currentPortfolioId, base.currentPortfolioId);
+});
+
+test('behavior events interest signals and display settings cannot create or modify any mandate field', () => {
+  const { api, policy } = loadContracts();
+  const noise = mandateFixture('mandate-behavior-noise.json');
+  const refusedNoise = api.validateMandateDraft(noise, null, { now: NOW }, policy);
+  assert.equal(refusedNoise.ok, false);
+  assert.equal(refusedNoise.error.code, 'P008-MANDATE-AUTHORITY');
+  assert.equal(refusedNoise.error.reason, 'forbidden-input-source');
+  assert.equal(refusedNoise.error.field, 'behaviorEvents');
+  assert.equal(JSON.stringify(refusedNoise.error).includes('XOM'), false);
+  assert.equal(JSON.stringify(refusedNoise.error).includes('commodity-carry'), false);
+  assert.equal(JSON.stringify(refusedNoise.error).includes('0.35'), false);
+  const explicit = mandateFixture('mandate-explicit.json');
+  ['behaviorEvents', 'interestSignals', 'actionOutcomes', 'settings'].forEach((source) => {
+    const smuggled = api.validateMandateDraft({ ...explicit, [source]: noise[source] ?? [] }, null, { now: NOW }, policy);
+    assert.equal(smuggled.ok, false, `${source} must not reach the mandate path`);
+    assert.equal(smuggled.error.code, 'P008-MANDATE-AUTHORITY');
+    assert.equal(smuggled.error.field, source);
+  });
+  const clean = api.validateMandateDraft(explicit, null, { now: NOW }, policy);
+  const noisyHorizon = api.validateMandateDraft(explicit, null, { now: NOW }, policy);
+  assert.equal(clean.value.mandate.horizon.endDate, noisyHorizon.value.mandate.horizon.endDate);
+  assert.equal(clean.value.impact.behaviorContribution, 'none');
+  assert.equal(clean.value.impact.settingsContribution, 'none');
+  assert.equal(clean.value.impact.portfolioUnchanged, true);
+  assert.equal(clean.value.impact.mandateUnchangedUntilConfirm, true);
+});
+
+test('route projection cites one mandate revision and reports mandate-absent states without inventing values', () => {
+  const { api, policy } = loadContracts();
+  const store = api.createPortfolioStore({ localStorage: createStorage(), sessionStorage: createStorage() }, policy);
+  const portfolio = store.commitWorkspace(api.buildWorkspaceCandidate(validDraft(api, policy), store.openWorkspace(NOW).value.workspace, { name: 'Route projection portfolio', now: NOW }, policy).value, 0, NOW);
+  const withoutMandate = api.projectRouteStates(portfolio.value.workspace, policy);
+  assert.equal(withoutMandate.ok, true);
+  assert.deepEqual(withoutMandate.value.routes.map((route) => route.route), ['allocation', 'path-lab', 'risk-xray']);
+  assert.equal(withoutMandate.value.routes.every((route) => route.descriptive.available === true && route.descriptive.citedPortfolioId === portfolio.value.workspace.currentPortfolioId), true);
+  assert.equal(withoutMandate.value.routes.every((route) => route.mandateDependent.every((entry) => entry.available === false && entry.reason === 'mandate-absent' && entry.citedMandateId === null)), true);
+  assert.deepEqual(
+    withoutMandate.value.routes[0].mandateDependent.map((entry) => entry.state),
+    ['cash-need-collision', 'constraint-feasibility', 'goal-fit', 'survival-to-goal']
+  );
+  const draft = mandateDraft(api, policy, 'mandate-explicit.json');
+  const candidate = api.buildMandateCandidate(draft, portfolio.value.workspace, { now: NOW }, policy);
+  const committed = store.commitWorkspace(candidate.value, portfolio.value.workspace.generation, NOW);
+  assert.equal(committed.ok, true);
+  const withMandate = api.projectRouteStates(committed.value.workspace, policy);
+  assert.equal(withMandate.ok, true);
+  assert.equal(withMandate.value.currentMandateId, committed.value.workspace.currentMandateId);
+  assert.equal(withMandate.value.routes.every((route) => route.mandateDependent.every((entry) => entry.available === true && entry.reason === null && entry.citedMandateId === committed.value.workspace.currentMandateId)), true);
+  const mandate = committed.value.workspace.mandateRevisions[0];
+  withMandate.value.routes.forEach((route) => {
+    assert.deepEqual(route.constraints, mandate.constraints, `${route.route} must carry the mandate constraints unchanged`);
+    assert.deepEqual(route.cashNeeds, mandate.cashNeeds, `${route.route} must carry the mandate cash needs unchanged`);
+    assert.deepEqual(route.horizon, mandate.horizon);
+    assert.equal(Object.values(route.inferredValues).every((entry) => entry === null), true);
+  });
+  assert.equal(withMandate.value.behaviorContribution, 'none');
+  assert.equal(withMandate.value.settingsContribution, 'none');
 });

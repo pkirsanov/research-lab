@@ -1,0 +1,56 @@
+{
+    "objectiveLabel": "Conflicting draft that must stay infeasible",
+    "valuationCurrency": "USD",
+    "horizon": {
+        "endDate": "2030-12-31",
+        "unit": "calendar-date"
+    },
+    "survivalDefinition": null,
+    "rebalancePolicy": null,
+    "costPolicy": null,
+    "expectedReturnPolicy": null,
+    "constraints": [
+        {
+            "kind": "minimum-exposure",
+            "subject": "MSFT",
+            "constraintKind": "hard",
+            "unit": "portfolio-fraction",
+            "minimum": 0.4,
+            "maximum": null
+        },
+        {
+            "kind": "maximum-exposure",
+            "subject": "MSFT",
+            "constraintKind": "hard",
+            "unit": "portfolio-fraction",
+            "minimum": null,
+            "maximum": 0.2
+        }
+    ],
+    "cashNeeds": [
+        {
+            "date": "2029-03-31",
+            "amount": 15000,
+            "currency": "EUR",
+            "priority": 1,
+            "unit": "currency",
+            "treatmentTiming": "start-of-step"
+        },
+        {
+            "date": "2027-09-30",
+            "amount": 5000,
+            "currency": "USD",
+            "priority": 2,
+            "unit": "currency",
+            "treatmentTiming": "end-of-step"
+        },
+        {
+            "date": "2034-01-31",
+            "amount": 9000,
+            "currency": "USD",
+            "priority": 3,
+            "unit": "currency",
+            "treatmentTiming": "end-of-step"
+        }
+    ]
+}

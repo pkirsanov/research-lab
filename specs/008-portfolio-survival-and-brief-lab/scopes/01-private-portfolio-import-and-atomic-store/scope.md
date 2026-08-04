@@ -122,12 +122,39 @@ Before any browser row, run `node scripts/validate-node-source-lock.mjs` and `np
   - **Exit Code:** 0
   - **Claim Source:** executed
   - **Evidence:** [TP-01-01 closed policy, unknown-version/key, non-finite, and config-independent privacy recovery output](report.md#tp-01-01).
-- [ ] The shared-infrastructure sweep, independent storage/server canaries, exact namespace inventory, session-only warning, and rollback/restore proof are complete.
-  > **Uncertainty Declaration**
-  > **What was attempted:** Scope 01 unit/functional/E2E canaries, static namespace/interception scan, and `node scripts/selftest.mjs`.
-  > **What was observed:** Scope-owned canaries pass; the repository selftest reports 496 passed and 1 excluded Market Brief payload failure.
-  > **Why this is uncertain:** This item requires a clean independent shared baseline, and the executed repository selftest is non-green.
-  > **What would resolve this:** Reconcile the Market Brief `nextSession.sessionDate` and `snapshot.nextSessionDate` invariant in its owning packet, then rerun the unchanged selftest to exit 0.
+- [x] The shared-infrastructure sweep, independent storage/server canaries, exact namespace inventory, session-only warning, and rollback/restore proof are complete.
+  - **Phase:** implement
+  - **Command:** `node scripts/selftest.mjs`, `node --test tests/portfolio-foundation.unit.mjs`, `node --test tests/portfolio-privacy.functional.mjs`, and `npx --no-install playwright test tests/portfolio-survival-foundation.spec.mjs --config=playwright.config.mjs --project=system-chrome --reporter=list`
+  - **Exit Code:** 0 / 0 / 0 / 0
+  - **Claim Source:** executed
+  - **Evidence:** [current-session re-verification](report.md#current-session-re-verification).
+  - **Raw output:**
+
+    ```text
+    Research-Lab self-test: 1218 passed, 0 failed
+    SELFTEST_EXIT=0
+    ✔ slot and pointer faults preserve the last-known-good revision (35.950036ms)
+    ✔ post-write slot corruption is detected before pointer publication (11.744616ms)
+    ✔ future records remain untouched and durable session memory states are explicit (3.303048ms)
+    ℹ tests 16   ℹ pass 16   ℹ fail 0            TP_01_01_EXIT=0
+    ✔ secret-bearing import is redacted and cannot mutate any storage namespace (9.395654ms)
+    ✔ hostile manual labels remain inert data and namespace writes stay closed (6.710296ms)
+    ℹ tests 5    ℹ pass 5    ℹ fail 0            TP_01_02_EXIT=0
+    [SCN-008-001] localKeys=rlPortfolioWorkspaceV1.pointer,rlPortfolioWorkspaceV1.slotA
+    [SCN-008-001] remoteRequests=0
+    [SCN-008-002] requestSentinel=false
+    [TP-01-05] sessionWarning=true
+    [TP-01-05] falseDurableClaim=false
+    [TP-01-05] priorRevisionPreserved=true
+    [TP-01-05] externalProviders=0
+      3 passed (6.9s)                            TP_01_06_EXIT=0
+    interception scan (page.route|context.route|msw|nock|cy.intercept) -> 0 matches
+    external-host scan (https?://[a-zA-Z])                            -> 0 matches
+    rlData|rlProviderConfig|rlApiKeys in rlportfolio.js               -> 0 matches
+    git diff --check over Scope 01 paths                              -> DIFF_CHECK_EXIT=0
+    ```
+
+    The recorded resolution condition for this item was an exit-0 repository selftest; the Market Brief invariant is green and the suite reports 1218 passed, 0 failed. The three sweep canaries, the closed `rlPortfolio*`/`rlReturnContextV1` namespace inventory, the session-only warning, and the last-known-good rollback behavior are each independently proven above.
 - [x] Every Scope 01 Test Plan behavior has intended RED and same-command GREEN evidence before the broader browser row.
   - **Phase:** implement
   - **Command:** exact TP-01-01 through TP-01-05 focused commands, followed by TP-01-06
@@ -178,7 +205,7 @@ Before any browser row, run `node scripts/validate-node-source-lock.mjs` and `np
 
 - [ ] Focused RED/GREEN records, fixture provenance, namespace and hostile-input scans, no-interception/service-worker/external-request scan, source-lock/runner checks, editor diagnostics, `git diff --check`, artifact lint/freshness, G094, Test Plan/DoD parity, plan sync, and traceability are current and clean with every finding individually accounted for in `report.md`.
   > **Uncertainty Declaration**
-  > **What was attempted:** every named Scope 01 check plus repository selftest, implementation reality, G094, and whole-feature traceability.
-  > **What was observed:** Scope 01 tests, source lock, runner, production diagnostics, static scans, parity, artifact lint, and freshness are green; F008-IMPL-001 through F008-IMPL-004 and F008-IMPL-006 remain non-green in `report.md`.
-  > **Why this is uncertain:** this grouped gate requires every named check to be clean, so a completion claim would be false.
-  > **What would resolve this:** resolve the five recorded owner/parser/diagnostic findings and rerun the same checks with green results.
+  > **What was attempted:** every named Scope 01 check, re-executed in the current session: repository selftest, source lock, runner version, TP-01-01, TP-01-02, TP-01-06, implementation reality (G028/G029), G094, whole-feature traceability, artifact lint, `git diff --check`, and the interception/namespace static scans.
+  > **What was observed:** the repository selftest is now exit 0 with 1218 passed and 0 failed, and implementation reality is now exit 0 with 0 violations, so `F008-IMPL-001` and `F008-IMPL-002` are resolved. Five findings remain non-green: `F008-IMPL-003` G094 exit 1, `F008-IMPL-004` traceability exit 1 with 96 failures, `F008-IMPL-006` planning-owned MD060 style, `F008-IMPL-007` artifact lint exit 1 on the `status` versus `certification.status` mismatch, and `F008-IMPL-008` Gate G068 reporting that neither Scope 01 Gherkin scenario maps to a faithful DoD item.
+  > **Why this is uncertain:** this grouped gate names G094, traceability, artifact lint, and editor diagnostics explicitly and requires them clean at the same time, so a completion claim would be false.
+  > **What would resolve this:** each remaining finding resolves only inside an artifact this scope does not own. G094 needs the literal word `foundation` on a `Depends On` line in a foreign scope file, and this scope declares `Allowed existing-file edit: none`. Traceability needs the six linked test files from Scopes 02-16, which are `not_started`. `F008-IMPL-007` needs a `certification.status` write, which is validate-owned. `F008-IMPL-006` and `F008-IMPL-008` need planning-owned Markdown and DoD item text, and rewriting DoD text is the exact condition Gate G068 exists to detect. Route to `bubbles.plan` and `bubbles.validate`, then rerun the same checks.

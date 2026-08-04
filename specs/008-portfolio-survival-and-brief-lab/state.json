@@ -22,8 +22,8 @@
     "certifiedAt": null,
     "requiresRevalidation": false,
     "execution": {
-        "activeAgent": "bubbles.test",
-        "currentPhase": "test",
+        "activeAgent": "bubbles.implement",
+        "currentPhase": "implement",
         "currentScope": 1,
         "runStartedAt": "2026-07-15T23:25:05Z",
         "completedPhaseClaims": [],
@@ -283,12 +283,37 @@
             ],
             "nextRequiredOwner": "bubbles.implement",
             "summary": "Independently verified only Feature 008 Scope 01 under current-session bubbles.test provenance. The exact six Test Plan commands passed with 16/16 unit, 5/5 functional, focused SCN-008-001, focused SCN-008-002, focused persistence, and final 3/3 cumulative system-Chrome results; source locking, exact Playwright 1.61.1 identity, assertion quality, live-server authenticity, no interception or service worker, environment isolation, syntax, owned diagnostics, dirty-work integrity, artifact lint, freshness, and Scope 01 plan/tool-log parity were clean. F008-TEST-001 repaired the owned E2E assertion gap and was proved by disposable failure sensitivity followed by identical-command green and cumulative green. F008-TEST-002 accounts for the unexecuted quoting attempt, two logged probes with overbroad baseline/case assumptions, and their corrected passing retries. F008-IMPL-001, F008-IMPL-002, F008-IMPL-003, F008-IMPL-004, and F008-IMPL-006 all reproduced but are nonblocking for the narrow six-row verdict; they still block the two grouped Scope 01 DoD items. Scope 01 remains in_progress, completedPhaseClaims remains empty, and certification/top-level status remain unchanged. The immediate full-delivery owner is bubbles.implement through the existing BUG-002 packet, after which planning/framework findings remain owner-routed."
+        },
+        {
+            "agent": "bubbles.implement",
+            "phasesExecuted": [
+                "implement"
+            ],
+            "statusBefore": "in_progress",
+            "statusAfter": "in_progress",
+            "startedAt": "2026-08-04T16:28:00Z",
+            "finishedAt": "2026-08-04T16:52:00Z",
+            "outcome": "route_required",
+            "evidenceRef": "scopes/01-private-portfolio-import-and-atomic-store/report.md#current-session-re-verification",
+            "addressedFindings": [
+                "F008-IMPL-001",
+                "F008-IMPL-002"
+            ],
+            "unresolvedFindings": [
+                "F008-IMPL-003",
+                "F008-IMPL-004",
+                "F008-IMPL-006",
+                "F008-IMPL-007",
+                "F008-IMPL-008"
+            ],
+            "nextRequiredOwner": "bubbles.plan",
+            "summary": "Re-verified every check that blocked a Scope 01 DoD group; changed no Scope 01 production, test, fixture, or config file. Repository selftest is now exit 0 with 1218 passed and 0 failed, closing F008-IMPL-001, whose resolution came from the concurrent BUG-002 packet. Implementation reality is now exit 0 with 0 violations, closing F008-IMPL-002. Source lock exit 0, runner identity exactly Version 1.61.1, TP-01-01 16/16, TP-01-02 5/5, TP-01-06 3/3 cumulative, git diff --check exit 0, interception and external-host scans zero matches, and the storage inventory proved a closed rlPortfolio*/rlReturnContextV1 key set with zero rlData, rlProviderConfig, or rlApiKeys references. The shared-infrastructure DoD item was therefore checked on executed evidence, since its recorded resolution condition was an exit-0 selftest. The Build Quality Gate stays unchecked and Scope 01 stays in_progress: G094 exit 1 needs the literal word foundation on a Depends On line in a foreign scope file while this scope declares Allowed existing-file edit none; traceability exit 1 with 96 failures needs the linked test files from Scopes 02-16 that are not_started; new F008-IMPL-007 is artifact lint exit 1 on the status versus certification.status mismatch, which only validate may write; new F008-IMPL-008 is Gate G068 reporting that neither Scope 01 Gherkin scenario maps to a faithful DoD item, and rewriting DoD text is precisely what G068 detects. No milestone was published because Scopes 03, 04, and 05 remain not_started. No completedPhaseClaim, certification field, or top-level status was written."
         }
     ],
     "activeBugs": [],
     "resolvedBugs": [],
     "failures": [],
-    "lastUpdatedAt": "2026-07-15T23:50:10Z",
+    "lastUpdatedAt": "2026-08-04T16:52:00Z",
     "scopeLayout": "per-scope-directory",
     "artifacts": {
         "spec": "spec.md",

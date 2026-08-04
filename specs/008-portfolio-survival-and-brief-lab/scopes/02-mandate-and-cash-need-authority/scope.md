@@ -96,8 +96,61 @@ Add each named assertion and persistent title before mandate behavior. Execute e
 - [x] TP-02-01 unit evidence proves closed mandate/cash-need authority, absence, identity, conflicts, and behavior/settings exclusion.
 - [ ] TP-02-02 functional evidence proves atomic mandate round trips and one unchanged constraint set across every consumer.
 - [x] TP-02-03 Regression E2E evidence proves SCN-008-003 displays only explicit user-entered hard constraints across dependent route states.
-- [ ] TP-02-04 Regression E2E evidence proves SCN-008-004 retains descriptive research and shows unavailable goal fit/survival with no hidden values.
-- [ ] TP-02-05 broader E2E evidence proves the cumulative foundation route remains green after mandate/cash-need behavior lands.
+- [x] TP-02-04 Regression E2E evidence proves SCN-008-004 retains descriptive research and shows unavailable goal fit/survival with no hidden values.
+
+  **Command:** `BUBBLES_AGENT_NAME=bubbles.implement BUBBLES_SPEC=specs/008-portfolio-survival-and-brief-lab BUBBLES_SCOPE=SCOPE-02 BUBBLES_TOOL_LOG_TAGS=TP-02-04,green,SCN-008-004 timeout 600 bash .github/bubbles/scripts/tool-log.sh npx --no-install playwright test tests/portfolio-survival-foundation.spec.mjs --config=playwright.config.mjs --project=system-chrome --grep "Regression: SCN-008-004 no mandate leaves goal fit and survival unavailable" --reporter=list`
+
+  **Exit Code:** 0 · **Claim Source:** executed · Full clause-by-clause coverage: [report.md](report.md#tp-02-04)
+
+  ```text
+  Running 1 test using 1 worker
+
+  [SCN-008-004] currentMandateId=null
+  [SCN-008-004] descriptiveAvailable=true
+  [SCN-008-004] goalFit=unavailable:mandate-absent
+  [SCN-008-004] survivalToGoal=unavailable:mandate-absent
+  [SCN-008-004] constraintFeasibility=unavailable:mandate-absent
+  [SCN-008-004] cashNeedCollision=unavailable:mandate-absent
+  [SCN-008-004] inferredValues=0
+  [SCN-008-004] placeholderNumbers=0
+  [SCN-008-004] educationalBoundary=visible
+  [SCN-008-004] routes=3
+    ✓  1 [system-chrome] › tests/portfolio-survival-foundation.spec.mjs:177:1 › Regression: SCN-008-004 no mandate leaves goal fit and survival unavailable (1.7s)
+
+    1 passed (3.8s)
+  [tool-log] recorded exit=0 duration=5265ms → /home/redacted/research-lab/.specify/runtime/tool-calls.jsonl
+  TP_02_04_EXIT=0
+  ```
+
+- [x] TP-02-05 broader E2E evidence proves the cumulative foundation route remains green after mandate/cash-need behavior lands.
+
+  **Command:** `BUBBLES_AGENT_NAME=bubbles.implement BUBBLES_SPEC=specs/008-portfolio-survival-and-brief-lab BUBBLES_SCOPE=SCOPE-02 BUBBLES_TOOL_LOG_TAGS=TP-02-05,green,SCN-008-001,SCN-008-002,SCN-008-003,SCN-008-004 timeout 900 bash .github/bubbles/scripts/tool-log.sh npx --no-install playwright test tests/portfolio-survival-foundation.spec.mjs --config=playwright.config.mjs --project=system-chrome --reporter=list`
+
+  **Exit Code:** 0 · **Claim Source:** executed · Full clause-by-clause coverage: [report.md](report.md#tp-02-05)
+
+  ```text
+  Running 6 tests using 1 worker
+
+    ✓  1 [system-chrome] › tests/portfolio-survival-foundation.spec.mjs:86:1 › Regression: SCN-008-003 explicit mandate alone supplies every hard constraint (1.7s)
+    ✓  2 [system-chrome] › tests/portfolio-survival-foundation.spec.mjs:177:1 › Regression: SCN-008-004 no mandate leaves goal fit and survival unavailable (1.3s)
+    ✓  3 [system-chrome] › tests/portfolio-survival-foundation.spec.mjs:245:1 › Regression: SCN-008-003 conflicting mandate stays visibly infeasible with no constraint relaxed (891ms)
+  [SCN-008-001] generation=1
+  [SCN-008-001] revisions=1
+  [SCN-008-001] holdings=2
+  [SCN-008-001] storageMode=durable
+  [SCN-008-001] localKeys=rlPortfolioWorkspaceV1.pointer,rlPortfolioWorkspaceV1.slotA
+    ✓  4 [system-chrome] › tests/portfolio-survival-foundation.spec.mjs:284:1 › Regression: SCN-008-001 valid local portfolio import creates one current revision (756ms)
+    ✓  5 [system-chrome] › tests/portfolio-survival-foundation.spec.mjs:324:1 › Regression: SCN-008-002 invalid or secret-bearing import is atomic and redacted (741ms)
+  [TP-01-05] priorRevisionPreserved=true
+  [TP-01-05] falseDurableClaim=false
+    ✓  6 [system-chrome] › tests/portfolio-survival-foundation.spec.mjs:365:1 › Regression: Feature 008 atomic slots preserve last valid portfolio in durable session and memory modes (2.0s)
+
+    6 passed (9.7s)
+  [tool-log] recorded exit=0 duration=11208ms → /home/redacted/research-lab/.specify/runtime/tool-calls.jsonl
+  TP_02_05_EXIT=0
+  ```
+
+  Excerpted for length; the verbatim unabridged capture of all 6 tests is in [report.md](report.md#tp-02-05).
 
 #### Build Quality Gate
 

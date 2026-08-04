@@ -347,7 +347,121 @@ Running 1 test using 1 worker
 
 **Adversarial strength (not a silent pass):** the test asserts the rendered `#routeStates` text does **not** match `/\b(0%|0\.0|TBD|N\/A|default|assumed|typical)\b/i`. A regression that rendered an absent goal as a neutral zero or a placeholder — the exact failure mode SCN-008-004 exists to prevent — fails this row rather than passing it. There are no early returns or conditional skips in the test body.
 
+**Re-run confirmation (2026-08-04T22:31:21Z).** The row was re-executed unchanged before its DoD item was checked, because `tests/portfolio-survival-foundation.spec.mjs` was modified after the original evidence was captured. It is still green at exit 0. The re-run emits one additional assertion line absent from the original capture, `[SCN-008-004] educationalBoundary=visible`, which is a strengthened assertion and not a relaxed one; every clause in the table above still holds.
+
+```text
+Running 1 test using 1 worker
+
+[SCN-008-004] currentMandateId=null
+[SCN-008-004] descriptiveAvailable=true
+[SCN-008-004] goalFit=unavailable:mandate-absent
+[SCN-008-004] survivalToGoal=unavailable:mandate-absent
+[SCN-008-004] constraintFeasibility=unavailable:mandate-absent
+[SCN-008-004] cashNeedCollision=unavailable:mandate-absent
+[SCN-008-004] inferredValues=0
+[SCN-008-004] placeholderNumbers=0
+[SCN-008-004] educationalBoundary=visible
+[SCN-008-004] routes=3
+  ✓  1 [system-chrome] › tests/portfolio-survival-foundation.spec.mjs:177:1 › Regression: SCN-008-004 no mandate leaves goal fit and survival unavailable (1.7s)
+
+  1 passed (3.8s)
+[tool-log] recorded exit=0 duration=5265ms → /home/redacted/research-lab/.specify/runtime/tool-calls.jsonl
+TP_02_04_EXIT=0
+```
+
 ### TP-02-05
+
+**Phase:** implement
+
+**Command:** `BUBBLES_AGENT_NAME=bubbles.implement BUBBLES_SPEC=specs/008-portfolio-survival-and-brief-lab BUBBLES_SCOPE=SCOPE-02 BUBBLES_TOOL_LOG_TAGS=TP-02-05,green,SCN-008-001,SCN-008-002,SCN-008-003,SCN-008-004 timeout 900 bash .github/bubbles/scripts/tool-log.sh npx --no-install playwright test tests/portfolio-survival-foundation.spec.mjs --config=playwright.config.mjs --project=system-chrome --reporter=list`
+
+**Exit Code:** 0
+
+**Claim Source:** executed
+
+```text
+Running 6 tests using 1 worker
+
+[SCN-008-003] mandateId=sha256:acf8af8a49927b400f109579609edc00c782e5a4c22fbddfde0d8dfe467b61c9
+[SCN-008-003] portfolioUnchanged=true
+[SCN-008-003] hardConstraints=2
+[SCN-008-003] researchConstraints=0
+[SCN-008-003] cashNeeds=1
+[SCN-008-003] absentFields=4
+[SCN-008-003] routesCiting=3
+[SCN-008-003] behaviorContribution=none
+[SCN-008-003] behaviorDraftRefused=P008-MANDATE-AUTHORITY
+[SCN-008-003] mandateUnchangedAfterNoise=true
+[SCN-008-003] remotePersonalRequests=0
+  ✓  1 [system-chrome] › tests/portfolio-survival-foundation.spec.mjs:86:1 › Regression: SCN-008-003 explicit mandate alone supplies every hard constraint (1.7s)
+[SCN-008-004] currentMandateId=null
+[SCN-008-004] descriptiveAvailable=true
+[SCN-008-004] goalFit=unavailable:mandate-absent
+[SCN-008-004] survivalToGoal=unavailable:mandate-absent
+[SCN-008-004] constraintFeasibility=unavailable:mandate-absent
+[SCN-008-004] cashNeedCollision=unavailable:mandate-absent
+[SCN-008-004] inferredValues=0
+[SCN-008-004] placeholderNumbers=0
+[SCN-008-004] educationalBoundary=visible
+[SCN-008-004] routes=3
+  ✓  2 [system-chrome] › tests/portfolio-survival-foundation.spec.mjs:177:1 › Regression: SCN-008-004 no mandate leaves goal fit and survival unavailable (1.3s)
+[SCN-008-003-conflict] conflicts=4
+[SCN-008-003-conflict] confirmDisabled=true
+[SCN-008-003-conflict] declaredConstraintsPreserved=2
+[SCN-008-003-conflict] declaredCashNeedsPreserved=3
+[SCN-008-003-conflict] declaredOrderPreserved=true
+[SCN-008-003-conflict] currentMandateUnchanged=true
+[SCN-008-003-conflict] currentPortfolioUnchanged=true
+[SCN-008-003-conflict] constraintsRelaxed=0
+  ✓  3 [system-chrome] › tests/portfolio-survival-foundation.spec.mjs:245:1 › Regression: SCN-008-003 conflicting mandate stays visibly infeasible with no constraint relaxed (891ms)
+[SCN-008-001] route=served
+[SCN-008-001] previewAccepted=3
+[SCN-008-001] duplicateChoice=merge
+[SCN-008-001] generation=1
+[SCN-008-001] revisions=1
+[SCN-008-001] holdings=2
+[SCN-008-001] storageMode=durable
+[SCN-008-001] localKeys=rlPortfolioWorkspaceV1.pointer,rlPortfolioWorkspaceV1.slotA
+[SCN-008-001] remoteRequests=0
+  ✓  4 [system-chrome] › tests/portfolio-survival-foundation.spec.mjs:284:1 › Regression: SCN-008-001 valid local portfolio import creates one current revision (756ms)
+[SCN-008-002] confirmation=disabled
+[SCN-008-002] redaction=value-not-echoed
+[SCN-008-002] generation=1
+[SCN-008-002] currentUnchanged=true
+[SCN-008-002] storageSentinel=false
+[SCN-008-002] consoleSentinel=false
+[SCN-008-002] urlSentinel=false
+[SCN-008-002] requestSentinel=false
+  ✓  5 [system-chrome] › tests/portfolio-survival-foundation.spec.mjs:324:1 › Regression: SCN-008-002 invalid or secret-bearing import is atomic and redacted (741ms)
+[TP-01-05] modes=durable:1:durable,session:1:session,memory:1:memory
+[TP-01-05] durable=true
+[TP-01-05] session=true
+[TP-01-05] memory=true
+[TP-01-05] priorRevisionPreserved=true
+[TP-01-05] falseDurableClaim=false
+[TP-01-05] sessionWarning=true
+[TP-01-05] externalProviders=0
+  ✓  6 [system-chrome] › tests/portfolio-survival-foundation.spec.mjs:365:1 › Regression: Feature 008 atomic slots preserve last valid portfolio in durable session and memory modes (2.0s)
+
+  6 passed (9.7s)
+[tool-log] recorded exit=0 duration=11208ms → /home/redacted/research-lab/.specify/runtime/tool-calls.jsonl
+TP_02_05_EXIT=0
+```
+
+**Clause-by-clause coverage of the DoD item.** The item requires broader E2E evidence that "the cumulative foundation route remains green after mandate/cash-need behavior lands":
+
+| DoD clause | Proving observation |
+|---|---|
+| "broader E2E evidence" | The row runs the whole spec file with no `--grep`, so all 6 tests execute, not the 2 mandate-specific rows covered by TP-02-03/TP-02-04. The reporter line `Running 6 tests using 1 worker` and the terminal `6 passed` confirm the full count. |
+| "cumulative foundation route" | The suite spans both scopes: tests 1-3 are Scope 02 mandate behavior (SCN-008-003, SCN-008-004, and the conflict row), while tests 4-6 are the Scope 01 foundation rows (SCN-008-001 import, SCN-008-002 redaction, TP-01-05 durable/session/memory atomic slots). |
+| "remains green" | Exit code 0; `6 passed`; zero failed, zero skipped, zero flaky. No test was filtered out. |
+| "after mandate/cash-need behavior lands" | The Scope 01 rows pass in the same process as the mandate rows, against the current `rlportfolio.js` that already contains the mandate contract. Test 4 still reports `generation=1`, `revisions=1`, `holdings=2`, and exactly the two storage keys `rlPortfolioWorkspaceV1.pointer,rlPortfolioWorkspaceV1.slotA` — i.e. the mandate additions introduced no extra storage namespace and did not perturb portfolio generation semantics. Test 6 still reports `priorRevisionPreserved=true` and `falseDurableClaim=false`. |
+
+This is the specific regression risk the row exists to catch: Scope 02 writes to the same workspace store Scope 01 owns, so a mandate commit that bumped the portfolio generation, added a storage key, or broke the atomic pointer would surface as a Scope 01 failure here even though the mandate-only rows stayed green.
+
+**Live-stack authenticity:** verified by scan, not assumed. `grep -n 'page\.route\|context\.route\|intercept(\|cy\.intercept\|msw\|nock\|wiremock' tests/portfolio-survival-foundation.spec.mjs` returned exit 1 with no matches, so nothing is intercepted and this is a genuine `e2e-ui` row. The suite drives a real local HTTP server (`startPortfolioServer`), real `page.goto` navigation, and real `setInputFiles` uploads. A bailout scan for `return;` early exits also returned exit 1 with no matches, so no test can silently pass by skipping its assertions.
+
+**Scope of this claim.** This row proves the cumulative browser suite is green and that Scope 01 behavior is preserved. It does not close TP-02-02, whose box remains unchecked and untouched by this run. TP-02-02 was explicitly excluded from this run's assignment and was not executed here, so no claim is made about its current status in either direction. One observation is recorded for its owner rather than acted on: `tests/portfolio-privacy.functional.mjs` has since gained two uncommitted subtests, `explicit mandate revisions commit and reload atomically while portfolio generation semantics are preserved` and `one reloaded constraint set reaches every consumer and absent or conflicting fields never acquire defaults`, which name the two clauses the TP-02-02 verdict above recorded as uncovered. That verdict may therefore be stale. Confirming it requires executing TP-02-02, which this run did not do.
 
 ## Scenario Contract Evidence
 

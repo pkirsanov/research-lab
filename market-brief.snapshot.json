@@ -1,6 +1,6 @@
 {
-  "asOf": "2026-08-04T20:30:31.424Z",
-  "generatedAt": "2026-08-04T20:30:31.424Z",
+  "asOf": "2026-08-04T22:11:17.055Z",
+  "generatedAt": "2026-08-04T22:11:17.055Z",
   "window": "after-hours",
   "marketClosed": false,
   "nextSessionDate": "2026-08-05",
@@ -627,7 +627,7 @@
   "toolReads": {
     "sector-research-lab": {
       "id": "sector-research-lab",
-      "asOf": "2026-08-04T20:30:30.915Z",
+      "asOf": "2026-08-04T22:11:16.642Z",
       "read": "Rotate toward XLY as XLF weakens.",
       "metrics": {
         "into": {
@@ -1706,7 +1706,7 @@
     },
     "market-heatmap-lab": {
       "id": "market-heatmap-lab",
-      "asOf": "2026-08-04T20:30:31.292Z",
+      "asOf": "2026-08-04T22:11:16.864Z",
       "read": "Leadership is broad — 62.16% of 135 constituents are positive against a 60% broad-market threshold.",
       "deepLink": "market-heatmap-lab.html",
       "source": "owning-tool-functions",

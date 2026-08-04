@@ -3,6 +3,7 @@
 import { readFileSync } from 'node:fs';
 import { dirname, resolve } from 'node:path';
 import { fileURLToPath } from 'node:url';
+import { findBriefNarrativeVocabularyLeaks } from './reader-vocabulary.mjs';
 
 const SCRIPT_PATH = fileURLToPath(import.meta.url);
 const ROOT = resolve(dirname(SCRIPT_PATH), '..');
@@ -110,6 +111,15 @@ export function validateBriefPayload(payload, registry, config, snapshot) {
   if (!hasObject(payload?.watchlistNotes)) errors.push('watchlistNotes must be a non-empty object');
   if (!hasObject(payload?.toolReads)) errors.push('toolReads must be a non-empty object');
   if (!Array.isArray(payload?.experimental)) errors.push('experimental must be an array');
+
+  /* D13 on the publish path. The rule used to live only in the author prompt and in a
+     browser audit that the 4x/day cron never runs, so a status code could be re-emitted
+     into reader prose within hours of being cleaned out. The leak table is shared with
+     scripts/audit-reader-legibility.mjs; a code beside its own plain-word translation
+     still fails, because the gloss is the form that actually shipped. */
+  for (const leak of findBriefNarrativeVocabularyLeaks(payload)) {
+    errors.push(`reader-vocabulary: ${leak.path} carries ${leak.label} "${leak.sample}" in reader prose — carry the state in plain words only, never the code (not even as a parenthetical gloss)`);
+  }
 
   return errors;
 }

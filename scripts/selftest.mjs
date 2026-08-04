@@ -18,6 +18,15 @@ import { dirname, join } from 'node:path';
 import { validateBriefPayload } from './validate-brief-payload.mjs';
 import { formatSpecTestPathFindings, validateSpecTestPaths } from './validate-spec-test-paths.mjs';
 import { buildCompanyFundamentalsOwnerRead } from './brief-refresh.mjs';
+import {
+  BRIEF_NARRATIVE_FIELDS,
+  BRIEF_STRUCTURED_FIELDS,
+  READER_VOCABULARY_LEAKS,
+  findBriefNarrativeVocabularyLeaks,
+  isBriefNarrativeField,
+  matchesFieldPatterns,
+  walkBriefStrings
+} from './reader-vocabulary.mjs';
 
 const ROOT = join(dirname(fileURLToPath(import.meta.url)), '..');
 const read = (f) => readFileSync(join(ROOT, f), 'utf8');
@@ -1818,6 +1827,105 @@ try {
   assert(validateBriefPayload(missingGenerationTime, registry, config, snapshot).some((error) => /generatedAt/.test(error)), 'contract rejects a missing generation timestamp');
 } catch (e) { failures++; console.log('  ✗ FAIL (brief payload contract group threw): ' + e.message); }
 
+/* ---------- D13 on the publish path — reader vocabulary in brief narrative ---------- */
+try {
+  group('reader vocabulary — a status code never reaches brief prose, and the gate cannot drift');
+  const payload = JSON.parse(read('market-brief.payload.json'));
+  const registry = JSON.parse(read('tools.json'));
+  const config = JSON.parse(read('market-brief.config.json'));
+  const snapshot = JSON.parse(read('market-brief.snapshot.json'));
+  const clone = () => JSON.parse(JSON.stringify(payload));
+  const vocabularyErrors = (mutated) => validateBriefPayload(mutated, registry, config, snapshot)
+    .filter((error) => /^reader-vocabulary:/.test(error));
+
+  assert(findBriefNarrativeVocabularyLeaks(payload).length === 0,
+    'the committed payload carries no framework status vocabulary in any reader-visible narrative field');
+
+  // ADVERSARIAL 1 — a bare code in NARRATIVE prose must block publication. Before this gate
+  // existed the payload validator had no vocabulary rule at all, so this exact payload passed.
+  const narrativeLeak = clone();
+  narrativeLeak.nextSession.actions[0].rationale = 'Hold the core; the owning model is coverage-only this window.';
+  const narrativeErrors = vocabularyErrors(narrativeLeak);
+  assert(narrativeErrors.length === 1 && /nextSession\.actions\.\[\]\.rationale/.test(narrativeErrors[0]) && /coverage-only/.test(narrativeErrors[0]),
+    'a status code in narrative prose fails the publish gate, with the offending field named (' + (narrativeErrors[0] || 'NO ERROR RAISED') + ')');
+
+  // ADVERSARIAL 2 — the SAME code in a STRUCTURED status field must pass. brief-distributed-publish.mjs
+  // sets outcome/applicabilityStatus to exactly these values by design; a gate that flagged them
+  // would break every scheduled run, so a false positive here is as bad as a miss.
+  const structuredCarrier = clone();
+  structuredCarrier.toolCoverage[0].status = 'coverage-only';
+  const firstToolReadId = Object.keys(structuredCarrier.toolReads)[0];
+  structuredCarrier.toolReads[firstToolReadId].status = 'not-integrated';
+  structuredCarrier.toolReads[firstToolReadId].state = 'coverage-only';
+  assert(vocabularyErrors(structuredCarrier).length === 0,
+    'the same codes in toolCoverage[].status / toolReads.*.status / toolReads.*.state are machine state and raise nothing');
+
+  // ADVERSARIAL 3 — the parenthetical gloss. This is the shape that actually shipped: the
+  // generator applied the plain-word rule AND kept the code in brackets beside it. A gate that
+  // accepted a sentence once the translation was present would let this straight through.
+  const glossed = clone();
+  glossed.attention[0].structuralAnchor = 'msft-july-print-model and ai-capex-strategy-lab are both no call this cycle '
+    + '(coverage-only; do not feed the brief yet / not applicable this window).';
+  const glossErrors = vocabularyErrors(glossed);
+  assert(glossErrors.length === 1 && /attention\.\[\]\.structuralAnchor/.test(glossErrors[0]),
+    'a code kept as a parenthetical gloss beside its own translation still fails — the translation does not excuse it');
+
+  // The complement of ADVERSARIAL 3: the corrected form must pass, or the "fix" would just be
+  // the gate banning the sentence rather than the code.
+  const translated = clone();
+  translated.attention[0].structuralAnchor = 'msft-july-print-model and ai-capex-strategy-lab are both no call this cycle '
+    + '(they do not feed the brief yet / not applicable this window).';
+  assert(vocabularyErrors(translated).length === 0,
+    'the same sentence with the code replaced by plain words passes — the rule bans the code, not the state');
+
+  // ADVERSARIAL 4 — the key-name trap. `status` is BOTH 1600 characters of reader prose
+  // (watchlistNotes.<ticker>.status) and a machine enum (toolCoverage[].status). A gate keyed on
+  // field NAME instead of PATH gets exactly one of these two cases wrong, whichever way it guesses.
+  const proseNamedStatus = clone();
+  const firstTicker = Object.keys(proseNamedStatus.watchlistNotes)[0];
+  proseNamedStatus.watchlistNotes[firstTicker].status = 'No call this cycle (coverage-only) — deep-link only.';
+  const proseNamedErrors = vocabularyErrors(proseNamedStatus);
+  assert(proseNamedErrors.length === 1 && new RegExp('watchlistNotes\\.' + firstTicker + '\\.status').test(proseNamedErrors[0]),
+    'watchlistNotes.<ticker>.status is prose and IS checked, even though toolCoverage[].status shares the key name and is not');
+
+  // ADVERSARIAL 5 — dependency vocabulary is the other publication-blocking class, so the gate is
+  // not a single hard-coded string.
+  const dependencyLeak = clone();
+  dependencyLeak.psychology.read = 'Positioning is crowded; the owning read is dependency-pending.';
+  assert(vocabularyErrors(dependencyLeak).some((error) => /dependency-pending/.test(error)),
+    'dependency vocabulary in narrative prose blocks publication too');
+
+  // Single source of truth. Two enforcers, one list: if the auditor keeps a private copy of the
+  // table the two can drift, which is how the rendered-page audit and the publish gate ended up
+  // disagreeing in the first place.
+  const auditSource = read('scripts/audit-reader-legibility.mjs');
+  assert(/from '\.\/reader-vocabulary\.mjs'/.test(auditSource) && !/const LEAKS = \[/.test(auditSource),
+    'audit-reader-legibility.mjs imports the leak table from reader-vocabulary.mjs and keeps no private copy');
+  const validatorSource = read('scripts/validate-brief-payload.mjs');
+  assert(/findBriefNarrativeVocabularyLeaks/.test(validatorSource) && !/coverage-only/.test(validatorSource),
+    'validate-brief-payload.mjs enforces the shared list without restating any vocabulary of its own');
+  assert(READER_VOCABULARY_LEAKS.filter((leak) => leak.blocksPublication).map((leak) => leak.id).join(',') === 'dependency-slug,integration-state',
+    'exactly the status/dependency classes block publication; provenance classes stay audit-only because toolCoverage[].reason legitimately carries a digest');
+
+  // The authoring instruction is the first line of defence and it is what permitted the gloss.
+  const laneSource = read('scripts/brief-narrative-parallel.mjs');
+  assert(/parentheses/.test(laneSource) && /SAME violation/.test(laneSource) && /Replace the code, do not annotate it/.test(laneSource),
+    'the lane vocabulary instruction forbids the parenthetical form explicitly, not just the bare code');
+
+  // Coverage completeness. The gate reads a declared narrative field list, so a NEW long prose
+  // field added later would be silently unguarded. Every substantial string in the committed
+  // payload must therefore be classified as either reader prose or declared machine state.
+  const unclassified = walkBriefStrings(payload)
+    .filter((entry) => entry.value.length >= 200)
+    .filter((entry) => !isBriefNarrativeField(entry.segments) && !matchesFieldPatterns(BRIEF_STRUCTURED_FIELDS, entry.segments))
+    .map((entry) => entry.path);
+  assert(unclassified.length === 0,
+    'every payload string of 200+ characters is declared either reader prose or machine state, so no long field escapes the gate unnoticed'
+      + (unclassified.length ? ': ' + [...new Set(unclassified)].join(', ') : ''));
+  assert(BRIEF_NARRATIVE_FIELDS.every((pattern) => walkBriefStrings(payload).some((entry) => matchesFieldPatterns([pattern], entry.segments))),
+    'every declared narrative field pattern matches a real field in the committed payload — the list describes this payload, not an imagined one');
+} catch (e) { failures++; console.log('  ✗ FAIL (reader vocabulary group threw): ' + e.message); }
+
 /* ---------- Causal Rotation: contracts, anti-hindsight, clustering + canaries ---------- */
 try {
   group('rlcausal.js — evidence-time safety, independence, sensitivity and immutable outcomes');
@@ -2353,6 +2461,65 @@ try {
   assert(strategySource.includes('Feature 007: RLVALID parity adapter') && strategySource.includes('return RLVALID.rlvDeflatedSharpe'), 'Strategy Validation delegates only through the marker-bounded RLVALID parity adapter');
 } catch (e) { failures++; console.log('  ✗ FAIL (Technical Analysis Decision foundation group threw): ' + e.message); }
 /* ---------- End Feature 007 Technical Analysis Decision foundation ---------- */
+
+/* ---------- D4 single-source: etf-momentum-lab deflated Sharpe is RLVALID-owned ----------
+   etf-momentum-lab.html used to carry its OWN private `deflatedSharpe`, a second definition of a
+   metric RLVALID already owns. These assertions are deliberately adversarial: they execute the
+   page's REAL statistic scope (oracle helpers + the verbatim marker-bounded adapter block) against
+   a SPY RLVALID, so they fail if the live binding ever returns to the page-local copy. */
+try {
+  group('etf-momentum-lab.html \u2014 D4 deflated-Sharpe single source (RLVALID)');
+  const etfSrc = read('etf-momentum-lab.html');
+  const ADAPTER_BEGIN = '/* ---------- D4: RLVALID parity adapter ----------';
+  const ADAPTER_END = '/* ---------- End D4 RLVALID parity adapter ---------- */';
+  const adapterStart = etfSrc.indexOf(ADAPTER_BEGIN);
+  const adapterEnd = etfSrc.indexOf(ADAPTER_END);
+
+  assert(/<script src="rlvalidation\.js"><\/script>/.test(etfSrc), 'etf-momentum-lab.html loads rlvalidation.js, the single deflated-Sharpe definition');
+  assert((etfSrc.match(/function\s+deflatedSharpe\s*\(/g) || []).length === 1, 'etf-momentum-lab.html declares deflatedSharpe exactly once, retained only as the parity oracle');
+  assert(adapterStart > 0 && adapterEnd > adapterStart, 'etf-momentum-lab.html carries the marker-bounded D4 RLVALID parity adapter');
+
+  const adapterBlock = etfSrc.slice(adapterStart, adapterEnd + ADAPTER_END.length);
+  const etfOracleHelpers = ['mean', 'normCdf', 'invNorm', 'moments', 'deflatedSharpe'].map((name) => extractFn(etfSrc, name)).join('\n');
+  const etfScopeBody = 'var ANN=252;\n' + etfOracleHelpers + '\n' + adapterBlock +
+    '\nreturn { live: deflatedSharpe, oracle: etfMomentumOriginalDeflatedSharpe, receipt: window.__ETF_RLVALID_PARITY__ };';
+  // eslint-disable-next-line no-new-func
+  const buildEtfScope = (rlvalid) => Function('RLVALID', 'window', etfScopeBody)(rlvalid, {});
+  const etfEquity = Array.from({ length: 80 }, (_value, index) => Math.pow(1.001 + (index % 3) * 0.0001, index + 1));
+
+  // (a) ADVERSARIAL: the LIVE binding must reach RLVALID. A page-local copy never touches the spy.
+  const spyCalls = [];
+  const spyScope = buildEtfScope({
+    rlvDeflatedSharpe: (curve, trialCount, annualization) => {
+      spyCalls.push({ length: curve.length, trialCount, annualization });
+      return { ok: true, psr: 0.111, dsr: 0.222, srAnn: 0.333, nTrials: 4444, n: 5555 };
+    }
+  });
+  const spyResult = spyScope.live(etfEquity, 7);
+  const spyLast = spyCalls[spyCalls.length - 1];
+  assert(spyCalls.length >= 1 && spyLast.length === 80 && spyLast.trialCount === 7 && spyLast.annualization === 252, 'etf live deflatedSharpe delegates to RLVALID.rlvDeflatedSharpe with (equityCurve, trialCount, ANN=252)');
+  assert(spyResult.psr === 0.111 && spyResult.dsr === 0.222 && spyResult.srAnn === 0.333 && spyResult.nTrials === 4444 && spyResult.n === 5555, 'etf live deflatedSharpe returns the RLVALID result rather than a page-local recomputation');
+
+  // (b) Parity: the retained oracle and the shared implementation agree bit-for-bit.
+  const rlvalidApi = Function('globalThis', read('rlvalidation.js') + '\nreturn globalThis.RLVALID;')({});
+  const realScope = buildEtfScope(rlvalidApi);
+  const oracleDsr = realScope.oracle(etfEquity, 7);
+  const liveDsr = realScope.live(etfEquity, 7);
+  assert(['psr', 'dsr', 'srAnn', 'nTrials', 'n'].every((field) => oracleDsr[field] === liveDsr[field]), 'etf parity oracle and RLVALID-delegated live path are bit-identical on the deterministic fixture');
+  assert(realScope.receipt && realScope.receipt.available === true && realScope.receipt.equal === true, 'etf page-computed parity receipt reports available and field-by-field equal');
+
+  // (c) Fail loudly: no silent fallback to the page-local copy when RLVALID is missing.
+  const bareScope = buildEtfScope(undefined);
+  let etfThrew = false;
+  try { bareScope.live(etfEquity, 7); } catch (e) { etfThrew = /RLVALID is required/.test(e.message); }
+  assert(etfThrew, 'etf live deflatedSharpe throws when RLVALID is absent instead of silently falling back to the private copy');
+
+  // (d) BI-2: an invalid equity level yields an honest null, not a number computed over dropped bars.
+  const etfBadCurve = etfEquity.slice();
+  etfBadCurve[40] = 0;
+  assert(realScope.live(etfBadCurve, 7) === null && realScope.oracle(etfBadCurve, 7) !== null, 'etf live deflatedSharpe returns honest null on a non-positive equity level where the private copy silently computed a number');
+} catch (e) { failures++; console.log('  ✗ FAIL (etf-momentum D4 deflated-Sharpe single-source group threw): ' + e.message); }
+/* ---------- End D4 single-source: etf-momentum-lab deflated Sharpe ---------- */
 
 /* FEATURE-009-MSFT-JULY-MARKET-REFRESH-BEGIN */
 try {
@@ -4754,6 +4921,14 @@ try {
   const reads = {
     'options-structure-lab': refresh.buildOptionsSurfaceToolRead(),
     'gamma-trading-lab': refresh.buildGammaToolRead(),
+    'options-flow-feed-lab': refresh.buildOptionsFlowToolRead(),
+    // Called at the real wall clock, so its reader copy is checked below whether the committed
+    // universe is inside its refresh window or past it. The value assertions use a pinned instant.
+    'ai-capex-strategy-lab': refresh.buildAiCapexToolRead(),
+    // Expected to publish an ABSENCE, not a verdict: two of the three evidence families its model
+    // requires are browser-cache-only or current-tab-only and have no same-origin file. The four
+    // cases further down prove that absence is computed rather than declared.
+    'bond-regime-lab': refresh.buildBondRegimeToolRead(),
     'swing-structure-lab': refresh.buildSwingToolRead({ macro: { fg: { score: 55, band: 'Neutral' }, vix: 17 } }),
     'market-heatmap-lab': refresh.buildBreadthToolRead({}),
     'volatility-sizing-lab': refresh.buildVolatilityToolRead(),
@@ -4763,7 +4938,10 @@ try {
     assert(toolRead.id === id && typeof toolRead.read === 'string' && toolRead.read.length > 0 && toolRead.deepLink && toolRead.metrics && typeof toolRead.metrics === 'object',
       `${id} publishes a read, metrics and a deep link`);
   }
-  const readyIds = ['options-structure-lab', 'gamma-trading-lab', 'swing-structure-lab', 'market-heatmap-lab', 'volatility-sizing-lab'];
+  // ai-capex-strategy-lab is deliberately absent: its committed universe is a quarter-cadence set,
+  // so whether the live read is ready or a named stale refusal depends on the calendar. Its ready
+  // state is asserted below against an instant pinned to that universe's OWN declared as-of.
+  const readyIds = ['options-structure-lab', 'gamma-trading-lab', 'options-flow-feed-lab', 'swing-structure-lab', 'market-heatmap-lab', 'volatility-sizing-lab'];
   for (const id of readyIds) {
     assert(reads[id].state === 'ready', `${id} reaches a READY read from committed evidence, not a coverage-only placeholder`);
   }
@@ -4788,6 +4966,208 @@ try {
     'a read with no committed chain degrades to a named unavailable and publishes no surface numbers');
   assert(!Number.isFinite(starved.metrics.flipLevel) && !Number.isFinite(starved.metrics.callWall),
     'the degraded read carries no gamma flip or wall value at all');
+
+  /* ---- options flow feed: the tape is scanned, not narrated around ---- */
+
+  // The scanned tickers come from the owning page, so the brief cannot report a wider tape than the
+  // tool itself shows.
+  const flowUniverse = owner.optionsFlowUniverse(ROOT);
+  assert(Array.isArray(flowUniverse) && flowUniverse.includes('SPY') && flowUniverse.length >= 8,
+    'the flow feed universe is read from the owning page rather than restated in the brief (' + (flowUniverse || []).length + ' tickers)');
+  assert(owner.optionsFlowUniverse(join(ROOT, 'no-such-directory')) === null,
+    'the universe reader reports absence instead of falling back to a built-in ticker list');
+
+  // The chain projection must stay the page's own. Refusing to run without it is what stops a
+  // second, silently divergent parser from appearing here.
+  let flowRefusedWithoutParser = false;
+  try { owner.optionsFlowOwnerState(ROOT, {}); } catch { flowRefusedWithoutParser = true; }
+  assert(flowRefusedWithoutParser,
+    'the flow owner state refuses to run without the owning page\u2019s own chain parser, so no second projection can appear');
+
+  const flow = reads['options-flow-feed-lab'];
+  assert(flow.metrics.tickers >= 8 && flow.metrics.consideredCount > 0 && flow.metrics.contractsFlagged > 0
+    && ['call-heavy (leaning bullish)', 'put-heavy (leaning bearish / hedged)', 'balanced'].includes(flow.metrics.lean),
+    'the flow read carries the owning model\u2019s own call/put lean over real scanned contracts ('
+      + flow.metrics.contractsFlagged + ' flagged of ' + flow.metrics.consideredCount + ' considered)');
+  assert(flow.metrics.top.length > 0 && flow.metrics.top.every((row) => Number.isFinite(row.premium) && Number.isFinite(row.score) && row.ticker),
+    'the flow read publishes ranked contracts from the model, each with a real premium and score');
+  assert(flow.metrics.top[0].score === flow.metrics.maxScore || flow.metrics.top[0].score <= flow.metrics.maxScore,
+    'the headline contract is drawn from the model\u2019s own ranking, not chosen by the brief');
+
+  // ADVERSARIAL 1 — no committed chain for any scanned ticker. Every fixture above satisfies the
+  // happy path, so without this case the builder could hard-code a lean and still pass.
+  const starvedFlow = refresh.buildOptionsFlowToolRead({ universe: ['NO-SUCH-SYMBOL'] });
+  assert(starvedFlow.state === 'unavailable' && starvedFlow.metrics.state === 'unavailable' && /no tape to read/.test(starvedFlow.read),
+    'a flow read with no committed chain degrades to a named unavailable rather than an empty-but-plausible tape');
+  assert(!Number.isFinite(starvedFlow.metrics.contractsFlagged) && !Number.isFinite(starvedFlow.metrics.callPremium) && !starvedFlow.metrics.lean,
+    'the degraded flow read publishes no contract count, no premium and no lean \u2014 not a zero, and not a balanced placeholder');
+
+  // ADVERSARIAL 2 — the chains exist but are older than the freshness rule allows. A read that
+  // ignored snapshot age would still pass every assertion above; this is the case that catches it.
+  const staleFlow = refresh.buildOptionsFlowToolRead({ asOf: '2027-01-01T00:00:00.000Z' });
+  assert(staleFlow.state === 'unavailable' && /days old/.test(staleFlow.read) && /stale tape/.test(staleFlow.read),
+    'a tape older than the freshness rule is refused with its age named, never scored as if it were current');
+  assert(!Number.isFinite(staleFlow.metrics.contractsFlagged),
+    'the stale-tape refusal publishes no contract count');
+
+  /* ---- ai-capex strategy: a dated set of scenario assumptions, priced by the owning page ---- */
+
+  // Every instant below is derived from the committed universe's OWN declared cutoff, so these
+  // assertions do not drift with the calendar and do not silently weaken as the file ages.
+  const aiCapexUniverse = owner.aiCapexUniverse(ROOT);
+  assert(!!aiCapexUniverse && Array.isArray(aiCapexUniverse.assets) && aiCapexUniverse.assets.length > 0 && typeof aiCapexUniverse.asOf === 'string',
+    'the committed AI-capex universe declares its own as-of and carries assets (' + ((aiCapexUniverse && aiCapexUniverse.assets) || []).length + ' entries)');
+  const aiCapexAt = (days) => new Date(Date.parse(aiCapexUniverse.asOf + 'T00:00:00Z') + days * 86400000).toISOString();
+
+  // The page's own sleeve builder must stay the page's own. Refusing to run without it is what
+  // stops a second, silently divergent scenario model from appearing here.
+  let aiCapexRefusedWithoutPage = false;
+  try { owner.aiCapexOwnerState(ROOT, {}); } catch { aiCapexRefusedWithoutPage = true; }
+  assert(aiCapexRefusedWithoutPage,
+    'the AI-capex owner state refuses to run without the owning page\u2019s own universe loader, preset and provider, so no second scenario model can appear');
+
+  const aiCapex = refresh.buildAiCapexToolRead({ asOf: aiCapexAt(1) });
+  assert(aiCapex.state === 'ready' && aiCapex.asOf === aiCapexUniverse.asOf,
+    'inside its refresh window the AI-capex read is ready and carries the universe\u2019s OWN declared as-of, not the instant this run happened to fire');
+  assert(aiCapex.metrics.pricedCount > 0 && aiCapex.metrics.pricedCount <= aiCapex.metrics.assetCount
+    && Number.isFinite(aiCapex.metrics.mu) && Number.isFinite(aiCapex.metrics.sd) && aiCapex.metrics.sd > 0
+    && Number.isFinite(aiCapex.metrics.median) && Number.isFinite(aiCapex.metrics.cvar),
+    'the AI-capex read carries the owning model\u2019s own portfolio and band over a real priced sleeve ('
+      + aiCapex.metrics.pricedCount + ' of ' + aiCapex.metrics.assetCount + ' priced)');
+  assert(aiCapex.metrics.lo < aiCapex.metrics.median && aiCapex.metrics.median < aiCapex.metrics.hi
+    && aiCapex.metrics.cvar < aiCapex.metrics.median,
+    'the band is a real distribution \u2014 the tail sits below the centre and the centre inside the bounds');
+  const aiCapexTickers = new Set(aiCapexUniverse.assets.map((asset) => String(asset.tk)));
+  assert(aiCapex.metrics.holdings.length > 0 && aiCapex.metrics.holdings.every((holding) => aiCapexTickers.has(holding.ticker) && Number.isFinite(holding.weight)),
+    'every holding the read names comes from the committed universe, so the brief cannot report a sleeve the tool itself does not hold');
+  // The read must not read as a market measurement. This tool prices static scenario assumptions.
+  assert(/modelled on the/.test(aiCapex.read) && aiCapex.read.includes(aiCapexUniverse.asOf) && /rather than measured market returns/.test(aiCapex.read)
+    && aiCapex.metrics.basis === 'scenario-assumptions',
+    'the AI-capex read states its as-of and names its basis as modelled assumptions, so it cannot be misread as a live market measurement');
+
+  // ADVERSARIAL 1 — no committed universe at all. Every fixture above satisfies the happy path, so
+  // without this case the builder could hard-code a theme and a band and still pass.
+  const starvedAiCapex = refresh.buildAiCapexToolRead({ universe: null });
+  assert(starvedAiCapex.state === 'unavailable' && starvedAiCapex.metrics.state === 'unavailable' && /No committed AI-capex universe/.test(starvedAiCapex.read),
+    'an AI-capex read with no committed universe degrades to a named unavailable rather than an empty-but-plausible sleeve');
+  assert(!Number.isFinite(starvedAiCapex.metrics.median) && !Number.isFinite(starvedAiCapex.metrics.pricedCount) && !starvedAiCapex.metrics.leadTheme,
+    'the degraded AI-capex read publishes no band, no priced count and no leading theme \u2014 not a zero, and not a neutral placeholder');
+
+  // ADVERSARIAL 2 — a universe file that exists but carries nothing the page will accept. A builder
+  // that fell back to its own inline assumptions would still pass ADVERSARIAL 1; this catches it.
+  const emptyAiCapex = refresh.buildAiCapexToolRead({ universe: { asOf: aiCapexUniverse.asOf, assets: [] } });
+  assert(emptyAiCapex.state === 'unavailable' && /no asset this tool can price/.test(emptyAiCapex.read),
+    'a universe the owning page\u2019s own validator rejects is reported as a named absence, never backfilled from an inline default universe');
+  assert(!Number.isFinite(emptyAiCapex.metrics.median) && !emptyAiCapex.metrics.leadTheme,
+    'the rejected-universe refusal publishes no band and no leading theme');
+
+  // ADVERSARIAL 3 — the universe is intact but has missed its own refresh. A read that ignored the
+  // declared as-of would pass every assertion above; this is the case that catches it.
+  const staleAiCapex = refresh.buildAiCapexToolRead({ asOf: aiCapexAt(365) });
+  assert(staleAiCapex.state === 'unavailable' && /365 days old/.test(staleAiCapex.read) && staleAiCapex.read.includes(aiCapexUniverse.asOf),
+    'a universe past its refresh window is refused with its age and its own as-of named, never shown as a current view');
+  assert(!Number.isFinite(staleAiCapex.metrics.median) && !Number.isFinite(staleAiCapex.metrics.prob),
+    'the stale-universe refusal publishes no band and no probability');
+
+  // ADVERSARIAL 4 — the boundary itself. Without both sides a freshness rule could be widened to
+  // infinity, or dropped entirely, and every other case here would still be green.
+  assert(refresh.buildAiCapexToolRead({ asOf: aiCapexAt(92) }).state === 'ready'
+    && refresh.buildAiCapexToolRead({ asOf: aiCapexAt(93) }).state === 'unavailable',
+    'the quarterly refresh window is enforced at its exact edge \u2014 ready at 92 days, refused at 93');
+
+  /* ── bond-regime-lab — the indeterminacy must be COMPUTED, never asserted ──────────────────────
+     This tool cannot reach a verdict from committed evidence: the Treasury nominal and real curves
+     are fetched live into browser cache and the independent credit-spread observation is a
+     current-tab entry its own source policy marks memory-only, so neither has a same-origin file a
+     server run could read. An adapter that simply hard-coded "unresolved" would therefore pass a
+     committed-evidence-only suite forever. The cases below drive the SAME builder with each
+     evidence family present and absent, so the honest gap is provably the model's own conclusion
+     and the gap SENTENCE provably tracks which family is missing. */
+  const bondDay = (index) => new Date(Date.UTC(2026, 0, 5 + index)).toISOString().slice(0, 10);
+  const bondNominalRows = Array.from({ length: 70 }, (_, index) => ({ date: bondDay(index), y3m: 4.2 - 0.012 * index, y2: 4 - 0.01 * index, y10: 4.5 - 0.005 * index }));
+  const bondRealRows = Array.from({ length: 70 }, (_, index) => ({ date: bondDay(index), y10: 2 - 0.004 * index }));
+  const bondCurve = (rows, sourceId) => ({ state: 'fresh', rows, observedAt: rows[rows.length - 1].date, retrievedAt: new Date().toISOString(), sourceId, sourceUrl: null, rights: 'public-official', persistence: 'browser-cache', errorCode: null });
+  const bondSpreadObservation = [{ id: 'oas-session', kind: 'oas', value: 2.9, change: -12, unit: 'pct', observedAt: bondDay(69), rights: 'restricted-local-view' }];
+  // The committed sleeve characteristics carry a 45-day review window against their own 2026-07-10
+  // as-of, and the page's scenario engine refuses to rank a stale characteristic. A fixture whose
+  // job is to STAY determinate therefore re-stamps those review dates to the run date; nothing else
+  // in the committed configuration is touched, so the sleeves, pairs and thresholds stay the real ones.
+  const bondFreshConfig = JSON.parse(read('bond-regime-universe.json'));
+  const bondToday = new Date().toISOString().slice(0, 10);
+  for (const instrument of bondFreshConfig.instruments) {
+    for (const field of ['carry', 'rateDuration', 'spreadDuration', 'convexity']) if (instrument[field]) instrument[field].asOf = bondToday;
+  }
+
+  const bondLive = reads['bond-regime-lab'];
+  assert(bondLive.state === 'unavailable' && bondLive.metrics.creditRegime === 'Indeterminate' && bondLive.metrics.durationPosture === 'Indeterminate',
+    'from committed evidence alone the bond regime is unresolved on BOTH axes, so the brief publishes a named absence instead of a verdict');
+  assert(bondLive.metrics.preferredSleeveId === null && bondLive.metrics.resultPct === null,
+    'the unresolved bond read names no preferred sleeve and no modelled result \u2014 not a zero, and not a neutral placeholder');
+  assert(bondLive.metrics.evidenceGaps.includes('the Treasury yield curve') && bondLive.metrics.evidenceGaps.includes('an independent credit-spread reading')
+    && bondLive.metrics.curveState === 'Unavailable' && bondLive.metrics.inflationState === 'Unavailable',
+    'the unresolved bond read names WHICH evidence is missing rather than reporting a bare failure');
+  assert(['strengthening', 'weakening', 'mixed', 'neutral'].includes(bondLive.metrics.pricePulse) && bondLive.read.includes(bondLive.metrics.pricePulse)
+    && bondLive.metrics.readablePairs.length > 0,
+    'the one readable signal \u2014 the high-yield versus investment-grade ratio \u2014 carries the direction the MODEL returned, quoted verbatim in the read (' + bondLive.metrics.pricePulse + ')');
+
+  // ADVERSARIAL 1 — every evidence family present. This is the case a hard-coded "indeterminate"
+  // cannot survive: the same builder, handed a curve, a real curve and a spread observation, must
+  // reach a real verdict with a named sleeve.
+  const bondResolved = refresh.buildBondRegimeToolRead({
+    config: bondFreshConfig,
+    nominalCurve: bondCurve(bondNominalRows, 'us-treasury-nominal'),
+    realCurve: bondCurve(bondRealRows, 'us-treasury-real'),
+    confirmations: bondSpreadObservation
+  });
+  assert(bondResolved.state === 'ready' && bondResolved.metrics.creditRegime !== 'Indeterminate' && bondResolved.metrics.durationPosture !== 'Indeterminate'
+    && bondResolved.metrics.preferredSleeveId && Number.isFinite(bondResolved.metrics.resultPct),
+    'handed a Treasury curve, a real curve and an independent credit-spread observation the SAME builder reaches a real verdict, so the unresolved read above is computed rather than hard-coded ('
+      + bondResolved.metrics.creditRegime + ' credit, ' + bondResolved.metrics.durationPosture + ' duration, ' + bondResolved.metrics.preferredSleeveId + ')');
+  assert(bondResolved.metrics.evidenceGaps.length === 0 && bondResolved.metrics.curveState !== 'Unavailable' && bondResolved.metrics.inflationState !== 'Unavailable',
+    'with every evidence family present the resolved bond read names no gap at all');
+  assert(bondResolved.read.includes(bondResolved.metrics.creditRegime) && bondResolved.read.includes(bondResolved.metrics.durationPosture) && !/unresolved/.test(bondResolved.read),
+    'the resolved bond read states the regime the model returned and never falls back to the unresolved copy');
+
+  // ADVERSARIAL 2 — curve present, spread observation absent. A gap sentence built from a fixed
+  // string would still name the curve here; the model's own state has to decide.
+  const bondCurveOnly = refresh.buildBondRegimeToolRead({
+    config: bondFreshConfig,
+    nominalCurve: bondCurve(bondNominalRows, 'us-treasury-nominal'),
+    realCurve: bondCurve(bondRealRows, 'us-treasury-real')
+  });
+  assert(bondCurveOnly.state === 'unavailable' && !bondCurveOnly.metrics.evidenceGaps.includes('the Treasury yield curve')
+    && bondCurveOnly.metrics.evidenceGaps.includes('an independent credit-spread reading') && !/Treasury yield curve/.test(bondCurveOnly.read),
+    'with the curve on file but no independent credit-spread observation the read stops naming the curve and names only the spread gap');
+  assert(/so the credit call cannot be made/.test(bondCurveOnly.read) && !/duration call/.test(bondCurveOnly.read)
+    && bondCurveOnly.metrics.durationPosture !== 'Indeterminate',
+    'the curve resolves the duration axis, and the read says only the credit call is missing \u2014 the consequence clause is the model\u2019s verdict, not a fixed phrase');
+
+  // ADVERSARIAL 3 — the mirror image. Together with case 2 this pins the gap sentence to the
+  // model's state from both sides, so neither absence can be a constant.
+  const bondSpreadOnly = refresh.buildBondRegimeToolRead({ config: bondFreshConfig, confirmations: bondSpreadObservation });
+  assert(bondSpreadOnly.state === 'unavailable' && bondSpreadOnly.metrics.evidenceGaps.includes('the Treasury yield curve')
+    && !bondSpreadOnly.metrics.evidenceGaps.includes('an independent credit-spread reading') && bondSpreadOnly.metrics.creditRegime !== 'Indeterminate',
+    'with the spread observation on file but no curve the credit axis resolves, the duration axis does not, and the read names the curve gap alone');
+  assert(/so the duration call cannot be made/.test(bondSpreadOnly.read) && !/credit call/.test(bondSpreadOnly.read),
+    'the mirror case says only the duration call is missing, so neither half of the consequence clause can be a constant');
+  assert(/so the credit call and the duration call cannot be made/.test(bondLive.read),
+    'and from committed evidence alone \u2014 where both axes really are unresolved \u2014 the read names both');
+
+  // ADVERSARIAL 4 — no committed price history at all. Without this the builder could fall back to
+  // an inline bar window and every case above would still be green.
+  const bondStarved = refresh.buildBondRegimeToolRead({ snapshot: null });
+  assert(bondStarved.state === 'unavailable' && /No committed price history/.test(bondStarved.read) && bondStarved.metrics.state === 'unavailable',
+    'with no committed bond price history the read degrades to a named absence rather than an empty-but-plausible regime');
+  assert(owner.bondRegimeOwnerState(ROOT, { config: null }) === null,
+    'the bond observed-snapshot builder refuses to invent a configuration, so no second sleeve, pair or threshold set can appear server-side');
+
+  // D13 — the read is reader copy. Framework vocabulary must not reach it.
+  for (const [id, toolRead] of Object.entries(reads)) {
+    assert(!/sha256:|[a-z-]+\/v\d\b|coverage-only|not-integrated|\bScope \d/.test(toolRead.read),
+      `${id} states its read in plain words, with no adapter id, contract version or status code in reader copy`);
+  }
+  assert(!/BRL-|bond-regime-universe|fixed-income-sleeve|owner-state/.test(bondLive.read),
+    'the bond read carries no refusal code, configuration filename or contract slug \u2014 a reader gets plain words only');
 } catch (e) { failures++; console.log('  \u2717 FAIL (Tier-A owning-model reads group threw): ' + e.message); }
 
 /* ---------- recommendation ledger — durable bodies + honest evaluability ---------- */

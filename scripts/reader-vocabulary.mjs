@@ -1,0 +1,200 @@
+/**
+ * D13 vocabulary — the ONE list of framework words that must never reach a reader.
+ *
+ * This module exists because the rule had two independent enforcers and only one list.
+ * `scripts/audit-reader-legibility.mjs` owned the patterns and ran against RENDERED pages;
+ * `scripts/validate-brief-payload.mjs` guarded the PUBLISH path and knew nothing about
+ * vocabulary at all. A generator could therefore emit a status code, sail through the
+ * publish gate, and only be caught later by a browser audit nobody runs on the 4x/day cron.
+ * Both enforcers now import from here, so the list cannot drift apart.
+ *
+ * Two surfaces, one list:
+ *   - rendered page text  -> findReaderVocabularyLeaks()      (audit-reader-legibility.mjs)
+ *   - brief payload prose -> findBriefNarrativeVocabularyLeaks() (validate-brief-payload.mjs)
+ */
+
+/* Each pattern is a leak of framework vocabulary into product copy. `label` is what
+   gets reported; `re` is what proves it. Kept literal so a finding is never inferred.
+
+   `blocksPublication` marks the classes the brief publish gate enforces on narrative
+   payload fields. It is deliberately NOT every class: `compute-digest` and
+   `contract-version` are provenance, and provenance is legitimate evidence in a Power
+   view AND in toolCoverage[].reason, which already carries a real sha256 today. Turning
+   those on in the publish gate would block a payload that is not actually leaking. The
+   status/dependency classes have no such legitimate narrative use — a reader never needs
+   the code, only the plain words. */
+export const READER_VOCABULARY_LEAKS = [
+  { id: 'compute-digest', label: 'compute-identity digest', re: /sha256:[0-9a-f]{8,}/, blocksPublication: false },
+  { id: 'gate-code', label: 'gate/refusal code', re: /\bE0\d{2}-[A-Z]/, blocksPublication: false },
+  { id: 'dependency-slug', label: 'dependency slug', re: /dependency-pending|feature-0\d{2}\b/, blocksPublication: true },
+  { id: 'withheld-list', label: 'withheld-capability list', re: /\bWithheld:/, blocksPublication: false },
+  { id: 'acceptance-gate', label: 'acceptance-gate predicate', re: /\bAcceptance gate:/, blocksPublication: false },
+  { id: 'scope-number', label: 'Bubbles scope number', re: /\bScope \d{1,2}\b/, blocksPublication: false },
+  { id: 'generic-heading', label: 'generic Simple heading', re: /\bSimple model result\b/, blocksPublication: false },
+  { id: 'contract-unit', label: 'raw contract id as a unit', re: /\b[a-z]+-[a-z]+-(decimal|ratio|score|count|bps)\b/, blocksPublication: false },
+  { id: 'contract-version', label: 'contract version slug', re: /\b[a-z-]+\/v\d\b/, blocksPublication: false },
+  { id: 'integration-state', label: 'integration-state jargon', re: /not-integrated|coverage-only/, blocksPublication: true }
+];
+
+/* D13 puts provenance in Power on purpose. A compute digest or a contract version is
+   evidence there, not a leak; everywhere else it is framework vocabulary in reader copy. */
+export const PROVENANCE_LEAK_IDS = new Set(['compute-digest', 'contract-version']);
+
+export const PUBLICATION_BLOCKING_LEAKS = READER_VOCABULARY_LEAKS.filter((leak) => leak.blocksPublication);
+
+/**
+ * Rendered-page surface. `view` is the activated view label, or null when the page
+ * exposes none; provenance is tolerated only in Power.
+ */
+export function findReaderVocabularyLeaks(text, view) {
+  const provenanceAllowed = view === 'Power';
+  const found = [];
+  for (const leak of READER_VOCABULARY_LEAKS) {
+    if (provenanceAllowed && PROVENANCE_LEAK_IDS.has(leak.id)) continue;
+    const m = text.match(leak.re);
+    if (m) found.push({ id: leak.id, label: leak.label, sample: m[0] });
+  }
+  return found;
+}
+
+/* The brief payload mixes two kinds of string in the same object, sometimes under the
+   SAME key name: watchlistNotes.<ticker>.status is 1600 characters of prose a reader
+   reads, while toolCoverage[].status is the machine enum 'analyzed'|'stale'|'not-relevant'.
+   A key-name rule would either miss the prose or condemn the enum, so the split is by
+   PATH and both sides are declared from the committed payload's actual shape.
+
+   Path grammar: segments joined by '.', array elements are '[]', '*' matches exactly one
+   segment (a tool id, a ticker), a trailing '**' matches the node and everything below it. */
+export const BRIEF_NARRATIVE_FIELDS = [
+  'dataAsOf.*',
+  'regime.name',
+  'regime.scoreNote',
+  'regime.crowdPsychology',
+  'regime.structuralTrend',
+  'regime.pricedIn',
+  'regime.asymmetry',
+  'regime.falsifiers',
+  'regime.note',
+  'regime.levels.*',
+  'regime.vix.regimeLabel',
+  'regime.vix.falsifier',
+  'backdrop.primaryTrend',
+  'backdrop.macroCycle',
+  'backdrop.pricedIn',
+  'backdrop.asymmetry',
+  'backdrop.trendEvidence.**',
+  'backdrop.globalBackdrop.**',
+  'backdrop.whatWouldChangeIt.**',
+  'backdrop.structuralLevels.**',
+  'nextSession.thesis',
+  'nextSession.actions.[].subject',
+  'nextSession.actions.[].rationale',
+  'nextSession.actions.[].structuralAnchor',
+  'nextSession.actions.[].trigger',
+  'nextSession.actions.[].invalidation',
+  'attention.[].title',
+  'attention.[].what',
+  'attention.[].why',
+  'attention.[].structuralAnchor',
+  'recommendations.[].structuralAnchor',
+  'recommendations.[].levels',
+  'recommendations.[].trigger',
+  'recommendations.[].invalidation',
+  'recommendations.[].rationale',
+  'events.[].event',
+  'events.[].consensus',
+  'events.[].psychologyNote',
+  'events.[].scenarios.[].name',
+  'events.[].scenarios.[].expectedEffect',
+  'psychology.read',
+  'groups.[].label',
+  'groups.[].note',
+  'groups.[].notable.[].reason',
+  'toolReads.*.read',
+  'toolReads.*.limitations.[]',
+  'toolReads.*.recommendationEligibility.reason',
+  'toolCoverage.[].reason',
+  'watchlistNotes.*.status',
+  'experimental.[].title',
+  'experimental.[].note',
+  'experimental.[].method'
+];
+
+/* Machine carriers. These are the fields a status code legitimately lives in —
+   scripts/brief-distributed-publish.mjs sets outcome/applicabilityStatus to
+   'coverage-only' and 'not-integrated' by design — plus the metrics subtree, which
+   carries long machine strings (capability ids, adapter notes) that are not reader copy.
+   Declared, not merely omitted, so the selftest can prove the payload has no long string
+   that is neither reader prose nor declared machine state. */
+export const BRIEF_STRUCTURED_FIELDS = [
+  'toolCoverage.[].status',
+  'toolReads.*.status',
+  'toolReads.*.state',
+  'toolReads.*.role',
+  'toolReads.*.profile',
+  'toolReads.*.contractVersion',
+  'toolReads.*.fingerprint',
+  'toolReads.*.adapter.**',
+  'toolReads.*.ownerReadRef.**',
+  'toolReads.*.metrics.**',
+  'toolReads.*.recommendationEligibility.eligible',
+  'experimental.[].inputs.**',
+  'groups.[].read.**',
+  'groups.[].breadth.**'
+];
+
+function segmentsMatch(pattern, segments) {
+  const patternSegments = pattern.split('.');
+  const openEnded = patternSegments[patternSegments.length - 1] === '**';
+  const fixed = openEnded ? patternSegments.slice(0, -1) : patternSegments;
+  if (openEnded ? segments.length < fixed.length : segments.length !== fixed.length) return false;
+  return fixed.every((part, index) => part === '*' || part === segments[index]);
+}
+
+export function matchesFieldPatterns(patterns, segments) {
+  return patterns.some((pattern) => segmentsMatch(pattern, segments));
+}
+
+export function isBriefNarrativeField(segments) {
+  return matchesFieldPatterns(BRIEF_NARRATIVE_FIELDS, segments);
+}
+
+/** Every string in the payload, as `{ segments, path, value }`. */
+export function walkBriefStrings(payload) {
+  const out = [];
+  const visit = (node, segments) => {
+    if (typeof node === 'string') {
+      out.push({ segments, path: segments.join('.'), value: node });
+      return;
+    }
+    if (Array.isArray(node)) {
+      node.forEach((item) => visit(item, [...segments, '[]']));
+      return;
+    }
+    if (node && typeof node === 'object') {
+      for (const key of Object.keys(node)) visit(node[key], [...segments, key]);
+    }
+  };
+  visit(payload, []);
+  return out;
+}
+
+/**
+ * Publish-path surface. Returns one finding per (narrative field, leak class) hit.
+ *
+ * A translated code kept as a gloss is still a leak: "no call this cycle (coverage-only;
+ * does not feed the brief yet)" carries the plain words AND the code, and the code is the
+ * part a reader cannot act on. The match is on the code alone, so the presence of a
+ * correct translation beside it never excuses it.
+ */
+export function findBriefNarrativeVocabularyLeaks(payload) {
+  const findings = [];
+  for (const { segments, path, value } of walkBriefStrings(payload)) {
+    if (!isBriefNarrativeField(segments)) continue;
+    for (const leak of PUBLICATION_BLOCKING_LEAKS) {
+      const match = value.match(leak.re);
+      if (match) findings.push({ path, id: leak.id, label: leak.label, sample: match[0] });
+    }
+  }
+  return findings;
+}

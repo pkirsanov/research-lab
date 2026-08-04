@@ -219,9 +219,12 @@ function runLane(lane, laneAttempt) {
         : 'This legacy ad-hoc run has no pre-final tool bundle; use only the refreshed deterministic data and owning-tool reads supplied.';
     /* The bundle's outcome CODES are contract vocabulary. They are correct in structured
        fields and wrong in a sentence a reader has to understand, so the lane must carry the
-       state faithfully while naming it in plain words. Enforced by
-       scripts/audit-reader-legibility.mjs (D13). */
-    const vocabularyInstruction = 'Never write a contract status code into narrative prose. Carry the state, name it in plain words: coverage-only -> "no call this cycle", not-integrated -> "does not feed the brief yet", not-applicable -> "not applicable this window", dependency-pending -> "not available in this view yet". Status codes belong in structured fields only.';
+       state faithfully while naming it in plain words. The parenthetical form is called out
+       explicitly because that is what a lane actually produced: it applied the translation
+       and then kept the code in brackets beside it. Enforced by
+       scripts/validate-brief-payload.mjs on the publish path and by
+       scripts/audit-reader-legibility.mjs on the rendered page (D13). */
+    const vocabularyInstruction = 'Never write a contract status code into narrative prose. Carry the state, name it in plain words: coverage-only -> "no call this cycle", not-integrated -> "does not feed the brief yet", not-applicable -> "not applicable this window", dependency-pending -> "not available in this view yet". Replace the code, do not annotate it: keeping the code beside its translation in parentheses, brackets, quotes or after a dash or semicolon is the SAME violation, so "no call this cycle (coverage-only; does not feed the brief yet)" is rejected exactly like a bare "coverage-only". Status codes belong in structured fields only, and the publish gate blocks the run on any narrative field that carries one.';
     /* A call with no attributable break level cannot ever be scored, so publishing one adds a
        claim to the ledger that the scorecard must permanently carry as not-evaluable. The
        invalidation field is what the evaluator reads for the risk side; if it carries no price,

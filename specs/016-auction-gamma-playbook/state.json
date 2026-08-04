@@ -3,8 +3,18 @@
   "featureDir": "specs/016-auction-gamma-playbook",
   "featureName": "Auction × Gamma Playbook",
   "createdAt": "2026-07-28T16:09:22Z",
-  "status": "specs_hardened",
+  "status": "not_started",
   "statusReconciliation": {
+    "revertedBy": {
+      "recordedBy": "bubbles.validate",
+      "recordedAt": "2026-08-04T03:13:44Z",
+      "previousStatus": "specs_hardened",
+      "newStatus": "not_started",
+      "supersedes": "Every sibling key in this statusReconciliation object describes the 2026-08-02T05:03:12Z orchestrator promotion to specs_hardened. That promotion is REVERTED as of this record, so those keys are the history of a superseded attempt and no longer describe the current status. Their guardEvidence was captured while the current status was still not_started, which is why it reads PASS: G087 is not applicable at not_started and only activates once the status IS specs_hardened.",
+      "why": "The specs_hardened promotion was refused by Gate G087 and reverted. This record completes a revert that was previously only half applied: certification.status was restored to not_started but top-level status was left at specs_hardened, and the file was committed in that mixed state, which artifact-lint reported as its single failure and which state-transition-guard.sh refused with E009-TARGET-MISMATCH. Both directions were reproduced by execution on isolated copies before this edit. With the trio consistent at specs_hardened the guard returns failedGateIds [G087], blockingCode PLANNING_GATE_FAILED, failureCount 1, exitStatus 1, verdict FAIL. With the trio consistent at not_started it returns failedGateIds [], failureCount 0, exitStatus 0, verdict PASS with 36 gates passed, G087 among them. This is not a demotion of earned progress: certifiedAt is null, certifiedBy is null, certification.completedScopes is empty, all nine scopes are not_started, and every executionHistory transition is not_started to not_started, so the status was never validly held.",
+      "rePromotionGatedOn": "G087 planning_packet_implementation_linkage_gate offers exactly two remedies: planningOnly true with a non-empty planningOnlyJustification, or a non-empty linkedImplementationSpec. Choosing between them is a packet-classification decision, not a validate-owned one. Neither field was written here. Per specs/_bugs/BUG-005-g087-planning-packet-linkage-unsatisfiable-in-place-delivery, both remedies are untruthful under this repository's in-place delivery model, that bug enumerates candidate directions D1 through D4 with none selected, and it is marked awaiting owner and framework decision. The classification is therefore owner-owned and must not be pre-empted by writing either field to turn a red gate green.",
+      "notClaimed": "Status only. certification.* was not altered and was already not_started. certifiedAt, certifiedBy, completedScopes, certifiedCompletedPhases, scopeProgress, audit-owned execution.audit history, all nine scope statuses, every DoD checkbox, and every file outside this state.json are unchanged."
+    },
     "recordedBy": "orchestrator",
     "recordedAt": "2026-08-02T05:03:12Z",
     "previousStatus": "not_started",

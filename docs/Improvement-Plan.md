@@ -500,10 +500,32 @@ node scripts/selftest.mjs
 > tools'* journeys, so a reader on one tool got the whole catalogue instead of that tool's two goals. Scoping
 > now holds — tool pages show their own, the Action Center shows all.
 >
-> **Retained obligation.** One clause of the original "done when" is still live and moves to Step 9's paperwork
-> sweep: *no test may inject its own mount anchor*. `tests/journey-mobile.spec.mjs` still does, which means it
-> proves the controller works but not that the page ships the anchor. That is a test-integrity item (**D14**),
-> not a product gap.
+> **Retained obligation — DISCHARGED 2026-08-04.** The paragraph below is preserved verbatim as its
+> **original point-in-time statement**; nothing in it is deleted or softened, because the obligation it named
+> was real when it was written. It is no longer true. Each of its claims is re-read **individually** at the
+> file and line cited — none is inferred from "the journey work shipped":
+>
+> > **Retained obligation.** One clause of the original "done when" is still live and moves to Step 9's paperwork
+> > sweep: *no test may inject its own mount anchor*. `tests/journey-mobile.spec.mjs` still does, which means it
+> > proves the controller works but not that the page ships the anchor. That is a test-integrity item (**D14**),
+> > not a product gap.
+>
+> **Measured against that paragraph — 2026-08-04.**
+>
+> | # | Claim above | Read at the cited line | Status |
+> |---|---|---|---|
+> | 1 | `journey-mobile.spec.mjs` injects its own mount anchor | [`../tests/journey-mobile.spec.mjs`](../tests/journey-mobile.spec.mjs) line 122: *"Activate the SHIPPED Journey view and wait for the SHIPPED mount. Nothing is injected"* — line 135 then **reads** `panel.querySelector('[data-rljourney-mount]')` out of the shipped `[data-rlexperience-panel="journey"]` panel | **RESOLVED** |
+> | 2 | Nothing proves the *page* ships the anchor | [`../tests/journey.spec.mjs`](../tests/journey.spec.mjs) line 136 banner *"Step 8 — the journey surface must SHIP, not be test-injected"*, line 138 a dedicated test whose line 143 reads *"NOTHING is injected here: no addScriptTag, no createElement, no setAttribute. If the anchor only existed because the other tests in this file build it, this test fails."* | **RESOLVED** |
+> | 3 | Injection forms survive somewhere under `tests/` | A search of `tests/` for `setAttribute('data-rljourney-mount'`, `insertAdjacentHTML`, `dataset.rljourneyMount` and `createElement(…journey)` returns **zero** matches. The **only** occurrence of any DOM-construction token in either journey spec is the line-143 comment that names them as *not* used; all 20 remaining `data-rljourney-mount` hits are `querySelector`/locator **assertions** against the shipped surface | **RESOLVED** |
+> | 4 | `addScriptTag` could smuggle an anchor in | The four `addScriptTag` calls in the journey specs — `journey.spec.mjs` lines 109 and 216, `journey-mobile.spec.mjs` lines 117 and 257 — each load `rlapp.js`, the real production module, as a fallback when the page's own async boot has not yet exposed `RLAPP`. None loads markup | **RESOLVED** |
+>
+> The mobile spec did not merely stop injecting; it became **strictly stronger**. Its own line 128 records why:
+> the mobile-fit proof now *"measures the panel a phone actually gets, at the width it actually gets it, instead
+> of a neutral `<div>` the test appended to `<body>` and force-made visible."*
+>
+> **Consequence for Step 9.** The **D14** test-integrity item this paragraph forwarded is closed, so Step 9's
+> paperwork sweep no longer inherits it. Step 9's own text never named the obligation — the forward pointer
+> existed only in the sentence above — so no wording in Step 9 required a change.
 
 **Lesson recorded as anti-drift D17.** A reach/coverage claim about a browser product must be measured **in a
 browser**. Static grep may be used to *locate* code, never to assert what a reader can reach. This document

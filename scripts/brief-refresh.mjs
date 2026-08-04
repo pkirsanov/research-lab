@@ -943,6 +943,36 @@ function loadToolFunctions(file, names, preamble = '') {
   return Function(body)();
 }
 
+/* The top-level `var NAME = …;` tables those helpers close over — a tool's universe, scenario,
+   regime and runway tables. Same balanced-delimiter contract as extractToolFunction (extended to
+   `[`, `(`, strings and comments), so the brief runs the tool's OWN tables instead of keeping a
+   second copy here that could silently drift from what the page shows. */
+function extractToolDeclaration(source, name) {
+  const match = new RegExp('(?:^|[\\n;])\\s*var\\s+' + name + '\\s*=').exec(source);
+  if (!match) throw new Error(`tool declaration not found: ${name}`);
+  const start = source.indexOf('var', match.index);
+  let depth = 0, quote = null;
+  for (let index = source.indexOf('=', start) + 1; index < source.length; index++) {
+    const character = source[index];
+    if (quote) {
+      if (character === '\\') index++;
+      else if (character === quote) quote = null;
+      continue;
+    }
+    if (character === '"' || character === "'" || character === '`') { quote = character; continue; }
+    if (character === '/' && source[index + 1] === '/') { index = source.indexOf('\n', index); if (index < 0) break; continue; }
+    if (character === '/' && source[index + 1] === '*') { const close = source.indexOf('*/', index + 2); if (close < 0) break; index = close + 1; continue; }
+    if (character === '{' || character === '[' || character === '(') depth++;
+    else if (character === '}' || character === ']' || character === ')') depth--;
+    else if (character === ';' && depth === 0) return source.slice(start, index + 1);
+  }
+  throw new Error(`tool declaration has unterminated body: ${name}`);
+}
+function loadToolDeclarations(file, names) {
+  const source = read(file);
+  return names.map((name) => extractToolDeclaration(source, name)).join('\n');
+}
+
 /* ── window: --window flag, else derive from ET clock ── */
 function argWindow() {
   const i = process.argv.indexOf('--window');
@@ -1304,6 +1334,250 @@ export function buildGammaToolRead(deps = {}) {
   } catch (error) { return unavailableToolRead(id, deepLink, `Dealer-gamma model unavailable this run: ${error.message}`); }
 }
 
+/* The freshness rule the owner-read producers already apply (scripts/build-owner-reads.mjs
+   FRESH_MAX_DAYS): a snapshot older than this reads as a reasoned gap, never as something current.
+   The anomaly model's registry entry declares its owner evidence stalePolicy `reject`, so a stale
+   tape has to surface as a named absence rather than as an analysis of yesterday's flow. */
+const OWNER_SNAPSHOT_FRESH_MAX_DAYS = 7;
+
+export function buildOptionsFlowToolRead(deps = {}) {
+  const id = 'options-flow-feed-lab', deepLink = 'options-flow-feed-lab.html';
+  try {
+    const root = deps.root || ROOT;
+    // The page's own chain projection — loaded, not reimplemented, so Simple, Power and the brief
+    // all read one parser.
+    const page = loadToolFunctions('options-flow-feed-lab.html', ['parsePagesChain']);
+    const ownerState = OWNER.optionsFlowOwnerState(root, { parseChain: page.parsePagesChain, universe: deps.universe });
+    if (!ownerState) return unavailableToolRead(id, deepLink, 'No committed option chain for the tickers this feed scans; there is no tape to read for unusual activity.');
+
+    const ageDays = (Date.parse(deps.asOf || new Date().toISOString()) - ownerState.nowMs) / 86400000;
+    if (!Number.isFinite(ageDays) || ageDays > OWNER_SNAPSHOT_FRESH_MAX_DAYS) {
+      return unavailableToolRead(id, deepLink, `The newest option chain on file is ${Number.isFinite(ageDays) ? `${Math.round(ageDays)} days` : 'undated'} old; unusual activity is not read off a stale tape.`);
+    }
+
+    const model = OWNER.loadAdapter(root, 'rlexperience-adapters/options.js');
+    const summary = model.computeAnomalySummary(JSON.parse(JSON.stringify(ownerState)), OWNER.registryDefaults(root, 'simple-adapter/options-anomaly/v1'));
+    if (!summary || summary.unusualness.state !== 'ready') return unavailableToolRead(id, deepLink, 'No contract in the committed chains expires inside the scanned window, so there is nothing to rank for unusual activity.');
+
+    const { contracts, unusualness, callPutLean } = summary;
+    const money = (value) => (Number.isFinite(value) ? (Math.abs(value) >= 1e6 ? `$${(value / 1e6).toFixed(1)}M` : `$${Math.round(value / 1000)}k`) : '—');
+    const top = contracts.top[0] || null;
+    // The model ranks by unusualness, not by size, so the headline names WHY this contract is first
+    // — calling it the largest would misread the ranking it came from.
+    const headline = top
+      ? `${top.ticker} ${top.strike} ${top.type === 'C' ? 'calls' : 'puts'} at ${money(top.premium)} on ${Number.isFinite(top.volOI) ? `${top.volOI.toFixed(1)}× its open interest` : 'volume with no open interest behind it'}`
+      : null;
+    const read = `Option flow is ${callPutLean.lean} across ${ownerState.chains.length} tickers: ${contracts.count} ${contracts.count === 1 ? 'contract clears' : 'contracts clear'} the ${money(contracts.premiumThreshold)} premium bar inside ${contracts.windowDays} days${headline ? `; the most unusual is ${headline}` : ''}.`;
+    return {
+      id, asOf: ownerState.asOf, read, deepLink, source: 'owning-tool-functions', state: 'ready',
+      metrics: {
+        tickers: ownerState.chains.length,
+        contractsFlagged: contracts.count,
+        windowDays: contracts.windowDays,
+        premiumThreshold: contracts.premiumThreshold,
+        lean: callPutLean.lean,
+        callPremium: callPutLean.callPremium,
+        putPremium: callPutLean.putPremium,
+        // Present only while the registry keeps calls and puts separate; a netted run reports
+        // netPremium instead, and neither shape is padded with a stand-in for the other.
+        callFraction: callPutLean.callFraction ?? null,
+        netPremium: callPutLean.netPremium ?? null,
+        consideredCount: unusualness.consideredCount,
+        clearedCount: unusualness.clearedCount,
+        clearedFraction: unusualness.clearedFraction,
+        maxScore: unusualness.maxScore,
+        top: contracts.top.slice(0, 3)
+      }
+    };
+  } catch (error) { return unavailableToolRead(id, deepLink, `Options flow model unavailable this run: ${error.message}`); }
+}
+
+/* ai-capex-strategy-lab is registered `profile: static-model` with `freshnessPolicy:
+   static-model-asof-v1` (tools.json), NOT the `daily-market-bars-v1` clock the 7-day snapshot rule
+   above governs. Its evidence is a quarter-cadence set of supplier assumptions whose declared as-of
+   is a quarter end — the same date the tool's own registry entry carries as `updated`. The registry
+   names that policy but declares no number anywhere in the repo, so the age this adapter will still
+   publish is stated here: one calendar quarter. Past that the universe has missed its own refresh
+   and is refused by name rather than published as a current view. Applying the 7-day bar rule
+   instead would make a quarterly universe permanently unreadable — a category error, not caution.
+   The edge is inclusive: 92 days old still reads, 93 days old is refused. */
+const STATIC_MODEL_ASOF_FRESH_MAX_DAYS = 92;
+
+export function buildAiCapexToolRead(deps = {}) {
+  const id = 'ai-capex-strategy-lab', deepLink = 'ai-capex-strategy-lab.html';
+  try {
+    const root = deps.root || ROOT;
+    // The page's own universe loader, preset, scenario/regime/runway horizon model and owner-state
+    // provider — loaded, not reimplemented, so Simple, Power and the brief read one scenario model.
+    const file = 'ai-capex-strategy-lab.html';
+    const tables = ['HORIZONS', 'TRIG_FRAC', 'SCEN', 'ASSETS', 'PRESETS', 'CROWDING', 'UNIVERSE_AS_OF', 'UNIVERSE_SOURCE', 'state', 'byTk', 'REGIME_PERSIST', 'RESOURCE_RUNWAY'];
+    const helpers = ['clamp', 'applyPreset', 'normalizeWeights', 'runwayFor', 'assetHorizon', 'included', 'acValidUniverseAsset', 'acApplyUniverse', 'aiCapexOwnerState'];
+    const page = loadToolFunctions(file, helpers, loadToolDeclarations(file, tables));
+
+    const universe = deps.universe !== undefined ? deps.universe : OWNER.aiCapexUniverse(root);
+    if (!universe) return unavailableToolRead(id, deepLink, 'No committed AI-capex universe on file; the strategy model has no supplier assumptions to price.');
+    const ownerState = OWNER.aiCapexOwnerState(root, { page, universe });
+    if (!ownerState) return unavailableToolRead(id, deepLink, 'The committed AI-capex universe carries no asset this tool can price, so it publishes no sleeve.');
+
+    // The universe declares its OWN cutoff; the age is measured against that declaration, never
+    // against the moment this refresh happened to run.
+    const declaredAsOf = String(ownerState.asOf);
+    const stamped = /^\d{4}-\d{2}-\d{2}$/.test(declaredAsOf) ? `${declaredAsOf}T00:00:00Z` : declaredAsOf;
+    const ageDays = (Date.parse(deps.asOf || new Date().toISOString()) - Date.parse(stamped)) / 86400000;
+    if (!Number.isFinite(ageDays) || ageDays > STATIC_MODEL_ASOF_FRESH_MAX_DAYS) {
+      return unavailableToolRead(id, deepLink, `The AI-capex universe is dated ${declaredAsOf}, ${Number.isFinite(ageDays) ? `${Math.round(ageDays)} days` : 'an unreadable age'} old and past its quarterly refresh; a superseded set of supplier assumptions is not shown as a current view.`);
+    }
+
+    const model = OWNER.loadAdapter(root, 'rlexperience-adapters/fundamental-models.js');
+    const summary = model.computeAiCapexSummary(JSON.parse(JSON.stringify(ownerState)), OWNER.registryDefaults(root, 'simple-adapter/ai-capex-portfolio/v1'));
+    if (!summary || !summary.pricedCount || !Number.isFinite(summary.distribution.median)) return unavailableToolRead(id, deepLink, 'The AI-capex strategy model priced no name in the committed universe, so it reached no portfolio view.');
+
+    const { beneficiaries, portfolio, distribution } = summary;
+    const lead = beneficiaries[0] || null;
+    const pct = (value) => (Number.isFinite(value) ? `${(value * 100).toFixed(1)}%` : '—');
+    // Reader copy names the basis first: these are scenario assumptions carried by a dated universe,
+    // not a measurement taken off market bars. A reader who skips the rest still gets that much.
+    const read = `AI-capex beneficiaries, modelled on the ${declaredAsOf} universe of supplier assumptions rather than measured market returns: ${lead ? `${lead.theme} leads the mix at ${pct(lead.weight)}` : 'no theme leads the mix'} across ${summary.pricedCount} priced ${summary.pricedCount === 1 ? 'name' : 'names'} of ${summary.assetCount}; over the ${summary.horizon} horizon the modelled band centres on ${pct(distribution.median)} (${pct(distribution.lo)} to ${pct(distribution.hi)}), a ${pct(distribution.prob)} chance of clearing the horizon target, with a worst-case tail at ${pct(distribution.cvar)}.`;
+    return {
+      id, asOf: declaredAsOf, read, deepLink, source: 'owning-tool-functions', state: 'ready',
+      metrics: {
+        basis: 'scenario-assumptions', universeSource: ownerState.source, universeAgeDays: Math.round(ageDays),
+        horizon: summary.horizon, objective: portfolio.objective,
+        assetCount: summary.assetCount, pricedCount: summary.pricedCount,
+        // 'All' on the page singles out no theme, so the owner contract publishes null and the
+        // model applies no theme tilt — that null is the page's own state, not a missing value.
+        selectedTheme: summary.selectedTheme,
+        leadTheme: lead ? lead.theme : null, leadWeight: lead ? lead.weight : null,
+        beneficiaries: beneficiaries.slice(0, 3),
+        mu: portfolio.mu, sd: portfolio.sd, effN: portfolio.effN,
+        holdings: portfolio.holdings.slice(0, 5),
+        median: distribution.median, lo: distribution.lo, hi: distribution.hi,
+        prob: distribution.prob, cvar: distribution.cvar
+      }
+    };
+  } catch (error) { return unavailableToolRead(id, deepLink, `AI-capex strategy model unavailable this run: ${error.message}`); }
+}
+
+/* bond-regime-lab publishes a DECISION, and its own model refuses to reach one until three
+   independent evidence families are current at once: an aligned credit price ratio, an independent
+   credit-spread (or financial-conditions) observation, and a Treasury curve. This repo commits only
+   the first. The two Treasury families are fetched live from home.treasury.gov straight into browser
+   cache, and the spread observation is a current-tab entry the model's own source policy marks
+   `memory-only` — neither has a same-origin file a server run could read. So this read is EXPECTED
+   to land as a named absence rather than a verdict.
+
+   That absence is computed, not asserted: the page's own curve, inflation, credit-regime and
+   expression-selection code runs over whatever evidence it is handed, and the indeterminacy below is
+   what it returns. Hand the same builder a curve and a spread observation and it publishes a real
+   regime instead — which is exactly how the brief can be trusted when it says "unresolved". */
+export function buildBondRegimeToolRead(deps = {}) {
+  const id = 'bond-regime-lab', deepLink = 'bond-regime-lab.html#simple';
+  const priorMacroRotation = globalThis.RLMACROROTATION;
+  try {
+    const root = deps.root || ROOT;
+    // The page's own ratio alignment, curve/inflation/credit classifiers, scenario arithmetic,
+    // expression selection, decision read and tool-read normaliser — loaded, not reimplemented, so
+    // Simple, Power and the brief all reach one verdict.
+    const file = 'bond-regime-lab.html';
+    const helpers = [
+      'finiteNumber', 'bpToDecimal', 'pctToDecimal', 'alignCommonDateRows', 'buildRatioSeries', 'rollingPercentile',
+      'estimateDurationConfound', 'classifyRelativeCreditPulse', 'classifyCreditConfirmation', 'aggregateCreditConfirmations',
+      'classifyCreditRegime', 'classifyCurveState', 'classifyCurveImpulse', 'deriveBreakevenRows', 'classifyInflationState',
+      'classifyDurationPosture', 'scenarioShockForSleeve', 'solveBreakEvenShock', 'classifyReliability', 'calculateScenarioResult',
+      'rankScenarioResults', 'selectResearchExpression', 'buildDecisionRead', 'buildBondToolRead', 'stableDecisionDigest',
+      'instrumentIndex', 'computeCreditView', 'computeBondLabViewModel'
+    ];
+    // calculateScenarioResult single-sources its carry/rate/spread/convexity decomposition to
+    // RLMACROROTATION and reads it as a global, exactly as the browser does. Binding the same
+    // module here is what keeps a second sleeve-return formula from appearing in this file.
+    globalThis.RLMACROROTATION = OWNER.loadAdapter(root, 'rlexperience-adapters/macro-rotation.js');
+    const page = loadToolFunctions(file, helpers);
+
+    const config = deps.config !== undefined ? deps.config : OWNER.bondRegimeConfig(root);
+    if (!config || !Array.isArray(config.scenarioPresets) || !config.scenarioPresets.length) {
+      return unavailableToolRead(id, deepLink, 'No committed bond model configuration on file; there are no sleeves, ratio pairs or policy thresholds to read a regime against.');
+    }
+    const snapshot = deps.snapshot !== undefined ? deps.snapshot : OWNER.bondRegimeOwnerState(root, {
+      config, confirmations: deps.confirmations, nominalCurve: deps.nominalCurve, realCurve: deps.realCurve
+    });
+    if (!snapshot) return unavailableToolRead(id, deepLink, 'No committed price history for the bond sleeves this tool tracks; there is nothing to read a credit or duration regime from.');
+
+    // The page's OWN default scenario: the first committed preset, which is what its init applies
+    // before a reader touches a lever. Every scenario number below is the model's under that preset.
+    const assumptions = Object.assign({}, deps.assumptions || config.scenarioPresets[0]);
+    const viewModel = page.computeBondLabViewModel(config, snapshot, assumptions, {});
+    const normalized = page.buildBondToolRead(viewModel.decisionRead);
+    const { creditRegime, durationPosture, curveState, curveImpulse, inflationState } = viewModel;
+
+    // The credit ratios the model actually aligned and reached a direction on, and ITS aggregate
+    // direction across them. The word in the read is the model's own, never chosen here.
+    const readablePairs = (viewModel.pulses || []).filter((pulse) => pulse && pulse.state === 'ready' && pulse.direction !== 'unavailable');
+
+    // Each gap is named from the model's OWN state, so the sentence cannot claim an absence the
+    // model did not report — nor stay silent about one it did.
+    const gaps = [];
+    if (curveState.state === 'Unavailable' || curveImpulse.state === 'Unavailable') gaps.push('the Treasury yield curve');
+    if (inflationState.state === 'Unavailable') gaps.push('real yields and inflation break-evens');
+    if ((creditRegime.missing || []).includes('independent-credit-confirmation')) gaps.push('an independent credit-spread reading');
+    if ((creditRegime.missing || []).includes('relative-price-pulse')) gaps.push('an aligned credit price ratio');
+    const list = (items) => (items.length < 2 ? items[0] || '' : items.length === 2 ? `${items[0]} or ${items[1]}` : `${items.slice(0, -1).join(', ')}, or ${items[items.length - 1]}`);
+
+    // "The one thing that does read" is only true while every OTHER family is missing. Handed a
+    // curve or a spread observation the same sentence has to stop claiming exclusivity.
+    const soleReadableSignal = gaps.includes('the Treasury yield curve') && gaps.includes('an independent credit-spread reading');
+    const ratioClause = readablePairs.length && creditRegime.pricePulseState !== 'unavailable'
+      ? `${soleReadableSignal ? 'The one thing that does read is' : 'What does read is'} the high-yield versus investment-grade price ratio, which the model reads as ${creditRegime.pricePulseState} across ${readablePairs.length === 1 ? 'its one aligned pair' : readablePairs.length === 2 ? 'both aligned pairs' : `all ${readablePairs.length} aligned pairs`} through ${creditRegime.asOf}.`
+      : 'Not even the high-yield versus investment-grade price ratio aligns, so no side of the regime has current evidence behind it.';
+
+    const scenarioLabel = assumptions.label || assumptions.id || 'default';
+    const metrics = {
+      creditRegime: normalized.metrics.creditRegime,
+      durationPosture: normalized.metrics.durationPosture,
+      confidence: normalized.metrics.confidence,
+      pricePulse: creditRegime.pricePulseState,
+      confirmationState: normalized.metrics.confirmationState,
+      curveState: curveState.state, curveImpulse: curveImpulse.state, inflationState: inflationState.state,
+      readablePairs: readablePairs.map((pulse) => ({ pairId: pulse.pairId, direction: pulse.direction, purity: pulse.purity, asOf: pulse.latestCommonDate })),
+      // Named absences, from the model's own missing list plus the two curve families it could not
+      // classify. Empty when nothing is missing — never a zero and never a neutral stand-in.
+      evidenceGaps: gaps, modelMissing: creditRegime.missing || [],
+      scenarioId: normalized.metrics.scenarioId, scenarioLabel, horizonMonths: normalized.metrics.horizonMonths,
+      preferredSleeveId: normalized.metrics.preferredSleeveId, resultPct: normalized.metrics.resultPct,
+      conflictCount: normalized.metrics.conflictCount,
+      ratioAsOf: normalized.metrics.ratioAsOf, curveAsOf: normalized.metrics.curveAsOf, barsAsOf: snapshot.asOf,
+      indeterminateReason: normalized.metrics.indeterminateReason
+    };
+    const asOf = normalized.asOf || snapshot.asOf;
+
+    // The model's OWN determinacy verdict: its expression selector returns nothing while either
+    // axis is Indeterminate, and the page's normaliser nulls the sleeve when it does.
+    if (!normalized.metrics.preferredSleeveId) {
+      // Which axis is unresolved is the model's verdict, not a fixed phrase: handed a curve the
+      // duration call resolves, handed a spread observation the credit call does.
+      const unresolvedAxes = [];
+      if (creditRegime.state === 'Indeterminate') unresolvedAxes.push('the credit call');
+      if (durationPosture.state === 'Indeterminate') unresolvedAxes.push('the duration call');
+      const consequence = unresolvedAxes.length
+        ? `so ${unresolvedAxes.join(' and ')} cannot be made`
+        : 'so no sleeve clears the model\u2019s own eligibility test';
+      const reason = gaps.length
+        ? `nothing on file covers ${list(gaps)}, ${consequence}`
+        : `the model found no policy-eligible sleeve under its own ${scenarioLabel} scenario`;
+      return { id, asOf, read: `The bond regime is unresolved: ${reason}. ${ratioClause}`, deepLink, source: 'owning-tool-functions', state: 'unavailable', metrics: { state: 'unavailable', ...metrics } };
+    }
+
+    const expression = viewModel.decisionRead.expression;
+    const signed = (value) => (Number.isFinite(value) ? `${value >= 0 ? '+' : ''}${value.toFixed(2)}%` : '—');
+    const read = `Bond regime: ${creditRegime.state} credit, ${durationPosture.state} duration, ${String(normalized.metrics.confidence).toLowerCase()} confidence; the leading policy-eligible sleeve is ${expression.label} at ${signed(expression.totalPct)} over ${assumptions.horizonMonths} months under the ${scenarioLabel} scenario.`;
+    return { id, asOf, read, deepLink, source: 'owning-tool-functions', state: 'ready', metrics };
+  } catch (error) {
+    return unavailableToolRead(id, deepLink, `Bond regime model unavailable this run: ${error.message}`);
+  } finally {
+    if (priorMacroRotation === undefined) delete globalThis.RLMACROROTATION;
+    else globalThis.RLMACROROTATION = priorMacroRotation;
+  }
+}
+
 export function buildSwingToolRead(deps = {}) {
   const id = 'swing-structure-lab', deepLink = 'swing-structure-lab.html';
   try {
@@ -1543,6 +1817,9 @@ async function main() {
   const ownerModelReads = [
     surfaceRead,
     gammaRead,
+    buildOptionsFlowToolRead(),
+    buildAiCapexToolRead(),
+    buildBondRegimeToolRead(),
     buildSwingToolRead({ macro }),
     buildBreadthToolRead({ asOf: new Date().toISOString() }),
     buildVolatilityToolRead(),

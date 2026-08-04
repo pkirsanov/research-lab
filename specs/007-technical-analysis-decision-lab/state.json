@@ -4,6 +4,7 @@
     "featureName": "Technical Analysis Decision Lab",
     "createdAt": "2026-07-15T15:54:54Z",
     "status": "blocked",
+    "blockedReason": "The owner five-gate decision model is unimplemented: `computeTechnicalFiveGateSummary` in rlexperience-adapters/market-structure.js returns state `unavailable` unconditionally and publishes the gap verbatim as \"The owner five-gate model (context/location/confirmation/validation gate scoring plus setup-state and expectancy) is not implemented in technical-analysis-decision-lab.html, a Scope-01 foundation-receipt validator that publishes no analytic result (ownerReadPublished:false).\" The shipped page is therefore a data-foundation receipt only, not an analytic surface. This capability is unbuilt rather than merely unrecorded: 8 of this spec's 9 scopes are Not Started — including 04-five-gate-synthesis, 03-setup-lifecycle, and 07-validation-risk-process, the scopes that would build the gate scoring, setup-state, and expectancy the runtime names as missing — and the ninth, 01-capability-foundation, is Blocked. Unblocking Scope 01 requires the canonical traceability run recorded in statusReconciliation.resolution; Scopes 02-09 cannot start until it clears.",
     "statusReconciliation": {
         "recordedBy": "orchestrator",
         "recordedAt": "2026-08-02T05:03:12Z",
@@ -174,7 +175,7 @@
         }
     },
     "certification": {
-        "status": "not_started",
+        "status": "blocked",
         "completedScopes": [],
         "certifiedCompletedPhases": [],
         "scopeProgress": [],

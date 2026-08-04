@@ -1363,6 +1363,10 @@
        geometric), annualised vol, CAGR and volatility drag. Loaded synchronously, before the inline
        model, so the same asset can never yield a different Sharpe here than in the brief. -->
   <script src="rlmetrics.js"></script>
+  <!-- rlvalidation.js is the SINGLE definition of the Bailey & Lopez de Prado deflated /
+       probabilistic Sharpe (RLVALID.rlvDeflatedSharpe). Loaded synchronously, before the inline
+       model, so this page cannot report a different Deflated Sharpe than strategy-validation-lab. -->
+  <script src="rlvalidation.js"></script>
   <script>
     "use strict";
     /* ══════════════════════════════════════════════════════════════════════════
@@ -1466,6 +1470,34 @@
       var srStar = seSR * emax;
       return { psr: psr(0), dsr: psr(srStar), srAnn: sr * Math.sqrt(ANN), nTrials: N, n: n };
     }
+    /* ---------- D4: RLVALID parity adapter ----------
+       The deflated Sharpe above is retained ONLY as the parity oracle. The live `deflatedSharpe`
+       binding is rebound to RLVALID.rlvDeflatedSharpe so this page holds no second definition of
+       the metric. Signature mapping: the shared form takes an explicit annualization (this page's
+       ANN = 252, which the oracle hard-codes) and reports failure as `ok:false` rather than `null`,
+       so `!ok` is mapped to the oracle's honest `null` — never to a substituted number. */
+    var etfMomentumOriginalDeflatedSharpe = deflatedSharpe;
+    function etfMomentumSharedDeflatedSharpe(adj, nTrials) {
+      return RLVALID.rlvDeflatedSharpe(adj, nTrials, ANN);
+    }
+    function etfMomentumParityDeflatedSharpe(adj, nTrials) {
+      if (typeof RLVALID === 'undefined' || typeof RLVALID.rlvDeflatedSharpe !== 'function') throw new Error('RLVALID is required for ETF Momentum statistics');
+      var shared = etfMomentumSharedDeflatedSharpe(adj, nTrials);
+      if (!shared.ok) return null;
+      return { psr: shared.psr, dsr: shared.dsr, srAnn: shared.srAnn, nTrials: shared.nTrials, n: shared.n };
+    }
+    deflatedSharpe = etfMomentumParityDeflatedSharpe;
+    function etfMomentumBuildParityReceipt() {
+      if (typeof RLVALID === 'undefined' || typeof RLVALID.rlvDeflatedSharpe !== 'function') return { available: false, equal: false, fields: [] };
+      var equity = [], i;
+      for (i = 0; i < 80; i++) equity.push(Math.pow(1.001 + (i % 3) * 0.0001, i + 1));
+      var local = etfMomentumOriginalDeflatedSharpe(equity, 7);
+      var shared = etfMomentumSharedDeflatedSharpe(equity, 7);
+      var fields = ['psr', 'dsr', 'srAnn', 'nTrials', 'n'];
+      return { available: shared.ok === true, equal: shared.ok === true && fields.every(function (field) { return local[field] === shared[field]; }), fields: fields };
+    }
+    window.__ETF_RLVALID_PARITY__ = etfMomentumBuildParityReceipt();
+    /* ---------- End D4 RLVALID parity adapter ---------- */
     function variance(a) { var m = mean(a), s = 0, n = a.length; for (var i = 0; i < n; i++) { var d = a[i] - m; s += d * d; } return n > 1 ? s / (n - 1) : 0; }
     function stdev(a) { return Math.sqrt(variance(a)); }
     function covar(a, b) { var ma = mean(a), mb = mean(b), s = 0, n = Math.min(a.length, b.length); for (var i = 0; i < n; i++)s += (a[i] - ma) * (b[i] - mb); return n > 1 ? s / (n - 1) : 0; }

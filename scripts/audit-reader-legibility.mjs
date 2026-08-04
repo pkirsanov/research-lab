@@ -19,6 +19,7 @@ import { readFileSync } from 'node:fs';
 import { fileURLToPath } from 'node:url';
 import { dirname, resolve } from 'node:path';
 import { startStaticServer } from '../tests/provider-credentials.support.mjs';
+import { findReaderVocabularyLeaks } from './reader-vocabulary.mjs';
 
 const ROOT = resolve(dirname(fileURLToPath(import.meta.url)), '..');
 const asJson = process.argv.includes('--json');
@@ -26,34 +27,10 @@ const explain = process.argv.includes('--explain');
 const onlyIdx = process.argv.indexOf('--only');
 const onlyFilter = onlyIdx >= 0 ? process.argv[onlyIdx + 1] : null;
 
-/* Each pattern is a leak of framework vocabulary into product copy. `label` is what
-   gets reported; `re` is what proves it. Kept literal so a finding is never inferred. */
-const LEAKS = [
-  { id: 'compute-digest', label: 'compute-identity digest', re: /sha256:[0-9a-f]{8,}/ },
-  { id: 'gate-code', label: 'gate/refusal code', re: /\bE0\d{2}-[A-Z]/ },
-  { id: 'dependency-slug', label: 'dependency slug', re: /dependency-pending|feature-0\d{2}\b/ },
-  { id: 'withheld-list', label: 'withheld-capability list', re: /\bWithheld:/ },
-  { id: 'acceptance-gate', label: 'acceptance-gate predicate', re: /\bAcceptance gate:/ },
-  { id: 'scope-number', label: 'Bubbles scope number', re: /\bScope \d{1,2}\b/ },
-  { id: 'generic-heading', label: 'generic Simple heading', re: /\bSimple model result\b/ },
-  { id: 'contract-unit', label: 'raw contract id as a unit', re: /\b[a-z]+-[a-z]+-(decimal|ratio|score|count|bps)\b/ },
-  { id: 'contract-version', label: 'contract version slug', re: /\b[a-z-]+\/v\d\b/ },
-  { id: 'integration-state', label: 'integration-state jargon', re: /not-integrated|coverage-only/ }
-];
-
-function findLeaks(text, view) {
-  /* D13 puts provenance in Power on purpose. A compute digest or a contract version is
-     evidence there, not a leak; everywhere else it is framework vocabulary in reader copy. */
-  const provenanceAllowed = view === 'Power';
-  const provenanceClasses = new Set(['compute-digest', 'contract-version']);
-  const found = [];
-  for (const leak of LEAKS) {
-    if (provenanceAllowed && provenanceClasses.has(leak.id)) continue;
-    const m = text.match(leak.re);
-    if (m) found.push({ id: leak.id, label: leak.label, sample: m[0] });
-  }
-  return found;
-}
+/* The leak table and the matcher live in scripts/reader-vocabulary.mjs so this audit and
+   the brief publish gate enforce the SAME list. `findLeaks` stays as the local name the
+   render loop already reads against. */
+const findLeaks = findReaderVocabularyLeaks;
 
 const registry = JSON.parse(readFileSync(resolve(ROOT, 'tools.json'), 'utf8'));
 const allPages = registry.tools.map((t) => ({ id: t.id, file: t.file, group: t.group }));

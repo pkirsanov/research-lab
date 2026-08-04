@@ -282,3 +282,206 @@ export function sessionOwnerState(root, options = {}) {
     sessions
   };
 }
+
+/* ── options-flow-feed-lab: the chain set the page's own provider publishes ─────────────────────── */
+
+/**
+ * The tickers the flow feed actually scans, read from the owning page's own UNIVERSE declaration.
+ * Restating that list here would let the brief report a tape the tool itself never shows.
+ */
+export function optionsFlowUniverse(root) {
+  const abs = path.join(path.resolve(root), 'options-flow-feed-lab.html');
+  if (!existsSync(abs)) return null;
+  const match = /var\s+UNIVERSE\s*=\s*(\[[^\]]*\])\s*;/.exec(readFileSync(abs, 'utf8'));
+  if (!match) return null;
+  try {
+    const symbols = JSON.parse(match[1]);
+    return Array.isArray(symbols) && symbols.length ? symbols : null;
+  } catch { return null; }
+}
+
+/**
+ * The page publishes `options-owner-state/v1` from its own localStorage chain cache, which does not
+ * exist in Node. The SAME shape is rebuilt here from the same-origin snapshots that cache is filled
+ * from (data/options/<SYM>.json), projected by the page's OWN parsePagesChain.
+ *
+ * That parser is INJECTED rather than re-extracted: the tool-source loader already lives with the
+ * caller, so this module creates neither a second chain projection nor a third function extractor.
+ * Missing it is a wiring fault, not missing evidence, so it throws instead of reading as an absence.
+ *
+ * nowMs is anchored on the newest snapshot observation rather than Date.now(), the same rule the
+ * other option builders follow: every days-to-expiry the model derives is then measured against the
+ * data actually being read, so a server read and a browser read of the same snapshots agree.
+ */
+export function optionsFlowOwnerState(root, options = {}) {
+  const parseChain = options.parseChain;
+  if (typeof parseChain !== 'function') {
+    throw new TypeError('optionsFlowOwnerState requires the owning page\u2019s own parsePagesChain');
+  }
+  const universe = Array.isArray(options.universe) ? options.universe : optionsFlowUniverse(root);
+  if (!universe || !universe.length) return null;
+
+  const chains = [];
+  let latestMs = null;
+  for (const ticker of universe) {
+    const snapshot = optionSnapshot(root, ticker);
+    if (!snapshot) continue;
+    const observedMs = snapshotClockMs(snapshot);
+    if (observedMs === null) continue;
+    const parsed = parseChain(snapshot);
+    if (!parsed || !Array.isArray(parsed.rows) || !parsed.rows.length) continue;
+    if (latestMs === null || observedMs > latestMs) latestMs = observedMs;
+    chains.push({ ticker, spot: parsed.spot, expiry: parsed.expiry, rows: parsed.rows });
+  }
+  if (!chains.length) return null;
+
+  return {
+    contractVersion: 'options-owner-state/v1',
+    toolId: 'options-flow-feed-lab',
+    asOf: new Date(latestMs).toISOString(),
+    source: 'same-origin options snapshot (data/options)',
+    nowMs: latestMs,
+    chains
+  };
+}
+
+/* ── ai-capex-strategy-lab: the sleeve the page's own provider publishes ────────────────────────── */
+
+/**
+ * The committed supplier universe the page fetches at init, or null. Its OWN `asOf` is what the
+ * owner state publishes once the page applies it, so the brief never stamps a cutoff of its own.
+ */
+export function aiCapexUniverse(root) {
+  return readJson(root, 'ai-capex-universe.json');
+}
+
+/**
+ * The page publishes `ai-capex-portfolio-owner-state/v1` from its OWN live sleeve — the applied
+ * preset, this page's scenario/regime/trigger/runway tables, and the universe actually in memory.
+ * None of that exists in Node, so the page's own functions are INJECTED and driven here exactly as
+ * the page's init drives them: apply the committed universe, then apply the page's own default
+ * preset. Not one formula is restated — every expected return, horizon volatility, crowding haircut
+ * and as-of below is produced by the owning page's own code.
+ *
+ * Ordering note: the page applies the preset first and the fetched universe second, because its
+ * `byTk` map is already built at load. In Node the map is built by `acApplyUniverse` itself (the
+ * page's own rebuild line), so the universe is applied first. The two orders agree: the universe
+ * step only edits assumptions on existing tickers and appends new ones with `inc:false`, and the
+ * preset names only tickers the page's own static asset list already carries.
+ *
+ * Missing page functions are a wiring fault, not missing evidence, so this throws rather than
+ * reading as an honest absence. A universe the page's OWN validator rejects, an empty sleeve, or a
+ * sleeve it can price at no horizon all return null so the caller can degrade with a named reason.
+ */
+export function aiCapexOwnerState(root, options = {}) {
+  const page = options.page;
+  const required = ['acApplyUniverse', 'applyPreset', 'aiCapexOwnerState'];
+  if (!page || required.some((name) => typeof page[name] !== 'function')) {
+    throw new TypeError(`aiCapexOwnerState requires the owning page\u2019s own ${required.join(', ')}`);
+  }
+  const universe = options.universe !== undefined ? options.universe : aiCapexUniverse(root);
+  if (!page.acApplyUniverse(universe)) return null;
+  // 'balanced' is the page's OWN default sleeve — what its init applies when no saved snapshot
+  // exists, which is always the case in Node.
+  page.applyPreset(options.preset || 'balanced');
+  return page.aiCapexOwnerState();
+}
+
+/* ── bond-regime-lab: the observed snapshot the page's own view model consumes ──────────────────── */
+
+/** The committed model configuration the page fetches at init: instruments, pairs, sleeves, policy. */
+export function bondRegimeConfig(root) {
+  return readJson(root, 'bond-regime-universe.json');
+}
+
+/**
+ * A curve family the page could not observe. The shape is the page's own `loadTreasuryCurves`
+ * unavailable branch, carrying the source id and rights the committed configuration declares for
+ * that family so the absence is attributable rather than anonymous.
+ *
+ * `retrievedAt` stays null on purpose: nothing was retrieved. Stamping the run's clock here would
+ * read as a fetch that happened and returned nothing, which is a different fact.
+ */
+function unavailableCurveFamily(policy, errorCode) {
+  return {
+    state: 'unavailable', rows: [], observedAt: null, retrievedAt: null,
+    sourceId: policy ? policy.id : null, sourceUrl: null,
+    rights: policy ? policy.rights : null, persistence: 'none', errorCode
+  };
+}
+
+/**
+ * The page holds `runtime.observedSnapshot` — `{bars, barMeta, treasuryChanges, confirmations,
+ * nominalCurve, realCurve}` — filled by `readCachedBars` out of the RLDATA browser cache and by
+ * `loadTreasuryCurves` out of a live Treasury fetch. Neither exists in Node, so the SAME shape is
+ * rebuilt here from the committed same-origin bar snapshots the browser cache is filled from.
+ *
+ * This assembles INPUTS only. Not one classification, ratio, curve or scenario term is computed
+ * here; the caller hands this straight to the page's own `computeBondLabViewModel`.
+ *
+ * Honest absences, each carried rather than filled:
+ *   • nominalCurve / realCurve — the page reads these live from home.treasury.gov and persists them
+ *     to browser cache only. No Treasury observation is committed to this repo, so both families are
+ *     published `unavailable` under their configured source ids. The model's own curve, impulse and
+ *     inflation classifiers then return "Unavailable" of their own accord.
+ *   • confirmations — the OAS and financial-conditions families are declared
+ *     `user-observation-or-unavailable` with `persistence: memory-only`, so there is nothing on disk
+ *     to read and the list is empty.
+ *   • treasuryChanges — left empty; `computeBondLabViewModel` derives it itself when nominal rows
+ *     are present, and inventing a rate change here would be exactly the reimplementation this
+ *     module refuses.
+ *
+ * `options.nominalCurve`, `options.realCurve` and `options.confirmations` let a caller supply
+ * evidence the repo does not commit, so the indeterminacy above can be proven to be COMPUTED from
+ * absent evidence rather than hard-coded.
+ *
+ * Returns null when the configuration is unreadable or no instrument has committed bars.
+ */
+export function bondRegimeOwnerState(root, options = {}) {
+  const config = options.config !== undefined ? options.config : bondRegimeConfig(root);
+  if (!config || !Array.isArray(config.instruments) || !config.instruments.length) return null;
+
+  const maxAgeHours = config.barPolicy && Number.isFinite(config.barPolicy.maxAgeHours) ? config.barPolicy.maxAgeHours : null;
+  const nowMs = Number.isFinite(options.nowMs) ? options.nowMs : Date.now();
+  const bars = {}, barMeta = {};
+  let latestObservedAt = null;
+
+  for (const instrument of config.instruments) {
+    const ticker = instrument.ticker;
+    const snapshot = readJson(root, `data/bars/${ticker}.json`);
+    const rows = snapshot && Array.isArray(snapshot.rows) ? snapshot.rows : [];
+    const fetchedMs = snapshot ? Date.parse(String(snapshot.fetched || snapshot.asof || '')) : NaN;
+    const observedAt = rows.length ? new Date(rows[rows.length - 1].t).toISOString().slice(0, 10) : null;
+    if (rows.length) bars[ticker] = rows.slice();
+    barMeta[ticker] = {
+      // The configuration declares the adjustment each instrument's price series must carry; the
+      // page's own ratio builder refuses a pair whose two legs disagree, so this is passed through
+      // verbatim rather than assumed.
+      adjustment: instrument.priceAdjustmentExpected,
+      freshness: !rows.length ? 'missing'
+        : (maxAgeHours === null || (Number.isFinite(fetchedMs) && nowMs - fetchedMs <= maxAgeHours * 3600e3) ? 'fresh' : 'stale'),
+      observedAt,
+      retrievedAt: Number.isFinite(fetchedMs) ? new Date(fetchedMs).toISOString() : null,
+      sourceId: snapshot ? snapshot.src || null : null,
+      rights: 'unverified',
+      persistence: 'same-origin-snapshot',
+      errorCode: rows.length ? null : 'BRL-BARS-UNAVAILABLE'
+    };
+    if (observedAt && (latestObservedAt === null || observedAt > latestObservedAt)) latestObservedAt = observedAt;
+  }
+  if (!Object.keys(bars).length) return null;
+
+  const policies = config.sourcePolicies || {};
+  return {
+    contractVersion: 'bond-regime-observed-snapshot/v1',
+    toolId: 'bond-regime-lab',
+    asOf: latestObservedAt,
+    source: 'bond-regime-universe.json model configuration + same-origin daily bar snapshots (data/bars)',
+    bars,
+    barMeta,
+    treasuryChanges: {},
+    confirmations: Array.isArray(options.confirmations) ? options.confirmations : [],
+    nominalCurve: options.nominalCurve !== undefined ? options.nominalCurve : unavailableCurveFamily(policies.nominalCurve, 'BRL-CURVE-NOMINAL-UNAVAILABLE'),
+    realCurve: options.realCurve !== undefined ? options.realCurve : unavailableCurveFamily(policies.realCurve, 'BRL-OPTIONAL-UNAVAILABLE')
+  };
+}

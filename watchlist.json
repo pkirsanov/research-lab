@@ -35,6 +35,11 @@
             "label": "Vanguard Information Technology ETF"
         },
         {
+            "ticker": "SOXX",
+            "type": "etf",
+            "label": "iShares Semiconductor ETF"
+        },
+        {
             "ticker": "SPCX",
             "type": "stock",
             "label": "Space Exploration Technologies Corp."

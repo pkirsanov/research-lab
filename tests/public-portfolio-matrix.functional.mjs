@@ -46,11 +46,12 @@ function readWatchlist() {
 
 /* Registry-derived domain -> owner precedence (precedence = tools.json registry order),
    exactly as the design mandates ("Matrix domains and owner precedence are registry
-   metadata, not page code"). Built here from the REAL registry, not hardcoded. */
+   metadata, not page code"). Built here from the REAL registry, not hardcoded.
+   Only EVIDENCE domains have owners — a derived domain is computed by the composer. */
 function deriveDomainMap(api) {
   const registry = JSON.parse(readFileSync(registryUrl, 'utf8'));
   const ownerPrecedence = Object.create(null);
-  for (const domain of api.MATRIX_DOMAINS) ownerPrecedence[domain] = [];
+  for (const domain of api.EVIDENCE_DOMAINS) ownerPrecedence[domain] = [];
   for (const tool of registry.tools) {
     const domains = (tool.experience && tool.experience.matrixDomains) || [];
     for (const domain of domains) {
@@ -61,16 +62,17 @@ function deriveDomainMap(api) {
 }
 
 /* Explicit per-ticker applicability, derived from a documented public rule:
-   an ETF has no single-issuer fundamentals/catalyst/gaps; a single stock is not a
-   macro/rotation owner domain. Every (domain, ticker) is EXPLICIT — never omitted. */
+   an ETF has no single-issuer fundamentals/catalyst; a single stock is not a
+   macro/rotation owner domain. Every (evidence domain, ticker) is EXPLICIT — never
+   omitted. Derived domains take no applicability input; the composer computes theirs. */
 function deriveApplicability(api, items) {
   const applicability = Object.create(null);
-  for (const domain of api.MATRIX_DOMAINS) applicability[domain] = Object.create(null);
+  for (const domain of api.EVIDENCE_DOMAINS) applicability[domain] = Object.create(null);
   const etfApplicable = new Set(['technical', 'macro-rotation', 'options', 'volatility']);
-  const stockApplicable = new Set(['fundamentals', 'technical', 'options', 'volatility', 'catalyst', 'gaps']);
+  const stockApplicable = new Set(['fundamentals', 'technical', 'options', 'volatility', 'catalyst']);
   for (const item of items) {
     const isEtf = item.type === 'etf';
-    for (const domain of api.MATRIX_DOMAINS) {
+    for (const domain of api.EVIDENCE_DOMAINS) {
       const applies = isEtf ? etfApplicable.has(domain) : stockApplicable.has(domain);
       applicability[domain][item.ticker] = applies ? 'applicable' : 'not-applicable';
     }

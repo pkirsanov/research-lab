@@ -133,7 +133,7 @@ export function makeConfig() {
     },
     matrixPolicy: {
       contractVersion: 'public-matrix-policy/v1',
-      domains: ['fundamentals', 'options', 'technical', 'macro-rotation', 'volatility', 'catalyst', 'gaps'],
+      domains: ['fundamentals', 'options', 'technical', 'macro-rotation', 'volatility', 'catalyst'],
       publicScopeLabel: 'Public watchlist',
       privateScopeLabel: 'Private workspace - local only'
     },

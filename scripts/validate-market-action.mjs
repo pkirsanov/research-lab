@@ -65,11 +65,12 @@ function readRequired(relativePath) {
   }
 }
 
-/* Registry-derived domain -> owner precedence (precedence = registry order). */
+/* Registry-derived domain -> owner precedence (precedence = registry order).
+   Only EVIDENCE domains have owners; a derived domain is computed by the composer. */
 function deriveDomainMap() {
   const registry = JSON.parse(readRequired('tools.json'));
   const ownerPrecedence = Object.create(null);
-  for (const domain of RLMARKETACTION.MATRIX_DOMAINS) ownerPrecedence[domain] = [];
+  for (const domain of RLMARKETACTION.EVIDENCE_DOMAINS) ownerPrecedence[domain] = [];
   for (const tool of registry.tools) {
     const domains = (tool.experience && tool.experience.matrixDomains) || [];
     for (const domain of domains) {
@@ -81,12 +82,12 @@ function deriveDomainMap() {
 
 function deriveApplicability(items) {
   const applicability = Object.create(null);
-  for (const domain of RLMARKETACTION.MATRIX_DOMAINS) applicability[domain] = Object.create(null);
+  for (const domain of RLMARKETACTION.EVIDENCE_DOMAINS) applicability[domain] = Object.create(null);
   const etfApplicable = new Set(['technical', 'macro-rotation', 'options', 'volatility']);
-  const stockApplicable = new Set(['fundamentals', 'technical', 'options', 'volatility', 'catalyst', 'gaps']);
+  const stockApplicable = new Set(['fundamentals', 'technical', 'options', 'volatility', 'catalyst']);
   for (const item of items) {
     const isEtf = item.type === 'etf';
-    for (const domain of RLMARKETACTION.MATRIX_DOMAINS) {
+    for (const domain of RLMARKETACTION.EVIDENCE_DOMAINS) {
       applicability[domain][item.ticker] = (isEtf ? etfApplicable.has(domain) : stockApplicable.has(domain)) ? 'applicable' : 'not-applicable';
     }
   }

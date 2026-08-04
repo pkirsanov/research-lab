@@ -12,7 +12,9 @@
  *       EXISTING public owner reads that are handed IN. Every cell carries an
  *       EXPLICIT applicability + state — a missing owner read is `unavailable`
  *       with a gap reason, NEVER neutral by omission. Every row is scope-labeled
- *       `Public watchlist`.
+ *       `Public watchlist`. Domains are of two kinds: EVIDENCE domains resolve
+ *       through owner precedence, DERIVED domains are computed here from the
+ *       evidence cells of the same row and can never be claimed by a tool.
  *       validatePublicMatrix() re-checks the closed contract and REJECTS any
  *       private-workspace row, any private/holding field, and any cell whose
  *       applicability/state is absent or outside the closed enums.
@@ -82,10 +84,24 @@
   var APPLICABILITY = Object.freeze(["applicable", "not-applicable"]);
   var SCOPE_CLASSES = Object.freeze(["public-watchlist", "private-workspace"]);
   var PUBLIC_SCOPE_LABEL = "Public watchlist";
-  /* the seven public matrix domains (mirror tool-experience.config.json matrixPolicy.domains). */
-  var MATRIX_DOMAINS = Object.freeze([
-    "fundamentals", "options", "technical", "macro-rotation", "volatility", "catalyst", "gaps"
+  /* The matrix carries two KINDS of domain, and conflating them is the whole defect:
+     eight unrelated tools had declared `gaps` because nothing declared that they could not.
+
+     EVIDENCE domains are answered by a tool that publishes a per-ticker read. A tool DECLARES
+     these in tools.json `experience.matrixDomains`, and registry order is the owner precedence.
+     This list mirrors tool-experience.config.json `matrixPolicy.domains`, which is therefore
+     the DECLARABLE vocabulary: rlexperience.js rejects any tool declaring a domain absent from
+     it, so keeping a derived domain out of that list makes one structurally unclaimable.
+
+     DERIVED domains are answered HERE, from the evidence cells of the same row. No tool can own
+     one, because a tool cannot own an absence — declaring one is a category error, not a
+     routing preference. */
+  var EVIDENCE_DOMAINS = Object.freeze([
+    "fundamentals", "options", "technical", "macro-rotation", "volatility", "catalyst"
   ]);
+  var DERIVED_DOMAINS = Object.freeze(["gaps"]);
+  /* the public matrix column set: evidence first, then derived, in fixed order. */
+  var MATRIX_DOMAINS = Object.freeze(EVIDENCE_DOMAINS.concat(DERIVED_DOMAINS));
   /* the exact dependency-pending gates. These capabilities are gated, not implemented here. */
   var GATE = Object.freeze({
     authoredBriefV2: "dependency-pending:feature-002",
@@ -371,6 +387,67 @@
     };
   }
 
+  /* `gaps` answers "what evidence is missing for this ticker that would change the read if it
+     arrived". That is a question ABOUT the other cells of the same row, so it is COMPUTED from
+     them and never resolved through owner precedence, applicability input, or an owner read.
+
+     The answer names WHICH domains are outstanding and WHY, carrying each missing cell's own
+     reason forward. A bare count would be worse than nothing: "3" tells a reader neither what to
+     go and get nor whether its arrival would move the read. */
+  function deriveGapCell(domainId, evidenceCells) {
+    var applicable = evidenceCells.filter(function (cell) { return cell.applicability === "applicable"; });
+    var cell = {
+      domainId: domainId,
+      ownerToolId: null,
+      applicability: "applicable",
+      state: "current",
+      read: null,
+      asOf: null,
+      provenance: "derived-from-evidence-cells",
+      gapReason: null,
+      ownerDeepLink: null,
+      publicBriefRef: null,
+      localOverlayRef: null
+    };
+
+    if (applicable.length === 0) {
+      cell.applicability = "not-applicable";
+      cell.state = "not-applicable";
+      cell.gapReason = "no evidence domain applies to this public-watchlist ticker, so no evidence is outstanding";
+      return cell;
+    }
+
+    var missing = applicable.filter(function (cell2) { return cell2.state !== "current"; });
+    if (missing.length === 0) {
+      /* nothing outstanding is a real, positive answer — not an empty cell. */
+      cell.read = "Nothing outstanding: " + applicable.map(function (cell2) { return cell2.domainId; }).join(", ") +
+        " each report a current read.";
+      return cell;
+    }
+
+    /* `partial` when some evidence is already in hand, `unavailable` when none of it is. */
+    cell.state = missing.length === applicable.length ? "unavailable" : "partial";
+    /* Domains that are missing for the SAME reason are named together. Repeating one identical
+       clause once per domain buries the reasons that actually differ, which is the only part a
+       reader can act on. */
+    var groups = [];
+    var byReason = {};
+    missing.forEach(function (cell2) {
+      var reason = isNonEmptyString(cell2.gapReason) ? cell2.gapReason : "";
+      var key = cell2.state + "\u0000" + reason;
+      if (!Object.prototype.hasOwnProperty.call(byReason, key)) {
+        byReason[key] = { state: cell2.state, reason: reason, domainIds: [] };
+        groups.push(byReason[key]);
+      }
+      byReason[key].domainIds.push(cell2.domainId);
+    });
+    cell.gapReason = "Missing evidence that would change this read: " + groups.map(function (group) {
+      return group.domainIds.join(", ") + (group.domainIds.length === 1 ? " is " : " are ") + group.state +
+        (group.reason ? " (" + group.reason + ")" : "");
+    }).join("; ") + ".";
+    return cell;
+  }
+
   function composePublicMatrix(rawInput) {
     return capture(function () {
       if (!isPlainObject(rawInput)) reject("RLMKT-INPUT", "$", "matrix input must be an object");
@@ -385,8 +462,13 @@
       var items = normalizeWatchlist(rawInput.watchlist);
 
       var rows = items.map(function (item) {
-        var cells = MATRIX_DOMAINS.map(function (domainId) { return resolveCell(rawInput, item.ticker, domainId); });
-        var gaps = cells
+        var evidenceCells = EVIDENCE_DOMAINS.map(function (domainId) { return resolveCell(rawInput, item.ticker, domainId); });
+        /* derived cells are computed from the evidence cells of THIS row, after they resolve. */
+        var derivedCells = DERIVED_DOMAINS.map(function (domainId) { return deriveGapCell(domainId, evidenceCells); });
+        var cells = evidenceCells.concat(derivedCells);
+        /* the inventory is built from EVIDENCE cells only: a derived cell REPORTS this
+           inventory, so listing it here would count the report itself as a missing read. */
+        var gaps = evidenceCells
           .filter(function (cell) { return cell.applicability === "applicable" && cell.state !== "current"; })
           .map(function (cell) { return { domainId: cell.domainId, state: cell.state, gapReason: cell.gapReason }; });
         return {
@@ -411,7 +493,13 @@
         scopeLabel: PUBLIC_SCOPE_LABEL,
         source: "watchlist.json",
         rowCount: rows.length,
-        coveredCellCount: rows.reduce(function (sum, row) { return sum + row.cells.filter(function (c) { return c.state === "current"; }).length; }, 0),
+        /* coverage measures EVIDENCE. A derived cell is computed FROM the evidence cells, so
+           counting it would report the same evidence twice and inflate the number. */
+        coveredCellCount: rows.reduce(function (sum, row) {
+          return sum + row.cells.filter(function (c) {
+            return EVIDENCE_DOMAINS.indexOf(c.domainId) !== -1 && c.state === "current";
+          }).length;
+        }, 0),
         gapCount: rows.reduce(function (sum, row) { return sum + row.gaps.length; }, 0)
       };
 
@@ -467,6 +555,11 @@
           if (cell.applicability === "not-applicable" && cell.state !== "not-applicable") reject("RLMKT-CELL", cbase + ".state", "a not-applicable cell must carry state not-applicable");
           if (cell.applicability === "applicable" && cell.state === "not-applicable") reject("RLMKT-CELL", cbase + ".state", "an applicable cell may not carry state not-applicable");
           if (cell.state !== "current" && !isNonEmptyString(cell.gapReason)) reject("RLMKT-CELL", cbase + ".gapReason", "any non-current cell must carry an explicit gap reason");
+          /* a derived cell that carries an owner was resolved through owner precedence rather
+             than computed — the exact routing error this split exists to make unrepresentable. */
+          if (DERIVED_DOMAINS.indexOf(cell.domainId) !== -1 && cell.ownerToolId !== null) {
+            reject("RLMKT-CELL", cbase + ".ownerToolId", "a derived domain cell may not carry an owner tool: it is computed from the evidence cells, never claimed by a tool");
+          }
         });
         if (row.publicBriefState !== GATE.authoredBriefV2) reject("RLMKT-GATE", base + ".publicBriefState", "authored per-ticker public Brief must remain a Feature 002 dependency-pending gate");
         if (row.localOverlayState !== GATE.privatePortfolioOverlay) reject("RLMKT-GATE", base + ".localOverlayState", "private overlay must remain a Feature 008 dependency-pending gate");
@@ -1411,6 +1504,8 @@
     CELL_STATES: CELL_STATES,
     APPLICABILITY: APPLICABILITY,
     MATRIX_DOMAINS: MATRIX_DOMAINS,
+    EVIDENCE_DOMAINS: EVIDENCE_DOMAINS,
+    DERIVED_DOMAINS: DERIVED_DOMAINS,
     PUBLIC_SCOPE_LABEL: PUBLIC_SCOPE_LABEL,
     GATE: GATE,
     REFUSAL_CODES: REFUSAL_CODES,

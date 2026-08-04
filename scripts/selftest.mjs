@@ -4186,6 +4186,25 @@ try {
     feature012.artifacts.every((artifact) => artifact.bytes > 0 && artifact.bytes <= artifact.budget),
     'Feature 012 Scope 01 registries, recent history, and brief first load remain inside their configured budgets'
   );
+  /* The matrix-domain vocabulary is a registry contract: EVIDENCE domains are declarable by a tool,
+     DERIVED domains are computed from that row's evidence cells and can never be claimed. The two
+     were separated only by a comment asserting that matrixPolicy.domains mirrors EVIDENCE_DOMAINS,
+     so widening that config list by one entry silently re-opened every derived domain. */
+  const vocabulary012 = feature012.matrixVocabulary;
+  assert(
+    JSON.stringify(vocabulary012.declarableDomains) === JSON.stringify(vocabulary012.evidenceDomains) &&
+    vocabulary012.derivedDomains.length > 0 &&
+    vocabulary012.derivedDomains.every((domain) => vocabulary012.declarableDomains.includes(domain) === false) &&
+    vocabulary012.orphanEvidenceDomains.length === 0 &&
+    vocabulary012.evidenceDomains.every((domain) => vocabulary012.ownerPrecedence[domain].length > 0),
+    'Feature 012 Scope 01 declarable matrix vocabulary mirrors the EVIDENCE domains exactly, excludes every DERIVED domain, and leaves no evidence domain ownerless'
+  );
+  assert(
+    vocabulary012.adversarial.length === 4 &&
+    new Set(vocabulary012.adversarial.map((refusal) => refusal.name)).size === 4 &&
+    vocabulary012.adversarial.every((refusal) => refusal.named.length > 0),
+    'Feature 012 Scope 01 refuses a re-declared derived domain, an unknown domain string, an ownerless evidence domain, and a widened declarable vocabulary, naming the offending tool and domain in each refusal'
+  );
   assert(
     feature012.scaling.toolId === 'feature-012-scaling-probe' &&
     feature012.scaling.toolCount === 24 &&
@@ -4633,13 +4652,13 @@ try {
 
   // (2) SCN-012-022 public matrix: one row per watchlist ticker, every row labeled `Public watchlist`, one explicit cell per domain.
   const ownerPrecedence = Object.create(null);
-  for (const domain of RLMKT.MATRIX_DOMAINS) ownerPrecedence[domain] = [];
+  for (const domain of RLMKT.EVIDENCE_DOMAINS) ownerPrecedence[domain] = [];
   for (const tool of registryTools) { for (const domain of (tool.experience && tool.experience.matrixDomains) || []) { if (ownerPrecedence[domain]) ownerPrecedence[domain].push(tool.id); } }
   const applicability = Object.create(null);
-  for (const domain of RLMKT.MATRIX_DOMAINS) applicability[domain] = Object.create(null);
+  for (const domain of RLMKT.EVIDENCE_DOMAINS) applicability[domain] = Object.create(null);
   const etfApplicable = new Set(['technical', 'macro-rotation', 'options', 'volatility']);
-  const stockApplicable = new Set(['fundamentals', 'technical', 'options', 'volatility', 'catalyst', 'gaps']);
-  for (const item of watchlist.items) { const isEtf = item.type === 'etf'; for (const domain of RLMKT.MATRIX_DOMAINS) applicability[domain][item.ticker] = (isEtf ? etfApplicable.has(domain) : stockApplicable.has(domain)) ? 'applicable' : 'not-applicable'; }
+  const stockApplicable = new Set(['fundamentals', 'technical', 'options', 'volatility', 'catalyst']);
+  for (const item of watchlist.items) { const isEtf = item.type === 'etf'; for (const domain of RLMKT.EVIDENCE_DOMAINS) applicability[domain][item.ticker] = (isEtf ? etfApplicable.has(domain) : stockApplicable.has(domain)) ? 'applicable' : 'not-applicable'; }
   const matrix = RLMKT.composePublicMatrix({ matrixId: 'selftest', cutoffAt: '2026-07-26T15:00:00.000Z', generationRef: 'legacy:selftest', domainMapVersion: 'registry-derived/v1', watchlist, ownerPrecedence, applicability, ownerReads: { 'company-fundamentals-lab': { MSFT: { state: 'current', read: 'FY26', asOf: '2026-07-26T14:00:00.000Z', provenance: 'same-origin-snapshot' } } } });
   assert(matrix.ok && matrix.value.rows.length === watchlist.items.length && matrix.value.rows.every((row) => row.scopeClass === 'public-watchlist' && row.scopeLabel === 'Public watchlist' && row.cells.length === RLMKT.MATRIX_DOMAINS.length && row.cells.every((cell) => RLMKT.APPLICABILITY.includes(cell.applicability) && RLMKT.CELL_STATES.includes(cell.state))), 'SCN-012-022 public matrix labels every row `Public watchlist` with one explicit applicable/state cell per domain (never neutral by omission)');
   assert(RLMKT.validatePublicMatrix(matrix.value).ok && marketAction.matrix.rowCount === watchlist.items.length, 'the composed public matrix validates round-trip and matches the validator row count');

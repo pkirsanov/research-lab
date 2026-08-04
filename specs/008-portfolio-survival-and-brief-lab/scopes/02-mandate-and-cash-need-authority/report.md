@@ -473,7 +473,109 @@ This is the specific regression risk the row exists to catch: Scope 02 writes to
 
 ## Lint And Quality
 
+### Build Quality Gate - scope-local traceability (BLOCKED, not closed)
+
+The Build Quality Gate DoD item names exactly one runnable command of its own. It
+was executed as written. It refused. The box remains `[ ]`.
+
+**Command:** `BUBBLES_AGENT_NAME=bubbles.implement BUBBLES_SPEC=specs/008-portfolio-survival-and-brief-lab BUBBLES_SCOPE=SCOPE-02 BUBBLES_TOOL_LOG_TAGS=build-quality-gate,traceability,current-scope timeout 600 bash .github/bubbles/scripts/tool-log.sh bash .github/bubbles/scripts/traceability-guard.sh specs/008-portfolio-survival-and-brief-lab --current-scope`
+
+**Exit Code:** 2 · **Claim Source:** executed
+
+```text
+ERROR: scope-universe resolution refused (--current-scope):
+scope-universe-resolver: transitive prerequisite '1' of current scope is not done
+[tool-log] recorded exit=2 duration=54ms → /home/redacted/research-lab/.specify/runtime/tool-calls.jsonl
+TRACEABILITY_EXIT=2
+```
+
+Re-executed unwrapped to establish that the refusal is deterministic rather than a
+transient resolver fault:
+
+```text
+=== re-run to confirm determinism ===
+ERROR: scope-universe resolution refused (--current-scope):
+scope-universe-resolver: transitive prerequisite '1' of current scope is not done
+RERUN_EXIT=2
+```
+
+**Cause, verified rather than inferred.** The DoD precondition that this scope be
+active in `state.json` holds — `execution.currentScope` is `2` and
+`execution.activeAgent` is `bubbles.implement`. The refusal is not about this
+scope's own files. It is the dependency edge: scope 2 declares
+`dependsOn: ["1"]`, and scope 1 `Private Portfolio Import And Atomic Store` is
+still `in_progress`, not `done`. Read directly from `state.json`:
+
+```text
+currentScope: 2
+activeAgent: bubbles.implement
+1 | in_progress | Private Portfolio Import And Atomic Store | dependsOn= []
+2 | in_progress | Mandate And Cash-Need Authority | dependsOn= ['1']
+3 | not_started | Local Behavior Privacy Inventory And Clear | dependsOn= ['2']
+```
+
+**Uncovered clause:** `scope-local traceability`. It is structurally unreachable
+from inside Scope 02. No Scope 02 change can satisfy it, because the resolver is
+refusing on a prerequisite scope's status, not on anything this scope owns.
+
+**Two things deliberately NOT done here**, because each would have converted a
+real blocker into a false green:
+
+1. Scope 1 was not marked `done` to unblock the resolver. Its own DoD is unmet;
+   editing another scope's status to clear this gate would be fabrication and is
+   outside this agent's artifact ownership.
+2. `--all-scopes` was not substituted for `--current-scope`. That is a different
+   command answering a different question, and this scope's DoD explicitly states
+   whole-feature `--all-scopes` traceability is NOT required here — it is the
+   Feature Completion Gate's check, enforced once in Scope 16.
+
+The remaining twelve clauses of the Build Quality Gate (focused RED/GREEN records,
+mandate/config parity, authority/forbidden-input scans, exact rollback,
+no-interception/external-request scan, source-lock/runner checks, editor
+diagnostics, `git diff --check`, artifact lint/freshness, G094, Test Plan/DoD
+parity, plan sync) were not executed in this run. Their status is therefore
+unknown and no claim is made about them in either direction. The item cannot be
+ticked on the named clause alone regardless, since that clause is the one that
+refused.
+
 ## Uncertainty Declarations
+
+### TP-02-02 skip rationale is stale (observation for the owner, not acted on)
+
+This run was instructed to skip TP-02-02 on the stated ground that its named
+target file `tests/portfolio-privacy.functional.mjs` contains zero
+`mandate`/`cashNeed`/`constraint` occurrences and that this is a known planning
+defect. That ground no longer holds on disk. TP-02-02 was still not executed, in
+keeping with the instruction; this is recorded so the next owner does not inherit
+a stale premise.
+
+**Command:** `grep -c -i -E "mandate|cashNeed|constraint" tests/portfolio-privacy.functional.mjs`
+
+**Exit Code:** 0 · **Claim Source:** executed
+
+```text
+=== TP-02-02 target file: mandate/cashNeed/constraint occurrences ===
+50
+GREP_EXIT=0
+```
+
+The file now carries 7 subtests, the last two of which name precisely the two
+clauses the earlier TP-02-02 verdict recorded as uncovered:
+
+```text
+30:test('real-format import previews commits reloads and exports one local revision', () => {
+53:test('secret-bearing import is redacted and cannot mutate any storage namespace', () => {
+72:test('atomic write failures preserve the active pointer and retain a validated candidate only in memory', () => {
+90:test('session and memory commits state truthfully and preserve the last valid candidate after rejection', () => {
+113:test('hostile manual labels remain inert data and namespace writes stay closed', () => {
+154:test('explicit mandate revisions commit and reload atomically while portfolio generation semantics are preserved', () => {
+218:test('one reloaded constraint set reaches every consumer and absent or conflicting fields never acquire defaults', () => {
+```
+
+An earlier note in this report described those two subtests as uncommitted.
+`git status --porcelain tests/portfolio-privacy.functional.mjs` now returns empty,
+so they are committed. Whether they actually satisfy TP-02-02 is unproven — that
+requires executing TP-02-02, which this run did not do.
 
 ## Validation Summary
 

@@ -90,6 +90,23 @@ Every stable Feature 008 scenario has exactly one owning scope. The manifest sup
 | 16 | 1 | SCN-008-036 |
 | **Total** | **36** | **SCN-008-001 through SCN-008-036** |
 
+### Cross-Scope Conjunct Discharge
+
+Scenario *ownership* is unchanged by this section: SCN-008-001 is still owned by Scope 01 and SCN-008-036 is still owned by Scope 16. What is recorded here is narrower — a single `And` clause whose conjuncts are verified in two different scopes, because no one scope renders both surfaces it names.
+
+| Scenario | Clause | Conjunct | Verified by | Why there |
+|----------|--------|----------|-------------|-----------|
+| SCN-008-001 | `And the Portfolio Brief and portfolio analyses reference the new revision` | `the Portfolio Brief ... references the new revision` | Scope 01, TP-01-03 | The Brief tab is the only workspace surface Scope 01 ships, and Scope 01 is where an import becomes the current revision. |
+| SCN-008-001 | same clause | `... portfolio analyses reference the new revision` | Scope 16, TP-16-05 | The five analysis tabs render `disabled` until Scopes 07-15 ship them, and Scope 16 is the first point at which all six tabs exist at once. SCN-008-036 already fixes one active revision in its `Given` and asserts that all six tabs expose equal identity values, so the conjunct is a re-reading of an existing row, not a new claim. |
+
+The clause is preserved by composition, not by weakening: Scope 01 establishes that confirming a valid import is what makes a revision current, and Scope 16 establishes that every analysis tab renders the current revision's identity. Together they entail the clause exactly as written.
+
+Three rules keep this honest and MUST hold for any future split:
+
+1. **No Gherkin edit.** The scenario text is untouched. Rewriting Gherkin to match delivery is the inversion Gate G068 exists to detect.
+2. **No orphaned conjunct.** A delegated conjunct is only delegable to a scope that already carries, or is given, a Gherkin scenario and a Test Plan row that assert it. Delegation to a scope with no verifying row is deletion with extra steps.
+3. **No double-claiming.** The delegating scope's DoD item states explicitly that the conjunct is not resolvable there, so a green checkbox in Scope 01 never implies the analyses were checked.
+
 ## Requirement Ownership
 
 The ranges below are execution ownership, not exclusions. Cross-cutting privacy, provenance, failure-state, accessibility, and educational boundaries are rechecked wherever their behavior is observable.
@@ -151,7 +168,10 @@ Relocated here from the per-scope gates; nothing is dropped.
 
 ### Known Cross-Scope Blockers
 
-These are recorded so no scope silently inherits them. Neither is closable by an implementing scope on its own.
+These are recorded so no scope silently inherits them. None is closable by an implementing scope on its own. Resolved entries are kept with their resolution so a reader can tell a closed blocker from an open one.
 
-1. **`certification.status` divergence.** `state.json` top-level `status` is `in_progress` while `certification.status` is `not_started`. This fails `artifact-lint.sh` and makes `--current-scope` refuse with exit 2 (`scope-universe-resolver: top-level status and certification.status disagree`). `certification.*` is validate-owned; route to `bubbles.validate`.
-2. **Scope 01 G068 fidelity.** Scope 01's two Gherkin scenarios have no faithful DoD item, so two G068 failures name Scope 01 directly. This is scope-local to Scope 01 and planning-owned; it does not resolve by shipping other scopes.
+1. **`certification.status` divergence — RESOLVED.** `state.json` top-level `status` and `certification.status` are both `in_progress`, so `artifact-lint.sh` passes and the resolver no longer refuses with `top-level status and certification.status disagree`.
+2. **Scope 01 G068 fidelity — RESOLVED.** Scope 01's Scenario Behavioral Claims items now restate both Gherkin scenarios, and `--all-scopes` reports both Scope 01 scenarios as mapped. No G068 failure names Scope 01.
+3. **Scope 01 is the head of a strictly linear chain — OPEN.** `certification.scopeProgress` links 16 ← 15 ← … ← 2 ← 1, so `--current-scope` refuses with exit 2 (`transitive prerequisite '1' of current scope is not done`) for every scope until Scope 01 is Done. This is the sequential gate working as designed, not a defect; it becomes a deadlock only if a Scope 01 DoD item is unresolvable inside Scope 01. One such item existed — the SCN-008-001 `portfolio analyses` conjunct — and is resolved by [Cross-Scope Conjunct Discharge](#cross-scope-conjunct-discharge). Any future Scope 01 item that names a surface Scope 01 does not ship recreates the deadlock and MUST be attributed the same way.
+4. **SCN-008-002 `committed artifacts` sink — OPEN, blocks Scope 01.** No named row asserts that a rejected import value is absent from a committed artifact, and TP-01-04 cannot: it builds its probe as `'SCOPE01-E2E-PRIVATE-' + Date.now()`, so the value cannot appear in a tracked file by construction. Two narrower gaps travel with it — the `row and field` segments of the rejection reason are rendered but unasserted, and sink absence is proven in durable mode only. This needs a Test Plan decision, not an attribution: either add a Scope 01 row that scans a committed surface for a rejected value, or delegate the sink to a scope that already scans tracked files. Scope 16's TP-16-09 is the nearest candidate, since its DoD item already claims personal sentinels stay absent from `files`; it is a candidate only, and the choice is unmade. Until it is made, Scope 01 cannot reach Done.
+

@@ -1486,3 +1486,117 @@ Scope 01's DoD items are organized by requirement identifier and Test Plan row r
 The shared-baseline DoD group is now satisfied and is checked in `scope.md`. Its recorded resolution condition was an exit-0 repository selftest, and that condition is met by execution. Every other component of that group was independently re-proven above: the three sweep canaries, the closed namespace inventory, the session-only warning, and the rollback/restore behavior.
 
 The Build Quality Gate remains unchecked and Scope 01 remains `In Progress`. That grouped item requires G094, traceability, artifact lint, and editor diagnostics to be clean at the same time. Five findings are open, and every one of them resolves only inside an artifact this agent does not own — foreign scope files for Scopes 02-16, planning-owned DoD text, planning-owned Markdown style, or validate-owned certification state. No milestone was published, because Scopes 03, 04, and 05 remain `not_started` and the `rlportfolio-store-privacy`, `public-evidence-barrier`, and `local-brief-ticker-scope` markers would each be an undelivered claim.
+
+## Scenario Behavioral Claim Verification
+
+This section independently verifies the two `Scenario Behavioral Claims` DoD items in `scope.md` against their own recorded resolution conditions. Both conditions state that an exit-0 row does not resolve the item and that each clause must be separately confirmed against row output. The rows were therefore executed first, and every clause was then traced to the specific assertion that carries it.
+
+### Repository Binding
+
+**Phase:** validate
+**Tool:** `repository-binding.sh preflight`
+**Exit Code:** 0
+**Claim Source:** executed
+**Output:**
+
+```text
+REPOSITORY PREFLIGHT CONFIRMED repository=research-lab root=/home/redacted/research-lab source=explicit-repositoryRoot affinity=confirmed
+PREFLIGHT_COMMITTED decision=rb:vscode-e24db39cf992f7ccd8ec75209602db59:2 revision=2 repository=research-lab root=/home/redacted/research-lab
+```
+
+The first preflight attempt refused with `BOUNDARY_CONFLICT` because it was submitted with `--expected-control-revision 0` while authoritative session control was already at revision 1. The refusal was resolved by re-reading the control file and resubmitting with the observed revision, not by guessing a value.
+
+### Named Verifying Rows - Execution
+
+All three named rows (TP-01-03, TP-01-04, TP-01-05) are carried by the single spec file `tests/portfolio-survival-foundation.spec.mjs`, so one repo-standard invocation executes exactly the named set with no substitution and no `--grep` narrowing.
+
+**Phase:** validate
+**Tool:** Playwright, `system-chrome` project
+**Command:** `npx --no-install playwright test tests/portfolio-survival-foundation.spec.mjs --config=playwright.config.mjs --project=system-chrome --reporter=list`
+**Exit Code:** 0
+**Claim Source:** executed
+**Output:**
+
+```text
+Running 3 tests using 1 worker
+
+  ✓  1 …008-001 valid local portfolio import creates one current revision (1.0s)
+[SCN-008-001] route=served
+[SCN-008-001] previewAccepted=3
+[SCN-008-001] duplicateChoice=merge
+[SCN-008-001] generation=1
+[SCN-008-001] revisions=1
+[SCN-008-001] holdings=2
+[SCN-008-001] storageMode=durable
+[SCN-008-001] localKeys=rlPortfolioWorkspaceV1.pointer,rlPortfolioWorkspaceV1.slotA
+[SCN-008-001] remoteRequests=0
+  ✓  2 …-008-002 invalid or secret-bearing import is atomic and redacted (562ms)
+[SCN-008-002] confirmation=disabled
+[SCN-008-002] redaction=value-not-echoed
+[SCN-008-002] generation=1
+[SCN-008-002] currentUnchanged=true
+[SCN-008-002] storageSentinel=false
+[SCN-008-002] consoleSentinel=false
+[SCN-008-002] urlSentinel=false
+[SCN-008-002] requestSentinel=false
+  ✓  3 …preserve last valid portfolio in durable session and memory modes (1.8s)
+[TP-01-05] modes=durable:1:durable,session:1:session,memory:1:memory
+[TP-01-05] durable=true
+[TP-01-05] session=true
+[TP-01-05] memory=true
+[TP-01-05] priorRevisionPreserved=true
+[TP-01-05] falseDurableClaim=false
+[TP-01-05] sessionWarning=true
+[TP-01-05] externalProviders=0
+
+  3 passed (6.1s)
+PLAYWRIGHT_EXIT=0
+```
+
+### SCN-008-001 Clause Ledger
+
+Claim under test: one new local portfolio revision becomes current, its holdings/quantities/optional cost fields/derived values remain local-only, and the Portfolio Brief **and portfolio analyses** reference the new revision.
+
+| Clause | Carrying assertion | Confirming output | Verdict |
+| --- | --- | --- | --- |
+| One new local portfolio revision becomes current | TP-01-03 `expect(first.diagnostics.generation).toBe(1)`, `expect(first.diagnostics.revisionCount).toBe(1)`, `expect(page.locator('#currentRevision')).toContainText('Current revision')`, then post-reload `expect(reloaded.currentPortfolioId).toBe(revisionId)` and `expect(reloaded.revisionCount).toBe(1)`. TP-01-05 repeats the single-revision commit in all three persistence modes. | `[SCN-008-001] generation=1`, `[SCN-008-001] revisions=1`; `[TP-01-05] modes=durable:1:durable,session:1:session,memory:1:memory` | CONFIRMED |
+| Holdings, quantities, optional cost fields remain local-only | TP-01-03 `expect(first.localKeys).toEqual([...])`, `expect(first.sessionKeys).toEqual([])`, `expect(first.url).not.toMatch(/MSFT\|BND\|quantity\|costBasis/i)`, `expect(JSON.stringify(requests)).not.toMatch(/Scope 01 portfolio\|MSFT\|BND\|costBasis/i)`, all-same-origin browser requests, and a zero-service-worker assertion. | `[SCN-008-001] localKeys=rlPortfolioWorkspaceV1.pointer,rlPortfolioWorkspaceV1.slotA`, `[SCN-008-001] remoteRequests=0` | CONFIRMED |
+| Derived values remain local-only | Not carried by a named derived-value assertion. The negative regex enumerates `MSFT`, `BND`, `quantity`, `costBasis` only. Coverage is structural: every server-side request is a same-origin `GET` with no `https?://` pathname, every browser request origin equals `server.baseUrl`, and no service worker is registered, so no channel exists on which a derived value could leave the origin. | `[SCN-008-001] remoteRequests=0` | CONFIRMED BY CONSTRUCTION - no named derived-value assertion exists |
+| The Portfolio Brief references the new revision | TP-01-03 `openRoute()` navigates to `#brief` and asserts the `Portfolio Brief` heading is visible with `#workspaceTabBrief` `aria-selected="true"`; post-reload `expect(page.locator('#currentRevision')).toContainText(revisionId.slice(0, 20))`. `#currentRevision` is inside `<section class="brief" aria-label="Portfolio Brief workspace">`. | `[SCN-008-001] route=served` plus the passing post-reload identity assertion | CONFIRMED for the Brief surface's revision-identity line |
+| Portfolio analyses reference the new revision | **No assertion exists in any named row.** | none | **NOT CONFIRMED** |
+
+**Uncovered clause detail.** `portfolio-survival-allocation-lab.html` renders the five analysis tabs — `Risk X-Ray`, `Path Lab`, `Diversification`, `Allocation Comparison`, `Research Dossier` — as `disabled` with `aria-selected="false"`, and the document contains no analysis panel element at all; the only workspace children are `section.brief` and `aside#portfolioEditor`. Per the [scope index](../_index.md), those analyses are owned by Scopes 07-08, 09-10, 11-12, 13-14, and 15, all currently `Not Started`. TP-01-03 and TP-01-05 therefore cannot assert this conjunct, and no stretch of an existing assertion covers it: asserting that the Brief tab shows the revision identity is not evidence that a portfolio analysis references it.
+
+A second, narrower precision note: both rows instantiate the clause from an empty starting workspace (`generation=1`, `revisionCount=1`). Neither row exercises the `one existing revision` precondition allowed by this scope's UI Scenario Matrix, so the increment case — an existing current revision replaced by a newly imported one — is not demonstrated by the named rows.
+
+### SCN-008-002 Clause Ledger
+
+Claim under test: a malformed or secret-bearing import cannot partially replace the portfolio — rejected with row and field reasons, prior portfolio remains current **and unchanged**, and no rejected value enters storage, logs, URLs, telemetry, or committed artifacts.
+
+The recorded resolution condition names three things that must be shown: no partial replacement in any persistence mode, the prior revision identity unchanged after rejection, and the rejected value absent from every named sink.
+
+| Clause | Carrying assertion | Confirming output | Verdict |
+| --- | --- | --- | --- |
+| No partial replacement in any persistence mode | TP-01-05 iterates `durable`, `session`, `memory`; in each mode it commits a valid revision, feeds the invalid/secret fixture, then asserts `after.currentPortfolioId === before.currentPortfolioId`, `after.generation === before.generation`, `after.storageMode === mode`, and `after.savedDurably === (mode === 'durable')`. The `session` mode additionally reloads and polls the identity back. | `[TP-01-05] modes=durable:1:durable,session:1:session,memory:1:memory`, `[TP-01-05] priorRevisionPreserved=true`, `[TP-01-05] falseDurableClaim=false` | CONFIRMED |
+| Prior revision identity unchanged after rejection | TP-01-04 `expect(after.diagnostics.currentPortfolioId).toBe(prior.currentPortfolioId)` and `expect(after.diagnostics.generation).toBe(prior.generation)`, plus `expect(page.locator('#currentRevision')).toContainText('Current portfolio unchanged')`. | `[SCN-008-002] currentUnchanged=true`, `[SCN-008-002] generation=1` | CONFIRMED |
+| Rejected value absent from storage | TP-01-04 `expect(after.local).not.toContain(sentinel)` and `expect(after.session).not.toContain(sentinel)` over `Object.values(localStorage)` / `Object.values(sessionStorage)`. | `[SCN-008-002] storageSentinel=false` | CONFIRMED in durable mode |
+| Rejected value absent from logs | TP-01-04 captures every `console` message via `page.on('console', ...)` and asserts `expect(consoleMessages.join('\n')).not.toContain(sentinel)`. | `[SCN-008-002] consoleSentinel=false` | CONFIRMED in durable mode |
+| Rejected value absent from URLs | TP-01-04 `expect(after.url).not.toContain(sentinel)` for `location.href`, and `expect(JSON.stringify(server.requests.slice(requestStart))).not.toContain(sentinel)` for every recorded request line. | `[SCN-008-002] urlSentinel=false`, `[SCN-008-002] requestSentinel=false` | CONFIRMED in durable mode |
+| Rejected value absent from telemetry | No named telemetry-sink assertion exists. Coverage is structural: the route loads only `rlcontracts.js` and `rlportfolio.js`, whose sole network call is a same-origin `fetch("portfolio-survival-allocation.config.json")`; there is no `sendBeacon`, `XMLHttpRequest`, `WebSocket`, or analytics client on the route. Any HTTP-borne telemetry would have to appear either in the sentinel-scanned server request log or as a non-`server.baseUrl` origin, and both are asserted against. | `[SCN-008-002] requestSentinel=false` | CONFIRMED BY CONSTRUCTION - no telemetry sink exists to assert against |
+| Rejected value absent from committed artifacts | **No assertion exists in any named row.** | none | **NOT CONFIRMED** |
+| Rejected with row **and field** reasons | TP-01-04 asserts `expect(page.locator('#previewRejected')).not.toHaveText('0')` and `expect(page.locator('#importErrors')).toContainText('P008-IMPORT-SECRET')` — the error **code** only. `safeErrorCopy()` renders `code · row N · field X · reason`, and `portfolioError("P008-IMPORT-SECRET", "secret-shaped-field", header.trim(), 1, false)` does populate row and field, but no assertion covers those two segments. | `[SCN-008-002] confirmation=disabled` | **PARTIAL** - code asserted, row and field segments unasserted |
+
+**Uncovered clause detail.** The committed-artifacts sink has zero coverage and is not merely under-asserted. TP-01-04 constructs its probe value at run time as `'SCOPE01-E2E-PRIVATE-' + Date.now()`, so that value cannot appear in any committed artifact by construction; the row is structurally incapable of testing the clause it would need to test. Neither `tests/portfolio-survival-foundation.spec.mjs` nor `tests/portfolio-survival.support.mjs` reads the working tree, the git index, or any tracked file for a rejected value — the support module's only filesystem reads are fixture loads under `FIXTURE_ROOT`.
+
+**Persistence-mode asymmetry.** Sink absence is proven in durable mode only. TP-01-04 never calls `blockStorage`, so it runs against durable storage. TP-01-05 is the row that covers `session` and `memory`, but it feeds the fixture with the `__PRIVATE_SENTINEL__` placeholder left unsubstituted and asserts nothing about storage, console, URL, or request sinks. The named rows therefore establish atomicity in all three modes but sink-absence in one.
+
+### Scenario Behavioral Claim Verdict
+
+Both items remain unchecked. Each one's own resolution condition requires every clause to be separately confirmed, and each has at least one clause that no named row asserts.
+
+| DoD item | Blocking uncovered clause | Owner of the gap |
+| --- | --- | --- |
+| SCN-008-001 | `portfolio analyses reference the new revision` — the five analysis surfaces are `disabled` and unimplemented in this scope; they belong to Scopes 07-15, all `Not Started`. | Not closable inside Scope 01. Either a later scope's rows must carry the conjunct, or planning must re-scope which surfaces Scope 01 is accountable for. |
+| SCN-008-002 | `no rejected value enters ... committed artifacts` — no row scans a committed surface, and the run-time sentinel cannot appear in one. Secondary: the `row and field` half of the rejection-reason clause is rendered but unasserted, and sink absence is proven only in durable mode. | A new or extended verifying row is required. This is a test-plan addition, which is planning-owned. |
+
+No DoD item text was modified. Narrowing either claim to match what the rows assert is precisely the inversion Gate G068 exists to detect, and these two items were authored to close finding `F008-IMPL-008`; weakening them would reopen it under a green checkbox.

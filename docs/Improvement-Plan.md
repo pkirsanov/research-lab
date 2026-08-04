@@ -560,9 +560,11 @@ node scripts/selftest.mjs
 4  Watchlist routed into tools ..... 2-3d   ✅ af221a89  owned 0 -> 28, covered 0 -> 14/28
 5  Red Alert + Portfolio real ...... 1d     ✅ done  86254c09  constant -> computed coverage
 6  Recommendations born evaluable .. 2d     ◐ 32692325  live payload 40% -> 80% scoreable
-7  Last five stale tools ........... 1.5d   ◐ specified below; honest ceiling analyzed 11 -> 14
+7  Last five stale tools ........... 1.5d   ◐ 6704d682 shipped all 3 Tier-A adapters; published payload
+                                             still analyzed 11 / stale 5 -- it predates that commit
 8  Journey on every tool page ...... ----   ✖ VOID — premise was a measurement error (D17)
-9  Paperwork reconciled ............ 1d     zero status/code contradictions
+9  Paperwork reconciled ............ 1d     ◐ 015's stale blocker corrected (7074a6c3); BUG-001 still
+                                             in_progress, 13 of 22 state.json files non-terminal
 ```
 
 Steps 1→2→3 are the legibility track. Step 4 is the coverage track and gates 5 and 6. Steps 7 and 9 are
@@ -707,7 +709,7 @@ the parser recovers them — the same trap as the vocabulary fix in Step 3.
 | Tools with at least one leak | **23 / 23** | **0 / 23** | same |
 | Journey rows on a tool page | **23** → **1** ✅ | **1** | same (`journeyToolRows`) |
 | Journey rows on the Action Center | **23** ✅ | **23** | same |
-| Brief / action scoping on a tool page | **not yet measured** | own tool only | Step 2b probe fix |
+| Brief / action scoping on a tool page | **own tool only — 22 / 22** ✅ | own tool only | same (`briefMounts`, `briefTools`) |
 | Tools sharing the generic Simple heading | 10 | **0** | same |
 | Parameter levers without a contextual tooltip | most | **0** | selftest static scan |
 | Covered watchlist matrix cells | **0** / 24 | **≥ 15** | `jq .scopeSummary.coveredCellCount` |
@@ -746,7 +748,7 @@ The existing spec inventory predates the frontier. Mapping, so nothing is duplic
 | 1–3 legibility | `012-market-action-center-and-guided-tools` (`blocked`) | **Re-scope.** The shell shipped; legibility is the unfinished half. Steps 1–3 become its remaining scopes. |
 | 4 watchlist routing | `008-portfolio-survival-and-brief-lab` (`in_progress`) | **Narrow.** Step 4 is the *public* watchlist axis only. Private portfolio overlay stays out of scope and behind its own gate. |
 | 5 Red Alert / Portfolio | `012` scope 12 (Red Alert engine) | **Unblock via Step 4** — the engine exists; it lacks per-ticker input. |
-| 6 born-evaluable | `015-recommendation-outcome-ledger-and-track-record` (`blocked`) | **Unblock.** Its own `blockedReason` concedes the code exists and the block is status bookkeeping. Step 6 is its real remaining work. |
+| 6 born-evaluable | `015-recommendation-outcome-ledger-and-track-record` (`blocked`) | **Stays blocked, on its own merits.** The earlier *"status bookkeeping"* reading was false and has been retracted from 015's `state.json`. Gate **G089 now passes** — `specDependsOn` was narrowed 4 → 1 by the recorded owner ruling **OD-015-01**, leaving only `002` (`done`). But all 10 scopes are still `not_started`, and four routed findings remain **Blocking**: `P-015-01` and `P-015-02` (scope 02), `P-015-03` and `P-015-07` (scope 04) — owner `bubbles.design`, with the Feature 002 owner co-consenting on `-01` and `-03`. The only failing *gate* is **G073** (source-edit lockout), held open by a **concurrent** session's five uncommitted files (`rlbrief.js`, `rlexperience.js`, `rlfx.js`, `rljourney.js`, `.vscode/mcp.json`) — an external working-tree condition, not a 015 defect. Step 6 is 015's real remaining work and cannot start until those four findings are ruled on. |
 | 7 stale tools | `003`, `007`, `013` + tool specs | **Absorb** into one coverage scope per tool. |
 | 8 journey reach | `012` journey scopes | **Absorb.** |
 | 9 paperwork | `_bugs/BUG-001`, `_bugs/BUG-005`, `001`, `004`, `005`, `006`, `014` | **Reconcile** per Step 9; retire what shipped, re-scope what did not under **D9**. |

@@ -221,6 +221,13 @@ test('Regression: SCN-008-004 no mandate leaves goal fit and survival unavailabl
   // A missing goal must never render as a neutral zero or a placeholder number.
   const routeText = await page.locator('#routeStates').innerText();
   expect(routeText).not.toMatch(/\b(0%|0\.0|TBD|N\/A|default|assumed|typical)\b/i);
+
+  // NFR-022: the research/advice boundary is user-visible, not merely implied by withheld states.
+  const boundary = page.locator('footer');
+  await expect(boundary).toContainText('Educational research only');
+  await expect(boundary).toContainText('cannot place an order');
+  await expect(boundary).toContainText('send a broker instruction');
+
   expect(browserRequests.every((url) => new URL(url).origin === server.baseUrl)).toBe(true);
   expect(server.requests.slice(requestStart).every((entry) => entry.method === 'GET')).toBe(true);
   console.log('[SCN-008-004] currentMandateId=null');
@@ -231,6 +238,7 @@ test('Regression: SCN-008-004 no mandate leaves goal fit and survival unavailabl
   console.log('[SCN-008-004] cashNeedCollision=unavailable:mandate-absent');
   console.log('[SCN-008-004] inferredValues=0');
   console.log('[SCN-008-004] placeholderNumbers=0');
+  console.log('[SCN-008-004] educationalBoundary=visible');
   console.log('[SCN-008-004] routes=' + projection.routes.length);
 });
 

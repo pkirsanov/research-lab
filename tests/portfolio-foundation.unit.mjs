@@ -333,6 +333,14 @@ test('explicit mandate draft is a closed user-authority contract over units date
   assert.equal(api.validateMandateDraft(badTiming, null, { now: NOW }, policy).value.errors.some((error) => error.reason === 'cash-need-timing-invalid'), true);
   const pastNeed = { ...raw, cashNeeds: [{ ...raw.cashNeeds[0], date: '2026-01-31' }] };
   assert.equal(api.validateMandateDraft(pastNeed, null, { now: NOW }, policy).value.conflicts.some((conflict) => conflict.reason === 'cash-need-date-past'), true);
+  assert.equal(draft.mandate.objectiveLabel, 'Fund a dated withdrawal without forced selling');
+  const missingPurpose = { ...raw, objectiveLabel: '' };
+  assert.equal(api.validateMandateDraft(missingPurpose, null, { now: NOW }, policy).value.errors.some((error) => error.reason === 'objective-label-required'), true);
+  assert.equal(draft.mandate.cashNeeds[0].amount, 40000);
+  const badAmount = { ...raw, cashNeeds: [{ ...raw.cashNeeds[0], amount: 0 }] };
+  assert.equal(api.validateMandateDraft(badAmount, null, { now: NOW }, policy).value.errors.some((error) => error.reason === 'cash-need-amount-invalid'), true);
+  const badFraction = { ...raw, cashNeeds: [{ ...raw.cashNeeds[0], unit: 'portfolio-fraction', amount: 1.5 }] };
+  assert.equal(api.validateMandateDraft(badFraction, null, { now: NOW }, policy).value.errors.some((error) => error.reason === 'cash-need-fraction-out-of-range'), true);
 });
 
 test('absent mandate fields stay null and no default horizon floor objective or expected return is created', () => {

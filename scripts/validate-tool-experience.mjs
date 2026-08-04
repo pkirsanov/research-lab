@@ -9,6 +9,9 @@ const SCRIPT_PATH = fileURLToPath(import.meta.url);
 const ROOT = resolve(dirname(SCRIPT_PATH), '..');
 const require = createRequire(import.meta.url);
 const RLEXPERIENCE = require('../rlexperience.js');
+/* rlmarketaction.js OWNS the two-kinded matrix-domain vocabulary; it is read here rather than
+   re-typed so the registry contract is checked against the vocabulary the composer actually uses. */
+const RLMARKETACTION = require('../rlmarketaction.js');
 const SCALING_TOOL_ID = 'feature-012-scaling-probe';
 const DEPENDENCY_GATES_PATH = 'tool-experience.gates.json';
 const CLI_USAGE = 'usage: node scripts/validate-tool-experience.mjs [--require-simple-adapters] [--dependency <name> [--require-accepted]]';
@@ -184,6 +187,137 @@ function validateProductionSource(packet) {
   for (const capability of FORBIDDEN_VALIDATOR_CAPABILITIES) {
     invariant(source.includes(capability) === false, `production declaration validator owns forbidden capability ${capability}`);
   }
+}
+
+/*
+ * Registry contract: the matrix-domain vocabulary is CLOSED and two-kinded.
+ *
+ * EVIDENCE domains are answered by a tool that publishes a per-ticker read, so a tool DECLARES them
+ * in tools.json `experience.matrixDomains`. DERIVED domains are computed by rlmarketaction.js from
+ * the evidence cells of the same row, so no tool can own one — a tool cannot own an absence.
+ *
+ * rlexperience.js enforces only `declared domain is a member of config.matrixPolicy.domains`, so the
+ * whole separation rested on that config list mirroring EVIDENCE_DOMAINS — and that mirror was prose
+ * in a comment, never an assertion. Widening the config by one entry silently re-opened every derived
+ * domain to tool ownership, which is how eight unrelated tools came to declare `gaps`. The checks
+ * below make the mirror executable and name the offending tool and domain, because a rejection that
+ * reports only `$.tools[13].experience.matrixDomains[2]` cannot be acted on.
+ */
+function validateMatrixDomainVocabulary(packet) {
+  const evidenceDomains = [...RLMARKETACTION.EVIDENCE_DOMAINS];
+  const derivedDomains = [...RLMARKETACTION.DERIVED_DOMAINS];
+  invariant(evidenceDomains.length > 0, 'the matrix vocabulary declares no EVIDENCE domain');
+  invariant(derivedDomains.length > 0, 'the matrix vocabulary declares no DERIVED domain');
+  const bothKinds = evidenceDomains.filter((domain) => derivedDomains.includes(domain));
+  invariant(bothKinds.length === 0, `matrix domain(s) claim both kinds at once: ${bothKinds.join(', ')}`);
+
+  const declarable = packet.config.matrixPolicy.domains;
+  const claimableDerived = declarable.filter((domain) => derivedDomains.includes(domain));
+  invariant(
+    claimableDerived.length === 0,
+    `tool-experience.config.json matrixPolicy.domains makes DERIVED matrix domain(s) declarable: ${claimableDerived.join(', ')} — a derived domain is computed from that row's evidence cells and can never be claimed by a tool`
+  );
+  invariant(
+    JSON.stringify(declarable) === JSON.stringify(evidenceDomains),
+    `tool-experience.config.json matrixPolicy.domains must mirror the EVIDENCE vocabulary exactly (expected ${evidenceDomains.join(', ')}; declared ${declarable.join(', ')})`
+  );
+
+  const declaredBy = new Map(evidenceDomains.map((domain) => [domain, []]));
+  let declaredDomainCount = 0;
+  let declaringToolCount = 0;
+  for (const tool of packet.registry.tools) {
+    const domains = tool.experience.matrixDomains;
+    if (domains.length > 0) declaringToolCount += 1;
+    for (const domain of domains) {
+      declaredDomainCount += 1;
+      invariant(
+        derivedDomains.includes(domain) === false,
+        `tool "${tool.id}" declares DERIVED matrix domain "${domain}" — a derived domain is computed from that row's evidence cells and can never be owned by a tool (declarable EVIDENCE domains: ${evidenceDomains.join(', ')})`
+      );
+      invariant(
+        declaredBy.has(domain),
+        `tool "${tool.id}" declares unknown matrix domain "${domain}" — it is neither an EVIDENCE domain (${evidenceDomains.join(', ')}) nor a DERIVED domain (${derivedDomains.join(', ')})`
+      );
+      const owners = declaredBy.get(domain);
+      invariant(owners.includes(tool.id) === false, `tool "${tool.id}" declares matrix domain "${domain}" more than once`);
+      owners.push(tool.id);
+    }
+  }
+
+  /* The inverse defect, same class: an EVIDENCE domain nobody declares is a permanently ownerless
+     column that reports every ticker as a gap while reading like a routing result. */
+  const orphanEvidenceDomains = evidenceDomains.filter((domain) => declaredBy.get(domain).length === 0);
+  invariant(
+    orphanEvidenceDomains.length === 0,
+    `EVIDENCE matrix domain(s) declared by no tool: ${orphanEvidenceDomains.join(', ')} — an evidence domain with no owner can only ever produce a gap column`
+  );
+
+  return {
+    evidenceDomains,
+    derivedDomains,
+    declarableDomains: [...declarable],
+    ownerPrecedence: Object.fromEntries(evidenceDomains.map((domain) => [domain, [...declaredBy.get(domain)]])),
+    declaredDomainCount,
+    declaringToolCount,
+    orphanEvidenceDomains
+  };
+}
+
+/* A check nothing can fail is not a check, so every refusal class is exercised on every run. The
+   mutation must be REJECTED and the message must NAME the offender — an anonymous rejection is the
+   defect this guard replaces, not an acceptable outcome. */
+function requireVocabularyRejected(packet, name, mutate) {
+  const candidate = clone(packet);
+  const mustName = mutate(candidate);
+  let message = null;
+  try {
+    validateMatrixDomainVocabulary(candidate);
+  } catch (error) {
+    message = error instanceof Error ? error.message : String(error);
+  }
+  invariant(message !== null, `adversarial ${name} was unexpectedly accepted`);
+  for (const expected of mustName) {
+    invariant(message.includes(expected), `adversarial ${name} was refused without naming "${expected}": ${message}`);
+  }
+  return { name, named: mustName };
+}
+
+function runMatrixVocabularyAdversarialChecks(packet) {
+  const derivedDomain = RLMARKETACTION.DERIVED_DOMAINS[0];
+  const evidenceDomain = RLMARKETACTION.EVIDENCE_DOMAINS[0];
+  const typoDomain = derivedDomain.slice(0, -1);
+  invariant(
+    RLMARKETACTION.MATRIX_DOMAINS.includes(typoDomain) === false,
+    `the unknown-domain probe "${typoDomain}" collides with a real matrix domain`
+  );
+  const firstDeclaringTool = (candidate) => {
+    const tool = candidate.registry.tools.find((entry) => entry.experience.matrixDomains.length > 0);
+    invariant(tool !== undefined, 'no registry tool declares a matrix domain to mutate');
+    return tool;
+  };
+  const cases = [
+    ['derived-domain-declared', (candidate) => {
+      const tool = firstDeclaringTool(candidate);
+      tool.experience.matrixDomains.push(derivedDomain);
+      return [tool.id, derivedDomain];
+    }],
+    ['unknown-domain-declared', (candidate) => {
+      const tool = firstDeclaringTool(candidate);
+      tool.experience.matrixDomains.push(typoDomain);
+      return [tool.id, typoDomain];
+    }],
+    ['orphan-evidence-domain', (candidate) => {
+      for (const tool of candidate.registry.tools) {
+        tool.experience.matrixDomains = tool.experience.matrixDomains.filter((domain) => domain !== evidenceDomain);
+      }
+      return [evidenceDomain];
+    }],
+    ['declarable-vocabulary-widened', (candidate) => {
+      candidate.config.matrixPolicy.domains = [...candidate.config.matrixPolicy.domains, derivedDomain];
+      return [derivedDomain];
+    }]
+  ];
+  return cases.map(([name, mutate]) => requireVocabularyRejected(packet, name, mutate));
 }
 
 function runtimeEvidence(definition, retrievedOrPublishedAt, evidenceCutoff = '2026-07-23T20:00:00.000Z') {
@@ -594,6 +728,12 @@ export function validateActualToolExperience(options = {}) {
     ? null
     : validateDependencyGate(loaded.packet.config, options.dependency, options.requireAccepted === true);
   const artifactChecks = validateArtifactBudgets(loaded.packet, loaded.bytes);
+  /* Runs BEFORE validateFoundation: rlexperience.js can only report an anonymous field path, so the
+     named refusal has to be reached first for a bad declaration to be actionable. */
+  const matrixVocabulary = {
+    ...validateMatrixDomainVocabulary(loaded.packet),
+    adversarial: runMatrixVocabularyAdversarialChecks(loaded.packet)
+  };
   const validation = RLEXPERIENCE.validateFoundation(loaded.packet);
   if (!validation.ok) {
     throw new Error(`foundation rejected: ${validation.error.code} ${validation.error.fieldPath}`);
@@ -621,6 +761,7 @@ export function validateActualToolExperience(options = {}) {
     dependency,
     identities,
     artifacts: artifactChecks,
+    matrixVocabulary,
     scaling: {
       toolId: SCALING_TOOL_ID,
       toolCount: scaling.value.toolCount,
@@ -672,6 +813,10 @@ function main() {
       console.log(`[tool-experience] artifact=${artifact.artifact} bytes=${artifact.bytes} budget=${artifact.budget} result=PASS`);
     }
     console.log(`[tool-experience] registry=PASS tools=${report.summary.toolCount} ordinary=${report.summary.ordinaryCount} marketAction=${report.summary.marketActionCount}`);
+    console.log(`[tool-experience] matrixVocabulary=PASS evidenceDomains=${report.matrixVocabulary.evidenceDomains.join(',')} derivedDomains=${report.matrixVocabulary.derivedDomains.join(',')} declaredDomains=${report.matrixVocabulary.declaredDomainCount} declaringTools=${report.matrixVocabulary.declaringToolCount} orphanEvidenceDomains=${report.matrixVocabulary.orphanEvidenceDomains.length}`);
+    for (const refusal of report.matrixVocabulary.adversarial) {
+      console.log(`[tool-experience] adversarial=${refusal.name} result=REJECTED named=${refusal.named.join('|')}`);
+    }
     console.log(`[tool-experience] definitions=PASS simpleModels=${report.summary.simpleModelDefinitionCount} journeys=${report.summary.journeyDefinitionCount} steps=${report.summary.journeyStepCount}`);
     console.log(`[tool-experience] simpleRuntime=PASS truthStates=${report.runtime.truthStateCount} registeredAdapters=${report.runtime.registeredAdapterCount} toolIdBranches=${report.runtime.toolIdBranchCount} authorityOwned=${report.runtime.authorityOwnedCount} occurrenceIdentityStable=${report.runtime.occurrenceIdentityStable} cutoffIdentityChanged=${report.runtime.cutoffIdentityChanged}`);
     console.log(`[tool-experience] journeyCoverage=PASS ordinaryTools=${report.journeyCoverage.ordinaryTools} centerGoals=${report.journeyCoverage.centerGoals} totalGoals=${report.journeyCoverage.totalGoals} definitions=${report.journeyCoverage.definitionCount}`);

@@ -284,6 +284,10 @@ else
   # The delegated launcher applies --allow-all-tools, --deny-tool=shell, and its per-lane web policy.
   # Retry until the payload passes the full contract validator, so each run FULLY generates a valid brief;
   # a failed/timed-out/invalid attempt reverts the payload before the next try (never commit a broken payload).
+  # --drop-unscoreable enforces D16 on THIS run's candidate: a tactical/swing call whose own prose cannot
+  # attribute a direction-correct invalidation level is withheld by name, and the rest of the brief still
+  # publishes. Refusing the whole run over one unscoreable call would cost us the brief, which is a larger
+  # harm than the claim it prevents; the baseline and final rungs stay non-mutating and only report.
   attempt=1
   while [ "$attempt" -le "$NARRATIVE_ATTEMPTS" ]; do
     echo "[brief-timer] narrative attempt $attempt/${NARRATIVE_ATTEMPTS}…"
@@ -300,7 +304,7 @@ else
           BRIEF_TODAY="$TODAY" \
           BRIEF_TOOL_BUNDLE="$TOOL_BRIEF_BUNDLE" \
           "$NODE_BIN" scripts/brief-narrative-parallel.mjs \
-       && "$NODE_BIN" scripts/validate-brief-payload.mjs "$PAYLOAD"; then
+       && "$NODE_BIN" scripts/validate-brief-payload.mjs "$PAYLOAD" --drop-unscoreable; then
       NARRATIVE_OK=1
       echo "[brief-timer] parallel narrative collected + schema-valid (attempt $attempt/$NARRATIVE_ATTEMPTS)"
       break

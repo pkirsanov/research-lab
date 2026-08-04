@@ -89,7 +89,7 @@ Feature: A remedy direction is selected with its costs understood
 
 ## Scope 2: Defect B — Enforce D16 At The Publish Gate
 
-**Status:** [ ] Not started
+**Status:** [ ] In progress
 **Depends On:** Scope 1
 **Owner:** spec `015-recommendation-outcome-ledger-and-track-record` (currently `blocked`)
 **Addresses:** **Defect B only**
@@ -166,12 +166,117 @@ Feature: An unscoreable tactical or swing call cannot be published
 
 ### Definition of Done
 
-- [ ] The publish gate mechanically refuses a `swing`/`tactical` action whose body resolves to `not-evaluable`
-- [ ] The rule is expressed against attributed invalidation levels, not numeral presence (FR-006-004)
-- [ ] An adversarial test exists that a numeral-presence-only check would pass and the real gate fails
-- [ ] The refusal policy chosen in Scope 1 is implemented and documented
+> Executed in a later, owner-authorized session that lifted DO-NOT-FIX **for
+> Defect B only**. Full narrative and the drop-versus-fail rationale:
+> [report.md](report.md#defect-b-remediation-run-later-session).
+
+- [x] The publish gate mechanically refuses a `swing`/`tactical` action whose body resolves to `not-evaluable`
+
+  ```
+  $ node scripts/validate-brief-payload.mjs /tmp/bug006-d16-proof/offending.payload.json --enforce-d16
+  [brief-contract] D16 REFUSED nextSession.actions[4] action=hedge horizon=tactical directionSign=-1 must break ABOVE reason=no-attributable-invalidation-level invalidationLevels=0 triggerLevels=3 subject="Keep a MINIMAL event-insurance residual into July NFP 8/7 — with VIX now easing back under 16 (15.86) the run-off case f"
+  [brief-contract] FAIL: 1 unscoreable tactical/swing call(s) breach D16 — withhold them or give each one a direction-correct invalidation level
+  PROOF_2_OFFENDING_EXIT=1
+
+  $ node scripts/validate-brief-payload.mjs /tmp/bug006-d16-proof/corrected.payload.json --enforce-d16
+  [brief-contract] PASS: all visible sections, registry coverage, model-specific real assets, and next-session actions are valid
+  PROOF_3_CORRECTED_EXIT=0
+  ```
+
+  The offending fixture is the **real published payload, byte-for-byte**; the
+  corrected fixture differs only in `actions[4].invalidation`. Exit `1` vs exit
+  `0` on that single difference is the non-vacuity proof.
+
+- [x] The rule is expressed against attributed invalidation levels, not numeral presence (FR-006-004)
+
+  ```
+  $ node --test tests/brief-d16-direction-aware-publish-gate.test.mjs
+  ✔ the shipped body builder really does refuse the wrong-side invalidation — the fixtures are not strawmen (31.835123ms)
+  ✔ requiredInvalidationRelation states the side each action family must break on (4.046152ms)
+  ✔ findUnscoreableActions refuses a wrong-side call and accepts the direction-correct one (49.168817ms)
+  ✔ D16 covers tactical and swing only — a structural call on the wrong side is not refused (2.291673ms)
+  ✔ dropUnscoreableActions withholds exactly the refused call and keeps every other one (12.753749ms)
+  ✔ --enforce-d16 refuses the wrong-side hedge by name and passes the direction-correct one (511.648836ms)
+  ✔ --enforce-d16 refuses the wrong-side add and passes the direction-correct one (591.841643ms)
+  ✔ --drop-unscoreable withholds the call and still publishes the brief (160.690837ms)
+  ✔ the default mode reports without blocking, so a published baseline can never stall the scheduler (254.868321ms)
+  ✔ an unknown flag is refused rather than silently ignored — a typo must not disable the gate (206.81549ms)
+  ℹ tests 10
+  ℹ pass 10
+  ℹ fail 0
+  D16_TEST_EXIT=0
+  ```
+
+  `findUnscoreableActions` calls the shipped `buildRecommendationBody` and reads
+  `evaluability` / attributed `levels[].source`. It never inspects the prose for
+  numerals.
+
+- [x] An adversarial test exists that a numeral-presence-only check would pass and the real gate fails
+
+  ```
+  $ node --input-type=module -e '<extractLevels probe on the exact published clause forms>'
+  published form (bare integer)    -> [{"instrument":"VIX","relation":"below","value":16,"upside":false}]
+  tilde form                       -> [{"instrument":"SPY","relation":"above","value":765,"upside":false}]
+  decimal form                     -> [{"instrument":"SPY","relation":"above","value":765,"upside":false}]
+  below only (the defect)          -> [{"instrument":"SPY","relation":"below","value":755.68,"upside":false}]
+  PROBE_EXIT=0
+
+  $ node scripts/validate-brief-payload.mjs /tmp/bug006-d16-proof/offending.payload.json --enforce-d16
+  [brief-contract] D16 REFUSED nextSession.actions[4] ... invalidationLevels=0 triggerLevels=3
+  PROOF_2_OFFENDING_EXIT=1
+  ```
+
+  The refused payload's `invalidation` field carries **four** numerals on named
+  instruments — a presence-only check passes it. Attribution yields
+  `invalidationLevels=0`, and the gate refuses. This also closes open finding
+  **DISC-006-004**: the missing `above` level was a **bare integer** (`765`),
+  which `extractLevels` refuses, not the `at/above` compound form.
+
+- [x] The refusal policy chosen in Scope 1 is implemented and documented
+
+  ```
+  $ node scripts/validate-brief-payload.mjs /tmp/bug006-d16-proof/offending.payload.json --drop-unscoreable
+  [brief-contract] D16 REFUSED nextSession.actions[4] action=hedge horizon=tactical directionSign=-1 must break ABOVE reason=no-attributable-invalidation-level invalidationLevels=0 triggerLevels=3
+  [brief-contract] D16 withheld 1 unscoreable call(s) from /tmp/bug006-d16-proof/offending.payload.json — the rest of the brief still publishes
+  [brief-contract] PASS: all visible sections, registry coverage, model-specific real assets, and next-session actions are valid
+  DROP_MODE_EXIT=0
+  surviving actions: 4
+    [0] hold/structural
+    [1] hold/swing
+    [2] rotate/swing
+    [3] hold/swing
+
+  $ node --test tests/brief-refresh-atomicity.test.mjs
+  ℹ tests 26
+  ℹ pass 26
+  ℹ fail 0
+  ```
+
+  Policy: **drop the call, never fail the publish.** Forced by executed evidence —
+  the committed payload already carries an offending call, so a blocking verdict
+  would stall `brief-refresh-and-push.sh:95` on every future run and turn
+  `selftest.mjs:462` red. Per-rung wiring and the full justification are in
+  [report.md](report.md#the-refusal-policy-drop-the-call-never-fail-the-publish).
+
 - [ ] `docs/Improvement-Plan.md` D16 wording matches what the gate enforces (R5)
-- [ ] No existing ledger row was rewritten, deleted, or reordered (FR-006-006)
+
+  **NOT DONE — honest gap.** Only the author-prompt wording in
+  `scripts/brief-narrative-parallel.mjs` was sharpened. `docs/Improvement-Plan.md`
+  is an owner-authored surface ([design.md](design.md#ownership-and-routing)) and
+  was left untouched. The gate currently enforces **more** than that document
+  states: the direction-correct side and the accepted numeric form.
+
+- [x] No existing ledger row was rewritten, deleted, or reordered (FR-006-006)
+
+  ```
+  $ git status --porcelain=v1   (post-change, ledger + brief artifact paths)
+  # no entry under briefs/, no entry for market-brief.payload.json,
+  # no entry for briefs/history/recommendations/2026-08.jsonl
+  ```
+
+  Every gate demonstration ran against copies under `/tmp/bug006-d16-proof/`.
+  `market-brief.payload.json` was read but never written; no partition, index,
+  pointer, or `briefs/` artifact was touched.
 
 ---
 

@@ -524,3 +524,196 @@ also why the assertion count is 1217/1 rather than the reported 1215/1
   execution.
 - **Why `"at/above the 765 call wall"` produced no `above` level is NOT
   established** and is recorded as an open finding rather than guessed at.
+
+---
+
+## Defect B Remediation Run (later session)
+
+> The Anti-Fabrication Statement above describes the **documentation-only** run.
+> Everything below is a **separate, later execution** in which the repository
+> owner explicitly lifted the DO-NOT-FIX constraint **for Defect B only** and
+> directed the remedy: **R5 (sharpen the authoring instruction) + R2 (a
+> mechanical publish gate)**, with the drop-versus-fail policy delegated to this
+> run. Defect A and contributing factor A2 were **not** touched and remain open.
+
+### The Owner Decision, Recorded (Scope 1 items 1–3)
+
+| Question | Recorded answer |
+|---|---|
+| Selected remedy | **R5 + R2.** R5 alone was rejected by the owner as insufficient — *"the prompt alone is what already failed here."* |
+| Defect left open | **Defect A** (evaluate-before-publish ordering) and **A2** (the publisher never runs `selftest`). Neither was touched. |
+| R4 (relax the assertion) | **Not selected.** The `selftest` idempotence assertion is unchanged. |
+| Pipeline edits while the scheduler is live | Permitted for this change. The edit to `scripts/brief-refresh-and-push.sh` is a one-token flag addition, covered by `tests/brief-refresh-atomicity.test.mjs` (26/26 green, below). |
+| R5 in `docs/Improvement-Plan.md` | **NOT done.** Only the *author prompt* wording was sharpened. `docs/Improvement-Plan.md` is an owner-authored surface and is still out of scope; the Scope 2 DoD item for it remains unchecked. |
+
+### The Refusal Policy: DROP The Call, Never Fail The Publish
+
+The choice was forced by executed evidence, not preference.
+
+**The currently committed `market-brief.payload.json` already contains one
+offending call** — `nextSession.actions[4]`, `action=hedge`, `horizon=tactical`,
+zero attributed invalidation levels (raw output in
+[E-B1](#e-b1--the-committed-payload-still-carries-the-offending-call)). So a
+blocking D16 verdict would not have been a hypothetical future refusal; it would
+have fired immediately, on the existing baseline. Three consequences follow:
+
+1. **The brief would stop shipping, permanently.**
+   [`brief-refresh-and-push.sh:95`](../../../scripts/brief-refresh-and-push.sh)
+   validates the **previously published** payload as its transaction baseline and
+   `exit 1`s when that payload is invalid — *before any fetch*. A blocking verdict
+   there refuses **every** subsequent scheduled run until a human hand-edits a
+   committed artifact under `BRIEF_REPAIR_INVALID_BASELINE=1`.
+2. **`main` would stay red, only differently.**
+   [`selftest.mjs:462`](../../../scripts/selftest.mjs) asserts
+   `validateBriefPayload(...)` returns zero errors for the committed payload. A
+   blocking D16 error there swaps one red assertion for another.
+3. **The cost is disproportionate.** BUG-006 severity is *"Medium — `main` is
+   RED; no reader-facing surface is wrong."* Killing eight briefs a day to
+   prevent one unscoreable ledger row is a strictly larger harm than the defect.
+
+Dropping costs exactly one call from one window — and D16 itself asks for
+precisely that: *"the claim is **withheld** rather than emitted as
+`not-evaluable`."* A call that can never be scored is not a call.
+
+**The policy is therefore per-rung, and each rung is deliberate:**
+
+| Rung | Mode | Why |
+|---|---|---|
+| `:95` baseline | default — report by name, exit on schema errors only | D16 governs **publication**; a baseline is history, not this run's claim. Blocking here stalls the scheduler. |
+| `:303` post-narrative | **`--drop-unscoreable`** | This run's own candidate, inside the transaction, with `restore_narrative_baseline` available. The offending claim is withheld and the brief still publishes. |
+| `:334` retained / `:365` final pair | default | `:303` already repaired; these rungs must not rewrite an artifact this run did not author. |
+| human / CI / regression | **`--enforce-d16`** | Strict, read-only verdict. This is the mode the adversarial proof exercises. |
+
+A typo'd flag exits **2** rather than being silently ignored, so a misspelling
+can never quietly disable the gate.
+
+### E-B1 — The Committed Payload Still Carries The Offending Call
+
+**Claim Source: `executed`.**
+
+```
+[0] action=hold horizon=structural   evaluability=machine-checkable reason=null invalidationLevels=3 triggerLevels=3
+[1] action=hold horizon=swing        evaluability=machine-checkable reason=null invalidationLevels=1 triggerLevels=2
+[2] action=rotate horizon=swing      evaluability=machine-checkable reason=null invalidationLevels=2 triggerLevels=0
+[3] action=hold horizon=swing        evaluability=machine-checkable reason=null invalidationLevels=1 triggerLevels=2
+[4] action=hedge horizon=tactical    evaluability=not-evaluable reason=no-attributable-invalidation-level invalidationLevels=0 triggerLevels=3
+PROBE_EXIT=0
+```
+
+### E-B2 — DISC-006-004 Closed: The Bare Integer, Not The Compound Form
+
+**Claim Source: `executed`.** The open question *"why did `at/above the 765 call
+wall` produce no `above` level?"* is now answered. It is **not** the `at/above`
+compound and **not** the *"call wall"* noun phrase. `765` is a **bare integer**,
+which `extractLevels` deliberately refuses on both sides (*"in this corpus
+integers are periods and thresholds … not prices"*). Only `~16` survived, and a
+`below` level on a short-biased call is re-attributed to the trigger side.
+
+```
+published form (bare integer)    -> [{"instrument":"VIX","relation":"below","value":16,"upside":false}]
+tilde form                       -> [{"instrument":"SPY","relation":"above","value":765,"upside":false}]
+decimal form                     -> [{"instrument":"SPY","relation":"above","value":765,"upside":false}]
+below only (the defect)          -> [{"instrument":"SPY","relation":"below","value":755.68,"upside":false}]
+PROBE_EXIT=0
+```
+
+This is why the sharpened authoring instruction now constrains **both** the side
+**and** the numeric form. The previous wording was under-specified on both axes,
+and the published call violated both.
+
+### E-B3 — Mandated Adversarial Proof (three exit codes, verbatim)
+
+**Claim Source: `executed`.** The offending fixture is the **real published
+payload, byte-for-byte** — not a synthetic strawman. The corrected fixture is
+the same file with **only** `actions[4].invalidation` rewritten onto the
+direction-correct side.
+
+**1 — canonical project check**
+
+```
+Research-Lab self-test: 1218 passed, 0 failed
+PROOF_1_SELFTEST_EXIT=0
+```
+
+**2 — the offending hedge call is REFUSED**
+
+```
+[brief-contract] D16 REFUSED nextSession.actions[4] action=hedge horizon=tactical directionSign=-1 must break ABOVE reason=no-attributable-invalidation-level invalidationLevels=0 triggerLevels=3 subject="Keep a MINIMAL event-insurance residual into July NFP 8/7 — with VIX now easing back under 16 (15.86) the run-off case f"
+[brief-contract] FAIL: 1 unscoreable tactical/swing call(s) breach D16 — withhold them or give each one a direction-correct invalidation level
+PROOF_2_OFFENDING_EXIT=1
+```
+
+**3 — the direction-correct version PASSES**
+
+```
+[brief-contract] PASS: all visible sections, registry coverage, model-specific real assets, and next-session actions are valid
+PROOF_3_CORRECTED_EXIT=0
+```
+
+**The gate is not vacuous.** Two payloads differing **only** in the invalidation
+clause's side and numeric form produce exit `1` and exit `0`. The refusal names
+the action, its subject, its direction sign, the side it needed, and the reason
+code, as required.
+
+### E-B4 — The Repair Mode Keeps The Brief
+
+**Claim Source: `executed`.** Same offending payload, `--drop-unscoreable`:
+
+```
+[brief-contract] D16 REFUSED nextSession.actions[4] action=hedge horizon=tactical directionSign=-1 must break ABOVE reason=no-attributable-invalidation-level invalidationLevels=0 triggerLevels=3 subject="Keep a MINIMAL event-insurance residual into July NFP 8/7 — …"
+[brief-contract] D16 withheld 1 unscoreable call(s) from /tmp/bug006-d16-proof/offending.payload.json — the rest of the brief still publishes
+[brief-contract] PASS: all visible sections, registry coverage, model-specific real assets, and next-session actions are valid
+DROP_MODE_EXIT=0
+surviving actions: 4
+  [0] hold/structural
+  [1] hold/swing
+  [2] rotate/swing
+  [3] hold/swing
+```
+
+One unscoreable claim withheld; four scoreable calls and the whole brief survive.
+
+### E-B5 — Regression Sweep
+
+**Claim Source: `executed`.**
+
+| Command | Result |
+|---|---|
+| `node scripts/selftest.mjs` | `1218 passed, 0 failed` — exit `0`, identical to the pre-change baseline |
+| `node --test tests/brief-d16-direction-aware-publish-gate.test.mjs` | `tests 10 / pass 10 / fail 0` — exit `0` |
+| `node --test tests/brief-refresh-atomicity.test.mjs` | `tests 26 / pass 26 / fail 0` (exercises the wrapper with the new flag) |
+| `bash -n scripts/brief-refresh-and-push.sh` | exit `0` |
+| `shellcheck scripts/brief-refresh-and-push.sh` | exit `0` |
+| `node --check` on both modified `.mjs` files | exit `0` each |
+| `node scripts/validate-node-source-lock.mjs` | `OK adversarial=16 unexpectedAcceptances=0` — exit `0` |
+
+### E-B6 — Honest Gaps And Pre-Existing Reds
+
+**Claim Source: `executed` for the observations, `interpreted` for the attribution.**
+
+- **`tests/feature-004-dirty-tree-collision.test.mjs` is RED, and was RED before
+  this change.** Baseline and post-change runs are **byte-identical**: the same
+  3 tests fail on the same assertion (`post-commit v10 requiredRecords[9]
+  commits the complete ordered full record`) with the same actual/expected
+  hashes. Index 9 of `REQUIRED_SCOPE_ONE_PATHS` is `scripts/selftest.mjs`, which
+  a **concurrent session** is editing. This change introduced no new failure
+  there and did not touch that test or any `specs/004-*` artifact.
+- **Tests were placed in a new standalone file, not in `scripts/selftest.mjs`**
+  as the Scope 2 Test Plan proposed. `scripts/selftest.mjs` is the exact path the
+  concurrent session is mutating and is pinned by the Feature 004 identity
+  ledger; adding to it would have collided with in-flight foreign work. The
+  deviation is recorded rather than hidden.
+- **The append-only ledger is untouched.** No partition, index, pointer, or
+  brief artifact under `briefs/` was read-modified-written. `market-brief.payload.json`
+  was **not** modified — every gate demonstration ran against copies under
+  `/tmp/bug006-d16-proof/`.
+- **The already-published unscoreable row stands.** The ledger cannot be
+  retro-scored (FR-006-006); this change prevents the **next** one.
+- **Defect A is still open**, and so is A2. `planEvaluation` will still fall one
+  evaluation behind whenever a publish mints an on-sight-closable call. The gate
+  added here removes the most common **source** of such calls, which makes the
+  `selftest` idempotence assertion far less likely to trip, but it does **not**
+  fix the ordering and must not be read as doing so.
+- **`docs/Improvement-Plan.md` D16 wording (R5) was not updated.** It is an
+  owner-authored surface. The gate now enforces more than that document states.
+

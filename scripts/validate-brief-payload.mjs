@@ -1,9 +1,10 @@
 #!/usr/bin/env node
 
-import { readFileSync } from 'node:fs';
+import { readFileSync, writeFileSync } from 'node:fs';
 import { dirname, resolve } from 'node:path';
 import { fileURLToPath } from 'node:url';
 import { findBriefNarrativeVocabularyLeaks } from './reader-vocabulary.mjs';
+import { ACTION_DIRECTION, buildRecommendationBody, loadInstrumentUniverse } from './recommendation-body.mjs';
 
 const SCRIPT_PATH = fileURLToPath(import.meta.url);
 const ROOT = resolve(dirname(SCRIPT_PATH), '..');
@@ -18,6 +19,82 @@ function hasNarrative(value) {
 
 function hasObject(value) {
   return value && typeof value === 'object' && !Array.isArray(value) && Object.keys(value).length > 0;
+}
+
+/* ── D16 on the publish path ─────────────────────────────────────────────────────────────────────
+   D16 (docs/Improvement-Plan.md): "No unscoreable tactical or swing call is published. If a level
+   cannot be attributed, the claim is withheld rather than emitted as not-evaluable."
+
+   Until BUG-006 that rule lived ONLY as a sentence in the author prompt
+   (scripts/brief-narrative-parallel.mjs), and this file checked only that `invalidation` was
+   non-empty TEXT. A hedge call whose invalidation clause carried four numerals therefore passed the
+   gate and reached the append-only ledger as `not-evaluable` — permanently, because the ledger
+   cannot be retro-scored.
+
+   The rule the prompt did not state: which SIDE the level must land on. recommendation-body.mjs
+   attributes every level against the call's OWN direction — a long-biased call (add/rotate/hold)
+   breaks BELOW, a short-biased call (trim/hedge) breaks ABOVE — and re-attributes a level on the
+   other side to the TRIGGER, because for a hedge a falling price means the hedge is WORKING. A
+   short-biased call whose invalidation carries only `below` levels therefore ends with zero
+   invalidation levels and can never be scored. That classifier is correct; the authoring was not. */
+export const D16_SCORED_HORIZONS = Object.freeze(['tactical', 'swing']);
+
+/** The relation an invalidation level MUST carry for a call of this action family to be scoreable. */
+export function requiredInvalidationRelation(direction) {
+  const sign = Object.prototype.hasOwnProperty.call(ACTION_DIRECTION, direction) ? ACTION_DIRECTION[direction] : 0;
+  return sign >= 0 ? 'below' : 'above';
+}
+
+/**
+ * findUnscoreableActions(payload, options) — every tactical/swing action whose own published prose
+ * resolves to `not-evaluable` under the shipped body builder. Structural calls are out of scope:
+ * D16 names tactical and swing only.
+ */
+export function findUnscoreableActions(payload, options) {
+  const opts = options || {};
+  const universe = opts.universe || loadInstrumentUniverse(opts.root || ROOT);
+  const actions = Array.isArray(payload?.nextSession?.actions) ? payload.nextSession.actions : [];
+  const findings = [];
+  actions.forEach((action, index) => {
+    if (!D16_SCORED_HORIZONS.includes(action?.horizon)) return;
+    const subject = hasText(action?.subject) ? action.subject : `action-${index}`;
+    const family = hasText(action?.action) ? action.action : 'note';
+    const body = buildRecommendationBody({ ...action, subject, action: family }, { universe });
+    if (body.evaluability !== 'not-evaluable') return;
+    findings.push({
+      index,
+      action: family,
+      subject,
+      horizon: action.horizon,
+      directionSign: body.directionSign,
+      requiredInvalidationRelation: requiredInvalidationRelation(family),
+      reasonCode: body.evaluabilityReason,
+      invalidationLevels: body.levels.filter((level) => level.source === 'invalidation').length,
+      triggerLevels: body.levels.filter((level) => level.source === 'trigger').length
+    });
+  });
+  return findings;
+}
+
+/** One operator-legible line per refusal. It names the action, its subject, its direction and the reason. */
+export function formatUnscoreableFinding(finding) {
+  return `nextSession.actions[${finding.index}] action=${finding.action} horizon=${finding.horizon}`
+    + ` directionSign=${finding.directionSign} must break ${finding.requiredInvalidationRelation.toUpperCase()}`
+    + ` reason=${finding.reasonCode} invalidationLevels=${finding.invalidationLevels} triggerLevels=${finding.triggerLevels}`
+    + ` subject="${String(finding.subject).slice(0, 120)}"`;
+}
+
+/** The repair: withhold the unscoreable CLAIM, keep every other call and the rest of the brief. */
+export function dropUnscoreableActions(payload, findings) {
+  if (!findings || !findings.length) return payload;
+  const dropped = new Set(findings.map((finding) => finding.index));
+  return {
+    ...payload,
+    nextSession: {
+      ...payload.nextSession,
+      actions: payload.nextSession.actions.filter((_, index) => !dropped.has(index))
+    }
+  };
 }
 
 export function validateBriefPayload(payload, registry, config, snapshot) {
@@ -128,10 +205,53 @@ function loadJson(path) {
   return JSON.parse(readFileSync(resolve(ROOT, path), 'utf8'));
 }
 
+const D16_FLAGS = new Set(['--enforce-d16', '--drop-unscoreable']);
+
+/*
+ * D16 enforcement mode is chosen by the CALLER, because refusing and repairing have very different
+ * costs on different rungs of the publish path:
+ *
+ *   (default)            report every unscoreable call by name, exit on schema errors only.
+ *                        brief-refresh-and-push.sh:95 validates the PREVIOUSLY published payload as
+ *                        its transaction baseline and exits 1 when that payload is invalid. A
+ *                        blocking D16 verdict there would refuse every future scheduled run before
+ *                        it fetched anything — the brief would stop shipping until a human hand-edited
+ *                        a committed artifact. D16 governs PUBLICATION, and a baseline is not being
+ *                        published, so the baseline rung reports and continues.
+ *
+ *   --enforce-d16        strict, read-only verdict: an unscoreable call makes the payload
+ *                        unpublishable. For humans, CI, and regression proof.
+ *
+ *   --drop-unscoreable   the repair the publish path uses: withhold the offending CLAIM and ship the
+ *                        rest of the brief. One call the evaluator could never have scored is lost;
+ *                        the window still publishes. Killing a whole brief over one call is a larger
+ *                        harm than the defect it prevents.
+ */
 function main() {
-  const payloadPath = process.argv[2] || 'market-brief.payload.json';
+  const args = process.argv.slice(2);
+  const flags = args.filter((arg) => arg.startsWith('--'));
+  const unknown = flags.filter((flag) => !D16_FLAGS.has(flag));
+  if (unknown.length) {
+    console.error(`[brief-contract] unknown flag(s): ${unknown.join(', ')}`);
+    process.exit(2);
+  }
+  const payloadPath = args.filter((arg) => !arg.startsWith('--'))[0] || 'market-brief.payload.json';
+  const strict = flags.includes('--enforce-d16');
+  const repair = flags.includes('--drop-unscoreable');
+
+  let payload = loadJson(payloadPath);
+  const unscoreable = findUnscoreableActions(payload, { root: ROOT });
+  const verdict = strict || repair ? 'D16 REFUSED' : 'D16 WARNING';
+  unscoreable.forEach((finding) => console.error(`[brief-contract] ${verdict} ${formatUnscoreableFinding(finding)}`));
+
+  if (unscoreable.length && repair) {
+    payload = dropUnscoreableActions(payload, unscoreable);
+    writeFileSync(resolve(ROOT, payloadPath), JSON.stringify(payload, null, 2) + '\n');
+    console.error(`[brief-contract] D16 withheld ${unscoreable.length} unscoreable call(s) from ${payloadPath} — the rest of the brief still publishes`);
+  }
+
   const errors = validateBriefPayload(
-    loadJson(payloadPath),
+    payload,
     loadJson('tools.json'),
     loadJson('market-brief.config.json'),
     loadJson('market-brief.snapshot.json')
@@ -139,6 +259,10 @@ function main() {
   if (errors.length) {
     console.error('[brief-contract] FAIL');
     errors.forEach((error) => console.error('  - ' + error));
+    process.exit(1);
+  }
+  if (unscoreable.length && strict && !repair) {
+    console.error(`[brief-contract] FAIL: ${unscoreable.length} unscoreable tactical/swing call(s) breach D16 — withhold them or give each one a direction-correct invalidation level`);
     process.exit(1);
   }
   console.log('[brief-contract] PASS: all visible sections, registry coverage, model-specific real assets, and next-session actions are valid');

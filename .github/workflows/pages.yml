@@ -85,3 +85,94 @@ jobs:
     - name: Deploy to GitHub Pages
       id: deployment
       uses: actions/deploy-pages@v4
+
+  # ── NON-BLOCKING and strictly downstream. This job reports; it gates nothing and can never
+  #    influence verify or deploy.
+  #
+  #    Without it a red build is announced only by a colour on a page nobody has open. The failure
+  #    that matters here is asymmetric: when deploy dies, the previously published site stays up
+  #    and keeps serving the brief that was current at the last green run, with no staleness
+  #    marker of any kind. The site does not look broken — it looks fine and is wrong.
+  #
+  #    `cancelled()` is deliberate. A workflow cannot see WHO cancelled a run, so a deliberate
+  #    operator cancel is indistinguishable from a run killed by infrastructure. Alerting on both
+  #    and printing the conclusion lets the operator dismiss the deliberate case; staying quiet
+  #    unless certain would reinstate the silence this job removes.
+  notify-failure:
+    needs: [ verify, deploy ]
+    if: ${{ failure() || cancelled() }}
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    # Minimum scope, declared at job level: naming any permission here drops every other scope to
+    # none, so this job holds no pages, id-token, or contents authority at all.
+    permissions:
+      issues: write
+    steps:
+    - name: Open or update the failure issue
+      uses: actions/github-script@v7
+      env:
+        # Passed through the environment rather than interpolated into the script body, so no
+        # context value can ever be parsed as code.
+        ALERT_WORKFLOW: ${{ github.workflow }}
+        ALERT_VERIFY: ${{ needs.verify.result }}
+        ALERT_DEPLOY: ${{ needs.deploy.result }}
+        ALERT_EVENT: ${{ github.event_name }}
+        ALERT_ACTOR: ${{ github.triggering_actor }}
+        ALERT_SHA: ${{ github.sha }}
+        ALERT_REF: ${{ github.ref_name }}
+        ALERT_RUN_URL: ${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }}/attempts/${{ github.run_attempt }}
+      with:
+        script: |
+          const { owner, repo } = context.repo;
+          const label = 'ci-failure';
+          const title = 'CI alert: pages build/deploy is failing';
+
+          // Name the job that actually broke. "Something in pages failed" is not actionable.
+          const results = [
+            ['verify', process.env.ALERT_VERIFY],
+            ['deploy', process.env.ALERT_DEPLOY],
+          ];
+          const broke = results.filter(([, result]) => result !== 'success' && result !== 'skipped');
+          const jobLine = (broke.length > 0 ? broke : results)
+            .map(([name, result]) => '`' + name + '` \u2192 `' + (result || 'unknown') + '`').join(', ');
+
+          const body = [
+            '**Workflow:** `' + process.env.ALERT_WORKFLOW + '`',
+            '**Job:** ' + jobLine,
+            '**Trigger:** ' + process.env.ALERT_EVENT + ' on `' + process.env.ALERT_REF
+              + '` \u2014 started by @' + process.env.ALERT_ACTOR,
+            '**Commit:** `' + process.env.ALERT_SHA + '`',
+            '**Run:** ' + process.env.ALERT_RUN_URL,
+            '',
+            'The previously deployed site is still live and still serving the brief from the last green',
+            'run. It carries no staleness marker, so a visitor cannot tell that publishing has stopped.',
+            '',
+            'Close this issue once a run is green. The next failure after it is closed opens a new one.',
+          ].join('\n');
+
+          // Create the label before searching by it, so the very first alert on a fresh repository
+          // cannot fail on a missing label. An alerting path that throws is as silent as none.
+          try {
+            await github.rest.issues.createLabel({
+              owner, repo, name: label, color: 'b60205',
+              description: 'Automated CI failure alert',
+            });
+          } catch (error) {
+            if (error.status !== 422) throw error; // 422 = the label already exists
+          }
+
+          // De-duplicate against the OPEN alert thread. A fresh issue per failed run would self-spam
+          // on every push, the operator would mute the channel, and the original silence would be
+          // back. listForRepo is used rather than the search API because search indexing lags, and a
+          // lagging lookup produces exactly the duplicate it is meant to prevent.
+          const open = (await github.paginate(github.rest.issues.listForRepo, {
+            owner, repo, state: 'open', labels: label, per_page: 100,
+          })).find((issue) => issue.title === title);
+
+          if (open) {
+            await github.rest.issues.createComment({ owner, repo, issue_number: open.number, body });
+            core.notice('Appended this failure to existing alert issue #' + open.number);
+          } else {
+            const created = await github.rest.issues.create({ owner, repo, title, body, labels: [label] });
+            core.notice('Opened alert issue #' + created.data.number);
+          }

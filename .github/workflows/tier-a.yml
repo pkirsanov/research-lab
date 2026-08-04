@@ -50,6 +50,10 @@ jobs:
   refresh:
     runs-on: ubuntu-latest
     timeout-minutes: 25
+    # Republished purely so the failure alert can name WHICH ET window broke rather than making the
+    # operator decode the cron. Adds no step, no ordering, and no gate.
+    outputs:
+      window: ${{ steps.window.outputs.window }}
     steps:
     - name: Resolve scheduled ET window
       id: window
@@ -153,3 +157,93 @@ jobs:
         fi
         git commit -m "tier-a: scheduled refresh $(date -u +%Y-%m-%dT%H:%MZ)"
         git push
+
+  # ── Failure alerting. This job reports; it can never affect the refresh above.
+  #
+  #    A scheduled window that dies quietly is this repo's worst failure mode: the site keeps
+  #    serving the LAST successful brief with no staleness marker, so a stale brief reads exactly
+  #    like a current one. That directly contradicts the product's central claim, so "nobody was
+  #    watching" is not an acceptable outcome for a red run.
+  #
+  #    `cancelled()` is included on purpose. GitHub exposes no canceller identity to a workflow, so
+  #    an operator cancelling deliberately and a run killed by infrastructure are indistinguishable
+  #    from in here. We therefore alert on both and print the conclusion, letting the operator
+  #    dismiss a deliberate one. The opposite trade — stay silent unless certain — is precisely the
+  #    silence this job exists to remove.
+  notify-failure:
+    needs: refresh
+    if: ${{ failure() || cancelled() }}
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    # Minimum scope, declared at job level: naming any permission here drops every other scope to
+    # none, so this job cannot write repository contents even if the script below were wrong.
+    permissions:
+      issues: write
+    steps:
+    - name: Open or update the failure issue
+      uses: actions/github-script@v7
+      env:
+        # Passed through the environment rather than interpolated into the script body, so no
+        # context value can ever be parsed as code.
+        ALERT_WORKFLOW: ${{ github.workflow }}
+        ALERT_RESULT: ${{ needs.refresh.result }}
+        ALERT_EVENT: ${{ github.event_name }}
+        ALERT_CRON: ${{ github.event.schedule }}
+        ALERT_WINDOW: ${{ needs.refresh.outputs.window }}
+        ALERT_ACTOR: ${{ github.triggering_actor }}
+        ALERT_SHA: ${{ github.sha }}
+        ALERT_REF: ${{ github.ref_name }}
+        ALERT_RUN_URL: ${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }}/attempts/${{ github.run_attempt }}
+      with:
+        script: |
+          const { owner, repo } = context.repo;
+          const label = 'ci-failure';
+          const title = 'CI alert: tier-a scheduled refresh is failing';
+
+          const cron = process.env.ALERT_CRON || '(not a scheduled run)';
+          const trigger = process.env.ALERT_EVENT === 'schedule'
+            ? 'schedule — cron `' + cron + '`'
+            : process.env.ALERT_EVENT + ' — started by @' + process.env.ALERT_ACTOR;
+          const window = process.env.ALERT_WINDOW
+            || '(unresolved — the run died before the ET window was decided)';
+
+          const body = [
+            '**Workflow:** `' + process.env.ALERT_WORKFLOW + '`',
+            '**Job:** `refresh` — concluded `' + process.env.ALERT_RESULT + '`',
+            '**Trigger:** ' + trigger,
+            '**ET window:** ' + window,
+            '**Commit:** `' + process.env.ALERT_SHA + '` on `' + process.env.ALERT_REF + '`',
+            '**Run:** ' + process.env.ALERT_RUN_URL,
+            '',
+            'While this is red the published brief silently stays at its last successful value. It does',
+            'not mark itself stale, so treat this as a correctness incident and not a build annoyance.',
+            '',
+            'Close this issue once a window runs green. The next failure after it is closed opens a new one.',
+          ].join('\n');
+
+          // Create the label before searching by it, so the very first alert on a fresh repository
+          // cannot fail on a missing label. An alerting path that throws is as silent as none.
+          try {
+            await github.rest.issues.createLabel({
+              owner, repo, name: label, color: 'b60205',
+              description: 'Automated CI failure alert',
+            });
+          } catch (error) {
+            if (error.status !== 422) throw error; // 422 = the label already exists
+          }
+
+          // De-duplicate against the OPEN alert thread. Filing a fresh issue per failed run would
+          // self-spam eight times a weekday, the operator would mute the channel, and the original
+          // silence would be back. listForRepo is used rather than the search API because search
+          // indexing lags and a lagging lookup produces exactly the duplicate it is meant to avoid.
+          const open = (await github.paginate(github.rest.issues.listForRepo, {
+            owner, repo, state: 'open', labels: label, per_page: 100,
+          })).find((issue) => issue.title === title);
+
+          if (open) {
+            await github.rest.issues.createComment({ owner, repo, issue_number: open.number, body });
+            core.notice('Appended this failure to existing alert issue #' + open.number);
+          } else {
+            const created = await github.rest.issues.create({ owner, repo, title, body, labels: [label] });
+            core.notice('Opened alert issue #' + created.data.number);
+          }

@@ -201,6 +201,19 @@ Before any browser row, run `node scripts/validate-node-source-lock.mjs` and `np
   - **Claim Source:** executed
   - **Evidence:** [TP-01-06 raw cumulative output: 3 tests passed](report.md#tp-01-06).
 
+#### Scenario Behavioral Claims
+
+These items restate each Gherkin scenario's own behavioral claim, unweakened. They stay unchecked until the claim as written is independently confirmed against the named Test Plan rows and recorded in `report.md`; the existing Test Evidence items above record that the rows ran, not that these claims were re-read against the Gherkin.
+
+- [ ] SCN-008-001 holds exactly as written: when a user imports a valid portfolio without credentials — an import carrying recognized holding fields and no secret or account-identity field — and reviews and confirms the import preview, one new local portfolio revision becomes current, its holdings, quantities, optional cost fields, and derived values remain local-only, and the Portfolio Brief and portfolio analyses reference the new revision.
+  - **Phase:** validate
+  - **Verifying rows:** TP-01-03 (`Regression: SCN-008-001 valid local portfolio import creates one current revision`) and TP-01-05 (`Regression: Feature 008 atomic slots preserve last valid portfolio in durable session and memory modes`) for the local-only durable, session-only, and memory-only revision states.
+  - **Resolution condition:** each clause above — one new current revision, local-only retention of every holding/quantity/cost/derived value, and Portfolio Brief plus portfolio analyses referencing that revision — is separately confirmed against the row output. A row that merely exits 0 does not resolve this item.
+- [ ] SCN-008-002 holds exactly as written: a malformed or secret-bearing import cannot partially replace the portfolio — given a current valid portfolio exists, an import carrying malformed rows, credential-shaped fields, or unresolved required identities is rejected with row and field reasons, the prior portfolio remains current and unchanged, and no rejected value enters storage, logs, URLs, telemetry, or committed artifacts.
+  - **Phase:** validate
+  - **Verifying rows:** TP-01-04 (`Regression: SCN-008-002 invalid or secret-bearing import is atomic and redacted`) and TP-01-05 (`Regression: Feature 008 atomic slots preserve last valid portfolio in durable session and memory modes`) for last-known-good preservation across persistence modes.
+  - **Resolution condition:** the atomicity claim is what must be shown — no partial replacement in any persistence mode, the prior revision identity unchanged after rejection, and the rejected value absent from every named sink. Evidence that an import was validated or that confirmation was disabled is weaker than this claim and does not resolve it.
+
 #### Build Quality Gate
 
 - [ ] Focused RED/GREEN records, fixture provenance, namespace and hostile-input scans, no-interception/service-worker/external-request scan, source-lock/runner checks, editor diagnostics, `git diff --check`, artifact lint/freshness, G094, Test Plan/DoD parity, plan sync, and scope-local traceability are current and clean with every finding individually accounted for in `report.md`. Scope-local traceability is `bash .github/bubbles/scripts/traceability-guard.sh specs/008-portfolio-survival-and-brief-lab --current-scope`, executed while this scope is the active scope in `state.json`, with zero failure naming this scope's own files. Whole-feature `--all-scopes` traceability is NOT required here; the [Feature Completion Gate](../_index.md#feature-completion-gate) enforces it once, in Scope 16.

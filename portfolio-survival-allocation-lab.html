@@ -241,6 +241,10 @@
             padding-top: 20px;
         }
 
+        .workspace.route-view {
+            grid-template-columns: minmax(0, 1fr);
+        }
+
         .brief,
         .editor {
             min-width: 0;
@@ -377,6 +381,10 @@
             background: var(--band-2);
         }
 
+        .preview-metrics.wide {
+            grid-template-columns: repeat(7, minmax(0, 1fr));
+        }
+
         .preview-metrics strong {
             display: block;
             margin-bottom: 3px;
@@ -387,6 +395,32 @@
             color: var(--muted);
             font-size: .67rem;
             text-transform: uppercase;
+        }
+
+        .route-panel h3 {
+            margin-bottom: 5px;
+        }
+
+        .route-states {
+            margin: 10px 0 0;
+            padding-left: 18px;
+            color: var(--muted);
+            font-size: .8rem;
+            line-height: 1.6;
+        }
+
+        .route-block {
+            margin-top: 14px;
+        }
+
+        .route-block ul {
+            margin: 6px 0 0;
+            padding-left: 18px;
+            line-height: 1.6;
+        }
+
+        .route-block p {
+            margin: 6px 0 0;
         }
 
         .table-wrap {
@@ -444,7 +478,9 @@
             background: var(--error-bg);
         }
 
-        #importErrors {
+        #importErrors,
+        #mandateConflictList,
+        #mandateErrors {
             margin: 10px 0;
             padding-left: 20px;
             color: #ffd3ce;
@@ -508,7 +544,8 @@
                 grid-column: auto;
             }
 
-            .preview-metrics {
+            .preview-metrics,
+            .preview-metrics.wide {
                 grid-template-columns: repeat(2, minmax(0, 1fr));
             }
 
@@ -550,10 +587,11 @@
 
         <nav class="tablist" role="tablist" aria-label="Portfolio workspace">
             <button id="workspaceTabBrief" type="button" role="tab" aria-selected="true">Portfolio Brief</button>
-            <button type="button" role="tab" aria-selected="false" disabled>Risk X-Ray</button>
-            <button type="button" role="tab" aria-selected="false" disabled>Path Lab</button>
+            <button id="workspaceTabRiskXray" type="button" role="tab" aria-selected="false">Risk X-Ray</button>
+            <button id="workspaceTabPathLab" type="button" role="tab" aria-selected="false">Path Lab</button>
             <button type="button" role="tab" aria-selected="false" disabled>Diversification</button>
-            <button type="button" role="tab" aria-selected="false" disabled>Allocation Comparison</button>
+            <button id="workspaceTabAllocation" type="button" role="tab" aria-selected="false">Allocation
+                Comparison</button>
             <button type="button" role="tab" aria-selected="false" disabled>Research Dossier</button>
         </nav>
 
@@ -571,8 +609,8 @@
             <div id="privacyResult" class="state-message" role="status">No clear requested.</div>
         </section>
 
-        <div class="workspace">
-            <section class="brief" aria-label="Portfolio Brief workspace">
+        <div id="workspaceGrid" class="workspace">
+            <section id="briefWorkspace" class="brief" aria-label="Portfolio Brief workspace">
                 <div class="band">
                     <div class="boundary">
                         <div>
@@ -613,6 +651,17 @@
                             context does not become a neutral allocation, hidden goal, or recommendation.</p>
                     </div>
                 </div>
+            </section>
+
+            <section id="routeStates" class="brief" aria-label="Mandate-dependent route states" hidden>
+                <div class="band">
+                    <h2 id="routeHeading">Route state</h2>
+                    <p class="subtle">Descriptive research and mandate-dependent conclusions are reported separately.
+                        A missing mandate stays missing: no goal, floor, horizon, risk tolerance, or expected return is
+                        inferred from holdings, behavior, settings, or route state.</p>
+                    <div id="routeCitation" class="identity">No current portfolio revision</div>
+                </div>
+                <div id="routePanels"></div>
             </section>
 
             <aside id="portfolioEditor" class="editor" aria-labelledby="editorHeading">
@@ -738,6 +787,75 @@
                     <div id="commitResult" class="state-message" role="status">No write attempted.</div>
                 </div>
 
+                <div class="band" aria-labelledby="mandateHeading">
+                    <h2 id="mandateHeading">Mandate and dated cash needs</h2>
+                    <p class="subtle">Every objective, horizon, hard constraint, and dated cash need is entered by you.
+                        Research behavior, interest signals, recorded outcomes, and display settings are refused at this
+                        boundary. A field you leave out stays absent instead of acquiring a value.</p>
+                    <div id="currentMandate" class="state-message" role="status">No current mandate. Goal fit,
+                        survival to goal, constraint feasibility, and cash-need collision stay unavailable.</div>
+                    <div class="field-grid">
+                        <label class="full" for="mandateFile">Local mandate JSON file
+                            <input id="mandateFile" type="file" accept=".json,application/json">
+                        </label>
+                    </div>
+                    <div class="preview-metrics wide" aria-label="Mandate preview counts">
+                        <div><strong id="mandateConstraints">0</strong><span>Constraints</span></div>
+                        <div><strong id="mandateHard">0</strong><span>Hard</span></div>
+                        <div><strong id="mandateResearch">0</strong><span>Research</span></div>
+                        <div><strong id="mandateCashNeeds">0</strong><span>Cash needs</span></div>
+                        <div><strong id="mandateAbsent">0</strong><span>Absent</span></div>
+                        <div><strong id="mandateConflicts">0</strong><span>Conflicts</span></div>
+                        <div><strong id="mandateRejected">0</strong><span>Rejected</span></div>
+                    </div>
+                    <p id="mandateAbsentList" class="microcopy">No mandate draft previewed.</p>
+                    <ul id="mandateErrors" aria-live="polite"></ul>
+                    <ul id="mandateConflictList" aria-live="polite"></ul>
+                    <div id="mandateImpact" class="state-message">No mandate draft previewed.</div>
+                    <div class="table-wrap">
+                        <table>
+                            <thead>
+                                <tr>
+                                    <th scope="col">Constraint</th>
+                                    <th scope="col">Subject</th>
+                                    <th scope="col">Minimum</th>
+                                    <th scope="col">Maximum</th>
+                                    <th scope="col">Unit</th>
+                                    <th scope="col">Authority</th>
+                                </tr>
+                            </thead>
+                            <tbody id="mandateConstraintRows">
+                                <tr>
+                                    <td colspan="6">No mandate draft previewed.</td>
+                                </tr>
+                            </tbody>
+                        </table>
+                    </div>
+                    <div class="table-wrap" style="margin-top:12px">
+                        <table>
+                            <thead>
+                                <tr>
+                                    <th scope="col">Date</th>
+                                    <th scope="col">Amount</th>
+                                    <th scope="col">Currency</th>
+                                    <th scope="col">Priority</th>
+                                    <th scope="col">Treatment</th>
+                                </tr>
+                            </thead>
+                            <tbody id="mandateCashNeedRows">
+                                <tr>
+                                    <td colspan="5">No mandate draft previewed.</td>
+                                </tr>
+                            </tbody>
+                        </table>
+                    </div>
+                    <div class="button-row" style="margin-top:12px">
+                        <button id="confirmMandate" class="primary" type="button" disabled>Confirm mandate</button>
+                        <button id="discardMandate" type="button" disabled>Discard mandate draft</button>
+                    </div>
+                    <div id="mandateResult" class="state-message" role="status">No mandate draft previewed.</div>
+                </div>
+
                 <div class="band">
                     <h3>Local lifecycle</h3>
                     <p id="exportWarning" class="microcopy">Private export requires an explicit destination warning.</p>
@@ -779,9 +897,39 @@
                 store: null,
                 opened: null,
                 draft: null,
+                mandateDraft: null,
+                routeStates: null,
+                route: "brief",
                 configReady: false,
                 adapters: null
             };
+
+            var ROUTE_TABS = Object.freeze([
+                { hash: "brief", tab: "workspaceTabBrief" },
+                { hash: "risk-xray", tab: "workspaceTabRiskXray" },
+                { hash: "path-lab", tab: "workspaceTabPathLab" },
+                { hash: "allocation", tab: "workspaceTabAllocation" }
+            ]);
+
+            var ROUTE_LABELS = Object.freeze({
+                "allocation": "Allocation Comparison",
+                "path-lab": "Path Lab",
+                "risk-xray": "Risk X-Ray"
+            });
+
+            var STATE_LABELS = Object.freeze({
+                "cash-need-collision": "Cash-need collision",
+                "constraint-feasibility": "Constraint feasibility",
+                "goal-fit": "Goal fit",
+                "survival-to-goal": "Survival to goal"
+            });
+
+            var STATE_GAP_COPY = Object.freeze({
+                "cash-need-collision": "you have declared no dated cash need, so nothing can collide",
+                "constraint-feasibility": "you have declared no constraint, so feasibility cannot be tested",
+                "goal-fit": "you have declared no objective, horizon, or survival floor",
+                "survival-to-goal": "you have declared no goal date or survival floor"
+            });
 
             function byId(id) { return document.getElementById(id); }
             function setText(id, value) { byId(id).textContent = value; }
@@ -827,8 +975,166 @@
                     generation: workspace ? workspace.generation : null,
                     currentPortfolioId: workspace ? workspace.currentPortfolioId : null,
                     revisionCount: workspace ? workspace.portfolioRevisions.length : 0,
-                    holdingCount: revision ? revision.holdings.length : 0
+                    holdingCount: revision ? revision.holdings.length : 0,
+                    currentMandateId: workspace ? workspace.currentMandateId : null,
+                    mandateRevisionCount: workspace ? workspace.mandateRevisions.length : 0,
+                    routeStates: state.routeStates
                 });
+            }
+
+            function currentMandate() {
+                if (!state.opened || !state.opened.workspace.currentMandateId) return null;
+                return state.opened.workspace.mandateRevisions.find(function (mandate) {
+                    return mandate.mandateId === state.opened.workspace.currentMandateId;
+                });
+            }
+
+            function routeProjection() {
+                if (!state.policy || !state.opened) return null;
+                var projected = api.projectRouteStates(state.opened.workspace, state.policy);
+                return projected.ok ? projected.value : null;
+            }
+
+            function constraintCopy(constraint) {
+                var bounds = [];
+                if (constraint.minimum !== null) bounds.push("at least " + String(constraint.minimum));
+                if (constraint.maximum !== null) bounds.push("at most " + String(constraint.maximum));
+                return constraint.subject + " · " + constraint.kind + " · " +
+                    (bounds.length > 0 ? bounds.join(" and ") : "no numeric bound") + " · " + constraint.unit +
+                    " · " + constraint.constraintKind + " · entered by you";
+            }
+
+            function cashNeedCopy(cashNeed) {
+                return cashNeed.date + " · " + String(cashNeed.amount) + " " + cashNeed.currency + " · priority " +
+                    String(cashNeed.priority) + " · " + cashNeed.treatmentTiming + " · entered by you";
+            }
+
+            function routeBlock(attributeName, labelText, lines, emptyCopy) {
+                var block = document.createElement("div");
+                block.setAttribute(attributeName, "");
+                block.className = "route-block";
+                var label = document.createElement("span");
+                label.className = "label";
+                label.textContent = labelText;
+                block.appendChild(label);
+                if (lines.length === 0) {
+                    var empty = document.createElement("p");
+                    empty.className = "subtle";
+                    empty.textContent = emptyCopy;
+                    block.appendChild(empty);
+                    return block;
+                }
+                var list = document.createElement("ul");
+                list.className = "subtle";
+                lines.forEach(function (line) {
+                    var item = document.createElement("li");
+                    item.textContent = line;
+                    list.appendChild(item);
+                });
+                block.appendChild(list);
+                return block;
+            }
+
+            function routePanel(entry) {
+                var panel = document.createElement("article");
+                panel.className = "band route-panel";
+                panel.dataset.route = entry.route;
+                panel.hidden = entry.route !== state.route;
+
+                var heading = document.createElement("h3");
+                heading.textContent = ROUTE_LABELS[entry.route] || entry.route;
+                panel.appendChild(heading);
+
+                var descriptive = document.createElement("p");
+                descriptive.className = "subtle";
+                descriptive.setAttribute("data-descriptive", "");
+                descriptive.textContent = entry.descriptive.available
+                    ? "Descriptive research · Available · cites portfolio " + entry.descriptive.citedPortfolioId
+                    : "Descriptive research · Unavailable · " + entry.descriptive.reason +
+                    " · import one local revision first";
+                panel.appendChild(descriptive);
+
+                var states = document.createElement("ul");
+                states.className = "route-states";
+                entry.mandateDependent.forEach(function (dependent) {
+                    var item = document.createElement("li");
+                    item.dataset.state = dependent.state;
+                    var label = STATE_LABELS[dependent.state] || dependent.state;
+                    item.textContent = dependent.available
+                        ? label + " · Available · cites mandate " + dependent.citedMandateId
+                        : label + " · Unavailable · " + dependent.reason + " · " +
+                        (STATE_GAP_COPY[dependent.state] || "the mandate that would answer this is missing");
+                    states.appendChild(item);
+                });
+                panel.appendChild(states);
+
+                panel.appendChild(routeBlock("data-constraints", "Constraints you entered",
+                    entry.constraints.map(constraintCopy), "No user-entered constraint has been declared."));
+                panel.appendChild(routeBlock("data-cash-needs", "Dated cash needs you entered",
+                    entry.cashNeeds.map(cashNeedCopy), "No user-entered cash need has been declared."));
+                panel.appendChild(routeBlock("data-inferred", "Never-inferred fields", [
+                    "No inferred values · " + Object.keys(entry.inferredValues).map(function (name) {
+                        var value = entry.inferredValues[name];
+                        return name + "=" + (value === null ? "absent" : String(value));
+                    }).join(" · ")
+                ], ""));
+                panel.appendChild(routeBlock("data-behavior", "Evidence authority", [
+                    "Recorded research behavior contributes none to this route · display settings contribute none"
+                ], ""));
+                return panel;
+            }
+
+            function renderRoutes() {
+                var projection = state.routeStates;
+                var container = byId("routePanels");
+                if (!projection) {
+                    setText("routeCitation", "No current portfolio revision");
+                    container.replaceChildren();
+                    return;
+                }
+                setText("routeCitation",
+                    (projection.currentPortfolioId || "No current portfolio revision") + " · " +
+                    (projection.currentMandateId || "No current mandate"));
+                container.replaceChildren.apply(container, projection.routes.map(routePanel));
+            }
+
+            function renderCurrentMandate() {
+                var mandate = currentMandate();
+                if (!mandate) {
+                    setText("currentMandate", "No current mandate. Goal fit, survival to goal, constraint feasibility, and cash-need collision stay unavailable.");
+                    byId("currentMandate").className = "state-message";
+                    return;
+                }
+                setText("currentMandate", "Current mandate " + mandate.mandateId + " · " + mandate.objectiveLabel +
+                    " · horizon " + mandate.horizon.endDate + " · " + mandate.constraints.length +
+                    " constraints · " + mandate.cashNeeds.length + " dated cash needs");
+                byId("currentMandate").className = "state-message ok";
+            }
+
+            function refreshWorkspaceViews() {
+                state.routeStates = routeProjection();
+                renderRoutes();
+                renderCurrentMandate();
+                updateDiagnostics();
+            }
+
+            function applyRoute(hash) {
+                state.route = hash;
+                ROUTE_TABS.forEach(function (route) {
+                    byId(route.tab).setAttribute("aria-selected", String(route.hash === hash));
+                });
+                var brief = hash === "brief";
+                byId("briefWorkspace").hidden = !brief;
+                byId("portfolioEditor").hidden = !brief;
+                byId("routeStates").hidden = brief;
+                byId("workspaceGrid").classList.toggle("route-view", !brief);
+                byId("openPortfolio").setAttribute("aria-expanded", String(brief));
+                renderRoutes();
+            }
+
+            function routeFromHash() {
+                var raw = (window.location.hash || "").replace(/^#/, "");
+                return ROUTE_TABS.some(function (route) { return route.hash === raw; }) ? raw : "brief";
             }
 
             function renderCurrent(prefix) {
@@ -839,7 +1145,7 @@
                     setText("workspaceIdentity", "No current portfolio revision");
                     byId("exportPortfolio").disabled = true;
                     byId("clearPortfolio").disabled = true;
-                    updateDiagnostics();
+                    refreshWorkspaceViews();
                     return;
                 }
                 var copy = "Current revision " + revision.portfolioId + " · generation " + workspace.generation + " · " + revision.name + " · " + revision.holdings.length + " holdings";
@@ -847,7 +1153,7 @@
                 setText("workspaceIdentity", revision.portfolioId);
                 byId("exportPortfolio").disabled = !byId("exportAcknowledgement").checked;
                 byId("clearPortfolio").disabled = !byId("clearConfirmation").checked;
-                updateDiagnostics();
+                refreshWorkspaceViews();
             }
 
             function renderStorage() {
@@ -984,6 +1290,142 @@
                 renderPreview();
             }
 
+            function placeholderRow(id, columns, copy) {
+                var row = document.createElement("tr");
+                var cell = document.createElement("td");
+                cell.colSpan = columns;
+                cell.textContent = copy;
+                row.appendChild(cell);
+                byId(id).replaceChildren(row);
+            }
+
+            function tableRow(values) {
+                var row = document.createElement("tr");
+                values.forEach(function (value) {
+                    var cell = document.createElement("td");
+                    cell.textContent = value;
+                    row.appendChild(cell);
+                });
+                return row;
+            }
+
+            function clearMandateDraftView() {
+                ["mandateConstraints", "mandateHard", "mandateResearch", "mandateCashNeeds", "mandateAbsent",
+                    "mandateConflicts", "mandateRejected"].forEach(function (id) { setText(id, "0"); });
+                setText("mandateAbsentList", "No mandate draft previewed.");
+                byId("mandateErrors").replaceChildren();
+                byId("mandateConflictList").replaceChildren();
+                setText("mandateImpact", "No mandate draft previewed.");
+                byId("mandateImpact").className = "state-message";
+                placeholderRow("mandateConstraintRows", 6, "No mandate draft previewed.");
+                placeholderRow("mandateCashNeedRows", 5, "No mandate draft previewed.");
+                byId("confirmMandate").disabled = true;
+            }
+
+            function resetMandatePreview() {
+                state.mandateDraft = null;
+                clearMandateDraftView();
+                setText("mandateResult", "No mandate draft previewed.");
+                byId("mandateResult").className = "state-message";
+                byId("discardMandate").disabled = true;
+                byId("mandateFile").value = "";
+            }
+
+            function setMandateRefusal(code, field, reason) {
+                state.mandateDraft = null;
+                clearMandateDraftView();
+                setText("mandateResult", code + " · " + (field ? field + " · " : "") + reason + " · Current mandate unchanged.");
+                byId("mandateResult").className = "state-message error";
+                byId("discardMandate").disabled = false;
+            }
+
+            function renderMandatePreview() {
+                var draft = state.mandateDraft;
+                var constraints = draft.mandate ? draft.mandate.constraints : [];
+                var cashNeeds = draft.mandate ? draft.mandate.cashNeeds : [];
+                setText("mandateConstraints", String(draft.summary.constraints));
+                setText("mandateHard", String(draft.summary.hardConstraints));
+                setText("mandateResearch", String(draft.summary.researchConstraints));
+                setText("mandateCashNeeds", String(draft.summary.cashNeeds));
+                setText("mandateAbsent", String(draft.summary.absent));
+                setText("mandateConflicts", String(draft.summary.conflicts));
+                setText("mandateRejected", String(draft.summary.rejected));
+                setText("mandateAbsentList", draft.absentFields.length === 0
+                    ? "You declared every optional policy field explicitly."
+                    : "Absent and left absent · " + draft.absentFields.join(" · "));
+                byId("mandateErrors").replaceChildren.apply(byId("mandateErrors"), draft.errors.map(function (error) {
+                    var item = document.createElement("li");
+                    item.textContent = safeErrorCopy(error);
+                    return item;
+                }));
+                byId("mandateConflictList").replaceChildren.apply(byId("mandateConflictList"), draft.conflicts.map(function (conflict) {
+                    var item = document.createElement("li");
+                    item.textContent = conflict.reason + " · " + conflict.subject + " · declared entries " +
+                        conflict.indexes.map(function (index) { return index + 1; }).join(" and ");
+                    return item;
+                }));
+                setText("mandateImpact",
+                    (draft.impact.portfolioUnchanged ? "Current portfolio unchanged" : "Current portfolio changes") +
+                    " · " + (draft.impact.mandateUnchangedUntilConfirm ? "current mandate unchanged until you confirm" : "current mandate changes") +
+                    " · recorded research behavior contributes " + draft.impact.behaviorContribution +
+                    " · display settings contribute " + draft.impact.settingsContribution);
+                byId("mandateImpact").className = "state-message";
+                if (constraints.length === 0) {
+                    placeholderRow("mandateConstraintRows", 6, draft.declaredConstraints === 0
+                        ? "You declared no constraint."
+                        : "Declared constraints were refused before normalization.");
+                } else {
+                    byId("mandateConstraintRows").replaceChildren.apply(byId("mandateConstraintRows"), constraints.map(function (constraint) {
+                        return tableRow([
+                            constraint.kind,
+                            constraint.subject,
+                            constraint.minimum === null ? "absent" : String(constraint.minimum),
+                            constraint.maximum === null ? "absent" : String(constraint.maximum),
+                            constraint.unit,
+                            constraint.constraintKind
+                        ]);
+                    }));
+                }
+                if (cashNeeds.length === 0) {
+                    placeholderRow("mandateCashNeedRows", 5, draft.declaredCashNeeds === 0
+                        ? "You declared no dated cash need."
+                        : "Declared cash needs were refused before normalization.");
+                } else {
+                    byId("mandateCashNeedRows").replaceChildren.apply(byId("mandateCashNeedRows"), cashNeeds.map(function (cashNeed) {
+                        return tableRow([
+                            cashNeed.date,
+                            String(cashNeed.amount),
+                            cashNeed.currency,
+                            String(cashNeed.priority),
+                            cashNeed.treatmentTiming
+                        ]);
+                    }));
+                }
+                if (draft.canConfirm) {
+                    setText("mandateResult", "Mandate preview is complete and feasible. No mandate has been written yet.");
+                    byId("mandateResult").className = "state-message ok";
+                } else if (draft.conflicts.length > 0) {
+                    setText("mandateResult", "Mandate preview stays infeasible · " + draft.conflicts.length +
+                        " conflicts · Current mandate unchanged · every declared constraint and cash need is preserved as you declared it.");
+                    byId("mandateResult").className = "state-message error";
+                } else {
+                    setText("mandateResult", "Mandate preview refused · " + draft.summary.rejected +
+                        " entries refused · Current mandate unchanged.");
+                    byId("mandateResult").className = "state-message error";
+                }
+                byId("confirmMandate").disabled = !(state.configReady && draft.canConfirm);
+                byId("discardMandate").disabled = false;
+            }
+
+            function setMandateDraftResult(result) {
+                if (!result.ok) {
+                    setMandateRefusal(result.error.code, result.error.field, result.error.reason);
+                    return;
+                }
+                state.mandateDraft = result.value;
+                renderMandatePreview();
+            }
+
             function manualDraft() {
                 var value = { assetType: byId("manualAssetType").value, currency: byId("manualCurrency").value };
                 var textFields = {
@@ -1018,13 +1460,16 @@
                 setText("storageMode", "Not opened");
                 setText("commitResult", "P008-CONFIG · " + (error && error.reason ? error.reason : "policy-load-failed"));
                 byId("commitResult").className = "state-message error";
-                ["portfolioFile", "previewManual", "confirmImport", "discardDraft", "duplicateChoice"].forEach(function (id) { byId(id).disabled = true; });
+                ["portfolioFile", "previewManual", "confirmImport", "discardDraft", "duplicateChoice",
+                    "mandateFile", "confirmMandate", "discardMandate"].forEach(function (id) { byId(id).disabled = true; });
                 renderInventory();
-                updateDiagnostics();
+                refreshWorkspaceViews();
             }
 
             function boot() {
                 state.adapters = { localStorage: browserStorage("localStorage"), sessionStorage: browserStorage("sessionStorage") };
+                applyRoute(routeFromHash());
+                resetMandatePreview();
                 renderInventory();
                 fetch("portfolio-survival-allocation.config.json", { cache: "no-store", credentials: "same-origin" })
                     .then(function (response) {
@@ -1059,10 +1504,19 @@
             }
 
             byId("openPortfolio").addEventListener("click", function () {
-                byId("portfolioEditor").hidden = false;
-                this.setAttribute("aria-expanded", "true");
+                if (state.route !== "brief") window.location.hash = "brief";
+                applyRoute("brief");
                 byId("editorHeading").focus();
             });
+
+            ROUTE_TABS.forEach(function (route) {
+                byId(route.tab).addEventListener("click", function () {
+                    if (window.location.hash !== "#" + route.hash) window.location.hash = route.hash;
+                    applyRoute(route.hash);
+                });
+            });
+
+            window.addEventListener("hashchange", function () { applyRoute(routeFromHash()); });
 
             byId("openPrivacy").addEventListener("click", function () {
                 var panel = byId("privacyPanel");
@@ -1097,6 +1551,48 @@
             byId("previewManual").addEventListener("click", function () {
                 if (!state.configReady) return;
                 setDraftResult(api.validateManualDraft(manualDraft(), state.opened.workspace, state.policy));
+            });
+
+            byId("mandateFile").addEventListener("change", function () {
+                if (!state.configReady || !this.files || this.files.length !== 1) return;
+                if (!this.files[0].name.toLowerCase().endsWith(".json")) {
+                    setMandateRefusal("P008-MANDATE-SHAPE", "mandate", "mandate-file-kind-invalid");
+                    return;
+                }
+                this.files[0].text().then(function (bytes) {
+                    var parsed;
+                    try { parsed = JSON.parse(bytes); } catch (error) { parsed = undefined; }
+                    if (parsed === undefined) {
+                        setMandateRefusal("P008-MANDATE-SHAPE", "mandate", "mandate-json-invalid");
+                        return;
+                    }
+                    setMandateDraftResult(api.validateMandateDraft(parsed, state.opened.workspace, { now: now() }, state.policy));
+                }).catch(function () {
+                    setMandateRefusal("P008-MANDATE-SHAPE", "mandate", "mandate-file-read-failed");
+                });
+            });
+
+            byId("confirmMandate").addEventListener("click", function () {
+                if (this.disabled || !state.configReady || !state.mandateDraft) return;
+                var candidate = api.buildMandateCandidate(state.mandateDraft, state.opened.workspace, { now: now() }, state.policy);
+                if (!candidate.ok) {
+                    setMandateRefusal(candidate.error.code, candidate.error.field, candidate.error.reason);
+                    return;
+                }
+                var committed = state.store.commitWorkspace(candidate.value, state.opened.workspace.generation, now());
+                if (!committed.ok) {
+                    setMandateRefusal(committed.error.code, committed.error.field, committed.error.reason);
+                    return;
+                }
+                state.opened = committed.value;
+                resetMandatePreview();
+                renderStorage();
+                renderCurrent();
+                renderInventory();
+            });
+
+            byId("discardMandate").addEventListener("click", function () {
+                resetMandatePreview();
             });
 
             byId("duplicateChoice").addEventListener("change", function () {

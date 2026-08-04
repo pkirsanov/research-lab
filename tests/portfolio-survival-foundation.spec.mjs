@@ -57,6 +57,222 @@ async function importValid(page, name = 'Scope 01 portfolio') {
   await expect(page.locator('#currentRevision')).toContainText('Current revision');
 }
 
+async function previewMandate(page, fixtureName) {
+  await page.locator('#mandateFile').setInputFiles(resolve(FIXTURE_ROOT, fixtureName));
+  await expect(page.locator('#mandateResult')).not.toHaveText('No mandate draft previewed.');
+}
+
+async function visitRoute(page, route) {
+  await page.locator(`#workspaceTab${route.tab}`).click();
+  await expect(page).toHaveURL(new RegExp(`#${route.hash}$`));
+  await expect(page.locator(`#workspaceTab${route.tab}`)).toHaveAttribute('aria-selected', 'true');
+  return page.locator(`[data-route="${route.hash}"]`);
+}
+
+const MANDATE_ROUTES = Object.freeze([
+  { hash: 'risk-xray', tab: 'RiskXray' },
+  { hash: 'path-lab', tab: 'PathLab' },
+  { hash: 'allocation', tab: 'Allocation' }
+]);
+
+const MANDATE_DEPENDENT_STATES = Object.freeze([
+  'cash-need-collision', 'constraint-feasibility', 'goal-fit', 'survival-to-goal'
+]);
+
+const NEVER_INFERRED_FIELDS = Object.freeze([
+  'expectedReturn', 'horizon', 'liquidityNeed', 'riskTolerance', 'survivalFloor'
+]);
+
+test('Regression: SCN-008-003 explicit mandate alone supplies every hard constraint', async ({ page }) => {
+  const requestStart = server.requests.length;
+  const browserRequests = await openRoute(page);
+  await importValid(page, 'SCN-008-003 portfolio');
+  const beforeMandate = await page.evaluate(() => window.__PORTFOLIO_DIAGNOSTICS__);
+  expect(beforeMandate.currentMandateId).toBe(null);
+
+  await previewMandate(page, 'mandate-explicit.json');
+  await expect(page.locator('#mandateConstraints')).toHaveText('2');
+  await expect(page.locator('#mandateHard')).toHaveText('2');
+  await expect(page.locator('#mandateResearch')).toHaveText('0');
+  await expect(page.locator('#mandateCashNeeds')).toHaveText('1');
+  await expect(page.locator('#mandateConflicts')).toHaveText('0');
+  await expect(page.locator('#mandateRejected')).toHaveText('0');
+  // The four nullable policy fields are absent in the fixture and must be reported absent, not defaulted.
+  await expect(page.locator('#mandateAbsent')).toHaveText('4');
+  await expect(page.locator('#mandateAbsentList')).toContainText('survivalDefinition');
+  await expect(page.locator('#mandateAbsentList')).toContainText('expectedReturnPolicy');
+  await expect(page.locator('#mandateImpact')).toContainText('Current portfolio unchanged');
+  await expect(page.locator('#mandateImpact')).toContainText('behavior contributes none');
+
+  await expect(page.locator('#confirmMandate')).toBeEnabled();
+  await page.locator('#confirmMandate').click();
+  await expect(page.locator('#currentMandate')).toContainText('sha256:');
+
+  const afterMandate = await page.evaluate(() => window.__PORTFOLIO_DIAGNOSTICS__);
+  expect(afterMandate.currentMandateId).toMatch(/^sha256:[a-f0-9]{64}$/);
+  expect(afterMandate.mandateRevisionCount).toBe(1);
+  // A mandate is not a portfolio edit: the portfolio revision identity must survive untouched.
+  expect(afterMandate.currentPortfolioId).toBe(beforeMandate.currentPortfolioId);
+  expect(afterMandate.holdingCount).toBe(beforeMandate.holdingCount);
+  expect(afterMandate.revisionCount).toBe(beforeMandate.revisionCount);
+
+  for (const route of MANDATE_ROUTES) {
+    const panel = await visitRoute(page, route);
+    await expect(panel.locator('[data-descriptive]')).toContainText(afterMandate.currentPortfolioId);
+    for (const state of MANDATE_DEPENDENT_STATES) {
+      await expect(panel.locator(`[data-state="${state}"]`)).toContainText('Available');
+      await expect(panel.locator(`[data-state="${state}"]`)).toContainText(afterMandate.currentMandateId);
+    }
+    await expect(panel.locator('[data-constraints]')).toContainText('MSFT');
+    await expect(panel.locator('[data-constraints]')).toContainText('0.25');
+    await expect(panel.locator('[data-constraints]')).toContainText('BND');
+    await expect(panel.locator('[data-constraints]')).toContainText('0.1');
+    await expect(panel.locator('[data-cash-needs]')).toContainText('2031-06-30');
+    await expect(panel.locator('[data-cash-needs]')).toContainText('40000');
+    await expect(panel.locator('[data-behavior]')).toContainText('behavior contributes none');
+  }
+
+  const projection = await page.evaluate(() => window.__PORTFOLIO_DIAGNOSTICS__.routeStates);
+  expect(projection.behaviorContribution).toBe('none');
+  expect(projection.settingsContribution).toBe('none');
+  expect(projection.routes.map((entry) => entry.route).sort()).toEqual(['allocation', 'path-lab', 'risk-xray']);
+  for (const entry of projection.routes) {
+    expect(entry.constraints.map((constraint) => constraint.subject).sort()).toEqual(['BND', 'MSFT']);
+    expect(entry.constraints.every((constraint) => constraint.inputAuthority === 'user')).toBe(true);
+    expect(entry.cashNeeds.map((need) => need.date)).toEqual(['2031-06-30']);
+    expect(entry.cashNeeds.every((need) => need.inputAuthority === 'user')).toBe(true);
+    for (const field of NEVER_INFERRED_FIELDS) expect(entry.inferredValues[field]).toBe(null);
+  }
+
+  // Behavior/interest/settings evidence must be refused outright, never absorbed into a constraint.
+  await page.locator('#workspaceTabBrief').click();
+  await previewMandate(page, 'mandate-behavior-noise.json');
+  await expect(page.locator('#mandateResult')).toContainText('P008-MANDATE-AUTHORITY');
+  await expect(page.locator('#mandateResult')).toContainText('forbidden-input-source');
+  await expect(page.locator('#confirmMandate')).toBeDisabled();
+  const afterNoise = await page.evaluate(() => window.__PORTFOLIO_DIAGNOSTICS__);
+  expect(afterNoise.currentMandateId).toBe(afterMandate.currentMandateId);
+  expect(afterNoise.mandateRevisionCount).toBe(1);
+  const noiseProjection = afterNoise.routeStates.routes[0];
+  expect(noiseProjection.constraints.map((constraint) => constraint.subject).sort()).toEqual(['BND', 'MSFT']);
+  expect(JSON.stringify(afterNoise.routeStates)).not.toMatch(/XOM|commodity-carry|energy|shockMagnitude/i);
+
+  const requests = server.requests.slice(requestStart);
+  expect(requests.every((entry) => entry.method === 'GET')).toBe(true);
+  expect(JSON.stringify(requests)).not.toMatch(/MSFT|BND|40000|2031-06-30|objectiveLabel/i);
+  expect(browserRequests.every((url) => new URL(url).origin === server.baseUrl)).toBe(true);
+  console.log('[SCN-008-003] mandateId=' + afterMandate.currentMandateId);
+  console.log('[SCN-008-003] portfolioUnchanged=' + (afterMandate.currentPortfolioId === beforeMandate.currentPortfolioId));
+  console.log('[SCN-008-003] hardConstraints=2');
+  console.log('[SCN-008-003] researchConstraints=0');
+  console.log('[SCN-008-003] cashNeeds=1');
+  console.log('[SCN-008-003] absentFields=4');
+  console.log('[SCN-008-003] routesCiting=' + projection.routes.length);
+  console.log('[SCN-008-003] behaviorContribution=' + projection.behaviorContribution);
+  console.log('[SCN-008-003] behaviorDraftRefused=P008-MANDATE-AUTHORITY');
+  console.log('[SCN-008-003] mandateUnchangedAfterNoise=true');
+  console.log('[SCN-008-003] remotePersonalRequests=0');
+});
+
+test('Regression: SCN-008-004 no mandate leaves goal fit and survival unavailable', async ({ page }) => {
+  const requestStart = server.requests.length;
+  const browserRequests = await openRoute(page);
+  await importValid(page, 'SCN-008-004 portfolio');
+  const diagnostics = await page.evaluate(() => window.__PORTFOLIO_DIAGNOSTICS__);
+  expect(diagnostics.currentMandateId).toBe(null);
+  expect(diagnostics.mandateRevisionCount).toBe(0);
+
+  for (const route of MANDATE_ROUTES) {
+    const panel = await visitRoute(page, route);
+    // Descriptive research survives the absence of a mandate.
+    await expect(panel.locator('[data-descriptive]')).toContainText('Available');
+    await expect(panel.locator('[data-descriptive]')).toContainText(diagnostics.currentPortfolioId);
+    for (const state of MANDATE_DEPENDENT_STATES) {
+      const stateLocator = panel.locator(`[data-state="${state}"]`);
+      await expect(stateLocator).toContainText('Unavailable');
+      await expect(stateLocator).toContainText('mandate-absent');
+      await expect(stateLocator).not.toContainText('sha256:');
+    }
+    await expect(panel.locator('[data-inferred]')).toContainText('No inferred values');
+    for (const field of NEVER_INFERRED_FIELDS) {
+      await expect(panel.locator('[data-inferred]')).toContainText(`${field}=absent`);
+    }
+    await expect(panel.locator('[data-constraints]')).toContainText('No user-entered constraint');
+    await expect(panel.locator('[data-cash-needs]')).toContainText('No user-entered cash need');
+  }
+
+  const projection = await page.evaluate(() => window.__PORTFOLIO_DIAGNOSTICS__.routeStates);
+  expect(projection.currentMandateId).toBe(null);
+  expect(projection.citedMandateFingerprint).toBe(null);
+  for (const entry of projection.routes) {
+    expect(entry.descriptive.available).toBe(true);
+    expect(entry.descriptive.citedPortfolioId).toBe(diagnostics.currentPortfolioId);
+    expect(entry.constraints).toEqual([]);
+    expect(entry.cashNeeds).toEqual([]);
+    expect(entry.horizon).toBe(null);
+    for (const state of entry.mandateDependent) {
+      expect(state.available).toBe(false);
+      expect(state.reason).toBe('mandate-absent');
+      expect(state.citedMandateId).toBe(null);
+    }
+    for (const field of NEVER_INFERRED_FIELDS) expect(entry.inferredValues[field]).toBe(null);
+  }
+
+  // A missing goal must never render as a neutral zero or a placeholder number.
+  const routeText = await page.locator('#routeStates').innerText();
+  expect(routeText).not.toMatch(/\b(0%|0\.0|TBD|N\/A|default|assumed|typical)\b/i);
+  expect(browserRequests.every((url) => new URL(url).origin === server.baseUrl)).toBe(true);
+  expect(server.requests.slice(requestStart).every((entry) => entry.method === 'GET')).toBe(true);
+  console.log('[SCN-008-004] currentMandateId=null');
+  console.log('[SCN-008-004] descriptiveAvailable=true');
+  console.log('[SCN-008-004] goalFit=unavailable:mandate-absent');
+  console.log('[SCN-008-004] survivalToGoal=unavailable:mandate-absent');
+  console.log('[SCN-008-004] constraintFeasibility=unavailable:mandate-absent');
+  console.log('[SCN-008-004] cashNeedCollision=unavailable:mandate-absent');
+  console.log('[SCN-008-004] inferredValues=0');
+  console.log('[SCN-008-004] placeholderNumbers=0');
+  console.log('[SCN-008-004] routes=' + projection.routes.length);
+});
+
+test('Regression: SCN-008-003 conflicting mandate stays visibly infeasible with no constraint relaxed', async ({ page }) => {
+  await openRoute(page);
+  await importValid(page, 'Conflict portfolio');
+  await previewMandate(page, 'mandate-explicit.json');
+  await page.locator('#confirmMandate').click();
+  await expect(page.locator('#currentMandate')).toContainText('sha256:');
+  const established = await page.evaluate(() => window.__PORTFOLIO_DIAGNOSTICS__);
+
+  await previewMandate(page, 'mandate-conflicting.json');
+  await expect(page.locator('#confirmMandate')).toBeDisabled();
+  await expect(page.locator('#mandateResult')).toContainText('Current mandate unchanged');
+  // Every declared constraint and cash need survives the conflict, in declared order.
+  await expect(page.locator('#mandateConstraints')).toHaveText('2');
+  await expect(page.locator('#mandateCashNeeds')).toHaveText('3');
+  await expect(page.locator('#mandateConflictList')).toContainText('constraint-bounds-conflict');
+  await expect(page.locator('#mandateConflictList')).toContainText('cash-need-currency-unavailable');
+  await expect(page.locator('#mandateConflictList')).toContainText('cash-need-declared-order-invalid');
+
+  const declaredCashNeedDates = await page.locator('#mandateCashNeedRows tr td:first-child').allInnerTexts();
+  expect(declaredCashNeedDates).toEqual(['2029-03-31', '2027-09-30', '2034-01-31']);
+  const declaredConstraints = await page.locator('#mandateConstraintRows tr td:nth-child(2)').allInnerTexts();
+  expect(declaredConstraints).toEqual(['MSFT', 'MSFT']);
+
+  const afterConflict = await page.evaluate(() => window.__PORTFOLIO_DIAGNOSTICS__);
+  expect(afterConflict.currentMandateId).toBe(established.currentMandateId);
+  expect(afterConflict.currentPortfolioId).toBe(established.currentPortfolioId);
+  expect(afterConflict.mandateRevisionCount).toBe(1);
+  const conflictCount = Number(await page.locator('#mandateConflicts').innerText());
+  expect(conflictCount).toBeGreaterThanOrEqual(3);
+  console.log('[SCN-008-003-conflict] conflicts=' + conflictCount);
+  console.log('[SCN-008-003-conflict] confirmDisabled=true');
+  console.log('[SCN-008-003-conflict] declaredConstraintsPreserved=2');
+  console.log('[SCN-008-003-conflict] declaredCashNeedsPreserved=3');
+  console.log('[SCN-008-003-conflict] declaredOrderPreserved=true');
+  console.log('[SCN-008-003-conflict] currentMandateUnchanged=true');
+  console.log('[SCN-008-003-conflict] currentPortfolioUnchanged=true');
+  console.log('[SCN-008-003-conflict] constraintsRelaxed=0');
+});
+
 test('Regression: SCN-008-001 valid local portfolio import creates one current revision', async ({ page }) => {
   const requestStart = server.requests.length;
   const browserRequests = await openRoute(page);

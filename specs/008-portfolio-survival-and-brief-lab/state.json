@@ -42,7 +42,7 @@
                 "name": "Mandate And Cash-Need Authority",
                 "status": "not_started",
                 "dependsOn": [
-                    1
+                    "1"
                 ],
                 "scopeDir": "scopes/02-mandate-and-cash-need-authority",
                 "evidenceFile": "scopes/02-mandate-and-cash-need-authority/report.md"
@@ -52,7 +52,7 @@
                 "name": "Local Behavior Privacy Inventory And Clear",
                 "status": "not_started",
                 "dependsOn": [
-                    2
+                    "2"
                 ],
                 "scopeDir": "scopes/03-local-behavior-privacy-inventory-and-clear",
                 "evidenceFile": "scopes/03-local-behavior-privacy-inventory-and-clear/report.md"
@@ -62,7 +62,7 @@
                 "name": "Public Evidence Barrier And Coverage",
                 "status": "not_started",
                 "dependsOn": [
-                    3
+                    "3"
                 ],
                 "scopeDir": "scopes/04-public-evidence-barrier-and-coverage",
                 "evidenceFile": "scopes/04-public-evidence-barrier-and-coverage/report.md"
@@ -72,7 +72,7 @@
                 "name": "Four-Window Direct-Scope Brief",
                 "status": "not_started",
                 "dependsOn": [
-                    4
+                    "4"
                 ],
                 "scopeDir": "scopes/05-four-window-direct-scope-brief",
                 "evidenceFile": "scopes/05-four-window-direct-scope-brief/report.md"
@@ -82,7 +82,7 @@
                 "name": "Explainable Research Action Lifecycle",
                 "status": "not_started",
                 "dependsOn": [
-                    5
+                    "5"
                 ],
                 "scopeDir": "scopes/06-explainable-research-action-lifecycle",
                 "evidenceFile": "scopes/06-explainable-research-action-lifecycle/report.md"
@@ -92,7 +92,7 @@
                 "name": "Return And Drawdown X-Ray",
                 "status": "not_started",
                 "dependsOn": [
-                    6
+                    "6"
                 ],
                 "scopeDir": "scopes/07-return-and-drawdown-x-ray",
                 "evidenceFile": "scopes/07-return-and-drawdown-x-ray/report.md"
@@ -102,7 +102,7 @@
                 "name": "Concentration CAPM And Risk Contribution",
                 "status": "not_started",
                 "dependsOn": [
-                    7
+                    "7"
                 ],
                 "scopeDir": "scopes/08-concentration-capm-and-risk-contribution",
                 "evidenceFile": "scopes/08-concentration-capm-and-risk-contribution/report.md"
@@ -112,7 +112,7 @@
                 "name": "Dependent Path Reproducibility",
                 "status": "not_started",
                 "dependsOn": [
-                    8
+                    "8"
                 ],
                 "scopeDir": "scopes/09-dependent-path-reproducibility",
                 "evidenceFile": "scopes/09-dependent-path-reproducibility/report.md"
@@ -122,7 +122,7 @@
                 "name": "Dated Cash Needs And Survival States",
                 "status": "not_started",
                 "dependsOn": [
-                    9
+                    "9"
                 ],
                 "scopeDir": "scopes/10-dated-cash-needs-and-survival-states",
                 "evidenceFile": "scopes/10-dated-cash-needs-and-survival-states/report.md"
@@ -132,7 +132,7 @@
                 "name": "Stress Tail And Alternative Dependence",
                 "status": "not_started",
                 "dependsOn": [
-                    10
+                    "10"
                 ],
                 "scopeDir": "scopes/11-stress-tail-and-alternative-dependence",
                 "evidenceFile": "scopes/11-stress-tail-and-alternative-dependence/report.md"
@@ -142,7 +142,7 @@
                 "name": "Hedge Variant Research",
                 "status": "not_started",
                 "dependsOn": [
-                    11
+                    "11"
                 ],
                 "scopeDir": "scopes/12-hedge-variant-research",
                 "evidenceFile": "scopes/12-hedge-variant-research/report.md"
@@ -152,7 +152,7 @@
                 "name": "Six-Method Allocation Basis And Feasibility",
                 "status": "not_started",
                 "dependsOn": [
-                    12
+                    "12"
                 ],
                 "scopeDir": "scopes/13-six-method-allocation-basis-and-feasibility",
                 "evidenceFile": "scopes/13-six-method-allocation-basis-and-feasibility/report.md"
@@ -162,7 +162,7 @@
                 "name": "Allocation Sensitivity And Explicit Black-Litterman",
                 "status": "not_started",
                 "dependsOn": [
-                    13
+                    "13"
                 ],
                 "scopeDir": "scopes/14-allocation-sensitivity-and-explicit-black-litterman",
                 "evidenceFile": "scopes/14-allocation-sensitivity-and-explicit-black-litterman/report.md"
@@ -172,7 +172,7 @@
                 "name": "Walk-Forward Research Dossier And Claim Boundaries",
                 "status": "not_started",
                 "dependsOn": [
-                    14
+                    "14"
                 ],
                 "scopeDir": "scopes/15-walk-forward-research-dossier-and-claim-boundaries",
                 "evidenceFile": "scopes/15-walk-forward-research-dossier-and-claim-boundaries/report.md"
@@ -182,7 +182,7 @@
                 "name": "Integrated Route Accessibility And Atomic Release",
                 "status": "not_started",
                 "dependsOn": [
-                    15
+                    "15"
                 ],
                 "scopeDir": "scopes/16-integrated-route-accessibility-and-atomic-release",
                 "evidenceFile": "scopes/16-integrated-route-accessibility-and-atomic-release/report.md"
@@ -200,7 +200,182 @@
         "status": "in_progress",
         "completedScopes": [],
         "certifiedCompletedPhases": [],
-        "scopeProgress": [],
+        "scopeProgress": [
+            {
+                "scope": 1,
+                "name": "Private Portfolio Import And Atomic Store",
+                "status": "in_progress",
+                "dependsOn": [],
+                "scopeDir": "scopes/01-private-portfolio-import-and-atomic-store",
+                "evidenceFile": "scopes/01-private-portfolio-import-and-atomic-store/report.md",
+                "certifiedAt": null
+            },
+            {
+                "scope": 2,
+                "name": "Mandate And Cash-Need Authority",
+                "status": "not_started",
+                "dependsOn": [
+                    "1"
+                ],
+                "scopeDir": "scopes/02-mandate-and-cash-need-authority",
+                "evidenceFile": "scopes/02-mandate-and-cash-need-authority/report.md",
+                "certifiedAt": null
+            },
+            {
+                "scope": 3,
+                "name": "Local Behavior Privacy Inventory And Clear",
+                "status": "not_started",
+                "dependsOn": [
+                    "2"
+                ],
+                "scopeDir": "scopes/03-local-behavior-privacy-inventory-and-clear",
+                "evidenceFile": "scopes/03-local-behavior-privacy-inventory-and-clear/report.md",
+                "certifiedAt": null
+            },
+            {
+                "scope": 4,
+                "name": "Public Evidence Barrier And Coverage",
+                "status": "not_started",
+                "dependsOn": [
+                    "3"
+                ],
+                "scopeDir": "scopes/04-public-evidence-barrier-and-coverage",
+                "evidenceFile": "scopes/04-public-evidence-barrier-and-coverage/report.md",
+                "certifiedAt": null
+            },
+            {
+                "scope": 5,
+                "name": "Four-Window Direct-Scope Brief",
+                "status": "not_started",
+                "dependsOn": [
+                    "4"
+                ],
+                "scopeDir": "scopes/05-four-window-direct-scope-brief",
+                "evidenceFile": "scopes/05-four-window-direct-scope-brief/report.md",
+                "certifiedAt": null
+            },
+            {
+                "scope": 6,
+                "name": "Explainable Research Action Lifecycle",
+                "status": "not_started",
+                "dependsOn": [
+                    "5"
+                ],
+                "scopeDir": "scopes/06-explainable-research-action-lifecycle",
+                "evidenceFile": "scopes/06-explainable-research-action-lifecycle/report.md",
+                "certifiedAt": null
+            },
+            {
+                "scope": 7,
+                "name": "Return And Drawdown X-Ray",
+                "status": "not_started",
+                "dependsOn": [
+                    "6"
+                ],
+                "scopeDir": "scopes/07-return-and-drawdown-x-ray",
+                "evidenceFile": "scopes/07-return-and-drawdown-x-ray/report.md",
+                "certifiedAt": null
+            },
+            {
+                "scope": 8,
+                "name": "Concentration CAPM And Risk Contribution",
+                "status": "not_started",
+                "dependsOn": [
+                    "7"
+                ],
+                "scopeDir": "scopes/08-concentration-capm-and-risk-contribution",
+                "evidenceFile": "scopes/08-concentration-capm-and-risk-contribution/report.md",
+                "certifiedAt": null
+            },
+            {
+                "scope": 9,
+                "name": "Dependent Path Reproducibility",
+                "status": "not_started",
+                "dependsOn": [
+                    "8"
+                ],
+                "scopeDir": "scopes/09-dependent-path-reproducibility",
+                "evidenceFile": "scopes/09-dependent-path-reproducibility/report.md",
+                "certifiedAt": null
+            },
+            {
+                "scope": 10,
+                "name": "Dated Cash Needs And Survival States",
+                "status": "not_started",
+                "dependsOn": [
+                    "9"
+                ],
+                "scopeDir": "scopes/10-dated-cash-needs-and-survival-states",
+                "evidenceFile": "scopes/10-dated-cash-needs-and-survival-states/report.md",
+                "certifiedAt": null
+            },
+            {
+                "scope": 11,
+                "name": "Stress Tail And Alternative Dependence",
+                "status": "not_started",
+                "dependsOn": [
+                    "10"
+                ],
+                "scopeDir": "scopes/11-stress-tail-and-alternative-dependence",
+                "evidenceFile": "scopes/11-stress-tail-and-alternative-dependence/report.md",
+                "certifiedAt": null
+            },
+            {
+                "scope": 12,
+                "name": "Hedge Variant Research",
+                "status": "not_started",
+                "dependsOn": [
+                    "11"
+                ],
+                "scopeDir": "scopes/12-hedge-variant-research",
+                "evidenceFile": "scopes/12-hedge-variant-research/report.md",
+                "certifiedAt": null
+            },
+            {
+                "scope": 13,
+                "name": "Six-Method Allocation Basis And Feasibility",
+                "status": "not_started",
+                "dependsOn": [
+                    "12"
+                ],
+                "scopeDir": "scopes/13-six-method-allocation-basis-and-feasibility",
+                "evidenceFile": "scopes/13-six-method-allocation-basis-and-feasibility/report.md",
+                "certifiedAt": null
+            },
+            {
+                "scope": 14,
+                "name": "Allocation Sensitivity And Explicit Black-Litterman",
+                "status": "not_started",
+                "dependsOn": [
+                    "13"
+                ],
+                "scopeDir": "scopes/14-allocation-sensitivity-and-explicit-black-litterman",
+                "evidenceFile": "scopes/14-allocation-sensitivity-and-explicit-black-litterman/report.md",
+                "certifiedAt": null
+            },
+            {
+                "scope": 15,
+                "name": "Walk-Forward Research Dossier And Claim Boundaries",
+                "status": "not_started",
+                "dependsOn": [
+                    "14"
+                ],
+                "scopeDir": "scopes/15-walk-forward-research-dossier-and-claim-boundaries",
+                "evidenceFile": "scopes/15-walk-forward-research-dossier-and-claim-boundaries/report.md",
+                "certifiedAt": null
+            },
+            {
+                "scope": 16,
+                "name": "Integrated Route Accessibility And Atomic Release",
+                "status": "not_started",
+                "dependsOn": [
+                    "15"
+                ],
+                "scopeDir": "scopes/16-integrated-route-accessibility-and-atomic-release",
+                "evidenceFile": "scopes/16-integrated-route-accessibility-and-atomic-release/report.md",
+                "certifiedAt": null
+            }
+        ],
         "lockdownState": {
             "active": false,
             "lockedScenarioIds": []

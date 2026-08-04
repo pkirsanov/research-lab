@@ -1,0 +1,184 @@
+{
+  "version": 3,
+  "featureDir": "specs/_bugs/BUG-006-evaluate-before-publish-and-unscoreable-call-published",
+  "featureName": "BUG-006 Evaluate-Before-Publish Ordering, And An Unscoreable Call Published (D16)",
+  "createdAt": "2026-08-04T15:21:40Z",
+  "lastUpdatedAt": "2026-08-04T15:21:40Z",
+  "completedAt": null,
+  "certifiedAt": null,
+  "status": "blocked",
+  "blockedReason": "DO-NOT-FIX is an explicit operator constraint, not an agent choice: a scheduled pipeline actively writes this surface 8x/day and the recommendation ledger is append-only, so an in-flight edit risks corrupting the published track record. Beyond that constraint, the remedy requires an owner trade-off no agent may make. Candidate remedies R1-R6 are enumerated in design.md and NONE has been selected. No single remedy closes both defects: R1 (post-publish evaluate) addresses Defect A only and carries an UNANSWERED loop/manifest-drift question; R2 (mechanical D16 gate) addresses Defect B only and is Step 6 work owned by spec 015, which is itself status blocked; R3 (selftest in the publisher) addresses contributing factor A2 only and ON ITS OWN converts a red main into a failed publish so the brief stops shipping; R4 (relax the assertion) is highest-risk because the assertion is currently the ONLY mechanical signal that an unscoreable call reached the ledger, so relaxing it without pairing R2 removes the signal rather than the defect. This packet documents the finding only; it fixes nothing.",
+  "workflowMode": "bugfix-fastlane",
+  "planningOnly": false,
+  "planningOnlyJustification": null,
+  "linkedImplementationSpec": null,
+  "linkedPlanningPacket": null,
+  "specDependsOn": [],
+  "requiresRevalidation": false,
+  "scopeLayout": "single-file",
+  "artifacts": {
+    "bug": "bug.md",
+    "spec": "spec.md",
+    "design": "design.md",
+    "scopes": "scopes.md",
+    "report": "report.md",
+    "uservalidation": "uservalidation.md"
+  },
+  "execution": {
+    "activeAgent": "bubbles.bug",
+    "currentPhase": "documentation",
+    "currentPhaseStatus": "blocked",
+    "executionModel": "direct-authorized-runner",
+    "parentAgent": null,
+    "runStartedAt": "2026-08-04T15:14:00Z",
+    "completedAt": null,
+    "currentScope": null,
+    "nextRequiredOwner": "repository-owner",
+    "nextRequiredTarget": "01-owner-decision-on-remedy-direction",
+    "completedPhaseClaims": [
+      {
+        "phase": "discovery",
+        "agent": "bubbles.bug",
+        "claimSource": "executed",
+        "partial": false,
+        "claimedAt": "2026-08-04T15:21:40Z",
+        "evidenceRef": "report.md#test-evidence",
+        "note": "Finding independently re-verified against the live repository, not re-derived from the report. node scripts/selftest.mjs reproduced at exit 1 with exactly one failure, the named idempotence assertion. planEvaluation(ROOT,{}) returns rows:1 with eventType not-evaluable / reasonCode no-attributable-invalidation-level. Ordering confirmed by search over brief-refresh-and-push.sh: exactly ONE evaluate-recommendations invocation at :239, the mutating publish at :407, commit at :560, and ZERO selftest references in the whole file. Ledger row attributed to commit 7ad10b31 via git log -S, confirmed an ancestor of HEAD, with no later commit touching the partition. Root cause GROUNDED by re-running the shipped buildRecommendationBody on the exact published trigger/invalidation text: under action=hedge (directionSign -1, breakRelation above) all 4 levels classify to trigger and the call is not-evaluable; under action=add (directionSign +1) the SAME TEXT yields 3 invalidation levels and machine-checkable. D16 confirmed to have no mechanical enforcement: validate-brief-payload.mjs:72 checks invalidation presence only and contains zero occurrences of 'evaluab'; the only D16 surface is a prompt string at brief-narrative-parallel.mjs:232. Working tree proven unmutated: git status --porcelain=v1 byte-identical before and after the selftest run."
+      },
+      {
+        "phase": "documentation",
+        "agent": "bubbles.bug",
+        "claimSource": "executed",
+        "partial": false,
+        "claimedAt": "2026-08-04T15:21:40Z",
+        "evidenceRef": "bug.md",
+        "note": "Six artifacts authored: bug.md, spec.md, design.md, scopes.md, report.md, uservalidation.md, following the BUG-005 document-only precedent. THREE corrections to the originally reported framing were found and recorded truthfully. (C1) The prediction that the assertion 'will fail after EVERY publish' is NOT supported: 36 calls are currently open and 35 of them are machine-checkable, producing zero closure rows because silence means open; five recent publishes each minted a tactical call and none turned the assertion red. The corrected trigger condition is a publish that mints a call the evaluator can close ON SIGHT. (C2) notEvaluableShare in the committed scorecard 30d window is 0.8197, not 0.8333; 0.8333 is the figure recorded in docs/Improvement-Plan.md at :159 and :716 - a different snapshot, not an error. (C3) The selftest count here is 1217 passed / 1 failed rather than 1215/1 because the working tree carries a concurrent session's uncommitted work; the failing assertion is identical and is the only failure. (C5) reasonCode no-attributable-invalidation-level does NOT mean the call carries no invalidation level - the field carries four numerals and the row records levels:4. It means zero levels survived direction-aware attribution to the invalidation side. This correction SHARPENS the finding: the D16 authoring instruction was satisfied literally and the call was still unscoreable, so D16 is not merely unenforced but also under-specified. (C4) A third structural fact was found and recorded as contributing factor A2 under Defect A rather than as a merged third defect: brief-refresh-and-push.sh never runs selftest while tier-a.yml:131 does, which is why the red state reaches origin/main unobserved and why the workflow path later self-heals."
+      }
+    ],
+    "pendingTransitionRequests": [],
+    "scopeInventory": [
+      "01-owner-decision-on-remedy-direction",
+      "02-defect-b-enforce-d16-at-the-publish-gate",
+      "03-defect-a-reconcile-ordering-with-asserted-invariant",
+      "04-contributing-factor-a2-and-open-diagnostics"
+    ],
+    "audit": []
+  },
+  "certification": {
+    "status": "blocked",
+    "completedAt": null,
+    "certifiedAt": null,
+    "completedScopes": [],
+    "certifiedCompletedPhases": [],
+    "scopeProgress": [],
+    "assurance": null,
+    "lockdownState": null,
+    "note": "NO CERTIFICATION IS ASSERTED. Every field here is null or empty by intent. This packet documents two verified defects and is blocked on an explicit operator DO-NOT-FIX constraint plus an unmade owner remedy decision. Nothing has been certified, no scope is complete, and no DoD box is checked in scopes.md."
+  },
+  "policySnapshot": {
+    "workflowMode": "bugfix-fastlane",
+    "grill": false,
+    "tdd": false,
+    "autoCommit": false,
+    "lockdown": false,
+    "regression": false,
+    "validation": false
+  },
+  "transitionRequests": [],
+  "reworkQueue": [],
+  "executionHistory": [
+    {
+      "agent": "bubbles.bug",
+      "phasesExecuted": [
+        "discovery",
+        "documentation"
+      ],
+      "statusBefore": "not_started",
+      "statusAfter": "blocked",
+      "startedAt": "2026-08-04T15:14:00Z",
+      "finishedAt": "2026-08-04T15:21:40Z",
+      "outcome": "blocked",
+      "summary": "DOCUMENT-ONLY RUN. node scripts/selftest.mjs is RED on origin/main (HEAD 8d5657b8 equals origin/main; rev-list --left-right --count returns 0 0). Exactly one assertion fails - 'the evaluator is idempotent against the committed ledger - a re-run closes nothing twice' at scripts/selftest.mjs:5370-5371 - because planEvaluation(ROOT,{}) returns 1 row against the committed ledger. TWO DISTINCT DEFECTS, recorded separately and deliberately NOT merged because they have different owners, different remedies, and either can be fixed without the other. DEFECT A, PIPELINE ORDERING: scripts/brief-refresh-and-push.sh evaluates at :239 and performs its mutating publish at :407, with exactly ONE evaluate-recommendations invocation in the entire file and no post-publish evaluate, so a call the publish creates is outside that run's evaluation window and the committed ledger is one evaluation behind until the next cycle. DEFECT B, D16 BREACH: a horizon tactical, direction hedge, instrument VIX call with evaluability not-evaluable and reasonCode no-attributable-invalidation-level was published and committed at 7ad10b31, breaching anti-drift rule D16 at docs/Improvement-Plan.md:736 and Step 6 change item 2 at :444-446 ('An unscoreable tactical call is not a call'). ROOT CAUSE GROUNDED, NOT ASSUMED: re-running the shipped buildRecommendationBody on the EXACT published trigger/invalidation text shows that under action=hedge (ACTION_DIRECTION -1, breakRelation above) all four extracted below-levels reclassify to the trigger side leaving zero invalidation levels and not-evaluable, while the SAME TEXT under action=add yields three invalidation levels and machine-checkable. The classifier is behaving AS DESIGNED - it is the shipped anti-free-win rule, pinned by two adversarial selftest assertions that both PASS - so the defect is located UPSTREAM at the publish gate, which at validate-brief-payload.mjs:72 checks only that invalidation is non-empty TEXT and contains zero occurrences of 'evaluab'; the only D16 surface anywhere is a natural-language prompt string at brief-narrative-parallel.mjs:232. CONTRIBUTING FACTOR A2: brief-refresh-and-push.sh contains ZERO selftest references and commits at :560 / pushes at :566 regardless, while .github/workflows/tier-a.yml runs evaluate at :112, selftest at :131 and commit at :135 - which is why the red state reaches origin/main unobserved and why the workflow path self-heals. THREE FRAMING CORRECTIONS RECORDED: (1) 'fails after EVERY publish' is NOT supported - 35 of 36 open calls are machine-checkable and emit no event because silence means open, and five recent publishes each minted a tactical call without turning the assertion red; the corrected trigger is a publish that mints an ON-SIGHT-closable call; (2) committed notEvaluableShare 30d is 0.8197, not 0.8333, which is the Improvement-Plan snapshot; (3) 1217 passed / 1 failed here rather than 1215/1 because the tree carries a concurrent session's uncommitted work. A FOURTH correction SHARPENS the finding: no-attributable-invalidation-level does not mean 'no level' - the field carries four numerals and levels:4 - so the D16 authoring instruction was satisfied LITERALLY and the call was still unscoreable, making D16 under-specified as well as unenforced. RISK RECORDED EXPLICITLY: relaxing the assertion would remove the only mechanical signal that an unscoreable call reached the ledger, leaving the D16 breach silent while every check reports healthy - strictly worse than a red main. LOOP QUESTION STATED AND LEFT OPEN: a post-publish second evaluate looks non-looping in call-lifecycle terms because runEvaluation appends only outcome rows and foldLedger skips closed entries, but runEvaluation also rewrites the ledger partition, writes a new index fingerprint, and moves the briefs/history-current.json historyIndexRef pointer AFTER the publish froze a run manifest recording that partition's sha256 - which is exactly the drift the distributed publisher is documented to reject. That hazard is labelled interpreted, derived from reading code, NOT executed and NOT proven. NOTHING WAS FIXED. No file under scripts/ or tests/, no rl*.js, no specs/004-*, no ledger partition, index or pointer, and no brief artifact was created or modified; git status --porcelain=v1 was byte-identical before and after the selftest run."
+    }
+  ],
+  "activeBugs": [],
+  "resolvedBugs": [],
+  "addressedFindings": [],
+  "unresolvedFindings": [
+    {
+      "id": "DISC-006-001",
+      "severity": "medium",
+      "summary": "DEFECT A - scripts/brief-refresh-and-push.sh evaluates at :239 and publishes at :407 with no post-publish evaluate, so the committed ledger can carry a pending closure and the selftest idempotence assertion at selftest.mjs:5370 is unholdable whenever a publish mints an on-sight-closable call.",
+      "owner": "repository-owner",
+      "status": "open"
+    },
+    {
+      "id": "DISC-006-002",
+      "severity": "medium",
+      "summary": "DEFECT B - a horizon tactical, evaluability not-evaluable call was published at commit 7ad10b31, breaching anti-drift rule D16. D16 has no mechanical enforcement: validate-brief-payload.mjs:72 checks invalidation presence only, and the sole D16 surface is a prompt string at brief-narrative-parallel.mjs:232. The preventive control is Step 6 born-evaluable-calls, delivery=required, owned by spec 015 which is status blocked.",
+      "owner": "specs/015-recommendation-outcome-ledger-and-track-record",
+      "status": "open"
+    },
+    {
+      "id": "DISC-006-003",
+      "severity": "low",
+      "summary": "CONTRIBUTING FACTOR A2 - brief-refresh-and-push.sh contains zero selftest references and commits/pushes regardless, while .github/workflows/tier-a.yml:131 runs selftest as a hard ungated step before its commit. Two commit paths into the same branch hold different gate standards. Cannot be closed before DISC-006-001, because gating the publisher first would stop the brief shipping.",
+      "owner": "repository-owner",
+      "status": "open"
+    },
+    {
+      "id": "DISC-006-004",
+      "severity": "low",
+      "summary": "OPEN QUESTION, NOT A CLAIM - the published invalidation prose contains 'SPY closing at/above the 765 call wall' yet zero above-levels were extracted. Why has NOT been established; it could be the at/above compound form, the 'call wall' noun phrase, or something else in extractLevels. Determines whether the R5 wording fix alone would have changed this outcome.",
+      "owner": "repository-owner",
+      "status": "open"
+    },
+    {
+      "id": "DISC-006-005",
+      "severity": "low",
+      "summary": "OPEN QUESTION, NOT A CLAIM - byDirection notEvaluableShare reads hedge 0.9535, trim 1.0, rotate 1.0, add 1.0, hold 0.5441. Whether these share the direction-aware attribution root cause is UNPROVEN: rotate and add both carry directionSign +1, so a direction-sign-wide explanation is NOT supported by the current evidence. The grounded claim is limited to the single call re-derived in report.md E5.",
+      "owner": "repository-owner",
+      "status": "open"
+    },
+    {
+      "id": "DISC-006-006",
+      "severity": "medium",
+      "summary": "UNANSWERED PREREQUISITE - remedy R1 (evaluate again after the publish) must be assessed for loop safety AND for run-manifest / history-pointer drift before any attempt. runEvaluation rewrites the ledger partition, writes a new index fingerprint, and moves briefs/history-current.json historyIndexRef after the publish froze a manifest recording that partition sha256. Labelled interpreted, from reading code; NOT executed, NOT proven.",
+      "owner": "repository-owner",
+      "status": "open"
+    }
+  ],
+  "failures": [],
+  "routing": {
+    "currentOwner": "bubbles.bug",
+    "nextRequiredOwner": "repository-owner",
+    "implementationDispatchAllowed": false,
+    "dispatchReason": "Implementation is FORBIDDEN by explicit operator instruction: a scheduled pipeline actively writes this surface and the recommendation ledger is append-only, so racing it risks corrupting the published track record. It is additionally BLOCKED pending an owner selection among candidate remedies R1-R6 in design.md, which trades brief availability against invariant strength. No agent may make that trade. Defect B's remedy is owned by spec 015 (status blocked), not by this packet. This packet is document-only by explicit instruction.",
+    "forbiddenPaths": [
+      "scripts/**",
+      "tests/**",
+      "specs/004-*",
+      "rlbrief.js",
+      "rlexperience.js",
+      "rlfx.js",
+      "rljourney.js",
+      "briefs/history/**",
+      "briefs/indexes/**",
+      "briefs/history-current.json",
+      "market-brief.*"
+    ]
+  },
+  "statusDiscipline": {
+    "validStatuses": [
+      "not_started",
+      "in_progress",
+      "blocked",
+      "specs_hardened",
+      "docs_updated",
+      "validated",
+      "done"
+    ],
+    "specDoneRequires": "An operator lift of the DO-NOT-FIX constraint, an owner decision selecting a remedy combination, and then separate implementation work owned partly by spec 015. This documentation-only packet CANNOT reach done on its own and does not attempt to."
+  },
+  "notes": "Documentation-only bug packet, filed under explicit DO-NOT-FIX instruction. Status is blocked, which is truthful and non-terminal. No DoD box is checked in scopes.md across all four scopes. No certification field asserts anything: certifiedAt is null, certification.completedScopes and certification.scopeProgress are empty, and certification.status mirrors the non-terminal top-level status. The uservalidation.md checklist uses checked-by-default [x] entries following the BUG-004 / BUG-005 convention, where a checked box means the acceptance QUESTION IS RECORDED and explicitly does NOT claim the repository satisfies it; those are not DoD boxes. Artifact shape follows BUG-005, the repository's precedent for a document-only, blocked, owner-routed packet. Two defects are recorded separately per instruction and are NOT merged: Defect A is the mechanism that turns a red ledger into a red main, Defect B is the trigger that produced this particular red, and no single remedy closes both. This packet's own status is never specs_hardened and its linkedImplementationSpec is null, so it does not itself trip G087 (see BUG-005)."
+}

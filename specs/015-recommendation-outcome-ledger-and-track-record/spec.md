@@ -149,12 +149,91 @@ Three things are missing, and this feature owns all three:
 
 ### Boundary against concurrent features
 
-| Feature | Status | Boundary |
-|---|---|---|
-| 002 Distributed tool briefs and history | `blocked` | Owns the content-addressed graph, the ledger writer, and `reduceRecommendationEvents`. 015 **extends the row and adds a claim object**; it must not fork the reducer, the vocabulary, or the object-store layout. |
-| 007 Technical analysis decision lab | — | Owns `rlvalidation.js`. 015 **consumes** all seven primitives and must not re-implement, fork, or shadow any statistic. |
-| 012 Market Action Center | `blocked` | Owns the four-view Center and `rlmarketaction.js`. 015 must not add a view, must not write Center state, and must not alter the four-view composition. |
-| 013 Market regime stack | `blocked` | Owns the sole regime composer and declares the `rldata.js` persisted cache schema protected. 015 must not compose a regime and must not alter the persisted cache shape. |
+A **boundary** is not the same thing as a **dependency**. The table below records what each neighbouring
+feature owns and how 015 must behave toward it. Only the `002` row is a capability dependency; the ruling
+that established that is [OD-015-01](#od-015-01--specdependson-is-narrowed-to-the-one-capability-coupled-entry-2026-08-04)
+below. Statuses are as of 2026-08-04.
+
+| Feature | Status | Declared dependency? | Boundary |
+|---|---|---|---|
+| 002 Distributed tool briefs and history | `done` | **Yes — capability-coupled** | Owns the content-addressed graph, the ledger writer, and `reduceRecommendationEvents`. 015 **extends the row and adds a claim object**; it must not fork the reducer, the vocabulary, or the object-store layout. |
+| 007 Technical analysis decision lab | `blocked` | No — consume-only seam | Owns `rlvalidation.js`. 015 **consumes** all seven primitives and must not re-implement, fork, or shadow any statistic. The seven exist and are green today; 015 names no other 007 capability. |
+| 012 Market Action Center | `blocked` | No — live seam + must-nots | Owns the four-view Center and `rlmarketaction.js`. 015 must not add a view, must not write Center state, and must not alter the four-view composition. The three seams 015 uses are live today. |
+| 013 Market regime stack | `in_progress` | No — prohibitions only | Owns the sole regime composer and declares the `rldata.js` persisted cache schema protected. 015 must not compose a regime and must not alter the persisted cache shape. 015 consumes nothing from 013. |
+
+## Owner Decisions
+
+Dated rulings by the spec owner on questions routed to this spec. Each records the reasoning, not just the
+outcome, so a later reader can re-test the judgement rather than inherit it.
+
+### OD-015-01 — `specDependsOn` is narrowed to the one capability-coupled entry (2026-08-04)
+
+**Question routed.** `state.json.blockedReason` recorded a D10 finding *against the declaration itself*:
+that 015's `specDependsOn` entries for `007`, `012` and `013` may be **status-coupled rather than
+capability-coupled**. Anti-drift rule **D10**
+([`docs/Product-Review-and-Roadmap.md#L1246`](../../docs/Product-Review-and-Roadmap.md)) states: *"No spec
+blocks on another spec's **status** — only on a real, named, missing capability."* The finding was routed
+to the spec owner and explicitly **not** acted on by the agent that raised it.
+
+**Ruling.** `007`, `012` and `013` are **removed** from `specDependsOn`. `002` is **kept**. Each removal is
+justified individually below against capabilities verified on disk on 2026-08-04, not against lifecycle
+status. This is a decision about what 015 actually consumes; it is **not** a gate-passing edit, and Gate
+G089 is neither narrowed, waived, nor exempted — it continues to enforce `done` on every entry that remains.
+
+**002 — KEPT. Genuinely capability-coupled, and satisfied.**
+015 does not merely read 002; it **extends** 002-owned contracts. It adds a claim object to the
+`brief-recommendation-history-row/v1` row (the `D2` `v2` superset), draws every closure event from
+`CLOSE_EVENT_TYPES` ([`rlcontracts.js#L720`](../../rlcontracts.js#L720)), and routes outcomes through
+`reduceRecommendationEvents` ([`#L1134`](../../rlcontracts.js#L1134), exported
+[`#L1937`](../../rlcontracts.js#L1937)) without forking it. Scope 02 carries `consent-gated:002` because
+the row change is a 002-owned contract change. That is a real, named capability coupling. 002 is `done`,
+so the entry is both truthful and satisfied.
+
+**007 — REMOVED. The consumed capability exists; the undelivered one is not consumed.**
+The only 007 capability 015 names is `rlvalidation.js`, consumed **read-only**. All seven `RLVALID`
+primitives are present and exported today — `rlvBuildPurgedFolds`, `rlvAdjustBenjaminiHochberg`,
+`rlvAdjustHolm`, `rlvDeflatedSharpe`, `rlvWilsonInterval`, `rlvQuantiles`, `rlvSummarizeOutcomes`
+([`rlvalidation.js#L155`–`#L163`](../../rlvalidation.js#L155)) — and every 015 scope lists the module as
+byte-unmodified. What 007 has **not** delivered is its owner five-gate decision model (gate scoring,
+setup-state, expectancy). A repository search across all of 015's artifacts returns **zero** references to
+`computeTechnicalFiveGate`, `five-gate`, `setup-state`, `expectancy` or `ownerReadPublished`. No scope, no
+FR, no AC, and no UI row consumes any of it. There is therefore **no named missing 007 capability** — the
+coupling was to 007's certification standing, which is exactly what D10 forbids blocking on.
+
+**012 — REMOVED. Every seam 015 uses is live today; the rest of the relationship is prohibitions.**
+015 uses exactly three 012 seams, all verified present: `RLDATA.putToolRead`
+([`rldata.js#L549`](../../rldata.js#L549), exported [`#L738`](../../rldata.js#L738)), the existing
+`d.toolReads[id]` slot ([`#L92`](../../rldata.js#L92)), and `RLBRIEF.renderToolReads`
+([`rlbrief.js#L1140`](../../rlbrief.js#L1140), exported [`#L1269`](../../rlbrief.js#L1269)) — whose Brief-view
+call site is **already wired and running** at [`market-brief.html#L956`](../../market-brief.html#L956). 012's
+three undelivered scopes are `11` (Feature 002-gated authored Brief integration — ToolBrief v2, networkless
+author, atomic publication), `13` (Feature 008-gated private Portfolio integration) and `14` (integrated
+acceptance and release handoff). 015 consumes **none** of them: it publishes a tool *read* into the cache
+slot, it does not author a ToolBrief, and it touches neither Portfolio nor 012's release. 015's remaining
+relationship to 012 is the must-not set (HC-3 / AC-011: no fifth view, no Center state write), which holds
+**by non-participation** — `CENTER_VIEW_IDS` stays frozen at four
+([`rlmarketaction.js#L77`](../../rlmarketaction.js#L77)) precisely because 015 never approaches it. A
+constraint one satisfies by doing nothing cannot be waiting on a delivery.
+
+**013 — REMOVED. 015 consumes nothing from it at all.**
+The relationship is two prohibitions and no consumption: 015 must not compose a regime, and must not alter
+the persisted `rldata.js` cache schema (FR-021 / AC-012). A search of every 015 artifact returns **zero**
+references to `rlregime.js` or `rlratio.js`, the `SCOPE-1`/`SCOPE-2` foundation 013 owns. The only two
+occurrences of "regime" in `spec.md` are an inventory of a key already present in committed `final-briefs`
+objects (§Problem) and the prohibition row itself. A prohibition against *altering an artifact that already
+exists* requires nothing to be delivered first, so no 013 capability can be named as missing.
+
+**Residual risk, recorded rather than hidden.** Removing `013` does not make the sequencing concern vanish:
+if 013 later changes the persisted cache schema, 015's write through `putToolRead` may need migration. That
+risk is real and stays recorded as **RL-009**. It is not, however, a *missing capability*, and a
+`specDependsOn` entry does not mitigate it — 013 delivering **later** is the risk, so blocking 015 now
+prevents nothing. Schema ownership stays with 013, including responsibility for its consumers.
+
+**What this decision does NOT do.** It does not clear the four Blocking routed findings — **P-015-01**,
+**P-015-02**, **P-015-03** and **P-015-07** remain open and still gate the live claim binding, the reducer
+key bridge, and the horizon session predicate. It does not narrow Gate G089. It does not assert that 007,
+012 or 013 are finished. It removes three declarations that recorded *status coupling* and keeps the one
+that records a *capability* coupling.
 
 ## Outcome Contract
 
@@ -612,7 +691,7 @@ no retail-facing surface does it.
 | RL-006 | **`rlvSummarizeOutcomes` zero-handling.** | The primitive derives `unresolved` by subtraction, so exactly-zero is absorbed into unresolved. HC-7 forces a sentinel convention on the resolver side; the shared primitive is Feature 007's and is not modified here. |
 | RL-007 | **Multiplicity discount is approximate.** | `rlvDeflatedSharpe` expects an equity curve and a trial count. Recommendation outcomes are not a clean equity curve. The discount is directional evidence of overfitting, not a precise significance test, and must be labelled as such. |
 | RL-008 | **No survivorship correction.** | Claims withdrawn before resolution are recorded as `withdrawn`. If withdrawal correlates with anticipated failure, the visible rate is optimistic. The withdrawn count must be displayed so a reader can judge this. |
-| RL-009 | **Concurrent-feature coupling.** | Features 002, 012, and 013 are all `blocked`. 015 extends 002's row contract and consumes 012's surface. Sequencing is a real dependency risk and is named here rather than discovered later. |
+| RL-009 | **Concurrent-feature coupling.** | 015 **extends** 002's row contract (a genuine capability dependency, and 002 is `done`). It also **consumes already-live seams** from 007 (`rlvalidation.js`) and 012 (`putToolRead`, `d.toolReads[id]`, `renderToolReads`), and holds **prohibitions only** toward 013. Per [OD-015-01](#od-015-01--specdependson-is-narrowed-to-the-one-capability-coupled-entry-2026-08-04), only 002 is a declared dependency. The residual risk is **forward** rather than blocking: 007 may later recertify its module, and 013 may later change the persisted `rldata.js` cache schema, either of which could force 015 rework. That risk is named here rather than discovered later, and it is not mitigated by blocking 015 today. |
 | RL-010 | **Scoring does not validate the recommender.** | A track record measures the published claims. It does not establish that the underlying models generalise, and it must never be presented as validation of any model or strategy. |
 
 ## Downstream Owner Handoffs

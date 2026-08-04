@@ -12,15 +12,24 @@
     "note": "The blocker above remains IN FORCE and its substance is unchanged, but two status strings it quotes are now stale. On 2026-08-02 specs/007-technical-analysis-decision-lab was reconciled from `not_started` to `blocked`, and specs/013-market-regime-stack-and-strategy-playbook remains `in_progress`. Both were corrected or confirmed against their own artifacts.",
     "whyStillBlocked": "Gate G089 requires every entry in specDependsOn to have status `done`. The refreshed dependency statuses are: 002 = done, 007 = blocked, 012 = blocked, 013 = in_progress. Three of four are still not `done`, so G089 still refuses promotion to the product-to-planning ceiling `specs_hardened`. Reclassifying a dependency's lifecycle status does not and must not satisfy the gate."
   },
+  "ownerDecisionAddendum": {
+    "recordedBy": "spec-owner",
+    "recordedAt": "2026-08-04T04:36:23Z",
+    "decision": "OD-015-01",
+    "decisionRecordedIn": "spec.md § Owner Decisions § OD-015-01",
+    "supersedes": "The G089 dependency portion of blockedReason and all of blockedReasonAddendum.whyStillBlocked. Those entries are retained above as history and are NOT edited; this addendum records what changed and why.",
+    "ruling": "The D10 finding that blockedReason routed to the spec owner is UPHELD for 007, 012 and 013, and REJECTED for 002. specDependsOn is narrowed from four entries to one: specs/002-distributed-tool-briefs-and-history. Anti-drift rule D10 (docs/Product-Review-and-Roadmap.md#L1246) permits a spec to block only on a real, named, missing capability -- never on another spec's status. Capability accounting was re-verified independently on disk on 2026-08-04 rather than taken on trust from the routed finding: (007) all seven RLVALID primitives are present and exported at rlvalidation.js#L155-#L163 and 015's artifacts contain ZERO references to 007's undelivered five-gate model, setup-state, expectancy, computeTechnicalFiveGate or ownerReadPublished; (012) all three seams 015 uses are live today -- RLDATA.putToolRead rldata.js#L549 exported #L738, the d.toolReads[id] slot rldata.js#L92, RLBRIEF.renderToolReads rlbrief.js#L1140 exported #L1269 with its Brief-view call site already wired at market-brief.html#L956 -- and 012's three undelivered scopes (11 authored-Brief/ToolBrief-v2, 13 Portfolio/008, 14 release handoff) are consumed by NOTHING in 015; (013) 015 consumes nothing at all, with zero references to rlregime.js or rlratio.js anywhere in its artifacts, the relationship being two prohibitions over artifacts that already exist. (002) is KEPT because 015 genuinely extends 002-owned contracts -- the brief-recommendation-history-row/v1 row, CLOSE_EVENT_TYPES rlcontracts.js#L720, and reduceRecommendationEvents #L1134 exported #L1937 -- and 002 is done, so the entry is truthful and satisfied.",
+    "notAGatePassingEdit": "Gate G089 was NOT narrowed, waived, exempted or bypassed, and nothing under .github/bubbles/** was modified. G089 still enforces status `done` on every remaining entry; it passes because the one remaining entry (002) is genuinely done. The removals are a declaration correction under D10, recorded as a reasoned decision in spec.md before specDependsOn was touched.",
+    "residualRiskRetained": "Removing 013 does not remove the sequencing concern. If 013 later changes the persisted rldata.js cache schema, 015's putToolRead write may need migration; if 007 later recertifies rlvalidation.js, 015 may need to re-verify. Both remain recorded as RL-009 in spec.md. Neither is a missing capability, and neither is mitigated by a specDependsOn entry, since later delivery is precisely the risk.",
+    "whyStillBlocked": "This ruling resolves the DEPENDENCY blocker only. The spec remains `blocked` on the four genuinely Blocking routed findings recorded in scopes/_index.md -- P-015-01 (authored subject is prose, not a resolvable identifier), P-015-02 (horizon vocabularies do not intersect), P-015-03 (thesisFamily has no live source), P-015-07 (horizon session predicate skips the two committed early-close trading sessions). These are owned by bubbles.design and the Feature 002 owner, NOT by the spec owner, and none is resolved here.",
+    "verification": "bash .github/bubbles/scripts/inter-spec-dependency-guard.sh specs/015-recommendation-outcome-ledger-and-track-record -> PASS, exit 0, dependencies=1 accepted, 002:done. Full state-transition-guard.sh Check 31 (Gate G089) -> PASS; G089 appears in passedGateIds. The full guard still exits 1 with verdict FAIL on blockingCode SOURCE_EDIT_LOCKOUT (Gate G073), which is a working-tree condition caused by a CONCURRENT Feature 004 session holding uncommitted edits to rlbrief.js, rlexperience.js, rlfx.js, rljourney.js and tests/feature-004-*.mjs. That condition is unrelated to this ruling and pre-existed it; the only files this ruling changed are 015's own spec.md and state.json, both permitted under G073."
+  },
   "linkedImplementationSpec": null,
   "linkedPlanningPacket": null,
   "planningOnly": false,
   "planningOnlyJustification": null,
   "specDependsOn": [
-    "specs/002-distributed-tool-briefs-and-history",
-    "specs/007-technical-analysis-decision-lab",
-    "specs/012-market-action-center-and-guided-tools",
-    "specs/013-market-regime-stack-and-strategy-playbook"
+    "specs/002-distributed-tool-briefs-and-history"
   ],
   "certifiedAt": null,
   "requiresRevalidation": false,

@@ -10,6 +10,8 @@ const ROOT = resolve(dirname(SCRIPT_PATH), '..');
 const require = createRequire(import.meta.url);
 const RLEXPERIENCE = require('../rlexperience.js');
 const SCALING_TOOL_ID = 'feature-012-scaling-probe';
+const DEPENDENCY_GATES_PATH = 'tool-experience.gates.json';
+const CLI_USAGE = 'usage: node scripts/validate-tool-experience.mjs [--require-simple-adapters] [--dependency <name> [--require-accepted]]';
 const FORBIDDEN_VALIDATOR_CAPABILITIES = [
   'fetch(',
   'providerFetch(',
@@ -526,8 +528,71 @@ function validateJourneyRegistryCoverage(packet) {
   };
 }
 
+/*
+ * SCN-012-028 / SCN-012-029 dependency-gate enforcement (--dependency <name> [--require-accepted]).
+ *
+ * `tool-experience.config.json` declares each gate's source of truth as a governance `statePath`,
+ * and `scripts/build-dependency-gates.mjs` republishes exactly the predicate-relevant fields into
+ * `tool-experience.gates.json` because the deployed site never ships `specs/`. Both are evaluated
+ * here through the SAME production predicate and any disagreement is refused, so neither a stale
+ * published projection nor an unpublished governance edit can be what satisfies a dependency
+ * claim. The predicate is never re-implemented: an unknown gate is refused by production's
+ * `E012-DEPENDENCY` path. This runs only when --dependency is supplied, so default packet
+ * validation stays independent of `specs/` and of the published projection.
+ */
+function resolveDependencyGateKey(config, name) {
+  const gateKeys = Object.keys(config.dependencyGates);
+  const declared = gateKeys.map((key) => `${config.dependencyGates[key].gateId} (${key})`).join(', ');
+  const matches = gateKeys.filter((key) => key === name || config.dependencyGates[key].gateId === name);
+  invariant(matches.length !== 0, `unknown dependency "${name}"; declared dependencies: ${declared}`);
+  invariant(matches.length === 1, `ambiguous dependency "${name}"; declared dependencies: ${declared}`);
+  return matches[0];
+}
+
+function dependencyGateProjection(config, gateKey, states, sourceLabel) {
+  const projection = RLEXPERIENCE.projectDependencyGate(config, gateKey, states);
+  invariant(projection.ok, `dependency gate ${gateKey} rejected from ${sourceLabel}: ${(projection.error && projection.error.code) || 'unknown'} ${(projection.error && projection.error.fieldPath) || ''}`);
+  return projection.value;
+}
+
+function validateDependencyGate(config, name, requireAccepted) {
+  const gateKey = resolveDependencyGateKey(config, name);
+  const statePath = config.dependencyGates[gateKey].statePath;
+
+  const declaredStates = {};
+  for (const key of Object.keys(config.dependencyGates)) {
+    const path = config.dependencyGates[key].statePath;
+    declaredStates[key] = parseJson(readRequired(path), path);
+  }
+  const published = parseJson(readRequired(DEPENDENCY_GATES_PATH), DEPENDENCY_GATES_PATH);
+  invariant(published !== null && typeof published === 'object' && published.states !== null && typeof published.states === 'object', `${DEPENDENCY_GATES_PATH} declares no dependency-gate states`);
+
+  const governance = dependencyGateProjection(config, gateKey, declaredStates, statePath);
+  const deployed = dependencyGateProjection(config, gateKey, published.states, DEPENDENCY_GATES_PATH);
+  invariant(governance.state === deployed.state && JSON.stringify(governance.observed) === JSON.stringify(deployed.observed), `${DEPENDENCY_GATES_PATH} disagrees with ${statePath} for ${governance.gateId} (re-run: node scripts/build-dependency-gates.mjs)`);
+
+  const accepted = governance.state === 'available';
+  invariant(accepted || requireAccepted === false, `${governance.gateCode} is not accepted: observed status=${governance.observed.status} certification=${governance.observed.certificationStatus} ${governance.requirementName}=${governance.observed.matchedRequirementCount}/${governance.observed.requiredRequirementCount}; required ${governance.acceptanceGate}; evidence ${governance.evidencePath}; withheld ${governance.withheldCapabilities.join(',')}`);
+
+  return {
+    requested: name,
+    gateKey,
+    gateId: governance.gateId,
+    state: governance.state,
+    accepted,
+    enforced: requireAccepted === true,
+    requirementName: governance.requirementName,
+    observed: governance.observed,
+    statePath,
+    publishedPath: DEPENDENCY_GATES_PATH
+  };
+}
+
 export function validateActualToolExperience(options = {}) {
   const loaded = loadActualPacket();
+  const dependency = options.dependency === undefined || options.dependency === null
+    ? null
+    : validateDependencyGate(loaded.packet.config, options.dependency, options.requireAccepted === true);
   const artifactChecks = validateArtifactBudgets(loaded.packet, loaded.bytes);
   const validation = RLEXPERIENCE.validateFoundation(loaded.packet);
   if (!validation.ok) {
@@ -553,6 +618,7 @@ export function validateActualToolExperience(options = {}) {
     runtime,
     journeyCoverage,
     simpleAdapters,
+    dependency,
     identities,
     artifacts: artifactChecks,
     scaling: {
@@ -566,10 +632,42 @@ export function validateActualToolExperience(options = {}) {
   };
 }
 
+/* Every accepted token is consumed explicitly and anything else is refused. A silently ignored
+   argument is what made `--dependency … --require-accepted` a gate that always passed. */
+function parseCliArguments(argv) {
+  const options = { requireSimpleAdapters: false, dependency: null, requireAccepted: false };
+  for (let index = 0; index < argv.length; index += 1) {
+    const token = argv[index];
+    if (token === '--require-simple-adapters') {
+      options.requireSimpleAdapters = true;
+      continue;
+    }
+    if (token === '--require-accepted') {
+      options.requireAccepted = true;
+      continue;
+    }
+    if (token === '--dependency' || token.startsWith('--dependency=')) {
+      const inline = token.startsWith('--dependency=');
+      const value = inline ? token.slice('--dependency='.length) : argv[index + 1];
+      invariant(typeof value === 'string' && value.length > 0 && value.startsWith('-') === false, `--dependency requires a dependency name; ${CLI_USAGE}`);
+      invariant(options.dependency === null, `--dependency may be supplied only once; ${CLI_USAGE}`);
+      options.dependency = value;
+      if (!inline) index += 1;
+      continue;
+    }
+    throw new Error(`unrecognised argument "${token}"; ${CLI_USAGE}`);
+  }
+  invariant(options.requireAccepted === false || options.dependency !== null, `--require-accepted requires --dependency <name>; ${CLI_USAGE}`);
+  return options;
+}
+
 function main() {
   try {
-    const requireSimpleAdapters = process.argv.includes('--require-simple-adapters');
-    const report = validateActualToolExperience({ requireSimpleAdapters });
+    const report = validateActualToolExperience(parseCliArguments(process.argv.slice(2)));
+    if (report.dependency) {
+      const dependency = report.dependency;
+      console.log(`[tool-experience] dependency=${dependency.accepted ? 'ACCEPTED' : 'PENDING'} gate=${dependency.gateId} requested=${dependency.requested} state=${dependency.state} requireAccepted=${dependency.enforced} status=${dependency.observed.status} certification=${dependency.observed.certificationStatus} ${dependency.requirementName}=${dependency.observed.matchedRequirementCount}/${dependency.observed.requiredRequirementCount} source=${dependency.statePath} published=${dependency.publishedPath}`);
+    }
     for (const artifact of report.artifacts) {
       console.log(`[tool-experience] artifact=${artifact.artifact} bytes=${artifact.bytes} budget=${artifact.budget} result=PASS`);
     }

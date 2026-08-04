@@ -102,6 +102,8 @@ export function createBriefRefreshFixture(options = {}) {
   copyFileSync(resolve(ROOT, 'scripts/build-brief-page-artifacts.mjs'), resolve(repoRoot, 'scripts/build-brief-page-artifacts.mjs'));
   copyFileSync(resolve(ROOT, 'scripts/validate-distributed-briefs.mjs'), resolve(repoRoot, 'scripts/validate-distributed-briefs.mjs'));
   copyFileSync(resolve(ROOT, 'scripts/validate-brief-cache.mjs'), resolve(repoRoot, 'scripts/validate-brief-cache.mjs'));
+  // validate-brief-payload.mjs imports this on both validator branches below.
+  copyFileSync(resolve(ROOT, 'scripts/reader-vocabulary.mjs'), resolve(repoRoot, 'scripts/reader-vocabulary.mjs'));
   copyFileSync(resolve(ROOT, 'rlcontracts.js'), resolve(repoRoot, 'rlcontracts.js'));
   if (options.validatorMode === 'fail-final') {
     copyFileSync(resolve(ROOT, 'scripts/validate-brief-payload.mjs'), resolve(repoRoot, 'scripts/validate-brief-payload.real.mjs'));

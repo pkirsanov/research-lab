@@ -64,8 +64,15 @@ export function findReaderVocabularyLeaks(text, view) {
    PATH and both sides are declared from the committed payload's actual shape.
 
    Path grammar: segments joined by '.', array elements are '[]', '*' matches exactly one
-   segment (a tool id, a ticker), a trailing '**' matches the node and everything below it. */
-export const BRIEF_NARRATIVE_FIELDS = [
+   segment (a tool id, a ticker), a trailing '**' matches the node and everything below it.
+
+   Split REQUIRED/OPTIONAL because two different questions were being conflated. "Does this
+   pattern name a field that exists?" is a real defect if the answer is no — it silently
+   shrinks D13 coverage — and the committed payload answers it. "Is this optional field
+   populated in today's publish?" is not a defect either way, so asking the payload turned
+   an ordinary cron publish red. Both lists are still proven real; see the optional list
+   for how. */
+export const BRIEF_NARRATIVE_FIELDS_REQUIRED = [
   'dataAsOf.*',
   'regime.name',
   'regime.scoreNote',
@@ -111,14 +118,35 @@ export const BRIEF_NARRATIVE_FIELDS = [
   'groups.[].note',
   'groups.[].notable.[].reason',
   'toolReads.*.read',
-  'toolReads.*.limitations.[]',
-  'toolReads.*.recommendationEligibility.reason',
   'toolCoverage.[].reason',
   'watchlistNotes.*.status',
   'experimental.[].title',
   'experimental.[].note',
   'experimental.[].method'
 ];
+
+/* Real, reader-facing, and guarded exactly like the required patterns — but only PRESENT
+   when a tool read actually carries a limitation or an ineligibility reason. Most publishes
+   carry neither (`limitations` last appeared in 82214794, 96779edd, 09ecdba1), so demanding
+   a live instance would fail a healthy publish.
+
+   They are still proven real, just against the PRODUCER instead of one instance: the
+   selftest requires every concrete segment below to appear as a token in
+   BRIEF_NARRATIVE_OPTIONAL_PRODUCER. That is a weaker proof than a live instance — a leaf
+   whose name collides with an unrelated token in the producer would pass — which is why
+   this list stays tiny and is pinned by the selftest. Move a pattern here ONLY because it
+   is intermittently emitted, NEVER to silence a red required pattern. */
+export const BRIEF_NARRATIVE_FIELDS_OPTIONAL = [
+  'toolReads.*.limitations.[]',
+  'toolReads.*.recommendationEligibility.reason'
+];
+
+/** The producer whose source proves the optional patterns above name fields that exist. */
+export const BRIEF_NARRATIVE_OPTIONAL_PRODUCER = 'scripts/brief-refresh.mjs';
+
+/* The leak gate guards required and optional fields identically. The split governs only how
+   each is proven to be real, never whether it is checked for framework vocabulary. */
+export const BRIEF_NARRATIVE_FIELDS = [...BRIEF_NARRATIVE_FIELDS_REQUIRED, ...BRIEF_NARRATIVE_FIELDS_OPTIONAL];
 
 /* Machine carriers. These are the fields a status code legitimately lives in —
    scripts/brief-distributed-publish.mjs sets outcome/applicabilityStatus to

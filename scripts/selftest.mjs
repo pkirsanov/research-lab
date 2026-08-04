@@ -19,7 +19,9 @@ import { validateBriefPayload } from './validate-brief-payload.mjs';
 import { formatSpecTestPathFindings, validateSpecTestPaths } from './validate-spec-test-paths.mjs';
 import { buildCompanyFundamentalsOwnerRead } from './brief-refresh.mjs';
 import {
-  BRIEF_NARRATIVE_FIELDS,
+  BRIEF_NARRATIVE_FIELDS_OPTIONAL,
+  BRIEF_NARRATIVE_FIELDS_REQUIRED,
+  BRIEF_NARRATIVE_OPTIONAL_PRODUCER,
   BRIEF_STRUCTURED_FIELDS,
   READER_VOCABULARY_LEAKS,
   findBriefNarrativeVocabularyLeaks,
@@ -1922,8 +1924,31 @@ try {
   assert(unclassified.length === 0,
     'every payload string of 200+ characters is declared either reader prose or machine state, so no long field escapes the gate unnoticed'
       + (unclassified.length ? ': ' + [...new Set(unclassified)].join(', ') : ''));
-  assert(BRIEF_NARRATIVE_FIELDS.every((pattern) => walkBriefStrings(payload).some((entry) => matchesFieldPatterns([pattern], entry.segments))),
-    'every declared narrative field pattern matches a real field in the committed payload — the list describes this payload, not an imagined one');
+  // A pattern naming a field that does not exist silently shrinks D13 coverage, so every
+  // pattern must be proven real. Required patterns are proven by this payload. The two
+  // optional ones are real but intermittent — a publish where no tool read carries a
+  // limitation or an ineligibility reason is normal, not a defect — so they are proven
+  // against the producer instead. Both proofs are mandatory; neither is a waiver.
+  const payloadStrings = walkBriefStrings(payload);
+  const unmatchedRequired = BRIEF_NARRATIVE_FIELDS_REQUIRED
+    .filter((pattern) => !payloadStrings.some((entry) => matchesFieldPatterns([pattern], entry.segments)));
+  assert(unmatchedRequired.length === 0,
+    'every REQUIRED narrative pattern matches a real field in the committed payload — the required list describes this payload, not an imagined one'
+      + (unmatchedRequired.length ? ': ' + unmatchedRequired.join(', ') : ''));
+
+  const optionalProducer = read(BRIEF_NARRATIVE_OPTIONAL_PRODUCER);
+  const unprovenOptional = BRIEF_NARRATIVE_FIELDS_OPTIONAL.filter((pattern) => pattern.split('.')
+    .filter((segment) => segment !== '*' && segment !== '[]' && segment !== '**')
+    .some((segment) => !new RegExp('\\b' + segment + '\\b').test(optionalProducer)));
+  assert(unprovenOptional.length === 0,
+    'every OPTIONAL narrative pattern names fields ' + BRIEF_NARRATIVE_OPTIONAL_PRODUCER + ' actually emits — exemption from the payload-instance check is never exemption from being real'
+      + (unprovenOptional.length ? ': ' + unprovenOptional.join(', ') : ''));
+
+  // The optional list is the one way this split could become a bypass: a red required
+  // pattern could be "fixed" by moving it here. Pinned so growing it is a deliberate,
+  // reviewed act rather than a silent escape.
+  assert(BRIEF_NARRATIVE_FIELDS_OPTIONAL.join(',') === 'toolReads.*.limitations.[],toolReads.*.recommendationEligibility.reason',
+    'exactly the two intermittently-populated toolRead fields are exempt from the payload-instance check; every other narrative pattern is required');
 } catch (e) { failures++; console.log('  ✗ FAIL (reader vocabulary group threw): ' + e.message); }
 
 /* ---------- Causal Rotation: contracts, anti-hindsight, clustering + canaries ---------- */

@@ -300,10 +300,53 @@ test('Regression: SCN-008-001 valid local portfolio import creates one current r
   expect(first.url).not.toMatch(/MSFT|BND|quantity|costBasis/i);
   const revisionId = first.diagnostics.currentPortfolioId;
   await page.reload();
-  await expect(page.locator('#currentRevision')).toContainText(revisionId.slice(0, 20));
+  await expect(page.locator('#briefWorkspace #currentRevision')).toContainText(revisionId.slice(0, 20));
   const reloaded = await page.evaluate(() => window.__PORTFOLIO_DIAGNOSTICS__);
   expect(reloaded.currentPortfolioId).toBe(revisionId);
   expect(reloaded.revisionCount).toBe(1);
+
+  // Second instantiation allowed by the UI Scenario Matrix: commit over one existing revision.
+  const secondName = 'Scope 01 second revision';
+  await importValid(page, secondName);
+  // The rendered revision line carries the committed name, so this waits on the new state, not a clock.
+  await expect(page.locator('#briefWorkspace #currentRevision')).toContainText(secondName);
+  const second = await page.evaluate(() => {
+    const pointer = JSON.parse(localStorage.getItem('rlPortfolioWorkspaceV1.pointer'));
+    const active = JSON.parse(localStorage.getItem('rlPortfolioWorkspaceV1.' + pointer.activeSlot));
+    return {
+      diagnostics: window.__PORTFOLIO_DIAGNOSTICS__,
+      activeSlot: pointer.activeSlot,
+      localKeys: Object.keys(localStorage).sort(),
+      sessionKeys: Object.keys(sessionStorage).sort(),
+      url: location.href,
+      revisionIds: active.portfolioRevisions.map((entry) => entry.portfolioId),
+      revisionNames: active.portfolioRevisions.map((entry) => entry.name),
+      supersedes: active.portfolioRevisions.map((entry) => entry.supersedes)
+    };
+  });
+  const secondRevisionId = second.diagnostics.currentPortfolioId;
+  expect(second.diagnostics.generation).toBe(2);
+  expect(second.diagnostics.revisionCount).toBe(2);
+  expect(second.diagnostics.storageMode).toBe('durable');
+  expect(secondRevisionId).not.toBe(revisionId);
+  expect(second.revisionIds).toEqual([revisionId, secondRevisionId]);
+  expect(second.supersedes).toEqual([null, revisionId]);
+  expect(second.revisionNames).toEqual(['Scope 01 portfolio', secondName]);
+  expect(second.activeSlot).toBe('slotB');
+  expect(second.localKeys).toEqual(['rlPortfolioWorkspaceV1.pointer', 'rlPortfolioWorkspaceV1.slotA', 'rlPortfolioWorkspaceV1.slotB']);
+  expect(second.sessionKeys).toEqual([]);
+  expect(second.url).not.toMatch(/MSFT|BND|quantity|costBasis/i);
+  expect(second.url).not.toContain(secondName);
+  await page.reload();
+  const briefRevision = page.locator('#briefWorkspace #currentRevision');
+  await expect(briefRevision).toContainText(secondRevisionId.slice(0, 20));
+  await expect(briefRevision).toContainText(secondName);
+  await expect(briefRevision).not.toContainText(revisionId.slice(0, 20));
+  const afterSecondReload = await page.evaluate(() => window.__PORTFOLIO_DIAGNOSTICS__);
+  expect(afterSecondReload.currentPortfolioId).toBe(secondRevisionId);
+  expect(afterSecondReload.revisionCount).toBe(2);
+  expect(afterSecondReload.generation).toBe(2);
+
   const requests = server.requests.slice(requestStart);
   expect(requests.length).toBeGreaterThan(0);
   expect(requests.every((entry) => !/https?:\/\//.test(entry.pathname) && entry.method === 'GET')).toBe(true);

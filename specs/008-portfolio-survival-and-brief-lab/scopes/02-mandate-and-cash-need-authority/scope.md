@@ -93,9 +93,9 @@ Add each named assertion and persistent title before mandate behavior. Execute e
 
 #### Test Evidence Items - Exact Parity With 5 Test Plan Rows
 
-- [ ] TP-02-01 unit evidence proves closed mandate/cash-need authority, absence, identity, conflicts, and behavior/settings exclusion.
+- [x] TP-02-01 unit evidence proves closed mandate/cash-need authority, absence, identity, conflicts, and behavior/settings exclusion.
 - [ ] TP-02-02 functional evidence proves atomic mandate round trips and one unchanged constraint set across every consumer.
-- [ ] TP-02-03 Regression E2E evidence proves SCN-008-003 displays only explicit user-entered hard constraints across dependent route states.
+- [x] TP-02-03 Regression E2E evidence proves SCN-008-003 displays only explicit user-entered hard constraints across dependent route states.
 - [ ] TP-02-04 Regression E2E evidence proves SCN-008-004 retains descriptive research and shows unavailable goal fit/survival with no hidden values.
 - [ ] TP-02-05 broader E2E evidence proves the cumulative foundation route remains green after mandate/cash-need behavior lands.
 

@@ -2240,3 +2240,43 @@ Every failure is classified mechanically rather than read off the summary line, 
 All twelve named checks are current and clean at this scope's standard, and every finding is individually accounted for above. The item is checked and Scope 01 moves to `Done`.
 
 The item is not checked on exit codes alone. Scope-local traceability exits 1, and it is claimed only against its own written standard — zero failure naming this scope's own files — proven by an exhaustive mechanical classification of all 32 failures rather than by the summary line. Nothing here writes `certification.*`; validate re-confirmation is unaffected, and the whole-feature `--all-scopes` obligation remains open at Scope 16.
+
+## Scope 01 Certification - bubbles.validate
+
+**Agent:** `bubbles.validate`
+**Phase:** `validate`
+**Certified at:** `2026-08-05T17:21:25Z`
+**Verdict:** Scope 01 certified `done`. Spec status stays `in_progress` — 15 scopes remain.
+
+### Why The Prior Refusal Is Cleared
+
+The earlier refusal was never evidentiary. No SCN clause lacked evidence then, and none lacks it now. The refusal was a single governance contradiction: `scopes/_index.md` carried Known Cross-Scope Blocker 4 as `OPEN, blocks Scope 01` while the same file's dependency row asserted Scope 01 was complete. A register cannot say a scope is blocked and done at once.
+
+`bubbles.plan` cleared it in commit `94e1ca0d` (`_index.md` only, +8/-2) by making the Test Plan decision the blocker demanded: the SCN-008-002 `committed artifacts` sink stays in Scope 01 with TP-01-04 as the scanning row, and delegation to Scope 16's TP-16-09 was considered and rejected as recreating the blocker-3 deadlock. Blocker 4 now reads `RESOLVED` with its resolution retained per the register's convention, and the dependency row reads `Done`. The contradiction is gone.
+
+### Independent Re-Verification (Not Taken On Report)
+
+Every command below was re-executed in this session against current bytes. Plan's reported exit codes were not reused.
+
+| Check | Command | Exit | Result |
+| --- | --- | --- | --- |
+| Repository selftest | `node scripts/selftest.mjs` | 0 | 1220 passed, 0 failed |
+| Artifact lint | `bash .github/bubbles/scripts/artifact-lint.sh specs/008-portfolio-survival-and-brief-lab` | 0 | `Artifact lint PASSED` |
+| Inter-spec dependency guard | `bash .github/bubbles/scripts/inter-spec-dependency-guard.sh specs/008-portfolio-survival-and-brief-lab` | 0 | `PASS Gate G089`, dependencies=0 |
+| Scope 01 system suite | `npx --no-install playwright test --config=playwright.config.mjs --project=system-chrome tests/portfolio-survival-foundation.spec.mjs` | 0 | 6 passed (16.2s) |
+
+The sink discharge was verified from the suite's own diagnostics, not from prose: `committedArtifactProbe=fixed-scannable` (the probe is no longer a `Date.now()` value, so it *can* appear in a tracked file), `committedArtifactOrigins=tests/portfolio-survival-foundation.spec.mjs` (one origin), `committedArtifactViolations=0`, `scannerAdversarialDetection=briefs/current.json` (a planted committed leak *is* detected, so the zero is a real absence and not a vacuous pass), and `sinkScanModes=durable,session,memory` (all three persistence modes, not durable alone).
+
+Plan's naming discipline was confirmed independently rather than assumed: `git grep -l --fixed-strings` on the sentinel literal returns exactly `tests/portfolio-survival-foundation.spec.mjs` and nothing else. `_index.md` contains zero occurrences of the literal — it refers to the constant by name. Had plan written the literal while ratifying the single-origin assertion, it would have added a second origin and falsified the very claim it was ratifying.
+
+### Certification Scope Boundary
+
+`state-transition-guard.sh` exits 1 with 217 failures, and that is expected and non-blocking here: it evaluates promotion of the **whole spec** to `done`, which is false while 15 of 16 scopes are unstarted. Zero of those failures name Scope 01. Spec-level `status` and `certification.status` both remain `in_progress`; only `certification.scopeProgress[1]` and `certification.completedScopes` were written.
+
+### Carried Finding
+
+`F008-IMPL-010` is carried open, not resolved and not dropped. Owner remains `bubbles.test`. It is non-blocking: the parse path is storage-independent, so the value provably enters all three modes, and TP-01-04 asserts the render directly — no clause is left unproven.
+
+Severity is recorded here as **Medium** on validate's own authority, assessed at this timestamp. This is a deliberate divergence from the `Low` in the implement-authored finding table above, which is left unedited as that agent's own record. Validate rates it higher because the row reads stronger than it asserts: a regression that silently no-opped the file-change handler would leave every per-mode sink assertion passing over a page the value never reached, so the failure mode is a silent false-green rather than a cosmetic weakness. The fix — a per-mode `#previewRejected` or `#importErrors` assertion inside the TP-01-05 loop — extends a row's asserted behavior and is therefore planning-owned, so it is not made here.
+
+

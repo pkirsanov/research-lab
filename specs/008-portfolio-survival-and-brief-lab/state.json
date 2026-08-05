@@ -198,17 +198,19 @@
     },
     "certification": {
         "status": "in_progress",
-        "completedScopes": [],
+        "completedScopes": [
+            "01-private-portfolio-import-and-atomic-store"
+        ],
         "certifiedCompletedPhases": [],
         "scopeProgress": [
             {
                 "scope": 1,
                 "name": "Private Portfolio Import And Atomic Store",
-                "status": "in_progress",
+                "status": "done",
                 "dependsOn": [],
                 "scopeDir": "scopes/01-private-portfolio-import-and-atomic-store",
                 "evidenceFile": "scopes/01-private-portfolio-import-and-atomic-store/report.md",
-                "certifiedAt": null
+                "certifiedAt": "2026-08-05T17:21:25Z"
             },
             {
                 "scope": 2,
@@ -488,7 +490,7 @@
     "activeBugs": [],
     "resolvedBugs": [],
     "failures": [],
-    "lastUpdatedAt": "2026-08-04T16:52:00Z",
+    "lastUpdatedAt": "2026-08-05T17:21:25Z",
     "scopeLayout": "per-scope-directory",
     "artifacts": {
         "spec": "spec.md",

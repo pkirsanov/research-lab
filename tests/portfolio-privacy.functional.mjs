@@ -856,3 +856,71 @@ test('FR-017 FR-022 FR-033: behavior settings and market-fact relabelling attemp
   });
   assert.equal(after.portfolioRevisions[0].holdings.every((entry) => entry.provenanceClass === 'user-entered-holding'), true, 'FR-017 every stored holding must still be labelled user-entered, never market-observed');
 });
+
+test('rolling a mandate back restores the pre-mandate portfolio state by identity, not by resemblance', () => {
+  const { api, policy } = loadRuntime();
+  const localStorage = createStorage();
+  const sessionStorage = createStorage();
+  const store = api.createPortfolioStore({ localStorage, sessionStorage }, policy);
+  const opened = store.openWorkspace(NOW);
+  const seeded = store.commitWorkspace(
+    candidateFromCsv(api, policy, opened.value.workspace, 'Rollback exactness portfolio').value,
+    opened.value.workspace.generation,
+    NOW
+  );
+  assert.equal(seeded.ok, true);
+
+  // The baseline is read back through a fresh store, so "pre-change state" means the
+  // persisted bytes rather than the object the commit happened to hand back.
+  const preLoad = api.createPortfolioStore({ localStorage, sessionStorage }, policy).openWorkspace('2026-07-15T16:30:00.000Z');
+  assert.equal(preLoad.ok, true);
+  const pre = preLoad.value.workspace;
+  assert.strictEqual(pre.currentMandateId, null, 'the pre-change baseline must genuinely carry no mandate');
+  assert.equal(pre.portfolioRevisions.length > 0, true, 'an empty revision set would make every unchanged claim vacuous');
+  const prePortfolioId = pre.currentPortfolioId;
+  const preRevisionBytes = JSON.stringify(pre.portfolioRevisions);
+
+  // Commit a real mandate, so the rollback has something to undo. Rolling back a no-op
+  // would satisfy an equality check while proving nothing.
+  const draft = api.validateMandateDraft(mandateFixture('mandate-explicit.json'), pre, { now: '2026-07-15T16:31:00.000Z' }, policy);
+  assert.equal(draft.ok, true);
+  assert.equal(draft.value.canConfirm, true);
+  const mandateCandidate = api.buildMandateCandidate(draft.value, pre, { now: '2026-07-15T16:31:00.000Z' }, policy);
+  assert.equal(mandateCandidate.ok, true);
+  const withMandate = store.commitWorkspace(mandateCandidate.value, pre.generation, '2026-07-15T16:31:00.000Z');
+  assert.equal(withMandate.ok, true);
+  assert.notStrictEqual(withMandate.value.workspace.currentMandateId, null, 'the change being rolled back must actually have happened');
+  assert.notStrictEqual(
+    JSON.stringify(withMandate.value.workspace),
+    JSON.stringify(pre),
+    'the mandate commit must move the workspace off its baseline, or the rollback assertion is trivially true'
+  );
+
+  const cleared = api.buildMandateClearCandidate(withMandate.value.workspace, '2026-07-15T16:32:00.000Z', policy);
+  assert.equal(cleared.ok, true);
+  const rolledBack = store.commitWorkspace(cleared.value, withMandate.value.workspace.generation, '2026-07-15T16:32:00.000Z');
+  assert.equal(rolledBack.ok, true);
+
+  const postLoad = api.createPortfolioStore({ localStorage, sessionStorage }, policy).openWorkspace('2026-07-15T16:33:00.000Z');
+  assert.equal(postLoad.ok, true);
+  const post = postLoad.value.workspace;
+
+  assert.strictEqual(post.currentMandateId, null, 'the rollback must actually clear the mandate pointer');
+  assert.strictEqual(post.currentPortfolioId, prePortfolioId, 'the current portfolio identity must be the same string, not an equivalent rebuild');
+  assert.strictEqual(JSON.stringify(post.portfolioRevisions), preRevisionBytes, 'every stored portfolio revision must survive the rollback byte-for-byte');
+  assert.strictEqual(post.portfolioRevisions.length, pre.portfolioRevisions.length, 'the rollback must neither drop nor add a portfolio revision');
+  pre.portfolioRevisions.forEach((before, index) => {
+    const restored = post.portfolioRevisions[index];
+    assert.strictEqual(restored.portfolioId, before.portfolioId, `portfolio revision ${index} must keep its identity across the rollback`);
+    assert.strictEqual(restored.semanticFingerprint, before.semanticFingerprint, `portfolio revision ${index} must keep its semantic fingerprint across the rollback`);
+    assert.strictEqual(JSON.stringify(restored), JSON.stringify(before), `portfolio revision ${index} must not be rewritten by a mandate rollback`);
+  });
+
+  const projection = api.projectRouteStates(post, policy);
+  assert.equal(projection.ok, true);
+  assert.equal(
+    projection.value.routes.every((route) => route.descriptive.citedPortfolioId === prePortfolioId),
+    true,
+    'every descriptive route must still cite the pre-change portfolio identity after the rollback'
+  );
+});

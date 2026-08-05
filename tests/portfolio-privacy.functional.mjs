@@ -618,6 +618,23 @@ test('NFR-003 NFR-005 NFR-007 NFR-012 NFR-022: provenance missing-state integrit
   assert.equal(afterInvalid.currentMandateId, durable.currentMandateId);
   assert.equal(api.projectRouteStates(afterInvalid, policy).value.citedMandateFingerprint, mandate.semanticFingerprint, 'NFR-007 the last valid result identity must survive');
 
+  // NFR-007 durability, exercised through the store. validateMandateDraft, buildMandateCandidate
+  // and validateImport are pure and hold no storage handle, so a refusal routed only through them
+  // cannot move a durable byte no matter how the implementation regresses. The store is the only
+  // surface that can write, so the refused write is attempted there: a candidate whose mandate no
+  // longer carries user authority must be rejected before the pointer is republished.
+  const refusedStore = api.createPortfolioStore({ localStorage, sessionStorage }, policy);
+  const refusedBase = refusedStore.openWorkspace('2026-07-15T15:02:30.000Z').value.workspace;
+  const bytesBeforeRefusedCommit = JSON.stringify(localStorage.snapshot());
+  const corruptedCandidate = JSON.parse(JSON.stringify(refusedBase));
+  corruptedCandidate.mandateRevisions[0].inputAuthority = 'inferred';
+  const refusedCommit = refusedStore.commitWorkspace(corruptedCandidate, refusedBase.generation, '2026-07-15T15:02:30.000Z');
+  assert.equal(refusedCommit.ok, false, 'NFR-007 a durable commit of an invalid candidate must be refused');
+  assert.equal(JSON.stringify(localStorage.snapshot()) === bytesBeforeRefusedCommit, true, 'NFR-007 a refused durable commit must not change one durable byte');
+  const afterRefusedCommit = api.createPortfolioStore({ localStorage, sessionStorage }, policy).openWorkspace('2026-07-15T15:02:45.000Z').value.workspace;
+  assert.equal(afterRefusedCommit.currentMandateId, durable.currentMandateId, 'NFR-007 the last valid mandate identity must survive a refused durable commit');
+  assert.equal(afterRefusedCommit.mandateRevisions.every((entry) => entry.inputAuthority === policy.mandate.inputAuthority), true, 'NFR-007 no stored revision may lose user authority through a refused commit');
+
   // NFR-012 two edits are prepared against one base. The first to commit wins; the second is a
   // stale intermediate and must never publish. Rebasing it then makes it the latest complete
   // identity, so "latest complete" is proved by a change of winner, not by a single edit.

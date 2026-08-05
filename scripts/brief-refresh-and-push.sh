@@ -22,6 +22,9 @@
 # Env knobs:
 #   BRIEF_MODEL              model slug for the narrative (default: claude-opus-4.8)
 #   BRIEF_SKIP_NARRATIVE     set to 1 for a data-only run (skip the Copilot step)
+#   BRIEF_COPILOT_EXPECTED_PATH    pinned narrative-runtime path (default: /opt/homebrew/bin/copilot)
+#   BRIEF_COPILOT_EXPECTED_VERSION pinned narrative-runtime version as SELF-REPORTED by `copilot --version`
+#                                  (default: 1.0.75; npm package metadata is NOT the runtime version)
 #   BRIEF_NARRATIVE_ATTEMPTS max narrative gen+validate attempts per run (default: 1)
 #   BRIEF_NARRATIVE_TIMEOUT  per-attempt timeout in seconds for the Copilot call (default: 1800)
 #   BRIEF_LANE_ATTEMPTS      attempts for each failed lane (scheduler default: 2)
@@ -177,6 +180,8 @@ NARRATIVE_TIMEOUT="${BRIEF_NARRATIVE_TIMEOUT:-1800}"
 FETCH_BARS_TIMEOUT="${BRIEF_FETCH_BARS_TIMEOUT:-1200}"
 FETCH_OPTIONS_TIMEOUT="${BRIEF_FETCH_OPTIONS_TIMEOUT:-900}"
 TIER_A_TIMEOUT="${BRIEF_TIER_A_TIMEOUT:-600}"
+COPILOT_EXPECTED_PATH="${BRIEF_COPILOT_EXPECTED_PATH:-/opt/homebrew/bin/copilot}"
+COPILOT_EXPECTED_VERSION="${BRIEF_COPILOT_EXPECTED_VERSION:-1.0.75}"
 
 # Portable timeout (macOS has no `timeout` by default): timeout -> gtimeout -> watchdog.
 run_with_timeout() {
@@ -200,7 +205,55 @@ elif [ "$mins" -ge $((900 - PUBLICATION_LEAD_MINUTES))  ]; then WINDOW=pre-close
 elif [ "$mins" -ge $((660 - PUBLICATION_LEAD_MINUTES))  ]; then WINDOW=morning
 else WINDOW=pre-market; fi
 
-echo "[brief-timer] $(TZ=America/New_York date '+%Y-%m-%d %H:%M:%S %Z') — window=$WINDOW @ $REPO_ROOT (node=$NODE_BIN git=$GIT_BIN copilot=${COPILOT_BIN:-<none>} model=$MODEL dry=$DRY_RUN)"
+# GNU timeout runs its child in a NEW process group, and the Copilot native binary hangs there —
+# `gtimeout 30 copilot --version` returns 124 with no output at all. So the version probe uses a
+# same-process-group watchdog instead of run_with_timeout, and keeps the watchdog's own stdout off
+# the capture pipe so a successful probe returns immediately instead of waiting out the bound.
+copilot_version_probe() {
+  local probe_bin="$1"
+  "$probe_bin" --version 2>/dev/null &
+  local probe_pid=$!
+  ( sleep 30; kill -TERM "$probe_pid" 2>/dev/null ) >/dev/null 2>&1 &
+  local probe_watch=$!
+  wait "$probe_pid" 2>/dev/null
+  kill -TERM "$probe_watch" 2>/dev/null || true
+  wait "$probe_watch" 2>/dev/null || true
+}
+
+# The narrative runtime is pinned, and the pin is asserted rather than assumed, because this build
+# has already drifted silently once: `copilot update` rewrote the native binary in place on 2026-07-24
+# while the npm package metadata stayed at 1.0.69, so `npm ls` reports a version the runtime does not
+# run. The version below is therefore the SELF-REPORTED one, and PATH is checked too because VS Code
+# 1.132+ prepends its own extension-managed `copilot` shim ahead of Homebrew. A narrative published
+# from an unverified build changes reader-facing output with no record of the change.
+# An explicit BRIEF_COPILOT_BIN is an operator/test override and is reported, not measured.
+COPILOT_BINDING_DETAIL=""
+if [ -n "${BRIEF_COPILOT_BIN:-}" ]; then
+  COPILOT_BINDING="override"
+  COPILOT_BINDING_DETAIL="explicit BRIEF_COPILOT_BIN=$COPILOT_BIN"
+elif [ -z "$COPILOT_BIN" ]; then
+  COPILOT_BINDING="absent"
+  COPILOT_BINDING_DETAIL="no copilot on PATH"
+elif [ "$COPILOT_BIN" != "$COPILOT_EXPECTED_PATH" ]; then
+  COPILOT_BINDING="path-mismatch"
+  COPILOT_BINDING_DETAIL="resolved $COPILOT_BIN, expected $COPILOT_EXPECTED_PATH"
+else
+  # "GitHub Copilot CLI 1.0.75." -> 1.0.75; a trailing sentence period is not part of the version.
+  copilot_version="$(copilot_version_probe "$COPILOT_BIN" \
+    | awk 'NR==1{for(i=1;i<=NF;i++) if($i ~ /^[0-9]+\.[0-9]+\.[0-9]+\.?$/){sub(/\.$/,"",$i); print $i; exit}}')"
+  if [ -z "$copilot_version" ]; then
+    COPILOT_BINDING="version-unreadable"
+    COPILOT_BINDING_DETAIL="$COPILOT_BIN did not report a parsable version"
+  elif [ "$copilot_version" != "$COPILOT_EXPECTED_VERSION" ]; then
+    COPILOT_BINDING="version-mismatch"
+    COPILOT_BINDING_DETAIL="resolved $copilot_version, expected $COPILOT_EXPECTED_VERSION"
+  else
+    COPILOT_BINDING="ok"
+    COPILOT_BINDING_DETAIL="$COPILOT_BIN $copilot_version"
+  fi
+fi
+
+echo "[brief-timer] $(TZ=America/New_York date '+%Y-%m-%d %H:%M:%S %Z') — window=$WINDOW @ $REPO_ROOT (node=$NODE_BIN git=$GIT_BIN copilot=${COPILOT_BIN:-<none>} binding=$COPILOT_BINDING model=$MODEL dry=$DRY_RUN)"
 
 # 1) Refresh canonical daily bars once for the union of every tool, then fetch
 #    option chains and attach those same bar rows. Tier A and browser tools reuse
@@ -275,6 +328,15 @@ elif [ -z "$COPILOT_BIN" ]; then
     exit 1
   fi
   echo "[brief-timer] copilot CLI not found — data-only run (install: npm i -g @github/copilot)"
+elif [ "$COPILOT_BINDING" != "ok" ] && [ "$COPILOT_BINDING" != "override" ]; then
+  if [ "$REQUIRE_COMPLETE_RUN" = "1" ]; then
+    echo "[brief-timer] refusing: pinned narrative runtime failed its binding check ($COPILOT_BINDING: $COPILOT_BINDING_DETAIL)"
+    echo "[brief-timer] publishing a narrative from an unverified Copilot build would change reader-facing output without review"
+    echo "[brief-timer] remediation: restore $COPILOT_EXPECTED_PATH at $COPILOT_EXPECTED_VERSION, or raise BRIEF_COPILOT_EXPECTED_VERSION after validating one full run on the new build"
+    restore_owned_baseline || true
+    exit 1
+  fi
+  echo "[brief-timer] pinned narrative runtime failed its binding check ($COPILOT_BINDING: $COPILOT_BINDING_DETAIL) — data-only run, narrative not regenerated"
 else
   # The parallel launcher owns its curated finance/econ web allowlist and keeps shell denied.
   WEB_STATE="curated-web-on"

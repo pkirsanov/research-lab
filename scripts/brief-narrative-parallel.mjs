@@ -413,6 +413,14 @@ let succeeded = false;
 try {
     console.log(`[brief-parallel] starting ${lanes.length} write-disjoint lanes with maxConcurrency=${laneConcurrency} laneAttempts=${laneAttempts} exitGrace=${exitGraceSeconds}s`);
     const results = await runLanePool(lanes, laneConcurrency);
+    /* Lanes routinely finish by writing a complete fragment and then failing to exit, so the
+       recovery path is load-bearing rather than exceptional. Report the per-run rate here so a
+       trend is readable from the run log instead of re-derived by grepping per-lane lines. */
+    const recoveredLanes = results.filter((result) => result && result.recovered);
+    const recoveryDetail = recoveredLanes
+        .map((result) => `${result.lane.id}:${result.terminationReason || 'non-zero-exit'}`)
+        .join(',');
+    console.log(`[brief-parallel] lane recovery summary lanes=${results.length} recovered=${recoveredLanes.length}${recoveryDetail ? ` via=${recoveryDetail}` : ''}`);
     if (!sameBytes(PAYLOAD_PATH, payloadBaseline) || !sameBytes(CONFIG_PATH, configBaseline)
         || (toolBundleBaseline && !sameBytes(TOOL_BUNDLE_PATH, toolBundleBaseline))) {
         writeFileSync(PAYLOAD_PATH, payloadBaseline);

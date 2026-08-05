@@ -1918,7 +1918,7 @@ Both named verifying rows are inside this run: TP-01-04 is test 5, TP-01-05 is t
 
 ### Blocking Gap - Committed Artifacts - RESOLVED
 
-The probe is now a fixed, scannable constant rather than a run-time value: `COMMITTED_ARTIFACT_SENTINEL = 'SCOPE01-PRIVATE-COMMITTED-PROBE-7f3a9c2e'` (`tests/portfolio-survival-foundation.spec.mjs:385`) with its one legitimate home declared in `COMMITTED_ARTIFACT_ORIGINS` (:386). That change is what makes the sink testable at all — a `Date.now()` value can never appear in a committed file, so no assertion over it could ever fail.
+The probe is now a fixed, scannable constant rather than a run-time value: `COMMITTED_ARTIFACT_SENTINEL` (`tests/portfolio-survival-foundation.spec.mjs:385`) with its one legitimate home declared in `COMMITTED_ARTIFACT_ORIGINS` (:386). The literal is deliberately **not** reproduced here — this report is itself a tracked file, so quoting the value would create exactly the committed-artifact leak SCN-008-002 asserts against; read it at the cited line instead. That change is what makes the sink testable at all — a `Date.now()` value can never appear in a committed file, so no assertion over it could ever fail.
 
 The assertion is `found set === declared origins` (:445), not `found set is empty`. A bare tree-wide emptiness check would self-trigger on the constant's own declaration and could only be made to pass by not scanning the file that declares it.
 

@@ -74,6 +74,10 @@ export function findReaderVocabularyLeaks(text, view) {
    for how. */
 export const BRIEF_NARRATIVE_FIELDS_REQUIRED = [
   'dataAsOf.*',
+  /* '*' matches exactly one segment, so `dataAsOf.*` covers the four long freshness
+     narratives but NOT the condensed labels nested one level below them. Same reader,
+     same copy, one segment deeper — they need their own pattern to be guarded. */
+  'dataAsOf.labels.*',
   'regime.name',
   'regime.scoreNote',
   'regime.crowdPsychology',
@@ -114,6 +118,7 @@ export const BRIEF_NARRATIVE_FIELDS_REQUIRED = [
   'events.[].scenarios.[].name',
   'events.[].scenarios.[].expectedEffect',
   'psychology.read',
+  'psychology.tell',
   'groups.[].label',
   'groups.[].note',
   'groups.[].notable.[].reason',

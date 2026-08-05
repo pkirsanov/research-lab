@@ -1,10 +1,52 @@
-import { createReadStream, existsSync, readFileSync, statSync } from 'node:fs';
+import { spawnSync } from 'node:child_process';
+import { createReadStream, existsSync, mkdirSync, mkdtempSync, readFileSync, rmSync, statSync, writeFileSync } from 'node:fs';
 import { createServer } from 'node:http';
-import { dirname, extname, normalize, resolve, sep } from 'node:path';
+import { tmpdir } from 'node:os';
+import { dirname, extname, join, normalize, resolve, sep } from 'node:path';
 import { fileURLToPath } from 'node:url';
 
 export const ROOT = resolve(dirname(fileURLToPath(import.meta.url)), '..');
 export const FIXTURE_ROOT = resolve(ROOT, 'tests/fixtures/portfolio-survival-allocation');
+
+function git(cwd, args) {
+  const run = spawnSync('git', args, { cwd, encoding: 'utf8' });
+  if (run.error) throw run.error;
+  return run;
+}
+
+/*
+ * Paths of git-TRACKED files whose current content contains `needle`, sorted.
+ *
+ * `git grep` only ever reads files git tracks, so untracked scratch and ignored build output
+ * (`/_site/`, `/test-results/`) can neither mask a real hit nor manufacture a false one. Scanning
+ * the working tree rather than `--cached` is deliberate: a leak into a tracked artifact must be
+ * caught the moment it is written, not only once someone stages it.
+ */
+export function trackedPathsContaining(needle, root = ROOT) {
+  const found = git(root, ['grep', '--files-with-matches', '--fixed-strings', '--no-color', '-I', '-e', needle]);
+  if (found.status === 1) return [];
+  if (found.status !== 0) throw new Error(`git grep failed (${found.status}): ${found.stderr}`);
+  return found.stdout.split('\n').filter(Boolean).sort();
+}
+
+/*
+ * Disposable repo that HAS committed `needle` to a tracked file at `relativePath`. Lets a test
+ * construct the exact violation it claims to detect, so an "absent everywhere" result can be
+ * shown to be a real absence rather than an inert scan.
+ */
+export function commitTrackedLeak(needle, relativePath) {
+  const root = mkdtempSync(join(tmpdir(), 'rl-portfolio-leak-'));
+  git(root, ['init', '--quiet']);
+  git(root, ['config', 'user.email', 'leak@example.invalid']);
+  git(root, ['config', 'user.name', 'Leak Fixture']);
+  const absolute = join(root, relativePath);
+  mkdirSync(dirname(absolute), { recursive: true });
+  writeFileSync(absolute, JSON.stringify({ leaked: needle }) + '\n');
+  git(root, ['add', '--', relativePath]);
+  const committed = git(root, ['commit', '--quiet', '-m', 'leak fixture']);
+  if (committed.status !== 0) throw new Error(`leak fixture commit failed: ${committed.stderr}`);
+  return Object.freeze({ root, cleanup: () => rmSync(root, { force: true, recursive: true }) });
+}
 
 const MIME = Object.freeze({
   '.csv': 'text/csv; charset=utf-8',

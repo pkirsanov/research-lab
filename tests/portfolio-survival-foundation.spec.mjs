@@ -1,6 +1,6 @@
 import { expect, test } from './playwright-runtime.mjs';
 import { resolve } from 'node:path';
-import { FIXTURE_ROOT, startPortfolioServer } from './portfolio-survival.support.mjs';
+import { commitTrackedLeak, FIXTURE_ROOT, startPortfolioServer, trackedPathsContaining } from './portfolio-survival.support.mjs';
 
 let server;
 
@@ -369,6 +369,22 @@ test('Regression: SCN-008-001 valid local portfolio import creates one current r
   console.log('[SCN-008-001] remoteRequests=0');
 });
 
+/*
+ * SCN-008-002 sink 5 — `committed artifacts`.
+ *
+ * The four runtime sinks are provable with a per-run value, but a probe built from Date.now()
+ * can NEVER appear in a tracked file, so it cannot test this sink at all — it makes the clause
+ * untestable, not satisfied. The probe below is therefore FIXED (a literal a leak could really
+ * deposit in git) and the run-unique suffix is kept on top of it, so per-run isolation on the
+ * four runtime sinks is unchanged.
+ *
+ * The constant's only legitimate home is this file, so the assertion is
+ * `found set === declared origins`, never `found set is empty`: a bare tree-wide scan would
+ * self-trigger on the declaration itself and prove nothing.
+ */
+const COMMITTED_ARTIFACT_SENTINEL = 'SCOPE01-PRIVATE-COMMITTED-PROBE-7f3a9c2e';
+const COMMITTED_ARTIFACT_ORIGINS = Object.freeze(['tests/portfolio-survival-foundation.spec.mjs']);
+
 test('Regression: SCN-008-002 invalid or secret-bearing import is atomic and redacted', async ({ page }) => {
   const consoleMessages = [];
   page.on('console', (message) => consoleMessages.push(message.text()));
@@ -376,12 +392,18 @@ test('Regression: SCN-008-002 invalid or secret-bearing import is atomic and red
   const browserRequests = await openRoute(page);
   await importValid(page, 'Prior portfolio');
   const prior = await page.evaluate(() => window.__PORTFOLIO_DIAGNOSTICS__);
-  const sentinel = 'SCOPE01-E2E-PRIVATE-' + Date.now();
+  const sentinel = COMMITTED_ARTIFACT_SENTINEL + '-' + Date.now();
   const invalidBytes = (await import('node:fs')).readFileSync(resolve(FIXTURE_ROOT, 'invalid-secret-portfolio.csv'), 'utf8').replaceAll('__PRIVATE_SENTINEL__', sentinel);
   await page.locator('#portfolioFile').setInputFiles({ name: 'invalid.csv', mimeType: 'text/csv', buffer: Buffer.from(invalidBytes) });
   await expect(page.locator('#confirmImport')).toBeDisabled();
   await expect(page.locator('#previewRejected')).not.toHaveText('0');
   await expect(page.locator('#importErrors')).toContainText('P008-IMPORT-SECRET');
+  /* safeErrorCopy() renders `CODE · row N · field X · reason`. Asserting only the code would let a
+   * regression drop the row/field segments — the part that makes the rejection actionable. */
+  const errorCopy = (await page.locator('#importErrors li').allTextContents()).join('\n');
+  expect(errorCopy, 'rejection reason names the offending row').toMatch(/row \d+/);
+  expect(errorCopy, 'rejection reason names the offending field').toMatch(/field \S+/);
+  expect(errorCopy, 'rejection reason names row and field without echoing the value').not.toContain(sentinel);
   await expect(page.locator('#currentRevision')).toContainText('Current portfolio unchanged');
   await expect(page.locator('body')).not.toContainText(sentinel);
   const after = await page.evaluate((privateSentinel) => ({
@@ -389,7 +411,10 @@ test('Regression: SCN-008-002 invalid or secret-bearing import is atomic and red
     local: Object.values(localStorage).join('\n'),
     session: Object.values(sessionStorage).join('\n'),
     url: location.href,
-    bodyContains: document.body.textContent.includes(privateSentinel)
+    bodyContains: document.body.textContent.includes(privateSentinel),
+    // `rlData` is the shared cache scripts/brief-distributed-publish.mjs harvests into briefs/.
+    sharedCache: localStorage.getItem('rlData'),
+    foreignKeys: Object.keys(localStorage).filter((key) => !key.startsWith('rlPortfolioWorkspaceV1.')).sort()
   }), sentinel);
   expect(after.diagnostics.currentPortfolioId).toBe(prior.currentPortfolioId);
   expect(after.diagnostics.generation).toBe(prior.generation);
@@ -400,6 +425,37 @@ test('Regression: SCN-008-002 invalid or secret-bearing import is atomic and red
   expect(consoleMessages.join('\n')).not.toContain(sentinel);
   expect(JSON.stringify(server.requests.slice(requestStart))).not.toContain(sentinel);
   expect(browserRequests.every((url) => new URL(url).origin === server.baseUrl)).toBe(true);
+
+  /* Sink 5, causal half — the only route by which a rejected value could BECOME a committed
+   * artifact. scripts/brief-distributed-publish.mjs harvests localStorage.rlData.toolReads into
+   * tracked briefs/, so a portfolio write into the shared cache would carry the rejected value
+   * into git on the next publish. The repo-wide "every tool publishes its read to
+   * RLDATA.toolReads" convention makes that a live regression, not a hypothetical one. */
+  expect(after.sharedCache, 'rejection leaves no shared-cache entry for the brief publisher to harvest').toBe(null);
+  expect(after.foreignKeys, 'rejection writes no storage key outside the private portfolio namespace').toEqual([]);
+
+  /* Sink 5, artifact half — the fixed probe may exist only where it is declared. Asserting the
+   * bare prefix (not just the run-unique value) also catches a truncated or prefix-only leak. */
+  expect(after.local).not.toContain(COMMITTED_ARTIFACT_SENTINEL);
+  expect(after.session).not.toContain(COMMITTED_ARTIFACT_SENTINEL);
+  expect(after.url).not.toContain(COMMITTED_ARTIFACT_SENTINEL);
+  expect(consoleMessages.join('\n')).not.toContain(COMMITTED_ARTIFACT_SENTINEL);
+  expect(JSON.stringify(server.requests.slice(requestStart))).not.toContain(COMMITTED_ARTIFACT_SENTINEL);
+  const sentinelPaths = trackedPathsContaining(COMMITTED_ARTIFACT_SENTINEL);
+  expect(sentinelPaths, 'rejected value reaches no tracked file beyond its declared origin').toEqual([...COMMITTED_ARTIFACT_ORIGINS]);
+
+  /* adversarial: the SAME scanner, pointed at a disposable repo that has committed the probe to a
+   * brief-shaped tracked artifact, reports that path. Without this, an inert scan (wrong root,
+   * wrong flags, always-empty) would make the assertion above pass vacuously. */
+  const leak = commitTrackedLeak(COMMITTED_ARTIFACT_SENTINEL, 'briefs/current.json');
+  try {
+    const leakedPaths = trackedPathsContaining(COMMITTED_ARTIFACT_SENTINEL, leak.root);
+    expect(leakedPaths, 'scanner detects a rejected value committed to a tracked artifact').toEqual(['briefs/current.json']);
+    expect(leakedPaths.filter((path) => !COMMITTED_ARTIFACT_ORIGINS.includes(path)), 'a leak outside the declared origins is reported as a violation').toEqual(['briefs/current.json']);
+  } finally {
+    leak.cleanup();
+  }
+
   console.log('[SCN-008-002] confirmation=disabled');
   console.log('[SCN-008-002] redaction=value-not-echoed');
   console.log('[SCN-008-002] generation=' + after.diagnostics.generation);
@@ -408,6 +464,13 @@ test('Regression: SCN-008-002 invalid or secret-bearing import is atomic and red
   console.log('[SCN-008-002] consoleSentinel=false');
   console.log('[SCN-008-002] urlSentinel=false');
   console.log('[SCN-008-002] requestSentinel=false');
+  // Paths only — never the probe value, or this evidence would itself become a new origin.
+  console.log('[SCN-008-002] committedArtifactProbe=fixed-scannable');
+  console.log('[SCN-008-002] committedArtifactOrigins=' + sentinelPaths.join(','));
+  console.log('[SCN-008-002] committedArtifactViolations=0');
+  console.log('[SCN-008-002] sharedCacheEntry=absent');
+  console.log('[SCN-008-002] foreignStorageKeys=0');
+  console.log('[SCN-008-002] scannerAdversarialDetection=briefs/current.json');
 });
 
 test('Regression: Feature 008 atomic slots preserve last valid portfolio in durable session and memory modes', async ({ browser }) => {
@@ -415,6 +478,9 @@ test('Regression: Feature 008 atomic slots preserve last valid portfolio in dura
   for (const mode of ['durable', 'session', 'memory']) {
     const context = await browser.newContext();
     const page = await context.newPage();
+    const consoleMessages = [];
+    page.on('console', (message) => consoleMessages.push(message.text()));
+    const requestStart = server.requests.length;
     await blockStorage(page, mode);
     const browserRequests = await openRoute(page);
     await expect(page.locator('#storageMode')).toContainText(mode === 'durable' ? 'Durable' : mode === 'session' ? 'Session-only' : 'Memory-only');
@@ -425,7 +491,11 @@ test('Regression: Feature 008 atomic slots preserve last valid portfolio in dura
       : 'Verified for this tab only. No durable-save claim.');
     const before = await page.evaluate(() => window.__PORTFOLIO_DIAGNOSTICS__);
     expect(before.savedDurably).toBe(mode === 'durable');
-    const invalidBytes = (await import('node:fs')).readFileSync(resolve(FIXTURE_ROOT, 'invalid-secret-portfolio.csv'), 'utf8');
+    /* The probe carries the same FIXED prefix TP-01-04 scans for, so the one tracked-tree scan
+     * after this loop covers the rejection performed in every persistence mode. The per-mode
+     * suffix keeps the runtime-sink checks isolated per iteration. */
+    const modeSentinel = COMMITTED_ARTIFACT_SENTINEL + '-' + mode + '-' + Date.now();
+    const invalidBytes = (await import('node:fs')).readFileSync(resolve(FIXTURE_ROOT, 'invalid-secret-portfolio.csv'), 'utf8').replaceAll('__PRIVATE_SENTINEL__', modeSentinel);
     await page.locator('#portfolioFile').setInputFiles({ name: 'invalid.csv', mimeType: 'text/csv', buffer: Buffer.from(invalidBytes) });
     await expect(page.locator('#confirmImport')).toBeDisabled();
     const after = await page.evaluate(() => window.__PORTFOLIO_DIAGNOSTICS__);
@@ -433,6 +503,42 @@ test('Regression: Feature 008 atomic slots preserve last valid portfolio in dura
     expect(after.generation).toBe(before.generation);
     expect(after.storageMode).toBe(mode);
     expect(after.savedDurably).toBe(mode === 'durable');
+
+    /* Sink absence per persistence mode. A blocked store is a plain stub, not a Storage, so
+     * enumeration goes through the Storage API (`length`/`key`/`getItem`) rather than
+     * Object.keys — which on the stub would return its own method names. `live` is an
+     * instanceof probe, so it classifies the store without writing to it. A store the app cannot
+     * write is one the rejected value cannot reach, which is why it is recorded, not assumed. */
+    const sinks = await page.evaluate(() => {
+      const live = (name) => { try { return window[name] instanceof Storage; } catch (error) { return false; } };
+      const entries = (name) => {
+        try {
+          const store = window[name];
+          const keys = [];
+          const values = [];
+          for (let index = 0; index < store.length; index += 1) {
+            const key = store.key(index);
+            if (key === null) continue;
+            keys.push(key);
+            values.push(String(store.getItem(key)));
+          }
+          return { keys, text: values.join('\n') };
+        } catch (error) { return { keys: [], text: '' }; }
+      };
+      const shared = () => { try { return localStorage.getItem('rlData'); } catch (error) { return null; } };
+      return { local: entries('localStorage'), session: entries('sessionStorage'), localLive: live('localStorage'), sessionLive: live('sessionStorage'), url: location.href, body: document.body.textContent, sharedCache: shared() };
+    });
+    expect(sinks.localLive, `${mode}: localStorage liveness matches the declared persistence mode`).toBe(mode === 'durable');
+    expect(sinks.sessionLive, `${mode}: sessionStorage liveness matches the declared persistence mode`).toBe(mode !== 'memory');
+    expect(sinks.local.text, `${mode}: rejected value absent from localStorage`).not.toContain(modeSentinel);
+    expect(sinks.session.text, `${mode}: rejected value absent from sessionStorage`).not.toContain(modeSentinel);
+    expect(sinks.url, `${mode}: rejected value absent from the URL`).not.toContain(modeSentinel);
+    expect(sinks.body, `${mode}: rejected value is not echoed to the page`).not.toContain(modeSentinel);
+    expect(consoleMessages.join('\n'), `${mode}: rejected value absent from logs`).not.toContain(modeSentinel);
+    expect(JSON.stringify(server.requests.slice(requestStart)), `${mode}: rejected value absent from telemetry`).not.toContain(modeSentinel);
+    expect(sinks.sharedCache, `${mode}: rejection leaves no shared-cache entry to harvest`).toBe(null);
+    expect(sinks.local.keys.filter((key) => !key.startsWith('rlPortfolioWorkspaceV1.')), `${mode}: no storage key outside the private portfolio namespace`).toEqual([]);
+
     expect(browserRequests.length).toBeGreaterThan(0);
     expect(browserRequests.every((url) => new URL(url).origin === server.baseUrl)).toBe(true);
     expect(await page.evaluate(async () => !navigator.serviceWorker.controller && (await navigator.serviceWorker.getRegistrations()).length === 0)).toBe(true);
@@ -440,10 +546,14 @@ test('Regression: Feature 008 atomic slots preserve last valid portfolio in dura
       await page.reload();
       await expect.poll(async () => page.evaluate(() => window.__PORTFOLIO_DIAGNOSTICS__ ? window.__PORTFOLIO_DIAGNOSTICS__.currentPortfolioId : null)).toBe(before.currentPortfolioId);
     }
-    outcomes.push(`${mode}:${after.generation}:${after.storageMode}`);
+    outcomes.push(`${mode}:${after.generation}:${after.storageMode}:${sinks.localLive ? 'local-live' : 'local-blocked'}:${sinks.sessionLive ? 'session-live' : 'session-blocked'}`);
     await context.close();
   }
   expect(outcomes).toHaveLength(3);
+  /* One scan closes the committed-artifacts sink for all three modes: every iteration above pushed
+   * the same fixed prefix through a rejection. */
+  const sentinelPaths = trackedPathsContaining(COMMITTED_ARTIFACT_SENTINEL);
+  expect(sentinelPaths, 'no persistence mode leaks a rejected value into a tracked file').toEqual([...COMMITTED_ARTIFACT_ORIGINS]);
   console.log('[TP-01-05] modes=' + outcomes.join(','));
   console.log('[TP-01-05] durable=true');
   console.log('[TP-01-05] session=true');
@@ -452,4 +562,7 @@ test('Regression: Feature 008 atomic slots preserve last valid portfolio in dura
   console.log('[TP-01-05] falseDurableClaim=false');
   console.log('[TP-01-05] sessionWarning=true');
   console.log('[TP-01-05] externalProviders=0');
+  console.log('[TP-01-05] sinkScanModes=durable,session,memory');
+  console.log('[TP-01-05] committedArtifactOrigins=' + sentinelPaths.join(','));
+  console.log('[TP-01-05] sharedCacheEntry=absent');
 });

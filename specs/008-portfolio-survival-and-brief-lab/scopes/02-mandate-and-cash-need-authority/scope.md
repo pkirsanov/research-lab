@@ -178,6 +178,32 @@ Add each named assertion and persistent title before mandate behavior. Execute e
 
 - [ ] Scope 01 import/storage behavior remains unchanged, rollback is exact, and every Scope 02 behavior has intended RED and same-command GREEN evidence.
 
+  **Assessed and deliberately left unchecked.** The item joins three claims with "and". Clause (a) *Scope 01 unchanged* is carried: `tests/portfolio-foundation.unit.mjs` (22 pass), `tests/portfolio-privacy.functional.mjs` (11 pass) and the `system-chrome` browser suite (6 passed) were all re-executed green at the current HEAD with `git status --porcelain rlportfolio.js` empty. Clause (b) *rollback is exact* is carried by the committed assertion `rolling a mandate back restores the pre-mandate portfolio state by identity, not by resemblance` (`tests/portfolio-privacy.functional.mjs:860`), green as subtest 11.
+
+  Clause (c) is **not** carried. It is quantified over *every* Scope 02 behavior; four have a RED record (atomic mandate round trips and one-constraint-set-to-every-consumer from the TP-02-02 RED, plus conflicts-stay-unconfirmable and absence-never-invents-a-value observed this session), and ten do not. The widest gap is the FR-017/FR-022/FR-033 forbidden-input refusal surface — the scope's central negative claim — which has no RED at all; its non-vacuity currently rests on internal control assertions, which are strong but are not a RED/GREEN pair. Clause (b)'s own test likewise has no RED.
+
+  **Command:** `BUBBLES_AGENT_NAME=bubbles.implement BUBBLES_SPEC=specs/008-portfolio-survival-and-brief-lab BUBBLES_SCOPE=SCOPE-02 BUBBLES_TOOL_LOG_TAGS=TP-02-02,green,DOD-scope01-unchanged timeout 300 bash .github/bubbles/scripts/tool-log.sh node --test tests/portfolio-privacy.functional.mjs`
+
+  **Exit Code:** 0 · **Claim Source:** executed (clause a/b) · interpreted (clause c RED counts, orchestrator-observed) · Per-behavior RED map and full reasoning: [report.md](report.md#item-4---scope-01-preservation-exact-rollback-per-behavior-redgreen) · Uncertainty Declaration: [report.md](report.md#dod-item-4-left-unchecked---clause-c-red-coverage-is-partial-open)
+
+  ```text
+  ok 8 - FR-011 to FR-016: declared purpose units authority dates amounts currencies priorities and treatment reach the candidate unchanged and an infeasible draft fails loudly with nothing relaxed
+  ok 9 - NFR-003 NFR-005 NFR-007 NFR-012 NFR-022: provenance missing-state integrity atomic revisions latest-complete publication and the research boundary all hold on the mandate surface
+  ok 10 - FR-017 FR-022 FR-033: behavior settings and market-fact relabelling attempts are refused and change no mandate cash need expected return floor objective or constraint state
+  ok 11 - rolling a mandate back restores the pre-mandate portfolio state by identity, not by resemblance
+  1..11
+  # tests 11
+  # suites 0
+  # pass 11
+  # fail 0
+  # cancelled 0
+  # skipped 0
+  # todo 0
+  # duration_ms 763.986853
+  [tool-log] recorded exit=0 duration=867ms → /home/redacted/research-lab/.specify/runtime/tool-calls.jsonl
+  FUNCTIONAL_EXIT=0
+  ```
+
 #### Test Evidence Items - Exact Parity With 5 Test Plan Rows
 
 - [x] TP-02-01 unit evidence proves closed mandate/cash-need authority, absence, identity, conflicts, and behavior/settings exclusion.

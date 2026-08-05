@@ -825,6 +825,191 @@ Post-conditions then assert nothing moved: not one durable byte, the current
 mandate and portfolio identities, the revision count, the stored semantic
 fingerprint, the stored constraints and cash needs, and every policy field.
 
+### Item 4 - Scope 01 preservation, exact rollback, per-behavior RED/GREEN
+
+**Phase:** implement
+
+This item joins three independent claims with "and", so it is ticked only if all
+three hold. Each is assessed separately below. Two hold; the third does not, and
+the item is therefore left unchecked.
+
+`git status --porcelain rlportfolio.js` was empty before these runs, so every
+capture below reflects committed behavior rather than a working-tree edit.
+
+#### Clause (a) - Scope 01 import/storage behavior remains unchanged: CARRIED
+
+Scope 01's rows are not asserted separately here; they execute inside these three
+suites. The unit suite carries the import/preview/duplicate/atomic-slot/
+corruption/legacy-migration rows as subtests 1-16, the functional suite carries
+the import, redaction, atomic-pointer, session-memory and hostile-label rows as
+subtests 1-5, and the browser suite carries SCN-008-001, SCN-008-002 and TP-01-05
+as tests 4-6. All are green at the current HEAD.
+
+**Command:** `BUBBLES_AGENT_NAME=bubbles.implement BUBBLES_SPEC=specs/008-portfolio-survival-and-brief-lab BUBBLES_SCOPE=SCOPE-02 BUBBLES_TOOL_LOG_TAGS=TP-02-01,green,DOD-scope01-unchanged timeout 300 bash .github/bubbles/scripts/tool-log.sh node --test tests/portfolio-foundation.unit.mjs`
+
+**Exit Code:** 0 · **Claim Source:** executed
+
+```text
+TAP version 13
+ok 1 - RLPORTFOLIO is a frozen Node and browser dual-runtime contract
+ok 2 - mandatory policy is closed versioned finite and rejects unknown configuration
+ok 3 - holding revision and workspace identities are strict deterministic contracts
+ok 4 - valid CSV preview exposes accepted normalized and unresolved duplicate states before confirmation
+ok 5 - duplicate choices are explicit and row removal can create a valid new preview
+ok 6 - unknown import fields remain blocking through duplicate resolution
+ok 7 - secret-shaped import rejects the full draft with value-safe PortfolioError values
+ok 8 - manual alternatives require valuation liquidity cost and uncertainty truth
+ok 9 - manual listed drafts use the same closed preview contract as file imports
+ok 10 - atomic durable commits use inactive slots verify bytes and reject generation conflicts
+ok 11 - clearing a portfolio is an atomic revision-state change that preserves immutable history
+ok 12 - slot and pointer faults preserve the last-known-good revision
+ok 13 - post-write slot corruption is detected before pointer publication
+ok 14 - future records remain untouched and durable session memory states are explicit
+ok 15 - unknown legacy workspace shapes refuse migration and quarantine metadata is value-safe
+ok 16 - foundation privacy inventory and verified clear remain available without policy config
+ok 17 - explicit mandate draft is a closed user-authority contract over units dates currencies and hard research classification
+ok 18 - absent mandate fields stay null and no default horizon floor objective or expected return is created
+ok 19 - conflicting mandate stays infeasible with every declared constraint and cash need preserved in declared order
+ok 20 - mandate revision identity is deterministic supersedes the prior mandate and never mutates the portfolio
+ok 21 - behavior events interest signals and display settings cannot create or modify any mandate field
+ok 22 - route projection cites one mandate revision and reports mandate-absent states without inventing values
+1..22
+# tests 22
+# suites 0
+# pass 22
+# fail 0
+# cancelled 0
+# skipped 0
+# todo 0
+# duration_ms 738.261413
+[tool-log] recorded exit=0 duration=859ms → /home/redacted/research-lab/.specify/runtime/tool-calls.jsonl
+UNIT_EXIT=0
+```
+
+Per-subtest TAP YAML duration blocks are elided above; the `ok` lines, the plan
+line and the unabridged tail counters are verbatim.
+
+**Command:** `BUBBLES_AGENT_NAME=bubbles.implement BUBBLES_SPEC=specs/008-portfolio-survival-and-brief-lab BUBBLES_SCOPE=SCOPE-02 BUBBLES_TOOL_LOG_TAGS=TP-02-02,green,DOD-scope01-unchanged timeout 300 bash .github/bubbles/scripts/tool-log.sh node --test tests/portfolio-privacy.functional.mjs`
+
+**Exit Code:** 0 · **Claim Source:** executed
+
+```text
+TAP version 13
+ok 1 - real-format import previews commits reloads and exports one local revision
+ok 2 - secret-bearing import is redacted and cannot mutate any storage namespace
+ok 3 - atomic write failures preserve the active pointer and retain a validated candidate only in memory
+ok 4 - session and memory commits state truthfully and preserve the last valid candidate after rejection
+ok 5 - hostile manual labels remain inert data and namespace writes stay closed
+ok 6 - explicit mandate revisions commit and reload atomically while portfolio generation semantics are preserved
+ok 7 - one reloaded constraint set reaches every consumer and absent or conflicting fields never acquire defaults
+ok 8 - FR-011 to FR-016: declared purpose units authority dates amounts currencies priorities and treatment reach the candidate unchanged and an infeasible draft fails loudly with nothing relaxed
+ok 9 - NFR-003 NFR-005 NFR-007 NFR-012 NFR-022: provenance missing-state integrity atomic revisions latest-complete publication and the research boundary all hold on the mandate surface
+ok 10 - FR-017 FR-022 FR-033: behavior settings and market-fact relabelling attempts are refused and change no mandate cash need expected return floor objective or constraint state
+ok 11 - rolling a mandate back restores the pre-mandate portfolio state by identity, not by resemblance
+1..11
+# tests 11
+# suites 0
+# pass 11
+# fail 0
+# cancelled 0
+# skipped 0
+# todo 0
+# duration_ms 763.986853
+[tool-log] recorded exit=0 duration=867ms → /home/redacted/research-lab/.specify/runtime/tool-calls.jsonl
+FUNCTIONAL_EXIT=0
+```
+
+**Command:** `BUBBLES_AGENT_NAME=bubbles.implement BUBBLES_SPEC=specs/008-portfolio-survival-and-brief-lab BUBBLES_SCOPE=SCOPE-02 BUBBLES_TOOL_LOG_TAGS=TP-02-03,green,DOD-scope01-unchanged timeout 600 bash .github/bubbles/scripts/tool-log.sh npx --no-install playwright test --config=playwright.config.mjs --project=system-chrome tests/portfolio-survival-foundation.spec.mjs`
+
+**Exit Code:** 0 · **Claim Source:** executed
+
+```text
+Running 6 tests using 1 worker
+
+  ✓  1 [system-chrome] › tests/portfolio-survival-foundation.spec.mjs:86:1 › Regression: SCN-008-003 explicit mandate alone supplies every hard constraint (2.3s)
+  ✓  2 [system-chrome] › tests/portfolio-survival-foundation.spec.mjs:177:1 › Regression: SCN-008-004 no mandate leaves goal fit and survival unavailable (1.6s)
+  ✓  3 [system-chrome] › tests/portfolio-survival-foundation.spec.mjs:245:1 › Regression: SCN-008-003 conflicting mandate stays visibly infeasible with no constraint relaxed (973ms)
+  ✓  4 [system-chrome] › tests/portfolio-survival-foundation.spec.mjs:284:1 › Regression: SCN-008-001 valid local portfolio import creates one current revision (1.5s)
+  ✓  5 [system-chrome] › tests/portfolio-survival-foundation.spec.mjs:388:1 › Regression: SCN-008-002 invalid or secret-bearing import is atomic and redacted (1.2s)
+  ✓  6 [system-chrome] › tests/portfolio-survival-foundation.spec.mjs:476:1 › Regression: Feature 008 atomic slots preserve last valid portfolio in durable session and memory modes (3.0s)
+
+  6 passed (13.4s)
+[tool-log] recorded exit=0 duration=15462ms → /home/redacted/research-lab/.specify/runtime/tool-calls.jsonl
+SYSTEM_EXIT=0
+```
+
+The per-test `[SCN-*]` assertion lines are elided above; they are value-safe
+counters and reason codes, already reproduced in [TP-02-03](#tp-02-03),
+[TP-02-04](#tp-02-04) and [TP-02-05](#tp-02-05).
+
+#### Clause (b) - rollback is exact: CARRIED BY CITATION
+
+Carried by the committed assertion `rolling a mandate back restores the
+pre-mandate portfolio state by identity, not by resemblance`
+(`tests/portfolio-privacy.functional.mjs:860`), green as subtest 11 in the
+functional capture above. The discriminator is in the title: the restored state
+is compared by identity, so a rollback that rebuilt a merely equivalent-looking
+portfolio fails it rather than passing.
+
+#### Clause (c) - every Scope 02 behavior has intended RED and same-command GREEN: NOT CARRIED
+
+Two further RED/GREEN pairs were produced this session, same command in both
+directions: `node --test tests/portfolio-privacy.functional.mjs`.
+
+| Injected defect (reverted) | RED | GREEN |
+|---|---|---|
+| `rlportfolio.js` ~L1390: the `conflicts.length === 0` term dropped from `canConfirm`, so a draft carrying conflicts becomes confirmable | `# pass 9`, `# fail 2`, exit 1 | `# pass 11`, `# fail 0`, exit 0 |
+| A horizon value invented into `inferredValues` when no mandate exists | RED observed | reverted; caught by the standing assertion that every `inferredValues` entry is `null` |
+
+**Claim Source:** interpreted. The RED runs were executed and observed directly by
+the orchestrator in this session, not by this agent. This agent executed only the
+GREEN side — the 11-pass capture above is its own run. The reported RED counts
+are arithmetically consistent with that capture: 11 subtests total, 2 failing
+under the conflicts defect leaves 9 passing. Both defects were reverted with
+`git checkout --`, and `git status --porcelain rlportfolio.js` is empty.
+
+**Why the clause still fails.** The clause is universally quantified — *every*
+Scope 02 behavior. Counting the RED records that now exist against the behaviors
+this scope delivers:
+
+| Scope 02 behavior | RED record | Where |
+|---|---|---|
+| Atomic mandate round trips | yes | [TP-02-02](#tp-02-02) RED, clause-1 defect |
+| One constraint set reaching every consumer | yes | [TP-02-02](#tp-02-02) RED, clause-2 defect |
+| NFR-012 atomic revisions / latest-complete publication | partial | same clause-1 defect lands on part of it |
+| Conflicts stay infeasible and unconfirmable | yes | this session, `canConfirm` defect |
+| Absence never acquires an invented value | yes | this session, `inferredValues` defect |
+| FR-017 / FR-022 / FR-033 forbidden-input refusal surface | **no** | item 3 above |
+| FR-011 purpose, units, hard/research authority | **no** | — |
+| FR-012 cash-need parts and the three date faults | **no** | — |
+| FR-014 nothing inferred from holdings | **no** | — |
+| FR-015 unchanged candidate propagation | **no** | — |
+| NFR-003 provenance | **no** | — |
+| NFR-005 missing-state integrity | **no** | — |
+| NFR-007 last-valid integrity under refusal | **no** | — |
+| NFR-022 research/advice boundary | **no** | — |
+| Exact rollback by identity (clause (b)'s own test) | **no** | — |
+| TP-02-03 / TP-02-04 browser rows | **no** | node-suite REDs do not reach them |
+
+The largest gap is item 3, the FR-017/FR-022/FR-033 refusal surface. That is the
+scope's headline *negative* claim and its widest assertion block, and it has no
+RED at all. Its non-vacuity today rests on internal control assertions — the
+selective-refusal control, the per-target coverage assertion, the no-echo check —
+which are genuinely strong, but a control assertion is not a RED/GREEN pair and
+this clause asks for the pair. Item 3's own evidence says the negative "is not
+proved by the absence of code that does it"; by the same standard, the refusal
+production has not been shown to fail when the refusal is removed.
+
+The same reasoning applies to clause (b). Its test is green, which shows exact
+rollback holds; no RED has shown that the test would go red if rollback stopped
+being exact.
+
+**Verdict: item 4 remains unchecked.** Clauses (a) and (b) are carried. Clause
+(c) requires a per-behavior RED map, and the four RED-covered behaviors do not
+satisfy a claim quantified over all of them. Closing it needs, at minimum, a RED
+landing on the item-3 refusal surface and one on the rollback-by-identity
+assertion. That work is not attempted here and no partial credit is claimed.
+
 ### Verdict
 
 All 14 requirement ids are genuinely carried by assertions that would fail if the
@@ -949,6 +1134,36 @@ same-command RED/GREEN pair; see [TP-02-02](#tp-02-02). The stale premise no lon
 propagates. The note at the end of the TP-02-05 block that describes the earlier
 verdict as possibly stale is likewise resolved by that execution; it is left in
 place because it was an accurate statement of what that run knew at the time.
+
+### DoD item 4 left unchecked - clause (c) RED coverage is partial (OPEN)
+
+The item "Scope 01 import/storage behavior remains unchanged, rollback is exact,
+and every Scope 02 behavior has intended RED and same-command GREEN evidence" was
+assessed in this run and deliberately **not** ticked. Full reasoning and the
+per-behavior RED map are in
+[Item 4](#item-4---scope-01-preservation-exact-rollback-per-behavior-redgreen).
+
+Summary of the open gap, so the next owner does not have to re-derive it:
+
+- Clause (a) is carried — three suites re-executed green at the current HEAD.
+- Clause (b) is carried by citation — the committed rollback-by-identity
+  assertion is green.
+- Clause (c) is **not** carried. Four Scope 02 behaviors have a RED record; ten
+  do not. The clause is quantified over all of them.
+
+The two highest-value missing REDs, in priority order:
+
+1. The FR-017/FR-022/FR-033 forbidden-input refusal surface (item 3). It is the
+   scope's widest assertion block and its central negative claim, and it has no
+   RED. A candidate defect: make one forbidden input source silently absorbed
+   rather than refused, and confirm the per-attempt refusal assertion fails.
+2. The rollback-by-identity assertion. A candidate defect: restore a
+   reconstructed-equivalent portfolio instead of the original identity, and
+   confirm the assertion distinguishes identity from resemblance.
+
+This run made no code change and injected no defect of its own; the two RED/GREEN
+pairs it records were produced and observed by the orchestrator, and are labelled
+`interpreted` for that reason.
 
 ## Validation Summary
 

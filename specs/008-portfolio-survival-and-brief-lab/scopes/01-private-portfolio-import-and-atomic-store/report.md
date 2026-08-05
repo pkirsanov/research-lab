@@ -1571,6 +1571,8 @@ A second, narrower precision note: both rows instantiate the clause from an empt
 
 ### SCN-008-002 Clause Ledger
 
+> **Superseded.** This is the prior-session ledger, retained unedited as the record of what the gaps were. Its `NOT CONFIRMED` and `PARTIAL` verdicts are no longer current; see [SCN-008-002 Clause Ledger - Re-Read Against Current-Session Output](#scn-008-002-clause-ledger---re-read-against-current-session-output).
+
 Claim under test: a malformed or secret-bearing import cannot partially replace the portfolio — rejected with row and field reasons, prior portfolio remains current **and unchanged**, and no rejected value enters storage, logs, URLs, telemetry, or committed artifacts.
 
 The recorded resolution condition names three things that must be shown: no partial replacement in any persistence mode, the prior revision identity unchanged after rejection, and the rejected value absent from every named sink.
@@ -1592,7 +1594,7 @@ The recorded resolution condition names three things that must be shown: no part
 
 ### Scenario Behavioral Claim Verdict
 
-> **Superseded for SCN-008-001.** This verdict is the prior-session record and is retained unedited as evidence. The SCN-008-001 row below is no longer current: both blockers it rests on were discharged in [SCN-008-001 Resolution - Current-Session Re-Verification](#scn-008-001-resolution---current-session-re-verification), and that item is now checked. The SCN-008-002 row still stands.
+> **Superseded for both scenarios.** This verdict is the prior-session record and is retained unedited as evidence. Neither row below is current. SCN-008-001's two blockers were discharged in [SCN-008-001 Resolution - Current-Session Re-Verification](#scn-008-001-resolution---current-session-re-verification). SCN-008-002's blocking `committed artifacts` gap and both narrower gaps were discharged in [SCN-008-002 Resolution - Current-Session Re-Verification](#scn-008-002-resolution---current-session-re-verification). Both items are now checked.
 
 Both items remain unchecked. Each one's own resolution condition requires every clause to be separately confirmed, and each has at least one clause that no named row asserts.
 
@@ -1793,3 +1795,200 @@ The item is not checked on the exit code. Exit 0 was the precondition for readin
 | ID | Severity | Finding | Owner |
 | --- | --- | --- | --- |
 | `F008-IMPL-009` | Low - evidence readability, no behavior impact | `tests/portfolio-survival-foundation.spec.mjs:359-363` prints the pre-second-import `reloaded`/`first` captures, so the TP-01-03 transcript reports `generation=1`, `revisions=1`, and `localKeys` ending at `slotA` while the row asserts `2`, `2`, and a set including `slotB` at lines 328-336. The assertions are correct and passing; only the diagnostics lag. A reader who trusts the transcript over the source will understate this row's coverage, and a future regression that broke the second import would still print a plausible-looking `generation=1`. | `bubbles.test` — repoint lines 359-363 at the `second`/`afterSecondReload` captures, or print both instantiations. Not fixed here because the diagnostics are not what carries the claim, and rewriting a passing row's output is outside this item's resolution. |
+
+## SCN-008-002 Resolution - Current-Session Re-Verification
+
+This section resolves the SCN-008-002 `Scenario Behavioral Claims` DoD item. Its prior `Uncertainty Declaration` named one blocking gap and two narrower ones; all three are addressed below, each with the carrying assertion cited by line.
+
+1. **Blocking - `committed artifacts` sink had zero coverage.** No row read the working tree, the git index, or any tracked file, and the probe was built at run time as `'SCOPE01-E2E-PRIVATE-' + Date.now()`, so the row was *structurally* incapable of testing that sink.
+2. **Narrower (a) - `row and field reasons` asserted only at error-code level.** `#importErrors` was matched against `P008-IMPORT-SECRET` alone, so a regression dropping the `row N` / `field X` segments would not fail.
+3. **Narrower (b) - sink absence proven in durable mode only.** TP-01-04 never called `blockStorage`; TP-01-05 covered `session` and `memory` but performed no sentinel scan.
+
+**Phase attribution.** The item was planned with `**Phase:** validate`. It is resolved in the implement phase because the resolution it names is re-execution plus clause re-reading against source, both of which are execution work. The phase field records what actually ran. Nothing here writes `certification.*`; `bubbles.validate` remains free to re-confirm.
+
+### Repository Binding
+
+**Phase:** implement
+**Tool:** `repository-binding.sh preflight`
+**Exit Code:** 0
+**Claim Source:** executed
+**Output:**
+
+```text
+REPOSITORY PREFLIGHT BOUND repository=research-lab root=/home/redacted/research-lab source=explicit-repositoryRoot affinity=established
+PREFLIGHT_COMMITTED decision=rb:vscode-3f9885bdcb27069975a1a8cdff1d890c:1 revision=1 repository=research-lab root=/home/redacted/research-lab
+{"repositoryRoot":"/home/redacted/research-lab","repositoryAlias":"research-lab","repositoryResolution":{"sessionId":"vscode-3f9885bdcb27069975a1a8cdff1d890c","decisionId":"rb:vscode-3f9885bdcb27069975a1a8cdff1d890c:1","controlRevision":1,"controlPathDigest":"sha256:a2f0aa23989f26cd749bc76a9421e71fc41c54db2c75e3e5f1da19f8cf6983d9","authority":"explicit-repository-root","transition":"established","scopeKind":"command","scopeId":null,"targetKind":"repository-root","pathVisibility":"local","actionable":true}}
+PREFLIGHT_EXIT=0
+```
+
+The host adapter first refused with `session control home must be caller-owned, mode 0700, and free of symlinks`. The cause is environmental and identical to the one recorded for SCN-008-001: this host exports `XDG_RUNTIME_DIR=/run/user/1000/` with a trailing slash, so the derived control home carries an empty path component (`/run/user/1000//bubbles/...`) that `path_has_symlink_component` treats as a symlink component. Resolved with the adapter's documented `BUBBLES_SESSION_CONTROL_HOME` knob pointing at the identical physical directory the default derivation targets — not by relaxing a check. Directory ownership and mode were verified independently (`drwx------ redacted redacted`) and no component of the path is a symlink.
+
+### Named Verifying Rows - Current-Session Execution
+
+**Phase:** implement
+**Command:** `npx --no-install playwright test --config=playwright.config.mjs --project=system-chrome tests/portfolio-survival-foundation.spec.mjs`
+**Repository HEAD:** `393219e296bb0e7ed97221ab9717637e1b62175d`
+**Exit Code:** 0
+**Claim Source:** executed
+**Result:** 6 passed / 0 failed
+**Output:**
+
+```text
+Running 6 tests using 1 worker
+
+  ✓  1 …SCN-008-003 explicit mandate alone supplies every hard constraint (1.7s)
+[SCN-008-003] mandateId=sha256:acf8af8a49927b400f109579609edc00c782e5a4c22fbddfde0d8dfe467b61c9
+[SCN-008-003] portfolioUnchanged=true
+[SCN-008-003] hardConstraints=2
+[SCN-008-003] researchConstraints=0
+[SCN-008-003] cashNeeds=1
+[SCN-008-003] absentFields=4
+[SCN-008-003] routesCiting=3
+[SCN-008-003] behaviorContribution=none
+[SCN-008-003] behaviorDraftRefused=P008-MANDATE-AUTHORITY
+[SCN-008-003] mandateUnchangedAfterNoise=true
+[SCN-008-003] remotePersonalRequests=0
+  ✓  2 …: SCN-008-004 no mandate leaves goal fit and survival unavailable (1.5s)
+[SCN-008-004] currentMandateId=null
+[SCN-008-004] descriptiveAvailable=true
+[SCN-008-004] goalFit=unavailable:mandate-absent
+[SCN-008-004] survivalToGoal=unavailable:mandate-absent
+[SCN-008-004] constraintFeasibility=unavailable:mandate-absent
+[SCN-008-004] cashNeedCollision=unavailable:mandate-absent
+[SCN-008-004] inferredValues=0
+[SCN-008-004] placeholderNumbers=0
+[SCN-008-004] educationalBoundary=visible
+[SCN-008-004] routes=3
+  ✓  3 …ting mandate stays visibly infeasible with no constraint relaxed (936ms)
+[SCN-008-003-conflict] conflicts=4
+[SCN-008-003-conflict] confirmDisabled=true
+[SCN-008-003-conflict] declaredConstraintsPreserved=2
+[SCN-008-003-conflict] declaredCashNeedsPreserved=3
+[SCN-008-003-conflict] declaredOrderPreserved=true
+[SCN-008-003-conflict] currentMandateUnchanged=true
+[SCN-008-003-conflict] currentPortfolioUnchanged=true
+[SCN-008-003-conflict] constraintsRelaxed=0
+  ✓  4 …008-001 valid local portfolio import creates one current revision (1.3s)
+[SCN-008-001] route=served
+[SCN-008-001] previewAccepted=3
+[SCN-008-001] duplicateChoice=merge
+[SCN-008-001] firstImport.generation=1
+[SCN-008-001] firstImport.revisionCount=1
+[SCN-008-001] firstImport.holdings=2
+[SCN-008-001] firstImport.localKeys=rlPortfolioWorkspaceV1.pointer,rlPortfolioWorkspaceV1.slotA
+[SCN-008-001] generation=2
+[SCN-008-001] revisionCount=2
+[SCN-008-001] storageMode=durable
+[SCN-008-001] activeSlot=slotB
+[SCN-008-001] localKeys=rlPortfolioWorkspaceV1.pointer,rlPortfolioWorkspaceV1.slotA,rlPortfolioWorkspaceV1.slotB
+[SCN-008-001] remoteRequests=0
+  ✓  5 …-008-002 invalid or secret-bearing import is atomic and redacted (826ms)
+[SCN-008-002] confirmation=disabled
+[SCN-008-002] redaction=value-not-echoed
+[SCN-008-002] generation=1
+[SCN-008-002] currentUnchanged=true
+[SCN-008-002] storageSentinel=false
+[SCN-008-002] consoleSentinel=false
+[SCN-008-002] urlSentinel=false
+[SCN-008-002] requestSentinel=false
+[SCN-008-002] committedArtifactProbe=fixed-scannable
+[SCN-008-002] committedArtifactOrigins=tests/portfolio-survival-foundation.spec.mjs
+[SCN-008-002] committedArtifactViolations=0
+[SCN-008-002] sharedCacheEntry=absent
+[SCN-008-002] foreignStorageKeys=0
+[SCN-008-002] scannerAdversarialDetection=briefs/current.json
+  ✓  6 …preserve last valid portfolio in durable session and memory modes (2.4s)
+[TP-01-05] modes=durable:1:durable:local-live:session-live,session:1:session:local-blocked:session-live,memory:1:memory:local-blocked:session-blocked
+[TP-01-05] durable=true
+[TP-01-05] session=true
+[TP-01-05] memory=true
+[TP-01-05] priorRevisionPreserved=true
+[TP-01-05] falseDurableClaim=false
+[TP-01-05] sessionWarning=true
+[TP-01-05] externalProviders=0
+[TP-01-05] sinkScanModes=durable,session,memory
+[TP-01-05] committedArtifactOrigins=tests/portfolio-survival-foundation.spec.mjs
+[TP-01-05] sharedCacheEntry=absent
+
+  6 passed (11.4s)
+EXIT_CODE=0
+```
+
+Both named verifying rows are inside this run: TP-01-04 is test 5, TP-01-05 is test 6.
+
+### Blocking Gap - Committed Artifacts - RESOLVED
+
+The probe is now a fixed, scannable constant rather than a run-time value: `COMMITTED_ARTIFACT_SENTINEL = 'SCOPE01-PRIVATE-COMMITTED-PROBE-7f3a9c2e'` (`tests/portfolio-survival-foundation.spec.mjs:385`) with its one legitimate home declared in `COMMITTED_ARTIFACT_ORIGINS` (:386). That change is what makes the sink testable at all — a `Date.now()` value can never appear in a committed file, so no assertion over it could ever fail.
+
+The assertion is `found set === declared origins` (:445), not `found set is empty`. A bare tree-wide emptiness check would self-trigger on the constant's own declaration and could only be made to pass by not scanning the file that declares it.
+
+**The scanner is proven non-inert, not assumed to be.** `commitTrackedLeak()` (`tests/portfolio-survival.support.mjs:37-48`) builds a disposable git repo that **has committed** the probe to `briefs/current.json`, and the *same* `trackedPathsContaining()` is pointed at it (:452). Two assertions follow: the scanner reports that path (:453), and the path is classified as a violation because it is outside the declared origins (:454). Without this, a wrong root, wrong flags, or an always-empty return would make :445 pass vacuously. Confirming output: `scannerAdversarialDetection=briefs/current.json`.
+
+**Why `git grep` and not a filesystem walk.** `trackedPathsContaining()` (`tests/portfolio-survival.support.mjs:25-30`) reads only files git tracks, so untracked scratch and ignored build output (`/_site/`, `/test-results/`) can neither mask a real hit nor manufacture a false one. It scans the working tree rather than `--cached` so a leak is caught when written, not only once staged. Exit status 1 (no match) returns `[]`; any other non-zero throws, so a broken scan fails loudly instead of reporting "clean".
+
+**The causal half of the sink is covered too.** `scripts/brief-distributed-publish.mjs` harvests `localStorage.rlData.toolReads` into tracked `briefs/`, so a portfolio write into the shared cache is the live route by which a rejected value would *become* a committed artifact on the next publish. Assertions :434-:435 close it: no shared-cache entry exists to harvest, and no storage key is written outside the private portfolio namespace. Confirming output: `sharedCacheEntry=absent`, `foreignStorageKeys=0`.
+
+### Narrower Gap (a) - Row And Field Reasons - RESOLVED
+
+TP-01-04 now reads the rendered error list and asserts both segments:
+
+| Line | Assertion |
+| --- | --- |
+| `:403` | `const errorCopy = (await page.locator('#importErrors li').allTextContents()).join('\n')` |
+| `:404` | `expect(errorCopy, 'rejection reason names the offending row').toMatch(/row \d+/)` |
+| `:405` | `expect(errorCopy, 'rejection reason names the offending field').toMatch(/field \S+/)` |
+| `:406` | `expect(errorCopy, 'rejection reason names row and field without echoing the value').not.toContain(sentinel)` |
+
+**Verified discriminating against the implementation, not merely present.** `safeErrorCopy()` (`portfolio-survival-allocation-lab.html:1198-1204`) builds `parts = [error.code]`, then `if (error.row) parts.push("row " + error.row)` and `if (error.field) parts.push("field " + error.field)`, then `parts.push(error.reason)`. Both pushes are conditional, so dropping either — the exact regression this gap described — removes the substring and fails :404 or :405. The `#importErrors li` locator reads only the rejection list, so there is no other source of a `row N` / `field X` substring that could satisfy the regex accidentally.
+
+`:406` is the pairing that keeps the fix honest: the reason must name *where* the offending value is without reproducing the value itself. Redaction and actionability are asserted together rather than traded against each other.
+
+### Narrower Gap (b) - Sink Absence In Session And Memory - RESOLVED
+
+TP-01-05 now performs a full per-mode sink scan inside its `durable` / `session` / `memory` loop, using a probe carrying the same fixed prefix:
+
+| Sink | Line | Assertion message |
+| --- | --- | --- |
+| storage (local) | `:533` | `${mode}: rejected value absent from localStorage` |
+| storage (session) | `:534` | `${mode}: rejected value absent from sessionStorage` |
+| URL | `:535` | `${mode}: rejected value absent from the URL` |
+| page echo | `:536` | `${mode}: rejected value is not echoed to the page` |
+| logs | `:537` | `${mode}: rejected value absent from logs` |
+| telemetry | `:538` | `${mode}: rejected value absent from telemetry` |
+| shared cache | `:539` | `${mode}: rejection leaves no shared-cache entry to harvest` |
+| namespace | `:540` | `${mode}: no storage key outside the private portfolio namespace` |
+| committed artifacts | `:556` | `no persistence mode leaks a rejected value into a tracked file` |
+
+**The three modes are proven genuinely different, not merely labelled.** `:531-:532` assert store liveness via an `instanceof Storage` probe that classifies without writing, and the fresh output carries the discrimination explicitly: `durable:…:local-live:session-live`, `session:…:local-blocked:session-live`, `memory:…:local-blocked:session-blocked`. A nominal-only mode switch fails those two assertions.
+
+**Non-vacuity of the scan, established rather than assumed.** In `memory` mode both stores are blocked stubs, so `:533-:534` read empty strings; there, the claim is carried by `:531-:532` — no store exists for a rejected value to reach — which is why liveness is asserted rather than taken on faith. In `session` mode `sessionStorage` is live and holds the committed revision (proven by the post-reload identity poll at `:546-:547`), so its scan is over real persisted content. The remaining question — whether the rejected value actually entered the page in a blocked-storage mode — is settled by the implementation: `validateImport(fileKind, bytes, current, policy)` (`rlportfolio.js:725`) is a pure function over its arguments, and `setDraftResult()` (`portfolio-survival-allocation-lab.html:1279-1291`) writes only `state.draft` and the DOM. The parse and preview path touches no storage, so blocking storage cannot skip it, and the probe provably reaches the page in all three modes.
+
+**One tracked-tree scan covers all three modes** because every iteration pushes the same fixed prefix through a rejection; `:556` then asserts the found set still equals the declared origins. Confirming output: `sinkScanModes=durable,session,memory`, `committedArtifactOrigins=tests/portfolio-survival-foundation.spec.mjs`.
+
+### SCN-008-002 Clause Ledger - Re-Read Against Current-Session Output
+
+The resolution condition names three things that must be shown. Evidence that an import was validated, or that confirmation was disabled, is explicitly weaker and is not used below to carry any clause.
+
+| Clause | Carrying assertion | Confirming output | Verdict |
+| --- | --- | --- | --- |
+| No partial replacement in **any** persistence mode | TP-01-05 loops `durable`/`session`/`memory`, committing a real revision then feeding the secret-bearing fixture in each; `:502` identity equality, `:503` generation equality, `:504` `storageMode === mode`, `:505` `savedDurably === (mode === 'durable')`, `:531-:532` store liveness, and `:546-:547` post-reload identity for `session` | `modes=durable:1:durable:local-live:session-live,session:1:session:local-blocked:session-live,memory:1:memory:local-blocked:session-blocked`, `priorRevisionPreserved=true`, `falseDurableClaim=false` | CONFIRMED |
+| Prior revision identity unchanged after rejection | TP-01-04 `:419` `currentPortfolioId` equality against the pre-rejection snapshot, `:420` `generation` equality, and `:407` `#currentRevision` contains `Current portfolio unchanged` | `currentUnchanged=true`, `generation=1` | CONFIRMED |
+| Rejected value absent from **storage** | TP-01-04 `:421-:422` over `localStorage`/`sessionStorage`; TP-01-05 `:533-:534` per mode; namespace containment `:435` and `:540` | `storageSentinel=false`, `foreignStorageKeys=0` | CONFIRMED in all three modes |
+| Rejected value absent from **logs** | TP-01-04 `:425` over every `page.on('console')` message; TP-01-05 `:537` per mode | `consoleSentinel=false` | CONFIRMED in all three modes |
+| Rejected value absent from **URLs** | TP-01-04 `:423` over `location.href`; TP-01-05 `:535` per mode | `urlSentinel=false` | CONFIRMED in all three modes |
+| Rejected value absent from **telemetry** | TP-01-04 `:426` over the full recorded request log and `:427` origin containment; TP-01-05 `:538` per mode plus `:544` no service worker. Stronger than the prior structural-only argument: there is now a named assertion, and the structural fact (no beacon/XHR/WebSocket/analytics client on the route) remains true as defence in depth | `requestSentinel=false`, `externalProviders=0` | CONFIRMED in all three modes |
+| Rejected value absent from **committed artifacts** | TP-01-04 `:444-:445` tracked-tree scan asserted equal to the declared origins, proven non-inert by the adversarial fixture at `:450-:454`; causal half at `:434-:435`; TP-01-05 `:555-:556` covering all three modes | `committedArtifactProbe=fixed-scannable`, `committedArtifactOrigins=tests/portfolio-survival-foundation.spec.mjs`, `committedArtifactViolations=0`, `scannerAdversarialDetection=briefs/current.json` | CONFIRMED |
+| Rejected with **row and field** reasons | TP-01-04 `:399` `#previewRejected` not `0`, `:400` error code, `:404` `/row \d+/`, `:405` `/field \S+/`, `:406` segments present without echoing the value | `confirmation=disabled`, `redaction=value-not-echoed` | CONFIRMED |
+
+### SCN-008-002 Verdict
+
+Every clause is carried by a named assertion re-read against a current-session run at exit code 0, and all three recorded gaps are discharged: the blocking `committed artifacts` sink is covered by a scanner proven to detect a real committed leak; the `row and field` segments are asserted and verified discriminating against `safeErrorCopy()`; and sink absence now holds in `session` and `memory` as well as `durable`. The DoD item is checked.
+
+The item is not checked on the exit code. Exit 0 was the precondition for reading the assertions; each verdict above cites the specific assertion line that carries it, and the two clauses whose scans could have been vacuous — the committed-artifact scan and the blocked-storage scans — were each shown non-vacuous by separate means (an adversarial leak fixture, and the storage independence of the parse path).
+
+### New Findings
+
+| ID | Severity | Finding | Owner |
+| --- | --- | --- | --- |
+| `F008-IMPL-010` | Low - test robustness, no clause left unproven | TP-01-05 never asserts that the invalid preview actually rendered in each mode. Its only post-`setInputFiles` check is `#confirmImport` disabled (`tests/portfolio-survival-foundation.spec.mjs:500`), which cannot carry that: `resetPreview()` (`portfolio-survival-allocation-lab.html:1182-1196`) nulls `state.draft` after the prior confirm, so `updateConfirmState()` (:1262) already leaves confirm disabled before the invalid file is read. A regression that silently no-opped the file-change handler would leave every per-mode sink assertion passing over a page the value never reached. It does not leave a clause unproven today — the parse path is storage-independent, so the value provably enters in all three modes, and TP-01-04 asserts the render directly in durable mode — but the row is weaker than it reads. | `bubbles.test` — add a per-mode `#previewRejected` not `0` or `#importErrors` contains `P008-IMPORT-SECRET` assertion inside the TP-01-05 loop. Not added here because extending a row's asserted behavior is a Test Plan change and is planning-owned. |
+| `F008-IMPL-011` | Low - framework portability, environment-triggered | `.github/bubbles/scripts/repository-binding-host-context.sh` derives its control home as `"$XDG_RUNTIME_DIR/bubbles/repository-binding"` without normalising a trailing slash. A trailing slash is legal in `XDG_RUNTIME_DIR` and this host sets one, producing an empty path component that `path_has_symlink_component` (:67-:89) treats as a symlink component, so the adapter refuses a directory that is in fact caller-owned, `0700`, and symlink-free. Worked around per invocation with the documented `BUBBLES_SESSION_CONTROL_HOME` knob. | Upstream `bubbles` framework — collapse repeated slashes before the component walk. Not patched here: `.github/bubbles/` is framework-managed install surface and this repo's governance forbids local patches to it. |

@@ -1992,3 +1992,251 @@ The item is not checked on the exit code. Exit 0 was the precondition for readin
 | --- | --- | --- | --- |
 | `F008-IMPL-010` | Low - test robustness, no clause left unproven | TP-01-05 never asserts that the invalid preview actually rendered in each mode. Its only post-`setInputFiles` check is `#confirmImport` disabled (`tests/portfolio-survival-foundation.spec.mjs:500`), which cannot carry that: `resetPreview()` (`portfolio-survival-allocation-lab.html:1182-1196`) nulls `state.draft` after the prior confirm, so `updateConfirmState()` (:1262) already leaves confirm disabled before the invalid file is read. A regression that silently no-opped the file-change handler would leave every per-mode sink assertion passing over a page the value never reached. It does not leave a clause unproven today — the parse path is storage-independent, so the value provably enters in all three modes, and TP-01-04 asserts the render directly in durable mode — but the row is weaker than it reads. | `bubbles.test` — add a per-mode `#previewRejected` not `0` or `#importErrors` contains `P008-IMPORT-SECRET` assertion inside the TP-01-05 loop. Not added here because extending a row's asserted behavior is a Test Plan change and is planning-owned. |
 | `F008-IMPL-011` | Low - framework portability, environment-triggered | `.github/bubbles/scripts/repository-binding-host-context.sh` derives its control home as `"$XDG_RUNTIME_DIR/bubbles/repository-binding"` without normalising a trailing slash. A trailing slash is legal in `XDG_RUNTIME_DIR` and this host sets one, producing an empty path component that `path_has_symlink_component` (:67-:89) treats as a symlink component, so the adapter refuses a directory that is in fact caller-owned, `0700`, and symlink-free. Worked around per invocation with the documented `BUBBLES_SESSION_CONTROL_HOME` knob. | Upstream `bubbles` framework — collapse repeated slashes before the component walk. Not patched here: `.github/bubbles/` is framework-managed install surface and this repo's governance forbids local patches to it. |
+
+## Build Quality Gate Closeout - Current-Session Re-Verification
+
+**Phase:** implement
+**Claim Source:** executed
+**Scope:** the final unchecked Scope 01 DoD item, the grouped Build Quality Gate. This section records each of its twelve named checks re-executed in this session, plus the disposition of every finding the prior Uncertainty Declaration named.
+
+### Repository Binding
+
+`.github/bubbles/` is framework-managed and was not patched; the documented `BUBBLES_SESSION_CONTROL_HOME` knob works around `F008-IMPL-011` for this invocation.
+
+```text
+BUBBLES_SESSION_CONTROL_HOME=/run/user/1000/bubbles/repository-binding
+REPOSITORY PREFLIGHT CONFIRMED repository=research-lab root=/home/redacted/research-lab source=explicit-repositoryRoot affinity=confirmed
+PREFLIGHT_COMMITTED decision=rb:vscode-3f9885bdcb27069975a1a8cdff1d890c:3 revision=3 repository=research-lab root=/home/redacted/research-lab
+{"repositoryRoot":"/home/redacted/research-lab","repositoryAlias":"research-lab","repositoryResolution":{"authority":"explicit-repository-root","transition":"confirmed","actionable":true}}
+PREFLIGHT_EXIT=0
+```
+
+### Active-Scope Precondition
+
+The item requires the guard to run "while this scope is the active scope in `state.json`". `execution.currentScope` was `2`, which made the resolver evaluate Scope 02 and refuse on an unmet transitive prerequisite. It is set to `1`, which is accurate — Scope 01 is the scope being finished. The change is confined to that one execution-owned field; no `certification.*` field was written.
+
+```text
+$ git --no-pager diff -- specs/008-portfolio-survival-and-brief-lab/state.json
+@@ -24,7 +24,7 @@
+     "execution": {
+         "activeAgent": "bubbles.implement",
+         "currentPhase": "implement",
+-        "currentScope": 2,
++        "currentScope": 1,
+```
+
+### Checks 1-5 - Tests, Source Lock, Runner
+
+```text
+$ node scripts/selftest.mjs
+Research-Lab self-test: 1220 passed, 0 failed
+SELFTEST_EXIT=0
+
+$ node --test tests/portfolio-foundation.unit.mjs          # TP-01-01
+ℹ tests 22   ℹ pass 22   ℹ fail 0   ℹ duration_ms 623.667413
+TP_01_01_EXIT=0
+
+$ node --test tests/portfolio-privacy.functional.mjs        # TP-01-02
+ℹ tests 7    ℹ pass 7    ℹ fail 0   ℹ duration_ms 409.519107
+TP_01_02_EXIT=0
+
+$ npx --no-install playwright test tests/portfolio-survival-foundation.spec.mjs \
+    --config=playwright.config.mjs --project=system-chrome --reporter=list   # TP-01-06
+  ✓  1 …SCN-008-003 explicit mandate alone supplies every hard constraint (2.9s)
+  ✓  2 …: SCN-008-004 no mandate leaves goal fit and survival unavailable (1.8s)
+  ✓  3 …cting mandate stays visibly infeasible with no constraint relaxed (1.7s)
+  ✓  4 …008-001 valid local portfolio import creates one current revision (1.8s)
+  ✓  5 …N-008-002 invalid or secret-bearing import is atomic and redacted (1.7s)
+  ✓  6 …preserve last valid portfolio in durable session and memory modes (3.9s)
+[SCN-008-001] generation=2  revisionCount=2  activeSlot=slotB  remoteRequests=0
+[SCN-008-002] committedArtifactViolations=0  scannerAdversarialDetection=briefs/current.json
+[TP-01-05] sinkScanModes=durable,session,memory  falseDurableClaim=false  externalProviders=0
+  6 passed (17.6s)
+TP_01_06_EXIT=0
+
+$ node scripts/validate-node-source-lock.mjs
+[node-source-lock] manifest=PASS private=true runtimeDependencies=0 scripts=0 playwright=1.61.1 node=>=20
+[node-source-lock] npmrc=PASS registry=https://registry.npmjs.org/ entries=5 ignoreScripts=true
+[node-source-lock] lockfile=PASS version=3 externalPackages=3 integrity=sha512
+[node-source-lock] graph=PASS playwright=1.61.1 playwright-core=1.61.1 fsevents=2.3.2
+[node-source-lock] actual=PASS
+[node-source-lock] OK adversarial=16 unexpectedAcceptances=0
+SOURCE_LOCK_EXIT=0
+
+$ npx --no-install playwright --version
+Version 1.61.1
+RUNNER_EXIT=0
+```
+
+### Checks 6-8 - Static Scans, Fixture Provenance, Whitespace
+
+The interception scan returns two `serviceWorker` hits. Both are absence assertions, not interception; a scan restricted to true interception primitives returns zero.
+
+```text
+$ grep -nE 'page\.route\(|context\.route\(|\.routeFromHAR|msw|nock|cy\.intercept|setupServer|wiremock' \
+    tests/portfolio-survival-foundation.spec.mjs tests/portfolio-survival.support.mjs \
+    tests/portfolio-foundation.unit.mjs tests/portfolio-privacy.functional.mjs
+TRUE_INTERCEPTION_EXIT=1 (1 = ZERO matches = clean)
+
+  tests/portfolio-survival-foundation.spec.mjs:355 and :544 read:
+  expect(await page.evaluate(async () => !navigator.serviceWorker.controller
+    && (await navigator.serviceWorker.getRegistrations()).length === 0)).toBe(true);
+
+$ grep -nE 'https?://[a-zA-Z]' rlportfolio.js portfolio-survival-allocation.config.json
+EXTERNAL_HOST_EXIT=1 (1 = zero matches)
+
+$ grep -nE 'rlData|rlProviderConfig|rlApiKeys' rlportfolio.js
+NAMESPACE_LEAK_EXIT=1 (1 = zero matches)
+
+$ git ls-files tests/fixtures/portfolio-survival-allocation/
+tests/fixtures/portfolio-survival-allocation/invalid-secret-portfolio.csv
+tests/fixtures/portfolio-survival-allocation/mandate-behavior-noise.json
+tests/fixtures/portfolio-survival-allocation/mandate-conflicting.json
+tests/fixtures/portfolio-survival-allocation/mandate-explicit.json
+tests/fixtures/portfolio-survival-allocation/manual-alternative.json
+tests/fixtures/portfolio-survival-allocation/provenance.json
+tests/fixtures/portfolio-survival-allocation/removable-invalid-portfolio.csv
+tests/fixtures/portfolio-survival-allocation/valid-portfolio.csv
+FIXTURE_TRACKED_COUNT=8
+
+$ git --no-pager diff --check -- specs/008-portfolio-survival-and-brief-lab/ rlportfolio.js \
+    portfolio-survival-allocation-lab.html portfolio-survival-allocation.config.json \
+    tests/portfolio-survival-foundation.spec.mjs tests/portfolio-survival.support.mjs \
+    tests/portfolio-foundation.unit.mjs tests/portfolio-privacy.functional.mjs \
+    'tests/fixtures/portfolio-survival-allocation/**'
+SCOPE01_DIFF_CHECK_EXIT=0
+```
+
+Repository-wide `git diff --check` is not clean: it reports trailing whitespace in `specs/_bugs/BUG-002-market-brief-session-date-drift/report.md` and `scopes.md`, which a concurrent session owns. Those files were neither edited nor staged here. This item is judged on this scope's own files, where the check exits 0.
+
+### Check 9 - Editor Diagnostics, And `F008-IMPL-006`
+
+```text
+Scope 01 owned files - no errors found:
+  scopes/01-private-portfolio-import-and-atomic-store/scope.md
+  scopes/01-private-portfolio-import-and-atomic-store/report.md
+  specs/008-portfolio-survival-and-brief-lab/state.json
+  rlportfolio.js
+  portfolio-survival-allocation-lab.html
+  tests/portfolio-survival-foundation.spec.mjs
+  tests/portfolio-foundation.unit.mjs
+  tests/portfolio-privacy.functional.mjs
+  tests/portfolio-survival.support.mjs
+
+Spec 008 planning artifacts - no errors found:
+  spec.md   design.md   scopes/_index.md   uservalidation.md   scenario-manifest.json
+
+$ grep -rn "MD060" --include='*.sh' --include='*.mjs' --include='*.json' --include='*.yaml' --include='*.md' .
+MD060_GREP_DONE=1   (zero occurrences outside this scope file's own historical record)
+```
+
+### Check 10 - G094, And `F008-IMPL-003`
+
+The prior record attributed G094 to `inter-spec-dependency-guard.sh`. That script owns **G089**. The gate registry names `capability-foundation-guard.sh` as the G094 (`capability_foundation_gate`) enforcer, so the correct owner was run directly.
+
+```text
+$ bash .github/bubbles/scripts/inter-spec-dependency-guard.sh specs/008-portfolio-survival-and-brief-lab
+inter-spec-dependency-guard: PASS Gate G089 (inter_spec_dependency_gate) - spec=specs/008-portfolio-survival-and-brief-lab dependencies=0 acceptedDependencies=none requiresRevalidation=false acknowledgedUnstableDependencies=0
+G089_EXIT=0
+
+$ bash .github/bubbles/scripts/capability-foundation-guard.sh specs/008-portfolio-survival-and-brief-lab
+capability-foundation-guard: Gate G094 applies: triggerHits=105 concreteImplementationEntries=17
+capability-foundation-guard: spec.md contains Domain Capability Model
+capability-foundation-guard: design.md contains capability foundation split with sufficient variation axes
+capability-foundation-guard: spec.md contains UI Primitives for multi-screen or reusable UI work
+capability-foundation-guard: scopes include foundation:true and overlay Depends On foundation ordering
+capability-foundation-guard: PASS Gate G094 - capability foundation requirements satisfied
+G094_REAL_EXIT=0
+```
+
+The line `scopes include foundation:true and overlay Depends On foundation ordering` is the exact condition the prior declaration recorded as blocking and as requiring an edit to a foreign scope file. No foreign scope file was edited by this agent; the ordering was already satisfied.
+
+### Checks 11-12 - Parity, Plan Sync, Artifact Lint, And `F008-IMPL-007`
+
+```text
+$ (Test Plan / DoD parity over scope.md)
+TEST_PLAN_ROW_COUNT=6        # TP-01-01 TP-01-02 TP-01-03 TP-01-04 TP-01-05 TP-01-06
+TEST_EVIDENCE_DOD_ITEMS=6    # exact parity
+DoD checkboxes: checked=14  unchecked=0  total=14
+
+$ node scripts/validate-spec-test-paths.mjs
+[spec-test-paths] scanned=462 references=10535 distinctPaths=214 missingPaths=86 baseline=86 new=0 stale=0
+[spec-test-paths] OK — no new missing test path(s)
+SPEC_TEST_PATHS_EXIT=0
+
+$ bash .github/bubbles/scripts/artifact-lint.sh specs/008-portfolio-survival-and-brief-lab
+✅ Top-level status matches certification.status
+ARTIFACT_LINT_EXIT=0
+
+$ bash .github/bubbles/scripts/implementation-reality-scan.sh specs/008-portfolio-survival-and-brief-lab --verbose
+  Files scanned:  16
+  Violations:     0
+  Warnings:       1
+🟡 PASSED with 1 warning(s) — manual review advised
+REALITY_SCAN_EXIT=0
+```
+
+`F008-IMPL-007` is resolved: `status` and `certification.status` both read `in_progress` and lint confirms they match. This agent wrote no `certification.*` field; the coherence was restored by its owner. That same restoration cleared the `--current-scope` exit-2 refusal recorded previously, which is why the guard below evaluates scopes instead of aborting.
+
+### Scope-Local Traceability, `F008-IMPL-004`, And `F008-IMPL-008`
+
+Run with `execution.currentScope` = 1 so Scope 01 is the active scope. The item's written standard is "zero failure naming this scope's own files", not a zero exit code.
+
+```text
+$ bash .github/bubbles/scripts/traceability-guard.sh specs/008-portfolio-survival-and-brief-lab --current-scope
+
+ℹ️  Checking traceability for scopes/01-private-portfolio-import-and-atomic-store/scope.md
+✅ scope.md scenario mapped to Test Plan row: A user imports a valid portfolio without credentials
+✅ scope.md scenario maps to concrete test file: tests/portfolio-privacy.functional.mjs
+✅ scope.md report references concrete test evidence: tests/portfolio-privacy.functional.mjs
+✅ scope.md scenario mapped to Test Plan row: A malformed or secret-bearing import cannot partially replace the portfolio
+✅ scope.md scenario maps to concrete test file: tests/portfolio-foundation.unit.mjs
+✅ scope.md report references concrete test evidence: tests/portfolio-foundation.unit.mjs
+ℹ️  scope.md summary: scenarios=2 test_rows=7
+
+--- Gherkin → DoD Content Fidelity (Gate G068) ---
+✅ scopes/01-...  scenario maps to DoD item: A user imports a valid portfolio without credentials
+✅ scopes/01-...  scenario maps to DoD item: A malformed or secret-bearing import cannot partially replace the portfolio
+❌ scopes/02-mandate-and-cash-need-authority/scope.md Gherkin scenario has no faithful DoD item: A portfolio can be researched before goals are entered
+
+RESULT: FAILED (32 failures, 0 warnings)
+TRACE_EXIT=1
+
+================ MECHANICAL FAILURE CLASSIFICATION ================
+TOTAL_FAIL_LINES=32
+-- failures naming Scope 01 own dir (scopes/01-...) --                      0
+-- failures naming Scope 01 own test/source files --                        0
+-- failures naming scopes 02-16 dirs --                                     3
+-- scenario-manifest missing linked test (feature-level, later-scope) --   28
+-- feature-level aggregate lines --                                         1
+```
+
+Every failure is classified mechanically rather than read off the summary line, and the classes are exhaustive: 28 + 3 + 1 = 32. The Scope 01 own-file count is **0** against both its scope directory and the regex covering `portfolio-survival-foundation.spec.mjs`, `portfolio-foundation.unit.mjs`, `portfolio-privacy.functional.mjs`, `portfolio-survival.support.mjs`, `rlportfolio.js`, `portfolio-survival-allocation-lab.html`, and `portfolio-survival-allocation.config.json`. The 28 manifest failures reference later-scope suites (`portfolio-survival-brief`, `-risk`, `-paths`, `-diversification`, `-allocation`, `-mobile`) that do not exist yet; the 8 manifest entries that resolve to Scope 01's own foundation spec all pass. The 3 scope failures and the 1 aggregate all name Scope 02.
+
+`F008-IMPL-008` is resolved: both Scope 01 scenarios now map to DoD items under G068. No DoD item text was reworded to achieve it — the Gherkin blocks and DoD item sentences are byte-identical to the prior revision, and only checkbox state and evidence blocks changed. Rewriting DoD text to match delivery is the exact failure G068 exists to detect, so it was not done.
+
+`F008-IMPL-004` is met at this scope's standard. The residual 32 are foreign-owned and are enforced once at the [Feature Completion Gate](../_index.md#feature-completion-gate) in Scope 16, per this item's own text.
+
+### Closing Finding Ledger
+
+| Finding | Prior state | Current state | Evidence this session | Owner |
+| --- | --- | --- | --- | --- |
+| `F008-IMPL-001` | Resolved | Resolved | selftest 1220 passed / 0 failed, exit 0 | closed |
+| `F008-IMPL-002` | Resolved | Resolved | reality scan 0 violations, exit 0 | closed |
+| `F008-IMPL-003` | Open | **Resolved** | `capability-foundation-guard.sh` PASS G094, exit 0 | closed |
+| `F008-IMPL-004` | Open | **Met at scope-local standard** | 0 of 32 failures name Scope 01's own files | Scope 16 Feature Completion Gate |
+| `F008-IMPL-005` | Resolved | Resolved | unknown-header regression green in TP-01-01 | closed |
+| `F008-IMPL-006` | Open | **Resolved** | 0 `MD060` occurrences; diagnostics clean on 14 files | closed |
+| `F008-IMPL-007` | Open | **Resolved** | artifact lint exit 0, `status` matches `certification.status` | closed |
+| `F008-IMPL-008` | Open | **Resolved** | both Scope 01 scenarios map to DoD items under G068 | closed |
+| `F008-IMPL-009` | Open | Open, carried | diagnostic prints lag assertions in TP-01-03 | `bubbles.test` |
+| `F008-IMPL-010` | Open | Open, carried | TP-01-05 lacks a per-mode render assertion | `bubbles.test` |
+| `F008-IMPL-011` | Open | Open, carried | `XDG_RUNTIME_DIR` trailing-slash refusal | upstream `bubbles` |
+
+`F008-IMPL-009`, `-010`, and `-011` are carried, not silently dropped. None is named by this gate, none leaves a clause unproven, and the first two each require a Test Plan change, which is planning-owned. `-011` requires a patch to `.github/bubbles/`, which is framework-managed install surface this repo forbids patching locally.
+
+### Build Quality Gate Verdict
+
+All twelve named checks are current and clean at this scope's standard, and every finding is individually accounted for above. The item is checked and Scope 01 moves to `Done`.
+
+The item is not checked on exit codes alone. Scope-local traceability exits 1, and it is claimed only against its own written standard — zero failure naming this scope's own files — proven by an exhaustive mechanical classification of all 32 failures rather than by the summary line. Nothing here writes `certification.*`; validate re-confirmation is unaffected, and the whole-feature `--all-scopes` obligation remains open at Scope 16.

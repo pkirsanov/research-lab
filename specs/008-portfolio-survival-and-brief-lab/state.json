@@ -24,7 +24,7 @@
     "execution": {
         "activeAgent": "bubbles.implement",
         "currentPhase": "implement",
-        "currentScope": 2,
+        "currentScope": 1,
         "runStartedAt": "2026-07-15T23:25:05Z",
         "completedPhaseClaims": [],
         "pendingTransitionRequests": [],
@@ -32,7 +32,7 @@
             {
                 "scope": 1,
                 "name": "Private Portfolio Import And Atomic Store",
-                "status": "in_progress",
+                "status": "done",
                 "dependsOn": [],
                 "scopeDir": "scopes/01-private-portfolio-import-and-atomic-store",
                 "evidenceFile": "scopes/01-private-portfolio-import-and-atomic-store/report.md"

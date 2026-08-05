@@ -194,6 +194,14 @@ Assertions call production `RLPORTFOLIO` functions (`validateMandateDraft`, `bui
 
 **Phase:** implement
 
+#### Earlier run (SUPERSEDED — kept for the audit trail)
+
+The block below is the first TP-02-02 execution. Its verdict was correct when
+written: the named target file then held only the five Scope 01 subtests and no
+mandate coverage at all. It is superseded by the RED/GREEN evidence that follows,
+which executes the same command against the file's current content. It is retained
+rather than deleted so the verdict change is auditable.
+
 **Command:** `BUBBLES_AGENT_NAME=bubbles.implement BUBBLES_SPEC=specs/008-portfolio-survival-and-brief-lab BUBBLES_SCOPE=SCOPE-02 BUBBLES_TOOL_LOG_TAGS=TP-02-02,green timeout 300 bash .github/bubbles/scripts/tool-log.sh node --test tests/portfolio-privacy.functional.mjs`
 
 **Exit Code:** 0
@@ -258,14 +266,175 @@ GREP_EXIT=1
 DETAIL_EXIT=1
 ```
 
-**Verdict: DoD item NOT satisfied — left unchecked.** The command is green, but a green exit code is not evidence of the clause. The DoD item requires functional evidence that "proves atomic mandate round trips and one unchanged constraint set across every consumer". `tests/portfolio-privacy.functional.mjs` contains 5 subtests, all of them Scope 01 import/redaction/atomic-pointer/namespace behavior, and contains **zero** occurrences of `mandate`, `cashNeed`, `constraint`, or `projectRouteStates`. The file's last modification predates the mandate work (Jul 19 vs. the Aug 4 mandate commit `92383325`).
+**Earlier verdict (now superseded): DoD item NOT satisfied.** The command was green, but a green exit code is not evidence of the clause. The DoD item requires functional evidence that "proves atomic mandate round trips and one unchanged constraint set across every consumer". `tests/portfolio-privacy.functional.mjs` then contained 5 subtests, all of them Scope 01 import/redaction/atomic-pointer/namespace behavior, and contained **zero** occurrences of `mandate`, `cashNeed`, `constraint`, or `projectRouteStates`.
 
-**Uncovered clauses, named exactly:**
+#### Clause-to-assertion map
 
-1. *"atomic mandate round trips"* — no functional test commits a `MandateRevision/v1` through the real store and reloads it from storage bytes. TP-02-01 exercises `buildMandateCandidate` + `commitWorkspace` in-process, but does not perform the reload-from-storage round trip that TP-01-02 performs for portfolios.
-2. *"one unchanged constraint set across every consumer"* — no functional test asserts the same constraint set reaches all three consumers after a storage reload. TP-02-01 subtest 22 asserts cross-route equality from an in-memory workspace, not from a reloaded one.
+Each clause of the DoD item is carried by exactly one named `node:test` case in
+`tests/portfolio-privacy.functional.mjs`. Neither clause is spread across
+unnamed helpers.
 
-**Remediation owner:** `bubbles.plan` owns the Test Plan row and its target file. Either the row's target file must gain mandate round-trip coverage, or the row must be re-pointed. This agent must not rewrite the DoD clause to match what the suite happens to assert (G068).
+| DoD clause | Named assertion carrying it |
+|------------|-----------------------------|
+| atomic mandate round trips | `explicit mandate revisions commit and reload atomically while portfolio generation semantics are preserved` |
+| one unchanged constraint set across every consumer | `one reloaded constraint set reaches every consumer and absent or conflicting fields never acquire defaults` |
+
+**Clause 1, both halves.** *Write then read back yields the same mandate*: the
+mandate is committed through the real store, its id is asserted present in the
+durable bytes, then a **new** store instance reloads from those bytes and the
+reloaded revision set is compared to the committed one. *A rejected write leaves
+the prior mandate exactly intact*: the whole durable image is captured before a
+generation-conflicting commit and compared byte-for-byte afterwards, the rejected
+candidate's mandate id is asserted absent from durable storage, and a fresh reload
+must return the prior revision set, generation, and portfolio revisions unchanged.
+An unchanged pointer alone is deliberately not accepted as proof, because a
+half-applied commit can land a slot write and still leave the pointer untouched.
+
+**Clause 2, enumerated not sampled.** The consumer list is read from
+`policy.mandate.descriptiveRouteStates` rather than from a literal in the test, so
+a consumer the projection drops or invents fails the comparison instead of going
+unnoticed; a guard also fails if that declaration ever shrinks to a single
+consumer, which would make an "across every consumer" claim vacuous. A superseding
+mandate revision is then committed, so two different constraint sets exist in
+storage at once and the claim stops being trivially true. For every consumer, that
+consumer's own `horizon`, `constraints`, and `cashNeeds` are substituted back into
+the stored revision and revalidated through the production `validateMandateRevision`,
+which recomputes both the semantic and the identity fingerprint. Per-consumer drift
+therefore fails on identity rather than passing a shape-only comparison. The
+resulting identity strings are collapsed to a set whose size must be exactly one,
+and that one identity must be the **current** revision's, not the superseded one.
+
+#### RED (intended failure, same command)
+
+The RED was produced by two deliberate defects injected into `rlportfolio.js` and
+reverted immediately after capture, to prove the assertions are not vacuous. Both
+defects were chosen specifically because **every pre-existing assertion stays green
+under them** — the failures land only on the assertions added for this item, which
+is what demonstrates the previous coverage could not carry these clauses.
+
+- Clause 1 defect: the durable commit path writes the prepared candidate into the inactive slot *before* returning the generation-conflict failure — a partial application that leaves the pointer, and therefore the reloaded `currentMandateId`, correct.
+- Clause 2 defect: the current-revision resolver returns `mandateRevisions[0]` instead of matching `currentMandateId`, so consumers observe the superseded constraint set while every single-revision assertion still passes.
+
+**Command:** `BUBBLES_AGENT_NAME=bubbles.implement BUBBLES_SPEC=specs/008-portfolio-survival-and-brief-lab BUBBLES_SCOPE=SCOPE-02 BUBBLES_TOOL_LOG_TAGS=TP-02-02,red timeout 300 bash .github/bubbles/scripts/tool-log.sh node --test tests/portfolio-privacy.functional.mjs`
+
+**Exit Code:** 1 · **Claim Source:** executed
+
+```text
+# Subtest: explicit mandate revisions commit and reload atomically while portfolio generation semantics are preserved
+not ok 6 - explicit mandate revisions commit and reload atomically while portfolio generation semantics are preserved
+  ---
+  duration_ms: 43.6606
+  type: 'test'
+  location: '/home/redacted/research-lab/tests/portfolio-privacy.functional.mjs:154:1'
+  failureType: 'testCodeFailure'
+  error: |-
+    a rejected mandate write must not change one durable byte
+
+    false !== true
+
+  code: 'ERR_ASSERTION'
+  name: 'AssertionError'
+  expected: true
+  actual: false
+  operator: 'strictEqual'
+  stack: |-
+    TestContext.<anonymous> (file:///home/redacted/research-lab/tests/portfolio-privacy.functional.mjs:210:10)
+  ...
+# Subtest: one reloaded constraint set reaches every consumer and absent or conflicting fields never acquire defaults
+not ok 7 - one reloaded constraint set reaches every consumer and absent or conflicting fields never acquire defaults
+  ---
+  duration_ms: 56.204599
+  type: 'test'
+  location: '/home/redacted/research-lab/tests/portfolio-privacy.functional.mjs:236:1'
+  failureType: 'testCodeFailure'
+  error: |-
+    allocation must reproduce the current stored mandate identity
+
+    false !== true
+
+  code: 'ERR_ASSERTION'
+  name: 'AssertionError'
+  expected: true
+  actual: false
+  operator: 'strictEqual'
+  stack: |-
+    file:///home/redacted/research-lab/tests/portfolio-privacy.functional.mjs:340:12
+    Array.map (<anonymous>)
+    TestContext.<anonymous> (file:///home/redacted/research-lab/tests/portfolio-privacy.functional.mjs:337:64)
+  ...
+1..7
+# tests 7
+# suites 0
+# pass 5
+# fail 2
+# cancelled 0
+# skipped 0
+# todo 0
+# duration_ms 393.348596
+[tool-log] recorded exit=1 duration=482ms → /home/redacted/research-lab/.specify/runtime/tool-calls.jsonl
+TP_02_02_RED_EXIT=1
+```
+
+Both failures are assertion failures on booleans with named messages, not payload
+diffs, so a RED capture cannot spill stored mandate content into this tracked file.
+Subtests 1 through 5 stayed green, and inside subtests 6 and 7 every assertion that
+predates this item also stayed green — the first failure in each is at the newly
+added assertion.
+
+#### GREEN (same command, defects reverted)
+
+The defects were reverted with `git checkout -- rlportfolio.js`;
+`git status --porcelain -- rlportfolio.js` then returned empty, so the production
+module is byte-identical to `HEAD` and no mutation-proof scaffolding survives in
+the tree.
+
+**Command:** `BUBBLES_AGENT_NAME=bubbles.implement BUBBLES_SPEC=specs/008-portfolio-survival-and-brief-lab BUBBLES_SCOPE=SCOPE-02 BUBBLES_TOOL_LOG_TAGS=TP-02-02,green timeout 300 bash .github/bubbles/scripts/tool-log.sh node --test tests/portfolio-privacy.functional.mjs`
+
+**Exit Code:** 0 · **Claim Source:** executed
+
+```text
+TAP version 13
+# Subtest: real-format import previews commits reloads and exports one local revision
+ok 1 - real-format import previews commits reloads and exports one local revision
+# Subtest: secret-bearing import is redacted and cannot mutate any storage namespace
+ok 2 - secret-bearing import is redacted and cannot mutate any storage namespace
+# Subtest: atomic write failures preserve the active pointer and retain a validated candidate only in memory
+ok 3 - atomic write failures preserve the active pointer and retain a validated candidate only in memory
+# Subtest: session and memory commits state truthfully and preserve the last valid candidate after rejection
+ok 4 - session and memory commits state truthfully and preserve the last valid candidate after rejection
+# Subtest: hostile manual labels remain inert data and namespace writes stay closed
+ok 5 - hostile manual labels remain inert data and namespace writes stay closed
+# Subtest: explicit mandate revisions commit and reload atomically while portfolio generation semantics are preserved
+ok 6 - explicit mandate revisions commit and reload atomically while portfolio generation semantics are preserved
+  ---
+  duration_ms: 49.868431
+  type: 'test'
+  ...
+# Subtest: one reloaded constraint set reaches every consumer and absent or conflicting fields never acquire defaults
+ok 7 - one reloaded constraint set reaches every consumer and absent or conflicting fields never acquire defaults
+  ---
+  duration_ms: 57.840421
+  type: 'test'
+  ...
+1..7
+# tests 7
+# suites 0
+# pass 7
+# fail 0
+# cancelled 0
+# skipped 0
+# todo 0
+# duration_ms 423.28052
+[tool-log] recorded exit=0 duration=515ms → /home/redacted/research-lab/.specify/runtime/tool-calls.jsonl
+TP_02_02_GREEN_EXIT=0
+```
+
+**Verdict: DoD item SATISFIED — box ticked.** Both clauses are carried by named
+assertions, each proven non-vacuous by a same-command RED it detects and a
+pre-existing-assertion set that does not.
+
+**Scope of this claim.** This closes TP-02-02 only. No other DoD box was touched,
+and no claim is made here about the Core Delivery items or the Build Quality Gate.
 
 ### TP-02-03
 
@@ -574,8 +743,13 @@ clauses the earlier TP-02-02 verdict recorded as uncovered:
 
 An earlier note in this report described those two subtests as uncommitted.
 `git status --porcelain tests/portfolio-privacy.functional.mjs` now returns empty,
-so they are committed. Whether they actually satisfy TP-02-02 is unproven — that
-requires executing TP-02-02, which this run did not do.
+so they are committed.
+
+**Resolved.** This declaration is closed. TP-02-02 has since been executed with a
+same-command RED/GREEN pair; see [TP-02-02](#tp-02-02). The stale premise no longer
+propagates. The note at the end of the TP-02-05 block that describes the earlier
+verdict as possibly stale is likewise resolved by that execution; it is left in
+place because it was an accurate statement of what that run knew at the time.
 
 ## Validation Summary
 

@@ -197,13 +197,31 @@ test('explicit mandate revisions commit and reload atomically while portfolio ge
   );
   const revisedCandidate = api.buildMandateCandidate(revisedDraft.value, stale.value.workspace, { now: '2026-07-15T14:06:00.000Z' }, policy);
   assert.equal(revisedCandidate.ok, true);
+
+  // A rejected write must leave the prior mandate EXACTLY intact. An unchanged pointer
+  // is not enough: a half-applied commit can land a slot write and still leave the
+  // pointer alone, so the whole durable image is compared byte-for-byte. Booleans are
+  // asserted rather than the images themselves so a failure names the defect instead of
+  // printing stored mandate content.
+  const durableBytesBeforeRejection = JSON.stringify(localStorage.snapshot());
   const conflicted = reloadedStore.commitWorkspace(revisedCandidate.value, durable.generation - 1, '2026-07-15T14:06:00.000Z');
   assert.equal(conflicted.ok, false);
   assert.equal(conflicted.error.reason, 'generation-conflict');
   assert.equal(
-    api.createPortfolioStore({ localStorage, sessionStorage }, policy).openWorkspace('2026-07-15T14:07:00.000Z').value.workspace.currentMandateId,
-    committed.workspace.currentMandateId
+    JSON.stringify(localStorage.snapshot()) === durableBytesBeforeRejection,
+    true,
+    'a rejected mandate write must not change one durable byte'
   );
+  assert.equal(
+    JSON.stringify(localStorage.snapshot()).includes(revisedCandidate.value.currentMandateId),
+    false,
+    'the rejected mandate id must never reach durable storage'
+  );
+  const afterRejection = api.createPortfolioStore({ localStorage, sessionStorage }, policy).openWorkspace('2026-07-15T14:07:00.000Z').value.workspace;
+  assert.equal(afterRejection.currentMandateId, committed.workspace.currentMandateId);
+  assert.equal(afterRejection.generation, durable.generation);
+  assert.deepEqual(afterRejection.mandateRevisions, durable.mandateRevisions, 'the prior mandate revision set must survive a rejected write unchanged');
+  assert.deepEqual(afterRejection.portfolioRevisions, portfolio.workspace.portfolioRevisions);
 
   const accepted = reloadedStore.commitWorkspace(revisedCandidate.value, durable.generation, '2026-07-15T14:06:00.000Z');
   assert.equal(accepted.ok, true);
@@ -227,6 +245,18 @@ test('one reloaded constraint set reaches every consumer and absent or conflicti
   assert.equal(projected.ok, true);
   assert.deepEqual(projected.value.routes.map((route) => route.route), ['allocation', 'path-lab', 'risk-xray']);
   assert.equal(projected.value.currentMandateId, committed.workspace.currentMandateId);
+
+  // The consumer list is taken from the policy that declares it, so a consumer the
+  // projection silently drops or invents fails here instead of going unnoticed. The
+  // count guard keeps "across every consumer" from degrading into a single-consumer
+  // claim if the declaration ever shrinks to one.
+  const declaredConsumers = policy.mandate.descriptiveRouteStates.slice().sort();
+  assert.deepEqual(
+    projected.value.routes.map((route) => route.route).sort(),
+    declaredConsumers,
+    'every policy-declared consumer must appear in the projection exactly once'
+  );
+  assert.equal(declaredConsumers.length > 1, true, 'a one-consumer projection cannot carry an across-every-consumer claim');
 
   // Every consumer receives the identical reloaded constraint set, not a per-route copy.
   projected.value.routes.forEach((route) => {
@@ -271,4 +301,51 @@ test('one reloaded constraint set reaches every consumer and absent or conflicti
   assert.equal(afterConflict.mandateRevisions.length, 1);
   assert.deepEqual(afterConflict.mandateRevisions[0].constraints, mandate.constraints);
   assert.equal(afterConflict.currentPortfolioId, committed.workspace.currentPortfolioId);
+
+  // With a superseding revision committed there are now two constraint sets in storage,
+  // so "one unchanged set across every consumer" stops being trivially true: a consumer
+  // reading by array position instead of currentMandateId now shows a superseded set.
+  const supersedingStore = api.createPortfolioStore({ localStorage, sessionStorage }, policy);
+  const supersedingBase = supersedingStore.openWorkspace('2026-07-15T14:10:00.000Z').value.workspace;
+  const supersedingSource = mandateFixture('mandate-explicit.json');
+  supersedingSource.constraints[0].maximum = 0.2;
+  const supersedingDraft = api.validateMandateDraft(supersedingSource, supersedingBase, { now: '2026-07-15T14:10:00.000Z' }, policy);
+  assert.equal(supersedingDraft.value.canConfirm, true);
+  const supersedingCandidate = api.buildMandateCandidate(supersedingDraft.value, supersedingBase, { now: '2026-07-15T14:10:00.000Z' }, policy);
+  assert.equal(supersedingCandidate.ok, true);
+  assert.equal(supersedingStore.commitWorkspace(supersedingCandidate.value, supersedingBase.generation, '2026-07-15T14:10:00.000Z').ok, true);
+
+  const superseded = api.createPortfolioStore({ localStorage, sessionStorage }, policy).openWorkspace('2026-07-15T14:11:00.000Z').value.workspace;
+  assert.equal(superseded.mandateRevisions.length, 2);
+  const currentMandate = superseded.mandateRevisions.filter((entry) => entry.mandateId === superseded.currentMandateId);
+  assert.equal(currentMandate.length, 1, 'exactly one stored revision may answer to currentMandateId');
+  const supersededMandate = superseded.mandateRevisions.filter((entry) => entry.mandateId !== superseded.currentMandateId)[0];
+  assert.notDeepEqual(currentMandate[0].constraints, supersededMandate.constraints, 'the two stored revisions must differ or this proves nothing');
+
+  const supersededProjection = api.projectRouteStates(superseded, policy);
+  assert.equal(supersededProjection.ok, true);
+  assert.deepEqual(
+    supersededProjection.value.routes.map((route) => route.route).sort(),
+    declaredConsumers,
+    'every policy-declared consumer must still appear after a superseding revision'
+  );
+
+  // Each consumer's own view is substituted back into the stored revision and revalidated.
+  // The production validator recomputes the semantic and identity fingerprints, so drift in
+  // any consumer's horizon, constraints, or cash needs fails identity here rather than
+  // passing a shape-only comparison.
+  const consumerIdentities = supersededProjection.value.routes.map((route) => {
+    const reconstructed = { ...currentMandate[0], horizon: route.horizon, constraints: route.constraints, cashNeeds: route.cashNeeds };
+    const revalidated = api.validateMandateRevision(reconstructed, policy);
+    assert.equal(revalidated.ok, true, `${route.route} must reproduce the current stored mandate identity`);
+    return `${revalidated.value.semanticFingerprint}|${revalidated.value.mandateId}`;
+  });
+  assert.equal(new Set(consumerIdentities).size, 1, 'every consumer must observe exactly one constraint-set identity');
+  assert.equal(consumerIdentities[0], `${currentMandate[0].semanticFingerprint}|${currentMandate[0].mandateId}`, 'consumers must observe the current revision, not a superseded one');
+  assert.equal(supersededProjection.value.citedMandateFingerprint, currentMandate[0].semanticFingerprint);
+  assert.equal(
+    supersededProjection.value.routes.every((route) => route.mandateDependent.every((entry) => entry.citedMandateId === superseded.currentMandateId)),
+    true,
+    'every mandate-dependent state must cite the current revision'
+  );
 });

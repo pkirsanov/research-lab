@@ -94,7 +94,45 @@ Add each named assertion and persistent title before mandate behavior. Execute e
 #### Test Evidence Items - Exact Parity With 5 Test Plan Rows
 
 - [x] TP-02-01 unit evidence proves closed mandate/cash-need authority, absence, identity, conflicts, and behavior/settings exclusion.
-- [ ] TP-02-02 functional evidence proves atomic mandate round trips and one unchanged constraint set across every consumer.
+- [x] TP-02-02 functional evidence proves atomic mandate round trips and one unchanged constraint set across every consumer.
+
+  Clause 1 *atomic mandate round trips* is carried by the named assertion `explicit mandate revisions commit and reload atomically while portfolio generation semantics are preserved`. Clause 2 *one unchanged constraint set across every consumer* is carried by the named assertion `one reloaded constraint set reaches every consumer and absent or conflicting fields never acquire defaults`. Consumers are enumerated from `policy.mandate.descriptiveRouteStates`, not from a literal, and a superseding revision is committed first so two constraint sets exist in storage and the claim is not trivially true.
+
+  RED was produced by two defects injected into `rlportfolio.js` and reverted before GREEN: a durable commit that writes the inactive slot before returning its generation-conflict failure, and a current-revision resolver that reads by array position instead of `currentMandateId`. Every assertion predating this item stayed green under both, so the RED lands only on the assertions added here. RED exit 1, then the identical command at exit 0.
+
+  **Command:** `BUBBLES_AGENT_NAME=bubbles.implement BUBBLES_SPEC=specs/008-portfolio-survival-and-brief-lab BUBBLES_SCOPE=SCOPE-02 BUBBLES_TOOL_LOG_TAGS=TP-02-02,green timeout 300 bash .github/bubbles/scripts/tool-log.sh node --test tests/portfolio-privacy.functional.mjs`
+
+  **Exit Code:** 0 · **Claim Source:** executed · Full clause-by-clause coverage, RED capture, and the clause-to-assertion map: [report.md](report.md#tp-02-02)
+
+  ```text
+  TAP version 13
+  # Subtest: real-format import previews commits reloads and exports one local revision
+  ok 1 - real-format import previews commits reloads and exports one local revision
+  # Subtest: secret-bearing import is redacted and cannot mutate any storage namespace
+  ok 2 - secret-bearing import is redacted and cannot mutate any storage namespace
+  # Subtest: atomic write failures preserve the active pointer and retain a validated candidate only in memory
+  ok 3 - atomic write failures preserve the active pointer and retain a validated candidate only in memory
+  # Subtest: session and memory commits state truthfully and preserve the last valid candidate after rejection
+  ok 4 - session and memory commits state truthfully and preserve the last valid candidate after rejection
+  # Subtest: hostile manual labels remain inert data and namespace writes stay closed
+  ok 5 - hostile manual labels remain inert data and namespace writes stay closed
+  # Subtest: explicit mandate revisions commit and reload atomically while portfolio generation semantics are preserved
+  ok 6 - explicit mandate revisions commit and reload atomically while portfolio generation semantics are preserved
+  # Subtest: one reloaded constraint set reaches every consumer and absent or conflicting fields never acquire defaults
+  ok 7 - one reloaded constraint set reaches every consumer and absent or conflicting fields never acquire defaults
+  1..7
+  # tests 7
+  # suites 0
+  # pass 7
+  # fail 0
+  # cancelled 0
+  # skipped 0
+  # todo 0
+  # duration_ms 423.28052
+  [tool-log] recorded exit=0 duration=515ms → /home/redacted/research-lab/.specify/runtime/tool-calls.jsonl
+  TP_02_02_GREEN_EXIT=0
+  ```
+
 - [x] TP-02-03 Regression E2E evidence proves SCN-008-003 displays only explicit user-entered hard constraints across dependent route states.
 - [x] TP-02-04 Regression E2E evidence proves SCN-008-004 retains descriptive research and shows unavailable goal fit/survival with no hidden values.
 

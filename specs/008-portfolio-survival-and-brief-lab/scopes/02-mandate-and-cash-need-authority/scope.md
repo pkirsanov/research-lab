@@ -86,9 +86,96 @@ Add each named assertion and persistent title before mandate behavior. Execute e
 
 #### Core Delivery Items
 
-- [ ] FR-011 through FR-016 are fully implemented with explicit purpose, units, hard/research authority, dates, amounts, currencies, priorities, treatment, unchanged candidate propagation, and loud infeasibility without constraint relaxation.
-- [ ] NFR-003, NFR-005, NFR-007, NFR-012, and NFR-022 are satisfied by provenance, missing-state integrity, atomic revisions, latest-complete identity publication, and adjacent research/advice boundaries.
-- [ ] FR-017, FR-022, and FR-033 checks prove user entries remain user entries and behavior/settings cannot create or modify mandate, cash need, expected return, floor, objective, or constraint state.
+- [x] FR-011 through FR-016 are fully implemented with explicit purpose, units, hard/research authority, dates, amounts, currencies, priorities, treatment, unchanged candidate propagation, and loud infeasibility without constraint relaxation.
+
+  Each of the six ids carries its own named assertions in `tests/portfolio-privacy.functional.mjs`, not a shared "all FRs implemented" claim: FR-011 purpose/units/authority (10), FR-012 the five cash-need parts plus treatment and the three named date faults (14), FR-013 absence-is-not-a-default (2), FR-014 nothing inferred from holdings (5), FR-015 unchanged candidate propagation (2), FR-016 loud infeasibility (7). Counts are guarded static-message occurrences inside `assert.*` calls; a title or comment mention was not allowed to satisfy an id.
+
+  The FR-016 trap clause is asserted rather than assumed. "Nothing relaxed" compares the produced mandate against the **declared source object**, so an implementation that widened a bound, dropped a constraint or resequenced a need to manufacture feasibility fails the comparison. A further guard asserts the source is genuinely infeasible, without which the clause would hold vacuously.
+
+  **Command:** `BUBBLES_AGENT_NAME=bubbles.implement BUBBLES_SPEC=specs/008-portfolio-survival-and-brief-lab BUBBLES_SCOPE=SCOPE-02 BUBBLES_TOOL_LOG_TAGS=TP-02-02,green,DOD-89,DOD-90,DOD-91 timeout 300 bash .github/bubbles/scripts/tool-log.sh node --test tests/portfolio-privacy.functional.mjs`
+
+  **Exit Code:** 0 · **Claim Source:** executed · Per-requirement assertion map: [report.md](report.md#item-1---fr-011-through-fr-016)
+
+  ```text
+  # Subtest: FR-011 to FR-016: declared purpose units authority dates amounts currencies priorities and treatment reach the candidate unchanged and an infeasible draft fails loudly with nothing relaxed
+  ok 8 - FR-011 to FR-016: declared purpose units authority dates amounts currencies priorities and treatment reach the candidate unchanged and an infeasible draft fails loudly with nothing relaxed
+    ---
+    duration_ms: 22.413601
+    type: 'test'
+    ...
+  1..10
+  # tests 10
+  # suites 0
+  # pass 10
+  # fail 0
+  # cancelled 0
+  # skipped 0
+  # todo 0
+  # duration_ms 588.79581
+  [tool-log] recorded exit=0 duration=671ms → /home/redacted/research-lab/.specify/runtime/tool-calls.jsonl
+  FUNCTIONAL_EXIT=0
+  ```
+
+- [x] NFR-003, NFR-005, NFR-007, NFR-012, and NFR-022 are satisfied by provenance, missing-state integrity, atomic revisions, latest-complete identity publication, and adjacent research/advice boundaries.
+
+  Each of the five ids carries its own named assertions: NFR-003 provenance, stated assumptions, stated uncertainty and per-state invalidation (7); NFR-005 missing never becoming zero/empty/false/observed, including a currency that stays distinct rather than being rewritten to look aligned (5); NFR-007 refused configuration and refused import both leaving the last valid identities and not one durable byte changed (5); NFR-012 stale-edit rejection, no intermediate identity in storage, and latest-complete publication (6); NFR-022 the research boundary on projection, preview and infeasibility explanation, plus a closed contract with no slot for a recommendation field (4).
+
+  Two vacuity guards are themselves asserted. NFR-012 asserts the two racing edits produce different identities, and that after rebasing the winner **actually changed** — so "latest complete" is proved by a change of winner, not by one uncontested edit. NFR-022 asserts the advice-vocabulary scan **can** detect a violation before that scan is used to claim there is none.
+
+  **Command:** `BUBBLES_AGENT_NAME=bubbles.implement BUBBLES_SPEC=specs/008-portfolio-survival-and-brief-lab BUBBLES_SCOPE=SCOPE-02 BUBBLES_TOOL_LOG_TAGS=TP-02-02,green,DOD-89,DOD-90,DOD-91 timeout 300 bash .github/bubbles/scripts/tool-log.sh node --test tests/portfolio-privacy.functional.mjs`
+
+  **Exit Code:** 0 · **Claim Source:** executed · Per-requirement assertion map: [report.md](report.md#item-2---nfr-003-nfr-005-nfr-007-nfr-012-nfr-022)
+
+  ```text
+  # Subtest: NFR-003 NFR-005 NFR-007 NFR-012 NFR-022: provenance missing-state integrity atomic revisions latest-complete publication and the research boundary all hold on the mandate surface
+  ok 9 - NFR-003 NFR-005 NFR-007 NFR-012 NFR-022: provenance missing-state integrity atomic revisions latest-complete publication and the research boundary all hold on the mandate surface
+    ---
+    duration_ms: 112.500702
+    type: 'test'
+    ...
+  1..10
+  # tests 10
+  # suites 0
+  # pass 10
+  # fail 0
+  # cancelled 0
+  # skipped 0
+  # todo 0
+  # duration_ms 588.79581
+  [tool-log] recorded exit=0 duration=671ms → /home/redacted/research-lab/.specify/runtime/tool-calls.jsonl
+  FUNCTIONAL_EXIT=0
+  ```
+
+- [x] FR-017, FR-022, and FR-033 checks prove user entries remain user entries and behavior/settings cannot create or modify mandate, cash need, expected return, floor, objective, or constraint state.
+
+  This item states a **negative** claim, so it is proved by ATTEMPTING each forbidden write through the production validators and asserting the refusal actually returned — not by the absence of code that does it. "State did not change" alone cannot distinguish a refusal from a field silently dropped, so each attempt checks the specific refusal production (ok flag, error code, reason, field). Reason codes exercised include `forbidden-input-source` (`P008-MANDATE-AUTHORITY`), `unknown-field`, `constraint-authority-invalid`, `mandate-invalid`, `constraint-invalid`, `cash-need-invalid`, `mandate-identity-mismatch`, and `holding-invalid`.
+
+  All seven protected state kinds named by the item — mandate, cash need, expected return, floor, objective, constraint, plus the portfolio-value side of FR-017 — have at least one refused attempt behind them, and that coverage is itself asserted so a target losing its only attempt fails the test. A control assertion proves refusal is **selective** rather than blanket: a clean user-entered draft is still accepted against the same workspace, without which an implementation that refused everything would pass. Post-conditions assert not one durable byte moved and that no refusal echoed its input.
+
+  **Command:** `BUBBLES_AGENT_NAME=bubbles.implement BUBBLES_SPEC=specs/008-portfolio-survival-and-brief-lab BUBBLES_SCOPE=SCOPE-02 BUBBLES_TOOL_LOG_TAGS=TP-02-02,green,DOD-89,DOD-90,DOD-91 timeout 300 bash .github/bubbles/scripts/tool-log.sh node --test tests/portfolio-privacy.functional.mjs`
+
+  **Exit Code:** 0 · **Claim Source:** executed · Per-requirement attempt map: [report.md](report.md#item-3---fr-017-fr-022-fr-033)
+
+  ```text
+  # Subtest: FR-017 FR-022 FR-033: behavior settings and market-fact relabelling attempts are refused and change no mandate cash need expected return floor objective or constraint state
+  ok 10 - FR-017 FR-022 FR-033: behavior settings and market-fact relabelling attempts are refused and change no mandate cash need expected return floor objective or constraint state
+    ---
+    duration_ms: 40.9974
+    type: 'test'
+    ...
+  1..10
+  # tests 10
+  # suites 0
+  # pass 10
+  # fail 0
+  # cancelled 0
+  # skipped 0
+  # todo 0
+  # duration_ms 588.79581
+  [tool-log] recorded exit=0 duration=671ms → /home/redacted/research-lab/.specify/runtime/tool-calls.jsonl
+  FUNCTIONAL_EXIT=0
+  ```
+
 - [ ] Scope 01 import/storage behavior remains unchanged, rollback is exact, and every Scope 02 behavior has intended RED and same-command GREEN evidence.
 
 #### Test Evidence Items - Exact Parity With 5 Test Plan Rows

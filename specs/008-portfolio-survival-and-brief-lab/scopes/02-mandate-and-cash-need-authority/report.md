@@ -632,6 +632,205 @@ This is the specific regression risk the row exists to catch: Scope 02 writes to
 
 **Scope of this claim.** This row proves the cumulative browser suite is green and that Scope 01 behavior is preserved. It does not close TP-02-02, whose box remains unchecked and untouched by this run. TP-02-02 was explicitly excluded from this run's assignment and was not executed here, so no claim is made about its current status in either direction. One observation is recorded for its owner rather than acted on: `tests/portfolio-privacy.functional.mjs` has since gained two uncommitted subtests, `explicit mandate revisions commit and reload atomically while portfolio generation semantics are preserved` and `one reloaded constraint set reaches every consumer and absent or conflicting fields never acquire defaults`, which name the two clauses the TP-02-02 verdict above recorded as uncovered. That verdict may therefore be stale. Confirming it requires executing TP-02-02, which this run did not do.
 
+## Core Delivery Item Evidence - Requirement Coverage
+
+Covers Core Delivery DoD items 1-3 (FR-011..FR-016; NFR-003/005/007/012/022;
+FR-017/FR-022/FR-033). All three are carried by the same functional file and the
+same single command, so one run is recorded here and each item is mapped to the
+assertions that carry it.
+
+Value discipline: this section names requirement ids, assertion messages, and
+refusal/conflict **reason codes** only. No stored mandate content and no probe
+literal is reproduced here, because this file is tracked.
+
+**Command:** `BUBBLES_AGENT_NAME=bubbles.implement BUBBLES_SPEC=specs/008-portfolio-survival-and-brief-lab BUBBLES_SCOPE=SCOPE-02 BUBBLES_TOOL_LOG_TAGS=TP-02-02,green,DOD-89,DOD-90,DOD-91 timeout 300 bash .github/bubbles/scripts/tool-log.sh node --test tests/portfolio-privacy.functional.mjs`
+
+**Exit Code:** 0 · **Claim Source:** executed
+
+```text
+TAP version 13
+# Subtest: real-format import previews commits reloads and exports one local revision
+ok 1 - real-format import previews commits reloads and exports one local revision
+  ---
+  duration_ms: 43.168401
+  type: 'test'
+  ...
+# Subtest: secret-bearing import is redacted and cannot mutate any storage namespace
+ok 2 - secret-bearing import is redacted and cannot mutate any storage namespace
+  ---
+  duration_ms: 21.0227
+  type: 'test'
+  ...
+# Subtest: atomic write failures preserve the active pointer and retain a validated candidate only in memory
+ok 3 - atomic write failures preserve the active pointer and retain a validated candidate only in memory
+  ---
+  duration_ms: 29.325101
+  type: 'test'
+  ...
+# Subtest: session and memory commits state truthfully and preserve the last valid candidate after rejection
+ok 4 - session and memory commits state truthfully and preserve the last valid candidate after rejection
+  ---
+  duration_ms: 20.8756
+  type: 'test'
+  ...
+# Subtest: hostile manual labels remain inert data and namespace writes stay closed
+ok 5 - hostile manual labels remain inert data and namespace writes stay closed
+  ---
+  duration_ms: 11.1322
+  type: 'test'
+  ...
+# Subtest: explicit mandate revisions commit and reload atomically while portfolio generation semantics are preserved
+ok 6 - explicit mandate revisions commit and reload atomically while portfolio generation semantics are preserved
+  ---
+  duration_ms: 56.581501
+  type: 'test'
+  ...
+# Subtest: one reloaded constraint set reaches every consumer and absent or conflicting fields never acquire defaults
+ok 7 - one reloaded constraint set reaches every consumer and absent or conflicting fields never acquire defaults
+  ---
+  duration_ms: 64.571801
+  type: 'test'
+  ...
+# Subtest: FR-011 to FR-016: declared purpose units authority dates amounts currencies priorities and treatment reach the candidate unchanged and an infeasible draft fails loudly with nothing relaxed
+ok 8 - FR-011 to FR-016: declared purpose units authority dates amounts currencies priorities and treatment reach the candidate unchanged and an infeasible draft fails loudly with nothing relaxed
+  ---
+  duration_ms: 22.413601
+  type: 'test'
+  ...
+# Subtest: NFR-003 NFR-005 NFR-007 NFR-012 NFR-022: provenance missing-state integrity atomic revisions latest-complete publication and the research boundary all hold on the mandate surface
+ok 9 - NFR-003 NFR-005 NFR-007 NFR-012 NFR-022: provenance missing-state integrity atomic revisions latest-complete publication and the research boundary all hold on the mandate surface
+  ---
+  duration_ms: 112.500702
+  type: 'test'
+  ...
+# Subtest: FR-017 FR-022 FR-033: behavior settings and market-fact relabelling attempts are refused and change no mandate cash need expected return floor objective or constraint state
+ok 10 - FR-017 FR-022 FR-033: behavior settings and market-fact relabelling attempts are refused and change no mandate cash need expected return floor objective or constraint state
+  ---
+  duration_ms: 40.9974
+  type: 'test'
+  ...
+1..10
+# tests 10
+# suites 0
+# pass 10
+# fail 0
+# cancelled 0
+# skipped 0
+# todo 0
+# duration_ms 588.79581
+[tool-log] recorded exit=0 duration=671ms → /home/redacted/research-lab/.specify/runtime/tool-calls.jsonl
+FUNCTIONAL_EXIT=0
+```
+
+### How "carried" was decided, not assumed
+
+A requirement id printed in a test title or a comment proves nothing; the run
+would be just as green with the behavior absent. Each id was therefore required
+to appear **inside an assertion message on a line belonging to an `assert.*`
+call**, with comment lines and the `test(...)` title line excluded. Titles and
+comments were counted separately and were not allowed to satisfy an id.
+
+One substring trap was corrected mid-check and is recorded because it would have
+manufactured a false pass: a naive scan reports `FR-022` as carried by 4
+assertions and `FR-012` by extra ones, because `FR-022` is a substring of
+`NFR-022` and `FR-012` of `NFR-012`. Re-run with a preceding-character guard
+(`(?<![A-Z])`), the real counts are `FR-022` = 1 static-message assertion and
+`FR-012` = 14. Both still clear the bar, but only the guarded count is evidence.
+Without the guard, item 3 would have appeared to rest on assertions that in fact
+belong to item 2.
+
+`FR-017`, `FR-022` and `FR-033` additionally carry their ids through a data field
+(`requirement:`) interpolated into the assertion message
+``` `${attempt.requirement}: ${attempt.what} must be refused, not absorbed` ```,
+across 12 declared attempts plus one computed per forbidden input source. Those
+are real assertion-carried occurrences that a literal-text scan cannot see, so
+they are enumerated separately below rather than counted in the static totals.
+
+### Item 1 - FR-011 through FR-016
+
+Assertion counts are guarded static-message occurrences inside `assert.*` calls.
+
+| Requirement | Clause in the DoD item | Assertion(s) carrying it | Count |
+|---|---|---|---|
+| FR-011 | explicit purpose, units, hard/research authority | `the declared purpose must survive verbatim`; `a purposeless mandate must be refused` (reason `objective-label-required`); `the horizon unit must be a declared unit`; `each constraint unit must survive verbatim`; `an undeclared horizon unit must be refused` (reason `horizon-invalid`); `an undeclared constraint unit must be refused` (reason `constraint-unit-invalid`); `hard constraints must be counted as declared`; `research constraints must be counted as declared`; `each declared authority must survive verbatim`; `an inferred constraint authority must be refused` (reason `constraint-authority-invalid`) | 10 |
+| FR-012 | dates, amounts, currencies, priorities, treatment | six `the declared <part> must survive verbatim` assertions; five refusal assertions on reasons `cash-need-date-invalid`, `cash-need-amount-invalid`, `cash-need-currency-invalid`, `cash-need-priority-invalid`, `cash-need-timing-invalid`; three date-fault assertions on conflicts `cash-need-date-past`, `cash-need-after-horizon`, `cash-need-declared-order-invalid` | 14 |
+| FR-013 | absence is a state, not a default | `every omitted policy field must be reported absent`; per-field `<field> must stay null`, each also asserted not-equal to the zero-shaped values a fallback would use | 2 |
+| FR-014 | nothing inferred from holdings | `every policy-declared constraint kind must be an accepted explicit user entry`; `every declared constraint kind must reach the mandate in declared order`; `holdings must not become constraints`; `holdings must not become cash needs`; per-instrument `the held instrument <symbol> must not appear as an inferred constraint subject` | 5 |
+| FR-015 | unchanged candidate propagation | `every declared constraint must reach the candidate unchanged and in declared order`; `every declared cash need must reach the candidate unchanged and in declared order` | 2 |
+| FR-016 | loud infeasibility without constraint relaxation | LOUD: `an infeasible mandate must not be confirmable`; `infeasibility must be loud: at least one enumerated conflict`; `every conflict must carry a stated reason and a typed value-safe error`; `an infeasible mandate must be refused, not quietly committed`; `the refusal must name a code`. NOT RELAXED: `no declared constraint may be relaxed, reordered or deleted to manufacture feasibility`; `no declared cash need may be relaxed, reordered or deleted to manufacture feasibility` | 7 |
+
+**The FR-016 trap clause is asserted, not assumed.** "Nothing relaxed" is proved
+by comparing the produced mandate against the **declared source object**, not
+against a stored copy of itself — so an implementation that widened a bound,
+dropped a constraint, or resequenced a need to manufacture feasibility fails the
+comparison rather than passing it. The comparison covers every declared bound,
+subject, unit, date, amount, currency, priority and treatment. A guard then
+asserts the source is *genuinely* infeasible (it must declare a competing
+constraint pair); without that guard, "nothing was relaxed" would hold vacuously
+against a feasible input and the clause would prove nothing.
+
+### Item 2 - NFR-003, NFR-005, NFR-007, NFR-012, NFR-022
+
+| Requirement | Clause in the DoD item | Assertion(s) carrying it | Count |
+|---|---|---|---|
+| NFR-003 | provenance | `the mandate must name its input authority`; `every constraint must name its input authority`; `every cash need must name its input authority`; `the projection must cite the revision it read`; `every unstated assumption must be reported, not silently supplied`; `every conflict must state a reason`; `invalidation must be stated per dependent state, not implied by a blank` (reason `mandate-absent`) | 7 |
+| NFR-005 | missing-state integrity | per-field `<field> must remain missing` and `<field> must not fall back to <zero-shaped value>`; `<field> must stay absent even when a mandate exists`; `a misaligned currency must be surfaced` (reason `cash-need-currency-unavailable`); `a misaligned currency must stay distinct, never rewritten to the valuation currency` | 5 |
+| NFR-007 | last-valid integrity under refusal | `an invalid mandate configuration must be refused`; `an invalid import must be refused`; `a refused configuration or import must not change one durable byte`; `the last valid portfolio identity must survive`; `the last valid result identity must survive` | 5 |
+| NFR-012 | atomic revisions, latest-complete identity publication | `a stale edit must not publish` (reason `generation-conflict`); `an intermediate identity must never reach durable storage`; `the completed edit must be current`; `exactly one stored revision may answer to currentMandateId`; `the latest complete identity must become current`; `consumers must read the latest complete identity` | 6 |
+| NFR-022 | adjacent research/advice boundary | `the route projection must contain no advice, execution, guarantee or suitability language`; `the mandate preview must contain no advice...`; `an infeasibility explanation must not become advice`; `a recommendation field has no slot in the mandate contract` (reason `unknown-field`) | 4 |
+
+Two vacuity guards are themselves asserted. NFR-012 asserts the two concurrent
+edits produce **different** identities before racing them (`two identical edits
+cannot demonstrate a race`) and, after rebasing, that the winner **actually
+changed** — so "latest complete" is proved by a change of winner rather than by a
+single uncontested edit. NFR-022 first asserts the advice-vocabulary scan **can**
+detect a violation before that same scan is used to claim there is none; a scan
+that matched nothing would otherwise report a clean boundary for free.
+
+### Item 3 - FR-017, FR-022, FR-033
+
+This item states a **negative** claim: behavior/settings *cannot* create or modify
+protected state. A negative is not proved by the absence of code that does it, and
+"state did not change" alone cannot distinguish a refusal from a field that was
+silently dropped. It is therefore proved by **attempting** each forbidden write
+through the production validators and asserting the refusal that was actually
+returned, then that no durable byte moved.
+
+| Requirement | Attempts asserted refused | Static-message assertions |
+|---|---|---|
+| FR-017 | stored mandate relabelled as an observed fact (reason `mandate-invalid`); stored cash need relabelled as an observed fact (reason `cash-need-invalid`); user-entered holding relabelled as a market observation (reason `holding-invalid`) | `every projected constraint must still be labelled a user entry`; `every projected cash need must still be labelled a user entry`; `every stored holding must still be labelled user-entered, never market-observed` |
+| FR-022 | each non-settings forbidden input source offered as mandate input (code `P008-MANDATE-AUTHORITY`, reason `forbidden-input-source`); constraint declared as inferred (reason `constraint-authority-invalid`); behavior provenance tag on a constraint and on a cash need (reason `unknown-field`); stored constraint relabelled behavior-derived (reason `constraint-invalid`); stored objective rewritten from behavior (reason `mandate-identity-mismatch`) | `behavior must contribute nothing after every attempt` |
+| FR-033 | settings offered as mandate input (reason `forbidden-input-source`); each settings field smuggled in as a mandate field (reason `unknown-field`); each never-inferred field supplied as a mandate field (reason `unknown-field`); stored expected-return policy rewritten from settings (reason `mandate-identity-mismatch`); survival floor grafted onto the stored mandate (reason `unknown-field`) | `settings must contribute nothing after every attempt` |
+
+Every attempt is asserted individually via
+``` `${attempt.requirement}: ${attempt.what} must be refused, not absorbed` ```,
+which checks the *specific* refusal production (ok flag, error code, reason, and
+field) rather than merely that something failed.
+
+Three vacuity guards are asserted rather than assumed:
+
+- **Refusal is selective, not blanket.** A clean user-entered draft is asserted
+  still accepted against the same workspace (`refusal must be selective: a clean
+  user-entered draft is still accepted`), and the untampered stored revision and
+  holding must still validate. Without this, an implementation that refused
+  everything would pass every attempt above while being entirely broken.
+- **Coverage is asserted, not counted by eye.** Each of the seven protected state
+  kinds must have at least one refused attempt behind it, and each of FR-017,
+  FR-022, FR-033 must have at least one — so a target or requirement losing its
+  only attempt fails the test instead of silently thinning coverage.
+- **No refusal echoes its input.** The serialised errors are asserted not to
+  contain the rejected values, keeping refusals value-safe.
+
+Post-conditions then assert nothing moved: not one durable byte, the current
+mandate and portfolio identities, the revision count, the stored semantic
+fingerprint, the stored constraints and cash needs, and every policy field.
+
+### Verdict
+
+All 14 requirement ids are genuinely carried by assertions that would fail if the
+behavior were removed. No id is present in name only. Core Delivery DoD items 1-3
+are ticked.
+
 ## Scenario Contract Evidence
 
 ### Scenario SCN-008-003

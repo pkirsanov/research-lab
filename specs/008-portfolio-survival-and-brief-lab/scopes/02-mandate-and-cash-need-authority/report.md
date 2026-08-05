@@ -968,6 +968,65 @@ are arithmetically consistent with that capture: 11 subtests total, 2 failing
 under the conflicts defect leaves 9 passing. Both defects were reverted with
 `git checkout --`, and `git status --porcelain rlportfolio.js` is empty.
 
+##### Two further pairs produced and executed here
+
+The two highest-value gaps named above — the FR-017/FR-022/FR-033 refusal surface
+and the rollback-by-identity assertion — now each have a RED/GREEN pair. Both
+sides of both pairs were executed by this agent with the identical command,
+`node --test tests/portfolio-privacy.functional.mjs`, whose committed baseline is
+`# pass 11`, `# fail 0`, exit 0. One minimal defect was injected per pair and
+reverted with `git checkout --` before the GREEN run.
+
+| # | Injected defect (one line, reverted) | RED | Lands on | GREEN |
+|---|---|---|---|---|
+| 1 | `rlportfolio.js` `validateMandateDraft`: the `forbidden-input-source` refusal removed, so a forbidden input source offered as mandate input is absorbed into the ordinary error path instead of being refused outright | `# pass 10`, `# fail 1`, exit 1 | `not ok 10` | `# pass 11`, `# fail 0`, exit 0 |
+| 2 | `rlportfolio.js` `buildMandateClearCandidate`: the rollback re-derives the current portfolio revision's lineage identity instead of preserving it, so an equivalent-looking revision is restored under a new `portfolioId` | `# pass 9`, `# fail 2`, exit 1 | `not ok 11` + `not ok 9` | `# pass 11`, `# fail 0`, exit 0 |
+
+**Claim Source:** executed (both RED runs and both GREEN runs).
+
+**Pair 1 — the refusal surface is not vacuous.** Defect 1 removes only the
+outright refusal; every other validator is untouched, so a draft carrying a
+forbidden source still reaches the ordinary field checks and still fails to
+confirm. That is precisely the failure mode item 3 warned about — a field
+silently dropped is not a refusal — and the test discriminates it, because each
+attempt asserts the *refusal production* rather than merely that state did not
+change:
+
+```text
+not ok 10 - FR-017 FR-022 FR-033: behavior settings and market-fact relabelling attempts are refused and change no mandate cash need expected return floor objective or constraint state
+  ---
+  failureType: 'testCodeFailure'
+  error: |-
+    FR-022: actionOutcomes offered as mandate input must be refused, not absorbed
+```
+
+Only subtest 10 goes red. The ten other subtests stay green under the defect, so
+the RED lands on the refusal surface and nowhere else.
+
+**Pair 2 — the rollback assertion discriminates identity from resemblance.**
+Defect 2 was chosen so the restored revision *resembles* the pre-mandate state
+exactly: same holdings, same name, same currency, same basis, so its
+`semanticFingerprint` is unchanged. Only the lineage identity moves. A test that
+compared by resemblance would still pass; this one fails on the identity term:
+
+```text
+not ok 11 - rolling a mandate back restores the pre-mandate portfolio state by identity, not by resemblance
+  ---
+  error: |-
+    the current portfolio identity must be the same string, not an equivalent rebuild
+```
+
+The second failure is collateral and is reported rather than hidden: subtest 9
+also goes red at `tests/portfolio-privacy.functional.mjs:581`, the NFR-003
+clear-projection check that every descriptive route still cites the same portfolio
+identity after a mandate clear. That is the same defect caught by an independent
+assertion in a different block, which strengthens rather than weakens the pair.
+
+Working-tree discipline: `git status --porcelain rlportfolio.js` was verified
+**empty** after each of the two reverts and again at the end of this run. A marker
+grep was not accepted as evidence of revert, because neither injected defect
+carried a marker.
+
 **Why the clause still fails.** The clause is universally quantified — *every*
 Scope 02 behavior. Counting the RED records that now exist against the behaviors
 this scope delivers:
@@ -979,36 +1038,39 @@ this scope delivers:
 | NFR-012 atomic revisions / latest-complete publication | partial | same clause-1 defect lands on part of it |
 | Conflicts stay infeasible and unconfirmable | yes | this session, `canConfirm` defect |
 | Absence never acquires an invented value | yes | this session, `inferredValues` defect |
-| FR-017 / FR-022 / FR-033 forbidden-input refusal surface | **no** | item 3 above |
+| FR-017 / FR-022 / FR-033 forbidden-input refusal surface | yes | pair 1 above, `forbidden-input-source` defect |
+| Exact rollback by identity (clause (b)'s own test) | yes | pair 2 above, lineage-rebuild defect |
+| NFR-003 provenance | partial | pair 2's collateral `not ok 9` lands on the per-state invalidation block |
 | FR-011 purpose, units, hard/research authority | **no** | — |
 | FR-012 cash-need parts and the three date faults | **no** | — |
 | FR-014 nothing inferred from holdings | **no** | — |
 | FR-015 unchanged candidate propagation | **no** | — |
-| NFR-003 provenance | **no** | — |
 | NFR-005 missing-state integrity | **no** | — |
 | NFR-007 last-valid integrity under refusal | **no** | — |
 | NFR-022 research/advice boundary | **no** | — |
-| Exact rollback by identity (clause (b)'s own test) | **no** | — |
 | TP-02-03 / TP-02-04 browser rows | **no** | node-suite REDs do not reach them |
 
-The largest gap is item 3, the FR-017/FR-022/FR-033 refusal surface. That is the
-scope's headline *negative* claim and its widest assertion block, and it has no
-RED at all. Its non-vacuity today rests on internal control assertions — the
-selective-refusal control, the per-target coverage assertion, the no-echo check —
-which are genuinely strong, but a control assertion is not a RED/GREEN pair and
-this clause asks for the pair. Item 3's own evidence says the negative "is not
-proved by the absence of code that does it"; by the same standard, the refusal
-production has not been shown to fail when the refusal is removed.
+Six behaviors now carry a RED, up from four; two more are partial. The two gaps
+the previous run named as highest-value — the FR-017/FR-022/FR-033 refusal
+surface and the rollback-by-identity assertion — are both closed, and each is
+closed by a defect targeted at exactly the property the assertion claims to
+protect rather than at some incidental precondition.
 
-The same reasoning applies to clause (b). Its test is green, which shows exact
-rollback holds; no RED has shown that the test would go red if rollback stopped
-being exact.
+Item 3's own standard was that a negative claim "is not proved by the absence of
+code that does it". Pair 1 satisfies that standard directly: the refusal
+production has now been shown to fail when the refusal is removed, so its
+non-vacuity no longer rests only on the internal control assertions. Clause (b)
+is likewise no longer green-only; pair 2 shows the assertion would fail if
+rollback stopped being exact, and shows it specifically on the identity term
+rather than on resemblance.
 
-**Verdict: item 4 remains unchecked.** Clauses (a) and (b) are carried. Clause
-(c) requires a per-behavior RED map, and the four RED-covered behaviors do not
-satisfy a claim quantified over all of them. Closing it needs, at minimum, a RED
-landing on the item-3 refusal surface and one on the rollback-by-identity
-assertion. That work is not attempted here and no partial credit is claimed.
+**Verdict: item 4 remains unchecked.** Clauses (a) and (b) are carried, and
+clause (b) is now carried by a RED/GREEN pair rather than by citation alone.
+Clause (c) is still quantified over *every* Scope 02 behavior, and seven behaviors
+still have no RED at all: FR-011, FR-012, FR-014, FR-015, NFR-005, NFR-007,
+NFR-022, plus the two browser rows that no node-suite defect can reach. Six of
+sixteen with a RED and two partial does not satisfy a universal claim, so the item
+stays unchecked and no partial credit is claimed. This agent did not tick it.
 
 ### Verdict
 
@@ -1146,24 +1208,42 @@ per-behavior RED map are in
 Summary of the open gap, so the next owner does not have to re-derive it:
 
 - Clause (a) is carried — three suites re-executed green at the current HEAD.
-- Clause (b) is carried by citation — the committed rollback-by-identity
-  assertion is green.
-- Clause (c) is **not** carried. Four Scope 02 behaviors have a RED record; ten
-  do not. The clause is quantified over all of them.
+- Clause (b) is carried, and as of this run by a RED/GREEN pair rather than by
+  citation alone.
+- Clause (c) is **not** carried. Six Scope 02 behaviors now have a RED record and
+  two are partial; seven still have none. The clause is quantified over all of
+  them.
 
-The two highest-value missing REDs, in priority order:
+The two highest-value gaps the previous run named are now **closed**:
 
-1. The FR-017/FR-022/FR-033 forbidden-input refusal surface (item 3). It is the
-   scope's widest assertion block and its central negative claim, and it has no
-   RED. A candidate defect: make one forbidden input source silently absorbed
-   rather than refused, and confirm the per-attempt refusal assertion fails.
-2. The rollback-by-identity assertion. A candidate defect: restore a
-   reconstructed-equivalent portfolio instead of the original identity, and
-   confirm the assertion distinguishes identity from resemblance.
+1. ~~The FR-017/FR-022/FR-033 forbidden-input refusal surface (item 3).~~ Closed
+   by pair 1: the `forbidden-input-source` refusal was removed, the per-attempt
+   refusal assertion failed as `not ok 10` (`# pass 10`, `# fail 1`, exit 1), and
+   the identical command returned to `# pass 11`, `# fail 0`, exit 0 after revert.
+2. ~~The rollback-by-identity assertion.~~ Closed by pair 2: the rollback was made
+   to restore an equivalent-looking revision under a re-derived lineage identity,
+   `not ok 11` failed on the identity term specifically (`# pass 9`, `# fail 2`,
+   exit 1), and the identical command returned to `# pass 11`, `# fail 0`, exit 0
+   after revert.
 
-This run made no code change and injected no defect of its own; the two RED/GREEN
-pairs it records were produced and observed by the orchestrator, and are labelled
-`interpreted` for that reason.
+Both pairs are recorded in
+[Item 4, clause (c)](#item-4---scope-01-preservation-exact-rollback-per-behavior-redgreen).
+
+What still blocks the item, in priority order:
+
+1. `TP-02-03` / `TP-02-04` browser rows — no node-suite defect can reach them, so
+   closing these needs a defect exercised through the Playwright suite.
+2. `NFR-007` last-valid integrity under refusal and `NFR-005` missing-state
+   integrity — both are negative claims of the same shape as the one pair 1
+   closed, so the same method applies.
+3. `FR-011`, `FR-012`, `FR-014`, `FR-015`, `NFR-022` — each needs a defect that
+   removes the specific behavior its assertion block names.
+
+This run injected two minimal defects, one per pair, and reverted both with
+`git checkout --`. `git status --porcelain rlportfolio.js` was verified empty
+after each revert and again before finishing. A marker grep was explicitly not
+accepted as evidence of revert, because neither defect carried a marker. The item
+was **not** ticked.
 
 ## Validation Summary
 

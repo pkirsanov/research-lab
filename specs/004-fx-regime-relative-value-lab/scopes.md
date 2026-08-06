@@ -656,9 +656,113 @@ Historical checked items below retain their recorded evidence for the delivered 
     ℹ todo 0
     ℹ duration_ms 11802.764728
     ```
-- [ ] TP-01-01 through TP-01-04 and TP-01-13 through TP-01-22 each execute their named production-module, schema-1, browser/CommonJS, provider, Bond, Causal, full-selftest, and collision canary; CMD-COLLISION additionally proves that removing only the declared additive Scope 1 hunks preserves every inherited legacy contract and dirty-hunk identity.
-- [ ] TP-01-22 executes the unchanged three-case CMD-COLLISION under a 600-second ceiling, preserves v12/v13/v14 and every predecessor as immutable fully parsed history, and validates exactly one v15 cardinality-only successor. It accepts one or more independently evidenced transitions and returns their exact planning-ordered item keys, requires zero changes in `allowNoTransition` mode, rejects duplicate keys or cross-item evidence hashes, mixed-validity batches, malformed zero/eight-space evidence indentation, every evidence-field forgery, prior-evidence or planning-projection mutation, status/certification edits, foreign persistence, separator drift, and incomplete staging, and retains every inherited v14/v13 authority, eligibility A/B/none, independent dirty/clean-promotion, replacement-disabled `C <= L <= H`, exact-path blob, authority/selector, adversarial, path-copy/deep-clone, canonical-source-digest, and single-`settledPaths` check without weakening the command, case count, assertions, order, or failure conditions.
-- [ ] The Scope 1 Consumer Impact Sweep is verified by TP-01-03, TP-01-21, and TP-01-22 across the RLFX vehicle/owner read, vehicle universe, `ToolControlBindingV1`, `FxBriefEligibilityV1`, Journey refresh, dedicated tests, v1 compatibility, navigation, breadcrumbs, redirects, API/generated clients, deep links, config, and downstream-scope consumers; zero stale first-party references remain.
+- [x] TP-01-01 through TP-01-04 and TP-01-13 through TP-01-22 each execute their named production-module, schema-1, browser/CommonJS, provider, Bond, Causal, full-selftest, and collision canary; CMD-COLLISION additionally proves that removing only the declared additive Scope 1 hunks preserves every inherited legacy contract and dirty-hunk identity.
+    **Phase:** test
+    **Command:** `node --test tests/feature-004-dirty-tree-collision.test.mjs`
+    **Exit Code:** 0
+    **Claim Source:** executed
+    **Output:**
+    ```text
+    TAP version 13
+    # FEATURE004_V13_HISTORY_VALIDATED marker=feature004-dirty-collision-post-commit-v13 sha256=2de13393faa01e6495430723333207cbdaa0b3a1ae9ef9acf67b6c1bc72a7a94 bytes=51512 separatorBytes=2 liveComparison=false
+    # FEATURE004_V14_VALIDATED marker=feature004-dirty-collision-scoped-evidence-v14 sha256=f0b2d11c928d484a1565d4a122ce6e9f7d3e99c65b08b0a763ba055d4dfd82b8 bytes=14066 authorityPaths=26 executionItems=143 foreignRecordsPersisted=false feature017Persisted=false
+    # FEATURE004_V15_VALIDATED marker=feature004-dirty-collision-multi-item-evidence-v15 sha256=2a81db99afd80849faf93279d1031511b5bb096eb0b556df5c025af71218d22e bytes=2888 transitions=0 planningBaseline=1db4f8ed449adf2ab44b483b0f1c710842a80453 scopeTwoLocked=true
+    # Subtest: Feature 004 preserves every pre-existing dirty hunk
+    ok 1 - Feature 004 preserves every pre-existing dirty hunk
+        ---
+        duration_ms: 2576.778183
+        type: 'test'
+        ...
+    # Subtest: Feature 004 collision disposition parser fails closed on malformed records
+    ok 2 - Feature 004 collision disposition parser fails closed on malformed records
+        ---
+        duration_ms: 18099.445423
+        type: 'test'
+        ...
+    # Subtest: Feature 004 preserves the historical validator prefix, tracked transition, and volatile config boundary
+    ok 3 - Feature 004 preserves the historical validator prefix, tracked transition, and volatile config boundary
+        ---
+        duration_ms: 2755.390632
+        type: 'test'
+        ...
+    1..3
+    # tests 3
+    # suites 0
+    # pass 3
+    # fail 0
+    # cancelled 0
+    # skipped 0
+    # todo 0
+    # duration_ms 23552.901898
+    ```
+- [x] TP-01-22 executes the unchanged three-case CMD-COLLISION under a 600-second ceiling, preserves v12/v13/v14 and every predecessor as immutable fully parsed history, and validates exactly one v15 cardinality-only successor. It accepts one or more independently evidenced transitions and returns their exact planning-ordered item keys, requires zero changes in `allowNoTransition` mode, rejects duplicate keys or cross-item evidence hashes, mixed-validity batches, malformed zero/eight-space evidence indentation, every evidence-field forgery, prior-evidence or planning-projection mutation, status/certification edits, foreign persistence, separator drift, and incomplete staging, and retains every inherited v14/v13 authority, eligibility A/B/none, independent dirty/clean-promotion, replacement-disabled `C <= L <= H`, exact-path blob, authority/selector, adversarial, path-copy/deep-clone, canonical-source-digest, and single-`settledPaths` check without weakening the command, case count, assertions, order, or failure conditions.
+    **Phase:** test
+    **Command:** `node --test tests/feature-004-dirty-tree-collision.test.mjs`
+    **Exit Code:** 0
+    **Claim Source:** executed
+    **Output:**
+    ```text
+    TAP version 13
+    # FEATURE004_V13_HISTORY_VALIDATED marker=feature004-dirty-collision-post-commit-v13 sha256=2de13393faa01e6495430723333207cbdaa0b3a1ae9ef9acf67b6c1bc72a7a94 bytes=51512 separatorBytes=2 liveComparison=false
+    # FEATURE004_V14_VALIDATED marker=feature004-dirty-collision-scoped-evidence-v14 sha256=f0b2d11c928d484a1565d4a122ce6e9f7d3e99c65b08b0a763ba055d4dfd82b8 bytes=14066 authorityPaths=26 executionItems=143 foreignRecordsPersisted=false feature017Persisted=false
+    # FEATURE004_V15_VALIDATED marker=feature004-dirty-collision-multi-item-evidence-v15 sha256=2a81db99afd80849faf93279d1031511b5bb096eb0b556df5c025af71218d22e bytes=2888 transitions=0 planningBaseline=1db4f8ed449adf2ab44b483b0f1c710842a80453 scopeTwoLocked=true
+    # Subtest: Feature 004 preserves every pre-existing dirty hunk
+    ok 1 - Feature 004 preserves every pre-existing dirty hunk
+        ---
+        duration_ms: 2981.31643
+        type: 'test'
+        ...
+    # Subtest: Feature 004 collision disposition parser fails closed on malformed records
+    ok 2 - Feature 004 collision disposition parser fails closed on malformed records
+        ---
+        duration_ms: 21225.557699
+        type: 'test'
+        ...
+    # Subtest: Feature 004 preserves the historical validator prefix, tracked transition, and volatile config boundary
+    ok 3 - Feature 004 preserves the historical validator prefix, tracked transition, and volatile config boundary
+        ---
+        duration_ms: 2679.46308
+        type: 'test'
+        ...
+    1..3
+    # tests 3
+    # suites 0
+    # pass 3
+    # fail 0
+    # cancelled 0
+    # skipped 0
+    # todo 0
+    # duration_ms 27045.177657
+    ```
+- [x] The Scope 1 Consumer Impact Sweep is verified by TP-01-03, TP-01-21, and TP-01-22 across the RLFX vehicle/owner read, vehicle universe, `ToolControlBindingV1`, `FxBriefEligibilityV1`, Journey refresh, dedicated tests, v1 compatibility, navigation, breadcrumbs, redirects, API/generated clients, deep links, config, and downstream-scope consumers; zero stale first-party references remain.
+    **Phase:** test
+    **Command:** `node scripts/selftest.mjs`
+    **Exit Code:** 0
+    **Claim Source:** executed
+    **Output:**
+    ```text
+        ✓ the projected site contains every registered tool
+        ✓ the projected site root excludes every explicitly non-public artifact
+        ✓ the projected site preserves the GitHub Pages .nojekyll marker
+        ✓ the projected site resolves one canonical current history index
+        ✓ orphan history indexes are identified separately and cannot replace the current pointer target
+        ✓ the committed dependency-gate projection matches its source specs — a stale projection misreports delivery
+        ✓ the projected site ships the dependency-gate projection, so gates resolve identically on Pages
+        ✓ every declared dependency gate is represented in the projection
+        ✓ the public gate projection carries only the fields the runtime predicate reads
+        ✓ the browser resolves gates from the public projection and never fetches a governance statePath
+        ✓ the statePath-fetch check is non-vacuous — it still matches the regressed shape
+        ✓ the root-absolute asset detector still matches the regressed shape
+        ✓ the workflow checks detect a reduced browser gate and a repo-root deployment
+    spec artifacts — referenced tests/*.mjs paths exist (Playwright silently ignores absent file args)
+        ✓ the scan matched at least one tests/*.mjs reference against a present baseline, so the guard is not vacuously green (11041 reference(s) across 480 artifact(s), baseline 86 entries)
+            STALE-BASELINE: 1 baseline entry is no longer missing — remove from scripts/validate-spec-test-paths.baseline:
+                    tests/portfolio-brief.functional.mjs
+        ✓ no tests/*.mjs path named by a spec artifact is missing outside the frozen baseline — a stale path makes a multi-file verification command silently cover less than it claims (0 new, 85 known-missing, 1 stale of 217 referenced)
+    ================================================
+    Research-Lab self-test: 1220 passed, 0 failed
+    ================================================
+    ```
     > **Uncertainty Declaration**
     > **What was attempted:** Planning read the current v14 plan, report block, parser, evidence grammar, and owner routing, then defined the additive v15 cardinality successor without editing test-owned report/parser bytes or recording execution evidence.
     > **What was observed:** V14 independently validates exact item keys and evidence fields but globally requires transition count exactly one, or zero only in `allowNoTransition` mode. The committed source/test foundation and v14 successor exist, while no new Scope 1 evidence transition is recorded in this planning change.

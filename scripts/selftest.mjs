@@ -15,7 +15,7 @@
 import { existsSync, readdirSync, readFileSync } from 'node:fs';
 import { fileURLToPath } from 'node:url';
 import { dirname, join } from 'node:path';
-import { validateBriefPayload } from './validate-brief-payload.mjs';
+import { BRIEF_EVENT_REQUIRED_KEYS, BRIEF_EVENT_SCENARIO_REQUIRED_KEYS, validateBriefPayload } from './validate-brief-payload.mjs';
 import { formatSpecTestPathFindings, validateSpecTestPaths } from './validate-spec-test-paths.mjs';
 import { buildCompanyFundamentalsOwnerRead } from './brief-refresh.mjs';
 import {
@@ -1808,6 +1808,60 @@ try {
   const missingSection = JSON.parse(JSON.stringify(payload));
   delete missingSection.events;
   assert(validateBriefPayload(missingSection, registry, config, snapshot).some((error) => /events must be/.test(error)), 'contract rejects a missing visible brief section');
+
+  /* The §9 events contract. `events` used to be checked only for being a non-empty ARRAY, so
+     nothing below the array was checked at all: a run that renamed prob→probability and
+     expectedEffect→detail and dropped psychologyNote entirely passed this gate and shipped. The
+     selftest caught it only after commit. Proven in BOTH directions, because a gate that refuses
+     every payload is not a fix. */
+  const eventErrors = (mutated) => validateBriefPayload(mutated, registry, config, snapshot)
+    .filter((error) => /^events-contract:/.test(error));
+  const conforming = JSON.parse(JSON.stringify(payload));
+  conforming.events.forEach((event) => {
+    event.psychologyNote = 'selftest fixture — not published prose';
+    event.scenarios = event.scenarios.map((scenario) => ({ name: scenario.name, prob: 0.5, expectedEffect: 'selftest fixture' }));
+  });
+  assert(eventErrors(conforming).length === 0,
+    'a §9-conforming events block raises no events-contract error' + (eventErrors(conforming).length ? ': ' + eventErrors(conforming).join('; ') : ''));
+
+  // ADVERSARIAL 1 — the LOSSLESS rename. Same values, contract key names replaced by synonyms.
+  const renamedKeys = JSON.parse(JSON.stringify(conforming));
+  renamedKeys.events[0].scenarios = renamedKeys.events[0].scenarios
+    .map(({ name, prob, expectedEffect }) => ({ name, probability: prob, detail: expectedEffect }));
+  const renamedErrors = eventErrors(renamedKeys);
+  assert(renamedErrors.some((error) => /events\[0\]\.scenarios\[0\].*"prob"/.test(error))
+    && renamedErrors.some((error) => /events\[0\]\.scenarios\[0\].*"expectedEffect"/.test(error))
+    && renamedErrors.some((error) => /keys present: name, probability, detail/.test(error)),
+    'a renamed scenario key is refused by path, by the key it expected, and by the keys actually there — so a rename reads as a rename');
+
+  // ADVERSARIAL 2 — the CONTENT LOSS. psychologyNote carries the why-these-odds paragraph and no
+  // other key carried it under a different name, so its absence is lost reader content, not a rename.
+  const droppedNote = JSON.parse(JSON.stringify(conforming));
+  delete droppedNote.events[1].psychologyNote;
+  assert(eventErrors(droppedNote).some((error) => /events\[1\] is missing required key "psychologyNote"/.test(error)),
+    'an event with no psychologyNote is refused by name');
+
+  // ADVERSARIAL 3 — the vacuous bypass. Every per-scenario key check passes trivially when there
+  // are no scenarios, which would let an empty array satisfy the rule the check exists to enforce.
+  const noScenarios = JSON.parse(JSON.stringify(conforming));
+  noScenarios.events[2].scenarios = [];
+  assert(eventErrors(noScenarios).some((error) => /events\[2\]\.scenarios is missing required key "at least one scenario"/.test(error)),
+    'an empty scenarios array cannot satisfy the per-scenario rule vacuously');
+
+  /* The key list is DERIVED from the shared required-field declaration so this gate and the
+     "required list describes this payload" check cannot drift. Pinned, because a derivation that
+     silently resolved to [] would make every assertion above pass against a gate that checks
+     nothing. `prob` is the one explicit addition — numeric, so a narrative-STRING list cannot name it. */
+  assert(BRIEF_EVENT_REQUIRED_KEYS.includes('psychologyNote') && BRIEF_EVENT_SCENARIO_REQUIRED_KEYS.join(',') === 'name,expectedEffect,prob',
+    'the events contract keys are derived non-empty from the shared required-field list, plus the numeric prob'
+      + ' (event=' + BRIEF_EVENT_REQUIRED_KEYS.join(',') + ' scenario=' + BRIEF_EVENT_SCENARIO_REQUIRED_KEYS.join(',') + ')');
+
+  /* The authoring instruction is the first line of defence, and naming the field by MEANING
+     ("every probability is an estimate") is what invited the synonym. Pin the schema itself. */
+  const signalsLane = read('scripts/brief-narrative-parallel.mjs');
+  assert(['{ name, prob, expectedEffect }', '"prob", NOT "probability"', '"expectedEffect", NOT "detail"', '"psychologyNote" is REQUIRED']
+    .every((pin) => signalsLane.includes(pin)),
+    'the signals lane instruction pins the exact §9 event and scenario key names, not just their meaning');
 
   /* Staleness must be readable as a FACT, never inferred from an ambiguous count. The
      2026-08-02 brief read the symbol count (287 tickers) as a session count, published

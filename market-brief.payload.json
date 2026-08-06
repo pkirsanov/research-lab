@@ -297,18 +297,18 @@
       "scenarios": [
         {
           "name": "hold-below-flip / pin the 765-770 band",
-          "probability": 0.45,
-          "detail": "ESTIMATE. Negative dealer gamma is less negative than midday (net ~-0.98e9 versus ~-1.51e9) and the tape is a Range day under Algo control with a calm VIX 15.15, so the base case is the session holds below the 770.13 flip and chops inside the 765 put wall / 770 call wall (expected move +/-4.11, ~0.53%) into the overnight, with the ~746.10 50-day untested."
+          "prob": 0.45,
+          "expectedEffect": "ESTIMATE. Negative dealer gamma is less negative than midday (net ~-0.98e9 versus ~-1.51e9) and the tape is a Range day under Algo control with a calm VIX 15.15, so the base case is the session holds below the 770.13 flip and chops inside the 765 put wall / 770 call wall (expected move +/-4.11, ~0.53%) into the overnight, with the ~746.10 50-day untested."
         },
         {
           "name": "reclaim the 770.13 flip into positive gamma",
-          "probability": 0.28,
-          "detail": "ESTIMATE. A daily SPY close back above 770.13 returns dealers to positive gamma and re-dampens the tape; the loudest flow prints turned to upside calls (TSLA 320C, MSFT 500C, AMD 500C) and the core bull-stack is intact (SPY +3.01% over its 50-day), which is the upside pull, but breadth is narrow (43.75%) so a durable reclaim is the lower-probability path."
+          "prob": 0.28,
+          "expectedEffect": "ESTIMATE. A daily SPY close back above 770.13 returns dealers to positive gamma and re-dampens the tape; the loudest flow prints turned to upside calls (TSLA 320C, MSFT 500C, AMD 500C) and the core bull-stack is intact (SPY +3.01% over its 50-day), which is the upside pull, but breadth is narrow (43.75%) so a durable reclaim is the lower-probability path."
         },
         {
           "name": "break down toward the ~746.10 50-day",
-          "probability": 0.27,
-          "detail": "ESTIMATE. In negative gamma, a loss of the 765 put wall amplifies downside toward the ~746.10 50-day; the offsets are real (breadth deteriorated to 43.75%, dealers negative-gamma, the July jobs report one session out), but a calm VIX and an intact bull-stack make a same-session break the lower-probability tail this window."
+          "prob": 0.27,
+          "expectedEffect": "ESTIMATE. In negative gamma, a loss of the 765 put wall amplifies downside toward the ~746.10 50-day; the offsets are real (breadth deteriorated to 43.75%, dealers negative-gamma, the July jobs report one session out), but a calm VIX and an intact bull-stack make a same-session break the lower-probability tail this window."
         }
       ],
       "deepLink": "gamma-trading-lab.html"
@@ -322,18 +322,18 @@
       "scenarios": [
         {
           "name": "in-line / benign print — relief, bull-stack holds",
-          "probability": 0.45,
-          "detail": "ESTIMATE. A jobs print near expectations keeps the calm-VIX, risk-on backdrop intact; SPY holds above the ~746.10 50-day and the tape can attempt the 770.13 flip reclaim, letting the overnight hedge decay. Base case given an intact bull-stack and a benign credit thread, but breadth is narrow so upside follow-through is capped."
+          "prob": 0.45,
+          "expectedEffect": "ESTIMATE. A jobs print near expectations keeps the calm-VIX, risk-on backdrop intact; SPY holds above the ~746.10 50-day and the tape can attempt the 770.13 flip reclaim, letting the overnight hedge decay. Base case given an intact bull-stack and a benign credit thread, but breadth is narrow so upside follow-through is capped."
         },
         {
           "name": "hot / strong print — hawkish re-rate, pressure toward ~746.10",
-          "probability": 0.28,
-          "detail": "ESTIMATE. A strong labor print revives the higher-for-longer rate read; in negative gamma the reaction is amplified and SPY is pressured toward the ~746.10 50-day, validating the carried hedge. Lower-probability than the benign path but the higher-impact one, which is why the hedge is carried rather than decayed."
+          "prob": 0.28,
+          "expectedEffect": "ESTIMATE. A strong labor print revives the higher-for-longer rate read; in negative gamma the reaction is amplified and SPY is pressured toward the ~746.10 50-day, validating the carried hedge. Lower-probability than the benign path but the higher-impact one, which is why the hedge is carried rather than decayed."
         },
         {
           "name": "weak / cool print — growth-scare crosscurrent",
-          "probability": 0.27,
-          "detail": "ESTIMATE. A soft print is a two-way tape: rate-cut relief versus a growth-scare read into already-narrow breadth (43.75%); the likely outcome is a choppy, headline-driven session rather than a clean directional move, with the ~746.10 50-day the downside line to watch."
+          "prob": 0.27,
+          "expectedEffect": "ESTIMATE. A soft print is a two-way tape: rate-cut relief versus a growth-scare read into already-narrow breadth (43.75%); the likely outcome is a choppy, headline-driven session rather than a clean directional move, with the ~746.10 50-day the downside line to watch."
         }
       ],
       "deepLink": "swing-structure-lab.html"
@@ -347,18 +347,18 @@
       "scenarios": [
         {
           "name": "downward revision — labor softer than reported",
-          "probability": 0.5,
-          "detail": "ESTIMATE. A downward benchmark revision would corroborate a cooler labor market than the monthly prints implied, marginally supporting the rate-cut path; carried context that recent preliminary revisions skewed lower, to be re-verified nearer the date."
+          "prob": 0.5,
+          "expectedEffect": "ESTIMATE. A downward benchmark revision would corroborate a cooler labor market than the monthly prints implied, marginally supporting the rate-cut path; carried context that recent preliminary revisions skewed lower, to be re-verified nearer the date."
         },
         {
           "name": "minimal / neutral revision",
-          "probability": 0.35,
-          "detail": "ESTIMATE. A small revision is a non-event for the tape and leaves the rate path unchanged."
+          "prob": 0.35,
+          "expectedEffect": "ESTIMATE. A small revision is a non-event for the tape and leaves the rate path unchanged."
         },
         {
           "name": "upward revision — labor firmer than reported",
-          "probability": 0.15,
-          "detail": "ESTIMATE. An upward revision would firm the higher-for-longer read; the lower-probability path given the recent downward skew, but included for completeness."
+          "prob": 0.15,
+          "expectedEffect": "ESTIMATE. An upward revision would firm the higher-for-longer read; the lower-probability path given the recent downward skew, but included for completeness."
         }
       ],
       "deepLink": "swing-structure-lab.html"

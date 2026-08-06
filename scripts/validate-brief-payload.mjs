@@ -3,7 +3,7 @@
 import { readFileSync, writeFileSync } from 'node:fs';
 import { dirname, resolve } from 'node:path';
 import { fileURLToPath } from 'node:url';
-import { findBriefNarrativeVocabularyLeaks } from './reader-vocabulary.mjs';
+import { BRIEF_NARRATIVE_FIELDS_REQUIRED, findBriefNarrativeVocabularyLeaks } from './reader-vocabulary.mjs';
 import { ACTION_DIRECTION, buildRecommendationBody, loadInstrumentUniverse } from './recommendation-body.mjs';
 
 const SCRIPT_PATH = fileURLToPath(import.meta.url);
@@ -97,6 +97,70 @@ export function dropUnscoreableActions(payload, findings) {
   };
 }
 
+/* ── The §9 events contract on the publish path ──────────────────────────────────────────────────
+   notes/market-brief.md pins the events block at `{ event, when, type, consensus, impliedMovePct,
+   scenarios:[{ name, prob, expectedEffect }], psychologyNote }`. Twenty-one payload revisions carry
+   exactly those names. One run deviated: it emitted `probability` for `prob`, `detail` for
+   `expectedEffect`, and no `psychologyNote` at all — and this gate exited 0 on it, because `events`
+   was checked only for being a non-empty ARRAY. Nothing below the array was checked at all.
+
+   The two renames were lossless. The absent `psychologyNote` was not: it is the paragraph that says
+   WHY the odds are tilted the way they are, and no other key carried that content under a different
+   name. So the same silent hole passed through a lossless defect and a content loss identically, and
+   both reached the served payload. The selftest caught it, but only AFTER commit — the gate is the
+   rung that runs at publish time, so the gate is where the rule has to live.
+
+   The key list is DERIVED, not restated. Every `events.[]` leaf in the shared
+   BRIEF_NARRATIVE_FIELDS_REQUIRED declaration is required here too, so this gate and the selftest's
+   "the required list describes this payload" check cannot drift apart — adding a required events
+   field in one place arms both. `prob` is the single addition, because it is numeric and a list of
+   narrative-STRING paths cannot name it by construction. */
+function contractLeafKeys(prefix) {
+  return BRIEF_NARRATIVE_FIELDS_REQUIRED
+    .filter((pattern) => pattern.startsWith(prefix))
+    .map((pattern) => pattern.slice(prefix.length))
+    .filter((leaf) => /^[A-Za-z][A-Za-z0-9]*$/.test(leaf));
+}
+
+export const BRIEF_EVENT_REQUIRED_KEYS = Object.freeze(contractLeafKeys('events.[].'));
+export const BRIEF_EVENT_SCENARIO_REQUIRED_KEYS = Object.freeze([...contractLeafKeys('events.[].scenarios.[].'), 'prob']);
+
+/**
+ * findEventContractBreaches(payload) — every §9 events entry or scenario missing a contract key.
+ * Presence only: this asks whether the reader's field is THERE, not whether its prose is good. A
+ * rename and an omission both surface here, and the keys actually present are reported beside the
+ * expected one so a rename reads as a rename rather than as an unexplained hole.
+ */
+export function findEventContractBreaches(payload) {
+  const events = Array.isArray(payload?.events) ? payload.events : [];
+  const breaches = [];
+  const objectKeys = (node) => (node && typeof node === 'object' && !Array.isArray(node) ? Object.keys(node) : []);
+  const requireKeys = (node, required, path) => {
+    const present = objectKeys(node);
+    required.forEach((key) => {
+      if (!present.includes(key)) breaches.push({ path, missingKey: key, presentKeys: present });
+    });
+  };
+  events.forEach((event, index) => {
+    const path = `events[${index}]`;
+    requireKeys(event, BRIEF_EVENT_REQUIRED_KEYS, path);
+    const scenarios = Array.isArray(event?.scenarios) ? event.scenarios : [];
+    /* Without this an empty `scenarios` array would satisfy every per-scenario key check
+       vacuously — the exact bypass the per-scenario rule exists to close. */
+    if (!scenarios.length) breaches.push({ path: `${path}.scenarios`, missingKey: 'at least one scenario', presentKeys: [] });
+    scenarios.forEach((scenario, scenarioIndex) => {
+      requireKeys(scenario, BRIEF_EVENT_SCENARIO_REQUIRED_KEYS, `${path}.scenarios[${scenarioIndex}]`);
+    });
+  });
+  return breaches;
+}
+
+/** One operator-legible line per breach: the offending path, the expected key, what is there instead. */
+export function formatEventContractBreach(breach) {
+  return `${breach.path} is missing required key "${breach.missingKey}"`
+    + ` — keys present: ${breach.presentKeys.length ? breach.presentKeys.join(', ') : '(none)'}`;
+}
+
 export function validateBriefPayload(payload, registry, config, snapshot) {
   const errors = [];
   const thresholds = config?.thresholds || {};
@@ -184,6 +248,7 @@ export function validateBriefPayload(payload, registry, config, snapshot) {
 
   if (!Array.isArray(payload?.recommendations)) errors.push('recommendations must be an array');
   if (!Array.isArray(payload?.events) || payload.events.length === 0) errors.push('events must be a non-empty array');
+  else findEventContractBreaches(payload).forEach((breach) => errors.push('events-contract: ' + formatEventContractBreach(breach)));
   if (!Array.isArray(payload?.groups) || payload.groups.length === 0) errors.push('groups must be a non-empty array');
   if (!hasObject(payload?.watchlistNotes)) errors.push('watchlistNotes must be a non-empty object');
   if (!hasObject(payload?.toolReads)) errors.push('toolReads must be a non-empty object');

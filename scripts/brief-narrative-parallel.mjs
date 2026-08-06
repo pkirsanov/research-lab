@@ -47,7 +47,12 @@ const lanes = [
         id: 'signals',
         keys: ['attention', 'recommendations', 'events'],
         web: true,
-        instructions: `Own actionable changes and catalysts. attention must contain at most config.thresholds.attentionMaxCards ranked items. recommendations must be concrete instruments with direction, levels or relative-strength triggers, invalidation, horizon, confidence, and deepLink. events must be nearest-first and cover imminent catalysts through roughly the next 10 trading days; every probability is an estimate with inputs, scenarios sum to 1, and stale or unverified facts are labeled.`
+        /* The events KEY NAMES are pinned literally because prose alone did not hold them. The
+           previous instruction said "every probability is an estimate" and never named the key, so
+           a run emitted `probability` for `prob` and `detail` for `expectedEffect`, and dropped
+           `psychologyNote` entirely. Describing a field by its meaning invites a synonym; the
+           schema is the contract, so state the schema. */
+        instructions: `Own actionable changes and catalysts. attention must contain at most config.thresholds.attentionMaxCards ranked items. recommendations must be concrete instruments with direction, levels or relative-strength triggers, invalidation, horizon, confidence, and deepLink. events must be nearest-first and cover imminent catalysts through roughly the next 10 trading days; every probability is an estimate with inputs, scenarios sum to 1, and stale or unverified facts are labeled. Use the exact section 9 key names and no synonyms: each event is { event, when, type, consensus, impliedMovePct, scenarios, psychologyNote } and each scenario is { name, prob, expectedEffect }. The scenario odds key is "prob", NOT "probability"; the scenario narrative key is "expectedEffect", NOT "detail"; and "psychologyNote" is REQUIRED on every event - it is the paragraph explaining why the odds are tilted, so omitting it loses reader content no other key carries. The publish gate refuses a renamed or missing key by name.`
     },
     {
         id: 'groups',

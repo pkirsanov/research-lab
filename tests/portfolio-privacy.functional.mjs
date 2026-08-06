@@ -27,6 +27,31 @@ function candidateFromCsv(api, policy, workspace, name, now = NOW) {
   return api.buildWorkspaceCandidate(resolved.value, workspace, { name, now }, policy);
 }
 
+// The storage keys the policy declares, read from the policy that declares them rather
+// than written out as a literal list, so adding a key is a deliberate policy change and
+// not invisible test drift. The two `.probe` keys are deliberately NOT declared: probeStorage
+// removes its probe on both its success and its failure path, so a surviving probe key is
+// itself a leak these assertions must catch rather than tolerate.
+function declaredStorageKeys(policy) {
+  return {
+    local: [
+      policy.storage.pointerKey,
+      ...policy.storage.slotKeys,
+      policy.storage.quarantineKey,
+      policy.storage.returnContextKey
+    ].slice().sort(),
+    session: [policy.storage.sessionKey].slice().sort()
+  };
+}
+
+// Names every stored key the policy does not declare. A prefix test cannot do this: a new
+// key under the declared namespace still matches the prefix, so only the declared SET can
+// detect one. Keys are returned, never values, so a failure names the leaked key without
+// printing stored holding or mandate content.
+function undeclaredKeys(storage, declared) {
+  return Object.keys(storage.snapshot()).filter((key) => !declared.includes(key)).sort();
+}
+
 test('real-format import previews commits reloads and exports one local revision', () => {
   const { api, policy } = loadRuntime();
   const localStorage = createStorage();
@@ -121,7 +146,23 @@ test('hostile manual labels remain inert data and namespace writes stay closed',
   assert.equal(committed.ok, true);
   assert.equal(committed.value.workspace.portfolioRevisions[0].holdings[0].label, 'Private credit sleeve <script>not executable</script>');
   assert.equal(committed.value.workspace.portfolioRevisions[0].holdings[0].lifecycleState, 'manual');
-  assert.equal(Object.keys(localStorage.snapshot()).every((key) => /^rlPortfolio/.test(key)), true);
+
+  // The durable image is compared against the policy-declared key SET, not a name prefix.
+  // A prefix test is inert against the failure that matters here: a key added under the
+  // declared namespace still matches the prefix, so a new write is indistinguishable from
+  // a declared one. The declared set is derived from the policy so a future key must be
+  // declared there first.
+  const declaredKeys = declaredStorageKeys(policy);
+  assert.deepEqual(
+    undeclaredKeys(localStorage, declaredKeys.local),
+    [],
+    'a commit must write no durable key outside the policy-declared set'
+  );
+  assert.equal(
+    Object.keys(localStorage.snapshot()).includes(policy.storage.pointerKey),
+    true,
+    'an empty durable image would satisfy the declared-set check vacuously'
+  );
   assert.equal(localStorage.getItem('rlData'), null);
   assert.equal(localStorage.getItem('rlApiKeys'), null);
 });
@@ -606,6 +647,29 @@ test('NFR-003 NFR-005 NFR-007 NFR-012 NFR-022: provenance missing-state integrit
     'NFR-005 a misaligned currency must stay distinct, never rewritten to the valuation currency'
   );
 
+  // NFR-007 the durable image after a COMMITTED mandate must be exactly the policy-declared
+  // key set. This is asserted on the commit path deliberately: commitWorkspace revalidates the
+  // candidate and returns before commitDurable, so a write placed inside commitDurable is only
+  // ever observable after a commit that succeeds, never inside a before/after byte window that
+  // brackets a refusal. Two commits have run, so the expected image is the pointer plus both
+  // slots, both names taken from the policy rather than typed as literals.
+  const declaredKeys = declaredStorageKeys(policy);
+  assert.deepEqual(
+    Object.keys(localStorage.snapshot()).sort(),
+    [policy.storage.pointerKey, ...policy.storage.slotKeys].sort(),
+    'a committed mandate must leave exactly the declared pointer and slot keys'
+  );
+  assert.deepEqual(
+    undeclaredKeys(localStorage, declaredKeys.local),
+    [],
+    'a committed mandate must leave no durable key outside the policy-declared set'
+  );
+  assert.deepEqual(
+    undeclaredKeys(sessionStorage, declaredKeys.session),
+    [],
+    'a committed mandate must leave no session key outside the policy-declared set'
+  );
+
   // NFR-007 an invalid configuration and an invalid import both leave the last valid portfolio
   // and the last valid result identity untouched, proved on the durable bytes.
   const bytesBefore = JSON.stringify(localStorage.snapshot());
@@ -634,6 +698,11 @@ test('NFR-003 NFR-005 NFR-007 NFR-012 NFR-022: provenance missing-state integrit
   const afterRefusedCommit = api.createPortfolioStore({ localStorage, sessionStorage }, policy).openWorkspace('2026-07-15T15:02:45.000Z').value.workspace;
   assert.equal(afterRefusedCommit.currentMandateId, durable.currentMandateId, 'NFR-007 the last valid mandate identity must survive a refused durable commit');
   assert.equal(afterRefusedCommit.mandateRevisions.every((entry) => entry.inputAuthority === policy.mandate.inputAuthority), true, 'NFR-007 no stored revision may lose user authority through a refused commit');
+  assert.deepEqual(
+    undeclaredKeys(localStorage, declaredKeys.local),
+    [],
+    'NFR-007 a refused durable commit must leave no undeclared key behind as residue'
+  );
 
   // NFR-012 two edits are prepared against one base. The first to commit wins; the second is a
   // stale intermediate and must never publish. Rebasing it then makes it the latest complete

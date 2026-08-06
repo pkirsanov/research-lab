@@ -1027,6 +1027,132 @@ Working-tree discipline: `git status --porcelain rlportfolio.js` was verified
 grep was not accepted as evidence of revert, because neither injected defect
 carried a marker.
 
+##### A third pair: an inert namespace assertion that both suites were blind to
+
+This run closed a real coverage gap rather than adding a new RED to an assertion
+that already discriminated. The gap was that the only assertion guarding the
+durable namespace was a **name-prefix test**, and a prefix test cannot detect a
+**new key added under that same prefix**.
+
+**The defect used to expose it.** One line in `rlportfolio.js` `commitDurable`,
+placed immediately before the candidate is validated, writes the not-yet-validated
+workspace to durable storage under a `.staging` key derived from the declared
+namespace. It creates a key outside the declared set and, because it precedes
+validation, it is the shape of an NFR-007 "last-valid integrity under refusal"
+violation.
+
+**Both suites stayed green with the defect present.** Executed here before any fix
+was written, against the unmodified assertions:
+
+```text
+ℹ tests 11
+ℹ pass 11
+ℹ fail 0
+PREFIX_ONLY_EXIT=0
+```
+
+`node scripts/selftest.mjs` was likewise unaffected. The defect was reverted with
+`git checkout --` and `git status --porcelain rlportfolio.js` verified empty before
+the fix was written.
+
+**Why the old assertion was inert — two independent reasons, both verified in the
+source rather than assumed.**
+
+1. *The prefix matched.* The single namespace guard was
+   `Object.keys(localStorage.snapshot()).every((key) => /^rlPortfolio/.test(key))`.
+   The defect's key is derived from `policy.storage.workspaceNamespace`, so it
+   begins `rlPortfolio` and satisfies the regex. A prefix test partitions keys into
+   "ours" and "foreign"; it has no opinion at all about which of *ours* are
+   declared, which is exactly the question a new-key leak asks.
+2. *Every byte-equality check brackets the wrong window.* The suite does contain
+   strict `JSON.stringify(localStorage.snapshot())` before/after comparisons, and
+   at first reading one of them should have caught this. It does not, and the
+   reason is structural: `commitWorkspace` revalidates the candidate and returns
+   **before** dispatching to `commitDurable`
+   (`rlportfolio.js` `commitWorkspace`: `var candidateValidation = validateWorkspace(candidate, policy); if (!candidateValidation.ok) return candidateValidation;`).
+   Every existing byte window brackets a **refused** write, and a refusal
+   short-circuits above `commitDurable`, so the injected line never executes inside
+   one. The line executes only during a **successful** commit — and no assertion
+   examined the key set after a successful commit. The two blind spots compose: the
+   one place the write lands was guarded only by the prefix, and the guard that
+   compares bytes exactly never covers that place.
+
+**The fix.** Prefix checking is replaced by **declared-key-set** assertions, and the
+set is derived from the policy that declares it rather than typed as a literal, so a
+future key must be added to `policy.storage` deliberately instead of drifting in
+unnoticed:
+
+- `declaredStorageKeys(policy)` builds the allowed local set from
+  `policy.storage.pointerKey`, `policy.storage.slotKeys`,
+  `policy.storage.quarantineKey` and `policy.storage.returnContextKey`, and the
+  allowed session set from `policy.storage.sessionKey`.
+- The two transient capability-probe keys are deliberately **excluded** from the
+  declared set. `probeStorage` removes its probe on both its success path and its
+  failure path, so the probe never legitimately persists and a surviving probe key
+  is itself a leak these assertions are now able to catch. This was determined by
+  reading `probeStorage`, not assumed.
+- `undeclaredKeys(storage, declared)` returns the offending **key names only**, never
+  values, so a failure names the leak without printing stored holding or mandate
+  content.
+- The assertion is made **on the commit path**: after the mandate commit the durable
+  image is compared for exact equality against the declared pointer plus both slot
+  keys, and a non-vacuity guard rejects an empty image so the closure check cannot
+  pass over nothing.
+
+**RED/GREEN proving the new assertion discriminates.** Same command both sides,
+`node --test tests/portfolio-privacy.functional.mjs`. The identical one-line defect
+was re-injected after the fix landed:
+
+| State | Result |
+|---|---|
+| Fix in place, `rlportfolio.js` clean | `ℹ pass 11`, `ℹ fail 0`, exit 0 |
+| Fix in place, defect re-injected | `ℹ pass 9`, `ℹ fail 2`, exit 1 |
+| Fix in place, defect reverted | `ℹ pass 11`, `ℹ fail 0`, exit 0 |
+| Old assertion, same defect (before the fix) | `ℹ pass 11`, `ℹ fail 0`, exit 0 |
+
+**Claim Source:** executed. All four runs above were run and observed directly.
+
+The RED names the leaked key and nothing else:
+
+```text
+✖ hostile manual labels remain inert data and namespace writes stay closed
+  AssertionError: a commit must write no durable key outside the policy-declared set
+    actual: [ 'rlPortfolioWorkspaceV1.staging' ]
+    expected: []
+
+✖ NFR-003 NFR-005 NFR-007 NFR-012 NFR-022: ...
+  AssertionError: a committed mandate must leave exactly the declared pointer and slot keys
+    actual:   [ ...pointer, ...slotA, ...slotB, 'rlPortfolioWorkspaceV1.staging' ]
+    expected: [ ...pointer, ...slotA, ...slotB ]
+```
+
+The last row of the table is the load-bearing one: the same defect against the
+**old** assertion is green and against the **new** assertion is red, so the change
+is a genuine increase in detection and not a restatement of cover that already
+existed.
+
+**Uncertainty Declaration — what this run does NOT prove.** A third assertion was
+added after the refused durable commit (`a refused durable commit must leave no
+undeclared key behind as residue`). That assertion did **not** fire in the RED run,
+and it is not claimed as proven non-vacuous. The reason is the short-circuit
+described above: with this defect the only reachable write window is a *successful*
+commit, so no refusal path in this suite can currently exercise it. It is retained
+as defense in depth against a write placed *after* validation inside
+`commitDurable`, and it is recorded here as unproven rather than counted as
+evidence.
+
+**Scope note.** The prefix assertion that was replaced lives in the
+`hostile manual labels remain inert data and namespace writes stay closed` test,
+which serves Scope 01's closed-namespace claim; the exact-set assertion on the
+mandate commit path serves this scope's NFR-007 claim. Both are in the same file
+and both now use the same policy-derived helper.
+
+Working-tree discipline for this pair: `git status --porcelain rlportfolio.js` was
+verified **empty** after the pre-fix revert, after the post-fix revert, and once
+more at the end of the run. A `TEMPORARY`/`ADVERSARIAL`/`INJECT` marker grep was
+explicitly **not** accepted as evidence of revert — the injected line carried no
+marker, so only `git status` could expose it.
+
 **Why the clause still fails.** The clause is universally quantified — *every*
 Scope 02 behavior. Counting the RED records that now exist against the behaviors
 this scope delivers:
@@ -1046,15 +1172,24 @@ this scope delivers:
 | FR-014 nothing inferred from holdings | **no** | — |
 | FR-015 unchanged candidate propagation | **no** | — |
 | NFR-005 missing-state integrity | **no** | — |
-| NFR-007 last-valid integrity under refusal | **no** | — |
+| NFR-007 last-valid integrity under refusal | partial | pair 3 above, `.staging` pre-validation write; the RED lands on the committed durable image, the refusal-path residue assertion is added but unproven |
 | NFR-022 research/advice boundary | **no** | — |
 | TP-02-03 / TP-02-04 browser rows | **no** | node-suite REDs do not reach them |
 
-Six behaviors now carry a RED, up from four; two more are partial. The two gaps
-the previous run named as highest-value — the FR-017/FR-022/FR-033 refusal
-surface and the rollback-by-identity assertion — are both closed, and each is
-closed by a defect targeted at exactly the property the assertion claims to
-protect rather than at some incidental precondition.
+Six behaviors now carry a RED and three more are partial, up from four with two
+partial. The two gaps the previous run named as highest-value — the
+FR-017/FR-022/FR-033 refusal surface and the rollback-by-identity assertion — are
+both closed, and each is closed by a defect targeted at exactly the property the
+assertion claims to protect rather than at some incidental precondition.
+
+NFR-007 moves from **no** to **partial** rather than to **yes**, and the
+distinction is deliberate. Pair 3 proves the durable key set is closed after a
+commit and that a write landing before validation is now detected; it does not
+prove the refusal-path residue assertion, because with that defect no refusal in
+this suite reaches the write. Claiming NFR-007 as fully carried on this evidence
+would overstate what was executed. NFR-005 is left at **no**: the declared-key-set
+work does not touch whether a missing value acquires a fallback, so nothing in
+this run bears on it.
 
 Item 3's own standard was that a negative claim "is not proved by the absence of
 code that does it". Pair 1 satisfies that standard directly: the refusal
@@ -1066,11 +1201,11 @@ rather than on resemblance.
 
 **Verdict: item 4 remains unchecked.** Clauses (a) and (b) are carried, and
 clause (b) is now carried by a RED/GREEN pair rather than by citation alone.
-Clause (c) is still quantified over *every* Scope 02 behavior, and seven behaviors
-still have no RED at all: FR-011, FR-012, FR-014, FR-015, NFR-005, NFR-007,
-NFR-022, plus the two browser rows that no node-suite defect can reach. Six of
-sixteen with a RED and two partial does not satisfy a universal claim, so the item
-stays unchecked and no partial credit is claimed. This agent did not tick it.
+Clause (c) is still quantified over *every* Scope 02 behavior, and six behaviors
+still have no RED at all: FR-011, FR-012, FR-014, FR-015, NFR-005, NFR-022, plus
+the two browser rows that no node-suite defect can reach. Six of sixteen with a
+RED and three partial does not satisfy a universal claim, so the item stays
+unchecked and no partial credit is claimed. This agent did not tick it.
 
 ### Verdict
 

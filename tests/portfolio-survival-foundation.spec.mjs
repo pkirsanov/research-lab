@@ -1,6 +1,7 @@
 import { expect, test } from './playwright-runtime.mjs';
+import { readFileSync } from 'node:fs';
 import { resolve } from 'node:path';
-import { commitTrackedLeak, FIXTURE_ROOT, startPortfolioServer, trackedPathsContaining } from './portfolio-survival.support.mjs';
+import { commitTrackedLeak, FIXTURE_ROOT, ROOT, startPortfolioServer, trackedPathsContaining } from './portfolio-survival.support.mjs';
 
 let server;
 
@@ -579,4 +580,395 @@ test('Regression: Feature 008 atomic slots preserve last valid portfolio in dura
   console.log('[TP-01-05] sinkScanModes=durable,session,memory');
   console.log('[TP-01-05] committedArtifactOrigins=' + sentinelPaths.join(','));
   console.log('[TP-01-05] sharedCacheEntry=absent');
+});
+
+/*
+ * Scope 03 browser rows — TP-03-04 (SCN-008-011) and TP-03-05 (SCN-008-012).
+ *
+ * Two browser-layer vacuity modes have already shipped real green passes in this feature, so
+ * both rows are written against them rather than around them:
+ *
+ *   1. A number read from the COMPLETION PREVIEW DRAFT instead of the committed PROJECTION
+ *      renders identically whether or not anything was ever stored. Every count below is tied
+ *      to the persisted bytes (`persistedWorkspace`) and re-asserted after a reload, which
+ *      destroys draft state — a draft-fed counter collapses to zero there.
+ *   2. `toContainText` is a prefix/substring check that survives appended content, so a real
+ *      value can sit under a "none"/"empty" heading and still pass. Every emptiness claim uses
+ *      exact text (`toHaveText`) or an explicit absence scan of the rendered block.
+ *
+ * Neither row intercepts a request: no page.route/context.route/msw/nock appears here, because
+ * an intercepted row is a mocked row and cannot satisfy a live-stack e2e-ui DoD item.
+ */
+const BEHAVIOR_POLICY = JSON.parse(readFileSync(resolve(ROOT, 'portfolio-survival-allocation.config.json'), 'utf8')).behavior;
+
+// Reads the workspace back out of the raw namespaced bytes rather than out of any app object,
+// so a rendered count can be compared against what is genuinely on disk.
+async function persistedWorkspace(page) {
+  return page.evaluate(() => {
+    const pointer = JSON.parse(localStorage.getItem('rlPortfolioWorkspaceV1.pointer'));
+    return JSON.parse(localStorage.getItem('rlPortfolioWorkspaceV1.' + pointer.activeSlot));
+  });
+}
+
+async function previewCompletion(page, { category, subject, source = 'completed-research' }) {
+  await page.locator('#behaviorCategory').selectOption(category);
+  await page.locator('#behaviorSubject').fill(subject);
+  await page.locator('#behaviorEvidenceSource').selectOption(source);
+  await page.locator('#previewCompletion').click();
+}
+
+async function recordCompletion(page, options) {
+  await previewCompletion(page, options);
+  await expect(page.locator('#confirmCompletion')).toBeEnabled();
+  await page.locator('#confirmCompletion').click();
+}
+
+const BEHAVIOR_EMPTY_INFLUENCE = 'Behavior-derived ranking influence · none';
+
+test('Regression: SCN-008-011 clear behavior removes ranking influence and preserves portfolio', async ({ page }) => {
+  /* The declared evidence floor is two distinct completions on two distinct UTC dates. A run
+   * confined to one wall-clock day could only ever render `floor-not-met`, so the scenario's
+   * precondition — behavior-derived items CURRENTLY affect ranking — would never be established
+   * and the clear would be asserted against a surface that never showed anything. The system
+   * clock is moved between two real UTC dates; no request, response, or app function is stubbed. */
+  await page.clock.install({ time: new Date('2026-05-04T09:15:00.000Z') });
+  const requestStart = server.requests.length;
+  const browserRequests = await openRoute(page);
+  await importValid(page, 'SCN-008-011 portfolio');
+  await previewMandate(page, 'mandate-explicit.json');
+  await page.locator('#confirmMandate').click();
+  await expect(page.locator('#currentMandate')).toContainText('sha256:');
+  const before = await page.evaluate(() => window.__PORTFOLIO_DIAGNOSTICS__);
+
+  /* A public generic cache owned by the other Research Lab tools. SCN-008-011 preserves it, and
+   * a behavior clear that widened into `localStorage.clear()` would destroy it — so this is a
+   * live regression, not a restatement of "this page never names that key". */
+  await page.evaluate(() => localStorage.setItem('rlData', JSON.stringify({ watchlist: ['SPY', 'TLT'], toolReads: {} })));
+  const publicCacheBefore = await page.evaluate(() => localStorage.getItem('rlData'));
+
+  // Exact, not prefix: `· none` as a substring survives an appended ranked subject.
+  await expect(page.locator('#behaviorInfluence')).toHaveText(BEHAVIOR_EMPTY_INFLUENCE);
+  expect((await persistedWorkspace(page)).behaviorEvents).toEqual([]);
+
+  /* Vacuity discriminator for mode 1: a preview is a draft and nothing else. If the influence
+   * line were fed by the draft it would already report one completion here. */
+  await previewCompletion(page, { category: 'ticker-research-completed', subject: 'msft' });
+  await expect(page.locator('#completionPreview')).toContainText('msft');
+  await expect(page.locator('#completionPreview')).toContainText('no event is recorded until you confirm');
+  await expect(page.locator('#behaviorInfluence')).toHaveText(BEHAVIOR_EMPTY_INFLUENCE);
+  expect((await persistedWorkspace(page)).behaviorEvents, 'a preview writes no event').toEqual([]);
+
+  await expect(page.locator('#confirmCompletion')).toBeEnabled();
+  await page.locator('#confirmCompletion').click();
+  await expect(page.locator('#behaviorResult')).toContainText('Recorded one completed-research event');
+  await recordCompletion(page, { category: 'risk-analysis-completed', subject: 'msft' });
+  await recordCompletion(page, { category: 'ticker-research-completed', subject: 'bnd' });
+
+  await page.clock.setSystemTime(new Date('2026-05-05T10:30:00.000Z'));
+  await recordCompletion(page, { category: 'ticker-research-completed', subject: 'msft' });
+  // Same condition, same subject, same UTC day: semantic de-duplication must refuse to grow evidence.
+  await previewCompletion(page, { category: 'ticker-research-completed', subject: 'msft' });
+  await page.locator('#confirmCompletion').click();
+  await expect(page.locator('#behaviorResult')).toContainText('duplicate-completion');
+
+  const persistedBefore = await persistedWorkspace(page);
+  expect(persistedBefore.behaviorEvents, 'four distinct completions survive the same-day repeat').toHaveLength(4);
+  /* The displayed number is asserted against the persisted array length, so a projection that
+   * silently stopped tracking events cannot leave a stale literal on screen. */
+  await expect(page.locator('#behaviorInfluence')).toHaveText(
+    `Behavior-derived ranking influence · 2 ranked subjects · ${persistedBefore.behaviorEvents.length} eligible completions`);
+  const rankedBefore = [
+    '1 · msft · 3 completions · 2 UTC dates · 2 categories · floor-met',
+    '2 · bnd · 1 completion · 1 UTC date · 1 category · floor-not-met'
+  ];
+  expect(await page.locator('#behaviorRankRows li').allInnerTexts()).toEqual(rankedBefore);
+  expect(await page.locator('#behaviorRankRows li').evaluateAll((rows) => rows.map((row) => row.dataset.behaviorSubject)))
+    .toEqual(['msft', 'bnd']);
+  // FR-036: the versioned floor and decay inputs the ranking uses are visible, not implied.
+  await expect(page.locator('#behaviorPolicyInputs')).toHaveText(
+    'Declared relevance inputs · floor 2 completions on 2 UTC dates · half-life 14 days · maximum evidence age 56 days · policy portfolio-behavior-policy/v1');
+
+  await page.locator('#openPrivacy').click();
+  await expect(page.locator('#privacyCategoryRows li[data-privacy-category="behavior-events"]'))
+    .toHaveText('behavior-events · 4 records · present · cleared by behavior');
+  await expect(page.locator('#privacyCategoryRows li[data-privacy-category="portfolio-revisions"]'))
+    .toHaveText('portfolio-revisions · 1 record · present · cleared by all-personal');
+
+  /* A reload destroys every draft. The same ranking rendering after it is what separates a
+   * projection-derived surface from a preview-derived one. */
+  await page.reload();
+  await page.locator('#openPrivacy').click();
+  expect(await page.locator('#behaviorRankRows li').allInnerTexts(), 'ranking survives a reload, so it is not draft-derived').toEqual(rankedBefore);
+
+  await expect(page.locator('#clearBehavior')).toBeDisabled();
+  await page.locator('#clearBehaviorConfirmation').check();
+  await expect(page.locator('#clearBehavior')).toBeEnabled();
+  const generationBeforeClear = (await persistedWorkspace(page)).generation;
+  await page.locator('#clearBehavior').click();
+  await expect(page.locator('#privacyResult')).toContainText('Behavior history cleared');
+  await expect(page.locator('#privacyResult')).toContainText('portfolio and mandate preserved');
+
+  // Cleared, asserted exactly and as an absence — not as a heading a survivor could hide under.
+  await expect(page.locator('#behaviorInfluence')).toHaveText(BEHAVIOR_EMPTY_INFLUENCE);
+  expect(await page.locator('#behaviorRankRows li').count()).toBe(0);
+  const behaviorBlockText = await page.locator('#behaviorEvidence').innerText();
+  expect(behaviorBlockText, 'no cleared subject survives anywhere in the rendered behavior block').not.toMatch(/msft|bnd/i);
+  await expect(page.locator('#privacyCategoryRows li[data-privacy-category="behavior-events"]'))
+    .toHaveText('behavior-events · 0 records · empty · cleared by behavior');
+  await expect(page.locator('#privacyCategoryRows li[data-privacy-category="interest-signals"]'))
+    .toHaveText('interest-signals · 0 records · empty · cleared by behavior');
+
+  const persistedAfter = await persistedWorkspace(page);
+  expect(persistedAfter.behaviorEvents, 'events are gone from the persisted bytes, not only from the view').toEqual([]);
+  expect(persistedAfter.interestSignals).toEqual([]);
+  expect(persistedAfter.actionOutcomes, 'this run recorded no action outcome, so none may appear after the clear').toEqual([]);
+
+  /* Scoped to the sections the requirement names. A whole-workspace sweep would contradict the
+   * scenario this row asserts: SCN-008-011 PRESERVES the portfolio and the mandate, and both
+   * legitimately name the same tickers (holdings[].symbol, constraints[].subject). What must not
+   * survive is a cleared subject inside a BEHAVIOR section, so the sweep is bare-token — stricter
+   * than the quoted-value form it replaces — over exactly those sections. */
+  const behaviorSections = {
+    behaviorEvents: persistedAfter.behaviorEvents,
+    interestSignals: persistedAfter.interestSignals,
+    actionOutcomes: persistedAfter.actionOutcomes
+  };
+  expect(JSON.stringify(behaviorSections), 'no cleared subject survives in a stored behavior section').not.toMatch(/msft|bnd/i);
+  /* The other half of the behavior surface: derived ranking state. The `innerText` sweep above
+   * cannot see a subject parked in a dataset attribute, so the rows are read structurally too. */
+  expect(await page.locator('#behaviorRankRows li').evaluateAll((rows) => rows.map((row) => row.dataset.behaviorSubject)),
+    'no cleared subject survives in the derived ranking state').toEqual([]);
+
+  // Preserved half: identity, not resemblance.
+  const after = await page.evaluate(() => window.__PORTFOLIO_DIAGNOSTICS__);
+  expect(after.currentPortfolioId).toBe(before.currentPortfolioId);
+  expect(after.revisionCount).toBe(before.revisionCount);
+  expect(after.holdingCount).toBe(before.holdingCount);
+  expect(after.currentMandateId).toBe(before.currentMandateId);
+  expect(after.mandateRevisionCount).toBe(before.mandateRevisionCount);
+  expect(after.generation, 'the clear is one new verified generation, not an in-place edit').toBe(generationBeforeClear + 1);
+  expect(persistedAfter.currentPortfolioId).toBe(before.currentPortfolioId);
+  expect(persistedAfter.currentMandateId).toBe(before.currentMandateId);
+
+  /* Preservation asserted positively, not only as an absence. The narrowed behavior sweep above is
+   * equally satisfied by a clear that destroyed the holdings and the constraints, so the values
+   * that MUST survive are named here — including the two tickers the behavior sections may not
+   * keep, which is precisely why the sweep had to be scoped rather than dropped. */
+  const survivingHoldings = persistedAfter.portfolioRevisions
+    .find((revision) => revision.portfolioId === persistedAfter.currentPortfolioId).holdings;
+  expect(survivingHoldings.map((holding) => [holding.symbol, holding.quantity, holding.costBasis]).sort(),
+    'the imported holdings survive the behavior clear intact').toEqual([['BND', 20, 1400], ['MSFT', 12, 3900]]);
+  const survivingConstraints = persistedAfter.mandateRevisions
+    .find((mandate) => mandate.mandateId === persistedAfter.currentMandateId).constraints;
+  expect(survivingConstraints.map((entry) => [entry.subject, entry.constraintKind, entry.minimum, entry.maximum]),
+    'the declared mandate constraints survive in declared order').toEqual([['MSFT', 'hard', null, 0.25], ['BND', 'hard', 0.1, null]]);
+
+  await expect(page.locator('#currentRevision')).toContainText(before.currentPortfolioId);
+  await expect(page.locator('#currentMandate')).toContainText(before.currentMandateId);
+
+  // The mandate's constraints and dated cash need are still rendered on every dependent route.
+  for (const route of MANDATE_ROUTES) {
+    const panel = await visitRoute(page, route);
+    await expect(panel.locator('[data-constraints]')).toContainText('MSFT');
+    await expect(panel.locator('[data-constraints]')).toContainText('0.25');
+    await expect(panel.locator('[data-cash-needs]')).toContainText('2031-06-30');
+    await expect(panel.locator('[data-cash-needs]')).toContainText('40000');
+  }
+
+  const publicCacheAfter = await page.evaluate(() => ({
+    shared: localStorage.getItem('rlData'),
+    foreignKeys: Object.keys(localStorage).filter((key) => !key.startsWith('rlPortfolioWorkspaceV1.')).sort()
+  }));
+  expect(publicCacheAfter.shared, 'the public generic cache and watchlist are byte-identical').toBe(publicCacheBefore);
+  expect(publicCacheAfter.foreignKeys, 'the behavior clear neither removes nor adds a key outside its namespace').toEqual(['rlData']);
+
+  expect(browserRequests.every((url) => new URL(url).origin === server.baseUrl)).toBe(true);
+  const requests = server.requests.slice(requestStart);
+  expect(requests.every((entry) => entry.method === 'GET')).toBe(true);
+  expect(JSON.stringify(requests), 'no behavior subject leaves the origin').not.toMatch(/msft|bnd|ticker-research/i);
+
+  console.log('[SCN-008-011] eligibleCompletionsBeforeClear=' + persistedBefore.behaviorEvents.length);
+  console.log('[SCN-008-011] rankedSubjectsBeforeClear=2');
+  console.log('[SCN-008-011] rankingOrderBeforeClear=msft,bnd');
+  console.log('[SCN-008-011] floorMetBeforeClear=msft');
+  console.log('[SCN-008-011] previewOnlyChangedProjection=false');
+  console.log('[SCN-008-011] rankingSurvivedReload=true');
+  console.log('[SCN-008-011] duplicateSameDayCompletion=rejected');
+  console.log('[SCN-008-011] eligibleCompletionsAfterClear=' + persistedAfter.behaviorEvents.length);
+  console.log('[SCN-008-011] interestSignalsAfterClear=' + persistedAfter.interestSignals.length);
+  console.log('[SCN-008-011] portfolioPreserved=' + (after.currentPortfolioId === before.currentPortfolioId));
+  console.log('[SCN-008-011] mandatePreserved=' + (after.currentMandateId === before.currentMandateId));
+  console.log('[SCN-008-011] holdingsPreserved=' + survivingHoldings.map((holding) => holding.symbol).join(','));
+  console.log('[SCN-008-011] mandateConstraintSubjectsPreserved=' + survivingConstraints.map((entry) => entry.subject).join(','));
+  console.log('[SCN-008-011] clearedSubjectScope=behaviorEvents,interestSignals,actionOutcomes,rankingRows');
+  console.log('[SCN-008-011] cashNeedsPreserved=true');
+  console.log('[SCN-008-011] publicCacheByteIdentical=' + (publicCacheAfter.shared === publicCacheBefore));
+  console.log('[SCN-008-011] foreignStorageKeys=' + publicCacheAfter.foreignKeys.join(','));
+  console.log('[SCN-008-011] remotePersonalRequests=0');
+});
+
+test('Regression: SCN-008-012 behavior evidence excludes engagement and sensitive profiling', async ({ page }) => {
+  const requestStart = server.requests.length;
+  const browserRequests = await openRoute(page);
+  await importValid(page, 'SCN-008-012 portfolio');
+
+  /* Positive control. The claim under test is a negative — "no engagement, sensitive, or
+   * cross-device data is stored" — and an implementation that recorded NOTHING AT ALL would
+   * satisfy every refusal assertion below. One legitimate completion must genuinely be admitted
+   * first, and a second must still be admitted after the whole refusal sweep, or the refusals
+   * prove only that the form is dead. */
+  await recordCompletion(page, { category: 'ticker-research-completed', subject: 'msft' });
+  await expect(page.locator('#behaviorResult')).toContainText('Recorded one completed-research event');
+  const control = await persistedWorkspace(page);
+  expect(control.behaviorEvents, 'the recorder genuinely admits a completed research action').toHaveLength(1);
+  expect(control.behaviorEvents[0].category).toBe('ticker-research-completed');
+  expect(control.behaviorEvents[0].lifecycleState).toBe('eligible');
+  const baseline = await page.evaluate(() => window.__PORTFOLIO_DIAGNOSTICS__);
+
+  /* "pointer movement, dwell time, scroll depth, settings ... exist or can be observed" — so
+   * they are genuinely produced here rather than argued about. Nothing below is a research
+   * completion, so nothing below may become evidence. */
+  await page.mouse.move(120, 200);
+  await page.mouse.move(420, 380);
+  await page.mouse.move(640, 120);
+  await page.mouse.wheel(0, 900);
+  await page.mouse.wheel(0, -400);
+  await page.keyboard.press('Tab');
+  await page.keyboard.press('Tab');
+  await page.locator('#workspaceTabRiskXray').click();
+  await page.locator('#workspaceTabPathLab').click();
+  await page.locator('#workspaceTabBrief').click();
+  await page.locator('#openPrivacy').click();
+  await page.locator('#openPrivacy').click();
+  await page.locator('#exportAcknowledgement').check();
+  await page.locator('#exportAcknowledgement').uncheck();
+  await page.locator('#manualAssetType').selectOption('cash');
+  await page.locator('#manualAssetType').selectOption('');
+  // A real dwell period with the pointer resting on the surface. The wait is the stimulus
+  // under test, not a timing crutch: dwell time is a duration, so it has to actually elapse.
+  await page.mouse.move(300, 300);
+  await page.waitForTimeout(300);
+  const afterObservation = await persistedWorkspace(page);
+  expect(afterObservation.behaviorEvents, 'pointer, scroll, dwell, tab, and settings activity create no event').toHaveLength(1);
+  expect(afterObservation.generation, 'observed activity commits no workspace generation').toBe(baseline.generation);
+
+  /* Every declared excluded source is ATTEMPTED through the real UI and must be refused by
+   * name. Reading the offered list off the page and equating it to the policy's declared set
+   * means the sweep cannot silently shrink to the two tokens that happen to be handled. */
+  const offered = await page.locator('#behaviorEvidenceSource option[value^="excluded:"]')
+    .evaluateAll((options) => options.map((option) => option.value.slice('excluded:'.length)));
+  expect([...offered].sort(), 'the UI offers every declared excluded source as an attemptable input')
+    .toEqual([...BEHAVIOR_POLICY.forbiddenEventFields].sort());
+  const attempted = [];
+  for (const token of offered) {
+    await previewCompletion(page, { category: 'risk-analysis-completed', subject: 'bnd', source: `excluded:${token}` });
+    await expect(page.locator('#behaviorResult')).toContainText('P008-SCHEMA-CORRUPT');
+    await expect(page.locator('#behaviorResult')).toContainText('forbidden-behavior-source');
+    await expect(page.locator('#behaviorResult')).toContainText(`draft.${token}`);
+    await expect(page.locator('#confirmCompletion')).toBeDisabled();
+    attempted.push(token);
+  }
+  expect(attempted, 'every offered excluded source was actually exercised').toHaveLength(BEHAVIOR_POLICY.forbiddenEventFields.length);
+  expect(attempted.length).toBeGreaterThan(0);
+
+  const afterAttempts = await persistedWorkspace(page);
+  expect(afterAttempts.behaviorEvents, 'no refused attempt grew the stored evidence').toHaveLength(1);
+  expect(afterAttempts.generation, 'no refused attempt committed a generation').toBe(baseline.generation);
+
+  /* The claim under test is that an excluded source may not reach BEHAVIOR EVIDENCE, not that its
+   * name may not exist anywhere. `costBasis` and `quantity` are declared HoldingEntry fields the
+   * user imported, so a whole-workspace sweep would refuse the user's own portfolio. The sweep is
+   * therefore scoped to the three sections that constitute the evidence payload. */
+  const behaviorEvidenceText = JSON.stringify({
+    behaviorEvents: afterAttempts.behaviorEvents,
+    interestSignals: afterAttempts.interestSignals,
+    actionOutcomes: afterAttempts.actionOutcomes
+  }).toLowerCase();
+  for (const token of BEHAVIOR_POLICY.forbiddenEventFields) {
+    expect(behaviorEvidenceText, `no ${token} field or value reaches the stored behavior evidence`).not.toContain(token);
+  }
+  expect(behaviorEvidenceText, 'no observed engagement value is stored as behavior evidence').not.toContain('observed-excluded-value');
+  /* Scoped, not vacuous. The payload is non-empty (one admitted event, asserted above) and the
+   * colliding tokens genuinely exist in the workspace, so the sweep passes because the evidence is
+   * clean — not because the value never existed anywhere to leak. */
+  const importedHoldings = afterAttempts.portfolioRevisions
+    .find((revision) => revision.portfolioId === afterAttempts.currentPortfolioId).holdings;
+  expect(importedHoldings.some((holding) => typeof holding.costBasis === 'number' && typeof holding.quantity === 'number'),
+    'costBasis and quantity really are imported holding fields, so the scoped sweep is meaningful').toBe(true);
+
+  /* Positive control, second half: the refusals above are selective, not a dead form. */
+  await recordCompletion(page, { category: 'path-analysis-completed', subject: 'msft' });
+  await expect(page.locator('#behaviorResult')).toContainText('Recorded one completed-research event');
+  const afterControl = await persistedWorkspace(page);
+  expect(afterControl.behaviorEvents, 'a legitimate completion is still admitted after every refusal').toHaveLength(2);
+  expect(afterControl.behaviorEvents.every((entry) => entry.lifecycleState === 'eligible')).toBe(true);
+  expect(afterControl.behaviorEvents.every((entry) => BEHAVIOR_POLICY.eventCategories.includes(entry.category)),
+    'only named completed-research categories contribute').toBe(true);
+  // Quantify over the stored shape: an unlisted key is exactly the hidden profile field this denies.
+  for (const entry of afterControl.behaviorEvents) {
+    expect(Object.keys(entry).sort()).toEqual([
+      'category', 'completionConditionId', 'contractVersion', 'dedupeKey', 'domain', 'eventId', 'horizon',
+      'lifecycleState', 'occurredAt', 'policyVersion', 'resultIdentity', 'sourceSurface', 'subjectId', 'subjectKind'
+    ]);
+  }
+
+  await page.locator('#openPrivacy').click();
+  // Exact `0`, not a prefix: a substring check would pass on "0 excluded sources plus 3 inferred".
+  await expect(page.locator('#privacyExcludedCount')).toHaveText('0');
+  await expect(page.locator('#privacyProfileStatement')).toHaveText(
+    'No cross-device identifier · no hidden profile · no engagement objective · ranking optimizes research relevance only');
+  const declaredTokenText = await page.locator('#privacyExcludedTokens').innerText();
+  for (const token of BEHAVIOR_POLICY.forbiddenEventFields) {
+    expect(declaredTokenText, `the excluded-source inventory names ${token}`).toContain(token);
+  }
+  await expect(page.locator('#privacyCategoryRows li[data-privacy-category="behavior-events"]'))
+    .toHaveText('behavior-events · 2 records · present · cleared by behavior');
+  await expect(page.locator('#privacyCategoryRows li[data-privacy-category="interest-signals"]'))
+    .toHaveText('interest-signals · 0 records · empty · cleared by behavior');
+
+  /* Engagement wording is legitimate ONLY inside the declared exclusion inventory, which must
+   * name the tokens it refuses. Everywhere else it would be an engagement objective. */
+  const rankingText = await page.locator('#behaviorEvidence').innerText();
+  const categoryText = await page.locator('#privacyCategoryRows').innerText();
+  for (const surface of [rankingText, categoryText]) {
+    expect(surface).not.toMatch(/engagement|dwell|scroll|click-through|time on site|session length|retention/i);
+  }
+  expect(rankingText, 'the ranking objective is stated as research relevance').toContain('research relevance');
+
+  const traces = await page.evaluate(async () => ({
+    cookie: document.cookie,
+    foreignLocal: Object.keys(localStorage).filter((key) => !key.startsWith('rlPortfolioWorkspaceV1.')).sort(),
+    session: Object.keys(sessionStorage).sort(),
+    databases: typeof indexedDB.databases === 'function' ? (await indexedDB.databases()).map((entry) => entry.name) : [],
+    serviceWorkers: (await navigator.serviceWorker.getRegistrations()).length
+  }));
+  expect(traces.cookie, 'no cross-device or identity cookie is written').toBe('');
+  expect(traces.foreignLocal, 'no hidden profile namespace is created').toEqual([]);
+  expect(traces.session, 'no session-scoped profile is created').toEqual([]);
+  expect(traces.databases, 'no shadow profile store is created').toEqual([]);
+  expect(traces.serviceWorkers, 'no background worker could carry a profile off-device').toBe(0);
+
+  expect(browserRequests.every((url) => new URL(url).origin === server.baseUrl)).toBe(true);
+  const requests = server.requests.slice(requestStart);
+  expect(requests.every((entry) => entry.method === 'GET')).toBe(true);
+  const requestText = JSON.stringify(requests).toLowerCase();
+  for (const token of BEHAVIOR_POLICY.forbiddenEventFields) {
+    expect(requestText, `no ${token} value leaves the origin`).not.toContain(token);
+  }
+
+  console.log('[SCN-008-012] legitimateCompletionsRecorded=' + afterControl.behaviorEvents.length);
+  console.log('[SCN-008-012] excludedSourcesAttempted=' + attempted.length);
+  console.log('[SCN-008-012] excludedSourcesDeclared=' + BEHAVIOR_POLICY.forbiddenEventFields.length);
+  console.log('[SCN-008-012] excludedSourcesAccepted=0');
+  console.log('[SCN-008-012] observedActivityEvents=0');
+  console.log('[SCN-008-012] observedActivityGenerations=0');
+  console.log('[SCN-008-012] storedExcludedTokens=0');
+  console.log('[SCN-008-012] excludedTokenScope=behaviorEvents,interestSignals,actionOutcomes');
+  console.log('[SCN-008-012] excludedSourceCountShown=0');
+  console.log('[SCN-008-012] crossDeviceIdentifiers=0');
+  console.log('[SCN-008-012] hiddenProfileNamespaces=0');
+  console.log('[SCN-008-012] cookies=0');
+  console.log('[SCN-008-012] indexedDbStores=0');
+  console.log('[SCN-008-012] engagementCopyOutsideExclusionInventory=0');
+  console.log('[SCN-008-012] remotePersonalRequests=0');
 });

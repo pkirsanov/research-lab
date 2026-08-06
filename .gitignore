@@ -12,6 +12,11 @@ improvements/
 /playwright-report/
 /_site/
 /.rl-site-*/
+
+# Python bytecode — embeds absolute source paths, so committing it leaks the
+# builder's home directory into history
+__pycache__/
+*.pyc
 /.brief-work/
 
 # Code-index provider writes its graph in-repo; never commit it.

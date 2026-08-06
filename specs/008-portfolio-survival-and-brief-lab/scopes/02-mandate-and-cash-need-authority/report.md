@@ -1665,7 +1665,14 @@ items are ticked.
 
 ## Lint And Quality
 
-### Build Quality Gate - current-session re-verification (STILL NOT CLOSED, new cause)
+### Build Quality Gate - prior re-verification (SUPERSEDED - historical record)
+
+> **SUPERSEDED** by [Build Quality Gate - closing re-verification](#build-quality-gate---closing-re-verification-all-13-members-clean).
+> This record is retained unaltered as the audit trail of why the gate was refused
+> twice. Its member-13 finding (`F008-IMPL-012`) is now **closed**: both Scope 02
+> `Scenario:` lines carry their `SCN-` ids, so the guard's declared-id path fires
+> and Scope 02's own file produces zero failures. Do not read the verdict below as
+> current.
 
 The prior record in this section is superseded. It reported the named traceability
 command refusing at **exit 2** because the scope-universe resolver would not run
@@ -1930,11 +1937,333 @@ Nothing here writes `certification.*`.
 
 | Finding | State | Evidence | Owner |
 | --- | --- | --- | --- |
-| `F008-IMPL-012` — Scope 02's two Gherkin scenarios reach no Test Plan row under the guard's matcher, and `A portfolio can be researched before goals are entered` has no faithful DoD item (G068) | **Open, blocking this gate** | traceability guard exit 1, 3 own-file failures, matcher reproduced above | `bubbles.plan` |
+| `F008-IMPL-012` — Scope 02's two Gherkin scenarios reach no Test Plan row under the guard's matcher, and `A portfolio can be researched before goals are entered` has no faithful DoD item (G068) | **CLOSED** — both `Scenario:` lines now carry their `SCN-` id, so the declared-id path fires; the guard reports Scope 02 own-file failures = 0 and `DoD fidelity: 4 mapped, 0 unmapped` | [closing re-verification, member 13](#member-13---scope-local-traceability-scope-02-own-file-clean) | `bubbles.plan` (resolved) |
 
-## Uncertainty Declarations
+### Build Quality Gate - closing re-verification (ALL 13 MEMBERS CLEAN)
 
-### Build Quality Gate is blocked by a planning-owned traceability gap (OPEN)
+Supersedes the record above. Every member was **re-executed in this session**; no
+result is carried forward. The one member that refused twice before — scope-local
+traceability — now produces **zero failures naming this scope's own files**.
+
+**What changed.** Both Scope 02 `Scenario:` lines now carry their `SCN-` id
+(`SCN-008-003`, `SCN-008-004`). The guard's `scenario_matches_row` tries a shared
+trace id first and falls back to significant-word overlap; previously neither path
+could fire, because the ids lived only in the `### SCN-008-00x` headings and the
+Test Plan rows' Scenario column, and the guard reads only the `Scenario:` line.
+With the ids on that line the declared-id path fires and every Scope 02 mapping
+reports `confidence: declared`.
+
+The ids were verified against their headings rather than assumed — line 23
+`### SCN-008-003` is immediately followed by the `SCN-008-003` Scenario line, and
+line 34 `### SCN-008-004` by the `SCN-008-004` one. A wrong id here would have
+manufactured a *false* linkage, which is worse than the failure it repairs.
+
+#### Active-scope precondition
+
+The named traceability command requires this scope to be active in `state.json`.
+
+```text
+currentScope : 2
+currentPhase : implement
+activeAgent  : bubbles.implement
+workflowMode : full-delivery   → statusCeiling: done (base-delivery template)
+```
+
+#### Members 1-4 - tests
+
+```text
+$ node scripts/selftest.mjs
+Research-Lab self-test: 1220 passed, 0 failed
+[tool-log] recorded exit=0 duration=18703ms → .specify/runtime/tool-calls.jsonl
+SELFTEST_EXIT=0
+
+$ node --test tests/portfolio-privacy.functional.mjs
+ok  6 - explicit mandate revisions commit and reload atomically while portfolio generation semantics are preserved
+ok  7 - one reloaded constraint set reaches every consumer and absent or conflicting fields never acquire defaults
+ok  8 - FR-011 to FR-016: declared purpose units authority dates amounts currencies priorities and treatment reach the candidate unchanged and an infeasible draft fails loudly with nothing relaxed
+ok  9 - NFR-003 NFR-005 NFR-007 NFR-012 NFR-022: provenance missing-state integrity atomic revisions latest-complete publication and the research boundary all hold on the mandate surface
+ok 10 - FR-017 FR-022 FR-033: behavior settings and market-fact relabelling attempts are refused and change no mandate cash need expected return floor objective or constraint state
+ok 11 - rolling a mandate back restores the pre-mandate portfolio state by identity, not by resemblance
+1..11
+# tests 11   # pass 11   # fail 0   # duration_ms 700.27294
+FUNCTIONAL_EXIT=0
+
+$ node --test tests/portfolio-foundation.unit.mjs
+ok 17 - explicit mandate draft is a closed user-authority contract over units dates currencies and hard research classification
+ok 18 - absent mandate fields stay null and no default horizon floor objective or expected return is created
+ok 19 - conflicting mandate stays infeasible with every declared constraint and cash need preserved in declared order
+ok 20 - mandate revision identity is deterministic supersedes the prior mandate and never mutates the portfolio
+ok 21 - behavior events interest signals and display settings cannot create or modify any mandate field
+ok 22 - route projection cites one mandate revision and reports mandate-absent states without inventing values
+1..22
+# tests 22   # pass 22   # fail 0   # duration_ms 571.024552
+UNIT_EXIT=0
+
+$ npx --no-install playwright test --config=playwright.config.mjs \
+    --project=system-chrome tests/portfolio-survival-foundation.spec.mjs --reporter=list
+[SCN-008-003] portfolioUnchanged=true  hardConstraints=2  cashNeeds=1  absentFields=4
+[SCN-008-003] routesCiting=3  behaviorContribution=none
+[SCN-008-003] behaviorDraftRefused=P008-MANDATE-AUTHORITY  remotePersonalRequests=0
+  ✓  1 …Regression: SCN-008-003 explicit mandate alone supplies every hard constraint (2.9s)
+[SCN-008-004] goalFit=unavailable:mandate-absent  survivalToGoal=unavailable:mandate-absent
+[SCN-008-004] inferredValues=0  placeholderNumbers=0  descriptiveAvailable=true
+  ✓  2 …Regression: SCN-008-004 no mandate leaves goal fit and survival unavailable (1.4s)
+[SCN-008-003-conflict] conflicts=4  constraintsRelaxed=0  declaredOrderPreserved=true
+  ✓  3 …Regression: SCN-008-003 conflicting mandate stays visibly infeasible with no constraint relaxed (994ms)
+  ✓  4 …Regression: SCN-008-001 valid local portfolio import creates one current revision (1.6s)
+  ✓  5 …Regression: SCN-008-002 invalid or secret-bearing import is atomic and redacted (1.4s)
+  ✓  6 …Regression: Feature 008 atomic slots preserve last valid portfolio in durable session and memory modes (3.6s)
+  6 passed (15.8s)
+BROWSER_EXIT=0
+```
+
+Exact rollback is carried by functional subtest 11, green on the same command.
+Focused RED/GREEN records remain current: the SCOPE-02 tool-call ledger holds 74
+records, 11 tagged `red` and 53 tagged `green`.
+
+#### Members 5-7 - artifact lint, freshness, gates
+
+```text
+$ bash .github/bubbles/scripts/artifact-lint.sh specs/008-portfolio-survival-and-brief-lab
+Artifact lint PASSED.
+ARTIFACT_LINT_EXIT=0
+
+$ bash .github/bubbles/scripts/artifact-freshness-guard.sh specs/008-portfolio-survival-and-brief-lab
+--- Check 1: Freshness Boundary Isolation (spec.md / design.md) ---
+ℹ️  No spec/design freshness boundaries detected
+--- Check 2: Superseded Scope Sections Are Non-Executable ---
+ℹ️  No superseded scope sections detected
+--- Check 3: Per-Scope Directory Index References ---
+✅ All per-scope directories are referenced by scopes/_index.md
+RESULT: PASS (0 failures, 0 warnings)
+FRESHNESS_EXIT=0
+
+$ bash .github/bubbles/scripts/inter-spec-dependency-guard.sh specs/008-portfolio-survival-and-brief-lab
+inter-spec-dependency-guard: PASS Gate G089 (inter_spec_dependency_gate)
+G089_EXIT=0
+
+$ bash .github/bubbles/scripts/capability-foundation-guard.sh specs/008-portfolio-survival-and-brief-lab
+capability-foundation-guard: PASS Gate G094 - capability foundation requirements satisfied
+G094_EXIT=0
+```
+
+G094 is claimed against `capability-foundation-guard.sh`, its registered enforcer;
+`inter-spec-dependency-guard.sh` owns **G089** and is recorded separately rather
+than relabelled — the same correction Scope 01 recorded as `F008-IMPL-003`.
+
+#### Member 8 - `git diff --check`
+
+Repository-wide the check is **not** clean; scoped to this scope's own files it is.
+Every finding was attributed mechanically, not by eye:
+
+```text
+$ git diff --check
+specs/_bugs/BUG-002-market-brief-session-date-drift/report.md:7903: trailing whitespace.
+… 20 further findings, all under the same BUG-002 directory …
+specs/_bugs/BUG-002-market-brief-session-date-drift/scopes.md:369: trailing whitespace.
+GIT_DIFF_CHECK_REPO_EXIT=2
+
+$ (mechanical partition of every finding line by owning file)
+repo-wide diff --check finding lines = 21
+    17  specs/_bugs/BUG-002-market-brief-session-date-drift/report.md
+     4  specs/_bugs/BUG-002-market-brief-session-date-drift/scopes.md
+findings OUTSIDE the concurrent-session BUG-002 dir -> NONE
+findings naming any Scope 02 owned path            -> NONE
+
+$ git diff --check -- specs/008-portfolio-survival-and-brief-lab rlportfolio.js \
+    portfolio-survival-allocation-lab.html portfolio-survival-allocation.config.json \
+    tests/portfolio-foundation.unit.mjs tests/portfolio-privacy.functional.mjs \
+    tests/portfolio-survival-foundation.spec.mjs tests/fixtures/portfolio-survival-allocation
+GIT_DIFF_CHECK_SCOPED_EXIT=0
+```
+
+All 21 findings are in `specs/_bugs/BUG-002-market-brief-session-date-drift/`,
+owned by a concurrent session. Those files were neither edited nor staged here.
+This member is judged on this scope's own files, where the check exits 0 — the
+identical basis Scope 01 used.
+
+#### Members 9-12 - source lock, runner, static scans, parity, plan sync
+
+```text
+$ node scripts/validate-node-source-lock.mjs
+[node-source-lock] manifest=PASS private=true runtimeDependencies=0 playwright=1.61.1 node=>=20
+[node-source-lock] npmrc=PASS registry=https://registry.npmjs.org/ entries=5 ignoreScripts=true
+[node-source-lock] lockfile=PASS version=3 externalPackages=3 integrity=sha512
+[node-source-lock] graph=PASS playwright=1.61.1 playwright-core=1.61.1 fsevents=2.3.2
+[node-source-lock] actual=PASS
+[node-source-lock] OK adversarial=16 unexpectedAcceptances=0
+SOURCE_LOCK_EXIT=0
+
+$ npx --no-install playwright --version
+Version 1.61.1
+RUNNER_EXIT=0
+
+$ grep -nE 'page\.route\(|context\.route\(|\.routeFromHAR|msw|nock|cy\.intercept|setupServer|wiremock' \
+    tests/portfolio-survival-foundation.spec.mjs tests/portfolio-survival.support.mjs \
+    tests/portfolio-foundation.unit.mjs tests/portfolio-privacy.functional.mjs
+INTERCEPTION_GREP_EXIT=1   (1 = ZERO matches = clean)
+
+$ grep -nE 'https?://[a-zA-Z]' rlportfolio.js portfolio-survival-allocation.config.json
+EXTERNAL_HOST_EXIT=1       (1 = zero matches)
+
+$ grep -nE 'rlData|rlProviderConfig|rlApiKeys' rlportfolio.js
+NAMESPACE_LEAK_EXIT=1      (1 = zero matches)
+
+$ (mandate/config parity: portfolio-survival-allocation.config.json -> rlportfolio.js)
+config.mandate keys (14) = cashNeedUnits constraintKinds constraintTypes constraintUnits
+  contractVersion descriptiveRouteStates forbiddenInputSources horizonUnits inputAuthority
+  mandateDependentStates maxCashNeeds maxConstraints neverInferredFields treatmentTimings
+config.mandate keys ABSENT from rlportfolio.js = NONE
+descriptiveRouteStates = ['allocation', 'path-lab', 'risk-xray'] -> all present in source
+MANDATE_CONFIG_PARITY=OK
+
+$ (authority / forbidden-input reason codes in production source)
+forbidden-input-source      occurrences in rlportfolio.js = 1
+P008-MANDATE-AUTHORITY      occurrences in rlportfolio.js = 2
+
+$ (Test Plan / DoD parity over scope.md)
+TEST_PLAN_ROW_COUNT=5        # TP-02-01 TP-02-02 TP-02-03 TP-02-04 TP-02-05
+TEST_EVIDENCE_DOD_ITEMS=5    # TP-02-01 TP-02-02 TP-02-03 TP-02-04 TP-02-05
+PARITY=EXACT
+DoD checkboxes: checked=9 unchecked=1 total=10   (the 1 = this gate, ticked by this record)
+
+$ node scripts/validate-spec-test-paths.mjs
+[spec-test-paths] scanned=462 references=10622 distinctPaths=214 missingPaths=86 baseline=86 new=0 stale=0
+[spec-test-paths] OK — no new missing test path(s)
+SPEC_TEST_PATHS_EXIT=0
+
+$ bash .github/bubbles/scripts/implementation-reality-scan.sh specs/008-portfolio-survival-and-brief-lab
+  Files scanned:  16   Violations: 0   Warnings: 1
+🟡 PASSED with 1 warning(s) — manual review advised
+REALITY_SCAN_EXIT=0
+```
+
+Editor diagnostics: **no errors** on `rlportfolio.js`,
+`portfolio-survival-allocation-lab.html`, `portfolio-survival-allocation.config.json`,
+`tests/portfolio-foundation.unit.mjs`, `tests/portfolio-privacy.functional.mjs`,
+`tests/portfolio-survival-foundation.spec.mjs`, `scope.md`, `report.md`, `state.json`.
+
+#### Member 13 - scope-local traceability: SCOPE 02 OWN FILE CLEAN
+
+**Command:** `BUBBLES_AGENT_NAME=bubbles.implement BUBBLES_SPEC=specs/008-portfolio-survival-and-brief-lab BUBBLES_SCOPE=SCOPE-02 BUBBLES_TOOL_LOG_TAGS=build-quality-gate,traceability,current-scope timeout 900 bash .github/bubbles/scripts/tool-log.sh bash .github/bubbles/scripts/traceability-guard.sh specs/008-portfolio-survival-and-brief-lab --current-scope`
+
+**Exit Code:** 1 · **Claim Source:** executed
+
+```text
+ℹ️  Checking traceability for scopes/02-mandate-and-cash-need-authority/scope.md
+✅ scope.md scenario mapped to Test Plan row: SCN-008-003 - Dated cash needs and constraints come only from user input
+ℹ️  scenario→row match confidence: declared
+✅ scope.md scenario maps to concrete test file: tests/portfolio-foundation.unit.mjs
+✅ scope.md report references concrete test evidence: tests/portfolio-foundation.unit.mjs
+✅ scope.md scenario mapped to Test Plan row: SCN-008-004 - A portfolio can be researched before goals are entered
+ℹ️  scenario→row match confidence: declared
+✅ scope.md scenario maps to concrete test file: tests/portfolio-foundation.unit.mjs
+✅ scope.md report references concrete test evidence: tests/portfolio-foundation.unit.mjs
+ℹ️  scopes/02-mandate-and-cash-need-authority/scope.md summary: scenarios=2 test_rows=6
+
+--- Gherkin → DoD Content Fidelity (Gate G068) ---
+✅ scopes/02-…/scope.md scenario maps to DoD item: SCN-008-003 - Dated cash needs and constraints come only from user input
+ℹ️  scenario→DoD match confidence: declared
+✅ scopes/02-…/scope.md scenario maps to DoD item: SCN-008-004 - A portfolio can be researched before goals are entered
+ℹ️  scenario→DoD match confidence: declared
+ℹ️  DoD fidelity: 4 scenarios checked, 4 mapped to DoD, 0 unmapped
+
+RESULT: FAILED (28 failures, 0 warnings)
+TRACEABILITY_EXIT=1
+```
+
+**Every one of Scope 02's 8 own-file result lines is `✅`.** The G068 aggregate
+failure is gone (`0 unmapped`), and the two `scenario has no traceable Test Plan
+row` failures are gone. Previous run: 32 failures (3 own-file + 28 manifest + 1
+G068 aggregate). This run: 28.
+
+##### Mechanical attribution of all 28 residual failures
+
+The item's standard is *zero failure naming this scope's own files*, so the
+residual 28 were classified mechanically rather than accepted on assertion. The
+classification is **exhaustive** — 28 classified, 0 unclassified:
+
+```text
+TOTAL_FAILURE_LINES = 28
+class: manifest-missing-linked-test  = 28
+class: naming scopes/02-             = 0
+class: naming scopes/01-             = 0
+class: naming any scopes/ dir        = 0
+class: G068 aggregate                = 0
+class: OTHER (unclassified)          = 0
+
+--- per-suite breakdown ---
+  allocation           8
+  brief                6
+  risk                 5
+  paths                4
+  diversification      4
+  mobile               1
+  SUM = 28
+
+--- do ANY of the 28 name a Scope 02 Test Plan file? ---
+  Scope-02 own test files named in a FAILURE line: 0
+```
+
+Filename classification alone would only prove the *strings* differ, so ownership
+was resolved from `scenario-manifest.json` itself. Each `linkedTests` value carries
+a `path :: title` suffix, so the path was split off before resolution:
+
+```text
+=== MISSING linked-test references, by OWNING scope ===
+     3  05-four-window-direct-scope-brief
+     3  06-explainable-research-action-lifecycle
+     2  07-return-and-drawdown-x-ray
+     3  08-concentration-capm-and-risk-contribution
+     2  09-dependent-path-reproducibility
+     2  10-dated-cash-needs-and-survival-states
+     3  11-stress-tail-and-alternative-dependence
+     1  12-hedge-variant-research
+     3  13-six-method-allocation-basis-and-feasibility
+     2  14-allocation-sensitivity-and-explicit-black-litterman
+     3  15-walk-forward-research-dossier-and-claim-boundaries
+     1  16-integrated-route-accessibility-and-atomic-release
+   TOTAL MISSING = 28
+
+MISSING refs owned by scope 02 -> 0
+MISSING refs owned by scope 01 -> 0
+
+=== EXISTING linked-test references, by owning scope ===
+     2  01-private-portfolio-import-and-atomic-store
+     2  02-mandate-and-cash-need-authority
+     2  03-local-behavior-privacy-inventory-and-clear
+     2  04-public-evidence-barrier-and-coverage
+```
+
+All 28 are owned by **scopes 05-16** and reference six suites that do not exist
+yet (`portfolio-survival-{allocation,brief,risk,paths,diversification,mobile}.spec.mjs`).
+None of the six is in Scope 02's declared Change Boundary allowed-files list, so
+they are definitionally not this scope's to write. Both of Scope 02's own manifest
+entries resolve to an existing file. They are the residual Scope 01 already
+deferred to the Feature Completion Gate, which Scope 16 enforces once with
+`--all-scopes`; this item's own text excludes `--all-scopes` here.
+
+##### Injected-defect check
+
+Five RED defects injected earlier in this session were reported unreverted, and
+none carried a marker, so only `git status` can detect them. Run twice, both empty:
+
+```text
+$ git status --porcelain rlportfolio.js portfolio-survival-allocation-lab.html
+(no output)
+INJECTED_DEFECT_EXIT=0
+```
+
+#### Verdict
+
+All 13 named members are current and clean against their written standards, with
+every finding individually accounted for above: the 21 `git diff --check` findings
+(all foreign-owned, BUG-002) and the 28 traceability failures (all owned by scopes
+05-16). The item is ticked and Scope 02 moves to **Done**.
+
+Nothing here writes `certification.*`.
+
+
 
 The Build Quality Gate item is the last unchecked box in this scope. Twelve of its
 thirteen named members were re-executed in this session and are clean; the

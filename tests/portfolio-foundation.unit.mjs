@@ -945,3 +945,225 @@ test('full-personal clear empties every declared personal section and leaves gen
   assert.equal(JSON.stringify(reopened.value.workspace).includes(SUBJECT_ALPHA), false, 'no cleared subject may reappear through the reopened workspace');
   assert.equal(JSON.stringify(committed.value.workspace).includes(SUBJECT_ALPHA), true, 'the subject was genuinely stored, so its absence above is meaningful');
 });
+
+// The six provenance classes FR-019 declares. Only `user-entered-holding` is representable on
+// the surfaces this scope owns, so the enumeration is exercised the only honest way available
+// here: the class a stored holding carries is asserted by name, and each of the other five is
+// attempted by name and required to be refused.
+const FR019_PROVENANCE_CLASSES = Object.freeze([
+  'behavior-derived-interest',
+  'model-estimate',
+  'observable-fact',
+  'recommendation',
+  'user-entered-constraint',
+  'user-entered-holding'
+]);
+
+test('FR-019: a stored holding carries exactly one declared provenance class and each of the other five declared classes is refused as an invalid class', () => {
+  const { api, policy } = loadContracts();
+  assert.equal(new Set(FR019_PROVENANCE_CLASSES).size, 6, 'FR-019 declares six distinct provenance classes, so the attempt set must hold six');
+
+  const empty = api.createEmptyWorkspace(policy, NOW);
+  assert.equal(empty.ok, true);
+  const candidate = api.buildWorkspaceCandidate(validDraft(api, policy), empty.value, { name: 'Provenance portfolio', now: NOW }, policy);
+  assert.equal(candidate.ok, true);
+  const holdings = candidate.value.portfolioRevisions[0].holdings;
+  assert.equal(holdings.length > 0, true, 'FR-019 needs at least one real holding, or every claim below is about nothing');
+
+  holdings.forEach((holding) => {
+    // Selects on VALUE membership in the declared class set and then asserts WHICH field holds
+    // it. The filter can legitimately return zero fields (unclassed) or two (a second field
+    // that also stamps a class), so naming `provenanceClass` is a real result, not the
+    // property the filter already selected on.
+    const classBearingFields = Object.keys(holding).filter((field) => FR019_PROVENANCE_CLASSES.includes(holding[field])).sort();
+    assert.deepEqual(classBearingFields, ['provenanceClass'], 'FR-019 exactly one field on a holding may carry a declared provenance class');
+    assert.equal(holding.provenanceClass, 'user-entered-holding', 'FR-019 a user-entered holding must be classed as one, never left unclassed or presented as an observable fact');
+  });
+
+  const holding = holdings[0];
+  assert.equal(api.validateHoldingEntry(holding, policy).ok, true, 'FR-019 control: the declared holding class must still be accepted, so the refusals below are caused by the class rather than by the holding');
+
+  let refused = 0;
+  FR019_PROVENANCE_CLASSES.filter((className) => className !== 'user-entered-holding').forEach((className) => {
+    const attempt = api.validateHoldingEntry({ ...holding, provenanceClass: className }, policy);
+    assert.equal(attempt.ok, false, `FR-019 a holding must not be relabelled as ${className}`);
+    // The reason is the load-bearing half. `provenanceClass` is inside the holding identity
+    // payload, so a build that dropped the class check would STILL fail here -- with
+    // `holding-identity-mismatch` from the fingerprint. Requiring the class reason is what
+    // makes removing the class check red rather than incidentally still green.
+    assert.equal(attempt.error.reason, 'holding-invalid', `FR-019 ${className} must be refused as an invalid provenance class, not incidentally by the identity fingerprint`);
+    refused += 1;
+  });
+  assert.equal(refused, 5, 'FR-019 all five non-holding classes must have been attempted, not merely listed');
+});
+
+// The behavior evidence-floor and decay inputs FR-036 requires to be visible and versioned.
+const FR036_EVIDENCE_FLOOR_AND_DECAY_INPUTS = Object.freeze([
+  'halfLifeDays',
+  'highScore',
+  'maximumEvidenceAgeDays',
+  'mediumScore',
+  'minimumDistinctCompletions',
+  'minimumDistinctUtcDates',
+  'recentSupportDays'
+]);
+
+test('FR-036: every behavior evidence-floor and decay input is a visible declared finite policy value and its version is stamped onto every event', () => {
+  const { api, policy } = loadContracts();
+  assert.equal(api.validatePolicy(policy).ok, true);
+  assert.equal(FR036_EVIDENCE_FLOOR_AND_DECAY_INPUTS.length > 0, true, 'an empty input list would make every per-input claim below vacuous');
+
+  let exercised = 0;
+  FR036_EVIDENCE_FLOOR_AND_DECAY_INPUTS.forEach((input) => {
+    assert.equal(
+      Object.prototype.hasOwnProperty.call(policy.behavior, input),
+      true,
+      `FR-036 ${input} must be visible in the policy file a reader can open, not buried in code`
+    );
+    assert.equal(Number.isFinite(policy.behavior[input]), true, `FR-036 ${input} must be a finite readable research parameter`);
+
+    // Visible AND declared: a policy that simply omits the input must not load. Without this
+    // arm the presence check above would also pass for an input the contract does not require,
+    // which could be silently dropped in a later edit.
+    const without = { ...policy, behavior: { ...policy.behavior } };
+    delete without.behavior[input];
+    const omitted = api.validatePolicy(without);
+    assert.equal(omitted.ok, false, `FR-036 a policy missing ${input} must not load`);
+    assert.equal(omitted.error.reason, 'invalid-policy', `FR-036 dropping ${input} must be refused as an invalid behavior policy`);
+
+    const nonFinite = api.validatePolicy({ ...policy, behavior: { ...policy.behavior, [input]: Number.POSITIVE_INFINITY } });
+    assert.equal(nonFinite.ok, false, `FR-036 ${input} must not accept a non-finite value`);
+    assert.equal(nonFinite.error.reason, 'non-finite-policy', `FR-036 ${input} must be rejected by name when it is not finite`);
+    exercised += 1;
+  });
+  assert.equal(exercised, FR036_EVIDENCE_FLOOR_AND_DECAY_INPUTS.length, 'FR-036 every declared input must have been exercised, not merely iterated over');
+
+  // Versioned: evidence admitted under one floor and decay version stays distinguishable from
+  // evidence admitted under a later one. This goes red if the stamp is dropped or renamed. It
+  // does NOT prove the stamp is read from the policy rather than written as a literal, because
+  // `validatePolicy` rejects any other section version so the two cannot be varied apart here.
+  assert.equal(typeof policy.behavior.contractVersion, 'string');
+  assert.equal(policy.behavior.contractVersion.length > 0, true, 'FR-036 the evidence-floor and decay policy must be versioned');
+  const event = builtEvent(api, policy);
+  assert.equal(
+    event.policyVersion,
+    policy.behavior.contractVersion,
+    'FR-036 every behavior event must be stamped with the evidence-floor and decay policy version it was admitted under'
+  );
+});
+
+// A durable namespace holding two genuinely committed behavior records, read back out of
+// stored bytes. Every FR-037 claim below is about mutating those bytes, so a store that
+// persisted nothing fails the population assertion before any mutation runs.
+function seedDurableBehaviorNamespace(api, policy) {
+  const localStorage = createStorage();
+  const sessionStorage = createStorage();
+  const store = api.createPortfolioStore({ localStorage, sessionStorage }, policy);
+  const opened = store.openWorkspace(NOW);
+  assert.equal(opened.ok, true);
+  const first = appendEvent(api, policy, opened.value.workspace, {});
+  const second = appendEvent(api, policy, first.value.workspace, { subjectId: SUBJECT_BETA }, NEXT_DAY);
+  const committed = store.commitWorkspace(second.value.workspace, opened.value.workspace.generation, NOW);
+  assert.equal(committed.ok, true, `the seed must commit: ${JSON.stringify(committed.error || {})}`);
+  const pointer = JSON.parse(localStorage.getItem(policy.storage.pointerKey));
+  const slotKey = `${policy.storage.workspaceNamespace}.${pointer.activeSlot}`;
+  const slotBytes = localStorage.getItem(slotKey);
+  assert.equal(
+    JSON.parse(slotBytes).behaviorEvents.length,
+    2,
+    'two behavior records must genuinely be on disk, or "no part was interpreted" holds for an empty store'
+  );
+  return { localStorage, sessionStorage, slotKey, slotBytes };
+}
+
+test('FR-037: a corrupt unrecognized or future-version behavior record is quarantined with an inspectable reason and no part of the workspace is interpreted', () => {
+  const { api, policy } = loadContracts();
+
+  const damage = [
+    { name: 'corrupt', reason: 'behavior-event-invalid', apply: (slot) => { slot.behaviorEvents[0].category = 'not-a-declared-category'; } },
+    { name: 'future-version', reason: 'behavior-event-invalid', apply: (slot) => { slot.behaviorEvents[0].contractVersion = 'portfolio-behavior-event/v2'; } },
+    { name: 'unrecognized', reason: 'unknown-field', apply: (slot) => { slot.behaviorEvents[0].unrecognizedField = 1; } }
+  ];
+
+  let quarantined = 0;
+  damage.forEach((damaged) => {
+    const seeded = seedDurableBehaviorNamespace(api, policy);
+    const slot = JSON.parse(seeded.slotBytes);
+    damaged.apply(slot);
+    const damagedBytes = JSON.stringify(slot);
+    seeded.localStorage.setItem(seeded.slotKey, damagedBytes);
+
+    const opened = api.createPortfolioStore({ localStorage: seeded.localStorage, sessionStorage: seeded.sessionStorage }, policy).openWorkspace(LATER);
+    assert.equal(opened.ok, false, `FR-037 a ${damaged.name} behavior record must not open`);
+    // The second record is still valid. Requiring no workspace at all is what makes "ignored
+    // rather than partially interpreted" a real claim: a store that dropped the bad record and
+    // returned the good one would be green on `ok === false` alone.
+    assert.equal(opened.value, undefined, `FR-037 a ${damaged.name} behavior record must yield no workspace, so the still-valid second record cannot be partially interpreted`);
+    assert.equal(opened.error.reason, damaged.reason, `FR-037 a ${damaged.name} behavior record must be refused for its own reason, not a generic one`);
+    assert.equal(seeded.localStorage.getItem(seeded.slotKey), damagedBytes, `FR-037 the ${damaged.name} record must be left in place for inspection, not silently rewritten or repaired`);
+
+    const quarantineBytes = seeded.localStorage.getItem(policy.storage.quarantineKey);
+    assert.equal(typeof quarantineBytes, 'string', `FR-037 a ${damaged.name} behavior record must leave a quarantine record`);
+    const record = JSON.parse(quarantineBytes);
+    assert.deepEqual(record.reasonCodes, [damaged.reason], `FR-037 the quarantine record for a ${damaged.name} behavior record must state its inspectable reason`);
+    assert.equal(record.sourceKey, seeded.slotKey, `FR-037 the quarantine record must name where the ${damaged.name} record came from`);
+    assert.equal(quarantineBytes.includes(SUBJECT_ALPHA), false, `FR-037 the quarantine record for a ${damaged.name} behavior record must carry no stored subject value`);
+    quarantined += 1;
+  });
+  assert.equal(quarantined, damage.length, 'FR-037 every damage shape must have been exercised, not merely listed');
+
+  // Control: the same seed, undamaged, opens with BOTH records and writes no quarantine.
+  // Without it an implementation that quarantined every open would satisfy the arms above.
+  const clean = seedDurableBehaviorNamespace(api, policy);
+  const cleanOpen = api.createPortfolioStore({ localStorage: clean.localStorage, sessionStorage: clean.sessionStorage }, policy).openWorkspace(LATER);
+  assert.equal(cleanOpen.ok, true, `FR-037 control: an undamaged behavior record must still open: ${JSON.stringify(cleanOpen.error || {})}`);
+  assert.equal(cleanOpen.value.workspace.behaviorEvents.length, 2, 'FR-037 control: both committed records must load, so quarantine is selective rather than universal');
+  assert.equal(clean.localStorage.getItem(policy.storage.quarantineKey), null, 'FR-037 control: a clean open must write no quarantine record');
+});
+
+test('FR-029: no read compose inventory or export path removes personal data, and the same bytes do clear when the clear is explicitly invoked', () => {
+  const { api, policy } = loadContracts();
+  const localStorage = createStorage();
+  const sessionStorage = createStorage();
+  const store = api.createPortfolioStore({ localStorage, sessionStorage }, policy);
+  const opened = store.openWorkspace(NOW);
+  assert.equal(opened.ok, true);
+  const withPortfolio = store.commitWorkspace(
+    api.buildWorkspaceCandidate(validDraft(api, policy), opened.value.workspace, { name: 'Explicit clear portfolio', now: NOW }, policy).value,
+    opened.value.workspace.generation,
+    NOW
+  );
+  assert.equal(withPortfolio.ok, true);
+  const withEvidence = store.commitWorkspace(
+    appendEvent(api, policy, withPortfolio.value.workspace, {}).value.workspace,
+    withPortfolio.value.workspace.generation,
+    NOW
+  );
+  assert.equal(withEvidence.ok, true);
+  const workspace = withEvidence.value.workspace;
+
+  const before = localStorage.snapshot();
+  assert.equal(Object.keys(before).length > 0, true, 'FR-029 personal bytes must genuinely exist, or "nothing was removed" holds for an empty namespace');
+  assert.equal(workspace.behaviorEvents.length > 0, true, 'FR-029 behavior history must genuinely exist before an unrequested removal could be observed');
+
+  // Every non-clear entry point this module exposes, run over the populated namespace.
+  assert.equal(api.createPortfolioStore({ localStorage, sessionStorage }, policy).openWorkspace(NEXT_DAY).ok, true);
+  assert.equal(api.privacyInventory(workspace, { localStorage, sessionStorage }, policy).ok, true);
+  assert.equal(api.foundationPrivacyInventory({ localStorage, sessionStorage }).ok, true);
+  assert.equal(api.projectRouteStates(workspace, policy).ok, true);
+  assert.equal(api.exportPreview({ portfolio: workspace.portfolioRevisions[0] }).ok, true);
+  assert.equal(api.exportPrivate({ portfolio: workspace.portfolioRevisions[0] }).ok, true);
+
+  assert.deepEqual(localStorage.snapshot(), before, 'FR-029 no read compose inventory or export path may remove personal bytes without an explicit clear request');
+
+  // Control: the same bytes DO clear on the explicit call, so their survival above is caused by
+  // the absence of a clear request and not by a clear that no longer works on this namespace.
+  const cleared = api.clearFoundationStorage({ localStorage, sessionStorage });
+  assert.equal(cleared.ok, true, `FR-029 the explicit clear must succeed: ${JSON.stringify(cleared.error || {})}`);
+  assert.equal(cleared.value.verifiedEmpty, true);
+  assert.equal(
+    Object.keys(localStorage.snapshot()).some((key) => Object.prototype.hasOwnProperty.call(before, key)),
+    false,
+    'FR-029 control: the explicit clear must genuinely remove the personal bytes that survived every read path'
+  );
+});

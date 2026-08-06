@@ -1238,6 +1238,124 @@ discriminate. Two such assertions were found in this scope by injecting defects 
 the property each claimed to protect, which is the only method that has located
 either of them.
 
+##### Five more pairs: the five behaviors that had no RED at all
+
+Each of the five remaining node-reachable behaviors was given one pair. The method
+is unchanged: one minimal defect in `rlportfolio.js` placed at exactly the property
+that behavior's assertion claims to protect, `node --test tests/portfolio-privacy.functional.mjs`
+run and the failing assertion recorded verbatim, `git checkout -- rlportfolio.js`,
+`git status --porcelain rlportfolio.js` verified **empty**, then the same command
+re-run for GREEN.
+
+| Pair | Behavior | Defect | RED | Failing assertion | GREEN after revert |
+|---|---|---|---|---|---|
+| 5 | FR-011 | the constraint normalizer stamps one fixed authority class instead of carrying the declared one | 10 pass / 1 fail, exit 1 | `FR-011 hard constraints must be counted as declared` (`7 !== 4`), `:451` | 11 pass / 0 fail, exit 0 |
+| 6 | FR-012 | the out-of-declared-order date fault is removed from conflict detection | 10 pass / 1 fail, exit 1 | `FR-012 needs declared out of chronological order must be identified` (`false !== true`), `:476` | 11 pass / 0 fail, exit 0 |
+| 7 | FR-014 | the revision builder derives constraints from the committed holdings when the draft declares none | 10 pass / 1 fail, exit 1 | `FR-014 holdings must not become constraints`, `:507` | 11 pass / 0 fail, exit 0 |
+| 8 | FR-015 | propagation drops a declared constraint on the way into the candidate | 10 pass / 1 fail, exit 1 | `FR-015 every declared constraint must reach the candidate unchanged and in declared order`, `:520` | 11 pass / 0 fail, exit 0 |
+| 9 | NFR-022 | the closed-contract guard is removed from stored-mandate validation | 9 pass / 2 fail, exit 1 | `TypeError: Cannot read properties of undefined (reading 'reason')`, `:760` | 11 pass / 0 fail, exit 0 |
+
+**Claim Source:** executed. Every RED and every GREEN above was run and observed
+directly, and the clean-tree baseline preceding them was `# pass 11`, `# fail 0`,
+exit 0.
+
+**Attribution.** Pairs 5 through 8 each produced exactly one failing subtest
+carrying exactly one failing assertion, so there is nothing to disambiguate. No id
+was credited from a composite title; subtest 8's title names FR-011 through FR-016,
+and each of the four pairs landing inside it is credited only to the id whose
+assertion actually fired, identified by line.
+
+**Pair 9 produced two failures and only one is credited.** The failure at `:760` is
+the NFR-022 closed-contract assertion, and no other assertion occupies that line. The
+second, at `:905`, is `FR-033: a survival floor grafted onto the stored mandate must
+be refused, not absorbed` — collateral on the FR-017/FR-022/FR-033 row, which already
+carries its own RED from pair 1. It is reported, not credited, and advances no row.
+
+**Pair 9's RED is a `TypeError` rather than an `AssertionError`, and that is recorded
+rather than smoothed over.** With the contract opened, the validator returned success,
+so the assertion's own subject expression had no error object to read and threw before
+the comparison ran. The failure is still produced by exactly the removed property and
+still lands on exactly the NFR-022 line, so the row is credited. It does expose a
+robustness weakness in that assertion — it reaches into the refusal branch without
+first asserting that a refusal happened — but not a coverage gap, because the
+assertion discriminates: it passes with the contract closed and fails with it open.
+
+##### A fourth inert assertion: the declared authority is unguarded on the propagation path
+
+This run also closed a real coverage gap, and it is the third of the three shapes
+already named — a projection that omits the very property in question.
+
+FR-015's propagation check compared each constraint as a five-element tuple of kind,
+subject, unit and the two bounds. A declared constraint carries **six** declared
+fields. The one left out was `constraintKind`, the hard-versus-research authority
+that FR-011 exists to establish. FR-011's own authority assertions do not close the
+gap, because they read the **draft preview** and not the candidate. Between the two,
+the declared authority was established at draft time and never looked at again after
+it was propagated.
+
+**The defect used to expose it.** The revision builder rewrites every propagated
+constraint's authority to the research class and recomputes the constraint identity
+so no downstream identity check detects a mismatch. Its effect is that every hard
+constraint the user declared silently becomes advisory at commit time — the
+strongest available failure of the authority FR-011 establishes.
+
+**Both suites stayed green with the defect present.** Executed against the
+unmodified assertions, before any fix was written:
+
+```text
+# tests 11
+# pass 11
+# fail 0
+AUTHORITY_REWRITE_EXIT=0
+Research-Lab self-test: 1220 passed, 0 failed
+```
+
+The defect was reverted with `git checkout --` and `git status --porcelain
+rlportfolio.js` verified empty before the fix was written.
+
+**The fix.** The comparison is no longer a hand-listed subset. `declaredFieldRows`
+derives the compared field set from the declared entry's own keys, asserts every
+declared entry shares that set so the comparison cannot be exhaustive over one entry
+and partial over another, and rejects an empty set so it cannot pass over nothing. A
+named guard additionally asserts the derived set covers `constraintKind`, so the
+field that drifted out cannot drift out again unnoticed. The same treatment is
+applied to the cash-need comparison, whose tuple happened to be complete but was
+equally hand-listed and equally able to drift.
+
+**RED/GREEN proving the new assertion discriminates.** Same command both sides,
+`node --test tests/portfolio-privacy.functional.mjs`, same defect:
+
+| State | Result |
+|---|---|
+| Old assertion, defect present | `# pass 11`, `# fail 0`, exit 0 |
+| New assertion, `rlportfolio.js` clean | `# pass 11`, `# fail 0`, exit 0 |
+| New assertion, same defect re-injected | `# pass 10`, `# fail 1`, exit 1 |
+| New assertion, defect reverted | `# pass 11`, `# fail 0`, exit 0 |
+
+**Claim Source:** executed. All four runs above were run and observed directly.
+
+The RED names the propagation term and nothing else:
+
+```text
+FR-015 every declared constraint field must reach the candidate unchanged and in declared order
+```
+
+at `tests/portfolio-privacy.functional.mjs:537`.
+
+**An identical shape survives at FR-016 and is deliberately not changed here.**
+FR-016's "nothing relaxed" comparison uses the same hand-listed five-element
+constraint tuple and is blind to the same field, so a commit-time authority rewrite
+would pass it too. It is named rather than fixed, because FR-016 is not one of the
+rows this run was scoped to and the row it belongs to already carries a RED. It
+should be converted to the same declared-field-set comparison.
+
+**Working-tree discipline.** `git status --porcelain rlportfolio.js` was verified
+**empty** after each of the seven reverts in this run — five pairs, the gap probe
+before the fix, and the same probe re-injected after it — and once more at the end.
+None of the seven defects carried a marker, so a marker grep would have read clean
+against every one of them; a marker grep was therefore not accepted as evidence of
+revert at any point.
+
 **Why the clause still fails.** The clause is universally quantified — *every*
 Scope 02 behavior. Counting the RED records that now exist against the behaviors
 this scope delivers:
@@ -1252,17 +1370,18 @@ this scope delivers:
 | FR-017 / FR-022 / FR-033 forbidden-input refusal surface | yes | pair 1 above, `forbidden-input-source` defect |
 | Exact rollback by identity (clause (b)'s own test) | yes | pair 2 above, lineage-rebuild defect |
 | NFR-003 provenance | partial | pair 2's collateral `not ok 9` lands on the per-state invalidation block |
-| FR-011 purpose, units, hard/research authority | **no** | — |
-| FR-012 cash-need parts and the three date faults | **no** | — |
-| FR-014 nothing inferred from holdings | **no** | — |
-| FR-015 unchanged candidate propagation | **no** | — |
+| FR-011 purpose, units, hard/research authority | yes | pair 5 above, collapsed-authority defect |
+| FR-012 cash-need parts and the three date faults | yes | pair 6 above, removed out-of-declared-order date fault |
+| FR-014 nothing inferred from holdings | yes | pair 7 above, holdings-derived-constraints defect |
+| FR-015 unchanged candidate propagation | yes | pair 8 above, dropped-constraint propagation defect; the tuple gap is closed and separately proved |
 | NFR-005 missing-state integrity | yes | pair 4 above, `costPolicy` fallback defect |
 | NFR-007 last-valid integrity under refusal | partial | pair 3 above, `.staging` pre-validation write; the RED lands on the committed durable image, the refusal-path residue assertion is added but unproven |
-| NFR-022 research/advice boundary | **no** | — |
+| NFR-022 research/advice boundary | yes | pair 9 above, opened mandate-contract defect |
 | TP-02-03 / TP-02-04 browser rows | **no** | node-suite REDs do not reach them |
 
-Seven behaviors now carry a RED and three more are partial, up from four with two
-partial at the start of this session. The two gaps the earlier run named as
+Twelve behaviors now carry a RED and three more are partial, up from four with two
+partial at the start of this session and from seven with three partial before this
+run's five pairs. The two gaps the earlier run named as
 highest-value — the FR-017/FR-022/FR-033 refusal surface and the
 rollback-by-identity assertion — are both closed, and each is closed by a defect
 targeted at exactly the property the assertion claims to protect rather than at
@@ -1297,11 +1416,14 @@ rather than on resemblance.
 
 **Verdict: item 4 remains unchecked.** Clauses (a) and (b) are carried, and
 clause (b) is now carried by a RED/GREEN pair rather than by citation alone.
-Clause (c) is still quantified over *every* Scope 02 behavior, and five behaviors
-still have no RED at all: FR-011, FR-012, FR-014, FR-015 and NFR-022, plus the two
-browser rows that no node-suite defect can reach. Seven of sixteen with a RED and
-three partial does not satisfy a universal claim, so the item stays unchecked and
-no partial credit is claimed. This agent did not tick it.
+Clause (c) is still quantified over *every* Scope 02 behavior. The five behaviors
+that had no RED at all — FR-011, FR-012, FR-014, FR-015 and NFR-022 — each carry
+one now, and FR-015's carries the additional weight of having exposed an inert
+assertion on the way. What still has no RED is the TP-02-03 / TP-02-04 browser row,
+which no node-suite defect can reach, and three rows that remain partial rather than
+carried. Twelve of sixteen with a RED and three partial does not satisfy a universal
+claim, so the item stays unchecked and no partial credit is claimed. This agent did
+not tick it.
 
 ### Verdict
 

@@ -417,6 +417,21 @@ function draftErrorReasons(api, policy, raw, now = NOW) {
   return { canConfirm: result.value.canConfirm, reasons: result.value.errors.map((error) => error.reason), fields: result.value.errors.map((error) => error.field), conflicts: result.value.conflicts.map((entry) => entry.reason) };
 }
 
+// Propagation is compared on the declared entry's OWN field set, never a hand-listed subset.
+// A subset stops covering any field the contract later adds, and it had already stopped
+// covering constraintKind: the declared hard/research authority travelled into the candidate
+// with no assertion looking at it there, so a commit-time rewrite of every hard constraint
+// into a research one passed both suites green.
+function declaredFieldRows(entries, label) {
+  assert.equal(entries.length > 0, true, `${label}: an empty declared set cannot prove propagation`);
+  const fields = Object.keys(entries[0]).slice().sort();
+  assert.equal(fields.length > 0, true, `${label}: a declared entry with no fields cannot prove propagation`);
+  entries.forEach((entry, index) => {
+    assert.deepEqual(Object.keys(entry).slice().sort(), fields, `${label}[${index}]: every declared entry must share one field set or the comparison is not exhaustive`);
+  });
+  return { fields, rows: entries.map((entry) => fields.map((field) => entry[field])) };
+}
+
 test('FR-011 to FR-016: declared purpose units authority dates amounts currencies priorities and treatment reach the candidate unchanged and an infeasible draft fails loudly with nothing relaxed', () => {
   const { api, policy } = loadRuntime();
   const declared = mandateFixture('mandate-explicit.json');
@@ -517,15 +532,18 @@ test('FR-011 to FR-016: declared purpose units authority dates amounts currencie
   const candidate = api.buildMandateCandidate(draft.value, portfolio.value.workspace, { now: NOW }, policy);
   assert.equal(candidate.ok, true);
   const carried = candidate.value.mandateRevisions[candidate.value.mandateRevisions.length - 1];
+  const declaredConstraintShape = declaredFieldRows(declared.constraints, 'FR-015 constraints');
+  assert.equal(declaredConstraintShape.fields.includes('constraintKind'), true, 'FR-015 the constraint comparison must cover the declared hard/research authority');
   assert.deepEqual(
-    carried.constraints.map((entry) => [entry.kind, entry.subject, entry.unit, entry.minimum, entry.maximum]),
-    declared.constraints.map((entry) => [entry.kind, entry.subject, entry.unit, entry.minimum, entry.maximum]),
-    'FR-015 every declared constraint must reach the candidate unchanged and in declared order'
+    carried.constraints.map((entry) => declaredConstraintShape.fields.map((field) => entry[field])),
+    declaredConstraintShape.rows,
+    'FR-015 every declared constraint field must reach the candidate unchanged and in declared order'
   );
+  const declaredCashNeedShape = declaredFieldRows(declared.cashNeeds, 'FR-015 cash needs');
   assert.deepEqual(
-    carried.cashNeeds.map((entry) => [entry.date, entry.amount, entry.currency, entry.priority, entry.unit, entry.treatmentTiming]),
-    declared.cashNeeds.map((entry) => [entry.date, entry.amount, entry.currency, entry.priority, entry.unit, entry.treatmentTiming]),
-    'FR-015 every declared cash need must reach the candidate unchanged and in declared order'
+    carried.cashNeeds.map((entry) => declaredCashNeedShape.fields.map((field) => entry[field])),
+    declaredCashNeedShape.rows,
+    'FR-015 every declared cash need field must reach the candidate unchanged and in declared order'
   );
 
   // FR-016 both halves. LOUD: the conflict is enumerated with reasons and typed errors and the

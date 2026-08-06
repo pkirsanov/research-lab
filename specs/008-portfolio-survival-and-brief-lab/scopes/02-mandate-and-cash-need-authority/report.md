@@ -1349,12 +1349,73 @@ would pass it too. It is named rather than fixed, because FR-016 is not one of t
 rows this run was scoped to and the row it belongs to already carries a RED. It
 should be converted to the same declared-field-set comparison.
 
-**Working-tree discipline.** `git status --porcelain rlportfolio.js` was verified
+**Pair A — TP-02-03, and the browser row was a coverage gap, not a missing RED.**
+Command for every run below, unchanged across RED and GREEN:
+
+```text
+npx --no-install playwright test --config=playwright.config.mjs \
+  --project=system-chrome tests/portfolio-survival-foundation.spec.mjs
+```
+
+Baseline before any injection: **6 passed, 0 failed**.
+
+Defect A rewrites the declared `constraintKind` to `research` for every constraint
+carried into `projectRouteStates`, leaving subject, bound, unit and
+`inputAuthority` untouched. That is exactly the property the row names — it claims
+*hard* constraints across dependent route states. Against the assertions as they
+stood the suite returned **6 passed, 0 failed**: the defect was invisible. The
+preview counters that read `hard` and `research` are computed from the draft, not
+from the projection, so they were unaffected; and no assertion in the route-state
+loop or the rendered panel looked at the kind at all. Every hard bound could reach
+every dependent route as advisory with the browser suite fully green.
+
+Two assertions were added — the projected kinds must equal the declared pair, and
+the rendered constraint block must not display `research`. Re-running with defect A
+still in place: **1 failed, 5 passed**, the failure landing on the
+SCN-008-003 test at the display assertion, with the rendered block showing
+`research` where the fixture declares `hard`. The old assertions were green against
+this defect and the new ones are red against it, so the new assertions are what
+discriminate rather than an incidental precondition. Defect A reverted,
+`git status --porcelain rlportfolio.js` verified **empty**, same command:
+**6 passed, 0 failed**.
+
+**Pair B — TP-02-04, a second coverage gap of the same two shapes.** Defect B adds
+one further key, `expectedReturnPolicy`, to the projected `inferredValues` with a
+non-null numeric value. The row claims the mandate-absent route shows no hidden
+values, and the rendered panel prints every key in that map, so under the defect a
+real number is displayed beneath a heading that reads *No inferred values*. Against
+the assertions as they stood: **6 passed, 0 failed**.
+
+Both blind spots are ones this scope has already been bitten by. The panel check was
+`toContainText('No inferred values')` — a prefix that survives any appended key —
+and the value check iterated the five hand-listed never-inferred names, so a sixth
+key was outside what either could see.
+
+Two assertions were added to the SCN-008-004 test — the projected key set must equal
+the declared never-inferred set with every value null, and every rendered pair must
+read absent. Re-running with defect B still in place: **1 failed, 5 passed**,
+the failure landing on the SCN-008-004 test at the rendered-pair matcher, which
+reported the single non-absent pair. Defect B reverted,
+`git status --porcelain rlportfolio.js` verified **empty**, same command:
+**6 passed, 0 failed**.
+
+The assertions were deliberately added to the SCN-008-004 test only, not to both
+tests that iterate the never-inferred names, so the RED is attributable to the row
+being closed rather than spread across two tests.
+
+
 **empty** after each of the seven reverts in this run — five pairs, the gap probe
 before the fix, and the same probe re-injected after it — and once more at the end.
 None of the seven defects carried a marker, so a marker grep would have read clean
 against every one of them; a marker grep was therefore not accepted as evidence of
 revert at any point.
+
+The same rule was applied to pairs A and B. `rlportfolio.js` is the only source file
+those two injections touched — `portfolio-survival-allocation-lab.html` was read to
+choose the injection points but never edited — and `git status --porcelain` was
+verified empty for both files after each of the two reverts and once more at the
+end. Neither defect carried a marker, so a marker grep would have read clean
+against both; it was not accepted as evidence of revert.
 
 **Why the clause still fails.** The clause is universally quantified — *every*
 Scope 02 behavior. Counting the RED records that now exist against the behaviors
@@ -1377,11 +1438,13 @@ this scope delivers:
 | NFR-005 missing-state integrity | yes | pair 4 above, `costPolicy` fallback defect |
 | NFR-007 last-valid integrity under refusal | partial | pair 3 above, `.staging` pre-validation write; the RED lands on the committed durable image, the refusal-path residue assertion is added but unproven |
 | NFR-022 research/advice boundary | yes | pair 9 above, opened mandate-contract defect |
-| TP-02-03 / TP-02-04 browser rows | **no** | node-suite REDs do not reach them |
+| TP-02-03 / TP-02-04 browser rows | yes | pairs A and B above, route-projection `constraintKind` downgrade and an extra rendered inferred value; both were coverage gaps and both are closed |
 
-Twelve behaviors now carry a RED and three more are partial, up from four with two
-partial at the start of this session and from seven with three partial before this
-run's five pairs. The two gaps the earlier run named as
+Thirteen of the sixteen behaviors now carry a RED and the remaining three are
+partial; none is left at **no**. That is up from twelve yes, three partial and one
+no before pairs A and B, from four with two partial at the start of this session,
+and from seven with three partial before this run's five pairs. The two gaps the
+earlier run named as
 highest-value — the FR-017/FR-022/FR-033 refusal surface and the
 rollback-by-identity assertion — are both closed, and each is closed by a defect
 targeted at exactly the property the assertion claims to protect rather than at
@@ -1419,9 +1482,11 @@ clause (b) is now carried by a RED/GREEN pair rather than by citation alone.
 Clause (c) is still quantified over *every* Scope 02 behavior. The five behaviors
 that had no RED at all — FR-011, FR-012, FR-014, FR-015 and NFR-022 — each carry
 one now, and FR-015's carries the additional weight of having exposed an inert
-assertion on the way. What still has no RED is the TP-02-03 / TP-02-04 browser row,
-which no node-suite defect can reach, and three rows that remain partial rather than
-carried. Twelve of sixteen with a RED and three partial does not satisfy a universal
+assertion on the way. The TP-02-03 / TP-02-04 browser row, which no node-suite
+defect can reach, now carries one too, by way of two defects exercised through the
+Playwright suite; both turned out to be coverage gaps rather than merely unproved
+assertions. What remains is three rows that are partial rather than carried.
+Thirteen of sixteen with a RED and three partial does not satisfy a universal
 claim, so the item stays unchecked and no partial credit is claimed. This agent did
 not tick it.
 
@@ -1563,9 +1628,9 @@ Summary of the open gap, so the next owner does not have to re-derive it:
 - Clause (a) is carried — three suites re-executed green at the current HEAD.
 - Clause (b) is carried, and as of this run by a RED/GREEN pair rather than by
   citation alone.
-- Clause (c) is **not** carried. Six Scope 02 behaviors now have a RED record and
-  two are partial; seven still have none. The clause is quantified over all of
-  them.
+- Clause (c) is **not** carried. Thirteen Scope 02 behaviors now have a RED record
+  and three are partial; none is left with no record at all. The clause is
+  quantified over all of them, and three partial rows do not satisfy it.
 
 The two highest-value gaps the previous run named are now **closed**:
 
@@ -1582,21 +1647,30 @@ The two highest-value gaps the previous run named are now **closed**:
 Both pairs are recorded in
 [Item 4, clause (c)](#item-4---scope-01-preservation-exact-rollback-per-behavior-redgreen).
 
+3. ~~`TP-02-03` / `TP-02-04` browser rows.~~ Closed by pairs A and B, each a defect
+   exercised through the Playwright suite rather than the node suite. Both proved
+   to be coverage gaps: the suite stayed at 6 passed under each defect before the
+   missing assertion was written, then went to 1 failed / 5 passed with it, and
+   back to 6 passed after revert.
+
 What still blocks the item, in priority order:
 
-1. `TP-02-03` / `TP-02-04` browser rows — no node-suite defect can reach them, so
-   closing these needs a defect exercised through the Playwright suite.
-2. `NFR-007` last-valid integrity under refusal and `NFR-005` missing-state
-   integrity — both are negative claims of the same shape as the one pair 1
-   closed, so the same method applies.
-3. `FR-011`, `FR-012`, `FR-014`, `FR-015`, `NFR-022` — each needs a defect that
-   removes the specific behavior its assertion block names.
+1. `NFR-007` last-valid integrity under refusal and `NFR-003` provenance — both
+   are partial: the RED that exists lands on a neighbouring term rather than on
+   the one the row names.
+2. `NFR-012` atomic revisions / latest-complete publication — partial for the same
+   reason; the clause-1 defect lands on only part of it.
 
 This run injected two minimal defects, one per pair, and reverted both with
 `git checkout --`. `git status --porcelain rlportfolio.js` was verified empty
 after each revert and again before finishing. A marker grep was explicitly not
 accepted as evidence of revert, because neither defect carried a marker. The item
 was **not** ticked.
+
+A later run added pairs A and B for the browser rows on the same terms: two further
+minimal defects in `rlportfolio.js`, each reverted with `git status --porcelain`
+verified empty for that file and for the lab HTML, again without relying on a
+marker grep. That run did not tick the item either.
 
 ## Validation Summary
 

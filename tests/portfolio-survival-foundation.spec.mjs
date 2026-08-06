@@ -127,6 +127,9 @@ test('Regression: SCN-008-003 explicit mandate alone supplies every hard constra
     await expect(panel.locator('[data-constraints]')).toContainText('0.25');
     await expect(panel.locator('[data-constraints]')).toContainText('BND');
     await expect(panel.locator('[data-constraints]')).toContainText('0.1');
+    // The declared kind is displayed, not just the subject and bound: a route panel that
+    // downgrades every hard bound to research renders the same subjects and numbers.
+    await expect(panel.locator('[data-constraints]')).not.toContainText('research');
     await expect(panel.locator('[data-cash-needs]')).toContainText('2031-06-30');
     await expect(panel.locator('[data-cash-needs]')).toContainText('40000');
     await expect(panel.locator('[data-behavior]')).toContainText('behavior contributes none');
@@ -139,6 +142,9 @@ test('Regression: SCN-008-003 explicit mandate alone supplies every hard constra
   for (const entry of projection.routes) {
     expect(entry.constraints.map((constraint) => constraint.subject).sort()).toEqual(['BND', 'MSFT']);
     expect(entry.constraints.every((constraint) => constraint.inputAuthority === 'user')).toBe(true);
+    // Both fixture constraints are declared hard; the projection must carry the declared
+    // kind through, or a hard bound reaches every dependent route state as advisory.
+    expect(entry.constraints.map((constraint) => constraint.constraintKind)).toEqual(['hard', 'hard']);
     expect(entry.cashNeeds.map((need) => need.date)).toEqual(['2031-06-30']);
     expect(entry.cashNeeds.every((need) => need.inputAuthority === 'user')).toBe(true);
     for (const field of NEVER_INFERRED_FIELDS) expect(entry.inferredValues[field]).toBe(null);
@@ -197,6 +203,10 @@ test('Regression: SCN-008-004 no mandate leaves goal fit and survival unavailabl
     for (const field of NEVER_INFERRED_FIELDS) {
       await expect(panel.locator('[data-inferred]')).toContainText(`${field}=absent`);
     }
+    // 'No inferred values' is a prefix that survives any appended key, so read every
+    // rendered pair: a sixth field carrying a real number would display beneath that heading.
+    const inferredText = await panel.locator('[data-inferred]').innerText();
+    expect(inferredText.match(/=(?!absent\b)[^\s·]+/g)).toBe(null);
     await expect(panel.locator('[data-constraints]')).toContainText('No user-entered constraint');
     await expect(panel.locator('[data-cash-needs]')).toContainText('No user-entered cash need');
   }
@@ -216,6 +226,10 @@ test('Regression: SCN-008-004 no mandate leaves goal fit and survival unavailabl
       expect(state.citedMandateId).toBe(null);
     }
     for (const field of NEVER_INFERRED_FIELDS) expect(entry.inferredValues[field]).toBe(null);
+    // Quantify over the whole projected set, not the listed names: an unlisted key is
+    // exactly the hidden value this scenario denies.
+    expect(Object.keys(entry.inferredValues).sort()).toEqual([...NEVER_INFERRED_FIELDS].sort());
+    expect(Object.values(entry.inferredValues).every((value) => value === null)).toBe(true);
   }
 
   // A missing goal must never render as a neutral zero or a placeholder number.

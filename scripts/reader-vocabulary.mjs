@@ -117,6 +117,7 @@ export const BRIEF_NARRATIVE_FIELDS_REQUIRED = [
   'events.[].psychologyNote',
   'events.[].scenarios.[].name',
   'events.[].scenarios.[].expectedEffect',
+  'psychology.regimeName',
   'psychology.read',
   'psychology.tell',
   'groups.[].label',

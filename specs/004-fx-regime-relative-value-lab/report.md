@@ -4,31 +4,71 @@ Related artifacts: [scopes.md](scopes.md) | [uservalidation.md](uservalidation.m
 
 ## Planning Baseline
 
-This file is the single-file execution-evidence destination for the four sequential scopes in [scopes.md](scopes.md). `bubbles.plan` authored the planning structure and scenario/test contracts; it did not implement or certify product behavior.
+This file is the single-file execution-evidence destination for the five sequential scopes in [scopes.md](scopes.md). `bubbles.plan` authored the planning structure and scenario/test contracts; it did not implement or certify product behavior.
 
 The design records a prior `node scripts/selftest.mjs` result of 345 passed and 0 failed. The planning run executed the command again on 2026-07-14 and observed 344 passed and 1 failed: the current shared Market Brief payload omits registered `bond-regime-lab`, a pre-existing finding already recorded by spec 003. These observations are context only and are not execution evidence for any Feature 004 DoD item. `BASE-SEC-01`, `BASE-SEC-02`, `BASE-SEC-03`, and `BASE-BRIEF-01` remain protected assertions with their existing owners.
 
 ## Summary
 
-- Scope order: reusable RLFX/source-envelope foundation -> direct FX route with truthful public unavailable states -> Global Rotation exact-date reconciliation -> atomic registration and Market Brief publication closure.
-- Scenario coverage: all 26 business scenarios map one-to-one to `SCN-004-001` through `SCN-004-026`.
-- Test handoff: 64 exact Markdown Test Plan rows are mirrored in the active `test-plan.json` inventory; scope counts are 22, 12, 10, and 20, and each row has one row-linked DoD item whose existing checkbox state is preserved.
+- Scope order: additive RLFX vehicle/owner/shared contracts -> ETF-first four-view route and Simple/Power -> Global Rotation equity-only migration -> shared Brief/Journey -> atomic registration/docs/closure.
+- Scenario coverage: all 33 business scenarios map one-to-one to `SCN-004-001` through `SCN-004-033`.
+- Test handoff: 84 exact Markdown Test Plan rows are mirrored in the active `test-plan.json` inventory; scope counts are 30, 17, 10, 14, and 13. Each row has one row-linked DoD item. Historical checked Scope 1 evidence is preserved, while every reconciled vehicle, owner, Brief, Journey, registration, and closure requirement remains unchecked.
 - Planning repair: `CMD-BROWSER-FUNCTIONAL` now uses the executable unanchored literal `--grep "Browser functional"` in active Markdown and machine-readable planning. Historical anchored executions below remain verbatim evidence of the former command defect.
 - Runtime boundary: controlled same-origin production-module cases are functional tests. E2E uses the real production route and current source posture with no request interception or fixture replacement; unavailable official-dollar/carry/REER/positioning/event states are expected public-v1 behavior.
 - Dirty-tree boundary: exact non-secret identities and hunk hashes below protect every already-dirty shared path. `market-brief.config.json` requires a fresh implementation-time checkpoint because reported concurrent mutation makes the planning-time clean observation non-authoritative.
 
 ## Completion Statement
 
-Implementation is nonterminal. Scope 1 remains In Progress; Scopes 2-4 remain Not Started. Existing implementation/test evidence and checkbox states are preserved, Scope 1 is not marked Done, and certification remains unchanged.
+Implementation is nonterminal. Scope 1 remains In Progress; Scopes 2-5 remain Not Started. Existing valid implementation/test evidence and checkbox states are preserved. New requirements are unchecked. Scope 1 is not marked Done, and certification remains unchanged.
 
 ## Decision Record
 
-- `rlfx.js` is the mandatory `foundation:true` capability and precedes all browser/headless overlays.
-- Four single-file scopes are sufficient: each owns one outcome and the DAG is strictly sequential. Registration is held until Scope 4 so registry, Brief coverage, notes, and Bond coverage close atomically.
+- `rlfx.js` plus its additive vehicle, owner-decision, control-binding, Brief-eligibility, Journey-refresh, and source-envelope contracts form the mandatory `foundation:true` capability before every browser/headless overlay.
+- Five single-file scopes each own one outcome and execute in a strict DAG. Shared Brief/Journey readiness is separated from public registration. Scope 5 is the only atomic registry, notes, owner-coverage, and exclusion cutover.
 - The FX page is a separate owner; Global Rotation consumes decomposition only and Market Brief consumes owner reads only.
 - Cross-owner Agreement/Divergence belongs to `RLBRIEF`, not RLFX; it compares independent leader-currency strength with Global approximate local-relative return.
+- The visible title is **FX Regime & Currency Vehicle Lab** while stable route, registry, owner-read, and Journey identity remains `fx-regime-relative-value-lab`.
+- Vehicle direction, basket, exact tracking residual, No Eligible Vehicle, and YCS reset/horizon boundaries are explicit owner behavior. A listed wrapper is never relabeled as spot.
 - Optional evidence unavailable under its source contract is complete runtime behavior and is rendered as an exact unavailable state.
 - Project config has no `testImpact` or `traceContracts`, so no inferred G079/G080 workflow is added.
+
+## Planning Reconciliation - 2026-08-03T14:26:25Z
+
+**Claim Source:** not-run
+
+This section creates evidence destinations only. No scenario below has execution evidence from this planning reconciliation, and no new DoD item is checked.
+
+### Scenario SCN-004-027
+
+Planned persistent regression: `Regression SCN-004-027: JPY strength rejects every direction-mismatched vehicle before selecting FXY` in `tests/fx-regime-relative-value-lab.spec.mjs`. Required evidence must prove the real same-origin route rejects an opposite-direction vehicle before accepting an oriented unlevered result.
+
+### Scenario SCN-004-028
+
+Planned persistent regression: `Regression SCN-004-028: tracking preserves an unexplained residual when no sourced contribution closes it` in `tests/fx-regime-relative-value-lab.spec.mjs`. Required evidence must prove market, NAV, underlying, and residual remain distinct.
+
+### Scenario SCN-004-029
+
+Planned persistent regression: `Regression SCN-004-029: a long-dollar direction cannot erase the UUP and USDU basket mismatch` in `tests/fx-regime-relative-value-lab.spec.mjs`. Required evidence must include both direction-matched but structurally different baskets.
+
+### Scenario SCN-004-030
+
+Planned persistent regression: `Regression SCN-004-030: YCS resets to Rejected outside Tactical and expires at the source session boundary` in `tests/fx-regime-relative-value-lab.spec.mjs`. Required evidence must exercise Swing, reset exclusion, direction mismatch, Tactical permission, and reset expiry.
+
+### Scenario SCN-004-031
+
+Planned persistent regression: `Regression SCN-004-031: no eligible result preserves every rejection and selects no substitute` in `tests/fx-regime-relative-value-lab.spec.mjs`. Required evidence must prove null selection and one settled disposition per registry vehicle without loosening constraints.
+
+### Scenario SCN-004-032
+
+Planned persistent regression: `Regression SCN-004-032: stale vehicle facts refuse the current Brief while prior evidence stays visibly non-current` in `tests/fx-regime-relative-value-lab.spec.mjs`. Required evidence must prove current refusal, exact blocking clocks, and the prior-evidence label.
+
+### Scenario SCN-004-033
+
+Planned persistent regression: `Regression SCN-004-033: Journey evidence refresh reopens transitive dependents and every completion packet remains non-executable` in `tests/fx-regime-relative-value-lab.spec.mjs`. Required evidence must prove semantic refresh, transitive reopening, preserved audit history, current-step gating, human signoff, and no execution.
+
+### Scope 1 Provider Canary Disposition
+
+`TR-F004-SCOPE01-PROVIDER-STRESS-CANARY-001` remains open and test-owned. Remaining bounded Scope 1 implementation may proceed. Scope 1 completion and Scope 2 pickup remain blocked until `bubbles.test` reconciles only the BUG-001-owned provider stress/load tests and replays the focused Scope 1 matrix. This planning reconciliation does not edit BUG-001 or claim the canary resolved.
 
 ## Dirty-Tree Collision Baseline (GRILL-004-09)
 
@@ -4095,4 +4135,4399 @@ the alignment the framework already sanctions, and options 1 and 2 remain policy
 line number, and admit the framework's markdown-evidence fallback when no log entry exists.
 That keeps the assertion load-bearing — a fabricated or absent command still fails — while
 removing the dependency on a byte offset in a file git is configured to discard.
+
+<!-- bubbles:certifying-window-begin -->
+
+## Current Planning Gate Repair - 2026-08-03T19:02:48Z
+
+### Summary
+
+This window records only the plan-owned repair for `F004-SCOPE01-PLANNING-GATES-001`. It preserves every earlier report byte as historical evidence, keeps Scope 1 In Progress, keeps Scopes 2 through 5 Not Started, and changes no certification field or checkbox state.
+
+### Completion Statement
+
+The planning repair is nonterminal. Scope 1 still requires current owner-produced evidence for its unchecked implementation and Test Plan items. Scope 2 cannot start from this result.
+
+### Code Diff Evidence
+
+The current change boundary contains only `specs/004-fx-regime-relative-value-lab/scopes.md`, `specs/004-fx-regime-relative-value-lab/report.md`, and plan/orchestrator-owned fields in `specs/004-fx-regime-relative-value-lab/state.json`. This window makes no runtime, source, or test delta claim. The immutable earlier Scope 1 implementation record remains the report's runtime-path and executed `git diff` evidence for `rlfx.js`, `rldata.js`, `fx-regime-universe.json`, `scripts/selftest.mjs`, `scripts/fetch-bars.mjs`, and the dedicated Feature 004 tests.
+
+### Test Evidence
+
+**Phase:** plan
+**Claim Source:** not-run
+
+No product or test result is recorded by this planning repair. A subagent summary is not raw report evidence and does not change a TP item, core DoD item, scope status, or certification state.
+
+### Unresolved Owner Routes
+
+- `TR-F004-SCOPE01-MCP-EVIDENCE-CARRIER-001` remains assigned to `bubbles.test` for current-session command evidence admitted through the sanctioned MCP carrier.
+- `TR-F004-SCOPE01-FEATURE012-TEST-001` remains assigned to `bubbles.test` for the Feature 012 shared control, Brief, and Journey consumer tests.
+- `TR-F004-SCOPE01-FEATURE012-DOCS-001` remains assigned to `bubbles.docs` for the Feature 012 shared-contract documentation.
+- `TR-F004-SCOPE01-PROVIDER-STRESS-CANARY-001` remains assigned to `bubbles.test` on the BUG-001 provider stress/load test surface. Its state remains open because the current recorded test evidence is failing.
+
+### Validation Summary
+
+Artifact and guard results for this planning repair are reported from commands executed in this invocation. They are planning diagnostics, not product-test evidence and not support for a Scope 1 completion claim.
+
+## Durable Evidence Admission Successor - 2026-08-03T23:58:28Z
+
+### Summary
+
+This plan-owned window resolves the design defect recorded by `F-004-EVIDENCE-DURABILITY`. The additive `feature004-durable-evidence-admission/v1` contract supersedes only absolute tool-log line numbers as the runtime admission mechanism. It does not supersede, rewrite, reinterpret, or re-run any historical receipt, raw evidence block, marker-inclusive hash, v2/v3 provenance record, collision identity, or false-completion assertion.
+
+The future test-owned durable receipt marker is `feature004-scope1-durable-evidence-v1`. The future additive current-identity marker is `feature004-dirty-collision-current-identity-v4`. Their closed schema and exact implementation handoff are recorded in `scopes.md#durable-evidence-admission-successor` and `test-plan.json::durableEvidenceAdmissionHandoff`.
+
+### Two-Source Admission Boundary
+
+When a current `.specify/runtime/tool-calls.jsonl` has full-key Scope 1 matches, each receipt must resolve exactly once by `sessionId + agent + spec + scope + exact cmd + exitCode + stdoutHash + exact required tags`. Line number and append order are never identity. Earlier RED or unrelated executions with a different full key remain distinct history. A nonempty proper subset of matched receipts, malformed selected row, duplicate full key, broadened comparison, or contradiction fails closed and blocks the Markdown branch.
+
+Only when the log is absent or has zero full-key matches for the entire declared receipt set may the parser admit one committed `feature004-scope1-durable-evidence-v1` block. Every receipt requires at least ten literal raw output lines, exact command/exit/hash fields, exact stable-key fields, ordered hash links to every immutable predecessor block it relies on, and an exact marker-inclusive no-trailing-newline SHA-256 pinned by the parser. Missing, malformed, mismatched, duplicated, broadened, subset-only, synthetic, reordered, contradictory, or absent evidence fails. There is no success-on-absence branch and no synthetic row creation.
+
+### Current Diagnostic Boundary
+
+Planning read the corrected root ledger and the unchanged collision test. The current ledger uses stable records and contains `bubbles.test` Scope 1 rows for the focused Feature 004 suites, provider matrix, browser functional suite, provider/Bond/Causal browser suites, Causal validator, and repository selftest. The current CMD-COLLISION row is exit 1, and the parser's three failures all stop at the missing absolute line 652 assertion. These are diagnostic observations only. Planning does not copy them into a raw evidence block, admit a receipt, check TP-01-22, close the provider transition, or claim any command reran in this invocation.
+
+The current provider unit, functional, browser, stress, and load rows are green in that ledger. `TR-F004-SCOPE01-PROVIDER-STRESS-CANARY-001` remains open because only `bubbles.test` may admit those rows and return the transition disposition. The Feature 012 test and documentation routes also remain open because no terminal owner evidence was reconciled here.
+
+### Current-Identity Checkpoint Boundary
+
+The v4 checkpoint must capture all 19 exact Scope 1 implementation, harness, dedicated-test, and fixture paths declared in the planning artifacts. It must also capture every current protected foreign dirty hunk and untracked file as `foreign-unrelated`, retaining existing owner attribution without transferring ownership to Feature 004. Tracked and untracked path kinds have explicit closed identity fields. The collision parser itself uses the closed `normalized-self-pins/v1` rule: exactly two named 64-hex pin literals are normalized to zeroes before hashing, so the final test can pin both report blocks without creating an impossible self-hash cycle. Every non-pin parser byte and ordered hunk remains covered. Any volatile or concurrently changing path requires a just-in-time capture immediately before parser work, and any later drift requires another additive owner-routed checkpoint.
+
+### Test-Owner Handoff
+
+`bubbles.test` must append the actual current durable receipt block and JIT v4 identity block, pin both marker-inclusive hashes, change only `tests/feature-004-dirty-tree-collision.test.mjs`, add adversarial cases for every two-source and identity failure branch, run unchanged CMD-COLLISION RED then GREEN, and replay unchanged BUG-002 verification. No product code edit is authorized. A green parser does not complete Scope 1, unlock Scope 2, close Feature 012 routes, or mutate certification.
+
+### Completion Statement
+
+Planning is complete for the successor schema and route only. Scope 1 remains In Progress, Scope 2 remains locked, every current checkbox is preserved, and `certification.*` is untouched. Test implementation and evidence admission remain unresolved under `TR-F004-SCOPE01-DURABLE-EVIDENCE-001` with next owner `bubbles.test`.
+
+<!-- feature004-scope1-durable-evidence-v1:start -->
+```json
+{
+    "contractVersion": "feature004-durable-evidence-admission/v1",
+    "findingId": "F-004-EVIDENCE-DURABILITY",
+    "capturedAt": "2026-08-04T01:04:30Z",
+    "immutablePredecessorBlocks": [
+        {
+            "marker": "feature004-dirty-baseline-v1",
+            "rawBlockSha256": "3cc8105ec0175bff8e3474c47fbb85a0388591e7274411b055951873493f02ad"
+        },
+        {
+            "marker": "feature004-dirty-supersession-v1",
+            "rawBlockSha256": "251685583abe5891e36c58d5e2b6fcfee2ea82d2745a9b1721ecdd770c354b2d"
+        },
+        {
+            "marker": "feature004-dirty-collision-disposition-v1",
+            "rawBlockSha256": "5008d1382f9283f1308697ad2037b662aa723a0d3d348884eded09282009310e"
+        },
+        {
+            "marker": "feature004-dirty-collision-delta-v1",
+            "rawBlockSha256": "334cae6ba3d95ad3837971ee3a402a68ffb46df23f490a31104d94cd73ea0e4b"
+        },
+        {
+            "marker": "feature004-dirty-collision-settled-delta-v1",
+            "rawBlockSha256": "f3e631e3f10ea456685b749f24b4dcf58ea042d60f24b9de7a2fcd77f08864f0"
+        },
+        {
+            "marker": "feature004-dirty-collision-script-transitions-v1",
+            "rawBlockSha256": "6939ebd01e0a1b89849b75c9b228e0957c285f8500c6191da5338a5ae58dad69"
+        },
+        {
+            "marker": "feature004-superseded-validator-note-v1",
+            "rawBlockSha256": "1df8a233ab8bf6daec8c8081fdb61176e113b5bf4436eb7e3904824265b4f592"
+        },
+        {
+            "marker": "feature004-dirty-collision-owner-settled-selftest-v1",
+            "rawBlockSha256": "a569a5eaa89ca2de4905167dd2bfe13c306e88fb8e11dd912efdaee86523cc07"
+        },
+        {
+            "marker": "feature004-dirty-collision-selftest-successor-v2",
+            "rawBlockSha256": "eef8aa415b739df80b1aab4046adbb64a39c87c6fb1b73ff0ac210b67870f32a"
+        },
+        {
+            "marker": "feature004-dirty-collision-selftest-successor-v3",
+            "rawBlockSha256": "8427a99ae9cadd27e401a7a06bd2f0e707e3c5096508c4e7fe903db67f8f1995"
+        }
+    ],
+    "sourceSelection": {
+        "currentToolLogPath": ".specify/runtime/tool-calls.jsonl",
+        "stableKeyFields": [
+            "sessionId",
+            "agent",
+            "spec",
+            "scope",
+            "cmd",
+            "exitCode",
+            "stdoutHash",
+            "tags"
+        ],
+        "tagComparison": "exact-ordered-equality",
+        "markdownEligibility": "log-absent-or-zero-full-key-matches-across-entire-receipt-set",
+        "minimumRawLinesPerReceipt": 10,
+        "rawOutputHashInput": "rawOutputLines-joined-with-lf",
+        "blockHashInput": "marker-inclusive-no-trailing-newline"
+    },
+    "receipts": [
+        {
+            "sessionId": "vscode-e24db39cf992f7ccd8ec75209602db59",
+            "agent": "bubbles.test",
+            "spec": "004-fx-regime-relative-value-lab",
+            "scope": "SCOPE-01",
+            "cmd": "node tests/provider-credentials.stress.mjs",
+            "exitCode": 0,
+            "stdoutHash": "da71c907a5d058ae5f0557c68d88c2667a8e06e6be96128009d29abb8d9a5a68",
+            "tags": [
+                "provider",
+                "stress",
+                "BASE-SEC-01",
+                "BASE-SEC-02",
+                "BASE-SEC-03"
+            ],
+            "rawOutputLines": [
+                "BUG002_STRESS_BEGIN",
+                "CATEGORY=stress",
+                "CYCLES=250",
+                "TIER2_ROUNDTRIPS=250",
+                "TIER1_PROXY_FETCHES=250",
+                "TIER2_PROVIDER_FETCHES=250",
+                "PROXY_KEY_LEAKS=0",
+                "TIER2_REQUESTS_MISSING_KEY=0",
+                "KEY_LEAKS=0",
+                "LEGACY_STORAGE_OFFENDERS=0",
+                "RESULT=PASS",
+                "BUG002_STRESS_END",
+                ""
+            ],
+            "rawOutputSha256": "da71c907a5d058ae5f0557c68d88c2667a8e06e6be96128009d29abb8d9a5a68"
+        },
+        {
+            "sessionId": "vscode-e24db39cf992f7ccd8ec75209602db59",
+            "agent": "bubbles.test",
+            "spec": "004-fx-regime-relative-value-lab",
+            "scope": "SCOPE-01",
+            "cmd": "node tests/provider-credentials.load.mjs",
+            "exitCode": 0,
+            "stdoutHash": "bdf2d697b46916bbe7e32b88887e3b6a37d36106e2e9281013fb68418511271a",
+            "tags": [
+                "provider",
+                "load",
+                "BASE-SEC-01",
+                "BASE-SEC-02",
+                "BASE-SEC-03"
+            ],
+            "rawOutputLines": [
+                "BUG002_LOAD_BEGIN",
+                "CATEGORY=load",
+                "PARALLEL_CONTEXTS=8",
+                "ISOLATED_KEYS=8",
+                "PERSISTED_ACROSS_RELOAD=8",
+                "PERSISTED_ACROSS_NAV=8",
+                "TIER2_PROVIDER_REACHED=8",
+                "KEY_LEAKS=0",
+                "RESULT=PASS",
+                "BUG002_LOAD_END",
+                ""
+            ],
+            "rawOutputSha256": "bdf2d697b46916bbe7e32b88887e3b6a37d36106e2e9281013fb68418511271a"
+        }
+    ]
+}
+```
+<!-- feature004-scope1-durable-evidence-v1:end -->
+
+<!-- feature004-dirty-collision-current-identity-v4:start -->
+```json
+{
+    "contractVersion": "feature004-dirty-collision-current-identity/v4",
+    "findingId": "F-004-EVIDENCE-DURABILITY",
+    "capturedAt": "2026-08-04T01:15:20Z",
+    "extendsContracts": [{"marker":"feature004-dirty-baseline-v1","rawBlockSha256":"3cc8105ec0175bff8e3474c47fbb85a0388591e7274411b055951873493f02ad"},{"marker":"feature004-dirty-supersession-v1","rawBlockSha256":"251685583abe5891e36c58d5e2b6fcfee2ea82d2745a9b1721ecdd770c354b2d"},{"marker":"feature004-dirty-collision-disposition-v1","rawBlockSha256":"5008d1382f9283f1308697ad2037b662aa723a0d3d348884eded09282009310e"},{"marker":"feature004-dirty-collision-delta-v1","rawBlockSha256":"334cae6ba3d95ad3837971ee3a402a68ffb46df23f490a31104d94cd73ea0e4b"},{"marker":"feature004-dirty-collision-settled-delta-v1","rawBlockSha256":"f3e631e3f10ea456685b749f24b4dcf58ea042d60f24b9de7a2fcd77f08864f0"},{"marker":"feature004-dirty-collision-script-transitions-v1","rawBlockSha256":"6939ebd01e0a1b89849b75c9b228e0957c285f8500c6191da5338a5ae58dad69"},{"marker":"feature004-superseded-validator-note-v1","rawBlockSha256":"1df8a233ab8bf6daec8c8081fdb61176e113b5bf4436eb7e3904824265b4f592"},{"marker":"feature004-dirty-collision-owner-settled-selftest-v1","rawBlockSha256":"a569a5eaa89ca2de4905167dd2bfe13c306e88fb8e11dd912efdaee86523cc07"},{"marker":"feature004-dirty-collision-selftest-successor-v2","rawBlockSha256":"eef8aa415b739df80b1aab4046adbb64a39c87c6fb1b73ff0ac210b67870f32a"},{"marker":"feature004-dirty-collision-selftest-successor-v3","rawBlockSha256":"8427a99ae9cadd27e401a7a06bd2f0e707e3c5096508c4e7fe903db67f8f1995"},{"marker":"feature004-scope1-durable-evidence-v1","rawBlockSha256":"c5ed7a110a2a743d2aef3b32c0655a2fd3c20c7ca6c9ee2ecef2716654ef7268"}],
+    "requiredScope1Paths": [
+        {"path":"rlfx.js","pathKind":"tracked","classification":"scope1-required","ownerAttribution":"specs/004-fx-regime-relative-value-lab::SCOPE-01","feature004OwnershipClaim":true,"status":" M","staged":false,"unstaged":true,"headOid":"139b41b18f985b5d5b29cf6627e43bcdf154764b","indexOid":"139b41b18f985b5d5b29cf6627e43bcdf154764b","worktreeGitOid":"6221c546b83045e65daef4712ab44ac244ea17fa","worktreeSha256":"ea90a95934935a1d3a6ce57a53baeffa1201e113ec9e9fd9ca06d92bc4204349","hunkCount":7,"hunkBodySha256":["460c257499dc897d92f59989e14301aff7356a62a819fb17acacf0769a7046de","e3c41ddd251bd7d2ebb2d4c9de3279c7dadef322a8ff5ad65a05f71fae44e668","4f355f4408c718758bda3eac11f58079ac799ef88c044757d1bd88d589feef41","ce227cd07a3f0c56db3cbeac400edcb72cb22eefa009f89545639fa53ff68860","ef3f8f61c0b849e231de2229f2bbd13e745e19656c8a36cb8410e6d55523daff","f2da74583f54642c9eeb3c90970619e3bc0688c7d7b6d0a2a68f98b7faac9379","fd10202a7cd0107ea494ba42559a11bbe2a49b6a2b4b7e768d4e7b1e54231db7"],"lastCommit":"943972e295b8fa93a19795e46015e5ae780b0350"},
+        {"path":"fx-regime-universe.json","pathKind":"tracked","classification":"scope1-required","ownerAttribution":"specs/004-fx-regime-relative-value-lab::SCOPE-01","feature004OwnershipClaim":true,"status":"","staged":false,"unstaged":false,"headOid":"75ab66d267a4df54b05d00f4d59ca88452eec6fd","indexOid":"75ab66d267a4df54b05d00f4d59ca88452eec6fd","worktreeGitOid":"75ab66d267a4df54b05d00f4d59ca88452eec6fd","worktreeSha256":"8abeecdf6ea23e5e15e8080ecbd9ecbe4b507959b7637ec79c4a7933061fc927","hunkCount":0,"hunkBodySha256":[],"lastCommit":"943972e295b8fa93a19795e46015e5ae780b0350"},
+        {"path":"fx-vehicle-universe.json","pathKind":"untracked","classification":"scope1-required","ownerAttribution":"specs/004-fx-regime-relative-value-lab::SCOPE-01","feature004OwnershipClaim":true,"status":"??","staged":false,"unstaged":true,"headOid":null,"indexOid":null,"worktreeGitOid":"c970443312c21c45a4fc562c876c159a1db5fc26","worktreeSha256":"96c9a1f910dc54d78dbd62faf6e7d3804736ed7c75f1d409e8c699dcbf2f5da7","hunkCount":0,"hunkBodySha256":[],"lastCommit":null},
+        {"path":"rldata.js","pathKind":"tracked","classification":"scope1-required","ownerAttribution":"specs/004-fx-regime-relative-value-lab::SCOPE-01","feature004OwnershipClaim":true,"status":"","staged":false,"unstaged":false,"headOid":"3afe3b673746e7be23790b4846a004f4a7f3c5ef","indexOid":"3afe3b673746e7be23790b4846a004f4a7f3c5ef","worktreeGitOid":"3afe3b673746e7be23790b4846a004f4a7f3c5ef","worktreeSha256":"fc65480db17ad92600e46832ea86548378acc334e1b3454f5bac133966088772","hunkCount":0,"hunkBodySha256":[],"lastCommit":"e38615ea1e41616370e4c6530fe42b9f8fb93a62"},
+        {"path":"rlexperience.js","pathKind":"tracked","classification":"scope1-required","ownerAttribution":"specs/004-fx-regime-relative-value-lab::SCOPE-01","feature004OwnershipClaim":true,"status":" M","staged":false,"unstaged":true,"headOid":"8c7eec663fb4e9552fe1fdda77ef9c29282cb2c6","indexOid":"8c7eec663fb4e9552fe1fdda77ef9c29282cb2c6","worktreeGitOid":"6f72ca10decbb4544de5627d729aa54ca7839d07","worktreeSha256":"b64c6f7fe1e008f4fd8d2d4d5d1228b334acab78e8ce0364f8b56b3acb462c78","hunkCount":3,"hunkBodySha256":["3176fdc4dcf7f08990a7bda3b89e647020095dd8a085890e010c3e4780a03c14","f2cf150373099b27fd8c38206b407842c026350976e4d239bd483649802f0c98","bc8cecb3e6caf70c81f78d5f1e4ec93c38167fe7fa38fc93e4c9720c94df042e"],"lastCommit":"22bec67ab544fb3dbea81d62efdc571f8d6fe319"},
+        {"path":"rlviews.js","pathKind":"tracked","classification":"scope1-required","ownerAttribution":"specs/004-fx-regime-relative-value-lab::SCOPE-01","feature004OwnershipClaim":true,"status":"","staged":false,"unstaged":false,"headOid":"dca0b579390907f8f1b59ee88a5082c5f311b5a4","indexOid":"dca0b579390907f8f1b59ee88a5082c5f311b5a4","worktreeGitOid":"dca0b579390907f8f1b59ee88a5082c5f311b5a4","worktreeSha256":"4aba205dd62ce44af83df0aec29438382fa40dc980220a929a0c87e0b6dd706f","hunkCount":0,"hunkBodySha256":[],"lastCommit":"9d7efc4c174fb840d616fef321f73b0d6145f7cb"},
+        {"path":"rlbrief.js","pathKind":"tracked","classification":"scope1-required","ownerAttribution":"specs/004-fx-regime-relative-value-lab::SCOPE-01","feature004OwnershipClaim":true,"status":" M","staged":false,"unstaged":true,"headOid":"b1109e02c94e20211c904279e92c2c1fdb525bc9","indexOid":"b1109e02c94e20211c904279e92c2c1fdb525bc9","worktreeGitOid":"9a6967914e00c0f6ba379bc15cd9a592691bf5a8","worktreeSha256":"37b0b447e658e64334a7ad600da1298e80d6ad937e2ee95cb1947d47bac5e32b","hunkCount":2,"hunkBodySha256":["6aa615d3a7e4581cdaef6729d7a69fbc94329fcf7db55af8f62b4eab81c09ea3","af97849a3df0f94fb01d03b94df3d8fa1a14f9b924cc980af254ea0e96151f8d"],"lastCommit":"b4bcc7c8b8c857d70e4c7534b8268346aefb9324"},
+        {"path":"rljourney.js","pathKind":"tracked","classification":"scope1-required","ownerAttribution":"specs/004-fx-regime-relative-value-lab::SCOPE-01","feature004OwnershipClaim":true,"status":" M","staged":false,"unstaged":true,"headOid":"436768746a54852748836fb3a7e2ccc04f2da82e","indexOid":"436768746a54852748836fb3a7e2ccc04f2da82e","worktreeGitOid":"1879f170a71b1f05df96d9466e785928163eac1d","worktreeSha256":"3230b836afeabbb675d308a0d8b3c4dc19740984a79aefc2d665dbec8a6c37ac","hunkCount":13,"hunkBodySha256":["aaa1eb2c7bbb4fdbfd542efaec3d12c5701eeb103e2868ad3e27c71724556edb","f84061a9099778b892bcad094e965b72101436e2d22b192bdf6810a6fca83b30","f14b74d30ea20adbafa74c3604e5f7cb02b7d7fb7a799051b7e31b956fce28ab","8af37d7ca422a18a4f4f972d2756c555946e4a694a255b370d454669add32ece","9ebdfce8499a8cc3971f17a5f78a61736827c6691b028e78659a3aac163aa12e","c569e3763ed77c494bbf78ead88ee5ca8a565e62a6225ad9b9735d0ac561767d","003915253b02528a103874aed1bb2ba1b7c7af180e81e9206ba0aee97c671c50","540243d530562a950a8500887ac3fd6324361d4e314ffdf7648f34692d1cf29b","79584706335ef984845f5a07dd1c7d7cfa0d9f5dd9dc03ca0226f40ddee74c90","a6d4c631d11968c3f99498b4ecc76cbe64ec0f42d5b15dd6ba4c036c1a7ee864","102cd9d7094ade6119761703a584e5000be0332dbea9857d7af9623a5c82fae8","bbb869c95de5632fcf17b6ea414c5eecdf4192978e860d4d5d60d7c83d887039","2760e22c6a539c81cd5da277b672443a87da4d62baaf5b91059b2b4ef6e67417"],"lastCommit":"077b4a4dc39893e72325e9fabf89dd4cc3edeadf"},
+        {"path":"scripts/fetch-bars.mjs","pathKind":"tracked","classification":"scope1-required","ownerAttribution":"specs/004-fx-regime-relative-value-lab::SCOPE-01","feature004OwnershipClaim":true,"status":"","staged":false,"unstaged":false,"headOid":"6384588c656492cc7dcdd9370b0d80ccc7d08ac3","indexOid":"6384588c656492cc7dcdd9370b0d80ccc7d08ac3","worktreeGitOid":"6384588c656492cc7dcdd9370b0d80ccc7d08ac3","worktreeSha256":"d92c94bc4ec0a42c11251b140c9a2fda87dba1e2a11334f0999503fee662c1b1","hunkCount":0,"hunkBodySha256":[],"lastCommit":"f14d4c4ba91a15915401d4e94e3a3d2c1441982a"},
+        {"path":"scripts/selftest.mjs","pathKind":"tracked","classification":"scope1-required","ownerAttribution":"specs/004-fx-regime-relative-value-lab::SCOPE-01","feature004OwnershipClaim":true,"status":" M","staged":false,"unstaged":true,"headOid":"0a2006c4633557589d87e1b711b5cb69cdebfbbd","indexOid":"0a2006c4633557589d87e1b711b5cb69cdebfbbd","worktreeGitOid":"25ccd16bf7ad9afc1af6c48c18a9ab2a346b07c0","worktreeSha256":"0daa10d20fad944144f65232b006cf92a40b846f655ca4fc83f5f7e8e11522e4","hunkCount":5,"hunkBodySha256":["9c5590b5a3eeab4bbf136afcb8cb3fe121d901f60304c2eb4bdab601c6c31d99","4b8f4e441e4c7613f27f1cf53d21d07a54b08614a784e1fa0d36da4fb13870cf","d2094f627c4c0a3085fd30e1912c5eace6f0b8a9e73ec5559714cbd0c07ba880","9a5a184464053206f35003bfd1f50cf1c28f5ed610d76440661c907a91e1cd70","51e5f6749314834fd7189a653ab6c53e0d66d4a9ade2a9022a5d71d639395980"],"lastCommit":"c13c3124d17ace3c5fc503291b767c7ee9cad4fa"},
+        {"path":"tests/fx-regime-relative-value-lab.spec.mjs","pathKind":"tracked","classification":"scope1-required","ownerAttribution":"specs/004-fx-regime-relative-value-lab::SCOPE-01","feature004OwnershipClaim":true,"status":"","staged":false,"unstaged":false,"headOid":"a0a3ad4d8651523a46062e87ead88e8f28cf17cc","indexOid":"a0a3ad4d8651523a46062e87ead88e8f28cf17cc","worktreeGitOid":"a0a3ad4d8651523a46062e87ead88e8f28cf17cc","worktreeSha256":"05253d1da36f1c82b4ca4a92bf9074a954eb5b73432256488607d2729adba306","hunkCount":0,"hunkBodySha256":[],"lastCommit":"943972e295b8fa93a19795e46015e5ae780b0350"},
+        {"path":"tests/feature-004-dirty-tree-collision.test.mjs","pathKind":"tracked","classification":"scope1-required","ownerAttribution":"specs/004-fx-regime-relative-value-lab::SCOPE-01","feature004OwnershipClaim":true,"status":" M","staged":false,"unstaged":true,"headOid":"1e57f53aafd1117e7e4ef63d8ce4b466cf39f4d5","indexOid":"1e57f53aafd1117e7e4ef63d8ce4b466cf39f4d5","worktreeGitOid":"f40a1097202ef9742d20c2bc1fe9576061748b75","worktreeSha256":"a725c2ae0195398b821ad67eb982e6790bd2a17fc316084e00e09314c2b052a1","hunkCount":24,"hunkBodySha256":["483a7d0132e46fbadf5a59ae34ab86a43b510ad25712eb13c15158f9f96909dc","f0ffd40a078bd4e94baace9ba4ff3cf88f5b5e6938a2e7ecb7acfbe725c41af0","a8817a8a5fafb2f06d96a943b4552e97ca7f7784e472e5f9055307051a1e322d","93a555d05790ff147c91fa460e21454aa31d49243588db2db8d56a93230bc008","d5e246c68ab5b99d1fa6ebc55752fc4507d1275ba16b3c063828664a315e31d1","082224ee61a922c00be7ab20790e0e0eb86df0d67f1d97be3eaffd0a6eef874a","eb665f4f8fd8116c3f0883766f0df8deae97a638428eb9ee4ca99428b0c020d4","5b7d579651eaa2632e9526beb2f6fc37f1d8346bc082b316dc51388fa7b2c6b7","dad9da3edf75b5ce9bccc92d208185375e194c8f7b757059733ee70dfd6712a1","fa65c70bd10772d7f32cec31d2ee4225f23c6af05540b22a80789c0a70b819d3","cb0b48bd5097ce46f5e03bdf433ab36f125a2a102db7ba70f17c04afa88e49d5","4c4b40344bdc9297d63a67476fa102d8608b16e213749548a200f30f931416bb","012d6feddca2a39e305a40a7be03069951de389293d4e84b425d18e73959a7d4","b0d1ad9384b8e486bbc448541d2d50e7da354264621d9c352dc687bfb29a164e","6672d4007b8162a5471ce353a884e3052e60be5f79c88080a4b29cd48f71c1fd","a2902975af55c6fd914e734dbb402dac37c8187e07e174987a7c97240b187b58","56bc98088012519a144d0d4702fafa2160549548105d6a2ab1ad02758ff0474d","2a36e2b667bbf782c1c08235800c2ed7c968316fbcba13edbac466e8abfa6a2a","f2b1ad844eb6a93aa4ea221a12e2050b1f7027031e97e4fe9fc6ae943120a7af","377330b9749d396b437589aceeed655461b219255b43e2c0380d29e7c33ed90d","f14ad05698a65d2392cdc631292381dc1be25d14f831a01570ea18fb6eaf9e9e","1a0acead5e92707cb01b43f17d69c86ea7a8da5cca74399f82212e2a2c246820","d8fee55565247501fc1f2de202e76ca7d2784d78664ba650136216447fc32e6b","6c43110e70190b2de8f6d32675ba679a10650c365224b92c97103d2ffd27089b"],"lastCommit":"1f1d739dab1bc144b46df0250f528fdf2292ea3b"},
+        {"path":"tests/feature-004-vehicle-universe.test.mjs","pathKind":"untracked","classification":"scope1-required","ownerAttribution":"specs/004-fx-regime-relative-value-lab::SCOPE-01","feature004OwnershipClaim":true,"status":"??","staged":false,"unstaged":true,"headOid":null,"indexOid":null,"worktreeGitOid":"43dd49baf798ba35c16a7b55958ad69a182d02da","worktreeSha256":"ed7484a05b307718a9cdccf680737f9e7e2236fd3eb76d17999fe923fb898fea","hunkCount":0,"hunkBodySha256":[],"lastCommit":null},
+        {"path":"tests/feature-004-tool-control-binding.test.mjs","pathKind":"untracked","classification":"scope1-required","ownerAttribution":"specs/004-fx-regime-relative-value-lab::SCOPE-01","feature004OwnershipClaim":true,"status":"??","staged":false,"unstaged":true,"headOid":null,"indexOid":null,"worktreeGitOid":"2f9a503e09e99a15b3bab0f83de0e905b5fef37c","worktreeSha256":"254b06bd896ad23cb551519ac3c09b02cd5e9844f85ba0e14ebd8a89e842dc33","hunkCount":0,"hunkBodySha256":[],"lastCommit":null},
+        {"path":"tests/feature-004-brief-eligibility.test.mjs","pathKind":"untracked","classification":"scope1-required","ownerAttribution":"specs/004-fx-regime-relative-value-lab::SCOPE-01","feature004OwnershipClaim":true,"status":"??","staged":false,"unstaged":true,"headOid":null,"indexOid":null,"worktreeGitOid":"90ce6957c0a2c2c8e23564219d6dc575ee97cb55","worktreeSha256":"839a63005a4a6c2590b057991a7a0054509d1a7c573d2e5ebb7088f147e5ba30","hunkCount":0,"hunkBodySha256":[],"lastCommit":null},
+        {"path":"tests/feature-004-journey-evidence-refresh.test.mjs","pathKind":"untracked","classification":"scope1-required","ownerAttribution":"specs/004-fx-regime-relative-value-lab::SCOPE-01","feature004OwnershipClaim":true,"status":"??","staged":false,"unstaged":true,"headOid":null,"indexOid":null,"worktreeGitOid":"e3af42bc77a84700139f35da3b531016ad71dcce","worktreeSha256":"b90647c274eafa3f3ad58b3f8de8747b163c83d343d4ddaf39a2037089f923ac","hunkCount":0,"hunkBodySha256":[],"lastCommit":null},
+        {"path":"tests/fixtures/fx-regime/commonjs-determinism-input.json","pathKind":"tracked","classification":"scope1-required","ownerAttribution":"specs/004-fx-regime-relative-value-lab::SCOPE-01","feature004OwnershipClaim":true,"status":"","staged":false,"unstaged":false,"headOid":"76ccad1bf3e9b765c41bd4018fe44e02509ec14b","indexOid":"76ccad1bf3e9b765c41bd4018fe44e02509ec14b","worktreeGitOid":"76ccad1bf3e9b765c41bd4018fe44e02509ec14b","worktreeSha256":"ee8f285acd1b5486b23368f9bea8f09c4841bee165466dac17d983ea0f11ed70","hunkCount":0,"hunkBodySha256":[],"lastCommit":"943972e295b8fa93a19795e46015e5ae780b0350"},
+        {"path":"tests/fixtures/fx-regime/foundation-cases.json","pathKind":"tracked","classification":"scope1-required","ownerAttribution":"specs/004-fx-regime-relative-value-lab::SCOPE-01","feature004OwnershipClaim":true,"status":"","staged":false,"unstaged":false,"headOid":"51d0c4d4b7cc71aef0e8da90f67e42ab83f45c29","indexOid":"51d0c4d4b7cc71aef0e8da90f67e42ab83f45c29","worktreeGitOid":"51d0c4d4b7cc71aef0e8da90f67e42ab83f45c29","worktreeSha256":"97fb1b6764315844d01e92501dee0b0e85b297b55e448977a6c30723b956dad4","hunkCount":0,"hunkBodySha256":[],"lastCommit":"943972e295b8fa93a19795e46015e5ae780b0350"},
+        {"path":"tests/fixtures/fx-regime/foundation-harness.html","pathKind":"tracked","classification":"scope1-required","ownerAttribution":"specs/004-fx-regime-relative-value-lab::SCOPE-01","feature004OwnershipClaim":true,"status":"","staged":false,"unstaged":false,"headOid":"1cd59adf65d855843e9c81c754d3a5e1a7752328","indexOid":"1cd59adf65d855843e9c81c754d3a5e1a7752328","worktreeGitOid":"1cd59adf65d855843e9c81c754d3a5e1a7752328","worktreeSha256":"968401c534357e001f1bf23315844684fcf983e08ae455a04e1ea9cc1e72d523","hunkCount":0,"hunkBodySha256":[],"lastCommit":"943972e295b8fa93a19795e46015e5ae780b0350"}
+    ],
+    "foreignProtectedPaths": [
+        {"path":".vscode/mcp.json","pathKind":"tracked","classification":"foreign-unrelated","ownerAttribution":"owner: unknown","feature004OwnershipClaim":false,"status":" M","staged":false,"unstaged":true,"headOid":"40104920b4105e12d3a01d9822af858c1c6ae74d","indexOid":"40104920b4105e12d3a01d9822af858c1c6ae74d","worktreeGitOid":"1f8a0c6555de9c82aa03f040fb4bcc4b1fd30225","worktreeSha256":"1f00297e2044f12303fbec8574bd339bbc981c2b6c3e3384339ee6bed533aa76","hunkCount":1,"hunkBodySha256":["96fad9d268098b8ca2793c8425bb8a36c34f0151c6baadf66d86d52020404815"],"lastCommit":"943972e295b8fa93a19795e46015e5ae780b0350"},
+        {"path":"docs/Product-Review-and-Roadmap.md","pathKind":"tracked","classification":"foreign-unrelated","ownerAttribution":"owner: unknown","feature004OwnershipClaim":false,"status":" M","staged":false,"unstaged":true,"headOid":"5908e77e172fb78f7ef5dd2db1203aae7fd2016e","indexOid":"5908e77e172fb78f7ef5dd2db1203aae7fd2016e","worktreeGitOid":"f23c99707989d580ffeca6c50434723380c0c763","worktreeSha256":"ff8cce305ac0385e99468de29205e84ee31f645e05f171eb8cedb6b891ed7379","hunkCount":22,"hunkBodySha256":["40176ae5f2fd464650ca58f7dc1418000778aa030a833849ca73fa0c7cd71e6f","c2fc7186a7065431cd96698264544aca8692ab2ef1dfe819c552486b0de0ffc6","1bf7916f52f145246d6f5d6af63f51b7ad235bb924d00af2ed231895c6249e51","c898b3c4ceb05354cfd53927723fef141cee2e5e42b381cd86b812c4ce78299a","78d6f39d3d15fc9f75a5d782a30481755e272541c6f288f2f828a1e24e56ede9","9a826b1633153762527d70a30df0bd743c6fe88b963d6f8ec514e0f881105c11","3ab6ae72fdef851b3bc133d3df0071b58997d95418f1b1800b07dd7ea622a88e","d3ee434ec8900dd1a85dd90119ea84c3cb6702ead97dbac8777e5ce349bdb17c","62e7bd1559f26066d6968ecc73f5c73f2281989d10315de9e9335711eebf8bc5","1ec0d81f07ae7f0c1bdb6bcda9bb6072f6901dc8b4678443ac2ae49fa6e50d79","841f1222eb2a9e9910d5e61787f8dd9878fa5233c02c9cb39976972ab2f11acf","f7563d17145dc8e476313c04af545043d47bcc3a9cd48f842ae42bc9e0aa7152","1731322e6747831c90e984d216682edc1747b5d2df500116e9d43abb35acacb5","c80816800a9f6cf410a86b121a0a87c8755be294c1795c0e7fa38d7e90ba571a","1fc1863a8336fe1623609c2bc3052923f58398e564e42ca587aac6732d576881","fe919b89d0488181844118d28a8c7befcefa7a54a89de24f36ee09aefae0ee27","800abd9bd9362c6646220c4a9fd760a419bfeb0510d438325e5a7d4a2c0e29fd","013fbfe7ae59bf5c8d2096238f1bea7b8518a515b7b9b0a85c2938a87d6ecb6b","7129c5219ca7026d43dff3110698e58716e268b7fe4b5042b4b52ce90f4f9a6a","f4cbd2d99b0445e7852e57982b60988852fa71a6df6155c4661e421cbfe8ce3d","472486e79a7de2cfa3dd938f46ca22d199a9e77511c1f857e3c13a66e6e8f114","eab169ccd6d6da24b04fc2616c6dce1c675c84bcf4ee43fbecdae569f69c33e3"],"lastCommit":"4c576b3344dc0edea9703dadea1d8b4f14e35efc"},
+        {"path":"market-brief.page.json","pathKind":"tracked","classification":"foreign-unrelated","ownerAttribution":"owner: unknown","feature004OwnershipClaim":false,"status":" M","staged":false,"unstaged":true,"headOid":"53484c1bdd2eabab0590dd5dac89bdeabcb0e5d5","indexOid":"53484c1bdd2eabab0590dd5dac89bdeabcb0e5d5","worktreeGitOid":"c55cbfa4eacfe60f61d67f56d31f34d76876da0f","worktreeSha256":"9792a1a53e8ff5916cf5cae33d69e616c6b7e783f72c4fbecba09f67991c601c","hunkCount":1,"hunkBodySha256":["a834f27ed6982a084b291913eb7a43d04c1f1e5872ea8612a531e11faea0b1d2"],"lastCommit":"a7e91b30b9e3038a628ee249c24679da6ff22a98"},
+        {"path":"market-brief.payload.json","pathKind":"tracked","classification":"foreign-unrelated","ownerAttribution":"owner: unknown","feature004OwnershipClaim":false,"status":" M","staged":false,"unstaged":true,"headOid":"1d976fe2b8187bc09d249adc5c1a34077b76040b","indexOid":"1d976fe2b8187bc09d249adc5c1a34077b76040b","worktreeGitOid":"1ad26c4bbc4e95c8a3a727ba93f7b12743d29bb4","worktreeSha256":"656e390b4796ad3868c7cbd47cee7fcc0e98ef0caf3dcc45a9a7b495c7597cb3","hunkCount":3,"hunkBodySha256":["8ff942b2e73379828d484e52e9c425a10ec56c98d5779bc514beef4a33e840d1","711c3adab72880be532bec18be084642217be8dd4d45ebd3c7f9a545a538bc91","765b9839846ace258e6b7667dadb7d02248df9acba9e6c459089172f1f0d9c7e"],"lastCommit":"a7e91b30b9e3038a628ee249c24679da6ff22a98"},
+        {"path":"scripts/audit-reader-legibility.mjs","pathKind":"tracked","classification":"foreign-unrelated","ownerAttribution":"owner: unknown","feature004OwnershipClaim":false,"status":" M","staged":false,"unstaged":true,"headOid":"9922c89f1ce0facb0ffc6506a053d8ce78b0d747","indexOid":"9922c89f1ce0facb0ffc6506a053d8ce78b0d747","worktreeGitOid":"58f74f93f1c0e4dd7b924da90c1d4af01e48762f","worktreeSha256":"526720add76ac2bcc9f8bac03f1e20b3d386f96f56bec863141305c813574c9d","hunkCount":2,"hunkBodySha256":["15fa5c8bbc209aab30c4b9d4712c991dd693ffa8219e7410bd45907be77cd7c4","4c82b6cc05427bab22c20a518c925e7a85615bb7d2347ee490f0b1b5b8760fe9"],"lastCommit":"2da575d9bd8c2ee465a2391635c453b4306511b7"},
+        {"path":"scripts/brief-narrative-parallel.mjs","pathKind":"tracked","classification":"foreign-unrelated","ownerAttribution":"specs/012-market-action-center-and-guided-tools","feature004OwnershipClaim":false,"status":" M","staged":false,"unstaged":true,"headOid":"041130a7cb7a4546e8a2015873d221d646f7dbdf","indexOid":"041130a7cb7a4546e8a2015873d221d646f7dbdf","worktreeGitOid":"e6e32e213dcc2fb5ed560759aa2b40a51ccea1a7","worktreeSha256":"c2be11bf7df1a4018f476d243de2eb8571a091adc05e419a7a6f97cf2e095bd3","hunkCount":1,"hunkBodySha256":["bfa4f9d9969bc6463af6fecdc297271ab905e43cef128f3b5824709e5c7c32ae"],"lastCommit":"3269232534c615b1b9875e032d19b0573070ed99"},
+        {"path":"scripts/brief-refresh.mjs","pathKind":"tracked","classification":"foreign-unrelated","ownerAttribution":"owner: unknown","feature004OwnershipClaim":false,"status":" M","staged":false,"unstaged":true,"headOid":"74c4993c6fde668b7d1d990f1b36a95efc22b69b","indexOid":"74c4993c6fde668b7d1d990f1b36a95efc22b69b","worktreeGitOid":"9194b4945ccb8a485a22eed5b9b8246b9db79faa","worktreeSha256":"abc4526d92ab90f9da157e4a76e7d9c9eaaeee226ab070305f90592532303d71","hunkCount":3,"hunkBodySha256":["d66267aed028c365d7c7ebef1e6f7fbdc5a5d33c08d1660b9920ef030140afc7","bc0a19b2b589bdb79e8ec6c6fb6bb8b99c5df2e04114db46ba6475fbcda720f4","9a369dd4c785f25b401cbe98b5249299dd9cc743f0993a623376bead3b669f5c"],"lastCommit":"844cacb8305829667d5f6fef567097915268055b"},
+        {"path":"scripts/owner-state.mjs","pathKind":"tracked","classification":"foreign-unrelated","ownerAttribution":"owner: unknown","feature004OwnershipClaim":false,"status":" M","staged":false,"unstaged":true,"headOid":"c7fe54f64f9f439db19058e50c2b1f827a1ca97e","indexOid":"c7fe54f64f9f439db19058e50c2b1f827a1ca97e","worktreeGitOid":"68c39c6b1a4d53eac2131ebad70680d8415a62a2","worktreeSha256":"7e4d624566d5ad4771d0ee5165cd27a3a30eb4b9f54d8948c16d0b65abbaae7f","hunkCount":1,"hunkBodySha256":["f555a28523c4b62dbd01e503a38e1627ffccba2dde7facde127715da45510d95"],"lastCommit":"f806d99f838d8989783fdfb9c06022672098850b"},
+        {"path":"scripts/validate-brief-payload.mjs","pathKind":"tracked","classification":"foreign-unrelated","ownerAttribution":"owner: unknown","feature004OwnershipClaim":false,"status":" M","staged":false,"unstaged":true,"headOid":"7bd6639ce774a6b2a04f5cebf5254684a9f3ba28","indexOid":"7bd6639ce774a6b2a04f5cebf5254684a9f3ba28","worktreeGitOid":"65ebf47f452b61c673f82418715b0b4097d98485","worktreeSha256":"c080caf4aea67b0cfa321b80f5ecfce0d9c9b037793bf0b97fbd7081e4d834f0","hunkCount":2,"hunkBodySha256":["bdc485e3f023dfc46483489ed43a6ae07b291504ad649c726e2ba516610f8cc9","222fc8a1d8527b6f6cbbc6ffb1ebb49c8e336cc7a4ca60cf70a3a8ecbdeb1911"],"lastCommit":"b11d9f0e41aeb74dc2825a99b7a2d086003dbab6"},
+        {"path":"specs/001-causal-rotation-intelligence/state.json","pathKind":"tracked","classification":"foreign-unrelated","ownerAttribution":"specs/001-causal-rotation-intelligence","feature004OwnershipClaim":false,"status":" M","staged":false,"unstaged":true,"headOid":"a18bd2627a3c8328415eb2e945d3806afc85572f","indexOid":"a18bd2627a3c8328415eb2e945d3806afc85572f","worktreeGitOid":"04271bf2d3453986e5ad166ddc4a48e482d8c4e0","worktreeSha256":"f06d6b0881dd1b9020ef64b6f0c451deaa208c43d8ebe35b3abf8560c6195811","hunkCount":2,"hunkBodySha256":["ff682802543a5d797017cef4d117fd61855aa287a95d42e280d92491cadd0e1c","84208f26ef49abaa011727ef3b50bffe5c5512130d3c52a161f686ffee73ae70"],"lastCommit":"d61017f2a45fba95f0a4ba7c0476e0173c5c0e1f"},
+        {"path":"specs/004-fx-regime-relative-value-lab/design.md","pathKind":"tracked","classification":"foreign-unrelated","ownerAttribution":"bubbles.design::specs/004-fx-regime-relative-value-lab","feature004OwnershipClaim":false,"status":" M","staged":false,"unstaged":true,"headOid":"536d9137c34cdcd44da76db2269ac5b2bca4a56e","indexOid":"536d9137c34cdcd44da76db2269ac5b2bca4a56e","worktreeGitOid":"d39ec89147a4f452dfa1a07d1e621c81a2331f37","worktreeSha256":"eb88414fa5c49c3d6ea9470e941c451cd8f0eb497aa8b47f944b51631bf48b8f","hunkCount":71,"hunkBodySha256":["63e41a79752f6866888010d9f5106b5c424d7ea09fe8894e060ea7cba9dbeb3c","39424b297d8345973aabd40c9f99c564ff2eeda27881a13eea6e03de813b5f6d","c4b12525d7151455a761aef6d1ab411c7e86e58930e4b34cd806aa6af32da09f","32440cc3ac89c46112d6a1c09b0f8ea67b8edd156318c805600304e0a36a6a15","a84053d3ba0835bdf5b76ced958e89c9ab05d94d4f882c36eb2f8adfd3e2cd5e","9041448d52633205ffddc954269f52a61a27d98828915d70c4eafee3125f5331","3835d39eb16bfdaa9cc270f2c7581f5315b8c515957547f82b696d56ff736cc1","c23f63961f7aef1bcb8b5627d7568b9673e316d621c794ec05c7c1586822b653","97bc74a4c349c993cd0fa9a6b34c59beb8cee5c0c219e239027c275b03e17c9d","0f91bd4eba5699d7ed880ce521400d9071034608e5e80cea69e238cce49abecd","4968093fb22c7033bbd39bf568821aed1afc56a037767ab0338319fb4d884b39","3f9aa36812a46749945760f305513b45b6e9e86795badeeaf1ac4183a0129638","b8ca869753fb0c4fe4020e6e266ed0c97582eb1f99f16305fd1a0375d300f620","3680ba59c59e31e927bc1b1d455eed0e721d274fabc05dbab38ebf89587f7787","4806bb49555717ff9c772439e6e12b83f0e6fcfa51a3878c4e426819603b4ec4","3dc4ccffbc4454cf92792dbe40652dbe80362f267dd020dc7813df854627b5d6","cc33b5263a83be909a7a4a015707a6a6bf973b2c542e4e1718704c834ab27a9a","52a42604021423fcc95545943a2df131ad133371bc9c29e77e7bde8b797c4691","db22b72f4ded169bb0c096f6eb634da15ef9cb99ca69c08258b662397405be89","fd10202a7cd0107ea494ba42559a11bbe2a49b6a2b4b7e768d4e7b1e54231db7","80040692b68468ffdcac8a2709080471dff1f3d0fbede270cc166f733785068a","fa972e21af1b46a1457a60550f1bbe294dbec39c90f288a8ec50e1917acbe06c","ac25866291f647dc09d6b9e5e04ce0fefffeba0b7518e31f8259f1668b588dbf","e96b4c837c4235913522b3c80025ea9d352727bd48d344e52506b2e9ba0458d1","870b73c487ea1daca5bedeba0d18687e4074d99f8096881278e588aadb428558","c0216f6637bc06964a40b222d589c8215c745ebd8d648bb58e179142452f0b78","9bc12c7152615c2f2e3f611e19ec81689e92785c3ad870994d9eaa4a7e85f6e6","5ed4b58c0658bbb5ba64dbf4a670d9fd4cde284d50521baf282c703be497d7c0","70c4e112081a7be694800ddf964f4cc09bb08f23546ec078860a17633485fa27","90bb21ecdaaba3a87d44598690aec357a08b177d30c21d8fe5ebe8f77e14f6eb","44ad1ba64a60306bc6eb123762c40f34acb5f1df54a4622e317ddf66f777020b","d3ff2398e1060f77006a3d2487bb29471279e217d1642813e0b86c331955619b","2b26193364e16893f2d1161b604b0ad08c2ab68101f91cc42add616a578fbca8","d869b0989d5629324d1977a1cefb20d9baad5f0c148183cf07bb2db5cb5056ba","a15098dbe7906c2be1ab7587085c77a009e823b9e2acd2545c70d8c6a6d66446","8adfedced96549951b0ab45d7b18982d73ed067087c19739712a44f088705a5c","2bebf7e2c9033ec531dc1097a047c21d7897d60890923d41f4f2cef27f38ca2e","e9518e0ee1bc49ba1de91f92484ca58cfb4aa08b0f1dece4462fb61ad637f88f","e7c0c765ebf619999b2e6e4457b98b19d8ee100f1655080db5293c1e0a8f86f3","b4d43bcae77b6095d92ef2c8aa7754fe3325d008ce81894632f061a230d7c15f","f105f89e3f25db666c3d5da1c54877a66704383ec73d6bdc65066611d0b8038c","9b46d61ccb352558fab201cd26c10d893a05c8f3c92d33f0f9dbe4e96dc320f9","aba3848f688f5f9200dd5c6080483cad39b3c7691099b889fb92e5e5479f3261","8c08f72211437baebbe804a68c53ba100460ba5fdbc5f02e281b85d45d918867","1697aad234f161c7ecda8e6b3c010db25704937ad27f70818bbbbff0bdadf89c","dd6cf756e0394719e9f15b34e14681be8fa03937028aab70e4ad2c354c0ef62a","8559cc02da6f1f7710d046c001883230574e96b9c48546a0d441adc3d186095b","979d7ed1364ed800084bc819cc6a2baa11631338644bde31023b3cc02c92f7e1","af5d62298c0624a8433adfd736c8c9b1c7110f2a6020e7b6b4f6a75236fc05ad","a2bfb243b0242418fb735618091be413dd06c97456099583ad76ad664e64a056","a50c97195c1d1dcdb8576603d480c3a62c32bfb53ba5bef8a15144f5ed5d70b0","4aafc66687b57dc0d5e1598f12c3a0cbbd22e358ab74367567a5a1764b09858a","4909cecfb7db6066e773ce70dc73fb5b8778d5c8ec98f605c03e9ef5fd1c7d57","c13499c703d2804f5d3e9614fd6ddca01ee858d9a92f8418fe7e036111285061","0fe75f470e7ebc43b9647923a1540e5795d78c79297feee9d93af9a189971ace","288d55b61fa90255bda397542d2d4ef977c8066358548597eb8c0db5563b7bbc","e326492def7b93762c46777e8fa758d9c6bbd6d3fd9de84d230e8eb31a7606bb","4023e95871b3457257b75611687b113a781b9d76ae6bd1441d4d96e68965f8e3","d412f4265a85cdebbadf89cca61c2310b97a576a14e73a0409f1a29ccb6e5ef8","166926dbe30bbc2f5ef53dbf3e76c1aa4bbfcb19cce320c36e3eb23d46c86b42","6c699ce240b2be2ead335ea92d7e39a2b6d4c6abc8b2f44c21b5bcb9fc830872","a8e4d8f2768254a7866b834a00f11d6e93c44ed8df96cbf2ec418570b1f02937","3de8c315d2fe75ef26691950c0cbaa4274f0b288a6fec0e77e8eb5e161672563","7de9ed2a67a2c70e48c57eb8d32f5a734c5588bece5374b96d15b2ed0492f17d","8322ccaab446c7eb5f8e494c225de8f596f99dc0509754852b044d2fefeaac93","7d508ea4a9ff8445b22ffc9b4184957eafd7d64ec6905cb4740e2f3c3e6f48bb","610ed3f3d469c513583ed04427fc1b2c274c554871d7c239c584f9f4b896ddf2","b8b8a6f942631d6e392f9e53cf5deaa43ed1fec6e17e257d863a56350f74ceab","4ea5a40ad699d0291d1b3ea9ae4cfa25a2fc3a70091d905a5b4b30dc5dfdd01b","74810fa85a2394601a03f1495427575defc0c4f8a84bd9f13eb5619e6cbc9ac4","39f16d0df2a92569030eff734e8a1e399930b40fffaab60f6c5d444f50d23c46"],"lastCommit":"943972e295b8fa93a19795e46015e5ae780b0350"},
+        {"path":"specs/004-fx-regime-relative-value-lab/scenario-manifest.json","pathKind":"tracked","classification":"foreign-unrelated","ownerAttribution":"bubbles.plan::specs/004-fx-regime-relative-value-lab","feature004OwnershipClaim":false,"status":" M","staged":false,"unstaged":true,"headOid":"e5415a4e86d3728665347503e6ef30ac052474c1","indexOid":"e5415a4e86d3728665347503e6ef30ac052474c1","worktreeGitOid":"afca194101adb4f34867a07f283f1ccc8bcf011e","worktreeSha256":"62d466dbcde311b7d6b81b084da3cea844312d2008e79ceb5a242f5fba4963ef","hunkCount":35,"hunkBodySha256":["776b13da1e94107002b36d9707f659180ed1f493cbca7f2fea3ac1c28ee69b1c","72669b2d482b9b711bad8567dc9985d17e8c0184f5c984f1ac3fb01dd0df517d","339f9928d8bd1af673d405fd261cac15646972413342cb06f150f97a529e7285","571aa24520a4fd60ade97b98a012232ee23382ce8b5dfe573b63cffa357a6732","44ffd63bc5757a5310143bec1a8bf2b07454c7ade4602fd1a6378b01b598c184","b530a9843f88b9d930a9c89528edddb4c815e7adf28cc0d7952cd468136574f8","67b546e92e68c05a1f91cb0d3f7bdc6f9b01e2df5d45062993239f6a4691d586","d506714516fb47d871144cb549aa9e0642458ee9942c6d0c5ed67ddf8433da3c","2e3f605265e5ae810071cafa80bfce231d5ed41c51580195846a47b0263e6676","4f6ffc782dfe62fa9d6b9d6ca1a24e7e8d3fc42b9ad5b5d660e42e18b53c841b","53fcd3da039c279fb5bf789fde22789d6c3145f8f23ee0b5e5ce31c2de202ba7","a8f36a3654095d69051474051dfbd11cb5be0b02fb554247133576b8ca518e43","ab76815386ec242eacf7cd6b74d7cc9537da8b9b828423646718a4235e71d255","d2f7444a44f8f7f3fd3ec5ce007cd6c55847521047a04acda5db7aaf526de7ad","d3d3ca7e5faefa6aa61fab837033628fdf3150e9a44d3ae72bc04c52370c19a2","3a00939b23524930b38e29900d8361d5caf8c55db830b9f3cdcae20c2afa18c3","5a33c0a5e4db72d3af5a501afca24790f570ac6fd0a9ac6577a0a33a8ff1750e","6dd739988fb61d8827a42462ecf98cf539386e1c01f9278bbfce2d570ca2c971","4be29e4b5b73b1d2e3899c56d305584844fdf0a266beae55e5fcdc9e09948a5d","3fd0bb001002e3427e82044934453607b9f5621fd7874088c3284cc25c5dc442","1ba97e168390c08e9f58b7fedc7d1a9f449fef38d0e59300e351540bf6d60f6f","8032915005057080b891d9d6f47fa000e04281a9c856e269f0c35b410721b446","449ea28f60750f5cde95d99dfbb29bd819098a63284458e359ce6270919dc495","906b60ade354b9394adb0d7983419d62cae374ab84eedafc12ab7b7e50e1decd","1155bf29080fb81384dea5abcab473adb981b5a7c51895271e4af641d82227a9","a446d96c0ade8fbf442c483b4d9b26ccad8f2e145c8981793210883c2a463309","1f0b15c9d7b572e2d0f33f202ef22eca85dc3b6a1bd3374990ee2870edb50da2","db42de9085ce910ef3e54be83c6cf6274110be400cc7b4899c471bd2a04cfac2","516b43465f158c52608d3661f9352234515d87609e0d0661ea57c08aaaf5693d","1053f2a9c70299e76848f1c6b7aa53cf527c0372b9efeb3feee87c9bec11d138","e598473d527b5a3d734dd3a3083c93f27fa0b767c3df4c80f4caf82f6d9db587","ef3480c8a6f41402b7d3f302fef2157326100fc90ea776d44fc2beac0b8dee0e","fdbf7ec9414a2dfe5944ae4984aa08b1e335b52ae637d9a432c011a4cdf72a8f","31beb77e6b7b730840983748a6fc9aa7771cc984c0f55cef2de37922f02c3c82","29cb628c4d99dd35254e9993f8aef8039873cbe254859f29b9c977ab1c76f808"],"lastCommit":"943972e295b8fa93a19795e46015e5ae780b0350"},
+        {"path":"specs/004-fx-regime-relative-value-lab/scopes.md","pathKind":"tracked","classification":"foreign-unrelated","ownerAttribution":"bubbles.plan::specs/004-fx-regime-relative-value-lab","feature004OwnershipClaim":false,"status":" M","staged":false,"unstaged":true,"headOid":"8be70cf56fd0031c44b999eb38666018efb0f69d","indexOid":"8be70cf56fd0031c44b999eb38666018efb0f69d","worktreeGitOid":"b25aac528f83de1b69c556e6590dab5b277f3276","worktreeSha256":"71504cc062bef9a4403695e1a2d720c16d40198542264bfaa6f6e290fff335ac","hunkCount":84,"hunkBodySha256":["556117c9b4b5445952dc229dbfc6b4aa3afe65765fdb4f398c3430dc1a3261e9","894c7bce06b7f79bfc8770a50c43ce893b7c375bf1a649dd110a831028d1e2e2","145219197f3ddaf8b18eb2600ef42826b8a12126c8e8f61da31ff258631080bd","1f30ff32a01d290a00cc65ce2252b57d10581e20a14448ef442aa72273bec8c0","47b577c4165ffb30fe2508443e2805efe2c39e9b99c70bb85236056709c51f15","e9ceb405e5b7552578c05b5669d90151bef868420b663db9e179e4b75473dd9a","a8bfd992e6b1a91266ef0f6f9fb41309b3e85ae279ddb8750b1118f7dca64958","f8b6fce6ad4a4b827e280da83b778dd378b797c772beca93e06b2da619ad507c","ec8cb2712756b6cf60a69426f0aeae56a55fa1f84a1af8cea8a6576d41c02575","b49830dfadb0f43636c0116d206d098b09b641ccc9138c1052f1aa5f06c2dd91","1fc06be199fdce4680b79ba01b08fd75581e4a925a6c918f87f9cbd32cfb8d3c","c8316019385c20e984a190d72b65261e1096dbf965daeb89aeb49437afc6f5f5","ad2b93f5965406a763627061dc997d9a00f5b2564ccfad7715b732bc0cd019a8","1703901a3faf186c7cbb4eaacad7350aa72019604ef541dcc1b79201d32a4f1e","c7f40277b51c2bd706f9587a45b9083be3b6d90fc20fee53842b814ea87eb32f","a0a84fb6c6c0dac91935a955c4a6ac15c17f1ae8d3f06fc3d46ed526708685b5","73b58c9d8100ead70c4f495b23096dc1117957833e0cbc441cfa7b8b65e08076","4e94f843c56383f5d8ac22f05f351d4f73d7571eff76723b394d08b4b12a190e","671c87f6288b31e167a590253dc7ece6819ca78a48f7b7cd0b8be2335256bc8e","5d47f5d056e30a7bb9fed7eed4aedd0faa5ade96ca17a4a79344e1f7412e4d90","f536c0ae608b8f300f0679428d71d2cf5fefa27edd7db136760d71eff3ee9d89","d92e224122b496d887f930d97cc737f4874a51aa73e0e02613e46c804e297ad0","7470def2a668d0bd478541dcc0ebc62aca82045e3fce80d06c420b59ae1888b5","e81d632385aadfee321327927d76862ca63097abb3579c633c29a9b353bfdc6b","ae34f8cf4513e310613dc1ad6a03a419da5d57bf7a1a6d49d4896e5446c04b66","d4ecd33a960d8e8297755809f1bcbfdcf41831321d868137dbe4a1a57fb5c5af","326b848422a189b292b2eb4e37ef0558a284736db556e0649554f0c912d6c68f","88f39adef0de5e851447b108924d3973f3bc3bfeee945831d102e0c9db34af0d","486f2267cf3aab4d4d3bb18ca65897d4745dffc4705de3640704a897b3e61db2","71b10f59f8ba9c5ff9012c7894d82e0171721ba03b1fb011200e1373cc69e4da","57ab3a9dcc3f13b7daeaaed5b49879657aecdb3f86f13e4914193cb3a5dd0931","5061a6a7c8f3327dd4aa2ffe543c3477b6061db7e0b9a4524e4ddb69d0a8f197","0cf7ac4acb9f13b72d38be130e6e6a359d7ab5b5cdb4f07046860582a809a3f7","d8e405dd51a86ba6a67c039bd140a45078d07f8b7eb1766e7ce5cf937e59d7c2","940deb879995b9aa730b5edbd8528ea66e41a24aabbb327563769176faffba91","b60a3197d831ab627719edaed29a090f5f6fa241d4a78daf65101505a128c8c4","25b71486d37880dda50a916e2a5f7cdae029a65b571fdee0df535868c8214b48","a7365aaa1339bb1fdb8b53804c89c85a1c2dda4377a08a932e4bde9be9fcde22","8912095e0c96831aa83288db5255cb613c79957466c9b8789e81964d1f51016a","8b471a145ad9c10e8dcf0c989051eb3b61b79a74038d92fa8e7dc61fcc9ba4b3","b5ece2acd0126253ea8558110d85ba0bec60caf69b4dab35fcf84e161cb2d5de","8f7f2318fd0546793f9a2ed3703be68d4270b6ab7446bf867038804e676d4d14","4e7893fcb680211b1f62a7b9cccdae94429076d1955d1430d69e92ca708a050d","43e77f7c4156f02723da8f72694c4266f95a954850bb4261471e18321cd38369","8c71ba8cfb4fe8886c8a778c9c6f666c977405b436d3d9b4247ad93280907138","5635bd668bbc7fff8df73076cdc56cb0f387349c7be009298a2d82820ac51533","916c4a11ed0206dc7d874f968b9fb8922b3a43c35b343b35815e04ebec03098b","626f21a86229b0a41bdcbc8d7ee4c897e5f5d4c234e0fdac63f1c72409b9578d","696f015c7070c7f6335cf84d9f805958e21d18efa9d8f1222570fe140ce45413","23343126430a2446448361b7c55f1f541e3a7b9a76a60ca81c6321b2d7d9e457","e7eced7b52dde09ccbb068f3494786df5681de1f0913a52ed74f663e4c55a29d","624e518151fa3485b237710f9015c4a7cd4ef526f3e42fa5f8f32d0abacbe81d","24e1b19cd2894260f8c87f0404103e6e9fbdc75bd465bd0db3a43ef54b6b7c6d","431f7561625c60bae72232b8caa307b5d3deb14ba676655a5bcb0be9e0f0c7f8","204209a610f5436d99caec6baec76b54c13257c01029e8f9c88f7595afa53fdb","4d93345707023d9020f3d5a268678e26959779c5853779494fc15718d6bac18b","985e4b2b6f71f07146de0293f1a00ed9919895ec2b219bc02534486d41c4c595","a90d85213646cddd73083e60f24d74f1f7e4c0da12089ec942f556a3d1ad7ede","aeb6f5d51355b627833a883b2da8a52982fb33f5062e877ac0fcf3b128ec12fc","dffefcc7a1630ec7a4eb8c593f8d1d8cd707c4731200016b2ed9edbbafb39149","d43108364a53385d410c36488b3518f6848ea0b5e635945023886ab898f2dca9","b2a7ab4501ea285cafd0194cc02e3fe421413b4226bfdd4c162c601639af5dfc","66abfa4349298f863ea883b95f78335c1273a9b9ed0d64553d857852733fdad8","62f78e3ad26dd8373a1e93cf10a7454bf163c9613d8ef81ab78384cee326d29d","59c06120744cb5932ccb5d3f7890f8e88efa6100ed9c367b48e92160f7e897c9","91d6f36e4923afa3d293bbc9f3d9e01333e42d3aaace68dace91a91c464a850f","215376ad10f166c3356378b3560ece8b8a74ad1f2aac356b22c904aeeff238dc","da9a8c1f519c33b39984c357a016d1faba5eab52c1496d4775fdca0a2aeb923a","0da9c6d5dfc4d239712450f5c81a43c6d04217fb2d18240d38050724aa7ce911","6ef96258b82cc57f1d4d018b00f14dadbdf6542183a8f1fa8a14f4301cd1a125","1d5791e2f9f9f173349f02e42488e9100fa0e59193409f2ce5699758a9321062","3fe01ca02637b3a62c60f7b1ca6852ec9781b92e1e0770611965db2ed9c170ce","c55424d55c10035d6910c5f242d26175d5ca9369a17ed4e1d959a91812f0f00f","329888840945f4a7135885f765bfc4bedb00389004ef233cad7bc4b20b487272","0269d4b3ebae41a761e2011c77bf213dff5b25dd13335190120cd0f2916c0d09","e8773c70879f7382a8fe41795af97f45a076003b6ef38de46354951fe4669c93","9e8413cb7961997b70bdc9eed796558def9457c22174749f7b582528411f4537","2e3b6934a11f0be4c279000f3fccdf11a834eb3cc72dcb08d3605fe068dcc9e7","ad8dea340f56b309fc19ed7c994cd7d68286cce171c2f28b8f20899fddbf5a1f","bdf663f77d25c9fe472bdadcd5086f4ef978bcc04060e0503f16c3febc8bc0f8","2aeed9e1a48e8c09ca3ae56a8a75cd310f14187af454ecb5d8bf3464e17ff987","ba7797a2ab086d97faf1a4a6b603bb09fb7bf7b933ba61a888bf35588d1c827a","04492460564a63a7c6a6ab85b00df9f579589c1eecb95f2b7da137b005db9e7a","b5daeeb5d037d3170fa899223dc2e7d7b791d01d100ddd9266c523dc63324dac"],"lastCommit":"1f1d739dab1bc144b46df0250f528fdf2292ea3b"},
+        {"path":"specs/004-fx-regime-relative-value-lab/spec.md","pathKind":"tracked","classification":"foreign-unrelated","ownerAttribution":"bubbles.analyst::specs/004-fx-regime-relative-value-lab","feature004OwnershipClaim":false,"status":" M","staged":false,"unstaged":true,"headOid":"a180a2c5e9dacb4fcac9351badf621b2e8e30ce1","indexOid":"a180a2c5e9dacb4fcac9351badf621b2e8e30ce1","worktreeGitOid":"04dc0ef3857cd47977b50ebc7277d50096e7e08a","worktreeSha256":"115ba15431da2d827a96131faf163df7ffc4d800d8cf25d9cb818082348b3fd1","hunkCount":83,"hunkBodySha256":["2c900f7c78d0ea998bd956a5a11c293a3aadbd73f1d4b143141175af133a28fa","3261c11d3332197a7366caba2a87b02a5aac1d9627e5cb24baef324ee813584e","98e2d1ee9a5a32e3f3a2d20a61148ce9e776e1ff515805cedd0501d299c6919b","598d5a149c22a9795dd71b9d5be32871d191e3a30052cb669ffcf7f3bd509f7f","d34a742fe9d2d2b65b717e7e98e10ee1b722ddcbbe0bb2ebf92b36d664437c2c","ba7adec2b6ea213bd8ea83edf0d990e3542c511a41ef04d49336b10b4e59c6fd","3f222c97cc095ef3cc189663ef42b24d586155a481bcd108bcd8f2860cf465c4","46ed6f8a90bedbb4cb08525f1492d71cb097c9ce17ae076be91e230c5e69da4d","f114c71507c5a89a94c19c96cc875c36d6241fe81d066ceb78c809299c555f32","65a51b0a8da97a475058d56a48ccf665336674f9d81cbdf981a0e51607e49e80","70e1c0dc91022be13a8b12ca6e6421b7b4f32e2d6b36852ebdb46db359a1725c","20798ecd99ebd283cdd77dc74169f8ed5c6e29979aa4602ef5875205d9b94e60","0ca28c871c383353e93fba7e6414f638cfd5ec33a3270f879aaa22d4506d86ad","93019386e9b72457e7a63c76e9e4ce233c847962bd4e780a9d0876aa80eb2ab9","b758abed7d43ce68b966aab40bc022ed922bdb4a08c16ae9ebe4ac24b1354ece","3a8d3b6c70d0530f4b6025d99158a7243d39332489d405621605297f6a16e02f","9e300e2605c522f27958be65bd3347925e05d711a43597003dd1133a71ead081","72df4ef49956434fd907017a8262f3269158ea4755deb5cfe80b282455d5542c","d6deead3ed031fa26bf380d16d25696808bad0619ebf8ddc85c56c5cbd42b2e0","7b7ef1f5075fddec2b08c09974eed43ed6a9bc16c6bea2a906b91a9a20919b78","fa82fbbbb38c9b3f9a533880546049d1a8881bbd9e414e09a549c3fdbcf90ca6","ce6c755c00ec69b2d3e3e30c65aa4d33424bec044b8a863d7094cdb78b1ae40a","9b8bc5f2db0d8884257980adb8677ed44eec67112638f5878577faab32e76b5c","4a72144d72525f39c6021a9fcc391e07040876e247a9080ced1e4f64205a78f3","ef3e5ba0c585dac609800a6b13921bb2caa19b35819b17a57fe379500957c8c3","15fb35dd4eabdde48c911f518e97d8b50e9ff1816cdf1d381ff867aabc5723ab","85bad1d1523b40ac40357deaf80e65ecfbd4543182ce4e15928737277c7643df","9f4e6b88463d2acbb64593d71d5ce19349d5cfd8eb434065f263b1ed103c7384","40acd400d1cea0776c47480205960f7a62f06a6d352a9a59166b25ae2fe68b9d","aa667ab73d9177f43410475f9b2c15e679489a3e9921afd808e7b030982fc126","51de91165b020d84d7d3084758d35ec5f6f19d31e1ccf740719314af14098d35","adad8b0eb3ba6264858ec780c75884ecfac6ef4c99e222d984bd4d38e39bda59","58ab6c93461573e5d04fc8692d59288ca6241fc12c34ad1632f6c70d86b8dc92","b4a09364a7f792ff7d03274bd7454727768b19bfe331878d4cc297b646fe1bf0","182931d0178f48dbc63606bd09209717caee9ad8ec1169afee3c3bdde7aa6f52","2b2ebd34ee786c8644171cde28d60dbec53e5826b434f7b946ea7205c351bd17","a69dd63d1e307a70e7749625b68cdeb2b306e3666ea591683355df4a57d71867","a52ad971177d9ebe38dca4246f603f0cf450c9173620564358f7c4c013421842","9ec8995d25d3eb4962cad7e3019a850d8cb6a6f4ae5a393cd47290d3c985c8f3","652ff0b9774001ff83a8fe9559034847214b9a4e2371d04dff60e4226ac423ee","3ea93478f6a2a1b81613e5fda6bb1228f9abc1cda09429124e3d1c70a51a0fa9","9e2fdf85fbef78458af38180a00d69bd3fb6b1fcfc05bc9c061704850e763eba","d863775911c8cb21b006b3ade778d021ae81dd5a4a0fe28e42dbefe4299ed432","f25037c293ac186f8923ef9b1a7b3d507a07cf468d7f68ba41c42b4814d71b79","5e782803b48dd35583096d7e1f6fc2e019159a20b06b7b5c73a536f582632f90","f85c37604302e5469637c149614e099f2d774516c85e0ffecf3e299dfb465baf","08aa5b5a9f41593547da98b15a51784cb0504ad861e1758edde93feb8954c189","db0bc13c46fb009d8804f55a813813834c0780b59204e5a3d3cefd167c667ef9","c7295d37cbb332dab523fec8cafea33d6c4e73e795530e1880b3a11aa3152aea","3497a0518965ed7d2ccbd3f8f4ee2bb63349847a2d549c23c3c3f53d86983ac8","c432d76a138ee5400fd163b5fe7f8cc1e8e96b2b3e6d95181214560e630c1dc4","9936f02f8f97e0f7ae277d84fc49d9202c19e25f1436f733144f61140d617fef","d11eed8525012221c68c7004602ae58f1a7f6dab2880cf2b54574eb34c5211f6","60676500479e57025c253ea9213e5c94e7b157aa80af0c41d3082c845dcde3a4","0a5d55a168c994db5fe5f58e2dbbe4929d510e5127aa393ccfd2c577498ea7bd","7905a8c96e7ea0f12cc04ff93bf133014dea8ce4a1c7e0acaa0466111cf1513a","9ed5829a4ae21db76e656bb5777548cc17801aedacba6f162cd0c6898ed28100","f888af7d5a97c262425e2474b1585b30b86ce129479d61b507d05bb9aa9ed8b5","2e108bc8424e9cc001197d5d8385fa0c7b25c79365c4c5cf682b0f92c1f64058","e049d68d3c8e4fc6035a77f5baca2139c73804f266c8418278732be52e11d6e3","45f1c0f8ed9d464e983f90de498ca78bbc74cae2a0e62a86e95ebef42db063a8","de8eb0368e8a877bf4cbba8ecdf84dbbd69616eec7444fec4600ca2e5e093494","7a36f1d92fec4d18cfe5c2a61ca3f91ae930cd6ecd6dedbc5bf8a70b5021aba5","79f821835a3ef8ef6b42ea53e125f6381e35d955b7474cb27a247a59bcd90b74","dc58846990d3490349da490ef2e55ef884b153d5f4a4ca4f94077838a828a59e","12fcacecfaf9247d976ed90e38c44b01d6a2bae5305361b32b740a6c0324473b","43c954ec21fb82a389e5c2135104764225abc15b413a011994c986366b05ce99","be08761d36b988ad53b43653f12dc2c3bcf572675786241a9cd23e70705b9595","4f98eb7ee97392a73df9f45e4694b2de715b333d6848824d3d5b0fe4ccc27d70","0814fb5152e85734768c3e6e0486924366f6cd706ab312c3f7b10d3cfa3672bc","2fe39d36d977e9f27c778193c10599aba8f571c2ee1772d111eaac9d5b13abfa","2e4d591ce640bd627269dda9874b58e3696106debefdb7665e7f0a91e47d6cc6","caae6b76487c00471cde69eafda261e27a2c7ea7260997e549fac3bde35f12c7","66824ea37ccaf89ecb5d5c1f9a8074e721debca753b7208ffee2517c12344d33","ef3f2400667d4d24213ea5a3e6a31abd25b418619a18edb6cc75543133a7d967","e94a5b76090d50b73dcc01de15a336d480fef43b057970d339b2db4b8e839fa4","0cd135b8fc99450a90aa9ee613c7afd5d43cd928b74f096472b4b38c8f9bbe4c","436bb8266e7afa2778dfdf978b5cb59ad4ed5ad2e74a05b373020cc042f358cb","fdb7f6b734e2f7d5c3b9aab0d99646c01cab4deb92cd45018ccca3efb37c67e5","b5bb2351f6a28264437f03b8a9603780d8c84662219992edbdd3f205a6611a70","76d6b7df0f396a0de85b138106344683e9320b94fabed15616e77ab8b5fb3217","435b5bc9423592d678a8800a7ba34dc6c373523ec7aeffb20649b57c3a0ca9cb","b48052aa94c6205d7d58e04696bdcbe67975658ab79725079684526beea89f68"],"lastCommit":"943972e295b8fa93a19795e46015e5ae780b0350"},
+        {"path":"specs/004-fx-regime-relative-value-lab/state.json","pathKind":"tracked","classification":"foreign-unrelated","ownerAttribution":"bubbles.plan::specs/004-fx-regime-relative-value-lab","feature004OwnershipClaim":false,"status":" M","staged":false,"unstaged":true,"headOid":"48b76d7e6f25df232c8aee12b716230870497c92","indexOid":"48b76d7e6f25df232c8aee12b716230870497c92","worktreeGitOid":"7c602265f74b5d521af39a91c7df96b9c6931f29","worktreeSha256":"789a7ccc3297554fa82c10d25992b2d9fd9567383dd9a8f2a32f36b48a5103b7","hunkCount":15,"hunkBodySha256":["7e52bdf8810db41b81620e0c448882f80407002e0e03983e7118e268bfca4781","5c4e0714db4de8d176988d1e9b347209c712bdf9dd4358ffc3c8288d2e35158a","9d191030b5926df4d6447481082f6129bd86af50ff311374de06ec0dbb4fd2b7","9f8f90656dc6f7c63d53c5a0dc8ef1d3491bd4559db7287b614c7ee91c1df3d6","770eafbe08b7de110404c4df81571fa32641ea3d76363304d6c2134fc8bc6afa","43a38f7f4d9c8275db13d33bcef3692dd83e4cda009a4802e04ea9d0bff742af","735a28c74e36e669da0e681e3d8c03f642e1e544d6982692be851e8da0fe19aa","688ebf1b35c814e89c5f73f77af627703ba5b420935df32875416cd923397b6c","b041c333d26ba90e5a9caf1322a5bfa77e6315836cb0b743dc9f1dfd2b02616a","0fc3172e3e7a021405798481242e80733fa100b13c1804cfc3665540e305cc54","11f6bd60f91ee64e8cbed5b377c523046c0059503c7896ccc19312f2b86a09d7","e4809865a175354054c52eef2e93f27b8db155a6fba2d9e56646e63845a7370f","9ff8358e82f1578762021daf6f79d607bdf0b33de6f98a2ef9d50271af94c076","6e17eaea086675de5f5a79eb7fce2e3bf06d0f9f81f5368b7fe2b273fceb372d","37150f7f049b575f007a4b4b2b1a0a6d2c73c808b25c9ed8a196da280b2c6cae"],"lastCommit":"d61017f2a45fba95f0a4ba7c0476e0173c5c0e1f"},
+        {"path":"specs/004-fx-regime-relative-value-lab/test-plan.json","pathKind":"tracked","classification":"foreign-unrelated","ownerAttribution":"bubbles.plan::specs/004-fx-regime-relative-value-lab","feature004OwnershipClaim":false,"status":" M","staged":false,"unstaged":true,"headOid":"ad889299d290518d5ba991fa78c04a45f32ae049","indexOid":"ad889299d290518d5ba991fa78c04a45f32ae049","worktreeGitOid":"e2e8803d8f58255a5b459027bb5c1114b3de9513","worktreeSha256":"4d25cdb02904ac9e5d395f76fc9162e6c6dbed89d29eb75edd64de067413ad2a","hunkCount":6,"hunkBodySha256":["28a2618627cdf1f05e2023e498bfebcdb7fc694bb33d347c6f57e4ca5a625502","2b7835e4fb1218963b93efc9f44872207e6145563dcf567bf4b3de0661679c0d","8f7ebf491c084f6a36da1037b8a48b8934acaa12e180c46b70807710d0be00af","6045374e147efb56c6acbc8bf422f2eae2348627960c3067ec8075df3bfc5925","060948901ace52c824cf6e83cc344ac347f5a0d696d74ff1edf7846d72d48c89","f3265d081f3f23f30c082e1d7c0944d1bdfaf2ef833c44a15e0a44393e169b23"],"lastCommit":"1f1d739dab1bc144b46df0250f528fdf2292ea3b"},
+        {"path":"specs/004-fx-regime-relative-value-lab/uservalidation.md","pathKind":"tracked","classification":"foreign-unrelated","ownerAttribution":"bubbles.plan::specs/004-fx-regime-relative-value-lab","feature004OwnershipClaim":false,"status":" M","staged":false,"unstaged":true,"headOid":"726a1409b12a4625d9709a4252c03713baca5ebb","indexOid":"726a1409b12a4625d9709a4252c03713baca5ebb","worktreeGitOid":"8137e019ffba0c525b292ebcb9c988b450d1f73b","worktreeSha256":"7bfc13db69d3c3553897f510d61d99f4293bfbaf385d2a9d5f4ffcbb8b56c5fb","hunkCount":7,"hunkBodySha256":["51576eb6243f33e7a327b91bec585b03d6b4bbbebe79bd66e1ae186831540c43","d0f478c0739b89423997dd4a672b63d54574c9b54158495357d9a7bba3f67219","9b9dfe3e267d4d652c694dadb0fb40fafb0e4fb58555b2ba5f3ab19514ab61ee","546ed8d93aaab471f0492943620ad74989c6acb604e9c0f0f4e121b7705a7b1b","cd3ee3c61b6edad97279fed730f974d89b93e294e41b0e2159d782fd6d105162","8b480b4fbeebe92fc1fedef2c279fdac82fd0a33f509ef6ec2c64781b90c6c67","92e04d8ddaf83c361f090cfc19326e627c06fb0f3e7be7a2120729ee5a701158"],"lastCommit":"943972e295b8fa93a19795e46015e5ae780b0350"},
+        {"path":"specs/007-technical-analysis-decision-lab/state.json","pathKind":"tracked","classification":"foreign-unrelated","ownerAttribution":"specs/007-technical-analysis-decision-lab","feature004OwnershipClaim":false,"status":" M","staged":false,"unstaged":true,"headOid":"2691cfa1c2c8bf76cd01aa05cdb5c1a55e0ae23b","indexOid":"2691cfa1c2c8bf76cd01aa05cdb5c1a55e0ae23b","worktreeGitOid":"b1d4209c0071292187f0d9284833c7f67f2f0cd3","worktreeSha256":"5a105a131e67b515e2f323e6f07f67bc90c972e77c08da18c319d7cd31b5fc3d","hunkCount":2,"hunkBodySha256":["73173baaf785304af262b79b839e8e65aa69d3997c88c79665f81903efc70b62","84208f26ef49abaa011727ef3b50bffe5c5512130d3c52a161f686ffee73ae70"],"lastCommit":"d61017f2a45fba95f0a4ba7c0476e0173c5c0e1f"},
+        {"path":"specs/012-market-action-center-and-guided-tools/scopes/15-production-simple-adapter-wiring/scope.md","pathKind":"tracked","classification":"foreign-unrelated","ownerAttribution":"specs/012-market-action-center-and-guided-tools::SCOPE-15","feature004OwnershipClaim":false,"status":" M","staged":false,"unstaged":true,"headOid":"199adcf3d748dcb6a020f6fac0995fa713e97b07","indexOid":"199adcf3d748dcb6a020f6fac0995fa713e97b07","worktreeGitOid":"a97dc38b0083eb365f68a8cb6c6269a023e49966","worktreeSha256":"8513bdd4c0c5e270202feb9988885fc6ae36aea8151d5557de5e79c38c0c0643","hunkCount":2,"hunkBodySha256":["ee53e2457375211a97521aec0757928a4663076c8c7b948ab922a817807d3e34","f5660f9026d8b55cf5062bd411cd4d55a3775add1cfd9e31956076d59fabfcdf"],"lastCommit":"f398a9acb4f7da5045068136104fd781f66cf067"},
+        {"path":"specs/015-recommendation-outcome-ledger-and-track-record/state.json","pathKind":"tracked","classification":"foreign-unrelated","ownerAttribution":"specs/015-recommendation-outcome-ledger-and-track-record","feature004OwnershipClaim":false,"status":" M","staged":false,"unstaged":true,"headOid":"5ab629313ad46938a0abfb85b30ebcc1399bc6b7","indexOid":"5ab629313ad46938a0abfb85b30ebcc1399bc6b7","worktreeGitOid":"659e594e3c8206dd6ba202340f14b12f13e0a924","worktreeSha256":"10d00cdb8881c48cf0b7925ebcb75e037f455b5a7e86506adf1b1673d0bc35c4","hunkCount":1,"hunkBodySha256":["b6e1cb8596648a3efdad7f2d1aca9c922b359384973bbac9f82849e2b3281673"],"lastCommit":"d61017f2a45fba95f0a4ba7c0476e0173c5c0e1f"},
+        {"path":"tests/simple-production-bridge.integration.mjs","pathKind":"tracked","classification":"foreign-unrelated","ownerAttribution":"specs/012-market-action-center-and-guided-tools::SCOPE-15","feature004OwnershipClaim":false,"status":" M","staged":false,"unstaged":true,"headOid":"618f0c5b923fd3e9cd6dadd625dcd851f919328c","indexOid":"618f0c5b923fd3e9cd6dadd625dcd851f919328c","worktreeGitOid":"775e30ecaa0be645e8d6c13bf507d10a9ae36116","worktreeSha256":"9ae46e26c2c6e02509bbf0ec5da65b5e2d5bde7fc6ecd3f47d893e1f32f1451e","hunkCount":5,"hunkBodySha256":["9bf7e774721616cb49a3c7798af6457353949b35269ff391cb298a8b6d3efdd0","8c44aeabb9150daf182ec651423bf8e7f0e919c7ceb8087d3036b2f90e5d69bd","7ddfa59abf163beef02699127f820b8fba86b160a3c142b18d263d131165ea1b","52c9ad166272574dd9fe51cf7b5404f6ed1e30fa885d45fd89723e2019ee0417","583c3a4d62e2bc73875ba7f88502fe006e57f1b0ba43b77fb1abf14b051789ff"],"lastCommit":"b548519e93b636aa3ea67c1897e956d978f2e349"},
+        {"path":"tests/simple-production-bridge.unit.mjs","pathKind":"tracked","classification":"foreign-unrelated","ownerAttribution":"specs/012-market-action-center-and-guided-tools::SCOPE-15; shared-with-BUG-004","feature004OwnershipClaim":false,"status":" M","staged":false,"unstaged":true,"headOid":"caff6f2801bc4e5addc9b5e570d25226e49b86bf","indexOid":"caff6f2801bc4e5addc9b5e570d25226e49b86bf","worktreeGitOid":"13de6a1f8560b89510a110de9c4db7c05ce877d4","worktreeSha256":"3c71690f08a6b72b0dd069cfc23336819caef37a10b207ee595cead1503edb68","hunkCount":2,"hunkBodySha256":["9bf7e774721616cb49a3c7798af6457353949b35269ff391cb298a8b6d3efdd0","943ea538ffb36c0396822cd1e06c99c6c7c69e6d320e264154966bde6124f202"],"lastCommit":"c91c305e1f5ead0659fd7cfb1aa18b8f14259933"},
+        {"path":"scripts/reader-vocabulary.mjs","pathKind":"untracked","classification":"foreign-unrelated","ownerAttribution":"owner: unknown","feature004OwnershipClaim":false,"status":"??","staged":false,"unstaged":true,"headOid":null,"indexOid":null,"worktreeGitOid":"04cb7c87be882daa8bb4d8d64aeb0945c09d7002","worktreeSha256":"efdcf4423add22be185d50d35ccba457eff27b731880624f4a48d91f0de9c09a","hunkCount":0,"hunkBodySha256":[],"lastCommit":null}
+    ],
+    "collisionParserSelfIdentity": {"path":"tests/feature-004-dirty-tree-collision.test.mjs","mode":"normalized-self-pins/v1","pinLiterals":["DURABLE_EVIDENCE_BLOCK_SHA256","CURRENT_IDENTITY_V4_BLOCK_SHA256"],"normalizedPinValue":"0000000000000000000000000000000000000000000000000000000000000000","worktreeGitOid":"f40a1097202ef9742d20c2bc1fe9576061748b75","worktreeSha256":"a725c2ae0195398b821ad67eb982e6790bd2a17fc316084e00e09314c2b052a1","hunkCount":24,"hunkBodySha256":["483a7d0132e46fbadf5a59ae34ab86a43b510ad25712eb13c15158f9f96909dc","f0ffd40a078bd4e94baace9ba4ff3cf88f5b5e6938a2e7ecb7acfbe725c41af0","a8817a8a5fafb2f06d96a943b4552e97ca7f7784e472e5f9055307051a1e322d","93a555d05790ff147c91fa460e21454aa31d49243588db2db8d56a93230bc008","d5e246c68ab5b99d1fa6ebc55752fc4507d1275ba16b3c063828664a315e31d1","082224ee61a922c00be7ab20790e0e0eb86df0d67f1d97be3eaffd0a6eef874a","eb665f4f8fd8116c3f0883766f0df8deae97a638428eb9ee4ca99428b0c020d4","5b7d579651eaa2632e9526beb2f6fc37f1d8346bc082b316dc51388fa7b2c6b7","dad9da3edf75b5ce9bccc92d208185375e194c8f7b757059733ee70dfd6712a1","fa65c70bd10772d7f32cec31d2ee4225f23c6af05540b22a80789c0a70b819d3","cb0b48bd5097ce46f5e03bdf433ab36f125a2a102db7ba70f17c04afa88e49d5","4c4b40344bdc9297d63a67476fa102d8608b16e213749548a200f30f931416bb","012d6feddca2a39e305a40a7be03069951de389293d4e84b425d18e73959a7d4","b0d1ad9384b8e486bbc448541d2d50e7da354264621d9c352dc687bfb29a164e","6672d4007b8162a5471ce353a884e3052e60be5f79c88080a4b29cd48f71c1fd","a2902975af55c6fd914e734dbb402dac37c8187e07e174987a7c97240b187b58","56bc98088012519a144d0d4702fafa2160549548105d6a2ab1ad02758ff0474d","2a36e2b667bbf782c1c08235800c2ed7c968316fbcba13edbac466e8abfa6a2a","f2b1ad844eb6a93aa4ea221a12e2050b1f7027031e97e4fe9fc6ae943120a7af","377330b9749d396b437589aceeed655461b219255b43e2c0380d29e7c33ed90d","f14ad05698a65d2392cdc631292381dc1be25d14f831a01570ea18fb6eaf9e9e","1a0acead5e92707cb01b43f17d69c86ea7a8da5cca74399f82212e2a2c246820","d8fee55565247501fc1f2de202e76ca7d2784d78664ba650136216447fc32e6b","6c43110e70190b2de8f6d32675ba679a10650c365224b92c97103d2ffd27089b"]},
+    "preservationContract": {"allTenPredecessorBlocksRemainByteIdentical":true,"durableEvidenceBlockHashIsPinned":true,"exactNineteenScope1PathsRequired":true,"allForeignDirtyAndUntrackedPathsSeparatelyClassified":true,"foreignPathsGrantNoFeature004Ownership":true,"normalizedSelfPinsRequired":true,"missingExtraStagedOrDriftedIdentityFailsClosed":true,"reportPathIsProtectedByMarkerPinsInsteadOfRecursiveIdentity":true}
+}
+```
+<!-- feature004-dirty-collision-current-identity-v4:end -->
+
+## Collision Lifecycle Successor - `F004-COLLISION-F010-LIFECYCLE-DRIFT-001`
+
+### Summary
+
+The durable evidence block and v4 identity remain exact at their pinned marker-inclusive hashes. The immutable Feature 010 owner return still records the noncompletion state observed on 2026-07-17. Feature 010 later reached a certified done state on 2026-07-30. The five current-state assertions in `validateOwnerSettledSuccessor` therefore compare two valid lifecycle moments as though they were one state.
+
+The v5 block preserves both moments. It authorizes one existing semantic hunk replacement. It also authorizes additive v5 schema, pin, and adversarial coverage owned by `bubbles.test`. The three plan-owned identities below capture this handoff after `scopes.md`, `test-plan.json`, and `state.json` routing changed. No product, Feature 010, checkbox, scope status, or certification byte changed.
+
+### Completion Statement
+
+Planning defines the closed successor and routes parser execution to `bubbles.test`. Scope 1 remains In Progress. Scope 2 remains locked. A green collision result and BUG-002 replay remain test-owned and are not claimed here.
+
+<!-- feature004-dirty-collision-current-identity-v5:start -->
+```json
+{
+    "contractVersion": "feature004-dirty-collision-current-identity/v5",
+    "findingId": "F004-COLLISION-F010-LIFECYCLE-DRIFT-001",
+    "capturedAt": "2026-08-04T01:51:24Z",
+    "extendsContracts": [
+        {
+            "marker": "feature004-dirty-collision-current-identity-v4",
+            "rawBlockSha256": "64ddfd9bb8a2adbaa218eb1a7f0efbe62746a51b7fcdc0ad2444debf297da30c"
+        },
+        {
+            "marker": "feature004-scope1-durable-evidence-v1",
+            "rawBlockSha256": "c5ed7a110a2a743d2aef3b32c0655a2fd3c20c7ca6c9ee2ecef2716654ef7268"
+        }
+    ],
+    "historicalOwnerReturn": {
+        "owner": "bubbles.implement",
+        "packet": "specs/010-company-fundamentals-and-brief-lab",
+        "scope": "Scope 01",
+        "phase": "implement",
+        "executionHistorySelector": {
+            "agent": "bubbles.implement",
+            "executionModel": "direct-authorized-runner",
+            "parentAgent": "bubbles.goal",
+            "startedAt": "2026-07-17T00:14:13Z",
+            "finishedAt": "2026-07-17T00:34:15Z",
+            "outcome": "route_required",
+            "evidenceRef": "scopes/01-contract-config-validator-publication-foundation/report.md#final-concurrent-owner-reconciliation---2026-07-17t003415z"
+        },
+        "statusBefore": "not_started",
+        "statusAfter": "not_started",
+        "scopesCompleted": [],
+        "exactEvidenceCompletionClaims": {
+            "scopeComplete": false,
+            "featureComplete": false,
+            "bug003Complete": false,
+            "bug002Complete": false
+        },
+        "capturedNonCompletionState": {
+            "featureStatus": "not_started",
+            "scopeStatus": "not_started",
+            "certificationStatus": "not_started",
+            "completedPhaseClaims": [
+                "spec-review"
+            ],
+            "completedScopes": []
+        }
+    },
+    "certifiedSuccessor": {
+        "status": "done",
+        "certifiedAt": "2026-07-30T14:41:30Z",
+        "certificationStatus": "done",
+        "executionScopeProgress": [
+            {
+                "scope": 1,
+                "status": "done"
+            },
+            {
+                "scope": 2,
+                "status": "done"
+            },
+            {
+                "scope": 3,
+                "status": "done"
+            },
+            {
+                "scope": 4,
+                "status": "done"
+            },
+            {
+                "scope": 5,
+                "status": "done"
+            },
+            {
+                "scope": 6,
+                "status": "done"
+            },
+            {
+                "scope": 7,
+                "status": "done"
+            },
+            {
+                "scope": 8,
+                "status": "done"
+            }
+        ],
+        "completedScopeCount": 8,
+        "uniqueCompletedScopeCount": 8,
+        "certifiedCompletedPhases": [
+            "implement",
+            "test",
+            "regression",
+            "simplify",
+            "gaps",
+            "harden",
+            "stabilize",
+            "security",
+            "validate",
+            "audit",
+            "chaos",
+            "docs",
+            "spec-review"
+        ]
+    },
+    "resolvedTransition": {
+        "id": "TR-F010-SCOPE01-TEST-OWNERSHIP-01",
+        "status": "resolved",
+        "routedTo": "bubbles.test",
+        "findingIds": [
+            "F010-INDEPENDENT-VERIFICATION-001"
+        ],
+        "resolvedAt": "2026-07-17T02:07:35Z",
+        "resolvedBy": "bubbles.test",
+        "outcome": "route_required"
+    },
+    "planOwnedPathTransitions": [
+        {
+            "path": "specs/004-fx-regime-relative-value-lab/scopes.md",
+            "previousIdentityRef": {
+                "marker": "feature004-dirty-collision-current-identity-v4",
+                "field": "foreignProtectedPaths[path=specs/004-fx-regime-relative-value-lab/scopes.md]"
+            },
+            "previousWorktreeGitOid": "b25aac528f83de1b69c556e6590dab5b277f3276",
+            "previousWorktreeSha256": "71504cc062bef9a4403695e1a2d720c16d40198542264bfaa6f6e290fff335ac",
+            "inheritedClassification": "foreign-unrelated",
+            "inheritedOwnerAttribution": "bubbles.plan::specs/004-fx-regime-relative-value-lab",
+            "inheritedFeature004OwnershipClaim": false,
+            "currentIdentity": {
+                "path": "specs/004-fx-regime-relative-value-lab/scopes.md",
+                "pathKind": "tracked",
+                "status": " M",
+                "staged": false,
+                "unstaged": true,
+                "headOid": "8be70cf56fd0031c44b999eb38666018efb0f69d",
+                "indexOid": "8be70cf56fd0031c44b999eb38666018efb0f69d",
+                "worktreeGitOid": "b1566d7d4cb86865ae444ad1a1ee88c14fba25cf",
+                "worktreeSha256": "69aa381dd855cbce4412ee88fa87ac2cf13f212c6de69c89082042c2ebbb25f2",
+                "hunkCount": 84,
+                "hunkBodySha256": [
+                    "556117c9b4b5445952dc229dbfc6b4aa3afe65765fdb4f398c3430dc1a3261e9",
+                    "894c7bce06b7f79bfc8770a50c43ce893b7c375bf1a649dd110a831028d1e2e2",
+                    "145219197f3ddaf8b18eb2600ef42826b8a12126c8e8f61da31ff258631080bd",
+                    "1f30ff32a01d290a00cc65ce2252b57d10581e20a14448ef442aa72273bec8c0",
+                    "47b577c4165ffb30fe2508443e2805efe2c39e9b99c70bb85236056709c51f15",
+                    "e9ceb405e5b7552578c05b5669d90151bef868420b663db9e179e4b75473dd9a",
+                    "a8bfd992e6b1a91266ef0f6f9fb41309b3e85ae279ddb8750b1118f7dca64958",
+                    "f8b6fce6ad4a4b827e280da83b778dd378b797c772beca93e06b2da619ad507c",
+                    "ec8cb2712756b6cf60a69426f0aeae56a55fa1f84a1af8cea8a6576d41c02575",
+                    "6531d68157d941b4b9459b282a293a6f8167e6b176ce804a777880547e9b44c2",
+                    "1fc06be199fdce4680b79ba01b08fd75581e4a925a6c918f87f9cbd32cfb8d3c",
+                    "c8316019385c20e984a190d72b65261e1096dbf965daeb89aeb49437afc6f5f5",
+                    "ad2b93f5965406a763627061dc997d9a00f5b2564ccfad7715b732bc0cd019a8",
+                    "1703901a3faf186c7cbb4eaacad7350aa72019604ef541dcc1b79201d32a4f1e",
+                    "c7f40277b51c2bd706f9587a45b9083be3b6d90fc20fee53842b814ea87eb32f",
+                    "a0a84fb6c6c0dac91935a955c4a6ac15c17f1ae8d3f06fc3d46ed526708685b5",
+                    "73b58c9d8100ead70c4f495b23096dc1117957833e0cbc441cfa7b8b65e08076",
+                    "4e94f843c56383f5d8ac22f05f351d4f73d7571eff76723b394d08b4b12a190e",
+                    "671c87f6288b31e167a590253dc7ece6819ca78a48f7b7cd0b8be2335256bc8e",
+                    "5d47f5d056e30a7bb9fed7eed4aedd0faa5ade96ca17a4a79344e1f7412e4d90",
+                    "f536c0ae608b8f300f0679428d71d2cf5fefa27edd7db136760d71eff3ee9d89",
+                    "b47d3ca6047b2e5c6a08a0f40fbaeb5924e2135b59d61ed34013051205c08e7b",
+                    "7470def2a668d0bd478541dcc0ebc62aca82045e3fce80d06c420b59ae1888b5",
+                    "2c311ebb6154c4af9332ae2b54df39d75cf14a4fa0f6d53c001b8cdc27d4accc",
+                    "ae34f8cf4513e310613dc1ad6a03a419da5d57bf7a1a6d49d4896e5446c04b66",
+                    "d4ecd33a960d8e8297755809f1bcbfdcf41831321d868137dbe4a1a57fb5c5af",
+                    "326b848422a189b292b2eb4e37ef0558a284736db556e0649554f0c912d6c68f",
+                    "88f39adef0de5e851447b108924d3973f3bc3bfeee945831d102e0c9db34af0d",
+                    "13aed448be4927231a6c97fbd77eec2dd19346cc7d35ec89d9c846653b420eac",
+                    "71b10f59f8ba9c5ff9012c7894d82e0171721ba03b1fb011200e1373cc69e4da",
+                    "57ab3a9dcc3f13b7daeaaed5b49879657aecdb3f86f13e4914193cb3a5dd0931",
+                    "5061a6a7c8f3327dd4aa2ffe543c3477b6061db7e0b9a4524e4ddb69d0a8f197",
+                    "0cf7ac4acb9f13b72d38be130e6e6a359d7ab5b5cdb4f07046860582a809a3f7",
+                    "d8e405dd51a86ba6a67c039bd140a45078d07f8b7eb1766e7ce5cf937e59d7c2",
+                    "940deb879995b9aa730b5edbd8528ea66e41a24aabbb327563769176faffba91",
+                    "b60a3197d831ab627719edaed29a090f5f6fa241d4a78daf65101505a128c8c4",
+                    "25b71486d37880dda50a916e2a5f7cdae029a65b571fdee0df535868c8214b48",
+                    "a7365aaa1339bb1fdb8b53804c89c85a1c2dda4377a08a932e4bde9be9fcde22",
+                    "8912095e0c96831aa83288db5255cb613c79957466c9b8789e81964d1f51016a",
+                    "8b471a145ad9c10e8dcf0c989051eb3b61b79a74038d92fa8e7dc61fcc9ba4b3",
+                    "b5ece2acd0126253ea8558110d85ba0bec60caf69b4dab35fcf84e161cb2d5de",
+                    "8f7f2318fd0546793f9a2ed3703be68d4270b6ab7446bf867038804e676d4d14",
+                    "4e7893fcb680211b1f62a7b9cccdae94429076d1955d1430d69e92ca708a050d",
+                    "43e77f7c4156f02723da8f72694c4266f95a954850bb4261471e18321cd38369",
+                    "8c71ba8cfb4fe8886c8a778c9c6f666c977405b436d3d9b4247ad93280907138",
+                    "5635bd668bbc7fff8df73076cdc56cb0f387349c7be009298a2d82820ac51533",
+                    "916c4a11ed0206dc7d874f968b9fb8922b3a43c35b343b35815e04ebec03098b",
+                    "626f21a86229b0a41bdcbc8d7ee4c897e5f5d4c234e0fdac63f1c72409b9578d",
+                    "696f015c7070c7f6335cf84d9f805958e21d18efa9d8f1222570fe140ce45413",
+                    "23343126430a2446448361b7c55f1f541e3a7b9a76a60ca81c6321b2d7d9e457",
+                    "e7eced7b52dde09ccbb068f3494786df5681de1f0913a52ed74f663e4c55a29d",
+                    "624e518151fa3485b237710f9015c4a7cd4ef526f3e42fa5f8f32d0abacbe81d",
+                    "24e1b19cd2894260f8c87f0404103e6e9fbdc75bd465bd0db3a43ef54b6b7c6d",
+                    "431f7561625c60bae72232b8caa307b5d3deb14ba676655a5bcb0be9e0f0c7f8",
+                    "204209a610f5436d99caec6baec76b54c13257c01029e8f9c88f7595afa53fdb",
+                    "4d93345707023d9020f3d5a268678e26959779c5853779494fc15718d6bac18b",
+                    "985e4b2b6f71f07146de0293f1a00ed9919895ec2b219bc02534486d41c4c595",
+                    "a90d85213646cddd73083e60f24d74f1f7e4c0da12089ec942f556a3d1ad7ede",
+                    "aeb6f5d51355b627833a883b2da8a52982fb33f5062e877ac0fcf3b128ec12fc",
+                    "dffefcc7a1630ec7a4eb8c593f8d1d8cd707c4731200016b2ed9edbbafb39149",
+                    "d43108364a53385d410c36488b3518f6848ea0b5e635945023886ab898f2dca9",
+                    "b2a7ab4501ea285cafd0194cc02e3fe421413b4226bfdd4c162c601639af5dfc",
+                    "66abfa4349298f863ea883b95f78335c1273a9b9ed0d64553d857852733fdad8",
+                    "62f78e3ad26dd8373a1e93cf10a7454bf163c9613d8ef81ab78384cee326d29d",
+                    "59c06120744cb5932ccb5d3f7890f8e88efa6100ed9c367b48e92160f7e897c9",
+                    "91d6f36e4923afa3d293bbc9f3d9e01333e42d3aaace68dace91a91c464a850f",
+                    "215376ad10f166c3356378b3560ece8b8a74ad1f2aac356b22c904aeeff238dc",
+                    "da9a8c1f519c33b39984c357a016d1faba5eab52c1496d4775fdca0a2aeb923a",
+                    "0da9c6d5dfc4d239712450f5c81a43c6d04217fb2d18240d38050724aa7ce911",
+                    "6ef96258b82cc57f1d4d018b00f14dadbdf6542183a8f1fa8a14f4301cd1a125",
+                    "1d5791e2f9f9f173349f02e42488e9100fa0e59193409f2ce5699758a9321062",
+                    "3fe01ca02637b3a62c60f7b1ca6852ec9781b92e1e0770611965db2ed9c170ce",
+                    "c55424d55c10035d6910c5f242d26175d5ca9369a17ed4e1d959a91812f0f00f",
+                    "329888840945f4a7135885f765bfc4bedb00389004ef233cad7bc4b20b487272",
+                    "0269d4b3ebae41a761e2011c77bf213dff5b25dd13335190120cd0f2916c0d09",
+                    "e8773c70879f7382a8fe41795af97f45a076003b6ef38de46354951fe4669c93",
+                    "9e8413cb7961997b70bdc9eed796558def9457c22174749f7b582528411f4537",
+                    "2e3b6934a11f0be4c279000f3fccdf11a834eb3cc72dcb08d3605fe068dcc9e7",
+                    "ad8dea340f56b309fc19ed7c994cd7d68286cce171c2f28b8f20899fddbf5a1f",
+                    "bdf663f77d25c9fe472bdadcd5086f4ef978bcc04060e0503f16c3febc8bc0f8",
+                    "2aeed9e1a48e8c09ca3ae56a8a75cd310f14187af454ecb5d8bf3464e17ff987",
+                    "ba7797a2ab086d97faf1a4a6b603bb09fb7bf7b933ba61a888bf35588d1c827a",
+                    "04492460564a63a7c6a6ab85b00df9f579589c1eecb95f2b7da137b005db9e7a",
+                    "b5daeeb5d037d3170fa899223dc2e7d7b791d01d100ddd9266c523dc63324dac"
+                ],
+                "lastCommit": "1f1d739dab1bc144b46df0250f528fdf2292ea3b"
+            },
+            "disposition": "plan-owned-v5-lifecycle-successor"
+        },
+        {
+            "path": "specs/004-fx-regime-relative-value-lab/test-plan.json",
+            "previousIdentityRef": {
+                "marker": "feature004-dirty-collision-current-identity-v4",
+                "field": "foreignProtectedPaths[path=specs/004-fx-regime-relative-value-lab/test-plan.json]"
+            },
+            "previousWorktreeGitOid": "e2e8803d8f58255a5b459027bb5c1114b3de9513",
+            "previousWorktreeSha256": "4d25cdb02904ac9e5d395f76fc9162e6c6dbed89d29eb75edd64de067413ad2a",
+            "inheritedClassification": "foreign-unrelated",
+            "inheritedOwnerAttribution": "bubbles.plan::specs/004-fx-regime-relative-value-lab",
+            "inheritedFeature004OwnershipClaim": false,
+            "currentIdentity": {
+                "path": "specs/004-fx-regime-relative-value-lab/test-plan.json",
+                "pathKind": "tracked",
+                "status": " M",
+                "staged": false,
+                "unstaged": true,
+                "headOid": "ad889299d290518d5ba991fa78c04a45f32ae049",
+                "indexOid": "ad889299d290518d5ba991fa78c04a45f32ae049",
+                "worktreeGitOid": "60abaa254e93fe18f4c0333658f2ca98d5b9fa72",
+                "worktreeSha256": "8924fe6b62c5e88c6fd636522025009800faa0e99e0a1c4a777bcc9f5536f414",
+                "hunkCount": 8,
+                "hunkBodySha256": [
+                    "0b402b979367b2f8775139d71f05b21a2e5af05593aa0bf474150836f0c55a4f",
+                    "01312c8fb60cfd03503b42ce838a91c4def3b35b584dd27126328640dc7b1312",
+                    "e00a427b31ef3db18d116cb14de1a29ea2fe2c7d801eabab3393627331fb4fa4",
+                    "06b6ca14081a89e8d9e247c5336d0c27295a9ee7b9b017285bf1a03cbbf0088a",
+                    "4016c506231aad1752ea68f1d6e8917c1d72c3d927ad1ebf14646d37dbfeda9e",
+                    "da2acdff223a721a29c97009d5629a488f25dd6be9ff6fb65e68d0ec11f5736e",
+                    "868ee0cf23c435a5991a962e6c52d1a83f0da53fbcbee1f5fb830ad4c839961e",
+                    "a7e6c34226565146cd0231eb6285353a126ef98d7d80daefc6429341a41a1e1e"
+                ],
+                "lastCommit": "1f1d739dab1bc144b46df0250f528fdf2292ea3b"
+            },
+            "disposition": "plan-owned-v5-lifecycle-successor"
+        },
+        {
+            "path": "specs/004-fx-regime-relative-value-lab/state.json",
+            "previousIdentityRef": {
+                "marker": "feature004-dirty-collision-current-identity-v4",
+                "field": "foreignProtectedPaths[path=specs/004-fx-regime-relative-value-lab/state.json]"
+            },
+            "previousWorktreeGitOid": "7c602265f74b5d521af39a91c7df96b9c6931f29",
+            "previousWorktreeSha256": "789a7ccc3297554fa82c10d25992b2d9fd9567383dd9a8f2a32f36b48a5103b7",
+            "inheritedClassification": "foreign-unrelated",
+            "inheritedOwnerAttribution": "bubbles.plan::specs/004-fx-regime-relative-value-lab",
+            "inheritedFeature004OwnershipClaim": false,
+            "currentIdentity": {
+                "path": "specs/004-fx-regime-relative-value-lab/state.json",
+                "pathKind": "tracked",
+                "status": " M",
+                "staged": false,
+                "unstaged": true,
+                "headOid": "48b76d7e6f25df232c8aee12b716230870497c92",
+                "indexOid": "48b76d7e6f25df232c8aee12b716230870497c92",
+                "worktreeGitOid": "5a9da353e9af8ef50f22d7bafd8ad2303024f1e0",
+                "worktreeSha256": "72faf0c5913f4d3e9746c23a7cfbf5c5c24e922c575500f3ab98da412c3524b1",
+                "hunkCount": 16,
+                "hunkBodySha256": [
+                    "7e52bdf8810db41b81620e0c448882f80407002e0e03983e7118e268bfca4781",
+                    "5c4e0714db4de8d176988d1e9b347209c712bdf9dd4358ffc3c8288d2e35158a",
+                    "9d191030b5926df4d6447481082f6129bd86af50ff311374de06ec0dbb4fd2b7",
+                    "9f8f90656dc6f7c63d53c5a0dc8ef1d3491bd4559db7287b614c7ee91c1df3d6",
+                    "6dbaeca817fb5597c6fcbf009c7e66d5a87b36cc7a77ecef1cb99d1c402cf0bc",
+                    "833a29bd010345bafa61dd9f004e2e5535ede746be4caf13e8304466179850ad",
+                    "735a28c74e36e669da0e681e3d8c03f642e1e544d6982692be851e8da0fe19aa",
+                      "688ebf1b35c814e89c5f73f77af627703ba5b420935df32875416cd923397b6c",
+                    "b041c333d26ba90e5a9caf1322a5bfa77e6315836cb0b743dc9f1dfd2b02616a",
+                    "0fc3172e3e7a021405798481242e80733fa100b13c1804cfc3665540e305cc54",
+                    "11f6bd60f91ee64e8cbed5b377c523046c0059503c7896ccc19312f2b86a09d7",
+                    "e4809865a175354054c52eef2e93f27b8db155a6fba2d9e56646e63845a7370f",
+                    "49696290d0fc52b8e7c57ce4808c2eeabf48f3924ceff5513d1e7aeafcd7801a",
+                    "956a1d98c8dbb4d83f32b99ef564f197180b3ae1630ebc91dabdabc6f8af18dd",
+                    "ac34a972711f00a513306727b4e87a31e81c37dbfa1e9317b58932d4e2eef481",
+                    "1e8e8818270469dd1e96ed56353730ef61e2189371149011ca3277102f6cc9fc"
+                ],
+                "lastCommit": "d61017f2a45fba95f0a4ba7c0476e0173c5c0e1f"
+            },
+            "disposition": "plan-owned-v5-lifecycle-successor"
+        }
+    ],
+    "parserBeforeSemanticEdit": {
+        "path": "tests/feature-004-dirty-tree-collision.test.mjs",
+        "rawWorktreeGitOid": "50e367ed041b11f6dbfe0f8e1a907a1348b009f6",
+        "rawWorktreeSha256": "c524337816983f22675d5a7b024ea394d852c9f1273697d81dc48baf901c25dc",
+        "byteLength": 164198,
+        "capturedOldLineRange": {
+            "start": 1187,
+            "end": 1191
+        },
+        "normalizedV1Identity": {
+            "path": "tests/feature-004-dirty-tree-collision.test.mjs",
+            "mode": "normalized-self-pins/v1",
+            "pinLiterals": [
+                "DURABLE_EVIDENCE_BLOCK_SHA256",
+                "CURRENT_IDENTITY_V4_BLOCK_SHA256"
+            ],
+            "normalizedPinValue": "0000000000000000000000000000000000000000000000000000000000000000",
+            "worktreeGitOid": "f40a1097202ef9742d20c2bc1fe9576061748b75",
+            "worktreeSha256": "a725c2ae0195398b821ad67eb982e6790bd2a17fc316084e00e09314c2b052a1",
+            "hunkCount": 24,
+            "hunkBodySha256": [
+                "483a7d0132e46fbadf5a59ae34ab86a43b510ad25712eb13c15158f9f96909dc",
+                "f0ffd40a078bd4e94baace9ba4ff3cf88f5b5e6938a2e7ecb7acfbe725c41af0",
+                "a8817a8a5fafb2f06d96a943b4552e97ca7f7784e472e5f9055307051a1e322d",
+                "93a555d05790ff147c91fa460e21454aa31d49243588db2db8d56a93230bc008",
+                "d5e246c68ab5b99d1fa6ebc55752fc4507d1275ba16b3c063828664a315e31d1",
+                "082224ee61a922c00be7ab20790e0e0eb86df0d67f1d97be3eaffd0a6eef874a",
+                "eb665f4f8fd8116c3f0883766f0df8deae97a638428eb9ee4ca99428b0c020d4",
+                "5b7d579651eaa2632e9526beb2f6fc37f1d8346bc082b316dc51388fa7b2c6b7",
+                "dad9da3edf75b5ce9bccc92d208185375e194c8f7b757059733ee70dfd6712a1",
+                "fa65c70bd10772d7f32cec31d2ee4225f23c6af05540b22a80789c0a70b819d3",
+                "cb0b48bd5097ce46f5e03bdf433ab36f125a2a102db7ba70f17c04afa88e49d5",
+                "4c4b40344bdc9297d63a67476fa102d8608b16e213749548a200f30f931416bb",
+                "012d6feddca2a39e305a40a7be03069951de389293d4e84b425d18e73959a7d4",
+                "b0d1ad9384b8e486bbc448541d2d50e7da354264621d9c352dc687bfb29a164e",
+                "6672d4007b8162a5471ce353a884e3052e60be5f79c88080a4b29cd48f71c1fd",
+                "a2902975af55c6fd914e734dbb402dac37c8187e07e174987a7c97240b187b58",
+                "56bc98088012519a144d0d4702fafa2160549548105d6a2ab1ad02758ff0474d",
+                "2a36e2b667bbf782c1c08235800c2ed7c968316fbcba13edbac466e8abfa6a2a",
+                "f2b1ad844eb6a93aa4ea221a12e2050b1f7027031e97e4fe9fc6ae943120a7af",
+                "377330b9749d396b437589aceeed655461b219255b43e2c0380d29e7c33ed90d",
+                "f14ad05698a65d2392cdc631292381dc1be25d14f831a01570ea18fb6eaf9e9e",
+                "1a0acead5e92707cb01b43f17d69c86ea7a8da5cca74399f82212e2a2c246820",
+                "d8fee55565247501fc1f2de202e76ca7d2784d78664ba650136216447fc32e6b",
+                "6c43110e70190b2de8f6d32675ba679a10650c365224b92c97103d2ffd27089b"
+            ]
+        }
+    },
+    "parserTransition": {
+        "path": "tests/feature-004-dirty-tree-collision.test.mjs",
+        "function": "validateOwnerSettledSuccessor",
+        "semanticTransitionCount": 1,
+        "allowedHunk": {
+            "capturedLineRange": {
+                "start": 1187,
+                "end": 1191
+            },
+            "hashInput": "lines-joined-with-lf-no-trailing-newline",
+            "oldAssertionCount": 5,
+            "oldSha256": "c9f2fcf6cfe7782af378ed713ce424bc1d7075af29c296400eb9c3402568d848",
+            "oldLines": [
+                "  assert.equal(featureTenState.status, owner.nonCompletionState.featureStatus);",
+                "  assert.equal(featureTenState.execution.scopeProgress[0].status, owner.nonCompletionState.scopeStatus);",
+                "  assert.equal(featureTenState.certification.status, owner.nonCompletionState.certificationStatus);",
+                "  assert.deepEqual(featureTenState.execution.completedPhaseClaims, owner.nonCompletionState.completedPhaseClaims);",
+                "  assert.deepEqual(featureTenState.certification.completedScopes, owner.nonCompletionState.completedScopes);"
+            ],
+            "newSha256": "56f14a8579a6714ea5a83ac8185cd74d16c6543bc81e0a4ecc43d8d1797bbbae",
+            "newLines": [
+                "  assert.deepEqual({",
+                "    agent: executionMatches[0].agent,",
+                "    startedAt: executionMatches[0].startedAt,",
+                "    finishedAt: executionMatches[0].finishedAt,",
+                "    statusBefore: executionMatches[0].statusBefore,",
+                "    statusAfter: executionMatches[0].statusAfter,",
+                "    scopesCompleted: executionMatches[0].scopesCompleted,",
+                "    completionClaims: {",
+                "      scopeComplete: executionMatches[0].exactEvidence.scopeComplete,",
+                "      featureComplete: executionMatches[0].exactEvidence.featureComplete,",
+                "      bug003Complete: executionMatches[0].exactEvidence.bug003Complete,",
+                "      bug002Complete: executionMatches[0].exactEvidence.bug002Complete",
+                "    }",
+                "  }, {",
+                "    agent: 'bubbles.implement',",
+                "    startedAt: '2026-07-17T00:14:13Z',",
+                "    finishedAt: '2026-07-17T00:34:15Z',",
+                "    statusBefore: 'not_started',",
+                "    statusAfter: 'not_started',",
+                "    scopesCompleted: [],",
+                "    completionClaims: {",
+                "      scopeComplete: false,",
+                "      featureComplete: false,",
+                "      bug003Complete: false,",
+                "      bug002Complete: false",
+                "    }",
+                "  }, 'Feature 010 historical owner-return entry remains exact after later certification');",
+                "  assert.equal(featureTenState.status, 'done', 'Feature 010 current status is the exact certified successor');",
+                "  assert.equal(featureTenState.certifiedAt, '2026-07-30T14:41:30Z', 'Feature 010 certification timestamp is exact');",
+                "  assert.equal(featureTenState.certification.status, 'done', 'Feature 010 current certification status is done');",
+                "  assert.deepEqual(featureTenState.execution.scopeProgress.map(({ scope, status }) => ({ scope, status })), [",
+                "    { scope: 1, status: 'done' },",
+                "    { scope: 2, status: 'done' },",
+                "    { scope: 3, status: 'done' },",
+                "    { scope: 4, status: 'done' },",
+                "    { scope: 5, status: 'done' },",
+                "    { scope: 6, status: 'done' },",
+                "    { scope: 7, status: 'done' },",
+                "    { scope: 8, status: 'done' }",
+                "  ], 'Feature 010 current execution has exactly eight ordered done scopes');",
+                "  assert.equal(featureTenState.certification.completedScopes.length, 8, 'Feature 010 current certification has exactly eight completed scopes');",
+                "  assert.equal(new Set(featureTenState.certification.completedScopes).size, 8, 'Feature 010 current certification completed scopes are unique');",
+                "  assert.deepEqual(featureTenState.certification.certifiedCompletedPhases, [",
+                "    'implement',",
+                "    'test',",
+                "    'regression',",
+                "    'simplify',",
+                "    'gaps',",
+                "    'harden',",
+                "    'stabilize',",
+                "    'security',",
+                "    'validate',",
+                "    'audit',",
+                "    'chaos',",
+                "    'docs',",
+                "    'spec-review'",
+                "  ], 'Feature 010 current certification phases are exact and ordered');"
+            ]
+        },
+        "structuralAdditions": {
+            "newPinConstant": "const CURRENT_IDENTITY_V5_BLOCK_SHA256 = '<marker-inclusive-v5-sha256>';",
+            "newPinPlacement": "immediately after CURRENT_IDENTITY_V4_BLOCK_SHA256",
+            "normalizedV1MustRemainByteIdentical": true,
+            "normalizedV2MustBeAdditive": true,
+            "v5SchemaParserMustBeAdditive": true,
+            "v5AdversarialCasesMustBeAdditive": true,
+            "existingEvidenceIdentityAndAdversarialBytesMayNotChange": true
+        }
+    },
+    "normalizedSelfPins": {
+        "mode": "normalized-self-pins/v2",
+        "pinLiterals": [
+            "DURABLE_EVIDENCE_BLOCK_SHA256",
+            "CURRENT_IDENTITY_V4_BLOCK_SHA256",
+            "CURRENT_IDENTITY_V5_BLOCK_SHA256"
+        ],
+        "retainedPinValues": {
+            "DURABLE_EVIDENCE_BLOCK_SHA256": "c5ed7a110a2a743d2aef3b32c0655a2fd3c20c7ca6c9ee2ecef2716654ef7268",
+            "CURRENT_IDENTITY_V4_BLOCK_SHA256": "64ddfd9bb8a2adbaa218eb1a7f0efbe62746a51b7fcdc0ad2444debf297da30c"
+        },
+        "capturePin": {
+            "name": "CURRENT_IDENTITY_V5_BLOCK_SHA256",
+            "valueDuringCapture": "0000000000000000000000000000000000000000000000000000000000000000",
+            "finalValueSource": "feature004-dirty-collision-current-identity-v5 marker-inclusive no-trailing-newline SHA-256"
+        },
+        "captureSequence": [
+            "Validate the raw durable and v4 hashes before reading v5.",
+            "Validate parserBeforeSemanticEdit against the current parser before changing existing semantic bytes.",
+            "Add the v5 pin, v2 normalizer, closed v5 parser, and additive adversarial cases without changing v1 or predecessor bytes.",
+            "Set the v5 pin to 64 zeroes while computing the normalized v2 identity.",
+            "Apply exactly parserTransition.allowedHunk and no other replacement of existing semantic bytes.",
+            "Compute the marker-inclusive v5 hash and replace only the zero v5 pin value.",
+            "Require v2 normalization and the exact transition contract to reproduce the authorized successor."
+        ],
+        "failClosed": "Reject missing, duplicate, renamed, reordered, non-64-hex, or extra pin literals. Reject any changed v1 byte, predecessor parser byte, evidence byte, identity byte, or prior adversarial byte."
+    },
+    "adversarialMutations": [
+        "mutated historical owner-return selector, status, scopesCompleted, or false completion claim",
+        "absent, not_started, in_progress, blocked, unknown, or extra current Feature 010 status",
+        "wrong or missing certifiedAt",
+        "missing, extra, duplicate, reordered, or non-done execution scope",
+        "missing, extra, or duplicate completed scope",
+        "extra, missing, duplicate, or reordered certified phase",
+        "mutated, unresolved, duplicated, or missing TR-F010-SCOPE01-TEST-OWNERSHIP-01",
+        "missing, duplicate, malformed, reordered, or unknown v5 field",
+        "changed durable or v4 hash",
+        "changed plan-owned successor identity",
+        "missing, duplicate, renamed, reordered, or changed v2 pin",
+        "any existing parser replacement outside parserTransition.allowedHunk",
+        "any mutation of predecessor evidence, identity, or adversarial bytes"
+    ],
+    "preservationContract": {
+        "v4RemainsByteIdentical": true,
+        "durableEvidenceRemainsByteIdentical": true,
+        "allPredecessorHashesRemainMandatory": true,
+        "historicalOwnerReturnRemainsNoncompletionEvidence": true,
+        "currentFeatureTenStateMustMatchCertifiedSuccessor": true,
+        "resolvedTransitionRemainsExact": true,
+        "planOwnedPathTransitionCount": 3,
+        "testPlanRowCount": 84,
+        "testPlanDodParityCount": 84,
+        "scopeOneStatus": "In Progress",
+        "scopeTwoStatus": "Not Started",
+        "featureStatus": "in_progress",
+        "certificationStatus": "in_progress",
+        "feature004CompletedScopes": [],
+        "productEditsAllowed": false,
+        "featureTenEditsAllowed": false,
+        "gitStateMutationAllowed": false,
+        "unrelatedDirtyWorkMustRemainUnchanged": true
+    },
+    "testOwnerHandoff": {
+        "owner": "bubbles.test",
+        "transitionRequestId": "TR-F004-SCOPE01-COLLISION-LIFECYCLE-SUCCESSOR-001",
+        "testEditBoundary": "tests/feature-004-dirty-tree-collision.test.mjs only",
+        "requiredActions": [
+            "Add only CURRENT_IDENTITY_V5_BLOCK_SHA256 and the additive normalized-self-pins/v2 family. Keep both existing pin values and every normalized-self-pins/v1 byte unchanged.",
+            "Parse exactly one v5 block with the exact ordered schema above after validating durable evidence and v4 by raw hash.",
+            "Overlay only the three planOwnedPathTransitions before recomputing current v4 path identities.",
+            "Apply exactly parserTransition.allowedHunk inside validateOwnerSettledSuccessor.",
+            "Add every listed adversarial mutation without weakening or changing any predecessor adversarial case.",
+            "Run node --test tests/feature-004-dirty-tree-collision.test.mjs and require three passes, zero failures, zero skips, and zero todo tests.",
+            "Replay the unchanged BUG-002 verification after the final parser is green.",
+            "Return no product edit, Feature 010 edit, checkbox change, status change, Scope 2 pickup, certification mutation, Git-state mutation, or unrelated dirty-byte change."
+        ],
+        "nextRequiredOwner": "bubbles.test"
+    }
+}
+```
+<!-- feature004-dirty-collision-current-identity-v5:end -->
+
+## Foreign Roadmap Identity Successor - `F004-COLLISION-FOREIGN-ROADMAP-V6`
+
+### Summary
+
+The exact v4 and v5 report blocks remain byte-identical at their marker-inclusive hashes. The v4 foreign-path inventory records an earlier 22-hunk `docs/Product-Review-and-Roadmap.md` identity. The same unstaged foreign-unrelated path is now stable at the exact 25-hunk identity below. This successor overlays only that roadmap identity. It grants no semantic approval, acceptance, Feature 004 ownership, completion, or certification, and it does not apply the separately authorized v5 parser transition.
+
+### Completion Statement
+
+Planning records one closed v6 identity and routes parser implementation to `bubbles.test`. Scope 1 remains In Progress, Scope 2 remains locked, every checkbox remains unchanged, and product, test, roadmap, generated, status, and certification surfaces remain untouched.
+
+<!-- feature004-dirty-collision-foreign-roadmap-v6:start -->
+```json
+{
+    "contractVersion": "feature004-dirty-collision-foreign-roadmap/v6",
+    "findingId": "F004-COLLISION-FOREIGN-ROADMAP-V6",
+    "capturedAt": "2026-08-04T02:27:05Z",
+    "extendsContracts": [
+        {
+            "marker": "feature004-dirty-collision-current-identity-v5",
+            "rawBlockSha256": "c3a487a6e6d2f45084635a1fe6a8269a1efb4096ff76acebec3b419c36551780"
+        },
+        {
+            "marker": "feature004-dirty-collision-current-identity-v4",
+            "rawBlockSha256": "64ddfd9bb8a2adbaa218eb1a7f0efbe62746a51b7fcdc0ad2444debf297da30c"
+        }
+    ],
+    "previousRoadmapIdentity": {
+        "path": "docs/Product-Review-and-Roadmap.md",
+        "pathKind": "tracked",
+        "classification": "foreign-unrelated",
+        "ownerAttribution": "owner: unknown",
+        "feature004OwnershipClaim": false,
+        "status": " M",
+        "staged": false,
+        "unstaged": true,
+        "headOid": "5908e77e172fb78f7ef5dd2db1203aae7fd2016e",
+        "indexOid": "5908e77e172fb78f7ef5dd2db1203aae7fd2016e",
+        "worktreeGitOid": "f23c99707989d580ffeca6c50434723380c0c763",
+        "worktreeSha256": "ff8cce305ac0385e99468de29205e84ee31f645e05f171eb8cedb6b891ed7379",
+        "hunkCount": 22,
+        "hunkBodySha256": [
+            "40176ae5f2fd464650ca58f7dc1418000778aa030a833849ca73fa0c7cd71e6f",
+            "c2fc7186a7065431cd96698264544aca8692ab2ef1dfe819c552486b0de0ffc6",
+            "1bf7916f52f145246d6f5d6af63f51b7ad235bb924d00af2ed231895c6249e51",
+            "c898b3c4ceb05354cfd53927723fef141cee2e5e42b381cd86b812c4ce78299a",
+            "78d6f39d3d15fc9f75a5d782a30481755e272541c6f288f2f828a1e24e56ede9",
+            "9a826b1633153762527d70a30df0bd743c6fe88b963d6f8ec514e0f881105c11",
+            "3ab6ae72fdef851b3bc133d3df0071b58997d95418f1b1800b07dd7ea622a88e",
+            "d3ee434ec8900dd1a85dd90119ea84c3cb6702ead97dbac8777e5ce349bdb17c",
+            "62e7bd1559f26066d6968ecc73f5c73f2281989d10315de9e9335711eebf8bc5",
+            "1ec0d81f07ae7f0c1bdb6bcda9bb6072f6901dc8b4678443ac2ae49fa6e50d79",
+            "841f1222eb2a9e9910d5e61787f8dd9878fa5233c02c9cb39976972ab2f11acf",
+            "f7563d17145dc8e476313c04af545043d47bcc3a9cd48f842ae42bc9e0aa7152",
+            "1731322e6747831c90e984d216682edc1747b5d2df500116e9d43abb35acacb5",
+            "c80816800a9f6cf410a86b121a0a87c8755be294c1795c0e7fa38d7e90ba571a",
+            "1fc1863a8336fe1623609c2bc3052923f58398e564e42ca587aac6732d576881",
+            "fe919b89d0488181844118d28a8c7befcefa7a54a89de24f36ee09aefae0ee27",
+            "800abd9bd9362c6646220c4a9fd760a419bfeb0510d438325e5a7d4a2c0e29fd",
+            "013fbfe7ae59bf5c8d2096238f1bea7b8518a515b7b9b0a85c2938a87d6ecb6b",
+            "7129c5219ca7026d43dff3110698e58716e268b7fe4b5042b4b52ce90f4f9a6a",
+            "f4cbd2d99b0445e7852e57982b60988852fa71a6df6155c4661e421cbfe8ce3d",
+            "472486e79a7de2cfa3dd938f46ca22d199a9e77511c1f857e3c13a66e6e8f114",
+            "eab169ccd6d6da24b04fc2616c6dce1c675c84bcf4ee43fbecdae569f69c33e3"
+        ],
+        "lastCommit": "4c576b3344dc0edea9703dadea1d8b4f14e35efc"
+    },
+    "foreignRoadmapOverlay": {
+        "overlayCount": 1,
+        "path": "docs/Product-Review-and-Roadmap.md",
+        "previousIdentityRef": {
+            "marker": "feature004-dirty-collision-current-identity-v4",
+            "field": "foreignProtectedPaths[path=docs/Product-Review-and-Roadmap.md]"
+        },
+        "currentIdentity": {
+            "path": "docs/Product-Review-and-Roadmap.md",
+            "pathKind": "tracked",
+            "classification": "foreign-unrelated",
+            "ownerAttribution": "owner: unknown",
+            "feature004OwnershipClaim": false,
+            "status": " M",
+            "staged": false,
+            "unstaged": true,
+            "headOid": "5908e77e172fb78f7ef5dd2db1203aae7fd2016e",
+            "indexOid": "5908e77e172fb78f7ef5dd2db1203aae7fd2016e",
+            "worktreeGitOid": "016656d4bc39799cb976e02208f8a3ec81bdabc6",
+            "worktreeSha256": "8cb06fb713f25b52423604d7a0e196fa3017e685b756cfd5873604a588d068e6",
+            "byteLength": 94895,
+            "additions": 555,
+            "deletions": 0,
+            "hunkCount": 25,
+            "hunkBodySha256": [
+                "40176ae5f2fd464650ca58f7dc1418000778aa030a833849ca73fa0c7cd71e6f",
+                "c2fc7186a7065431cd96698264544aca8692ab2ef1dfe819c552486b0de0ffc6",
+                "1bf7916f52f145246d6f5d6af63f51b7ad235bb924d00af2ed231895c6249e51",
+                "c898b3c4ceb05354cfd53927723fef141cee2e5e42b381cd86b812c4ce78299a",
+                "78d6f39d3d15fc9f75a5d782a30481755e272541c6f288f2f828a1e24e56ede9",
+                "9a826b1633153762527d70a30df0bd743c6fe88b963d6f8ec514e0f881105c11",
+                "3ab6ae72fdef851b3bc133d3df0071b58997d95418f1b1800b07dd7ea622a88e",
+                "d3ee434ec8900dd1a85dd90119ea84c3cb6702ead97dbac8777e5ce349bdb17c",
+                "62e7bd1559f26066d6968ecc73f5c73f2281989d10315de9e9335711eebf8bc5",
+                "1ec0d81f07ae7f0c1bdb6bcda9bb6072f6901dc8b4678443ac2ae49fa6e50d79",
+                "841f1222eb2a9e9910d5e61787f8dd9878fa5233c02c9cb39976972ab2f11acf",
+                "f7563d17145dc8e476313c04af545043d47bcc3a9cd48f842ae42bc9e0aa7152",
+                "02491a633017d8c81d2e8f2d9690b0cf24f7af339f6ec7362d40dce6919c284b",
+                "122f93a2cdce610e161c7e40628966c766bc20c6db421ac4378a0dd725c33c22",
+                "1731322e6747831c90e984d216682edc1747b5d2df500116e9d43abb35acacb5",
+                "c80816800a9f6cf410a86b121a0a87c8755be294c1795c0e7fa38d7e90ba571a",
+                "1fc1863a8336fe1623609c2bc3052923f58398e564e42ca587aac6732d576881",
+                "fe919b89d0488181844118d28a8c7befcefa7a54a89de24f36ee09aefae0ee27",
+                "800abd9bd9362c6646220c4a9fd760a419bfeb0510d438325e5a7d4a2c0e29fd",
+                "013fbfe7ae59bf5c8d2096238f1bea7b8518a515b7b9b0a85c2938a87d6ecb6b",
+                "7129c5219ca7026d43dff3110698e58716e268b7fe4b5042b4b52ce90f4f9a6a",
+                "f4cbd2d99b0445e7852e57982b60988852fa71a6df6155c4661e421cbfe8ce3d",
+                "472486e79a7de2cfa3dd938f46ca22d199a9e77511c1f857e3c13a66e6e8f114",
+                "eab169ccd6d6da24b04fc2616c6dce1c675c84bcf4ee43fbecdae569f69c33e3",
+                "e0245b20de8fd8a4c8889edb6c1495e203ed5f9b2f8405d47a7ab2e27a727f5e"
+            ],
+            "lastCommit": "4c576b3344dc0edea9703dadea1d8b4f14e35efc"
+        },
+        "currentAuthor": "unknown",
+        "semanticApproval": false,
+        "semanticAcceptance": false,
+        "ownershipTransfer": false,
+        "completionClaim": false,
+        "certificationClaim": false,
+        "disposition": "foreign-unrelated-current-identity-only"
+    },
+    "pendingV5SemanticTransition": {
+        "marker": "feature004-dirty-collision-current-identity-v5",
+        "rawBlockSha256": "c3a487a6e6d2f45084635a1fe6a8269a1efb4096ff76acebec3b419c36551780",
+        "status": "authorized-unapplied",
+        "path": "tests/feature-004-dirty-tree-collision.test.mjs",
+        "function": "validateOwnerSettledSuccessor",
+        "oldHunkSha256": "c9f2fcf6cfe7782af378ed713ce424bc1d7075af29c296400eb9c3402568d848",
+        "newHunkSha256": "56f14a8579a6714ea5a83ac8185cd74d16c6543bc81e0a4ecc43d8d1797bbbae",
+        "semanticTransitionCount": 1,
+        "applicationOrder": "after-foreign-roadmap-v6-overlay"
+    },
+    "planningRoutingTransitions": [
+        {
+            "path": "specs/004-fx-regime-relative-value-lab/scopes.md",
+            "previousIdentityRef": {
+                "marker": "feature004-dirty-collision-current-identity-v5",
+                "field": "planOwnedPathTransitions[path=specs/004-fx-regime-relative-value-lab/scopes.md].currentIdentity"
+            },
+            "previousWorktreeGitOid": "b1566d7d4cb86865ae444ad1a1ee88c14fba25cf",
+            "previousWorktreeSha256": "69aa381dd855cbce4412ee88fa87ac2cf13f212c6de69c89082042c2ebbb25f2",
+            "currentIdentity": {
+                "path": "specs/004-fx-regime-relative-value-lab/scopes.md",
+                "pathKind": "tracked",
+                "status": " M",
+                "staged": false,
+                "unstaged": true,
+                "headOid": "8be70cf56fd0031c44b999eb38666018efb0f69d",
+                "indexOid": "8be70cf56fd0031c44b999eb38666018efb0f69d",
+                "worktreeGitOid": "bb6e657a93b01bac99824608d97604aea0f4f98b",
+                "worktreeSha256": "e69f1184f4c2e770185f9e35c43ce0d85bc9476de3520e4cc2712c9f9cbcc1a3",
+                "hunkCount": 84,
+                "hunkBodySha256": [
+                    "556117c9b4b5445952dc229dbfc6b4aa3afe65765fdb4f398c3430dc1a3261e9",
+                    "894c7bce06b7f79bfc8770a50c43ce893b7c375bf1a649dd110a831028d1e2e2",
+                    "145219197f3ddaf8b18eb2600ef42826b8a12126c8e8f61da31ff258631080bd",
+                    "1f30ff32a01d290a00cc65ce2252b57d10581e20a14448ef442aa72273bec8c0",
+                    "47b577c4165ffb30fe2508443e2805efe2c39e9b99c70bb85236056709c51f15",
+                    "e9ceb405e5b7552578c05b5669d90151bef868420b663db9e179e4b75473dd9a",
+                    "a8bfd992e6b1a91266ef0f6f9fb41309b3e85ae279ddb8750b1118f7dca64958",
+                    "f8b6fce6ad4a4b827e280da83b778dd378b797c772beca93e06b2da619ad507c",
+                    "ec8cb2712756b6cf60a69426f0aeae56a55fa1f84a1af8cea8a6576d41c02575",
+                    "667958dc5467dcdc2eca15d19bda9d78be1a6379942f103f49078b1a1c6f476e",
+                    "1fc06be199fdce4680b79ba01b08fd75581e4a925a6c918f87f9cbd32cfb8d3c",
+                    "c8316019385c20e984a190d72b65261e1096dbf965daeb89aeb49437afc6f5f5",
+                    "ad2b93f5965406a763627061dc997d9a00f5b2564ccfad7715b732bc0cd019a8",
+                    "1703901a3faf186c7cbb4eaacad7350aa72019604ef541dcc1b79201d32a4f1e",
+                    "c7f40277b51c2bd706f9587a45b9083be3b6d90fc20fee53842b814ea87eb32f",
+                    "a0a84fb6c6c0dac91935a955c4a6ac15c17f1ae8d3f06fc3d46ed526708685b5",
+                    "73b58c9d8100ead70c4f495b23096dc1117957833e0cbc441cfa7b8b65e08076",
+                    "4e94f843c56383f5d8ac22f05f351d4f73d7571eff76723b394d08b4b12a190e",
+                    "671c87f6288b31e167a590253dc7ece6819ca78a48f7b7cd0b8be2335256bc8e",
+                    "5d47f5d056e30a7bb9fed7eed4aedd0faa5ade96ca17a4a79344e1f7412e4d90",
+                    "f536c0ae608b8f300f0679428d71d2cf5fefa27edd7db136760d71eff3ee9d89",
+                    "e24556004cf67bbce8e4788573b8d94905fac05480e00d97494df0e299514b1c",
+                    "7470def2a668d0bd478541dcc0ebc62aca82045e3fce80d06c420b59ae1888b5",
+                    "071a3a0e82563038f8600a127b111cb153e8a84e1d0a0cf015567306f0f79ce6",
+                    "ae34f8cf4513e310613dc1ad6a03a419da5d57bf7a1a6d49d4896e5446c04b66",
+                    "d4ecd33a960d8e8297755809f1bcbfdcf41831321d868137dbe4a1a57fb5c5af",
+                    "326b848422a189b292b2eb4e37ef0558a284736db556e0649554f0c912d6c68f",
+                    "88f39adef0de5e851447b108924d3973f3bc3bfeee945831d102e0c9db34af0d",
+                    "91c84aa775f5ce692b7a4e7777df6ee277378dd82484edf63ca0a83d0d14c384",
+                    "71b10f59f8ba9c5ff9012c7894d82e0171721ba03b1fb011200e1373cc69e4da",
+                    "57ab3a9dcc3f13b7daeaaed5b49879657aecdb3f86f13e4914193cb3a5dd0931",
+                    "5061a6a7c8f3327dd4aa2ffe543c3477b6061db7e0b9a4524e4ddb69d0a8f197",
+                    "0cf7ac4acb9f13b72d38be130e6e6a359d7ab5b5cdb4f07046860582a809a3f7",
+                    "d8e405dd51a86ba6a67c039bd140a45078d07f8b7eb1766e7ce5cf937e59d7c2",
+                    "940deb879995b9aa730b5edbd8528ea66e41a24aabbb327563769176faffba91",
+                    "b60a3197d831ab627719edaed29a090f5f6fa241d4a78daf65101505a128c8c4",
+                    "25b71486d37880dda50a916e2a5f7cdae029a65b571fdee0df535868c8214b48",
+                    "a7365aaa1339bb1fdb8b53804c89c85a1c2dda4377a08a932e4bde9be9fcde22",
+                    "8912095e0c96831aa83288db5255cb613c79957466c9b8789e81964d1f51016a",
+                    "8b471a145ad9c10e8dcf0c989051eb3b61b79a74038d92fa8e7dc61fcc9ba4b3",
+                    "b5ece2acd0126253ea8558110d85ba0bec60caf69b4dab35fcf84e161cb2d5de",
+                    "8f7f2318fd0546793f9a2ed3703be68d4270b6ab7446bf867038804e676d4d14",
+                    "4e7893fcb680211b1f62a7b9cccdae94429076d1955d1430d69e92ca708a050d",
+                    "43e77f7c4156f02723da8f72694c4266f95a954850bb4261471e18321cd38369",
+                    "8c71ba8cfb4fe8886c8a778c9c6f666c977405b436d3d9b4247ad93280907138",
+                    "5635bd668bbc7fff8df73076cdc56cb0f387349c7be009298a2d82820ac51533",
+                    "916c4a11ed0206dc7d874f968b9fb8922b3a43c35b343b35815e04ebec03098b",
+                    "626f21a86229b0a41bdcbc8d7ee4c897e5f5d4c234e0fdac63f1c72409b9578d",
+                    "696f015c7070c7f6335cf84d9f805958e21d18efa9d8f1222570fe140ce45413",
+                    "23343126430a2446448361b7c55f1f541e3a7b9a76a60ca81c6321b2d7d9e457",
+                    "e7eced7b52dde09ccbb068f3494786df5681de1f0913a52ed74f663e4c55a29d",
+                    "624e518151fa3485b237710f9015c4a7cd4ef526f3e42fa5f8f32d0abacbe81d",
+                    "24e1b19cd2894260f8c87f0404103e6e9fbdc75bd465bd0db3a43ef54b6b7c6d",
+                    "431f7561625c60bae72232b8caa307b5d3deb14ba676655a5bcb0be9e0f0c7f8",
+                    "204209a610f5436d99caec6baec76b54c13257c01029e8f9c88f7595afa53fdb",
+                    "4d93345707023d9020f3d5a268678e26959779c5853779494fc15718d6bac18b",
+                    "985e4b2b6f71f07146de0293f1a00ed9919895ec2b219bc02534486d41c4c595",
+                    "a90d85213646cddd73083e60f24d74f1f7e4c0da12089ec942f556a3d1ad7ede",
+                    "aeb6f5d51355b627833a883b2da8a52982fb33f5062e877ac0fcf3b128ec12fc",
+                    "dffefcc7a1630ec7a4eb8c593f8d1d8cd707c4731200016b2ed9edbbafb39149",
+                    "d43108364a53385d410c36488b3518f6848ea0b5e635945023886ab898f2dca9",
+                    "b2a7ab4501ea285cafd0194cc02e3fe421413b4226bfdd4c162c601639af5dfc",
+                    "4553dbfd8f06ac7557b2fc123ff739afab8bafd9a8d7fc4f7f19a3b3e3bd2385",
+                    "e48f3b6118e40ea7be3633488f7c528412b40974cebfe43be83028b8799fa5fc",
+                    "2fff60e084c520847c4190372d7f5806d60f56d54116689e8ea26734ebedb13f",
+                    "91d6f36e4923afa3d293bbc9f3d9e01333e42d3aaace68dace91a91c464a850f",
+                    "215376ad10f166c3356378b3560ece8b8a74ad1f2aac356b22c904aeeff238dc",
+                    "da9a8c1f519c33b39984c357a016d1faba5eab52c1496d4775fdca0a2aeb923a",
+                    "0da9c6d5dfc4d239712450f5c81a43c6d04217fb2d18240d38050724aa7ce911",
+                    "6ef96258b82cc57f1d4d018b00f14dadbdf6542183a8f1fa8a14f4301cd1a125",
+                    "1d5791e2f9f9f173349f02e42488e9100fa0e59193409f2ce5699758a9321062",
+                    "3fe01ca02637b3a62c60f7b1ca6852ec9781b92e1e0770611965db2ed9c170ce",
+                    "c55424d55c10035d6910c5f242d26175d5ca9369a17ed4e1d959a91812f0f00f",
+                    "329888840945f4a7135885f765bfc4bedb00389004ef233cad7bc4b20b487272",
+                    "0269d4b3ebae41a761e2011c77bf213dff5b25dd13335190120cd0f2916c0d09",
+                    "e8773c70879f7382a8fe41795af97f45a076003b6ef38de46354951fe4669c93",
+                    "9e8413cb7961997b70bdc9eed796558def9457c22174749f7b582528411f4537",
+                    "2e3b6934a11f0be4c279000f3fccdf11a834eb3cc72dcb08d3605fe068dcc9e7",
+                    "ad8dea340f56b309fc19ed7c994cd7d68286cce171c2f28b8f20899fddbf5a1f",
+                    "bdf663f77d25c9fe472bdadcd5086f4ef978bcc04060e0503f16c3febc8bc0f8",
+                    "2aeed9e1a48e8c09ca3ae56a8a75cd310f14187af454ecb5d8bf3464e17ff987",
+                    "ba7797a2ab086d97faf1a4a6b603bb09fb7bf7b933ba61a888bf35588d1c827a",
+                    "04492460564a63a7c6a6ab85b00df9f579589c1eecb95f2b7da137b005db9e7a",
+                    "b5daeeb5d037d3170fa899223dc2e7d7b791d01d100ddd9266c523dc63324dac"
+                ],
+                "lastCommit": "1f1d739dab1bc144b46df0250f528fdf2292ea3b"
+            },
+            "disposition": "plan-owned-v6-routing-only"
+        },
+        {
+            "path": "specs/004-fx-regime-relative-value-lab/test-plan.json",
+            "previousIdentityRef": {
+                "marker": "feature004-dirty-collision-current-identity-v5",
+                "field": "planOwnedPathTransitions[path=specs/004-fx-regime-relative-value-lab/test-plan.json].currentIdentity"
+            },
+            "previousWorktreeGitOid": "60abaa254e93fe18f4c0333658f2ca98d5b9fa72",
+            "previousWorktreeSha256": "8924fe6b62c5e88c6fd636522025009800faa0e99e0a1c4a777bcc9f5536f414",
+            "currentIdentity": {
+                "path": "specs/004-fx-regime-relative-value-lab/test-plan.json",
+                "pathKind": "tracked",
+                "status": " M",
+                "staged": false,
+                "unstaged": true,
+                "headOid": "ad889299d290518d5ba991fa78c04a45f32ae049",
+                "indexOid": "ad889299d290518d5ba991fa78c04a45f32ae049",
+                "worktreeGitOid": "4443a61391a5d81c3eb2bda9b697a79b5532091a",
+                "worktreeSha256": "5d0725da0935271a5c944d09fd116196f555e21d8181b9c6e9e863306855e1df",
+                "hunkCount": 8,
+                "hunkBodySha256": [
+                    "80c9a90e4bf14a6775e465bd453356e9b5aa069427598f33fbd21bf08eead12c",
+                    "01312c8fb60cfd03503b42ce838a91c4def3b35b584dd27126328640dc7b1312",
+                    "e00a427b31ef3db18d116cb14de1a29ea2fe2c7d801eabab3393627331fb4fa4",
+                    "7f30204021af3d9c19999d120c906526ec0bde1f1785ed6682b9e9d1dcbb67e4",
+                    "6412118202b789ec0d0113e903e5e04e52b51d278b0245e9b3cdd204fea3261e",
+                    "e035d7be549a93303006105f026a0e8b7f8ae872bbc3f98da68e50a6d9b8f9b8",
+                    "38aec630b924b7fd26c5771b5e792b5781d1f70d33e9d364ef00aa00781cfe6d",
+                    "f5af664f7bc2df2e909d664dfd1a1821aa0976ec419063e05063391103d9a7ca"
+                ],
+                "lastCommit": "1f1d739dab1bc144b46df0250f528fdf2292ea3b"
+            },
+            "disposition": "plan-owned-v6-routing-only"
+        },
+        {
+            "path": "specs/004-fx-regime-relative-value-lab/state.json",
+            "previousIdentityRef": {
+                "marker": "feature004-dirty-collision-current-identity-v5",
+                "field": "planOwnedPathTransitions[path=specs/004-fx-regime-relative-value-lab/state.json].currentIdentity"
+            },
+            "previousWorktreeGitOid": "5a9da353e9af8ef50f22d7bafd8ad2303024f1e0",
+            "previousWorktreeSha256": "72faf0c5913f4d3e9746c23a7cfbf5c5c24e922c575500f3ab98da412c3524b1",
+            "currentIdentity": {
+                "path": "specs/004-fx-regime-relative-value-lab/state.json",
+                "pathKind": "tracked",
+                "status": " M",
+                "staged": false,
+                "unstaged": true,
+                "headOid": "48b76d7e6f25df232c8aee12b716230870497c92",
+                "indexOid": "48b76d7e6f25df232c8aee12b716230870497c92",
+                "worktreeGitOid": "f066dc1c72b91f7af1f1d179f7f9c6859d031527",
+                "worktreeSha256": "3bca984b698419b79b8ba5db222b24841e48067994c65afdd6c38e9264c502c9",
+                "hunkCount": 16,
+                "hunkBodySha256": [
+                    "7e52bdf8810db41b81620e0c448882f80407002e0e03983e7118e268bfca4781",
+                    "5c4e0714db4de8d176988d1e9b347209c712bdf9dd4358ffc3c8288d2e35158a",
+                    "9d191030b5926df4d6447481082f6129bd86af50ff311374de06ec0dbb4fd2b7",
+                    "9f8f90656dc6f7c63d53c5a0dc8ef1d3491bd4559db7287b614c7ee91c1df3d6",
+                    "fb2758738d96a824378a9fb1f8cd81292bee83d70ea44f3b9ffa345b504b2ec8",
+                    "fb3c12f3ae2f855ef74e5edc362a0d49f5f8d0d57cf4e7f744c498529b012d14",
+                    "735a28c74e36e669da0e681e3d8c03f642e1e544d6982692be851e8da0fe19aa",
+                    "688ebf1b35c814e89c5f73f77af627703ba5b420935df32875416cd923397b6c",
+                    "b041c333d26ba90e5a9caf1322a5bfa77e6315836cb0b743dc9f1dfd2b02616a",
+                    "0fc3172e3e7a021405798481242e80733fa100b13c1804cfc3665540e305cc54",
+                    "11f6bd60f91ee64e8cbed5b377c523046c0059503c7896ccc19312f2b86a09d7",
+                    "e4809865a175354054c52eef2e93f27b8db155a6fba2d9e56646e63845a7370f",
+                    "5f298814cf0b5f0b0ed2d15a9a24a78fecacd579e8ada5c0cedf849ab517dbbf",
+                    "15852a057428a6bbfdddddf611980e2bb5cc9ac2f0b8b438a8a0027b440dbe52",
+                    "ddb9a3e19817590ca07ca1cb0e397eb6fd5d3b068aa23ae94b4a78cb8eada260",
+                    "1e8e8818270469dd1e96ed56353730ef61e2189371149011ca3277102f6cc9fc"
+                ],
+                "lastCommit": "d61017f2a45fba95f0a4ba7c0476e0173c5c0e1f"
+            },
+            "disposition": "plan-owned-v6-routing-only"
+        }
+    ],
+    "parserHandoff": {
+        "owner": "bubbles.test",
+        "path": "tests/feature-004-dirty-tree-collision.test.mjs",
+        "newPinLiteral": "FOREIGN_ROADMAP_V6_BLOCK_SHA256",
+        "pinCountDelta": 1,
+        "normalizedMode": "normalized-self-pins/v3",
+        "retainedPinLiterals": [
+            "DURABLE_EVIDENCE_BLOCK_SHA256",
+            "CURRENT_IDENTITY_V4_BLOCK_SHA256",
+            "CURRENT_IDENTITY_V5_BLOCK_SHA256"
+        ],
+        "applicationOrder": [
+            "validate every predecessor and exact v4/v5 marker-inclusive hash",
+            "parse exactly one closed v6 block",
+            "overlay only the roadmap old-v4 identity with the exact 25-hunk current identity",
+            "apply the three planning-routing transitions separately from the one-path foreign overlay",
+            "apply the already-authorized v5 five-assertion semantic transition",
+            "recompute the complete current identity matrix and fail closed on any remaining drift"
+        ],
+        "testEditBoundary": "one v6 pin/schema/adversarial branch plus the already-authorized v5 assertion transition",
+        "productEditsAllowed": false
+    },
+    "adversarialMutations": [
+        "missing, duplicate, malformed, reordered, or unknown v6 field",
+        "wrong v5 or v4 parent hash",
+        "path other than docs/Product-Review-and-Roadmap.md",
+        "wrong roadmap status, staging state, head or index OID, worktree OID, SHA-256, byte length, additions, deletions, hunk count, hunk order, or hunk hash",
+        "subset comparison or any changed non-roadmap v4 identity",
+        "roadmap author inference, Feature 004 ownership, semantic approval, acceptance, completion, or certification inference",
+        "v5 semantic transition applied before v6 roadmap overlay",
+        "missing, duplicate, renamed, reordered, non-64-hex, or extra v6 pin",
+        "planning-routing transition omitted, duplicated, reordered, broadened, or changed",
+        "parser mutation outside the v6 schema/pin/adversarial branch and exact v5 transition"
+    ],
+    "preservationContract": {
+        "v4RemainsByteIdentical": true,
+        "v5RemainsByteIdentical": true,
+        "everyPredecessorRemainsMandatory": true,
+        "onlyRoadmapV4IdentityMayOverlay": true,
+        "allOtherV4IdentitiesRemainExact": true,
+        "roadmapCurrentAuthorRemainsUnknown": true,
+        "roadmapClassificationRemainsForeignUnrelated": true,
+        "roadmapFeature004OwnershipClaimRemainsFalse": true,
+        "roadmapSemanticApprovalRemainsFalse": true,
+        "v5SemanticTransitionRemainsUnappliedByPlanning": true,
+        "v6OverlayMustPrecedeV5SemanticTransition": true,
+        "planningRoutingTransitionCount": 3,
+        "scopeOneStatus": "In Progress",
+        "scopeTwoStatus": "Not Started",
+        "featureStatus": "in_progress",
+        "certificationStatus": "in_progress",
+        "feature004CompletedScopes": [],
+        "productEditsAllowed": false,
+        "testEditsAllowedByPlanning": false,
+        "roadmapEditsAllowed": false,
+        "generatedEditsAllowed": false,
+        "checkboxEditsAllowed": false,
+        "statusEditsAllowed": false,
+        "certificationEditsAllowed": false,
+        "gitStateMutationAllowed": false,
+        "unrelatedDirtyWorkMustRemainUnchanged": true
+    },
+    "testOwnerHandoff": {
+        "owner": "bubbles.test",
+        "transitionRequestId": "TR-F004-SCOPE01-FOREIGN-ROADMAP-V6-001",
+        "requiredActions": [
+            "Add exactly one FOREIGN_ROADMAP_V6_BLOCK_SHA256 pin and one closed v6 parser branch while preserving every predecessor pin, parser requirement, and adversarial case.",
+            "Validate exact v4 and v5 hashes, then overlay only docs/Product-Review-and-Roadmap.md from its old v4 identity to the exact 25-hunk v6 identity.",
+            "Preserve every other v4 identity and apply the three plan-owned v6 routing transitions separately.",
+            "Apply the already-authorized v5 semantic assertion transition only after the v6 roadmap overlay validates.",
+            "Add every listed v6 adversarial mutation without weakening any predecessor case.",
+            "Run node --test tests/feature-004-dirty-tree-collision.test.mjs RED then GREEN and replay unchanged BUG-002 verification.",
+            "Return no product, roadmap, generated, Feature 010, checkbox, status, Scope 2, certification, Git-state, or unrelated dirty-byte change."
+        ],
+        "nextRequiredOwner": "bubbles.test"
+    }
+}
+```
+<!-- feature004-dirty-collision-foreign-roadmap-v6:end -->
+
+## Foreign-Set Identity Successor - `F004-COLLISION-FOREIGN-SET-V7`
+
+### Summary
+
+The exact v4, v5, and v6 blocks remain byte-identical at their marker-inclusive hashes. V6 remains valid historical input, but its roadmap identity is no longer the live identity. The current NUL-safe inventory also contains exactly two foreign paths absent from v4 after excluding report recursion and the session lock file.
+
+This v7 successor overlays the current roadmap identity and adds only those two paths. It grants no semantic approval, ownership transfer, Feature 004 ownership, acceptance, completion, checkbox, status, or certification claim.
+
+### Completion Statement
+
+Planning records one closed v7 foreign-set contract and routes parser implementation to `bubbles.test`. Scope 1 remains In Progress. Scope 2 remains locked. Tests, product files, foreign files, generated artifacts, checkboxes, status, and certification remain unchanged.
+
+<!-- feature004-dirty-collision-foreign-set-v7:start -->
+```json
+{
+    "contractVersion": "feature004-dirty-collision-foreign-set/v7",
+    "findingId": "F004-COLLISION-FOREIGN-SET-V7",
+    "capturedAt": "2026-08-04T03:09:08.744Z",
+    "extendsContracts": [
+        {
+            "marker": "feature004-dirty-collision-foreign-roadmap-v6",
+            "rawBlockSha256": "c2f6fc88b147e8de6501a7c87d41aaf3aa8bd9537ac49d06da61e49976b246f9"
+        },
+        {
+            "marker": "feature004-dirty-collision-current-identity-v5",
+            "rawBlockSha256": "c3a487a6e6d2f45084635a1fe6a8269a1efb4096ff76acebec3b419c36551780"
+        },
+        {
+            "marker": "feature004-dirty-collision-current-identity-v4",
+            "rawBlockSha256": "64ddfd9bb8a2adbaa218eb1a7f0efbe62746a51b7fcdc0ad2444debf297da30c"
+        }
+    ],
+    "inventoryProof": {
+        "v4CapturedPathCount": 42,
+        "v4ExistingForeignPath": ".vscode/mcp.json",
+        "reportRecursionExclusion": "specs/004-fx-regime-relative-value-lab/report.md",
+        "lockFileExclusion": ".specify/memory/bubbles.session.json.flock",
+        "currentUncapturedPathCount": 2,
+        "currentUncapturedPaths": [
+            "docs/Improvement-Plan.md",
+            "etf-momentum-lab.html"
+        ],
+        "roadmapAlreadyCapturedByV4": true,
+        "onlyDeclaredExclusionsAllowed": true,
+        "inventoryCommandMode": "git status --porcelain=v1 -z --untracked-files=all"
+    },
+    "v6HistoricalContract": {
+        "marker": "feature004-dirty-collision-foreign-roadmap-v6",
+        "rawBlockSha256": "c2f6fc88b147e8de6501a7c87d41aaf3aa8bd9537ac49d06da61e49976b246f9",
+        "schemaAndHashValidationRequired": true,
+        "historicalOverlayValidationRequired": true,
+        "liveCurrentComparisonWhenV7Present": false,
+        "disposition": "mandatory-historical-input"
+    },
+    "foreignSetOverlay": {
+        "overlayCount": 3,
+        "roadmapSuccessorCount": 1,
+        "newPathCount": 2,
+        "pathOrder": [
+            "docs/Product-Review-and-Roadmap.md",
+            "docs/Improvement-Plan.md",
+            "etf-momentum-lab.html"
+        ],
+        "diffMode": "git diff --no-ext-diff --unified=0",
+        "hunkHashInput": "ordered changed lines with plus or minus prefix joined by LF with no trailing LF",
+        "currentIdentities": [
+            {
+                "path": "docs/Product-Review-and-Roadmap.md",
+                "basePresence": "v4-v6-successor",
+                "previousIdentityRef": "feature004-dirty-collision-foreign-roadmap-v6.foreignRoadmapOverlay.currentIdentity",
+                "pathKind": "tracked",
+                "classification": "foreign-unrelated",
+                "ownerAttribution": "owner: unknown",
+                "feature004OwnershipClaim": false,
+                "status": " M",
+                "staged": false,
+                "unstaged": true,
+                "headOid": "5908e77e172fb78f7ef5dd2db1203aae7fd2016e",
+                "indexOid": "5908e77e172fb78f7ef5dd2db1203aae7fd2016e",
+                "worktreeGitOid": "f1286d2db719048541b5843040640126a68d74db",
+                "worktreeSha256": "ce3ce690906bbac5466ce0571d089557487559502f3ab15f9b5818db45798d2d",
+                "byteLength": 100995,
+                "additions": 623,
+                "deletions": 0,
+                "hunkCount": 25,
+                "hunkBodySha256": [
+                    "40176ae5f2fd464650ca58f7dc1418000778aa030a833849ca73fa0c7cd71e6f",
+                    "c2fc7186a7065431cd96698264544aca8692ab2ef1dfe819c552486b0de0ffc6",
+                    "1bf7916f52f145246d6f5d6af63f51b7ad235bb924d00af2ed231895c6249e51",
+                    "c898b3c4ceb05354cfd53927723fef141cee2e5e42b381cd86b812c4ce78299a",
+                    "78d6f39d3d15fc9f75a5d782a30481755e272541c6f288f2f828a1e24e56ede9",
+                    "9a826b1633153762527d70a30df0bd743c6fe88b963d6f8ec514e0f881105c11",
+                    "3ab6ae72fdef851b3bc133d3df0071b58997d95418f1b1800b07dd7ea622a88e",
+                    "d3ee434ec8900dd1a85dd90119ea84c3cb6702ead97dbac8777e5ce349bdb17c",
+                    "62e7bd1559f26066d6968ecc73f5c73f2281989d10315de9e9335711eebf8bc5",
+                    "1ec0d81f07ae7f0c1bdb6bcda9bb6072f6901dc8b4678443ac2ae49fa6e50d79",
+                    "841f1222eb2a9e9910d5e61787f8dd9878fa5233c02c9cb39976972ab2f11acf",
+                    "f7563d17145dc8e476313c04af545043d47bcc3a9cd48f842ae42bc9e0aa7152",
+                    "02491a633017d8c81d2e8f2d9690b0cf24f7af339f6ec7362d40dce6919c284b",
+                    "c6bd99e27fd2b40bd16620b25af914a61f6dc44fa81461d48629f674f5400ec2",
+                    "1731322e6747831c90e984d216682edc1747b5d2df500116e9d43abb35acacb5",
+                    "c80816800a9f6cf410a86b121a0a87c8755be294c1795c0e7fa38d7e90ba571a",
+                    "1fc1863a8336fe1623609c2bc3052923f58398e564e42ca587aac6732d576881",
+                    "fe919b89d0488181844118d28a8c7befcefa7a54a89de24f36ee09aefae0ee27",
+                    "800abd9bd9362c6646220c4a9fd760a419bfeb0510d438325e5a7d4a2c0e29fd",
+                    "013fbfe7ae59bf5c8d2096238f1bea7b8518a515b7b9b0a85c2938a87d6ecb6b",
+                    "8ba35d67554b27caec631f3e8b3ff768e0782dfd2f0dccb150ec8036b19fad46",
+                    "f4cbd2d99b0445e7852e57982b60988852fa71a6df6155c4661e421cbfe8ce3d",
+                    "472486e79a7de2cfa3dd938f46ca22d199a9e77511c1f857e3c13a66e6e8f114",
+                    "eab169ccd6d6da24b04fc2616c6dce1c675c84bcf4ee43fbecdae569f69c33e3",
+                    "e0245b20de8fd8a4c8889edb6c1495e203ed5f9b2f8405d47a7ab2e27a727f5e"
+                ],
+                "lastCommit": "4c576b3344dc0edea9703dadea1d8b4f14e35efc"
+            },
+            {
+                "path": "docs/Improvement-Plan.md",
+                "basePresence": "absent-from-v4",
+                "previousIdentityRef": null,
+                "pathKind": "tracked",
+                "classification": "foreign-unrelated",
+                "ownerAttribution": "owner: unknown",
+                "feature004OwnershipClaim": false,
+                "status": " M",
+                "staged": false,
+                "unstaged": true,
+                "headOid": "db0e08c9f80ceb5b777988bf446daf0544c8dc3e",
+                "indexOid": "db0e08c9f80ceb5b777988bf446daf0544c8dc3e",
+                "worktreeGitOid": "d37371251409bb8e4f24a861cd03dcebc7f7c5df",
+                "worktreeSha256": "f84105b20bb5e47593426d14305fb16b60700cf143cda4af1a540eefcc40004e",
+                "byteLength": 46804,
+                "additions": 26,
+                "deletions": 4,
+                "hunkCount": 1,
+                "hunkBodySha256": [
+                    "a0a3bd81e86d9c8b5343a286145a67a6712f0352cf3d13b39ade2c8793f1da75"
+                ],
+                "lastCommit": "32f8848c32330963c28b5019f7c78e1f453fceef"
+            },
+            {
+                "path": "etf-momentum-lab.html",
+                "basePresence": "absent-from-v4",
+                "previousIdentityRef": null,
+                "pathKind": "tracked",
+                "classification": "foreign-unrelated",
+                "ownerAttribution": "owner: unknown",
+                "possibleContext": "Feature 012 shared adapter context",
+                "possibleContextVerified": false,
+                "feature004OwnershipClaim": false,
+                "status": " M",
+                "staged": false,
+                "unstaged": true,
+                "headOid": "a415eb92540178d21a32e9ec67e2d0131261baea",
+                "indexOid": "a415eb92540178d21a32e9ec67e2d0131261baea",
+                "worktreeGitOid": "47fcd1a3a7db0e2cb3fd9d177abb1ebc7d193343",
+                "worktreeSha256": "6383f4ae6ba145a5e7a343b75813cba33c1ca7c58392200f76b7cb14bc016136",
+                "byteLength": 252209,
+                "additions": 32,
+                "deletions": 0,
+                "hunkCount": 2,
+                "hunkBodySha256": [
+                    "740cd6aebe1b7d8f4a24123fb0f227d1976cad2af3ff6aaaddef3df2b7b1f334",
+                    "3ddb91b0641e19fee5c4a6639ce87779f3a6ed86a34c97c38dd829857e6ea38c"
+                ],
+                "lastCommit": "e38615ea1e41616370e4c6530fe42b9f8fb93a62"
+            }
+        ],
+        "semanticApproval": false,
+        "semanticAcceptance": false,
+        "ownershipTransfer": false,
+        "completionClaim": false,
+        "certificationClaim": false
+    },
+    "pendingV5SemanticTransition": {
+        "marker": "feature004-dirty-collision-current-identity-v5",
+        "rawBlockSha256": "c3a487a6e6d2f45084635a1fe6a8269a1efb4096ff76acebec3b419c36551780",
+        "status": "authorized-unapplied",
+        "path": "tests/feature-004-dirty-tree-collision.test.mjs",
+        "function": "validateOwnerSettledSuccessor",
+        "oldHunkSha256": "c9f2fcf6cfe7782af378ed713ce424bc1d7075af29c296400eb9c3402568d848",
+        "newHunkSha256": "56f14a8579a6714ea5a83ac8185cd74d16c6543bc81e0a4ecc43d8d1797bbbae",
+        "semanticTransitionCount": 1,
+        "applicationOrder": "after-foreign-set-v7-overlay"
+    },
+    "parserOrder": [
+        "validate exact v4 and construct its complete 42-path base inventory",
+        "validate exact v6 schema, raw hash, parent hashes, and historical roadmap overlay without a live-current comparison",
+        "parse exactly one closed v7 block, overlay the roadmap successor, and add exactly two foreign paths while preserving both exclusions",
+        "apply the exact authorized v5 five-assertion semantic transition",
+        "recompute the complete current matrix and reject every remaining, duplicate, missing, reordered, excluded, or newly introduced path"
+    ],
+    "parserHandoff": {
+        "owner": "bubbles.test",
+        "path": "tests/feature-004-dirty-tree-collision.test.mjs",
+        "newPinLiteral": "FOREIGN_SET_V7_BLOCK_SHA256",
+        "pinCountDelta": 1,
+        "normalizedMode": "normalized-self-pins/v4",
+        "retainedPinLiterals": [
+            "DURABLE_EVIDENCE_BLOCK_SHA256",
+            "CURRENT_IDENTITY_V4_BLOCK_SHA256",
+            "CURRENT_IDENTITY_V5_BLOCK_SHA256",
+            "FOREIGN_ROADMAP_V6_BLOCK_SHA256"
+        ],
+        "applicationOrder": [
+            "validate every predecessor and exact v4, v5, and v6 marker-inclusive hash",
+            "validate v6 as historical schema and overlay input without comparing it to live bytes when v7 exists",
+            "parse exactly one closed v7 block",
+            "overlay the roadmap successor and add exactly docs/Improvement-Plan.md and etf-momentum-lab.html",
+            "apply the already-authorized v5 five-assertion semantic transition",
+            "recompute the complete current identity matrix with both exclusions intact"
+        ],
+        "testEditBoundary": "one v7 pin, schema, parser, and adversarial branch plus the already-authorized v5 assertion transition",
+        "productEditsAllowed": false
+    },
+    "adversarialMutations": [
+        "missing, duplicate, malformed, reordered, or unknown v7 field",
+        "wrong v6, v5, or v4 parent hash",
+        "wrong path set, path order, duplicate addition, missing addition, or extra addition",
+        "changed report-recursion or flock exclusion",
+        "missing or changed inherited .vscode/mcp.json record",
+        "wrong classification, owner attribution, possible-context verification, or Feature 004 ownership flag",
+        "wrong status, staging flags, HEAD or index OID, worktree OID, SHA-256, byte length, additions, deletions, hunk count, hunk order, hunk hash, or last commit",
+        "subset comparison or any changed inherited v4 or v6 identity",
+        "semantic approval, acceptance, ownership transfer, completion, checkbox, status, or certification inference",
+        "v5 semantic transition before v7 or v6 live-current comparison when v7 exists",
+        "v6 schema or raw hash not validated",
+        "missing, duplicate, renamed, reordered, non-64-hex, or changed v7 pin",
+        "parser mutation outside the v7 schema, pin, adversarial branch, and exact v5 transition"
+    ],
+    "preservationContract": {
+        "v4RemainsByteIdentical": true,
+        "v5RemainsByteIdentical": true,
+        "v6RemainsByteIdentical": true,
+        "everyPredecessorRemainsMandatory": true,
+        "allUnchangedV4AndV6IdentitiesRemainExact": true,
+        "roadmapCurrentAuthorRemainsUnknown": true,
+        "newPathCurrentAuthorsRemainUnknown": true,
+        "allThreePathsRemainForeignUnrelated": true,
+        "allThreeFeature004OwnershipClaimsRemainFalse": true,
+        "semanticApprovalRemainsFalse": true,
+        "ownershipTransferRemainsFalse": true,
+        "v5SemanticTransitionRemainsUnappliedByPlanning": true,
+        "v7OverlayMustPrecedeV5SemanticTransition": true,
+        "reportRecursionExclusionRemainsExact": true,
+        "lockFileExclusionRemainsExact": true,
+        "scopeOneStatus": "In Progress",
+        "scopeTwoStatus": "Not Started",
+        "featureStatus": "in_progress",
+        "certificationStatus": "in_progress",
+        "feature004CompletedScopes": [],
+        "productEditsAllowed": false,
+        "testEditsAllowedByPlanning": false,
+        "foreignPathEditsAllowed": false,
+        "generatedEditsAllowed": false,
+        "checkboxEditsAllowed": false,
+        "statusEditsAllowed": false,
+        "certificationEditsAllowed": false,
+        "gitStateMutationAllowed": false,
+        "unrelatedDirtyWorkMustRemainUnchanged": true
+    },
+    "planningRouting": {
+        "updatedPaths": [
+            "specs/004-fx-regime-relative-value-lab/report.md",
+            "specs/004-fx-regime-relative-value-lab/scopes.md",
+            "specs/004-fx-regime-relative-value-lab/test-plan.json",
+            "specs/004-fx-regime-relative-value-lab/state.json"
+        ],
+        "transitionRequestId": "TR-F004-SCOPE01-FOREIGN-SET-V7-001",
+        "nextRequiredOwner": "bubbles.test",
+        "scopeStatusChanged": false,
+        "checkboxChanged": false,
+        "featureStatusChanged": false,
+        "certificationChanged": false
+    },
+    "testOwnerHandoff": {
+        "owner": "bubbles.test",
+        "transitionRequestId": "TR-F004-SCOPE01-FOREIGN-SET-V7-001",
+        "requiredActions": [
+            "Add exactly one FOREIGN_SET_V7_BLOCK_SHA256 pin and one closed v7 parser branch while preserving every predecessor pin, parser requirement, and adversarial case.",
+            "Validate v4, validate v6 as historical input, apply the exact three-path v7 foreign set, then apply the exact v5 five-assertion transition.",
+            "Add every listed v7 adversarial mutation without weakening any predecessor case.",
+            "Run node --test tests/feature-004-dirty-tree-collision.test.mjs RED then GREEN and replay unchanged BUG-002 verification.",
+            "Return no product, foreign-document, generated, checkbox, status, Scope 2, certification, Git-state, or unrelated-dirty-byte change."
+        ],
+        "nextRequiredOwner": "bubbles.test"
+    }
+}
+```
+<!-- feature004-dirty-collision-foreign-set-v7:end -->
+
+## Post-Commit Collision Successor - `F004-COLLISION-POST-COMMIT-V9`
+
+### Summary
+
+Concurrent foreign work committed at exact HEAD `4476cefdd6e9e3a2b39ae8bc59ff62e55745390f`. That commit promoted some historical dirty records into HEAD without proving Feature 004 completion. The NUL-safe post-routing inventory contains exactly 23 porcelain paths: ten dirty Scope 1 paths, eleven surviving foreign dirty paths, report recursion, and the session flock exclusion.
+
+This additive v9 successor preserves v4, durable evidence, v5, v6, and v7 as immutable history. It records all 19 required Scope 1 paths, including nine clean HEAD/index promotions, and exactly the eleven surviving foreign dirty paths without ownership transfer. Exact identity commitments cover every full current record, including status, staging flags, HEAD/index/worktree IDs, worktree SHA-256 and byte length, numstat, ordered hunk hashes, and last commit.
+
+### Completion Statement
+
+Planning records one closed v9 post-commit matrix and routes parser implementation to `bubbles.test`. Scope 1 remains In Progress. Scope 2 remains locked. No product, test, foreign, generated, checkmark, scope-status, top-level-status, or certification byte is changed by this report append.
+
+<!-- feature004-dirty-collision-post-commit-v9:start -->
+```json
+{
+    "contractVersion": "feature004-dirty-collision-post-commit/v9",
+    "findingId": "F004-COLLISION-POST-COMMIT-V9",
+    "capturedAt": "2026-08-04T04:10:08.591Z",
+    "requiredHead": "4476cefdd6e9e3a2b39ae8bc59ff62e55745390f",
+    "extendsContracts": [
+        { "marker": "feature004-dirty-collision-foreign-set-v7", "rawBlockSha256": "851dca31caded6498c1a84e68e9e9372489c3cb39f3663ea8b254b8cbb35c121" },
+        { "marker": "feature004-dirty-collision-foreign-roadmap-v6", "rawBlockSha256": "c2f6fc88b147e8de6501a7c87d41aaf3aa8bd9537ac49d06da61e49976b246f9" },
+        { "marker": "feature004-dirty-collision-current-identity-v5", "rawBlockSha256": "c3a487a6e6d2f45084635a1fe6a8269a1efb4096ff76acebec3b419c36551780" },
+        { "marker": "feature004-dirty-collision-current-identity-v4", "rawBlockSha256": "64ddfd9bb8a2adbaa218eb1a7f0efbe62746a51b7fcdc0ad2444debf297da30c" },
+        { "marker": "feature004-scope1-durable-evidence-v1", "rawBlockSha256": "c5ed7a110a2a743d2aef3b32c0655a2fd3c20c7ca6c9ee2ecef2716654ef7268" }
+    ],
+    "historicalValidation": {
+        "v4SchemaAndHashRequired": true,
+        "durableEvidenceSchemaAndHashRequired": true,
+        "v6SchemaHashParentsAndOverlayRequired": true,
+        "v7SchemaHashParentsAndOverlayRequired": true,
+        "v6LiveCurrentComparisonWhenV9Present": false,
+        "v7LiveCurrentComparisonWhenV9Present": false,
+        "disposition": "mandatory-history-before-v9"
+    },
+    "identityContract": {
+        "fullRecordOrderedFields": [
+            "path", "pathKind", "classification", "ownerAttribution",
+            "feature004OwnershipClaim", "transitionClass", "status", "staged",
+            "unstaged", "headOid", "indexOid", "worktreeGitOid",
+            "worktreeSha256", "byteLength", "additions", "deletions",
+            "hunkCount", "hunkBodySha256", "lastCommit"
+        ],
+        "identitySha256Input": "JSON.stringify of the full record with the exact ordered fields above",
+        "hunkSequenceSha256Input": "JSON.stringify of the complete ordered hunkBodySha256 array",
+        "diffMode": "git diff --no-ext-diff --unified=0",
+        "hunkHashInput": "ordered changed lines with plus or minus prefix joined by LF with no trailing LF",
+        "inventoryMode": "git status --porcelain=v1 -z --untracked-files=all",
+        "matrixSha256Input": "JSON.stringify({requiredHead,requiredRecords,foreignRecords,excludedPaths}) using complete uncompressed full records",
+        "matrixSha256": "93ce0cf879f994d7d2df0df3d00da21a6bd5e3c8324ca230e577cc93f459ff42"
+    },
+    "inventoryProof": {
+        "porcelainPathCount": 23,
+        "dirtyRequiredPathCount": 10,
+        "foreignDirtyPathCount": 11,
+        "excludedDirtyPathCount": 2,
+        "requiredPathCount": 19,
+        "requiredTransitionCounts": {
+            "clean-head-index-promotion": 9,
+            "still-dirty-exact-identity": 5,
+            "untracked-exact-identity": 5
+        },
+        "priorV7ForeignPathsNowClean": [
+            "docs/Product-Review-and-Roadmap.md",
+            "docs/Improvement-Plan.md",
+            "etf-momentum-lab.html"
+        ],
+        "cleanHistoricalForeignRecordsRetained": false,
+        "completionInferenceFromCommit": false
+    },
+    "postCommitMatrix": {
+        "requiredRecords": [
+            { "path": "rlfx.js", "pathKind": "tracked", "classification": "feature004-scope1-required", "ownerAttribution": "Feature 004 Scope 1", "feature004OwnershipClaim": true, "transitionClass": "still-dirty-exact-identity", "status": " M", "hunkCount": 7, "hunkSequenceSha256": "5a729cc70e75bc2b48b2e74e55a8e542d84fbc034653a0cef0d2f7d8811b09e7", "identitySha256": "525b71ed4a6cbf80b14c362453c68dcd37ca8f4e4558bc0c2f49d861f75a0a9a" },
+            { "path": "fx-regime-universe.json", "pathKind": "tracked", "classification": "feature004-scope1-required", "ownerAttribution": "Feature 004 Scope 1", "feature004OwnershipClaim": true, "transitionClass": "clean-head-index-promotion", "status": "", "hunkCount": 0, "hunkSequenceSha256": "4f53cda18c2baa0c0354bb5f9a3ecbe5ed12ab4d8e11ba873c2f11161202b945", "identitySha256": "7641518b5f8b1caf35d7dbde1a8601816d7b378757ab5882531fc19cb4186ff4" },
+            { "path": "fx-vehicle-universe.json", "pathKind": "untracked", "classification": "feature004-scope1-required", "ownerAttribution": "Feature 004 Scope 1", "feature004OwnershipClaim": true, "transitionClass": "untracked-exact-identity", "status": "??", "hunkCount": 0, "hunkSequenceSha256": "4f53cda18c2baa0c0354bb5f9a3ecbe5ed12ab4d8e11ba873c2f11161202b945", "identitySha256": "613366f26f229b3754d88df42c48f9410bc5dec4332ceb5a06785613a8ff3e6c" },
+            { "path": "rldata.js", "pathKind": "tracked", "classification": "feature004-scope1-required", "ownerAttribution": "Feature 004 Scope 1", "feature004OwnershipClaim": true, "transitionClass": "clean-head-index-promotion", "status": "", "hunkCount": 0, "hunkSequenceSha256": "4f53cda18c2baa0c0354bb5f9a3ecbe5ed12ab4d8e11ba873c2f11161202b945", "identitySha256": "cece1baf0a34266152df027f08a1d91d104c316415c2785ed2dd5046189c5f89" },
+            { "path": "rlexperience.js", "pathKind": "tracked", "classification": "feature004-scope1-required", "ownerAttribution": "Feature 004 Scope 1", "feature004OwnershipClaim": true, "transitionClass": "still-dirty-exact-identity", "status": " M", "hunkCount": 3, "hunkSequenceSha256": "1f64e0780e7d952e53de8d4b473a0f3d33864d76badf077718dd0a8ba0dac2bd", "identitySha256": "10650a9cd625d39be5aadec3f37797c909a29d60191a421636c6d69224a9039f" },
+            { "path": "rlviews.js", "pathKind": "tracked", "classification": "feature004-scope1-required", "ownerAttribution": "Feature 004 Scope 1", "feature004OwnershipClaim": true, "transitionClass": "clean-head-index-promotion", "status": "", "hunkCount": 0, "hunkSequenceSha256": "4f53cda18c2baa0c0354bb5f9a3ecbe5ed12ab4d8e11ba873c2f11161202b945", "identitySha256": "19899f45488ad647e62d664eead0f7ef5f962fc69ce0928c3e34e969bb646998" },
+            { "path": "rlbrief.js", "pathKind": "tracked", "classification": "feature004-scope1-required", "ownerAttribution": "Feature 004 Scope 1", "feature004OwnershipClaim": true, "transitionClass": "still-dirty-exact-identity", "status": " M", "hunkCount": 2, "hunkSequenceSha256": "5a7838490395f6b2b9f941ea9b3750d7fa9f37ae5bb6ade4f7376637e407b187", "identitySha256": "fe51c658b7772da65118be89e301d5fdb7779a7b19104c69b344d42c7104a1ac" },
+            { "path": "rljourney.js", "pathKind": "tracked", "classification": "feature004-scope1-required", "ownerAttribution": "Feature 004 Scope 1", "feature004OwnershipClaim": true, "transitionClass": "still-dirty-exact-identity", "status": " M", "hunkCount": 13, "hunkSequenceSha256": "3b01c60e930ae612cd6a69a01e977e1deca1f193d1a51eeea81b2deccf6e7a79", "identitySha256": "b0128c975f14c5472c517175a26824402c2dc340563b7bd0a69c80d5509be11a" },
+            { "path": "scripts/fetch-bars.mjs", "pathKind": "tracked", "classification": "feature004-scope1-required", "ownerAttribution": "Feature 004 Scope 1", "feature004OwnershipClaim": true, "transitionClass": "clean-head-index-promotion", "status": "", "hunkCount": 0, "hunkSequenceSha256": "4f53cda18c2baa0c0354bb5f9a3ecbe5ed12ab4d8e11ba873c2f11161202b945", "identitySha256": "ae94ef07621c6d0550ce92868a2c810654d9d5271529d8c31fd3fca7717ada85" },
+            { "path": "scripts/selftest.mjs", "pathKind": "tracked", "classification": "feature004-scope1-required", "ownerAttribution": "Feature 004 Scope 1", "feature004OwnershipClaim": true, "transitionClass": "clean-head-index-promotion", "status": "", "hunkCount": 0, "hunkSequenceSha256": "4f53cda18c2baa0c0354bb5f9a3ecbe5ed12ab4d8e11ba873c2f11161202b945", "identitySha256": "11bddb714b91359458f8caaa5a21ef709dec928c878443a4aaddf19f26e2c847" },
+            { "path": "tests/fx-regime-relative-value-lab.spec.mjs", "pathKind": "tracked", "classification": "feature004-scope1-required", "ownerAttribution": "Feature 004 Scope 1", "feature004OwnershipClaim": true, "transitionClass": "clean-head-index-promotion", "status": "", "hunkCount": 0, "hunkSequenceSha256": "4f53cda18c2baa0c0354bb5f9a3ecbe5ed12ab4d8e11ba873c2f11161202b945", "identitySha256": "867c2b35762f313ad47f4ad38648937b0dbcf319f4bcd69335f0de219941307f" },
+            { "path": "tests/feature-004-dirty-tree-collision.test.mjs", "pathKind": "tracked", "classification": "feature004-scope1-required", "ownerAttribution": "Feature 004 Scope 1", "feature004OwnershipClaim": true, "transitionClass": "still-dirty-exact-identity", "status": " M", "hunkCount": 26, "hunkSequenceSha256": "00d67d39086e104da50d3817a0b85f6979a1efecb293228e108c4ef268c9f7bf", "identitySha256": "22547f9234d3f104c69f6eda5f853c9059ef26cfc2f2d77c8125f2d34c561eb4" },
+            { "path": "tests/feature-004-vehicle-universe.test.mjs", "pathKind": "untracked", "classification": "feature004-scope1-required", "ownerAttribution": "Feature 004 Scope 1", "feature004OwnershipClaim": true, "transitionClass": "untracked-exact-identity", "status": "??", "hunkCount": 0, "hunkSequenceSha256": "4f53cda18c2baa0c0354bb5f9a3ecbe5ed12ab4d8e11ba873c2f11161202b945", "identitySha256": "e57a8e13ec578d8cee974bda22d236244793a17e80527b0e8a7c8708108cefbd" },
+            { "path": "tests/feature-004-tool-control-binding.test.mjs", "pathKind": "untracked", "classification": "feature004-scope1-required", "ownerAttribution": "Feature 004 Scope 1", "feature004OwnershipClaim": true, "transitionClass": "untracked-exact-identity", "status": "??", "hunkCount": 0, "hunkSequenceSha256": "4f53cda18c2baa0c0354bb5f9a3ecbe5ed12ab4d8e11ba873c2f11161202b945", "identitySha256": "66de3dfba52efc3690e14961f725b59cc3c98a6bde1b40ed49db2cfebe13b5cb" },
+            { "path": "tests/feature-004-brief-eligibility.test.mjs", "pathKind": "untracked", "classification": "feature004-scope1-required", "ownerAttribution": "Feature 004 Scope 1", "feature004OwnershipClaim": true, "transitionClass": "untracked-exact-identity", "status": "??", "hunkCount": 0, "hunkSequenceSha256": "4f53cda18c2baa0c0354bb5f9a3ecbe5ed12ab4d8e11ba873c2f11161202b945", "identitySha256": "4a3c16a2bf2a7d51af863db88fa0eebb9452c0d02f032a26f585830e952fdd6e" },
+            { "path": "tests/feature-004-journey-evidence-refresh.test.mjs", "pathKind": "untracked", "classification": "feature004-scope1-required", "ownerAttribution": "Feature 004 Scope 1", "feature004OwnershipClaim": true, "transitionClass": "untracked-exact-identity", "status": "??", "hunkCount": 0, "hunkSequenceSha256": "4f53cda18c2baa0c0354bb5f9a3ecbe5ed12ab4d8e11ba873c2f11161202b945", "identitySha256": "7962da9053ee525ad2d07eed36f428515c22af4a708f3c995a184a69ed1c80b9" },
+            { "path": "tests/fixtures/fx-regime/commonjs-determinism-input.json", "pathKind": "tracked", "classification": "feature004-scope1-required", "ownerAttribution": "Feature 004 Scope 1", "feature004OwnershipClaim": true, "transitionClass": "clean-head-index-promotion", "status": "", "hunkCount": 0, "hunkSequenceSha256": "4f53cda18c2baa0c0354bb5f9a3ecbe5ed12ab4d8e11ba873c2f11161202b945", "identitySha256": "64bdde37e1a6e13de03de2528df8fe07863cbc94f285170a8032fbd37cfc0806" },
+            { "path": "tests/fixtures/fx-regime/foundation-cases.json", "pathKind": "tracked", "classification": "feature004-scope1-required", "ownerAttribution": "Feature 004 Scope 1", "feature004OwnershipClaim": true, "transitionClass": "clean-head-index-promotion", "status": "", "hunkCount": 0, "hunkSequenceSha256": "4f53cda18c2baa0c0354bb5f9a3ecbe5ed12ab4d8e11ba873c2f11161202b945", "identitySha256": "2731dca0dcfe88169366e2da052987039ed7b1744606fb71b5e4740db01acd27" },
+            { "path": "tests/fixtures/fx-regime/foundation-harness.html", "pathKind": "tracked", "classification": "feature004-scope1-required", "ownerAttribution": "Feature 004 Scope 1", "feature004OwnershipClaim": true, "transitionClass": "clean-head-index-promotion", "status": "", "hunkCount": 0, "hunkSequenceSha256": "4f53cda18c2baa0c0354bb5f9a3ecbe5ed12ab4d8e11ba873c2f11161202b945", "identitySha256": "ca90f9595386d0ea7e5c033e7c5dc7297bd8febe78c9e4bdedf86e0ffb8a2dd8" }
+        ],
+        "foreignRecords": [
+            { "path": ".vscode/mcp.json", "pathKind": "tracked", "classification": "foreign-workspace-config", "ownerAttribution": "workspace configuration owner", "feature004OwnershipClaim": false, "transitionClass": "still-dirty-exact-identity", "status": " M", "hunkCount": 1, "hunkSequenceSha256": "dbf753f6980868c0b054ce961646d416425ee9be4a0608c2bae4b8fe8e515000", "identitySha256": "f090545003da6f9c8a76b561478ec588b30b1d4a6e8ebca7feaf3a4fc1f65355" },
+            { "path": "specs/004-fx-regime-relative-value-lab/design.md", "pathKind": "tracked", "classification": "foreign-specialist-artifact", "ownerAttribution": "bubbles.design", "feature004OwnershipClaim": false, "transitionClass": "still-dirty-exact-identity", "status": " M", "hunkCount": 71, "hunkSequenceSha256": "bfa586bea91d6f24ab6d415aeaf0e3b05503ff89b3a06e17275ade1aa59ba2f6", "identitySha256": "c36453d3df794801304a2d894c875a2c113b30f608420a9dbd9e8c65c01d33af" },
+            { "path": "specs/004-fx-regime-relative-value-lab/scenario-manifest.json", "pathKind": "tracked", "classification": "foreign-planning-artifact", "ownerAttribution": "bubbles.plan", "feature004OwnershipClaim": false, "transitionClass": "still-dirty-exact-identity", "status": " M", "hunkCount": 35, "hunkSequenceSha256": "31a7688c6aeee847833b1a0580f40b452ae5f43ff24a83297aea259344a4ee22", "identitySha256": "5ecec468cc9f3eabf401705d3895be12ec208e75532d67bbbe6713d21b7d5401" },
+            { "path": "specs/004-fx-regime-relative-value-lab/scopes.md", "pathKind": "tracked", "classification": "foreign-planning-artifact", "ownerAttribution": "bubbles.plan", "feature004OwnershipClaim": false, "transitionClass": "still-dirty-exact-identity", "status": " M", "hunkCount": 84, "hunkSequenceSha256": "3f1ec13e9e60ce58fc20982525d766883e1ae22e7e750b9fdd5c11756120e0b7", "identitySha256": "57bfea4e381582c847e3997566135fc409ead4bddf92a9eaf572f06226dd0637" },
+            { "path": "specs/004-fx-regime-relative-value-lab/spec.md", "pathKind": "tracked", "classification": "foreign-specialist-artifact", "ownerAttribution": "bubbles.analyst", "feature004OwnershipClaim": false, "transitionClass": "still-dirty-exact-identity", "status": " M", "hunkCount": 83, "hunkSequenceSha256": "1600c7bbd39309576fe01879c610efba800fc75e00b930502b276f187f4235cb", "identitySha256": "1319136a4c702266af752729ef005822775fa3c1b34c390697e8e14bdf3ec460" },
+            { "path": "specs/004-fx-regime-relative-value-lab/state.json", "pathKind": "tracked", "classification": "foreign-planning-routing-artifact", "ownerAttribution": "bubbles.plan (execution routing only)", "feature004OwnershipClaim": false, "transitionClass": "still-dirty-exact-identity", "status": " M", "hunkCount": 16, "hunkSequenceSha256": "27006225737b63981801080060d44b3dd649c29978ce549e384f61b495c431f0", "identitySha256": "22a484cc71a499a13ac2be877694d74ca06f254a1873bfb9b51c8e9c79a8fbbe" },
+            { "path": "specs/004-fx-regime-relative-value-lab/test-plan.json", "pathKind": "tracked", "classification": "foreign-planning-artifact", "ownerAttribution": "bubbles.plan", "feature004OwnershipClaim": false, "transitionClass": "still-dirty-exact-identity", "status": " M", "hunkCount": 12, "hunkSequenceSha256": "b2591a64fa423abfc6e83bb902216b5e519703e586e182a10e07a858398c9485", "identitySha256": "ae394108ee9f80cca73346c196b10be4fd11604c00303781ab10dffe7360e77c" },
+            { "path": "specs/004-fx-regime-relative-value-lab/uservalidation.md", "pathKind": "tracked", "classification": "foreign-human-artifact", "ownerAttribution": "human owner", "feature004OwnershipClaim": false, "transitionClass": "still-dirty-exact-identity", "status": " M", "hunkCount": 7, "hunkSequenceSha256": "59e99281784193abe2849d1212070eaecfe207c2dd3e9803c3dfc9ac8fd551a9", "identitySha256": "2e32600b550c5223a4efff04a7fb76c9039356d628f8d5194fe1dc57db1338a6" },
+            { "path": "specs/012-market-action-center-and-guided-tools/scopes/15-production-simple-adapter-wiring/scope.md", "pathKind": "tracked", "classification": "foreign-feature-artifact", "ownerAttribution": "Feature 012 / bubbles.plan", "feature004OwnershipClaim": false, "transitionClass": "still-dirty-exact-identity", "status": " M", "hunkCount": 2, "hunkSequenceSha256": "f0643c470ccdc3db73eea1d5f8a1723c21cb92b7f956cbe946b82b15e83c96c1", "identitySha256": "813796929e23ba8bcd1a7562508b613195c9a82b3b4f686b3670aecabbf7c55f" },
+            { "path": "tests/simple-production-bridge.integration.mjs", "pathKind": "tracked", "classification": "foreign-feature-test", "ownerAttribution": "Feature 012 / bubbles.test", "feature004OwnershipClaim": false, "transitionClass": "still-dirty-exact-identity", "status": " M", "hunkCount": 5, "hunkSequenceSha256": "5cf0ff5ad42cfd15cf1809d752a344f3ca53f07145e454ef2e6b2f90ea86a188", "identitySha256": "0f0a293df781a720a343a223c91d09bb5fe93472dd723a61a0b725286f02c966" },
+            { "path": "tests/simple-production-bridge.unit.mjs", "pathKind": "tracked", "classification": "foreign-feature-test", "ownerAttribution": "Feature 012 / bubbles.test", "feature004OwnershipClaim": false, "transitionClass": "still-dirty-exact-identity", "status": " M", "hunkCount": 2, "hunkSequenceSha256": "5323c304fbe291d9c7afe6a2e35758624bf00790aa0c8829cd46bf4951f304b8", "identitySha256": "561b3b064b3d81537878a774762a95e2d4396144fcb25d8234a09c57b89c5a7e" }
+        ],
+        "excludedPaths": [
+            "specs/004-fx-regime-relative-value-lab/report.md",
+            ".specify/memory/bubbles.session.json.flock"
+        ],
+        "ownershipTransfer": false,
+        "semanticApproval": false,
+        "completionClaim": false,
+        "certificationClaim": false
+    },
+    "pendingV5SemanticTransition": {
+        "marker": "feature004-dirty-collision-current-identity-v5",
+        "rawBlockSha256": "c3a487a6e6d2f45084635a1fe6a8269a1efb4096ff76acebec3b419c36551780",
+        "status": "already-physical-requires-validation-after-v9",
+        "path": "tests/feature-004-dirty-tree-collision.test.mjs",
+        "function": "validateOwnerSettledSuccessor",
+        "oldHunkSha256": "c9f2fcf6cfe7782af378ed713ce424bc1d7075af29c296400eb9c3402568d848",
+        "newHunkSha256": "56f14a8579a6714ea5a83ac8185cd74d16c6543bc81e0a4ecc43d8d1797bbbae",
+        "semanticTransitionCount": 1,
+        "applicationOrder": "after-post-commit-v9-matrix"
+    },
+    "parserOrder": [
+        "validate exact v4 and durable-evidence schemas, hashes, and historical records without live-current comparison",
+        "validate exact v6 and v7 schemas, hashes, parent links, and historical overlays without live-current comparison",
+        "parse exactly one closed v9 block and apply the complete 19-required plus 11-foreign post-commit matrix at the exact required HEAD",
+        "validate and apply the already-physical v5 five-assertion semantic transition only after v9",
+        "recompute complete current dirty-path equality with exactly report recursion and the session flock excluded"
+    ],
+    "parserHandoff": {
+        "owner": "bubbles.test",
+        "path": "tests/feature-004-dirty-tree-collision.test.mjs",
+        "newPinLiteral": "POST_COMMIT_V9_BLOCK_SHA256",
+        "pinValueSource": "marker-inclusive, no-trailing-newline SHA-256 of this report block",
+        "pinCountDelta": 1,
+        "normalizedMode": "normalized-self-pins/v5",
+        "retainedPinLiterals": [
+            "DURABLE_EVIDENCE_BLOCK_SHA256",
+            "CURRENT_IDENTITY_V4_BLOCK_SHA256",
+            "CURRENT_IDENTITY_V5_BLOCK_SHA256",
+            "FOREIGN_ROADMAP_V6_BLOCK_SHA256",
+            "FOREIGN_SET_V7_BLOCK_SHA256"
+        ],
+        "testEditBoundary": "one v9 pin, version/schema/current-matrix parser branch, and adversarial cases; preserve every existing parser byte outside that additive boundary",
+        "productEditsAllowed": false
+    },
+    "adversarialMutations": [
+        "wrong required HEAD before append, after append, or during parser adoption",
+        "missing, extra, duplicate, or reordered required or foreign path",
+        "clean historical foreign path retained or current dirty path omitted",
+        "clean-promotion, still-dirty, or untracked transition mismatch",
+        "wrong status, staging flags, HEAD/index/worktree OID, worktree SHA-256, byte length, numstat, hunk count, hunk order, hunk hash, last commit, hunk-sequence hash, identity hash, or complete matrix hash",
+        "wrong classification, owner attribution, Feature 004 ownership flag, or ownership transfer",
+        "changed, missing, extra, reordered, or matrix-included exclusion",
+        "wrong, missing, duplicate, or reordered predecessor marker or hash",
+        "v5 validation before v9 or v6/v7 live-current comparison when v9 exists",
+        "semantic approval, acceptance, completion, checkbox, scope-status, top-level-status, or certification inference",
+        "missing, duplicate, renamed, reordered, non-64-hex, or changed v9 pin",
+        "parser mutation outside the additive v9 pin/version/schema/current-matrix/adversarial branch"
+    ],
+    "captureStability": {
+        "preAppendMatrixSha256": "93ce0cf879f994d7d2df0df3d00da21a6bd5e3c8324ca230e577cc93f459ff42",
+        "postAppendMustMatch": true,
+        "headMustRemainExact": true,
+        "rollbackBoundary": "remove only incomplete v9 planning additions and return blocked",
+        "foreignOrProductRollbackAllowed": false
+    },
+    "planningRouting": {
+        "updatedPaths": [
+            "specs/004-fx-regime-relative-value-lab/report.md",
+            "specs/004-fx-regime-relative-value-lab/scopes.md",
+            "specs/004-fx-regime-relative-value-lab/test-plan.json",
+            "specs/004-fx-regime-relative-value-lab/state.json"
+        ],
+        "transitionRequestId": "TR-F004-SCOPE01-POST-COMMIT-V9-001",
+        "nextRequiredOwner": "bubbles.test",
+        "scopeStatusChanged": false,
+        "checkboxChanged": false,
+        "featureStatusChanged": false,
+        "certificationChanged": false
+    },
+    "testOwnerHandoff": {
+        "owner": "bubbles.test",
+        "transitionRequestId": "TR-F004-SCOPE01-POST-COMMIT-V9-001",
+        "requiredActions": [
+            "Add exactly one POST_COMMIT_V9_BLOCK_SHA256 pin and one closed v9 parser branch while preserving every predecessor byte and pin.",
+            "Validate v4, durable evidence, v6, and v7 as history; apply the exact v9 matrix; then validate the already-physical v5 transition.",
+            "Add every listed v9 adversarial mutation without weakening any predecessor case.",
+            "Run node --test tests/feature-004-dirty-tree-collision.test.mjs RED then GREEN and replay unchanged BUG-002 verification.",
+            "Return no product, planning, foreign, generated, checkbox, status, Scope 2, certification, Git-state, or unrelated-dirty-byte change."
+        ],
+        "nextRequiredOwner": "bubbles.test"
+    }
+}
+```
+<!-- feature004-dirty-collision-post-commit-v9:end -->
+
+## Post-Commit Collision Current-Matrix Successor - `F004-COLLISION-POST-COMMIT-V9` v10
+
+### Summary
+
+The repository advanced from the immutable v9 HEAD `4476cefdd6e9e3a2b39ae8bc59ff62e55745390f` to exact HEAD `449963d2a4a9dec305d8815c1929d5457db3bf56`. The v9 block remains mandatory, byte-identical history at marker-inclusive SHA-256 `fc6367325829099019f47966f54da67a33a88db13c49404c0416f51511f5a921`. It is not false evidence and is not rewritten by this successor.
+
+An exact reconstruction of the pre-v9 parser source still yields 26 hunks, but yields hunk-sequence SHA-256 `fd95cbfe2d2ed31fb98253a41fa6bff338ae61448c64195c6e9c27875cb44f52` and full-record identity SHA-256 `c2440767b87968f198d0f8fdc306b018c20d318cb1ba89c4a5c0618c17e0ed4a`, rather than v9's immutable commitments. Recomputing the HEAD-versus-reconstructed-source diff through Git reproduced that result, so the hunk-boundary-filter hypothesis is falsified. The v10 successor records that mismatch as an exact historical disposition and makes the current HEAD plus current matrix authoritative for live comparison without relaxing or deleting any v9 assertion.
+
+### Completion Statement
+
+Planning appends one closed v10 successor and routes its exact additive parser handoff to `bubbles.test`. Scope 1 remains In Progress. Scope 2 remains Not Started. This append makes no product, test, foreign, generated, checkbox, scope-status, top-level-status, or certification change.
+
+<!-- feature004-dirty-collision-post-commit-v10:start -->
+```json
+{
+    "contractVersion": "feature004-dirty-collision-post-commit/v10",
+    "findingId": "F004-COLLISION-POST-COMMIT-V9",
+    "successorRevision": "v10",
+    "capturedAt": "2026-08-04T05:31:28.575Z",
+    "requiredHead": "449963d2a4a9dec305d8815c1929d5457db3bf56",
+    "successorOf": {
+        "marker": "feature004-dirty-collision-post-commit-v9",
+        "rawBlockSha256": "fc6367325829099019f47966f54da67a33a88db13c49404c0416f51511f5a921",
+        "contractVersion": "feature004-dirty-collision-post-commit/v9",
+        "requiredHead": "4476cefdd6e9e3a2b39ae8bc59ff62e55745390f",
+        "relation": "additive-current-matrix-successor",
+        "predecessorDisposition": "mandatory-immutable-history",
+        "successorRequiredReasons": [
+            "repository-head-advanced",
+            "v9-parser-self-identity-non-reproducible-under-v9-reconstruction"
+        ]
+    },
+    "extendsContracts": [
+        { "marker": "feature004-dirty-collision-post-commit-v9", "rawBlockSha256": "fc6367325829099019f47966f54da67a33a88db13c49404c0416f51511f5a921" },
+        { "marker": "feature004-dirty-collision-foreign-set-v7", "rawBlockSha256": "851dca31caded6498c1a84e68e9e9372489c3cb39f3663ea8b254b8cbb35c121" },
+        { "marker": "feature004-dirty-collision-foreign-roadmap-v6", "rawBlockSha256": "c2f6fc88b147e8de6501a7c87d41aaf3aa8bd9537ac49d06da61e49976b246f9" },
+        { "marker": "feature004-dirty-collision-current-identity-v5", "rawBlockSha256": "c3a487a6e6d2f45084635a1fe6a8269a1efb4096ff76acebec3b419c36551780" },
+        { "marker": "feature004-dirty-collision-current-identity-v4", "rawBlockSha256": "64ddfd9bb8a2adbaa218eb1a7f0efbe62746a51b7fcdc0ad2444debf297da30c" },
+        { "marker": "feature004-scope1-durable-evidence-v1", "rawBlockSha256": "c5ed7a110a2a743d2aef3b32c0655a2fd3c20c7ca6c9ee2ecef2716654ef7268" }
+    ],
+    "historicalValidation": {
+        "allPredecessorMarkersHashesSchemasAndOrderRequired": true,
+        "v9MarkerInclusiveBytesRequired": true,
+        "v9MarkerInclusiveByteLength": 23091,
+        "v9RequiredHeadValueRequired": true,
+        "v9RequiredHeadComparedToLiveHeadWhenV10Present": false,
+        "v9LiveMatrixComparisonWhenV10Present": false,
+        "v9CommittedSelfIdentityValuesRequired": true,
+        "v9ObservedReconstructionMismatchRequired": true,
+        "v9EvidenceFalse": false,
+        "v9AssertionDeletionOrWeakeningAllowed": false,
+        "disposition": "mandatory-history-before-v10-with-exact-self-identity-disposition"
+    },
+    "v9SelfIdentityDisposition": {
+        "path": "tests/feature-004-dirty-tree-collision.test.mjs",
+        "v9CommittedRecord": {
+            "hunkCount": 26,
+            "hunkSequenceSha256": "00d67d39086e104da50d3817a0b85f6979a1efecb293228e108c4ef268c9f7bf",
+            "identitySha256": "22547f9234d3f104c69f6eda5f853c9059ef26cfc2f2d77c8125f2d34c561eb4"
+        },
+        "observedUnderExactV9Reconstruction": {
+            "function": "postCommitV9HistoricalParserIdentity",
+            "repositoryHead": "449963d2a4a9dec305d8815c1929d5457db3bf56",
+            "pathKind": "tracked",
+            "status": " M",
+            "staged": false,
+            "unstaged": true,
+            "headOid": "1e57f53aafd1117e7e4ef63d8ce4b466cf39f4d5",
+            "indexOid": "1e57f53aafd1117e7e4ef63d8ce4b466cf39f4d5",
+            "worktreeGitOid": "e555f355f5cae7a26e3b1db14f2c33e8de4a4ebb",
+            "worktreeSha256": "d895662ac61d16f8dc87f96175192534685e175586f5b5a5bc145b4e19774e7f",
+            "byteLength": 237200,
+            "additions": 2002,
+            "deletions": 39,
+            "hunkCount": 26,
+            "hunkBodySha256": [
+                "483a7d0132e46fbadf5a59ae34ab86a43b510ad25712eb13c15158f9f96909dc",
+                "6bf23f50bd915e78d7b96d61f2001218bb3906c8a4960ed75d5eda40a4c613c5",
+                "a8817a8a5fafb2f06d96a943b4552e97ca7f7784e472e5f9055307051a1e322d",
+                "93a555d05790ff147c91fa460e21454aa31d49243588db2db8d56a93230bc008",
+                "d5e246c68ab5b99d1fa6ebc55752fc4507d1275ba16b3c063828664a315e31d1",
+                "03877572e1e5bbcc8749ab918b5f7fde5065a3da6239f7db8d65e2f529e8ac82",
+                "082224ee61a922c00be7ab20790e0e0eb86df0d67f1d97be3eaffd0a6eef874a",
+                "eb665f4f8fd8116c3f0883766f0df8deae97a638428eb9ee4ca99428b0c020d4",
+                "5b7d579651eaa2632e9526beb2f6fc37f1d8346bc082b316dc51388fa7b2c6b7",
+                "dad9da3edf75b5ce9bccc92d208185375e194c8f7b757059733ee70dfd6712a1",
+                "fa65c70bd10772d7f32cec31d2ee4225f23c6af05540b22a80789c0a70b819d3",
+                "cb0b48bd5097ce46f5e03bdf433ab36f125a2a102db7ba70f17c04afa88e49d5",
+                "4c4b40344bdc9297d63a67476fa102d8608b16e213749548a200f30f931416bb",
+                "012d6feddca2a39e305a40a7be03069951de389293d4e84b425d18e73959a7d4",
+                "b0d1ad9384b8e486bbc448541d2d50e7da354264621d9c352dc687bfb29a164e",
+                "6672d4007b8162a5471ce353a884e3052e60be5f79c88080a4b29cd48f71c1fd",
+                "a2902975af55c6fd914e734dbb402dac37c8187e07e174987a7c97240b187b58",
+                "56bc98088012519a144d0d4702fafa2160549548105d6a2ab1ad02758ff0474d",
+                "2a36e2b667bbf782c1c08235800c2ed7c968316fbcba13edbac466e8abfa6a2a",
+                "aaa495f885257770901d78fa28e559ae60947d1f7a596433d0f5c503814ae68a",
+                "b13afbcc1b1046ebd6e0e55081105bf0b61654d5ee8327307473eb166e154a93",
+                "377330b9749d396b437589aceeed655461b219255b43e2c0380d29e7c33ed90d",
+                "f14ad05698a65d2392cdc631292381dc1be25d14f831a01570ea18fb6eaf9e9e",
+                "1a0acead5e92707cb01b43f17d69c86ea7a8da5cca74399f82212e2a2c246820",
+                "d8fee55565247501fc1f2de202e76ca7d2784d78664ba650136216447fc32e6b",
+                "6c43110e70190b2de8f6d32675ba679a10650c365224b92c97103d2ffd27089b"
+            ],
+            "lastCommit": "1f1d739dab1bc144b46df0250f528fdf2292ea3b",
+            "hunkSequenceSha256": "fd95cbfe2d2ed31fb98253a41fa6bff338ae61448c64195c6e9c27875cb44f52",
+            "identitySha256": "c2440767b87968f198d0f8fdc306b018c20d318cb1ba89c4a5c0618c17e0ed4a"
+        },
+        "discriminatingCheck": {
+            "source": "reconstructed historical parser source with exact v9 additions removed",
+            "diff": "Git recomputation of HEAD versus reconstructed source",
+            "result": "same-observed-mismatch-tuple",
+            "hunkBoundaryFilterHypothesis": "falsified",
+            "safeV9OnlyParserFixAvailable": false
+        },
+        "validationRule": "validate the exact v9 block, pin, schema, required HEAD value, committed self tuple, and observed mismatch tuple; never replace one tuple with the other; never run v9 as the live-current matrix when v10 exists",
+        "assertionRelaxationAllowed": false
+    },
+    "identityContract": {
+        "fullRecordOrderedFields": [
+            "path", "pathKind", "classification", "ownerAttribution",
+            "feature004OwnershipClaim", "transitionClass", "status", "staged",
+            "unstaged", "headOid", "indexOid", "worktreeGitOid",
+            "worktreeSha256", "byteLength", "additions", "deletions",
+            "hunkCount", "hunkBodySha256", "lastCommit"
+        ],
+        "summaryOrderedFields": [
+            "path", "pathKind", "classification", "ownerAttribution",
+            "feature004OwnershipClaim", "transitionClass", "status",
+            "hunkCount", "hunkSequenceSha256", "identitySha256"
+        ],
+        "identitySha256Input": "JSON.stringify of the complete full record with the exact ordered fields above",
+        "hunkSequenceSha256Input": "JSON.stringify of the complete ordered hunkBodySha256 array",
+        "diffMode": "git diff --no-ext-diff --unified=0",
+        "hunkHashInput": "ordered changed lines with plus or minus prefix joined by LF with no trailing LF",
+        "inventoryMode": "git status --porcelain=v1 -z --untracked-files=all",
+        "matrixSha256Input": "JSON.stringify({requiredHead,requiredRecords,foreignRecords,excludedPaths}) using complete uncompressed full records",
+        "matrixSha256": "78e3199040d1ce2fcd46240e5b1433e4f5d35574306b7d64918b6cba538b7f2a",
+        "summariesAloneSatisfyMatrixValidation": false,
+        "parserSelfCapture": {
+            "captureMode": "normalized-self-pins/v5-pre-v10",
+            "retainedPinNames": [
+                "DURABLE_EVIDENCE_BLOCK_SHA256",
+                "CURRENT_IDENTITY_V4_BLOCK_SHA256",
+                "CURRENT_IDENTITY_V5_BLOCK_SHA256",
+                "FOREIGN_ROADMAP_V6_BLOCK_SHA256",
+                "FOREIGN_SET_V7_BLOCK_SHA256",
+                "POST_COMMIT_V9_BLOCK_SHA256"
+            ],
+            "path": "tests/feature-004-dirty-tree-collision.test.mjs",
+            "pathKind": "tracked",
+            "classification": "feature004-scope1-required",
+            "ownerAttribution": "Feature 004 Scope 1",
+            "feature004OwnershipClaim": true,
+            "transitionClass": "still-dirty-exact-identity",
+            "status": " M",
+            "staged": false,
+            "unstaged": true,
+            "headOid": "1e57f53aafd1117e7e4ef63d8ce4b466cf39f4d5",
+            "indexOid": "1e57f53aafd1117e7e4ef63d8ce4b466cf39f4d5",
+            "worktreeGitOid": "ec4cdd764e449e0b43e55add8679d74eca492062",
+            "worktreeSha256": "41e459f6a3d4d618a59ffe96ad12866d192190ba7d3521647147dc23930cbcbb",
+            "byteLength": 284646,
+            "additions": 2837,
+            "deletions": 39,
+            "hunkCount": 26,
+            "hunkBodySha256": [
+                "483a7d0132e46fbadf5a59ae34ab86a43b510ad25712eb13c15158f9f96909dc",
+                "bd646d505e2b55ce37604be5939a2288d6713a856f9a29aa6b9a3acc7e9529a7",
+                "a8817a8a5fafb2f06d96a943b4552e97ca7f7784e472e5f9055307051a1e322d",
+                "93a555d05790ff147c91fa460e21454aa31d49243588db2db8d56a93230bc008",
+                "d5e246c68ab5b99d1fa6ebc55752fc4507d1275ba16b3c063828664a315e31d1",
+                "03877572e1e5bbcc8749ab918b5f7fde5065a3da6239f7db8d65e2f529e8ac82",
+                "082224ee61a922c00be7ab20790e0e0eb86df0d67f1d97be3eaffd0a6eef874a",
+                "eb665f4f8fd8116c3f0883766f0df8deae97a638428eb9ee4ca99428b0c020d4",
+                "5b7d579651eaa2632e9526beb2f6fc37f1d8346bc082b316dc51388fa7b2c6b7",
+                "dad9da3edf75b5ce9bccc92d208185375e194c8f7b757059733ee70dfd6712a1",
+                "fa65c70bd10772d7f32cec31d2ee4225f23c6af05540b22a80789c0a70b819d3",
+                "cb0b48bd5097ce46f5e03bdf433ab36f125a2a102db7ba70f17c04afa88e49d5",
+                "4c4b40344bdc9297d63a67476fa102d8608b16e213749548a200f30f931416bb",
+                "012d6feddca2a39e305a40a7be03069951de389293d4e84b425d18e73959a7d4",
+                "b0d1ad9384b8e486bbc448541d2d50e7da354264621d9c352dc687bfb29a164e",
+                "6672d4007b8162a5471ce353a884e3052e60be5f79c88080a4b29cd48f71c1fd",
+                "a2902975af55c6fd914e734dbb402dac37c8187e07e174987a7c97240b187b58",
+                "56bc98088012519a144d0d4702fafa2160549548105d6a2ab1ad02758ff0474d",
+                "2a36e2b667bbf782c1c08235800c2ed7c968316fbcba13edbac466e8abfa6a2a",
+                "7f72fb52e38fc4ce2926a6dfa0315f4abd94b746ede57e34fc5f6855475eb902",
+                "b13afbcc1b1046ebd6e0e55081105bf0b61654d5ee8327307473eb166e154a93",
+                "377330b9749d396b437589aceeed655461b219255b43e2c0380d29e7c33ed90d",
+                "f14ad05698a65d2392cdc631292381dc1be25d14f831a01570ea18fb6eaf9e9e",
+                "1a0acead5e92707cb01b43f17d69c86ea7a8da5cca74399f82212e2a2c246820",
+                "d8fee55565247501fc1f2de202e76ca7d2784d78664ba650136216447fc32e6b",
+                "6c43110e70190b2de8f6d32675ba679a10650c365224b92c97103d2ffd27089b"
+            ],
+            "lastCommit": "1f1d739dab1bc144b46df0250f528fdf2292ea3b",
+            "hunkSequenceSha256": "636fcd13ea896518dd0e68e92aafcfd07e56f61d0a70ec6ac0a846e89a1ad5b3",
+            "identitySha256": "a0fb6c00c0398ad171685626c3462ae7b9caf9f0696a8b4eda48e6934c1a12c7"
+        }
+    },
+    "inventoryProof": {
+        "porcelainPathCount": 23,
+        "porcelainPathOrder": [
+            ".vscode/mcp.json",
+            "rlbrief.js",
+            "rlexperience.js",
+            "rlfx.js",
+            "rljourney.js",
+            "specs/004-fx-regime-relative-value-lab/design.md",
+            "specs/004-fx-regime-relative-value-lab/report.md",
+            "specs/004-fx-regime-relative-value-lab/scenario-manifest.json",
+            "specs/004-fx-regime-relative-value-lab/scopes.md",
+            "specs/004-fx-regime-relative-value-lab/spec.md",
+            "specs/004-fx-regime-relative-value-lab/state.json",
+            "specs/004-fx-regime-relative-value-lab/test-plan.json",
+            "specs/004-fx-regime-relative-value-lab/uservalidation.md",
+            "specs/012-market-action-center-and-guided-tools/scopes/15-production-simple-adapter-wiring/scope.md",
+            "tests/feature-004-dirty-tree-collision.test.mjs",
+            "tests/simple-production-bridge.integration.mjs",
+            "tests/simple-production-bridge.unit.mjs",
+            ".specify/memory/bubbles.session.json.flock",
+            "fx-vehicle-universe.json",
+            "tests/feature-004-brief-eligibility.test.mjs",
+            "tests/feature-004-journey-evidence-refresh.test.mjs",
+            "tests/feature-004-tool-control-binding.test.mjs",
+            "tests/feature-004-vehicle-universe.test.mjs"
+        ],
+        "dirtyRequiredPathCount": 10,
+        "foreignDirtyPathCount": 11,
+        "excludedDirtyPathCount": 2,
+        "requiredPathCount": 19,
+        "matrixRecordCount": 30,
+        "requiredTransitionCounts": {
+            "clean-head-index-promotion": 9,
+            "still-dirty-exact-identity": 5,
+            "untracked-exact-identity": 5
+        },
+        "pathClassification": {
+            "classificationBasis": "canonical artifact ownership plus explicit Feature 004, Feature 012, and workspace context; never dirtiness, commit authorship, or path history",
+            "matrixForeignRecordSemantics": "foreignRecords means outside the Feature 004 Scope 1 required set; it does not override canonical artifact ownership",
+            "uservalidationOwnershipSemantics": "bubbles.plan owns the artifact structure and the human owner owns semantic acceptance; no acceptance is inferred",
+            "scope1CurrentPaths": [
+                "rlbrief.js",
+                "rlexperience.js",
+                "rlfx.js",
+                "rljourney.js",
+                "tests/feature-004-dirty-tree-collision.test.mjs",
+                "fx-vehicle-universe.json",
+                "tests/feature-004-brief-eligibility.test.mjs",
+                "tests/feature-004-journey-evidence-refresh.test.mjs",
+                "tests/feature-004-tool-control-binding.test.mjs",
+                "tests/feature-004-vehicle-universe.test.mjs"
+            ],
+            "planningOwnedCurrentPaths": [
+                "specs/004-fx-regime-relative-value-lab/report.md",
+                "specs/004-fx-regime-relative-value-lab/scenario-manifest.json",
+                "specs/004-fx-regime-relative-value-lab/scopes.md",
+                "specs/004-fx-regime-relative-value-lab/state.json",
+                "specs/004-fx-regime-relative-value-lab/test-plan.json",
+                "specs/004-fx-regime-relative-value-lab/uservalidation.md"
+            ],
+            "feature012BridgeCurrentPaths": [
+                "specs/012-market-action-center-and-guided-tools/scopes/15-production-simple-adapter-wiring/scope.md",
+                "tests/simple-production-bridge.integration.mjs",
+                "tests/simple-production-bridge.unit.mjs"
+            ],
+            "workspaceConfigCurrentPaths": [
+                ".vscode/mcp.json"
+            ],
+            "foreignSpecialistCurrentPaths": [
+                "specs/004-fx-regime-relative-value-lab/design.md",
+                "specs/004-fx-regime-relative-value-lab/spec.md"
+            ],
+            "sessionRuntimeExclusionPaths": [
+                ".specify/memory/bubbles.session.json.flock"
+            ],
+            "ownershipInferredFromDirtiness": false,
+            "ownershipInferredFromCommit": false,
+            "ownershipInferredFromHistory": false
+        },
+        "completionInferenceFromInventory": false
+    },
+    "currentMatrix": {
+        "requiredRecords": [
+            { "path": "rlfx.js", "pathKind": "tracked", "classification": "feature004-scope1-required", "ownerAttribution": "Feature 004 Scope 1", "feature004OwnershipClaim": true, "transitionClass": "still-dirty-exact-identity", "status": " M", "hunkCount": 7, "hunkSequenceSha256": "5a729cc70e75bc2b48b2e74e55a8e542d84fbc034653a0cef0d2f7d8811b09e7", "identitySha256": "525b71ed4a6cbf80b14c362453c68dcd37ca8f4e4558bc0c2f49d861f75a0a9a" },
+            { "path": "fx-regime-universe.json", "pathKind": "tracked", "classification": "feature004-scope1-required", "ownerAttribution": "Feature 004 Scope 1", "feature004OwnershipClaim": true, "transitionClass": "clean-head-index-promotion", "status": "", "hunkCount": 0, "hunkSequenceSha256": "4f53cda18c2baa0c0354bb5f9a3ecbe5ed12ab4d8e11ba873c2f11161202b945", "identitySha256": "7641518b5f8b1caf35d7dbde1a8601816d7b378757ab5882531fc19cb4186ff4" },
+            { "path": "fx-vehicle-universe.json", "pathKind": "untracked", "classification": "feature004-scope1-required", "ownerAttribution": "Feature 004 Scope 1", "feature004OwnershipClaim": true, "transitionClass": "untracked-exact-identity", "status": "??", "hunkCount": 0, "hunkSequenceSha256": "4f53cda18c2baa0c0354bb5f9a3ecbe5ed12ab4d8e11ba873c2f11161202b945", "identitySha256": "613366f26f229b3754d88df42c48f9410bc5dec4332ceb5a06785613a8ff3e6c" },
+            { "path": "rldata.js", "pathKind": "tracked", "classification": "feature004-scope1-required", "ownerAttribution": "Feature 004 Scope 1", "feature004OwnershipClaim": true, "transitionClass": "clean-head-index-promotion", "status": "", "hunkCount": 0, "hunkSequenceSha256": "4f53cda18c2baa0c0354bb5f9a3ecbe5ed12ab4d8e11ba873c2f11161202b945", "identitySha256": "cece1baf0a34266152df027f08a1d91d104c316415c2785ed2dd5046189c5f89" },
+            { "path": "rlexperience.js", "pathKind": "tracked", "classification": "feature004-scope1-required", "ownerAttribution": "Feature 004 Scope 1", "feature004OwnershipClaim": true, "transitionClass": "still-dirty-exact-identity", "status": " M", "hunkCount": 3, "hunkSequenceSha256": "1f64e0780e7d952e53de8d4b473a0f3d33864d76badf077718dd0a8ba0dac2bd", "identitySha256": "10650a9cd625d39be5aadec3f37797c909a29d60191a421636c6d69224a9039f" },
+            { "path": "rlviews.js", "pathKind": "tracked", "classification": "feature004-scope1-required", "ownerAttribution": "Feature 004 Scope 1", "feature004OwnershipClaim": true, "transitionClass": "clean-head-index-promotion", "status": "", "hunkCount": 0, "hunkSequenceSha256": "4f53cda18c2baa0c0354bb5f9a3ecbe5ed12ab4d8e11ba873c2f11161202b945", "identitySha256": "19899f45488ad647e62d664eead0f7ef5f962fc69ce0928c3e34e969bb646998" },
+            { "path": "rlbrief.js", "pathKind": "tracked", "classification": "feature004-scope1-required", "ownerAttribution": "Feature 004 Scope 1", "feature004OwnershipClaim": true, "transitionClass": "still-dirty-exact-identity", "status": " M", "hunkCount": 2, "hunkSequenceSha256": "5a7838490395f6b2b9f941ea9b3750d7fa9f37ae5bb6ade4f7376637e407b187", "identitySha256": "fe51c658b7772da65118be89e301d5fdb7779a7b19104c69b344d42c7104a1ac" },
+            { "path": "rljourney.js", "pathKind": "tracked", "classification": "feature004-scope1-required", "ownerAttribution": "Feature 004 Scope 1", "feature004OwnershipClaim": true, "transitionClass": "still-dirty-exact-identity", "status": " M", "hunkCount": 13, "hunkSequenceSha256": "3b01c60e930ae612cd6a69a01e977e1deca1f193d1a51eeea81b2deccf6e7a79", "identitySha256": "b0128c975f14c5472c517175a26824402c2dc340563b7bd0a69c80d5509be11a" },
+            { "path": "scripts/fetch-bars.mjs", "pathKind": "tracked", "classification": "feature004-scope1-required", "ownerAttribution": "Feature 004 Scope 1", "feature004OwnershipClaim": true, "transitionClass": "clean-head-index-promotion", "status": "", "hunkCount": 0, "hunkSequenceSha256": "4f53cda18c2baa0c0354bb5f9a3ecbe5ed12ab4d8e11ba873c2f11161202b945", "identitySha256": "ae94ef07621c6d0550ce92868a2c810654d9d5271529d8c31fd3fca7717ada85" },
+            { "path": "scripts/selftest.mjs", "pathKind": "tracked", "classification": "feature004-scope1-required", "ownerAttribution": "Feature 004 Scope 1", "feature004OwnershipClaim": true, "transitionClass": "clean-head-index-promotion", "status": "", "hunkCount": 0, "hunkSequenceSha256": "4f53cda18c2baa0c0354bb5f9a3ecbe5ed12ab4d8e11ba873c2f11161202b945", "identitySha256": "ea2aaf088c1e5b3fa34c2dd5d64d1d4e5560e4bcf757e872768982005af40535" },
+            { "path": "tests/fx-regime-relative-value-lab.spec.mjs", "pathKind": "tracked", "classification": "feature004-scope1-required", "ownerAttribution": "Feature 004 Scope 1", "feature004OwnershipClaim": true, "transitionClass": "clean-head-index-promotion", "status": "", "hunkCount": 0, "hunkSequenceSha256": "4f53cda18c2baa0c0354bb5f9a3ecbe5ed12ab4d8e11ba873c2f11161202b945", "identitySha256": "867c2b35762f313ad47f4ad38648937b0dbcf319f4bcd69335f0de219941307f" },
+            { "path": "tests/feature-004-dirty-tree-collision.test.mjs", "pathKind": "tracked", "classification": "feature004-scope1-required", "ownerAttribution": "Feature 004 Scope 1", "feature004OwnershipClaim": true, "transitionClass": "still-dirty-exact-identity", "status": " M", "hunkCount": 26, "hunkSequenceSha256": "636fcd13ea896518dd0e68e92aafcfd07e56f61d0a70ec6ac0a846e89a1ad5b3", "identitySha256": "a0fb6c00c0398ad171685626c3462ae7b9caf9f0696a8b4eda48e6934c1a12c7" },
+            { "path": "tests/feature-004-vehicle-universe.test.mjs", "pathKind": "untracked", "classification": "feature004-scope1-required", "ownerAttribution": "Feature 004 Scope 1", "feature004OwnershipClaim": true, "transitionClass": "untracked-exact-identity", "status": "??", "hunkCount": 0, "hunkSequenceSha256": "4f53cda18c2baa0c0354bb5f9a3ecbe5ed12ab4d8e11ba873c2f11161202b945", "identitySha256": "e57a8e13ec578d8cee974bda22d236244793a17e80527b0e8a7c8708108cefbd" },
+            { "path": "tests/feature-004-tool-control-binding.test.mjs", "pathKind": "untracked", "classification": "feature004-scope1-required", "ownerAttribution": "Feature 004 Scope 1", "feature004OwnershipClaim": true, "transitionClass": "untracked-exact-identity", "status": "??", "hunkCount": 0, "hunkSequenceSha256": "4f53cda18c2baa0c0354bb5f9a3ecbe5ed12ab4d8e11ba873c2f11161202b945", "identitySha256": "66de3dfba52efc3690e14961f725b59cc3c98a6bde1b40ed49db2cfebe13b5cb" },
+            { "path": "tests/feature-004-brief-eligibility.test.mjs", "pathKind": "untracked", "classification": "feature004-scope1-required", "ownerAttribution": "Feature 004 Scope 1", "feature004OwnershipClaim": true, "transitionClass": "untracked-exact-identity", "status": "??", "hunkCount": 0, "hunkSequenceSha256": "4f53cda18c2baa0c0354bb5f9a3ecbe5ed12ab4d8e11ba873c2f11161202b945", "identitySha256": "4a3c16a2bf2a7d51af863db88fa0eebb9452c0d02f032a26f585830e952fdd6e" },
+            { "path": "tests/feature-004-journey-evidence-refresh.test.mjs", "pathKind": "untracked", "classification": "feature004-scope1-required", "ownerAttribution": "Feature 004 Scope 1", "feature004OwnershipClaim": true, "transitionClass": "untracked-exact-identity", "status": "??", "hunkCount": 0, "hunkSequenceSha256": "4f53cda18c2baa0c0354bb5f9a3ecbe5ed12ab4d8e11ba873c2f11161202b945", "identitySha256": "7962da9053ee525ad2d07eed36f428515c22af4a708f3c995a184a69ed1c80b9" },
+            { "path": "tests/fixtures/fx-regime/commonjs-determinism-input.json", "pathKind": "tracked", "classification": "feature004-scope1-required", "ownerAttribution": "Feature 004 Scope 1", "feature004OwnershipClaim": true, "transitionClass": "clean-head-index-promotion", "status": "", "hunkCount": 0, "hunkSequenceSha256": "4f53cda18c2baa0c0354bb5f9a3ecbe5ed12ab4d8e11ba873c2f11161202b945", "identitySha256": "64bdde37e1a6e13de03de2528df8fe07863cbc94f285170a8032fbd37cfc0806" },
+            { "path": "tests/fixtures/fx-regime/foundation-cases.json", "pathKind": "tracked", "classification": "feature004-scope1-required", "ownerAttribution": "Feature 004 Scope 1", "feature004OwnershipClaim": true, "transitionClass": "clean-head-index-promotion", "status": "", "hunkCount": 0, "hunkSequenceSha256": "4f53cda18c2baa0c0354bb5f9a3ecbe5ed12ab4d8e11ba873c2f11161202b945", "identitySha256": "2731dca0dcfe88169366e2da052987039ed7b1744606fb71b5e4740db01acd27" },
+            { "path": "tests/fixtures/fx-regime/foundation-harness.html", "pathKind": "tracked", "classification": "feature004-scope1-required", "ownerAttribution": "Feature 004 Scope 1", "feature004OwnershipClaim": true, "transitionClass": "clean-head-index-promotion", "status": "", "hunkCount": 0, "hunkSequenceSha256": "4f53cda18c2baa0c0354bb5f9a3ecbe5ed12ab4d8e11ba873c2f11161202b945", "identitySha256": "ca90f9595386d0ea7e5c033e7c5dc7297bd8febe78c9e4bdedf86e0ffb8a2dd8" }
+        ],
+        "foreignRecords": [
+            { "path": ".vscode/mcp.json", "pathKind": "tracked", "classification": "foreign-workspace-config", "ownerAttribution": "workspace configuration owner", "feature004OwnershipClaim": false, "transitionClass": "still-dirty-exact-identity", "status": " M", "hunkCount": 1, "hunkSequenceSha256": "dbf753f6980868c0b054ce961646d416425ee9be4a0608c2bae4b8fe8e515000", "identitySha256": "f090545003da6f9c8a76b561478ec588b30b1d4a6e8ebca7feaf3a4fc1f65355" },
+            { "path": "specs/004-fx-regime-relative-value-lab/design.md", "pathKind": "tracked", "classification": "foreign-specialist-artifact", "ownerAttribution": "bubbles.design", "feature004OwnershipClaim": false, "transitionClass": "still-dirty-exact-identity", "status": " M", "hunkCount": 71, "hunkSequenceSha256": "bfa586bea91d6f24ab6d415aeaf0e3b05503ff89b3a06e17275ade1aa59ba2f6", "identitySha256": "c36453d3df794801304a2d894c875a2c113b30f608420a9dbd9e8c65c01d33af" },
+            { "path": "specs/004-fx-regime-relative-value-lab/scenario-manifest.json", "pathKind": "tracked", "classification": "foreign-planning-artifact", "ownerAttribution": "bubbles.plan", "feature004OwnershipClaim": false, "transitionClass": "still-dirty-exact-identity", "status": " M", "hunkCount": 35, "hunkSequenceSha256": "31a7688c6aeee847833b1a0580f40b452ae5f43ff24a83297aea259344a4ee22", "identitySha256": "5ecec468cc9f3eabf401705d3895be12ec208e75532d67bbbe6713d21b7d5401" },
+            { "path": "specs/004-fx-regime-relative-value-lab/scopes.md", "pathKind": "tracked", "classification": "foreign-planning-artifact", "ownerAttribution": "bubbles.plan", "feature004OwnershipClaim": false, "transitionClass": "still-dirty-exact-identity", "status": " M", "hunkCount": 84, "hunkSequenceSha256": "3f1ec13e9e60ce58fc20982525d766883e1ae22e7e750b9fdd5c11756120e0b7", "identitySha256": "57bfea4e381582c847e3997566135fc409ead4bddf92a9eaf572f06226dd0637" },
+            { "path": "specs/004-fx-regime-relative-value-lab/spec.md", "pathKind": "tracked", "classification": "foreign-specialist-artifact", "ownerAttribution": "bubbles.analyst", "feature004OwnershipClaim": false, "transitionClass": "still-dirty-exact-identity", "status": " M", "hunkCount": 83, "hunkSequenceSha256": "1600c7bbd39309576fe01879c610efba800fc75e00b930502b276f187f4235cb", "identitySha256": "1319136a4c702266af752729ef005822775fa3c1b34c390697e8e14bdf3ec460" },
+            { "path": "specs/004-fx-regime-relative-value-lab/state.json", "pathKind": "tracked", "classification": "foreign-planning-routing-artifact", "ownerAttribution": "bubbles.plan (execution routing only)", "feature004OwnershipClaim": false, "transitionClass": "still-dirty-exact-identity", "status": " M", "hunkCount": 16, "hunkSequenceSha256": "27006225737b63981801080060d44b3dd649c29978ce549e384f61b495c431f0", "identitySha256": "22a484cc71a499a13ac2be877694d74ca06f254a1873bfb9b51c8e9c79a8fbbe" },
+            { "path": "specs/004-fx-regime-relative-value-lab/test-plan.json", "pathKind": "tracked", "classification": "foreign-planning-artifact", "ownerAttribution": "bubbles.plan", "feature004OwnershipClaim": false, "transitionClass": "still-dirty-exact-identity", "status": " M", "hunkCount": 12, "hunkSequenceSha256": "b2591a64fa423abfc6e83bb902216b5e519703e586e182a10e07a858398c9485", "identitySha256": "ae394108ee9f80cca73346c196b10be4fd11604c00303781ab10dffe7360e77c" },
+            { "path": "specs/004-fx-regime-relative-value-lab/uservalidation.md", "pathKind": "tracked", "classification": "foreign-human-artifact", "ownerAttribution": "human owner", "feature004OwnershipClaim": false, "transitionClass": "still-dirty-exact-identity", "status": " M", "hunkCount": 7, "hunkSequenceSha256": "59e99281784193abe2849d1212070eaecfe207c2dd3e9803c3dfc9ac8fd551a9", "identitySha256": "2e32600b550c5223a4efff04a7fb76c9039356d628f8d5194fe1dc57db1338a6" },
+            { "path": "specs/012-market-action-center-and-guided-tools/scopes/15-production-simple-adapter-wiring/scope.md", "pathKind": "tracked", "classification": "foreign-feature-artifact", "ownerAttribution": "Feature 012 / bubbles.plan", "feature004OwnershipClaim": false, "transitionClass": "still-dirty-exact-identity", "status": " M", "hunkCount": 2, "hunkSequenceSha256": "f0643c470ccdc3db73eea1d5f8a1723c21cb92b7f956cbe946b82b15e83c96c1", "identitySha256": "813796929e23ba8bcd1a7562508b613195c9a82b3b4f686b3670aecabbf7c55f" },
+            { "path": "tests/simple-production-bridge.integration.mjs", "pathKind": "tracked", "classification": "foreign-feature-test", "ownerAttribution": "Feature 012 / bubbles.test", "feature004OwnershipClaim": false, "transitionClass": "still-dirty-exact-identity", "status": " M", "hunkCount": 5, "hunkSequenceSha256": "5cf0ff5ad42cfd15cf1809d752a344f3ca53f07145e454ef2e6b2f90ea86a188", "identitySha256": "0f0a293df781a720a343a223c91d09bb5fe93472dd723a61a0b725286f02c966" },
+            { "path": "tests/simple-production-bridge.unit.mjs", "pathKind": "tracked", "classification": "foreign-feature-test", "ownerAttribution": "Feature 012 / bubbles.test", "feature004OwnershipClaim": false, "transitionClass": "still-dirty-exact-identity", "status": " M", "hunkCount": 2, "hunkSequenceSha256": "5323c304fbe291d9c7afe6a2e35758624bf00790aa0c8829cd46bf4951f304b8", "identitySha256": "561b3b064b3d81537878a774762a95e2d4396144fcb25d8234a09c57b89c5a7e" }
+        ],
+        "excludedPaths": [
+            "specs/004-fx-regime-relative-value-lab/report.md",
+            ".specify/memory/bubbles.session.json.flock"
+        ],
+        "excludedRecords": [
+            {
+                "path": "specs/004-fx-regime-relative-value-lab/report.md",
+                "status": " M",
+                "classification": "planning-owned-report-recursion-exclusion",
+                "ownerAttribution": "bubbles.plan",
+                "matrixEligible": false,
+                "completionInferenceEligible": false
+            },
+            {
+                "path": ".specify/memory/bubbles.session.json.flock",
+                "status": "??",
+                "classification": "session-runtime-lock-exclusion",
+                "ownerAttribution": "session runtime",
+                "matrixEligible": false,
+                "completionInferenceEligible": false
+            }
+        ],
+        "ownershipTransfer": false,
+        "semanticApproval": false,
+        "semanticAcceptance": false,
+        "completionClaim": false,
+        "checkboxClaim": false,
+        "scopeStatusClaim": false,
+        "topLevelStatusClaim": false,
+        "certificationClaim": false
+    },
+    "inferenceContract": {
+        "excludedPathsEligibleForMatrixInference": false,
+        "excludedPathsEligibleForCompletionInference": false,
+        "dirtyStateImpliesOwnership": false,
+        "commitStateImpliesOwnership": false,
+        "historyImpliesOwnership": false,
+        "cleanPromotionImpliesApproval": false,
+        "semanticApproval": false,
+        "semanticAcceptance": false,
+        "completion": false,
+        "checkbox": false,
+        "scopeStatus": false,
+        "topLevelStatus": false,
+        "certification": false
+    },
+    "parserOrder": [
+        "validate every predecessor marker-inclusive pin, closed schema, field order, parent link, and historical commitment through v9",
+        "validate v9's exact required HEAD value and committed parser-self tuple as immutable history, then require the exact recorded v9 reconstruction mismatch tuple without substituting either tuple",
+        "parse exactly one closed v10 block and require the exact current HEAD, 23-path porcelain order, classification groups, 30-record matrix, two exclusions, and zero-inference flags",
+        "reconstruct the pre-v10 parser by removing only the exact v10 pin, normalized-family declaration, and closed v10 branch, then normalize the retained v5 pin family and compare the complete parser record",
+        "recompute every complete required and foreign record, the matrix hash, and dirty-path equality while keeping both exclusions ineligible",
+        "validate the already-physical v5 five-assertion semantic transition only after the v10 current matrix",
+        "run all predecessor adversarial cases as mandatory history before the v10 adversarial cases"
+    ],
+    "parserHandoff": {
+        "owner": "bubbles.test",
+        "path": "tests/feature-004-dirty-tree-collision.test.mjs",
+        "newPinLiteral": "POST_COMMIT_V10_BLOCK_SHA256",
+        "pinValueSource": "marker-inclusive, no-trailing-newline SHA-256 of this v10 report block",
+        "pinCountDelta": 1,
+        "captureMode": "normalized-self-pins/v5-pre-v10",
+        "normalizedMode": "normalized-self-pins/v6",
+        "normalizedPinFamilyName": "NORMALIZED_SELF_PIN_NAMES_V6",
+        "retainedPinLiterals": [
+            "DURABLE_EVIDENCE_BLOCK_SHA256",
+            "CURRENT_IDENTITY_V4_BLOCK_SHA256",
+            "CURRENT_IDENTITY_V5_BLOCK_SHA256",
+            "FOREIGN_ROADMAP_V6_BLOCK_SHA256",
+            "FOREIGN_SET_V7_BLOCK_SHA256",
+            "POST_COMMIT_V9_BLOCK_SHA256"
+        ],
+        "normalizedPinFamilyOrder": [
+            "DURABLE_EVIDENCE_BLOCK_SHA256",
+            "CURRENT_IDENTITY_V4_BLOCK_SHA256",
+            "CURRENT_IDENTITY_V5_BLOCK_SHA256",
+            "FOREIGN_ROADMAP_V6_BLOCK_SHA256",
+            "FOREIGN_SET_V7_BLOCK_SHA256",
+            "POST_COMMIT_V9_BLOCK_SHA256",
+            "POST_COMMIT_V10_BLOCK_SHA256"
+        ],
+        "reconstructionMode": "strip the exact v10 pin, NORMALIZED_SELF_PIN_NAMES_V6 declaration, and closed v10 branch; then normalize exactly NORMALIZED_SELF_PIN_NAMES_V5",
+        "currentMatrixSelector": "v10-only",
+        "predecessorValidationMode": "v9-and-all-predecessors-remain-mandatory-history",
+        "testEditBoundary": "add exactly one v10 pin, one NORMALIZED_SELF_PIN_NAMES_V6 declaration, one closed FEATURE-004-COLLISION-POST-COMMIT-V10 parser/adversarial branch, and the minimum assignment that selects v10 as current; preserve every existing parser byte outside that additive boundary",
+        "v9BranchEditAllowed": false,
+        "predecessorEditAllowed": false,
+        "productEditsAllowed": false,
+        "planningEditsAllowed": false,
+        "foreignEditsAllowed": false
+    },
+    "adversarialMutations": [
+        "wrong current HEAD before append, after append, or during v10 parser adoption",
+        "missing, duplicate, malformed, reordered, non-64-hex, or changed v10 marker or pin",
+        "changed v9 marker-inclusive bytes, hash, byte length, schema, field order, required HEAD value, predecessor link, or committed self tuple",
+        "missing, changed, or unexpectedly accepted v9 reconstruction mismatch tuple",
+        "v9 committed self tuple replaced by the observed tuple or observed tuple replaced by the committed tuple",
+        "v9 live HEAD or live matrix comparison executed as current when v10 exists",
+        "any predecessor skipped because v10 exists",
+        "missing, extra, duplicate, or reordered porcelain, required, foreign, classification-group, or excluded path",
+        "wrong status, staging flags, HEAD/index/worktree OID, worktree SHA-256, byte length, numstat, hunk count, hunk order, hunk hash, last commit, hunk-sequence hash, identity hash, or complete matrix hash",
+        "wrong Scope 1, planning-owned, Feature 012 bridge, workspace-config, foreign-specialist, or session-runtime classification",
+        "ownership inferred from dirtiness, commit state, or history",
+        "changed, missing, extra, reordered, matrix-included, or completion-inference-eligible exclusion",
+        "wrong parser capture mode, retained pin family, v6 pin-family order, reconstruction order, or current-matrix selector",
+        "semantic approval, acceptance, completion, checkbox, scope-status, top-level-status, or certification inference",
+        "parser mutation outside the exact additive v10 pin, normalized-family, parser/adversarial branch, and current-selector boundary"
+    ],
+    "captureStability": {
+        "preAppendMatrixSha256": "78e3199040d1ce2fcd46240e5b1433e4f5d35574306b7d64918b6cba538b7f2a",
+        "postAppendMustMatch": true,
+        "headMustRemainExact": true,
+        "porcelainOrderMustRemainExact": true,
+        "rollbackBoundary": "remove only an incomplete v10 report append and return blocked",
+        "v9OrPredecessorRollbackAllowed": false,
+        "foreignOrProductRollbackAllowed": false
+    },
+    "planningRouting": {
+        "updatedPaths": [
+            "specs/004-fx-regime-relative-value-lab/report.md"
+        ],
+        "otherPlanningArtifactUpdateMechanicallyRequired": false,
+        "transitionRequestId": "TR-F004-SCOPE01-POST-COMMIT-V10-001",
+        "nextRequiredOwner": "bubbles.test",
+        "scopeStatusChanged": false,
+        "checkboxChanged": false,
+        "featureStatusChanged": false,
+        "certificationChanged": false,
+        "scopeTwoStarted": false
+    },
+    "testOwnerHandoff": {
+        "owner": "bubbles.test",
+        "transitionRequestId": "TR-F004-SCOPE01-POST-COMMIT-V10-001",
+        "requiredActions": [
+            "Add exactly one POST_COMMIT_V10_BLOCK_SHA256 pin, one NORMALIZED_SELF_PIN_NAMES_V6 declaration, and one closed v10 parser/adversarial branch within the stated edit boundary.",
+            "Validate every predecessor as mandatory immutable history, including the exact v9 committed tuple and exact v9 observed mismatch tuple.",
+            "Use v10 as the sole live-current matrix at exact HEAD 449963d2a4a9dec305d8815c1929d5457db3bf56.",
+            "Reconstruct the pre-v10 parser exactly, normalize the retained v5 pin family, and validate all complete record, sequence, identity, inventory, exclusion, and matrix commitments.",
+            "Implement every listed v10 adversarial mutation without deleting or weakening any predecessor case.",
+            "Run node --test tests/feature-004-dirty-tree-collision.test.mjs RED then GREEN and replay unchanged BUG-002 verification.",
+            "Return no product, planning, foreign, generated, checkbox, status, Scope 2, certification, Git-state, or unrelated-dirty-byte change."
+        ],
+        "nextRequiredOwner": "bubbles.test"
+    }
+}
+```
+<!-- feature004-dirty-collision-post-commit-v10:end -->
+
+<!-- feature004-dirty-collision-post-commit-v11:start -->
+```json
+{
+    "contractVersion": "feature004-dirty-collision-post-commit/v11",
+    "findingId": "F004-COLLISION-POST-COMMIT-V10",
+    "successorRevision": "v11",
+    "capturedAt": "2026-08-04T07:19:39.141Z",
+    "requiredHead": "449963d2a4a9dec305d8815c1929d5457db3bf56",
+    "successorOf": {
+        "marker": "feature004-dirty-collision-post-commit-v10",
+        "rawBlockSha256": "7ec73108b5159174f341ddeb50dcadac1d9ccc769ccec3484b0e34c6c3d4f9d8",
+        "markerInclusiveByteLength": 39470,
+        "contractVersion": "feature004-dirty-collision-post-commit/v10",
+        "requiredHead": "449963d2a4a9dec305d8815c1929d5457db3bf56",
+        "matrixSha256": "78e3199040d1ce2fcd46240e5b1433e4f5d35574306b7d64918b6cba538b7f2a",
+        "relation": "additive-current-matrix-successor",
+        "predecessorDisposition": "mandatory-immutable-history",
+        "historicalCollisionValidation": {
+            "result": "green",
+            "testsPassed": 3,
+            "testsFailed": 0,
+            "source": "operator-grounded continuation fact",
+            "satisfiesCurrentLiveComparison": false
+        },
+        "successorRequiredReasons": [
+            "dirty-inventory-expanded-after-v10",
+            "v10-live-matrix-refuses-current-27-path-inventory"
+        ]
+    },
+    "extendsContracts": [
+        { "marker": "feature004-dirty-collision-post-commit-v10", "rawBlockSha256": "7ec73108b5159174f341ddeb50dcadac1d9ccc769ccec3484b0e34c6c3d4f9d8" },
+        { "marker": "feature004-dirty-collision-post-commit-v9", "rawBlockSha256": "fc6367325829099019f47966f54da67a33a88db13c49404c0416f51511f5a921" },
+        { "marker": "feature004-dirty-collision-foreign-set-v7", "rawBlockSha256": "851dca31caded6498c1a84e68e9e9372489c3cb39f3663ea8b254b8cbb35c121" },
+        { "marker": "feature004-dirty-collision-foreign-roadmap-v6", "rawBlockSha256": "c2f6fc88b147e8de6501a7c87d41aaf3aa8bd9537ac49d06da61e49976b246f9" },
+        { "marker": "feature004-dirty-collision-current-identity-v5", "rawBlockSha256": "c3a487a6e6d2f45084635a1fe6a8269a1efb4096ff76acebec3b419c36551780" },
+        { "marker": "feature004-dirty-collision-current-identity-v4", "rawBlockSha256": "64ddfd9bb8a2adbaa218eb1a7f0efbe62746a51b7fcdc0ad2444debf297da30c" },
+        { "marker": "feature004-scope1-durable-evidence-v1", "rawBlockSha256": "c5ed7a110a2a743d2aef3b32c0655a2fd3c20c7ca6c9ee2ecef2716654ef7268" }
+    ],
+    "historicalValidation": {
+        "allPredecessorMarkersHashesSchemasAndOrderThroughV10Required": true,
+        "v10MarkerInclusiveBytesRequired": true,
+        "v10MarkerInclusiveByteLength": 39470,
+        "v10RequiredHeadValueRequired": true,
+        "v10MatrixSha256Required": true,
+        "v10HistoricalCollisionResult": "green-3-of-3-before-additive-inventory",
+        "v10HistoricalResultSatisfiesCurrentLiveComparison": false,
+        "v10RequiredHeadComparedToLiveHeadWhenV11Present": false,
+        "v10LiveMatrixComparisonWhenV11Present": false,
+        "v9NonReproducibleSelfIdentityDispositionRequired": true,
+        "v9CommittedAndObservedTuplesRequired": true,
+        "v9EvidenceFalse": false,
+        "predecessorAssertionDeletionOrWeakeningAllowed": false,
+        "disposition": "mandatory-history-through-v10-before-v11"
+    },
+    "v9SelfIdentityDisposition": {
+        "sourceContractMarker": "feature004-dirty-collision-post-commit-v10",
+        "sourceContractSha256": "7ec73108b5159174f341ddeb50dcadac1d9ccc769ccec3484b0e34c6c3d4f9d8",
+        "path": "tests/feature-004-dirty-tree-collision.test.mjs",
+        "v9CommittedRecord": {
+            "hunkCount": 26,
+            "hunkSequenceSha256": "00d67d39086e104da50d3817a0b85f6979a1efecb293228e108c4ef268c9f7bf",
+            "identitySha256": "22547f9234d3f104c69f6eda5f853c9059ef26cfc2f2d77c8125f2d34c561eb4"
+        },
+        "observedUnderExactV9Reconstruction": {
+            "hunkCount": 26,
+            "hunkSequenceSha256": "fd95cbfe2d2ed31fb98253a41fa6bff338ae61448c64195c6e9c27875cb44f52",
+            "identitySha256": "c2440767b87968f198d0f8fdc306b018c20d318cb1ba89c4a5c0618c17e0ed4a"
+        },
+        "disposition": "non-reproducible-self-identity",
+        "committedTupleReopened": false,
+        "observedTupleReopened": false,
+        "tupleSubstitutionAllowed": false,
+        "validationRule": "validate both exact tuples through the immutable v10 contract; never replace, overwrite, or compare either tuple as the v11 live-current parser identity"
+    },
+    "identityContract": {
+        "fullRecordOrderedFields": [
+            "path", "pathKind", "classification", "ownerAttribution",
+            "feature004OwnershipClaim", "transitionClass", "status", "staged",
+            "unstaged", "headOid", "indexOid", "worktreeGitOid",
+            "worktreeSha256", "byteLength", "additions", "deletions",
+            "hunkCount", "hunkBodySha256", "lastCommit"
+        ],
+        "summaryOrderedFields": [
+            "path", "pathKind", "classification", "ownerAttribution",
+            "feature004OwnershipClaim", "transitionClass", "status",
+            "hunkCount", "hunkSequenceSha256", "identitySha256"
+        ],
+        "identitySha256Input": "JSON.stringify of the complete full record with the exact ordered fields above",
+        "hunkSequenceSha256Input": "JSON.stringify of the complete ordered hunkBodySha256 array",
+        "diffMode": "git diff --no-ext-diff --unified=0",
+        "hunkHashInput": "ordered changed lines with plus or minus prefix joined by LF with no trailing LF",
+        "inventoryMode": "git status --porcelain=v1 -z --untracked-files=all",
+        "matrixSha256Input": "JSON.stringify({requiredHead,requiredRecords,foreignRecords,excludedPaths}) using complete uncompressed full records",
+        "matrixSha256": "450f4110582ec2451438369ec8bb1e693815272dd93d6a975f5f1ea2a5ad5ba3",
+        "summariesAloneSatisfyMatrixValidation": false,
+        "additiveForeignFullRecordsRequired": true,
+        "parserSelfCapture": {
+            "captureMode": "normalized-self-pins/v6-pre-v11",
+            "retainedPinNames": [
+                "DURABLE_EVIDENCE_BLOCK_SHA256",
+                "CURRENT_IDENTITY_V4_BLOCK_SHA256",
+                "CURRENT_IDENTITY_V5_BLOCK_SHA256",
+                "FOREIGN_ROADMAP_V6_BLOCK_SHA256",
+                "FOREIGN_SET_V7_BLOCK_SHA256",
+                "POST_COMMIT_V9_BLOCK_SHA256",
+                "POST_COMMIT_V10_BLOCK_SHA256"
+            ],
+            "path": "tests/feature-004-dirty-tree-collision.test.mjs",
+            "pathKind": "tracked",
+            "classification": "feature004-scope1-required",
+            "ownerAttribution": "Feature 004 Scope 1",
+            "feature004OwnershipClaim": true,
+            "transitionClass": "still-dirty-exact-identity",
+            "status": " M",
+            "staged": false,
+            "unstaged": true,
+            "headOid": "1e57f53aafd1117e7e4ef63d8ce4b466cf39f4d5",
+            "indexOid": "1e57f53aafd1117e7e4ef63d8ce4b466cf39f4d5",
+            "worktreeGitOid": "bc635d7e0b43ccd88fafe25c5554874b4bd5ac77",
+            "worktreeSha256": "8fa582a6cafbd0a4323ea47846e3cfc2dcc80c27dbd2736a8146e8f87b595e02",
+            "byteLength": 341660,
+            "additions": 3899,
+            "deletions": 119,
+            "hunkCount": 32,
+            "hunkBodySha256": [
+                "483a7d0132e46fbadf5a59ae34ab86a43b510ad25712eb13c15158f9f96909dc",
+                "94723e39f3eaf6ca632e90fdb87555a4697320c4f8aea7887b9fb3867f2c8532",
+                "a8817a8a5fafb2f06d96a943b4552e97ca7f7784e472e5f9055307051a1e322d",
+                "93a555d05790ff147c91fa460e21454aa31d49243588db2db8d56a93230bc008",
+                "d5e246c68ab5b99d1fa6ebc55752fc4507d1275ba16b3c063828664a315e31d1",
+                "03877572e1e5bbcc8749ab918b5f7fde5065a3da6239f7db8d65e2f529e8ac82",
+                "082224ee61a922c00be7ab20790e0e0eb86df0d67f1d97be3eaffd0a6eef874a",
+                "eb665f4f8fd8116c3f0883766f0df8deae97a638428eb9ee4ca99428b0c020d4",
+                "5b7d579651eaa2632e9526beb2f6fc37f1d8346bc082b316dc51388fa7b2c6b7",
+                "dad9da3edf75b5ce9bccc92d208185375e194c8f7b757059733ee70dfd6712a1",
+                "fa65c70bd10772d7f32cec31d2ee4225f23c6af05540b22a80789c0a70b819d3",
+                "cb0b48bd5097ce46f5e03bdf433ab36f125a2a102db7ba70f17c04afa88e49d5",
+                "4c4b40344bdc9297d63a67476fa102d8608b16e213749548a200f30f931416bb",
+                "012d6feddca2a39e305a40a7be03069951de389293d4e84b425d18e73959a7d4",
+                "b0d1ad9384b8e486bbc448541d2d50e7da354264621d9c352dc687bfb29a164e",
+                "6672d4007b8162a5471ce353a884e3052e60be5f79c88080a4b29cd48f71c1fd",
+                "a2902975af55c6fd914e734dbb402dac37c8187e07e174987a7c97240b187b58",
+                "56bc98088012519a144d0d4702fafa2160549548105d6a2ab1ad02758ff0474d",
+                "2a36e2b667bbf782c1c08235800c2ed7c968316fbcba13edbac466e8abfa6a2a",
+                "302420da3b76bfb57857b1ab701431f2b269bc5290d175cd298662b858deeab6",
+                "79e34f2203ff270f5406cdf265cd227ac9aa3f144c299338bf0b233e7a9f4081",
+                "209d45c88754186fac80bab4ed313d855940515a202aeb89373848ee1aca4082",
+                "c61bc5599b382e220b36f632c1f38814c44b3db788976079447b2172c5640854",
+                "cd0dd55e2f6b66eafe0ad63050f7f26904a1f71d9a1ab64304974896aa4baa05",
+                "07d437b4fb6684de6e8b4dd3bebb2327ddd70974cbc89eec8c9dc18693551120",
+                "a1391f7cd8cd79c01f91b5911eab4068f361ca83494ab25a0c9b2b446f4b62d8",
+                "9da75b01053f7c988fde46505fe5797d4154f77edea880a771f255484b78c4a4",
+                "03a9ce537d69b982d0b132fd56b9f43e3bc4e8b730b391f315560064f13823aa",
+                "d8fee55565247501fc1f2de202e76ca7d2784d78664ba650136216447fc32e6b",
+                "6c43110e70190b2de8f6d32675ba679a10650c365224b92c97103d2ffd27089b",
+                "6b9b412ef3cc1e6a8d118e4dc9459299d76e7315d19d06ebb5c9ff4dea1e0836",
+                "a2a3ccadb27b435611e640337c94f1d58a2239db75c91ec078976385238f5614"
+            ],
+            "lastCommit": "1f1d739dab1bc144b46df0250f528fdf2292ea3b",
+            "hunkSequenceSha256": "375b448e6276c81fe8e1b63fb7bc4dba11ac1a6f2a4939cb7f00515ba34e9ae1",
+            "identitySha256": "0aecd309da5ba5cfa4b9604da5bf51d2fab2e3ed5dafbf739636738e9e40de7c"
+        }
+    },
+    "inventoryProof": {
+        "porcelainPathCount": 27,
+        "porcelainPathOrder": [
+            ".vscode/mcp.json",
+            "rlbrief.js",
+            "rlexperience.js",
+            "rlfx.js",
+            "rljourney.js",
+            "specs/004-fx-regime-relative-value-lab/design.md",
+            "specs/004-fx-regime-relative-value-lab/report.md",
+            "specs/004-fx-regime-relative-value-lab/scenario-manifest.json",
+            "specs/004-fx-regime-relative-value-lab/scopes.md",
+            "specs/004-fx-regime-relative-value-lab/spec.md",
+            "specs/004-fx-regime-relative-value-lab/state.json",
+            "specs/004-fx-regime-relative-value-lab/test-plan.json",
+            "specs/004-fx-regime-relative-value-lab/uservalidation.md",
+            "specs/012-market-action-center-and-guided-tools/scopes/15-production-simple-adapter-wiring/scope.md",
+            "specs/_bugs/BUG-002-market-brief-session-date-drift/report.md",
+            "specs/_bugs/BUG-002-market-brief-session-date-drift/scopes.md",
+            "specs/_bugs/BUG-002-market-brief-session-date-drift/test-plan.json",
+            "tests/feature-004-dirty-tree-collision.test.mjs",
+            "tests/playwright-runtime.foundation.functional.mjs",
+            "tests/simple-production-bridge.integration.mjs",
+            "tests/simple-production-bridge.unit.mjs",
+            ".specify/memory/bubbles.session.json.flock",
+            "fx-vehicle-universe.json",
+            "tests/feature-004-brief-eligibility.test.mjs",
+            "tests/feature-004-journey-evidence-refresh.test.mjs",
+            "tests/feature-004-tool-control-binding.test.mjs",
+            "tests/feature-004-vehicle-universe.test.mjs"
+        ],
+        "dirtyRequiredPathCount": 10,
+        "foreignDirtyPathCount": 15,
+        "excludedDirtyPathCount": 2,
+        "requiredPathCount": 19,
+        "matrixRecordCount": 34,
+        "requiredTransitionCounts": {
+            "clean-head-index-promotion": 9,
+            "still-dirty-exact-identity": 5,
+            "untracked-exact-identity": 5
+        },
+        "pathClassification": {
+            "classificationBasis": "canonical artifact ownership plus explicit Feature 004, Feature 012, BUG-002, and workspace context; never dirtiness, commit authorship, or path history",
+            "matrixForeignRecordSemantics": "foreignRecords means outside the Feature 004 Scope 1 required set; it does not override canonical artifact ownership",
+            "uservalidationOwnershipSemantics": "bubbles.plan owns the artifact structure and the human owner owns semantic acceptance; no acceptance is inferred",
+            "scope1CurrentPaths": [
+                "rlbrief.js",
+                "rlexperience.js",
+                "rlfx.js",
+                "rljourney.js",
+                "tests/feature-004-dirty-tree-collision.test.mjs",
+                "fx-vehicle-universe.json",
+                "tests/feature-004-brief-eligibility.test.mjs",
+                "tests/feature-004-journey-evidence-refresh.test.mjs",
+                "tests/feature-004-tool-control-binding.test.mjs",
+                "tests/feature-004-vehicle-universe.test.mjs"
+            ],
+            "planningOwnedCurrentPaths": [
+                "specs/004-fx-regime-relative-value-lab/report.md",
+                "specs/004-fx-regime-relative-value-lab/scenario-manifest.json",
+                "specs/004-fx-regime-relative-value-lab/scopes.md",
+                "specs/004-fx-regime-relative-value-lab/state.json",
+                "specs/004-fx-regime-relative-value-lab/test-plan.json",
+                "specs/004-fx-regime-relative-value-lab/uservalidation.md"
+            ],
+            "feature012BridgeCurrentPaths": [
+                "specs/012-market-action-center-and-guided-tools/scopes/15-production-simple-adapter-wiring/scope.md",
+                "tests/simple-production-bridge.integration.mjs",
+                "tests/simple-production-bridge.unit.mjs"
+            ],
+            "bug002PlanningCurrentPaths": [
+                "specs/_bugs/BUG-002-market-brief-session-date-drift/report.md",
+                "specs/_bugs/BUG-002-market-brief-session-date-drift/scopes.md",
+                "specs/_bugs/BUG-002-market-brief-session-date-drift/test-plan.json"
+            ],
+            "bug002TestCurrentPaths": [
+                "tests/playwright-runtime.foundation.functional.mjs"
+            ],
+            "additiveSinceV10Paths": [
+                "specs/_bugs/BUG-002-market-brief-session-date-drift/report.md",
+                "specs/_bugs/BUG-002-market-brief-session-date-drift/scopes.md",
+                "specs/_bugs/BUG-002-market-brief-session-date-drift/test-plan.json",
+                "tests/playwright-runtime.foundation.functional.mjs"
+            ],
+            "workspaceConfigCurrentPaths": [
+                ".vscode/mcp.json"
+            ],
+            "foreignSpecialistCurrentPaths": [
+                "specs/004-fx-regime-relative-value-lab/design.md",
+                "specs/004-fx-regime-relative-value-lab/spec.md"
+            ],
+            "sessionRuntimeExclusionPaths": [
+                ".specify/memory/bubbles.session.json.flock"
+            ],
+            "ownershipInferredFromDirtiness": false,
+            "ownershipInferredFromCommit": false,
+            "ownershipInferredFromHistory": false
+        },
+        "completionInferenceFromInventory": false
+    },
+    "currentMatrix": {
+        "requiredRecords": [
+            { "path": "rlfx.js", "pathKind": "tracked", "classification": "feature004-scope1-required", "ownerAttribution": "Feature 004 Scope 1", "feature004OwnershipClaim": true, "transitionClass": "still-dirty-exact-identity", "status": " M", "hunkCount": 7, "hunkSequenceSha256": "5a729cc70e75bc2b48b2e74e55a8e542d84fbc034653a0cef0d2f7d8811b09e7", "identitySha256": "525b71ed4a6cbf80b14c362453c68dcd37ca8f4e4558bc0c2f49d861f75a0a9a" },
+            { "path": "fx-regime-universe.json", "pathKind": "tracked", "classification": "feature004-scope1-required", "ownerAttribution": "Feature 004 Scope 1", "feature004OwnershipClaim": true, "transitionClass": "clean-head-index-promotion", "status": "", "hunkCount": 0, "hunkSequenceSha256": "4f53cda18c2baa0c0354bb5f9a3ecbe5ed12ab4d8e11ba873c2f11161202b945", "identitySha256": "7641518b5f8b1caf35d7dbde1a8601816d7b378757ab5882531fc19cb4186ff4" },
+            { "path": "fx-vehicle-universe.json", "pathKind": "untracked", "classification": "feature004-scope1-required", "ownerAttribution": "Feature 004 Scope 1", "feature004OwnershipClaim": true, "transitionClass": "untracked-exact-identity", "status": "??", "hunkCount": 0, "hunkSequenceSha256": "4f53cda18c2baa0c0354bb5f9a3ecbe5ed12ab4d8e11ba873c2f11161202b945", "identitySha256": "613366f26f229b3754d88df42c48f9410bc5dec4332ceb5a06785613a8ff3e6c" },
+            { "path": "rldata.js", "pathKind": "tracked", "classification": "feature004-scope1-required", "ownerAttribution": "Feature 004 Scope 1", "feature004OwnershipClaim": true, "transitionClass": "clean-head-index-promotion", "status": "", "hunkCount": 0, "hunkSequenceSha256": "4f53cda18c2baa0c0354bb5f9a3ecbe5ed12ab4d8e11ba873c2f11161202b945", "identitySha256": "cece1baf0a34266152df027f08a1d91d104c316415c2785ed2dd5046189c5f89" },
+            { "path": "rlexperience.js", "pathKind": "tracked", "classification": "feature004-scope1-required", "ownerAttribution": "Feature 004 Scope 1", "feature004OwnershipClaim": true, "transitionClass": "still-dirty-exact-identity", "status": " M", "hunkCount": 3, "hunkSequenceSha256": "1f64e0780e7d952e53de8d4b473a0f3d33864d76badf077718dd0a8ba0dac2bd", "identitySha256": "10650a9cd625d39be5aadec3f37797c909a29d60191a421636c6d69224a9039f" },
+            { "path": "rlviews.js", "pathKind": "tracked", "classification": "feature004-scope1-required", "ownerAttribution": "Feature 004 Scope 1", "feature004OwnershipClaim": true, "transitionClass": "clean-head-index-promotion", "status": "", "hunkCount": 0, "hunkSequenceSha256": "4f53cda18c2baa0c0354bb5f9a3ecbe5ed12ab4d8e11ba873c2f11161202b945", "identitySha256": "19899f45488ad647e62d664eead0f7ef5f962fc69ce0928c3e34e969bb646998" },
+            { "path": "rlbrief.js", "pathKind": "tracked", "classification": "feature004-scope1-required", "ownerAttribution": "Feature 004 Scope 1", "feature004OwnershipClaim": true, "transitionClass": "still-dirty-exact-identity", "status": " M", "hunkCount": 2, "hunkSequenceSha256": "5a7838490395f6b2b9f941ea9b3750d7fa9f37ae5bb6ade4f7376637e407b187", "identitySha256": "fe51c658b7772da65118be89e301d5fdb7779a7b19104c69b344d42c7104a1ac" },
+            { "path": "rljourney.js", "pathKind": "tracked", "classification": "feature004-scope1-required", "ownerAttribution": "Feature 004 Scope 1", "feature004OwnershipClaim": true, "transitionClass": "still-dirty-exact-identity", "status": " M", "hunkCount": 13, "hunkSequenceSha256": "3b01c60e930ae612cd6a69a01e977e1deca1f193d1a51eeea81b2deccf6e7a79", "identitySha256": "b0128c975f14c5472c517175a26824402c2dc340563b7bd0a69c80d5509be11a" },
+            { "path": "scripts/fetch-bars.mjs", "pathKind": "tracked", "classification": "feature004-scope1-required", "ownerAttribution": "Feature 004 Scope 1", "feature004OwnershipClaim": true, "transitionClass": "clean-head-index-promotion", "status": "", "hunkCount": 0, "hunkSequenceSha256": "4f53cda18c2baa0c0354bb5f9a3ecbe5ed12ab4d8e11ba873c2f11161202b945", "identitySha256": "ae94ef07621c6d0550ce92868a2c810654d9d5271529d8c31fd3fca7717ada85" },
+            { "path": "scripts/selftest.mjs", "pathKind": "tracked", "classification": "feature004-scope1-required", "ownerAttribution": "Feature 004 Scope 1", "feature004OwnershipClaim": true, "transitionClass": "clean-head-index-promotion", "status": "", "hunkCount": 0, "hunkSequenceSha256": "4f53cda18c2baa0c0354bb5f9a3ecbe5ed12ab4d8e11ba873c2f11161202b945", "identitySha256": "ea2aaf088c1e5b3fa34c2dd5d64d1d4e5560e4bcf757e872768982005af40535" },
+            { "path": "tests/fx-regime-relative-value-lab.spec.mjs", "pathKind": "tracked", "classification": "feature004-scope1-required", "ownerAttribution": "Feature 004 Scope 1", "feature004OwnershipClaim": true, "transitionClass": "clean-head-index-promotion", "status": "", "hunkCount": 0, "hunkSequenceSha256": "4f53cda18c2baa0c0354bb5f9a3ecbe5ed12ab4d8e11ba873c2f11161202b945", "identitySha256": "867c2b35762f313ad47f4ad38648937b0dbcf319f4bcd69335f0de219941307f" },
+            { "path": "tests/feature-004-dirty-tree-collision.test.mjs", "pathKind": "tracked", "classification": "feature004-scope1-required", "ownerAttribution": "Feature 004 Scope 1", "feature004OwnershipClaim": true, "transitionClass": "still-dirty-exact-identity", "status": " M", "hunkCount": 32, "hunkSequenceSha256": "375b448e6276c81fe8e1b63fb7bc4dba11ac1a6f2a4939cb7f00515ba34e9ae1", "identitySha256": "0aecd309da5ba5cfa4b9604da5bf51d2fab2e3ed5dafbf739636738e9e40de7c" },
+            { "path": "tests/feature-004-vehicle-universe.test.mjs", "pathKind": "untracked", "classification": "feature004-scope1-required", "ownerAttribution": "Feature 004 Scope 1", "feature004OwnershipClaim": true, "transitionClass": "untracked-exact-identity", "status": "??", "hunkCount": 0, "hunkSequenceSha256": "4f53cda18c2baa0c0354bb5f9a3ecbe5ed12ab4d8e11ba873c2f11161202b945", "identitySha256": "e57a8e13ec578d8cee974bda22d236244793a17e80527b0e8a7c8708108cefbd" },
+            { "path": "tests/feature-004-tool-control-binding.test.mjs", "pathKind": "untracked", "classification": "feature004-scope1-required", "ownerAttribution": "Feature 004 Scope 1", "feature004OwnershipClaim": true, "transitionClass": "untracked-exact-identity", "status": "??", "hunkCount": 0, "hunkSequenceSha256": "4f53cda18c2baa0c0354bb5f9a3ecbe5ed12ab4d8e11ba873c2f11161202b945", "identitySha256": "66de3dfba52efc3690e14961f725b59cc3c98a6bde1b40ed49db2cfebe13b5cb" },
+            { "path": "tests/feature-004-brief-eligibility.test.mjs", "pathKind": "untracked", "classification": "feature004-scope1-required", "ownerAttribution": "Feature 004 Scope 1", "feature004OwnershipClaim": true, "transitionClass": "untracked-exact-identity", "status": "??", "hunkCount": 0, "hunkSequenceSha256": "4f53cda18c2baa0c0354bb5f9a3ecbe5ed12ab4d8e11ba873c2f11161202b945", "identitySha256": "4a3c16a2bf2a7d51af863db88fa0eebb9452c0d02f032a26f585830e952fdd6e" },
+            { "path": "tests/feature-004-journey-evidence-refresh.test.mjs", "pathKind": "untracked", "classification": "feature004-scope1-required", "ownerAttribution": "Feature 004 Scope 1", "feature004OwnershipClaim": true, "transitionClass": "untracked-exact-identity", "status": "??", "hunkCount": 0, "hunkSequenceSha256": "4f53cda18c2baa0c0354bb5f9a3ecbe5ed12ab4d8e11ba873c2f11161202b945", "identitySha256": "7962da9053ee525ad2d07eed36f428515c22af4a708f3c995a184a69ed1c80b9" },
+            { "path": "tests/fixtures/fx-regime/commonjs-determinism-input.json", "pathKind": "tracked", "classification": "feature004-scope1-required", "ownerAttribution": "Feature 004 Scope 1", "feature004OwnershipClaim": true, "transitionClass": "clean-head-index-promotion", "status": "", "hunkCount": 0, "hunkSequenceSha256": "4f53cda18c2baa0c0354bb5f9a3ecbe5ed12ab4d8e11ba873c2f11161202b945", "identitySha256": "64bdde37e1a6e13de03de2528df8fe07863cbc94f285170a8032fbd37cfc0806" },
+            { "path": "tests/fixtures/fx-regime/foundation-cases.json", "pathKind": "tracked", "classification": "feature004-scope1-required", "ownerAttribution": "Feature 004 Scope 1", "feature004OwnershipClaim": true, "transitionClass": "clean-head-index-promotion", "status": "", "hunkCount": 0, "hunkSequenceSha256": "4f53cda18c2baa0c0354bb5f9a3ecbe5ed12ab4d8e11ba873c2f11161202b945", "identitySha256": "2731dca0dcfe88169366e2da052987039ed7b1744606fb71b5e4740db01acd27" },
+            { "path": "tests/fixtures/fx-regime/foundation-harness.html", "pathKind": "tracked", "classification": "feature004-scope1-required", "ownerAttribution": "Feature 004 Scope 1", "feature004OwnershipClaim": true, "transitionClass": "clean-head-index-promotion", "status": "", "hunkCount": 0, "hunkSequenceSha256": "4f53cda18c2baa0c0354bb5f9a3ecbe5ed12ab4d8e11ba873c2f11161202b945", "identitySha256": "ca90f9595386d0ea7e5c033e7c5dc7297bd8febe78c9e4bdedf86e0ffb8a2dd8" }
+        ],
+        "foreignRecords": [
+            { "path": ".vscode/mcp.json", "pathKind": "tracked", "classification": "foreign-workspace-config", "ownerAttribution": "workspace configuration owner", "feature004OwnershipClaim": false, "transitionClass": "still-dirty-exact-identity", "status": " M", "hunkCount": 1, "hunkSequenceSha256": "dbf753f6980868c0b054ce961646d416425ee9be4a0608c2bae4b8fe8e515000", "identitySha256": "f090545003da6f9c8a76b561478ec588b30b1d4a6e8ebca7feaf3a4fc1f65355" },
+            { "path": "specs/004-fx-regime-relative-value-lab/design.md", "pathKind": "tracked", "classification": "foreign-specialist-artifact", "ownerAttribution": "bubbles.design", "feature004OwnershipClaim": false, "transitionClass": "still-dirty-exact-identity", "status": " M", "hunkCount": 71, "hunkSequenceSha256": "bfa586bea91d6f24ab6d415aeaf0e3b05503ff89b3a06e17275ade1aa59ba2f6", "identitySha256": "c36453d3df794801304a2d894c875a2c113b30f608420a9dbd9e8c65c01d33af" },
+            { "path": "specs/004-fx-regime-relative-value-lab/scenario-manifest.json", "pathKind": "tracked", "classification": "foreign-planning-artifact", "ownerAttribution": "bubbles.plan", "feature004OwnershipClaim": false, "transitionClass": "still-dirty-exact-identity", "status": " M", "hunkCount": 35, "hunkSequenceSha256": "31a7688c6aeee847833b1a0580f40b452ae5f43ff24a83297aea259344a4ee22", "identitySha256": "5ecec468cc9f3eabf401705d3895be12ec208e75532d67bbbe6713d21b7d5401" },
+            { "path": "specs/004-fx-regime-relative-value-lab/scopes.md", "pathKind": "tracked", "classification": "foreign-planning-artifact", "ownerAttribution": "bubbles.plan", "feature004OwnershipClaim": false, "transitionClass": "still-dirty-exact-identity", "status": " M", "hunkCount": 84, "hunkSequenceSha256": "3f1ec13e9e60ce58fc20982525d766883e1ae22e7e750b9fdd5c11756120e0b7", "identitySha256": "57bfea4e381582c847e3997566135fc409ead4bddf92a9eaf572f06226dd0637" },
+            { "path": "specs/004-fx-regime-relative-value-lab/spec.md", "pathKind": "tracked", "classification": "foreign-specialist-artifact", "ownerAttribution": "bubbles.analyst", "feature004OwnershipClaim": false, "transitionClass": "still-dirty-exact-identity", "status": " M", "hunkCount": 83, "hunkSequenceSha256": "1600c7bbd39309576fe01879c610efba800fc75e00b930502b276f187f4235cb", "identitySha256": "1319136a4c702266af752729ef005822775fa3c1b34c390697e8e14bdf3ec460" },
+            { "path": "specs/004-fx-regime-relative-value-lab/state.json", "pathKind": "tracked", "classification": "foreign-planning-routing-artifact", "ownerAttribution": "bubbles.plan (execution routing only)", "feature004OwnershipClaim": false, "transitionClass": "still-dirty-exact-identity", "status": " M", "hunkCount": 16, "hunkSequenceSha256": "27006225737b63981801080060d44b3dd649c29978ce549e384f61b495c431f0", "identitySha256": "22a484cc71a499a13ac2be877694d74ca06f254a1873bfb9b51c8e9c79a8fbbe" },
+            { "path": "specs/004-fx-regime-relative-value-lab/test-plan.json", "pathKind": "tracked", "classification": "foreign-planning-artifact", "ownerAttribution": "bubbles.plan", "feature004OwnershipClaim": false, "transitionClass": "still-dirty-exact-identity", "status": " M", "hunkCount": 12, "hunkSequenceSha256": "b2591a64fa423abfc6e83bb902216b5e519703e586e182a10e07a858398c9485", "identitySha256": "ae394108ee9f80cca73346c196b10be4fd11604c00303781ab10dffe7360e77c" },
+            { "path": "specs/004-fx-regime-relative-value-lab/uservalidation.md", "pathKind": "tracked", "classification": "foreign-human-artifact", "ownerAttribution": "human owner", "feature004OwnershipClaim": false, "transitionClass": "still-dirty-exact-identity", "status": " M", "hunkCount": 7, "hunkSequenceSha256": "59e99281784193abe2849d1212070eaecfe207c2dd3e9803c3dfc9ac8fd551a9", "identitySha256": "2e32600b550c5223a4efff04a7fb76c9039356d628f8d5194fe1dc57db1338a6" },
+            { "path": "specs/012-market-action-center-and-guided-tools/scopes/15-production-simple-adapter-wiring/scope.md", "pathKind": "tracked", "classification": "foreign-feature-artifact", "ownerAttribution": "Feature 012 / bubbles.plan", "feature004OwnershipClaim": false, "transitionClass": "still-dirty-exact-identity", "status": " M", "hunkCount": 2, "hunkSequenceSha256": "f0643c470ccdc3db73eea1d5f8a1723c21cb92b7f956cbe946b82b15e83c96c1", "identitySha256": "813796929e23ba8bcd1a7562508b613195c9a82b3b4f686b3670aecabbf7c55f" },
+            { "path": "tests/simple-production-bridge.integration.mjs", "pathKind": "tracked", "classification": "foreign-feature-test", "ownerAttribution": "Feature 012 / bubbles.test", "feature004OwnershipClaim": false, "transitionClass": "still-dirty-exact-identity", "status": " M", "hunkCount": 5, "hunkSequenceSha256": "5cf0ff5ad42cfd15cf1809d752a344f3ca53f07145e454ef2e6b2f90ea86a188", "identitySha256": "0f0a293df781a720a343a223c91d09bb5fe93472dd723a61a0b725286f02c966" },
+            { "path": "tests/simple-production-bridge.unit.mjs", "pathKind": "tracked", "classification": "foreign-feature-test", "ownerAttribution": "Feature 012 / bubbles.test", "feature004OwnershipClaim": false, "transitionClass": "still-dirty-exact-identity", "status": " M", "hunkCount": 2, "hunkSequenceSha256": "5323c304fbe291d9c7afe6a2e35758624bf00790aa0c8829cd46bf4951f304b8", "identitySha256": "561b3b064b3d81537878a774762a95e2d4396144fcb25d8234a09c57b89c5a7e" },
+            { "path": "specs/_bugs/BUG-002-market-brief-session-date-drift/report.md", "pathKind": "tracked", "classification": "foreign-bug-planning-evidence", "ownerAttribution": "bubbles.plan/BUG-002", "feature004OwnershipClaim": false, "transitionClass": "still-dirty-exact-identity", "status": " M", "hunkCount": 1, "hunkSequenceSha256": "c2406c1231bd7ba6ea8476e812e6762e1a6d61083e5c6e35fe0fca915afb5b91", "identitySha256": "37b68d7b03741ac2bc5f84bd1cd7f53fd08293abbf2a01a407a7f15c0310a490" },
+            { "path": "specs/_bugs/BUG-002-market-brief-session-date-drift/scopes.md", "pathKind": "tracked", "classification": "foreign-bug-planning-contract", "ownerAttribution": "bubbles.plan/BUG-002", "feature004OwnershipClaim": false, "transitionClass": "still-dirty-exact-identity", "status": " M", "hunkCount": 1, "hunkSequenceSha256": "7a44e948edd49fc70ae257f2eef543d75b9d06dcd54f5e88d2fddbe5997a8825", "identitySha256": "5ee1e9ba3e881b40f8c3b951a0574b781233047c0b2dbca9a599473bbd357485" },
+            { "path": "specs/_bugs/BUG-002-market-brief-session-date-drift/test-plan.json", "pathKind": "tracked", "classification": "foreign-bug-planning-contract", "ownerAttribution": "bubbles.plan/BUG-002", "feature004OwnershipClaim": false, "transitionClass": "still-dirty-exact-identity", "status": " M", "hunkCount": 10, "hunkSequenceSha256": "0170d671a35a6067c134936d9d6fe6ed64fa98f9e03aaad1ea879cc0d8c0cd50", "identitySha256": "da3dfaea407f5b75d7797820e168040f05dd0a7910415c6012b0065c0fa0ce58" },
+            { "path": "tests/playwright-runtime.foundation.functional.mjs", "pathKind": "tracked", "classification": "foreign-bug-test", "ownerAttribution": "bubbles.test/BUG-002", "feature004OwnershipClaim": false, "transitionClass": "still-dirty-exact-identity", "status": " M", "hunkCount": 3, "hunkSequenceSha256": "03395629d92f8b001924065976c19a28764cbeda261254bdde460d31b09cff59", "identitySha256": "6d1f8e94b922853fa103e16cd7fbbd913f332ae68a812e757a22e9309ac4a7fa" }
+        ],
+        "additiveForeignFullRecords": [
+            {
+                "path": "specs/_bugs/BUG-002-market-brief-session-date-drift/report.md",
+                "pathKind": "tracked",
+                "classification": "foreign-bug-planning-evidence",
+                "ownerAttribution": "bubbles.plan/BUG-002",
+                "feature004OwnershipClaim": false,
+                "transitionClass": "still-dirty-exact-identity",
+                "status": " M",
+                "staged": false,
+                "unstaged": true,
+                "headOid": "a0e966351dcdcff06f1079882941fee63f123d63",
+                "indexOid": "a0e966351dcdcff06f1079882941fee63f123d63",
+                "worktreeGitOid": "723c7db82652385ce9b615d4f3815393f7d60513",
+                "worktreeSha256": "579492ba243c82fccbfac0789707b1fc3b1b740ce9bad02d40b02fcdec173425",
+                "byteLength": 416707,
+                "additions": 108,
+                "deletions": 0,
+                "hunkCount": 1,
+                "hunkBodySha256": [
+                    "cc9a447c7cd9cde09be07eb4ad34a18683beff0db834a19bc45819b1a3182eb0"
+                ],
+                "lastCommit": "2b427fc020371cd94264321a1212508718bd15d8"
+            },
+            {
+                "path": "specs/_bugs/BUG-002-market-brief-session-date-drift/scopes.md",
+                "pathKind": "tracked",
+                "classification": "foreign-bug-planning-contract",
+                "ownerAttribution": "bubbles.plan/BUG-002",
+                "feature004OwnershipClaim": false,
+                "transitionClass": "still-dirty-exact-identity",
+                "status": " M",
+                "staged": false,
+                "unstaged": true,
+                "headOid": "4a375ff94554c2d3eec40ffb35da0f9cf780ceb8",
+                "indexOid": "4a375ff94554c2d3eec40ffb35da0f9cf780ceb8",
+                "worktreeGitOid": "66b1ce2b6e709d5dab05daa9a11e97fd8e5db29d",
+                "worktreeSha256": "3e20620e351213bf589cdcea09bbbbba64425dbcaabee0c2b6072a59a9e08038",
+                "byteLength": 62714,
+                "additions": 134,
+                "deletions": 0,
+                "hunkCount": 1,
+                "hunkBodySha256": [
+                    "247bea94efc027a820fe91894ed282661c07da1fe34d950f7b74c5e9712b9d72"
+                ],
+                "lastCommit": "a53f22c48683cbbf7f9401be491457ff4eeec5b4"
+            },
+            {
+                "path": "specs/_bugs/BUG-002-market-brief-session-date-drift/test-plan.json",
+                "pathKind": "tracked",
+                "classification": "foreign-bug-planning-contract",
+                "ownerAttribution": "bubbles.plan/BUG-002",
+                "feature004OwnershipClaim": false,
+                "transitionClass": "still-dirty-exact-identity",
+                "status": " M",
+                "staged": false,
+                "unstaged": true,
+                "headOid": "872c3fc6a5e70e6f2d5c165e3e8220c8ab16694f",
+                "indexOid": "872c3fc6a5e70e6f2d5c165e3e8220c8ab16694f",
+                "worktreeGitOid": "788463709c5837435ca02c1a675f042147c59ce4",
+                "worktreeSha256": "fca22716b7e5e69de77e366852f7d29a992485181a7a5d15266745b409c3a1d6",
+                "byteLength": 26878,
+                "additions": 126,
+                "deletions": 14,
+                "hunkCount": 10,
+                "hunkBodySha256": [
+                    "1e3ed4bc05bba638180f160b999e4a2aa24f77e62daebb35e50a345a64cae5df",
+                    "72d8e9e7fdff85c974d8ebc9c25a0a60af29f280b14777a849623c636b88c69e",
+                    "406092f7d5ba073af84c4c2ddfea41f9fe1908d76f33cfe81da049368ccb10bc",
+                    "6a079cefa2fa390a3fe71783dbe30009a53f57bbaa16ea5dd7f89cd0d2239da3",
+                    "34e18d2346941cd9f90d5b2870ee3a5b2311543b23756a0e4f0f25c61cb50eb8",
+                    "5f076914b62c4bb2be4673208233c13eef2ae6f0ac5addc7d54f583e7509d8f4",
+                    "c544a2d499ef604ac46a74afbc05f9e66765c3d02e5f5ce81d50b129bb2c8aac",
+                    "b054c0252c981f5d8c5be5dece1bf9a962c2ee00212bad3e5603f32e5301164d",
+                    "3198aa1c2f1cfb33a49395f50dd2631df5dd7b47c02c7288ba02ba5d37e60f94",
+                    "fc359a55c952cfc295b35675f9169a85e456d2814cc80afe28b54cfb16ee39e5"
+                ],
+                "lastCommit": "836c4d65e8258924743d04da1d0817e29d1bee3f"
+            },
+            {
+                "path": "tests/playwright-runtime.foundation.functional.mjs",
+                "pathKind": "tracked",
+                "classification": "foreign-bug-test",
+                "ownerAttribution": "bubbles.test/BUG-002",
+                "feature004OwnershipClaim": false,
+                "transitionClass": "still-dirty-exact-identity",
+                "status": " M",
+                "staged": false,
+                "unstaged": true,
+                "headOid": "ada41bb73cc11880b005488e6d71ea94d204cb4e",
+                "indexOid": "ada41bb73cc11880b005488e6d71ea94d204cb4e",
+                "worktreeGitOid": "7f6e2504c6e6f71edcb8f7c5cad4b3420a8275f7",
+                "worktreeSha256": "649e534dcd83669f36620f3384db7e1938adf2db63c231694bb6f0ecc2cfa591",
+                "byteLength": 9926,
+                "additions": 60,
+                "deletions": 39,
+                "hunkCount": 3,
+                "hunkBodySha256": [
+                    "08ed9da4b0e0a2c4dd7ad22ee24c697d0f4b4519b85693b114dd70c4b601399d",
+                    "35954e54762770eb710906f4021d8ffe59cfdf61623f52655693f1386e20912a",
+                    "8098126e24b164ac5e88edf128dfa1c074c70b976c75d1156cb605a54014ac6d"
+                ],
+                "lastCommit": "d8bcec5e59d414cd90c8a96be4b89497ba298736"
+            }
+        ],
+        "excludedPaths": [
+            "specs/004-fx-regime-relative-value-lab/report.md",
+            ".specify/memory/bubbles.session.json.flock"
+        ],
+        "excludedRecords": [
+            {
+                "path": "specs/004-fx-regime-relative-value-lab/report.md",
+                "status": " M",
+                "classification": "planning-owned-report-recursion-exclusion",
+                "ownerAttribution": "bubbles.plan",
+                "matrixEligible": false,
+                "completionInferenceEligible": false
+            },
+            {
+                "path": ".specify/memory/bubbles.session.json.flock",
+                "status": "??",
+                "classification": "session-runtime-lock-exclusion",
+                "ownerAttribution": "session runtime",
+                "matrixEligible": false,
+                "completionInferenceEligible": false
+            }
+        ],
+        "ownershipTransfer": false,
+        "semanticApproval": false,
+        "semanticAcceptance": false,
+        "completionClaim": false,
+        "checkboxClaim": false,
+        "scopeStatusClaim": false,
+        "topLevelStatusClaim": false,
+        "certificationClaim": false
+    },
+    "inferenceContract": {
+        "excludedPathsEligibleForMatrixInference": false,
+        "excludedPathsEligibleForCompletionInference": false,
+        "dirtyStateImpliesOwnership": false,
+        "commitStateImpliesOwnership": false,
+        "historyImpliesOwnership": false,
+        "cleanPromotionImpliesApproval": false,
+        "semanticApproval": false,
+        "semanticAcceptance": false,
+        "completion": false,
+        "checkbox": false,
+        "scopeStatus": false,
+        "topLevelStatus": false,
+        "certification": false
+    },
+    "parserOrder": [
+        "validate every predecessor marker-inclusive pin, closed schema, field order, parent link, and historical commitment through v10",
+        "validate v10's exact marker-inclusive bytes, 39470-byte length, required HEAD, matrix hash, and historical 3-of-3 result without using v10 for current live comparison",
+        "validate v9's exact non-reproducible-self-identity disposition and both immutable tuples through v10 without substitution or live-current comparison",
+        "parse exactly one closed v11 block and require the exact current HEAD, 27-path porcelain order, classification groups, 34-record matrix, four additive full records, two exclusions, and zero-inference flags",
+        "reconstruct the pre-v11 parser by removing only the exact v11 pin, normalized-family declaration, and closed v11 branch, then normalize the retained v6 pin family and compare the complete parser record",
+        "recompute every complete required and foreign record, every summary, every additive full record, the matrix hash, and dirty-path equality while keeping both exclusions ineligible",
+        "validate the already-physical v5 five-assertion semantic transition only after the v11 current matrix",
+        "run all predecessor adversarial cases as mandatory history before the v11 adversarial cases"
+    ],
+    "parserHandoff": {
+        "owner": "bubbles.test",
+        "path": "tests/feature-004-dirty-tree-collision.test.mjs",
+        "newPinLiteral": "POST_COMMIT_V11_BLOCK_SHA256",
+        "pinValueSource": "marker-inclusive, no-trailing-newline SHA-256 of this v11 report block",
+        "pinCountDelta": 1,
+        "captureMode": "normalized-self-pins/v6-pre-v11",
+        "normalizedMode": "normalized-self-pins/v7",
+        "normalizedPinFamilyName": "NORMALIZED_SELF_PIN_NAMES_V7",
+        "retainedPinLiterals": [
+            "DURABLE_EVIDENCE_BLOCK_SHA256",
+            "CURRENT_IDENTITY_V4_BLOCK_SHA256",
+            "CURRENT_IDENTITY_V5_BLOCK_SHA256",
+            "FOREIGN_ROADMAP_V6_BLOCK_SHA256",
+            "FOREIGN_SET_V7_BLOCK_SHA256",
+            "POST_COMMIT_V9_BLOCK_SHA256",
+            "POST_COMMIT_V10_BLOCK_SHA256"
+        ],
+        "normalizedPinFamilyOrder": [
+            "DURABLE_EVIDENCE_BLOCK_SHA256",
+            "CURRENT_IDENTITY_V4_BLOCK_SHA256",
+            "CURRENT_IDENTITY_V5_BLOCK_SHA256",
+            "FOREIGN_ROADMAP_V6_BLOCK_SHA256",
+            "FOREIGN_SET_V7_BLOCK_SHA256",
+            "POST_COMMIT_V9_BLOCK_SHA256",
+            "POST_COMMIT_V10_BLOCK_SHA256",
+            "POST_COMMIT_V11_BLOCK_SHA256"
+        ],
+        "closedTopLevelFieldOrder": [
+            "contractVersion", "findingId", "successorRevision", "capturedAt", "requiredHead",
+            "successorOf", "extendsContracts", "historicalValidation", "v9SelfIdentityDisposition",
+            "identityContract", "inventoryProof", "currentMatrix", "inferenceContract",
+            "parserOrder", "parserHandoff", "adversarialMutations", "captureStability",
+            "planningRouting", "testOwnerHandoff"
+        ],
+        "closedCurrentMatrixFieldOrder": [
+            "requiredRecords", "foreignRecords", "additiveForeignFullRecords",
+            "excludedPaths", "excludedRecords", "ownershipTransfer", "semanticApproval",
+            "semanticAcceptance", "completionClaim", "checkboxClaim", "scopeStatusClaim",
+            "topLevelStatusClaim", "certificationClaim"
+        ],
+        "reconstructionMode": "strip the exact v11 pin, NORMALIZED_SELF_PIN_NAMES_V7 declaration, and closed v11 branch; then normalize exactly NORMALIZED_SELF_PIN_NAMES_V6",
+        "currentMatrixSelector": "v11-only",
+        "predecessorValidationMode": "v10-v9-and-all-predecessors-remain-mandatory-immutable-history",
+        "testEditBoundary": "add exactly one v11 pin, one NORMALIZED_SELF_PIN_NAMES_V7 declaration, one closed FEATURE-004-COLLISION-POST-COMMIT-V11 parser/adversarial branch, and the minimum assignment that selects v11 as current; preserve every existing parser byte outside that additive boundary",
+        "onlyAllowedEditedPath": "tests/feature-004-dirty-tree-collision.test.mjs",
+        "v10BranchEditAllowed": false,
+        "v9BranchEditAllowed": false,
+        "predecessorEditAllowed": false,
+        "productEditsAllowed": false,
+        "planningEditsAllowed": false,
+        "bug002ArtifactEditsAllowed": false,
+        "foreignEditsAllowed": false,
+        "reportEditAllowed": false
+    },
+    "adversarialMutations": [
+        "wrong current HEAD before append, after append, or during v11 parser adoption",
+        "missing, duplicate, malformed, reordered, non-64-hex, or changed v11 marker or pin",
+        "changed v10 marker-inclusive bytes, hash, byte length, schema, field order, required HEAD, matrix hash, predecessor link, parser-self record, or exact historical 3-of-3 result",
+        "v10 historical 3-of-3 result used to satisfy the v11 current live comparison",
+        "v10 23-path inventory accepted as current after v11 exists",
+        "v10 live HEAD or live matrix comparison executed as current when v11 exists",
+        "changed v9 committed tuple, changed v9 observed tuple, either tuple substituted for the other, or the non-reproducible disposition reopened",
+        "any predecessor skipped because v11 exists",
+        "missing, extra, duplicate, or reordered porcelain, required, foreign, additive, classification-group, or excluded path",
+        "wrong status, staging flags, HEAD/index/worktree OID, worktree SHA-256, byte length, numstat, hunk count, hunk order, hunk hash, last commit, hunk-sequence hash, identity hash, or complete matrix hash",
+        "wrong BUG-002 planning-evidence, planning-contract, or test classification or owner attribution",
+        "foundation replay-local protected content-record digest substituted for its complete normal full record",
+        "ownership inferred from dirtiness, commit state, or history",
+        "changed, missing, extra, reordered, matrix-included, or completion-inference-eligible exclusion",
+        "wrong parser capture mode, retained pin family, v7 pin-family order, reconstruction order, closed schema, field order, or current-matrix selector",
+        "semantic approval, acceptance, completion, checkbox, scope-status, top-level-status, or certification inference",
+        "parser mutation outside the exact additive v11 pin, normalized-family, parser/adversarial branch, and current-selector boundary"
+    ],
+    "captureStability": {
+        "preAppendMatrixSha256": "450f4110582ec2451438369ec8bb1e693815272dd93d6a975f5f1ea2a5ad5ba3",
+        "postAppendMustMatch": true,
+        "headMustRemainExact": true,
+        "porcelainOrderMustRemainExact": true,
+        "rollbackBoundary": "remove only an incomplete v11 report append and return blocked",
+        "v10OrPredecessorRollbackAllowed": false,
+        "foreignOrProductRollbackAllowed": false
+    },
+    "planningRouting": {
+        "updatedPaths": [
+            "specs/004-fx-regime-relative-value-lab/report.md"
+        ],
+        "otherPlanningArtifactUpdateMechanicallyRequired": false,
+        "transitionRequestId": "TR-F004-SCOPE01-POST-COMMIT-V11-001",
+        "nextRequiredOwner": "bubbles.test",
+        "scopeStatusChanged": false,
+        "checkboxChanged": false,
+        "featureStatusChanged": false,
+        "certificationChanged": false,
+        "scopeTwoStarted": false
+    },
+    "testOwnerHandoff": {
+        "owner": "bubbles.test",
+        "transitionRequestId": "TR-F004-SCOPE01-POST-COMMIT-V11-001",
+        "requiredActions": [
+            "Edit only tests/feature-004-dirty-tree-collision.test.mjs.",
+            "Add exactly one POST_COMMIT_V11_BLOCK_SHA256 pin, one NORMALIZED_SELF_PIN_NAMES_V7 declaration, and one closed v11 parser/adversarial branch within the stated edit boundary.",
+            "Validate v10, v9, and every predecessor as mandatory immutable history, including v10's exact historical 3-of-3 result and v9's exact committed and observed non-reproducible-self-identity tuples.",
+            "Use v11 as the sole live-current matrix at exact HEAD 449963d2a4a9dec305d8815c1929d5457db3bf56.",
+            "Reconstruct the pre-v11 parser exactly, normalize the retained v6 pin family, and validate every complete record, summary, sequence, identity, inventory, ownership, exclusion, and matrix commitment.",
+            "Implement every listed v11 adversarial mutation without deleting or weakening any predecessor case.",
+            "Run node --test tests/feature-004-dirty-tree-collision.test.mjs and require 3 of 3 green.",
+            "Then follow BUG-002's active sequence: rerun the repaired foundation and Gate 1 immediately if its contract requires those checks, and resume BUG-002 at Gate 2; do not re-edit the already-repaired foundation file.",
+            "Return no product, report, planning, BUG-002 artifact, foreign, generated, checkbox, status, Scope 2, certification, Git-state, or unrelated-dirty-byte change."
+        ],
+        "historicalFoundationResult": {
+            "result": "green",
+            "testsPassed": 5,
+            "testsFailed": 0,
+            "source": "operator-grounded continuation fact",
+            "currentFileSha256": "649e534dcd83669f36620f3384db7e1938adf2db63c231694bb6f0ecc2cfa591",
+            "reEditRequired": false
+        },
+        "bug002ResumeGate": 2,
+        "nextRequiredOwner": "bubbles.test"
+    }
+}
+```
+<!-- feature004-dirty-collision-post-commit-v11:end -->
+
+## Feature 004 Dirty Collision Post-Commit v12
+
+### Summary
+
+This plan-owned v12 successor addresses `F004-V12-PLAN-001` and `F004-COLLISION-HISTORICAL-CLEAN-RECORD-LIVE-BYTE-DRIFT`. Global `capturedHead` is provenance only and is never a live equality gate. Current validation is instead path-scoped: the complete dirty inventory and its required, foreign, and excluded partition are exact, while every clean parser authority is protected by an ordered closure carrying captured-head tree mode, type, blob, content SHA-256, byte length, and path last commit. The closure also protects the reconstructed pre-v12 parser source, the exact pre-v12 report prefix, and the current append-only tool-ledger stable-key and receipt selectors.
+
+Historical clean records resolve only from `<predecessor.requiredHead>:<path>`. Historical dirty and untracked records retain their predecessor-captured or deterministic authority because a clean Git tree cannot reconstruct their bytes. Unrelated commits outside the complete protected closure are accepted only when every protected path and the exact dirty inventory remain unchanged. No command result is promoted to green test evidence by this planning append.
+
+### Completion Statement
+
+Planning appends exactly one closed v12 contract and routes the additive parser work to `bubbles.test`. Scope 1 remains In Progress. Scope 2 is unavailable. No checkbox, scope status, feature status, certification, test, product, foreign artifact, Git state, or predecessor byte is changed by this append.
+
+<!-- feature004-dirty-collision-post-commit-v12:start -->
+```json
+{
+    "contractVersion": "feature004-dirty-collision-post-commit/v12",
+    "findingIds": [
+        "F004-V12-PLAN-001",
+        "F004-COLLISION-HISTORICAL-CLEAN-RECORD-LIVE-BYTE-DRIFT"
+    ],
+    "successorRevision": "v12",
+    "capturedAt": "2026-08-05T00:11:24.049Z",
+    "capturedHead": "37de4610219d1d7bc14cf00f2e632f3cabf95132",
+    "headPolicy": {
+        "capturedHeadRole": "provenance-only",
+        "liveHeadEqualityRequired": false,
+        "unrelatedHeadMovementPolicy": "accepted-only-when-protected-closure-and-dirty-inventory-remain-exact",
+        "protectedPathContentModeOrLastCommitDriftAllowed": false,
+        "protectedTouchRevertAllowed": false
+    },
+    "successorOf": {
+        "marker": "feature004-dirty-collision-post-commit-v11",
+        "rawBlockSha256": "b33e1323bafb4ad7da3b8846ba825fe67a6b7778e16a86cc6a4af6f832a62d9e",
+        "markerInclusiveByteLength": 48886,
+        "contractVersion": "feature004-dirty-collision-post-commit/v11",
+        "requiredHead": "449963d2a4a9dec305d8815c1929d5457db3bf56",
+        "relation": "additive-path-scoped-authority-closure-successor",
+        "predecessorDisposition": "mandatory-immutable-history",
+        "successorRequiredReasons": [
+            "global-head-equality-confuses-provenance-with-live-authority",
+            "historical-clean-record-validation-must-not-substitute-live-worktree-bytes",
+            "current-dirty-inventory-expanded-after-v11"
+        ]
+    },
+    "extendsContracts": [
+        { "marker": "feature004-dirty-collision-post-commit-v11", "rawBlockSha256": "b33e1323bafb4ad7da3b8846ba825fe67a6b7778e16a86cc6a4af6f832a62d9e" },
+        { "marker": "feature004-dirty-collision-post-commit-v10", "rawBlockSha256": "7ec73108b5159174f341ddeb50dcadac1d9ccc769ccec3484b0e34c6c3d4f9d8" },
+        { "marker": "feature004-dirty-collision-post-commit-v9", "rawBlockSha256": "fc6367325829099019f47966f54da67a33a88db13c49404c0416f51511f5a921" },
+        { "marker": "feature004-dirty-collision-foreign-set-v7", "rawBlockSha256": "851dca31caded6498c1a84e68e9e9372489c3cb39f3663ea8b254b8cbb35c121" },
+        { "marker": "feature004-dirty-collision-foreign-roadmap-v6", "rawBlockSha256": "c2f6fc88b147e8de6501a7c87d41aaf3aa8bd9537ac49d06da61e49976b246f9" },
+        { "marker": "feature004-dirty-collision-current-identity-v5", "rawBlockSha256": "c3a487a6e6d2f45084635a1fe6a8269a1efb4096ff76acebec3b419c36551780" },
+        { "marker": "feature004-dirty-collision-current-identity-v4", "rawBlockSha256": "64ddfd9bb8a2adbaa218eb1a7f0efbe62746a51b7fcdc0ad2444debf297da30c" },
+        { "marker": "feature004-scope1-durable-evidence-v1", "rawBlockSha256": "c5ed7a110a2a743d2aef3b32c0655a2fd3c20c7ca6c9ee2ecef2716654ef7268" }
+    ],
+    "historicalValidation": {
+        "allPredecessorMarkersHashesSchemasFieldOrderAndParentLinksRequired": true,
+        "allPredecessorRequiredHeadValuesRemainImmutable": true,
+        "predecessorRequiredHeadsAreHistoricalSelectorsOnly": true,
+        "predecessorRequiredHeadsComparedToLiveHead": false,
+        "historicalCleanRecordAdapter": {
+            "source": "<predecessor.requiredHead>:<path>",
+            "treeFields": ["mode", "type", "blobOid"],
+            "contentFields": ["contentSha256", "byteLength", "lastCommit"],
+            "liveWorktreeBytesAllowed": false,
+            "liveIndexBytesAllowed": false,
+            "revisionPathOrBlobSubstitutionAllowed": false
+        },
+        "historicalDirtyAndUntrackedAdapter": {
+            "source": "predecessor-captured-or-deterministic-authority",
+            "cleanGitTreeReconstructionAllowed": false,
+            "priorCapturedIdentityWeakeningAllowed": false
+        },
+        "v10Discriminator": {
+            "requiredHead": "449963d2a4a9dec305d8815c1929d5457db3bf56",
+            "path": "scripts/selftest.mjs",
+            "treeRef": "449963d2a4a9dec305d8815c1929d5457db3bf56:scripts/selftest.mjs",
+            "treeMode": "100644",
+            "treeType": "blob",
+            "blobOid": "d6e1602527b5cf2c9cefcff362d4e93908ecc635",
+            "expectedIdentitySha256": "ea2aaf088c1e5b3fa34c2dd5d64d1d4e5560e4bcf757e872768982005af40535",
+            "liveByteSubstitutionAllowed": false
+        },
+        "v11RequiredHeadComparedToLiveHead": false,
+        "v11LiveMatrixComparisonAllowed": false,
+        "v10RequiredHeadComparedToLiveHead": false,
+        "v10LiveMatrixComparisonAllowed": false,
+        "v9RequiredHeadComparedToLiveHead": false,
+        "v9CommittedAndObservedNonReproducibleTuplesRemainRequired": true,
+        "historicalValidationSatisfiesV12CurrentValidation": false,
+        "predecessorAssertionDeletionOrWeakeningAllowed": false,
+        "disposition": "mandatory-immutable-history-through-v11-before-path-scoped-v12"
+    },
+    "identityContract": {
+        "fullRecordOrderedFields": [
+            "path", "pathKind", "classification", "ownerAttribution",
+            "feature004OwnershipClaim", "transitionClass", "status", "staged",
+            "unstaged", "headOid", "indexOid", "worktreeGitOid",
+            "worktreeSha256", "byteLength", "additions", "deletions",
+            "hunkCount", "hunkBodySha256", "lastCommit"
+        ],
+        "recordIdentitySha256Input": "JSON.stringify(complete-full-record-with-ordered-fields)",
+        "recordCommitmentAlignment": "same-index-as-the-exact-path-array",
+        "hunkSequenceSha256Input": "JSON.stringify(complete-ordered-hunkBodySha256-array)",
+        "diffMode": "git diff --no-ext-diff --unified=0",
+        "hunkHashInput": "ordered changed lines with plus or minus prefix joined by LF with no trailing LF",
+        "inventoryMode": "git status --porcelain=v1 -z --untracked-files=all",
+        "inventorySha256Input": "JSON.stringify(ordered-{status,path}-entries)",
+        "inventorySha256": "8241bc6b27eac0d0a2543142b3d5bb6883f727cc1920fd3f899989a73fc9d723",
+        "matrixSha256Input": "JSON.stringify({requiredRecords,foreignRecords,excludedPaths}) using complete uncompressed full records",
+        "matrixSha256": "3d680812db545c65f341ee3091a10c4211a5790fdc62ff9b34cbae5b7574ef62",
+        "summariesOrPathListsAloneSatisfyMatrixValidation": false,
+        "parserSelfCapture": {
+            "captureMode": "normalized-self-pins/v7-pre-v12",
+            "retainedPinNames": [
+                "DURABLE_EVIDENCE_BLOCK_SHA256",
+                "CURRENT_IDENTITY_V4_BLOCK_SHA256",
+                "CURRENT_IDENTITY_V5_BLOCK_SHA256",
+                "FOREIGN_ROADMAP_V6_BLOCK_SHA256",
+                "FOREIGN_SET_V7_BLOCK_SHA256",
+                "POST_COMMIT_V9_BLOCK_SHA256",
+                "POST_COMMIT_V10_BLOCK_SHA256",
+                "POST_COMMIT_V11_BLOCK_SHA256"
+            ],
+            "rawWorktreeGitOid": "e5582a50631ed0735530430e32cdaf813b1adcf5",
+            "rawContentSha256": "86f2736e010bdd1f8b4ab9091bf9e3db0d08fa927979365c2f286cda3f6b0b7c",
+            "rawByteLength": 396203,
+            "normalizedWorktreeGitOid": "80554f1ce7ee1f468d42f14416890834b48fb68b",
+            "normalizedContentSha256": "e9c178d571d65e8bb01d2438debdf8c25248e61b93f58d7846b2daffe550c00b",
+            "normalizedByteLength": 396203,
+            "fullRecordIdentitySha256": "ae1c1f8bd53a055e1aee20f35e469abe2a424bfc2f13d87c8da0ab6da22c561c"
+        }
+    },
+    "inventoryProof": {
+        "porcelainPathCount": 67,
+        "porcelainEntries": [
+            { "status": " M", "path": ".vscode/mcp.json" },
+            { "status": " M", "path": "rlbrief.js" },
+            { "status": " M", "path": "rlexperience.js" },
+            { "status": " M", "path": "rlfx.js" },
+            { "status": " M", "path": "rljourney.js" },
+            { "status": " M", "path": "scripts/validate-spec-test-paths.baseline" },
+            { "status": " M", "path": "specs/004-fx-regime-relative-value-lab/design.md" },
+            { "status": " M", "path": "specs/004-fx-regime-relative-value-lab/report.md" },
+            { "status": " M", "path": "specs/004-fx-regime-relative-value-lab/scenario-manifest.json" },
+            { "status": " M", "path": "specs/004-fx-regime-relative-value-lab/scopes.md" },
+            { "status": " M", "path": "specs/004-fx-regime-relative-value-lab/spec.md" },
+            { "status": " M", "path": "specs/004-fx-regime-relative-value-lab/state.json" },
+            { "status": " M", "path": "specs/004-fx-regime-relative-value-lab/test-plan.json" },
+            { "status": " M", "path": "specs/004-fx-regime-relative-value-lab/uservalidation.md" },
+            { "status": " M", "path": "specs/012-market-action-center-and-guided-tools/scopes/15-production-simple-adapter-wiring/scope.md" },
+            { "status": " M", "path": "specs/_bugs/BUG-002-market-brief-session-date-drift/report.md" },
+            { "status": " M", "path": "specs/_bugs/BUG-002-market-brief-session-date-drift/scopes.md" },
+            { "status": " M", "path": "specs/_bugs/BUG-002-market-brief-session-date-drift/test-plan.json" },
+            { "status": " M", "path": "tests/company-fundamentals-lab.spec.mjs" },
+            { "status": " M", "path": "tests/contextual-tooltip.spec.mjs" },
+            { "status": " M", "path": "tests/feature-004-dirty-tree-collision.test.mjs" },
+            { "status": " M", "path": "tests/journey.spec.mjs" },
+            { "status": " M", "path": "tests/playwright-runtime.foundation.functional.mjs" },
+            { "status": " M", "path": "tests/simple-production-bridge.integration.mjs" },
+            { "status": " M", "path": "tests/simple-production-bridge.unit.mjs" },
+            { "status": " M", "path": "tests/simple-production-wiring.spec.mjs" },
+            { "status": " M", "path": "tests/tool-experience.spec.mjs" },
+            { "status": "??", "path": ".specify/memory/bubbles.session.json.flock" },
+            { "status": "??", "path": "fx-vehicle-universe.json" },
+            { "status": "??", "path": "specs/010-company-fundamentals-and-brief-lab/bugs/BUG-001-shared-shell-suite-budget/bug.md" },
+            { "status": "??", "path": "specs/010-company-fundamentals-and-brief-lab/bugs/BUG-001-shared-shell-suite-budget/design.md" },
+            { "status": "??", "path": "specs/010-company-fundamentals-and-brief-lab/bugs/BUG-001-shared-shell-suite-budget/report.md" },
+            { "status": "??", "path": "specs/010-company-fundamentals-and-brief-lab/bugs/BUG-001-shared-shell-suite-budget/scenario-manifest.json" },
+            { "status": "??", "path": "specs/010-company-fundamentals-and-brief-lab/bugs/BUG-001-shared-shell-suite-budget/scopes.md" },
+            { "status": "??", "path": "specs/010-company-fundamentals-and-brief-lab/bugs/BUG-001-shared-shell-suite-budget/spec.md" },
+            { "status": "??", "path": "specs/010-company-fundamentals-and-brief-lab/bugs/BUG-001-shared-shell-suite-budget/state.json" },
+            { "status": "??", "path": "specs/010-company-fundamentals-and-brief-lab/bugs/BUG-001-shared-shell-suite-budget/test-plan.json" },
+            { "status": "??", "path": "specs/010-company-fundamentals-and-brief-lab/bugs/BUG-001-shared-shell-suite-budget/uservalidation.md" },
+            { "status": "??", "path": "specs/012-market-action-center-and-guided-tools/bugs/BUG-005-journey-readiness-budget/bug.md" },
+            { "status": "??", "path": "specs/012-market-action-center-and-guided-tools/bugs/BUG-005-journey-readiness-budget/design.md" },
+            { "status": "??", "path": "specs/012-market-action-center-and-guided-tools/bugs/BUG-005-journey-readiness-budget/report.md" },
+            { "status": "??", "path": "specs/012-market-action-center-and-guided-tools/bugs/BUG-005-journey-readiness-budget/scenario-manifest.json" },
+            { "status": "??", "path": "specs/012-market-action-center-and-guided-tools/bugs/BUG-005-journey-readiness-budget/scopes.md" },
+            { "status": "??", "path": "specs/012-market-action-center-and-guided-tools/bugs/BUG-005-journey-readiness-budget/spec.md" },
+            { "status": "??", "path": "specs/012-market-action-center-and-guided-tools/bugs/BUG-005-journey-readiness-budget/state.json" },
+            { "status": "??", "path": "specs/012-market-action-center-and-guided-tools/bugs/BUG-005-journey-readiness-budget/uservalidation.md" },
+            { "status": "??", "path": "specs/012-market-action-center-and-guided-tools/bugs/BUG-006-contextual-tooltip-suite-budget/bug.md" },
+            { "status": "??", "path": "specs/012-market-action-center-and-guided-tools/bugs/BUG-006-contextual-tooltip-suite-budget/design.md" },
+            { "status": "??", "path": "specs/012-market-action-center-and-guided-tools/bugs/BUG-006-contextual-tooltip-suite-budget/report.md" },
+            { "status": "??", "path": "specs/012-market-action-center-and-guided-tools/bugs/BUG-006-contextual-tooltip-suite-budget/scenario-manifest.json" },
+            { "status": "??", "path": "specs/012-market-action-center-and-guided-tools/bugs/BUG-006-contextual-tooltip-suite-budget/scopes.md" },
+            { "status": "??", "path": "specs/012-market-action-center-and-guided-tools/bugs/BUG-006-contextual-tooltip-suite-budget/spec.md" },
+            { "status": "??", "path": "specs/012-market-action-center-and-guided-tools/bugs/BUG-006-contextual-tooltip-suite-budget/state.json" },
+            { "status": "??", "path": "specs/012-market-action-center-and-guided-tools/bugs/BUG-006-contextual-tooltip-suite-budget/uservalidation.md" },
+            { "status": "??", "path": "specs/012-market-action-center-and-guided-tools/bugs/BUG-007-shared-shell-suite-budget/bug.md" },
+            { "status": "??", "path": "specs/012-market-action-center-and-guided-tools/bugs/BUG-007-shared-shell-suite-budget/design.md" },
+            { "status": "??", "path": "specs/012-market-action-center-and-guided-tools/bugs/BUG-007-shared-shell-suite-budget/report.md" },
+            { "status": "??", "path": "specs/012-market-action-center-and-guided-tools/bugs/BUG-007-shared-shell-suite-budget/scenario-manifest.json" },
+            { "status": "??", "path": "specs/012-market-action-center-and-guided-tools/bugs/BUG-007-shared-shell-suite-budget/scopes.md" },
+            { "status": "??", "path": "specs/012-market-action-center-and-guided-tools/bugs/BUG-007-shared-shell-suite-budget/spec.md" },
+            { "status": "??", "path": "specs/012-market-action-center-and-guided-tools/bugs/BUG-007-shared-shell-suite-budget/state.json" },
+            { "status": "??", "path": "specs/012-market-action-center-and-guided-tools/bugs/BUG-007-shared-shell-suite-budget/test-plan.json" },
+            { "status": "??", "path": "specs/012-market-action-center-and-guided-tools/bugs/BUG-007-shared-shell-suite-budget/uservalidation.md" },
+            { "status": "??", "path": "tests/feature-004-brief-eligibility.test.mjs" },
+            { "status": "??", "path": "tests/feature-004-journey-evidence-refresh.test.mjs" },
+            { "status": "??", "path": "tests/feature-004-tool-control-binding.test.mjs" },
+            { "status": "??", "path": "tests/feature-004-vehicle-universe.test.mjs" }
+        ],
+        "inventorySha256": "8241bc6b27eac0d0a2543142b3d5bb6883f727cc1920fd3f899989a73fc9d723",
+        "requiredPathCount": 19,
+        "dirtyRequiredPathCount": 10,
+        "cleanRequiredPathCount": 9,
+        "foreignDirtyPathCount": 55,
+        "excludedDirtyPathCount": 2,
+        "matrixRecordCount": 74,
+        "requiredTransitionCounts": {
+            "clean-head-index-promotion": 9,
+            "still-dirty-exact-identity": 5,
+            "untracked-exact-identity": 5
+        },
+        "classificationBasis": "canonical artifact ownership plus explicit Feature 004, Feature 010, Feature 012, BUG-002, and workspace context; never dirtiness, commit authorship, or path history",
+        "completionInferenceFromInventory": false,
+        "ownershipInferredFromDirtiness": false,
+        "ownershipInferredFromCommit": false,
+        "ownershipInferredFromHistory": false
+    },
+    "currentMatrix": {
+        "requiredRecordSharedContract": {
+            "classification": "feature004-scope1-required",
+            "ownerAttribution": "Feature 004 Scope 1",
+            "feature004OwnershipClaim": true
+        },
+        "requiredRecordCommitments": [
+            { "path": "rlfx.js", "identitySha256": "525b71ed4a6cbf80b14c362453c68dcd37ca8f4e4558bc0c2f49d861f75a0a9a" },
+            { "path": "fx-regime-universe.json", "identitySha256": "7641518b5f8b1caf35d7dbde1a8601816d7b378757ab5882531fc19cb4186ff4" },
+            { "path": "fx-vehicle-universe.json", "identitySha256": "613366f26f229b3754d88df42c48f9410bc5dec4332ceb5a06785613a8ff3e6c" },
+            { "path": "rldata.js", "identitySha256": "cece1baf0a34266152df027f08a1d91d104c316415c2785ed2dd5046189c5f89" },
+            { "path": "rlexperience.js", "identitySha256": "10650a9cd625d39be5aadec3f37797c909a29d60191a421636c6d69224a9039f" },
+            { "path": "rlviews.js", "identitySha256": "19899f45488ad647e62d664eead0f7ef5f962fc69ce0928c3e34e969bb646998" },
+            { "path": "rlbrief.js", "identitySha256": "fe51c658b7772da65118be89e301d5fdb7779a7b19104c69b344d42c7104a1ac" },
+            { "path": "rljourney.js", "identitySha256": "b0128c975f14c5472c517175a26824402c2dc340563b7bd0a69c80d5509be11a" },
+            { "path": "scripts/fetch-bars.mjs", "identitySha256": "ae94ef07621c6d0550ce92868a2c810654d9d5271529d8c31fd3fca7717ada85" },
+            { "path": "scripts/selftest.mjs", "identitySha256": "b2e06d4ebab28db5f099695aa3fe01f6f5091d1899ee87fe5b039f1dcf5a5a38" },
+            { "path": "tests/fx-regime-relative-value-lab.spec.mjs", "identitySha256": "867c2b35762f313ad47f4ad38648937b0dbcf319f4bcd69335f0de219941307f" },
+            { "path": "tests/feature-004-dirty-tree-collision.test.mjs", "identitySha256": "ae1c1f8bd53a055e1aee20f35e469abe2a424bfc2f13d87c8da0ab6da22c561c" },
+            { "path": "tests/feature-004-vehicle-universe.test.mjs", "identitySha256": "e57a8e13ec578d8cee974bda22d236244793a17e80527b0e8a7c8708108cefbd" },
+            { "path": "tests/feature-004-tool-control-binding.test.mjs", "identitySha256": "66de3dfba52efc3690e14961f725b59cc3c98a6bde1b40ed49db2cfebe13b5cb" },
+            { "path": "tests/feature-004-brief-eligibility.test.mjs", "identitySha256": "4a3c16a2bf2a7d51af863db88fa0eebb9452c0d02f032a26f585830e952fdd6e" },
+            { "path": "tests/feature-004-journey-evidence-refresh.test.mjs", "identitySha256": "7962da9053ee525ad2d07eed36f428515c22af4a708f3c995a184a69ed1c80b9" },
+            { "path": "tests/fixtures/fx-regime/commonjs-determinism-input.json", "identitySha256": "64bdde37e1a6e13de03de2528df8fe07863cbc94f285170a8032fbd37cfc0806" },
+            { "path": "tests/fixtures/fx-regime/foundation-cases.json", "identitySha256": "2731dca0dcfe88169366e2da052987039ed7b1744606fb71b5e4740db01acd27" },
+            { "path": "tests/fixtures/fx-regime/foundation-harness.html", "identitySha256": "ca90f9595386d0ea7e5c033e7c5dc7297bd8febe78c9e4bdedf86e0ffb8a2dd8" }
+        ],
+        "foreignRecordCommitments": [
+            { "path": ".vscode/mcp.json", "classification": "foreign-workspace-config", "ownerAttribution": "workspace configuration owner", "identitySha256": "f090545003da6f9c8a76b561478ec588b30b1d4a6e8ebca7feaf3a4fc1f65355" },
+            { "path": "scripts/validate-spec-test-paths.baseline", "classification": "foreign-project-validation-baseline", "ownerAttribution": "Research Lab validation owner", "identitySha256": "1037831909f3800e5e4ef382bcae3d1ef7f4d41996d5ad8f8b8ec9292c6a2167" },
+            { "path": "specs/004-fx-regime-relative-value-lab/design.md", "classification": "foreign-specialist-artifact", "ownerAttribution": "bubbles.design", "identitySha256": "c36453d3df794801304a2d894c875a2c113b30f608420a9dbd9e8c65c01d33af" },
+            { "path": "specs/004-fx-regime-relative-value-lab/scenario-manifest.json", "classification": "foreign-planning-artifact", "ownerAttribution": "bubbles.plan", "identitySha256": "5ecec468cc9f3eabf401705d3895be12ec208e75532d67bbbe6713d21b7d5401" },
+            { "path": "specs/004-fx-regime-relative-value-lab/scopes.md", "classification": "foreign-planning-artifact", "ownerAttribution": "bubbles.plan", "identitySha256": "57bfea4e381582c847e3997566135fc409ead4bddf92a9eaf572f06226dd0637" },
+            { "path": "specs/004-fx-regime-relative-value-lab/spec.md", "classification": "foreign-specialist-artifact", "ownerAttribution": "bubbles.analyst", "identitySha256": "1319136a4c702266af752729ef005822775fa3c1b34c390697e8e14bdf3ec460" },
+            { "path": "specs/004-fx-regime-relative-value-lab/state.json", "classification": "foreign-planning-routing-artifact", "ownerAttribution": "bubbles.plan (execution routing only)", "identitySha256": "22a484cc71a499a13ac2be877694d74ca06f254a1873bfb9b51c8e9c79a8fbbe" },
+            { "path": "specs/004-fx-regime-relative-value-lab/test-plan.json", "classification": "foreign-planning-artifact", "ownerAttribution": "bubbles.plan", "identitySha256": "ae394108ee9f80cca73346c196b10be4fd11604c00303781ab10dffe7360e77c" },
+            { "path": "specs/004-fx-regime-relative-value-lab/uservalidation.md", "classification": "foreign-human-artifact", "ownerAttribution": "human owner", "identitySha256": "2e32600b550c5223a4efff04a7fb76c9039356d628f8d5194fe1dc57db1338a6" },
+            { "path": "specs/012-market-action-center-and-guided-tools/scopes/15-production-simple-adapter-wiring/scope.md", "classification": "foreign-feature-artifact", "ownerAttribution": "Feature 012 / bubbles.plan", "identitySha256": "813796929e23ba8bcd1a7562508b613195c9a82b3b4f686b3670aecabbf7c55f" },
+            { "path": "specs/_bugs/BUG-002-market-brief-session-date-drift/report.md", "classification": "foreign-bug-planning-evidence", "ownerAttribution": "bubbles.plan/BUG-002", "identitySha256": "37b68d7b03741ac2bc5f84bd1cd7f53fd08293abbf2a01a407a7f15c0310a490" },
+            { "path": "specs/_bugs/BUG-002-market-brief-session-date-drift/scopes.md", "classification": "foreign-bug-planning-contract", "ownerAttribution": "bubbles.plan/BUG-002", "identitySha256": "5ee1e9ba3e881b40f8c3b951a0574b781233047c0b2dbca9a599473bbd357485" },
+            { "path": "specs/_bugs/BUG-002-market-brief-session-date-drift/test-plan.json", "classification": "foreign-bug-planning-contract", "ownerAttribution": "bubbles.plan/BUG-002", "identitySha256": "da3dfaea407f5b75d7797820e168040f05dd0a7910415c6012b0065c0fa0ce58" },
+            { "path": "tests/company-fundamentals-lab.spec.mjs", "classification": "foreign-feature010-bug-test", "ownerAttribution": "Feature 010 BUG-001 / bubbles.test", "identitySha256": "104faf608b757ef3eecf24192f46e1af2d94f7be67e3ae89ca576ef003d4cb61" },
+            { "path": "tests/contextual-tooltip.spec.mjs", "classification": "foreign-feature012-bug-test", "ownerAttribution": "Feature 012 BUG-006 / bubbles.test", "identitySha256": "d259ddf74c03431b3a22d0684c7b520cbd4d54345d60c9d0bd68bc8393c8933c" },
+            { "path": "tests/journey.spec.mjs", "classification": "foreign-feature012-bug-test", "ownerAttribution": "Feature 012 BUG-005 / bubbles.test", "identitySha256": "49780f0489f738f95c90e6f57592b3067fb8f8dd4f9be01ea003729ee8125de3" },
+            { "path": "tests/playwright-runtime.foundation.functional.mjs", "classification": "foreign-bug-test", "ownerAttribution": "bubbles.test/BUG-002", "identitySha256": "8ca6152e5a8512f28d73357b1a6da4ddd4b8f967508bb27f66db9ef49cbee712" },
+            { "path": "tests/simple-production-bridge.integration.mjs", "classification": "foreign-feature-test", "ownerAttribution": "Feature 012 / bubbles.test", "identitySha256": "0f0a293df781a720a343a223c91d09bb5fe93472dd723a61a0b725286f02c966" },
+            { "path": "tests/simple-production-bridge.unit.mjs", "classification": "foreign-feature-test", "ownerAttribution": "Feature 012 / bubbles.test", "identitySha256": "561b3b064b3d81537878a774762a95e2d4396144fcb25d8234a09c57b89c5a7e" },
+            { "path": "tests/simple-production-wiring.spec.mjs", "classification": "foreign-feature-test", "ownerAttribution": "Feature 012 / bubbles.test", "identitySha256": "66ba71b0e069bd52e8368978320bbaf44ddb66e20d5e05e681c50279e5f69a9a" },
+            { "path": "tests/tool-experience.spec.mjs", "classification": "foreign-feature012-bug-test", "ownerAttribution": "Feature 012 BUG-007 / bubbles.test", "identitySha256": "98be9f88bdc810448b327218dbbafa81d90459fe20a29cfcecad982fe69067d6" },
+            { "path": "specs/010-company-fundamentals-and-brief-lab/bugs/BUG-001-shared-shell-suite-budget/bug.md", "classification": "foreign-feature010-bug-artifact", "ownerAttribution": "Feature 010 BUG-001 artifact owners", "identitySha256": "dba81fab426581a1bc0dde3068c1cc15f2ccf254e00662d0174c9c8e4bc87615" },
+            { "path": "specs/010-company-fundamentals-and-brief-lab/bugs/BUG-001-shared-shell-suite-budget/design.md", "classification": "foreign-feature010-bug-artifact", "ownerAttribution": "Feature 010 BUG-001 artifact owners", "identitySha256": "97f288d2dd7c32e5cb193caffec0153ec62df1123af98536fdfa44078d536563" },
+            { "path": "specs/010-company-fundamentals-and-brief-lab/bugs/BUG-001-shared-shell-suite-budget/report.md", "classification": "foreign-feature010-bug-artifact", "ownerAttribution": "Feature 010 BUG-001 artifact owners", "identitySha256": "fb97dfcd45243f0f019357b9aca874a3e7e16e0a475cdee772a8c254f0c61fab" },
+            { "path": "specs/010-company-fundamentals-and-brief-lab/bugs/BUG-001-shared-shell-suite-budget/scenario-manifest.json", "classification": "foreign-feature010-bug-artifact", "ownerAttribution": "Feature 010 BUG-001 artifact owners", "identitySha256": "041f3f4f9695f80115c8fa034ab3706041a3e4ad5b0a31602cd74345ca2e8b77" },
+            { "path": "specs/010-company-fundamentals-and-brief-lab/bugs/BUG-001-shared-shell-suite-budget/scopes.md", "classification": "foreign-feature010-bug-artifact", "ownerAttribution": "Feature 010 BUG-001 artifact owners", "identitySha256": "a8a5b5162313f53b2782402d5c2356e153fc2f61459d55d4b6e5640144969917" },
+            { "path": "specs/010-company-fundamentals-and-brief-lab/bugs/BUG-001-shared-shell-suite-budget/spec.md", "classification": "foreign-feature010-bug-artifact", "ownerAttribution": "Feature 010 BUG-001 artifact owners", "identitySha256": "7c68c4fffc4cdec545c57a52e108a2d297845619aaebc96232c81c46ebd9d4b4" },
+            { "path": "specs/010-company-fundamentals-and-brief-lab/bugs/BUG-001-shared-shell-suite-budget/state.json", "classification": "foreign-feature010-bug-artifact", "ownerAttribution": "Feature 010 BUG-001 artifact owners", "identitySha256": "c0277111554b9e724ffc127ce83a9d15bc5338ff112a3a35d3fd8f161889b88e" },
+            { "path": "specs/010-company-fundamentals-and-brief-lab/bugs/BUG-001-shared-shell-suite-budget/test-plan.json", "classification": "foreign-feature010-bug-artifact", "ownerAttribution": "Feature 010 BUG-001 artifact owners", "identitySha256": "91b6c1ce1a04327a16a43de534c3bc5e8c1168841ff911dcb88e7f46c3d4f982" },
+            { "path": "specs/010-company-fundamentals-and-brief-lab/bugs/BUG-001-shared-shell-suite-budget/uservalidation.md", "classification": "foreign-feature010-bug-artifact", "ownerAttribution": "Feature 010 BUG-001 artifact owners", "identitySha256": "5911b69e531a8a3bfe176e5c044898af5effadd4e3666c018d4570fa48a4c981" },
+            { "path": "specs/012-market-action-center-and-guided-tools/bugs/BUG-005-journey-readiness-budget/bug.md", "classification": "foreign-feature012-bug005-artifact", "ownerAttribution": "Feature 012 BUG-005 artifact owners", "identitySha256": "d7dfb17ad82d5218905b9f7eb3fe031745cdbf159a0b1b00db77596d59c92d4d" },
+            { "path": "specs/012-market-action-center-and-guided-tools/bugs/BUG-005-journey-readiness-budget/design.md", "classification": "foreign-feature012-bug005-artifact", "ownerAttribution": "Feature 012 BUG-005 artifact owners", "identitySha256": "ce45e43dc9eccb4aa713471a6308924f18136e3a70e7d11d84a7e27f1a91ce20" },
+            { "path": "specs/012-market-action-center-and-guided-tools/bugs/BUG-005-journey-readiness-budget/report.md", "classification": "foreign-feature012-bug005-artifact", "ownerAttribution": "Feature 012 BUG-005 artifact owners", "identitySha256": "d6d5948d2beacd04bab05e970cf2f1b290a949b95bf03aace2ed72871c07b38e" },
+            { "path": "specs/012-market-action-center-and-guided-tools/bugs/BUG-005-journey-readiness-budget/scenario-manifest.json", "classification": "foreign-feature012-bug005-artifact", "ownerAttribution": "Feature 012 BUG-005 artifact owners", "identitySha256": "48884228677f02e2c65b9f10eb3b84a77dd0f2314cf59df63cf97739cdc888b3" },
+            { "path": "specs/012-market-action-center-and-guided-tools/bugs/BUG-005-journey-readiness-budget/scopes.md", "classification": "foreign-feature012-bug005-artifact", "ownerAttribution": "Feature 012 BUG-005 artifact owners", "identitySha256": "c9d9c1b17fc2d48b8adf61acd24f9897603994769d3b60ffe84b9647f9b2e586" },
+            { "path": "specs/012-market-action-center-and-guided-tools/bugs/BUG-005-journey-readiness-budget/spec.md", "classification": "foreign-feature012-bug005-artifact", "ownerAttribution": "Feature 012 BUG-005 artifact owners", "identitySha256": "461c97a06be74b781363f7b6098d8c7e08befd3c61dba35ff7fe4394716f44b3" },
+            { "path": "specs/012-market-action-center-and-guided-tools/bugs/BUG-005-journey-readiness-budget/state.json", "classification": "foreign-feature012-bug005-artifact", "ownerAttribution": "Feature 012 BUG-005 artifact owners", "identitySha256": "98ebfaa8e58cbfc989d221f26e1b81a23eea8d271b3500c4e189e1bbe3c5e109" },
+            { "path": "specs/012-market-action-center-and-guided-tools/bugs/BUG-005-journey-readiness-budget/uservalidation.md", "classification": "foreign-feature012-bug005-artifact", "ownerAttribution": "Feature 012 BUG-005 artifact owners", "identitySha256": "bbecb1f77c067660409681f1c53ba2e105cac347eecbc1da122ddd56cee40358" },
+            { "path": "specs/012-market-action-center-and-guided-tools/bugs/BUG-006-contextual-tooltip-suite-budget/bug.md", "classification": "foreign-feature012-bug006-artifact", "ownerAttribution": "Feature 012 BUG-006 artifact owners", "identitySha256": "186e8da3e1ef7a7af26871651da397d385ce201f166e9f419c8daaad1004193f" },
+            { "path": "specs/012-market-action-center-and-guided-tools/bugs/BUG-006-contextual-tooltip-suite-budget/design.md", "classification": "foreign-feature012-bug006-artifact", "ownerAttribution": "Feature 012 BUG-006 artifact owners", "identitySha256": "9aedc8caaf2b55aee6ce54b4b2c73e2fd772ea21e881ea6da05795d19c5b5589" },
+            { "path": "specs/012-market-action-center-and-guided-tools/bugs/BUG-006-contextual-tooltip-suite-budget/report.md", "classification": "foreign-feature012-bug006-artifact", "ownerAttribution": "Feature 012 BUG-006 artifact owners", "identitySha256": "a12e1f4cb9a2e435519da2530c71033173a2006ca0ad907e24a5c9051a7a0751" },
+            { "path": "specs/012-market-action-center-and-guided-tools/bugs/BUG-006-contextual-tooltip-suite-budget/scenario-manifest.json", "classification": "foreign-feature012-bug006-artifact", "ownerAttribution": "Feature 012 BUG-006 artifact owners", "identitySha256": "91df03be3f0fd08581b02796b4075a85b2641715f886a420972da29f63d76818" },
+            { "path": "specs/012-market-action-center-and-guided-tools/bugs/BUG-006-contextual-tooltip-suite-budget/scopes.md", "classification": "foreign-feature012-bug006-artifact", "ownerAttribution": "Feature 012 BUG-006 artifact owners", "identitySha256": "b5ce330c990c3f04fc85bf27ce4370279c56844c62a79a5589ebf6edd045aa0c" },
+            { "path": "specs/012-market-action-center-and-guided-tools/bugs/BUG-006-contextual-tooltip-suite-budget/spec.md", "classification": "foreign-feature012-bug006-artifact", "ownerAttribution": "Feature 012 BUG-006 artifact owners", "identitySha256": "59bba317ecf57dc4e87a4922b52b1fcfec3148d42e79b6eacdb4a646f1d5d5b8" },
+            { "path": "specs/012-market-action-center-and-guided-tools/bugs/BUG-006-contextual-tooltip-suite-budget/state.json", "classification": "foreign-feature012-bug006-artifact", "ownerAttribution": "Feature 012 BUG-006 artifact owners", "identitySha256": "0aefc546bdfdde52bc418a404414353979e416bff21a591459c624bba7e8fd92" },
+            { "path": "specs/012-market-action-center-and-guided-tools/bugs/BUG-006-contextual-tooltip-suite-budget/uservalidation.md", "classification": "foreign-feature012-bug006-artifact", "ownerAttribution": "Feature 012 BUG-006 artifact owners", "identitySha256": "fb833ed57ea090a0f9f06dfe039b7f3028c926e877cf3ddcfa02b9b7a79e652c" },
+            { "path": "specs/012-market-action-center-and-guided-tools/bugs/BUG-007-shared-shell-suite-budget/bug.md", "classification": "foreign-feature012-bug007-artifact", "ownerAttribution": "Feature 012 BUG-007 artifact owners", "identitySha256": "ccfdf516a4b2482345dee77f1becad738ad2ae0ae8ec86bf093dc1fa70475175" },
+            { "path": "specs/012-market-action-center-and-guided-tools/bugs/BUG-007-shared-shell-suite-budget/design.md", "classification": "foreign-feature012-bug007-artifact", "ownerAttribution": "Feature 012 BUG-007 artifact owners", "identitySha256": "ff8bf800d223c789736a697d20b1085897832828fe3ecab783e90727e365df3e" },
+            { "path": "specs/012-market-action-center-and-guided-tools/bugs/BUG-007-shared-shell-suite-budget/report.md", "classification": "foreign-feature012-bug007-artifact", "ownerAttribution": "Feature 012 BUG-007 artifact owners", "identitySha256": "441576a3f3d573a598da6369452633b2b29b84ba5283fe9848fcad0d56d93094" },
+            { "path": "specs/012-market-action-center-and-guided-tools/bugs/BUG-007-shared-shell-suite-budget/scenario-manifest.json", "classification": "foreign-feature012-bug007-artifact", "ownerAttribution": "Feature 012 BUG-007 artifact owners", "identitySha256": "5a7300521dd3b9fc974c1852d7e37c89b45b01e87c71e0af1d01848df2d15c64" },
+            { "path": "specs/012-market-action-center-and-guided-tools/bugs/BUG-007-shared-shell-suite-budget/scopes.md", "classification": "foreign-feature012-bug007-artifact", "ownerAttribution": "Feature 012 BUG-007 artifact owners", "identitySha256": "829847f82c698354acf55280c19c7d7e258441210e79eba833c805e300f98360" },
+            { "path": "specs/012-market-action-center-and-guided-tools/bugs/BUG-007-shared-shell-suite-budget/spec.md", "classification": "foreign-feature012-bug007-artifact", "ownerAttribution": "Feature 012 BUG-007 artifact owners", "identitySha256": "3b5d2d8f43a057e1f63ee317be381a9f28d307a0db4eb135fc07bc9447dc0a96" },
+            { "path": "specs/012-market-action-center-and-guided-tools/bugs/BUG-007-shared-shell-suite-budget/state.json", "classification": "foreign-feature012-bug007-artifact", "ownerAttribution": "Feature 012 BUG-007 artifact owners", "identitySha256": "daf141e3daf410bc50ba71dccd6c3f8ead6a9aa778a398d984fb3de1831f1cd4" },
+            { "path": "specs/012-market-action-center-and-guided-tools/bugs/BUG-007-shared-shell-suite-budget/test-plan.json", "classification": "foreign-feature012-bug007-artifact", "ownerAttribution": "Feature 012 BUG-007 artifact owners", "identitySha256": "aced74dee172898c5b17aa5acfafbee5b5451d70a9ab1d9b62ce57355b839756" },
+            { "path": "specs/012-market-action-center-and-guided-tools/bugs/BUG-007-shared-shell-suite-budget/uservalidation.md", "classification": "foreign-feature012-bug007-artifact", "ownerAttribution": "Feature 012 BUG-007 artifact owners", "identitySha256": "39b3a920a0fb933a6dff5d0ef490c9099c1015331e42f10bee61188cb2f8f11d" }
+        ],
+        "excludedPaths": [
+            "specs/004-fx-regime-relative-value-lab/report.md",
+            ".specify/memory/bubbles.session.json.flock"
+        ],
+        "excludedRecords": [
+            { "path": "specs/004-fx-regime-relative-value-lab/report.md", "status": " M", "classification": "planning-owned-report-prefix-exclusion", "ownerAttribution": "bubbles.plan", "matrixEligible": false, "completionInferenceEligible": false },
+            { "path": ".specify/memory/bubbles.session.json.flock", "status": "??", "classification": "session-runtime-lock-exclusion", "ownerAttribution": "session runtime", "matrixEligible": false, "completionInferenceEligible": false }
+        ],
+        "matrixSha256": "3d680812db545c65f341ee3091a10c4211a5790fdc62ff9b34cbae5b7574ef62",
+        "fullRecordsMustBeRecomputed": true,
+        "ownershipTransfer": false,
+        "semanticApproval": false,
+        "semanticAcceptance": false,
+        "completionClaim": false,
+        "checkboxClaim": false,
+        "scopeStatusClaim": false,
+        "topLevelStatusClaim": false,
+        "certificationClaim": false
+    },
+    "protectedAuthorityClosure": {
+        "derivedDirectCleanAuthorityPaths": [
+            "fx-regime-universe.json",
+            "rldata.js",
+            "rlviews.js",
+            "scripts/fetch-bars.mjs",
+            "scripts/selftest.mjs",
+            "tests/fx-regime-relative-value-lab.spec.mjs",
+            "tests/fixtures/fx-regime/commonjs-determinism-input.json",
+            "tests/fixtures/fx-regime/foundation-cases.json",
+            "tests/fixtures/fx-regime/foundation-harness.html",
+            "specs/006-trend-dynamics-cycle-lab/report.md",
+            "specs/006-trend-dynamics-cycle-lab/state.json",
+            "specs/010-company-fundamentals-and-brief-lab/scopes/01-contract-config-validator-publication-foundation/report.md",
+            "specs/010-company-fundamentals-and-brief-lab/state.json"
+        ],
+        "orderedEntries": [
+            { "kind": "clean-git-tree", "path": "fx-regime-universe.json", "authorityRole": "Feature 004 required clean universe input", "capturedHead": "37de4610219d1d7bc14cf00f2e632f3cabf95132", "treeMode": "100644", "treeType": "blob", "blobOid": "75ab66d267a4df54b05d00f4d59ca88452eec6fd", "contentSha256": "8abeecdf6ea23e5e15e8080ecbd9ecbe4b507959b7637ec79c4a7933061fc927", "byteLength": 36879, "lastCommit": "943972e295b8fa93a19795e46015e5ae780b0350" },
+            { "kind": "clean-git-tree", "path": "rldata.js", "authorityRole": "Feature 004 required clean shared data input", "capturedHead": "37de4610219d1d7bc14cf00f2e632f3cabf95132", "treeMode": "100644", "treeType": "blob", "blobOid": "3afe3b673746e7be23790b4846a004f4a7f3c5ef", "contentSha256": "fc65480db17ad92600e46832ea86548378acc334e1b3454f5bac133966088772", "byteLength": 55536, "lastCommit": "e38615ea1e41616370e4c6530fe42b9f8fb93a62" },
+            { "kind": "clean-git-tree", "path": "rlviews.js", "authorityRole": "Feature 004 required clean view contract", "capturedHead": "37de4610219d1d7bc14cf00f2e632f3cabf95132", "treeMode": "100644", "treeType": "blob", "blobOid": "dca0b579390907f8f1b59ee88a5082c5f311b5a4", "contentSha256": "4aba205dd62ce44af83df0aec29438382fa40dc980220a929a0c87e0b6dd706f", "byteLength": 15463, "lastCommit": "9d7efc4c174fb840d616fef321f73b0d6145f7cb" },
+            { "kind": "clean-git-tree", "path": "scripts/fetch-bars.mjs", "authorityRole": "Feature 004 required clean fetch authority", "capturedHead": "37de4610219d1d7bc14cf00f2e632f3cabf95132", "treeMode": "100644", "treeType": "blob", "blobOid": "6384588c656492cc7dcdd9370b0d80ccc7d08ac3", "contentSha256": "d92c94bc4ec0a42c11251b140c9a2fda87dba1e2a11334f0999503fee662c1b1", "byteLength": 20566, "lastCommit": "f14d4c4ba91a15915401d4e94e3a3d2c1441982a" },
+            { "kind": "clean-git-tree", "path": "scripts/selftest.mjs", "authorityRole": "Feature 004 required clean selftest and Feature 006/010 marker authority", "capturedHead": "37de4610219d1d7bc14cf00f2e632f3cabf95132", "treeMode": "100644", "treeType": "blob", "blobOid": "5d316bc9850820f6995b81f8f64d7ba80e4b0bc2", "contentSha256": "49054b052e0849044e227e34704f996e6e78e9accf04d17c7ac1cdc995737d53", "byteLength": 570458, "lastCommit": "6ddfb9054c4b92dcbe81800ab1f393688e872357" },
+            { "kind": "clean-git-tree", "path": "tests/fx-regime-relative-value-lab.spec.mjs", "authorityRole": "Feature 004 required clean live scenario authority", "capturedHead": "37de4610219d1d7bc14cf00f2e632f3cabf95132", "treeMode": "100644", "treeType": "blob", "blobOid": "a0a3ad4d8651523a46062e87ead88e8f28cf17cc", "contentSha256": "05253d1da36f1c82b4ca4a92bf9074a954eb5b73432256488607d2729adba306", "byteLength": 17790, "lastCommit": "943972e295b8fa93a19795e46015e5ae780b0350" },
+            { "kind": "clean-git-tree", "path": "tests/fixtures/fx-regime/commonjs-determinism-input.json", "authorityRole": "Feature 004 required clean CommonJS fixture", "capturedHead": "37de4610219d1d7bc14cf00f2e632f3cabf95132", "treeMode": "100644", "treeType": "blob", "blobOid": "76ccad1bf3e9b765c41bd4018fe44e02509ec14b", "contentSha256": "ee8f285acd1b5486b23368f9bea8f09c4841bee165466dac17d983ea0f11ed70", "byteLength": 389, "lastCommit": "943972e295b8fa93a19795e46015e5ae780b0350" },
+            { "kind": "clean-git-tree", "path": "tests/fixtures/fx-regime/foundation-cases.json", "authorityRole": "Feature 004 required clean foundation fixture", "capturedHead": "37de4610219d1d7bc14cf00f2e632f3cabf95132", "treeMode": "100644", "treeType": "blob", "blobOid": "51d0c4d4b7cc71aef0e8da90f67e42ab83f45c29", "contentSha256": "97fb1b6764315844d01e92501dee0b0e85b297b55e448977a6c30723b956dad4", "byteLength": 10126, "lastCommit": "943972e295b8fa93a19795e46015e5ae780b0350" },
+            { "kind": "clean-git-tree", "path": "tests/fixtures/fx-regime/foundation-harness.html", "authorityRole": "Feature 004 required clean foundation harness", "capturedHead": "37de4610219d1d7bc14cf00f2e632f3cabf95132", "treeMode": "100644", "treeType": "blob", "blobOid": "1cd59adf65d855843e9c81c754d3a5e1a7752328", "contentSha256": "968401c534357e001f1bf23315844684fcf983e08ae455a04e1ea9cc1e72d523", "byteLength": 309, "lastCommit": "943972e295b8fa93a19795e46015e5ae780b0350" },
+            { "kind": "clean-git-tree", "path": "specs/006-trend-dynamics-cycle-lab/report.md", "authorityRole": "Feature 006 direct report-anchor authority", "capturedHead": "37de4610219d1d7bc14cf00f2e632f3cabf95132", "treeMode": "100644", "treeType": "blob", "blobOid": "aaebd1ec49328a2e281b048801bb98d635591bec", "contentSha256": "bdf334d44aaa450bbd4bc22a8c017450947bfa67edf4389d142395fb719c866d", "byteLength": 88555, "lastCommit": "044aa82cd521ddafb9f3d1a0a68e6bdb922540dd" },
+            { "kind": "clean-git-tree", "path": "specs/006-trend-dynamics-cycle-lab/state.json", "authorityRole": "Feature 006 direct execution-history authority", "capturedHead": "37de4610219d1d7bc14cf00f2e632f3cabf95132", "treeMode": "100644", "treeType": "blob", "blobOid": "a66d6bb8a1e51c59abc0567c3586470fc2a85f6f", "contentSha256": "0273c6a414746c06cbf70fe263f8fca44124da4ffa1d48d5967ca65e1cd80a19", "byteLength": 26776, "lastCommit": "d61017f2a45fba95f0a4ba7c0476e0173c5c0e1f" },
+            { "kind": "clean-git-tree", "path": "specs/010-company-fundamentals-and-brief-lab/scopes/01-contract-config-validator-publication-foundation/report.md", "authorityRole": "Feature 010 direct report-anchor authority", "capturedHead": "37de4610219d1d7bc14cf00f2e632f3cabf95132", "treeMode": "100644", "treeType": "blob", "blobOid": "ab5cc6444930283e99c51cc1adae1104ed0a0480", "contentSha256": "e7831fdf610b976b6856364880dd040e03551b44f4e1ac6787c8ec5b4bf89db4", "byteLength": 153687, "lastCommit": "174a7b7d04f4faf80e7029ab93873edf2bdc9c61" },
+            { "kind": "clean-git-tree", "path": "specs/010-company-fundamentals-and-brief-lab/state.json", "authorityRole": "Feature 010 direct lifecycle-state authority", "capturedHead": "37de4610219d1d7bc14cf00f2e632f3cabf95132", "treeMode": "100644", "treeType": "blob", "blobOid": "b9e5f88413b492cdac0962d11aecb3547baf4c01", "contentSha256": "bfda83f5488512fb1f025a177a2dbb32681869e22a0269938b8cc945ed2d82a6", "byteLength": 112575, "lastCommit": "776e5a26e7c221bb9944133efb91c4ae498cb0b4" },
+            { "kind": "path-scoped-live-parser-source", "path": "tests/feature-004-dirty-tree-collision.test.mjs", "authorityRole": "current parser source reconstructed before the additive v12 branch", "capturedHead": "37de4610219d1d7bc14cf00f2e632f3cabf95132", "treeMode": "100644", "treeType": "blob", "blobOid": "1e57f53aafd1117e7e4ef63d8ce4b466cf39f4d5", "capturedHeadContentSha256": "83e2558c263e23af68972c1bb29e01aa5a4844ff455c820043004ec1a1a0667d", "capturedHeadByteLength": 133796, "capturedHeadLastCommit": "1f1d739dab1bc144b46df0250f528fdf2292ea3b", "liveStatus": " M", "rawWorktreeGitOid": "e5582a50631ed0735530430e32cdaf813b1adcf5", "rawContentSha256": "86f2736e010bdd1f8b4ab9091bf9e3db0d08fa927979365c2f286cda3f6b0b7c", "rawByteLength": 396203, "normalizedPinFamily": "normalized-self-pins/v7-pre-v12", "normalizedPinNames": ["DURABLE_EVIDENCE_BLOCK_SHA256", "CURRENT_IDENTITY_V4_BLOCK_SHA256", "CURRENT_IDENTITY_V5_BLOCK_SHA256", "FOREIGN_ROADMAP_V6_BLOCK_SHA256", "FOREIGN_SET_V7_BLOCK_SHA256", "POST_COMMIT_V9_BLOCK_SHA256", "POST_COMMIT_V10_BLOCK_SHA256", "POST_COMMIT_V11_BLOCK_SHA256"], "normalizedWorktreeGitOid": "80554f1ce7ee1f468d42f14416890834b48fb68b", "normalizedContentSha256": "e9c178d571d65e8bb01d2438debdf8c25248e61b93f58d7846b2daffe550c00b", "normalizedByteLength": 396203, "pathLastCommit": "1f1d739dab1bc144b46df0250f528fdf2292ea3b" },
+            { "kind": "append-prefix", "path": "specs/004-fx-regime-relative-value-lab/report.md", "authorityRole": "exact immutable report prefix before the v12 append", "capturedHead": "37de4610219d1d7bc14cf00f2e632f3cabf95132", "treeMode": "100644", "treeType": "blob", "blobOid": "16202cd0fd8153eba1957459823aa4f94d0a04eb", "capturedHeadContentSha256": "e8767cefab5d17072c30e614f040fc63eed774110fac9bd2cb5cd0bb149c3b28", "capturedHeadByteLength": 259002, "capturedHeadLastCommit": "578356518d3ece8d2159a623b2d91bcc812f5b19", "prefixStartByte": 0, "prefixEndByteExclusive": 520131, "prefixContentSha256": "647c8208a34d4852430da49f1674ba8036f158fb3f287f9959fb34e667105863", "prefixByteLength": 520131, "pathLastCommit": "578356518d3ece8d2159a623b2d91bcc812f5b19" },
+            { "kind": "append-only-ledger-selector", "path": ".specify/runtime/tool-calls.jsonl", "authorityRole": "current semantic stable-key and receipt selection contract", "toolLogPath": ".specify/runtime/tool-calls.jsonl", "stableKeyFields": ["sessionId", "agent", "spec", "scope", "cmd", "exitCode", "stdoutHash", "tags"], "receiptFields": ["sessionId", "agent", "spec", "scope", "cmd", "exitCode", "stdoutHash", "tags", "rawOutputLines", "rawOutputSha256"], "stableKeyEncoding": "JSON.stringify(stableKeyFields.map(field => receipt[field]))", "scalarComparison": "strict-equality", "tagComparison": "JSON-stringified-exact-ordered-equality", "rowParsing": "nonempty-LF-or-CRLF-delimited-JSON-object-rows", "duplicatePolicy": "zero-duplicate-complete-stable-keys", "matchCardinality": "zero-or-all-declared-receipts", "partialSetPolicy": "fail-closed", "allMatchSource": "current-tool-log", "zeroOrAbsentMatchSource": "committed-marker-pinned-markdown", "selectedRowContradictionPolicy": "rawOutputLines-or-rawOutputSha256-presence-must-match-declaration", "appendOnlyGrowthAllowed": true, "ledgerContentPinned": false, "historicalAbsoluteLineAuthority": false, "receiptSelectors": [{"sessionId":"vscode-e24db39cf992f7ccd8ec75209602db59","agent":"bubbles.test","spec":"004-fx-regime-relative-value-lab","scope":"SCOPE-01","cmd":"node tests/provider-credentials.stress.mjs","exitCode":0,"stdoutHash":"da71c907a5d058ae5f0557c68d88c2667a8e06e6be96128009d29abb8d9a5a68","tags":["provider","stress","BASE-SEC-01","BASE-SEC-02","BASE-SEC-03"]},{"sessionId":"vscode-e24db39cf992f7ccd8ec75209602db59","agent":"bubbles.test","spec":"004-fx-regime-relative-value-lab","scope":"SCOPE-01","cmd":"node tests/provider-credentials.load.mjs","exitCode":0,"stdoutHash":"bdf2d697b46916bbe7e32b88887e3b6a37d36106e2e9281013fb68418511271a","tags":["provider","load","BASE-SEC-01","BASE-SEC-02","BASE-SEC-03"]}], "semanticSelectorSha256": "1ff127e5c3ed62153a94b06ffd78b071821ed6c21dcbc2bd344d3b3c148f7d7d" }
+        ],
+        "closureSha256Input": "JSON.stringify(orderedEntries)",
+        "closureSha256": "bae952e125487d83e472316f52eb634de5db51b4a44da8997705f8113baaf879",
+        "orderedEntryCount": 16,
+        "additionalCleanDirectAuthorityOmitted": false,
+        "omissionOrReorderAllowed": false,
+        "cleanCurrentValidation": "compare each protected path at current HEAD by mode, type, blob, content SHA-256, byte length, and path lastCommit without comparing global HEAD",
+        "parserCurrentValidation": "strip only the v12 pin, NORMALIZED_SELF_PIN_NAMES_V8 declaration, and closed v12 branch; then compare raw pre-v12 source and normalized-self-pins/v7 identity",
+        "reportCurrentValidation": "hash bytes [0,520131) and require the exact prefix length and SHA-256",
+        "selectorCurrentValidation": "require the exact stable-key order, receipt-field order, two receipt selectors, and semantic selector SHA-256"
+    },
+    "inferenceContract": {
+        "capturedHeadImpliesLiveHeadEquality": false,
+        "unrelatedHeadMovementImpliesDrift": false,
+        "dirtyStateImpliesOwnership": false,
+        "commitStateImpliesOwnership": false,
+        "historyImpliesOwnership": false,
+        "cleanClosureImpliesApproval": false,
+        "historicalValidationUsesLiveBytes": false,
+        "historicalValidationSatisfiesCurrentValidation": false,
+        "excludedPathsEligibleForMatrixInference": false,
+        "excludedPathsEligibleForCompletionInference": false,
+        "semanticApproval": false,
+        "semanticAcceptance": false,
+        "completion": false,
+        "checkbox": false,
+        "scopeStatus": false,
+        "topLevelStatus": false,
+        "certification": false
+    },
+    "parserOrder": [
+        "validate every predecessor marker-inclusive pin, closed schema, field order, parent link, and immutable requiredHead value through v11",
+        "validate historical clean records only through <predecessor.requiredHead>:<path> and retain predecessor-captured authority for historical dirty or untracked records",
+        "require the exact v10 scripts/selftest.mjs discriminator at requiredHead 449963d2a4a9dec305d8815c1929d5457db3bf56",
+        "parse exactly one closed v12 block and treat capturedHead as provenance rather than a global live-equality gate",
+        "validate the exact 67-entry dirty inventory and its 19-required, 55-foreign, and two-exclusion partition",
+        "recompute all 74 complete full records and require every aligned record identity plus matrix SHA-256",
+        "validate all 16 protected authority entries in order, including every derived direct clean input, reconstructed parser source, report prefix, and ledger selector",
+        "validate current v12 authority independently after historical validation; historical success cannot satisfy current validation",
+        "run all predecessor and v12 adversarial branches before returning any test result"
+    ],
+    "parserHandoff": {
+        "owner": "bubbles.test",
+        "path": "tests/feature-004-dirty-tree-collision.test.mjs",
+        "newPinLiteral": "POST_COMMIT_V12_BLOCK_SHA256",
+        "pinValueSource": "marker-inclusive, no-trailing-newline SHA-256 of this v12 report block",
+        "pinCountDelta": 1,
+        "captureMode": "normalized-self-pins/v7-pre-v12",
+        "normalizedMode": "normalized-self-pins/v8",
+        "normalizedPinFamilyName": "NORMALIZED_SELF_PIN_NAMES_V8",
+        "normalizedPinFamilyOrder": [
+            "DURABLE_EVIDENCE_BLOCK_SHA256",
+            "CURRENT_IDENTITY_V4_BLOCK_SHA256",
+            "CURRENT_IDENTITY_V5_BLOCK_SHA256",
+            "FOREIGN_ROADMAP_V6_BLOCK_SHA256",
+            "FOREIGN_SET_V7_BLOCK_SHA256",
+            "POST_COMMIT_V9_BLOCK_SHA256",
+            "POST_COMMIT_V10_BLOCK_SHA256",
+            "POST_COMMIT_V11_BLOCK_SHA256",
+            "POST_COMMIT_V12_BLOCK_SHA256"
+        ],
+        "newBranchMarker": "FEATURE-004-COLLISION-POST-COMMIT-V12",
+        "currentSelector": "feature004-dirty-collision-post-commit-v12-only",
+        "pathScopedLiveAuthorityValidatorRequired": true,
+        "cleanHistoryGitTreeAdapterRequired": true,
+        "appendOnlyLedgerCurrentSelectorRequired": true,
+        "historicalValidationCannotSatisfyV12CurrentValidation": true,
+        "existingV10V11AndPredecessorBytesEditable": false,
+        "testEditBoundary": "add exactly one v12 pin, one NORMALIZED_SELF_PIN_NAMES_V8 declaration, one closed v12 parser/adversarial branch, the path-scoped live authority validator, the clean-history Git-tree adapter, and the current selector",
+        "onlyAllowedEditedPath": "tests/feature-004-dirty-tree-collision.test.mjs",
+        "reportEditAllowed": false,
+        "planningArtifactEditAllowed": false,
+        "productEditAllowed": false,
+        "foreignEditAllowed": false,
+        "gitOperationAllowed": false
+    },
+    "adversarialMutations": [
+        "protected authority closure omission",
+        "protected authority closure reorder",
+        "protected clean path committed content, mode, type, blob, byte-length, or lastCommit drift",
+        "protected clean path touch-revert that restores bytes but changes path lastCommit",
+        "live worktree or index byte substitution for a historical clean record",
+        "wrong historical requiredHead revision, path, tree mode, type, blob, content hash, byte length, or lastCommit",
+        "historical dirty or untracked record reconstructed from a clean Git tree",
+        "current dirty path misclassified as clean closure authority",
+        "stale, missing, extra, duplicate, or reordered dirty inventory entry",
+        "missing, extra, duplicate, reordered, or changed required, foreign, or excluded record commitment",
+        "ownership, owner-attribution, classification, exclusion-eligibility, or zero-inference drift",
+        "changed v10 discriminator head, path, blob, or expected identity",
+        "v11, v10, v9, or any predecessor byte, pin, field, requiredHead, historical tuple, or assertion weakened",
+        "historical validation used to satisfy v12 current validation",
+        "wrong report prefix length or hash, duplicate marker, malformed JSON, closed-schema drift, field reorder, or wrong marker-inclusive pin",
+        "wrong matrix, inventory, closure, selector, record-identity, or parser-source hash",
+        "edit outside tests/feature-004-dirty-tree-collision.test.mjs during the test handoff",
+        "unrelated HEAD movement outside the complete protected closure rejected despite exact closure and dirty inventory"
+    ],
+    "captureStability": {
+        "preAppendInventorySha256": "8241bc6b27eac0d0a2543142b3d5bb6883f727cc1920fd3f899989a73fc9d723",
+        "preAppendMatrixSha256": "3d680812db545c65f341ee3091a10c4211a5790fdc62ff9b34cbae5b7574ef62",
+        "preAppendClosureSha256": "bae952e125487d83e472316f52eb634de5db51b4a44da8997705f8113baaf879",
+        "preAppendReportPrefixSha256": "647c8208a34d4852430da49f1674ba8036f158fb3f287f9959fb34e667105863",
+        "preAppendReportPrefixByteLength": 520131,
+        "postAppendInventoryMatrixClosureAndPrefixMustMatch": true,
+        "markerInclusiveBlockHashMustBeComputedAfterAppend": true,
+        "markerUniquenessAndClosedJsonSchemaRequired": true,
+        "globalHeadMustRemainExact": false,
+        "unrelatedHeadMovementOutsideProtectedClosureAllowed": true,
+        "protectedContentModeOrLastCommitDriftAllowed": false,
+        "rollbackBoundary": "remove only an incomplete v12 report append and return blocked",
+        "v11OrPredecessorRollbackAllowed": false,
+        "foreignOrProductRollbackAllowed": false
+    },
+    "repositoryBinding": {
+        "repositoryRoot": "/home/redacted/research-lab",
+        "repositoryAlias": "research-lab",
+        "repositoryResolution": {
+            "sessionId": "vscode-e24db39cf992f7ccd8ec75209602db59",
+            "decisionId": "rb:vscode-e24db39cf992f7ccd8ec75209602db59:46",
+            "controlRevision": 46,
+            "controlPathDigest": "sha256:e6d858a6f9bc1824d3a2cea3746d741a5bad41016d613dc242312185af9761fa",
+            "authority": "concrete-target",
+            "transition": "confirmed",
+            "scopeKind": "command",
+            "scopeId": null,
+            "targetKind": "absolute-target",
+            "pathVisibility": "local",
+            "actionable": true
+        }
+    },
+    "planningRouting": {
+        "updatedPaths": [
+            "specs/004-fx-regime-relative-value-lab/report.md"
+        ],
+        "addressedFindingIds": [
+            "F004-V12-PLAN-001",
+            "F004-COLLISION-HISTORICAL-CLEAN-RECORD-LIVE-BYTE-DRIFT"
+        ],
+        "transitionRequestId": "TR-F004-SCOPE01-POST-COMMIT-V12-001",
+        "nextRequiredOwner": "bubbles.test",
+        "scopeStatusChanged": false,
+        "checkboxChanged": false,
+        "featureStatusChanged": false,
+        "certificationChanged": false,
+        "scopeOneStatus": "In Progress",
+        "scopeTwoState": "unavailable"
+    },
+    "testOwnerHandoff": {
+        "owner": "bubbles.test",
+        "transitionRequestId": "TR-F004-SCOPE01-POST-COMMIT-V12-001",
+        "onlyAllowedEditedPath": "tests/feature-004-dirty-tree-collision.test.mjs",
+        "requiredActions": [
+            "Add exactly one POST_COMMIT_V12_BLOCK_SHA256 pin after computing this marker-inclusive block hash.",
+            "Add exactly one NORMALIZED_SELF_PIN_NAMES_V8 family in the declared order.",
+            "Add one closed v12 parser and adversarial branch without changing any v10, v11, or predecessor byte.",
+            "Implement the path-scoped live authority validator and accept unrelated HEAD movement only outside the complete protected closure.",
+            "Implement the clean-history Git-tree adapter using <predecessor.requiredHead>:<path>; never use live bytes for historical clean records.",
+            "Retain prior captured or deterministic authority for historical dirty and untracked records.",
+            "Implement the current append-only ledger selector with the exact stable-key, receipt, cardinality, contradiction, and fallback semantics.",
+            "Validate prefix, marker uniqueness, JSON/schema/order, marker-inclusive pin, inventory, all full-record identities, matrix hash, closure hash, and selector hash.",
+            "Add adversarial cases for closure omission/reorder, protected commit, touch-revert, live-byte substitution, wrong historical revision/path/blob, dirty-as-clean, inventory drift, ownership/exclusion/inference drift, predecessor weakening, historical-current substitution, and out-of-bound edit.",
+            "Do not claim a green test result from this planning append; historical validation cannot satisfy v12 current validation.",
+            "Return no report, planning, product, foreign, generated, checkbox, status, Scope 2, certification, Git-state, or unrelated-dirty-byte change."
+        ],
+        "nextRequiredOwner": "bubbles.test"
+    }
+}
+```
+<!-- feature004-dirty-collision-post-commit-v12:end -->
+
+<!-- feature004-dirty-collision-post-commit-v13:start -->
+```json
+{
+"schemaVersion":"feature004-post-commit-v13-capture-envelope/v1",
+"marker":"feature004-dirty-collision-post-commit-v13",
+"encoding":"br-canonical-json-utf8-b64/v1",
+"compressedPayloadSha256":[
+"02d2d6a5eae5949d7300afdcae032eab",
+"bc09b9d65c4d516cc8b725485cd8a502"
+],
+"compressedPayloadByteLength":35539,
+"payloadSha256":[
+"0011fda7d1625e94717ac18aff344340",
+"afae44b1dfe4b818ddf83a5d87922287"
+],
+"payloadByteLength":263371,
+"payloadBase64LineLength":56,
+"payloadBase64":[
+"W8oENNmU4WtuGxX/AXNo+POTjTtw25g9vSjoHosqg8PGATCb/h4AqtcD",
+"OoZY8CkqbvMjWAChMkpTK3q3OlJbOzARBEjM4OKgUierNfXIahH6XdH6",
+"qkIHwlMYM1pryr81Qya/qcOh0Hr+yWtdoSufDq92wr36FhfDnRizDLBd",
+"bowQol3EkyeUkOIR+QEl/bYRj7DT2mt/PLEVrK/raSexidZBp9ENILef",
+"+QJxK37wXTatXl9tCm2bCdm7xxBmKAcom7mQoJEaWzdCoiThsOHx+1zr",
+"sHT13f8Yr/mrrT8X8jriK2VVQIhw6mmb9MT+QMmS0mfaqCl7wpDsvG0t",
+"IRiP8BQIiq4mpeyPf5EQAuBke93NLpW+xbWUNoDOLdR3U7e2JEP09Hgv",
+"cqlBMOQ1bvlkKJk6O31+/3uzXGftZma6AO4QthHy/rfqvpJ+aKmV3ZIm",
+"xFj/ve7fPdoQA3KEKcE5RmYRCRnQBcSZGpmFCJjGQTN2BtTMANr/b61P",
+"u0G0LGMsg2QjN9X9ugYXAFSIXc2vqVsTmDOLoKIANaBaYWSLyqkxZl5V",
+"CBbQ/XXzE7YRTk7Ljv//qlotg+YMCUygMFGebqqZraYo19+Do8nc7FTu",
+"di43Sf//B0iAKJOA5EA60hM3R5AQQDlAcjgUnWVPzN1UW3Rb9Jubeqt2",
+"u9s0K2+iVZGoJFWmq1E3W5TtVtHKZUZTAMiMJ0YMSBwvAS4DYoIuSQLU",
+"yJQbGuNmbUJmx+3w/4sehbj6LFt730Bl0TaJE3n16+YeQ7P29zDKCiCi",
+"5gakUwl3zaCt0+EHWU7h/Ri6L7On/tK2aAglwEACiGHenEq4lk7s9mJA",
+"z+g8A3hiLP3eNGJ6xGaPSygoaDxGmL/wX7L9e4Pkq7TNPsQDnGU6uy+R",
+"I2RLLwHf2ROQDy2tP97otEklC+TQ1DgsuH7seBfwfwzidjJRnKeHbSMB",
+"f9wZwgVczvAmiACTjVchbyy7tBqS7iMi9PIF2ksg+8X8wgL8Lj1/oz8T",
+"9K8s0psy/bYF2pvb596TfM0ez5cgzNt9Ajfflkk1CKLPkYiHW7N14d6c",
+"mILMH6ZRcwLyZGVKKRSrEp6E+1KCV7nmScv1lULmVTc1Nu3qMNxQqCfl",
+"Dml/85Jcuaxsx01WJnObWcbCt2b6aEFzylazloZ/Em8ybzEAi58Ysqwa",
+"gWtpweL+pD9kvS2nSO0X/hD4R3GhHpOta0ElRMfKuYNpKn21GF42+pR2",
+"gBzmLvhd+wPl/Me4nwNKz8+FDvVUqwvsEZqjJ1AjFVyM2vi5qCuNASG7",
+"yliU4N4+YO3iRvrg1DyA/jmZk0Kpp7vANbatqUGfWQsk4CzcPEWlUCR/",
+"JHEvD5LlSrdqmCQ1kvTJksgGXCzsD+fr7tIosoJgbKZqRfFwH2NMwazv",
+"0EbDtbYuCRJBOOHGDmZ+GKwYuVv/Mt5I01/gpY/ribsxC5cuB9gIqw1q",
+"qYCTdS8obMbXAXmCFS9jtGPC9HGsgM4dN0PTKHKjK4fEOrH5ZZXDpwya",
+"M0/aR6nKSZghCU2hq4Vx4TNJERQYCTv+iAzKzIyom8wpqtzfqRvDSabl",
+"pUqKZhZ2ekismr7qQmTZFhWIlqYH/Veeu5I1mX1F9YX3UGUwZflcWvzP",
+"0x+kv1c/NLmsgVpOxT5rkE1dHc2aXFoOXS1s2f+rftj3OOhnV8ZeA0hI",
+"9cQPKGzb9QFECyK1LVGfNx2NXv5LF5EDv4CAICgZoGABDUbGMDTZB0YK",
+"dJ+U4iAjSfIrnZBIWWW1HZGomWiT76igTupUW7CsDki7Ul6xM6hu8thZ",
+"QtRUaLKm6jApBR23C1L0982N1MhrA2bHdtDPdaiv4d+J+2E/3b/B6FEC",
+"LhrXotCoNEo+tXG1cEm+D/+1/KcbS/WtZp60Dc8WvKLqN4plzbY/2VKa",
+"UBQQbyszxK4vLY32FycWWCqMosPj032DxRpib9Ahtj9JdXvniISLVT5q",
+"M5jBfZ4s3hWS69P8c85FdhRVZJ0VamAdNUgKJVIroK1NOUv+Nr4+iFxL",
+"hzVlz8HyaQ6aXJcc4IVTVMJ2UfkH11s2nJy9YHEPnoxuzSTW3Jrk82zj",
+"Kf6qkqzNsEp0MvuLjWbHjaBxx3v1mEWDv1cUpcSLRRV6fpT3Lf3sRHaY",
+"/PT39d9++5uT+Je/XV9//ZvTXxlQL3e1Caf81OqUVQteP3EP19732W8l",
+"yq53ZY3h9+SfWtpxrlvTP3abvtibBk+WtjbYDttu9fX+ib6sb5+/7TOM",
+"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",
+"IvkFQcXrdCs0eDwoVBhDxoOMaLqFHVYtP3apEKyAq9FZi2bkpC6z8U6x",
+"32sVkLNbPIYrDx3RW08nXgLMPRB0rkvZXMaXnVvzvbPmKnxO/pZhohVG",
+"RGfY69jYUXXgySV1J2fcbeudY9kVHW4uWaOlnsfhWvVehALdAdiqHzZ0",
+"CZf7NVYfSoGiR94WQIVBSiUUc5PL2F7xlXljpG+qTXocHUtibi5DcV1e",
+"deadd/YoAGvktHY6Wk8dhpTIVrLC6oEfOVQoPbAvqOYWas4KX6hBRSrC",
+"Q4S5GNl+A9rn7iN4j3+OlnAQz9qpYBcs+zUxswVm1x77QygC39PUvhxU",
+"4N2y4DirVu0oNvCr6lq7noYX8LuVJ11nF0wFlGwXVF+fiVLa9e6hsv8Q",
+"X/8t//1DZRVHF/DHyxb6WWZ9/0O+XPtwfzXb3t7/ndXXvulHd4uF/6am",
+"O51UQyR8L6CyK0G5T95SjnvF1sBpQdSLB9aZbeNjubZMsGSCKmlWu4Yk",
+"R7D7fGGNDmwGXXx6NWCat29eYRVGxUMhzWTG3LCUojtbd+a0rgYS3sE0",
+"nMW25fc05p14r4JwcIMfOUzU9MBecot2jFKUKuY2XqzsSV7oPJd1Bn4O",
+"03hPP+hz061lweKCgzDXTcNk1+SmvIDnzX24UDYccy5i62ocQwWjxgZe",
+"roIWvYCXxQnfGEe/6dOKX3H7K5yhlkz52a+3UMFJoSLHu1l+R29Y1O96",
+"oFJcj4Hx+gr0dZrLQ4zXyCeF0rr2SiXw8XWvLqg/mma6EPuUMDSlU94V",
+"SpQF9pZoWXoVe+I8xqwzVu1bu0Iwu1KPDQ2n50WCQmZe2APQt48wc7cK",
+"9LX1BeK+NoYFQ2iSHPSGF8Vvs+QfGY6zF9DeGJVMDDv2O2+MphyvY56k",
+"ivMBP3JVzFIF/5w8t1xkJWMMm33KMPGcT6ReyJLhu/RQxXtYlRyXZ3HP",
+"e49wETLfJOuYUHDBeexbMwlrpEIR5CujNmToUOGCPhKs7ZVjf8zg7wvp",
+"uHs6s13SqWItBNM31hwYXdKaWifbqUuMyu67udoep3kkviA09NNdcrJa",
+"i0D84txkreY0XFnWozvYaVZyHeHh4t+y6idPy0oVYNMZsOqM+RE+XmRV",
+"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",
+"WI8tlkLOBw=="
+],
+"markerInclusiveByteLength":51512,
+"normalizedSelfSha256":[
+"70a3d917e176e40502cd7f336786aba2",
+"b619a68e3dc6385e9473ad733402024b"
+]
+}
+```
+<!-- feature004-dirty-collision-post-commit-v13:end -->
+
+<!-- feature004-dirty-collision-scoped-evidence-v14:start -->
+```json
+{
+"schemaVersion":"feature004-scoped-evidence-v14-capture-envelope/v1",
+"marker":"feature004-dirty-collision-scoped-evidence-v14",
+"encoding":"br-canonical-json-utf8-b64/v1",
+"compressedPayloadSha256":[
+"f00b07eccc808959c51667b85ab14a91",
+"de6fcbfa608192521e3d0e6572a42388"
+],
+"compressedPayloadByteLength":9321,
+"payloadSha256":[
+"8a8aa8a4b31bc11cb8acf48744290154",
+"e633dbb870f02ab50fc546d2338a8eb5"
+],
+"payloadByteLength":47821,
+"payloadBase64LineLength":56,
+"payloadBase64":[
+"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"
+],
+"markerInclusiveByteLength":14066,
+"normalizedSelfSha256":[
+"58d581d874cea8764d30d7dbb9664bc8",
+"6be383d138a43b9a95980d25d46dbcea"
+]
+}
+```
+<!-- feature004-dirty-collision-scoped-evidence-v14:end -->
 

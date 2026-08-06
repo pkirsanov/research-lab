@@ -810,3 +810,51 @@ test('verified foundation clear reports empty only after reread and a remove fau
   assert.equal(unverifiable.ok, false, 'a key that cannot be reread cannot be certified empty');
   assert.equal(unverifiable.error.reason, 'foundation-clear-incomplete');
 });
+
+// The declared personal storage surface, read from the POLICY that declares it rather than
+// from the module under test. Asserting the module's clear against the module's own key list
+// would be circular: dropping a key from that list removes it from both the clear and the
+// expectation at once and stays green. The policy is the independent second source.
+function policyDeclaredKeys(policy) {
+  return {
+    local: [policy.storage.pointerKey, ...policy.storage.slotKeys, policy.storage.quarantineKey].slice().sort(),
+    session: [policy.storage.sessionKey, policy.storage.returnContextKey].slice().sort()
+  };
+}
+
+test('verified clear covers every policy-declared personal key and leaves the raw namespace holding none of them', () => {
+  const { api, policy } = loadContracts();
+  const declared = policyDeclaredKeys(policy);
+  const declaredCount = declared.local.length + declared.session.length;
+  assert.equal(declared.local.length, 4, 'the policy must declare the pointer, both slots, and quarantine');
+  assert.equal(declared.session.length, 2, 'the policy must declare the session fallback and the return context');
+  assert.equal(new Set([...declared.local, ...declared.session]).size, declaredCount, 'a duplicate key would let one survivor hide behind another');
+
+  // Every declared key is populated, including the inactive slot. A pointer swap routinely
+  // leaves a complete personal workspace in the inactive slot, so a clear that skips it
+  // leaves recoverable personal data behind while still reporting success.
+  const localStorage = createStorage({ initial: Object.fromEntries(declared.local.map((key, index) => [key, `local-record-${index}`])) });
+  const sessionStorage = createStorage({ initial: Object.fromEntries(declared.session.map((key, index) => [key, `session-record-${index}`])) });
+
+  // Populate-and-prove: without this the post-clear emptiness below would hold against
+  // storage that never held anything, which is true of any clear including a no-op.
+  assert.deepEqual(Object.keys(localStorage.snapshot()).sort(), declared.local, 'the raw local namespace must genuinely hold every declared key before the clear');
+  assert.deepEqual(Object.keys(sessionStorage.snapshot()).sort(), declared.session, 'the raw session namespace must genuinely hold every declared key before the clear');
+  const before = api.foundationPrivacyInventory({ localStorage, sessionStorage });
+  assert.equal(before.ok, true);
+  assert.equal(before.value.personalKeyCount, declaredCount, 'a key the module omits from its own declared list shows up here as a short count');
+  assert.deepEqual(before.value.presentKeys.map((entry) => entry.key).sort(), [...declared.local, ...declared.session].sort());
+
+  const cleared = api.clearFoundationStorage({ localStorage, sessionStorage });
+  assert.equal(cleared.ok, true, `verified clear must succeed: ${JSON.stringify(cleared.error || {})}`);
+  assert.equal(cleared.value.verifiedEmpty, true);
+  assert.equal(cleared.value.clearedKeyCount, declaredCount, 'the reported coverage must match the full policy-declared surface, not a subset of it');
+
+  // Exact SET emptiness read straight off the adapters, not through the module inventory
+  // that shares the clear list. A `/^rlPortfolioWorkspaceV1/` style prefix check would accept
+  // a surviving key under the same prefix; an empty-set comparison cannot.
+  assert.deepEqual(Object.keys(localStorage.snapshot()), [], 'no key may survive in the raw local namespace');
+  assert.deepEqual(Object.keys(sessionStorage.snapshot()), [], 'no key may survive in the raw session namespace');
+  declared.local.forEach((key) => assert.equal(localStorage.getItem(key), null, `${key} must not survive the clear`));
+  declared.session.forEach((key) => assert.equal(sessionStorage.getItem(key), null, `${key} must not survive the clear`));
+});

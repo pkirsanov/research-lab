@@ -1256,8 +1256,10 @@ test('each declared privacy category is deleted by the clear that names it and s
     'six declared categories must genuinely hold records before any clear, or every emptiness assertion below is vacuous'
   );
   // Pinned, not counted. These two sections have no write path through the builders this
-  // scope exports, so asserting their emptiness proves nothing. Naming them exactly means a
-  // later scope that adds a write path turns this red instead of quietly over-reporting.
+  // scope exports, so asserting their emptiness proves nothing and no clear can be OBSERVED
+  // to empty them -- which is why the declared-vs-observed check below ranges over `populated`
+  // only. Naming them exactly means a later scope that adds a write path turns this red, and
+  // moves them into that check, instead of quietly over-reporting.
   assert.deepEqual(
     notRepresentable,
     ['action-outcomes', 'interest-signals'],
@@ -1313,12 +1315,37 @@ test('each declared privacy category is deleted by the clear that names it and s
   assert.deepEqual(bluntLocal.snapshot(), GENERIC_PUBLIC_CACHES, 'exactly the generic public caches may survive an all-personal clear, byte-identical');
   assert.deepEqual(bluntSession.snapshot(), {}, 'no declared session key may survive an all-personal clear');
 
-  // `clearedBy` names the NARROWEST operation that removes a category, not the complete
-  // set. The all-personal clear wipes every declared storage key, so it also removes the
-  // behavior-only categories. That superset relationship is pinned here rather than read
-  // off a declaration that does not state it, so a change on either side goes red.
-  const behaviorOnly = before.categories.filter((entry) => entry.present && !clearTokens(entry).includes('all-personal')).map((entry) => entry.category).sort();
-  assert.deepEqual(behaviorOnly, ['behavior-events'], 'exactly one populated category declares only the behavior clear, and it is still emptied by the all-personal clear above');
+  // `clearedBy` declares EVERY operation that empties a category. Both sides of this check are
+  // MEASURED: the declaration comes off the runtime, the expectation off the two clears that
+  // just ran. Neither is written out here, so a label that under-declares (names the behavior
+  // clear while the all-personal clear also empties it) or over-declares goes red instead of
+  // being kept in step with the runtime by hand.
+  const observedClearTokens = (name) => {
+    const emptied = [];
+    if (categoriesByName(afterBehavior).get(name).recordCount === 0) emptied.push('behavior');
+    if (categoriesByName(afterAll).get(name).recordCount === 0) emptied.push('all-personal');
+    return emptied.sort();
+  };
+  const declaredVsObserved = (declaredFor) => populated
+    .map((name) => ({ category: name, declared: declaredFor(name), observed: observedClearTokens(name) }))
+    .filter((row) => row.declared.join() !== row.observed.join());
+
+  assert.deepEqual(
+    declaredVsObserved((name) => clearTokens(categoriesByName(before).get(name))),
+    [],
+    'every populated category must declare exactly the clear operations observed to empty it'
+  );
+
+  // Red-ability, reconstructing the exact defect this check exists to catch: restore the former
+  // behavior-events label, which named only the narrow clear while the all-personal clear was
+  // observed above to empty it too. The comparator must name that row and only that row, or the
+  // green result above is inert and an under-declaring privacy label would ship unnoticed.
+  assert.deepEqual(
+    declaredVsObserved((name) => (name === 'behavior-events' ? ['behavior'] : clearTokens(categoriesByName(before).get(name))))
+      .map((row) => row.category),
+    ['behavior-events'],
+    'the comparator must name a category whose label under-declares, or the declared-vs-observed check is inert'
+  );
 
   // --- The per-category matrix both operations produce ---------------------------------
   // Each populatable category is now proven on both axes: emptied by the operation that

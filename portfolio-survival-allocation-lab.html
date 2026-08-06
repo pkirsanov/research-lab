@@ -1939,7 +1939,6 @@
                 }
                 setText("privacyResult", "Verified empty · " + cleared.value.clearedKeyCount + " closed foundation keys checked");
                 byId("privacyResult").className = "state-message ok";
-                renderInventory();
                 if (state.configReady) {
                     var reopened = state.store.openWorkspace(now());
                     if (reopened.ok) {
@@ -1948,6 +1947,10 @@
                         renderCurrent();
                     }
                 }
+                // After the reopen, never before it: the category counts are projected from the
+                // held workspace, so rendering first reports the pre-clear copy under a
+                // "Verified empty" banner.
+                renderInventory();
             });
 
             byId("previewCompletion").addEventListener("click", function () {

@@ -684,7 +684,7 @@ test('privacy inventory reports real category counts and carries no stored subje
   const byName = Object.fromEntries(inventory.value.categories.map((entry) => [entry.category, entry]));
   assert.equal(byName['behavior-events'].recordCount, 2, 'the inventory must be read while behavior evidence genuinely exists');
   assert.equal(byName['behavior-events'].present, true);
-  assert.equal(byName['behavior-events'].clearedBy, 'behavior');
+  assert.equal(byName['behavior-events'].clearedBy, 'behavior-and-all-personal');
   assert.equal(byName['portfolio-revisions'].recordCount > 0, true);
   assert.equal(byName['portfolio-revisions'].clearedBy, 'all-personal');
   assert.equal(byName['mandate-revisions'].recordCount > 0, true);
@@ -712,6 +712,11 @@ test('privacy inventory reports real category counts and carries no stored subje
   assert.equal(inventory.value.excludedSourceCount, 0);
   assert.equal(inventory.value.genericNamespacesInspected, false);
   assert.equal(inventory.value.categories.every((entry) => ['behavior', 'behavior-and-all-personal', 'all-personal'].includes(entry.clearedBy)), true);
+  // `clearFoundationStorage` removes every declared foundation key, and all eight categories are
+  // backed by those keys, so no category can survive it. A label omitting `all-personal` would be
+  // telling an owner less than the full-personal clear actually deletes.
+  assert.equal(inventory.value.categories.every((entry) => entry.clearedBy.split('-and-').includes('all-personal')), true,
+    'every category must name the all-personal clear, which empties all of them');
   assert.equal(inventory.value.categories.length, 8, 'every declared category must be projected, so the clearedBy sweep above is not run over a short list');
 
   const duplicate = api.buildBehaviorCandidate(behaviorDraft(), populated, { now: SAME_DAY_LATER }, policy);

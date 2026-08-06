@@ -2212,6 +2212,12 @@
     var eventCategoryCounts = {};
     policy.behavior.eventCategories.forEach(function (category) { eventCategoryCounts[category] = 0; });
     workspace.behaviorEvents.forEach(function (entry) { eventCategoryCounts[entry.category] += 1; });
+    // `clearedBy` declares EVERY operation that empties the category, not the narrowest one.
+    // This row is what an owner reads to decide which clear to run, and it is rendered bare
+    // ("cleared by behavior"), with nothing on the surface stating that a wider operation also
+    // removes it. A label naming only the narrow clear therefore under-states what the wide one
+    // deletes. `clearFoundationStorage` removes every declared foundation key, so it empties all
+    // eight categories; the three the behavior clear also reaches name both operations.
     function category(name, count, cleared) {
       return { category: name, recordCount: count, present: count > 0, clearedBy: cleared };
     }
@@ -2221,8 +2227,8 @@
         category("portfolio-revisions", workspace.portfolioRevisions.length, "all-personal"),
         category("mandate-revisions", workspace.mandateRevisions.length, "all-personal"),
         category("cash-needs", workspace.mandateRevisions.reduce(function (sum, entry) { return sum + entry.cashNeeds.length; }, 0), "all-personal"),
-        category("behavior-events", workspace.behaviorEvents.length, "behavior"),
-        category("interest-signals", workspace.interestSignals.length, "behavior"),
+        category("behavior-events", workspace.behaviorEvents.length, "behavior-and-all-personal"),
+        category("interest-signals", workspace.interestSignals.length, "behavior-and-all-personal"),
         category("action-outcomes", workspace.actionOutcomes.length, "behavior-and-all-personal"),
         category("quarantine", storageResult.value.presentKeys.filter(function (entry) { return entry.key === policy.storage.quarantineKey; }).length, "all-personal"),
         category("session-fallback", storageResult.value.presentKeys.filter(function (entry) { return entry.storage === "session"; }).length, "all-personal")

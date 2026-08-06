@@ -690,7 +690,7 @@ test('Regression: SCN-008-011 clear behavior removes ranking influence and prese
 
   await page.locator('#openPrivacy').click();
   await expect(page.locator('#privacyCategoryRows li[data-privacy-category="behavior-events"]'))
-    .toHaveText('behavior-events · 4 records · present · cleared by behavior');
+    .toHaveText('behavior-events · 4 records · present · cleared by behavior-and-all-personal');
   await expect(page.locator('#privacyCategoryRows li[data-privacy-category="portfolio-revisions"]'))
     .toHaveText('portfolio-revisions · 1 record · present · cleared by all-personal');
 
@@ -714,9 +714,9 @@ test('Regression: SCN-008-011 clear behavior removes ranking influence and prese
   const behaviorBlockText = await page.locator('#behaviorEvidence').innerText();
   expect(behaviorBlockText, 'no cleared subject survives anywhere in the rendered behavior block').not.toMatch(/msft|bnd/i);
   await expect(page.locator('#privacyCategoryRows li[data-privacy-category="behavior-events"]'))
-    .toHaveText('behavior-events · 0 records · empty · cleared by behavior');
+    .toHaveText('behavior-events · 0 records · empty · cleared by behavior-and-all-personal');
   await expect(page.locator('#privacyCategoryRows li[data-privacy-category="interest-signals"]'))
-    .toHaveText('interest-signals · 0 records · empty · cleared by behavior');
+    .toHaveText('interest-signals · 0 records · empty · cleared by behavior-and-all-personal');
 
   const persistedAfter = await persistedWorkspace(page);
   expect(persistedAfter.behaviorEvents, 'events are gone from the persisted bytes, not only from the view').toEqual([]);
@@ -922,9 +922,9 @@ test('Regression: SCN-008-012 behavior evidence excludes engagement and sensitiv
     expect(declaredTokenText, `the excluded-source inventory names ${token}`).toContain(token);
   }
   await expect(page.locator('#privacyCategoryRows li[data-privacy-category="behavior-events"]'))
-    .toHaveText('behavior-events · 2 records · present · cleared by behavior');
+    .toHaveText('behavior-events · 2 records · present · cleared by behavior-and-all-personal');
   await expect(page.locator('#privacyCategoryRows li[data-privacy-category="interest-signals"]'))
-    .toHaveText('interest-signals · 0 records · empty · cleared by behavior');
+    .toHaveText('interest-signals · 0 records · empty · cleared by behavior-and-all-personal');
 
   /* Engagement wording is legitimate ONLY inside the declared exclusion inventory, which must
    * name the tokens it refuses. Everywhere else it would be an engagement objective. */
@@ -971,4 +971,262 @@ test('Regression: SCN-008-012 behavior evidence excludes engagement and sensitiv
   console.log('[SCN-008-012] indexedDbStores=0');
   console.log('[SCN-008-012] engagementCopyOutsideExclusionInventory=0');
   console.log('[SCN-008-012] remotePersonalRequests=0');
+});
+
+/*
+ * TP-03-06 — the foundation/clear MATRIX.
+ *
+ * The row's description names four cells: behavior-only clear, full-personal clear, partial
+ * deletion failure, and prior import/mandate preservation. Two of them — `#clearBehavior` and
+ * the preservation half — are carried by the SCN-008-011 row above. The other two are carried
+ * here, because before this pair the strings `emergencyClear`, `clearFoundationStorage`,
+ * `Verified empty`, and `foundation-clear-incomplete` appeared NOWHERE in this file. An
+ * eight-row green run said nothing whatever about them, which is exactly why a matrix claim
+ * cannot be settled by counting rows.
+ *
+ * "Complete" is quantified on both axes the artifacts declare, not asserted:
+ *   - the privacy categories, each checked against ITS OWN rendered `cleared by …` string
+ *     rather than a table written into this test, with the category NAME set asserted exactly
+ *     so a ninth category breaks the row instead of silently shrinking the sweep, and
+ *   - the six declared foundation clear steps, each faulted on its own — never a subset —
+ *     with an unfaulted control in the same harness proving the refusals are caused by the
+ *     injected fault and not by a flow that always fails.
+ *
+ * Nothing here intercepts a request: no page.route/context.route/msw/nock, because an
+ * intercepted row is a mocked row and cannot satisfy a live-stack e2e-ui DoD item. The fault
+ * in the second row is injected into the browser's own storage DEVICE (`Storage.prototype`),
+ * which is the environment the module talks to, not a stub of the module under test.
+ */
+const STORAGE_POLICY = JSON.parse(readFileSync(resolve(ROOT, 'portfolio-survival-allocation.config.json'), 'utf8')).storage;
+const FOUNDATION_LOCAL_KEYS = Object.freeze([
+  STORAGE_POLICY.pointerKey, ...STORAGE_POLICY.slotKeys, STORAGE_POLICY.quarantineKey
+]);
+const FOUNDATION_SESSION_KEYS = Object.freeze([STORAGE_POLICY.sessionKey, STORAGE_POLICY.returnContextKey]);
+const FOUNDATION_KEYS = Object.freeze([...FOUNDATION_LOCAL_KEYS, ...FOUNDATION_SESSION_KEYS]);
+
+/* Asserted exactly, on purpose. `clearedBy` below is read off the runtime so the test can never
+ * disagree with the contract about what a category should DO; the name set is pinned here so the
+ * matrix cannot quietly stop covering a category that someone adds. */
+const DECLARED_PRIVACY_CATEGORIES = Object.freeze([
+  'action-outcomes', 'behavior-events', 'cash-needs', 'interest-signals',
+  'mandate-revisions', 'portfolio-revisions', 'quarantine', 'session-fallback'
+]);
+
+/* The closed vocabulary a `cleared by` verdict may draw from. Asserted as MEMBERSHIP, not as an
+ * exact snapshot of the labels currently in use: which categories share a label is a product
+ * decision the runtime owns and the per-row assertions check, whereas an unrecognised token means
+ * a rendered row is telling an owner something this matrix cannot classify. */
+const CLEAR_VOCABULARY = Object.freeze(['all-personal', 'behavior', 'behavior-and-all-personal']);
+
+const PUBLIC_GENERIC_CACHE = JSON.stringify({ watchlist: ['SPY', 'TLT'], toolReads: {} });
+
+// Reads the runtime's own per-category declaration out of the rendered row, including the
+// `cleared by` verdict that decides which clear operation each category must obey.
+async function declaredPrivacyMatrix(page) {
+  const rendered = await page.locator('#privacyCategoryRows li').evaluateAll((items) => items.map((item) => ({
+    datasetCategory: item.dataset.privacyCategory,
+    text: item.textContent
+  })));
+  return rendered.map(({ datasetCategory, text }) => {
+    const parsed = /^(\S+) · (\d+) records? · (present|empty) · cleared by (\S+)$/.exec(text);
+    if (!parsed) throw new Error(`unparsable privacy category row: ${text}`);
+    if (parsed[1] !== datasetCategory) throw new Error(`row label ${parsed[1]} disagrees with dataset ${datasetCategory}`);
+    return { category: datasetCategory, recordCount: Number(parsed[2]), present: parsed[3] === 'present', clearedBy: parsed[4] };
+  });
+}
+
+async function foundationKeyState(page) {
+  return page.evaluate((keys) => {
+    const state = {};
+    for (const key of keys.local) state[key] = localStorage.getItem(key);
+    for (const key of keys.session) state[key] = sessionStorage.getItem(key);
+    return {
+      values: state,
+      presentKeys: Object.keys(state).filter((key) => state[key] !== null).sort(),
+      foreignLocalKeys: Object.keys(localStorage).filter((key) => !key.startsWith('rlPortfolioWorkspaceV1.')).sort()
+    };
+  }, { local: [...FOUNDATION_LOCAL_KEYS], session: [...FOUNDATION_SESSION_KEYS] });
+}
+
+// Populates every category this page can genuinely reach: an imported portfolio, an explicit
+// mandate with its dated cash need, and committed completed-research evidence.
+async function populateFoundation(page, label) {
+  await importValid(page, label);
+  await previewMandate(page, 'mandate-explicit.json');
+  await page.locator('#confirmMandate').click();
+  await expect(page.locator('#currentMandate')).toContainText('sha256:');
+  await recordCompletion(page, { category: 'ticker-research-completed', subject: 'msft' });
+  await recordCompletion(page, { category: 'risk-analysis-completed', subject: 'bnd' });
+}
+
+/*
+ * `quarantine` is the one all-personal category backed by a RAW storage key rather than a
+ * workspace array, and no normal action produces it. It is produced through the real corruption
+ * path — corrupt bytes, reopen, quarantine written — and the good bytes are then restored, so the
+ * clear afterwards runs against a workspace that still holds a portfolio, a mandate, and behavior
+ * evidence at the same time as a quarantine record.
+ */
+async function populateQuarantine(page) {
+  const goodSlot = await page.evaluate(() => {
+    const pointer = JSON.parse(localStorage.getItem('rlPortfolioWorkspaceV1.pointer'));
+    const key = 'rlPortfolioWorkspaceV1.' + pointer.activeSlot;
+    const value = localStorage.getItem(key);
+    localStorage.setItem(key, '{ not json');
+    return { key, value };
+  });
+  await page.reload();
+  await expect.poll(async () => (await foundationKeyState(page)).values[STORAGE_POLICY.quarantineKey],
+    'corrupt bytes are quarantined by the real open path').not.toBeNull();
+  await page.evaluate(({ key, value }) => localStorage.setItem(key, value), goodSlot);
+  await page.reload();
+  await expect(page.locator('#currentRevision')).toContainText('Current revision');
+}
+
+test('Regression: TP-03-06 full-personal clear empties every declared category and leaves the generic public cache byte-identical', async ({ page }) => {
+  const requestStart = server.requests.length;
+  const browserRequests = await openRoute(page);
+  await populateFoundation(page, 'TP-03-06 portfolio');
+  await populateQuarantine(page);
+
+  await page.evaluate((cache) => localStorage.setItem('rlData', cache), PUBLIC_GENERIC_CACHE);
+  await page.locator('#openPrivacy').click();
+
+  const before = await declaredPrivacyMatrix(page);
+  expect(before.map((entry) => entry.category).sort(),
+    'the rendered matrix covers exactly the declared privacy categories').toEqual([...DECLARED_PRIVACY_CATEGORIES]);
+  const observedVocabulary = [...new Set(before.map((entry) => entry.clearedBy))].sort();
+  expect(observedVocabulary.filter((token) => !CLEAR_VOCABULARY.includes(token)),
+    'every category declares a clear operation from the closed vocabulary').toEqual([]);
+  expect(observedVocabulary.length,
+    'the rendered rows must not collapse to one constant label, or the per-row verdicts below are indistinguishable')
+    .toBeGreaterThan(1);
+
+  /* The precondition that makes the emptiness claim mean anything: a clear that runs against an
+   * already-empty store would satisfy every assertion below without deleting a thing. */
+  const populated = before.filter((entry) => entry.present).map((entry) => entry.category).sort();
+  expect(populated, 'the categories this page can reach are genuinely populated before the clear')
+    .toEqual(['behavior-events', 'cash-needs', 'mandate-revisions', 'portfolio-revisions', 'quarantine']);
+  const storageBefore = await foundationKeyState(page);
+  expect(storageBefore.presentKeys.length, 'real foundation keys exist to be removed').toBeGreaterThan(0);
+
+  await page.locator('#emergencyClear').click();
+
+  // Exact, not a prefix: `Verified empty` as a substring survives an appended "… 2 keys retained".
+  await expect(page.locator('#privacyResult')).toHaveText(`Verified empty · ${FOUNDATION_KEYS.length} closed foundation keys checked`);
+  await expect(page.locator('#privacyInventory')).toHaveText(
+    '0 Feature 008 personal storage keys present · 0 unavailable to inspect · values never rendered');
+
+  /* The whole matrix, cell by cell, against each category's OWN declaration. Every category is
+   * cleared by an operation that includes all-personal, so after this clear every one of them
+   * must read empty — including the three that survive a behavior clear. */
+  const after = await declaredPrivacyMatrix(page);
+  expect(after.map((entry) => entry.category).sort()).toEqual([...DECLARED_PRIVACY_CATEGORIES]);
+  for (const entry of after) {
+    const declaration = before.find((row) => row.category === entry.category);
+    expect(entry.clearedBy, `${entry.category} keeps its declared clear operation`).toBe(declaration.clearedBy);
+    expect(declaration.clearedBy, `${entry.category} declares an operation the full-personal clear performs`)
+      .toMatch(/all-personal/);
+    await expect(page.locator(`#privacyCategoryRows li[data-privacy-category="${entry.category}"]`))
+      .toHaveText(`${entry.category} · 0 records · empty · cleared by ${entry.clearedBy}`);
+  }
+
+  const storageAfter = await foundationKeyState(page);
+  expect(storageAfter.presentKeys, 'no declared foundation key survives the full-personal clear').toEqual([]);
+
+  /* The positive half. An absence sweep alone cannot tell "the declared keys were removed" from
+   * "the device was wiped" — a `localStorage.clear()` implementation passes every assertion above.
+   * The generic cache another Research Lab tool owns is the discriminator, and it is asserted by
+   * bytes rather than by presence. */
+  expect(storageAfter.foreignLocalKeys, 'the clear neither removes nor adds a key outside its namespace').toEqual(['rlData']);
+  expect(await page.evaluate(() => localStorage.getItem('rlData')),
+    'the generic public cache and watchlist are byte-identical across the full-personal clear').toBe(PUBLIC_GENERIC_CACHE);
+
+  expect(browserRequests.every((url) => new URL(url).origin === server.baseUrl)).toBe(true);
+  const requests = server.requests.slice(requestStart);
+  expect(requests.every((entry) => entry.method === 'GET')).toBe(true);
+  expect(JSON.stringify(requests), 'no personal subject leaves the origin').not.toMatch(/msft|bnd/i);
+
+  console.log('[TP-03-06] declaredCategories=' + DECLARED_PRIVACY_CATEGORIES.join(','));
+  console.log('[TP-03-06] populatedBeforeFullPersonalClear=' + populated.join(','));
+  console.log('[TP-03-06] foundationKeysPresentBefore=' + storageBefore.presentKeys.join(','));
+  console.log('[TP-03-06] clearedKeyCountReported=' + FOUNDATION_KEYS.length);
+  console.log('[TP-03-06] categoriesEmptyAfterFullPersonalClear=' + after.length);
+  console.log('[TP-03-06] foundationKeysPresentAfter=' + storageAfter.presentKeys.length);
+  console.log('[TP-03-06] publicCacheByteIdentical=true');
+  console.log('[TP-03-06] foreignStorageKeys=' + storageAfter.foreignLocalKeys.join(','));
+  console.log('[TP-03-06] remotePersonalRequests=0');
+});
+
+test('Regression: TP-03-06 every declared foundation clear step refuses success on its own and retains only its own key', async ({ browser }) => {
+  const observed = [];
+  const retentionProven = [];
+  // `null` is the control arm. Without it a refusal proves nothing: a flow that always failed
+  // would satisfy all six faulted arms.
+  for (const faultKey of [null, ...FOUNDATION_KEYS]) {
+    const context = await browser.newContext();
+    const page = await context.newPage();
+    if (faultKey !== null) {
+      /* One declared step is faulted, by name, at the storage device. Every other remove still
+       * succeeds, which is what makes this a PARTIAL deletion failure rather than a blocked
+       * store — the distinction the assertions below turn on. */
+      await page.addInitScript((key) => {
+        const original = Storage.prototype.removeItem;
+        Storage.prototype.removeItem = function (name) {
+          if (name === key) throw new Error('remove blocked');
+          return original.call(this, name);
+        };
+      }, faultKey);
+    }
+    await openRoute(page);
+    await populateFoundation(page, 'TP-03-06 fault portfolio');
+    await populateQuarantine(page);
+    await page.evaluate((cache) => localStorage.setItem('rlData', cache), PUBLIC_GENERIC_CACHE);
+    await page.locator('#openPrivacy').click();
+
+    const before = await foundationKeyState(page);
+    expect(before.presentKeys, `${faultKey ?? 'control'}: real foundation keys exist to be removed`)
+      .toEqual([...FOUNDATION_LOCAL_KEYS].sort());
+    await page.locator('#emergencyClear').click();
+    const after = await foundationKeyState(page);
+
+    if (faultKey === null) {
+      await expect(page.locator('#privacyResult')).toHaveText(`Verified empty · ${FOUNDATION_KEYS.length} closed foundation keys checked`);
+      expect(after.presentKeys, 'control: an unfaulted clear removes every declared key').toEqual([]);
+    } else {
+      await expect(page.locator('#privacyResult')).toHaveText('P008-STORE-WRITE · foundation-clear-incomplete');
+      // No success payload may reach the surface on a partial deletion.
+      expect(await page.locator('#privacyResult').innerText()).not.toContain('Verified empty');
+      // Targeted, not blanket: every step except the faulted one still deleted.
+      expect(after.presentKeys.filter((key) => key !== faultKey),
+        `${faultKey}: the other declared steps still delete`).toEqual([]);
+      /* Retention is only observable for a step whose key durable mode actually holds. The two
+       * session keys are absent here, so their arms prove the refusal but NOT retention; that
+       * split is asserted below rather than left for a reader to assume. */
+      if (before.values[faultKey] !== null) {
+        expect(after.values[faultKey], `${faultKey}: the retained key survives with its bytes unchanged`)
+          .toBe(before.values[faultKey]);
+        expect(after.presentKeys, `${faultKey}: exactly one declared key survives`).toEqual([faultKey]);
+        retentionProven.push(faultKey);
+      }
+    }
+    expect(await page.evaluate(() => localStorage.getItem('rlData')),
+      `${faultKey ?? 'control'}: the generic public cache is untouched`).toBe(PUBLIC_GENERIC_CACHE);
+
+    observed.push(`${faultKey ?? 'control'}:${after.presentKeys.length}`);
+    await context.close();
+  }
+  expect(observed, 'every declared clear step was faulted on its own, not a subset').toHaveLength(FOUNDATION_KEYS.length + 1);
+  /* Named, not counted. Durable mode holds the four local keys, so those four arms prove
+   * retention; the two session keys are unreachable in this mode, so their arms are refusal-only
+   * and are recorded as such instead of being folded into a coverage number. */
+  expect(retentionProven.sort(), 'retention is proven for exactly the durable-mode foundation keys')
+    .toEqual([...FOUNDATION_LOCAL_KEYS].sort());
+
+  console.log('[TP-03-06] declaredClearSteps=' + FOUNDATION_KEYS.join(','));
+  console.log('[TP-03-06] faultedStepsIndividually=' + FOUNDATION_KEYS.length);
+  console.log('[TP-03-06] unfaultedControlSucceeded=true');
+  console.log('[TP-03-06] partialFailureArms=' + observed.join(','));
+  console.log('[TP-03-06] retentionProvenSteps=' + retentionProven.join(','));
+  console.log('[TP-03-06] refusalOnlySteps=' + FOUNDATION_SESSION_KEYS.join(','));
+  console.log('[TP-03-06] successPayloadOnPartialFailure=0');
 });

@@ -1766,3 +1766,563 @@ test('FR-038: an imported provider label carrying markup or a navigation scheme 
   });
   assert.equal(attempts, tokenFields.length * FR038_INERT_PAYLOADS.length, 'FR-038 every payload must have been attempted against every token field, not merely listed');
 });
+
+// ---------------------------------------------------------------------------------------
+// NFR-001, NFR-004, NFR-008, NFR-019, NFR-023, NFR-024.
+//
+// Where an id shares ground with a functional requirement already covered above, the block
+// below asserts the part the FR does not: NFR-001 sweeps the PUBLIC PROJECTIONS the module
+// emits rather than its sinks (FR-023), NFR-004 asserts the ranking OBJECTIVE rather than
+// the excluded-token list (FR-031), NFR-019 asserts CREDENTIAL rejection rather than markup
+// inertness (FR-038), and NFR-023 and NFR-024 are deliberately split -- traceable means the
+// change is reported and inspectable, verified means the deletion is confirmed by an
+// independent reread. Sharing one assertion between the last two would leave whichever half
+// is not asserted resting on the other half's evidence.
+// ---------------------------------------------------------------------------------------
+
+// Mirrors the module's own field-name normalisation, so an engagement metric offered as
+// `Dwell_Time` is measured against the declared `dwell` token the way the module measures it.
+function normalizedFieldToken(name) {
+  return String(name).trim().toLowerCase().replace(/[^a-z0-9]/g, '');
+}
+
+// The nouns NFR-001 names that are representable at this contract scope, each mapped to a
+// sentinel `localOnlyWorkspace` genuinely puts in the workspace. P&L is absent for the same
+// reason FR-023 records: no holding revision, mandate, or event field holds one.
+function nfr001Sentinels() {
+  return Object.freeze({
+    portfolio: PLAIN_HOLDING_LABEL,
+    quantities: LOCAL_ONLY_QUANTITY,
+    'cost basis': LOCAL_ONLY_COST_BASIS,
+    goals: mandateFixture('mandate-explicit.json').objectiveLabel,
+    'cash needs': CASH_NEED_DATE,
+    behavior: SUBJECT_ALPHA
+  });
+}
+
+test('NFR-001: every personal noun the id names is stored in the declared local namespace and appears in none of the public projections the module emits, while the local-only projections that legitimately carry it prove the same search does find it', () => {
+  const { api, policy } = loadContracts();
+  const workspace = localOnlyWorkspace(api, policy);
+  const sentinels = nfr001Sentinels();
+  const nouns = Object.keys(sentinels);
+  assert.equal(nouns.length, 6, 'NFR-001 every noun the id names that is representable at this scope must carry a sentinel, or the sweep below is short');
+  assert.equal(new Set(Object.values(sentinels)).size, nouns.length, 'NFR-001 two nouns sharing one sentinel would let a leak of the first pass as a finding about the second');
+
+  // Populate and prove. Without this, "absent from every public projection" would hold for a
+  // value that was never in the workspace those projections were built from.
+  const serializedWorkspace = JSON.stringify(workspace);
+  nouns.forEach((noun) => {
+    assert.equal(serializedWorkspace.includes(sentinels[noun]), true, `NFR-001 the ${noun} sentinel must genuinely be in the local workspace, or its absence from the public projections is asserted about nothing`);
+  });
+
+  const localStorage = createStorage({ initial: { [GENERIC_CACHE_KEY]: 'generic-public-cache' } });
+  const sessionStorage = createStorage();
+  const store = api.createPortfolioStore({ localStorage, sessionStorage }, policy);
+  const opened = store.openWorkspace(NOW);
+  assert.equal(opened.ok, true);
+  const committed = store.commitWorkspace({ ...workspace, generation: opened.value.workspace.generation }, opened.value.workspace.generation, NOW);
+  assert.equal(committed.ok, true, `NFR-001 the local workspace must commit: ${JSON.stringify(committed.error || {})}`);
+
+  // "stays local" has a positive half that an absence sweep alone never establishes: the bytes
+  // must genuinely be IN the declared local namespace. A module that simply stored nothing
+  // would satisfy every absence claim below.
+  const localBytes = Object.values(localStorage.snapshot()).concat(Object.values(sessionStorage.snapshot())).join('');
+  nouns.forEach((noun) => {
+    assert.equal(localBytes.includes(sentinels[noun]), true, `NFR-001 the ${noun} sentinel must be found inside the declared local storage namespace, because "stays local" is a claim about where it IS as well as where it is not`);
+  });
+
+  // The projections the module emits that are shareable, published, or read by a surface
+  // outside the owner's own workspace view. The local route projection is deliberately NOT
+  // here: it legitimately carries the mandate cash need, and it serves as the control below.
+  const preview = api.exportPreview({ portfolio: workspace.portfolioRevisions[0] });
+  const inventory = api.privacyInventory(workspace, { localStorage, sessionStorage }, policy);
+  const foundationInventory = api.foundationPrivacyInventory({ localStorage, sessionStorage });
+  assert.equal(preview.ok, true, `NFR-001 the export preview must build: ${JSON.stringify(preview.error || {})}`);
+  assert.equal(inventory.ok, true, `NFR-001 the privacy inventory must build: ${JSON.stringify(inventory.error || {})}`);
+  assert.equal(foundationInventory.ok, true, `NFR-001 the foundation privacy inventory must build: ${JSON.stringify(foundationInventory.error || {})}`);
+
+  // A legacy shape is quarantined with metadata rather than migrated, and the quarantine
+  // record is itself a surface a support flow can be asked to hand over. The legacy slot is
+  // seeded with every sentinel so its omission from the quarantine record is a real omission.
+  const legacySlot = JSON.stringify({ contractVersion: 'portfolio-workspace/v0', generation: 2, ...Object.fromEntries(nouns.map((noun, index) => [`legacyField${index}`, sentinels[noun]])) });
+  const legacyPointer = JSON.stringify({ contractVersion: 'portfolio-workspace-pointer/v1', activeSlot: 'slotA', generation: 2, semanticFingerprint: `sha256:${'3'.repeat(64)}`, contentSha256: `sha256:${'4'.repeat(64)}` });
+  const legacyStorage = createStorage({ initial: { [policy.storage.pointerKey]: legacyPointer, [policy.storage.slotKeys[0]]: legacySlot } });
+  const legacyOpen = api.createPortfolioStore({ localStorage: legacyStorage, sessionStorage: createStorage() }, policy).openWorkspace(NOW);
+  assert.equal(legacyOpen.ok, false, 'NFR-001 an unknown legacy shape must refuse migration, or no quarantine record is produced to sweep');
+  const quarantineRecord = legacyStorage.getItem(policy.storage.quarantineKey);
+  assert.equal(typeof quarantineRecord, 'string', 'NFR-001 the quarantine record must exist, or the claims about it hold for nothing');
+  nouns.forEach((noun) => {
+    assert.equal(legacyStorage.getItem(policy.storage.slotKeys[0]).includes(sentinels[noun]), true, `NFR-001 the ${noun} sentinel must still be in the untouched legacy slot, so its absence from the quarantine record is an omission rather than a value that was never there`);
+  });
+
+  const publicSurfaces = Object.freeze({
+    'export preview': JSON.stringify(preview.value),
+    'privacy inventory': JSON.stringify(inventory.value),
+    'foundation privacy inventory': JSON.stringify(foundationInventory.value),
+    'quarantine record': quarantineRecord,
+    'generic public cache': localStorage.getItem(GENERIC_CACHE_KEY)
+  });
+  const surfaceNames = Object.keys(publicSurfaces);
+  assert.equal(surfaceNames.length, 5, 'NFR-001 every public projection this scope emits must be swept, not a subset of them');
+
+  let swept = 0;
+  surfaceNames.forEach((surface) => {
+    assert.equal(typeof publicSurfaces[surface], 'string', `NFR-001 the ${surface} surface must have produced bytes to search, or its per-noun claims are made against nothing`);
+    assert.equal(publicSurfaces[surface].length > 0, true, `NFR-001 the ${surface} surface must be non-empty, or an absence in it is an artefact of an empty string`);
+    nouns.forEach((noun) => {
+      assert.equal(publicSurfaces[surface].includes(sentinels[noun]), false, `NFR-001 the ${noun} sentinel must not reach the ${surface}, because personal state stays local and absent from public surfaces`);
+      swept += 1;
+    });
+  });
+  assert.equal(swept, surfaceNames.length * nouns.length, 'NFR-001 every surface and noun pair must have been swept, not merely iterated over');
+
+  // Detectability controls. Each runs the SAME `includes` predicate against a local-only
+  // surface that legitimately carries the sentinel, so "not found" above is a property of the
+  // public surfaces rather than of a value this test cannot see anywhere.
+  const privateExport = api.exportPrivate({ portfolio: workspace.portfolioRevisions[0] });
+  assert.equal(privateExport.ok, true, `NFR-001 the private export must build: ${JSON.stringify(privateExport.error || {})}`);
+  [['portfolio', PLAIN_HOLDING_LABEL], ['quantities', LOCAL_ONLY_QUANTITY], ['cost basis', LOCAL_ONLY_COST_BASIS]].forEach(([noun, sentinel]) => {
+    assert.equal(privateExport.value.text.includes(sentinel), true, `NFR-001 control: the ${noun} sentinel must be found by the same search in the owner's own private export, so its absence from the public surfaces is a real omission`);
+  });
+  const routeProjection = api.projectRouteStates(workspace, policy);
+  assert.equal(routeProjection.ok, true, `NFR-001 the local route projection must build: ${JSON.stringify(routeProjection.error || {})}`);
+  assert.equal(
+    JSON.stringify(routeProjection.value).includes(CASH_NEED_DATE),
+    true,
+    'NFR-001 control: the cash-need sentinel must be found by the same search in the local route projection, which legitimately carries it, so its absence from the public surfaces is selective rather than universal'
+  );
+
+  // Red-ability. The absence predicate is run against bytes that provably carry the sentinel
+  // and is required to throw, so a predicate that could never fail is caught here.
+  assert.throws(
+    () => assert.equal(privateExport.value.text.includes(LOCAL_ONLY_QUANTITY), false),
+    undefined,
+    'NFR-001 control: the absence predicate must reject a surface that genuinely carries a personal value'
+  );
+  assert.throws(
+    () => assert.equal(JSON.stringify(routeProjection.value).includes(CASH_NEED_DATE), false),
+    undefined,
+    'NFR-001 control: the absence predicate must reject a projection that genuinely carries a cash need'
+  );
+});
+
+// The three metric families NFR-004 names, each mapped onto the declared excluded sources
+// that carry it. The mapping is asserted against the policy rather than trusted, so a family
+// whose tokens were dropped from the policy is caught by name instead of silently thinning
+// the sweep.
+const NFR004_ENGAGEMENT_FAMILIES = Object.freeze({
+  click: Object.freeze(['clickcount', 'scroll']),
+  dwell: Object.freeze(['dwell']),
+  retention: Object.freeze(['returnfrequency', 'opencount', 'notificationopen'])
+});
+
+test('NFR-004: no declared ranking input is an engagement metric, every click dwell and retention source is refused by name on the path that grows ranking evidence, and a research completion is still admitted and still counted', () => {
+  const { api, policy } = loadContracts();
+  const storageAdapters = { localStorage: createStorage(), sessionStorage: createStorage() };
+  const workspace = portfolioAndMandateWorkspace(api, policy);
+  const workspaceBefore = JSON.stringify(workspace);
+
+  // Selectivity control, run FIRST and carried all the way to the ranking evidence. A guard
+  // that refused every draft would be red here, and a guard that accepted the draft but never
+  // let it reach the counted evidence would be red on the count.
+  const admitted = api.buildBehaviorCandidate(behaviorDraft(), workspace, { now: NOW }, policy);
+  assert.equal(admitted.ok, true, `NFR-004 control: a documented research completion must still be admitted: ${JSON.stringify(admitted.error || {})}`);
+  assert.equal(admitted.value.accepted, true, 'NFR-004 control: the research completion must genuinely be recorded, or "the refusal is selective" rests on nothing');
+  assert.equal(admitted.value.workspace.behaviorEvents.length, workspace.behaviorEvents.length + 1, 'NFR-004 control: task-utility evidence must actually grow, so ranking has something research-relevant to read');
+  const admittedInventory = api.privacyInventory(admitted.value.workspace, storageAdapters, policy);
+  assert.equal(admittedInventory.value.eventCategoryCounts[behaviorDraft().category], 1, 'NFR-004 control: the admitted completion must be counted under its research category, so acceptance reaches the ranking evidence rather than stopping at the builder');
+
+  // Second selectivity control: a harmless undeclared field is refused as UNKNOWN, so
+  // `forbidden-behavior-source` below is a real classification and not the only rejection.
+  const benign = api.buildBehaviorCandidate({ ...behaviorDraft(), [BENIGN_EXTRA_FIELD]: 'inert' }, workspace, { now: NOW }, policy);
+  assert.equal(benign.ok, false, 'NFR-004 control: an undeclared draft field must not be accepted');
+  assert.equal(benign.error.reason, 'unknown-field', 'NFR-004 control: a harmless undeclared field must be refused as unknown, so an engagement refusal is a distinct finding');
+
+  // The objective itself. The ranking inputs are derived from the policy by numeric-ness, not
+  // read from a frozen list here, so a click-based or dwell-based input added to the behavior
+  // policy later enters this set and is caught without editing this test.
+  const declaredRankingInputs = Object.keys(policy.behavior).filter((name) => Number.isFinite(policy.behavior[name]));
+  assert.equal(declaredRankingInputs.length > 0, true, 'NFR-004 an empty ranking-input set would make the objective claim below vacuous');
+  const forbiddenTokens = policy.behavior.forbiddenEventFields;
+  assert.equal(forbiddenTokens.length > 0, true, 'NFR-004 an empty excluded-source list would make the objective claim below vacuous');
+  const engagementRankingInputs = declaredRankingInputs.filter((name) => forbiddenTokens.some((token) => normalizedFieldToken(name).includes(token)));
+  assert.deepEqual(engagementRankingInputs, [], 'NFR-004 no value that scores or decays behavior evidence may be an engagement metric, because ranking is evaluated for research relevance and task utility');
+
+  // Red-ability for the objective claim: the same derivation run over a policy clone that DOES
+  // declare a dwell-scored input must find it. Without this the empty intersection could be a
+  // property of the derivation rather than of the policy.
+  const engagementPolicy = { ...policy, behavior: { ...policy.behavior, dwellWeightDays: 3 } };
+  const clonedRankingInputs = Object.keys(engagementPolicy.behavior).filter((name) => Number.isFinite(engagementPolicy.behavior[name]));
+  assert.throws(
+    () => assert.deepEqual(clonedRankingInputs.filter((name) => forbiddenTokens.some((token) => normalizedFieldToken(name).includes(token))), []),
+    undefined,
+    'NFR-004 control: the objective claim must reject a policy that declares an engagement-scored ranking input'
+  );
+
+  // Every family the id names, refused by name on the path that grows the ranking evidence.
+  const families = Object.keys(NFR004_ENGAGEMENT_FAMILIES);
+  assert.equal(families.length, 3, 'NFR-004 click dwell and retention must each be exercised, not merely named');
+  let attempted = 0;
+  families.forEach((family) => {
+    const tokens = NFR004_ENGAGEMENT_FAMILIES[family];
+    assert.equal(tokens.length > 0, true, `NFR-004 the ${family} family must name at least one source, or its claims are vacuous`);
+    tokens.forEach((token) => {
+      assert.equal(forbiddenTokens.includes(token), true, `NFR-004 the ${family} source ${token} must be declared excluded in the policy a reader can open, not only rejected by code`);
+      const attempt = api.buildBehaviorCandidate({ ...behaviorDraft(), [token]: 'attempted' }, workspace, { now: NOW }, policy);
+      assert.equal(attempt.ok, false, `NFR-004 a draft carrying the ${family} metric ${token} must not become ranking evidence`);
+      assert.equal(attempt.error.reason, 'forbidden-behavior-source', `NFR-004 ${token} must be refused as an excluded behavior source, so ranking cannot be optimized for ${family}`);
+      assert.equal(attempt.error.field, `draft.${token}`, `NFR-004 the refusal must name draft.${token} exactly, so the surface can say which engagement source was excluded`);
+      assert.equal(attempt.value, undefined, `NFR-004 a ${token} attempt must yield no workspace, so no part of it can reach the evidence ranking reads`);
+      attempted += 1;
+    });
+  });
+  assert.equal(attempted, Object.values(NFR004_ENGAGEMENT_FAMILIES).reduce((sum, tokens) => sum + tokens.length, 0), 'NFR-004 every named engagement source must have been attempted, not merely iterated over');
+
+  // What survives admission carries no engagement metric either. A field admitted onto the
+  // stored event would be readable by ranking regardless of what the draft guard refused.
+  const storedEvent = admitted.value.workspace.behaviorEvents[admitted.value.workspace.behaviorEvents.length - 1];
+  const storedFields = Object.keys(storedEvent);
+  assert.equal(storedFields.length > 0, true, 'NFR-004 the stored event must carry fields, or the sweep below runs over nothing');
+  storedFields.forEach((field) => {
+    assert.equal(
+      forbiddenTokens.some((token) => normalizedFieldToken(field).includes(token)),
+      false,
+      `NFR-004 the retained event field ${field} must not be an engagement metric, because ranking reads the stored event rather than the refused draft`
+    );
+  });
+
+  // Red-ability for the refusal claim: the same predicate run against the ACCEPTED candidate
+  // must throw, so `ok: false` is caused by the engagement metric and is not a constant.
+  assert.throws(
+    () => assert.equal(admitted.ok, false),
+    undefined,
+    'NFR-004 control: the refusal predicate must reject a research completion that was correctly admitted'
+  );
+  assert.equal(JSON.stringify(workspace), workspaceBefore, 'NFR-004 no refused engagement attempt may mutate the workspace it was offered against');
+});
+
+// A storage adapter that ACCEPTS a write and stores nothing. This is the shape a quota-pressed
+// or restricted browser store presents when it swallows rather than throws, and it is the only
+// adapter that can tell a SURFACED persistence failure from a swallowed one: after a swallow
+// and after a correct refusal the store holds exactly the same bytes, so no assertion about
+// store state can separate them. It wraps the shared adapter so everything else is unchanged.
+function silentlyDroppingStorage(shouldDrop) {
+  const inner = createStorage();
+  return {
+    clear: () => inner.clear(),
+    getItem: (key) => inner.getItem(key),
+    key: (index) => inner.key(index),
+    get length() { return inner.length; },
+    removeItem: (key) => inner.removeItem(key),
+    setItem: (key, value) => { if (shouldDrop(String(key))) return; inner.setItem(key, value); },
+    snapshot: () => inner.snapshot(),
+    writes: () => inner.writes()
+  };
+}
+
+test('NFR-008: a throwing store and a silently dropping store both surface an explicit write failure with no success state, capability loss is reported in words, and the same commit still succeeds unfaulted', () => {
+  const { api, policy } = loadContracts();
+  const draft = validDraft(api, policy);
+
+  // Control, run FIRST: the surface can say success, and says it only with the durability
+  // facts attached. Without this arm every `ok: false` below could be a constant.
+  const cleanLocal = createStorage();
+  const cleanStore = api.createPortfolioStore({ localStorage: cleanLocal, sessionStorage: createStorage() }, policy);
+  const cleanOpen = cleanStore.openWorkspace(NOW);
+  const cleanCandidate = api.buildWorkspaceCandidate(draft, cleanOpen.value.workspace, { name: 'Resilience control', now: NOW }, policy);
+  const cleanCommit = cleanStore.commitWorkspace(cleanCandidate.value, cleanOpen.value.workspace.generation, NOW);
+  assert.equal(cleanCommit.ok, true, `NFR-008 control: an unfaulted commit must succeed: ${JSON.stringify(cleanCommit.error || {})}`);
+  assert.equal(cleanCommit.value.storageState.savedDurably, true, 'NFR-008 control: a save that did land must say so');
+  assert.equal(cleanCommit.value.storageState.lastVerifiedWrite, true, 'NFR-008 control: a save that did land must report a verified write');
+  assert.equal(cleanLocal.getItem(policy.storage.pointerKey) !== null, true, 'NFR-008 control: the unfaulted commit must genuinely have published a pointer, so the success state is backed by bytes');
+
+  // Arm 1: the store throws. The failure must be surfaced as an explicit error with NO success
+  // state at all, because a partial success state is exactly a claim that the save worked.
+  const throwingLocal = createStorage();
+  const throwingStore = api.createPortfolioStore({ localStorage: throwingLocal, sessionStorage: createStorage() }, policy);
+  const throwingOpen = throwingStore.openWorkspace(NOW);
+  const throwingCandidate = api.buildWorkspaceCandidate(draft, throwingOpen.value.workspace, { name: 'Throwing store', now: NOW }, policy);
+  throwingLocal.failSet(policy.storage.slotKeys[0]);
+  const threw = throwingStore.commitWorkspace(throwingCandidate.value, throwingOpen.value.workspace.generation, NOW);
+  assert.equal(threw.ok, false, 'NFR-008 a store that rejected the write must not be reported as a completed local save');
+  assert.equal(threw.error.code, 'P008-STORE-WRITE', 'NFR-008 the persistence failure must be surfaced under its own write-failure code, not folded into a generic result');
+  assert.equal(threw.error.valueEchoed, false, 'NFR-008 the visible failure must stay value-safe');
+  assert.equal(Object.prototype.hasOwnProperty.call(threw, 'value'), false, 'NFR-008 a failed save must emit no success state at all, because a success state is the claim the id forbids');
+
+  // Arm 2: the store SWALLOWS. It accepts the write, reports nothing, and stores nothing --
+  // leaving byte-for-byte the same store state as arm 1. Only the returned signal separates a
+  // surfaced failure from a swallowed one, so this arm is asserted on the signal.
+  const droppedSlots = new Set(policy.storage.slotKeys);
+  const silentLocal = silentlyDroppingStorage((key) => droppedSlots.has(key));
+  const silentStore = api.createPortfolioStore({ localStorage: silentLocal, sessionStorage: createStorage() }, policy);
+  const silentOpen = silentStore.openWorkspace(NOW);
+  assert.equal(silentOpen.value.storageState.mode, 'durable', 'NFR-008 the dropping store must present as durable at open, or the commit below is refused for the wrong reason');
+  const silentCandidate = api.buildWorkspaceCandidate(draft, silentOpen.value.workspace, { name: 'Silently dropping store', now: NOW }, policy);
+  const swallowed = silentStore.commitWorkspace(silentCandidate.value, silentOpen.value.workspace.generation, NOW);
+  assert.equal(swallowed.ok, false, 'NFR-008 a store that accepted the write and kept nothing must still surface a failure, because the product cannot claim a local save succeeded when it did not');
+  assert.equal(swallowed.error.code, 'P008-STORE-WRITE', 'NFR-008 a swallowed write must be surfaced under the same explicit write-failure code as a rejected one');
+  assert.equal(swallowed.error.reason, 'slot-verification-failed', 'NFR-008 the swallowed write must be caught by reading the bytes back, which is the only way a silent drop becomes visible');
+  assert.equal(Object.prototype.hasOwnProperty.call(swallowed, 'value'), false, 'NFR-008 a swallowed save must emit no success state either');
+  assert.deepEqual(Object.keys(silentLocal.snapshot()), [], 'NFR-008 the dropping store genuinely kept nothing, so the failure above was surfaced from a store state that is indistinguishable from a swallow');
+  assert.equal(silentLocal.getItem(policy.storage.pointerKey), null, 'NFR-008 no pointer may be published over a slot whose bytes never landed');
+
+  // Arm 3: quota and capability pressure is visible in words, not only in a flag.
+  const blockedDurable = createStorage({ failSet: [`${policy.storage.workspaceNamespace}.probe`] });
+  const degraded = api.createPortfolioStore({ localStorage: blockedDurable, sessionStorage: createStorage() }, policy).openWorkspace(NOW);
+  assert.equal(degraded.ok, true, 'NFR-008 a store that cannot persist durably must still open, or the visible-degradation claim never runs');
+  assert.equal(degraded.value.storageState.durable, false, 'NFR-008 lost durability must be reported rather than assumed');
+  assert.equal(degraded.value.storageState.savedDurably, false, 'NFR-008 a session-only store must not claim a durable save');
+  assert.equal(typeof degraded.value.storageState.warning === 'string' && degraded.value.storageState.warning.length > 0, true, 'NFR-008 quota or capability pressure must be visible as a message the owner can read, not only as a boolean');
+  assert.notEqual(degraded.value.storageState.warning, cleanOpen.value.storageState.warning, 'NFR-008 the warning must be caused by the degradation, so an unfaulted open must not carry the same warning');
+  assert.equal(cleanOpen.value.storageState.durable, true, 'NFR-008 control: the unfaulted open must report durability, so `durable: false` above is a real signal');
+
+  // Red-ability. A facade that converts the surfaced refusal into a reported success is the
+  // exact defect the id forbids; the arm-2 predicate must reject it. This is applied to the
+  // module's own faulted result in memory, so nothing on disk is changed to prove it.
+  const swallowingFacade = swallowed.ok ? swallowed : { ok: true, value: { storageState: { ...cleanCommit.value.storageState } } };
+  assert.throws(
+    () => assert.equal(swallowingFacade.ok, false),
+    undefined,
+    'NFR-008 control: the surfaced-failure predicate must reject a layer that turns a failed save into a reported success'
+  );
+  assert.throws(
+    () => assert.equal(Object.prototype.hasOwnProperty.call(swallowingFacade, 'value'), false),
+    undefined,
+    'NFR-008 control: the no-success-state predicate must reject a layer that attaches a durable-looking success state to a failed save'
+  );
+});
+
+test('NFR-019: every declared credential field name and credential value shape is rejected without echoing the value, markup does not smuggle a credential past the guard, and an ordinary provider label is still imported', () => {
+  const { api, policy } = loadContracts();
+  const sentinel = `NFR019-RUNTIME-PRIVATE-${Date.now()}`;
+
+  // Selectivity control, run FIRST: an ordinary provider label imports and is confirmable, so
+  // an importer that refused everything would be red before a single credential is offered.
+  const ordinary = api.validateImport('csv', localOnlyCsv('an ordinary provider label'), null, policy);
+  assert.equal(ordinary.ok, true, `NFR-019 control: an ordinary import must parse: ${JSON.stringify(ordinary.error || {})}`);
+  assert.equal(ordinary.value.canConfirm, true, 'NFR-019 control: an ordinary import must be confirmable, or every rejection below is a blanket refusal');
+  assert.equal(ordinary.value.holdings.length > 0, true, 'NFR-019 control: an ordinary import must yield holdings, so a rejected draft is a real difference');
+  assert.equal(ordinary.value.errors.some((error) => error.code === 'P008-IMPORT-SECRET'), false, 'NFR-019 control: an ordinary import must raise no credential finding, so the credential code is a real classification');
+
+  // Every declared credential FIELD NAME. The list is read from the policy, so a token dropped
+  // from the declared surface thins this sweep by name rather than silently.
+  const fieldTokens = policy.import.secretFieldTokens;
+  assert.equal(fieldTokens.length > 0, true, 'NFR-019 an empty credential-token list would make the per-token claims vacuous');
+  let rejectedNames = 0;
+  fieldTokens.forEach((token) => {
+    const bytes = `symbol,assetType,currency,quantity,price,${token}\nMSFT,listed,USD,10,450.25,${sentinel}\n`;
+    const result = api.validateImport('csv', bytes, null, policy);
+    assert.equal(result.ok, true, `NFR-019 a column named ${token} must be handled as untrusted data rather than crashing the import`);
+    assert.equal(result.value.canConfirm, false, `NFR-019 a draft carrying the credential-shaped column ${token} must not be confirmable`);
+    assert.equal(result.value.holdings.length, 0, `NFR-019 a credential-shaped column ${token} must reject the whole draft, so no row of it can be committed`);
+    const finding = result.value.errors.find((error) => error.code === 'P008-IMPORT-SECRET');
+    assert.notEqual(finding, undefined, `NFR-019 ${token} must be reported as a credential finding, not incidentally as an unknown column`);
+    assert.equal(finding.reason, 'secret-shaped-field', `NFR-019 ${token} must be refused for its credential-shaped NAME`);
+    assert.equal(finding.valueEchoed, false, `NFR-019 the ${token} refusal must not echo the value it refused, because imported text is untrusted data`);
+    assert.equal(JSON.stringify(result).includes(sentinel), false, `NFR-019 the value under ${token} must appear nowhere in the result, not even in a diagnostic`);
+    rejectedNames += 1;
+  });
+  assert.equal(rejectedNames, fieldTokens.length, 'NFR-019 every declared credential field name must have been attempted, not merely listed');
+
+  // Every declared credential VALUE SHAPE, offered in an ordinary column. The name guard
+  // cannot catch these, so without this arm a pasted bearer token in a label column passes.
+  const valuePrefixes = policy.import.secretValuePrefixes;
+  assert.equal(valuePrefixes.length > 0, true, 'NFR-019 an empty credential-prefix list would make the per-prefix claims vacuous');
+  let rejectedValues = 0;
+  valuePrefixes.forEach((prefix) => {
+    const credential = `${prefix}${sentinel}`;
+    assert.equal(credential.length >= policy.import.secretValueMinimumLength, true, `NFR-019 the ${prefix} probe must reach the declared credential length, or it is refused for being short rather than for being a credential`);
+    const result = api.validateImport('csv', localOnlyCsv(credential), null, policy);
+    assert.equal(result.ok, true, `NFR-019 a ${prefix} value must be handled as untrusted data rather than crashing the import`);
+    assert.equal(result.value.canConfirm, false, `NFR-019 a draft carrying a ${prefix} credential value must not be confirmable`);
+    const finding = result.value.errors.find((error) => error.code === 'P008-IMPORT-SECRET');
+    assert.notEqual(finding, undefined, `NFR-019 a ${prefix} value must be reported as a credential finding even in an ordinary column`);
+    assert.equal(finding.reason, 'secret-shaped-value', `NFR-019 a ${prefix} value must be refused for its credential-shaped VALUE, which the field-name guard cannot see`);
+    assert.equal(finding.valueEchoed, false, `NFR-019 the ${prefix} refusal must not echo the credential it refused`);
+    assert.equal(JSON.stringify(result).includes(sentinel), false, `NFR-019 a ${prefix} credential must appear nowhere in the result`);
+    rejectedValues += 1;
+  });
+  assert.equal(rejectedValues, valuePrefixes.length, 'NFR-019 every declared credential value shape must have been attempted, not merely listed');
+
+  // The two guards compose. Executable markup carried in a credential-shaped column is still a
+  // credential finding, so markup cannot be used to dress a credential past the name guard;
+  // and the same markup in an ordinary label raises no credential finding, so the two
+  // classifications stay distinct instead of collapsing into one blanket rejection.
+  const markupCredential = api.validateImport('csv', `symbol,assetType,currency,quantity,price,${fieldTokens[0]}\nMSFT,listed,USD,10,450.25,${INERT_MARKUP_LABEL}\n`, null, policy);
+  assert.equal(markupCredential.value.canConfirm, false, 'NFR-019 markup in a credential-shaped column must not be confirmable');
+  assert.equal(
+    markupCredential.value.errors.some((error) => error.code === 'P008-IMPORT-SECRET' && error.reason === 'secret-shaped-field'),
+    true,
+    'NFR-019 markup must not smuggle a credential-shaped column past the guard'
+  );
+  const markupLabel = api.validateImport('csv', localOnlyCsv(INERT_MARKUP_LABEL), null, policy);
+  assert.equal(markupLabel.value.canConfirm, true, 'NFR-019 markup in an ordinary label is untrusted DATA and must not be rejected as a credential');
+  assert.equal(
+    markupLabel.value.errors.some((error) => error.code === 'P008-IMPORT-SECRET'),
+    false,
+    'NFR-019 markup in an ordinary label must raise no credential finding, so the credential classification is selective'
+  );
+
+  // A refusal that is handed the raw value is itself a leak, so the error contract must refuse
+  // to carry one.
+  const firstFinding = api.validateImport('csv', `symbol,assetType,currency,quantity,price,${fieldTokens[0]}\nMSFT,listed,USD,10,450.25,${sentinel}\n`, null, policy).value.errors[0];
+  assert.equal(api.validatePortfolioError({ ...firstFinding, rawValue: sentinel }).error.reason, 'unknown-field', 'NFR-019 a credential finding must not be able to carry the raw value it refused');
+
+  // Red-ability: the rejection predicate run against the ordinary import must throw.
+  assert.throws(
+    () => assert.equal(ordinary.value.canConfirm, false),
+    undefined,
+    'NFR-019 control: the credential-rejection predicate must reject an ordinary import that was correctly accepted'
+  );
+});
+
+test('NFR-023: a recommendation route cites the exact revision identity it used or names why it cannot, and a clear reports a per-category change that matches the inspected before and after inventory', () => {
+  const { api, policy } = loadContracts();
+  const storageAdapters = { localStorage: createStorage(), sessionStorage: createStorage() };
+
+  // Traceable recommendation. The projection must cite the exact revision it read, and the
+  // citation must track the workspace rather than be a constant, so a second mandate that
+  // differs only in its declared objective is projected and required to cite differently. The
+  // variant is built by mutating the fixture in memory, so the difference is an input change.
+  const explicit = portfolioAndMandateWorkspace(api, policy);
+  const restatedFixture = { ...mandateFixture('mandate-explicit.json'), objectiveLabel: 'Fund a dated withdrawal without forced selling and hold a named reserve' };
+  const restatedDraft = api.validateMandateDraft(restatedFixture, api.createEmptyWorkspace(policy, LATER).value, { now: LATER }, policy);
+  assert.equal(restatedDraft.ok, true, `NFR-023 the restated mandate draft must validate: ${JSON.stringify(restatedDraft.error || {})}`);
+  const restated = api.buildMandateCandidate(restatedDraft.value, explicit, { now: LATER }, policy);
+  assert.equal(restated.ok, true, `NFR-023 a second mandate must build, or the citation cannot be shown to track the revision: ${JSON.stringify(restated.error || {})}`);
+  assert.notEqual(restated.value.currentMandateId, explicit.currentMandateId, 'NFR-023 the two workspaces must carry different mandate revisions, or an identical citation proves nothing');
+
+  const explicitProjection = api.projectRouteStates(explicit, policy);
+  const restatedProjection = api.projectRouteStates(restated.value, policy);
+  assert.equal(explicitProjection.ok, true, `NFR-023 the route projection must build: ${JSON.stringify(explicitProjection.error || {})}`);
+  assert.equal(restatedProjection.ok, true, `NFR-023 the second route projection must build: ${JSON.stringify(restatedProjection.error || {})}`);
+  assert.equal(explicitProjection.value.routes.length > 0, true, 'NFR-023 an empty route list would make the per-route citation claims vacuous');
+  explicitProjection.value.routes.forEach((route) => {
+    assert.equal(route.descriptive.citedPortfolioId, explicit.currentPortfolioId, `NFR-023 the ${route.route} route must cite the exact portfolio revision it was computed from`);
+    route.mandateDependent.forEach((entry) => {
+      assert.equal(entry.citedMandateId, explicit.currentMandateId, `NFR-023 the ${route.route} ${entry.state} state must cite the exact mandate revision it was computed from`);
+      assert.equal(entry.reason, null, `NFR-023 an available ${entry.state} state must carry no absence reason, so a reason is a real finding`);
+    });
+  });
+  assert.notEqual(
+    restatedProjection.value.currentMandateId,
+    explicitProjection.value.currentMandateId,
+    'NFR-023 the citation must change when the mandate changes, so it traces the revision that was actually read rather than naming a constant'
+  );
+
+  // The other half of the traceability the id allows: exact event categories, reported over
+  // the full declared vocabulary rather than only the ones that happen to be populated.
+  const first = appendEvent(api, policy, explicit, {});
+  const populated = appendEvent(api, policy, first.value.workspace, { subjectId: SUBJECT_BETA }, NEXT_DAY).value.workspace;
+  const before = api.privacyInventory(populated, storageAdapters, policy);
+  assert.equal(before.ok, true);
+  assert.deepEqual(Object.keys(before.value.eventCategoryCounts).sort(), [...policy.behavior.eventCategories].sort(), 'NFR-023 every declared event category must be traceable, including the ones currently at zero');
+
+  // Traceable clearing: what the clear reports must match what an independent before-and-after
+  // inspection of the inventory shows, category by category.
+  const cleared = api.buildBehaviorClearCandidate(populated, LATER, policy);
+  assert.equal(cleared.ok, true, `NFR-023 the clear must build: ${JSON.stringify(cleared.error || {})}`);
+  const after = api.privacyInventory(cleared.value.workspace, storageAdapters, policy);
+  assert.equal(after.ok, true);
+  const countsByCategory = (inventory) => Object.fromEntries(inventory.value.categories.map((entry) => [entry.category, entry.recordCount]));
+  const beforeCounts = countsByCategory(before);
+  const afterCounts = countsByCategory(after);
+  const observedDelta = Object.fromEntries(Object.keys(beforeCounts).map((category) => [category, beforeCounts[category] - afterCounts[category]]));
+  assert.equal(Object.keys(observedDelta).length, before.value.categories.length, 'NFR-023 the inspected change must cover every reported category, so a category that changed silently is caught');
+  assert.equal(observedDelta['behavior-events'], cleared.value.clearedEventCount, 'NFR-023 the count the clear reports must equal the change an owner can independently inspect in the inventory');
+  assert.equal(observedDelta['behavior-events'] > 0, true, 'NFR-023 the inspected change must be non-zero, or the match above holds for a clear that did nothing');
+  assert.equal(observedDelta['interest-signals'], cleared.value.clearedInterestCount, 'NFR-023 the derived-interest change must be reported as its own number rather than folded into the event count');
+  assert.equal(cleared.value.preservedPortfolioId, populated.currentPortfolioId, 'NFR-023 a clear must name what it preserved, not only what it removed');
+  assert.equal(cleared.value.preservedMandateId, populated.currentMandateId, 'NFR-023 a clear must name the mandate it preserved');
+  Object.keys(observedDelta).filter((category) => !['behavior-events', 'interest-signals'].includes(category)).forEach((category) => {
+    assert.equal(observedDelta[category], 0, `NFR-023 the ${category} category must be unchanged by a behavior clear, so the reported scope of the change is the real scope`);
+  });
+
+  // Control: a clear over a workspace with no behavior evidence reports zero and moves nothing,
+  // so the reported number tracks reality rather than being a constant.
+  const emptyCleared = api.buildBehaviorClearCandidate(explicit, LATER, policy);
+  assert.equal(emptyCleared.ok, true);
+  assert.equal(emptyCleared.value.clearedEventCount, 0, 'NFR-023 control: a clear with nothing to remove must report zero');
+
+  // Red-ability: a report that mis-states the change by one must fail the match above.
+  const misreported = { ...cleared.value, clearedEventCount: cleared.value.clearedEventCount + 1 };
+  assert.throws(
+    () => assert.equal(observedDelta['behavior-events'], misreported.clearedEventCount),
+    undefined,
+    'NFR-023 control: the traceability match must reject a clear whose reported change does not match the inspected change'
+  );
+});
+
+test('NFR-024: local deletion is certified only after an independent reread proves emptiness, a survivor or an unreadable key blocks the success state, and the raw namespace confirms it without trusting the report', () => {
+  const { api, policy } = loadContracts();
+  const declared = policyDeclaredKeys(policy);
+  const declaredCount = declared.local.length + declared.session.length;
+  const seedLocal = () => createStorage({ initial: Object.fromEntries(declared.local.map((key, index) => [key, `local-record-${index}`])) });
+  const seedSession = () => createStorage({ initial: Object.fromEntries(declared.session.map((key, index) => [key, `session-record-${index}`])) });
+
+  // Populate and prove, so every emptiness claim below is a deletion rather than a starting state.
+  const localStorage = seedLocal();
+  const sessionStorage = seedSession();
+  assert.equal(api.foundationPrivacyInventory({ localStorage, sessionStorage }).value.personalKeyCount, declaredCount, 'NFR-024 the clear must start from storage that provably holds every declared personal key');
+
+  const cleared = api.clearFoundationStorage({ localStorage, sessionStorage });
+  assert.equal(cleared.ok, true, `NFR-024 a complete deletion must be certifiable: ${JSON.stringify(cleared.error || {})}`);
+  assert.equal(cleared.value.verifiedEmpty, true, 'NFR-024 the deletion must be reported as verified, not merely as requested');
+  assert.deepEqual(cleared.value.remainingPersonalKeys, [], 'NFR-024 a verified deletion must name no survivor');
+
+  // The verification that matters is the one that does NOT come from the module's own report.
+  // An exact empty-set comparison on the raw adapters catches a survivor under the same prefix
+  // that a prefix or count check would admit.
+  assert.deepEqual(Object.keys(localStorage.snapshot()), [], 'NFR-024 the raw local namespace must be empty when read directly, without trusting the clear to report on itself');
+  assert.deepEqual(Object.keys(sessionStorage.snapshot()), [], 'NFR-024 the raw session namespace must be empty when read directly');
+  const reread = api.foundationPrivacyInventory({ localStorage, sessionStorage });
+  assert.equal(reread.value.personalKeyCount, 0, 'NFR-024 an independent reread must observe zero personal keys, which is what makes the deletion verified rather than requested');
+  assert.deepEqual(reread.value.presentKeys, [], 'NFR-024 the reread must name no remaining personal key');
+
+  // Requested is not verified, arm 1: one key survives deletion. The request was issued for
+  // every key, so a module that certified on the strength of having asked would pass here.
+  const survivorLocal = seedLocal();
+  const survivorSession = seedSession();
+  survivorLocal.failRemove(declared.local[0]);
+  const incomplete = api.clearFoundationStorage({ localStorage: survivorLocal, sessionStorage: survivorSession });
+  assert.equal(incomplete.ok, false, 'NFR-024 a key that survived deletion must block the success state, because clearing is confirmed rather than attempted');
+  assert.equal(incomplete.error.reason, 'foundation-clear-incomplete', 'NFR-024 an incomplete deletion must be refused under its own reason');
+  assert.equal(Object.prototype.hasOwnProperty.call(incomplete, 'value'), false, 'NFR-024 an incomplete deletion must emit no success state at all');
+  assert.equal(survivorLocal.getItem(declared.local[0]), `local-record-0`, 'NFR-024 the injected fault genuinely blocked one deletion, so the refusal is about a real survivor');
+
+  // Requested is not verified, arm 2: the key can be removed but cannot be reread. Nothing can
+  // be certified complete that cannot be observed, so this must refuse even though the
+  // deletion itself was never rejected.
+  const unreadableLocal = seedLocal();
+  unreadableLocal.failGet(declared.local[1]);
+  const unverifiable = api.clearFoundationStorage({ localStorage: unreadableLocal, sessionStorage: seedSession() });
+  assert.equal(unverifiable.ok, false, 'NFR-024 a key that cannot be reread cannot be certified deleted, because verification is the evidence the id requires');
+  assert.equal(unverifiable.error.reason, 'foundation-clear-incomplete', 'NFR-024 an unverifiable deletion must be refused under the same incomplete reason');
+
+  // Local, not remote. The clear is a synchronous total function of the two in-memory adapters,
+  // which carry no network capability at all, so nothing here can be pending on a remote
+  // deletion request.
+  assert.equal(typeof cleared.then, 'undefined', 'NFR-024 the clear must settle synchronously, so no remote deletion round-trip can be outstanding when it certifies');
+  assert.equal(typeof incomplete.then, 'undefined', 'NFR-024 the refusal must settle synchronously too');
+
+  // Red-ability. A module that reported a verified deletion while a key survived is the exact
+  // defect the id forbids: the self-report arm accepts the lie, and the raw-namespace arm is
+  // the one that catches it. Both are shown here against the module's own faulted state.
+  const lyingReport = { ok: true, value: { verifiedEmpty: true, remainingPersonalKeys: [] } };
+  assert.equal(lyingReport.value.verifiedEmpty, true, 'NFR-024 control: a self-report can claim a verified deletion that did not happen, which is why the raw namespace is read directly');
+  assert.throws(
+    () => assert.deepEqual(Object.keys(survivorLocal.snapshot()), []),
+    undefined,
+    'NFR-024 control: the raw-namespace arm must reject a namespace that still holds a survivor, even when the report claims a verified deletion'
+  );
+  assert.throws(
+    () => assert.equal(incomplete.ok, true),
+    undefined,
+    'NFR-024 control: the certification predicate must reject an incomplete deletion'
+  );
+  assert.throws(
+    () => assert.equal(reread.value.personalKeyCount, declaredCount),
+    undefined,
+    'NFR-024 control: the reread predicate must distinguish an emptied namespace from a populated one'
+  );
+});

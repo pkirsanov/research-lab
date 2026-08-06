@@ -21,7 +21,6 @@ import { buildCompanyFundamentalsOwnerRead } from './brief-refresh.mjs';
 import {
   BRIEF_NARRATIVE_FIELDS_OPTIONAL,
   BRIEF_NARRATIVE_FIELDS_REQUIRED,
-  BRIEF_NARRATIVE_OPTIONAL_PRODUCER,
   BRIEF_STRUCTURED_FIELDS,
   READER_VOCABULARY_LEAKS,
   findBriefNarrativeVocabularyLeaks,
@@ -1936,19 +1935,35 @@ try {
     'every REQUIRED narrative pattern matches a real field in the committed payload — the required list describes this payload, not an imagined one'
       + (unmatchedRequired.length ? ': ' + unmatchedRequired.join(', ') : ''));
 
-  const optionalProducer = read(BRIEF_NARRATIVE_OPTIONAL_PRODUCER);
-  const unprovenOptional = BRIEF_NARRATIVE_FIELDS_OPTIONAL.filter((pattern) => pattern.split('.')
-    .filter((segment) => segment !== '*' && segment !== '[]' && segment !== '**')
-    .some((segment) => !new RegExp('\\b' + segment + '\\b').test(optionalProducer)));
+  const producerSources = new Map();
+  const readProducer = (path) => {
+    if (!producerSources.has(path)) producerSources.set(path, read(path));
+    return producerSources.get(path);
+  };
+  const unprovenOptional = BRIEF_NARRATIVE_FIELDS_OPTIONAL
+    .filter(({ pattern, producer }) => pattern.split('.')
+      .filter((segment) => segment !== '*' && segment !== '[]' && segment !== '**')
+      .some((segment) => !new RegExp('\\b' + segment + '\\b').test(readProducer(producer))))
+    .map(({ pattern, producer }) => pattern + ' (' + producer + ')');
   assert(unprovenOptional.length === 0,
-    'every OPTIONAL narrative pattern names fields ' + BRIEF_NARRATIVE_OPTIONAL_PRODUCER + ' actually emits — exemption from the payload-instance check is never exemption from being real'
+    'every OPTIONAL narrative pattern names fields its declared producer actually emits — exemption from the payload-instance check is never exemption from being real'
       + (unprovenOptional.length ? ': ' + unprovenOptional.join(', ') : ''));
 
   // The optional list is the one way this split could become a bypass: a red required
   // pattern could be "fixed" by moving it here. Pinned so growing it is a deliberate,
-  // reviewed act rather than a silent escape.
-  assert(BRIEF_NARRATIVE_FIELDS_OPTIONAL.join(',') === 'toolReads.*.limitations.[],toolReads.*.recommendationEligibility.reason',
-    'exactly the two intermittently-populated toolRead fields are exempt from the payload-instance check; every other narrative pattern is required');
+  // reviewed act rather than a silent escape. The PRODUCER is pinned alongside the pattern
+  // because the proof is only as good as the file it is read from — repointing a pattern at
+  // some other file that happens to contain the token would otherwise pass unnoticed.
+  // experimental.[].{title,note,method} were demoted from required deliberately: the section
+  // is conditional (len=1 in 1daff325/798c365e, len=0 in f67501ae/a6081edf), so a required
+  // pattern turned an ordinary publish red. They remain fully vocabulary-checked when present.
+  assert(BRIEF_NARRATIVE_FIELDS_OPTIONAL.map((entry) => entry.pattern + '@' + entry.producer).join(',')
+      === 'toolReads.*.limitations.[]@scripts/brief-refresh.mjs,'
+        + 'toolReads.*.recommendationEligibility.reason@scripts/brief-refresh.mjs,'
+        + 'experimental.[].title@scripts/brief-narrative-parallel.mjs,'
+        + 'experimental.[].note@scripts/brief-narrative-parallel.mjs,'
+        + 'experimental.[].method@scripts/brief-narrative-parallel.mjs',
+    'exactly the intermittently-populated toolRead and experimental fields are exempt from the payload-instance check, each against its own producer; every other narrative pattern is required');
 } catch (e) { failures++; console.log('  ✗ FAIL (reader vocabulary group threw): ' + e.message); }
 
 /* ---------- Causal Rotation: contracts, anti-hindsight, clustering + canaries ---------- */

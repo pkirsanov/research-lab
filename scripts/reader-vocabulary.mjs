@@ -125,34 +125,46 @@ export const BRIEF_NARRATIVE_FIELDS_REQUIRED = [
   'groups.[].notable.[].reason',
   'toolReads.*.read',
   'toolCoverage.[].reason',
-  'watchlistNotes.*.status',
-  'experimental.[].title',
-  'experimental.[].note',
-  'experimental.[].method'
+  'watchlistNotes.*.status'
 ];
 
 /* Real, reader-facing, and guarded exactly like the required patterns — but only PRESENT
-   when a tool read actually carries a limitation or an ineligibility reason. Most publishes
-   carry neither (`limitations` last appeared in 82214794, 96779edd, 09ecdba1), so demanding
-   a live instance would fail a healthy publish.
+   in some publishes. A tool read carries a limitation or an ineligibility reason only
+   sometimes (`limitations` last appeared in 82214794, 96779edd, 09ecdba1), and the brief
+   carries an `experimental` item only when the lane finds a genuinely new pattern — len=1
+   in 1daff325 and 798c365e, len=0 in f67501ae and a6081edf, i.e. it flips both ways rather
+   than having regressed. Demanding a live instance would fail a healthy publish.
 
    They are still proven real, just against the PRODUCER instead of one instance: the
-   selftest requires every concrete segment below to appear as a token in
-   BRIEF_NARRATIVE_OPTIONAL_PRODUCER. That is a weaker proof than a live instance — a leaf
-   whose name collides with an unrelated token in the producer would pass — which is why
-   this list stays tiny and is pinned by the selftest. Move a pattern here ONLY because it
-   is intermittently emitted, NEVER to silence a red required pattern. */
-export const BRIEF_NARRATIVE_FIELDS_OPTIONAL = [
-  'toolReads.*.limitations.[]',
-  'toolReads.*.recommendationEligibility.reason'
-];
+   selftest requires every concrete segment below to appear as a token in that pattern's
+   own `producer`. The producer is per-pattern because the optional list spans two lanes
+   whose sources are disjoint — brief-refresh.mjs never mentions `experimental`, and
+   brief-narrative-parallel.mjs never mentions `limitations` — so a single shared producer
+   constant could not prove both halves.
 
-/** The producer whose source proves the optional patterns above name fields that exist. */
-export const BRIEF_NARRATIVE_OPTIONAL_PRODUCER = 'scripts/brief-refresh.mjs';
+   This proof is weaker than a live instance: a leaf whose name collides with an unrelated
+   token in the producer passes. Two of the five below do exactly that — `title` collides
+   with the tools-registry `tool.title` and `note` with the watchlist note instruction, so
+   only `experimental` and `method` are named by the lane's own contract. Their real
+   warrant is a live payload instance in history (798c365e carries title/note/method/inputs);
+   they are optional because that instance is not in TODAY's payload, not because the field
+   is doubtful. That residual weakness is why this list stays tiny and is pinned — pattern
+   AND producer — by the selftest. Move a pattern here ONLY because it is intermittently
+   emitted, NEVER to silence a red required pattern. */
+export const BRIEF_NARRATIVE_FIELDS_OPTIONAL = [
+  { pattern: 'toolReads.*.limitations.[]', producer: 'scripts/brief-refresh.mjs' },
+  { pattern: 'toolReads.*.recommendationEligibility.reason', producer: 'scripts/brief-refresh.mjs' },
+  { pattern: 'experimental.[].title', producer: 'scripts/brief-narrative-parallel.mjs' },
+  { pattern: 'experimental.[].note', producer: 'scripts/brief-narrative-parallel.mjs' },
+  { pattern: 'experimental.[].method', producer: 'scripts/brief-narrative-parallel.mjs' }
+];
 
 /* The leak gate guards required and optional fields identically. The split governs only how
    each is proven to be real, never whether it is checked for framework vocabulary. */
-export const BRIEF_NARRATIVE_FIELDS = [...BRIEF_NARRATIVE_FIELDS_REQUIRED, ...BRIEF_NARRATIVE_FIELDS_OPTIONAL];
+export const BRIEF_NARRATIVE_FIELDS = [
+  ...BRIEF_NARRATIVE_FIELDS_REQUIRED,
+  ...BRIEF_NARRATIVE_FIELDS_OPTIONAL.map((entry) => entry.pattern)
+];
 
 /* Machine carriers. These are the fields a status code legitimately lives in —
    scripts/brief-distributed-publish.mjs sets outcome/applicabilityStatus to

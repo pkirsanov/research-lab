@@ -2,7 +2,7 @@
 
 Planning authority: [spec.md](../../spec.md), [design.md](../../design.md), and the [scope index](../_index.md). Execution evidence belongs in [report.md](report.md).
 
-**Status:** In Progress
+**Status:** Done
 
 **Scope-Kind:** runtime-behavior
 
@@ -333,4 +333,35 @@ Add each named assertion and persistent title before mandate behavior. Execute e
 
 #### Build Quality Gate
 
-- [ ] Focused RED/GREEN records, mandate/config parity, authority/forbidden-input scans, exact rollback, no-interception/external-request scan, source-lock/runner checks, editor diagnostics, `git diff --check`, artifact lint/freshness, G094, Test Plan/DoD parity, plan sync, and scope-local traceability are current and clean with every finding individually accounted for in `report.md`. Scope-local traceability is `bash .github/bubbles/scripts/traceability-guard.sh specs/008-portfolio-survival-and-brief-lab --current-scope`, executed while this scope is the active scope in `state.json`, with zero failure naming this scope's own files. Whole-feature `--all-scopes` traceability is NOT required here; the [Feature Completion Gate](../_index.md#feature-completion-gate) enforces it once, in Scope 16.
+- [x] Focused RED/GREEN records, mandate/config parity, authority/forbidden-input scans, exact rollback, no-interception/external-request scan, source-lock/runner checks, editor diagnostics, `git diff --check`, artifact lint/freshness, G094, Test Plan/DoD parity, plan sync, and scope-local traceability are current and clean with every finding individually accounted for in `report.md`. Scope-local traceability is `bash .github/bubbles/scripts/traceability-guard.sh specs/008-portfolio-survival-and-brief-lab --current-scope`, executed while this scope is the active scope in `state.json`, with zero failure naming this scope's own files. Whole-feature `--all-scopes` traceability is NOT required here; the [Feature Completion Gate](../_index.md#feature-completion-gate) enforces it once, in Scope 16.
+
+  All 13 members are recorded verbatim in [report.md](report.md#build-quality-gate---closing-re-verification-all-13-members-clean). Member 13 is the only member carrying a numeric threshold, so it was re-executed at closing time rather than carried forward on assertion.
+
+  **Command:** `timeout 900 bash .github/bubbles/scripts/traceability-guard.sh specs/008-portfolio-survival-and-brief-lab --current-scope`
+
+  **Exit Code:** 1 · **Claim Source:** executed
+
+  ```text
+  ℹ️  Checking traceability for scopes/02-mandate-and-cash-need-authority/scope.md
+  ✅ scopes/02-mandate-and-cash-need-authority/scope.md scenario mapped to Test Plan row: SCN-008-003 - Dated cash needs and constraints come only from user input
+  ℹ️  scopes/02-mandate-and-cash-need-authority/scope.md scenario→row match confidence: declared
+  ✅ scopes/02-mandate-and-cash-need-authority/scope.md scenario maps to concrete test file: tests/portfolio-foundation.unit.mjs
+  ✅ scopes/02-mandate-and-cash-need-authority/scope.md report references concrete test evidence: tests/portfolio-foundation.unit.mjs
+  ✅ scopes/02-mandate-and-cash-need-authority/scope.md scenario mapped to Test Plan row: SCN-008-004 - A portfolio can be researched before goals are entered
+  ℹ️  scopes/02-mandate-and-cash-need-authority/scope.md scenario→row match confidence: declared
+  ✅ scopes/02-mandate-and-cash-need-authority/scope.md scenario maps to concrete test file: tests/portfolio-foundation.unit.mjs
+  ✅ scopes/02-mandate-and-cash-need-authority/scope.md report references concrete test evidence: tests/portfolio-foundation.unit.mjs
+  ℹ️  scopes/02-mandate-and-cash-need-authority/scope.md summary: scenarios=2 test_rows=6
+
+  --- Gherkin → DoD Content Fidelity (Gate G068) ---
+  ✅ scopes/02-mandate-and-cash-need-authority/scope.md scenario maps to DoD item: SCN-008-003 - Dated cash needs and constraints come only from user input
+  ✅ scopes/02-mandate-and-cash-need-authority/scope.md scenario maps to DoD item: SCN-008-004 - A portfolio can be researched before goals are entered
+  ℹ️  DoD fidelity: 4 scenarios checked, 4 mapped to DoD, 0 unmapped
+
+  RESULT: FAILED (28 failures, 0 warnings)
+  TRACEABILITY_EXIT=1
+  ```
+
+  Scope 02 portion excerpted; the run's unabridged output and the mechanical attribution of all 28 residual failures are in [report.md](report.md#member-13---scope-local-traceability-scope-02-own-file-clean).
+
+  Exit 1 is the whole-feature aggregate, which this clause deliberately does not gate on. Every one of the 28 failures is `scenario-manifest.json references missing linked test file` for six suites that do not exist yet (`portfolio-survival-{allocation,brief,risk,paths,diversification,mobile}.spec.mjs`), all owned by scopes 05-16 and none in this scope's Change Boundary. Zero failures name a Scope 02 file and G068 reports `0 unmapped`, so the clause's own standard — zero failure naming this scope's own files — is met.

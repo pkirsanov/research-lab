@@ -20,22 +20,21 @@
     "certifiedAt": null,
     "requiresRevalidation": false,
     "execution": {
-        "activeAgent": "bubbles.implement",
-        "currentPhase": "implement",
+        "activeAgent": "bubbles.test",
+        "currentPhase": "test",
         "currentScope": "SCOPE-01",
         "runStartedAt": null,
         "completedPhaseClaims": [
             "bootstrap"
         ],
         "pendingTransitionRequests": [
-            "TR-F004-SCOPE01-SCOREABILITY-READER-FOUNDATION-001",
-            "F004-V14-SCOPED-EVIDENCE-AUTHORITY-001",
+            "F004-V15-MULTI-ITEM-EVIDENCE-TRANSITION-001",
             "TR-F004-SCOPE01-FEATURE012-TEST-001",
             "TR-F004-SCOPE01-FEATURE012-DOCS-001",
             "TR-F004-SCOPE01-PROVIDER-STRESS-CANARY-001"
         ],
-        "nextRequiredOwner": "bubbles.implement",
-        "nextRequiredTarget": "TR-F004-SCOPE01-SCOREABILITY-READER-FOUNDATION-001: implement AttributableLevelGateV1, RecommendationOutcomeV1, computeRecommendationOutcome, and projectFxReaderDecision inside the declared Scope 1 boundary required by TP-01-27 and TP-01-31. After focused implementation settles, route F004-V14-SCOPED-EVIDENCE-AUTHORITY-001 to bubbles.test for the unchanged three-case CMD-COLLISION transition. Feature 012 test/docs and provider routes remain pending, and SCOPE-02 remains unavailable for pickup.",
+        "nextRequiredOwner": "bubbles.test",
+        "nextRequiredTarget": "F004-V15-MULTI-ITEM-EVIDENCE-TRANSITION-001: append the cardinality-only v15 report successor and parser branch, preserve v14 as immutable fully parsed history, run unchanged three-case CMD-COLLISION under 600 seconds, then execute independently evidenced Scope 1 batches. Feature 012 test/docs and provider routes remain pending, and SCOPE-02 remains unavailable for pickup.",
         "audit": {
             "schemaVersion": "audit-run/v1",
             "runId": null,
@@ -1210,6 +1209,32 @@
                 "test-plan.json::postV13ScopedEvidenceHandoff"
             ],
             "summary": "Reconciled active planning routing to the missing TP-01-27/31 recommendation and reader foundation, made v14 the dependent test-owned collision successor, preserved v3/v9/v12/v13 records as history, and defined path-limited analyst, design, plan, implement, test, and evidence commit boundaries. No product test, completion, checkbox, status, Scope 2, or certification claim is made."
+        },
+        {
+            "agent": "bubbles.plan",
+            "workflowMode": "full-delivery",
+            "phasesExecuted": [
+                "plan"
+            ],
+            "statusBefore": "in_progress",
+            "statusAfter": "in_progress",
+            "startedAt": "2026-08-06T17:25:44Z",
+            "finishedAt": "2026-08-06T18:14:52Z",
+            "outcome": "route_required",
+            "addressedFindings": [
+                "F004-V15-MULTI-ITEM-EVIDENCE-TRANSITION-PLAN-001"
+            ],
+            "unresolvedFindings": [
+                "F004-V15-MULTI-ITEM-EVIDENCE-TRANSITION-001"
+            ],
+            "nextRequiredOwner": "bubbles.test",
+            "nextRequiredTarget": "F004-V15-MULTI-ITEM-EVIDENCE-TRANSITION-001",
+            "evidenceRefs": [
+                "scopes.md#feature-004-v15-multi-item-evidence-transition-successor-f004-v15-multi-item-evidence-transition-001",
+                "test-plan.json::postV15MultiItemEvidenceTransitionHandoff",
+                "test-plan.json::currentRouting"
+            ],
+            "summary": "Defined one additive v15 cardinality-only planning successor over immutable v14 history. The handoff keeps the unchanged three-case 600-second collision command, extends TP-01-22 without adding a row or scenario, preserves all checkbox and certification state, keeps Scope 2 locked, and routes report/parser implementation followed by independently evidenced batches to bubbles.test."
         }
     ],
     "activeBugs": [],

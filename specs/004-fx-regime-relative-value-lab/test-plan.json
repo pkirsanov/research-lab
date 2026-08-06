@@ -118,20 +118,16 @@
   },
   "currentRouting": {
     "status": "route_required",
-    "nextRequiredOwner": "bubbles.implement",
-    "nextRequiredTarget": "TR-F004-SCOPE01-SCOREABILITY-READER-FOUNDATION-001",
-    "requiredSymbols": [
-      "AttributableLevelGateV1",
-      "RecommendationOutcomeV1",
-      "computeRecommendationOutcome",
-      "projectFxReaderDecision"
-    ],
+    "nextRequiredOwner": "bubbles.test",
+    "nextRequiredTarget": "F004-V15-MULTI-ITEM-EVIDENCE-TRANSITION-001",
     "requiredTestPlanIds": [
-      "TP-01-27",
-      "TP-01-31"
+      "TP-01-22"
     ],
-    "nextOwnerAfterFoundation": "bubbles.test",
-    "nextTargetAfterFoundation": "F004-V14-SCOPED-EVIDENCE-AUTHORITY-001"
+    "requiredAction": "Append the one v15 cardinality-only report successor, implement its strict parser branch and adversarial matrix without changing v14 authority, and run unchanged CMD-COLLISION before evidence transitions.",
+    "nextOwnerAfterImplementation": "bubbles.test",
+    "nextTargetAfterImplementation": "independently evidenced Scope 1 item batches",
+    "scopeOneStatus": "In Progress",
+    "scopeTwoLocked": true
   },
   "durableEvidenceAdmissionHandoff": {
     "schemaVersion": "feature004-durable-evidence-admission-handoff/v1",
@@ -1217,6 +1213,169 @@
       "nextRequiredOwnerAfterImplementation": "bubbles.test"
     }
   },
+  "postV15MultiItemEvidenceTransitionHandoff": {
+    "schemaVersion": "feature004-multi-item-evidence-transition-handoff/v1",
+    "status": "route_required",
+    "findingId": "F004-V15-MULTI-ITEM-EVIDENCE-TRANSITION-001",
+    "purpose": "execution-transition-cardinality-only",
+    "reportContract": {
+      "marker": "feature004-dirty-collision-multi-item-evidence-v15",
+      "predecessorMarker": "feature004-dirty-collision-scoped-evidence-v14",
+      "predecessorRawBlockSha256": "f0b2d11c928d484a1565d4a122ce6e9f7d3e99c65b08b0a763ba055d4dfd82b8",
+      "predecessorSeparator": "exactly two LF bytes",
+      "v15FinalSuffix": "exactly two LF bytes after the v15 end marker",
+      "ownMarkerInclusiveRawSha256PinRequired": true,
+      "reportFinalAfterAdoption": true,
+      "planningInvocationMayWriteReport": false
+    },
+    "historicalV14Authority": {
+      "immutableAndFullyParsed": true,
+      "historicalAllowedTransition": "one-matching-unchecked-item-to-checked-with-correctly-phase-owned-executed-evidence",
+      "historicalRequiredTransitionCount": 1,
+      "historicalAllowNoTransitionCount": 0,
+      "recaptureOwnerPlanningOrSourceAuthorityAllowed": false,
+      "redefineV14PathsAllowed": false,
+      "weakenV14FieldOrEvidenceValidationAllowed": false,
+      "reinterpretHistoricalV14TransitionsAllowed": false
+    },
+    "transitionBaseline": {
+      "baseScopesSource": "exact committed HEAD:specs/004-fx-regime-relative-value-lab/scopes.md at transaction start",
+      "candidateScopesSource": "worktree and index scopes.md candidate",
+      "v15ImplementationMode": "allowNoTransition with exactly report.md and collision parser staged",
+      "evidenceMode": "required transition mode with exactly scopes.md staged",
+      "nextBatchBaseline": "the prior evidence commit HEAD scopes.md",
+      "stateSharesEvidenceCommit": false,
+      "certificationSharesEvidenceCommit": false,
+      "replacementAuthoritySnapshotStoredInV15": false
+    },
+    "repositoryBindingReuse": {
+      "source": "immutable v14 payload repositoryBinding",
+      "repositoryRoot": "/home/redacted/research-lab",
+      "repositoryAlias": "research-lab",
+      "sessionId": "vscode-e24db39cf992f7ccd8ec75209602db59",
+      "decisionId": "rb:vscode-e24db39cf992f7ccd8ec75209602db59:56",
+      "controlRevision": 56,
+      "controlPathDigest": "sha256:e6d858a6f9bc1824d3a2cea3746d741a5bad41016d613dc242312185af9761fa",
+      "authority": "concrete-target",
+      "scopeKind": "command",
+      "actionable": true,
+      "mirrorRevision": 56,
+      "recaptureAllowed": false
+    },
+    "transitionPolicy": {
+      "itemKey": [
+        "scopeId",
+        "itemOrdinal",
+        "uncheckedItemTextSha256"
+      ],
+      "itemKeysUnique": true,
+      "requiredModeMinimumTransitionCount": 1,
+      "requiredModeMaximumTransitionCount": "none",
+      "allowNoTransitionCount": 0,
+      "transitionCountEqualsNewlyCheckedItemCount": true,
+      "returnExactTransitionedItemKeys": true,
+      "transitionedItemKeyOrder": "planning-order",
+      "mixedBatchDisposition": "reject-entire-transition-and-return-no-accepted-key-list"
+    },
+    "evidencePolicy": {
+      "minimumAppendedBlocksPerTransitionedItem": 1,
+      "validateEveryAppendedBlockIndependently": true,
+      "requiredFields": [
+        "Phase",
+        "Command",
+        "Exit Code",
+        "Claim Source",
+        "Output",
+        "literal raw output",
+        "rawOutputSha256",
+        "blockSha256"
+      ],
+      "requiredClaimSource": "executed",
+      "requiredExitCode": 0,
+      "minimumRawOutputLines": 10,
+      "grammar": "exact v14 four-space evidence form for headers fences and raw-output lines",
+      "zeroSpaceEvidenceAccepted": false,
+      "eightSpaceEvidenceAccepted": false,
+      "duplicateEvidenceHashAcrossDistinctItemKeys": "reject",
+      "referenceRelationshipSchemaDefinedByV15": false,
+      "preferredEvidenceIdentity": "unique evidence block per transitioned item"
+    },
+    "immutableTransitionSurface": {
+      "checkedItemsRemainChecked": true,
+      "existingEvidencePrefixPreserved": true,
+      "existingEvidenceRemoveReplaceOrReorderAllowed": false,
+      "evidenceUnderUncheckedItemAllowed": false,
+      "itemTextOrderCardinalityOrOrdinalMutationAllowed": false,
+      "planningProjectionMutationAllowed": false,
+      "testPlanProjectionMutationAllowed": false,
+      "scopeOrTopLevelStatusMutationAllowed": false,
+      "planningRoutingMutationAllowed": false,
+      "certificationMutationAllowed": false,
+      "foreignPathPersistenceAllowed": false
+    },
+    "adversarialCases": [
+      "required mode has zero transitions",
+      "two valid independently evidenced transitions are accepted and both exact keys are returned",
+      "one invalid transition in a mixed batch rejects the entire batch",
+      "duplicate item key",
+      "duplicate evidence block hash across distinct item keys",
+      "checked item without appended valid evidence",
+      "evidence appended under an unchecked item",
+      "phase forgery",
+      "wrong or empty command",
+      "wrong exit code",
+      "wrong claim source",
+      "wrong raw output or raw-output hash",
+      "wrong evidence block hash",
+      "prior evidence removal replacement or reorder",
+      "item text order cardinality ordinal or planning-projection mutation",
+      "scope status top-level status planning-routing or certification edit",
+      "foreign path persisted or staged",
+      "any v14 byte mutation",
+      "v14-to-v15 two-LF separator mutation",
+      "incomplete or overbroad staged allowlist",
+      "evidence headers fences or raw output use zero-space indentation",
+      "evidence headers fences or raw output use eight-space indentation"
+    ],
+    "testPlanExtension": {
+      "testPlanId": "TP-01-22",
+      "newTestPlanRowAllowed": false,
+      "newScenarioAllowed": false,
+      "expectedMarkdownTableRowsIncludingFiveHeaders": 94,
+      "expectedTestPlanEntryCount": 89,
+      "expectedUniqueTestPlanIdCount": 89,
+      "expectedScenarioCount": 33,
+      "expectedUniqueScenarioIdCount": 33,
+      "command": "node --test tests/feature-004-dirty-tree-collision.test.mjs",
+      "timeoutSeconds": 600,
+      "expectedTopLevelCaseCount": 3,
+      "inheritEveryV14V13AndPredecessorCheck": true
+    },
+    "ownerSequence": [
+      "plan: commit only scopes.md test-plan.json and planning-owned state.json.execution routing after exact cached-path verification",
+      "test implementation: append v15 and change only report.md plus tests/feature-004-dirty-tree-collision.test.mjs",
+      "test evidence batch: transition one or more independently evidenced items and commit only scopes.md",
+      "state: record test-owned execution separately; certification remains bubbles.validate-only"
+    ],
+    "testOwnerHandoff": {
+      "owner": "bubbles.test",
+      "target": "F004-V15-MULTI-ITEM-EVIDENCE-TRANSITION-001",
+      "allowedProductCodeEdits": false,
+      "allowedPaths": [
+        "specs/004-fx-regime-relative-value-lab/report.md",
+        "tests/feature-004-dirty-tree-collision.test.mjs"
+      ],
+      "requiredActions": [
+        "Preserve v14 as immutable fully parsed history and append exactly one v15 cardinality-only successor with its own raw pin and exact two-LF suffix.",
+        "Reuse every v14 authority path field evidence grammar and validation without recapture redefinition omission or weakening.",
+        "Accept one or more valid independently evidenced transitions return the exact planning-ordered item-key list and retain zero-only allowNoTransition behavior.",
+        "Reject duplicate proof mixed-invalid batches formatting adversaries planning or status mutations foreign persistence separator drift and incomplete staging.",
+        "Run the unchanged three-case CMD-COLLISION under the 600-second ceiling before any evidence batch."
+      ],
+      "nextRequiredOwnerAfterImplementation": "bubbles.test",
+      "nextTargetAfterImplementation": "independently evidenced Scope 1 item batches"
+    }
+  },
   "commandCatalog": {
     "CMD-FIRST-RED": "node -e 'const assert=require(\"node:assert/strict\");const input=require(\"./tests/fixtures/fx-regime/commonjs-determinism-input.json\");const sentinel=Object.freeze({owner:\"preexisting-global\"});globalThis.RLFX=sentinel;delete require.cache[require.resolve(\"./rlfx.js\")];const RLFX=require(\"./rlfx.js\");assert.strictEqual(globalThis.RLFX,sentinel);const first=RLFX.computeCurrencyDecision(structuredClone(input));const second=RLFX.computeCurrencyDecision(structuredClone(input));assert.equal(first.computedAt,input.decisionTime);assert.equal(second.computedAt,input.decisionTime);assert.equal(RLFX.canonicalize(first),RLFX.canonicalize(second));assert.equal(first.decisionId,second.decisionId);console.log(\"PASS RLFX CommonJS import preserves the existing global and explicit decisionTime is deterministic\")'",
     "CMD-SELFTEST": "node scripts/selftest.mjs",
@@ -1286,7 +1445,7 @@
         {"id":"TP-01-19","scenarioLabel":"Causal baseline","contractId":"causal-browser-canary","type":"e2e-ui","testType":"Cross-tool E2E canary","category":"e2e-ui","file":"tests/causal-rotation-lab.spec.mjs","testTitle":"complete committed suite","description":"RLDATA additions preserve Causal browser behavior; no assertion changes","commandRef":"CMD-E2E-CAUSAL","liveSystem":true},
         {"id":"TP-01-20","scenarioLabel":"Causal baseline","contractId":"causal-validator-canary","type":"functional","testType":"Contract canary","category":"functional","file":"scripts/validate-causal-rotation.mjs","testTitle":"complete committed validator","description":"Causal config/observation/ledger contracts remain unchanged","commandRef":"CMD-CAUSAL-VALIDATE","liveSystem":false},
         {"id":"TP-01-21","scenarioLabel":"All Scope 1 + protected canaries","contractId":"scope-01-full-regression","type":"functional","testType":"Full repository regression","category":"functional","file":"scripts/selftest.mjs","testTitle":"complete committed suite","description":"Must reach a genuinely green run without removing BASE-BRIEF-01; current 344/1 remains foreign-owned and open","commandRef":"CMD-SELFTEST","liveSystem":false},
-        {"id":"TP-01-22","scenarioLabel":"GRILL-004-09 / F004-V13-CAPTURE-SHAPE-001 / F004-V14-SCOPED-EVIDENCE-AUTHORITY-001","contractId":"F004-V14-SCOPED-EVIDENCE-AUTHORITY-001","type":"functional","testType":"Collision and evidence-history preservation","category":"functional","file":"tests/feature-004-dirty-tree-collision.test.mjs","testTitle":"all three existing top-level test cases","description":"Preserve and parse every v12/v13 byte and exact v13 two-LF historical separator; adopt one v14 scoped-authority block; prove planning-versus-inline-evidence projections, evidence tamper rejection, bounded start/end inventory equality, Feature 017 exclusion from persisted authority, path-limited staging, and all inherited v13 representation/lineage/performance cases without changing the command, 600-second ceiling, case count, assertions, order, or failure conditions.","commandRef":"CMD-COLLISION","timeoutSeconds":600,"expectedTopLevelCaseCount":3,"liveSystem":false},
+        {"id":"TP-01-22","scenarioLabel":"GRILL-004-09 / F004-V13-CAPTURE-SHAPE-001 / F004-V14-SCOPED-EVIDENCE-AUTHORITY-001 / F004-V15-MULTI-ITEM-EVIDENCE-TRANSITION-001","contractId":"F004-V15-MULTI-ITEM-EVIDENCE-TRANSITION-001","historicalContractIds":["F004-V13-CAPTURE-SHAPE-001","F004-V14-SCOPED-EVIDENCE-AUTHORITY-001"],"type":"functional","testType":"Collision and evidence-history preservation","category":"functional","file":"tests/feature-004-dirty-tree-collision.test.mjs","testTitle":"all three existing top-level test cases","description":"Preserve and parse every v12/v13/v14 byte and exact historical two-LF separators; adopt one v15 cardinality-only successor; accept two valid independently evidenced item transitions; reject zero required transitions, mixed-invalid batches, duplicate keys or cross-item evidence hashes, malformed zero/eight-space evidence indentation, every evidence-field forgery, prior-evidence or item-projection mutation, status/certification edits, foreign persistence, separator drift, and incomplete staging; retain the unchanged command, 600-second ceiling, three cases, and every inherited assertion, order, and failure condition.","commandRef":"CMD-COLLISION","timeoutSeconds":600,"expectedTopLevelCaseCount":3,"liveSystem":false},
         {"id":"TP-01-23","scenarioLabel":"SCN-004-027","scenarioId":"SCN-004-027","coversScenarioIds":["SCN-004-027"],"type":"unit","testType":"Unit","category":"unit","file":"tests/feature-004-vehicle-universe.test.mjs","testTitle":"RLFX vehicle fit rejects every direction mismatch before ranking","description":"JPY-strength versus USD can admit only long-JPY/short-USD orientation; opposite products retain DIRECTION_MISMATCH","commandRef":"CMD-FOUNDATION-CONTRACTS","liveSystem":false,"regressionRequired":true},
         {"id":"TP-01-24","scenarioLabel":"SCN-004-028","scenarioId":"SCN-004-028","coversScenarioIds":["SCN-004-028"],"type":"unit","testType":"Unit","category":"unit","file":"tests/feature-004-vehicle-universe.test.mjs","testTitle":"RLFX vehicle tracking preserves market NAV underlying and unexplained residual","description":"Exact dates and compatible bases are required; missing legs cannot become inferred fee, carry, income, roll, or premium attribution","commandRef":"CMD-FOUNDATION-CONTRACTS","liveSystem":false,"regressionRequired":true},
         {"id":"TP-01-25","scenarioLabel":"SCN-004-029","scenarioId":"SCN-004-029","coversScenarioIds":["SCN-004-029"],"type":"unit","testType":"Unit","category":"unit","file":"tests/feature-004-vehicle-universe.test.mjs","testTitle":"RLFX broad-dollar vehicle fit rejects basket mismatch before lexicographic selection","description":"UUP and USDU retain separate baskets, mechanisms, collateral, benchmarks, and clocks; ticker order cannot decide fit","commandRef":"CMD-FOUNDATION-CONTRACTS","liveSystem":false,"regressionRequired":true},

@@ -300,6 +300,91 @@ export function pairLevelsText(body, recommendations, universe) {
   return matches.length === 1 ? matches[0].levels : null;
 }
 
+function typedRelationForLedger(relation) {
+  if (relation === 'closes-above' || relation === 'trades-at-or-above') return 'above';
+  if (relation === 'closes-below' || relation === 'trades-at-or-below') return 'below';
+  throw new TypeError(`unsupported typed recommendation relation: ${String(relation)}`);
+}
+
+function typedLevelForLedger(gate, source, instrument) {
+  if (!gate || !gate.instrument || gate.instrument.vehicleId !== instrument.vehicleId ||
+      gate.instrument.ticker !== instrument.ticker || gate.instrument.marketSeriesId !== instrument.marketSeriesId) {
+    throw new TypeError(`${source} instrument does not match the admitted recommendation instrument`);
+  }
+  if (!Number.isFinite(gate.level)) throw new TypeError(`${source} level must be finite`);
+  return {
+    instrument: instrument.ticker,
+    relation: typedRelationForLedger(gate.relation),
+    value: gate.level,
+    source
+  };
+}
+
+function durableRecommendationEventRow(recommendationKey, index, body, options) {
+  const opts = options || {};
+  if (typeof recommendationKey !== 'string' || !recommendationKey.trim()) throw new TypeError('recommendationKey is required');
+  if (!Number.isInteger(index) || index < 0) throw new TypeError('recommendation row index must be a non-negative integer');
+  if (!body || typeof body !== 'object' || Array.isArray(body) || body.bodyContractVersion !== BODY_CONTRACT) {
+    throw new TypeError('a durable recommendation body is required');
+  }
+  if (typeof opts.eventIdFor !== 'function') throw new TypeError('eventIdFor is required');
+  if (typeof opts.occurredAt !== 'string' || !Number.isFinite(Date.parse(opts.occurredAt))) throw new TypeError('occurredAt is required');
+  const eventId = opts.eventIdFor(recommendationKey, index);
+  if (typeof eventId !== 'string' || !eventId.trim()) throw new TypeError('eventIdFor must return an event id');
+  return {
+    eventId,
+    eventType: 'proposed',
+    recommendationKey,
+    occurredAt: opts.occurredAt,
+    ...body
+  };
+}
+
+/**
+ * recommendationRowsFromOutcome(outcome, options) — Feature 004's typed admission boundary.
+ * Non-recommendations return no rows before event construction. A complete recommendation is
+ * translated into the existing durable v2 body shape without reparsing narrative text or changing
+ * historical rows. The caller supplies the existing event-id namespace exactly as the payload path does.
+ */
+export function recommendationRowsFromOutcome(outcome, options) {
+  if (!outcome || typeof outcome !== 'object') throw new TypeError('recommendation outcome is required');
+  if (outcome.contractVersion !== 'rlfx-recommendation-outcome/v1') throw new TypeError('unknown recommendation outcome contract');
+  if (outcome.outcome === 'no-vehicle' || outcome.outcome === 'unavailable') return [];
+  if (outcome.outcome !== 'recommendation' || outcome.evaluability !== 'machine-checkable') throw new TypeError('only a machine-checkable recommendation can enter the ledger');
+  if (!outcome.instrument || !outcome.economicDirection || !outcome.trigger || !outcome.invalidation) throw new TypeError('complete typed recommendation fields are required');
+  if (outcome.educationalOnly !== true || outcome.executionAvailable !== false) throw new TypeError('educational and no-execution truth is required');
+
+  const instrument = outcome.instrument;
+  const levels = [
+    typedLevelForLedger(outcome.trigger, 'trigger', instrument),
+    typedLevelForLedger(outcome.invalidation, 'invalidation', instrument)
+  ];
+  if (levels[0].relation === levels[1].relation && levels[0].value === levels[1].value) throw new TypeError('trigger and invalidation cannot be identical');
+  const family = `fx-${outcome.economicDirection.instrumentSide}`;
+  const recommendationKey = recommendationKeyFor(instrument.ticker, family);
+  const body = {
+    bodyContractVersion: BODY_CONTRACT,
+    bodySource: 'rlfx-recommendation-outcome/v1',
+    instrument: instrument.ticker,
+    instruments: [instrument.ticker],
+    direction: outcome.economicDirection.instrumentSide,
+    directionSign: outcome.economicDirection.instrumentSide === 'long' ? 1 : -1,
+    horizon: outcome.horizon,
+    subject: instrument.ticker,
+    structuralAnchor: null,
+    levels,
+    levelsText: null,
+    trigger: `${instrument.ticker} ${levels[0].relation} ${String(levels[0].value)}`,
+    invalidation: `${instrument.ticker} ${levels[1].relation} ${String(levels[1].value)}`,
+    rationale: null,
+    confidence: Number.isFinite(outcome.confidencePct) ? outcome.confidencePct : null,
+    deepLink: outcome.ownerDeepLink,
+    evaluability: 'machine-checkable',
+    evaluabilityReason: null
+  };
+  return [durableRecommendationEventRow(recommendationKey, 0, body, options)];
+}
+
 /**
  * recommendationRowsFromPayload(payload, options) — the full set of ledger rows one published payload
  * yields. `eventIdFor(recommendationKey, index)` is supplied by the caller so the live publisher keeps
@@ -318,12 +403,6 @@ export function recommendationRowsFromPayload(payload, options) {
     const recommendationKey = recommendationKeyFor(subject, family);
     const body = buildRecommendationBody({ ...action, subject, action: family }, { universe });
     body.levelsText = pairLevelsText(body, recommendations, universe);
-    return {
-      eventId: opts.eventIdFor(recommendationKey, index),
-      eventType: 'proposed',
-      recommendationKey,
-      occurredAt: opts.occurredAt,
-      ...body
-    };
+    return durableRecommendationEventRow(recommendationKey, index, body, opts);
   });
 }

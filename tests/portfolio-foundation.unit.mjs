@@ -1167,3 +1167,92 @@ test('FR-029: no read compose inventory or export path removes personal data, an
     'FR-029 control: the explicit clear must genuinely remove the personal bytes that survived every read path'
   );
 });
+
+// Each id below is a NEGATIVE: a class of source that must never become behavior evidence.
+// The tokens are the ones the id's own spec sentence names, mapped onto the declared
+// `forbiddenEventFields` vocabulary. An id with an empty token list would make every
+// per-token claim under it vacuous, so the list length is asserted before it is walked.
+const EXCLUDED_SOURCE_TOKENS_BY_REQUIREMENT = Object.freeze({
+  // FR-030 cross-device identifier, sync profile, advertising identifier, account-linked profile
+  'FR-030': Object.freeze(['accountlinked', 'advertisingid', 'crossdevice', 'syncprofile']),
+  // FR-031 dwell time, clicks, scroll, return frequency, notification opens, other engagement
+  'FR-031': Object.freeze(['clickcount', 'dwell', 'engagement', 'notificationopen', 'opencount', 'returnfrequency', 'scroll']),
+  // FR-032 health, family, politics, religion, ethnicity, income/wealth class, psychological diagnosis
+  'FR-032': Object.freeze(['diagnosis', 'ethnicity', 'family', 'health', 'income', 'politics', 'religion', 'sensitivetrait', 'wealthclass']),
+  // FR-033 settings, preference fields, shock magnitudes, risk controls, display mode
+  'FR-033': Object.freeze(['displaymode', 'parametervalue', 'preference', 'riskcontrol', 'setting', 'shockmagnitude']),
+  // FR-035 raw text, secret fields, quantities, cost basis, P&L, goal amounts
+  'FR-035': Object.freeze(['cashamount', 'costbasis', 'credential', 'goalamount', 'pnl', 'quantity', 'rawtext'])
+});
+
+test('FR-030 FR-031 FR-032 FR-033 FR-035: every excluded source named by each requirement is a declared token, is refused by name on both the build and the persistence path, and the refusal is selective', () => {
+  const { api, policy } = loadContracts();
+  const workspace = portfolioAndMandateWorkspace(api, policy);
+  const workspaceBefore = JSON.stringify(workspace);
+
+  // Selectivity control, run FIRST so every refusal below is known to be caused by the token.
+  // A guard that refused every draft would already be red here.
+  const cleanDraft = api.buildBehaviorCandidate(behaviorDraft(), workspace, { now: NOW }, policy);
+  assert.equal(cleanDraft.ok, true, `control: a draft carrying no excluded source must still be accepted: ${JSON.stringify(cleanDraft.error || {})}`);
+  assert.equal(cleanDraft.value.accepted, true, 'control: the clean draft must genuinely be recorded, or "refusal is selective" rests on nothing');
+
+  // Second selectivity control: an unrecognized but harmless field is refused as an UNKNOWN
+  // field, never as an excluded source. Without this arm an implementation that labelled every
+  // rejection `forbidden-behavior-source` would satisfy all the per-token reasons below.
+  const benign = api.buildBehaviorEvent({ ...behaviorDraft(), [BENIGN_EXTRA_FIELD]: 'inert' }, { now: NOW }, policy);
+  assert.equal(benign.ok, false, 'control: an undeclared draft field must not be accepted');
+  assert.equal(
+    benign.error.reason,
+    'unknown-field',
+    'control: a harmless undeclared field must be refused as unknown, so "forbidden-behavior-source" is a real classification rather than the only rejection reason'
+  );
+
+  const requirements = Object.keys(EXCLUDED_SOURCE_TOKENS_BY_REQUIREMENT).sort();
+  assert.equal(requirements.length, 5, 'five requirements must be exercised, not merely declared');
+
+  let attempted = 0;
+  requirements.forEach((requirement) => {
+    const tokens = EXCLUDED_SOURCE_TOKENS_BY_REQUIREMENT[requirement];
+    assert.equal(tokens.length > 0, true, `${requirement} must name at least one excluded source, or its per-token claims are vacuous`);
+
+    tokens.forEach((token) => {
+      assert.equal(
+        policy.behavior.forbiddenEventFields.includes(token),
+        true,
+        `${requirement} the ${token} source must be declared excluded in the policy a reader can open, not only rejected by code`
+      );
+
+      // Build path. The field name is the token verbatim, so a guard that stopped matching
+      // this token goes red here rather than falling through to a generic shape error.
+      const attempt = api.buildBehaviorEvent({ ...behaviorDraft(), [token]: 'attempted' }, { now: NOW }, policy);
+      assert.equal(attempt.ok, false, `${requirement} a behavior draft carrying ${token} must not become an event`);
+      assert.equal(
+        attempt.error.reason,
+        'forbidden-behavior-source',
+        `${requirement} ${token} must be refused as an excluded behavior source, not incidentally as an unknown field`
+      );
+      assert.equal(
+        attempt.error.field,
+        `draft.${token}`,
+        `${requirement} the refusal must name draft.${token} exactly, so the surface can say which source was excluded`
+      );
+
+      // Persistence path. The build guard alone does not prove the source cannot reach storage,
+      // because the candidate builder is a separate entry point.
+      const persisted = api.buildBehaviorCandidate({ ...behaviorDraft(), [token]: 'attempted' }, workspace, { now: NOW }, policy);
+      assert.equal(persisted.ok, false, `${requirement} a behavior candidate carrying ${token} must not build`);
+      assert.equal(persisted.error.reason, 'forbidden-behavior-source', `${requirement} ${token} must be refused on the persistence path for its own reason`);
+      assert.equal(persisted.value, undefined, `${requirement} a ${token} attempt must yield no workspace, so no part of it can be committed`);
+      attempted += 1;
+    });
+  });
+
+  const declaredTokenCount = Object.values(EXCLUDED_SOURCE_TOKENS_BY_REQUIREMENT).reduce((sum, tokens) => sum + tokens.length, 0);
+  assert.equal(attempted, declaredTokenCount, 'every declared excluded source must have been attempted, not merely iterated over');
+  assert.equal(
+    new Set(Object.values(EXCLUDED_SOURCE_TOKENS_BY_REQUIREMENT).flat()).size,
+    policy.behavior.forbiddenEventFields.length,
+    'the five requirements must account for every declared excluded source, so a token added to the policy without a requirement owner is caught'
+  );
+  assert.equal(JSON.stringify(workspace), workspaceBefore, 'no refused attempt may mutate the workspace it was offered against');
+});

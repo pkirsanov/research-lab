@@ -157,7 +157,70 @@
         "maximumEvidenceAgeDays": 56,
         "mediumScore": 3,
         "highScore": 5,
-        "recentSupportDays": 14
+        "recentSupportDays": 14,
+        "maxBehaviorEvents": 500,
+        "eventCategories": [
+            "allocation-analysis-completed",
+            "brief-action-completed",
+            "dependence-analysis-completed",
+            "dossier-review-completed",
+            "hedge-analysis-completed",
+            "owner-review-completed",
+            "path-analysis-completed",
+            "risk-analysis-completed",
+            "ticker-research-completed"
+        ],
+        "eventLifecycleStates": [
+            "eligible",
+            "quarantined"
+        ],
+        "outcomeCommands": [
+            "complete",
+            "dismiss",
+            "invalidate",
+            "restore"
+        ],
+        "outcomeStates": [
+            "completed",
+            "dismissed",
+            "invalidated",
+            "open"
+        ],
+        "forbiddenEventFields": [
+            "accountlinked",
+            "advertisingid",
+            "cashamount",
+            "clickcount",
+            "costbasis",
+            "credential",
+            "crossdevice",
+            "diagnosis",
+            "displaymode",
+            "dwell",
+            "engagement",
+            "ethnicity",
+            "family",
+            "goalamount",
+            "health",
+            "income",
+            "notificationopen",
+            "opencount",
+            "parametervalue",
+            "pnl",
+            "politics",
+            "preference",
+            "quantity",
+            "rawtext",
+            "religion",
+            "returnfrequency",
+            "riskcontrol",
+            "scroll",
+            "sensitivetrait",
+            "setting",
+            "shockmagnitude",
+            "syncprofile",
+            "wealthclass"
+        ]
     },
     "analytics": {
         "contractVersion": "portfolio-analytics-policy/v1",

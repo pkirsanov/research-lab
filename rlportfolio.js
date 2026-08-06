@@ -69,8 +69,9 @@
       "mandateDependentStates", "maxCashNeeds", "maxConstraints", "neverInferredFields", "treatmentTimings"
     ]),
     behavior: Object.freeze([
-      "contractVersion", "halfLifeDays", "highScore", "maximumEvidenceAgeDays", "mediumScore",
-      "minimumDistinctCompletions", "minimumDistinctUtcDates", "recentSupportDays"
+      "contractVersion", "eventCategories", "eventLifecycleStates", "forbiddenEventFields", "halfLifeDays",
+      "highScore", "maxBehaviorEvents", "maximumEvidenceAgeDays", "mediumScore", "minimumDistinctCompletions",
+      "minimumDistinctUtcDates", "outcomeCommands", "outcomeStates", "recentSupportDays"
     ]),
     analytics: Object.freeze([
       "contractVersion", "covarianceSensitivity", "covarianceShrinkageLambda", "maximumListedAssets",
@@ -141,6 +142,37 @@
   ]);
   var MANDATE_NULLABLE_POLICY_FIELDS = Object.freeze([
     "costPolicy", "expectedReturnPolicy", "rebalancePolicy", "survivalDefinition"
+  ]);
+  var BEHAVIOR_EVENT_VERSION = "BehaviorEvent/v1";
+  var ACTION_OUTCOME_VERSION = "ActionOutcome/v1";
+  var BEHAVIOR_EVENT_FIELDS = Object.freeze([
+    "category", "completionConditionId", "contractVersion", "dedupeKey", "domain", "eventId", "horizon",
+    "lifecycleState", "occurredAt", "policyVersion", "resultIdentity", "sourceSurface", "subjectId", "subjectKind"
+  ]);
+  var BEHAVIOR_EVENT_DRAFT_FIELDS = Object.freeze([
+    "category", "completionConditionId", "domain", "horizon", "resultIdentity", "sourceSurface", "subjectId", "subjectKind"
+  ]);
+  var ACTION_OUTCOME_FIELDS = Object.freeze([
+    "actionId", "command", "contractVersion", "occurredAt", "outcomeId", "reason", "state"
+  ]);
+  // Verbatim from design.md "Minimal Behavior Event"; the policy config must declare exactly
+  // this set, so a silently widened vocabulary fails policy validation rather than admitting
+  // an undocumented event class.
+  var BEHAVIOR_CATEGORIES = Object.freeze([
+    "ticker-research-completed", "risk-analysis-completed", "path-analysis-completed",
+    "dependence-analysis-completed", "hedge-analysis-completed", "allocation-analysis-completed",
+    "dossier-review-completed", "owner-review-completed", "brief-action-completed"
+  ]);
+  var BEHAVIOR_EVENT_STATES = Object.freeze(["eligible", "quarantined"]);
+  var OUTCOME_COMMANDS = Object.freeze(["complete", "dismiss", "invalidate", "restore"]);
+  var OUTCOME_STATES = Object.freeze(["completed", "dismissed", "invalidated", "open"]);
+  var OUTCOME_COMMAND_STATES = Object.freeze({
+    complete: "completed", dismiss: "dismissed", invalidate: "invalidated", restore: "open"
+  });
+  // Cleared by `clearBehavior`; every other outcome state survives a behavior-only clear.
+  var BEHAVIOR_CLEARED_OUTCOME_STATES = Object.freeze(["completed", "dismissed"]);
+  var BEHAVIOR_VOCABULARY_FIELDS = Object.freeze([
+    "eventCategories", "eventLifecycleStates", "forbiddenEventFields", "outcomeCommands", "outcomeStates"
   ]);
   var FOUNDATION_LOCAL_KEYS = Object.freeze([
     "rlPortfolioWorkspaceV1.pointer",
@@ -329,10 +361,22 @@
         !Number.isInteger(value.analytics.maximumListedAssets) || value.analytics.maximumListedAssets <= 0) {
       return failure("P008-CONFIG", "invalid-policy", "analytics", null, false);
     }
+    var behaviorPolicy = value.behavior;
+    if (!exactStringSet(behaviorPolicy.eventCategories, BEHAVIOR_CATEGORIES) ||
+        !exactStringSet(behaviorPolicy.eventLifecycleStates, BEHAVIOR_EVENT_STATES) ||
+        !exactStringSet(behaviorPolicy.outcomeCommands, OUTCOME_COMMANDS) ||
+        !exactStringSet(behaviorPolicy.outcomeStates, OUTCOME_STATES) ||
+        !stringArray(behaviorPolicy.forbiddenEventFields, false) ||
+        !behaviorPolicy.forbiddenEventFields.every(function (token) { return /^[a-z0-9]+$/.test(token); }) ||
+        !Number.isInteger(behaviorPolicy.maxBehaviorEvents) || behaviorPolicy.maxBehaviorEvents <= 0) {
+      return failure("P008-CONFIG", "invalid-policy", "behavior", null, false);
+    }
     var numericSections = [value.behavior, value.solver, value.calibration, value.queue];
     var numericSectionNames = ["behavior", "solver", "calibration", "queue"];
     for (var numericIndex = 0; numericIndex < numericSections.length; numericIndex += 1) {
-      var numericKeys = Object.keys(numericSections[numericIndex]).filter(function (key) { return key !== "contractVersion"; });
+      var numericKeys = Object.keys(numericSections[numericIndex]).filter(function (key) {
+        return key !== "contractVersion" && BEHAVIOR_VOCABULARY_FIELDS.indexOf(key) < 0;
+      });
       if (!numericKeys.every(function (key) {
         var item = numericSections[numericIndex][key];
         if (Array.isArray(item)) return item.length > 0 && item.every(finiteNonNegative);
@@ -1036,8 +1080,25 @@
         (value.currentMandateId !== null && !HASH_PATTERN.test(value.currentMandateId || ""))) {
       return failure("P008-SCHEMA-CORRUPT", "workspace-invalid", "workspace", null, false);
     }
-    if (value.behaviorEvents.length > 0 || value.interestSignals.length > 0 || value.actionOutcomes.length > 0) {
+    if (value.interestSignals.length > 0) {
       return failure("P008-SCHEMA-CORRUPT", "unsupported-contract-scope", "workspace", null, false);
+    }
+    if (value.behaviorEvents.length > policy.behavior.maxBehaviorEvents) {
+      return failure("P008-SCHEMA-CORRUPT", "behavior-event-cap-exceeded", "behaviorEvents", null, false);
+    }
+    var eventIds = Object.create(null);
+    for (var eventIndex = 0; eventIndex < value.behaviorEvents.length; eventIndex += 1) {
+      var eventResult = validateBehaviorEvent(value.behaviorEvents[eventIndex], policy);
+      if (!eventResult.ok) return eventResult;
+      if (eventIds[value.behaviorEvents[eventIndex].eventId]) return failure("P008-IDENTITY", "duplicate-event-id", "behaviorEvents", null, false);
+      eventIds[value.behaviorEvents[eventIndex].eventId] = true;
+    }
+    var outcomeIds = Object.create(null);
+    for (var outcomeIndex = 0; outcomeIndex < value.actionOutcomes.length; outcomeIndex += 1) {
+      var outcomeResult = validateActionOutcome(value.actionOutcomes[outcomeIndex], policy);
+      if (!outcomeResult.ok) return outcomeResult;
+      if (outcomeIds[value.actionOutcomes[outcomeIndex].outcomeId]) return failure("P008-IDENTITY", "duplicate-outcome-id", "actionOutcomes", null, false);
+      outcomeIds[value.actionOutcomes[outcomeIndex].outcomeId] = true;
     }
     var mandateIds = Object.create(null);
     for (var mandateIndex = 0; mandateIndex < value.mandateRevisions.length; mandateIndex += 1) {
@@ -1524,6 +1585,286 @@
     return matches.length === 1 ? matches[0] : null;
   }
 
+  // A name is an excluded behavior source when its normalized form contains a declared
+  // forbidden token. Normalization strips separators first, so `dwell_time`, `dwellTime`,
+  // and `Dwell-Time` are the same excluded source and cannot be smuggled past by casing.
+  function forbiddenBehaviorField(name, policy) {
+    var normalized = normalizeFieldName(name);
+    return policy.behavior.forbiddenEventFields.some(function (token) { return normalized.indexOf(token) !== -1; });
+  }
+
+  // Returns the path of the first excluded source, or null. Recurses so a forbidden name
+  // nested inside an otherwise allowed field is still named exactly rather than collapsing
+  // into a generic shape error the UI cannot explain.
+  function findForbiddenBehaviorPath(value, policy, path) {
+    if (Array.isArray(value)) {
+      for (var arrayIndex = 0; arrayIndex < value.length; arrayIndex += 1) {
+        var arrayHit = findForbiddenBehaviorPath(value[arrayIndex], policy, path + "[" + arrayIndex + "]");
+        if (arrayHit) return arrayHit;
+      }
+      return null;
+    }
+    if (isPlainObject(value)) {
+      var keys = Object.keys(value);
+      for (var objectIndex = 0; objectIndex < keys.length; objectIndex += 1) {
+        if (forbiddenBehaviorField(keys[objectIndex], policy)) return path + "." + keys[objectIndex];
+        var objectHit = findForbiddenBehaviorPath(value[keys[objectIndex]], policy, path + "." + keys[objectIndex]);
+        if (objectHit) return objectHit;
+      }
+    }
+    return null;
+  }
+
+  function utcDate(timestamp) {
+    return String(timestamp).slice(0, 10);
+  }
+
+  // Semantic identity: the same completed research condition, on the same subject, on the
+  // same UTC day is one piece of evidence however many times the surface reports it.
+  // Occurrence time and result identity are deliberately absent so a repeat cannot inflate
+  // the distinct-completion count the evidence floor reads.
+  function behaviorDedupePayload(event) {
+    return {
+      contractVersion: "portfolio-behavior-dedupe/v1",
+      category: event.category,
+      subjectKind: event.subjectKind,
+      subjectId: event.subjectId,
+      domain: event.domain,
+      completionConditionId: event.completionConditionId,
+      utcDate: utcDate(event.occurredAt)
+    };
+  }
+
+  function behaviorIdentityPayload(event) {
+    var payload = behaviorDedupePayload(event);
+    payload.contractVersion = "portfolio-behavior-event/v1";
+    payload.horizon = event.horizon;
+    payload.sourceSurface = event.sourceSurface;
+    payload.resultIdentity = event.resultIdentity;
+    payload.occurredAt = event.occurredAt;
+    return payload;
+  }
+
+  function safeToken(value) {
+    return typeof value === "string" && SAFE_REASON_PATTERN.test(value);
+  }
+
+  function validateBehaviorEvent(value, policy) {
+    var policyResult = validatePolicy(policy);
+    if (!policyResult.ok) return policyResult;
+    if (!isPlainObject(value)) return failure("P008-SCHEMA-CORRUPT", "behavior-event-required", "behaviorEvent", null, false);
+    var forbidden = findForbiddenBehaviorPath(value, policy, "behaviorEvent");
+    if (forbidden) return failure("P008-SCHEMA-CORRUPT", "forbidden-behavior-source", forbidden, null, false);
+    var unknown = hasOnlyFields(value, BEHAVIOR_EVENT_FIELDS);
+    if (unknown || Object.keys(value).length !== BEHAVIOR_EVENT_FIELDS.length) {
+      return failure("P008-SCHEMA-CORRUPT", "unknown-field", unknown || "behaviorEvent", null, false);
+    }
+    if (value.contractVersion !== BEHAVIOR_EVENT_VERSION || policy.behavior.eventCategories.indexOf(value.category) < 0 ||
+        policy.behavior.eventLifecycleStates.indexOf(value.lifecycleState) < 0 ||
+        value.policyVersion !== policy.behavior.contractVersion ||
+        !safeToken(value.subjectKind) || !safeToken(value.subjectId) || !safeToken(value.domain) ||
+        !safeToken(value.horizon) || !safeToken(value.sourceSurface) || !safeToken(value.completionConditionId) ||
+        !HASH_PATTERN.test(value.resultIdentity || "") || !canonicalTimestamp(value.occurredAt) ||
+        !HASH_PATTERN.test(value.eventId || "") || !HASH_PATTERN.test(value.dedupeKey || "")) {
+      return failure("P008-SCHEMA-CORRUPT", "behavior-event-invalid", "behaviorEvent", null, false);
+    }
+    var expectedDedupe = contracts.fingerprint("portfolio-behavior-dedupe", behaviorDedupePayload(value));
+    var expectedId = contracts.fingerprint("portfolio-behavior-event", behaviorIdentityPayload(value));
+    if (value.dedupeKey !== expectedDedupe || value.eventId !== expectedId) {
+      return failure("P008-IDENTITY", "behavior-event-identity-mismatch", "eventId", null, false);
+    }
+    return success(clone(value));
+  }
+
+  // The only constructor for an eligible event. A draft carrying any excluded source is
+  // rejected by name before any field is read, so an engagement or sensitive-trait field
+  // can never reach persistence even partially interpreted.
+  function buildBehaviorEvent(draft, options, policy) {
+    var policyResult = validatePolicy(policy);
+    if (!policyResult.ok) return policyResult;
+    if (!isPlainObject(draft)) return failure("P008-SCHEMA-CORRUPT", "behavior-draft-required", "draft", null, true);
+    var forbidden = findForbiddenBehaviorPath(draft, policy, "draft");
+    if (forbidden) return failure("P008-SCHEMA-CORRUPT", "forbidden-behavior-source", forbidden, null, true);
+    var unknown = hasOnlyFields(draft, BEHAVIOR_EVENT_DRAFT_FIELDS);
+    if (unknown || Object.keys(draft).length !== BEHAVIOR_EVENT_DRAFT_FIELDS.length) {
+      return failure("P008-SCHEMA-CORRUPT", "unknown-field", unknown || "draft", null, true);
+    }
+    if (!isPlainObject(options) || !canonicalTimestamp(options.now)) {
+      return failure("P008-SCHEMA-CORRUPT", "behavior-options-invalid", "options", null, true);
+    }
+    var event = {
+      contractVersion: BEHAVIOR_EVENT_VERSION,
+      eventId: null,
+      dedupeKey: null,
+      category: draft.category,
+      subjectKind: draft.subjectKind,
+      subjectId: draft.subjectId,
+      domain: draft.domain,
+      horizon: draft.horizon,
+      sourceSurface: draft.sourceSurface,
+      resultIdentity: draft.resultIdentity,
+      completionConditionId: draft.completionConditionId,
+      occurredAt: options.now,
+      policyVersion: policy.behavior.contractVersion,
+      lifecycleState: "eligible"
+    };
+    event.dedupeKey = contracts.fingerprint("portfolio-behavior-dedupe", behaviorDedupePayload(event));
+    event.eventId = contracts.fingerprint("portfolio-behavior-event", behaviorIdentityPayload(event));
+    return validateBehaviorEvent(event, policy);
+  }
+
+  // Collapses semantic repeats to their earliest occurrence and reports what was collapsed,
+  // so the evidence floor counts distinct completions rather than repeated reporting.
+  function dedupeBehaviorEvents(events, policy) {
+    var policyResult = validatePolicy(policy);
+    if (!policyResult.ok) return policyResult;
+    if (!Array.isArray(events)) return failure("P008-SCHEMA-CORRUPT", "behavior-events-required", "behaviorEvents", null, false);
+    if (events.length > policy.behavior.maxBehaviorEvents) {
+      return failure("P008-SCHEMA-CORRUPT", "behavior-event-cap-exceeded", "behaviorEvents", null, true);
+    }
+    var byKey = Object.create(null);
+    var order = [];
+    for (var index = 0; index < events.length; index += 1) {
+      var eventResult = validateBehaviorEvent(events[index], policy);
+      if (!eventResult.ok) return eventResult;
+      var event = eventResult.value;
+      var existing = byKey[event.dedupeKey];
+      if (!existing) {
+        byKey[event.dedupeKey] = event;
+        order.push(event.dedupeKey);
+      } else if (event.occurredAt < existing.occurredAt) {
+        byKey[event.dedupeKey] = event;
+      }
+    }
+    var retained = order.map(function (key) { return byKey[key]; });
+    return success({
+      contractVersion: "portfolio-behavior-dedupe-result/v1",
+      events: retained,
+      inputCount: events.length,
+      retainedCount: retained.length,
+      collapsedCount: events.length - retained.length
+    });
+  }
+
+  function validateActionOutcome(value, policy) {
+    var policyResult = validatePolicy(policy);
+    if (!policyResult.ok) return policyResult;
+    if (!isPlainObject(value)) return failure("P008-SCHEMA-CORRUPT", "action-outcome-required", "actionOutcome", null, false);
+    var forbidden = findForbiddenBehaviorPath(value, policy, "actionOutcome");
+    if (forbidden) return failure("P008-SCHEMA-CORRUPT", "forbidden-behavior-source", forbidden, null, false);
+    var unknown = hasOnlyFields(value, ACTION_OUTCOME_FIELDS);
+    if (unknown || Object.keys(value).length !== ACTION_OUTCOME_FIELDS.length) {
+      return failure("P008-SCHEMA-CORRUPT", "unknown-field", unknown || "actionOutcome", null, false);
+    }
+    if (value.contractVersion !== ACTION_OUTCOME_VERSION || !HASH_PATTERN.test(value.actionId || "") ||
+        policy.behavior.outcomeCommands.indexOf(value.command) < 0 ||
+        policy.behavior.outcomeStates.indexOf(value.state) < 0 ||
+        OUTCOME_COMMAND_STATES[value.command] !== value.state ||
+        !safeToken(value.reason) || !canonicalTimestamp(value.occurredAt) || !HASH_PATTERN.test(value.outcomeId || "")) {
+      return failure("P008-SCHEMA-CORRUPT", "action-outcome-invalid", "actionOutcome", null, false);
+    }
+    var expectedId = contracts.fingerprint("portfolio-action-outcome", {
+      contractVersion: "portfolio-action-outcome/v1",
+      actionId: value.actionId,
+      command: value.command,
+      reason: value.reason,
+      occurredAt: value.occurredAt
+    });
+    if (value.outcomeId !== expectedId) return failure("P008-IDENTITY", "action-outcome-identity-mismatch", "outcomeId", null, false);
+    return success(clone(value));
+  }
+
+  // One command maps to exactly one resulting state. Dismissal and invalidation record only
+  // a safe reason token; neither carries a negative preference that could feed relevance.
+  function reduceActionOutcome(actionId, command, reason, now, policy) {
+    var policyResult = validatePolicy(policy);
+    if (!policyResult.ok) return policyResult;
+    if (policy.behavior.outcomeCommands.indexOf(command) < 0) {
+      return failure("P008-SCHEMA-CORRUPT", "unknown-outcome-command", "command", null, true);
+    }
+    var outcome = {
+      contractVersion: ACTION_OUTCOME_VERSION,
+      outcomeId: null,
+      actionId: actionId,
+      command: command,
+      state: OUTCOME_COMMAND_STATES[command],
+      reason: reason,
+      occurredAt: now
+    };
+    outcome.outcomeId = contracts.fingerprint("portfolio-action-outcome", {
+      contractVersion: "portfolio-action-outcome/v1",
+      actionId: actionId,
+      command: command,
+      reason: reason,
+      occurredAt: now
+    });
+    return validateActionOutcome(outcome, policy);
+  }
+
+  // Appending an event is a normal workspace revision, so it inherits the same pointer-swap
+  // commit and generation check as a portfolio or mandate change. A semantic repeat is
+  // recorded as `duplicate` and changes nothing, rather than growing the stored evidence.
+  function buildBehaviorCandidate(draft, currentWorkspace, options, policy) {
+    var workspaceResult = validateWorkspace(currentWorkspace, policy);
+    if (!workspaceResult.ok) return workspaceResult;
+    var eventResult = buildBehaviorEvent(draft, options, policy);
+    if (!eventResult.ok) return eventResult;
+    var candidate = clone(currentWorkspace);
+    var duplicate = candidate.behaviorEvents.some(function (entry) { return entry.dedupeKey === eventResult.value.dedupeKey; });
+    if (!duplicate) {
+      if (candidate.behaviorEvents.length + 1 > policy.behavior.maxBehaviorEvents) {
+        return failure("P008-SCHEMA-CORRUPT", "behavior-event-cap-exceeded", "behaviorEvents", null, true);
+      }
+      candidate.behaviorEvents.push(eventResult.value);
+    }
+    candidate.updatedAt = options.now;
+    candidate.policyRefs = policyRefs(policy);
+    var hashed = withWorkspaceHashes(candidate);
+    var validated = validateWorkspace(hashed, policy);
+    if (!validated.ok) return validated;
+    return success({
+      contractVersion: "portfolio-behavior-candidate/v1",
+      workspace: hashed,
+      event: eventResult.value,
+      accepted: !duplicate,
+      reason: duplicate ? "duplicate-completion" : null
+    });
+  }
+
+  // Behavior-only clear. Portfolio and mandate revisions, the current pointers, and the
+  // creation time are copied through untouched: the affected set is exactly events,
+  // interests, and the completed/dismissed outcomes design.md names.
+  function buildBehaviorClearCandidate(currentWorkspace, now, policy) {
+    var workspaceResult = validateWorkspace(currentWorkspace, policy);
+    if (!workspaceResult.ok) return workspaceResult;
+    if (!canonicalTimestamp(now)) return failure("P008-SCHEMA-CORRUPT", "timestamp-invalid", "now", null, false);
+    var candidate = clone(currentWorkspace);
+    var clearedEvents = candidate.behaviorEvents.length;
+    var clearedSignals = candidate.interestSignals.length;
+    var retainedOutcomes = candidate.actionOutcomes.filter(function (entry) {
+      return BEHAVIOR_CLEARED_OUTCOME_STATES.indexOf(entry.state) < 0;
+    });
+    var clearedOutcomes = candidate.actionOutcomes.length - retainedOutcomes.length;
+    candidate.behaviorEvents = [];
+    candidate.interestSignals = [];
+    candidate.actionOutcomes = retainedOutcomes;
+    candidate.updatedAt = now;
+    candidate.policyRefs = policyRefs(policy);
+    var hashed = withWorkspaceHashes(candidate);
+    var validated = validateWorkspace(hashed, policy);
+    if (!validated.ok) return validated;
+    return success({
+      contractVersion: "portfolio-behavior-clear-candidate/v1",
+      workspace: hashed,
+      clearedEventCount: clearedEvents,
+      clearedInterestCount: clearedSignals,
+      clearedOutcomeCount: clearedOutcomes,
+      retainedOutcomeCount: retainedOutcomes.length,
+      preservedPortfolioId: hashed.currentPortfolioId,
+      preservedMandateId: hashed.currentMandateId
+    });
+  }
+
   function projectRouteStates(workspace, policy) {
     var workspaceResult = validateWorkspace(workspace, policy);
     if (!workspaceResult.ok) return workspaceResult;
@@ -1852,6 +2193,49 @@
       fileName: "portfolio-private-export.json",
       warning: lastValidatedPolicy.display.privateExportWarning,
       text: contracts.canonicalize(selection.portfolio, "portfolio-private-export-content/v1")
+    });
+  }
+
+  // Safe counts and states only. Every category reports how many records exist and whether
+  // the category is present; no holding, mandate, subject, or stored value is ever read into
+  // the result, so the inventory can never become a second copy of the personal data.
+  function privacyInventory(workspace, storageAdapters, policy) {
+    var policyResult = validatePolicy(policy);
+    if (!policyResult.ok) return policyResult;
+    var storageResult = foundationPrivacyInventory(storageAdapters);
+    if (!storageResult.ok) return storageResult;
+    var workspaceResult = validateWorkspace(workspace, policy);
+    if (!workspaceResult.ok) return workspaceResult;
+    var outcomeStateCounts = {};
+    policy.behavior.outcomeStates.forEach(function (state) { outcomeStateCounts[state] = 0; });
+    workspace.actionOutcomes.forEach(function (entry) { outcomeStateCounts[entry.state] += 1; });
+    var eventCategoryCounts = {};
+    policy.behavior.eventCategories.forEach(function (category) { eventCategoryCounts[category] = 0; });
+    workspace.behaviorEvents.forEach(function (entry) { eventCategoryCounts[entry.category] += 1; });
+    function category(name, count, cleared) {
+      return { category: name, recordCount: count, present: count > 0, clearedBy: cleared };
+    }
+    return success({
+      contractVersion: "portfolio-privacy-inventory/v1",
+      categories: [
+        category("portfolio-revisions", workspace.portfolioRevisions.length, "all-personal"),
+        category("mandate-revisions", workspace.mandateRevisions.length, "all-personal"),
+        category("cash-needs", workspace.mandateRevisions.reduce(function (sum, entry) { return sum + entry.cashNeeds.length; }, 0), "all-personal"),
+        category("behavior-events", workspace.behaviorEvents.length, "behavior"),
+        category("interest-signals", workspace.interestSignals.length, "behavior"),
+        category("action-outcomes", workspace.actionOutcomes.length, "behavior-and-all-personal"),
+        category("quarantine", storageResult.value.presentKeys.filter(function (entry) { return entry.key === policy.storage.quarantineKey; }).length, "all-personal"),
+        category("session-fallback", storageResult.value.presentKeys.filter(function (entry) { return entry.storage === "session"; }).length, "all-personal")
+      ],
+      eventCategoryCounts: eventCategoryCounts,
+      outcomeStateCounts: outcomeStateCounts,
+      // FR-031/FR-032/FR-033: these sources are structurally unrepresentable in the closed
+      // contracts above, so the inventory can state a real zero rather than a hopeful one.
+      excludedSourceCount: 0,
+      excludedSourceTokens: policy.behavior.forbiddenEventFields.slice(),
+      personalKeyCount: storageResult.value.personalKeyCount,
+      unavailableKeys: storageResult.value.unavailableKeys,
+      genericNamespacesInspected: false
     });
   }
 

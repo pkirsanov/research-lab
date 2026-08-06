@@ -670,7 +670,34 @@ Test Plan parity - 31 rows:
 - [x] TP-01-01 records the exact CMD-FIRST-RED failure, then passes the identical production CommonJS purity/determinism assertion. **Evidence:** `report.md` Scope 1 First RED and First GREEN; **Phase:** implement.
 - [x] TP-01-02 passes source-envelope rights/clock normalization for SCN-004-017 and SCN-004-024. **Evidence:** `report.md` Scope 1 Production Module And Selftest; **Phase:** implement.
 - [x] TP-01-03 passes schema-1 and legacy/versioned tool-read compatibility. **Evidence:** `report.md` Scope 1 Production Module And Selftest; **Phase:** implement.
-- [ ] TP-01-04 passes controlled browser/CommonJS envelope parity and remains classified functional.
+- [x] TP-01-04 passes controlled browser/CommonJS envelope parity and remains classified functional.
+    **Phase:** test
+    **Command:** `npx --no-install playwright test tests/fx-regime-relative-value-lab.spec.mjs --grep "Browser functional" --reporter=list`
+    **Exit Code:** 0
+    **Claim Source:** executed
+    **Output:**
+    ```text
+    Running 18 tests using 2 workers
+    ✓   1 …ce envelopes match in browser and CommonJS for one decisionTime (688ms)
+    ✓   2 …ce envelopes match in browser and CommonJS for one decisionTime (823ms)
+    ✓   3 …SCN-004-001/002: Broad AFE EME and proxy states remain separate (362ms)
+    ✓   4 …SCN-004-001/002: Broad AFE EME and proxy states remain separate (397ms)
+    ✓   5 …-003/005/008: cohort rank uses one full-graph exact-date window (363ms)
+    ✓   6 …-003/005/008: cohort rank uses one full-graph exact-date window (342ms)
+    ✓   7 …explicit orientation and inverse sources count one relationship (307ms)
+    ✓   8 …explicit orientation and inverse sources count one relationship (336ms)
+    ✓   9 …04-006/007: cohort and managed-reference eligibility never pool (386ms)
+    ✓  10 …04-006/007: cohort and managed-reference eligibility never pool (342ms)
+    ✓  11 …04-009/010: pair momentum and Policy-rate proxy remain distinct (394ms)
+    ✓  12 …04-009/010: pair momentum and Policy-rate proxy remain distinct (367ms)
+    ✓  13 …011: CarryReadV1 rejects every incomplete market-implied branch (301ms)
+    ✓  14 …011: CarryReadV1 rejects every incomplete market-implied branch (414ms)
+    ✓  15 …-012/013/014: value and positioning retain semantics and clocks (217ms)
+    ✓  16 …-012/013/014: value and positioning retain semantics and clocks (404ms)
+    ✓  17 …and event absence retain multi-family rules and safe projection (352ms)
+    ✓  18 …and event absence retain multi-family rules and safe projection (280ms)
+    18 passed (6.3s)
+    ```
 - [x] TP-01-05 passes separated broad-dollar and official/proxy behavior for SCN-004-001 and SCN-004-002. **Evidence:** `report.md` Scope 1 Production Module And Selftest; **Phase:** implement.
 - [x] TP-01-06 passes the adversarial full-graph cohort-date case for SCN-004-003, SCN-004-005, and SCN-004-008. **Evidence:** `report.md` Scope 1 Production Module And Selftest; **Phase:** implement.
 - [x] TP-01-07 passes explicit orientation and inverse deduplication for SCN-004-004. **Evidence:** `report.md` Scope 1 Production Module And Selftest; **Phase:** implement.
@@ -681,14 +708,152 @@ Test Plan parity - 31 rows:
 - [x] TP-01-12 passes carry-unwind and missing-event invalidation behavior for SCN-004-015 and SCN-004-016. **Evidence:** `report.md` Scope 1 Production Module And Selftest; **Phase:** implement.
 - [x] TP-01-13 provider credential unit canary passes unchanged. **Evidence:** `report.md` Scope 1 Provider And Cross-Tool Canaries; **Phase:** implement.
 - [x] TP-01-14 provider credential functional canary passes unchanged. **Evidence:** `report.md` Scope 1 Provider And Cross-Tool Canaries; **Phase:** implement.
-- [ ] TP-01-15 complete provider credential browser canary passes unchanged.
+- [x] TP-01-15 complete provider credential browser canary passes unchanged.
+    **Phase:** test
+    **Command:** `npx --no-install playwright test tests/provider-credentials.spec.mjs --reporter=list`
+    **Exit Code:** 0
+    **Claim Source:** executed
+    **Output:**
+    ```text
+    Running 16 tests using 2 workers
+    ✓   1 …th tiers with the two-tier API and providers start unconfigured (874ms)
+    ✓   2 …th tiers with the two-tier API and providers start unconfigured (955ms)
+    ✓   3 …ough the editor is stored only in this browser and never leaked (463ms)
+    ✓   4 …ough the editor is stored only in this browser and never leaked (628ms)
+    ✓   5 …hable proxy flips the active tier, and force-local overrides it (844ms)
+    ✓   6 …hable proxy flips the active tier, and force-local overrides it (898ms)
+    ✓   7 …haped providers fail closed, and "clear all" wipes this browser (454ms)
+    ✓   8 …es pre-BUG-002 containers and preserves current provider access (802ms)
+    ✓   9 …haped providers fail closed, and "clear all" wipes this browser (465ms)
+    ✓  10 …es pre-BUG-002 containers and preserves current provider access (892ms)
+    ✓  11 …cy cleanup is explicit and does not alter BUG-002 configuration (760ms)
+    ✓  12 …cy cleanup is explicit and does not alter BUG-002 configuration (767ms)
+    ✓  13 …inaccessible legacy storage is unavailable, never falsely clear (470ms)
+    ✓  14 …: cancelling destructive cleanup preserves the legacy container (724ms)
+    ✓  15 …inaccessible legacy storage is unavailable, never falsely clear (479ms)
+    ✓  16 …: cancelling destructive cleanup preserves the legacy container (674ms)
+    16 passed (8.4s)
+    ```
 - [x] TP-01-16 provider credential stress canary passes unchanged. **Evidence:** `report.md` Scope 1 Provider And Cross-Tool Canaries; **Phase:** implement.
 - [x] TP-01-17 provider credential load canary passes unchanged. **Evidence:** `report.md` Scope 1 Provider And Cross-Tool Canaries; **Phase:** implement.
-- [ ] TP-01-18 Bond browser canary passes with unchanged assertions.
-- [ ] TP-01-19 Causal browser canary passes with unchanged assertions.
+- [x] TP-01-18 Bond browser canary passes with unchanged assertions.
+    **Phase:** test
+    **Command:** `npx --no-install playwright test tests/bond-regime-lab.spec.mjs --reporter=list`
+    **Exit Code:** 0
+    **Claim Source:** executed
+    **Output:**
+    ```text
+    Running 56 tests using 2 workers
+    ✓   1 …mjs:164:1 › BS-001 duration-driven ratio improvement stays mixed (1.3s)
+    ✓   2 …mjs:164:1 › BS-001 duration-driven ratio improvement stays mixed (1.2s)
+    ✓   3 … › BS-002 aligned ratios plus OAS confirmation are constructive (812ms)
+    ✓   4 … › BS-002 aligned ratios plus OAS confirmation are constructive (883ms)
+    ✓   5 …1 › BS-003 tight but widening keeps level and momentum separate (818ms)
+    ✓   6 …1 › BS-003 tight but widening keeps level and momentum separate (904ms)
+    ✓   7 …ec.mjs:217:1 › BS-010 latest common date excludes unmatched leg (843ms)
+    ✓   8 …ec.mjs:217:1 › BS-010 latest common date excludes unmatched leg (803ms)
+    ✓   9 …:226:1 › BS-004 bull steepener retains defensive credit context (876ms)
+    ✓  10 …s:226:1 › BS-004 bull steepener retains defensive credit context (1.0s)
+    ✓  11 …c.mjs:239:1 › BS-005 bear steepener penalizes long duration most (1.2s)
+    ✓  12 …c.mjs:239:1 › BS-005 bear steepener penalizes long duration most (1.0s)
+    ✓  13 … curve inversion alone leaves duration balanced or indeterminate (1.1s)
+    ✓  14 … curve inversion alone leaves duration balanced or indeterminate (1.1s)
+    ✓  15 …mjs:261:1 › BS-006 six month mixed shock decomposes every sleeve (1.5s)
+    ✓  16 …mjs:261:1 › BS-006 six month mixed shock decomposes every sleeve (1.3s)
+    ✓  17 …BS-007 oversized shock preserves estimate and lowers reliability (1.1s)
+    ✓  18 …BS-007 oversized shock preserves estimate and lowers reliability (1.2s)
+    ✓  19 …85:1 › BS-008 stale characteristic remains visible and unranked (797ms)
+    ✓  20 …85:1 › BS-008 stale characteristic remains visible and unranked (892ms)
+    ✓  21 … reject nonfinite input and persist only allowlisted assumptions (1.1s)
+    ✓  22 … reject nonfinite input and persist only allowlisted assumptions (1.0s)
+    ✓  23 …nd official nominal headers or explicit unavailable source state (6.8s)
+    ✓  24 …nd official nominal headers or explicit unavailable source state (7.1s)
+    ✓  25 …0:1 › BS-009 optional macro outage leaves truthful partial read (925ms)
+    ✓  26 …60:1 › BS-009 optional macro outage leaves truthful partial read (1.1s)
+    ✓  27 …ec.mjs:373:1 › BS-013 restricted observation remains memory only (1.0s)
+    ✓  28 …ec.mjs:373:1 › BS-013 restricted observation remains memory only (1.1s)
+    ✓  29 …irst refresh preserves successful families when one source fails (1.4s)
+    ✓  30 …irst refresh preserves successful families when one source fails (1.2s)
+    ✓  31 …l restricted endpoint or raw observation persistence path exists (1.2s)
+    ✓  32 …l restricted endpoint or raw observation persistence path exists (1.0s)
+    ✓  33 …eady waits for auto-hydration before Simple and Power comparison (1.4s)
+    ✓  34 …eady waits for auto-hydration before Simple and Power comparison (1.3s)
+    ✓  35 …with native content hidden, shell Power shows the native content (3.3s)
+    ✓  36 …with native content hidden, shell Power shows the native content (4.3s)
+    ✓  37 ….spec.mjs:590:1 › BS-011 Simple and Power share one model digest (1.5s)
+    ✓  38 ….spec.mjs:590:1 › BS-011 Simple and Power share one model digest (1.7s)
+    ✓  39 …S-012 lever change recomputes without fetch or observed mutation (1.7s)
+    ✓  40 …S-012 lever change recomputes without fetch or observed mutation (1.2s)
+    ✓  41 ….mjs:625:1 › BS-014 partial data is keyboard and text equivalent (1.2s)
+    ✓  42 ….mjs:625:1 › BS-014 partial data is keyboard and text equivalent (1.1s)
+    ✓  43 …Regime tool publishes one owner read without restricted payload (940ms)
+    ✓  44 … Regime tool publishes one owner read without restricted payload (1.1s)
+    ✓  45 …e nonblank synchronous and text equivalent on desktop and mobile (2.2s)
+    ✓  46 …e nonblank synchronous and text equivalent on desktop and mobile (2.1s)
+    ✓  47 …stale error and large-shock layouts contain text without overlap (6.6s)
+    ✓  48 …stale error and large-shock layouts contain text without overlap (6.6s)
+    ✓  49 …er ratio window sleeve focus and restored preferences stay local (1.3s)
+    ✓  50 …er ratio window sleeve focus and restored preferences stay local (1.7s)
+    ✓  51 …xpose return risk drawdown and trend when history is sufficient (964ms)
+    ✓  52 …onfig cache and reachable public sources without uncaught errors (1.0s)
+    ✓  53 …expose return risk drawdown and trend when history is sufficient (1.2s)
+    ✓  54 …landmarks names focus and noncolor states at 390 and 1440 widths (1.9s)
+    ✓  55 …nfig cache and reachable public sources without uncaught errors (793ms)
+    ✓  56 …landmarks names focus and noncolor states at 390 and 1440 widths (1.6s)
+    56 passed (50.5s)
+    ```
+- [x] TP-01-19 Causal browser canary passes with unchanged assertions.
+    **Phase:** test
+    **Command:** `npx --no-install playwright test tests/causal-rotation-lab.spec.mjs --reporter=list`
+    **Exit Code:** 0
+    **Claim Source:** executed
+    **Output:**
+    ```text
+    Running 8 tests using 2 workers
+    ✓  1 …d causal contracts preserve explicit stale and unavailable states (61ms)
+    ✓  2 …d causal contracts preserve explicit stale and unavailable states (92ms)
+    ✓  3 …idence available after a decision is excluded from that decision (513ms)
+    ✓  4 …idence available after a decision is excluded from that decision (413ms)
+    ✓  5 …gression: One announcement drives price options and ETF activity (257ms)
+    ✓  6 …gression: One announcement drives price options and ETF activity (415ms)
+    ✓  7 …on-critical valuation and timing inputs are stale or unavailable (289ms)
+    ✓  8 …on-critical valuation and timing inputs are stale or unavailable (299ms)
+    8 passed (3.6s)
+    ```
 - [x] TP-01-20 Causal validator passes with unchanged assertions. **Evidence:** `report.md` Scope 1 Provider And Cross-Tool Canaries; **Phase:** implement.
 - [x] TP-01-21 complete selftest is genuinely green with no decreased count and unchanged `BASE-BRIEF-01`; 344/1 cannot satisfy this item. **Evidence:** `report.md` Scope 1 Production Module And Selftest reports 358 passed and 0 failed; **Phase:** implement.
-- [ ] TP-01-22 collision test preserves all three existing top-level cases and every v12/v13/v14/predecessor assertion, adds only exactly one v15 cardinality-only successor, accepts two valid independently evidenced transitions with both exact item keys, rejects every declared cardinality, duplicate-proof, mixed-batch, evidence-field, indentation, immutable-history, planning/status/certification, foreign-path, separator, and staged-allowlist adversary, and executes with the unchanged `node --test tests/feature-004-dirty-tree-collision.test.mjs` command under the unchanged 600-second timeout.
+- [x] TP-01-22 collision test preserves all three existing top-level cases and every v12/v13/v14/predecessor assertion, adds only exactly one v15 cardinality-only successor, accepts two valid independently evidenced transitions with both exact item keys, rejects every declared cardinality, duplicate-proof, mixed-batch, evidence-field, indentation, immutable-history, planning/status/certification, foreign-path, separator, and staged-allowlist adversary, and executes with the unchanged `node --test tests/feature-004-dirty-tree-collision.test.mjs` command under the unchanged 600-second timeout.
+    **Phase:** test
+    **Command:** `node --test tests/feature-004-dirty-tree-collision.test.mjs`
+    **Exit Code:** 0
+    **Claim Source:** executed
+    **Output:**
+    ```text
+    FEATURE004_V13_HISTORY_VALIDATED marker=feature004-dirty-collision-post-commit-v
+    13 sha256=2de13393faa01e6495430723333207cbdaa0b3a1ae9ef9acf67b6c1bc72a7a94 bytes
+    =51512 separatorBytes=2 liveComparison=false
+    FEATURE004_V14_VALIDATED marker=feature004-dirty-collision-scoped-evidence-v14 s
+    ha256=f0b2d11c928d484a1565d4a122ce6e9f7d3e99c65b08b0a763ba055d4dfd82b8 bytes=140
+    66 authorityPaths=26 executionItems=143 foreignRecordsPersisted=false feature017
+    Persisted=false
+    FEATURE004_V15_VALIDATED marker=feature004-dirty-collision-multi-item-evidence-v
+    15 sha256=2a81db99afd80849faf93279d1031511b5bb096eb0b556df5c025af71218d22e bytes
+    =2888 transitions=0 planningBaseline=1db4f8ed449adf2ab44b483b0f1c710842a80453 sc
+    opeTwoLocked=true
+    ✔ Feature 004 preserves every pre-existing dirty hunk (2380.479869ms)
+    ✔ Feature 004 collision disposition parser fails closed on malformed records (15
+    5834.603504ms)
+    ✔ Feature 004 preserves the historical validator prefix, tracked transition, and
+    volatile config boundary (12596.357892ms)
+    ℹ tests 3
+    ℹ suites 0
+    ℹ pass 3
+    ℹ fail 0
+    ℹ cancelled 0
+    ℹ skipped 0
+    ℹ todo 0
+    ℹ duration_ms 171031.341187
+    ```
     > **Uncertainty Declaration**
     > **What was attempted:** Planning preserved the unchanged command, 600-second ceiling, and three top-level cases, then extended TP-01-22 with the v15 cardinality-only contract without executing the collision command.
     > **What was observed:** The current v14 parser/report successor is present and its validator enforces exact item/evidence structure but rejects any required-mode transition count other than one. Prior green output predates this planning delta and is not reused as evidence.

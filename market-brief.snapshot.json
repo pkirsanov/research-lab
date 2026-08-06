@@ -1,26 +1,26 @@
 {
-  "asOf": "2026-08-06T11:00:34.696Z",
-  "generatedAt": "2026-08-06T11:00:34.696Z",
-  "window": "pre-market",
+  "asOf": "2026-08-06T14:30:25.026Z",
+  "generatedAt": "2026-08-06T14:30:25.026Z",
+  "window": "morning",
   "marketClosed": false,
   "nextSessionDate": "2026-08-06",
   "dataFreshness": {
     "bars": {
-      "updated": "2026-08-06T11:00:25.025Z",
+      "updated": "2026-08-06T14:30:14.706Z",
       "symbolCount": 291,
       "expectedSessionDate": "2026-08-05",
       "refreshDate": "2026-08-06",
-      "refreshWindow": "pre-market",
+      "refreshWindow": "morning",
       "freshSymbolCount": 291,
       "carriedSymbolCount": 0,
       "missingSymbolCount": 0
     },
     "options": {
-      "updated": "2026-08-06T11:00:29.264Z",
+      "updated": "2026-08-06T14:30:18.199Z",
       "symbolCount": 22,
       "expectedSessionDate": null,
       "refreshDate": "2026-08-06",
-      "refreshWindow": "pre-market",
+      "refreshWindow": "morning",
       "freshSymbolCount": 22,
       "carriedSymbolCount": 0,
       "missingSymbolCount": 0
@@ -627,7 +627,7 @@
   "toolReads": {
     "sector-research-lab": {
       "id": "sector-research-lab",
-      "asOf": "2026-08-06T11:00:33.258Z",
+      "asOf": "2026-08-06T14:30:23.342Z",
       "read": "Rotate toward XLY as XLF weakens.",
       "metrics": {
         "into": {
@@ -747,19 +747,19 @@
     "global-rotation-lab": {
       "id": "global-rotation-lab",
       "asOf": "2026-08-05T13:30:00.000Z",
-      "read": "EWS (Singapore) leads global rotation at 80.1/100 versus ACWI; EWC is next.",
+      "read": "EWS (Singapore) leads global rotation at 80.3/100 versus ACWI; EWC is next.",
       "metrics": {
         "benchmark": "ACWI",
         "leader": {
           "ticker": "EWS",
           "country": "Singapore",
-          "score": 80.1,
+          "score": 80.3,
           "rel21": 2.86,
           "rel63": 8.56,
           "rel126": 6.51,
           "trend": "Strong uptrend",
           "fx": "Confirms leadership",
-          "fxStrength": 0.79,
+          "fxStrength": 0.94,
           "vol": 15.03,
           "maxDrawdown": 7.82,
           "asOf": "2026-08-05T13:30:00.000Z"
@@ -768,13 +768,13 @@
           {
             "ticker": "EWS",
             "country": "Singapore",
-            "score": 80.1,
+            "score": 80.3,
             "rel21": 2.86,
             "rel63": 8.56,
             "rel126": 6.51,
             "trend": "Strong uptrend",
             "fx": "Confirms leadership",
-            "fxStrength": 0.79,
+            "fxStrength": 0.94,
             "vol": 15.03,
             "maxDrawdown": 7.82,
             "asOf": "2026-08-05T13:30:00.000Z"
@@ -788,7 +788,7 @@
             "rel126": 0.36,
             "trend": "Strong uptrend",
             "fx": "FX neutral",
-            "fxStrength": 1.37,
+            "fxStrength": 1.35,
             "vol": 12.18,
             "maxDrawdown": 8.51,
             "asOf": "2026-08-05T13:30:00.000Z"
@@ -824,13 +824,13 @@
           {
             "ticker": "EWJ",
             "country": "Japan",
-            "score": 65.5,
+            "score": 65.6,
             "rel21": -0.34,
             "rel63": 1.16,
             "rel126": -0.62,
             "trend": "Constructive",
             "fx": "Confirms leadership",
-            "fxStrength": 2.44,
+            "fxStrength": 2.52,
             "vol": 23.59,
             "maxDrawdown": 13.59,
             "asOf": "2026-08-05T13:30:00.000Z"
@@ -1464,28 +1464,28 @@
     },
     "options-structure-lab": {
       "id": "options-structure-lab",
-      "asOf": "2026-08-05T16:00:00.000Z",
-      "read": "SPY sits in positive dealer gamma with the flip near 770.74; call wall 772, put wall 770, front expected move ±4.93.",
+      "asOf": "2026-08-06T10:14:05.000Z",
+      "read": "SPY sits in positive dealer gamma with the flip near 770.13; call wall 775, put wall 770, front expected move ±5.01.",
       "deepLink": "options-structure-lab.html",
       "source": "owning-tool-functions",
       "state": "ready",
       "metrics": {
         "symbol": "SPY",
-        "spot": 770.94,
+        "spot": 771.61,
         "regime": "positive",
-        "flipLevel": 770.74,
-        "signedNetGEX": 212543364.2778,
-        "callWall": 772,
+        "flipLevel": 770.13,
+        "signedNetGEX": 1656885386.5092,
+        "callWall": 775,
         "putWall": 770,
-        "expectedMove": 4.93,
-        "atmIV": 0.1729,
+        "expectedMove": 5.01,
+        "atmIV": 0.1753,
         "expiriesPriced": 3
       }
     },
     "gamma-trading-lab": {
       "id": "gamma-trading-lab",
-      "asOf": "2026-08-05T16:00:00.000Z",
-      "read": "SPY dealers are positive gamma — playbook pin-to-maxpain, conviction patient; flip 770.74, walls 770/772.",
+      "asOf": "2026-08-06T10:14:05.000Z",
+      "read": "SPY dealers are positive gamma — playbook pin-to-maxpain, conviction patient; flip 770.13, walls 770/775.",
       "deepLink": "gamma-trading-lab.html",
       "source": "owning-tool-functions",
       "state": "ready",
@@ -1495,10 +1495,10 @@
         "scenario": "pin-to-maxpain",
         "conviction": "patient",
         "hold": "same-session-fade",
-        "signedNetGEX": 212543364.28,
+        "signedNetGEX": 1656885386.51,
         "flipPresent": true,
-        "flip": 770.74,
-        "callWall": 772,
+        "flip": 770.13,
+        "callWall": 775,
         "putWall": 770,
         "oviState": "unavailable",
         "opexWindow": null
@@ -1506,61 +1506,61 @@
     },
     "options-flow-feed-lab": {
       "id": "options-flow-feed-lab",
-      "asOf": "2026-08-05T16:00:00.000Z",
-      "read": "Option flow is balanced across 12 tickers: 2306 contracts clear the $250k premium bar inside 30 days; the most unusual is AAPL 310 calls at $25.7M on 23.0× its open interest.",
+      "asOf": "2026-08-06T10:14:22.000Z",
+      "read": "Option flow is call-heavy (leaning bullish) across 12 tickers: 674 contracts clear the $250k premium bar inside 30 days; the most unusual is TSLA 320 calls at $10.2M on 2.8× its open interest.",
       "deepLink": "options-flow-feed-lab.html",
       "source": "owning-tool-functions",
       "state": "ready",
       "metrics": {
         "tickers": 12,
-        "contractsFlagged": 2306,
+        "contractsFlagged": 674,
         "windowDays": 30,
         "premiumThreshold": 250000,
-        "lean": "balanced",
-        "callPremium": 2242931422,
-        "putPremium": 2877480584.5,
-        "callFraction": 0.438,
+        "lean": "call-heavy (leaning bullish)",
+        "callPremium": 752473645,
+        "putPremium": 235317024.5,
+        "callFraction": 0.7618,
         "netPremium": null,
-        "consideredCount": 22662,
-        "clearedCount": 834,
-        "clearedFraction": 0.0368,
-        "maxScore": 91,
+        "consideredCount": 21106,
+        "clearedCount": 186,
+        "clearedFraction": 0.0088,
+        "maxScore": 92,
         "top": [
           {
-            "ticker": "AAPL",
+            "ticker": "TSLA",
             "type": "C",
-            "strike": 310,
-            "dte": 0,
-            "volume": 267921,
-            "openInterest": 11626,
-            "volOI": 23.045,
-            "premium": 25720416,
-            "iv": 36.2,
+            "strike": 320,
+            "dte": 1,
+            "volume": 23801,
+            "openInterest": 8413,
+            "volOI": 2.8291,
+            "premium": 10174927.5,
+            "iv": 50.54,
+            "score": 92
+          },
+          {
+            "ticker": "NVDA",
+            "type": "C",
+            "strike": 225,
+            "dte": 1,
+            "volume": 136114,
+            "openInterest": 45083,
+            "volOI": 3.0192,
+            "premium": 15244768,
+            "iv": 46.73,
             "score": 91
           },
           {
             "ticker": "QQQ",
-            "type": "P",
-            "strike": 720,
+            "type": "C",
+            "strike": 715,
             "dte": 0,
-            "volume": 413198,
-            "openInterest": 8693,
-            "volOI": 47.5323,
-            "premium": 115902039,
-            "iv": 0,
+            "volume": 77177,
+            "openInterest": 4241,
+            "volOI": 18.1978,
+            "premium": 28748432.5,
+            "iv": 30.86,
             "score": 90
-          },
-          {
-            "ticker": "QQQ",
-            "type": "P",
-            "strike": 721,
-            "dte": 0,
-            "volume": 269687,
-            "openInterest": 2050,
-            "volOI": 131.5546,
-            "premium": 105177930,
-            "iv": 76.77,
-            "score": 82
           }
         ]
       }
@@ -1575,7 +1575,7 @@
       "metrics": {
         "basis": "scenario-assumptions",
         "universeSource": "ai-capex-universe.json",
-        "universeAgeDays": 37,
+        "universeAgeDays": 38,
         "horizon": "6m",
         "objective": "risk-adjusted",
         "assetCount": 16,
@@ -1706,7 +1706,7 @@
     },
     "market-heatmap-lab": {
       "id": "market-heatmap-lab",
-      "asOf": "2026-08-06T11:00:34.566Z",
+      "asOf": "2026-08-06T14:30:24.866Z",
       "read": "Leadership is narrow — 50.99% of 135 constituents are positive against a 60% broad-market threshold.",
       "deepLink": "market-heatmap-lab.html",
       "source": "owning-tool-functions",
@@ -1802,7 +1802,7 @@
         "valueAreaHigh": null,
         "valueAreaLow": null,
         "gapPct": 0.59,
-        "sessions": 5,
+        "sessions": 4,
         "barsToday": 79
       }
     }
@@ -1824,7 +1824,7 @@
       "id": "options-flow-feed-lab",
       "deepLink": "options-flow-feed-lab.html",
       "status": "fresh-headless",
-      "reason": "Option flow is balanced across 12 tickers: 2306 contracts clear the $250k premium bar inside 30 days; the most unusual is AAPL 310 calls at $25.7M on 23.0× its open interest."
+      "reason": "Option flow is call-heavy (leaning bullish) across 12 tickers: 674 contracts clear the $250k premium bar inside 30 days; the most unusual is TSLA 320 calls at $10.2M on 2.8× its open interest."
     },
     {
       "id": "intraday-tape-lab",
@@ -1842,13 +1842,13 @@
       "id": "options-structure-lab",
       "deepLink": "options-structure-lab.html",
       "status": "fresh-headless",
-      "reason": "SPY sits in positive dealer gamma with the flip near 770.74; call wall 772, put wall 770, front expected move ±4.93."
+      "reason": "SPY sits in positive dealer gamma with the flip near 770.13; call wall 775, put wall 770, front expected move ±5.01."
     },
     {
       "id": "gamma-trading-lab",
       "deepLink": "gamma-trading-lab.html",
       "status": "fresh-headless",
-      "reason": "SPY dealers are positive gamma — playbook pin-to-maxpain, conviction patient; flip 770.74, walls 770/772."
+      "reason": "SPY dealers are positive gamma — playbook pin-to-maxpain, conviction patient; flip 770.13, walls 770/775."
     },
     {
       "id": "sector-research-lab",
@@ -1860,7 +1860,7 @@
       "id": "global-rotation-lab",
       "deepLink": "global-rotation-lab.html",
       "status": "fresh-headless",
-      "reason": "EWS (Singapore) leads global rotation at 80.1/100 versus ACWI; EWC is next."
+      "reason": "EWS (Singapore) leads global rotation at 80.3/100 versus ACWI; EWC is next."
     },
     {
       "id": "real-assets-lab",

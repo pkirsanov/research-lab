@@ -96,6 +96,10 @@
   var GENERIC_GOAL_TOKENS = Object.freeze([
     "example", "generic", "placeholder", "goal-one", "goal-two", "sample", "tbd", "todo", "demo"
   ]);
+  var SEMANTIC_EVIDENCE_REF_KEYS = Object.freeze([
+    "requirementId", "evidenceRef", "semanticFingerprint", "sourceClass", "valueState",
+    "observedAsOf", "retrievedOrPublishedAt", "freshness", "dataTier"
+  ]);
 
   /* ═══════════ structural helpers ═══════════ */
 
@@ -350,6 +354,13 @@
     requireArray(step.dependsOnStepIds, "$step.dependsOnStepIds", 0);
     requireArray(step.invalidatesStepIds, "$step.invalidatesStepIds", 0);
     requireArray(step.requiredEvidenceSlots, "$step.requiredEvidenceSlots", 0);
+    requireArray(step.staleWhen, "$step.staleWhen", 0);
+    var seenSemanticRefs = Object.create(null);
+    step.staleWhen.forEach(function (semanticRef, index) {
+      requireString(semanticRef, "$step.staleWhen[" + index + "]");
+      if (seenSemanticRefs[semanticRef]) reject("RLJOURNEY-STEP", "$step.staleWhen[" + index + "]", "duplicate semantic stale reference");
+      seenSemanticRefs[semanticRef] = true;
+    });
   }
 
   /* ═══════════ dependency DAG (cycle rejection + topological order) ═══════════ */
@@ -471,6 +482,7 @@
           mechanismRole: step.mechanismRole,
           dependsOnStepIds: step.dependsOnStepIds.slice(),
           requiredEvidenceSlots: step.requiredEvidenceSlots.slice(),
+          staleWhen: step.staleWhen.slice(),
           completionPredicate: step.completionPredicate,
           gated: definition.privacyClass === "local-private-ref"
         };
@@ -582,6 +594,246 @@
     return deepFreeze({ mechanism: adapter.mechanism, progression: canonical.progression, requiresBranchTerminal: canonical.requiresBranchTerminal });
   }
 
+  /* ═══════════ semantic evidence refresh contract ═══════════
+     Journey steps already declare semantic dependencies through staleWhen[]. A
+     semantic reference reuses the Feature 012 evidence-reference vocabulary and
+     deliberately excludes observation/retrieval occurrence clocks from identity.
+     Those clocks may be supplied and validated as strings, but only the five
+     semantic fields below are retained in the session. */
+
+  function semanticRefProjection(reference, path) {
+    if (!isPlainObject(reference)) reject("RLJOURNEY-INPUT", path, "semantic evidence reference object required");
+    assertNoExecutable(reference, path);
+    assertNoForbiddenFields(reference, path);
+    Object.keys(reference).forEach(function (key) {
+      if (SEMANTIC_EVIDENCE_REF_KEYS.indexOf(key) === -1) reject("RLJOURNEY-INPUT", path + "." + key, "unknown semantic evidence reference field");
+    });
+    ["requirementId", "evidenceRef", "semanticFingerprint", "sourceClass", "valueState"].forEach(function (key) {
+      requireString(reference[key], path + "." + key);
+    });
+    if (!/^sha256:[0-9a-f]{64}$/.test(reference.semanticFingerprint)) {
+      reject("RLJOURNEY-INPUT", path + ".semanticFingerprint", "canonical SHA-256 semantic fingerprint required");
+    }
+    ["observedAsOf", "retrievedOrPublishedAt", "freshness", "dataTier"].forEach(function (key) {
+      if (Object.prototype.hasOwnProperty.call(reference, key)) requireString(reference[key], path + "." + key);
+    });
+    return {
+      requirementId: reference.requirementId,
+      evidenceRef: reference.evidenceRef,
+      semanticFingerprint: reference.semanticFingerprint,
+      sourceClass: reference.sourceClass,
+      valueState: reference.valueState
+    };
+  }
+
+  function declaredSemanticRefIds(steps) {
+    var declared = [];
+    steps.forEach(function (step) {
+      step.staleWhen.forEach(function (semanticRef) {
+        if (declared.indexOf(semanticRef) === -1) declared.push(semanticRef);
+      });
+    });
+    return declared;
+  }
+
+  function normalizeSemanticEvidenceRefs(references, declared, path) {
+    requireArray(references, path, 0);
+    if (declared.length === 0) reject("RLJOURNEY-STALE", path, "definition declares no semantic stale references");
+    var byId = Object.create(null);
+    references.forEach(function (reference, index) {
+      var projected = semanticRefProjection(reference, path + "[" + index + "]");
+      if (declared.indexOf(projected.requirementId) === -1) reject("RLJOURNEY-STALE", path + "[" + index + "].requirementId", "unknown semantic evidence reference");
+      if (byId[projected.requirementId]) reject("RLJOURNEY-STALE", path + "[" + index + "].requirementId", "duplicate semantic evidence reference");
+      byId[projected.requirementId] = projected;
+    });
+    declared.forEach(function (semanticRef) {
+      if (!byId[semanticRef]) reject("RLJOURNEY-STALE", path, "current semantic evidence reference missing: " + semanticRef);
+    });
+    return declared.map(function (semanticRef) { return byId[semanticRef]; });
+  }
+
+  function semanticEvidenceFingerprint(session, references) {
+    return fingerprint({
+      definitionId: session.definitionId,
+      definitionVersion: session.definitionVersion,
+      definitionFingerprint: session.definitionFingerprint,
+      stepFingerprints: session.stepFingerprints,
+      semanticEvidenceRefs: references
+    });
+  }
+
+  function validateSessionDependencyGraph(session) {
+    if (!Array.isArray(session.order) || session.order.length < 1 || !isPlainObject(session.steps) || !isPlainObject(session.transitiveDependents)) {
+      reject("RLJOURNEY-DAG", "$session", "complete session dependency graph required");
+    }
+    var seen = Object.create(null);
+    var indegree = Object.create(null);
+    var adjacency = Object.create(null);
+    session.order.forEach(function (stepId, index) {
+      requireString(stepId, "$session.order[" + index + "]");
+      if (seen[stepId]) reject("RLJOURNEY-DAG", "$session.order[" + index + "]", "duplicate session step");
+      seen[stepId] = true;
+      indegree[stepId] = 0;
+      adjacency[stepId] = [];
+      var record = session.steps[stepId];
+      if (!isPlainObject(record)) reject("RLJOURNEY-DAG", "$session.steps." + stepId, "session step record missing");
+      requireArray(record.dependsOnStepIds, "$session.steps." + stepId + ".dependsOnStepIds", 0);
+      requireArray(record.staleWhen, "$session.steps." + stepId + ".staleWhen", 0);
+    });
+    if (Object.keys(session.steps).length !== session.order.length) reject("RLJOURNEY-DAG", "$session.steps", "session contains an undeclared step record");
+    session.order.forEach(function (stepId) {
+      session.steps[stepId].dependsOnStepIds.forEach(function (dependencyId) {
+        if (!seen[dependencyId] || dependencyId === stepId) reject("RLJOURNEY-DAG", "$session.steps." + stepId + ".dependsOnStepIds", "invalid session dependency");
+        adjacency[dependencyId].push(stepId);
+        indegree[stepId] += 1;
+      });
+    });
+    var queue = session.order.filter(function (stepId) { return indegree[stepId] === 0; });
+    var topological = [];
+    var remaining = Object.assign(Object.create(null), indegree);
+    var cursor = 0;
+    while (cursor < queue.length) {
+      var current = queue[cursor];
+      cursor += 1;
+      topological.push(current);
+      adjacency[current].forEach(function (dependentId) {
+        remaining[dependentId] -= 1;
+        if (remaining[dependentId] === 0) queue.push(dependentId);
+      });
+    }
+    if (topological.length !== session.order.length || !equalStringArray(topological, session.order)) {
+      reject("RLJOURNEY-DAG", "$session.order", "session dependency graph is cyclic or order-mismatched");
+    }
+    var computed = Object.create(null);
+    for (var orderIndex = topological.length - 1; orderIndex >= 0; orderIndex -= 1) {
+      var node = topological[orderIndex];
+      var dependents = [];
+      adjacency[node].forEach(function (dependentId) {
+        if (dependents.indexOf(dependentId) === -1) dependents.push(dependentId);
+        (computed[dependentId] || []).forEach(function (nestedId) {
+          if (dependents.indexOf(nestedId) === -1) dependents.push(nestedId);
+        });
+      });
+      dependents.sort(function (left, right) { return topological.indexOf(left) - topological.indexOf(right); });
+      computed[node] = dependents;
+    }
+    session.order.forEach(function (stepId) {
+      if (!equalStringArray(session.transitiveDependents[stepId], computed[stepId])) {
+        reject("RLJOURNEY-DAG", "$session.transitiveDependents." + stepId, "session transitive dependency graph mismatch");
+      }
+    });
+    if (Object.keys(session.transitiveDependents).length !== session.order.length) {
+      reject("RLJOURNEY-DAG", "$session.transitiveDependents", "session contains undeclared transitive dependency records");
+    }
+    return declaredSemanticRefIds(session.order.map(function (stepId) { return session.steps[stepId]; }));
+  }
+
+  function validateRefreshSession(session) {
+    if (!isPlainObject(session) || session.contractVersion !== CONTRACT.session) reject("RLJOURNEY-SESSION", "$session", "session required");
+    assertNoExecutable(session, "$session");
+    assertNoForbiddenFields(session, "$session");
+    var declared = validateSessionDependencyGraph(session);
+    if (!Array.isArray(session.stepFingerprints) || session.stepFingerprints.length !== session.order.length) {
+      reject("RLJOURNEY-STALE", "$session.stepFingerprints", "session step identity is missing");
+    }
+    session.stepFingerprints.forEach(function (record, index) {
+      if (!isPlainObject(record) || record.stepId !== session.order[index] || !/^sha256:[0-9a-f]{64}$/.test(record.stepFingerprint)) {
+        reject("RLJOURNEY-STALE", "$session.stepFingerprints[" + index + "]", "session step identity mismatch");
+      }
+    });
+    if (!Array.isArray(session.semanticEvidenceRefs) || typeof session.semanticEvidenceFingerprint !== "string") {
+      reject("RLJOURNEY-STALE", "$session.semanticEvidenceRefs", "explicit semantic evidence baseline required before refresh");
+    }
+    var normalizedBaseline = normalizeSemanticEvidenceRefs(session.semanticEvidenceRefs, declared, "$session.semanticEvidenceRefs");
+    if (session.semanticEvidenceFingerprint !== semanticEvidenceFingerprint(session, normalizedBaseline)) {
+      reject("RLJOURNEY-STALE", "$session.semanticEvidenceFingerprint", "session and definition semantic identity mismatch");
+    }
+    if (session.sessionFingerprint !== sessionFingerprint(session)) {
+      reject("RLJOURNEY-STALE", "$session.sessionFingerprint", "session fingerprint mismatch");
+    }
+    return { declared: declared, baseline: normalizedBaseline };
+  }
+
+  function priorOutcome(stepId, record) {
+    return {
+      stepId: stepId,
+      status: record.status,
+      input: JSON.parse(JSON.stringify(record.input)),
+      evidence: JSON.parse(JSON.stringify(record.evidence)),
+      conclusion: JSON.parse(JSON.stringify(record.conclusion)),
+      staleReason: record.staleReason,
+      completedAt: record.completedAt
+    };
+  }
+
+  function clearCurrentOutcome(record) {
+    record.evidence = [];
+    record.conclusion = null;
+    record.completedAt = null;
+  }
+
+  function refreshEvidenceInternal(session, semanticEvidenceRefs) {
+    var validated = validateRefreshSession(session);
+    var current = normalizeSemanticEvidenceRefs(semanticEvidenceRefs, validated.declared, "$semanticEvidenceRefs");
+    var baselineById = Object.create(null);
+    validated.baseline.forEach(function (reference) { baselineById[reference.requirementId] = reference; });
+    var currentById = Object.create(null);
+    current.forEach(function (reference) { currentById[reference.requirementId] = reference; });
+    var changedRefs = validated.declared.filter(function (semanticRef) {
+      return canonicalize(baselineById[semanticRef]) !== canonicalize(currentById[semanticRef]);
+    });
+    if (changedRefs.length === 0) return session;
+
+    var next = JSON.parse(JSON.stringify(session));
+    var reopened = next.order.filter(function (stepId) {
+      return next.steps[stepId].staleWhen.some(function (semanticRef) { return changedRefs.indexOf(semanticRef) !== -1; });
+    });
+    if (reopened.length === 0) reject("RLJOURNEY-STALE", "$semanticEvidenceRefs", "changed semantic evidence has no declared step owner");
+    var staleSet = Object.create(null);
+    reopened.forEach(function (stepId) {
+      next.transitiveDependents[stepId].forEach(function (dependentId) { staleSet[dependentId] = true; });
+    });
+    reopened.forEach(function (stepId) { delete staleSet[stepId]; });
+    var staled = next.order.filter(function (stepId) { return staleSet[stepId] === true; });
+    var affected = next.order.filter(function (stepId) { return reopened.indexOf(stepId) !== -1 || staleSet[stepId] === true; });
+    var outcomes = affected.map(function (stepId) { return priorOutcome(stepId, next.steps[stepId]); });
+
+    reopened.forEach(function (stepId) {
+      var record = next.steps[stepId];
+      record.status = "active";
+      clearCurrentOutcome(record);
+      record.staleReason = null;
+    });
+    staled.forEach(function (stepId) {
+      var record = next.steps[stepId];
+      var causes = [];
+      reopened.forEach(function (reopenedId) {
+        if (next.transitiveDependents[reopenedId].indexOf(stepId) === -1) return;
+        next.steps[reopenedId].staleWhen.forEach(function (semanticRef) {
+          if (changedRefs.indexOf(semanticRef) !== -1 && causes.indexOf(semanticRef) === -1) causes.push(semanticRef);
+        });
+      });
+      record.status = "stale";
+      clearCurrentOutcome(record);
+      record.staleReason = "E012-JOURNEY-STALE semantic evidence changed: " + causes.join(", ");
+    });
+    next.semanticEvidenceRefs = current;
+    next.semanticEvidenceFingerprint = semanticEvidenceFingerprint(next, current);
+    next.history.push({
+      event: "evidence-refresh",
+      changedEvidenceRefs: changedRefs.slice(),
+      reopened: reopened.slice(),
+      staled: staled.slice(),
+      priorOutcomes: outcomes,
+      invalidatedSessionFingerprint: session.sessionFingerprint,
+      at: null
+    });
+    next.nextRequiredStepId = nextRequiredStepId(next);
+    next.status = "in-progress";
+    assertNoForbiddenFields(next, "$session");
+    return finalizeSession(next);
+  }
+
   /* ═══════════ session lifecycle ═══════════ */
 
   function validateContext(compiled, context) {
@@ -636,6 +888,7 @@
         status: "pending",
         dependsOnStepIds: step.dependsOnStepIds.slice(),
         requiredEvidenceSlots: step.requiredEvidenceSlots.slice(),
+        staleWhen: step.staleWhen.slice(),
         gated: step.gated,
         input: null,
         evidence: [],
@@ -650,6 +903,7 @@
       definitionId: compiled.definitionId,
       definitionVersion: compiled.definitionVersion,
       definitionFingerprint: compiled.definitionFingerprint,
+      stepFingerprints: JSON.parse(JSON.stringify(compiled.stepFingerprints)),
       toolId: compiled.toolId,
       goalId: compiled.goalId,
       mechanism: compiled.mechanism,
@@ -659,12 +913,19 @@
       transitiveDependents: JSON.parse(JSON.stringify(compiled.transitiveDependents)),
       context: context,
       steps: steps,
+      semanticEvidenceRefs: null,
+      semanticEvidenceFingerprint: null,
       history: [],
       status: "in-progress",
       createdAt: createdAt,
       updatedAt: createdAt,
       sessionFingerprint: null
     };
+    if (Object.prototype.hasOwnProperty.call(settings, "semanticEvidenceRefs")) {
+      var declared = declaredSemanticRefIds(compiled.steps);
+      session.semanticEvidenceRefs = normalizeSemanticEvidenceRefs(settings.semanticEvidenceRefs, declared, "$options.semanticEvidenceRefs");
+      session.semanticEvidenceFingerprint = semanticEvidenceFingerprint(session, session.semanticEvidenceRefs);
+    }
     session.nextRequiredStepId = nextRequiredStepId(session);
     assertNoForbiddenFields(session, "$session");
     return finalizeSession(session);
@@ -681,14 +942,20 @@
     if (!isPlainObject(compiled) || compiled.contractVersion !== CONTRACT.compiled) reject("RLJOURNEY-SESSION", "$compiled", "compiled definition required");
     if (!isPlainObject(record) || record.contractVersion !== CONTRACT.session) reject("RLJOURNEY-SESSION", "$record", "session record required");
     if (record.definitionId !== compiled.definitionId) reject("RLJOURNEY-SESSION", "$record.definitionId", "session belongs to a different definition");
+    if (record.definitionVersion !== compiled.definitionVersion) reject("RLJOURNEY-STALE", "$record.definitionVersion", "definition version changed since the session was saved");
     if (record.definitionFingerprint !== compiled.definitionFingerprint) reject("RLJOURNEY-STALE", "$record.definitionFingerprint", "definition changed since the session was saved");
     if (!equalStringArray(record.order, compiled.order)) reject("RLJOURNEY-STALE", "$record.order", "session step order no longer matches the definition");
+    if (canonicalize(record.stepFingerprints) !== canonicalize(compiled.stepFingerprints)) reject("RLJOURNEY-STALE", "$record.stepFingerprints", "session step definitions changed since the session was saved");
     assertNoExecutable(record, "$record");
     assertNoForbiddenFields(record, "$record");
     var restored = JSON.parse(JSON.stringify(record));
     Object.keys(restored.steps).forEach(function (stepId) {
       if (compiled.order.indexOf(stepId) === -1) reject("RLJOURNEY-STALE", "$record.steps." + stepId, "session references an unknown step");
       if (STEP_STATES.indexOf(restored.steps[stepId].status) === -1) reject("RLJOURNEY-SESSION", "$record.steps." + stepId + ".status", "unknown step status");
+      var compiledStep = compiled.steps.filter(function (step) { return step.stepId === stepId; })[0];
+      if (!compiledStep || !equalStringArray(restored.steps[stepId].dependsOnStepIds, compiledStep.dependsOnStepIds) || !equalStringArray(restored.steps[stepId].staleWhen, compiledStep.staleWhen)) {
+        reject("RLJOURNEY-STALE", "$record.steps." + stepId, "session step dependency or semantic stale contract changed");
+      }
     });
     restored.nextRequiredStepId = nextRequiredStepId(restored);
     return finalizeSession(restored);
@@ -785,6 +1052,12 @@
     var settings = options || {};
     var outcome = settings.outcome;
     if (PACKET_OUTCOMES.indexOf(outcome) === -1) reject("RLJOURNEY-PACKET", "$options.outcome", "outcome must be complete/partial/refused");
+    if (!Array.isArray(session.order) || !isPlainObject(session.steps)) reject("RLJOURNEY-PACKET", "$session", "ordered session steps required");
+    session.order.forEach(function (stepId) {
+      if (!isPlainObject(session.steps[stepId])) reject("RLJOURNEY-PACKET", "$session.steps." + stepId, "required session step missing");
+      if (STEP_STATES.indexOf(session.steps[stepId].status) === -1) reject("RLJOURNEY-PACKET", "$session.steps." + stepId + ".status", "unknown required step status");
+    });
+    if (Object.keys(session.steps).length !== session.order.length) reject("RLJOURNEY-PACKET", "$session.steps", "session contains an undeclared step");
     var staleSteps = session.order.filter(function (stepId) { return session.steps[stepId].status === "stale"; });
     var pendingOrActive = session.order.filter(function (stepId) {
       return session.steps[stepId].status === "pending" || session.steps[stepId].status === "active";
@@ -1120,6 +1393,7 @@
     completeStep: function (session, stepId, submission) { return capture(function () { return completeStepInternal(session, stepId, submission); }); },
     previewBacktrack: function (session, stepId) { return capture(function () { return previewBacktrackInternal(session, stepId); }); },
     backtrackStep: function (session, stepId, options) { return capture(function () { return backtrackStepInternal(session, stepId, options); }); },
+    refreshEvidence: function (session, semanticEvidenceRefs) { return capture(function () { return refreshEvidenceInternal(session, semanticEvidenceRefs); }); },
     buildCompletionPacket: function (session, options) { return capture(function () { return buildCompletionPacketInternal(session, options); }); },
     recordSignoff: function (packet, signoff) { return capture(function () { return recordSignoffInternal(packet, signoff); }); },
     composeEvidenceSubmission: function (spec, options) { return capture(function () { return composeEvidenceSubmissionInternal(spec, options); }); },

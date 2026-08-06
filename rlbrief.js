@@ -623,6 +623,310 @@
     ];
   }
 
+  var FX_BRIEF_TOOL_ID = "fx-regime-relative-value-lab";
+  var FX_BRIEF_MODEL_ADAPTER_ID = "fx-regime-vehicle-owning-model-v1";
+  var FX_BRIEF_OWNER_MODEL_VERSION = "rlfx-owner-decision/v1";
+  var FX_BRIEF_REQUIRED_CLAIMS = ["regime", "catalyst", "vehicle", "trigger", "invalidation", "wrapper-caveat"];
+  var FX_BRIEF_CURRENT_VEHICLE_STATES = { "Eligible": 1, "Caution": 1, "Tactical-Only": 1, "No Eligible Vehicle": 1 };
+  var FX_BRIEF_REASON_ORDER = [
+    "OWNER_READ_MISSING", "OWNER_NOT_CURRENT", "OWNER_ID_MISMATCH",
+    "EVIDENCE_CUTOFF_MISMATCH", "MODEL_READ_MISMATCH", "BUNDLE_PENDING",
+    "BUNDLE_STALE", "BUNDLE_CONTRADICTED", "BUNDLE_RIGHTS_INELIGIBLE",
+    "CLAIM_UNCITED", "PUBLICATION_MISMATCH"
+  ];
+  var FX_BRIEF_HASH = /^sha256:[0-9a-f]{64}$/;
+
+  function fxBriefObject(value) { return !!value && typeof value === "object" && !Array.isArray(value); }
+  function fxBriefIso(value) { return typeof value === "string" && value.length > 0 && Number.isFinite(Date.parse(value)); }
+  function fxBriefHash(value) { return typeof value === "string" && FX_BRIEF_HASH.test(value); }
+  function fxBriefAddReason(reasons, reason) { reasons[reason] = true; }
+  function fxBriefReasons(reasons) {
+    return FX_BRIEF_REASON_ORDER.filter(function (reason) { return reasons[reason] === true; });
+  }
+  function fxBriefFreeze(value) {
+    if (!value || typeof value !== "object" || Object.isFrozen(value)) return value;
+    Object.keys(value).forEach(function (key) { fxBriefFreeze(value[key]); });
+    return Object.freeze(value);
+  }
+  function fxBriefSortedStrings(values) {
+    if (!Array.isArray(values) || values.some(function (value) { return typeof value !== "string" || value.length === 0; })) return null;
+    var unique = values.filter(function (value, index) { return values.indexOf(value) === index; });
+    if (unique.length !== values.length) return null;
+    return unique.slice().sort();
+  }
+  function fxBriefSameStringSet(left, right) {
+    var leftSorted = fxBriefSortedStrings(left), rightSorted = fxBriefSortedStrings(right);
+    return leftSorted !== null && rightSorted !== null && JSON.stringify(leftSorted) === JSON.stringify(rightSorted);
+  }
+  function fxBriefSameVehicle(left, right) {
+    if (!fxBriefObject(left) || !fxBriefObject(right)) return false;
+    var fields = ["state", "selectedVehicleId", "selectedTicker", "selectedStructure", "selectedDirection", "materialWrapperCaveat"];
+    return fields.every(function (field) { return left[field] === right[field]; });
+  }
+
+  function fxBriefOwnerContext(liveOwnerRead, decisionTime, reasons) {
+    if (!fxBriefObject(liveOwnerRead)) {
+      fxBriefAddReason(reasons, "OWNER_READ_MISSING");
+      return { ownerDecisionId: null, evidenceIdentity: null, evidenceCutoff: null, metrics: null, vehicle: null };
+    }
+    var metrics = fxBriefObject(liveOwnerRead.metrics) ? liveOwnerRead.metrics : null;
+    var vehicle = metrics && fxBriefObject(metrics.vehicle) ? metrics.vehicle : null;
+    var ownerDecisionId = metrics && typeof metrics.ownerDecisionId === "string" ? metrics.ownerDecisionId : null;
+    var evidenceIdentity = metrics && typeof metrics.evidenceIdentity === "string" ? metrics.evidenceIdentity : null;
+    var evidenceCutoff = metrics && fxBriefIso(metrics.evidenceCutoff) ? metrics.evidenceCutoff : null;
+    var decisionMs = fxBriefIso(decisionTime) ? Date.parse(decisionTime) : NaN;
+    var ownerFreshMs = metrics && fxBriefIso(metrics.freshUntil) ? Date.parse(metrics.freshUntil) : NaN;
+    var readFreshMs = fxBriefIso(liveOwnerRead.freshUntil) ? Date.parse(liveOwnerRead.freshUntil) : NaN;
+    var vehicleFreshMs = vehicle && fxBriefIso(vehicle.freshUntil) ? Date.parse(vehicle.freshUntil) : NaN;
+    var cutoffMs = evidenceCutoff === null ? NaN : Date.parse(evidenceCutoff);
+    var contractCurrent = liveOwnerRead.contractVersion === "rl-tool-read/v1" && liveOwnerRead.id === FX_BRIEF_TOOL_ID &&
+      metrics !== null && metrics.contractVersion === "rlfx-tool-read/v2" &&
+      (metrics.state === "ready" || metrics.state === "partial") && liveOwnerRead.availability === "current" &&
+      vehicle !== null && FX_BRIEF_CURRENT_VEHICLE_STATES[vehicle.state] === 1;
+    var clocksCurrent = Number.isFinite(decisionMs) && Number.isFinite(cutoffMs) && Number.isFinite(ownerFreshMs) &&
+      Number.isFinite(readFreshMs) && Number.isFinite(vehicleFreshMs) && cutoffMs <= decisionMs &&
+      decisionMs <= ownerFreshMs && decisionMs <= readFreshMs && decisionMs <= vehicleFreshMs &&
+      liveOwnerRead.asOf === evidenceCutoff && liveOwnerRead.freshUntil === metrics.freshUntil;
+    if (!contractCurrent || !clocksCurrent) fxBriefAddReason(reasons, "OWNER_NOT_CURRENT");
+    if (ownerDecisionId === null || evidenceIdentity === null) fxBriefAddReason(reasons, "OWNER_ID_MISMATCH");
+    return { ownerDecisionId: ownerDecisionId, evidenceIdentity: evidenceIdentity, evidenceCutoff: evidenceCutoff, metrics: metrics, vehicle: vehicle };
+  }
+
+  function fxBriefModelContext(modelRead, owner, reasons) {
+    var context = { modelReadRef: null, runId: null, runFingerprint: null, webEvidenceBundleRef: null, ownerInterpretationRefs: [] };
+    if (!fxBriefObject(modelRead)) {
+      fxBriefAddReason(reasons, "MODEL_READ_MISMATCH");
+      return context;
+    }
+    var productionValidation = root.RLDATA && typeof root.RLDATA.validateToolModelRead === "function"
+      ? root.RLDATA.validateToolModelRead(modelRead) : { ok: false };
+    var adapter = fxBriefObject(modelRead.adapter) ? modelRead.adapter : null;
+    var exactModel = productionValidation.ok === true && modelRead.contractVersion === "tool-model-read/v1" &&
+      modelRead.toolId === FX_BRIEF_TOOL_ID && modelRead.role === "source" && modelRead.profile === "live-market" &&
+      modelRead.status === "fresh" && adapter !== null && adapter.adapterId === FX_BRIEF_MODEL_ADAPTER_ID &&
+      adapter.readContractVersion === "tool-model-read/v1" && adapter.owningModelVersion === FX_BRIEF_OWNER_MODEL_VERSION &&
+      typeof modelRead.runId === "string" && modelRead.runId.length > 0 && fxBriefHash(modelRead.runFingerprint) &&
+      fxBriefHash(modelRead.fingerprint);
+    if (!exactModel) fxBriefAddReason(reasons, "MODEL_READ_MISMATCH");
+    if (modelRead.ownerDecisionId !== owner.ownerDecisionId || modelRead.evidenceIdentity !== owner.evidenceIdentity) {
+      fxBriefAddReason(reasons, "OWNER_ID_MISMATCH");
+    }
+    if (modelRead.evidenceCutoff !== owner.evidenceCutoff) fxBriefAddReason(reasons, "EVIDENCE_CUTOFF_MISMATCH");
+    var interpretationRefs = [];
+    if (Array.isArray(modelRead.evidenceInterpretations)) {
+      modelRead.evidenceInterpretations.forEach(function (interpretation) {
+        if (fxBriefObject(interpretation) && typeof interpretation.interpretationId === "string" && interpretation.interpretationId.length > 0) {
+          interpretationRefs.push(interpretation.interpretationId);
+        }
+      });
+    }
+    if (fxBriefSortedStrings(interpretationRefs) === null || interpretationRefs.length === 0) fxBriefAddReason(reasons, "MODEL_READ_MISMATCH");
+    var webEvidenceRefs = Array.isArray(modelRead.evidenceRefs) ? modelRead.evidenceRefs.filter(function (reference) {
+      return fxBriefObject(reference) && reference.evidenceType === "web-evidence-bundle" && fxBriefHash(reference.fingerprint);
+    }).map(function (reference) { return reference.fingerprint; }) : [];
+    if (webEvidenceRefs.length !== 1) fxBriefAddReason(reasons, "MODEL_READ_MISMATCH");
+    context.modelReadRef = fxBriefHash(modelRead.fingerprint) ? modelRead.fingerprint : null;
+    context.runId = typeof modelRead.runId === "string" && modelRead.runId.length > 0 ? modelRead.runId : null;
+    context.runFingerprint = fxBriefHash(modelRead.runFingerprint) ? modelRead.runFingerprint : null;
+    context.webEvidenceBundleRef = webEvidenceRefs.length === 1 ? webEvidenceRefs[0] : null;
+    context.ownerInterpretationRefs = interpretationRefs;
+    return context;
+  }
+
+  function fxBriefSourceIndex(sources, reasons) {
+    var index = {};
+    if (!Array.isArray(sources)) return index;
+    sources.forEach(function (source) {
+      if (!fxBriefObject(source) || !Array.isArray(source.excerpts)) return;
+      source.excerpts.forEach(function (excerpt) {
+        if (!fxBriefObject(excerpt) || typeof excerpt.excerptId !== "string" || excerpt.excerptId.length === 0 || index[excerpt.excerptId]) {
+          fxBriefAddReason(reasons, "PUBLICATION_MISMATCH");
+          return;
+        }
+        index[excerpt.excerptId] = source;
+      });
+    });
+    return index;
+  }
+
+  function fxBriefBundleContext(evidenceBundle, owner, model, reasons) {
+    var context = { pending: false, evidenceBundleRef: null, claims: {}, rightsPolicyId: null };
+    if (evidenceBundle === null || evidenceBundle === undefined || (fxBriefObject(evidenceBundle) && evidenceBundle.state === "pending")) {
+      fxBriefAddReason(reasons, "BUNDLE_PENDING");
+      context.pending = true;
+      return context;
+    }
+    if (!fxBriefObject(evidenceBundle)) {
+      fxBriefAddReason(reasons, "PUBLICATION_MISMATCH");
+      return context;
+    }
+    var exactBundle = evidenceBundle.contractVersion === "web-evidence-bundle/v1" &&
+      evidenceBundle.toolId === FX_BRIEF_TOOL_ID && typeof evidenceBundle.runId === "string" && evidenceBundle.runId.length > 0 &&
+      fxBriefHash(evidenceBundle.runFingerprint) && fxBriefHash(evidenceBundle.bundleFingerprint) &&
+      Array.isArray(evidenceBundle.sources) && Array.isArray(evidenceBundle.claims) && Array.isArray(evidenceBundle.rejected);
+    if (!exactBundle) fxBriefAddReason(reasons, "PUBLICATION_MISMATCH");
+    if (evidenceBundle.ownerDecisionId !== owner.ownerDecisionId || evidenceBundle.evidenceIdentity !== owner.evidenceIdentity) {
+      fxBriefAddReason(reasons, "OWNER_ID_MISMATCH");
+    }
+    if (evidenceBundle.evidenceCutoff !== owner.evidenceCutoff || evidenceBundle.cutoffAt !== owner.evidenceCutoff) {
+      fxBriefAddReason(reasons, "EVIDENCE_CUTOFF_MISMATCH");
+    }
+    if (evidenceBundle.runId !== model.runId || evidenceBundle.runFingerprint !== model.runFingerprint) {
+      fxBriefAddReason(reasons, "PUBLICATION_MISMATCH");
+    }
+    if (evidenceBundle.ownerAdapterId !== FX_BRIEF_MODEL_ADAPTER_ID || evidenceBundle.ownerModelVersion !== FX_BRIEF_OWNER_MODEL_VERSION) {
+      fxBriefAddReason(reasons, "MODEL_READ_MISMATCH");
+    }
+    if (typeof evidenceBundle.rightsPolicyId !== "string" || evidenceBundle.rightsPolicyId.length === 0 || evidenceBundle.rightsEligible !== true) {
+      fxBriefAddReason(reasons, "BUNDLE_RIGHTS_INELIGIBLE");
+    }
+    context.evidenceBundleRef = fxBriefHash(evidenceBundle.bundleFingerprint) ? evidenceBundle.bundleFingerprint : null;
+    if (context.evidenceBundleRef !== model.webEvidenceBundleRef) fxBriefAddReason(reasons, "PUBLICATION_MISMATCH");
+    context.rightsPolicyId = typeof evidenceBundle.rightsPolicyId === "string" && evidenceBundle.rightsPolicyId.length > 0 ? evidenceBundle.rightsPolicyId : null;
+    var sourceIndex = fxBriefSourceIndex(evidenceBundle.sources, reasons);
+    var allOwnerRefs = [];
+    if (Array.isArray(evidenceBundle.claims)) {
+      evidenceBundle.claims.forEach(function (claim) {
+        if (!fxBriefObject(claim) || FX_BRIEF_REQUIRED_CLAIMS.indexOf(claim.claimKind) < 0) {
+          if (fxBriefObject(claim) && claim.materiality === "material") fxBriefAddReason(reasons, "PUBLICATION_MISMATCH");
+          return;
+        }
+        if (context.claims[claim.claimKind]) {
+          fxBriefAddReason(reasons, "PUBLICATION_MISMATCH");
+          return;
+        }
+        context.claims[claim.claimKind] = claim;
+        var sourceRefs = fxBriefSortedStrings(claim.sourceExcerptRefs);
+        var ownerRefs = fxBriefSortedStrings(claim.ownerEvidenceRefs);
+        if (claim.materiality !== "material" || claim.authorable !== true || sourceRefs === null || sourceRefs.length === 0) {
+          fxBriefAddReason(reasons, "CLAIM_UNCITED");
+        }
+        if (claim.freshnessState !== "current") fxBriefAddReason(reasons, "BUNDLE_STALE");
+        if (claim.corroborationState !== "corroborated" || claim.conflictState !== "consistent") {
+          fxBriefAddReason(reasons, "BUNDLE_CONTRADICTED");
+        }
+        if (claim.rightsEligible !== true) fxBriefAddReason(reasons, "BUNDLE_RIGHTS_INELIGIBLE");
+        if (ownerRefs === null || ownerRefs.length === 0) {
+          fxBriefAddReason(reasons, "OWNER_ID_MISMATCH");
+        } else {
+          allOwnerRefs = allOwnerRefs.concat(ownerRefs);
+        }
+        var actualOrigins = [];
+        if (sourceRefs !== null) {
+          sourceRefs.forEach(function (sourceRef) {
+            var source = sourceIndex[sourceRef];
+            if (!source || !Array.isArray(source.supportsClaims) || source.supportsClaims.indexOf(claim.claimId) < 0) {
+              fxBriefAddReason(reasons, "CLAIM_UNCITED");
+              return;
+            }
+            if (source.freshnessState !== "current") fxBriefAddReason(reasons, "BUNDLE_STALE");
+            if (source.rightsEligible !== true) fxBriefAddReason(reasons, "BUNDLE_RIGHTS_INELIGIBLE");
+            if (typeof source.independentOriginGroup === "string" && source.independentOriginGroup.length > 0) actualOrigins.push(source.independentOriginGroup);
+          });
+        }
+        if (!fxBriefSameStringSet(actualOrigins, claim.independentOriginGroups) || actualOrigins.length < 2) {
+          fxBriefAddReason(reasons, "BUNDLE_CONTRADICTED");
+        }
+      });
+    }
+    FX_BRIEF_REQUIRED_CLAIMS.forEach(function (claimKind) {
+      if (!context.claims[claimKind]) fxBriefAddReason(reasons, "CLAIM_UNCITED");
+    });
+    if (!fxBriefSameStringSet(allOwnerRefs.filter(function (value, index) { return allOwnerRefs.indexOf(value) === index; }), model.ownerInterpretationRefs)) {
+      fxBriefAddReason(reasons, "OWNER_ID_MISMATCH");
+    }
+    return context;
+  }
+
+  function fxBriefPriorPublicationRef(toolBrief) {
+    if (!fxBriefObject(toolBrief) || toolBrief.priorPublicationVerified !== true || !briefValidRef(toolBrief.priorPublicationRef)) return null;
+    return toolBrief.priorPublicationRef.path;
+  }
+
+  function fxBriefPublicationContext(toolBrief, owner, model, bundle, reasons) {
+    var context = { toolBriefRef: null, priorPublicationRef: fxBriefPriorPublicationRef(toolBrief) };
+    if (!fxBriefObject(toolBrief)) {
+      fxBriefAddReason(reasons, "PUBLICATION_MISMATCH");
+      return context;
+    }
+    var exactPublication = toolBrief.contractVersion === "tool-brief/v2" && toolBrief.toolId === FX_BRIEF_TOOL_ID &&
+      toolBrief.profile === "live-market" && toolBrief.status === "validated" &&
+      typeof toolBrief.runId === "string" && toolBrief.runId.length > 0 && fxBriefHash(toolBrief.runFingerprint) &&
+      fxBriefHash(toolBrief.contentFingerprint) && toolBrief.ownerAdapterId === FX_BRIEF_MODEL_ADAPTER_ID &&
+      toolBrief.ownerModelVersion === FX_BRIEF_OWNER_MODEL_VERSION;
+    if (!exactPublication) fxBriefAddReason(reasons, "PUBLICATION_MISMATCH");
+    if (toolBrief.ownerDecisionId !== owner.ownerDecisionId || toolBrief.evidenceIdentity !== owner.evidenceIdentity) {
+      fxBriefAddReason(reasons, "OWNER_ID_MISMATCH");
+    }
+    if (toolBrief.evidenceCutoff !== owner.evidenceCutoff) fxBriefAddReason(reasons, "EVIDENCE_CUTOFF_MISMATCH");
+    if (toolBrief.runId !== model.runId || toolBrief.runFingerprint !== model.runFingerprint ||
+      toolBrief.modelReadRef !== model.modelReadRef) fxBriefAddReason(reasons, "PUBLICATION_MISMATCH");
+    if (!bundle.pending && toolBrief.evidenceBundleRef !== bundle.evidenceBundleRef) fxBriefAddReason(reasons, "PUBLICATION_MISMATCH");
+    if (!bundle.pending && toolBrief.rightsPolicyId !== bundle.rightsPolicyId) fxBriefAddReason(reasons, "BUNDLE_RIGHTS_INELIGIBLE");
+    if (!fxBriefSameStringSet(toolBrief.ownerInterpretationRefs, model.ownerInterpretationRefs)) fxBriefAddReason(reasons, "OWNER_ID_MISMATCH");
+    if (!owner.metrics || toolBrief.regime !== owner.metrics.broadDollarState ||
+      toolBrief.trigger !== owner.metrics.confirmation || toolBrief.invalidation !== owner.metrics.invalidation ||
+      !fxBriefSameVehicle(toolBrief.vehicle, owner.vehicle)) fxBriefAddReason(reasons, "PUBLICATION_MISMATCH");
+    context.toolBriefRef = fxBriefHash(toolBrief.contentFingerprint) ? toolBrief.contentFingerprint : null;
+    if (bundle.pending) return context;
+    var publicationClaims = {};
+    if (Array.isArray(toolBrief.materialClaims)) {
+      toolBrief.materialClaims.forEach(function (claim) {
+        if (!fxBriefObject(claim) || FX_BRIEF_REQUIRED_CLAIMS.indexOf(claim.claimKind) < 0 || publicationClaims[claim.claimKind]) {
+          fxBriefAddReason(reasons, "CLAIM_UNCITED");
+          return;
+        }
+        publicationClaims[claim.claimKind] = claim;
+      });
+    } else {
+      fxBriefAddReason(reasons, "CLAIM_UNCITED");
+    }
+    FX_BRIEF_REQUIRED_CLAIMS.forEach(function (claimKind) {
+      var publicationClaim = publicationClaims[claimKind], bundleClaim = bundle.claims[claimKind];
+      if (!publicationClaim || !bundleClaim || publicationClaim.claimId !== bundleClaim.claimId) {
+        fxBriefAddReason(reasons, "CLAIM_UNCITED");
+        return;
+      }
+      var citations = fxBriefSortedStrings(publicationClaim.citationRefs);
+      var allowed = [];
+      if (Array.isArray(bundleClaim.sourceExcerptRefs)) allowed = allowed.concat(bundleClaim.sourceExcerptRefs);
+      if (Array.isArray(bundleClaim.ownerEvidenceRefs)) allowed = allowed.concat(bundleClaim.ownerEvidenceRefs);
+      allowed = allowed.filter(function (citation, index) { return allowed.indexOf(citation) === index; });
+      if (citations === null || citations.length === 0 || !fxBriefSameStringSet(citations, allowed)) {
+        fxBriefAddReason(reasons, "CLAIM_UNCITED");
+      }
+    });
+    return context;
+  }
+
+  function evaluateFxBriefEligibility(liveOwnerRead, modelRead, evidenceBundle, toolBrief, decisionTime) {
+    var reasons = {};
+    var allRequiredArtifactsMissing = liveOwnerRead == null && modelRead == null && evidenceBundle == null && toolBrief == null;
+    if (allRequiredArtifactsMissing) {
+      fxBriefAddReason(reasons, "OWNER_READ_MISSING");
+      if (!fxBriefIso(decisionTime)) fxBriefAddReason(reasons, "OWNER_NOT_CURRENT");
+      return fxBriefFreeze({
+        contractVersion: "rlfx-brief-eligibility/v1", state: "unavailable", toolId: FX_BRIEF_TOOL_ID,
+        ownerDecisionId: null, evidenceIdentity: null, evidenceCutoff: null, modelReadRef: null,
+        evidenceBundleRef: null, toolBriefRef: null, blockingReasons: fxBriefReasons(reasons), priorPublicationRef: null
+      });
+    }
+    var owner = fxBriefOwnerContext(liveOwnerRead, decisionTime, reasons);
+    var model = fxBriefModelContext(modelRead, owner, reasons);
+    var bundle = fxBriefBundleContext(evidenceBundle, owner, model, reasons);
+    var publication = fxBriefPublicationContext(toolBrief, owner, model, bundle, reasons);
+    var blockingReasons = fxBriefReasons(reasons);
+    var state = blockingReasons.length === 0 ? "current" :
+      (bundle.pending && blockingReasons.length === 1 && blockingReasons[0] === "BUNDLE_PENDING" ? "pending" : "refused");
+    return fxBriefFreeze({
+      contractVersion: "rlfx-brief-eligibility/v1", state: state, toolId: FX_BRIEF_TOOL_ID,
+      ownerDecisionId: owner.ownerDecisionId, evidenceIdentity: owner.evidenceIdentity,
+      evidenceCutoff: owner.evidenceCutoff, modelReadRef: model.modelReadRef,
+      evidenceBundleRef: bundle.evidenceBundleRef, toolBriefRef: publication.toolBriefRef,
+      blockingReasons: blockingReasons, priorPublicationRef: publication.priorPublicationRef
+    });
+  }
+
   root.RLBRIEF.BRIEF_CONTRACT = BRIEF_CONTRACT;
   root.RLBRIEF.BRIEF_EVIDENCE_CONTRACT = BRIEF_EVIDENCE_CONTRACT;
   root.RLBRIEF.BRIEF_CAP = BRIEF_CAP;
@@ -657,6 +961,7 @@
   root.RLBRIEF.briefLowNoiseLabel = briefLowNoiseLabel;
   root.RLBRIEF.briefProfileBoundary = briefProfileBoundary;
   root.RLBRIEF.briefClockLabels = briefClockLabels;
+  root.RLBRIEF.evaluateFxBriefEligibility = evaluateFxBriefEligibility;
 
   if (typeof document === "undefined") return; /* Node (selftest) — stop before DOM renderers */
 

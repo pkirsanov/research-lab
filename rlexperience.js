@@ -99,6 +99,18 @@
     "validateDefinition", "captureEvidence", "normalizeInputs", "compute",
     "compareSensitivity", "projectOwnerEvidence"
   ];
+  var TOOL_CONTROL_STATE_KEYS = [
+    "contractVersion", "toolId", "revision", "parameterValues",
+    "ownerDecisionId", "evidenceIdentity", "evidenceCutoff"
+  ];
+  var TOOL_CONTROL_FACTORY_KEYS = [
+    "initialState", "parameterDefinitions", "commitHandler", "notifySubscribers"
+  ];
+  var TOOL_CONTROL_CHANGE_KEYS = ["parameterId", "value", "expectedRevision"];
+  var TOOL_CONTROL_OWNER_RESULT_KEYS = [
+    "contractVersion", "toolId", "parameterValues", "ownerDecisionId",
+    "evidenceIdentity", "evidenceCutoff"
+  ];
   var SAFE_MODULE_PATTERN = /^rlexperience-adapters\/[a-z0-9-]+\.js$/;
   var ID_PATTERN = /^[a-z0-9]+(?:[a-z0-9/-]*[a-z0-9])?$/;
 
@@ -557,6 +569,217 @@
     if (!optionValues.some(function (candidate) { return candidate === value; })) {
       reject("E012-SIMPLE-INPUT", "simple-input", "normalized-simple-input/v1", path, "parameter is not a declared option", toolId);
     }
+  }
+
+  function validateToolControlCutoff(value, path, toolId) {
+    if (value === null) return;
+    var parsed = typeof value === "string" ? new Date(value) : null;
+    if (!parsed || !Number.isFinite(parsed.getTime()) || parsed.toISOString() !== value) {
+      reject("E012-SIMPLE-INPUT", "tool-control-binding", "tool-control-binding/v1", path, "ISO evidence cutoff or null required", toolId);
+    }
+  }
+
+  function copyToolControlState(state) {
+    return deepFreeze({
+      contractVersion: state.contractVersion,
+      toolId: state.toolId,
+      revision: state.revision,
+      parameterValues: cloneCanonical(state.parameterValues),
+      ownerDecisionId: state.ownerDecisionId,
+      evidenceIdentity: state.evidenceIdentity,
+      evidenceCutoff: state.evidenceCutoff
+    });
+  }
+
+  function validateToolControlDefinitions(definitions) {
+    if (!Array.isArray(definitions) || definitions.length < 1) {
+      reject("E012-SIMPLE-DEFINITION", "tool-control-binding", "tool-control-binding/v1", "$.parameterDefinitions", "parameter definitions are required");
+    }
+    var seen = Object.create(null);
+    return deepFreeze(definitions.map(function (parameter, index) {
+      var path = "$.parameterDefinitions[" + index + "]";
+      validateParameter(parameter, path);
+      if (seen[parameter.parameterId]) {
+        reject("E012-SIMPLE-DEFINITION", "tool-control-binding", "tool-control-binding/v1", path + ".parameterId", "duplicate parameter ID");
+      }
+      seen[parameter.parameterId] = true;
+      return deepFreeze(cloneCanonical(parameter));
+    }));
+  }
+
+  function validateToolControlState(source, definitions, path) {
+    var toolId = source && source.toolId;
+    exactKeys(source, TOOL_CONTROL_STATE_KEYS, path, "E012-SIMPLE-INPUT", "tool-control-binding", "tool-control-binding/v1", toolId);
+    if (source.contractVersion !== "tool-control-binding/v1") {
+      reject("E012-SIMPLE-INPUT", "tool-control-binding", "tool-control-binding/v1", path + ".contractVersion", "unsupported binding contract", toolId);
+    }
+    requireString(source.toolId, path + ".toolId", "E012-SIMPLE-INPUT", "tool-control-binding", source.contractVersion, toolId);
+    if (!ID_PATTERN.test(source.toolId)) {
+      reject("E012-SIMPLE-INPUT", "tool-control-binding", source.contractVersion, path + ".toolId", "invalid tool ID", toolId);
+    }
+    if (!Number.isInteger(source.revision) || source.revision < 0) {
+      reject("E012-SIMPLE-INPUT", "tool-control-binding", source.contractVersion, path + ".revision", "non-negative integer revision required", toolId);
+    }
+    if (!isPlainObject(source.parameterValues)) {
+      reject("E012-SIMPLE-INPUT", "tool-control-binding", source.contractVersion, path + ".parameterValues", "explicit parameter object required", toolId);
+    }
+    if (definitions) {
+      var definitionMap = Object.create(null);
+      definitions.forEach(function (parameter) { definitionMap[parameter.parameterId] = parameter; });
+      Object.keys(source.parameterValues).forEach(function (parameterId) {
+        if (!definitionMap[parameterId]) {
+          reject("E012-SIMPLE-INPUT", "tool-control-binding", source.contractVersion, path + ".parameterValues." + parameterId, "unknown parameter", toolId);
+        }
+      });
+      definitions.forEach(function (parameter) {
+        if (!Object.prototype.hasOwnProperty.call(source.parameterValues, parameter.parameterId)) {
+          reject("E012-SIMPLE-INPUT", "tool-control-binding", source.contractVersion, path + ".parameterValues." + parameter.parameterId, "explicit parameter value required", toolId);
+        }
+        validateParameterValue(parameter, source.parameterValues[parameter.parameterId], path + ".parameterValues." + parameter.parameterId, toolId);
+      });
+    } else {
+      Object.keys(source.parameterValues).forEach(function (parameterId) {
+        var value = source.parameterValues[parameterId];
+        if (!((typeof value === "number" && Number.isFinite(value)) || typeof value === "string" || typeof value === "boolean")) {
+          reject("E012-SIMPLE-INPUT", "tool-control-binding", source.contractVersion, path + ".parameterValues." + parameterId, "finite primitive parameter required", toolId);
+        }
+      });
+    }
+    requireString(source.ownerDecisionId, path + ".ownerDecisionId", "E012-SIMPLE-INPUT", "tool-control-binding", source.contractVersion, toolId);
+    requireString(source.evidenceIdentity, path + ".evidenceIdentity", "E012-SIMPLE-INPUT", "tool-control-binding", source.contractVersion, toolId);
+    validateToolControlCutoff(source.evidenceCutoff, path + ".evidenceCutoff", toolId);
+    return copyToolControlState(source);
+  }
+
+  function validateToolControlOwnerResult(result, state, parameterValues) {
+    exactKeys(result, TOOL_CONTROL_OWNER_RESULT_KEYS, "$.ownerResult", "E012-SIMPLE-INPUT", "tool-control-binding", "tool-control-owner-result/v1", state.toolId);
+    if (result.contractVersion !== "tool-control-owner-result/v1") {
+      reject("E012-SIMPLE-INPUT", "tool-control-binding", "tool-control-owner-result/v1", "$.ownerResult.contractVersion", "unsupported owner result contract", state.toolId);
+    }
+    if (result.toolId !== state.toolId) {
+      reject("E012-SIMPLE-INPUT", "tool-control-binding", result.contractVersion, "$.ownerResult.toolId", "owner result tool does not match the binding", state.toolId);
+    }
+    if (!isPlainObject(result.parameterValues) || canonicalize(result.parameterValues) !== canonicalize(parameterValues)) {
+      reject("E012-SIMPLE-INPUT", "tool-control-binding", result.contractVersion, "$.ownerResult.parameterValues", "owner result parameters do not match the binding candidate", state.toolId);
+    }
+    requireString(result.ownerDecisionId, "$.ownerResult.ownerDecisionId", "E012-SIMPLE-INPUT", "tool-control-binding", result.contractVersion, state.toolId);
+    requireString(result.evidenceIdentity, "$.ownerResult.evidenceIdentity", "E012-SIMPLE-INPUT", "tool-control-binding", result.contractVersion, state.toolId);
+    validateToolControlCutoff(result.evidenceCutoff, "$.ownerResult.evidenceCutoff", state.toolId);
+    return deepFreeze({
+      ownerDecisionId: result.ownerDecisionId,
+      evidenceIdentity: result.evidenceIdentity,
+      evidenceCutoff: result.evidenceCutoff
+    });
+  }
+
+  function projectToolControlBindingInternal(binding) {
+    var source = binding;
+    if (binding && typeof binding.snapshot === "function") {
+      try {
+        source = binding.snapshot();
+      } catch (error) {
+        reject("E012-SIMPLE-INPUT", "tool-control-binding", "tool-control-binding/v1", "$.binding", "binding snapshot failed");
+      }
+    }
+    return validateToolControlState(source, null, "$.binding");
+  }
+
+  function createToolControlBindingInternal(options) {
+    exactKeys(options, TOOL_CONTROL_FACTORY_KEYS, "$", "E012-SIMPLE-INPUT", "tool-control-binding", "tool-control-binding/v1");
+    if (typeof options.commitHandler !== "function") {
+      reject("E012-SIMPLE-INPUT", "tool-control-binding", "tool-control-binding/v1", "$.commitHandler", "owner commit handler required");
+    }
+    if (typeof options.notifySubscribers !== "function") {
+      reject("E012-SIMPLE-INPUT", "tool-control-binding", "tool-control-binding/v1", "$.notifySubscribers", "subscriber notification handler required");
+    }
+    var definitions = validateToolControlDefinitions(options.parameterDefinitions);
+    var parameterMap = Object.create(null);
+    definitions.forEach(function (parameter) { parameterMap[parameter.parameterId] = parameter; });
+    var state = validateToolControlState(options.initialState, definitions, "$.initialState");
+
+    function snapshot() {
+      return copyToolControlState(state);
+    }
+
+    async function commit(change) {
+      try {
+        exactKeys(change, TOOL_CONTROL_CHANGE_KEYS, "$.change", "E012-SIMPLE-INPUT", "tool-control-binding", "tool-control-binding/v1", state.toolId);
+        if (!Number.isInteger(change.expectedRevision) || change.expectedRevision < 0 || change.expectedRevision !== state.revision) {
+          reject("E012-SIMPLE-INPUT", "tool-control-binding", "tool-control-binding/v1", "$.change.expectedRevision", "stale binding revision", state.toolId);
+        }
+        requireString(change.parameterId, "$.change.parameterId", "E012-SIMPLE-INPUT", "tool-control-binding", "tool-control-binding/v1", state.toolId);
+        var parameter = parameterMap[change.parameterId];
+        if (!parameter) {
+          reject("E012-SIMPLE-INPUT", "tool-control-binding", "tool-control-binding/v1", "$.change.parameterId", "undeclared parameter", state.toolId);
+        }
+        validateParameterValue(parameter, change.value, "$.change.value", state.toolId);
+
+        var candidateValues = cloneCanonical(state.parameterValues);
+        candidateValues[change.parameterId] = change.value;
+        candidateValues = deepFreeze(candidateValues);
+        var request = deepFreeze({
+          contractVersion: "tool-control-commit/v1",
+          toolId: state.toolId,
+          expectedRevision: change.expectedRevision,
+          parameterValues: candidateValues
+        });
+        var result;
+        try {
+          result = await options.commitHandler(request);
+        } catch (handlerError) {
+          reject("E012-SIMPLE-INPUT", "tool-control-binding", "tool-control-binding/v1", "$.commitHandler", "owner commit handler failed", state.toolId);
+        }
+        if (state.revision !== change.expectedRevision) {
+          reject("E012-SIMPLE-INPUT", "tool-control-binding", "tool-control-binding/v1", "$.change.expectedRevision", "stale binding revision", state.toolId);
+        }
+        var owner = validateToolControlOwnerResult(result, state, candidateValues);
+        var previousState = state;
+        state = copyToolControlState({
+          contractVersion: "tool-control-binding/v1",
+          toolId: state.toolId,
+          revision: state.revision + 1,
+          parameterValues: candidateValues,
+          ownerDecisionId: owner.ownerDecisionId,
+          evidenceIdentity: owner.evidenceIdentity,
+          evidenceCutoff: owner.evidenceCutoff
+        });
+        try {
+          var notificationResult = options.notifySubscribers(snapshot());
+          if (typeof notificationResult !== "undefined") {
+            state = previousState;
+            reject("E012-SIMPLE-INPUT", "tool-control-binding", "tool-control-binding/v1", "$.notifySubscribers", "subscriber notification must complete synchronously", state.toolId);
+          }
+        } catch (notificationError) {
+          state = previousState;
+          if (notificationError instanceof ContractFailure) throw notificationError;
+          reject("E012-SIMPLE-INPUT", "tool-control-binding", "tool-control-binding/v1", "$.notifySubscribers", "subscriber notification failed", state.toolId);
+        }
+        return snapshot();
+      } catch (error) {
+        if (error instanceof ContractFailure) throw error.details;
+        throw projectError({
+          code: "E012-SIMPLE-INPUT",
+          phase: "tool-control-binding",
+          toolId: state.toolId,
+          contractId: "tool-control-binding/v1",
+          fieldPath: "$",
+          reason: "binding rejected an unsupported value"
+        });
+      }
+    }
+
+    var binding = {};
+    TOOL_CONTROL_STATE_KEYS.forEach(function (key) {
+      Object.defineProperty(binding, key, {
+        enumerable: true,
+        get: function () {
+          return key === "parameterValues" ? deepFreeze(cloneCanonical(state.parameterValues)) : state[key];
+        }
+      });
+    });
+    Object.defineProperty(binding, "snapshot", { value: snapshot });
+    Object.defineProperty(binding, "commit", { value: commit });
+    return Object.freeze(binding);
   }
 
   function validateModelDefinition(definition, index, config, seenDefinitions, seenAdapters) {
@@ -2415,6 +2638,8 @@
     projectSimpleState: function (state, options) { return capture(function () { return projectSimpleStateInternal(state, options); }); },
     renderSimpleProjection: function (host, projection) { return capture(function () { return renderSimpleProjectionInternal(host, projection); }); },
     renderSimpleBridge: function (options) { return renderSimpleBridgeInternal(options); },
+    createToolControlBinding: function (options) { return capture(function () { return createToolControlBindingInternal(options); }); },
+    projectToolControlBinding: function (binding) { return capture(function () { return projectToolControlBindingInternal(binding); }); },
     /* Tool-scoped Simple requalification (BUG-004 F-BUG004-A). A page whose owner state
        becomes readable after shell boot calls this once, naming ITS tool; the coordinator
        decides whether that request is current, rereads the page's already-hydrated owner

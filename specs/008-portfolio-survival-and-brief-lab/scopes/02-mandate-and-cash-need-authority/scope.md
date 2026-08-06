@@ -23,7 +23,7 @@ Planning authority: [spec.md](../../spec.md), [design.md](../../design.md), and 
 ### SCN-008-003 - Explicit mandate owns hard constraints
 
 ```gherkin
-Scenario: Dated cash needs and constraints come only from user input
+Scenario: SCN-008-003 - Dated cash needs and constraints come only from user input
   Given the user explicitly enters a horizon, a dated cash need, and allocation bounds
   When survival and allocation analyses run
   Then every affected result cites those user-entered constraints
@@ -34,7 +34,7 @@ Scenario: Dated cash needs and constraints come only from user input
 ### SCN-008-004 - No mandate means no goal-fit claim
 
 ```gherkin
-Scenario: A portfolio can be researched before goals are entered
+Scenario: SCN-008-004 - A portfolio can be researched before goals are entered
   Given a valid local portfolio exists
   But no valid mandate or cash need exists
   When the user opens Risk X-Ray, Path Lab, or Allocation Comparison

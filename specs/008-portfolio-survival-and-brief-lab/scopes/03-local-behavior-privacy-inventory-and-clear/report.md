@@ -4,9 +4,11 @@ Links: [scope.md](scope.md) | [spec.md](../../spec.md) | [scope index](../_index
 
 ## Summary
 
-Evidence-recording run only. No test code was written, no defect was injected, and no production source was changed. The three committed Node suites named by TP-03-01 through TP-03-03 were re-executed and their raw output recorded below, then each DoD item was assessed against the specific assertions the committed tests genuinely carry.
+Evidence-recording run only. No test code was written, no defect was injected, and no production source was changed by this pass. The three committed Node suites named by TP-03-01 through TP-03-03 were re-executed on the previous pass, and this pass re-executed the committed Playwright foundation suite that TP-03-04 and TP-03-05 name. Each DoD item was assessed against the specific assertions the committed tests genuinely carry.
 
-Result: **5 of 12 DoD items ticked** (TP-03-01, TP-03-02, TP-03-03, core item 1, core item 2). Seven items remain unchecked, each with the exact uncovered requirement ids or behaviors named in [Uncertainty Declarations](#uncertainty-declarations). The Build Quality Gate item and core items 4 and 5 were deliberately not assessed on this pass.
+Result: **7 of 12 DoD items ticked** (TP-03-01, TP-03-02, TP-03-03, TP-03-04, TP-03-05, core item 1, core item 2). Five items remain unchecked, each with the exact uncovered requirement ids or behaviors named in [Uncertainty Declarations](#uncertainty-declarations). The Build Quality Gate item and core items 4 and 5 were deliberately not assessed on this pass, and TP-03-06 was explicitly out of this pass's scope.
+
+Both `e2e-ui` rows are green at 8 passed / 0 failed, and both scenarios SCN-008-011 and SCN-008-012 are now closed — they were the two scenarios whose user-visible half had no Node-layer equivalent. Reaching green took two rounds and exposed two defect classes worth carrying forward: the behavior UI shipped as markup wired to nothing, which the Node suites structurally cannot see; and both rows initially asserted more than their own scenarios claim. See [How TP-03-04 and TP-03-05 reached green](#how-tp-03-04-and-tp-03-05-reached-green).
 
 The previously-recorded headline finding — **TP-03-03 is green but does not carry its declared behavior** — is now closed. Two tests committed at HEAD `c4165577` moved the declared clear/inventory behavior into the file the row names, and every clause of the row is carried there; see [TP-03-03](#tp-03-03).
 
@@ -22,14 +24,16 @@ The remaining headline finding is core item 3. Its coverage improved materially,
 - **D-03-06** — Interpolated carriage is accepted as real carriage. FR-030, FR-031, FR-032, and FR-035 never appear as a literal inside a message; they are keys of the frozen `EXCLUDED_SOURCE_TOKENS_BY_REQUIREMENT` table and reach the message through `${requirement}`. That is not name-only presence, because the table length, each token list's non-emptiness, the attempted-versus-declared token count, and the union against the policy's excluded-field count are each asserted, so dropping a requirement or emptying its list goes red. The class is recorded per id in the Coverage Report rather than blended into the literal count.
 - **D-03-07** — D-03-04 is now spent, not reversed. It said a green suite is not evidence for a row whose declared behavior it does not contain, and that stays true. What changed is the file: two tests committed at HEAD `c4165577` put the clear, inventory, and per-step fault behavior into `tests/portfolio-privacy.functional.mjs`, so the row's carrier is now the file the row names. TP-03-03 was re-assessed clause by clause against that file rather than inherited from the earlier verdict, and every clause was found carried. The routing note to `bubbles.plan` is withdrawn: the row and the file agree, so no Test Plan edit is owed.
 - **D-03-08** — Core item 3 stays unchecked, and the reason is narrower and better-evidenced than the earlier "9 of 13". The improvement is real: 11 of the 13 surfaces the clear sweeps are now proven non-empty first, and the two that cannot be are pinned by a dedicated refusal test. The blocker is that the DoD line enumerates **nouns**, not surfaces, and both counts happen to total 13 — a coincidence that makes the sweep look complete against a line it does not actually satisfy. Four of the line's nouns (scenarios, allocations, dossiers, UI state) have no workspace section and no storage key, so nothing observes them. The mitigating argument ("the derived sweep absorbs them later") was tested rather than accepted, and it fails for UI state specifically: see [core item 3](#dod-core-item-3--full-personal-clear-the-two-thirteens). Recorded so the operator can overrule with the exact residual visible.
+- **D-03-09** — A test that only exercises the store is not evidence that the feature is reachable. The behavior UI existed as markup wired to nothing while all three Node suites were green, because those suites drive the store API directly and therefore cannot observe whether any page calls it. The `e2e-ui` rows are the only rows in this scope's Test Plan positioned to detect that class, and they did. The consequence recorded for later scopes: for any scope whose surface is a page, Node-layer green is a necessary and **not** sufficient condition, and the `e2e-ui` row is load-bearing rather than confirmatory.
+- **D-03-10** — A scoped absence sweep is only as strong as the preservation assertion standing opposite it. Narrowing rows 7 and 8 from whole-workspace to behavior-section scope was correct — the original sweeps contradicted the scenarios they asserted, and the product was right — but narrowing alone would have opened a hole. An injected empty-holdings defect passed every narrowed absence check, since an absent holding trivially satisfies "no cleared subject survives here". The hole is closed by asserting the preserved values **positively** rather than only as absences. Recorded as a general rule for every clear/delete assertion in this feature, not as a one-off fix.
 
 ## Completion Statement
 
-Scope 03 is **not** complete. Seven of twelve DoD items lack the evidence they require. Scope status remains `In Progress`.
+Scope 03 is **not** complete. Five of twelve DoD items lack the evidence they require. Scope status remains `In Progress`.
 
 ## Code Diff Evidence
 
-No production or test source was modified by this run. Changed paths are limited to this scope's own execution artifacts:
+No production or test source was modified by this pass. Changed paths are limited to this scope's own execution artifacts:
 
 ```
 specs/008-portfolio-survival-and-brief-lab/scopes/03-local-behavior-privacy-inventory-and-clear/report.md
@@ -37,6 +41,8 @@ specs/008-portfolio-survival-and-brief-lab/scopes/03-local-behavior-privacy-inve
 ```
 
 G093 classification: `execution-artifact` only. No `implementation-bearing` path is in this change.
+
+The two commits that made TP-03-04 and TP-03-05 green were made **before** this pass and are recorded here for provenance, not claimed as this pass's diff: `6e43ed06` (`tests/portfolio-survival-foundation.spec.mjs`, assertion narrowing plus the positive preservation assertion) and `46056d50` (`portfolio-survival-allocation-lab.html`, wiring the behavior UI to the existing store API). Both are analysed in [How TP-03-04 and TP-03-05 reached green](#how-tp-03-04-and-tp-03-05-reached-green).
 
 ## Test Evidence
 
@@ -207,15 +213,112 @@ Anti-vacuity is genuine rather than incidental: the clear arm re-reads from comm
 
 ### TP-03-04
 
-**Claim Source:** not-run
+**Claim Source:** executed
+**Command:** `npx --no-install playwright test --config=playwright.config.mjs --project=system-chrome tests/portfolio-survival-foundation.spec.mjs`
+**Exit Code:** 0 — 8 passed, 0 failed
 
-Playwright `e2e-ui` row. Not executed this run; the run was scoped to the three Node suites. No evidence.
+The row's declared command is the `--grep "Regression: SCN-008-011 clear behavior removes ranking influence and preserves portfolio"` form. The executed command is that form's superset over the same file: it selects the identical test and runs it alongside the other seven. The row's own runner line and its emitted diagnostics are recorded verbatim below; the suite tally is recorded because it is the same process that produced them.
+
+```
+Running 8 tests using 1 worker
+  ✓  7 … clear behavior removes ranking influence and preserves portfolio (3.2s)
+[SCN-008-011] eligibleCompletionsBeforeClear=4
+[SCN-008-011] rankedSubjectsBeforeClear=2
+[SCN-008-011] floorMetBeforeClear=msft
+[SCN-008-011] previewOnlyChangedProjection=false
+[SCN-008-011] rankingSurvivedReload=true
+[SCN-008-011] duplicateSameDayCompletion=rejected
+[SCN-008-011] eligibleCompletionsAfterClear=0
+[SCN-008-011] interestSignalsAfterClear=0
+[SCN-008-011] portfolioPreserved=true
+[SCN-008-011] mandatePreserved=true
+[SCN-008-011] clearedSubjectScope=behaviorEvents,interestSignals,actionOutcomes,rankingRows
+[SCN-008-011] cashNeedsPreserved=true
+[SCN-008-011] publicCacheByteIdentical=true
+[SCN-008-011] foreignStorageKeys=rlData
+[SCN-008-011] remotePersonalRequests=0
+
+  8 passed (23.4s)
+```
+
+**Clause map — every clause of the DoD line, against the assertion that carries it.** The line reads: *proves SCN-008-011 clears behavioral ranking and preserves portfolio, mandate, cash needs, cache, and watchlist.*
+
+| Clause | Carrier | Confirming output |
+|---|---|---|
+| Regression `e2e-ui` | Playwright row in `tests/portfolio-survival-foundation.spec.mjs:628`, run against the real served route; no `page.route`/`context.route` interception exists in the file | runner line 7 above |
+| clears behavioral ranking | `:712` influence line back to its exact empty text, `:713` zero rendered rank rows, `:736` bare-token sweep over the three stored behavior sections, `:739` the same sweep over the derived ranking rows' `dataset` — which `innerText` structurally cannot see | `eligibleCompletionsAfterClear=0`, `interestSignalsAfterClear=0`, `clearedSubjectScope=…` |
+| preserves portfolio | `:744` `:745` `:746` `:750` identity, revision count, holding count; `:759` the surviving holdings asserted **positively** as `[symbol, quantity, costBasis]` triples | `portfolioPreserved=true` |
+| preserves mandate | `:747` `:748` `:751` mandate identity and revision count; `:763` the declared constraints asserted positively as `[subject, kind, minimum, maximum]` in declared order | `mandatePreserved=true` |
+| preserves cash needs | `:774` `:775` the dated cash need and its amount still rendered on every route in `MANDATE_ROUTES`, after the clear | `cashNeedsPreserved=true` |
+| preserves cache | `:782` the public generic `rlData` cache compared **byte-identical** against its pre-clear string, not field-wise | `publicCacheByteIdentical=true` |
+| preserves watchlist | same `:782` assertion — the watchlist is a member of the `rlData` object written at `:645`, so byte-identity of the serialized cache is a strictly stronger claim than a per-field watchlist check; `:783` additionally pins the foreign key set so the clear may neither drop nor add a key outside its namespace | `foreignStorageKeys=rlData` |
+
+**Anti-vacuity.** The preservation half is not a restatement of "this page never touches that key": the public cache is written by the test at `:645` and a clear that widened to `localStorage.clear()` destroys it, so `:782` is a live regression. The cleared half is not vacuous either — `:679`–`:687` prove the ranking was genuinely populated first (two ranked subjects, four eligible completions, floor met for one), and `:706` re-reads it after a full page reload, which separates a projection-derived surface from a draft-derived one.
+
+**Verdict: TP-03-04 DoD item ticked.** All seven clauses carried.
 
 ### TP-03-05
 
-**Claim Source:** not-run
+**Claim Source:** executed
+**Command:** `npx --no-install playwright test --config=playwright.config.mjs --project=system-chrome tests/portfolio-survival-foundation.spec.mjs`
+**Exit Code:** 0 — 8 passed, 0 failed
 
-Playwright `e2e-ui` row. Not executed this run. No evidence.
+Same executed superset as TP-03-04; the row's declared `--grep` form selects exactly the test recorded below.
+
+```
+Running 8 tests using 1 worker
+  ✓  8 …012 behavior evidence excludes engagement and sensitive profiling (5.6s)
+[SCN-008-012] legitimateCompletionsRecorded=2
+[SCN-008-012] excludedSourcesAttempted=33
+[SCN-008-012] excludedSourcesDeclared=33
+[SCN-008-012] excludedSourcesAccepted=0
+[SCN-008-012] observedActivityEvents=0
+[SCN-008-012] observedActivityGenerations=0
+[SCN-008-012] storedExcludedTokens=0
+[SCN-008-012] excludedTokenScope=behaviorEvents,interestSignals,actionOutcomes
+[SCN-008-012] excludedSourceCountShown=0
+[SCN-008-012] crossDeviceIdentifiers=0
+[SCN-008-012] hiddenProfileNamespaces=0
+[SCN-008-012] cookies=0
+[SCN-008-012] indexedDbStores=0
+[SCN-008-012] engagementCopyOutsideExclusionInventory=0
+[SCN-008-012] remotePersonalRequests=0
+
+  8 passed (23.4s)
+```
+
+**Clause map.** The line reads: *proves SCN-008-012 stores no engagement/sensitive/cross-device profile and shows the exclusion contract.*
+
+| Clause | Carrier | Confirming output |
+|---|---|---|
+| Regression `e2e-ui` | Playwright row at `tests/portfolio-survival-foundation.spec.mjs:777`, real served route, no interception | runner line 8 above |
+| stores **no engagement** profile | the engagement signals are genuinely produced through the real input surface — pointer moves, two wheel scrolls, tab traversal, workspace tab switches, settings toggles, and a real elapsed dwell — then `:852` asserts the stored event count did not move and `:853` that no workspace generation was committed; `:934` separately forbids engagement wording on the ranking and category surfaces, where it would constitute an engagement objective | `observedActivityEvents=0`, `observedActivityGenerations=0`, `engagementCopyOutsideExclusionInventory=0` |
+| stores **no sensitive** profile | every declared excluded source is attempted through the real UI and refused by name with reason code `P008-SCHEMA-CORRUPT` / `forbidden-behavior-source`; `:858` reads the offered set off the page and equates it to the policy's declared set, so the sweep cannot silently shrink; `:871` asserts the attempted count equals the declared count; `:888` confirms no declared token reached the stored evidence; `:909` quantifies over the stored shape with an exact key-set equality, so an unlisted key — the hidden profile field this denies — fails | `excludedSourcesAttempted=33`, `excludedSourcesDeclared=33`, `excludedSourcesAccepted=0`, `storedExcludedTokens=0` |
+| stores **no cross-device** profile | `:945` no cookie, `:946` no foreign `localStorage` namespace, `:947` no `sessionStorage`, `:948` no IndexedDB store, `:949` no service worker that could carry a profile off-device; `:956` no declared token leaves the origin | `crossDeviceIdentifiers=0`, `hiddenProfileNamespaces=0`, `cookies=0`, `indexedDbStores=0`, `remotePersonalRequests=0` |
+| **shows** the exclusion contract | `:917` the excluded-source count rendered as an exact `0` rather than a prefix, `:918` the profile statement asserted as exact text, `:920`–`:922` the rendered inventory required to name every declared excluded field | `excludedSourceCountShown=0` |
+
+**Anti-vacuity.** The claim under test is a negative, and an implementation that recorded nothing at all would satisfy every refusal above. Two positive controls prevent that: one legitimate completion is admitted before the refusal sweep and a second after it, both asserted `eligible`. A second vacuity trap is closed at `:895`–`:898`: because the token sweep is scoped to the three behavior sections, the test proves the colliding declared holding fields genuinely exist in the imported holdings, so the sweep passes because the evidence is clean rather than because the value never existed anywhere.
+
+**Verdict: TP-03-05 DoD item ticked.** All five clauses carried.
+
+### How TP-03-04 and TP-03-05 reached green
+
+Both rows failed twice before passing, and each failure exposed a real defect class. Recorded here because it is the substance of these two rows, and because a future reader who sees only the green run would otherwise conclude the assertions were merely written and passed.
+
+**Failure 1 — the behavior UI was markup-only, and only an `e2e-ui` row could see it.** The rows first failed on a 30-second `selectOption` timeout. The cause was not a slow page: `behaviorCategory` appeared exactly twice in the whole document — the label's `for` and the select's `id` — with no JavaScript referencing it anywhere, and `eventCategories`, the policy field that supplies its option list, appeared **zero** times. The select rendered one empty placeholder, so there was nothing to select and the timeout was the correct observable symptom of a control wired to nothing.
+
+This is a wired-or-not-shipped gap, and the three Node suites are **structurally incapable** of detecting it: they drive the store API directly, so a page that never calls the store is invisible to them. Every one of TP-03-01 through TP-03-03 was green throughout. The gap was fixed by wiring the page to the already-existing `rlportfolio.js` API — `behaviorDedupePayload`, `behaviorIdentityPayload`, `forbiddenBehaviorField`, `findForbiddenBehaviorPath`, and the clear paths — rather than reimplementing any of it; `rlportfolio.js` is unmodified. Options are populated from `policy.behavior.eventCategories` rather than a literal list, so a category added to policy later cannot silently go unrendered. Commit `46056d50`, sole path `portfolio-survival-allocation-lab.html`.
+
+**Failure 2 — both rows asserted more than their own scenarios claim.** With the UI wired, the rows failed again, this time on over-broad absence sweeps that contradicted the scenarios they were asserting. The product was correct in both cases:
+
+- Row 7 demanded the cleared subjects vanish from the **entire** persisted workspace. They legitimately remain in `mandateRevisions[].constraints[].subject` and `portfolioRevisions[].holdings[].symbol` — and the row's own title is *preserves portfolio*. A sweep that passed would have required the clear to destroy the user's portfolio.
+- Row 8 forbade `costBasis` anywhere in the workspace. `costBasis` is a declared `HoldingEntry` field the user imported. The requirement is that an excluded source must not reach **behavior evidence**, not that its name may not exist.
+
+Both were narrowed to the behavior sections. Row 7's sweep also became *stricter* over the sections it kept — bare-token rather than quoted-value — and gained a structural read of the ranking rows' `dataset`, which the existing `innerText` sweep could not see. Commit `6e43ed06`.
+
+**Why narrowing alone would have opened a hole, and what closed it.** Scoping an absence check is exactly the move that can quietly convert a real assertion into a weaker one, so the narrowing was tested rather than assumed. An injected `holdings = []` — a clear that widened into the portfolio, the opposite of the defect the original sweep was aimed at — passed **every** narrowed absence check, because an absent holding trivially satisfies "no cleared subject survives in a behavior section". It was caught only by the positive preservation assertion added alongside the narrowing: `:759` requires the surviving holdings to still carry `[symbol, quantity, costBasis]` per entry and `:763` requires the mandate constraints to still carry `[subject, kind, minimum, maximum]` in declared order.
+
+That is the reason the absence half alone is insufficient, and it generalises: for any clear operation, an absence sweep and a preservation assertion are duals, and a scoped absence sweep is only as strong as the preservation assertion standing opposite it. Both halves are now present in row 7. Row 7's clause map above cites them individually.
 
 ### TP-03-06
 
@@ -412,19 +515,19 @@ Tally across the three rows: **62 pass, 0 fail, 0 skipped, 0 todo.**
 
 ### Scenario SCN-008-011
 
-**Claim Source:** interpreted, from the executed TP-03-01 and TP-03-02 output above
+**Claim Source:** executed, from the TP-03-04 output above; the Node-layer half is interpreted from the executed TP-03-01 and TP-03-02 output
 
 The Node layer carries the scenario's mechanics: eligible events and derived signals are removed (`behavior clear empties behavior categories only after they are proven non-empty and preserves portfolio and mandate identity`), the next composition carries no behavior-derived influence (`recomposition after the clear must equal the pre-evidence baseline exactly`), and the preserved set holds byte for byte (`explicit portfolio facts survive a behavior clear byte for byte`, `mandate and cash needs survive a behavior clear byte for byte`, `holdings survive a behavior clear`, `the mandate and its cash needs survive a behavior clear`).
 
-The scenario is **not** closed. Its UI Scenario Matrix row is `e2e-ui`, and the user-visible half — opening Local Privacy, inspecting categories, confirming the clear, and observing immediate recomposition — has no evidence because TP-03-04 was not run.
+The scenario is now **closed**. Its UI Scenario Matrix row is `e2e-ui`, and the user-visible half that previously had no evidence — opening Local Privacy, inspecting the per-category inventory, confirming the clear behind its explicit confirmation control, and observing immediate recomposition — is carried by the executed TP-03-04 row. That row additionally proves the surface is projection-derived rather than draft-derived, by re-reading the ranking after a full page reload.
 
 ### Scenario SCN-008-012
 
-**Claim Source:** interpreted, from the executed TP-03-01 and TP-03-02 output above
+**Claim Source:** executed, from the TP-03-05 output above; the Node-layer half is interpreted from the executed TP-03-01 and TP-03-02 output
 
 The exclusion contract is carried mechanically by the full declared-token sweep and by `only an eligible completion becomes behavior evidence and no excluded source can create or grow one`. Ranking optimizing research relevance rather than engagement is carried by `route recomposition is invariant to behavior evidence and states that behavior contributes none`.
 
-The scenario is **not** closed. The matrix row is `e2e-ui` and requires that no hidden score, trait, cross-device identifier, or engagement copy appears in the running UI. That is a DOM assertion with no Node-layer equivalent, and TP-03-05 was not run.
+The scenario is now **closed**. The matrix row is `e2e-ui` and requires that no hidden score, trait, cross-device identifier, or engagement copy appears in the running UI — a DOM assertion with no Node-layer equivalent. The executed TP-03-05 row carries it: the hidden-profile half by an exact key-set equality over every stored event, the cross-device half by the cookie, foreign-namespace, session, IndexedDB, and service-worker sweep, and the engagement half by producing real pointer, scroll, dwell, and settings activity and proving none of it became evidence.
 
 ## Coverage Report
 
@@ -578,7 +681,7 @@ The Build Quality Gate DoD item was not assessed and not ticked this run, per th
 
 ## Uncertainty Declarations
 
-Seven DoD items are left unchecked. Each gap is named exactly rather than deferred.
+Five DoD items are left unchecked. Each gap is named exactly rather than deferred.
 
 Core items 1 and 2 were previously listed here and are now ticked. Core 1 reached 15 of 15
 ids and Core 2 reached 7 of 7, verified by the guarded scan in the Coverage Report. Two
@@ -586,20 +689,23 @@ residual facts survive the tick and are recorded there rather than dropped: four
 1's ids are carried by an interpolated table-driven message rather than a literal one, and
 every Core 2 carrier for NFR-003 sits on the Scope 02 mandate surface.
 
+TP-03-04 and TP-03-05 were previously listed here as not executed. Both are now executed and
+ticked, with every clause of both DoD lines mapped to the assertion that carries it. No
+residual survives either tick: all seven clauses of TP-03-04 and all five of TP-03-05 are
+carried by named assertions in the row's own test.
+
 | DoD item | Why it is unchecked |
 |---|---|
 | Core 3 — full-personal clear section verification | **4 of the 13 nouns the line enumerates have no runtime surface at all: scenarios, allocations, dossiers, UI state.** The two vacuous nouns (interests, outcomes) are accepted as pinned. Ruling and the derived-versus-named sweep asymmetry that decides it are in decision D-03-08 and [core item 3](#dod-core-item-3--full-personal-clear-the-two-thirteens). Supersedes the earlier "9 of 13" line. |
 | Core 4 — impact sweep, canaries, rollback and restore proof | Not assessed on this pass. The prior assessment stands: the Scope 01 and 02 re-run and the raw-namespace and clear-fault canaries are carried; the **exact rollback and restore proof** was the open half. |
-| Core 5 — RED plus same-command GREEN | Not assessed on this pass. The prior assessment stands: **0 of 14 behaviors have an intended RED**, GREEN is complete, and this run was again barred from injecting defects. |
-| TP-03-04 | Not executed. |
-| TP-03-05 | Not executed. |
-| TP-03-06 | Not executed. |
-| Build Quality Gate | Deliberately not assessed this run. |
+| Core 5 — RED plus same-command GREEN | Not assessed on this pass. The prior assessment stands: **0 of 14 behaviors have an intended RED**, GREEN is complete, and this pass was again barred from injecting defects. |
+| TP-03-06 | Not executed. Explicitly out of this pass's scope. The suite it names was in fact executed whole for TP-03-04 and TP-03-05, so the row is likely closable — but its DoD line asserts a matrix (full-personal clear, partial-deletion failure, prior import/mandate preservation) that was not assessed clause by clause here, and claiming it on the strength of a shared runner line would be exactly the inherited-verdict move decision D-03-07 rejects. |
+| Build Quality Gate | Deliberately not assessed this pass. |
 
 Two scope-level consequences follow, both owned outside this agent:
 
 1. **The TP-03-03 row and file mismatch is resolved and the routing note is withdrawn.** The privacy suite gained exactly the clear-fault and post-clear-verification coverage the row promised, so no Test Plan edit is owed. Recorded here rather than deleted, because the earlier routing note is cited elsewhere in this report.
-2. **FR-023 and NFR-001 have no Node-layer carrier by construction.** Absence from all public and remote surfaces needs a no-external-request scan, which is an `e2e-ui` or dedicated-scan concern. Neither exists in the current Test Plan, so those ids cannot be closed by any currently planned row.
+2. **FR-023 and NFR-001 have no Node-layer carrier by construction.** Absence from all public and remote surfaces needs a no-external-request scan, which is an `e2e-ui` or dedicated-scan concern. The executed TP-03-04 and TP-03-05 rows now each carry an origin-scoped request scan over their own run, so the surface exists; whether it discharges these two ids specifically was not re-scored on this pass, and the Coverage Report is unchanged.
 
 One new planning-owned consequence is raised by this pass:
 
@@ -614,10 +720,11 @@ One new planning-owned consequence is raised by this pass:
 | TP-03-01 | `node --test tests/portfolio-foundation.unit.mjs` | 0 — 49 pass, 0 fail |
 | TP-03-02 | `node --test tests/portfolio-brief.functional.mjs` | 0 — 4 pass, 0 fail |
 | TP-03-03 | `node --test tests/portfolio-privacy.functional.mjs` | 0 — 13 pass, 0 fail |
+| TP-03-04, TP-03-05 | `npx --no-install playwright test --config=playwright.config.mjs --project=system-chrome tests/portfolio-survival-foundation.spec.mjs` | 0 — 8 passed, 0 failed |
 | Artifact lint | `bash .github/bubbles/scripts/artifact-lint.sh specs/008-portfolio-survival-and-brief-lab` | 0 |
 
-All three suites pass. Suite health is not the constraint on this scope; evidence coverage is.
+All four suites pass. Suite health is not the constraint on this scope; evidence coverage is.
 
 ## Audit Verdict
 
-No audit verdict is recorded. Scope 03 is not eligible for audit while seven DoD items lack evidence.
+No audit verdict is recorded. Scope 03 is not eligible for audit while five DoD items lack evidence.

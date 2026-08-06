@@ -277,13 +277,94 @@ Write every closed-event, clear, inventory, UI, and sentinel assertion before pr
   ℹ duration_ms 847.010298
   ```
 
-- [ ] TP-03-04 Regression E2E evidence proves SCN-008-011 clears behavioral ranking and preserves portfolio, mandate, cash needs, cache, and watchlist.
+- [x] TP-03-04 Regression E2E evidence proves SCN-008-011 clears behavioral ranking and preserves portfolio, mandate, cash needs, cache, and watchlist.
 
-  Unchecked. Not executed this run.
+  **Claim Source:** executed · **Command:** `npx --no-install playwright test --config=playwright.config.mjs --project=system-chrome tests/portfolio-survival-foundation.spec.mjs` · **Exit Code:** 0
 
-- [ ] TP-03-05 Regression E2E evidence proves SCN-008-012 stores no engagement/sensitive/cross-device profile and shows the exclusion contract.
+  The row's declared `--grep` form selects exactly the test below; the executed command is that
+  form's superset over the same file.
 
-  Unchecked. Not executed this run.
+  ```
+  Running 8 tests using 1 worker
+    ✓  7 … clear behavior removes ranking influence and preserves portfolio (3.2s)
+  [SCN-008-011] eligibleCompletionsBeforeClear=4
+  [SCN-008-011] rankedSubjectsBeforeClear=2
+  [SCN-008-011] previewOnlyChangedProjection=false
+  [SCN-008-011] rankingSurvivedReload=true
+  [SCN-008-011] duplicateSameDayCompletion=rejected
+  [SCN-008-011] eligibleCompletionsAfterClear=0
+  [SCN-008-011] interestSignalsAfterClear=0
+  [SCN-008-011] portfolioPreserved=true
+  [SCN-008-011] mandatePreserved=true
+  [SCN-008-011] clearedSubjectScope=behaviorEvents,interestSignals,actionOutcomes,rankingRows
+  [SCN-008-011] cashNeedsPreserved=true
+  [SCN-008-011] publicCacheByteIdentical=true
+  [SCN-008-011] foreignStorageKeys=rlData
+  [SCN-008-011] remotePersonalRequests=0
+
+    8 passed (23.4s)
+  ```
+
+  All seven clauses of the line are carried: `e2e-ui` regression (`:628`, no interception in the
+  file); ranking cleared (`:712` exact empty influence text, `:713` zero rank rows, `:736` a
+  bare-token sweep over the three stored behavior sections, `:739` the same over the rank rows'
+  `dataset`, which `innerText` cannot see); portfolio preserved (`:744`–`:746`, `:750`, plus the
+  **positive** `:759` holdings assertion); mandate preserved (`:747`, `:748`, `:751`, plus the
+  positive `:763` constraints-in-declared-order assertion); cash needs preserved (`:774`–`:775`,
+  on every dependent route, after the clear); cache preserved (`:782`, byte-identical, not
+  field-wise); watchlist preserved (same `:782` — the watchlist is a member of the compared
+  object, so byte-identity is strictly stronger than a per-field check — with `:783` pinning the
+  foreign key set against both drops and additions).
+
+  The preservation half is not a restatement of "this page never names that key": the public cache
+  is written by the test and a clear that widened to a whole-store wipe destroys it. The cleared
+  half is not vacuous either — the ranking is proven populated first and re-read after a full page
+  reload, which separates a projection-derived surface from a draft-derived one. Clause map,
+  provenance, and the two failures this row survived are in [report.md](report.md#tp-03-04).
+
+- [x] TP-03-05 Regression E2E evidence proves SCN-008-012 stores no engagement/sensitive/cross-device profile and shows the exclusion contract.
+
+  **Claim Source:** executed · **Command:** `npx --no-install playwright test --config=playwright.config.mjs --project=system-chrome tests/portfolio-survival-foundation.spec.mjs` · **Exit Code:** 0
+
+  ```
+  Running 8 tests using 1 worker
+    ✓  8 …012 behavior evidence excludes engagement and sensitive profiling (5.6s)
+  [SCN-008-012] legitimateCompletionsRecorded=2
+  [SCN-008-012] excludedSourcesAttempted=33
+  [SCN-008-012] excludedSourcesDeclared=33
+  [SCN-008-012] excludedSourcesAccepted=0
+  [SCN-008-012] observedActivityEvents=0
+  [SCN-008-012] observedActivityGenerations=0
+  [SCN-008-012] storedExcludedTokens=0
+  [SCN-008-012] excludedTokenScope=behaviorEvents,interestSignals,actionOutcomes
+  [SCN-008-012] excludedSourceCountShown=0
+  [SCN-008-012] crossDeviceIdentifiers=0
+  [SCN-008-012] hiddenProfileNamespaces=0
+  [SCN-008-012] cookies=0
+  [SCN-008-012] indexedDbStores=0
+  [SCN-008-012] engagementCopyOutsideExclusionInventory=0
+  [SCN-008-012] remotePersonalRequests=0
+
+    8 passed (23.4s)
+  ```
+
+  All five clauses are carried: `e2e-ui` regression (`:777`); no engagement profile (pointer,
+  scroll, tab, settings, and a real elapsed dwell are genuinely produced, then `:852` asserts the
+  stored count did not move and `:853` that no generation was committed, with `:934` forbidding
+  engagement wording where it would constitute an engagement objective); no sensitive profile
+  (every declared excluded source attempted through the real UI and refused by name with
+  `P008-SCHEMA-CORRUPT` / `forbidden-behavior-source`, the offered set equated to the policy's
+  declared set at `:858` so the sweep cannot silently shrink, and `:909` quantifying over the
+  stored shape with exact key-set equality so an unlisted key fails); no cross-device profile
+  (`:945`–`:949` cookie, foreign namespace, session, IndexedDB, and service worker, plus `:956`
+  origin scan); and the exclusion contract shown (`:917` exact `0` rather than a prefix, `:918`
+  exact profile statement, `:920`–`:922` the rendered inventory naming every declared field).
+
+  The claim is a negative, so an implementation recording nothing would satisfy every refusal.
+  Two positive controls prevent that — one legitimate completion admitted before the refusal
+  sweep and a second after it, both `eligible`. The scoped token sweep is separately proven
+  non-vacuous by confirming the colliding declared holding fields genuinely exist in the imported
+  holdings. Clause map in [report.md](report.md#tp-03-05).
 
 - [ ] TP-03-06 broader E2E evidence proves the complete foundation/clear matrix passes with previous scope behavior intact.
 

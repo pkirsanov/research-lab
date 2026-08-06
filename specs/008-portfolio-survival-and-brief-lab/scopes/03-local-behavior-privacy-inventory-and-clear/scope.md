@@ -97,19 +97,87 @@ Write every closed-event, clear, inventory, UI, and sentinel assertion before pr
 #### Core Delivery Items
 
 - [ ] FR-019, FR-022 through FR-023, and FR-027 through FR-038 are fully implemented with closed provenance classes, relevance-only authority, safe inventory, separate verified clear operations, no cross-device/engagement/sensitive profiling, documented eligible events, visible versioned decay inputs, quarantine, and inert text.
+
+  Unchecked — 9 of 15 ids carried. **Uncovered: FR-019** (no assertion enumerates the six provenance classes), **FR-023** (no local-only, remote, or network assertion), **FR-036** (zero decay, half-life, or sensitivity assertions), **FR-037** (quarantine covers workspace shapes, not behavior records). **Partial: FR-029** (confirmation half is `e2e-ui`), **FR-038** (no markup or navigation assertion). Carried: FR-022, FR-027, FR-028, FR-030, FR-031, FR-032, FR-033, FR-034, FR-035. Per-id table in [report.md](report.md#coverage-report).
+
 - [ ] NFR-001, NFR-003 through NFR-004, NFR-008, NFR-019, and NFR-023 through NFR-024 are satisfied by local-only state, exact why/inventory evidence, no engagement objective, visible persistence failure, safe input, traceable clearing, and verified deletion.
+
+  Unchecked — 3 of 7 ids carried. **Uncovered: NFR-001** (no public-surface, remote, or network assertion). **Partial: NFR-003** (named only on the mandate surface, which is Scope 02), **NFR-019** (credential half only; markup half absent), **NFR-023** (clearing-inspection half only; recommendation tracing has no carrier). Carried: NFR-004, NFR-008, NFR-024. Per-id table in [report.md](report.md#coverage-report).
+
 - [ ] Full-personal clear mechanically verifies holdings, mandate/needs, events, interests, outcomes, scenarios, allocations, dossiers, quarantine, UI state, session fallback, and return context are empty while public generic assets remain.
+
+  Unchecked — 9 of 13 sections verified. **Unverified: scenarios, allocations, dossiers, UI state.** The first three are not array sections of the workspace contract yet and the fourth has no declared storage key, so the clear has nothing to verify for them today. The sweep is derived rather than hardcoded and will absorb them when later scopes add them. See [report.md](report.md#coverage-report) and decision D-03-03.
+
 - [ ] Shared Infrastructure Impact Sweep, independent storage/inventory/clear canaries, and exact rollback/restore proof pass without altering Scope 01/02 facts.
+
+  Unchecked. The Scope 01 and 02 re-run and the raw-namespace and clear-fault canaries are carried by the executed suites. The **exact rollback and restore proof** for this scope's own marker-bounded additions is a source-rollback procedure that no executed command demonstrates.
+
 - [ ] Every Scope 03 behavior has intended RED and same-command GREEN evidence before the broader browser row.
+
+  Unchecked — **0 of 14 behaviors have an intended RED.** All 14 have committed same-command GREEN. No RED record existed before this run and this run was barred from injecting defects. Behavior-by-behavior table in [report.md](report.md#coverage-report).
 
 #### Test Evidence Items - Exact Parity With 6 Test Plan Rows
 
-- [ ] TP-03-01 unit evidence proves the event/lifecycle/inventory/clear contracts and every forbidden field/source mutation.
-- [ ] TP-03-02 functional evidence proves only eligible completions affect relevance and behavior clear removes that influence immediately.
+- [x] TP-03-01 unit evidence proves the event/lifecycle/inventory/clear contracts and every forbidden field/source mutation.
+
+  **Claim Source:** executed · **Command:** `node --test tests/portfolio-foundation.unit.mjs` · **Exit Code:** 0
+
+  ```
+  ✔ unknown legacy workspace shapes refuse migration and quarantine metadata is value-safe (1.147599ms)
+  ✔ foundation privacy inventory and verified clear remain available without policy config (0.831799ms)
+  ✔ behavior event vocabulary is closed to the declared categories lifecycle states and draft fields (14.746685ms)
+  ✔ every declared excluded behavior source is rejected by name in any casing or separator form at any depth (12.994488ms)
+  ✔ semantic de-duplication collapses same-day repeats to the earliest occurrence without shrinking distinct evidence (10.262991ms)
+  ✔ action outcome commands map to exactly one lifecycle state and reject mismatched or unknown transitions (7.271293ms)
+  ✔ privacy inventory reports real category counts and carries no stored subject value (31.69227ms)
+  ✔ behavior clear empties behavior categories only after they are proven non-empty and preserves portfolio and mandate identity (36.937764ms)
+  ✔ verified foundation clear reports empty only after reread and a remove fault cannot report success (1.093199ms)
+  ✔ verified clear covers every policy-declared personal key and leaves the raw namespace holding none of them (0.719199ms)
+  ✔ full-personal clear empties every declared personal section and leaves generic public assets byte-identical (40.82846ms)
+  ℹ tests 31
+  ℹ pass 31
+  ℹ fail 0
+  ℹ duration_ms 484.106032
+  ```
+
+  Full 31-test output and the per-element row assessment are in [report.md](report.md#tp-03-01). Every element the row declares has a named carrying assertion. The forbidden-source sweep iterates the full declared token list under `every declared token must have been exercised, not merely iterated over`, plus a control proving the refusal is caused by the token rather than by the extra field.
+
+- [x] TP-03-02 functional evidence proves only eligible completions affect relevance and behavior clear removes that influence immediately.
+
+  **Claim Source:** executed · **Command:** `node --test tests/portfolio-brief.functional.mjs` · **Exit Code:** 0
+
+  ```
+  ✔ only an eligible completion becomes behavior evidence and no excluded source can create or grow one (119.978086ms)
+  ✔ route recomposition is invariant to behavior evidence and states that behavior contributes none (28.730573ms)
+  ✔ behavior clear removes the committed evidence and returns recomposition to the pre-evidence baseline (56.258246ms)
+  ✔ dismissal and automatic invalidation record a safe outcome and never a behavior event or a negative preference (15.908785ms)
+  ℹ tests 4
+  ℹ suites 0
+  ℹ pass 4
+  ℹ fail 0
+  ℹ cancelled 0
+  ℹ skipped 0
+  ℹ todo 0
+  ℹ duration_ms 313.481503
+  ```
+
+  Anti-vacuity is genuine rather than incidental: the clear arm re-reads from committed bytes first (`the evidence must genuinely be on disk before the clear is meaningful`) and the invariance arm proves the projection can differ (`the projection must be able to differ, or invariance proves nothing`). Row assessment in [report.md](report.md#tp-03-02).
+
 - [ ] TP-03-03 functional evidence proves category-by-category verified deletion, preservation, and partial-failure truth against raw namespaced state.
+
+  Unchecked. The suite is green (11 pass, 0 fail, exit 0) but does not carry the row: `tests/portfolio-privacy.functional.mjs` contains zero `privacyInventory`, zero `clearFoundationStorage`, and zero `buildBehaviorClearCandidate` calls. Its only clear is `buildMandateClearCandidate`, which is Scope 02 rollback. Four of the row's five declared behaviors are absent from the named file. Test Plan ownership belongs to `bubbles.plan`. See [report.md](report.md#tp-03-03).
+
 - [ ] TP-03-04 Regression E2E evidence proves SCN-008-011 clears behavioral ranking and preserves portfolio, mandate, cash needs, cache, and watchlist.
+
+  Unchecked. Not executed this run.
+
 - [ ] TP-03-05 Regression E2E evidence proves SCN-008-012 stores no engagement/sensitive/cross-device profile and shows the exclusion contract.
+
+  Unchecked. Not executed this run.
+
 - [ ] TP-03-06 broader E2E evidence proves the complete foundation/clear matrix passes with previous scope behavior intact.
+
+  Unchecked. Not executed this run.
 
 #### Build Quality Gate
 

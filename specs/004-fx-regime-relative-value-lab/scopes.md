@@ -584,10 +584,78 @@ Historical checked items below retain their recorded evidence for the delivered 
 - [x] Additive `rldata.js` source envelopes and versioned tool reads preserve real source/retrieval clocks, fail closed on rights/provider mismatch, and leave every legacy API and schema-1 row contract unchanged. **Evidence:** `report.md` Scope 1 Production Module And Selftest and Provider And Cross-Tool Canaries; **Phase:** implement.
 - [x] Exact-date, full-graph cohort rank, pair-window isolation, inverse-deduplication, typed carry, rights, finite-value, unavailable, and evidence-lineage invariants are enforced identically across browser and Node. **Evidence:** `report.md` Scope 1 Production Module And Selftest and supplemental Browser Functional output; **Phase:** implement.
 - [x] `scripts/fetch-bars.mjs` changes only the validated FX-universe symbol inventory hunk and creates no generated data during validation. **Evidence:** `report.md` Scope 1 Implement Surface; **Phase:** implement.
-- [ ] TP-01-23, TP-01-25, TP-01-26, and TP-01-27 execute production `validateVehicleUniverse` and fit logic against all seven `fx-vehicle-universe.json` records, prove one settled disposition per record, and prove that direction, basket, reset-session, missing, stale, or unapproved facts cannot produce favorable eligibility.
-- [ ] TP-01-24 and TP-01-28 execute production tracking, fit, owner-decision, and v2 owner-read paths to prove exact-date market/NAV/underlying separation, retained unexplained residual, one owner evidence identity, and deterministic projection; TP-01-03 and TP-01-21 independently prove existing v1 currency, Global, schema-1, and legacy tool-read behavior remains compatible.
-- [ ] TP-01-28, TP-01-29, and TP-01-30 independently execute the generic `ToolControlBindingV1`, `FxBriefEligibilityV1`, and `RLJOURNEY.refreshEvidence` contracts and prove, respectively, revisioned Simple/Power commit with read-only Brief/Journey snapshots, current-evidence refusal with prior content non-current, and first-affected-step/transitive reopening with audit preservation and no execution.
-- [ ] TP-01-27 and TP-01-31 execute the canonical `RecommendationOutcomeV1`, `AttributableLevelGateV1`, `projectFxReaderDecision`, and existing recommendation-ledger admission path. They prove complete scoreability or unavailable non-recommendation, no new `not-evaluable`, no non-recommendation event construction, reader-safe escaped default copy, and byte-preserved historical ledger rows.
+- [x] TP-01-23, TP-01-25, TP-01-26, and TP-01-27 execute production `validateVehicleUniverse` and fit logic against all seven `fx-vehicle-universe.json` records, prove one settled disposition per record, and prove that direction, basket, reset-session, missing, stale, or unapproved facts cannot produce favorable eligibility.
+    **Phase:** test
+    **Command:** `node --test tests/feature-004-vehicle-universe.test.mjs tests/feature-004-tool-control-binding.test.mjs tests/feature-004-brief-eligibility.test.mjs tests/feature-004-journey-evidence-refresh.test.mjs`
+    **Exit Code:** 0
+    **Claim Source:** executed
+    **Output:**
+    ```text
+    ✔ RLFX RecommendationOutcomeV1 rejects incomplete attributable gates and project
+    s reader-safe branches (9004.538603ms)
+    ℹ tests 29
+    ℹ suites 0
+    ℹ pass 29
+    ℹ fail 0
+    ℹ cancelled 0
+    ℹ skipped 0
+    ℹ todo 0
+    ℹ duration_ms 12608.367825
+    ```
+- [x] TP-01-24 and TP-01-28 execute production tracking, fit, owner-decision, and v2 owner-read paths to prove exact-date market/NAV/underlying separation, retained unexplained residual, one owner evidence identity, and deterministic projection; TP-01-03 and TP-01-21 independently prove existing v1 currency, Global, schema-1, and legacy tool-read behavior remains compatible.
+    **Phase:** test
+    **Command:** `node --test tests/feature-004-vehicle-universe.test.mjs tests/feature-004-tool-control-binding.test.mjs tests/feature-004-brief-eligibility.test.mjs tests/feature-004-journey-evidence-refresh.test.mjs`
+    **Exit Code:** 0
+    **Claim Source:** executed
+    **Output:**
+    ```text
+    ✔ RLFX RecommendationOutcomeV1 rejects incomplete attributable gates and project
+    s reader-safe branches (7992.569476ms)
+    ℹ tests 29
+    ℹ suites 0
+    ℹ pass 29
+    ℹ fail 0
+    ℹ cancelled 0
+    ℹ skipped 0
+    ℹ todo 0
+    ℹ duration_ms 12255.741124
+    ```
+- [x] TP-01-28, TP-01-29, and TP-01-30 independently execute the generic `ToolControlBindingV1`, `FxBriefEligibilityV1`, and `RLJOURNEY.refreshEvidence` contracts and prove, respectively, revisioned Simple/Power commit with read-only Brief/Journey snapshots, current-evidence refusal with prior content non-current, and first-affected-step/transitive reopening with audit preservation and no execution.
+    **Phase:** test
+    **Command:** `node --test tests/feature-004-vehicle-universe.test.mjs tests/feature-004-tool-control-binding.test.mjs tests/feature-004-brief-eligibility.test.mjs tests/feature-004-journey-evidence-refresh.test.mjs`
+    **Exit Code:** 0
+    **Claim Source:** executed
+    **Output:**
+    ```text
+    ✔ RLFX RecommendationOutcomeV1 rejects incomplete attributable gates and project
+    s reader-safe branches (8382.08719ms)
+    ℹ tests 29
+    ℹ suites 0
+    ℹ pass 29
+    ℹ fail 0
+    ℹ cancelled 0
+    ℹ skipped 0
+    ℹ todo 0
+    ℹ duration_ms 11751.083282
+    ```
+- [x] TP-01-27 and TP-01-31 execute the canonical `RecommendationOutcomeV1`, `AttributableLevelGateV1`, `projectFxReaderDecision`, and existing recommendation-ledger admission path. They prove complete scoreability or unavailable non-recommendation, no new `not-evaluable`, no non-recommendation event construction, reader-safe escaped default copy, and byte-preserved historical ledger rows.
+    **Phase:** test
+    **Command:** `node --test tests/feature-004-vehicle-universe.test.mjs tests/feature-004-tool-control-binding.test.mjs tests/feature-004-brief-eligibility.test.mjs tests/feature-004-journey-evidence-refresh.test.mjs`
+    **Exit Code:** 0
+    **Claim Source:** executed
+    **Output:**
+    ```text
+    ✔ RLFX RecommendationOutcomeV1 rejects incomplete attributable gates and project
+    s reader-safe branches (8297.862913ms)
+    ℹ tests 29
+    ℹ suites 0
+    ℹ pass 29
+    ℹ fail 0
+    ℹ cancelled 0
+    ℹ skipped 0
+    ℹ todo 0
+    ℹ duration_ms 11802.764728
+    ```
 - [ ] TP-01-01 through TP-01-04 and TP-01-13 through TP-01-22 each execute their named production-module, schema-1, browser/CommonJS, provider, Bond, Causal, full-selftest, and collision canary; CMD-COLLISION additionally proves that removing only the declared additive Scope 1 hunks preserves every inherited legacy contract and dirty-hunk identity.
 - [ ] TP-01-22 executes the unchanged three-case CMD-COLLISION under a 600-second ceiling, preserves v12/v13/v14 and every predecessor as immutable fully parsed history, and validates exactly one v15 cardinality-only successor. It accepts one or more independently evidenced transitions and returns their exact planning-ordered item keys, requires zero changes in `allowNoTransition` mode, rejects duplicate keys or cross-item evidence hashes, mixed-validity batches, malformed zero/eight-space evidence indentation, every evidence-field forgery, prior-evidence or planning-projection mutation, status/certification edits, foreign persistence, separator drift, and incomplete staging, and retains every inherited v14/v13 authority, eligibility A/B/none, independent dirty/clean-promotion, replacement-disabled `C <= L <= H`, exact-path blob, authority/selector, adversarial, path-copy/deep-clone, canonical-source-digest, and single-`settledPaths` check without weakening the command, case count, assertions, order, or failure conditions.
 - [ ] The Scope 1 Consumer Impact Sweep is verified by TP-01-03, TP-01-21, and TP-01-22 across the RLFX vehicle/owner read, vehicle universe, `ToolControlBindingV1`, `FxBriefEligibilityV1`, Journey refresh, dedicated tests, v1 compatibility, navigation, breadcrumbs, redirects, API/generated clients, deep links, config, and downstream-scope consumers; zero stale first-party references remain.

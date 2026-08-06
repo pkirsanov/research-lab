@@ -41,6 +41,7 @@ const POST_COMMIT_V11_BLOCK_SHA256 = 'b33e1323bafb4ad7da3b8846ba825fe67a6b7778e1
 const POST_COMMIT_V12_BLOCK_SHA256 = '8d28f8578d9b5d682b422f3539ec19654cebe187b6c5f52ec0270def93aec8f0';
 const POST_COMMIT_V13_BLOCK_SHA256 = '2de13393faa01e6495430723333207cbdaa0b3a1ae9ef9acf67b6c1bc72a7a94';
 const POST_COMMIT_V14_BLOCK_SHA256 = 'f0b2d11c928d484a1565d4a122ce6e9f7d3e99c65b08b0a763ba055d4dfd82b8';
+const POST_COMMIT_V15_BLOCK_SHA256 = '2a81db99afd80849faf93279d1031511b5bb096eb0b556df5c025af71218d22e';
 const FOREIGN_SET_V7_BLOCK_BYTE_LENGTH = 15002;
 const IMMUTABLE_PREDECESSOR_BLOCKS = [
   ['feature004-dirty-baseline-v1', BASELINE_BLOCK_SHA256],
@@ -11228,6 +11229,7 @@ if (process.env.FEATURE004_VALIDATE_V13_CAPTURE === '1') {
 /* FEATURE-004-COLLISION-POST-COMMIT-V13-END */
 
 /* FEATURE-004-COLLISION-SCOPED-EVIDENCE-V14-BEGIN */
+const POST_COMMIT_V14_BLOCK_BYTE_LENGTH = 14066;
 const FEATURE004_V14_MARKER = 'feature004-dirty-collision-scoped-evidence-v14';
 const FEATURE004_V14_ENCODING = 'br-canonical-json-utf8-b64/v1';
 const FEATURE004_V14_BASE64_LINE_LENGTH = 56;
@@ -11928,6 +11930,27 @@ function feature004V14ReportContext(reportBytes) {
   return { ...historical, startByte, endMarkerStartByte, endByteExclusive, blockBytes, block };
 }
 
+function feature004V14HistoricalReportContext(reportBytes) {
+  const historical = feature004V14HistoricalContext(reportBytes, true);
+  const startMarker = Buffer.from(`<!-- ${FEATURE004_V14_MARKER}:start -->`, 'utf8');
+  const endMarker = Buffer.from(`<!-- ${FEATURE004_V14_MARKER}:end -->`, 'utf8');
+  assert.equal(captureV13BufferOccurrenceCount(reportBytes, startMarker), 1,
+    'historical v14 report contains exactly one start marker');
+  assert.equal(captureV13BufferOccurrenceCount(reportBytes, endMarker), 1,
+    'historical v14 report contains exactly one end marker');
+  const startByte = reportBytes.indexOf(startMarker);
+  const endMarkerStartByte = reportBytes.indexOf(endMarker, startByte);
+  assert.ok(endMarkerStartByte > startByte, 'historical v14 marker order is exact');
+  const endByteExclusive = endMarkerStartByte + endMarker.length;
+  assert.deepEqual(reportBytes.subarray(endByteExclusive, endByteExclusive + 2),
+    Buffer.from('\n\n'), 'historical v14 retains its exact two-LF successor separator');
+  const blockBytes = reportBytes.subarray(startByte, endByteExclusive);
+  const block = blockBytes.toString('utf8');
+  assert.deepEqual(Buffer.from(block, 'utf8'), blockBytes,
+    'historical v14 marker-inclusive bytes are lossless UTF-8');
+  return { ...historical, startByte, endMarkerStartByte, endByteExclusive, blockBytes, block };
+}
+
 function feature004V14ValidatePayloadSchema(payload) {
   captureV13AssertExact(Object.keys(payload), FEATURE004_V14_PAYLOAD_FIELDS,
     'v14 payload top-level field order');
@@ -12266,6 +12289,26 @@ function feature004V14ParseAuthority() {
   return { reportContext, decoded, current };
 }
 
+function feature004V14ParseHistoricalAuthority() {
+  const reportBytes = readFileSync(resolve(ROOT, REPORT_PATH));
+  const reportContext = feature004V14HistoricalReportContext(reportBytes);
+  assert.equal(sha256(reportContext.blockBytes), POST_COMMIT_V14_BLOCK_SHA256,
+    'historical v14 raw report block hash is independently pinned');
+  assert.equal(reportContext.blockBytes.length, POST_COMMIT_V14_BLOCK_BYTE_LENGTH,
+    'historical v14 raw report block byte length is independently pinned');
+  const decoded = feature004V14DecodeBlock(reportContext.block);
+  feature004V14ValidatePayloadSchema(decoded.payload);
+  assert.equal(reportContext.historyBytes.length,
+    decoded.payload.historicalReportAuthority.immutableHistoryByteLength,
+  'historical v14 immutable history byte length matches the payload');
+  assert.equal(sha256(reportContext.historyBytes),
+    decoded.payload.historicalReportAuthority.immutableHistorySha256,
+  'historical v14 immutable history hash matches the payload');
+  assert.deepEqual(readFileSync(resolve(ROOT, REPORT_PATH)), reportBytes,
+    'historical v14 validation leaves every report byte unchanged');
+  return { reportContext, decoded };
+}
+
 function feature004V14ValidEvidenceFixture() {
   const rawOutputLines = Array.from({ length: 10 }, (_, index) =>
     `literal test output line ${index + 1}`);
@@ -12372,7 +12415,7 @@ function feature004V14RunInheritedV13AdversarialCases() {
 
 function feature004V14RunAdversarialCases() {
   feature004V14RunInheritedV13AdversarialCases();
-  const { reportContext, decoded } = feature004V14ParseAuthority();
+  const { reportContext, decoded } = feature004V14ParseHistoricalAuthority();
   const reportBytes = readFileSync(resolve(ROOT, REPORT_PATH));
   const mutateHistory = (offset, label) => {
     const candidate = Buffer.from(reportBytes);
@@ -12388,8 +12431,12 @@ function feature004V14RunAdversarialCases() {
   separatorMutation[reportContext.historyEnd - 1] = 0x20;
   assert.throws(() => feature004V14HistoricalContext(separatorMutation, true),
     'v14 rejects a changed historical two-LF separator');
-  assert.throws(() => feature004V14ReportContext(Buffer.from(
-    `${reportBytes.toString('utf8')}x`, 'utf8')),
+  const boundedV14Report = reportBytes.subarray(0, reportContext.endByteExclusive + 2);
+  assert.doesNotThrow(() => feature004V14ReportContext(boundedV14Report),
+    'v14 bounded historical report retains its original report-final predicate');
+  assert.throws(() => feature004V14ReportContext(Buffer.concat([
+    boundedV14Report, Buffer.from('x', 'utf8')
+  ])),
   'v14 rejects a non-two-LF final suffix');
 
   const evidence = feature004V14ValidEvidenceFixture();
@@ -12519,7 +12566,7 @@ let feature004V14ValidationLogged = false;
 function feature004V14ParseCollisionContracts() {
   const inherited = parsePostCommitV12AsV13History();
   const historicalV13 = feature004V14HistoricalV13Authority();
-  const v14 = feature004V14ParseAuthority();
+  const v14 = feature004V14ParseHistoricalAuthority();
   if (!feature004V14ValidationLogged) {
     console.log(`FEATURE004_V13_HISTORY_VALIDATED marker=${FEATURE004_CAPTURE_V13_MARKER} sha256=${POST_COMMIT_V13_BLOCK_SHA256} bytes=${POST_COMMIT_V13_BLOCK_BYTE_LENGTH} separatorBytes=2 liveComparison=false`);
     console.log(`FEATURE004_V14_VALIDATED marker=${FEATURE004_V14_MARKER} sha256=${POST_COMMIT_V14_BLOCK_SHA256} bytes=${v14.reportContext.blockBytes.length} authorityPaths=${v14.decoded.payload.scopedAuthority.orderedPaths.length} executionItems=${v14.decoded.payload.planningAuthority.executionProjection.records.length} foreignRecordsPersisted=false feature017Persisted=false`);
@@ -12559,10 +12606,1226 @@ if (process.env.FEATURE004_CAPTURE_V14 === '1') {
 }
 
 if (process.env.FEATURE004_VALIDATE_V14_CAPTURE === '1') {
-  feature004V14ParseAuthority();
+  feature004V14ParseHistoricalAuthority();
   process.exit(0);
 }
 /* FEATURE-004-COLLISION-SCOPED-EVIDENCE-V14-END */
+
+/* FEATURE-004-COLLISION-MULTI-ITEM-EVIDENCE-V15-BEGIN */
+const FEATURE004_V15_MARKER = 'feature004-dirty-collision-multi-item-evidence-v15';
+const FEATURE004_V15_ENCODING = 'br-canonical-json-utf8-b64/v1';
+const FEATURE004_V15_BASE64_LINE_LENGTH = 56;
+const FEATURE004_V15_BEGIN = '/* FEATURE-004-COLLISION-MULTI-ITEM-EVIDENCE-V15-BEGIN */';
+const FEATURE004_V15_END = '/* FEATURE-004-COLLISION-MULTI-ITEM-EVIDENCE-V15-END */';
+const FEATURE004_V15_FINDING = 'F004-V15-MULTI-ITEM-EVIDENCE-TRANSITION-001';
+const FEATURE004_V15_PLAN_COMMIT = '1db4f8ed449adf2ab44b483b0f1c710842a80453';
+const FEATURE004_V15_SCOPES_PATH = 'specs/004-fx-regime-relative-value-lab/scopes.md';
+const FEATURE004_V15_TEST_PLAN_PATH = 'specs/004-fx-regime-relative-value-lab/test-plan.json';
+const FEATURE004_V15_STATE_PATH = 'specs/004-fx-regime-relative-value-lab/state.json';
+const FEATURE004_V15_PLAN_PATHS = [
+  FEATURE004_V15_SCOPES_PATH,
+  FEATURE004_V15_TEST_PLAN_PATH,
+  FEATURE004_V15_STATE_PATH
+];
+const FEATURE004_V15_IMPLEMENTATION_PATHS = [REPORT_PATH, COLLISION_PARSER_PATH];
+const FEATURE004_V15_EVIDENCE_PATHS = [FEATURE004_V15_SCOPES_PATH];
+const FEATURE004_V15_OUTER_FIELDS = [
+  'schemaVersion',
+  'marker',
+  'encoding',
+  'compressedPayloadSha256',
+  'compressedPayloadByteLength',
+  'payloadSha256',
+  'payloadByteLength',
+  'payloadBase64LineLength',
+  'payloadBase64',
+  'markerInclusiveByteLength',
+  'normalizedSelfSha256'
+];
+const FEATURE004_V15_PAYLOAD_FIELDS = [
+  'contractVersion',
+  'findingId',
+  'capturedAt',
+  'predecessorAuthority',
+  'planningBaseline',
+  'implementationAuthority',
+  'transitionPolicy',
+  'evidencePolicy',
+  'immutableTransitionSurface',
+  'commitPolicy',
+  'repositoryBindingReuse'
+];
+const FEATURE004_V15_ITEM_KEY_FIELDS = [
+  'scopeId',
+  'itemOrdinal',
+  'uncheckedItemTextSha256'
+];
+
+function feature004V15ItemKey(record) {
+  return {
+    scopeId: record.scopeId,
+    itemOrdinal: record.itemOrdinal,
+    uncheckedItemTextSha256: record.uncheckedItemTextSha256
+  };
+}
+
+function feature004V15ItemKeyString(record) {
+  return FEATURE004_V15_ITEM_KEY_FIELDS.map((field) => record[field]).join('|');
+}
+
+function feature004V15EvidenceAt(lines, start) {
+  const phase = lines[start]?.match(/^ {4}\*\*Phase:\*\* ([a-z-]+)\n?$/);
+  if (!phase) return null;
+  const command = lines[start + 1]?.match(/^ {4}\*\*Command:\*\* `([^\n`]+)`\n?$/);
+  const exitCode = lines[start + 2]?.match(/^ {4}\*\*Exit Code:\*\* (-?\d+)\n?$/);
+  const claimSource = lines[start + 3]?.match(/^ {4}\*\*Claim Source:\*\* (executed|interpreted|not-run)\n?$/);
+  const output = lines[start + 4]?.match(/^ {4}\*\*Output:\*\*\n?$/);
+  const fence = lines[start + 5]?.match(/^ {4}```(?:text)?\n?$/);
+  if (!command || !exitCode || !claimSource || !output || !fence) return null;
+  let end = start + 6;
+  while (end < lines.length && !/^ {4}```\n?$/.test(lines[end])) end += 1;
+  if (end >= lines.length) return null;
+  const literalLines = lines.slice(start + 6, end);
+  if (!literalLines.every((line) => /^ {4}/.test(line))) return null;
+  const rawOutputLines = literalLines.map((line) =>
+    line.slice(4).replace(/\n$/, ''));
+  const rawOutputBytes = Buffer.from(rawOutputLines.join('\n'), 'utf8');
+  const blockBytes = Buffer.from(lines.slice(start, end + 1).join(''), 'utf8');
+  return {
+    start,
+    end,
+    phase: phase[1],
+    command: command[1],
+    exitCode: Number(exitCode[1]),
+    claimSource: claimSource[1],
+    rawOutputLines,
+    rawOutputBytes,
+    rawOutputSha256: sha256(rawOutputBytes),
+    blockBytes,
+    blockSha256: sha256(blockBytes)
+  };
+}
+
+function feature004V15ValidateEvidenceBlock(block, label) {
+  assert.ok(FEATURE004_V14_PHASES.has(block.phase), `${label}.phase is closed`);
+  assertNonemptyString(block.command, `${label}.command`);
+  assert.equal(block.exitCode, 0, `${label}.exitCode is successful`);
+  assert.equal(block.claimSource, 'executed', `${label}.claimSource is executed`);
+  assert.ok(block.rawOutputLines.length >= 10,
+    `${label}.rawOutputLines has at least ten literal lines`);
+  assert.ok(Buffer.isBuffer(block.rawOutputBytes), `${label}.rawOutputBytes is binary-safe`);
+  assert.deepEqual(block.rawOutputBytes,
+    Buffer.from(block.rawOutputLines.join('\n'), 'utf8'),
+  `${label}.rawOutputBytes matches literal output`);
+  assert.equal(block.rawOutputSha256, sha256(block.rawOutputBytes),
+    `${label}.rawOutputSha256 matches literal output`);
+  assert.ok(Buffer.isBuffer(block.blockBytes), `${label}.blockBytes is binary-safe`);
+  assert.equal(block.blockSha256, sha256(block.blockBytes),
+    `${label}.blockSha256 matches the exact four-space block bytes`);
+}
+
+function feature004V15ScopesProjection(text) {
+  const lines = feature004V14SplitLines(text);
+  const projected = lines.slice();
+  const records = [];
+  const evidenceByHash = new Map();
+  const ordinals = new Map();
+  let scopeId = null;
+  let inDefinitionOfDone = false;
+  for (let index = 0; index < lines.length; index += 1) {
+    const scope = lines[index].match(/^\*\*Scope ID:\*\* (SCOPE-\d+)[ \t]*\n?$/);
+    if (scope) scopeId = scope[1];
+    if (/^### Definition of Done\n?$/.test(lines[index])) {
+      assert.ok(scopeId, 'every v15 Definition of Done belongs to a declared scope ID');
+      inDefinitionOfDone = true;
+      continue;
+    }
+    if (/^## Scope \d+[: —]/.test(lines[index])) {
+      inDefinitionOfDone = false;
+      scopeId = null;
+      continue;
+    }
+    if (!inDefinitionOfDone || scopeId === null) continue;
+    const checkbox = lines[index].match(/^(- \[)([ xX])(\] [^\n]*)(\n?)$/);
+    if (!checkbox) continue;
+    const itemOrdinal = (ordinals.get(scopeId) ?? 0) + 1;
+    ordinals.set(scopeId, itemOrdinal);
+    const uncheckedItemText = `${checkbox[1]} ${checkbox[3]}${checkbox[4]}`;
+    projected[index] = uncheckedItemText;
+    const evidenceBlocks = [];
+    let cursor = index + 1;
+    while (cursor < lines.length
+        && !/^- \[[ xX]\] /.test(lines[cursor])
+        && !/^## Scope \d+[: —]/.test(lines[cursor])) {
+      const evidence = feature004V15EvidenceAt(lines, cursor);
+      if (!evidence) {
+        cursor += 1;
+        continue;
+      }
+      feature004V15ValidateEvidenceBlock(evidence,
+        `${scopeId} item ${itemOrdinal} evidence ${evidenceBlocks.length + 1}`);
+      evidenceBlocks.push(evidence);
+      evidenceByHash.set(evidence.blockSha256, evidence);
+      for (let remove = evidence.start; remove <= evidence.end; remove += 1) {
+        projected[remove] = '';
+      }
+      cursor = evidence.end + 1;
+    }
+    records.push({
+      scopeId,
+      itemOrdinal,
+      uncheckedItemTextSha256: sha256(Buffer.from(uncheckedItemText, 'utf8')),
+      checkboxState: checkbox[2] === ' ' ? 'unchecked' : 'checked',
+      orderedEvidenceBlockSha256: evidenceBlocks.map(({ blockSha256 }) => blockSha256)
+    });
+  }
+  records.forEach((record, index) => captureV13AssertExact(
+    Object.keys(record), FEATURE004_V14_EXECUTION_RECORD_FIELDS,
+    `v15 execution projection record ${index} field order`));
+  const itemKeys = records.map(feature004V15ItemKeyString);
+  assert.equal(new Set(itemKeys).size, records.length,
+    'v15 execution projection item keys are unique');
+  const planningBytes = Buffer.from(projected.join(''), 'utf8');
+  return {
+    planningBytes,
+    planningSha256: sha256(planningBytes),
+    records,
+    recordsSha256: sha256(Buffer.from(JSON.stringify(records), 'utf8')),
+    evidenceByHash
+  };
+}
+
+function feature004V15ValidateExecutionTransition(baseRecords, currentRecords,
+  evidenceByHash, { allowNoTransition = false } = {}) {
+  assert.equal(currentRecords.length, baseRecords.length,
+    'v15 execution transition retains item cardinality');
+  const baseKeys = new Set();
+  const currentKeys = new Set();
+  const evidenceOwnerByHash = new Map();
+  const transitionedItemKeys = [];
+  baseRecords.forEach((base, index) => {
+    const current = currentRecords[index];
+    const baseKey = feature004V15ItemKeyString(base);
+    const currentKey = feature004V15ItemKeyString(current);
+    assert.equal(baseKeys.has(baseKey), false,
+      `v15 base execution item ${index} key is unique`);
+    assert.equal(currentKeys.has(currentKey), false,
+      `v15 current execution item ${index} key is unique`);
+    baseKeys.add(baseKey);
+    currentKeys.add(currentKey);
+    captureV13AssertExact(feature004V15ItemKey(current), feature004V15ItemKey(base),
+      `v15 execution transition item ${index} key`);
+    assert.deepEqual(current.orderedEvidenceBlockSha256.slice(
+      0, base.orderedEvidenceBlockSha256.length),
+    base.orderedEvidenceBlockSha256,
+    `v15 execution transition item ${index} preserves prior evidence prefix`);
+    for (const hash of base.orderedEvidenceBlockSha256) {
+      if (!evidenceOwnerByHash.has(hash)) evidenceOwnerByHash.set(hash, baseKey);
+    }
+    if (base.checkboxState === 'checked') {
+      assert.equal(current.checkboxState, 'checked',
+        `v15 execution transition item ${index} cannot uncheck history`);
+      assert.deepEqual(current.orderedEvidenceBlockSha256,
+        base.orderedEvidenceBlockSha256,
+      `v15 execution transition item ${index} cannot remove replace or reorder prior evidence`);
+      return;
+    }
+    if (current.checkboxState === 'unchecked') {
+      assert.deepEqual(current.orderedEvidenceBlockSha256,
+        base.orderedEvidenceBlockSha256,
+      `v15 execution transition item ${index} cannot add evidence while unchecked`);
+      return;
+    }
+    assert.equal(current.checkboxState, 'checked',
+      `v15 execution transition item ${index} checkbox state is closed`);
+    const appended = current.orderedEvidenceBlockSha256.slice(
+      base.orderedEvidenceBlockSha256.length);
+    assert.ok(appended.length >= 1,
+      `v15 execution transition item ${index} appends at least one evidence block`);
+    appended.forEach((hash, evidenceIndex) => {
+      const priorOwner = evidenceOwnerByHash.get(hash);
+      assert.ok(priorOwner === undefined || priorOwner === currentKey,
+        `v15 execution transition item ${index} evidence ${evidenceIndex} is not cloned across item keys`);
+      evidenceOwnerByHash.set(hash, currentKey);
+      const evidence = evidenceByHash.get(hash);
+      assert.ok(evidence,
+        `v15 execution transition item ${index} evidence ${evidenceIndex} resolves`);
+      feature004V15ValidateEvidenceBlock(evidence,
+        `v15 execution transition item ${index} evidence ${evidenceIndex}`);
+    });
+    transitionedItemKeys.push(feature004V15ItemKey(current));
+  });
+  if (allowNoTransition) {
+    assert.equal(transitionedItemKeys.length, 0,
+      'v15 allowNoTransition mode accepts exactly zero transitions');
+  } else {
+    assert.ok(transitionedItemKeys.length >= 1,
+      'v15 required mode accepts one or more transitions');
+  }
+  return {
+    transitionCount: transitionedItemKeys.length,
+    transitionedItemKeys
+  };
+}
+
+function feature004V15AssertStagedPaths(actual, expected, label) {
+  feature004V14AssertStagedPaths(actual, expected, label);
+}
+
+function feature004V15AssertCaptureStagedPaths(paths, label) {
+  const isExactImplementationStage = paths.length === FEATURE004_V15_IMPLEMENTATION_PATHS.length
+    && paths.every((path, index) => path === FEATURE004_V15_IMPLEMENTATION_PATHS[index]);
+  assert.ok(paths.length === 0 || isExactImplementationStage,
+    `${label} are clean or the exact implementation allowlist`);
+  assert.equal(new Set(paths).size, paths.length, `${label} contains no duplicate path`);
+}
+
+function feature004V15AssertNoForeignPersistence(paths, label) {
+  assert.equal(paths.some((path) => path.startsWith('specs/017-')), false,
+    `${label} persists no Feature 017 path`);
+  assert.equal(paths.some((path) => ![
+    ...FEATURE004_V15_PLAN_PATHS,
+    ...FEATURE004_V15_IMPLEMENTATION_PATHS
+  ].includes(path)), false, `${label} persists no foreign path`);
+}
+
+function feature004V15ValidateScopesTransition(baseText, currentText, {
+  allowNoTransition = false,
+  stagedPaths,
+  expectedStagedPaths,
+  baseStateText = '',
+  currentStateText = baseStateText,
+  baseTestPlanText = '',
+  currentTestPlanText = baseTestPlanText
+} = {}) {
+  if (expectedStagedPaths !== undefined) {
+    feature004V15AssertStagedPaths(stagedPaths, expectedStagedPaths,
+      'v15 transition staged allowlist');
+  }
+  assert.equal(currentStateText, baseStateText,
+    'v15 transition cannot edit status planning routing or certification');
+  assert.equal(currentTestPlanText, baseTestPlanText,
+    'v15 transition cannot edit the Test Plan projection');
+  const base = feature004V15ScopesProjection(baseText);
+  const current = feature004V15ScopesProjection(currentText);
+  assert.equal(current.planningSha256, base.planningSha256,
+    'v15 transition retains the exact planning projection');
+  assert.equal(current.planningBytes.length, base.planningBytes.length,
+    'v15 transition retains the exact planning projection byte length');
+  return feature004V15ValidateExecutionTransition(
+    base.records, current.records, current.evidenceByHash, { allowNoTransition });
+}
+
+function feature004V15NormalizedParserBytes(source) {
+  const pattern = /^const POST_COMMIT_V15_BLOCK_SHA256 = '([a-f0-9]{64})';$/gm;
+  const matches = [...source.matchAll(pattern)];
+  assert.equal(matches.length, 1,
+    'v15 parser has exactly one canonical raw pin literal');
+  return Buffer.from(source.replace(matches[0][0],
+    `const POST_COMMIT_V15_BLOCK_SHA256 = '${'0'.repeat(64)}';`), 'utf8');
+}
+
+function feature004V15TransitionPolicy() {
+  return {
+    supersedesOnly: 'post-v15-execution-transition-cardinality',
+    historicalV14SingularPolicyImmutable: true,
+    itemKey: FEATURE004_V15_ITEM_KEY_FIELDS,
+    itemKeysUnique: true,
+    requiredModeMinimumTransitionCount: 1,
+    requiredModeMaximumTransitionCount: null,
+    allowNoTransitionCount: 0,
+    transitionCountEqualsNewlyCheckedItemCount: true,
+    returnExactTransitionedItemKeys: true,
+    transitionedItemKeyOrder: 'planning-order',
+    mixedBatchDisposition: 'reject-entire-transition-and-return-no-accepted-key-list'
+  };
+}
+
+function feature004V15EvidencePolicy() {
+  return {
+    minimumAppendedBlocksPerTransitionedItem: 1,
+    validateEveryAppendedBlockIndependently: true,
+    grammar: 'exact-v14-four-space-evidence-form-for-headers-fences-and-raw-output-lines',
+    requiredPhaseSet: [...FEATURE004_V14_PHASES],
+    requiredCommand: 'exact-nonempty',
+    requiredExitCode: 0,
+    requiredClaimSource: 'executed',
+    minimumRawOutputLines: 10,
+    rawOutputSha256Required: true,
+    blockSha256Required: true,
+    duplicateEvidenceHashAcrossDistinctItemKeys: 'reject',
+    sharedEvidenceException: false
+  };
+}
+
+function feature004V15ImmutableTransitionSurface() {
+  return {
+    priorCheckedItemsImmutable: true,
+    priorEvidencePrefixPreserved: true,
+    uncheckedItemEvidenceAllowed: false,
+    itemTextOrderCardinalityOrdinalMutationAllowed: false,
+    planningProjectionMutationAllowed: false,
+    testPlanProjectionMutationAllowed: false,
+    scopeOrTopLevelStatusMutationAllowed: false,
+    planningRoutingMutationAllowed: false,
+    certificationMutationAllowed: false,
+    foreignPathPersistenceAllowed: false,
+    scopeTwoPickupAllowed: false
+  };
+}
+
+function feature004V15RepositoryBindingReuse(v14Binding) {
+  return {
+    source: 'immutable-v14-payload.repositoryBinding',
+    repositoryRoot: '/home/redacted/research-lab',
+    repositoryAlias: v14Binding.repositoryAlias,
+    sessionId: v14Binding.sessionId,
+    decisionId: v14Binding.decisionId,
+    controlRevision: v14Binding.controlRevision,
+    controlPathDigest: v14Binding.controlPathDigest,
+    authority: v14Binding.authority,
+    transition: v14Binding.transition,
+    scopeKind: v14Binding.scopeKind,
+    actionable: v14Binding.actionable,
+    mirrorRevision: 56,
+    recaptureAllowed: false
+  };
+}
+
+function feature004V15CapturedAt() {
+  const capturedAt = new Date(captureV13GitText([
+    'show', '-s', '--format=%cI', FEATURE004_V15_PLAN_COMMIT
+  ]).trim()).toISOString();
+  assertUtcTimestamp(capturedAt, 'v15 payload capturedAt');
+  return capturedAt;
+}
+
+function feature004V15CaptureOnce() {
+  feature004V15AssertCaptureStagedPaths(feature004V14StagedPaths(),
+    'v15 capture staged paths');
+  const v14 = feature004V14ParseHistoricalAuthority();
+  assert.equal(v14.reportContext.blockBytes.length, POST_COMMIT_V14_BLOCK_BYTE_LENGTH,
+    'v15 capture reuses the exact v14 raw byte length');
+  const head = captureV13GitText(['rev-parse', '--verify', 'HEAD^{commit}']).trim();
+  captureV13AssertAncestor(FEATURE004_V15_PLAN_COMMIT, head,
+    'v15 planning baseline to capture HEAD');
+  FEATURE004_V15_PLAN_PATHS.forEach((path) => {
+    assert.equal(feature004V14LastCommit(path), FEATURE004_V15_PLAN_COMMIT,
+      `${path} retains the v15 planning baseline commit`);
+  });
+  const parserBytes = feature004V15NormalizedParserBytes(
+    readFileSync(resolve(ROOT, COLLISION_PARSER_PATH), 'utf8'));
+  const payload = {
+    contractVersion: 'feature004-dirty-collision-multi-item-evidence/v15',
+    findingId: FEATURE004_V15_FINDING,
+    capturedAt: feature004V15CapturedAt(),
+    predecessorAuthority: {
+      marker: FEATURE004_V14_MARKER,
+      rawBlockSha256: POST_COMMIT_V14_BLOCK_SHA256,
+      markerInclusiveByteLength: POST_COMMIT_V14_BLOCK_BYTE_LENGTH,
+      successorSeparator: {
+        byteLength: 2,
+        base64: 'Cgo=',
+        sha256: sha256(Buffer.from('\n\n'))
+      },
+      validatedThroughHistoricalAdapter: true,
+      currentFileFinalPredicateAfterV15: false,
+      historicalRequiredTransitionCount: 1,
+      historicalAllowNoTransitionCount: 0
+    },
+    planningBaseline: {
+      commit: FEATURE004_V15_PLAN_COMMIT,
+      protectedPaths: FEATURE004_V15_PLAN_PATHS,
+      scopesBaseline: 'exact-committed-HEAD-scopes-at-transaction-start',
+      nextBatchBaseline: 'prior-evidence-commit-HEAD-scopes',
+      replacementAuthoritySnapshotStored: false
+    },
+    implementationAuthority: {
+      path: COLLISION_PARSER_PATH,
+      normalization: 'v15-raw-pin-zeroed/v1',
+      contentSha256: sha256(parserBytes),
+      byteLength: parserBytes.length
+    },
+    transitionPolicy: feature004V15TransitionPolicy(),
+    evidencePolicy: feature004V15EvidencePolicy(),
+    immutableTransitionSurface: feature004V15ImmutableTransitionSurface(),
+    commitPolicy: {
+      implementationMode: 'allowNoTransition',
+      implementationAllowedPaths: FEATURE004_V15_IMPLEMENTATION_PATHS,
+      evidenceMode: 'required',
+      evidenceAllowedPaths: FEATURE004_V15_EVIDENCE_PATHS,
+      stateSharesEvidenceCommit: false,
+      certificationSharesEvidenceCommit: false,
+      exactPathLimitedCommitRequired: true,
+      gitCommitOnlyRequired: true
+    },
+    repositoryBindingReuse: feature004V15RepositoryBindingReuse(
+      v14.decoded.payload.repositoryBinding)
+  };
+  captureV13AssertExact(Object.keys(payload), FEATURE004_V15_PAYLOAD_FIELDS,
+    'v15 payload top-level field order');
+  return payload;
+}
+
+function feature004V15RenderOuter(outer) {
+  return [
+    '{',
+    `"schemaVersion":${JSON.stringify(outer.schemaVersion)},`,
+    `"marker":${JSON.stringify(outer.marker)},`,
+    `"encoding":${JSON.stringify(outer.encoding)},`,
+    ...feature004V14RenderHashArray('compressedPayloadSha256', outer.compressedPayloadSha256, true),
+    `"compressedPayloadByteLength":${outer.compressedPayloadByteLength},`,
+    ...feature004V14RenderHashArray('payloadSha256', outer.payloadSha256, true),
+    `"payloadByteLength":${outer.payloadByteLength},`,
+    `"payloadBase64LineLength":${outer.payloadBase64LineLength},`,
+    '"payloadBase64":[',
+    ...outer.payloadBase64.map((line, index) =>
+      `${JSON.stringify(line)}${index === outer.payloadBase64.length - 1 ? '' : ','}`),
+    '],',
+    `"markerInclusiveByteLength":${outer.markerInclusiveByteLength},`,
+    ...feature004V14RenderHashArray('normalizedSelfSha256', outer.normalizedSelfSha256, false),
+    '}'
+  ].join('\n');
+}
+
+function feature004V15RenderBlock(outer) {
+  return [
+    `<!-- ${FEATURE004_V15_MARKER}:start -->`,
+    '```json',
+    feature004V15RenderOuter(outer),
+    '```',
+    `<!-- ${FEATURE004_V15_MARKER}:end -->`
+  ].join('\n');
+}
+
+function feature004V15Compress(payloadBytes) {
+  return feature004V14Compress(payloadBytes);
+}
+
+function feature004V15BuildBlock(payload) {
+  const payloadBytes = Buffer.from(JSON.stringify(payload), 'utf8');
+  const compressedPayloadBytes = feature004V15Compress(payloadBytes);
+  const payloadBase64 = compressedPayloadBytes.toString('base64').match(/.{1,56}/g) ?? [];
+  assert.ok(payloadBase64.length > 0, 'v15 compressed payload has base64 lines');
+  const outer = {
+    schemaVersion: 'feature004-multi-item-evidence-v15-capture-envelope/v1',
+    marker: FEATURE004_V15_MARKER,
+    encoding: FEATURE004_V15_ENCODING,
+    compressedPayloadSha256: feature004V14HashChunks(
+      sha256(compressedPayloadBytes), 'v15 compressed payload hash'),
+    compressedPayloadByteLength: compressedPayloadBytes.length,
+    payloadSha256: feature004V14HashChunks(sha256(payloadBytes), 'v15 payload hash'),
+    payloadByteLength: payloadBytes.length,
+    payloadBase64LineLength: FEATURE004_V15_BASE64_LINE_LENGTH,
+    payloadBase64,
+    markerInclusiveByteLength: 0,
+    normalizedSelfSha256: ['0'.repeat(32), '0'.repeat(32)]
+  };
+  for (;;) {
+    const byteLength = Buffer.byteLength(feature004V15RenderBlock(outer));
+    if (byteLength === outer.markerInclusiveByteLength) break;
+    outer.markerInclusiveByteLength = byteLength;
+  }
+  outer.normalizedSelfSha256 = feature004V14HashChunks(sha256(
+    feature004V15RenderBlock(outer)), 'v15 normalized outer self hash');
+  const block = feature004V15RenderBlock(outer);
+  assert.equal(Buffer.byteLength(block), outer.markerInclusiveByteLength,
+    'v15 marker-inclusive byte length is stable');
+  return { block, outer, payloadBytes, compressedPayloadBytes };
+}
+
+function feature004V15DecodeBlock(block) {
+  const start = `<!-- ${FEATURE004_V15_MARKER}:start -->`;
+  const end = `<!-- ${FEATURE004_V15_MARKER}:end -->`;
+  const match = block.match(new RegExp(`^${start}\\n` +
+    '```json\\n([\\s\\S]*?)\\n```\\n' + `${end}$`));
+  assert.ok(match, 'v15 block is one exact marker-delimited JSON envelope');
+  const outer = JSON.parse(match[1]);
+  captureV13AssertExact(Object.keys(outer), FEATURE004_V15_OUTER_FIELDS,
+    'v15 outer field order');
+  assert.equal(feature004V15RenderBlock(outer), block,
+    'v15 outer canonical renderer is byte-identical');
+  const compressed = Buffer.from(outer.payloadBase64.join(''), 'base64');
+  assert.equal(compressed.toString('base64'), outer.payloadBase64.join(''),
+    'v15 base64 decode and canonical re-encode are identical');
+  assert.equal(compressed.length, outer.compressedPayloadByteLength,
+    'v15 compressed byte length is exact');
+  assert.equal(sha256(compressed), outer.compressedPayloadSha256.join(''),
+    'v15 compressed payload hash is exact');
+  const payloadBytes = brotliDecompressSync(compressed);
+  assert.deepEqual(feature004V15Compress(payloadBytes), compressed,
+    'v15 deterministic Brotli recompression is exact');
+  assert.equal(payloadBytes.length, outer.payloadByteLength,
+    'v15 payload byte length is exact');
+  assert.equal(sha256(payloadBytes), outer.payloadSha256.join(''),
+    'v15 payload hash is exact');
+  const payload = JSON.parse(payloadBytes.toString('utf8'));
+  assert.deepEqual(Buffer.from(JSON.stringify(payload), 'utf8'), payloadBytes,
+    'v15 payload is canonical JSON.stringify bytes');
+  assert.equal(Buffer.byteLength(block), outer.markerInclusiveByteLength,
+    'v15 marker-inclusive length covers the exact block');
+  const normalized = {
+    ...outer,
+    normalizedSelfSha256: ['0'.repeat(32), '0'.repeat(32)]
+  };
+  assert.equal(sha256(feature004V15RenderBlock(normalized)),
+    outer.normalizedSelfSha256.join(''),
+  'v15 normalized outer self hash is exact');
+  return { outer, payload, payloadBytes, compressedPayloadBytes: compressed };
+}
+
+function feature004V15StableCapture() {
+  const firstPayload = feature004V15CaptureOnce();
+  const first = feature004V15BuildBlock(firstPayload);
+  const firstDecoded = feature004V15DecodeBlock(first.block);
+  captureV13AssertExact(firstDecoded.payload, firstPayload,
+    'v15 first capture decoded payload');
+  const secondPayload = feature004V15CaptureOnce();
+  const second = feature004V15BuildBlock(secondPayload);
+  captureV13AssertExact(secondPayload, firstPayload,
+    'v15 stable double capture payload');
+  assert.equal(second.block, first.block,
+    'v15 stable double capture marker-inclusive bytes');
+  return { ...first, payload: firstPayload };
+}
+
+function feature004V15CaptureCheck() {
+  const capture = feature004V15StableCapture();
+  console.log([
+    'FEATURE004_V15_CAPTURE_CHECK',
+    `rawSha256=${sha256(Buffer.from(capture.block, 'utf8'))}`,
+    `rawBytes=${Buffer.byteLength(capture.block)}`,
+    `payloadSha256=${capture.outer.payloadSha256.join('')}`,
+    `compressedPayloadSha256=${capture.outer.compressedPayloadSha256.join('')}`,
+    `planningBaseline=${capture.payload.planningBaseline.commit}`,
+    'replacementAuthoritySnapshotStored=false',
+    'feature017Persisted=false'
+  ].join(' '));
+  return capture;
+}
+
+function feature004V15ReportContext(reportBytes) {
+  const v14 = feature004V14HistoricalReportContext(reportBytes);
+  assert.equal(v14.blockBytes.length, POST_COMMIT_V14_BLOCK_BYTE_LENGTH,
+    'v15 report retains exact v14 marker-inclusive bytes');
+  assert.equal(sha256(v14.blockBytes), POST_COMMIT_V14_BLOCK_SHA256,
+    'v15 report retains exact v14 raw hash');
+  const startMarker = Buffer.from(`<!-- ${FEATURE004_V15_MARKER}:start -->`, 'utf8');
+  const endMarker = Buffer.from(`<!-- ${FEATURE004_V15_MARKER}:end -->`, 'utf8');
+  assert.equal(captureV13BufferOccurrenceCount(reportBytes, startMarker), 1,
+    'report contains exactly one v15 start marker');
+  assert.equal(captureV13BufferOccurrenceCount(reportBytes, endMarker), 1,
+    'report contains exactly one v15 end marker');
+  const startByte = reportBytes.indexOf(startMarker);
+  assert.equal(startByte, v14.endByteExclusive + 2,
+    'v15 begins immediately after the exact v14 two-LF separator');
+  const endMarkerStartByte = reportBytes.indexOf(endMarker, startByte);
+  assert.ok(endMarkerStartByte > startByte, 'v15 marker order is exact');
+  const endByteExclusive = endMarkerStartByte + endMarker.length;
+  assert.deepEqual(reportBytes.subarray(endByteExclusive), Buffer.from('\n\n'),
+    'v15 is report-final with exactly two LF suffix bytes');
+  const blockBytes = reportBytes.subarray(startByte, endByteExclusive);
+  const block = blockBytes.toString('utf8');
+  assert.deepEqual(Buffer.from(block, 'utf8'), blockBytes,
+    'v15 marker-inclusive bytes are lossless UTF-8');
+  return { v14, startByte, endMarkerStartByte, endByteExclusive, blockBytes, block };
+}
+
+function feature004V15ValidatePayloadSchema(payload) {
+  captureV13AssertExact(Object.keys(payload), FEATURE004_V15_PAYLOAD_FIELDS,
+    'v15 payload top-level field order');
+  assert.equal(payload.contractVersion,
+    'feature004-dirty-collision-multi-item-evidence/v15');
+  assert.equal(payload.findingId, FEATURE004_V15_FINDING);
+  assertUtcTimestamp(payload.capturedAt, 'v15 payload capturedAt');
+  captureV13AssertExact(payload.predecessorAuthority, {
+    marker: FEATURE004_V14_MARKER,
+    rawBlockSha256: POST_COMMIT_V14_BLOCK_SHA256,
+    markerInclusiveByteLength: POST_COMMIT_V14_BLOCK_BYTE_LENGTH,
+    successorSeparator: {
+      byteLength: 2,
+      base64: 'Cgo=',
+      sha256: sha256(Buffer.from('\n\n'))
+    },
+    validatedThroughHistoricalAdapter: true,
+    currentFileFinalPredicateAfterV15: false,
+    historicalRequiredTransitionCount: 1,
+    historicalAllowNoTransitionCount: 0
+  }, 'v15 predecessor authority');
+  captureV13AssertExact(payload.planningBaseline, {
+    commit: FEATURE004_V15_PLAN_COMMIT,
+    protectedPaths: FEATURE004_V15_PLAN_PATHS,
+    scopesBaseline: 'exact-committed-HEAD-scopes-at-transaction-start',
+    nextBatchBaseline: 'prior-evidence-commit-HEAD-scopes',
+    replacementAuthoritySnapshotStored: false
+  }, 'v15 planning baseline');
+  captureV13AssertExact(payload.transitionPolicy, feature004V15TransitionPolicy(),
+    'v15 transition policy');
+  captureV13AssertExact(payload.evidencePolicy, feature004V15EvidencePolicy(),
+    'v15 evidence policy');
+  captureV13AssertExact(payload.immutableTransitionSurface,
+    feature004V15ImmutableTransitionSurface(), 'v15 immutable transition surface');
+  captureV13AssertExact(payload.commitPolicy, {
+    implementationMode: 'allowNoTransition',
+    implementationAllowedPaths: FEATURE004_V15_IMPLEMENTATION_PATHS,
+    evidenceMode: 'required',
+    evidenceAllowedPaths: FEATURE004_V15_EVIDENCE_PATHS,
+    stateSharesEvidenceCommit: false,
+    certificationSharesEvidenceCommit: false,
+    exactPathLimitedCommitRequired: true,
+    gitCommitOnlyRequired: true
+  }, 'v15 commit policy');
+  captureV13AssertExact(payload.repositoryBindingReuse, {
+    source: 'immutable-v14-payload.repositoryBinding',
+    repositoryRoot: '/home/redacted/research-lab',
+    repositoryAlias: 'research-lab',
+    sessionId: 'vscode-e24db39cf992f7ccd8ec75209602db59',
+    decisionId: 'rb:vscode-e24db39cf992f7ccd8ec75209602db59:56',
+    controlRevision: 56,
+    controlPathDigest: 'sha256:e6d858a6f9bc1824d3a2cea3746d741a5bad41016d613dc242312185af9761fa',
+    authority: 'concrete-target',
+    transition: 'confirmed',
+    scopeKind: 'command',
+    actionable: true,
+    mirrorRevision: 56,
+    recaptureAllowed: false
+  }, 'v15 repository binding reuse');
+  assert.equal(JSON.stringify(payload).includes('specs/017-'), false,
+    'v15 payload persists no Feature 017 path');
+  assertExactOrderedKeys(payload.implementationAuthority,
+    ['path', 'normalization', 'contentSha256', 'byteLength'],
+    'v15 implementation authority');
+  assert.equal(payload.implementationAuthority.path, COLLISION_PARSER_PATH);
+  assert.equal(payload.implementationAuthority.normalization,
+    'v15-raw-pin-zeroed/v1');
+  assertSha256(payload.implementationAuthority.contentSha256,
+    'v15 normalized parser content hash');
+  assert.ok(Number.isSafeInteger(payload.implementationAuthority.byteLength)
+    && payload.implementationAuthority.byteLength > 0,
+  'v15 normalized parser byte length is positive');
+}
+
+function feature004V15ParseAuthority({ requireImplementationStaging = false } = {}) {
+  const reportBytes = readFileSync(resolve(ROOT, REPORT_PATH));
+  const reportContext = feature004V15ReportContext(reportBytes);
+  assert.equal(sha256(reportContext.blockBytes), POST_COMMIT_V15_BLOCK_SHA256,
+    'v15 raw report block hash is independently pinned');
+  const decoded = feature004V15DecodeBlock(reportContext.block);
+  feature004V15ValidatePayloadSchema(decoded.payload);
+  const parserBytes = feature004V15NormalizedParserBytes(
+    readFileSync(resolve(ROOT, COLLISION_PARSER_PATH), 'utf8'));
+  assert.equal(sha256(parserBytes),
+    decoded.payload.implementationAuthority.contentSha256,
+  'v15 normalized parser hash matches implementation authority');
+  assert.equal(parserBytes.length,
+    decoded.payload.implementationAuthority.byteLength,
+  'v15 normalized parser byte length matches implementation authority');
+  const head = captureV13GitText(['rev-parse', '--verify', 'HEAD^{commit}']).trim();
+  captureV13AssertAncestor(FEATURE004_V15_PLAN_COMMIT, head,
+    'v15 planning baseline to current HEAD');
+  const stagedPaths = feature004V14StagedPaths();
+  if (requireImplementationStaging) {
+    feature004V15AssertStagedPaths(stagedPaths, FEATURE004_V15_IMPLEMENTATION_PATHS,
+      'v15 focused implementation staged paths');
+  } else {
+    feature004V15AssertCaptureStagedPaths(stagedPaths, 'v15 current staged paths');
+  }
+  const baseScopes = captureV13GitText(['show', `HEAD:${FEATURE004_V15_SCOPES_PATH}`]);
+  const currentScopes = readFileSync(resolve(ROOT, FEATURE004_V15_SCOPES_PATH), 'utf8');
+  const baseState = captureV13GitText(['show', `HEAD:${FEATURE004_V15_STATE_PATH}`]);
+  const currentState = readFileSync(resolve(ROOT, FEATURE004_V15_STATE_PATH), 'utf8');
+  const baseTestPlan = captureV13GitText(['show', `HEAD:${FEATURE004_V15_TEST_PLAN_PATH}`]);
+  const currentTestPlan = readFileSync(resolve(ROOT, FEATURE004_V15_TEST_PLAN_PATH), 'utf8');
+  const transition = feature004V15ValidateScopesTransition(baseScopes, currentScopes, {
+    allowNoTransition: true,
+    stagedPaths,
+    expectedStagedPaths: stagedPaths,
+    baseStateText: baseState,
+    currentStateText: currentState,
+    baseTestPlanText: baseTestPlan,
+    currentTestPlanText: currentTestPlan
+  });
+  assert.deepEqual(readFileSync(resolve(ROOT, REPORT_PATH)), reportBytes,
+    'v15 validation leaves every report byte unchanged');
+  return { reportContext, decoded, transition };
+}
+
+function feature004V15RenderEvidence({
+  phase = 'test',
+  command = 'node --test tests/feature-004-dirty-tree-collision.test.mjs',
+  exitCode = 0,
+  claimSource = 'executed',
+  rawOutputLines = Array.from({ length: 10 }, (_, index) =>
+    `literal v15 output line ${index + 1}`),
+  indent = '    '
+} = {}) {
+  return [
+    `${indent}**Phase:** ${phase}`,
+    `${indent}**Command:** \`${command}\``,
+    `${indent}**Exit Code:** ${exitCode}`,
+    `${indent}**Claim Source:** ${claimSource}`,
+    `${indent}**Output:**`,
+    `${indent}\`\`\`text`,
+    ...rawOutputLines.map((line) => `${indent}${line}`),
+    `${indent}\`\`\``
+  ].join('\n');
+}
+
+function feature004V15ScopesFixture(items, status = 'In Progress') {
+  return [
+    '## Scope 1 — V15 fixture',
+    `Status: ${status}`,
+    '**Scope ID:** SCOPE-01',
+    '### Definition of Done',
+    ...items.flatMap((item) => [
+      `- [${item.checked ? 'x' : ' '}] ${item.text}`,
+      ...(item.evidence ?? [])
+    ]),
+    ''
+  ].join('\n');
+}
+
+function feature004V15CloneEvidence(evidence) {
+  return {
+    ...evidence,
+    rawOutputLines: [...evidence.rawOutputLines],
+    rawOutputBytes: Buffer.from(evidence.rawOutputBytes),
+    blockBytes: Buffer.from(evidence.blockBytes)
+  };
+}
+
+function feature004V15HistoricalParserAuthorities() {
+  const report = readFileSync(resolve(ROOT, REPORT_PATH), 'utf8');
+  const v10 = parseReportBlock(report, POST_COMMIT_V10_MARKER).value;
+  const v11 = parseReportBlock(report, POST_COMMIT_V11_MARKER).value;
+  return {
+    v9: v10.v9SelfIdentityDisposition.observedUnderExactV9Reconstruction,
+    v10: v10.identityContract.parserSelfCapture,
+    v11: v11.identityContract.parserSelfCapture
+  };
+}
+
+function feature004V15DiffFromRevisionSource(revision, source) {
+  const activeGit = git;
+  git = (args) => args.length === 2
+    && args[0] === 'show'
+    && args[1] === `HEAD:${COLLISION_PARSER_PATH}`
+    ? activeGit(['show', `${revision}:${COLLISION_PARSER_PATH}`])
+    : activeGit(args);
+  try {
+    return postCommitV10DiffFromHeadSource(COLLISION_PARSER_PATH, source);
+  } finally {
+    git = activeGit;
+  }
+}
+
+function feature004V15WithHistoricalParserMetadata(authority, label, historicalDiff,
+  historicalRevision, run) {
+  assert.ok(authority && typeof authority === 'object' && !Array.isArray(authority),
+    `${label} is an immutable historical identity object`);
+  if (Object.hasOwn(authority, 'path')) {
+    assert.equal(authority.path, COLLISION_PARSER_PATH, `${label} path is exact`);
+  }
+  assert.equal(authority.pathKind, 'tracked', `${label} path kind is exact`);
+  assert.equal(authority.status, ' M', `${label} status is the historical unstaged state`);
+  assert.equal(authority.staged, false, `${label} historical index is unchanged`);
+  assert.equal(authority.unstaged, true, `${label} historical worktree is dirty`);
+  for (const field of ['headOid', 'indexOid', 'lastCommit']) {
+    assert.match(authority[field], /^[a-f0-9]{40}$/, `${label}.${field} is an exact Git OID`);
+  }
+  const activeShortStatus = shortStatus;
+  const activeHeadOid = headOid;
+  const activeIndexOid = indexOid;
+  const activeLastCommit = lastCommit;
+  const activeGit = git;
+  shortStatus = (path) => path === COLLISION_PARSER_PATH
+    ? authority.status : activeShortStatus(path);
+  headOid = (path) => path === COLLISION_PARSER_PATH
+    ? authority.headOid : activeHeadOid(path);
+  indexOid = (path) => path === COLLISION_PARSER_PATH
+    ? authority.indexOid : activeIndexOid(path);
+  lastCommit = (path) => path === COLLISION_PARSER_PATH
+    ? authority.lastCommit : activeLastCommit(path);
+  git = (args) => {
+    if (historicalDiff !== null
+        && args.length === 5
+        && args[0] === 'diff'
+        && args[1] === '--no-ext-diff'
+        && args[2] === '--unified=0'
+        && args[3] === '--'
+        && args[4] === COLLISION_PARSER_PATH) {
+      return historicalDiff;
+    }
+    if (historicalRevision !== null
+        && args.length === 2
+        && args[0] === 'show'
+        && args[1] === `HEAD:${COLLISION_PARSER_PATH}`) {
+      return activeGit(['show', `${historicalRevision}:${COLLISION_PARSER_PATH}`]);
+    }
+    return activeGit(args);
+  };
+  try {
+    return run();
+  } finally {
+    shortStatus = activeShortStatus;
+    headOid = activeHeadOid;
+    indexOid = activeIndexOid;
+    lastCommit = activeLastCommit;
+    git = activeGit;
+  }
+}
+
+function feature004V15HistoricalParserAdapter(original, authorityName, label,
+  revision = null) {
+  return (...args) => {
+    const authority = feature004V15HistoricalParserAuthorities()[authorityName];
+    const historicalRevision = revision ?? authority.repositoryHead;
+    assert.match(historicalRevision, /^[a-f0-9]{40}$/,
+      `${label} historical revision is an exact Git commit`);
+    const source = args[1] ?? readFileSync(resolve(ROOT, COLLISION_PARSER_PATH), 'utf8');
+    const historicalDiff = feature004V15DiffFromRevisionSource(historicalRevision, source);
+    return feature004V15WithHistoricalParserMetadata(
+      authority, label, historicalDiff, historicalRevision, () => original(...args));
+  };
+}
+
+postCommitV9ObservedIdentityFromV10Source = feature004V15HistoricalParserAdapter(
+  postCommitV9ObservedIdentityFromV10Source, 'v9', 'v9 observed parser metadata');
+postCommitV9HistoricalParserIdentity = () => postCommitV9ObservedIdentityFromV10Source();
+postCommitV9ObservedIdentityFromV10SourceAsV11History = feature004V15HistoricalParserAdapter(
+  postCommitV9ObservedIdentityFromV10SourceAsV11History, 'v9',
+  'v9 observed v11-history parser metadata');
+postCommitV9ObservedIdentityFromV10SourceAsV12History = feature004V15HistoricalParserAdapter(
+  postCommitV9ObservedIdentityFromV10SourceAsV12History, 'v9',
+  'v9 observed v12-history parser metadata');
+postCommitV10ParserRecord = feature004V15HistoricalParserAdapter(
+  postCommitV10ParserRecord, 'v10', 'v10 historical parser metadata',
+  POST_COMMIT_V10_REQUIRED_HEAD);
+postCommitV11ParserRecord = feature004V15HistoricalParserAdapter(
+  postCommitV11ParserRecord, 'v11', 'v11 historical parser metadata',
+  POST_COMMIT_V11_REQUIRED_HEAD);
+
+function feature004V15HistoricalReplayForCurrentStatus(currentStatus) {
+  assert.ok([' M', 'M '].includes(currentStatus),
+    'v15 historical replay fixture uses an exact unstaged or staged porcelain mode');
+  const report = readFileSync(resolve(ROOT, REPORT_PATH), 'utf8');
+  const v10 = parseReportBlock(report, POST_COMMIT_V10_MARKER).value;
+  const v11 = parseReportBlock(report, POST_COMMIT_V11_MARKER).value;
+  const v10Summary = v10.currentMatrix.requiredRecords
+    .find(({ path }) => path === COLLISION_PARSER_PATH);
+  const v11Summary = v11.currentMatrix.requiredRecords
+    .find(({ path }) => path === COLLISION_PARSER_PATH);
+  const activeShortStatus = shortStatus;
+  shortStatus = (path) => path === COLLISION_PARSER_PATH
+    ? currentStatus : activeShortStatus(path);
+  try {
+    return {
+      v9: postCommitV9ObservedIdentityFromV10SourceAsV12History(),
+      v10: postCommitV13HistoricalV10ParserRecord(v10Summary),
+      v11: postCommitV13HistoricalV11ParserRecord(v11Summary)
+    };
+  } finally {
+    shortStatus = activeShortStatus;
+  }
+}
+
+function feature004V15AssertHistoricalReplayStagingModes() {
+  feature004V15AssertStagedPaths([], [], 'v15 ordinary parse unstaged paths');
+  feature004V15AssertCaptureStagedPaths([], 'v15 capture clean staged paths');
+  const unstagedReplay = feature004V15HistoricalReplayForCurrentStatus(' M');
+  feature004V15AssertStagedPaths(FEATURE004_V15_IMPLEMENTATION_PATHS,
+    FEATURE004_V15_IMPLEMENTATION_PATHS, 'v15 exact implementation staged paths');
+  feature004V15AssertCaptureStagedPaths(FEATURE004_V15_IMPLEMENTATION_PATHS,
+    'v15 capture exact implementation staged paths');
+  const stagedReplay = feature004V15HistoricalReplayForCurrentStatus('M ');
+  assert.deepEqual(stagedReplay, unstagedReplay,
+    'v15 staged and unstaged current modes preserve identical historical records');
+  for (const [version, record] of Object.entries(stagedReplay)) {
+    assert.equal(record.status, ' M', `${version} retains historical unstaged status`);
+    assert.equal(record.staged, false, `${version} retains historical staged=false`);
+    assert.equal(record.unstaged, true, `${version} retains historical unstaged=true`);
+  }
+  assert.throws(() => feature004V15AssertStagedPaths([
+    ...FEATURE004_V15_IMPLEMENTATION_PATHS,
+    'specs/017-decision-attention-and-developing-situations/report.md'
+  ], FEATURE004_V15_IMPLEMENTATION_PATHS, 'v15 foreign implementation stage'),
+  'v15 rejects a foreign staged implementation path');
+  assert.throws(() => feature004V15AssertCaptureStagedPaths([
+    REPORT_PATH
+  ], 'v15 capture partial implementation stage'),
+  'v15 capture rejects a partial implementation staged set');
+  assert.throws(() => feature004V15AssertCaptureStagedPaths([
+    ...FEATURE004_V15_IMPLEMENTATION_PATHS,
+    'specs/017-decision-attention-and-developing-situations/report.md'
+  ], 'v15 capture foreign implementation stage'),
+  'v15 capture rejects a foreign staged path');
+  const report = readFileSync(resolve(ROOT, REPORT_PATH), 'utf8');
+  const v10 = parseReportBlock(report, POST_COMMIT_V10_MARKER).value;
+  const summary = v10.currentMatrix.requiredRecords
+    .find(({ path }) => path === COLLISION_PARSER_PATH);
+  const wrongHistoricalStatus = structuredClone(v10.identityContract.parserSelfCapture);
+  wrongHistoricalStatus.status = 'M ';
+  assert.throws(() => feature004V15WithHistoricalParserMetadata(
+    wrongHistoricalStatus, 'v15 wrong historical parser status', null, null,
+    () => postCommitV13HistoricalV10ParserRecord(summary)),
+  'v15 rejects a wrong historical parser status');
+  return stagedReplay;
+}
+
+function feature004V15RunAdversarialCases() {
+  feature004V15AssertHistoricalReplayStagingModes();
+  const evidenceA = feature004V15RenderEvidence({
+    command: 'node --test tests/feature-004-dirty-tree-collision.test.mjs --test-name-pattern alpha',
+    rawOutputLines: Array.from({ length: 10 }, (_, index) => `alpha output ${index + 1}`)
+  });
+  const evidenceB = feature004V15RenderEvidence({
+    command: 'node --test tests/feature-004-dirty-tree-collision.test.mjs --test-name-pattern beta',
+    rawOutputLines: Array.from({ length: 10 }, (_, index) => `beta output ${index + 1}`)
+  });
+  const base = feature004V15ScopesFixture([
+    { checked: false, text: 'alpha requirement' },
+    { checked: false, text: 'beta requirement' }
+  ]);
+  const twoValid = feature004V15ScopesFixture([
+    { checked: true, text: 'alpha requirement', evidence: [evidenceA] },
+    { checked: true, text: 'beta requirement', evidence: [evidenceB] }
+  ]);
+  const accepted = feature004V15ValidateScopesTransition(base, twoValid, {
+    stagedPaths: FEATURE004_V15_EVIDENCE_PATHS,
+    expectedStagedPaths: FEATURE004_V15_EVIDENCE_PATHS,
+    baseStateText: 'state',
+    currentStateText: 'state',
+    baseTestPlanText: 'test-plan',
+    currentTestPlanText: 'test-plan'
+  });
+  const acceptedProjection = feature004V15ScopesProjection(twoValid);
+  assert.equal(accepted.transitionCount, 2,
+    'v15 accepts two independently evidenced transitions');
+  captureV13AssertExact(accepted.transitionedItemKeys,
+    acceptedProjection.records.map(feature004V15ItemKey),
+    'v15 returns both exact transitioned item keys in planning order');
+  assert.throws(() => feature004V15ValidateScopesTransition(base, base),
+    'v15 required mode rejects zero transitions');
+  captureV13AssertExact(feature004V15ValidateScopesTransition(base, base, {
+    allowNoTransition: true
+  }), { transitionCount: 0, transitionedItemKeys: [] },
+  'v15 allowNoTransition accepts exactly zero transitions');
+
+  const mixedInvalid = feature004V15ScopesFixture([
+    { checked: true, text: 'alpha requirement', evidence: [evidenceA] },
+    { checked: true, text: 'beta requirement', evidence: [
+      feature004V15RenderEvidence({ claimSource: 'interpreted' })
+    ] }
+  ]);
+  assert.throws(() => feature004V15ValidateScopesTransition(base, mixedInvalid),
+    'v15 rejects a mixed valid and invalid batch atomically');
+
+  const projection = feature004V15ScopesProjection(twoValid);
+  const duplicateBase = [projection.records[0], structuredClone(projection.records[0])];
+  assert.throws(() => feature004V15ValidateExecutionTransition(
+    duplicateBase, structuredClone(duplicateBase), projection.evidenceByHash,
+    { allowNoTransition: true }), 'v15 rejects a duplicate item key');
+
+  const duplicateEvidence = feature004V15ScopesFixture([
+    { checked: true, text: 'alpha requirement', evidence: [evidenceA] },
+    { checked: true, text: 'beta requirement', evidence: [evidenceA] }
+  ]);
+  assert.throws(() => feature004V15ValidateScopesTransition(base, duplicateEvidence),
+    'v15 rejects a duplicate evidence hash across different item keys');
+  const checkedWithoutEvidence = feature004V15ScopesFixture([
+    { checked: true, text: 'alpha requirement' },
+    { checked: false, text: 'beta requirement' }
+  ]);
+  assert.throws(() => feature004V15ValidateScopesTransition(base, checkedWithoutEvidence),
+    'v15 rejects checked without evidence');
+  const evidenceUnderUnchecked = feature004V15ScopesFixture([
+    { checked: false, text: 'alpha requirement', evidence: [evidenceA] },
+    { checked: false, text: 'beta requirement' }
+  ]);
+  assert.throws(() => feature004V15ValidateScopesTransition(base, evidenceUnderUnchecked,
+    { allowNoTransition: true }), 'v15 rejects evidence under unchecked');
+
+  for (const [label, indent] of [
+    ['zero-space evidence indentation', ''],
+    ['eight-space evidence indentation', '        ']
+  ]) {
+    const malformed = feature004V15ScopesFixture([
+      { checked: true, text: 'alpha requirement', evidence: [
+        feature004V15RenderEvidence({ indent })
+      ] },
+      { checked: false, text: 'beta requirement' }
+    ]);
+    assert.throws(() => feature004V15ValidateScopesTransition(base, malformed),
+      `v15 rejects ${label}`);
+  }
+
+  const parsedEvidence = [...projection.evidenceByHash.values()][0];
+  for (const [label, mutate] of [
+    ['phase forgery', (value) => { value.phase = 'foreign-phase'; }],
+    ['command forgery', (value) => { value.command = ''; }],
+    ['exit forgery', (value) => { value.exitCode = 1; }],
+    ['claim-source forgery', (value) => { value.claimSource = 'interpreted'; }],
+    ['raw-output forgery', (value) => { value.rawOutputLines[0] = 'forged'; }],
+    ['raw-output hash forgery', (value) => { value.rawOutputSha256 = '0'.repeat(64); }],
+    ['block hash forgery', (value) => { value.blockSha256 = '0'.repeat(64); }]
+  ]) {
+    const candidate = feature004V15CloneEvidence(parsedEvidence);
+    mutate(candidate);
+    assert.throws(() => feature004V15ValidateEvidenceBlock(candidate, label),
+      `v15 rejects ${label}`);
+  }
+
+  const historicalHashes = [sha256(Buffer.from('v15 first prior evidence')),
+    sha256(Buffer.from('v15 second prior evidence'))];
+  const historicalBase = [{
+    scopeId: 'SCOPE-01',
+    itemOrdinal: 1,
+    uncheckedItemTextSha256: sha256(Buffer.from('- [ ] historical item\n')),
+    checkboxState: 'checked',
+    orderedEvidenceBlockSha256: historicalHashes
+  }];
+  for (const [label, hashes] of [
+    ['prior evidence removal', historicalHashes.slice(1)],
+    ['prior evidence replacement', [sha256(Buffer.from('replacement')), historicalHashes[1]]],
+    ['prior evidence reorder', [...historicalHashes].reverse()]
+  ]) {
+    const candidate = structuredClone(historicalBase);
+    candidate[0].orderedEvidenceBlockSha256 = hashes;
+    assert.throws(() => feature004V15ValidateExecutionTransition(
+      historicalBase, candidate, new Map(), { allowNoTransition: true }),
+    `v15 rejects ${label}`);
+  }
+
+  for (const [label, candidate] of [
+    ['item text mutation', twoValid.replace('alpha requirement', 'changed alpha requirement')],
+    ['item order mutation', feature004V15ScopesFixture([
+      { checked: true, text: 'beta requirement', evidence: [evidenceB] },
+      { checked: true, text: 'alpha requirement', evidence: [evidenceA] }
+    ])],
+    ['item cardinality mutation', `${twoValid}- [ ] added requirement\n`],
+    ['scope status mutation', twoValid.replace('Status: In Progress', 'Status: Done')],
+    ['planning projection mutation', twoValid.replace('### Definition of Done',
+      'Planning mutation\n### Definition of Done')]
+  ]) {
+    assert.throws(() => feature004V15ValidateScopesTransition(base, candidate),
+      `v15 rejects ${label}`);
+  }
+  const ordinalMutation = structuredClone(projection.records);
+  ordinalMutation[0].itemOrdinal += 1;
+  assert.throws(() => feature004V15ValidateExecutionTransition(
+    feature004V15ScopesProjection(base).records, ordinalMutation,
+    projection.evidenceByHash), 'v15 rejects item ordinal mutation');
+  assert.throws(() => feature004V15ValidateScopesTransition(base, twoValid, {
+    baseStateText: '{"status":"in_progress","certification":{"status":"in_progress"}}',
+    currentStateText: '{"status":"done","certification":{"status":"done"}}'
+  }), 'v15 rejects status certification and planning-routing edits');
+  assert.throws(() => feature004V15ValidateScopesTransition(base, twoValid, {
+    baseTestPlanText: 'original test plan',
+    currentTestPlanText: 'changed test plan'
+  }), 'v15 rejects Test Plan edits');
+  assert.throws(() => feature004V15AssertStagedPaths([], FEATURE004_V15_EVIDENCE_PATHS,
+    'v15 incomplete evidence stage'), 'v15 rejects an incomplete staged allowlist');
+  assert.throws(() => feature004V15AssertStagedPaths([
+    ...FEATURE004_V15_EVIDENCE_PATHS,
+    'specs/017-decision-attention-and-developing-situations/report.md'
+  ], FEATURE004_V15_EVIDENCE_PATHS, 'v15 overbroad evidence stage'),
+  'v15 rejects an overbroad staged allowlist');
+  assert.throws(() => feature004V15AssertNoForeignPersistence([
+    ...FEATURE004_V15_PLAN_PATHS,
+    'specs/017-decision-attention-and-developing-situations/report.md'
+  ], 'v15 persisted paths'), 'v15 rejects Feature 017 persistence');
+
+  const reportBytes = readFileSync(resolve(ROOT, REPORT_PATH));
+  const reportContext = feature004V15ReportContext(reportBytes);
+  const v14Mutation = Buffer.from(reportBytes);
+  v14Mutation[reportContext.v14.startByte + 10] ^= 0x01;
+  assert.throws(() => feature004V15ReportContext(v14Mutation),
+    'v15 rejects any v14 byte mutation');
+  const separatorMutation = Buffer.from(reportBytes);
+  separatorMutation[reportContext.v14.endByteExclusive] = 0x20;
+  assert.throws(() => feature004V15ReportContext(separatorMutation),
+    'v15 rejects a v14-to-v15 separator mutation');
+  assert.throws(() => feature004V15ReportContext(Buffer.concat([
+    reportBytes, Buffer.from('x', 'utf8')
+  ])), 'v15 rejects a non-two-LF report-final suffix');
+}
+
+function feature004V15StripSource(source) {
+  const startNeedle = `\n${FEATURE004_V15_BEGIN}\n`;
+  const endNeedle = `${FEATURE004_V15_END}\n\n`;
+  assert.equal(source.split(startNeedle).length - 1, 1,
+    'v15 source has exactly one additive branch start');
+  assert.equal(source.split(endNeedle).length - 1, 1,
+    'v15 source has exactly one additive branch end');
+  const start = source.indexOf(startNeedle);
+  const end = source.indexOf(endNeedle, start);
+  let historical = source.slice(0, start) + '\n' + source.slice(end + endNeedle.length);
+  const pinLine = `const POST_COMMIT_V15_BLOCK_SHA256 = '${POST_COMMIT_V15_BLOCK_SHA256}';\n`;
+  assert.equal(countExact(historical, pinLine), 1,
+    'v15 source has exactly one raw pin addition');
+  historical = historical.replace(pinLine, '');
+  return historical;
+}
+
+const stripPostCommitV13AdoptionSourceBeforeV15 = stripPostCommitV13AdoptionSource;
+stripPostCommitV13AdoptionSource = (source) =>
+  stripPostCommitV13AdoptionSourceBeforeV15(feature004V15StripSource(source));
+
+const parseCollisionContractsBeforeV15 = parseCollisionContracts;
+const runForeignSetV7AdversarialCasesBeforeV15 = runForeignSetV7AdversarialCases;
+let feature004V15ValidationLogged = false;
+
+function feature004V15ParseCollisionContracts() {
+  const inherited = parseCollisionContractsBeforeV15();
+  const v15 = feature004V15ParseAuthority();
+  if (!feature004V15ValidationLogged) {
+    console.log(`FEATURE004_V15_VALIDATED marker=${FEATURE004_V15_MARKER} sha256=${POST_COMMIT_V15_BLOCK_SHA256} bytes=${v15.reportContext.blockBytes.length} transitions=${v15.transition.transitionCount} planningBaseline=${FEATURE004_V15_PLAN_COMMIT} scopeTwoLocked=true`);
+    feature004V15ValidationLogged = true;
+  }
+  return {
+    ...inherited,
+    postCommitV15: v15.decoded.payload,
+    postCommitV15Raw: v15.reportContext.block,
+    postCommitV15Outer: v15.decoded.outer,
+    postCommitV15Transition: v15.transition
+  };
+}
+
+function feature004V15RunAllAdversarialCases() {
+  assert.equal(runForeignSetV7AdversarialCasesBeforeV15,
+    feature004V14RunAllAdversarialCases,
+  'v15 preserves the complete inherited v14 adversarial function identity');
+  runForeignSetV7AdversarialCasesBeforeV15();
+  feature004V15RunAdversarialCases();
+}
+
+parseCollisionContracts = feature004V15ParseCollisionContracts;
+runForeignSetV7AdversarialCases = feature004V15RunAllAdversarialCases;
+assert.equal(parseCollisionContractsBeforeV15, feature004V14ParseCollisionContracts,
+  'v15 retains the v14 parser as bounded historical implementation input');
+
+if (process.env.FEATURE004_CAPTURE_V15_CHECK === '1') {
+  feature004V15CaptureCheck();
+  process.exit(0);
+}
+
+if (process.env.FEATURE004_CAPTURE_V15 === '1') {
+  const capture = feature004V15CaptureCheck();
+  process.stdout.write(`${capture.block}\n`);
+  process.exit(0);
+}
+
+if (process.env.FEATURE004_VALIDATE_V15_CAPTURE === '1') {
+  feature004V15ParseAuthority({ requireImplementationStaging: true });
+  process.exit(0);
+}
+
+if (process.env.FEATURE004_VALIDATE_V15_HISTORICAL_REPLAY === '1') {
+  const replay = feature004V15AssertHistoricalReplayStagingModes();
+  console.log(`FEATURE004_V15_HISTORICAL_REPLAY_VALIDATED versions=${Object.keys(replay).join(',')} currentModes=unstaged,staged foreignStageRejected=true wrongHistoricalStatusRejected=true`);
+  process.exit(0);
+}
+/* FEATURE-004-COLLISION-MULTI-ITEM-EVIDENCE-V15-END */
 
 test('Feature 004 preserves every pre-existing dirty hunk', () => {
   const { baseline, currentPaths } = parseCollisionContracts();

@@ -5328,14 +5328,27 @@ try {
   const universe = recBody.loadInstrumentUniverse(ROOT);
 
   const spy = JSON.parse(read('data/bars/SPY.json')).rows;
-  const anchor = spy[spy.length - 30];
-  const forward = spy.slice(spy.length - 29);
-  const proposedAt = new Date(anchor.t).toISOString();
   const asOfMs = spy[spy.length - 1].t;
-  // Pick the session that closes LOWEST after session 1, so an invalidation set just above it can
-  // only break there — strictly later than a trigger set just below session 1's close.
-  let troughIndex = 1;
-  for (let i = 2; i < forward.length; i += 1) if (forward[i].c < forward[troughIndex].c) troughIndex = i;
+  // The fixture needs a window whose FIRST forward close is beaten by a LATER one, so an
+  // invalidation can sit where only the later session reaches it. A fixed -30 anchor had that by
+  // accident of where the window boundary fell, not by any property the market guarantees:
+  // appending the ordinary 2026-08-06 bar slid session 1 onto the window low, and nothing after a
+  // low can be lower. So search back for the most recent anchor that genuinely has the property.
+  // The margin keeps the constructed invalidation (trough + 0.001) strictly below session 1's
+  // close, which is what makes it unreachable until the later session.
+  let anchorIndex = -1, troughIndex = -1;
+  for (let candidate = spy.length - 30; candidate >= 1; candidate -= 1) {
+    const window = spy.slice(candidate + 1);
+    if (window.length < 3) continue;
+    let low = 1;
+    for (let i = 2; i < window.length; i += 1) if (window[i].c < window[low].c) low = i;
+    if (window[low].c < window[0].c - 0.01) { anchorIndex = candidate; troughIndex = low; break; }
+  }
+  assert(anchorIndex >= 0,
+    'the committed SPY series has an anchor whose first forward close is beaten by a later one, so the ordering fixture can be built from real bars');
+  const anchor = spy[anchorIndex];
+  const forward = spy.slice(anchorIndex + 1);
+  const proposedAt = new Date(anchor.t).toISOString();
   const early = forward[0], trough = forward[troughIndex];
   assert(troughIndex >= 1 && trough.c < early.c,
     'the committed SPY window has a later trough than its first forward close, so the ordering fixture is real (session ' + (troughIndex + 1) + ')');

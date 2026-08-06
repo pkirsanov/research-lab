@@ -1,14 +1,14 @@
 {
     "version": 3,
     "featureDir": "specs/004-fx-regime-relative-value-lab",
-    "featureName": "FX Regime and Relative-Value Lab",
+    "featureName": "FX Regime & Currency Vehicle Lab",
     "status": "in_progress",
     "statusReconciliation": {
         "recordedBy": "orchestrator",
         "recordedAt": "2026-08-02T05:03:12Z",
         "previousStatus": "not_started",
         "why": "`not_started` contradicted this spec's own artifacts. `scopes.md` declares 1 scope `In Progress` and 3 `Not Started`; `execution` records `activeAgent: bubbles.test`, `currentPhase: test`, `currentScope: SCOPE-01` with a completed `bootstrap` phase claim and 15 executionHistory entries. Shipped surfaces exist on disk (`rlfx.js`, `fx-regime-universe.json`), both listed in `site-exclusions.json` because no registered production page consumes them yet.",
-        "remaining": "No FX page is registered in `tools.json`, so the feature is not publicly reachable. Scopes 2-4 are not started.",
+        "remaining": "SCOPE-01 remains In Progress; SCOPE-02 through SCOPE-05 are Not Started, and no FX page is registered in `tools.json`. Open owner routes remain for the MCP evidence carrier, Feature 012 shared-contract tests and documentation, and the BUG-001 provider stress/load canary. None authorizes SCOPE-02 pickup or certification.",
         "noScopeClaimed": "No scope was marked complete and no certification field was touched. This edit corrects the lifecycle status only."
     },
     "workflowMode": "full-delivery",
@@ -20,18 +20,22 @@
     "certifiedAt": null,
     "requiresRevalidation": false,
     "execution": {
-        "activeAgent": "bubbles.test",
-        "currentPhase": "test",
+        "activeAgent": "bubbles.implement",
+        "currentPhase": "implement",
         "currentScope": "SCOPE-01",
-        "runStartedAt": "2026-07-18T04:04:00Z",
+        "runStartedAt": null,
         "completedPhaseClaims": [
             "bootstrap"
         ],
         "pendingTransitionRequests": [
+            "TR-F004-SCOPE01-SCOREABILITY-READER-FOUNDATION-001",
+            "F004-V14-SCOPED-EVIDENCE-AUTHORITY-001",
+            "TR-F004-SCOPE01-FEATURE012-TEST-001",
+            "TR-F004-SCOPE01-FEATURE012-DOCS-001",
             "TR-F004-SCOPE01-PROVIDER-STRESS-CANARY-001"
         ],
-        "nextRequiredOwner": "bubbles.test",
-        "nextRequiredTarget": "specs/_bugs/BUG-001-central-provider-credential-security provider stress/load canaries, then replay Feature 004 SCOPE-01 focused matrix; SCOPE-02 remains not started",
+        "nextRequiredOwner": "bubbles.implement",
+        "nextRequiredTarget": "TR-F004-SCOPE01-SCOREABILITY-READER-FOUNDATION-001: implement AttributableLevelGateV1, RecommendationOutcomeV1, computeRecommendationOutcome, and projectFxReaderDecision inside the declared Scope 1 boundary required by TP-01-27 and TP-01-31. After focused implementation settles, route F004-V14-SCOPED-EVIDENCE-AUTHORITY-001 to bubbles.test for the unchanged three-case CMD-COLLISION transition. Feature 012 test/docs and provider routes remain pending, and SCOPE-02 remains unavailable for pickup.",
         "audit": {
             "schemaVersion": "audit-run/v1",
             "runId": null,
@@ -40,7 +44,7 @@
         }
     },
     "certification": {
-        "status": "not_started",
+        "status": "in_progress",
         "completedScopes": [],
         "certifiedCompletedPhases": [],
         "scopeProgress": [],
@@ -128,7 +132,7 @@
         },
         {
             "id": "TR-F004-SELFTEST-SUCCESSOR-V2-TEST",
-            "status": "superseded",
+            "status": "resolved",
             "requestedBy": "bubbles.plan",
             "routedTo": "bubbles.test",
             "requestedAt": "2026-07-18T03:11:21.524Z",
@@ -162,7 +166,9 @@
             "requiredReturn": "Update only tests/feature-004-dirty-tree-collision.test.mjs to parse v2 as a closed schema, add adversarial mutations for every field and attribution boundary, execute the direct canary, and return the unchanged BUG-002 replay without claiming Feature 004 completion.",
             "supersededAt": "2026-07-18T03:36:07.754Z",
             "supersededBy": "TR-F004-SELFTEST-SUCCESSOR-V3-TEST",
-            "supersessionReason": "V2 remains mandatory byte-identical parser input, but v3 is the active provenance interpretation because the owner receipt confused retained hunk-header context with the actual Feature 010 Scope 6 deleted body line."
+            "supersessionReason": "V2 remains mandatory byte-identical parser input, but v3 is the active provenance interpretation because the owner receipt confused retained hunk-header context with the actual Feature 010 Scope 6 deleted body line.",
+            "resolvedAt": "2026-07-18T03:36:07.754Z",
+            "resolutionSummary": "Closed by supersession to TR-F004-SELFTEST-SUCCESSOR-V3-TEST; every v2 byte remains mandatory historical parser input."
         },
         {
             "id": "TR-F004-SELFTEST-SUCCESSOR-V3-TEST",
@@ -254,9 +260,13 @@
         },
         {
             "id": "TR-F004-SCOPE01-PROVIDER-STRESS-CANARY-001",
-            "status": "pending",
+            "status": "open",
             "requestedBy": "bubbles.test",
             "routedTo": "bubbles.test",
+            "routedToSpec": "specs/_bugs/BUG-001-central-provider-credential-security",
+            "productAction": "none",
+            "routingClass": "same-repository-foreign-spec",
+            "crossRepoFollowUp": true,
             "target": "specs/_bugs/BUG-001-central-provider-credential-security provider stress/load canaries",
             "requestedAt": "2026-07-18T23:09:34Z",
             "blockedBy": null,
@@ -269,7 +279,234 @@
                 "report.md#scope-1-focused-verification-replay---2026-07-18t230934z",
                 "../_bugs/BUG-001-central-provider-credential-security/scopes.md#scope-5-scope-05-g028-collision-cache-and-cross-feature-closure"
             ],
+            "currentDiagnosticObservation": {
+                "source": ".specify/runtime/tool-calls.jsonl",
+                "agent": "bubbles.test",
+                "status": "green-current-ledger-pending-durable-admission",
+                "coveredCanaries": [
+                    "provider unit",
+                    "provider functional",
+                    "provider browser",
+                    "provider stress",
+                    "provider load"
+                ],
+                "planningEvidenceAdmission": false,
+                "transitionClosureClaim": false
+            },
             "requiredReturn": "Reconcile only BUG-001-owned provider stress/load tests to the active no-editor provider APIs and scenario contracts, then replay Feature 004 Scope 1 from TP-01-22 without invoking the unrestricted all-repository Playwright inventory or changing Feature 004 source, planning, completion, or certification state."
+        },
+        {
+            "id": "TR-F004-SCOPE01-MCP-EVIDENCE-CARRIER-001",
+            "status": "resolved",
+            "requestedBy": "bubbles.plan",
+            "routedTo": "bubbles.test",
+            "routedToSpec": "specs/004-fx-regime-relative-value-lab",
+            "productAction": "none",
+            "routingClass": "same-spec-test-evidence",
+            "crossRepoFollowUp": false,
+            "target": "SCOPE-01 current-session test evidence",
+            "requestedAt": "2026-08-03T19:02:48Z",
+            "reason": "Current test results require durable evidence admitted through the sanctioned MCP carrier. A subagent summary is not raw report evidence and cannot change a Test Plan item, DoD item, scope status, or certification state.",
+            "findingIds": [
+                "F004-SCOPE01-MCP-EVIDENCE-CARRIER-001"
+            ],
+            "evidenceRefs": [
+                "report.md#current-planning-gate-repair---2026-08-03t190248z",
+                "scopes.md#scope-1-additive-rlfx-vehicle-owner-and-shared-contract-foundation"
+            ],
+            "requiredReturn": "Execute the required current Scope 1 commands through the sanctioned MCP evidence carrier, record only test-owned evidence, preserve every existing checkmark, and leave each unsupported item unchecked.",
+            "supersededAt": "2026-08-04T00:01:34Z",
+            "supersededBy": "TR-F004-SCOPE01-DURABLE-EVIDENCE-001",
+            "supersessionReason": "The corrected root MCP ledger now carries stable-key rows, but TP-01-22 still binds historical receipts to ephemeral absolute line numbers. The additive durable successor retains MCP capture while replacing only runtime admission with exact stable-key or hash-pinned Markdown verification."
+        },
+        {
+            "id": "TR-F004-SCOPE01-DURABLE-EVIDENCE-001",
+            "status": "resolved",
+            "requestedBy": "bubbles.plan",
+            "routedTo": "bubbles.test",
+            "routedToSpec": "specs/004-fx-regime-relative-value-lab",
+            "productAction": "none",
+            "routingClass": "same-spec-test-evidence",
+            "crossRepoFollowUp": false,
+            "target": "SCOPE-01 durable receipt admission and collision identity parser",
+            "requestedAt": "2026-08-04T00:01:34Z",
+            "blockedBy": null,
+            "reason": "TP-01-22 is red only because historical receipt admission dereferences an ephemeral absolute tool-log line. Planning defines a closed additive two-source resolver and JIT v4 current-identity checkpoint; test ownership must append actual evidence, implement the parser, and execute RED/GREEN plus unchanged BUG-002 replay.",
+            "scenarioIds": [],
+            "findingIds": [
+                "F-004-EVIDENCE-DURABILITY",
+                "F004-SCOPE01-DURABLE-EVIDENCE-PARSER-001"
+            ],
+            "evidenceRefs": [
+                "report.md#durable-evidence-admission-successor---2026-08-03t235828z",
+                "scopes.md#durable-evidence-admission-successor",
+                "test-plan.json::durableEvidenceAdmissionHandoff",
+                "test-plan.json::TP-01-22"
+            ],
+            "requiredReturn": "Append the actual bubbles.test current-ledger receipts as feature004-scope1-durable-evidence-v1 with literal raw output and exact stable keys; append the JIT feature004-dirty-collision-current-identity-v4 block for all 19 declared Scope 1 paths plus protected foreign dirty hunks, using normalized-self-pins/v1 only for the collision parser; update only tests/feature-004-dirty-tree-collision.test.mjs and its adversarial cases; run unchanged CMD-COLLISION RED then GREEN and replay unchanged BUG-002 verification; return no product-code edit, checkmark, Scope 1 completion, Scope 2 pickup, or certification mutation.",
+            "resolvedAt": "2026-08-04T01:47:04Z",
+            "resolvedBy": "bubbles.test",
+            "outcome": "route_required",
+            "resolutionSummary": "The durable receipt and v4 blocks are present at their exact pinned hashes and normalized-self-pins/v1 validates. The remaining collision is Feature 010 lifecycle drift, now routed through the additive v5 successor."
+        },
+        {
+            "id": "TR-F004-SCOPE01-COLLISION-LIFECYCLE-SUCCESSOR-001",
+            "status": "resolved",
+            "requestedBy": "bubbles.plan",
+            "routedTo": "bubbles.test",
+            "routedToSpec": "specs/004-fx-regime-relative-value-lab",
+            "productAction": "none",
+            "routingClass": "same-spec-test-parser",
+            "crossRepoFollowUp": false,
+            "target": "SCOPE-01 collision lifecycle successor parser and adversarial matrix",
+            "requestedAt": "2026-08-04T01:47:04Z",
+            "blockedBy": null,
+            "reason": "The durable and v4 pins validate. validateOwnerSettledSuccessor still requires current Feature 010 state to equal its immutable historical noncompletion snapshot. Feature 010 later reached an exact certified done successor, so the parser must preserve the historical entry and validate the current certified state separately.",
+            "scenarioIds": [],
+            "findingIds": [
+                "F004-COLLISION-F010-LIFECYCLE-DRIFT-001"
+            ],
+            "evidenceRefs": [
+                "report.md#collision-lifecycle-successor---f004-collision-f010-lifecycle-drift-001",
+                "scopes.md#feature-004-collision-lifecycle-successor-f004-collision-f010-lifecycle-drift-001",
+                "test-plan.json::collisionLifecycleSuccessorHandoff",
+                "test-plan.json::TP-01-22"
+            ],
+            "requiredReturn": "Add only CURRENT_IDENTITY_V5_BLOCK_SHA256 and the closed v5 parser schema; retain the durable and v4 pin values; apply exactly the old-hunk c9f2fcf6cfe7782af378ed713ce424bc1d7075af29c296400eb9c3402568d848 to new-hunk 56f14a8579a6714ea5a83ac8185cd74d16c6543bc81e0a4ecc43d8d1797bbbae transition in validateOwnerSettledSuccessor; add every declared adversarial mutation; run unchanged CMD-COLLISION to GREEN and replay unchanged BUG-002 verification; return no product, Feature 010, checkbox, status, Scope 2, certification, Git-state, or unrelated-dirty-byte change.",
+            "supersededAt": "2026-08-04T03:04:33Z",
+            "supersededBy": "TR-F004-SCOPE01-FOREIGN-SET-V7-001",
+            "supersessionReason": "V7 preserves the exact unapplied v5 transition and sequences it after the current foreign-set overlay under one test-owned parser route.",
+            "resolvedAt": "2026-08-04T03:04:33Z",
+            "resolutionSummary": "Closed by supersession to TR-F004-SCOPE01-FOREIGN-SET-V7-001. The complete v5 transition remains mandatory unapplied input."
+        },
+        {
+            "id": "TR-F004-SCOPE01-FOREIGN-ROADMAP-V6-001",
+            "status": "resolved",
+            "requestedBy": "bubbles.plan",
+            "routedTo": "bubbles.test",
+            "routedToSpec": "specs/004-fx-regime-relative-value-lab",
+            "productAction": "none",
+            "routingClass": "same-spec-test-parser",
+            "crossRepoFollowUp": false,
+            "target": "SCOPE-01 foreign-roadmap v6 identity overlay followed by the pending v5 lifecycle parser transition",
+            "requestedAt": "2026-08-04T02:25:07Z",
+            "blockedBy": null,
+            "reason": "The immutable v4 identity records a 22-hunk foreign roadmap. The same unstaged foreign-unrelated path is now stable at the exact 25-hunk identity captured by v6. The collision parser must admit only that one identity transition before applying the already-authorized but still-unapplied v5 Feature 010 lifecycle assertion transition.",
+            "scenarioIds": [],
+            "findingIds": [
+                "F004-COLLISION-FOREIGN-ROADMAP-V6"
+            ],
+            "evidenceRefs": [
+                "report.md#foreign-roadmap-identity-successor---f004-collision-foreign-roadmap-v6",
+                "scopes.md#feature-004-foreign-roadmap-identity-successor-f004-collision-foreign-roadmap-v6",
+                "test-plan.json::foreignRoadmapV6Handoff",
+                "test-plan.json::TP-01-22"
+            ],
+            "requiredReturn": "Add exactly one FOREIGN_ROADMAP_V6_BLOCK_SHA256 pin and one closed v6 parser branch; validate exact v4 and v5 hashes; overlay only docs/Product-Review-and-Roadmap.md from the exact v4 record to the exact 25-hunk v6 identity with no semantic approval or ownership transfer; preserve every other v4 identity; then apply the already-authorized v5 five-assertion transition; add every declared adversarial mutation; run unchanged CMD-COLLISION RED then GREEN and replay unchanged BUG-002 verification; return no product, roadmap, generated, Feature 010, checkbox, status, Scope 2, certification, Git-state, or unrelated-dirty-byte change.",
+            "supersededAt": "2026-08-04T03:04:33Z",
+            "supersededBy": "TR-F004-SCOPE01-FOREIGN-SET-V7-001",
+            "supersessionReason": "V6 remains mandatory hash-validated historical input. V7 owns the live roadmap comparison and adds the two newly observed foreign paths before the v5 semantic transition.",
+            "resolvedAt": "2026-08-04T03:04:33Z",
+            "resolutionSummary": "Closed by supersession to TR-F004-SCOPE01-FOREIGN-SET-V7-001. The complete v6 schema and raw hash remain mandatory historical input."
+        },
+        {
+            "id": "TR-F004-SCOPE01-FOREIGN-SET-V7-001",
+            "status": "resolved",
+            "requestedBy": "bubbles.plan",
+            "routedTo": "bubbles.test",
+            "routedToSpec": "specs/004-fx-regime-relative-value-lab",
+            "productAction": "none",
+            "routingClass": "same-spec-test-parser",
+            "crossRepoFollowUp": false,
+            "target": "SCOPE-01 additive v7 foreign-set parser, exact v5 transition, collision GREEN, and unchanged BUG-002 replay",
+            "requestedAt": "2026-08-04T03:04:33Z",
+            "blockedBy": null,
+            "reason": "The v6 roadmap identity moved again, and the NUL-safe inventory contains exactly two new foreign paths outside the v4 base after the report and flock exclusions. One v7 route must preserve v4/v6 history, admit the exact current three-path foreign set, and only then apply the already-authorized v5 semantic transition.",
+            "scenarioIds": [],
+            "findingIds": [
+                "F004-COLLISION-FOREIGN-SET-V7"
+            ],
+            "evidenceRefs": [
+                "report.md#foreign-set-identity-successor---f004-collision-foreign-set-v7",
+                "scopes.md#feature-004-foreign-set-identity-successor-f004-collision-foreign-set-v7",
+                "test-plan.json::foreignSetV7Handoff",
+                "test-plan.json::TP-01-22"
+            ],
+            "requiredReturn": "Add exactly one FOREIGN_SET_V7_BLOCK_SHA256 pin and one closed v7 parser branch. Validate v4 and historical v6, apply the exact roadmap successor and two new foreign paths with both exclusions intact, then apply the exact v5 five-assertion transition. Add every declared adversarial mutation. Run unchanged CMD-COLLISION RED then GREEN and replay unchanged BUG-002 verification. Return no product, foreign-document, generated, checkbox, status, Scope 2, certification, Git-state, or unrelated-dirty-byte change.",
+            "supersededAt": "2026-08-04T04:04:52Z",
+            "supersededBy": "TR-F004-SCOPE01-POST-COMMIT-V9-001",
+            "supersessionReason": "The v7 identities remain mandatory history, but concurrent foreign work committed them at HEAD 4476cefdd6e9e3a2b39ae8bc59ff62e55745390f. V9 owns the complete post-commit required and foreign matrix before the already-physical v5 transition.",
+            "resolvedAt": "2026-08-04T04:04:52Z",
+            "resolutionSummary": "Closed by supersession to TR-F004-SCOPE01-POST-COMMIT-V9-001. The complete v7 schema and raw hash remain mandatory historical parser input."
+        },
+        {
+            "id": "TR-F004-SCOPE01-POST-COMMIT-V9-001",
+            "status": "open",
+            "requestedBy": "bubbles.plan",
+            "routedTo": "bubbles.test",
+            "routedToSpec": "specs/004-fx-regime-relative-value-lab",
+            "productAction": "none",
+            "routingClass": "same-spec-test-parser",
+            "crossRepoFollowUp": false,
+            "target": "SCOPE-01 additive v9 post-commit matrix parser, physical v5 transition validation, collision GREEN, and unchanged BUG-002 replay",
+            "requestedAt": "2026-08-04T04:04:52Z",
+            "blockedBy": null,
+            "reason": "Concurrent foreign work committed at exact HEAD 4476cefdd6e9e3a2b39ae8bc59ff62e55745390f, promoting several historical dirty records without proving Feature 004 completion. One v9 route must retain every predecessor as history, apply a complete post-commit matrix for all 19 required Scope 1 paths and exactly 11 surviving foreign dirty paths, and only then validate the already-physical v5 semantic transition.",
+            "scenarioIds": [],
+            "findingIds": [
+                "F004-COLLISION-POST-COMMIT-V9"
+            ],
+            "evidenceRefs": [
+                "report.md#post-commit-collision-successor---f004-collision-post-commit-v9",
+                "scopes.md#feature-004-post-commit-collision-successor-f004-collision-post-commit-v9",
+                "test-plan.json::postCommitV9Handoff",
+                "test-plan.json::TP-01-22"
+            ],
+            "requiredReturn": "Add exactly one POST_COMMIT_V9_BLOCK_SHA256 pin and one closed v9 parser branch. Validate v4, durable evidence, v6, and v7 as history without live comparison; apply the exact complete v9 matrix at required HEAD; validate the already-physical v5 transition; reject every declared adversarial mutation; run unchanged CMD-COLLISION RED then GREEN and replay unchanged BUG-002 verification. Return no product, planning, foreign, generated, checkbox, status, Scope 2, certification, Git-state, or unrelated-dirty-byte change."
+        },
+        {
+            "id": "TR-F004-SCOPE01-FEATURE012-TEST-001",
+            "status": "open",
+            "requestedBy": "bubbles.plan",
+            "routedTo": "bubbles.test",
+            "routedToSpec": "specs/012-market-action-center-and-guided-tools",
+            "productAction": "none",
+            "routingClass": "same-repository-foreign-spec",
+            "crossRepoFollowUp": true,
+            "target": "Feature 012 shared control, Brief, and Journey test consumers",
+            "requestedAt": "2026-08-03T19:02:48Z",
+            "reason": "Scope 1 adds generic shared seams owned by the Feature 012 experience boundary. Their dedicated shared-consumer tests remain test-owned and must close without changing Feature 004 planning or certification state.",
+            "findingIds": [
+                "F004-SCOPE01-FEATURE012-TEST-001"
+            ],
+            "evidenceRefs": [
+                "scopes.md#producer-consumer-and-owner-impact-declarations",
+                "design.md#shared-four-view-adapter",
+                "design.md#journey-contracts"
+            ],
+            "requiredReturn": "Execute the Feature 012 shared-consumer tests for ToolControlBindingV1, FxBriefEligibilityV1, and semantic Journey evidence refresh, and return current raw evidence without changing Feature 004 checkmarks or certification."
+        },
+        {
+            "id": "TR-F004-SCOPE01-FEATURE012-DOCS-001",
+            "status": "open",
+            "requestedBy": "bubbles.plan",
+            "routedTo": "bubbles.docs",
+            "routedToSpec": "specs/012-market-action-center-and-guided-tools",
+            "productAction": "none",
+            "routingClass": "same-repository-foreign-spec",
+            "crossRepoFollowUp": true,
+            "target": "Feature 012 shared-contract documentation",
+            "requestedAt": "2026-08-03T19:02:48Z",
+            "reason": "The additive shared control, Brief eligibility, and Journey refresh contracts require Feature 012 owner documentation aligned to their exact read/write and no-execution boundaries.",
+            "findingIds": [
+                "F004-SCOPE01-FEATURE012-DOCS-001"
+            ],
+            "evidenceRefs": [
+                "scopes.md#producer-consumer-and-owner-impact-declarations",
+                "design.md#shared-four-view-adapter",
+                "design.md#evidence-refresh-and-stale-propagation"
+            ],
+            "requiredReturn": "Update only Feature 012-owned shared-contract documentation to match the implemented ToolControlBindingV1, FxBriefEligibilityV1, and semantic Journey refresh contracts, without making a Feature 004 completion claim."
         }
     ],
     "reworkQueue": [],
@@ -612,6 +849,367 @@
                 "feature004CertificationClaim": false
             },
             "summary": "Completed only the v3 collision transition and its required BUG-002 replay. Mandatory v2, additive v3 provenance, six current hunks, all 13 protected paths, and false completion claims validate; both final-parser full inventories are clean. Feature 004 SCOPE-01 remains nonterminal and SCOPE-02 remains not started."
+        },
+        {
+            "agent": "bubbles.analyst",
+            "workflowMode": "full-delivery",
+            "phasesExecuted": [
+                "analyze"
+            ],
+            "statusBefore": "in_progress",
+            "statusAfter": "in_progress",
+            "startedAt": "2026-08-03T01:04:06Z",
+            "finishedAt": "2026-08-03T01:09:48Z",
+            "outcome": "route_required",
+            "addressedFindings": [
+                "F004-ETF-EXPRESSION-GAP-001",
+                "F004-FOUR-VIEW-BUSINESS-CONTRACT-001",
+                "F004-VEHICLE-STRUCTURE-HONESTY-001"
+            ],
+            "unresolvedFindings": [
+                "F004-DESIGN-STALE-ETF-001",
+                "F004-UX-STALE-FOUR-VIEW-001",
+                "F004-PLAN-TRACEABILITY-SEVEN-SCENARIOS-001",
+                "F004-STATE-MIRROR-MISMATCH-001",
+                "F004-TRACE-GUARD-SPEC-DELTA-BLIND-SPOT-001",
+                "F004-SCOPE01-PROVIDER-STRESS-CANARY-DRIFT-001"
+            ],
+            "nextRequiredOwner": "bubbles.design",
+            "evidenceRefs": [
+                "spec.md#outcome-contract",
+                "spec.md#domain-capability-model",
+                "spec.md#exchange-traded-currency-vehicle-layer",
+                "spec.md#four-view-tool-experience",
+                "spec.md#exchange-traded-vehicle-research",
+                "spec.md#analyst-decisions-for-downstream-owners"
+            ],
+            "validation": {
+                "artifactFreshness": "exit 0; 0 failures; 0 warnings",
+                "capabilityFoundation": "exit 0; Gate G094 passed through the existing missing-createdAt grandfather rule",
+                "artifactLint": "exit 1; sole issue is top-level in_progress versus validate-owned certification not_started",
+                "traceabilityGuard": "exit 0 for the existing 26 manifest scenarios; direct repository scans prove BS-027 through BS-033 are absent from scenario-manifest.json, scopes.md, test-plan.json, and journeys.json",
+                "editorDiagnostics": "spec.md and state.json report no diagnostics"
+            },
+            "summary": "Reconciled Feature 004 into one ETF-first FX tool instead of creating a duplicate forex surface. Added a source-aware CurrencyVehicle, VehicleObservation, VehicleTrackingRead, and VehicleFitRead model; FXY/FXE, UUP/UDN, USDU, CEW, and tactical YCS distinctions; four new use cases; seven adversarial business scenarios; FR-104 through FR-126; an Exposure Contract; the Simple, Power, Brief, and Journey business contract; issuer and competitor research; ranked improvements; and measurable acceptance criteria. Design, UX, planning, certification-state, framework traceability, and the pre-existing provider canary remain owner-routed. No implementation, scope, test, certification, or delivery completion is claimed."
+        },
+        {
+            "agent": "bubbles.design",
+            "workflowMode": "full-delivery",
+            "phasesExecuted": [
+                "bootstrap"
+            ],
+            "statusBefore": "in_progress",
+            "statusAfter": "in_progress",
+            "startedAt": null,
+            "finishedAt": "2026-08-03T02:11:36Z",
+            "outcome": "route_required",
+            "addressedFindings": [
+                "F004-DESIGN-STALE-ETF-001",
+                "F004-DESIGN-STALE-FOUR-VIEW-001",
+                "F004-DESIGN-JOURNEY-CONTRACT-001",
+                "F004-DESIGN-BRIEF-ELIGIBILITY-001",
+                "F004-DESIGN-ROLLOUT-001",
+                "F004-DESIGN-SEVEN-SCENARIOS-001",
+                "F004-UX-STALE-FOUR-VIEW-001",
+                "F004-STATE-MIRROR-MISMATCH-001"
+            ],
+            "unresolvedFindings": [
+                "F004-PLAN-TRACEABILITY-SEVEN-SCENARIOS-001",
+                "F004-TRACE-GUARD-SPEC-DELTA-BLIND-SPOT-001",
+                "F004-SCOPE01-PROVIDER-STRESS-CANARY-DRIFT-001"
+            ],
+            "nextRequiredOwner": "bubbles.plan",
+            "evidenceRefs": [
+                "design.md#fr-104-through-fr-126-coverage",
+                "design.md#journey-contracts",
+                "design.md#brief-eligibility-contract",
+                "design.md#rollout-and-cutover",
+                "design.md#technical-scenario-contracts",
+                "design.md#testing-and-validation-strategy",
+                "design.md#required-planning-reconciliation"
+            ],
+            "validation": {
+                "editorDiagnostics": "no diagnostics",
+                "diffCheck": "exit 0",
+                "artifactFreshness": "exit 0; 0 failures; 0 warnings",
+                "capabilityFoundation": "exit 0; Gate G094 grandfather pass",
+                "artifactLint": "exit 0",
+                "referenceExistence": "exit 0; every relative link resolves",
+                "technicalProse": "report-only exit 0; 37 over-long sentences; 85 prose semicolons; 0 phrasal verbs; 0 nominalisations; 0 term-spelling findings",
+                "designExperiment": "exit 0; normal worktree no-op"
+            },
+            "summary": "Reconciled design.md to one active FR-104 through FR-126 and BS-027 through BS-033 truth. Added exact vehicle, Brief eligibility, shared four-view, Journey definition, step DAG, evidence refresh, packet, rollout, security, accessibility, compatibility, variation-axis, scenario, and test contracts. Removed stale active two-view and 26-scenario assumptions. Current UX and state mirror findings are no longer present in the current artifacts. Planning, framework trace-delta detection, and the pre-existing provider stress canary remain owner-routed. Certification was not modified."
+        },
+        {
+            "agent": "bubbles.plan",
+            "workflowMode": "full-delivery",
+            "phasesExecuted": [
+                "plan"
+            ],
+            "statusBefore": "in_progress",
+            "statusAfter": "in_progress",
+            "startedAt": "2026-08-03T15:07:15Z",
+            "finishedAt": "2026-08-03T15:11:11Z",
+            "outcome": "route_required",
+            "addressedFindings": [
+                "F004-PLAN-TRACEABILITY-SEVEN-SCENARIOS-001"
+            ],
+            "unresolvedFindings": [
+                "F004-SCOPE01-PROVIDER-STRESS-CANARY-DRIFT-001",
+                "F004-TRACE-GUARD-SPEC-DELTA-BLIND-SPOT-001",
+                "F004-STATE-STATUS-RECONCILIATION-STALE-001"
+            ],
+            "nextRequiredOwner": "bubbles.implement",
+            "nextRequiredTarget": "SCOPE-01 focused implementation of the remaining unchecked vehicle and shared-foundation DoD items; bubbles.test retains the pending provider stress/load canary before SCOPE-02 or public overlay work.",
+            "validation": {
+                "planningInventory": "exit 0; 5 scopes; 33 machine scenarios; 33 Markdown scenarios; 84 machine TP rows; 84 Markdown TP rows; 84 matching TP DoD items; SCN-004-027 through SCN-004-033 present",
+                "editorDiagnostics": "state.json has no editor diagnostics",
+                "artifactLint": "exit 0; Artifact lint PASSED",
+                "artifactFreshness": "exit 0; PASS with 0 failures and 0 warnings",
+                "capabilityFoundation": "exit 0; Gate G094 grandfather pass",
+                "traceability": "exit 0; 33 scenarios checked; 33 scenario-to-row mappings; 33 DoD mappings; 0 unmapped; 89 guard-counted table lines equal 84 TP rows plus 5 scope headers; RESULT PASSED with 0 warnings",
+                "stateInvariants": "exit 0; status, certification, completedPhaseClaims, pending transition request, audit, failures, featureDir, and orchestrator-owned statusReconciliation.remaining preserved",
+                "gitDiffCheck": "exit 0; state.json diff has no whitespace errors",
+                "productTests": "not executed and not claimed",
+                "scopeCompletion": "not claimed"
+            },
+            "summary": "Closed the five-scope planning reconciliation with SCN-004-027 through SCN-004-033, exact 84/84 Test Plan-to-DoD parity, and 33/33 current traceability. No product tests ran and no scope completion is claimed. The provider stress/load canary remains pending for bubbles.test and gates SCOPE-02/public overlay work, while focused implementation of remaining SCOPE-01 vehicle/shared-foundation items remains eligible. The framework trace-delta blind spot remains unresolved because the passing guard checks current manifested scenarios but does not detect a future spec delta omitted from the manifest. The orchestrator-owned statusReconciliation.remaining text still carries stale four-scope wording and was preserved for bubbles.workflow."
+        },
+        {
+            "agent": "bubbles.plan",
+            "workflowMode": "full-delivery",
+            "phasesExecuted": [
+                "plan"
+            ],
+            "statusBefore": "in_progress",
+            "statusAfter": "in_progress",
+            "startedAt": "2026-08-03T19:02:48Z",
+            "finishedAt": "2026-08-03T19:15:45Z",
+            "outcome": "route_required",
+            "addressedFindings": [
+                "F004-SCOPE01-PLANNING-GATES-001"
+            ],
+            "unresolvedFindings": [
+                "F004-SCOPE01-MCP-EVIDENCE-CARRIER-001",
+                "F004-SCOPE01-FEATURE012-TEST-001",
+                "F004-SCOPE01-FEATURE012-DOCS-001",
+                "F004-SCOPE01-PROVIDER-STRESS-CANARY-DRIFT-001"
+            ],
+            "nextRequiredOwner": "bubbles.test",
+            "nextRequiredTarget": "SCOPE-01 current evidence carrier, Feature 012 shared-consumer tests, and BUG-001 provider stress/load canary; bubbles.docs owns the parallel Feature 012 documentation route.",
+            "evidenceRefs": [
+                "scopes.md#consumer-impact-sweep",
+                "report.md#current-planning-gate-repair---2026-08-03t190248z",
+                "state.json::transitionRequests"
+            ],
+            "validation": {
+                "repositoryBinding": "REPOSITORY PACKET VALID; actionable=true; decision rb:vscode-e24db39cf992f7ccd8ec75209602db59:1; control revision 1",
+                "artifactLint": "exit 0; Artifact lint PASSED",
+                "artifactFreshness": "exit 0; RESULT PASS with 0 failures and 0 warnings",
+                "capabilityFoundation": "exit 0; Gate G094 grandfather pass",
+                "traceability": "exit 0; 33 scenarios checked; 33 scenario-to-row mappings; 33 DoD mappings; 0 unmapped; RESULT PASSED with 0 warnings",
+                "editorDiagnostics": "scopes.md, report.md, and state.json have no editor diagnostics",
+                "stateTransitionGuard": "exit 1; G061, G053, G040, and G068 pass; Scope 1 consumer-impact heading, DoD, and surface inventory pass; 39 delivery-completion failures remain under G022 and Check 4, Check 5, Check 8 contract, and Check 8 file existence",
+                "pathScopedDiff": "git diff --check remains exit 2 only for seven inherited two-space Markdown hard breaks in pre-existing Scope 2-5 hunks; the repair-introduced report whitespace was removed and unrelated bytes were preserved"
+            },
+            "summary": "Repaired only the Scope 1 planning-gate finding. Transition routes are G061-compliant, the active report window satisfies G053 and G040 without rewriting historical evidence, all 33 G068 scenario links are explicit, the five unchecked Scope 1 claims are independently test-addressable, and the complete additive producer/consumer/owner sweep is recognized. Scope 1 remains In Progress, Scopes 2-5 remain Not Started, no product test result or checkbox changed, and certification is untouched."
+        },
+        {
+            "agent": "bubbles.plan",
+            "workflowMode": "full-delivery",
+            "phasesExecuted": [
+                "plan"
+            ],
+            "statusBefore": "in_progress",
+            "statusAfter": "in_progress",
+            "startedAt": "2026-08-03T23:58:28Z",
+            "finishedAt": "2026-08-04T00:14:01Z",
+            "outcome": "route_required",
+            "addressedFindings": [
+                "F-004-EVIDENCE-DURABILITY",
+                "F004-SCOPE01-DURABLE-EVIDENCE-ROUTING-001"
+            ],
+            "unresolvedFindings": [
+                "F004-SCOPE01-DURABLE-EVIDENCE-PARSER-001",
+                "F004-SCOPE01-FEATURE012-TEST-001",
+                "F004-SCOPE01-FEATURE012-DOCS-001",
+                "F004-SCOPE01-PROVIDER-STRESS-CANARY-DRIFT-001"
+            ],
+            "nextRequiredOwner": "bubbles.test",
+            "nextRequiredTarget": "TR-F004-SCOPE01-DURABLE-EVIDENCE-001",
+            "evidenceRefs": [
+                "scopes.md#durable-evidence-admission-successor",
+                "report.md#durable-evidence-admission-successor---2026-08-03t235828z",
+                "test-plan.json::durableEvidenceAdmissionHandoff",
+                "state.json::TR-F004-SCOPE01-DURABLE-EVIDENCE-001"
+            ],
+            "validation": {
+                "repositoryBinding": "exit 0; actionable packet validated at decision rb:vscode-e24db39cf992f7ccd8ec75209602db59:14, control revision 14",
+                "testPlanJson": "exit 0; feature004-durable-evidence-admission-handoff/v1 parsed with 19 required Scope 1 paths, normalized-self-pins/v1, two pin literals, and next owner bubbles.test",
+                "artifactLint": "exit 0; Artifact lint PASSED",
+                "artifactFreshness": "exit 0; RESULT PASS with 0 failures and 0 warnings",
+                "capabilityFoundation": "exit 0; Gate G094 grandfather pass",
+                "traceability": "exit 0; 33 scenarios checked; 33 scenario-to-row mappings; 33 DoD mappings; 0 unmapped; RESULT PASSED with 0 warnings",
+                "testPlanDodParity": "exit 0; 84 machine Test Plan rows; 84 Markdown Test Plan rows; 84 unique TP IDs on DoD checkbox lines; exact sets equal; 33 unique scenarios",
+                "immutableHistoricalBlocks": "exit 0; all 10 predecessor report blocks retain their exact marker-inclusive SHA-256 values",
+                "editorDiagnostics": "scopes.md, report.md, test-plan.json, and state.json have no editor diagnostics",
+                "pathScopedDiff": "exit 0; diff check clean; exact changed planning paths are report.md, scopes.md, state.json, and test-plan.json",
+                "stateTransitionGuard": "exit 1 as required for nonterminal delivery; G061, G053, G040, G051, and G068 pass; only G022 plus Check 4 completion and Check 5 all-done remain; 18 failures and 2 warnings include the existing append-only ledger empty-stdout clone and unchecked Scope 1/locked later scopes",
+                "certificationContainment": "exit 0; certification JSON SHA-256 remains 8b0f0fa5eb418a85f837e4cc92928506f5977039503d1014ce2fe53d0804380d",
+                "productTests": "not executed and not claimed",
+                "scopeCompletion": "not claimed"
+            },
+            "summary": "Defined the closed additive durable evidence successor without touching tests or historical receipt bytes. Runtime admission now uses complete stable-key matches and one hash-pinned committed Markdown branch only when the ledger has zero full-key matches for the declared set. The test-owner handoff requires a complete 19-path plus foreign-dirty JIT identity checkpoint, normalized parser self-pins, parser adversarial coverage, RED/GREEN, and unchanged BUG-002 replay. All planning gates pass; the completion guard remains correctly nonterminal on G022 and incomplete delivery. Scope 1 remains In Progress, Scope 2 remains locked, Feature 012 and provider routes remain owner-open, and certification is untouched."
+        },
+        {
+            "agent": "bubbles.plan",
+            "workflowMode": "full-delivery",
+            "phasesExecuted": [
+                "plan"
+            ],
+            "statusBefore": "in_progress",
+            "statusAfter": "in_progress",
+            "startedAt": null,
+            "finishedAt": "2026-08-04T01:47:04Z",
+            "outcome": "route_required",
+            "addressedFindings": [
+                "F004-COLLISION-F010-LIFECYCLE-DRIFT-001-PLAN"
+            ],
+            "unresolvedFindings": [
+                "F004-COLLISION-F010-LIFECYCLE-DRIFT-001"
+            ],
+            "nextRequiredOwner": "bubbles.test",
+            "nextRequiredTarget": "TR-F004-SCOPE01-COLLISION-LIFECYCLE-SUCCESSOR-001",
+            "evidenceRefs": [
+                "report.md#collision-lifecycle-successor---f004-collision-f010-lifecycle-drift-001",
+                "scopes.md#feature-004-collision-lifecycle-successor-f004-collision-f010-lifecycle-drift-001",
+                "test-plan.json::collisionLifecycleSuccessorHandoff"
+            ],
+            "summary": "Authored one additive v5 planning contract for the Feature 010 lifecycle successor. The handoff preserves every predecessor, freezes the historical owner return, defines the exact certified successor, limits semantic parser work to one five-assertion transition, and routes parser execution to bubbles.test. Scope 1 remains In Progress, Scope 2 remains locked, and certification is unchanged."
+        },
+        {
+            "agent": "bubbles.plan",
+            "workflowMode": "full-delivery",
+            "phasesExecuted": [
+                "plan"
+            ],
+            "statusBefore": "in_progress",
+            "statusAfter": "in_progress",
+            "startedAt": null,
+            "finishedAt": "2026-08-04T02:25:07Z",
+            "outcome": "route_required",
+            "addressedFindings": [
+                "F004-COLLISION-FOREIGN-ROADMAP-V6-PLAN"
+            ],
+            "unresolvedFindings": [
+                "F004-COLLISION-FOREIGN-ROADMAP-V6"
+            ],
+            "nextRequiredOwner": "bubbles.test",
+            "nextRequiredTarget": "TR-F004-SCOPE01-FOREIGN-ROADMAP-V6-001",
+            "evidenceRefs": [
+                "report.md#foreign-roadmap-identity-successor---f004-collision-foreign-roadmap-v6",
+                "scopes.md#feature-004-foreign-roadmap-identity-successor-f004-collision-foreign-roadmap-v6",
+                "test-plan.json::foreignRoadmapV6Handoff"
+            ],
+            "summary": "Authored one additive v6 planning route for the exact stable foreign roadmap identity. The handoff preserves v4 and v5, overlays only the roadmap record, orders that overlay before the still-unapplied v5 semantic assertion transition, and routes one pin/schema/adversarial implementation to bubbles.test. Scope 1 remains In Progress, Scope 2 remains locked, and status and certification are unchanged."
+        },
+        {
+            "agent": "bubbles.plan",
+            "workflowMode": "full-delivery",
+            "phasesExecuted": [
+                "plan"
+            ],
+            "statusBefore": "in_progress",
+            "statusAfter": "in_progress",
+            "startedAt": "2026-08-04T03:02:10Z",
+            "finishedAt": "2026-08-04T03:19:34Z",
+            "outcome": "route_required",
+            "addressedFindings": [
+                "F004-COLLISION-FOREIGN-SET-V7-PLAN"
+            ],
+            "unresolvedFindings": [
+                "F004-COLLISION-FOREIGN-SET-V7"
+            ],
+            "nextRequiredOwner": "bubbles.test",
+            "nextRequiredTarget": "TR-F004-SCOPE01-FOREIGN-SET-V7-001",
+            "evidenceRefs": [
+                "report.md#foreign-set-identity-successor---f004-collision-foreign-set-v7",
+                "scopes.md#feature-004-foreign-set-identity-successor-f004-collision-foreign-set-v7",
+                "test-plan.json::foreignSetV7Handoff"
+            ],
+            "validation": {
+                "repositoryBinding": "exit 0; actionable Research Lab packet validated at decision rb:vscode-e24db39cf992f7ccd8ec75209602db59:18, control revision 18",
+                "preAppendIdentity": "exit 0; v4/v5/v6 pins exact, v4 path count 42, exclusions exact, uncaptured paths exactly docs/Improvement-Plan.md and etf-momentum-lab.html, three current identities exact",
+                "postAppendIdentity": "exit 0; all three OIDs, SHA-256 values, byte lengths, numstat values, and ordered hunk hashes unchanged; v7 raw block SHA-256 851dca31caded6498c1a84e68e9e9372489c3cb39f3663ea8b254b8cbb35c121",
+                "schemaHash": "exit 0; closed v7 top-level schema, path cardinality, hunk cardinalities, pin handoff, and state route exact",
+                "artifactLint": "exit 0; Artifact lint PASSED",
+                "artifactFreshness": "exit 0; RESULT PASS with 0 failures and 0 warnings",
+                "capabilityFoundation": "exit 0; Gate G094 grandfather pass",
+                "traceability": "exit 0; 33 scenarios mapped to Test Plan and DoD, RESULT PASSED with 0 warnings",
+                "testPlanParity": "exit 0; machine, Markdown, and DoD TP IDs are exactly 84/84/84",
+                "editorDiagnostics": "report.md, scopes.md, test-plan.json, and state.json have no editor errors",
+                "pathScopedDiff": "exit 0; diff check clean for exactly report.md, scopes.md, state.json, and test-plan.json",
+                "stateTransitionGuard": "exit 1 as required for nonterminal delivery; G061 passes; only G022 and Check 4, Check 5, Check 8 contract, and Check 8 file existence remain blocked",
+                "productTests": "not executed and not claimed",
+                "scopeCompletion": "not claimed"
+            },
+            "summary": "Authored one additive v7 foreign-set successor with exact current identities for the moved roadmap and two new foreign paths. The route preserves v4, v5, v6, all inherited identities, both exclusions, and every false semantic or completion claim. Test-owned work now adds one v7 pin/parser, applies the exact v5 transition, runs collision RED/GREEN, and replays unchanged BUG-002 verification. Scope 1 remains In Progress, Scope 2 remains locked, and certification is unchanged."
+        },
+        {
+            "agent": "bubbles.plan",
+            "workflowMode": "full-delivery",
+            "phasesExecuted": [
+                "plan"
+            ],
+            "statusBefore": "in_progress",
+            "statusAfter": "in_progress",
+            "startedAt": "2026-08-04T04:04:52Z",
+            "finishedAt": "2026-08-04T04:04:52Z",
+            "outcome": "route_required",
+            "addressedFindings": [
+                "F004-COLLISION-POST-COMMIT-V9-PLAN"
+            ],
+            "unresolvedFindings": [
+                "F004-COLLISION-POST-COMMIT-V9"
+            ],
+            "nextRequiredOwner": "bubbles.test",
+            "nextRequiredTarget": "TR-F004-SCOPE01-POST-COMMIT-V9-001",
+            "evidenceRefs": [
+                "report.md#post-commit-collision-successor---f004-collision-post-commit-v9",
+                "scopes.md#feature-004-post-commit-collision-successor-f004-collision-post-commit-v9",
+                "test-plan.json::postCommitV9Handoff"
+            ],
+            "summary": "Authored one additive v9 planning route for exact HEAD 4476cefdd6e9e3a2b39ae8bc59ff62e55745390f. The handoff preserves every predecessor as history, requires a complete 19-required plus 11-foreign post-commit matrix with exactly two exclusions, sequences that matrix before validation of the already-physical v5 transition, and routes one pin/schema/adversarial implementation to bubbles.test. Scope 1 remains In Progress, Scope 2 remains locked, and status and certification are unchanged."
+        },
+        {
+            "agent": "bubbles.plan",
+            "workflowMode": "full-delivery",
+            "phasesExecuted": [
+                "plan"
+            ],
+            "statusBefore": "in_progress",
+            "statusAfter": "in_progress",
+            "startedAt": "2026-08-06T15:35:30Z",
+            "finishedAt": "2026-08-06T15:35:30Z",
+            "outcome": "route_required",
+            "addressedFindings": [
+                "F004-PLAN-ROUTING-STALE-V9-001",
+                "F004-PLAN-V14-PARITY-001",
+                "F004-PLAN-OWNER-COMMIT-SEQUENCE-001"
+            ],
+            "unresolvedFindings": [
+                "F004-SCOPE01-SCOREABILITY-READER-FOUNDATION-001",
+                "F004-V14-SCOPED-EVIDENCE-AUTHORITY-001"
+            ],
+            "nextRequiredOwner": "bubbles.implement",
+            "nextRequiredTarget": "TR-F004-SCOPE01-SCOREABILITY-READER-FOUNDATION-001",
+            "evidenceRefs": [
+                "scopes.md#scope-1-continuation-gate",
+                "scopes.md#feature-004-v14-scoped-evidence-authority-successor-f004-v14-scoped-evidence-authority-001",
+                "test-plan.json::currentRouting",
+                "test-plan.json::postV13ScopedEvidenceHandoff"
+            ],
+            "summary": "Reconciled active planning routing to the missing TP-01-27/31 recommendation and reader foundation, made v14 the dependent test-owned collision successor, preserved v3/v9/v12/v13 records as history, and defined path-limited analyst, design, plan, implement, test, and evidence commit boundaries. No product test, completion, checkbox, status, Scope 2, or certification claim is made."
         }
     ],
     "activeBugs": [],
@@ -671,7 +1269,7 @@
             "discoveredAt": "2026-07-18T23:09:34Z"
         }
     ],
-    "lastUpdatedAt": "2026-07-18T23:09:34Z",
+    "lastUpdatedAt": "2026-08-04T03:19:34Z",
     "scopeLayout": "single-file",
     "artifacts": {
         "spec": "spec.md",
@@ -713,5 +1311,5 @@
         ],
         "specDoneRequires": "All scopes done. certification.completedScopes contains all scope IDs and bubbles.validate has certified promotion."
     },
-    "notes": "V2 and every predecessor remain mandatory byte-identical parser inputs. V3 is the active provenance interpretation and parser target, correcting hunk 1's retained header context versus actual Feature 010 Scope 6 deleted body line while preserving the unchanged current identity. The strict parser and required BUG-002 replay are green. Feature 004 SCOPE-01 remains nonterminal because other existing rows are unchecked, SCOPE-02 remains not started, and certification is unchanged."
+    "notes": "V2, v3, durable evidence, v4, v5, v6, and every predecessor remain mandatory byte-identical parser inputs. V7 owns the current three-path foreign-set comparison, then applies the exact unapplied v5 semantic transition. Test-owned parser adoption, collision RED/GREEN, and unchanged BUG-002 replay remain open. Feature 004 SCOPE-01 remains nonterminal, SCOPE-02 remains not started, and certification is unchanged."
 }

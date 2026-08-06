@@ -3,7 +3,7 @@
     "version": 1,
     "spec": "004",
     "featureDir": "specs/004-fx-regime-relative-value-lab",
-    "generatedAt": "2026-07-15T05:15:25Z",
+    "generatedAt": "2026-08-06T15:23:56Z",
     "scenarios": [
         {
             "id": "SCN-004-001",
@@ -16,6 +16,7 @@
                 "when": "RLFX computes the broad-dollar regime",
                 "then": "Each series retains its own state and as-of and concentration is named without substitution"
             },
+            "gherkinHash": "sha256:430cdfbfa96f7ecf5dbd62954e7c009b30aac475ab6c07055694f6e594aa7cc2",
             "behaviorClass": "ui",
             "changeType": "new",
             "requiredTestType": "e2e-ui",
@@ -47,6 +48,7 @@
                 "when": "RLFX computes the selected dollar read",
                 "then": "OFFICIAL_PROXY_DIVERGENCE is named and opposing states are not averaged"
             },
+            "gherkinHash": "sha256:85bf317913539274f3b35bc0b7a7f69d57ba7209d5bf497a9f825fb34bb462e6",
             "behaviorClass": "ui",
             "changeType": "new",
             "requiredTestType": "e2e-ui",
@@ -78,6 +80,7 @@
                 "when": "RLFX ranks EUR within G10",
                 "then": "EUR is not Strong solely from EURUSD and pair momentum stays separate"
             },
+            "gherkinHash": "sha256:49ea9de1f3022af3edb5e600e0be2e7eac4b81f8bfbc678d0f3a1164d55e0ebb",
             "behaviorClass": "ui",
             "changeType": "new",
             "requiredTestType": "e2e-ui",
@@ -109,6 +112,7 @@
                 "when": "RLFX verifies orientation and computes canonical returns",
                 "then": "Both orientations produce one economic return and bad orientation is INVALID_ORIENTATION"
             },
+            "gherkinHash": "sha256:eeec2adddaecc92350ae903b39d825dc36fb4d8ea0262f8a2a4f6fbd0384d6f8",
             "behaviorClass": "ui",
             "changeType": "new",
             "requiredTestType": "e2e-ui",
@@ -140,6 +144,7 @@
                 "when": "RLFX aligns a multi-leg calculation",
                 "then": "Only common dates enter arithmetic and unmatched newer dates remain visible without fill"
             },
+            "gherkinHash": "sha256:055349dd178051501b16f4331f6660eb6ef308144370c198931e003944c0a672",
             "behaviorClass": "ui",
             "changeType": "new",
             "requiredTestType": "e2e-ui",
@@ -171,6 +176,7 @@
                 "when": "RLFX ranks currencies and selects automatic pairs",
                 "then": "Each cohort has separate coverage and no automatic pair crosses cohorts"
             },
+            "gherkinHash": "sha256:930540b074885975d05bf1665159267f5a14021376818c60a55b0882a5ffd305",
             "behaviorClass": "ui",
             "changeType": "new",
             "requiredTestType": "e2e-ui",
@@ -202,6 +208,7 @@
                 "when": "RLFX evaluates rank and pair eligibility",
                 "then": "The currency remains reference-only and low volatility creates no favorable automatic rank"
             },
+            "gherkinHash": "sha256:f58e0bab879acdeec1d81eeecee16f436185f8ba72bc5f015256ef2cc9525f01",
             "behaviorClass": "ui",
             "changeType": "new",
             "requiredTestType": "e2e-ui",
@@ -233,6 +240,7 @@
                 "when": "RLFX computes cohort strength",
                 "then": "The currency is unavailable and unranked with no neutral or cohort-average substitute"
             },
+            "gherkinHash": "sha256:5173fad5efe368c7d0212f21d7f351a5467610840fd963c9d8b4eeb304223d62",
             "behaviorClass": "ui",
             "changeType": "new",
             "requiredTestType": "e2e-ui",
@@ -264,6 +272,7 @@
                 "when": "RLFX builds the pair expression",
                 "then": "Momentum and carry remain separate and the conflict lowers confidence"
             },
+            "gherkinHash": "sha256:66748f376b1d742458309b4474ac0949d06f6f25ce613588cd8c8377bd7839a6",
             "behaviorClass": "ui",
             "changeType": "new",
             "requiredTestType": "e2e-ui",
@@ -295,6 +304,7 @@
                 "when": "RLFX normalizes carry evidence",
                 "then": "The record is Policy-rate proxy and no executable carry claim appears"
             },
+            "gherkinHash": "sha256:bd9671a7d716620a35e4d55437d8ffadf406bd8e6cc239dab07f7c7b966062a2",
             "behaviorClass": "ui",
             "changeType": "new",
             "requiredTestType": "e2e-ui",
@@ -326,6 +336,7 @@
                 "when": "RLFX validates it",
                 "then": "Instrument tenor timestamp rights and basis roll liquidity and cost limitations are required"
             },
+            "gherkinHash": "sha256:fb1bc268a0865f7b3d03fb4a3f0f4f892f749817eebfef597cbaadd4b660f28d",
             "behaviorClass": "ui",
             "changeType": "new",
             "requiredTestType": "e2e-ui",
@@ -357,6 +368,7 @@
                 "when": "RLFX computes the tactical pair state",
                 "then": "Value remains long-horizon tension and cannot independently produce Candidate"
             },
+            "gherkinHash": "sha256:f2df39aae1ced5654061364f9646834908a11a2d68a94e24568d0eb58b0b9e63",
             "behaviorClass": "ui",
             "changeType": "new",
             "requiredTestType": "e2e-ui",
@@ -388,6 +400,7 @@
                 "when": "RLFX normalizes it beside newer spot",
                 "then": "Both clocks remain visible and newer spot does not refresh positioning"
             },
+            "gherkinHash": "sha256:3729621db297fc7af24df4eac432daf5d3b23b0eb5a53155c30d5eacbca2049e",
             "behaviorClass": "ui",
             "changeType": "new",
             "requiredTestType": "e2e-ui",
@@ -419,6 +432,7 @@
                 "when": "RLFX evaluates crowding",
                 "then": "Positioning is unavailable and the pair is not labeled balanced light or uncrowded"
             },
+            "gherkinHash": "sha256:a9ca4105a57754774e760f78f3006028c2274055fcb656134da048725727d064",
             "behaviorClass": "ui",
             "changeType": "new",
             "requiredTestType": "e2e-ui",
@@ -450,6 +464,7 @@
                 "when": "RLFX evaluates carry-unwind state",
                 "then": "Watch or Active requires disclosed risk plus funding-strength or crowding conditions"
             },
+            "gherkinHash": "sha256:7c4757774db3701ae6e25494c2a9962900ab1738b4905cc0a9090e44f9ea3437",
             "behaviorClass": "ui",
             "changeType": "new",
             "requiredTestType": "e2e-ui",
@@ -481,6 +496,7 @@
                 "when": "RLFX builds the pair decision",
                 "then": "Event evidence is unavailable and price and risk invalidation remains present"
             },
+            "gherkinHash": "sha256:ae573f44b171a6d5ade6f733d8f90c57a0aa6fd72d4b056d53cca51688d55ea3",
             "behaviorClass": "ui",
             "changeType": "new",
             "requiredTestType": "e2e-ui",
@@ -512,6 +528,7 @@
                 "when": "The production FX page opens",
                 "then": "A meaningful partial Simple decision paints before delta hydration and only stale or missing approved resources are requested"
             },
+            "gherkinHash": "sha256:74bf3beda50c9a207e12655818a244207404d4ca517813979fc3fb1e072df15b",
             "behaviorClass": "ui",
             "changeType": "new",
             "requiredTestType": "e2e-ui",
@@ -543,6 +560,7 @@
                 "when": "The user changes any non-source control",
                 "then": "One local computation updates all projections and causes zero market-data requests"
             },
+            "gherkinHash": "sha256:621412ef641e76cfce85594921e93d1f9eb2948538dc747eaab2d4402b97cba2",
             "behaviorClass": "ui",
             "changeType": "new",
             "requiredTestType": "e2e-ui",
@@ -565,14 +583,15 @@
         {
             "id": "SCN-004-019",
             "scenarioId": "SCN-004-019",
-            "scopeRef": "SCOPE-02",
-            "scope": "SCOPE-02-complete-fx-tool",
-            "title": "Simple and Power share one decision",
+            "scopeRef": "SCOPE-04",
+            "scope": "SCOPE-04-shared-brief-journey-integration",
+            "title": "All four views share one owner decision",
             "gherkin": {
-                "given": "Observations and controls are fixed",
-                "when": "The user switches Simple Power desktop and mobile projections",
-                "then": "Decision identity and headline fields remain identical while Power adds detail only"
+                "given": "Fixed observations controls and one current FxOwnerDecisionV1 carry one canonical RecommendationOutcomeV1",
+                "when": "The user moves among Simple Power Brief and Journey",
+                "then": "Every view consumes one owner outcome and one FxReaderDecisionV1 with identical objective direction horizon instrument or explicit non-recommendation confirmation invalidation evidence cutoff provenance and owner deep link; complete scoreability fields persist; no-vehicle or unavailable has no success gates or ledger call; default copy and accessibility contain no raw identity or governance vocabulary; only explained Power disclosure may show technical identity; view changes neither fetch nor recompute"
             },
+            "gherkinHash": "sha256:fbc0a88022744fc6d227933666eb6077ecad7c08171fcb9cf1220656dbccaa6f",
             "behaviorClass": "ui",
             "changeType": "new",
             "requiredTestType": "e2e-ui",
@@ -582,15 +601,20 @@
             },
             "linkedTests": [
                 "./rlfx.js#RLFX CommonJS import preserves the existing global and explicit decisionTime is deterministic",
-                "tests/fx-regime-relative-value-lab.spec.mjs#Regression SCN-004-019: Simple Power mobile and unavailable owner read share one decision"
+                "tests/fx-regime-relative-value-lab.spec.mjs#Browser functional source envelopes match in browser and CommonJS for one decisionTime",
+                "tests/feature-004-tool-control-binding.test.mjs#RLFX owner decision and ToolControlBinding preserve one objective vehicle state and evidence identity",
+                "tests/feature-004-vehicle-universe.test.mjs#RLFX RecommendationOutcomeV1 rejects incomplete attributable gates and projects reader-safe branches",
+                "tests/fx-regime-relative-value-lab.spec.mjs#Regression SCN-004-019: four views share one reader outcome while machine identity stays in Power"
             ],
             "evidenceRefs": [
                 "report.md#scenario-scn-004-019"
             ],
             "tags": [
                 "BS-019",
-                "simple-power",
-                "parity"
+                "four-view",
+                "parity",
+                "reader-projection",
+                "scoreability"
             ]
         },
         {
@@ -604,6 +628,7 @@
                 "when": "Global Rotation evaluates the country",
                 "then": "USD local translation interaction common-date coverage and limitations remain separately visible"
             },
+            "gherkinHash": "sha256:789e4992c7034122749def4a6e08e88b6aefccc873023278005dd7f6009c86fb",
             "behaviorClass": "ui",
             "changeType": "changed",
             "requiredTestType": "e2e-ui",
@@ -636,6 +661,7 @@
                 "when": "Global Rotation computes both results",
                 "then": "Score rank and leader spread are identical while decomposition context may change"
             },
+            "gherkinHash": "sha256:8333f0fd53f1f87cdad4d5ab3c5bd0dfdcebe47e17b2923eac97edd84588d2ab",
             "behaviorClass": "ui",
             "changeType": "changed",
             "requiredTestType": "e2e-ui",
@@ -667,6 +693,7 @@
                 "when": "Global Rotation renders and publishes",
                 "then": "USD leadership remains and local translation interaction and agreement are unavailable without a zero-FX assumption"
             },
+            "gherkinHash": "sha256:357cbcf0f9e348b03f066a0c48b48285cba7ed7a781c1151a1a6143e87d7f363",
             "behaviorClass": "ui",
             "changeType": "changed",
             "requiredTestType": "e2e-ui",
@@ -691,13 +718,14 @@
             "id": "SCN-004-023",
             "scenarioId": "SCN-004-023",
             "scopeRef": "SCOPE-04",
-            "scope": "SCOPE-04-brief-relationship",
+            "scope": "SCOPE-04-shared-brief-journey-integration",
             "title": "Market Brief preserves agreement and divergence",
             "gherkin": {
-                "given": "Versioned FX and Global owner reads are current or explicitly unavailable",
-                "when": "Market Brief evaluates their relationship",
-                "then": "It attributes Agreement Divergence or Insufficient Evidence and creates no new score or decomposition"
+                "given": "Current versioned FX and Global Rotation owner reads contain independent leader-currency strength and approximate local-relative return",
+                "when": "RLBRIEF evaluates their relationship at an explicit decisionTime",
+                "then": "Agreement or Divergence uses one normalized FX owner read and owner deep link with both owners and clocks; no third composite or recomputation occurs; Feature 004 creates no watchlist domain cell applicability owner-precedence per-ticker coverage or covered-count claim; an unaccepted existing domain remains reasoned unavailable; stale missing flat unavailable or unaccepted evidence yields Insufficient Evidence"
             },
+            "gherkinHash": "sha256:889cfbf3adcbabbd67d26aba171a15ba80ee3dc03afca3ccc6a13f77dcf60078",
             "behaviorClass": "ui",
             "changeType": "changed",
             "requiredTestType": "e2e-ui",
@@ -708,9 +736,9 @@
             "linkedTests": [
                 "scripts/selftest.mjs#RLBRIEF compares independent leader-currency strength with approximate local-relative return",
                 "scripts/selftest.mjs#RLBRIEF requires current owner versions computedAt and freshUntil",
-                "scripts/validate-brief-payload.mjs#FX Global owner relationship schema and no-third-composite contract",
+                "scripts/validate-brief-payload.mjs#FX Global relationship rejects third composites and Feature 004 watchlist coverage claims",
                 "tests/fx-regime-relative-value-lab.spec.mjs#Browser functional SCN-004-023: controlled current owner facts render Agreement and Divergence",
-                "tests/fx-regime-relative-value-lab.spec.mjs#Browser functional SCN-004-023 adversarial: stale missing unavailable or flat owner facts render Insufficient Evidence",
+                "tests/fx-regime-relative-value-lab.spec.mjs#Browser functional SCN-004-023 adversarial: stale missing flat or unaccepted owner facts stay reasoned unavailable",
                 "tests/fx-regime-relative-value-lab.spec.mjs#Regression SCN-004-023: public Market Brief route reports Insufficient Evidence for unavailable owners"
             ],
             "evidenceRefs": [
@@ -719,7 +747,9 @@
             "tags": [
                 "BS-023",
                 "market-brief",
-                "owner-boundary"
+                "owner-boundary",
+                "watchlist-boundary",
+                "no-third-composite"
             ]
         },
         {
@@ -733,6 +763,7 @@
                 "when": "RLFX normalizes scores and projects it",
                 "then": "It is RIGHTS_UNCLEAR without numeric value and is absent from public state"
             },
+            "gherkinHash": "sha256:d66da45198ed3cfc3fb4d2573b9fd82cab2cf17ab79cc19d288384bd1134e8ca",
             "behaviorClass": "ui",
             "changeType": "new",
             "requiredTestType": "e2e-ui",
@@ -761,10 +792,11 @@
             "scope": "SCOPE-02-complete-fx-tool",
             "title": "Every dynamic read is understandable without hover alone",
             "gherkin": {
-                "given": "A keyboard-only user opens desktop and mobile production views",
-                "when": "They traverse controls values conflicts charts unavailable states sources and invalidation",
-                "then": "Focus or adjacent text equals hover meaning and layouts canvases and text remain contained"
+                "given": "HTML-sensitive authored copy and keyboard pointer desktop and mobile access are present",
+                "when": "The user traverses every control ticker KPI badge chart axis value trigger invalidation rejection freshness and unavailable state",
+                "then": "Authored copy is escaped text; each item exposes what it is and what its current reading means through hover focus and adjacent text; tickers use RLTKR; each canvas shares one pointer keyboard summary and table projection; color is not the sole state carrier; responsive and text-scale layouts do not overlap clip or overflow"
             },
+            "gherkinHash": "sha256:e566ab42dd69730338075494cf5f578f5bd2daa98ad5a755cd8dfc0bb2734aab",
             "behaviorClass": "ui",
             "changeType": "new",
             "requiredTestType": "e2e-ui",
@@ -773,7 +805,9 @@
                 "state": "unlocked"
             },
             "linkedTests": [
-                "tests/fx-regime-relative-value-lab.spec.mjs#Regression SCN-004-025: canvas hover focus table and responsive layout are equivalent"
+                "tests/fx-regime-relative-value-lab.spec.mjs#Regression SCN-004-025: canvas pointer keyboard summary table and responsive layout share one projection",
+                "tests/fx-regime-relative-value-lab.spec.mjs#Regression SCN-004-025 adversarial: authored markup renders only as text at every reader sink",
+                "tests/fx-regime-relative-value-lab.spec.mjs#Regression SCN-004-025 adversarial: every declared context has definition current meaning focus and adjacent text"
             ],
             "evidenceRefs": [
                 "report.md#scenario-scn-004-025"
@@ -781,20 +815,24 @@
             "tags": [
                 "BS-025",
                 "accessibility",
-                "responsive"
+                "responsive",
+                "escaped-authored-text",
+                "contextual-meaning",
+                "same-data-canvas"
             ]
         },
         {
             "id": "SCN-004-026",
             "scenarioId": "SCN-004-026",
-            "scopeRef": "SCOPE-04",
-            "scope": "SCOPE-04-atomic-registration-brief-closure",
+            "scopeRef": "SCOPE-05",
+            "scope": "SCOPE-05-atomic-registration-documentation-closure",
             "title": "Registration and publication stay in parity",
             "gherkin": {
-                "given": "The FX tool is registered and served",
-                "when": "Registry parity and the rendered route are inspected",
-                "then": "Identity title route note target and order match and every render publishes one current owner read"
+                "given": "The route navigation registry Simple Brief Journey owner-read note and every owner deep-link edge are complete",
+                "when": "Scope 5 attempts the public cutover",
+                "then": "Every edge activates together or the complete surface remains excluded; a real browser reaches every declared entry point and static search is non-evidence; exactly one versioned owner read publishes including unavailable; existing budgets remain fixed; timeout widening is rejected without same-condition measured latency and adversarial stall or starvation coverage"
             },
+            "gherkinHash": "sha256:a73033c42bb48639d13f1388a398b36d81f2234aedc5769c12b0fd3f964e86eb",
             "behaviorClass": "ui",
             "changeType": "new",
             "requiredTestType": "e2e-ui",
@@ -803,7 +841,9 @@
                 "state": "unlocked"
             },
             "linkedTests": [
-                "tests/fx-regime-relative-value-lab.spec.mjs#Regression SCN-004-026: FX registration Brief coverage and unavailable owner publication stay in parity",
+                "tests/fx-regime-relative-value-lab.spec.mjs#Regression SCN-004-026: cutover activates every route view owner note and deep link or remains excluded",
+                "tests/fx-regime-relative-value-lab.spec.mjs#Regression SCN-004-026 adversarial: source tokens do not prove an unreachable reader entry point",
+                "scripts/selftest.mjs#Feature 004 rejects timeout widening without same-condition latency and stall coverage",
                 "tests/provider-credentials.spec.mjs#complete committed suite",
                 "tests/bond-regime-lab.spec.mjs#complete committed suite"
             ],
@@ -813,7 +853,243 @@
             "tags": [
                 "BS-026",
                 "registry",
-                "tool-read"
+                "tool-read",
+                "atomic-cutover",
+                "browser-reach",
+                "fixed-budgets"
+            ]
+        },
+        {
+            "id": "SCN-004-027",
+            "scenarioId": "SCN-004-027",
+            "scopeRef": "SCOPE-02",
+            "scope": "SCOPE-02-etf-first-four-view-route-simple-power-integration",
+            "title": "A yen thesis maps to an oriented unlevered vehicle",
+            "gherkin": {
+                "given": "The current owner decision supports Japanese yen strength versus the U.S. dollar for a Swing horizon and current reviewed FXY facts establish long JPY short USD unlevered trust exposure",
+                "when": "Vehicle fit evaluates every registry member under unlevered single-currency constraints",
+                "then": "FXY is Eligible or Caution according to current facts and tracking while every long USD or short JPY product is Rejected with DIRECTION_MISMATCH and all four views preserve the selected orientation and evidence cutoff"
+            },
+            "gherkinHash": "sha256:c0dee27f243a6aaa7587ab61da6fbd93696425bc456b895df2c9fd605fb195ff",
+            "behaviorClass": "ui",
+            "changeType": "new",
+            "requiredTestType": "e2e-ui",
+            "regressionRequired": true,
+            "lockdown": {
+                "state": "unlocked"
+            },
+            "linkedTests": [
+                "scripts/selftest.mjs#RLFX vehicle fit rejects every direction mismatch before ranking",
+                "tests/fx-regime-relative-value-lab.spec.mjs#Regression SCN-004-027: JPY strength rejects every direction-mismatched vehicle before selecting FXY"
+            ],
+            "evidenceRefs": [
+                "report.md#scenario-scn-004-027"
+            ],
+            "tags": [
+                "BS-027",
+                "vehicle-fit",
+                "orientation"
+            ]
+        },
+        {
+            "id": "SCN-004-028",
+            "scenarioId": "SCN-004-028",
+            "scopeRef": "SCOPE-02",
+            "scope": "SCOPE-02-etf-first-four-view-route-simple-power-integration",
+            "title": "A single-currency trust does not equal spot",
+            "gherkin": {
+                "given": "A reviewed trust has market NAV and underlying observations on exact common dates and compatible return bases",
+                "when": "RLFX computes VehicleTrackingReadV1 and the user inspects tracking in Power",
+                "then": "Market NAV and underlying returns remain separate only sourced same-date contexts accompany observed differences and any remainder stays an unexplained residual"
+            },
+            "gherkinHash": "sha256:b2bd319608f4b6a3859070c29f64a6f1c274c96d7582ab3720e99692a1d09adc",
+            "behaviorClass": "ui",
+            "changeType": "new",
+            "requiredTestType": "e2e-ui",
+            "regressionRequired": true,
+            "lockdown": {
+                "state": "unlocked"
+            },
+            "linkedTests": [
+                "scripts/selftest.mjs#RLFX vehicle tracking preserves market NAV underlying and unexplained residual",
+                "tests/fx-regime-relative-value-lab.spec.mjs#Regression SCN-004-028: tracking preserves an unexplained residual when no sourced contribution closes it"
+            ],
+            "evidenceRefs": [
+                "report.md#scenario-scn-004-028"
+            ],
+            "tags": [
+                "BS-028",
+                "vehicle-tracking",
+                "residual"
+            ]
+        },
+        {
+            "id": "SCN-004-029",
+            "scenarioId": "SCN-004-029",
+            "scopeRef": "SCOPE-02",
+            "scope": "SCOPE-02-etf-first-four-view-route-simple-power-integration",
+            "title": "Broad-dollar baskets remain distinguishable",
+            "gherkin": {
+                "given": "UUP and USDU both match a long-dollar direction but have different baskets exposure mechanisms benchmarks collateral and clocks",
+                "when": "Vehicle fit and Power comparison evaluate them",
+                "then": "Each wrapper retains those differences before selection and neither wins from ticker order or shared dollar direction alone"
+            },
+            "gherkinHash": "sha256:351ab34d51e16e58377d922d82945959770efb19c9411140f81a43a4ef300bf1",
+            "behaviorClass": "ui",
+            "changeType": "new",
+            "requiredTestType": "e2e-ui",
+            "regressionRequired": true,
+            "lockdown": {
+                "state": "unlocked"
+            },
+            "linkedTests": [
+                "scripts/selftest.mjs#RLFX broad-dollar vehicle fit rejects basket mismatch before lexicographic selection",
+                "tests/fx-regime-relative-value-lab.spec.mjs#Regression SCN-004-029: a long-dollar direction cannot erase the UUP and USDU basket mismatch"
+            ],
+            "evidenceRefs": [
+                "report.md#scenario-scn-004-029"
+            ],
+            "tags": [
+                "BS-029",
+                "vehicle-fit",
+                "basket"
+            ]
+        },
+        {
+            "id": "SCN-004-030",
+            "scenarioId": "SCN-004-030",
+            "scopeRef": "SCOPE-02",
+            "scope": "SCOPE-02-etf-first-four-view-route-simple-power-integration",
+            "title": "Daily-reset leverage is tactical-only",
+            "gherkin": {
+                "given": "YCS has current reviewed direction reset-session and required fact evidence",
+                "when": "Horizon reset permission direction and reset-session boundary are evaluated",
+                "then": "YCS is Rejected outside a matching permitted Tactical objective and may be Tactical-Only only until resetSessionEndsAt without outranking an unlevered long-horizon fit"
+            },
+            "gherkinHash": "sha256:c47b9f209d11e62fee0623f1730936161a753e3f013a27662f2b653721805636",
+            "behaviorClass": "ui",
+            "changeType": "new",
+            "requiredTestType": "e2e-ui",
+            "regressionRequired": true,
+            "lockdown": {
+                "state": "unlocked"
+            },
+            "linkedTests": [
+                "scripts/selftest.mjs#RLFX daily-reset fit rejects YCS outside the exact tactical reset session",
+                "tests/fx-regime-relative-value-lab.spec.mjs#Regression SCN-004-030: YCS resets to Rejected outside Tactical and expires at the source session boundary"
+            ],
+            "evidenceRefs": [
+                "report.md#scenario-scn-004-030"
+            ],
+            "tags": [
+                "BS-030",
+                "vehicle-fit",
+                "daily-reset"
+            ]
+        },
+        {
+            "id": "SCN-004-031",
+            "scenarioId": "SCN-004-031",
+            "scopeRef": "SCOPE-02",
+            "scope": "SCOPE-02-etf-first-four-view-route-simple-power-integration",
+            "title": "No eligible vehicle is a valid result",
+            "gherkin": {
+                "given": "Every potentially matching registry vehicle has a settled current evaluation and none is Eligible Caution or permitted Tactical-Only",
+                "when": "Aggregate vehicle fit is built and rendered",
+                "then": "The canonical outcome is an explicit no-vehicle non-recommendation with null selection every rejection retained no constraint relaxation no instrument trigger or invalidation success gate and no recommendation-ledger event"
+            },
+            "gherkinHash": "sha256:49eb48be2936f95c5e0ab25f5f9dfa170f42dd0e5bd68acbafcf97c883f0cf80",
+            "behaviorClass": "ui",
+            "changeType": "new",
+            "requiredTestType": "e2e-ui",
+            "regressionRequired": true,
+            "lockdown": {
+                "state": "unlocked"
+            },
+            "linkedTests": [
+                "tests/feature-004-vehicle-universe.test.mjs#RLFX no-vehicle outcome retains every rejection and the recommendation ledger emits no event",
+                "tests/fx-regime-relative-value-lab.spec.mjs#Regression SCN-004-031: no eligible result preserves every rejection and selects no substitute"
+            ],
+            "evidenceRefs": [
+                "report.md#scenario-scn-004-031"
+            ],
+            "tags": [
+                "BS-031",
+                "vehicle-fit",
+                "no-eligible-vehicle",
+                "non-recommendation",
+                "ledger-exclusion"
+            ]
+        },
+        {
+            "id": "SCN-004-032",
+            "scenarioId": "SCN-004-032",
+            "scopeRef": "SCOPE-04",
+            "scope": "SCOPE-04-shared-brief-journey-integration",
+            "title": "Brief cannot outrun owner evidence",
+            "gherkin": {
+                "given": "An FX owner read exists but its recommendation branch is incomplete or required current evidence is stale missing contradicted rights-ineligible or uncited",
+                "when": "The shared Brief mount evaluates current eligibility",
+                "then": "Only a complete machine-checkable recommendation or unavailable non-recommendation publishes; incomplete tactical or swing attribution withholds the call and never creates new not-evaluable; ineligible evidence refuses current prose; prior evidence stays non-current; no non-recommendation enters the ledger; historical not-evaluable events remain append-only"
+            },
+            "gherkinHash": "sha256:53dfbe018d7246fc6d349843551d9a9b06eaa23329bb7b60af140fcac5642a1d",
+            "behaviorClass": "ui",
+            "changeType": "new",
+            "requiredTestType": "e2e-ui",
+            "regressionRequired": true,
+            "lockdown": {
+                "state": "unlocked"
+            },
+            "linkedTests": [
+                "tests/feature-004-vehicle-universe.test.mjs#RLFX RecommendationOutcomeV1 rejects incomplete attributable gates and projects reader-safe branches",
+                "scripts/selftest.mjs#RLBRIEF FX eligibility refuses stale mismatched contradicted rights-ineligible or uncited current evidence",
+                "scripts/selftest.mjs#RLBRIEF publishes only complete scoreable outcomes and preserves refused prior and historical evidence",
+                "tests/fx-regime-relative-value-lab.spec.mjs#Browser functional SCN-004-032: incomplete scoreability or stale evidence refuses current Brief",
+                "tests/fx-regime-relative-value-lab.spec.mjs#Regression SCN-004-032: current Brief refuses ineligible evidence and incomplete scoreability"
+            ],
+            "evidenceRefs": [
+                "report.md#scenario-scn-004-032"
+            ],
+            "tags": [
+                "BS-032",
+                "brief",
+                "evidence-gate",
+                "scoreability",
+                "append-only-history"
+            ]
+        },
+        {
+            "id": "SCN-004-033",
+            "scenarioId": "SCN-004-033",
+            "scopeRef": "SCOPE-04",
+            "scope": "SCOPE-04-shared-brief-journey-integration",
+            "title": "Journey completion never executes",
+            "gherkin": {
+                "given": "Either Feature 004 Journey has a current owner context and valid definition DAG",
+                "when": "The user records evidence backtracks or receives a changed semantic evidence reference",
+                "then": "Only the first affected step and transitive dependents become stale unrelated outcomes remain in audit history and a signed current packet stays noExecution true and executed false with no forbidden fields"
+            },
+            "gherkinHash": "sha256:c0c4edb9079319a6bbbc69e9ecb798ada7824f910d57defddd57ac34f2a2e518",
+            "behaviorClass": "workflow-and-ui",
+            "changeType": "new",
+            "requiredTestType": "e2e-ui",
+            "regressionRequired": true,
+            "lockdown": {
+                "state": "unlocked"
+            },
+            "linkedTests": [
+                "scripts/selftest.mjs#RLJOURNEY evidence refresh reopens only semantic dependents and preserves no execution",
+                "scripts/validate-tool-experience.mjs#Feature 004 Journey definitions resolve exact DAGs evidence slots and no-execution policy",
+                "scripts/selftest.mjs#RLJOURNEY semantic evidence refresh reopens only affected transitive dependents",
+                "tests/fx-regime-relative-value-lab.spec.mjs#Regression SCN-004-033: Journey evidence refresh reopens transitive dependents and every completion packet remains non-executable"
+            ],
+            "evidenceRefs": [
+                "report.md#scenario-scn-004-033"
+            ],
+            "tags": [
+                "BS-033",
+                "journey",
+                "no-execution"
             ]
         }
     ]

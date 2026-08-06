@@ -1665,72 +1665,309 @@ items are ticked.
 
 ## Lint And Quality
 
-### Build Quality Gate - scope-local traceability (BLOCKED, not closed)
+### Build Quality Gate - current-session re-verification (STILL NOT CLOSED, new cause)
 
-The Build Quality Gate DoD item names exactly one runnable command of its own. It
-was executed as written. It refused. The box remains `[ ]`.
+The prior record in this section is superseded. It reported the named traceability
+command refusing at **exit 2** because the scope-universe resolver would not run
+while transitive prerequisite scope 1 was `in_progress`. **That refusal is gone.**
+Scope 1 is now `done`, the resolver resolves, and the guard actually evaluates
+scopes. The stale premise is not carried forward — every member below was
+re-executed in this session.
 
-**Command:** `BUBBLES_AGENT_NAME=bubbles.implement BUBBLES_SPEC=specs/008-portfolio-survival-and-brief-lab BUBBLES_SCOPE=SCOPE-02 BUBBLES_TOOL_LOG_TAGS=build-quality-gate,traceability,current-scope timeout 600 bash .github/bubbles/scripts/tool-log.sh bash .github/bubbles/scripts/traceability-guard.sh specs/008-portfolio-survival-and-brief-lab --current-scope`
+The command now runs to completion and **fails on this scope's own file**. That is
+a different, and worse, finding than the one it replaces: the earlier blocker was
+external and structural, this one names `scope.md` directly.
 
-**Exit Code:** 2 · **Claim Source:** executed
-
-```text
-ERROR: scope-universe resolution refused (--current-scope):
-scope-universe-resolver: transitive prerequisite '1' of current scope is not done
-[tool-log] recorded exit=2 duration=54ms → /home/redacted/research-lab/.specify/runtime/tool-calls.jsonl
-TRACEABILITY_EXIT=2
-```
-
-Re-executed unwrapped to establish that the refusal is deterministic rather than a
-transient resolver fault:
-
-```text
-=== re-run to confirm determinism ===
-ERROR: scope-universe resolution refused (--current-scope):
-scope-universe-resolver: transitive prerequisite '1' of current scope is not done
-RERUN_EXIT=2
-```
-
-**Cause, verified rather than inferred.** The DoD precondition that this scope be
-active in `state.json` holds — `execution.currentScope` is `2` and
-`execution.activeAgent` is `bubbles.implement`. The refusal is not about this
-scope's own files. It is the dependency edge: scope 2 declares
-`dependsOn: ["1"]`, and scope 1 `Private Portfolio Import And Atomic Store` is
-still `in_progress`, not `done`. Read directly from `state.json`:
+#### Active-scope precondition
 
 ```text
 currentScope: 2
 activeAgent: bubbles.implement
-1 | in_progress | Private Portfolio Import And Atomic Store | dependsOn= []
-2 | in_progress | Mandate And Cash-Need Authority | dependsOn= ['1']
+1 | done        | Private Portfolio Import And Atomic Store | dependsOn= []
+2 | in_progress | Mandate And Cash-Need Authority          | dependsOn= ['1']
 3 | not_started | Local Behavior Privacy Inventory And Clear | dependsOn= ['2']
 ```
 
-**Uncovered clause:** `scope-local traceability`. It is structurally unreachable
-from inside Scope 02. No Scope 02 change can satisfy it, because the resolver is
-refusing on a prerequisite scope's status, not on anything this scope owns.
+#### Members 1-6 - tests, guards, whitespace
 
-**Two things deliberately NOT done here**, because each would have converted a
-real blocker into a false green:
+```text
+$ node scripts/selftest.mjs
+Research-Lab self-test: 1220 passed, 0 failed
+SELFTEST_EXIT=0
 
-1. Scope 1 was not marked `done` to unblock the resolver. Its own DoD is unmet;
-   editing another scope's status to clear this gate would be fabrication and is
-   outside this agent's artifact ownership.
-2. `--all-scopes` was not substituted for `--current-scope`. That is a different
-   command answering a different question, and this scope's DoD explicitly states
-   whole-feature `--all-scopes` traceability is NOT required here — it is the
-   Feature Completion Gate's check, enforced once in Scope 16.
+$ node --test tests/portfolio-privacy.functional.mjs
+ok 11 - rolling a mandate back restores the pre-mandate portfolio state by identity, not by resemblance
+1..11
+# tests 11   # pass 11   # fail 0   # duration_ms 512.079809
+FUNCTIONAL_EXIT=0
 
-The remaining twelve clauses of the Build Quality Gate (focused RED/GREEN records,
-mandate/config parity, authority/forbidden-input scans, exact rollback,
-no-interception/external-request scan, source-lock/runner checks, editor
-diagnostics, `git diff --check`, artifact lint/freshness, G094, Test Plan/DoD
-parity, plan sync) were not executed in this run. Their status is therefore
-unknown and no claim is made about them in either direction. The item cannot be
-ticked on the named clause alone regardless, since that clause is the one that
-refused.
+$ npx --no-install playwright test --config=playwright.config.mjs \
+    --project=system-chrome tests/portfolio-survival-foundation.spec.mjs --reporter=list
+  ✓  1 …SCN-008-003 explicit mandate alone supplies every hard constraint (1.9s)
+  ✓  2 …SCN-008-004 no mandate leaves goal fit and survival unavailable (1.4s)
+  ✓  3 …conflicting mandate stays visibly infeasible with no constraint relaxed (905ms)
+  ✓  4 …SCN-008-001 valid local portfolio import creates one current revision (1.1s)
+  ✓  5 …SCN-008-002 invalid or secret-bearing import is atomic and redacted (939ms)
+  ✓  6 …atomic slots preserve last valid portfolio in durable session and memory modes (2.3s)
+  6 passed (10.8s)
+BROWSER_EXIT=0
+
+$ bash .github/bubbles/scripts/artifact-lint.sh specs/008-portfolio-survival-and-brief-lab
+Artifact lint PASSED.
+ARTIFACT_LINT_EXIT=0
+
+$ bash .github/bubbles/scripts/inter-spec-dependency-guard.sh specs/008-portfolio-survival-and-brief-lab
+inter-spec-dependency-guard: PASS Gate G089 (inter_spec_dependency_gate) - dependencies=0
+G089_EXIT=0
+
+$ bash .github/bubbles/scripts/capability-foundation-guard.sh specs/008-portfolio-survival-and-brief-lab
+capability-foundation-guard: PASS Gate G094 - capability foundation requirements satisfied
+G094_REAL_EXIT=0
+```
+
+G094 is claimed against `capability-foundation-guard.sh`, its registered enforcer.
+`inter-spec-dependency-guard.sh` owns **G089**, and is recorded separately rather
+than relabelled — the same correction Scope 01 recorded as `F008-IMPL-003`.
+
+#### Member 7 - `git diff --check`
+
+Repository-wide the check is **not** clean; scoped to this scope's own files it is.
+
+```text
+$ git diff --check
+specs/_bugs/BUG-002-market-brief-session-date-drift/report.md:7903: trailing whitespace.
+… 20 further findings, all under specs/_bugs/BUG-002-market-brief-session-date-drift/ …
+specs/_bugs/BUG-002-market-brief-session-date-drift/scopes.md:369: trailing whitespace.
+GIT_DIFF_CHECK_EXIT=2
+
+$ git diff --check -- specs/008-portfolio-survival-and-brief-lab rlportfolio.js \
+    portfolio-survival-allocation-lab.html portfolio-survival-allocation.config.json \
+    tests/portfolio-foundation.unit.mjs tests/portfolio-privacy.functional.mjs \
+    tests/portfolio-survival-foundation.spec.mjs tests/fixtures/portfolio-survival-allocation
+SCOPED_DIFF_CHECK_EXIT=0
+
+$ git status --porcelain -- <same owned paths>
+(empty)
+STATUS_EXIT=0
+```
+
+Every repository-wide finding is in `specs/_bugs/BUG-002-market-brief-session-date-drift/`,
+which a concurrent session owns. Those files were neither edited nor staged here.
+This member is judged on this scope's own files, where the check exits 0 — the
+identical basis Scope 01 used.
+
+#### Members 8-12 - source lock, runner, static scans, parity, plan sync
+
+```text
+$ node scripts/validate-node-source-lock.mjs
+[node-source-lock] manifest=PASS  npmrc=PASS  lockfile=PASS  graph=PASS  actual=PASS
+[node-source-lock] OK adversarial=16 unexpectedAcceptances=0
+SOURCE_LOCK_EXIT=0
+
+$ npx --no-install playwright --version
+Version 1.61.1
+RUNNER_EXIT=0
+
+$ grep -nE 'page\.route\(|context\.route\(|\.routeFromHAR|msw|nock|cy\.intercept|setupServer|wiremock' \
+    tests/portfolio-survival-foundation.spec.mjs tests/portfolio-survival.support.mjs \
+    tests/portfolio-foundation.unit.mjs tests/portfolio-privacy.functional.mjs
+TRUE_INTERCEPTION_EXIT=1   (1 = ZERO matches = clean)
+
+$ grep -nE 'https?://[a-zA-Z]' rlportfolio.js portfolio-survival-allocation.config.json
+EXTERNAL_HOST_EXIT=1       (1 = zero matches)
+
+$ grep -nE 'rlData|rlProviderConfig|rlApiKeys' rlportfolio.js
+NAMESPACE_LEAK_EXIT=1      (1 = zero matches)
+
+$ (mandate/config parity: portfolio-survival-allocation.config.json -> rlportfolio.js)
+config.mandate keys = cashNeedUnits constraintKinds constraintTypes constraintUnits
+  contractVersion descriptiveRouteStates forbiddenInputSources horizonUnits
+  inputAuthority mandateDependentStates maxCashNeeds maxConstraints
+  neverInferredFields treatmentTimings
+config.mandate keys absent from rlportfolio.js = NONE
+descriptiveRouteStates = allocation, path-lab, risk-xray  (all three present in source)
+MANDATE_CONFIG_PARITY=OK
+
+$ (authority / forbidden-input reason codes in production source)
+forbidden-input-source      occurrences in rlportfolio.js = 1
+P008-MANDATE-AUTHORITY      occurrences in rlportfolio.js = 2
+
+$ (Test Plan / DoD parity over scope.md)
+TEST_PLAN_ROW_COUNT=5        # TP-02-01 TP-02-02 TP-02-03 TP-02-04 TP-02-05
+TEST_EVIDENCE_DOD_ITEMS=5    # exact parity
+PARITY=EXACT
+DoD checkboxes: checked=9  unchecked=1  total=10
+
+$ node scripts/validate-spec-test-paths.mjs
+[spec-test-paths] scanned=462 references=10610 distinctPaths=214 missingPaths=86 baseline=86 new=0 stale=0
+[spec-test-paths] OK — no new missing test path(s)
+SPEC_TEST_PATHS_EXIT=0
+
+$ bash .github/bubbles/scripts/implementation-reality-scan.sh specs/008-portfolio-survival-and-brief-lab --verbose
+  Files scanned:  16   Violations: 0   Warnings: 1
+🟡 PASSED with 1 warning(s) — manual review advised
+REALITY_SCAN_EXIT=0
+```
+
+Editor diagnostics: no errors on `scope.md`, `report.md`, `state.json`,
+`rlportfolio.js`, `portfolio-survival-allocation-lab.html`,
+`portfolio-survival-allocation.config.json`,
+`tests/portfolio-privacy.functional.mjs`, `tests/portfolio-foundation.unit.mjs`,
+`tests/portfolio-survival-foundation.spec.mjs`.
+
+Exact rollback is carried by subtest 11 above, green on the same command.
+
+#### Member 13 - scope-local traceability: FAILS ON THIS SCOPE'S OWN FILE
+
+**Command:** `BUBBLES_AGENT_NAME=bubbles.implement BUBBLES_SPEC=specs/008-portfolio-survival-and-brief-lab BUBBLES_SCOPE=SCOPE-02 BUBBLES_TOOL_LOG_TAGS=build-quality-gate,traceability,current-scope timeout 600 bash .github/bubbles/scripts/tool-log.sh bash .github/bubbles/scripts/traceability-guard.sh specs/008-portfolio-survival-and-brief-lab --current-scope`
+
+**Exit Code:** 1 · **Claim Source:** executed
+
+```text
+ℹ️  Checking traceability for scopes/02-mandate-and-cash-need-authority/scope.md
+❌ scopes/02-mandate-and-cash-need-authority/scope.md scenario has no traceable Test Plan row: Dated cash needs and constraints come only from user input
+❌ scopes/02-mandate-and-cash-need-authority/scope.md scenario has no traceable Test Plan row: A portfolio can be researched before goals are entered
+ℹ️  scopes/02-mandate-and-cash-need-authority/scope.md summary: scenarios=2 test_rows=6
+
+--- Gherkin → DoD Content Fidelity (Gate G068) ---
+✅ scopes/02-mandate-and-cash-need-authority/scope.md scenario maps to DoD item: Dated cash needs and constraints come only from user input
+❌ scopes/02-mandate-and-cash-need-authority/scope.md Gherkin scenario has no faithful DoD item preserving its behavioral claim: A portfolio can be researched before goals are entered
+❌ DoD content fidelity gap: 1 Gherkin scenario(s) have no matching DoD item — DoD may have been rewritten to match delivery instead of the spec (Gate G068)
+
+RESULT: FAILED (32 failures, 0 warnings)
+[tool-log] recorded exit=1 duration=3881ms → /home/redacted/research-lab/.specify/runtime/tool-calls.jsonl
+TRACEABILITY_EXIT=1
+
+================ MECHANICAL FAILURE CLASSIFICATION ================
+TOTAL_FAIL_LINES=32
+-- failures naming Scope 02 own dir (scopes/02-...)              3
+-- failures naming Scope 02 own test/source files                0
+-- failures naming OTHER scope dirs (01, 03-16)                  0
+-- scenario-manifest missing linked test (later-scope suites)   28
+-- feature-level aggregate lines                                 1
+-- classified total                                             32
+```
+
+The classes are exhaustive: 3 + 28 + 1 = 32. The 28 manifest failures reference
+later-scope suites that do not exist yet (`portfolio-survival-brief`, `-risk`,
+`-paths`, `-diversification`, `-allocation`, `-mobile`); every manifest entry that
+resolves to this scope's own foundation spec passes. Those 28 plus the aggregate
+are the residual Scope 01 deferred to the Feature Completion Gate.
+
+**The three remaining failures are this scope's own file, and the count is 3, not 0.**
+Scope 01's closeout recorded them explicitly — "The 3 scope failures and the 1
+aggregate all name Scope 02" — and deferred them as foreign-owned from where it
+stood. From inside Scope 02 they are own-file failures, and the item's written
+standard is *zero* failure naming this scope's own files. It is not met.
+
+#### Root cause, reproduced rather than inferred
+
+The guard's `scenario_matches_row` first looks for a shared trace id, and falls
+back to significant-word overlap with a threshold of 2. Re-implementing that exact
+rule against the current artifacts:
+
+```text
+=== 01-private-portfolio-import-and-atomic-store : 2 scenarios, 6 TP rows ===
+  Scenario: 'A user imports a valid portfolio without credentials'
+    trace-ids in Scenario: line = []
+    best word-overlap score = 3 (threshold 2) -> MATCH
+  Scenario: 'A malformed or secret-bearing import cannot partially replace the portfolio'
+    trace-ids in Scenario: line = []
+    best word-overlap score = 4 (threshold 2) -> MATCH
+
+=== 02-mandate-and-cash-need-authority : 2 scenarios, 5 TP rows ===
+  Scenario: 'Dated cash needs and constraints come only from user input'
+    trace-ids in Scenario: line = []
+    significant words = dated cash needs constraints come only user input
+    best word-overlap score = 1 (threshold 2) -> NO MATCH
+  Scenario: 'A portfolio can be researched before goals are entered'
+    trace-ids in Scenario: line = []
+    significant words = portfolio can researched before goals entered
+    best word-overlap score = 1 (threshold 2) -> NO MATCH
+```
+
+Neither Scope 02 `Scenario:` line carries its `SCN-` id, so the declared-id path
+cannot fire; and neither title shares two significant words with any Test Plan row,
+so the fallback cannot fire either. Scope 01 passes only incidentally — its titles
+happen to reuse three and four words from its own rows.
+
+The linkage this scope intends **is** declared: the `### SCN-008-003` / `### SCN-008-004`
+headings carry the ids, and every Test Plan row names `SCN-008-003, SCN-008-004` in
+its Scenario column. The guard reads only the `Scenario:` line, so it does not see
+either declaration. Whether the correct repair is to carry the id onto the Gherkin
+line, to reword the rows, or to widen the extractor, all three edit planning content
+or framework-managed surface.
+
+#### Why this was not repaired here
+
+Each available repair is out of this agent's artifact ownership, and doing it anyway
+would be precisely the failure G068 exists to detect:
+
+1. **Adding the `SCN-` id to the `Scenario:` line** modifies existing Gherkin text.
+2. **Rewording the Test Plan rows** modifies existing Test Plan row text.
+3. **Adding a DoD item** for `A portfolio can be researched before goals are entered`
+   adds a DoD item.
+
+All three are `bubbles.plan`-owned. G068's failure message is literally *"DoD may
+have been rewritten to match delivery instead of the spec"* — an implement agent
+silencing that check by editing the very artifacts it polices would convert a real
+planning gap into a false green.
+
+4. **`--all-scopes` was not substituted for `--current-scope`.** Different command,
+   different question, and this item's own text excludes it.
+5. **No other scope's status was touched.**
+
+#### Verdict
+
+Twelve of the thirteen named members are current and clean, with raw output above.
+The thirteenth — scope-local traceability — fails with **3 failures naming this
+scope's own `scope.md`** against a written standard of zero. The item stays `[ ]`
+and Scope 02 stays **In Progress**.
+
+Nothing here writes `certification.*`.
+
+#### Finding
+
+| Finding | State | Evidence | Owner |
+| --- | --- | --- | --- |
+| `F008-IMPL-012` — Scope 02's two Gherkin scenarios reach no Test Plan row under the guard's matcher, and `A portfolio can be researched before goals are entered` has no faithful DoD item (G068) | **Open, blocking this gate** | traceability guard exit 1, 3 own-file failures, matcher reproduced above | `bubbles.plan` |
 
 ## Uncertainty Declarations
+
+### Build Quality Gate is blocked by a planning-owned traceability gap (OPEN)
+
+The Build Quality Gate item is the last unchecked box in this scope. Twelve of its
+thirteen named members were re-executed in this session and are clean; the
+thirteenth is not, and the cause is not this agent's to repair.
+
+**What changed since the previous record.** That record said the named traceability
+command refused at exit 2 because prerequisite scope 1 was not `done`. Scope 1 is
+now `done`, so that refusal no longer occurs. The command now runs and **fails at
+exit 1 with three failures naming this scope's own `scope.md`** — the previous
+premise is superseded, not carried forward.
+
+**What is uncovered.** The clause `scope-local traceability … with zero failure
+naming this scope's own files`. The observed count is 3, not 0:
+
+- two `scenario has no traceable Test Plan row` (both Scope 02 scenarios)
+- one `Gherkin scenario has no faithful DoD item preserving its behavioral claim`
+  (`A portfolio can be researched before goals are entered`, Gate G068)
+
+**Why it fails, reproduced not guessed.** Neither Scope 02 `Scenario:` line carries
+its `SCN-` id, and neither title shares the required two significant words with any
+Test Plan row, so both of the guard's matching paths miss. The intended linkage is
+declared in the `### SCN-008-00x` headings and in each row's Scenario column, but
+the guard reads only the `Scenario:` line. Full reproduction:
+[Build Quality Gate - current-session re-verification](#build-quality-gate---current-session-re-verification-still-not-closed-new-cause).
+
+**Why it was not fixed here.** Every repair — carrying the id onto the Gherkin line,
+rewording Test Plan rows, or adding a DoD item — edits planning content owned by
+`bubbles.plan`. G068 exists to detect DoD text rewritten to match delivery; an
+implement agent editing those artifacts to silence it would manufacture the exact
+false green the gate guards against.
+
+**Owner:** `bubbles.plan` (`F008-IMPL-012`). Until it is closed, the item stays `[ ]`
+and Scope 02 stays In Progress. No `certification.*` field was written.
 
 ### TP-02-02 skip rationale is stale (observation for the owner, not acted on)
 

@@ -1093,3 +1093,374 @@ test('rolling a mandate back restores the pre-mandate portfolio state by identit
     'every descriptive route must still cite the pre-change portfolio identity after the rollback'
   );
 });
+
+// ---------------------------------------------------------------------------
+// TP-03-03: category-by-category verified deletion, preservation, and
+// partial-failure truth against raw namespaced state.
+// ---------------------------------------------------------------------------
+
+// Real shared cache-first market assets, not test-only names: these are the generic public
+// caches every tool on the site reuses, so wiping them is a real product regression.
+const GENERIC_PUBLIC_CACHES = Object.freeze({ rlData: '{"bars":{}}', optSnaps: '{"SPY":{}}' });
+const CLEAR_RESULT_IDENTITY = `sha256:${'ab12'.repeat(16)}`;
+const CLEAR_SUBJECT = 'subject-clear-alpha';
+const LATER_CLEAR = '2026-07-15T15:00:00.000Z';
+const AFTER_CLEAR = '2026-07-15T15:01:00.000Z';
+
+// Keys split by the adapter that actually holds them. This differs deliberately from
+// `declaredStorageKeys` above, which builds one conservative allowlist for leak scans and
+// puts the return context on the local side. A per-step fault has to fault the key on the
+// adapter the runtime removes it from, so this derivation follows the runtime's split.
+function declaredKeysByAdapter(policy) {
+  return {
+    local: [policy.storage.pointerKey, ...policy.storage.slotKeys, policy.storage.quarantineKey].slice().sort(),
+    session: [policy.storage.sessionKey, policy.storage.returnContextKey].slice().sort()
+  };
+}
+
+// The clear operations a category declares it is removed by, read off `clearedBy` rather
+// than written out here, so a category added later is classified by its own declaration
+// instead of silently dropping out of the matrix.
+function clearTokens(category) {
+  return category.clearedBy.split('-and-').slice().sort();
+}
+
+function categoriesByName(inventory) {
+  const byName = new Map();
+  inventory.categories.forEach((entry) => byName.set(entry.category, entry));
+  return byName;
+}
+
+/*
+ * Per-category verdict for one clear operation, expressed against the raw before/after
+ * inventories. Returns a violation list rather than asserting, so the identical checker can
+ * be pointed at a deliberately wrong clear to prove it is capable of reporting one.
+ *
+ * A category the operation declares it removes must reach zero. Every other category must
+ * come back at its exact prior count -- not merely "still present", because a clear that
+ * dropped one of three mandate revisions would still be present.
+ */
+function categoryViolations(before, after, operationToken) {
+  const afterByName = categoriesByName(after);
+  const violations = [];
+  before.categories.forEach((entry) => {
+    const observed = afterByName.get(entry.category);
+    if (!observed) {
+      violations.push(`${entry.category}: absent from the post-clear inventory`);
+      return;
+    }
+    if (clearTokens(entry).includes(operationToken)) {
+      if (observed.recordCount !== 0 || observed.present !== false) {
+        violations.push(`${entry.category}: declared cleared by ${operationToken} but ${observed.recordCount} record(s) survive`);
+      }
+      return;
+    }
+    if (observed.recordCount !== entry.recordCount || observed.present !== entry.present) {
+      violations.push(`${entry.category}: not cleared by ${operationToken} but went ${entry.recordCount} -> ${observed.recordCount}`);
+    }
+  });
+  return violations.sort();
+}
+
+/*
+ * Violations for the all-personal clear, which is not symmetric with the behavior clear.
+ * It reports `verifiedEmpty` over every declared storage key, so no personal category may
+ * survive it regardless of which operation that category's `clearedBy` names. Preservation
+ * under this operation is about the generic public caches, which are not personal
+ * categories and are asserted against the raw namespace instead.
+ */
+function allPersonalViolations(before, after) {
+  const afterByName = categoriesByName(after);
+  const violations = [];
+  before.categories.forEach((entry) => {
+    const observed = afterByName.get(entry.category);
+    if (!observed) {
+      violations.push(`${entry.category}: absent from the post-clear inventory`);
+      return;
+    }
+    if (observed.recordCount !== 0 || observed.present !== false) {
+      violations.push(`${entry.category}: ${observed.recordCount} record(s) survive a verified-empty all-personal clear`);
+    }
+  });
+  return violations.sort();
+}
+
+/*
+ * Commits holdings, an explicit mandate carrying a dated cash need, and one eligible
+ * behavior completion over real storage, then stocks the three declared keys a durable
+ * commit does not itself create. Every populatable inventory category ends up non-empty,
+ * which is what makes the emptiness assertions afterwards non-vacuous.
+ */
+function seedEveryPopulatableCategory(api, policy, localStorage, sessionStorage) {
+  const store = api.createPortfolioStore({ localStorage, sessionStorage }, policy);
+  const opened = store.openWorkspace(NOW);
+  assert.equal(opened.ok, true);
+
+  const portfolio = store.commitWorkspace(
+    candidateFromCsv(api, policy, opened.value.workspace, 'Category clear portfolio').value,
+    opened.value.workspace.generation,
+    NOW
+  );
+  assert.equal(portfolio.ok, true, `portfolio commit must succeed: ${JSON.stringify(portfolio.error || {})}`);
+
+  const draft = api.validateMandateDraft(mandateFixture('mandate-explicit.json'), portfolio.value.workspace, { now: NOW }, policy);
+  assert.equal(draft.ok, true);
+  const mandate = store.commitWorkspace(
+    api.buildMandateCandidate(draft.value, portfolio.value.workspace, { now: NOW }, policy).value,
+    portfolio.value.workspace.generation,
+    NOW
+  );
+  assert.equal(mandate.ok, true, `mandate commit must succeed: ${JSON.stringify(mandate.error || {})}`);
+
+  const behavior = api.buildBehaviorCandidate({
+    category: 'ticker-research-completed',
+    completionConditionId: 'risk-panel-reviewed',
+    domain: 'equity-research',
+    horizon: 'medium-term',
+    resultIdentity: CLEAR_RESULT_IDENTITY,
+    sourceSurface: 'risk-xray',
+    subjectId: CLEAR_SUBJECT,
+    subjectKind: 'ticker'
+  }, mandate.value.workspace, { now: NOW }, policy);
+  assert.equal(behavior.ok, true, `behavior candidate must build: ${JSON.stringify(behavior.error || {})}`);
+  const committed = store.commitWorkspace(behavior.value.workspace, mandate.value.workspace.generation, NOW);
+  assert.equal(committed.ok, true, `behavior commit must succeed: ${JSON.stringify(committed.error || {})}`);
+
+  localStorage.setItem(policy.storage.quarantineKey, 'quarantine-sentinel');
+  sessionStorage.setItem(policy.storage.sessionKey, 'session-fallback-sentinel');
+  sessionStorage.setItem(policy.storage.returnContextKey, 'return-context-sentinel');
+
+  return { store, workspace: committed.value.workspace };
+}
+
+test('each declared privacy category is deleted by the clear that names it and survives the clear that does not, one category at a time', () => {
+  const { api, policy } = loadRuntime();
+  const localStorage = createStorage({ initial: { ...GENERIC_PUBLIC_CACHES } });
+  const sessionStorage = createStorage();
+  const { store, workspace } = seedEveryPopulatableCategory(api, policy, localStorage, sessionStorage);
+
+  const beforeResult = api.privacyInventory(workspace, { localStorage, sessionStorage }, policy);
+  assert.equal(beforeResult.ok, true, `inventory must project: ${JSON.stringify(beforeResult.error || {})}`);
+  const before = beforeResult.value;
+
+  // The category list and the operations that clear it are both read off the runtime's own
+  // declaration. A literal list here would stop covering any category a later scope adds.
+  const tokenUniverse = Array.from(new Set(before.categories.flatMap(clearTokens))).sort();
+  assert.deepEqual(tokenUniverse, ['all-personal', 'behavior'], 'a new clearedBy token would leave its categories unclassified by the matrix below');
+
+  const populated = before.categories.filter((entry) => entry.present).map((entry) => entry.category).sort();
+  const notRepresentable = before.categories.filter((entry) => !entry.present).map((entry) => entry.category).sort();
+  assert.deepEqual(
+    populated,
+    ['behavior-events', 'cash-needs', 'mandate-revisions', 'portfolio-revisions', 'quarantine', 'session-fallback'],
+    'six declared categories must genuinely hold records before any clear, or every emptiness assertion below is vacuous'
+  );
+  // Pinned, not counted. These two sections have no write path through the builders this
+  // scope exports, so asserting their emptiness proves nothing. Naming them exactly means a
+  // later scope that adds a write path turns this red instead of quietly over-reporting.
+  assert.deepEqual(
+    notRepresentable,
+    ['action-outcomes', 'interest-signals'],
+    'exactly two declared categories cannot be populated at this scope, so they are excluded from the proven set rather than counted'
+  );
+  assert.equal(
+    populated.some((name) => clearTokens(categoriesByName(before).get(name)).includes('behavior')),
+    true,
+    'at least one populated category must be behavior-cleared, or the behavior arm clears nothing'
+  );
+  assert.equal(
+    populated.some((name) => !clearTokens(categoriesByName(before).get(name)).includes('behavior')),
+    true,
+    'at least one populated category must survive the behavior clear, or the preservation half is vacuous'
+  );
+
+  // Byte-identical clones taken before either clear, so the two operations are compared on
+  // the same starting state rather than on whatever the first one left behind.
+  const bluntLocal = createStorage({ initial: localStorage.snapshot() });
+  const bluntSession = createStorage({ initial: sessionStorage.snapshot() });
+
+  // --- Operation 1: the behavior clear -------------------------------------------------
+  const behaviorClear = api.buildBehaviorClearCandidate(workspace, LATER_CLEAR, policy);
+  assert.equal(behaviorClear.ok, true, `behavior clear must build: ${JSON.stringify(behaviorClear.error || {})}`);
+  assert.equal(behaviorClear.value.clearedEventCount, before.categories.find((entry) => entry.category === 'behavior-events').recordCount, 'the reported cleared count must match the population the inventory proved');
+  const behaviorCommitted = store.commitWorkspace(behaviorClear.value.workspace, workspace.generation, LATER_CLEAR);
+  assert.equal(behaviorCommitted.ok, true, `behavior clear must commit: ${JSON.stringify(behaviorCommitted.error || {})}`);
+
+  // Re-read from the persisted bytes, so "cleared" means the namespace no longer holds it
+  // rather than the in-process candidate object having dropped it.
+  const afterBehaviorLoad = api.createPortfolioStore({ localStorage, sessionStorage }, policy).openWorkspace(AFTER_CLEAR);
+  assert.equal(afterBehaviorLoad.ok, true, `a behavior-cleared namespace must still open: ${JSON.stringify(afterBehaviorLoad.error || {})}`);
+  const afterBehavior = api.privacyInventory(afterBehaviorLoad.value.workspace, { localStorage, sessionStorage }, policy).value;
+
+  assert.deepEqual(categoryViolations(before, afterBehavior, 'behavior'), [], 'the behavior clear must empty exactly the categories that declare it and leave every other category at its exact prior count');
+  assert.equal(JSON.stringify(afterBehaviorLoad.value.workspace).includes(CLEAR_SUBJECT), false, 'no cleared subject may reappear through the reopened workspace');
+  assert.equal(JSON.stringify(workspace).includes(CLEAR_SUBJECT), true, 'the subject was genuinely stored, so its absence above is meaningful');
+  assert.deepEqual(
+    Object.fromEntries(Object.entries(localStorage.snapshot()).filter(([key]) => key in GENERIC_PUBLIC_CACHES)),
+    GENERIC_PUBLIC_CACHES,
+    'the shared public caches must survive a behavior clear byte-identical, not re-serialized'
+  );
+
+  // --- Operation 2: the all-personal clear, on the untouched clone ---------------------
+  const bluntCleared = api.clearFoundationStorage({ localStorage: bluntLocal, sessionStorage: bluntSession });
+  assert.equal(bluntCleared.ok, true, `the all-personal clear must succeed: ${JSON.stringify(bluntCleared.error || {})}`);
+  assert.equal(bluntCleared.value.verifiedEmpty, true);
+  const afterAllLoad = api.createPortfolioStore({ localStorage: bluntLocal, sessionStorage: bluntSession }, policy).openWorkspace(AFTER_CLEAR);
+  assert.equal(afterAllLoad.ok, true, `an all-personal-cleared namespace must still open: ${JSON.stringify(afterAllLoad.error || {})}`);
+  const afterAll = api.privacyInventory(afterAllLoad.value.workspace, { localStorage: bluntLocal, sessionStorage: bluntSession }, policy).value;
+
+  assert.deepEqual(allPersonalViolations(before, afterAll), [], 'a verified-empty all-personal clear must leave no personal category holding a record');
+  assert.deepEqual(bluntLocal.snapshot(), GENERIC_PUBLIC_CACHES, 'exactly the generic public caches may survive an all-personal clear, byte-identical');
+  assert.deepEqual(bluntSession.snapshot(), {}, 'no declared session key may survive an all-personal clear');
+
+  // `clearedBy` names the NARROWEST operation that removes a category, not the complete
+  // set. The all-personal clear wipes every declared storage key, so it also removes the
+  // behavior-only categories. That superset relationship is pinned here rather than read
+  // off a declaration that does not state it, so a change on either side goes red.
+  const behaviorOnly = before.categories.filter((entry) => entry.present && !clearTokens(entry).includes('all-personal')).map((entry) => entry.category).sort();
+  assert.deepEqual(behaviorOnly, ['behavior-events'], 'exactly one populated category declares only the behavior clear, and it is still emptied by the all-personal clear above');
+
+  // --- The per-category matrix both operations produce ---------------------------------
+  // Each populatable category is now proven on both axes: emptied by the operation that
+  // removes it, and intact at its exact count under the operation that does not.
+  const verifiedEmpty = bluntCleared.value.verifiedEmpty === true && bluntCleared.value.remainingPersonalKeys.length === 0;
+  const matrix = populated.map((name) => ({
+    category: name,
+    behaviorClear: categoriesByName(afterBehavior).get(name).recordCount === 0 ? 'deleted' : 'preserved',
+    allPersonalClear: categoriesByName(afterAll).get(name).recordCount === 0 ? 'deleted' : 'preserved'
+  }));
+  const declaredMatrix = populated.map((name) => ({
+    category: name,
+    behaviorClear: clearTokens(categoriesByName(before).get(name)).includes('behavior') ? 'deleted' : 'preserved',
+    allPersonalClear: verifiedEmpty ? 'deleted' : 'preserved'
+  }));
+  assert.deepEqual(matrix, declaredMatrix, 'every populatable category must behave exactly as its clearedBy declaration and the all-personal verified-empty contract say');
+  assert.equal(matrix.filter((row) => row.behaviorClear === 'preserved').length, 5, 'five categories must be observed surviving the behavior clear, or "category-by-category" collapses to one whole-store wipe');
+
+  // --- Red-ability: the same checker against the blunt whole-store alternative ----------
+  // The all-personal clear is a real, executed operation that empties everything. Pointing
+  // the behavior-arm checker at it must report violations naming each preserved category.
+  // If it reported none, the preservation half above would be inert and a blunt wipe would
+  // pass as a correct per-category delete.
+  const bluntViolations = categoryViolations(before, afterAll, 'behavior');
+  assert.equal(bluntViolations.length, 5, `a whole-store wipe must violate the behavior contract for all five preserved categories, got: ${JSON.stringify(bluntViolations)}`);
+  assert.deepEqual(
+    bluntViolations.map((entry) => entry.split(':')[0]).sort(),
+    ['cash-needs', 'mandate-revisions', 'portfolio-revisions', 'quarantine', 'session-fallback'],
+    'the checker must name every category a blunt wipe destroyed, so the behavior arm passing above is a real distinction'
+  );
+});
+
+/*
+ * Delegating adapter whose `removeItem` silently does nothing for one key. This is the
+ * failure a throwing fault cannot model: a clear that skips a step without erroring. Used
+ * only to prove the per-step checker below reports it.
+ */
+function withSkippedRemoval(storage, skippedKey) {
+  return {
+    clear: () => storage.clear(),
+    getItem: (key) => storage.getItem(key),
+    key: (index) => storage.key(index),
+    get length() { return storage.length; },
+    removeItem: (key) => { if (String(key) !== skippedKey) storage.removeItem(key); },
+    setItem: (key, value) => storage.setItem(key, value),
+    snapshot: () => storage.snapshot()
+  };
+}
+
+/*
+ * Violations for one faulted clear step, read from the raw namespaces afterwards. Returns a
+ * list rather than asserting so the identical checker can be aimed at a clear that skips an
+ * extra step, proving it is capable of reporting one.
+ */
+function stepViolations(policy, adapters, declared, faultedKey, sentinels) {
+  const violations = [];
+  const read = (key) => (declared.local.includes(key) ? adapters.localStorage : adapters.sessionStorage).getItem(key);
+  if (read(faultedKey) !== sentinels[faultedKey]) {
+    violations.push(`${faultedKey}: faulted key must keep its exact bytes, saw ${JSON.stringify(read(faultedKey))}`);
+  }
+  declared.local.concat(declared.session).forEach((key) => {
+    if (key === faultedKey) return;
+    if (read(key) !== null) violations.push(`${key}: unfaulted step did not delete`);
+  });
+  Object.entries(GENERIC_PUBLIC_CACHES).forEach(([key, value]) => {
+    if (adapters.localStorage.getItem(key) !== value) violations.push(`${key}: generic public cache was not preserved byte-identical`);
+  });
+  return violations.sort();
+}
+
+test('every declared clear step is faulted on its own, the other steps still delete, and the retained bytes refuse a success result', () => {
+  const { api, policy } = loadRuntime();
+  const declared = declaredKeysByAdapter(policy);
+  const declaredCount = declared.local.length + declared.session.length;
+  assert.equal(declaredCount > 0, true, 'an empty declared set would make the loop below iterate zero times and prove nothing');
+  assert.equal(new Set(declared.local.concat(declared.session)).size, declaredCount, 'a duplicate key would let one survivor hide behind another');
+
+  function seedRawNamespace() {
+    const localStorage = createStorage({ initial: { ...GENERIC_PUBLIC_CACHES } });
+    const sessionStorage = createStorage();
+    const sentinels = {};
+    declared.local.forEach((key, index) => { sentinels[key] = `local-sentinel-${index}`; localStorage.setItem(key, sentinels[key]); });
+    declared.session.forEach((key, index) => { sentinels[key] = `session-sentinel-${index}`; sessionStorage.setItem(key, sentinels[key]); });
+    return { adapters: { localStorage, sessionStorage }, sentinels };
+  }
+
+  const faultedSteps = [];
+  declared.local.concat(declared.session).forEach((faultedKey) => {
+    const onLocal = declared.local.includes(faultedKey);
+    const { adapters, sentinels } = seedRawNamespace();
+
+    // Non-vacuity: every declared step must have something to delete before it is faulted.
+    declared.local.concat(declared.session).forEach((key) => {
+      const stored = (declared.local.includes(key) ? adapters.localStorage : adapters.sessionStorage).getItem(key);
+      assert.equal(stored, sentinels[key], `${key} must hold its sentinel before the clear, or its deletion proves nothing`);
+    });
+
+    (onLocal ? adapters.localStorage : adapters.sessionStorage).failRemove(faultedKey);
+    const cleared = api.clearFoundationStorage(adapters);
+
+    assert.equal(cleared.ok, false, `${faultedKey}: a clear that could not delete every declared key must not report success`);
+    assert.equal(cleared.error.code, 'P008-STORE-WRITE', `${faultedKey}: the partial failure must be named as a storage write failure`);
+    assert.equal(cleared.error.reason, 'foundation-clear-incomplete', `${faultedKey}: the refusal must state the clear was incomplete`);
+    assert.equal(cleared.error.recoverable, true, `${faultedKey}: an incomplete clear is retryable, so the caller can be told to try again`);
+    assert.equal(cleared.error.valueEchoed, false, `${faultedKey}: the refusal must not echo the retained personal bytes it is refusing over`);
+    assert.equal(Object.prototype.hasOwnProperty.call(cleared, 'value'), false, `${faultedKey}: a refusal must carry no success payload`);
+
+    assert.deepEqual(stepViolations(policy, adapters, declared, faultedKey, sentinels), [], `${faultedKey}: the faulted step must retain its exact bytes while every other step still deletes and the public caches survive`);
+
+    // Category truth against the raw namespace: exactly the faulted key is still personal.
+    const residual = api.foundationPrivacyInventory(adapters);
+    assert.equal(residual.ok, true);
+    assert.equal(residual.value.personalKeyCount, 1, `${faultedKey}: exactly one declared key may remain, so a bail-on-first-error clear is refused here`);
+    assert.deepEqual(residual.value.presentKeys, [{ key: faultedKey, storage: onLocal ? 'local' : 'session' }], `${faultedKey}: the surviving personal key must be the faulted one and nothing else`);
+
+    faultedSteps.push(faultedKey);
+  });
+
+  assert.deepEqual(faultedSteps.slice().sort(), declared.local.concat(declared.session).sort(), 'every declared clear step must have been faulted on its own, not a subset');
+  assert.equal(faultedSteps.length, declaredCount);
+
+  // Control: with no fault the same seeded namespace clears completely, so the refusals
+  // above are caused by the injected fault rather than by a clear that never works.
+  const clean = seedRawNamespace();
+  const cleanCleared = api.clearFoundationStorage(clean.adapters);
+  assert.equal(cleanCleared.ok, true, `an unfaulted clear must succeed: ${JSON.stringify(cleanCleared.error || {})}`);
+  assert.equal(cleanCleared.value.verifiedEmpty, true);
+  assert.equal(cleanCleared.value.clearedKeyCount, declaredCount, 'the clear must report covering every declared step');
+  assert.deepEqual(cleanCleared.value.remainingPersonalKeys, []);
+  assert.deepEqual(clean.adapters.localStorage.snapshot(), GENERIC_PUBLIC_CACHES, 'exactly the generic public caches may survive an unfaulted clear');
+  assert.deepEqual(clean.adapters.sessionStorage.snapshot(), {});
+
+  // Red-ability: one step throws and a second step is silently skipped by a wrapped adapter.
+  // The per-step checker must name the skipped key. If it did not, "every other step still
+  // deletes" would be inert and a clear that quietly skipped a key would pass.
+  const faulted = declared.local[0];
+  const skipped = declared.local[1];
+  const red = seedRawNamespace();
+  red.adapters.localStorage.failRemove(faulted);
+  const wrappedAdapters = { localStorage: withSkippedRemoval(red.adapters.localStorage, skipped), sessionStorage: red.adapters.sessionStorage };
+  const redCleared = api.clearFoundationStorage(wrappedAdapters);
+  assert.equal(redCleared.ok, false, 'a clear that skipped a step must still refuse');
+  const redViolations = stepViolations(policy, red.adapters, declared, faulted, red.sentinels);
+  assert.deepEqual(redViolations, [`${skipped}: unfaulted step did not delete`], `the per-step checker must name the silently skipped key, got: ${JSON.stringify(redViolations)}`);
+});

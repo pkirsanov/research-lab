@@ -419,6 +419,14 @@
             line-height: 1.6;
         }
 
+        /* The rank is rendered into each row, so a list marker would number it twice. */
+        #behaviorRankRows {
+            margin: 8px 0 0;
+            padding-left: 0;
+            list-style: none;
+            line-height: 1.6;
+        }
+
         .route-block p {
             margin: 6px 0 0;
         }
@@ -606,6 +614,29 @@
                 </div>
                 <button id="emergencyClear" class="danger" type="button">Clear foundation storage</button>
             </div>
+            <div class="band">
+                <h3>Personal categories held on this device</h3>
+                <p class="subtle">Counts and states only. No stored holding, mandate, subject, or amount is read into
+                    this list.</p>
+                <ul id="privacyCategoryRows" class="subtle"></ul>
+            </div>
+            <div class="band">
+                <h3>Sources excluded from research evidence</h3>
+                <p class="subtle">Excluded sources that contributed to stored research evidence:
+                    <strong id="privacyExcludedCount">0</strong>
+                </p>
+                <p id="privacyProfileStatement" class="subtle">No cross-device identifier · no hidden profile · no
+                    engagement objective · ranking optimizes research relevance only</p>
+                <p id="privacyExcludedTokens" class="microcopy">Declared excluded sources are listed once the versioned
+                    policy validates.</p>
+            </div>
+            <div class="privacy-inventory">
+                <label for="clearBehaviorConfirmation">
+                    <input id="clearBehaviorConfirmation" type="checkbox"> Clear my local research behavior history.
+                    Holdings, mandate, dated cash needs, and public cache are kept.
+                </label>
+                <button id="clearBehavior" class="danger" type="button" disabled>Clear behavior history</button>
+            </div>
             <div id="privacyResult" class="state-message" role="status">No clear requested.</div>
         </section>
 
@@ -650,6 +681,42 @@
                         <p class="subtle">Unavailable until one verified local revision exists. Missing portfolio
                             context does not become a neutral allocation, hidden goal, or recommendation.</p>
                     </div>
+                </div>
+
+                <div class="band" id="behaviorRecorder">
+                    <h2>Record a completed research action</h2>
+                    <p class="subtle">Nothing here is automatic and nothing is preselected. You choose the completed
+                        research action, review the exact minimal record, and confirm it explicitly.</p>
+                    <div class="field-grid">
+                        <label for="behaviorCategory">Completed research category
+                            <select id="behaviorCategory">
+                                <option value="">Select explicitly</option>
+                            </select>
+                        </label>
+                        <label for="behaviorSubject">Research subject
+                            <input id="behaviorSubject" type="text" autocomplete="off" maxlength="40"
+                                placeholder="lowercase subject id">
+                        </label>
+                        <label class="full" for="behaviorEvidenceSource">Evidence source
+                            <select id="behaviorEvidenceSource"></select>
+                        </label>
+                    </div>
+                    <div class="privacy-inventory">
+                        <button id="previewCompletion" type="button">Preview completion</button>
+                        <button id="confirmCompletion" type="button" disabled>Confirm completion</button>
+                    </div>
+                    <div id="completionPreview" class="state-message">No completion previewed.</div>
+                    <div id="behaviorResult" class="state-message" role="status">No research evidence recorded.</div>
+                </div>
+
+                <div class="band" id="behaviorEvidence">
+                    <h2>Research relevance evidence</h2>
+                    <p class="subtle">Only completed research actions you confirmed appear here. Ranking optimizes
+                        research relevance only and is ordered by distinct completions.</p>
+                    <div id="behaviorInfluence" class="state-message">Behavior-derived ranking influence · none</div>
+                    <ol id="behaviorRankRows" class="subtle"></ol>
+                    <p id="behaviorPolicyInputs" class="microcopy">Declared relevance inputs appear once the versioned
+                        policy validates.</p>
                 </div>
             </section>
 
@@ -892,17 +959,35 @@
 
         (function () {
             var api = window.RLPORTFOLIO;
+            var contracts = window.RLCONTRACTS;
             var state = {
                 policy: null,
                 store: null,
                 opened: null,
                 draft: null,
                 mandateDraft: null,
+                behaviorDraft: null,
                 routeStates: null,
                 route: "brief",
                 configReady: false,
                 adapters: null
             };
+
+            // Fixed, non-sensitive descriptors for a completion recorded on this surface. They are
+            // constants rather than inputs so no free text, quantity, or trait can enter an event.
+            var COMPLETION_SUBJECT_KIND = "research-subject";
+            var COMPLETION_DOMAIN = "portfolio-research";
+            var COMPLETION_HORIZON = "medium-term";
+            var COMPLETION_SURFACE = "portfolio-brief";
+            var COMPLETION_CONDITION = "explicit-completion-confirmed";
+            // The only admissible provenance. Every other offered source is a declared excluded
+            // field read straight off the policy, so the offered set cannot drift from it.
+            var ADMISSIBLE_EVIDENCE_SOURCE = "completed-research";
+            var EXCLUDED_SOURCE_PREFIX = "excluded:";
+            // The value an excluded-source attempt would carry. It must never reach storage.
+            var OBSERVED_EXCLUDED_VALUE = "observed-excluded-value";
+            var BEHAVIOR_NO_INFLUENCE = "Behavior-derived ranking influence · none";
+            var MILLISECONDS_PER_DAY = 86400000;
 
             var ROUTE_TABS = Object.freeze([
                 { hash: "brief", tab: "workspaceTabBrief" },
@@ -934,6 +1019,9 @@
             function byId(id) { return document.getElementById(id); }
             function setText(id, value) { byId(id).textContent = value; }
             function now() { return new Date().toISOString(); }
+            function countCopy(count, singular, plural) {
+                return String(count) + " " + (count === 1 ? singular : plural);
+            }
 
             function blockedStorageAdapter() {
                 return Object.freeze({
@@ -1115,6 +1203,7 @@
                 state.routeStates = routeProjection();
                 renderRoutes();
                 renderCurrentMandate();
+                renderBehavior();
                 updateDiagnostics();
             }
 
@@ -1174,9 +1263,176 @@
                 var inventory = api.foundationPrivacyInventory(state.adapters);
                 if (!inventory.ok) {
                     setText("privacyInventory", inventory.error.code + " · " + inventory.error.reason);
+                } else {
+                    setText("privacyInventory", inventory.value.personalKeyCount + " Feature 008 personal storage keys present · " + inventory.value.unavailableKeys.length + " unavailable to inspect · values never rendered");
+                }
+                renderPrivacyCategories();
+            }
+
+            function renderPrivacyCategories() {
+                var rows = byId("privacyCategoryRows");
+                if (!state.policy || !state.opened) {
+                    rows.replaceChildren();
                     return;
                 }
-                setText("privacyInventory", inventory.value.personalKeyCount + " Feature 008 personal storage keys present · " + inventory.value.unavailableKeys.length + " unavailable to inspect · values never rendered");
+                var inventory = api.privacyInventory(state.opened.workspace, state.adapters, state.policy);
+                if (!inventory.ok) {
+                    rows.replaceChildren();
+                    setText("privacyExcludedTokens", inventory.error.code + " · " + inventory.error.reason);
+                    return;
+                }
+                rows.replaceChildren.apply(rows, inventory.value.categories.map(function (entry) {
+                    var item = document.createElement("li");
+                    item.dataset.privacyCategory = entry.category;
+                    item.textContent = entry.category + " · " + countCopy(entry.recordCount, "record", "records") +
+                        " · " + (entry.present ? "present" : "empty") + " · cleared by " + entry.clearedBy;
+                    return item;
+                }));
+                setText("privacyExcludedCount", String(inventory.value.excludedSourceCount));
+                setText("privacyExcludedTokens", "Declared excluded sources · " +
+                    inventory.value.excludedSourceTokens.join(" · "));
+            }
+
+            function optionElement(value, label) {
+                var option = document.createElement("option");
+                option.value = value;
+                option.textContent = label;
+                return option;
+            }
+
+            // Every offered value is read from the versioned policy vocabulary, so a category or
+            // excluded source added to the policy is offered here without editing this page.
+            function populateBehaviorVocabulary() {
+                var categories = byId("behaviorCategory");
+                categories.replaceChildren.apply(categories, [optionElement("", "Select explicitly")]
+                    .concat(state.policy.behavior.eventCategories.map(function (category) {
+                        return optionElement(category, category.replace(/-/g, " "));
+                    })));
+                var sources = byId("behaviorEvidenceSource");
+                sources.replaceChildren.apply(sources, [
+                    optionElement("", "Select explicitly"),
+                    optionElement(ADMISSIBLE_EVIDENCE_SOURCE, "Completed research action you confirmed")
+                ].concat(state.policy.behavior.forbiddenEventFields.map(function (token) {
+                    return optionElement(EXCLUDED_SOURCE_PREFIX + token, "Excluded source · " + token);
+                })));
+            }
+
+            // An excluded source is carried into the draft under its own declared name so the
+            // store refuses it by that name. Nothing is filtered here on purpose: the refusal has
+            // to come from the versioned contract, not from page-local screening.
+            function completionDraft() {
+                var draft = {
+                    category: byId("behaviorCategory").value,
+                    subjectKind: COMPLETION_SUBJECT_KIND,
+                    subjectId: byId("behaviorSubject").value.trim(),
+                    domain: COMPLETION_DOMAIN,
+                    horizon: COMPLETION_HORIZON,
+                    sourceSurface: COMPLETION_SURFACE,
+                    completionConditionId: COMPLETION_CONDITION,
+                    resultIdentity: contracts.fingerprint("portfolio-behavior-result", {
+                        contractVersion: "portfolio-behavior-result/v1",
+                        category: byId("behaviorCategory").value,
+                        subjectKind: COMPLETION_SUBJECT_KIND,
+                        subjectId: byId("behaviorSubject").value.trim(),
+                        domain: COMPLETION_DOMAIN,
+                        completionConditionId: COMPLETION_CONDITION
+                    })
+                };
+                var source = byId("behaviorEvidenceSource").value;
+                if (source.indexOf(EXCLUDED_SOURCE_PREFIX) === 0) {
+                    draft[source.slice(EXCLUDED_SOURCE_PREFIX.length)] = OBSERVED_EXCLUDED_VALUE;
+                }
+                return draft;
+            }
+
+            function resetCompletionPreview() {
+                state.behaviorDraft = null;
+                setText("completionPreview", "No completion previewed.");
+                byId("completionPreview").className = "state-message";
+                byId("confirmCompletion").disabled = true;
+            }
+
+            function setBehaviorRefusal(copy) {
+                resetCompletionPreview();
+                setText("behaviorResult", copy);
+                byId("behaviorResult").className = "state-message error";
+            }
+
+            // Reads only committed events, so a draft can never move the ranking. Age and floor
+            // come from the same versioned policy the declared-inputs line reports.
+            function behaviorRanking() {
+                if (!state.policy || !state.opened) return null;
+                var behaviorPolicy = state.policy.behavior;
+                var reference = Date.parse(now());
+                var bySubject = Object.create(null);
+                var order = [];
+                var eligibleCompletions = 0;
+                state.opened.workspace.behaviorEvents.forEach(function (event) {
+                    if (event.lifecycleState !== "eligible") return;
+                    if (reference - Date.parse(event.occurredAt) > behaviorPolicy.maximumEvidenceAgeDays * MILLISECONDS_PER_DAY) return;
+                    eligibleCompletions += 1;
+                    if (!bySubject[event.subjectId]) {
+                        bySubject[event.subjectId] = { completions: 0, dates: Object.create(null), categories: Object.create(null) };
+                        order.push(event.subjectId);
+                    }
+                    var entry = bySubject[event.subjectId];
+                    entry.completions += 1;
+                    entry.dates[event.occurredAt.slice(0, 10)] = true;
+                    entry.categories[event.category] = true;
+                });
+                var subjects = order.map(function (subjectId) {
+                    var entry = bySubject[subjectId];
+                    var utcDates = Object.keys(entry.dates).length;
+                    return {
+                        subjectId: subjectId,
+                        completions: entry.completions,
+                        utcDates: utcDates,
+                        categories: Object.keys(entry.categories).length,
+                        floorMet: entry.completions >= behaviorPolicy.minimumDistinctCompletions &&
+                            utcDates >= behaviorPolicy.minimumDistinctUtcDates
+                    };
+                });
+                subjects.sort(function (left, right) {
+                    return (right.completions - left.completions) || (right.utcDates - left.utcDates) ||
+                        (right.categories - left.categories) ||
+                        (left.subjectId < right.subjectId ? -1 : (left.subjectId > right.subjectId ? 1 : 0));
+                });
+                return { subjects: subjects, eligibleCompletions: eligibleCompletions };
+            }
+
+            function renderBehavior() {
+                var rows = byId("behaviorRankRows");
+                if (!state.policy) {
+                    setText("behaviorInfluence", BEHAVIOR_NO_INFLUENCE);
+                    rows.replaceChildren();
+                    return;
+                }
+                var behaviorPolicy = state.policy.behavior;
+                setText("behaviorPolicyInputs", "Declared relevance inputs · floor " +
+                    countCopy(behaviorPolicy.minimumDistinctCompletions, "completion", "completions") + " on " +
+                    countCopy(behaviorPolicy.minimumDistinctUtcDates, "UTC date", "UTC dates") + " · half-life " +
+                    countCopy(behaviorPolicy.halfLifeDays, "day", "days") + " · maximum evidence age " +
+                    countCopy(behaviorPolicy.maximumEvidenceAgeDays, "day", "days") + " · policy " +
+                    behaviorPolicy.contractVersion);
+                var ranking = behaviorRanking();
+                if (!ranking || ranking.subjects.length === 0) {
+                    setText("behaviorInfluence", BEHAVIOR_NO_INFLUENCE);
+                    rows.replaceChildren();
+                    return;
+                }
+                setText("behaviorInfluence", "Behavior-derived ranking influence · " +
+                    countCopy(ranking.subjects.length, "ranked subject", "ranked subjects") + " · " +
+                    countCopy(ranking.eligibleCompletions, "eligible completion", "eligible completions"));
+                rows.replaceChildren.apply(rows, ranking.subjects.map(function (subject, index) {
+                    var item = document.createElement("li");
+                    item.dataset.behaviorSubject = subject.subjectId;
+                    item.textContent = String(index + 1) + " · " + subject.subjectId + " · " +
+                        countCopy(subject.completions, "completion", "completions") + " · " +
+                        countCopy(subject.utcDates, "UTC date", "UTC dates") + " · " +
+                        countCopy(subject.categories, "category", "categories") + " · " +
+                        (subject.floorMet ? "floor-met" : "floor-not-met");
+                    return item;
+                }));
             }
 
             function resetPreview() {
@@ -1461,7 +1717,8 @@
                 setText("commitResult", "P008-CONFIG · " + (error && error.reason ? error.reason : "policy-load-failed"));
                 byId("commitResult").className = "state-message error";
                 ["portfolioFile", "previewManual", "confirmImport", "discardDraft", "duplicateChoice",
-                    "mandateFile", "confirmMandate", "discardMandate"].forEach(function (id) { byId(id).disabled = true; });
+                    "mandateFile", "confirmMandate", "discardMandate", "previewCompletion", "confirmCompletion",
+                    "clearBehaviorConfirmation", "clearBehavior"].forEach(function (id) { byId(id).disabled = true; });
                 renderInventory();
                 refreshWorkspaceViews();
             }
@@ -1492,6 +1749,8 @@
                         state.opened = opened.value;
                         state.configReady = true;
                         populateDuplicateChoices();
+                        populateBehaviorVocabulary();
+                        resetCompletionPreview();
                         setText("policyVersion", state.policy.display.policyLabel + " · " + state.policy.contractVersion);
                         setText("exportWarning", state.policy.display.privateExportWarning);
                         renderStorage();
@@ -1689,6 +1948,94 @@
                         renderCurrent();
                     }
                 }
+            });
+
+            byId("previewCompletion").addEventListener("click", function () {
+                if (this.disabled || !state.configReady) return;
+                if (byId("behaviorEvidenceSource").value.length === 0) {
+                    setBehaviorRefusal("Choose the evidence source explicitly. No completion previewed and no event is recorded.");
+                    return;
+                }
+                var previewed = api.buildBehaviorEvent(completionDraft(), { now: now() }, state.policy);
+                if (!previewed.ok) {
+                    setBehaviorRefusal(safeErrorCopy(previewed.error) + " · No event is recorded.");
+                    return;
+                }
+                state.behaviorDraft = previewed.value;
+                setText("completionPreview", "Exact record to be stored · " + previewed.value.category + " · " +
+                    previewed.value.subjectKind + " " + previewed.value.subjectId + " · " + previewed.value.domain +
+                    " · " + previewed.value.horizon + " · " + previewed.value.sourceSurface + " · " +
+                    previewed.value.completionConditionId + " · " + previewed.value.occurredAt + " · " +
+                    previewed.value.lifecycleState + " · this is a draft only and no event is recorded until you confirm");
+                byId("completionPreview").className = "state-message ok";
+                setText("behaviorResult", "Draft previewed only. No research evidence recorded.");
+                byId("behaviorResult").className = "state-message";
+                byId("confirmCompletion").disabled = false;
+            });
+
+            byId("confirmCompletion").addEventListener("click", function () {
+                if (this.disabled || !state.configReady || !state.behaviorDraft) return;
+                var candidate = api.buildBehaviorCandidate(completionDraft(), state.opened.workspace, { now: now() }, state.policy);
+                if (!candidate.ok) {
+                    setBehaviorRefusal(safeErrorCopy(candidate.error) + " · No event is recorded.");
+                    return;
+                }
+                // A semantic repeat changes nothing, so it must not commit a generation either.
+                if (!candidate.value.accepted) {
+                    resetCompletionPreview();
+                    setText("behaviorResult", "Not recorded · " + candidate.value.reason +
+                        " · that completed research condition, subject, and UTC date is already stored once.");
+                    byId("behaviorResult").className = "state-message warn";
+                    return;
+                }
+                var committed = state.store.commitWorkspace(candidate.value.workspace, state.opened.workspace.generation, now());
+                if (!committed.ok) {
+                    setBehaviorRefusal("Not recorded · " + safeErrorCopy(committed.error));
+                    return;
+                }
+                state.opened = committed.value;
+                resetCompletionPreview();
+                setText("behaviorResult", "Recorded one completed-research event · " + candidate.value.event.category +
+                    " · " + candidate.value.event.subjectId + " · " + candidate.value.event.eventId);
+                byId("behaviorResult").className = "state-message ok";
+                renderStorage();
+                renderCurrent();
+                renderInventory();
+            });
+
+            byId("clearBehaviorConfirmation").addEventListener("change", function () {
+                byId("clearBehavior").disabled = !(this.checked && state.configReady);
+            });
+
+            byId("clearBehavior").addEventListener("click", function () {
+                if (this.disabled || !state.configReady) return;
+                var candidate = api.buildBehaviorClearCandidate(state.opened.workspace, now(), state.policy);
+                if (!candidate.ok) {
+                    setText("privacyResult", "Not cleared · " + safeErrorCopy(candidate.error));
+                    byId("privacyResult").className = "state-message error";
+                    return;
+                }
+                var committed = state.store.commitWorkspace(candidate.value.workspace, state.opened.workspace.generation, now());
+                if (!committed.ok) {
+                    setText("privacyResult", "Not cleared · " + safeErrorCopy(committed.error));
+                    byId("privacyResult").className = "state-message error";
+                    return;
+                }
+                state.opened = committed.value;
+                byId("clearBehaviorConfirmation").checked = false;
+                byId("clearBehavior").disabled = true;
+                resetCompletionPreview();
+                setText("behaviorResult", "No research evidence recorded.");
+                byId("behaviorResult").className = "state-message";
+                setText("privacyResult", "Behavior history cleared · " +
+                    countCopy(candidate.value.clearedEventCount, "completed-research event", "completed-research events") +
+                    " · " + countCopy(candidate.value.clearedInterestCount, "interest signal", "interest signals") +
+                    " · " + countCopy(candidate.value.clearedOutcomeCount, "closed outcome", "closed outcomes") +
+                    " · portfolio and mandate preserved");
+                byId("privacyResult").className = "state-message ok";
+                renderStorage();
+                renderCurrent();
+                renderInventory();
             });
 
             boot();

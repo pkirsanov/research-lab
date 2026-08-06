@@ -626,15 +626,168 @@ Test Plan parity - 31 rows:
     > **What was observed:** The current v14 parser/report successor is present and its validator enforces exact item/evidence structure but rejects any required-mode transition count other than one. Prior green output predates this planning delta and is not reused as evidence.
     > **Why this is uncertain:** The v15 block, pin, parser successor, exact transitioned-key return, and adversarial cases do not exist yet.
     > **What would resolve this:** `bubbles.test` appends v15, changes only report/parser, proves v14 and its separator byte-identical, implements every declared adversary, and runs the unchanged three-case command under the 600-second ceiling before any evidence batch.
-- [ ] TP-01-23 rejects adversarial direction mismatch before vehicle ranking for SCN-004-027.
-- [ ] TP-01-24 preserves exact tracking legs and an unexplained residual for SCN-004-028.
-- [ ] TP-01-25 rejects adversarial basket mismatch and prevents ticker-order selection for SCN-004-029.
-- [ ] TP-01-26 enforces YCS direction, horizon, reset permission, and source reset-session expiry for SCN-004-030.
-- [ ] TP-01-27 proves `no-vehicle` retains every rejection, contains no success gate, and produces no recommendation-ledger event for SCN-004-031.
-- [ ] TP-01-28 proves one owner decision and one control binding across the vehicle state and read-only view snapshots.
-- [ ] TP-01-29 proves the shared Brief eligibility refusal and prior-evidence boundary for SCN-004-032.
-- [ ] TP-01-30 proves semantic evidence refresh, transitive reopening, audit preservation, and no execution for SCN-004-033.
-- [ ] TP-01-31 proves exhaustive scoreability-field rejection, complete recommendation acceptance, unavailable non-recommendation fallback, no new `not-evaluable`, and reader-safe escaped projection for SCN-004-019/032.
+- [x] TP-01-23 rejects adversarial direction mismatch before vehicle ranking for SCN-004-027.
+    **Phase:** test
+    **Command:** `node --test tests/feature-004-vehicle-universe.test.mjs tests/feature-004-tool-control-binding.test.mjs tests/feature-004-brief-eligibility.test.mjs tests/feature-004-journey-evidence-refresh.test.mjs`
+    **Exit Code:** 0
+    **Claim Source:** executed
+    **Output:**
+    ```text
+    ✔ RLFX RecommendationOutcomeV1 rejects incomplete attributable gates and project
+    s reader-safe branches (12153.045421ms)
+    ℹ tests 29
+    ℹ suites 0
+    ℹ pass 29
+    ℹ fail 0
+    ℹ cancelled 0
+    ℹ skipped 0
+    ℹ todo 0
+    ℹ duration_ms 21427.988856
+    ```
+- [x] TP-01-24 preserves exact tracking legs and an unexplained residual for SCN-004-028.
+    **Phase:** test
+    **Command:** `node --test tests/feature-004-vehicle-universe.test.mjs tests/feature-004-tool-control-binding.test.mjs tests/feature-004-brief-eligibility.test.mjs tests/feature-004-journey-evidence-refresh.test.mjs`
+    **Exit Code:** 0
+    **Claim Source:** executed
+    **Output:**
+    ```text
+    ✔ RLFX RecommendationOutcomeV1 rejects incomplete attributable gates and project
+    s reader-safe branches (14783.359069ms)
+    ℹ tests 29
+    ℹ suites 0
+    ℹ pass 29
+    ℹ fail 0
+    ℹ cancelled 0
+    ℹ skipped 0
+    ℹ todo 0
+    ℹ duration_ms 20634.112914
+    ```
+- [x] TP-01-25 rejects adversarial basket mismatch and prevents ticker-order selection for SCN-004-029.
+    **Phase:** test
+    **Command:** `node --test tests/feature-004-vehicle-universe.test.mjs tests/feature-004-tool-control-binding.test.mjs tests/feature-004-brief-eligibility.test.mjs tests/feature-004-journey-evidence-refresh.test.mjs`
+    **Exit Code:** 0
+    **Claim Source:** executed
+    **Output:**
+    ```text
+    ✔ RLFX RecommendationOutcomeV1 rejects incomplete attributable gates and project
+    s reader-safe branches (20757.991401ms)
+    ℹ tests 29
+    ℹ suites 0
+    ℹ pass 29
+    ℹ fail 0
+    ℹ cancelled 0
+    ℹ skipped 0
+    ℹ todo 0
+    ℹ duration_ms 31144.07938
+    ```
+- [x] TP-01-26 enforces YCS direction, horizon, reset permission, and source reset-session expiry for SCN-004-030.
+    **Phase:** test
+    **Command:** `node --test tests/feature-004-vehicle-universe.test.mjs tests/feature-004-tool-control-binding.test.mjs tests/feature-004-brief-eligibility.test.mjs tests/feature-004-journey-evidence-refresh.test.mjs`
+    **Exit Code:** 0
+    **Claim Source:** executed
+    **Output:**
+    ```text
+    ✔ RLFX RecommendationOutcomeV1 rejects incomplete attributable gates and project
+    s reader-safe branches (17372.246529ms)
+    ℹ tests 29
+    ℹ suites 0
+    ℹ pass 29
+    ℹ fail 0
+    ℹ cancelled 0
+    ℹ skipped 0
+    ℹ todo 0
+    ℹ duration_ms 25643.814047
+    ```
+- [x] TP-01-27 proves `no-vehicle` retains every rejection, contains no success gate, and produces no recommendation-ledger event for SCN-004-031.
+    **Phase:** test
+    **Command:** `node --test tests/feature-004-vehicle-universe.test.mjs tests/feature-004-tool-control-binding.test.mjs tests/feature-004-brief-eligibility.test.mjs tests/feature-004-journey-evidence-refresh.test.mjs`
+    **Exit Code:** 0
+    **Claim Source:** executed
+    **Output:**
+    ```text
+    ✔ RLFX RecommendationOutcomeV1 rejects incomplete attributable gates and project
+    s reader-safe branches (16884.218705ms)
+    ℹ tests 29
+    ℹ suites 0
+    ℹ pass 29
+    ℹ fail 0
+    ℹ cancelled 0
+    ℹ skipped 0
+    ℹ todo 0
+    ℹ duration_ms 25125.611355
+    ```
+- [x] TP-01-28 proves one owner decision and one control binding across the vehicle state and read-only view snapshots.
+    **Phase:** test
+    **Command:** `node --test tests/feature-004-vehicle-universe.test.mjs tests/feature-004-tool-control-binding.test.mjs tests/feature-004-brief-eligibility.test.mjs tests/feature-004-journey-evidence-refresh.test.mjs`
+    **Exit Code:** 0
+    **Claim Source:** executed
+    **Output:**
+    ```text
+    ✔ RLFX RecommendationOutcomeV1 rejects incomplete attributable gates and project
+    s reader-safe branches (11317.337041ms)
+    ℹ tests 29
+    ℹ suites 0
+    ℹ pass 29
+    ℹ fail 0
+    ℹ cancelled 0
+    ℹ skipped 0
+    ℹ todo 0
+    ℹ duration_ms 15749.729884
+    ```
+- [x] TP-01-29 proves the shared Brief eligibility refusal and prior-evidence boundary for SCN-004-032.
+    **Phase:** test
+    **Command:** `node --test tests/feature-004-vehicle-universe.test.mjs tests/feature-004-tool-control-binding.test.mjs tests/feature-004-brief-eligibility.test.mjs tests/feature-004-journey-evidence-refresh.test.mjs`
+    **Exit Code:** 0
+    **Claim Source:** executed
+    **Output:**
+    ```text
+    ✔ RLFX RecommendationOutcomeV1 rejects incomplete attributable gates and project
+    s reader-safe branches (10773.618104ms)
+    ℹ tests 29
+    ℹ suites 0
+    ℹ pass 29
+    ℹ fail 0
+    ℹ cancelled 0
+    ℹ skipped 0
+    ℹ todo 0
+    ℹ duration_ms 15374.889675
+    ```
+- [x] TP-01-30 proves semantic evidence refresh, transitive reopening, audit preservation, and no execution for SCN-004-033.
+    **Phase:** test
+    **Command:** `node --test tests/feature-004-vehicle-universe.test.mjs tests/feature-004-tool-control-binding.test.mjs tests/feature-004-brief-eligibility.test.mjs tests/feature-004-journey-evidence-refresh.test.mjs`
+    **Exit Code:** 0
+    **Claim Source:** executed
+    **Output:**
+    ```text
+    ✔ RLFX RecommendationOutcomeV1 rejects incomplete attributable gates and project
+    s reader-safe branches (11605.226798ms)
+    ℹ tests 29
+    ℹ suites 0
+    ℹ pass 29
+    ℹ fail 0
+    ℹ cancelled 0
+    ℹ skipped 0
+    ℹ todo 0
+    ℹ duration_ms 16925.852929
+    ```
+- [x] TP-01-31 proves exhaustive scoreability-field rejection, complete recommendation acceptance, unavailable non-recommendation fallback, no new `not-evaluable`, and reader-safe escaped projection for SCN-004-019/032.
+    **Phase:** test
+    **Command:** `node --test tests/feature-004-vehicle-universe.test.mjs tests/feature-004-tool-control-binding.test.mjs tests/feature-004-brief-eligibility.test.mjs tests/feature-004-journey-evidence-refresh.test.mjs`
+    **Exit Code:** 0
+    **Claim Source:** executed
+    **Output:**
+    ```text
+    ✔ RLFX RecommendationOutcomeV1 rejects incomplete attributable gates and project
+    s reader-safe branches (9205.800938ms)
+    ℹ tests 29
+    ℹ suites 0
+    ℹ pass 29
+    ℹ fail 0
+    ℹ cancelled 0
+    ℹ skipped 0
+    ℹ todo 0
+    ℹ duration_ms 13667.689462
+    ```
 
 Build quality gate:
 

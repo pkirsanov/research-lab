@@ -481,3 +481,332 @@ test('route projection cites one mandate revision and reports mandate-absent sta
   assert.equal(withMandate.value.behaviorContribution, 'none');
   assert.equal(withMandate.value.settingsContribution, 'none');
 });
+
+const RESULT_IDENTITY = `sha256:${'ab12'.repeat(16)}`;
+const SUBJECT_ALPHA = 'subject-alpha';
+const SUBJECT_BETA = 'subject-beta';
+const BENIGN_EXTRA_FIELD = 'alphaBetaGamma';
+const EARLIER = '2026-07-15T09:05:00.000Z';
+const SAME_DAY_LATER = '2026-07-15T21:45:00.000Z';
+const NEXT_DAY = '2026-07-16T10:00:00.000Z';
+const LATER = '2026-07-20T08:00:00.000Z';
+
+function behaviorDraft(overrides = {}) {
+  return {
+    category: 'ticker-research-completed',
+    completionConditionId: 'risk-panel-reviewed',
+    domain: 'equity-research',
+    horizon: 'medium-term',
+    resultIdentity: RESULT_IDENTITY,
+    sourceSurface: 'risk-xray',
+    subjectId: SUBJECT_ALPHA,
+    subjectKind: 'ticker',
+    ...overrides
+  };
+}
+
+function builtEvent(api, policy, overrides = {}, now = NOW) {
+  const result = api.buildBehaviorEvent(behaviorDraft(overrides), { now }, policy);
+  assert.equal(result.ok, true, `event must be constructible: ${JSON.stringify(result.error || {})}`);
+  return result.value;
+}
+
+function portfolioAndMandateWorkspace(api, policy) {
+  const empty = api.createEmptyWorkspace(policy, NOW);
+  assert.equal(empty.ok, true);
+  const withPortfolio = api.buildWorkspaceCandidate(validDraft(api, policy), empty.value, { name: 'Behavior scope portfolio', now: NOW }, policy);
+  assert.equal(withPortfolio.ok, true);
+  const withMandate = api.buildMandateCandidate(mandateDraft(api, policy, 'mandate-explicit.json'), withPortfolio.value, { now: NOW }, policy);
+  assert.equal(withMandate.ok, true);
+  return withMandate.value;
+}
+
+function appendEvent(api, policy, workspace, overrides, now = NOW) {
+  const result = api.buildBehaviorCandidate(behaviorDraft(overrides), workspace, { now }, policy);
+  assert.equal(result.ok, true, `behavior candidate must build: ${JSON.stringify(result.error || {})}`);
+  return result;
+}
+
+test('behavior event vocabulary is closed to the declared categories lifecycle states and draft fields', () => {
+  const { api, policy } = loadContracts();
+  const categories = policy.behavior.eventCategories;
+  const lifecycleStates = policy.behavior.eventLifecycleStates;
+  assert.equal(categories.length > 0, true, 'an empty category list would make the per-category assertions vacuous');
+  assert.equal(lifecycleStates.length > 0, true, 'an empty lifecycle list would make the per-state assertions vacuous');
+
+  let constructed = 0;
+  categories.forEach((category) => {
+    const event = builtEvent(api, policy, { category });
+    assert.equal(event.category, category);
+    assert.equal(event.lifecycleState, 'eligible', 'a constructed event is always eligible; quarantine is never a user-supplied state');
+    assert.equal(event.policyVersion, policy.behavior.contractVersion);
+    assert.equal(api.validateBehaviorEvent(event, policy).ok, true);
+    constructed += 1;
+  });
+  assert.equal(constructed, categories.length, 'every declared category must have been exercised, not merely iterated over');
+
+  let accepted = 0;
+  lifecycleStates.forEach((lifecycleState) => {
+    const result = api.validateBehaviorEvent({ ...builtEvent(api, policy), lifecycleState }, policy);
+    assert.equal(result.ok, true, `${lifecycleState} is declared and must validate`);
+    accepted += 1;
+  });
+  assert.equal(accepted, lifecycleStates.length);
+
+  const undeclaredCategory = 'ticker-research-abandoned';
+  assert.equal(categories.includes(undeclaredCategory), false, 'the negative case must name a category the policy does not declare');
+  assert.equal(api.buildBehaviorEvent(behaviorDraft({ category: undeclaredCategory }), { now: NOW }, policy).error.reason, 'behavior-event-invalid');
+  assert.equal(api.validateBehaviorEvent({ ...builtEvent(api, policy), lifecycleState: 'observed' }, policy).error.reason, 'behavior-event-invalid');
+
+  const withLifecycle = api.buildBehaviorEvent({ ...behaviorDraft(), lifecycleState: 'eligible' }, { now: NOW }, policy);
+  assert.equal(withLifecycle.error.reason, 'unknown-field', 'a caller cannot pre-declare lifecycle state through the draft');
+  const missingField = behaviorDraft();
+  delete missingField.completionConditionId;
+  assert.equal(api.buildBehaviorEvent(missingField, { now: NOW }, policy).error.reason, 'unknown-field', 'a partial draft cannot become an eligible event');
+  assert.equal(api.buildBehaviorEvent(behaviorDraft(), { now: '2026-07-15' }, policy).error.reason, 'behavior-options-invalid');
+});
+
+test('every declared excluded behavior source is rejected by name in any casing or separator form at any depth', () => {
+  const { api, policy } = loadContracts();
+  const tokens = policy.behavior.forbiddenEventFields;
+  assert.equal(tokens.length > 0, true, 'an empty exclusion list would make the per-token assertions vacuous');
+
+  let rejected = 0;
+  tokens.forEach((token) => {
+    const result = api.buildBehaviorEvent({ ...behaviorDraft(), [token]: 1 }, { now: NOW }, policy);
+    assert.equal(result.ok, false, `${token} must never reach an event`);
+    assert.equal(result.error.reason, 'forbidden-behavior-source', `${token} must be refused as an excluded source, not as a generic shape error`);
+    assert.equal(result.error.field, `draft.${token}`, `${token} must be named exactly so the sheet can explain the refusal`);
+    rejected += 1;
+  });
+  assert.equal(rejected, tokens.length, 'every declared token must have been exercised, not merely iterated over');
+
+  // Control: the same one-extra-field shape carrying a name the policy does not exclude must
+  // fail for a different reason. Without this the rejections above could be caused by the
+  // extra field alone and would hold for any name at all.
+  assert.equal(
+    tokens.some((token) => BENIGN_EXTRA_FIELD.toLowerCase().replace(/[^a-z0-9]/g, '').includes(token)),
+    false,
+    'the control field name must not itself contain a declared token'
+  );
+  const control = api.buildBehaviorEvent({ ...behaviorDraft(), [BENIGN_EXTRA_FIELD]: 1 }, { now: NOW }, policy);
+  assert.equal(control.ok, false);
+  assert.equal(control.error.reason, 'unknown-field', 'an unexcluded extra name is a shape error, so the exclusion refusals above are caused by the token');
+
+  ['dwellTime', 'dwell_time', 'Dwell-Time', 'DWELL', 'userSettings', 'scrollDepth'].forEach((variant) => {
+    const result = api.buildBehaviorEvent({ ...behaviorDraft(), [variant]: 1 }, { now: NOW }, policy);
+    assert.equal(result.error.reason, 'forbidden-behavior-source', `${variant} must normalize onto a declared token`);
+    assert.equal(result.error.field, `draft.${variant}`);
+  });
+
+  const nested = api.buildBehaviorEvent({ ...behaviorDraft(), container: { inner: [{ scrollDepth: 1 }] } }, { now: NOW }, policy);
+  assert.equal(nested.error.reason, 'forbidden-behavior-source');
+  assert.equal(nested.error.field, 'draft.container.inner[0].scrollDepth', 'a nested excluded source must be named at its exact path');
+
+  const stored = api.validateBehaviorEvent({ ...builtEvent(api, policy), engagement: 1 }, policy);
+  assert.equal(stored.error.reason, 'forbidden-behavior-source', 'an excluded source already on disk is refused on read, not only on write');
+  assert.equal(stored.error.field, 'behaviorEvent.engagement');
+});
+
+test('semantic de-duplication collapses same-day repeats to the earliest occurrence without shrinking distinct evidence', () => {
+  const { api, policy } = loadContracts();
+  const atNow = builtEvent(api, policy, {}, NOW);
+  const atEarlier = builtEvent(api, policy, {}, EARLIER);
+  const atSameDayLater = builtEvent(api, policy, {}, SAME_DAY_LATER);
+  const atNextDay = builtEvent(api, policy, {}, NEXT_DAY);
+  const otherSubject = builtEvent(api, policy, { subjectId: SUBJECT_BETA }, NOW);
+
+  assert.equal(atNow.dedupeKey, atEarlier.dedupeKey, 'occurrence time is deliberately absent from the de-duplication payload');
+  assert.notEqual(atNow.eventId, atEarlier.eventId, 'identity must still distinguish two reports of the same completion');
+  assert.notEqual(atNow.dedupeKey, atNextDay.dedupeKey, 'a different UTC day is different evidence');
+  assert.notEqual(atNow.dedupeKey, otherSubject.dedupeKey, 'a different subject is different evidence');
+  assert.equal(builtEvent(api, policy, {}, NOW).eventId, atNow.eventId, 'identity is deterministic for identical inputs');
+
+  const repeated = api.dedupeBehaviorEvents([atNow, atEarlier, atSameDayLater, atNextDay, otherSubject], policy);
+  assert.equal(repeated.ok, true);
+  assert.equal(repeated.value.inputCount, 5);
+  assert.equal(repeated.value.retainedCount, 3);
+  assert.equal(repeated.value.collapsedCount, 2);
+  assert.equal(repeated.value.inputCount > repeated.value.retainedCount, true, 'a real collapse must have happened or the retained assertions prove nothing');
+  const survivor = repeated.value.events.find((entry) => entry.dedupeKey === atNow.dedupeKey);
+  assert.equal(survivor.occurredAt, EARLIER, 'the earliest occurrence survives regardless of input order');
+  assert.equal(survivor.eventId, atEarlier.eventId);
+
+  // Control: an all-distinct set must collapse nothing, so the collapse above is caused by
+  // semantic repetition rather than by the reducer always discarding inputs.
+  const distinct = api.dedupeBehaviorEvents([atEarlier, atNextDay, otherSubject], policy);
+  assert.equal(distinct.value.collapsedCount, 0);
+  assert.equal(distinct.value.retainedCount, 3);
+  assert.deepEqual(distinct.value.events.map((entry) => entry.eventId), [atEarlier.eventId, atNextDay.eventId, otherSubject.eventId]);
+
+  assert.equal(api.dedupeBehaviorEvents([{ ...atNow, subjectId: SUBJECT_BETA }], policy).error.reason, 'behavior-event-identity-mismatch');
+  assert.equal(api.dedupeBehaviorEvents([atNow, atNow], policy).value.retainedCount, 1, 'a byte-identical repeat is one piece of evidence');
+});
+
+test('action outcome commands map to exactly one lifecycle state and reject mismatched or unknown transitions', () => {
+  const { api, policy } = loadContracts();
+  const commands = policy.behavior.outcomeCommands;
+  const declaredStates = policy.behavior.outcomeStates;
+  assert.equal(commands.length > 0, true, 'an empty command list would make the per-command assertions vacuous');
+  const actionId = RESULT_IDENTITY;
+
+  const observed = commands.map((command) => {
+    const result = api.reduceActionOutcome(actionId, command, 'owner-decision', NOW, policy);
+    assert.equal(result.ok, true, `${command} is declared and must reduce`);
+    assert.equal(result.value.command, command);
+    assert.equal(api.validateActionOutcome(result.value, policy).ok, true);
+    return result.value.state;
+  });
+  assert.equal(observed.length, commands.length, 'every declared command must have been exercised, not merely iterated over');
+  assert.equal(new Set(observed).size, commands.length, 'each command must reach a distinct state');
+  assert.deepEqual([...observed].sort(), [...declaredStates].sort(), 'the reachable states are exactly the declared states');
+  assert.deepEqual(observed, ['completed', 'dismissed', 'invalidated', 'open']);
+
+  const completed = api.reduceActionOutcome(actionId, 'complete', 'owner-decision', NOW, policy).value;
+  const dismissed = api.reduceActionOutcome(actionId, 'dismiss', 'owner-decision', NOW, policy).value;
+  assert.notEqual(completed.outcomeId, dismissed.outcomeId, 'the command is part of outcome identity');
+  assert.equal(api.validateActionOutcome({ ...completed, state: 'dismissed' }, policy).error.reason, 'action-outcome-invalid', 'a command and a state cannot be recorded out of step');
+  assert.equal(api.validateActionOutcome({ ...completed, reason: 'Rejected by owner' }, policy).error.reason, 'action-outcome-invalid', 'a reason is a safe token, never free text');
+  assert.equal(api.reduceActionOutcome(actionId, 'downrank', 'owner-decision', NOW, policy).error.reason, 'unknown-outcome-command');
+  assert.equal(api.validateActionOutcome({ ...completed, engagement: 1 }, policy).error.reason, 'forbidden-behavior-source');
+});
+
+test('privacy inventory reports real category counts and carries no stored subject value', () => {
+  const { api, policy } = loadContracts();
+  const storageAdapters = { localStorage: createStorage(), sessionStorage: createStorage() };
+  const base = portfolioAndMandateWorkspace(api, policy);
+  const first = appendEvent(api, policy, base, {});
+  const second = appendEvent(api, policy, first.value.workspace, { category: 'risk-analysis-completed', subjectId: SUBJECT_BETA });
+  const populated = second.value.workspace;
+
+  const inventory = api.privacyInventory(populated, storageAdapters, policy);
+  assert.equal(inventory.ok, true);
+  const byName = Object.fromEntries(inventory.value.categories.map((entry) => [entry.category, entry]));
+  assert.equal(byName['behavior-events'].recordCount, 2, 'the inventory must be read while behavior evidence genuinely exists');
+  assert.equal(byName['behavior-events'].present, true);
+  assert.equal(byName['behavior-events'].clearedBy, 'behavior');
+  assert.equal(byName['portfolio-revisions'].recordCount > 0, true);
+  assert.equal(byName['portfolio-revisions'].clearedBy, 'all-personal');
+  assert.equal(byName['mandate-revisions'].recordCount > 0, true);
+  assert.equal(byName['interest-signals'].recordCount, 0);
+  assert.equal(byName['interest-signals'].present, false);
+
+  const categoryCounts = inventory.value.eventCategoryCounts;
+  assert.equal(categoryCounts['ticker-research-completed'], 1);
+  assert.equal(categoryCounts['risk-analysis-completed'], 1);
+  assert.deepEqual(Object.keys(categoryCounts).sort(), [...policy.behavior.eventCategories].sort(), 'every declared category is reported, including the zeroes');
+  assert.equal(Object.values(categoryCounts).reduce((sum, count) => sum + count, 0), populated.behaviorEvents.length);
+  assert.deepEqual(Object.keys(inventory.value.outcomeStateCounts).sort(), [...policy.behavior.outcomeStates].sort());
+
+  // The inventory is read from a workspace that provably holds both subjects, so an absent
+  // subject value is a real omission rather than an artefact of an empty workspace.
+  assert.deepEqual(populated.behaviorEvents.map((entry) => entry.subjectId).sort(), [SUBJECT_ALPHA, SUBJECT_BETA]);
+  const serialized = JSON.stringify(inventory.value);
+  [SUBJECT_ALPHA, SUBJECT_BETA, RESULT_IDENTITY, populated.currentPortfolioId, populated.currentMandateId].forEach((value) => {
+    assert.equal(serialized.includes(value), false, 'the inventory reports counts and states only, never a stored value');
+  });
+  assert.equal(JSON.stringify(populated).includes(SUBJECT_ALPHA), true, 'the value is genuinely stored, so its absence from the inventory is meaningful');
+
+  assert.deepEqual(inventory.value.excludedSourceTokens, policy.behavior.forbiddenEventFields);
+  assert.equal(inventory.value.excludedSourceTokens.length > 0, true);
+  assert.equal(inventory.value.excludedSourceCount, 0);
+  assert.equal(inventory.value.genericNamespacesInspected, false);
+  assert.equal(inventory.value.categories.every((entry) => ['behavior', 'behavior-and-all-personal', 'all-personal'].includes(entry.clearedBy)), true);
+  assert.equal(inventory.value.categories.length, 8, 'every declared category must be projected, so the clearedBy sweep above is not run over a short list');
+
+  const duplicate = api.buildBehaviorCandidate(behaviorDraft(), populated, { now: SAME_DAY_LATER }, policy);
+  assert.equal(duplicate.value.accepted, false);
+  assert.equal(duplicate.value.reason, 'duplicate-completion');
+  assert.equal(duplicate.value.workspace.behaviorEvents.length, 2, 'a semantic repeat must not grow stored evidence');
+});
+
+test('behavior clear empties behavior categories only after they are proven non-empty and preserves portfolio and mandate identity', () => {
+  const { api, policy } = loadContracts();
+  const storageAdapters = { localStorage: createStorage(), sessionStorage: createStorage() };
+  const base = portfolioAndMandateWorkspace(api, policy);
+  const first = appendEvent(api, policy, base, {});
+  const populated = appendEvent(api, policy, first.value.workspace, { subjectId: SUBJECT_BETA }).value.workspace;
+
+  // Populate-and-prove: without this the post-clear emptiness assertions would hold against a
+  // workspace that never carried behavior evidence at all.
+  assert.equal(populated.behaviorEvents.length, 2);
+  assert.equal(api.privacyInventory(populated, storageAdapters, policy).value.categories.find((entry) => entry.category === 'behavior-events').present, true);
+
+  const cleared = api.buildBehaviorClearCandidate(populated, LATER, policy);
+  assert.equal(cleared.ok, true);
+  assert.equal(cleared.value.clearedEventCount, populated.behaviorEvents.length, 'the reported cleared count must match the proven pre-clear population');
+  assert.equal(cleared.value.workspace.behaviorEvents.length, 0);
+  assert.equal(cleared.value.workspace.interestSignals.length, 0);
+  assert.equal(api.validateWorkspace(cleared.value.workspace, policy).ok, true);
+
+  assert.equal(cleared.value.workspace.currentPortfolioId, populated.currentPortfolioId);
+  assert.equal(cleared.value.workspace.currentMandateId, populated.currentMandateId);
+  assert.equal(cleared.value.preservedPortfolioId, populated.currentPortfolioId);
+  assert.equal(cleared.value.preservedMandateId, populated.currentMandateId);
+  assert.deepEqual(cleared.value.workspace.portfolioRevisions, populated.portfolioRevisions, 'explicit portfolio facts survive a behavior clear byte for byte');
+  assert.deepEqual(cleared.value.workspace.mandateRevisions, populated.mandateRevisions, 'mandate and cash needs survive a behavior clear byte for byte');
+  assert.equal(cleared.value.workspace.createdAt, populated.createdAt);
+  assert.equal(cleared.value.workspace.updatedAt, LATER);
+
+  assert.notEqual(cleared.value.workspace.semanticFingerprint, populated.semanticFingerprint, 'removing evidence must change workspace identity');
+  // Control: clearing a workspace that holds no behavior evidence leaves identity untouched,
+  // so the change above is caused by the removal and not by calling the clear at all.
+  const emptyClear = api.buildBehaviorClearCandidate(base, LATER, policy);
+  assert.equal(emptyClear.ok, true);
+  assert.equal(emptyClear.value.clearedEventCount, 0);
+  assert.equal(emptyClear.value.workspace.semanticFingerprint, base.semanticFingerprint);
+
+  const after = api.privacyInventory(cleared.value.workspace, storageAdapters, policy);
+  const afterByName = Object.fromEntries(after.value.categories.map((entry) => [entry.category, entry]));
+  assert.equal(afterByName['behavior-events'].recordCount, 0);
+  assert.equal(afterByName['behavior-events'].present, false);
+  assert.equal(afterByName['interest-signals'].present, false);
+  assert.equal(afterByName['portfolio-revisions'].recordCount, populated.portfolioRevisions.length, 'a behavior clear is not a portfolio clear');
+  assert.equal(afterByName['mandate-revisions'].recordCount, populated.mandateRevisions.length);
+  assert.equal(afterByName['portfolio-revisions'].present, true);
+  assert.equal(Object.values(after.value.eventCategoryCounts).every((count) => count === 0), true);
+  assert.equal(Object.keys(after.value.eventCategoryCounts).length, policy.behavior.eventCategories.length, 'the zero sweep above must run over the full declared category list');
+
+  assert.equal(api.buildBehaviorClearCandidate(populated, '2026-07-20', policy).error.reason, 'timestamp-invalid');
+});
+
+test('verified foundation clear reports empty only after reread and a remove fault cannot report success', () => {
+  const { api } = loadContracts();
+  const present = {
+    'rlPortfolioWorkspaceV1.pointer': 'pointer-record',
+    'rlPortfolioWorkspaceV1.slotA': 'slot-record'
+  };
+  const localStorage = createStorage({ initial: { ...present } });
+  const sessionStorage = createStorage({ initial: { rlPortfolioWorkspaceSessionV1: 'session-record' } });
+
+  const before = api.foundationPrivacyInventory({ localStorage, sessionStorage });
+  assert.equal(before.value.personalKeyCount, 3, 'the fault case must start from storage that provably holds personal keys');
+
+  localStorage.failRemove('rlPortfolioWorkspaceV1.pointer');
+  const faulted = api.clearFoundationStorage({ localStorage, sessionStorage });
+  assert.equal(faulted.ok, false, 'a key that survives deletion can never be reported as cleared');
+  assert.equal(faulted.error.reason, 'foundation-clear-incomplete');
+  assert.equal(Object.prototype.hasOwnProperty.call(faulted, 'value'), false, 'a partial deletion emits no success state at all');
+  assert.equal(localStorage.getItem('rlPortfolioWorkspaceV1.pointer'), 'pointer-record', 'the injected fault genuinely blocked one deletion');
+  assert.equal(localStorage.getItem('rlPortfolioWorkspaceV1.slotA'), null, 'the unfaulted keys were still deleted, so the refusal is about the survivor');
+  const midway = api.foundationPrivacyInventory({ localStorage, sessionStorage });
+  assert.equal(midway.value.personalKeyCount, 1);
+  assert.deepEqual(midway.value.presentKeys, [{ key: 'rlPortfolioWorkspaceV1.pointer', storage: 'local' }]);
+
+  const recovered = createStorage({ initial: { ...present } });
+  const recoveredSession = createStorage({ initial: { rlPortfolioWorkspaceSessionV1: 'session-record' } });
+  assert.equal(api.foundationPrivacyInventory({ localStorage: recovered, sessionStorage: recoveredSession }).value.personalKeyCount, 3);
+  const succeeded = api.clearFoundationStorage({ localStorage: recovered, sessionStorage: recoveredSession });
+  assert.equal(succeeded.ok, true);
+  assert.equal(succeeded.value.verifiedEmpty, true);
+  assert.deepEqual(succeeded.value.remainingPersonalKeys, []);
+  const reread = api.foundationPrivacyInventory({ localStorage: recovered, sessionStorage: recoveredSession });
+  assert.equal(reread.value.personalKeyCount, 0, 'emptiness is proven by an independent reread, not by the clear call reporting on itself');
+  assert.deepEqual(reread.value.presentKeys, []);
+
+  const unreadable = createStorage({ initial: { ...present } });
+  unreadable.failGet('rlPortfolioWorkspaceV1.slotA');
+  const unverifiable = api.clearFoundationStorage({ localStorage: unreadable, sessionStorage: createStorage() });
+  assert.equal(unverifiable.ok, false, 'a key that cannot be reread cannot be certified empty');
+  assert.equal(unverifiable.error.reason, 'foundation-clear-incomplete');
+});

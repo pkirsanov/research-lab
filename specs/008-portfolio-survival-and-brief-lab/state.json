@@ -199,7 +199,8 @@
     "certification": {
         "status": "in_progress",
         "completedScopes": [
-            "01-private-portfolio-import-and-atomic-store"
+            "01-private-portfolio-import-and-atomic-store",
+            "02-mandate-and-cash-need-authority"
         ],
         "certifiedCompletedPhases": [],
         "scopeProgress": [

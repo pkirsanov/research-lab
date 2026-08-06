@@ -166,7 +166,15 @@ Write every closed-event, clear, inventory, UI, and sentinel assertion before pr
 
 - [ ] Full-personal clear mechanically verifies holdings, mandate/needs, events, interests, outcomes, scenarios, allocations, dossiers, quarantine, UI state, session fallback, and return context are empty while public generic assets remain.
 
-  Unchecked — 9 of 13 sections verified. **Unverified: scenarios, allocations, dossiers, UI state.** The first three are not array sections of the workspace contract yet and the fourth has no declared storage key, so the clear has nothing to verify for them today. The sweep is derived rather than hardcoded and will absorb them when later scopes add them. See [report.md](report.md#coverage-report) and decision D-03-03.
+  Unchecked — ruling recorded as decision D-03-08. The accounting below supersedes the earlier "9 of 13" note; the coverage genuinely improved, but not onto the four nouns that block this line.
+
+  Two different thirteens meet here and must not be conflated. The clear sweeps **13 surfaces** — 5 derived workspace array sections, 2 workspace pointers, and 6 declared storage keys — and **11 of those 13 are proven non-empty before the clear**, which is a real result. But this DoD line enumerates **13 nouns**, and against its own enumeration the split is:
+
+  - **Populated and swept (7):** holdings, mandate, needs, events, quarantine, session fallback, return context.
+  - **Swept but vacuous, pinned (2):** interests, outcomes. No exported builder can write either one, so their emptiness assertion proves nothing on its own — but the limit is pinned by `the two personal sections the clear sweep cannot populate are pinned by their own distinct refusal`, which holds each to a *distinct* reason (`unsupported-contract-scope`, `workspace-hash-mismatch`) plus an untouched-spread control, and goes red the moment a write path appears. This pair is accepted as verified-by-construction.
+  - **No runtime representation at all (4):** **scenarios, allocations, dossiers, UI state.** None is a workspace array section and none is a declared storage key, so the clear does not sweep them in any sense and no assertion observes them.
+
+  The four are what keep this unchecked, and the "the derived sweep will absorb them later" defence only half holds. `personalWorkspaceSections` genuinely derives itself from the empty-workspace contract, so a future scenarios/allocations/dossiers **array** section is absorbed with no test edit. But both declared-key helpers name each policy field explicitly rather than iterating the storage section, so a future **UI-state storage key** would fall outside the sweep silently — no present coverage, no auto-absorption, and no pinning test. "Mechanically verifies" is not satisfied by a noun that has no surface and whose arrival nothing detects. Full reasoning in [report.md](report.md#coverage-report).
 
 - [ ] Shared Infrastructure Impact Sweep, independent storage/inventory/clear canaries, and exact rollback/restore proof pass without altering Scope 01/02 facts.
 
@@ -223,9 +231,51 @@ Write every closed-event, clear, inventory, UI, and sentinel assertion before pr
 
   Anti-vacuity is genuine rather than incidental: the clear arm re-reads from committed bytes first (`the evidence must genuinely be on disk before the clear is meaningful`) and the invariance arm proves the projection can differ (`the projection must be able to differ, or invariance proves nothing`). Row assessment in [report.md](report.md#tp-03-02).
 
-- [ ] TP-03-03 functional evidence proves category-by-category verified deletion, preservation, and partial-failure truth against raw namespaced state.
+- [x] TP-03-03 functional evidence proves category-by-category verified deletion, preservation, and partial-failure truth against raw namespaced state.
 
-  Unchecked. The suite is green (11 pass, 0 fail, exit 0) but does not carry the row: `tests/portfolio-privacy.functional.mjs` contains zero `privacyInventory`, zero `clearFoundationStorage`, and zero `buildBehaviorClearCandidate` calls. Its only clear is `buildMandateClearCandidate`, which is Scope 02 rollback. Four of the row's five declared behaviors are absent from the named file. Test Plan ownership belongs to `bubbles.plan`. See [report.md](report.md#tp-03-03).
+  **Claim Source:** executed · **Command:** `node --test tests/portfolio-privacy.functional.mjs` · **Exit Code:** 0
+
+  The row's earlier gap is closed at HEAD. The named file now calls `privacyInventory` (3),
+  `clearFoundationStorage` (4), `buildBehaviorClearCandidate` (1), and
+  `foundationPrivacyInventory` (1); the previous note recorded zero of the first three.
+  All four clauses of this line are carried by named assertions in the named file:
+
+  - **category-by-category** — six populated categories are proven on both axes by a
+    per-category matrix compared against the runtime's own `clearedBy` declaration
+    (`every populatable category must behave exactly as its clearedBy declaration and the
+    all-personal verified-empty contract say`). The category list is read off the inventory,
+    not written into the test, and an unclassifiable new token is refused.
+  - **verified deletion** — the post-state is re-read by reopening the store from the
+    persisted bytes, and the all-personal arm requires `verifiedEmpty` with an empty
+    remaining-key list before its emptiness is accepted.
+  - **preservation** — bystanders are held to their **exact prior record count**, not merely
+    to being present (`the behavior clear must empty exactly the categories that declare it
+    and leave every other category at its exact prior count`), plus the generic public caches
+    byte-identical on both arms.
+  - **partial-failure truth against raw namespaced state** — all six declared clear steps are
+    faulted one at a time (`every declared clear step must have been faulted on its own, not
+    a subset`); each refusal is checked for `P008-STORE-WRITE` / `foundation-clear-incomplete`,
+    carries no success payload, and leaves exactly one surviving key, read back from the raw
+    namespace.
+
+  Anti-vacuity is per-category and per-step rather than global, and the preservation half is
+  proven red-able by aiming the same checker at the whole-store clear, which must report all
+  five destroyed bystanders. Clause map and residuals in [report.md](report.md#tp-03-03).
+
+  ```
+  ✔ FR-017 FR-022 FR-033: behavior settings and market-fact relabelling attempts are refused and change no mandate cash need expected return floor objective or constraint state (62.76457ms)
+  ✔ rolling a mandate back restores the pre-mandate portfolio state by identity, not by resemblance (50.958475ms)
+  ✔ each declared privacy category is deleted by the clear that names it and survives the clear that does not, one category at a time (64.775069ms)
+  ✔ every declared clear step is faulted on its own, the other steps still delete, and the retained bytes refuse a success result (2.295399ms)
+  ℹ tests 13
+  ℹ suites 0
+  ℹ pass 13
+  ℹ fail 0
+  ℹ cancelled 0
+  ℹ skipped 0
+  ℹ todo 0
+  ℹ duration_ms 847.010298
+  ```
 
 - [ ] TP-03-04 Regression E2E evidence proves SCN-008-011 clears behavioral ranking and preserves portfolio, mandate, cash needs, cache, and watchlist.
 

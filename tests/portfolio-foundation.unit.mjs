@@ -1256,3 +1256,513 @@ test('FR-030 FR-031 FR-032 FR-033 FR-035: every excluded source named by each re
   );
   assert.equal(JSON.stringify(workspace), workspaceBefore, 'no refused attempt may mutate the workspace it was offered against');
 });
+
+// ---------------------------------------------------------------------------------------
+// Shared population for FR-023, FR-027, FR-028, and FR-038.
+//
+// One workspace carrying a real value for every noun those ids name and that is
+// representable at this contract scope: two holdings with a quantity and a cost basis, a
+// mandate with a dated cash need, a provider label taken verbatim from the import, and two
+// eligible behavior events. Each sentinel is distinctive enough that finding it in a byte
+// range is a real observation rather than an accidental digit match.
+// ---------------------------------------------------------------------------------------
+const LOCAL_ONLY_QUANTITY = '1234.5678';
+const LOCAL_ONLY_COST_BASIS = '98765.4321';
+const PLAIN_HOLDING_LABEL = 'ordinary-holding-label';
+const INERT_MARKUP_LABEL = '<script>alert(1)</script>';
+const INERT_NAVIGATION_LABEL = 'javascript:void(0)';
+const CASH_NEED_DATE = '2031-06-30';
+const GENERIC_CACHE_KEY = 'rlDataGenericCacheProbe';
+
+function localOnlyCsv(label) {
+  return 'symbol,assetType,currency,quantity,price,costBasis,label\n' +
+    `MSFT,listed,USD,${LOCAL_ONLY_QUANTITY},450.25,${LOCAL_ONLY_COST_BASIS},${label}\n` +
+    `AAPL,listed,USD,10,200.00,500.00,${PLAIN_HOLDING_LABEL}\n`;
+}
+
+function localOnlyWorkspace(api, policy, label = INERT_MARKUP_LABEL) {
+  const preview = api.validateImport('csv', localOnlyCsv(label), null, policy);
+  assert.equal(preview.ok, true, `the local-only import must parse: ${JSON.stringify(preview.error || {})}`);
+  const draft = api.resolveDuplicates(preview.value, 'merge');
+  assert.equal(draft.ok, true, `the local-only draft must resolve: ${JSON.stringify(draft.error || {})}`);
+  assert.equal(draft.value.canConfirm, true, 'the local-only draft must be confirmable, or nothing below is populated');
+  const withPortfolio = api.buildWorkspaceCandidate(draft.value, api.createEmptyWorkspace(policy, NOW).value, { name: 'Local-only research portfolio', now: NOW }, policy);
+  assert.equal(withPortfolio.ok, true, `the local-only portfolio must build: ${JSON.stringify(withPortfolio.error || {})}`);
+  const withMandate = api.buildMandateCandidate(mandateDraft(api, policy, 'mandate-explicit.json'), withPortfolio.value, { now: NOW }, policy);
+  assert.equal(withMandate.ok, true, `the local-only mandate must build: ${JSON.stringify(withMandate.error || {})}`);
+  const first = appendEvent(api, policy, withMandate.value, {});
+  return appendEvent(api, policy, first.value.workspace, { subjectId: SUBJECT_BETA }, NEXT_DAY).value.workspace;
+}
+
+// Comments are stripped before the sink scan below, so a prose mention of a sink in a
+// module that must contain none cannot fail the build for the wrong reason. A stripper that
+// blanked the file would make every `doesNotMatch` vacuous, so the retained ratio is
+// asserted before the scan runs.
+function strippedSource(source) {
+  return source.replace(/\/\*[\s\S]*?\*\//g, ' ').replace(/(^|[^:])\/\/.*$/gm, '$1');
+}
+
+// Every network sink, navigation surface, and browser-owned persistence surface a
+// local-only contract cannot reach. `globalThis` and `require` are excluded on purpose:
+// they are this module's own dual-runtime bootstrap and export tail, not a sink.
+const FR023_EGRESS_IDENTIFIERS = Object.freeze([
+  'BroadcastChannel', 'EventSource', 'Notification', 'ServiceWorker', 'WebSocket', 'Worker',
+  'XMLHttpRequest', 'document', 'fetch', 'history', 'importScripts', 'indexedDB', 'location',
+  'navigator', 'openDatabase', 'postMessage', 'process', 'sendBeacon'
+]);
+
+test('FR-023: the module carries no egress sink, every byte it writes lands in the declared personal namespace, and the preview that declares it excludes personal values genuinely excludes them', () => {
+  const { api, policy } = loadContracts();
+
+  // 1. No sink exists. A local-only contract that grew a network, navigation, or
+  // unmanaged-persistence surface goes red here before any data claim is reached.
+  const source = readFileSync(MODULE_PATH, 'utf8');
+  const scannable = strippedSource(source);
+  assert.equal(scannable.length > source.length * 0.5, true, 'FR-023 comment stripping must leave the module substantially intact, or every sink claim below is made against a blank file');
+  assert.equal(FR023_EGRESS_IDENTIFIERS.length > 0, true, 'FR-023 an empty sink list would make the per-sink claims vacuous');
+  let scanned = 0;
+  FR023_EGRESS_IDENTIFIERS.forEach((identifier) => {
+    assert.doesNotMatch(scannable, new RegExp(`\\b${identifier}\\b`), `FR-023 ${identifier} must not appear in a module that keeps holdings quantities cost basis mandate cash needs and behavior history local-only`);
+    scanned += 1;
+  });
+  assert.equal(scanned, FR023_EGRESS_IDENTIFIERS.length, 'FR-023 every declared sink must have been scanned, not merely listed');
+  assert.match(`${scannable}\nfetch("https://example.com");`, /\bfetch\b/, 'FR-023 control: the same scan must find a sink that is genuinely present, so "no match" is caused by the module and not by a pattern that matches nothing');
+
+  // 2. Populate and prove. Each noun FR-023 names gets one sentinel that is genuinely in
+  // the workspace, so its later confinement is an observation rather than an empty set.
+  const workspace = localOnlyWorkspace(api, policy);
+  const serializedWorkspace = JSON.stringify(workspace);
+  const named = Object.freeze({
+    holdings: PLAIN_HOLDING_LABEL,
+    quantities: LOCAL_ONLY_QUANTITY,
+    'cost basis': LOCAL_ONLY_COST_BASIS,
+    mandate: mandateFixture('mandate-explicit.json').objectiveLabel,
+    'cash needs': CASH_NEED_DATE,
+    'behavior history': SUBJECT_ALPHA
+  });
+  const nouns = Object.keys(named);
+  assert.equal(nouns.length, 6, 'FR-023 every noun the id names that is representable at this scope must carry a sentinel; P&L is deliberately absent because no holding revision mandate or event field holds one');
+  nouns.forEach((noun) => {
+    assert.equal(serializedWorkspace.includes(named[noun]), true, `FR-023 the ${noun} sentinel must genuinely be in the workspace, or its confinement below is asserted about nothing`);
+  });
+
+  // 3. Every write lands inside the declared personal namespace. The adapter is seeded with
+  // a generic public cache key first, so the namespace it reports is not simply empty.
+  const localStorage = createStorage({ initial: { [GENERIC_CACHE_KEY]: 'generic-public-cache' } });
+  const sessionStorage = createStorage();
+  const store = api.createPortfolioStore({ localStorage, sessionStorage }, policy);
+  const opened = store.openWorkspace(NOW);
+  assert.equal(opened.ok, true);
+  const committed = store.commitWorkspace({ ...workspace, generation: opened.value.workspace.generation }, opened.value.workspace.generation, NOW);
+  assert.equal(committed.ok, true, `FR-023 the local-only workspace must commit: ${JSON.stringify(committed.error || {})}`);
+
+  // The capability probe is the one write the module makes outside a persisted slot: it puts a
+  // declared constant into the namespace, reads it back to tell durable from session from memory,
+  // and removes it. Its keys are derived from the policy rather than written as literals, so a
+  // namespace rename carries the allowance with it instead of leaving a stale literal behind that
+  // would quietly admit a foreign key.
+  const probeKeys = [`${policy.storage.workspaceNamespace}.probe`, `${policy.storage.sessionKey}.probe`];
+  const declaredKeys = [policy.storage.pointerKey, ...policy.storage.slotKeys, policy.storage.quarantineKey, policy.storage.sessionKey, policy.storage.returnContextKey, ...probeKeys];
+  const recordedWrites = [...localStorage.writes(), ...sessionStorage.writes()];
+  const writtenKeys = recordedWrites.map((entry) => entry.key);
+  assert.equal(writtenKeys.length > 0, true, 'FR-023 the commit must genuinely have written, or "every write stayed local" holds for zero writes');
+  writtenKeys.forEach((key) => {
+    assert.equal(declaredKeys.includes(key), true, `FR-023 ${key} is outside the declared personal storage contract, so a personal value left the local-only namespace`);
+  });
+
+  // Admitting the probe key on the strength of its name alone would let a probe that ever carried
+  // a personal value, or that stopped cleaning up after itself, pass as a declared write. So the
+  // probe is held to the three properties that make it harmless: it carries exactly the declared
+  // constant, it carries none of the six sentinels, and it does not survive the commit.
+  const probeWrites = recordedWrites.filter((entry) => probeKeys.includes(entry.key));
+  assert.equal(probeWrites.length > 0, true, 'FR-023 the capability probe must genuinely have been written, or the claims below hold for zero probes');
+  probeWrites.forEach((entry) => {
+    assert.equal(entry.value, policy.storage.probeValue, `FR-023 ${entry.key} must carry exactly the declared probe constant, so the probe cannot become a channel for a personal value`);
+    nouns.forEach((noun) => {
+      assert.equal(entry.value.includes(named[noun]), false, `FR-023 the ${noun} sentinel must not appear in the ${entry.key} probe write`);
+    });
+    assert.equal(localStorage.getItem(entry.key), null, `FR-023 ${entry.key} must not survive the commit in durable storage, so a capability probe cannot leave personal residue behind`);
+    assert.equal(sessionStorage.getItem(entry.key), null, `FR-023 ${entry.key} must not survive the commit in session storage, so a capability probe cannot leave personal residue behind`);
+  });
+
+  // Controls for the three probe claims. Each drives the module's OWN probe path into the violating
+  // state through an in-memory policy clone or an adapter option, never through an edit to the
+  // module, then runs the claim's own predicate against what that produced and requires it to
+  // throw. A claim that cannot go red is caught here rather than passing silently for the life of
+  // the file.
+  const taintedProbePolicy = { ...policy, storage: { ...policy.storage, probeValue: `${policy.storage.probeValue}-${LOCAL_ONLY_QUANTITY}` } };
+  const taintedLocal = createStorage();
+  const taintedOpen = api.createPortfolioStore({ localStorage: taintedLocal, sessionStorage: createStorage() }, taintedProbePolicy).openWorkspace(NOW);
+  assert.equal(taintedOpen.ok, true, 'FR-023 control: the tainted-probe store must still open, or its probe never ran');
+  const taintedProbeWrite = taintedLocal.writes().find((entry) => entry.key === probeKeys[0]);
+  assert.notEqual(taintedProbeWrite, undefined, 'FR-023 control: the tainted-probe store must have written a probe, or the two value claims are proven against no write');
+  assert.throws(
+    () => assert.equal(taintedProbeWrite.value, policy.storage.probeValue),
+    undefined,
+    'FR-023 control: the declared-constant claim must reject a probe whose value is not the declared constant'
+  );
+  assert.throws(
+    () => assert.equal(taintedProbeWrite.value.includes(LOCAL_ONLY_QUANTITY), false),
+    undefined,
+    'FR-023 control: the sentinel claim must reject a probe that carries a personal value'
+  );
+
+  const uncleanedLocal = createStorage({ failRemove: [probeKeys[0]] });
+  api.createPortfolioStore({ localStorage: uncleanedLocal, sessionStorage: createStorage() }, policy).openWorkspace(NOW);
+  assert.equal(uncleanedLocal.writes().some((entry) => entry.key === probeKeys[0]), true, 'FR-023 control: the uncleaned-probe store must have written a probe, or the persistence claim is proven against no write');
+  assert.throws(
+    () => assert.equal(uncleanedLocal.getItem(probeKeys[0]), null),
+    undefined,
+    'FR-023 control: the non-persistence claim must reject a probe that was written and then never removed'
+  );
+
+  const namespaceBytes = writtenKeys.map((key) => localStorage.getItem(key) || sessionStorage.getItem(key) || '').join('');
+  nouns.forEach((noun) => {
+    assert.equal(namespaceBytes.includes(named[noun]), true, `FR-023 the ${noun} sentinel must be found inside the declared personal namespace, so the key sweep above covered the bytes that carry it`);
+  });
+  assert.equal(localStorage.getItem(GENERIC_CACHE_KEY), 'generic-public-cache', 'FR-023 the generic public cache key must be untouched by a personal commit');
+  assert.equal(
+    nouns.some((noun) => localStorage.getItem(GENERIC_CACHE_KEY).includes(named[noun])),
+    false,
+    'FR-023 no personal sentinel may reach a generic public cache key'
+  );
+
+  // Recorder control: a key outside the namespace written through the SAME adapter is
+  // recorded. Without it "every written key was declared" could hold because the recorder
+  // never sees a foreign write at all.
+  localStorage.setItem(GENERIC_CACHE_KEY, 'written-after-measurement');
+  assert.equal(
+    localStorage.writes().some((entry) => entry.key === GENERIC_CACHE_KEY),
+    true,
+    'FR-023 control: the write recorder must capture a key outside the declared namespace, so the sweep above is a real finding'
+  );
+
+  // 4. The one surface that declares it excludes personal values must be telling the truth.
+  // The preview and the private export receive the SAME revision, so an absent value in the
+  // preview is an omission rather than an input it was never given.
+  const revision = workspace.portfolioRevisions[0];
+  const preview = api.exportPreview({ portfolio: revision });
+  const privateExport = api.exportPrivate({ portfolio: revision });
+  assert.equal(preview.ok, true, `FR-023 the preview must build: ${JSON.stringify(preview.error || {})}`);
+  assert.equal(privateExport.ok, true, `FR-023 the private export must build: ${JSON.stringify(privateExport.error || {})}`);
+  assert.equal(preview.value.personalValuesIncluded, false, 'FR-023 the preview must declare that it carries no personal value');
+  const serializedPreview = JSON.stringify(preview.value);
+  const revisionSentinels = [PLAIN_HOLDING_LABEL, LOCAL_ONLY_QUANTITY, LOCAL_ONLY_COST_BASIS, INERT_MARKUP_LABEL];
+  revisionSentinels.forEach((sentinel) => {
+    assert.equal(privateExport.value.text.includes(sentinel), true, `FR-023 control: ${sentinel} must be present in the private export of the same revision, so its absence from the preview is a real omission and not an undetectable value`);
+    assert.equal(serializedPreview.includes(sentinel), false, `FR-023 ${sentinel} must not appear in a preview that declares personalValuesIncluded false`);
+  });
+  assert.deepEqual(
+    Object.keys(preview.value).sort(),
+    ['categories', 'contractVersion', 'holdingCount', 'personalValuesIncluded', 'valuationCurrency'],
+    'FR-023 the preview shape is closed, so a personal field added to it is caught by name rather than only by its current value'
+  );
+});
+
+// The six groups FR-027 requires the inventory to separate, each mapped onto the inventory
+// surfaces that report it. Two groups sharing one surface is exactly the failure the id
+// forbids, so the mapped surfaces are asserted pairwise distinct before any count is read.
+const FR027_SEPARATED_GROUPS = Object.freeze({
+  holdings: Object.freeze(['portfolio-revisions']),
+  'mandate and cash needs': Object.freeze(['mandate-revisions', 'cash-needs']),
+  'behavior events': Object.freeze(['behavior-events']),
+  'inferred interests': Object.freeze(['interest-signals']),
+  'dismissed and completed actions': Object.freeze(['action-outcomes'])
+});
+
+test('FR-027: the local privacy inventory reports each named personal group on its own surface, separates dismissed from completed, and keeps cached generic evidence out of the personal count', () => {
+  const { api, policy } = loadContracts();
+  const workspace = localOnlyWorkspace(api, policy);
+  const localStorage = createStorage({ initial: { [GENERIC_CACHE_KEY]: 'generic-public-cache' } });
+  const sessionStorage = createStorage();
+  const store = api.createPortfolioStore({ localStorage, sessionStorage }, policy);
+  const opened = store.openWorkspace(NOW);
+  assert.equal(store.commitWorkspace({ ...workspace, generation: opened.value.workspace.generation }, opened.value.workspace.generation, NOW).ok, true);
+
+  const inventory = api.privacyInventory(workspace, { localStorage, sessionStorage }, policy);
+  assert.equal(inventory.ok, true, `FR-027 the inventory must build: ${JSON.stringify(inventory.error || {})}`);
+  const byName = Object.fromEntries(inventory.value.categories.map((entry) => [entry.category, entry]));
+
+  const groups = Object.keys(FR027_SEPARATED_GROUPS);
+  assert.equal(groups.length, 5, 'FR-027 every named personal group must be mapped; cached generic evidence is asserted separately below because it is a declared non-category');
+  const mappedSurfaces = groups.flatMap((group) => FR027_SEPARATED_GROUPS[group]);
+  assert.equal(
+    new Set(mappedSurfaces).size,
+    mappedSurfaces.length,
+    'FR-027 no inventory surface may serve two named groups, or the inventory has merged categories the id requires it to separate'
+  );
+  let inspected = 0;
+  groups.forEach((group) => {
+    FR027_SEPARATED_GROUPS[group].forEach((surface) => {
+      assert.equal(Object.prototype.hasOwnProperty.call(byName, surface), true, `FR-027 ${group} must be reported on its own ${surface} surface`);
+      assert.equal(typeof byName[surface].recordCount, 'number', `FR-027 ${group} must report a count of its own on ${surface}`);
+      assert.equal(byName[surface].present, byName[surface].recordCount > 0, `FR-027 the ${surface} presence flag must follow its own count`);
+      inspected += 1;
+    });
+  });
+  assert.equal(inspected, mappedSurfaces.length, 'FR-027 every mapped surface must have been inspected, not merely listed');
+
+  // Counted independently: a single lumped counter cannot satisfy four different totals.
+  assert.equal(byName['portfolio-revisions'].recordCount, workspace.portfolioRevisions.length, 'FR-027 holdings must be counted from the portfolio revisions themselves');
+  assert.equal(byName['mandate-revisions'].recordCount, workspace.mandateRevisions.length, 'FR-027 mandate must be counted separately from its cash needs');
+  assert.equal(
+    byName['cash-needs'].recordCount,
+    workspace.mandateRevisions.reduce((sum, entry) => sum + entry.cashNeeds.length, 0),
+    'FR-027 cash needs must be counted separately from the mandate revision that carries them'
+  );
+  assert.equal(byName['behavior-events'].recordCount, workspace.behaviorEvents.length, 'FR-027 behavior events must be counted on their own surface');
+  assert.equal(byName['behavior-events'].recordCount, 2, 'FR-027 behavior evidence must genuinely exist, or its separation from the other groups is asserted over an empty set');
+  assert.equal(byName['portfolio-revisions'].present, true, 'FR-027 holdings must genuinely be present in the inventory being read');
+  assert.equal(byName['cash-needs'].present, true, 'FR-027 a cash need must genuinely be present in the inventory being read');
+
+  // Dismissed and completed are separate outcome states, and every state the reducer can
+  // actually produce has its own counter slot. An inventory that lumped them into one
+  // closed-action counter would leave one produced state with no slot.
+  const producedStates = policy.behavior.outcomeCommands.map((command) => {
+    const reduced = api.reduceActionOutcome(RESULT_IDENTITY, command, 'owner-decision', NOW, policy);
+    assert.equal(reduced.ok, true, `FR-027 the ${command} outcome must reduce, or the counter slots below are compared against nothing`);
+    return reduced.value.state;
+  });
+  assert.equal(new Set(producedStates).size, producedStates.length, 'FR-027 the reducer must produce pairwise distinct outcome states');
+  assert.equal(producedStates.includes('completed') && producedStates.includes('dismissed'), true, 'FR-027 dismissed and completed must both be genuinely producible states');
+  producedStates.forEach((state) => {
+    assert.equal(
+      Object.prototype.hasOwnProperty.call(inventory.value.outcomeStateCounts, state),
+      true,
+      `FR-027 the ${state} outcome state must have its own counter slot, so dismissed and completed actions are reported separately`
+    );
+  });
+  assert.deepEqual(
+    Object.keys(inventory.value.outcomeStateCounts).sort(),
+    [...policy.behavior.outcomeStates].sort(),
+    'FR-027 the outcome counter keyspace is exactly the declared states, so a state cannot be folded into another'
+  );
+  // Honest scope limit: the counters are read at zero because `validateWorkspace` re-derives
+  // the workspace hash, so an outcome cannot be placed into a workspace from outside the
+  // builders this scope exposes. Asserting that refusal keeps the limit from going silent.
+  assert.equal(
+    api.validateWorkspace({ ...workspace, actionOutcomes: [api.reduceActionOutcome(RESULT_IDENTITY, 'complete', 'owner-decision', NOW, policy).value] }, policy).error.reason,
+    'workspace-hash-mismatch',
+    'FR-027 an outcome added to a workspace outside the builders must be refused, which is why the per-state counts above are exercised at zero'
+  );
+
+  // Cached generic evidence stays separate: the generic key sits in the same adapter and is
+  // neither counted nor listed, and the inventory says so rather than implying it swept it.
+  assert.equal(inventory.value.genericNamespacesInspected, false, 'FR-027 the inventory must declare that generic namespaces were not inspected rather than implying it covered them');
+  assert.equal(Object.keys(localStorage.snapshot()).includes(GENERIC_CACHE_KEY), true, 'FR-027 the generic cache key must genuinely be in the same adapter, or its exclusion below is asserted about nothing');
+  assert.equal(
+    inventory.value.personalKeyCount,
+    Object.keys(localStorage.snapshot()).filter((key) => key !== GENERIC_CACHE_KEY).length,
+    'FR-027 the personal key count must exclude the cached generic evidence sharing the adapter'
+  );
+  const foundationInventory = api.foundationPrivacyInventory({ localStorage, sessionStorage });
+  assert.equal(foundationInventory.ok, true);
+  assert.equal(
+    foundationInventory.value.presentKeys.some((entry) => entry.key === GENERIC_CACHE_KEY),
+    false,
+    'FR-027 a cached generic evidence key must never be listed as a personal key'
+  );
+  assert.equal(foundationInventory.value.presentKeys.length > 0, true, 'FR-027 personal keys must genuinely be listed, or the generic exclusion above holds for an empty list');
+});
+
+test('FR-028: a behavior clear removes the eligible events and empties the derived-interest container while holdings mandate and cash needs survive, and the separately requested clears do remove them', () => {
+  const { api, policy } = loadContracts();
+  const workspace = localOnlyWorkspace(api, policy);
+
+  // Populate and prove, including the lifecycle state, so "removes eligible events" is a
+  // claim about events that were genuinely eligible rather than about an empty list.
+  assert.equal(workspace.behaviorEvents.length, 2, 'FR-028 behavior evidence must genuinely exist before a clear can remove it');
+  workspace.behaviorEvents.forEach((event) => {
+    assert.equal(event.lifecycleState, 'eligible', 'FR-028 the events being cleared must genuinely be in the eligible lifecycle state');
+  });
+  assert.equal(workspace.portfolioRevisions.length > 0, true, 'FR-028 holdings must genuinely exist before their survival can be observed');
+  assert.equal(workspace.mandateRevisions[0].cashNeeds.length > 0, true, 'FR-028 a cash need must genuinely exist before its survival can be observed');
+
+  const cleared = api.buildBehaviorClearCandidate(workspace, LATER, policy);
+  assert.equal(cleared.ok, true, `FR-028 the behavior clear must succeed: ${JSON.stringify(cleared.error || {})}`);
+  assert.equal(cleared.value.clearedEventCount, workspace.behaviorEvents.length, 'FR-028 the reported cleared count must match the proven pre-clear population');
+  assert.equal(cleared.value.workspace.behaviorEvents.length, 0, 'FR-028 a behavior clear must remove the eligible events');
+  assert.equal(cleared.value.workspace.interestSignals.length, 0, 'FR-028 a behavior clear must leave no derived interest behind');
+  assert.equal(api.validateWorkspace(cleared.value.workspace, policy).ok, true, 'FR-028 the cleared workspace must still be a valid workspace');
+
+  assert.deepEqual(cleared.value.workspace.portfolioRevisions, workspace.portfolioRevisions, 'FR-028 holdings must survive a behavior clear byte for byte');
+  assert.deepEqual(cleared.value.workspace.mandateRevisions, workspace.mandateRevisions, 'FR-028 mandate and cash needs must survive a behavior clear byte for byte');
+  assert.equal(cleared.value.workspace.currentPortfolioId, workspace.currentPortfolioId, 'FR-028 a behavior clear must not de-current the portfolio');
+  assert.equal(cleared.value.workspace.currentMandateId, workspace.currentMandateId, 'FR-028 a behavior clear must not de-current the mandate');
+
+  // "Unless separately requested": the separate clears DO remove what the behavior clear
+  // preserved. Without this arm, an implementation that could not clear a portfolio or a
+  // mandate at all would satisfy every preservation claim above.
+  const portfolioClear = api.buildPortfolioClearCandidate(workspace, LATER, policy);
+  assert.equal(portfolioClear.ok, true, `FR-028 the separately requested portfolio clear must succeed: ${JSON.stringify(portfolioClear.error || {})}`);
+  assert.equal(portfolioClear.value.currentPortfolioId, null, 'FR-028 control: a separately requested portfolio clear must genuinely remove the portfolio, so the behavior clear preserving it is caused by the request kind');
+  assert.equal(portfolioClear.value.currentMandateId, workspace.currentMandateId, 'FR-028 a portfolio clear must not also remove the mandate');
+  assert.equal(portfolioClear.value.behaviorEvents.length, workspace.behaviorEvents.length, 'FR-028 a portfolio clear must not also remove behavior history');
+
+  const mandateClear = api.buildMandateClearCandidate(workspace, LATER, policy);
+  assert.equal(mandateClear.ok, true, `FR-028 the separately requested mandate clear must succeed: ${JSON.stringify(mandateClear.error || {})}`);
+  assert.equal(mandateClear.value.currentMandateId, null, 'FR-028 control: a separately requested mandate clear must genuinely remove the mandate, so the behavior clear preserving it is caused by the request kind');
+  assert.equal(mandateClear.value.currentPortfolioId, workspace.currentPortfolioId, 'FR-028 a mandate clear must not also remove the portfolio');
+  assert.equal(mandateClear.value.behaviorEvents.length, workspace.behaviorEvents.length, 'FR-028 a mandate clear must not also remove behavior history');
+
+  // Honest scope limit: the derived-interest container is asserted empty above over a
+  // container this contract forces empty. Asserting the refusal keeps a future widening
+  // from silently inheriting an untested "removes derived interests" claim.
+  assert.equal(
+    api.validateWorkspace({ ...workspace, interestSignals: [{ interestId: 'inferred' }] }, policy).error.reason,
+    'unsupported-contract-scope',
+    'FR-028 a workspace carrying a derived interest is refused at this contract scope, which is why the emptiness claim above is not yet exercised against a populated set'
+  );
+});
+
+// The five nouns FR-034 requires an eligible event to retain, mapped onto the stored fields
+// that carry them. Dropping any one of these fields from a stored event must be refused.
+const FR034_RETAINED_FIELDS = Object.freeze({
+  category: 'category',
+  subject: 'subjectKind',
+  'subject id': 'subjectId',
+  domain: 'domain',
+  timestamp: 'occurredAt',
+  'source surface': 'sourceSurface',
+  'local lifecycle state': 'lifecycleState'
+});
+
+test('FR-034: an eligible behavior event is admitted only for a documented completed research action and retains category subject domain timestamp source surface and lifecycle state', () => {
+  const { api, policy } = loadContracts();
+  const documented = policy.behavior.eventCategories;
+  assert.equal(documented.length > 0, true, 'FR-034 an empty documented category list would make every per-category claim vacuous');
+
+  // Limited to completed research actions: the documented vocabulary itself contains only
+  // completed actions, so an in-progress or open-ended category cannot be declared.
+  documented.forEach((category) => {
+    assert.match(category, /-completed$/, `FR-034 ${category} must name a completed research action, so an in-progress activity cannot be admitted as evidence`);
+  });
+
+  // Control, run first: every documented category is genuinely accepted, so the refusals
+  // below are caused by the attempted category rather than by a builder that refuses all.
+  let accepted = 0;
+  documented.forEach((category) => {
+    const built = api.buildBehaviorEvent(behaviorDraft({ category }), { now: NOW }, policy);
+    assert.equal(built.ok, true, `FR-034 control: the documented category ${category} must be accepted: ${JSON.stringify(built.error || {})}`);
+    assert.equal(built.value.category, category, `FR-034 the admitted event must retain the ${category} it was built for`);
+    accepted += 1;
+  });
+  assert.equal(accepted, documented.length, 'FR-034 every documented category must have been exercised, not merely iterated over');
+
+  // Attempts: a research action that is not completed, and a category outside the
+  // documented vocabulary, are both refused.
+  const undocumented = ['ticker-research-started', 'ticker-research-in-progress', 'dossier-review-opened', 'not-a-declared-category'];
+  let refused = 0;
+  undocumented.forEach((category) => {
+    assert.equal(documented.includes(category), false, `FR-034 ${category} must genuinely be outside the documented vocabulary, or its refusal proves nothing`);
+    const attempt = api.buildBehaviorEvent(behaviorDraft({ category }), { now: NOW }, policy);
+    assert.equal(attempt.ok, false, `FR-034 ${category} is not a documented completed research action and must not become an eligible event`);
+    assert.equal(attempt.error.reason, 'behavior-event-invalid', `FR-034 ${category} must be refused as an invalid event, not incidentally by another guard`);
+    refused += 1;
+  });
+  assert.equal(refused, undocumented.length, 'FR-034 every undocumented category must have been attempted, not merely listed');
+
+  // Retention: the built event carries every named noun with the value it was built from.
+  const event = api.buildBehaviorEvent(behaviorDraft(), { now: NOW }, policy);
+  assert.equal(event.ok, true, `FR-034 the reference event must build: ${JSON.stringify(event.error || {})}`);
+  const draft = behaviorDraft();
+  assert.equal(event.value.category, draft.category, 'FR-034 an eligible event must retain its category');
+  assert.equal(event.value.subjectKind, draft.subjectKind, 'FR-034 an eligible event must retain its subject kind');
+  assert.equal(event.value.subjectId, draft.subjectId, 'FR-034 an eligible event must retain its subject id');
+  assert.equal(event.value.domain, draft.domain, 'FR-034 an eligible event must retain its domain');
+  assert.equal(event.value.sourceSurface, draft.sourceSurface, 'FR-034 an eligible event must retain the surface it came from');
+  assert.equal(event.value.occurredAt, NOW, 'FR-034 an eligible event must retain the timestamp it occurred at');
+  assert.equal(event.value.lifecycleState, 'eligible', 'FR-034 an admitted event must carry the eligible local lifecycle state');
+  assert.equal(policy.behavior.eventLifecycleStates.includes(event.value.lifecycleState), true, 'FR-034 the local lifecycle state must be one the policy declares');
+
+  // Attempts: dropping any retained field makes the stored event unreadable, so retention is
+  // enforced rather than merely populated by the current builder.
+  const retained = Object.keys(FR034_RETAINED_FIELDS);
+  assert.equal(retained.length, 7, 'FR-034 every named retained noun must be mapped onto a stored field');
+  let dropped = 0;
+  retained.forEach((noun) => {
+    const field = FR034_RETAINED_FIELDS[noun];
+    assert.equal(Object.prototype.hasOwnProperty.call(event.value, field), true, `FR-034 the stored event must carry a ${field} field for ${noun}`);
+    const withoutField = { ...event.value };
+    delete withoutField[field];
+    const validated = api.validateBehaviorEvent(withoutField, policy);
+    assert.equal(validated.ok, false, `FR-034 an event that lost its ${noun} must not validate`);
+    assert.equal(validated.error.reason, 'unknown-field', `FR-034 an event missing ${field} must be refused by shape rather than read with the noun absent`);
+    dropped += 1;
+  });
+  assert.equal(dropped, retained.length, 'FR-034 every retained field must have been dropped and refused, not merely listed');
+  assert.equal(api.validateBehaviorEvent(event.value, policy).ok, true, 'FR-034 control: the intact event must still validate, so the refusals above are caused by the dropped field');
+});
+
+// Provider-supplied strings that must be carried as text and never gain executable or
+// navigational meaning: script markup, an inline URL scheme, and an attribute-shaped payload.
+const FR038_INERT_PAYLOADS = Object.freeze([INERT_MARKUP_LABEL, INERT_NAVIGATION_LABEL, '<b onclick="x()">y</b>', 'https://example.com/redirect']);
+
+test('FR-038: an imported provider label carrying markup or a navigation scheme is retained as inert text with no navigation authority, and the recommendation token fields refuse it while still accepting a legitimate token', () => {
+  const { api, policy } = loadContracts();
+
+  // Control, run first: a plain label round-trips byte for byte, so "retained verbatim"
+  // below is a property of the import rather than an artefact of a rewrite that happens to
+  // leave these payloads alone.
+  const plainPreview = api.validateImport('csv', localOnlyCsv('an ordinary provider label'), null, policy);
+  assert.equal(plainPreview.ok, true, `FR-038 control: a plain provider label must import: ${JSON.stringify(plainPreview.error || {})}`);
+  assert.equal(plainPreview.value.holdings[0].label, 'an ordinary provider label', 'FR-038 control: a plain provider label must be retained as written');
+
+  let carried = 0;
+  FR038_INERT_PAYLOADS.forEach((payload) => {
+    const preview = api.validateImport('csv', localOnlyCsv(payload), null, policy);
+    assert.equal(preview.ok, true, `FR-038 a provider label containing ${payload} must import as text: ${JSON.stringify(preview.error || {})}`);
+    assert.equal(preview.value.canConfirm, true, `FR-038 a provider label containing ${payload} must not block the draft, because it is data rather than a defect`);
+    assert.equal(preview.value.holdings[0].label, payload, `FR-038 ${payload} must be retained byte for byte as inert text, neither executed nor rewritten into a structural field`);
+    assert.equal(typeof preview.value.holdings[0].label, 'string', `FR-038 ${payload} must remain a plain string value`);
+    carried += 1;
+  });
+  assert.equal(carried, FR038_INERT_PAYLOADS.length, 'FR-038 every inert payload must have been imported, not merely listed');
+
+  // No navigation authority. The route projection is computed from a workspace whose current
+  // revision provably carries the markup label, so the label's absence from the projection
+  // is a real omission rather than an input the projection never saw.
+  const markupWorkspace = localOnlyWorkspace(api, policy, INERT_MARKUP_LABEL);
+  const navigationWorkspace = localOnlyWorkspace(api, policy, INERT_NAVIGATION_LABEL);
+  assert.equal(JSON.stringify(markupWorkspace).includes(INERT_MARKUP_LABEL), true, 'FR-038 the markup label must genuinely be in the workspace the routes are projected from');
+  assert.equal(JSON.stringify(navigationWorkspace).includes(INERT_NAVIGATION_LABEL), true, 'FR-038 the navigation-scheme label must genuinely be in the workspace the routes are projected from');
+
+  const markupRoutes = api.projectRouteStates(markupWorkspace, policy);
+  const navigationRoutes = api.projectRouteStates(navigationWorkspace, policy);
+  assert.equal(markupRoutes.ok, true, `FR-038 the route projection must build: ${JSON.stringify(markupRoutes.error || {})}`);
+  assert.equal(navigationRoutes.ok, true, `FR-038 the route projection must build: ${JSON.stringify(navigationRoutes.error || {})}`);
+  assert.equal(policy.mandate.descriptiveRouteStates.length > 0, true, 'FR-038 an empty declared route list would make the route claims below vacuous');
+  assert.deepEqual(
+    markupRoutes.value.routes.map((entry) => entry.route),
+    policy.mandate.descriptiveRouteStates,
+    'FR-038 every route must come from the declared route vocabulary, so an imported label cannot add or rename a destination'
+  );
+  assert.deepEqual(
+    navigationRoutes.value.routes.map((entry) => entry.route),
+    markupRoutes.value.routes.map((entry) => entry.route),
+    'FR-038 two workspaces differing only in a provider label must project identical routes, so the label carries no navigation authority'
+  );
+  [[INERT_MARKUP_LABEL, markupRoutes], [INERT_NAVIGATION_LABEL, navigationRoutes]].forEach(([payload, projected]) => {
+    assert.equal(JSON.stringify(projected.value).includes(payload), false, `FR-038 ${payload} must not reach the route projection in any field`);
+  });
+
+  // Recommendation text. Control first: a legitimate token draft is accepted, so a builder
+  // that refused everything would already be red before any payload is attempted.
+  const legitimate = api.buildBehaviorEvent(behaviorDraft(), { now: NOW }, policy);
+  assert.equal(legitimate.ok, true, `FR-038 control: a legitimate token draft must be accepted: ${JSON.stringify(legitimate.error || {})}`);
+  const alternative = api.buildBehaviorEvent(behaviorDraft({ subjectId: SUBJECT_BETA, sourceSurface: 'path-lab' }), { now: NOW }, policy);
+  assert.equal(alternative.ok, true, `FR-038 control: a second legitimate token draft must also be accepted, so acceptance is not limited to one canonical value: ${JSON.stringify(alternative.error || {})}`);
+
+  const tokenFields = ['subjectKind', 'subjectId', 'domain', 'horizon', 'sourceSurface', 'completionConditionId'];
+  let attempts = 0;
+  tokenFields.forEach((field) => {
+    FR038_INERT_PAYLOADS.forEach((payload) => {
+      const attempt = api.buildBehaviorEvent(behaviorDraft({ [field]: payload }), { now: NOW }, policy);
+      assert.equal(attempt.ok, false, `FR-038 ${payload} must not be admitted into the ${field} of a recommendation event`);
+      assert.equal(attempt.error.reason, 'behavior-event-invalid', `FR-038 ${payload} in ${field} must be refused as an invalid event, so markup cannot become part of a stored recommendation token`);
+      assert.equal(attempt.value, undefined, `FR-038 a ${field} carrying ${payload} must yield no event at all`);
+      attempts += 1;
+    });
+  });
+  assert.equal(attempts, tokenFields.length * FR038_INERT_PAYLOADS.length, 'FR-038 every payload must have been attempted against every token field, not merely listed');
+});

@@ -176,15 +176,17 @@ Add each named assertion and persistent title before mandate behavior. Execute e
   FUNCTIONAL_EXIT=0
   ```
 
-- [ ] Scope 01 import/storage behavior remains unchanged, rollback is exact, and every Scope 02 behavior has intended RED and same-command GREEN evidence.
+- [x] Scope 01 import/storage behavior remains unchanged, rollback is exact, and every Scope 02 behavior has intended RED and same-command GREEN evidence.
 
-  **Assessed and deliberately left unchecked.** The item joins three claims with "and". Clause (a) *Scope 01 unchanged* is carried: `tests/portfolio-foundation.unit.mjs` (22 pass), `tests/portfolio-privacy.functional.mjs` (11 pass) and the `system-chrome` browser suite (6 passed) were all re-executed green at the current HEAD with `git status --porcelain rlportfolio.js` empty. Clause (b) *rollback is exact* is carried by the committed assertion `rolling a mandate back restores the pre-mandate portfolio state by identity, not by resemblance` (`tests/portfolio-privacy.functional.mjs:860`), green as subtest 11, and now also by its own RED/GREEN pair.
+  The item joins three claims with "and", and all three are now carried. Clause (a) *Scope 01 unchanged*: all three suites re-executed green at `c2dc78c6` with `git status --porcelain rlportfolio.js` **empty** — `tests/portfolio-foundation.unit.mjs` 22 pass / 0 fail exit 0, `tests/portfolio-privacy.functional.mjs` 11 pass / 0 fail exit 0, and the `system-chrome` browser suite 6 passed exit 0. Clause (b) *rollback is exact*: the committed assertion `rolling a mandate back restores the pre-mandate portfolio state by identity, not by resemblance` (`tests/portfolio-privacy.functional.mjs:1029`) is green as subtest 11 below, and is carried by its **own** RED pair rather than by citation alone — pair 2 re-derives the lineage identity so an equivalent-looking revision is restored under a new identity, failing `not ok 11` on the identity term specifically (`# pass 9`, `# fail 2`, exit 1) and returning to `# pass 11`, `# fail 0`, exit 0 on the same command after revert.
 
-  Clause (c) is **not** carried. It is quantified over *every* Scope 02 behavior; six now have a RED record and two are partial, and seven do not. The two gaps previously named as widest are closed: the FR-017/FR-022/FR-033 forbidden-input refusal surface (RED `# pass 10`/`# fail 1` exit 1, GREEN `# pass 11`/`# fail 0` exit 0) and the rollback-by-identity assertion (RED `# pass 9`/`# fail 2` exit 1, same GREEN). What still blocks the item: the two browser rows, which no node-suite defect can reach, plus FR-011, FR-012, FR-014, FR-015, NFR-005 and NFR-007/NFR-022.
+  Clause (c) *is* now carried. It is quantified over *every* Scope 02 behavior, and the per-behavior map stands at **sixteen of sixteen** with a RED record — zero `partial`, zero `no`. Each row was re-verified here against the source rather than accepted on the map's word: every failing assertion each row cites resolves to an assertion that is present in `tests/portfolio-privacy.functional.mjs` today, and each cited defect targets the property that row's assertion claims to protect. Nine of the sixteen reached `yes` only after the injected defect exposed the standing assertion as **blind** rather than merely unproved, so those rows are carried by an assertion that is new as well as by a defect that is targeted.
 
-  **Command:** `BUBBLES_AGENT_NAME=bubbles.implement BUBBLES_SPEC=specs/008-portfolio-survival-and-brief-lab BUBBLES_SCOPE=SCOPE-02 BUBBLES_TOOL_LOG_TAGS=TP-02-02,green,DOD-scope01-unchanged timeout 300 bash .github/bubbles/scripts/tool-log.sh node --test tests/portfolio-privacy.functional.mjs`
+  Two accuracy notes recorded rather than smoothed over. The line numbers in the pairs 5-9 table have drifted — the file grew from 1010 to 1094 lines as pairs C, D, E and the FR-015 declared-field-set fix landed after those pairs were captured — so each row was resolved by assertion **name**, and all resolve. Rows 4 and 5 (`canConfirm`, `inferredValues`) rest on orchestrator-observed RED declared `interpreted`, and row 5 records no counts at all; both were checked in source instead, and the assertion each names is falsifiable by the defect each names — `Object.values(route.inferredValues).every((entry) => entry === null)` at `:322` quantifies over the entries actually present, so an invented entry fails it.
 
-  **Exit Code:** 0 · **Claim Source:** executed (clause a/b) · interpreted (clause c RED counts, orchestrator-observed) · Per-behavior RED map and full reasoning: [report.md](report.md#item-4---scope-01-preservation-exact-rollback-per-behavior-redgreen) · Uncertainty Declaration: [report.md](report.md#dod-item-4-left-unchecked---clause-c-red-coverage-is-partial-open)
+  **Command:** `BUBBLES_AGENT_NAME=bubbles.implement BUBBLES_SPEC=specs/008-portfolio-survival-and-brief-lab BUBBLES_SCOPE=SCOPE-02 BUBBLES_TOOL_LOG_TAGS=TP-02-02,green,DOD-179,clause-a,clause-b timeout 300 bash .github/bubbles/scripts/tool-log.sh node --test tests/portfolio-privacy.functional.mjs`
+
+  **Exit Code:** 0 · **Claim Source:** executed (clause a, all three suites re-run here; clause b GREEN re-run here) · interpreted (rows 4 and 5 RED, orchestrator-observed, cross-checked in source) · Per-behavior RED map and full reasoning: [report.md](report.md#item-4---scope-01-preservation-exact-rollback-per-behavior-redgreen) · Closure of the standing declaration: [report.md](report.md#dod-item-4-clause-c-red-coverage-is-partial-resolved)
 
   ```text
   ok 8 - FR-011 to FR-016: declared purpose units authority dates amounts currencies priorities and treatment reach the candidate unchanged and an infeasible draft fails loudly with nothing relaxed
@@ -199,10 +201,36 @@ Add each named assertion and persistent title before mandate behavior. Execute e
   # cancelled 0
   # skipped 0
   # todo 0
-  # duration_ms 763.986853
-  [tool-log] recorded exit=0 duration=867ms → /home/redacted/research-lab/.specify/runtime/tool-calls.jsonl
+  # duration_ms 838.969933
+  [tool-log] recorded exit=0 duration=904ms → /home/redacted/research-lab/.specify/runtime/tool-calls.jsonl
   FUNCTIONAL_EXIT=0
   ```
+
+  Clause (a)'s other two suites, same run, same clean tree:
+
+  ```text
+  ok 22 - route projection cites one mandate revision and reports mandate-absent states without inventing values
+  1..22
+  # tests 22
+  # pass 22
+  # fail 0
+  # duration_ms 384.718751
+  [tool-log] recorded exit=0 duration=448ms → /home/redacted/research-lab/.specify/runtime/tool-calls.jsonl
+  UNIT_EXIT=0
+
+  ✓  1 [system-chrome] › tests/portfolio-survival-foundation.spec.mjs:86:1 › Regression: SCN-008-003 explicit mandate alone supplies every hard constraint (2.7s)
+  ✓  2 [system-chrome] › tests/portfolio-survival-foundation.spec.mjs:183:1 › Regression: SCN-008-004 no mandate leaves goal fit and survival unavailable (1.5s)
+  ✓  3 [system-chrome] › tests/portfolio-survival-foundation.spec.mjs:259:1 › Regression: SCN-008-003 conflicting mandate stays visibly infeasible with no constraint relaxed (903ms)
+  ✓  4 [system-chrome] › tests/portfolio-survival-foundation.spec.mjs:298:1 › Regression: SCN-008-001 valid local portfolio import creates one current revision (1.6s)
+  ✓  5 [system-chrome] › tests/portfolio-survival-foundation.spec.mjs:402:1 › Regression: SCN-008-002 invalid or secret-bearing import is atomic and redacted (948ms)
+  ✓  6 [system-chrome] › tests/portfolio-survival-foundation.spec.mjs:490:1 › Regression: Feature 008 atomic slots preserve last valid portfolio in durable session and memory modes (2.3s)
+
+    6 passed (12.4s)
+  [tool-log] recorded exit=0 duration=13993ms → /home/redacted/research-lab/.specify/runtime/tool-calls.jsonl
+  BROWSER_EXIT=0
+  ```
+
+  The per-test `[SCN-*]` counter and identity lines interleaved in the browser stdout are elided above under this scope's value-safety rule; the full stream is in `.specify/runtime/tool-calls.jsonl`.
 
 #### Test Evidence Items - Exact Parity With 5 Test Plan Rows
 

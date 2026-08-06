@@ -830,8 +830,10 @@ fingerprint, the stored constraints and cash needs, and every policy field.
 **Phase:** implement
 
 This item joins three independent claims with "and", so it is ticked only if all
-three hold. Each is assessed separately below. Two hold; the third does not, and
-the item is therefore left unchecked.
+three hold. Each is assessed separately below. All three now hold, and the item is
+ticked. It was unchecked across several earlier runs on clause (c) alone; that
+history is kept below rather than rewritten, because the sequence of what each run
+could and could not prove is the useful record.
 
 `git status --porcelain rlportfolio.js` was empty before these runs, so every
 capture below reflects committed behavior rather than a working-tree edit.
@@ -942,16 +944,22 @@ The per-test `[SCN-*]` assertion lines are elided above; they are value-safe
 counters and reason codes, already reproduced in [TP-02-03](#tp-02-03),
 [TP-02-04](#tp-02-04) and [TP-02-05](#tp-02-05).
 
-#### Clause (b) - rollback is exact: CARRIED BY CITATION
+#### Clause (b) - rollback is exact: CARRIED BY CITATION AND BY ITS OWN RED PAIR
 
 Carried by the committed assertion `rolling a mandate back restores the
 pre-mandate portfolio state by identity, not by resemblance`
-(`tests/portfolio-privacy.functional.mjs:860`), green as subtest 11 in the
+(`tests/portfolio-privacy.functional.mjs:1029`), green as subtest 11 in the
 functional capture above. The discriminator is in the title: the restored state
 is compared by identity, so a rollback that rebuilt a merely equivalent-looking
-portfolio fails it rather than passing.
+portfolio fails it rather than passing. It is no longer carried by citation
+alone — pair 2 below shows the assertion fails when rollback stops being exact,
+and fails on the identity term rather than on resemblance.
 
-#### Clause (c) - every Scope 02 behavior has intended RED and same-command GREEN: NOT CARRIED
+The locator moved from `:860` to `:1029` as pairs C, D, E and the FR-015
+declared-field-set fix added lines above it. The assertion is unchanged; only its
+line is. The name is the durable identifier and the line is not.
+
+#### Clause (c) - every Scope 02 behavior has intended RED and same-command GREEN: CARRIED
 
 Two further RED/GREEN pairs were produced this session, same command in both
 directions: `node --test tests/portfolio-privacy.functional.mjs`.
@@ -1585,7 +1593,7 @@ is likewise no longer green-only; pair 2 shows the assertion would fail if
 rollback stopped being exact, and shows it specifically on the identity term
 rather than on resemblance.
 
-**Verdict: item 4 is left unchecked by this agent.** Clauses (a) and (b) are
+**Verdict: item 4 is ticked.** Clauses (a) and (b) are
 carried, and clause (b) is carried by a RED/GREEN pair rather than by citation
 alone. Clause (c) is quantified over *every* Scope 02 behavior. The five behaviors
 that had no RED at all — FR-011, FR-012, FR-014, FR-015 and NFR-022 — each carry
@@ -1596,20 +1604,56 @@ Playwright suite. The last three partial rows — NFR-003, NFR-007 and NFR-012 �
 are carried by pairs C, D and E, each aimed at the term that had never fired.
 
 The counting objection that kept this item unchecked is therefore resolved: the
-map stands at **sixteen of sixteen** with a RED, none partial and none at no. What
-this run does **not** do is tick the box. Nine of the sixteen rows reached `yes`
-only after a defect exposed the assertion as blind rather than merely unproved,
-which is a strong argument that the remaining nine assertions have not yet been
-probed the same way and may hide the same shape. Whether clause (c)'s universal
-claim is satisfied by sixteen targeted pairs, or requires that every assertion in
-the scope be shown discriminating, is an owner judgement and not one this agent
-took. The box stays `[ ]`.
+map stands at **sixteen of sixteen** with a RED, none partial and none at no. The
+run that produced the sixteenth row did **not** tick the box, and was right not
+to: whether clause (c)'s universal claim is satisfied by sixteen targeted pairs,
+or requires that every assertion in the scope be shown discriminating, is an owner
+judgement and not an agent's to take.
+
+**The box is now ticked, on the owner's judgement, and the map was re-verified
+rather than taken on its word.** Each of the sixteen rows was resolved against the
+current source: every failing assertion a row cites is present in
+`tests/portfolio-privacy.functional.mjs` today, and every cited defect targets the
+property that row's assertion claims to protect. Two things were found on that
+pass and are recorded rather than smoothed over.
+
+1. **The pairs 5-9 line numbers have drifted.** That table cites `:451`, `:476`,
+   `:507`, `:520` and `:760`; the file has since grown from 1010 to 1094 lines as
+   pairs C, D, E and the FR-015 declared-field-set fix landed above them, so none
+   of those five lines now holds the assertion named beside it. Every row was
+   therefore resolved by assertion **name**, and all five resolve —
+   `FR-011 hard constraints must be counted as declared` at `:466`,
+   `FR-012 needs declared out of chronological order must be identified` at `:494`,
+   `FR-014 holdings must not become constraints` at `:522`, FR-015's propagation
+   check at `:540` (under the renamed form the FR-015 fix introduced, `every
+   declared constraint **field**`, which that section documents), and NFR-022's
+   closed-contract check at `:837`, whose subject expression reads the refusal
+   branch directly and so produced pair 9's `TypeError` exactly as recorded. This
+   is locator drift, not a substantive defect, but a stale locator is how a
+   citation quietly stops being checkable.
+2. **Rows 4 and 5 are the thinnest citations in the map.** Both rest on
+   orchestrator-observed RED declared `interpreted`, and row 5 records no counts
+   at all — only "RED observed". Neither could be cross-checked arithmetically the
+   way row 4's `# pass 9`/`# fail 2` was, so both were checked in source instead.
+   Row 4's defect drops the conflicts term from `canConfirm`, and two assertions
+   bear on it in two different subtests — `:330` and `:557`
+   (`FR-016 an infeasible mandate must not be confirmable`) — which is exactly the
+   two failures its RED reports. Row 5's defect invents a value into
+   `inferredValues`, and the standing assertion at `:322` quantifies over
+   `Object.values(route.inferredValues)` — the entries actually present, not a
+   hand-listed set — so an invented entry makes `.every()` false and fails it. Both
+   named assertions are falsifiable by their named defects.
+
+No row was found marked `yes` on a defect that never fired. The nine rows that
+reached `yes` only after the defect exposed the assertion as blind are the
+strongest ones in the map, not the weakest: each is carried by an assertion that
+is new as well as by a defect that is targeted.
 
 ### Verdict
 
 All 14 requirement ids are genuinely carried by assertions that would fail if the
-behavior were removed. No id is present in name only. Core Delivery DoD items 1-3
-are ticked.
+behavior were removed. No id is present in name only. All four Core Delivery DoD
+items are ticked.
 
 ## Scenario Contract Evidence
 
@@ -1730,22 +1774,29 @@ propagates. The note at the end of the TP-02-05 block that describes the earlier
 verdict as possibly stale is likewise resolved by that execution; it is left in
 place because it was an accurate statement of what that run knew at the time.
 
-### DoD item 4 left unchecked - clause (c) RED coverage is partial (OPEN)
+### DoD item 4 clause (c) RED coverage is partial (RESOLVED)
+
+**Resolved.** This declaration is closed and the item is ticked. It is kept in
+place because each state below was an accurate statement of what its run knew at
+the time, and the sequence is the useful record.
 
 The item "Scope 01 import/storage behavior remains unchanged, rollback is exact,
-and every Scope 02 behavior has intended RED and same-command GREEN evidence" was
-assessed in this run and deliberately **not** ticked. Full reasoning and the
+and every Scope 02 behavior has intended RED and same-command GREEN evidence" went
+unticked across several runs on clause (c) alone. Full reasoning and the
 per-behavior RED map are in
 [Item 4](#item-4---scope-01-preservation-exact-rollback-per-behavior-redgreen).
 
-Summary of the open gap, so the next owner does not have to re-derive it:
+Final state of the three clauses:
 
-- Clause (a) is carried — three suites re-executed green at the current HEAD.
-- Clause (b) is carried, and as of this run by a RED/GREEN pair rather than by
-  citation alone.
-- Clause (c) is **not** carried. Thirteen Scope 02 behaviors now have a RED record
-  and three are partial; none is left with no record at all. The clause is
-  quantified over all of them, and three partial rows do not satisfy it.
+- Clause (a) is carried — all three suites re-executed green at `c2dc78c6` with
+  `git status --porcelain rlportfolio.js` empty: 22 pass / 0 fail, 11 pass /
+  0 fail, and 6 passed.
+- Clause (b) is carried, by a RED/GREEN pair rather than by citation alone.
+- Clause (c) **is** carried. The map reached sixteen of sixteen with a RED, none
+  partial and none at no, and every row's citation was re-resolved against the
+  current source before the box was ticked. The successive counts this declaration
+  reported on the way — four, then seven, then thirteen with three partial — are
+  left above as the audit trail.
 
 The two highest-value gaps the previous run named are now **closed**:
 
@@ -1768,24 +1819,30 @@ Both pairs are recorded in
    missing assertion was written, then went to 1 failed / 5 passed with it, and
    back to 6 passed after revert.
 
-What still blocks the item, in priority order:
+What blocked the item after that, in the order it was cleared:
 
-1. `NFR-007` last-valid integrity under refusal and `NFR-003` provenance — both
-   are partial: the RED that exists lands on a neighbouring term rather than on
-   the one the row names.
-2. `NFR-012` atomic revisions / latest-complete publication — partial for the same
-   reason; the clause-1 defect lands on only part of it.
+1. ~~`NFR-007` last-valid integrity under refusal and `NFR-003` provenance — both
+   partial: the RED that existed landed on a neighbouring term rather than on the
+   one the row names.~~ Closed by pairs E and C, each aimed at the term that had
+   never fired, and each of which turned out to be blind rather than merely
+   unproved.
+2. ~~`NFR-012` atomic revisions / latest-complete publication — partial for the same
+   reason; the clause-1 defect lands on only part of it.~~ Closed by pair D, on the
+   same terms.
 
-This run injected two minimal defects, one per pair, and reverted both with
-`git checkout --`. `git status --porcelain rlportfolio.js` was verified empty
+Each of those runs injected minimal defects, one per pair, and reverted every one
+with `git checkout --`. `git status --porcelain rlportfolio.js` was verified empty
 after each revert and again before finishing. A marker grep was explicitly not
-accepted as evidence of revert, because neither defect carried a marker. The item
-was **not** ticked.
+accepted as evidence of revert at any point, because none of the defects carried a
+marker. None of those runs ticked the item, and each said so.
 
-A later run added pairs A and B for the browser rows on the same terms: two further
-minimal defects in `rlportfolio.js`, each reverted with `git status --porcelain`
-verified empty for that file and for the lab HTML, again without relying on a
-marker grep. That run did not tick the item either.
+The run that ticked it injected **no** defect. It re-executed clause (a)'s three
+suites, re-executed clause (b)'s GREEN, and re-resolved all sixteen citations
+against the current source, finding locator drift in the pairs 5-9 table and two
+thin `interpreted` citations — both recorded in
+[Item 4](#item-4---scope-01-preservation-exact-rollback-per-behavior-redgreen),
+neither a row carried by a defect that never fired. `git status --porcelain
+rlportfolio.js` was verified empty before and after.
 
 ## Validation Summary
 

@@ -946,6 +946,139 @@ test('full-personal clear empties every declared personal section and leaves gen
   assert.equal(JSON.stringify(committed.value.workspace).includes(SUBJECT_ALPHA), true, 'the subject was genuinely stored, so its absence above is meaningful');
 });
 
+// The clear sweep above asserts every derived personal section is empty afterwards. Two of
+// those sections have no write path through the exported builders, so their emptiness is
+// vacuously true and the sweep reports coverage it does not have. This pins that limit to the
+// exact refusal that causes it: when a later scope adds a real write path the refusal stops
+// firing and this test goes red, instead of the sweep quietly continuing to over-report.
+test('the two personal sections the clear sweep cannot populate are pinned by their own distinct refusal', () => {
+  const { api, policy } = loadContracts();
+  const sections = personalWorkspaceSections(api, policy);
+
+  const opened = api.createPortfolioStore({ localStorage: createStorage(), sessionStorage: createStorage() }, policy).openWorkspace(NOW);
+  assert.equal(opened.ok, true);
+  const withPortfolio = api.buildWorkspaceCandidate(validDraft(api, policy), opened.value.workspace, { name: 'Sweep limit portfolio', now: NOW }, policy);
+  assert.equal(withPortfolio.ok, true);
+  const withMandate = api.buildMandateCandidate(mandateDraft(api, policy, 'mandate-explicit.json'), withPortfolio.value, { now: NOW }, policy);
+  assert.equal(withMandate.ok, true);
+  const populated = appendEvent(api, policy, withMandate.value, {}).value.workspace;
+
+  // Reachability is measured by what a builder actually put there, not declared by name.
+  const populatable = sections.filter((section) => populated[section].length > 0);
+  const unreachable = sections.filter((section) => !populatable.includes(section));
+  assert.deepEqual(populatable, ['behaviorEvents', 'mandateRevisions', 'portfolioRevisions'], 'the builders this scope exports reach exactly three of the derived personal sections');
+  assert.deepEqual(unreachable, ['actionOutcomes', 'interestSignals'], 'exactly two derived sections have no write path, so the sweep asserts their emptiness vacuously');
+
+  // Distinct reasons, so neither refusal can stand in for the other if one is removed.
+  assert.equal(
+    api.validateWorkspace({ ...populated, interestSignals: [{ signalId: RESULT_IDENTITY }] }, policy).error.reason,
+    'unsupported-contract-scope',
+    'an interest signal is refused as outside the contract scope, which is why the sweep can never observe one'
+  );
+  assert.equal(
+    api.validateWorkspace({ ...populated, actionOutcomes: [api.reduceActionOutcome(RESULT_IDENTITY, 'complete', 'owner-decision', NOW, policy).value] }, policy).error.reason,
+    'workspace-hash-mismatch',
+    'a structurally valid outcome is still refused because no exported builder can hash it into a workspace, which is why the sweep can never observe one'
+  );
+
+  // Control: the same spread with neither section touched is accepted, so both refusals are
+  // caused by the section content rather than by rebuilding the object.
+  assert.equal(api.validateWorkspace({ ...populated }, policy).ok, true, 'the untouched spread must still validate, or the two refusals prove nothing about the sections');
+});
+
+test('exact rollback restores the pre-change workspace identity and the Scope 01/02 durable record survives a committed round trip', () => {
+  const { api, policy } = loadContracts();
+  const localStorage = createStorage();
+  const sessionStorage = createStorage();
+
+  // Scope 02 baseline: a durable workspace carrying holdings and a mandate and no behavior.
+  const store = api.createPortfolioStore({ localStorage, sessionStorage }, policy);
+  const opened = store.openWorkspace(NOW);
+  assert.equal(opened.ok, true);
+  const withPortfolio = store.commitWorkspace(api.buildWorkspaceCandidate(validDraft(api, policy), opened.value.workspace, { name: 'Rollback portfolio', now: NOW }, policy).value, opened.value.workspace.generation, NOW);
+  assert.equal(withPortfolio.ok, true);
+  const committed = store.commitWorkspace(api.buildMandateCandidate(mandateDraft(api, policy, 'mandate-explicit.json'), withPortfolio.value.workspace, { now: NOW }, policy).value, withPortfolio.value.workspace.generation, NOW);
+  assert.equal(committed.ok, true);
+  const baseline = committed.value.workspace;
+  assert.equal(baseline.portfolioRevisions.length > 0, true, 'the baseline must carry the Scope 01 holdings the rollback has to preserve');
+  assert.equal(baseline.mandateRevisions.length > 0, true, 'the baseline must carry the Scope 02 mandate the rollback has to preserve');
+  assert.deepEqual(baseline.behaviorEvents, [], 'the baseline must carry no behavior, or the rollback would be removing something it did not add');
+
+  // Uncommitted arm. The candidate builders copy `generation` through untouched, so the two
+  // stored hash identities can be compared directly: an identity match is reachable only if
+  // every hashed byte came back, which no field-subset comparison could establish.
+  const mutated = appendEvent(api, policy, baseline, {}).value.workspace;
+  assert.equal(mutated.behaviorEvents.length, 1, 'the round trip needs a genuinely added record');
+  assert.notEqual(mutated.semanticFingerprint, baseline.semanticFingerprint, 'the state must genuinely have changed, or the restore below is trivially true');
+  assert.notEqual(mutated.contentSha256, baseline.contentSha256, 'the stored bytes must genuinely have changed, or the restore below is trivially true');
+
+  const rolledBack = api.buildBehaviorClearCandidate(mutated, baseline.updatedAt, policy);
+  assert.equal(rolledBack.ok, true, `the rollback must build: ${JSON.stringify(rolledBack.error || {})}`);
+  assert.equal(rolledBack.value.clearedEventCount, 1, 'the rollback must report removing the record that was added, not skip it and still succeed');
+  assert.equal(rolledBack.value.workspace.semanticFingerprint, baseline.semanticFingerprint, 'exact restore: the semantic identity must equal the pre-change identity');
+  assert.equal(rolledBack.value.workspace.contentSha256, baseline.contentSha256, 'exact restore: the content identity must equal the pre-change identity');
+  assert.deepEqual(rolledBack.value.workspace, baseline, 'exact restore: no field may differ from the pre-change workspace');
+
+  // The change guard has to be able to fail. A duplicate completion is the product's own
+  // no-change path, and it leaves the identity unmoved -- so `notEqual` above is a real
+  // discriminator rather than an assertion that could never fire.
+  const duplicate = appendEvent(api, policy, mutated, {});
+  assert.equal(duplicate.value.accepted, false, 'the same completion must be recognised as a duplicate');
+  assert.equal(duplicate.value.workspace.semanticFingerprint, mutated.semanticFingerprint, 'a duplicate leaves the identity unmoved, which is the no-change case the guard must be able to detect');
+
+  // Committed arm. Identity is read back out of the stored pointer, not from memory.
+  const pointerNow = () => JSON.parse(localStorage.getItem(policy.storage.pointerKey));
+  const basePointer = pointerNow();
+  assert.equal(basePointer.semanticFingerprint, baseline.semanticFingerprint, 'the pointer must be the durable identity of the baseline, or nothing below reads the real record');
+
+  // Source-rollback half of the Change Boundary: removing this scope leaves the Scope 02
+  // record untouched, because no Scope 03 read or candidate surface writes. Proving it on the
+  // raw namespace is what establishes "storage generation is preserved" without a commit.
+  const durableBefore = localStorage.snapshot();
+  assert.equal(api.foundationPrivacyInventory({ localStorage, sessionStorage }).ok, true);
+  assert.equal(api.privacyInventory(baseline, { localStorage, sessionStorage }, policy).ok, true);
+  assert.equal(api.projectRouteStates(baseline, policy).ok, true);
+  assert.equal(api.buildBehaviorCandidate(behaviorDraft(), baseline, { now: NEXT_DAY }, policy).ok, true);
+  assert.equal(api.buildBehaviorClearCandidate(baseline, NEXT_DAY, policy).ok, true);
+  assert.deepEqual(localStorage.snapshot(), durableBefore, 'no Scope 03 inventory, projection, or candidate surface may write to the durable record');
+  assert.equal(pointerNow().generation, basePointer.generation, 'the storage generation must be preserved by everything short of an explicit commit');
+  assert.equal(pointerNow().semanticFingerprint, baseline.semanticFingerprint, 'the durable portfolio and mandate hashes must be preserved alongside the generation');
+
+  const committedMutation = store.commitWorkspace(mutated, baseline.generation, NEXT_DAY);
+  assert.equal(committedMutation.ok, true);
+  assert.notDeepEqual(localStorage.snapshot(), durableBefore, 'a real commit does move the raw namespace, so the untouched comparison above is a result rather than an inability to observe a write');
+  const mutatedPointer = pointerNow();
+  assert.notEqual(mutatedPointer.activeSlot, basePointer.activeSlot, 'a real commit swaps the slot, so the durable record genuinely moved');
+  assert.equal(mutatedPointer.generation, basePointer.generation + 1);
+  assert.notEqual(mutatedPointer.semanticFingerprint, basePointer.semanticFingerprint, 'the durable identity genuinely changed, or the restore below is trivially true');
+
+  const rollbackCandidate = api.buildBehaviorClearCandidate(committedMutation.value.workspace, LATER, policy);
+  assert.equal(rollbackCandidate.ok, true);
+  const committedRollback = store.commitWorkspace(rollbackCandidate.value.workspace, committedMutation.value.workspace.generation, LATER);
+  assert.equal(committedRollback.ok, true);
+
+  const restored = api.createPortfolioStore({ localStorage, sessionStorage }, policy).openWorkspace(LATER);
+  assert.equal(restored.ok, true, `the rolled-back namespace must still open: ${JSON.stringify(restored.error || {})}`);
+
+  // The preserved set is derived: every workspace field except the three a behavior clear
+  // declares as affected and the four a commit rewrites.
+  const MOVED_BY_A_COMMITTED_ROLLBACK = new Set(['actionOutcomes', 'behaviorEvents', 'interestSignals', 'contentSha256', 'generation', 'semanticFingerprint', 'updatedAt']);
+  const preserved = Object.keys(baseline).filter((field) => !MOVED_BY_A_COMMITTED_ROLLBACK.has(field)).sort();
+  ['currentMandateId', 'currentPortfolioId', 'mandateRevisions', 'portfolioRevisions'].forEach((field) => {
+    assert.equal(preserved.includes(field), true, `${field} must fall inside the derived preserved set, or the compared fields are not the Scope 01/02 facts`);
+  });
+  preserved.forEach((field) => {
+    assert.deepEqual(restored.value.workspace[field], baseline[field], `${field} must survive a committed rollback byte for byte`);
+  });
+  assert.deepEqual(restored.value.workspace.behaviorEvents, [], 'the committed rollback must have removed the behavior it was rolling back');
+
+  // Stated rather than over-claimed: a committed rollback is a new generation, not a rewind,
+  // so the pointer identity does not return to the baseline value even though every preserved
+  // field does. Asserting that keeps the limit from being read as an exact pointer restore.
+  assert.equal(restored.value.workspace.generation, basePointer.generation + 2, 'a committed rollback advances the generation instead of rewinding it');
+  assert.notEqual(pointerNow().semanticFingerprint, basePointer.semanticFingerprint, 'the pointer identity carries the generation, so it cannot and must not return to the baseline value');
+});
+
 // The six provenance classes FR-019 declares. Only `user-entered-holding` is representable on
 // the surfaces this scope owns, so the enumeration is exercised the only honest way available
 // here: the class a stored holding carries is asserted by name, and each of the other five is

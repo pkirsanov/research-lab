@@ -1,26 +1,26 @@
 {
-  "asOf": "2026-08-05T20:24:23.147Z",
-  "generatedAt": "2026-08-05T20:24:23.147Z",
-  "window": "pre-close",
+  "asOf": "2026-08-06T03:38:13.322Z",
+  "generatedAt": "2026-08-06T03:38:13.322Z",
+  "window": "after-hours",
   "marketClosed": false,
-  "nextSessionDate": "2026-08-05",
+  "nextSessionDate": "2026-08-06",
   "dataFreshness": {
     "bars": {
-      "updated": "2026-08-05T18:30:18.269Z",
+      "updated": "2026-08-06T03:38:07.504Z",
       "symbolCount": 291,
-      "expectedSessionDate": "2026-08-04",
+      "expectedSessionDate": "2026-08-05",
       "refreshDate": "2026-08-05",
-      "refreshWindow": "pre-close",
+      "refreshWindow": "after-hours",
       "freshSymbolCount": 291,
       "carriedSymbolCount": 0,
       "missingSymbolCount": 0
     },
     "options": {
-      "updated": "2026-08-05T18:30:22.161Z",
+      "updated": "2026-08-06T03:38:12.294Z",
       "symbolCount": 22,
       "expectedSessionDate": null,
       "refreshDate": "2026-08-05",
-      "refreshWindow": "pre-close",
+      "refreshWindow": "after-hours",
       "freshSymbolCount": 22,
       "carriedSymbolCount": 0,
       "missingSymbolCount": 0
@@ -29,11 +29,11 @@
   "regime": {
     "band": "VIX 15.8",
     "score": 0,
-    "vix": 15.83,
+    "vix": 15.81,
     "fearGreed": null
   },
   "bench": {
-    "px": 769.77,
+    "px": 769.79,
     "mom126": 12.23,
     "mom252": 23.31,
     "ma50Dist": 3.23,
@@ -91,16 +91,16 @@
       "pctFrom52wHigh": -9.72
     },
     "XLK": {
-      "px": 185.9,
-      "mom5": 11.6,
-      "mom21": 3.75,
-      "mom63": 12.37,
-      "mom126": 31.16,
+      "px": 185.91,
+      "mom5": 11.61,
+      "mom21": 3.76,
+      "mom63": 12.38,
+      "mom126": 31.17,
       "mom252": 42.5,
-      "ma50Dist": 1.48,
+      "ma50Dist": 1.49,
       "ma200Dist": 19.37,
       "maStack": "tangled",
-      "pctFrom52wHigh": -6.1
+      "pctFrom52wHigh": -6.09
     },
     "VGT": {
       "px": 119.72,
@@ -190,7 +190,7 @@
   "sectors": {
     "XLK": {
       "rsMom1m": 0.8,
-      "rsMom3m": 5.74,
+      "rsMom3m": 5.75,
       "rsMom6m": 18.93,
       "rsRatio": 99.66,
       "rsMom": 100.55,
@@ -206,7 +206,7 @@
       "rsMom3m": -10.5,
       "rsMom6m": -17.52,
       "rsRatio": 98.73,
-      "rsMom": 99.11,
+      "rsMom": 99.1,
       "quad": "A",
       "accel": -0.93,
       "rrgState": "Lagging",
@@ -219,7 +219,7 @@
       "rsMom3m": -5.95,
       "rsMom6m": -13.78,
       "rsRatio": 99.28,
-      "rsMom": 101.1,
+      "rsMom": 101.09,
       "quad": "I",
       "accel": 1.39,
       "rrgState": "Improving ↑",
@@ -229,10 +229,10 @@
     },
     "XLP": {
       "rsMom1m": -2.4,
-      "rsMom3m": -4.41,
+      "rsMom3m": -4.42,
       "rsMom6m": -11.61,
       "rsRatio": 99.08,
-      "rsMom": 98.76,
+      "rsMom": 98.75,
       "quad": "A",
       "accel": -1.19,
       "rrgState": "Lagging",
@@ -241,35 +241,35 @@
       "ma200Dist": 4.57
     },
     "XLE": {
-      "rsMom1m": 1.94,
-      "rsMom3m": -9.53,
-      "rsMom6m": 0.22,
+      "rsMom1m": 1.93,
+      "rsMom3m": -9.54,
+      "rsMom6m": 0.21,
       "rsRatio": 99.37,
       "rsMom": 98.28,
       "quad": "A",
-      "accel": -3.82,
+      "accel": -3.83,
       "rrgState": "Lagging",
       "rotation": "neutral",
       "maStack": "bull-stack",
       "ma200Dist": 9.63
     },
     "XLF": {
-      "rsMom1m": 0.55,
-      "rsMom3m": 6.21,
-      "rsMom6m": -2.92,
-      "rsRatio": 101.04,
-      "rsMom": 98.86,
+      "rsMom1m": 0.53,
+      "rsMom3m": 6.19,
+      "rsMom6m": -2.94,
+      "rsRatio": 101.03,
+      "rsMom": 98.85,
       "quad": "W",
-      "accel": -1.28,
+      "accel": -1.29,
       "rrgState": "Weakening ↓",
       "rotation": "out",
       "maStack": "bull-stack",
-      "ma200Dist": 10.34
+      "ma200Dist": 10.32
     },
     "XLV": {
       "rsMom1m": -3.12,
       "rsMom3m": 6.85,
-      "rsMom6m": -4.79,
+      "rsMom6m": -4.8,
       "rsRatio": 100.59,
       "rsMom": 98.48,
       "quad": "W",
@@ -280,11 +280,11 @@
       "ma200Dist": 8.21
     },
     "XLI": {
-      "rsMom1m": -0.77,
+      "rsMom1m": -0.78,
       "rsMom3m": 1.72,
-      "rsMom6m": -1.34,
+      "rsMom6m": -1.35,
       "rsRatio": 100.54,
-      "rsMom": 99.99,
+      "rsMom": 99.98,
       "quad": "W",
       "accel": 0.22,
       "rrgState": "Weakening ↓",
@@ -294,12 +294,12 @@
     },
     "XLB": {
       "rsMom1m": -0.76,
-      "rsMom3m": -4.09,
+      "rsMom3m": -4.1,
       "rsMom6m": -7.55,
       "rsRatio": 99.81,
       "rsMom": 100.27,
       "quad": "I",
-      "accel": -0.53,
+      "accel": -0.54,
       "rrgState": "Improving ↑",
       "rotation": "into",
       "maStack": "tangled",
@@ -319,9 +319,9 @@
       "ma200Dist": 7.19
     },
     "XLU": {
-      "rsMom1m": -7.41,
-      "rsMom3m": -11.87,
-      "rsMom6m": -9.9,
+      "rsMom1m": -7.42,
+      "rsMom3m": -11.88,
+      "rsMom6m": -9.91,
       "rsRatio": 97.54,
       "rsMom": 96.81,
       "quad": "A",
@@ -627,7 +627,7 @@
   "toolReads": {
     "sector-research-lab": {
       "id": "sector-research-lab",
-      "asOf": "2026-08-05T20:24:21.479Z",
+      "asOf": "2026-08-06T03:38:12.874Z",
       "read": "Rotate toward XLY as XLF weakens.",
       "metrics": {
         "into": {
@@ -636,7 +636,7 @@
           "rsMom3m": -5.95,
           "rsMom6m": -13.78,
           "rsRatio": 99.28,
-          "rsMom": 101.1,
+          "rsMom": 101.09,
           "quad": "I",
           "accel": 1.39,
           "rrgState": "Improving ↑",
@@ -646,23 +646,23 @@
         },
         "out": {
           "ticker": "XLF",
-          "rsMom1m": 0.55,
-          "rsMom3m": 6.21,
-          "rsMom6m": -2.92,
-          "rsRatio": 101.04,
-          "rsMom": 98.86,
+          "rsMom1m": 0.53,
+          "rsMom3m": 6.19,
+          "rsMom6m": -2.94,
+          "rsRatio": 101.03,
+          "rsMom": 98.85,
           "quad": "W",
-          "accel": -1.28,
+          "accel": -1.29,
           "rrgState": "Weakening ↓",
           "rotation": "out",
           "maStack": "bull-stack",
-          "ma200Dist": 10.34
+          "ma200Dist": 10.32
         },
         "leader": {
           "ticker": "XLV",
           "rsMom1m": -3.12,
           "rsMom3m": 6.85,
-          "rsMom6m": -4.79,
+          "rsMom6m": -4.8,
           "rsRatio": 100.59,
           "rsMom": 98.48,
           "quad": "W",
@@ -747,19 +747,19 @@
     "global-rotation-lab": {
       "id": "global-rotation-lab",
       "asOf": "2026-08-05T13:30:00.000Z",
-      "read": "EWS (Singapore) leads global rotation at 80.8/100 versus ACWI; EWC is next.",
+      "read": "EWS (Singapore) leads global rotation at 80.5/100 versus ACWI; EWA is next.",
       "metrics": {
         "benchmark": "ACWI",
         "leader": {
           "ticker": "EWS",
           "country": "Singapore",
-          "score": 80.8,
+          "score": 80.5,
           "rel21": 2.86,
           "rel63": 8.56,
           "rel126": 6.51,
           "trend": "Strong uptrend",
           "fx": "Confirms leadership",
-          "fxStrength": 1.28,
+          "fxStrength": 1.05,
           "vol": 15.03,
           "maxDrawdown": 7.82,
           "asOf": "2026-08-05T13:30:00.000Z"
@@ -768,55 +768,55 @@
           {
             "ticker": "EWS",
             "country": "Singapore",
-            "score": 80.8,
+            "score": 80.5,
             "rel21": 2.86,
             "rel63": 8.56,
             "rel126": 6.51,
             "trend": "Strong uptrend",
             "fx": "Confirms leadership",
-            "fxStrength": 1.28,
+            "fxStrength": 1.05,
             "vol": 15.03,
             "maxDrawdown": 7.82,
             "asOf": "2026-08-05T13:30:00.000Z"
           },
           {
-            "ticker": "EWC",
-            "country": "Canada",
-            "score": 71,
-            "rel21": 1.56,
-            "rel63": -0.2,
-            "rel126": 0.36,
-            "trend": "Strong uptrend",
-            "fx": "FX neutral",
-            "fxStrength": 1.62,
-            "vol": 12.18,
-            "maxDrawdown": 8.51,
-            "asOf": "2026-08-05T13:30:00.000Z"
-          },
-          {
             "ticker": "EWA",
             "country": "Australia",
-            "score": 70.8,
+            "score": 70.9,
             "rel21": 4.56,
             "rel63": -1.33,
             "rel126": -2.31,
             "trend": "Strong uptrend",
             "fx": "FX offsets weakness",
-            "fxStrength": 2.39,
+            "fxStrength": 2.45,
             "vol": 18.52,
             "maxDrawdown": 10.01,
             "asOf": "2026-08-05T13:30:00.000Z"
           },
           {
+            "ticker": "EWC",
+            "country": "Canada",
+            "score": 70.5,
+            "rel21": 1.56,
+            "rel63": -0.2,
+            "rel126": 0.36,
+            "trend": "Strong uptrend",
+            "fx": "FX neutral",
+            "fxStrength": 1.27,
+            "vol": 12.18,
+            "maxDrawdown": 8.51,
+            "asOf": "2026-08-05T13:30:00.000Z"
+          },
+          {
             "ticker": "EWU",
             "country": "United Kingdom",
-            "score": 68.2,
+            "score": 67.8,
             "rel21": 0.05,
             "rel63": -0.41,
             "rel126": -5.42,
             "trend": "Strong uptrend",
             "fx": "FX offsets weakness",
-            "fxStrength": 2.33,
+            "fxStrength": 2,
             "vol": 16.12,
             "maxDrawdown": 9.92,
             "asOf": "2026-08-05T13:30:00.000Z"
@@ -824,13 +824,13 @@
           {
             "ticker": "EWJ",
             "country": "Japan",
-            "score": 65.5,
+            "score": 65.6,
             "rel21": -0.34,
             "rel63": 1.16,
             "rel126": -0.62,
             "trend": "Constructive",
             "fx": "Confirms leadership",
-            "fxStrength": 2.46,
+            "fxStrength": 2.53,
             "vol": 23.59,
             "maxDrawdown": 13.59,
             "asOf": "2026-08-05T13:30:00.000Z"
@@ -838,13 +838,13 @@
           {
             "ticker": "EPHE",
             "country": "Philippines",
-            "score": 65.2,
+            "score": 65.3,
             "rel21": 0.91,
             "rel63": 1.73,
             "rel126": -11.5,
             "trend": "Strong uptrend",
             "fx": "Confirms leadership",
-            "fxStrength": 1.14,
+            "fxStrength": 1.18,
             "vol": 23.15,
             "maxDrawdown": 15.9,
             "asOf": "2026-08-05T13:30:00.000Z"
@@ -858,7 +858,7 @@
     "real-assets-lab": {
       "id": "real-assets-lab",
       "asOf": "2026-08-05T13:30:00.000Z",
-      "read": "CPER leads real assets at 65.3/100; GLD 31.3, BTC 48.4, SLV 3.6.",
+      "read": "CPER leads real assets at 65.3/100; GLD 31.3, BTC 49.8, SLV 3.6.",
       "metrics": {
         "leader": {
           "ticker": "CPER",
@@ -930,12 +930,12 @@
           {
             "ticker": "BTC-USD",
             "model": "bitcoin",
-            "score": 48.4,
+            "score": 49.8,
             "trend": "Mixed",
-            "mom21": -0.1,
-            "mom63": 0.99,
-            "mom126": -5.04,
-            "vol": 35.08,
+            "mom21": 1.08,
+            "mom63": 1.06,
+            "mom126": -3.6,
+            "vol": 34.96,
             "maxDrawdown": 28.71,
             "riskPenalty": 5.68,
             "confirmations": [
@@ -954,17 +954,17 @@
                 "detail": "Bitcoin's own realized volatility and drawdown reduce the score directly."
               }
             ],
-            "asOf": "2026-08-05T00:00:00.000Z"
+            "asOf": "2026-08-06T00:00:00.000Z"
           },
           {
             "ticker": "ETH-USD",
             "model": "crypto",
-            "score": 46.6,
+            "score": 49.1,
             "trend": "Mixed",
-            "mom21": 0,
-            "mom63": 5.81,
-            "mom126": -10.37,
-            "vol": 49.38,
+            "mom21": 1.75,
+            "mom63": 7.13,
+            "mom126": -7.83,
+            "vol": 48.99,
             "maxDrawdown": 35.37,
             "riskPenalty": 7.21,
             "confirmations": [
@@ -981,11 +981,11 @@
                 "symbols": [
                   "BTC-USD"
                 ],
-                "score": 51.40810500600337,
+                "score": 51.5141724323322,
                 "detail": "Bitcoin price direction confirms or contradicts the wider crypto price trend; no on-chain input is used."
               }
             ],
-            "asOf": "2026-08-05T00:00:00.000Z"
+            "asOf": "2026-08-06T00:00:00.000Z"
           },
           {
             "ticker": "DBA",
@@ -1171,12 +1171,12 @@
           "BTC-USD": {
             "ticker": "BTC-USD",
             "model": "bitcoin",
-            "score": 48.4,
+            "score": 49.8,
             "trend": "Mixed",
-            "mom21": -0.1,
-            "mom63": 0.99,
-            "mom126": -5.04,
-            "vol": 35.08,
+            "mom21": 1.08,
+            "mom63": 1.06,
+            "mom126": -3.6,
+            "vol": 34.96,
             "maxDrawdown": 28.71,
             "riskPenalty": 5.68,
             "confirmations": [
@@ -1195,7 +1195,7 @@
                 "detail": "Bitcoin's own realized volatility and drawdown reduce the score directly."
               }
             ],
-            "asOf": "2026-08-05T00:00:00.000Z"
+            "asOf": "2026-08-06T00:00:00.000Z"
           },
           "IBIT": {
             "ticker": "IBIT",
@@ -1464,28 +1464,28 @@
     },
     "options-structure-lab": {
       "id": "options-structure-lab",
-      "asOf": "2026-08-05T14:14:12.000Z",
-      "read": "SPY sits in positive dealer gamma with the flip near 768.16; call wall 775, put wall 770, front expected move ±4.79.",
+      "asOf": "2026-08-05T16:00:00.000Z",
+      "read": "SPY sits in positive dealer gamma with the flip near 769.1; call wall 772, put wall 765, front expected move ±5.5.",
       "deepLink": "options-structure-lab.html",
       "source": "owning-tool-functions",
       "state": "ready",
       "metrics": {
         "symbol": "SPY",
-        "spot": 771.96,
+        "spot": 769.79,
         "regime": "positive",
-        "flipLevel": 768.16,
-        "signedNetGEX": 2686965605.8412,
-        "callWall": 775,
-        "putWall": 770,
-        "expectedMove": 4.79,
-        "atmIV": 0.1676,
+        "flipLevel": 769.1,
+        "signedNetGEX": 313458299.7952,
+        "callWall": 772,
+        "putWall": 765,
+        "expectedMove": 5.5,
+        "atmIV": 0.193,
         "expiriesPriced": 3
       }
     },
     "gamma-trading-lab": {
       "id": "gamma-trading-lab",
-      "asOf": "2026-08-05T14:14:12.000Z",
-      "read": "SPY dealers are positive gamma — playbook pin-to-maxpain, conviction patient; flip 768.16, walls 770/775.",
+      "asOf": "2026-08-05T16:00:00.000Z",
+      "read": "SPY dealers are positive gamma — playbook pin-to-maxpain, conviction patient; flip 769.1, walls 765/772.",
       "deepLink": "gamma-trading-lab.html",
       "source": "owning-tool-functions",
       "state": "ready",
@@ -1495,72 +1495,72 @@
         "scenario": "pin-to-maxpain",
         "conviction": "patient",
         "hold": "same-session-fade",
-        "signedNetGEX": 2686965605.84,
+        "signedNetGEX": 313458299.8,
         "flipPresent": true,
-        "flip": 768.16,
-        "callWall": 775,
-        "putWall": 770,
+        "flip": 769.1,
+        "callWall": 772,
+        "putWall": 765,
         "oviState": "unavailable",
         "opexWindow": null
       }
     },
     "options-flow-feed-lab": {
       "id": "options-flow-feed-lab",
-      "asOf": "2026-08-05T14:14:25.000Z",
-      "read": "Option flow is balanced across 12 tickers: 2005 contracts clear the $250k premium bar inside 30 days; the most unusual is QQQ 720 puts at $20.6M on 35.2× its open interest.",
+      "asOf": "2026-08-05T16:00:00.000Z",
+      "read": "Option flow is balanced across 12 tickers: 2305 contracts clear the $250k premium bar inside 30 days; the most unusual is AAPL 310 calls at $25.7M on 23.0× its open interest.",
       "deepLink": "options-flow-feed-lab.html",
       "source": "owning-tool-functions",
       "state": "ready",
       "metrics": {
         "tickers": 12,
-        "contractsFlagged": 2005,
+        "contractsFlagged": 2305,
         "windowDays": 30,
         "premiumThreshold": 250000,
         "lean": "balanced",
-        "callPremium": 2160356839.5,
-        "putPremium": 1668270504,
-        "callFraction": 0.5643,
+        "callPremium": 2242931422,
+        "putPremium": 2875288524.5,
+        "callFraction": 0.4382,
         "netPremium": null,
-        "consideredCount": 22220,
-        "clearedCount": 1289,
-        "clearedFraction": 0.058,
-        "maxScore": 82,
+        "consideredCount": 22194,
+        "clearedCount": 1499,
+        "clearedFraction": 0.0675,
+        "maxScore": 91,
         "top": [
+          {
+            "ticker": "AAPL",
+            "type": "C",
+            "strike": 310,
+            "dte": 0,
+            "volume": 267921,
+            "openInterest": 11626,
+            "volOI": 23.045,
+            "premium": 25720416,
+            "iv": 37.57,
+            "score": 91
+          },
           {
             "ticker": "QQQ",
             "type": "P",
             "strike": 720,
             "dte": 0,
-            "volume": 305863,
+            "volume": 413198,
             "openInterest": 8693,
-            "volOI": 35.185,
-            "premium": 20645752.5,
-            "iv": 25.33,
+            "volOI": 47.5323,
+            "premium": 115902039,
+            "iv": 0,
+            "score": 90
+          },
+          {
+            "ticker": "QQQ",
+            "type": "P",
+            "strike": 721,
+            "dte": 0,
+            "volume": 269687,
+            "openInterest": 2050,
+            "volOI": 131.5546,
+            "premium": 105177930,
+            "iv": 76.78,
             "score": 82
-          },
-          {
-            "ticker": "MSFT",
-            "type": "C",
-            "strike": 490,
-            "dte": 0,
-            "volume": 31505,
-            "openInterest": 1940,
-            "volOI": 16.2397,
-            "premium": 3434045,
-            "iv": 39.53,
-            "score": 81
-          },
-          {
-            "ticker": "NVDA",
-            "type": "C",
-            "strike": 220,
-            "dte": 0,
-            "volume": 521875,
-            "openInterest": 27949,
-            "volOI": 18.6724,
-            "premium": 72540625,
-            "iv": 43.38,
-            "score": 80
           }
         ]
       }
@@ -1636,8 +1636,8 @@
     },
     "bond-regime-lab": {
       "id": "bond-regime-lab",
-      "asOf": "2026-08-04",
-      "read": "The bond regime is unresolved: nothing on file covers the Treasury yield curve, real yields and inflation break-evens, or an independent credit-spread reading, so the credit call and the duration call cannot be made. The one thing that does read is the high-yield versus investment-grade price ratio, which the model reads as strengthening across both aligned pairs through 2026-08-04.",
+      "asOf": "2026-08-05",
+      "read": "The bond regime is unresolved: nothing on file covers the Treasury yield curve, real yields and inflation break-evens, or an independent credit-spread reading, so the credit call and the duration call cannot be made. The one thing that does read is the high-yield versus investment-grade price ratio, which the model reads as strengthening across both aligned pairs through 2026-08-05.",
       "deepLink": "bond-regime-lab.html#simple",
       "source": "owning-tool-functions",
       "state": "unavailable",
@@ -1656,13 +1656,13 @@
             "pairId": "jnk-lqd",
             "direction": "strengthening",
             "purity": "unknown",
-            "asOf": "2026-08-04"
+            "asOf": "2026-08-05"
           },
           {
             "pairId": "hyg-lqd",
             "direction": "strengthening",
             "purity": "unknown",
-            "asOf": "2026-08-04"
+            "asOf": "2026-08-05"
           }
         ],
         "evidenceGaps": [
@@ -1679,15 +1679,15 @@
         "preferredSleeveId": null,
         "resultPct": null,
         "conflictCount": 1,
-        "ratioAsOf": "2026-08-04",
+        "ratioAsOf": "2026-08-05",
         "curveAsOf": null,
-        "barsAsOf": "2026-08-04",
+        "barsAsOf": "2026-08-05",
         "indeterminateReason": "No policy-eligible rankable expression"
       }
     },
     "swing-structure-lab": {
       "id": "swing-structure-lab",
-      "asOf": "2026-08-04T13:30:00.000Z",
+      "asOf": "2026-08-05T13:30:00.000Z",
       "read": "SPY swing structure reads Bull-stacked (20>50>200) with an active Double bottom pattern in a Unknown regime.",
       "deepLink": "swing-structure-lab.html",
       "source": "owning-tool-functions",
@@ -1695,27 +1695,27 @@
       "metrics": {
         "symbol": "SPY",
         "swingState": "Bull-stacked (20>50>200)",
-        "fast": 747.2,
-        "slow": 698.47,
+        "fast": 748.41,
+        "slow": 699.04,
         "pattern": "Double bottom",
         "patternState": "pattern-qualified",
         "regime": "Unknown",
         "accumulation": null,
-        "bars": 508
+        "bars": 509
       }
     },
     "market-heatmap-lab": {
       "id": "market-heatmap-lab",
-      "asOf": "2026-08-05T20:24:22.976Z",
-      "read": "Leadership is broad — 62.16% of 135 constituents are positive against a 60% broad-market threshold.",
+      "asOf": "2026-08-06T03:38:13.180Z",
+      "read": "Leadership is narrow — 50.99% of 135 constituents are positive against a 60% broad-market threshold.",
       "deepLink": "market-heatmap-lab.html",
       "source": "owning-tool-functions",
       "state": "ready",
       "metrics": {
-        "breadthPct": 62.16,
-        "leadership": "broad",
+        "breadthPct": 50.99,
+        "leadership": "narrow",
         "threshold": 60,
-        "margin": 2.16,
+        "margin": -9.01,
         "constituents": 135,
         "priced": 135,
         "covered": 135,
@@ -1753,17 +1753,17 @@
     },
     "volatility-sizing-lab": {
       "id": "volatility-sizing-lab",
-      "asOf": "2026-08-04",
-      "read": "SPY conditional volatility forecasts 15.7376% in a elevated regime; the capped vol-target throttle sizes to ×0.95.",
+      "asOf": "2026-08-05",
+      "read": "SPY conditional volatility forecasts 15.2779% in a elevated regime; the capped vol-target throttle sizes to ×0.98.",
       "deepLink": "volatility-sizing-lab.html",
       "source": "owning-tool-functions",
       "state": "ready",
       "metrics": {
         "symbol": "SPY",
-        "forecastPct": 15.7376,
+        "forecastPct": 15.2779,
         "regime": "elevated",
-        "percentile": 79.365,
-        "throttle": 0.953,
+        "percentile": 78.968,
+        "throttle": 0.982,
         "capped": null,
         "estimator": "ewma",
         "halfLife": null
@@ -1771,7 +1771,7 @@
     },
     "technical-analysis-decision-lab": {
       "id": "technical-analysis-decision-lab",
-      "asOf": "2026-08-04T13:30:00.000Z",
+      "asOf": "2026-08-05T13:30:00.000Z",
       "read": "The five-gate decision model publishes no read: The owner five-gate model (context/location/confirmation/validation gate scoring plus setup-state and expectancy) is not implemented in technical-analysis-decision-lab.html, a Scope-01 foundation-receipt validator that publishes no analytic result (ownerReadPublished:false).. Its data foundation is present.",
       "deepLink": "technical-analysis-decision-lab.html",
       "source": "owning-tool-functions",
@@ -1818,13 +1818,13 @@
       "id": "market-heatmap-lab",
       "deepLink": "market-heatmap-lab.html",
       "status": "fresh-headless",
-      "reason": "Leadership is broad — 62.16% of 135 constituents are positive against a 60% broad-market threshold."
+      "reason": "Leadership is narrow — 50.99% of 135 constituents are positive against a 60% broad-market threshold."
     },
     {
       "id": "options-flow-feed-lab",
       "deepLink": "options-flow-feed-lab.html",
       "status": "fresh-headless",
-      "reason": "Option flow is balanced across 12 tickers: 2005 contracts clear the $250k premium bar inside 30 days; the most unusual is QQQ 720 puts at $20.6M on 35.2× its open interest."
+      "reason": "Option flow is balanced across 12 tickers: 2305 contracts clear the $250k premium bar inside 30 days; the most unusual is AAPL 310 calls at $25.7M on 23.0× its open interest."
     },
     {
       "id": "intraday-tape-lab",
@@ -1842,13 +1842,13 @@
       "id": "options-structure-lab",
       "deepLink": "options-structure-lab.html",
       "status": "fresh-headless",
-      "reason": "SPY sits in positive dealer gamma with the flip near 768.16; call wall 775, put wall 770, front expected move ±4.79."
+      "reason": "SPY sits in positive dealer gamma with the flip near 769.1; call wall 772, put wall 765, front expected move ±5.5."
     },
     {
       "id": "gamma-trading-lab",
       "deepLink": "gamma-trading-lab.html",
       "status": "fresh-headless",
-      "reason": "SPY dealers are positive gamma — playbook pin-to-maxpain, conviction patient; flip 768.16, walls 770/775."
+      "reason": "SPY dealers are positive gamma — playbook pin-to-maxpain, conviction patient; flip 769.1, walls 765/772."
     },
     {
       "id": "sector-research-lab",
@@ -1860,19 +1860,19 @@
       "id": "global-rotation-lab",
       "deepLink": "global-rotation-lab.html",
       "status": "fresh-headless",
-      "reason": "EWS (Singapore) leads global rotation at 80.8/100 versus ACWI; EWC is next."
+      "reason": "EWS (Singapore) leads global rotation at 80.5/100 versus ACWI; EWA is next."
     },
     {
       "id": "real-assets-lab",
       "deepLink": "real-assets-lab.html",
       "status": "fresh-headless",
-      "reason": "CPER leads real assets at 65.3/100; GLD 31.3, BTC 48.4, SLV 3.6."
+      "reason": "CPER leads real assets at 65.3/100; GLD 31.3, BTC 49.8, SLV 3.6."
     },
     {
       "id": "bond-regime-lab",
       "deepLink": "bond-regime-lab.html",
       "status": "unavailable",
-      "reason": "The bond regime is unresolved: nothing on file covers the Treasury yield curve, real yields and inflation break-evens, or an independent credit-spread reading, so the credit call and the duration call cannot be made. The one thing that does read is the high-yield versus investment-grade price ratio, which the model reads as strengthening across both aligned pairs through 2026-08-04."
+      "reason": "The bond regime is unresolved: nothing on file covers the Treasury yield curve, real yields and inflation break-evens, or an independent credit-spread reading, so the credit call and the duration call cannot be made. The one thing that does read is the high-yield versus investment-grade price ratio, which the model reads as strengthening across both aligned pairs through 2026-08-05."
     },
     {
       "id": "ai-capex-strategy-lab",
@@ -1926,7 +1926,7 @@
       "id": "volatility-sizing-lab",
       "deepLink": "volatility-sizing-lab.html",
       "status": "fresh-headless",
-      "reason": "SPY conditional volatility forecasts 15.7376% in a elevated regime; the capped vol-target throttle sizes to ×0.95."
+      "reason": "SPY conditional volatility forecasts 15.2779% in a elevated regime; the capped vol-target throttle sizes to ×0.98."
     },
     {
       "id": "palm-springs-rental-market-lab",

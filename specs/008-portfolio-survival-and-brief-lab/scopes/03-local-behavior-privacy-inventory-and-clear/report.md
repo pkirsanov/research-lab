@@ -6,7 +6,7 @@ Links: [scope.md](scope.md) | [spec.md](../../spec.md) | [scope index](../_index
 
 Evidence-recording run only. No test code was written, no defect was injected, and no production source was changed. The three committed Node suites named by TP-03-01 through TP-03-03 were re-executed and their raw output recorded below, then each DoD item was assessed against the specific assertions the committed tests genuinely carry.
 
-Result: **2 of 12 DoD items ticked** (TP-03-01, TP-03-02). Ten items remain unchecked, each with the exact uncovered requirement ids or behaviors named in [Uncertainty Declarations](#uncertainty-declarations). The Build Quality Gate item was deliberately not assessed this run.
+Result: **4 of 12 DoD items ticked** (TP-03-01, TP-03-02, core item 1, core item 2). Eight items remain unchecked, each with the exact uncovered requirement ids or behaviors named in [Uncertainty Declarations](#uncertainty-declarations). Core items 1 and 2 were ticked on a later pass after the committed suites gained a named assertion for every id those items enumerate; the re-run output and the per-id map are recorded below. The Build Quality Gate item was deliberately not assessed.
 
 The single most significant finding is that **TP-03-03 is green but does not carry its declared behavior** — see [TP-03-03](#tp-03-03).
 
@@ -16,10 +16,12 @@ The single most significant finding is that **TP-03-03 is green but does not car
 - **D-03-02** — The FR/NFR scan used a negative-lookbehind guard, `(?<!N)FR-\d{3}`, because `FR-022` is a substring of `NFR-022` and `FR-012` of `NFR-012`. An unguarded scan credits `tests/portfolio-privacy.functional.mjs` with FR-003/005/007/012/022 that are in fact the NFR ids in that file's `NFR-003 NFR-005 NFR-007 NFR-012 NFR-022` title. Both genuine FR occurrences were then confirmed by reading their assertion sites.
 - **D-03-03** — This run disagrees with one premise of its own briefing. DoD core item 3 (full-personal clear) was flagged as carried; assessment found 9 of its 13 named sections verified. The item is left unchecked and the 4 unverified sections are named. Recorded here so the operator can overrule with the gap visible rather than hidden.
 - **D-03-04** — A green suite is not evidence for a Test Plan row whose declared behavior it does not contain. TP-03-03 passes 11/11 and is still left unchecked.
+- **D-03-05** — Core items 1 and 2 were re-scored with a stricter rule than D-03-02 used. An id counts only when it sits in the **message argument** of an `assert.*` call, resolved by balanced-paren argument splitting so an expected value cannot be mistaken for a message; a comment, a `test(...)` title, and a bare code identifier are all rejected. The guard was widened from `(?<!N)` to `(?<![A-Za-z])` with a trailing `(?![0-9])`, so no letter-prefixed id and no longer numeric id can leak in. Measured effect on this tree: `FR-019` falls from 41 raw occurrences to 10 guarded, `FR-023` from 60 to 36.
+- **D-03-06** — Interpolated carriage is accepted as real carriage. FR-030, FR-031, FR-032, and FR-035 never appear as a literal inside a message; they are keys of the frozen `EXCLUDED_SOURCE_TOKENS_BY_REQUIREMENT` table and reach the message through `${requirement}`. That is not name-only presence, because the table length, each token list's non-emptiness, the attempted-versus-declared token count, and the union against the policy's excluded-field count are each asserted, so dropping a requirement or emptying its list goes red. The class is recorded per id in the Coverage Report rather than blended into the literal count.
 
 ## Completion Statement
 
-Scope 03 is **not** complete. Ten of twelve DoD items lack the evidence they require. Scope status remains `In Progress`.
+Scope 03 is **not** complete. Eight of twelve DoD items lack the evidence they require. Scope status remains `In Progress`.
 
 ## Code Diff Evidence
 
@@ -202,6 +204,100 @@ Playwright `e2e-ui` row. Not executed this run. No evidence.
 
 Broader Playwright `e2e-ui` row. Not executed this run. No evidence.
 
+### Re-run for DoD core items 1 and 2
+
+The three Node rows were re-executed against the committed tree so the per-id map
+below is scored on output produced in this run rather than on a prior transcript.
+
+**Claim Source:** executed
+**Command:** `node --test tests/portfolio-foundation.unit.mjs`
+**Exit Code:** 0
+
+```
+✔ unknown legacy workspace shapes refuse migration and quarantine metadata is value-safe (1.863799ms)
+✔ foundation privacy inventory and verified clear remain available without policy config (1.145099ms)
+✔ behavior event vocabulary is closed to the declared categories lifecycle states and draft fields (27.006383ms)
+✔ every declared excluded behavior source is rejected by name in any casing or separator form at any depth (20.767987ms)
+✔ semantic de-duplication collapses same-day repeats to the earliest occurrence without shrinking distinct evidence (43.331673ms)
+✔ action outcome commands map to exactly one lifecycle state and reject mismatched or unknown transitions (10.851893ms)
+✔ privacy inventory reports real category counts and carries no stored subject value (57.226063ms)
+✔ behavior clear empties behavior categories only after they are proven non-empty and preserves portfolio and mandate identity (64.226158ms)
+✔ verified foundation clear reports empty only after reread and a remove fault cannot report success (1.814099ms)
+✔ verified clear covers every policy-declared personal key and leaves the raw namespace holding none of them (2.316799ms)
+✔ full-personal clear empties every declared personal section and leaves generic public assets byte-identical (69.235755ms)
+✔ FR-019: a stored holding carries exactly one declared provenance class and each of the other five declared classes is refused as an invalid class (4.965597ms)
+✔ FR-036: every behavior evidence-floor and decay input is a visible declared finite policy value and its version is stamped onto every event (2.561198ms)
+✔ FR-037: a corrupt unrecognized or future-version behavior record is quarantined with an inspectable reason and no part of the workspace is interpreted (68.235556ms)
+✔ FR-029: no read compose inventory or export path removes personal data, and the same bytes do clear when the clear is explicitly invoked (35.213177ms)
+✔ FR-030 FR-031 FR-032 FR-033 FR-035: every excluded source named by each requirement is a declared token, is refused by name on both the build and the persistence path, and the refusal is selective (153.518001ms)
+✔ FR-023: the module carries no egress sink, every byte it writes lands in the declared personal namespace, and the preview that declares it excludes personal values genuinely excludes them (52.210267ms)
+✔ FR-027: the local privacy inventory reports each named personal group on its own surface, separates dismissed from completed, and keeps cached generic evidence out of the personal count (92.34584ms)
+✔ FR-028: a behavior clear removes the eligible events and empties the derived-interest container while holdings mandate and cash needs survive, and the separately requested clears do remove them (55.30567ms)
+✔ FR-034: an eligible behavior event is admitted only for a documented completed research action and retains category subject domain timestamp source surface and lifecycle state (14.227495ms)
+✔ FR-038: an imported provider label carrying markup or a navigation scheme is retained as inert text with no navigation authority, and the recommendation token fields refuse it while still accepting a legitimate token (79.824371ms)
+✔ NFR-001: every personal noun the id names is stored in the declared local namespace and appears in none of the public projections the module emits, while the local-only projections that legitimately carry it prove the same search does find it (57.968678ms)
+✔ NFR-004: no declared ranking input is an engagement metric, every click dwell and retention source is refused by name on the path that grows ranking evidence, and a research completion is still admitted and still counted (43.686384ms)
+✔ NFR-008: a throwing store and a silently dropping store both surface an explicit write failure with no success state, capability loss is reported in words, and the same commit still succeeds unfaulted (31.638388ms)
+✔ NFR-019: every declared credential field name and credential value shape is rejected without echoing the value, markup does not smuggle a credential past the guard, and an ordinary provider label is still imported (22.666092ms)
+✔ NFR-023: a recommendation route cites the exact revision identity it used or names why it cannot, and a clear reports a per-category change that matches the inspected before and after inventory (68.312875ms)
+✔ NFR-024: local deletion is certified only after an independent reread proves emptiness, a survivor or an unreadable key blocks the success state, and the raw namespace confirms it without trusting the report (2.460499ms)
+ℹ tests 47
+ℹ suites 0
+ℹ pass 47
+ℹ fail 0
+ℹ cancelled 0
+ℹ skipped 0
+ℹ todo 0
+ℹ duration_ms 1796.388172
+```
+
+**Claim Source:** executed
+**Command:** `node --test tests/portfolio-brief.functional.mjs`
+**Exit Code:** 0
+
+```
+✔ only an eligible completion becomes behavior evidence and no excluded source can create or grow one (175.727534ms)
+✔ route recomposition is invariant to behavior evidence and states that behavior contributes none (27.770421ms)
+✔ behavior clear removes the committed evidence and returns recomposition to the pre-evidence baseline (79.12096ms)
+✔ dismissal and automatic invalidation record a safe outcome and never a behavior event or a negative preference (22.852818ms)
+ℹ tests 4
+ℹ suites 0
+ℹ pass 4
+ℹ fail 0
+ℹ cancelled 0
+ℹ skipped 0
+ℹ todo 0
+ℹ duration_ms 429.427826
+```
+
+**Claim Source:** executed
+**Command:** `node --test tests/portfolio-privacy.functional.mjs`
+**Exit Code:** 0
+
+```
+✔ real-format import previews commits reloads and exports one local revision (55.38658ms)
+✔ secret-bearing import is redacted and cannot mutate any storage namespace (15.864423ms)
+✔ atomic write failures preserve the active pointer and retain a validated candidate only in memory (30.145744ms)
+✔ session and memory commits state truthfully and preserve the last valid candidate after rejection (25.110036ms)
+✔ hostile manual labels remain inert data and namespace writes stay closed (9.324414ms)
+✔ explicit mandate revisions commit and reload atomically while portfolio generation semantics are preserved (63.210692ms)
+✔ one reloaded constraint set reaches every consumer and absent or conflicting fields never acquire defaults (49.421671ms)
+✔ FR-011 to FR-016: declared purpose units authority dates amounts currencies priorities and treatment reach the candidate unchanged and an infeasible draft fails loudly with nothing relaxed (21.227531ms)
+✔ NFR-003 NFR-005 NFR-007 NFR-012 NFR-022: provenance missing-state integrity atomic revisions latest-complete publication and the research boundary all hold on the mandate surface (161.662834ms)
+✔ FR-017 FR-022 FR-033: behavior settings and market-fact relabelling attempts are refused and change no mandate cash need expected return floor objective or constraint state (30.744945ms)
+✔ rolling a mandate back restores the pre-mandate portfolio state by identity, not by resemblance (30.573744ms)
+ℹ tests 11
+ℹ suites 0
+ℹ pass 11
+ℹ fail 0
+ℹ cancelled 0
+ℹ skipped 0
+ℹ todo 0
+ℹ duration_ms 636.142419
+```
+
+Tally across the three rows: **62 pass, 0 fail, 0 skipped, 0 todo.**
+
 ## Scenario Contract Evidence
 
 ### Scenario SCN-008-011
@@ -224,37 +320,79 @@ The scenario is **not** closed. The matrix row is `e2e-ui` and requires that no 
 
 Requirement-id coverage was scored per id using the guarded scan from decision D-03-02.
 
-### DoD core item 1 — FR ids: 9 of 15 carried
+### Scoring rule and the substring guard
 
-| Id | Carried | Carrying assertion, or gap |
-|---|---|---|
-| FR-019 | No | Provenance appears only as `provenanceClass` on holdings under an FR-017 label. No assertion enumerates the six declared provenance classes, and the behavior-derived-interest, model-estimate, and recommendation classes are unexercised. |
-| FR-022 | Yes | `FR-017 FR-022 FR-033: …` per-attempt `requirement: 'FR-022'` cases and `FR-022 behavior must contribute nothing after every attempt`; plus `route recomposition is invariant to behavior evidence and states that behavior contributes none` |
-| FR-023 | No | No local-only, remote, or network assertion exists in any of the three suites |
-| FR-027 | Yes | `privacy inventory reports real category counts and carries no stored subject value`, with `every declared category is reported, including the zeroes` |
-| FR-028 | Yes | `behavior clear empties behavior categories only after they are proven non-empty and preserves portfolio and mandate identity`; `a behavior clear is not a portfolio clear` |
-| FR-029 | Partial | Removal and public-asset preservation carried by `full-personal clear …`. The explicit-confirmation half is unasserted, since the typed confirmation is `e2e-ui` and TP-03-04 through TP-03-06 were not run. |
-| FR-030 | Yes | Declared-token sweep exercises the cross-device, sync-profile, advertising-id, and account-linked tokens under `every declared token must have been exercised, not merely iterated over` |
-| FR-031 | Yes | Same sweep over the dwell, click-count, scroll, return-frequency, notification-open, open-count, and engagement tokens; plus route invariance |
-| FR-032 | Yes | Same sweep over the health, family, politics, religion, ethnicity, income, wealth-class, diagnosis, and sensitive-trait tokens |
-| FR-033 | Yes | Same sweep over the setting, preference, shock-magnitude, risk-control, display-mode, and parameter-value tokens; plus `requirement: 'FR-033'` |
-| FR-034 | Yes | `behavior event vocabulary is closed to the declared categories lifecycle states and draft fields`; `a partial draft cannot become an eligible event` |
-| FR-035 | Yes | Same sweep over the raw-text, credential, quantity, cost-basis, P&L, goal-amount, and cash-amount tokens |
-| FR-036 | No | Zero occurrences of the decay, half-life, or sensitivity concepts across all three suites. The evidence-floor and decay policy is never asserted to be visible, versioned, or sensitivity-tested. |
-| FR-037 | No | Quarantine assertions cover unknown *workspace* shapes, not corrupt, unrecognized, or future-version *behavior records*. `quarantine is never a user-supplied state` is the inverse claim. No inspectable-reason assertion exists for a quarantined behavior record. |
-| FR-038 | Partial | `hostile manual labels remain inert data and namespace writes stay closed` covers import labels as inert data. Zero markup, innerHTML, or navigation assertions, and recommendation text is not covered. |
+An id counts as **carried** only when it appears inside the **message argument** of an
+`assert.*` call. A comment, a `test(...)` title, or a bare code identifier does not
+count. Message position is resolved by balanced-paren argument splitting, so the id must
+sit in the final argument, not in an expected value.
 
-### DoD core item 2 — NFR ids: 3 of 7 carried
+Matching is guarded on a preceding non-letter and a following non-digit. Without the
+leading guard, `FR-019` matches inside `NFR-019`, `FR-022` inside `NFR-022`, and `FR-023`
+inside `NFR-023`, and all three of those NFR ids are themselves covered. An unguarded
+scan therefore credits item 1's ids with item 2's evidence. The delta is not marginal:
 
-| Id | Carried | Carrying assertion, or gap |
-|---|---|---|
-| NFR-001 | No | No public-surface, remote, or network assertion exists in these Node suites |
-| NFR-003 | Partial | Named in the privacy suite title, but explicitly scoped "on the mandate surface", which is Scope 02. No behavior-surface explainability assertion exists. |
-| NFR-004 | Yes | Declared-token sweep over the click, dwell, return-frequency, and engagement tokens, plus `route recomposition is invariant to behavior evidence …` |
-| NFR-008 | Yes | `slot and pointer faults preserve the last-known-good revision`; `post-write slot corruption is detected before pointer publication`; `a key that survives deletion can never be reported as cleared`; `a partial deletion emits no success state at all` |
-| NFR-019 | Partial | Credential half carried by `secret-shaped import rejects the full draft with value-safe PortfolioError values`. The executable-markup half is unasserted. |
-| NFR-023 | Partial | Inspecting what clearing changes is carried by the inventory category counts and `the reported cleared count must match the proven pre-clear population`. Tracing every recommendation has no carrier, because no recommendation surface exists in these suites. |
-| NFR-024 | Yes | `verified clear covers every policy-declared personal key and leaves the raw namespace holding none of them`; `emptiness is proven by an independent reread, not by the clear call reporting on itself`; `no key may survive in the raw local namespace` and the session equivalent |
+| Id | Raw occurrences | Guarded occurrences | Shadowed by the NFR id |
+|---|---|---|---|
+| FR-019 | 41 | 10 | 31 |
+| FR-022 | 17 | 10 | 7 |
+| FR-023 | 60 | 36 | 24 |
+
+### DoD core item 1 — FR ids: 15 of 15 carried
+
+Eleven ids are carried by a literal id inside the message. Four — FR-030, FR-031,
+FR-032, FR-035 — are carried by an interpolated `${requirement}` message driven by the
+frozen `EXCLUDED_SOURCE_TOKENS_BY_REQUIREMENT` table whose keys are exactly those ids
+plus FR-033. That carriage is table-driven rather than literal, so it is recorded as its
+own class below. It is not vacuous: the table length is asserted (`five requirements must
+be exercised, not merely declared`), every token list is asserted non-empty per
+requirement, the loop counter is reconciled against the declared token count (`every
+declared excluded source must have been attempted, not merely iterated over`), and the
+union of the five token lists is asserted equal to the policy's declared excluded-field
+count, so a token with no requirement owner goes red.
+
+| Id | Carried | Carriage class | Carrying assertion |
+|---|---|---|---|
+| FR-019 | Yes | literal, 8 messages | `FR-019 declares six distinct provenance classes, so the attempt set must hold six`, under the dedicated one-valid-class-five-refused test |
+| FR-022 | Yes | literal, 1 message | `FR-022 behavior must contribute nothing after every attempt` |
+| FR-023 | Yes | literal, 31 messages | `FR-023 comment stripping must leave the module substantially intact, or every sink claim below is made against a blank file`, under the no-egress-sink and declared-namespace test |
+| FR-027 | Yes | literal, 25 messages | `FR-027 the inventory must build: …`, under the per-group inventory test |
+| FR-028 | Yes | literal, 22 messages | `FR-028 behavior evidence must genuinely exist before a clear can remove it` |
+| FR-029 | Yes | literal, 5 messages | `FR-029 personal bytes must genuinely exist, or "nothing was removed" holds for an empty namespace` |
+| FR-030 | Yes | interpolated, table key | `${requirement} a behavior draft carrying ${token} must not become an event` and five sibling messages, over the cross-device, sync-profile, advertising-id, and account-linked tokens |
+| FR-031 | Yes | interpolated, table key | Same six per-token messages over the dwell, click-count, scroll, return-frequency, notification-open, open-count, and engagement tokens |
+| FR-032 | Yes | interpolated, table key | Same six per-token messages over the health, family, politics, religion, ethnicity, income, wealth-class, diagnosis, and sensitive-trait tokens |
+| FR-033 | Yes | literal, 1 message, plus the same table | `FR-033 settings must contribute nothing after every attempt` |
+| FR-034 | Yes | literal, 24 messages | `FR-034 an empty documented category list would make every per-category claim vacuous` |
+| FR-035 | Yes | interpolated, table key | Same six per-token messages over the raw-text, credential, quantity, cost-basis, P&L, goal-amount, and cash-amount tokens |
+| FR-036 | Yes | literal, 9 messages | `FR-036 ${input} must be visible in the policy file a reader can open, not buried in code` |
+| FR-037 | Yes | literal, 12 messages | `FR-037 a ${damaged.name} behavior record must not open`, under the corrupt, unrecognized, and future-version quarantine test |
+| FR-038 | Yes | literal, 21 messages | `FR-038 control: a plain provider label must import: …`, under the inert-markup and inert-navigation test |
+
+Residual fact a reader should carry forward: FR-022 and FR-033 each rest on a single
+literal message. Both are real per-requirement claims on the route projection, but they
+are the thinnest carriage in the item.
+
+### DoD core item 2 — NFR ids: 7 of 7 carried
+
+Every id is carried by a literal id inside the message. No id in this item depends on
+interpolation.
+
+| Id | Carried | Carriage class | Carrying assertion |
+|---|---|---|---|
+| NFR-001 | Yes | literal, 22 messages | `NFR-001 every noun the id names that is representable at this scope must carry a sentinel, or the sweep below is short`, under the local-namespace versus public-projection test |
+| NFR-003 | Yes | literal, 9 messages | `NFR-003 the mandate must name its input authority`, plus the constraint, cash-need, projection-citation, absent-field, uncertainty-reason, and invalidation arms |
+| NFR-004 | Yes | literal, 22 messages | `NFR-004 control: a documented research completion must still be admitted: …`, under the no-engagement-objective test |
+| NFR-008 | Yes | literal, 23 messages | `NFR-008 control: an unfaulted commit must succeed: …`, under the throwing-store and silently-dropping-store test |
+| NFR-019 | Yes | literal, 28 messages | `NFR-019 control: an ordinary import must parse: …`, under the credential-name, credential-shape, and markup-smuggling test |
+| NFR-023 | Yes | literal, 21 messages | `NFR-023 the restated mandate draft must validate: …`, under the revision-citation and per-category clear-change test |
+| NFR-024 | Yes | literal, 20 messages | `NFR-024 the clear must start from storage that provably holds every declared personal key`, under the independent-reread certification test |
+
+Residual fact a reader should carry forward: all nine NFR-003 messages sit inside the
+single test whose own title ends "all hold on the mandate surface", which is Scope 02's
+surface. NFR-003 is genuinely carried by named assertions, and this run did not move it
+onto the behavior, inventory, or clear surface. The explainability claim on this scope's
+own surface is carried under NFR-023 instead.
 
 ### DoD core item 3 — full-personal clear sections: 9 of 13 verified
 
@@ -291,12 +429,16 @@ The Build Quality Gate DoD item was not assessed and not ticked this run, per th
 
 ## Uncertainty Declarations
 
-Ten DoD items are left unchecked. Each gap is named exactly rather than deferred.
+Eight DoD items are left unchecked. Each gap is named exactly rather than deferred.
+
+Core items 1 and 2 were previously listed here and are now ticked. Core 1 reached 15 of 15
+ids and Core 2 reached 7 of 7, verified by the guarded scan in the Coverage Report. Two
+residual facts survive the tick and are recorded there rather than dropped: four of Core
+1's ids are carried by an interpolated table-driven message rather than a literal one, and
+every Core 2 carrier for NFR-003 sits on the Scope 02 mandate surface.
 
 | DoD item | Why it is unchecked |
 |---|---|
-| Core 1 — FR-019, FR-022 through FR-023, FR-027 through FR-038 | 9 of 15 ids carried. **Uncovered: FR-019, FR-023, FR-036, FR-037. Partial: FR-029** (confirmation half), **FR-038** (executable-markup and navigation half, plus recommendation text). |
-| Core 2 — NFR-001, NFR-003 through NFR-004, NFR-008, NFR-019, NFR-023 through NFR-024 | 3 of 7 ids carried. **Uncovered: NFR-001. Partial: NFR-003** (mandate surface only), **NFR-019** (markup half), **NFR-023** (recommendation-tracing half). |
 | Core 3 — full-personal clear section verification | 9 of 13 sections verified. **Unverified: scenarios, allocations, dossiers, UI state.** See decision D-03-03: this contradicts the run briefing and is surfaced rather than absorbed. |
 | Core 4 — impact sweep, canaries, rollback and restore proof | The Scope 01 and 02 re-run and the raw-namespace and clear-fault canaries are carried. The **exact rollback and restore proof** for this scope's own marker-bounded additions is a source-rollback procedure that no executed command demonstrates. |
 | Core 5 — RED plus same-command GREEN | **0 of 14 behaviors have an intended RED.** GREEN is complete; RED is entirely absent. |

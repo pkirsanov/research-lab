@@ -96,13 +96,73 @@ Write every closed-event, clear, inventory, UI, and sentinel assertion before pr
 
 #### Core Delivery Items
 
-- [ ] FR-019, FR-022 through FR-023, and FR-027 through FR-038 are fully implemented with closed provenance classes, relevance-only authority, safe inventory, separate verified clear operations, no cross-device/engagement/sensitive profiling, documented eligible events, visible versioned decay inputs, quarantine, and inert text.
+- [x] FR-019, FR-022 through FR-023, and FR-027 through FR-038 are fully implemented with closed provenance classes, relevance-only authority, safe inventory, separate verified clear operations, no cross-device/engagement/sensitive profiling, documented eligible events, visible versioned decay inputs, quarantine, and inert text.
 
-  Unchecked — 9 of 15 ids carried. **Uncovered: FR-019** (no assertion enumerates the six provenance classes), **FR-023** (no local-only, remote, or network assertion), **FR-036** (zero decay, half-life, or sensitivity assertions), **FR-037** (quarantine covers workspace shapes, not behavior records). **Partial: FR-029** (confirmation half is `e2e-ui`), **FR-038** (no markup or navigation assertion). Carried: FR-022, FR-027, FR-028, FR-030, FR-031, FR-032, FR-033, FR-034, FR-035. Per-id table in [report.md](report.md#coverage-report).
+  **Claim Source:** executed · **Command:** `node --test tests/portfolio-foundation.unit.mjs` · **Exit Code:** 0
 
-- [ ] NFR-001, NFR-003 through NFR-004, NFR-008, NFR-019, and NFR-023 through NFR-024 are satisfied by local-only state, exact why/inventory evidence, no engagement objective, visible persistence failure, safe input, traceable clearing, and verified deletion.
+  15 of 15 ids carried. Scored on a substring-guarded scan that counts an id only when it
+  sits inside the **message argument** of an `assert.*` call; a comment, a `test(...)`
+  title, and a bare code identifier are all rejected. The guard matters here rather than
+  theoretically: `FR-019` shows 41 raw occurrences but only 10 guarded, because 31 of them
+  are the tail of `NFR-019`. `FR-023` shows 60 raw against 36 guarded.
 
-  Unchecked — 3 of 7 ids carried. **Uncovered: NFR-001** (no public-surface, remote, or network assertion). **Partial: NFR-003** (named only on the mandate surface, which is Scope 02), **NFR-019** (credential half only; markup half absent), **NFR-023** (clearing-inspection half only; recommendation tracing has no carrier). Carried: NFR-004, NFR-008, NFR-024. Per-id table in [report.md](report.md#coverage-report).
+  Eleven ids are carried by a literal id in the message. Four — **FR-030, FR-031, FR-032,
+  FR-035** — are carried by an interpolated `${requirement}` message driven by the frozen
+  `EXCLUDED_SOURCE_TOKENS_BY_REQUIREMENT` table whose keys are exactly those ids plus
+  FR-033. That carriage is table-driven, not literal, and it is non-vacuous: the table
+  length, each token list's non-emptiness, the attempted-versus-declared token count, and
+  the union against the policy's excluded-field count are each asserted.
+
+  Thinnest carriage in the item: FR-022 and FR-033 each rest on one literal message.
+  Per-id table in [report.md](report.md#coverage-report).
+
+  ```
+  ✔ FR-019: a stored holding carries exactly one declared provenance class and each of the other five declared classes is refused as an invalid class (4.965597ms)
+  ✔ FR-036: every behavior evidence-floor and decay input is a visible declared finite policy value and its version is stamped onto every event (2.561198ms)
+  ✔ FR-037: a corrupt unrecognized or future-version behavior record is quarantined with an inspectable reason and no part of the workspace is interpreted (68.235556ms)
+  ✔ FR-029: no read compose inventory or export path removes personal data, and the same bytes do clear when the clear is explicitly invoked (35.213177ms)
+  ✔ FR-030 FR-031 FR-032 FR-033 FR-035: every excluded source named by each requirement is a declared token, is refused by name on both the build and the persistence path, and the refusal is selective (153.518001ms)
+  ✔ FR-023: the module carries no egress sink, every byte it writes lands in the declared personal namespace, and the preview that declares it excludes personal values genuinely excludes them (52.210267ms)
+  ✔ FR-027: the local privacy inventory reports each named personal group on its own surface, separates dismissed from completed, and keeps cached generic evidence out of the personal count (92.34584ms)
+  ✔ FR-028: a behavior clear removes the eligible events and empties the derived-interest container while holdings mandate and cash needs survive, and the separately requested clears do remove them (55.30567ms)
+  ✔ FR-034: an eligible behavior event is admitted only for a documented completed research action and retains category subject domain timestamp source surface and lifecycle state (14.227495ms)
+  ✔ FR-038: an imported provider label carrying markup or a navigation scheme is retained as inert text with no navigation authority, and the recommendation token fields refuse it while still accepting a legitimate token (79.824371ms)
+  ℹ tests 47
+  ℹ pass 47
+  ℹ fail 0
+  ```
+
+- [x] NFR-001, NFR-003 through NFR-004, NFR-008, NFR-019, and NFR-023 through NFR-024 are satisfied by local-only state, exact why/inventory evidence, no engagement objective, visible persistence failure, safe input, traceable clearing, and verified deletion.
+
+  **Claim Source:** executed · **Command:** `node --test tests/portfolio-foundation.unit.mjs` and `node --test tests/portfolio-privacy.functional.mjs` · **Exit Code:** 0 and 0
+
+  7 of 7 ids carried, every one by a **literal** id inside an `assert.*` message. No id in
+  this item depends on interpolation. The same substring guard was applied in the opposite
+  direction, so none of these counts borrow from the FR ids they contain.
+
+  Residual fact recorded rather than hidden: all nine **NFR-003** messages sit inside the
+  one test whose own title ends "all hold on the mandate surface", which is Scope 02's
+  surface. NFR-003 is genuinely carried by named assertions and this run did not move it
+  onto the behavior, inventory, or clear surface; the explainability claim on this scope's
+  own surface is carried under NFR-023 instead.
+
+  Per-id table in [report.md](report.md#coverage-report).
+
+  ```
+  ✔ NFR-001: every personal noun the id names is stored in the declared local namespace and appears in none of the public projections the module emits, while the local-only projections that legitimately carry it prove the same search does find it (57.968678ms)
+  ✔ NFR-004: no declared ranking input is an engagement metric, every click dwell and retention source is refused by name on the path that grows ranking evidence, and a research completion is still admitted and still counted (43.686384ms)
+  ✔ NFR-008: a throwing store and a silently dropping store both surface an explicit write failure with no success state, capability loss is reported in words, and the same commit still succeeds unfaulted (31.638388ms)
+  ✔ NFR-019: every declared credential field name and credential value shape is rejected without echoing the value, markup does not smuggle a credential past the guard, and an ordinary provider label is still imported (22.666092ms)
+  ✔ NFR-023: a recommendation route cites the exact revision identity it used or names why it cannot, and a clear reports a per-category change that matches the inspected before and after inventory (68.312875ms)
+  ✔ NFR-024: local deletion is certified only after an independent reread proves emptiness, a survivor or an unreadable key blocks the success state, and the raw namespace confirms it without trusting the report (2.460499ms)
+  ℹ tests 47
+  ℹ pass 47
+  ℹ fail 0
+  ✔ NFR-003 NFR-005 NFR-007 NFR-012 NFR-022: provenance missing-state integrity atomic revisions latest-complete publication and the research boundary all hold on the mandate surface (161.662834ms)
+  ℹ tests 11
+  ℹ pass 11
+  ℹ fail 0
+  ```
 
 - [ ] Full-personal clear mechanically verifies holdings, mandate/needs, events, interests, outcomes, scenarios, allocations, dossiers, quarantine, UI state, session fallback, and return context are empty while public generic assets remain.
 

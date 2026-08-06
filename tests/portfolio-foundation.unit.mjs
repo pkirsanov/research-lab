@@ -858,3 +858,90 @@ test('verified clear covers every policy-declared personal key and leaves the ra
   declared.local.forEach((key) => assert.equal(localStorage.getItem(key), null, `${key} must not survive the clear`));
   declared.session.forEach((key) => assert.equal(sessionStorage.getItem(key), null, `${key} must not survive the clear`));
 });
+
+// The personal surface and the generic surface are BOTH derived from the policy key set, as a
+// partition: declared means "must be gone", not-declared means "must survive". Naming either
+// side literally freezes it, and the survivor half is the one that gets forgotten -- an
+// over-broad clear that also wiped the shared caches still satisfies an all-empty assertion.
+// The workspace sweep is derived the same way, off the empty-workspace contract, so a section
+// added to the workspace later is required to be empty here without editing this test.
+function personalWorkspaceSections(api, policy) {
+  const empty = api.createEmptyWorkspace(policy, NOW);
+  assert.equal(empty.ok, true);
+  return Object.entries(empty.value).filter(([, value]) => Array.isArray(value)).map(([name]) => name).sort();
+}
+
+test('full-personal clear empties every declared personal section and leaves generic public assets byte-identical', () => {
+  const { api, policy } = loadContracts();
+  const declared = policyDeclaredKeys(policy);
+  const declaredLocal = new Set(declared.local);
+
+  // Real shared cache-first market assets, not test-only names: these are the generic public
+  // caches every tool reuses, so wiping them is a real product regression rather than a
+  // hypothetical one.
+  const genericLocal = Object.freeze({ rlData: '{"bars":{}}', optSnaps: '{"SPY":{}}' });
+  const localStorage = createStorage({ initial: { ...genericLocal } });
+  const sessionStorage = createStorage();
+
+  const store = api.createPortfolioStore({ localStorage, sessionStorage }, policy);
+  const opened = store.openWorkspace(NOW);
+  assert.equal(opened.ok, true);
+  const withPortfolio = store.commitWorkspace(api.buildWorkspaceCandidate(validDraft(api, policy), opened.value.workspace, { name: 'Full clear portfolio', now: NOW }, policy).value, opened.value.workspace.generation, NOW);
+  assert.equal(withPortfolio.ok, true);
+  const withMandate = store.commitWorkspace(api.buildMandateCandidate(mandateDraft(api, policy, 'mandate-explicit.json'), withPortfolio.value.workspace, { now: NOW }, policy).value, withPortfolio.value.workspace.generation, NOW);
+  assert.equal(withMandate.ok, true);
+  const withEvidence = store.commitWorkspace(appendEvent(api, policy, withMandate.value.workspace, {}).value.workspace, withMandate.value.workspace.generation, NOW);
+  assert.equal(withEvidence.ok, true);
+
+  // Populate-and-prove, read back out of committed bytes. Without it every emptiness assertion
+  // below would also hold for a store that persisted nothing and a clear that did nothing.
+  const committed = api.createPortfolioStore({ localStorage, sessionStorage }, policy).openWorkspace(NEXT_DAY);
+  assert.equal(committed.ok, true);
+  assert.equal(committed.value.workspace.portfolioRevisions.length > 0, true, 'holdings must genuinely be on disk before the clear is meaningful');
+  assert.equal(committed.value.workspace.mandateRevisions.length > 0, true, 'the mandate must genuinely be on disk before the clear is meaningful');
+  assert.equal(committed.value.workspace.mandateRevisions[0].cashNeeds.length > 0, true, 'cash needs must genuinely be on disk, not an empty list inside a present mandate');
+  assert.equal(committed.value.workspace.behaviorEvents.length > 0, true, 'behavior evidence must genuinely be on disk before the clear is meaningful');
+  assert.notEqual(committed.value.workspace.currentPortfolioId, null);
+  assert.notEqual(committed.value.workspace.currentMandateId, null);
+
+  // The keys a durable commit does not itself create -- the inactive slot, quarantine, the
+  // session fallback, and the return context -- are the ones a clear most easily skips, so
+  // they are stocked here, derived from the declared set rather than named.
+  const residualLocal = declared.local.filter((key) => localStorage.getItem(key) === null);
+  assert.equal(residualLocal.length > 0, true, 'at least one declared local key must still need stocking, or this arm proves nothing');
+  residualLocal.forEach((key, index) => localStorage.setItem(key, `residual-local-${index}`));
+  declared.session.forEach((key, index) => sessionStorage.setItem(key, `residual-session-${index}`));
+
+  const presentLocal = Object.keys(localStorage.snapshot());
+  const survivorsExpected = presentLocal.filter((key) => !declaredLocal.has(key)).sort();
+  assert.deepEqual(presentLocal.filter((key) => declaredLocal.has(key)).sort(), declared.local, 'every declared local key must be present before the clear');
+  assert.deepEqual(Object.keys(sessionStorage.snapshot()).sort(), declared.session, 'every declared session key must be present before the clear');
+  assert.deepEqual(survivorsExpected, Object.keys(genericLocal).sort(), 'the derived survivor set must be exactly the non-declared keys, so the partition is real');
+
+  const cleared = api.clearFoundationStorage({ localStorage, sessionStorage });
+  assert.equal(cleared.ok, true, `verified clear must succeed: ${JSON.stringify(cleared.error || {})}`);
+  assert.equal(cleared.value.verifiedEmpty, true);
+
+  // One comparison carries both halves: a declared key that survives appears in the actual
+  // set, and a generic key that was wiped disappears from it. `localStorage.clear()` fails
+  // here; a clear that skips the inactive slot fails here too.
+  assert.deepEqual(Object.keys(localStorage.snapshot()).sort(), survivorsExpected, 'exactly the non-declared keys may survive a full-personal clear');
+  assert.deepEqual(Object.keys(sessionStorage.snapshot()), [], 'no declared session key may survive, and nothing generic was seeded there to mask one');
+  assert.deepEqual(localStorage.snapshot(), genericLocal, 'the surviving generic caches must be byte-identical, not re-serialized or truncated');
+
+  // Category emptiness proven by an independent reopen of the cleared namespace, over a
+  // section list derived from the workspace contract rather than written out here.
+  const sections = personalWorkspaceSections(api, policy);
+  ['actionOutcomes', 'behaviorEvents', 'interestSignals', 'mandateRevisions', 'portfolioRevisions'].forEach((section) => {
+    assert.equal(sections.includes(section), true, `${section} must be part of the derived personal section sweep`);
+  });
+  const reopened = api.createPortfolioStore({ localStorage, sessionStorage }, policy).openWorkspace(LATER);
+  assert.equal(reopened.ok, true, `a cleared namespace must still open: ${JSON.stringify(reopened.error || {})}`);
+  sections.forEach((section) => {
+    assert.deepEqual(reopened.value.workspace[section], [], `${section} must be empty after a full-personal clear`);
+  });
+  assert.equal(reopened.value.workspace.currentPortfolioId, null, 'no holdings pointer may survive');
+  assert.equal(reopened.value.workspace.currentMandateId, null, 'no mandate or cash-need pointer may survive');
+  assert.equal(JSON.stringify(reopened.value.workspace).includes(SUBJECT_ALPHA), false, 'no cleared subject may reappear through the reopened workspace');
+  assert.equal(JSON.stringify(committed.value.workspace).includes(SUBJECT_ALPHA), true, 'the subject was genuinely stored, so its absence above is meaningful');
+});

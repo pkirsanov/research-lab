@@ -621,9 +621,15 @@ test('NFR-003 NFR-005 NFR-007 NFR-012 NFR-022: provenance missing-state integrit
   );
   assert.equal(clearedProjection.value.routes.every((route) => route.descriptive.available === true && route.descriptive.citedPortfolioId === durable.currentPortfolioId), true);
 
-  // NFR-005 missing never becomes zero, empty, false or observed by fallback.
-  MANDATE_POLICY_FIELDS.filter((field) => mandate[field] === null).forEach((field) => {
-    assert.strictEqual(mandate[field], null, `NFR-005 ${field} must remain missing`);
+  // NFR-005 missing never becomes zero, empty, false or observed by fallback. Quantified over
+  // the fields the USER DECLARED absent, read from the declaration itself. Filtering by
+  // `mandate[field] === null` and then asserting null cannot fail: a field that acquired a
+  // fallback drops out of the filter, so such a check never examines the failure it names.
+  const declaredAbsentSource = mandateFixture('mandate-explicit.json');
+  const declaredAbsentFields = MANDATE_POLICY_FIELDS.filter((field) => declaredAbsentSource[field] === null);
+  assert.equal(declaredAbsentFields.length > 0, true, 'a declaration that omits no policy field cannot carry a missing-state claim');
+  declaredAbsentFields.forEach((field) => {
+    assert.strictEqual(mandate[field], null, `NFR-005 ${field} was declared absent and must remain missing`);
     [0, '', false, 'observed', 'default'].forEach((fallback) => {
       assert.notStrictEqual(mandate[field], fallback, `NFR-005 ${field} must not fall back to ${JSON.stringify(fallback)}`);
     });

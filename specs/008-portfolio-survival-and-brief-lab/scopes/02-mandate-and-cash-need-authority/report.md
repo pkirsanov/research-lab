@@ -2263,7 +2263,16 @@ every finding individually accounted for above: the 21 `git diff --check` findin
 
 Nothing here writes `certification.*`.
 
+### Build Quality Gate - member 13 refusal (SUPERSEDED - historical record)
 
+> **SUPERSEDED** by [Build Quality Gate - closing re-verification](#build-quality-gate---closing-re-verification-all-13-members-clean).
+> What changed: both Scope 02 `Scenario:` lines now carry their `SCN-` id, so the
+> guard's declared-id matching path fires and the three own-file failures recorded
+> below are gone — the guard now reports Scope 02 own-file failures = 0 and
+> `DoD fidelity: 4 scenarios checked, 4 mapped to DoD, 0 unmapped`. `F008-IMPL-012`
+> is closed, the item is `[x]`, and Scope 02 is 10/10 with status **Done**.
+> The refusal below is retained unaltered so the audit trail still shows what was
+> once refused and why. It is **not** a live blocker; do not act on it.
 
 The Build Quality Gate item is the last unchecked box in this scope. Twelve of its
 thirteen named members were re-executed in this session and are clean; the
@@ -2286,8 +2295,10 @@ naming this scope's own files`. The observed count is 3, not 0:
 its `SCN-` id, and neither title shares the required two significant words with any
 Test Plan row, so both of the guard's matching paths miss. The intended linkage is
 declared in the `### SCN-008-00x` headings and in each row's Scenario column, but
-the guard reads only the `Scenario:` line. Full reproduction:
-[Build Quality Gate - current-session re-verification](#build-quality-gate---current-session-re-verification-still-not-closed-new-cause).
+the guard reads only the `Scenario:` line. Full reproduction: subsection
+*Member 13 - scope-local traceability: FAILS ON THIS SCOPE'S OWN FILE* of section
+*Build Quality Gate - prior re-verification (SUPERSEDED - historical record)*
+earlier in this report.
 
 **Why it was not fixed here.** Every repair — carrying the id onto the Gherkin line,
 rewording Test Plan rows, or adding a DoD item — edits planning content owned by

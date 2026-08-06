@@ -1153,6 +1153,91 @@ more at the end of the run. A `TEMPORARY`/`ADVERSARIAL`/`INJECT` marker grep was
 explicitly **not** accepted as evidence of revert — the injected line carried no
 marker, so only `git status` could expose it.
 
+##### A fourth pair: NFR-005 had an assertion that could not fail
+
+Two things landed for NFR-005 and neither was recorded until this entry. The
+assertion was rewritten in `3faa0131` because the previous form was structurally
+incapable of failing, and a targeted RED/GREEN pair then showed the rewritten form
+discriminates. The rewrite went unrecorded because `3faa0131` touched only
+`tests/portfolio-privacy.functional.mjs`; the map below carried the pre-rewrite
+state until now.
+
+**The vacuity.** The previous check filtered by the result and then asserted that
+same result:
+
+```text
+MANDATE_POLICY_FIELDS.filter((field) => mandate[field] === null).forEach((field) => {
+  assert.strictEqual(mandate[field], null, `NFR-005 ${field} must remain missing`);
+```
+
+A field that *did* acquire a fallback stops satisfying `mandate[field] === null`,
+drops out of the filter, and is never examined. The only fields the assertion
+inspected were the ones already known to be null. It named precisely the failure it
+could not observe, and it could not fail.
+
+**The rewrite** (`3faa0131`) quantifies over the fields the **user declared
+absent**, read from the declaration rather than from the result, so a field that
+acquires a fallback stays in the set and fails. It adds a non-vacuity guard —
+`a declaration that omits no policy field cannot carry a missing-state claim` — so
+the fix cannot itself go vacuous by quantifying over an empty set when a fixture
+happens to declare everything.
+
+**Why the defect is targeted rather than incidental — verified in source, not
+assumed.** Three facts were read directly rather than taken on trust:
+
+1. `costPolicy` is a member of `MANDATE_POLICY_FIELDS`
+   (`tests/portfolio-privacy.functional.mjs:394`), which is exactly the set the
+   rewritten assertion quantifies over.
+2. The fixture declares every policy field absent — asserted independently at
+   `tests/portfolio-privacy.functional.mjs:484` — so `costPolicy` is inside the
+   declared-absent set and the non-vacuity guard is satisfied rather than skipped.
+3. The value the defect substitutes is itself a member of the assertion's
+   rejected-fallback list, so both the `strictEqual(..., null)` term and the
+   `notStrictEqual(..., fallback)` term bear on it.
+
+**The pair.** Same command both sides,
+`node --test tests/portfolio-privacy.functional.mjs`.
+
+| State | Result |
+|---|---|
+| `rlportfolio.js` clean | `# pass 11`, `# fail 0`, exit 0 |
+| Defect injected at `rlportfolio.js:1357` — the `costPolicy` absent-branch returns a fallback string instead of `null`, so a declared-absent `costPolicy` acquires a value | `# pass 8`, `# fail 3`, exit 1 |
+| Defect reverted with `git checkout --` | `# pass 11`, `# fail 0`, exit 0 |
+
+The RED lands on the composite subtest and names the field:
+
+```text
+not ok 9 - NFR-003 NFR-005 NFR-007 NFR-012 NFR-022 ...
+    NFR-005 costPolicy was declared absent and must remain missing
+```
+
+**Claim Source:** interpreted for the RED and for the post-revert GREEN — both were
+executed and observed directly by the orchestrator in this session, not by this
+agent. This agent independently executed the clean-tree GREEN baseline
+(`# pass 11`, `# fail 0`, exit 0), verified `git status --porcelain rlportfolio.js`
+**empty**, and verified the three source facts listed above. The reported counts are
+arithmetically consistent with that baseline: 11 subtests total, 3 failing leaves 8
+passing. The quoted failure string is the exact message template introduced by
+`3faa0131` instantiated at `costPolicy` — a template the pre-rewrite assertion did
+not contain — so the RED could only have been produced against the rewritten
+assertion.
+
+**Uncertainty Declaration.** The RED reports three failures and only one was
+identified. Subtest 9 is named, with the NFR-005 message above; the other two
+failing subtests were not reported and are not attributed here. No row is advanced
+on them.
+
+**This pair is load-bearing beyond its own row.** The defect is exactly the failure
+the rewrite was built to catch — a declared-absent field acquiring a fallback — and
+it is exactly what the pre-rewrite assertion let through, because a `costPolicy`
+holding a fallback value drops out of a `mandate[field] === null` filter and is
+never examined. So the pair does not merely give NFR-005 a RED; it establishes that
+the rewrite is non-vacuous rather than only better-shaped. That is the same class of
+finding as pair 3: an assertion that looked like coverage and could not
+discriminate. Two such assertions were found in this scope by injecting defects at
+the property each claimed to protect, which is the only method that has located
+either of them.
+
 **Why the clause still fails.** The clause is universally quantified — *every*
 Scope 02 behavior. Counting the RED records that now exist against the behaviors
 this scope delivers:
@@ -1171,25 +1256,36 @@ this scope delivers:
 | FR-012 cash-need parts and the three date faults | **no** | — |
 | FR-014 nothing inferred from holdings | **no** | — |
 | FR-015 unchanged candidate propagation | **no** | — |
-| NFR-005 missing-state integrity | **no** | — |
+| NFR-005 missing-state integrity | yes | pair 4 above, `costPolicy` fallback defect |
 | NFR-007 last-valid integrity under refusal | partial | pair 3 above, `.staging` pre-validation write; the RED lands on the committed durable image, the refusal-path residue assertion is added but unproven |
 | NFR-022 research/advice boundary | **no** | — |
 | TP-02-03 / TP-02-04 browser rows | **no** | node-suite REDs do not reach them |
 
-Six behaviors now carry a RED and three more are partial, up from four with two
-partial. The two gaps the previous run named as highest-value — the
-FR-017/FR-022/FR-033 refusal surface and the rollback-by-identity assertion — are
-both closed, and each is closed by a defect targeted at exactly the property the
-assertion claims to protect rather than at some incidental precondition.
+Seven behaviors now carry a RED and three more are partial, up from four with two
+partial at the start of this session. The two gaps the earlier run named as
+highest-value — the FR-017/FR-022/FR-033 refusal surface and the
+rollback-by-identity assertion — are both closed, and each is closed by a defect
+targeted at exactly the property the assertion claims to protect rather than at
+some incidental precondition.
 
 NFR-007 moves from **no** to **partial** rather than to **yes**, and the
 distinction is deliberate. Pair 3 proves the durable key set is closed after a
 commit and that a write landing before validation is now detected; it does not
 prove the refusal-path residue assertion, because with that defect no refusal in
 this suite reaches the write. Claiming NFR-007 as fully carried on this evidence
-would overstate what was executed. NFR-005 is left at **no**: the declared-key-set
-work does not touch whether a missing value acquires a fallback, so nothing in
-this run bears on it.
+would overstate what was executed.
+
+NFR-005 moves from **no** to **yes**. Pair 4's defect makes a declared-absent field
+acquire a fallback, which is the precise property NFR-005 claims, and the assertion
+fails on that field by name. It is a full **yes** rather than a partial because the
+RED lands on the NFR-005 term itself and not on a neighbouring one.
+
+The three other ids sharing subtest 9's composite title — NFR-003, NFR-012 and
+NFR-022 — are **not** advanced by pair 4. The subtest is a composite and the
+assertion that fired is the NFR-005 one; a composite title does not license
+crediting the ids it merely mentions. Two further subtests also failed in that RED
+and were never identified, so nothing is claimed for them in either direction. Pair
+4 therefore moves exactly one row.
 
 Item 3's own standard was that a negative claim "is not proved by the absence of
 code that does it". Pair 1 satisfies that standard directly: the refusal
@@ -1201,11 +1297,11 @@ rather than on resemblance.
 
 **Verdict: item 4 remains unchecked.** Clauses (a) and (b) are carried, and
 clause (b) is now carried by a RED/GREEN pair rather than by citation alone.
-Clause (c) is still quantified over *every* Scope 02 behavior, and six behaviors
-still have no RED at all: FR-011, FR-012, FR-014, FR-015, NFR-005, NFR-022, plus
-the two browser rows that no node-suite defect can reach. Six of sixteen with a
-RED and three partial does not satisfy a universal claim, so the item stays
-unchecked and no partial credit is claimed. This agent did not tick it.
+Clause (c) is still quantified over *every* Scope 02 behavior, and five behaviors
+still have no RED at all: FR-011, FR-012, FR-014, FR-015 and NFR-022, plus the two
+browser rows that no node-suite defect can reach. Seven of sixteen with a RED and
+three partial does not satisfy a universal claim, so the item stays unchecked and
+no partial credit is claimed. This agent did not tick it.
 
 ### Verdict
 

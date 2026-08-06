@@ -1403,6 +1403,103 @@ The assertions were deliberately added to the SCN-008-004 test only, not to both
 tests that iterate the never-inferred names, so the RED is attributable to the row
 being closed rather than spread across two tests.
 
+**Pairs C, D and E — the three partial rows, and three more coverage gaps of the
+same family.** Command for every run below, unchanged across RED and GREEN:
+
+```text
+node --test tests/portfolio-privacy.functional.mjs
+```
+
+Baseline before any injection: **11 pass, 0 fail**, exit 0. Each defect was aimed at
+the portion of its row the earlier run left *uncovered*, not at the portion already
+carried, and each was first run against the assertions **as they stood**, to
+establish whether the row was merely unproved or actually blind.
+
+All three were blind. That is the seventh, eighth and ninth coverage gap this scope
+has produced, and each is the same shape as the earlier six: an assertion that reads
+like coverage but cannot discriminate.
+
+| Pair | Row | Defect aimed at the uncovered portion | Old assertions | New assertion |
+|---|---|---|---|---|
+| C | NFR-003 provenance | the stored revision keeps its declared constraints but carries no cash need at all | **11 pass, 0 fail** — blind | **RED**, `not ok 9` |
+| D | NFR-012 latest-complete publication | every durable commit publishes the correct winning identity but discards the revisions it superseded | **11 pass, 0 fail** — blind | **RED**, `not ok 9` |
+| E | NFR-007 refusal-path residue | an undeclared key written under the workspace namespace before the pointer publish and removed again on success, so it survives only when the publish fails | **11 pass, 0 fail** — blind | **RED**, `not ok 9`, sole failure |
+
+**Pair C — NFR-003 was vacuous, not merely unproved.** The provenance claim is
+universally quantified over the stored inputs, and `[].every()` is `true`. Every
+authority assertion in this suite is written that way, so a revision that stored no
+cash need at all satisfied all of them at once while carrying not one attributed
+input. Under the defect the suite returned **11 pass, 0 fail**: subtest 9 stayed
+green with every stored cash need deleted. The quantifier is now bounded by the
+declaration that produced the revision, read from that declaration rather than typed
+as a count, and the declaration is itself asserted non-empty so the bound cannot
+become vacuous in turn. Re-running with the defect still in place: **10 pass,
+1 fail**, the failure naming one id and no other:
+
+```text
+NFR-003 every declared cash need must be stored to carry an authority
+
+0 !== 1
+```
+
+**Pair D — NFR-012 proved which identity won, never that the image was complete.**
+Every assertion in the block reads `currentMandateId`, so an image that published the
+correct winner while silently dropping the revisions it superseded satisfied all of
+them: the winner matched, exactly one stored revision answered to it, the projection
+cited it, and the rebase still changed the winner. Under the defect the suite
+returned **11 pass, 0 fail**. Completeness is now asserted on the published image
+itself, against the identities the commits actually returned. Re-running with the
+defect still in place: **8 pass, 3 fail**, subtest 9 failing at
+
+```text
+NFR-012 the published image must retain every completed revision, not only the latest identity
+
+false !== true
+```
+
+**Pair E — NFR-007, and the earlier "unreachable by construction" reading was
+wrong.** The earlier run established that `commitWorkspace` revalidates the candidate
+and returns before dispatching to `commitDurable`, and concluded the refusal-path
+residue assertion could not be reached. The first half is correct; the conclusion
+does not follow from it. It is scoped to the *refusal that run chose* — an invalid
+candidate, which is rejected above the write point — and not to the write path, which
+is reachable. Three refusals inside `commitDurable` occur **after** the inactive slot
+has been written and re-read: slot verification, the pointer publish, and pointer
+verification. A valid candidate committed against a store whose pointer write fails
+takes the second of them, and that failure reason is by construction reachable only
+once the slot write has already succeeded.
+
+The defect writes an undeclared key under the workspace namespace before the pointer
+publish and removes it again on the success path, so it survives exactly one
+condition: a commit refused after the write had begun. Against the assertions as they
+stood the whole suite returned **11 pass, 0 fail** — including the existing subtest
+that drives that same refusal directly, which asserts the pointer and the reloaded
+identity but never the key set. A key leaked on every failed publish and nothing in
+the suite could see it.
+
+A refusal that reaches the write is now constructed inside the row's own block, and
+the refusal **reason** is asserted alongside the residue, so the arrangement cannot
+silently decay back into one that returns early and re-vacuate the claim. Re-running
+with the defect still in place: **10 pass, 1 fail** — subtest 9 the sole failure,
+the diff naming the leaked key:
+
+```text
+NFR-007 a refusal that reached the write path must leave no undeclared key behind as residue
+```
+
+**Attribution.** Subtest 9 carries a composite title naming five ids, so the title
+credits none of them. Each pair is credited on the assertion that actually fired,
+each of which names exactly one id, and each new assertion was placed in the block
+that owns its row so the failure is attributable rather than smeared.
+
+**Claim Source:** executed. Every count and every assertion text above was observed
+directly. `rlportfolio.js` is the only file these three defects touched. After each
+of the three reverts `git status --porcelain rlportfolio.js` was verified **empty**,
+and the suite returned to **11 pass, 0 fail**. None of the three defects carried a
+marker, so a marker grep would have read clean against all of them; it was not
+accepted as evidence of revert at any point. The browser suite was re-run unchanged
+at the end: **6 passed**.
+
 
 **empty** after each of the seven reverts in this run — five pairs, the gap probe
 before the fix, and the same probe re-injected after it — and once more at the end.
@@ -1425,37 +1522,48 @@ this scope delivers:
 |---|---|---|
 | Atomic mandate round trips | yes | [TP-02-02](#tp-02-02) RED, clause-1 defect |
 | One constraint set reaching every consumer | yes | [TP-02-02](#tp-02-02) RED, clause-2 defect |
-| NFR-012 atomic revisions / latest-complete publication | partial | same clause-1 defect lands on part of it |
+| NFR-012 atomic revisions / latest-complete publication | yes | pair D above, incomplete-publication defect; the identity-only blind spot is closed and separately proved |
 | Conflicts stay infeasible and unconfirmable | yes | this session, `canConfirm` defect |
 | Absence never acquires an invented value | yes | this session, `inferredValues` defect |
 | FR-017 / FR-022 / FR-033 forbidden-input refusal surface | yes | pair 1 above, `forbidden-input-source` defect |
 | Exact rollback by identity (clause (b)'s own test) | yes | pair 2 above, lineage-rebuild defect |
-| NFR-003 provenance | partial | pair 2's collateral `not ok 9` lands on the per-state invalidation block |
+| NFR-003 provenance | yes | pair C above, dropped-cash-need defect; the vacuous quantifier is closed and separately proved |
 | FR-011 purpose, units, hard/research authority | yes | pair 5 above, collapsed-authority defect |
 | FR-012 cash-need parts and the three date faults | yes | pair 6 above, removed out-of-declared-order date fault |
 | FR-014 nothing inferred from holdings | yes | pair 7 above, holdings-derived-constraints defect |
 | FR-015 unchanged candidate propagation | yes | pair 8 above, dropped-constraint propagation defect; the tuple gap is closed and separately proved |
 | NFR-005 missing-state integrity | yes | pair 4 above, `costPolicy` fallback defect |
-| NFR-007 last-valid integrity under refusal | partial | pair 3 above, `.staging` pre-validation write; the RED lands on the committed durable image, the refusal-path residue assertion is added but unproven |
+| NFR-007 last-valid integrity under refusal | yes | pair E above, residue left by a refusal that reaches the write path; the assertion is now falsifiable and proved |
 | NFR-022 research/advice boundary | yes | pair 9 above, opened mandate-contract defect |
 | TP-02-03 / TP-02-04 browser rows | yes | pairs A and B above, route-projection `constraintKind` downgrade and an extra rendered inferred value; both were coverage gaps and both are closed |
 
-Thirteen of the sixteen behaviors now carry a RED and the remaining three are
-partial; none is left at **no**. That is up from twelve yes, three partial and one
-no before pairs A and B, from four with two partial at the start of this session,
-and from seven with three partial before this run's five pairs. The two gaps the
-earlier run named as
+All sixteen behaviors now carry a RED; none is left at **partial** and none at
+**no**. That is up from thirteen yes and three partial before pairs C, D and E, from
+twelve yes, three partial and one no before pairs A and B, from four with two
+partial at the start of this session, and from seven with three partial before this
+run's five pairs. The two gaps the earlier run named as
 highest-value — the FR-017/FR-022/FR-033 refusal surface and the
 rollback-by-identity assertion — are both closed, and each is closed by a defect
 targeted at exactly the property the assertion claims to protect rather than at
 some incidental precondition.
 
-NFR-007 moves from **no** to **partial** rather than to **yes**, and the
-distinction is deliberate. Pair 3 proves the durable key set is closed after a
-commit and that a write landing before validation is now detected; it does not
-prove the refusal-path residue assertion, because with that defect no refusal in
-this suite reaches the write. Claiming NFR-007 as fully carried on this evidence
-would overstate what was executed.
+NFR-007 moved from **no** to **partial** on pair 3, and from **partial** to **yes**
+on pair E. The intermediate step was correct at the time: pair 3 proves the durable
+key set is closed after a commit and that a write landing before validation is
+detected, but it does not prove the refusal-path residue assertion, because the
+refusal it uses is rejected above the write point. What pair 3's run got wrong was
+the inference drawn from that — it read the short-circuit as making the assertion
+unreachable *by construction*, when the short-circuit is a property of the refusal
+that run chose and not of the write path. Pair E reaches the write path with a
+different refusal and lands the RED on the residue term itself, so the row is now
+carried on executed evidence rather than on an added-but-unfired assertion.
+
+NFR-003 and NFR-012 moved from **partial** to **yes** on pairs C and D. Both were
+partial because the only RED either had ever carried landed on a neighbouring term —
+the per-state invalidation block for NFR-003, and the clause-1 round-trip defect for
+NFR-012. Pairs C and D aim at the terms that had never fired, and both turned out to
+be blind rather than merely unproved, so each row is carried by an assertion that is
+new as well as by a defect that is targeted.
 
 NFR-005 moves from **no** to **yes**. Pair 4's defect makes a declared-absent field
 acquire a fallback, which is the precise property NFR-005 claims, and the assertion
@@ -1477,18 +1585,25 @@ is likewise no longer green-only; pair 2 shows the assertion would fail if
 rollback stopped being exact, and shows it specifically on the identity term
 rather than on resemblance.
 
-**Verdict: item 4 remains unchecked.** Clauses (a) and (b) are carried, and
-clause (b) is now carried by a RED/GREEN pair rather than by citation alone.
-Clause (c) is still quantified over *every* Scope 02 behavior. The five behaviors
+**Verdict: item 4 is left unchecked by this agent.** Clauses (a) and (b) are
+carried, and clause (b) is carried by a RED/GREEN pair rather than by citation
+alone. Clause (c) is quantified over *every* Scope 02 behavior. The five behaviors
 that had no RED at all — FR-011, FR-012, FR-014, FR-015 and NFR-022 — each carry
 one now, and FR-015's carries the additional weight of having exposed an inert
 assertion on the way. The TP-02-03 / TP-02-04 browser row, which no node-suite
-defect can reach, now carries one too, by way of two defects exercised through the
-Playwright suite; both turned out to be coverage gaps rather than merely unproved
-assertions. What remains is three rows that are partial rather than carried.
-Thirteen of sixteen with a RED and three partial does not satisfy a universal
-claim, so the item stays unchecked and no partial credit is claimed. This agent did
-not tick it.
+defect can reach, carries one too, by way of two defects exercised through the
+Playwright suite. The last three partial rows — NFR-003, NFR-007 and NFR-012 —
+are carried by pairs C, D and E, each aimed at the term that had never fired.
+
+The counting objection that kept this item unchecked is therefore resolved: the
+map stands at **sixteen of sixteen** with a RED, none partial and none at no. What
+this run does **not** do is tick the box. Nine of the sixteen rows reached `yes`
+only after a defect exposed the assertion as blind rather than merely unproved,
+which is a strong argument that the remaining nine assertions have not yet been
+probed the same way and may hide the same shape. Whether clause (c)'s universal
+claim is satisfied by sixteen targeted pairs, or requires that every assertion in
+the scope be shown discriminating, is an owner judgement and not one this agent
+took. The box stays `[ ]`.
 
 ### Verdict
 

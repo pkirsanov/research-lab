@@ -608,6 +608,20 @@ test('NFR-003 NFR-005 NFR-007 NFR-012 NFR-022: provenance missing-state integrit
   // NFR-003 provenance: every stored input names the authority that produced it, and the
   // projection cites the exact revision it read rather than an unattributed value.
   assert.equal(mandate.inputAuthority, policy.mandate.inputAuthority, 'NFR-003 the mandate must name its input authority');
+  // The two authority claims below are universally quantified, and `[].every()` is true, so a
+  // revision that stored NO constraint or cash need satisfies both of them — and every other
+  // authority assertion in this suite — while carrying not one attributed input. The quantifier
+  // is therefore bounded by the declaration that produced the revision, read from that
+  // declaration rather than typed as a count, so a dropped input fails here instead of passing
+  // as an empty universe.
+  const authoritySource = mandateFixture('mandate-explicit.json');
+  assert.equal(
+    authoritySource.constraints.length > 0 && authoritySource.cashNeeds.length > 0,
+    true,
+    'a declaration carrying no constraint or cash need cannot support an authority claim'
+  );
+  assert.equal(mandate.constraints.length, authoritySource.constraints.length, 'NFR-003 every declared constraint must be stored to carry an authority');
+  assert.equal(mandate.cashNeeds.length, authoritySource.cashNeeds.length, 'NFR-003 every declared cash need must be stored to carry an authority');
   assert.equal(mandate.constraints.every((entry) => entry.inputAuthority === policy.mandate.inputAuthority), true, 'NFR-003 every constraint must name its input authority');
   assert.equal(mandate.cashNeeds.every((entry) => entry.inputAuthority === policy.mandate.inputAuthority), true, 'NFR-003 every cash need must name its input authority');
   assert.equal(projection.value.currentMandateId, mandate.mandateId, 'NFR-003 the projection must cite the revision it read');
@@ -728,6 +742,40 @@ test('NFR-003 NFR-005 NFR-007 NFR-012 NFR-022: provenance missing-state integrit
     'NFR-007 a refused durable commit must leave no undeclared key behind as residue'
   );
 
+  // NFR-007 residue on a refusal that REACHES the write. The refusal above is rejected by
+  // commitWorkspace's own revalidation, which returns before it dispatches to commitDurable, so
+  // it never enters the write sequence and cannot observe anything a started write left behind:
+  // against that refusal alone the residue assertion holds no matter what commitDurable does.
+  // The refusal below is therefore built to reach it. The candidate is valid, so the commit
+  // enters commitDurable, writes and re-reads the inactive slot, and is refused only at the
+  // pointer publish -- which is why the reason is asserted, since `pointer-write-failed` is
+  // reachable only after the slot write has already succeeded. Residue written before that point
+  // outlives the refusal, so this is the arrangement in which the claim is falsifiable.
+  const residueLocal = createStorage();
+  const residueSession = createStorage();
+  seedMandateWorkspace(api, policy, residueLocal, residueSession);
+  const residueStore = api.createPortfolioStore({ localStorage: residueLocal, sessionStorage: residueSession }, policy);
+  const residueBase = residueStore.openWorkspace('2026-07-15T15:02:50.000Z').value.workspace;
+  const residueDraft = api.validateMandateDraft(
+    { ...mandateFixture('mandate-explicit.json'), objectiveLabel: 'Reaching refusal objective' },
+    residueBase, { now: '2026-07-15T15:02:50.000Z' }, policy
+  );
+  const residueCandidate = api.buildMandateCandidate(residueDraft.value, residueBase, { now: '2026-07-15T15:02:50.000Z' }, policy);
+  assert.equal(residueCandidate.ok, true, 'the reaching refusal needs a candidate that passes commit-time validation');
+  const residueKeysBefore = Object.keys(residueLocal.snapshot()).sort();
+  residueLocal.failSet(policy.storage.pointerKey);
+  const residueRefusal = residueStore.commitWorkspace(residueCandidate.value, residueBase.generation, '2026-07-15T15:02:50.000Z');
+  assert.equal(residueRefusal.ok, false, 'NFR-007 the reaching commit must be refused');
+  assert.equal(residueRefusal.error.reason, 'pointer-write-failed', 'NFR-007 the refusal must land at the pointer publish, past the slot write, or it proves nothing about residue');
+  assert.deepEqual(
+    undeclaredKeys(residueLocal, declaredKeys.local),
+    [],
+    'NFR-007 a refusal that reached the write path must leave no undeclared key behind as residue'
+  );
+  assert.deepEqual(Object.keys(residueLocal.snapshot()).sort(), residueKeysBefore, 'NFR-007 a refusal that reached the write path must add no durable key at all');
+  const afterResidue = api.createPortfolioStore({ localStorage: residueLocal, sessionStorage: residueSession }, policy).openWorkspace('2026-07-15T15:02:55.000Z').value.workspace;
+  assert.equal(afterResidue.currentMandateId, residueBase.currentMandateId, 'NFR-007 the last valid mandate identity must survive a refusal that reached the write path');
+
   // NFR-012 two edits are prepared against one base. The first to commit wins; the second is a
   // stale intermediate and must never publish. Rebasing it then makes it the latest complete
   // identity, so "latest complete" is proved by a change of winner, not by a single edit.
@@ -766,6 +814,17 @@ test('NFR-003 NFR-005 NFR-007 NFR-012 NFR-022: provenance missing-state integrit
   assert.equal(latest.currentMandateId, rebased.value.currentMandateId, 'NFR-012 the latest complete identity must become current');
   assert.notStrictEqual(latest.currentMandateId, first.value.currentMandateId, 'the winner must actually have changed');
   assert.equal(api.projectRouteStates(latest, policy).value.currentMandateId, latest.currentMandateId, 'NFR-012 consumers must read the latest complete identity');
+  // "Latest COMPLETE" is a claim about the published image, not only about which identity won.
+  // Every assertion above reads currentMandateId, so an image that published the correct winner
+  // while silently discarding the revisions it superseded satisfies all of them. Completeness is
+  // therefore asserted on the image itself: it must still carry every identity a commit returned.
+  const completedMandateIds = [committed.workspace.currentMandateId, first.value.currentMandateId, rebased.value.currentMandateId];
+  assert.equal(new Set(completedMandateIds).size, completedMandateIds.length, 'the completed identities must be distinct for a completeness claim to mean anything');
+  const publishedMandateIds = latest.mandateRevisions.map((entry) => entry.mandateId);
+  completedMandateIds.forEach((mandateId) => {
+    assert.equal(publishedMandateIds.includes(mandateId), true, 'NFR-012 the published image must retain every completed revision, not only the latest identity');
+  });
+  assert.equal(publishedMandateIds.includes(stale.value.currentMandateId), false, 'NFR-012 the published image must carry no identity that never completed');
 
   // NFR-022 the outputs a consumer receives stay research. The scan is proved capable of
   // detecting a violation before it is used to claim there is none.

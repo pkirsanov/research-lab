@@ -215,13 +215,13 @@
             {
                 "scope": 2,
                 "name": "Mandate And Cash-Need Authority",
-                "status": "in_progress",
+                "status": "done",
                 "dependsOn": [
                     "1"
                 ],
                 "scopeDir": "scopes/02-mandate-and-cash-need-authority",
                 "evidenceFile": "scopes/02-mandate-and-cash-need-authority/report.md",
-                "certifiedAt": null
+                "certifiedAt": "2026-08-06T14:47:04Z"
             },
             {
                 "scope": 3,

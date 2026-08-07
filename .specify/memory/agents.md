@@ -168,7 +168,7 @@ The classifier itself is a separate read-only/offline operational audit:
 
 ```bash
 node scripts/session-review.mjs --help
-node scripts/session-review.mjs /Users/redacted/Projects --json --strict --active-days=2
+node scripts/session-review.mjs ~/Projects --json --strict --active-days=2
 ```
 
 It reads locally cached Git refs only. It does not fetch, checkout, reset,

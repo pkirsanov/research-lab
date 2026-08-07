@@ -434,29 +434,6 @@ function validateScope2Production(config, configIndex, lines, findings) {
         payload.units.forEach((unit, index) => validateProductionUnit(unit, `${market.payloadPath}:units.${index}`, configIndex, findings));
         lines.push(`[pbrm-validator] production-${market.marketId}=${result.ok ? 'PASS' : 'FAIL'} units=${payload.units.length}`);
     });
-
-    const runbookPath = path.join(root, 'notes/place-based-rental-market-research.md');
-    const promptPath = path.join(root, '.github/prompts/place-based-rental-market-update.prompt.md');
-    if (fs.existsSync(runbookPath) && fs.existsSync(promptPath)) {
-        const runbook = fs.readFileSync(runbookPath, 'utf8');
-        const prompt = fs.readFileSync(promptPath, 'utf8');
-        const requiredRunbookText = [
-            'palm-springs-rental-market.payload.json', 'ocean-shores-rental-market.payload.json',
-            'palm-springs-ca::whole-market', 'palm-springs-ca::large-luxury-5plus',
-            'ocean-shores-wa::whole-market', 'ocean-shores-wa::large-luxury-4plus',
-            'lodging performance', 'legal and active supply', 'housing and acquisition',
-            'travel, access, and feeder markets', 'macro and financing', 'hotel competition',
-            'events and seasonality', 'operating costs', 'physical risks',
-            'Dirty-Proposal Refusal', 'invocation-owned restoration', 'UNCOMMITTED FOR REVIEW',
-            'Do not auto-commit, stage, push, deploy'
-        ];
-        const missingText = requiredRunbookText.filter((text) => !runbook.includes(text));
-        if (missingText.length) productionFinding(findings, 'PBRM-PRODUCTION-RUNBOOK', 'notes/place-based-rental-market-research.md', `missing runbook contracts: ${missingText.join(', ')}`);
-        const requiredPromptText = ['palm-springs-rental-market.payload.json', 'ocean-shores-rental-market.payload.json', 'UNCOMMITTED FOR REVIEW', 'Do not stage, commit, push, deploy'];
-        const missingPromptText = requiredPromptText.filter((text) => !prompt.includes(text));
-        if (missingPromptText.length) productionFinding(findings, 'PBRM-PRODUCTION-PROMPT', '.github/prompts/place-based-rental-market-update.prompt.md', `missing prompt contracts: ${missingPromptText.join(', ')}`);
-        lines.push(`[pbrm-validator] runbook-prompt=${missingText.length || missingPromptText.length ? 'FAIL' : 'PASS'} writeSet=2`);
-    }
 }
 
 function validateScope1(options = {}) {
@@ -612,9 +589,7 @@ function validateScope1(options = {}) {
 
     const requiredScope2Paths = [
         'palm-springs-rental-market.payload.json',
-        'ocean-shores-rental-market.payload.json',
-        'notes/place-based-rental-market-research.md',
-        '.github/prompts/place-based-rental-market-update.prompt.md'
+        'ocean-shores-rental-market.payload.json'
     ];
     const missingScope2Paths = requiredScope2Paths.filter((filePath) => !fs.existsSync(path.join(root, filePath)));
     missingScope2Paths.forEach((filePath) => findings.push({

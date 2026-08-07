@@ -7,7 +7,7 @@
  * does not apply, so it can read CBOE's free delayed-quotes feed directly and
  * attach the canonical rows from data/bars/. It trims each chain and writes compact
  * JSON into data/options/<TICKER>.json. The Pages deploy then serves those files
- * from the site's OWN origin (pkirsanov.github.io/research-lab/data/options/...),
+ * from the site's OWN origin (<site-root>/data/options/...),
  * so the browser reads them with no CORS and no external proxy — immune to any
  * DNS filtering of public proxy services.
  *
@@ -26,7 +26,14 @@ const CACHE_WINDOW = process.env.BRIEF_WINDOW || null;
 const CACHE_DATE = new Intl.DateTimeFormat('en-CA', {
   timeZone: 'America/New_York', year: 'numeric', month: '2-digit', day: '2-digit'
 }).format(new Date());
-const LIVE_BASE = 'https://pkirsanov.github.io/research-lab/data/options/'; // currently-deployed snapshots (last-good fallback)
+// Currently-deployed snapshots (last-good fallback). Derived from the CI environment so no
+// account or repository name is hardcoded here; override with OPTIONS_LIVE_BASE when running
+// outside GitHub Actions.
+const LIVE_BASE = process.env.OPTIONS_LIVE_BASE || (() => {
+  const slug = process.env.GITHUB_REPOSITORY || '';
+  const [owner, repo] = slug.split('/');
+  return owner && repo ? `https://${owner}.github.io/${repo}/data/options/` : '';
+})();
 
 // CBOE index symbols take a leading underscore (_SPX, _VIX, ...).
 const CBOE_INDEX = new Set(['SPX', 'VIX', 'NDX', 'RUT', 'XSP', 'DJX', 'OEX', 'MRUT', 'VIXW']);
@@ -58,6 +65,7 @@ async function getJSON(url) {
 // currently-deployed snapshot for a ticker, used as a last-good fallback so a
 // transient upstream failure never wipes the live site's option data.
 async function lastGood(id) {
+  if (!LIVE_BASE) return null;
   try {
     const r = await fetch(LIVE_BASE + encodeURIComponent(id) + '.json', { headers: { 'User-Agent': 'research-lab last-good snapshot' } });
     if (!r.ok) return null;

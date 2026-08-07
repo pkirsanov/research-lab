@@ -1,7 +1,7 @@
 {
     "asOf": "2026-07-05",
     "priceAsOf": "2026-05 (Redfin trailing-3-month medians)",
-    "notes": "Editable data for waterfront-polo-lab.html. Market medians are WHOLE-MARKET (all home types) — a true WATERFRONT home of 2,500-3,000 sqft costs a premium over the median; use budgetFit as the waterfront-in-$1-2M read, not medK. Masters water-polo clubs are a SEED layer — Masters (adult) water polo is sparse and rosters change; confirm YOUR club's exact practice pool and replace/add below. q='measured' = pulled from Redfin this session; q='est' = metro-derived estimate to verify.",
+    "notes": "Editable data for waterfront-polo-lab.html. Market medians are WHOLE-MARKET (all home types) — a true WATERFRONT home at the configured size costs a premium over the median; use budgetFit as the waterfront affordability read, not medK. Club entries are a SEED layer — adult water-polo programs are sparse and rosters change; confirm a club's exact practice pool and replace/add below. q='measured' = pulled from Redfin this session; q='est' = metro-derived estimate to verify.",
     "driveModel": {
         "defaultMinutes": 40,
         "avgSpeedMph": 38,
@@ -26,10 +26,10 @@
         "3": "high (acreage / private)"
     },
     "budgetFitScale": {
-        "strong": "$1-2M readily buys waterfront + 2.5-3k sqft + land here",
-        "good": "$1-2M buys waterfront 2.5-3k sqft (less land)",
-        "partial": "$1-2M buys some waterfront; prime frontage is $2M+",
-        "over": "waterfront single-family starts >$2M — out of budget"
+        "strong": "the configured target band readily buys waterfront at the target size plus land here",
+        "good": "the configured target band buys waterfront at the target size (less land)",
+        "partial": "the configured target band buys some waterfront; prime frontage sits above it",
+        "over": "waterfront single-family starts above the configured target band"
     },
     "mastersClubs": [
         {
@@ -131,7 +131,7 @@
             "surge": 0,
             "land": 3,
             "budgetFit": "strong",
-            "note": "Clermont chain of lakes; $1-2M buys lakefront + 0.5-2 acres; near Montverde/Foundation. Inland = no surge."
+            "note": "Clermont chain of lakes; the target band buys lakefront + 0.5-2 acres; near Montverde/Foundation. Inland = no surge."
         },
         {
             "id": "windermere",
@@ -150,7 +150,7 @@
             "surge": 0,
             "land": 2,
             "budgetFit": "partial",
-            "note": "Prime Butler Chain (Isleworth/Keene's Pointe) is $2M+; smaller-lake Windermere/Winter Garden frontage fits $1-2M."
+            "note": "Prime Butler Chain (Isleworth/Keene's Pointe) sits above the band; smaller-lake Windermere/Winter Garden frontage fits within it."
         },
         {
             "id": "wintergarden",
@@ -169,7 +169,7 @@
             "surge": 0,
             "land": 2,
             "budgetFit": "good",
-            "note": "Growing; lakefront pockets in budget; close to Orlando water-polo pools."
+            "note": "Growing; lakefront pockets within the band; close to Orlando water-polo pools."
         },
         {
             "id": "mountdora",
@@ -226,7 +226,7 @@
             "surge": 1,
             "land": 3,
             "budgetFit": "strong",
-            "note": "Deep-water St. Johns riverfront + big lots; $1-2M over-buys; ~10-20 min to Bolles. medK is metro-wide (Ortega itself is pricier)."
+            "note": "Deep-water St. Johns riverfront + big lots; the target band over-buys; ~10-20 min to Bolles. medK is metro-wide (Ortega itself is pricier)."
         },
         {
             "id": "flemingisland",
@@ -283,7 +283,7 @@
             "surge": 2,
             "land": 2,
             "budgetFit": "partial",
-            "note": "Intracoastal fits $1-2M; oceanfront is $2M+. Ponte Vedra HS water polo nearby."
+            "note": "Intracoastal fits the band; oceanfront sits above it. Ponte Vedra HS water polo nearby."
         },
         {
             "id": "palmcity",
@@ -321,7 +321,7 @@
             "surge": 3,
             "land": 2,
             "budgetFit": "good",
-            "note": "River/Intracoastal, exclusive, low-density; wide-water/ocean-access $2M+."
+            "note": "River/Intracoastal, exclusive, low-density; wide-water/ocean-access sits above the band."
         },
         {
             "id": "vero",
@@ -473,7 +473,7 @@
             "surge": 3,
             "land": 1,
             "budgetFit": "over",
-            "note": "BEST water polo (Pine Crest/St. Thomas) but waterfront SF is $2M+ on small lots — over budget for your brief."
+            "note": "BEST water polo (Pine Crest/St. Thomas) but waterfront SF sits above the band on small lots — over the configured brief."
         },
         {
             "id": "boca",
@@ -492,7 +492,7 @@
             "surge": 3,
             "land": 1,
             "budgetFit": "over",
-            "note": "Elite water polo; waterfront SF $2M+ and crowded — over budget for waterfront 2.5-3k."
+            "note": "Elite water polo; waterfront SF sits above the band and crowded — over the configured brief."
         }
     ]
 }

@@ -61,7 +61,7 @@
     { label: "Strategy Self-Improve", full: "Strategy Self-Improvement & Walk-Forward Lab", icon: "🔬", file: "strategy-self-improvement-lab.html", group: "Strategy & Validation" },
     { label: "Strategy Validate", full: "Strategy Validation & Real-Data Walk-Forward Lab", icon: "🧪", file: "strategy-validation-lab.html", group: "Strategy & Validation" },
     { label: "Smart-Money Flow", full: "Smart-Money & Congressional-Flow Lab", icon: "🏛️", file: "smart-money-flow-lab.html", group: "Options & Flow" },
-    { label: "Waterfront × Polo", full: "Florida Waterfront × Masters Water-Polo Screener", icon: "🤽", file: "waterfront-polo-lab.html", group: "Place-based" }
+    { label: "Waterfront Screener", full: "Waterfront Market × Club-Proximity Screener", icon: "🤽", file: "waterfront-polo-lab.html", group: "Place-based" }
   ];
 
   /* Emits HOME, then one labelled block per group. A registered tool no group claims is NOT dropped —
@@ -269,8 +269,7 @@
       b.setAttribute('role', 'alert');
       b.style.cssText = 'position:sticky;top:0;z-index:99999;background:#3a2a12;color:#f5b942;border-bottom:1px solid #6a4a1a;padding:8px 14px;font:13px/1.5 -apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,Helvetica,Arial,sans-serif;text-align:center';
       b.innerHTML = 'Data can\'t load over <b>file://</b> — open this tool over http. '
-        + 'Live: <a style="color:#7fd9c9" href="https://pkirsanov.github.io/research-lab/">pkirsanov.github.io/research-lab</a>'
-        + ' &nbsp;·&nbsp; or run <code>python3 -m http.server 8000</code> in the repo and use <code>http://localhost:8000/</code>';
+        + 'Run <code>python3 -m http.server 8000</code> in the repo and use <code>http://localhost:8000/</code>';
       document.body.insertBefore(b, document.body.firstChild);
     };
     if (document.readyState === 'loading') document.addEventListener('DOMContentLoaded', show); else show();

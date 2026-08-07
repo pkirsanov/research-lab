@@ -1315,17 +1315,16 @@
     {
       "id": "waterfront-polo-lab",
       "group": "Place-based",
-      "title": "Florida Waterfront × Masters Water-Polo Screener",
+      "title": "Waterfront Market × Club-Proximity Screener",
       "nav": {
-        "label": "Waterfront × Polo",
+        "label": "Waterfront Screener",
         "icon": "🤽"
       },
       "file": "waterfront-polo-lab.html",
-      "notes": "notes/waterfront-polo-lab.md",
       "data": "waterfront-polo-universe.json",
       "status": "live",
       "updated": "2026-07-05",
-      "blurb": "Screen Florida WATERFRONT markets (lake / river / intracoastal / canal) to a $1-2M, 2,500-3,000 sqft, land/privacy brief, gated by whether they sit within a ~40-minute drive of a Masters (adult) water-polo practice pinned on a Florida map. Each market is annotated with insurance, flood and storm-surge risk. Drive-time is an approximate straight-line estimate (not a routed isochrone) and the Masters-club layer is a seed to verify. In-browser on an editable waterfront-polo-universe.json. Research screen, not advice.",
+      "blurb": "Screen Florida WATERFRONT markets (lake / river / intracoastal / canal) against a configurable affordability, size and land/privacy brief, gated by whether they sit within a ~40-minute drive of an adult water-polo practice placed on a Florida map. Each market is annotated with insurance, flood and storm-surge risk. Drive-time is an approximate straight-line estimate (not a routed isochrone) and the club layer is a seed to verify. In-browser on an editable waterfront-polo-universe.json. Research screen, not advice.",
       "tags": [
         "waterfront",
         "lakefront",
@@ -1334,14 +1333,12 @@
         "canal",
         "Florida",
         "water polo",
-        "Masters",
-        "adult water polo",
+        "club proximity",
         "drive-time",
         "isochrone",
         "40 minutes",
         "haversine",
-        "$1-2M",
-        "2500-3000 sqft",
+        "configurable brief",
         "land",
         "privacy",
         "insurance",
@@ -1469,7 +1466,6 @@
         "icon": "🌴"
       },
       "file": "palm-springs-rental-market-lab.html",
-      "notes": "notes/place-based-rental-market-research.md",
       "data": "palm-springs-rental-market.payload.json",
       "status": "live",
       "updated": "2026-07-18",
@@ -1538,7 +1534,6 @@
         "icon": "🏖️"
       },
       "file": "ocean-shores-rental-market-lab.html",
-      "notes": "notes/place-based-rental-market-research.md",
       "data": "ocean-shores-rental-market.payload.json",
       "status": "live",
       "updated": "2026-07-18",

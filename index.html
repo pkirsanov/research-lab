@@ -3,7 +3,8 @@
 
 <head>
   <meta charset="UTF-8" />
-  <meta http-equiv="Content-Security-Policy" content="default-src 'self'; script-src 'self' 'unsafe-inline'; style-src 'self' 'unsafe-inline'; img-src 'self' data:; connect-src 'self' http://127.0.0.1:* https://*.ts.net:* https://api.nasdaq.com https://api.stlouisfed.org https://api.twelvedata.com https://cdn.cboe.com https://data.sec.gov https://finnhub.io https://home.treasury.gov https://production.dataviz.cnn.io https://query1.finance.yahoo.com https://query2.finance.yahoo.com https://stockanalysis.com https://www.alphavantage.co; font-src 'self' data:; object-src 'none'; base-uri 'none'; form-action 'none'; frame-src 'none'; worker-src 'none'; media-src 'none'; manifest-src 'self'">
+  <meta http-equiv="Content-Security-Policy"
+    content="default-src 'self'; script-src 'self' 'unsafe-inline'; style-src 'self' 'unsafe-inline'; img-src 'self' data:; connect-src 'self' http://127.0.0.1:* https://*.ts.net:* https://api.nasdaq.com https://api.stlouisfed.org https://api.twelvedata.com https://cdn.cboe.com https://data.sec.gov https://finnhub.io https://home.treasury.gov https://production.dataviz.cnn.io https://query1.finance.yahoo.com https://query2.finance.yahoo.com https://stockanalysis.com https://www.alphavantage.co; font-src 'self' data:; object-src 'none'; base-uri 'none'; form-action 'none'; frame-src 'none'; worker-src 'none'; media-src 'none'; manifest-src 'self'">
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <meta name="referrer" content="no-referrer" />
   <title>Research Lab — Quant &amp; AI-Buildout Tools</title>
@@ -509,7 +510,8 @@
       <input id="toolFilter" type="search" autocomplete="off" spellcheck="false"
         placeholder="Filter by name, description, or tag…"
         title="Filters the groups below as you type. Matches tool title, blurb, and tags. No data is sent anywhere — this runs entirely in your browser.">
-      <span id="toolFilterCount" class="filtercount" title="How many tools match the current filter, out of every registered tool."></span>
+      <span id="toolFilterCount" class="filtercount"
+        title="How many tools match the current filter, out of every registered tool."></span>
     </div>
     <div id="grid"></div>
 
@@ -774,15 +776,14 @@
       {
         id: 'waterfront-polo-lab',
         group: 'Place-based',
-        title: 'Florida Waterfront × Masters Water-Polo Screener',
+        title: 'Waterfront Market × Club-Proximity Screener',
         icon: '🤽',
         accent: '#5aa9f0',
         file: 'waterfront-polo-lab.html',
-        notes: 'notes/waterfront-polo-lab.md',
         status: 'live',
         updated: '2026-07-05',
-        blurb: 'A personal, off-theme screener: filter Florida WATERFRONT markets (lake / river / intracoastal / canal) to a $1–2M, 2,500–3,000 sqft, land/privacy brief — gated by whether they sit within a ~40-minute drive of a Masters (adult) water-polo practice you pin on the map. Each candidate is annotated with insurance, flood and storm-surge risk; drive-time is an approximate straight-line estimate and the Masters-club layer is a seed you verify. In-browser on an editable waterfront-polo-universe.json.',
-        tags: ['waterfront · lake/river/canal', 'Masters water polo <40 min', 'drive-time ring (approx)', '$1–2M · 2.5–3k sqft', 'land / privacy', 'insurance · flood · surge', 'editable universe · offline']
+        blurb: 'An off-theme screener: filter Florida WATERFRONT markets (lake / river / intracoastal / canal) against a configurable affordability, size and land/privacy brief — gated by whether they sit within a ~40-minute drive of an adult water-polo practice placed on the map. Each candidate is annotated with insurance, flood and storm-surge risk; drive-time is an approximate straight-line estimate and the club layer is a seed to verify. In-browser on an editable waterfront-polo-universe.json.',
+        tags: ['waterfront · lake/river/canal', 'club proximity <40 min', 'drive-time ring (approx)', 'configurable brief', 'land / privacy', 'insurance · flood · surge', 'editable universe · offline']
       },
       {
         id: 'volatility-sizing-lab',
@@ -804,7 +805,6 @@
         icon: '🌴',
         accent: '#e0a458',
         file: 'palm-springs-rental-market-lab.html',
-        notes: 'notes/place-based-rental-market-research.md',
         status: 'live',
         updated: '2026-07-18',
         blurb: 'Source-qualified short-term-rental market research for Palm Springs, California. Two pair-local segments — the whole market and large-luxury (5+ bedroom) homes — each independently cover nine research categories with source-qualified claims (AirDNA, Key Data, city vacation-rental registries), falsifiable remaining-2026 and 2027 scenario matrices, and (for luxury) an acquisition / financing baseline. Missing property-level economics stay explicitly incomplete, never zero-filled; unknown luxury performance stays unknown. Simple and Power share one deterministic model, and it cross-links to its Ocean Shores sibling. Built on the shared rlrental.js place-based engine. Educational only — not investment advice.',
@@ -817,7 +817,6 @@
         icon: '🏖️',
         accent: '#4aa3c7',
         file: 'ocean-shores-rental-market-lab.html',
-        notes: 'notes/place-based-rental-market-research.md',
         status: 'live',
         updated: '2026-07-18',
         blurb: 'Source-qualified short-term-rental market research for Ocean Shores, Washington. Two pair-local segments — the whole market and large-luxury (5+ bedroom) homes — each independently cover nine research categories with source-qualified claims (AirDNA, Key Data, city / county registries), falsifiable remaining-2026 and 2027 scenario matrices, and (for luxury) an acquisition / financing baseline. Missing property-level economics stay explicitly incomplete, never zero-filled; unknown luxury performance stays unknown. Simple and Power share one deterministic model, and it cross-links to its Palm Springs sibling. Built on the shared rlrental.js place-based engine. Educational only — not investment advice.',

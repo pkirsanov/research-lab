@@ -820,10 +820,49 @@ test('verified foundation clear reports empty only after reread and a remove fau
 // from the module under test. Asserting the module's clear against the module's own key list
 // would be circular: dropping a key from that list removes it from both the clear and the
 // expectation at once and stays green. The policy is the independent second source.
+//
+// DERIVED by iterating `policy.storage`, never by naming its fields. Naming them reintroduced the
+// same circularity one level down: the `4`/`2` pins below were counting the very literal list
+// written beside them, so they agreed by construction and a SEVENTH declared key was swept by
+// nothing and reddened nothing. Iterating puts a new declared key in scope automatically, and the
+// closed non-key partition below means a new field cannot escape the sweep by being named
+// something other than `*Key`/`*Keys`.
+const POLICY_STORAGE_NON_KEY_FIELDS = Object.freeze([
+  'contractVersion', 'migrationVersions', 'pointerContractVersion',
+  'probeValue', 'workspaceContractVersion', 'workspaceNamespace'
+].slice().sort());
+
 function policyDeclaredKeys(policy) {
+  const storage = policy.storage;
+  const isKeyField = (field) => /Keys?$/.test(field);
+  const fields = Object.keys(storage).slice().sort();
+  // Closed partition over EVERY field, so no field can be silently out of scope: a field either
+  // declares personal storage keys (iterated below) or is one of the known non-key metadata
+  // fields. A field that is neither fails here instead of being skipped without a word.
+  assert.deepEqual(fields.filter((field) => !isKeyField(field)), POLICY_STORAGE_NON_KEY_FIELDS,
+    'every policy.storage field must either declare keys as *Key/*Keys or be a known non-key metadata field');
+  const keyFields = fields.filter(isKeyField);
+  assert.ok(keyFields.length > 0, 'the policy must declare at least one personal storage key');
+
+  const declared = [];
+  keyFields.forEach((field) => {
+    const value = storage[field];
+    const keys = Array.isArray(value) ? value : [value];
+    assert.ok(keys.length > 0, `policy.storage.${field} declares no key`);
+    keys.forEach((key) => {
+      assert.equal(typeof key, 'string', `policy.storage.${field} must declare string keys`);
+      assert.ok(key.length > 0, `policy.storage.${field} must not declare an empty key`);
+      declared.push(key);
+    });
+  });
+
+  // The medium is derived from the declared workspace namespace as well, rather than from a
+  // second hand-written split: a key inside the durable workspace namespace is a local key and
+  // anything else is a session key, so a new declared key lands in a bucket without being named.
+  const localPrefix = storage.workspaceNamespace + '.';
   return {
-    local: [policy.storage.pointerKey, ...policy.storage.slotKeys, policy.storage.quarantineKey].slice().sort(),
-    session: [policy.storage.sessionKey, policy.storage.returnContextKey].slice().sort()
+    local: declared.filter((key) => key.startsWith(localPrefix)).sort(),
+    session: declared.filter((key) => !key.startsWith(localPrefix)).sort()
   };
 }
 
@@ -831,8 +870,11 @@ test('verified clear covers every policy-declared personal key and leaves the ra
   const { api, policy } = loadContracts();
   const declared = policyDeclaredKeys(policy);
   const declaredCount = declared.local.length + declared.session.length;
-  assert.equal(declared.local.length, 4, 'the policy must declare the pointer, both slots, and quarantine');
-  assert.equal(declared.session.length, 2, 'the policy must declare the session fallback and the return context');
+  // Pinned against the DERIVED set, so the literal and the subject are two sources that can
+  // disagree. A seventh `policy.storage` key reddens here rather than arriving unswept, and once
+  // the pin is updated to admit it the coverage assertions below force the clear to sweep it.
+  assert.equal(declared.local.length, 4, 'the policy-derived local surface is the pointer, both slots, and quarantine');
+  assert.equal(declared.session.length, 2, 'the policy-derived session surface is the session fallback and the return context');
   assert.equal(new Set([...declared.local, ...declared.session]).size, declaredCount, 'a duplicate key would let one survivor hide behind another');
 
   // Every declared key is populated, including the inactive slot. A pointer swap routinely

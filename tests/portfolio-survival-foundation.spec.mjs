@@ -625,6 +625,13 @@ async function recordCompletion(page, options) {
 
 const BEHAVIOR_EMPTY_INFLUENCE = 'Behavior-derived ranking influence · none';
 
+/* Sentinels for the two categories a BEHAVIOR clear must preserve. Distinctive on purpose: the
+ * assertions below compare bytes, so a clear that rewrote either key is not mistaken for a clear
+ * that left it alone. Neither string carries a behavior subject, so the origin-request and
+ * rendered-block sweeps at the end of the row stay meaningful. */
+const PRESERVED_SESSION_FALLBACK = JSON.stringify({ sentinel: 'session-fallback-must-survive-behavior-clear' });
+const PRESERVED_RETURN_CONTEXT = JSON.stringify({ sentinel: 'return-context-must-survive-behavior-clear' });
+
 test('Regression: SCN-008-011 clear behavior removes ranking influence and preserves portfolio', async ({ page }) => {
   /* The declared evidence floor is two distinct completions on two distinct UTC dates. A run
    * confined to one wall-clock day could only ever render `floor-not-met`, so the scenario's
@@ -638,6 +645,28 @@ test('Regression: SCN-008-011 clear behavior removes ranking influence and prese
   await previewMandate(page, 'mandate-explicit.json');
   await page.locator('#confirmMandate').click();
   await expect(page.locator('#currentMandate')).toContainText('sha256:');
+
+  /* The two categories this row used to leave with no assertion at all. `quarantine` and
+   * `session-fallback` both declare `cleared by all-personal`, so a BEHAVIOR clear must PRESERVE
+   * them — and nothing here could see either one: the namespace guard at the end filters to keys
+   * OUTSIDE `rlPortfolioWorkspaceV1.`, which excludes the quarantine key by construction, and it
+   * reads `localStorage` alone, which never holds a session key. A behavior clear that widened
+   * into either would have passed this row unchanged.
+   *
+   * Quarantine is stocked through the real corruption path rather than written by hand. The two
+   * session keys are stocked directly, exactly as the public `rlData` cache below is: durable mode
+   * neither writes nor reads them, which is what makes "still there afterwards" a claim about the
+   * clear rather than about the app having rewritten them. */
+  await populateQuarantine(page);
+  await page.evaluate((stock) => {
+    sessionStorage.setItem(stock.sessionKey, stock.sessionValue);
+    sessionStorage.setItem(stock.returnContextKey, stock.returnContextValue);
+  }, {
+    sessionKey: STORAGE_POLICY.sessionKey,
+    sessionValue: PRESERVED_SESSION_FALLBACK,
+    returnContextKey: STORAGE_POLICY.returnContextKey,
+    returnContextValue: PRESERVED_RETURN_CONTEXT
+  });
   const before = await page.evaluate(() => window.__PORTFOLIO_DIAGNOSTICS__);
 
   /* A public generic cache owned by the other Research Lab tools. SCN-008-011 preserves it, and
@@ -700,6 +729,22 @@ test('Regression: SCN-008-011 clear behavior removes ranking influence and prese
   await page.locator('#openPrivacy').click();
   expect(await page.locator('#behaviorRankRows li').allInnerTexts(), 'ranking survives a reload, so it is not draft-derived').toEqual(rankedBefore);
 
+  /* Anti-vacuity for the preservation half: "still present after the clear" is trivially true of a
+   * key that was never there. Presence is proven here first, by bytes, on BOTH adapters — the
+   * session values are read back through `foundationKeyState`, which queries `sessionStorage`
+   * directly, not through the `localStorage`-only guard this row already carried. */
+  const preservedBefore = await foundationKeyState(page);
+  expect(preservedBefore.values[STORAGE_POLICY.quarantineKey],
+    'a real quarantine record exists before the behavior clear').not.toBeNull();
+  expect(preservedBefore.values[STORAGE_POLICY.sessionKey],
+    'the session fallback key genuinely holds its bytes before the behavior clear').toBe(PRESERVED_SESSION_FALLBACK);
+  expect(preservedBefore.values[STORAGE_POLICY.returnContextKey],
+    'the return context key genuinely holds its bytes before the behavior clear').toBe(PRESERVED_RETURN_CONTEXT);
+  await expect(page.locator('#privacyCategoryRows li[data-privacy-category="quarantine"]'))
+    .toHaveText('quarantine · 1 record · present · cleared by all-personal');
+  await expect(page.locator('#privacyCategoryRows li[data-privacy-category="session-fallback"]'))
+    .toHaveText('session-fallback · 2 records · present · cleared by all-personal');
+
   await expect(page.locator('#clearBehavior')).toBeDisabled();
   await page.locator('#clearBehaviorConfirmation').check();
   await expect(page.locator('#clearBehavior')).toBeEnabled();
@@ -717,6 +762,22 @@ test('Regression: SCN-008-011 clear behavior removes ranking influence and prese
     .toHaveText('behavior-events · 0 records · empty · cleared by behavior-and-all-personal');
   await expect(page.locator('#privacyCategoryRows li[data-privacy-category="interest-signals"]'))
     .toHaveText('interest-signals · 0 records · empty · cleared by behavior-and-all-personal');
+
+  /* The preservation half of the same column. Asserted by BYTES rather than by presence, so a
+   * clear that widened into either key and rewrote it fails here just as loudly as one that
+   * deleted it, and the rendered rows must still declare `all-personal` for both. */
+  const preservedAfter = await foundationKeyState(page);
+  expect(preservedAfter.values[STORAGE_POLICY.quarantineKey],
+    'the quarantine record survives the behavior clear with its bytes unchanged')
+    .toBe(preservedBefore.values[STORAGE_POLICY.quarantineKey]);
+  expect(preservedAfter.values[STORAGE_POLICY.sessionKey],
+    'the session fallback key survives the behavior clear with its bytes unchanged').toBe(PRESERVED_SESSION_FALLBACK);
+  expect(preservedAfter.values[STORAGE_POLICY.returnContextKey],
+    'the return context key survives the behavior clear with its bytes unchanged').toBe(PRESERVED_RETURN_CONTEXT);
+  await expect(page.locator('#privacyCategoryRows li[data-privacy-category="quarantine"]'))
+    .toHaveText('quarantine · 1 record · present · cleared by all-personal');
+  await expect(page.locator('#privacyCategoryRows li[data-privacy-category="session-fallback"]'))
+    .toHaveText('session-fallback · 2 records · present · cleared by all-personal');
 
   const persistedAfter = await persistedWorkspace(page);
   expect(persistedAfter.behaviorEvents, 'events are gone from the persisted bytes, not only from the view').toEqual([]);
@@ -802,6 +863,11 @@ test('Regression: SCN-008-011 clear behavior removes ranking influence and prese
   console.log('[SCN-008-011] mandateConstraintSubjectsPreserved=' + survivingConstraints.map((entry) => entry.subject).join(','));
   console.log('[SCN-008-011] clearedSubjectScope=behaviorEvents,interestSignals,actionOutcomes,rankingRows');
   console.log('[SCN-008-011] cashNeedsPreserved=true');
+  console.log('[SCN-008-011] quarantinePreservedByBehaviorClear='
+    + (preservedAfter.values[STORAGE_POLICY.quarantineKey] === preservedBefore.values[STORAGE_POLICY.quarantineKey]));
+  console.log('[SCN-008-011] sessionFallbackPreservedByBehaviorClear='
+    + (preservedAfter.values[STORAGE_POLICY.sessionKey] === PRESERVED_SESSION_FALLBACK
+      && preservedAfter.values[STORAGE_POLICY.returnContextKey] === PRESERVED_RETURN_CONTEXT));
   console.log('[SCN-008-011] publicCacheByteIdentical=' + (publicCacheAfter.shared === publicCacheBefore));
   console.log('[SCN-008-011] foreignStorageKeys=' + publicCacheAfter.foreignKeys.join(','));
   console.log('[SCN-008-011] remotePersonalRequests=0');

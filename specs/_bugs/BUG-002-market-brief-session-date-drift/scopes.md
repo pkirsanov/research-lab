@@ -359,3 +359,137 @@ transitionFindingAccounting:
     - BUG002-BROAD-E2E-INSTABILITY
     - BUG002-INDEPENDENT-VERIFICATION
 ```
+
+<!-- bug002-shared-runtime-inventory-reconciliation-v1:start -->
+## Successor: Current Shared-Runtime Inventory Reconciliation (2026-08-04)
+
+**Successor reference:** `bug002-shared-runtime-inventory-reconciliation/v1`  
+**Planning transition:** `TR-BUG-002-PLAN-SHARED-RUNTIME-INVENTORY-03`  
+**Execution finding:** `TR-BUG-002-TEST-SHARED-RUNTIME-INVENTORY-03`  
+**Outcome:** `route_required`  
+**Next required owner:** `bubbles.test`
+
+This additive successor changes only the active forward-looking replay inventory. It does not rewrite or reinterpret the historical `218` identities, `27` browser files, `2` direct-Node suites, `30` protected paths, their timestamped evidence, or any prior pass/fail result. Those records remain immutable evidence of their own captures. The current active replay contract uses the exact read-only inventory below.
+
+### Exact Current Capture
+
+The planning capture ran no browser test. Unrestricted Playwright discovery used `npx --no-install playwright test --list --config=playwright.config.mjs --project=system-chrome --reporter=list` and exited `0` with `Total: 277 tests in 33 files`.
+
+| Contract | Active captured value |
+| --- | --- |
+| Browser `.spec.mjs` files | `33` |
+| Browser path-set SHA-256 | `023130e9a4951fa53f99cff68002737e9804c433369ab7648322d28472647a32` |
+| Direct `.test.mjs` suites | `6` |
+| Direct-Node path-set SHA-256 | `bdb138d0bddefbe7a01943f07464ad90f76eb54cbb97302724a7f028ee5d2807` |
+| Unrestricted discovery identities | `277` |
+| Sorted identity SHA-256 | `0001862126fdc1afaec6541a2b839fbbe8a81d1a43340397f8bbd2b4b088cfc6` over the sorted identity lines joined with LF and no trailing LF |
+| Discovered browser files | `33` |
+| Replay-local protected paths | `36` |
+| Protected path-set SHA-256 | `db73272d73bde77b912b9a22a490d975c83ac25b89a8380fcdfc718ae599b9ee` |
+| Protected path/content-record SHA-256 | `95b13383cd0838fef989d22d298df5afb83adca1abbe3e997e8e5b1815fee19a` |
+
+Path-set digests are SHA-256 over compact JSON arrays in lexical order. The protected path/content digest is SHA-256 over compact JSON records shaped as `{ "path": <path>, "sha256": <file-byte-sha256> }`, sorted by path. This encoding is part of the fail-closed contract.
+
+### Closed Browser Inventory
+
+Every file below imports `./playwright-runtime.mjs`, imports neither `playwright/test` nor `@playwright/test`, and contains no `executablePath` override:
+
+1. `tests/bond-regime-lab.spec.mjs`
+2. `tests/brief-payload-escaping.spec.mjs`
+3. `tests/causal-rotation-lab.spec.mjs`
+4. `tests/company-fundamentals-lab.spec.mjs`
+5. `tests/contextual-tooltip.spec.mjs`
+6. `tests/deployed-site-parity.spec.mjs`
+7. `tests/distributed-briefs.spec.mjs`
+8. `tests/fx-regime-relative-value-lab.spec.mjs`
+9. `tests/journey-mobile.spec.mjs`
+10. `tests/journey.spec.mjs`
+11. `tests/market-action-center.spec.mjs`
+12. `tests/market-brief-freshness.spec.mjs`
+13. `tests/market-brief-scorecard.spec.mjs`
+14. `tests/market-brief-session-date-drift.spec.mjs`
+15. `tests/market-heatmap-control-surface.spec.mjs`
+16. `tests/msft-july-market-refresh.spec.mjs`
+17. `tests/palm-springs-rental-market-lab.spec.mjs`
+18. `tests/portfolio-survival-foundation.spec.mjs`
+19. `tests/provider-credentials.spec.mjs`
+20. `tests/provider-fallback-status.spec.mjs`
+21. `tests/red-alert.spec.mjs`
+22. `tests/simple-model-adapters-macro-fundamental.spec.mjs`
+23. `tests/simple-model-adapters-market.spec.mjs`
+24. `tests/simple-model-adapters-strategy-property.spec.mjs`
+25. `tests/simple-models.spec.mjs`
+26. `tests/simple-production-wiring.spec.mjs`
+27. `tests/technical-analysis-decision-lab.spec.mjs`
+28. `tests/tool-discovery.spec.mjs`
+29. `tests/tool-experience-mobile.spec.mjs`
+30. `tests/tool-experience.spec.mjs`
+31. `tests/trend-dynamics-cycle-lab.spec.mjs`
+32. `tests/volatility-sizing-lab.spec.mjs`
+33. `tests/web-evidence.spec.mjs`
+
+### Closed Direct-Node Inventory
+
+Every file below owns its tests through `node:test` and imports neither Playwright package authority nor the shared browser runtime:
+
+| File | Ownership form |
+| --- | --- |
+| `tests/brief-refresh-atomicity.test.mjs` | guarded dynamic `await import('node:test')` |
+| `tests/feature-004-brief-eligibility.test.mjs` | static `node:test` import |
+| `tests/feature-004-dirty-tree-collision.test.mjs` | static `node:test` import |
+| `tests/feature-004-journey-evidence-refresh.test.mjs` | static `node:test` import |
+| `tests/feature-004-tool-control-binding.test.mjs` | static `node:test` import |
+| `tests/feature-004-vehicle-universe.test.mjs` | static `node:test` import |
+
+`playwright.config.mjs` remains authoritative with `testMatch: '**/*.spec.mjs'`. Every `.test.mjs` suite and every TAP/Node prelude remains excluded from Playwright discovery and execution. No shared-seam or disjoint-ownership defect was observed in this capture. A future ownership violation is a routed test defect; it must not be accepted by changing counts or planning around it.
+
+### Replay-Local Protected Hash Fence
+
+The active fence is the 33 closed browser paths above plus exactly these support files:
+
+- `playwright.config.mjs`
+- `tests/playwright-runtime.mjs`
+- `tests/playwright-runtime.foundation.functional.mjs`
+
+The resulting `36`-path set and its byte hashes are bound by the path-set and path/content-record digests above. `bubbles.test` must recapture the individual SHA-256 records immediately before Gate 4 and compare them after each browser command and after Gate 7. Any membership or byte drift invalidates the snapshot and restarts at the immediate precheck. No subset comparison, missing-file acceptance, extra-file acceptance, or mutable-path exemption is permitted.
+
+### Active Replay Contract
+
+1. The active monotonic identity floor is `277`. It supersedes only the forward-looking `218` floor. A current count lower than `277` requires explicit owner reconciliation and stops the replay.
+2. A count higher than `277` is accepted only when unrestricted discovery freezes the exact sorted identity set, count, digest, closed browser set, closed direct-Node set, and protected hash fence immediately before Gate 4. That exact snapshot must remain stable through both complete repetitions.
+3. Gate 6 and Gate 7 each execute every frozen identity exactly once. Missing, duplicate, retry, skip, only, todo, extra, Node/TAP prelude, or identity-order-normalization drift fails closed.
+4. Zero runner/profile overlap, prompt-clean lifecycle, no retained process, no force-kill, and no non-test error remain mandatory. The current successor changes no worker, retry, runner, profile, lifecycle, or exactly-once requirement.
+5. Exact Playwright `1.61.1`, source locking, package/instrumentation integrity, checkout-local runtime authority, system-Chrome authority, and no fallback remain unchanged.
+6. `bubbles.test` may update only `tests/playwright-runtime.foundation.functional.mjs` so its closed expected browser and direct-Node inventories match the exact sets above, or use an already-authorized dynamic fail-closed contract if existing design authority explicitly permits it. No other source, test, config, runtime, package, Feature 004, or BUG-002 implementation file is authorized.
+7. After that one-file test-owner repair, restart from `node --test tests/playwright-runtime.foundation.functional.mjs`. Only a green immediate precheck permits Gates 1-7 in their existing order. The grounded `3 passed / 2 failed` result remains the unresolved entry finding; this planning update records no test pass.
+8. The replay remains a prerequisite for Feature 004 Scope 1 full-delivery. Feature 004 Scope 1 remains **In Progress** and Feature 004 Scope 2 remains locked. This successor does not modify Feature 004 artifacts.
+9. No BUG-002 reopen, completion, status, checkmark, or certification inference arises from this replay prerequisite. Existing BUG-002 historical status and certification evidence remain untouched.
+
+### Successor Handoff
+
+```yaml
+successorReference: bug002-shared-runtime-inventory-reconciliation/v1
+transitionId: TR-BUG-002-PLAN-SHARED-RUNTIME-INVENTORY-03
+outcome: route_required
+nextRequiredOwner: bubbles.test
+resumeCommand: node --test tests/playwright-runtime.foundation.functional.mjs
+resumeAtGateIfGreen: 1
+browserSharedSeamInventory: 33
+browserPathSetSha256: 023130e9a4951fa53f99cff68002737e9804c433369ab7648322d28472647a32
+directNodeSuiteInventory: 6
+directNodePathSetSha256: bdb138d0bddefbe7a01943f07464ad90f76eb54cbb97302724a7f028ee5d2807
+browserAssertionMinimumBaseline: 277
+browserAssertionAcceptance: replay-local-discovery-identity
+browserIdentityDigest: 0001862126fdc1afaec6541a2b839fbbe8a81d1a43340397f8bbd2b4b088cfc6
+protectedReplayHashPathCount: 36
+protectedReplayPathSetSha256: db73272d73bde77b912b9a22a490d975c83ac25b89a8380fcdfc718ae599b9ee
+protectedReplayContentRecordsSha256: 95b13383cd0838fef989d22d298df5afb83adca1abbe3e997e8e5b1815fee19a
+testMutationBoundary:
+  - tests/playwright-runtime.foundation.functional.mjs
+feature004Scope1Status: in_progress
+feature004Scope2Locked: true
+bug002StatusInference: forbidden
+unresolvedFindingIds:
+  - TR-BUG-002-TEST-SHARED-RUNTIME-INVENTORY-03
+```
+<!-- bug002-shared-runtime-inventory-reconciliation-v1:end -->

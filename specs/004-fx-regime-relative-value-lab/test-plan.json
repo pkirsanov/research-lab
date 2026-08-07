@@ -2,7 +2,7 @@
   "version": 1,
   "specId": "004",
   "generatedBy": "bubbles.plan",
-  "generatedAt": "2026-08-07T00:52:50Z",
+  "generatedAt": "2026-08-07T03:05:00Z",
   "evidenceBoundary": "Planning-owned structured handoff only. Historical execution evidence remains verbatim in report.md. Every changed behavior still requires focused red/green proof, the declared persistent regression, and the broader checkpoint. Controlled same-origin production-module tests are functional; E2E uses the real production route without request interception or fixture substitution.",
   "collisionPlanningHandoff": {
     "schemaVersion": "feature004-collision-planning-handoff/v3",
@@ -1412,7 +1412,30 @@
       "ownMarkerInclusiveRawSha256PinRequired": true,
       "reportFinalAfterAdoption": true,
       "planningInvocationMayWriteReport": false,
-      "preserveEveryV15V14V13V12AndPredecessorByteSchemaAndMeaning": true
+      "preserveEveryV15V14V13V12AndPredecessorByteSchemaAndMeaning": true,
+      "planningAuthorizedPinAndClaimUpdates": {
+        "authorizedBy": "bubbles.plan",
+        "reason": "the recorded v16 block text must match the amended v12 epoch boundary contract",
+        "pinLiterals": [
+          "HERMETIC_HISTORICAL_V13_V16_BLOCK_SHA256"
+        ],
+        "reportBlockClaims": [
+          "v12Authority",
+          "providerResults"
+        ],
+        "planningAuthorityCommitPrefixRepin": {
+          "paths": [
+            "specs/004-fx-regime-relative-value-lab/scopes.md",
+            "specs/004-fx-regime-relative-value-lab/test-plan.json",
+            "specs/004-fx-regime-relative-value-lab/state.json"
+          ],
+          "supersededPlanningCommit": "1e3abdd9",
+          "reason": "this planning commit necessarily moves the recorded planning-authority commit prefix for the three paths it commits"
+        },
+        "exhaustive": true,
+        "authorizesAnyOtherPinBlockMarkerPathCountOrClaim": false,
+        "authorizesEvidenceCheckboxStatusOrCertification": false
+      }
     },
     "historicalV13Validation": {
       "source": "already pinned v13 payload and its recorded immutable sources",
@@ -1435,7 +1458,37 @@
         "pin-family normalization",
         "every existing closed-schema mutation"
       ],
-      "rejectMissingExtraDuplicateReorderedBroadenedOrChangedDataBeforeReplay": true
+      "requiredExactValidationsScope": "the required and foreign matrix and the inventory named above are the v13 payload's own internal structures and remain mandatory",
+      "rejectMissingExtraDuplicateReorderedBroadenedOrChangedDataBeforeReplay": true,
+      "v12IdentityReassertion": {
+        "amended": true,
+        "defect": "the prior contract required the hermetic builder to re-assert every immutable v12 identity commitment for all records derived from the pinned v13 payload, including the aggregate v12 record-matrix and inventory hashes",
+        "unsatisfiableFor": "any foreign path whose owner committed between the v12 and v13 epochs",
+        "proof": {
+          "path": "specs/004-fx-regime-relative-value-lab/design.md",
+          "foreignRecordIndex": 2,
+          "owner": "bubbles.design",
+          "v12EpochStatus": "dirty foreign-specialist-artifact",
+          "v12CaptureHead": "37de4610",
+          "committedAt": "ba8758fa",
+          "committedAtDescendsFromV12CaptureHead": true,
+          "currentWorktreeStatus": "clean",
+          "observedIdentityPrefix": "23c977c9",
+          "requiredV12CommitmentPrefix": "c36453d3",
+          "fieldConversionCanRegenerateV12Identity": false
+        },
+        "frameworkPrecedent": {
+          "inheritedValidatorReinvokedWith": "verifyCurrent = false",
+          "v13HistoryBanner": "liveComparison=false",
+          "supersededEpochLiveCurrentComparison": "forbidden"
+        },
+        "requiredRecords": "v12 identity re-assertion retained; reachable through the recorded hermetic parser reconstruction",
+        "foreignRecords": "v12 identity re-assertion dropped inside the hermetic builder",
+        "aggregateV12RecordMatrixAndInventoryHashReassertion": "dropped inside the hermetic builder",
+        "v12EpochCommitmentAssertionAndRejectsRetainedAtV12Epoch": true,
+        "coverageRemoved": false,
+        "grantsCurrentForeignPathReads": false
+      }
     },
     "historicalRecordPolicy": {
       "dirtyAndUntrackedForeignRecords": "opaque pinned commitments",
@@ -1451,7 +1504,15 @@
         "recorded immutable parser source",
         "recorded pin-family normalization contract"
       ],
-      "currentFileCanReplaceMissingHistoricalCommitment": false
+      "currentFileCanReplaceMissingHistoricalCommitment": false,
+      "foreignV12AuthoritySource": "v12.protectedAuthorityClosure",
+      "foreignV12AuthorityDerivationPrecedent": [
+        "feature004V14HistoricalV12Observations",
+        "feature004V16HermeticV12ParserRecord"
+      ],
+      "reassertV12IdentityForForeignRecords": false,
+      "foreignRecordsRemainOpaquePinnedCommitments": true,
+      "validateForeignCapturedFieldsAndInternalCrossLinksInsideImmutablePayload": true
     },
     "inheritedV13Closure": {
       "retainNinePromotionAdversaries": true,
@@ -1499,8 +1560,8 @@
       "repositoryRoot": "/home/redacted/research-lab",
       "repositoryAlias": "research-lab",
       "sessionId": "vscode-e24db39cf992f7ccd8ec75209602db59",
-      "decisionId": "rb:vscode-e24db39cf992f7ccd8ec75209602db59:57",
-      "controlRevision": 57,
+      "decisionId": "rb:vscode-e24db39cf992f7ccd8ec75209602db59:59",
+      "controlRevision": 59,
       "controlPathDigest": "sha256:e6d858a6f9bc1824d3a2cea3746d741a5bad41016d613dc242312185af9761fa",
       "authority": "concrete-target",
       "transition": "confirmed",
@@ -1508,7 +1569,8 @@
       "targetKind": "absolute-target",
       "pathVisibility": "local",
       "actionable": true,
-      "historicalAuthorityRecapture": false
+      "historicalAuthorityRecapture": false,
+      "priorAuthoringDecisionId": "rb:vscode-e24db39cf992f7ccd8ec75209602db59:57"
     },
     "ownerSequence": [
       "plan: commit only scopes.md test-plan.json and planning-owned state.json.execution with git commit --only after exact path verification",
@@ -1526,6 +1588,8 @@
       ],
       "requiredActions": [
         "Preserve v15 v14 v13 v12 and every predecessor byte schema pin separator selector normalization and meaning.",
+        "Re-assert v12 identity commitments only for the Feature-004-owned required records and derive foreign v12 authority from the recorded v12.protectedAuthorityClosure.",
+        "Assert no cross-epoch v12 identity record-matrix or inventory hash for foreign records inside the hermetic builder while the v12 epoch keeps its own commitment assertion and rejects.",
         "Append exactly one report-final v16 block with one pin and one closed parser branch without recapturing current authority.",
         "Replace only post-v14 inherited v13 live-current replay with hermetic replay over pinned v13 payload and recorded immutable sources.",
         "Retain all nine v13 promotion adversaries equivalence checks source immutability parser-pin mutations and predecessor adversaries.",

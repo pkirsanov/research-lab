@@ -32,7 +32,7 @@
             "F004-V16-HERMETIC-HISTORICAL-V13-001"
         ],
         "nextRequiredOwner": "bubbles.test",
-        "nextRequiredTarget": "F004-V16-HERMETIC-HISTORICAL-V13-001: append one report-final v16 block and change only the collision parser so post-v14 v13 adversarial replay uses pinned immutable history rather than absent current foreign bytes; preserve v14 as sole current-file authority and run unchanged three-case committed-only acceptance under 600 seconds. SCOPE-02 remains unavailable for pickup.",
+        "nextRequiredTarget": "F004-V16-HERMETIC-HISTORICAL-V13-001: append one report-final v16 block and change only the collision parser so post-v14 v13 adversarial replay uses pinned immutable history rather than absent current foreign bytes; re-assert v12 identity only for the Feature-004-owned required records, derive foreign v12 authority from the recorded v12.protectedAuthorityClosure, and assert no cross-epoch v12 identity, record-matrix, or inventory hash for foreign records inside the hermetic builder; preserve v14 as sole current-file authority and run unchanged three-case committed-only acceptance under 600 seconds. SCOPE-02 remains unavailable for pickup.",
         "findingDispositionHistory": [
             {
                 "findingId": "F004-SCOPE01-COMMITTED-COLLISION-DEPENDENCY-001",
@@ -1289,6 +1289,41 @@
                 "scopeCompletion": "not claimed"
             },
             "summary": "Defined the bounded v16 plan so only post-v14 historical v13 adversarial replay becomes hermetic over pinned immutable sources. Recorded commit 8107a661 as the addressed stale-baseline finding, retained only v16 as the current route, preserved v14 as sole current-file authority and all v15/predecessor contracts, left Scope 1 In Progress and Scope 2 locked, and routed report/parser implementation plus unchanged three-case acceptance to bubbles.test."
+        },
+        {
+            "agent": "bubbles.plan",
+            "workflowMode": "full-delivery",
+            "phasesExecuted": [
+                "bootstrap",
+                "plan"
+            ],
+            "statusBefore": "in_progress",
+            "statusAfter": "in_progress",
+            "startedAt": "2026-08-07T03:00:00Z",
+            "finishedAt": "2026-08-07T03:05:00Z",
+            "outcome": "route_required",
+            "addressedFindings": [],
+            "unresolvedFindings": [
+                "F004-V16-HERMETIC-HISTORICAL-V13-001"
+            ],
+            "nextRequiredOwner": "bubbles.test",
+            "nextRequiredTarget": "F004-V16-HERMETIC-HISTORICAL-V13-001",
+            "evidenceRefs": [
+                "scopes.md#feature-004-v16-hermetic-historical-v13-successor-f004-v16-hermetic-historical-v13-001",
+                "test-plan.json::postV16HermeticHistoricalV13Handoff.historicalV13Validation.v12IdentityReassertion",
+                "test-plan.json::postV16HermeticHistoricalV13Handoff.historicalRecordPolicy.foreignV12AuthoritySource",
+                "test-plan.json::postV16HermeticHistoricalV13Handoff.reportContract.planningAuthorizedPinAndClaimUpdates"
+            ],
+            "validation": {
+                "repositoryBinding": "exit 0; PREFLIGHT_CONFIRMED and PREFLIGHT_COMMITTED for research-lab at decision rb:vscode-e24db39cf992f7ccd8ec75209602db59:59, control revision 59, actionable true",
+                "contractDefectVerification": "exit 0; design.md last commit ba8758fa, git merge-base --is-ancestor 37de4610 ba8758fa true, git status --porcelain for design.md empty",
+                "retiredComparisonVerification": "exit 0; verifyCurrent=false re-invocation and liveComparison=false history banners confirmed in the committed collision test",
+                "jsonParse": "exit 0; test-plan.json and state.json parsed successfully",
+                "containment": "exit 0; five scopes, 33 scenarios, 89 JSON test entries, 89 Test Plan rows, 94 Markdown rows including five headers, 99 unchecked and 44 checked checklist lines unchanged from HEAD, one In Progress and four Not Started status lines, no new scenario, row, or checklist item",
+                "productTests": "not executed and not claimed",
+                "scopeCompletion": "not claimed"
+            },
+            "summary": "Amended the F004-V16-HERMETIC-HISTORICAL-V13-001 contract after bubbles.test proved a planning defect. The prior contract required the hermetic builder to re-assert every v12 identity commitment for all records derived from the pinned v13 payload plus the aggregate v12 record-matrix and inventory hashes, which is unsatisfiable for any foreign path whose owner committed between the v12 and v13 epochs. V16 now re-asserts v12 identity only for the reachable Feature-004-owned required records, derives foreign v12 authority from the recorded v12.protectedAuthorityClosure following the established v14 derivation, and asserts no cross-epoch v12 identity, record-matrix, or inventory hash for foreign records inside the hermetic builder while the v12 epoch keeps its own commitment assertion and rejects. Foreign v13 records remain opaque pinned historical commitments and no current foreign path may be read. Explicitly authorized bubbles.test to update the single HERMETIC_HISTORICAL_V13_V16_BLOCK_SHA256 pin, the corresponding v16 report block claims, and the planning-authority commit prefixes that this planning commit necessarily moves. Recorded no evidence, checked no item, and performed no status or certification transition."
         }
     ],
     "activeBugs": [],
@@ -1348,7 +1383,7 @@
             "discoveredAt": "2026-07-18T23:09:34Z"
         }
     ],
-    "lastUpdatedAt": "2026-08-04T03:19:34Z",
+    "lastUpdatedAt": "2026-08-07T03:05:00Z",
     "scopeLayout": "single-file",
     "artifacts": {
         "spec": "spec.md",

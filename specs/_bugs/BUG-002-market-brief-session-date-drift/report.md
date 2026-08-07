@@ -7896,3 +7896,111 @@ owner-disposition path recorded at `certification.ownerDispositions[0]`
 and `BUG002-AUDIT-CERTIFICATION` are satisfied.
 
 <!-- BUG002 certifying-window terminal done 2026-07-27 EOF -->
+
+<!-- bug002-shared-runtime-inventory-reconciliation-v1:start -->
+## Planning Reconciliation: Current Shared-Runtime Inventory (2026-08-04)
+
+**Successor reference:** `bug002-shared-runtime-inventory-reconciliation/v1`  
+**Planning transition:** `TR-BUG-002-PLAN-SHARED-RUNTIME-INVENTORY-03`  
+**Next transition:** `TR-BUG-002-TEST-SHARED-RUNTIME-INVENTORY-03`  
+**Outcome:** `route_required`  
+**Next required owner:** `bubbles.test`
+
+This section is append-only planning evidence. It leaves every earlier timestamped statement, command output, `218/27/30` capture, status, checkmark, and certification record unchanged. It does not reopen or recertify BUG-002.
+
+### Repository Binding
+
+**Phase:** plan  
+**Command:** `bash .github/bubbles/scripts/repository-binding.sh validate-packet --session-id vscode-e24db39cf992f7ccd8ec75209602db59 --session-control-file /home/philipk/.bubbles-session-control/vscode-e24db39cf992f7ccd8ec75209602db59/repository-binding.json --packet-file /tmp/research-lab-repository-binding-packet-27.json`  
+**Exit Code:** `0`  
+**Claim Source:** executed
+
+```text
+REPOSITORY PACKET VALID actionable=true repository=research-lab root=/home/philipk/research-lab decision=rb:vscode-e24db39cf992f7ccd8ec75209602db59:27 revision=27
+```
+
+The validated packet binds this planning update to `/home/philipk/research-lab` with repository alias `research-lab`, decision `rb:vscode-e24db39cf992f7ccd8ec75209602db59:27`, control revision `27`, and control-path digest `sha256:e6d858a6f9bc1824d3a2cea3746d741a5bad41016d613dc242312185af9761fa`.
+
+### Read-Only Closed Inventory Capture
+
+**Phase:** plan  
+**Command:** `node /tmp/research-lab-bug002-inventory-capture.mjs`  
+**Exit Code:** `0`  
+**Claim Source:** executed
+
+The capture found:
+
+- `33` browser `.spec.mjs` files. Every file imports `./playwright-runtime.mjs`, imports neither `playwright/test` nor `@playwright/test`, and has no `executablePath` override.
+- Browser path-set SHA-256 `023130e9a4951fa53f99cff68002737e9804c433369ab7648322d28472647a32`.
+- `6` direct `.test.mjs` suites. All six own tests through `node:test` and import neither Playwright package authority nor the shared browser runtime.
+- Direct-Node path-set SHA-256 `bdb138d0bddefbe7a01943f07464ad90f76eb54cbb97302724a7f028ee5d2807`.
+- The direct-Node ownership forms are one guarded dynamic suite (`tests/brief-refresh-atomicity.test.mjs`) and five static-import Feature 004 suites (`tests/feature-004-brief-eligibility.test.mjs`, `tests/feature-004-dirty-tree-collision.test.mjs`, `tests/feature-004-journey-evidence-refresh.test.mjs`, `tests/feature-004-tool-control-binding.test.mjs`, and `tests/feature-004-vehicle-universe.test.mjs`).
+
+The exact 33-file browser list is frozen in [scopes.md, successor marker `bug002-shared-runtime-inventory-reconciliation-v1`](scopes.md#successor-current-shared-runtime-inventory-reconciliation-2026-08-04) and mirrored in `test-plan.json::activeInventoryReconciliation.browserSpecs`.
+
+### Discovery Identity Capture
+
+**Phase:** plan  
+**Command:** `npx --no-install playwright test --list --config=playwright.config.mjs --project=system-chrome --reporter=list`  
+**Exit Code:** `0`  
+**Claim Source:** executed
+
+```text
+Total: 277 tests in 33 files
+identityCount=277
+sortedIdentityLfSha256=0001862126fdc1afaec6541a2b839fbbe8a81d1a43340397f8bbd2b4b088cfc6
+discoveredFileCount=33
+```
+
+No browser test executed. The digest input is the complete identity-line set sorted lexically and joined with LF without a trailing LF. The active monotonic floor is therefore `277`. A higher count is admissible only after an immediate pre-Gate-4 freeze that remains exact through both complete repetitions. A lower count requires explicit owner reconciliation.
+
+### Replay-Local Hash Fence
+
+**Phase:** plan  
+**Claim Source:** executed
+
+The protected fence contains the 33 browser specs plus:
+
+```text
+b35e8e75984b6a21a2e0c7a505d38a85190ec46bcfe6bf2312395a44e1c222cd  playwright.config.mjs
+70b68b970551e2473aab3817bf8cde6480d6ff2641cde9cbf2823ede2a69d0d4  tests/playwright-runtime.mjs
+d891b02ee7cbbef67a091dbc6c355381e2faa1497dbaeffeee2309b32b444abb  tests/playwright-runtime.foundation.functional.mjs
+```
+
+The exact fence has `36` paths. Its compact sorted path-array digest is `db73272d73bde77b912b9a22a490d975c83ac25b89a8380fcdfc718ae599b9ee`. Its compact sorted `{path, sha256}` record digest is `95b13383cd0838fef989d22d298df5afb83adca1abbe3e997e8e5b1815fee19a`.
+
+### Grounded Entry Finding And Route
+
+**Phase:** plan  
+**Claim Source:** interpreted  
+**Interpretation:** The caller supplied the current-session `bubbles.test` command result and containment evidence. This planning pass did not rerun the foundation suite or any browser test.
+
+The immediate command `node --test tests/playwright-runtime.foundation.functional.mjs` exited `1` with `3 passed / 2 failed`. Its stale closed assertions expected `28` browser files and `2` direct-Node suites while executable inventory observed `33` and `6`. Gates 1-7 were correctly not run. Entry/final dirty status remained `23` paths with SHA-256 `1ad6e9f958ffabfe138a7d7ec5f24c8b7e8f3b807f399966dd8020d6ffa6ca76`; runners and profiles remained zero; `changedFiles=[]`.
+
+`bubbles.test` may update only `tests/playwright-runtime.foundation.functional.mjs` to encode the exact current closed sets, or an already-authorized dynamic fail-closed form if existing design authority explicitly permits it. It must then restart at the immediate foundation command and, only if green, run Gates 1-7 in their existing order. Exact replay, exactly-once execution, no-overlap, shared-runtime ownership, Node-versus-Playwright disjointness, lifecycle, and protected-hash-fence requirements remain unchanged.
+
+Feature 004 Scope 1 remains **In Progress** and Scope 2 remains locked. This replay prerequisite changes no Feature 004 artifact and creates no BUG-002 reopen, completion, checkmark, or certification inference.
+
+### Planning Validation
+
+**Phase:** plan  
+**Claim Source:** executed
+
+```text
+[bug002-plan-successor] startMarkers=1
+[bug002-plan-successor] endMarkers=1
+[bug002-plan-successor] browserInventory=33
+[bug002-plan-successor] directNodeInventory=6
+[bug002-plan-successor] identityFloor=277
+[bug002-plan-successor] fencePaths=36
+[bug002-plan-successor] nextOwner=bubbles.test
+[bug002-plan-successor] PASS
+[bug002-test-plan] browserSpecs=33
+[bug002-test-plan] directNodeSuites=6
+[bug002-test-plan] identityFloor=277
+[bug002-test-plan] fencePaths=36
+[bug002-test-plan] nextOwner=bubbles.test
+[bug002-test-plan] nextTarget=TR-BUG-002-TEST-SHARED-RUNTIME-INVENTORY-03
+[bug002-test-plan] PASS
+```
+<!-- bug002-shared-runtime-inventory-reconciliation-v1:end -->

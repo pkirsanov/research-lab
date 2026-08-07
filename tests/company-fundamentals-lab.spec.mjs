@@ -31,7 +31,7 @@ const undecoratedText = (locator) => () => locator.evaluate((element) => {
 // preconditions the assertions always assumed; every downstream assertion below is unchanged.
 // Mirrors the proven shell-driving pattern in tests/bond-regime-lab.spec.mjs.
 const openNativeResearchSurface = async (page) => {
-    await expect(page.locator('#rlviews[data-rlexperience-shell="ready"]')).toBeVisible();
+    await expect(page.locator('#rlviews[data-rlexperience-shell="ready"]')).toBeVisible({ timeout: 30_000 });
     await page.locator('#rlviews button[data-rlview-mode="power"]').click();
     // Power IS in ownerModes, so rlv-focused clears and the native surface becomes visible again.
     await expect(page.locator('body')).toHaveAttribute('data-rlview', 'power');

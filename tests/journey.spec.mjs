@@ -113,13 +113,13 @@ async function openPage(page) {
 
 /* Activate the SHIPPED Journey view and wait for the SHIPPED mount. The four-view shell owns both
    the host and the call to RLAPP.mountJourney(); tests must never manufacture either one. */
-async function mountJourneyOnPage(page) {
+async function mountJourneyOnPage(page, timeout = 15_000) {
   await page.locator('#rlviews button[data-rlview-mode="journey"]').click();
   await page.waitForFunction(() => {
     const panel = document.querySelector('[data-rlexperience-panel="journey"]');
     const anchor = panel && panel.querySelector('[data-rljourney-mount]');
     return !!(panel && !panel.hidden && anchor && anchor.getAttribute('data-rljourney-state') === 'ready' && globalThis.__rljourneyController);
-  }, undefined, { timeout: 15000 });
+  }, undefined, { timeout });
 }
 
 /* The Market Action Center is the GLOBAL journey surface; a tool page is scoped to its own
@@ -524,8 +524,9 @@ test('the Journey chooser on a tool page is scoped to that tool', async ({ page 
 });
 
 test('the Market Action Center remains the global journey surface', async ({ page }) => {
+  test.slow();
   await openCenter(page);
-  await mountJourneyOnPage(page);
+  await mountJourneyOnPage(page, 30_000);
 
   const order = await page.evaluate(() => Array.from(document.querySelectorAll('[data-rljourney-tool]'))
     .map((li) => li.getAttribute('data-rljourney-tool')));

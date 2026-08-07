@@ -69,11 +69,12 @@ that reconciled the rows. `state.json` was not touched in this session, and no
 state-transition guard has been run against this change. Flipping the label here would be
 exactly the kind of self-certification the anti-fabrication policy forbids.
 
-**Open, non-blocking findings carried forward:** **ROLL-01** (LOW; a commit message and
-`rlexperience.js:1844` both claim the bridge removed a stub `classList.add('rlv-focused')`
-that provably never existed — routed to `bubbles.docs`), **D7** (`rlchart.js` edited
-outside the Shared Infrastructure Impact Sweep), and **D3-b** (recorded above). None of
-these is a precondition of any DoD row it sits under; each is recorded rather than absorbed.
+**Non-blocking findings carried forward or resolved here:** **ROLL-01** (LOW; corrected in
+active plan prose: `c81d808d` added the stub `classList.add('rlv-focused')` write and
+`737d1d17` removed it before `f216be0d`, so the bridge did not remove it), **D7**
+(`rlchart.js` edited outside the Shared Infrastructure Impact Sweep), and **D3-b**
+(recorded above). None is a precondition of any DoD row it sits under; each is recorded
+rather than absorbed.
 
 **HEAD provenance note.** Every command recorded in this session executed at HEAD
 `2b6e4d19`; concurrent sessions advanced HEAD to `b63d3606` before the closing validation.
@@ -1228,16 +1229,15 @@ with `--list`.)*
   - **"Without data loss" was proven against the scope's own definition** — byte-level SHA-256 fingerprints over the four named classes, taken before the rollback and again after every test run, identical at all five measurement points (`data/bars` 289 files, `data/options` 23, `briefs/**` 963, root `*.json` 34, root `*.jsonl` 2), with **0 deleted files** and all three registries intact.
   - **Live-tree integrity confirmed afterwards** — worktree removed and pruned, no product-source edits in the live checkout.
 
-  *Finding ROLL-01 is open but explicitly non-blocking.* The rehearsal found that
-  `f216be0d`'s message and the surviving comment at `rlexperience.js:1844` both claim the
-  bridge "removed the stub's `classList.add('rlv-focused')`", while the diff shows only
-  `+` lines and the pre-bridge `rlexperience.js` contains **zero** `rlv-focused`
-  occurrences — there was no stub write to remove. That is a documentation-accuracy
-  defect in a commit message and a code comment, classified LOW and recorded in
-  report.md as *"does not block the rollback claim"*: it does not touch whether the
-  rollback restores prior behaviour without data loss, which is what this row asserts. It
-  is routed to `bubbles.docs`, and this row is checked on its own contract, not on
-  ROLL-01's.
+  *Finding ROLL-01 is resolved as an active-planning accuracy correction and remains
+  explicitly non-blocking.* Git history establishes that `c81d808d` added the stub's
+  `classList.add('rlv-focused')` write and `737d1d17` removed it before `f216be0d`.
+  Therefore `f216be0d`'s message and the surviving comment at `rlexperience.js:1844`
+  inaccurately attribute that earlier removal to the bridge; the stub write did exist,
+  but not in the bridge's pre-state. The historical message, source comment, and raw
+  evidence remain verbatim. This planning correction does not change whether the rollback
+  restores prior behaviour without data loss, which is what this row asserts, and it does
+  not claim new execution.
 
   *(Everything from here down is retained audit trail and is **SUPERSEDED**.)*
 

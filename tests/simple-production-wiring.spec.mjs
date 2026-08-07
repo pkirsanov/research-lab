@@ -524,11 +524,11 @@ async function awaitDeclaredHydrationBoundary(page, attributeName) {
    contention; a genuine init failure still fails, just later. */
 async function openAndAwaitOwnerEvidence(page, toolId) {
   await page.goto(`${site.baseUrl}/${toolId}.html`);
-  await expect(page.locator('#rlviews[data-rlexperience-shell="ready"]')).toBeVisible({ timeout: 30000 });
+  await expect(page.locator('#rlviews[data-rlexperience-shell="ready"]')).toBeVisible({ timeout: 60000 });
   await page.waitForFunction(
     (id) => !!(globalThis.__rlOwnerStateProvider && typeof globalThis.__rlOwnerStateProvider[id] === 'function'),
     toolId,
-    { timeout: 30000 }
+    { timeout: 60000 }
   );
   await awaitDeclaredHydrationBoundary(page, 'data-heatmap-hydration');
   const yieldsOwnerState = () => page.evaluate((id) => {

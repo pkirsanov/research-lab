@@ -2,12 +2,110 @@
     "version": 1,
     "specId": "BUG-002",
     "generatedBy": "bubbles.plan",
-    "generatedAt": "2026-07-18T21:42:01Z",
-    "evidenceBoundary": "Planning-only browser inventory reconciliation. Historical 132-test executions remain preserved in state.json and report.md. This active handoff authorizes only bubbles.test to repair and focused-verify the separate Feature 009 evaluation-clock defect, then requires a fresh BUG-002 protected-byte replay beginning at the immediate foundation command, current discovery of 133 tests in 12 files, and two complete clean 133/133 repetitions.",
+    "generatedAt": "2026-08-04T06:58:48Z",
+    "evidenceBoundary": "Planning-only shared-runtime inventory reconciliation. Historical 132, 133, 143, and 218 identity evidence remains preserved in state.json and report.md. The active handoff authorizes bubbles.test to update only tests/playwright-runtime.foundation.functional.mjs for the exact current closed inventory, then restart at the immediate foundation command. The current replay-local floor is 277 identities across 33 browser specs, 6 direct-Node suites remain excluded, and the protected hash fence contains 36 paths. This record makes no test-pass, BUG-002 reopen/completion, checkmark, or certification claim.",
     "testDispatchAllowed": true,
     "nextRequiredOwner": "bubbles.test",
-    "nextRequiredTarget": "TR-BUG-002-TEST-BROWSER-INVENTORY-CARDINALITY-01",
+    "nextRequiredTarget": "TR-BUG-002-TEST-SHARED-RUNTIME-INVENTORY-03",
     "parentFindingId": "F006-EXT-SELFTEST-MARKET-BRIEF-001",
+    "activeInventoryReconciliation": {
+        "successorReference": "bug002-shared-runtime-inventory-reconciliation/v1",
+        "transitionRequestId": "TR-BUG-002-PLAN-SHARED-RUNTIME-INVENTORY-03",
+        "nextTransitionRequestId": "TR-BUG-002-TEST-SHARED-RUNTIME-INVENTORY-03",
+        "capturedAt": "2026-08-04T06:58:48Z",
+        "captureMode": "read-only-unrestricted-discovery-no-browser-execution",
+        "browserSpecs": [
+            "tests/bond-regime-lab.spec.mjs",
+            "tests/brief-payload-escaping.spec.mjs",
+            "tests/causal-rotation-lab.spec.mjs",
+            "tests/company-fundamentals-lab.spec.mjs",
+            "tests/contextual-tooltip.spec.mjs",
+            "tests/deployed-site-parity.spec.mjs",
+            "tests/distributed-briefs.spec.mjs",
+            "tests/fx-regime-relative-value-lab.spec.mjs",
+            "tests/journey-mobile.spec.mjs",
+            "tests/journey.spec.mjs",
+            "tests/market-action-center.spec.mjs",
+            "tests/market-brief-freshness.spec.mjs",
+            "tests/market-brief-scorecard.spec.mjs",
+            "tests/market-brief-session-date-drift.spec.mjs",
+            "tests/market-heatmap-control-surface.spec.mjs",
+            "tests/msft-july-market-refresh.spec.mjs",
+            "tests/palm-springs-rental-market-lab.spec.mjs",
+            "tests/portfolio-survival-foundation.spec.mjs",
+            "tests/provider-credentials.spec.mjs",
+            "tests/provider-fallback-status.spec.mjs",
+            "tests/red-alert.spec.mjs",
+            "tests/simple-model-adapters-macro-fundamental.spec.mjs",
+            "tests/simple-model-adapters-market.spec.mjs",
+            "tests/simple-model-adapters-strategy-property.spec.mjs",
+            "tests/simple-models.spec.mjs",
+            "tests/simple-production-wiring.spec.mjs",
+            "tests/technical-analysis-decision-lab.spec.mjs",
+            "tests/tool-discovery.spec.mjs",
+            "tests/tool-experience-mobile.spec.mjs",
+            "tests/tool-experience.spec.mjs",
+            "tests/trend-dynamics-cycle-lab.spec.mjs",
+            "tests/volatility-sizing-lab.spec.mjs",
+            "tests/web-evidence.spec.mjs"
+        ],
+        "browserSpecCount": 33,
+        "browserPathSetSha256": "023130e9a4951fa53f99cff68002737e9804c433369ab7648322d28472647a32",
+        "browserOwnership": "every .spec.mjs imports only ./playwright-runtime.mjs for Playwright authority and has no executablePath override",
+        "directNodeSuites": [
+            {
+                "path": "tests/brief-refresh-atomicity.test.mjs",
+                "ownershipForm": "guarded-dynamic-node:test"
+            },
+            {
+                "path": "tests/feature-004-brief-eligibility.test.mjs",
+                "ownershipForm": "static-node:test"
+            },
+            {
+                "path": "tests/feature-004-dirty-tree-collision.test.mjs",
+                "ownershipForm": "static-node:test"
+            },
+            {
+                "path": "tests/feature-004-journey-evidence-refresh.test.mjs",
+                "ownershipForm": "static-node:test"
+            },
+            {
+                "path": "tests/feature-004-tool-control-binding.test.mjs",
+                "ownershipForm": "static-node:test"
+            },
+            {
+                "path": "tests/feature-004-vehicle-universe.test.mjs",
+                "ownershipForm": "static-node:test"
+            }
+        ],
+        "directNodeSuiteCount": 6,
+        "directNodePathSetSha256": "bdb138d0bddefbe7a01943f07464ad90f76eb54cbb97302724a7f028ee5d2807",
+        "directNodeOwnership": "every .test.mjs uses node:test and imports neither Playwright package authority nor ./playwright-runtime.mjs",
+        "discoveryIdentityFloor": 277,
+        "discoveryIdentityCountAtCapture": 277,
+        "sortedIdentityDigestEncoding": "sorted identity lines joined with LF and no trailing LF",
+        "sortedIdentitySha256": "0001862126fdc1afaec6541a2b839fbbe8a81d1a43340397f8bbd2b4b088cfc6",
+        "protectedSupportFiles": {
+            "playwright.config.mjs": "b35e8e75984b6a21a2e0c7a505d38a85190ec46bcfe6bf2312395a44e1c222cd",
+            "tests/playwright-runtime.mjs": "70b68b970551e2473aab3817bf8cde6480d6ff2641cde9cbf2823ede2a69d0d4",
+            "tests/playwright-runtime.foundation.functional.mjs": "d891b02ee7cbbef67a091dbc6c355381e2faa1497dbaeffeee2309b32b444abb"
+        },
+        "protectedHashFencePathCount": 36,
+        "protectedHashFencePathSetSha256": "db73272d73bde77b912b9a22a490d975c83ac25b89a8380fcdfc718ae599b9ee",
+        "protectedHashFenceContentRecordsSha256": "95b13383cd0838fef989d22d298df5afb83adca1abbe3e997e8e5b1815fee19a",
+        "digestEncoding": "sha256 of compact JSON over lexically sorted paths or path/hash records",
+        "higherCountRule": "accept only after an immediate pre-Gate-4 freeze that remains exact through Gate 6 and Gate 7",
+        "lowerCountRule": "stop and require explicit owner reconciliation",
+        "allowedMutationPaths": [
+            "tests/playwright-runtime.foundation.functional.mjs"
+        ],
+        "resumeCommand": "node --test tests/playwright-runtime.foundation.functional.mjs",
+        "resumeAtGateIfGreen": 1,
+        "feature004Scope1Status": "in_progress",
+        "feature004Scope2Locked": true,
+        "bug002StatusInference": "forbidden",
+        "planningPassClaim": false
+    },
     "planningAmendment": {
         "findingId": "BUG002-NODE-TEST-TAXONOMY-ASSERTION-MISMATCH",
         "transitionRequestId": "TR-BUG-002-PLAN-NODE-TEST-TAXONOMY-01",
@@ -248,17 +346,24 @@
                 "category": "e2e-ui",
                 "file": "tests/**/*.spec.mjs",
                 "scenarioId": "SCN-BUG002-001",
-                "description": "The unchanged command runs the complete current browser inventory: 133 assertions across 12 .spec.mjs files, with no .test.mjs prelude, non-test error, force-kill, or retained worker handle. Feature 004's direct Node canary remains an independent prerequisite and is not part of this command after repair.",
+                "description": "The unchanged command runs the complete replay-local browser inventory frozen immediately before Gate 4. The current monotonic floor is 277 identities across the closed 33-file browser set. All 6 direct-Node suites remain excluded. Both repetitions must preserve the exact identity digest and 36-path hash fence with no Node/TAP prelude, missing, duplicate, retry, skip, only, todo, extra identity, non-test error, force-kill, overlap, or retained process.",
                 "command": "npx --no-install playwright test --config=playwright.config.mjs --project=system-chrome --reporter=list",
                 "liveSystem": true,
                 "regression": true,
                 "status": "planned",
-                "expectedBrowserAssertions": 133,
-                "expectedBrowserFiles": 12,
+                "expectedBrowserAssertionsMinimum": 277,
+                "expectedBrowserFiles": 33,
+                "capturedIdentitySha256": "0001862126fdc1afaec6541a2b839fbbe8a81d1a43340397f8bbd2b4b088cfc6",
+                "protectedHashFencePathCount": 36,
+                "protectedHashFencePathSetSha256": "db73272d73bde77b912b9a22a490d975c83ac25b89a8380fcdfc718ae599b9ee",
                 "repetitionsRequired": 2,
                 "excludedNodeSuites": [
                     "tests/brief-refresh-atomicity.test.mjs",
-                    "tests/feature-004-dirty-tree-collision.test.mjs"
+                    "tests/feature-004-brief-eligibility.test.mjs",
+                    "tests/feature-004-dirty-tree-collision.test.mjs",
+                    "tests/feature-004-journey-evidence-refresh.test.mjs",
+                    "tests/feature-004-tool-control-binding.test.mjs",
+                    "tests/feature-004-vehicle-universe.test.mjs"
                 ]
             },
             {
@@ -283,13 +388,15 @@
                 "file": "tests/playwright-runtime.foundation.functional.mjs",
                 "scenarioId": "SCN-BUG002-001",
                 "testId": "complete shared Playwright runtime and discovery foundation Node suite",
-                "description": "The committed matcher includes every current and later .spec.mjs, excludes both current .test.mjs files, preserves the exact current 12-file browser inventory, proves all 12 import the shared runtime seam with zero direct playwright/test consumers, requires every .test.mjs file to be direct-Node-owned through either static node:test import syntax or guarded dynamic await import('node:test') syntax, rejects both Playwright import sources from Node suites, and preserves checkout-local Playwright 1.61.1 plus system-Chrome no-fallback authority.",
+                "description": "The committed matcher includes every current and later .spec.mjs, excludes all 6 current .test.mjs files, preserves the exact current 33-file browser inventory, proves all 33 use only the shared runtime seam with zero direct Playwright-package consumers or executable overrides, requires every .test.mjs file to be direct-Node-owned through either static node:test import syntax or guarded dynamic await import('node:test') syntax, rejects both Playwright import sources from Node suites, and preserves checkout-local Playwright 1.61.1 plus system-Chrome no-fallback authority.",
                 "command": "node --test tests/playwright-runtime.foundation.functional.mjs",
                 "liveSystem": false,
                 "regression": true,
                 "canary": true,
-                "expectedBrowserFiles": 12,
-                "expectedNodeFilesExcluded": 2,
+                "expectedBrowserFiles": 33,
+                "expectedNodeFilesExcluded": 6,
+                "browserPathSetSha256": "023130e9a4951fa53f99cff68002737e9804c433369ab7648322d28472647a32",
+                "directNodePathSetSha256": "bdb138d0bddefbe7a01943f07464ad90f76eb54cbb97302724a7f028ee5d2807",
                 "acceptedNodeOwnershipForms": [
                     "static node:test import",
                     "guarded dynamic await import('node:test')"
@@ -302,14 +409,19 @@
                 "category": "functional",
                 "file": "playwright.config.mjs",
                 "scenarioId": "SCN-BUG002-001",
-                "testId": "unrestricted Playwright list begins at Listing tests and reports Total: 133 tests in 12 files",
-                "description": "Unrestricted discovery includes every current .spec.mjs browser suite, excludes both .test.mjs Node suites, emits no Feature 004 Node-test prelude, and retains the complete browser inventory.",
+                "testId": "unrestricted Playwright list freezes the replay-local identity set at or above the 277-identity floor",
+                "description": "Unrestricted discovery includes the exact current 33-file .spec.mjs browser set, excludes all 6 .test.mjs direct-Node suites and every TAP/Node prelude, and freezes the sorted identity set, count, digest, and 36-path hash fence immediately before Gate 4. A higher count is accepted only when that complete snapshot remains exact through both full repetitions; a lower count stops for owner reconciliation.",
                 "command": "npx --no-install playwright test --list --config=playwright.config.mjs --project=system-chrome --reporter=list",
                 "liveSystem": false,
                 "regression": true,
                 "canary": true,
-                "expectedBrowserAssertions": 133,
-                "expectedBrowserFiles": 12,
+                "expectedBrowserAssertionsMinimum": 277,
+                "capturedBrowserAssertions": 277,
+                "capturedIdentitySha256": "0001862126fdc1afaec6541a2b839fbbe8a81d1a43340397f8bbd2b4b088cfc6",
+                "expectedBrowserFiles": 33,
+                "expectedDirectNodeFilesExcluded": 6,
+                "protectedHashFencePathCount": 36,
+                "protectedHashFencePathSetSha256": "db73272d73bde77b912b9a22a490d975c83ac25b89a8380fcdfc718ae599b9ee",
                 "status": "planned"
             }
         ]

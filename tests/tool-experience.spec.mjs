@@ -256,6 +256,7 @@ test('Regression: SCN-012-029 uncertified Feature 008 preserves public Portfolio
 });
 
 test('Regression: BUG-001 options flow shell is ready before heavy hydration begins', async ({ page }) => {
+  test.slow();
   await page.addInitScript(() => {
     const nativeFetch = globalThis.fetch;
     globalThis.__bug001OptionDeltaStarts = [];

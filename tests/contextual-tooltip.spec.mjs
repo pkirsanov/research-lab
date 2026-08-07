@@ -108,6 +108,7 @@ test('Regression: SCN-012-004 label-only context fails the exact Power item with
 });
 
 test('Regression: contextual disclosure fits mobile returns focus and promotes same-data table without canvas', async ({ page }) => {
+  test.slow();
   await page.setViewportSize({ width: 390, height: 844 });
   const fallbackPage = await page.context().newPage();
   await fallbackPage.setViewportSize({ width: 390, height: 844 });

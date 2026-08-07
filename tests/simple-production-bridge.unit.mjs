@@ -34,6 +34,8 @@ const ADAPTER_MODULE = 'rlexperience-adapters/market-structure.js';
 const REGISTER_FN = 'registerMarketStructureAdapters';
 const ADAPTER_ID = 'simple-adapter/market-breadth/v1';
 const TOOL_ID = 'market-heatmap-lab';
+const READER_UNAVAILABLE_MESSAGE = "This tool's own model is not loaded, so there is no result to show. Nothing was requested, saved, published, or filled in from a default.";
+const FRAMEWORK_UNAVAILABLE_COPY = /owner model adapter required|simple-adapter\//i;
 
 function loadMarketStructure() {
   const path = require.resolve('../rlexperience-adapters/market-structure.js');
@@ -210,8 +212,10 @@ test('no owner-state provider → honest unavailable, no invented signal, never 
   assert.equal(projection.state, 'unavailable', 'absent provider owner state must degrade to honest unavailable');
   assert.equal(harness.panel.getAttribute('data-rlexperience-simple-state'), 'unavailable');
   assert.equal(projection.numericValue, null, 'unavailable must publish a null numeric (no fabricated signal)');
-  // Names the missing owner capability; invents no neutral/average/prior signal.
-  assert.match(projection.message, /owner model adapter required/i);
+  // D13 keeps framework identity machine-readable while reader copy explains the absence in words.
+  assert.equal(projection.message, READER_UNAVAILABLE_MESSAGE, 'the reader receives the exact honest-unavailable explanation');
+  assert.doesNotMatch(projection.message, FRAMEWORK_UNAVAILABLE_COPY, 'the old adapter/gate wording must not return to reader copy');
+  assert.equal(harness.panel.getAttribute('data-rlexperience-adapter'), ADAPTER_ID, 'the exact adapter identity remains available as machine provenance');
   assert.doesNotMatch(String(projection.message), /neutral|average|prior result/i);
   assert.deepEqual(harness.bodyClassOps, [], 'the bridge must not mutate body.classList on the unavailable path');
 });

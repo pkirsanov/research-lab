@@ -892,11 +892,11 @@ This planning-owned checkpoint is additive. Every earlier raw checkpoint block r
         }
     ],
     "commitCatalog": [
-        {"commit":"943972e295b8fa93a19795e46015e5ae780b0350","author":"pkirsanov","authoredAt":"2026-07-16T12:01:36-07:00","subject":"feat: expand research lab capabilities and automation"},
-        {"commit":"609021dbe7475860df1b3c67ad6abef9d36dc3a0","author":"pkirsanov","authoredAt":"2026-07-16T11:18:43-07:00","subject":"compact market brief lane inputs"},
-        {"commit":"3b9be41aaf607aa933904b97ff92d9cd0861c821","author":"pkirsanov","authoredAt":"2026-07-16T11:33:40-07:00","subject":"persist automatic ticker cache refreshes"},
-        {"commit":"b11d9f0e41aeb74dc2825a99b7a2d086003dbab6","author":"pkirsanov","authoredAt":"2026-07-16T09:35:08-07:00","subject":"fix market brief scheduled publication"},
-        {"commit":"751b85d72dea16e790cd4e1281f3ed155bd06e60","author":"pkirsanov","authoredAt":"2026-07-15T12:32:33-07:00","subject":"market-brief: Tier-A data-only refresh 2026-07-15 15:32 EDT (pre-close)"}
+        {"commit":"db06c29650ba351770297acefa658f51cbc4ff00","author":"pkirsanov","authoredAt":"2026-07-16T12:01:36-07:00","subject":"feat: expand research lab capabilities and automation"},
+        {"commit":"56bf73eefe1b8369dc3e0778cc7c4d9ba6f0a8a3","author":"pkirsanov","authoredAt":"2026-07-16T11:18:43-07:00","subject":"compact market brief lane inputs"},
+        {"commit":"d7fd1d02e99c748ab5366c5a8e6de1192b24b823","author":"pkirsanov","authoredAt":"2026-07-16T11:33:40-07:00","subject":"persist automatic ticker cache refreshes"},
+        {"commit":"932efdd9912bfc264ae96ded90f6410fe4cc5537","author":"pkirsanov","authoredAt":"2026-07-16T09:35:08-07:00","subject":"fix market brief scheduled publication"},
+        {"commit":"71e98b99e0dd9e3a9eec9be7cc6b6f87fe5c90ef","author":"pkirsanov","authoredAt":"2026-07-15T12:32:33-07:00","subject":"market-brief: Tier-A data-only refresh 2026-07-15 15:32 EDT (pre-close)"}
     ],
     "pathTransitions": [
         {
@@ -8594,4 +8594,10 @@ Planning appends exactly one closed v12 contract and routes the additive parser 
 }
 ```
 <!-- feature004-dirty-collision-multi-item-evidence-v15:end -->
+
+<!-- feature004-dirty-collision-hermetic-v13-v16:start -->
+```json
+{"contractVersion":"feature004-dirty-collision-hermetic-v13-v16/v1","findingId":"F004-V16-HERMETIC-HISTORICAL-V13-001","capturedAt":"2026-08-07T01:01:08.000Z","predecessorAuthority":{"marker":"feature004-dirty-collision-multi-item-evidence-v15","rawBlockSha256":"2a81db99afd80849faf93279d1031511b5bb096eb0b556df5c025af71218d22e","markerInclusiveByteLength":2888,"successorSeparator":{"byteLength":2,"base64":"Cgo=","sha256":"75a11da44c802486bc6f65640aa48a730f0f684c5c07a42ba3cd1735eb3fb070"}},"hermeticAdapterPolicy":{"caller":"feature004V14RunInheritedV13AdversarialCases","adapter":"feature004V16RunHermeticHistoricalV13AdversarialCases","v13Authority":"feature004V14HistoricalV13Authority-decoded-immutable-payload","v12Authority":"immutable-v13-bounded-history","recordConverter":"feature004V16V13RecordToV12FullRecord","inventoryConverter":"porcelainEntries-rawStatus-path-projection","inheritedRunner":"runPostCommitV13AdversarialCases-unchanged","providerOverrides":["postCommitV12CurrentRecords","postCommitV12InventoryEntries","capturePostCommitV12AuthorityObservations"],"providerResults":"structured-clones-of-immutable-projections","forbiddenCurrentCaptureFunctions":["captureV13Snapshot","captureV13ValidatePayloadAgainstRecapture","captureV13FullRecord"],"functionIdentityRestoration":"finally-asserted","currentForeignReads":0,"v14CurrentAuthorityMutationRejection":"separate-and-unchanged"},"redactedForeignAuthority":{"marker":"feature004-dirty-collision-post-commit-v12","field":"repositoryBinding.repositoryRoot","supersededRawBlockSha256":"8d28f8578d9b5d682b422f3539ec19654cebe187b6c5f52ec0270def93aec8f0","supersededMarkerInclusiveByteLength":58977,"committedRawBlockSha256":"8bb5363e0a14b24a7101f030be024d11598fcdabd8563068eabf627b867ef1d9","committedMarkerInclusiveByteLength":58978,"redactedRoot":"/home/redacted/research-lab","canonicalRoot":"/home/<owner>/research-lab","projectedRawBlockSha256":"b1fc6d9c58002ce07c4eb48f55ff245c19c6c6d99f00d33a18534c9931e03e0b","preRedactionBytesRecoverableFromCommittedTree":false,"retainedRecordAuthority":{"matrixSha256":"3d680812db545c65f341ee3091a10c4211a5790fdc62ff9b34cbae5b7574ef62","inventorySha256":"8241bc6b27eac0d0a2543142b3d5bb6883f727cc1920fd3f899989a73fc9d723","closureSha256":"bae952e125487d83e472316f52eb634de5db51b4a44da8997705f8113baaf879"}},"noCurrentAuthority":true,"commitPolicy":{"exactAllowedPaths":["specs/004-fx-regime-relative-value-lab/report.md","tests/feature-004-dirty-tree-collision.test.mjs"],"additionalPathsAllowed":false},"canonicalBindingReuse":{"repositoryRoot":"/home/redacted/research-lab","repositoryAlias":"research-lab","sessionId":"vscode-a855981ff9231b3a8f1b780a6192a1da","decisionId":"rb:vscode-a855981ff9231b3a8f1b780a6192a1da:1","controlRevision":1,"controlPathDigest":"sha256:45d65b0e481c5f6d7d5eed2fa26b3ba5c55488f131d66828fe6024fc1eadddd1","authority":"explicit-repository-root","transition":"established","scopeKind":"command","targetKind":"repository-root","pathVisibility":"local","actionable":true,"mirrorRevision":1,"recaptureAllowed":false}}
+```
+<!-- feature004-dirty-collision-hermetic-v13-v16:end -->
 

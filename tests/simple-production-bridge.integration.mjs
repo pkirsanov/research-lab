@@ -42,6 +42,8 @@ const require = createRequire(import.meta.url);
 const ROOT = new URL('../', import.meta.url);
 
 const COMPUTED_AT = '2026-07-25T20:02:00.000Z';
+const READER_UNAVAILABLE_MESSAGE = "This tool's own model is not loaded, so there is no result to show. Nothing was requested, saved, published, or filled in from a default.";
+const FRAMEWORK_UNAVAILABLE_COPY = /owner model adapter required|simple-adapter\//i;
 
 /* ═══════════════════════ production sources of truth ═══════════════════════ */
 
@@ -2174,7 +2176,8 @@ test('TP-15-02 registry-derived loop: each wired tool prepares through the REAL 
       assert.ok(Number.isFinite(run.projection.numericValue), `${entry.toolId}: the published numeric is finite`);
       const numericNode = run.panel.findByAttribute('data-simple-numeric-value');
       assert.ok(numericNode, `${entry.toolId}: the ready projection paints a numeric node into the panel`);
-      assert.ok(String(numericNode.textContent).includes(run.projection.valueText), `${entry.toolId}: the painted numeric node carries the owner value text`);
+      assert.equal(String(numericNode.textContent), run.projection.readableValueText, `${entry.toolId}: the painted numeric node carries the exact reader-formatted number and unit`);
+      assert.equal(String(numericNode.textContent).includes(run.projection.valueText), false, `${entry.toolId}: the old owner label must not be repeated on the numeric line`);
     }
 
     // BUG-003 invariant preserved on the integration path too.
@@ -2332,12 +2335,13 @@ test('TP-15-02 the production bridge reaches the SAME projection as the explicit
     assert.equal(genericProjection.valueText, GENERIC_UNAVAILABLE_VALUE_TEXT, `${entry.toolId}: the shared core's generic unavailable label`);
     assert.equal(bridged.valueText, GENERIC_UNAVAILABLE_VALUE_TEXT, `${entry.toolId}: the module-absent bridge renders the honest generic unavailable`);
 
-    // 3. The panel still carries the correct registry adapter id, and the message names it. The
-    //    expected id is read straight off the registry definition (the source of truth) rather than
-    //    the derived entry field, so the panel is cross-checked against the registry itself.
+    // 3. The panel still carries the correct registry adapter id as machine provenance, while D13
+    //    keeps that framework identity out of reader copy. The expected id is read straight off the
+    //    registry definition (the source of truth), not the derived entry field.
     assert.equal(panel.getAttribute('data-rlexperience-adapter'), entry.definition.adapterId, `${entry.toolId}: the honest panel still carries the registry adapter id`);
-    assert.match(String(bridged.message), /owner model adapter required/i, `${entry.toolId}: the missing owner capability is named`);
-    assert.ok(String(bridged.message).includes(entry.adapterId), `${entry.toolId}: the named capability is the registry adapter id`);
+    assert.equal(String(bridged.message), READER_UNAVAILABLE_MESSAGE, `${entry.toolId}: reader copy explains the unavailable model in exact plain language`);
+    assert.doesNotMatch(String(bridged.message), FRAMEWORK_UNAVAILABLE_COPY, `${entry.toolId}: old adapter/gate wording must not return to reader copy`);
+    assert.equal(String(bridged.message).includes(entry.adapterId), false, `${entry.toolId}: the machine adapter id must remain absent from reader copy`);
 
     // 4. NO invented signal: no numeric on the projection, no numeric node painted, no fabricated verdict.
     assert.equal(bridged.numericValue, null, `${entry.toolId}: no fabricated numeric on the module-absent path`);
@@ -2391,8 +2395,11 @@ test('TP-15-02 honest unavailable: a wired tool whose provider yields NO owner s
 
     assert.equal(projection.state, 'unavailable', `${entry.toolId}: a null owner state must degrade to honest unavailable`);
     assert.equal(projection.numericValue, null, `${entry.toolId}: no fabricated numeric on the unavailable path`);
-    assert.match(String(projection.message), /owner model adapter required/i, `${entry.toolId}: the missing owner capability is named`);
-    assert.ok(String(projection.message).includes(entry.adapterId), `${entry.toolId}: the named capability is the registry adapter id`);
+    assert.equal(projection.adapterId, entry.adapterId, `${entry.toolId}: the projection retains the registry adapter id as machine provenance`);
+    assert.equal(panel.getAttribute('data-rlexperience-adapter'), entry.adapterId, `${entry.toolId}: the panel retains the registry adapter id as machine provenance`);
+    assert.equal(String(projection.message), READER_UNAVAILABLE_MESSAGE, `${entry.toolId}: reader copy explains the unavailable model in exact plain language`);
+    assert.doesNotMatch(String(projection.message), FRAMEWORK_UNAVAILABLE_COPY, `${entry.toolId}: old adapter/gate wording must not return to reader copy`);
+    assert.equal(String(projection.message).includes(entry.adapterId), false, `${entry.toolId}: the machine adapter id must remain absent from reader copy`);
     assert.doesNotMatch(String(projection.message), /neutral|average|prior result/i, `${entry.toolId}: no invented signal`);
     assert.equal(panel.getAttribute('data-rlexperience-simple-state'), 'unavailable', `${entry.toolId}: the honest state is painted`);
     assert.equal(panel.findByAttribute('data-simple-numeric-value'), null, `${entry.toolId}: no numeric node is painted`);

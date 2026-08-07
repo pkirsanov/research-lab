@@ -498,6 +498,25 @@ $ node --test tests/rlattention.test.mjs
 EXIT=0
 ```
 
+### TP-01-25
+
+SCN-017-046 · A terminal-state item is excluded from selection entirely, reaching
+neither `published` nor `suppressed`. Added by plan amendment 1 after the
+twenty-four-scenario run, so it carries its OWN execution rather than borrowing
+that one. The suite has since grown to twenty-six scenarios.
+
+**Claim Source:** executed
+
+```text
+$ node --test tests/rlattention.test.mjs
+ok 22 - SCN-017-021b The record publishes the wasted share beside the warranted one
+ok 26 - SCN-017-046 A terminal-state item is excluded from selection entirely
+# tests 26
+# pass 26
+# fail 0
+EXIT=0
+```
+
 ## Honest Gaps
 
 These Definition of Done items are deliberately left unticked. Each names what is

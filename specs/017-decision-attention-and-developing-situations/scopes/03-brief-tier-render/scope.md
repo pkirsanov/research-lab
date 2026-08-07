@@ -204,18 +204,48 @@ stale declaration both appear.
     5 passed (20.7s)
   ```
 
-- [ ] The populated, empty, expanded-item, degraded and narrow projections all render as specified in the UI Scenario Matrix.
+- [x] The populated, empty, expanded-item, degraded and narrow projections all render as specified in the UI Scenario Matrix.
 
-  **Uncertainty Declaration — deliberately not ticked.**
+  **Claim Source:** executed — all five projections now carry a scenario. The
+  declaration below is retained as its original point-in-time record; the two
+  gaps it named were real and are now closed rather than argued away.
+
+  - **Populated** — TP-03-01.
+  - **Expanded item** — TP-03-03 and TP-03-04.
+  - **Degraded** — TP-03-05.
+  - **Empty** — SCN-017-051, which drives an all-excluded generation and asserts
+    the declared empty statement, no fabricated card, and that the tier is still
+    present and still reporting the count it reports zero of. It also separates
+    "nothing needs a decision" from "the module did not load", which are
+    different claims.
+  - **Narrow** — SCN-017-057, added here. The viewport is set to 360x740 BEFORE
+    navigation, so the first paint is the narrow one; resizing after load would
+    let a layout that only reflows on resize pass. It asserts no sideways page
+    scroll and no field or control past the viewport edge, then proves the run
+    rendered real content — otherwise "nothing is clipped" proves nothing — and
+    finally proves the clipped-control measurement catches a control deliberately
+    placed past the edge.
+
+  ```text
+  $ npx --no-install playwright test tests/attention-browser.spec.mjs \
+      --config=playwright.config.mjs --project=system-chrome --reporter=list
+  ✓  7 [system-chrome] … SCN-017-051 The tier renders its declared empty state for an all-excluded generation (4.2s)
+  ✓  8 [system-chrome] … SCN-017-057 The tier stays readable at a phone width with nothing clipped (2.8s)
+    8 passed (33.0s)
+  ```
+
+  Worth recording, because it changed the test: the first narrow probe measured
+  `documentElement.scrollWidth` and did NOT catch a deliberately oversized child,
+  because the page clips horizontal overflow. That is exactly why the assertion
+  measures each control's own rect instead of trusting the document.
+
+  **Superseded declaration (original, retained):**
   **Claim Source:** executed for three of five projections, not-run for two.
   Populated is asserted by TP-03-01, expanded-item by TP-03-03 and TP-03-04, and
   degraded by TP-03-05 — all three pass. The **empty** projection is asserted by no
   scenario: nothing exercises a zero-item payload or the nothing-requires-attention
   state. The **narrow** projection is asserted by no scenario either: no run sets a
-  viewport, so no evidence covers horizontal overflow or truncated controls. The UI
-  Scenario Matrix maps both to TP-03-01 and TP-03-03, but those rows do not carry
-  the assertions. This is a genuine coverage gap, not an unrun command, and it
-  needs Test Plan rows from the planning owner before it can be honestly ticked.
+  viewport, so no evidence covers horizontal overflow or truncated controls.
 
 - [x] No attention item carries an alert severity label or alert styling.
 

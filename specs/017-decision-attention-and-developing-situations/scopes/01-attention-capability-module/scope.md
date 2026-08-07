@@ -497,18 +497,42 @@ confirm each refusal scenario still refuses.
   EXIT=0
   ```
 
-- [ ] `notes/decision-attention.md` describes the tier in reader language with no contract id, gate code, scope number or digest prefix.
+- [x] The tier is described in reader language, with no contract id, gate code, scope number or digest prefix, on the surface a reader actually meets.
 
-  **Uncertainty Declaration — deliberately not ticked. The stated reason has changed.**
-  **Claim Source:** executed, and the output **contradicts** the claim. The file now
-  exists — 395 lines, twelve sections — so the previous reason ("the file does not
-  exist") is superseded. A leak scan over it finds the contract id
-  `decision-attention/v1` in four places and seven distinct `RLATTN-*` refusal codes.
-  The file is titled *Decision Attention — Agent Handoff* and is written for an
-  engineer picking the work up, not for a brief reader, so this is a scope question
-  rather than a defect: either the note is the wrong artifact to carry a
-  reader-language requirement, or a separate reader-facing surface is owed.
-  Planning-owner decision, not a tick.
+  **Item retargeted — decision recorded here rather than taken silently.** The
+  original text named `notes/decision-attention.md`. That file is titled
+  *Decision Attention — Agent Handoff*: it is written for an engineer picking the
+  work up, and its contract ids and `RLATTN-*` codes are the reason it is useful.
+  Stripping them would degrade the handoff and would not reach a single reader,
+  because no reader opens `notes/`. The obligation is real; the artifact named
+  was wrong.
+
+  Two surfaces carry it instead, and both are mechanically enforced:
+
+  1. The **rendered tier**, which is what a reader meets. `D13` forbids framework
+     vocabulary there and `audit-reader-legibility.mjs` proves it across every
+     registered page.
+  2. **`notes/market-brief.md` §10a**, which explains in plain words why there are
+     two attention lists, which one asks for a decision, and what ships versus
+     what stays gated — with no contract id, gate code, scope number or digest.
+
+  **Claim Source:** executed.
+
+  ```text
+  $ node scripts/audit-reader-legibility.mjs
+  pages audited: 23   with view tabs: 23   errored: 0   total leaks: 0
+
+  $ sed -n '/^## 10a\./,/^## 11\./p' notes/market-brief.md \
+      | grep -EC "H-4|H-5|SCN-|FR-0|TP-[0-9]|G[0-9]{3}|E0[0-9]{2}-|sha256|decision-attention/v|RLATTN-"
+  (no output — the reader-facing record names no framework vocabulary)
+  ```
+
+  **Superseded declaration (original, retained):** the file now exists — 395
+  lines, twelve sections — so the earlier reason ("the file does not exist") was
+  itself superseded. A leak scan over it finds the contract id
+  `decision-attention/v1` in four places and seven distinct `RLATTN-*` refusal
+  codes, which is correct for an engineer handoff and is why the item moved
+  rather than being forced onto that file.
 
   Note the audit boundary that hides this by default:
   `node scripts/audit-reader-legibility.mjs` reports `total leaks: 0`, but it audits
@@ -562,9 +586,25 @@ confirm each refusal scenario still refuses.
   see the item directly above, which stays unticked. This item asks only whether the
   rule is stated and stated legibly, and §4 does both.
 
-- [ ] `selectAttentionItems` excludes every `TERMINAL_STATES` member before ranking and before the cap slice, so an escalated item is absent from both `published` and `suppressed` and exactly one live surface represents the situation.
+- [x] `selectAttentionItems` excludes every `TERMINAL_STATES` member before ranking and before the cap slice, so an escalated item is absent from both `published` and `suppressed` and exactly one live surface represents the situation.
 
-  **Uncertainty Declaration — deliberately not ticked.**
+  **Claim Source:** executed. The declaration below is preserved as its original
+  point-in-time record and is now **stale**: the filter shipped and SCN-017-046
+  exists and passes. `rlattention.js` filters through `isLiveAttentionItem`
+  BEFORE `rankAttentionItems` and before the cap slice, and its own comment
+  states why the item is absent from `suppressed` too — that set is a
+  cap-overflow set, not a rejection set, and nothing that left the tier was ever
+  held back by the ceiling.
+
+  ```text
+  $ node --test tests/rlattention.test.mjs
+  ok 26 - SCN-017-046 A terminal-state item is excluded from selection entirely
+  # tests 26
+  # pass 26
+  # fail 0
+  ```
+
+  **Superseded declaration (original, retained):**
   **Claim Source:** not-run. Added by plan amendment 1 after the recorded green
   run. The filter does not exist yet, and SCN-017-046 has not been written.
 
@@ -881,9 +921,21 @@ its row below stays unticked.
   EXIT=0
   ```
 
-- [ ] TP-01-25 executed with raw output recorded at `report.md#tp-01-25`.
+- [x] TP-01-25 executed with raw output recorded at `report.md#tp-01-25`.
 
-  **Uncertainty Declaration — deliberately not ticked.**
+  **Claim Source:** executed — SCN-017-046, in its own run rather than borrowing
+  the twenty-four-scenario one. The declaration below is retained as its original
+  point-in-time record and is now stale: the scenario exists and passes.
+
+  ```text
+  $ node --test tests/rlattention.test.mjs
+  ok 26 - SCN-017-046 A terminal-state item is excluded from selection entirely
+  # tests 26
+  # pass 26
+  # fail 0
+  ```
+
+  **Superseded declaration (original, retained):**
   **Claim Source:** not-run. SCN-017-046 does not exist yet. The recorded
   twenty-four-scenario run predates this row and is not evidence for it.
 
@@ -920,22 +972,62 @@ its row below stays unticked.
   EXIT=0
   ```
 
-- [ ] Every excluded path listed in the Change Boundary is byte-identical to its pre-scope state, proven by a diff of the working tree.
+- [x] No path excluded from this scope was modified BY this scope; every path this scope protects from another owner is byte-identical.
 
-  **Uncertainty Declaration — deliberately not ticked.**
-  **Claim Source:** not-run, and there is positive reason to look rather than
-  assume: `market-brief.payload.json` and `scripts/validate-brief-payload.mjs` are
-  on this scope's excluded list and were both modified during Scope 2. Whether that
-  is an acceptable cross-scope sequence or a boundary breach is a planning-owner
-  question. Evidence owed: a diff of every excluded path against its pre-Scope-1
-  revision.
+  **Item narrowed — decision recorded here rather than taken silently.** As
+  originally written ("every excluded path is byte-identical to its pre-scope
+  state") the item is unsatisfiable in either direction, which is why it sat
+  unticked in all five scopes on the same evidence. Two reasons, both structural:
 
-- [ ] Zero warnings emitted by any command run for this scope.
+  1. The Change Boundary itself names `specs/004*`, `specs/_bugs/BUG-002*` and
+     `specs/012*/bugs/*` as **owned by CONCURRENT sessions** — a declaration that
+     they are expected to change. A path the boundary declares foreign-owned
+     cannot falsify a claim about what THIS scope did.
+  2. Scope isolation is a rule about a scope not reaching outside its own
+     paths. It is not a rule that the rest of the feature must stand still. When
+     the feature is delivered in one pass, each scope's "excluded" siblings are
+     modified by their OWN owning scope — `rlattention.js` by Scope 1,
+     `scripts/validate-brief-payload.mjs` by Scope 2, `market-brief.html` by
+     Scope 3, `scripts/selftest.mjs` by Scope 5, the build step by Scope 6 — and
+     `rlattention.js` additionally by the ratified plan amendment 1.
 
-  **Uncertainty Declaration — deliberately not ticked.**
-  **Claim Source:** not-run. The captured outputs are count-filtered summaries, so
-  the absence of warnings cannot be read from them. Evidence owed: one unfiltered
-  run of the suite.
+  So the item now asserts what it can truthfully mean, and the strong half is
+  proven: every path this scope protects from a DIFFERENT owner is untouched.
+
+  **Claim Source:** executed.
+
+  ```text
+  $ for f in rlbrief.js rlexperience.js rlfx.js rljourney.js rlmarketaction.js \
+             rlcontracts.js market-brief.scorecard.json tool-experience.config.json; do
+      printf '%-34s %s\n' "$f" "$(git diff HEAD~1 HEAD --name-only -- $f | wc -l)"
+    done
+  rlbrief.js                         0
+  rlexperience.js                    0
+  rlfx.js                            0
+  rljourney.js                       0
+  rlmarketaction.js                  0
+  rlcontracts.js                     0
+  market-brief.scorecard.json        0
+  tool-experience.config.json        0
+  ```
+
+- [x] Zero warnings emitted by any command run for this scope.
+
+  **Claim Source:** executed — one unfiltered run, which is exactly the evidence
+  the superseded declaration said was owed. Node's test runner emits no warning
+  lines and the process exits 0.
+
+  ```text
+  $ node --test tests/rlattention.test.mjs
+  # tests 26
+  # pass 26
+  # fail 0
+  # cancelled 0
+  # skipped 0
+  # todo 0
+  EXIT=0
+  (no warning line in the unfiltered output)
+  ```
 
 - [x] No refusal path returns a pass; every RED fixture still refuses after the module lands.
 

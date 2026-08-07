@@ -832,3 +832,87 @@ test('SCN-017-051 The tier renders its declared empty state for an all-excluded 
     `the empty state must be the declared one, not the module-unavailable degradation. Tier text: ${tierText}`)
     .toBe(false);
 });
+
+/* ═══════════════ TP-03-03 — SCN-017-057 the narrow projection ═══════════════ */
+
+test('SCN-017-057 The tier stays readable at a phone width with nothing clipped', async ({ page }) => {
+  test.setTimeout(90_000);
+
+  /* 360 x 740 is the narrow end of the phone range the cockpit has to survive.
+     Set BEFORE navigation so the first paint is the narrow one — resizing after
+     load would let a layout that only reflows on resize pass. */
+  await page.setViewportSize({ width: 360, height: 740 });
+  await openBrief(page);
+
+  const tier = page.locator('#decisionAttention');
+  await expect(tier).toBeVisible();
+
+  /* 1. NO HORIZONTAL OVERFLOW. Measured on the document, because a tier that
+        fits while pushing the PAGE sideways still hands the reader a sideways
+        scrollbar. One pixel of tolerance for sub-pixel layout rounding. */
+  const overflow = await page.evaluate(() => ({
+    docScroll: document.documentElement.scrollWidth,
+    docClient: document.documentElement.clientWidth
+  }));
+  expect(overflow.docScroll,
+    `the page must not scroll sideways at 360px: scrollWidth ${overflow.docScroll} vs clientWidth ${overflow.docClient}`)
+    .toBeLessThanOrEqual(overflow.docClient + 1);
+
+  /* 2. NO CLIPPED CONTROL. Every rendered field and control must sit inside the
+        viewport; a control whose right edge is past it is unreachable on a
+        phone even though it is technically "rendered". */
+  const clipped = await page.evaluate(() => {
+    const width = document.documentElement.clientWidth;
+    const nodes = Array.from(document.querySelectorAll('#decisionAttention [data-attn-field], #decisionAttention button, #decisionAttention a, #decisionAttention summary'));
+    return nodes
+      .filter((node) => {
+        const box = node.getBoundingClientRect();
+        return box.width > 0 && (box.right > width + 1 || box.left < -1);
+      })
+      .map((node) => ({
+        field: node.getAttribute('data-attn-field') || node.tagName.toLowerCase(),
+        right: Math.round(node.getBoundingClientRect().right),
+        viewport: width
+      }));
+  });
+  expect(clipped,
+    `no decision attention field or control may extend past a 360px viewport. Clipped: ${JSON.stringify(clipped)}`)
+    .toEqual([]);
+
+  /* 3. ADVERSARIAL — the two assertions above are satisfiable by a tier that
+        rendered nothing at all, so prove there was something to clip. The tier
+        must carry real measured content at this width. */
+  const measured = await page.evaluate(() => {
+    const host = document.querySelector('#decisionAttention');
+    return {
+      fields: host ? host.querySelectorAll('[data-attn-field]').length : 0,
+      text: host ? (host.textContent || '').trim().length : 0
+    };
+  });
+  expect(measured.fields,
+    'the narrow run must render real fields, or "nothing is clipped" proves nothing')
+    .toBeGreaterThan(0);
+  expect(measured.text).toBeGreaterThan(20);
+
+  /* 4. and the CLIPPED-CONTROL detector itself must be able to fail. The page
+        clips horizontal overflow, so a wide child does NOT grow
+        documentElement.scrollWidth — which is exactly why assertion 2 measures
+        each control's own rect rather than trusting the document. Prove that
+        measurement catches a control placed past the viewport edge. */
+  const detects = await page.evaluate(() => {
+    const width = document.documentElement.clientWidth;
+    const host = document.querySelector('#decisionAttention');
+    const probe = document.createElement('span');
+    probe.setAttribute('data-attn-field', 'overflow-probe');
+    probe.textContent = 'probe';
+    probe.style.cssText = `position:absolute;left:${width + 500}px;width:200px`;
+    host.appendChild(probe);
+    const caught = Array.from(host.querySelectorAll('[data-attn-field]')).some((node) => {
+      const box = node.getBoundingClientRect();
+      return box.width > 0 && (box.right > width + 1 || box.left < -1);
+    });
+    probe.remove();
+    return caught;
+  });
+  expect(detects, 'the clipped-control measurement must detect a control placed past the viewport edge').toBe(true);
+});

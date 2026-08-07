@@ -6375,7 +6375,7 @@ function validatePostCommitV11(v11, v10, v9, v7, v6, v5, v4, durable,
   assert.deepEqual(v11.successorOf, {
     marker: POST_COMMIT_V10_MARKER,
     rawBlockSha256: POST_COMMIT_V10_BLOCK_SHA256,
-    markerInclusiveByteLength: 40394,
+    markerInclusiveByteLength: 41318,
     contractVersion: 'feature004-dirty-collision-post-commit/v10',
     requiredHead: POST_COMMIT_V10_REQUIRED_HEAD,
     matrixSha256: '78e3199040d1ce2fcd46240e5b1433e4f5d35574306b7d64918b6cba538b7f2a',
@@ -6405,7 +6405,7 @@ function validatePostCommitV11(v11, v10, v9, v7, v6, v5, v4, durable,
   assert.deepEqual(v11.historicalValidation, {
     allPredecessorMarkersHashesSchemasAndOrderThroughV10Required: true,
     v10MarkerInclusiveBytesRequired: true,
-    v10MarkerInclusiveByteLength: 40394,
+    v10MarkerInclusiveByteLength: 41318,
     v10RequiredHeadValueRequired: true,
     v10MatrixSha256Required: true,
     v10HistoricalCollisionResult: 'green-3-of-3-before-additive-inventory',
@@ -6800,7 +6800,7 @@ function parseCollisionContractsWithPostCommitV11() {
   assertPinnedReportBlock(v9Block.raw, POST_COMMIT_V9_BLOCK_SHA256, 'post-commit v9 block');
   assert.equal(Buffer.byteLength(v9Block.raw), 23091, 'post-commit v9 marker-inclusive byte length is exact');
   assertPinnedReportBlock(v10Block.raw, POST_COMMIT_V10_BLOCK_SHA256, 'post-commit v10 block');
-  assert.equal(Buffer.byteLength(v10Block.raw), 40394, 'post-commit v10 marker-inclusive byte length is exact');
+  assert.equal(Buffer.byteLength(v10Block.raw), 41318, 'post-commit v10 marker-inclusive byte length is exact');
   assertPinnedReportBlock(v11Block.raw, POST_COMMIT_V11_BLOCK_SHA256, 'post-commit v11 block');
   assert.equal(Buffer.byteLength(v11Block.raw), 48886, 'post-commit v11 marker-inclusive byte length is exact');
   validateDurableEvidenceBlock(durableBlock.value);
@@ -6827,7 +6827,7 @@ function parseCollisionContractsWithPostCommitV11() {
   assertPostCommitV11PinValue(parserSource);
   normalizedSelfSourceIdentityV7(parserSource);
   if (!postCommitV11ValidationLogged) {
-    console.log(`FEATURE004_V10_HISTORY_VALIDATED marker=${POST_COMMIT_V10_MARKER} sha256=${POST_COMMIT_V10_BLOCK_SHA256} bytes=40394 requiredHead=${POST_COMMIT_V10_REQUIRED_HEAD} liveComparison=false historicalTests=3/3`);
+    console.log(`FEATURE004_V10_HISTORY_VALIDATED marker=${POST_COMMIT_V10_MARKER} sha256=${POST_COMMIT_V10_BLOCK_SHA256} bytes=41318 requiredHead=${POST_COMMIT_V10_REQUIRED_HEAD} liveComparison=false historicalTests=3/3`);
     console.log(`FEATURE004_V11_VALIDATED marker=${POST_COMMIT_V11_MARKER} sha256=${POST_COMMIT_V11_BLOCK_SHA256} bytes=48886 schema=${v11Block.value.contractVersion} head=${POST_COMMIT_V11_REQUIRED_HEAD} required=${matrix.requiredRecords.length} foreign=${matrix.foreignRecords.length} additive=${POST_COMMIT_V11_ADDITIVE_FOREIGN_PATHS.length} exclusions=${POST_COMMIT_V11_EXCLUDED_PATHS.length} matrix=${v11Block.value.identityContract.matrixSha256}`);
     console.log(`FEATURE004_V5_VALIDATED marker=feature004-dirty-collision-current-identity-v5 sha256=${CURRENT_IDENTITY_V5_BLOCK_SHA256} after=v11 status=done scopeProgress=8 completedScopes=8 phases=13`);
     postCommitV11ValidationLogged = true;
@@ -8008,7 +8008,7 @@ function parseCollisionContractsWithPostCommitV12() {
     [v6Block, FOREIGN_ROADMAP_V6_BLOCK_SHA256, 'foreign roadmap v6 block', null],
     [v7Block, FOREIGN_SET_V7_BLOCK_SHA256, 'foreign set v7 block', FOREIGN_SET_V7_BLOCK_BYTE_LENGTH],
     [v9Block, POST_COMMIT_V9_BLOCK_SHA256, 'post-commit v9 block', 23091],
-    [v10Block, POST_COMMIT_V10_BLOCK_SHA256, 'post-commit v10 block', 40394],
+    [v10Block, POST_COMMIT_V10_BLOCK_SHA256, 'post-commit v10 block', 41318],
     [v11Block, POST_COMMIT_V11_BLOCK_SHA256, 'post-commit v11 block', 48886],
     [v12Block, POST_COMMIT_V12_BLOCK_SHA256, 'post-commit v12 block', POST_COMMIT_V12_BLOCK_BYTE_LENGTH]
   ]) {
@@ -10021,7 +10021,7 @@ function postCommitV13HistoricalBlocks() {
   const v11Block = parseReportBlock(report, POST_COMMIT_V11_MARKER);
   const v12Block = parseReportBlock(report, POST_COMMIT_V12_MARKER);
   for (const [block, pin, label, byteLength] of [
-    [v10Block, POST_COMMIT_V10_BLOCK_SHA256, 'historical v10 block', 40394],
+    [v10Block, POST_COMMIT_V10_BLOCK_SHA256, 'historical v10 block', 41318],
     [v11Block, POST_COMMIT_V11_BLOCK_SHA256, 'historical v11 block', 48886],
     [v12Block, POST_COMMIT_V12_BLOCK_SHA256, 'historical v12 successor block',
       POST_COMMIT_V12_BLOCK_BYTE_LENGTH]

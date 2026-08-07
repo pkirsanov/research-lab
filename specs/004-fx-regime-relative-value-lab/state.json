@@ -23,18 +23,33 @@
         "activeAgent": "bubbles.test",
         "currentPhase": "test",
         "currentScope": "SCOPE-01",
+        "substate": "needs_reverification",
         "runStartedAt": null,
         "completedPhaseClaims": [
             "bootstrap"
         ],
         "pendingTransitionRequests": [
-            "F004-V15-MULTI-ITEM-EVIDENCE-TRANSITION-001",
-            "TR-F004-SCOPE01-FEATURE012-TEST-001",
-            "TR-F004-SCOPE01-FEATURE012-DOCS-001",
-            "TR-F004-SCOPE01-PROVIDER-STRESS-CANARY-001"
+            "F004-V16-HERMETIC-HISTORICAL-V13-001"
         ],
         "nextRequiredOwner": "bubbles.test",
-        "nextRequiredTarget": "F004-V15-MULTI-ITEM-EVIDENCE-TRANSITION-001: append the cardinality-only v15 report successor and parser branch, preserve v14 as immutable fully parsed history, run unchanged three-case CMD-COLLISION under 600 seconds, then execute independently evidenced Scope 1 batches. Feature 012 test/docs and provider routes remain pending, and SCOPE-02 remains unavailable for pickup.",
+        "nextRequiredTarget": "F004-V16-HERMETIC-HISTORICAL-V13-001: append one report-final v16 block and change only the collision parser so post-v14 v13 adversarial replay uses pinned immutable history rather than absent current foreign bytes; preserve v14 as sole current-file authority and run unchanged three-case committed-only acceptance under 600 seconds. SCOPE-02 remains unavailable for pickup.",
+        "findingDispositionHistory": [
+            {
+                "findingId": "F004-SCOPE01-COMMITTED-COLLISION-DEPENDENCY-001",
+                "intakeDisposition": "pending",
+                "currentDisposition": "routed",
+                "successorId": "F004-V16-HERMETIC-HISTORICAL-V13-001",
+                "completionClaim": false
+            },
+            {
+                "findingId": "F004-SCOPE01-STALE-TEST-PATH-BASELINE-001",
+                "intakeDisposition": "pending",
+                "currentDisposition": "addressed",
+                "addressedByCommit": "8107a661",
+                "addressedByCommitSubject": "test(004): retire committed tests from missing-path baseline",
+                "completionClaim": false
+            }
+        ],
         "audit": {
             "schemaVersion": "audit-run/v1",
             "runId": null,

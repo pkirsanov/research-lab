@@ -2,7 +2,7 @@
   "version": 1,
   "specId": "004",
   "generatedBy": "bubbles.plan",
-  "generatedAt": "2026-08-06T15:23:56Z",
+  "generatedAt": "2026-08-07T00:52:50Z",
   "evidenceBoundary": "Planning-owned structured handoff only. Historical execution evidence remains verbatim in report.md. Every changed behavior still requires focused red/green proof, the declared persistent regression, and the broader checkpoint. Controlled same-origin production-module tests are functional; E2E uses the real production route without request interception or fixture substitution.",
   "collisionPlanningHandoff": {
     "schemaVersion": "feature004-collision-planning-handoff/v3",
@@ -119,13 +119,13 @@
   "currentRouting": {
     "status": "route_required",
     "nextRequiredOwner": "bubbles.test",
-    "nextRequiredTarget": "F004-V15-MULTI-ITEM-EVIDENCE-TRANSITION-001",
+    "nextRequiredTarget": "F004-V16-HERMETIC-HISTORICAL-V13-001",
     "requiredTestPlanIds": [
       "TP-01-22"
     ],
-    "requiredAction": "Append the one v15 cardinality-only report successor, implement its strict parser branch and adversarial matrix without changing v14 authority, and run unchanged CMD-COLLISION before evidence transitions.",
+    "requiredAction": "Append one report-final v16 hermetic historical-v13 successor, replace only post-v14 inherited v13 live-current replay with immutable recorded-source replay, preserve v14 as the sole current-file authority and every v15/predecessor check, then run unchanged three-case CMD-COLLISION under 600 seconds.",
     "nextOwnerAfterImplementation": "bubbles.test",
-    "nextTargetAfterImplementation": "independently evidenced Scope 1 item batches",
+    "nextTargetAfterImplementation": "unchanged three-case committed-only acceptance and owner return",
     "scopeOneStatus": "In Progress",
     "scopeTwoLocked": true
   },
@@ -1216,6 +1216,7 @@
   "postV15MultiItemEvidenceTransitionHandoff": {
     "schemaVersion": "feature004-multi-item-evidence-transition-handoff/v1",
     "status": "route_required",
+    "currentDisposition": "implemented immutable history; currentRouting alone routes the additive v16 hermetic historical-v13 successor",
     "findingId": "F004-V15-MULTI-ITEM-EVIDENCE-TRANSITION-001",
     "purpose": "execution-transition-cardinality-only",
     "reportContract": {
@@ -1376,6 +1377,165 @@
       "nextTargetAfterImplementation": "independently evidenced Scope 1 item batches"
     }
   },
+  "postV16HermeticHistoricalV13Handoff": {
+    "schemaVersion": "feature004-hermetic-historical-v13-handoff/v1",
+    "status": "route_required",
+    "findingId": "F004-SCOPE01-COMMITTED-COLLISION-DEPENDENCY-001",
+    "successorId": "F004-V16-HERMETIC-HISTORICAL-V13-001",
+    "purpose": "post-v14 historical-v13 replay hermeticity only",
+    "addressedSiblingFinding": {
+      "findingId": "F004-SCOPE01-STALE-TEST-PATH-BASELINE-001",
+      "disposition": "addressed",
+      "commit": "8107a661",
+      "commitSubject": "test(004): retire committed tests from missing-path baseline",
+      "currentRoute": false,
+      "completionClaim": false
+    },
+    "boundedChange": {
+      "caller": "feature004V14RunInheritedV13AdversarialCases",
+      "liveCurrentCalleeToRemoveFromPostV14Replay": "runPostCommitV13AdversarialCases",
+      "directPreV14V13CurrentValidation": "immutable historical behavior",
+      "directPreV14V13CurrentValidationUsedForPostV14Acceptance": false,
+      "v14SoleCurrentFileAuthority": true,
+      "recaptureCurrentAuthorityAllowed": false,
+      "productBehaviorChangeAllowed": false
+    },
+    "reportContract": {
+      "marker": "feature004-dirty-collision-hermetic-historical-v13-v16",
+      "predecessorMarker": "feature004-dirty-collision-multi-item-evidence-v15",
+      "predecessorRawBlockSha256": "2a81db99afd80849faf93279d1031511b5bb096eb0b556df5c025af71218d22e",
+      "predecessorSeparator": "exactly two LF bytes",
+      "v16FinalSuffix": "exactly two LF bytes after the v16 end marker",
+      "pinLiteral": "HERMETIC_HISTORICAL_V13_V16_BLOCK_SHA256",
+      "pinCount": 1,
+      "parserBranchCount": 1,
+      "ownMarkerInclusiveRawSha256PinRequired": true,
+      "reportFinalAfterAdoption": true,
+      "planningInvocationMayWriteReport": false,
+      "preserveEveryV15V14V13V12AndPredecessorByteSchemaAndMeaning": true
+    },
+    "historicalV13Validation": {
+      "source": "already pinned v13 payload and its recorded immutable sources",
+      "currentPathReadsAllowedForHistoricalDirtyOrUntrackedRecords": false,
+      "requiredExactValidations": [
+        "marker-inclusive raw pin",
+        "raw byte length",
+        "envelope hash and length",
+        "compressed hash and length",
+        "decoded hash and length",
+        "canonical JSON bytes",
+        "closed top-level and nested schemas",
+        "ordered fields and records",
+        "internal required and foreign matrix",
+        "complete inventory integrity",
+        "predecessor links",
+        "protected-clean closure",
+        "report-prefix authority",
+        "semantic selectors",
+        "pin-family normalization",
+        "every existing closed-schema mutation"
+      ],
+      "rejectMissingExtraDuplicateReorderedBroadenedOrChangedDataBeforeReplay": true
+    },
+    "historicalRecordPolicy": {
+      "dirtyAndUntrackedForeignRecords": "opaque pinned commitments",
+      "validateEveryCapturedFieldAndInternalCrossLink": true,
+      "reconstructHistoricalDirtyOrUntrackedFromCurrentBytes": false,
+      "reconstructHistoricalCleanGitTreeRecordsOnlyFrom": [
+        "recorded commit",
+        "recorded tree entry",
+        "recorded object identity",
+        "recorded immutable bytes"
+      ],
+      "reconstructHistoricalStrippedParserRecordsOnlyFrom": [
+        "recorded immutable parser source",
+        "recorded pin-family normalization contract"
+      ],
+      "currentFileCanReplaceMissingHistoricalCommitment": false
+    },
+    "inheritedV13Closure": {
+      "retainNinePromotionAdversaries": true,
+      "adversaryExecutionSubstrate": "synthetic fixture repositories or synthetic immutable records",
+      "retainEligibleUntrackedAndUnstagedExactDescendantAccepts": true,
+      "retainRepresentationStagedStateLineageAndLastCommitPathRejects": true,
+      "retainIndependentEligibleSubsetAcceptance": true,
+      "retainAllContentPathTypeModeIndexFlagSelectorAuthorityAndInventoryRejects": true,
+      "pathCopyDeepCloneByteEquivalentOrderedJsonLabelsAndCount": true,
+      "canonicalSourceObjectRemainsImmutable": true,
+      "changedAncestorsCopiedAndUntouchedContainersShareIdentity": true,
+      "singleSettledPathsReuseAcrossFiveChecks": true,
+      "retainParserPinMutations": true,
+      "retainEveryV12AndPredecessorAdversary": true
+    },
+    "v16AdversarialCases": [
+      "absent current foreign path passes because historical replay reads no current historical dirty or untracked path",
+      "arbitrary current bytes at a historically named path cannot influence historical replay",
+      "changed opaque commitment rejects",
+      "missing opaque commitment rejects",
+      "reordered opaque commitment rejects",
+      "duplicated opaque commitment rejects",
+      "live-byte substitution for a historical dirty or untracked commitment rejects",
+      "mutation of a v14-declared current Scope 1 path still rejects through v14"
+    ],
+    "testPlanExtension": {
+      "testPlanId": "TP-01-22",
+      "newTestPlanRowAllowed": false,
+      "newScenarioAllowed": false,
+      "newChecklistItemAllowed": false,
+      "expectedScopeCount": 5,
+      "expectedMarkdownTableRowsIncludingFiveHeaders": 94,
+      "expectedTestPlanEntryCount": 89,
+      "expectedUniqueTestPlanIdCount": 89,
+      "expectedScenarioCount": 33,
+      "expectedUniqueScenarioIdCount": 33,
+      "command": "node --test tests/feature-004-dirty-tree-collision.test.mjs",
+      "timeoutSeconds": 600,
+      "expectedTopLevelCaseCount": 3,
+      "focusedDiagnosticCommand": "node --test --test-name-pattern='Feature 004 collision disposition parser fails closed on malformed records' tests/feature-004-dirty-tree-collision.test.mjs",
+      "focusedDiagnosticMayReplaceAcceptance": false,
+      "inheritEveryV15V14V13AndPredecessorCheck": true
+    },
+    "repositoryBinding": {
+      "repositoryRoot": "/home/redacted/research-lab",
+      "repositoryAlias": "research-lab",
+      "sessionId": "vscode-e24db39cf992f7ccd8ec75209602db59",
+      "decisionId": "rb:vscode-e24db39cf992f7ccd8ec75209602db59:57",
+      "controlRevision": 57,
+      "controlPathDigest": "sha256:e6d858a6f9bc1824d3a2cea3746d741a5bad41016d613dc242312185af9761fa",
+      "authority": "concrete-target",
+      "transition": "confirmed",
+      "scopeKind": "command",
+      "targetKind": "absolute-target",
+      "pathVisibility": "local",
+      "actionable": true,
+      "historicalAuthorityRecapture": false
+    },
+    "ownerSequence": [
+      "plan: commit only scopes.md test-plan.json and planning-owned state.json.execution with git commit --only after exact path verification",
+      "test: append v16 and change only report.md plus tests/feature-004-dirty-tree-collision.test.mjs",
+      "test: run the optional focused diagnostic if useful then run unchanged three-case CMD-COLLISION under 600 seconds",
+      "state and certification: no status checklist or certification edit in this successor"
+    ],
+    "testOwnerHandoff": {
+      "owner": "bubbles.test",
+      "target": "F004-V16-HERMETIC-HISTORICAL-V13-001",
+      "allowedProductCodeEdits": false,
+      "allowedPaths": [
+        "specs/004-fx-regime-relative-value-lab/report.md",
+        "tests/feature-004-dirty-tree-collision.test.mjs"
+      ],
+      "requiredActions": [
+        "Preserve v15 v14 v13 v12 and every predecessor byte schema pin separator selector normalization and meaning.",
+        "Append exactly one report-final v16 block with one pin and one closed parser branch without recapturing current authority.",
+        "Replace only post-v14 inherited v13 live-current replay with hermetic replay over pinned v13 payload and recorded immutable sources.",
+        "Retain all nine v13 promotion adversaries equivalence checks source immutability parser-pin mutations and predecessor adversaries.",
+        "Add every v16 absent-path arbitrary-current-byte opaque-commitment live-substitution and v14-current-path adversary.",
+        "Run unchanged three-case CMD-COLLISION under the 600-second ceiling and return no completion status checklist Scope 2 or certification mutation."
+      ],
+      "nextRequiredOwnerAfterImplementation": "bubbles.test",
+      "nextTargetAfterImplementation": "unchanged committed-only three-case acceptance and owner return"
+    }
+  },
   "commandCatalog": {
     "CMD-FIRST-RED": "node -e 'const assert=require(\"node:assert/strict\");const input=require(\"./tests/fixtures/fx-regime/commonjs-determinism-input.json\");const sentinel=Object.freeze({owner:\"preexisting-global\"});globalThis.RLFX=sentinel;delete require.cache[require.resolve(\"./rlfx.js\")];const RLFX=require(\"./rlfx.js\");assert.strictEqual(globalThis.RLFX,sentinel);const first=RLFX.computeCurrencyDecision(structuredClone(input));const second=RLFX.computeCurrencyDecision(structuredClone(input));assert.equal(first.computedAt,input.decisionTime);assert.equal(second.computedAt,input.decisionTime);assert.equal(RLFX.canonicalize(first),RLFX.canonicalize(second));assert.equal(first.decisionId,second.decisionId);console.log(\"PASS RLFX CommonJS import preserves the existing global and explicit decisionTime is deterministic\")'",
     "CMD-SELFTEST": "node scripts/selftest.mjs",
@@ -1445,7 +1605,7 @@
         {"id":"TP-01-19","scenarioLabel":"Causal baseline","contractId":"causal-browser-canary","type":"e2e-ui","testType":"Cross-tool E2E canary","category":"e2e-ui","file":"tests/causal-rotation-lab.spec.mjs","testTitle":"complete committed suite","description":"RLDATA additions preserve Causal browser behavior; no assertion changes","commandRef":"CMD-E2E-CAUSAL","liveSystem":true},
         {"id":"TP-01-20","scenarioLabel":"Causal baseline","contractId":"causal-validator-canary","type":"functional","testType":"Contract canary","category":"functional","file":"scripts/validate-causal-rotation.mjs","testTitle":"complete committed validator","description":"Causal config/observation/ledger contracts remain unchanged","commandRef":"CMD-CAUSAL-VALIDATE","liveSystem":false},
         {"id":"TP-01-21","scenarioLabel":"All Scope 1 + protected canaries","contractId":"scope-01-full-regression","type":"functional","testType":"Full repository regression","category":"functional","file":"scripts/selftest.mjs","testTitle":"complete committed suite","description":"Must reach a genuinely green run without removing BASE-BRIEF-01; current 344/1 remains foreign-owned and open","commandRef":"CMD-SELFTEST","liveSystem":false},
-        {"id":"TP-01-22","scenarioLabel":"GRILL-004-09 / F004-V13-CAPTURE-SHAPE-001 / F004-V14-SCOPED-EVIDENCE-AUTHORITY-001 / F004-V15-MULTI-ITEM-EVIDENCE-TRANSITION-001","contractId":"F004-V15-MULTI-ITEM-EVIDENCE-TRANSITION-001","historicalContractIds":["F004-V13-CAPTURE-SHAPE-001","F004-V14-SCOPED-EVIDENCE-AUTHORITY-001"],"type":"functional","testType":"Collision and evidence-history preservation","category":"functional","file":"tests/feature-004-dirty-tree-collision.test.mjs","testTitle":"all three existing top-level test cases","description":"Preserve and parse every v12/v13/v14 byte and exact historical two-LF separators; adopt one v15 cardinality-only successor; accept two valid independently evidenced item transitions; reject zero required transitions, mixed-invalid batches, duplicate keys or cross-item evidence hashes, malformed zero/eight-space evidence indentation, every evidence-field forgery, prior-evidence or item-projection mutation, status/certification edits, foreign persistence, separator drift, and incomplete staging; retain the unchanged command, 600-second ceiling, three cases, and every inherited assertion, order, and failure condition.","commandRef":"CMD-COLLISION","timeoutSeconds":600,"expectedTopLevelCaseCount":3,"liveSystem":false},
+        {"id":"TP-01-22","scenarioLabel":"GRILL-004-09 / F004-V13-CAPTURE-SHAPE-001 / F004-V14-SCOPED-EVIDENCE-AUTHORITY-001 / F004-V15-MULTI-ITEM-EVIDENCE-TRANSITION-001 / F004-V16-HERMETIC-HISTORICAL-V13-001","contractId":"F004-V16-HERMETIC-HISTORICAL-V13-001","historicalContractIds":["F004-V13-CAPTURE-SHAPE-001","F004-V14-SCOPED-EVIDENCE-AUTHORITY-001","F004-V15-MULTI-ITEM-EVIDENCE-TRANSITION-001"],"type":"functional","testType":"Collision and evidence-history preservation","category":"functional","file":"tests/feature-004-dirty-tree-collision.test.mjs","testTitle":"all three existing top-level test cases","description":"Preserve and parse every v12/v13/v14/v15 byte and exact historical two-LF separators; add one report-final v16 hermetic historical-v13 successor without recapturing current authority; validate exact raw/envelope/compressed/decoded commitments, internal matrix/inventory/cross-links, predecessor and protected closure, selectors, normalization, closed schemas, nine promotion adversaries, path-copy/deep-clone equivalence, source immutability, parser-pin mutations, and all predecessor adversaries; prove absent or arbitrary current foreign paths cannot influence history; reject opaque-commitment mutation or live-byte substitution; retain v14 current Scope 1 path rejection, the unchanged command, 600-second ceiling, three cases, and every inherited assertion, order, and failure condition.","commandRef":"CMD-COLLISION","timeoutSeconds":600,"expectedTopLevelCaseCount":3,"liveSystem":false},
         {"id":"TP-01-23","scenarioLabel":"SCN-004-027","scenarioId":"SCN-004-027","coversScenarioIds":["SCN-004-027"],"type":"unit","testType":"Unit","category":"unit","file":"tests/feature-004-vehicle-universe.test.mjs","testTitle":"RLFX vehicle fit rejects every direction mismatch before ranking","description":"JPY-strength versus USD can admit only long-JPY/short-USD orientation; opposite products retain DIRECTION_MISMATCH","commandRef":"CMD-FOUNDATION-CONTRACTS","liveSystem":false,"regressionRequired":true},
         {"id":"TP-01-24","scenarioLabel":"SCN-004-028","scenarioId":"SCN-004-028","coversScenarioIds":["SCN-004-028"],"type":"unit","testType":"Unit","category":"unit","file":"tests/feature-004-vehicle-universe.test.mjs","testTitle":"RLFX vehicle tracking preserves market NAV underlying and unexplained residual","description":"Exact dates and compatible bases are required; missing legs cannot become inferred fee, carry, income, roll, or premium attribution","commandRef":"CMD-FOUNDATION-CONTRACTS","liveSystem":false,"regressionRequired":true},
         {"id":"TP-01-25","scenarioLabel":"SCN-004-029","scenarioId":"SCN-004-029","coversScenarioIds":["SCN-004-029"],"type":"unit","testType":"Unit","category":"unit","file":"tests/feature-004-vehicle-universe.test.mjs","testTitle":"RLFX broad-dollar vehicle fit rejects basket mismatch before lexicographic selection","description":"UUP and USDU retain separate baskets, mechanisms, collateral, benchmarks, and clocks; ticker order cannot decide fit","commandRef":"CMD-FOUNDATION-CONTRACTS","liveSystem":false,"regressionRequired":true},

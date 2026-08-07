@@ -507,7 +507,33 @@ And no numeric value or restricted source URL enters cache metadata, owner reads
 
 ### Scope 1 Continuation Gate
 
-The committed Scope 1 source and tests contain the scoreability/reader foundation plus the v14 and v15 report/parser successors. Current committed-only acceptance remains nonterminal because the post-v14 inherited v13 adversarial replay still depends on absent current foreign bytes. `bubbles.test` therefore owns only `F004-V16-HERMETIC-HISTORICAL-V13-001` next. Planning records no execution result and does not reuse a prior green run as evidence. Scope 1 cannot become Done, and Scope 2 cannot start, until the unchanged three-case collision acceptance is current and `bubbles.validate` legitimately closes Scope 1. The prior v9, foundation, v14, v15, and provider routes remain historical records; none is the current implementation target.
+The acceptance precondition named by the prior gate is now satisfied. The unchanged three-case collision acceptance is current and green. The run below executed from the repository root against a clean working tree at HEAD `16e5ead0`. Planning cites this run only and reuses no prior green.
+
+```
+$ timeout 900 node --test tests/feature-004-dirty-tree-collision.test.mjs
+1..3
+# tests 3
+# suites 0
+# pass 3
+# fail 0
+# cancelled 0
+# skipped 0
+# todo 0
+# duration_ms 40042.928627
+EXIT=0
+```
+
+The captured command carried an absolute operator home path in its `cd` prefix, so this record states the working directory in prose instead. `node scripts/pii-scan.mjs` rejects that path anywhere on the committed surface, and reproducing it here would fail the repository product check. Every output line is verbatim.
+
+Root-cause diagnosis, not a workaround, resolved the blocking condition. A repository-wide PII de-personalization git history rewrite invalidated the collision test evidence chain. No Feature 004 defect contributed. The byte arithmetic confirms the attribution exactly. A pinned length of `580643` against an actual `580597` is a delta of `-46`. Two home-path segment rewrites contributed `+1` byte each for `+2`. Six operator-name rewrites contributed `-8` bytes each for `-48`. Those two terms sum to the observed `-46`. This record states the substitution byte deltas rather than the pre-rewrite identifiers, because committing those identifiers would reintroduce the exact PII the rewrite removed.
+
+`F004-V16-HERMETIC-HISTORICAL-V13-001` is withdrawn as a superseded workaround and was never delivered. It would have added a seventeenth workaround epoch to a chain whose real defect was stale pins. It was deleted at -1238 lines. The accepted resolution re-pins the v9 through v15 evidence to post-rewrite truth under a sanctioned migration. That migration records the history-rewrite epoch explicitly. A permanently red guardrail detects nothing. Quarantining the four affected assertions would have blinded them permanently. No successor epoch follows v15, and no v16 implementation target remains open.
+
+Restoring the acceptance exposed three defects that the history rewrite did not cause. The v12 adversarial inventory harness and the v14 inventory-stability probe both indexed `entries[0].status` on an empty live `git status --porcelain` result. Both threw `TypeError` on any clean tree. Commits `bbcce47e` and `fc3919b0` gate the mutation cases on inventory arity. This test was therefore never reproducible from a clean checkout before those two fixes. The v15 brotli-compressed evidence payload also carried a literal absolute operator repository path. That payload was committed, and the grep-based PII lint could not see it because the payload is compressed. After the fix the decoded payloads scan clean. The v14 payload yields `[]` and the v15 payload yields only the redacted form `["/home/redacted/"]`.
+
+Extend the repository PII guard with a decompress-aware step. Compressed payloads are currently a blind spot that hid the v15 leak from the grep-based lint.
+
+The remaining gate condition is `bubbles.validate` certification of Scope 1. Scope 2 unblocks on that certification and not before. Planning records no certification decision and does not mark Scope 1 Done. The prior v9, foundation, v14, v15, and provider routes remain historical records. None of them is the current implementation target.
 
 ### Shared Infrastructure Impact Sweep
 

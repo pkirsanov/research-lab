@@ -61,6 +61,8 @@
     { "scenarioId": "SCN-017-054", "scopeId": "06-authoring-lane-composer-routing", "scope": 6, "status": "done", "evidenceRefs": ["tests/attention-payload-contract.test.mjs"] },
     { "scenarioId": "SCN-017-055", "scopeId": "04-outcome-record-and-interruption-rate", "scope": 4, "status": "done", "evidenceRefs": ["tests/attention-payload-contract.test.mjs"] },
     { "scenarioId": "SCN-017-056", "scopeId": "06-authoring-lane-composer-routing", "scope": 6, "status": "done", "evidenceRefs": ["tests/attention-payload-contract.test.mjs"] },
-    { "scenarioId": "SCN-017-057", "scopeId": "03-brief-tier-render", "scope": 3, "status": "done", "evidenceRefs": ["tests/attention-browser.spec.mjs"] }
+    { "scenarioId": "SCN-017-057", "scopeId": "03-brief-tier-render", "scope": 3, "status": "done", "evidenceRefs": ["tests/attention-browser.spec.mjs"] },
+    { "scenarioId": "SCN-017-058", "scopeId": "04-outcome-record-and-interruption-rate", "scope": 4, "status": "done", "evidenceRefs": ["tests/attention-browser.spec.mjs"] },
+    { "scenarioId": "SCN-017-059", "scopeId": "05-legacy-feed-reconciliation-and-acceptance", "scope": 5, "status": "done", "evidenceRefs": ["tests/attention-browser.spec.mjs"] }
   ]
 }

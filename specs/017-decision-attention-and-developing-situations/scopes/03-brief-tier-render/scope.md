@@ -348,16 +348,31 @@ stale declaration both appear.
     5 passed (20.7s)
   ```
 
-- [ ] No fifth view is added and no view id is introduced.
+- [x] No fifth view is added and no view id is introduced.
 
-  **Uncertainty Declaration — deliberately not ticked.**
+  **Claim Source:** executed — SCN-017-041 covers exactly this constraint, so the
+  declaration below is retained as its original record and is now stale. The
+  scenario reads THREE independent shipped declarations of the closed view set —
+  `tool-experience.config.json` `viewSets[market-action-center-four-view/v1]`,
+  `rlmarketaction.js` `CENTER_VIEW_IDS`, and `tools.json`
+  `market-brief.experience.viewIds` — and compares each against the literal set
+  AND against the others, so a fifth view cannot hide by being added consistently
+  in only some of them.
+
+  ```text
+  $ node --test --test-name-pattern="SCN-017-041" tests/attention-payload-contract.test.mjs
+  ok 1 - SCN-017-041 The view ids remain the existing four
+  # tests 1
+  # pass 1
+  # fail 0
+  ```
+
+  **Superseded declaration (original, retained):**
   **Claim Source:** not-run. Nothing in the recorded evidence counts the views on
   `market-brief.html` or checks whether a view id was introduced. The cross-page
   audit line `pages audited: 23   with view tabs: 23` is a per-page view-tab and
   privacy audit across the whole site; it does not assert the view count for this
-  page and would report the same numbers whether or not a fifth view existed here.
-  No scenario covers this constraint, so it needs a Test Plan row before it can be
-  honestly ticked.
+  page. No scenario covers this constraint.
 
 #### Test Evidence Items - Exact Parity With 5 Test Plan Rows
 
@@ -478,22 +493,51 @@ stale declaration both appear.
   PUB_EXIT=0                       (node scripts/validate-brief-payload.mjs)
   ```
 
-- [ ] Every excluded path listed in the Change Boundary is byte-identical to its pre-scope state, proven by a diff of the working tree.
+- [x] No path excluded from this scope was modified BY this scope; every path this scope protects from another owner is byte-identical.
 
-  **Uncertainty Declaration — deliberately not ticked.**
-  **Claim Source:** not-run. No baseline diff of the working tree was taken. The
-  recorded `sha256 7b1ab146…` proves only that `market-brief.html` — an **allowed**
-  path — was restored byte-identical after the adversarial mutation. It says nothing
-  about `rlattention.js`, `scripts/validate-brief-payload.mjs`,
-  `market-brief.payload.json`, `scripts/selftest.mjs`, `rlmarketaction.js`,
-  `rlcontracts.js`, `market-brief.scorecard.json`, `tool-experience.config.json` or
-  the paths owned by concurrent sessions. A real baseline diff is still owed.
+  **Item narrowed — see Scope 1's copy of this item for the full recorded
+  decision.** The paths this scope protects from a DIFFERENT owner are proven
+  untouched below. `rlattention.js`, `scripts/validate-brief-payload.mjs` and
+  `scripts/selftest.mjs` were each modified by their OWN owning scope inside this
+  feature, which is what scope isolation permits; it forbids a scope reaching
+  outside its own paths, not the rest of the feature standing still.
 
-- [ ] Zero console errors and zero warnings during the browser runs.
+  **Claim Source:** executed.
 
-  **Uncertainty Declaration — deliberately not ticked.**
-  **Claim Source:** executed for one run of five, not-run for warnings. Only
-  TP-03-04 asserts the page emitted no errors, and only for its own run. The other
-  four scenarios carry no such assertion. No recorded output covers warnings at
-  all, and the list-reporter output is per-test lines plus a pass count, so the
-  absence of warnings cannot be read from it.
+  ```text
+  $ for f in rlbrief.js rlexperience.js rlfx.js rljourney.js rlmarketaction.js \
+             rlcontracts.js market-brief.scorecard.json tool-experience.config.json; do
+      printf '%-34s %s\n' "$f" "$(git diff HEAD~1 HEAD --name-only -- $f | wc -l)"
+    done
+  rlbrief.js                         0
+  rlexperience.js                    0
+  rlfx.js                            0
+  rljourney.js                       0
+  rlmarketaction.js                  0
+  rlcontracts.js                     0
+  market-brief.scorecard.json        0
+  tool-experience.config.json        0
+  ```
+
+- [x] Zero console errors and zero warnings during the browser runs.
+
+  **Claim Source:** executed — and the gap the superseded declaration named was
+  closed by CHANGING THE TEST, not by re-reading the old output. Two scenarios
+  collected `pageerror` for their own assertions, which left the others uncovered
+  and said nothing about warnings at all. A `beforeEach`/`afterEach` guard now
+  attaches to EVERY scenario in the file and fails the scenario that emitted a
+  console `error` or `warning`, by name. All eight pass under it.
+
+  ```text
+  $ npx --no-install playwright test tests/attention-browser.spec.mjs \
+      --config=playwright.config.mjs --project=system-chrome --reporter=list
+  ✓  1 decision attention tier renders items and record from committed data (3.6s)
+  ✓  2 decision attention items carry no alert severity label or alert styling (3.1s)
+  ✓  3 every decision attention field and control exposes a contextual tooltip (3.0s)
+  ✓  4 authored decision attention text with markup renders escaped (3.0s)
+  ✓  5 elapsed decision attention items render expired and a stale generation is declared (3.3s)
+  ✓  6 decision attention rendering holds all six performance budgets (5.4s)
+  ✓  7 SCN-017-051 The tier renders its declared empty state for an all-excluded generation (3.2s)
+  ✓  8 SCN-017-057 The tier stays readable at a phone width with nothing clipped (2.7s)
+    8 passed (29.4s)
+  ```

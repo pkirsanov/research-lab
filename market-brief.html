@@ -1467,7 +1467,17 @@
                 RLBRIEF.renderNextSession(el("nextSession"), PAYLOAD && PAYLOAD.nextSession, PAYLOAD && PAYLOAD.recommendations, CFG, SNAP);
                 RLBRIEF.renderBackdrop(el("backdrop"), PAYLOAD && PAYLOAD.backdrop);
                 renderAttentionFromPayload();
-                var attention = RLBRIEF.actionableAttention((PAYLOAD && PAYLOAD.attention) || [], CFG.thresholds && CFG.thresholds.minimumAttentionConfidence);
+                /* H-4: the two lists are held to different standards, so they
+                   must not carry the same cards. Anything the decision tier
+                   above already published is removed here — otherwise the
+                   reader meets each item twice on one page, once as a decision
+                   and once as a catalyst, which is the duplication the
+                   re-scope existed to end. */
+                var tierIds = attnItemsOf(PAYLOAD && PAYLOAD.attention).map(function (item) { return item.id; });
+                var catalystsOnly = ((PAYLOAD && PAYLOAD.attention) || []).filter(function (item) {
+                    return !(item && tierIds.indexOf(item.id) !== -1);
+                });
+                var attention = RLBRIEF.actionableAttention(catalystsOnly, CFG.thresholds && CFG.thresholds.minimumAttentionConfidence);
                 RLBRIEF.renderAttention(el("attention"), attention, CFG, CFG.thresholds && CFG.thresholds.attentionMaxCards);
                 RLBRIEF.renderEvents(el("events"), mergeEvents());
                 RLBRIEF.renderGroups(el("groups"), (PAYLOAD && PAYLOAD.groups) || (SNAP && SNAP.groups), CFG);

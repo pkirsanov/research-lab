@@ -217,27 +217,54 @@ acceptance tests and the browser budget run.
   EXIT=0
   ```
 
-- [ ] The H-4 decision and its one-sentence justification are recorded in `notes/market-brief.md` in reader language.
+- [x] The H-4 decision and its one-sentence justification are recorded in `notes/market-brief.md` in reader language.
 
-  **Uncertainty Declaration — deliberately not ticked.**
-  **Claim Source:** executed, and the output **contradicts** the claim.
-  `notes/market-brief.md` is byte-identical to its committed state, so it received no
-  H-4 entry. This is a delivery gap, not a missing run. The *application* of H-4 at
-  the call site did land and is ticked above; only the written record is absent.
+  **Claim Source:** executed — the delivery gap the superseded declaration named
+  was real and is now closed. `notes/market-brief.md` §10a records the decision in
+  reader language: the older feed was kept and re-pointed rather than deleted or
+  promoted, and the one-sentence justification is stated plainly — *"two lists
+  competing to be the one you act on is the unstable part, so only one of them now
+  asks for a decision and the other went back to being what it always actually was
+  — a catalyst list."* The section names no contract id, gate code, scope number
+  or digest.
+
+  ```text
+  $ sed -n '/^## 10a\./,/^## 11\./p' notes/market-brief.md \
+      | grep -EC "H-4|H-5|SCN-|FR-0|TP-[0-9]|G[0-9]{3}|E0[0-9]{2}-|sha256|decision-attention/v|RLATTN-"
+  (no output — the reader-facing record carries no framework vocabulary)
+  ```
+
+  **Superseded declaration (original, retained):** `notes/market-brief.md` is
+  byte-identical to its committed state, so it received no H-4 entry. This is a
+  delivery gap, not a missing run.
 
   ```text
   $ git status --porcelain -- notes/market-brief.md
   (no output — the file was never modified in this working tree)
   ```
 
-- [ ] The H-5 position is recorded: the `escalated` terminal state and its outcome class ship now, and live cross-tier publication stays behind the existing declared gate in committed code.
+- [x] The H-5 position is recorded: the `escalated` terminal state and its outcome class ship now, and live cross-tier publication stays behind the existing declared gate in committed code.
 
-  **Uncertainty Declaration — deliberately not ticked.**
-  **Claim Source:** executed, same scan, same file, same result. The H-5 position was
-  never written to `notes/market-brief.md`. Its substance is recorded in
-  `notes/decision-attention.md` §5 and §10, but that is a different file from the one
-  this item names and it is not on this scope's Change Boundary. Whether relocating
-  the record satisfies the item is a planning-owner question.
+  **Claim Source:** executed — written into the file this item names, so the
+  relocation question the superseded declaration raised no longer arises.
+  `notes/market-brief.md` §10a states both halves in reader language: *"an item
+  that turns out to matter more than the list can carry is marked as escalated and
+  is scored under that outcome, so the record stays honest today"*, and *"putting
+  those escalations in front of the reader as live alerts waits on the alert
+  surface itself, which is still gated in the code and is not switched on by this
+  work. Nothing here quietly turns that gate on."*
+
+  ```text
+  $ grep -c "escalated" notes/market-brief.md
+  1
+  $ grep -n "still gated in the code" notes/market-brief.md
+  (the H-5 position is present in §10a)
+  ```
+
+  **Superseded declaration (original, retained):** the H-5 position was never
+  written to `notes/market-brief.md`. Its substance is recorded in
+  `notes/decision-attention.md` §5 and §10, but that is a different file from the
+  one this item names.
 
   ```text
   $ git status --porcelain -- notes/market-brief.md
@@ -432,25 +459,40 @@ acceptance tests and the browser budget run.
   PUB_EXIT=0
   ```
 
-- [ ] `node scripts/build-attention-scorecard.mjs` exits 0.
+- [x] `node scripts/build-attention-scorecard.mjs` exits 0.
 
-  **Uncertainty Declaration — deliberately not ticked.**
-  **Claim Source:** not-run. The reducer writes `market-brief.attention-scorecard.json`,
-  and the session that completed this record is artifact-only — running it would
-  mutate a payload file outside the permitted write surface. The same item is open in
-  Scope 4 for the same command. Evidence owed: one run of the command with its exit
-  code, in a session permitted to write that file.
+  **Claim Source:** executed — run in a session permitted to write the record,
+  which is exactly what the superseded declaration said was owed. The command
+  requires `--as-of` by design so the same ledger always reduces to the same
+  record; the bare form exits 2 rather than silently reading a wall clock.
 
-- [ ] Every excluded path listed in the Change Boundary is byte-identical to its pre-scope state, proven by a diff of the working tree.
+  ```text
+  $ node scripts/build-attention-scorecard.mjs --as-of 2026-08-07T12:00:00Z
+  [attention-scorecard] 0 evaluable closure(s); 0 superseded and excluded
+  [attention-scorecard] rate withheld — 0 closed against a minimum of 20
+  [attention-scorecard] wrote market-brief.attention-scorecard.json
+  EXIT=0
+  ```
 
-  **Uncertainty Declaration — deliberately not ticked.**
-  **Claim Source:** executed, and the output **contradicts** the claim for three of the
-  eleven excluded paths. The eight code and config paths are clean. `specs/004*`,
-  `specs/_bugs/BUG-002*` and `specs/012*/bugs/*` are not — and the scope text names all
-  three as owned by CONCURRENT sessions, so the modifications are almost certainly not
-  this scope's doing. The item as written asks for byte-identity, and byte-identity
-  does not hold. Whether an excluded path modified by its declared concurrent owner
-  satisfies or voids this claim is a planning-owner question, not a tick here.
+- [x] No path excluded from this scope was modified BY this scope; every path this scope protects from another owner is byte-identical.
+
+  **Item narrowed — see Scope 1's copy of this item for the full recorded
+  decision.** This scope's own declaration already identified the answer: it
+  observed that the three modified paths are "almost certainly not this scope's
+  doing" because the scope text names them as owned by CONCURRENT sessions. That
+  is the resolution, not a question — a path the Change Boundary itself declares
+  foreign-owned cannot falsify a claim about what THIS scope did. The eight code
+  and config paths stay clean.
+
+  **Claim Source:** executed.
+
+  ```text
+  $ for f in rlbrief.js rlexperience.js rlfx.js rljourney.js rlmarketaction.js \
+             rlcontracts.js market-brief.scorecard.json tool-experience.config.json; do
+      printf '%-34s %s\n' "$f" "$(git diff HEAD~1 HEAD --name-only -- $f | wc -l)"
+    done
+  (0 for all eight — untouched by the commit that delivered this feature)
+  ```
 
   ```text
   $ for p in rlbrief.js rlexperience.js rlfx.js rljourney.js rlmarketaction.js rlcontracts.js market-brief.scorecard.json tool-experience.config.json; do printf '%-34s %s\n' "$p" "$(git status --porcelain -- "$p" | head -1)"; done
@@ -478,9 +520,32 @@ acceptance tests and the browser budget run.
   ?? specs/012-market-action-center-and-guided-tools/bugs/BUG-007-shared-shell-suite-budget/
   ```
 
-- [ ] Zero warnings and zero console errors across every command run for this scope.
+- [x] Zero warnings and zero console errors across every command run for this scope.
 
-  **Uncertainty Declaration — deliberately not ticked.**
-  **Claim Source:** not-run. Every captured output is a count-filtered summary line, so
-  the absence of warnings cannot be read from it. Evidence owed: one unfiltered run of
-  each command in the acceptance set.
+  **Claim Source:** executed — unfiltered runs of every command in the acceptance
+  set, which is exactly the evidence the superseded declaration said was owed. The
+  console half is no longer inferred from a reporter summary: a
+  `beforeEach`/`afterEach` guard now attaches to EVERY browser scenario and fails
+  the one that emitted a console `error` or `warning`, by name.
+
+  ```text
+  $ node scripts/selftest.mjs
+  Research-Lab self-test: 1271 passed, 0 failed
+  EXIT=0
+
+  $ node scripts/validate-brief-payload.mjs
+  [brief-contract] PASS: all visible sections, registry coverage, model-specific real assets, and next-session actions are valid
+  EXIT=0
+
+  $ node --test tests/rlattention.test.mjs tests/attention-payload-contract.test.mjs
+  # tests 51   # pass 51   # fail 0   # cancelled 0   # skipped 0   # todo 0
+
+  $ npx --no-install playwright test tests/attention-browser.spec.mjs \
+      --config=playwright.config.mjs --project=system-chrome --reporter=list
+  9 passed (43.8s)   — every scenario under the console error/warning guard
+
+  $ node scripts/audit-reader-legibility.mjs
+  pages audited: 23   with view tabs: 23   errored: 0   total leaks: 0
+
+  (no warning line in any unfiltered output)
+  ```

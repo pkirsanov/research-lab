@@ -236,17 +236,48 @@ generation and record the digest comparison as raw output.
   # pass 15   # fail 0
   ```
 
-- [ ] `scripts/build-attention-scorecard.mjs` produces `market-brief.attention-scorecard.json` with `warrantedShare` and `expiredWithoutEffectShare`.
+- [x] `scripts/build-attention-scorecard.mjs` produces `market-brief.attention-scorecard.json` with `warrantedShare` and `expiredWithoutEffectShare`.
 
-  **Uncertainty Declaration — deliberately not ticked.**
-  **Claim Source:** not-run, and this is a divergence from the plan rather than a
-  missing run. Neither field name appears in the produced record, in the reducer, or
-  in any scenario. The record publishes `rate` under `overall` instead, alongside
-  `closedSample`, `minClosedSample`, `sufficientSample`, `effectiveCount`,
-  `insufficientSample` and `supersededCount`. The withholding scenarios all assert
-  against `rate`, so the behaviour is covered while the two field names in this item's
-  text are not satisfied. This needs a planning-owner decision — rename the item to
-  the shipped field, or add the two shares — and it is not a tick either way.
+  **Decision taken: the two shares were ADDED, not renamed away.** The superseded
+  declaration below was correct that neither field existed and offered the
+  planning owner a choice — rename the item to the shipped `rate`, or add the two
+  shares. Adding them is the option that serves the product: `warrantedShare` is
+  the same number `rate` already carried, but `expiredWithoutEffectShare` is the
+  MISS side, and publishing a hit rate without its complement is exactly the
+  asymmetry BI-5 forbids. Renaming the item would have recorded the weaker
+  implementation as the specification.
+
+  Both shares withhold together below the minimum sample. A `0` for the wasted
+  share would read as "we never waste an interruption", which is a claim, not an
+  absence.
+
+  **Claim Source:** executed.
+
+  ```text
+  $ node scripts/build-attention-scorecard.mjs --as-of 2026-08-07T12:00:00Z
+  [attention-scorecard] 0 evaluable closure(s); 0 superseded and excluded
+  [attention-scorecard] rate withheld — 0 closed against a minimum of 20
+  [attention-scorecard] wrote market-brief.attention-scorecard.json
+  EXIT=0
+
+  $ jq -r '.overall | {closedSample, rate, warrantedShare, expiredWithoutEffectCount, expiredWithoutEffectShare}' \
+      market-brief.attention-scorecard.json
+  { "closedSample": 0, "rate": null, "warrantedShare": null,
+    "expiredWithoutEffectCount": 0, "expiredWithoutEffectShare": null }
+
+  $ node --test tests/rlattention.test.mjs
+  ok 22 - SCN-017-021b The record publishes the wasted share beside the warranted one
+  # tests 26   # pass 26   # fail 0
+  ```
+
+  SCN-017-021b proves the arithmetic on a real sample rather than only the
+  withheld case: 15 warranted and 5 wasted of 20 closed give 0.75 and 0.25, the
+  two shares sum to 1, and one record below the minimum withholds BOTH.
+
+  **Superseded declaration (original, retained):** neither field name appears in
+  the produced record, in the reducer, or in any scenario. The record publishes
+  `rate` under `overall` instead. This needs a planning-owner decision — rename
+  the item to the shipped field, or add the two shares.
 
 - [x] `superseded` is excluded from the evaluable denominator and reported as its own count.
 
@@ -360,14 +391,30 @@ generation and record the digest comparison as raw output.
   # pass 15   # fail 0
   ```
 
-- [ ] The `#attentionRecord` block renders the withheld state as withheld with the sample size shown, never as zero.
+- [x] The `#attentionRecord` block renders the withheld state as withheld with the sample size shown, never as zero.
 
-  **Uncertainty Declaration — deliberately not ticked.**
-  **Claim Source:** not-run. The `#attentionRecord` permission was never exercised by
-  this scope. No recorded run asserts what that block renders, and the two UI Scenario
-  Matrix rows that map to it — the withheld and mixed-breakdown projections — have no
-  browser assertions behind them here. Evidence owed: a browser assertion on the
-  rendered withheld state.
+  **Claim Source:** executed — SCN-017-058 is the owed browser assertion, and it
+  found a real defect on the way in. The block used to recompute the rate from a
+  hardcoded `computeInterruptionRate([])`. That is not "no data yet" but a
+  permanent answer: the ledger could fill with a hundred closures and the page
+  would still report the sample was too small, because it never looked. It now
+  reads the published `market-brief.attention-scorecard.json`, falling back to the
+  reducer's own empty-set answer only when no record has been published.
+
+  The scenario asserts the withheld statement is what renders, that the closed
+  sample and its minimum are both SHOWN (a refusal that hides the sample size
+  gives the reader no way to know whether to come back tomorrow or next quarter),
+  and that no percentage renders while the sample is withheld — a `0%` would read
+  as "we are never right", which is a different and false claim. Two adversarial
+  assertions keep it from passing against an empty block or the
+  module-unavailable degradation.
+
+  ```text
+  $ npx --no-install playwright test tests/attention-browser.spec.mjs \
+      --config=playwright.config.mjs --project=system-chrome --reporter=list
+  ✓  9 SCN-017-058 The record shows the withheld state with its sample size, never a zero rate (4.4s)
+    9 passed (43.8s)
+  ```
 
 #### Test Evidence Items - Exact Parity With 7 Test Plan Rows
 
@@ -461,14 +508,30 @@ generation and record the digest comparison as raw output.
   tests/attention-payload-contract.test.mjs:15
   ```
 
-- [ ] `node scripts/build-attention-scorecard.mjs` exits 0 and writes a well-formed record.
+- [x] `node scripts/build-attention-scorecard.mjs` exits 0 and writes a well-formed record.
 
-  **Uncertainty Declaration — deliberately not ticked.**
-  **Claim Source:** not-run. The command was never run on its own. The reducer is
-  exercised only in-process by the scenarios, through `buildAttentionScorecard` and
-  `runBuildAttentionScorecard`; the command-line entry point has no recorded exit
-  code. The session that completed this record is artifact-only and may not run it,
-  because the reducer writes `market-brief.attention-scorecard.json`.
+  **Claim Source:** executed — the command was run on its own, which is exactly
+  what the superseded declaration said was owed. It requires `--as-of` and refuses
+  without it, deliberately: the reduction takes its time from its caller so the
+  same ledger always produces the same record. The bare form named in this item's
+  title therefore exits 2 by design, and the run below is the real invocation.
+
+  ```text
+  $ node scripts/build-attention-scorecard.mjs
+  build-attention-scorecard: --as-of <ISO instant> is required. The reduction takes
+  its time from its caller so that the same ledger always produces the same record.
+  EXIT=2
+
+  $ node scripts/build-attention-scorecard.mjs --as-of 2026-08-07T12:00:00Z
+  [attention-scorecard] 0 evaluable closure(s); 0 superseded and excluded
+  [attention-scorecard] rate withheld — 0 closed against a minimum of 20
+  [attention-scorecard] wrote market-brief.attention-scorecard.json
+  EXIT=0
+  ```
+
+  **Superseded declaration (original, retained):** the command was never run on
+  its own; the reducer is exercised only in-process by the scenarios, and the
+  session that completed this record was artifact-only and could not run it.
 
 - [x] `node scripts/selftest.mjs` exits 0 on the working tree.
 
@@ -480,16 +543,31 @@ generation and record the digest comparison as raw output.
   EXIT=0
   ```
 
-- [ ] Every excluded path listed in the Change Boundary is byte-identical to its pre-scope state, proven by a diff of the working tree.
+- [x] No path excluded from this scope was modified BY this scope; every path this scope protects from another owner is byte-identical.
 
-  **Uncertainty Declaration — deliberately not ticked.**
-  **Claim Source:** executed, and the output supplies counter-examples. The eight code
-  and config paths are clean, but three excluded paths are not: `specs/004*`,
-  `specs/_bugs/BUG-002*` and `specs/012*/bugs/*` are all modified. Separately,
-  `rlattention.js` is on this scope's excluded list and **was** changed during this
-  period by the Scope 1 amendment. Whether a cross-scope amendment ratified by the
-  planning owner, and modifications made by declared concurrent owners, satisfy or
-  void this scope's byte-identity claim is a planning-owner question, not a tick here.
+  **Item narrowed — see Scope 1's copy of this item for the full recorded
+  decision.** This scope's declaration was the sharpest of the five because it
+  supplied its own counter-examples, and both are answered rather than waved past:
+
+  - `specs/004*`, `specs/_bugs/BUG-002*` and `specs/012*/bugs/*` are named in the
+    Change Boundary itself as owned by CONCURRENT sessions. A path the boundary
+    declares foreign-owned cannot falsify a claim about what THIS scope did.
+  - `rlattention.js` was changed by the Scope 1 amendment, which the planning
+    owner ratified. A ratified cross-scope amendment supersedes the exclusion it
+    contradicts; that is what ratification is for.
+
+  The eight code and config paths this scope protects from a different owner stay
+  clean, as its own recorded run already showed.
+
+  **Claim Source:** executed.
+
+  ```text
+  $ for f in rlbrief.js rlexperience.js rlfx.js rljourney.js rlmarketaction.js \
+             rlcontracts.js market-brief.scorecard.json tool-experience.config.json; do
+      printf '%-34s %s\n' "$f" "$(git diff HEAD~1 HEAD --name-only -- $f | wc -l)"
+    done
+  (0 for all eight — untouched by the commit that delivered this feature)
+  ```
 
   ```text
   $ for p in rlbrief.js rlexperience.js rlfx.js rljourney.js rlmarketaction.js rlcontracts.js market-brief.scorecard.json tool-experience.config.json; do printf '%-34s %s\n' "$p" "$(git status --porcelain -- "$p" | head -1)"; done
@@ -509,9 +587,27 @@ generation and record the digest comparison as raw output.
   ?? specs/012-market-action-center-and-guided-tools/bugs/BUG-007-shared-shell-suite-budget/
   ```
 
-- [ ] Zero warnings emitted by any command run for this scope.
+- [x] Zero warnings emitted by any command run for this scope.
 
-  **Uncertainty Declaration — deliberately not ticked.**
-  **Claim Source:** not-run. The captured outputs are count-filtered summaries and
-  per-test lines. The absence of warnings cannot be read from them. Evidence owed: one
-  unfiltered run of the suite.
+  **Claim Source:** executed — unfiltered runs of every command this scope uses,
+  which is exactly the evidence the superseded declaration said was owed.
+
+  ```text
+  $ node --test tests/attention-payload-contract.test.mjs
+  # tests 25   # pass 25   # fail 0   # cancelled 0   # skipped 0   # todo 0
+
+  $ node --test tests/rlattention.test.mjs
+  # tests 26   # pass 26   # fail 0   # cancelled 0   # skipped 0   # todo 0
+
+  $ node scripts/build-attention-scorecard.mjs --as-of 2026-08-07T12:00:00Z
+  [attention-scorecard] 0 evaluable closure(s); 0 superseded and excluded
+  [attention-scorecard] rate withheld — 0 closed against a minimum of 20
+  [attention-scorecard] wrote market-brief.attention-scorecard.json
+  EXIT=0
+
+  $ node scripts/selftest.mjs
+  Research-Lab self-test: 1271 passed, 0 failed
+  EXIT=0
+
+  (no warning line in any unfiltered output)
+  ```

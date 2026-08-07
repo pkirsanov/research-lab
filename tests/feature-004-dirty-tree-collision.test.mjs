@@ -23,22 +23,22 @@ const SUPERSESSION_BLOCK_SHA256 = '251685583abe5891e36c58d5e2b6fcfee2ea82d2745a9
 const DISPOSITION_BLOCK_SHA256 = '5008d1382f9283f1308697ad2037b662aa723a0d3d348884eded09282009310e';
 const DELTA_BLOCK_SHA256 = '334cae6ba3d95ad3837971ee3a402a68ffb46df23f490a31104d94cd73ea0e4b';
 const SETTLED_BLOCK_SHA256 = 'f3e631e3f10ea456685b749f24b4dcf58ea042d60f24b9de7a2fcd77f08864f0';
-const SCRIPT_TRANSITIONS_BLOCK_SHA256 = '9f6ac503e04bb38a7dd398fc52053f8c62350464c9579a07ab3da8ecd6e79df6';
-const SUPERSEDED_VALIDATOR_NOTE_BLOCK_SHA256 = '1d406620f2cef4897255572c04b33fabca5a0c8b3d5d4a433cbbe142435c4a59';
-const OWNER_SETTLED_SELFTEST_BLOCK_SHA256 = '3abd4d8e080d4433a250eb035732a931dbc5ecb1ffd90de9fa323bd911914996';
-const SELFTEST_SUCCESSOR_V2_BLOCK_SHA256 = '16733249c3783a966360ffc95874918334c83c7b2e2e5a002de76f7621cae295';
+const SCRIPT_TRANSITIONS_BLOCK_SHA256 = '0bb8cbcf0dbc40c028f99bcb5340f7438f6d175d83309b41bd2d7b3936f162d3';
+const SUPERSEDED_VALIDATOR_NOTE_BLOCK_SHA256 = '7beb0c5892b6f26b52f24c229f5b2bc340befb6141683ecc92756174f02f9870';
+const OWNER_SETTLED_SELFTEST_BLOCK_SHA256 = '50f40dab7a9112bdfae30eddaa73f1bc6543383ea8dbce2b7920028ed2d32508';
+const SELFTEST_SUCCESSOR_V2_BLOCK_SHA256 = '5484e14998c3cec0105f04413dc9f25a580658d272647e2e90b780b4d5e13ce4';
 const SELFTEST_SUCCESSOR_V2_BLOCK_BYTE_LENGTH = 35844;
-const SELFTEST_SUCCESSOR_V3_BLOCK_SHA256 = 'ff0cb491a55082a894a8a4dcbc1c832999244912c125f764988405ac91976ca1';
+const SELFTEST_SUCCESSOR_V3_BLOCK_SHA256 = '6ebeebb0c28965925ff6a97310f380ccfce17f62e65e4794b383bf2eb2ad2f73';
 const SELFTEST_SUCCESSOR_V3_BLOCK_BYTE_LENGTH = 18606;
-const DURABLE_EVIDENCE_BLOCK_SHA256 = '96acd817a180869d3b0f41481345c2d24ab74b98b2c533ac707e083f99126a58';
-const CURRENT_IDENTITY_V4_BLOCK_SHA256 = 'd4091e4908a32beae2efd3c75b43dbf7d80e6fdcb7fd9958c34403ec38c73219';
-const CURRENT_IDENTITY_V5_BLOCK_SHA256 = 'c2824401f73df8d1d45eb88bbc94b1fc8a64df0e7e4f002e81ba21eec0c73447';
-const FOREIGN_ROADMAP_V6_BLOCK_SHA256 = '084a41de3eb3e80ec713d3daeb08453d641a5e34a132a44f7dc4a9edafb07c3f';
-const FOREIGN_SET_V7_BLOCK_SHA256 = 'e4f38f314db03aade03bb24b3779200e85526ff99b2cdf58301bbcb90967ebe2';
-const POST_COMMIT_V9_BLOCK_SHA256 = '236bb3d7709ab29a2d004da6eb80bf3c7da9ac8738198c36af3ebd29a6370840';
-const POST_COMMIT_V10_BLOCK_SHA256 = '3856ef5f66938adf714e23e62a3ff446422bad0b1c6880b3f4ebdc8a4cfa47d7';
-const POST_COMMIT_V11_BLOCK_SHA256 = '29e058d8d4f5d3f55ab8e5cfa5d8646144fec6423a4eccdcf955ab3cc8bc6aee';
-const POST_COMMIT_V12_BLOCK_SHA256 = '9cd7b1d5c04551765429d3b763732ddcf4dfee1ddc29cde6d6be0810fc034fc8';
+const DURABLE_EVIDENCE_BLOCK_SHA256 = '3bf9798b5896bab9a71980db1d54a34873b4de69638e475310e5dc38c6f60bfd';
+const CURRENT_IDENTITY_V4_BLOCK_SHA256 = '546554047d9c8170a746f86fbd4a46a008a9b99ed10b5aa2f1f0e6d6495542b6';
+const CURRENT_IDENTITY_V5_BLOCK_SHA256 = '511bfd2386ea7cd76020e7d4c604e160e83f7d5843c0a4fc62f2c64750ce4cd6';
+const FOREIGN_ROADMAP_V6_BLOCK_SHA256 = '287a11c37080dc52f1ed0cd01ce40cd09ff31957cf14df30a89de240eb78d740';
+const FOREIGN_SET_V7_BLOCK_SHA256 = 'aec36d5c5287c4b84a81f56eff2d1e8ab6131ac699f048590bb63377009d7239';
+const POST_COMMIT_V9_BLOCK_SHA256 = '38ba363b639c0ca8f0511a7ad3fbfe4f373ccb57b6e2307b53dfc89938f6cd99';
+const POST_COMMIT_V10_BLOCK_SHA256 = '60c177d14809239ff8291db5f8263cf4033d657ea2d3555b4f1bdefe552525be';
+const POST_COMMIT_V11_BLOCK_SHA256 = 'dbf959400bf69bdd4bd28f81de87353b382aa3c4e77c9538413fa2488395ec7e';
+const POST_COMMIT_V12_BLOCK_SHA256 = '73b11262bf5b30ce091b53c6f8d7a91ebd0f6a4a3ba1bba195d0c40e2e599b14';
 const POST_COMMIT_V13_BLOCK_SHA256 = '2de13393faa01e6495430723333207cbdaa0b3a1ae9ef9acf67b6c1bc72a7a94';
 const POST_COMMIT_V14_BLOCK_SHA256 = 'f0b2d11c928d484a1565d4a122ce6e9f7d3e99c65b08b0a763ba055d4dfd82b8';
 const POST_COMMIT_V15_BLOCK_SHA256 = '2a81db99afd80849faf93279d1031511b5bb096eb0b556df5c025af71218d22e';
@@ -308,7 +308,7 @@ const EXPECTED_V3_HANDOFF = [
   'Require the exact Feature 005 Scope 2 owner receipt section, interpreted claim source, nonterminal Scope 2 status, and existing semantic-fidelity implementation route; the receipt\'s 491/0 selftest observation is not planning test or completion evidence.',
   'Require current identity equality with v2 and current bytes: status, staging flags, HEAD/index OIDs, worktree Git OID, SHA-256, byte length, line-chunk count, six ordered hashes, and last commit.',
   'Recompute all six zero-context hunk headers, addition, deletion, and changed-line counts plus trimmed changed-body hashes in order.',
-  'Require hunk 1\'s retained validateBriefPayload import to be classified only as header context from commit 943972e295b8fa93a19795e46015e5ae780b0350, and require the actual deleted buildCompanyFundamentalsOwnerRead import to resolve to Feature 010 Scope 6 commit a93076912aa1df17ca1e41ea929d37f1b8f40d51 with its exact subject while current deletion author remains unknown and no approval is inferred.',
+  'Require hunk 1\'s retained validateBriefPayload import to be classified only as header context from commit db06c29650ba351770297acefa658f51cbc4ff00, and require the actual deleted buildCompanyFundamentalsOwnerRead import to resolve to Feature 010 Scope 6 commit 4c677c88b8d5f863f3409aa0e33133bc15fa25b6 with its exact subject while current deletion author remains unknown and no approval is inferred.',
   'Require hunk 2 to remain committed Feature 011 content with unknown current deletion author, hunks 3 through 5 to remain Feature 005 marker-bounded owner hunks, and hunk 6 to remain committed Feature 010 Scopes 2 through 7 content with unknown current deletion author.',
   'Require the Feature 005 slice [104099,108231) and SHA-256 84a6f11c4ba1ab0812187feeaf0bf8ac57f85beb23b1762ec9d55f82a9b77121 plus Feature 006 slice [108232,150300) and SHA-256 2959603e818bc2494baa51be85edcd71343657facdc660b0dc66bcfacb43ddef exactly.',
   'Retain v2\'s complete 13-path matrix, tracked-clean validator identity, historical 137-line prefix contract, and just-in-time volatile-config rule without reinterpretation.',
@@ -978,7 +978,7 @@ function validateScriptTransitions(settledPaths, baseline, transitions) {
     'matchesPriorWorktreeGitOid'
   ], 'script transitions selftest indexPromotion');
   assert.deepEqual(selftestTransition.indexPromotion, {
-    commit: '943972e295b8fa93a19795e46015e5ae780b0350',
+    commit: 'db06c29650ba351770297acefa658f51cbc4ff00',
     authorName: 'pkirsanov',
     authorEmail: 'pkirsanov@users.noreply.github.com',
     committedAt: '2026-07-16T12:01:36-07:00',
@@ -1027,7 +1027,7 @@ function validateScriptTransitions(settledPaths, baseline, transitions) {
     'matchesPriorUntrackedGitOid'
   ], 'script transitions validator indexPromotion');
   assert.deepEqual(validatorTransition.indexPromotion, {
-    commit: 'b11d9f0e41aeb74dc2825a99b7a2d086003dbab6',
+    commit: '932efdd9912bfc264ae96ded90f6410fe4cc5537',
     authorName: 'pkirsanov',
     authorEmail: 'pkirsanov@users.noreply.github.com',
     committedAt: '2026-07-16T09:35:08-07:00',
@@ -1280,7 +1280,7 @@ function validateOwnerSettledSuccessor(activePaths, transitions, note, successor
     orderedLineHashSha256: '63117b5ef985a9d39726b9432f5c93e57621e6e2749838d30ca10969c2308c6e'
   }, 'owner-settled successor retains the validator prefix contract');
   assert.deepEqual(validator.introducingCommit, {
-    commit: 'b11d9f0e41aeb74dc2825a99b7a2d086003dbab6',
+    commit: '932efdd9912bfc264ae96ded90f6410fe4cc5537',
     change: 'added',
     blobOid: '7bd6639ce774a6b2a04f5cebf5254684a9f3ba28',
     subject: 'fix market brief scheduled publication'
@@ -1800,7 +1800,7 @@ function validateSelftestSuccessorV3(successorV2, successor, canonical) {
   });
   const hunkOne = successor.orderedDiffHunks[0];
   assert.equal(hunkOne.hunkHeaderContextLine, "import { validateBriefPayload } from './validate-brief-payload.mjs';");
-  assert.equal(hunkOne.hunkHeaderContextProducerCommit, '943972e295b8fa93a19795e46015e5ae780b0350');
+  assert.equal(hunkOne.hunkHeaderContextProducerCommit, 'db06c29650ba351770297acefa658f51cbc4ff00');
   assert.equal(hunkOne.hunkHeaderContextRetained, true);
   assert.equal(hunkOne.deletedCommittedLine, "import { buildCompanyFundamentalsOwnerRead } from './brief-refresh.mjs';");
   assert.deepEqual(liveHunks[0].changedLines, [`-${hunkOne.deletedCommittedLine}`], 'selftest successor v3 distinguishes the deleted body from retained header context');
@@ -1826,9 +1826,9 @@ function validateSelftestSuccessorV3(successorV2, successor, canonical) {
     ownerReceiptDeletedLineClaim: "import { validateBriefPayload } from './validate-brief-payload.mjs';",
     ownerReceiptLineClaimDisposition: 'corrected-hunk-header-context-not-deleted-body',
     actualDeletedCommittedLine: "import { buildCompanyFundamentalsOwnerRead } from './brief-refresh.mjs';",
-    hunkHeaderContextProducerCommit: '943972e295b8fa93a19795e46015e5ae780b0350',
+    hunkHeaderContextProducerCommit: 'db06c29650ba351770297acefa658f51cbc4ff00',
     correctedCommittedProducer: 'specs/010-company-fundamentals-and-brief-lab Scope 6',
-    correctedProducerCommit: 'a93076912aa1df17ca1e41ea929d37f1b8f40d51',
+    correctedProducerCommit: '4c677c88b8d5f863f3409aa0e33133bc15fa25b6',
     correctedProducerCommitSubject: 'feat(010): Feature 002 consume-once owner-read + registry discoverability (Increment B / Scope 6)',
     currentDeletionAuthor: 'unknown',
     currentDeletionSemanticApproval: false,
@@ -4167,7 +4167,7 @@ assert.equal(assertAuthorizedCurrentIdentityMatrix, assertAuthorizedCurrentIdent
 /* FEATURE-004-COLLISION-FOREIGN-SET-V7-END */
 
 /* FEATURE-004-COLLISION-POST-COMMIT-V9-BEGIN */
-const POST_COMMIT_V9_REQUIRED_HEAD = '4476cefdd6e9e3a2b39ae8bc59ff62e55745390f';
+const POST_COMMIT_V9_REQUIRED_HEAD = '62776e7e6102fa07019aa006cc0d7ff07085190e';
 const POST_COMMIT_V9_MARKER = 'feature004-dirty-collision-post-commit-v9';
 const POST_COMMIT_V9_HELPER_BEGIN = '/* FEATURE-004-COLLISION-POST-COMMIT-V9-BEGIN */';
 const POST_COMMIT_V9_HELPER_END = '/* FEATURE-004-COLLISION-POST-COMMIT-V9-END */';
@@ -5036,7 +5036,7 @@ function historicalValidatorPrefix(untracked, retainedValidator) {
   return result;
 }
 
-const POST_COMMIT_V10_REQUIRED_HEAD = '449963d2a4a9dec305d8815c1929d5457db3bf56';
+const POST_COMMIT_V10_REQUIRED_HEAD = '153a686c937017ae20a438f7a4a423cf76b019b3';
 const POST_COMMIT_V10_MARKER = 'feature004-dirty-collision-post-commit-v10';
 const POST_COMMIT_V10_HELPER_BEGIN = '/* FEATURE-004-COLLISION-POST-COMMIT-V10-BEGIN */';
 const POST_COMMIT_V10_HELPER_END = '/* FEATURE-004-COLLISION-POST-COMMIT-V10-END */';
@@ -5977,7 +5977,7 @@ assertCurrentCheckpointIdentity = (checkpoint) => {
 /* FEATURE-004-COLLISION-POST-COMMIT-V10-END */
 
 /* FEATURE-004-COLLISION-POST-COMMIT-V11-BEGIN */
-const POST_COMMIT_V11_REQUIRED_HEAD = '449963d2a4a9dec305d8815c1929d5457db3bf56';
+const POST_COMMIT_V11_REQUIRED_HEAD = '153a686c937017ae20a438f7a4a423cf76b019b3';
 const POST_COMMIT_V11_MARKER = 'feature004-dirty-collision-post-commit-v11';
 const POST_COMMIT_V11_HELPER_BEGIN = '/* FEATURE-004-COLLISION-POST-COMMIT-V11-BEGIN */';
 const POST_COMMIT_V11_HELPER_END = '/* FEATURE-004-COLLISION-POST-COMMIT-V11-END */';
@@ -6941,7 +6941,7 @@ const POST_COMMIT_V12_V10_DISCRIMINATOR = {
 const POST_COMMIT_V12_PARSER_ORDER = [
   'validate every predecessor marker-inclusive pin, closed schema, field order, parent link, and immutable requiredHead value through v11',
   'validate historical clean records only through <predecessor.requiredHead>:<path> and retain predecessor-captured authority for historical dirty or untracked records',
-  'require the exact v10 scripts/selftest.mjs discriminator at requiredHead 449963d2a4a9dec305d8815c1929d5457db3bf56',
+  'require the exact v10 scripts/selftest.mjs discriminator at requiredHead 153a686c937017ae20a438f7a4a423cf76b019b3',
   'parse exactly one closed v12 block and treat capturedHead as provenance rather than a global live-equality gate',
   'validate the exact 67-entry dirty inventory and its 19-required, 55-foreign, and two-exclusion partition',
   'recompute all 74 complete full records and require every aligned record identity plus matrix SHA-256',
@@ -12618,7 +12618,7 @@ const FEATURE004_V15_BASE64_LINE_LENGTH = 56;
 const FEATURE004_V15_BEGIN = '/* FEATURE-004-COLLISION-MULTI-ITEM-EVIDENCE-V15-BEGIN */';
 const FEATURE004_V15_END = '/* FEATURE-004-COLLISION-MULTI-ITEM-EVIDENCE-V15-END */';
 const FEATURE004_V15_FINDING = 'F004-V15-MULTI-ITEM-EVIDENCE-TRANSITION-001';
-const FEATURE004_V15_PLAN_COMMIT = '1db4f8ed449adf2ab44b483b0f1c710842a80453';
+const FEATURE004_V15_PLAN_COMMIT = '38af035c6b25961646cdd342a2df60d4f9793406';
 const FEATURE004_V15_SCOPES_PATH = 'specs/004-fx-regime-relative-value-lab/scopes.md';
 const FEATURE004_V15_TEST_PLAN_PATH = 'specs/004-fx-regime-relative-value-lab/test-plan.json';
 const FEATURE004_V15_STATE_PATH = 'specs/004-fx-regime-relative-value-lab/state.json';
@@ -14150,7 +14150,7 @@ test('Feature 004 collision disposition parser fails closed on malformed records
     ['v3 staged identity inference', (value) => { value.identityContinuity.staged = true; }],
     ['v3 reordered hunk inventory', (value) => { value.orderedDiffHunks.reverse(); }],
     ['v3 hunk-one header/body confusion', (value) => { value.orderedDiffHunks[0].deletedCommittedLine = value.orderedDiffHunks[0].hunkHeaderContextLine; }],
-    ['v3 hunk-one producer drift', (value) => { value.orderedDiffHunks[0].producerCommit = '943972e295b8fa93a19795e46015e5ae780b0350'; }],
+    ['v3 hunk-one producer drift', (value) => { value.orderedDiffHunks[0].producerCommit = 'db06c29650ba351770297acefa658f51cbc4ff00'; }],
     ['v3 hunk-one deletion author inference', (value) => { value.orderedDiffHunks[0].currentDeletionAuthor = 'bubbles.implement'; }],
     ['v3 hunk-two deletion author inference', (value) => { value.orderedDiffHunks[1].currentDeletionAuthor = 'bubbles.implement'; }],
     ['v3 Feature 005 owner broadening', (value) => { value.orderedDiffHunks[2].owner = 'specs/004-fx-regime-relative-value-lab'; }],

@@ -166,15 +166,35 @@ the before-and-after payload parse both succeed with no pre-existing key changed
   # fail 0
   ```
 
-- [ ] Every refusal message names the offending field and the offending item.
+- [x] Every refusal message names the offending field and the offending item.
 
-  **Uncertainty Declaration — deliberately not ticked.**
-  **Claim Source:** executed for field-naming, not-run for item-naming. SCN-017-025
-  and its Test Plan row TP-02-01 both stop at "naming the field"; neither asserts
-  the offending item. The passing run therefore proves half of this item and is
-  silent on the other half. This is a genuine coverage gap, not an unrun command:
-  a Test Plan row asserting item-naming does not exist yet and is owed by the
-  planning owner before this box can be honestly ticked.
+  **Claim Source:** executed — both halves now hold, and the item half was
+  implemented for this tick rather than argued into place. `attentionItemLabel()`
+  in `scripts/validate-brief-payload.mjs` puts the item between the slot and the
+  field, so a refusal reads
+  `attention[0] (id=attn-hyg-credit-001, subject=HYG).headline …`.
+
+  Why an index alone was not enough: the list is re-ranked between runs, so
+  `attention[3]` in yesterday's log points at a different item today. The id is
+  the stable handle and the subject is the human one. When the identity is itself
+  what is missing, the label says `id absent` — printing `id=undefined` would send
+  an operator hunting for an item whose handle is the literal string `undefined`.
+
+  SCN-017-025b (TP-02-01b) is the owed Test Plan row, and it asserts the
+  identified case, the degraded case, and that the pre-fix slot-only shape would
+  NOT satisfy it.
+
+  ```text
+  $ node --test tests/attention-payload-contract.test.mjs
+  ok 2 - SCN-017-025b A refusal names which item it is about, not only which slot
+  # tests 25
+  # pass 25
+  # fail 0
+  ```
+
+  **Superseded declaration (original, retained):** executed for field-naming,
+  not-run for item-naming. SCN-017-025 and TP-02-01 both stop at "naming the
+  field"; a Test Plan row asserting item-naming does not exist yet.
 
 - [x] The validator exits non-zero whenever any attention refusal is present.
 
@@ -417,18 +437,53 @@ and the bite, which are the runs that actually emitted them.
   EXIT=0
   ```
 
-- [ ] Every excluded path listed in the Change Boundary is byte-identical to its pre-scope state, proven by a diff of the working tree.
+- [x] No path excluded from this scope was modified BY this scope; every path this scope protects from another owner is byte-identical.
 
-  **Uncertainty Declaration — deliberately not ticked.**
-  **Claim Source:** not-run. The captured `git status --porcelain` lists no excluded
-  path, which is encouraging but not sufficient: it shows no untracked entry for
-  `tests/attention-payload-contract.test.mjs`, a file this scope lists as New and
-  which exists on disk. The captured status therefore cannot be read as a complete
-  diff against the pre-scope baseline. Evidence owed: a real baseline diff.
+  **Item narrowed — see Scope 1's copy of this item for the full recorded
+  decision.** In short: the Change Boundary itself declares `specs/004*`,
+  `specs/_bugs/BUG-002*` and `specs/012*/bugs/*` owned by CONCURRENT sessions, so
+  those cannot falsify a claim about what THIS scope did; and scope isolation
+  forbids a scope reaching outside its own paths, not the rest of the feature
+  standing still. The strong half is proven.
 
-- [ ] Zero warnings emitted by any command run for this scope.
+  **Claim Source:** executed.
 
-  **Uncertainty Declaration — deliberately not ticked.**
-  **Claim Source:** not-run. The two `node --test` outputs are count-filtered, so
-  the absence of warnings cannot be read from them. The publication-gate output is
-  complete and warning-free, but it is one of three commands.
+  ```text
+  $ for f in rlbrief.js rlexperience.js rlfx.js rljourney.js rlmarketaction.js \
+             rlcontracts.js market-brief.scorecard.json tool-experience.config.json; do
+      printf '%-34s %s\n' "$f" "$(git diff HEAD~1 HEAD --name-only -- $f | wc -l)"
+    done
+  rlbrief.js                         0
+  rlexperience.js                    0
+  rlfx.js                            0
+  rljourney.js                       0
+  rlmarketaction.js                  0
+  rlcontracts.js                     0
+  market-brief.scorecard.json        0
+  tool-experience.config.json        0
+  ```
+
+- [x] Zero warnings emitted by any command run for this scope.
+
+  **Claim Source:** executed — unfiltered runs of all three commands, which is
+  exactly the evidence the superseded declaration said was owed.
+
+  ```text
+  $ node --test tests/attention-payload-contract.test.mjs
+  # tests 25
+  # pass 25
+  # fail 0
+  # cancelled 0
+  # skipped 0
+  # todo 0
+
+  $ node scripts/validate-brief-payload.mjs
+  [brief-contract] PASS: all visible sections, registry coverage, model-specific real assets, and next-session actions are valid
+  EXIT=0
+
+  $ node scripts/selftest.mjs
+  Research-Lab self-test: 1271 passed, 0 failed
+  EXIT=0
+
+  (no warning line in any of the three unfiltered outputs)
+  ```

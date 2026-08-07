@@ -112,6 +112,28 @@ async function renderFixture(page, context) {
   await page.evaluate((ctx) => window.__rlattn.render(ctx), context);
 }
 
+/* Every scenario in this file runs under the same console guard. Two of the
+   tests already collected `pageerror` for their own assertions, which left the
+   other scenarios uncovered and said nothing about warnings at all. Attaching
+   it here means a console error or warning fails the scenario that produced it,
+   by name, instead of scrolling past in the reporter. */
+const consoleFindings = [];
+
+test.beforeEach(async ({ page }) => {
+  consoleFindings.length = 0;
+  page.on('console', (message) => {
+    const type = message.type();
+    if (type === 'error' || type === 'warning') consoleFindings.push(`${type}: ${message.text()}`);
+  });
+  page.on('pageerror', (error) => consoleFindings.push(`pageerror: ${error.message}`));
+});
+
+test.afterEach(() => {
+  expect(consoleFindings,
+    `the browser run must emit no console error and no console warning. Emitted: ${JSON.stringify(consoleFindings)}`)
+    .toEqual([]);
+});
+
 /* ═══════════════ TP-03-01 — SCN-017-028 tier + record from committed data ═══════════════ */
 
 test('decision attention tier renders items and record from committed data', async ({ page }) => {
@@ -915,4 +937,96 @@ test('SCN-017-057 The tier stays readable at a phone width with nothing clipped'
     return caught;
   });
   expect(detects, 'the clipped-control measurement must detect a control placed past the viewport edge').toBe(true);
+});
+
+/* ═══════════ TP-04-08 — SCN-017-058 the record withholds rather than zeroes ═══════════ */
+
+test('SCN-017-058 The record shows the withheld state with its sample size, never a zero rate', async ({ page }) => {
+  test.setTimeout(90_000);
+
+  await openBrief(page);
+
+  const record = page.locator('#attentionRecord');
+  await expect(record).toBeVisible();
+
+  /* the published record, read from the same artifact the page fetches, so the
+     assertion below is against the shipped reduction rather than a guess. */
+  const published = JSON.parse(readFileSync(new URL('../market-brief.attention-scorecard.json', import.meta.url), 'utf8'));
+  expect(published.overall.insufficientSample,
+    'this scenario asserts the WITHHELD state, so the committed record must currently be under its minimum sample')
+    .toBe(true);
+
+  /* 1. the withheld statement is what the reader sees — the module's own words. */
+  await expect(record).toContainText(published.overall.statement);
+
+  /* 2. the sample size is SHOWN, not hidden behind the refusal. A refusal that
+        does not say how much history exists gives the reader no way to know
+        whether to come back tomorrow or next quarter. */
+  const sampleText = await record.evaluate((host) => {
+    const withTitle = Array.from(host.querySelectorAll('[title]')).map((n) => n.getAttribute('title'));
+    return `${host.textContent} ${withTitle.join(' ')}`;
+  });
+  expect(sampleText,
+    `the record must state the closed sample and the minimum it is measured against. Rendered: ${JSON.stringify(sampleText)}`)
+    .toContain(String(published.overall.closedSample));
+  expect(sampleText).toContain(String(published.overall.minClosedSample));
+
+  /* 3. NEVER A ZERO. A withheld rate rendered as 0% reads as "we are never
+        right", which is a different and false claim. Neither a percentage nor a
+        decimal rate may appear while the sample is insufficient. */
+  const visible = (await record.textContent()) || '';
+  expect(/\d+(\.\d+)?\s*%/.test(visible),
+    `no rate may render while the sample is withheld. Rendered: ${JSON.stringify(visible)}`)
+    .toBe(false);
+
+  /* 4. ADVERSARIAL — assertions 1-3 are all satisfiable by an empty block, so
+        prove the block actually rendered its own content. */
+  expect(visible.trim().length,
+    'the record must say something to the reader; an empty block would satisfy every check above')
+    .toBeGreaterThan(40);
+  expect(visible.toLowerCase().includes('cannot be computed'),
+    `the withheld state must be the module's refusal, not the module-unavailable degradation. Rendered: ${JSON.stringify(visible)}`)
+    .toBe(false);
+});
+
+/* ═══════════════ H-4 — SCN-017-059 the two lists carry different cards ═══════════════ */
+
+test('SCN-017-059 No item appears in both the decision tier and the catalyst feed', async ({ page }) => {
+  test.setTimeout(90_000);
+
+  /* H-4 re-scoped the older feed to catalysts and gave decisions their own tier.
+     Both renderers read the SAME payload.attention array, so relabelling the
+     heading was not enough: every decision card was also rendering below as a
+     catalyst, and the reader met each item twice on one page. */
+  await openBrief(page);
+
+  const tier = page.locator('#decisionAttention');
+  const feed = page.locator('#attention');
+  await expect(tier).toBeVisible();
+
+  const tierHeadlines = await tier.locator('[data-attn-item]').allInnerTexts();
+  expect(tierHeadlines.length,
+    'the tier must publish real cards, or "no overlap" is satisfied by an empty page')
+    .toBeGreaterThan(0);
+
+  const feedText = ((await feed.innerText().catch(() => '')) || '').trim();
+
+  /* Each tier card's headline is the strongest identity the DOM exposes on both
+     surfaces. A headline that reappears verbatim below is the duplication. */
+  const duplicated = [];
+  for (const block of tierHeadlines) {
+    const headline = block.split('\n').map((line) => line.trim()).filter(Boolean)[0];
+    if (headline && headline.length > 24 && feedText.includes(headline)) duplicated.push(headline);
+  }
+  expect(duplicated,
+    `no decision-tier card may reappear in the catalyst feed. Duplicated: ${JSON.stringify(duplicated)}`)
+    .toEqual([]);
+
+  /* ADVERSARIAL: the comparison must be capable of finding a match at all —
+     a substring test against text that was never loaded would pass vacuously. */
+  const probe = tierHeadlines[0].split('\n').map((line) => line.trim()).filter(Boolean)[0];
+  expect(probe.length, 'the probe headline must be substantial enough to match on').toBeGreaterThan(24);
+  expect(`prefix ${probe} suffix`.includes(probe),
+    'the substring comparison used above must actually detect a repeated headline')
+    .toBe(true);
 });

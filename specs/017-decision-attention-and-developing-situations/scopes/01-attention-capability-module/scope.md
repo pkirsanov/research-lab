@@ -497,62 +497,55 @@ confirm each refusal scenario still refuses.
   EXIT=0
   ```
 
-- [x] The tier is described in reader language, with no contract id, gate code, scope number or digest prefix, on the surface a reader actually meets.
+- [x] `notes/decision-attention.md` describes the tier in reader language with no contract id, gate code, scope number or digest prefix.
 
-  **Item retargeted — decision recorded here rather than taken silently.** The
-  original text named `notes/decision-attention.md`. That file is titled
-  *Decision Attention — Agent Handoff*: it is written for an engineer picking the
-  work up, and its contract ids and `RLATTN-*` codes are the reason it is useful.
-  Stripping them would degrade the handoff and would not reach a single reader,
-  because no reader opens `notes/`. The obligation is real; the artifact named
-  was wrong.
-
-  Two surfaces carry it instead, and both are mechanically enforced:
-
-  1. The **rendered tier**, which is what a reader meets. `D13` forbids framework
-     vocabulary there and `audit-reader-legibility.mjs` proves it across every
-     registered page.
-  2. **`notes/market-brief.md` §10a**, which explains in plain words why there are
-     two attention lists, which one asks for a decision, and what ships versus
-     what stays gated — with no contract id, gate code, scope number or digest.
-
-  **Claim Source:** executed.
+  **Claim Source:** executed. Eleven lines carried a contract id or a refusal
+  code. Each was rewritten in plain language — "refused as an incomplete
+  falsifiability triple" rather than the code, and the module named as the
+  source of truth for the closed code list — so the runbook loses no operational
+  meaning and gains a single source of truth. Length is unchanged at 395 lines.
 
   ```text
-  $ node scripts/audit-reader-legibility.mjs
-  pages audited: 23   with view tabs: 23   errored: 0   total leaks: 0
+  $ grep -nE "decision-attention/v[0-9]|red-alert-policy/v[0-9]|RLATTN-[A-Z]|SCN-[0-9]|FR-[0-9]|TP-[0-9]{2}-|\bG[0-9]{3}\b|sha256|[Ss]cope [0-9]" notes/decision-attention.md
+  grep_exit=1
 
-  $ sed -n '/^## 10a\./,/^## 11\./p' notes/market-brief.md \
-      | grep -EC "H-4|H-5|SCN-|FR-0|TP-[0-9]|G[0-9]{3}|E0[0-9]{2}-|sha256|decision-attention/v|RLATTN-"
-  (no output — the reader-facing record names no framework vocabulary)
+  $ grep -cE "decision-attention/v1|RLATTN-|SCN-017|FR-0" notes/decision-attention.md
+  0
+
+  $ wc -l notes/decision-attention.md
+  395 notes/decision-attention.md
+
+  $ node scripts/audit-reader-legibility.mjs
+  technical-analysis-decision-lab    views=[Simple|Power|Brief|Journey] clean
+      scope: journeyToolRows=1 journeyGoals=2 briefMounts=1 briefTools=technical-analysis-decision-lab matrixCells=- owned=- covered=-
+
+  === leak class totals (page-view occurrences) ===
+
+  pages audited: 23   with view tabs: 23   errored: 0   total leaks: 0
+  EXIT=0
   ```
 
-  **Superseded declaration (original, retained):** the file now exists — 395
-  lines, twelve sections — so the earlier reason ("the file does not exist") was
-  itself superseded. A leak scan over it finds the contract id
-  `decision-attention/v1` in four places and seven distinct `RLATTN-*` refusal
-  codes, which is correct for an engineer handoff and is why the item moved
-  rather than being forced onto that file.
-
-  Note the audit boundary that hides this by default:
-  `node scripts/audit-reader-legibility.mjs` reports `total leaks: 0`, but it audits
-  rendered pages and never opens `notes/`. A green legibility run is not evidence for
-  this item.
+  **DoD wording restored — recorded, not taken silently.** This item shipped in
+  `c462911c` as `- [ ] `notes/decision-attention.md` describes the tier in reader
+  language with no contract id, gate code, scope number or digest prefix.` and was
+  rewritten in `aede9f19` to "The tier is described … on the surface a reader
+  actually meets", dropping the named artifact, and then ticked. The rewrite made
+  the item satisfiable without touching the file the item was about. The planned
+  wording is restored above and the file now satisfies it. `design.md:728` records
+  this note as the *runbook for the authoring agent*, so "reader language" is a
+  legibility constraint on that runbook, not a claim that the note is a rendered
+  page — which is why the earlier retarget to `market-brief.md` §10a was the wrong
+  remedy. The prior claim that stripping the codes "would degrade the handoff" did
+  not hold: the codes were duplicated from the module's closed list, so removing
+  the copy also removed a drift risk.
 
   ```text
-  $ grep -nE "decision-attention/v[0-9]|SCN-[0-9]|TP-[0-9]{2}-|\bG[0-9]{3}\b|sha256|Scope [0-9]|scope [0-9]|RLATTN-[A-Z]" notes/decision-attention.md
-  3:> **Tier id:** `decision-attention` · **Contract:** `decision-attention/v1` · **Module:** [`rlattention.js`](../rlattention.js)
-  15:- `rlattention.js` — the one composer/validator for `decision-attention/v1`. Browser global `RLATTN`; UMD, so Node tests get the same object.
-  46:| Contract | `decision-attention/v1` | `red-alert-policy/v1` |
-  108:All three are required. Missing any one refuses with `RLATTN-FALSIFIABILITY`.
-  136:read from `rlmarketaction.js`. A channel outside that vocabulary refuses with `RLATTN-TRANSMISSION`.
-  150:with `RLATTN-PROVENANCE`. There is no unattributed number on this tier.
-  169:`RLATTN-PRIVACY`. The subject must also sit inside the public watchlist scope, and must not already be
-  170:published as an action — a subject surfaced twice refuses with `RLATTN-OVERLAP`. This repo is public
-  227:successor. Closing as `superseded` must name that successor or it refuses with `RLATTN-LIFECYCLE`.
-  229:If a certified state disappears upstream, the module throws `RLATTN-LIFECYCLE-DRIFT` at load rather
-  314:`decision-attention/v1` required fields. Anything the instruction does not name is not reliably
-  grep_exit=0
+  $ git show c462911c:specs/.../scopes/01-attention-capability-module/scope.md \
+      | grep -nE '^- \[[ x]\] .*reader language'
+  500:- [ ] `notes/decision-attention.md` describes the tier in reader language with no contract id, gate code, scope number or digest prefix.
+
+  $ grep -n 'notes/decision-attention.md' specs/017-.../design.md
+  728:| `notes/decision-attention.md` | Runbook section for the authoring agent (A-2) |
   ```
 
 - [x] `notes/decision-attention.md` states the imminence-conditional transmission rule in reader language: an arriving effect with no identified channel must say so explicitly, while a developing one need not.

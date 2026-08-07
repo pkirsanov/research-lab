@@ -1,6 +1,6 @@
 # Decision Attention — Agent Handoff
 
-> **Tier id:** `decision-attention` · **Contract:** `decision-attention/v1` · **Module:** [`rlattention.js`](../rlattention.js)
+> **Tier:** Decision Attention · **Module:** [`rlattention.js`](../rlattention.js)
 >
 > **This is the handoff doc for the next agent or operator working on the Decision Attention tier.**
 > It records what the tier is, the rules that are ratified rather than inferred, and the one change
@@ -12,7 +12,7 @@
 Companion files:
 
 - [`notes/market-brief.md`](market-brief.md) — the 4×/day brief runbook. Decision Attention renders inside that brief.
-- `rlattention.js` — the one composer/validator for `decision-attention/v1`. Browser global `RLATTN`; UMD, so Node tests get the same object.
+- `rlattention.js` — the one composer and validator for this tier. Browser global `RLATTN`; UMD, so Node tests get the same object.
 - `rlmarketaction.js` — the certified alert engine. Owns the lifecycle vocabulary, the transmission channels, the research verbs, and Red Alert.
 - `scripts/validate-brief-payload.mjs` — the publish gate. Delegates every attention rule to the module.
 - `scripts/brief-narrative-parallel.mjs` — where the agent is told what to author into `attention`.
@@ -43,7 +43,7 @@ These are two axes, not two levels of one axis. Urgency is not weak severity.
 | | Decision Attention | Red Alert |
 | --- | --- | --- |
 | Axis | urgency | severity |
-| Contract | `decision-attention/v1` | `red-alert-policy/v1` |
+| Contract | its own, versioned independently | its own, versioned independently |
 | Owner | `rlattention.js` | `rlmarketaction.js` |
 | Admission | field rules per item | seven hard gates plus a score threshold |
 | Ceiling | 7 cards | policy `visibleCap` |
@@ -105,7 +105,7 @@ Field names below are exactly as the module emits them. Read `rlattention.js` if
 | `invalidation` | non-empty. What would make this wrong. |
 | `expiry` | a resolvable ISO instant. When this stops being a live claim. |
 
-All three are required. Missing any one refuses with `RLATTN-FALSIFIABILITY`.
+All three are required. Missing any one is refused as an incomplete falsifiability triple.
 
 They exist because **an attention item with no invalidation is an unfalsifiable claim, and an
 unfalsifiable claim cannot be acted on or scored.** A reader cannot decide what to do with a warning
@@ -133,9 +133,9 @@ horizon is how long the effect is expected to run.
 ### The transmission path
 
 `transmissionPath` is a list of channels drawn from the certified `TRANSMISSION_CHANNELS` vocabulary
-read from `rlmarketaction.js`. A channel outside that vocabulary refuses with `RLATTN-TRANSMISSION`.
-You cannot invent a channel here. If the vocabulary is missing one, add it upstream where the alert
-engine can see it too.
+read from `rlmarketaction.js`. A channel outside that vocabulary is refused as an unrecognised
+channel. You cannot invent a channel here. If the vocabulary is missing one, add it upstream where
+the alert engine can see it too.
 
 `transmissionAbsenceNote` carries the explicit statement of an absent channel. See §4.
 
@@ -146,8 +146,8 @@ on volume alone.
 ### The provenance class
 
 `figures` is a list. Every figure carries `label`, `value`, and `provenance` with a non-empty
-`sourceId` and an ISO `asOf`. A figure with no source and no as-of instant does not render; it refuses
-with `RLATTN-PROVENANCE`. There is no unattributed number on this tier.
+`sourceId` and an ISO `asOf`. A figure with no source and no as-of instant does not render; it is
+refused as an unattributed figure. There is no unattributed number on this tier.
 
 `observedAt`, `severity`, and `imminence` are also provenance-class checks: an observation carries the
 instant it was observed, and both vocabularies are closed.
@@ -165,10 +165,10 @@ and be mistaken for neutral or for confirmed-but-quiet.
 
 ### Privacy
 
-`size`, `quantity`, `costBasis`, and `pnl` are scanned for recursively and refuse with
-`RLATTN-PRIVACY`. The subject must also sit inside the public watchlist scope, and must not already be
-published as an action — a subject surfaced twice refuses with `RLATTN-OVERLAP`. This repo is public
-and the watchlist is tickers only.
+`size`, `quantity`, `costBasis`, and `pnl` are scanned for recursively and refused as position
+disclosure. The subject must also sit inside the public watchlist scope, and must not already be
+published as an action — a subject surfaced twice is refused as a duplicate surface. This repo is
+public and the watchlist is tickers only.
 
 ### Closed vocabularies
 
@@ -180,7 +180,7 @@ and the watchlist is tickers only.
 | confirmation state | `present`, `absent`, `partial` |
 | eligible gate disposition | `attention`, `context`, `no-action` |
 | `TERMINAL_OUTCOME_CLASSES` | `escalated`, `confirmed`, `resolved`, `expired-without-effect` |
-| `REFUSAL_CODES` | 12 closed `RLATTN-*` codes |
+| `REFUSAL_CODES` | 12 closed refusal codes, enumerated in the module |
 
 Only a non-committal gate disposition may become an attention item. A gate result that already
 committed to an action belongs to the action path, not here.
@@ -224,10 +224,10 @@ The lifecycle is the nine certified states read from `rlmarketaction.js` at load
 append-only terminals this module adds: `escalated` and `superseded`. The certified edges are
 preserved verbatim. The new edges all terminate — nothing travels back upstream into the certified
 graph. A live item can be escalated off this tier, and any open item can be closed by a named
-successor. Closing as `superseded` must name that successor or it refuses with `RLATTN-LIFECYCLE`.
+successor. Closing as `superseded` must name that successor or it is refused as an invalid close.
 
-If a certified state disappears upstream, the module throws `RLATTN-LIFECYCLE-DRIFT` at load rather
-than running against a vocabulary the alert engine no longer shares.
+If a certified state disappears upstream, the module refuses at load with a lifecycle-drift error
+rather than running against a vocabulary the alert engine no longer shares.
 
 **Terminal states are derived, not listed.** `TERMINAL_STATES` is computed as every state whose
 transition list is empty. That currently resolves to `rejected`, `invalidated`, `resolved`, `stale`,
@@ -310,9 +310,9 @@ Miss the third and the brief cannot publish.
 
 The authoring instruction is the string that tells the agent what to write into `attention` on every
 run. It sits in the parallel narrative task that declares `keys: ['attention', 'recommendations', 'events']`.
-As written today it names the card cap and asks for ranked items. It does **not** name the
-`decision-attention/v1` required fields. Anything the instruction does not name is not reliably
-authored, and anything not authored fails the gate.
+As written today it names the card cap and asks for ranked items. It does **not** name this tier's
+required fields. Anything the instruction does not name is not reliably authored, and anything not
+authored fails the gate.
 
 **This is not theoretical. It happened during delivery.** The validator was tightened and the payload
 was migrated. The authoring instruction was not updated in the same change. Within hours the 4×/day
@@ -334,7 +334,7 @@ Do these in order.
 1. Decide whether the field is genuinely per-item. Anything constant belongs in config, not the item.
 2. Add the check to `rlattention.js`, in the shared helper used by **both** `buildAttentionItem` and
    `validateAttentionItem`. Do not add it to one path only.
-3. Pick an existing `RLATTN-*` refusal code, or add one to `REFUSAL_CODES`. The list is closed; keep it closed.
+3. Pick an existing refusal code from `REFUSAL_CODES`, or add one there. The list is closed; keep it closed.
 4. Add the field to the frozen item in `buildAttentionItem` and to `toViewModel`. `toViewModel` returns
    raw strings and booleans only — the caller escapes.
 5. Update the `attention` authoring instruction in `scripts/brief-narrative-parallel.mjs` **in the same

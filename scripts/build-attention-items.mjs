@@ -35,7 +35,7 @@
  */
 
 import { createRequire } from 'node:module';
-import { readFileSync } from 'node:fs';
+import { readFileSync, writeFileSync } from 'node:fs';
 import { resolve, dirname } from 'node:path';
 import { fileURLToPath } from 'node:url';
 
@@ -159,12 +159,86 @@ export function buildAttentionItems(candidates, payload, config) {
   return Object.freeze({ items: Object.freeze(items), exclusions: Object.freeze(exclusions) });
 }
 
+/** The gate half and the judgement half of a published envelope, so an already
+    serialized item can be reduced back to the candidate that would produce it. */
+const GATE_KEYS = Object.freeze(['gateId', 'disposition', 'subject', 'severity', 'imminence', 'observedAt',
+  'transmissionPath', 'transmissionAbsenceNote', 'marketConfirmation', 'marketConfirmationNote', 'figures']);
+const AUTHORED_KEYS = Object.freeze(['headline', 'rationale', 'verb', 'horizon', 'escalationTrigger', 'invalidation', 'expiry']);
+
+/**
+ * Reduce a published `decision-attention/v1` envelope back to the candidate the
+ * lane would have handed over. Used to re-compose an existing payload through
+ * the composer, which is how a payload authored before the cutover is checked
+ * against the rules it never passed through.
+ */
+export function candidateFromPublishedItem(item) {
+  const observed = {};
+  for (const key of GATE_KEYS) if (item && item[key] !== undefined) observed[key] = item[key];
+  const candidate = { observed };
+  for (const key of AUTHORED_KEYS) if (item && item[key] !== undefined) candidate[key] = item[key];
+  return candidate;
+}
+
+/**
+ * Re-compose a payload's own attention items through the certified composer and
+ * return the payload it SHOULD carry.
+ *
+ * Additive by construction: the returned object spreads the original first, so
+ * every pre-existing key stays byte-identical and only `attention` and
+ * `attentionExclusions` are replaced. An item the composer refuses is dropped
+ * from `attention` and recorded in `attentionExclusions` with its named reason
+ * — never silently, and never defaulted back into shape.
+ */
+export function recomposePayloadAttention(payload, config) {
+  const published = Array.isArray(payload?.attention) ? payload.attention : [];
+  const decisionItems = published.filter((item) => item && item.contractVersion === 'decision-attention/v1');
+  const passthrough = published.filter((item) => !(item && item.contractVersion === 'decision-attention/v1'));
+
+  const { items, exclusions } = buildAttentionItems(decisionItems.map(candidateFromPublishedItem), payload, config);
+  return {
+    payload: Object.assign({}, payload, { attention: passthrough.concat(items), attentionExclusions: exclusions }),
+    items,
+    exclusions
+  };
+}
+
 /**
  * CLI. Reads a candidate file, prints the built envelopes and every named
  * exclusion. Exit 0 means the build ran, NOT that every candidate survived —
  * refusing a candidate is a correct outcome, so it is reported, not fatal.
+ *
+ * `--recompose` re-composes the committed payload's own attention items instead
+ * of reading a candidate file, and `--write` persists the result.
  */
 function main(argv) {
+  const payload = loadJson('market-brief.payload.json');
+  const config = loadJson('market-brief.config.json');
+
+  if (argv.includes('--recompose')) {
+    const before = Object.keys(payload);
+    const result = recomposePayloadAttention(payload, config);
+    console.log(`[build-attention-items] recomposed: ${result.items.length} built, ${result.exclusions.length} refused`);
+    for (const exclusion of result.exclusions) {
+      console.log(`[build-attention-items] refused ${exclusion.subject || `candidate ${exclusion.index}`}`
+        + ` — ${exclusion.code} on ${exclusion.field}: ${exclusion.reason}`);
+    }
+    /* additive or nothing: a recompose that dropped or renamed a pre-existing
+       key would be a rewrite, and this step is not allowed to be one. */
+    const after = Object.keys(result.payload);
+    const lost = before.filter((key) => !after.includes(key));
+    if (lost.length) {
+      console.error(`[build-attention-items] refusing to write: recompose lost pre-existing key(s) ${lost.join(', ')}`);
+      return 2;
+    }
+    if (argv.includes('--write')) {
+      writeFileSync(resolve(ROOT, 'market-brief.payload.json'), `${JSON.stringify(result.payload, null, 2)}\n`);
+      console.log('[build-attention-items] wrote market-brief.payload.json');
+    } else {
+      console.log('[build-attention-items] --recompose without --write: nothing written');
+    }
+    return 0;
+  }
+
   const candidatesArg = argv.indexOf('--candidates');
   if (candidatesArg === -1 || !argv[candidatesArg + 1]) {
     console.error('build-attention-items: --candidates <path-to-json> is required. '
@@ -172,8 +246,6 @@ function main(argv) {
     return 2;
   }
   const candidates = JSON.parse(readFileSync(resolve(ROOT, argv[candidatesArg + 1]), 'utf8'));
-  const payload = loadJson('market-brief.payload.json');
-  const config = loadJson('market-brief.config.json');
   const { items, exclusions } = buildAttentionItems(candidates, payload, config);
 
   console.log(`[build-attention-items] ${items.length} built, ${exclusions.length} refused`);

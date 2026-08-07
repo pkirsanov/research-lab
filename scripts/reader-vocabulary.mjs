@@ -107,6 +107,15 @@ export const BRIEF_NARRATIVE_FIELDS_REQUIRED = [
   'attention.[].what',
   'attention.[].why',
   'attention.[].structuralAnchor',
+  'attention.[].rationale',
+  'attention.[].invalidation',
+  'attention.[].escalationTrigger',
+  /* rlattention.js refuses an item missing rationale/invalidation/escalationTrigger, so those
+     three are unconditional. The confirmation pair is conditional and complementary — detail is
+     demanded only when state is 'present', the note only when it is not — but this payload
+     carries both as strings (one 'present' item, four 'partial'), so both are proven here. */
+  'attention.[].marketConfirmation.detail',
+  'attention.[].marketConfirmationNote',
   'recommendations.[].structuralAnchor',
   'recommendations.[].levels',
   'recommendations.[].trigger',

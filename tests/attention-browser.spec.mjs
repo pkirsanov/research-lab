@@ -1,0 +1,697 @@
+/*
+ * tests/attention-browser.spec.mjs
+ * ------------------------------------------------------------------------
+ * Feature 017 Scope 03 — TP-03-01 … TP-03-05 live-stack, system-chrome
+ * regressions for the Decision Attention tier inside the existing Brief view
+ * (SCN-017-028 … SCN-017-032).
+ *
+ * REAL-STACK, ZERO REQUEST INTERCEPTION. Every test navigates to the REAL
+ * market-brief.html route over a real static HTTP server and boots the REAL
+ * production runtime against the REAL committed market-brief.payload.json /
+ * watchlist.json / tools.json. There is NO page.route, NO context.route, NO
+ * msw/nock, NO response stubbing and NO recorded-traffic replay anywhere in
+ * this file. The "no network" proof in TP-03-01 is a PASSIVE observation: a
+ * `page.on('request')` recorder that watches what the page actually asks for
+ * and never answers anything.
+ *
+ * The fixture-driven tests (TP-03-04, TP-03-05) drive the REAL render path
+ * through an in-page seam, exactly as the Journey and Market Action Center
+ * specs drive `window.__rlmac.renderBrief` with a fixture context. They do not
+ * touch the network.
+ *
+ * DOM contract asserted here (from specs/017-.../scopes/03-.../scope.md):
+ *   #decisionAttention              the tier section, rendered ABOVE #attention
+ *   #decisionAttention [data-attn-item]   one ranked attention item
+ *   [data-attn-field]               a rendered field that must carry a tooltip
+ *   #attentionRecord                the record block, rendered BELOW #scorecard
+ *   window.__rlattn.render(context) the single re-render seam a fixture drives,
+ *                                   mirroring the existing window.__rlmac.renderBrief seam
+ *
+ * The "research next step" sink is the `verb` field, which is what
+ * RLATTN.toViewModel exposes for it.
+ *
+ * Deterministic by construction: every instant used by a fixture is an explicit
+ * literal passed into the render context. No Math.random, no wall clock.
+ */
+import { readFileSync } from 'node:fs';
+
+import { expect, test } from './playwright-runtime.mjs';
+import { startStaticServer } from './tool-experience.support.mjs';
+
+const PAGE = 'market-brief.html';
+
+const PAYLOAD = JSON.parse(readFileSync(new URL('../market-brief.payload.json', import.meta.url), 'utf8'));
+const ATTENTION_ITEMS = (PAYLOAD.attention || [])
+  .filter((item) => item && item.contractVersion === 'decision-attention/v1');
+
+/* The three closed severity words RLATTN publishes. A decision-attention item may
+   RECORD its severity, but the reader-facing tier must never LABEL one — that
+   vocabulary belongs to the Red Alert surface. */
+const SEVERITY_WORDS = ['mild', 'moderate', 'severe'];
+
+/* REAL alert-styling names read out of market-brief.html — not invented:
+     .pill.warn   / .pill.bad     the alert pill styling (inline <style>)
+     #freshbar.warn / #freshbar.bad
+     data-mac-redalert*           the Red Alert surface block markers emitted by
+                                  renderRedAlert() into [data-rlexperience-panel="red-alert"]
+   Each name is PROVEN real inside the test before absence is asserted, so an
+   assertion against a name that does not exist cannot pass as a tautology. */
+const ALERT_STYLE_CLASSES = ['warn', 'bad'];
+const RED_ALERT_ATTR_PREFIX = 'data-mac-redalert';
+
+/* fixture instants — explicit, never derived from the system clock. */
+const FIXTURE_NOW = '2026-08-06T18:00:00.000Z';
+const STALE_GENERATED_AT = '2026-08-01T12:00:00.000Z';
+const ELAPSED_EXPIRY = '2026-08-02T20:00:00.000Z';
+const LIVE_EXPIRY = '2026-08-09T20:00:00.000Z';
+
+/* one distinct hostile payload per sink, so a single escaped sink cannot cover for another. */
+const XSS = {
+  headline: '<img id="rl-attn-xss-headline" src="x" onerror="globalThis.__rlAttnInjected=true">',
+  rationale: '<img id="rl-attn-xss-rationale" src="x" onerror="globalThis.__rlAttnInjected=true">',
+  escalationTrigger: '<img id="rl-attn-xss-escalation" src="x" onerror="globalThis.__rlAttnInjected=true">',
+  invalidation: '<img id="rl-attn-xss-invalidation" src="x" onerror="globalThis.__rlAttnInjected=true">',
+  verb: '<script data-rlattn-xss id="rl-attn-xss-nextstep">globalThis.__rlAttnInjected=true;</script>'
+};
+
+let site;
+test.beforeAll(async () => { site = await startStaticServer(); });
+test.afterAll(async () => { if (site) await site.close(); });
+
+/* ── helpers ───────────────────────────────────────────────────────────── */
+
+/* The Brief view is the default view; a full document load guarantees the real
+   controller runs. #scorecard visible is the established boot signal used by the
+   shipped brief specs. */
+async function openBrief(page) {
+  await page.goto('about:blank');
+  await page.goto(`${site.baseUrl}/${PAGE}`);
+  await expect(page.locator('#scorecard')).toBeVisible({ timeout: 30000 });
+}
+
+/* Precondition for SCN-017-028: no provider key and no proxy configured. This is
+   page STATE setup (the same localStorage the landing page writes), not request
+   interception — nothing is answered, routed or stubbed. */
+async function clearProviderAccess(page) {
+  await page.addInitScript(() => {
+    try { window.localStorage.removeItem('rlProviderConfig'); } catch (error) { void error; }
+    try { window.localStorage.removeItem('rlApiKeys'); } catch (error) { void error; }
+  });
+}
+
+/* Build a decision-attention/v1 item from the first committed item so a fixture
+   stays contract-shaped, then apply the overrides the scenario needs. */
+function fixtureItem(overrides) {
+  return Object.assign({}, ATTENTION_ITEMS[0], overrides);
+}
+
+async function renderFixture(page, context) {
+  const seam = await page.evaluate(() => typeof (window.__rlattn && window.__rlattn.render));
+  expect(seam, 'window.__rlattn.render must exist as the fixture render seam for the decision attention tier')
+    .toBe('function');
+  await page.evaluate((ctx) => window.__rlattn.render(ctx), context);
+}
+
+/* ═══════════════ TP-03-01 — SCN-017-028 tier + record from committed data ═══════════════ */
+
+test('decision attention tier renders items and record from committed data', async ({ page }) => {
+  test.setTimeout(90_000);
+
+  expect(ATTENTION_ITEMS.length, 'the committed payload must carry decision-attention/v1 items')
+    .toBeGreaterThan(0);
+
+  await clearProviderAccess(page);
+
+  // PASSIVE observation only — record what the page asks for, answer nothing.
+  const requested = [];
+  page.on('request', (request) => requested.push(request.url()));
+
+  await openBrief(page);
+
+  // the tier renders EXACTLY the committed items, not merely a container.
+  const tier = page.locator('#decisionAttention');
+  await expect(tier).toBeVisible();
+  await expect(tier.locator('[data-attn-item]')).toHaveCount(ATTENTION_ITEMS.length);
+
+  // specific committed headline text is on screen — a container with N empty cards cannot pass.
+  for (const item of ATTENTION_ITEMS) {
+    await expect(tier).toContainText(item.headline);
+  }
+
+  // the tier sits ABOVE the existing #attention feed, inside the Brief view.
+  const tierIsAboveLegacyFeed = await page.evaluate(() => {
+    const tierEl = document.getElementById('decisionAttention');
+    const legacy = document.getElementById('attention');
+    if (!tierEl || !legacy) return null;
+    return (tierEl.compareDocumentPosition(legacy) & Node.DOCUMENT_POSITION_FOLLOWING) !== 0;
+  });
+  expect(tierIsAboveLegacyFeed, '#decisionAttention must render above #attention').toBe(true);
+
+  // the record block renders a real summary sentence BELOW #scorecard — not an empty placeholder.
+  const record = page.locator('#attentionRecord');
+  await expect(record).toBeVisible();
+  const recordSummary = (await record.innerText()).trim();
+  expect(recordSummary.length, `#attentionRecord must render a summary, got ${JSON.stringify(recordSummary)}`)
+    .toBeGreaterThan(20);
+  const recordIsBelowScorecard = await page.evaluate(() => {
+    const scorecard = document.getElementById('scorecard');
+    const recordEl = document.getElementById('attentionRecord');
+    if (!scorecard || !recordEl) return null;
+    return (scorecard.compareDocumentPosition(recordEl) & Node.DOCUMENT_POSITION_FOLLOWING) !== 0;
+  });
+  expect(recordIsBelowScorecard, '#attentionRecord must render below #scorecard').toBe(true);
+
+  // ADVERSARIAL: neither surface may reach a provider or a proxy. Observed, never stubbed.
+  const offOrigin = requested.filter((url) => !url.startsWith(site.baseUrl));
+  expect(offOrigin, `no off-origin request may be issued, saw: ${offOrigin.join(' | ')}`).toEqual([]);
+  const providerBound = requested.filter((url) =>
+    /(finance\.yahoo|query[12]\.finance|stooq|alphavantage|polygon\.io|finnhub|financialmodelingprep|fmpcloud|tiingo|twelvedata|marketstack|corsproxy|allorigins|\/proxy\/)/i.test(url));
+  expect(providerBound, `no provider or proxy request may be issued, saw: ${providerBound.join(' | ')}`).toEqual([]);
+});
+
+/* ═══════════════ TP-03-02 — SCN-017-029 no alert severity label, no alert styling ═══════════════ */
+
+test('decision attention items carry no alert severity label or alert styling', async ({ page }) => {
+  test.setTimeout(90_000);
+
+  await openBrief(page);
+
+  const items = page.locator('#decisionAttention [data-attn-item]');
+  await expect(items).toHaveCount(ATTENTION_ITEMS.length);
+
+  // PROVE the names are REAL before asserting their absence, so this cannot be a tautology:
+  // the alert pill styling must exist as a rule in the page's own stylesheet…
+  const realAlertRules = await page.evaluate(() => {
+    const found = [];
+    for (const sheet of Array.from(document.styleSheets)) {
+      let rules = [];
+      try { rules = Array.from(sheet.cssRules || []); } catch (error) { void error; }
+      for (const rule of rules) {
+        const selector = rule && rule.selectorText;
+        if (typeof selector === 'string' && /\.pill\.(warn|bad)|#freshbar\.(warn|bad)/.test(selector)) found.push(selector);
+      }
+    }
+    return found;
+  });
+  expect(realAlertRules.length, 'the .pill.warn / .pill.bad alert styling must exist on the real page')
+    .toBeGreaterThan(0);
+
+  // …and the Red Alert surface must really emit data-mac-redalert markers.
+  await page.locator('#rlviews button[data-rlview-mode="red-alert"]').click();
+  await expect(page.locator('[data-rlexperience-panel="red-alert"] [data-mac-redalert]')).not.toHaveCount(0);
+  await page.locator('#rlviews button[data-rlview-mode="brief"]').click();
+  await expect(items).toHaveCount(ATTENTION_ITEMS.length);
+
+  // POSITIVE absence: inspect every rendered node of every item.
+  const audit = await page.evaluate(({ severityWords, alertClasses, redAlertPrefix }) => {
+    const offences = { severityLabels: [], severityAttributes: [], alertClassed: [], redAlertMarked: [] };
+    let inspected = 0;
+    for (const item of Array.from(document.querySelectorAll('#decisionAttention [data-attn-item]'))) {
+      for (const node of [item, ...Array.from(item.querySelectorAll('*'))]) {
+        inspected += 1;
+        for (const cls of alertClasses) {
+          if (node.classList && node.classList.contains(cls)) offences.alertClassed.push(cls + ' on ' + node.tagName);
+        }
+        for (const attr of Array.from(node.attributes || [])) {
+          if (attr.name.startsWith(redAlertPrefix)) offences.redAlertMarked.push(attr.name);
+          if (/severity/i.test(attr.name)) offences.severityAttributes.push(attr.name + '=' + attr.value);
+        }
+        const own = (node.textContent || '').trim().toLowerCase();
+        if (node.children.length === 0 && severityWords.indexOf(own) !== -1) offences.severityLabels.push(own);
+      }
+    }
+    return { offences, inspected };
+  }, { severityWords: SEVERITY_WORDS, alertClasses: ALERT_STYLE_CLASSES, redAlertPrefix: RED_ALERT_ATTR_PREFIX });
+
+  expect(audit.inspected, 'the audit must have inspected real rendered nodes').toBeGreaterThan(0);
+  expect(audit.offences.severityLabels, 'no attention item may render a severity word as a label').toEqual([]);
+  expect(audit.offences.severityAttributes, 'no attention item may declare a severity attribute').toEqual([]);
+  expect(audit.offences.alertClassed, 'no attention item may use the .warn / .bad alert styling').toEqual([]);
+  expect(audit.offences.redAlertMarked, 'no attention item may carry a data-mac-redalert marker').toEqual([]);
+});
+
+/* ═══════════════ TP-03-03 — SCN-017-030 contextual tooltip on every field and control ═══════════════ */
+
+test('every decision attention field and control exposes a contextual tooltip', async ({ page }) => {
+  test.setTimeout(90_000);
+
+  await openBrief(page);
+
+  const items = page.locator('#decisionAttention [data-attn-item]');
+  await expect(items).toHaveCount(ATTENTION_ITEMS.length);
+
+  // the matrix requires an expandable item; expand the first one so the expanded
+  // fields (escalation trigger, invalidation, expiry, provenance) are also audited.
+  const disclosure = items.first().locator('summary');
+  await expect(disclosure).not.toHaveCount(0);
+  await disclosure.first().click();
+
+  const audit = await page.evaluate(() => {
+    const checked = [];
+    const missing = [];
+    const echoed = [];
+    const shallow = [];
+    const targets = Array.from(document.querySelectorAll(
+      '#decisionAttention [data-attn-field], #decisionAttention button, #decisionAttention summary, #decisionAttention a[href], #decisionAttention [role="button"]'));
+    for (const node of targets) {
+      const tip = ((node.getAttribute('title') || node.getAttribute('data-tip')) || '').trim();
+      const label = (node.textContent || '').trim();
+      const id = node.tagName + '[' + (node.getAttribute('data-attn-field') || node.className || '') + ']';
+      checked.push(id);
+      if (tip.length === 0) { missing.push(id); continue; }
+      if (tip.toLowerCase() === label.toLowerCase()) { echoed.push(id + ' -> ' + tip); continue; }
+      // a contextual reading is a sentence about the CURRENT value, not a repeated label.
+      if (tip.length < 25 || tip.indexOf(' ') === -1) shallow.push(id + ' -> ' + tip);
+    }
+    return { checked, missing, echoed, shallow };
+  });
+
+  // a vacuously empty tier cannot pass.
+  expect(audit.checked.length, 'the tier must expose fields and controls to audit').toBeGreaterThan(0);
+  expect(audit.missing, 'every field and control must expose a tooltip').toEqual([]);
+  expect(audit.echoed, 'a tooltip must not merely repeat its own label').toEqual([]);
+  expect(audit.shallow, 'every tooltip must state what the current reading means').toEqual([]);
+});
+
+/* ═══════════════ TP-03-04 — SCN-017-031 authored markup renders escaped at every sink ═══════════════ */
+
+test('authored decision attention text with markup renders escaped', async ({ page }) => {
+  test.setTimeout(90_000);
+
+  const pageErrors = [];
+  page.on('pageerror', (error) => pageErrors.push(error.message));
+
+  await openBrief(page);
+
+  await renderFixture(page, {
+    nowUtc: FIXTURE_NOW,
+    generatedAt: FIXTURE_NOW,
+    attention: [fixtureItem({
+      id: 'attn-xss-fixture',
+      headline: `Headline ${XSS.headline}`,
+      rationale: `Rationale ${XSS.rationale}`,
+      escalationTrigger: `Escalation ${XSS.escalationTrigger}`,
+      invalidation: `Invalidation ${XSS.invalidation}`,
+      verb: `Next step ${XSS.verb}`,
+      expiry: LIVE_EXPIRY
+    })]
+  });
+
+  const tier = page.locator('#decisionAttention');
+  const item = tier.locator('[data-attn-item]');
+  await expect(item).toHaveCount(1);
+
+  // expand so the expanded sinks render too.
+  const disclosure = item.locator('summary');
+  await expect(disclosure).not.toHaveCount(0);
+  await disclosure.first().click();
+
+  // every sink shows the markup as VISIBLE TEXT.
+  await expect(tier).toContainText(`Headline ${XSS.headline}`);
+  await expect(tier).toContainText(`Rationale ${XSS.rationale}`);
+  await expect(tier).toContainText(`Escalation ${XSS.escalationTrigger}`);
+  await expect(tier).toContainText(`Invalidation ${XSS.invalidation}`);
+  await expect(tier).toContainText(`Next step ${XSS.verb}`);
+
+  // ADVERSARIAL: text assertions alone can pass even if a node was ALSO created.
+  for (const sentinel of ['rl-attn-xss-headline', 'rl-attn-xss-rationale', 'rl-attn-xss-escalation',
+    'rl-attn-xss-invalidation', 'rl-attn-xss-nextstep']) {
+    await expect(page.locator(`#${sentinel}`), `${sentinel} must never be created as a node`).toHaveCount(0);
+  }
+  expect(await page.evaluate(() => document.querySelector('script[data-rlattn-xss]') !== null)).toBe(false);
+  expect(await page.evaluate(() => globalThis.__rlAttnInjected === true)).toBe(false);
+  expect(pageErrors, `browser errors during escaped render: ${pageErrors.join(' | ')}`).toEqual([]);
+});
+
+/* ═══════════════ TP-03-05 — SCN-017-032 elapsed renders expired, stale generation declared ═══════════════ */
+
+test('elapsed decision attention items render expired and a stale generation is declared', async ({ page }) => {
+  test.setTimeout(90_000);
+
+  await openBrief(page);
+
+  /* Neither headline may contain the token the assertions below test for: the headline
+     renders as visible item text, so a headline carrying "expired" makes the positive
+     assertion tautological and the negative assertion unfalsifiable. */
+  const elapsedHeadline = 'Elapsed fixture item that must stay visible past its deadline';
+  const liveHeadline = 'Live fixture item that must remain current';
+
+  await renderFixture(page, {
+    nowUtc: FIXTURE_NOW,
+    generatedAt: STALE_GENERATED_AT,
+    attention: [
+      fixtureItem({ id: 'attn-elapsed-fixture', headline: elapsedHeadline, expiry: ELAPSED_EXPIRY }),
+      fixtureItem({ id: 'attn-live-fixture', headline: liveHeadline, expiry: LIVE_EXPIRY })
+    ]
+  });
+
+  const tier = page.locator('#decisionAttention');
+
+  // the elapsed item is LABELLED expired, not removed — both items are still present.
+  await expect(tier.locator('[data-attn-item]')).toHaveCount(2);
+  const elapsedItem = tier.locator('[data-attn-item]', { hasText: elapsedHeadline });
+  await expect(elapsedItem).toHaveCount(1);
+  await expect(elapsedItem).toContainText(/expired/i);
+
+  // ADVERSARIAL: a renderer that stamps everything expired is equally wrong.
+  const liveItem = tier.locator('[data-attn-item]', { hasText: liveHeadline });
+  await expect(liveItem).toHaveCount(1);
+  await expect(liveItem).not.toContainText(/expired/i);
+
+  // the stale generation is declared in plain reader language, naming the stale generation.
+  await expect(tier).toContainText(/stale/i);
+  const declaration = (await tier.innerText()).replace(/\s+/g, ' ');
+  expect(/stale/i.test(declaration) && /generation|generated|as of/i.test(declaration),
+    `the stale generation must be declared in plain language, got: ${declaration.slice(0, 400)}`).toBe(true);
+});
+
+/* ═══════════════ TP-05-04 — SCN-017-043 all six performance budgets ═══════════════
+ *
+ * Six budgets, six independent assertions, each naming itself on failure. One
+ * blown budget must not be able to hide inside an aggregate.
+ *
+ * MEASUREMENT METHOD
+ *   Every timing is taken INSIDE the page with performance.now(), so the
+ *   Playwright/CDP round trip is excluded and what is measured is what the
+ *   reader's browser actually pays. Each compute/render budget is the MEDIAN of
+ *   repeated runs — the stable statistic on a shared machine — and the max is
+ *   reported in the failure message so a pathological outlier is still visible.
+ *
+ * CEILINGS
+ *   Measured first on this machine, then set with headroom. They are loose
+ *   enough not to flake and tight enough that a real regression trips them: each
+ *   is roughly an order of magnitude above the observed median, not a number so
+ *   large it can never fail. A red budget is fixed by fixing the code, never by
+ *   widening the ceiling (design NFR-003, P22/D7, D18).
+ *
+ * NO INTERCEPTION
+ *   The network claim is a PASSIVE observation. `page.on('request')` records
+ *   what the page asks for and answers nothing. There is no page.route, no
+ *   context.route, no msw/nock, no stubbing and no replay anywhere in this test.
+ */
+
+/* Ceilings were MEASURED on this machine first, then set with deliberate,
+   stated headroom. Observed medians when they were set:
+
+     budget                       observed median   ceiling   headroom
+     1 module initialisation      33.20 ms          200 ms      ~6x
+     1 module first-load bytes    41 732 B          47 104 B    ~13%
+     2 candidate validation, 50    0.400 ms           8 ms      ~20x
+     3 ranking, 200                0.300 ms           8 ms      ~27x
+     4 tier render, 7 cards        0.800 ms           6 ms       ~8x
+     5 record render               0.100 ms           4 ms      ~40x
+
+   The 8 ms and 6 ms figures are the design's own published budgets
+   (design.md "Build + validate + rank + select, cap 7 <= 8 ms" and
+   "Tier render, 7 items <= 6 ms"), so they are honoured rather than invented.
+   The byte ceiling is the published 46 KB first-load budget and is the
+   TIGHTEST of the six: rlattention.js already spends 88% of it, so a module
+   that grew by a tenth fails here.
+
+   The record ceiling carries the largest multiple because Chrome clamps
+   performance.now() to roughly 0.1 ms; a tighter number would measure timer
+   resolution rather than the renderer. Even so, a 40x regression trips it.
+
+   A red budget is fixed by fixing the code, never by widening the ceiling
+   (design NFR-003, P22/D7, D18). */
+const BUDGETS = Object.freeze({
+  moduleInitMs: 200,
+  validateFiftyMs: 8,
+  rankTwoHundredMs: 8,
+  tierRenderSevenMs: 6,
+  recordRenderMs: 4,
+  moduleBytes: 46 * 1024
+});
+
+const VALIDATION_SET_SIZE = 50;
+const RANKING_SET_SIZE = 200;
+const TIER_CARD_CEILING = 7;
+
+/* Build N contract-shaped items from the committed payload, each with a distinct
+   id and headline so ranking and selection do the real work of ordering and
+   de-duplicating rather than collapsing a set of clones. */
+function fixtureSet(size) {
+  const seed = ATTENTION_ITEMS[0];
+  const items = [];
+  for (let index = 0; index < size; index += 1) {
+    items.push(Object.assign({}, seed, {
+      id: `attn-budget-${String(index).padStart(4, '0')}`,
+      rank: (index % TIER_CARD_CEILING) + 1,
+      confidence: 40 + (index % 55),
+      headline: `Budget fixture item ${index} carrying a distinct headline for ranking`
+    }));
+  }
+  return items;
+}
+
+test('decision attention rendering holds all six performance budgets', async ({ page }) => {
+  test.setTimeout(180_000);
+
+  expect(ATTENTION_ITEMS.length, 'the committed payload must carry decision-attention/v1 items to build fixtures from')
+    .toBeGreaterThan(0);
+
+  /* ── PASSIVE request recorder, armed BEFORE navigation ─────────────────── */
+  const requests = [];
+  page.on('request', (request) => { requests.push({ url: request.url(), at: Date.now() }); });
+
+  const pageErrors = [];
+  page.on('pageerror', (error) => pageErrors.push(error.message));
+
+  await clearProviderAccess(page);
+  await openBrief(page);
+
+  /* the tier and the record must both be on the page before anything is
+     measured — a budget met by rendering nothing is not a budget met. */
+  await expect(page.locator('#decisionAttention')).toHaveCount(1);
+  await expect(page.locator('#attentionRecord')).toHaveCount(1);
+
+  /* ── BUDGET 1 — module initialisation ──────────────────────────────────
+     The real resource-timing entry the browser recorded for rlattention.js:
+     how long the added module took to arrive and become available, plus the
+     bytes it added to first load. */
+  const moduleTiming = await page.evaluate(() => {
+    const entry = performance.getEntriesByType('resource')
+      .find((candidate) => candidate.name.endsWith('/rlattention.js'));
+    if (!entry) return null;
+    return {
+      durationMs: entry.duration,
+      bytes: entry.decodedBodySize || entry.encodedBodySize || entry.transferSize || 0,
+      moduleReady: typeof window.RLATTN === 'object' && typeof window.RLATTN.selectAttentionItems === 'function'
+    };
+  });
+
+  expect(moduleTiming, 'rlattention.js must appear in the page resource timeline — otherwise no initialisation happened')
+    .not.toBeNull();
+  expect(moduleTiming.moduleReady, 'RLATTN must be initialised and callable on the page before budgets are measured')
+    .toBe(true);
+  expect(moduleTiming.durationMs,
+    `BUDGET 1 module initialisation: rlattention.js took ${moduleTiming.durationMs.toFixed(2)} ms to load and expose `
+    + `RLATTN, over the ${BUDGETS.moduleInitMs} ms ceiling`)
+    .toBeLessThanOrEqual(BUDGETS.moduleInitMs);
+  expect(moduleTiming.bytes,
+    `BUDGET 1 module initialisation: rlattention.js added ${moduleTiming.bytes} bytes to first load, `
+    + `over the ${BUDGETS.moduleBytes} byte ceiling`)
+    .toBeLessThanOrEqual(BUDGETS.moduleBytes);
+  expect(moduleTiming.bytes,
+    'the resource entry must report a real body size — a zero would make the byte budget unfalsifiable')
+    .toBeGreaterThan(0);
+
+  /* ── BUDGET 2 and 3 — candidate validation and ranking ─────────────────
+     Both run against the REAL module already loaded on the page, over sets
+     built from the committed payload. Medians over repeated runs. */
+  const compute = await page.evaluate(({ validationSize, rankingSize, seedItem, cardCeiling }) => {
+    const build = (size) => {
+      const items = [];
+      for (let index = 0; index < size; index += 1) {
+        items.push(Object.assign({}, seedItem, {
+          id: `attn-budget-${String(index).padStart(4, '0')}`,
+          rank: (index % cardCeiling) + 1,
+          confidence: 40 + (index % 55),
+          headline: `Budget fixture item ${index} carrying a distinct headline for ranking`
+        }));
+      }
+      return items;
+    };
+    const median = (samples) => samples.slice().sort((a, b) => a - b)[Math.floor(samples.length / 2)];
+
+    const validationSet = build(validationSize);
+    const rankingSet = build(rankingSize);
+
+    /* one untimed warm-up pass each, so the recorded numbers describe steady
+       state rather than first-call compilation. */
+    validationSet.forEach((item) => window.RLATTN.validateAttentionItem(item, {}));
+    window.RLATTN.rankAttentionItems(rankingSet);
+
+    const validationSamples = [];
+    for (let run = 0; run < 9; run += 1) {
+      const start = performance.now();
+      let verdicts = 0;
+      for (const item of validationSet) {
+        if (window.RLATTN.validateAttentionItem(item, {})) verdicts += 1;
+      }
+      validationSamples.push(performance.now() - start);
+      if (verdicts !== validationSet.length) return { error: 'validation did not return a verdict per candidate' };
+    }
+
+    const rankingSamples = [];
+    let rankedLength = 0;
+    for (let run = 0; run < 9; run += 1) {
+      const start = performance.now();
+      const ranked = window.RLATTN.rankAttentionItems(rankingSet);
+      rankingSamples.push(performance.now() - start);
+      rankedLength = Array.isArray(ranked) ? ranked.length : (ranked && ranked.ranked ? ranked.ranked.length : -1);
+    }
+
+    return {
+      error: null,
+      validationMedianMs: median(validationSamples),
+      validationMaxMs: Math.max(...validationSamples),
+      validatedCount: validationSet.length,
+      rankingMedianMs: median(rankingSamples),
+      rankingMaxMs: Math.max(...rankingSamples),
+      rankedCount: rankedLength
+    };
+  }, {
+    validationSize: VALIDATION_SET_SIZE,
+    rankingSize: RANKING_SET_SIZE,
+    seedItem: ATTENTION_ITEMS[0],
+    cardCeiling: TIER_CARD_CEILING
+  });
+
+  expect(compute.error, `the compute budget harness must run cleanly: ${compute.error}`).toBeNull();
+
+  /* non-vacuity: the sets really were the declared sizes and really were
+     processed. A budget met over an empty set measures nothing. */
+  expect(compute.validatedCount, 'the validation budget must run over a fifty-candidate set')
+    .toBe(VALIDATION_SET_SIZE);
+  expect(compute.rankedCount, 'the ranking budget must rank the full two-hundred-item set')
+    .toBe(RANKING_SET_SIZE);
+
+  expect(compute.validationMedianMs,
+    `BUDGET 2 candidate validation: ${VALIDATION_SET_SIZE} candidates took a median of `
+    + `${compute.validationMedianMs.toFixed(2)} ms (max ${compute.validationMaxMs.toFixed(2)} ms), `
+    + `over the ${BUDGETS.validateFiftyMs} ms ceiling`)
+    .toBeLessThanOrEqual(BUDGETS.validateFiftyMs);
+
+  expect(compute.rankingMedianMs,
+    `BUDGET 3 ranking: ${RANKING_SET_SIZE} items took a median of ${compute.rankingMedianMs.toFixed(2)} ms `
+    + `(max ${compute.rankingMaxMs.toFixed(2)} ms), over the ${BUDGETS.rankTwoHundredMs} ms ceiling`)
+    .toBeLessThanOrEqual(BUDGETS.rankTwoHundredMs);
+
+  /* ── BUDGET 4 and 5 — tier render at the ceiling, and record render ─────
+     Driven through the REAL window.__rlattn.render seam. Budget 4 renders a
+     full seven-card tier; budget 5 renders a pass whose only populated block
+     is the attention record, which isolates the record's own cost. */
+  const seam = await page.evaluate(() => typeof (window.__rlattn && window.__rlattn.render));
+  expect(seam, 'window.__rlattn.render must exist as the render seam the budgets are measured through').toBe('function');
+
+  const render = await page.evaluate(({ sevenItems, nowUtc }) => {
+    const median = (samples) => samples.slice().sort((a, b) => a - b)[Math.floor(samples.length / 2)];
+    const tierHost = document.getElementById('decisionAttention');
+    const recordHost = document.getElementById('attentionRecord');
+
+    const tierContext = { nowUtc, generatedAt: nowUtc, attention: sevenItems };
+    const recordOnlyContext = { nowUtc, generatedAt: nowUtc, attention: [] };
+
+    window.__rlattn.render(tierContext);
+    const renderedCards = tierHost.querySelectorAll('[data-attn-item]').length;
+
+    const tierSamples = [];
+    for (let run = 0; run < 5; run += 1) {
+      const start = performance.now();
+      window.__rlattn.render(tierContext);
+      tierSamples.push(performance.now() - start);
+    }
+    const tierMarkupLength = tierHost.innerHTML.length;
+
+    window.__rlattn.render(recordOnlyContext);
+    const recordSamples = [];
+    for (let run = 0; run < 5; run += 1) {
+      const start = performance.now();
+      window.__rlattn.render(recordOnlyContext);
+      recordSamples.push(performance.now() - start);
+    }
+    const recordMarkupLength = recordHost.innerHTML.length;
+
+    return {
+      renderedCards,
+      tierMedianMs: median(tierSamples),
+      tierMaxMs: Math.max(...tierSamples),
+      tierMarkupLength,
+      recordMedianMs: median(recordSamples),
+      recordMaxMs: Math.max(...recordSamples),
+      recordMarkupLength
+    };
+  }, { sevenItems: fixtureSet(TIER_CARD_CEILING), nowUtc: FIXTURE_NOW });
+
+  /* non-vacuity: the measured renders genuinely produced a full tier and a
+     populated record. A render that painted nothing would be fast and wrong. */
+  expect(render.renderedCards, `the tier render budget must be measured at the ${TIER_CARD_CEILING}-card ceiling`)
+    .toBe(TIER_CARD_CEILING);
+  expect(render.tierMarkupLength, 'the measured tier render must have produced markup').toBeGreaterThan(0);
+  expect(render.recordMarkupLength, 'the measured record render must have produced markup').toBeGreaterThan(0);
+
+  expect(render.tierMedianMs,
+    `BUDGET 4 tier render: ${TIER_CARD_CEILING} cards took a median of ${render.tierMedianMs.toFixed(2)} ms `
+    + `(max ${render.tierMaxMs.toFixed(2)} ms), over the ${BUDGETS.tierRenderSevenMs} ms ceiling`)
+    .toBeLessThanOrEqual(BUDGETS.tierRenderSevenMs);
+
+  expect(render.recordMedianMs,
+    `BUDGET 5 record render: took a median of ${render.recordMedianMs.toFixed(2)} ms `
+    + `(max ${render.recordMaxMs.toFixed(2)} ms), over the ${BUDGETS.recordRenderMs} ms ceiling`)
+    .toBeLessThanOrEqual(BUDGETS.recordRenderMs);
+
+  /* ── BUDGET 6 — no additional network request, no additional blocking script ──
+     Quiescence first: the page's own live layer settles, then the boundary is
+     drawn and every request after it is attributable to the renders above. */
+  let quiet = false;
+  let settledCount = requests.length;
+  for (let attempt = 0; attempt < 20; attempt += 1) {
+    const before = requests.length;
+    await page.waitForTimeout(750);
+    if (requests.length === before) { quiet = true; settledCount = requests.length; break; }
+  }
+  expect(quiet,
+    `the page must reach network quiescence before the added-request boundary is drawn; still saw traffic after `
+    + `${requests.length} requests`)
+    .toBe(true);
+
+  /* non-vacuity: the recorder is genuinely observing. A recorder that saw
+     nothing at all would report "no additional requests" for the wrong reason. */
+  expect(settledCount,
+    'the passive request recorder must have observed the page load — otherwise a zero delta proves nothing')
+    .toBeGreaterThan(0);
+
+  const boundary = requests.length;
+  await page.evaluate(({ sevenItems, nowUtc }) => {
+    window.__rlattn.render({ nowUtc, generatedAt: nowUtc, attention: sevenItems });
+  }, { sevenItems: fixtureSet(TIER_CARD_CEILING), nowUtc: FIXTURE_NOW });
+  await page.waitForTimeout(1500);
+
+  const added = requests.slice(boundary).map((entry) => entry.url);
+  expect(added,
+    `BUDGET 6 network: rendering the decision attention tier and record must add no network request, saw: `
+    + `${added.join(', ')}`)
+    .toEqual([]);
+
+  const blockingScripts = await page.evaluate(() => Array.from(document.querySelectorAll('script[src]'))
+    .filter((node) => !node.defer && !node.async)
+    .map((node) => node.getAttribute('src')));
+  const deferredScripts = await page.evaluate(() => Array.from(document.querySelectorAll('script[src]'))
+    .filter((node) => node.defer || node.async)
+    .map((node) => node.getAttribute('src')));
+
+  /* non-vacuity: the scan sees the page's real script tags, including the new
+     module. A selector that matched nothing would report zero blocking scripts. */
+  expect(deferredScripts.length, 'the script scan must see the page scripts it is asserting about')
+    .toBeGreaterThan(0);
+  expect(deferredScripts.some((src) => src && src.includes('rlattention.js')),
+    `rlattention.js must be present and deferred; scripts seen: ${deferredScripts.join(', ')}`)
+    .toBe(true);
+  expect(blockingScripts,
+    `BUDGET 6 blocking script: the decision attention tier must add no render-blocking script, found: `
+    + `${blockingScripts.join(', ')}`)
+    .toEqual([]);
+
+  expect(pageErrors, `browser errors during the budget run: ${pageErrors.join(' | ')}`).toEqual([]);
+});

@@ -1,0 +1,89 @@
+{
+  "contractVersion": "test-plan/v1",
+  "featureDir": "specs/017-decision-attention-and-developing-situations",
+  "generatedBy": "bubbles.plan",
+  "totalRows": 46,
+  "scopes": [
+    {
+      "scope": 1,
+      "scopeId": "01-attention-capability-module",
+      "rowCount": 25,
+      "rows": [
+        { "id": "TP-01-01", "designTest": "T-01", "file": "tests/rlattention.test.mjs", "category": "unit", "liveSystem": false },
+        { "id": "TP-01-02", "designTest": "T-02", "file": "tests/rlattention.test.mjs", "category": "unit", "liveSystem": false },
+        { "id": "TP-01-03", "designTest": "T-03", "file": "tests/rlattention.test.mjs", "category": "unit", "liveSystem": false },
+        { "id": "TP-01-04", "designTest": "T-04", "file": "tests/rlattention.test.mjs", "category": "unit", "liveSystem": false },
+        { "id": "TP-01-05", "designTest": "T-05", "file": "tests/rlattention.test.mjs", "category": "unit", "liveSystem": false },
+        { "id": "TP-01-06", "designTest": "T-06", "file": "tests/rlattention.test.mjs", "category": "unit", "liveSystem": false },
+        { "id": "TP-01-07", "designTest": "T-07", "file": "tests/rlattention.test.mjs", "category": "unit", "liveSystem": false },
+        { "id": "TP-01-08", "designTest": "T-08", "file": "tests/rlattention.test.mjs", "category": "unit", "liveSystem": false },
+        { "id": "TP-01-09", "designTest": "T-09", "file": "tests/rlattention.test.mjs", "category": "unit", "liveSystem": false },
+        { "id": "TP-01-10", "designTest": "T-10", "file": "tests/rlattention.test.mjs", "category": "unit", "liveSystem": false },
+        { "id": "TP-01-11", "designTest": "T-11", "file": "tests/rlattention.test.mjs", "category": "unit", "liveSystem": false },
+        { "id": "TP-01-12", "designTest": "T-12", "file": "tests/rlattention.test.mjs", "category": "unit", "liveSystem": false },
+        { "id": "TP-01-13", "designTest": "T-13", "file": "tests/rlattention.test.mjs", "category": "unit", "liveSystem": false },
+        { "id": "TP-01-14", "designTest": "T-14", "file": "tests/rlattention.test.mjs", "category": "unit", "liveSystem": false },
+        { "id": "TP-01-15", "designTest": "T-15", "file": "tests/rlattention.test.mjs", "category": "unit", "liveSystem": false },
+        { "id": "TP-01-16", "designTest": "T-16", "file": "tests/rlattention.test.mjs", "category": "unit", "liveSystem": false },
+        { "id": "TP-01-17", "designTest": "T-17", "file": "tests/rlattention.test.mjs", "category": "unit", "liveSystem": false },
+        { "id": "TP-01-18", "designTest": "T-18", "file": "tests/rlattention.test.mjs", "category": "unit", "liveSystem": false },
+        { "id": "TP-01-19", "designTest": "T-19", "file": "tests/rlattention.test.mjs", "category": "unit", "liveSystem": false },
+        { "id": "TP-01-20", "designTest": "T-20", "file": "tests/rlattention.test.mjs", "category": "unit", "liveSystem": false },
+        { "id": "TP-01-21", "designTest": "T-21", "file": "tests/rlattention.test.mjs", "category": "unit", "liveSystem": false },
+        { "id": "TP-01-22", "designTest": "T-22", "file": "tests/rlattention.test.mjs", "category": "unit", "liveSystem": false },
+        { "id": "TP-01-23", "designTest": "T-23", "file": "tests/rlattention.test.mjs", "category": "unit", "liveSystem": false },
+        { "id": "TP-01-24", "designTest": "T-24", "file": "tests/rlattention.test.mjs", "category": "unit", "liveSystem": false },
+        { "id": "TP-01-25", "designTest": null, "file": "tests/rlattention.test.mjs", "category": "unit", "liveSystem": false }
+      ]
+    },
+    {
+      "scope": 2,
+      "scopeId": "02-publication-path-enforcement",
+      "rowCount": 4,
+      "rows": [
+        { "id": "TP-02-01", "designTest": "T-32", "file": "tests/attention-payload-contract.test.mjs", "category": "integration", "liveSystem": false },
+        { "id": "TP-02-02", "designTest": "T-33", "file": "tests/attention-payload-contract.test.mjs", "category": "integration", "liveSystem": false },
+        { "id": "TP-02-03", "designTest": "T-43", "file": "tests/attention-payload-contract.test.mjs", "category": "integration", "liveSystem": false },
+        { "id": "TP-02-04", "designTest": null, "file": "tests/attention-payload-contract.test.mjs", "category": "unit", "liveSystem": false }
+      ]
+    },
+    {
+      "scope": 3,
+      "scopeId": "03-brief-tier-render",
+      "rowCount": 5,
+      "rows": [
+        { "id": "TP-03-01", "designTest": "T-34", "file": "tests/attention-browser.spec.mjs", "category": "e2e-ui", "liveSystem": true },
+        { "id": "TP-03-02", "designTest": "T-35", "file": "tests/attention-browser.spec.mjs", "category": "e2e-ui", "liveSystem": true },
+        { "id": "TP-03-03", "designTest": "T-36", "file": "tests/attention-browser.spec.mjs", "category": "e2e-ui", "liveSystem": true },
+        { "id": "TP-03-04", "designTest": "T-37", "file": "tests/attention-browser.spec.mjs", "category": "e2e-ui", "liveSystem": true },
+        { "id": "TP-03-05", "designTest": "T-41", "file": "tests/attention-browser.spec.mjs", "category": "e2e-ui", "liveSystem": true }
+      ]
+    },
+    {
+      "scope": 4,
+      "scopeId": "04-outcome-record-and-interruption-rate",
+      "rowCount": 7,
+      "rows": [
+        { "id": "TP-04-01", "designTest": "T-25", "file": "tests/attention-payload-contract.test.mjs", "category": "integration", "liveSystem": false },
+        { "id": "TP-04-02", "designTest": "T-26", "file": "tests/attention-payload-contract.test.mjs", "category": "integration", "liveSystem": false },
+        { "id": "TP-04-03", "designTest": "T-27", "file": "tests/attention-payload-contract.test.mjs", "category": "integration", "liveSystem": false },
+        { "id": "TP-04-04", "designTest": "T-28", "file": "tests/attention-payload-contract.test.mjs", "category": "integration", "liveSystem": false },
+        { "id": "TP-04-05", "designTest": "T-29", "file": "tests/attention-payload-contract.test.mjs", "category": "integration", "liveSystem": false },
+        { "id": "TP-04-06", "designTest": "T-30", "file": "tests/attention-payload-contract.test.mjs", "category": "integration", "liveSystem": false },
+        { "id": "TP-04-07", "designTest": "T-31", "file": "tests/attention-payload-contract.test.mjs", "category": "integration", "liveSystem": false }
+      ]
+    },
+    {
+      "scope": 5,
+      "scopeId": "05-legacy-feed-reconciliation-and-acceptance",
+      "rowCount": 5,
+      "rows": [
+        { "id": "TP-05-01", "designTest": "T-38", "file": "scripts/audit-reader-legibility.mjs", "category": "integration", "liveSystem": false },
+        { "id": "TP-05-02", "designTest": "T-39", "file": "tests/attention-payload-contract.test.mjs", "category": "integration", "liveSystem": false },
+        { "id": "TP-05-03", "designTest": "T-40", "file": "tests/attention-payload-contract.test.mjs", "category": "integration", "liveSystem": false },
+        { "id": "TP-05-04", "designTest": "T-42", "file": "tests/attention-browser.spec.mjs", "category": "e2e-ui", "liveSystem": true },
+        { "id": "TP-05-05", "designTest": "T-44", "file": "scripts/selftest.mjs", "category": "integration", "liveSystem": false }
+      ]
+    }
+  ]
+}

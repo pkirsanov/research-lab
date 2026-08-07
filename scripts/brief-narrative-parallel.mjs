@@ -58,8 +58,13 @@ const lanes = [
            fix that run and reopen the same gap the first time the contract gains a field — the
            gate would arm, this sentence would not, and the author would again be refused over a
            key nobody asked them to write. scripts/selftest.mjs asserts this literal holds no
-           second copy of the key list. */
-        instructions: `Own actionable changes and catalysts. attention must contain at most config.thresholds.attentionMaxCards ranked items. recommendations must be concrete instruments with direction, levels or relative-strength triggers, invalidation, horizon, confidence, and deepLink. events must be nearest-first and cover imminent catalysts through roughly the next 10 trading days; every scenario odds figure is a labeled estimate with its inputs shown, the scenario odds within each catalyst sum to 1, and stale or unverified facts are labeled. ${briefEventContractInstruction()}`
+           second copy of the key list.
+
+           The ATTENTION terms below are the opposite case and are stated in full on purpose: they
+           are decision-attention/v1 requirement NAMES, not payload key names, and the events key
+           scan above must stay clean of them — so the transmission-path sentence says "declare"
+           rather than "name", which is an enforced scenario key. */
+        instructions: `Own actionable changes and catalysts. attention must contain at most config.thresholds.attentionMaxCards ranked items. Every attention item must carry the full decision-attention/v1 field set: the falsifiability triple of an escalation trigger, an invalidation and an expiry instant, plus the decision window the reader must act inside. Every attention item must also declare its transmission path from the certified channel vocabulary, or state that absence explicitly when no channel is identified, and give every figure a provenance class carrying its source and as-of instant. An attention item missing any one of those fields is refused by the publication gate rather than defaulted. recommendations must be concrete instruments with direction, levels or relative-strength triggers, invalidation, horizon, confidence, and deepLink. events must be nearest-first and cover imminent catalysts through roughly the next 10 trading days; every scenario odds figure is a labeled estimate with its inputs shown, the scenario odds within each catalyst sum to 1, and stale or unverified facts are labeled. ${briefEventContractInstruction()}`
     },
     {
         id: 'groups',

@@ -8,24 +8,32 @@
         {
             "id": "pre-market",
             "etTime": "07:30",
+            "anchor": "open",
+            "offsetMinutes": -120,
             "label": "Pre-market",
             "focus": "next-session actions first: overnight/pre-market gaps, Asia/Europe/global rotation, GLD/BTC/commodities, today's events + option-implied moves, and exact levels to act on at the open"
         },
         {
             "id": "morning",
             "etTime": "11:00",
+            "anchor": "open",
+            "offsetMinutes": 90,
             "label": "Morning",
             "focus": "only what changes today's plan: did the open hold/reject key levels, rotation/real-asset confirmation, intraday breadth, and next-session risk"
         },
         {
             "id": "pre-close",
             "etTime": "15:00",
+            "anchor": "close",
+            "offsetMinutes": -60,
             "label": "Pre-close",
             "focus": "tomorrow-first positioning: actions into the close, gamma pin/magnet, hold/trim/hedge overnight, global/real-asset confirmation, and tomorrow's catalysts"
         },
         {
             "id": "after-hours",
             "etTime": "17:00",
+            "anchor": "close",
+            "offsetMinutes": 60,
             "label": "After-hours",
             "focus": "next-trading-day plan: after-hours reactions, persistent regime/rotation/global/real-asset changes, exact triggers/invalidation, and overnight risk"
         }

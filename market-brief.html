@@ -735,6 +735,149 @@
         .toolread:last-child {
             border-bottom: 0
         }
+
+        /* Decision attention — the items asking for a decision this session.
+           Deliberately styled UNLIKE the Red Alert surface: no alert pill, no
+           alert colour, no severity word. "This needs a decision today" and
+           "this could hurt a lot" are different questions, and borrowing the
+           alert affordances would collapse them into one. */
+        #decisionAttention {
+            display: grid;
+            gap: 10px;
+            margin-bottom: 16px
+        }
+
+        .attn-head {
+            display: flex;
+            gap: 6px 14px;
+            flex-wrap: wrap;
+            align-items: baseline;
+            color: var(--muted);
+            font-size: 12.5px;
+            overflow-wrap: anywhere
+        }
+
+        .attn-count {
+            color: var(--txt);
+            font-weight: 700
+        }
+
+        .attn-empty {
+            background: var(--panel);
+            border: 1px solid var(--line);
+            border-radius: 10px;
+            padding: 10px 13px;
+            color: var(--muted);
+            overflow-wrap: anywhere
+        }
+
+        .attn-item {
+            background: var(--panel);
+            border: 1px solid var(--line);
+            border-left: 3px solid var(--blue);
+            border-radius: 10px;
+            padding: 10px 13px
+        }
+
+        .attn-item.attn-elapsed {
+            border-left-color: var(--dim);
+            opacity: .82
+        }
+
+        .attn-item>summary {
+            cursor: pointer;
+            display: grid;
+            gap: 6px;
+            list-style: none
+        }
+
+        .attn-item>summary::-webkit-details-marker {
+            display: none
+        }
+
+        .attn-headline {
+            font-weight: 650;
+            line-height: 1.4;
+            overflow-wrap: anywhere
+        }
+
+        .attn-tags {
+            display: flex;
+            gap: 6px;
+            flex-wrap: wrap
+        }
+
+        .attn-tag {
+            font-size: 11px;
+            padding: 3px 10px;
+            border-radius: 20px;
+            background: #13202c;
+            border: 1px solid var(--line);
+            color: var(--muted);
+            max-width: 100%;
+            overflow-wrap: anywhere
+        }
+
+        .attn-tag.attn-tag-elapsed {
+            border-style: dashed;
+            color: var(--dim)
+        }
+
+        .attn-next {
+            font-size: 12.5px;
+            color: var(--teal);
+            overflow-wrap: anywhere
+        }
+
+        .attn-body {
+            margin-top: 10px;
+            padding-top: 9px;
+            border-top: 1px solid var(--line);
+            display: grid;
+            gap: 6px;
+            font-size: 13px;
+            overflow-wrap: anywhere
+        }
+
+        .attn-body p {
+            margin: 0
+        }
+
+        .attn-figs {
+            margin: 0;
+            padding-left: 18px;
+            display: grid;
+            gap: 4px
+        }
+
+        .attn-note {
+            color: var(--muted);
+            font-size: 12px
+        }
+
+        #attentionRecord {
+            background: var(--panel2);
+            border: 1px solid var(--line);
+            border-radius: 12px;
+            padding: 10px 14px;
+            margin-bottom: 16px;
+            display: grid;
+            gap: 5px;
+            font-size: 13px;
+            overflow-wrap: anywhere
+        }
+
+        #attentionRecord p {
+            margin: 0
+        }
+
+        .attn-record-label {
+            font-size: 11px;
+            text-transform: uppercase;
+            letter-spacing: .6px;
+            color: var(--dim);
+            font-weight: 700
+        }
     </style>
 </head>
 
@@ -781,6 +924,7 @@
             Track record — this brief&rsquo;s own error rate</h2>
         <div id="freshbar" role="status" hidden></div>
         <div id="scorecard" data-tkr-auto></div>
+        <section id="attentionRecord" aria-label="How the decision list has actually turned out"></section>
 
         <div class="strip" id="regimeStrip"></div>
         <div class="sub" id="liveNote" style="margin:-8px 0 4px"></div>
@@ -794,6 +938,16 @@
             <summary>⌄ Structural backdrop and invalidation map</summary>
             <div class="body backdrop" id="backdrop"></div>
         </details>
+
+        <h2 class="sec"
+            title="Items that are asking for a decision inside a named window, ranked by how close their effect is to arriving — not by how bad they would be. Each one publishes what would escalate it, what would prove it wrong, and when it stops counting.">
+            Needs a decision — and when it stops counting</h2>
+        <!-- data-rlk-done opts this tier out of the body-wide ticker auto-scan. The tier
+             quotes published decision text verbatim and explains every control it renders
+             itself, so a generic decorator must not splice a symbol link and an unexplained
+             "?" control into the middle of an authored sentence. -->
+        <section id="decisionAttention" data-rlk-done="1"
+            aria-label="Items asking for a decision this session"></section>
 
         <h2 class="sec"
             title="Only structurally anchored, adequately confident changes that can affect the next session. Watch/noise stays out.">
@@ -941,6 +1095,361 @@
 
             function localToolReads() { try { return (typeof RLDATA !== 'undefined' && RLDATA.toolRead) ? (RLDATA.toolRead() || {}) : {}; } catch (e) { return {}; } }
 
+            /* ═════════════ Decision attention tier ═════════════
+               The items asking for a decision this session, rendered above the
+               legacy #attention feed from the payload that is already in memory.
+               This path NEVER fetches: it is a projection of committed data, so
+               it renders identically with no provider key and no proxy.
+
+               Every rule that decides WHAT is shown — the rank order, the
+               publication ceiling, the window/channel/verb vocabularies and the
+               ranking rationale — comes from RLATTN. This code only decides how
+               a reader sees it, so the surface and the module cannot drift.
+
+               Urgency is not severity. The tier borrows nothing from the Red
+               Alert surface: no alert pill, no alert colour, no severity word.
+               "This needs a decision today" and "this could hurt a lot" are
+               different questions and must not share one affordance.
+
+               Authored strings reach the DOM only through textContent and
+               setAttribute — never innerHTML — so markup inside an authored
+               field renders as characters a reader sees, not as nodes the
+               browser runs. */
+            var ATTN_CONTRACT = "decision-attention/v1";
+            var attnRenderedSignature = null;
+
+            var ATTN_URGENCY = {
+                imminent: { label: "Effect already arriving", means: "the move it describes is happening now, so waiting for more confirmation is itself a decision" },
+                developing: { label: "Effect still building", means: "the move it describes has started but is not finished, so there is time to prepare and none to ignore it" },
+                latent: { label: "Effect not yet in motion", means: "nothing has moved on this yet, so it is a watch item rather than something to act on today" }
+            };
+            var ATTN_WINDOW = {
+                "pre-market": { label: "Decide before the open", means: "the call has to be made before the opening bell, not during the session" },
+                "morning": { label: "Decide in the morning", means: "the call has to be made in the morning session, while the open is still being tested" },
+                "pre-close": { label: "Decide before the close", means: "the call has to be made before the closing bell, because holding it overnight is the decision" },
+                "after-hours": { label: "Decide after the close", means: "the call belongs to the after-hours session, once the cash close is in" }
+            };
+            var ATTN_CHANNEL = {
+                "rates-liquidity": "rates and liquidity",
+                "fx-carry": "currencies and carry",
+                "credit-funding": "credit and funding",
+                "volatility-options": "volatility and options positioning",
+                "commodities-energy": "commodities and energy",
+                "breadth-market-structure": "market breadth and structure",
+                "geopolitical-supply-chain": "geopolitics and supply chains",
+                "counterparty-operational": "counterparty and operational risk"
+            };
+            var ATTN_VERB = {
+                "monitor": "keep watching it and do nothing else yet",
+                "verify": "verify the figures behind it before trusting them",
+                "investigate": "investigate what is actually driving it",
+                "scenario-test": "test it against scenarios rather than assume one",
+                "review-hedge-research": "review the hedging research on it",
+                "trace-claims": "trace its claims back to their source"
+            };
+
+            var ATTN_MONTHS = ["Jan", "Feb", "Mar", "Apr", "May", "Jun", "Jul", "Aug", "Sep", "Oct", "Nov", "Dec"];
+            /* UTC, not locale: a reader comparing two machines must see the same instant. */
+            function attnUtc(iso) {
+                var ms = Date.parse(iso);
+                if (!isFinite(ms)) return String(iso == null ? "" : iso);
+                var d = new Date(ms), pad = function (n) { return (n < 10 ? "0" : "") + n; };
+                return d.getUTCDate() + " " + ATTN_MONTHS[d.getUTCMonth()] + " " + d.getUTCFullYear()
+                    + ", " + pad(d.getUTCHours()) + ":" + pad(d.getUTCMinutes()) + " UTC";
+            }
+            function attnGap(ms) {
+                var hours = ms / 3600000;
+                if (hours < 1) return Math.max(1, Math.round(hours * 60)) + " minutes";
+                if (hours < 48) return (Math.round(hours * 10) / 10) + " hours";
+                return (Math.round(hours / 24 * 10) / 10) + " days";
+            }
+
+            /* One field = one tooltip. The tooltip always says what the field is
+               AND what the reading in front of the reader means; a tooltip that
+               only repeats its own label teaches nothing. */
+            function attnField(parent, tag, field, text, tip) {
+                var node = document.createElement(tag);
+                node.setAttribute("data-attn-field", field);
+                node.setAttribute("title", tip);
+                node.textContent = text;
+                parent.appendChild(node);
+                return node;
+            }
+            function attnItemsOf(source) {
+                return (Array.isArray(source) ? source : []).filter(function (item) {
+                    return item && typeof item === "object" && item.contractVersion === ATTN_CONTRACT;
+                });
+            }
+
+            function renderAttentionItem(host, item, previous, nowMs) {
+                var vm = RLATTN.toViewModel(item, {});
+                if (!vm) return;
+                var expiryMs = vm.expiry ? Date.parse(vm.expiry) : NaN;
+                var hasExpiry = isFinite(expiryMs);
+                var elapsed = hasExpiry && expiryMs <= nowMs;
+                var when = hasExpiry ? attnUtc(vm.expiry) : null;
+
+                var article = document.createElement("article");
+                article.setAttribute("data-attn-item", "");
+                if (vm.id) article.setAttribute("data-attn-id", vm.id);
+                var details = document.createElement("details");
+                details.className = "attn-item" + (elapsed ? " attn-elapsed" : "");
+                var summary = document.createElement("summary");
+                summary.setAttribute("title", "Open or close the full detail for this item \u2014 what would escalate it, what would prove it wrong, when it stops counting and where each figure came from. Reading now: "
+                    + (elapsed
+                        ? "its window has already passed, so the detail is a record of what it claimed rather than a live call."
+                        : "its window is still open, so the detail is still something you can act on."));
+
+                attnField(summary, "div", "headline", vm.headline || "This item published no headline.",
+                    "The single claim this item is making, in the words the brief published. Reading now: "
+                    + (vm.headline ? "it is the whole claim \u2014 everything below either supports it or would break it." : "no claim was published, so there is nothing here to act on."));
+
+                var tags = document.createElement("div");
+                tags.className = "attn-tags";
+                summary.appendChild(tags);
+
+                var urgency = ATTN_URGENCY[vm.imminence] || null;
+                attnField(tags, "span", "urgency", urgency ? urgency.label : "Urgency not recorded",
+                    "How close this is to actually moving prices \u2014 not how serious it would be if it did. Reading now: "
+                    + (urgency ? urgency.means + "." : "the brief recorded no urgency for this item, so it is ranked last rather than assumed calm."))
+                    .className = "attn-tag";
+
+                var windowRead = ATTN_WINDOW[vm.decisionWindow] || null;
+                attnField(tags, "span", "decision-window", windowRead ? windowRead.label : "No decision window recorded",
+                    "The session by which a decision on this has to be made. Reading now: "
+                    + (windowRead ? windowRead.means + "." : "no window was published, so nothing forces a decision on any particular session."))
+                    .className = "attn-tag";
+
+                var stateNode = attnField(tags, "span", "expiry-state",
+                    hasExpiry ? (elapsed ? "Expired" : "Still live") : "No expiry recorded",
+                    "Whether this item is still inside the window it published for itself. Reading now: "
+                    + (hasExpiry
+                        ? (elapsed
+                            ? "its expiry of " + when + " has passed, so it is kept as a record and is no longer a live call."
+                            : "it runs until " + when + ", so it is still a live call.")
+                        : "it published no expiry, so it cannot time out on its own and has to be closed by hand."));
+                stateNode.className = "attn-tag" + (elapsed ? " attn-tag-elapsed" : "");
+
+                attnField(summary, "div", "next-step", "Next step: " + (vm.verb || "none published"),
+                    "What the brief asks you to do next \u2014 research only, never an order. Reading now: it asks you to "
+                    + (ATTN_VERB[vm.verb] || "follow the step it published in its own words") + ".")
+                    .className = "attn-next";
+
+                details.appendChild(summary);
+
+                var body = document.createElement("div");
+                body.className = "attn-body";
+
+                attnField(body, "p", "rationale", vm.rationale || "This item published no reasoning.",
+                    "Why the brief thinks this is worth interrupting you for, in its own words. Reading now: this is the reasoning behind the headline, and it stands or falls with the invalidation below.");
+
+                attnField(body, "p", "escalation-trigger", "Escalates if: " + (vm.escalationTrigger || "no escalation condition was published."),
+                    "The condition that would move this from watching into acting. Reading now: until that condition actually prints, the next step above stays research only.");
+
+                attnField(body, "p", "invalidation", "Wrong if: " + (vm.invalidation || "no invalidation was published."),
+                    "The condition that would prove this item wrong. Reading now: if it prints, the claim above is void and carrying it further would be a mistake.");
+
+                attnField(body, "p", "expiry",
+                    hasExpiry ? (elapsed ? "Expiry passed " + when : "Expires " + when) : "No expiry was published for this item.",
+                    "The instant this item stops counting as a live call. Reading now: "
+                    + (hasExpiry
+                        ? (elapsed ? "that instant is behind us, so nothing below should be traded off it." : "it is still ahead, so the window is open.")
+                        : "there is none, so age alone will never retire this item."));
+
+                var mapped = vm.transmissionMapped && vm.transmissionPath.length > 0;
+                var channels = vm.transmissionPath.map(function (id) { return ATTN_CHANNEL[id] || id; }).join(", ");
+                attnField(body, "p", "transmission",
+                    mapped ? "Reaches prices through " + channels + "." : (vm.transmissionAbsenceNote || "No route to prices was identified for this item."),
+                    "How this would actually reach prices \u2014 the route it has to travel. Reading now: "
+                    + (mapped
+                        ? "a route is identified (" + channels + "), which is why it ranks above items whose effect has nowhere to go."
+                        : "no route is identified, so it ranks below items whose effect is already arriving somewhere."));
+
+                var confirmed = vm.marketConfirmed;
+                var confirmText = confirmed
+                    ? "The market is already confirming this: " + (vm.marketConfirmationDetail || "no detail was published.")
+                    : (vm.marketConfirmationNote || vm.marketConfirmationDetail || "Nothing in the tape confirms this yet.");
+                attnField(body, "p", "market-confirmation", confirmText,
+                    "Whether the tape has already confirmed this or whether it is still only a claim. Reading now: "
+                    + (confirmed
+                        ? "there is observed evidence behind it, so it is not resting on the argument alone."
+                        : "there is no confirming evidence yet, so treat it as a claim and not as an observation."));
+
+                if (vm.figures.length > 0) {
+                    var figs = document.createElement("ul");
+                    figs.className = "attn-figs";
+                    vm.figures.forEach(function (fig) {
+                        attnField(figs, "li", "figure",
+                            fig.label + ": " + fig.value + " \u2014 from " + fig.provenance.sourceId + ", as of " + attnUtc(fig.provenance.asOf),
+                            "A figure this item leans on, shown only because it names where it came from. Reading now: " + fig.value
+                            + ", measured by " + fig.provenance.sourceId + " at " + attnUtc(fig.provenance.asOf) + " \u2014 check it there before trusting it.");
+                    });
+                    body.appendChild(figs);
+                }
+                var authored = Array.isArray(item.figures) ? item.figures.length : 0;
+                if (authored > vm.figures.length) {
+                    attnField(body, "p", "withheld-figures",
+                        (authored - vm.figures.length) + " further figure(s) are not shown because they name no source.",
+                        "Figures that were dropped rather than displayed unsourced. Reading now: an unsourced number would look exactly like a checked one, so it is withheld instead of shown.")
+                        .className = "attn-note";
+                }
+
+                if (previous && typeof RLATTN.rankRationale === "function") {
+                    attnField(body, "p", "rank-reason", RLATTN.rankRationale(previous, item),
+                        "Why this item sits where it does in the list. Reading now: the order is urgency first, then whether a route to prices is identified, then how soon a decision is due \u2014 never how bad the outcome would be.")
+                        .className = "attn-note";
+                }
+
+                /* An authored deep link is untrusted input. Only a same-document
+                   page reference is followed; anything else is shown as text. */
+                if (typeof item.deepLink === "string" && /^[A-Za-z0-9._-]+\.html(#[A-Za-z0-9._-]*)?$/.test(item.deepLink)) {
+                    var linkWrap = document.createElement("p");
+                    var link = attnField(linkWrap, "a", "owner-link", "Open the tool this read came from",
+                        "Opens the tool that produced this read so the figures can be checked at source. Reading now: it points at "
+                        + item.deepLink + ", which owns the numbers quoted above.");
+                    link.setAttribute("href", item.deepLink);
+                    body.appendChild(linkWrap);
+                }
+
+                details.appendChild(body);
+                article.appendChild(details);
+                host.appendChild(article);
+            }
+
+            /* context = { attention, generatedAt, nowUtc }. "Now" is an argument,
+               never a hidden clock read inside the renderer, so the same context
+               always produces the same DOM. */
+            function renderAttentionTier(context) {
+                var host = el("decisionAttention"), recordHost = el("attentionRecord");
+                if (!host) return;
+                var ctx = (context && typeof context === "object") ? context : {};
+                var payload = PAYLOAD || {};
+                var items = attnItemsOf(Array.isArray(ctx.attention) ? ctx.attention : payload.attention);
+                var generatedAt = ctx.generatedAt || payload.generatedAt || null;
+                var nowMs = Date.parse(ctx.nowUtc || "");
+                if (!isFinite(nowMs)) nowMs = Date.now();
+
+                host.textContent = "";
+                if (typeof RLATTN === "undefined") {
+                    attnField(host, "p", "unavailable",
+                        "The decision list could not be loaded on this page, so nothing is shown here.",
+                        "Whether this section is able to report at all. Reading now: its module did not load, so an empty list would read as \u201cnothing needs a decision\u201d when the truth is that nothing was checked.")
+                        .className = "attn-empty";
+                    if (recordHost) renderAttentionRecord(recordHost, 0, generatedAt);
+                    return;
+                }
+
+                var selection = RLATTN.selectAttentionItems(items, (CFG && CFG.thresholds && CFG.thresholds.attentionMaxCards) || undefined);
+                var published = selection.published || [], held = (selection.suppressed || []).length;
+
+                var head = document.createElement("div");
+                head.className = "attn-head";
+                attnField(head, "span", "open-count",
+                    published.length === 1 ? "1 item is asking for a decision" : published.length + " items are asking for a decision",
+                    "How many items cleared the bar to interrupt you at all. Reading now: " + published.length + " shown"
+                    + (held > 0
+                        ? " and " + held + " held back by the ceiling of " + selection.cap + ", so the list is capped rather than complete."
+                        : " with none held back, so nothing is hidden behind the ceiling."))
+                    .className = "attn-count";
+
+                var freshness = (typeof RLBRIEF !== "undefined" && typeof RLBRIEF.narrativeFreshness === "function")
+                    ? RLBRIEF.narrativeFreshness({ generatedAt: generatedAt }, (CFG && CFG["freshness-policy/v1"]) || null, nowMs)
+                    : null;
+                var state = freshness ? freshness.state : "unknown";
+                var age = generatedAt ? attnGap(Math.max(0, nowMs - Date.parse(generatedAt))) : null;
+                var genText, genTip;
+                if (!generatedAt) {
+                    genText = "This reading does not record when it was written, so its age cannot be checked.";
+                    genTip = "When this reading was written and whether that is recent enough to trust. Reading now: no generation time was published, so age cannot be checked and freshness must not be assumed.";
+                } else if (state === "stale") {
+                    genText = "Stale generation: written " + age + " ago on " + attnUtc(generatedAt)
+                        + " and it has missed several scheduled updates \u2014 read what follows as history, not as today.";
+                    genTip = "When this reading was written and whether that is recent enough to trust. Reading now: it is " + age
+                        + " old, past the point where the schedule says it should have refreshed, so every item below may already be settled.";
+                } else if (state === "aging") {
+                    genText = "Ageing generation: written " + age + " ago on " + attnUtc(generatedAt) + " and it has missed at least one scheduled update.";
+                    genTip = "When this reading was written and whether that is recent enough to trust. Reading now: it is " + age
+                        + " old, which is past one scheduled update, so check the live layer before acting on a close call.";
+                } else {
+                    genText = "Written " + attnUtc(generatedAt) + ", which is current for this session.";
+                    genTip = "When this reading was written and whether that is recent enough to trust. Reading now: it is " + (age || "less than an hour")
+                        + " old, inside the publishing schedule, so the items below are current.";
+                }
+                attnField(head, "span", "generation", genText, genTip);
+                host.appendChild(head);
+
+                if (published.length === 0) {
+                    attnField(host, "p", "empty-state",
+                        selection.emptyStatement || "Nothing requires attention in this window.",
+                        "Whether anything cleared the bar to interrupt you at all. Reading now: nothing did, so this space stays deliberately empty instead of being padded with cards that would not change a decision.")
+                        .className = "attn-empty";
+                } else {
+                    published.forEach(function (item, index) {
+                        renderAttentionItem(host, item, index > 0 ? published[index - 1] : null, nowMs);
+                    });
+                }
+                if (recordHost) renderAttentionRecord(recordHost, published.length, generatedAt);
+            }
+
+            /* The record block: how the decision list has actually turned out.
+               The rate itself is the module's, including its refusal to report
+               one below the minimum closed sample — a flattering zero would be
+               worse than no number at all. */
+            function renderAttentionRecord(host, openCount, generatedAt) {
+                host.textContent = "";
+                var label = document.createElement("div");
+                label.className = "attn-record-label";
+                label.textContent = "How often these calls turned out to matter";
+                label.setAttribute("title", "The decision list scoring itself: of the items that have already closed, how many actually mattered. Reading now: it is shown next to the track record above so the two error rates are read together.");
+                host.appendChild(label);
+
+                if (typeof RLATTN === "undefined" || typeof RLATTN.computeInterruptionRate !== "function") {
+                    var offline = document.createElement("p");
+                    offline.textContent = "This record cannot be computed on this page right now, so no rate is shown rather than a figure that was never calculated.";
+                    offline.setAttribute("title", "Whether the record is able to report at all. Reading now: its module did not load, so showing any number here would be inventing one.");
+                    host.appendChild(offline);
+                    return;
+                }
+                /* No outcome has been closed and published yet, so the honest
+                   input is an empty set — never a placeholder that reads as a
+                   result. */
+                var rate = RLATTN.computeInterruptionRate([], null, generatedAt || null);
+                var statement = document.createElement("p");
+                statement.textContent = rate.statement;
+                statement.setAttribute("title", "Whether there is yet enough closed history to publish a hit rate. Reading now: " + rate.closedSample
+                    + " items have closed against a minimum of " + rate.minClosedSample + ", so a rate now would be noise dressed up as a score.");
+                host.appendChild(statement);
+
+                var open = document.createElement("p");
+                open.className = "attn-note";
+                open.textContent = openCount === 1
+                    ? "1 item is still open in the list below, so nothing has been scored yet."
+                    : openCount + " items are still open in the list below, so nothing has been scored yet.";
+                open.setAttribute("title", "How much history is still being built. Reading now: " + openCount
+                    + " open item(s) will each close as escalated, confirmed, resolved or timed out, and only then do they count towards the rate above.");
+                host.appendChild(open);
+            }
+
+            /* The tier is a projection of the COMMITTED payload. Refreshing the
+               live shared cache does not change that payload, so re-rendering on
+               every live recompute would only throw away DOM and any expanded
+               item the reader had opened. */
+            function renderAttentionFromPayload() {
+                var payload = PAYLOAD || {};
+                var signature = String(payload.generatedAt || "") + "|" + attnItemsOf(payload.attention)
+                    .map(function (item) { return String(item.id || item.headline || ""); }).join("~");
+                if (signature === attnRenderedSignature) return;
+                attnRenderedSignature = signature;
+                renderAttentionTier({ attention: payload.attention, generatedAt: payload.generatedAt, nowUtc: new Date().toISOString() });
+            }
+
+            /* The single re-render seam, mirroring window.__rlmac.renderBrief. */
+            window.__rlattn = {
+                version: "decision-attention/scope-03",
+                render: renderAttentionTier,
+                contractVersion: ATTN_CONTRACT
+            };
+
             function renderAll() {
                 renderAsOf();
                 RLBRIEF.renderFreshness(el("freshbar"), RLBRIEF.narrativeFreshness(PAYLOAD, (CFG && CFG["freshness-policy/v1"]) || null));
@@ -948,6 +1457,7 @@
                 RLBRIEF.renderRegimeStrip(el("regimeStrip"), PAYLOAD && PAYLOAD.regime);
                 RLBRIEF.renderNextSession(el("nextSession"), PAYLOAD && PAYLOAD.nextSession, PAYLOAD && PAYLOAD.recommendations, CFG, SNAP);
                 RLBRIEF.renderBackdrop(el("backdrop"), PAYLOAD && PAYLOAD.backdrop);
+                renderAttentionFromPayload();
                 var attention = RLBRIEF.actionableAttention((PAYLOAD && PAYLOAD.attention) || [], CFG.thresholds && CFG.thresholds.minimumAttentionConfidence);
                 RLBRIEF.renderAttention(el("attention"), attention, CFG, CFG.thresholds && CFG.thresholds.attentionMaxCards);
                 RLBRIEF.renderEvents(el("events"), mergeEvents());
@@ -1007,6 +1517,7 @@
     <script src="rlexperience-adapters/market-action.js" defer></script>
     <script src="rlbrief.js" defer></script>
     <script src="rlmarketaction.js" defer></script>
+    <script src="rlattention.js" defer></script>
     <script src="rlticker.js" defer></script>
     <script src="rlapp.js?v=20260712-4" defer></script>
     <script src="rlnav.js" defer></script>

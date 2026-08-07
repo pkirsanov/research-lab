@@ -1,6 +1,7 @@
 #!/usr/bin/env node
 
 import { readFileSync, writeFileSync } from 'node:fs';
+import { createRequire } from 'node:module';
 import { dirname, resolve } from 'node:path';
 import { fileURLToPath } from 'node:url';
 import { BRIEF_NARRATIVE_FIELDS_REQUIRED, findBriefNarrativeVocabularyLeaks } from './reader-vocabulary.mjs';
@@ -8,6 +9,73 @@ import { ACTION_DIRECTION, buildRecommendationBody, loadInstrumentUniverse } fro
 
 const SCRIPT_PATH = fileURLToPath(import.meta.url);
 const ROOT = resolve(dirname(SCRIPT_PATH), '..');
+
+/* rlattention.js is a UMD dual module, not ESM: createRequire takes the module.exports
+   branch and the browser takes the globalThis.RLATTN branch, and both hand back the SAME
+   frozen api object. Requiring it here is what makes the publication path and the render
+   path one predicate instead of two copies that happen to agree today. */
+const RLATTN = createRequire(import.meta.url)(resolve(ROOT, 'rlattention.js'));
+
+/**
+ * The attention field predicate, re-exported so a caller can prove by identity that the
+ * publication path runs the capability module's own function. This file restates NO
+ * attention rule locally: the headline ceiling, the falsifiability triple, the window
+ * vocabulary, the transmission channels and the provenance class all live in rlattention.js.
+ */
+export const validateAttentionItem = RLATTN.validateAttentionItem;
+
+/*
+ * The context `validateAttentionItem` resolves an item against. Every member is caller-supplied
+ * BY CONTRACT, so that the public watchlist scope, the exchange calendar and the
+ * generation-window vocabulary each keep exactly one definition and rlattention.js never
+ * becomes a second one (design 017, `windowVocabulary`: "supplied by the caller from the
+ * committed generation-window contract").
+ *
+ * The publication path hands over nothing it cannot READ from a committed artifact, and
+ * synthesizes nothing: the scope is watchlist.json, the calendar is the committed
+ * xnys-calendar/v1 artifact, the vocabulary is the caller's own generation-window contract and
+ * the trading date is the payload's own session date. Hard cutover still applies in the other
+ * direction — a member no committed artifact can supply is left ABSENT and the item is refused,
+ * never resolved against a substituted default.
+ */
+
+/** The public watchlist scope: the tickers watchlist.json declares, and nothing else. */
+const WATCHLIST_SCOPE = Object.freeze(loadJson('watchlist.json').items.map((item) => item.ticker));
+
+/*
+ * The exchange calendar, projected from the committed xnys-calendar/v1 rows into the session
+ * shape the shipped resolver reads (`sessions[].tradingDate/opensUtc/closesUtc`). A row is a
+ * session exactly when it carries a regular trading period: `holiday` and `weekend` rows carry
+ * `regular: null`, while `early-close` rows carry their OWN 13:00 ET close — so a close-anchored
+ * window slides with the real half-day boundary instead of a nominal 16:00.
+ */
+const XNYS_CALENDAR_SOURCE = Object.freeze({
+  sessions: Object.freeze(
+    loadJson('data/calendars/xnys/calendar.json').rows
+      .filter((row) => row.regular)
+      .map((row) => Object.freeze({
+        tradingDate: row.tradingDate,
+        opensUtc: row.regular.startUtc,
+        closesUtc: row.regular.endUtc
+      }))
+  )
+});
+
+/**
+ * The window vocabulary, keyed by window id, read from the caller's own generation-window
+ * contract. A window that contract does not declare — or declares without a resolvable
+ * `{ anchor, offsetMinutes }` pair — gets NO entry, and every item placed in it is refused by
+ * name. That refusal is the point: it is what an absent anchor is supposed to cost.
+ */
+function windowVocabularyFrom(config) {
+  const declared = Array.isArray(config?.windows) ? config.windows : [];
+  const vocabulary = {};
+  for (const window of declared) {
+    if (!hasText(window?.id) || !hasText(window?.anchor) || !Number.isFinite(window?.offsetMinutes)) continue;
+    vocabulary[window.id] = { anchor: window.anchor, offsetMinutes: window.offsetMinutes };
+  }
+  return vocabulary;
+}
 
 function hasText(value) {
   return typeof value === 'string' && value.trim().length > 0;
@@ -305,8 +373,27 @@ export function validateBriefPayload(payload, registry, config, snapshot) {
   }
   if (!/(DBC|PDBC|USO|BNO|COMMOD)/.test(realAssets)) errors.push('real-assets tool read must include broad-commodity or oil analysis');
 
+  /* Attention used to be checked by card count alone, so a 400-character headline with no
+     invalidation, no expiry and no transmission path published cleanly four times a day into
+     an append-only ledger. The cap still applies, and every item now clears the same
+     decision-attention/v1 field contract the browser applies, named field by field the way
+     nextSession.actions already is. Hard cutover: a missing required field is refused, never
+     defaulted. */
   if (!Array.isArray(payload?.attention)) errors.push('attention must be an array');
-  else if (payload.attention.length > (thresholds.attentionMaxCards || 7)) errors.push('attention exceeds configured card maximum');
+  else {
+    if (payload.attention.length > (thresholds.attentionMaxCards || 7)) errors.push('attention exceeds configured card maximum');
+    const attentionContext = {
+      watchlistScope: WATCHLIST_SCOPE,
+      calendarSource: XNYS_CALENDAR_SOURCE,
+      windowVocabulary: windowVocabularyFrom(config),
+      tradingDateIso: payload?.nextSession?.sessionDate
+    };
+    payload.attention.forEach((item, index) => {
+      for (const violation of validateAttentionItem(item, attentionContext).violations) {
+        errors.push(`attention[${index}].${violation.field} ${violation.code}: ${violation.message}`);
+      }
+    });
+  }
 
   if (!Array.isArray(payload?.recommendations)) errors.push('recommendations must be an array');
   if (!Array.isArray(payload?.events) || payload.events.length === 0) errors.push('events must be a non-empty array');

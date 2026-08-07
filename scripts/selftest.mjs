@@ -5718,6 +5718,125 @@ try {
     'strategy-research.js returns the SAME arithmetic Sharpe delegated to rlmetrics (' + adapterMetrics.sharpe.toFixed(9) + ' vs ' + canonical.toFixed(9) + ')');
 } catch (e) { failures++; console.log('  \u2717 FAIL (rlmetrics group threw): ' + e.message); }
 
+/* ---------- rlattention — the attention tier APPENDS to the certified lifecycle, it never redefines it ---------- */
+try {
+  group('rlattention.js \u2014 append-only lifecycle, upstream-owned vocabulary, and a rank order with no clock in it');
+  const { createRequire: createAttentionRequire } = await import('node:module');
+  const attentionRequire = createAttentionRequire(import.meta.url);
+  const ATTENTION_PATH = join(ROOT, 'rlattention.js');
+  const RLMKTACTION = attentionRequire(join(ROOT, 'rlmarketaction.js'));
+  const attentionSource = read('rlattention.js');
+  let RLATTN = attentionRequire(ATTENTION_PATH);
+
+  const ATTENTION_SURFACE = Object.freeze([
+    'CONTRACT_VERSION', 'ATTENTION_LIFECYCLE_STATES', 'ATTENTION_LIFECYCLE_TRANSITIONS', 'DECISION_WINDOWS',
+    'TERMINAL_OUTCOME_CLASSES', 'REFUSAL_CODES', 'resolveDecisionWindow', 'buildAttentionItem',
+    'validateAttentionItem', 'rankAttentionItems', 'selectAttentionItems', 'rankRationale',
+    'applyAttentionLifecycleEvent', 'deriveOutcomeRecord', 'computeInterruptionRate', 'toViewModel'
+  ]);
+  const missingSurface = ATTENTION_SURFACE.filter((name) => !(name in RLATTN));
+  assert(missingSurface.length === 0 && Object.isFrozen(RLATTN) && RLATTN.CONTRACT_VERSION === 'decision-attention/v1',
+    'rlattention.js loads as a frozen UMD module publishing the whole decision-attention/v1 surface (' + ATTENTION_SURFACE.length + ' names, missing: ' + (missingSurface.join(', ') || 'none') + ')');
+  assert(RLATTN.REFUSAL_CODES.length > 0 && RLATTN.REFUSAL_CODES.every((code) => /^RLATTN-[A-Z-]+$/.test(code)),
+    'every refusal the attention tier can raise carries a closed RLATTN-* code (' + RLATTN.REFUSAL_CODES.length + ' codes)');
+
+  /* The certified alert-engine states are READ from rlmarketaction.js, never restated as a second
+     source of truth. The attention tier may only APPEND, and everything it appends is a terminal —
+     otherwise an attention-only state could hand control back to the certified engine. */
+  const certifiedStates = RLMKTACTION.LIFECYCLE_STATES;
+  assert(certifiedStates.length === 9
+    && JSON.stringify(RLATTN.ATTENTION_LIFECYCLE_STATES.slice(0, certifiedStates.length)) === JSON.stringify(certifiedStates),
+    'the attention lifecycle opens with the certified alert-engine states, verbatim and in the certified order (' + certifiedStates.length + ' inherited from rlmarketaction.js)');
+  const appendedStates = RLATTN.ATTENTION_LIFECYCLE_STATES.slice(certifiedStates.length);
+  const nonTerminalAppended = appendedStates.filter((state) => (RLATTN.ATTENTION_LIFECYCLE_TRANSITIONS[state] || ['UNDECLARED']).length !== 0);
+  assert(JSON.stringify(appendedStates) === JSON.stringify(['escalated', 'superseded']) && nonTerminalAppended.length === 0,
+    'the tier appends exactly escalated + superseded and both are terminals, so an attention-only state never travels back into the certified engine (non-terminal: ' + (nonTerminalAppended.join(', ') || 'none') + ')');
+
+  /* ADVERSARIAL: comparing against the upstream vocabulary proves nothing if the module tolerates a
+     drifted upstream. Drop ONE certified state from the vocabulary it reads and it must refuse to
+     load at all, naming the state it lost. */
+  const priorUpstreamEnv = process.env.RLATTN_UPSTREAM_LIFECYCLE_STATES;
+  process.env.RLATTN_UPSTREAM_LIFECYCLE_STATES = certifiedStates.filter((state) => state !== 'monitoring').join(',');
+  delete attentionRequire.cache[attentionRequire.resolve(ATTENTION_PATH)];
+  let driftRefusal = null;
+  try { attentionRequire(ATTENTION_PATH); } catch (error) { driftRefusal = error.message; }
+  if (priorUpstreamEnv === undefined) delete process.env.RLATTN_UPSTREAM_LIFECYCLE_STATES;
+  else process.env.RLATTN_UPSTREAM_LIFECYCLE_STATES = priorUpstreamEnv;
+  delete attentionRequire.cache[attentionRequire.resolve(ATTENTION_PATH)];
+  RLATTN = attentionRequire(ATTENTION_PATH);
+  assert(/^RLATTN-LIFECYCLE-DRIFT:/.test(driftRefusal || '') && String(driftRefusal).includes('monitoring'),
+    'losing a certified state upstream makes rlattention.js refuse to LOAD, naming the missing state (' + String(driftRefusal).slice(0, 90) + ')');
+  assert(RLATTN.ATTENTION_LIFECYCLE_STATES.length === certifiedStates.length + appendedStates.length,
+    'the module reloads cleanly once the certified vocabulary is whole again, so the drift probe left no residue');
+
+  /* Transmission channels and research verbs have exactly one definition, upstream. A re-listed
+     literal here would be a second definition that could drift silently. */
+  const relistedChannels = RLMKTACTION.TRANSMISSION_CHANNELS.filter((channel) => attentionSource.includes(JSON.stringify(channel)));
+  const relistedVerbs = RLMKTACTION.RESEARCH_VERBS.filter((verb) => attentionSource.includes(JSON.stringify(verb)));
+  assert(/mod\.TRANSMISSION_CHANNELS/.test(attentionSource) && /mod\.RESEARCH_VERBS/.test(attentionSource)
+    && relistedChannels.length === 0 && relistedVerbs.length === 0,
+    'the transmission-channel and research-verb vocabularies are read from rlmarketaction.js and never re-listed here (re-listed: ' + (relistedChannels.concat(relistedVerbs).join(', ') || 'none') + ')');
+
+  /* No clock and no randomness: every instant is passed in, so a ranking is reproducible forever. */
+  const IMPURITY_PATTERNS = [/Date\.now\s*\(/, /new\s+Date\s*\(\s*\)/, /Math\.random\s*\(/];
+  const impurities = IMPURITY_PATTERNS.filter((pattern) => pattern.test(attentionSource));
+  assert(impurities.length === 0, 'rlattention.js reads no clock and draws no randomness (' + impurities.length + ' offending construct(s))');
+  /* ADVERSARIAL: a detector that matched nothing would report purity for any file. */
+  assert(IMPURITY_PATTERNS.every((pattern) => pattern.test('var t = Date.now(); var u = new Date(); var r = Math.random();')),
+    'the clock/randomness detector still matches every shape it forbids');
+
+  /* The rank order is exercised against the REAL committed tier, not a fixture. */
+  const committedTier = JSON.parse(read('market-brief.payload.json')).attention;
+  assert(Array.isArray(committedTier) && committedTier.length >= 3
+    && committedTier.every((item) => item.contractVersion === RLATTN.CONTRACT_VERSION)
+    && committedTier.every((item) => RLATTN.DECISION_WINDOWS.includes(item.decisionWindow)),
+    'the committed brief carries a real decision-attention/v1 tier to rank, every item in a declared decision window (' + (Array.isArray(committedTier) ? committedTier.length : 0) + ' item(s))');
+  const rankedIds = (list) => RLATTN.rankAttentionItems(list).map((item) => item.id).join('|');
+  const canonicalOrder = rankedIds(committedTier);
+  assert(canonicalOrder === rankedIds(committedTier.slice().reverse())
+    && canonicalOrder === rankedIds(committedTier.slice(2).concat(committedTier.slice(0, 2))),
+    'ranking the real committed tier is identical under reversal and rotation, so it is a total order and not a stable-sort accident');
+  assert(committedTier.map((item) => item.id).join('|') === JSON.parse(read('market-brief.payload.json')).attention.map((item) => item.id).join('|'),
+    'ranking does not mutate the tier it was handed');
+
+  /* Severity is recorded but is NOT the rank key — urgency and an identified channel are. */
+  const attentionProbe = (id, imminence, severity, path) => ({
+    id: id, subject: id.toUpperCase(), headline: id, state: 'discovered',
+    decisionWindow: 'pre-close', imminence: imminence, severity: severity, transmissionPath: path
+  });
+  const severeLatent = attentionProbe('a', 'latent', 'severe', [RLMKTACTION.TRANSMISSION_CHANNELS[0]]);
+  const mildImminent = attentionProbe('b', 'imminent', 'mild', [RLMKTACTION.TRANSMISSION_CHANNELS[0]]);
+  const mappedModerate = attentionProbe('c', 'imminent', 'moderate', [RLMKTACTION.TRANSMISSION_CHANNELS[0]]);
+  const unmappedSevere = attentionProbe('d', 'imminent', 'severe', []);
+  assert(RLATTN.rankAttentionItems([severeLatent, mildImminent])[0].id === 'b',
+    'a severe-but-latent claim ranks BELOW a mild-but-imminent one \u2014 severity is recorded, it is not the rank key');
+  assert(RLATTN.rankAttentionItems([unmappedSevere, mappedModerate])[0].id === 'c',
+    'a severe claim with no identified transmission channel ranks below a moderate one whose effect has a named path');
+
+  /* The card ceiling is a real ceiling: it must bite when the tier exceeds it, and it must be an
+     overflow set rather than a rejection set. */
+  const uncapped = RLATTN.selectAttentionItems(committedTier);
+  const capped = RLATTN.selectAttentionItems(committedTier, 2);
+  assert(uncapped.published.length === committedTier.length && uncapped.capApplied === false && uncapped.suppressed.length === 0,
+    'every committed attention item is live and publishes under the default card ceiling (' + uncapped.published.length + ' of ' + uncapped.cap + ')');
+  assert(capped.published.length === 2 && capped.capApplied === true
+    && capped.suppressed.length === committedTier.length - 2
+    && capped.published.concat(capped.suppressed).map((item) => item.id).join('|') === canonicalOrder,
+    'the card ceiling really bites and suppresses the ranked tail rather than dropping it (' + capped.published.length + ' published, ' + capped.suppressed.length + ' suppressed)');
+
+  /* Page wiring: the browser global resolves the certified vocabulary at LOAD time, so a page that
+     loads the attention tier before the alert engine refuses on first paint. */
+  const attentionBriefPage = read('market-brief.html');
+  const marketActionTagAt = attentionBriefPage.indexOf('src="rlmarketaction.js"');
+  const attentionTagAt = attentionBriefPage.indexOf('src="rlattention.js"');
+  assert(marketActionTagAt > 0 && attentionTagAt > marketActionTagAt,
+    'market-brief.html loads rlattention.js AFTER rlmarketaction.js, because the attention tier resolves the certified vocabulary from the browser global at load time');
+  /* ADVERSARIAL: the order check must still fail on the reversed shape. */
+  const reversedScriptOrder = '<script src="rlattention.js"></script><script src="rlmarketaction.js"></script>';
+  assert(reversedScriptOrder.indexOf('src="rlattention.js"') < reversedScriptOrder.indexOf('src="rlmarketaction.js"'),
+    'the script-order check really detects the reversed load order');
+} catch (e) { failures++; console.log('  \u2717 FAIL (rlattention group threw): ' + e.message); }
+
 /* ---------- bounded history — the cockpit's first load stays affordable forever ---------- */
 try {
   group('bounded history \u2014 the brief\u2019s first load is budgeted, and the budget is a failing test');

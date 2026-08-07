@@ -1,0 +1,156 @@
+{
+  "version": 3,
+  "featureDir": "specs/017-decision-attention-and-developing-situations",
+  "featureName": "Decision Attention and Developing Situations",
+  "createdAt": "2026-08-06T00:00:00Z",
+  "lastUpdatedAt": "2026-08-07T05:13:52Z",
+  "status": "in_progress",
+  "workflowMode": "full-delivery",
+  "linkedImplementationSpec": null,
+  "linkedPlanningPacket": null,
+  "planningOnly": false,
+  "planningOnlyJustification": null,
+  "specDependsOn": [],
+  "flagsIntroduced": [],
+  "certifiedAt": null,
+  "requiresRevalidation": false,
+  "execution": {
+    "activeAgent": "bubbles.implement",
+    "currentPhase": "implement",
+    "currentPhaseStatus": "in_progress",
+    "currentScope": 5,
+    "substate": "implemented",
+    "runStartedAt": "2026-08-06T00:00:00Z",
+    "completedAt": null,
+    "completedPhaseClaims": [
+      {
+        "phase": "implement",
+        "agent": "bubbles.implement",
+        "scopes": [1, 2],
+        "claimedAt": "2026-08-06T00:00:00Z",
+        "claim": "Scopes 1 and 2 are implemented and evidenced. Neither is DoD-complete: Scope 1 has 7 unticked DoD items (2 blocked on the missing notes/decision-attention.md, 5 unrun verifications) and Scope 2 has 4 (1 genuine coverage gap on item-naming in refusal messages, 3 unrun verifications). Each unticked item carries an Uncertainty Declaration in its scope.md naming the evidence owed."
+      },
+      {
+        "phase": "implement",
+        "agent": "bubbles.implement",
+        "scopes": [3],
+        "claimedAt": "2026-08-06T20:32:34Z",
+        "claim": "Scope 3 is implemented and evidenced. The #decisionAttention tier renders above #attention and #attentionRecord renders below #scorecard, both from committed data with an empty off-origin and provider-bound request set. All 5 browser scenarios are proven RED then GREEN with their exact persistent titles, and TP-03-05 is proven to bite by an adversarial mutation of market-brief.html that was restored byte-identical. Scope 3 is NOT DoD-complete: 14 of 19 DoD items are ticked and 5 are not. Two of the five are genuine coverage gaps rather than unrun commands - the empty and narrow projections have no assertions anywhere, and the no-fifth-view constraint has none - and both need Test Plan rows from bubbles.plan. The other three are unrun verifications (scripts/selftest.mjs, an excluded-path baseline diff, and zero-console-error/warning coverage across all five runs). Each unticked item carries an Uncertainty Declaration in scope.md. Two mid-scope events are narrated in the scope report: a live collision with the 4x/day publication cron that demonstrated the hazard finding F-017-02 predicted, and TP-03-05 having been simultaneously unsatisfiable and tautological until its fixture strings were renamed with both assertions preserved byte-identical. One new defect, F-017-04, was found and filed in the feature-level report.md rather than fixed here."
+      },
+      {
+        "phase": "implement",
+        "agent": "bubbles.implement",
+        "scopes": [4, 5],
+        "claimedAt": "2026-08-07T05:13:52Z",
+        "claim": "Artifact-record completion pass. No source, test, config, payload, HTML or notes file was modified and no git mutation was run; every write landed inside specs/017-decision-attention-and-developing-situations/. Scope 5's report.md was written from a session that ran all five guardrails green across the whole repository: selftest 1251 passed / 0 failed exit 0, validate-brief-payload exit 0, rlattention suite 25/0, attention-payload-contract suite 15/0, six browser scenarios passing, and the reader-legibility audit at zero leaks over 23 pages. SCN-017-044 is narrated honestly as BLOCKED for part of delivery on three failures that a clean-HEAD worktree (1230 passed, 3 failed) proved this feature did not introduce - a cron publish had dropped events[].psychologyNote, a key HEAD's own committed validator requires - and it passes now that the payload is repaired. Scopes 4 and 5 moved from 0/22 ticked to 17/22 each. Scopes 1, 2 and 3 were re-swept for items the new evidence unblocks: scope 1 33->37 (rlmarketaction byte-identity, the notes imminence rule, the .only scan, selftest), scope 2 13->14 (selftest), scope 3 14->15 (selftest). NEITHER scope 4 NOR scope 5 IS DoD-COMPLETE and no scope was marked Done. 22 DoD items remain unticked across the five scopes, each carrying an Uncertainty Declaration naming the evidence owed. Three findings were raised rather than ticked around - see nextRequiredTarget."
+      }
+    ],
+    "pendingTransitionRequests": [],
+    "nextRequiredOwner": "bubbles.plan",
+    "nextRequiredTarget": "22 DoD items remain unticked across scopes 1-5, each carrying an Uncertainty Declaration naming the evidence owed. Three need a PLANNING-OWNER DECISION before any further run can help. (1) DELIVERY GAP - notes/market-brief.md is byte-identical to its committed state (git status --porcelain returns empty), so neither the Scope 5 H-4 record nor the H-5 position was ever written, while the H-4 re-scope itself DID land at the market-brief.html call site. Decide whether the record is still owed in that file or whether notes/decision-attention.md sections 5 and 10 satisfy it; the latter is not on Scope 5's Change Boundary. (2) SCOPE QUESTION - notes/decision-attention.md now exists (395 lines) and states the imminence-conditional transmission rule, which ticks Scope 1's second notes item, but it is titled 'Agent Handoff' and carries the contract id decision-attention/v1 in four places plus seven RLATTN-* refusal codes, so Scope 1's reader-language item cannot be ticked. Decide whether that note is the wrong artifact for a reader-language requirement or whether a separate reader-facing surface is owed. Note that audit-reader-legibility.mjs reports zero leaks but never opens notes/, so a green legibility run does not cover this. (3) BOUNDARY QUESTION - the excluded-path byte-identity item is unticked in ALL FIVE scopes on the same evidence: the eight code and config paths are clean, but specs/004* (5 files), specs/_bugs/BUG-002* (3 files) and specs/012*/bugs/* (3 new dirs) are all modified, and every scope names those three as owned by CONCURRENT sessions. Scope 4 has a second counter-example: rlattention.js is on its excluded list and was changed by the ratified Scope 1 amendment. Decide whether a path modified by its declared concurrent owner, or by a ratified cross-scope amendment, satisfies or voids the byte-identity claim; the item is unsatisfiable as written either way. Also open for bubbles.plan, carried forward unchanged: Scope 4's warrantedShare/expiredWithoutEffectShare DoD text names two fields the shipped record does not have (it publishes rate under overall), Scope 2's item-naming in refusal messages, Scope 3's empty and narrow projections and its no-fifth-view constraint, and finding F-017-04. Two items need a RUN in a session permitted to write payload files: node scripts/build-attention-scorecard.mjs (unticked in scopes 4 and 5; it writes market-brief.attention-scorecard.json, which the artifact-only pass could not touch), and one unfiltered run of each acceptance command to close the zero-warnings item in all five scopes. Scope 1's TP-01-25 anchor and its selectAttentionItems terminal-filter item were left exactly as found: their stated reasons ('SCN-017-046 does not exist yet', 'the filter does not exist yet') are now STALE - the filter shipped, tests/rlattention.test.mjs declares and passes 25 scenarios including SCN-017-046, and Scope 4's report records the adversarial bite - but both fall outside the authorized re-sweep, so they are reported rather than edited. Certification has not run; bubbles.validate still owns certification.*.",
+    "scopeProgress": [
+      {
+        "scope": 1,
+        "scopeId": "01-attention-capability-module",
+        "name": "Attention Capability Module And Item Contract",
+        "status": "in_progress",
+        "dependsOn": [],
+        "scopeDir": "scopes/01-attention-capability-module",
+        "scopeArtifact": "scopes/01-attention-capability-module/scope.md",
+        "reportArtifact": "scopes/01-attention-capability-module/report.md"
+      },
+      {
+        "scope": 2,
+        "scopeId": "02-publication-path-enforcement",
+        "name": "Publication-Path Enforcement",
+        "status": "in_progress",
+        "dependsOn": [1],
+        "scopeDir": "scopes/02-publication-path-enforcement",
+        "scopeArtifact": "scopes/02-publication-path-enforcement/scope.md",
+        "reportArtifact": "scopes/02-publication-path-enforcement/report.md"
+      },
+      {
+        "scope": 3,
+        "scopeId": "03-brief-tier-render",
+        "name": "Brief Tier Render",
+        "status": "in_progress",
+        "dependsOn": [1, 2],
+        "scopeDir": "scopes/03-brief-tier-render",
+        "scopeArtifact": "scopes/03-brief-tier-render/scope.md",
+        "reportArtifact": "scopes/03-brief-tier-render/report.md"
+      },
+      {
+        "scope": 4,
+        "scopeId": "04-outcome-record-and-interruption-rate",
+        "name": "Outcome Record And Interruption Rate",
+        "status": "in_progress",
+        "dependsOn": [1, 3],
+        "scopeDir": "scopes/04-outcome-record-and-interruption-rate",
+        "scopeArtifact": "scopes/04-outcome-record-and-interruption-rate/scope.md",
+        "reportArtifact": "scopes/04-outcome-record-and-interruption-rate/report.md"
+      },
+      {
+        "scope": 5,
+        "scopeId": "05-legacy-feed-reconciliation-and-acceptance",
+        "name": "Legacy Feed Reconciliation And Acceptance",
+        "status": "in_progress",
+        "dependsOn": [2, 3, 4],
+        "scopeDir": "scopes/05-legacy-feed-reconciliation-and-acceptance",
+        "scopeArtifact": "scopes/05-legacy-feed-reconciliation-and-acceptance/scope.md",
+        "reportArtifact": "scopes/05-legacy-feed-reconciliation-and-acceptance/report.md"
+      }
+    ],
+    "audit": {
+      "schemaVersion": "audit-run/v1",
+      "runId": null,
+      "currentAttemptId": null,
+      "attempts": []
+    }
+  },
+  "certification": {
+    "status": "not_started",
+    "completedScopes": [],
+    "certifiedCompletedPhases": [],
+    "scopeProgress": [],
+    "lockdownState": {
+      "active": false,
+      "lockedScenarioIds": []
+    }
+  },
+  "policySnapshot": {
+    "grill": {
+      "mode": "off",
+      "source": "repo-default"
+    },
+    "tdd": {
+      "mode": "scenario-first",
+      "source": "repo-default"
+    },
+    "autoCommit": {
+      "mode": "off",
+      "source": "repo-default"
+    }
+  },
+  "transitionRequests": [],
+  "reworkQueue": [],
+  "executionHistory": [
+    {
+      "agent": "bubbles.plan",
+      "phasesExecuted": ["bootstrap"],
+      "startedAt": "2026-08-06T21:54:16Z",
+      "completedAt": "2026-08-06T21:54:16Z",
+      "statusBefore": "in_progress",
+      "statusAfter": "in_progress",
+      "summary": "Plan amendment 1. Resolved the scope-boundary question raised by SCN-017-033 being RED with no fix available from Scope 4's allowed paths. Scope 1 owns the terminal-state filter in selectAttentionItems because rlattention.js and TERMINAL_STATES are Scope 1 deliverables and Scope 1 is still in_progress; Scope 4's allowed paths are unchanged and rlattention.js stays excluded there. Added SCN-017-046, TP-01-25, implementation plan step 13, one Core Delivery DoD item and one Test Evidence DoD item to Scope 1, all unticked; added a cross-scope dependency note to Scope 4; recorded the decision and the suppressed semantics under Plan Amendments in scopes/_index.md; registered the new row and scenario in test-plan.json and scenario-manifest.json; added the empty TP-01-25 anchor to the feature report. Filed finding F-017-06: renderAttentionRecord passes a literal empty array to computeInterruptionRate at market-brief.html:1416 instead of reading market-brief.attention-scorecard.json, which is true only while the ledger is empty. No source, test or spec file was modified and no git mutation was run."
+    },
+    {
+      "agent": "bubbles.implement",
+      "phasesExecuted": ["implement"],
+      "startedAt": "2026-08-07T05:13:52Z",
+      "completedAt": "2026-08-07T05:13:52Z",
+      "statusBefore": "in_progress",
+      "statusAfter": "in_progress",
+      "summary": "Artifact-record completion pass, ARTIFACT-ONLY. Every write landed inside specs/017-decision-attention-and-developing-situations/; no source, test, config, payload, HTML or notes file was modified and no git mutation was run. Wrote scopes/05-legacy-feed-reconciliation-and-acceptance/report.md from the five-guardrail green run (selftest 1251/0 exit 0, validate-brief-payload exit 0, rlattention 25/0, attention-payload-contract 15/0, six browser scenarios, reader-legibility zero leaks over 23 pages) with anchors tp-05-01 through tp-05-05, every block tagged Claim Source executed, and a Completion Statement. Narrated SCN-017-044 honestly as BLOCKED for part of delivery: node scripts/selftest.mjs reported three failures, and a clean-HEAD worktree measured 1230 passed / 3 failed, proving this feature did not introduce them - a cron publish (commit 1412f3e0) had dropped events[].psychologyNote, a key HEAD's own committed validator requires. It passes now that the payload is repaired. Ticked DoD: scope 4 0->17 of 22, scope 5 0->17 of 22, both statuses Not Started -> In Progress. Re-swept scopes 1-3 for items the new evidence unblocks: scope 1 33->37 of 42 (rlmarketaction.js byte-identity via working-tree scan, the notes/decision-attention.md imminence-conditional transmission rule confirmed by reading section 4, the .only/skip/bailout scan closing the third conjunct of the rlattention suite gate, and selftest exit 0), scope 2 13->14 of 17 (selftest), scope 3 14->15 of 19 (selftest). Ran two authorized read-only verifications plus two read-only greps: a .only/test.skip/bailout scan over the three attention test files (grep_exit=1, no match; declared counts 25 and 15 equal the passing counts, so zero scenarios skipped), a working-tree diff of every declared excluded path, a grep confirming rlattention.js has its own assertion group in scripts/selftest.mjs at lines 5657-5774, and a read of the market-brief.html #attention call site confirming the H-4 re-scope landed. THREE FINDINGS were raised rather than ticked around: notes/market-brief.md is byte-identical to its committed state so the Scope 5 H-4 and H-5 records were never written; notes/decision-attention.md carries the contract id decision-attention/v1 in four places plus seven RLATTN-* refusal codes so Scope 1's reader-language item cannot be ticked; and three excluded paths owned by concurrent sessions (specs/004*, specs/_bugs/BUG-002*, specs/012*/bugs/*) are modified so the byte-identity item is unsatisfiable as written in all five scopes. 22 DoD items remain unticked, each with an Uncertainty Declaration naming the evidence owed. NO scope was marked Done, top-level status stays in_progress, and certification.* was not touched - bubbles.validate owns certification and has not run."
+    }
+  ]
+}

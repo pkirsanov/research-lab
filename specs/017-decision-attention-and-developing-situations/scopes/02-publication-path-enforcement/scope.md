@@ -1,0 +1,434 @@
+# Scope 2: Publication-Path Enforcement
+
+## 02-publication-path-enforcement
+
+**Status:** In Progress
+**Scope-Kind:** contract-enforcement
+**Tags:** validator, payload, parity
+Depends On: 1
+
+**Primary Outcome:** `scripts/validate-brief-payload.mjs` stops checking only the
+attention headline length and instead applies the full attention field predicate
+from `rlattention.js`, at the same rigour already applied to actions. The
+validator names the offending field and exits non-zero. The attention payload keys
+are added to `market-brief.payload.json` additively, so existing `#attention`
+consumers keep parsing the payload unchanged, and the validator and the browser
+are proven to apply the identical predicate on one shared fixture.
+
+## Requirement Coverage
+
+- The publication path refuses an over-length headline and a missing invalidation,
+  naming the field, with a non-zero exit.
+- The validator does not restate the item contract; it imports the single predicate
+  from the module built in scope 1.
+- Payload changes are additive only. No existing key is renamed, removed or
+  retyped.
+- The predicate the validator runs and the predicate the browser runs are the same
+  code path, proven on one fixture rather than asserted in prose.
+
+## Gherkin Scenarios
+
+```gherkin
+Scenario: SCN-017-025 The publication path refuses an over-length headline and a missing invalidation
+  Given a payload whose attention item headline exceeds the character limit
+  And a second payload whose attention item has no invalidation
+  When the brief payload validator runs against each
+  Then each run names the offending field
+  And each run exits non-zero
+
+Scenario: SCN-017-026 The validator and the browser apply the identical predicate on one fixture
+  Given a single shared attention fixture
+  When the validator predicate and the browser predicate are each applied to it
+  Then both produce the same verdict and the same ordered refusal list
+  And both resolve to the same module function rather than two copies
+
+Scenario: SCN-017-027 Existing attention consumers still parse the payload unchanged
+  Given the payload before the attention keys were added
+  And the payload after the attention keys were added
+  When an existing attention consumer parses each
+  Then both parse without error
+  And every pre-existing key retains its name, its type and its value
+
+Scenario: SCN-017-045 The authoring instruction names every required attention field
+  Given the attention authoring instruction in the narrative lane
+  When the instruction text is read
+  Then it names the escalation trigger, the invalidation and the expiry
+  And it names the decision window, the transmission path and the provenance class
+  And an edit that drops any one of them fails
+```
+
+## Implementation Files
+
+### New
+
+- `tests/attention-payload-contract.test.mjs`
+
+### Modified
+
+- `scripts/validate-brief-payload.mjs`
+- `market-brief.payload.json`
+- `scripts/brief-narrative-parallel.mjs`
+
+## Implementation Plan
+
+1. Import `validateAttentionItem` from `rlattention.js` into
+   `scripts/validate-brief-payload.mjs`; do not copy any rule into the validator.
+2. Replace the length-cap-only attention check with a call to the imported
+   predicate, iterating every attention item in the payload.
+3. Emit one message per refusal naming the field and the item, and exit non-zero
+   when any refusal is present, matching the message shape already used for actions.
+4. Add `decisionAttention.items`, `decisionAttention.generatedForSessionIso` and
+   `decisionAttention.emptyState` to `market-brief.payload.json` additively,
+   leaving every pre-existing key byte-identical.
+5. Add one shared fixture that both the validator path and the browser path
+   consume, and assert both produce the same verdict and the same ordered refusal
+   list from the same module function.
+6. Write `tests/attention-payload-contract.test.mjs` covering the three scenarios
+   above, including a before-and-after parse of the payload by an existing
+   attention consumer.
+
+## Shared Infrastructure Impact Sweep
+
+| Shared surface | Change in this scope | Downstream consumers | Blast radius | Canary | Rollback proof |
+|---|---|---|---|---|---|
+| `scripts/validate-brief-payload.mjs` | Attention branch replaced with the full predicate | Every payload publication run | High — a false refusal blocks publication | Run the validator against the unmodified committed payload first and require exit 0 | Restore the previous attention branch; validator returns to length-cap-only |
+| `market-brief.payload.json` | Additive keys only | Brief view, existing `#attention` consumers | Medium — a retyped key breaks a consumer | Parse the payload with an existing consumer before and after | Remove the added keys; pre-existing keys were never touched |
+| `rlattention.js` predicate | Consumed by a second caller | Validator and browser | Low — a single definition point is now shared | Predicate parity fixture | Revert the validator import |
+| `scripts/brief-narrative-parallel.mjs` | The `attention` authoring instruction is extended to demand the full `decision-attention/v1` field set instead of only rank and the card cap | The 4x/day authoring cron | High — a stale instruction re-emits the pre-migration item shape within hours and silently undoes the migration | Run the authoring lane once and validate its output with `node scripts/validate-brief-payload.mjs`, requiring exit 0 | Restore the prior instruction text in the same revert commit as the validator and the payload |
+
+## Change Boundary And Protected Paths
+
+**Allowed:** `scripts/validate-brief-payload.mjs`, `market-brief.payload.json`,
+`scripts/brief-narrative-parallel.mjs`, `tests/attention-payload-contract.test.mjs`.
+
+**Excluded (must remain byte-identical in this scope):** `rlbrief.js` ·
+`rlexperience.js` · `rlfx.js` · `rljourney.js` · `specs/004*` ·
+`specs/_bugs/BUG-002*` · `specs/012*/bugs/*` — all owned by CONCURRENT sessions —
+plus `rlmarketaction.js` · `rlcontracts.js` · `market-brief.scorecard.json` ·
+`tool-experience.config.json`. Also excluded in this scope: `market-brief.html`,
+`rlattention.js`, `scripts/selftest.mjs`.
+
+## Rollback
+
+Restore the previous attention branch in `scripts/validate-brief-payload.mjs`,
+remove the added `decisionAttention.*` keys from `market-brief.payload.json`, and
+delete `tests/attention-payload-contract.test.mjs`. Prove the restore by running
+`node scripts/validate-brief-payload.mjs` and recording exit 0 against the
+restored payload.
+
+Restore the prior `attention` authoring instruction in
+`scripts/brief-narrative-parallel.mjs` in the same revert commit. Authoring and
+validation must return to the prior shape together: reverting the validator alone
+leaves the cron authoring migrated items no consumer expects, and reverting the
+authoring alone leaves the cron emitting items the tightened validator refuses.
+A revert that touches only one of the two is itself a broken state.
+
+## Scenario-First RED/GREEN Contract
+
+RED: author the three scenarios first. The over-length and missing-invalidation
+fixtures must pass the current length-cap-only validator for the missing-invalidation
+case, demonstrating the gap the scope closes; record that pre-change run.
+
+GREEN: after the predicate swap, both fixtures refuse with a named field and a
+non-zero exit, the parity fixture yields identical verdicts from both callers, and
+the before-and-after payload parse both succeed with no pre-existing key changed.
+
+## Test Plan
+
+| ID | Type | Category | Scenario | File | Exact Behavior / Persistent Title | Command | Live System | Evidence Anchor |
+|---|---|---|---|---|---|---|---|---|
+| TP-02-01 | Refusal | integration | SCN-017-025 | `tests/attention-payload-contract.test.mjs` | validate-brief-payload refuses an over-length headline and a missing invalidation, naming the field, exit non-zero (design T-32) | `node --test tests/attention-payload-contract.test.mjs` | No | `report.md#tp-02-01` |
+| TP-02-02 | Parity | integration | SCN-017-026 | `tests/attention-payload-contract.test.mjs` | validator and browser apply the identical predicate on one fixture (design T-33) | `node --test tests/attention-payload-contract.test.mjs` | No | `report.md#tp-02-02` |
+| TP-02-03 | Compatibility | integration | SCN-017-027 | `tests/attention-payload-contract.test.mjs` | existing attention consumers still parse the payload unchanged (design T-43) | `node --test tests/attention-payload-contract.test.mjs` | No | `report.md#tp-02-03` |
+| TP-02-04 | Contract | unit | SCN-017-045 | `tests/attention-payload-contract.test.mjs` | the attention authoring instruction text names every required `decision-attention/v1` field, so a future edit that drops one fails | `node --test tests/attention-payload-contract.test.mjs` | No | `report.md#tp-02-04` |
+
+### Definition of Done - Tiered Validation
+
+#### Core Delivery Items
+
+- [x] The attention branch of `scripts/validate-brief-payload.mjs` calls the module predicate and restates no rule locally.
+
+  **Claim Source:** executed — SCN-017-026 (TP-02-02) asserts both callers resolve
+  to the same module function rather than two copies, and it passes.
+
+  ```text
+  RED:
+  not ok 2 - SCN-017-026 The validator and the browser apply the identical predicate on one fixture
+  # tests 4
+  # pass 0
+  # fail 4
+  RED_EXIT=1
+
+  GREEN:
+  $ node --test tests/attention-payload-contract.test.mjs
+  # tests 4
+  # pass 4
+  # fail 0
+  ```
+
+- [ ] Every refusal message names the offending field and the offending item.
+
+  **Uncertainty Declaration — deliberately not ticked.**
+  **Claim Source:** executed for field-naming, not-run for item-naming. SCN-017-025
+  and its Test Plan row TP-02-01 both stop at "naming the field"; neither asserts
+  the offending item. The passing run therefore proves half of this item and is
+  silent on the other half. This is a genuine coverage gap, not an unrun command:
+  a Test Plan row asserting item-naming does not exist yet and is owed by the
+  planning owner before this box can be honestly ticked.
+
+- [x] The validator exits non-zero whenever any attention refusal is present.
+
+  **Claim Source:** executed — SCN-017-025 (TP-02-01) asserts a non-zero exit on
+  each refusing fixture, and it passes.
+
+  ```text
+  RED:
+  not ok 1 - SCN-017-025 The publication path refuses an over-length headline and a missing invalidation
+  # tests 4
+  # pass 0
+  # fail 4
+  RED_EXIT=1
+
+  GREEN:
+  $ node --test tests/attention-payload-contract.test.mjs
+  # tests 4
+  # pass 4
+  # fail 0
+  ```
+
+- [x] `market-brief.payload.json` gains the attention keys additively with every pre-existing key byte-identical.
+
+  **Claim Source:** executed — SCN-017-027 (TP-02-03) parses the payload before and
+  after with an existing attention consumer and asserts every pre-existing key
+  retains its name, its type and its value. It passes.
+
+  ```text
+  RED:
+  not ok 3 - SCN-017-027 Existing attention consumers still parse the payload unchanged
+  # tests 4
+  # pass 0
+  # fail 4
+  RED_EXIT=1
+
+  GREEN:
+  $ node --test tests/attention-payload-contract.test.mjs
+  # tests 4
+  # pass 4
+  # fail 0
+  ```
+
+- [x] A single shared fixture exercises both the validator caller and the browser caller through the same module function.
+
+  **Claim Source:** executed — SCN-017-026 (TP-02-02) asserts both produce the same
+  verdict and the same ordered refusal list from the same module function.
+
+  ```text
+  $ node --test tests/attention-payload-contract.test.mjs
+  # tests 4
+  # pass 4
+  # fail 0
+  ```
+
+- [x] `node scripts/validate-brief-payload.mjs` exits 0 against the committed payload after the change.
+
+  **Claim Source:** executed. This is the run that closed the mid-scope defect in
+  which all four unit tests were green while this gate still exited 1, refusing all
+  five attention items on `RLATTN-PRIVACY` and `RLATTN-WINDOW`. See
+  `report.md` → *The Mid-Scope Defect*.
+
+  ```text
+  $ node scripts/validate-brief-payload.mjs
+  [brief-contract] PASS: all visible sections, registry coverage, model-specific real assets, and next-session actions are valid
+  PUB_EXIT=0
+  ```
+
+- [x] The `attention` authoring instruction in `scripts/brief-narrative-parallel.mjs` names the full `decision-attention/v1` field set: the falsifiability triple (escalation trigger, invalidation, expiry), the decision window, the transmission path and the provenance class.
+
+  **Claim Source:** executed — SCN-017-045 (TP-02-04) passes, and the bite proves it
+  detects a dropped field rather than merely asserting the instruction exists.
+
+  ```text
+  GREEN:
+  $ node --test tests/attention-payload-contract.test.mjs
+  # tests 4
+  # pass 4
+  # fail 0
+
+  BITE — 'escalation trigger' replaced with a placeholder in the instruction:
+  not ok 4 - SCN-017-045 The authoring instruction names every required attention field
+  # tests 4
+  # pass 3
+  # fail 1
+  BITTEN_EXIT=1
+
+  restored scripts/brief-narrative-parallel.mjs
+  sha256 a0365e4dc13e5a45d44fb5a4e7a5711c0bb1c2fb48a2c86489a76897c03aaaee
+  ```
+
+- [x] The validator predicate, the payload migration and the authoring instruction land together in one change, proven by `node scripts/validate-brief-payload.mjs` exiting 0 against the migrated payload.
+
+  **Claim Source:** executed. The working tree carries all three together, and the
+  gate passes against that tree. `watchlist.json` was read as a validator input,
+  never written.
+
+  ```text
+  $ git status --porcelain
+   M market-brief.config.json
+   M market-brief.payload.json
+   M scripts/brief-narrative-parallel.mjs
+   M scripts/validate-brief-payload.mjs
+
+  $ node scripts/validate-brief-payload.mjs
+  [brief-contract] PASS: all visible sections, registry coverage, model-specific real assets, and next-session actions are valid
+  PUB_EXIT=0
+  ```
+
+#### Test Evidence Items - Exact Parity With 4 Test Plan Rows
+
+All four rows declare the identical command,
+`node --test tests/attention-payload-contract.test.mjs`. One execution is the
+evidence for all four; the per-test `not ok N` lines below come from the RED run
+and the bite, which are the runs that actually emitted them.
+
+- [x] TP-02-01 executed with raw output recorded at `report.md#tp-02-01`.
+
+  **Claim Source:** executed — SCN-017-025.
+
+  ```text
+  RED:
+  not ok 1 - SCN-017-025 The publication path refuses an over-length headline and a missing invalidation
+  # tests 4
+  # pass 0
+  # fail 4
+  RED_EXIT=1
+
+  GREEN:
+  $ node --test tests/attention-payload-contract.test.mjs
+  # tests 4
+  # pass 4
+  # fail 0
+  ```
+
+- [x] TP-02-02 executed with raw output recorded at `report.md#tp-02-02`.
+
+  **Claim Source:** executed — SCN-017-026, with the publication gate as the
+  real-payload companion to the fixture parity assertion.
+
+  ```text
+  RED:
+  not ok 2 - SCN-017-026 The validator and the browser apply the identical predicate on one fixture
+  # pass 0
+  # fail 4
+  RED_EXIT=1
+
+  GREEN:
+  # tests 4
+  # pass 4
+  # fail 0
+
+  $ node scripts/validate-brief-payload.mjs
+  [brief-contract] PASS: all visible sections, registry coverage, model-specific real assets, and next-session actions are valid
+  PUB_EXIT=0
+  ```
+
+- [x] TP-02-03 executed with raw output recorded at `report.md#tp-02-03`.
+
+  **Claim Source:** executed — SCN-017-027.
+
+  ```text
+  RED:
+  not ok 3 - SCN-017-027 Existing attention consumers still parse the payload unchanged
+  # tests 4
+  # pass 0
+  # fail 4
+  RED_EXIT=1
+
+  GREEN:
+  $ node --test tests/attention-payload-contract.test.mjs
+  # tests 4
+  # pass 4
+  # fail 0
+  ```
+
+- [x] TP-02-04 executed with raw output recorded at `report.md#tp-02-04`.
+
+  **Claim Source:** executed — SCN-017-045, with its own adversarial bite.
+
+  ```text
+  RED:
+  not ok 4 - SCN-017-045 The authoring instruction names every required attention field
+  # tests 4
+  # pass 0
+  # fail 4
+  RED_EXIT=1
+
+  GREEN:
+  # tests 4
+  # pass 4
+  # fail 0
+
+  BITE — 'escalation trigger' replaced with a placeholder:
+  not ok 4 - SCN-017-045 The authoring instruction names every required attention field
+  # pass 3
+  # fail 1
+  BITTEN_EXIT=1
+  ```
+
+#### Build Quality Gate
+
+- [x] `node --test tests/attention-payload-contract.test.mjs` exits 0 with zero skipped scenarios.
+
+  **Claim Source:** executed. `pass 4 + fail 0 = tests 4`, so no scenario was
+  skipped. No explicit exit line was captured for the green run; `node --test`
+  exits 0 when the failure count is zero, and the RED run of the same command is
+  recorded exiting 1 with four failures.
+
+  ```text
+  RED:
+  # tests 4
+  # pass 0
+  # fail 4
+  RED_EXIT=1
+
+  GREEN:
+  $ node --test tests/attention-payload-contract.test.mjs
+  # tests 4
+  # pass 4
+  # fail 0
+  ```
+
+- [x] `node scripts/validate-brief-payload.mjs` exits 0 against the committed payload.
+
+  **Claim Source:** executed.
+
+  ```text
+  $ node scripts/validate-brief-payload.mjs
+  [brief-contract] PASS: all visible sections, registry coverage, model-specific real assets, and next-session actions are valid
+  PUB_EXIT=0
+  ```
+
+- [x] `node scripts/selftest.mjs` exits 0 on the working tree.
+
+  **Claim Source:** executed against the current working tree.
+
+  ```text
+  $ node scripts/selftest.mjs
+  Research-Lab self-test: 1251 passed, 0 failed
+  EXIT=0
+  ```
+
+- [ ] Every excluded path listed in the Change Boundary is byte-identical to its pre-scope state, proven by a diff of the working tree.
+
+  **Uncertainty Declaration — deliberately not ticked.**
+  **Claim Source:** not-run. The captured `git status --porcelain` lists no excluded
+  path, which is encouraging but not sufficient: it shows no untracked entry for
+  `tests/attention-payload-contract.test.mjs`, a file this scope lists as New and
+  which exists on disk. The captured status therefore cannot be read as a complete
+  diff against the pre-scope baseline. Evidence owed: a real baseline diff.
+
+- [ ] Zero warnings emitted by any command run for this scope.
+
+  **Uncertainty Declaration — deliberately not ticked.**
+  **Claim Source:** not-run. The two `node --test` outputs are count-filtered, so
+  the absence of warnings cannot be read from them. The publication-gate output is
+  complete and warning-free, but it is one of three commands.

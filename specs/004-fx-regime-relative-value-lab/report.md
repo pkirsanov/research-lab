@@ -7272,7 +7272,7 @@ Planning appends exactly one closed v12 contract and routes the additive parser 
             { "kind": "append-only-ledger-selector", "path": ".specify/runtime/tool-calls.jsonl", "authorityRole": "current semantic stable-key and receipt selection contract", "toolLogPath": ".specify/runtime/tool-calls.jsonl", "stableKeyFields": ["sessionId", "agent", "spec", "scope", "cmd", "exitCode", "stdoutHash", "tags"], "receiptFields": ["sessionId", "agent", "spec", "scope", "cmd", "exitCode", "stdoutHash", "tags", "rawOutputLines", "rawOutputSha256"], "stableKeyEncoding": "JSON.stringify(stableKeyFields.map(field => receipt[field]))", "scalarComparison": "strict-equality", "tagComparison": "JSON-stringified-exact-ordered-equality", "rowParsing": "nonempty-LF-or-CRLF-delimited-JSON-object-rows", "duplicatePolicy": "zero-duplicate-complete-stable-keys", "matchCardinality": "zero-or-all-declared-receipts", "partialSetPolicy": "fail-closed", "allMatchSource": "current-tool-log", "zeroOrAbsentMatchSource": "committed-marker-pinned-markdown", "selectedRowContradictionPolicy": "rawOutputLines-or-rawOutputSha256-presence-must-match-declaration", "appendOnlyGrowthAllowed": true, "ledgerContentPinned": false, "historicalAbsoluteLineAuthority": false, "receiptSelectors": [{"sessionId":"vscode-e24db39cf992f7ccd8ec75209602db59","agent":"bubbles.test","spec":"004-fx-regime-relative-value-lab","scope":"SCOPE-01","cmd":"node tests/provider-credentials.stress.mjs","exitCode":0,"stdoutHash":"da71c907a5d058ae5f0557c68d88c2667a8e06e6be96128009d29abb8d9a5a68","tags":["provider","stress","BASE-SEC-01","BASE-SEC-02","BASE-SEC-03"]},{"sessionId":"vscode-e24db39cf992f7ccd8ec75209602db59","agent":"bubbles.test","spec":"004-fx-regime-relative-value-lab","scope":"SCOPE-01","cmd":"node tests/provider-credentials.load.mjs","exitCode":0,"stdoutHash":"bdf2d697b46916bbe7e32b88887e3b6a37d36106e2e9281013fb68418511271a","tags":["provider","load","BASE-SEC-01","BASE-SEC-02","BASE-SEC-03"]}], "semanticSelectorSha256": "1ff127e5c3ed62153a94b06ffd78b071821ed6c21dcbc2bd344d3b3c148f7d7d" }
         ],
         "closureSha256Input": "JSON.stringify(orderedEntries)",
-        "closureSha256": "bae952e125487d83e472316f52eb634de5db51b4a44da8997705f8113baaf879",
+        "closureSha256": "33b09ea94c1fb7dbb11e7c8002fcbc903aaa10bdcae94f0dfd327d0285d63f7d",
         "orderedEntryCount": 16,
         "additionalCleanDirectAuthorityOmitted": false,
         "omissionOrReorderAllowed": false,
@@ -7369,7 +7369,7 @@ Planning appends exactly one closed v12 contract and routes the additive parser 
     "captureStability": {
         "preAppendInventorySha256": "8241bc6b27eac0d0a2543142b3d5bb6883f727cc1920fd3f899989a73fc9d723",
         "preAppendMatrixSha256": "3d680812db545c65f341ee3091a10c4211a5790fdc62ff9b34cbae5b7574ef62",
-        "preAppendClosureSha256": "bae952e125487d83e472316f52eb634de5db51b4a44da8997705f8113baaf879",
+        "preAppendClosureSha256": "33b09ea94c1fb7dbb11e7c8002fcbc903aaa10bdcae94f0dfd327d0285d63f7d",
         "preAppendReportPrefixSha256": "b5d25b5608da4e4d9cc64c4db6db805c5638471413b8644de1fbecebeff1835d",
         "preAppendReportPrefixByteLength": 520131,
         "postAppendInventoryMatrixClosureAndPrefixMustMatch": true,

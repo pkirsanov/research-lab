@@ -41,7 +41,7 @@ const POST_COMMIT_V11_BLOCK_SHA256 = '491a45cade63f7182f7f6381ed019906084efafc3a
 const POST_COMMIT_V12_BLOCK_SHA256 = 'b0153c52a87b4a6b99166bf73e3353ae0e5aabc0b04246149255bb5d9b34333d';
 const POST_COMMIT_V13_BLOCK_SHA256 = '2de13393faa01e6495430723333207cbdaa0b3a1ae9ef9acf67b6c1bc72a7a94';
 const POST_COMMIT_V14_BLOCK_SHA256 = '980fb7b1fd3f47c8db2d82246d6b85e0bd389c0ed3816de2bf7f7738c4069b71';
-const POST_COMMIT_V15_BLOCK_SHA256 = 'ee9d9ea97a660264bd147d171f03c884f68c0e028406ad3badf2b85637b68d54';
+const POST_COMMIT_V15_BLOCK_SHA256 = 'ff7399dc4af17a9bc22cc06ad3a10b04cdbc2eec4b6dc986e73e8623d7356f46';
 const FOREIGN_SET_V7_BLOCK_BYTE_LENGTH = 15002;
 const IMMUTABLE_PREDECESSOR_BLOCKS = [
   ['feature004-dirty-baseline-v1', BASELINE_BLOCK_SHA256],
@@ -7831,12 +7831,21 @@ function runPostCommitV12AdversarialCases() {
     assert.throws(() => assertPostCommitV12RecordCommitments(v12Block.value, required, foreign, inventory),
       `v12 ${label} fails closed`);
   });
+  // The live porcelain inventory is empty on a clean working tree. Mutation
+  // classes that index, remove, or reorder entries have no meaning against an
+  // empty inventory, so they are gated on the arity they actually require.
+  // Gating keeps every applicable case adversarial instead of degenerating into
+  // a vacuous assert.throws (or a TypeError) when the tree carries no dirt.
   const inventoryCases = [
-    ['stale inventory status', (entries) => { entries[0].status = '??'; }],
-    ['missing inventory entry', (entries) => { entries.pop(); }],
     ['extra inventory entry', (entries) => { entries.push({ status: '??', path: 'unexpected' }); }],
-    ['duplicate inventory entry', (entries) => { entries.push(structuredClone(entries[0])); }],
-    ['reordered inventory entry', (entries) => { entries.reverse(); }]
+    ...(inventory.length >= 1 ? [
+      ['stale inventory status', (entries) => { entries[0].status = '??'; }],
+      ['missing inventory entry', (entries) => { entries.pop(); }],
+      ['duplicate inventory entry', (entries) => { entries.push(structuredClone(entries[0])); }]
+    ] : []),
+    ...(inventory.length >= 2 ? [
+      ['reordered inventory entry', (entries) => { entries.reverse(); }]
+    ] : [])
   ];
   inventoryCases.forEach(([label, mutate]) => {
     const candidate = structuredClone(inventory);

@@ -169,6 +169,18 @@
     "autoCommit": {
       "mode": "off",
       "source": "repo-default"
+    },
+    "lockdown": {
+      "mode": "off",
+      "source": "repo-default"
+    },
+    "regression": {
+      "mode": "protected-scenarios",
+      "source": "repo-default"
+    },
+    "validation": {
+      "mode": "certification-required",
+      "source": "repo-default"
     }
   },
   "transitionRequests": [],

@@ -869,6 +869,56 @@ test('SCN-017-057 The tier stays readable at a phone width with nothing clipped'
   const tier = page.locator('#decisionAttention');
   await expect(tier).toBeVisible();
 
+  /* READINESS BEFORE MEASUREMENT. openBrief() proves FIRST PAINT only: the page's
+     renderAll() paints #scorecard and #decisionAttention in the SAME synchronous
+     pass, so this tier is already visible while the rest of the page is still
+     moving — the shared shell is still injecting its nav and its "Data behind this
+     page" control, the ticker decorator rewrites tickers on DOM mutation, and the
+     cache-first hydrate re-renders sections as its delta lands. Assertion 1 below
+     measures the WHOLE DOCUMENT, so taking it in that window reports a layout no
+     reader ever sees, and the verdict then turns on how far the page happened to
+     have settled rather than on whether anything is clipped.
+
+     Each wait below is a state the page itself publishes — the tier's own item
+     count, its own final text metrics, and its own geometry ceasing to change.
+     None of them is a fixed delay, and none of them can hide a clip: a layout that
+     settles clipped still fails assertion 2, and a layout that never settles fails
+     here by name rather than passing on a lucky sample. */
+  await expect(tier.locator('[data-attn-item]')).toHaveCount(ATTENTION_ITEMS.length);
+  await page.evaluate(() => document.fonts.ready.then(() => undefined));
+  await page.evaluate(() => new Promise((settled, neverSettled) => {
+    /* exactly the geometry assertions 1 and 2 read, so "settled" means settled for
+       the measurement that follows rather than for something adjacent to it. */
+    const signature = () => {
+      const nodes = document.querySelectorAll(
+        '#decisionAttention [data-attn-field], #decisionAttention button, #decisionAttention a, #decisionAttention summary');
+      return [
+        document.documentElement.scrollWidth,
+        document.documentElement.clientWidth,
+        nodes.length,
+        ...Array.from(nodes, (node) => {
+          const box = node.getBoundingClientRect();
+          return `${Math.round(box.left)}:${Math.round(box.right)}`;
+        })
+      ].join('|');
+    };
+    const startedAt = performance.now();
+    let previous = null;
+    let identicalFrames = 0;
+    const onFrame = () => {
+      const current = signature();
+      identicalFrames = current === previous ? identicalFrames + 1 : 0;
+      previous = current;
+      if (identicalFrames >= 3) { settled(); return; }
+      if (performance.now() - startedAt > 20000) {
+        neverSettled(new Error(`the phone-width layout never stopped changing, so it cannot be measured. Last: ${current}`));
+        return;
+      }
+      requestAnimationFrame(onFrame);
+    };
+    requestAnimationFrame(onFrame);
+  }));
+
   /* 1. NO HORIZONTAL OVERFLOW. Measured on the document, because a tier that
         fits while pushing the PAGE sideways still hands the reader a sideways
         scrollbar. One pixel of tolerance for sub-pixel layout rounding. */

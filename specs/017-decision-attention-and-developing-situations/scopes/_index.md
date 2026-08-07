@@ -33,12 +33,12 @@ state its all-excluded case must render is Scope 3's.
 
 | # | Scope | Artifact | Depends On | Status |
 |---|---|---|---|---|
-| 1 | Attention Capability Module And Item Contract | [`01-attention-capability-module/scope.md`](01-attention-capability-module/scope.md) | none | Not Started |
-| 2 | Publication-Path Enforcement | [`02-publication-path-enforcement/scope.md`](02-publication-path-enforcement/scope.md) | 1 | Not Started |
-| 3 | Brief Tier Render | [`03-brief-tier-render/scope.md`](03-brief-tier-render/scope.md) | 1, 2 | Not Started |
-| 4 | Outcome Record And Interruption Rate | [`04-outcome-record-and-interruption-rate/scope.md`](04-outcome-record-and-interruption-rate/scope.md) | 1, 3 | Not Started |
-| 5 | Legacy Feed Reconciliation And Acceptance | [`05-legacy-feed-reconciliation-and-acceptance/scope.md`](05-legacy-feed-reconciliation-and-acceptance/scope.md) | 2, 3, 4 | Not Started |
-| 6 | Authoring Lane Composer Routing | [`06-authoring-lane-composer-routing/scope.md`](06-authoring-lane-composer-routing/scope.md) | 1, 2, 3 | Not Started |
+| 1 | Attention Capability Module And Item Contract | [`01-attention-capability-module/scope.md`](01-attention-capability-module/scope.md) | none | Done |
+| 2 | Publication-Path Enforcement | [`02-publication-path-enforcement/scope.md`](02-publication-path-enforcement/scope.md) | 1 | Done |
+| 3 | Brief Tier Render | [`03-brief-tier-render/scope.md`](03-brief-tier-render/scope.md) | 1, 2 | Done |
+| 4 | Outcome Record And Interruption Rate | [`04-outcome-record-and-interruption-rate/scope.md`](04-outcome-record-and-interruption-rate/scope.md) | 1, 3 | Done |
+| 5 | Legacy Feed Reconciliation And Acceptance | [`05-legacy-feed-reconciliation-and-acceptance/scope.md`](05-legacy-feed-reconciliation-and-acceptance/scope.md) | 2, 3, 4 | Done |
+| 6 | Authoring Lane Composer Routing | [`06-authoring-lane-composer-routing/scope.md`](06-authoring-lane-composer-routing/scope.md) | 1, 2, 3 | Done |
 
 ---
 

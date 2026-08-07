@@ -1,0 +1,18 @@
+{
+  "contractVersion": "pii-scan-samples/v1",
+  "note": "Invented identifiers used ONLY to prove each pii-scan rule fires. Nothing here refers to a real person, account, or machine. This file is the single allow-listed path in scripts/pii-scan.config.json: a detection rule that is never exercised against a positive sample cannot be trusted, but keeping the samples in a dedicated fixture means every other file — including the selftest itself — stays fully scanned.",
+
+  "positive": [
+    { "rule": "personal-email", "label": "a consumer mailbox", "text": "contact a.person@gmail.com now" },
+    { "rule": "employer-email", "label": "an employer mailbox", "text": "mail someone@microsoft.com today" },
+    { "rule": "home-path", "label": "a real home directory", "text": "cd /home/jdoe/repo" },
+    { "rule": "machine-hostname", "label": "an Apple device name", "text": "host Jamies-MacBook-Pro ready" },
+    { "rule": "machine-hostname", "label": "a managed Cloud-PC device name", "text": "host CPC-jamie-A1B2C ready" }
+  ],
+
+  "negative": [
+    { "label": "a provider domain used as a SUBdomain is not a mailbox", "text": "attacker@query1.finance.yahoo.com" },
+    { "label": "fixture mailboxes, placeholders and redacted paths stay clean", "text": "t@example.invalid /home/<user>/x /Users/redacted/y" },
+    { "label": "a documented operator placeholder stays clean", "text": "run as /home/<operator>/bin/tool" }
+  ]
+}

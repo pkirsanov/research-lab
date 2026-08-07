@@ -25,6 +25,7 @@ import {
   validateBriefPayload
 } from './validate-brief-payload.mjs';
 import { formatSpecTestPathFindings, validateSpecTestPaths } from './validate-spec-test-paths.mjs';
+import * as piiScan from './pii-scan.mjs';
 import { buildCompanyFundamentalsOwnerRead } from './brief-refresh.mjs';
 import {
   BRIEF_NARRATIVE_FIELDS_OPTIONAL,
@@ -1412,43 +1413,43 @@ try {
   try {
     const names = ['finiteNumber', 'bpToDecimal', 'pctToDecimal', 'bondTrailingReturnPct', 'bondRealizedVolPct', 'bondMaxDrawdownPct', 'bondTrendState', 'scenarioShockForSleeve', 'solveBreakEvenShock', 'classifyReliability', 'calculateScenarioResult', 'rankScenarioResults', 'selectResearchExpression', 'buildDecisionRead', 'buildBondToolRead'];
     const env = build(names.map((name) => extractFn(src, name)), names);
-  const config = JSON.parse(read('bond-regime-universe.json'));
-  const instruments = Object.fromEntries(config.instruments.map((instrument) => [instrument.ticker, instrument]));
-  const sleeves = Object.fromEntries(config.sleeves.map((sleeve) => [sleeve.id, sleeve]));
-  const assumptions = { id: 'custom', horizonMonths: 6, treasuryShockBp: -50, igSpreadShockBp: 60, hySpreadShockBp: 150, breakevenShockBp: 0 };
-  const marketRows = Array.from({ length: 80 }, (_, index) => ({ t: Date.UTC(2026, 0, 2 + index), c: 100 * Math.pow(1.001, index) }));
-  assert(env.bondTrailingReturnPct(marketRows, 63) > 0, 'Bond Regime: sleeve trailing total return uses adjusted closes');
-  assert(env.bondRealizedVolPct(marketRows, 63) >= 0, 'Bond Regime: sleeve realized volatility is finite and non-negative');
-  assert(env.bondMaxDrawdownPct(marketRows, 63) < 1e-9, 'Bond Regime: monotonic sleeve path has zero drawdown');
-  assert(env.bondTrendState(marketRows).state === 'Uptrend', 'Bond Regime: sleeve trend uses the shared adjusted-close path');
-  assert(env.bondTrailingReturnPct([], 63) === null && env.bondRealizedVolPct([], 63) === null && env.bondMaxDrawdownPct([], 63) === null, 'Bond Regime: insufficient sleeve history remains unavailable');
-  const treasury = env.calculateScenarioResult(sleeves['intermediate-treasury'], instruments.IEF, assumptions, config.localApproximationBounds, '2026-07-13');
-  const ig = env.calculateScenarioResult(sleeves['investment-grade-corporate'], instruments.LQD, assumptions, config.localApproximationBounds, '2026-07-13');
-  const hy = env.calculateScenarioResult(sleeves['high-yield-corporate'], instruments.HYG, assumptions, config.localApproximationBounds, '2026-07-13');
-  [treasury, ig, hy].forEach((result) => assert(approx(result.carryPct + result.ratePct + (result.spreadPct || 0) + result.convexityPct, result.totalPct, 1e-10), 'Bond Regime: scenario terms sum exactly for ' + result.sleeveId));
-  assert(treasury.spreadPct === null && treasury.spreadApplicability === 'not-applicable', 'Bond Regime: Treasury spread is not applicable, never observed zero');
-  assert(Number.isFinite(ig.spreadPct) && Number.isFinite(hy.spreadPct), 'Bond Regime: corporate sleeves expose finite spread terms');
-  const tipsShock = env.scenarioShockForSleeve(sleeves['inflation-linked-treasury'], { ...assumptions, treasuryShockBp: 0, breakevenShockBp: 50 });
-  assert(tipsShock.rateShockBp === -50 && tipsShock.spreadShockBp === null, 'Bond Regime: TIPS maps nominal minus breakeven into real-yield shock');
-  const zeroConvexity = env.solveBreakEvenShock(5, 6, 5, 0);
-  assert(approx(zeroConvexity, 50, 1e-9), 'Bond Regime: zero-convexity break-even uses carry over duration');
-  assert(env.solveBreakEvenShock(20, 12, 1, 100) === null, 'Bond Regime: invalid convexity discriminant is unavailable');
-  const large = env.calculateScenarioResult(sleeves['high-yield-corporate'], instruments.HYG, { ...assumptions, hySpreadShockBp: 400 }, config.localApproximationBounds, '2026-07-13');
-  assert(Number.isFinite(large.totalPct) && large.reliability === 'Reduced reliability', 'Bond Regime: large finite shock retains arithmetic with reduced reliability');
-  ['nonparallel curves', 'optionality', 'defaults', 'liquidity', 'tracking'].forEach((risk) => assert(large.warnings.some((warning) => warning.includes(risk)), 'Bond Regime: large-shock warning names ' + risk));
-  const staleInstrument = JSON.parse(JSON.stringify(instruments.LQD)); staleInstrument.rateDuration.asOf = '2020-01-01';
-  const stale = env.calculateScenarioResult(sleeves['investment-grade-corporate'], staleInstrument, assumptions, config.localApproximationBounds, '2026-07-13');
-  const ranked = env.rankScenarioResults([treasury, stale]);
-  assert(!stale.rankable && stale.rank === null && stale.warnings.some((warning) => warning.includes('rateDuration')), 'Bond Regime: stale characteristic remains visible and unranked');
-  assert(ranked.find((result) => result.sleeveId === stale.sleeveId).rank === null, 'Bond Regime: stale sleeve receives no rank');
-  const invalid = env.calculateScenarioResult(sleeves['intermediate-treasury'], instruments.IEF, { ...assumptions, treasuryShockBp: Infinity }, config.localApproximationBounds, '2026-07-13');
-  assert(!invalid.rankable && invalid.errorCode === 'BRL-MODEL-NONFINITE' && invalid.totalPct === null, 'Bond Regime: nonfinite scenario input cannot retain a current result');
-  const indeterminateRead = env.buildDecisionRead({ state: 'Indeterminate', confidence: 'Low', confirming: [], conflicts: [], missing: ['independent-credit-confirmation'], nextConfirmation: 'Current independent confirmation', invalidation: 'No directional read', asOf: '2026-07-10', confirmationState: 'unavailable' }, { state: 'Balanced', confidence: 'Moderate', confirming: [], contradicting: [], invalidation: 'Directional curve impulse', asOf: '2026-07-10' }, [treasury], { ...assumptions, rawManualValue: 2.681923, rawSourceUrl: 'https://example.com/restricted-sentinel' }, 0.2);
-  assert(indeterminateRead.expression === null, 'Bond Regime: Indeterminate observed axis publishes no preferred expression');
-  const normalized = env.buildBondToolRead(indeterminateRead);
-  assert(normalized.metrics.preferredSleeveId === null && normalized.metrics.resultPct === null, 'Bond Regime: normalized read nulls indeterminate action and result');
-  assert(!JSON.stringify(normalized).includes('2.681923') && !JSON.stringify(normalized).includes('restricted-sentinel'), 'Bond Regime: normalized read omits restricted values and source URLs');
-  assert(normalized.deepLink === 'bond-regime-lab.html#simple' && normalized.metrics.creditRegime === 'Indeterminate', 'Bond Regime: normalized read keeps owner deep link and observed state');
+    const config = JSON.parse(read('bond-regime-universe.json'));
+    const instruments = Object.fromEntries(config.instruments.map((instrument) => [instrument.ticker, instrument]));
+    const sleeves = Object.fromEntries(config.sleeves.map((sleeve) => [sleeve.id, sleeve]));
+    const assumptions = { id: 'custom', horizonMonths: 6, treasuryShockBp: -50, igSpreadShockBp: 60, hySpreadShockBp: 150, breakevenShockBp: 0 };
+    const marketRows = Array.from({ length: 80 }, (_, index) => ({ t: Date.UTC(2026, 0, 2 + index), c: 100 * Math.pow(1.001, index) }));
+    assert(env.bondTrailingReturnPct(marketRows, 63) > 0, 'Bond Regime: sleeve trailing total return uses adjusted closes');
+    assert(env.bondRealizedVolPct(marketRows, 63) >= 0, 'Bond Regime: sleeve realized volatility is finite and non-negative');
+    assert(env.bondMaxDrawdownPct(marketRows, 63) < 1e-9, 'Bond Regime: monotonic sleeve path has zero drawdown');
+    assert(env.bondTrendState(marketRows).state === 'Uptrend', 'Bond Regime: sleeve trend uses the shared adjusted-close path');
+    assert(env.bondTrailingReturnPct([], 63) === null && env.bondRealizedVolPct([], 63) === null && env.bondMaxDrawdownPct([], 63) === null, 'Bond Regime: insufficient sleeve history remains unavailable');
+    const treasury = env.calculateScenarioResult(sleeves['intermediate-treasury'], instruments.IEF, assumptions, config.localApproximationBounds, '2026-07-13');
+    const ig = env.calculateScenarioResult(sleeves['investment-grade-corporate'], instruments.LQD, assumptions, config.localApproximationBounds, '2026-07-13');
+    const hy = env.calculateScenarioResult(sleeves['high-yield-corporate'], instruments.HYG, assumptions, config.localApproximationBounds, '2026-07-13');
+    [treasury, ig, hy].forEach((result) => assert(approx(result.carryPct + result.ratePct + (result.spreadPct || 0) + result.convexityPct, result.totalPct, 1e-10), 'Bond Regime: scenario terms sum exactly for ' + result.sleeveId));
+    assert(treasury.spreadPct === null && treasury.spreadApplicability === 'not-applicable', 'Bond Regime: Treasury spread is not applicable, never observed zero');
+    assert(Number.isFinite(ig.spreadPct) && Number.isFinite(hy.spreadPct), 'Bond Regime: corporate sleeves expose finite spread terms');
+    const tipsShock = env.scenarioShockForSleeve(sleeves['inflation-linked-treasury'], { ...assumptions, treasuryShockBp: 0, breakevenShockBp: 50 });
+    assert(tipsShock.rateShockBp === -50 && tipsShock.spreadShockBp === null, 'Bond Regime: TIPS maps nominal minus breakeven into real-yield shock');
+    const zeroConvexity = env.solveBreakEvenShock(5, 6, 5, 0);
+    assert(approx(zeroConvexity, 50, 1e-9), 'Bond Regime: zero-convexity break-even uses carry over duration');
+    assert(env.solveBreakEvenShock(20, 12, 1, 100) === null, 'Bond Regime: invalid convexity discriminant is unavailable');
+    const large = env.calculateScenarioResult(sleeves['high-yield-corporate'], instruments.HYG, { ...assumptions, hySpreadShockBp: 400 }, config.localApproximationBounds, '2026-07-13');
+    assert(Number.isFinite(large.totalPct) && large.reliability === 'Reduced reliability', 'Bond Regime: large finite shock retains arithmetic with reduced reliability');
+    ['nonparallel curves', 'optionality', 'defaults', 'liquidity', 'tracking'].forEach((risk) => assert(large.warnings.some((warning) => warning.includes(risk)), 'Bond Regime: large-shock warning names ' + risk));
+    const staleInstrument = JSON.parse(JSON.stringify(instruments.LQD)); staleInstrument.rateDuration.asOf = '2020-01-01';
+    const stale = env.calculateScenarioResult(sleeves['investment-grade-corporate'], staleInstrument, assumptions, config.localApproximationBounds, '2026-07-13');
+    const ranked = env.rankScenarioResults([treasury, stale]);
+    assert(!stale.rankable && stale.rank === null && stale.warnings.some((warning) => warning.includes('rateDuration')), 'Bond Regime: stale characteristic remains visible and unranked');
+    assert(ranked.find((result) => result.sleeveId === stale.sleeveId).rank === null, 'Bond Regime: stale sleeve receives no rank');
+    const invalid = env.calculateScenarioResult(sleeves['intermediate-treasury'], instruments.IEF, { ...assumptions, treasuryShockBp: Infinity }, config.localApproximationBounds, '2026-07-13');
+    assert(!invalid.rankable && invalid.errorCode === 'BRL-MODEL-NONFINITE' && invalid.totalPct === null, 'Bond Regime: nonfinite scenario input cannot retain a current result');
+    const indeterminateRead = env.buildDecisionRead({ state: 'Indeterminate', confidence: 'Low', confirming: [], conflicts: [], missing: ['independent-credit-confirmation'], nextConfirmation: 'Current independent confirmation', invalidation: 'No directional read', asOf: '2026-07-10', confirmationState: 'unavailable' }, { state: 'Balanced', confidence: 'Moderate', confirming: [], contradicting: [], invalidation: 'Directional curve impulse', asOf: '2026-07-10' }, [treasury], { ...assumptions, rawManualValue: 2.681923, rawSourceUrl: 'https://example.com/restricted-sentinel' }, 0.2);
+    assert(indeterminateRead.expression === null, 'Bond Regime: Indeterminate observed axis publishes no preferred expression');
+    const normalized = env.buildBondToolRead(indeterminateRead);
+    assert(normalized.metrics.preferredSleeveId === null && normalized.metrics.resultPct === null, 'Bond Regime: normalized read nulls indeterminate action and result');
+    assert(!JSON.stringify(normalized).includes('2.681923') && !JSON.stringify(normalized).includes('restricted-sentinel'), 'Bond Regime: normalized read omits restricted values and source URLs');
+    assert(normalized.deepLink === 'bond-regime-lab.html#simple' && normalized.metrics.creditRegime === 'Indeterminate', 'Bond Regime: normalized read keeps owner deep link and observed state');
     // Single-source: the page loads the module, delegates the decomposition, and carries no inline copy.
     assert(/rlexperience-adapters\/macro-rotation\.js/.test(src) && /RLMACROROTATION\.sleeveTotalReturn\s*\(/.test(src), 'bond page single-sources sleeveTotalReturn from RLMACROROTATION');
     assert(!/0\.5 \* values\.convexity \* combinedShock \* combinedShock/.test(src), 'bond page carries no inline sleeve convexity/total copy');
@@ -1698,6 +1699,44 @@ try {
   assert(Object.keys(quotaApi.freshness().bars).length === 2, 'quota-compacted persistence does not shrink in-memory breadth coverage');
 } catch (e) { failures++; console.log('  ✗ FAIL (RLDATA toolReads group threw): ' + e.message); }
 
+/* ---------- Committed-surface PII scan ---------- */
+try {
+  group('pii-scan — no personal identifier reaches a commit');
+  const piiResult = piiScan.runPiiScan({ root: ROOT });
+  if (!piiResult.ok) console.log(piiScan.formatFindings(piiResult));
+  assert(piiResult.ok, 'committed surface carries no personal identifier');
+  assert(piiResult.filesScanned > 500, 'the scan covered the repository (files=' + piiResult.filesScanned + ')');
+
+  /* ADVERSARIAL: a scan that reports clean for ANY input proves nothing. Drive the
+     committed synthetic samples through every rule and require each to fire. */
+  const piiConfig = piiScan.loadConfig(ROOT);
+  const piiRules = piiScan.buildRules(piiConfig);
+  const piiSamples = JSON.parse(read('tests/fixtures/pii-scan/samples.json'));
+  const fired = (text) => piiScan.scanText(text, piiRules).map((finding) => finding.rule);
+  for (const sample of piiSamples.positive) {
+    assert(fired(sample.text).indexOf(sample.rule) >= 0, 'detects ' + sample.label);
+  }
+  /* A guard that cries wolf on committed fixtures gets switched off, so the
+     negative samples are as load-bearing as the positive ones. */
+  for (const sample of piiSamples.negative) {
+    assert(fired(sample.text).length === 0, sample.label);
+  }
+  /* Adding a rule without a positive sample would ship it unexercised. */
+  const sampledRules = new Set(piiSamples.positive.map((sample) => sample.rule));
+  assert(piiRules.regex.every((rule) => sampledRules.has(rule.id)), 'every regex rule has a positive sample');
+
+  /* A real name has no shape, so it is carried as a digest. Prove the digest path
+     binds without restating any real term. */
+  const denyRules = piiScan.buildRules(Object.assign({}, piiConfig, { deniedTermHashes: [piiScan.hashTerm('Ada Lovelace')] }));
+  assert(piiScan.scanText('written by Ada Lovelace here', denyRules).some((f) => f.rule === 'denied-term'), 'a denylisted term is caught by digest alone');
+  assert(piiScan.scanText('written by Grace Hopper here', denyRules).length === 0, 'a name that is NOT denylisted is not matched');
+  assert((piiConfig.deniedTermHashes || []).length >= 1, 'the committed denylist carries at least one term digest');
+
+  /* A scanner that prints what it found copies the identifier into CI logs. */
+  const piiSample = piiScan.formatFindings({ ok: false, filesScanned: 1, findings: [{ file: 'x.md', line: 1, column: 1, rule: 'personal-email', length: 20 }] });
+  assert(piiSample.split('\n')[0].indexOf('@') < 0, 'a finding line never echoes the matched identifier');
+} catch (e) { failures++; console.log('  \u2717 FAIL (pii-scan group threw): ' + e.message); }
+
 /* ---------- Registry parity + Tier-A owning-tool coverage ---------- */
 try {
   group('tool registry — tools.json == index == nav; Tier-A adapters registered');
@@ -1711,50 +1750,50 @@ try {
   const refresh = read('scripts/brief-refresh.mjs');
   assert(/buildGlobalToolRead/.test(refresh) && /buildRealAssetsToolRead/.test(refresh) && /buildToolCoverage/.test(refresh), 'Tier-A carries exact global/real-asset reads plus registry coverage');
 
-    /* ── D2/D3, "reachable or removed" / "wired or not shipped". Source for an in-progress feature
-      may remain in the repository, but the Pages artifact contains registered product surfaces and
-      their runtime dependencies only. */
-    const pagesSite = await import('./build-pages-site.mjs');
-    const sitePlan = pagesSite.planPagesSite(ROOT);
+  /* ── D2/D3, "reachable or removed" / "wired or not shipped". Source for an in-progress feature
+    may remain in the repository, but the Pages artifact contains registered product surfaces and
+    their runtime dependencies only. */
+  const pagesSite = await import('./build-pages-site.mjs');
+  const sitePlan = pagesSite.planPagesSite(ROOT);
   const rootPages = readdirSync(ROOT).filter((name) => name.endsWith('.html')).sort();
-    const registeredFiles = new Set(registry.map((tool) => tool.file));
-    assert(sitePlan.registeredPages.length === registry.length, 'the Pages artifact includes every registered tool page');
-    assert(sitePlan.registeredPages.every((file) => registeredFiles.has(file)), 'the Pages artifact includes no unregistered tool page');
-    assert(sitePlan.excludedPaths.includes('trend-dynamics-cycle-lab.html') && sitePlan.excludedPaths.includes('portfolio-survival-allocation-lab.html'),
-     'in-progress root pages are explicitly removed from the public artifact');
-    assert(sitePlan.excludedPaths.includes('rlfx.js') && sitePlan.excludedPaths.includes('rlcausal.js') && sitePlan.excludedPaths.includes('rlportfolio.js'),
-     'shared modules with no registered production consumer are removed from the public artifact');
+  const registeredFiles = new Set(registry.map((tool) => tool.file));
+  assert(sitePlan.registeredPages.length === registry.length, 'the Pages artifact includes every registered tool page');
+  assert(sitePlan.registeredPages.every((file) => registeredFiles.has(file)), 'the Pages artifact includes no unregistered tool page');
+  assert(sitePlan.excludedPaths.includes('trend-dynamics-cycle-lab.html') && sitePlan.excludedPaths.includes('portfolio-survival-allocation-lab.html'),
+    'in-progress root pages are explicitly removed from the public artifact');
+  assert(sitePlan.excludedPaths.includes('rlfx.js') && sitePlan.excludedPaths.includes('rlcausal.js') && sitePlan.excludedPaths.includes('rlportfolio.js'),
+    'shared modules with no registered production consumer are removed from the public artifact');
 
   /* ADVERSARIAL: a check that passed for any input would prove nothing. An unlisted root page MUST
       be detected — this is the exact regression the deploy projection exists to stop. */
-    const injected = pagesSite.findUnaccountedPages(
-     rootPages.concat('definitely-not-registered-page.html'),
-     registeredFiles,
-     new Set(sitePlan.excludedPaths)
-    );
+  const injected = pagesSite.findUnaccountedPages(
+    rootPages.concat('definitely-not-registered-page.html'),
+    registeredFiles,
+    new Set(sitePlan.excludedPaths)
+  );
   assert(injected.length === 1 && injected[0] === 'definitely-not-registered-page.html', 'the root-page accounting really detects an unlisted page');
 
-    /* Discovery grouping. tools.json `.group` is the source of truth. The two file://-compatible
-      local registry mirrors carry the same field, and both render by filtering records on that
-      field. There is no separate membership list to drift. */
+  /* Discovery grouping. tools.json `.group` is the source of truth. The two file://-compatible
+    local registry mirrors carry the same field, and both render by filtering records on that
+    field. There is no separate membership list to drift. */
   const ungrouped = registry.filter((tool) => typeof tool.group !== 'string' || !tool.group.trim()).map((tool) => tool.id);
   assert(ungrouped.length === 0, 'every registered tool declares a discovery group in tools.json');
 
-    const expectedGroups = Object.fromEntries(registry.map((tool) => [tool.id, tool.group]));
-    const indexSource = read('index.html');
-    const navSource = read('rlnav.js');
-    const indexGroups = Object.fromEntries(Array.from(indexSource.matchAll(/\bid:\s*'([^']+)'\s*,\s*\n\s*group:\s*'([^']+)'/g)).map((match) => [match[1], match[2]]));
-    const navGroups = Object.fromEntries(Array.from(navSource.matchAll(/\bfile:\s*"([^"]+\.html)"\s*,\s*group:\s*"([^"]+)"/g)).map((match) => [match[1].replace(/\.html$/, ''), match[2]]));
-    assert(JSON.stringify(indexGroups) === JSON.stringify(expectedGroups), 'landing-page registry groups match tools.json .group exactly');
-    assert(JSON.stringify(navGroups) === JSON.stringify(expectedGroups), 'navigation registry groups match tools.json .group exactly');
-    assert(!/\b(?:var|const|let)\s+GROUPS\b/.test(indexSource + '\n' + navSource), 'neither discovery surface carries a hardcoded group-membership list');
-    assert(/TOOLS\.filter\(function \(tool\) \{ return tool\.group === group; \}\)/.test(indexSource) && /TOOLS\.filter\(function \(tool\) \{ return tool\.group === group; \}\)/.test(navSource),
-     'landing page and rail both derive members by filtering registry records on .group');
+  const expectedGroups = Object.fromEntries(registry.map((tool) => [tool.id, tool.group]));
+  const indexSource = read('index.html');
+  const navSource = read('rlnav.js');
+  const indexGroups = Object.fromEntries(Array.from(indexSource.matchAll(/\bid:\s*'([^']+)'\s*,\s*\n\s*group:\s*'([^']+)'/g)).map((match) => [match[1], match[2]]));
+  const navGroups = Object.fromEntries(Array.from(navSource.matchAll(/\bfile:\s*"([^"]+\.html)"\s*,\s*group:\s*"([^"]+)"/g)).map((match) => [match[1].replace(/\.html$/, ''), match[2]]));
+  assert(JSON.stringify(indexGroups) === JSON.stringify(expectedGroups), 'landing-page registry groups match tools.json .group exactly');
+  assert(JSON.stringify(navGroups) === JSON.stringify(expectedGroups), 'navigation registry groups match tools.json .group exactly');
+  assert(!/\b(?:var|const|let)\s+GROUPS\b/.test(indexSource + '\n' + navSource), 'neither discovery surface carries a hardcoded group-membership list');
+  assert(/TOOLS\.filter\(function \(tool\) \{ return tool\.group === group; \}\)/.test(indexSource) && /TOOLS\.filter\(function \(tool\) \{ return tool\.group === group; \}\)/.test(navSource),
+    'landing page and rail both derive members by filtering registry records on .group');
 
   /* ADVERSARIAL: a grouping check that would pass against an empty or partial registry proves
       nothing. Prove the comparison binds by mutating one assignment and requiring a mismatch. */
-    const tampered = { ...expectedGroups, [expected[0]]: 'not-a-real-group' };
-    assert(JSON.stringify(indexGroups) !== JSON.stringify(tampered), 'the group parity comparison detects a single reassigned tool');
+  const tampered = { ...expectedGroups, [expected[0]]: 'not-a-real-group' };
+  assert(JSON.stringify(indexGroups) !== JSON.stringify(tampered), 'the group parity comparison detects a single reassigned tool');
 
 } catch (e) { failures++; console.log('  ✗ FAIL (registry coverage group threw): ' + e.message); }
 
@@ -1862,7 +1901,7 @@ try {
      nothing. `prob` is the one explicit addition — numeric, so a narrative-STRING list cannot name it. */
   assert(BRIEF_EVENT_REQUIRED_KEYS.includes('psychologyNote') && BRIEF_EVENT_SCENARIO_REQUIRED_KEYS.join(',') === 'name,expectedEffect,prob',
     'the events contract keys are derived non-empty from the shared required-field list, plus the numeric prob'
-      + ' (event=' + BRIEF_EVENT_REQUIRED_KEYS.join(',') + ' scenario=' + BRIEF_EVENT_SCENARIO_REQUIRED_KEYS.join(',') + ')');
+    + ' (event=' + BRIEF_EVENT_REQUIRED_KEYS.join(',') + ' scenario=' + BRIEF_EVENT_SCENARIO_REQUIRED_KEYS.join(',') + ')');
 
   /* ── Lane ↔ gate agreement ────────────────────────────────────────────────────────────────────
      The gate above is the LAST rung; the signals lane instruction is the FIRST. The incident was
@@ -1878,7 +1917,7 @@ try {
     'every key the gate enforces is a member of the §9 shape shown to the author — a new required key cannot arm the gate unmentioned');
   assert(findEventContractInstructionGaps(briefEventContractInstruction()).length === 0,
     'the authoring instruction names every key the publish gate refuses on (unnamed: '
-      + (findEventContractInstructionGaps(briefEventContractInstruction()).join(', ') || 'none') + ')');
+    + (findEventContractInstructionGaps(briefEventContractInstruction()).join(', ') || 'none') + ')');
 
   /* The shape lists are the one hand-typed link, so hold them against the §9 template itself —
      otherwise "the instruction matches the gate" could be true while both drift off the contract. */
@@ -2026,7 +2065,7 @@ try {
     .map((entry) => entry.path);
   assert(unclassified.length === 0,
     'every payload string of 200+ characters is declared either reader prose or machine state, so no long field escapes the gate unnoticed'
-      + (unclassified.length ? ': ' + [...new Set(unclassified)].join(', ') : ''));
+    + (unclassified.length ? ': ' + [...new Set(unclassified)].join(', ') : ''));
   // A pattern naming a field that does not exist silently shrinks D13 coverage, so every
   // pattern must be proven real. Required patterns are proven by this payload. The two
   // optional ones are real but intermittent — a publish where no tool read carries a
@@ -2037,7 +2076,7 @@ try {
     .filter((pattern) => !payloadStrings.some((entry) => matchesFieldPatterns([pattern], entry.segments)));
   assert(unmatchedRequired.length === 0,
     'every REQUIRED narrative pattern matches a real field in the committed payload — the required list describes this payload, not an imagined one'
-      + (unmatchedRequired.length ? ': ' + unmatchedRequired.join(', ') : ''));
+    + (unmatchedRequired.length ? ': ' + unmatchedRequired.join(', ') : ''));
 
   const producerSources = new Map();
   const readProducer = (path) => {
@@ -2051,7 +2090,7 @@ try {
     .map(({ pattern, producer }) => pattern + ' (' + producer + ')');
   assert(unprovenOptional.length === 0,
     'every OPTIONAL narrative pattern names fields its declared producer actually emits — exemption from the payload-instance check is never exemption from being real'
-      + (unprovenOptional.length ? ': ' + unprovenOptional.join(', ') : ''));
+    + (unprovenOptional.length ? ': ' + unprovenOptional.join(', ') : ''));
 
   // The optional list is the one way this split could become a bypass: a red required
   // pattern could be "fixed" by moving it here. Pinned so growing it is a deliberate,
@@ -2062,11 +2101,11 @@ try {
   // is conditional (len=1 in 1daff325/798c365e, len=0 in f67501ae/a6081edf), so a required
   // pattern turned an ordinary publish red. They remain fully vocabulary-checked when present.
   assert(BRIEF_NARRATIVE_FIELDS_OPTIONAL.map((entry) => entry.pattern + '@' + entry.producer).join(',')
-      === 'toolReads.*.limitations.[]@scripts/brief-refresh.mjs,'
-        + 'toolReads.*.recommendationEligibility.reason@scripts/brief-refresh.mjs,'
-        + 'experimental.[].title@scripts/brief-narrative-parallel.mjs,'
-        + 'experimental.[].note@scripts/brief-narrative-parallel.mjs,'
-        + 'experimental.[].method@scripts/brief-narrative-parallel.mjs',
+    === 'toolReads.*.limitations.[]@scripts/brief-refresh.mjs,'
+    + 'toolReads.*.recommendationEligibility.reason@scripts/brief-refresh.mjs,'
+    + 'experimental.[].title@scripts/brief-narrative-parallel.mjs,'
+    + 'experimental.[].note@scripts/brief-narrative-parallel.mjs,'
+    + 'experimental.[].method@scripts/brief-narrative-parallel.mjs',
     'exactly the intermittently-populated toolRead and experimental fields are exempt from the payload-instance check, each against its own producer; every other narrative pattern is required');
 } catch (e) { failures++; console.log('  ✗ FAIL (reader vocabulary group threw): ' + e.message); }
 
@@ -5151,7 +5190,7 @@ try {
   assert(flow.metrics.tickers >= 8 && flow.metrics.consideredCount > 0 && flow.metrics.contractsFlagged > 0
     && ['call-heavy (leaning bullish)', 'put-heavy (leaning bearish / hedged)', 'balanced'].includes(flow.metrics.lean),
     'the flow read carries the owning model\u2019s own call/put lean over real scanned contracts ('
-      + flow.metrics.contractsFlagged + ' flagged of ' + flow.metrics.consideredCount + ' considered)');
+    + flow.metrics.contractsFlagged + ' flagged of ' + flow.metrics.consideredCount + ' considered)');
   assert(flow.metrics.top.length > 0 && flow.metrics.top.every((row) => Number.isFinite(row.premium) && Number.isFinite(row.score) && row.ticker),
     'the flow read publishes ranked contracts from the model, each with a real premium and score');
   assert(flow.metrics.top[0].score === flow.metrics.maxScore || flow.metrics.top[0].score <= flow.metrics.maxScore,
@@ -5196,7 +5235,7 @@ try {
     && Number.isFinite(aiCapex.metrics.mu) && Number.isFinite(aiCapex.metrics.sd) && aiCapex.metrics.sd > 0
     && Number.isFinite(aiCapex.metrics.median) && Number.isFinite(aiCapex.metrics.cvar),
     'the AI-capex read carries the owning model\u2019s own portfolio and band over a real priced sleeve ('
-      + aiCapex.metrics.pricedCount + ' of ' + aiCapex.metrics.assetCount + ' priced)');
+    + aiCapex.metrics.pricedCount + ' of ' + aiCapex.metrics.assetCount + ' priced)');
   assert(aiCapex.metrics.lo < aiCapex.metrics.median && aiCapex.metrics.median < aiCapex.metrics.hi
     && aiCapex.metrics.cvar < aiCapex.metrics.median,
     'the band is a real distribution \u2014 the tail sits below the centre and the centre inside the bounds');
@@ -5285,7 +5324,7 @@ try {
   assert(bondResolved.state === 'ready' && bondResolved.metrics.creditRegime !== 'Indeterminate' && bondResolved.metrics.durationPosture !== 'Indeterminate'
     && bondResolved.metrics.preferredSleeveId && Number.isFinite(bondResolved.metrics.resultPct),
     'handed a Treasury curve, a real curve and an independent credit-spread observation the SAME builder reaches a real verdict, so the unresolved read above is computed rather than hard-coded ('
-      + bondResolved.metrics.creditRegime + ' credit, ' + bondResolved.metrics.durationPosture + ' duration, ' + bondResolved.metrics.preferredSleeveId + ')');
+    + bondResolved.metrics.creditRegime + ' credit, ' + bondResolved.metrics.durationPosture + ' duration, ' + bondResolved.metrics.preferredSleeveId + ')');
   assert(bondResolved.metrics.evidenceGaps.length === 0 && bondResolved.metrics.curveState !== 'Unavailable' && bondResolved.metrics.inflationState !== 'Unavailable',
     'with every evidence family present the resolved bond read names no gap at all');
   assert(bondResolved.read.includes(bondResolved.metrics.creditRegime) && bondResolved.read.includes(bondResolved.metrics.durationPosture) && !/unresolved/.test(bondResolved.read),
@@ -5385,9 +5424,11 @@ try {
   // erased the risk side of the call. Measured across every published brief, the loose
   // "re-?opens? the" form matched 26 times and was wrong all 26. Fails if it is loosened again.
   const reopens = recBody.buildRecommendationBody(
-    { subject: 'MSFT core', action: 'hold', horizon: 'swing',
+    {
+      subject: 'MSFT core', action: 'hold', horizon: 'swing',
       trigger: 'hold above the 200-day (~432.3)',
-      invalidation: 'A gap-fade back below the 200-day (~432.3) on the close re-opens the structural downside', confidence: 60 },
+      invalidation: 'A gap-fade back below the 200-day (~432.3) on the close re-opens the structural downside', confidence: 60
+    },
     { universe });
   assert(reopens.levels.some((level) => level.source === 'invalidation'),
     're-opens the structural downside is read as INVALIDATION, not as an upside trigger (' + JSON.stringify(reopens.levels) + ')');

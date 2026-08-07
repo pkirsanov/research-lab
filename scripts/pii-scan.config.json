@@ -1,0 +1,55 @@
+{
+    "contractVersion": "pii-scan/v1",
+    "note": "Committed surface must carry no personal identifiers. This file holds ONLY detection policy: provider domains, generic path segments, salted-free SHA-256 digests of denied terms, and reasoned allow entries. It deliberately contains no personal data in plaintext, so publishing it leaks nothing. Add a denied term with: node scripts/pii-scan.mjs --hash  (reads the term from stdin so it never lands in argv or shell history).",
+    "personalEmailDomains": [
+        "gmail.com",
+        "googlemail.com",
+        "outlook.com",
+        "hotmail.com",
+        "live.com",
+        "msn.com",
+        "yahoo.com",
+        "ymail.com",
+        "icloud.com",
+        "aol.com",
+        "proton.me",
+        "protonmail.com",
+        "pm.me",
+        "gmx.com",
+        "gmx.net",
+        "yandex.ru",
+        "fastmail.com",
+        "zoho.com",
+        "tutanota.com",
+        "hey.com"
+    ],
+    "employerEmailDomains": [
+        "microsoft.com"
+    ],
+    "homePathAllowedSegments": [
+        "redacted",
+        "user",
+        "users",
+        "runner",
+        "root",
+        "home",
+        "ci",
+        "node",
+        "vscode",
+        "test",
+        "tmp",
+        "x",
+        "you",
+        "me"
+    ],
+    "deniedTermHashes": [
+        "ad4de167c9483a09275bd9fede5fabcaf8eb6d3dc5ce390a769305752781cacf"
+    ],
+    "allow": [
+    {
+      "path": "tests/fixtures/pii-scan/samples.json",
+      "rules": [],
+      "reason": "Invented identifiers that exist only to prove each rule fires; an unexercised detection rule cannot be trusted, and isolating the samples here keeps every other file fully scanned."
+    }
+  ]
+}

@@ -772,7 +772,9 @@ run, and restore the step byte-identical.
   `new=0` is the clause this item asks for. `stale=0` additionally says the frozen
   baseline has not rotted — no entry in it has quietly started resolving.
 
-- [x] No path excluded from this scope was modified BY this scope; every path this scope protects from another owner is byte-identical.
+- [ ] Every excluded path listed in the Change Boundary is byte-identical to its pre-scope state, proven by a diff of the working tree.
+
+  **Uncertainty Declaration — left unticked deliberately.** This is false as written, and rewording it to pass is the fabrication this item exists to prevent. Measured against the pre-scope baseline `6d4eba99~1`, three excluded paths differ: `rlattention.js`, `market-brief.html` and `scripts/selftest.mjs`. Hunk-level attribution shows all three belong to sibling scopes 4 and 5, which landed in the same multi-scope commit `6d4eba99` — so this is not a Scope 6 breach, but the item asserts byte-identity rather than innocence and byte-identity does not hold. See finding F-017-07: the Change Boundary under-declared the scope's true surface, and the correct fix is to reconcile the boundary wording feature-wide, not to soften this obligation. Restored after commit `3d3d7588` re-applied the weakened wording.
 
   **Claim Source:** executed in this turn, across scope 6's full delivery span.
 

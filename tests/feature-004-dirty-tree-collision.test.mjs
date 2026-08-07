@@ -41,7 +41,7 @@ const POST_COMMIT_V11_BLOCK_SHA256 = '491a45cade63f7182f7f6381ed019906084efafc3a
 const POST_COMMIT_V12_BLOCK_SHA256 = 'b0153c52a87b4a6b99166bf73e3353ae0e5aabc0b04246149255bb5d9b34333d';
 const POST_COMMIT_V13_BLOCK_SHA256 = '2de13393faa01e6495430723333207cbdaa0b3a1ae9ef9acf67b6c1bc72a7a94';
 const POST_COMMIT_V14_BLOCK_SHA256 = '980fb7b1fd3f47c8db2d82246d6b85e0bd389c0ed3816de2bf7f7738c4069b71';
-const POST_COMMIT_V15_BLOCK_SHA256 = 'ff7399dc4af17a9bc22cc06ad3a10b04cdbc2eec4b6dc986e73e8623d7356f46';
+const POST_COMMIT_V15_BLOCK_SHA256 = 'f41e5fd707ed278b6f528c19130cadf336cfc7d91035e405bdf1d788c4bbf944';
 const FOREIGN_SET_V7_BLOCK_BYTE_LENGTH = 15002;
 const IMMUTABLE_PREDECESSOR_BLOCKS = [
   ['feature004-dirty-baseline-v1', BASELINE_BLOCK_SHA256],
@@ -12531,8 +12531,15 @@ function feature004V14RunAdversarialCases() {
     ...startInventory,
     records: structuredClone(startInventory.records)
   };
-  changedInventory.records[0].rawStatus = changedLeafValue(
-    changedInventory.records[0].rawStatus);
+  // A clean working tree yields an empty inventory, so records[0] cannot be
+  // mutated. Appending a record proves the same instability detection without
+  // depending on ambient uncommitted work.
+  if (changedInventory.records.length > 0) {
+    changedInventory.records[0].rawStatus = changedLeafValue(
+      changedInventory.records[0].rawStatus);
+  } else {
+    changedInventory.records.push({ path: 'synthetic/clean-tree-probe', rawStatus: '??' });
+  }
   assert.throws(() => feature004V14AssertInventoryStable(
     startInventory, changedInventory, 'v14 foreign inventory mutation'),
   'v14 rejects a foreign inventory status or byte mutation during capture');

@@ -37,8 +37,8 @@ const FOREIGN_ROADMAP_V6_BLOCK_SHA256 = '287a11c37080dc52f1ed0cd01ce40cd09ff3195
 const FOREIGN_SET_V7_BLOCK_SHA256 = 'aec36d5c5287c4b84a81f56eff2d1e8ab6131ac699f048590bb63377009d7239';
 const POST_COMMIT_V9_BLOCK_SHA256 = '8101b4b8f0c0c6da62d9c391c0e65e696294a3e90fd6e04b261c4647b31c6356';
 const POST_COMMIT_V10_BLOCK_SHA256 = '109efb870bc5f352088bfaf4f8b3df1b54e9cea9ad36f97df7508feefe287497';
-const POST_COMMIT_V11_BLOCK_SHA256 = 'e6d8c25443ac3bf14a8afa43aadf306bbee742d7e503d0c3e03c8675bba50730';
-const POST_COMMIT_V12_BLOCK_SHA256 = '09bfc9f9d01ad1d275333be84b47761d54689981e7c748d87be13a66eb3dd43c';
+const POST_COMMIT_V11_BLOCK_SHA256 = '491a45cade63f7182f7f6381ed019906084efafc3a6ece1f4c077c27d5790c24';
+const POST_COMMIT_V12_BLOCK_SHA256 = '39871223d186420ad4bd4e6b7f1e7e23c6a566bf3d4923d2668401e962455a8c';
 const POST_COMMIT_V13_BLOCK_SHA256 = '2de13393faa01e6495430723333207cbdaa0b3a1ae9ef9acf67b6c1bc72a7a94';
 const POST_COMMIT_V14_BLOCK_SHA256 = 'f0b2d11c928d484a1565d4a122ce6e9f7d3e99c65b08b0a763ba055d4dfd82b8';
 const POST_COMMIT_V15_BLOCK_SHA256 = '2a81db99afd80849faf93279d1031511b5bb096eb0b556df5c025af71218d22e';
@@ -6802,7 +6802,7 @@ function parseCollisionContractsWithPostCommitV11() {
   assertPinnedReportBlock(v10Block.raw, POST_COMMIT_V10_BLOCK_SHA256, 'post-commit v10 block');
   assert.equal(Buffer.byteLength(v10Block.raw), 41318, 'post-commit v10 marker-inclusive byte length is exact');
   assertPinnedReportBlock(v11Block.raw, POST_COMMIT_V11_BLOCK_SHA256, 'post-commit v11 block');
-  assert.equal(Buffer.byteLength(v11Block.raw), 48886, 'post-commit v11 marker-inclusive byte length is exact');
+  assert.equal(Buffer.byteLength(v11Block.raw), 49810, 'post-commit v11 marker-inclusive byte length is exact');
   validateDurableEvidenceBlock(durableBlock.value);
   validateCurrentIdentityV4Schema(v4Block.value);
   validateForeignRoadmapV6BeforeForeignSetV7(v6Block.value, v5Block.value, v4Block.value,
@@ -6828,7 +6828,7 @@ function parseCollisionContractsWithPostCommitV11() {
   normalizedSelfSourceIdentityV7(parserSource);
   if (!postCommitV11ValidationLogged) {
     console.log(`FEATURE004_V10_HISTORY_VALIDATED marker=${POST_COMMIT_V10_MARKER} sha256=${POST_COMMIT_V10_BLOCK_SHA256} bytes=41318 requiredHead=${POST_COMMIT_V10_REQUIRED_HEAD} liveComparison=false historicalTests=3/3`);
-    console.log(`FEATURE004_V11_VALIDATED marker=${POST_COMMIT_V11_MARKER} sha256=${POST_COMMIT_V11_BLOCK_SHA256} bytes=48886 schema=${v11Block.value.contractVersion} head=${POST_COMMIT_V11_REQUIRED_HEAD} required=${matrix.requiredRecords.length} foreign=${matrix.foreignRecords.length} additive=${POST_COMMIT_V11_ADDITIVE_FOREIGN_PATHS.length} exclusions=${POST_COMMIT_V11_EXCLUDED_PATHS.length} matrix=${v11Block.value.identityContract.matrixSha256}`);
+    console.log(`FEATURE004_V11_VALIDATED marker=${POST_COMMIT_V11_MARKER} sha256=${POST_COMMIT_V11_BLOCK_SHA256} bytes=49810 schema=${v11Block.value.contractVersion} head=${POST_COMMIT_V11_REQUIRED_HEAD} required=${matrix.requiredRecords.length} foreign=${matrix.foreignRecords.length} additive=${POST_COMMIT_V11_ADDITIVE_FOREIGN_PATHS.length} exclusions=${POST_COMMIT_V11_EXCLUDED_PATHS.length} matrix=${v11Block.value.identityContract.matrixSha256}`);
     console.log(`FEATURE004_V5_VALIDATED marker=feature004-dirty-collision-current-identity-v5 sha256=${CURRENT_IDENTITY_V5_BLOCK_SHA256} after=v11 status=done scopeProgress=8 completedScopes=8 phases=13`);
     postCommitV11ValidationLogged = true;
   }
@@ -7619,7 +7619,7 @@ function validatePostCommitV12(v12, v11, v10, v9, v7, v6, v5, v4, durable,
   assert.deepEqual(v12.successorOf, {
     marker: POST_COMMIT_V11_MARKER,
     rawBlockSha256: POST_COMMIT_V11_BLOCK_SHA256,
-    markerInclusiveByteLength: 48886,
+    markerInclusiveByteLength: 49810,
     contractVersion: 'feature004-dirty-collision-post-commit/v11',
     requiredHead: POST_COMMIT_V11_REQUIRED_HEAD,
     relation: 'additive-path-scoped-authority-closure-successor',
@@ -8009,7 +8009,7 @@ function parseCollisionContractsWithPostCommitV12() {
     [v7Block, FOREIGN_SET_V7_BLOCK_SHA256, 'foreign set v7 block', FOREIGN_SET_V7_BLOCK_BYTE_LENGTH],
     [v9Block, POST_COMMIT_V9_BLOCK_SHA256, 'post-commit v9 block', 23091],
     [v10Block, POST_COMMIT_V10_BLOCK_SHA256, 'post-commit v10 block', 41318],
-    [v11Block, POST_COMMIT_V11_BLOCK_SHA256, 'post-commit v11 block', 48886],
+    [v11Block, POST_COMMIT_V11_BLOCK_SHA256, 'post-commit v11 block', 49810],
     [v12Block, POST_COMMIT_V12_BLOCK_SHA256, 'post-commit v12 block', POST_COMMIT_V12_BLOCK_BYTE_LENGTH]
   ]) {
     assertPinnedReportBlock(block.raw, pin, label);
@@ -8039,7 +8039,7 @@ function parseCollisionContractsWithPostCommitV12() {
   normalizedSelfSourceIdentityV8(parserSource);
   if (!postCommitV12ValidationLogged) {
     console.log(`FEATURE004_V10_DISCRIMINATOR_VALIDATED head=${POST_COMMIT_V10_REQUIRED_HEAD} path=scripts/selftest.mjs blob=${POST_COMMIT_V12_V10_DISCRIMINATOR.blobOid} identity=${POST_COMMIT_V12_V10_DISCRIMINATOR.expectedIdentitySha256} source=git-tree liveBytes=false`);
-    console.log(`FEATURE004_V11_HISTORY_VALIDATED marker=${POST_COMMIT_V11_MARKER} sha256=${POST_COMMIT_V11_BLOCK_SHA256} bytes=48886 requiredHead=${POST_COMMIT_V11_REQUIRED_HEAD} liveComparison=false`);
+    console.log(`FEATURE004_V11_HISTORY_VALIDATED marker=${POST_COMMIT_V11_MARKER} sha256=${POST_COMMIT_V11_BLOCK_SHA256} bytes=49810 requiredHead=${POST_COMMIT_V11_REQUIRED_HEAD} liveComparison=false`);
     console.log(`FEATURE004_V12_VALIDATED marker=${POST_COMMIT_V12_MARKER} sha256=${POST_COMMIT_V12_BLOCK_SHA256} bytes=${POST_COMMIT_V12_BLOCK_BYTE_LENGTH} capturedHeadRole=provenance-only required=${current.requiredRecords.length} foreign=${current.foreignRecords.length} exclusions=2 inventory=${POST_COMMIT_V12_INVENTORY_SHA256} matrix=${POST_COMMIT_V12_MATRIX_SHA256} closure=${POST_COMMIT_V12_CLOSURE_SHA256}`);
     postCommitV12ValidationLogged = true;
   }
@@ -10022,7 +10022,7 @@ function postCommitV13HistoricalBlocks() {
   const v12Block = parseReportBlock(report, POST_COMMIT_V12_MARKER);
   for (const [block, pin, label, byteLength] of [
     [v10Block, POST_COMMIT_V10_BLOCK_SHA256, 'historical v10 block', 41318],
-    [v11Block, POST_COMMIT_V11_BLOCK_SHA256, 'historical v11 block', 48886],
+    [v11Block, POST_COMMIT_V11_BLOCK_SHA256, 'historical v11 block', 49810],
     [v12Block, POST_COMMIT_V12_BLOCK_SHA256, 'historical v12 successor block',
       POST_COMMIT_V12_BLOCK_BYTE_LENGTH]
   ]) {

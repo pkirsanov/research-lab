@@ -322,9 +322,226 @@ That is the reason the absence half alone is insufficient, and it generalises: f
 
 ### TP-03-06
 
-**Claim Source:** not-run
+**Claim Source:** executed · **Command:** the Test Plan row's exact command · **Exit Code:** 0
 
-Broader Playwright `e2e-ui` row. Not executed this run. No evidence.
+```text
+$ npx --no-install playwright test tests/portfolio-survival-foundation.spec.mjs --config=playwright.config.mjs --project=system-chrome --reporter=list
+
+Running 10 tests using 1 worker
+
+  ✓   1 …CN-008-003 explicit mandate alone supplies every hard constraint (2.6s)
+  ✓   2 … SCN-008-004 no mandate leaves goal fit and survival unavailable (1.8s)
+  ✓   3 …ting mandate stays visibly infeasible with no constraint relaxed (1.3s)
+  ✓   4 …08-001 valid local portfolio import creates one current revision (1.7s)
+  ✓   5 …-008-002 invalid or secret-bearing import is atomic and redacted (1.2s)
+  ✓   6 …reserve last valid portfolio in durable session and memory modes (3.8s)
+  ✓   7 …clear behavior removes ranking influence and preserves portfolio (3.7s)
+  ✓   8 …12 behavior evidence excludes engagement and sensitive profiling (8.3s)
+  ✓   9 …ared category and leaves the generic public cache byte-identical (2.2s)
+  ✓  10 …ar step refuses success on its own and retains only its own key (15.4s)
+
+  10 passed (45.2s)
+PLAYWRIGHT_EXIT=0
+```
+
+The runner's per-test `console.log` diagnostic lines are elided here deliberately: they carry
+fixture subject tokens, and this file is tracked. The block above is the runner's own result
+lines. Titles are abbreviated by the list reporter at terminal width; each is resolved to its
+source line in the mapping below.
+
+Suite size moved from 8 to 10 since the previous pass. The two added rows are the ones named
+`TP-03-06` in their own titles (`:1085`, `:1160`); the earlier eight are unchanged.
+
+Three emitted diagnostics decide the vacuity findings below and are quoted as counts and
+declared category or key names only — no stored value is reproduced. `declaredCategories` lists
+eight; `populatedBeforeFullPersonalClear` lists five; `categoriesEmptyAfterFullPersonalClear`
+reports eight. The gap between the second and the third is where the vacuous cells live.
+
+**Ruling: unchecked.** The row is green and the second clause is carried, but the first clause
+is not. The reasoning is below, and it is the reason a green tally is not sufficient here.
+
+#### Why a tally cannot settle this line, and what the axes are
+
+The DoD line asserts a **matrix**, and a matrix is not a list. The Test Plan row names four
+behaviors — behavior-only clear, full-personal clear, partial deletion failure, and prior
+import/mandate preservation — over the scenario set SCN-008-001 through SCN-008-004, SCN-008-011,
+SCN-008-012. Two of those four behaviors are *operations over a category set*, so each is complete
+only when every declared category has a proven verdict under it, and a third is *per declared
+clear step*. The matrix is therefore three axes, not one row count:
+
+| Axis | Cells | Source of the cell list | Rows that carry it |
+|---|---|---|---|
+| 1 — foundation scenarios | 6 | the Test Plan row's own Scenario column | `:87`, `:184`, `:260`, `:299`, `:403`, `:628`, `:810` |
+| 2 — clear operation × declared category | 2 × 8 = 16 | `rlportfolio.js:2227`–`:2234` `clearedBy` declarations | `:628` behavior column, `:1085` all-personal column |
+| 3 — partial deletion failure × declared clear step | 6 + 1 control = 7 | `FOUNDATION_KEYS`, read from the committed storage policy | `:1160` |
+
+Axis 2's cell list is taken from the runtime's own declaration rather than written into the test,
+and the full-personal row calls its loop "The whole matrix, cell by cell" (`:1119`) — the same
+reading. Axis 3's cell list is likewise derived from the storage policy, not a literal.
+
+The fourth named behavior, prior import/mandate preservation, is not a separate axis: it is the
+PRESERVED column of Axis 2 under the behavior clear, plus Axis 1's import and mandate scenarios.
+
+#### Axis 1 — foundation (Scenario column), 6 cells, all carried
+
+| Cell | Row that carries it | Owning scope |
+|---|---|---|
+| SCN-008-001 | `Regression: SCN-008-001 valid local portfolio import creates one current revision` (`:299`) | 01 (done) |
+| SCN-008-002 | `Regression: SCN-008-002 invalid or secret-bearing import is atomic and redacted` (`:403`) | 01 (done) |
+| SCN-008-003 | `Regression: SCN-008-003 explicit mandate alone supplies every hard constraint` (`:87`) and `Regression: SCN-008-003 conflicting mandate stays visibly infeasible with no constraint relaxed` (`:260`) | 02 (done) |
+| SCN-008-004 | `Regression: SCN-008-004 no mandate leaves goal fit and survival unavailable` (`:184`) | 02 (done) |
+| SCN-008-011 | `Regression: SCN-008-011 clear behavior removes ranking influence and preserves portfolio` (`:628`) | 03 |
+| SCN-008-012 | `Regression: SCN-008-012 behavior evidence excludes engagement and sensitive profiling` (`:810`) | 03 |
+
+One further row, `Regression: Feature 008 atomic slots preserve last valid portfolio in durable
+session and memory modes` (`:491`), is Scope 01's TP-01-05 and carries no Axis-1 cell of its own;
+it reinforces the import-preservation cell rather than supplying one.
+
+#### Axis 2 — clear operations × declared categories, 16 cells, 9 carried
+
+`clearedBy` decides each cell's required verdict: a category is EMPTIED by an operation its own
+declaration names, and PRESERVED by one it does not. The eight declarations are
+`rlportfolio.js:2227`–`:2234`. "Carried" below means a verdict that could fail — a cell asserted
+against a category that was empty on both sides of the clear is marked vacuous instead.
+
+| Category | `clearedBy` | Under behavior clear | Carried by | Under all-personal clear | Carried by |
+|---|---|---|---|---|---|
+| behavior-events | behavior-and-all-personal | EMPTIED | `:716`–`:717` rendered row, 4 records before | EMPTIED | `:1124`–`:1132` loop |
+| interest-signals | behavior-and-all-personal | EMPTIED | `:718`–`:719` rendered row, **vacuous** | EMPTIED | loop, **vacuous** |
+| action-outcomes | behavior-and-all-personal | EMPTIED | `:724` persisted bytes, **vacuous** | EMPTIED | loop, **vacuous** |
+| portfolio-revisions | all-personal | PRESERVED | `:744`–`:746`, `:759`–`:761` id, counts, holdings by value | EMPTIED | loop |
+| mandate-revisions | all-personal | PRESERVED | `:747`–`:748`, `:762`–`:764` id, count, constraints in order | EMPTIED | loop |
+| cash-needs | all-personal | PRESERVED | `:770`–`:775` rendered on every mandate route | EMPTIED | loop |
+| quarantine | all-personal | PRESERVED | **not carried — no assertion** | EMPTIED | loop |
+| session-fallback | all-personal | PRESERVED | **not carried — no assertion** | EMPTIED | loop, **vacuous** |
+
+Nine cells carry a falsifiable verdict, five are vacuous, and two have no assertion at all.
+
+#### Correction to the previous pass
+
+The previous pass recorded this table with `interest-signals` under behavior clear as carried on
+the strength of the rendered row at `:718`–`:719`, and counted eleven. That was wrong, and the
+error was to read an assertion's existence as its force. A repository sweep for a write to either
+`interestSignals` or `actionOutcomes` outside tests and specs returns initialisation to `[]`
+(`rlportfolio.js:951`–`:952`), validation, projection, and the clear itself — and no append
+anywhere. Both categories are therefore structurally empty in every UI-reachable state, so the
+behavior row's `interest-signals · 0 records · empty` assertion is exactly as vacuous as the
+`action-outcomes` one it sits beside. The count above is corrected from eleven to nine.
+
+One adjacent runtime observation follows from the same sweep and is recorded rather than acted
+on: `buildBehaviorClearCandidate` does not empty `actionOutcomes`, it filters them by state
+(`rlportfolio.js:1844`–`:1850`, retaining any outcome whose state is outside
+`BEHAVIOR_CLEARED_OUTCOME_STATES`), while the inventory row renders the category bare as
+`cleared by behavior-and-all-personal`. For an outcome in a retained state the rendered label
+would over-state what the behavior clear performs. Nothing can observe the difference today
+because no producer exists. This is runtime- and planning-owned, not a TP-03-06 defect, and it
+is not counted against the row below.
+
+#### The cells that are not carried, named exactly
+
+1. **behavior clear × quarantine — PRESERVED, no assertion.** `populateQuarantine` is called at
+   `:1089` and `:1182` only. The behavior-clear row never stocks the quarantine key, so the
+   category is empty before and after. The one namespace guard that row does carry is
+   `foreignKeys`, which filters to keys *not* starting with `rlPortfolioWorkspaceV1.` — and the
+   quarantine key is `rlPortfolioWorkspaceV1.quarantine`, so it is structurally excluded from the
+   only check that could have caught a widening. A `clearBehavior` that deleted the quarantine
+   key would pass this row unchanged. Its declaration says `all-personal`, so preservation is
+   exactly what the matrix requires of this cell, and nothing observes it.
+2. **behavior clear × session-fallback — PRESERVED, no assertion.** Same shape. The row runs in
+   durable mode, so no session key exists to be preserved or destroyed, and the `foreignKeys`
+   guard reads `localStorage` only — neither `rlPortfolioWorkspaceSessionV1` nor
+   `rlReturnContextV1` lives there.
+3. **behavior clear × action-outcomes and × interest-signals — EMPTIED, vacuous.** `:724`
+   asserts the outcomes section is empty after the clear and says so itself: *"this run recorded
+   no action outcome, so none may appear after the clear."* `:718`–`:719` asserts the same shape
+   for interest signals without that caveat. Neither category can be populated at all, per the
+   correction above, so neither emptying is proven.
+4. **all-personal × three vacuous cells.** `:1107` pins the populated set before the clear to
+   five of eight. `interest-signals`, `action-outcomes`, and `session-fallback` read empty before
+   and after, so their turns in the `:1124`–`:1132` loop assert emptiness against nothing.
+
+Cells 3 and 4 are recorded for completeness of the matrix, not as new findings: they are the same
+vacuity [core item 3](#dod-core-item-3--full-personal-clear-the-two-thirteens) already adjudicates
+and accepts as pinned elsewhere, and the non-vacuous proof for the session keys specifically lives
+in TP-03-03, which stocks them deliberately because a durable commit does not create them.
+
+Cells 1 and 2 are the decisive ones, and they are of a different kind: not a weak assertion but no
+assertion, on a preservation verdict the matrix requires, in the behavior column that core item 3
+does not reach. Two cells of sixteen have nothing observing them, so the word **complete** in the
+DoD line is not yet true.
+
+#### Axis 3 — partial deletion failure × declared clear step, 7 arms, all carried
+
+The third behavior the Test Plan row names is its own axis, because a partial failure is per-step
+rather than per-category. Row `:1160` enumerates it from `FOUNDATION_KEYS` rather than a literal
+list, faulting one declared step at a time at the storage device while every other remove still
+succeeds — which is what makes each arm a partial failure rather than a blocked store.
+
+| Arm | Refusal proven | Retention proven |
+|---|---|---|
+| control (no fault) | n/a — succeeds, and `:1194` requires every declared key removed | n/a |
+| pointer key | `:1196` `P008-STORE-WRITE · foundation-clear-incomplete` | `:1206`–`:1208` exactly one key survives, bytes unchanged |
+| slot A key | same | same |
+| slot B key | same | same |
+| quarantine key | same | same |
+| session key | same | not reachable in durable mode |
+| return-context key | same | not reachable in durable mode |
+
+All seven arms ran. The control arm is load-bearing: without it a refusal proves nothing, because
+a flow that always failed would satisfy all six faulted arms. `:1198` additionally forbids a
+success payload on the surface during a partial failure, so a refusal that still rendered
+`Verified empty` would fail. The two session arms are recorded as refusal-only rather than folded
+into a coverage number, and `:1222`–`:1223` asserts that split by name against the durable-mode
+key set instead of leaving a reader to assume it. That is honest reporting of a real mode limit,
+not a gap: this axis is carried.
+
+#### Second clause — previous scope behavior intact: carried
+
+Scopes 01 and 02 are certified `done` in `state.json` — `Private Portfolio Import And Atomic
+Store` at `certifiedAt` 2026-08-05T17:21:25Z and `Mandate And Cash-Need Authority` at
+2026-08-06T14:47:04Z — owning SCN-008-001 through SCN-008-002 and SCN-008-003 through SCN-008-004
+respectively. All six rows attributable to them — `:87`, `:184`, `:260`, `:299`, `:403`, and Scope
+01's `:491` — passed in the same runner invocation as the Scope 03 rows. No prior-scope row
+regressed.
+
+#### What would close it
+
+Two cells, both test-side, both inside this scope's declared allowed file. In the behavior-clear
+arm, stock the quarantine key through the existing `populateQuarantine` helper and run one arm in
+session mode, then assert after the behavior clear that the quarantine key still holds its bytes
+and the session fallback still reads present. The runtime needs no change: the behavior clear
+commits a workspace generation and does not call `clearFoundationStorage`, so the assertions
+should pass on first run — their value is that a future widening could no longer pass unnoticed.
+
+The three vacuous cells cannot be closed this way. `interest-signals` and `action-outcomes` have
+no producer in the product at all, so no test can populate them; closing those requires a runtime
+capability that does not exist and is not in this scope. They stay pinned, as core item 3 already
+rules.
+
+Neither change was made on this pass, which was scoped to executing and adjudicating this one row
+with no new test code and no defect injection.
+
+#### One observation raised, not resolved
+
+The scope's UI Scenario Matrix row *Clear all personal data* requires that a retained category
+"blocks success **and offers a scoped retry**." The blocking half is carried at `:1196`–`:1198`
+(`P008-STORE-WRITE · foundation-clear-incomplete`, with no success payload). The retry half has no
+implementation and no assertion: a case-insensitive search for `retry`, `try again`, `re-run`, and
+`clear again` across `rlportfolio.js` and `portfolio-survival-allocation-lab.html` returns
+nothing. No DoD item on this scope currently names it — core item 3 owns the emptiness half only.
+This is planning-owned and is not counted against TP-03-06 above, whose row text names
+"partial deletion failure" rather than the retry affordance.
+
+#### One observation raised, not resolved
+
+The scope's UI Scenario Matrix row *Clear all personal data* requires that a retained category
+"blocks success **and offers a scoped retry**." The blocking half is carried at `:1196`–`:1198`
+(`P008-STORE-WRITE · foundation-clear-incomplete`, with no success payload). The retry half has no
+implementation and no assertion: a case-insensitive search for `retry`, `try again`, `re-run`, and
+`clear again` across `rlportfolio.js` and `portfolio-survival-allocation-lab.html` returns
+nothing. No DoD item on this scope currently names it — core item 3 owns the emptiness half only.
+This is planning-owned and is not counted against TP-03-06 above, whose row text names
+"partial deletion failure" rather than the retry affordance.
 
 ### Current-run re-execution at HEAD `c4165577`
 
@@ -699,7 +916,7 @@ carried by named assertions in the row's own test.
 | Core 3 — full-personal clear section verification | **4 of the 13 nouns the line enumerates have no runtime surface at all: scenarios, allocations, dossiers, UI state.** The two vacuous nouns (interests, outcomes) are accepted as pinned. Ruling and the derived-versus-named sweep asymmetry that decides it are in decision D-03-08 and [core item 3](#dod-core-item-3--full-personal-clear-the-two-thirteens). Supersedes the earlier "9 of 13" line. |
 | Core 4 — impact sweep, canaries, rollback and restore proof | Not assessed on this pass. The prior assessment stands: the Scope 01 and 02 re-run and the raw-namespace and clear-fault canaries are carried; the **exact rollback and restore proof** was the open half. |
 | Core 5 — RED plus same-command GREEN | Not assessed on this pass. The prior assessment stands: **0 of 14 behaviors have an intended RED**, GREEN is complete, and this pass was again barred from injecting defects. |
-| TP-03-06 | Not executed. Explicitly out of this pass's scope. The suite it names was in fact executed whole for TP-03-04 and TP-03-05, so the row is likely closable — but its DoD line asserts a matrix (full-personal clear, partial-deletion failure, prior import/mandate preservation) that was not assessed clause by clause here, and claiming it on the strength of a shared runner line would be exactly the inherited-verdict move decision D-03-07 rejects. |
+| TP-03-06 | **Executed and green (10 passed, exit 0), and still unchecked.** The second clause is carried: all six prior-scope rows passed in the same invocation. The first is not. The matrix is three axes — 6 foundation scenarios, 8 declared categories × 2 clear operations, and 6 declared clear steps plus a control. Axes 1 and 3 are fully carried. In Axis 2, **behavior clear × quarantine and behavior clear × session-fallback have no assertion at all**: the arm never stocks either, and the row's only namespace guard structurally excludes both. Three further cells are vacuous. Cell-by-cell mapping and the two-cell closing path are in [TP-03-06](#tp-03-06). Two earlier readings are superseded — "likely closable" (the suite grew from 8 rows to 10, and the new rows close the full-personal and partial-failure clauses but not the behavior column), and the "11 of 16 carried" count, corrected to 9 after a producer sweep showed the `interest-signals` behavior cell is vacuous rather than carried. |
 | Build Quality Gate | Deliberately not assessed this pass. |
 
 Two scope-level consequences follow, both owned outside this agent:
@@ -720,7 +937,7 @@ One new planning-owned consequence is raised by this pass:
 | TP-03-01 | `node --test tests/portfolio-foundation.unit.mjs` | 0 — 49 pass, 0 fail |
 | TP-03-02 | `node --test tests/portfolio-brief.functional.mjs` | 0 — 4 pass, 0 fail |
 | TP-03-03 | `node --test tests/portfolio-privacy.functional.mjs` | 0 — 13 pass, 0 fail |
-| TP-03-04, TP-03-05 | `npx --no-install playwright test --config=playwright.config.mjs --project=system-chrome tests/portfolio-survival-foundation.spec.mjs` | 0 — 8 passed, 0 failed |
+| TP-03-04, TP-03-05, TP-03-06 | `npx --no-install playwright test --config=playwright.config.mjs --project=system-chrome tests/portfolio-survival-foundation.spec.mjs` | 0 — 10 passed, 0 failed |
 | Artifact lint | `bash .github/bubbles/scripts/artifact-lint.sh specs/008-portfolio-survival-and-brief-lab` | 0 |
 
 All four suites pass. Suite health is not the constraint on this scope; evidence coverage is.

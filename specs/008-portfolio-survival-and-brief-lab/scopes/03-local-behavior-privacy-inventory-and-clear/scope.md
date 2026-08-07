@@ -368,7 +368,37 @@ Write every closed-event, clear, inventory, UI, and sentinel assertion before pr
 
 - [ ] TP-03-06 broader E2E evidence proves the complete foundation/clear matrix passes with previous scope behavior intact.
 
-  Unchecked. Not executed this run.
+  Unchecked. The row was executed this run with the Test Plan command and is green — `10 passed`,
+  `0 failed`, exit `0`. The second clause is carried: Scopes 01 and 02 are certified `done` and
+  all six rows attributable to them (`:87`, `:184`, `:260`, `:299`, `:403`, `:491`) passed in the
+  same invocation, so no prior-scope behavior regressed.
+
+  The first clause is not carried. The line asserts a **matrix**, which is three axes: the 6
+  foundation scenarios the Test Plan row names; the 8 categories `rlportfolio.js:2227`–`:2234`
+  declares × the 2 clear operations; and the 6 declared clear steps plus a control. Axis 1 is
+  fully carried. Axis 3 is fully carried by `:1160`, which faults every declared step on its own,
+  proves retention for the four durable-mode keys, and names the two session steps as
+  refusal-only rather than folding them into a count. Axis 2's all-personal column is asserted
+  cell by cell in the `:1124`–`:1132` loop against each category's own declaration.
+
+  Axis 2's behavior column is where the clause fails. **Two cells have no assertion at all:**
+  quarantine PRESERVED and session-fallback PRESERVED. The behavior-clear arm never stocks either
+  — `populateQuarantine` runs only at `:1089`/`:1182`, and the arm runs in durable mode — and the
+  one namespace guard it carries filters to keys outside `rlPortfolioWorkspaceV1.`, which
+  structurally excludes `rlPortfolioWorkspaceV1.quarantine`, while reading `localStorage` only, so
+  neither session key is visible either. A behavior clear that widened into those keys would pass
+  the row unchanged. Three further cells are vacuous, including `interest-signals`, which the
+  previous pass recorded as carried; a repository sweep shows no code path anywhere writes
+  `interestSignals` or `actionOutcomes`, so both are structurally empty and neither emptying is
+  proven. Cell-by-cell mapping is in [report.md](report.md#tp-03-06).
+
+  Closing the two decisive cells needs only test-side changes inside this scope's declared allowed
+  file: stock the quarantine key and run one session-mode arm, then assert both survive the
+  behavior clear. The three vacuous cells cannot be closed that way — the two categories have no
+  producer in the product at all — and stay pinned as core item 3 already rules. Not done on this
+  pass, which was scoped to executing and adjudicating this one row with no new test code. One
+  planning-owned observation is raised in the report: the UI Scenario Matrix requires a partial
+  clear to offer a *scoped retry*, and no implementation or assertion for it exists.
 
 #### Build Quality Gate
 

@@ -572,7 +572,7 @@ Full inventory of every non-terminal packet, with DoD completion and whether a b
 | `014-shared-cycle-and-seasonality-exchange` | not_started | — | 0/235 | correct |
 | `015-recommendation-outcome-ledger-and-track-record` | blocked | yes | 0/376 | blocker named |
 | `016-auction-gamma-playbook` | not_started | — | 0/197 | correct |
-| `017-decision-attention-and-developing-situations` | in_progress | — | **148/148** | all 6 scopes Done; blocked only on the same validate-owned ceiling as `BUG-001` (see below) |
+| `017-decision-attention-and-developing-situations` | in_progress | — | **147/148** | all 6 scopes Done; the one unticked item is a contested proof obligation (below), and the spec is otherwise blocked only on the same validate-owned ceiling as `BUG-001` |
 | `BUG-001-central-provider-credential-security` | in_progress | yes | **18/18** | see below |
 | `BUG-005-…-unsatisfiable-in-place-delivery` | blocked | yes | 0/17 | blocker named |
 | `BUG-006-evaluate-before-publish-…` | blocked | yes | 5/22 | blocker named |
@@ -637,6 +637,26 @@ transition needs an `audit` phase claim and hand-writing one is exactly the fabr
 **Step 9 is therefore complete to its repo-bounded maximum.** The acceptance metric (zero specs whose shipped
 code contradicts their recorded status) holds; the one packet whose record was inaccurate is corrected; and the
 two items that cannot be fixed from inside this repo are filed where they can be.
+
+#### One contested item is recorded rather than resolved
+
+Spec `017` scope 6 carries a single unticked DoD item — *"every excluded path listed in the Change Boundary is
+byte-identical to its pre-scope state"* — while the scope reads `Done`. That combination is not permitted by
+the completion hierarchy, and it is left standing deliberately.
+
+It was narrowed once (in `3d3d7588`) to the wording scopes 1, 2 and 3 already carry: *"no path excluded from
+this scope was modified BY this scope; every path this scope protects from another owner is byte-identical"*.
+That narrowing was then **reverted** by the scope's owner in `95f13231` — *"restore the byte-identity proof
+obligation weakened by 3d3d7588 (F-017-07)"* — on the view that the blanket form is a real proof obligation and
+narrowing it lowers the evidence bar.
+
+That is a legitimate disagreement about an evidence standard, and it belongs to the owner rather than to a
+passing edit. The disagreement is genuine on both sides: the blanket form is unsatisfiable while sibling scopes
+inside the same feature legitimately modify paths on each other's excluded lists, and the narrowed form does
+drop a claim the original made. **Re-applying the narrowing would be an edit war, not a delivery**, so it was
+not re-applied. The remaining work is a one-line owner decision — either the item is narrowed and ticked, or
+scope 6 returns to `In Progress` until the blanket claim can be met. Both are honest; picking one is not this
+document's call.
 
 ---
 

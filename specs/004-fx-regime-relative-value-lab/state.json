@@ -1250,6 +1250,45 @@
                 "test-plan.json::currentRouting"
             ],
             "summary": "Defined one additive v15 cardinality-only planning successor over immutable v14 history. The handoff keeps the unchanged three-case 600-second collision command, extends TP-01-22 without adding a row or scenario, preserves all checkbox and certification state, keeps Scope 2 locked, and routes report/parser implementation followed by independently evidenced batches to bubbles.test."
+        },
+        {
+            "agent": "bubbles.plan",
+            "workflowMode": "full-delivery",
+            "phasesExecuted": [
+                "bootstrap",
+                "plan"
+            ],
+            "statusBefore": "in_progress",
+            "statusAfter": "in_progress",
+            "startedAt": "2026-08-07T00:52:50Z",
+            "finishedAt": "2026-08-07T00:59:36Z",
+            "outcome": "route_required",
+            "addressedFindings": [
+                "F004-SCOPE01-STALE-TEST-PATH-BASELINE-001"
+            ],
+            "unresolvedFindings": [
+                "F004-V16-HERMETIC-HISTORICAL-V13-001"
+            ],
+            "nextRequiredOwner": "bubbles.test",
+            "nextRequiredTarget": "F004-V16-HERMETIC-HISTORICAL-V13-001",
+            "evidenceRefs": [
+                "scopes.md#feature-004-v16-hermetic-historical-v13-successor-f004-v16-hermetic-historical-v13-001",
+                "test-plan.json::postV16HermeticHistoricalV13Handoff",
+                "test-plan.json::currentRouting"
+            ],
+            "validation": {
+                "repositoryBinding": "exit 0; actionable research-lab packet validated at decision rb:vscode-e24db39cf992f7ccd8ec75209602db59:57, control revision 57",
+                "artifactLint": "exit 0; Artifact lint PASSED before and after commit",
+                "traceability": "exit 0; 33 scenarios, 94 Markdown rows including five headers, RESULT PASSED with 0 warnings",
+                "artifactFreshness": "exit 0; RESULT PASS with 0 failures and 0 warnings",
+                "capabilityFoundation": "exit 0; Gate G094 grandfather pass because state.json.createdAt is absent",
+                "jsonParse": "exit 0; test-plan.json and state.json parsed successfully",
+                "editorDiagnostics": "scopes.md, test-plan.json, and state.json have no editor errors",
+                "containment": "exit 0 before this required executionHistory append; five scopes, 33 scenarios, 89 JSON test entries, 94 Markdown rows including headers, 143 checklist lines, five status lines, Scope 2 bytes, Test Plan IDs, certification, policy, transitions, rework, failures, and all non-execution-owned state remained unchanged",
+                "productTests": "not executed and not claimed",
+                "scopeCompletion": "not claimed"
+            },
+            "summary": "Defined the bounded v16 plan so only post-v14 historical v13 adversarial replay becomes hermetic over pinned immutable sources. Recorded commit 8107a661 as the addressed stale-baseline finding, retained only v16 as the current route, preserved v14 as sole current-file authority and all v15/predecessor contracts, left Scope 1 In Progress and Scope 2 locked, and routed report/parser implementation plus unchanged three-case acceptance to bubbles.test."
         }
     ],
     "activeBugs": [],

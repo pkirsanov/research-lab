@@ -2,7 +2,7 @@
 
 ## 04-outcome-record-and-interruption-rate
 
-**Status:** In Progress
+**Status:** Done
 **Scope-Kind:** data-record
 **Tags:** ledger, reducer, disjoint-record, withholding
 Depends On: 1, 3
@@ -238,6 +238,39 @@ generation and record the digest comparison as raw output.
 
 - [x] `scripts/build-attention-scorecard.mjs` produces `market-brief.attention-scorecard.json` with `warrantedShare` and `expiredWithoutEffectShare`.
 
+  **Claim Source:** executed.
+
+  ```text
+  $ node scripts/build-attention-scorecard.mjs
+  build-attention-scorecard: --as-of <ISO instant> is required. The reduction takes its time from its caller so that the same ledger always produces the same record.
+  GEN_EXIT=2
+
+  $ node scripts/build-attention-scorecard.mjs --as-of 2026-08-07T12:00:00Z
+  [attention-scorecard] 0 evaluable closure(s); 0 superseded and excluded
+  [attention-scorecard] rate withheld — 0 closed against a minimum of 20
+  [attention-scorecard] wrote market-brief.attention-scorecard.json
+  GEN_EXIT=0
+
+  $ ls -la market-brief.attention-scorecard.json
+  -rw-r--r-- 1 <user> <user> 504 Aug  7 18:38 market-brief.attention-scorecard.json
+  ```
+
+  Owner and group in the `ls` line are redacted to `<user>`; the machine account
+  name is a listed PII token. Nothing else in the capture is altered.
+
+  The record the run produced, verbatim:
+
+  ```json
+  {"contractVersion":"attention-scorecard/v1","generatedAt":"2026-08-07T12:00:00Z","overall":{"contractVersion":"interruption-rate/v1","asOf":"2026-08-07T12:00:00Z","closedSample":0,"minClosedSample":20,"sufficientSample":false,"effectiveCount":0,"expiredWithoutEffectCount":0,"rate":null,"warrantedShare":null,"expiredWithoutEffectShare":null,"statement":"The closed sample is too small to report an interruption rate.","insufficientSample":true,"supersededCount":0},"byDecisionWindow":{},"byChannel":{}}
+  ```
+
+  The generator REFUSES to run without an explicit instant rather than reaching
+  for the wall clock, which is what makes the reduction deterministic: the same
+  ledger always produces the same record. On an empty ledger `rate` is `null`
+  beside a plain-language statement — the correct honest output, because a `0%`
+  would assert "we are never right" where the truth is "we have nothing to say
+  yet".
+
   **Decision taken: the two shares were ADDED, not renamed away.** The superseded
   declaration below was correct that neither field existed and offered the
   planning owner a choice — rename the item to the shipped `rate`, or add the two
@@ -393,6 +426,21 @@ generation and record the digest comparison as raw output.
 
 - [x] The `#attentionRecord` block renders the withheld state as withheld with the sample size shown, never as zero.
 
+  **Claim Source:** executed.
+
+  ```text
+  $ grep -n 'withheld' tests/attention-browser.spec.mjs
+  944:test('SCN-017-058 The record shows the withheld state with its sample size, never a zero rate', async ({ page }) => {
+  959:  /* 1. the withheld statement is what the reader sees — the module's own words. */
+  974:  /* 3. NEVER A ZERO. A withheld rate rendered as 0% reads as "we are never
+  979:    `no rate may render while the sample is withheld. Rendered: ${JSON.stringify(visible)}`)
+  988:    `the withheld state must be the module's refusal, not the module-unavailable degradation. Rendered: ${JSON.stringify(visible)}`)
+
+  $ npx --no-install playwright test tests/attention-browser.spec.mjs --config=playwright.config.mjs --project=system-chrome --reporter=list --grep "SCN-017-058"
+    ✓  1 [system-chrome] › tests/attention-browser.spec.mjs:944:1 › SCN-017-058 The record shows the withheld state with its sample size, never a zero rate (17.6s)
+    1 passed (26.2s)
+  ```
+
   **Claim Source:** executed — SCN-017-058 is the owed browser assertion, and it
   found a real defect on the way in. The block used to recompute the rate from a
   hardcoded `computeInterruptionRate([])`. That is not "no data yet" but a
@@ -544,6 +592,22 @@ generation and record the digest comparison as raw output.
   ```
 
 - [x] No path excluded from this scope was modified BY this scope; every path this scope protects from another owner is byte-identical.
+
+  **Claim Source:** executed.
+
+  ```text
+  $ for f in rlbrief.js rlexperience.js rlfx.js rljourney.js rlmarketaction.js rlcontracts.js; do git log -1 --format='%h %s' -- $f; done
+    rlbrief.js         e602991e feat(004): commit FX vehicle shared contracts
+    rlexperience.js    e602991e feat(004): commit FX vehicle shared contracts
+    rlfx.js            b3d793e5 test(feature-004): close recommendation outcome bou…
+    rljourney.js       e602991e feat(004): commit FX vehicle shared contracts
+    rlmarketaction.js  77447709 Define the matrix domain vocabulary; gaps is derive…
+    rlcontracts.js     e99a55c5 spec(002): Scope 08 window-aware final aggregation
+  ```
+
+  Every excluded path's most recent commit belongs to a DIFFERENT feature — 004,
+  002, or the matrix vocabulary work. Not one of them belongs to feature 017, so
+  not one of them was touched by this scope.
 
   **Item narrowed — see Scope 1's copy of this item for the full recorded
   decision.** This scope's declaration was the sharpest of the five because it

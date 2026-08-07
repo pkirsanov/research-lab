@@ -1477,8 +1477,25 @@
                 var catalystsOnly = ((PAYLOAD && PAYLOAD.attention) || []).filter(function (item) {
                     return !(item && tierIds.indexOf(item.id) !== -1);
                 });
-                var attention = RLBRIEF.actionableAttention(catalystsOnly, CFG.thresholds && CFG.thresholds.minimumAttentionConfidence);
-                RLBRIEF.renderAttention(el("attention"), attention, CFG, CFG.thresholds && CFG.thresholds.attentionMaxCards);
+                if (tierIds.length && !catalystsOnly.length) {
+                    /* The shared empty copy says "no attention items in the
+                       current payload", which is false once the tier is holding
+                       them all. Say what is actually true instead: everything
+                       this window produced asked for a decision, so there is
+                       nothing left over to list as a catalyst. */
+                    var feedHost = el("attention");
+                    if (feedHost) {
+                        feedHost.textContent = "";
+                        var note = document.createElement("div");
+                        note.className = "sub";
+                        note.textContent = "Everything this window surfaced is in the decision list above, so there is nothing further to note here.";
+                        note.setAttribute("title", "Why this section is empty. Reading now: every item that cleared the bar asked for a decision, and repeating it here would show you the same card twice.");
+                        feedHost.appendChild(note);
+                    }
+                } else {
+                    var attention = RLBRIEF.actionableAttention(catalystsOnly, CFG.thresholds && CFG.thresholds.minimumAttentionConfidence);
+                    RLBRIEF.renderAttention(el("attention"), attention, CFG, CFG.thresholds && CFG.thresholds.attentionMaxCards);
+                }
                 RLBRIEF.renderEvents(el("events"), mergeEvents());
                 RLBRIEF.renderGroups(el("groups"), (PAYLOAD && PAYLOAD.groups) || (SNAP && SNAP.groups), CFG);
                 RLBRIEF.renderWatchlist(el("watchlist"), WL && WL.items, CFG, PAYLOAD && PAYLOAD.watchlistNotes);

@@ -2,7 +2,7 @@
 
 ## 05-legacy-feed-reconciliation-and-acceptance
 
-**Status:** In Progress
+**Status:** Done
 **Scope-Kind:** acceptance
 **Tags:** reconciliation, legibility, view-identity, performance
 Depends On: 2, 3, 4

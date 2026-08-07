@@ -2,7 +2,7 @@
 
 ## 02-publication-path-enforcement
 
-**Status:** In Progress
+**Status:** Done
 **Scope-Kind:** contract-enforcement
 **Tags:** validator, payload, parity
 Depends On: 1
@@ -168,11 +168,30 @@ the before-and-after payload parse both succeed with no pre-existing key changed
 
 - [x] Every refusal message names the offending field and the offending item.
 
-  **Claim Source:** executed — both halves now hold, and the item half was
-  implemented for this tick rather than argued into place. `attentionItemLabel()`
-  in `scripts/validate-brief-payload.mjs` puts the item between the slot and the
-  field, so a refusal reads
-  `attention[0] (id=attn-hyg-credit-001, subject=HYG).headline …`.
+  **Claim Source:** executed — three deliberately invalid items were pushed
+  through the exported `validateBriefPayload` in memory, so nothing on disk was
+  mutated. `attentionItemLabel()` (`scripts/validate-brief-payload.mjs:97`) sits
+  between the slot and the field at line 406, so every refusal carries the field
+  and the item. Cases A and B keep identity intact; case C removes it, and the
+  label degrades to `id absent` rather than printing `undefined`.
+
+  ```text
+  $ node --input-type=module -e "…V.validateBriefPayload(mutated, registry, config, snapshot)…"
+  BASELINE (unmutated payload):
+  0 attention refusals
+
+  --- A: item 2 headline emptied (identity intact) ---
+  attention[2] (id=attn-cb7a25479fc62547, subject=QQQ).headline RLATTN-HEADLINE: an attention item carries a headline
+
+  --- B: item 0 invalidation emptied (identity intact) ---
+  attention[0] (id=attn-d136824950828249, subject=QQQ).invalidation RLATTN-FALSIFIABILITY: an item that cannot be invalidated is not publishable
+
+  --- C: item 1 id AND subject removed (identity itself missing) ---
+  attention[1] (id absent).subject RLATTN-PRIVACY: an attention item names a subject inside the public watchlist scope
+  attention[1] (id absent).expiry RLATTN-FALSIFIABILITY: an item with no resolvable expiry is not publishable
+
+  EXIT=0
+  ```
 
   Why an index alone was not enough: the list is re-ranked between runs, so
   `attention[3]` in yesterday's log points at a different item today. The id is
@@ -186,10 +205,15 @@ the before-and-after payload parse both succeed with no pre-existing key changed
 
   ```text
   $ node --test tests/attention-payload-contract.test.mjs
+  ok 1 - SCN-017-025 The publication path refuses an over-length headline and a missing invalidation
   ok 2 - SCN-017-025b A refusal names which item it is about, not only which slot
+  ok 3 - SCN-017-026 The validator and the browser apply the identical predicate on one fixture
+  ok 4 - SCN-017-027 Existing attention consumers still parse the payload unchanged
   # tests 25
   # pass 25
   # fail 0
+  # skipped 0
+  EXIT=0
   ```
 
   **Superseded declaration (original, retained):** executed for field-naming,

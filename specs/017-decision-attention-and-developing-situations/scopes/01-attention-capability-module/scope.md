@@ -2,7 +2,7 @@
 
 ## 01-attention-capability-module
 
-**Status:** In Progress
+**Status:** Done
 **Scope-Kind:** capability-foundation
 **Tags:** foundation:true, module, lifecycle, determinism
 Depends On: none

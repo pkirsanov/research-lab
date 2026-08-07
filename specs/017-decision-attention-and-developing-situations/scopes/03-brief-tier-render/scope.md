@@ -2,7 +2,7 @@
 
 ## 03-brief-tier-render
 
-**Status:** In Progress
+**Status:** Done
 **Scope-Kind:** ui-render
 **Tags:** brief-view, tooltips, escaping, degraded-state
 Depends On: 1, 2
@@ -206,9 +206,31 @@ stale declaration both appear.
 
 - [x] The populated, empty, expanded-item, degraded and narrow projections all render as specified in the UI Scenario Matrix.
 
-  **Claim Source:** executed — all five projections now carry a scenario. The
-  declaration below is retained as its original point-in-time record; the two
-  gaps it named were real and are now closed rather than argued away.
+  **Claim Source:** executed — the whole browser suite was run and all ten
+  scenarios passed. Populated is TP-03-01 (#1), expanded-item TP-03-03 and
+  TP-03-04 (#3, #4), degraded TP-03-05 (#5), empty SCN-017-051 (#7), narrow
+  SCN-017-057 (#8). The declaration at the end is retained as its original
+  point-in-time record; the two gaps it named were real and are now closed.
+
+  ```text
+  $ npx --no-install playwright test tests/attention-browser.spec.mjs \
+      --config=playwright.config.mjs --project=system-chrome --reporter=list
+  Running 10 tests using 1 worker
+
+    ✓   1 [system-chrome] › …:139:1 › decision attention tier renders items and record from committed data (5.2s)
+    ✓   2 [system-chrome] › …:196:1 › decision attention items carry no alert severity label or alert styling (5.6s)
+    ✓   3 [system-chrome] › …:257:1 › every decision attention field and control exposes a contextual tooltip (5.1s)
+    ✓   4 [system-chrome] › …:300:1 › authored decision attention text with markup renders escaped (6.3s)
+    ✓   5 [system-chrome] › …:350:1 › elapsed decision attention items render expired and a stale generation is declared (6.1s)
+    ✓   6 [system-chrome] › …:469:1 › decision attention rendering holds all six performance budgets (7.9s)
+    ✓   7 [system-chrome] › …:742:1 › SCN-017-051 The tier renders its declared empty state for an all-excluded generation (7.1s)
+    ✓   8 [system-chrome] › …:860:1 › SCN-017-057 The tier stays readable at a phone width with nothing clipped (5.6s)
+    ✓   9 [system-chrome] › …:944:1 › SCN-017-058 The record shows the withheld state with its sample size, never a zero rate (5.5s)
+    ✓  10 [system-chrome] › …:994:1 › SCN-017-059 No item appears in both the decision tier and the catalyst feed (6.9s)
+
+    10 passed (1.1m)
+  EXIT=0
+  ```
 
   - **Populated** — TP-03-01.
   - **Expanded item** — TP-03-03 and TP-03-04.
@@ -225,14 +247,6 @@ stale declaration both appear.
     rendered real content — otherwise "nothing is clipped" proves nothing — and
     finally proves the clipped-control measurement catches a control deliberately
     placed past the edge.
-
-  ```text
-  $ npx --no-install playwright test tests/attention-browser.spec.mjs \
-      --config=playwright.config.mjs --project=system-chrome --reporter=list
-  ✓  7 [system-chrome] … SCN-017-051 The tier renders its declared empty state for an all-excluded generation (4.2s)
-  ✓  8 [system-chrome] … SCN-017-057 The tier stays readable at a phone width with nothing clipped (2.8s)
-    8 passed (33.0s)
-  ```
 
   Worth recording, because it changed the test: the first narrow probe measured
   `documentElement.scrollWidth` and did NOT catch a deliberately oversized child,

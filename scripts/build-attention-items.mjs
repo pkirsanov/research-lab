@@ -183,11 +183,16 @@ export function candidateFromPublishedItem(item) {
  * Re-compose a payload's own attention items through the certified composer and
  * return the payload it SHOULD carry.
  *
- * Additive by construction: the returned object spreads the original first, so
- * every pre-existing key stays byte-identical and only `attention` and
- * `attentionExclusions` are replaced. An item the composer refuses is dropped
- * from `attention` and recorded in `attentionExclusions` with its named reason
- * — never silently, and never defaulted back into shape.
+ * Additive in both directions. The payload keeps every pre-existing top-level
+ * key, and each surviving item keeps every field the composer does not own —
+ * `title`, `what`, `why`, `structuralAnchor` and the rest belong to the older
+ * catalyst contract, and a straight replace would silently delete them. The
+ * composer's envelope is merged OVER the published item, so it wins on the
+ * fields it owns and is silent on the fields it does not.
+ *
+ * An item the composer refuses is dropped from `attention` and recorded in
+ * `attentionExclusions` with its named reason — never silently, never defaulted
+ * back into shape.
  */
 export function recomposePayloadAttention(payload, config) {
   const published = Array.isArray(payload?.attention) ? payload.attention : [];
@@ -195,9 +200,22 @@ export function recomposePayloadAttention(payload, config) {
   const passthrough = published.filter((item) => !(item && item.contractVersion === 'decision-attention/v1'));
 
   const { items, exclusions } = buildAttentionItems(decisionItems.map(candidateFromPublishedItem), payload, config);
+
+  /* Pair each built envelope back to the item it came from BY CANDIDATE ORDER,
+     not by id: the composer mints its own id, so an id-join silently matches
+     nothing and merges nothing. Items come back in candidate order with the
+     refused indices missing, so walking the sources and skipping the excluded
+     ones lines them up exactly. */
+  const excludedIndices = new Set(exclusions.map((exclusion) => exclusion.index));
+  const sources = decisionItems.filter((item, index) => !excludedIndices.has(index));
+  if (sources.length !== items.length) {
+    throw new Error(`recompose pairing failed: ${sources.length} surviving source(s) against ${items.length} built item(s)`);
+  }
+  const merged = items.map((built, index) => Object.assign({}, sources[index], built));
+
   return {
-    payload: Object.assign({}, payload, { attention: passthrough.concat(items), attentionExclusions: exclusions }),
-    items,
+    payload: Object.assign({}, payload, { attention: passthrough.concat(merged), attentionExclusions: exclusions }),
+    items: merged,
     exclusions
   };
 }

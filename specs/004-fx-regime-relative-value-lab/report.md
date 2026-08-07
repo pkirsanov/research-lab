@@ -5885,7 +5885,7 @@ Planning appends one closed v10 successor and routes its exact additive parser h
     "v9SelfIdentityDisposition": {
         "path": "tests/feature-004-dirty-tree-collision.test.mjs",
         "v9CommittedRecord": {
-            "hunkCount": 37,
+            "hunkCount": 26,
             "hunkSequenceSha256": "00d67d39086e104da50d3817a0b85f6979a1efecb293228e108c4ef268c9f7bf",
             "identitySha256": "22547f9234d3f104c69f6eda5f853c9059ef26cfc2f2d77c8125f2d34c561eb4"
         },
@@ -6324,7 +6324,7 @@ Planning appends one closed v10 successor and routes its exact additive parser h
     "requiredHead": "153a686c937017ae20a438f7a4a423cf76b019b3",
     "successorOf": {
         "marker": "feature004-dirty-collision-post-commit-v10",
-        "rawBlockSha256": "cc276c189a206aafd68e4a3bb2cf9bb751cafe9a58fdd811eccb4538bf321409",
+        "rawBlockSha256": "d0a1b3dec62ec0a05cb798ba57bf1fc039362f1b11c9f57248e0bcde48ff645f",
         "markerInclusiveByteLength": 41318,
         "contractVersion": "feature004-dirty-collision-post-commit/v10",
         "requiredHead": "153a686c937017ae20a438f7a4a423cf76b019b3",
@@ -6344,7 +6344,7 @@ Planning appends one closed v10 successor and routes its exact additive parser h
         ]
     },
     "extendsContracts": [
-        { "marker": "feature004-dirty-collision-post-commit-v10", "rawBlockSha256": "cc276c189a206aafd68e4a3bb2cf9bb751cafe9a58fdd811eccb4538bf321409" },
+        { "marker": "feature004-dirty-collision-post-commit-v10", "rawBlockSha256": "d0a1b3dec62ec0a05cb798ba57bf1fc039362f1b11c9f57248e0bcde48ff645f" },
         { "marker": "feature004-dirty-collision-post-commit-v9", "rawBlockSha256": "3f3ed4b44f3c5357e8d9d2ddf0fc5a1b521d6744e3ce7751f3890a81041fa860" },
         { "marker": "feature004-dirty-collision-foreign-set-v7", "rawBlockSha256": "aec36d5c5287c4b84a81f56eff2d1e8ab6131ac699f048590bb63377009d7239" },
         { "marker": "feature004-dirty-collision-foreign-roadmap-v6", "rawBlockSha256": "287a11c37080dc52f1ed0cd01ce40cd09ff31957cf14df30a89de240eb78d740" },
@@ -6370,10 +6370,10 @@ Planning appends one closed v10 successor and routes its exact additive parser h
     },
     "v9SelfIdentityDisposition": {
         "sourceContractMarker": "feature004-dirty-collision-post-commit-v10",
-        "sourceContractSha256": "7ec73108b5159174f341ddeb50dcadac1d9ccc769ccec3484b0e34c6c3d4f9d8",
+        "sourceContractSha256": "d0a1b3dec62ec0a05cb798ba57bf1fc039362f1b11c9f57248e0bcde48ff645f",
         "path": "tests/feature-004-dirty-tree-collision.test.mjs",
         "v9CommittedRecord": {
-            "hunkCount": 37,
+            "hunkCount": 26,
             "hunkSequenceSha256": "00d67d39086e104da50d3817a0b85f6979a1efecb293228e108c4ef268c9f7bf",
             "identitySha256": "22547f9234d3f104c69f6eda5f853c9059ef26cfc2f2d77c8125f2d34c561eb4"
         },
@@ -6934,7 +6934,7 @@ Planning appends exactly one closed v12 contract and routes the additive parser 
     },
     "successorOf": {
         "marker": "feature004-dirty-collision-post-commit-v11",
-        "rawBlockSha256": "9eae05474e130912d1253c792fbb086be845e97d6f3958dd137d23e59cec5dcf",
+        "rawBlockSha256": "d94bf42bf6aa5b7d8eff28e4c0944be8bcccceb4f04c48204cb91f1173f5f29e",
         "markerInclusiveByteLength": 48886,
         "contractVersion": "feature004-dirty-collision-post-commit/v11",
         "requiredHead": "153a686c937017ae20a438f7a4a423cf76b019b3",
@@ -6947,8 +6947,8 @@ Planning appends exactly one closed v12 contract and routes the additive parser 
         ]
     },
     "extendsContracts": [
-        { "marker": "feature004-dirty-collision-post-commit-v11", "rawBlockSha256": "9eae05474e130912d1253c792fbb086be845e97d6f3958dd137d23e59cec5dcf" },
-        { "marker": "feature004-dirty-collision-post-commit-v10", "rawBlockSha256": "cc276c189a206aafd68e4a3bb2cf9bb751cafe9a58fdd811eccb4538bf321409" },
+        { "marker": "feature004-dirty-collision-post-commit-v11", "rawBlockSha256": "d94bf42bf6aa5b7d8eff28e4c0944be8bcccceb4f04c48204cb91f1173f5f29e" },
+        { "marker": "feature004-dirty-collision-post-commit-v10", "rawBlockSha256": "d0a1b3dec62ec0a05cb798ba57bf1fc039362f1b11c9f57248e0bcde48ff645f" },
         { "marker": "feature004-dirty-collision-post-commit-v9", "rawBlockSha256": "3f3ed4b44f3c5357e8d9d2ddf0fc5a1b521d6744e3ce7751f3890a81041fa860" },
         { "marker": "feature004-dirty-collision-foreign-set-v7", "rawBlockSha256": "aec36d5c5287c4b84a81f56eff2d1e8ab6131ac699f048590bb63377009d7239" },
         { "marker": "feature004-dirty-collision-foreign-roadmap-v6", "rawBlockSha256": "287a11c37080dc52f1ed0cd01ce40cd09ff31957cf14df30a89de240eb78d740" },

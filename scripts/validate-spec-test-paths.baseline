@@ -97,10 +97,6 @@ tests/distributed-briefs-scope10.spec.mjs
 tests/distributed-briefs-shared-canary.test.mjs
 tests/distributed-briefs-static-server.integration.test.mjs
 tests/distributed-briefs-ui-canary.test.mjs
-tests/feature-004-brief-eligibility.test.mjs
-tests/feature-004-journey-evidence-refresh.test.mjs
-tests/feature-004-tool-control-binding.test.mjs
-tests/feature-004-vehicle-universe.test.mjs
 tests/feature-012.acceptance.spec.mjs
 tests/feature-012.acceptance.unit.mjs
 tests/feature-012.consumer-trace.mjs

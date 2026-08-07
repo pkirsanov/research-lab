@@ -125,6 +125,68 @@ function contractLeafKeys(prefix) {
 export const BRIEF_EVENT_REQUIRED_KEYS = Object.freeze(contractLeafKeys('events.[].'));
 export const BRIEF_EVENT_SCENARIO_REQUIRED_KEYS = Object.freeze([...contractLeafKeys('events.[].scenarios.[].'), 'prob']);
 
+/* ── The same contract, stated to the AUTHOR ─────────────────────────────────────────────────────
+   The check above is the LAST rung. The FIRST rung is the signals lane instruction in
+   scripts/brief-narrative-parallel.mjs, and that is where this incident actually started: the
+   instruction described the fields by MEANING ("every probability is an estimate") and never named
+   one, so the lane was free to call `prob` "probability", `expectedEffect` "detail", and to skip
+   `psychologyNote` altogether. A gate that refuses keys the instruction never mentions does not
+   prevent the defect — it only reports it after the payload is already written.
+
+   So the instruction is BUILT here, from the very constants the gate refuses on, and the lane
+   interpolates it. One list, two rungs. Adding a required `events.[]` field to
+   BRIEF_NARRATIVE_FIELDS_REQUIRED now arms the gate AND rewrites the authoring instruction in the
+   same edit, because there is no second copy left to keep in sync.
+
+   The ordered SHAPE lists carry the §9 keys this gate cannot derive: `when`, `type` and
+   `impliedMovePct` are numeric/enum machine fields, absent from a narrative-STRING required list by
+   construction, and `scenarios` is the container the per-scenario rule walks rather than a leaf.
+   They are shown to the author but NOT enforced here. The selftest proves every ENFORCED key is a
+   member of its shape list and that the shape matches the §9 template in notes/market-brief.md, so
+   a required key cannot arm the gate while going unmentioned to the author. */
+export const BRIEF_EVENT_SHAPE_KEYS = Object.freeze(['event', 'when', 'type', 'consensus', 'impliedMovePct', 'scenarios', 'psychologyNote']);
+export const BRIEF_EVENT_SCENARIO_SHAPE_KEYS = Object.freeze(['name', 'prob', 'expectedEffect']);
+
+/* The synonyms a real run actually emitted, and the one field whose absence is content loss rather
+   than a rename. Declared as data keyed BY the contract key, so an entry for a key that leaves the
+   required list stops being rendered instead of dangling as stale advice. */
+const BRIEF_EVENT_OBSERVED_SYNONYMS = Object.freeze({ prob: 'probability', expectedEffect: 'detail' });
+const BRIEF_EVENT_KEY_RATIONALE = Object.freeze({
+  psychologyNote: 'the paragraph saying WHY the odds are tilted the way they are - no other key carries that content, so omitting it is lost reader content, not a rename'
+});
+
+/**
+ * briefEventContractInstruction() — the §9 events contract as an authoring instruction, rendered
+ * from the keys this gate enforces. Consumed by the signals lane in brief-narrative-parallel.mjs.
+ */
+export function briefEventContractInstruction() {
+  const required = new Set([...BRIEF_EVENT_REQUIRED_KEYS, ...BRIEF_EVENT_SCENARIO_REQUIRED_KEYS]);
+  const named = (map, render) => Object.entries(map).filter(([key]) => required.has(key)).map(render);
+  const renames = named(BRIEF_EVENT_OBSERVED_SYNONYMS, ([key, synonym]) => `the key is "${key}", NOT "${synonym}"`);
+  const rationale = named(BRIEF_EVENT_KEY_RATIONALE, ([key, why]) => `"${key}" is ${why}`);
+  return `Use the exact section 9 key names and no synonyms:`
+    + ` each event is { ${BRIEF_EVENT_SHAPE_KEYS.join(', ')} }`
+    + ` and each scenario is { ${BRIEF_EVENT_SCENARIO_SHAPE_KEYS.join(', ')} }.`
+    + ` The publish gate REFUSES a renamed or missing key by name, on every entry:`
+    + ` event keys ${BRIEF_EVENT_REQUIRED_KEYS.join(', ')};`
+    + ` scenario keys ${BRIEF_EVENT_SCENARIO_REQUIRED_KEYS.join(', ')}.`
+    + (renames.length ? ` A previous run renamed keys and the payload shipped off-contract, so be exact: ${renames.join('; ')}.` : '')
+    + (rationale.length ? ` ${rationale.join('. ')}.` : '');
+}
+
+/**
+ * findEventContractInstructionGaps(instruction) — enforced keys the authoring instruction never
+ * names. This is the lane-versus-gate agreement check: a non-empty result means the gate would
+ * refuse a payload over a key the author was never asked to write, which is the exact shape of the
+ * defect that produced the off-contract publish. Whole-key matching, because "probability" contains
+ * "prob" and a substring test would have called the renamed instruction conforming.
+ */
+export function findEventContractInstructionGaps(instruction) {
+  const text = String(instruction ?? '');
+  return [...new Set([...BRIEF_EVENT_REQUIRED_KEYS, ...BRIEF_EVENT_SCENARIO_REQUIRED_KEYS])]
+    .filter((key) => !new RegExp(`\\b${key}\\b`).test(text));
+}
+
 /**
  * findEventContractBreaches(payload) — every §9 events entry or scenario missing a contract key.
  * Presence only: this asks whether the reader's field is THERE, not whether its prose is good. A

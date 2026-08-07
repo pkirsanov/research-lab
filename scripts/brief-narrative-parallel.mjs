@@ -12,6 +12,7 @@ import {
     writeFileSync
 } from 'node:fs';
 import { resolve } from 'node:path';
+import { briefEventContractInstruction } from './validate-brief-payload.mjs';
 
 const ROOT = process.cwd();
 const PAYLOAD_PATH = resolve(ROOT, 'market-brief.payload.json');
@@ -47,12 +48,18 @@ const lanes = [
         id: 'signals',
         keys: ['attention', 'recommendations', 'events'],
         web: true,
-        /* The events KEY NAMES are pinned literally because prose alone did not hold them. The
-           previous instruction said "every probability is an estimate" and never named the key, so
-           a run emitted `probability` for `prob` and `detail` for `expectedEffect`, and dropped
-           `psychologyNote` entirely. Describing a field by its meaning invites a synonym; the
-           schema is the contract, so state the schema. */
-        instructions: `Own actionable changes and catalysts. attention must contain at most config.thresholds.attentionMaxCards ranked items. recommendations must be concrete instruments with direction, levels or relative-strength triggers, invalidation, horizon, confidence, and deepLink. events must be nearest-first and cover imminent catalysts through roughly the next 10 trading days; every probability is an estimate with inputs, scenarios sum to 1, and stale or unverified facts are labeled. Use the exact section 9 key names and no synonyms: each event is { event, when, type, consensus, impliedMovePct, scenarios, psychologyNote } and each scenario is { name, prob, expectedEffect }. The scenario odds key is "prob", NOT "probability"; the scenario narrative key is "expectedEffect", NOT "detail"; and "psychologyNote" is REQUIRED on every event - it is the paragraph explaining why the odds are tilted, so omitting it loses reader content no other key carries. The publish gate refuses a renamed or missing key by name.`
+        /* The events KEY NAMES are deliberately NOT written here. They are rendered by the publish
+           gate's briefEventContractInstruction() from the very constants that gate refuses on, so
+           the instruction and the gate cannot describe two different contracts.
+
+           Prose alone did not hold them: the earlier instruction said "every probability is an
+           estimate" and never named a key, so a run emitted `probability` for `prob`, `detail` for
+           `expectedEffect`, and dropped `psychologyNote` entirely. Naming them here instead would
+           fix that run and reopen the same gap the first time the contract gains a field — the
+           gate would arm, this sentence would not, and the author would again be refused over a
+           key nobody asked them to write. scripts/selftest.mjs asserts this literal holds no
+           second copy of the key list. */
+        instructions: `Own actionable changes and catalysts. attention must contain at most config.thresholds.attentionMaxCards ranked items. recommendations must be concrete instruments with direction, levels or relative-strength triggers, invalidation, horizon, confidence, and deepLink. events must be nearest-first and cover imminent catalysts through roughly the next 10 trading days; every scenario odds figure is a labeled estimate with its inputs shown, the scenario odds within each catalyst sum to 1, and stale or unverified facts are labeled. ${briefEventContractInstruction()}`
     },
     {
         id: 'groups',

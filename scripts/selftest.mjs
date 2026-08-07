@@ -15,7 +15,15 @@
 import { existsSync, readdirSync, readFileSync } from 'node:fs';
 import { fileURLToPath } from 'node:url';
 import { dirname, join } from 'node:path';
-import { BRIEF_EVENT_REQUIRED_KEYS, BRIEF_EVENT_SCENARIO_REQUIRED_KEYS, validateBriefPayload } from './validate-brief-payload.mjs';
+import {
+  BRIEF_EVENT_REQUIRED_KEYS,
+  BRIEF_EVENT_SCENARIO_REQUIRED_KEYS,
+  BRIEF_EVENT_SCENARIO_SHAPE_KEYS,
+  BRIEF_EVENT_SHAPE_KEYS,
+  briefEventContractInstruction,
+  findEventContractInstructionGaps,
+  validateBriefPayload
+} from './validate-brief-payload.mjs';
 import { formatSpecTestPathFindings, validateSpecTestPaths } from './validate-spec-test-paths.mjs';
 import { buildCompanyFundamentalsOwnerRead } from './brief-refresh.mjs';
 import {
@@ -1856,12 +1864,54 @@ try {
     'the events contract keys are derived non-empty from the shared required-field list, plus the numeric prob'
       + ' (event=' + BRIEF_EVENT_REQUIRED_KEYS.join(',') + ' scenario=' + BRIEF_EVENT_SCENARIO_REQUIRED_KEYS.join(',') + ')');
 
-  /* The authoring instruction is the first line of defence, and naming the field by MEANING
-     ("every probability is an estimate") is what invited the synonym. Pin the schema itself. */
-  const signalsLane = read('scripts/brief-narrative-parallel.mjs');
-  assert(['{ name, prob, expectedEffect }', '"prob", NOT "probability"', '"expectedEffect", NOT "detail"', '"psychologyNote" is REQUIRED']
-    .every((pin) => signalsLane.includes(pin)),
-    'the signals lane instruction pins the exact §9 event and scenario key names, not just their meaning');
+  /* ── Lane ↔ gate agreement ────────────────────────────────────────────────────────────────────
+     The gate above is the LAST rung; the signals lane instruction is the FIRST. The incident was
+     not that the gate was lenient — it was that the instruction never named the keys the gate
+     would later refuse on, so the author renamed them freely. The previous form of this check
+     pinned four literal phrases, which froze that ONE sentence but not the AGREEMENT: adding a
+     required events field would have armed the gate and left both the instruction and this check
+     silent. The instruction is now RENDERED from the gate's constants; these assertions prove the
+     rendering covers everything the gate enforces and that the lane consumes it. */
+  const enforcedEventKeys = [...new Set([...BRIEF_EVENT_REQUIRED_KEYS, ...BRIEF_EVENT_SCENARIO_REQUIRED_KEYS])];
+  assert(BRIEF_EVENT_REQUIRED_KEYS.every((key) => BRIEF_EVENT_SHAPE_KEYS.includes(key))
+    && BRIEF_EVENT_SCENARIO_REQUIRED_KEYS.every((key) => BRIEF_EVENT_SCENARIO_SHAPE_KEYS.includes(key)),
+    'every key the gate enforces is a member of the §9 shape shown to the author — a new required key cannot arm the gate unmentioned');
+  assert(findEventContractInstructionGaps(briefEventContractInstruction()).length === 0,
+    'the authoring instruction names every key the publish gate refuses on (unnamed: '
+      + (findEventContractInstructionGaps(briefEventContractInstruction()).join(', ') || 'none') + ')');
+
+  /* The shape lists are the one hand-typed link, so hold them against the §9 template itself —
+     otherwise "the instruction matches the gate" could be true while both drift off the contract. */
+  const contractDoc = read('notes/market-brief.md');
+  const eventsTemplate = contractDoc.slice(contractDoc.indexOf('"events": ['), contractDoc.indexOf('"psychology": {'));
+  assert(eventsTemplate.length > 0 && [...BRIEF_EVENT_SHAPE_KEYS, ...BRIEF_EVENT_SCENARIO_SHAPE_KEYS]
+    .every((key) => eventsTemplate.includes('"' + key + '":')),
+    'the §9 shape the author is shown is the §9 template in notes/market-brief.md, key for key');
+
+  // ADVERSARIAL 4 — the meaning-only instruction that shipped BEFORE the incident. This check is
+  // worthless if it does not flag the exact sentence that let the keys be renamed.
+  const meaningOnlyInstruction = 'events must be nearest-first; every probability is an estimate with inputs, scenarios sum to 1.';
+  const meaningOnlyGaps = findEventContractInstructionGaps(meaningOnlyInstruction);
+  assert(['psychologyNote', 'prob', 'expectedEffect'].every((key) => meaningOnlyGaps.includes(key)),
+    'the pre-incident meaning-only instruction is reported as naming none of psychologyNote, prob, expectedEffect (gaps: ' + meaningOnlyGaps.join(', ') + ')');
+
+  // ADVERSARIAL 5 — the near-miss synonym. "probability" CONTAINS "prob", so a substring test would
+  // have called the very instruction that caused the rename conforming.
+  assert(findEventContractInstructionGaps('each scenario carries name, probability, detail').includes('prob'),
+    'naming "probability" does not satisfy the requirement to name "prob" — whole keys are matched, not substrings');
+
+  /* The lane must CONSUME that instruction rather than keep a second hand-typed copy of the key
+     list, because two copies is the drift being closed. Scoped to the instruction template literal
+     so the comment above it may still discuss the keys by name. */
+  const laneSource = read('scripts/brief-narrative-parallel.mjs');
+  const signalsRegion = laneSource.slice(laneSource.indexOf("id: 'signals'"), laneSource.indexOf("id: 'groups'"));
+  const signalsInstruction = signalsRegion.slice(signalsRegion.indexOf('instructions: `'), signalsRegion.lastIndexOf('`'));
+  assert(/import\s*\{[^}]*briefEventContractInstruction[^}]*\}\s*from\s*'\.\/validate-brief-payload\.mjs'/.test(laneSource)
+    && signalsInstruction.includes('${briefEventContractInstruction()}'),
+    'the signals lane renders its §9 key pin from the publish gate instead of restating it');
+  const handTypedInLane = enforcedEventKeys.filter((key) => new RegExp('\\b' + key + '\\b').test(signalsInstruction));
+  assert(signalsInstruction.length > 0 && handTypedInLane.length === 0,
+    'the signals lane instruction holds no second hand-maintained copy of the event key list (hand-typed: ' + handTypedInLane.join(', ') + ')');
 
   /* Staleness must be readable as a FACT, never inferred from an ambiguous count. The
      2026-08-02 brief read the symbol count (287 tickers) as a session count, published

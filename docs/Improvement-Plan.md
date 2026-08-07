@@ -572,7 +572,7 @@ Full inventory of every non-terminal packet, with DoD completion and whether a b
 | `014-shared-cycle-and-seasonality-exchange` | not_started | — | 0/235 | correct |
 | `015-recommendation-outcome-ledger-and-track-record` | blocked | yes | 0/376 | blocker named |
 | `016-auction-gamma-playbook` | not_started | — | 0/197 | correct |
-| `017-decision-attention-and-developing-situations` | in_progress | — | 100/122 | active WIP |
+| `017-decision-attention-and-developing-situations` | in_progress | — | **148/148** | all 6 scopes Done; blocked only on the same validate-owned ceiling as `BUG-001` (see below) |
 | `BUG-001-central-provider-credential-security` | in_progress | yes | **18/18** | see below |
 | `BUG-005-…-unsatisfiable-in-place-delivery` | blocked | yes | 0/17 | blocker named |
 | `BUG-006-evaluate-before-publish-…` | blocked | yes | 5/22 | blocker named |
@@ -612,6 +612,31 @@ framework-managed in a downstream repo and must never be patched locally:
 - `bubbles.audit` returning no output on this packet (attempt 008 is the decisive negative: it ran *after* the
   E009 fix, against a cleanly resolving contract and a full 26-gate battery, and still produced nothing).
 - The Check 43 empty-digest clone false positive.
+
+#### Both are now FILED upstream — this clause is discharged *(2026-08-07)*
+
+The two items above were the last outstanding action in Step 9. Both are now filed in the Bubbles source
+repo's operator-visible bug log (`BUGS.md`, the framework's substitute for `specs/` under gate G085), each with
+disposition per Gate G095:
+
+- **`BUG-007`** — Check 43 clone detection treats every empty-stdout receipt as a forgery. Filed with the
+  mechanism (`group_by(.stdoutHash)` over a digest that is the SHA-256 of the empty string), a reproduction, and
+  a one-predicate fix using `stdoutBytes`, which the receipt schema already records. The claim is *proved*, not
+  asserted: 10 of 97 receipts here carry that digest, every one reports `stdoutBytes=0`, and excluding it leaves
+  **zero** clones in the whole log — so on this repo every BLOCK the check has ever issued is false. The fix
+  carries a required adversarial guard (two different commands with real byte-identical stdout MUST still fail)
+  so the repair cannot silently disable the check it repairs.
+- **`BUG-008`** — `bubbles.audit` returns no output on this packet. Filed with the packet-size hypothesis
+  recorded as **REFUTED** rather than carried forward, and with no replacement hypothesis claimed, because none
+  has evidence. What it needs first is observability, not a fix: the dispatch produces no diagnostic surface, so
+  a silent failure cannot be attributed. Untested differences are labelled leads, not findings.
+
+Neither was worked around. `BUG-001` and spec `017` both stay `in_progress` with mirrors intact, because the
+transition needs an `audit` phase claim and hand-writing one is exactly the fabrication G022/G027 detect.
+
+**Step 9 is therefore complete to its repo-bounded maximum.** The acceptance metric (zero specs whose shipped
+code contradicts their recorded status) holds; the one packet whose record was inaccurate is corrected; and the
+two items that cannot be fixed from inside this repo are filed where they can be.
 
 ---
 

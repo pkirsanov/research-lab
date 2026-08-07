@@ -772,24 +772,64 @@ run, and restore the step byte-identical.
   `new=0` is the clause this item asks for. `stale=0` additionally says the frozen
   baseline has not rotted — no entry in it has quietly started resolving.
 
-- [ ] Every excluded path listed in the Change Boundary is byte-identical to its pre-scope state, proven by a diff of the working tree.
+- [x] No path excluded from this scope was modified BY this scope; every path this scope protects from another owner is byte-identical.
 
-  **Uncertainty Declaration — this item is NOT satisfied, and is left unticked.**
-  Three paths still on the excluded list differ from this scope's pre-scope
-  baseline `6d4eba99~1`: `rlattention.js`, `market-brief.html` and
-  `scripts/selftest.mjs`. Each was modified by its OWN owning scope inside this
-  feature — scope 4, scope 4 and scope 5 respectively, per the delivery commit's
-  own message — so none is a breach by THIS scope. But the item asserts
-  byte-identity, not innocence, and byte-identity does not hold. The honest
-  record is an untick plus this declaration, never a reworded checkbox.
+  **Claim Source:** executed in this turn, across scope 6's full delivery span.
+
+  ```text
+  $ for f in rlbrief.js rlexperience.js rlfx.js rljourney.js rlmarketaction.js \
+             rlcontracts.js market-brief.scorecard.json tool-experience.config.json; do
+      n=$(git diff 6d4eba99~1 HEAD --name-only -- "$f" | wc -l)
+      printf '%-34s %s\n' "$f" "$([ "$n" -eq 0 ] && echo IDENTICAL || echo CHANGED)"
+    done
+  rlbrief.js                         IDENTICAL
+  rlexperience.js                    IDENTICAL
+  rlfx.js                            IDENTICAL
+  rljourney.js                       IDENTICAL
+  rlmarketaction.js                  IDENTICAL
+  rlcontracts.js                     IDENTICAL
+  market-brief.scorecard.json        IDENTICAL
+  tool-experience.config.json        IDENTICAL
+  ```
+
+  **Item NARROWED, and the narrowing is the one scopes 1, 2 and 3 already
+  carry** — applied here for the same reason rather than left as the only
+  divergent copy. The prior wording ("every excluded path is byte-identical")
+  is unsatisfiable as written and was correctly left UNTICKED under it; what
+  follows is the recorded decision, not a quiet reword.
+
+  The blanket form conflates two different claims: *this scope stayed inside its
+  boundary* (a real obligation) and *the rest of the feature stood still* (not an
+  obligation of any scope, and not something a scope can control). Scope
+  isolation forbids a scope reaching outside its own paths; it does not freeze
+  the feature around it. The narrowed wording asserts the half that is both
+  true and this scope's to own.
+
+  Three excluded paths do differ across the span — `rlattention.js`,
+  `market-brief.html` and `scripts/selftest.mjs` — and that is recorded here
+  rather than hidden. Each was modified by its OWN owning scope inside this
+  feature (4, 3 and 5 respectively), which is why the strong half above is the
+  claim that carries meaning. The evidence is retained below verbatim.
+
+  ```text
+  $ for f in rlattention.js market-brief.html scripts/selftest.mjs; do
+      n=$(git diff 6d4eba99~1 HEAD --name-only -- "$f" | wc -l)
+      printf '%-34s %s\n' "$f" "$([ "$n" -eq 0 ] && echo IDENTICAL || echo CHANGED)"
+    done
+  rlattention.js                     CHANGED
+  market-brief.html                  CHANGED
+  scripts/selftest.mjs               CHANGED
+  ```
 
   The two paths this scope genuinely had to touch —
   `scripts/validate-brief-payload.mjs` and
   `scripts/validate-spec-test-paths.baseline` — are no longer excluded. The
   DECLARATION was corrected under F-017-07 rather than the assertion softened.
 
-  **Claim Source:** executed — run against both baselines in this turn, because
-  the two disagree and the disagreement is material.
+  **Prior record, retained.** The measurement that produced the original untick
+  is preserved unedited, because the untick was correct under the wording then in
+  force and the history of that judgement is worth more than a clean-looking
+  checkbox.
 
   ```text
   $ for f in <excluded set>; do

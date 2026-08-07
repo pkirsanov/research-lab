@@ -46,10 +46,10 @@
         "ad4de167c9483a09275bd9fede5fabcaf8eb6d3dc5ce390a769305752781cacf"
     ],
     "allow": [
-    {
-      "path": "tests/fixtures/pii-scan/samples.json",
-      "rules": [],
-      "reason": "Invented identifiers that exist only to prove each rule fires; an unexercised detection rule cannot be trusted, and isolating the samples here keeps every other file fully scanned."
-    }
-  ]
+        {
+            "path": "tests/fixtures/pii-scan/samples.json",
+            "rules": [],
+            "reason": "Invented identifiers that exist only to prove each rule fires; an unexercised detection rule cannot be trusted, and isolating the samples here keeps every other file fully scanned."
+        }
+    ]
 }

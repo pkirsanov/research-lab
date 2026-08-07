@@ -1,12 +1,12 @@
 {
-  "asOf": "2026-08-06T20:30:21.518Z",
-  "generatedAt": "2026-08-06T20:30:21.518Z",
+  "asOf": "2026-08-07T03:54:23.242Z",
+  "generatedAt": "2026-08-07T03:54:23.242Z",
   "window": "after-hours",
   "marketClosed": false,
   "nextSessionDate": "2026-08-07",
   "dataFreshness": {
     "bars": {
-      "updated": "2026-08-06T20:30:16.380Z",
+      "updated": "2026-08-07T03:54:17.251Z",
       "symbolCount": 291,
       "expectedSessionDate": "2026-08-06",
       "refreshDate": "2026-08-06",
@@ -16,7 +16,7 @@
       "missingSymbolCount": 0
     },
     "options": {
-      "updated": "2026-08-06T20:30:20.733Z",
+      "updated": "2026-08-07T03:54:17.320Z",
       "symbolCount": 22,
       "expectedSessionDate": null,
       "refreshDate": "2026-08-06",
@@ -627,7 +627,7 @@
   "toolReads": {
     "sector-research-lab": {
       "id": "sector-research-lab",
-      "asOf": "2026-08-06T20:30:21.318Z",
+      "asOf": "2026-08-07T03:54:21.085Z",
       "read": "Rotate toward XLY as XLI weakens.",
       "metrics": {
         "into": {
@@ -747,19 +747,19 @@
     "global-rotation-lab": {
       "id": "global-rotation-lab",
       "asOf": "2026-08-06T13:30:00.000Z",
-      "read": "EWS (Singapore) leads global rotation at 81/100 versus ACWI; EWC is next.",
+      "read": "EWS (Singapore) leads global rotation at 78.8/100 versus ACWI; EWC is next.",
       "metrics": {
         "benchmark": "ACWI",
         "leader": {
           "ticker": "EWS",
           "country": "Singapore",
-          "score": 81,
+          "score": 78.8,
           "rel21": 2.27,
           "rel63": 10.1,
           "rel126": 6.74,
           "trend": "Strong uptrend",
-          "fx": "Confirms leadership",
-          "fxStrength": 0.62,
+          "fx": "FX headwind",
+          "fxStrength": -1.06,
           "vol": 14.87,
           "maxDrawdown": 7.82,
           "asOf": "2026-08-06T13:30:00.000Z"
@@ -768,13 +768,13 @@
           {
             "ticker": "EWS",
             "country": "Singapore",
-            "score": 81,
+            "score": 78.8,
             "rel21": 2.27,
             "rel63": 10.1,
             "rel126": 6.74,
             "trend": "Strong uptrend",
-            "fx": "Confirms leadership",
-            "fxStrength": 0.62,
+            "fx": "FX headwind",
+            "fxStrength": -1.06,
             "vol": 14.87,
             "maxDrawdown": 7.82,
             "asOf": "2026-08-06T13:30:00.000Z"
@@ -782,71 +782,71 @@
           {
             "ticker": "EWC",
             "country": "Canada",
-            "score": 71.9,
+            "score": 66.8,
             "rel21": 2.02,
             "rel63": 1.07,
             "rel126": -0.28,
             "trend": "Strong uptrend",
-            "fx": "Confirms leadership",
-            "fxStrength": 1.32,
+            "fx": "FX headwind",
+            "fxStrength": -2.49,
             "vol": 12.08,
             "maxDrawdown": 8.51,
             "asOf": "2026-08-06T13:30:00.000Z"
           },
           {
-            "ticker": "EWA",
-            "country": "Australia",
-            "score": 68.6,
-            "rel21": 4.56,
-            "rel63": -2.15,
-            "rel126": -3.26,
-            "trend": "Strong uptrend",
-            "fx": "FX offsets weakness",
-            "fxStrength": 1.39,
-            "vol": 17.45,
-            "maxDrawdown": 10.01,
-            "asOf": "2026-08-06T13:30:00.000Z"
-          },
-          {
             "ticker": "EWU",
             "country": "United Kingdom",
-            "score": 66.7,
+            "score": 64.1,
             "rel21": 1.2,
             "rel63": -0.42,
             "rel126": -7.01,
             "trend": "Strong uptrend",
-            "fx": "FX offsets weakness",
-            "fxStrength": 0.84,
+            "fx": "Confirms weakness",
+            "fxStrength": -1.13,
             "vol": 15.59,
             "maxDrawdown": 9.92,
             "asOf": "2026-08-06T13:30:00.000Z"
           },
           {
-            "ticker": "EWG",
-            "country": "Germany",
-            "score": 65.4,
-            "rel21": 2.66,
-            "rel63": -1.57,
-            "rel126": -8.5,
-            "trend": "Strong uptrend",
-            "fx": "FX offsets weakness",
-            "fxStrength": 1.28,
-            "vol": 18.58,
-            "maxDrawdown": 14.54,
-            "asOf": "2026-08-06T13:30:00.000Z"
-          },
-          {
             "ticker": "EPHE",
             "country": "Philippines",
-            "score": 64.4,
+            "score": 63.2,
             "rel21": 0.3,
             "rel63": 1.03,
             "rel126": -11.35,
             "trend": "Strong uptrend",
-            "fx": "Confirms leadership",
-            "fxStrength": 1.25,
+            "fx": "FX neutral",
+            "fxStrength": 0.33,
             "vol": 22.55,
             "maxDrawdown": 15.9,
+            "asOf": "2026-08-06T13:30:00.000Z"
+          },
+          {
+            "ticker": "EWA",
+            "country": "Australia",
+            "score": 62.7,
+            "rel21": 4.56,
+            "rel63": -2.15,
+            "rel126": -3.26,
+            "trend": "Strong uptrend",
+            "fx": "Confirms weakness",
+            "fxStrength": -3.03,
+            "vol": 17.45,
+            "maxDrawdown": 10.01,
+            "asOf": "2026-08-06T13:30:00.000Z"
+          },
+          {
+            "ticker": "EWJ",
+            "country": "Japan",
+            "score": 60.8,
+            "rel21": 0.13,
+            "rel63": 0.66,
+            "rel126": -1.79,
+            "trend": "Constructive",
+            "fx": "FX headwind",
+            "fxStrength": -0.76,
+            "vol": 23.01,
+            "maxDrawdown": 13.59,
             "asOf": "2026-08-06T13:30:00.000Z"
           }
         ],
@@ -858,7 +858,7 @@
     "real-assets-lab": {
       "id": "real-assets-lab",
       "asOf": "2026-08-06T13:30:00.000Z",
-      "read": "CPER leads real assets at 61.8/100; GLD 28.6, BTC 47.2, SLV 0.",
+      "read": "CPER leads real assets at 61.8/100; GLD 28.6, BTC 46.7, SLV 0.",
       "metrics": {
         "leader": {
           "ticker": "CPER",
@@ -930,12 +930,12 @@
           {
             "ticker": "ETH-USD",
             "model": "crypto",
-            "score": 48.4,
+            "score": 47.6,
             "trend": "Mixed",
-            "mom21": 2.26,
-            "mom63": 7.67,
-            "mom126": -7.37,
-            "vol": 48.88,
+            "mom21": 1.78,
+            "mom63": 7.17,
+            "mom126": -7.8,
+            "vol": 48.89,
             "maxDrawdown": 35.37,
             "riskPenalty": 7.21,
             "confirmations": [
@@ -952,40 +952,11 @@
                 "symbols": [
                   "BTC-USD"
                 ],
-                "score": 51.399375597932966,
+                "score": 50.98494371950718,
                 "detail": "Bitcoin price direction confirms or contradicts the wider crypto price trend; no on-chain input is used."
               }
             ],
-            "asOf": "2026-08-06T00:00:00.000Z"
-          },
-          {
-            "ticker": "BTC-USD",
-            "model": "bitcoin",
-            "score": 47.2,
-            "trend": "Mixed",
-            "mom21": 1,
-            "mom63": 0.98,
-            "mom126": -3.68,
-            "vol": 34.96,
-            "maxDrawdown": 28.71,
-            "riskPenalty": 5.68,
-            "confirmations": [
-              {
-                "label": "Equity risk appetite",
-                "symbols": [
-                  "QQQ"
-                ],
-                "score": 58.832564238706944,
-                "detail": "Growth-equity direction is a liquid risk-appetite proxy; no on-chain input is used."
-              },
-              {
-                "label": "Volatility / drawdown",
-                "symbols": [],
-                "score": 77.26905847685842,
-                "detail": "Bitcoin's own realized volatility and drawdown reduce the score directly."
-              }
-            ],
-            "asOf": "2026-08-06T00:00:00.000Z"
+            "asOf": "2026-08-07T00:00:00.000Z"
           },
           {
             "ticker": "PDBC",
@@ -1054,6 +1025,35 @@
             "asOf": "2026-08-06T13:30:00.000Z"
           },
           {
+            "ticker": "BTC-USD",
+            "model": "bitcoin",
+            "score": 46.7,
+            "trend": "Mixed",
+            "mom21": 0.71,
+            "mom63": 0.69,
+            "mom126": -3.96,
+            "vol": 34.97,
+            "maxDrawdown": 28.71,
+            "riskPenalty": 5.68,
+            "confirmations": [
+              {
+                "label": "Equity risk appetite",
+                "symbols": [
+                  "QQQ"
+                ],
+                "score": 58.832564238706944,
+                "detail": "Growth-equity direction is a liquid risk-appetite proxy; no on-chain input is used."
+              },
+              {
+                "label": "Volatility / drawdown",
+                "symbols": [],
+                "score": 77.26905847685842,
+                "detail": "Bitcoin's own realized volatility and drawdown reduce the score directly."
+              }
+            ],
+            "asOf": "2026-08-07T00:00:00.000Z"
+          },
+          {
             "ticker": "BNO",
             "model": "energy",
             "score": 44.7,
@@ -1114,7 +1114,7 @@
                   "TLT",
                   "TIP"
                 ],
-                "score": 45.945981472847144,
+                "score": 45.94598243913372,
                 "detail": "TLT direction plus TIP-vs-TLT is a rough rate mix, not a direct real-yield series."
               }
             ],
@@ -1163,12 +1163,12 @@
           "BTC-USD": {
             "ticker": "BTC-USD",
             "model": "bitcoin",
-            "score": 47.2,
+            "score": 46.7,
             "trend": "Mixed",
-            "mom21": 1,
-            "mom63": 0.98,
-            "mom126": -3.68,
-            "vol": 34.96,
+            "mom21": 0.71,
+            "mom63": 0.69,
+            "mom126": -3.96,
+            "vol": 34.97,
             "maxDrawdown": 28.71,
             "riskPenalty": 5.68,
             "confirmations": [
@@ -1187,7 +1187,7 @@
                 "detail": "Bitcoin's own realized volatility and drawdown reduce the score directly."
               }
             ],
-            "asOf": "2026-08-06T00:00:00.000Z"
+            "asOf": "2026-08-07T00:00:00.000Z"
           },
           "IBIT": {
             "ticker": "IBIT",
@@ -1698,7 +1698,7 @@
     },
     "market-heatmap-lab": {
       "id": "market-heatmap-lab",
-      "asOf": "2026-08-06T20:30:21.406Z",
+      "asOf": "2026-08-07T03:54:23.124Z",
       "read": "Leadership is narrow — 43.75% of 135 constituents are positive against a 60% broad-market threshold.",
       "deepLink": "market-heatmap-lab.html",
       "source": "owning-tool-functions",
@@ -1852,13 +1852,13 @@
       "id": "global-rotation-lab",
       "deepLink": "global-rotation-lab.html",
       "status": "fresh-headless",
-      "reason": "EWS (Singapore) leads global rotation at 81/100 versus ACWI; EWC is next."
+      "reason": "EWS (Singapore) leads global rotation at 78.8/100 versus ACWI; EWC is next."
     },
     {
       "id": "real-assets-lab",
       "deepLink": "real-assets-lab.html",
       "status": "fresh-headless",
-      "reason": "CPER leads real assets at 61.8/100; GLD 28.6, BTC 47.2, SLV 0."
+      "reason": "CPER leads real assets at 61.8/100; GLD 28.6, BTC 46.7, SLV 0."
     },
     {
       "id": "bond-regime-lab",

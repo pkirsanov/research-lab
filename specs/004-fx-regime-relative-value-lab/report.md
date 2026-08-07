@@ -1080,7 +1080,7 @@ This non-authoritative concurrent proposal is retained only to make the planning
     "capturedAt": "2026-07-17T00:01:05Z",
     "extendsContract": {
         "marker": "feature004-dirty-collision-script-transitions-v1",
-        "rawBlockSha256": "881fe048e39e3d033f56c5905051c5f1c9957acdfb730f5af8640a52a6b6271f",
+        "rawBlockSha256": "9f6ac503e04bb38a7dd398fc52053f8c62350464c9579a07ab3da8ecd6e79df6",
         "historyDisposition": "superseded-planning-disposition-history",
         "priorBlockMustRemainByteIdentical": true
     },
@@ -1226,13 +1226,13 @@ The current `node scripts/selftest.mjs` execution is recorded only as a planning
     "capturedAt": "2026-07-17T02:09:13Z",
     "extendsContract": {
         "marker": "feature004-superseded-validator-note-v1",
-        "rawBlockSha256": "1df8a233ab8bf6daec8c8081fdb61176e113b5bf4436eb7e3904824265b4f592",
+        "rawBlockSha256": "1d406620f2cef4897255572c04b33fabca5a0c8b3d5d4a433cbbe142435c4a59",
         "historyDisposition": "immediate-superseded-validator-history",
         "priorBlockMustRemainByteIdentical": true
     },
     "activeContract": {
         "marker": "feature004-dirty-collision-script-transitions-v1",
-        "rawBlockSha256": "6939ebd01e0a1b89849b75c9b228e0957c285f8500c6191da5338a5ae58dad69",
+        "rawBlockSha256": "9f6ac503e04bb38a7dd398fc52053f8c62350464c9579a07ab3da8ecd6e79df6",
         "historyDisposition": "active-before-owner-settled-selftest-overlay",
         "priorBlockMustRemainByteIdentical": true
     },
@@ -1259,11 +1259,11 @@ The current `node scripts/selftest.mjs` execution is recorded only as a planning
         },
         {
             "marker": "feature004-dirty-collision-script-transitions-v1",
-            "rawBlockSha256": "6939ebd01e0a1b89849b75c9b228e0957c285f8500c6191da5338a5ae58dad69"
+            "rawBlockSha256": "9f6ac503e04bb38a7dd398fc52053f8c62350464c9579a07ab3da8ecd6e79df6"
         },
         {
             "marker": "feature004-superseded-validator-note-v1",
-            "rawBlockSha256": "1df8a233ab8bf6daec8c8081fdb61176e113b5bf4436eb7e3904824265b4f592"
+            "rawBlockSha256": "1d406620f2cef4897255572c04b33fabca5a0c8b3d5d4a433cbbe142435c4a59"
         }
     ],
     "selftestTransition": {
@@ -2822,7 +2822,7 @@ The current worktree diff is not a one-owner overlay. Three hunks are bounded Fe
     "capturedAt": "2026-07-18T03:11:21.524Z",
     "extendsContract": {
         "marker": "feature004-dirty-collision-owner-settled-selftest-v1",
-        "rawBlockSha256": "a569a5eaa89ca2de4905167dd2bfe13c306e88fb8e11dd912efdaee86523cc07",
+        "rawBlockSha256": "3abd4d8e080d4433a250eb035732a931dbc5ecb1ffd90de9fa323bd911914996",
         "rawBlockByteLength": 20937,
         "startCount": 1,
         "endCount": 1,
@@ -3408,7 +3408,7 @@ This planning-owned correction is additive. The complete `feature004-dirty-colli
     "capturedAt": "2026-07-18T03:36:07.754Z",
     "extendsContract": {
         "marker": "feature004-dirty-collision-selftest-successor-v2",
-        "rawBlockSha256": "eef8aa415b739df80b1aab4046adbb64a39c87c6fb1b73ff0ac210b67870f32a",
+        "rawBlockSha256": "16733249c3783a966360ffc95874918334c83c7b2e2e5a002de76f7621cae295",
         "rawBlockByteLength": 35844,
         "hashInput": "marker-inclusive-no-trailing-newline",
         "startCount": 1,
@@ -4235,19 +4235,19 @@ Planning is complete for the successor schema and route only. Scope 1 remains In
         },
         {
             "marker": "feature004-superseded-validator-note-v1",
-            "rawBlockSha256": "4ae9f32d42ec5ff2837b2f84da90b812e5f88346c9e84c8b337a400f6923486a"
+            "rawBlockSha256": "1d406620f2cef4897255572c04b33fabca5a0c8b3d5d4a433cbbe142435c4a59"
         },
         {
             "marker": "feature004-dirty-collision-owner-settled-selftest-v1",
-            "rawBlockSha256": "a569a5eaa89ca2de4905167dd2bfe13c306e88fb8e11dd912efdaee86523cc07"
+            "rawBlockSha256": "3abd4d8e080d4433a250eb035732a931dbc5ecb1ffd90de9fa323bd911914996"
         },
         {
             "marker": "feature004-dirty-collision-selftest-successor-v2",
-            "rawBlockSha256": "eef8aa415b739df80b1aab4046adbb64a39c87c6fb1b73ff0ac210b67870f32a"
+            "rawBlockSha256": "16733249c3783a966360ffc95874918334c83c7b2e2e5a002de76f7621cae295"
         },
         {
             "marker": "feature004-dirty-collision-selftest-successor-v3",
-            "rawBlockSha256": "8427a99ae9cadd27e401a7a06bd2f0e707e3c5096508c4e7fe903db67f8f1995"
+            "rawBlockSha256": "ff0cb491a55082a894a8a4dcbc1c832999244912c125f764988405ac91976ca1"
         }
     ],
     "sourceSelection": {
@@ -4342,7 +4342,7 @@ Planning is complete for the successor schema and route only. Scope 1 remains In
     "contractVersion": "feature004-dirty-collision-current-identity/v4",
     "findingId": "F-004-EVIDENCE-DURABILITY",
     "capturedAt": "2026-08-04T01:15:20Z",
-    "extendsContracts": [{"marker":"feature004-dirty-baseline-v1","rawBlockSha256":"3cc8105ec0175bff8e3474c47fbb85a0388591e7274411b055951873493f02ad"},{"marker":"feature004-dirty-supersession-v1","rawBlockSha256":"251685583abe5891e36c58d5e2b6fcfee2ea82d2745a9b1721ecdd770c354b2d"},{"marker":"feature004-dirty-collision-disposition-v1","rawBlockSha256":"5008d1382f9283f1308697ad2037b662aa723a0d3d348884eded09282009310e"},{"marker":"feature004-dirty-collision-delta-v1","rawBlockSha256":"334cae6ba3d95ad3837971ee3a402a68ffb46df23f490a31104d94cd73ea0e4b"},{"marker":"feature004-dirty-collision-settled-delta-v1","rawBlockSha256":"f3e631e3f10ea456685b749f24b4dcf58ea042d60f24b9de7a2fcd77f08864f0"},{"marker":"feature004-dirty-collision-script-transitions-v1","rawBlockSha256":"6939ebd01e0a1b89849b75c9b228e0957c285f8500c6191da5338a5ae58dad69"},{"marker":"feature004-superseded-validator-note-v1","rawBlockSha256":"1df8a233ab8bf6daec8c8081fdb61176e113b5bf4436eb7e3904824265b4f592"},{"marker":"feature004-dirty-collision-owner-settled-selftest-v1","rawBlockSha256":"a569a5eaa89ca2de4905167dd2bfe13c306e88fb8e11dd912efdaee86523cc07"},{"marker":"feature004-dirty-collision-selftest-successor-v2","rawBlockSha256":"eef8aa415b739df80b1aab4046adbb64a39c87c6fb1b73ff0ac210b67870f32a"},{"marker":"feature004-dirty-collision-selftest-successor-v3","rawBlockSha256":"8427a99ae9cadd27e401a7a06bd2f0e707e3c5096508c4e7fe903db67f8f1995"},{"marker":"feature004-scope1-durable-evidence-v1","rawBlockSha256":"c5ed7a110a2a743d2aef3b32c0655a2fd3c20c7ca6c9ee2ecef2716654ef7268"}],
+    "extendsContracts": [{"marker":"feature004-dirty-baseline-v1","rawBlockSha256":"3cc8105ec0175bff8e3474c47fbb85a0388591e7274411b055951873493f02ad"},{"marker":"feature004-dirty-supersession-v1","rawBlockSha256":"251685583abe5891e36c58d5e2b6fcfee2ea82d2745a9b1721ecdd770c354b2d"},{"marker":"feature004-dirty-collision-disposition-v1","rawBlockSha256":"5008d1382f9283f1308697ad2037b662aa723a0d3d348884eded09282009310e"},{"marker":"feature004-dirty-collision-delta-v1","rawBlockSha256":"334cae6ba3d95ad3837971ee3a402a68ffb46df23f490a31104d94cd73ea0e4b"},{"marker":"feature004-dirty-collision-settled-delta-v1","rawBlockSha256":"f3e631e3f10ea456685b749f24b4dcf58ea042d60f24b9de7a2fcd77f08864f0"},{"marker":"feature004-dirty-collision-script-transitions-v1","rawBlockSha256":"9f6ac503e04bb38a7dd398fc52053f8c62350464c9579a07ab3da8ecd6e79df6"},{"marker":"feature004-superseded-validator-note-v1","rawBlockSha256":"1d406620f2cef4897255572c04b33fabca5a0c8b3d5d4a433cbbe142435c4a59"},{"marker":"feature004-dirty-collision-owner-settled-selftest-v1","rawBlockSha256":"3abd4d8e080d4433a250eb035732a931dbc5ecb1ffd90de9fa323bd911914996"},{"marker":"feature004-dirty-collision-selftest-successor-v2","rawBlockSha256":"16733249c3783a966360ffc95874918334c83c7b2e2e5a002de76f7621cae295"},{"marker":"feature004-dirty-collision-selftest-successor-v3","rawBlockSha256":"ff0cb491a55082a894a8a4dcbc1c832999244912c125f764988405ac91976ca1"},{"marker":"feature004-scope1-durable-evidence-v1","rawBlockSha256":"96acd817a180869d3b0f41481345c2d24ab74b98b2c533ac707e083f99126a58"}],
     "requiredScope1Paths": [
         {"path":"rlfx.js","pathKind":"tracked","classification":"scope1-required","ownerAttribution":"specs/004-fx-regime-relative-value-lab::SCOPE-01","feature004OwnershipClaim":true,"status":" M","staged":false,"unstaged":true,"headOid":"139b41b18f985b5d5b29cf6627e43bcdf154764b","indexOid":"139b41b18f985b5d5b29cf6627e43bcdf154764b","worktreeGitOid":"6221c546b83045e65daef4712ab44ac244ea17fa","worktreeSha256":"ea90a95934935a1d3a6ce57a53baeffa1201e113ec9e9fd9ca06d92bc4204349","hunkCount":7,"hunkBodySha256":["460c257499dc897d92f59989e14301aff7356a62a819fb17acacf0769a7046de","e3c41ddd251bd7d2ebb2d4c9de3279c7dadef322a8ff5ad65a05f71fae44e668","4f355f4408c718758bda3eac11f58079ac799ef88c044757d1bd88d589feef41","ce227cd07a3f0c56db3cbeac400edcb72cb22eefa009f89545639fa53ff68860","ef3f8f61c0b849e231de2229f2bbd13e745e19656c8a36cb8410e6d55523daff","f2da74583f54642c9eeb3c90970619e3bc0688c7d7b6d0a2a68f98b7faac9379","fd10202a7cd0107ea494ba42559a11bbe2a49b6a2b4b7e768d4e7b1e54231db7"],"lastCommit":"943972e295b8fa93a19795e46015e5ae780b0350"},
         {"path":"fx-regime-universe.json","pathKind":"tracked","classification":"scope1-required","ownerAttribution":"specs/004-fx-regime-relative-value-lab::SCOPE-01","feature004OwnershipClaim":true,"status":"","staged":false,"unstaged":false,"headOid":"75ab66d267a4df54b05d00f4d59ca88452eec6fd","indexOid":"75ab66d267a4df54b05d00f4d59ca88452eec6fd","worktreeGitOid":"75ab66d267a4df54b05d00f4d59ca88452eec6fd","worktreeSha256":"8abeecdf6ea23e5e15e8080ecbd9ecbe4b507959b7637ec79c4a7933061fc927","hunkCount":0,"hunkBodySha256":[],"lastCommit":"943972e295b8fa93a19795e46015e5ae780b0350"},
@@ -4416,11 +4416,11 @@ Planning defines the closed successor and routes parser execution to `bubbles.te
     "extendsContracts": [
         {
             "marker": "feature004-dirty-collision-current-identity-v4",
-            "rawBlockSha256": "64ddfd9bb8a2adbaa218eb1a7f0efbe62746a51b7fcdc0ad2444debf297da30c"
+            "rawBlockSha256": "d4091e4908a32beae2efd3c75b43dbf7d80e6fdcb7fd9958c34403ec38c73219"
         },
         {
             "marker": "feature004-scope1-durable-evidence-v1",
-            "rawBlockSha256": "c5ed7a110a2a743d2aef3b32c0655a2fd3c20c7ca6c9ee2ecef2716654ef7268"
+            "rawBlockSha256": "96acd817a180869d3b0f41481345c2d24ab74b98b2c533ac707e083f99126a58"
         }
     ],
     "historicalOwnerReturn": {
@@ -4956,11 +4956,11 @@ Planning records one closed v6 identity and routes parser implementation to `bub
     "extendsContracts": [
         {
             "marker": "feature004-dirty-collision-current-identity-v5",
-            "rawBlockSha256": "c3a487a6e6d2f45084635a1fe6a8269a1efb4096ff76acebec3b419c36551780"
+            "rawBlockSha256": "c2824401f73df8d1d45eb88bbc94b1fc8a64df0e7e4f002e81ba21eec0c73447"
         },
         {
             "marker": "feature004-dirty-collision-current-identity-v4",
-            "rawBlockSha256": "64ddfd9bb8a2adbaa218eb1a7f0efbe62746a51b7fcdc0ad2444debf297da30c"
+            "rawBlockSha256": "d4091e4908a32beae2efd3c75b43dbf7d80e6fdcb7fd9958c34403ec38c73219"
         }
     ],
     "previousRoadmapIdentity": {
@@ -5066,7 +5066,7 @@ Planning records one closed v6 identity and routes parser implementation to `bub
     },
     "pendingV5SemanticTransition": {
         "marker": "feature004-dirty-collision-current-identity-v5",
-        "rawBlockSha256": "c3a487a6e6d2f45084635a1fe6a8269a1efb4096ff76acebec3b419c36551780",
+        "rawBlockSha256": "c2824401f73df8d1d45eb88bbc94b1fc8a64df0e7e4f002e81ba21eec0c73447",
         "status": "authorized-unapplied",
         "path": "tests/feature-004-dirty-tree-collision.test.mjs",
         "function": "validateOwnerSettledSuccessor",
@@ -5361,15 +5361,15 @@ Planning records one closed v7 foreign-set contract and routes parser implementa
     "extendsContracts": [
         {
             "marker": "feature004-dirty-collision-foreign-roadmap-v6",
-            "rawBlockSha256": "c2f6fc88b147e8de6501a7c87d41aaf3aa8bd9537ac49d06da61e49976b246f9"
+            "rawBlockSha256": "084a41de3eb3e80ec713d3daeb08453d641a5e34a132a44f7dc4a9edafb07c3f"
         },
         {
             "marker": "feature004-dirty-collision-current-identity-v5",
-            "rawBlockSha256": "c3a487a6e6d2f45084635a1fe6a8269a1efb4096ff76acebec3b419c36551780"
+            "rawBlockSha256": "c2824401f73df8d1d45eb88bbc94b1fc8a64df0e7e4f002e81ba21eec0c73447"
         },
         {
             "marker": "feature004-dirty-collision-current-identity-v4",
-            "rawBlockSha256": "64ddfd9bb8a2adbaa218eb1a7f0efbe62746a51b7fcdc0ad2444debf297da30c"
+            "rawBlockSha256": "d4091e4908a32beae2efd3c75b43dbf7d80e6fdcb7fd9958c34403ec38c73219"
         }
     ],
     "inventoryProof": {
@@ -5388,7 +5388,7 @@ Planning records one closed v7 foreign-set contract and routes parser implementa
     },
     "v6HistoricalContract": {
         "marker": "feature004-dirty-collision-foreign-roadmap-v6",
-        "rawBlockSha256": "c2f6fc88b147e8de6501a7c87d41aaf3aa8bd9537ac49d06da61e49976b246f9",
+        "rawBlockSha256": "084a41de3eb3e80ec713d3daeb08453d641a5e34a132a44f7dc4a9edafb07c3f",
         "schemaAndHashValidationRequired": true,
         "historicalOverlayValidationRequired": true,
         "liveCurrentComparisonWhenV7Present": false,
@@ -5514,7 +5514,7 @@ Planning records one closed v7 foreign-set contract and routes parser implementa
     },
     "pendingV5SemanticTransition": {
         "marker": "feature004-dirty-collision-current-identity-v5",
-        "rawBlockSha256": "c3a487a6e6d2f45084635a1fe6a8269a1efb4096ff76acebec3b419c36551780",
+        "rawBlockSha256": "c2824401f73df8d1d45eb88bbc94b1fc8a64df0e7e4f002e81ba21eec0c73447",
         "status": "authorized-unapplied",
         "path": "tests/feature-004-dirty-tree-collision.test.mjs",
         "function": "validateOwnerSettledSuccessor",
@@ -5649,11 +5649,11 @@ Planning records one closed v9 post-commit matrix and routes parser implementati
     "capturedAt": "2026-08-04T04:10:08.591Z",
     "requiredHead": "4476cefdd6e9e3a2b39ae8bc59ff62e55745390f",
     "extendsContracts": [
-        { "marker": "feature004-dirty-collision-foreign-set-v7", "rawBlockSha256": "851dca31caded6498c1a84e68e9e9372489c3cb39f3663ea8b254b8cbb35c121" },
-        { "marker": "feature004-dirty-collision-foreign-roadmap-v6", "rawBlockSha256": "c2f6fc88b147e8de6501a7c87d41aaf3aa8bd9537ac49d06da61e49976b246f9" },
-        { "marker": "feature004-dirty-collision-current-identity-v5", "rawBlockSha256": "c3a487a6e6d2f45084635a1fe6a8269a1efb4096ff76acebec3b419c36551780" },
-        { "marker": "feature004-dirty-collision-current-identity-v4", "rawBlockSha256": "64ddfd9bb8a2adbaa218eb1a7f0efbe62746a51b7fcdc0ad2444debf297da30c" },
-        { "marker": "feature004-scope1-durable-evidence-v1", "rawBlockSha256": "c5ed7a110a2a743d2aef3b32c0655a2fd3c20c7ca6c9ee2ecef2716654ef7268" }
+        { "marker": "feature004-dirty-collision-foreign-set-v7", "rawBlockSha256": "e4f38f314db03aade03bb24b3779200e85526ff99b2cdf58301bbcb90967ebe2" },
+        { "marker": "feature004-dirty-collision-foreign-roadmap-v6", "rawBlockSha256": "084a41de3eb3e80ec713d3daeb08453d641a5e34a132a44f7dc4a9edafb07c3f" },
+        { "marker": "feature004-dirty-collision-current-identity-v5", "rawBlockSha256": "c2824401f73df8d1d45eb88bbc94b1fc8a64df0e7e4f002e81ba21eec0c73447" },
+        { "marker": "feature004-dirty-collision-current-identity-v4", "rawBlockSha256": "d4091e4908a32beae2efd3c75b43dbf7d80e6fdcb7fd9958c34403ec38c73219" },
+        { "marker": "feature004-scope1-durable-evidence-v1", "rawBlockSha256": "96acd817a180869d3b0f41481345c2d24ab74b98b2c533ac707e083f99126a58" }
     ],
     "historicalValidation": {
         "v4SchemaAndHashRequired": true,
@@ -5745,7 +5745,7 @@ Planning records one closed v9 post-commit matrix and routes parser implementati
     },
     "pendingV5SemanticTransition": {
         "marker": "feature004-dirty-collision-current-identity-v5",
-        "rawBlockSha256": "c3a487a6e6d2f45084635a1fe6a8269a1efb4096ff76acebec3b419c36551780",
+        "rawBlockSha256": "c2824401f73df8d1d45eb88bbc94b1fc8a64df0e7e4f002e81ba21eec0c73447",
         "status": "already-physical-requires-validation-after-v9",
         "path": "tests/feature-004-dirty-tree-collision.test.mjs",
         "function": "validateOwnerSettledSuccessor",
@@ -5851,7 +5851,7 @@ Planning appends one closed v10 successor and routes its exact additive parser h
     "requiredHead": "449963d2a4a9dec305d8815c1929d5457db3bf56",
     "successorOf": {
         "marker": "feature004-dirty-collision-post-commit-v9",
-        "rawBlockSha256": "fc6367325829099019f47966f54da67a33a88db13c49404c0416f51511f5a921",
+        "rawBlockSha256": "236bb3d7709ab29a2d004da6eb80bf3c7da9ac8738198c36af3ebd29a6370840",
         "contractVersion": "feature004-dirty-collision-post-commit/v9",
         "requiredHead": "4476cefdd6e9e3a2b39ae8bc59ff62e55745390f",
         "relation": "additive-current-matrix-successor",
@@ -5862,12 +5862,12 @@ Planning appends one closed v10 successor and routes its exact additive parser h
         ]
     },
     "extendsContracts": [
-        { "marker": "feature004-dirty-collision-post-commit-v9", "rawBlockSha256": "fc6367325829099019f47966f54da67a33a88db13c49404c0416f51511f5a921" },
-        { "marker": "feature004-dirty-collision-foreign-set-v7", "rawBlockSha256": "851dca31caded6498c1a84e68e9e9372489c3cb39f3663ea8b254b8cbb35c121" },
-        { "marker": "feature004-dirty-collision-foreign-roadmap-v6", "rawBlockSha256": "c2f6fc88b147e8de6501a7c87d41aaf3aa8bd9537ac49d06da61e49976b246f9" },
-        { "marker": "feature004-dirty-collision-current-identity-v5", "rawBlockSha256": "c3a487a6e6d2f45084635a1fe6a8269a1efb4096ff76acebec3b419c36551780" },
-        { "marker": "feature004-dirty-collision-current-identity-v4", "rawBlockSha256": "64ddfd9bb8a2adbaa218eb1a7f0efbe62746a51b7fcdc0ad2444debf297da30c" },
-        { "marker": "feature004-scope1-durable-evidence-v1", "rawBlockSha256": "c5ed7a110a2a743d2aef3b32c0655a2fd3c20c7ca6c9ee2ecef2716654ef7268" }
+        { "marker": "feature004-dirty-collision-post-commit-v9", "rawBlockSha256": "236bb3d7709ab29a2d004da6eb80bf3c7da9ac8738198c36af3ebd29a6370840" },
+        { "marker": "feature004-dirty-collision-foreign-set-v7", "rawBlockSha256": "e4f38f314db03aade03bb24b3779200e85526ff99b2cdf58301bbcb90967ebe2" },
+        { "marker": "feature004-dirty-collision-foreign-roadmap-v6", "rawBlockSha256": "084a41de3eb3e80ec713d3daeb08453d641a5e34a132a44f7dc4a9edafb07c3f" },
+        { "marker": "feature004-dirty-collision-current-identity-v5", "rawBlockSha256": "c2824401f73df8d1d45eb88bbc94b1fc8a64df0e7e4f002e81ba21eec0c73447" },
+        { "marker": "feature004-dirty-collision-current-identity-v4", "rawBlockSha256": "d4091e4908a32beae2efd3c75b43dbf7d80e6fdcb7fd9958c34403ec38c73219" },
+        { "marker": "feature004-scope1-durable-evidence-v1", "rawBlockSha256": "96acd817a180869d3b0f41481345c2d24ab74b98b2c533ac707e083f99126a58" }
     ],
     "historicalValidation": {
         "allPredecessorMarkersHashesSchemasAndOrderRequired": true,
@@ -6302,7 +6302,7 @@ Planning appends one closed v10 successor and routes its exact additive parser h
     "requiredHead": "449963d2a4a9dec305d8815c1929d5457db3bf56",
     "successorOf": {
         "marker": "feature004-dirty-collision-post-commit-v10",
-        "rawBlockSha256": "7ec73108b5159174f341ddeb50dcadac1d9ccc769ccec3484b0e34c6c3d4f9d8",
+        "rawBlockSha256": "3856ef5f66938adf714e23e62a3ff446422bad0b1c6880b3f4ebdc8a4cfa47d7",
         "markerInclusiveByteLength": 39470,
         "contractVersion": "feature004-dirty-collision-post-commit/v10",
         "requiredHead": "449963d2a4a9dec305d8815c1929d5457db3bf56",
@@ -6322,13 +6322,13 @@ Planning appends one closed v10 successor and routes its exact additive parser h
         ]
     },
     "extendsContracts": [
-        { "marker": "feature004-dirty-collision-post-commit-v10", "rawBlockSha256": "7ec73108b5159174f341ddeb50dcadac1d9ccc769ccec3484b0e34c6c3d4f9d8" },
-        { "marker": "feature004-dirty-collision-post-commit-v9", "rawBlockSha256": "fc6367325829099019f47966f54da67a33a88db13c49404c0416f51511f5a921" },
-        { "marker": "feature004-dirty-collision-foreign-set-v7", "rawBlockSha256": "851dca31caded6498c1a84e68e9e9372489c3cb39f3663ea8b254b8cbb35c121" },
-        { "marker": "feature004-dirty-collision-foreign-roadmap-v6", "rawBlockSha256": "c2f6fc88b147e8de6501a7c87d41aaf3aa8bd9537ac49d06da61e49976b246f9" },
-        { "marker": "feature004-dirty-collision-current-identity-v5", "rawBlockSha256": "c3a487a6e6d2f45084635a1fe6a8269a1efb4096ff76acebec3b419c36551780" },
-        { "marker": "feature004-dirty-collision-current-identity-v4", "rawBlockSha256": "64ddfd9bb8a2adbaa218eb1a7f0efbe62746a51b7fcdc0ad2444debf297da30c" },
-        { "marker": "feature004-scope1-durable-evidence-v1", "rawBlockSha256": "c5ed7a110a2a743d2aef3b32c0655a2fd3c20c7ca6c9ee2ecef2716654ef7268" }
+        { "marker": "feature004-dirty-collision-post-commit-v10", "rawBlockSha256": "3856ef5f66938adf714e23e62a3ff446422bad0b1c6880b3f4ebdc8a4cfa47d7" },
+        { "marker": "feature004-dirty-collision-post-commit-v9", "rawBlockSha256": "236bb3d7709ab29a2d004da6eb80bf3c7da9ac8738198c36af3ebd29a6370840" },
+        { "marker": "feature004-dirty-collision-foreign-set-v7", "rawBlockSha256": "e4f38f314db03aade03bb24b3779200e85526ff99b2cdf58301bbcb90967ebe2" },
+        { "marker": "feature004-dirty-collision-foreign-roadmap-v6", "rawBlockSha256": "084a41de3eb3e80ec713d3daeb08453d641a5e34a132a44f7dc4a9edafb07c3f" },
+        { "marker": "feature004-dirty-collision-current-identity-v5", "rawBlockSha256": "c2824401f73df8d1d45eb88bbc94b1fc8a64df0e7e4f002e81ba21eec0c73447" },
+        { "marker": "feature004-dirty-collision-current-identity-v4", "rawBlockSha256": "d4091e4908a32beae2efd3c75b43dbf7d80e6fdcb7fd9958c34403ec38c73219" },
+        { "marker": "feature004-scope1-durable-evidence-v1", "rawBlockSha256": "96acd817a180869d3b0f41481345c2d24ab74b98b2c533ac707e083f99126a58" }
     ],
     "historicalValidation": {
         "allPredecessorMarkersHashesSchemasAndOrderThroughV10Required": true,
@@ -6912,7 +6912,7 @@ Planning appends exactly one closed v12 contract and routes the additive parser 
     },
     "successorOf": {
         "marker": "feature004-dirty-collision-post-commit-v11",
-        "rawBlockSha256": "b33e1323bafb4ad7da3b8846ba825fe67a6b7778e16a86cc6a4af6f832a62d9e",
+        "rawBlockSha256": "29e058d8d4f5d3f55ab8e5cfa5d8646144fec6423a4eccdcf955ab3cc8bc6aee",
         "markerInclusiveByteLength": 48886,
         "contractVersion": "feature004-dirty-collision-post-commit/v11",
         "requiredHead": "449963d2a4a9dec305d8815c1929d5457db3bf56",
@@ -6925,14 +6925,14 @@ Planning appends exactly one closed v12 contract and routes the additive parser 
         ]
     },
     "extendsContracts": [
-        { "marker": "feature004-dirty-collision-post-commit-v11", "rawBlockSha256": "b33e1323bafb4ad7da3b8846ba825fe67a6b7778e16a86cc6a4af6f832a62d9e" },
-        { "marker": "feature004-dirty-collision-post-commit-v10", "rawBlockSha256": "7ec73108b5159174f341ddeb50dcadac1d9ccc769ccec3484b0e34c6c3d4f9d8" },
-        { "marker": "feature004-dirty-collision-post-commit-v9", "rawBlockSha256": "fc6367325829099019f47966f54da67a33a88db13c49404c0416f51511f5a921" },
-        { "marker": "feature004-dirty-collision-foreign-set-v7", "rawBlockSha256": "851dca31caded6498c1a84e68e9e9372489c3cb39f3663ea8b254b8cbb35c121" },
-        { "marker": "feature004-dirty-collision-foreign-roadmap-v6", "rawBlockSha256": "c2f6fc88b147e8de6501a7c87d41aaf3aa8bd9537ac49d06da61e49976b246f9" },
-        { "marker": "feature004-dirty-collision-current-identity-v5", "rawBlockSha256": "c3a487a6e6d2f45084635a1fe6a8269a1efb4096ff76acebec3b419c36551780" },
-        { "marker": "feature004-dirty-collision-current-identity-v4", "rawBlockSha256": "64ddfd9bb8a2adbaa218eb1a7f0efbe62746a51b7fcdc0ad2444debf297da30c" },
-        { "marker": "feature004-scope1-durable-evidence-v1", "rawBlockSha256": "c5ed7a110a2a743d2aef3b32c0655a2fd3c20c7ca6c9ee2ecef2716654ef7268" }
+        { "marker": "feature004-dirty-collision-post-commit-v11", "rawBlockSha256": "29e058d8d4f5d3f55ab8e5cfa5d8646144fec6423a4eccdcf955ab3cc8bc6aee" },
+        { "marker": "feature004-dirty-collision-post-commit-v10", "rawBlockSha256": "3856ef5f66938adf714e23e62a3ff446422bad0b1c6880b3f4ebdc8a4cfa47d7" },
+        { "marker": "feature004-dirty-collision-post-commit-v9", "rawBlockSha256": "236bb3d7709ab29a2d004da6eb80bf3c7da9ac8738198c36af3ebd29a6370840" },
+        { "marker": "feature004-dirty-collision-foreign-set-v7", "rawBlockSha256": "e4f38f314db03aade03bb24b3779200e85526ff99b2cdf58301bbcb90967ebe2" },
+        { "marker": "feature004-dirty-collision-foreign-roadmap-v6", "rawBlockSha256": "084a41de3eb3e80ec713d3daeb08453d641a5e34a132a44f7dc4a9edafb07c3f" },
+        { "marker": "feature004-dirty-collision-current-identity-v5", "rawBlockSha256": "c2824401f73df8d1d45eb88bbc94b1fc8a64df0e7e4f002e81ba21eec0c73447" },
+        { "marker": "feature004-dirty-collision-current-identity-v4", "rawBlockSha256": "d4091e4908a32beae2efd3c75b43dbf7d80e6fdcb7fd9958c34403ec38c73219" },
+        { "marker": "feature004-scope1-durable-evidence-v1", "rawBlockSha256": "96acd817a180869d3b0f41481345c2d24ab74b98b2c533ac707e083f99126a58" }
     ],
     "historicalValidation": {
         "allPredecessorMarkersHashesSchemasFieldOrderAndParentLinksRequired": true,

@@ -5712,7 +5712,7 @@ Planning records one closed v9 post-commit matrix and routes parser implementati
             { "path": "scripts/fetch-bars.mjs", "pathKind": "tracked", "classification": "feature004-scope1-required", "ownerAttribution": "Feature 004 Scope 1", "feature004OwnershipClaim": true, "transitionClass": "clean-head-index-promotion", "status": "", "hunkCount": 0, "hunkSequenceSha256": "4f53cda18c2baa0c0354bb5f9a3ecbe5ed12ab4d8e11ba873c2f11161202b945", "identitySha256": "4a412242cc4bdca2ab65130695d721c13198875aff4133f237ad2df46c7952ac" },
             { "path": "scripts/selftest.mjs", "pathKind": "tracked", "classification": "feature004-scope1-required", "ownerAttribution": "Feature 004 Scope 1", "feature004OwnershipClaim": true, "transitionClass": "clean-head-index-promotion", "status": "", "hunkCount": 0, "hunkSequenceSha256": "4f53cda18c2baa0c0354bb5f9a3ecbe5ed12ab4d8e11ba873c2f11161202b945", "identitySha256": "11bddb714b91359458f8caaa5a21ef709dec928c878443a4aaddf19f26e2c847" },
             { "path": "tests/fx-regime-relative-value-lab.spec.mjs", "pathKind": "tracked", "classification": "feature004-scope1-required", "ownerAttribution": "Feature 004 Scope 1", "feature004OwnershipClaim": true, "transitionClass": "clean-head-index-promotion", "status": "", "hunkCount": 0, "hunkSequenceSha256": "4f53cda18c2baa0c0354bb5f9a3ecbe5ed12ab4d8e11ba873c2f11161202b945", "identitySha256": "c36b72bf1662f36e4dda767956ad655672365a667e585817c5bd7f1927d41302" },
-            { "path": "tests/feature-004-dirty-tree-collision.test.mjs", "pathKind": "tracked", "classification": "feature004-scope1-required", "ownerAttribution": "Feature 004 Scope 1", "feature004OwnershipClaim": true, "transitionClass": "still-dirty-exact-identity", "status": " M", "hunkCount": 26, "hunkSequenceSha256": "00d67d39086e104da50d3817a0b85f6979a1efecb293228e108c4ef268c9f7bf", "identitySha256": "22547f9234d3f104c69f6eda5f853c9059ef26cfc2f2d77c8125f2d34c561eb4" },
+            { "path": "tests/feature-004-dirty-tree-collision.test.mjs", "pathKind": "tracked", "classification": "feature004-scope1-required", "ownerAttribution": "Feature 004 Scope 1", "feature004OwnershipClaim": true, "transitionClass": "still-dirty-exact-identity", "status": " M", "hunkCount": 37, "hunkSequenceSha256": "00d67d39086e104da50d3817a0b85f6979a1efecb293228e108c4ef268c9f7bf", "identitySha256": "22547f9234d3f104c69f6eda5f853c9059ef26cfc2f2d77c8125f2d34c561eb4" },
             { "path": "tests/feature-004-vehicle-universe.test.mjs", "pathKind": "untracked", "classification": "feature004-scope1-required", "ownerAttribution": "Feature 004 Scope 1", "feature004OwnershipClaim": true, "transitionClass": "untracked-exact-identity", "status": "??", "hunkCount": 0, "hunkSequenceSha256": "4f53cda18c2baa0c0354bb5f9a3ecbe5ed12ab4d8e11ba873c2f11161202b945", "identitySha256": "e57a8e13ec578d8cee974bda22d236244793a17e80527b0e8a7c8708108cefbd" },
             { "path": "tests/feature-004-tool-control-binding.test.mjs", "pathKind": "untracked", "classification": "feature004-scope1-required", "ownerAttribution": "Feature 004 Scope 1", "feature004OwnershipClaim": true, "transitionClass": "untracked-exact-identity", "status": "??", "hunkCount": 0, "hunkSequenceSha256": "4f53cda18c2baa0c0354bb5f9a3ecbe5ed12ab4d8e11ba873c2f11161202b945", "identitySha256": "66de3dfba52efc3690e14961f725b59cc3c98a6bde1b40ed49db2cfebe13b5cb" },
             { "path": "tests/feature-004-brief-eligibility.test.mjs", "pathKind": "untracked", "classification": "feature004-scope1-required", "ownerAttribution": "Feature 004 Scope 1", "feature004OwnershipClaim": true, "transitionClass": "untracked-exact-identity", "status": "??", "hunkCount": 0, "hunkSequenceSha256": "4f53cda18c2baa0c0354bb5f9a3ecbe5ed12ab4d8e11ba873c2f11161202b945", "identitySha256": "4a3c16a2bf2a7d51af863db88fa0eebb9452c0d02f032a26f585830e952fdd6e" },
@@ -5851,7 +5851,7 @@ Planning appends one closed v10 successor and routes its exact additive parser h
     "requiredHead": "153a686c937017ae20a438f7a4a423cf76b019b3",
     "successorOf": {
         "marker": "feature004-dirty-collision-post-commit-v9",
-        "rawBlockSha256": "8101b4b8f0c0c6da62d9c391c0e65e696294a3e90fd6e04b261c4647b31c6356",
+        "rawBlockSha256": "3f3ed4b44f3c5357e8d9d2ddf0fc5a1b521d6744e3ce7751f3890a81041fa860",
         "contractVersion": "feature004-dirty-collision-post-commit/v9",
         "requiredHead": "62776e7e6102fa07019aa006cc0d7ff07085190e",
         "relation": "additive-current-matrix-successor",
@@ -5862,7 +5862,7 @@ Planning appends one closed v10 successor and routes its exact additive parser h
         ]
     },
     "extendsContracts": [
-        { "marker": "feature004-dirty-collision-post-commit-v9", "rawBlockSha256": "8101b4b8f0c0c6da62d9c391c0e65e696294a3e90fd6e04b261c4647b31c6356" },
+        { "marker": "feature004-dirty-collision-post-commit-v9", "rawBlockSha256": "3f3ed4b44f3c5357e8d9d2ddf0fc5a1b521d6744e3ce7751f3890a81041fa860" },
         { "marker": "feature004-dirty-collision-foreign-set-v7", "rawBlockSha256": "aec36d5c5287c4b84a81f56eff2d1e8ab6131ac699f048590bb63377009d7239" },
         { "marker": "feature004-dirty-collision-foreign-roadmap-v6", "rawBlockSha256": "287a11c37080dc52f1ed0cd01ce40cd09ff31957cf14df30a89de240eb78d740" },
         { "marker": "feature004-dirty-collision-current-identity-v5", "rawBlockSha256": "511bfd2386ea7cd76020e7d4c604e160e83f7d5843c0a4fc62f2c64750ce4cd6" },
@@ -5885,7 +5885,7 @@ Planning appends one closed v10 successor and routes its exact additive parser h
     "v9SelfIdentityDisposition": {
         "path": "tests/feature-004-dirty-tree-collision.test.mjs",
         "v9CommittedRecord": {
-            "hunkCount": 26,
+            "hunkCount": 37,
             "hunkSequenceSha256": "00d67d39086e104da50d3817a0b85f6979a1efecb293228e108c4ef268c9f7bf",
             "identitySha256": "22547f9234d3f104c69f6eda5f853c9059ef26cfc2f2d77c8125f2d34c561eb4"
         },
@@ -6004,7 +6004,7 @@ Planning appends one closed v10 successor and routes its exact additive parser h
             "byteLength": 284646,
             "additions": 2837,
             "deletions": 39,
-            "hunkCount": 26,
+            "hunkCount": 37,
             "hunkBodySha256": [
                 "483a7d0132e46fbadf5a59ae34ab86a43b510ad25712eb13c15158f9f96909dc",
                 "bd646d505e2b55ce37604be5939a2288d6713a856f9a29aa6b9a3acc7e9529a7",
@@ -6034,8 +6034,8 @@ Planning appends one closed v10 successor and routes its exact additive parser h
                 "6c43110e70190b2de8f6d32675ba679a10650c365224b92c97103d2ffd27089b"
             ],
             "lastCommit": "248543eae6a400f98f086c01ab9669558ec94fd5",
-            "hunkSequenceSha256": "636fcd13ea896518dd0e68e92aafcfd07e56f61d0a70ec6ac0a846e89a1ad5b3",
-            "identitySha256": "a0fb6c00c0398ad171685626c3462ae7b9caf9f0696a8b4eda48e6934c1a12c7"
+            "hunkSequenceSha256": "01a449768987cac42aa6b63640b7e308e23cf23b8ef3222e1264082dc3731715",
+            "identitySha256": "f777010cd48f8f6d36ea28ec0b30b21c5dddcd975d782c48fe1814d2b1687c51"
         }
     },
     "inventoryProof": {
@@ -6133,7 +6133,7 @@ Planning appends one closed v10 successor and routes its exact additive parser h
             { "path": "scripts/fetch-bars.mjs", "pathKind": "tracked", "classification": "feature004-scope1-required", "ownerAttribution": "Feature 004 Scope 1", "feature004OwnershipClaim": true, "transitionClass": "clean-head-index-promotion", "status": "", "hunkCount": 0, "hunkSequenceSha256": "4f53cda18c2baa0c0354bb5f9a3ecbe5ed12ab4d8e11ba873c2f11161202b945", "identitySha256": "4a412242cc4bdca2ab65130695d721c13198875aff4133f237ad2df46c7952ac" },
             { "path": "scripts/selftest.mjs", "pathKind": "tracked", "classification": "feature004-scope1-required", "ownerAttribution": "Feature 004 Scope 1", "feature004OwnershipClaim": true, "transitionClass": "clean-head-index-promotion", "status": "", "hunkCount": 0, "hunkSequenceSha256": "4f53cda18c2baa0c0354bb5f9a3ecbe5ed12ab4d8e11ba873c2f11161202b945", "identitySha256": "874df4c56efa470155e06d55a9e937e7ce117abe9ab725304c94cf09a8a2a4a5" },
             { "path": "tests/fx-regime-relative-value-lab.spec.mjs", "pathKind": "tracked", "classification": "feature004-scope1-required", "ownerAttribution": "Feature 004 Scope 1", "feature004OwnershipClaim": true, "transitionClass": "clean-head-index-promotion", "status": "", "hunkCount": 0, "hunkSequenceSha256": "4f53cda18c2baa0c0354bb5f9a3ecbe5ed12ab4d8e11ba873c2f11161202b945", "identitySha256": "c36b72bf1662f36e4dda767956ad655672365a667e585817c5bd7f1927d41302" },
-            { "path": "tests/feature-004-dirty-tree-collision.test.mjs", "pathKind": "tracked", "classification": "feature004-scope1-required", "ownerAttribution": "Feature 004 Scope 1", "feature004OwnershipClaim": true, "transitionClass": "still-dirty-exact-identity", "status": " M", "hunkCount": 26, "hunkSequenceSha256": "636fcd13ea896518dd0e68e92aafcfd07e56f61d0a70ec6ac0a846e89a1ad5b3", "identitySha256": "a0fb6c00c0398ad171685626c3462ae7b9caf9f0696a8b4eda48e6934c1a12c7" },
+            { "path": "tests/feature-004-dirty-tree-collision.test.mjs", "pathKind": "tracked", "classification": "feature004-scope1-required", "ownerAttribution": "Feature 004 Scope 1", "feature004OwnershipClaim": true, "transitionClass": "still-dirty-exact-identity", "status": " M", "hunkCount": 37, "hunkSequenceSha256": "01a449768987cac42aa6b63640b7e308e23cf23b8ef3222e1264082dc3731715", "identitySha256": "f777010cd48f8f6d36ea28ec0b30b21c5dddcd975d782c48fe1814d2b1687c51" },
             { "path": "tests/feature-004-vehicle-universe.test.mjs", "pathKind": "untracked", "classification": "feature004-scope1-required", "ownerAttribution": "Feature 004 Scope 1", "feature004OwnershipClaim": true, "transitionClass": "untracked-exact-identity", "status": "??", "hunkCount": 0, "hunkSequenceSha256": "4f53cda18c2baa0c0354bb5f9a3ecbe5ed12ab4d8e11ba873c2f11161202b945", "identitySha256": "e57a8e13ec578d8cee974bda22d236244793a17e80527b0e8a7c8708108cefbd" },
             { "path": "tests/feature-004-tool-control-binding.test.mjs", "pathKind": "untracked", "classification": "feature004-scope1-required", "ownerAttribution": "Feature 004 Scope 1", "feature004OwnershipClaim": true, "transitionClass": "untracked-exact-identity", "status": "??", "hunkCount": 0, "hunkSequenceSha256": "4f53cda18c2baa0c0354bb5f9a3ecbe5ed12ab4d8e11ba873c2f11161202b945", "identitySha256": "66de3dfba52efc3690e14961f725b59cc3c98a6bde1b40ed49db2cfebe13b5cb" },
             { "path": "tests/feature-004-brief-eligibility.test.mjs", "pathKind": "untracked", "classification": "feature004-scope1-required", "ownerAttribution": "Feature 004 Scope 1", "feature004OwnershipClaim": true, "transitionClass": "untracked-exact-identity", "status": "??", "hunkCount": 0, "hunkSequenceSha256": "4f53cda18c2baa0c0354bb5f9a3ecbe5ed12ab4d8e11ba873c2f11161202b945", "identitySha256": "4a3c16a2bf2a7d51af863db88fa0eebb9452c0d02f032a26f585830e952fdd6e" },
@@ -6313,7 +6313,7 @@ Planning appends one closed v10 successor and routes its exact additive parser h
     "requiredHead": "153a686c937017ae20a438f7a4a423cf76b019b3",
     "successorOf": {
         "marker": "feature004-dirty-collision-post-commit-v10",
-        "rawBlockSha256": "7b94388fff7796a1c88e6976d617fe8335d89a28120fdc226ec03ceb5b3fc8a0",
+        "rawBlockSha256": "c136cfdf08a841732563364c176dc8b893c2b8680139e9d6f4ba1bfe282a97aa",
         "markerInclusiveByteLength": 40394,
         "contractVersion": "feature004-dirty-collision-post-commit/v10",
         "requiredHead": "153a686c937017ae20a438f7a4a423cf76b019b3",
@@ -6333,8 +6333,8 @@ Planning appends one closed v10 successor and routes its exact additive parser h
         ]
     },
     "extendsContracts": [
-        { "marker": "feature004-dirty-collision-post-commit-v10", "rawBlockSha256": "7b94388fff7796a1c88e6976d617fe8335d89a28120fdc226ec03ceb5b3fc8a0" },
-        { "marker": "feature004-dirty-collision-post-commit-v9", "rawBlockSha256": "8101b4b8f0c0c6da62d9c391c0e65e696294a3e90fd6e04b261c4647b31c6356" },
+        { "marker": "feature004-dirty-collision-post-commit-v10", "rawBlockSha256": "c136cfdf08a841732563364c176dc8b893c2b8680139e9d6f4ba1bfe282a97aa" },
+        { "marker": "feature004-dirty-collision-post-commit-v9", "rawBlockSha256": "3f3ed4b44f3c5357e8d9d2ddf0fc5a1b521d6744e3ce7751f3890a81041fa860" },
         { "marker": "feature004-dirty-collision-foreign-set-v7", "rawBlockSha256": "aec36d5c5287c4b84a81f56eff2d1e8ab6131ac699f048590bb63377009d7239" },
         { "marker": "feature004-dirty-collision-foreign-roadmap-v6", "rawBlockSha256": "287a11c37080dc52f1ed0cd01ce40cd09ff31957cf14df30a89de240eb78d740" },
         { "marker": "feature004-dirty-collision-current-identity-v5", "rawBlockSha256": "511bfd2386ea7cd76020e7d4c604e160e83f7d5843c0a4fc62f2c64750ce4cd6" },
@@ -6362,7 +6362,7 @@ Planning appends one closed v10 successor and routes its exact additive parser h
         "sourceContractSha256": "7ec73108b5159174f341ddeb50dcadac1d9ccc769ccec3484b0e34c6c3d4f9d8",
         "path": "tests/feature-004-dirty-tree-collision.test.mjs",
         "v9CommittedRecord": {
-            "hunkCount": 26,
+            "hunkCount": 37,
             "hunkSequenceSha256": "00d67d39086e104da50d3817a0b85f6979a1efecb293228e108c4ef268c9f7bf",
             "identitySha256": "22547f9234d3f104c69f6eda5f853c9059ef26cfc2f2d77c8125f2d34c561eb4"
         },
@@ -6923,7 +6923,7 @@ Planning appends exactly one closed v12 contract and routes the additive parser 
     },
     "successorOf": {
         "marker": "feature004-dirty-collision-post-commit-v11",
-        "rawBlockSha256": "3ccd91ac43bf8706f392dbdad75d2454f7eec3832f98e5141232ba9a4d54367c",
+        "rawBlockSha256": "321c9e2e713fc487b3613009f0c1655aed7faa76ad5d8de9d97f24de71b32dc0",
         "markerInclusiveByteLength": 48886,
         "contractVersion": "feature004-dirty-collision-post-commit/v11",
         "requiredHead": "153a686c937017ae20a438f7a4a423cf76b019b3",
@@ -6936,9 +6936,9 @@ Planning appends exactly one closed v12 contract and routes the additive parser 
         ]
     },
     "extendsContracts": [
-        { "marker": "feature004-dirty-collision-post-commit-v11", "rawBlockSha256": "3ccd91ac43bf8706f392dbdad75d2454f7eec3832f98e5141232ba9a4d54367c" },
-        { "marker": "feature004-dirty-collision-post-commit-v10", "rawBlockSha256": "7b94388fff7796a1c88e6976d617fe8335d89a28120fdc226ec03ceb5b3fc8a0" },
-        { "marker": "feature004-dirty-collision-post-commit-v9", "rawBlockSha256": "8101b4b8f0c0c6da62d9c391c0e65e696294a3e90fd6e04b261c4647b31c6356" },
+        { "marker": "feature004-dirty-collision-post-commit-v11", "rawBlockSha256": "321c9e2e713fc487b3613009f0c1655aed7faa76ad5d8de9d97f24de71b32dc0" },
+        { "marker": "feature004-dirty-collision-post-commit-v10", "rawBlockSha256": "c136cfdf08a841732563364c176dc8b893c2b8680139e9d6f4ba1bfe282a97aa" },
+        { "marker": "feature004-dirty-collision-post-commit-v9", "rawBlockSha256": "3f3ed4b44f3c5357e8d9d2ddf0fc5a1b521d6744e3ce7751f3890a81041fa860" },
         { "marker": "feature004-dirty-collision-foreign-set-v7", "rawBlockSha256": "aec36d5c5287c4b84a81f56eff2d1e8ab6131ac699f048590bb63377009d7239" },
         { "marker": "feature004-dirty-collision-foreign-roadmap-v6", "rawBlockSha256": "287a11c37080dc52f1ed0cd01ce40cd09ff31957cf14df30a89de240eb78d740" },
         { "marker": "feature004-dirty-collision-current-identity-v5", "rawBlockSha256": "511bfd2386ea7cd76020e7d4c604e160e83f7d5843c0a4fc62f2c64750ce4cd6" },

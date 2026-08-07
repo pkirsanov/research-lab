@@ -5835,6 +5835,38 @@ try {
   const reversedScriptOrder = '<script src="rlattention.js"></script><script src="rlmarketaction.js"></script>';
   assert(reversedScriptOrder.indexOf('src="rlattention.js"') < reversedScriptOrder.indexOf('src="rlmarketaction.js"'),
     'the script-order check really detects the reversed load order');
+
+  /* The publish-time build step (F-017-06). The authoring lane no longer emits a
+     decision-attention/v1 envelope; this step composes every candidate through
+     the certified composer, so compliance is structural instead of advisory. */
+  const attentionBuild = await import('./build-attention-items.mjs');
+  const BUILD_SURFACE = ['buildAttentionItems', 'attentionBuildContext', 'authoredJudgementOnly', 'actionSubjectTickers', 'AUTHORED_JUDGEMENT_KEYS'];
+  const missingBuild = BUILD_SURFACE.filter((name) => attentionBuild[name] === undefined);
+  assert(missingBuild.length === 0,
+    'scripts/build-attention-items.mjs publishes the whole publish-time build surface (missing: ' + (missingBuild.join(', ') || 'none') + ')');
+
+  /* it must CALL the composer, never restate its rules — a second copy of the
+     field contract here is exactly the drift the composer exists to prevent. */
+  const buildSource = read('scripts/build-attention-items.mjs');
+  assert(buildSource.includes('RLATTN.buildAttentionItem'),
+    'the build step composes through rlattention.js rather than assembling an envelope itself');
+  assert(!/headlineMaxChars|DECISION_WINDOWS\s*=/.test(buildSource),
+    'the build step restates no rule that already lives in rlattention.js');
+
+  /* a refused candidate is recorded, never defaulted into shape. */
+  const refusedBuild = attentionBuild.buildAttentionItems(
+    [{ observed: { disposition: 'observed', subject: 'MSFT' }, headline: '' }],
+    JSON.parse(read('market-brief.payload.json')), JSON.parse(read('market-brief.config.json')));
+  assert(refusedBuild.items.length === 0 && refusedBuild.exclusions.length === 1
+    && /^RLATTN-/.test(refusedBuild.exclusions[0].code),
+    'a candidate the composer refuses is excluded with its named RLATTN-* reason (' + JSON.stringify(refusedBuild.exclusions[0] || null).slice(0, 90) + ')');
+
+  /* the duplicate-suppression input is projected onto real tickers: the composer
+     compares subjects by exact match, so handing it action prose would leave a
+     guard that runs and can never fire. */
+  assert(attentionBuild.actionSubjectTickers([{ subject: 'rotate out of XLE now' }], ['XLE']).length === 1
+    && attentionBuild.actionSubjectTickers([{ subject: 'XLERATE holdings' }], ['XLE']).length === 0,
+    'action subjects project down to whole-word watchlist tickers, so the overlap guard can actually fire');
 } catch (e) { failures++; console.log('  \u2717 FAIL (rlattention group threw): ' + e.message); }
 
 /* ---------- bounded history — the cockpit's first load stays affordable forever ---------- */

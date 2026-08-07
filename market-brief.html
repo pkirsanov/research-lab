@@ -1004,7 +1004,7 @@
                 thresholds: { attentionMaxCards: 7, macroCacheMaxAgeMin: 30, notableMemberMinMovePct: 3, notableMemberMaxCount: 4 },
                 macroEvents: []
             };
-            var CFG = null, PAYLOAD = null, WL = null, HIST = null, SNAP = null, TOOLS = null, SCORECARD = null, EXPERIMENTAL = null, experimentalLoading = false, activeWindow = null;
+            var CFG = null, PAYLOAD = null, WL = null, HIST = null, SNAP = null, TOOLS = null, SCORECARD = null, ATTENTION_RECORD = null, EXPERIMENTAL = null, experimentalLoading = false, activeWindow = null;
 
             function el(id) { return document.getElementById(id); }
             function esc(value) { return (value == null ? "" : String(value)).replace(/[&<>"']/g, function (character) { return { "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;", "'": "&#39;" }[character]; }); }
@@ -1410,10 +1410,19 @@
                     host.appendChild(offline);
                     return;
                 }
-                /* No outcome has been closed and published yet, so the honest
-                   input is an empty set — never a placeholder that reads as a
-                   result. */
-                var rate = RLATTN.computeInterruptionRate([], null, generatedAt || null);
+                /* The PUBLISHED record, reduced from the append-only outcome
+                   ledger by scripts/build-attention-scorecard.mjs. Recomputing
+                   from a hardcoded empty array here would pin this block to
+                   "the sample is too small" forever: the ledger could fill up
+                   and the page would keep reporting nothing had closed. When no
+                   record has been published yet the reducer's own empty-set
+                   answer is the honest one — but it comes from the reducer, not
+                   from a literal typed into the renderer. */
+                var published = ATTENTION_RECORD && typeof ATTENTION_RECORD === "object"
+                    ? ATTENTION_RECORD.overall : null;
+                var rate = (published && typeof published === "object")
+                    ? published
+                    : RLATTN.computeInterruptionRate([], null, generatedAt || null);
                 var statement = document.createElement("p");
                 statement.textContent = rate.statement;
                 statement.setAttribute("title", "Whether there is yet enough closed history to publish a hit rate. Reading now: " + rate.closedSample
@@ -1504,8 +1513,8 @@
                 // brief-history.recent.jsonl is the BOUNDED window (last 30 runs, compact projection).
                 // The full per-run history lives in briefs/tier-a/<YYYY-MM>.jsonl and is loaded on demand;
                 // fetching all of it here cost 2.3 MB on every page load and grew without limit.
-                Promise.all([j("market-brief.config.page.json"), j("market-brief.page.json"), j("watchlist.json"), jl("brief-history.recent.jsonl"), j("market-brief.snapshot.page.json"), j("market-brief.tools.page.json"), j("market-brief.scorecard.json")]).then(function (r) {
-                    CFG = r[0] || INLINE_CFG; PAYLOAD = r[1]; WL = r[2] || { items: [] }; HIST = r[3] || []; SNAP = r[4]; TOOLS = r[5] || { tools: [] }; SCORECARD = r[6];
+                Promise.all([j("market-brief.config.page.json"), j("market-brief.page.json"), j("watchlist.json"), jl("brief-history.recent.jsonl"), j("market-brief.snapshot.page.json"), j("market-brief.tools.page.json"), j("market-brief.scorecard.json"), j("market-brief.attention-scorecard.json")]).then(function (r) {
+                    CFG = r[0] || INLINE_CFG; PAYLOAD = r[1]; WL = r[2] || { items: [] }; HIST = r[3] || []; SNAP = r[4]; TOOLS = r[5] || { tools: [] }; SCORECARD = r[6]; ATTENTION_RECORD = r[7];
                     renderWindows(); wire(); renderAll(); setTimeout(refreshLive, 0);
                 });
             }

@@ -4231,11 +4231,11 @@ Planning is complete for the successor schema and route only. Scope 1 remains In
         },
         {
             "marker": "feature004-dirty-collision-script-transitions-v1",
-            "rawBlockSha256": "6939ebd01e0a1b89849b75c9b228e0957c285f8500c6191da5338a5ae58dad69"
+            "rawBlockSha256": "9f6ac503e04bb38a7dd398fc52053f8c62350464c9579a07ab3da8ecd6e79df6"
         },
         {
             "marker": "feature004-superseded-validator-note-v1",
-            "rawBlockSha256": "1df8a233ab8bf6daec8c8081fdb61176e113b5bf4436eb7e3904824265b4f592"
+            "rawBlockSha256": "4ae9f32d42ec5ff2837b2f84da90b812e5f88346c9e84c8b337a400f6923486a"
         },
         {
             "marker": "feature004-dirty-collision-owner-settled-selftest-v1",

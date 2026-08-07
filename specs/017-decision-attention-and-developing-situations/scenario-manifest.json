@@ -48,6 +48,18 @@
     { "scenarioId": "SCN-017-043", "scopeId": "05-legacy-feed-reconciliation-and-acceptance", "scope": 5, "status": "not_started", "evidenceRefs": [] },
     { "scenarioId": "SCN-017-044", "scopeId": "05-legacy-feed-reconciliation-and-acceptance", "scope": 5, "status": "not_started", "evidenceRefs": [] },
     { "scenarioId": "SCN-017-045", "scopeId": "02-publication-path-enforcement", "scope": 2, "status": "not_started", "evidenceRefs": [] },
-    { "scenarioId": "SCN-017-046", "scopeId": "01-attention-capability-module", "scope": 1, "status": "not_started", "evidenceRefs": [] }
+    { "scenarioId": "SCN-017-046", "scopeId": "01-attention-capability-module", "scope": 1, "status": "not_started", "evidenceRefs": [] },
+    { "scenarioId": "SCN-017-047", "scopeId": "06-authoring-lane-composer-routing", "scope": 6, "status": "not_started", "evidenceRefs": [] },
+    { "scenarioId": "SCN-017-048", "scopeId": "06-authoring-lane-composer-routing", "scope": 6, "status": "not_started", "evidenceRefs": [] },
+    { "scenarioId": "SCN-017-049", "scopeId": "06-authoring-lane-composer-routing", "scope": 6, "status": "not_started", "evidenceRefs": [] },
+    { "scenarioId": "SCN-017-050", "scopeId": "06-authoring-lane-composer-routing", "scope": 6, "status": "not_started", "evidenceRefs": [] },
+    { "scenarioId": "SCN-017-051", "scopeId": "06-authoring-lane-composer-routing", "scope": 6, "status": "not_started", "evidenceRefs": [] },
+    { "scenarioId": "SCN-017-052", "scopeId": "06-authoring-lane-composer-routing", "scope": 6, "status": "not_started", "evidenceRefs": [] },
+    { "scenarioId": "SCN-017-053", "scopeId": "06-authoring-lane-composer-routing", "scope": 6, "status": "not_started", "evidenceRefs": [] },
+    { "scenarioId": "SCN-017-021b", "scopeId": "04-outcome-record-and-interruption-rate", "scope": 4, "status": "done", "evidenceRefs": ["tests/rlattention.test.mjs"] },
+    { "scenarioId": "SCN-017-025b", "scopeId": "02-publication-path-enforcement", "scope": 2, "status": "done", "evidenceRefs": ["tests/attention-payload-contract.test.mjs"] },
+    { "scenarioId": "SCN-017-054", "scopeId": "06-authoring-lane-composer-routing", "scope": 6, "status": "done", "evidenceRefs": ["tests/attention-payload-contract.test.mjs"] },
+    { "scenarioId": "SCN-017-055", "scopeId": "04-outcome-record-and-interruption-rate", "scope": 4, "status": "done", "evidenceRefs": ["tests/attention-payload-contract.test.mjs"] },
+    { "scenarioId": "SCN-017-056", "scopeId": "06-authoring-lane-composer-routing", "scope": 6, "status": "done", "evidenceRefs": ["tests/attention-payload-contract.test.mjs"] }
   ]
 }

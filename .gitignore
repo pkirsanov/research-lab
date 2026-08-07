@@ -21,3 +21,6 @@ __pycache__/
 
 # Code-index provider writes its graph in-repo; never commit it.
 .codegraph/
+
+# Transient lock held while a session appends to the state snapshot.
+*.flock

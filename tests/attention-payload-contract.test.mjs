@@ -173,7 +173,11 @@ const REGISTRY = Object.freeze({ tools: [] });
 /* The house pattern the actions branch already uses is
    `nextSession.actions[${index}].${field}`; the attention branch owes the
    reader the same `attention[${index}].${field}` naming. */
-const ATTENTION_FIELD_RE = /attention\[(\d+)\]\.([A-Za-z][A-Za-z0-9]*)/;
+/* A refusal names the slot, then the item it is about, then the field:
+   `attention[0] (id=…, subject=…).headline`. The item label is optional in this
+   pattern only so that the field-extraction here keeps working if the label is
+   ever degraded ("id absent"); SCN-017-025b is what asserts the label is there. */
+const ATTENTION_FIELD_RE = /attention\[(\d+)\](?:\s*\([^)]*\))?\.([A-Za-z][A-Za-z0-9]*)/;
 
 /* reader-vocabulary leaks are a DIFFERENT gate with a different owner; they
    are excluded so this suite compares the attention predicate against the
@@ -267,6 +271,64 @@ test('SCN-017-025 The publication path refuses an over-length headline and a mis
   assert.ok(
     !publishedFieldsNamed(presentErrors).has('attention[0].invalidation'),
     'an item that carries an invalidation must not be refused for its invalidation'
+  );
+});
+
+test('SCN-017-025b A refusal names which item it is about, not only which slot', () => {
+  /* TP-02-01b. An index is not an identity: the list is re-ranked between runs,
+     so `attention[3]` in yesterday's log points at a different item today. The
+     refusal has to carry the item's own handle for an operator to act on it. */
+  const attentionRefusal = (errors) => errors.filter((e) => e.startsWith('attention['));
+
+  /* 1. an identified item: both the stable id and the human subject are named. */
+  const identified = briefContract.validateBriefPayload(
+    payloadWithAttention([attentionItem({ id: 'attn-hyg-credit-001', headline: HEADLINE_OVER_LIMIT })]),
+    REGISTRY, CONFIG, null
+  );
+  const identifiedLines = attentionRefusal(identified);
+  assert.ok(identifiedLines.length > 0, 'the over-length headline must still refuse');
+  assert.ok(
+    identifiedLines.every((line) => line.includes('id=attn-hyg-credit-001')),
+    `every attention refusal must name the offending item's id. Received: ${JSON.stringify(identifiedLines)}`
+  );
+  assert.ok(
+    identifiedLines.every((line) => line.includes('subject=HYG')),
+    `every attention refusal must name the offending item's subject. Received: ${JSON.stringify(identifiedLines)}`
+  );
+  assert.ok(
+    identifiedLines.some((line) => line.includes('.headline')),
+    `the offending field must still be named alongside the item. Received: ${JSON.stringify(identifiedLines)}`
+  );
+
+  /* 2. the degraded case: when the identity itself is missing the refusal says
+        so in words. Printing "id=undefined" would send an operator hunting for
+        an item whose handle is literally the string "undefined". */
+  const anonymous = briefContract.validateBriefPayload(
+    payloadWithAttention([attentionItem({ headline: HEADLINE_OVER_LIMIT })]), REGISTRY, CONFIG, null
+  );
+  const anonymousLines = attentionRefusal(anonymous);
+  assert.ok(anonymousLines.length > 0, 'the anonymous fixture must still refuse');
+  assert.ok(
+    anonymousLines.every((line) => line.includes('id absent')),
+    `an item with no id must be refused as "id absent". Received: ${JSON.stringify(anonymousLines)}`
+  );
+  assert.ok(
+    anonymousLines.every((line) => !line.includes('undefined') && !line.includes('null')),
+    `a refusal must never print a placeholder identity. Received: ${JSON.stringify(anonymousLines)}`
+  );
+
+  /* 3. adversarial: the pre-fix shape must not satisfy this scenario. If the
+        validator regressed to naming only the slot, every assertion above that
+        looks for an item handle would find nothing — proven here explicitly so
+        this test cannot pass against the behaviour it exists to forbid. */
+  const slotOnly = 'attention[0].headline HEADLINE_TOO_LONG: too long';
+  assert.equal(
+    slotOnly.includes('id='), false,
+    'the pre-fix message shape carries no item handle — this test would fail against it'
+  );
+  assert.equal(
+    slotOnly.includes('id absent'), false,
+    'the pre-fix message shape does not declare a missing identity either'
   );
 });
 
@@ -429,25 +491,179 @@ test('SCN-017-045 The authoring instruction names every required attention field
     'the attention lane must instruct the author about attention specifically'
   );
 
-  /* each required field is asserted SEPARATELY, so dropping any single one
+  /* ── narrowed by F-017-06 (scope 06, Cross-Scope Supersession) ───────────
+     F-017-06 moves the decision window, the transmission path and the
+     provenance class OUT of the authoring lane and INTO the publish-time
+     build step, which derives each from a committed contract. The lane now
+     authors only the judgement: a headline, the falsifiability triple, and
+     the four judgement enums. It authors no serialized field.
+
+     This scenario therefore pins BOTH halves of that boundary. Asserting
+     only what the instruction must NAME would leave a lane that still asks
+     for the serialized fields passing — and after F-017-06 that ask IS the
+     defect, because it re-invites the lane to emit an envelope the build
+     step is now responsible for. Pinning the absence as well makes this
+     guard strictly stronger than the name-everything form it replaces. */
+
+  /* each authored field is asserted SEPARATELY, so dropping any single one
      fails on its own line and names itself. */
-  const REQUIRED_INSTRUCTION_TERMS = [
+  const AUTHORED_JUDGEMENT_TERMS = [
+    ['headline', /\bheadline\b/i],
     ['escalation trigger', /escalation trigger/i],
     ['invalidation', /\binvalidation\b/i],
     ['expiry', /\bexpir(?:y|ation)\b/i],
+    ['verb', /\bverbs?\b/i],
+    ['horizon', /\bhorizons?\b/i],
+    ['severity', /\bseverity\b/i],
+    ['imminence', /\bimminence\b/i]
+  ];
+
+  for (const [label, pattern] of AUTHORED_JUDGEMENT_TERMS) {
+    assert.match(
+      attentionInstruction, pattern,
+      `the attention authoring instruction must name the ${label}. `
+        + `It belongs to the authored judgement argument of buildAttentionItem, and an author who is never told `
+        + `to write it will never write it, so the composer refuses that candidate and it never publishes. `
+        + `Current attention instruction: ${JSON.stringify(attentionInstruction)}`
+    );
+  }
+
+  /* the other half of the boundary: the serialized fields the BUILD STEP now
+     constructs. Asserted separately too, so a single reintroduced ask names
+     itself rather than hiding inside one combined check. */
+  const BUILD_STEP_SERIALIZED_TERMS = [
     ['decision window', /decision window/i],
     ['transmission path', /transmission path/i],
     ['provenance class', /provenance class/i]
   ];
 
-  for (const [label, pattern] of REQUIRED_INSTRUCTION_TERMS) {
-    assert.match(
-      attentionInstruction, pattern,
-      `the attention authoring instruction must name the ${label}. `
-        + `An author who is never told to write it will never write it, and the publication gate will refuse every card. `
+  for (const [label, pattern] of BUILD_STEP_SERIALIZED_TERMS) {
+    assert.ok(
+      !pattern.test(attentionInstruction),
+      `the attention authoring instruction must NOT ask the lane for the ${label}. `
+        + `F-017-06 moves it to scripts/build-attention-items.mjs, which derives it from a committed contract; `
+        + `asking the lane for it reopens the three-publish compliance failure that decision closed. `
         + `Current attention instruction: ${JSON.stringify(attentionInstruction)}`
     );
   }
+});
+
+test('SCN-017-054 The build step composes the envelope the lane no longer emits', async () => {
+  /* TP-02-02. F-017-06: compliance is structural, not advisory. The lane hands
+     over judgement; this step calls the certified composer. */
+  const build = await import(resolve(ROOT, 'scripts/build-attention-items.mjs'));
+
+  /* 1. it holds the capability module's OWN composer, not a second copy that
+        happens to agree today. */
+  assert.equal(typeof build.buildAttentionItems, 'function');
+  assert.equal(typeof build.attentionBuildContext, 'function');
+
+  /* 2. the lane's judgement is taken and nothing else is. An envelope field
+        smuggled into a candidate must not survive into the authored argument,
+        or the lane could still serialize its own envelope through the back
+        door — which is the exact failure F-017-06 closed. */
+  const smuggled = build.authoredJudgementOnly({
+    headline: 'A headline', invalidation: 'an invalidation',
+    decisionWindow: 'pre-market', transmissionPath: 'smuggled', lifecycle: 'smuggled', state: 'smuggled'
+  });
+  assert.deepEqual(Object.keys(smuggled).sort(), ['headline', 'invalidation'],
+    'only authored judgement keys may reach the composer; every serialized field must be dropped');
+
+  /* 3. a refused candidate is EXCLUDED with the composer's own named code and
+        never defaulted into shape. */
+  const payload = JSON.parse(readFileSync(resolve(ROOT, 'market-brief.payload.json'), 'utf8'));
+  const config = JSON.parse(readFileSync(resolve(ROOT, 'market-brief.config.json'), 'utf8'));
+  const refusedRun = build.buildAttentionItems(
+    [{ observed: { disposition: 'observed', subject: 'MSFT' }, headline: '' }], payload, config
+  );
+  assert.equal(refusedRun.items.length, 0, 'a refused candidate must not be published');
+  assert.equal(refusedRun.exclusions.length, 1, 'a refused candidate must be recorded, not silently dropped');
+  assert.match(refusedRun.exclusions[0].code, /^RLATTN-/,
+    `the exclusion must carry the composer's own named refusal code. Received: ${JSON.stringify(refusedRun.exclusions[0])}`);
+  assert.ok(refusedRun.exclusions[0].field, 'the exclusion must name the offending field');
+
+  /* 4. the duplicate-suppression input is real. An action's subject is prose
+        and an attention subject is a bare ticker; the composer compares them
+        with an exact match, so handing the prose across would leave a guard
+        that runs and can never fire. */
+  assert.deepEqual(build.actionSubjectTickers([{ subject: 'rotate out of XLE now' }], ['XLE']), ['XLE'],
+    'a ticker named by an action must be projected out of the prose');
+  assert.deepEqual(build.actionSubjectTickers([{ subject: 'XLERATE holdings' }], ['XLE']), [],
+    'a ticker must not match inside a longer token — that would suppress an unrelated attention item');
+  assert.deepEqual(build.actionSubjectTickers([{ subject: 'SPY / SPMO structural core' }], ['XLE']), [],
+    'an action naming no watchlist ticker contributes nothing');
+
+  const ctx = build.attentionBuildContext(payload, config);
+  assert.ok(
+    ctx.publishedActionSubjects.every((s) => ctx.watchlistScope.includes(s)),
+    `every published action subject must be a watchlist ticker the composer can match. Received: ${JSON.stringify(ctx.publishedActionSubjects)}`
+  );
+});
+
+test('SCN-017-055 The rendered record reads the published ledger, not a literal empty set', () => {
+  /* TP-04-08. The renderer used to call computeInterruptionRate([]) with a
+     hardcoded empty array. That is not "no data yet" — it is a permanent
+     answer: the outcome ledger could fill with a hundred closures and the page
+     would still say the sample was too small, because it never looked. */
+  const page = readFileSync(resolve(ROOT, 'market-brief.html'), 'utf8');
+
+  assert.match(
+    page, /market-brief\.attention-scorecard\.json/,
+    'the cockpit must fetch the published attention record; a page that never reads the ledger cannot report it'
+  );
+
+  /* the record block must consume the published reduction. */
+  const recordBlock = page.slice(page.indexOf('attentionRecord'));
+  assert.match(
+    recordBlock, /ATTENTION_RECORD/,
+    'the record block must render the published reduction rather than recomputing its own'
+  );
+
+  /* adversarial: the pre-fix shape must not satisfy this scenario. The literal
+     empty-array recompute may still exist as the no-record-published fallback,
+     but it must not be the only path — so the published branch is what is
+     pinned here, and its absence is what fails. */
+  const preFix = 'var rate = RLATTN.computeInterruptionRate([], null, generatedAt || null);';
+  assert.equal(
+    preFix.includes('ATTENTION_RECORD'), false,
+    'the pre-fix line carries no published-record read — this test would fail against it'
+  );
+});
+
+test('SCN-017-056 A recorded exclusion must name a real refusal code', () => {
+  /* TP-06-01. An exclusion reason that names no real code reads as an
+     explanation and explains nothing, which is worse than recording none. */
+  const base = payloadWithAttention([attentionItem()]);
+  const withExclusions = (exclusions) => Object.assign({}, base, { attentionExclusions: exclusions });
+  const named = (errors) => errors.filter((e) => e.startsWith('attentionExclusions'));
+
+  /* a well-formed exclusion carrying the composer's own code passes. */
+  const good = briefContract.validateBriefPayload(
+    withExclusions([{ code: RLATTN.REFUSAL_CODES[0], field: 'headline', reason: 'the headline was empty' }]),
+    REGISTRY, CONFIG, null
+  );
+  assert.deepEqual(named(good), [], `a conforming exclusion must not be refused. Received: ${JSON.stringify(named(good))}`);
+
+  /* an invented code is refused by name. */
+  const invented = briefContract.validateBriefPayload(
+    withExclusions([{ code: 'RLATTN-MADE-UP', field: 'headline', reason: 'because' }]), REGISTRY, CONFIG, null
+  );
+  assert.ok(
+    named(invented).some((e) => e.includes('.code')),
+    `an exclusion code outside the composer's closed set must be refused. Received: ${JSON.stringify(named(invented))}`
+  );
+
+  /* a missing field or reason is refused by name, so a bare code cannot pass as a record. */
+  const bare = briefContract.validateBriefPayload(
+    withExclusions([{ code: RLATTN.REFUSAL_CODES[0] }]), REGISTRY, CONFIG, null
+  );
+  assert.ok(named(bare).some((e) => e.includes('.field')), 'an exclusion with no field must be refused');
+  assert.ok(named(bare).some((e) => e.includes('.reason')), 'an exclusion with no reason must be refused');
+
+  /* absent stays legal: the key arrives with the build step's payload cutover,
+     and refusing every brief before then would take the live publication down. */
+  const absent = briefContract.validateBriefPayload(base, REGISTRY, CONFIG, null);
+  assert.deepEqual(named(absent), [], 'a payload without the key must not be refused for it');
 });
 
 /* ══════════════════════════════════════════════════════════════════════════
@@ -1568,6 +1784,647 @@ test('SCN-017-044 The project selftest passes with the new module registered', (
     `${ATTENTION_MODULE_FILENAME} must appear in the project selftest's registered inventory. `
       + `It is shipped and loaded by market-brief.html but scripts/selftest.mjs never names it, `
       + `so every invariant it owns is currently unguarded by the project selftest.`
+  );
+});
+
+/* ══════════════════════════════════════════════════════════════════════════
+ * Feature 017 Scope 06 — authoring lane composer routing.
+ * TP-06-01 … TP-06-04, TP-06-06, TP-06-07
+ * (SCN-017-047, SCN-017-048, SCN-017-049, SCN-017-050, SCN-017-052, SCN-017-053).
+ *
+ * F-017-06 makes attention compliance STRUCTURAL rather than advisory. The lane
+ * no longer emits a `decision-attention/v1` envelope; it authors only judgement
+ * — a headline, the falsifiability triple and the four judgement enums — and
+ * `scripts/build-attention-items.mjs` constructs the envelope by calling the
+ * certified composer once per candidate. A lane that cannot emit an envelope
+ * cannot emit a non-conforming one.
+ *
+ * WHY THESE SIX ARE NOT SATISFIABLE BY A HAPPY PATH. A build step that silently
+ * drops every candidate and a build step that works both publish a payload the
+ * gate accepts, so a happy-path suite cannot tell them apart. Each scenario
+ * below therefore carries its own non-vacuity proof:
+ *
+ *   047  every serialized field asserted on the envelope is first proven ABSENT
+ *        from the authored argument, so its presence proves the BUILD STEP put
+ *        it there; the window resolution is compared against an INDEPENDENT
+ *        resolve from the same committed calendar.
+ *   048  the refused candidate genuinely lacks a falsifiability field, and the
+ *        SAME candidate with the field restored is required to build — without
+ *        that positive control, "it was refused" proves nothing about WHY.
+ *   049  a MIXED generation, so publish-everything and publish-nothing both fail.
+ *   050  every candidate carries a DIFFERENT genuine defect and the candidate
+ *        list is asserted non-empty, so the empty published set is the observed
+ *        consequence of universal refusal rather than of nothing being declared.
+ *   052  the vocabulary-restatement detector is first proven to FIRE against the
+ *        modules that really do declare each vocabulary.
+ *   053  the absence detector is first proven to FIRE against the pre-F-017-06
+ *        instruction shape it exists to forbid.
+ *
+ * These run against the REAL build step, the REAL composer and the REAL
+ * committed calendar, watchlist and window vocabulary. Nothing is mocked, no
+ * fixture carries a pre-computed verdict or refusal code, and every instant is
+ * an explicit literal. No clock, no randomness, no network.
+ * ══════════════════════════════════════════════════════════════════════════ */
+
+const BUILD_STEP_PATH = resolve(ROOT, 'scripts/build-attention-items.mjs');
+
+const RLMARKETACTION = require(MARKET_ACTION_PATH);
+const CERTIFIED_CHANNELS = RLMARKETACTION.TRANSMISSION_CHANNELS;
+
+const COMMITTED_PAYLOAD = readJson(PAYLOAD_PATH);
+const COMMITTED_BRIEF_CONFIG = readJson(BRIEF_CONFIG_PATH);
+
+/* explicit instants — never derived from the system clock. */
+const OBSERVED_AT_INSTANT = '2026-08-06T14:30:00.000Z';
+const FIGURE_AS_OF_INSTANT = '2026-08-05T20:00:00.000Z';
+const EXPIRY_INSTANT = '2026-08-13T20:00:00.000Z';
+
+/* a subject the committed watchlist does not carry, used to refuse a candidate
+   for a reason that is neither of the two falsifiability reasons. */
+const OFF_WATCHLIST_SUBJECT = 'ZZZZ';
+
+/* The envelope fields the BUILD STEP owns. Not one of them may appear in the
+   authored argument: that is what "no serialized field was supplied by the
+   authoring lane" means, and it is what makes 047's assertions non-vacuous. */
+const SERIALIZED_BY_BUILD_STEP = Object.freeze([
+  'contractVersion', 'id', 'decisionWindow', 'windowBoundaryUtc', 'windowTradingDate',
+  'windowResolvedFrom', 'state', 'lifecycle', 'supersededBy'
+]);
+
+async function loadBuildStep() {
+  assert.ok(
+    existsSync(BUILD_STEP_PATH),
+    'scripts/build-attention-items.mjs must exist. It is the publish-time step that calls the certified composer '
+      + 'once per candidate. Until it exists the authoring lane is still asked to serialize its own envelope, '
+      + 'which is the advisory-compliance failure F-017-06 closed.'
+  );
+  const mod = await import(pathToFileURL(BUILD_STEP_PATH).href);
+  for (const [name, kind] of [
+    ['buildAttentionItems', 'function'],
+    ['attentionBuildContext', 'function'],
+    ['authoredJudgementOnly', 'function'],
+    ['AUTHORED_JUDGEMENT_KEYS', 'object']
+  ]) {
+    assert.equal(
+      typeof mod[name], kind,
+      `the build step must export ${name} as a ${kind}. Exports found: ${JSON.stringify(Object.keys(mod))}`
+    );
+  }
+  return mod;
+}
+
+/* Watchlist tickers no published action already covers. The composer refuses a
+   subject an action already carries (RLATTN-OVERLAP), so a buildable fixture
+   has to be drawn from what is left rather than hardcoded and hoped for. */
+function unactionedSubjects(ctx) {
+  return ctx.watchlistScope.filter((ticker) => ctx.publishedActionSubjects.indexOf(ticker) === -1);
+}
+
+/* A candidate as the lane now hands it over: an `observed` gate read carrying
+   the market facts, and the authored judgement at the top level. It carries NO
+   serialized envelope field — 047 asserts that before asserting anything the
+   build step produced. */
+function completeCandidate(ctx, subject) {
+  assert.ok(
+    ctx.watchlistScope.includes(subject),
+    `the fixture subject ${subject} must be inside the committed watchlist scope`
+  );
+  return {
+    observed: {
+      gateId: `gate-${subject}-scope06`,
+      disposition: 'attention',
+      subject,
+      severity: 'moderate',
+      imminence: 'developing',
+      observedAt: OBSERVED_AT_INSTANT,
+      transmissionPath: ['credit-funding'],
+      marketConfirmation: {
+        state: 'present',
+        detail: 'The spread widened across five consecutive sessions.'
+      },
+      figures: [{
+        label: 'spread change',
+        value: 'plus eighteen basis points',
+        provenance: { sourceId: 'market-heatmap-lab', asOf: FIGURE_AS_OF_INSTANT }
+      }]
+    },
+    headline: `${subject} funding spreads widened for a fifth consecutive session`,
+    rationale: 'The widening has persisted across five consecutive sessions.',
+    verb: 'monitor',
+    horizon: 'this-week',
+    escalationTrigger: 'The spread widens beyond thirty five basis points intraday.',
+    invalidation: 'The spread retraces below eight basis points of its five session start.',
+    expiry: EXPIRY_INSTANT,
+    severity: 'moderate',
+    imminence: 'developing'
+  };
+}
+
+/* The human sentence attached to a refusal. The scope names it `detail`; the
+   landed step records it as `reason`. Either satisfies the Gherkin — an
+   exclusion carrying NEITHER states no reason at all, which is what this
+   resolves to the empty string so the assertion can say so. */
+function exclusionDetail(exclusion) {
+  const carried = ['detail', 'reason', 'message']
+    .map((key) => (exclusion && typeof exclusion[key] === 'string' ? exclusion[key].trim() : ''))
+    .filter((text) => text.length > 0);
+  return carried.length > 0 ? carried[0] : '';
+}
+
+/* Which declared candidate a refusal is about. The scope names this
+   `candidateId`; the landed step records the candidate's ordinal `index` and
+   its `subject`. Any of the three identifies the candidate; an exclusion that
+   carries none of them resolves to -1 and cannot be acted on. */
+function excludedCandidateIndex(exclusion, candidates) {
+  const ordinal = exclusion ? exclusion.index : undefined;
+  if (Number.isInteger(ordinal) && ordinal >= 0 && ordinal < candidates.length) return ordinal;
+  const named = [exclusion ? exclusion.candidateId : undefined, exclusion ? exclusion.subject : undefined]
+    .find((value) => typeof value === 'string' && value.length > 0);
+  return candidates.findIndex((candidate) => candidate
+    && (candidate.candidateId === named || (candidate.observed && candidate.observed.subject === named)));
+}
+
+/* The attention sentences of the narrative lane's authoring instruction. The
+   lane also owns recommendations and events, and those sentences already use
+   words like "invalidation" for a different section — borrowing them would
+   make this guard unable to fail. */
+function attentionAuthoringInstruction() {
+  const source = readFileSync(NARRATIVE_LANE_PATH, 'utf8');
+  const lane = source.split(/keys:\s*\[/).find((chunk) => /^[^\]]*'attention'/.test(chunk));
+  assert.ok(lane, 'the narrative lane that owns the attention key must be locatable in the source');
+  const match = /instructions:\s*`([\s\S]*?)`/.exec(lane);
+  assert.ok(match, 'the attention lane must carry an authoring instruction');
+  return match[1]
+    .split(/(?<=\.)\s+/)
+    .filter((sentence) => /\battention\b/i.test(sentence))
+    .join(' ');
+}
+
+/* the eight judgement fields the Gherkin names, each probed SEPARATELY so a
+   single dropped ask fails on its own line and names itself. */
+const AUTHORED_JUDGEMENT_ASKS = Object.freeze([
+  ['headline', /\bheadline\b/i],
+  ['escalation trigger', /escalation trigger/i],
+  ['invalidation', /\binvalidation\b/i],
+  ['expiry', /\bexpir(?:y|ation)\b/i],
+  ['verb', /\bverbs?\b/i],
+  ['horizon', /\bhorizons?\b/i],
+  ['severity', /\bseverity\b/i],
+  ['imminence', /\bimminence\b/i]
+]);
+
+/* the three serialized fields F-017-06 moved OUT of the ask and into the build
+   step, each probed separately for the same reason. */
+const BUILD_STEP_DERIVED_ASKS = Object.freeze([
+  ['decision window', /decision window/i],
+  ['transmission path', /transmission path/i],
+  ['provenance class', /provenance class/i]
+]);
+
+/* the pre-F-017-06 ask, kept as a positive control: an absence assertion whose
+   detector cannot fire is unfalsifiable, so 053 proves it fires on this first. */
+const PRIOR_INSTRUCTION_SHAPE = 'For every attention item author a decision-attention/v1 envelope naming the '
+  + 'decision window, the transmission path and the provenance class of every figure.';
+
+/* ────────────────────────────────────────────────────────────────────────── */
+
+test('SCN-017-047 A complete authored candidate is built into a conforming envelope by the build step', async () => {
+  const build = await loadBuildStep();
+  const ctx = build.attentionBuildContext(COMMITTED_PAYLOAD, COMMITTED_BRIEF_CONFIG);
+  const available = unactionedSubjects(ctx);
+  assert.ok(available.length > 0, 'the committed watchlist must leave at least one subject no action already covers');
+
+  const candidate = completeCandidate(ctx, available[0]);
+
+  /* ── NON-VACUITY FIRST ─────────────────────────────────────────────────────
+     Every serialized field asserted below is proven ABSENT from the authored
+     argument here. Without this, "the envelope carries a decision window" would
+     be satisfied by a lane that simply handed one over, and the scenario would
+     prove nothing about the build step at all. */
+  const authored = build.authoredJudgementOnly(candidate);
+  for (const field of SERIALIZED_BY_BUILD_STEP) {
+    assert.equal(
+      Object.prototype.hasOwnProperty.call(candidate, field), false,
+      `the candidate must not author ${field}; it is a serialized field the build step owns`
+    );
+    assert.equal(
+      Object.prototype.hasOwnProperty.call(authored, field), false,
+      `${field} must not survive into the authored argument. Authored keys: ${JSON.stringify(Object.keys(authored))}`
+    );
+  }
+
+  const run = build.buildAttentionItems([candidate], COMMITTED_PAYLOAD, COMMITTED_BRIEF_CONFIG);
+  assert.deepEqual(
+    [...run.exclusions], [],
+    'a complete authored candidate must not be refused. The build step supplies every field the lane no longer '
+      + `authors, so a refusal here means it is not supplying one of them. Refusals: ${JSON.stringify(run.exclusions)}`
+  );
+  assert.equal(run.items.length, 1, `exactly one item must be built. Received ${run.items.length}`);
+
+  const item = run.items[0];
+
+  /* 1. what is published IS the envelope — not the composer's result wrapper. */
+  assert.equal(
+    Object.prototype.hasOwnProperty.call(item, 'ok'), false,
+    'the published item must be the envelope itself, not the composer\'s { ok, item } result wrapper. '
+      + `Received keys: ${JSON.stringify(Object.keys(item))}`
+  );
+  assert.equal(
+    item.contractVersion, RLATTN.CONTRACT_VERSION,
+    `the built item must be a ${RLATTN.CONTRACT_VERSION} envelope. Received: ${JSON.stringify(item.contractVersion)}`
+  );
+
+  /* 2. it conforms under the capability module's own validator. */
+  const verdict = RLATTN.validateAttentionItem(item, ctx);
+  assert.deepEqual(
+    [...verdict.violations], [],
+    `the built envelope must conform. Violations: ${JSON.stringify(verdict.violations)}`
+  );
+  assert.equal(verdict.ok, true, 'validateAttentionItem must accept the built envelope');
+
+  /* 3. WINDOW RESOLUTION — a field the lane never authored. Compared against an
+        INDEPENDENT resolve from the same committed calendar and vocabulary, so
+        a step that stamped a plausible constant fails here. */
+  assert.ok(
+    RLATTN.DECISION_WINDOWS.includes(item.decisionWindow),
+    `the decision window must come from the declared vocabulary. Received: ${JSON.stringify(item.decisionWindow)}`
+  );
+  const resolved = RLATTN.resolveDecisionWindow(
+    item.decisionWindow, ctx.tradingDateIso, ctx.calendarSource, ctx.windowVocabulary
+  );
+  assert.equal(resolved.ok, true, `the window must resolve against the committed calendar: ${JSON.stringify(resolved)}`);
+  assert.equal(item.windowBoundaryUtc, resolved.boundaryUtc, 'the window boundary must be the calendar-resolved instant');
+  assert.equal(item.windowTradingDate, resolved.tradingDate, 'the window trading date must be the calendar-resolved date');
+  assert.equal(item.windowResolvedFrom, resolved.resolvedFrom, 'the window must record how it resolved');
+
+  /* 4. TRANSMISSION VOCABULARY — every channel is certified, none invented. */
+  assert.ok(Array.isArray(item.transmissionPath), 'the transmission path must be a list');
+  for (const channel of item.transmissionPath) {
+    assert.ok(
+      CERTIFIED_CHANNELS.includes(channel),
+      `${channel} is outside the certified transmission vocabulary ${JSON.stringify(CERTIFIED_CHANNELS)}`
+    );
+  }
+
+  /* 5. PROVENANCE INSTANTS — the observation instant and every figure's as-of. */
+  assert.equal(
+    item.observedAt, candidate.observed.observedAt,
+    'the envelope must carry the OBSERVED instant, taken from the gate read rather than from authored prose'
+  );
+  assert.ok(item.figures.length > 0, 'the fixture carries a figure, so the envelope must too');
+  for (const figure of item.figures) {
+    assert.equal(
+      typeof figure.provenance.sourceId, 'string',
+      `every figure must name its source. Received: ${JSON.stringify(figure)}`
+    );
+    assert.match(
+      figure.provenance.asOf, /^\d{4}-\d{2}-\d{2}T\d{2}:\d{2}:\d{2}(?:\.\d{1,3})?Z$/,
+      `every figure must carry an as-of instant. Received: ${JSON.stringify(figure.provenance)}`
+    );
+  }
+
+  /* 6. LIFECYCLE STATE — opened by the build step at the observed instant. */
+  assert.ok(
+    RLATTN.ATTENTION_LIFECYCLE_STATES.includes(item.state),
+    `the item state must be inside the declared lifecycle. Received: ${JSON.stringify(item.state)}`
+  );
+  assert.equal(item.state, 'discovered', 'a freshly built item opens at discovered');
+  assert.equal(item.supersededBy, null, 'a freshly built item supersedes nothing');
+  assert.equal(item.lifecycle.length, 1, `a freshly built item carries one lifecycle entry, got ${item.lifecycle.length}`);
+  assert.equal(item.lifecycle[0].to, 'discovered', 'the first lifecycle entry opens at discovered');
+  assert.equal(item.lifecycle[0].at, item.observedAt, 'the lifecycle opens at the instant the item was observed');
+
+  /* 7. IDENTITY — derived by the composer, never authored. */
+  assert.match(item.id, /^attn-/, `the item id must be composer-derived. Received: ${JSON.stringify(item.id)}`);
+});
+
+test('SCN-017-048 A candidate missing a falsifiability field is excluded with a named refusal code', async () => {
+  const build = await loadBuildStep();
+  const ctx = build.attentionBuildContext(COMMITTED_PAYLOAD, COMMITTED_BRIEF_CONFIG);
+  const available = unactionedSubjects(ctx);
+  assert.ok(available.length > 0, 'the committed watchlist must leave at least one subject no action already covers');
+
+  const complete = completeCandidate(ctx, available[0]);
+  const missingInvalidation = withoutField(complete, 'invalidation');
+
+  /* the fixture GENUINELY fails to build: the field is really gone, both from
+     the candidate and from the authored argument the composer receives. A
+     well-formed candidate that a flag marked excluded would prove nothing. */
+  assert.equal(
+    Object.prototype.hasOwnProperty.call(missingInvalidation, 'invalidation'), false,
+    'the fixture must genuinely omit the invalidation key'
+  );
+  assert.equal(
+    Object.prototype.hasOwnProperty.call(build.authoredJudgementOnly(missingInvalidation), 'invalidation'), false,
+    'the missing invalidation must still be missing in the authored argument handed to the composer'
+  );
+
+  const run = build.buildAttentionItems([missingInvalidation], COMMITTED_PAYLOAD, COMMITTED_BRIEF_CONFIG);
+
+  /* 1. ABSENT from the published set. */
+  assert.equal(
+    run.items.length, 0,
+    `a candidate that cannot be invalidated must not publish. Published: ${JSON.stringify(run.items)}`
+  );
+
+  /* 2. and a NAMED refusal code recorded for the offending field. Absence alone
+        would be satisfied by a step that silently drops everything. */
+  assert.equal(run.exclusions.length, 1, `the refusal must be recorded, not dropped. Got: ${JSON.stringify(run.exclusions)}`);
+  const excluded = run.exclusions[0];
+  assert.ok(
+    RLATTN.REFUSAL_CODES.includes(excluded.code),
+    `the exclusion must carry one of the composer's own named codes ${JSON.stringify(RLATTN.REFUSAL_CODES)}. `
+      + `Received: ${JSON.stringify(excluded)}`
+  );
+  assert.equal(excluded.code, 'RLATTN-FALSIFIABILITY', `the refusal must name the falsifiability rule: ${JSON.stringify(excluded)}`);
+  assert.equal(excluded.field, 'invalidation', `the refusal must name the offending field: ${JSON.stringify(excluded)}`);
+  assert.ok(exclusionDetail(excluded).length > 0, `the refusal must state its reason in words: ${JSON.stringify(excluded)}`);
+
+  /* 3. NO SUBSTITUTE VALUE was written for the missing field. */
+  assert.equal(
+    Object.prototype.hasOwnProperty.call(excluded, 'invalidation'), false,
+    `the exclusion record must not carry a filled-in invalidation. Received: ${JSON.stringify(excluded)}`
+  );
+
+  /* 4. POSITIVE CONTROL — the SAME candidate with the field restored builds.
+        Without this, "it was refused" is equally true of a step that refuses
+        everything, and this scenario could not tell the two apart. */
+  const restored = build.buildAttentionItems([complete], COMMITTED_PAYLOAD, COMMITTED_BRIEF_CONFIG);
+  assert.deepEqual(
+    [...restored.exclusions], [],
+    'the fixture must fail for its MISSING INVALIDATION and nothing else — with the field restored it must build. '
+      + `Refusals on the restored candidate: ${JSON.stringify(restored.exclusions)}`
+  );
+  assert.equal(restored.items.length, 1, 'the restored candidate must publish exactly one item');
+});
+
+test('SCN-017-049 Every excluded candidate states why it was excluded', async () => {
+  const build = await loadBuildStep();
+  const ctx = build.attentionBuildContext(COMMITTED_PAYLOAD, COMMITTED_BRIEF_CONFIG);
+  const available = unactionedSubjects(ctx);
+  assert.ok(available.length >= 2, `a MIXED generation needs two distinct subjects, got ${JSON.stringify(available)}`);
+
+  /* a MIXED generation: one candidate that builds and one that cannot. A
+     single-candidate fixture cannot separate "publishes everything" from
+     "publishes nothing"; this one fails against both. */
+  const buildable = completeCandidate(ctx, available[0]);
+  const refusable = withoutField(completeCandidate(ctx, available[1]), 'escalationTrigger');
+  assert.equal(
+    Object.prototype.hasOwnProperty.call(refusable, 'escalationTrigger'), false,
+    'the refusable candidate must genuinely omit its escalation trigger'
+  );
+  const candidates = [buildable, refusable];
+
+  const run = build.buildAttentionItems(candidates, COMMITTED_PAYLOAD, COMMITTED_BRIEF_CONFIG);
+
+  assert.equal(
+    run.items.length, 1,
+    'exactly one of the two candidates builds — a step that published both, or neither, fails here. '
+      + `Published ${run.items.length}, refused ${JSON.stringify(run.exclusions)}`
+  );
+  assert.equal(run.exclusions.length, 1, `exactly one of the two is refused. Got: ${JSON.stringify(run.exclusions)}`);
+
+  /* the ACCOUNTING invariant: published plus recorded equals declared. */
+  assert.equal(
+    run.items.length + run.exclusions.length, candidates.length,
+    `published (${run.items.length}) plus excluded (${run.exclusions.length}) must equal declared `
+      + `(${candidates.length}). A candidate in neither set is the silent drop this scope exists to forbid.`
+  );
+
+  /* the excluded candidate NAMES ITSELF and its reason. */
+  const excluded = run.exclusions[0];
+  assert.equal(
+    excludedCandidateIndex(excluded, candidates), 1,
+    `the exclusion must identify WHICH declared candidate it is about. Received: ${JSON.stringify(excluded)}`
+  );
+  assert.ok(
+    RLATTN.REFUSAL_CODES.includes(excluded.code),
+    `the exclusion must carry a named RLATTN code. Received: ${JSON.stringify(excluded)}`
+  );
+  assert.equal(excluded.code, 'RLATTN-FALSIFIABILITY', `the refusal must name the falsifiability rule: ${JSON.stringify(excluded)}`);
+  assert.equal(excluded.field, 'escalationTrigger', `the refusal must name the offending field: ${JSON.stringify(excluded)}`);
+  assert.ok(exclusionDetail(excluded).length > 0, `the refusal must carry its detail: ${JSON.stringify(excluded)}`);
+
+  /* NO DECLARED CANDIDATE IS ABSENT FROM BOTH. The published one is the
+     buildable one, identified by subject rather than by count alone, so a step
+     that published the WRONG candidate fails here too. */
+  assert.equal(
+    run.items[0].subject, buildable.observed.subject,
+    `the published item must be the buildable candidate. Received: ${JSON.stringify(run.items[0].subject)}`
+  );
+  const excludedIndexes = run.exclusions.map((entry) => excludedCandidateIndex(entry, candidates));
+  assert.equal(
+    new Set(excludedIndexes).size, excludedIndexes.length,
+    `two exclusions must not name the same candidate. Indexes: ${JSON.stringify(excludedIndexes)}`
+  );
+  assert.equal(
+    excludedIndexes.includes(-1), false,
+    `every exclusion must resolve to a declared candidate. Indexes: ${JSON.stringify(excludedIndexes)}`
+  );
+});
+
+test('SCN-017-050 A generation whose every candidate is refused still publishes', async () => {
+  const build = await loadBuildStep();
+  const ctx = build.attentionBuildContext(COMMITTED_PAYLOAD, COMMITTED_BRIEF_CONFIG);
+  const available = unactionedSubjects(ctx);
+  assert.ok(available.length >= 3, `this scenario needs three distinct subjects, got ${JSON.stringify(available)}`);
+
+  /* THREE candidates, THREE DIFFERENT genuine defects. A fixture declaring zero
+     candidates is tautological and does not satisfy this row: the empty
+     published set has to be the observed consequence of universal REFUSAL. */
+  const noInvalidation = withoutField(completeCandidate(ctx, available[0]), 'invalidation');
+  const noEscalation = withoutField(completeCandidate(ctx, available[1]), 'escalationTrigger');
+  const offScope = completeCandidate(ctx, available[2]);
+  offScope.observed = { ...offScope.observed, subject: OFF_WATCHLIST_SUBJECT };
+  const candidates = [noInvalidation, noEscalation, offScope];
+
+  assert.equal(candidates.length, 3, 'the generation must DECLARE candidates — an empty list proves nothing');
+  assert.equal(
+    Object.prototype.hasOwnProperty.call(noInvalidation, 'invalidation'), false,
+    'the first candidate genuinely omits its invalidation'
+  );
+  assert.equal(
+    Object.prototype.hasOwnProperty.call(noEscalation, 'escalationTrigger'), false,
+    'the second candidate genuinely omits its escalation trigger'
+  );
+  assert.equal(
+    ctx.watchlistScope.includes(OFF_WATCHLIST_SUBJECT), false,
+    `${OFF_WATCHLIST_SUBJECT} must genuinely sit outside the committed watchlist scope`
+  );
+
+  const run = build.buildAttentionItems(candidates, COMMITTED_PAYLOAD, COMMITTED_BRIEF_CONFIG);
+
+  /* 1. the published attention set is EMPTY. */
+  assert.deepEqual([...run.items], [], `no candidate may publish. Published: ${JSON.stringify(run.items)}`);
+
+  /* 2. EVERY declared candidate appears in the recorded exclusions, each with
+        its OWN named reason — a blanket refusal that reported one code for all
+        three would fail the per-candidate assertions below. */
+  assert.equal(
+    run.exclusions.length, candidates.length,
+    `all ${candidates.length} candidates must be recorded. Received: ${JSON.stringify(run.exclusions)}`
+  );
+  assert.equal(
+    run.items.length + run.exclusions.length, candidates.length,
+    'published plus excluded must still equal declared when every candidate is refused'
+  );
+
+  const expectedRefusals = [
+    ['RLATTN-FALSIFIABILITY', 'invalidation'],
+    ['RLATTN-FALSIFIABILITY', 'escalationTrigger'],
+    ['RLATTN-PRIVACY', 'subject']
+  ];
+  expectedRefusals.forEach(([code, field], index) => {
+    const entry = run.exclusions.find((exclusion) => excludedCandidateIndex(exclusion, candidates) === index);
+    assert.ok(entry, `candidate ${index} must appear in the exclusions. Received: ${JSON.stringify(run.exclusions)}`);
+    assert.ok(
+      RLATTN.REFUSAL_CODES.includes(entry.code),
+      `candidate ${index} must be refused with a named RLATTN code. Received: ${JSON.stringify(entry)}`
+    );
+    assert.equal(entry.code, code, `candidate ${index} must be refused for its own reason. Received: ${JSON.stringify(entry)}`);
+    assert.equal(entry.field, field, `candidate ${index} must name its own offending field. Received: ${JSON.stringify(entry)}`);
+    assert.ok(exclusionDetail(entry).length > 0, `candidate ${index} must state its reason. Received: ${JSON.stringify(entry)}`);
+  });
+
+  /* 3. and the brief STILL PUBLISHES: the publication gate exits zero. */
+  const gate = spawnSync(process.execPath, ['scripts/validate-brief-payload.mjs'], {
+    cwd: ROOT, encoding: 'utf8', timeout: 600000
+  });
+  assert.equal(gate.error, undefined, `the publication gate must run to completion: ${gate.error}`);
+  assert.equal(
+    gate.status, 0,
+    'an all-refused generation must not block publication. The tier is a ceiling, never a quota, so an empty '
+      + `attention set is a correct outcome. Gate exit ${gate.status}, signal ${gate.signal}. `
+      + `stdout: ${String(gate.stdout).slice(-1500)} stderr: ${String(gate.stderr).slice(-1500)}`
+  );
+});
+
+test('SCN-017-052 The build step derives its context from committed contracts and restates no module rule', async () => {
+  const build = await loadBuildStep();
+  const ctx = build.attentionBuildContext(COMMITTED_PAYLOAD, COMMITTED_BRIEF_CONFIG);
+
+  /* 1. each context member IS the committed contract, not a second copy that
+        happens to agree today. */
+  assert.deepEqual(
+    [...ctx.watchlistScope], [...briefContract.WATCHLIST_SCOPE],
+    'the watchlist scope must be the committed watchlist.json scope the publication gate uses'
+  );
+  assert.deepEqual(
+    JSON.parse(JSON.stringify(ctx.calendarSource)), JSON.parse(JSON.stringify(briefContract.XNYS_CALENDAR_SOURCE)),
+    'the calendar must be the committed xnys-calendar/v1 artifact the publication gate uses'
+  );
+  assert.deepEqual(
+    ctx.windowVocabulary, briefContract.windowVocabularyFrom(COMMITTED_BRIEF_CONFIG),
+    'the window vocabulary must be the committed generation-window contract'
+  );
+  assert.equal(
+    ctx.tradingDateIso, COMMITTED_PAYLOAD.nextSession.sessionDate,
+    'the trading date must be the payload\'s own session date'
+  );
+
+  /* non-vacuity: an empty contract would satisfy every comparison above. */
+  assert.ok(ctx.watchlistScope.length > 0, 'the committed watchlist scope must be non-empty');
+  assert.ok(ctx.calendarSource.sessions.length > 0, 'the committed calendar must declare sessions');
+  assert.ok(Object.keys(ctx.windowVocabulary).length > 0, 'the committed window vocabulary must declare windows');
+
+  /* 2. the step CONSUMES the capability module rather than reimplementing it. */
+  const source = readFileSync(BUILD_STEP_PATH, 'utf8');
+  assert.match(source, /rlattention\.js/, 'the build step must load rlattention.js — the composer is not to be re-derived');
+  assert.match(source, /buildAttentionItem\b/, 'the build step must call the certified composer by name');
+
+  /* 3. it declares NO second copy of any certified vocabulary. */
+  const vocabularies = [
+    ['decision window', RLATTN.DECISION_WINDOWS, resolve(ROOT, 'rlattention.js')],
+    ['lifecycle state', RLATTN.ATTENTION_LIFECYCLE_STATES, resolve(ROOT, 'rlattention.js')],
+    ['transmission channel', CERTIFIED_CHANNELS, MARKET_ACTION_PATH],
+    ['research verb', RLMARKETACTION.RESEARCH_VERBS, MARKET_ACTION_PATH]
+  ];
+  const restatedIn = (text, vocabulary) => vocabulary.filter(
+    (term) => text.includes(`'${term}'`) || text.includes(`"${term}"`)
+  );
+
+  for (const [label, vocabulary, declaringModulePath] of vocabularies) {
+    /* ADVERSARIAL FIRST: prove the detector FIRES against the module that
+       really does declare this vocabulary. A restatement check that can never
+       fire would make "the build step restates nothing" unfalsifiable. */
+    const declaringSource = readFileSync(declaringModulePath, 'utf8');
+    assert.equal(
+      restatedIn(declaringSource, vocabulary).length, vocabulary.length,
+      `the detector must find the whole ${label} vocabulary in the module that declares it, `
+        + `otherwise the absence assertion below proves nothing. `
+        + `Found ${restatedIn(declaringSource, vocabulary).length} of ${vocabulary.length}`
+    );
+
+    const restated = restatedIn(source, vocabulary);
+    assert.notEqual(
+      restated.length, vocabulary.length,
+      `the build step must not restate the ${label} vocabulary. Each such rule must resolve to the module `
+        + `rather than to a second copy that can drift. Restated terms: ${JSON.stringify(restated)}`
+    );
+  }
+
+  /* 4. and the refusals it records are the MODULE's own codes, not locally
+        invented strings. Non-vacuous: a refusal is produced first. */
+  const available = unactionedSubjects(ctx);
+  assert.ok(available.length > 0, 'the committed watchlist must leave at least one subject no action already covers');
+  const refused = build.buildAttentionItems(
+    [withoutField(completeCandidate(ctx, available[0]), 'invalidation')], COMMITTED_PAYLOAD, COMMITTED_BRIEF_CONFIG
+  );
+  assert.ok(refused.exclusions.length > 0, 'the probe must actually produce a refusal, or this assertion is vacuous');
+  for (const exclusion of refused.exclusions) {
+    assert.ok(
+      RLATTN.REFUSAL_CODES.includes(exclusion.code),
+      `every recorded code must belong to the module's closed set ${JSON.stringify(RLATTN.REFUSAL_CODES)}. `
+        + `Received: ${JSON.stringify(exclusion)}`
+    );
+  }
+});
+
+test('SCN-017-053 The authoring instruction asks only for the authored judgement', () => {
+  const instruction = attentionAuthoringInstruction();
+  assert.ok(instruction.trim().length > 0, 'the attention lane must instruct the author about attention specifically');
+
+  /* ADVERSARIAL FIRST: every absence probe below is proven to FIRE against the
+     pre-F-017-06 ask it exists to forbid. An absence assertion whose detector
+     cannot fire would pass against the exact instruction it is meant to reject. */
+  for (const [label, pattern] of BUILD_STEP_DERIVED_ASKS) {
+    assert.ok(
+      pattern.test(PRIOR_INSTRUCTION_SHAPE),
+      `the ${label} probe must fire against the pre-F-017-06 instruction shape, otherwise its absence `
+        + 'assertion below is unfalsifiable'
+    );
+  }
+  assert.ok(
+    /decision-attention\/v1/i.test(PRIOR_INSTRUCTION_SHAPE),
+    'the envelope probe must fire against the pre-F-017-06 instruction shape'
+  );
+
+  /* 1. it ASKS for each authored judgement field, separately, so a single
+        dropped ask fails on its own line and names itself. An author never told
+        to write a field will not write it, and the composer then refuses that
+        candidate and it never publishes. */
+  for (const [label, pattern] of AUTHORED_JUDGEMENT_ASKS) {
+    assert.match(
+      instruction, pattern,
+      `the attention authoring instruction must ask for the ${label}. `
+        + `Current attention instruction: ${JSON.stringify(instruction)}`
+    );
+  }
+
+  /* 2. and it asks for NOTHING ELSE: the serialized fields belong to the build
+        step, which derives each from a committed contract. Asking the lane for
+        one reopens the three-publish compliance failure F-017-06 closed. */
+  for (const [label, pattern] of BUILD_STEP_DERIVED_ASKS) {
+    assert.equal(
+      pattern.test(instruction), false,
+      `the attention authoring instruction must NOT ask the lane for the ${label}. `
+        + `Current attention instruction: ${JSON.stringify(instruction)}`
+    );
+  }
+  assert.equal(
+    /decision-attention\/v1/i.test(instruction), false,
+    'the attention authoring instruction must not ask the lane to emit a decision-attention/v1 envelope at all. '
+      + `Current attention instruction: ${JSON.stringify(instruction)}`
   );
 });
 

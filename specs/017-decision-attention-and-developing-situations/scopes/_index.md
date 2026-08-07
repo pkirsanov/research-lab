@@ -1,7 +1,7 @@
 # Scopes Index — Decision Attention And Developing Situations
 
 Feature directory: `specs/017-decision-attention-and-developing-situations`
-Repository: `research-lab` (root `/home/philipk/research-lab`)
+Repository: `research-lab` (root `~/research-lab`)
 
 Decision Attention is a first-class tier **inside the existing Brief view** of
 `market-brief.html`. It names unusual developments — an earnings print far
@@ -22,6 +22,13 @@ measures what readers actually saw, and the legacy feed reconciliation runs last
 because full-suite acceptance can only judge view identity, Red Alert
 byte-identity and the performance budgets once every earlier surface exists.
 
+Scope 6 was added after the first five, once three consecutive cron publishes
+proved that an authoring instruction alone does not make the lane comply. It
+routes the lane through the certified composer at publish time. It sits after the
+module, the validator and the tier because it consumes all three: the composer it
+calls is Scope 1's, the gate its output must satisfy is Scope 2's, and the empty
+state its all-excluded case must render is Scope 3's.
+
 ## Scope Inventory
 
 | # | Scope | Artifact | Depends On | Status |
@@ -31,6 +38,7 @@ byte-identity and the performance budgets once every earlier surface exists.
 | 3 | Brief Tier Render | [`03-brief-tier-render/scope.md`](03-brief-tier-render/scope.md) | 1, 2 | Not Started |
 | 4 | Outcome Record And Interruption Rate | [`04-outcome-record-and-interruption-rate/scope.md`](04-outcome-record-and-interruption-rate/scope.md) | 1, 3 | Not Started |
 | 5 | Legacy Feed Reconciliation And Acceptance | [`05-legacy-feed-reconciliation-and-acceptance/scope.md`](05-legacy-feed-reconciliation-and-acceptance/scope.md) | 2, 3, 4 | Not Started |
+| 6 | Authoring Lane Composer Routing | [`06-authoring-lane-composer-routing/scope.md`](06-authoring-lane-composer-routing/scope.md) | 1, 2, 3 | Not Started |
 
 ---
 
@@ -56,6 +64,11 @@ byte-identity and the performance budgets once every earlier surface exists.
 5. **Legacy Feed Reconciliation And Acceptance** — resolve H-4 and H-5, then run
    full-suite acceptance across legibility, view identity, Red Alert
    byte-identity, performance budgets and the project selftest.
+6. **Authoring Lane Composer Routing** — add `scripts/build-attention-items.mjs`
+   as a publish-time step, shrink the `attention` authoring instruction to the
+   `authored` argument of `buildAttentionItem`, and record every refused
+   candidate in `attentionExclusions[]` so no declared candidate can silently
+   vanish.
 
 ### New Types And Signatures
 
@@ -108,6 +121,7 @@ Data artefacts: `market-brief.attention-outcomes.jsonl` (append-only) reduced by
 | 3 | Browser tier renders from committed data with no key and no proxy; legibility clean on the tier |
 | 4 | `node scripts/build-attention-scorecard.mjs` produces the record; `market-brief.scorecard.json` byte-identical before and after a full attention generation |
 | 5 | `node scripts/selftest.mjs` exits 0 with the new module registered; view ids and Red Alert gates byte-identical |
+| 6 | `node scripts/validate-brief-payload.mjs` exits 0 against a payload the authoring lane produced THROUGH the build step; published plus excluded equals declared on a mixed generation; an all-refused generation still publishes |
 
 ### Scope Table
 
@@ -118,8 +132,9 @@ Data artefacts: `market-brief.attention-outcomes.jsonl` (append-only) reduced by
 | 3 | Brief Tier Render | 1, 2 | Brief view | 5 | T-34, T-35, T-36, T-37, T-41 |
 | 4 | Outcome Record And Interruption Rate | 1, 3 | ledger, reducer, record block | 7 | T-25 … T-31 |
 | 5 | Legacy Feed Reconciliation And Acceptance | 2, 3, 4 | page, suite | 5 | T-38, T-39, T-40, T-42, T-44 |
+| 6 | Authoring Lane Composer Routing | 1, 2, 3 | build step, lane, payload | 7 | none — F-017-06 postdates the design test table |
 
-Total Test Plan rows: **46**. Scenario id range: **SCN-017-001 … SCN-017-046**.
+Total Test Plan rows: **53**. Scenario id range: **SCN-017-001 … SCN-017-053**.
 `test-plan.json` and `scenario-manifest.json` are authoritative for both. The
 scope-2 row above still reads 3 and has read 3 since that scope's own amendment
 added TP-02-04 and SCN-017-045; correcting it belongs to the scope-2 owner, so
@@ -179,3 +194,58 @@ tier. `capApplied` therefore reports only live items displaced by the cap, and a
 generation whose every candidate is terminal yields `published: []`,
 `suppressed: []`, `capApplied: false` and the existing empty statement. That is
 the empty-tier success state Scope 1 already sanctions, and it is never padded.
+
+### Amendment 2 — Scope 6 routes the authoring lane through the certified composer
+
+**Raised by:** finding F-017-06, recorded in `design.md`. Three consecutive cron
+publishes — `348c9f88` (pre-market), `d2f85159` (after-hours) and `1412f3e0` —
+each emitted zero `decision-attention/v1` markers while enforcement was fully
+intact: `grep -c validateAttentionItem scripts/validate-brief-payload.mjs` = 3,
+and the authoring instruction still named every required field. The gate works
+and the instruction exists; compliance is nonetheless zero, and
+`node scripts/validate-brief-payload.mjs` exits 1 so the brief cannot publish.
+
+**Decision:** a new Scope 6 owns the routing. It depends on 1, 2 and 3.
+
+**Reasoning.** `rlattention.js` already exposes the correct separation in
+`buildAttentionItem(gateResult, authored, ctx)` — observed gate result,
+human-authored judgement, deterministic context. The lane asks the model for that
+composer's OUTPUT instead of for its `authored` argument, which makes a prose
+author responsible for schema serialization: closed vocabularies, ISO instants,
+lifecycle enums, provenance arrays, window resolution. A prose instruction is
+advisory, not enforcing. So the lane authors only `authored`; a publish-time
+build step supplies `gateResult` and `ctx`; the composer builds each envelope or
+refuses that candidate with a named `RLATTN-*` code; a refused candidate is
+excluded and its reason recorded; and an all-refused generation publishes an
+empty set and the tier's declared empty state.
+
+Extending Scope 2 was rejected. Scope 2 is `In Progress` with its own evidence
+already recorded against the assumption F-017-06 supersedes, and folding a
+supersession into a scope whose report already narrates the superseded position
+would make the archaeology unreadable. A separate scope keeps the decision, its
+executed evidence and its consequences in one place.
+
+**Why the empty set is not the banned soft fallback.** The prohibition is on
+substituting a DEFAULT for a MISSING value. Nothing is defaulted — every
+published field is observed, derived from a committed contract, or authored.
+Exclusion happens BEFORE the payload is formed, so FR-037 still holds exactly as
+written: a payload carrying any refused item is still refused whole, because a
+refused item never reaches the payload. This is fail-loud at ITEM granularity
+rather than PAYLOAD granularity, and the hard-cutover posture is untouched.
+
+**Consequence for Scope 2, owed to the planning owner.** Step 7 of Scope 6
+shrinks the `attention` authoring instruction, removing the decision window, the
+transmission path and the provenance class from the ask. Scope 2's SCN-017-045
+and TP-02-04 assert that the instruction NAMES those three, so executing Scope 6
+as written turns SCN-017-045 RED. That is the ratified consequence of F-017-06,
+which states the instruction "does not grow to cover the full field set — it
+SHRINKS to the `authored` argument". Scope 6 does not edit Scope 2; narrowing
+another scope's scenario from inside this one would hide the supersession in a
+diff rather than record it. Reconciling SCN-017-045 — narrowing it to the fields
+the instruction still asks for, or retiring it in favour of SCN-017-053 — is owed
+before Scope 6 is executed.
+
+**Recorded as:** SCN-017-047 through SCN-017-053 and TP-06-01 through TP-06-07 in
+`06-authoring-lane-composer-routing/scope.md`, registered in `test-plan.json` and
+`scenario-manifest.json`, with the scope added to `state.json` `scopeProgress` as
+`not_started`. Every checkbox in the new scope is unticked.

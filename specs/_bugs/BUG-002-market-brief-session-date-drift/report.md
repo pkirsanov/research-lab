@@ -7911,15 +7911,17 @@ This section is append-only planning evidence. It leaves every earlier timestamp
 ### Repository Binding
 
 **Phase:** plan  
-**Command:** `bash .github/bubbles/scripts/repository-binding.sh validate-packet --session-id vscode-e24db39cf992f7ccd8ec75209602db59 --session-control-file /home/philipk/.bubbles-session-control/vscode-e24db39cf992f7ccd8ec75209602db59/repository-binding.json --packet-file /tmp/research-lab-repository-binding-packet-27.json`  
+**Command:** `bash .github/bubbles/scripts/repository-binding.sh validate-packet --session-id vscode-e24db39cf992f7ccd8ec75209602db59 --session-control-file ~/.bubbles-session-control/vscode-e24db39cf992f7ccd8ec75209602db59/repository-binding.json --packet-file /tmp/research-lab-repository-binding-packet-27.json`  
 **Exit Code:** `0`  
 **Claim Source:** executed
 
 ```text
-REPOSITORY PACKET VALID actionable=true repository=research-lab root=/home/philipk/research-lab decision=rb:vscode-e24db39cf992f7ccd8ec75209602db59:27 revision=27
+REPOSITORY PACKET VALID actionable=true repository=research-lab root=~/research-lab decision=rb:vscode-e24db39cf992f7ccd8ec75209602db59:27 revision=27
 ```
 
-The validated packet binds this planning update to `/home/philipk/research-lab` with repository alias `research-lab`, decision `rb:vscode-e24db39cf992f7ccd8ec75209602db59:27`, control revision `27`, and control-path digest `sha256:e6d858a6f9bc1824d3a2cea3746d741a5bad41016d613dc242312185af9761fa`.
+The validated packet binds this planning update to `~/research-lab` with repository alias `research-lab`, decision `rb:vscode-e24db39cf992f7ccd8ec75209602db59:27`, control revision `27`, and control-path digest `sha256:e6d858a6f9bc1824d3a2cea3746d741a5bad41016d613dc242312185af9761fa`.
+
+The absolute home-directory form this evidence originally carried was replaced with `~` to satisfy the committed-surface personal-identifier scan; no other byte of this record changed.
 
 ### Read-Only Closed Inventory Capture
 

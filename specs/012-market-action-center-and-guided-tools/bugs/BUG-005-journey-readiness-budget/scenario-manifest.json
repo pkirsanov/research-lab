@@ -1,0 +1,35 @@
+{
+  "version": 1,
+  "featureDir": "specs/012-market-action-center-and-guided-tools/bugs/BUG-005-journey-readiness-budget",
+  "generatedAt": "2026-08-04T14:20:27Z",
+  "scenarios": [
+    {
+      "scenarioId": "SCN-B005-001",
+      "scope": "SCOPE-01",
+      "title": "Global Journey readiness survives complete-suite load",
+      "gherkin": {
+        "given": "the full browser suite runs Feature 012 Journey cases under shared host load with retries disabled",
+        "when": "the Market Action Center test opens Journey and waits for the shipped visible panel, ready mount state, and __rljourneyController",
+        "then": "the unchanged readiness assertions complete within a measured suite-safe budget and the Center lists the complete tool registry exactly once"
+      },
+      "gherkinHash": "sha256:971fd650888b8eabbcff6883ee5f35969c788ee22830e7b29ec6c1170122cd7d",
+      "behaviorClass": "ui",
+      "changeType": "bugfix",
+      "requiredTestType": "e2e-ui",
+      "regressionRequired": true,
+      "lockdown": false,
+      "linkedTests": [
+        {
+          "file": "tests/journey.spec.mjs",
+          "testId": "the Market Action Center remains the global journey surface"
+        }
+      ],
+      "evidenceRefs": [
+        "report.md#same-file-cumulative-state-discriminator",
+        "report.md#before-fix-full-suite-evidence"
+      ],
+      "replacedBy": null,
+      "invalidatedBy": null
+    }
+  ]
+}

@@ -3,7 +3,7 @@
   "featureDir": "specs/017-decision-attention-and-developing-situations",
   "featureName": "Decision Attention and Developing Situations",
   "createdAt": "2026-08-06T00:00:00Z",
-  "lastUpdatedAt": "2026-08-07T05:13:52Z",
+  "lastUpdatedAt": "2026-08-07T14:06:00Z",
   "status": "in_progress",
   "workflowMode": "full-delivery",
   "linkedImplementationSpec": null,
@@ -98,6 +98,16 @@
         "scopeDir": "scopes/05-legacy-feed-reconciliation-and-acceptance",
         "scopeArtifact": "scopes/05-legacy-feed-reconciliation-and-acceptance/scope.md",
         "reportArtifact": "scopes/05-legacy-feed-reconciliation-and-acceptance/report.md"
+      },
+      {
+        "scope": 6,
+        "scopeId": "06-authoring-lane-composer-routing",
+        "name": "Authoring Lane Composer Routing",
+        "status": "not_started",
+        "dependsOn": [1, 2, 3],
+        "scopeDir": "scopes/06-authoring-lane-composer-routing",
+        "scopeArtifact": "scopes/06-authoring-lane-composer-routing/scope.md",
+        "reportArtifact": "scopes/06-authoring-lane-composer-routing/report.md"
       }
     ],
     "audit": {
@@ -108,7 +118,7 @@
     }
   },
   "certification": {
-    "status": "not_started",
+    "status": "in_progress",
     "completedScopes": [],
     "certifiedCompletedPhases": [],
     "scopeProgress": [],
@@ -151,6 +161,15 @@
       "statusBefore": "in_progress",
       "statusAfter": "in_progress",
       "summary": "Artifact-record completion pass, ARTIFACT-ONLY. Every write landed inside specs/017-decision-attention-and-developing-situations/; no source, test, config, payload, HTML or notes file was modified and no git mutation was run. Wrote scopes/05-legacy-feed-reconciliation-and-acceptance/report.md from the five-guardrail green run (selftest 1251/0 exit 0, validate-brief-payload exit 0, rlattention 25/0, attention-payload-contract 15/0, six browser scenarios, reader-legibility zero leaks over 23 pages) with anchors tp-05-01 through tp-05-05, every block tagged Claim Source executed, and a Completion Statement. Narrated SCN-017-044 honestly as BLOCKED for part of delivery: node scripts/selftest.mjs reported three failures, and a clean-HEAD worktree measured 1230 passed / 3 failed, proving this feature did not introduce them - a cron publish (commit 1412f3e0) had dropped events[].psychologyNote, a key HEAD's own committed validator requires. It passes now that the payload is repaired. Ticked DoD: scope 4 0->17 of 22, scope 5 0->17 of 22, both statuses Not Started -> In Progress. Re-swept scopes 1-3 for items the new evidence unblocks: scope 1 33->37 of 42 (rlmarketaction.js byte-identity via working-tree scan, the notes/decision-attention.md imminence-conditional transmission rule confirmed by reading section 4, the .only/skip/bailout scan closing the third conjunct of the rlattention suite gate, and selftest exit 0), scope 2 13->14 of 17 (selftest), scope 3 14->15 of 19 (selftest). Ran two authorized read-only verifications plus two read-only greps: a .only/test.skip/bailout scan over the three attention test files (grep_exit=1, no match; declared counts 25 and 15 equal the passing counts, so zero scenarios skipped), a working-tree diff of every declared excluded path, a grep confirming rlattention.js has its own assertion group in scripts/selftest.mjs at lines 5657-5774, and a read of the market-brief.html #attention call site confirming the H-4 re-scope landed. THREE FINDINGS were raised rather than ticked around: notes/market-brief.md is byte-identical to its committed state so the Scope 5 H-4 and H-5 records were never written; notes/decision-attention.md carries the contract id decision-attention/v1 in four places plus seven RLATTN-* refusal codes so Scope 1's reader-language item cannot be ticked; and three excluded paths owned by concurrent sessions (specs/004*, specs/_bugs/BUG-002*, specs/012*/bugs/*) are modified so the byte-identity item is unsatisfiable as written in all five scopes. 22 DoD items remain unticked, each with an Uncertainty Declaration naming the evidence owed. NO scope was marked Done, top-level status stays in_progress, and certification.* was not touched - bubbles.validate owns certification and has not run."
+    },
+    {
+      "agent": "bubbles.plan",
+      "phasesExecuted": ["bootstrap"],
+      "startedAt": "2026-08-07T14:06:00Z",
+      "completedAt": "2026-08-07T14:06:00Z",
+      "statusBefore": "in_progress",
+      "statusAfter": "in_progress",
+      "summary": "Plan amendment 2, ARTIFACT-ONLY. Added Scope 6 'Authoring Lane Composer Routing' implementing the ratified decision F-017-06, which supersedes in part the F-017-02 assumption that an authoring instruction alone makes the lane comply. Three consecutive cron publishes (348c9f88 pre-market, d2f85159 after-hours, 1412f3e0) each emitted zero decision-attention/v1 markers while enforcement was fully intact, so the lane is routed through RLATTN.buildAttentionItem at publish time: the lane authors only the authored argument, a new scripts/build-attention-items.mjs supplies gateResult from the payload's own observed tool reads and ctx from the committed calendar, watchlist and window vocabulary, the composer builds or refuses each candidate with a named RLATTN-* code, and every refusal is excluded from attention[] and recorded in attentionExclusions[] mirroring the toolCoverage[].reason contract. An all-refused generation publishes an empty set and the tier's declared empty state; that is not the banned soft fallback because nothing is defaulted and exclusion happens BEFORE the payload is formed, so FR-037 and the hard-cutover posture are unweakened. Created scopes/06-authoring-lane-composer-routing/scope.md with Status Not Started, Depends On 1/2/3, seven Gherkin scenarios SCN-017-047 through SCN-017-053 continuing from the highest id in use (SCN-017-046), seven Test Plan rows TP-06-01 through TP-06-07, an Implementation Files/Allowed/Excluded boundary, a Shared Infrastructure Impact Sweep table matching the sibling column shape, a Rollback section, and an anti-tautology requirement binding SCN-017-048 to a candidate that genuinely fails to build, SCN-017-050 to a payload where every candidate fails, and SCN-017-049 to a mixed generation. All 26 DoD checkboxes are unticked. Every new test row targets an EXISTING test file (tests/attention-payload-contract.test.mjs, tests/attention-browser.spec.mjs) so scripts/validate-spec-test-paths.mjs gains no new missing path and its baseline needed no edit. Registered the seven scenarios in scenario-manifest.json and the seven rows in test-plan.json (totalRows 46 -> 53, designTest null throughout because F-017-06 postdates the design test table T-01..T-44), and recorded the decision as Amendment 2 in scopes/_index.md with the inventory, phase order, validation checkpoint, scope table and totals line updated. Raised one consequence for the planning owner rather than acting on it: shrinking the authoring instruction turns Scope 2's SCN-017-045 and TP-02-04 RED, since they assert the instruction names the decision window, transmission path and provenance class that F-017-06 moves to the build step; Scope 2 was NOT edited and the reconciliation is owed before Scope 6 executes. Also corrected an inherited naming assumption: Scope 2's plan text names decisionAttention.items, but the committed payload carries the decision-attention/v1 fields additively on attention[] (5 items, no decisionAttention key) and scripts/validate-brief-payload.mjs iterates payload.attention, so Scope 6 is written against attention[]. No source, test, config, payload, HTML, notes, design.md or spec.md file was modified; every write landed inside specs/017-decision-attention-and-developing-situations/. No git mutation was run. Top-level status stays in_progress and certification.* was not touched. execution.activeAgent and execution.currentPhase were deliberately left describing the in-flight implement phase, because this amendment layers on that phase rather than ending it."
     }
   ]
 }

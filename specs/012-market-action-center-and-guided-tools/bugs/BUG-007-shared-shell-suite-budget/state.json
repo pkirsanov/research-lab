@@ -1,0 +1,505 @@
+{
+  "version": 3,
+  "featureDir": "specs/012-market-action-center-and-guided-tools/bugs/BUG-007-shared-shell-suite-budget",
+  "featureName": "BUG-007 Shared-Shell Suite Budget",
+  "createdAt": "2026-08-04T16:24:35Z",
+  "lastUpdatedAt": "2026-08-04T21:07:53Z",
+  "completedAt": null,
+  "certifiedAt": null,
+  "status": "in_progress",
+  "blockedReason": null,
+  "workflowMode": "bugfix-fastlane",
+  "linkedImplementationSpec": "specs/012-market-action-center-and-guided-tools",
+  "linkedPlanningPacket": null,
+  "planningOnly": false,
+  "planningOnlyJustification": null,
+  "specDependsOn": [],
+  "requiresRevalidation": false,
+  "flagsIntroduced": [],
+  "completedScopes": [],
+  "completedPhases": [],
+  "execution": {
+    "activeAgent": "bubbles.plan",
+    "currentPhase": "plan",
+    "currentPhaseStatus": "route_required",
+    "substate": "baseline-plan-reconciled",
+    "currentScope": "SCOPE-01",
+    "runStartedAt": "2026-08-04T21:07:53Z",
+    "completedAt": null,
+    "executionModel": "direct-authorized-runner",
+    "parentAgent": null,
+    "nextRequiredOwner": "bubbles.test",
+    "nextRequiredTarget": "Independently execute and adjudicate all thirteen existing Test Plan rows, including both 280-identity complete-suite profiles across the unchanged 33-file path set. Preserve commands, retries, worker profiles, the exact three-edit implementation, assertions, findings, status, and certification.",
+    "completedPhaseClaims": [
+      {
+        "phase": "implement",
+        "claimedBy": "bubbles.implement",
+        "claimedAt": "2026-08-04T17:09:03Z",
+        "scopeId": "SCOPE-01",
+        "evidenceFile": "report.md",
+        "evidenceSection": "report.md#implementation-mutation-boundary; report.md#implementation-green-evidence; report.md#syntax-and-regression-quality",
+        "claimType": "executed-not-certifying",
+        "detail": "Applied only the two helper-local 30,000 to 60,000 ms readiness-wait replacements and the first-statement target-local test.slow(). TP-B007-03 passed 1/1, TP-B007-01 passed 1/1 across 19 tools, TP-B007-04 passed 5/5, TP-B007-02 passed 4/4, both modules parsed, both bugfix guards reported zero violations and warnings, exact normalization proved only two removals and three additions across the authorized test files, and artifact lint passed at in_progress. Independent Test Plan adjudication, scope completion, audit, and certification are unclaimed and routed to bubbles.test."
+      }
+    ],
+    "pendingTransitionRequests": [],
+    "scopeInventory": [
+      {
+        "scope": 1,
+        "scopeId": "SCOPE-01",
+        "name": "Calibrate Shared-Shell Suite Budgets",
+        "status": "in_progress",
+        "dependsOn": [],
+        "foundation": false,
+        "capabilityRole": "shared-shell-browser-suite-budget-bugfix",
+        "class": "test-harness-bugfix",
+        "evidenceFile": "report.md"
+      }
+    ],
+    "audit": {
+      "schemaVersion": "audit-run/v1",
+      "runId": null,
+      "currentAttemptId": null,
+      "attempts": []
+    }
+  },
+  "certification": {
+    "status": "in_progress",
+    "completedAt": null,
+    "certifiedAt": null,
+    "completedScopes": [],
+    "certifiedCompletedPhases": [],
+    "scopeProgress": [
+      {
+        "scope": 1,
+        "scopeId": "SCOPE-01",
+        "name": "Calibrate Shared-Shell Suite Budgets",
+        "status": "not_started",
+        "dependsOn": [],
+        "scopeDir": null,
+        "evidenceFile": "report.md",
+        "certifiedAt": null
+      }
+    ],
+    "assurance": {
+      "level": "none",
+      "missingForFull": [
+        "design owner adoption",
+        "plan owner adoption",
+        "test-only implementation",
+        "focused and same-file post-fix verification",
+        "four-worker 277-identity complete-suite verification",
+        "serial 277-identity complete-suite verification",
+        "selftest regression-quality syntax and exact-diff verification",
+        "independent audit",
+        "validate-owned certification"
+      ]
+    },
+    "lockdownState": {
+      "active": false,
+      "lockedScenarioIds": []
+    }
+  },
+  "policySnapshot": {
+    "workflowMode": "bugfix-fastlane",
+    "grill": {
+      "mode": "off",
+      "source": "repo-default"
+    },
+    "tdd": {
+      "mode": "scenario-first",
+      "source": "workflow-forced"
+    },
+    "autoCommit": {
+      "mode": "off",
+      "source": "user-request"
+    },
+    "lockdown": {
+      "mode": "off",
+      "source": "repo-default"
+    },
+    "regression": {
+      "mode": "protected-scenarios",
+      "source": "repo-default"
+    },
+    "validation": {
+      "mode": "certification-required",
+      "source": "repo-default"
+    }
+  },
+  "findingsLedger": [
+    {
+      "findingId": "F-BUG007-001",
+      "site": "tests/simple-production-wiring.spec.mjs",
+      "scenario": "SCN-B007-001",
+      "class": "suite-context-inner-readiness-budget",
+      "state": "OPEN",
+      "disposition": "plan-adopted-route-to-implement",
+      "detail": "TP-15-04 has a 900-second outer budget, but the single-use openAndAwaitOwnerEvidence helper uses two 30-second readiness waits. The shell-ready wait failed under four-worker contention while the isolated 19-tool sweep passed. Preserve every predicate and assertion; consider only the two finite 60-second helper waits."
+    },
+    {
+      "findingId": "F-BUG007-002",
+      "site": "tests/tool-experience.spec.mjs",
+      "scenario": "SCN-B007-002",
+      "class": "suite-context-containing-test-budget",
+      "state": "OPEN",
+      "disposition": "plan-adopted-route-to-implement",
+      "detail": "The BUG-001 options-flow regression inherits Playwright's 30-second containing timeout. It timed out under the same four-worker suite while the isolated target passed all 12 delta and shell assertions. Preserve every action and assertion; consider only target-local test.slow() as the first statement."
+    }
+  ],
+  "transitionRequests": [
+    {
+      "id": "TR-BUG007-DESIGN",
+      "status": "resolved",
+      "requestedBy": "bubbles.bug",
+      "routedTo": "bubbles.design",
+      "requestedAt": "2026-08-04T16:24:35Z",
+      "reason": "Adopt or amend the two-mechanism root cause and exact bounded fix. Preserve the two-file boundary, all assertions, all protected deadlines, zero retries, and terminal BUG-001 history. Route the adopted plan structure to bubbles.plan before implementation.",
+      "scenarioIds": [
+        "SCN-B007-001",
+        "SCN-B007-002"
+      ],
+      "findingIds": [
+        "F-BUG007-001",
+        "F-BUG007-002"
+      ],
+      "evidenceRefs": [
+        "report.md#before-fix-four-worker-complete-suite-evidence",
+        "report.md#focused-tp-15-04-discriminator",
+        "report.md#focused-bug-001-options-discriminator",
+        "design.md#proposed-fix"
+      ],
+      "resolvedAt": "2026-08-04T16:39:26Z",
+      "resolvedBy": "bubbles.design",
+      "resolutionSummary": "Adopted the grounded two-mechanism diagnosis without technical amendment. The active design permits only two helper-local 30,000 to 60,000 ms readiness-wait replacements and one first-statement target-local test.slow() insertion, while preserving all predicates, assertions, protected deadlines, zero retries, global configuration, product bytes, and terminal BUG-001 history."
+    },
+    {
+      "id": "TR-BUG007-PLAN",
+      "status": "resolved",
+      "requestedBy": "bubbles.design",
+      "routedTo": "bubbles.plan",
+      "requestedAt": "2026-08-04T16:39:26Z",
+      "reason": "Adopt or amend the plan-owned SCOPE-01, scenario mappings, Test Plan, DoD, and machine handoff against the adopted two-mechanism design. Preserve the exact two-file three-edit boundary, all protected assertions and deadlines, both complete-suite carriers, and implementation prohibition until planning adoption resolves.",
+      "scenarioIds": [
+        "SCN-B007-001",
+        "SCN-B007-002"
+      ],
+      "findingIds": [
+        "F-BUG007-001",
+        "F-BUG007-002"
+      ],
+      "evidenceRefs": [
+        "design.md#adoption-decision",
+        "design.md#change-boundary-and-preserved-contracts",
+        "design.md#testing-and-validation-strategy",
+        "design.md#risks-and-open-questions"
+      ],
+      "resolvedAt": "2026-08-04T16:49:07Z",
+      "resolvedBy": "bubbles.plan",
+      "resolutionSummary": "Adopted SCOPE-01 without technical amendment, made scenario-to-test and scenario-to-DoD links explicit, preserved the thirteen-row Test Plan and thirteen unchecked test DoD items, added the matching machine-readable test-plan.json handoff, and routed the exact two-file three-edit implementation to bubbles.implement. Artifact lint and all-scope traceability pass; no implementation or certification claim was made."
+    },
+    {
+      "id": "TR-BUG007-BASELINE-DESIGN",
+      "status": "resolved",
+      "requestedBy": "bubbles.bug",
+      "routedTo": "bubbles.design",
+      "requestedAt": "2026-08-04T20:37:15Z",
+      "reason": "Concurrent committed work raised the current unrestricted system-Chrome baseline from the historically recorded 277 identities to 280 identities while retaining 33 files. Reconcile only active exact-count expectations in design.md, preserve every historical 277 output verbatim, then route bubbles.plan to reconcile scopes.md, scenario-manifest.json, and test-plan.json before bubbles.test executes the unchanged complete-suite commands against 280 identities.",
+      "scenarioIds": [
+        "SCN-B007-001",
+        "SCN-B007-002"
+      ],
+      "findingIds": [
+        "F-BUG007-001",
+        "F-BUG007-002"
+      ],
+      "evidenceRefs": [
+        "bug.md#concurrent-baseline-reconciliation",
+        "spec.md#concurrent-baseline-requirement",
+        "report.md#concurrent-baseline-reconciliation"
+      ],
+      "resolvedAt": "2026-08-04T20:50:45Z",
+      "resolvedBy": "bubbles.design",
+      "resolutionSummary": "Adopted the grounded 280-identity, 33-file baseline for active design acceptance statements only. Preserved historical 277 execution evidence and every command, retry setting, worker profile, two-mechanism root cause, exact three-edit fix, selector, predicate, interaction, assertion, and excluded surface.",
+      "requiredReturn": "Update only design-owned active exact-count expectations to 280 across 33 files, preserve historical 277 evidence and all non-count contracts, and route the exact downstream reconciliation to bubbles.plan. Do not implement or test."
+    },
+    {
+      "id": "TR-BUG007-BASELINE-PLAN",
+      "status": "resolved",
+      "requestedBy": "bubbles.design",
+      "routedTo": "bubbles.plan",
+      "requestedAt": "2026-08-04T20:50:45Z",
+      "reason": "Reconcile only active exact-count expectations from 277 to 280 identities across the unchanged 33-file path set in scopes.md, scenario-manifest.json, and test-plan.json. Preserve historical 277 execution evidence, all commands, retry and worker profiles, both scenario behaviors, Test Plan semantics, DoD text, the two-mechanism root cause, exact three-edit fix, and every excluded surface before routing bubbles.test to the unchanged complete-suite commands.",
+      "scenarioIds": [
+        "SCN-B007-001",
+        "SCN-B007-002"
+      ],
+      "findingIds": [
+        "F-BUG007-001",
+        "F-BUG007-002"
+      ],
+      "evidenceRefs": [
+        "design.md#concurrent-baseline-transition",
+        "spec.md#concurrent-baseline-requirement",
+        "report.md#concurrent-baseline-reconciliation"
+      ],
+      "resolvedAt": "2026-08-04T21:07:53Z",
+      "resolvedBy": "bubbles.plan",
+      "resolutionSummary": "Updated the active Execution Outline, both Gherkin scenarios, TP-B007-05/06 Markdown and machine-plan descriptions, matching DoD items, both scenario-manifest mirrors, and deterministic scenario hashes from 277 to 280 identities across the unchanged 33-file path set. Preserved the historical TP-B007-00 277/275 carrier, all commands and profiles, every non-count contract, both open findings, unchecked DoD, in-progress status, and certification, then restored the independent route to bubbles.test.",
+      "requiredReturn": "Update only plan-owned active exact-count expectations to 280 across 33 files, preserve historical 277 evidence and all non-count contracts, keep status and both findings open, and route the unchanged complete-suite acceptance to bubbles.test. Do not implement or test."
+    }
+  ],
+  "reworkQueue": [],
+  "executionHistory": [
+    {
+      "agent": "bubbles.bug",
+      "workflowMode": "bugfix-fastlane",
+      "executionModel": "direct-authorized-runner",
+      "parentAgent": null,
+      "startedAt": "2026-08-04T16:24:35Z",
+      "completedAt": "2026-08-04T16:24:35Z",
+      "statusBefore": "in_progress",
+      "statusAfter": "in_progress",
+      "phasesExecuted": [
+        "select",
+        "bootstrap",
+        "diagnose",
+        "packet"
+      ],
+      "scopesCompleted": [],
+      "outcome": "route_required",
+      "addressedFindings": [
+        "BUG007-REPOSITORY-BOUND",
+        "BUG007-EXACT-PACKET-SEARCH-COMPLETE",
+        "BUG007-TERMINAL-HISTORY-PRESERVED",
+        "BUG007-ROOT-CAUSE-CLASSIFIED",
+        "BUG007-MUTATION-BOUNDARY-LOCKED",
+        "BUG007-PACKET-CREATED",
+        "BUG007-ARTIFACT-LINT-PASS",
+        "BUG007-CONTROL-PLANE-INTEGRITY-PASS",
+        "BUG007-CONCURRENT-DIRTY-WORK-PRESERVED"
+      ],
+      "unresolvedFindings": [
+        "F-BUG007-001",
+        "F-BUG007-002"
+      ],
+      "nextRequiredOwner": "bubbles.design",
+      "summary": "Created and structurally validated the complete Feature 012 BUG-007 packet for the two remaining shared-shell suite-budget failures. Classified one helper-local inner budget and one target-local containing budget. Proposed only two 30-second to 60-second replacements and one target-local test.slow() statement. Artifact lint and control-plane integrity pass. No test, product, parent feature, existing bug, Feature 004, BUG-002, or concurrent dirty byte changed."
+    },
+    {
+      "agent": "bubbles.design",
+      "workflowMode": "bugfix-fastlane",
+      "executionModel": "direct-authorized-runner",
+      "parentAgent": null,
+      "startedAt": "2026-08-04T16:39:26Z",
+      "completedAt": "2026-08-04T16:39:26Z",
+      "statusBefore": "in_progress",
+      "statusAfter": "in_progress",
+      "phasesExecuted": [
+        "bootstrap"
+      ],
+      "scopesCompleted": [],
+      "outcome": "route_required",
+      "addressedFindings": [
+        "TR-BUG007-DESIGN",
+        "BUG007-TWO-MECHANISM-DESIGN-ADOPTED",
+        "BUG007-DESIGN-PROFILE-INTEGRITY-PASS"
+      ],
+      "unresolvedFindings": [
+        "TR-BUG007-PLAN",
+        "F-BUG007-001",
+        "F-BUG007-002"
+      ],
+      "nextRequiredOwner": "bubbles.plan",
+      "summary": "Adopted and reconciled the grounded BUG-007 design without changing its technical mutation contract. The active design permits only two helper-local 30,000 to 60,000 ms readiness-wait replacements and one first-statement target-local test.slow() insertion, preserves every protected predicate, assertion, deadline, configuration, product byte, terminal BUG-001 artifact, and concurrent dirty path, and routes planning adoption before implementation."
+    },
+    {
+      "agent": "bubbles.plan",
+      "workflowMode": "bugfix-fastlane",
+      "executionModel": "direct-authorized-runner",
+      "parentAgent": null,
+      "startedAt": "2026-08-04T16:46:52Z",
+      "completedAt": "2026-08-04T16:49:07Z",
+      "statusBefore": "in_progress",
+      "statusAfter": "in_progress",
+      "phasesExecuted": [
+        "bootstrap",
+        "plan"
+      ],
+      "scopesCompleted": [],
+      "outcome": "route_required",
+      "addressedFindings": [
+        "TR-BUG007-PLAN",
+        "BUG007-SCOPE-01-ADOPTED",
+        "BUG007-SCENARIO-TRACEABILITY-EXPLICIT",
+        "BUG007-TEST-PLAN-DOD-PARITY-13",
+        "BUG007-MACHINE-TEST-PLAN-CREATED",
+        "BUG007-ARTIFACT-LINT-PASS",
+        "BUG007-TRACEABILITY-PASS"
+      ],
+      "unresolvedFindings": [
+        "F-BUG007-001",
+        "F-BUG007-002"
+      ],
+      "nextRequiredOwner": "bubbles.implement",
+      "summary": "Adopted the single BUG-007 scope without changing the two-mechanism design or exact three-edit boundary. Added the required machine-readable thirteen-row test handoff, repaired explicit scenario traceability, preserved all implementation and test DoD items unchecked, kept status and certification in_progress, and routed only the bounded test-harness implementation to bubbles.implement."
+    },
+    {
+      "agent": "bubbles.implement",
+      "workflowMode": "bugfix-fastlane",
+      "executionModel": "direct-authorized-runner",
+      "parentAgent": null,
+      "startedAt": "2026-08-04T16:49:07Z",
+      "completedAt": "2026-08-04T17:09:03Z",
+      "statusBefore": "in_progress",
+      "statusAfter": "in_progress",
+      "phasesExecuted": [
+        "implement"
+      ],
+      "scopesCompleted": [],
+      "outcome": "route_required",
+      "addressedFindings": [
+        "BUG007-EXACT-THREE-EDIT-IMPLEMENTATION",
+        "BUG007-FOCUSED-GREEN",
+        "BUG007-SAME-FILE-GREEN",
+        "BUG007-REGRESSION-QUALITY-PASS",
+        "BUG007-SYNTAX-PASS",
+        "BUG007-BOUNDARY-PROOF-PASS",
+        "BUG007-IMPLEMENT-ARTIFACT-LINT-PASS",
+        "BUG007-CONCURRENT-DIRTY-WORK-PRESERVED"
+      ],
+      "unresolvedFindings": [
+        "F-BUG007-001",
+        "F-BUG007-002"
+      ],
+      "nextRequiredOwner": "bubbles.test",
+      "summary": "Implemented only the exact two-file three-edit BUG-007 boundary. TP-B007-03 passed 1/1, TP-B007-01 passed 1/1 across 19 tools, TP-B007-04 passed 5/5, TP-B007-02 passed 4/4, syntax and both bugfix regression-quality guards passed, and exact normalization proved Playwright config and all unrelated bytes unchanged. SCOPE-01, every DoD item, top-level status, and certification remain nonterminal for independent bubbles.test adjudication."
+    },
+    {
+      "agent": "bubbles.bug",
+      "workflowMode": "bugfix-fastlane",
+      "executionModel": "direct-authorized-runner",
+      "parentAgent": null,
+      "startedAt": "2026-08-04T20:37:15Z",
+      "completedAt": "2026-08-04T20:37:15Z",
+      "statusBefore": "in_progress",
+      "statusAfter": "in_progress",
+      "phasesExecuted": [
+        "diagnose",
+        "packet"
+      ],
+      "scopesCompleted": [],
+      "outcome": "route_required",
+      "addressedFindings": [
+        "BUG007-CONCURRENT-BASELINE-RECONCILED"
+      ],
+      "unresolvedFindings": [
+        "TR-BUG007-BASELINE-DESIGN",
+        "F-BUG007-001",
+        "F-BUG007-002"
+      ],
+      "nextRequiredOwner": "bubbles.design",
+      "summary": "Reconciled BUG-007 owned diagnosis and requirement surfaces to the current 280-identity, 33-file browser baseline. Preserved historical 277 evidence and all non-count contracts. No design, plan, test, product, configuration, dependency, parent, sibling, or certification artifact changed; downstream reconciliation is routed to bubbles.design, then bubbles.plan, then bubbles.test."
+    },
+    {
+      "agent": "bubbles.design",
+      "workflowMode": "bugfix-fastlane",
+      "executionModel": "direct-authorized-runner",
+      "parentAgent": null,
+      "startedAt": "2026-08-04T20:50:45Z",
+      "completedAt": "2026-08-04T20:50:45Z",
+      "statusBefore": "in_progress",
+      "statusAfter": "in_progress",
+      "phasesExecuted": [
+        "bootstrap"
+      ],
+      "scopesCompleted": [],
+      "outcome": "route_required",
+      "addressedFindings": [
+        "TR-BUG007-BASELINE-DESIGN",
+        "BUG007-DESIGN-BASELINE-280-ADOPTED"
+      ],
+      "unresolvedFindings": [
+        "TR-BUG007-BASELINE-PLAN",
+        "F-BUG007-001",
+        "F-BUG007-002"
+      ],
+      "nextRequiredOwner": "bubbles.plan",
+      "summary": "Reconciled only BUG-007's active design-owned complete-suite count to 280 identities across 33 files. Preserved historical 277 execution evidence and every non-count technical contract. Kept status and both findings open, left certification unchanged, and routed scopes.md, scenario-manifest.json, and test-plan.json count mirrors to bubbles.plan."
+    },
+    {
+      "agent": "bubbles.plan",
+      "workflowMode": "bugfix-fastlane",
+      "executionModel": "direct-authorized-runner",
+      "parentAgent": null,
+      "startedAt": "2026-08-04T21:07:53Z",
+      "completedAt": "2026-08-04T21:07:53Z",
+      "statusBefore": "in_progress",
+      "statusAfter": "in_progress",
+      "phasesExecuted": [
+        "plan"
+      ],
+      "scopesCompleted": [],
+      "outcome": "route_required",
+      "addressedFindings": [
+        "TR-BUG007-BASELINE-PLAN"
+      ],
+      "unresolvedFindings": [
+        "F-BUG007-001",
+        "F-BUG007-002"
+      ],
+      "nextRequiredOwner": "bubbles.test",
+      "summary": "Reconciled BUG-007's active plan-owned complete-suite mirrors from 277 to 280 identities across 33 files in scopes.md, scenario-manifest.json, and test-plan.json, including both scenario hashes and the current machine handoff. Preserved the historical TP-B007-00 277/275 carrier, all non-count contracts, unchecked DoD, both open findings, in-progress status, and certification, then returned independent Test Plan adjudication to bubbles.test."
+    }
+  ],
+  "activeBugs": [
+    "F-BUG007-001",
+    "F-BUG007-002"
+  ],
+  "resolvedBugs": [],
+  "failures": [
+    "F-BUG007-001",
+    "F-BUG007-002"
+  ],
+  "scopeLayout": "single-file",
+  "artifacts": {
+    "bug": "bug.md",
+    "spec": "spec.md",
+    "design": "design.md",
+    "scopes": "scopes.md",
+    "report": "report.md",
+    "uservalidation": "uservalidation.md",
+    "scenarioManifest": "scenario-manifest.json",
+    "testPlan": "test-plan.json",
+    "state": "state.json"
+  },
+  "statusDiscipline": {
+    "validStatuses": [
+      "not_started",
+      "in_progress",
+      "blocked",
+      "specs_hardened",
+      "docs_updated",
+      "validated",
+      "done"
+    ],
+    "scopePickupRule": "All dependsOn scopes must be Done. Pick the lowest-numbered eligible scope.",
+    "scopeDoneGates": [
+      "G020",
+      "G021",
+      "G022",
+      "G023",
+      "G024",
+      "G025",
+      "G055",
+      "G056",
+      "G057",
+      "G058",
+      "G059",
+      "G060",
+      "G061"
+    ],
+    "specDoneRequires": "All scopes done. certification.completedScopes contains all scope IDs and bubbles.validate has certified promotion."
+  },
+  "notes": "Diagnostic packet creation, design adoption, plan adoption, and the exact three-edit implementation are complete. The active browser baseline is 280 identities across 33 files; historical 277 evidence remains preserved. Design- and plan-owned count mirrors are reconciled, and independent Test Plan adjudication is routed to bubbles.test. Scope completion, audit, and validate-owned certification remain unclaimed."
+}

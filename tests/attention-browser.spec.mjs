@@ -695,3 +695,140 @@ test('decision attention rendering holds all six performance budgets', async ({ 
 
   expect(pageErrors, `browser errors during the budget run: ${pageErrors.join(' | ')}`).toEqual([]);
 });
+
+/* ═══════════════ TP-06-05 — SCN-017-051 declared empty state for an all-excluded generation ═══════════════
+ *
+ * Feature 017 Scope 06. F-017-06 routes the authoring lane through
+ * scripts/build-attention-items.mjs, which calls the certified composer once
+ * per candidate and EXCLUDES every candidate it refuses. A generation in which
+ * every candidate is refused therefore publishes an empty attention set — and
+ * the tier owes the reader its declared empty state rather than a placeholder
+ * card, a fabricated item, or a blank space that reads as "nothing was checked".
+ *
+ * WHY THE EMPTY SET IS NOT HAND-WRITTEN. Passing `attention: []` straight into
+ * the render seam would prove only that an empty array renders an empty state.
+ * The empty set here is the OBSERVED OUTPUT of the real build step refusing
+ * three real candidates, so this scenario fails both against a build step that
+ * publishes a refused candidate and against a tier that renders nothing at all.
+ *
+ * REAL-STACK, ZERO REQUEST INTERCEPTION, consistent with the rest of this file:
+ * the page is the real market-brief.html over the real static server and the
+ * re-render goes through the same window.__rlattn.render seam TP-03-04 and
+ * TP-03-05 already drive. No page.route, no context.route, no msw/nock.
+ */
+
+test('SCN-017-051 The tier renders its declared empty state for an all-excluded generation', async ({ page }) => {
+  test.setTimeout(120_000);
+
+  const build = await import(new URL('../scripts/build-attention-items.mjs', import.meta.url).href);
+  expect(typeof build.buildAttentionItems,
+    'scripts/build-attention-items.mjs must export buildAttentionItems — it is the step whose refusals empty the tier')
+    .toBe('function');
+
+  const config = JSON.parse(readFileSync(new URL('../market-brief.config.json', import.meta.url), 'utf8'));
+  const ctx = build.attentionBuildContext(PAYLOAD, config);
+  const available = ctx.watchlistScope.filter((ticker) => ctx.publishedActionSubjects.indexOf(ticker) === -1);
+  expect(available.length,
+    `the committed watchlist must leave subjects no action already covers, got ${JSON.stringify(available)}`)
+    .toBeGreaterThanOrEqual(3);
+
+  /* three candidates, each genuinely unbuildable for its OWN named reason. */
+  const candidateFor = (subject) => ({
+    observed: {
+      disposition: 'attention',
+      subject,
+      severity: 'moderate',
+      imminence: 'developing',
+      observedAt: '2026-08-06T14:30:00.000Z',
+      transmissionPath: ['credit-funding'],
+      marketConfirmation: { state: 'present', detail: 'The spread widened across five consecutive sessions.' },
+      figures: [{
+        label: 'spread change',
+        value: 'plus eighteen basis points',
+        provenance: { sourceId: 'market-heatmap-lab', asOf: '2026-08-05T20:00:00.000Z' }
+      }]
+    },
+    headline: `Excluded fixture candidate for ${subject} that must never reach the reader`,
+    rationale: 'The widening has persisted across five consecutive sessions.',
+    verb: 'monitor',
+    horizon: 'this-week',
+    escalationTrigger: 'The spread widens beyond thirty five basis points intraday.',
+    invalidation: 'The spread retraces below eight basis points of its five session start.',
+    expiry: '2026-08-13T20:00:00.000Z',
+    severity: 'moderate',
+    imminence: 'developing'
+  });
+
+  const first = candidateFor(available[0]);
+  delete first.invalidation;
+  const second = candidateFor(available[1]);
+  delete second.escalationTrigger;
+  const third = candidateFor(available[2]);
+  third.observed = { ...third.observed, subject: 'ZZZZ' };
+
+  const candidates = [first, second, third];
+  expect(candidates.length,
+    'the generation must DECLARE candidates — an empty candidate list would make the empty tier tautological')
+    .toBe(3);
+  expect(ctx.watchlistScope.includes('ZZZZ'), 'ZZZZ must genuinely sit outside the committed watchlist scope').toBe(false);
+
+  const run = build.buildAttentionItems(candidates, PAYLOAD, config);
+
+  /* the empty set is the OBSERVED consequence of universal refusal. */
+  expect([...run.items], `every candidate must be refused, published: ${JSON.stringify(run.items)}`).toEqual([]);
+  expect(run.exclusions.length,
+    `every declared candidate must be recorded as excluded, got ${JSON.stringify(run.exclusions)}`)
+    .toBe(candidates.length);
+
+  await openBrief(page);
+  await renderFixture(page, {
+    nowUtc: FIXTURE_NOW,
+    generatedAt: '2026-08-06T14:52:47.682Z',
+    attention: run.items
+  });
+
+  const tier = page.locator('#decisionAttention');
+
+  /* 1. NO item renders — no placeholder card, no fabricated item. */
+  await expect(tier.locator('[data-attn-item]')).toHaveCount(0);
+
+  /* and specifically none of the refused candidates leaked onto the page. */
+  const tierText = (await tier.innerText()).replace(/\s+/g, ' ');
+  for (const candidate of candidates) {
+    expect(tierText.includes(candidate.headline),
+      `a refused candidate must never render. Found its headline in the tier: ${candidate.headline}`)
+      .toBe(false);
+  }
+
+  /* 2. the DECLARED empty state is VISIBLE, and it is the capability module's
+        own statement read from the real loaded module rather than a string this
+        test invented. */
+  const declaredEmptyStatement = await page.evaluate(
+    () => window.RLATTN.selectAttentionItems([], null).emptyStatement
+  );
+  expect(typeof declaredEmptyStatement, 'the module must declare an empty statement for the tier to render')
+    .toBe('string');
+  expect(declaredEmptyStatement.length, 'the declared empty statement must be a real sentence').toBeGreaterThan(10);
+
+  const emptyState = tier.locator('[data-attn-field="empty-state"]');
+  await expect(emptyState).toBeVisible();
+  await expect(emptyState).toHaveText(declaredEmptyStatement);
+
+  /* 3. ADVERSARIAL: a tier that rendered NOTHING AT ALL would satisfy "zero
+        items" and "no fabricated card" trivially. It must still be present, be
+        visible, and still report the count it is reporting zero of — otherwise
+        an empty tier is indistinguishable from a tier that never ran. */
+  await expect(tier).toBeVisible();
+  const openCount = tier.locator('[data-attn-field="open-count"]');
+  await expect(openCount).toBeVisible();
+  await expect(openCount).toContainText(/0 items/);
+  expect(tierText.length,
+    `the tier must still say something to the reader, got ${JSON.stringify(tierText)}`)
+    .toBeGreaterThan(20);
+
+  /* and the "module did not load" degradation must NOT be what is on screen:
+     "nothing needs a decision" and "nothing was checked" are different claims. */
+  expect(tierText.toLowerCase().includes('could not be loaded'),
+    `the empty state must be the declared one, not the module-unavailable degradation. Tier text: ${tierText}`)
+    .toBe(false);
+});

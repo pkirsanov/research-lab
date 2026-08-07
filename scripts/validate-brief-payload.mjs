@@ -40,7 +40,7 @@ export const validateAttentionItem = RLATTN.validateAttentionItem;
  */
 
 /** The public watchlist scope: the tickers watchlist.json declares, and nothing else. */
-const WATCHLIST_SCOPE = Object.freeze(loadJson('watchlist.json').items.map((item) => item.ticker));
+export const WATCHLIST_SCOPE = Object.freeze(loadJson('watchlist.json').items.map((item) => item.ticker));
 
 /*
  * The exchange calendar, projected from the committed xnys-calendar/v1 rows into the session
@@ -49,7 +49,7 @@ const WATCHLIST_SCOPE = Object.freeze(loadJson('watchlist.json').items.map((item
  * `regular: null`, while `early-close` rows carry their OWN 13:00 ET close — so a close-anchored
  * window slides with the real half-day boundary instead of a nominal 16:00.
  */
-const XNYS_CALENDAR_SOURCE = Object.freeze({
+export const XNYS_CALENDAR_SOURCE = Object.freeze({
   sessions: Object.freeze(
     loadJson('data/calendars/xnys/calendar.json').rows
       .filter((row) => row.regular)
@@ -67,7 +67,7 @@ const XNYS_CALENDAR_SOURCE = Object.freeze({
  * `{ anchor, offsetMinutes }` pair — gets NO entry, and every item placed in it is refused by
  * name. That refusal is the point: it is what an absent anchor is supposed to cost.
  */
-function windowVocabularyFrom(config) {
+export function windowVocabularyFrom(config) {
   const declared = Array.isArray(config?.windows) ? config.windows : [];
   const vocabulary = {};
   for (const window of declared) {
@@ -87,6 +87,19 @@ function hasNarrative(value) {
 
 function hasObject(value) {
   return value && typeof value === 'object' && !Array.isArray(value) && Object.keys(value).length > 0;
+}
+
+/* A refusal has to say WHICH item, not just which slot. An index moves when the
+   list is re-ranked between runs, so an operator reading "attention[3].headline"
+   from yesterday's log cannot find that item today. The id is the stable handle
+   and the subject is the human one; when the identity field is itself the thing
+   that is missing, say so rather than printing "undefined". */
+function attentionItemLabel(item) {
+  if (!item || typeof item !== 'object' || Array.isArray(item)) return ' (item is not an object)';
+  const parts = [];
+  parts.push(hasText(item.id) ? `id=${item.id.trim()}` : 'id absent');
+  if (hasText(item.subject)) parts.push(`subject=${item.subject.trim()}`);
+  return ` (${parts.join(', ')})`;
 }
 
 /* ── D16 on the publish path ─────────────────────────────────────────────────────────────────────
@@ -390,9 +403,36 @@ export function validateBriefPayload(payload, registry, config, snapshot) {
     };
     payload.attention.forEach((item, index) => {
       for (const violation of validateAttentionItem(item, attentionContext).violations) {
-        errors.push(`attention[${index}].${violation.field} ${violation.code}: ${violation.message}`);
+        errors.push(`attention[${index}]${attentionItemLabel(item)}.${violation.field} ${violation.code}: ${violation.message}`);
       }
     });
+  }
+
+  /* Refused candidates (F-017-06). The build step excludes a candidate the
+     composer refuses and records WHY, mirroring the toolCoverage[].reason
+     contract where a registered tool that was not material must still say so.
+     Validated when present rather than required: the key arrives with the build
+     step's payload cutover, and refusing every brief until then would take the
+     live 4x/day publication down for a key nothing writes yet. What is NOT
+     optional is its shape — a reason that does not name a real refusal code is
+     worse than no reason, because it reads as an explanation and explains
+     nothing. */
+  if (payload?.attentionExclusions !== undefined) {
+    if (!Array.isArray(payload.attentionExclusions)) errors.push('attentionExclusions must be an array when present');
+    else {
+      payload.attentionExclusions.forEach((exclusion, index) => {
+        const at = `attentionExclusions[${index}]`;
+        if (!exclusion || typeof exclusion !== 'object' || Array.isArray(exclusion)) {
+          errors.push(`${at} must be an object naming the refused candidate and its reason`);
+          return;
+        }
+        if (!RLATTN.REFUSAL_CODES.includes(exclusion.code)) {
+          errors.push(`${at}.code ${JSON.stringify(exclusion.code)} is not one of the composer's named refusal codes`);
+        }
+        if (!hasText(exclusion.field)) errors.push(`${at}.field must name the field the candidate was refused on`);
+        if (!hasText(exclusion.reason)) errors.push(`${at}.reason must state why the candidate was refused`);
+      });
+    }
   }
 
   if (!Array.isArray(payload?.recommendations)) errors.push('recommendations must be an array');

@@ -1,0 +1,65 @@
+{
+  "version": 1,
+  "featureDir": "specs/012-market-action-center-and-guided-tools/bugs/BUG-007-shared-shell-suite-budget",
+  "generatedAt": "2026-08-04T16:24:35Z",
+  "scenarios": [
+    {
+      "scenarioId": "SCN-B007-001",
+      "scope": "SCOPE-01",
+      "title": "Owner-parity sweep survives shared-shell startup contention",
+      "gherkin": {
+        "given": "the complete 280-identity system-Chrome browser suite runs with four workers and retries disabled under shared host load",
+        "when": "the TP-15-04 sweep opens every wired ordinary tool and awaits the synchronous shared shell plus owner-provider registration",
+        "then": "finite helper-local readiness waits tolerate delayed script start while all 19-tool owner-parity and native-demotion assertions remain unchanged"
+      },
+      "gherkinHash": "sha256:218a8daef600bf2bce04e30a1bb32d3c1bb5fd2a6144fe910b49057cf690fd6f",
+      "behaviorClass": "ui",
+      "changeType": "bugfix",
+      "requiredTestType": "e2e-ui",
+      "regressionRequired": true,
+      "lockdown": false,
+      "linkedTests": [
+        {
+          "file": "tests/simple-production-wiring.spec.mjs",
+          "testId": "TP-15-04 every wired ordinary tool paints its real Simple adapter panel with an owner-parity fact"
+        }
+      ],
+      "evidenceRefs": [
+        "report.md#before-fix-four-worker-complete-suite-evidence",
+        "report.md#focused-tp-15-04-discriminator",
+        "report.md#source-grounded-diagnosis"
+      ],
+      "replacedBy": null,
+      "invalidatedBy": null
+    },
+    {
+      "scenarioId": "SCN-B007-002",
+      "scope": "SCOPE-01",
+      "title": "Options-flow startup ordering survives shared suite contention",
+      "gherkin": {
+        "given": "the complete 280-identity system-Chrome browser suite runs with four workers and retries disabled under shared host load",
+        "when": "the BUG-001 options-flow regression observes the first delta start and all 12 distinct option-delta requests",
+        "then": "a finite target-local containing budget accommodates suite contention while every shell-ordering panel tab navigation and delta-count assertion remains unchanged"
+      },
+      "gherkinHash": "sha256:bac18e86a8d7702b95cbb4abf9be3dc7ac53a579b53ddf1f33d1b7dfff2d32d6",
+      "behaviorClass": "ui",
+      "changeType": "bugfix",
+      "requiredTestType": "e2e-ui",
+      "regressionRequired": true,
+      "lockdown": false,
+      "linkedTests": [
+        {
+          "file": "tests/tool-experience.spec.mjs",
+          "testId": "Regression: BUG-001 options flow shell is ready before heavy hydration begins"
+        }
+      ],
+      "evidenceRefs": [
+        "report.md#before-fix-four-worker-complete-suite-evidence",
+        "report.md#focused-bug-001-options-discriminator",
+        "report.md#source-grounded-diagnosis"
+      ],
+      "replacedBy": null,
+      "invalidatedBy": null
+    }
+  ]
+}

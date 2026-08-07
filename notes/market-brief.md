@@ -569,6 +569,28 @@ pretty and misleading."
 
 ---
 
+## 10a. The two attention surfaces, and why there are two
+
+The brief carries **two** lists, one above the other, and they are held to different standards on purpose.
+
+**"Needs a decision — and when it stops counting"** is the decision list. Everything in it names what would
+prove it wrong and when it expires, and every item that closes is scored afterwards. Seven is a ceiling, not
+a quota — a quiet session publishes fewer, and an empty list says so in words.
+
+**"Actionable changes and catalysts"** is the older feed underneath. It carries what moved and what is
+coming, and it makes no decision demand of the reader.
+
+*Why the older feed was kept and re-pointed rather than deleted or promoted:* two lists competing to be the
+one you act on is the unstable part, so only one of them now asks for a decision and the other went back to
+being what it always actually was — a catalyst list.
+
+*What ships now and what does not:* an item that turns out to matter more than the list can carry is marked
+as escalated and is scored under that outcome, so the record stays honest today. Putting those escalations
+in front of the reader as live alerts waits on the alert surface itself, which is still gated in the code
+and is not switched on by this work. Nothing here quietly turns that gate on.
+
+---
+
 ## 11. Artifacts, registry sync, validation
 
 Files: `market-brief.html` (cockpit) · `rlbrief.js` (shared brief components) · `market-brief.config.json` ·

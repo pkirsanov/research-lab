@@ -796,14 +796,18 @@
   }
 
   /* the share of closed interruptions that turned out to matter. Below the
-     minimum closed sample there is no rate at all, never a flattering zero. */
+     minimum closed sample there is no rate at all, never a flattering zero.
+     Both sides publish together: reporting only the warranted share would put
+     the hits in front of the reader and leave the wasted interruptions out. */
   function computeInterruptionRate(records, policy, asOfIso) {
     var minClosedSample = (isPlainObject(policy) && isFiniteNumber(policy.minClosedSample))
       ? Math.floor(policy.minClosedSample) : LIMITS.minClosedSample;
     var list = Array.isArray(records) ? records.filter(isPlainObject) : [];
     var closed = list.filter(function (r) { return TERMINAL_OUTCOME_CLASSES.indexOf(trimmed(r.outcomeClass)) !== -1; });
     var effective = closed.filter(function (r) { return trimmed(r.outcomeClass) !== "expired-without-effect"; });
+    var expiredWithoutEffect = closed.length - effective.length;
     var sufficientSample = minClosedSample > 0 && closed.length >= minClosedSample;
+    var warrantedShare = sufficientSample ? effective.length / closed.length : null;
 
     return Object.freeze({
       contractVersion: INTERRUPTION_CONTRACT_VERSION,
@@ -812,9 +816,13 @@
       minClosedSample: minClosedSample,
       sufficientSample: sufficientSample,
       effectiveCount: effective.length,
-      rate: sufficientSample ? effective.length / closed.length : null,
+      expiredWithoutEffectCount: expiredWithoutEffect,
+      rate: warrantedShare,
+      warrantedShare: warrantedShare,
+      expiredWithoutEffectShare: sufficientSample ? expiredWithoutEffect / closed.length : null,
       statement: sufficientSample
-        ? "Of the closed attention items, " + effective.length + " of " + closed.length + " turned out to matter."
+        ? "Of the closed attention items, " + effective.length + " of " + closed.length
+          + " turned out to matter and " + expiredWithoutEffect + " expired without effect."
         : "The closed sample is too small to report an interruption rate."
     });
   }

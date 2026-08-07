@@ -696,6 +696,38 @@ test('SCN-017-021 Zero qualifying items yields an explicit nothing-requires-atte
     'no rate may be published below the minimum closed sample');
 });
 
+/* ═══════════════════════════ SCN-017-021b ══════════════════════════════ */
+
+test('SCN-017-021b The record publishes the wasted share beside the warranted one', () => {
+  const RL = load();
+  const closure = (outcomeClass, i) => ({ outcomeClass, itemId: 'item-' + i });
+
+  // 20 closed = exactly the minimum: 15 that mattered, 5 that did not.
+  const closed = []
+    .concat([0, 1, 2, 3, 4].map((i) => closure('confirmed', i)))
+    .concat([0, 1, 2, 3, 4].map((i) => closure('resolved', 10 + i)))
+    .concat([0, 1, 2, 3, 4].map((i) => closure('escalated', 20 + i)))
+    .concat([0, 1, 2, 3, 4].map((i) => closure('expired-without-effect', 30 + i)));
+
+  const at = RL.computeInterruptionRate(closed, { minClosedSample: 20 }, '2026-08-07T12:00:00.000Z');
+  assert.equal(at.closedSample, 20);
+  assert.equal(at.warrantedShare, 0.75, 'the warranted share is 15 of 20');
+  assert.equal(at.expiredWithoutEffectShare, 0.25, 'the wasted share is 5 of 20');
+  assert.equal(at.expiredWithoutEffectCount, 5);
+  assert.equal(at.warrantedShare + at.expiredWithoutEffectShare, 1,
+    'the two shares partition the closed sample, so a reader cannot be shown only the flattering half');
+  assert.equal(at.rate, at.warrantedShare, 'rate stays the warranted share for existing consumers');
+  assert.match(at.statement, /5 expired without effect/,
+    'the statement names the wasted interruptions, not only the ones that mattered');
+
+  // One below the minimum withholds BOTH sides — never a zero for the wasted share.
+  const below = RL.computeInterruptionRate(closed.slice(0, 19), { minClosedSample: 20 }, '2026-08-07T12:00:00.000Z');
+  assert.equal(below.sufficientSample, false);
+  assert.equal(below.warrantedShare, null, 'the warranted share is withheld below the minimum');
+  assert.equal(below.expiredWithoutEffectShare, null,
+    'the wasted share is withheld too — publishing 0 here would read as "we never waste an interruption"');
+});
+
 /* ═══════════════════════════ SCN-017-022 ═══════════════════════════════ */
 
 test('SCN-017-022 The cap of seven is a ceiling and never a quota', () => {

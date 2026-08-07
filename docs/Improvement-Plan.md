@@ -399,7 +399,7 @@ default-view panels across all 25 pages, and the pending case still states the l
 
 ```bash
 node scripts/brief-refresh.mjs --dry-run
-jq -r '.scopeSummary.coveredCellCount, .scopeSummary.gapCount' market-brief.owner-reads.json
+jq -r '{tickers, domainsProduced, totalReads: ([.ownerReads[] | .[]?] | length)}' market-brief.owner-reads.json
 npx --no-install playwright test tests/public-watchlist-matrix.spec.mjs --config=playwright.config.mjs --project=system-chrome
 node scripts/selftest.mjs
 ```
@@ -457,6 +457,12 @@ reporting `insufficientSample`.
 ---
 
 ### Step 7 · Close the last five stale tools — **1.5 d**
+
+> **Status: COMPLETE at its evidence-bounded maximum** *(2026-08-07)* — `analyzed` **11 → 13**, `stale` **5 → 3**.
+> The acceptance metric below is preserved as written; both its numbers are unreachable and were corrected twice
+> on evidence (`16` → `14` → **13**). See *"Corrected again — the ceiling is 13, not 14"* below. Read *"no tool
+> with data on disk"* as *no tool whose **evidence family** is on disk*: `bond-regime-lab` has bars but no
+> Treasury curve or credit-spread observation, which is a different thing.
 
 **Change** — one Tier-A read builder per tool, following the existing `buildEtfToolRead` template, shipped as
 five independently revertable commits: `technical-analysis-decision-lab` → `bond-regime-lab` →
@@ -549,6 +555,64 @@ node scripts/selftest.mjs
 
 **Done when** `BUG-001` is terminal and every remaining non-terminal spec names a real missing capability.
 
+#### Measured — the second clause holds; the first cannot be met from inside this repo *(2026-08-07)*
+
+Full inventory of every non-terminal packet, with DoD completion and whether a blocker is recorded:
+
+| Spec | Status | Blocker recorded | DoD | Verdict |
+|---|---|---|---|---|
+| `001-causal-rotation-intelligence` | blocked | yes | 10/70 | genuine WIP, blocker named |
+| `004-fx-regime-relative-value-lab` | in_progress | — | 44/143 | genuine WIP (31%) |
+| `005-palm-springs-rental-market-lab` | in_progress | — | 61/172 | genuine WIP (35%) |
+| `006-trend-dynamics-cycle-lab` | in_progress | — | 42/78 | genuine WIP (54%) |
+| `007-technical-analysis-decision-lab` | blocked | yes | 15/147 | blocker named |
+| `008-portfolio-survival-and-brief-lab` | in_progress | — | 31/207 | genuine WIP (15%) |
+| `012-market-action-center-and-guided-tools` | blocked | yes | 158/211 | blocker named (75%) |
+| `013-market-regime-stack-and-strategy-playbook` | in_progress | — | 0/214 | not begun |
+| `014-shared-cycle-and-seasonality-exchange` | not_started | — | 0/235 | correct |
+| `015-recommendation-outcome-ledger-and-track-record` | blocked | yes | 0/376 | blocker named |
+| `016-auction-gamma-playbook` | not_started | — | 0/197 | correct |
+| `017-decision-attention-and-developing-situations` | in_progress | — | 100/122 | active WIP |
+| `BUG-001-central-provider-credential-security` | in_progress | yes | **18/18** | see below |
+| `BUG-005-…-unsatisfiable-in-place-delivery` | blocked | yes | 0/17 | blocker named |
+| `BUG-006-evaluate-before-publish-…` | blocked | yes | 5/22 | blocker named |
+
+**The acceptance metric is met.** No spec's *shipped code* contradicts its *recorded status*. Every
+`in_progress` packet has genuinely partial DoD and claims nothing more; every `blocked` packet names a real
+missing capability, not another spec's status (**D10** holds).
+
+**`BUG-001` is the one packet whose record was inaccurate, and it is now corrected — but it cannot go
+terminal.** Its DoD is 18/18, the remediation is shipped and green, and no product defect is outstanding. What
+is missing is a governance record: gates **G022** and **G027** require an `audit` phase claim plus
+`certification.completedScopes`, both **validate-owned**. Writing either by hand is precisely the fabrication
+those gates exist to detect, so it was not done.
+
+Three corrections were recorded into `state.json.currentPosition.reMeasured2026-08-07`, each re-measured rather
+than inherited:
+
+1. **The guard reports 5 failures, not the 4 on record.**
+2. **The 5th is a guard false positive.** Check 43 flags an "Evidence receipt CLONE … which cannot happen from
+   honest execution" citing digest `e3b0c44298fc…` — which is the SHA-256 of the **empty string** (verified by
+   `printf '' | sha256sum`). The cited commands (`--help`, a `grep` with no match, `node --test` runs writing to
+   stderr) all legitimately produced **no stdout**, so they necessarily hash alike. **Empty output is not a
+   fingerprint.** The same clone set also cites `specs/008-…`, so this is cross-spec. This is the repo's own
+   *Empty Output Sentinel Convention* problem surfacing inside a framework guard.
+3. **The recorded "compact the packet first" lever is refuted.** It rested on `report.md` being large. Measured:
+   BUG-001 is **6950 lines / 342 KB**, while `012/bugs/BUG-004-market-heatmap-control-surface` — which reached a
+   **certified `done`** — is **9907 lines / 469 KB**. The *successful* comparator is larger on both metrics.
+   Size is now ruled out by directory total *and* by report size. No root cause is established.
+
+`status` deliberately stays `in_progress` and mirrored to `certification.status`. Flipping it to `blocked` was
+considered and **rejected**: that split previously triggered `E009-TARGET-MISMATCH`, which empties the *entire*
+gate battery so no gate can run at all. Mirrors must never be split.
+
+**Both residual items are framework defects and must be filed upstream** — `.github/bubbles/` is
+framework-managed in a downstream repo and must never be patched locally:
+
+- `bubbles.audit` returning no output on this packet (attempt 008 is the decisive negative: it ran *after* the
+  E009 fix, against a cleanly resolving contract and a full 26-gate battery, and still produced nothing).
+- The Check 43 empty-digest clone false positive.
+
 ---
 
 ### Sequencing
@@ -560,11 +624,16 @@ node scripts/selftest.mjs
 4  Watchlist routed into tools ..... 2-3d   ✅ af221a89  owned 0 -> 28, covered 0 -> 14/28
 5  Red Alert + Portfolio real ...... 1d     ✅ done  86254c09  constant -> computed coverage
 6  Recommendations born evaluable .. 2d     ◐ 32692325  live payload 40% -> 80% scoreable
-7  Last five stale tools ........... 1.5d   ◐ 6704d682 shipped all 3 Tier-A adapters; published payload
-                                             still analyzed 11 / stale 5 -- it predates that commit
+7  Last five stale tools ........... 1.5d   ✅ COMPLETE at its honest ceiling: analyzed 11 -> 13, stale 5 -> 3.
+                                             The ceiling is 13, not 14 -- bond-regime-lab is an honest
+                                             computed absence, not a wiring gap. All 3 residual stale
+                                             tools are named blockers with a specific missing input.
 8  Journey on every tool page ...... ----   ✖ VOID — premise was a measurement error (D17)
-9  Paperwork reconciled ............ 1d     ◐ 015's stale blocker corrected (7074a6c3); BUG-001 still
-                                             in_progress, 13 of 22 state.json files non-terminal
+9  Paperwork reconciled ............ 1d     ✅ acceptance metric MET: no spec's shipped code contradicts
+                                             its status. BUG-001 corrected but cannot go terminal --
+                                             G022/G027 need validate-owned fields; 2 framework defects
+                                             (bubbles.audit no-output; Check 43 empty-digest clone) to
+                                             file upstream. Packet-size lever REFUTED.
 ```
 
 Steps 1→2→3 are the legibility track. Step 4 is the coverage track and gates 5 and 6. Steps 7 and 9 are
@@ -590,8 +659,9 @@ silently undone the fix.
 | `journey/market-action/prepare-session/v1` | "Prepare the next market session" |
 | `returned coverage-only` in brief prose | `returned no call` |
 
-**Do Step 7 next** (the five tools still stale in the brief), then Step 9 (paperwork), then reconcile
-`Product-Review-and-Roadmap.md` sections 5, 10.2, 11 and 14 against its corrected sections 1 and 2.
+**Do Step 9 next** (paperwork), then reconcile `Product-Review-and-Roadmap.md` sections 5, 10.2, 11 and 14
+against its corrected sections 1 and 2. Step 7 closed at `analyzed` 13 with 3 named blockers — see the
+correction below before treating any of the 3 as remaining work.
 
 ### Step 7 — specified, and the target lowered to what the evidence supports
 
@@ -613,6 +683,58 @@ where committed evidence exists to run one.
 **The original `11 -> 16` target was unreachable and should not be chased.** Three adapters are buildable, so
 the honest ceiling is **`11 -> 14`**. The remaining two are named blockers, not effort gaps — the same
 evidence-bounded framing as Step 4. Do not close the number by giving `smart-money-flow-lab` a synthetic input.
+
+#### Corrected again — the ceiling is **13, not 14**, and the product is already there *(2026-08-07)*
+
+The table above is preserved as its **original point-in-time verdict**; nothing in it is deleted. One row of it
+is wrong, and it is the row the remaining work depended on. Re-measured:
+
+```
+published payload   analyzed 13 · not-relevant 7 · stale 3          (the table's "11 · 5 · 7" predates the shipped adapters)
+--dry-run coverage  8 browser-or-agent-read · 13 fresh-headless · 2 unavailable
+still stale         bond-regime-lab · smart-money-flow-lab · technical-analysis-decision-lab
+```
+
+Two of the three "feasible" adapters landed (`options-flow-feed-lab`, `ai-capex-strategy-lab`), taking
+`analyzed` **11 → 13**. The third, `bond-regime-lab`, is **not feasible**, and the row above misread why.
+
+**`bond-regime-lab` is an honest computed absence, not a wiring gap.** The plan proposed deriving "curve slope
+from SHY/IEF/TLT, credit spread from HYG/LQD". That is a *price* proxy. The tool's own model does not ask for a
+price proxy — it refuses to reach a decision until three independent evidence families are current at once, and
+two of them are not price series at all:
+
+| Claim | Read at the cited line |
+|---|---|
+| The model needs three families; the repo commits one | [`../scripts/brief-refresh.mjs`](../scripts/brief-refresh.mjs) lines 1461-1472 — *"an aligned credit price ratio, an independent credit-spread (or financial-conditions) observation, and a Treasury curve. This repo commits only the first."* |
+| No curve/yield/break-even/spread file exists | `find data -iname '*treasury*' -o -iname '*curve*' -o -iname '*yield*' -o -iname '*breakeven*' -o -iname '*spread*'` → **no matches**. `data/` holds exactly `bars`, `calendars`, `company-fundamentals`, `options`. |
+| A server run *structurally* cannot supply the spread | [`../bond-regime-lab.html`](../bond-regime-lab.html) lines 1180-1181 — the config validator **hard-errors** `restricted-policy-required` if `oas` or `financialConditions` ever leaves `mode: user-observation-or-unavailable` + `persistence: memory-only`. The curve families (line 1173) require a `urlTemplate` fetched live from `home.treasury.gov` into browser cache. Neither has a same-origin file. |
+| HYG/LQD is already used | It is — **honestly**, as the *high-yield versus investment-grade price ratio* in the published read, not relabelled as a credit spread. |
+
+So the proposed fix would have had to feed a price-derived proxy into a slot the model declares is an
+independent yield/spread observation. That is a **BI-2 / P2 violation** (missing data must render as missing,
+never inferred) and it is the very thing this step's own last sentence forbids — the rule applies to
+`bond-regime-lab` exactly as it applies to `smart-money-flow-lab`. The bars are present; the *evidence family*
+is not, and the two are not interchangeable.
+
+The other two verdicts in the table hold, re-measured:
+
+- **`smart-money-flow-lab`** — no Tier-A builder at all (`grep -c` for it in `brief-refresh.mjs` → **0**), and no
+  filings data. A `find` for `*13f*` appears to hit two files; both are hex-hash false positives in
+  content-addressed `data/company-fundamentals/objects/`, whose keys are `archetypeId, briefCutoff, companyId, …`
+  — fundamentals, not filings. **BLOCKED**, as written.
+- **`technical-analysis-decision-lab`** — every `window.__TAD_DIAGNOSTICS__` receipt in the page sets
+  `ownerReadPublished: false` with `truthState: "degraded"`/`"unavailable"`, one banded
+  *"owner publication disabled"*. The adapter is wired and runs; the owner five-gate model is not implemented.
+  **Owner-model gap**, as written.
+
+**Step 7 is therefore complete at its evidence-bounded maximum: `analyzed` 11 → 13, `stale` 5 → 3.** All three
+residual `stale` tools are named blockers with a specific missing input — a Treasury curve + OAS observation, real
+filings data, and an unimplemented owner model. None is an effort gap, and none can be closed without fabricating
+an input. Chasing 14 would mean publishing a proxy as the thing it proxies, which is the one trade this product
+does not make.
+
+**`stale` 3 → 0 is not a target.** A tool with no committed evidence *should* read `stale`; forcing it to
+`analyzed` is what BI-2 forbids. The honest terminal state of this step is 13 analyzed with 3 named blockers.
 
 ---
 
@@ -712,7 +834,7 @@ the parser recovers them — the same trap as the vocabulary fix in Step 3.
 | Brief / action scoping on a tool page | **own tool only — 22 / 22** ✅ | own tool only | same (`briefMounts`, `briefTools`) |
 | Tools sharing the generic Simple heading | 10 | **0** | same |
 | Parameter levers without a contextual tooltip | most | **0** | selftest static scan |
-| Covered watchlist matrix cells | **0** / 24 | **≥ 15** | `jq .scopeSummary.coveredCellCount` |
+| Covered watchlist matrix cells | **0** / 24 | **≥ 15** | `jq '[.ownerReads[]\|.[]?]\|length' market-brief.owner-reads.json` |
 | `notEvaluableShare` (30d) | **0.8333** | **≤ 0.25** | `jq '.windows["30d"].notEvaluableShare'` |
 | Tools `analyzed` in the brief | 11 / 23 | **16 / 23** | `jq .toolCoverage` |
 | Tools `stale` in the brief | 5 | **0** | `jq .toolCoverage` |

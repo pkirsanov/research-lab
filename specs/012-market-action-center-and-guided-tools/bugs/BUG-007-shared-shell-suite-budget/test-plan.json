@@ -1,0 +1,413 @@
+{
+  "version": 1,
+  "specId": "BUG-007",
+  "featureDir": "specs/012-market-action-center-and-guided-tools/bugs/BUG-007-shared-shell-suite-budget",
+  "featureName": "BUG-007 Shared-Shell Suite Budget",
+  "generatedBy": "bubbles.plan",
+  "generatedAt": "2026-08-04T16:46:52Z",
+  "planningStatus": "adopted-independent-test-required",
+  "evidenceBoundary": "Planning and the active 280-identity baseline are adopted. Implementation evidence is recorded in report.md, but no independent complete-suite result, scope completion, audit verdict, or certification is claimed.",
+  "implementationDispatchAllowed": false,
+  "nextRequiredOwner": "bubbles.test",
+  "nextRequiredAction": "Independently execute and adjudicate all thirteen existing Test Plan rows against the current 280-identity, 33-file baseline without changing commands, retries, worker profiles, assertions, or implementation.",
+  "dodParity": {
+    "scopeId": "SCOPE-01",
+    "testPlanRowCount": 13,
+    "testEvidenceCheckboxCount": 13,
+    "mapping": [
+      {
+        "testPlanId": "TP-B007-00",
+        "dodId": "DOD-TP-B007-00",
+        "checked": false,
+        "evidenceRef": "report.md#before-fix-four-worker-complete-suite-evidence",
+        "executionStatus": "preserved-pre-fix-red"
+      },
+      {
+        "testPlanId": "TP-B007-01",
+        "dodId": "DOD-TP-B007-01",
+        "checked": false,
+        "evidenceRef": null,
+        "executionStatus": "not-run"
+      },
+      {
+        "testPlanId": "TP-B007-02",
+        "dodId": "DOD-TP-B007-02",
+        "checked": false,
+        "evidenceRef": null,
+        "executionStatus": "not-run"
+      },
+      {
+        "testPlanId": "TP-B007-03",
+        "dodId": "DOD-TP-B007-03",
+        "checked": false,
+        "evidenceRef": null,
+        "executionStatus": "not-run"
+      },
+      {
+        "testPlanId": "TP-B007-04",
+        "dodId": "DOD-TP-B007-04",
+        "checked": false,
+        "evidenceRef": null,
+        "executionStatus": "not-run"
+      },
+      {
+        "testPlanId": "TP-B007-05",
+        "dodId": "DOD-TP-B007-05",
+        "checked": false,
+        "evidenceRef": null,
+        "executionStatus": "not-run"
+      },
+      {
+        "testPlanId": "TP-B007-06",
+        "dodId": "DOD-TP-B007-06",
+        "checked": false,
+        "evidenceRef": null,
+        "executionStatus": "not-run"
+      },
+      {
+        "testPlanId": "TP-B007-07",
+        "dodId": "DOD-TP-B007-07",
+        "checked": false,
+        "evidenceRef": null,
+        "executionStatus": "not-run"
+      },
+      {
+        "testPlanId": "TP-B007-08",
+        "dodId": "DOD-TP-B007-08",
+        "checked": false,
+        "evidenceRef": null,
+        "executionStatus": "not-run"
+      },
+      {
+        "testPlanId": "TP-B007-09",
+        "dodId": "DOD-TP-B007-09",
+        "checked": false,
+        "evidenceRef": null,
+        "executionStatus": "not-run"
+      },
+      {
+        "testPlanId": "TP-B007-10",
+        "dodId": "DOD-TP-B007-10",
+        "checked": false,
+        "evidenceRef": null,
+        "executionStatus": "not-run"
+      },
+      {
+        "testPlanId": "TP-B007-11",
+        "dodId": "DOD-TP-B007-11",
+        "checked": false,
+        "evidenceRef": null,
+        "executionStatus": "not-run"
+      },
+      {
+        "testPlanId": "TP-B007-12",
+        "dodId": "DOD-TP-B007-12",
+        "checked": false,
+        "evidenceRef": null,
+        "executionStatus": "not-run"
+      }
+    ]
+  },
+  "scope": {
+    "scopeId": "SCOPE-01",
+    "scopeName": "Calibrate Shared-Shell Suite Budgets",
+    "status": "in_progress",
+    "foundation": false,
+    "capabilityRole": "shared-shell-browser-suite-budget-bugfix",
+    "dependsOn": [],
+    "tests": [
+      {
+        "id": "TP-B007-00",
+        "dodId": "DOD-TP-B007-00",
+        "type": "pre-fix-adversarial-e2e-ui",
+        "category": "e2e-ui",
+        "files": [
+          "tests/simple-production-wiring.spec.mjs",
+          "tests/tool-experience.spec.mjs"
+        ],
+        "scenarioIds": [
+          "SCN-B007-001",
+          "SCN-B007-002"
+        ],
+        "description": "Preserve the four-worker 277-identity carrier that reports 275 passing identities and only the two named budget failures before repair.",
+        "command": "timeout 1200 npx --no-install playwright test --config=playwright.config.mjs --project=system-chrome --reporter=list --workers=4 --retries=0",
+        "liveSystem": true,
+        "regression": true,
+        "adversarial": true,
+        "retries": 0,
+        "status": "preserved-pre-fix-red",
+        "evidenceRef": "report.md#before-fix-four-worker-complete-suite-evidence"
+      },
+      {
+        "id": "TP-B007-01",
+        "dodId": "DOD-TP-B007-01",
+        "type": "focused-regression-e2e-ui",
+        "category": "e2e-ui",
+        "file": "tests/simple-production-wiring.spec.mjs",
+        "scenarioIds": [
+          "SCN-B007-001"
+        ],
+        "testId": "TP-15-04 every wired ordinary tool paints its real Simple adapter panel with an owner-parity fact",
+        "description": "The exact 19-tool owner-parity sweep passes with every owner-parity, native-demotion, and honest-unavailable assertion unchanged.",
+        "command": "timeout 1200 npx --no-install playwright test tests/simple-production-wiring.spec.mjs --config=playwright.config.mjs --project=system-chrome --grep \"TP-15-04 every wired ordinary tool paints its real Simple adapter panel with an owner-parity fact\" --reporter=list --workers=1 --retries=0",
+        "liveSystem": true,
+        "regression": true,
+        "adversarial": true,
+        "retries": 0,
+        "status": "not-run",
+        "evidenceRef": null
+      },
+      {
+        "id": "TP-B007-02",
+        "dodId": "DOD-TP-B007-02",
+        "type": "same-file-regression-e2e-ui",
+        "category": "e2e-ui",
+        "file": "tests/simple-production-wiring.spec.mjs",
+        "scenarioIds": [
+          "SCN-B007-001"
+        ],
+        "description": "Every test in the owner-parity sweep's owning file passes serially with retries disabled.",
+        "command": "timeout 1800 npx --no-install playwright test tests/simple-production-wiring.spec.mjs --config=playwright.config.mjs --project=system-chrome --reporter=list --workers=1 --retries=0",
+        "liveSystem": true,
+        "regression": true,
+        "retries": 0,
+        "status": "not-run",
+        "evidenceRef": null
+      },
+      {
+        "id": "TP-B007-03",
+        "dodId": "DOD-TP-B007-03",
+        "type": "focused-regression-e2e-ui",
+        "category": "e2e-ui",
+        "file": "tests/tool-experience.spec.mjs",
+        "scenarioIds": [
+          "SCN-B007-002"
+        ],
+        "testId": "Regression: BUG-001 options flow shell is ready before heavy hydration begins",
+        "description": "The exact BUG-001 options-flow target passes all first-delta, twelve-request, shell, tab, panel, and navigation assertions.",
+        "command": "timeout 180 npx --no-install playwright test tests/tool-experience.spec.mjs --config=playwright.config.mjs --project=system-chrome --grep \"Regression: BUG-001 options flow shell is ready before heavy hydration begins\" --reporter=list --workers=1 --retries=0",
+        "liveSystem": true,
+        "regression": true,
+        "adversarial": true,
+        "retries": 0,
+        "status": "not-run",
+        "evidenceRef": null
+      },
+      {
+        "id": "TP-B007-04",
+        "dodId": "DOD-TP-B007-04",
+        "type": "same-file-regression-e2e-ui",
+        "category": "e2e-ui",
+        "file": "tests/tool-experience.spec.mjs",
+        "scenarioIds": [
+          "SCN-B007-002"
+        ],
+        "description": "Every test in the options-flow target's owning file passes serially with retries disabled.",
+        "command": "timeout 600 npx --no-install playwright test tests/tool-experience.spec.mjs --config=playwright.config.mjs --project=system-chrome --reporter=list --workers=1 --retries=0",
+        "liveSystem": true,
+        "regression": true,
+        "retries": 0,
+        "status": "not-run",
+        "evidenceRef": null
+      },
+      {
+        "id": "TP-B007-05",
+        "dodId": "DOD-TP-B007-05",
+        "type": "adversarial-complete-suite-e2e-ui",
+        "category": "e2e-ui",
+        "file": "tests/**/*.spec.mjs",
+        "scenarioIds": [
+          "SCN-B007-001",
+          "SCN-B007-002"
+        ],
+        "description": "The four-worker complete suite passes all 280 identities across 33 files with zero counted failures and retries disabled.",
+        "command": "timeout 1200 npx --no-install playwright test --config=playwright.config.mjs --project=system-chrome --reporter=list --workers=4 --retries=0",
+        "liveSystem": true,
+        "regression": true,
+        "adversarial": true,
+        "retries": 0,
+        "status": "not-run",
+        "evidenceRef": null
+      },
+      {
+        "id": "TP-B007-06",
+        "dodId": "DOD-TP-B007-06",
+        "type": "serial-complete-suite-e2e-ui",
+        "category": "e2e-ui",
+        "file": "tests/**/*.spec.mjs",
+        "scenarioIds": [
+          "SCN-B007-001",
+          "SCN-B007-002"
+        ],
+        "description": "The serial complete suite passes all 280 identities across 33 files with zero counted failures and retries disabled.",
+        "command": "timeout 3600 npx --no-install playwright test --config=playwright.config.mjs --project=system-chrome --reporter=list --workers=1 --retries=0",
+        "liveSystem": true,
+        "regression": true,
+        "retries": 0,
+        "status": "not-run",
+        "evidenceRef": null
+      },
+      {
+        "id": "TP-B007-07",
+        "dodId": "DOD-TP-B007-07",
+        "type": "repository-regression",
+        "category": "functional",
+        "file": "scripts/selftest.mjs",
+        "scenarioIds": [
+          "SCN-B007-001",
+          "SCN-B007-002"
+        ],
+        "description": "The build-free repository selftest passes with zero failures.",
+        "command": "timeout 1200 node scripts/selftest.mjs",
+        "liveSystem": false,
+        "regression": true,
+        "status": "not-run",
+        "evidenceRef": null
+      },
+      {
+        "id": "TP-B007-08",
+        "dodId": "DOD-TP-B007-08",
+        "type": "bugfix-regression-quality",
+        "category": "functional",
+        "file": "tests/simple-production-wiring.spec.mjs",
+        "scenarioIds": [
+          "SCN-B007-001"
+        ],
+        "description": "The owner-parity sweep retains adversarial assertions and contains no bailout or interception violation.",
+        "command": "timeout 120 bash .github/bubbles/scripts/regression-quality-guard.sh --bugfix tests/simple-production-wiring.spec.mjs",
+        "liveSystem": false,
+        "regression": true,
+        "adversarial": true,
+        "status": "not-run",
+        "evidenceRef": null
+      },
+      {
+        "id": "TP-B007-09",
+        "dodId": "DOD-TP-B007-09",
+        "type": "bugfix-regression-quality",
+        "category": "functional",
+        "file": "tests/tool-experience.spec.mjs",
+        "scenarioIds": [
+          "SCN-B007-002"
+        ],
+        "description": "The options-flow target retains ordering assertions and contains no bailout or interception violation.",
+        "command": "timeout 120 bash .github/bubbles/scripts/regression-quality-guard.sh --bugfix tests/tool-experience.spec.mjs",
+        "liveSystem": false,
+        "regression": true,
+        "adversarial": true,
+        "status": "not-run",
+        "evidenceRef": null
+      },
+      {
+        "id": "TP-B007-10",
+        "dodId": "DOD-TP-B007-10",
+        "type": "javascript-syntax",
+        "category": "functional",
+        "files": [
+          "tests/simple-production-wiring.spec.mjs",
+          "tests/tool-experience.spec.mjs"
+        ],
+        "scenarioIds": [
+          "SCN-B007-001",
+          "SCN-B007-002"
+        ],
+        "description": "Both modified browser test modules parse successfully.",
+        "command": "timeout 30 node --check tests/simple-production-wiring.spec.mjs && timeout 30 node --check tests/tool-experience.spec.mjs",
+        "liveSystem": false,
+        "regression": true,
+        "status": "not-run",
+        "evidenceRef": null
+      },
+      {
+        "id": "TP-B007-11",
+        "dodId": "DOD-TP-B007-11",
+        "type": "exact-mutation-boundary",
+        "category": "functional",
+        "files": [
+          "tests/simple-production-wiring.spec.mjs",
+          "tests/tool-experience.spec.mjs",
+          "playwright.config.mjs"
+        ],
+        "scenarioIds": [
+          "SCN-B007-001",
+          "SCN-B007-002"
+        ],
+        "description": "The scoped diff is whitespace-clean and contains only two 30,000 to 60,000 ms replacements plus one test.slow() insertion.",
+        "command": "git diff --check -- tests/simple-production-wiring.spec.mjs tests/tool-experience.spec.mjs playwright.config.mjs && git --no-pager diff -- tests/simple-production-wiring.spec.mjs tests/tool-experience.spec.mjs playwright.config.mjs",
+        "liveSystem": false,
+        "regression": true,
+        "status": "not-run",
+        "evidenceRef": null
+      },
+      {
+        "id": "TP-B007-12",
+        "dodId": "DOD-TP-B007-12",
+        "type": "packet-lint-and-integrity",
+        "category": "functional",
+        "file": "specs/012-market-action-center-and-guided-tools/bugs/BUG-007-shared-shell-suite-budget",
+        "scenarioIds": [
+          "SCN-B007-001",
+          "SCN-B007-002"
+        ],
+        "description": "The nine-artifact packet preserves state, mode, scenario, linked-test, and 13-row Markdown/JSON DoD parity integrity.",
+        "command": "timeout 300 bash .github/bubbles/scripts/artifact-lint.sh specs/012-market-action-center-and-guided-tools/bugs/BUG-007-shared-shell-suite-budget && timeout 600 bash .github/bubbles/scripts/traceability-guard.sh specs/012-market-action-center-and-guided-tools/bugs/BUG-007-shared-shell-suite-budget --all-scopes",
+        "liveSystem": false,
+        "regression": true,
+        "status": "not-run",
+        "evidenceRef": null
+      }
+    ]
+  },
+  "applicability": {
+    "unit": "not applicable because no production or pure helper logic changes",
+    "functional": "required for selftest, regression quality, syntax, diff, and packet checks",
+    "integration": "not applicable because no service boundary changes",
+    "ui-unit": "not applicable because these are real-page browser regressions",
+    "e2e-api": "not applicable because no API behavior changes",
+    "e2e-ui": "required for focused, same-file, and both complete-suite profiles",
+    "stress": "TP-B007-05 is the owning concurrent browser workload",
+    "load": "not applicable because no product throughput contract changes"
+  },
+  "changeBoundary": {
+    "allowedTests": {
+      "tests/simple-production-wiring.spec.mjs": "Only the two single-use openAndAwaitOwnerEvidence readiness waits may change from 30,000 ms to 60,000 ms.",
+      "tests/tool-experience.spec.mjs": "Only test.slow() may be inserted as the first statement of the named BUG-001 options-flow target."
+    },
+    "readOnlyChecks": [
+      "playwright.config.mjs",
+      "scripts/selftest.mjs",
+      ".github/bubbles/scripts/regression-quality-guard.sh"
+    ],
+    "excluded": [
+      "all product source",
+      "all configuration and dependency files",
+      "retries, workers, global timeouts, fixed sleeps, catches, interception, bailout returns, optional assertions, and forced interactions",
+      "BUG-005, BUG-006, Feature 004, BUG-002, parent Feature 012, and certification fields",
+      "all concurrent dirty work"
+    ]
+  },
+  "routing": {
+    "sequence": [
+      {
+        "order": 1,
+        "owner": "bubbles.implement",
+        "action": "Apply exactly two readiness-timeout replacements and one target-local test.slow() insertion inside the authorized two-file boundary."
+      },
+      {
+        "order": 2,
+        "owner": "bubbles.test",
+        "action": "Execute all thirteen Test Plan rows with retries disabled and preserve per-row evidence."
+      },
+      {
+        "order": 3,
+        "owner": "bubbles.audit",
+        "action": "Independently verify the exact mutation boundary, scenario fidelity, dirty-work preservation, and evidence claims."
+      },
+      {
+        "order": 4,
+        "owner": "bubbles.validate",
+        "action": "Certify only after all implementation, test, regression, audit, and transition gates pass."
+      }
+    ]
+  }
+}

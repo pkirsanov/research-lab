@@ -2,7 +2,7 @@
   "contractVersion": "test-plan/v1",
   "featureDir": "specs/017-decision-attention-and-developing-situations",
   "generatedBy": "bubbles.plan",
-  "totalRows": 46,
+  "totalRows": 53,
   "scopes": [
     {
       "scope": 1,
@@ -83,6 +83,20 @@
         { "id": "TP-05-03", "designTest": "T-40", "file": "tests/attention-payload-contract.test.mjs", "category": "integration", "liveSystem": false },
         { "id": "TP-05-04", "designTest": "T-42", "file": "tests/attention-browser.spec.mjs", "category": "e2e-ui", "liveSystem": true },
         { "id": "TP-05-05", "designTest": "T-44", "file": "scripts/selftest.mjs", "category": "integration", "liveSystem": false }
+      ]
+    },
+    {
+      "scope": 6,
+      "scopeId": "06-authoring-lane-composer-routing",
+      "rowCount": 7,
+      "rows": [
+        { "id": "TP-06-01", "designTest": null, "file": "tests/attention-payload-contract.test.mjs", "category": "integration", "liveSystem": false },
+        { "id": "TP-06-02", "designTest": null, "file": "tests/attention-payload-contract.test.mjs", "category": "integration", "liveSystem": false },
+        { "id": "TP-06-03", "designTest": null, "file": "tests/attention-payload-contract.test.mjs", "category": "integration", "liveSystem": false },
+        { "id": "TP-06-04", "designTest": null, "file": "tests/attention-payload-contract.test.mjs", "category": "integration", "liveSystem": false },
+        { "id": "TP-06-05", "designTest": null, "file": "tests/attention-browser.spec.mjs", "category": "e2e-ui", "liveSystem": true },
+        { "id": "TP-06-06", "designTest": null, "file": "tests/attention-payload-contract.test.mjs", "category": "unit", "liveSystem": false },
+        { "id": "TP-06-07", "designTest": null, "file": "tests/attention-payload-contract.test.mjs", "category": "unit", "liveSystem": false }
       ]
     }
   ]

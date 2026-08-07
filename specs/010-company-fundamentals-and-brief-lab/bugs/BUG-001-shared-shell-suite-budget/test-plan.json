@@ -1,0 +1,197 @@
+{
+  "version": 2,
+  "specId": "BUG-001",
+  "featureDir": "specs/010-company-fundamentals-and-brief-lab/bugs/BUG-001-shared-shell-suite-budget",
+  "generatedBy": "bubbles.plan",
+  "generatedAt": "2026-08-04T21:14:16Z",
+  "planningStatus": "adopted-awaiting-implementation",
+  "tddMode": "scenario-first",
+  "scopeLayout": "single-file",
+  "planNote": "SCOPE-01 is the sole active scope. Apply exactly one { timeout: 30_000 } addition to the shell-ready toBeVisible assertion in openNativeResearchSurface. Preserve all eight call sites, every later assertion, zero retries, playwright.config.mjs, product and dependency files, parent Feature 010, sibling packets, certification fields, and concurrent dirty work.",
+  "activeScopeCount": 1,
+  "activeTestPlanRowCount": 11,
+  "primaryScenarioCount": 1,
+  "evidenceBoundary": "Planning-owned structured handoff only. No implementation or post-fix test execution is claimed. Live browser rows use the real system-Chrome project with retries disabled and no request interception.",
+  "scopes": [
+    {
+      "scopeId": "SCOPE-01",
+      "scope": 1,
+      "scopeName": "Calibrate Feature 010 Shell Readiness",
+      "status": "not_started",
+      "foundation": false,
+      "dependsOn": [],
+      "rowCount": 11,
+      "primaryScenarioIds": [
+        "SCN-B001-001"
+      ],
+      "tests": [
+        {
+          "id": "TP-B001-00",
+          "type": "Pre-fix Adversarial Regression E2E",
+          "category": "e2e-ui",
+          "file": "tests/company-fundamentals-lab.spec.mjs",
+          "scenarioIds": [
+            "SCN-B001-001"
+          ],
+          "description": "Preserve 277 identities across 33 files, 276 passes, and the sole named shell-ready failure as interpreted pre-fix RED evidence.",
+          "command": "timeout 1200 npx --no-install playwright test --config=playwright.config.mjs --project=system-chrome --reporter=list --workers=4 --retries=0",
+          "liveSystem": true,
+          "evidenceRef": "report.md#before-fix-four-worker-complete-suite-evidence",
+          "status": "planned-not-executed",
+          "redGreenRequired": true
+        },
+        {
+          "id": "TP-B001-01",
+          "type": "Focused Regression E2E",
+          "category": "e2e-ui",
+          "file": "tests/company-fundamentals-lab.spec.mjs",
+          "scenarioIds": [
+            "SCN-B001-001"
+          ],
+          "testTitle": "Regression: SCN-010-007 mixed currency and fiscal periods remain visible and unavailable for forced comparison",
+          "description": "The exact SCN-010-007 target passes with every comparability assertion intact.",
+          "command": "timeout 180 npx --no-install playwright test tests/company-fundamentals-lab.spec.mjs --config=playwright.config.mjs --project=system-chrome --grep \"Regression: SCN-010-007 mixed currency and fiscal periods remain visible and unavailable for forced comparison\" --reporter=list --workers=1 --retries=0",
+          "liveSystem": true,
+          "evidenceRef": "report.md#tp-b001-01",
+          "status": "planned-not-executed",
+          "redGreenRequired": true
+        },
+        {
+          "id": "TP-B001-02",
+          "type": "Same-file Regression E2E",
+          "category": "e2e-ui",
+          "file": "tests/company-fundamentals-lab.spec.mjs",
+          "scenarioIds": [
+            "SCN-B001-001"
+          ],
+          "description": "All 32 owning-file tests and all eight helper consumers pass.",
+          "command": "timeout 600 npx --no-install playwright test tests/company-fundamentals-lab.spec.mjs --config=playwright.config.mjs --project=system-chrome --reporter=list --workers=1 --retries=0",
+          "liveSystem": true,
+          "evidenceRef": "report.md#tp-b001-02",
+          "status": "planned-not-executed",
+          "redGreenRequired": true
+        },
+        {
+          "id": "TP-B001-03",
+          "type": "Adversarial Complete-Suite Regression E2E",
+          "category": "e2e-ui",
+          "file": "tests/**/*.spec.mjs",
+          "scenarioIds": [
+            "SCN-B001-001"
+          ],
+          "description": "The four-worker complete suite passes 280/280 across 33 files with zero retries.",
+          "command": "timeout 1200 npx --no-install playwright test --config=playwright.config.mjs --project=system-chrome --reporter=list --workers=4 --retries=0",
+          "liveSystem": true,
+          "evidenceRef": "report.md#tp-b001-03",
+          "status": "planned-not-executed",
+          "redGreenRequired": true
+        },
+        {
+          "id": "TP-B001-04",
+          "type": "Serial Complete-Suite Regression E2E",
+          "category": "e2e-ui",
+          "file": "tests/**/*.spec.mjs",
+          "scenarioIds": [
+            "SCN-B001-001"
+          ],
+          "description": "The serial complete suite passes 280/280 across 33 files with zero retries.",
+          "command": "timeout 3600 npx --no-install playwright test --config=playwright.config.mjs --project=system-chrome --reporter=list --workers=1 --retries=0",
+          "liveSystem": true,
+          "evidenceRef": "report.md#tp-b001-04",
+          "status": "planned-not-executed",
+          "redGreenRequired": true
+        },
+        {
+          "id": "TP-B001-05",
+          "type": "Repository regression",
+          "category": "functional",
+          "file": "scripts/selftest.mjs",
+          "scenarioIds": [
+            "SCN-B001-001"
+          ],
+          "description": "The build-free repository selftest passes with zero failures.",
+          "command": "timeout 1200 node scripts/selftest.mjs",
+          "liveSystem": false,
+          "evidenceRef": "report.md#tp-b001-05",
+          "status": "planned-not-executed",
+          "redGreenRequired": false
+        },
+        {
+          "id": "TP-B001-06",
+          "type": "Regression quality",
+          "category": "functional",
+          "file": "tests/company-fundamentals-lab.spec.mjs",
+          "scenarioIds": [
+            "SCN-B001-001"
+          ],
+          "description": "The bugfix guard finds adversarial signals and no bailout or interception violation.",
+          "command": "timeout 120 bash .github/bubbles/scripts/regression-quality-guard.sh --bugfix tests/company-fundamentals-lab.spec.mjs",
+          "liveSystem": false,
+          "evidenceRef": "report.md#tp-b001-06",
+          "status": "planned-not-executed",
+          "redGreenRequired": true
+        },
+        {
+          "id": "TP-B001-07",
+          "type": "JavaScript syntax",
+          "category": "functional",
+          "file": "tests/company-fundamentals-lab.spec.mjs",
+          "scenarioIds": [
+            "SCN-B001-001"
+          ],
+          "description": "The modified module parses.",
+          "command": "timeout 30 node --check tests/company-fundamentals-lab.spec.mjs",
+          "liveSystem": false,
+          "evidenceRef": "report.md#tp-b001-07",
+          "status": "planned-not-executed",
+          "redGreenRequired": false
+        },
+        {
+          "id": "TP-B001-08",
+          "type": "Exact mutation boundary",
+          "category": "functional",
+          "file": "tests/company-fundamentals-lab.spec.mjs",
+          "scenarioIds": [
+            "SCN-B001-001"
+          ],
+          "description": "The diff contains one timeout addition only while playwright.config.mjs and every fail-loud assertion remain unchanged.",
+          "command": "timeout 30 git diff --check -- tests/company-fundamentals-lab.spec.mjs playwright.config.mjs && timeout 30 git --no-pager diff -- tests/company-fundamentals-lab.spec.mjs playwright.config.mjs",
+          "liveSystem": false,
+          "evidenceRef": "report.md#tp-b001-08",
+          "status": "planned-not-executed",
+          "redGreenRequired": true
+        },
+        {
+          "id": "TP-B001-09",
+          "type": "Packet artifact lint",
+          "category": "functional",
+          "file": "specs/010-company-fundamentals-and-brief-lab/bugs/BUG-001-shared-shell-suite-budget",
+          "scenarioIds": [
+            "SCN-B001-001"
+          ],
+          "description": "Required artifacts, state mirror, checkboxes, report sections, and provenance pass.",
+          "command": "timeout 300 bash .github/bubbles/scripts/artifact-lint.sh specs/010-company-fundamentals-and-brief-lab/bugs/BUG-001-shared-shell-suite-budget",
+          "liveSystem": false,
+          "evidenceRef": "report.md#plan-adoption-validation",
+          "status": "planned-not-executed",
+          "redGreenRequired": false
+        },
+        {
+          "id": "TP-B001-10",
+          "type": "Plan and control-plane integrity",
+          "category": "functional",
+          "file": "specs/010-company-fundamentals-and-brief-lab/bugs/BUG-001-shared-shell-suite-budget",
+          "scenarioIds": [
+            "SCN-B001-001"
+          ],
+          "description": "Nine artifacts, scenario hash/linkage, resolved plan transition, durable implementation handoff, finding identity, and exact eleven-row Markdown/JSON/DoD parity agree.",
+          "command": "timeout 60 node --input-type=module -e 'import{createHash}from\"node:crypto\";import{readdirSync,readFileSync}from\"node:fs\";const r=\"specs/010-company-fundamentals-and-brief-lab/bugs/BUG-001-shared-shell-suite-budget\",s=JSON.parse(readFileSync(`${r}/state.json`)),m=JSON.parse(readFileSync(`${r}/scenario-manifest.json`)),p=JSON.parse(readFileSync(`${r}/test-plan.json`)),q=readFileSync(`${r}/scopes.md`,\"utf8\"),f=readdirSync(r).sort(),rows=[...q.matchAll(/^\\| [^|]+ \\| (TP-B001-\\d{2}) \\|/gm)].map(x=>x[1]),dod=[...q.matchAll(/^- \\[ \\] (TP-B001-\\d{2}) /gm)].map(x=>x[1]),jsonIds=p.scopes.flatMap(x=>x.tests.map(t=>t.id));const c={FILES:f.length===9,STATUS:s.status===s.certification.status,MODE:s.workflowMode===\"bugfix-fastlane\",PLAN_RESOLVED:s.transitionRequests.some(x=>x.id===\"TR-BUG001-PLAN\"&&x.status===\"resolved\"&&x.resolvedBy===\"bubbles.plan\"),IMPLEMENT_HANDOFF:s.executionHistory.some(x=>x.agent===\"bubbles.plan\"&&x.outcome===\"route_required\"&&x.nextRequiredOwner===\"bubbles.implement\"),FINDING_ID:s.findingsLedger.length===1&&s.findingsLedger[0].findingId===\"F-BUG001-001\",SCENARIOS:m.scenarios.length===1,HASHES:m.scenarios.every(x=>x.gherkinHash===`sha256:${createHash(\"sha256\").update(JSON.stringify(x.gherkin)).digest(\"hex\")}`),LINKAGE:m.scenarios.every(x=>x.scope===\"SCOPE-01\"&&x.linkedTests.some(t=>t.file===\"tests/company-fundamentals-lab.spec.mjs\"&&t.testId===\"Regression: SCN-010-007 mixed currency and fiscal periods remain visible and unavailable for forced comparison\")),TEST_ROWS:rows.length===11&&new Set(rows).size===11,TEST_DOD:dod.length===11&&new Set(dod).size===11&&rows.every(id=>dod.includes(id)),HANDOFF:p.activeTestPlanRowCount===11&&jsonIds.length===11&&rows.every(id=>jsonIds.includes(id))};for(const[k,v]of Object.entries(c)){console.log(`${k}=${v}`);if(!v)process.exitCode=1}console.log(`INTEGRITY=${process.exitCode?\"FAIL\":\"PASS\"}`);'",
+          "liveSystem": false,
+          "evidenceRef": "report.md#plan-adoption-validation",
+          "status": "planned-not-executed",
+          "redGreenRequired": false
+        }
+      ]
+    }
+  ]
+}

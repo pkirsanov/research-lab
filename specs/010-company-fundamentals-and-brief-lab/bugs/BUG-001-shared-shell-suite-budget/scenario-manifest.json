@@ -1,0 +1,40 @@
+{
+  "version": 1,
+  "featureDir": "specs/010-company-fundamentals-and-brief-lab/bugs/BUG-001-shared-shell-suite-budget",
+  "generatedAt": "2026-08-04T17:54:30Z",
+  "lastReconciledAt": "2026-08-04T21:14:16Z",
+  "scenarios": [
+    {
+      "scenarioId": "SCN-B001-001",
+      "scope": "SCOPE-01",
+      "title": "Company fundamentals helper survives shared-shell startup contention",
+      "gherkin": {
+        "given": "the complete 280-identity system-Chrome browser suite runs with four workers and retries disabled under shared host load",
+        "when": "the SCN-010-007 mixed-currency and fiscal-period regression opens the company fundamentals native research surface through openNativeResearchSurface",
+        "then": "the ready shared shell becomes visible within a finite 30-second expectation budget and the existing Power-mode body class and detailed-tab assertions remain fail-loud"
+      },
+      "gherkinHash": "sha256:589098d86a5e3fcef3822dea3724f625d30d9236cfd26236b6c9993e7e0f8716",
+      "behaviorClass": "ui",
+      "changeType": "bugfix",
+      "requiredTestType": "e2e-ui",
+      "regressionRequired": true,
+      "lockdown": false,
+      "linkedTests": [
+        {
+          "file": "tests/company-fundamentals-lab.spec.mjs",
+          "testId": "Regression: SCN-010-007 mixed currency and fiscal periods remain visible and unavailable for forced comparison"
+        }
+      ],
+      "evidenceRefs": [
+        "report.md#before-fix-four-worker-complete-suite-evidence",
+        "report.md#focused-target-discriminator",
+        "report.md#complete-owning-file-discriminator",
+        "report.md#source-grounded-diagnosis",
+        "scopes.md#ownership-gate",
+        "scopes.md#test-plan"
+      ],
+      "replacedBy": null,
+      "invalidatedBy": null
+    }
+  ]
+}

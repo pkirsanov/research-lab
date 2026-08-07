@@ -1,0 +1,36 @@
+{
+  "version": 1,
+  "featureDir": "specs/012-market-action-center-and-guided-tools/bugs/BUG-006-contextual-tooltip-suite-budget",
+  "generatedAt": "2026-08-04T15:32:55Z",
+  "scenarios": [
+    {
+      "scenarioId": "SCN-B006-001",
+      "scope": "SCOPE-01",
+      "title": "Mobile contextual disclosure survives complete-suite contention",
+      "gherkin": {
+        "given": "the complete 280-identity system-Chrome browser suite runs with four workers and retries disabled under shared host load",
+        "when": "the mobile contextual disclosure regression performs both real touch-open close paths, focus restoration, and the no-canvas same-data fallback",
+        "then": "the target-local finite outer budget accommodates suite contention while every interaction, geometry, actionability, fallback, and failure-path assertion remains unchanged"
+      },
+      "gherkinHash": "sha256:6b5c5cd81ac810c10e07a5043f1912beda9a13b2441ed8c6b3726fb6a387e081",
+      "behaviorClass": "ui",
+      "changeType": "bugfix",
+      "requiredTestType": "e2e-ui",
+      "regressionRequired": true,
+      "lockdown": false,
+      "linkedTests": [
+        {
+          "file": "tests/contextual-tooltip.spec.mjs",
+          "testId": "Regression: contextual disclosure fits mobile returns focus and promotes same-data table without canvas"
+        }
+      ],
+      "evidenceRefs": [
+        "report.md#before-fix-four-worker-full-suite-evidence",
+        "report.md#focused-target-discriminator",
+        "report.md#complete-same-file-discriminator"
+      ],
+      "replacedBy": null,
+      "invalidatedBy": null
+    }
+  ]
+}

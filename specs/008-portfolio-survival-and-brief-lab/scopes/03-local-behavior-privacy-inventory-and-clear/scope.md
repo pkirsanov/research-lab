@@ -180,6 +180,8 @@ Write every closed-event, clear, inventory, UI, and sentinel assertion before pr
 
   **The discharge does not close this item, and that is deliberate.** Seven nouns are Scope 03's own and are verified. What remains is the enforcement gap named two paragraphs above, and it is Scope 03's to fix, not a later scope's: `policyDeclaredKeys` names `pointerKey`, `slotKeys`, `quarantineKey`, `sessionKey`, and `returnContextKey` one field at a time, and its assertions pin the counts at 4 and 2 — counts computed from that same hand-written list. A seventh `policy.storage` key is consequently swept by nothing and reddens nothing, which is exactly how a discharged noun would arrive unnoticed and make the forward commitment unenforceable. Scope 03 must make that helper derive from `policy.storage`, as `personalWorkspaceSections` already derives from `createEmptyWorkspace`, so an unswept personal key fails a test instead of passing unobserved. That work is inside this scope's declared allowed files. The effect of the ruling is therefore a change of blocker, not a tick: this line moves from unclosable inside Scope 03 to closable inside Scope 03.
 
+  **Post-discharge re-evaluation — still unchecked.** Re-executed at HEAD `3b3c4c1b` (`node --test tests/portfolio-foundation.unit.mjs`, exit 0, 49 pass / 0 fail; plus the three sibling suites). The residual blocker was re-verified against the committed source rather than accepted from the ruling, and it is intact: `tests/portfolio-foundation.unit.mjs:823`–`:828` still builds both lists by naming each policy field, and `:834`/`:835` still pin the counts against that same list. The seven Scope-03-owned nouns are carried and the other six are discharged, so the enumeration is no longer what blocks this line — the unswept-key gap is, and closing it is a test-file change this pass was scoped to exclude. Raw output and the per-noun table: [report.md](report.md#post-discharge-re-execution-at-head-3b3c4c1b).
+
 - [ ] Shared Infrastructure Impact Sweep, independent storage/inventory/clear canaries, and exact rollback/restore proof pass without altering Scope 01/02 facts.
 
   Unchecked. The Scope 01 and 02 re-run and the raw-namespace and clear-fault canaries are carried by the executed suites. The **exact rollback and restore proof** for this scope's own marker-bounded additions is a source-rollback procedure that no executed command demonstrates.
@@ -421,6 +423,19 @@ Write every closed-event, clear, inventory, UI, and sentinel assertion before pr
   merits after the discharge, not on borrowed ones. The scoped-retry observation stands and is
   routed to Scope 03 implementation, since the UI Scenario Matrix declares the behavior and nothing
   implements it.
+
+  **Post-discharge re-evaluation — still unchecked.** Re-executed at HEAD `3b3c4c1b` with the Test
+  Plan command: `10 passed`, `0 failed`, exit 0. The second clause is carried and was re-confirmed,
+  not assumed — all six Scope 01/02 rows (`:87`, `:184`, `:260`, `:299`, `:403`, `:491`) passed in
+  the same invocation. The first clause was settled cell by cell rather than by the ten-row tally:
+  axis 1 (6 cells) and axis 3 (7 arms) are carried, axis 2's all-personal column (8 cells) is
+  carried by the `:1124`–`:1132` loop, and its behavior column is carried for 6 of 8. The two
+  uncarried cells are the ones the discharge does not touch — quarantine PRESERVED and
+  session-fallback PRESERVED — and both were re-verified against the committed test source:
+  `populateQuarantine` is still called at `:1089`/`:1182` only, so row 7 never stocks the key, and
+  row 7's sole namespace guard at `:780` still filters to keys outside `rlPortfolioWorkspaceV1.`
+  while reading `localStorage` only, so it can see neither the quarantine key nor either session
+  key. Per-cell map: [report.md](report.md#post-discharge-re-execution-at-head-3b3c4c1b).
 
 #### Build Quality Gate
 

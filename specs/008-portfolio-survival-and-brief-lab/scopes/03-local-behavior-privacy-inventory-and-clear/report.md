@@ -548,6 +548,217 @@ nothing. No DoD item on this scope currently names it — core item 3 owns the e
 This is planning-owned and is not counted against TP-03-06 above, whose row text names
 "partial deletion failure" rather than the retry affordance.
 
+### Post-discharge re-execution at HEAD `3b3c4c1b`
+
+`bubbles.plan` committed decision D-03-11 in `3b3c4c1b`, discharging six of core item 3's thirteen
+nouns forward to the scope that first creates each surface. This pass re-executed the four suites
+that carry core item 3 and TP-03-06 at that HEAD and re-evaluated both items against the amended
+scope text. No test file, no `rlportfolio.js`, and no payload artifact was touched.
+
+**Both items stay unchecked.** The discharge removed the blocker each was *previously* recorded
+against, and the amended text names a different residual for each — Scope-03-owned in both cases,
+and in neither case a discharged section. Each residual was re-verified against the committed
+source in this run rather than accepted from the ruling. Both are intact. Reasoning in
+[Post-discharge re-evaluation](#post-discharge-re-evaluation).
+
+Per the runner-output convention established under [TP-03-06](#tp-03-06), the Playwright block
+below records the runner's own result lines only. Its per-test `console.log` diagnostics are
+elided deliberately: they carry fixture subject tokens, and this file is tracked.
+
+**Claim Source:** executed
+**Command:** `npx --no-install playwright test --config=playwright.config.mjs --project=system-chrome tests/portfolio-survival-foundation.spec.mjs`
+**Exit Code:** 0
+
+```text
+Running 10 tests using 1 worker
+
+  ✓   1 …CN-008-003 explicit mandate alone supplies every hard constraint (1.4s)
+  ✓   2 … SCN-008-004 no mandate leaves goal fit and survival unavailable (1.0s)
+  ✓   3 …ing mandate stays visibly infeasible with no constraint relaxed (749ms)
+  ✓   4 …08-001 valid local portfolio import creates one current revision (1.1s)
+  ✓   5 …008-002 invalid or secret-bearing import is atomic and redacted (977ms)
+  ✓   6 …reserve last valid portfolio in durable session and memory modes (2.5s)
+  ✓   7 …clear behavior removes ranking influence and preserves portfolio (3.0s)
+  ✓   8 …12 behavior evidence excludes engagement and sensitive profiling (6.3s)
+  ✓   9 …ared category and leaves the generic public cache byte-identical (1.8s)
+  ✓  10 …ar step refuses success on its own and retains only its own key (13.2s)
+
+  10 passed (34.2s)
+PW_EXIT=0
+```
+
+**Claim Source:** executed
+**Command:** `node --test tests/portfolio-foundation.unit.mjs`
+**Exit Code:** 0
+
+```text
+ok 47 - NFR-019: every declared credential field name and credential value shape is rejected without echoing the value, markup does not smuggle a credential past the guard, and an ordinary provider label is still imported
+  ---
+  duration_ms: 24.690875
+  type: 'test'
+  ...
+ok 48 - NFR-023: a recommendation route cites the exact revision identity it used or names why it cannot, and a clear reports a per-category change that matches the inspected before and after inventory
+  ---
+  duration_ms: 44.081712
+  type: 'test'
+  ...
+ok 49 - NFR-024: local deletion is certified only after an independent reread proves emptiness, a survivor or an unreadable key blocks the success state, and the raw namespace confirms it without trusting the report
+  ---
+  duration_ms: 1.586311
+  type: 'test'
+  ...
+1..49
+# tests 49
+# suites 0
+# pass 49
+# fail 0
+# cancelled 0
+# skipped 0
+# todo 0
+# duration_ms 1647.618062
+UNIT_EXIT=0
+```
+
+**Claim Source:** executed
+**Command:** `node --test tests/portfolio-privacy.functional.mjs`
+**Exit Code:** 0
+
+```text
+ok 12 - each declared privacy category is deleted by the clear that names it and survives the clear that does not, one category at a time
+  ---
+  duration_ms: 90.312917
+  type: 'test'
+  ...
+ok 13 - every declared clear step is faulted on its own, the other steps still delete, and the retained bytes refuse a success result
+  ---
+  duration_ms: 5.5759
+  type: 'test'
+  ...
+1..13
+# tests 13
+# suites 0
+# pass 13
+# fail 0
+# cancelled 0
+# skipped 0
+# todo 0
+# duration_ms 818.303454
+PRIVACY_EXIT=0
+```
+
+**Claim Source:** executed
+**Command:** `node --test tests/portfolio-brief.functional.mjs`
+**Exit Code:** 0
+
+```text
+ok 3 - behavior clear removes the committed evidence and returns recomposition to the pre-evidence baseline
+  ---
+  duration_ms: 102.185936
+  type: 'test'
+  ...
+ok 4 - dismissal and automatic invalidation record a safe outcome and never a behavior event or a negative preference
+  ---
+  duration_ms: 18.117582
+  type: 'test'
+  ...
+1..4
+# tests 4
+# suites 0
+# pass 4
+# fail 0
+# cancelled 0
+# skipped 0
+# todo 0
+# duration_ms 505.094217
+BRIEF_EXIT=0
+```
+
+#### Post-discharge re-evaluation
+
+##### Core item 3 — full-personal clear: unchecked, on a new and smaller blocker
+
+The amended scope text says so itself, in the paragraph the discharge added: *"The discharge does
+not close this item, and that is deliberate."* Reading the item against that text rather than
+against the discharge summary, the accounting is:
+
+| Group | Nouns | Standing after D-03-11 |
+|---|---|---|
+| Scope 03's own, verified | holdings, mandate, needs, events, quarantine, session fallback, return context (+ public generic assets remain) | carried |
+| Discharged forward | interests, outcomes → Scope 06 · scenarios → Scope 09 · allocations → Scope 13 · dossiers → Scope 15 · UI state and whole-set closure → Scope 16 | no longer this scope's to prove |
+| Residual, Scope 03's own | the declared-key enforcement gap | **blocks** |
+
+The residual is not a discharged section, so it is not settled by the ruling, and it was re-verified
+against the committed source in this run: `policyDeclaredKeys`
+(`tests/portfolio-foundation.unit.mjs:823`–`:828`) builds its two lists by naming `pointerKey`,
+`slotKeys`, `quarantineKey`, `sessionKey`, and `returnContextKey` one field at a time rather than
+iterating `policy.storage`, and `:834`/`:835` then pin `local.length === 4` and
+`session.length === 2` — counts derived from that same hand-written list, so they agree with it by
+construction. A seventh `policy.storage` key would therefore be swept by nothing and redden
+nothing, which is precisely the arrival path by which a discharged noun would return unobserved
+and make the forward commitment unenforceable.
+
+The item's own text names the fix and places it inside this scope: make the helper derive from
+`policy.storage`, as `personalWorkspaceSections` already derives from `createEmptyWorkspace`. That
+is a test-file change, and this pass was scoped to exclude test files. The effect of the ruling
+therefore stands as the amendment states it — a change of blocker, not a tick.
+
+##### TP-03-06 — matrix: unchecked, on the two cells that were never discharged
+
+The second clause is carried, and was re-confirmed in this run rather than assumed: Scopes 01 and
+02 are certified `done`, and all six rows attributable to them (`:87`, `:184`, `:260`, `:299`,
+`:403`, `:491`) passed in the same invocation as the four Scope 03 rows.
+
+The first clause asserts a *matrix*, so it is settled cell by cell, not by the ten-row tally. Each
+cell below is mapped to the assertion carrying it; the discharge changes the two vacuous behavior
+cells and touches nothing else.
+
+| Axis | Cells | Carried by | Standing |
+|---|---|---|---|
+| 1 — foundation scenarios | 6 | rows `:87`, `:184`, `:260`, `:299`, `:403`, `:491` | all carried |
+| 2 — 8 categories × all-personal clear | 8 | row `:1085`, loop `:1124`–`:1132` asserting each category against its own `clearedBy` declaration; `:1134` proves no declared foundation key survives | all carried |
+| 2 — 8 categories × behavior clear | 8 | see the per-cell map below | **2 uncarried** |
+| 3 — 6 declared clear steps + control | 7 | row `:1160`: each step faulted alone, unfaulted control succeeds, retention proven for the four durable keys, the two session steps named refusal-only | all carried |
+
+Axis 2's behavior column, cell by cell, all within row 7 (`:628`):
+
+| Category | Required verdict | Carrying assertion |
+|---|---|---|
+| behavior-events | EMPTIED | persisted `behaviorEvents` empty after the clear, against 4 records proven present before |
+| portfolio-revisions | PRESERVED | `:744`–`:746` id, revision count, holding count · `:750` persisted id · `:759`–`:761` surviving holdings compared **by value** |
+| mandate-revisions | PRESERVED | `:747`–`:748` id, revision count · `:751` persisted id · `:762`–`:764` surviving constraints compared by value **in declared order** |
+| cash-needs | PRESERVED | `:770`–`:775` the dated need rendered on every mandate-dependent route |
+| interest-signals | EMPTIED | asserted but **vacuous** — no producer; discharged to Scope 06 / TP-06-02 by D-03-11 |
+| action-outcomes | EMPTIED | asserted but **vacuous** — no producer; discharged to Scope 06 / TP-06-02 by D-03-11 |
+| quarantine | PRESERVED | **no assertion** |
+| session-fallback | PRESERVED | **no assertion** |
+
+Both uncarried cells were re-verified in this run against the committed test source, not inherited
+from the previous pass:
+
+1. **quarantine PRESERVED.** `populateQuarantine` is called at `:1089` and `:1182` only — rows 9
+   and 10. Row 7 never stocks the key, so the category is empty on both sides. The single
+   namespace guard row 7 carries (`:780`) filters to keys *not* beginning `rlPortfolioWorkspaceV1.`,
+   which structurally excludes `rlPortfolioWorkspaceV1.quarantine` — the one check that could
+   have caught a widening cannot see the key it would widen into.
+2. **session-fallback PRESERVED.** Row 7 runs in durable mode, and its `:780` guard reads
+   `localStorage` only; neither session key lives there. Row 7 contains no `sessionStorage` read
+   at all.
+
+The discharge is what makes this row's ruling *narrower* than before, not weaker: the vacuity
+argument is now attributed forward and no longer part of this row's case, which leaves exactly two
+cells standing on their own merits. A behavior clear that widened into either key would pass this
+row unchanged, in a `privacy-critical:true` scope. Sixteen cells, two unobserved, so the word
+**complete** in the DoD line is still not true. The fix is test-side and inside this scope's
+declared allowed file; this pass excluded test files.
+
+##### The vacuous-section pin is intact
+
+`the two personal sections the clear sweep cannot populate are pinned by their own distinct
+refusal` is present in `tests/portfolio-foundation.unit.mjs` and passed in this run as test 32 of
+49. It was not deleted, weakened, or rewritten. It must survive the discharge precisely because it
+is what fails the moment a write path for either section appears, which is the trigger that forces
+the Scope 06 obligation to be honoured rather than quietly inherited.
+
 ### Current-run re-execution at HEAD `c4165577`
 
 All three committed Node suites were re-executed in this run. Every suite cited anywhere in this report has its raw output recorded — the privacy suite under [TP-03-03](#tp-03-03), the other two here.

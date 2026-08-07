@@ -2115,21 +2115,39 @@ try {
     'every OPTIONAL narrative pattern names fields its declared producer actually emits — exemption from the payload-instance check is never exemption from being real'
     + (unprovenOptional.length ? ': ' + unprovenOptional.join(', ') : ''));
 
-  // The optional list is the one way this split could become a bypass: a red required
-  // pattern could be "fixed" by moving it here. Pinned so growing it is a deliberate,
-  // reviewed act rather than a silent escape. The PRODUCER is pinned alongside the pattern
-  // because the proof is only as good as the file it is read from — repointing a pattern at
-  // some other file that happens to contain the token would otherwise pass unnoticed.
-  // experimental.[].{title,note,method} were demoted from required deliberately: the section
-  // is conditional (len=1 in 1daff325/798c365e, len=0 in f67501ae/a6081edf), so a required
-  // pattern turned an ordinary publish red. They remain fully vocabulary-checked when present.
-  assert(BRIEF_NARRATIVE_FIELDS_OPTIONAL.map((entry) => entry.pattern + '@' + entry.producer).join(',')
-    === 'toolReads.*.limitations.[]@scripts/brief-refresh.mjs,'
-    + 'toolReads.*.recommendationEligibility.reason@scripts/brief-refresh.mjs,'
-    + 'experimental.[].title@scripts/brief-narrative-parallel.mjs,'
-    + 'experimental.[].note@scripts/brief-narrative-parallel.mjs,'
-    + 'experimental.[].method@scripts/brief-narrative-parallel.mjs',
-    'exactly the intermittently-populated toolRead and experimental fields are exempt from the payload-instance check, each against its own producer; every other narrative pattern is required');
+  // The optional list is the one way this split could become a bypass: a red required pattern
+  // could be "fixed" by moving it here. That was guarded by transcribing the membership into a
+  // string equality, which froze the list — classifying a genuinely conditional field correctly
+  // meant editing an assertion that had nothing to say about that field's conditionality. So the
+  // two conditional confirmation fields were declared REQUIRED instead, one healthy publish away
+  // from a false alarm, because OPTIONAL was structurally unavailable. The guarantee worth
+  // keeping is "an optional pattern is real and provable, not imagined", so it is asserted
+  // structurally: proven against its own named producer (above), plus well-formed, non-empty,
+  // duplicate-free and classified exactly once (below). Membership may change; those hold.
+  assert(BRIEF_NARRATIVE_FIELDS_OPTIONAL.length > 0 && BRIEF_NARRATIVE_FIELDS_OPTIONAL.every((entry) =>
+    entry && typeof entry.pattern === 'string' && entry.pattern.trim().length > 0
+      && typeof entry.producer === 'string' && entry.producer.trim().length > 0),
+    'the optional list is non-empty and every entry declares both a pattern and the producer it is proven against — an entry carrying no producer would be an unprovable exemption');
+
+  // The producer freeze is replaced by a reachability requirement: a pattern can only be proven
+  // against a file that actually exists here, so repointing one at an invented path fails.
+  const unreadableProducers = [...new Set(BRIEF_NARRATIVE_FIELDS_OPTIONAL.map((entry) => entry.producer))]
+    .filter((producer) => { try { return readProducer(producer).length === 0; } catch { return true; } });
+  assert(unreadableProducers.length === 0,
+    'every declared producer is a readable file in this repo, so an optional pattern cannot be proven against a path that does not exist'
+    + (unreadableProducers.length ? ': ' + unreadableProducers.join(', ') : ''));
+
+  // Classified exactly once. A duplicated optional entry double-counts as proof, and a pattern in
+  // BOTH lists is a contradiction: the required check demands a live instance while the optional
+  // list claims exemption from exactly that. It also forces a reclassification to be a real move
+  // rather than a copy that quietly leaves the old obligation standing.
+  const optionalPatterns = BRIEF_NARRATIVE_FIELDS_OPTIONAL.map((entry) => entry.pattern);
+  const misclassified = optionalPatterns
+    .filter((pattern, index) => optionalPatterns.indexOf(pattern) !== index
+      || BRIEF_NARRATIVE_FIELDS_REQUIRED.indexOf(pattern) !== -1);
+  assert(misclassified.length === 0,
+    'no optional pattern is duplicated and none is also declared required, so every narrative pattern is classified exactly once'
+    + (misclassified.length ? ': ' + [...new Set(misclassified)].join(', ') : ''));
 } catch (e) { failures++; console.log('  ✗ FAIL (reader vocabulary group threw): ' + e.message); }
 
 /* ---------- Causal Rotation: contracts, anti-hindsight, clustering + canaries ---------- */

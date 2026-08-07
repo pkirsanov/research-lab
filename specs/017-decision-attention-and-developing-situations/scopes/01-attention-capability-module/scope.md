@@ -932,6 +932,85 @@ its row below stays unticked.
   **Claim Source:** not-run. SCN-017-046 does not exist yet. The recorded
   twenty-four-scenario run predates this row and is not evidence for it.
 
+- [x] Every scenario this scope declares is named by a passing test, proven per scenario rather than by a suite total: SCN-017-001, SCN-017-002, SCN-017-003, SCN-017-004, SCN-017-005, SCN-017-006, SCN-017-007, SCN-017-008, SCN-017-009, SCN-017-010, SCN-017-011, SCN-017-012, SCN-017-013, SCN-017-014, SCN-017-015, SCN-017-016, SCN-017-017, SCN-017-018, SCN-017-019, SCN-017-020, SCN-017-021, SCN-017-022, SCN-017-023, SCN-017-024, SCN-017-046.
+
+  **Claim Source:** executed. This closes the gap the section header above
+  records: the earlier green run retained only totals, so no row could cite its
+  own scenario. These are the per-test lines that run never kept.
+
+  ```text
+  $ node --test tests/rlattention.test.mjs
+  ok 1 - SCN-017-001 The attention module loads in Node with sixteen frozen members
+  ok 2 - SCN-017-002 A missing certified lifecycle state refuses at load time
+  ok 3 - SCN-017-003 Certified transitions are preserved and only new edges are appended
+  ok 4 - SCN-017-004 The two new states are terminal and never reach the alert engine
+  ok 5 - SCN-017-005 A headline of one hundred and twenty one characters is refused
+  ok 6 - SCN-017-006 An item with no invalidation is refused
+  ok 7 - SCN-017-007 A missing escalation trigger and a missing expiry each refuse
+  ok 8 - SCN-017-008 An unknown window or an unresolvable date is refused
+  ok 9 - SCN-017-009 A non-trading date and an elapsed session resolve to the next session open
+  ok 10 - SCN-017-010 Decision window and horizon are independent
+  ok 11 - SCN-017-011 Action, disputed and unavailable dispositions never become attention items
+  ok 12 - SCN-017-012 A subject that overlaps a published action is refused
+  ok 13 - SCN-017-013 An off-watchlist subject or any position field is refused
+  ok 14 - SCN-017-014 An empty transmission path without an explicit absence marker is refused
+  ok 15 - SCN-017-015 An absent market confirmation without a note is refused
+  ok 16 - SCN-017-016 A figure with no provenance does not render
+  ok 17 - SCN-017-017 A verb outside the research vocabulary is refused
+  ok 18 - SCN-017-018 Ranking is a total order and stable across shuffled inputs
+  ok 19 - SCN-017-019 A severe unmapped item ranks below a moderate imminent item
+  ok 20 - SCN-017-020 The ranking rationale is reader language with no internal identifier
+  ok 21 - SCN-017-021 Zero qualifying items yields an explicit nothing-requires-attention state
+  ok 22 - SCN-017-021b The record publishes the wasted share beside the warranted one
+  ok 23 - SCN-017-022 The cap of seven is a ceiling and never a quota
+  ok 24 - SCN-017-023 An illegal lifecycle edge is refused
+  ok 25 - SCN-017-024 Supersession closes the prior item in the same generation with a back-reference
+  ok 26 - SCN-017-046 A terminal-state item is excluded from selection entirely
+  ok 27 - SCN-017-060 The rank rationale never renders a vacuous self-comparison
+  # tests 27
+  # pass 27
+  # fail 0
+  EXIT=0
+  ```
+
+  A total cannot tell you WHICH scenario ran; twenty-seven named lines can. The
+  run also carries SCN-017-060, added under the F-017-04 closure below.
+
+- [x] SCN-017-060 — the ranking rationale never renders a vacuous self-comparison, closing finding F-017-04.
+
+  **Claim Source:** executed, RED before the fix and GREEN after, in this turn.
+
+  ```text
+  $ node --test tests/rlattention.test.mjs          # BEFORE
+  not ok 27 - SCN-017-060 The rank rationale never renders a vacuous self-comparison
+    error: |-
+      the rationale must never rank a subject above itself; got: "QQQ is placed
+      above QQQ because its effect is already arriving and a transmission channel
+      is identified, while for QQQ its effect is already arriving and a
+      transmission channel is identified."
+      true !== false
+  # tests 27
+  # pass 26
+  # fail 1
+
+  $ node --test tests/rlattention.test.mjs          # AFTER
+  ok 27 - SCN-017-060 The rank rationale never renders a vacuous self-comparison
+  # tests 27
+  # pass 27
+  # fail 0
+  EXIT=0
+  ```
+
+  Two items may legitimately share a ticker — there is no subject-uniqueness
+  rule and the committed payload has carried one at two ranks for different
+  reasons — so the repair is in the SENTENCE, never in a uniqueness constraint.
+  `rankRationale` now splits three ways: distinct subjects keep the comparative
+  mirror byte-for-byte; a shared subject with differing reasons names the second
+  item rather than ranking a name against itself; a shared subject with
+  IDENTICAL reasons states the reason once and says the item below stands on the
+  same footing, because mirroring one fact against itself explains nothing and
+  costs the reader more than silence.
+
 #### Build Quality Gate
 
 - [x] `node --test tests/rlattention.test.mjs` exits 0 with zero skipped scenarios and zero `.only` markers.

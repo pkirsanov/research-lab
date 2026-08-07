@@ -706,9 +706,26 @@
   function rankRationale(higher, lower) {
     var above = subjectLabel(higher);
     var below = subjectLabel(lower);
-    return above + " is placed above " + below + " because " + urgencyClause(higher) + " and "
-      + channelClause(higher) + ", while for " + below + " " + urgencyClause(lower) + " and "
-      + channelClause(lower) + ".";
+    var higherReason = urgencyClause(higher) + " and " + channelClause(higher);
+    var lowerReason = urgencyClause(lower) + " and " + channelClause(lower);
+
+    if (above !== below) {
+      return above + " is placed above " + below + " because " + higherReason
+        + ", while for " + below + " " + lowerReason + ".";
+    }
+
+    /* F-017-04. Two items may legitimately share a ticker, and the comparative
+       mirror then ranks a name against itself: "QQQ is placed above QQQ
+       because R, while for QQQ R." When the reasons match too it states one
+       fact twice and explains nothing, which costs the reader more than
+       silence. Sharing a subject is valid, so the repair belongs in the
+       sentence and never in a uniqueness rule. */
+    if (higherReason === lowerReason) {
+      return above + " is placed here because " + higherReason
+        + "; the item below it stands on the same footing.";
+    }
+    return above + " is placed above a second " + below + " item because " + higherReason
+      + ", while for the second " + lowerReason + ".";
   }
 
   /* ── lifecycle ─────────────────────────────────────────────────────────── */

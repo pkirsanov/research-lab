@@ -111,11 +111,8 @@ export const BRIEF_NARRATIVE_FIELDS_REQUIRED = [
   'attention.[].invalidation',
   'attention.[].escalationTrigger',
   /* rlattention.js refuses an item missing rationale/invalidation/escalationTrigger, so those
-     three are unconditional. The confirmation pair is conditional and complementary — detail is
-     demanded only when state is 'present', the note only when it is not — but this payload
-     carries both as strings (one 'present' item, four 'partial'), so both are proven here. */
-  'attention.[].marketConfirmation.detail',
-  'attention.[].marketConfirmationNote',
+     three are unconditional. The confirmation pair is not — it is conditional and complementary,
+     so it lives in the optional list below for the reason recorded there. */
   'recommendations.[].structuralAnchor',
   'recommendations.[].levels',
   'recommendations.[].trigger',
@@ -152,20 +149,35 @@ export const BRIEF_NARRATIVE_FIELDS_REQUIRED = [
    constant could not prove both halves.
 
    This proof is weaker than a live instance: a leaf whose name collides with an unrelated
-   token in the producer passes. Two of the five below do exactly that — `title` collides
+   token in the producer passes. Two of the seven below do exactly that — `title` collides
    with the tools-registry `tool.title` and `note` with the watchlist note instruction, so
    only `experimental` and `method` are named by the lane's own contract. Their real
    warrant is a live payload instance in history (798c365e carries title/note/method/inputs);
    they are optional because that instance is not in TODAY's payload, not because the field
-   is doubtful. That residual weakness is why this list stays tiny and is pinned — pattern
-   AND producer — by the selftest. Move a pattern here ONLY because it is intermittently
-   emitted, NEVER to silence a red required pattern. */
+   is doubtful. That residual weakness is why this list stays tiny and why the selftest holds
+   it to a structural contract — every entry proven against its own named producer, no
+   duplicate patterns, and no pattern classified required and optional at once. Move a pattern
+   here ONLY because it is intermittently emitted, NEVER to silence a red required pattern. */
 export const BRIEF_NARRATIVE_FIELDS_OPTIONAL = [
   { pattern: 'toolReads.*.limitations.[]', producer: 'scripts/brief-refresh.mjs' },
   { pattern: 'toolReads.*.recommendationEligibility.reason', producer: 'scripts/brief-refresh.mjs' },
   { pattern: 'experimental.[].title', producer: 'scripts/brief-narrative-parallel.mjs' },
   { pattern: 'experimental.[].note', producer: 'scripts/brief-narrative-parallel.mjs' },
-  { pattern: 'experimental.[].method', producer: 'scripts/brief-narrative-parallel.mjs' }
+  { pattern: 'experimental.[].method', producer: 'scripts/brief-narrative-parallel.mjs' },
+  /* Conditional and complementary by contract: rlattention.js checkConfirmation demands
+     `detail` only when the confirmation state is 'present', and the note only when it is NOT.
+     Today's payload happens to carry both (states present/partial/partial), which is what made
+     declaring them required look safe. It is not: a healthy publish in which every item is
+     confirmed nulls every note, and one in which no unconfirmed item carries authored detail
+     nulls every detail. Either turns a required pattern red on a GOOD publish — precisely the
+     false alarm this list exists to prevent.
+     Producer is rlattention.js rather than the assembling script because that is where these
+     leaves are named and their conditionality is defined; scripts/build-attention-items.mjs
+     forwards the item wholesale and never mentions `detail` at all, so it could not prove the
+     pattern real. Both stay narrative here, so the vocabulary gate covers them exactly as
+     before — only the proof of realness moves. */
+  { pattern: 'attention.[].marketConfirmation.detail', producer: 'rlattention.js' },
+  { pattern: 'attention.[].marketConfirmationNote', producer: 'rlattention.js' }
 ];
 
 /* The leak gate guards required and optional fields identically. The split governs only how

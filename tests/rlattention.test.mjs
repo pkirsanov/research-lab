@@ -903,3 +903,174 @@ test('SCN-017-046 A terminal-state item is excluded from selection entirely', ()
   assert.deepEqual(after.suppressed, [], 'suppressed is a cap-overflow set, not a rejection set');
   assert.equal(after.capApplied, false, 'no live item was displaced by the cap');
 });
+
+/* ═══════════════════════════ SCN-017-060 ═══════════════════════════════ */
+
+/* F-017-04 — rankRationale emits the comparative mirror unconditionally. When
+   two adjacent items share a subject AND resolve to the same urgency and
+   transmission clauses, the rendered page reads, verbatim:
+
+     "QQQ is placed above QQQ because its effect is already arriving and a
+      transmission channel is identified, while for QQQ its effect is already
+      arriving and a transmission channel is identified."
+
+   Literally true and completely useless, which is worse than silence because it
+   spends the reader's trust. Two items sharing a ticker is VALID — there is no
+   subject-uniqueness rule and the committed payload has carried QQQ at two
+   ranks for different reasons — so the defect is in the SENTENCE, never in a
+   uniqueness constraint. That premise is asserted below BEFORE the pathology,
+   so a "fix" that forbade the duplicate subject would fail this test rather
+   than satisfy it.
+
+   Nothing here pins production prose. The ranking connector and both reason
+   clauses are EXTRACTED from production's own output for DIFFERENT invocations,
+   so every assertion survives a rewording and still names the exact pathology. */
+
+test('SCN-017-060 The rank rationale never renders a vacuous self-comparison', () => {
+  const RL = load();
+  const SCOPE = WATCHLIST.concat(['QQQ']);
+
+  /* two OBSERVED profiles that resolve to different urgency and different
+     transmission clauses. Observations only; production derives the prose. */
+  const ARRIVING_MAPPED = {
+    imminence: 'imminent', transmissionPath: ['rates-liquidity'], transmissionAbsenceNote: null
+  };
+  const DORMANT_UNMAPPED = {
+    imminence: 'latent', transmissionPath: [], transmissionAbsenceNote: 'No transmission channel is identified yet.'
+  };
+
+  function item(subject, profile, headline) {
+    return mustBuild(Object.assign({ subject: subject }, profile), { headline: headline },
+      { watchlistScope: SCOPE });
+  }
+
+  function countOccurrences(haystack, needle) {
+    if (!needle) return 0;
+    let seen = 0;
+    let from = 0;
+    for (;;) {
+      const at = haystack.indexOf(needle, from);
+      if (at === -1) return seen;
+      seen += 1;
+      from = at + 1;
+    }
+  }
+
+  /* the longest substring occurring at least twice. Run over a mirror built
+     from two items with IDENTICAL clause inputs, this recovers exactly the
+     duplicated reason clause from production output instead of transcribing
+     it, so the assertions below cannot be invalidated by a rewording. */
+  function longestRepeatedSubstring(text) {
+    let best = '';
+    for (let i = 0; i < text.length; i++) {
+      for (let len = best.length + 1; i + len <= text.length; len++) {
+        const candidate = text.slice(i, i + len);
+        if (text.indexOf(candidate, i + 1) === -1) break;
+        best = candidate;
+      }
+    }
+    return best;
+  }
+
+  const spyArriving = item('SPY', ARRIVING_MAPPED, 'Index liquidity thins into the auction');
+  const tltArriving = item('TLT', ARRIVING_MAPPED, 'Long-duration liquidity thins into the auction');
+  const spyDormant = item('SPY', DORMANT_UNMAPPED, 'Index dispersion widens with no identified channel');
+  const tltDormant = item('TLT', DORMANT_UNMAPPED, 'Long-duration dispersion widens with no identified channel');
+
+  /* ── recover the connector and both reason clauses FROM production ─────── */
+
+  const mirrorArriving = RL.rankRationale(spyArriving, tltArriving);
+  const mirrorDormant = RL.rankRationale(spyDormant, tltDormant);
+
+  const higherAt = mirrorArriving.indexOf('SPY');
+  const lowerAt = mirrorArriving.indexOf('TLT');
+  assert.equal(higherAt !== -1 && lowerAt > higherAt, true,
+    'the comparative must name the higher subject before the lower one: ' + JSON.stringify(mirrorArriving));
+  const CONNECTOR = mirrorArriving.slice(higherAt + 'SPY'.length, lowerAt);
+
+  const ARRIVING_CLAUSE = longestRepeatedSubstring(mirrorArriving).trim();
+  const DORMANT_CLAUSE = longestRepeatedSubstring(mirrorDormant).trim();
+
+  /* the extraction itself must have found something real, else every check
+     below would pass on an empty needle and prove nothing. */
+  assert.equal(CONNECTOR.trim().length > 0, true,
+    'the ranking connector must be recoverable from production output: ' + JSON.stringify(CONNECTOR));
+  assert.equal(ARRIVING_CLAUSE.length > 20, true,
+    'the arriving reason clause must be a real clause: ' + JSON.stringify(ARRIVING_CLAUSE));
+  assert.equal(DORMANT_CLAUSE.length > 20, true,
+    'the dormant reason clause must be a real clause: ' + JSON.stringify(DORMANT_CLAUSE));
+  assert.notEqual(ARRIVING_CLAUSE, DORMANT_CLAUSE,
+    'the two observed profiles must produce genuinely different reasons, else cases 2 and 3 are vacuous');
+  assert.equal(countOccurrences(mirrorArriving, ARRIVING_CLAUSE), 2,
+    'the extracted clause must be the one production already states on both sides: '
+      + JSON.stringify(mirrorArriving));
+
+  /* ── case 1 — same subject, IDENTICAL clauses: the mirror explains nothing ─ */
+
+  const qqqOne = item('QQQ', ARRIVING_MAPPED, 'Zero-day dealer positioning concentrates into the close');
+  const qqqTwo = item('QQQ', ARRIVING_MAPPED, 'The breadth add-gate narrows to a handful of leaders');
+
+  assert.equal(qqqOne.subject, 'QQQ');
+  assert.equal(qqqTwo.subject, qqqOne.subject, 'case 1 requires a shared subject');
+  assert.equal(qqqOne.imminence, qqqTwo.imminence, 'case 1 requires an identical urgency input');
+  assert.equal(qqqOne.transmissionPath.length > 0, true, 'case 1 requires a mapped higher item');
+  assert.equal(qqqTwo.transmissionPath.length > 0, true, 'case 1 requires an identical transmission input');
+  assert.notEqual(qqqOne.id, qqqTwo.id,
+    'case 1 must compare two DISTINCT items, not one item against itself');
+
+  /* the premise: sharing a ticker is legal, so the fix belongs in the sentence. */
+  assert.equal(RL.validateAttentionItem(qqqOne, ctx({ watchlistScope: SCOPE })).ok, true,
+    'a second item on the same subject is valid');
+  assert.equal(RL.validateAttentionItem(qqqTwo, ctx({ watchlistScope: SCOPE })).ok, true,
+    'a second item on the same subject is valid');
+  const bothQqq = RL.selectAttentionItems([qqqOne, qqqTwo], 7);
+  assert.equal(bothQqq.published.length, 2,
+    'no subject-uniqueness rule exists — both QQQ items publish, so suppressing one is NOT the fix: '
+      + JSON.stringify(bothQqq.published.map((it) => it.subject)));
+
+  const raw = RL.rankRationale(qqqOne, qqqTwo);
+  const vacuous = (raw === null || raw === undefined) ? '' : String(raw);
+
+  assert.equal(vacuous.includes('QQQ' + CONNECTOR + 'QQQ'), false,
+    'the rationale must never rank a subject above itself; got: ' + JSON.stringify(vacuous));
+  assert.equal(countOccurrences(vacuous, ARRIVING_CLAUSE) <= 1, true,
+    'the rationale must never state the identical reason on both sides of the comparison; got: '
+      + JSON.stringify(vacuous));
+  assert.notEqual(vacuous, mirrorArriving.split('SPY').join('QQQ').split('TLT').join('QQQ'),
+    'the rationale must not be the comparative mirror with one name substituted on both sides; got: '
+      + JSON.stringify(vacuous));
+
+  /* ── case 2 — same subject, DIFFERENT clauses: the comparison is informative
+        and MUST survive. This is the guard against an over-broad fix that
+        suppresses every same-subject comparison. ────────────────────────────── */
+
+  const qqqDormant = item('QQQ', DORMANT_UNMAPPED, 'Cross-asset follow-through has not started');
+
+  assert.equal(qqqDormant.subject, qqqOne.subject, 'case 2 requires the same shared subject');
+  assert.notEqual(qqqDormant.imminence, qqqOne.imminence, 'case 2 requires differing urgency inputs');
+  assert.equal(qqqDormant.transmissionPath.length, 0, 'case 2 requires differing transmission inputs');
+
+  const informative = RL.rankRationale(qqqOne, qqqDormant);
+  assert.equal(typeof informative, 'string',
+    'a same-subject comparison with differing reasons must still produce a sentence');
+  assert.equal(informative.includes(ARRIVING_CLAUSE), true,
+    'the higher item reason must survive a same-subject comparison; got: ' + JSON.stringify(informative));
+  assert.equal(informative.includes(DORMANT_CLAUSE), true,
+    'the DIFFERENTIATING lower reason must survive a same-subject comparison; got: '
+      + JSON.stringify(informative));
+
+  /* ── case 3 — different subjects: the existing comparative form is the
+        regression surface and must be unchanged. ──────────────────────────── */
+
+  const comparative = RL.rankRationale(tltArriving, spyDormant);
+
+  assert.equal(typeof comparative, 'string');
+  assert.equal(comparative.includes('TLT'), true, 'the higher subject label must appear');
+  assert.equal(comparative.includes('SPY'), true, 'the lower subject label must appear');
+  assert.equal(comparative.includes('TLT' + CONNECTOR + 'SPY'), true,
+    'the comparative form for distinct subjects must be unchanged; got: ' + JSON.stringify(comparative));
+  assert.equal(comparative.includes(ARRIVING_CLAUSE), true,
+    'the higher reason must still be stated for distinct subjects; got: ' + JSON.stringify(comparative));
+  assert.equal(comparative.includes(DORMANT_CLAUSE), true,
+    'the lower reason must still be stated for distinct subjects; got: ' + JSON.stringify(comparative));
+});

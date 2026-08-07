@@ -107,6 +107,35 @@ Three rules keep this honest and MUST hold for any future split:
 2. **No orphaned conjunct.** A delegated conjunct is only delegable to a scope that already carries, or is given, a Gherkin scenario and a Test Plan row that assert it. Delegation to a scope with no verifying row is deletion with extra steps.
 3. **No double-claiming.** The delegating scope's DoD item states explicitly that the conjunct is not resolvable there, so a green checkbox in Scope 01 never implies the analyses were checked.
 
+#### Scope 03 Full-Personal-Clear Enumeration Discharge
+
+Ruled by `bubbles.plan` as decision **D-03-11**. The three rules above govern it unchanged. What differs from the SCN-008-001 case is the delegating unit: there the split ran through one Gherkin `And` clause, here it runs through a DoD line that enumerates thirteen **nouns**, six of which name a surface Scope 03 neither owns nor can create.
+
+The line — *"Full-personal clear mechanically verifies holdings, mandate/needs, events, interests, outcomes, scenarios, allocations, dossiers, quarantine, UI state, session fallback, and return context are empty while public generic assets remain"* — is **not** an over-reach. Its guarantee, that a full-personal clear leaves nothing personal behind, is sound and load-bearing. It is *mis-sited*: the set of personal categories is open at Scope 03 and closes only at Scope 16, so no foundation scope can quantify over it.
+
+Ruling it a genuine Scope 03 obligation was rejected, and not for convenience. Scope 03 is `foundation:true` at the head of the strictly linear chain described in [blocker 3](#known-cross-scope-blockers); Scopes 04-16 all depend on it transitively. Requiring Scope 03 to observe surfaces introduced by Scopes 09, 13, and 15 makes 03 depend on its own dependents. That is the exact cycle blocker 3 forbids, and it deadlocks the feature rather than merely slowing one scope.
+
+| Noun | Status at Scope 03 | Discharged to | Why there |
+|------|--------------------|---------------|-----------|
+| holdings, mandate, needs, events, quarantine, session fallback, return context | Reachable, proven non-empty before the clear, asserted empty after it | **Not discharged — Scope 03 retains all seven** | Each is a workspace array section or a `policy.storage` key that Scope 03 itself creates and sweeps. |
+| interests (`interestSignals`) | Swept, but vacuously: `validateWorkspace` refuses any workspace with `interestSignals.length > 0` as `unsupported-contract-scope`, so no record can exist at this contract version | **Scope 06**, TP-06-02 | Scope 06 implementation item 1 adds `deriveInterestSignals` in `rlportfoliobrief.js`, the first and only producer. TP-06-02 already runs `tests/portfolio-privacy.functional.mjs`, the file carrying Scope 03's clear proof. |
+| outcomes (`actionOutcomes`) | Swept, but vacuously: the schema validates entries, yet no exported builder can hash one into a workspace | **Scope 06**, TP-06-02 | Scope 06 owns completion and dismissal (FR-045 through FR-046, FR-051 through FR-055), which is what produces an action outcome. |
+| scenarios | No workspace section, no storage key, not a declarable inventory category | **Scope 09**, TP-09-01 | Scope 09 implementation item 1 adds `ScenarioSpecification/v1`, the first persisted scenario identity. |
+| allocations | Same | **Scope 13**, TP-13-02 | Scope 13 implementation item 1 adds `AllocationBasis/v1`, the first frozen allocation basis. |
+| dossiers | Same | **Scope 15**, TP-15-02 | Scope 15 implementation item 4 adds the `ResearchDossier/v1` projection and its append-oriented store. |
+| UI state | Same, and no downstream scope names it either | **Scope 16**, TP-16-04 | UI state is route-level, so it first exists once all six tabs do. TP-16-04 is already declared as the *complete* namespace and clear boundary row, which makes it the whole-set backstop. |
+
+Discharge runs 03 → 06, 09, 13, 15, 16. Every edge points forward, so no cycle is introduced and no receiving scope becomes a prerequisite of its own predecessor.
+
+**Scope 03 does not walk away clean.** The discharge is enforceable only if a later scope cannot add a personal category *silently*, and today that holds for one half of the sweep and not the other.
+
+| Sweep half | Mechanism | A new personal surface is |
+|------------|-----------|---------------------------|
+| Workspace array sections | `personalWorkspaceSections` derives itself from `createEmptyWorkspace` and keeps every array-valued entry | **auto-absorbed**, with no test edit |
+| Declared storage keys | `policyDeclaredKeys` names `pointerKey`, `slotKeys`, `quarantineKey`, `sessionKey`, and `returnContextKey` one by one, and the assertions pin the resulting counts at 4 and 2 | **silently uncovered** — those counts are computed from the same hand-written list, so a seventh `policy.storage` key moves neither and nothing goes red |
+
+UI state, scenarios, allocations, and dossiers would each most plausibly arrive as a storage key rather than as a workspace array, which is precisely the blind half. Scope 03 therefore **retains** the obligation to make the declared-key sweep derive from `policy.storage` rather than name its fields, so that an unswept personal key is a red test instead of an unnoticed one. That work sits inside Scope 03's declared allowed files, and it is the line's remaining blocker: the item stays unchecked, but it is now closable *within Scope 03* instead of blocked on Scopes 09 through 15.
+
 ## Requirement Ownership
 
 The ranges below are execution ownership, not exclusions. Cross-cutting privacy, provenance, failure-state, accessibility, and educational boundaries are rechecked wherever their behavior is observable.
@@ -180,4 +209,8 @@ These are recorded so no scope silently inherits them. None is closable by an im
    Both narrower gaps close with it. `row` and `field` are asserted at :404-:406 against the rendered rejection text, and discriminatingly so — `safeErrorCopy()` emits those segments conditionally, so dropping either fails the assertion. Sink absence now covers all three persistence modes: TP-01-05 pushes the same fixed prefix through a rejection in `durable`, `session`, and `memory`, then one tracked-tree scan (:556) covers all three, with mode liveness proven by an `instanceof Storage` probe rather than merely labelled. Scope 01 is unblocked and is `Done`.
 
    **Do not quote the probe value in any tracked artifact.** Because the assertion is `found set === declared origins`, writing the literal into a tracked file — a spec, report, note, or fixture — adds an origin and fails TP-01-04. Refer to it by constant name, as this entry does. That is not hypothetical — it is the leak the scan already caught once.
+
+5. **Scope 03 enumerates six personal nouns it cannot reach — OPEN, and forward-discharged.** Scope 03's full-personal-clear DoD line names thirteen nouns. Seven are reachable and verified there. Two — `interestSignals` and `actionOutcomes` — are swept vacuously because nothing writes them, and four — scenarios, allocations, dossiers, and UI state — have no workspace section, no storage key, and no declarable inventory category. Scope 03 is `foundation:true` at the head of the linear chain, so holding the line open until Scopes 09, 13, and 15 ship would recreate blocker 3's cycle. It is resolved the way blocker 3 prescribes, by attribution: see [Scope 03 Full-Personal-Clear Enumeration Discharge](#scope-03-full-personal-clear-enumeration-discharge). The six nouns are discharged to Scopes 06, 09, 13, 15, and 16, each with a named verifying row and a new DoD item in the receiving scope.
+
+   **What stays open is narrower than the line, and it is Scope 03's own.** The discharge binds only if a later scope cannot add a personal category unnoticed. Workspace array sections auto-absorb, because `personalWorkspaceSections` derives itself from `createEmptyWorkspace`. Declared storage keys do not, because `policyDeclaredKeys` names five fields explicitly and the assertions pin the counts those same names produce. A seventh `policy.storage` key is therefore swept by nothing and reddens nothing. Scope 03 must make that helper derive from `policy.storage` before its line can be ticked. Until then the line is unchecked for a reason Scope 03 owns rather than one it must wait on.
 

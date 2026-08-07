@@ -176,6 +176,10 @@ Write every closed-event, clear, inventory, UI, and sentinel assertion before pr
 
   The four are what keep this unchecked, and the "the derived sweep will absorb them later" defence only half holds. `personalWorkspaceSections` genuinely derives itself from the empty-workspace contract, so a future scenarios/allocations/dossiers **array** section is absorbed with no test edit. But both declared-key helpers name each policy field explicitly rather than iterating the storage section, so a future **UI-state storage key** would fall outside the sweep silently — no present coverage, no auto-absorption, and no pinning test. "Mechanically verifies" is not satisfied by a noun that has no surface and whose arrival nothing detects. Full reasoning in [report.md](report.md#coverage-report).
 
+  **Planning ruling — decision D-03-11.** `bubbles.plan` was asked whether this line over-reaches or states a genuine obligation, and rules the latter: the guarantee that a full-personal clear leaves nothing personal behind is sound and stays. The line is not over-reaching, it is *mis-sited*. The set of personal categories is open at Scope 03 and closes only at Scope 16, so no foundation scope can quantify over it. Six of the thirteen nouns are therefore discharged forward, to the scope that first creates each surface — interests and outcomes to **Scope 06** (TP-06-02), scenarios to **Scope 09** (TP-09-01), allocations to **Scope 13** (TP-13-02), dossiers to **Scope 15** (TP-15-02), UI state plus the whole-set closure to **Scope 16** (TP-16-04). Each receiving scope carries a new DoD item naming the obligation, so this is a tracked commitment rather than a deletion. The line's wording is unchanged, the Gherkin is untouched, no Test Plan row is edited, and every discharge edge runs forward, so no cycle appears. Ruling the obligation Scope-03-genuine was rejected on structure, not convenience: Scope 03 is `foundation:true` at the head of the linear chain, so waiting for Scopes 09 through 15 would make it depend on its own dependents — the deadlock [blocker 3](../_index.md#known-cross-scope-blockers) forbids. Mechanism and per-noun table: [Scope 03 Full-Personal-Clear Enumeration Discharge](../_index.md#scope-03-full-personal-clear-enumeration-discharge).
+
+  **The discharge does not close this item, and that is deliberate.** Seven nouns are Scope 03's own and are verified. What remains is the enforcement gap named two paragraphs above, and it is Scope 03's to fix, not a later scope's: `policyDeclaredKeys` names `pointerKey`, `slotKeys`, `quarantineKey`, `sessionKey`, and `returnContextKey` one field at a time, and its assertions pin the counts at 4 and 2 — counts computed from that same hand-written list. A seventh `policy.storage` key is consequently swept by nothing and reddens nothing, which is exactly how a discharged noun would arrive unnoticed and make the forward commitment unenforceable. Scope 03 must make that helper derive from `policy.storage`, as `personalWorkspaceSections` already derives from `createEmptyWorkspace`, so an unswept personal key fails a test instead of passing unobserved. That work is inside this scope's declared allowed files. The effect of the ruling is therefore a change of blocker, not a tick: this line moves from unclosable inside Scope 03 to closable inside Scope 03.
+
 - [ ] Shared Infrastructure Impact Sweep, independent storage/inventory/clear canaries, and exact rollback/restore proof pass without altering Scope 01/02 facts.
 
   Unchecked. The Scope 01 and 02 re-run and the raw-namespace and clear-fault canaries are carried by the executed suites. The **exact rollback and restore proof** for this scope's own marker-bounded additions is a source-rollback procedure that no executed command demonstrates.
@@ -399,6 +403,24 @@ Write every closed-event, clear, inventory, UI, and sentinel assertion before pr
   pass, which was scoped to executing and adjudicating this one row with no new test code. One
   planning-owned observation is raised in the report: the UI Scenario Matrix requires a partial
   clear to offer a *scoped retry*, and no implementation or assertion for it exists.
+
+  **Planning ruling — decision D-03-11.** This row shares core item 3's vacuity but is **not**
+  blocked by it, and the two must not be conflated. The vacuous `interest-signals` and
+  `action-outcomes` cells are discharged to **Scope 06** on the same terms as core item 3, since
+  Scope 06 is the first producer of either; once `deriveInterestSignals` lands, TP-06-02 asserts
+  the cells this row can only leave empty. That discharge removes the vacuity argument from this
+  row entirely.
+
+  What is left is this row's own gap, and it is neither vacuous nor discharged: **quarantine
+  PRESERVED and session-fallback PRESERVED have no assertion at all** on the behavior-clear arm.
+  Both nouns are reachable — the row's own instrumentation lists `quarantine` in
+  `populatedBeforeFullPersonalClear` and `rlPortfolioWorkspaceSessionV1` in `declaredClearSteps`
+  — so a behavior clear that widened into either key would pass this row unchanged. That is a live
+  privacy hole in a `privacy-critical:true` scope, it is Scope 03's to close, and the fix is the
+  test-side change the paragraph above already names. This row therefore stays unchecked on its own
+  merits after the discharge, not on borrowed ones. The scoped-retry observation stands and is
+  routed to Scope 03 implementation, since the UI Scenario Matrix declares the behavior and nothing
+  implements it.
 
 #### Build Quality Gate
 

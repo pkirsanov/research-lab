@@ -555,3 +555,51 @@ stale declaration both appear.
   ✓  8 SCN-017-057 The tier stays readable at a phone width with nothing clipped (2.7s)
     8 passed (29.4s)
   ```
+
+- [x] Every scenario this scope declares is named by a passing test, proven per scenario rather than by a suite total: SCN-017-028, SCN-017-029, SCN-017-030, SCN-017-031, SCN-017-032.
+
+  **Claim Source:** executed. These five are browser scenarios whose test TITLES
+  predate the convention of carrying the id, so the id lives in the section
+  banner immediately above each `test(...)` call. The mapping is therefore read
+  out of the file rather than asserted, and both halves are shown.
+
+  ```text
+  $ grep -nE "SCN-017-0(28|29|30|31|32)|^test\(" tests/attention-browser.spec.mjs
+  219:/* ═══ TP-03-01 — SCN-017-028 tier + record from committed data ═══ */
+  221:test('decision attention tier renders items and record from committed data', …
+  276:/* ═══ TP-03-02 — SCN-017-029 no alert severity label, no alert styling ═══ */
+  278:test('decision attention items carry no alert severity label or alert styling', …
+  337:/* ═══ TP-03-03 — SCN-017-030 contextual tooltip on every field and control ═══ */
+  339:test('every decision attention field and control exposes a contextual tooltip', …
+  380:/* ═══ TP-03-04 — SCN-017-031 authored markup renders escaped at every sink ═══ */
+  382:test('authored decision attention text with markup renders escaped', …
+  430:/* ═══ TP-03-05 — SCN-017-032 elapsed renders expired, stale generation declared ═══ */
+  432:test('elapsed decision attention items render expired and a stale generation is declared', …
+  ```
+
+  ```text
+  $ npx --no-install playwright test tests/attention-browser.spec.mjs \
+      --config=playwright.config.mjs --project=system-chrome --reporter=list
+  ✓ 1 …:221:1 › decision attention tier renders items and record from committed data (4.3s)
+  ✓ 2 …:278:1 › decision attention items carry no alert severity label or alert styling (4.9s)
+  ✓ 3 …:339:1 › every decision attention field and control exposes a contextual tooltip (4.7s)
+  ✓ 4 …:382:1 › authored decision attention text with markup renders escaped (6.6s)
+  ✓ 5 …:432:1 › elapsed decision attention items render expired and a stale generation is declared (4.6s)
+  ✓ 6 …:551:1 › decision attention rendering holds all six performance budgets (7.3s)
+  ✓ 7 …:824:1 › SCN-017-051 The tier renders its declared empty state for an all-excluded generation (5.4s)
+  ✓ 8 …:942:1 › SCN-017-057 The tier stays readable at a phone width with nothing clipped (4.5s)
+  ✓ 9 …:1076:1 › SCN-017-058 The record shows the withheld state with its sample size, never a zero rate (4.2s)
+  ✓ 10 …:1126:1 › SCN-017-059 No item appears in both the decision tier and the catalyst feed (3.6s)
+    10 passed (53.0s)
+  EXIT=0
+  ```
+
+  **One transient failure is recorded rather than hidden.** An immediately prior
+  full-suite run reported `✘ 3 … contextual tooltip` (SCN-017-030) while the
+  other nine passed. The same scenario then passed alone (`1 passed`, exit 0) and
+  passed again in the full run recorded above. The scope's timeouts were NOT
+  widened in response, per anti-drift D18 — a flake is diagnosed or left visible,
+  never papered over with a longer wait. The working tree was under concurrent
+  modification during the failing run, which is the same intermittency the
+  Improvement-Plan already measured and classified as environmental rather than a
+  repo defect.

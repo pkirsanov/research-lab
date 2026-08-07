@@ -675,3 +675,36 @@ generation and record the digest comparison as raw output.
 
   (no warning line in any unfiltered output)
   ```
+
+- [x] Every scenario this scope declares is named by a passing test, proven per scenario rather than by a suite total: SCN-017-033, SCN-017-034, SCN-017-035, SCN-017-036, SCN-017-037, SCN-017-038, SCN-017-039, SCN-017-021b, SCN-017-055, SCN-017-058.
+
+  **Claim Source:** executed. The prior green runs retained only suite totals, so
+  no row could cite the scenario it actually proves. These are the per-test lines
+  those runs never kept, drawn from all three suites this scope's scenarios live
+  in.
+
+  ```text
+  $ node --test --test-reporter=tap tests/attention-payload-contract.test.mjs
+  ok 7 - SCN-017-055 The rendered record reads the published ledger, not a literal empty set
+  ok 9 - SCN-017-033 Escalation produces one live surface rather than two
+  ok 10 - SCN-017-034 Exactly one outcome record exists per terminated item
+  ok 11 - SCN-017-035 Superseded items are excluded from the evaluable denominator
+  ok 12 - SCN-017-036 Below the minimum closed sample the rate is withheld
+  ok 13 - SCN-017-037 The two breakdowns withhold independently
+  ok 14 - SCN-017-038 There is no write path to the recommendation ledger or the recommendation scorecard
+  ok 15 - SCN-017-039 The recommendation scorecard is byte-identical across a full attention generation
+  EXIT=0
+
+  $ node --test --test-reporter=tap tests/rlattention.test.mjs
+  ok 22 - SCN-017-021b The record publishes the wasted share beside the warranted one
+  EXIT=0
+
+  $ npx --no-install playwright test tests/attention-browser.spec.mjs …
+  ✓ 9 …:1076:1 › SCN-017-058 The record shows the withheld state with its sample size, never a zero rate (4.2s)
+  EXIT=0
+  ```
+
+  The `ok` numbering is non-contiguous because it is the real ordinal from an
+  unfiltered run of a shared suite; the intervening numbers belong to scopes 2, 5
+  and 6 and are cited in their own copies of this item rather than counted twice
+  here.

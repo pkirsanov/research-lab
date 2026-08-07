@@ -549,3 +549,40 @@ acceptance tests and the browser budget run.
 
   (no warning line in any unfiltered output)
   ```
+
+- [x] Every scenario this scope declares is named by a passing test, proven per scenario rather than by a suite total: SCN-017-040, SCN-017-041, SCN-017-042, SCN-017-043, SCN-017-044, SCN-017-059.
+
+  **Claim Source:** executed. The prior green runs retained only suite totals, so
+  no row could cite the scenario it actually proves. These are the per-test lines
+  those runs never kept.
+
+  ```text
+  $ node --test --test-reporter=tap tests/attention-payload-contract.test.mjs
+  ok 16 - SCN-017-040 Reader legibility reports zero leaks across the tier and the record
+  ok 17 - SCN-017-041 The view ids remain the existing four
+  ok 18 - SCN-017-042 Red alert thresholds and hard gates are byte-identical
+  ok 19 - SCN-017-044 The project selftest passes with the new module registered
+  EXIT=0
+  ```
+
+  `SCN-017-043` is the sole stress-category scenario in this feature and lives in
+  the browser suite, where its test title predates the id-in-title convention, so
+  its id sits in the section banner above the `test(...)` call. The mapping is
+  read out of the file rather than asserted.
+
+  ```text
+  $ grep -nE "SCN-017-043|^test\(" tests/attention-browser.spec.mjs
+  472:/* ═══ TP-05-04 — SCN-017-043 all six performance budgets ═══ */
+  551:test('decision attention rendering holds all six performance budgets', …
+
+  $ npx --no-install playwright test tests/attention-browser.spec.mjs …
+  ✓ 6 …:551:1 › decision attention rendering holds all six performance budgets (7.3s)
+  ✓ 10 …:1126:1 › SCN-017-059 No item appears in both the decision tier and the catalyst feed (3.6s)
+    10 passed (53.0s)
+  EXIT=0
+  ```
+
+  The `ok` numbering is non-contiguous because it is the real ordinal from an
+  unfiltered run of a shared suite; the intervening numbers belong to scopes 2, 4
+  and 6 and are cited in their own copies of this item rather than counted twice
+  here.

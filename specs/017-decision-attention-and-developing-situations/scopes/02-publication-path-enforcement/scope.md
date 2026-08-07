@@ -511,3 +511,23 @@ and the bite, which are the runs that actually emitted them.
 
   (no warning line in any of the three unfiltered outputs)
   ```
+
+- [x] Every scenario this scope declares is named by a passing test, proven per scenario rather than by a suite total: SCN-017-025, SCN-017-025b, SCN-017-026, SCN-017-027, SCN-017-045.
+
+  **Claim Source:** executed. The prior green runs retained only suite totals, so
+  no row could cite the scenario it actually proves. These are the per-test lines
+  those runs never kept.
+
+  ```text
+  $ node --test --test-reporter=tap tests/attention-payload-contract.test.mjs
+  ok 1 - SCN-017-025 The publication path refuses an over-length headline and a missing invalidation
+  ok 2 - SCN-017-025b A refusal names which item it is about, not only which slot
+  ok 3 - SCN-017-026 The validator and the browser apply the identical predicate on one fixture
+  ok 4 - SCN-017-027 Existing attention consumers still parse the payload unchanged
+  ok 5 - SCN-017-045 The authoring instruction names every required attention field
+  EXIT=0
+  ```
+
+  The run emits 25 `ok` lines in total; the five above are the ones this scope
+  owns. The remainder belong to scopes 4, 5 and 6 and are cited in their own
+  copies of this item rather than counted twice here.

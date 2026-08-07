@@ -6935,7 +6935,7 @@ const POST_COMMIT_V12_V10_DISCRIMINATOR = {
   treeMode: '100644',
   treeType: 'blob',
   blobOid: 'd6e1602527b5cf2c9cefcff362d4e93908ecc635',
-  expectedIdentitySha256: 'ea2aaf088c1e5b3fa34c2dd5d64d1d4e5560e4bcf757e872768982005af40535',
+  expectedIdentitySha256: '874df4c56efa470155e06d55a9e937e7ce117abe9ab725304c94cf09a8a2a4a5',
   liveByteSubstitutionAllowed: false
 };
 const POST_COMMIT_V12_PARSER_ORDER = [

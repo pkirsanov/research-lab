@@ -1362,7 +1362,7 @@
   "postV15MultiItemEvidenceTransitionHandoff": {
     "schemaVersion": "feature004-multi-item-evidence-transition-handoff/v1",
     "status": "route_required",
-    "currentDisposition": "implemented immutable history; currentRouting alone routes the additive v16 hermetic historical-v13 successor",
+    "currentDisposition": "implemented immutable history; delivered and green. The former v16 hermetic historical-v13 successor route is withdrawn and was never delivered, so currentRouting routes no successor from this handoff.",
     "findingId": "F004-V15-MULTI-ITEM-EVIDENCE-TRANSITION-001",
     "purpose": "execution-transition-cardinality-only",
     "reportContract": {
@@ -2016,7 +2016,7 @@
           "category": "functional",
           "file": "tests/feature-004-dirty-tree-collision.test.mjs",
           "testTitle": "all three existing top-level test cases",
-          "description": "Preserve and parse every v12/v13/v14/v15 byte and exact historical two-LF separators; add one report-final v16 hermetic historical-v13 successor without recapturing current authority; validate exact raw/envelope/compressed/decoded commitments, internal matrix/inventory/cross-links, predecessor and protected closure, selectors, normalization, closed schemas, nine promotion adversaries, path-copy/deep-clone equivalence, source immutability, parser-pin mutations, and all predecessor adversaries; prove absent or arbitrary current foreign paths cannot influence history; reject opaque-commitment mutation or live-byte substitution; retain v14 current Scope 1 path rejection, the unchanged command, 600-second ceiling, three cases, and every inherited assertion, order, and failure condition.",
+          "description": "Preserve and parse every v12/v13/v14/v15 byte and exact historical two-LF separators; validate exact raw/envelope/compressed/decoded commitments, internal matrix/inventory/cross-links, predecessor and protected closure, selectors, normalization, closed schemas, nine promotion adversaries, path-copy/deep-clone equivalence, source immutability, parser-pin mutations, and all predecessor adversaries; prove absent or arbitrary current foreign paths cannot influence history; reject opaque-commitment mutation or live-byte substitution; retain v14 current Scope 1 path rejection, the unchanged command, 600-second ceiling, three cases, and every inherited assertion, order, and failure condition. No v16 successor is required; that route is withdrawn and was never delivered.",
           "commandRef": "CMD-COLLISION",
           "timeoutSeconds": 600,
           "expectedTopLevelCaseCount": 3,

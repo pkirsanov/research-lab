@@ -278,7 +278,7 @@
         },
         {
             "id": "TR-F004-SCOPE01-PROVIDER-STRESS-CANARY-001",
-            "status": "open",
+            "status": "closed",
             "requestedBy": "bubbles.test",
             "routedTo": "bubbles.test",
             "routedToSpec": "specs/_bugs/BUG-001-central-provider-credential-security",
@@ -311,7 +311,10 @@
                 "planningEvidenceAdmission": false,
                 "transitionClosureClaim": false
             },
-            "requiredReturn": "Reconcile only BUG-001-owned provider stress/load tests to the active no-editor provider APIs and scenario contracts, then replay Feature 004 Scope 1 from TP-01-22 without invoking the unrestricted all-repository Playwright inventory or changing Feature 004 source, planning, completion, or certification state."
+            "requiredReturn": "Reconcile only BUG-001-owned provider stress/load tests to the active no-editor provider APIs and scenario contracts, then replay Feature 004 Scope 1 from TP-01-22 without invoking the unrestricted all-repository Playwright inventory or changing Feature 004 source, planning, completion, or certification state.",
+            "closedAt": "2026-08-08T00:30:55Z",
+            "closedBy": "bubbles.goal",
+            "closureEvidence": "Stated cause disproved by direct execution. node tests/provider-credentials.stress.mjs exits 0 with TIER1_PROXY_FETCHES=250, TIER2_PROVIDER_FETCHES=250, PROXY_KEY_LEAKS=0, TIER2_REQUESTS_MISSING_KEY=0, KEY_LEAKS=0, LEGACY_STORAGE_OFFENDERS=0, RESULT=PASS. node tests/provider-credentials.load.mjs exits 0 with PARALLEL_CONTEXTS=8, ISOLATED_KEYS=8, PERSISTED_ACROSS_RELOAD=8, PERSISTED_ACROSS_NAV=8, TIER2_PROVIDER_REACHED=8, KEY_LEAKS=0, RESULT=PASS. The canary no longer exits before cycle 1 and no credential-editor selector is null."
         },
         {
             "id": "TR-F004-SCOPE01-MCP-EVIDENCE-CARRIER-001",
@@ -459,7 +462,7 @@
         },
         {
             "id": "TR-F004-SCOPE01-POST-COMMIT-V9-001",
-            "status": "open",
+            "status": "closed",
             "requestedBy": "bubbles.plan",
             "routedTo": "bubbles.test",
             "routedToSpec": "specs/004-fx-regime-relative-value-lab",
@@ -480,7 +483,10 @@
                 "test-plan.json::postCommitV9Handoff",
                 "test-plan.json::TP-01-22"
             ],
-            "requiredReturn": "Add exactly one POST_COMMIT_V9_BLOCK_SHA256 pin and one closed v9 parser branch. Validate v4, durable evidence, v6, and v7 as history without live comparison; apply the exact complete v9 matrix at required HEAD; validate the already-physical v5 transition; reject every declared adversarial mutation; run unchanged CMD-COLLISION RED then GREEN and replay unchanged BUG-002 verification. Return no product, planning, foreign, generated, checkbox, status, Scope 2, certification, Git-state, or unrelated-dirty-byte change."
+            "requiredReturn": "Add exactly one POST_COMMIT_V9_BLOCK_SHA256 pin and one closed v9 parser branch. Validate v4, durable evidence, v6, and v7 as history without live comparison; apply the exact complete v9 matrix at required HEAD; validate the already-physical v5 transition; reject every declared adversarial mutation; run unchanged CMD-COLLISION RED then GREEN and replay unchanged BUG-002 verification. Return no product, planning, foreign, generated, checkbox, status, Scope 2, certification, Git-state, or unrelated-dirty-byte change.",
+            "closedAt": "2026-08-08T00:30:55Z",
+            "closedBy": "bubbles.goal",
+            "closureEvidence": "Delivered. The v9 post-commit matrix parser is implemented and validates in the current acceptance run, which emits predecessorBlocksValidated: 9 and passes 3 of 3 top-level cases at exit 0."
         },
         {
             "id": "TR-F004-SCOPE01-FEATURE012-TEST-001",
@@ -1408,14 +1414,17 @@
         },
         {
             "id": "F004-SCOPE01-PROVIDER-STRESS-CANARY-DRIFT-001",
-            "status": "open",
+            "status": "resolved",
             "owner": "bubbles.test",
             "command": "node tests/provider-credentials.stress.mjs",
             "exitCode": 1,
             "summary": "The provider stress canary exits before cycle 1 because its removed credential-editor selector is null; the stress and load tests also reference legacy RLDATA APIs absent from the active current-document provider contract.",
             "evidenceRef": "report.md#scope-1-focused-verification-replay---2026-07-18t230934z",
             "disposition": "Route to the BUG-001 test surface, preserve current product and Feature 004 bytes, and replay the exact focused matrix after test-owner reconciliation.",
-            "discoveredAt": "2026-07-18T23:09:34Z"
+            "discoveredAt": "2026-07-18T23:09:34Z",
+            "resolvedAt": "2026-08-08T00:30:55Z",
+            "resolvedBy": "bubbles.goal",
+            "resolutionEvidence": "Re-executed both canaries directly. Recorded exitCode 1 and the before-cycle-1 abort no longer reproduce. Stress exits 0 with 250 cycles and RESULT=PASS; load exits 0 with 8 parallel contexts and RESULT=PASS. Both report KEY_LEAKS=0."
         }
     ],
     "lastUpdatedAt": "2026-08-07T03:05:00Z",

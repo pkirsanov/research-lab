@@ -1194,7 +1194,7 @@ Scope 2's Change Boundary excludes `tools.json`, and Scope 5 owns registration a
 
 ### Change Boundary
 
-**Allowed file families:** new `fx-regime-relative-value-lab.html`, the FX Simple model/adapter entries in `simple-models.json` and `rlexperience-adapters/macro-rotation.js`, the FX tool experience declaration in `tool-experience.config.json`, the route exclusion in `site-exclusions.json`, and Scope 2 blocks in `tests/fx-regime-relative-value-lab.spec.mjs`.
+**Allowed file families:** new `fx-regime-relative-value-lab.html`, the route exclusion in `site-exclusions.json`, and Scope 2 blocks in `tests/fx-regime-relative-value-lab.spec.mjs`.
 
 **Allowed shared-file hunks:**
 
@@ -1205,10 +1205,12 @@ Scope 2's Change Boundary excludes `tools.json`, and Scope 5 owns registration a
 ### Implementation Files
 
 - `fx-regime-relative-value-lab.html`
-- `simple-models.json`
-- `rlexperience-adapters/macro-rotation.js`
-- `tool-experience.config.json`
 - `site-exclusions.json`
+
+Three files were listed here originally and are not changed by this scope, for measured reasons:
+
+- `simple-models.json` and `rlexperience-adapters/macro-rotation.js` are consumed exclusively by the shared shell's Simple view, and the shell cannot resolve while the route is excluded (see the shell-anchor note above). Declaring a Simple model that nothing can mount would be a dead registration, so both move to Scope 5 and land atomically with the shell activation, where Scope 5's DoD already requires the Simple adapter.
+- `tool-experience.config.json` carries policy only — view sets, adapter policy, registries, and budgets. It names no tool: no existing tool id appears anywhere in it, and `rlexperience-adapters/macro-rotation.js` is already in its module allowlist. The per-tool experience declaration lives in `tools.json`, which this scope excludes. There is therefore no FX-specific entry to add here, in this scope or any other.
 
 ### Consumer Impact Sweep
 
@@ -1323,7 +1325,7 @@ And the recommendation-ledger writer rejects it before event construction
 4. Implement the ETF-first Simple decision spine and complete Power currency/vehicle anatomy from the same frozen `FxOwnerDecisionV1`. View switches never compute or fetch, and row inspection cannot replace the selected vehicle.
 5. Render Eligible, Caution, Tactical-Only, Rejected, No Eligible Vehicle, and Unavailable distinctly. Show one reason per rejected product, exact fact clocks, wrapper caveats, tracking residual, and YCS path/reset boundaries without relaxing constraints.
 6. Render every model-authored and configuration-authored string through text-safe sinks; implement `RLTKR` links; require contextual definition plus current interpretation for every control, ticker, KPI, badge, chart, axis, value, trigger, invalidation, rejection, freshness state, and unavailable state through hover, focus, and adjacent accessible text; use structured `RLCHART.attach` pointer/keyboard hit testing over the same projection as nonblank summaries/tables; preserve dialog focus, text-plus-mark status, and stable responsive dimensions at 1440x1000, 390x844, and 130% root font size.
-7. Keep the route in `site-exclusions.json`. Declare the shared experience, Simple model, and adapter needed for direct validation without adding public tool, nav, Brief, Journey, or note registrations.
+7. Keep the route in `site-exclusions.json`. Add no public tool, nav, Brief, Journey, or note registration. `tool-experience.config.json` needs no FX entry because it names no tool at all, and the Simple model and adapter land in Scope 5 with the shell activation, because nothing can mount them while the route is excluded.
 8. Add real production-route E2E using the existing ephemeral static server. Serve the repository root as checked out with no `page.route`, `context.route`, fulfillment, abort, or response interception. Controlled available-state module inputs remain functional tests and cannot satisfy these E2E rows.
 
 ### UI Scenario Matrix
@@ -1748,6 +1750,8 @@ The stable route, visible title, shared four-view experience, two Journey defini
 - `rlnav.js`
 - `site-exclusions.json`
 - `scripts/validate-tool-experience.mjs`
+- `simple-models.json` — the FX Simple model definition, deferred from Scope 2 because the shared shell cannot mount it while the route is excluded
+- `rlexperience-adapters/macro-rotation.js` — the FX Simple adapter, deferred from Scope 2 for the same reason
 
 ### Consumer Impact Sweep
 

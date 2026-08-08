@@ -2577,3 +2577,179 @@ test('SCN-017-061 A candidate refused for privacy is recorded without leaking th
   );
 });
 
+/* ══════════════════════════════════════════════════════════════════════════
+ * SCN-017-062 — the same refusal must not disclose on the OTHER sink.
+ *
+ * SCN-017-061 closes the RECORD sink: `attentionExclusions[].subject` no longer
+ * carries the value the guard refused. STDOUT is a SECOND sink and it is not
+ * the same sink. The build step's CLI prints one line per refusal, and that
+ * line lands in terminal scrollback, in CI logs and in agent session
+ * transcripts — none of which can be retracted afterwards. A redaction that
+ * holds in the committed payload and leaks on the console has protected
+ * nothing; it has only moved the disclosure somewhere harder to audit.
+ *
+ * Today the print site is safe for ONE reason: it reads `exclusion.subject`,
+ * the value `recordableSubject` already filtered. The raw candidate list is in
+ * scope at that very print site, so an edit that reaches back to
+ * `observed.subject` to make the log "more useful" reopens the leak in full —
+ * silently, with the committed record still looking clean and SCN-017-061 still
+ * green. That is the regression this scenario exists to catch.
+ *
+ * So this runs the REAL script as a child process against a candidate file on
+ * disk — the operator's own entry point — and asserts on the FULL captured
+ * stream. `console.log` is not replaced, the build step is not re-implemented
+ * and the composer is not mocked, so what is measured is the actual print path
+ * rather than a proxy for it.
+ *
+ * Three arms, and the second and third are what make the first non-vacuous:
+ *
+ *   1. the refusal is still REPORTED, naming its candidate and its code, so a
+ *      build step that simply fell silent fails here instead of passing arm 3
+ *      for the uninteresting reason that it printed nothing at all;
+ *   2. a NON-privacy refusal still prints its subject, which proves the printer
+ *      prints subjects at all — without it, arm 3 would hold on a step that had
+ *      stopped naming every subject, and the operator's diagnostic would be
+ *      gone with no test objecting;
+ *   3. the sentinel appears NOWHERE in the captured stream.
+ * ══════════════════════════════════════════════════════════════════════════ */
+
+/* Outside the committed watchlist and never a substring of any ticker in it, so
+   finding it anywhere in captured output is unambiguous. Deliberately distinct
+   from SCN-017-061's sentinel, so a leak names which sink it came out of. */
+const STDOUT_SUBJECT_SENTINEL = 'PRIVATE-POSITION-ARKK-9d2e4b';
+
+test('SCN-017-062 A privacy refusal never prints the offending value to stdout', async () => {
+  const build = await loadBuildStep();
+
+  /* The CLI reads the COMMITTED payload off disk — it takes no payload argument
+     — so the non-privacy arm cannot inject its own action the way SCN-017-061
+     does. Its subject is derived from the committed brief's own published
+     actions, through the real `actionSubjectTickers`, rather than hardcoded. */
+  const ctx = build.attentionBuildContext(COMMITTED_PAYLOAD, COMMITTED_BRIEF_CONFIG);
+  assert.ok(
+    ctx.publishedActionSubjects.length > 0,
+    'the committed brief must name at least one watchlist ticker in its published actions, otherwise the '
+      + 'non-privacy arm below cannot produce an overlap refusal and arm 2 would prove nothing. '
+      + `Watchlist scope: ${JSON.stringify(ctx.watchlistScope)}. `
+      + `Action subjects: ${JSON.stringify(ctx.publishedActionSubjects)}`
+  );
+  const overlapSubject = ctx.publishedActionSubjects[0];
+
+  const overlapping = completeCandidate(ctx, overlapSubject);
+  const privateHolding = completeCandidate(ctx, overlapSubject);
+  privateHolding.observed = Object.assign({}, privateHolding.observed, { subject: STDOUT_SUBJECT_SENTINEL });
+  const candidates = [overlapping, privateHolding];
+
+  /* ── NON-VACUITY, established before the child runs ───────────────────────
+     The sentinel is a value the candidate GENUINELY carries and one the
+     committed watchlist GENUINELY refuses. Without both, arm 3 would be
+     searching for a string that was never there to leak, and would pass on a
+     build step that had never closed anything. */
+  assert.equal(
+    privateHolding.observed.subject, STDOUT_SUBJECT_SENTINEL,
+    'the refused candidate must actually carry the sentinel as its observed subject'
+  );
+  assert.equal(
+    ctx.watchlistScope.includes(STDOUT_SUBJECT_SENTINEL), false,
+    `${STDOUT_SUBJECT_SENTINEL} must genuinely sit outside the committed public watchlist scope, or it is not `
+      + `refused for privacy at all. Scope: ${JSON.stringify(ctx.watchlistScope)}`
+  );
+
+  const workdir = mkdtempSync(join(tmpdir(), 'rl-attn-stdout-'));
+  let run;
+  try {
+    const candidatesPath = join(workdir, 'candidates.json');
+    writeFileSync(candidatesPath, `${JSON.stringify(candidates, null, 2)}\n`);
+    /* the build step is a separate process: proving the sentinel is in the file
+       it reads is what proves the sentinel reached it. */
+    assert.ok(
+      readFileSync(candidatesPath, 'utf8').includes(STDOUT_SUBJECT_SENTINEL),
+      'the candidate file handed to the child process must carry the sentinel, otherwise the absence assertion '
+        + 'below is searching for a value the build step was never given'
+    );
+    run = spawnSync(process.execPath, ['scripts/build-attention-items.mjs', '--candidates', candidatesPath], {
+      cwd: ROOT, encoding: 'utf8', timeout: 600000, maxBuffer: 32 * 1024 * 1024
+    });
+  } finally {
+    rmSync(workdir, { recursive: true, force: true });
+  }
+
+  assert.equal(run.error, undefined, `the build step must run to completion: ${run.error && run.error.message}`);
+  assert.equal(
+    run.status, 0,
+    'refusing a candidate is a correct outcome rather than a failure, so the build step must still exit 0. '
+      + `Exit ${run.status}, signal ${run.signal}. stderr: ${String(run.stderr).slice(0, 2000)}`
+  );
+
+  const stdout = String(run.stdout || '');
+  const stderr = String(run.stderr || '');
+
+  /* the whole build report was printed, so "the sentinel is absent" below is a
+     statement about a populated stream rather than an empty one. */
+  assert.ok(
+    stdout.includes('"contractVersion": "attention-build/v1"'),
+    `the build step must have printed its full report, otherwise there is nothing to search. stdout: ${stdout}`
+  );
+
+  const refusalLines = stdout.split('\n').filter((line) => /refused candidate \d+/.test(line));
+  const lineForCandidate = (index) => refusalLines.find(
+    (line) => Number(/refused candidate (\d+)/.exec(line)[1]) === index
+  );
+
+  /* 1. REPORTED, NOT SILENCED. Withholding the value must not cost the report:
+        both refusals are still announced, each against its own candidate. */
+  assert.equal(
+    refusalLines.length, candidates.length,
+    'every refused candidate must still be announced on stdout — a build step that stopped printing refusals '
+      + `would hide the leak rather than close it. Refusal lines: ${JSON.stringify(refusalLines)}`
+  );
+
+  const privacyLine = lineForCandidate(1);
+  assert.ok(
+    privacyLine,
+    'the privacy refusal must still be announced against its own candidate index, so silence is never mistaken '
+      + `for safety. Refusal lines: ${JSON.stringify(refusalLines)}`
+  );
+  assert.ok(
+    privacyLine.includes('RLATTN-PRIVACY'),
+    'the announced privacy refusal must name the composer\'s privacy code, so an operator can act on it without '
+      + `being handed the withheld value. Received: ${JSON.stringify(privacyLine)}`
+  );
+
+  /* 2. SCOPED, NOT BLANKET — and the proof that this printer prints subjects at
+        all. If this line did not name its subject, arm 3 would hold on a build
+        step that had merely stopped printing subjects everywhere. */
+  const overlapLine = lineForCandidate(0);
+  assert.ok(
+    overlapLine,
+    `the non-privacy refusal must be announced against its own candidate index. Refusal lines: ${JSON.stringify(refusalLines)}`
+  );
+  assert.ok(
+    overlapLine.includes('RLATTN-OVERLAP'),
+    'the first candidate must be refused as an overlap rather than for privacy, or this arm proves nothing '
+      + `about scoping. Received: ${JSON.stringify(overlapLine)}`
+  );
+  assert.ok(
+    overlapLine.includes(`subject=${overlapSubject}`),
+    `a non-privacy refusal must keep printing its subject. ${overlapSubject} is a public watchlist ticker the `
+      + 'committed brief already publishes as an action, so withholding it protects nothing and removes the '
+      + `operator's only handle on the refusal. Received: ${JSON.stringify(overlapLine)}`
+  );
+
+  /* 3. THE DEFECT. Asserted against the ENTIRE stream rather than one line or
+        one field, so relocating the value into the summary line, into the
+        serialized report or into any new field fails here exactly as loudly. */
+  assert.equal(
+    stdout.includes(STDOUT_SUBJECT_SENTINEL), false,
+    'a candidate refused BECAUSE its subject sits outside the public watchlist scope must not have that subject '
+      + 'printed to stdout. Console output reaches terminal scrollback, CI logs and agent session transcripts, '
+      + 'none of which can be retracted, so printing it discloses the exact value the guard just refused — and '
+      + 'discloses it somewhere no later commit can remove. '
+      + `Leaked value: ${JSON.stringify(STDOUT_SUBJECT_SENTINEL)}. Full stdout: ${stdout}`
+  );
+  assert.equal(
+    stderr.includes(STDOUT_SUBJECT_SENTINEL), false,
+    `the refused subject must not reach stderr either — it is the same unretractable stream. Full stderr: ${stderr}`
+  );
+});
+

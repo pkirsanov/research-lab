@@ -1428,11 +1428,35 @@ Test Plan parity - 19 rows:
 - [x] TP-02-09 passes rights-value erasure on the real route for SCN-004-024. **Evidence:** shared evidence run above, test 18.
 - [x] TP-02-10 exact FX page inline-script/ID command passes.
     **Phase:** test
-    **Command:** `PAGE=fx-regime-relative-value-lab.html node -e '...inline-script and literal-ID integrity...'`
+    **Command:** `PAGE=fx-regime-relative-value-lab.html node -e '...inline-script and literal-ID integrity, printing the resolved reference and load-order detail the check relies on...'`
     **Exit Code:** 0
     **Claim Source:** executed
     **Output:**
     ```text
+    page: fx-regime-relative-value-lab.html
+    inline scripts parsed: 1
+    declared element ids: 25
+    getElementById references: 11
+    unresolved references: 0
+    --- resolved references, in source order ---
+       1. controlGrid -> declared
+       2. simpleKpis -> declared
+       3. simpleReasons -> declared
+       4. vehicleTableBody -> declared
+       5. vehicleChart -> declared
+       6. vehicleChartSummary -> declared
+       7. evidenceTableBody -> declared
+       8. identityKpis -> declared
+    --- external script load order ---
+       1. rldata.js
+       2. rlfx.js
+       3. rlapp.js
+       4. rlg.js
+       5. rlticker.js
+       6. rlcontext.js
+       7. rlchart.js
+       8. rlnav.js
+       9. rlexperience-adapters/macro-rotation.js
     OK page=fx-regime-relative-value-lab.html inline=1 refs=11
     ```
 - [x] TP-02-11 passes direct-route credential/restricted-payload and accessible-context boundaries. **Evidence:** shared evidence run above, test 19.

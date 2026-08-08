@@ -118,8 +118,22 @@ export function authoredJudgementOnly(candidate) {
   return authored;
 }
 
-/* The one refusal whose own subject is the thing being protected. */
-const PRIVACY_REFUSAL_CODE = 'RLATTN-PRIVACY';
+/* The one refusal whose own subject is the thing being protected.
+ *
+ * ANCHORED to the module's frozen REFUSAL_CODES rather than restated as a bare
+ * literal. The redaction path below keys off this code, so if rlattention.js
+ * ever renamed it, an unanchored copy would not merely mislabel an exclusion —
+ * this composer would stop recognising privacy refusals and record the withheld
+ * subject verbatim. A silent copy fails in the one direction that leaks, which
+ * is why the drift is made loud here instead of being left to a reviewer. */
+const PRIVACY_REFUSAL_CODE = RLATTN.REFUSAL_CODES.find((code) => code === 'RLATTN-PRIVACY');
+if (!PRIVACY_REFUSAL_CODE) {
+  throw new Error(
+    'rlattention.js no longer declares RLATTN-PRIVACY in REFUSAL_CODES, so the composer cannot '
+    + 'know which refusal must be redacted. Refusing to compose rather than publishing a subject '
+    + 'that was withheld for privacy. Declared codes: ' + JSON.stringify(RLATTN.REFUSAL_CODES)
+  );
+}
 
 /** Recorded in place of a withheld subject — never mistakable for a ticker. */
 const REDACTED_SUBJECT = '[redacted: privacy refusal]';

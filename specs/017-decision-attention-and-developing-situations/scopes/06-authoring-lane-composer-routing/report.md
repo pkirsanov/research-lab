@@ -439,3 +439,52 @@ pipeline rather than of an instruction. The residual risk is not in composition
 but in publication, and it is named in Honest Gaps items 1 and 2. Neither the
 top-level `status` nor `certification.status` was written by this session.
 `bubbles.validate` owns certification and has not run.
+
+## Runtime Delta
+
+### Code Diff Evidence
+
+The runtime change this scope delivered, measured against its own pre-scope
+baseline `6d4eba99~1`. Artifact files are excluded on purpose: a spec packet
+proving itself with spec-packet edits proves nothing about the product.
+
+```text
+$ git --no-pager diff --stat 6d4eba99~1 HEAD -- \
+    scripts/build-attention-items.mjs scripts/brief-refresh-and-push.sh \
+    scripts/validate-brief-payload.mjs scripts/brief-narrative-parallel.mjs \
+    rlattention.js market-brief.html tests/brief-refresh-atomicity.support.mjs
+ market-brief.html                         |  54 +++++-
+ rlattention.js                            |  37 +++-
+ scripts/brief-narrative-parallel.mjs      |   2 +-
+ scripts/brief-refresh-and-push.sh         |  18 ++
+ scripts/build-attention-items.mjs         | 281 ++++++++++++++++++++++++++++++
+ scripts/validate-brief-payload.mjs        |  48 ++++-
+ tests/brief-refresh-atomicity.support.mjs |  59 ++++++-
+ 7 files changed, 470 insertions(+), 29 deletions(-)
+```
+
+The two smallest numbers are the load-bearing ones.
+
+`scripts/brief-narrative-parallel.mjs`, **one line changed**. That single line is
+the whole F-017-06 mechanism: the lane's instruction shrinks from "emit a
+`decision-attention/v1` envelope" to "author only the judgement". Everything else
+in this scope exists to make that line safe.
+
+`scripts/brief-refresh-and-push.sh`, **18 lines added, of which one is
+executable**. The rest is the comment explaining why the step sits between the
+lane and the gate. That one line is what makes the guarantee structural rather
+than aspirational — without it the composer exists and never runs, which is the
+state this scope was shipped in before this session found it:
+
+```text
+$ git --no-pager diff 6d4eba99~1 HEAD -- scripts/brief-refresh-and-push.sh \
+    | grep -E '^\+ *&&'
++       && "$NODE_BIN" scripts/build-attention-items.mjs --recompose --write \
+```
+
+`scripts/build-attention-items.mjs` is the new step itself at 281 lines, and
+`tests/brief-refresh-atomicity.support.mjs` at 59 is the fixture catching up to
+the pipeline the step changed. `rlattention.js` and `market-brief.html` appear
+because the same baseline spans sibling scopes' work; they are excluded from THIS
+scope's boundary and were changed by scopes 1/4 and 3 respectively.
+

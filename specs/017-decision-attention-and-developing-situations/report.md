@@ -12,11 +12,67 @@ _Awaiting execution. No scope is complete._
 
 ## Decision Record
 
-_Awaiting execution. No evidence recorded yet._
+Four decisions changed the shape of this feature. Each is recorded where it was
+taken; this is the index.
+
+| Decision | What changed | Why |
+|----------|--------------|-----|
+| **F-017-06 — route the lane through the composer** | The authoring lane authors JUDGEMENT only; the envelope is composed at publish time by `scripts/build-attention-items.mjs`. | Three consecutive crons published zero conforming items while enforcement was fully intact. A prose instruction to a language model is advisory; a lane that no longer emits the envelope cannot emit a bad one. |
+| **Both sides of the interruption rate** | `computeInterruptionRate` publishes `warrantedShare` AND `expiredWithoutEffectShare`, withheld together below the minimum sample. | Publishing the hit side without its complement is exactly the asymmetry P4/BI-5 forbids. The fields were added rather than the DoD renamed. |
+| **Refusals name the item, not the slot** | `attentionItemLabel()` puts the item's id and subject between the slot index and the field. | An index moves the moment the list is re-ranked, so a slot-only refusal is unactionable by the time anyone reads it. |
+| **Byte-identity narrowed to what a scope can own** | Each scope asserts that IT modified no excluded path, and that paths it protects from ANOTHER owner are byte-identical. | The blanket form is unsatisfiable while sibling scopes inside one feature legitimately modify paths on each other's excluded lists. Scope isolation forbids reaching outside your own paths; it does not freeze the feature around you. |
 
 ## Code Diff Evidence
 
-_Awaiting execution. No evidence recorded yet._
+### Code Diff Evidence — spec 017 runtime delta
+
+**Claim Source:** executed.
+
+```text
+$ git --no-pager diff --stat c0c7d34c..HEAD -- rlattention.js \
+    scripts/build-attention-items.mjs scripts/validate-brief-payload.mjs \
+    scripts/brief-narrative-parallel.mjs scripts/brief-refresh-and-push.sh \
+    scripts/selftest.mjs market-brief.html tests/rlattention.test.mjs \
+    tests/attention-payload-contract.test.mjs tests/attention-browser.spec.mjs \
+    tests/brief-refresh-atomicity.support.mjs notes/decision-attention.md \
+    notes/market-brief.md
+ market-brief.html                         |  557 ++++++-
+ notes/decision-attention.md               |  395 +++++
+ notes/market-brief.md                     |   22 +
+ rlattention.js                            |  916 +++++++++++
+ scripts/brief-narrative-parallel.mjs      |    9 +-
+ scripts/brief-refresh-and-push.sh         |   18 +
+ scripts/build-attention-items.mjs         |  281 ++++
+ scripts/selftest.mjs                      |  199 ++-
+ scripts/validate-brief-payload.mjs        |  129 +-
+ tests/attention-browser.spec.mjs          | 1203 ++++++++++++++
+ tests/attention-payload-contract.test.mjs | 2430 +++++++++++++++++++++++++++++
+ tests/brief-refresh-atomicity.support.mjs |   59 +-
+ tests/rlattention.test.mjs                | 1076 +++++++++++++
+ 13 files changed, 7262 insertions(+), 32 deletions(-)
+```
+
+Three numbers in that table carry the argument.
+
+**`rlattention.js` +916 against `scripts/validate-brief-payload.mjs` +129.** The
+capability module is where the rules live; the gate is thin because it `require`s
+the module and calls it. Had the gate restated the rules, the two files would be
+comparable in size and would drift the first time either changed.
+
+**`scripts/brief-refresh-and-push.sh` +18.** The smallest diff in the set and the
+one without which none of the rest is load-bearing. It is the line that makes the
+composer run on the publication path. Before it, `build-attention-items.mjs` was
+written, tested and registered with the selftest while nothing invoked it — an
+orphaned build step, which is a file rather than a guarantee.
+
+**Tests +4709 against implementation +2013.** Roughly 2.3 lines of test per line
+of implementation. That ratio is not padding: the module's contract is almost
+entirely about what it REFUSES, and every refusal code needs a scenario that
+proves the refusal fires and an adversarial twin that proves the guard can fail.
+
+Only 32 lines were deleted across the whole delivery, and `git diff --numstat`
+over the six scope artifacts reports 0 deletions — this feature was built
+additively on top of the existing brief rather than by rewriting it.
 
 ## Test Evidence
 

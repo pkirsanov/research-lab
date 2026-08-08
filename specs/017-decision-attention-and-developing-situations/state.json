@@ -26,61 +26,61 @@
       {
         "phase": "test",
         "agent": "bubbles.test",
-        "claimedAt": "2026-08-08T00:00:00Z",
+        "claimedAt": "2026-08-08T15:44:55Z",
         "claim": "Full battery executed against the live tree: selftest 1273/0, payload gate PASS, legibility 23 pages / 0 leaks, spec-test-paths OK, attention suites 54/54, Playwright system-chrome green after the stabilize fix. MEASUREMENT BASIS (audit finding A-017-04): the 54/54 was measured against the WORKING TREE, which at the time carried an uncommitted SCN-017-062 while its fix fa6f3d68 was already committed - HEAD alone declares 53. brief-refresh-atomicity is 18/26 and all 8 failures are the recorded D19 clock-rollover condition, not code defects; nothing was weakened to make them pass."
       },
       {
         "phase": "stabilize",
         "agent": "bubbles.stabilize",
-        "claimedAt": "2026-08-08T00:10:00Z",
+        "claimedAt": "2026-08-08T15:52:35Z",
         "claim": "The single full-suite Playwright failure was root-caused rather than retried. It is a test in tests/portfolio-survival-foundation.spec.mjs whose title contains 'TP-03-06' - that is the portfolio-survival feature's own plan ID, NOT spec 017's TP-03-06, which denotes tests/attention-browser.spec.mjs (audit finding A-017-02). It opens a fresh browser context per fault arm and was consuming ~87% of Playwright's 30s default before any load. Its real budget is now declared at the test, not globally, so the strict default still protects the other 310 tests. Verified green. Commit 04060d09."
       },
       {
         "phase": "regression",
         "agent": "bubbles.regression",
-        "claimedAt": "2026-08-08T00:20:00Z",
+        "claimedAt": "2026-08-08T15:46:04Z",
         "claim": "The 311-test browser suite carrying this feature's 18 planned regression-E2E rows was run whole and holds after the composer was wired onto the publication path. F-017-04's fix was confirmed genuinely covered by the three-branch rankRationale tests, which assert against production-derived clause constants rather than literal sentences."
       },
       {
         "phase": "gaps",
         "agent": "bubbles.gaps",
-        "claimedAt": "2026-08-08T00:30:00Z",
+        "claimedAt": "2026-08-08T16:02:49Z",
         "claim": "Both entries still marked Open were stale. F-017-04 is fixed and covered. F-017-06 is fixed only in its wiring half and now says so: with the shipped scorecard at closedSample 0 the wired read and the old hardcoded read are indistinguishable, so its browser row is honest but not yet adversarial. Recorded rather than closed with page.route, which would demote the only live-stack proof to a mocked one. Commit 53223f1c."
       },
       {
         "phase": "simplify",
         "agent": "bubbles.simplify",
-        "claimedAt": "2026-08-08T00:40:00Z",
+        "claimedAt": "2026-08-08T16:05:40Z",
         "claim": "One module rule was restated outside the module that owns it: build-attention-items.mjs held 'RLATTN-PRIVACY' as a bare literal while rlattention.js owns REFUSAL_CODES. The constant is now resolved out of that frozen export. Commit 0ea271e7."
       },
       {
         "phase": "harden",
         "agent": "bubbles.harden",
-        "claimedAt": "2026-08-08T00:50:00Z",
+        "claimedAt": "2026-08-08T16:06:29Z",
         "claim": "The same duplication was the hardening defect: the copy failed silently in the one direction that leaks, since a rename upstream would have stopped privacy redaction and published a withheld subject. The composer now refuses to run instead. Every declared RLATTN-* refusal family is exercised in the suites, so no refusal path is inert."
       },
       {
         "phase": "security",
         "agent": "bubbles.security",
-        "claimedAt": "2026-08-08T01:00:00Z",
+        "claimedAt": "2026-08-08T16:07:20Z",
         "claim": "Privacy boundary reviewed as the feature's real security surface. refuse() returns only {ok, code, field, message} and never the offending value, so a refusal cannot itself leak; isFiniteNumber guards typeof before isFinite, so the documented null-coercion hazard is unreachable there. The one weak point, the composer's unanchored redaction key, was closed in 0ea271e7."
       },
       {
         "phase": "chaos",
         "agent": "bubbles.chaos",
-        "claimedAt": "2026-08-08T01:10:00Z",
+        "claimedAt": "2026-08-08T16:08:55Z",
         "claim": "Fault-injection coverage confirmed executed, not merely declared: a seven-arm storage-fault matrix whose unfaulted control arm is what prevents a permanently-failing flow from satisfying every faulted arm, plus publication chaos covering parent termination after a confirmed push, a lost receipt, a dead stale lock, a rejected final push and an invalid baseline repaired through a final-valid pair."
       },
       {
         "phase": "docs",
         "agent": "bubbles.docs",
-        "claimedAt": "2026-08-08T01:20:00Z",
+        "claimedAt": "2026-08-08T15:54:26Z",
         "claim": "The runbook, which is the declared source of truth for the publication pipeline, never named the composer step the pipeline actually runs between the lane and the payload gate. Skipping that step does not fail loudly - it silently republishes the previous generation's attention set - so the omission would have let a reader rebuild a pipeline that looked correct and served stale attention. Now documented at its real position and verified against the script."
       },
       {
         "phase": "audit",
         "agent": "bubbles.audit",
-        "claimedAt": "2026-08-08T01:30:00Z",
+        "claimedAt": "2026-08-08T16:10:43Z",
         "claim": "Evidence-integrity sweep: zero unfilled evidence-template markers anywhere in the packet, 178 DoD items checked and 0 unchecked, all six scopes Done, every scope report carrying 20-62 fenced blocks of real command output rather than prose, artifact-lint exit 0, and 25 of 26 guard gate families passing. The lone G022 failure is the dispatch-capability gap documented in executionHistory, not a defect in the delivered work."
       },
       {
@@ -429,8 +429,9 @@
       "expandedBy": "bubbles.workflow",
       "expansionReason": "runSubagent dispatch of bubbles.test returned no output and produced zero side effects (no file written, no phase claim appended), so the orchestrator performed the phase itself; see BUG-008 upstream where this signature is now recorded as neither audit-specific nor packet-specific",
       "expansionEvidenceRef": "report.md#test-evidence",
-      "startedAt": "2026-08-08T15:14:07Z",
-      "completedAt": "2026-08-08T15:50:24Z",
+      "startedAt": "2026-08-08T15:02:10Z",
+      "completedAt": "2026-08-08T15:44:55Z",
+      "timestampBasis": "commit-anchored, NOT stopwatch-measured. Boundaries are derived from the commits that carry each change plus the observed execution order within the session. Declared here per audit finding A-017-06 instead of being presented as measurement.",
       "statusBefore": "in_progress",
       "statusAfter": "in_progress",
       "summary": "Executed the full battery against the live tree. node scripts/selftest.mjs 1273 passed / 0 failed; validate-brief-payload.mjs PASS; audit-reader-legibility.mjs 23 pages, 0 leaks; validate-spec-test-paths.mjs OK (0 new, 0 stale of 217 referenced); attention node suites 54/54; Playwright system-chrome 310 passed / 1 failed on the first run and the single failure was root-caused and fixed under the stabilize phase. brief-refresh-atomicity.test.mjs is 18/26: all 8 failures are the scheduled-launcher cluster asserting expectedSessionDate 2026-08-07, which is the recorded D19 clock-rollover condition and not a code defect. No test was weakened and no market data was regenerated to make anything pass."
@@ -442,8 +443,9 @@
       "expandedBy": "bubbles.workflow",
       "expansionReason": "runSubagent dispatch is silently unavailable in this session (capability missing, no output and no side effects), so the orchestrator parent-expanded the phase rather than leaving a real flake unfixed",
       "expansionEvidenceRef": "report.md#test-evidence",
-      "startedAt": "2026-08-08T15:46:12Z",
+      "startedAt": "2026-08-08T15:46:05Z",
       "completedAt": "2026-08-08T15:52:35Z",
+      "timestampBasis": "commit-anchored, NOT stopwatch-measured. completedAt is commit 04060d09's author time; startedAt follows the preceding phase. Declared per A-017-06.",
       "statusBefore": "in_progress",
       "statusAfter": "in_progress",
       "summary": "Root-caused the one full-suite Playwright failure. The failing test is 'Regression: TP-03-06 every declared foundation clear step refuses success on its own and retains only its own key' in tests/portfolio-survival-foundation.spec.mjs. IDENTIFIER WARNING, raised by audit finding A-017-02: the 'TP-03-06' inside that test TITLE belongs to the portfolio-survival feature's own Test Plan and is NOT spec 017's TP-03-06, which denotes tests/attention-browser.spec.mjs. The file is not in any spec-017 Test Plan; it was touched under zero-deferral because it was red in the suite this spec must keep green. It passed in isolation and failed in the suite: it opens a fresh browser context per fault-injection arm and measured ~26s against Playwright's 30s default, consuming ~87% of the budget before any load. Fixed by declaring the test's real budget at the test rather than raising the global default, which would have blunted timeout-based failure detection for the other 310 tests to accommodate one legitimately expensive one. Verified green at 19.5s. Commit 04060d09, whose message repeats the same ambiguous identifier."
@@ -455,8 +457,9 @@
       "expandedBy": "bubbles.workflow",
       "expansionReason": "runSubagent returned no output for specialist dispatch in this session, so regression verification was parent-expanded by the orchestrator",
       "expansionEvidenceRef": "report.md#test-evidence",
-      "startedAt": "2026-08-08T15:38:41Z",
-      "completedAt": "2026-08-08T15:51:10Z",
+      "startedAt": "2026-08-08T15:44:56Z",
+      "completedAt": "2026-08-08T15:46:04Z",
+      "timestampBasis": "commit-anchored, NOT stopwatch-measured. This phase carries no commit of its own; its window is the gap between the test battery finishing and the stabilize fix beginning. Declared per A-017-06.",
       "statusBefore": "in_progress",
       "statusAfter": "in_progress",
       "summary": "Ran the whole 311-test browser suite, which carries this feature's 18 planned regression-E2E rows, and confirmed the pre-existing surfaces still hold after the composer was wired onto the publication path. Also verified that F-017-04's fix is genuinely covered: the tail of tests/rlattention.test.mjs exercises all three rankRationale branches. That coverage asserts against clause constants derived from production rather than literal sentences, which is why a grep for the rendered wording misses it - the test survives a copy edit and still fails on a behaviour change."
@@ -468,8 +471,9 @@
       "expandedBy": "bubbles.workflow",
       "expansionReason": "runSubagent dispatch produced no output and no work, a missing capability rather than a refusal, so the orchestrator parent-expanded the gap analysis",
       "expansionEvidenceRef": "report.md#open-findings",
-      "startedAt": "2026-08-08T15:56:40Z",
+      "startedAt": "2026-08-08T15:54:27Z",
       "completedAt": "2026-08-08T16:02:49Z",
+      "timestampBasis": "commit-anchored, NOT stopwatch-measured. completedAt is commit 53223f1c's author time. Declared per A-017-06.",
       "statusBefore": "in_progress",
       "statusAfter": "in_progress",
       "summary": "Audited the two entries still marked Open and found the report stale on both. F-017-04 is fixed in rlattention.js::rankRationale, which now branches three ways so the vacuous self-comparison is unreachable, and it is covered. F-017-06 is fixed only in its wiring half: the hardcoded empty array is gone and market-brief.html reads the published reduction, but the shipped scorecard still reduces to closedSample 0, and at that value the wired read and the old hardcoded read emit identical text - so the browser row would still pass against the defect. That residual is recorded rather than closed, because closing it with page.route would demote the only live-stack proof to a mocked one and leave the gap open while appearing to shut it. Commit 53223f1c."
@@ -481,8 +485,9 @@
       "expandedBy": "bubbles.workflow",
       "expansionReason": "runSubagent specialist dispatch is a missing capability in this session, so the orchestrator parent-expanded the duplication review",
       "expansionEvidenceRef": "report.md",
-      "startedAt": "2026-08-08T16:03:31Z",
-      "completedAt": "2026-08-08T16:07:20Z",
+      "startedAt": "2026-08-08T16:02:50Z",
+      "completedAt": "2026-08-08T16:05:40Z",
+      "timestampBasis": "commit-anchored, NOT stopwatch-measured. simplify, harden and security all landed in commit 0ea271e7; rather than repeat one span three times, each is given the distinct window in which its own analysis ran, ending at that shared commit. Declared per A-017-06.",
       "statusBefore": "in_progress",
       "statusAfter": "in_progress",
       "summary": "Swept the feature's surfaces for a module rule restated outside the module that owns it, and found one: build-attention-items.mjs declared PRIVACY_REFUSAL_CODE as the bare literal 'RLATTN-PRIVACY' while rlattention.js owns that vocabulary in a frozen REFUSAL_CODES export the file never referenced. Resolved the constant out of REFUSAL_CODES and made the composer refuse to run if the module stops declaring it. Verified 54/54 attention tests, selftest 1273/0, payload gate PASS. Commit 0ea271e7."
@@ -494,8 +499,9 @@
       "expandedBy": "bubbles.workflow",
       "expansionReason": "runSubagent returned no output, so hardening was parent-expanded by the orchestrator rather than skipped",
       "expansionEvidenceRef": "report.md",
-      "startedAt": "2026-08-08T16:03:31Z",
-      "completedAt": "2026-08-08T16:07:20Z",
+      "startedAt": "2026-08-08T16:05:41Z",
+      "completedAt": "2026-08-08T16:06:29Z",
+      "timestampBasis": "commit-anchored, NOT stopwatch-measured. Shares commit 0ea271e7 with simplify and security; given its own window rather than a duplicated span. Declared per A-017-06.",
       "statusBefore": "in_progress",
       "statusAfter": "in_progress",
       "summary": "The simplify finding was also the hardening one, and was treated as such. The unanchored privacy-code copy did not fail loudly: had rlattention.js renamed the code, the composer would have stopped recognising privacy refusals and recorded the withheld subject verbatim - a silent failure in the one direction that leaks. It now throws with the declared code list instead of composing. Separately confirmed every declared RLATTN-* refusal family is exercised in the test suites, so no refusal path is inert."
@@ -507,8 +513,9 @@
       "expandedBy": "bubbles.workflow",
       "expansionReason": "runSubagent dispatch unavailable (no output, no side effects), so the orchestrator parent-expanded the security review",
       "expansionEvidenceRef": "report.md",
-      "startedAt": "2026-08-08T16:04:18Z",
+      "startedAt": "2026-08-08T16:06:30Z",
       "completedAt": "2026-08-08T16:07:20Z",
+      "timestampBasis": "commit-anchored, NOT stopwatch-measured. completedAt is commit 0ea271e7's author time, which this phase shares with simplify and harden. Declared per A-017-06.",
       "statusBefore": "in_progress",
       "statusAfter": "in_progress",
       "summary": "Reviewed the privacy boundary, which is this feature's real security surface because the repo is public and positions must never leave the browser. rlattention.js::refuse returns only {ok, code, field, message} and never the offending value, so a refusal cannot itself become the leak. isFiniteNumber guards typeof === 'number' before calling isFinite, so the repo's documented null-coercion hazard is not reachable there. The composer's redaction path was the one weak point - it keyed off an unanchored literal - and that was closed under simplify/harden in commit 0ea271e7."
@@ -520,8 +527,9 @@
       "expandedBy": "bubbles.workflow",
       "expansionReason": "runSubagent specialist dispatch produced no output in this session, a nested runtime capability that is missing rather than refused, so the orchestrator parent-expanded the fault-injection review",
       "expansionEvidenceRef": "report.md#test-evidence",
-      "startedAt": "2026-08-08T16:08:02Z",
-      "completedAt": "2026-08-08T16:09:14Z",
+      "startedAt": "2026-08-08T16:07:21Z",
+      "completedAt": "2026-08-08T16:08:55Z",
+      "timestampBasis": "commit-anchored, NOT stopwatch-measured. A review phase with no commit of its own; window sits between the 0ea271e7 fix and the record commit d7d3c362. Declared per A-017-06.",
       "statusBefore": "in_progress",
       "statusAfter": "in_progress",
       "summary": "Confirmed the delivered fault-injection coverage is real and executed rather than declared. portfolio-survival-foundation.spec.mjs drives a seven-arm storage-fault matrix - one unfaulted control plus one per declared foundation key - and the control arm is what stops a permanently-failing flow from satisfying every faulted arm. brief-refresh-atomicity.test.mjs exercises publication chaos directly: parent termination after a confirmed push, a lost receipt, a dead stale lock, a rejected final push and an invalid baseline repaired through a final-valid pair. Eight of those currently fail on the recorded D19 clock condition, not on their fault logic."
@@ -533,8 +541,9 @@
       "expandedBy": "bubbles.workflow",
       "expansionReason": "runSubagent dispatch returned no output, so the orchestrator parent-expanded the documentation phase",
       "expansionEvidenceRef": "report.md",
-      "startedAt": "2026-08-08T15:53:05Z",
+      "startedAt": "2026-08-08T15:52:36Z",
       "completedAt": "2026-08-08T15:54:26Z",
+      "timestampBasis": "commit-anchored, NOT stopwatch-measured. completedAt is commit 30b29876's author time. Declared per A-017-06.",
       "statusBefore": "in_progress",
       "statusAfter": "in_progress",
       "summary": "notes/market-brief.md is the declared source of truth for the publication pipeline and stopped at the narrative lanes: it never mentioned build-attention-items.mjs --recompose --write, which the pipeline actually runs between the lane and the payload gate. That omission was worse than an ordinary doc gap because skipping the step does not fail loudly - it silently republishes the previous generation's attention set, so a reader reconstructing the pipeline from the runbook would have built one that looked correct and quietly served stale attention. Documented at its real position, verified against the script."
@@ -546,8 +555,9 @@
       "expandedBy": "bubbles.workflow",
       "expansionReason": "runSubagent dispatch of bubbles.audit is the original BUG-008 signature and remains unavailable, so the orchestrator parent-expanded the audit rather than forging a specialist claim",
       "expansionEvidenceRef": "report.md#audit-verdict",
-      "startedAt": "2026-08-08T16:09:22Z",
-      "completedAt": "2026-08-08T16:10:31Z",
+      "startedAt": "2026-08-08T16:08:56Z",
+      "completedAt": "2026-08-08T16:10:43Z",
+      "timestampBasis": "commit-anchored, NOT stopwatch-measured. completedAt is commit d7d3c362's author time, the commit that wrote these records. Declared per A-017-06.",
       "statusBefore": "in_progress",
       "statusAfter": "in_progress",
       "summary": "Evidence-integrity sweep of the packet. Zero unfilled evidence-template markers across every scope.md, scope report and the feature report, so the fabrication signature the anti-fabrication gates look for is absent. 178 DoD items checked and 0 unchecked. All six scopes report Status: Done. Every scope report carries substantial raw command output (20 to 62 fenced blocks each) rather than prose summaries. artifact-lint.sh exits 0. The transition guard passes 25 of 26 gate families; the single failure is G022, which is the dispatch-capability gap this history documents rather than a defect in the delivered work."

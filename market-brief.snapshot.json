@@ -1,26 +1,26 @@
 {
-  "asOf": "2026-08-07T20:30:25.687Z",
-  "generatedAt": "2026-08-07T20:30:25.687Z",
-  "window": "after-hours",
-  "marketClosed": false,
+  "asOf": "2026-08-08T11:00:26.586Z",
+  "generatedAt": "2026-08-08T11:00:26.586Z",
+  "window": "pre-market",
+  "marketClosed": true,
   "nextSessionDate": "2026-08-10",
   "dataFreshness": {
     "bars": {
-      "updated": "2026-08-07T20:30:19.407Z",
+      "updated": "2026-08-08T11:00:16.673Z",
       "symbolCount": 291,
       "expectedSessionDate": "2026-08-07",
-      "refreshDate": "2026-08-07",
-      "refreshWindow": "after-hours",
+      "refreshDate": "2026-08-08",
+      "refreshWindow": "pre-market",
       "freshSymbolCount": 291,
       "carriedSymbolCount": 0,
       "missingSymbolCount": 0
     },
     "options": {
-      "updated": "2026-08-07T20:30:24.775Z",
+      "updated": "2026-08-08T11:00:21.146Z",
       "symbolCount": 22,
       "expectedSessionDate": null,
-      "refreshDate": "2026-08-07",
-      "refreshWindow": "after-hours",
+      "refreshDate": "2026-08-08",
+      "refreshWindow": "pre-market",
       "freshSymbolCount": 22,
       "carriedSymbolCount": 0,
       "missingSymbolCount": 0
@@ -627,7 +627,7 @@
   "toolReads": {
     "sector-research-lab": {
       "id": "sector-research-lab",
-      "asOf": "2026-08-07T20:30:25.428Z",
+      "asOf": "2026-08-08T11:00:25.000Z",
       "read": "Rotate toward XLY as XLI weakens.",
       "metrics": {
         "into": {
@@ -747,19 +747,19 @@
     "global-rotation-lab": {
       "id": "global-rotation-lab",
       "asOf": "2026-08-07T13:30:00.000Z",
-      "read": "EWS (Singapore) leads global rotation at 84.6/100 versus ACWI; EWC is next.",
+      "read": "EWS (Singapore) leads global rotation at 84.9/100 versus ACWI; EWC is next.",
       "metrics": {
         "benchmark": "ACWI",
         "leader": {
           "ticker": "EWS",
           "country": "Singapore",
-          "score": 84.6,
+          "score": 84.9,
           "rel21": 3.21,
           "rel63": 12.55,
           "rel126": 6.95,
           "trend": "Strong uptrend",
           "fx": "Confirms leadership",
-          "fxStrength": 1.08,
+          "fxStrength": 1.25,
           "vol": 14.9,
           "maxDrawdown": 7.82,
           "asOf": "2026-08-07T13:30:00.000Z"
@@ -768,13 +768,13 @@
           {
             "ticker": "EWS",
             "country": "Singapore",
-            "score": 84.6,
+            "score": 84.9,
             "rel21": 3.21,
             "rel63": 12.55,
             "rel126": 6.95,
             "trend": "Strong uptrend",
             "fx": "Confirms leadership",
-            "fxStrength": 1.08,
+            "fxStrength": 1.25,
             "vol": 14.9,
             "maxDrawdown": 7.82,
             "asOf": "2026-08-07T13:30:00.000Z"
@@ -782,13 +782,13 @@
           {
             "ticker": "EWC",
             "country": "Canada",
-            "score": 72.4,
+            "score": 72.3,
             "rel21": 2.19,
             "rel63": 0.96,
             "rel126": 0.3,
             "trend": "Strong uptrend",
             "fx": "Confirms leadership",
-            "fxStrength": 1.55,
+            "fxStrength": 1.49,
             "vol": 12.12,
             "maxDrawdown": 8.51,
             "asOf": "2026-08-07T13:30:00.000Z"
@@ -796,13 +796,13 @@
           {
             "ticker": "EWA",
             "country": "Australia",
-            "score": 70.9,
+            "score": 71.4,
             "rel21": 5.02,
             "rel63": -0.96,
             "rel126": -2.7,
             "trend": "Strong uptrend",
             "fx": "FX offsets weakness",
-            "fxStrength": 1.81,
+            "fxStrength": 2.2,
             "vol": 16.95,
             "maxDrawdown": 10.01,
             "asOf": "2026-08-07T13:30:00.000Z"
@@ -810,43 +810,43 @@
           {
             "ticker": "EWU",
             "country": "United Kingdom",
-            "score": 68.7,
+            "score": 69,
             "rel21": 1.99,
             "rel63": 1.07,
             "rel126": -6.07,
             "trend": "Strong uptrend",
             "fx": "Confirms leadership",
-            "fxStrength": 0.57,
+            "fxStrength": 0.79,
             "vol": 14.76,
             "maxDrawdown": 9.92,
             "asOf": "2026-08-07T13:30:00.000Z"
           },
           {
-            "ticker": "EWJ",
-            "country": "Japan",
-            "score": 67.3,
-            "rel21": 0.8,
-            "rel63": 1.51,
-            "rel126": -0.31,
-            "trend": "Constructive",
-            "fx": "Confirms leadership",
-            "fxStrength": 2.85,
-            "vol": 23.21,
-            "maxDrawdown": 13.59,
-            "asOf": "2026-08-07T13:30:00.000Z"
-          },
-          {
             "ticker": "EWG",
             "country": "Germany",
-            "score": 67.2,
+            "score": 67.1,
             "rel21": 3.16,
             "rel63": 0.09,
             "rel126": -8.65,
             "trend": "Strong uptrend",
             "fx": "FX neutral",
-            "fxStrength": 1.21,
+            "fxStrength": 1.12,
             "vol": 18.12,
             "maxDrawdown": 14.54,
+            "asOf": "2026-08-07T13:30:00.000Z"
+          },
+          {
+            "ticker": "EWJ",
+            "country": "Japan",
+            "score": 66.9,
+            "rel21": 0.8,
+            "rel63": 1.51,
+            "rel126": -0.31,
+            "trend": "Constructive",
+            "fx": "Confirms leadership",
+            "fxStrength": 2.55,
+            "vol": 23.21,
+            "maxDrawdown": 13.59,
             "asOf": "2026-08-07T13:30:00.000Z"
           }
         ],
@@ -857,18 +857,18 @@
     },
     "real-assets-lab": {
       "id": "real-assets-lab",
-      "asOf": "2026-08-07T00:00:00.000Z",
-      "read": "ETH-USD leads real assets at 60/100; GLD 33, BTC 52.9, SLV 10.",
+      "asOf": "2026-08-08T00:00:00.000Z",
+      "read": "ETH-USD leads real assets at 59.8/100; GLD 33, BTC 51.8, SLV 10.",
       "metrics": {
         "leader": {
           "ticker": "ETH-USD",
           "model": "crypto",
-          "score": 60,
+          "score": 59.8,
           "trend": "Uptrend",
-          "mom21": 4.04,
-          "mom63": 21.16,
-          "mom126": -6.72,
-          "vol": 48.9,
+          "mom21": 3.16,
+          "mom63": 22.4,
+          "mom126": -7.03,
+          "vol": 48.89,
           "maxDrawdown": 35.37,
           "riskPenalty": 7.21,
           "confirmations": [
@@ -885,22 +885,22 @@
               "symbols": [
                 "BTC-USD"
               ],
-              "score": 59.392826482922075,
+              "score": 59.62106545874748,
               "detail": "Bitcoin price direction confirms or contradicts the wider crypto price trend; no on-chain input is used."
             }
           ],
-          "asOf": "2026-08-07T00:00:00.000Z"
+          "asOf": "2026-08-08T00:00:00.000Z"
         },
         "ranked": [
           {
             "ticker": "ETH-USD",
             "model": "crypto",
-            "score": 60,
+            "score": 59.8,
             "trend": "Uptrend",
-            "mom21": 4.04,
-            "mom63": 21.16,
-            "mom126": -6.72,
-            "vol": 48.9,
+            "mom21": 3.16,
+            "mom63": 22.4,
+            "mom126": -7.03,
+            "vol": 48.89,
             "maxDrawdown": 35.37,
             "riskPenalty": 7.21,
             "confirmations": [
@@ -917,11 +917,11 @@
                 "symbols": [
                   "BTC-USD"
                 ],
-                "score": 59.392826482922075,
+                "score": 59.62106545874748,
                 "detail": "Bitcoin price direction confirms or contradicts the wider crypto price trend; no on-chain input is used."
               }
             ],
-            "asOf": "2026-08-07T00:00:00.000Z"
+            "asOf": "2026-08-08T00:00:00.000Z"
           },
           {
             "ticker": "CPER",
@@ -959,12 +959,12 @@
           {
             "ticker": "BTC-USD",
             "model": "bitcoin",
-            "score": 52.9,
+            "score": 51.8,
             "trend": "Mixed",
-            "mom21": 1.61,
-            "mom63": 6.57,
-            "mom126": -2.99,
-            "vol": 35.01,
+            "mom21": 0.26,
+            "mom63": 6.73,
+            "mom126": -3.45,
+            "vol": 34.99,
             "maxDrawdown": 28.71,
             "riskPenalty": 5.68,
             "confirmations": [
@@ -983,7 +983,7 @@
                 "detail": "Bitcoin's own realized volatility and drawdown reduce the score directly."
               }
             ],
-            "asOf": "2026-08-07T00:00:00.000Z"
+            "asOf": "2026-08-08T00:00:00.000Z"
           },
           {
             "ticker": "PDBC",
@@ -1161,12 +1161,12 @@
           "BTC-USD": {
             "ticker": "BTC-USD",
             "model": "bitcoin",
-            "score": 52.9,
+            "score": 51.8,
             "trend": "Mixed",
-            "mom21": 1.61,
-            "mom63": 6.57,
-            "mom126": -2.99,
-            "vol": 35.01,
+            "mom21": 0.26,
+            "mom63": 6.73,
+            "mom126": -3.45,
+            "vol": 34.99,
             "maxDrawdown": 28.71,
             "riskPenalty": 5.68,
             "confirmations": [
@@ -1185,7 +1185,7 @@
                 "detail": "Bitcoin's own realized volatility and drawdown reduce the score directly."
               }
             ],
-            "asOf": "2026-08-07T00:00:00.000Z"
+            "asOf": "2026-08-08T00:00:00.000Z"
           },
           "IBIT": {
             "ticker": "IBIT",
@@ -1455,39 +1455,39 @@
     "options-structure-lab": {
       "id": "options-structure-lab",
       "asOf": "2026-08-07T16:00:00.000Z",
-      "read": "SPY sits in negative dealer gamma with the flip near 773.94; call wall 775, put wall 770, front expected move ±2.75.",
+      "read": "SPY sits in positive dealer gamma with the flip near 769.15; call wall 775, put wall 770, front expected move ±2.73.",
       "deepLink": "options-structure-lab.html",
       "source": "owning-tool-functions",
       "state": "ready",
       "metrics": {
         "symbol": "SPY",
-        "spot": 772.85,
-        "regime": "negative",
-        "flipLevel": 773.94,
-        "signedNetGEX": -371621672.6808,
+        "spot": 773.26,
+        "regime": "positive",
+        "flipLevel": 769.15,
+        "signedNetGEX": 1968753762.8092,
         "callWall": 775,
         "putWall": 770,
-        "expectedMove": 2.75,
-        "atmIV": 0.096,
+        "expectedMove": 2.73,
+        "atmIV": 0.0954,
         "expiriesPriced": 3
       }
     },
     "gamma-trading-lab": {
       "id": "gamma-trading-lab",
       "asOf": "2026-08-07T16:00:00.000Z",
-      "read": "SPY dealers are negative gamma — playbook range-break-watch, conviction patient; flip 773.94, walls 770/775.",
+      "read": "SPY dealers are positive gamma — playbook pin-to-maxpain, conviction patient; flip 769.15, walls 770/775.",
       "deepLink": "gamma-trading-lab.html",
       "source": "owning-tool-functions",
       "state": "ready",
       "metrics": {
         "symbol": "SPY",
-        "regime": "negative",
-        "scenario": "range-break-watch",
+        "regime": "positive",
+        "scenario": "pin-to-maxpain",
         "conviction": "patient",
         "hold": "same-session-fade",
-        "signedNetGEX": -371621672.68,
+        "signedNetGEX": 1968753762.81,
         "flipPresent": true,
-        "flip": 773.94,
+        "flip": 769.15,
         "callWall": 775,
         "putWall": 770,
         "oviState": "unavailable",
@@ -1497,7 +1497,7 @@
     "options-flow-feed-lab": {
       "id": "options-flow-feed-lab",
       "asOf": "2026-08-07T16:00:00.000Z",
-      "read": "Option flow is call-heavy (leaning bullish) across 12 tickers: 1916 contracts clear the $250k premium bar inside 30 days; the most unusual is IWM 301 calls at $5.3M on 16.3× its open interest.",
+      "read": "Option flow is call-heavy (leaning bullish) across 12 tickers: 1916 contracts clear the $250k premium bar inside 30 days; the most unusual is IWM 301 calls at $5.1M on 16.3× its open interest.",
       "deepLink": "options-flow-feed-lab.html",
       "source": "owning-tool-functions",
       "state": "ready",
@@ -1507,13 +1507,13 @@
         "windowDays": 30,
         "premiumThreshold": 250000,
         "lean": "call-heavy (leaning bullish)",
-        "callPremium": 3162180570.5,
-        "putPremium": 736910295.5,
-        "callFraction": 0.811,
+        "callPremium": 3202996916.5,
+        "putPremium": 736798409.5,
+        "callFraction": 0.813,
         "netPremium": null,
-        "consideredCount": 21112,
-        "clearedCount": 807,
-        "clearedFraction": 0.0382,
+        "consideredCount": 21108,
+        "clearedCount": 791,
+        "clearedFraction": 0.0375,
         "maxScore": 90,
         "top": [
           {
@@ -1521,10 +1521,10 @@
             "type": "C",
             "strike": 301,
             "dte": 0,
-            "volume": 125267,
+            "volume": 125273,
             "openInterest": 7693,
-            "volOI": 16.2832,
-            "premium": 5261214,
+            "volOI": 16.284,
+            "premium": 5073556.5,
             "iv": 0,
             "score": 90
           },
@@ -1533,23 +1533,23 @@
             "type": "C",
             "strike": 721,
             "dte": 0,
-            "volume": 415769,
+            "volume": 415784,
             "openInterest": 3983,
-            "volOI": 104.3859,
-            "premium": 71512268,
-            "iv": 28.06,
-            "score": 86
+            "volOI": 104.3897,
+            "premium": 85235720,
+            "iv": 20.71,
+            "score": 84
           },
           {
-            "ticker": "SPY",
+            "ticker": "NVDA",
             "type": "C",
-            "strike": 772,
+            "strike": 222.5,
             "dte": 0,
-            "volume": 703061,
-            "openInterest": 11291,
-            "volOI": 62.2674,
-            "premium": 60463246,
-            "iv": 0,
+            "volume": 473996,
+            "openInterest": 44401,
+            "volOI": 10.6753,
+            "premium": 71099400,
+            "iv": 55.05,
             "score": 82
           }
         ]
@@ -1696,7 +1696,7 @@
     },
     "market-heatmap-lab": {
       "id": "market-heatmap-lab",
-      "asOf": "2026-08-07T20:30:25.516Z",
+      "asOf": "2026-08-08T11:00:26.419Z",
       "read": "Leadership is broad — 61.77% of 135 constituents are positive against a 60% broad-market threshold.",
       "deepLink": "market-heatmap-lab.html",
       "source": "owning-tool-functions",
@@ -1814,7 +1814,7 @@
       "id": "options-flow-feed-lab",
       "deepLink": "options-flow-feed-lab.html",
       "status": "fresh-headless",
-      "reason": "Option flow is call-heavy (leaning bullish) across 12 tickers: 1916 contracts clear the $250k premium bar inside 30 days; the most unusual is IWM 301 calls at $5.3M on 16.3× its open interest."
+      "reason": "Option flow is call-heavy (leaning bullish) across 12 tickers: 1916 contracts clear the $250k premium bar inside 30 days; the most unusual is IWM 301 calls at $5.1M on 16.3× its open interest."
     },
     {
       "id": "intraday-tape-lab",
@@ -1832,13 +1832,13 @@
       "id": "options-structure-lab",
       "deepLink": "options-structure-lab.html",
       "status": "fresh-headless",
-      "reason": "SPY sits in negative dealer gamma with the flip near 773.94; call wall 775, put wall 770, front expected move ±2.75."
+      "reason": "SPY sits in positive dealer gamma with the flip near 769.15; call wall 775, put wall 770, front expected move ±2.73."
     },
     {
       "id": "gamma-trading-lab",
       "deepLink": "gamma-trading-lab.html",
       "status": "fresh-headless",
-      "reason": "SPY dealers are negative gamma — playbook range-break-watch, conviction patient; flip 773.94, walls 770/775."
+      "reason": "SPY dealers are positive gamma — playbook pin-to-maxpain, conviction patient; flip 769.15, walls 770/775."
     },
     {
       "id": "sector-research-lab",
@@ -1850,13 +1850,13 @@
       "id": "global-rotation-lab",
       "deepLink": "global-rotation-lab.html",
       "status": "fresh-headless",
-      "reason": "EWS (Singapore) leads global rotation at 84.6/100 versus ACWI; EWC is next."
+      "reason": "EWS (Singapore) leads global rotation at 84.9/100 versus ACWI; EWC is next."
     },
     {
       "id": "real-assets-lab",
       "deepLink": "real-assets-lab.html",
       "status": "fresh-headless",
-      "reason": "ETH-USD leads real assets at 60/100; GLD 33, BTC 52.9, SLV 10."
+      "reason": "ETH-USD leads real assets at 59.8/100; GLD 33, BTC 51.8, SLV 10."
     },
     {
       "id": "bond-regime-lab",

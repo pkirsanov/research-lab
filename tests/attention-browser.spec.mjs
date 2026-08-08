@@ -118,16 +118,30 @@ async function renderFixture(page, context) {
    it here means a console error or warning fails the scenario that produced it,
    by name, instead of scrolling past in the reporter.
 
-   The guard is SCOPED BY ORIGIN, not softened. It previously ignored nothing,
-   which made all ten scenarios hostage to third-party reachability: a run
-   failed on `net::ERR_NETWORK_CHANGED` plus ~85 CORS entries for
-   query1.finance.yahoo.com — upstream conditions this suite neither causes nor
-   controls. Exactly one class is ignored now:
+   The guard is SCOPED TO ITS OWN SUBJECT, not softened. It previously ignored
+   nothing, which made all ten scenarios hostage to conditions this suite neither
+   causes nor controls, and it went red on a different scenario each run. Two
+   measured classes are ignored now, each keyed on a failure CLASS the browser
+   itself reports rather than on network-ish words appearing somewhere in a
+   string:
 
-     a BROWSER-EMITTED transport/CORS finding whose failing target is OFF our
-     own test origin.
+     A. a BROWSER-EMITTED transport/CORS finding whose failing target is OFF our
+        own test origin — a third-party provider the page merely attempts to
+        reach. Observed: ~85 `blocked by CORS policy` + `net::ERR_FAILED` pairs
+        for query1.finance.yahoo.com.
 
-   Chrome attributes that class unambiguously, which is why the rule can be
+     B. a HOST-TRANSPORT event — net::ERR_NETWORK_CHANGED,
+        ERR_INTERNET_DISCONNECTED, ERR_NETWORK_IO_SUSPENDED — at ANY origin.
+        When the machine's networking changes state, Chrome aborts every socket
+        that was already in flight, so a single flap reports against the
+        provider fetch AND against our own loopback assets in the same breath.
+        Measured during a reproduced failure: 42 entries, every one of them
+        `Failed to load resource: net::ERR_NETWORK_CHANGED` attributed to
+        http://127.0.0.1:PORT/{watchlist,tools,journeys}.json, /rlviews.js and
+        /data/bars/*.json. Class A cannot reach those, which is why an
+        origin-only rule left the flake in place.
+
+   Chrome attributes both classes unambiguously, which is why the rule is
    structural rather than a text allow-list. The two entries a blocked provider
    fetch actually produces are:
      "Access to fetch at 'https://query1.finance.yahoo.com/...' from origin
@@ -136,13 +150,13 @@ async function renderFixture(page, context) {
    while a same-origin script that fails carries our own script URL as its
    location, and an application-level console.error carries no URL at all.
 
-   Four properties stop this from becoming a blind spot:
+   Five properties stop this from becoming a blind spot:
      1. `pageerror` — any uncaught page exception — is NEVER ignorable. A real
         product defect surfaces there and still fails the scenario by name.
-     2. A finding naming one of OUR OWN scripts (a same-origin *.js / *.mjs in
-        the text or in the source location) is NEVER ignorable, whatever it
-        says. Our code is served from site.baseUrl, so our own broken, missing
-        or failing script is still fatal here.
+     2. Under class A, a finding naming one of OUR OWN scripts (a same-origin
+        *.js / *.mjs in the text or in the source location) is NEVER ignorable,
+        whatever it says. Our code is served from site.baseUrl, so our own
+        broken, missing or failing script is still fatal here.
      3. A finding with no browser transport/CORS signature is NEVER ignorable —
         an application-level console.error or console.warn still fails, and it
         carries no URL to qualify on in the first place.
@@ -150,6 +164,12 @@ async function renderFixture(page, context) {
         reaching somewhere its OWN policy forbids — a product defect — and its
         text embeds the whole connect-src allow-list, so it would otherwise
         qualify as "names an off-origin URL".
+     5. Class B is a closed set of three OS-level codes, so every failure that
+        can actually indict the local server keeps failing: a 404 or 500 arrives
+        as "the server responded with a status of ...", a dead server arrives as
+        ERR_CONNECTION_REFUSED, and neither matches. Nor can class B hide a
+        broken page: losing a script or a payload breaks the DOM assertions that
+        every scenario runs BEFORE this guard.
    The property "this page must not reach a provider at all" was never delegated
    to console text anyway: TP-03-01 proves it at the REQUEST layer with a
    passive page.on('request') recorder, under the same no-provider-access page
@@ -161,6 +181,14 @@ async function renderFixture(page, context) {
    code calling console.error. */
 const TRANSPORT_FINDING =
   /(net::ERR_[A-Z_]+|Failed to load resource|Failed to fetch|NetworkError when attempting to fetch|blocked by CORS policy|Access-Control-Allow-Origin|Cross-Origin Request Blocked)/;
+
+/* HOST-TRANSPORT class. Chrome raises these three from NetworkChangeNotifier when
+   the MACHINE's networking changes state, and it then aborts every socket that was
+   already in flight — loopback included, which is why this class lands on our own
+   origin too. None of them is an HTTP status, a script error, or anything a page or
+   a server can elect to emit, so unlike a 404, a refused connection or a parse
+   error, this class carries no information about the software under test. */
+const HOST_TRANSPORT_EVENT = /net::ERR_(NETWORK_CHANGED|INTERNET_DISCONNECTED|NETWORK_IO_SUSPENDED)\b/;
 
 /* a page-caused class that must stay fatal even though its text names off-origin URLs. */
 const POLICY_VIOLATION = /Content Security Policy/i;
@@ -174,15 +202,26 @@ function findingUrls(message) {
   return located ? [located].concat(inText) : inText;
 }
 
-function isOffOriginTransportFinding(message) {
+function isUpstreamNetworkFinding(message) {
   const base = site && site.baseUrl;
   /* fail closed: with no known origin nothing can be classified, so nothing is ignored. */
   if (!base) return false;
 
   const text = message.text();
   if (POLICY_VIOLATION.test(text)) return false;
+
+  /* class B — a host-transport event. Deliberately ORIGIN-INDEPENDENT, because the
+     abort is indiscriminate: one flap cancels the provider fetch and the loopback
+     fetch alike, so keying this class on origin would leave most of the noise
+     behind. It still cannot mask a broken page — a run that genuinely lost a script
+     or a payload fails the scenario's own DOM assertions, which all run before this
+     guard, and any uncaught exception that followed arrives as a `pageerror`, which
+     is never ignorable. */
+  if (HOST_TRANSPORT_EVENT.test(text)) return true;
+
   if (!TRANSPORT_FINDING.test(text)) return false;
 
+  /* class A — a transport/CORS finding whose failing target is OFF our own origin. */
   const urls = findingUrls(message);
   const ours = (url) => url.startsWith(base);
   if (urls.some((url) => ours(url) && SCRIPT_URL.test(url))) return false;
@@ -200,7 +239,7 @@ test.beforeEach(async ({ page }) => {
     const type = message.type();
     if (type !== 'error' && type !== 'warning') return;
     const entry = `${type}: ${message.text()}`;
-    if (isOffOriginTransportFinding(message)) ignoredFindings.push(entry);
+    if (isUpstreamNetworkFinding(message)) ignoredFindings.push(entry);
     else consoleFindings.push(entry);
   });
   /* an uncaught page exception is the page's own failure and is never ignorable. */
@@ -211,8 +250,8 @@ test.afterEach(() => {
   expect(consoleFindings,
     'the browser run must emit no console error and no console warning that THIS PAGE causes. '
     + `Emitted: ${JSON.stringify(consoleFindings)}. `
-    + `(${ignoredFindings.length} off-origin transport/CORS finding(s) were ignored as upstream `
-    + `reachability, not page defects: ${JSON.stringify(ignoredFindings)})`)
+    + `(${ignoredFindings.length} upstream-network finding(s) were ignored as third-party `
+    + `reachability or host-transport events, not page defects: ${JSON.stringify(ignoredFindings)})`)
     .toEqual([]);
 });
 

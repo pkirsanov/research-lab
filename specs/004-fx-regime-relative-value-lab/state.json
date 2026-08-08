@@ -21,7 +21,7 @@
     "requiresRevalidation": false,
     "execution": {
         "activeAgent": "bubbles.implement",
-        "currentPhase": "implement",
+        "currentPhase": "test",
         "currentScope": "SCOPE-02",
         "substate": "ready",
         "runStartedAt": null,
@@ -31,8 +31,8 @@
             "test"
         ],
         "pendingTransitionRequests": [],
-        "nextRequiredOwner": "bubbles.implement",
-        "nextRequiredTarget": "Implement SCOPE-02 (ETF-First Four-View Route And Simple/Power Integration). SCOPE-01 is certified: CMD-FIRST-RED, CMD-SELFTEST (1273/0), CMD-FOUNDATION-CONTRACTS (29/0), the three-case collision acceptance (3/0 on a clean tree), and artifact lint all pass, and all 44 SCOPE-01 DoD items are checked. SCOPE-02 builds fx-regime-relative-value-lab.html as an excluded production route with the shared four-view shell, the ETF-first Simple/Power owner decision, and the nineteen TP-02 regression rows under CMD-E2E-FX. No registry activation occurs before SCOPE-05.",
+        "nextRequiredOwner": "bubbles.validate",
+        "nextRequiredTarget": "Certify SCOPE-02 (ETF-First Four-View Route And Simple/Power Integration). All 28 SCOPE-02 DoD items are checked with inline evidence. CMD-E2E-FX passes 52/0 across both browser projects with zero interception and zero skips, CMD-PAGE-FX returns OK, CMD-SELFTEST passes 1273/0, and CMD-ARTIFACT, CMD-TRACE, CMD-FRESHNESS, CMD-FOUNDATION, and git diff --check all exit 0. The route ships excluded; tools.json, index.html, rlnav.js, journeys.json, simple-models.json, and rlexperience-adapters/macro-rotation.js are untouched. Three planning corrections were recorded and routed rather than dropped: the shared four-view shell cannot resolve while the route is excluded, so shell activation moves to SCOPE-05; the FX Simple model and adapter feed only that shell, so they move to SCOPE-05 with it; and tool-experience.config.json names no tool at all, so it needs no FX entry in any scope. TP-02-13 through TP-02-17 assert the authorization boundary the route can actually prove, because all 95 committed vehicle observations carry rights unknown; the authorized-facts branches stay proven by the named SCOPE-01 contracts against the same rlfx.js path.",
         "findingDispositionHistory": [
             {
                 "findingId": "F004-SCOPE01-COMMITTED-COLLISION-DEPENDENCY-001",

@@ -249,7 +249,7 @@ Command IDs below are plan references only. The command text is verbatim reposit
 | # | Scope | Surfaces | Primary Tests | DoD Summary | Status |
 | --- | --- | --- | --- | --- | --- |
 | 1 | Additive RLFX vehicle, owner, and shared-contract foundation | `rlfx.js`, additive `rldata.js` hunks, currency/vehicle universes, recommendation/reader projection, shared control/Brief/Journey contracts, controlled fixtures | Dedicated foundation contracts, Direct CommonJS unit, Node/browser functional, protected provider/Bond/Causal canaries | Compatible v1 currency contracts plus closed vehicle, scoreability, reader, ledger-admission, control-binding, Brief-eligibility, and evidence-refresh contracts | Done |
-| 2 | ETF-first four-view route and Simple/Power integration | FX HTML, shared Simple adapter, native Power projection, feature E2E | Page check plus real same-origin desktop/mobile E2E and controlled functional cases | ETF-first Simple/Power behavior, exact unavailable states, zero control fetch, accessibility, owner-read parity | In Progress |
+| 2 | ETF-first four-view route and Simple/Power integration | FX HTML, shared-shell anchor, native Power projection, feature E2E | Page check plus real same-origin desktop/mobile E2E and controlled functional cases | ETF-first Simple/Power behavior, exact unavailable states, zero control fetch, accessibility, owner-read parity | Done |
 | 3 | Global Rotation equity-only migration | Global HTML/universe, Global headless owner-read hunk, selftest, feature E2E | Controlled formula tests, truthful route E2E, consumer scan | Equity-only rank, distinct USD/decomposition products and clocks, missing-FX survival | Not Started |
 | 4 | Shared Brief and Journey integration | Shared Brief/Journey runtime, exact Feature 004 definitions, relationship classifier, feature functional/E2E | Brief validator, Journey DAG/evidence-refresh checks, real same-origin refusal and no-execution E2E | Current-evidence refusal, prior labeling, transitive reopening, no execution, attributable owner synthesis | Not Started |
 | 5 | Atomic registration, documentation, and closure | Registry trio, exclusion cutover, owner notes, registry docs, complete governance chain | Registry atomicity E2E, protected provider/Bond/Causal canaries, planning and completion guards | One public cutover, synchronized docs, zero stale consumers, all findings accounted for | Not Started |
@@ -1173,7 +1173,7 @@ Build quality gate:
 ## Scope 2: ETF-First Four-View Route And Simple/Power Integration
 
 **Scope ID:** SCOPE-02  
-**Status:** In Progress  
+**Status:** Done  
 **Depends On:** Scope 1 - Additive RLFX Vehicle Owner And Shared-Contract Foundation
 **Scope-Kind:** runtime-behavior  
 **Priority:** P0
@@ -1377,40 +1377,98 @@ What the real route must still prove, and what TP-02-13 through TP-02-17 assert,
 
 Core implementation:
 
-- [ ] The excluded production route delivers the ETF-first Simple and Power hierarchy beneath its shared-shell anchor, every required lifecycle/error state including the shell's honest unregistered state, educational boundary, and all explicit controls without hidden inputs or a page-local mode switch.
-- [ ] Cache-first paint and delta-only hydration use normal `RLDATA` paths; the current source contract requests no unapproved source, and control/mode changes never fetch.
-- [ ] Desktop/mobile charts are nonblank, correctly framed, pointer- and keyboard-contextual, and backed by equivalent summaries/tables.
-- [ ] Authored model/configuration text is escaped at every reader sink, and every declared context class exposes what it is plus what its current reading means through hover, focus, and adjacent accessible text with RLTKR ticker decoration.
-- [ ] Public v1 shows exact unavailable states and no numeric official-dollar, rank, pair, carry, REER, positioning, stress, or event result without authorization.
-- [ ] Eligible, Caution, Tactical-Only, Rejected, No Eligible Vehicle, and Unavailable remain distinct; direction, basket, tracking residual, wrapper, liquidity/cost, and reset boundaries are visible and no constraint is loosened implicitly.
-- [ ] Load order, visible title, stable identity, shared-shell anchor, data status, ticker/context surfaces, and v2 owner-read publication are coherent; the route remains excluded and no public registry, Journey definition, or note consumer changes in this scope.
-- [ ] Change Boundary is respected and zero excluded file families were changed.
+Every item below was validated against the route serving the repository root exactly as checked out. The shared evidence run is recorded once here and referenced by the Test Plan items that follow.
+
+**Phase:** test
+**Command:** `npx --no-install playwright test tests/fx-regime-relative-value-lab.spec.mjs --reporter=list`
+**Exit Code:** 0
+**Claim Source:** executed
+**Output:**
+```text
+  ✓  10 [chromium] › Regression SCN-004-017: public FX route paints truthful unavailable state without an authorized dependency (1.4s)
+  ✓  11 [chromium] › Regression SCN-004-018: control changes cause zero data requests (2.5s)
+  ✓  12 [chromium] › Regression SCN-004-017/018: Simple and Power share one unavailable owner decision while controls do not fetch (1.3s)
+  ✓  13 [chromium] › Regression SCN-004-025: canvas pointer keyboard summary table and responsive layout share one projection (2.4s)
+  ✓  14 [chromium] › Regression SCN-004-001/002: public dollar slots stay independently unavailable without authorization (1.6s)
+  ✓  15 [chromium] › Regression SCN-004-003/006/007/008: public cohort boards remain bounded and unranked without authorized spot (1.5s)
+  ✓  16 [chromium] › Regression SCN-004-004/005: public pair and alignment surfaces infer no orientation or numeric result (1.3s)
+  ✓  17 [chromium] › Regression SCN-004-009-016: public evidence anatomy retains exact unavailable families (1.3s)
+  ✓  18 [chromium] › Regression SCN-004-024: rights-unclear source values stay out of public route state (1.3s)
+  ✓  19 [chromium] › Regression SCN-004-024/025: direct FX route exposes no credential or restricted-payload surface
+  ✓  20 [chromium] › Regression SCN-004-027: the route never infers FXY orientation or a direction match from an unauthorized fact (1.2s)
+  ✓  21 [chromium] › Regression SCN-004-028: the route reports tracking evidence incomplete and invents no contribution (1.1s)
+  ✓  22 [chromium] › Regression SCN-004-029: a shared long-dollar direction cannot merge or reorder UUP and USDU (1.8s)
+  ✓  23 [chromium] › Regression SCN-004-030: YCS never earns a tactical pass without an authorized reset session (2.4s)
+  ✓  24 [chromium] › Regression SCN-004-031: an unavailable aggregate never becomes No Eligible Vehicle and selects no substitute (1.2s)
+  ✓  25 [chromium] › Regression SCN-004-025 adversarial: authored markup renders only as text at every reader sink (1.9s)
+  ✓  26 [chromium] › Regression SCN-004-025 adversarial: every declared context has definition current meaning focus and adjacent text (1.3s)
+
+  52 passed (57.0s)
+```
+
+- [x] The excluded production route delivers the ETF-first Simple and Power hierarchy beneath its shared-shell anchor, every required lifecycle/error state including the shell's honest unregistered state, educational boundary, and all explicit controls without hidden inputs or a page-local mode switch. **Evidence:** shared evidence run above, tests 10, 12, and 14-18; the route resolves `owner.state: unavailable` and renders the reasoned unavailable decision. **Phase:** implement.
+- [x] Cache-first paint and delta-only hydration use normal `RLDATA` paths; the current source contract requests no unapproved source, and control/mode changes never fetch. **Evidence:** shared evidence run above, tests 11 and 12; every request stayed same-origin and driving all thirteen controls produced zero further requests. **Phase:** test.
+- [x] Desktop/mobile charts are nonblank, correctly framed, pointer- and keyboard-contextual, and backed by equivalent summaries/tables. **Evidence:** shared evidence run above, test 13; the canvas reports `data-rlchart-mode="structured"` with no `data-rlchart-error`, and pointer, keyboard rail, summary, and table all read one projection. This item drove the `rlcontext.js` load-order fix and the two RLCTX context-field fixes in commit `abe54ed5`. **Phase:** test.
+- [x] Authored model/configuration text is escaped at every reader sink, and every declared context class exposes what it is plus what its current reading means through hover, focus, and adjacent accessible text with RLTKR ticker decoration. **Evidence:** shared evidence run above, tests 25 and 26; all 41 declared contexts carry definition, current reading, focus, adjacent text, and title, and no authored string created an element, inline script, handler attribute, or `javascript:` URL. **Phase:** test.
+- [x] Public v1 shows exact unavailable states and no numeric official-dollar, rank, pair, carry, REER, positioning, stress, or event result without authorization. **Evidence:** shared evidence run above, tests 14, 15, 16, and 17; each dollar slot, cohort board, pair surface, and evidence family resolves its own unavailable state with no numeric substitute. **Phase:** test.
+- [x] Eligible, Caution, Tactical-Only, Rejected, No Eligible Vehicle, and Unavailable remain distinct; direction, basket, tracking residual, wrapper, liquidity/cost, and reset boundaries are visible and no constraint is loosened implicitly. **Evidence:** shared evidence run above, tests 20-24; `Unavailable` is held distinct from the settled `No Eligible Vehicle` outcome, and no member is promoted, merged, or substituted. **Phase:** test.
+- [x] Load order, visible title, stable identity, shared-shell anchor, data status, ticker/context surfaces, and v2 owner-read publication are coherent; the route remains excluded and no public registry, Journey definition, or note consumer changes in this scope. **Evidence:** `CMD-PAGE-FX` returned `OK page=fx-regime-relative-value-lab.html inline=1 refs=11` (exit 0); `site-exclusions.json` still lists the route; `git status --porcelain` reports `tools.json`, `index.html`, `rlnav.js`, `journeys.json`, `simple-models.json`, and `rlexperience-adapters/macro-rotation.js` untouched. **Phase:** implement.
+- [x] Change Boundary is respected and zero excluded file families were changed. **Evidence:** the scope changed only `fx-regime-relative-value-lab.html`, `tests/fx-regime-relative-value-lab.spec.mjs`, `site-exclusions.json`, and this planning file; `git diff --check` on those paths exits 0. **Phase:** implement.
 
 Test Plan parity - 19 rows:
 
-- [ ] TP-02-01 anchors the scenario-specific E2E regression set for every new, changed, or fixed Scope 2 behavior; every remaining row in this Test Plan retains its own exact checkbox, `Regression SCN-004-*` title, and CMD-E2E-FX command.
-- [ ] TP-02-02 persistent regression passes for SCN-004-018 with zero control-driven requests.
-- [ ] TP-02-03 persistent regression proves Simple/Power owner parity and zero control fetch for SCN-004-017/018.
-- [ ] TP-02-04 adversarial structured-canvas pointer/keyboard/summary/table and responsive-containment regression passes for SCN-004-025.
-- [ ] TP-02-05 passes independent unavailable dollar-slot behavior for SCN-004-001/002.
-- [ ] TP-02-06 passes bounded, separate, unranked cohort behavior for SCN-004-003/006/007/008.
-- [ ] TP-02-07 passes unavailable orientation/alignment behavior for SCN-004-004/005.
-- [ ] TP-02-08 passes distinct unavailable evidence-family behavior for SCN-004-009 through SCN-004-016.
-- [ ] TP-02-09 passes rights-value erasure on the real route for SCN-004-024.
-- [ ] TP-02-10 exact FX page inline-script/ID command passes.
-- [ ] TP-02-11 passes direct-route credential/restricted-payload and accessible-context boundaries.
-- [ ] Broader E2E regression suite passes through TP-02-12 by running the complete committed actual-route set in `tests/fx-regime-relative-value-lab.spec.mjs` under exact command CMD-E2E-FX with zero skip, interception, or fixture replacement.
-- [ ] TP-02-13 adversarial direction-inference regression passes for SCN-004-027, and the authorized direction-mismatch branch remains proven by its named Scope 1 contract.
-- [ ] TP-02-14 adversarial tracking-residual regression passes for SCN-004-028, and the authorized residual branch remains proven by its named Scope 1 contract.
-- [ ] TP-02-15 adversarial basket-mismatch regression passes for SCN-004-029, and the authorized basket branch remains proven by its named Scope 1 contract.
-- [ ] TP-02-16 adversarial YCS horizon/reset/session regression passes for SCN-004-030, and the authorized reset-boundary branch remains proven by its named Scope 1 contracts.
-- [ ] TP-02-17 adversarial No Eligible Vehicle regression passes for SCN-004-031, and the authorized settled-outcome branch remains proven by its named Scope 1 contract.
-- [ ] TP-02-18 adversarial authored-markup escaping regression passes at every Feature 004 reader sink for SCN-004-025.
-- [ ] TP-02-19 adversarial contextual-definition/current-meaning/focus/adjacent-text/RLTKR completeness regression passes for SCN-004-025.
+- [x] TP-02-01 anchors the scenario-specific E2E regression set for every new, changed, or fixed Scope 2 behavior; every remaining row in this Test Plan retains its own exact checkbox, `Regression SCN-004-*` title, and CMD-E2E-FX command. **Evidence:** shared evidence run above, test 10.
+- [x] TP-02-02 persistent regression passes for SCN-004-018 with zero control-driven requests. **Evidence:** shared evidence run above, test 11.
+- [x] TP-02-03 persistent regression proves Simple/Power owner parity and zero control fetch for SCN-004-017/018. **Evidence:** shared evidence run above, test 12.
+- [x] TP-02-04 adversarial structured-canvas pointer/keyboard/summary/table and responsive-containment regression passes for SCN-004-025. **Evidence:** shared evidence run above, test 13.
+- [x] TP-02-05 passes independent unavailable dollar-slot behavior for SCN-004-001/002. **Evidence:** shared evidence run above, test 14.
+- [x] TP-02-06 passes bounded, separate, unranked cohort behavior for SCN-004-003/006/007/008. **Evidence:** shared evidence run above, test 15.
+- [x] TP-02-07 passes unavailable orientation/alignment behavior for SCN-004-004/005. **Evidence:** shared evidence run above, test 16.
+- [x] TP-02-08 passes distinct unavailable evidence-family behavior for SCN-004-009 through SCN-004-016. **Evidence:** shared evidence run above, test 17.
+- [x] TP-02-09 passes rights-value erasure on the real route for SCN-004-024. **Evidence:** shared evidence run above, test 18.
+- [x] TP-02-10 exact FX page inline-script/ID command passes.
+    **Phase:** test
+    **Command:** `PAGE=fx-regime-relative-value-lab.html node -e '...inline-script and literal-ID integrity...'`
+    **Exit Code:** 0
+    **Claim Source:** executed
+    **Output:**
+    ```text
+    OK page=fx-regime-relative-value-lab.html inline=1 refs=11
+    ```
+- [x] TP-02-11 passes direct-route credential/restricted-payload and accessible-context boundaries. **Evidence:** shared evidence run above, test 19.
+- [x] Broader E2E regression suite passes through TP-02-12 by running the complete committed actual-route set in `tests/fx-regime-relative-value-lab.spec.mjs` under exact command CMD-E2E-FX with zero skip, interception, or fixture replacement. **Evidence:** shared evidence run above; `52 passed`, zero failures, zero skips across both browser projects, and the file contains no `page.route`, `context.route`, or interception call.
+- [x] TP-02-13 adversarial direction-inference regression passes for SCN-004-027, and the authorized direction-mismatch branch remains proven by its named Scope 1 contract. **Evidence:** shared evidence run above, test 20; authorized branch proven by `RLFX vehicle fit rejects every direction mismatch before ranking`.
+- [x] TP-02-14 adversarial tracking-residual regression passes for SCN-004-028, and the authorized residual branch remains proven by its named Scope 1 contract. **Evidence:** shared evidence run above, test 21; authorized branch proven by `RLFX vehicle tracking preserves market NAV underlying and unexplained residual`.
+- [x] TP-02-15 adversarial basket-mismatch regression passes for SCN-004-029, and the authorized basket branch remains proven by its named Scope 1 contract. **Evidence:** shared evidence run above, test 22; authorized branch proven by `RLFX broad-dollar vehicle fit rejects basket mismatch before lexicographic selection`.
+- [x] TP-02-16 adversarial YCS horizon/reset/session regression passes for SCN-004-030, and the authorized reset-boundary branch remains proven by its named Scope 1 contracts. **Evidence:** shared evidence run above, test 23, which drives all six horizon and reset-permission combinations; authorized branch proven by `RLFX daily-reset fit rejects YCS outside the exact tactical reset session` and `RLFX owner decision expires YCS at the source reset boundary`.
+- [x] TP-02-17 adversarial No Eligible Vehicle regression passes for SCN-004-031, and the authorized settled-outcome branch remains proven by its named Scope 1 contract. **Evidence:** shared evidence run above, test 24; authorized branch proven by `RLFX settled vehicle evaluations produce No Eligible Vehicle without substitution`.
+- [x] TP-02-18 adversarial authored-markup escaping regression passes at every Feature 004 reader sink for SCN-004-025. **Evidence:** shared evidence run above, test 25. The test also established that the production closed-vocabulary guard in `rlfx.js` refuses hostile control copy at the boundary, and it drove the transactional `setControl` fix in commit `abe54ed5`.
+- [x] TP-02-19 adversarial contextual-definition/current-meaning/focus/adjacent-text/RLTKR completeness regression passes for SCN-004-025. **Evidence:** shared evidence run above, test 26.
 
 Build quality gate:
 
-- [ ] CMD-ARTIFACT, CMD-TRACE, CMD-FRESHNESS, and CMD-FOUNDATION pass for current planning/test linkage; `git diff --check` is clean on Scope 2 paths; no request interception, fixture substitution, skip/only marker, credential field, generated snapshot, default, fallback, registration edit, or excluded-file change exists.
+- [x] CMD-ARTIFACT, CMD-TRACE, CMD-FRESHNESS, and CMD-FOUNDATION pass for current planning/test linkage; `git diff --check` is clean on Scope 2 paths; no request interception, fixture substitution, skip/only marker, credential field, generated snapshot, default, fallback, registration edit, or excluded-file change exists.
+    **Phase:** test
+    **Command:** `bash .github/bubbles/scripts/artifact-lint.sh specs/004-fx-regime-relative-value-lab 'SCN-004-[0-9]{3}'` · `bash .github/bubbles/scripts/traceability-guard.sh specs/004-fx-regime-relative-value-lab` · `bash .github/bubbles/scripts/artifact-freshness-guard.sh specs/004-fx-regime-relative-value-lab` · `bash .github/bubbles/scripts/capability-foundation-guard.sh specs/004-fx-regime-relative-value-lab` · `git diff --check -- fx-regime-relative-value-lab.html tests/fx-regime-relative-value-lab.spec.mjs site-exclusions.json`
+    **Exit Code:** 0 (all five)
+    **Claim Source:** executed
+    **Output:**
+    ```text
+    ✅ No unfilled evidence template placeholders in scopes.md
+    ✅ No unfilled evidence template placeholders in report.md
+    Artifact lint PASSED.
+    ℹ️  DoD fidelity: 33 scenarios checked, 33 mapped to DoD, 0 unmapped
+    ℹ️  Scenarios checked: 33
+    ℹ️  Test rows checked: 94
+    ℹ️  Scenario-to-row mappings: 33
+    ℹ️  Concrete test file references: 33
+    ℹ️  Report evidence references: 33
+    RESULT: PASSED (0 warnings)
+    RESULT: PASS (0 failures, 0 warnings)
+    capability-foundation-guard: PASS Gate G094
+    DIFFCHECK_EXIT=0
+    ```
+    Interception scan on the Scope 2 test file returns zero matches for `page.route`, `context.route`, `intercept(`, `msw`, and `nock`; the suite reports `52 passed` with zero skipped.
 
 ## Scope 3: Global Rotation Equity-Only Migration
 

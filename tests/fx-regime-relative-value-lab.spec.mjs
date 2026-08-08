@@ -771,6 +771,120 @@ test('Regression SCN-004-025 adversarial: authored markup renders only as text a
   expect(escaped.html).toBe('&lt;b&gt;authored&lt;/b&gt;');
 });
 
+test('Browser functional SCN-004-020: controlled Global inputs preserve exact two-leg and three-leg products', async ({ page }) => {
+  await page.goto(site.baseUrl + '/global-rotation-lab.html');
+  await page.waitForFunction(() => typeof window.RLFX !== 'undefined');
+
+  const result = await page.evaluate(() => {
+    const base = Date.UTC(2025, 0, 1);
+    const series = (n, rate) => Array.from({ length: n }, (_, i) => ({ t: base + i * 864e5, c: 100 * Math.pow(rate, i) }));
+    const out = window.RLFX.computeGlobalRotation({
+      decisionTime: '2026-08-08T00:00:00.000Z',
+      horizonSessions: 63,
+      posture: 'balanced',
+      benchmark: 'ACWI',
+      postureWeights: { momentum: 0.56, trend: 0.26, risk: 0.18 },
+      agreementDeadbandPct: 0.25,
+      countries: [{
+        ticker: 'EWJ', country: 'Japan', currency: 'JPY',
+        etfRows: series(90, 1.002), benchmarkRows: series(90, 1.001),
+        fxRows: series(88, 1.0005), fxSourceOrientation: { base: 'USD', quote: 'JPY' },
+        momentum: 0.4, trend: 0.3, risk: 0.2, usdFreshUntil: null, fxFreshUntil: null
+      }]
+    });
+    const leader = out.leader;
+    return {
+      sameObject: leader.usdLeadership === leader.decomposition,
+      sameSet: leader.usdLeadership.observationSet === leader.decomposition.observationSet,
+      usdHasFx: 'fxReturn' in leader.usdLeadership,
+      usdAsOf: leader.usdLeadership.asOf,
+      decompAsOf: leader.decomposition.asOf,
+      usdRelative: leader.usdLeadership.usdRelativeReturn,
+      localReturn: leader.decomposition.approximateLocalReturn,
+      usdReturn: leader.decomposition.usdReturnOnDecompositionDates,
+      fxReturn: leader.decomposition.fxReturn
+    };
+  });
+
+  expect(result.sameObject).toBe(false);
+  expect(result.sameSet).toBe(false);
+  expect(result.usdHasFx).toBe(false);
+  expect(result.usdAsOf).not.toBe(result.decompAsOf);
+  // Approximate local return is exactly (1 + R_USD) / (1 + R_FX) - 1.
+  expect(result.localReturn).toBeCloseTo((1 + result.usdReturn) / (1 + result.fxReturn) - 1, 12);
+});
+
+test('Browser functional SCN-004-021: controlled FX reversal cannot change Global score or rank', async ({ page }) => {
+  await page.goto(site.baseUrl + '/global-rotation-lab.html');
+  await page.waitForFunction(() => typeof window.RLFX !== 'undefined');
+
+  const result = await page.evaluate(() => {
+    const base = Date.UTC(2025, 0, 1);
+    const series = (n, rate) => Array.from({ length: n }, (_, i) => ({ t: base + i * 864e5, c: 100 * Math.pow(rate, i) }));
+    const run = (fxRows) => window.RLFX.computeGlobalRotation({
+      decisionTime: '2026-08-08T00:00:00.000Z',
+      horizonSessions: 63,
+      posture: 'balanced',
+      benchmark: 'ACWI',
+      postureWeights: { momentum: 0.56, trend: 0.26, risk: 0.18 },
+      agreementDeadbandPct: 0.25,
+      countries: [{
+        ticker: 'EWJ', country: 'Japan', currency: 'JPY',
+        etfRows: series(90, 1.002), benchmarkRows: series(90, 1.001),
+        fxRows, fxSourceOrientation: { base: 'USD', quote: 'JPY' },
+        momentum: 0.4, trend: 0.3, risk: 0.2, usdFreshUntil: null, fxFreshUntil: null
+      }]
+    });
+    const up = run(series(88, 1.0009)), down = run(series(88, 0.9991));
+    let refusedFxKey = false;
+    try {
+      window.RLFX.scoreCountryLeadership({ momentum: 0.4, trend: 0.3, risk: 0.2, fx: 0.9, weights: { momentum: 0.56, trend: 0.26, risk: 0.18 } });
+    } catch (error) { refusedFxKey = true; }
+    return {
+      rankedEqual: JSON.stringify(up.ranked) === JSON.stringify(down.ranked),
+      fxDiffers: up.leader.decomposition.fxReturn !== down.leader.decomposition.fxReturn,
+      usdEqual: up.leader.usdLeadership.usdRelativeReturn === down.leader.usdLeadership.usdRelativeReturn,
+      refusedFxKey
+    };
+  });
+
+  expect(result.rankedEqual).toBe(true);
+  // Non-vacuous: the FX leg genuinely moved, and USD leadership stayed FX-independent.
+  expect(result.fxDiffers).toBe(true);
+  expect(result.usdEqual).toBe(true);
+  expect(result.refusedFxKey).toBe(true);
+});
+
+test('Regression SCN-004-022: public Global route preserves USD leadership and truthful unavailable decomposition', async ({ page }) => {
+  const requested = [];
+  page.on('request', (request) => { requested.push(request.url()); });
+  await page.goto(site.baseUrl + '/global-rotation-lab.html');
+  await page.waitForFunction(() => typeof window.RLFX !== 'undefined');
+  await page.waitForLoadState('networkidle');
+
+  // The migrated page ships no FX score lever and no duplicated orientation flag.
+  expect(await page.locator('#fxWeight').count()).toBe(0);
+  expect(await page.locator('#fxWeightValue').count()).toBe(0);
+
+  const state = await page.evaluate(() => {
+    const raw = localStorage.getItem('globalRotationLabState');
+    return { persisted: raw ? JSON.parse(raw) : null, hasRlfx: typeof window.RLFX.computeGlobalRotation === 'function' };
+  });
+  expect(state.hasRlfx).toBe(true);
+  if (state.persisted) expect(Object.keys(state.persisted)).not.toContain('fxWeight');
+
+  // The route serves rlfx.js for real — an excluded module would 404 here.
+  const rlfxRequest = requested.filter((url) => url.includes('rlfx.js'));
+  expect(rlfxRequest.length).toBeGreaterThan(0);
+  const rlfxResponse = await page.request.get(site.baseUrl + '/rlfx.js');
+  expect(rlfxResponse.status()).toBe(200);
+
+  // No zero-FX assumption reaches the visible page.
+  const body = await page.locator('body').innerText();
+  expect(body).not.toContain('0.00% FX');
+  expect(body).not.toMatch(/FX confirmation weight/i);
+});
+
 test('Regression SCN-004-025 adversarial: every declared context has definition current meaning focus and adjacent text', async ({ page }) => {
   await openFxRoute(page);
 

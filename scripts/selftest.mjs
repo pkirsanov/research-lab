@@ -1871,6 +1871,20 @@ try {
   assert(eventErrors(conforming).length === 0,
     'a §9-conforming events block raises no events-contract error' + (eventErrors(conforming).length ? ': ' + eventErrors(conforming).join('; ') : ''));
 
+  /* The three adversarial fixtures below address events[0], events[1] and events[2] by index, and
+     they used to read those straight off the committed payload. But `events` is agent-authored and
+     its length tracks the calendar, not the contract: it legitimately fell from 3 to 2 on
+     2026-08-07, `events[2]` became undefined, this group THREW instead of asserting, and the throw
+     failed the Pages verify job — so a shrinking macro calendar silently blocked every deploy for a
+     day. Pad the FIXTURE (never the published payload) up to the highest index the mutations
+     address. Each mutation below still has to be caught by the validator, so nothing is weakened;
+     the fixtures just stop depending on how much happens to be on the calendar today. */
+  assert(conforming.events.length >= 1,
+    'the committed payload carries at least one event, so the events-contract fixtures have a real published event to mutate');
+  while (conforming.events.length < 3) {
+    conforming.events.push(JSON.parse(JSON.stringify(conforming.events[conforming.events.length - 1])));
+  }
+
   // ADVERSARIAL 1 — the LOSSLESS rename. Same values, contract key names replaced by synonyms.
   const renamedKeys = JSON.parse(JSON.stringify(conforming));
   renamedKeys.events[0].scenarios = renamedKeys.events[0].scenarios

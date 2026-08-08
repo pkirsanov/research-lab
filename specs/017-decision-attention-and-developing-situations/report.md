@@ -1,14 +1,24 @@
 # Feature 017 Execution Report
 
-This report is a structural template created during planning. It records no results yet. Every section below is an empty anchor that an execution agent fills with raw terminal output captured in the session that produced it. Nothing in this file may be written from expectation, inference, or summary; each anchor stays empty until a real command has run and its unedited output has been pasted under that anchor.
+This report began as a structural template created during planning, and is now filled from execution. The rule it was created under still governs every anchor below: nothing here may be written from expectation, inference, or summary; each anchor carries raw terminal output captured in the session that produced it. Where an anchor is still empty, it means that command has not been run — not that it passed quietly.
 
 ## Summary
 
-_Awaiting execution. No evidence recorded yet._
+Six scopes delivered, all `Done`, 178 DoD items ticked and 0 unticked. The feature adds a decision-attention capability (`rlattention.js`) with a closed `RLATTN-*` refusal vocabulary, routes the authoring lane through a deterministic composer so the published attention set is built by a script from authored judgement rather than authored wholesale by a model, renders the tier and the outcome record in the brief, and reconciles the legacy feed.
+
+Two findings raised during execution, F-017-04 and F-017-06, are resolved in code. F-017-04 is fully closed and covered. F-017-06's wiring is fixed — the renderer reads the published reduction instead of a hardcoded empty array — but its browser row is **not yet adversarial**, because the shipped scorecard reduces to `closedSample: 0` and at that value the wired read and the old hardcoded read emit identical text. That residual is recorded in Open Findings rather than closed.
+
+One independent audit has run: `AUD-017-001`, verdict **`REWORK_REQUIRED`**, routed to `bubbles.workflow`. Its finding is that the delivered feature is sound while the execution *record* was not — four of its five findings are against the phase records, not the code. A-017-01, A-017-02 and A-017-04 have been reworked (commit `bbc78982`); this section closes A-017-03.
 
 ## Completion Statement
 
-_Awaiting execution. No scope is complete._
+**The feature work is complete. The packet is NOT certified `done`, and should not be read as if it were.**
+
+`bubbles.validate` refused a `done` certification with a stated reason: `assurance.level` is `fast` and `missingForFull` is `["independent-audit"]`. That audit has since run and returned `REWORK_REQUIRED`, so the refusal stands on new grounds rather than being lifted.
+
+Ten of the twelve `full-delivery` phases were executed by the orchestrator under `provenanceMode: "parent-expanded"` rather than by dispatched specialists, because `runSubagent` dispatch is silently unavailable in this environment — it returns no output and leaves no trace (upstream `BUG-008`, widened from this feature's evidence). Those records name their reason and cite the commit carrying each change. They are honest records of real work; they are **not** substitutes for specialist execution, and the `audit` entry among them is explicitly a self-audit that does not satisfy the independent-audit requirement.
+
+The single remaining blocking gate is **G022**. It is a dispatch-capability gap, not a defect in the delivered feature.
 
 ## Decision Record
 

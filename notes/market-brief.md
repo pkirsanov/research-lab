@@ -122,6 +122,16 @@ after-hours = reactions/follow-through).
       gives every lane the complete frozen tool bundle, rejects missing/extra keys or protected-file edits,
       then acts as
       the sole writer that deterministically collects the four fragments into `market-brief.payload.json`;
+    3b. **recomposes the decision-attention set from the authored judgement**, via
+      `scripts/build-attention-items.mjs --recompose --write`, after the lanes have written the payload and
+      *before* the payload gate runs. This step is what makes the attention set a structural guarantee rather
+      than a model promise: the lanes author only the falsifiability judgement (invalidation, escalation
+      trigger, expiry, rationale), and this script — not a model — builds each `decision-attention/v1` envelope
+      from that judgement plus the committed window, transmission, provenance and lifecycle contracts in
+      `rlattention.js`. A candidate that cannot satisfy those contracts is refused with a closed `RLATTN-*`
+      code and recorded in the exclusion accounting instead of being published. Skipping this step does not
+      fail loudly — it silently republishes the previous generation's attention set — so it belongs in the
+      pipeline, not in an operator's memory;
     4. validates the final pair and publishes `briefs/` from the exact pre-final tool bundle. The graph
       publisher rejects snapshot, registry, source-order, source-count, or bundle-fingerprint drift, so
       every run contains every source brief and one final brief with a single identity;

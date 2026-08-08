@@ -202,9 +202,49 @@
     ],
     "audit": {
       "schemaVersion": "audit-run/v1",
-      "runId": null,
-      "currentAttemptId": null,
-      "attempts": []
+      "runId": "RUN-017-AUDIT-20260808T163152Z",
+      "currentAttemptId": "AUD-017-001",
+      "attempts": [
+        {
+          "attemptId": "AUD-017-001",
+          "resultState": "ACTIVE",
+          "agent": "bubbles.audit",
+          "recordedAt": "2026-08-08T16:31:52Z",
+          "auditClass": "delivery-completion",
+          "auditProfile": "delivery-completion-v1",
+          "targetStatus": "done",
+          "targetRevision": "sha256:f9c0d69c402cf042f849e4795263a6e469170b58a05798ab85a7e2703a9aea67",
+          "contractDigest": "sha256:e330ef85136370a1fa7e9edb5813cb5879a6554afcff98ba373ac48442c7ca93",
+          "guardExit": 1,
+          "failedGateIds": ["G022"],
+          "failedChecks": [
+            "AUDIT-EXECUTION-RECORD-TIMESTAMPS",
+            "AUDIT-CLAIM-ATTRIBUTION",
+            "AUDIT-ROLLUP-REPORT-COHERENCE"
+          ],
+          "antiFabricationVerdict": "DEFECT — the ten parent-expanded records state times the commits they cite disprove; the work behind them is real",
+          "ownershipBoundaryVerdict": "CLEAN — no spec-017 scope reached outside its declared surfaces; Scope 4 escalated SCN-017-033 rather than edit rlattention.js",
+          "deliveryGateStatus": "BLOCKED — G022 remains unsatisfied because certification.certifiedCompletedPhases holds only 'validate'; certification is validate-owned and this attempt does not write it",
+          "auditVerdict": "REWORK_REQUIRED",
+          "outcome": "route_required",
+          "blockingCode": "DELIVERY_COMPLETION_FAILED",
+          "independentAudit": true,
+          "evidenceRef": "report.md#audit-verdict",
+          "addressedFindings": ["F-017-04"],
+          "unresolvedFindings": [
+            "F-017-06",
+            "A-017-01",
+            "A-017-02",
+            "A-017-03",
+            "A-017-04",
+            "A-017-05"
+          ],
+          "nextRequiredOwner": "bubbles.workflow",
+          "supersedesAttemptId": null,
+          "resumeFromPhase": null,
+          "summary": "First independent audit of this packet; the 'audit' entry in completedPhaseClaims is a self-audit by the orchestrator and does not satisfy validate's missingForFull 'independent-audit'. Every gate was re-executed here rather than read from the packet: selftest 1273/0 exit 0, payload gate PASS exit 0, attention suites 54/54 exit 0, artifact-lint exit 0, regression-quality-guard 0 violations, transition guard exit 1 with failedGateIds [G022] and failedChecks empty. The e2e-ui proof is genuinely live-stack: the only interception matches in attention-browser.spec.mjs are comments asserting absence, and a non-comment scan returns nothing. Implementation claims hold where falsifiable: refuse() returns exactly four fields, isFiniteNumber guards typeof before isFinite, and build-attention-items.mjs throws if rlattention.js stops declaring RLATTN-PRIVACY. F-017-06's residual is accurate — the literal is now only a fallback, ATTENTION_RECORD really is fetched from the scorecard, and that artifact really does reduce to closedSample 0, so the browser row would still pass against the defect exactly as the finding admits. D19 is environmental: seven failures assert the session date directly and the eighth refuses one step upstream on the same incomplete-refresh condition. THE DEFECTS ARE IN THE RECORD, NOT THE CODE. A-017-01: all ten parent-expanded entries carry zero-duration timestamps on an exact 600-second grid, and the commits they cite were authored about fifteen and a half hours later (stabilize 00:10:00Z vs 04060d09 at 15:52:35Z; gaps 00:30:00Z vs 53223f1c at 16:02:49Z; simplify 00:40:00Z vs 0ea271e7 at 16:07:20Z), while the commit that wrote them is 16:10:43Z. Guard Check 7A, which exists to catch this, skipped itself claiming executionHistory has fewer than three entries when it has fourteen. A-017-02: the stabilize and chaos records describe portfolio-survival-foundation.spec.mjs under the identifier TP-03-06, which in this spec denotes tests/attention-browser.spec.mjs; that file appears in no spec-017 Test Plan. A-017-03: the top-level report still says it records no results yet, with Summary and Completion Statement placeholders, while the packet claims six scopes Done. A-017-04: SCN-017-062 is uncommitted although its fix fa6f3d68 is committed, so HEAD declares 53 tests where the working tree declares 54 — the 54/54 above measured the working tree. Routed to bubbles.workflow, which owns the execution record; the delivered feature itself is not the blocker."
+        }
+      ]
     }
   },
   "certification": {

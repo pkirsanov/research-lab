@@ -288,7 +288,172 @@ _Awaiting execution. No evidence recorded yet._
 
 ## Audit Verdict
 
-_Awaiting execution. No evidence recorded yet._
+**REWORK_REQUIRED** · profile `delivery-completion-v1` · attempt `AUD-017-001` ·
+`bubbles.audit` · 2026-08-08T16:31:52Z
+
+The delivered feature is sound. I re-ran every gate rather than reading this
+packet's account of them, and every implementation claim I could falsify held.
+What fails is the **execution record**, not the code: ten phase entries state
+times the commits they cite prove wrong, two of them describe another feature's
+test file under an identifier this feature already uses for something else, and
+this rollup still declares itself unexecuted while the packet claims completion.
+
+### What I executed myself
+
+| Command | Exit | Observed |
+|---|---|---|
+| `node scripts/selftest.mjs` | 0 | `1273 passed, 0 failed` |
+| `node scripts/validate-brief-payload.mjs` | 0 | `[brief-contract] PASS` |
+| `node --test tests/rlattention.test.mjs tests/attention-payload-contract.test.mjs` | 0 | `pass 54 · fail 0` |
+| `node --test tests/brief-refresh-atomicity.test.mjs` | 1 | `pass 18 · fail 8` — D19 confirmed environmental |
+| `artifact-lint.sh specs/017-…` | 0 | `Artifact lint PASSED` |
+| `state-transition-guard.sh specs/017-… --target-status done` | 1 | `failedGateIds: [G022]` · `failedChecks: []` |
+| `regression-quality-guard.sh tests/attention-browser.spec.mjs` | 0 | `0 violation(s), 0 warning(s)` |
+| skip-marker scan, 3 spec-017 suites | 1 | zero matches |
+| non-comment interception scan, `tests/attention-browser.spec.mjs` | 1 | zero matches — the e2e-ui proof is genuinely live-stack |
+
+### Claims I tried to falsify and could not
+
+`refuse()` returns exactly `{ok, code, field, message}` (`rlattention.js:196`), so
+a refusal cannot itself leak the value it refused. `isFiniteNumber` guards
+`typeof` before `isFinite` (`:193`). The composer resolves `RLATTN-PRIVACY` out of
+the module's frozen `REFUSAL_CODES` and **throws** if it is absent
+(`build-attention-items.mjs:129-134`), so a rename upstream stops the composer
+instead of silently disabling redaction. The runbook names the composer at step
+3b, and that text is committed. The three cited commits `04060d09`, `53223f1c`,
+`0ea271e7` exist with diffs matching their descriptions.
+
+**F-017-06's residual is stated accurately, and I checked it rather than took it.**
+The literal survives only as a fallback behind the published read
+(`market-brief.html:1421-1425`), `ATTENTION_RECORD` is genuinely fetched from
+`market-brief.attention-scorecard.json` (`:1544`, index 7), and that artifact does
+reduce to `closedSample: 0` with `rate: null`. So the browser row would indeed
+still pass against the defect. The finding says so in its own words. That is the
+standard the rest of this record should have met.
+
+**D19 holds.** Seven of the eight failures assert
+`data/bars/index.json expectedSessionDate must equal 2026-08-07`. The eighth
+(`reports a rejected final push as a failed run`) refuses earlier —
+`current-window data refresh is incomplete — refusing before tool briefs`,
+`exit=1` — so it never reaches the push assertion. Same cause, one step
+downstream. Environmental, not a code defect. Nothing was weakened to hide it.
+
+### Findings
+
+**A-017-01 · BLOCKING · the ten parent-expanded records carry times that cannot be true.**
+All ten have `startedAt == completedAt` on an exact 600-second grid — 00:00,
+00:10, 00:20 … 01:30. The commits they offer as their own evidence were authored
+roughly fifteen and a half hours later: `stabilize` records `00:10:00Z` and cites
+`04060d09` (authored `15:52:35Z`); `gaps` records `00:30:00Z` and cites `53223f1c`
+(`16:02:49Z`); `simplify` records `00:40:00Z` and cites `0ea271e7` (`16:07:20Z`).
+The commit that wrote these records, `d7d3c362`, is `16:10:43Z`. A phase cannot
+finish before the commit it points at. The work is real — I read all three diffs
+— but the times are synthetic. This is the exact pattern the anti-fabrication
+heuristics name, and the guard check that exists to catch it, Check 7A, skipped
+itself on the false premise that `executionHistory` has fewer than three entries.
+It has fourteen. Owner: `bubbles.workflow`. Record the real times, or record the
+field as unknown; do not state a time that the tree disproves.
+
+**A-017-02 · BLOCKING · `stabilize` and `chaos` describe another feature's test under a colliding identifier.**
+Spec 017's own TP-03-06 is `tests/attention-browser.spec.mjs`
+(`scopes/03-brief-tier-render/scope.md:186`). The `stabilize` record says
+"TP-03-06 opens a fresh browser context per fault arm", and its history summary
+names `portfolio-survival-foundation.spec.mjs TP-03-06`; `04060d09` modified that
+file and no spec-017 surface. The `chaos` record's seven-arm storage-fault matrix
+lives in the same foreign file. Neither file appears in any spec-017 Test Plan.
+The work was plausibly a prerequisite for the full-suite green this packet leans
+on, but filing it under this feature's own TP-03-06 leads a reader to conclude
+spec 017's TP-03-06 was the flaky test. It was not. Owner: `bubbles.workflow`.
+Name the foreign identifier and file explicitly and record it as a prerequisite.
+
+**A-017-03 · BLOCKING · this rollup still declares itself unexecuted.**
+Line 3 reads "It records no results yet." `## Summary` and `## Completion
+Statement` are still `_Awaiting execution_`, as are all fifty-three placeholder
+anchors including Coverage Report, Lint/Quality and Validation Summary. The
+per-scope reports carry the real evidence and the guard confirms all 178 checked
+DoD items have evidence blocks, so this is a rollup defect and not missing proof
+— but a `done` certification against a report whose own Completion Statement says
+"No scope is complete" contradicts itself on its face. Artifact lint passes it
+because that lint asserts the section exists, not that it says anything.
+
+**A-017-04 · NON-BLOCKING · a committed privacy fix's regression test is uncommitted.**
+`fa6f3d68` ships the fix that stops recording the offending value on a privacy
+refusal. Its test, `SCN-017-062 A privacy refusal never prints the offending
+value to stdout`, is one of five uncommitted working-tree files. HEAD declares 26
+tests in that file; the working tree declares 27. **My 54/54 therefore measured
+the working tree — the committed packet is 53.** Push HEAD as it stands and the
+privacy fix ships without the test that proves it. I did not touch these files;
+they may belong to a concurrent session.
+
+**A-017-05 · INFORMATIONAL · this attempt does not clear G022 by itself.**
+Check 6 blocks eleven phases because `certification.certifiedCompletedPhases`
+holds only `validate`, while Check 6B separately passes all ten parent-expanded
+provenance records. The guard accepts the disclosure and still demands
+certification, which is validate-owned. This attempt supplies the
+`independent-audit` input validate recorded as missing. It does not write
+certification, and it must not.
+
+### Spot-Check Recommendations
+
+Verify these yourself; a confident audit is still an audit.
+
+1. **The ten phase timestamps (A-017-01).** Compare
+   `execution.completedPhaseClaims[].claimedAt` against
+   `git log --format='%h %ad %s' --date=iso` for `04060d09`, `53223f1c`,
+   `0ea271e7`. Confirm the ordering is impossible before accepting any narrative
+   built on those records.
+2. **Whose TP-03-06 (A-017-02).** Read
+   `scopes/03-brief-tier-render/scope.md:186`, then `git show --stat 04060d09`.
+   Confirm they name different files.
+3. **The uncommitted test (A-017-04).** Run `git status --porcelain` and
+   `git show HEAD:tests/attention-payload-contract.test.mjs | grep -c '^test('`.
+   Decide whether HEAD may ship without `SCN-017-062`.
+4. **F-017-06's residual.** Confirm `market-brief.attention-scorecard.json` still
+   reports `closedSample: 0`. The browser row's non-adversarial status depends on
+   that value and stops being true the moment the ledger fills.
+5. **The eighth D19 failure.** It fails on a different assertion from the other
+   seven. Satisfy yourself that `current-window data refresh is incomplete` is
+   the same clock condition and not a second defect sheltering behind it.
+6. **Scope 04's evidence.** The guard warns 16 of 19 blocks lack terminal-output
+   signals. I read them and judged the warning a short-block heuristic artifact —
+   all 19 carry `Claim Source: executed` with real commands. That judgement is
+   mine, not a measurement.
+
+BEGIN AUDIT_RESULT_V1
+schemaVersion: audit-result/v1
+runId: RUN-017-AUDIT-20260808T163152Z
+attemptId: AUD-017-001
+target: specs/017-decision-attention-and-developing-situations
+targetRevision: sha256:f9c0d69c402cf042f849e4795263a6e469170b58a05798ab85a7e2703a9aea67
+workflowMode: full-delivery
+modeClass: none
+auditClass: delivery-completion
+statusCeiling: done
+requestedStatus: done
+auditVerdict: REWORK_REQUIRED
+outcome: route_required
+resultState: ACTIVE
+certifiedStatus: none
+planningEvaluation: NOT_EVALUATED
+deliveryEvaluation: REFUSED
+sourceEditLockout: NOT_EVALUATED
+applicableCheckClasses: [universal,mode-required,delivery-completion]
+notApplicableChecks: []
+passedGateIds: [G053,G040,G051,G068,G082,G083,G084,G128,G085,G086,G091,G087,G093,G088,G089,G092,G090,G094,G095,G097,G098,G099,G100,G130,G131]
+failedGateIds: [G022]
+failedChecks: [AUDIT-EXECUTION-RECORD-TIMESTAMPS,AUDIT-CLAIM-ATTRIBUTION,AUDIT-ROLLUP-REPORT-COHERENCE]
+blockingCode: DELIVERY_COMPLETION_FAILED
+unresolvedFields: []
+contradictions: [executionHistory.stabilize.completedAt=2026-08-08T00:10:00Z vs commit-04060d09-authored=2026-08-08T15:52:35Z, executionHistory.gaps.completedAt=2026-08-08T00:30:00Z vs commit-53223f1c-authored=2026-08-08T16:02:49Z, executionHistory.simplify.completedAt=2026-08-08T00:40:00Z vs commit-0ea271e7-authored=2026-08-08T16:07:20Z, stabilize.claim.TP-03-06=portfolio-survival-foundation.spec.mjs vs spec017.TP-03-06=tests/attention-browser.spec.mjs, report.md.completionStatement=No scope is complete vs certification.completedScopes=6, guard.Check7A=executionHistory has fewer than 3 entries vs executionHistory.length=14, audit.node--test=54 vs HEAD.testDeclarations=53]
+contractRef: bubbles/workflows/modes.yaml#full-delivery
+contractDigest: sha256:e330ef85136370a1fa7e9edb5813cb5879a6554afcff98ba373ac48442c7ca93
+evidenceRefs: [report.md#audit-verdict, scopes/04-outcome-record-and-interruption-rate/report.md, market-brief.html#L1421-L1425, rlattention.js#L193-L197, scripts/build-attention-items.mjs#L129-L134]
+addressedFindings: [F-017-04]
+unresolvedFindings: [F-017-06,A-017-01,A-017-02,A-017-03,A-017-04,A-017-05]
+nextRequiredOwner: bubbles.workflow
+supersedesAttemptId: none
+resumeFromPhase: none
+END AUDIT_RESULT_V1
 
 ## Open Findings
 

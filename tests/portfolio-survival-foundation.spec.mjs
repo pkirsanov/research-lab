@@ -1224,6 +1224,18 @@ test('Regression: TP-03-06 full-personal clear empties every declared category a
 });
 
 test('Regression: TP-03-06 every declared foundation clear step refuses success on its own and retains only its own key', async ({ browser }) => {
+  /* This test opens a FRESH browser context per arm — one control plus one per declared
+   * foundation key — so its cost scales with FOUNDATION_KEYS, not with a single page load.
+   * Measured alone it runs ~26s against Playwright's 30s default, i.e. it consumes ~87% of
+   * the default budget and tips over it under full-suite load. It has failed in a full run
+   * while passing in isolation for exactly that reason.
+   *
+   * The budget is raised HERE rather than globally on purpose: a global raise would blunt
+   * timeout-based failure detection for the other 310 tests to accommodate one legitimately
+   * expensive test. The cost is inherent to the fault-injection matrix, not a slow assertion,
+   * so the honest fix is to state this test's real budget and leave the strict default in
+   * force everywhere else. */
+  test.setTimeout(120_000);
   const observed = [];
   const retentionProven = [];
   // `null` is the control arm. Without it a refusal proves nothing: a flow that always failed

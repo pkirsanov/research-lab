@@ -5,7 +5,7 @@
 **Status:** Done
 **Scope-Kind:** contract-enforcement
 **Tags:** validator, payload, parity
-Depends On: 1
+Depends On: Scope 1 - the attention capability foundation
 
 **Primary Outcome:** `scripts/validate-brief-payload.mjs` stops checking only the
 attention headline length and instead applies the full attention field predicate

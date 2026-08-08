@@ -5,7 +5,7 @@
 **Status:** Done
 **Scope-Kind:** acceptance
 **Tags:** reconciliation, legibility, view-identity, performance
-Depends On: 2, 3, 4
+Depends On: Scope 2, Scope 3, Scope 4 - and through all three, the Scope 1 attention capability foundation
 
 **Primary Outcome:** H-4 is resolved by **re-scoping** the legacy feed: `rlbrief.js`
 is hard-excluded and TP-02-03 requires the legacy `#attention` payload to keep

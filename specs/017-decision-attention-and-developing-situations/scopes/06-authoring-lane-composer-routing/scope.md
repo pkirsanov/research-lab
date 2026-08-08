@@ -5,7 +5,7 @@
 **Status:** Done
 **Scope-Kind:** publish-pipeline
 **Tags:** composer-routing, build-step, exclusion-record, structural-compliance
-Depends On: 1, 2, 3
+Depends On: Scope 1 - the attention capability foundation, Scope 2, Scope 3
 
 **Primary Outcome:** The authoring lane stops emitting `decision-attention/v1`
 envelopes and starts emitting only the `authored` argument of

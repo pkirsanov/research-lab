@@ -5,7 +5,7 @@
 **Status:** Done
 **Scope-Kind:** data-record
 **Tags:** ledger, reducer, disjoint-record, withholding
-Depends On: 1, 3
+Depends On: Scope 1 - the attention capability foundation, Scope 3
 
 **Primary Outcome:** Terminated attention items append exactly one record each to
 the append-only `market-brief.attention-outcomes.jsonl`, which

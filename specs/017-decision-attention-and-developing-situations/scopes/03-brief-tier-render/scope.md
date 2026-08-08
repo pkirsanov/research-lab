@@ -5,7 +5,7 @@
 **Status:** Done
 **Scope-Kind:** ui-render
 **Tags:** brief-view, tooltips, escaping, degraded-state
-Depends On: 1, 2
+Depends On: Scope 1 - the attention capability foundation, Scope 2
 
 **Primary Outcome:** `market-brief.html` gains a `#decisionAttention` section
 placed above the existing `#attention` section, inside the existing Brief view.

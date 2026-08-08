@@ -20,10 +20,10 @@
     "certifiedAt": null,
     "requiresRevalidation": false,
     "execution": {
-        "activeAgent": "bubbles.test",
-        "currentPhase": "test",
-        "currentScope": "SCOPE-01",
-        "substate": "needs_reverification",
+        "activeAgent": "bubbles.implement",
+        "currentPhase": "implement",
+        "currentScope": "SCOPE-02",
+        "substate": "ready",
         "runStartedAt": null,
         "completedPhaseClaims": [
             "bootstrap",
@@ -31,8 +31,8 @@
             "test"
         ],
         "pendingTransitionRequests": [],
-        "nextRequiredOwner": "bubbles.validate",
-        "nextRequiredTarget": "Certify SCOPE-01. The prior v16 successor target is withdrawn as a superseded workaround and was never delivered; the underlying defect was stale evidence pins invalidated by a repository-wide PII de-personalization git history rewrite, resolved instead by re-pinning the v9 through v15 evidence to post-rewrite truth under a recorded history-rewrite epoch. The unchanged three-case collision acceptance is current and green on a clean tree, all 44 SCOPE-01 DoD items are checked, and every SCOPE-01 executable suite passes. SCOPE-02 unblocks on bubbles.validate certification and not before.",
+        "nextRequiredOwner": "bubbles.implement",
+        "nextRequiredTarget": "Implement SCOPE-02 (ETF-First Four-View Route And Simple/Power Integration). SCOPE-01 is certified: CMD-FIRST-RED, CMD-SELFTEST (1273/0), CMD-FOUNDATION-CONTRACTS (29/0), the three-case collision acceptance (3/0 on a clean tree), and artifact lint all pass, and all 44 SCOPE-01 DoD items are checked. SCOPE-02 builds fx-regime-relative-value-lab.html as an excluded production route with the shared four-view shell, the ETF-first Simple/Power owner decision, and the nineteen TP-02 regression rows under CMD-E2E-FX. No registry activation occurs before SCOPE-05.",
         "findingDispositionHistory": [
             {
                 "findingId": "F004-SCOPE01-COMMITTED-COLLISION-DEPENDENCY-001",
@@ -63,9 +63,31 @@
     },
     "certification": {
         "status": "in_progress",
-        "completedScopes": [],
+        "completedScopes": [
+            "SCOPE-01"
+        ],
         "certifiedCompletedPhases": [],
-        "scopeProgress": [],
+        "scopeProgress": [
+            {
+                "scope": 1,
+                "scopeId": "SCOPE-01",
+                "name": "Additive RLFX Vehicle Owner And Shared-Contract Foundation",
+                "status": "done",
+                "dependsOn": [],
+                "scopeDir": null,
+                "evidenceFile": "report.md",
+                "certifiedAt": "2026-08-06T00:00:00Z",
+                "certificationEvidence": {
+                    "CMD-FIRST-RED": "exit 0 - PASS RLFX CommonJS import preserves the existing global and explicit decisionTime is deterministic",
+                    "CMD-SELFTEST": "exit 0 - Research-Lab self-test: 1273 passed, 0 failed",
+                    "CMD-FOUNDATION-CONTRACTS": "exit 0 - 29 pass / 0 fail across the vehicle-universe, tool-control-binding, brief-eligibility, and journey-evidence-refresh contracts",
+                    "CMD-COLLISION": "exit 0 - 3 pass / 0 fail, reproducible on a clean tree as well as a dirty tree",
+                    "CMD-ARTIFACT": "exit 0 - Artifact lint PASSED with every checked DoD item carrying an evidence block",
+                    "dodTally": "44 checked / 0 unchecked across SCOPE-01",
+                    "workingTree": "git status --porcelain on spec-004 paths and the collision acceptance is clean"
+                }
+            }
+        ],
         "lockdownState": {
             "active": false,
             "lockedScenarioIds": []

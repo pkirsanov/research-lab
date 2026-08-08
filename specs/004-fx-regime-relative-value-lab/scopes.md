@@ -248,8 +248,8 @@ Command IDs below are plan references only. The command text is verbatim reposit
 
 | # | Scope | Surfaces | Primary Tests | DoD Summary | Status |
 | --- | --- | --- | --- | --- | --- |
-| 1 | Additive RLFX vehicle, owner, and shared-contract foundation | `rlfx.js`, additive `rldata.js` hunks, currency/vehicle universes, recommendation/reader projection, shared control/Brief/Journey contracts, controlled fixtures | Dedicated foundation contracts, Direct CommonJS unit, Node/browser functional, protected provider/Bond/Causal canaries | Compatible v1 currency contracts plus closed vehicle, scoreability, reader, ledger-admission, control-binding, Brief-eligibility, and evidence-refresh contracts | In Progress |
-| 2 | ETF-first four-view route and Simple/Power integration | FX HTML, shared Simple adapter, native Power projection, feature E2E | Page check plus real same-origin desktop/mobile E2E and controlled functional cases | ETF-first Simple/Power behavior, exact unavailable states, zero control fetch, accessibility, owner-read parity | Not Started |
+| 1 | Additive RLFX vehicle, owner, and shared-contract foundation | `rlfx.js`, additive `rldata.js` hunks, currency/vehicle universes, recommendation/reader projection, shared control/Brief/Journey contracts, controlled fixtures | Dedicated foundation contracts, Direct CommonJS unit, Node/browser functional, protected provider/Bond/Causal canaries | Compatible v1 currency contracts plus closed vehicle, scoreability, reader, ledger-admission, control-binding, Brief-eligibility, and evidence-refresh contracts | Done |
+| 2 | ETF-first four-view route and Simple/Power integration | FX HTML, shared Simple adapter, native Power projection, feature E2E | Page check plus real same-origin desktop/mobile E2E and controlled functional cases | ETF-first Simple/Power behavior, exact unavailable states, zero control fetch, accessibility, owner-read parity | In Progress |
 | 3 | Global Rotation equity-only migration | Global HTML/universe, Global headless owner-read hunk, selftest, feature E2E | Controlled formula tests, truthful route E2E, consumer scan | Equity-only rank, distinct USD/decomposition products and clocks, missing-FX survival | Not Started |
 | 4 | Shared Brief and Journey integration | Shared Brief/Journey runtime, exact Feature 004 definitions, relationship classifier, feature functional/E2E | Brief validator, Journey DAG/evidence-refresh checks, real same-origin refusal and no-execution E2E | Current-evidence refusal, prior labeling, transitive reopening, no execution, attributable owner synthesis | Not Started |
 | 5 | Atomic registration, documentation, and closure | Registry trio, exclusion cutover, owner notes, registry docs, complete governance chain | Registry atomicity E2E, protected provider/Bond/Causal canaries, planning and completion guards | One public cutover, synchronized docs, zero stale consumers, all findings accounted for | Not Started |
@@ -272,7 +272,7 @@ Command IDs below are plan references only. The command text is verbatim reposit
 ## Scope 1: Additive RLFX Vehicle Owner And Shared-Contract Foundation
 
 **Scope ID:** SCOPE-01  
-**Status:** In Progress  
+**Status:** Done  
 **Depends On:** None  
 **Scope-Kind:** contract-only  
 **Tags:** foundation:true  
@@ -1173,7 +1173,7 @@ Build quality gate:
 ## Scope 2: ETF-First Four-View Route And Simple/Power Integration
 
 **Scope ID:** SCOPE-02  
-**Status:** Not Started  
+**Status:** In Progress  
 **Depends On:** Scope 1 - Additive RLFX Vehicle Owner And Shared-Contract Foundation
 **Scope-Kind:** runtime-behavior  
 **Priority:** P0

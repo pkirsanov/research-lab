@@ -358,6 +358,23 @@ else
       restore_owned_baseline || true
       exit 1
     fi
+    # F-017-06: the lane authors JUDGEMENT ONLY; the envelope is composed here.
+    #
+    # The original fix for the three silent publishes was to rewrite the lane's
+    # instruction. Three consecutive crons falsified that: a prose instruction to
+    # a language model is advisory, so the lane can always emit a non-conforming
+    # envelope. Routing the lane through the certified composer is what makes
+    # compliance STRUCTURAL — the lane cannot emit a bad envelope when it no
+    # longer emits the envelope at all.
+    #
+    # That only holds if the composer actually runs on the publication path.
+    # build-attention-items.mjs --recompose --write is that step, and it sits
+    # BETWEEN the lane and the gate on purpose:
+    #   lane (judgement) -> composer (envelope) -> validator (refusal)
+    # It is additive-or-nothing (it refuses to write if a pre-existing payload
+    # key would be lost) and it exits 0 even when it refuses a candidate, since
+    # refusing one is a correct outcome, not a run failure. A genuine build
+    # error exits non-zero and the && chain fails the attempt, which retries.
     if BRIEF_COPILOT_BIN="$COPILOT_BIN" \
           BRIEF_MODEL="$MODEL" \
           BRIEF_NARRATIVE_TIMEOUT="$NARRATIVE_TIMEOUT" \
@@ -366,6 +383,7 @@ else
           BRIEF_TODAY="$TODAY" \
           BRIEF_TOOL_BUNDLE="$TOOL_BRIEF_BUNDLE" \
           "$NODE_BIN" scripts/brief-narrative-parallel.mjs \
+       && "$NODE_BIN" scripts/build-attention-items.mjs --recompose --write \
        && "$NODE_BIN" scripts/validate-brief-payload.mjs "$PAYLOAD" --drop-unscoreable; then
       NARRATIVE_OK=1
       echo "[brief-timer] parallel narrative collected + schema-valid (attempt $attempt/$NARRATIVE_ATTEMPTS)"

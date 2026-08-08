@@ -104,22 +104,63 @@ export function createBriefRefreshFixture(options = {}) {
   copyFileSync(resolve(ROOT, 'scripts/validate-brief-cache.mjs'), resolve(repoRoot, 'scripts/validate-brief-cache.mjs'));
   // validate-brief-payload.mjs imports this on both validator branches below.
   copyFileSync(resolve(ROOT, 'scripts/reader-vocabulary.mjs'), resolve(repoRoot, 'scripts/reader-vocabulary.mjs'));
+  // The publish-time attention build step. brief-refresh-and-push.sh runs it
+  // between the narrative lane and the payload gate (F-017-06), so a fixture
+  // without it cannot reproduce the real publication path at all.
+  copyFileSync(resolve(ROOT, 'scripts/build-attention-items.mjs'), resolve(repoRoot, 'scripts/build-attention-items.mjs'));
   copyFileSync(resolve(ROOT, 'rlcontracts.js'), resolve(repoRoot, 'rlcontracts.js'));
+  // rlattention.js is required on BOTH sides of the publication boundary, so the
+  // fixture needs it regardless of which assets the caller asked for:
+  //   - scripts/validate-brief-payload.mjs require()s it, deliberately, so the
+  //     publication gate and the renderer share ONE definition of an attention
+  //     item rather than two copies that happen to agree today; and
+  //   - market-brief.html loads it as a browser asset to render the tier.
+  // Omitting it made the validator die with MODULE_NOT_FOUND before it could
+  // judge anything, which the refresh script correctly reported as an invalid
+  // baseline — a fixture gap presenting as a publication refusal.
+  copyFileSync(resolve(ROOT, 'rlattention.js'), resolve(repoRoot, 'rlattention.js'));
+  // The XNYS session calendar is the other dependency validate-brief-payload.mjs
+  // resolves at MODULE scope (it builds XNYS_CALENDAR_SOURCE before any payload
+  // is read), so it is required for every fixture variant, not just the ones
+  // that ask for browser assets. It is the committed calendar rather than a
+  // synthetic one on purpose: the decision window a published attention item
+  // declares is only meaningful against the real session boundaries.
+  mkdirSync(resolve(repoRoot, 'data/calendars/xnys'), { recursive: true });
+  copyFileSync(
+    resolve(ROOT, 'data/calendars/xnys/calendar.json'),
+    resolve(repoRoot, 'data/calendars/xnys/calendar.json')
+  );
   if (options.validatorMode === 'fail-final') {
     copyFileSync(resolve(ROOT, 'scripts/validate-brief-payload.mjs'), resolve(repoRoot, 'scripts/validate-brief-payload.real.mjs'));
     writeFixtureScript(resolve(repoRoot, 'scripts/validate-brief-payload.mjs'), `#!/usr/bin/env node
 import { spawnSync } from 'node:child_process';
 import { existsSync, readFileSync, writeFileSync } from 'node:fs';
+import { resolve as resolvePath } from 'node:path';
 import { fileURLToPath } from 'node:url';
-const countPath = process.env.BUG002_VALIDATOR_COUNT_FILE;
-const count = (existsSync(countPath) ? Number(readFileSync(countPath, 'utf8')) : 0) + 1;
-writeFileSync(countPath, String(count));
-const realValidator = fileURLToPath(new URL('./validate-brief-payload.real.mjs', import.meta.url));
-const result = spawnSync(process.execPath, [realValidator, ...process.argv.slice(2)], { cwd: process.cwd(), env: process.env, stdio: 'inherit' });
-if (result.status !== 0) process.exit(result.status || 1);
-if (count === 3) {
-  console.error('[fixture-validator] forced final validation failure');
-  process.exit(1);
+/* validate-brief-payload.mjs is BOTH a CLI and a library: brief-narrative-parallel.mjs
+   imports briefEventContractInstruction from it, and build-attention-items.mjs imports
+   the watchlist/calendar/window contracts. A stub that models only the CLI half breaks
+   those imports with a SyntaxError, which surfaces as "narrative attempt failed/invalid"
+   and silently changes which publication branch the fixture exercises. Re-exporting the
+   real module keeps the library half intact. Safe because the real module guards its own
+   CLI entry on process.argv[1], so importing it never runs main(). */
+export * from './validate-brief-payload.real.mjs';
+
+/* The counter MUST live behind the same CLI guard. Counting at module scope counts
+   IMPORTS as well as invocations, so every library consumer inflates the tally and the
+   "fail on the Nth validation" contract stops meaning validations at all. */
+const SCRIPT_PATH = fileURLToPath(import.meta.url);
+if (process.argv[1] && resolvePath(process.argv[1]) === SCRIPT_PATH) {
+  const countPath = process.env.BUG002_VALIDATOR_COUNT_FILE;
+  const count = (existsSync(countPath) ? Number(readFileSync(countPath, 'utf8')) : 0) + 1;
+  writeFileSync(countPath, String(count));
+  const realValidator = fileURLToPath(new URL('./validate-brief-payload.real.mjs', import.meta.url));
+  const result = spawnSync(process.execPath, [realValidator, ...process.argv.slice(2)], { cwd: process.cwd(), env: process.env, stdio: 'inherit' });
+  if (result.status !== 0) process.exit(result.status || 1);
+  if (count === 3) {
+    console.error('[fixture-validator] forced final validation failure');
+    process.exit(1);
+  }
 }
 `);
   } else {

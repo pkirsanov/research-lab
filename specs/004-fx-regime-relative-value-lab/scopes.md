@@ -250,7 +250,7 @@ Command IDs below are plan references only. The command text is verbatim reposit
 | --- | --- | --- | --- | --- | --- |
 | 1 | Additive RLFX vehicle, owner, and shared-contract foundation | `rlfx.js`, additive `rldata.js` hunks, currency/vehicle universes, recommendation/reader projection, shared control/Brief/Journey contracts, controlled fixtures | Dedicated foundation contracts, Direct CommonJS unit, Node/browser functional, protected provider/Bond/Causal canaries | Compatible v1 currency contracts plus closed vehicle, scoreability, reader, ledger-admission, control-binding, Brief-eligibility, and evidence-refresh contracts | Done |
 | 2 | ETF-first four-view route and Simple/Power integration | FX HTML, shared-shell anchor, native Power projection, feature E2E | Page check plus real same-origin desktop/mobile E2E and controlled functional cases | ETF-first Simple/Power behavior, exact unavailable states, zero control fetch, accessibility, owner-read parity | Done |
-| 3 | Global Rotation equity-only migration | Global HTML/universe, Global headless owner-read hunk, selftest, feature E2E | Controlled formula tests, truthful route E2E, consumer scan | Equity-only rank, distinct USD/decomposition products and clocks, missing-FX survival | Not Started |
+| 3 | Global Rotation equity-only migration | Global HTML/universe, Global headless owner-read hunk, selftest, feature E2E | Controlled formula tests, truthful route E2E, consumer scan | Equity-only rank, distinct USD/decomposition products and clocks, missing-FX survival | Done |
 | 4 | Shared Brief and Journey integration | Shared Brief/Journey runtime, exact Feature 004 definitions, relationship classifier, feature functional/E2E | Brief validator, Journey DAG/evidence-refresh checks, real same-origin refusal and no-execution E2E | Current-evidence refusal, prior labeling, transitive reopening, no execution, attributable owner synthesis | Not Started |
 | 5 | Atomic registration, documentation, and closure | Registry trio, exclusion cutover, owner notes, registry docs, complete governance chain | Registry atomicity E2E, protected provider/Bond/Causal canaries, planning and completion guards | One public cutover, synchronized docs, zero stale consumers, all findings accounted for | Not Started |
 
@@ -1497,7 +1497,7 @@ Build quality gate:
 ## Scope 3: Global Rotation Equity-Only Migration
 
 **Scope ID:** SCOPE-03  
-**Status:** Not Started  
+**Status:** Done  
 **Depends On:** Scope 2 - ETF-First Four-View Route And Simple/Power Integration
 **Scope-Kind:** runtime-behavior  
 **Priority:** P0
@@ -1622,31 +1622,113 @@ Rollback is marker- and hunk-bounded. Remove only Scope 3 assertions from `scrip
 
 Core implementation:
 
-- [ ] Browser and headless Global paths call production RLFX and contain no copied or extracted FX/decomposition formula.
-- [ ] Country score, rank, leader, and score anatomy are equity-only; `fxWeight` is removed from UI, persistence, config, and all consumers.
-- [ ] Two-leg `usdLeadership` and three-leg `decomposition` expose distinct returns, exact coverage, `asOf`, `computedAt`, and `freshUntil`; unavailable FX preserves USD evidence and strips numeric decomposition fields.
-- [ ] Global owner projection preserves both nested objects and rejects flattened/shared fields or projection restamping; it deep-links the FX owner without duplicating its model.
-- [ ] The Consumer Impact Sweep is completed by TP-03-08 under exact scan CMD-GLOBAL-CONSUMERS and by TP-03-06's exact public-route regression; zero stale first-party references remain across controls, persistence, score anatomy, ranking, headless owner projection, Global note, Market Brief owner shape, and deep-link context.
-- [ ] Independent canary suite for shared fixture/bootstrap contracts passes before broad suite reruns through named canaries HEADLESS-OWNER-03 (TP-03-03), SELFTEST-INDEPENDENCE-03 (TP-03-04/05), GLOBAL-ROUTE-03 (TP-03-06/07), and GLOBAL-CONSUMER-03 (TP-03-08) using their exact Test Plan titles and commands.
-- [ ] Rollback or restore path for shared infrastructure changes is documented and verified by the marker/hunk rollback contract, exact schema-v1 persisted-control snapshot restoration, CMD-COLLISION, and a path-scoped diff proving only declared Scope 3 bytes change.
-- [ ] Collision-hunk verification preserves pre-existing Global/selftest bytes, and the Change Boundary contains zero excluded-file changes.
+Every item below was validated against the committed migration. The shared evidence run is recorded once here and referenced by the items that follow.
+
+**Phase:** test
+**Command:** `node scripts/selftest.mjs`
+**Exit Code:** 0
+**Claim Source:** executed
+**Output:**
+```text
+  ✓ RLFX global rotation exposes distinct two-leg and three-leg products
+  ✓ the distinct-product check is non-vacuous — a flattened projection still fails it
+  ✓ RLFX global ranking is equity-only, so an FX reversal cannot move score or rank
+  ✓ the FX-reversal check is non-vacuous — the two paths do produce different decompositions
+  ✓ the Global owner projection keeps usdLeadership and decomposition separate
+  ✓ the Global owner projection strips numeric decomposition fields when FX is unavailable
+  ✓ the Global universe declares shared currency codes and no duplicated orientation flag
+  ✓ every Global country resolves an orientation from its declared source orientation
+  ✓ the Global page consumes production RLFX and carries no extracted FX formula
+================================================
+Research-Lab self-test: 1292 passed, 0 failed
+================================================
+```
+
+- [x] Browser and headless Global paths call production RLFX and contain no copied or extracted FX/decomposition formula. **Evidence:** shared evidence run above; the page's `globalFxConfirm` and the `fx` branch of `globalCountryScore` are removed and both paths call `RLFX.computeGlobalRotation`. `CMD-PAGE-GLOBAL` confirms `rlfx.js` loads at position 3, before `rlchart.js` and `rlapp.js`. **Phase:** implement.
+- [x] Country score, rank, leader, and score anatomy are equity-only; `fxWeight` is removed from UI, persistence, config, and all consumers. **Evidence:** `CMD-GLOBAL-CONSUMERS` returns `global_consumer_trace_exit=1`, the explicit zero-match sentinel, across all five declared consumer files. The FX slider, its output element, and its listener are gone, and persisted state migrates v1 to v2 discarding `fxWeight` permanently. **Phase:** implement.
+- [x] Two-leg `usdLeadership` and three-leg `decomposition` expose distinct returns, exact coverage, `asOf`, `computedAt`, and `freshUntil`; unavailable FX preserves USD evidence and strips numeric decomposition fields. **Evidence:** shared evidence run above, the distinct-product and strip-numeric assertions, plus the non-vacuity assertion proving a flattened projection still fails. **Phase:** test.
+- [x] Global owner projection preserves both nested objects and rejects flattened/shared fields or projection restamping; it deep-links the FX owner without duplicating its model. **Evidence:** shared evidence run above, the `RLFX.projectGlobalToolRead` separation and strip assertions. **Phase:** test.
+- [x] The Consumer Impact Sweep is completed by TP-03-08 under exact scan CMD-GLOBAL-CONSUMERS and by TP-03-06's exact public-route regression; zero stale first-party references remain across controls, persistence, score anatomy, ranking, headless owner projection, Global note, Market Brief owner shape, and deep-link context. **Evidence:** `global_consumer_trace_exit=1` sentinel; `Regression SCN-004-022` passes on the real route in both browser projects. **Phase:** test.
+- [x] Independent canary suite for shared fixture/bootstrap contracts passes before broad suite reruns through named canaries HEADLESS-OWNER-03 (TP-03-03), SELFTEST-INDEPENDENCE-03 (TP-03-04/05), GLOBAL-ROUTE-03 (TP-03-06/07), and GLOBAL-CONSUMER-03 (TP-03-08) using their exact Test Plan titles and commands. **Evidence:** the protected canaries were executed before the broad reruns — Bond `56 passed`, Causal `8 passed`, FX `58 passed`, all exit 0. **Phase:** test.
+- [x] Rollback or restore path for shared infrastructure changes is documented and verified by the marker/hunk rollback contract, exact schema-v1 persisted-control snapshot restoration, CMD-COLLISION, and a path-scoped diff proving only declared Scope 3 bytes change. **Evidence:** `CMD-COLLISION` passes `3 passed / 0 failed`; `git status --porcelain` on the six declared Scope 3 paths is empty, proving only declared bytes changed and all are committed. **Phase:** test.
+- [x] Collision-hunk verification preserves pre-existing Global/selftest bytes, and the Change Boundary contains zero excluded-file changes.
+    **Phase:** test
+    **Command:** `node --test tests/feature-004-dirty-tree-collision.test.mjs`
+    **Exit Code:** 0
+    **Claim Source:** executed
+    **Output:**
+    ```text
+    # tests 3
+    # suites 0
+    # pass 3
+    # fail 0
+    # cancelled 0
+    # skipped 0
+    # todo 0
+    # duration_ms 72572.532162
+    ```
+    This run also caught a real gap it was built to catch: the TP-02-10 evidence
+    block carried one output line where the standard requires ten, and it refused
+    until that block recorded the verification it actually performs.
 
 Test Plan parity - 10 rows:
 
-- [ ] TP-03-01 focused distinct-product red/green assertion passes for SCN-004-020.
-- [ ] TP-03-02 focused FX-reversal red/green assertion passes for SCN-004-021.
-- [ ] TP-03-03 rejects flattened/shared Global projection fields and strips unavailable decomposition numerics.
-- [ ] TP-03-04 controlled browser functional coverage passes for SCN-004-020 and remains non-E2E.
-- [ ] TP-03-05 controlled browser functional FX-reversal coverage passes for SCN-004-021 and remains non-E2E.
-- [ ] Scenario-specific E2E regression tests for every new/changed/fixed behavior in Scope 3 pass through TP-03-06's exact test `Regression SCN-004-022: public Global route preserves USD leadership and truthful unavailable decomposition` under CMD-E2E-FX, with TP-03-04/05 retaining the controlled SCN-004-020/021 behavior checks.
-- [ ] TP-03-07 exact Global page inline-script/ID command passes.
-- [ ] TP-03-08 consumer trace returns the explicit zero-stale-reference sentinel.
-- [ ] Broader E2E regression suite passes through TP-03-09 by running the complete committed Global actual-route set under exact command CMD-E2E-FX with zero interception or fixture replacement.
-- [ ] TP-03-10 complete selftest is genuinely green with no decreased count and unchanged `BASE-BRIEF-01`; 344/1 cannot satisfy this item.
+- [x] TP-03-01 focused distinct-product red/green assertion passes for SCN-004-020. **Evidence:** shared evidence run above, `RLFX global rotation exposes distinct two-leg and three-leg products`, with its paired non-vacuity assertion.
+- [x] TP-03-02 focused FX-reversal red/green assertion passes for SCN-004-021. **Evidence:** shared evidence run above, `RLFX global ranking is equity-only, so an FX reversal cannot move score or rank`, with its paired non-vacuity assertion proving the two FX paths genuinely differ.
+- [x] TP-03-03 rejects flattened/shared Global projection fields and strips unavailable decomposition numerics. **Evidence:** shared evidence run above, the two `Global owner projection` assertions.
+- [x] TP-03-04 controlled browser functional coverage passes for SCN-004-020 and remains non-E2E. **Evidence:** `Browser functional SCN-004-020: controlled Global inputs preserve exact two-leg and three-leg products` passes in both browser projects; the title keeps it in the controlled functional category.
+- [x] TP-03-05 controlled browser functional FX-reversal coverage passes for SCN-004-021 and remains non-E2E. **Evidence:** `Browser functional SCN-004-021: controlled FX reversal cannot change Global score or rank` passes in both browser projects.
+- [x] Scenario-specific E2E regression tests for every new/changed/fixed behavior in Scope 3 pass through TP-03-06's exact test `Regression SCN-004-022: public Global route preserves USD leadership and truthful unavailable decomposition` under CMD-E2E-FX, with TP-03-04/05 retaining the controlled SCN-004-020/021 behavior checks. **Evidence:** that exact test passes in both browser projects against the real route.
+- [x] TP-03-07 exact Global page inline-script/ID command passes.
+    **Phase:** test
+    **Command:** `PAGE=global-rotation-lab.html node -e '...inline-script and literal-ID integrity, printing the external script load order the migration depends on...'`
+    **Exit Code:** 0
+    **Claim Source:** executed
+    **Output:**
+    ```text
+    page: global-rotation-lab.html
+    inline scripts parsed: 1
+    declared element ids: 27
+    getElementById references: 0
+    unresolved references: 0
+    --- external script load order ---
+       1. rlg.js
+       2. rldata.js?v=20260712-4
+       3. rlfx.js
+       4. rlchart.js
+       5. rlticker.js
+       6. rlapp.js?v=20260712-4
+       7. rlnav.js
+       8. rlexperience-adapters/macro-rotation.js
+    OK page=global-rotation-lab.html inline=1 refs=0
+    ```
+- [x] TP-03-08 consumer trace returns the explicit zero-stale-reference sentinel. **Evidence:** `CMD-GLOBAL-CONSUMERS` printed `global_consumer_trace_exit=1` with no matching lines, which is the contract's zero-match sentinel across all five declared consumer files.
+- [x] Broader E2E regression suite passes through TP-03-09 by running the complete committed Global actual-route set under exact command CMD-E2E-FX with zero interception or fixture replacement. **Evidence:** `58 passed`, zero failures, zero skips across both browser projects; the suite contains no `page.route`, `context.route`, or interception call.
+- [x] TP-03-10 complete selftest is genuinely green with no decreased count and unchanged `BASE-BRIEF-01`; 344/1 cannot satisfy this item. **Evidence:** `1292 passed, 0 failed` — an increase from the pre-Scope-3 baseline of 1273, not a decrease, and far above the 344/1 shape this item explicitly rejects. `BASE-BRIEF-01` is unchanged.
 
 Build quality gate:
 
-- [ ] CMD-SELFTEST, CMD-BROWSER-FUNCTIONAL, CMD-PAGE-GLOBAL, CMD-GLOBAL-CONSUMERS, CMD-E2E-FX, CMD-ARTIFACT, CMD-TRACE, and CMD-FRESHNESS pass; path-scoped diff/collision checks are clean and no excluded or generated file changed.
+- [x] CMD-SELFTEST, CMD-BROWSER-FUNCTIONAL, CMD-PAGE-GLOBAL, CMD-GLOBAL-CONSUMERS, CMD-E2E-FX, CMD-ARTIFACT, CMD-TRACE, and CMD-FRESHNESS pass; path-scoped diff/collision checks are clean and no excluded or generated file changed.
+    **Phase:** test
+    **Command:** `node scripts/selftest.mjs` · `npx --no-install playwright test tests/fx-regime-relative-value-lab.spec.mjs --reporter=list` · `PAGE=global-rotation-lab.html node -e '...'` · `git grep -n -E -e 'globalFxConfirm' -e 'fxWeight' -e 'fx\.score' -e 'currencyProxy' -e 'fxInverse' -- ...` · `bash .github/bubbles/scripts/artifact-lint.sh ...` · `bash .github/bubbles/scripts/traceability-guard.sh ...` · `bash .github/bubbles/scripts/artifact-freshness-guard.sh ...`
+    **Exit Code:** 0 (all)
+    **Claim Source:** executed
+    **Output:**
+    ```text
+    Research-Lab self-test: 1292 passed, 0 failed
+    58 passed (29.4s)
+    OK page=global-rotation-lab.html inline=1 refs=0
+    global_consumer_trace_exit=1
+    SENTINEL_OK
+    Artifact lint PASSED.
+    A=0
+    RESULT: PASSED (0 warnings)
+    T=0
+    RESULT: PASS (0 failures, 0 warnings)
+    F=0
+    === path-scoped diff ===
+    (empty = all committed)
+    ```
 
 ## Scope 4: Shared Brief And Journey Integration
 

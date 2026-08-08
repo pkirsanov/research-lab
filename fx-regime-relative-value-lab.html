@@ -1,0 +1,844 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta http-equiv="Content-Security-Policy" content="default-src 'self'; script-src 'self' 'unsafe-inline'; style-src 'self' 'unsafe-inline'; img-src 'self' data:; connect-src 'self' http://127.0.0.1:* https://*.ts.net:* https://api.nasdaq.com https://api.stlouisfed.org https://api.twelvedata.com https://cdn.cboe.com https://data.sec.gov https://finnhub.io https://home.treasury.gov https://production.dataviz.cnn.io https://query1.finance.yahoo.com https://query2.finance.yahoo.com https://stockanalysis.com https://www.alphavantage.co; font-src 'self' data:; object-src 'none'; base-uri 'none'; form-action 'none'; frame-src 'none'; worker-src 'none'; media-src 'none'; manifest-src 'self'">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="referrer" content="no-referrer">
+    <title>FX Regime &amp; Currency Vehicle Lab</title>
+    <meta name="description"
+        content="FX Regime & Currency Vehicle Lab — map a currency research objective to a reviewed listed vehicle, or show the exact reason no eligible vehicle exists, from one transparent browser-side evidence model.">
+    <style>
+        :root {
+            --bg: #080f14;
+            --surface: #101a21;
+            --surface-2: #16242c;
+            --line: #2d4049;
+            --text: #eaf2f6;
+            --muted: #9bb0ba;
+            --jade: #56d3b0;
+            --gold: #e6ba63;
+            --coral: #f0806f;
+            --cyan: #63c6dd;
+            --focus: #f6cf75;
+        }
+
+        * { box-sizing: border-box; }
+
+        html { color-scheme: dark; scroll-behavior: smooth; }
+
+        body {
+            margin: 0;
+            min-width: 0;
+            background: linear-gradient(180deg, rgba(60, 110, 130, .16), transparent 320px), var(--bg);
+            color: var(--text);
+            font: 15px/1.55 ui-sans-serif, system-ui, -apple-system, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+            -webkit-text-size-adjust: 100%;
+            overflow-x: hidden;
+        }
+
+        a { color: var(--cyan); }
+
+        :focus-visible { outline: 2px solid var(--focus); outline-offset: 2px; }
+
+        .wrap { max-width: 1180px; margin: 0 auto; padding: 20px 16px 72px; }
+
+        header.page { border-bottom: 1px solid var(--line); padding-bottom: 14px; margin-bottom: 18px; }
+
+        header.page h1 { margin: 0 0 6px; font-size: clamp(20px, 3.4vw, 28px); letter-spacing: .2px; }
+
+        .sub { color: var(--muted); margin: 0; font-size: 14px; }
+
+        .disclosure {
+            margin-top: 10px;
+            padding: 8px 10px;
+            border: 1px solid var(--line);
+            border-left: 3px solid var(--gold);
+            border-radius: 6px;
+            background: var(--surface);
+            color: var(--muted);
+            font-size: 13px;
+        }
+
+        .panel {
+            background: var(--surface);
+            border: 1px solid var(--line);
+            border-radius: 10px;
+            padding: 14px 14px 16px;
+            margin: 0 0 16px;
+            min-width: 0;
+        }
+
+        .panel > h2 { margin: 0 0 4px; font-size: 16px; letter-spacing: .2px; }
+
+        .panel > .hint { margin: 0 0 12px; color: var(--muted); font-size: 13px; }
+
+        .grid { display: grid; gap: 12px; grid-template-columns: repeat(auto-fit, minmax(240px, 1fr)); }
+
+        .ctl { display: flex; flex-direction: column; gap: 4px; min-width: 0; }
+
+        .ctl > label { font-size: 12px; color: var(--muted); letter-spacing: .3px; text-transform: uppercase; }
+
+        .ctl > select {
+            background: var(--surface-2);
+            color: var(--text);
+            border: 1px solid var(--line);
+            border-radius: 6px;
+            padding: 7px 8px;
+            font: inherit;
+            min-width: 0;
+            max-width: 100%;
+        }
+
+        .kpis { display: grid; gap: 10px; grid-template-columns: repeat(auto-fit, minmax(190px, 1fr)); }
+
+        .kpi { background: var(--surface-2); border: 1px solid var(--line); border-radius: 8px; padding: 10px; min-width: 0; }
+
+        .kpi .k { font-size: 11px; text-transform: uppercase; letter-spacing: .4px; color: var(--muted); }
+
+        .kpi .v { font-size: 17px; margin-top: 3px; overflow-wrap: anywhere; }
+
+        .badge {
+            display: inline-flex;
+            align-items: center;
+            gap: 5px;
+            border: 1px solid var(--line);
+            border-radius: 999px;
+            padding: 2px 9px;
+            font-size: 12px;
+            background: var(--surface-2);
+        }
+
+        .badge::before { content: ""; width: 7px; height: 7px; border-radius: 50%; background: var(--muted); }
+
+        .badge.is-eligible::before { background: var(--jade); }
+        .badge.is-caution::before { background: var(--gold); }
+        .badge.is-tactical::before { background: var(--cyan); }
+        .badge.is-rejected::before { background: var(--coral); }
+        .badge.is-unavailable::before { background: var(--muted); }
+
+        table.data { width: 100%; border-collapse: collapse; font-size: 13px; }
+
+        table.data th, table.data td {
+            border-bottom: 1px solid var(--line);
+            padding: 7px 8px;
+            text-align: left;
+            vertical-align: top;
+            overflow-wrap: anywhere;
+        }
+
+        table.data th { color: var(--muted); font-weight: 600; font-size: 12px; text-transform: uppercase; letter-spacing: .3px; }
+
+        .tablewrap { overflow-x: auto; max-width: 100%; }
+
+        ul.reasons { margin: 6px 0 0; padding-left: 18px; color: var(--muted); font-size: 13px; }
+
+        ul.reasons li { margin: 2px 0; }
+
+        .chartwrap { position: relative; width: 100%; }
+
+        canvas { width: 100%; height: 260px; display: block; border: 1px solid var(--line); border-radius: 8px; background: var(--surface-2); }
+
+        .visually-hidden {
+            position: absolute; width: 1px; height: 1px;
+            margin: -1px; padding: 0; overflow: hidden;
+            clip: rect(0 0 0 0); white-space: nowrap; border: 0;
+        }
+
+        .shellmount { border: 1px dashed var(--line); border-radius: 10px; padding: 12px; margin: 0 0 16px; color: var(--muted); font-size: 13px; }
+
+        @media (max-width: 560px) {
+            .wrap { padding: 14px 11px 56px; }
+            canvas { height: 300px; }
+        }
+    </style>
+</head>
+
+<body>
+    <div class="wrap" data-tkr-auto>
+        <header class="page">
+            <h1 id="pageTitle">FX Regime &amp; Currency Vehicle Lab</h1>
+            <p class="sub">Map one currency research objective to a reviewed listed vehicle — or show the exact reason no eligible vehicle exists.</p>
+            <p class="disclosure" id="eduDisclosure">Educational research, not investment advice. No trade execution or order preparation is available.</p>
+        </header>
+
+        <!-- Shared four-view shell anchor. This route is intentionally UNREGISTERED until Scope 5,
+             so rlexperience.js resolveShell refuses with E012-REGISTRY and the shell renders its
+             honest unavailable state. Registration and site-exclusions.json are mutually exclusive
+             (scripts/build-pages-site.mjs), so activating the switcher here would publish an
+             unfinished route. There is deliberately NO page-local mode strip. -->
+        <div class="shellmount" id="shellMount" data-rlbrief-mount data-tool-id="fx-regime-relative-value-lab">
+            Shared four-view shell mounts here once this route is registered.
+        </div>
+
+        <section class="panel" id="controlsPanel" aria-labelledby="controlsHeading">
+            <h2 id="controlsHeading">Research controls</h2>
+            <p class="hint">Every control edits one owner binding and recomputes locally. Changing a control issues no data request.</p>
+            <div class="grid" id="controlGrid"></div>
+        </section>
+
+        <section class="panel" id="simplePanel" aria-labelledby="simpleHeading">
+            <h2 id="simpleHeading">Simple — owner decision</h2>
+            <p class="hint">The ETF-first decision spine. One frozen owner decision drives every projection on this page.</p>
+            <div class="kpis" id="simpleKpis"></div>
+            <div id="simpleReasons"></div>
+        </section>
+
+        <section class="panel" id="vehiclePanel" aria-labelledby="vehicleHeading">
+            <h2 id="vehicleHeading">Power — listed-vehicle anatomy</h2>
+            <p class="hint">Every registry vehicle appears exactly once with its own exact disposition and reason codes. No vehicle is substituted or merged.</p>
+            <div class="chartwrap">
+                <canvas id="vehicleChart" role="img" aria-labelledby="vehicleChartLabel" aria-describedby="vehicleChartSummary"></canvas>
+                <span id="vehicleChartLabel" class="visually-hidden">Listed-vehicle disposition by registry order</span>
+            </div>
+            <p id="vehicleChartSummary" class="hint" style="margin-top:10px"></p>
+            <div class="tablewrap">
+                <table class="data" id="vehicleTable">
+                    <caption class="visually-hidden">Listed-vehicle dispositions and exact reason codes</caption>
+                    <thead>
+                        <tr>
+                            <th scope="col">Vehicle</th>
+                            <th scope="col">Disposition</th>
+                            <th scope="col">Exact reasons</th>
+                        </tr>
+                    </thead>
+                    <tbody id="vehicleTableBody"></tbody>
+                </table>
+            </div>
+        </section>
+
+        <section class="panel" id="currencyPanel" aria-labelledby="currencyHeading">
+            <h2 id="currencyHeading">Power — currency evidence anatomy</h2>
+            <p class="hint">Each evidence family keeps its own state. An unavailable family never borrows a value from another.</p>
+            <div class="tablewrap">
+                <table class="data" id="evidenceTable">
+                    <caption class="visually-hidden">Currency evidence families and their exact states</caption>
+                    <thead>
+                        <tr>
+                            <th scope="col">Evidence family</th>
+                            <th scope="col">State</th>
+                        </tr>
+                    </thead>
+                    <tbody id="evidenceTableBody"></tbody>
+                </table>
+            </div>
+        </section>
+
+        <section class="panel" id="identityPanel" aria-labelledby="identityHeading">
+            <h2 id="identityHeading">Owner identity and clocks</h2>
+            <p class="hint">Simple and Power share one owner decision identity, evidence identity, and evidence cutoff.</p>
+            <div class="kpis" id="identityKpis"></div>
+        </section>
+    </div>
+
+    <script src="rldata.js"></script>
+    <script src="rlfx.js"></script>
+    <script src="rlapp.js"></script>
+    <script src="rlg.js"></script>
+    <script src="rlticker.js"></script>
+    <script src="rlchart.js"></script>
+    <script src="rlnav.js"></script>
+    <script src="rlexperience-adapters/macro-rotation.js"></script>
+
+    <script>
+        "use strict";
+
+        /* ══════════════════ FX Regime & Currency Vehicle Lab (Feature 004 Scope 2) ══════════════════
+           This route is the ETF-first owner surface. It owns NO decision formula: every state below is
+           produced by RLFX (rlfx.js), which is this feature's single source for currency and listed
+           vehicle semantics. The page validates BOTH closed universes before reading any source
+           envelope, computes ONE frozen owner decision, and projects it into Simple, Power, and the
+           published rlfx-tool-read/v2 owner read.
+
+           HONEST POSTURE: the committed vehicle universe carries rights-unclear and absent facts, and
+           no approved public currency source is authorized, so the truthful production result is a
+           structured UNAVAILABLE owner decision with exact per-family and per-vehicle reasons. That is
+           a real evaluated result, not a placeholder — every vehicle is settled and every reason code
+           comes from the engine. Nothing is defaulted, filled, or substituted to make the page look
+           more complete than the evidence is. */
+
+        var TOOL_ID = "fx-regime-relative-value-lab";
+        var CURRENCY_UNIVERSE_PATH = "fx-regime-universe.json";
+        var VEHICLE_UNIVERSE_PATH = "fx-vehicle-universe.json";
+
+        /* One editable owner binding. Every entry is an explicit, visible control — the page holds no
+           hidden input. `identityBearing` marks the controls that participate in owner identity. */
+        var CONTROL_DEFS = [
+            { id: "objective", label: "Objective", options: ["foreign-currency-strength", "dollar-strength", "dollar-weakness", "diversified-em-currency", "compare-wrappers"], definition: "The currency research question this route answers.", interpretation: "Selects which direction the listed vehicle must express." },
+            { id: "subjectId", label: "Subject currency", options: ["JPY", "EUR", "GBP", "AUD", "CAD", "CHF", "USD"], definition: "The currency the objective is expressed about.", interpretation: "Sets the currency a candidate vehicle must match." },
+            { id: "cohort", label: "Cohort", options: ["G10", "liquid-EM", "managed-reference"], definition: "The comparison group used for independent strength.", interpretation: "Cohorts never pool; a managed reference stays separate from G10." },
+            { id: "horizon", label: "Horizon", options: ["tactical", "swing", "structural"], definition: "The research holding horizon.", interpretation: "Daily-reset vehicles are only ever permitted at the tactical horizon." },
+            { id: "pairMode", label: "Pair mode", options: ["explicit", "auto"], definition: "Whether the pair is stated explicitly or derived.", interpretation: "Explicit mode never infers orientation from ticker spelling." },
+            { id: "base", label: "Pair base", options: ["JPY", "EUR", "GBP", "AUD", "CAD", "CHF", "USD"], definition: "The base currency of the inspected pair.", interpretation: "Base and quote define one relationship, counted once." },
+            { id: "quote", label: "Pair quote", options: ["USD", "JPY", "EUR", "GBP", "AUD", "CAD", "CHF"], definition: "The quote currency of the inspected pair.", interpretation: "A pair and its inverse are the same single relationship." },
+            { id: "vehicleClass", label: "Vehicle class", options: ["unlevered-single-currency", "broad-dollar-basket", "diversified-currency-basket", "tactical-daily-reset"], definition: "The listed structure family under consideration.", interpretation: "Class rules constrain exposure mechanism, leverage, and reset policy." },
+            { id: "dailyResetPermission", label: "Daily reset", options: ["exclude", "permit-tactical"], definition: "Whether daily-reset products may be considered.", interpretation: "Excluding reset products rejects them regardless of direction match." },
+            { id: "liquidityPolicyId", label: "Liquidity policy", options: [], definition: "The active liquidity requirement.", interpretation: "A vehicle failing liquidity is rejected, never quietly relaxed." },
+            { id: "costPolicyId", label: "Cost policy", options: [], definition: "The active cost requirement.", interpretation: "A vehicle failing cost is rejected, never quietly relaxed." },
+            { id: "evidenceLens", label: "Evidence lens", options: ["balanced", "trend", "carry", "value"], definition: "The weighting lens applied to currency evidence.", interpretation: "The lens reweights evidence; it never creates a missing observation." },
+            { id: "dollarComparison", label: "Dollar comparison", options: ["Broad", "AFE", "EME"], definition: "The dollar basket slot compared against.", interpretation: "Broad, AFE, and EME remain independent and never substitute for one another." }
+        ];
+
+        var EVIDENCE_FAMILY_LABELS = {
+            spot: "Spot",
+            independentStrength: "Independent strength",
+            carry: "Carry",
+            reerValue: "REER value",
+            delayedPositioning: "Delayed positioning",
+            realizedRisk: "Realized risk",
+            events: "Events"
+        };
+
+        var runtime = {
+            currencyUniverse: null,
+            vehicleUniverse: null,
+            vehicleObservations: null,
+            controls: null,
+            owner: null,
+            reader: null,
+            toolRead: null,
+            loadError: null,
+            requestCount: 0,
+            decisionTime: null
+        };
+
+        /* ── text-safe sinks ───────────────────────────────────────────────────────────────────────
+           Every authored model or configuration string reaches the DOM through textContent only, so
+           authored markup can never create an element, attribute, script, or URL. */
+        function setText(node, value) {
+            if (!node) return;
+            node.textContent = value === null || value === undefined ? "" : String(value);
+        }
+
+        function el(tag, className, text) {
+            var node = document.createElement(tag);
+            if (className) node.className = className;
+            if (text !== undefined) setText(node, text);
+            return node;
+        }
+
+        function clear(node) {
+            if (!node) return;
+            while (node.firstChild) node.removeChild(node.firstChild);
+        }
+
+        /* Contextual explanation: what the item IS plus what its CURRENT reading MEANS. Attached as a
+           title plus adjacent accessible text so hover, focus, and screen-reader paths all carry it. */
+        function describe(node, label, definition, currentMeaning) {
+            if (!node) return;
+            var text = label + " — " + definition + " Current reading: " + currentMeaning;
+            node.setAttribute("title", text);
+            node.setAttribute("data-tip", text);
+            node.setAttribute("tabindex", "0");
+            node.setAttribute("aria-label", text);
+        }
+
+        function stateBadgeClass(state) {
+            var map = {
+                "Eligible": "is-eligible",
+                "Caution": "is-caution",
+                "Tactical-Only": "is-tactical",
+                "Rejected": "is-rejected",
+                "Unavailable": "is-unavailable",
+                "No Eligible Vehicle": "is-unavailable"
+            };
+            return "badge " + (map[state] || "is-unavailable");
+        }
+
+        /* ── controls ─────────────────────────────────────────────────────────────────────────────── */
+        function defaultControls(vehicleUniverse) {
+            return {
+                objective: "foreign-currency-strength",
+                subjectId: "JPY",
+                cohort: "G10",
+                horizon: "swing",
+                pairMode: "explicit",
+                base: "JPY",
+                quote: "USD",
+                vehicleClass: "unlevered-single-currency",
+                dailyResetPermission: "exclude",
+                liquidityPolicyId: vehicleUniverse.policies.liquidityPolicies[0].policyId,
+                costPolicyId: vehicleUniverse.policies.costPolicies[0].policyId,
+                evidenceLens: "balanced",
+                dollarComparison: "Broad"
+            };
+        }
+
+        function controlOptions(def, vehicleUniverse) {
+            if (def.id === "liquidityPolicyId") {
+                return vehicleUniverse.policies.liquidityPolicies.map(function (policy) { return policy.policyId; });
+            }
+            if (def.id === "costPolicyId") {
+                return vehicleUniverse.policies.costPolicies.map(function (policy) { return policy.policyId; });
+            }
+            return def.options;
+        }
+
+        function renderControls() {
+            var host = document.getElementById("controlGrid");
+            clear(host);
+            CONTROL_DEFS.forEach(function (def) {
+                var wrap = el("div", "ctl");
+                var label = el("label", null, def.label);
+                label.setAttribute("for", "ctl-" + def.id);
+                var select = document.createElement("select");
+                select.id = "ctl-" + def.id;
+                select.setAttribute("data-control-id", def.id);
+                controlOptions(def, runtime.vehicleUniverse).forEach(function (value) {
+                    var option = document.createElement("option");
+                    option.value = value;
+                    setText(option, value);
+                    if (runtime.controls[def.id] === value) option.selected = true;
+                    select.appendChild(option);
+                });
+                describe(select, def.label, def.definition, def.interpretation + " Selected: " + runtime.controls[def.id] + ".");
+                select.addEventListener("change", function () {
+                    runtime.controls[def.id] = select.value;
+                    recompute();
+                });
+                wrap.appendChild(label);
+                wrap.appendChild(select);
+                host.appendChild(wrap);
+            });
+        }
+
+        /* ── owner computation ─────────────────────────────────────────────────────────────────────
+           Both universes are validated BEFORE any source envelope is read. Under the current source
+           contract no unreviewed source is eligible, so the currency decision is computed from an
+           empty approved-envelope set and reports its own unavailable state honestly. */
+        function computeOwner() {
+            var controls = runtime.controls;
+            var currencyDecision = RLFX.computeCurrencyDecision({
+                decisionTime: runtime.decisionTime,
+                configVersion: runtime.currencyUniverse.version,
+                controls: {
+                    cohort: controls.cohort,
+                    horizon: controls.horizon,
+                    pairMode: controls.pairMode,
+                    base: controls.base,
+                    quote: controls.quote,
+                    evidenceLens: controls.evidenceLens,
+                    dollarComparison: controls.dollarComparison
+                },
+                sourceEnvelopes: [],
+                observations: []
+            });
+            return RLFX.computeFxOwnerDecision({
+                decisionTime: runtime.decisionTime,
+                currencyDecision: currencyDecision,
+                vehicleUniverse: runtime.vehicleUniverse,
+                vehicleObservations: runtime.vehicleObservations,
+                trackingReads: [],
+                controls: JSON.parse(JSON.stringify(controls)),
+                fitPolicyId: runtime.vehicleUniverse.policies.fitPolicyId,
+                trackingPolicyId: runtime.vehicleUniverse.policies.trackingPolicyId
+            });
+        }
+
+        /* ── rendering ─────────────────────────────────────────────────────────────────────────────── */
+        function renderSimple() {
+            var reader = runtime.reader;
+            var host = document.getElementById("simpleKpis");
+            clear(host);
+
+            var rows = [
+                { key: "Decision", value: reader.decision, definition: "The owner decision label for the current research context.", meaning: reader.summary },
+                { key: "Objective", value: reader.objective, definition: "The currency research question being answered.", meaning: "The selected vehicle must express this objective." },
+                { key: "Horizon", value: reader.horizon, definition: "The research holding horizon.", meaning: "Structure and reset rules are enforced against this horizon." },
+                { key: "Evidence state", value: reader.evidenceState, definition: "Whether the evaluated evidence supports a complete recommendation.", meaning: reader.summary },
+                { key: "Evidence cutoff", value: reader.evidenceCutoff, definition: "The latest instant every consumed fact is current through.", meaning: "Simple, Power, and the owner read share this exact cutoff." },
+                { key: "Selected vehicle", value: reader.vehicle === null ? "None" : reader.vehicle.ticker, definition: "The listed vehicle chosen for this objective.", meaning: reader.vehicle === null ? "No vehicle is selected, and no substitute is offered." : "This vehicle satisfies every active constraint." },
+                { key: "Confirmation", value: reader.confirmation === null ? "Unavailable" : reader.confirmation, definition: "The price condition that would confirm the setup.", meaning: reader.confirmation === null ? "No attributable confirmation condition exists in the current evidence." : "Confirmation is fully attributable." },
+                { key: "Invalidation", value: reader.invalidation === null ? "Unavailable" : reader.invalidation, definition: "The price condition that would invalidate the setup.", meaning: reader.invalidation === null ? "No attributable invalidation condition exists in the current evidence." : "Invalidation is fully attributable." }
+            ];
+
+            rows.forEach(function (row) {
+                var card = el("div", "kpi");
+                card.appendChild(el("div", "k", row.key));
+                card.appendChild(el("div", "v", row.value));
+                describe(card, row.key, row.definition, row.meaning);
+                host.appendChild(card);
+            });
+
+            var reasonHost = document.getElementById("simpleReasons");
+            clear(reasonHost);
+            if (reader.reasons.length) {
+                reasonHost.appendChild(el("p", "hint", "Exact reasons this research context does not produce a recommendation:"));
+                var list = el("ul", "reasons");
+                reader.reasons.forEach(function (reason) { list.appendChild(el("li", null, reason)); });
+                reasonHost.appendChild(list);
+            }
+        }
+
+        function vehicleProjection() {
+            /* ONE projection drives the canvas, its pointer and keyboard context, the visible summary,
+               and the accessible table, so those four surfaces can never disagree. */
+            return runtime.owner.vehicleFit.evaluations.map(function (evaluation, index) {
+                return {
+                    pointId: "vehicle-" + evaluation.vehicleId.replace(/[^A-Za-z0-9:._-]/g, "-"),
+                    index: index,
+                    vehicleId: evaluation.vehicleId,
+                    ticker: evaluation.ticker,
+                    state: evaluation.state,
+                    reasonCodes: evaluation.reasonCodes.slice(),
+                    selected: runtime.owner.vehicleFit.selected !== null && runtime.owner.vehicleFit.selected.vehicleId === evaluation.vehicleId
+                };
+            });
+        }
+
+        function renderVehicleTable(projection) {
+            var body = document.getElementById("vehicleTableBody");
+            clear(body);
+            projection.forEach(function (row) {
+                var tr = document.createElement("tr");
+                tr.id = "vehicle-row-" + row.pointId;
+
+                var tdVehicle = document.createElement("td");
+                var tickerSpan = el("span", "tkr", row.ticker);
+                tickerSpan.setAttribute("data-tkr", row.ticker);
+                tdVehicle.appendChild(tickerSpan);
+                if (row.selected) tdVehicle.appendChild(el("span", "badge is-eligible", "Selected"));
+                tr.appendChild(tdVehicle);
+
+                var tdState = document.createElement("td");
+                var badge = el("span", stateBadgeClass(row.state), row.state);
+                describe(badge, row.ticker + " disposition", "The settled fit disposition for this listed vehicle.", row.ticker + " is " + row.state + " under the active constraints.");
+                tdState.appendChild(badge);
+                tr.appendChild(tdState);
+
+                var tdReasons = document.createElement("td");
+                if (row.reasonCodes.length === 0) {
+                    setText(tdReasons, "No rejection reason applies.");
+                } else {
+                    var list = el("ul", "reasons");
+                    row.reasonCodes.forEach(function (code) { list.appendChild(el("li", null, code)); });
+                    tdReasons.appendChild(list);
+                }
+                tr.appendChild(tdReasons);
+
+                body.appendChild(tr);
+            });
+        }
+
+        function chartContextFor(projection, pointId) {
+            var row = null;
+            for (var i = 0; i < projection.length; i++) {
+                if (projection[i].pointId === pointId) { row = projection[i]; break; }
+            }
+            if (!row) return null;
+            var owner = runtime.owner;
+            return {
+                contractVersion: "contextual-tooltip/v1",
+                contextId: TOOL_ID + "/" + row.pointId,
+                triggerKind: "chart-point",
+                label: row.ticker + " disposition",
+                definition: "The settled listed-vehicle fit disposition for " + row.ticker + " under the active objective, horizon, structure, liquidity, and cost constraints.",
+                displayed: {
+                    valueText: row.state,
+                    numericValue: null,
+                    unit: "disposition",
+                    truthState: row.state === "Unavailable" ? "unavailable" : "current"
+                },
+                interpretation: {
+                    text: row.ticker + " is " + row.state + (row.reasonCodes.length ? " because " + row.reasonCodes.join(", ") + "." : "."),
+                    direction: "threshold-dependent",
+                    comparisonBasis: "Reviewed listed-vehicle facts in the closed FX vehicle universe",
+                    window: "Current review window",
+                    thresholdsOrBounds: owner.vehicleFit.evaluations.length ? ["settled evaluation required for every registry member"] : []
+                },
+                provenance: {
+                    ownerId: TOOL_ID,
+                    modelId: "rlfx-owner-decision/v1",
+                    evidenceIdentity: owner.evidenceIdentity,
+                    sourceRefs: [VEHICLE_UNIVERSE_PATH],
+                    observedAsOf: owner.evidenceCutoff,
+                    retrievedOrPublishedAt: owner.computedAt,
+                    freshness: owner.evidenceCutoff === null ? "unavailable" : "fresh",
+                    dataTier: "reviewed-configuration"
+                },
+                uncertainty: {
+                    state: row.state === "Unavailable" ? "unavailable" : "bounded",
+                    rangeOrBand: "",
+                    reason: row.state === "Unavailable" ? "Required listed-vehicle facts are absent or rights-unclear." : "The disposition is settled by the declared fit policy."
+                },
+                limitation: "This disposition describes research eligibility only and is not investment advice.",
+                triggerCondition: "The reviewed facts behind " + row.ticker + " remain current and complete.",
+                invalidationCondition: "A required " + row.ticker + " fact expires, changes rights, or fails an active constraint.",
+                links: {
+                    owner: "fx-regime-relative-value-lab.html",
+                    citation: "",
+                    sameDataTable: "#vehicle-row-" + row.pointId,
+                    ticker: RLTKR && typeof RLTKR.href === "function" ? RLTKR.href(row.ticker) : ""
+                },
+                accessibility: {
+                    conciseLabel: row.ticker + " " + row.state,
+                    longDescriptionId: "rlcontext-" + row.pointId
+                },
+                contextFingerprint: null
+            };
+        }
+
+        function drawVehicleChart(projection) {
+            var canvas = document.getElementById("vehicleChart");
+            if (!canvas || typeof canvas.getContext !== "function") return;
+            var ratio = window.devicePixelRatio || 1;
+            var cssWidth = canvas.clientWidth || 600;
+            var cssHeight = canvas.clientHeight || 260;
+            canvas.width = Math.round(cssWidth * ratio);
+            canvas.height = Math.round(cssHeight * ratio);
+            var ctx = canvas.getContext("2d");
+            ctx.setTransform(ratio, 0, 0, ratio, 0, 0);
+            ctx.clearRect(0, 0, cssWidth, cssHeight);
+
+            var padLeft = 62, padRight = 14, padTop = 16, padBottom = 30;
+            var plotWidth = Math.max(10, cssWidth - padLeft - padRight);
+            var rowHeight = projection.length ? (cssHeight - padTop - padBottom) / projection.length : 0;
+            var tierOrder = ["Eligible", "Caution", "Tactical-Only", "Rejected", "Unavailable"];
+            var tierColor = {
+                "Eligible": "#56d3b0",
+                "Caution": "#e6ba63",
+                "Tactical-Only": "#63c6dd",
+                "Rejected": "#f0806f",
+                "Unavailable": "#9bb0ba"
+            };
+
+            ctx.font = "12px ui-sans-serif, system-ui, sans-serif";
+            ctx.textBaseline = "middle";
+
+            /* Tier axis: position encodes disposition, and the printed label repeats it so colour is
+               never the only carrier of state. */
+            tierOrder.forEach(function (tier, tierIndex) {
+                var x = padLeft + (plotWidth * (tierIndex + 0.5)) / tierOrder.length;
+                ctx.fillStyle = "#9bb0ba";
+                ctx.textAlign = "center";
+                ctx.fillText(tier, x, cssHeight - padBottom + 14);
+                ctx.strokeStyle = "rgba(155,176,186,.18)";
+                ctx.beginPath();
+                ctx.moveTo(x, padTop);
+                ctx.lineTo(x, cssHeight - padBottom);
+                ctx.stroke();
+            });
+
+            projection.forEach(function (row, index) {
+                var y = padTop + rowHeight * (index + 0.5);
+                var tierIndex = tierOrder.indexOf(row.state);
+                if (tierIndex === -1) tierIndex = tierOrder.length - 1;
+                var x = padLeft + (plotWidth * (tierIndex + 0.5)) / tierOrder.length;
+
+                ctx.fillStyle = "#eaf2f6";
+                ctx.textAlign = "right";
+                ctx.fillText(row.ticker, padLeft - 8, y);
+
+                ctx.fillStyle = tierColor[row.state] || "#9bb0ba";
+                ctx.beginPath();
+                ctx.arc(x, y, 7, 0, Math.PI * 2);
+                ctx.fill();
+
+                row.cx = x;
+                row.cy = y;
+            });
+
+            var adapter = {
+                orderedPointIds: projection.map(function (row) { return row.pointId; }),
+                seriesOrder: ["vehicle-disposition"],
+                contextFor: function (pointId) { return chartContextFor(projection, pointId); },
+                tableTargetFor: function (pointId) { return "vehicle-row-" + pointId; },
+                hitTest: function (mx, my) {
+                    var best = null, bestDistance = Infinity;
+                    projection.forEach(function (row) {
+                        if (!Number.isFinite(row.cx) || !Number.isFinite(row.cy)) return;
+                        var distance = (mx - row.cx) * (mx - row.cx) + (my - row.cy) * (my - row.cy);
+                        if (distance < bestDistance) { bestDistance = distance; best = row; }
+                    });
+                    return best && bestDistance <= 40 * 40 ? best.pointId : null;
+                }
+            };
+
+            if (RLCHART && typeof RLCHART.validateStructuredAdapter === "function") {
+                var validation = RLCHART.validateStructuredAdapter(adapter);
+                if (validation.ok && typeof RLCHART.attach === "function") {
+                    RLCHART.attach(canvas, adapter);
+                }
+            }
+
+            /* The visible summary is generated from the SAME projection, so it can never drift from
+               the pixels or the accessible table. */
+            var summary = projection.map(function (row) { return row.ticker + ": " + row.state; }).join(" · ");
+            setText(document.getElementById("vehicleChartSummary"),
+                projection.length
+                    ? "Every registry vehicle, in registry order — " + summary
+                    : "No registry vehicle is present in the current universe.");
+        }
+
+        function renderEvidence() {
+            var body = document.getElementById("evidenceTableBody");
+            clear(body);
+            var evidence = runtime.owner.currencyDecision.evidence || {};
+            Object.keys(EVIDENCE_FAMILY_LABELS).forEach(function (key) {
+                var entry = evidence[key];
+                var state;
+                if (!entry) state = "Unavailable";
+                else if (typeof entry.state === "string") state = entry.state;
+                else if (typeof entry.availability === "string") state = entry.availability;
+                else if (typeof entry.kind === "string") state = entry.kind;
+                else state = "Unavailable";
+
+                var tr = document.createElement("tr");
+                var tdName = document.createElement("td");
+                setText(tdName, EVIDENCE_FAMILY_LABELS[key]);
+                tr.appendChild(tdName);
+
+                var tdState = document.createElement("td");
+                var badge = el("span", stateBadgeClass(state === "Available" ? "Eligible" : "Unavailable"), state);
+                describe(badge, EVIDENCE_FAMILY_LABELS[key] + " evidence", "The independent state of this currency evidence family.", EVIDENCE_FAMILY_LABELS[key] + " is " + state + " and never borrows a value from another family.");
+                tdState.appendChild(badge);
+                tr.appendChild(tdState);
+
+                body.appendChild(tr);
+            });
+        }
+
+        function renderIdentity() {
+            var host = document.getElementById("identityKpis");
+            clear(host);
+            var owner = runtime.owner;
+            var rows = [
+                { key: "Owner decision ID", value: owner.ownerDecisionId, definition: "The identity of the frozen owner decision.", meaning: "Simple, Power, and the owner read all project this exact decision." },
+                { key: "Evidence identity", value: owner.evidenceIdentity, definition: "The semantic identity of the consumed evidence.", meaning: "It changes only when the underlying evidence changes." },
+                { key: "Owner state", value: owner.state, definition: "The overall completeness of the owner decision.", meaning: "State " + owner.state + " reflects the evidence actually available." },
+                { key: "Vehicle fit state", value: owner.vehicleFit.state, definition: "The aggregate listed-vehicle outcome.", meaning: "Vehicle fit is " + owner.vehicleFit.state + " for the active constraints." },
+                { key: "Fresh until", value: owner.freshUntil === null ? "Unavailable" : owner.freshUntil, definition: "The instant the current evidence stops being current.", meaning: owner.freshUntil === null ? "No freshness deadline exists because required evidence is absent." : "The decision is current until this instant." },
+                { key: "Published read", value: runtime.toolRead ? runtime.toolRead.availability : "Unavailable", definition: "The availability of the published owner read.", meaning: "The shared brief consumes exactly this availability." }
+            ];
+            rows.forEach(function (row) {
+                var card = el("div", "kpi");
+                card.appendChild(el("div", "k", row.key));
+                card.appendChild(el("div", "v", row.value));
+                describe(card, row.key, row.definition, row.meaning);
+                host.appendChild(card);
+            });
+        }
+
+        function publishToolRead() {
+            runtime.toolRead = RLFX.projectFxToolReadV2(runtime.owner);
+            if (typeof RLDATA !== "undefined" && RLDATA && typeof RLDATA.putToolRead === "function") {
+                RLDATA.putToolRead(TOOL_ID, {
+                    id: TOOL_ID,
+                    asOf: runtime.toolRead.asOf,
+                    read: runtime.toolRead.read,
+                    metrics: runtime.toolRead.metrics,
+                    deepLink: "fx-regime-relative-value-lab.html"
+                });
+            }
+        }
+
+        function renderUnavailableShell(reasonText) {
+            setText(document.getElementById("vehicleChartSummary"), reasonText);
+            var host = document.getElementById("simpleKpis");
+            clear(host);
+            var card = el("div", "kpi");
+            card.appendChild(el("div", "k", "Decision"));
+            card.appendChild(el("div", "v", "Recommendation unavailable"));
+            describe(card, "Decision", "The owner decision label for the current research context.", reasonText);
+            host.appendChild(card);
+            var reasonHost = document.getElementById("simpleReasons");
+            clear(reasonHost);
+            reasonHost.appendChild(el("p", "hint", reasonText));
+        }
+
+        /* One local computation updates Simple, Power, the accessible surfaces, and the owner read.
+           It issues ZERO data requests: both universes are already resident. */
+        function recompute() {
+            runtime.owner = computeOwner();
+            runtime.reader = RLFX.projectFxReaderDecision(runtime.owner);
+            publishToolRead();
+            renderSimple();
+            var projection = vehicleProjection();
+            renderVehicleTable(projection);
+            drawVehicleChart(projection);
+            renderEvidence();
+            renderIdentity();
+            if (typeof RLTKR !== "undefined" && RLTKR && typeof RLTKR.decorate === "function") RLTKR.decorate(document.body);
+        }
+
+        function fetchJson(path) {
+            runtime.requestCount += 1;
+            return fetch(path, { cache: "no-store" }).then(function (response) {
+                if (!response || !response.ok) throw new Error("FX_UNIVERSE_FETCH_FAILED:" + path);
+                return response.json();
+            });
+        }
+
+        /* Cache-first, delta-only boot: the structured decision paints from resident configuration and
+           this route requests no market source, because the current source contract authorizes none. */
+        function boot() {
+            if (typeof RLAPP !== "undefined" && RLAPP && typeof RLAPP.report === "function") {
+                RLAPP.report("fx-universe", "refreshing", { label: "FX research universes" });
+            }
+            Promise.all([fetchJson(CURRENCY_UNIVERSE_PATH), fetchJson(VEHICLE_UNIVERSE_PATH)])
+                .then(function (values) {
+                    var currencyValidation = RLFX.validateUniverse(values[0]);
+                    if (!currencyValidation.ok) throw new Error("FX_CURRENCY_UNIVERSE_INVALID");
+                    var vehicleValidation = RLFX.validateVehicleUniverse(values[1]);
+                    if (!vehicleValidation.ok) throw new Error("FX_VEHICLE_UNIVERSE_INVALID");
+
+                    runtime.currencyUniverse = currencyValidation.value;
+                    runtime.vehicleUniverse = vehicleValidation.value;
+                    runtime.decisionTime = new Date().toISOString();
+                    runtime.vehicleObservations = values[1].observations.map(function (observation) {
+                        return RLFX.normalizeVehicleObservation(observation, {
+                            universe: values[1],
+                            decisionTime: runtime.decisionTime,
+                            payloadKind: "normalized-structural-fact"
+                        });
+                    });
+                    runtime.controls = defaultControls(runtime.vehicleUniverse);
+                    renderControls();
+                    recompute();
+                    if (typeof RLAPP !== "undefined" && RLAPP && typeof RLAPP.report === "function") {
+                        RLAPP.report("fx-universe", "ready", { label: "FX research universes" });
+                    }
+                    document.body.setAttribute("data-fx-ready", "1");
+                })
+                .catch(function (error) {
+                    runtime.loadError = String(error && error.message ? error.message : error);
+                    renderUnavailableShell("The FX research universes could not be validated, so no owner decision is available. No substitute value is shown.");
+                    if (typeof RLAPP !== "undefined" && RLAPP && typeof RLAPP.report === "function") {
+                        RLAPP.report("fx-universe", "unavailable", { label: "FX research universes" });
+                    }
+                    document.body.setAttribute("data-fx-ready", "error");
+                });
+        }
+
+        window.FxRegimeLab = {
+            toolId: TOOL_ID,
+            controls: function () { return runtime.controls ? JSON.parse(JSON.stringify(runtime.controls)) : null; },
+            setControl: function (id, value) {
+                if (!runtime.controls || !Object.prototype.hasOwnProperty.call(runtime.controls, id)) return false;
+                runtime.controls[id] = value;
+                recompute();
+                return true;
+            },
+            ownerDecision: function () { return runtime.owner; },
+            readerDecision: function () { return runtime.reader; },
+            toolRead: function () { return runtime.toolRead; },
+            projection: function () { return runtime.owner ? vehicleProjection() : []; },
+            requestCount: function () { return runtime.requestCount; },
+            loadError: function () { return runtime.loadError; }
+        };
+
+        var resizeTimer = null;
+        window.addEventListener("resize", function () {
+            if (resizeTimer) clearTimeout(resizeTimer);
+            resizeTimer = setTimeout(function () {
+                if (runtime.owner) drawVehicleChart(vehicleProjection());
+            }, 120);
+        });
+
+        if (document.readyState === "loading") document.addEventListener("DOMContentLoaded", boot);
+        else boot();
+    </script>
+</body>
+
+</html>

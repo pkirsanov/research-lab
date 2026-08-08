@@ -1484,7 +1484,9 @@ Global Rotation preserves valid USD-investor leadership while keeping optional l
 
 ### Change Boundary
 
-**Allowed file families:** `global-rotation-lab.html`, `global-rotation-universe.json`, the `buildGlobalToolRead`/RLFX import hunk in `scripts/brief-refresh.mjs`, additive Global Feature 004 assertions in `scripts/selftest.mjs`, and Scope 3 tests in `tests/fx-regime-relative-value-lab.spec.mjs`.
+**Allowed file families:** `global-rotation-lab.html`, `global-rotation-universe.json`, the `buildGlobalToolRead`/RLFX import hunk in `scripts/brief-refresh.mjs`, additive Global Feature 004 assertions in `scripts/selftest.mjs`, the `rlfx.js` exclusion entry in `site-exclusions.json`, and Scope 3 tests in `tests/fx-regime-relative-value-lab.spec.mjs`.
+
+**Measured boundary correction.** `site-exclusions.json` was not listed originally. It must be, because plan item 1 makes the browser Global page consume `RLFX`. `global-rotation-lab.html` is a registered public page, `scripts/build-pages-site.mjs` omits every excluded path from the deployed tree, and `_site/rlfx.js` does not exist today. Landing the migration without removing that one exclusion entry would ship a registered page whose script 404s in production. Only the `rlfx.js` entry changes; `fx-regime-universe.json` stays excluded because Global consumes `global-rotation-universe.json`, which is already public.
 
 **Allowed shared-file hunks:** remove the FX score control and use from Global HTML; add separate USD-leadership/decomposition fields and owner link; migrate only `globalRotationLabState` v1 to v2; replace only currency proxy/orientation fields in the Global universe with shared currency codes; replace only the extracted Global math/read builder in `brief-refresh.mjs`; add exact Feature 004 assertions without changing existing Brief/Causal/Bond logic. Before editing `global-rotation-lab.html` or `scripts/selftest.mjs`, their report collision baseline must still match.
 
@@ -1495,6 +1497,7 @@ Global Rotation preserves valid USD-investor leadership while keeping optional l
 - `global-rotation-lab.html`
 - `global-rotation-universe.json`
 - `scripts/brief-refresh.mjs`
+- `site-exclusions.json` — remove only the `rlfx.js` entry, so the registered Global page can load the module it now consumes
 
 ### Measured Migration Readiness
 

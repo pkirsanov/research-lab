@@ -23,10 +23,6 @@
       "reason": "Private portfolio foundation is consumed only by the excluded in-progress Portfolio page; tests are not production consumers."
     },
     {
-      "path": "rlfx.js",
-      "reason": "No registered production page consumes this shared module; tests are not production consumers."
-    },
-    {
       "path": "fx-regime-relative-value-lab.html",
       "reason": "Feature 004 is in progress and its Scope 5 declares registration as the atomic release boundary; registration and exclusion are mutually exclusive, so the shared four-view switcher activates only at that cutover."
     },

@@ -2,7 +2,7 @@
     "version": "1.0",
     "asOf": "2026-07-11",
     "source": "Curated liquid US-listed country and regional ETF proxies. Prices, FX returns, trends, volatility, drawdown, and correlations are computed in-browser from the shared RLDATA daily-bar cache; no model outputs are stored here.",
-    "note": "currencyProxy uses Yahoo Finance symbols. fxInverse=true means the quoted pair rises when the local currency weakens against USD, so the model flips its return before treating it as local-currency strength. Country ETF returns are USD returns and already embed currency translation; FX is therefore a confirmation signal, not an additive return forecast.",
+    "note": "Each entry declares its ISO currency and the orientation its FX source actually quotes, so orientation is derived once rather than duplicated in a separate inverse flag. Country ETF returns are USD returns and already embed currency translation; FX is a separate decomposition product and never contributes to the country score or rank.",
     "defaultBenchmark": "ACWI",
     "benchmarks": [
         {
@@ -29,8 +29,8 @@
             "region": "Asia",
             "country": "South Korea",
             "session": "Asia/Seoul · KRX closes 15:30 local",
-            "currencyProxy": "KRW=X",
-            "fxInverse": true
+            "currency": "KRW",
+            "fxSource": { "symbol": "KRW=X", "base": "USD", "quote": "KRW" }
         },
         {
             "ticker": "EWS",
@@ -39,8 +39,8 @@
             "region": "Asia",
             "country": "Singapore",
             "session": "Asia/Singapore · SGX closes 17:00 local",
-            "currencyProxy": "SGD=X",
-            "fxInverse": true
+            "currency": "SGD",
+            "fxSource": { "symbol": "SGD=X", "base": "USD", "quote": "SGD" }
         },
         {
             "ticker": "EPHE",
@@ -49,8 +49,8 @@
             "region": "Asia",
             "country": "Philippines",
             "session": "Asia/Manila · PSE closes 15:00 local",
-            "currencyProxy": "PHP=X",
-            "fxInverse": true
+            "currency": "PHP",
+            "fxSource": { "symbol": "PHP=X", "base": "USD", "quote": "PHP" }
         },
         {
             "ticker": "EWG",
@@ -59,8 +59,8 @@
             "region": "Europe",
             "country": "Germany",
             "session": "Europe/Berlin · Xetra closes 17:30 local",
-            "currencyProxy": "EURUSD=X",
-            "fxInverse": false
+            "currency": "EUR",
+            "fxSource": { "symbol": "EURUSD=X", "base": "EUR", "quote": "USD" }
         },
         {
             "ticker": "EWJ",
@@ -69,8 +69,8 @@
             "region": "Asia",
             "country": "Japan",
             "session": "Asia/Tokyo · TSE closes 15:30 local",
-            "currencyProxy": "JPY=X",
-            "fxInverse": true
+            "currency": "JPY",
+            "fxSource": { "symbol": "JPY=X", "base": "USD", "quote": "JPY" }
         },
         {
             "ticker": "EWT",
@@ -79,8 +79,8 @@
             "region": "Asia",
             "country": "Taiwan",
             "session": "Asia/Taipei · TWSE closes 13:30 local",
-            "currencyProxy": "TWD=X",
-            "fxInverse": true
+            "currency": "TWD",
+            "fxSource": { "symbol": "TWD=X", "base": "USD", "quote": "TWD" }
         },
         {
             "ticker": "INDA",
@@ -89,8 +89,8 @@
             "region": "Asia",
             "country": "India",
             "session": "Asia/Kolkata · NSE closes 15:30 local",
-            "currencyProxy": "INR=X",
-            "fxInverse": true
+            "currency": "INR",
+            "fxSource": { "symbol": "INR=X", "base": "USD", "quote": "INR" }
         },
         {
             "ticker": "MCHI",
@@ -99,8 +99,8 @@
             "region": "Asia",
             "country": "China",
             "session": "Asia/Shanghai · mainland cash closes 15:00 local",
-            "currencyProxy": "CNY=X",
-            "fxInverse": true
+            "currency": "CNY",
+            "fxSource": { "symbol": "CNY=X", "base": "USD", "quote": "CNY" }
         },
         {
             "ticker": "EWU",
@@ -109,8 +109,8 @@
             "region": "Europe",
             "country": "United Kingdom",
             "session": "Europe/London · LSE closes 16:30 local",
-            "currencyProxy": "GBPUSD=X",
-            "fxInverse": false
+            "currency": "GBP",
+            "fxSource": { "symbol": "GBPUSD=X", "base": "GBP", "quote": "USD" }
         },
         {
             "ticker": "EWA",
@@ -119,8 +119,8 @@
             "region": "Asia",
             "country": "Australia",
             "session": "Australia/Sydney · ASX closes 16:00 local",
-            "currencyProxy": "AUDUSD=X",
-            "fxInverse": false
+            "currency": "AUD",
+            "fxSource": { "symbol": "AUDUSD=X", "base": "AUD", "quote": "USD" }
         },
         {
             "ticker": "EWC",
@@ -129,8 +129,8 @@
             "region": "Americas",
             "country": "Canada",
             "session": "America/Toronto · TSX closes 16:00 local",
-            "currencyProxy": "CAD=X",
-            "fxInverse": true
+            "currency": "CAD",
+            "fxSource": { "symbol": "CAD=X", "base": "USD", "quote": "CAD" }
         },
         {
             "ticker": "EWZ",
@@ -139,8 +139,8 @@
             "region": "Americas",
             "country": "Brazil",
             "session": "America/Sao_Paulo · B3 closes 17:00 local",
-            "currencyProxy": "BRL=X",
-            "fxInverse": true
+            "currency": "BRL",
+            "fxSource": { "symbol": "BRL=X", "base": "USD", "quote": "BRL" }
         },
         {
             "ticker": "EWW",
@@ -149,8 +149,8 @@
             "region": "Americas",
             "country": "Mexico",
             "session": "America/Mexico_City · BMV closes 15:00 local",
-            "currencyProxy": "MXN=X",
-            "fxInverse": true
+            "currency": "MXN",
+            "fxSource": { "symbol": "MXN=X", "base": "USD", "quote": "MXN" }
         },
         {
             "ticker": "EFA",
@@ -159,8 +159,8 @@
             "region": "Developed ex-US",
             "country": "Developed ex-US control",
             "session": "Composite · Europe and Asia local closes",
-            "currencyProxy": "DX-Y.NYB",
-            "fxInverse": true
+            "currency": null,
+            "fxSource": null
         },
         {
             "ticker": "EEM",
@@ -169,8 +169,8 @@
             "region": "Emerging Markets",
             "country": "Emerging-markets control",
             "session": "Composite · emerging-market local closes",
-            "currencyProxy": "DX-Y.NYB",
-            "fxInverse": true
+            "currency": null,
+            "fxSource": null
         },
         {
             "ticker": "ACWI",
@@ -179,8 +179,8 @@
             "region": "Global",
             "country": "All-country global control",
             "session": "Composite · global local closes",
-            "currencyProxy": "DX-Y.NYB",
-            "fxInverse": true
+            "currency": null,
+            "fxSource": null
         }
     ]
 }

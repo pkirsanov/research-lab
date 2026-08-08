@@ -972,17 +972,6 @@
                     </div>
                 </div>
                 <div class="control">
-                    <label for="fxWeight"
-                        title="FX is a separate confirmation input. The country ETF's USD return already includes currency translation, so a high setting intentionally increases overlap risk.">FX
-                        confirmation weight</label>
-                    <div class="range-line">
-                        <input id="fxWeight" type="range" min="0" max="30" step="1" value="14"
-                            aria-label="FX confirmation weight, percent">
-                        <output id="fxWeightValue" for="fxWeight"
-                            title="Current share of model weight assigned to local-currency strength">14%</output>
-                    </div>
-                </div>
-                <div class="control">
                     <label for="trendSelect"
                         title="Higher strictness demands stronger agreement among price and the 20-, 50-, and 200-day moving averages.">Trend
                         strictness</label>
@@ -1045,7 +1034,7 @@
 
         <section class="panel pw">
             <div class="panel-head">
-                <h2 title="Country and control ETFs ranked by the transparent globalCountryScore model">Model
+                <h2 title="Country and control ETFs ranked by the equity-only RLFX leadership score">Model
                     leaderboard</h2>
                 <span class="hint" id="leaderboardHint" title="Current model specification and data coverage">No scored
                     rows yet</span>
@@ -1162,6 +1151,7 @@
 
     <script src="rlg.js" defer></script>
     <script src="rldata.js?v=20260712-4" defer></script>
+    <script src="rlfx.js" defer></script>
     <script src="rlchart.js" defer></script>
     <script src="rlticker.js" defer></script>
     <script src="rlapp.js?v=20260712-4" defer></script>
@@ -1237,39 +1227,12 @@
                 return { price: price, ma20: ma20, ma50: ma50, ma200: ma200, above: above, stackUp: stackUp, stackDown: stackDown, pass: pass, score: score, label: label };
             }
 
-            function globalFxConfirm(fxRows, lookback, fxInverse, equityRelativePct) {
-                if (!Array.isArray(fxRows) || !Number.isFinite(lookback) || lookback < 1 || fxRows.length < lookback + 1) return null;
-                var last = fxRows[fxRows.length - 1], first = fxRows[fxRows.length - 1 - Math.floor(lookback)];
-                if (!last || !first || !Number.isFinite(last.c) || !Number.isFinite(first.c) || first.c <= 0) return null;
-                var rawPct = (last.c / first.c - 1) * 100;
-                var strengthPct = fxInverse ? -rawPct : rawPct;
-                var scale = Math.max(2.5, 3 * Math.sqrt(lookback / 21));
-                var score = Math.max(-1, Math.min(1, strengthPct / scale));
-                var fxDirection = strengthPct > 0.35 ? 1 : strengthPct < -0.35 ? -1 : 0;
-                var equityDirection = Number.isFinite(equityRelativePct) ? (equityRelativePct > 0.25 ? 1 : equityRelativePct < -0.25 ? -1 : 0) : 0;
-                var confirmation = fxDirection && equityDirection ? (fxDirection === equityDirection ? 1 : -1) : 0;
-                var label = confirmation > 0 ? (equityDirection > 0 ? "Confirms leadership" : "Confirms weakness") : confirmation < 0 ? (equityDirection > 0 ? "FX headwind" : "FX offsets weakness") : "FX neutral";
-                return { rawPct: rawPct, strengthPct: strengthPct, score: score, confirmation: confirmation, label: label };
-            }
-
-            function globalCountryScore(metrics, config) {
-                metrics = metrics || {}; config = config || {};
-                if (!Number.isFinite(metrics.momentum)) return null;
-                var fxWeight = Number.isFinite(config.fxWeight) ? Math.max(0, Math.min(0.4, config.fxWeight)) : 0.14;
-                var posture = config.posture === "offense" || config.posture === "defense" ? config.posture : "balanced";
-                var base = posture === "offense" ? { momentum: 0.70, trend: 0.22, risk: 0.08 } : posture === "defense" ? { momentum: 0.42, trend: 0.30, risk: 0.28 } : { momentum: 0.56, trend: 0.26, risk: 0.18 };
-                var remaining = 1 - fxWeight;
-                var weights = { momentum: base.momentum * remaining, trend: base.trend * remaining, risk: base.risk * remaining, fx: fxWeight };
-                var keys = ["momentum", "trend", "risk", "fx"], weighted = 0, usedWeight = 0, used = 0, i, key, value;
-                for (i = 0; i < keys.length; i++) {
-                    key = keys[i]; value = metrics[key];
-                    if (!Number.isFinite(value)) continue;
-                    weighted += Math.max(-1, Math.min(1, value)) * weights[key];
-                    usedWeight += weights[key]; used++;
-                }
-                if (!(usedWeight > 0)) return null;
-                var raw = weighted / usedWeight;
-                return { score: Math.max(0, Math.min(100, 50 + raw * 50)), raw: raw, coverage: used / keys.length, weights: weights };
+            /* Posture weights are equity-only. Raw FX has no weight here and cannot reach the score:
+               RLFX.scoreCountryLeadership rejects an fx key outright. */
+            function postureWeights(posture) {
+                if (posture === "offense") return { momentum: 0.70, trend: 0.22, risk: 0.08 };
+                if (posture === "defense") return { momentum: 0.42, trend: 0.30, risk: 0.28 };
+                return { momentum: 0.56, trend: 0.26, risk: 0.18 };
             }
 
             function globalMomentumScore(rel21, rel63, rel126, lookback) {
@@ -1307,27 +1270,29 @@
                     { ticker: "EEM", name: "iShares MSCI Emerging Markets ETF", role: "Emerging-markets control" }
                 ],
                 entries: [
-                    { ticker: "EWY", name: "iShares MSCI South Korea ETF", kind: "country", region: "Asia", country: "South Korea", session: "Asia/Seoul · KRX closes 15:30 local", currencyProxy: "KRW=X", fxInverse: true },
-                    { ticker: "EWS", name: "iShares MSCI Singapore ETF", kind: "country", region: "Asia", country: "Singapore", session: "Asia/Singapore · SGX closes 17:00 local", currencyProxy: "SGD=X", fxInverse: true },
-                    { ticker: "EPHE", name: "iShares MSCI Philippines ETF", kind: "country", region: "Asia", country: "Philippines", session: "Asia/Manila · PSE closes 15:00 local", currencyProxy: "PHP=X", fxInverse: true },
-                    { ticker: "EWG", name: "iShares MSCI Germany ETF", kind: "country", region: "Europe", country: "Germany", session: "Europe/Berlin · Xetra closes 17:30 local", currencyProxy: "EURUSD=X", fxInverse: false },
-                    { ticker: "EWJ", name: "iShares MSCI Japan ETF", kind: "country", region: "Asia", country: "Japan", session: "Asia/Tokyo · TSE closes 15:30 local", currencyProxy: "JPY=X", fxInverse: true },
-                    { ticker: "EWT", name: "iShares MSCI Taiwan ETF", kind: "country", region: "Asia", country: "Taiwan", session: "Asia/Taipei · TWSE closes 13:30 local", currencyProxy: "TWD=X", fxInverse: true },
-                    { ticker: "INDA", name: "iShares MSCI India ETF", kind: "country", region: "Asia", country: "India", session: "Asia/Kolkata · NSE closes 15:30 local", currencyProxy: "INR=X", fxInverse: true },
-                    { ticker: "MCHI", name: "iShares MSCI China ETF", kind: "country", region: "Asia", country: "China", session: "Asia/Shanghai · mainland cash closes 15:00 local", currencyProxy: "CNY=X", fxInverse: true },
-                    { ticker: "EWU", name: "iShares MSCI United Kingdom ETF", kind: "country", region: "Europe", country: "United Kingdom", session: "Europe/London · LSE closes 16:30 local", currencyProxy: "GBPUSD=X", fxInverse: false },
-                    { ticker: "EWA", name: "iShares MSCI Australia ETF", kind: "country", region: "Asia", country: "Australia", session: "Australia/Sydney · ASX closes 16:00 local", currencyProxy: "AUDUSD=X", fxInverse: false },
-                    { ticker: "EWC", name: "iShares MSCI Canada ETF", kind: "country", region: "Americas", country: "Canada", session: "America/Toronto · TSX closes 16:00 local", currencyProxy: "CAD=X", fxInverse: true },
-                    { ticker: "EWZ", name: "iShares MSCI Brazil ETF", kind: "country", region: "Americas", country: "Brazil", session: "America/Sao_Paulo · B3 closes 17:00 local", currencyProxy: "BRL=X", fxInverse: true },
-                    { ticker: "EWW", name: "iShares MSCI Mexico ETF", kind: "country", region: "Americas", country: "Mexico", session: "America/Mexico_City · BMV closes 15:00 local", currencyProxy: "MXN=X", fxInverse: true },
-                    { ticker: "EFA", name: "iShares MSCI EAFE ETF", kind: "control", region: "Developed ex-US", country: "Developed ex-US control", session: "Composite · Europe and Asia local closes", currencyProxy: "DX-Y.NYB", fxInverse: true },
-                    { ticker: "EEM", name: "iShares MSCI Emerging Markets ETF", kind: "control", region: "Emerging Markets", country: "Emerging-markets control", session: "Composite · emerging-market local closes", currencyProxy: "DX-Y.NYB", fxInverse: true },
-                    { ticker: "ACWI", name: "iShares MSCI ACWI ETF", kind: "control", region: "Global", country: "All-country global control", session: "Composite · global local closes", currencyProxy: "DX-Y.NYB", fxInverse: true }
+                    { ticker: "EWY", name: "iShares MSCI South Korea ETF", kind: "country", region: "Asia", country: "South Korea", session: "Asia/Seoul · KRX closes 15:30 local", currency: "KRW", fxSource: { symbol: "KRW=X", base: "USD", quote: "KRW" } },
+                    { ticker: "EWS", name: "iShares MSCI Singapore ETF", kind: "country", region: "Asia", country: "Singapore", session: "Asia/Singapore · SGX closes 17:00 local", currency: "SGD", fxSource: { symbol: "SGD=X", base: "USD", quote: "SGD" } },
+                    { ticker: "EPHE", name: "iShares MSCI Philippines ETF", kind: "country", region: "Asia", country: "Philippines", session: "Asia/Manila · PSE closes 15:00 local", currency: "PHP", fxSource: { symbol: "PHP=X", base: "USD", quote: "PHP" } },
+                    { ticker: "EWG", name: "iShares MSCI Germany ETF", kind: "country", region: "Europe", country: "Germany", session: "Europe/Berlin · Xetra closes 17:30 local", currency: "EUR", fxSource: { symbol: "EURUSD=X", base: "EUR", quote: "USD" } },
+                    { ticker: "EWJ", name: "iShares MSCI Japan ETF", kind: "country", region: "Asia", country: "Japan", session: "Asia/Tokyo · TSE closes 15:30 local", currency: "JPY", fxSource: { symbol: "JPY=X", base: "USD", quote: "JPY" } },
+                    { ticker: "EWT", name: "iShares MSCI Taiwan ETF", kind: "country", region: "Asia", country: "Taiwan", session: "Asia/Taipei · TWSE closes 13:30 local", currency: "TWD", fxSource: { symbol: "TWD=X", base: "USD", quote: "TWD" } },
+                    { ticker: "INDA", name: "iShares MSCI India ETF", kind: "country", region: "Asia", country: "India", session: "Asia/Kolkata · NSE closes 15:30 local", currency: "INR", fxSource: { symbol: "INR=X", base: "USD", quote: "INR" } },
+                    { ticker: "MCHI", name: "iShares MSCI China ETF", kind: "country", region: "Asia", country: "China", session: "Asia/Shanghai · mainland cash closes 15:00 local", currency: "CNY", fxSource: { symbol: "CNY=X", base: "USD", quote: "CNY" } },
+                    { ticker: "EWU", name: "iShares MSCI United Kingdom ETF", kind: "country", region: "Europe", country: "United Kingdom", session: "Europe/London · LSE closes 16:30 local", currency: "GBP", fxSource: { symbol: "GBPUSD=X", base: "GBP", quote: "USD" } },
+                    { ticker: "EWA", name: "iShares MSCI Australia ETF", kind: "country", region: "Asia", country: "Australia", session: "Australia/Sydney · ASX closes 16:00 local", currency: "AUD", fxSource: { symbol: "AUDUSD=X", base: "AUD", quote: "USD" } },
+                    { ticker: "EWC", name: "iShares MSCI Canada ETF", kind: "country", region: "Americas", country: "Canada", session: "America/Toronto · TSX closes 16:00 local", currency: "CAD", fxSource: { symbol: "CAD=X", base: "USD", quote: "CAD" } },
+                    { ticker: "EWZ", name: "iShares MSCI Brazil ETF", kind: "country", region: "Americas", country: "Brazil", session: "America/Sao_Paulo · B3 closes 17:00 local", currency: "BRL", fxSource: { symbol: "BRL=X", base: "USD", quote: "BRL" } },
+                    { ticker: "EWW", name: "iShares MSCI Mexico ETF", kind: "country", region: "Americas", country: "Mexico", session: "America/Mexico_City · BMV closes 15:00 local", currency: "MXN", fxSource: { symbol: "MXN=X", base: "USD", quote: "MXN" } },
+                    { ticker: "EFA", name: "iShares MSCI EAFE ETF", kind: "control", region: "Developed ex-US", country: "Developed ex-US control", session: "Composite · Europe and Asia local closes", currency: null, fxSource: null },
+                    { ticker: "EEM", name: "iShares MSCI Emerging Markets ETF", kind: "control", region: "Emerging Markets", country: "Emerging-markets control", session: "Composite · emerging-market local closes", currency: null, fxSource: null },
+                    { ticker: "ACWI", name: "iShares MSCI ACWI ETF", kind: "control", region: "Global", country: "All-country global control", session: "Composite · global local closes", currency: null, fxSource: null }
                 ]
             };
 
             var STORAGE_KEY = "globalRotationLabState";
-            var state = { mode: "simple", benchmark: "ACWI", lookback: 63, fxWeight: 0.14, strictness: "balanced", posture: "balanced" };
+            var STATE_SCHEMA_VERSION = 2;
+            var AGREEMENT_DEADBAND_PCT = 0.25;
+            var state = { schemaVersion: STATE_SCHEMA_VERSION, mode: "simple", benchmark: "ACWI", lookback: 63, strictness: "balanced", posture: "balanced" };
             var universe = FALLBACK;
             var modelRows = [];
             var hydration = { active: false, done: 0, total: 0, failed: 0 };
@@ -1350,12 +1315,15 @@
                 try {
                     var saved = JSON.parse(localStorage.getItem(STORAGE_KEY) || "null");
                     if (!saved) return;
+                    /* Schema v1 and v2 both read here, but only allowlisted non-FX controls are copied.
+                       The retired FX score lever is discarded permanently: the score is equity-only, so a
+                       persisted FX weight must not survive a reload. */
                     if (saved.mode === "simple" || saved.mode === "power") state.mode = saved.mode;
                     if (["ACWI", "EFA", "EEM"].indexOf(saved.benchmark) >= 0) state.benchmark = saved.benchmark;
                     if ([21, 63, 126].indexOf(Number(saved.lookback)) >= 0) state.lookback = Number(saved.lookback);
-                    if (Number.isFinite(Number(saved.fxWeight))) state.fxWeight = Math.max(0, Math.min(0.30, Number(saved.fxWeight)));
                     if (["flexible", "balanced", "strict"].indexOf(saved.strictness) >= 0) state.strictness = saved.strictness;
                     if (["offense", "balanced", "defense"].indexOf(saved.posture) >= 0) state.posture = saved.posture;
+                    state.schemaVersion = STATE_SCHEMA_VERSION;
                 } catch (error) { }
             }
 
@@ -1370,13 +1338,11 @@
 
             function buildModelRows() {
                 var benchmarkRows = getBars(state.benchmark), entries = universe.entries || [];
-                return entries.map(function (entry) {
+                var decisionTime = new Date().toISOString();
+                var prepared = entries.map(function (entry) {
                     var rows = getBars(entry.ticker), rel21 = relativeReturn(rows, benchmarkRows, 21), rel63 = relativeReturn(rows, benchmarkRows, 63), rel126 = relativeReturn(rows, benchmarkRows, 126);
-                    var primary = state.lookback === 21 ? rel21 : state.lookback === 126 ? rel126 : rel63;
                     var trend = globalTrendState(rows, state.strictness), vol = globalAnnualVol(rows, 63), drawdown = globalMaxDrawdown(rows, 252);
-                    var fxRows = getBars(entry.currencyProxy), fx = globalFxConfirm(fxRows, state.lookback, entry.fxInverse, primary);
-                    var momentum = globalMomentumScore(rel21, rel63, rel126, state.lookback), risk = globalRiskQuality(vol, drawdown);
-                    var scored = globalCountryScore({ momentum: momentum, trend: trend && trend.score, risk: risk, fx: fx && fx.score }, { fxWeight: state.fxWeight, posture: state.posture });
+                    var fxRows = entry.fxSource ? getBars(entry.fxSource.symbol) : [];
                     return {
                         entry: entry,
                         rows: rows,
@@ -1387,13 +1353,83 @@
                         trend: trend,
                         vol: vol,
                         drawdown: drawdown,
-                        fx: fx,
-                        momentum: momentum,
-                        risk: risk,
-                        scoreResult: scored,
-                        score: scored && scored.score,
+                        momentum: globalMomentumScore(rel21, rel63, rel126, state.lookback),
+                        risk: globalRiskQuality(vol, drawdown),
                         asOf: rows.length ? rows[rows.length - 1].t : null
                     };
+                });
+
+                /* RLFX owns scoring, USD leadership, and decomposition. Score is equity-only, so a raw
+                   FX reversal changes decomposition and agreement only — never score, rank, or spread. */
+                function countryInput(row) {
+                    return {
+                        ticker: row.entry.ticker,
+                        country: row.entry.country,
+                        currency: row.entry.currency || row.entry.ticker,
+                        etfRows: row.rows,
+                        benchmarkRows: benchmarkRows,
+                        fxRows: row.entry.fxSource ? row.fxRows : [],
+                        fxSourceOrientation: row.entry.fxSource
+                            ? { base: row.entry.fxSource.base, quote: row.entry.fxSource.quote }
+                            : null,
+                        momentum: row.momentum,
+                        trend: row.trend && row.trend.score,
+                        risk: row.risk,
+                        usdFreshUntil: null,
+                        fxFreshUntil: null
+                    };
+                }
+
+                var scorable = prepared.filter(function (row) { return Number.isFinite(row.momentum); });
+                var rotation = null;
+                if (scorable.length) {
+                    try {
+                        rotation = RLFX.computeGlobalRotation({
+                            decisionTime: decisionTime,
+                            horizonSessions: state.lookback,
+                            posture: state.posture,
+                            benchmark: state.benchmark,
+                            postureWeights: postureWeights(state.posture),
+                            agreementDeadbandPct: AGREEMENT_DEADBAND_PCT,
+                            countries: scorable.map(countryInput)
+                        });
+                    } catch (error) {
+                        rotation = null;
+                    }
+                }
+
+                var byTicker = {};
+                if (rotation) rotation.ranked.forEach(function (r) { byTicker[r.ticker] = r; });
+
+                /* computeGlobalRotation exposes full two-leg and three-leg detail only on `leader`,
+                   so per-country detail comes from a single-country call. Scoring is per-country
+                   independent, so the score is identical either way and ranking stays RLFX-owned. */
+                function detailFor(row) {
+                    if (!Number.isFinite(row.momentum)) return null;
+                    try {
+                        var one = RLFX.computeGlobalRotation({
+                            decisionTime: decisionTime,
+                            horizonSessions: state.lookback,
+                            posture: state.posture,
+                            benchmark: state.benchmark,
+                            postureWeights: postureWeights(state.posture),
+                            agreementDeadbandPct: AGREEMENT_DEADBAND_PCT,
+                            countries: [countryInput(row)]
+                        });
+                        return one.leader;
+                    } catch (error) { return null; }
+                }
+
+                return prepared.map(function (row) {
+                    var scored = byTicker[row.entry.ticker] || null;
+                    var detail = detailFor(row);
+                    row.rotation = rotation;
+                    row.scoreResult = scored;
+                    row.score = scored ? scored.score : null;
+                    row.scoreCoverage = scored ? scored.scoreCoverage : null;
+                    row.usdLeadership = detail ? detail.usdLeadership : null;
+                    row.decomposition = detail ? detail.decomposition : null;
+                    return row;
                 }).sort(function (a, b) {
                     var av = Number.isFinite(a.score) ? a.score : -Infinity, bv = Number.isFinite(b.score) ? b.score : -Infinity;
                     return bv - av;
@@ -1413,8 +1449,8 @@
                                              produced against the CURRENTLY SELECTED benchmark, in
                                              percentage points (the exact unit the module's
                                              countryHorizonMomentum scales by 8 / 14 / 22),
-                 • fxScore                -> row.fx.score, the page's own globalFxConfirm confirmation
-                                             score already clamped to [-1,1],
+                 • fxScore                -> null; FX no longer contributes to the score. The
+                                             separate decomposition product carries FX,
                  • vol                    -> row.vol, the page's own globalAnnualVol annualized
                                              realized volatility as a FRACTION (the unit the module's
                                              countryVolComponent reads via (vol - 0.10) / 0.30),
@@ -1459,7 +1495,7 @@
                         rel21: Number.isFinite(row.rel21) ? row.rel21 : null,
                         rel63: Number.isFinite(row.rel63) ? row.rel63 : null,
                         rel126: Number.isFinite(row.rel126) ? row.rel126 : null,
-                        fxScore: row.fx && Number.isFinite(row.fx.score) ? row.fx.score : null,
+                        fxScore: null,
                         vol: Number.isFinite(row.vol) ? row.vol : null,
                         drawdown: Number.isFinite(row.drawdown) ? row.drawdown : null,
                         trendScore: row.trend && Number.isFinite(row.trend.score) ? row.trend.score : null,
@@ -1501,7 +1537,7 @@
                 var primary = primaryRelative(row);
                 if (Number.isFinite(primary)) pieces.push(fmtPct(primary, 1) + " vs control over " + state.lookback + "d");
                 if (row.trend) pieces.push(row.trend.label.toLowerCase());
-                if (row.fx) pieces.push(row.fx.label.toLowerCase());
+                if (row.decomposition && row.decomposition.state === "ready") pieces.push(row.decomposition.relationship.toLowerCase());
                 if (Number.isFinite(row.vol)) pieces.push((row.vol * 100).toFixed(0) + "% realized vol");
                 return pieces.join(" · ") || "Insufficient observations.";
             }
@@ -1524,7 +1560,7 @@
                 if (!top) {
                     byId("verdict").textContent = "Hydrating the global tape…";
                     byId("verdictSub").textContent = hydration.active ? "Daily ETF and FX series are filling from the shared cache and delta fetch: " + hydration.done + " of " + hydration.total + " complete." : "No country has enough cached history yet. Automatic hydration runs on boot.";
-                    byId("simpleMetrics").innerHTML = metricHtml("Coverage", "0 / 13", "neutral", "No country has a complete score yet") + metricHtml("Primary clock", state.lookback + "d", "", "Selected relative-momentum horizon") + metricHtml("FX weight", Math.round(state.fxWeight * 100) + "%", "", "Current FX confirmation model weight") + metricHtml("Trend gate", esc(state.strictness), "", "Current trend strictness") + metricHtml("Risk posture", esc(state.posture), "", "Current risk posture");
+                    byId("simpleMetrics").innerHTML = metricHtml("Coverage", "0 / 13", "neutral", "No country has a complete score yet") + metricHtml("Primary clock", state.lookback + "d", "", "Selected relative-momentum horizon") + metricHtml("Trend gate", esc(state.strictness), "", "Current trend strictness") + metricHtml("Risk posture", esc(state.posture), "", "Current risk posture");
                     byId("shortlist").innerHTML = '<div class="empty">Waiting for enough daily history to rank country proxies.</div>';
                     byId("queueHint").textContent = "Automatic hydration in progress";
                     byId("narrative").textContent = "The page will rank countries as soon as the shared cache contains enough overlapping ETF and benchmark history. Missing FX lowers model coverage but does not fabricate a neutral currency signal.";
@@ -1541,7 +1577,7 @@
                     metricHtml("Model score", top.score.toFixed(0) + "/100", top.score >= 56 ? "pos" : "neg", "Composite country score under the current control settings") +
                     metricHtml("Relative " + state.lookback + "d", fmtPct(primary, 1), valueClass(primary), "Country ETF return minus " + state.benchmark + " over the selected horizon") +
                     metricHtml("Trend", esc(top.trend ? top.trend.label : "—"), top.trend && top.trend.pass ? "pos" : "neg", "Price and 20/50/200-day moving-average structure") +
-                    metricHtml("Local FX", top.fx ? fmtPct(top.fx.strengthPct, 1) : "—", top.fx ? valueClass(top.fx.strengthPct) : "neutral", "Local-currency strength versus USD; positive is supportive") +
+                    metricHtml("Local FX", top.decomposition && top.decomposition.state === "ready" ? fmtPct(top.decomposition.fxReturn * 100, 1) : "Unavailable", top.decomposition && top.decomposition.state === "ready" ? valueClass(top.decomposition.fxReturn) : "neutral", "FX return over the decomposition's own exact common dates; it never contributes to the score") +
                     metricHtml("Risk", Number.isFinite(top.vol) ? (top.vol * 100).toFixed(0) + "% vol" : "—", Number.isFinite(top.risk) ? valueClass(top.risk) : "neutral", "63-day annualized realized volatility; max drawdown is " + (Number.isFinite(top.drawdown) ? (top.drawdown * 100).toFixed(1) + "%" : "unavailable"));
 
                 byId("simpleCaveat").innerHTML = "Latest US ETF bar: <b title=\"Daily bar date used for the leader\">" + asOfText(top.asOf) + "</b>. Home session: <b title=\"Indicative local cash-market close; holidays and daylight-saving changes can alter alignment\">" + esc(top.entry.session) + "</b>. The ETF can keep repricing after that local close.";
@@ -1562,7 +1598,7 @@
                 var invalidation = [];
                 if (Number.isFinite(primary)) invalidation.push("relative momentum falling below zero");
                 if (top.trend) invalidation.push("price losing the 50- and 200-day trend gate");
-                if (top.fx && top.fx.confirmation > 0) invalidation.push("the local currency turning into a headwind");
+                if (top.decomposition && top.decomposition.state === "ready" && top.decomposition.translation > 0) invalidation.push("the currency translation leg turning into a drag");
                 if (Number.isFinite(top.drawdown)) invalidation.push("drawdown widening materially beyond its current " + (top.drawdown * 100).toFixed(1) + "%");
                 byId("narrative").innerHTML = "<b>Why it leads:</b> " + esc(reasonFor(top)) + ". <b>What changes it:</b> " + esc(invalidation.join(", ") || "a deterioration in relative momentum, trend, or risk") + ". <b>Cross-check:</b> open Power to see whether the next-ranked countries diversify this signal or merely repeat the same global beta.";
             }
@@ -1576,19 +1612,18 @@
                 var coverage = countries.filter(function (row) { return Number.isFinite(row.score); }).length;
                 var avgCorr = averageCorrelation(scored.slice(0, 8));
                 var spread = top && second ? top.score - second.score : null;
-                var fxCoverage = countries.filter(function (row) { return !!row.fx; }).length;
+                var fxCoverage = countries.filter(function (row) { return row.decomposition && row.decomposition.state === "ready"; }).length;
                 byId("powerKpis").innerHTML =
                     kpiHtml("Country coverage", coverage + " / 13", "Countries with at least one usable model component", coverage === 13 ? "pos" : "") +
                     kpiHtml("FX coverage", fxCoverage + " / 13", "Countries with a usable currency confirmation series", fxCoverage === 13 ? "pos" : "") +
                     kpiHtml("Leader spread", Number.isFinite(spread) ? spread.toFixed(1) + " pts" : "—", "Top score minus second-place score; wider means clearer separation", Number.isFinite(spread) && spread >= 5 ? "pos" : "") +
                     kpiHtml("Avg correlation", Number.isFinite(avgCorr) ? avgCorr.toFixed(2) : "—", "Average 63-day pairwise correlation among the eight highest-ranked countries", Number.isFinite(avgCorr) && avgCorr >= 0.7 ? "neg" : "");
 
-                byId("leaderboardHint").textContent = coverage + "/13 countries scored · " + state.lookback + "d primary · " + Math.round(state.fxWeight * 100) + "% FX";
+                byId("leaderboardHint").textContent = coverage + "/13 countries scored · " + state.lookback + "d primary · equity-only score";
                 if (!top) { byId("anatomy").innerHTML = '<div class="empty">No complete country score to decompose yet.</div>'; return; }
                 var components = [
                     { label: "Momentum", value: top.momentum, title: "Blended 21/63/126-day benchmark-relative momentum" },
                     { label: "Trend", value: top.trend && top.trend.score, title: "Price and 20/50/200-day moving-average structure" },
-                    { label: "FX", value: top.fx && top.fx.score, title: "Local-currency strength versus USD; confirmation only" },
                     { label: "Risk", value: top.risk, title: "Low-volatility and shallow-drawdown quality score" }
                 ];
                 byId("anatomy").innerHTML = '<div class="panel-head"><h2 title="Normalized component values for the current top country">Signal anatomy · ' + esc(top.entry.country) + '</h2><span class="hint">−1 adverse · 0 neutral · +1 supportive</span></div>' + components.map(function (component) {
@@ -1604,16 +1639,18 @@
             }
 
             function fxHtml(row) {
-                if (!row.fx) return "—";
-                var css = row.fx.confirmation > 0 ? "good" : row.fx.confirmation < 0 ? "bad" : "warn";
-                return '<span class="badge ' + css + '" title="' + esc("Local FX " + fmtPct(row.fx.strengthPct, 2) + "; " + row.fx.label) + '">' + esc(row.fx.label) + '</span>';
+                var d = row.decomposition;
+                if (!d) return "—";
+                if (d.state !== "ready") return '<span class="badge warn" title="' + esc("Decomposition unavailable: " + d.unavailableReason) + '">Unavailable</span>';
+                var css = d.translation > 0 ? "good" : d.translation < 0 ? "bad" : "warn";
+                return '<span class="badge ' + css + '" title="' + esc("Translation " + fmtPct(d.translation * 100, 2) + " on the decomposition's own exact dates; never part of the score") + '">' + esc(d.relationship) + '</span>';
             }
 
             function renderLeaderboard() {
                 var countryRank = 0;
                 byId("leaderboardBody").innerHTML = modelRows.map(function (row) {
                     var control = row.entry.kind === "control", rank = control ? "Control" : (++countryRank).toString();
-                    var primary = primaryRelative(row), scoreTitle = "Composite score; momentum " + fmtNumber(row.momentum, 2) + ", trend " + fmtNumber(row.trend && row.trend.score, 2) + ", FX " + fmtNumber(row.fx && row.fx.score, 2) + ", risk " + fmtNumber(row.risk, 2);
+                    var primary = primaryRelative(row), scoreTitle = "Equity-only leadership score; momentum " + fmtNumber(row.momentum, 2) + ", trend " + fmtNumber(row.trend && row.trend.score, 2) + ", risk " + fmtNumber(row.risk, 2) + ". FX never contributes to this score.";
                     return '<tr class="' + (control ? "control-row" : "") + '">' +
                         '<td title="' + (control ? "Broad comparison control, not a country candidate" : "Rank among country candidates") + '">' + rank + '</td>' +
                         '<td title="' + esc(row.entry.name + " · " + row.entry.region) + '">' + tickerTag(row.entry.ticker, row.entry.name, control ? "Benchmark ETF" : "Country ETF") + '<br><span class="market-country">' + esc(row.entry.country) + '</span></td>' +
@@ -1632,14 +1669,15 @@
 
             function renderSessions() {
                 byId("sessionBody").innerHTML = countryRows().map(function (row) {
-                    var fxValue = row.fx ? fmtPct(row.fx.strengthPct, 2) : "—", fxCss = row.fx ? valueClass(row.fx.strengthPct) : "neutral";
+                    var d = row.decomposition;
+                    var fxValue = d && d.state === "ready" ? fmtPct(d.fxReturn * 100, 2) : "Unavailable", fxCss = d && d.state === "ready" ? valueClass(d.fxReturn) : "neutral";
                     return '<tr>' +
                         '<td title="' + esc(row.entry.name) + '">' + tickerTag(row.entry.ticker, row.entry.name, "Country ETF") + ' · ' + esc(row.entry.country) + '</td>' +
                         '<td title="Geographic session group">' + esc(row.entry.region) + '</td>' +
                         '<td title="Indicative home cash-market close; holiday and daylight-saving calendars can differ">' + esc(row.entry.session) + '</td>' +
-                        '<td title="' + esc((row.entry.fxInverse ? "Quoted as USD per local unit inverse; return is sign-flipped" : "Quoted as local currency per USD-compatible direct pair") + " for model orientation") + '">' + tickerTag(row.entry.currencyProxy, row.entry.country + " currency pair", "FX proxy") + '</td>' +
+                        '<td title="' + esc("Declared FX source orientation; the decomposition derives direction from it rather than a separate inverse flag") + '">' + (row.entry.fxSource ? tickerTag(row.entry.fxSource.symbol, row.entry.country + " currency pair", "FX source") : "—") + '</td>' +
                         '<td class="' + fxCss + '" title="Oriented local-currency strength versus USD over ' + state.lookback + ' days">' + fxValue + '</td>' +
-                        '<td title="Agreement between currency direction and primary equity-relative momentum">' + (row.fx ? esc(row.fx.label) : "No FX data") + '</td>' +
+                        '<td title="Local-equity and translation decomposition on its own exact common dates; it never contributes to the score">' + (row.decomposition && row.decomposition.state === "ready" ? esc(row.decomposition.relationship) : "Unavailable") + '</td>' +
                         '</tr>';
                 }).join("");
             }
@@ -1724,7 +1762,7 @@
                 if (!window.RLDATA || !RLDATA.putToolRead) return;
                 var rows = scoredCountries(), top = rows[0], second = rows[1], average = averageCorrelation(rows.slice(0, 8));
                 var asOf = top && Number.isFinite(top.asOf) ? new Date(top.asOf).toISOString() : new Date().toISOString();
-                var read = top ? (top.entry.country + " (" + top.entry.ticker + ") leads at " + top.score.toFixed(0) + "/100 vs " + state.benchmark + "; " + state.lookback + "d relative momentum " + fmtPct(primaryRelative(top), 1) + ", " + (top.trend ? top.trend.label.toLowerCase() : "trend unavailable") + ", " + (top.fx ? top.fx.label.toLowerCase() : "FX unavailable") + ".") : "Global rotation is waiting for enough cached country ETF history.";
+                var read = top ? (top.entry.country + " (" + top.entry.ticker + ") leads at " + top.score.toFixed(0) + "/100 vs " + state.benchmark + "; " + state.lookback + "d relative momentum " + fmtPct(primaryRelative(top), 1) + ", " + (top.trend ? top.trend.label.toLowerCase() : "trend unavailable") + ", " + (top.decomposition && top.decomposition.state === "ready" ? top.decomposition.relationship.toLowerCase() : "FX decomposition unavailable") + ".") : "Global rotation is waiting for enough cached country ETF history.";
                 RLDATA.putToolRead("global-rotation-lab", {
                     asOf: asOf,
                     read: read,
@@ -1734,7 +1772,7 @@
                         score: top && Number.isFinite(top.score) ? Number(top.score.toFixed(2)) : null,
                         secondScore: second && Number.isFinite(second.score) ? Number(second.score.toFixed(2)) : null,
                         relativeMomentumPct: top && Number.isFinite(primaryRelative(top)) ? Number(primaryRelative(top).toFixed(3)) : null,
-                        fxStrengthPct: top && top.fx && Number.isFinite(top.fx.strengthPct) ? Number(top.fx.strengthPct.toFixed(3)) : null,
+                        fxStrengthPct: top && top.decomposition && top.decomposition.state === "ready" ? Number((top.decomposition.fxReturn * 100).toFixed(3)) : null,
                         annualVolPct: top && Number.isFinite(top.vol) ? Number((top.vol * 100).toFixed(3)) : null,
                         maxDrawdownPct: top && Number.isFinite(top.drawdown) ? Number((top.drawdown * 100).toFixed(3)) : null,
                         averageCorrelation: Number.isFinite(average) ? Number(average.toFixed(3)) : null,
@@ -1754,7 +1792,7 @@
             }
 
             function renderControlNote() {
-                byId("controlNote").textContent = state.lookback + "-day leadership · " + Math.round(state.fxWeight * 100) + "% FX confirmation · " + state.strictness + " trend gate · " + state.posture + " risk posture · " + benchmarkName();
+                byId("controlNote").textContent = state.lookback + "-day leadership · equity-only score · " + state.strictness + " trend gate · " + state.posture + " risk posture · " + benchmarkName();
             }
 
             function render() {
@@ -1776,8 +1814,6 @@
                 for (i = 0; i < modeButtons.length; i++) { var modeOn = modeButtons[i].getAttribute("data-value") === state.mode; modeButtons[i].className = modeOn ? "on" : ""; modeButtons[i].setAttribute("aria-selected", modeOn ? "true" : "false"); }
                 for (i = 0; i < lookbackButtons.length; i++) lookbackButtons[i].className = Number(lookbackButtons[i].getAttribute("data-value")) === state.lookback ? "on" : "";
                 byId("benchmarkSelect").value = state.benchmark;
-                byId("fxWeight").value = Math.round(state.fxWeight * 100);
-                byId("fxWeightValue").textContent = Math.round(state.fxWeight * 100) + "%";
                 byId("trendSelect").value = state.strictness;
                 byId("postureSelect").value = state.posture;
             }
@@ -1794,7 +1830,6 @@
                 wireSegment("modeSeg", function (value) { if (value !== "simple" && value !== "power") return; state.mode = value; saveState(); applyStateToControls(); render(); });
                 wireSegment("lookbackSeg", function (value) { value = Number(value); if ([21, 63, 126].indexOf(value) < 0) return; state.lookback = value; saveState(); applyStateToControls(); render(); });
                 byId("benchmarkSelect").addEventListener("change", function () { state.benchmark = this.value; saveState(); render(); });
-                byId("fxWeight").addEventListener("input", function () { state.fxWeight = Number(this.value) / 100; byId("fxWeightValue").textContent = this.value + "%"; saveState(); render(); });
                 byId("trendSelect").addEventListener("change", function () { state.strictness = this.value; saveState(); render(); });
                 byId("postureSelect").addEventListener("change", function () { state.posture = this.value; saveState(); render(); });
                 byId("refreshBtn").addEventListener("click", function () { hydrate(true); });
@@ -1805,7 +1840,7 @@
             function uniqueSymbols() {
                 var seen = {}, output = [];
                 (universe.entries || []).forEach(function (entry) {
-                    [entry.ticker, entry.currencyProxy].forEach(function (symbol) { if (symbol && !seen[symbol]) { seen[symbol] = true; output.push(symbol); } });
+                    [entry.ticker, entry.fxSource && entry.fxSource.symbol].forEach(function (symbol) { if (symbol && !seen[symbol]) { seen[symbol] = true; output.push(symbol); } });
                 });
                 (universe.benchmarks || []).forEach(function (benchmark) { if (benchmark.ticker && !seen[benchmark.ticker]) { seen[benchmark.ticker] = true; output.push(benchmark.ticker); } });
                 return output;
@@ -1834,7 +1869,12 @@
 
             function validUniverse(candidate) {
                 if (!candidate || !Array.isArray(candidate.entries) || candidate.entries.length !== 16 || !Array.isArray(candidate.benchmarks)) return false;
-                return candidate.entries.every(function (entry) { return entry && entry.ticker && entry.region && entry.country && entry.session && entry.currencyProxy && typeof entry.fxInverse === "boolean"; });
+                return candidate.entries.every(function (entry) {
+                    if (!entry || !entry.ticker || !entry.region || !entry.country || !entry.session) return false;
+                    if (entry.fxSource === null) return entry.currency === null;
+                    return typeof entry.currency === "string" && entry.currency.length > 0
+                        && typeof entry.fxSource.symbol === "string" && typeof entry.fxSource.base === "string" && typeof entry.fxSource.quote === "string";
+                });
             }
 
             function loadUniverse() {

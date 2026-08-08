@@ -1263,11 +1263,11 @@ try {
   assert(!/return vol \/ oi;/.test(src) && !/vol \* mid \* 100/.test(src) && !/frac > 0\.6 \? "call-heavy/.test(src), 'options-flow-feed-lab.html carries no inline copy of the single-sourced owner formulas');
 } catch (e) { failures++; console.log('  ✗ FAIL (options-flow group threw): ' + e.message); }
 
-/* ---------- Global rotation: country momentum, FX orientation, risk-aware score ---------- */
+/* ---------- Global rotation: equity-only leadership score, FX as a separate product ---------- */
 try {
-  group('global-rotation-lab.html — country momentum + FX-confirmed score');
+  group('global-rotation-lab.html — equity-only score + separate FX decomposition');
   const src = read('global-rotation-lab.html');
-  const names = ['globalTrailingPct', 'globalAnnualVol', 'globalMaxDrawdown', 'globalTrendState', 'globalFxConfirm', 'globalCountryScore'];
+  const names = ['globalTrailingPct', 'globalAnnualVol', 'globalMaxDrawdown', 'globalTrendState', 'globalMomentumScore', 'globalRiskQuality', 'postureWeights'];
   const env = build(names.map((n) => extractFn(src, n)), names);
   const base = Date.UTC(2025, 0, 1), rising = [], falling = [];
   for (let i = 0; i < 260; i++) {
@@ -1280,14 +1280,74 @@ try {
   assert(env.globalMaxDrawdown(falling, 252) > 0.25, 'persistent decline produces a material drawdown');
   assert(env.globalTrendState(rising, 'balanced').pass === true, 'rising 20/50/200 structure passes balanced trend gate');
   assert(env.globalTrendState(falling, 'balanced').pass === false, 'falling 20/50/200 structure fails balanced trend gate');
-  const inverseFx = env.globalFxConfirm(rising, 21, true, -2);
-  assert(inverseFx.strengthPct < 0, 'USD/local quote is sign-flipped into local-currency strength');
-  assert(inverseFx.confirmation === 1, 'weak local FX confirms weak country relative momentum');
-  const strong = env.globalCountryScore({ momentum: 0.8, trend: 0.7, risk: 0.5, fx: 0.4 }, { fxWeight: 0.14, posture: 'balanced' });
-  const weak = env.globalCountryScore({ momentum: -0.8, trend: -0.7, risk: -0.5, fx: -0.4 }, { fxWeight: 0.14, posture: 'balanced' });
+
+  /* Feature 004 Scope 3: the page no longer owns an FX-weighted score. Posture weights are
+     equity-only and the shared engine refuses to score an fx key at all. */
+  const balanced = env.postureWeights('balanced');
+  assert(Object.keys(balanced).sort().join(',') === 'momentum,risk,trend', 'posture weights are equity-only — no FX weight exists');
+  assert(env.postureWeights('offense').momentum > env.postureWeights('defense').momentum, 'offense weights momentum more heavily than defense');
+  const RLFX = (await import('node:module')).createRequire(import.meta.url)('../rlfx.js');
+  const strong = RLFX.scoreCountryLeadership({ momentum: 0.8, trend: 0.7, risk: 0.5, weights: balanced });
+  const weak = RLFX.scoreCountryLeadership({ momentum: -0.8, trend: -0.7, risk: -0.5, weights: balanced });
   assert(strong.score > 70 && weak.score < 30, 'supportive inputs outrank adverse inputs on the common 0-100 scale');
-  assert(env.globalCountryScore({}, {}) === null, 'missing model inputs remain missing, never fabricated as neutral');
-  assert(env.globalCountryScore({ trend: 0.9, risk: 0.9 }, {}) === null, 'country score requires benchmark-relative momentum before ranking');
+  let rejectedFx = false;
+  try { RLFX.scoreCountryLeadership({ momentum: 0.5, trend: 0.5, risk: 0.5, fx: 0.9, weights: balanced }); } catch (e) { rejectedFx = true; }
+  assert(rejectedFx, 'raw FX cannot re-enter the country score — an fx key is refused outright');
+  /* Built from fragments so this guard cannot match its own source and defeat the consumer gate. */
+  const retired = ['global' + 'FxConfirm', 'global' + 'CountryScore', 'fx' + 'Weight', 'currency' + 'Proxy', 'fx' + 'Inverse'];
+  assert(!new RegExp(retired.join('|')).test(src), 'the page retains no FX-scoring or duplicated-orientation consumer');
+
+  /* TP-03-01 (SCN-004-020) — the two-leg and three-leg products are separate objects with their
+     own returns, coverage, and clocks. The adversarial case gives FX an unmatched newest date, so
+     a shared or aliased observation set would show up as identical coverage. */
+  const gBase = Date.UTC(2025, 0, 1);
+  const series = (n, rate, offsetDays) => Array.from({ length: n }, (_, i) => ({ t: gBase + (i + (offsetDays || 0)) * 864e5, c: 100 * Math.pow(rate, i) }));
+  const etfRows = series(90, 1.002), benchRows = series(90, 1.001);
+  const fxShort = series(88, 1.0005);
+  const gCountry = (fxRows, orientation) => ({
+    ticker: 'EWJ', country: 'Japan', currency: 'JPY',
+    etfRows, benchmarkRows: benchRows, fxRows, fxSourceOrientation: orientation,
+    momentum: 0.4, trend: 0.3, risk: 0.2, usdFreshUntil: null, fxFreshUntil: null
+  });
+  const gInput = (fxRows, orientation) => ({
+    decisionTime: '2026-08-08T00:00:00.000Z', horizonSessions: 63, posture: 'balanced',
+    benchmark: 'ACWI', postureWeights: balanced, agreementDeadbandPct: 0.25,
+    countries: [gCountry(fxRows, orientation)]
+  });
+  const gReady = RLFX.computeGlobalRotation(gInput(fxShort, { base: 'USD', quote: 'JPY' })).leader;
+  assert(gReady.usdLeadership !== gReady.decomposition, 'USD leadership and decomposition are distinct objects');
+  assert(gReady.usdLeadership.observationSet !== gReady.decomposition.observationSet, 'the two products never share one observation set');
+  assert(Number.isFinite(gReady.usdLeadership.usdRelativeReturn), 'USD leadership exposes its own two-leg relative return');
+  assert(!('fxReturn' in gReady.usdLeadership), 'the two-leg product carries no FX leg');
+  assert(gReady.usdLeadership.asOf !== null && gReady.usdLeadership.computedAt !== null, 'USD leadership owns its own asOf and computedAt');
+  assert(gReady.decomposition.asOf !== gReady.usdLeadership.asOf, 'an unmatched newest FX date gives decomposition its own distinct asOf');
+
+  /* TP-03-02 (SCN-004-021) — score, rank, and the leader spread are equity-only. Two genuinely
+     different FX paths over identical equity bars must move decomposition and nothing else.
+     (An inverted series under the mirrored orientation is the SAME relationship, so it would be a
+     vacuous control; these two paths differ economically.) */
+  const fxRising = series(88, 1.0009), fxFalling = series(88, 0.9991);
+  const forward = RLFX.computeGlobalRotation(gInput(fxRising, { base: 'USD', quote: 'JPY' }));
+  const reversed = RLFX.computeGlobalRotation(gInput(fxFalling, { base: 'USD', quote: 'JPY' }));
+  assert(JSON.stringify(forward.ranked) === JSON.stringify(reversed.ranked), 'a raw FX reversal cannot change country score or rank');
+  assert(forward.leader.decomposition.fxReturn !== reversed.leader.decomposition.fxReturn, 'the reversal really did change the FX leg, so the invariance above is not vacuous');
+  assert(forward.leader.usdLeadership.usdRelativeReturn === reversed.leader.usdLeadership.usdRelativeReturn, 'USD leadership is FX-independent');
+
+  /* The mirrored orientation is the same relationship, so it must resolve identically end to end. */
+  const mirrored = RLFX.computeGlobalRotation(gInput(fxRising.map((r) => ({ t: r.t, c: 1 / r.c })), { base: 'JPY', quote: 'USD' }));
+  assert(Math.abs(mirrored.leader.decomposition.fxReturn - forward.leader.decomposition.fxReturn) < 1e-12,
+    'a mirrored source orientation describes one relationship and resolves to one FX return');
+
+  /* TP-03-03 (SCN-004-022) — missing FX keeps USD leadership available and leaves decomposition
+     unavailable with no numeric fields and no zero-FX assumption. */
+  const noFx = RLFX.computeGlobalRotation(gInput([], null)).leader;
+  assert(noFx.usdLeadership.state === 'ready', 'USD leadership survives missing FX');
+  assert(noFx.decomposition.state === 'unavailable' && noFx.decomposition.unavailableReason === 'NO_SOURCE', 'decomposition reports its own unavailable reason');
+  ['fxReturn', 'approximateLocalReturn', 'translation', 'interaction'].forEach((field) => {
+    assert(!(field in noFx.decomposition), 'unavailable decomposition exposes no numeric ' + field);
+  });
+  const projected = RLFX.projectGlobalToolRead(RLFX.computeGlobalRotation(gInput([], null)));
+  assert(JSON.stringify(projected).indexOf('"fxReturn"') === -1, 'the owner projection never re-stamps an absent FX leg');
 } catch (e) { failures++; console.log('  ✗ FAIL (global-rotation group threw): ' + e.message); }
 
 /* ---------- Real assets: model-specific drivers and risk penalties ---------- */
@@ -1770,8 +1830,12 @@ try {
   assert(sitePlan.registeredPages.every((file) => registeredFiles.has(file)), 'the Pages artifact includes no unregistered tool page');
   assert(sitePlan.excludedPaths.includes('trend-dynamics-cycle-lab.html') && sitePlan.excludedPaths.includes('portfolio-survival-allocation-lab.html'),
     'in-progress root pages are explicitly removed from the public artifact');
-  assert(sitePlan.excludedPaths.includes('rlfx.js') && sitePlan.excludedPaths.includes('rlcausal.js') && sitePlan.excludedPaths.includes('rlportfolio.js'),
+  assert(sitePlan.excludedPaths.includes('rlcausal.js') && sitePlan.excludedPaths.includes('rlportfolio.js'),
     'shared modules with no registered production consumer are removed from the public artifact');
+  /* Feature 004 Scope 3: global-rotation-lab.html is registered and now loads rlfx.js, so the
+     module must ship. An excluded path is never copied, which would 404 on a live page. */
+  assert(!sitePlan.excludedPaths.includes('rlfx.js'), 'a shared module consumed by a registered page is shipped, not excluded');
+  assert(read('global-rotation-lab.html').includes('src="rlfx.js"'), 'the registered Global page really is the consumer that requires rlfx.js to ship');
 
   /* ADVERSARIAL: a check that passed for any input would prove nothing. An unlisted root page MUST
       be detected — this is the exact regression the deploy projection exists to stop. */

@@ -1219,22 +1219,57 @@ export function buildSectorToolRead(sectors) {
 export async function buildGlobalToolRead() {
   try {
     const universe = JSON.parse(read('global-rotation-universe.json'));
-    const names = ['globalTrailingPct', 'globalAnnualVol', 'globalMaxDrawdown', 'globalTrendState', 'globalFxConfirm', 'globalCountryScore', 'globalMomentumScore', 'globalRiskQuality'];
+    const names = ['globalTrailingPct', 'globalAnnualVol', 'globalMaxDrawdown', 'globalTrendState', 'globalMomentumScore', 'globalRiskQuality', 'postureWeights'];
     const model = loadToolFunctions('global-rotation-lab.html', names);
+    const RLFX = createRequire(import.meta.url)('../rlfx.js');
     const benchmark = universe.defaultBenchmark || 'ACWI', benchmarkRows = await yahooRowsMemo(benchmark);
-    const rows = [];
+    const decisionTime = new Date().toISOString();
+    const countries = [];
+    const meta = new Map();
     for (const entry of (universe.entries || []).filter((item) => item.kind === 'country')) {
-      const bars = await yahooRowsMemo(entry.ticker), fxBars = await yahooRowsMemo(entry.currencyProxy);
+      const bars = await yahooRowsMemo(entry.ticker);
+      const fxBars = entry.fxSource ? await yahooRowsMemo(entry.fxSource.symbol) : [];
       if (!bars || !benchmarkRows) continue;
       const relative = (lookback) => { const own = model.globalTrailingPct(bars, lookback), control = model.globalTrailingPct(benchmarkRows, lookback); return Number.isFinite(own) && Number.isFinite(control) ? own - control : null; };
       const rel21 = relative(21), rel63 = relative(63), rel126 = relative(126), trend = model.globalTrendState(bars, 'balanced');
-      const vol = model.globalAnnualVol(bars, 63), drawdown = model.globalMaxDrawdown(bars, 252), fx = model.globalFxConfirm(fxBars, 63, !!entry.fxInverse, rel63);
+      const vol = model.globalAnnualVol(bars, 63), drawdown = model.globalMaxDrawdown(bars, 252);
       const momentum = model.globalMomentumScore(rel21, rel63, rel126, 63), risk = model.globalRiskQuality(vol, drawdown);
-      const scored = model.globalCountryScore({ momentum, trend: trend?.score, risk, fx: fx?.score }, { fxWeight: 0.14, posture: 'balanced' });
-      if (scored && Number.isFinite(scored.score)) rows.push({ ticker: entry.ticker, country: entry.country, score: round(scored.score, 1), rel21: round(rel21), rel63: round(rel63), rel126: round(rel126), trend: trend?.label || null, fx: fx?.label || null, fxStrength: round(fx?.strengthPct), vol: round(Number.isFinite(vol) ? vol * 100 : null), maxDrawdown: round(Number.isFinite(drawdown) ? drawdown * 100 : null), asOf: latestIso(bars) });
+      if (!Number.isFinite(momentum)) continue;
+      meta.set(entry.ticker, { entry, rel21, rel63, rel126, trend, vol, drawdown, bars });
+      countries.push({
+        ticker: entry.ticker,
+        country: entry.country,
+        currency: entry.currency || entry.ticker,
+        etfRows: bars,
+        benchmarkRows,
+        fxRows: entry.fxSource ? (fxBars || []) : [],
+        fxSourceOrientation: entry.fxSource ? { base: entry.fxSource.base, quote: entry.fxSource.quote } : null,
+        momentum,
+        trend: trend?.score,
+        risk,
+        usdFreshUntil: null,
+        fxFreshUntil: null
+      });
     }
-    rows.sort((a, b) => b.score - a.score); const leader = rows[0], runner = rows[1];
-    return { id: 'global-rotation-lab', asOf: leader?.asOf || new Date().toISOString(), read: leader ? `${leader.ticker} (${leader.country}) leads global rotation at ${leader.score}/100 versus ${benchmark}${runner ? `; ${runner.ticker} is next` : ''}.` : 'Global rotation read unavailable.', metrics: { benchmark, leader: leader || null, ranked: rows.slice(0, 6), scored: rows.length }, deepLink: 'global-rotation-lab.html', source: 'owning-tool-functions' };
+    if (!countries.length) throw new Error('no scorable country');
+    /* RLFX owns scoring and both nested products. The projection preserves the two-leg and
+       three-leg objects with their own clocks; it never flattens or re-stamps them. */
+    const rotation = RLFX.computeGlobalRotation({
+      decisionTime,
+      horizonSessions: 63,
+      posture: 'balanced',
+      benchmark,
+      postureWeights: model.postureWeights('balanced'),
+      agreementDeadbandPct: 0.25,
+      countries
+    });
+    const projected = RLFX.projectGlobalToolRead(rotation);
+    const rows = rotation.ranked.map((entry) => {
+      const m = meta.get(entry.ticker);
+      return { ticker: entry.ticker, country: entry.country, score: round(entry.score, 1), rel21: round(m?.rel21), rel63: round(m?.rel63), rel126: round(m?.rel126), trend: m?.trend?.label || null, vol: round(Number.isFinite(m?.vol) ? m.vol * 100 : null), maxDrawdown: round(Number.isFinite(m?.drawdown) ? m.drawdown * 100 : null), asOf: latestIso(m?.bars) };
+    });
+    const leader = rows[0], runner = rows[1];
+    return { id: 'global-rotation-lab', asOf: leader?.asOf || decisionTime, read: leader ? `${leader.ticker} (${leader.country}) leads global rotation at ${leader.score}/100 versus ${benchmark}${runner ? `; ${runner.ticker} is next` : ''}.` : 'Global rotation read unavailable.', metrics: { benchmark, leader: leader || null, ranked: rows.slice(0, 6), scored: rows.length, usdLeadership: rotation.leader ? rotation.leader.usdLeadership : null, decomposition: rotation.leader ? rotation.leader.decomposition : null, projection: projected }, deepLink: 'global-rotation-lab.html', source: 'owning-tool-functions' };
   } catch (error) { return { id: 'global-rotation-lab', asOf: new Date().toISOString(), read: 'Global rotation model unavailable this run.', metrics: { error: error.message }, deepLink: 'global-rotation-lab.html', source: 'owning-tool-functions' }; }
 }
 

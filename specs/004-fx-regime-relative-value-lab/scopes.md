@@ -1180,7 +1180,17 @@ Build quality gate:
 
 ### Outcome
 
-The user can open the excluded production route named **FX Regime & Currency Vehicle Lab**, steer the ETF-first research objective through the shared ordinary four-view shell, and inspect one editable Simple/Power owner decision. The route maps the currency thesis to an eligible listed vehicle, Tactical-Only result, No Eligible Vehicle result, or exact Unavailable state without treating a wrapper as spot. Brief and Journey panels remain read-only shared mounts whose full behavior is completed in Scope 4. No registry is activated here.
+The user can open the excluded production route named **FX Regime & Currency Vehicle Lab**, steer the ETF-first research objective through the route's own shared-shell anchor, and inspect one editable Simple/Power owner decision. The route maps the currency thesis to an eligible listed vehicle, Tactical-Only result, No Eligible Vehicle result, or exact Unavailable state without treating a wrapper as spot. Brief and Journey panels remain read-only shared mounts whose full behavior is completed in Scope 4. No registry is activated here, so the shared four-view switcher itself resolves only after Scope 5 registration; see the Shell Activation Constraint below.
+
+### Shell Activation Constraint (verified 2026-08-08)
+
+The shared four-view switcher **cannot** resolve while this route is unregistered. This is a structural property of the installed shell, confirmed at three independent mechanical points:
+
+1. `rlexperience.js::resolveShellInternal` rejects with `E012-REGISTRY` unless the tool resolves **exactly once** in the registry and carries an `experience` declaration.
+2. `rlapp.js::fetchRegistry` reads **only** `tools.json`; no registry-exception seam exists in the repository.
+3. `scripts/build-pages-site.mjs` asserts `registered page is still excluded` — registration and `site-exclusions.json` are **mutually exclusive**.
+
+Scope 2's Change Boundary excludes `tools.json`, and Scope 5 owns registration as the atomic release boundary. Therefore Scope 2 delivers the route, its shared-shell **anchor**, and the native Simple/Power hierarchy with **no page-local mode strip**; the shell renders its honest `E012-REGISTRY` unavailable state until Scope 5 registers the tool, which activates the switcher atomically. The obligation is not dropped — it is proven in Scope 5 by DoD item "shared four-view switcher resolves". This preserves the release atomicity the exclusion contract exists to protect rather than publishing an unfinished route early to satisfy a Scope 2 checkbox.
 
 ### Change Boundary
 
@@ -1357,13 +1367,13 @@ And the recommendation-ledger writer rejects it before event construction
 
 Core implementation:
 
-- [ ] The excluded production route delivers the ETF-first Simple and Power hierarchy through the shared four-view shell, every required lifecycle/error state, educational boundary, and all explicit controls without hidden inputs or a page-local mode switch.
+- [ ] The excluded production route delivers the ETF-first Simple and Power hierarchy beneath its shared-shell anchor, every required lifecycle/error state including the shell's honest unregistered state, educational boundary, and all explicit controls without hidden inputs or a page-local mode switch.
 - [ ] Cache-first paint and delta-only hydration use normal `RLDATA` paths; the current source contract requests no unapproved source, and control/mode changes never fetch.
 - [ ] Desktop/mobile charts are nonblank, correctly framed, pointer- and keyboard-contextual, and backed by equivalent summaries/tables.
 - [ ] Authored model/configuration text is escaped at every reader sink, and every declared context class exposes what it is plus what its current reading means through hover, focus, and adjacent accessible text with RLTKR ticker decoration.
 - [ ] Public v1 shows exact unavailable states and no numeric official-dollar, rank, pair, carry, REER, positioning, stress, or event result without authorization.
 - [ ] Eligible, Caution, Tactical-Only, Rejected, No Eligible Vehicle, and Unavailable remain distinct; direction, basket, tracking residual, wrapper, liquidity/cost, and reset boundaries are visible and no constraint is loosened implicitly.
-- [ ] Load order, visible title, stable identity, shared shell, data status, ticker/context surfaces, and v2 owner-read publication are coherent; the route remains excluded and no public registry, Journey definition, or note consumer changes in this scope.
+- [ ] Load order, visible title, stable identity, shared-shell anchor, data status, ticker/context surfaces, and v2 owner-read publication are coherent; the route remains excluded and no public registry, Journey definition, or note consumer changes in this scope.
 - [ ] Change Boundary is respected and zero excluded file families were changed.
 
 Test Plan parity - 19 rows:
@@ -1804,6 +1814,7 @@ Core implementation and documentation:
 - [ ] Provider stress/load remain protected shared-infrastructure canaries only. Their assertions are not weakened and no Feature 004 performance claim is added.
 - [ ] All protected provider, Bond, and Causal canaries retain their original assertions and every failure is routed with its full finding set.
 - [ ] Fresh collision checks preserve every recorded dirty hunk and complete current identity; the Change Boundary contains zero excluded or generated changes.
+- [ ] The shared four-view switcher resolves for `fx-regime-relative-value-lab` once registration lands: `resolveShell` returns the `ordinary-four-view/v1` view set with no `E012-REGISTRY` refusal, the route leaves `site-exclusions.json` in the same commit, and Simple, Power, Brief, and Journey are all reachable through the shared switcher with no page-local mode strip. This discharges the Scope 2 Shell Activation Constraint, which deferred shell activation here because registration and exclusion are mutually exclusive.
 
 Test Plan parity - 15 rows:
 

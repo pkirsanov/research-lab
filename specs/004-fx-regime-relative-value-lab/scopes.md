@@ -1496,6 +1496,15 @@ Global Rotation preserves valid USD-investor leadership while keeping optional l
 - `global-rotation-universe.json`
 - `scripts/brief-refresh.mjs`
 
+### Measured Migration Readiness
+
+Verified against the committed engine before migration begins, so the work starts from measurement rather than assumption:
+
+- `RLFX.computeGlobalRotation` is delivered and already implements this scope's target shape. It builds a two-leg `usdLeadership` and a three-leg `decomposition` as separate objects, each owning its own `observationSet`, `asOf`, `computedAt`, `freshUntil`, and `unavailableReason`; it computes `approximateLocalReturn` as exactly `(1 + R_USD) / (1 + R_FX) - 1` per SCN-004-020; and it keeps `translation`, `interaction`, `relationship`, and the approximation limitation inside `decomposition`. When `fxRows` are absent or misoriented, `decomposition` stays `unavailable` with `NO_SOURCE` while `usdLeadership` is computed independently — the SCN-004-022 requirement — and no zero-FX assumption is introduced.
+- `RLFX.scoreCountryLeadership` already enforces the equity-only contract: passing an `fx` key throws `unknown key`, so raw FX cannot re-enter the score through the shared engine. Ranking sorts on that equity-only score and breaks ties on ticker, satisfying SCN-004-021 by construction.
+- The migration is therefore a **consumer replacement**, not new math. The measured consumer surface is 38 FX-coupling references in `global-rotation-lab.html` (`fxWeight` 15, `currencyProxy` 20, `fxInverse` 21, `globalFxConfirm` 3), 34 in `global-rotation-universe.json` (`currencyProxy` 17, `fxInverse` 17), and the `buildGlobalToolRead` hunk in `scripts/brief-refresh.mjs`.
+- The specific defect to remove is in the page's own `globalCountryScore`, which computes `weights = { momentum: base.momentum * remaining, trend: base.trend * remaining, risk: base.risk * remaining, fx: fxWeight }` where `remaining = 1 - fxWeight`. That is the path by which raw FX currently changes country score and rank, and it is what SCN-004-021 forbids.
+
 ### Consumer Impact Sweep
 
 - Removed/renamed producers: `globalFxConfirm`, `fxWeight`, additive `fx.score`, `currencyProxy`, and `fxInverse`.

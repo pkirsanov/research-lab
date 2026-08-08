@@ -677,23 +677,7 @@ run, and restore the step byte-identical.
 
 - [x] The hard-cutover posture is unchanged: no dual-shape acceptance window, no default substitution, no relaxed predicate, and every Red Alert threshold byte-identical.
 
-  **Claim Source:** executed — each half of the compound claim is evidenced
-  separately, which is what the superseded declaration said was missing.
-
-  - **No default substitution** — the refusal path (SCN-017-048, SCN-017-049): a
-    candidate the composer refuses is excluded and recorded, never filled in.
-  - **Red Alert thresholds byte-identical** — SCN-017-042 compares them, and the
-    three files that carry them are untouched across this delivery.
-  - **No dual-shape acceptance and no relaxed predicate** — the scan below returns
-    four hits and each is read rather than counted: two are function/config
-    option defaults (`options || {}`, `config?.thresholds || {}`), one guards a
-    `JSON.stringify` of tool-read metrics, and one is prose inside a comment.
-    None accepts a second attention shape and none softens a predicate.
-
-  The one predicate ADDED in this scope — `attentionExclusions[]` validated when
-  present — is deliberately not a dual-shape window for attention items: the key
-  is new, nothing writes it yet, and its SHAPE is refused strictly whenever it
-  does appear.
+  **Claim Source:** executed — each half of the compound claim evidenced separately.
 
   ```text
   $ git diff 6d4eba99~1 HEAD --stat -- rlmarketaction.js tool-experience.config.json rlcontracts.js
@@ -710,6 +694,22 @@ run, and restore the step byte-identical.
   383:  const realAssets = JSON.stringify(payload?.toolReads?.['real-assets-lab']?.metrics || {}).toUpperCase();
   417:     optional is its shape — a reason that does not name a real refusal code is
   ```
+
+  Each half read rather than counted:
+
+  - **No default substitution** — the refusal path (SCN-017-048, SCN-017-049): a
+    candidate the composer refuses is excluded and recorded, never filled in.
+  - **Red Alert thresholds byte-identical** — SCN-017-042 compares them, and the
+    three files that carry them are untouched across this delivery.
+  - **No dual-shape acceptance and no relaxed predicate** — the scan returns four
+    hits and each is read: two are function/config option defaults, one guards a
+    `JSON.stringify` of tool-read metrics, and one is prose inside a comment.
+    None accepts a second attention shape and none softens a predicate.
+
+  The one predicate ADDED in this scope — `attentionExclusions[]` validated when
+  present — is deliberately not a dual-shape window for attention items: the key
+  is new, nothing else writes it, and its SHAPE is refused strictly whenever it
+  does appear.
 
 - [x] The SCN-017-045 supersession recorded under Cross-Scope Supersession has been reconciled by the planning owner before this scope is executed.
 

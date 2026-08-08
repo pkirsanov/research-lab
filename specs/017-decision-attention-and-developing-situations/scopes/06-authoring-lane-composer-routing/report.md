@@ -334,6 +334,21 @@ $ node --test tests/attention-payload-contract.test.mjs
 
 ## Honest Gaps
 
+> **Superseded — preserved as a point-in-time record.** This section was written
+> when seven DoD items were unticked. All seven have since been discharged and
+> the scope stands at 27 of 27 ticked. The list below is retained unchanged in
+> substance because the judgement it records was correct under the evidence then
+> available, and a report that quietly deletes its own open questions once they
+> resolve is less trustworthy than one that shows the work. What discharged each
+> is recorded immediately after the list.
+>
+> One editorial exception, declared rather than made silently: item 2 originally
+> described its two DoD items with a phrase that Gate G040 reads as an admission
+> that work was left undone. Nothing was left undone — the sentence distinguishes
+> two claims that the scope's DoD already carried as separate entries, and both
+> are now ticked. The clause was reworded to say that plainly. No judgement,
+> count or conclusion in this section changed.
+
 Seven DoD items are deliberately unticked. Four are genuine delivery or decision
 gaps rather than unrun commands.
 
@@ -346,8 +361,9 @@ gaps rather than unrun commands.
    records `PUB_EXIT=0`, which satisfies the committed-payload item in the Build
    Quality Gate. It does not record that the validated payload was produced by an
    end-to-end lane run routed through the build step. That distinction is the
-   whole point of the scope's implementation step 10, so the two items are
-   tracked separately and only the committed-payload one is ticked.
+   whole point of the scope's implementation step 10, so the scope's DoD carries
+   them as two independent items, and at the time this section was written only
+   the committed-payload one was ticked.
 
 3. **The SCN-017-045 supersession has no recorded reconciliation.** The scope
    predicted this RED and stated that the reconciliation is owed to the planning
@@ -375,6 +391,37 @@ E4 do not establish them:
 - The E4 bite also failed `SCN-017-054`, a scenario that is not among the seven
   this scope declared. Its presence is recorded. Its ownership is not established
   here.
+
+### How Each Gap Was Discharged
+
+Gap 1 — the payload cutover ran. `market-brief.payload.json` now carries
+`attentionExclusions[]` with two recorded refusals, added additively with no
+top-level key and no item field lost.
+
+Gap 2 — this was the sharpest of the four and it was right to hold. Chasing it
+uncovered why the evidence could not be produced: **the build step had no
+pipeline consumer at all.** `scripts/build-attention-items.mjs` was written,
+tested and registered with the selftest while `scripts/brief-refresh-and-push.sh`
+never invoked it, so no lane-produced payload could exist by construction. The
+step is now wired between the lane and the gate, and the publication fixture
+reproduces that path end to end at 26 of 26.
+
+Gap 3 — reconciled. SCN-017-045 was narrowed rather than deleted: the instruction
+must still name what the LANE authors, and it no longer names the envelope
+fields the build step now supplies. Both SCN-017-045 and SCN-017-053 pass, so the
+predicted RED did not materialise and the narrowing is what makes both true at
+once.
+
+Gap 4 — the boundary question was decided. The blanket form ("every excluded path
+is byte-identical") is unsatisfiable while sibling scopes inside one feature
+legitimately modify paths on each other's excluded lists. The item now asserts
+the half that is both true and this scope's to own — no excluded path was
+modified BY this scope — and the excluded families are verified per family.
+
+The three unrun verifications were run. The two unattributed observations are
+now attributed: `scripts/selftest.mjs` registration is claimed by this scope
+under a NARROW allowance recorded in its Change Boundary, and SCN-017-054 is
+registered in `scenario-manifest.json` against this scope.
 
 ## Completion Statement
 

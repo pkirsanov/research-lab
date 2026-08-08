@@ -1069,6 +1069,23 @@ its row below stays unticked.
 
 - [x] No path excluded from this scope was modified BY this scope; every path this scope protects from another owner is byte-identical.
 
+  **Claim Source:** executed.
+
+  ```text
+  $ for f in rlbrief.js rlexperience.js rlfx.js rljourney.js rlmarketaction.js \
+             rlcontracts.js market-brief.scorecard.json tool-experience.config.json; do
+      printf '%-34s %s\n' "$f" "$(git diff HEAD~1 HEAD --name-only -- $f | wc -l)"
+    done
+  rlbrief.js                         0
+  rlexperience.js                    0
+  rlfx.js                            0
+  rljourney.js                       0
+  rlmarketaction.js                  0
+  rlcontracts.js                     0
+  market-brief.scorecard.json        0
+  tool-experience.config.json        0
+  ```
+
   **Item narrowed — decision recorded here rather than taken silently.** As
   originally written ("every excluded path is byte-identical to its pre-scope
   state") the item is unsatisfiable in either direction, which is why it sat
@@ -1086,25 +1103,8 @@ its row below stays unticked.
      Scope 3, `scripts/selftest.mjs` by Scope 5, the build step by Scope 6 — and
      `rlattention.js` additionally by the ratified plan amendment 1.
 
-  So the item now asserts what it can truthfully mean, and the strong half is
-  proven: every path this scope protects from a DIFFERENT owner is untouched.
-
-  **Claim Source:** executed.
-
-  ```text
-  $ for f in rlbrief.js rlexperience.js rlfx.js rljourney.js rlmarketaction.js \
-             rlcontracts.js market-brief.scorecard.json tool-experience.config.json; do
-      printf '%-34s %s\n' "$f" "$(git diff HEAD~1 HEAD --name-only -- $f | wc -l)"
-    done
-  rlbrief.js                         0
-  rlexperience.js                    0
-  rlfx.js                            0
-  rljourney.js                       0
-  rlmarketaction.js                  0
-  rlcontracts.js                     0
-  market-brief.scorecard.json        0
-  tool-experience.config.json        0
-  ```
+  So the item asserts what it can truthfully mean, and the strong half is proven
+  above: every path this scope protects from a DIFFERENT owner is untouched.
 
 - [x] Zero warnings emitted by any command run for this scope.
 

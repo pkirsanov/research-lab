@@ -1297,6 +1297,41 @@ try {
   const retired = ['global' + 'FxConfirm', 'global' + 'CountryScore', 'fx' + 'Weight', 'currency' + 'Proxy', 'fx' + 'Inverse'];
   assert(!new RegExp(retired.join('|')).test(src), 'the page retains no FX-scoring or duplicated-orientation consumer');
 
+  /* Feature 004 Scope 4 (SCN-004-023) — the FX/Global relationship is read from each owner's own
+     direction and clocks. It never builds a third model, so there is no merged score to inspect. */
+  /* rlbrief.js is an IIFE that publishes to globalThis; requiring it returns an empty exports object. */
+  (await import('node:module')).createRequire(import.meta.url)('../rlbrief.js');
+  const RLBRIEF = globalThis.RLBRIEF;
+  const at = '2026-08-08T12:00:00.000Z';
+  const later = '2026-08-09T00:00:00.000Z';
+  const fxSide = (direction) => ({ toolId: 'fx-regime-relative-value-lab', availability: 'current', direction, computedAt: at, freshUntil: later, ownerDeepLink: 'fx-regime-relative-value-lab.html#power', evidenceIdentity: 'fxe-v1-aaa' });
+  const globalSide = (direction) => ({ toolId: 'global-rotation-lab', availability: 'current', direction, computedAt: at, freshUntil: later, ownerDeepLink: 'global-rotation-lab.html#power', evidenceIdentity: 'gr-v1-bbb' });
+
+  const agree = RLBRIEF.evaluateFxGlobalRelationship(fxSide(1), globalSide(1), at);
+  assert(agree.relationship === 'Agreement' && agree.blockingReasons.length === 0, 'equal nonzero directions classify as Agreement');
+  assert(agree.fx.computedAt === at && agree.fx.freshUntil === later && agree.global.computedAt === at && agree.global.freshUntil === later, 'both owners keep their own computedAt and freshUntil clocks');
+  assert(agree.fx.ownerDeepLink !== agree.global.ownerDeepLink, 'each owner is attributed through its own deep link');
+  assert(!('score' in agree) && !('coverage' in agree), 'the relationship builds no third composite score or coverage claim');
+
+  const diverge = RLBRIEF.evaluateFxGlobalRelationship(fxSide(1), globalSide(-1), at);
+  assert(diverge.relationship === 'Divergence' && diverge.blockingReasons.length === 0, 'opposite nonzero directions classify as Divergence');
+
+  /* Non-vacuity: the classifier must actually distinguish the two, not return one label always. */
+  assert(agree.relationship !== diverge.relationship, 'the Agreement/Divergence check is non-vacuous — the same inputs do not yield one label');
+
+  const zero = RLBRIEF.evaluateFxGlobalRelationship(fxSide(0), globalSide(1), at);
+  assert(zero.relationship === 'Insufficient Evidence' && zero.fx === null, 'a zero direction is not attributable and yields Insufficient Evidence');
+  assert(zero.blockingReasons.indexOf('DIRECTION_NOT_ATTRIBUTABLE') !== -1, 'the unattributable direction is named as a blocking reason');
+
+  const staleGlobal = Object.assign(globalSide(1), { freshUntil: '2026-08-08T00:00:00.000Z' });
+  const stale = RLBRIEF.evaluateFxGlobalRelationship(fxSide(1), staleGlobal, at);
+  assert(stale.relationship === 'Insufficient Evidence' && stale.global === null, 'a stale owner read cannot contribute a direction');
+  assert(stale.fx !== null && stale.fx.ownerDeepLink, 'the remaining current owner stays attributable when the other is stale');
+
+  const missing = RLBRIEF.evaluateFxGlobalRelationship(null, globalSide(1), at);
+  assert(missing.relationship === 'Insufficient Evidence' && missing.blockingReasons.indexOf('FX_OWNER_READ_MISSING') !== -1, 'a missing FX owner read is reasoned, not synthesized');
+
+
   /* TP-03-01 (SCN-004-020) — the two-leg and three-leg products are separate objects with their
      own returns, coverage, and clocks. The adversarial case gives FX an unmatched newest date, so
      a shared or aliased observation set would show up as identical coverage. */

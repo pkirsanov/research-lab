@@ -635,6 +635,13 @@
     "CLAIM_UNCITED", "PUBLICATION_MISMATCH"
   ];
   var FX_BRIEF_HASH = /^sha256:[0-9a-f]{64}$/;
+  /* The relationship contract answers a different question than eligibility, so it carries its own
+     closed reason vocabulary rather than widening the eligibility one. */
+  var FX_RELATIONSHIP_REASON_ORDER = [
+    "FX_OWNER_READ_MISSING", "GLOBAL_OWNER_READ_MISSING", "OWNER_TOOL_MISMATCH",
+    "OWNER_NOT_CURRENT", "OWNER_CLOCK_MISSING", "OWNER_STALE",
+    "DIRECTION_NOT_ATTRIBUTABLE", "OWNER_DEEP_LINK_MISSING"
+  ];
 
   function fxBriefObject(value) { return !!value && typeof value === "object" && !Array.isArray(value); }
   function fxBriefIso(value) { return typeof value === "string" && value.length > 0 && Number.isFinite(Date.parse(value)); }
@@ -927,6 +934,61 @@
     });
   }
 
+  /* Classifies the FX and Global owner reads against each other WITHOUT building a third model:
+     it reads each owner's own direction and clocks, and never merges them into a score. */
+  function evaluateFxGlobalRelationship(fxRead, globalRead, decisionTime) {
+    var reasons = {};
+    function side(read, expectedToolId, missingReason) {
+      if (read == null || typeof read !== "object") {
+        fxBriefAddReason(reasons, missingReason);
+        return null;
+      }
+      if (read.toolId !== expectedToolId) {
+        fxBriefAddReason(reasons, "OWNER_TOOL_MISMATCH");
+        return null;
+      }
+      if (read.availability !== "current") {
+        fxBriefAddReason(reasons, "OWNER_NOT_CURRENT");
+        return null;
+      }
+      if (!fxBriefIso(read.computedAt) || !fxBriefIso(read.freshUntil)) {
+        fxBriefAddReason(reasons, "OWNER_CLOCK_MISSING");
+        return null;
+      }
+      if (decisionTime && read.freshUntil < decisionTime) {
+        fxBriefAddReason(reasons, "OWNER_STALE");
+        return null;
+      }
+      if (read.direction !== -1 && read.direction !== 1) {
+        fxBriefAddReason(reasons, "DIRECTION_NOT_ATTRIBUTABLE");
+        return null;
+      }
+      if (!read.ownerDeepLink) {
+        fxBriefAddReason(reasons, "OWNER_DEEP_LINK_MISSING");
+        return null;
+      }
+      return {
+        toolId: read.toolId, direction: read.direction, computedAt: read.computedAt,
+        freshUntil: read.freshUntil, ownerDeepLink: read.ownerDeepLink,
+        evidenceIdentity: read.evidenceIdentity || null
+      };
+    }
+    var fx = side(fxRead, FX_BRIEF_TOOL_ID, "FX_OWNER_READ_MISSING");
+    var global = side(globalRead, "global-rotation-lab", "GLOBAL_OWNER_READ_MISSING");
+    var blockingReasons = FX_RELATIONSHIP_REASON_ORDER.filter(function (reason) { return reasons[reason] === true; });
+    if (fx === null || global === null) {
+      return fxBriefFreeze({
+        contractVersion: "rlfx-brief-relationship/v1", relationship: "Insufficient Evidence",
+        fx: fx, global: global, blockingReasons: blockingReasons
+      });
+    }
+    return fxBriefFreeze({
+      contractVersion: "rlfx-brief-relationship/v1",
+      relationship: fx.direction === global.direction ? "Agreement" : "Divergence",
+      fx: fx, global: global, blockingReasons: blockingReasons
+    });
+  }
+
   root.RLBRIEF.BRIEF_CONTRACT = BRIEF_CONTRACT;
   root.RLBRIEF.BRIEF_EVIDENCE_CONTRACT = BRIEF_EVIDENCE_CONTRACT;
   root.RLBRIEF.BRIEF_CAP = BRIEF_CAP;
@@ -962,6 +1024,7 @@
   root.RLBRIEF.briefProfileBoundary = briefProfileBoundary;
   root.RLBRIEF.briefClockLabels = briefClockLabels;
   root.RLBRIEF.evaluateFxBriefEligibility = evaluateFxBriefEligibility;
+  root.RLBRIEF.evaluateFxGlobalRelationship = evaluateFxGlobalRelationship;
 
   if (typeof document === "undefined") return; /* Node (selftest) — stop before DOM renderers */
 

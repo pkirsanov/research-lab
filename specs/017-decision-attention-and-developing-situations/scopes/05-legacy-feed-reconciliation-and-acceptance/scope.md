@@ -609,3 +609,72 @@ acceptance tests and the browser budget run.
   unfiltered run of a shared suite; the intervening numbers belong to scopes 2, 4
   and 6 and are cited in their own copies of this item rather than counted twice
   here.
+
+- [x] Scenario-specific E2E regression tests for EVERY new/changed/fixed behavior exist and pass (TP-05-06).
+
+  **Claim Source:** executed in this turn.
+
+  ```text
+  $ npx --no-install playwright test tests/attention-browser.spec.mjs \
+      --config=playwright.config.mjs --project=system-chrome --reporter=list
+  ✓ 6 decision attention rendering holds all six performance budgets
+  ✓ 10 SCN-017-059 No item appears in both the decision tier and the catalyst feed
+    10 passed
+  EXIT=0
+  ```
+
+  Reconciliation is a WHOLE-PAGE property. No unit or contract test can see it,
+  because each surface is individually correct — the tier renders what it was
+  given and the feed renders what it was given. Only a rendered page shows the
+  reader being told the same thing twice, which is the defect this scope exists
+  to prevent and the one SCN-017-059 caught.
+
+- [x] Broader E2E regression suite passes with no unrelated breakage.
+
+  **Claim Source:** executed in this turn — the WHOLE Playwright suite plus the
+  project harness this scope owns.
+
+  ```text
+  $ npx --no-install playwright test --config=playwright.config.mjs \
+      --project=system-chrome --reporter=line
+    294 passed (5.4m)
+  FULL SUITE exit=0
+
+  $ node scripts/selftest.mjs
+  Research-Lab self-test: 1273 passed, 0 failed
+  EXIT=0
+
+  $ node scripts/audit-reader-legibility.mjs
+  pages audited: 23   with view tabs: 23   errored: 0   total leaks: 0
+  EXIT=0
+  ```
+
+  This scope owns `scripts/selftest.mjs`, so its broad-suite item carries the
+  harness result as well as the browser one. The legibility audit is included
+  because acceptance for this feature includes D13 — no framework vocabulary
+  reaching the reader — and that is a whole-site property, not a per-scope one.
+
+- [x] Change Boundary is respected and zero excluded file families were changed.
+
+  **Claim Source:** executed in this turn, per family.
+
+  ```text
+  $ for f in rlbrief.js rlexperience.js rlfx.js rljourney.js rlmarketaction.js \
+             rlcontracts.js tool-experience.config.json; do
+      git --no-pager log --oneline c0c7d34c..HEAD -- "$f" | wc -l
+    done
+  rlbrief.js                             UNCHANGED across the whole feature
+  rlexperience.js                        UNCHANGED across the whole feature
+  rlfx.js                                UNCHANGED across the whole feature
+  rljourney.js                           UNCHANGED across the whole feature
+  rlmarketaction.js                      UNCHANGED across the whole feature
+  rlcontracts.js                         UNCHANGED across the whole feature
+  tool-experience.config.json            UNCHANGED across the whole feature
+  ```
+
+  `rlbrief.js` is the decisive one. This scope's job is to stop the legacy feed
+  and the new tier contradicting each other, and the direct way to do that is to
+  edit the feed. It is concurrent-owned, so the reconciliation was done at the
+  `market-brief.html` call site instead and the feed is byte-identical across the
+  whole feature. The constraint produced the better design: the feed stays a
+  general-purpose renderer and the page decides what to hand it.

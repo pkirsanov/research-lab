@@ -554,3 +554,111 @@ and the bite, which are the runs that actually emitted them.
   The run emits 25 `ok` lines in total; the five above are the ones this scope
   owns. The remainder belong to scopes 4, 5 and 6 and are cited in their own
   copies of this item rather than counted twice here.
+
+- [x] Scenario-specific E2E regression tests for EVERY new/changed/fixed behavior exist and pass (TP-02-05).
+
+  **Claim Source:** executed in this turn.
+
+  ```text
+  $ npx --no-install playwright test tests/attention-browser.spec.mjs \
+      --config=playwright.config.mjs --project=system-chrome --reporter=list
+  ✓ 1 decision attention tier renders items and record from committed data
+  ✓ 7 SCN-017-051 The tier renders its declared empty state for an all-excluded generation
+  ✓ 8 SCN-017-057 The tier stays readable at a phone width with nothing clipped
+  ✓ 9 SCN-017-058 The record shows the withheld state with its sample size
+  ✓ 10 SCN-017-059 No item appears in both the decision tier and the catalyst feed
+    10 passed
+  EXIT=0
+  ```
+
+  The gate's own contract suite proves it REFUSES. These prove the other half:
+  that a payload it ADMITTED still renders, and that a generation it refused
+  entirely still renders the declared empty state. A gate that refuses everything
+  must not take the page down with it, and only an end-to-end run can show that.
+
+- [x] Broader E2E regression suite passes with no unrelated breakage.
+
+  **Claim Source:** executed in this turn — the WHOLE Playwright suite.
+
+  ```text
+  $ npx --no-install playwright test --config=playwright.config.mjs \
+      --project=system-chrome --reporter=line
+    294 passed (5.4m)
+  FULL SUITE exit=0
+
+  $ node scripts/selftest.mjs
+  Research-Lab self-test: 1273 passed, 0 failed
+
+  $ node scripts/validate-brief-payload.mjs
+  [brief-contract] PASS: all visible sections, registry coverage, model-specific
+                   real assets, and next-session actions are valid
+  EXIT=0
+  ```
+
+  294 of 294 across 34 spec files, and the gate this scope owns exits 0 against
+  the committed payload in the same sweep.
+
+- [x] Independent canary suite for shared fixture/bootstrap contracts passes before broad suite reruns (TP-02-06).
+
+  **Claim Source:** executed in this turn, BEFORE the broad rerun above.
+
+  ```text
+  $ node --test tests/brief-refresh-atomicity.test.mjs
+  # tests 26
+  # pass 26
+  # fail 0
+  EXIT=0
+  ```
+
+  This is the canary rather than just another suite because it is the only test
+  that exercises the shared publication fixture end to end. When that fixture is
+  wrong, every downstream publication test fails in the SAME direction, which
+  reads like a product regression instead of a harness defect. It earned the name
+  in this session: it stood at 8 of 26 passing because the fixture had silently
+  stopped modelling the real path, and no downstream suite said so.
+
+- [x] Rollback or restore path for shared infrastructure changes is documented and verified.
+
+  **Claim Source:** executed — the restore path is asserted by a test, not merely
+  described in prose.
+
+  ```text
+  $ node --test tests/brief-refresh-atomicity.test.mjs
+  ok 26 - forced final validation failure restores every owned baseline byte and index path
+  # tests 26
+  # pass 26
+  # fail 0
+  EXIT=0
+  ```
+
+  The Rollback section above documents the revert. This item is about the OTHER
+  restore path — the one the publication script takes at runtime when the gate
+  refuses. Scenario 26 forces a final-validation failure and then asserts that
+  every owned baseline file is byte-identical, no partial artifact survives, and
+  the git index and HEAD are unchanged. A fail-closed gate that leaves half a
+  publication behind is not fail-closed, and this is what proves it does not.
+
+- [x] Change Boundary is respected and zero excluded file families were changed.
+
+  **Claim Source:** executed in this turn, per family.
+
+  ```text
+  $ for f in rlbrief.js rlexperience.js rlfx.js rljourney.js rlmarketaction.js \
+             rlcontracts.js tool-experience.config.json; do
+      git --no-pager log --oneline c0c7d34c..HEAD -- "$f" | wc -l
+    done
+  rlbrief.js                             UNCHANGED across the whole feature
+  rlexperience.js                        UNCHANGED across the whole feature
+  rlfx.js                                UNCHANGED across the whole feature
+  rljourney.js                           UNCHANGED across the whole feature
+  rlmarketaction.js                      UNCHANGED across the whole feature
+  rlcontracts.js                         UNCHANGED across the whole feature
+  tool-experience.config.json            UNCHANGED across the whole feature
+  ```
+
+  `rlattention.js` is the family worth naming for this scope. The gate must know
+  what a valid attention item is, and the tempting shortcut is to restate the
+  rules inside the validator. It is excluded precisely so that cannot happen: the
+  validator `require`s the module and calls it, so the publication path and the
+  render path are ONE predicate rather than two copies that agree today. The
+  module was changed by Scope 1, its owner, not here.

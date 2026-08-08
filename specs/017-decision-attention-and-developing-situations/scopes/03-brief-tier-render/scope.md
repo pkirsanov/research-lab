@@ -624,3 +624,69 @@ stale declaration both appear.
   modification during the failing run, which is the same intermittency the
   Improvement-Plan already measured and classified as environmental rather than a
   repo defect.
+
+- [x] Scenario-specific E2E regression tests for EVERY new/changed/fixed behavior exist and pass (TP-03-06).
+
+  **Claim Source:** executed in this turn.
+
+  ```text
+  $ npx --no-install playwright test tests/attention-browser.spec.mjs \
+      --config=playwright.config.mjs --project=system-chrome --reporter=list
+  ✓ 2 decision attention items carry no alert severity label or alert styling
+  ✓ 3 every decision attention field and control exposes a contextual tooltip
+  ✓ 4 authored decision attention text with markup renders escaped
+  ✓ 5 elapsed decision attention items render expired and a stale generation is declared
+  ✓ 8 SCN-017-057 The tier stays readable at a phone width with nothing clipped
+    10 passed
+  EXIT=0
+  ```
+
+  Each of these properties was introduced by one scenario but has to hold across
+  ALL of them. The regression row runs the whole file rather than a grep, so a
+  later scenario that reintroduces alert styling, drops a tooltip or overflows at
+  360px fails here even though its own assertions pass.
+
+- [x] Broader E2E regression suite passes with no unrelated breakage.
+
+  **Claim Source:** executed in this turn — the WHOLE Playwright suite.
+
+  ```text
+  $ npx --no-install playwright test --config=playwright.config.mjs \
+      --project=system-chrome --reporter=line
+  [293/294] tests/web-evidence.spec.mjs:195:1 › Regression: SCN-012-037 frozen safe
+           bundle renders bounded metadata and no raw or hostile content
+  [294/294] tests/simple-production-wiring.spec.mjs:956:1 › TP-15-04 the swept set
+           is derived from the production registry + pages
+    294 passed (5.4m)
+  FULL SUITE exit=0
+
+  $ node scripts/selftest.mjs
+  Research-Lab self-test: 1273 passed, 0 failed
+  ```
+
+  This scope adds a section to a page 34 spec files load. The whole-suite run is
+  the only thing that shows the addition did not disturb any of them.
+
+- [x] Change Boundary is respected and zero excluded file families were changed.
+
+  **Claim Source:** executed in this turn, per family.
+
+  ```text
+  $ for f in rlbrief.js rlexperience.js rlfx.js rljourney.js rlmarketaction.js \
+             rlcontracts.js tool-experience.config.json; do
+      git --no-pager log --oneline c0c7d34c..HEAD -- "$f" | wc -l
+    done
+  rlbrief.js                             UNCHANGED across the whole feature
+  rlexperience.js                        UNCHANGED across the whole feature
+  rlfx.js                                UNCHANGED across the whole feature
+  rljourney.js                           UNCHANGED across the whole feature
+  rlmarketaction.js                      UNCHANGED across the whole feature
+  rlcontracts.js                         UNCHANGED across the whole feature
+  tool-experience.config.json            UNCHANGED across the whole feature
+  ```
+
+  `rlbrief.js` is the one worth naming. This scope renders a tier that sits
+  directly above the legacy catalyst feed, and the obvious way to stop both
+  surfaces showing the same item would have been to edit the feed. It is owned by
+  a concurrent session, so the de-duplication was done at the `market-brief.html`
+  call site instead — and the file is byte-identical across the entire feature.

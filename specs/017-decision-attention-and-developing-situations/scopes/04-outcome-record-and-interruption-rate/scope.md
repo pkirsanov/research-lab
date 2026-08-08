@@ -732,3 +732,68 @@ generation and record the digest comparison as raw output.
   unfiltered run of a shared suite; the intervening numbers belong to scopes 2, 5
   and 6 and are cited in their own copies of this item rather than counted twice
   here.
+
+- [x] Scenario-specific E2E regression tests for EVERY new/changed/fixed behavior exist and pass (TP-04-08).
+
+  **Claim Source:** executed in this turn.
+
+  ```text
+  $ npx --no-install playwright test tests/attention-browser.spec.mjs \
+      --config=playwright.config.mjs --project=system-chrome --reporter=list
+  ✓ 1 decision attention tier renders items and record from committed data
+  ✓ 9 SCN-017-058 The record shows the withheld state with its sample size, never a zero rate
+    10 passed
+  EXIT=0
+  ```
+
+  The reducer's own tests prove the arithmetic withholds below the minimum
+  sample. This proves the RENDER withholds too. That distinction is the whole
+  point: a reducer can return null correctly and a renderer can still print 0%,
+  and it is the printed 0% the reader would act on.
+
+- [x] Broader E2E regression suite passes with no unrelated breakage.
+
+  **Claim Source:** executed in this turn — the WHOLE Playwright suite.
+
+  ```text
+  $ npx --no-install playwright test --config=playwright.config.mjs \
+      --project=system-chrome --reporter=line
+    294 passed (5.4m)
+  FULL SUITE exit=0
+
+  $ node scripts/selftest.mjs
+  Research-Lab self-test: 1273 passed, 0 failed
+
+  $ node --test tests/attention-payload-contract.test.mjs
+  # tests 27
+  # pass 27
+  # fail 0
+  ```
+
+  294 of 294. The record this scope publishes is read by the brief page that
+  every other spec file loads, so a whole-suite run is what shows the new artifact
+  did not disturb them.
+
+- [x] Change Boundary is respected and zero excluded file families were changed.
+
+  **Claim Source:** executed in this turn, per family.
+
+  ```text
+  $ for f in rlbrief.js rlexperience.js rlfx.js rljourney.js rlmarketaction.js \
+             rlcontracts.js tool-experience.config.json; do
+      git --no-pager log --oneline c0c7d34c..HEAD -- "$f" | wc -l
+    done
+  rlbrief.js                             UNCHANGED across the whole feature
+  rlexperience.js                        UNCHANGED across the whole feature
+  rlfx.js                                UNCHANGED across the whole feature
+  rljourney.js                           UNCHANGED across the whole feature
+  rlmarketaction.js                      UNCHANGED across the whole feature
+  rlcontracts.js                         UNCHANGED across the whole feature
+  tool-experience.config.json            UNCHANGED across the whole feature
+  ```
+
+  `market-brief.scorecard.json` is the family that matters most here, because
+  this scope publishes a file whose name is one word away from it. They are
+  DIFFERENT records — one scores recommendations, one scores attention — and
+  conflating them would corrupt the published track record. Byte-identity across
+  a full attention generation is asserted by SCN-017-039 rather than assumed.

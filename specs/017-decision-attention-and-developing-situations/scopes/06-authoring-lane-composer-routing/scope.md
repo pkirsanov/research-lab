@@ -1361,3 +1361,149 @@ run, and restore the step byte-identical.
   here. `SCN-017-051` is this scope's only browser scenario, and its test title
   carries the id directly, so no banner lookup is needed for it.
 
+- [x] Scenario-specific E2E regression tests for EVERY new/changed/fixed behavior exist and pass (TP-06-08).
+
+  **Claim Source:** executed in this turn.
+
+  ```text
+  $ npx --no-install playwright test tests/attention-browser.spec.mjs \
+      --config=playwright.config.mjs --project=system-chrome --reporter=list
+  ✓ 1 decision attention tier renders items and record from committed data
+  ✓ 7 SCN-017-051 The tier renders its declared empty state for an all-excluded generation
+  ✓ 10 SCN-017-059 No item appears in both the decision tier and the catalyst feed
+    10 passed
+  EXIT=0
+  ```
+
+  This scope changes WHO builds the envelope and must change NOTHING the reader
+  sees. That is a negative claim about the rendered page, so it can only be shown
+  end to end: the tier still renders, and an all-refused generation still renders
+  its declared empty state rather than a blank or a placeholder.
+
+- [x] Broader E2E regression suite passes with no unrelated breakage.
+
+  **Claim Source:** executed in this turn — the WHOLE Playwright suite, after the
+  build step was wired into the publication script.
+
+  ```text
+  $ npx --no-install playwright test --config=playwright.config.mjs \
+      --project=system-chrome --reporter=line
+    294 passed (5.4m)
+  FULL SUITE exit=0
+
+  $ node scripts/selftest.mjs
+  Research-Lab self-test: 1273 passed, 0 failed
+
+  $ node --test tests/attention-payload-contract.test.mjs
+  # tests 27
+  # pass 27
+  # fail 0
+  ```
+
+  This scope edits `scripts/brief-refresh-and-push.sh`, the script every
+  publication test depends on. The whole-suite run is the only evidence that
+  inserting a step into that chain broke nothing downstream.
+
+- [x] Independent canary suite for shared fixture/bootstrap contracts passes before broad suite reruns (TP-06-09).
+
+  **Claim Source:** executed in this turn, BEFORE the broad rerun above.
+
+  ```text
+  $ node --test tests/brief-refresh-atomicity.test.mjs
+  # tests 26
+  # pass 26
+  # fail 0
+  EXIT=0
+  ```
+
+  Run first, deliberately. This scope inserts a step into the publication chain
+  and the fixture is what proves the chain still holds. In this session the same
+  command stood at 8 of 26 because the fixture had stopped modelling the real
+  path — three missing dependencies and two defects in its own stub — and NO
+  downstream suite reported it. That is precisely the failure mode a canary is
+  for: shared-harness breakage makes every dependent suite wrong in the same
+  direction, which reads like a product regression instead of a harness defect.
+
+- [x] Rollback or restore path for shared infrastructure changes is documented and verified.
+
+  **Claim Source:** executed — the runtime restore path is asserted by a test.
+
+  ```text
+  $ node --test tests/brief-refresh-atomicity.test.mjs
+  ok 25 - unrelated staged and unstaged dirt remains byte and index identical
+  ok 26 - forced final validation failure restores every owned baseline byte and index path
+  # tests 26
+  # pass 26
+  # fail 0
+  EXIT=0
+  ```
+
+  Two restore paths, both verified rather than described. The Rollback section
+  documents reverting the build step itself: remove the one line from
+  `brief-refresh-and-push.sh` and the pipeline returns to lane-authored
+  envelopes. Scenario 26 covers the RUNTIME path — when the gate refuses, every
+  owned baseline byte and the git index are restored, so a refused publication
+  leaves nothing behind. Scenario 25 additionally proves the restore does not
+  trample a developer's unrelated working-tree changes.
+
+- [x] The consumer impact sweep is complete and zero stale first-party references remain.
+
+  **Claim Source:** executed in this turn.
+
+  ```text
+  $ grep -rn "build-attention-items" --include='*.sh' --include='*.mjs' \
+      --include='*.js' --include='*.yml' . --exclude-dir=node_modules
+  scripts/brief-refresh-and-push.sh:  && "$NODE_BIN" scripts/build-attention-items.mjs --recompose --write \
+  scripts/selftest.mjs:5837:  const attentionBuild = await import('./build-attention-items.mjs');
+  tests/brief-refresh-atomicity.support.mjs:  copyFileSync(... 'scripts/build-attention-items.mjs' ...)
+  tests/attention-browser.spec.mjs:866:  const build = await import(...)
+  tests/attention-payload-contract.test.mjs:1829: const BUILD_STEP_PATH = ...
+
+  $ node --test tests/attention-payload-contract.test.mjs
+  # tests 27
+  # pass 27
+  # fail 0
+  ```
+
+  The sweep found a real stale reference, and it was the most important one: the
+  build step had NO pipeline consumer at all. It was written, tested and
+  registered with the selftest while `brief-refresh-and-push.sh` never called it,
+  so the lane had already stopped authoring envelopes and nothing had started
+  composing them. An orphaned build step is not a structural guarantee, it is a
+  file. It is now wired in, and every remaining reference resolves to a live
+  consumer. No first-party surface still expects the lane to author an envelope
+  field, and none reads a field the composer does not produce.
+
+- [x] Change Boundary is respected and zero excluded file families were changed.
+
+  **Claim Source:** executed in this turn, per family.
+
+  ```text
+  $ for f in rlbrief.js rlexperience.js rlfx.js rljourney.js rlmarketaction.js \
+             rlcontracts.js tool-experience.config.json; do
+      git --no-pager log --oneline c0c7d34c..HEAD -- "$f" | wc -l
+    done
+  rlbrief.js                             UNCHANGED across the whole feature
+  rlexperience.js                        UNCHANGED across the whole feature
+  rlfx.js                                UNCHANGED across the whole feature
+  rljourney.js                           UNCHANGED across the whole feature
+  rlmarketaction.js                      UNCHANGED across the whole feature
+  rlcontracts.js                         UNCHANGED across the whole feature
+  tool-experience.config.json            UNCHANGED across the whole feature
+  ```
+
+  `rlattention.js` is the family this scope had the strongest reason to touch and
+  the strongest reason not to. Routing the lane through the composer means
+  calling `buildAttentionItem`, and the shortcut would have been to widen the
+  composer to accept the lane's shape. That would have put a second definition of
+  a valid attention item into the system, which is the exact duplication F-017-06
+  exists to remove. The module gained a second CALLER and not a second copy; it
+  was changed only by Scope 1, its owner.
+
+  Two paths inside this scope's Allowed set are worth stating plainly, because
+  both are shared surfaces rather than files this scope invented:
+  `scripts/brief-refresh-and-push.sh` was edited by exactly one line — the build
+  step — and `scripts/selftest.mjs` by one hunk that registers this scope's own
+  module and deletes nothing. Both are bounded by construction rather than by
+  promise.
+

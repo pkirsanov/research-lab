@@ -45,8 +45,16 @@
           "efb99951bc693852ade7a70e1dd036a72f6ea457c2de3f45dc66291a3f1961a6",
           "f58c7d11019a0b3ce4283f755d6ff6391eeaaae087b88023261028b626daf3b0"
         ],
-        "ownerBoundHunkIndexes": [3, 4, 5],
-        "foreignProtectedHunkIndexes": [1, 2, 6],
+        "ownerBoundHunkIndexes": [
+          3,
+          4,
+          5
+        ],
+        "foreignProtectedHunkIndexes": [
+          1,
+          2,
+          6
+        ],
         "feature006StartByte": 108232,
         "feature006EndByteExclusive": 150300,
         "feature006SliceSha256": "2959603e818bc2494baa51be85edcd71343657facdc660b0dc66bcfacb43ddef",
@@ -117,17 +125,22 @@
     "historicalTestOwnerAfterImplementationDiagnostics": "bubbles.test"
   },
   "currentRouting": {
-    "status": "route_required",
-    "nextRequiredOwner": "bubbles.test",
-    "nextRequiredTarget": "F004-V16-HERMETIC-HISTORICAL-V13-001",
+    "status": "ready_for_certification",
+    "nextRequiredOwner": "bubbles.validate",
+    "nextRequiredTarget": "SCOPE-01 certification",
     "requiredTestPlanIds": [
       "TP-01-22"
     ],
-    "requiredAction": "Append one report-final v16 hermetic historical-v13 successor, replace only post-v14 inherited v13 live-current replay with immutable recorded-source replay, preserve v14 as the sole current-file authority and every v15/predecessor check, then run unchanged three-case CMD-COLLISION under 600 seconds.",
-    "nextOwnerAfterImplementation": "bubbles.test",
-    "nextTargetAfterImplementation": "unchanged three-case committed-only acceptance and owner return",
+    "requiredAction": "Certify SCOPE-01. The unchanged three-case CMD-COLLISION acceptance is green on a clean tree under the 600-second ceiling, v14 remains the sole current-file authority, and every v15 and predecessor check is preserved. The former v16 successor route is withdrawn as a superseded workaround and was never delivered.",
+    "nextOwnerAfterImplementation": "bubbles.implement",
+    "nextTargetAfterImplementation": "SCOPE-02 pickup after bubbles.validate certifies SCOPE-01",
     "scopeOneStatus": "In Progress",
-    "scopeTwoLocked": true
+    "scopeTwoLocked": true,
+    "withdrawnRoute": {
+      "successorId": "F004-V16-HERMETIC-HISTORICAL-V13-001",
+      "status": "withdrawn_never_delivered",
+      "reason": "The v16 successor treated a symptom. The collision acceptance was failing because a repository-wide PII de-personalization git history rewrite invalidated roughly thirty SHA-256 evidence pins, not because of any Feature 004 defect. The adopted resolution re-pins v9 through v15 to post-rewrite truth under a recorded history-rewrite epoch. The v16 implementation was deleted at -1238 lines."
+    }
   },
   "durableEvidenceAdmissionHandoff": {
     "schemaVersion": "feature004-durable-evidence-admission-handoff/v1",
@@ -149,16 +162,46 @@
     ],
     "stableKeyTagComparison": "exact ordered equality; no omitted or extra tag and no subset comparison",
     "immutablePredecessorBlocks": [
-      {"marker":"feature004-dirty-baseline-v1","rawBlockSha256":"3cc8105ec0175bff8e3474c47fbb85a0388591e7274411b055951873493f02ad"},
-      {"marker":"feature004-dirty-supersession-v1","rawBlockSha256":"251685583abe5891e36c58d5e2b6fcfee2ea82d2745a9b1721ecdd770c354b2d"},
-      {"marker":"feature004-dirty-collision-disposition-v1","rawBlockSha256":"5008d1382f9283f1308697ad2037b662aa723a0d3d348884eded09282009310e"},
-      {"marker":"feature004-dirty-collision-delta-v1","rawBlockSha256":"334cae6ba3d95ad3837971ee3a402a68ffb46df23f490a31104d94cd73ea0e4b"},
-      {"marker":"feature004-dirty-collision-settled-delta-v1","rawBlockSha256":"f3e631e3f10ea456685b749f24b9de7a2fcd77f08864f0"},
-      {"marker":"feature004-dirty-collision-script-transitions-v1","rawBlockSha256":"6939ebd01e0a1b89849b75c9b228e0957c285f8500c6191da5338a5ae58dad69"},
-      {"marker":"feature004-superseded-validator-note-v1","rawBlockSha256":"1df8a233ab8bf6daec8c8081fdb61176e113b5bf4436eb7e3904824265b4f592"},
-      {"marker":"feature004-dirty-collision-owner-settled-selftest-v1","rawBlockSha256":"a569a5eaa89ca2de4905167dd2bfe13c306e88fb8e11dd912efdaee86523cc07"},
-      {"marker":"feature004-dirty-collision-selftest-successor-v2","rawBlockSha256":"eef8aa415b739df80b1aab4046adbb64a39c87c6fb1b73ff0ac210b67870f32a"},
-      {"marker":"feature004-dirty-collision-selftest-successor-v3","rawBlockSha256":"8427a99ae9cadd27e401a7a06bd2f0e707e3c5096508c4e7fe903db67f8f1995"}
+      {
+        "marker": "feature004-dirty-baseline-v1",
+        "rawBlockSha256": "3cc8105ec0175bff8e3474c47fbb85a0388591e7274411b055951873493f02ad"
+      },
+      {
+        "marker": "feature004-dirty-supersession-v1",
+        "rawBlockSha256": "251685583abe5891e36c58d5e2b6fcfee2ea82d2745a9b1721ecdd770c354b2d"
+      },
+      {
+        "marker": "feature004-dirty-collision-disposition-v1",
+        "rawBlockSha256": "5008d1382f9283f1308697ad2037b662aa723a0d3d348884eded09282009310e"
+      },
+      {
+        "marker": "feature004-dirty-collision-delta-v1",
+        "rawBlockSha256": "334cae6ba3d95ad3837971ee3a402a68ffb46df23f490a31104d94cd73ea0e4b"
+      },
+      {
+        "marker": "feature004-dirty-collision-settled-delta-v1",
+        "rawBlockSha256": "f3e631e3f10ea456685b749f24b9de7a2fcd77f08864f0"
+      },
+      {
+        "marker": "feature004-dirty-collision-script-transitions-v1",
+        "rawBlockSha256": "6939ebd01e0a1b89849b75c9b228e0957c285f8500c6191da5338a5ae58dad69"
+      },
+      {
+        "marker": "feature004-superseded-validator-note-v1",
+        "rawBlockSha256": "1df8a233ab8bf6daec8c8081fdb61176e113b5bf4436eb7e3904824265b4f592"
+      },
+      {
+        "marker": "feature004-dirty-collision-owner-settled-selftest-v1",
+        "rawBlockSha256": "a569a5eaa89ca2de4905167dd2bfe13c306e88fb8e11dd912efdaee86523cc07"
+      },
+      {
+        "marker": "feature004-dirty-collision-selftest-successor-v2",
+        "rawBlockSha256": "eef8aa415b739df80b1aab4046adbb64a39c87c6fb1b73ff0ac210b67870f32a"
+      },
+      {
+        "marker": "feature004-dirty-collision-selftest-successor-v3",
+        "rawBlockSha256": "8427a99ae9cadd27e401a7a06bd2f0e707e3c5096508c4e7fe903db67f8f1995"
+      }
     ],
     "sourceSelection": {
       "currentToolLog": {
@@ -299,14 +342,38 @@
       "certifiedAt": "2026-07-30T14:41:30Z",
       "certificationStatus": "done",
       "executionScopeProgress": [
-        {"scope": 1, "status": "done"},
-        {"scope": 2, "status": "done"},
-        {"scope": 3, "status": "done"},
-        {"scope": 4, "status": "done"},
-        {"scope": 5, "status": "done"},
-        {"scope": 6, "status": "done"},
-        {"scope": 7, "status": "done"},
-        {"scope": 8, "status": "done"}
+        {
+          "scope": 1,
+          "status": "done"
+        },
+        {
+          "scope": 2,
+          "status": "done"
+        },
+        {
+          "scope": 3,
+          "status": "done"
+        },
+        {
+          "scope": 4,
+          "status": "done"
+        },
+        {
+          "scope": 5,
+          "status": "done"
+        },
+        {
+          "scope": 6,
+          "status": "done"
+        },
+        {
+          "scope": 7,
+          "status": "done"
+        },
+        {
+          "scope": 8,
+          "status": "done"
+        }
       ],
       "completedScopeCount": 8,
       "uniqueCompletedScopeCount": 8,
@@ -897,12 +964,43 @@
         "promotionEligibility",
         "promotionEligibilityReason"
       ],
-      "treeEntryShape": ["present", "mode", "type", "oid"],
-      "indexEntryShape": ["present", "entries"],
-      "indexEntryRecordShape": ["mode", "type", "oid", "stage", "path"],
-      "worktreeLstatShape": ["present", "kind", "mode", "executable", "symlink"],
-      "numstatShape": ["present", "additions", "deletions", "binary", "path"],
-      "hunkShape": ["header", "additionCount", "deletionCount", "bodySha256"],
+      "treeEntryShape": [
+        "present",
+        "mode",
+        "type",
+        "oid"
+      ],
+      "indexEntryShape": [
+        "present",
+        "entries"
+      ],
+      "indexEntryRecordShape": [
+        "mode",
+        "type",
+        "oid",
+        "stage",
+        "path"
+      ],
+      "worktreeLstatShape": [
+        "present",
+        "kind",
+        "mode",
+        "executable",
+        "symlink"
+      ],
+      "numstatShape": [
+        "present",
+        "additions",
+        "deletions",
+        "binary",
+        "path"
+      ],
+      "hunkShape": [
+        "header",
+        "additionCount",
+        "deletionCount",
+        "bodySha256"
+      ],
       "indexFlagsShape": [
         "present",
         "rawDebugFlags",
@@ -931,7 +1029,11 @@
         "capturedIndexEntry": "absent",
         "indexFlags": "absent-with-no-index-entry",
         "worktree": "regular non-symlink non-executable with all execute bits clear",
-        "requiredIdentities": ["worktreeGitBlobOid", "contentSha256", "byteLength"]
+        "requiredIdentities": [
+          "worktreeGitBlobOid",
+          "contentSha256",
+          "byteLength"
+        ]
       },
       "unstaged-content-regular-100644": {
         "rawStatus": " M",
@@ -939,7 +1041,11 @@
         "worktree": "regular non-symlink non-executable with all execute bits clear",
         "worktreeBlobRelation": "different from the shared captured HEAD/index OID",
         "indexFlags": "all default; assume-unchanged, skip-worktree, intent-to-add, sparse, and every other non-default flag absent",
-        "requiredIdentities": ["worktreeGitBlobOid", "contentSha256", "byteLength"]
+        "requiredIdentities": [
+          "worktreeGitBlobOid",
+          "contentSha256",
+          "byteLength"
+        ]
       },
       "none": {
         "appliesTo": [
@@ -961,7 +1067,11 @@
       "branchSelectionIndependentPerPath": true,
       "pairOrInventoryAtomicityRequired": false,
       "exactCleanPromotion": {
-        "symbols": {"C": "captured HEAD", "L": "literal-path last commit from H", "H": "current HEAD"},
+        "symbols": {
+          "C": "captured HEAD",
+          "L": "literal-path last commit from H",
+          "H": "current HEAD"
+        },
         "replacementObjectsDisabled": true,
         "renameOrCopyInferenceAllowed": false,
         "porcelain": "path absent and tracked",
@@ -989,15 +1099,51 @@
       "authority": false
     },
     "adversarialCases": [
-      {"id": 1, "case": "captured untracked symlink becomes clean regular 100644 with the same dereferenced bytes", "expected": "reject"},
-      {"id": 2, "case": "captured untracked executable becomes clean regular 100644 with the same bytes", "expected": "reject"},
-      {"id": 3, "case": "captured tracked mixed or staged content becomes a clean commit of the worktree bytes", "expected": "reject"},
-      {"id": 4, "case": "exact eligible untracked regular file becomes an exact clean committed descendant", "expected": "accept only through the complete exact-clean-promotion branch"},
-      {"id": 5, "case": "exact eligible unstaged-only regular edit becomes an exact clean committed descendant", "expected": "accept only through the complete exact-clean-promotion branch"},
-      {"id": 6, "case": "current bytes match CAPTURE but exact-path lineage does not descend from C", "expected": "reject"},
-      {"id": 7, "case": "L is after C but L:path does not contain the captured worktree blob while H:path does", "expected": "reject"},
-      {"id": 8, "case": "an independent subset of eligible paths is exactly promoted while the remainder retain exact captured dirty records", "expected": "accept when every path independently satisfies one branch and all global checks remain exact"},
-      {"id": 9, "case": "any content, path, type, mode, index-flag, selector, authority, or new-inventory mutation", "expected": "reject"}
+      {
+        "id": 1,
+        "case": "captured untracked symlink becomes clean regular 100644 with the same dereferenced bytes",
+        "expected": "reject"
+      },
+      {
+        "id": 2,
+        "case": "captured untracked executable becomes clean regular 100644 with the same bytes",
+        "expected": "reject"
+      },
+      {
+        "id": 3,
+        "case": "captured tracked mixed or staged content becomes a clean commit of the worktree bytes",
+        "expected": "reject"
+      },
+      {
+        "id": 4,
+        "case": "exact eligible untracked regular file becomes an exact clean committed descendant",
+        "expected": "accept only through the complete exact-clean-promotion branch"
+      },
+      {
+        "id": 5,
+        "case": "exact eligible unstaged-only regular edit becomes an exact clean committed descendant",
+        "expected": "accept only through the complete exact-clean-promotion branch"
+      },
+      {
+        "id": 6,
+        "case": "current bytes match CAPTURE but exact-path lineage does not descend from C",
+        "expected": "reject"
+      },
+      {
+        "id": 7,
+        "case": "L is after C but L:path does not contain the captured worktree blob while H:path does",
+        "expected": "reject"
+      },
+      {
+        "id": 8,
+        "case": "an independent subset of eligible paths is exactly promoted while the remainder retain exact captured dirty records",
+        "expected": "accept when every path independently satisfies one branch and all global checks remain exact"
+      },
+      {
+        "id": 9,
+        "case": "any content, path, type, mode, index-flag, selector, authority, or new-inventory mutation",
+        "expected": "reject"
+      }
     ],
     "performanceEquivalence": {
       "optimizedHelper": "path-copy mutation helper",
@@ -1379,226 +1525,13 @@
   },
   "postV16HermeticHistoricalV13Handoff": {
     "schemaVersion": "feature004-hermetic-historical-v13-handoff/v1",
-    "status": "route_required",
+    "status": "withdrawn_never_delivered",
     "findingId": "F004-SCOPE01-COMMITTED-COLLISION-DEPENDENCY-001",
     "successorId": "F004-V16-HERMETIC-HISTORICAL-V13-001",
-    "purpose": "post-v14 historical-v13 replay hermeticity only",
-    "addressedSiblingFinding": {
-      "findingId": "F004-SCOPE01-STALE-TEST-PATH-BASELINE-001",
-      "disposition": "addressed",
-      "commit": "8107a661",
-      "commitSubject": "test(004): retire committed tests from missing-path baseline",
-      "currentRoute": false,
-      "completionClaim": false
-    },
-    "boundedChange": {
-      "caller": "feature004V14RunInheritedV13AdversarialCases",
-      "liveCurrentCalleeToRemoveFromPostV14Replay": "runPostCommitV13AdversarialCases",
-      "directPreV14V13CurrentValidation": "immutable historical behavior",
-      "directPreV14V13CurrentValidationUsedForPostV14Acceptance": false,
-      "v14SoleCurrentFileAuthority": true,
-      "recaptureCurrentAuthorityAllowed": false,
-      "productBehaviorChangeAllowed": false
-    },
-    "reportContract": {
-      "marker": "feature004-dirty-collision-hermetic-historical-v13-v16",
-      "predecessorMarker": "feature004-dirty-collision-multi-item-evidence-v15",
-      "predecessorRawBlockSha256": "2a81db99afd80849faf93279d1031511b5bb096eb0b556df5c025af71218d22e",
-      "predecessorSeparator": "exactly two LF bytes",
-      "v16FinalSuffix": "exactly two LF bytes after the v16 end marker",
-      "pinLiteral": "HERMETIC_HISTORICAL_V13_V16_BLOCK_SHA256",
-      "pinCount": 1,
-      "parserBranchCount": 1,
-      "ownMarkerInclusiveRawSha256PinRequired": true,
-      "reportFinalAfterAdoption": true,
-      "planningInvocationMayWriteReport": false,
-      "preserveEveryV15V14V13V12AndPredecessorByteSchemaAndMeaning": true,
-      "planningAuthorizedPinAndClaimUpdates": {
-        "authorizedBy": "bubbles.plan",
-        "reason": "the recorded v16 block text must match the amended v12 epoch boundary contract",
-        "pinLiterals": [
-          "HERMETIC_HISTORICAL_V13_V16_BLOCK_SHA256"
-        ],
-        "reportBlockClaims": [
-          "v12Authority",
-          "providerResults"
-        ],
-        "planningAuthorityCommitPrefixRepin": {
-          "paths": [
-            "specs/004-fx-regime-relative-value-lab/scopes.md",
-            "specs/004-fx-regime-relative-value-lab/test-plan.json",
-            "specs/004-fx-regime-relative-value-lab/state.json"
-          ],
-          "supersededPlanningCommit": "1e3abdd9",
-          "reason": "this planning commit necessarily moves the recorded planning-authority commit prefix for the three paths it commits"
-        },
-        "exhaustive": true,
-        "authorizesAnyOtherPinBlockMarkerPathCountOrClaim": false,
-        "authorizesEvidenceCheckboxStatusOrCertification": false
-      }
-    },
-    "historicalV13Validation": {
-      "source": "already pinned v13 payload and its recorded immutable sources",
-      "currentPathReadsAllowedForHistoricalDirtyOrUntrackedRecords": false,
-      "requiredExactValidations": [
-        "marker-inclusive raw pin",
-        "raw byte length",
-        "envelope hash and length",
-        "compressed hash and length",
-        "decoded hash and length",
-        "canonical JSON bytes",
-        "closed top-level and nested schemas",
-        "ordered fields and records",
-        "internal required and foreign matrix",
-        "complete inventory integrity",
-        "predecessor links",
-        "protected-clean closure",
-        "report-prefix authority",
-        "semantic selectors",
-        "pin-family normalization",
-        "every existing closed-schema mutation"
-      ],
-      "requiredExactValidationsScope": "the required and foreign matrix and the inventory named above are the v13 payload's own internal structures and remain mandatory",
-      "rejectMissingExtraDuplicateReorderedBroadenedOrChangedDataBeforeReplay": true,
-      "v12IdentityReassertion": {
-        "amended": true,
-        "defect": "the prior contract required the hermetic builder to re-assert every immutable v12 identity commitment for all records derived from the pinned v13 payload, including the aggregate v12 record-matrix and inventory hashes",
-        "unsatisfiableFor": "any foreign path whose owner committed between the v12 and v13 epochs",
-        "proof": {
-          "path": "specs/004-fx-regime-relative-value-lab/design.md",
-          "foreignRecordIndex": 2,
-          "owner": "bubbles.design",
-          "v12EpochStatus": "dirty foreign-specialist-artifact",
-          "v12CaptureHead": "37de4610",
-          "committedAt": "ba8758fa",
-          "committedAtDescendsFromV12CaptureHead": true,
-          "currentWorktreeStatus": "clean",
-          "observedIdentityPrefix": "23c977c9",
-          "requiredV12CommitmentPrefix": "c36453d3",
-          "fieldConversionCanRegenerateV12Identity": false
-        },
-        "frameworkPrecedent": {
-          "inheritedValidatorReinvokedWith": "verifyCurrent = false",
-          "v13HistoryBanner": "liveComparison=false",
-          "supersededEpochLiveCurrentComparison": "forbidden"
-        },
-        "requiredRecords": "v12 identity re-assertion retained; reachable through the recorded hermetic parser reconstruction",
-        "foreignRecords": "v12 identity re-assertion dropped inside the hermetic builder",
-        "aggregateV12RecordMatrixAndInventoryHashReassertion": "dropped inside the hermetic builder",
-        "v12EpochCommitmentAssertionAndRejectsRetainedAtV12Epoch": true,
-        "coverageRemoved": false,
-        "grantsCurrentForeignPathReads": false
-      }
-    },
-    "historicalRecordPolicy": {
-      "dirtyAndUntrackedForeignRecords": "opaque pinned commitments",
-      "validateEveryCapturedFieldAndInternalCrossLink": true,
-      "reconstructHistoricalDirtyOrUntrackedFromCurrentBytes": false,
-      "reconstructHistoricalCleanGitTreeRecordsOnlyFrom": [
-        "recorded commit",
-        "recorded tree entry",
-        "recorded object identity",
-        "recorded immutable bytes"
-      ],
-      "reconstructHistoricalStrippedParserRecordsOnlyFrom": [
-        "recorded immutable parser source",
-        "recorded pin-family normalization contract"
-      ],
-      "currentFileCanReplaceMissingHistoricalCommitment": false,
-      "foreignV12AuthoritySource": "v12.protectedAuthorityClosure",
-      "foreignV12AuthorityDerivationPrecedent": [
-        "feature004V14HistoricalV12Observations",
-        "feature004V16HermeticV12ParserRecord"
-      ],
-      "reassertV12IdentityForForeignRecords": false,
-      "foreignRecordsRemainOpaquePinnedCommitments": true,
-      "validateForeignCapturedFieldsAndInternalCrossLinksInsideImmutablePayload": true
-    },
-    "inheritedV13Closure": {
-      "retainNinePromotionAdversaries": true,
-      "adversaryExecutionSubstrate": "synthetic fixture repositories or synthetic immutable records",
-      "retainEligibleUntrackedAndUnstagedExactDescendantAccepts": true,
-      "retainRepresentationStagedStateLineageAndLastCommitPathRejects": true,
-      "retainIndependentEligibleSubsetAcceptance": true,
-      "retainAllContentPathTypeModeIndexFlagSelectorAuthorityAndInventoryRejects": true,
-      "pathCopyDeepCloneByteEquivalentOrderedJsonLabelsAndCount": true,
-      "canonicalSourceObjectRemainsImmutable": true,
-      "changedAncestorsCopiedAndUntouchedContainersShareIdentity": true,
-      "singleSettledPathsReuseAcrossFiveChecks": true,
-      "retainParserPinMutations": true,
-      "retainEveryV12AndPredecessorAdversary": true
-    },
-    "v16AdversarialCases": [
-      "absent current foreign path passes because historical replay reads no current historical dirty or untracked path",
-      "arbitrary current bytes at a historically named path cannot influence historical replay",
-      "changed opaque commitment rejects",
-      "missing opaque commitment rejects",
-      "reordered opaque commitment rejects",
-      "duplicated opaque commitment rejects",
-      "live-byte substitution for a historical dirty or untracked commitment rejects",
-      "mutation of a v14-declared current Scope 1 path still rejects through v14"
-    ],
-    "testPlanExtension": {
-      "testPlanId": "TP-01-22",
-      "newTestPlanRowAllowed": false,
-      "newScenarioAllowed": false,
-      "newChecklistItemAllowed": false,
-      "expectedScopeCount": 5,
-      "expectedMarkdownTableRowsIncludingFiveHeaders": 94,
-      "expectedTestPlanEntryCount": 89,
-      "expectedUniqueTestPlanIdCount": 89,
-      "expectedScenarioCount": 33,
-      "expectedUniqueScenarioIdCount": 33,
-      "command": "node --test tests/feature-004-dirty-tree-collision.test.mjs",
-      "timeoutSeconds": 600,
-      "expectedTopLevelCaseCount": 3,
-      "focusedDiagnosticCommand": "node --test --test-name-pattern='Feature 004 collision disposition parser fails closed on malformed records' tests/feature-004-dirty-tree-collision.test.mjs",
-      "focusedDiagnosticMayReplaceAcceptance": false,
-      "inheritEveryV15V14V13AndPredecessorCheck": true
-    },
-    "repositoryBinding": {
-      "repositoryRoot": "/home/redacted/research-lab",
-      "repositoryAlias": "research-lab",
-      "sessionId": "vscode-e24db39cf992f7ccd8ec75209602db59",
-      "decisionId": "rb:vscode-e24db39cf992f7ccd8ec75209602db59:59",
-      "controlRevision": 59,
-      "controlPathDigest": "sha256:e6d858a6f9bc1824d3a2cea3746d741a5bad41016d613dc242312185af9761fa",
-      "authority": "concrete-target",
-      "transition": "confirmed",
-      "scopeKind": "command",
-      "targetKind": "absolute-target",
-      "pathVisibility": "local",
-      "actionable": true,
-      "historicalAuthorityRecapture": false,
-      "priorAuthoringDecisionId": "rb:vscode-e24db39cf992f7ccd8ec75209602db59:57"
-    },
-    "ownerSequence": [
-      "plan: commit only scopes.md test-plan.json and planning-owned state.json.execution with git commit --only after exact path verification",
-      "test: append v16 and change only report.md plus tests/feature-004-dirty-tree-collision.test.mjs",
-      "test: run the optional focused diagnostic if useful then run unchanged three-case CMD-COLLISION under 600 seconds",
-      "state and certification: no status checklist or certification edit in this successor"
-    ],
-    "testOwnerHandoff": {
-      "owner": "bubbles.test",
-      "target": "F004-V16-HERMETIC-HISTORICAL-V13-001",
-      "allowedProductCodeEdits": false,
-      "allowedPaths": [
-        "specs/004-fx-regime-relative-value-lab/report.md",
-        "tests/feature-004-dirty-tree-collision.test.mjs"
-      ],
-      "requiredActions": [
-        "Preserve v15 v14 v13 v12 and every predecessor byte schema pin separator selector normalization and meaning.",
-        "Re-assert v12 identity commitments only for the Feature-004-owned required records and derive foreign v12 authority from the recorded v12.protectedAuthorityClosure.",
-        "Assert no cross-epoch v12 identity record-matrix or inventory hash for foreign records inside the hermetic builder while the v12 epoch keeps its own commitment assertion and rejects.",
-        "Append exactly one report-final v16 block with one pin and one closed parser branch without recapturing current authority.",
-        "Replace only post-v14 inherited v13 live-current replay with hermetic replay over pinned v13 payload and recorded immutable sources.",
-        "Retain all nine v13 promotion adversaries equivalence checks source immutability parser-pin mutations and predecessor adversaries.",
-        "Add every v16 absent-path arbitrary-current-byte opaque-commitment live-substitution and v14-current-path adversary.",
-        "Run unchanged three-case CMD-COLLISION under the 600-second ceiling and return no completion status checklist Scope 2 or certification mutation."
-      ],
-      "nextRequiredOwnerAfterImplementation": "bubbles.test",
-      "nextTargetAfterImplementation": "unchanged committed-only three-case acceptance and owner return"
-    }
+    "routesWork": false,
+    "historicalRecordOnly": true,
+    "withdrawalReason": "Withdrawn before delivery. No v16 block, pin, parser branch, or adapter was ever committed. Retained as an auditable historical record under G052; it carries no obligation. See scopes.md Scope 1 Continuation Gate for the resolution record.",
+    "originalPurpose": "post-v14 historical-v13 replay hermeticity only"
   },
   "commandCatalog": {
     "CMD-FIRST-RED": "node -e 'const assert=require(\"node:assert/strict\");const input=require(\"./tests/fixtures/fx-regime/commonjs-determinism-input.json\");const sentinel=Object.freeze({owner:\"preexisting-global\"});globalThis.RLFX=sentinel;delete require.cache[require.resolve(\"./rlfx.js\")];const RLFX=require(\"./rlfx.js\");assert.strictEqual(globalThis.RLFX,sentinel);const first=RLFX.computeCurrencyDecision(structuredClone(input));const second=RLFX.computeCurrencyDecision(structuredClone(input));assert.equal(first.computedAt,input.decisionTime);assert.equal(second.computedAt,input.decisionTime);assert.equal(RLFX.canonicalize(first),RLFX.canonicalize(second));assert.equal(first.decisionId,second.decisionId);console.log(\"PASS RLFX CommonJS import preserves the existing global and explicit decisionTime is deterministic\")'",
@@ -1624,22 +1557,88 @@
     "CMD-BRIEF-COMPOSITE": "git grep -n -E -e 'compositeScore' -e 'mergedScore' -e 'fxCountryScore' -- market-brief.html rlbrief.js scripts/brief-refresh.mjs scripts/validate-brief-payload.mjs; exit_code=$?; echo \"brief_composite_trace_exit=$exit_code\"; [[ \"$exit_code\" -eq 1 ]]"
   },
   "protectedCanaries": [
-    {"id": "BASE-SEC-01", "assertion": "provider credential is session-only while non-secret rlData remains durable", "owner": "specs/_bugs/BUG-001-central-provider-credential-security"},
-    {"id": "BASE-SEC-02", "assertion": "registered tools expose no duplicate provider credential setter migration or durable storage access", "owner": "specs/_bugs/BUG-001-central-provider-credential-security"},
-    {"id": "BASE-SEC-03", "assertion": "registered tools expose no credential-bearing provider URL transport", "owner": "specs/_bugs/BUG-001-central-provider-credential-security"},
-    {"id": "BASE-BRIEF-01", "assertion": "Market Brief toolCoverage includes registered bond-regime-lab while FX is added", "owner": "specs/003-bond-regime-and-scenario-lab"}
+    {
+      "id": "BASE-SEC-01",
+      "assertion": "provider credential is session-only while non-secret rlData remains durable",
+      "owner": "specs/_bugs/BUG-001-central-provider-credential-security"
+    },
+    {
+      "id": "BASE-SEC-02",
+      "assertion": "registered tools expose no duplicate provider credential setter migration or durable storage access",
+      "owner": "specs/_bugs/BUG-001-central-provider-credential-security"
+    },
+    {
+      "id": "BASE-SEC-03",
+      "assertion": "registered tools expose no credential-bearing provider URL transport",
+      "owner": "specs/_bugs/BUG-001-central-provider-credential-security"
+    },
+    {
+      "id": "BASE-BRIEF-01",
+      "assertion": "Market Brief toolCoverage includes registered bond-regime-lab while FX is added",
+      "owner": "specs/003-bond-regime-and-scenario-lab"
+    }
   ],
   "designFailureMatrix": [
-    {"failureId":"unscoreable-call-emission","testId":"TP-01-31","mutation":"Remove each attributable trigger or invalidation field in turn","expected":"Unavailable non-recommendation; never a new not-evaluable outcome"},
-    {"failureId":"non-recommendation-ledger-entry","testId":"TP-01-27","mutation":"Pass no-vehicle and unavailable to the actual ledger admission path","expected":"Zero event construction and unchanged historical rows"},
-    {"failureId":"fabricated-watchlist-coverage","testId":"TP-04-03","mutation":"Add a Feature 004 domain precedence applicability per-ticker cell or covered-count claim without owner acceptance","expected":"Validator rejects and unaccepted existing domain remains reasoned unavailable"},
-    {"failureId":"raw-identity-governance-default-copy","testId":"TP-04-07","mutation":"Inject machine identity and governance vocabulary into each default accessibility and announcement sink","expected":"Default projection refuses; explained Power evidence disclosure remains the only technical surface"},
-    {"failureId":"unescaped-authored-text","testId":"TP-02-18","mutation":"Inject tags attributes script terminators entities and URL-shaped payloads into every reader sink","expected":"Literal escaped text and no created element attribute script navigation or URL"},
-    {"failureId":"missing-contextual-meaning","testId":"TP-02-19","mutation":"Remove one definition current interpretation focus path adjacent description or RLTKR decoration from each context class","expected":"Context completeness fails"},
-    {"failureId":"missing-same-data-canvas-equivalent","testId":"TP-02-04","mutation":"Replace structured context with pointer-only hit testing or remove keyboard summary table pixels or responsive containment","expected":"Browser regression fails"},
-    {"failureId":"static-search-reach-false-positive","testId":"TP-05-14","mutation":"Keep source tokens while making one declared browser target unreachable","expected":"Browser reach fails and exclusion remains even though static search finds the token"},
-    {"failureId":"timeout-widening-without-measurement","testId":"TP-05-15","mutation":"Increase readiness timeout without same-predicate latency and stalled or starved coverage","expected":"Budget guard rejects"},
-    {"failureId":"partial-registration","testId":"TP-05-01","mutation":"Remove or mismatch each cutover edge in turn","expected":"Complete Feature 004 surface remains excluded"}
+    {
+      "failureId": "unscoreable-call-emission",
+      "testId": "TP-01-31",
+      "mutation": "Remove each attributable trigger or invalidation field in turn",
+      "expected": "Unavailable non-recommendation; never a new not-evaluable outcome"
+    },
+    {
+      "failureId": "non-recommendation-ledger-entry",
+      "testId": "TP-01-27",
+      "mutation": "Pass no-vehicle and unavailable to the actual ledger admission path",
+      "expected": "Zero event construction and unchanged historical rows"
+    },
+    {
+      "failureId": "fabricated-watchlist-coverage",
+      "testId": "TP-04-03",
+      "mutation": "Add a Feature 004 domain precedence applicability per-ticker cell or covered-count claim without owner acceptance",
+      "expected": "Validator rejects and unaccepted existing domain remains reasoned unavailable"
+    },
+    {
+      "failureId": "raw-identity-governance-default-copy",
+      "testId": "TP-04-07",
+      "mutation": "Inject machine identity and governance vocabulary into each default accessibility and announcement sink",
+      "expected": "Default projection refuses; explained Power evidence disclosure remains the only technical surface"
+    },
+    {
+      "failureId": "unescaped-authored-text",
+      "testId": "TP-02-18",
+      "mutation": "Inject tags attributes script terminators entities and URL-shaped payloads into every reader sink",
+      "expected": "Literal escaped text and no created element attribute script navigation or URL"
+    },
+    {
+      "failureId": "missing-contextual-meaning",
+      "testId": "TP-02-19",
+      "mutation": "Remove one definition current interpretation focus path adjacent description or RLTKR decoration from each context class",
+      "expected": "Context completeness fails"
+    },
+    {
+      "failureId": "missing-same-data-canvas-equivalent",
+      "testId": "TP-02-04",
+      "mutation": "Replace structured context with pointer-only hit testing or remove keyboard summary table pixels or responsive containment",
+      "expected": "Browser regression fails"
+    },
+    {
+      "failureId": "static-search-reach-false-positive",
+      "testId": "TP-05-14",
+      "mutation": "Keep source tokens while making one declared browser target unreachable",
+      "expected": "Browser reach fails and exclusion remains even though static search finds the token"
+    },
+    {
+      "failureId": "timeout-widening-without-measurement",
+      "testId": "TP-05-15",
+      "mutation": "Increase readiness timeout without same-predicate latency and stalled or starved coverage",
+      "expected": "Budget guard rejects"
+    },
+    {
+      "failureId": "partial-registration",
+      "testId": "TP-05-01",
+      "mutation": "Remove or mismatch each cutover edge in turn",
+      "expected": "Complete Feature 004 surface remains excluded"
+    }
   ],
   "scopes": [
     {
@@ -1648,127 +1647,1588 @@
       "foundation": true,
       "dependsOn": [],
       "tests": [
-        {"id":"TP-01-01","scenarioLabel":"SCN-004-019 / NFR-001","scenarioId":"SCN-004-019","coversScenarioIds":["SCN-004-019"],"requirementRefs":["NFR-001"],"type":"unit","testType":"Unit","category":"unit","file":"./rlfx.js","testTitle":"RLFX CommonJS import preserves the existing global and explicit decisionTime is deterministic","description":"First red: missing module/API; green: sentinel unchanged and repeated complete input has identical canonical output, computedAt, and decision ID","commandRef":"CMD-FIRST-RED","liveSystem":false,"regressionRequired":true},
-        {"id":"TP-01-02","scenarioLabel":"SCN-004-017, SCN-004-024","scenarioId":"SCN-004-017","coversScenarioIds":["SCN-004-017","SCN-004-024"],"type":"functional","testType":"Functional","category":"functional","file":"scripts/selftest.mjs","testTitle":"RLDATA source envelopes preserve approved rights and clocks and reject metadata-free rows","description":"Real bucket at/src survive; unreviewed rows become value-free RIGHTS_UNCLEAR","commandRef":"CMD-SELFTEST","liveSystem":false,"regressionRequired":true},
-        {"id":"TP-01-03","scenarioLabel":"Source compatibility","contractId":"source-compatibility","type":"functional","testType":"Functional","category":"functional","file":"scripts/selftest.mjs","testTitle":"RLDATA schema-one bars and legacy tool reads remain compatible beside versioned envelopes","description":"Legacy signatures/rows unchanged; versioned reads preserve supplied clocks without restamping","commandRef":"CMD-SELFTEST","liveSystem":false},
-        {"id":"TP-01-04","scenarioLabel":"SCN-004-017, SCN-004-019, SCN-004-024","scenarioId":"SCN-004-017","coversScenarioIds":["SCN-004-017","SCN-004-019","SCN-004-024"],"type":"functional","testType":"Browser functional","category":"functional","file":"tests/fx-regime-relative-value-lab.spec.mjs","testTitle":"Browser functional source envelopes match in browser and CommonJS for one decisionTime","description":"Controlled same-origin input reaches production modules; this is not route E2E","commandRef":"CMD-BROWSER-FUNCTIONAL","liveSystem":false,"regressionRequired":true},
-        {"id":"TP-01-05","scenarioLabel":"SCN-004-001, SCN-004-002","scenarioId":"SCN-004-001","coversScenarioIds":["SCN-004-001","SCN-004-002"],"type":"unit","testType":"Unit","category":"unit","file":"scripts/selftest.mjs","testTitle":"RLFX broad dollar keeps Broad AFE EME and proxy states separate","description":"Named official/proxy conflict with no averaging or slot substitution","commandRef":"CMD-SELFTEST","liveSystem":false,"regressionRequired":true},
-        {"id":"TP-01-06","scenarioLabel":"SCN-004-003, SCN-004-005, SCN-004-008","scenarioId":"SCN-004-003","coversScenarioIds":["SCN-004-003","SCN-004-005","SCN-004-008"],"type":"unit","testType":"Unit","category":"unit","file":"scripts/selftest.mjs","testTitle":"RLFX cohort rank requires one full-graph exact-date window","description":"Every pair has history but graph intersection fails; whole rank unavailable and pair read remains inspectable","commandRef":"CMD-SELFTEST","liveSystem":false,"regressionRequired":true},
-        {"id":"TP-01-07","scenarioLabel":"SCN-004-004","scenarioId":"SCN-004-004","coversScenarioIds":["SCN-004-004"],"type":"unit","testType":"Unit","category":"unit","file":"scripts/selftest.mjs","testTitle":"RLFX orientation and inverse relationship contracts count one economic edge","description":"Direct/inverse parity and INVALID_ORIENTATION without ticker inference","commandRef":"CMD-SELFTEST","liveSystem":false,"regressionRequired":true},
-        {"id":"TP-01-08","scenarioLabel":"SCN-004-006, SCN-004-007","scenarioId":"SCN-004-006","coversScenarioIds":["SCN-004-006","SCN-004-007"],"type":"unit","testType":"Unit","category":"unit","file":"scripts/selftest.mjs","testTitle":"RLFX cohort and managed-reference eligibility never pool or auto-elevate","description":"Separate ranks/candidates and no managed low-vol uplift","commandRef":"CMD-SELFTEST","liveSystem":false,"regressionRequired":true},
-        {"id":"TP-01-09","scenarioLabel":"SCN-004-009, SCN-004-010","scenarioId":"SCN-004-009","coversScenarioIds":["SCN-004-009","SCN-004-010"],"type":"functional","testType":"Functional","category":"functional","file":"scripts/selftest.mjs","testTitle":"RLFX pair momentum and Policy-rate proxy remain distinct evidence","description":"Adverse proxy remains named and cannot project executable or market-implied carry","commandRef":"CMD-SELFTEST","liveSystem":false,"regressionRequired":true},
-        {"id":"TP-01-10","scenarioLabel":"SCN-004-011","scenarioId":"SCN-004-011","coversScenarioIds":["SCN-004-011"],"type":"unit","testType":"Unit","category":"unit","file":"scripts/selftest.mjs","testTitle":"RLFX CarryReadV1 rejects every incomplete market-implied branch","description":"One negative case each for instrument, venue/contract, tenor, basis, roll, liquidity, cost, rights, clocks, freshUntil, and limitations","commandRef":"CMD-SELFTEST","liveSystem":false,"regressionRequired":true},
-        {"id":"TP-01-11","scenarioLabel":"SCN-004-012, SCN-004-013, SCN-004-014","scenarioId":"SCN-004-012","coversScenarioIds":["SCN-004-012","SCN-004-013","SCN-004-014"],"type":"functional","testType":"Functional","category":"functional","file":"scripts/selftest.mjs","testTitle":"RLFX value and delayed positioning preserve semantics clocks and unavailable states","description":"REER cannot time entry; Tuesday/Friday remain distinct; missing is not uncrowded","commandRef":"CMD-SELFTEST","liveSystem":false,"regressionRequired":true},
-        {"id":"TP-01-12","scenarioLabel":"SCN-004-015, SCN-004-016","scenarioId":"SCN-004-015","coversScenarioIds":["SCN-004-015","SCN-004-016"],"type":"functional","testType":"Functional","category":"functional","file":"scripts/selftest.mjs","testTitle":"RLFX carry unwind and event absence retain multi-family rules and market invalidation","description":"High carry alone fails; no event source does not erase available price/risk invalidation","commandRef":"CMD-SELFTEST","liveSystem":false,"regressionRequired":true},
-        {"id":"TP-01-13","scenarioLabel":"BASE-SEC-01","contractId":"BASE-SEC-01","protectedCanaryIds":["BASE-SEC-01"],"type":"unit","testType":"Security unit canary","category":"unit","file":"tests/provider-credentials.unit.mjs","testTitle":"complete committed suite","description":"Session-only credentials and durable non-secret cache behavior remain unchanged","commandRef":"CMD-PROVIDER-UNIT","liveSystem":false},
-        {"id":"TP-01-14","scenarioLabel":"BASE-SEC-01..03","contractId":"BASE-SEC-01-03","protectedCanaryIds":["BASE-SEC-01","BASE-SEC-02","BASE-SEC-03"],"type":"functional","testType":"Security functional canary","category":"functional","file":"tests/provider-credentials.functional.mjs","testTitle":"complete committed suite","description":"Additive RLDATA methods gain no credential ownership or migration path","commandRef":"CMD-PROVIDER-FUNCTIONAL","liveSystem":false},
-        {"id":"TP-01-15","scenarioLabel":"BASE-SEC-02, BASE-SEC-03","contractId":"BASE-SEC-02-03","protectedCanaryIds":["BASE-SEC-02","BASE-SEC-03"],"type":"e2e-ui","testType":"Security E2E canary","category":"e2e-ui","file":"tests/provider-credentials.spec.mjs","testTitle":"complete committed suite","description":"Real registered routes retain storage-writer and URL/header protections","commandRef":"CMD-E2E-PROVIDER","liveSystem":true},
-        {"id":"TP-01-16","scenarioLabel":"BASE-SEC-01..03","contractId":"BASE-SEC-01-03","protectedCanaryIds":["BASE-SEC-01","BASE-SEC-02","BASE-SEC-03"],"type":"stress","testType":"Security stress canary","category":"stress","file":"tests/provider-credentials.stress.mjs","testTitle":"complete committed suite","description":"Repeated envelope activity preserves session-only secret behavior","commandRef":"CMD-PROVIDER-STRESS","liveSystem":false},
-        {"id":"TP-01-17","scenarioLabel":"BASE-SEC-01..03","contractId":"BASE-SEC-01-03","protectedCanaryIds":["BASE-SEC-01","BASE-SEC-02","BASE-SEC-03"],"type":"load","testType":"Security load canary","category":"load","file":"tests/provider-credentials.load.mjs","testTitle":"complete committed suite","description":"Concurrent/volume paths preserve credential and request contracts","commandRef":"CMD-PROVIDER-LOAD","liveSystem":false},
-        {"id":"TP-01-18","scenarioLabel":"BASE-BRIEF-01","contractId":"BASE-BRIEF-01","protectedCanaryIds":["BASE-BRIEF-01"],"type":"e2e-ui","testType":"Cross-tool E2E canary","category":"e2e-ui","file":"tests/bond-regime-lab.spec.mjs","testTitle":"complete committed suite","description":"RLDATA additions preserve Bond route/model behavior; no assertion changes","commandRef":"CMD-E2E-BOND","liveSystem":true},
-        {"id":"TP-01-19","scenarioLabel":"Causal baseline","contractId":"causal-browser-canary","type":"e2e-ui","testType":"Cross-tool E2E canary","category":"e2e-ui","file":"tests/causal-rotation-lab.spec.mjs","testTitle":"complete committed suite","description":"RLDATA additions preserve Causal browser behavior; no assertion changes","commandRef":"CMD-E2E-CAUSAL","liveSystem":true},
-        {"id":"TP-01-20","scenarioLabel":"Causal baseline","contractId":"causal-validator-canary","type":"functional","testType":"Contract canary","category":"functional","file":"scripts/validate-causal-rotation.mjs","testTitle":"complete committed validator","description":"Causal config/observation/ledger contracts remain unchanged","commandRef":"CMD-CAUSAL-VALIDATE","liveSystem":false},
-        {"id":"TP-01-21","scenarioLabel":"All Scope 1 + protected canaries","contractId":"scope-01-full-regression","type":"functional","testType":"Full repository regression","category":"functional","file":"scripts/selftest.mjs","testTitle":"complete committed suite","description":"Must reach a genuinely green run without removing BASE-BRIEF-01; current 344/1 remains foreign-owned and open","commandRef":"CMD-SELFTEST","liveSystem":false},
-        {"id":"TP-01-22","scenarioLabel":"GRILL-004-09 / F004-V13-CAPTURE-SHAPE-001 / F004-V14-SCOPED-EVIDENCE-AUTHORITY-001 / F004-V15-MULTI-ITEM-EVIDENCE-TRANSITION-001 / F004-V16-HERMETIC-HISTORICAL-V13-001","contractId":"F004-V16-HERMETIC-HISTORICAL-V13-001","historicalContractIds":["F004-V13-CAPTURE-SHAPE-001","F004-V14-SCOPED-EVIDENCE-AUTHORITY-001","F004-V15-MULTI-ITEM-EVIDENCE-TRANSITION-001"],"type":"functional","testType":"Collision and evidence-history preservation","category":"functional","file":"tests/feature-004-dirty-tree-collision.test.mjs","testTitle":"all three existing top-level test cases","description":"Preserve and parse every v12/v13/v14/v15 byte and exact historical two-LF separators; add one report-final v16 hermetic historical-v13 successor without recapturing current authority; validate exact raw/envelope/compressed/decoded commitments, internal matrix/inventory/cross-links, predecessor and protected closure, selectors, normalization, closed schemas, nine promotion adversaries, path-copy/deep-clone equivalence, source immutability, parser-pin mutations, and all predecessor adversaries; prove absent or arbitrary current foreign paths cannot influence history; reject opaque-commitment mutation or live-byte substitution; retain v14 current Scope 1 path rejection, the unchanged command, 600-second ceiling, three cases, and every inherited assertion, order, and failure condition.","commandRef":"CMD-COLLISION","timeoutSeconds":600,"expectedTopLevelCaseCount":3,"liveSystem":false},
-        {"id":"TP-01-23","scenarioLabel":"SCN-004-027","scenarioId":"SCN-004-027","coversScenarioIds":["SCN-004-027"],"type":"unit","testType":"Unit","category":"unit","file":"tests/feature-004-vehicle-universe.test.mjs","testTitle":"RLFX vehicle fit rejects every direction mismatch before ranking","description":"JPY-strength versus USD can admit only long-JPY/short-USD orientation; opposite products retain DIRECTION_MISMATCH","commandRef":"CMD-FOUNDATION-CONTRACTS","liveSystem":false,"regressionRequired":true},
-        {"id":"TP-01-24","scenarioLabel":"SCN-004-028","scenarioId":"SCN-004-028","coversScenarioIds":["SCN-004-028"],"type":"unit","testType":"Unit","category":"unit","file":"tests/feature-004-vehicle-universe.test.mjs","testTitle":"RLFX vehicle tracking preserves market NAV underlying and unexplained residual","description":"Exact dates and compatible bases are required; missing legs cannot become inferred fee, carry, income, roll, or premium attribution","commandRef":"CMD-FOUNDATION-CONTRACTS","liveSystem":false,"regressionRequired":true},
-        {"id":"TP-01-25","scenarioLabel":"SCN-004-029","scenarioId":"SCN-004-029","coversScenarioIds":["SCN-004-029"],"type":"unit","testType":"Unit","category":"unit","file":"tests/feature-004-vehicle-universe.test.mjs","testTitle":"RLFX broad-dollar vehicle fit rejects basket mismatch before lexicographic selection","description":"UUP and USDU retain separate baskets, mechanisms, collateral, benchmarks, and clocks; ticker order cannot decide fit","commandRef":"CMD-FOUNDATION-CONTRACTS","liveSystem":false,"regressionRequired":true},
-        {"id":"TP-01-26","scenarioLabel":"SCN-004-030","scenarioId":"SCN-004-030","coversScenarioIds":["SCN-004-030"],"type":"unit","testType":"Unit","category":"unit","file":"tests/feature-004-vehicle-universe.test.mjs","testTitle":"RLFX daily-reset fit rejects YCS outside the exact tactical reset session","description":"Swing/structural, reset exclusion, direction mismatch, and expired reset session each fail closed","commandRef":"CMD-FOUNDATION-CONTRACTS","liveSystem":false,"regressionRequired":true},
-        {"id":"TP-01-27","scenarioLabel":"SCN-004-031","scenarioId":"SCN-004-031","coversScenarioIds":["SCN-004-031"],"type":"unit","testType":"Unit adversarial","category":"unit","file":"tests/feature-004-vehicle-universe.test.mjs","testTitle":"RLFX no-vehicle outcome retains every rejection and the recommendation ledger emits no event","description":"Canonical no-vehicle has null selection, no instrument/trigger/invalidation, and all settled reasons; the actual ledger admission path rejects it before event construction and existing history bytes remain unchanged","commandRef":"CMD-FOUNDATION-CONTRACTS","liveSystem":false,"regressionRequired":true},
-        {"id":"TP-01-28","scenarioLabel":"SCN-004-019, SCN-004-027..031","scenarioId":"SCN-004-019","coversScenarioIds":["SCN-004-019","SCN-004-027","SCN-004-028","SCN-004-029","SCN-004-030","SCN-004-031"],"type":"functional","testType":"Functional","category":"functional","file":"tests/feature-004-tool-control-binding.test.mjs","testTitle":"RLFX owner decision and ToolControlBinding preserve one objective vehicle state and evidence identity","description":"One accepted commit recomputes once; read-only snapshots cannot commit or silently change owner truth","commandRef":"CMD-FOUNDATION-CONTRACTS","liveSystem":false,"regressionRequired":true},
-        {"id":"TP-01-29","scenarioLabel":"SCN-004-032","scenarioId":"SCN-004-032","coversScenarioIds":["SCN-004-032"],"type":"functional","testType":"Functional","category":"functional","file":"tests/feature-004-brief-eligibility.test.mjs","testTitle":"RLBRIEF FX eligibility refuses stale mismatched contradicted rights-ineligible or uncited current evidence","description":"Prior verified publication stays explicitly non-current and cannot satisfy the current gate","commandRef":"CMD-FOUNDATION-CONTRACTS","liveSystem":false,"regressionRequired":true},
-        {"id":"TP-01-30","scenarioLabel":"SCN-004-033","scenarioId":"SCN-004-033","coversScenarioIds":["SCN-004-033"],"type":"functional","testType":"Functional","category":"functional","file":"tests/feature-004-journey-evidence-refresh.test.mjs","testTitle":"RLJOURNEY evidence refresh reopens only semantic dependents and preserves no execution","description":"First affected step plus transitive dependents become stale; unrelated steps and audit history survive; packet remains non-executable","commandRef":"CMD-FOUNDATION-CONTRACTS","liveSystem":false,"regressionRequired":true},
-        {"id":"TP-01-31","scenarioLabel":"SCN-004-019, SCN-004-032","scenarioId":"SCN-004-019","coversScenarioIds":["SCN-004-019","SCN-004-032"],"type":"unit","testType":"Unit adversarial","category":"unit","file":"tests/feature-004-vehicle-universe.test.mjs","testTitle":"RLFX RecommendationOutcomeV1 rejects incomplete attributable gates and projects reader-safe branches","description":"Remove each trigger/invalidation instrument, relation, finite level, observation basis, current-rights evidence ref, or branch field in turn; result is unavailable non-recommendation, never new not-evaluable; complete recommendation survives; projectFxReaderDecision omits raw identities/codes and escapes authored text","commandRef":"CMD-FOUNDATION-CONTRACTS","liveSystem":false,"regressionRequired":true}
+        {
+          "id": "TP-01-01",
+          "scenarioLabel": "SCN-004-019 / NFR-001",
+          "scenarioId": "SCN-004-019",
+          "coversScenarioIds": [
+            "SCN-004-019"
+          ],
+          "requirementRefs": [
+            "NFR-001"
+          ],
+          "type": "unit",
+          "testType": "Unit",
+          "category": "unit",
+          "file": "./rlfx.js",
+          "testTitle": "RLFX CommonJS import preserves the existing global and explicit decisionTime is deterministic",
+          "description": "First red: missing module/API; green: sentinel unchanged and repeated complete input has identical canonical output, computedAt, and decision ID",
+          "commandRef": "CMD-FIRST-RED",
+          "liveSystem": false,
+          "regressionRequired": true
+        },
+        {
+          "id": "TP-01-02",
+          "scenarioLabel": "SCN-004-017, SCN-004-024",
+          "scenarioId": "SCN-004-017",
+          "coversScenarioIds": [
+            "SCN-004-017",
+            "SCN-004-024"
+          ],
+          "type": "functional",
+          "testType": "Functional",
+          "category": "functional",
+          "file": "scripts/selftest.mjs",
+          "testTitle": "RLDATA source envelopes preserve approved rights and clocks and reject metadata-free rows",
+          "description": "Real bucket at/src survive; unreviewed rows become value-free RIGHTS_UNCLEAR",
+          "commandRef": "CMD-SELFTEST",
+          "liveSystem": false,
+          "regressionRequired": true
+        },
+        {
+          "id": "TP-01-03",
+          "scenarioLabel": "Source compatibility",
+          "contractId": "source-compatibility",
+          "type": "functional",
+          "testType": "Functional",
+          "category": "functional",
+          "file": "scripts/selftest.mjs",
+          "testTitle": "RLDATA schema-one bars and legacy tool reads remain compatible beside versioned envelopes",
+          "description": "Legacy signatures/rows unchanged; versioned reads preserve supplied clocks without restamping",
+          "commandRef": "CMD-SELFTEST",
+          "liveSystem": false
+        },
+        {
+          "id": "TP-01-04",
+          "scenarioLabel": "SCN-004-017, SCN-004-019, SCN-004-024",
+          "scenarioId": "SCN-004-017",
+          "coversScenarioIds": [
+            "SCN-004-017",
+            "SCN-004-019",
+            "SCN-004-024"
+          ],
+          "type": "functional",
+          "testType": "Browser functional",
+          "category": "functional",
+          "file": "tests/fx-regime-relative-value-lab.spec.mjs",
+          "testTitle": "Browser functional source envelopes match in browser and CommonJS for one decisionTime",
+          "description": "Controlled same-origin input reaches production modules; this is not route E2E",
+          "commandRef": "CMD-BROWSER-FUNCTIONAL",
+          "liveSystem": false,
+          "regressionRequired": true
+        },
+        {
+          "id": "TP-01-05",
+          "scenarioLabel": "SCN-004-001, SCN-004-002",
+          "scenarioId": "SCN-004-001",
+          "coversScenarioIds": [
+            "SCN-004-001",
+            "SCN-004-002"
+          ],
+          "type": "unit",
+          "testType": "Unit",
+          "category": "unit",
+          "file": "scripts/selftest.mjs",
+          "testTitle": "RLFX broad dollar keeps Broad AFE EME and proxy states separate",
+          "description": "Named official/proxy conflict with no averaging or slot substitution",
+          "commandRef": "CMD-SELFTEST",
+          "liveSystem": false,
+          "regressionRequired": true
+        },
+        {
+          "id": "TP-01-06",
+          "scenarioLabel": "SCN-004-003, SCN-004-005, SCN-004-008",
+          "scenarioId": "SCN-004-003",
+          "coversScenarioIds": [
+            "SCN-004-003",
+            "SCN-004-005",
+            "SCN-004-008"
+          ],
+          "type": "unit",
+          "testType": "Unit",
+          "category": "unit",
+          "file": "scripts/selftest.mjs",
+          "testTitle": "RLFX cohort rank requires one full-graph exact-date window",
+          "description": "Every pair has history but graph intersection fails; whole rank unavailable and pair read remains inspectable",
+          "commandRef": "CMD-SELFTEST",
+          "liveSystem": false,
+          "regressionRequired": true
+        },
+        {
+          "id": "TP-01-07",
+          "scenarioLabel": "SCN-004-004",
+          "scenarioId": "SCN-004-004",
+          "coversScenarioIds": [
+            "SCN-004-004"
+          ],
+          "type": "unit",
+          "testType": "Unit",
+          "category": "unit",
+          "file": "scripts/selftest.mjs",
+          "testTitle": "RLFX orientation and inverse relationship contracts count one economic edge",
+          "description": "Direct/inverse parity and INVALID_ORIENTATION without ticker inference",
+          "commandRef": "CMD-SELFTEST",
+          "liveSystem": false,
+          "regressionRequired": true
+        },
+        {
+          "id": "TP-01-08",
+          "scenarioLabel": "SCN-004-006, SCN-004-007",
+          "scenarioId": "SCN-004-006",
+          "coversScenarioIds": [
+            "SCN-004-006",
+            "SCN-004-007"
+          ],
+          "type": "unit",
+          "testType": "Unit",
+          "category": "unit",
+          "file": "scripts/selftest.mjs",
+          "testTitle": "RLFX cohort and managed-reference eligibility never pool or auto-elevate",
+          "description": "Separate ranks/candidates and no managed low-vol uplift",
+          "commandRef": "CMD-SELFTEST",
+          "liveSystem": false,
+          "regressionRequired": true
+        },
+        {
+          "id": "TP-01-09",
+          "scenarioLabel": "SCN-004-009, SCN-004-010",
+          "scenarioId": "SCN-004-009",
+          "coversScenarioIds": [
+            "SCN-004-009",
+            "SCN-004-010"
+          ],
+          "type": "functional",
+          "testType": "Functional",
+          "category": "functional",
+          "file": "scripts/selftest.mjs",
+          "testTitle": "RLFX pair momentum and Policy-rate proxy remain distinct evidence",
+          "description": "Adverse proxy remains named and cannot project executable or market-implied carry",
+          "commandRef": "CMD-SELFTEST",
+          "liveSystem": false,
+          "regressionRequired": true
+        },
+        {
+          "id": "TP-01-10",
+          "scenarioLabel": "SCN-004-011",
+          "scenarioId": "SCN-004-011",
+          "coversScenarioIds": [
+            "SCN-004-011"
+          ],
+          "type": "unit",
+          "testType": "Unit",
+          "category": "unit",
+          "file": "scripts/selftest.mjs",
+          "testTitle": "RLFX CarryReadV1 rejects every incomplete market-implied branch",
+          "description": "One negative case each for instrument, venue/contract, tenor, basis, roll, liquidity, cost, rights, clocks, freshUntil, and limitations",
+          "commandRef": "CMD-SELFTEST",
+          "liveSystem": false,
+          "regressionRequired": true
+        },
+        {
+          "id": "TP-01-11",
+          "scenarioLabel": "SCN-004-012, SCN-004-013, SCN-004-014",
+          "scenarioId": "SCN-004-012",
+          "coversScenarioIds": [
+            "SCN-004-012",
+            "SCN-004-013",
+            "SCN-004-014"
+          ],
+          "type": "functional",
+          "testType": "Functional",
+          "category": "functional",
+          "file": "scripts/selftest.mjs",
+          "testTitle": "RLFX value and delayed positioning preserve semantics clocks and unavailable states",
+          "description": "REER cannot time entry; Tuesday/Friday remain distinct; missing is not uncrowded",
+          "commandRef": "CMD-SELFTEST",
+          "liveSystem": false,
+          "regressionRequired": true
+        },
+        {
+          "id": "TP-01-12",
+          "scenarioLabel": "SCN-004-015, SCN-004-016",
+          "scenarioId": "SCN-004-015",
+          "coversScenarioIds": [
+            "SCN-004-015",
+            "SCN-004-016"
+          ],
+          "type": "functional",
+          "testType": "Functional",
+          "category": "functional",
+          "file": "scripts/selftest.mjs",
+          "testTitle": "RLFX carry unwind and event absence retain multi-family rules and market invalidation",
+          "description": "High carry alone fails; no event source does not erase available price/risk invalidation",
+          "commandRef": "CMD-SELFTEST",
+          "liveSystem": false,
+          "regressionRequired": true
+        },
+        {
+          "id": "TP-01-13",
+          "scenarioLabel": "BASE-SEC-01",
+          "contractId": "BASE-SEC-01",
+          "protectedCanaryIds": [
+            "BASE-SEC-01"
+          ],
+          "type": "unit",
+          "testType": "Security unit canary",
+          "category": "unit",
+          "file": "tests/provider-credentials.unit.mjs",
+          "testTitle": "complete committed suite",
+          "description": "Session-only credentials and durable non-secret cache behavior remain unchanged",
+          "commandRef": "CMD-PROVIDER-UNIT",
+          "liveSystem": false
+        },
+        {
+          "id": "TP-01-14",
+          "scenarioLabel": "BASE-SEC-01..03",
+          "contractId": "BASE-SEC-01-03",
+          "protectedCanaryIds": [
+            "BASE-SEC-01",
+            "BASE-SEC-02",
+            "BASE-SEC-03"
+          ],
+          "type": "functional",
+          "testType": "Security functional canary",
+          "category": "functional",
+          "file": "tests/provider-credentials.functional.mjs",
+          "testTitle": "complete committed suite",
+          "description": "Additive RLDATA methods gain no credential ownership or migration path",
+          "commandRef": "CMD-PROVIDER-FUNCTIONAL",
+          "liveSystem": false
+        },
+        {
+          "id": "TP-01-15",
+          "scenarioLabel": "BASE-SEC-02, BASE-SEC-03",
+          "contractId": "BASE-SEC-02-03",
+          "protectedCanaryIds": [
+            "BASE-SEC-02",
+            "BASE-SEC-03"
+          ],
+          "type": "e2e-ui",
+          "testType": "Security E2E canary",
+          "category": "e2e-ui",
+          "file": "tests/provider-credentials.spec.mjs",
+          "testTitle": "complete committed suite",
+          "description": "Real registered routes retain storage-writer and URL/header protections",
+          "commandRef": "CMD-E2E-PROVIDER",
+          "liveSystem": true
+        },
+        {
+          "id": "TP-01-16",
+          "scenarioLabel": "BASE-SEC-01..03",
+          "contractId": "BASE-SEC-01-03",
+          "protectedCanaryIds": [
+            "BASE-SEC-01",
+            "BASE-SEC-02",
+            "BASE-SEC-03"
+          ],
+          "type": "stress",
+          "testType": "Security stress canary",
+          "category": "stress",
+          "file": "tests/provider-credentials.stress.mjs",
+          "testTitle": "complete committed suite",
+          "description": "Repeated envelope activity preserves session-only secret behavior",
+          "commandRef": "CMD-PROVIDER-STRESS",
+          "liveSystem": false
+        },
+        {
+          "id": "TP-01-17",
+          "scenarioLabel": "BASE-SEC-01..03",
+          "contractId": "BASE-SEC-01-03",
+          "protectedCanaryIds": [
+            "BASE-SEC-01",
+            "BASE-SEC-02",
+            "BASE-SEC-03"
+          ],
+          "type": "load",
+          "testType": "Security load canary",
+          "category": "load",
+          "file": "tests/provider-credentials.load.mjs",
+          "testTitle": "complete committed suite",
+          "description": "Concurrent/volume paths preserve credential and request contracts",
+          "commandRef": "CMD-PROVIDER-LOAD",
+          "liveSystem": false
+        },
+        {
+          "id": "TP-01-18",
+          "scenarioLabel": "BASE-BRIEF-01",
+          "contractId": "BASE-BRIEF-01",
+          "protectedCanaryIds": [
+            "BASE-BRIEF-01"
+          ],
+          "type": "e2e-ui",
+          "testType": "Cross-tool E2E canary",
+          "category": "e2e-ui",
+          "file": "tests/bond-regime-lab.spec.mjs",
+          "testTitle": "complete committed suite",
+          "description": "RLDATA additions preserve Bond route/model behavior; no assertion changes",
+          "commandRef": "CMD-E2E-BOND",
+          "liveSystem": true
+        },
+        {
+          "id": "TP-01-19",
+          "scenarioLabel": "Causal baseline",
+          "contractId": "causal-browser-canary",
+          "type": "e2e-ui",
+          "testType": "Cross-tool E2E canary",
+          "category": "e2e-ui",
+          "file": "tests/causal-rotation-lab.spec.mjs",
+          "testTitle": "complete committed suite",
+          "description": "RLDATA additions preserve Causal browser behavior; no assertion changes",
+          "commandRef": "CMD-E2E-CAUSAL",
+          "liveSystem": true
+        },
+        {
+          "id": "TP-01-20",
+          "scenarioLabel": "Causal baseline",
+          "contractId": "causal-validator-canary",
+          "type": "functional",
+          "testType": "Contract canary",
+          "category": "functional",
+          "file": "scripts/validate-causal-rotation.mjs",
+          "testTitle": "complete committed validator",
+          "description": "Causal config/observation/ledger contracts remain unchanged",
+          "commandRef": "CMD-CAUSAL-VALIDATE",
+          "liveSystem": false
+        },
+        {
+          "id": "TP-01-21",
+          "scenarioLabel": "All Scope 1 + protected canaries",
+          "contractId": "scope-01-full-regression",
+          "type": "functional",
+          "testType": "Full repository regression",
+          "category": "functional",
+          "file": "scripts/selftest.mjs",
+          "testTitle": "complete committed suite",
+          "description": "Must reach a genuinely green run without removing BASE-BRIEF-01; current 344/1 remains foreign-owned and open",
+          "commandRef": "CMD-SELFTEST",
+          "liveSystem": false
+        },
+        {
+          "id": "TP-01-22",
+          "scenarioLabel": "GRILL-004-09 / F004-V13-CAPTURE-SHAPE-001 / F004-V14-SCOPED-EVIDENCE-AUTHORITY-001 / F004-V15-MULTI-ITEM-EVIDENCE-TRANSITION-001",
+          "contractId": "F004-V15-MULTI-ITEM-EVIDENCE-TRANSITION-001",
+          "historicalContractIds": [
+            "F004-V13-CAPTURE-SHAPE-001",
+            "F004-V14-SCOPED-EVIDENCE-AUTHORITY-001"
+          ],
+          "type": "functional",
+          "testType": "Collision and evidence-history preservation",
+          "category": "functional",
+          "file": "tests/feature-004-dirty-tree-collision.test.mjs",
+          "testTitle": "all three existing top-level test cases",
+          "description": "Preserve and parse every v12/v13/v14/v15 byte and exact historical two-LF separators; add one report-final v16 hermetic historical-v13 successor without recapturing current authority; validate exact raw/envelope/compressed/decoded commitments, internal matrix/inventory/cross-links, predecessor and protected closure, selectors, normalization, closed schemas, nine promotion adversaries, path-copy/deep-clone equivalence, source immutability, parser-pin mutations, and all predecessor adversaries; prove absent or arbitrary current foreign paths cannot influence history; reject opaque-commitment mutation or live-byte substitution; retain v14 current Scope 1 path rejection, the unchanged command, 600-second ceiling, three cases, and every inherited assertion, order, and failure condition.",
+          "commandRef": "CMD-COLLISION",
+          "timeoutSeconds": 600,
+          "expectedTopLevelCaseCount": 3,
+          "liveSystem": false,
+          "withdrawnContractId": "F004-V16-HERMETIC-HISTORICAL-V13-001"
+        },
+        {
+          "id": "TP-01-23",
+          "scenarioLabel": "SCN-004-027",
+          "scenarioId": "SCN-004-027",
+          "coversScenarioIds": [
+            "SCN-004-027"
+          ],
+          "type": "unit",
+          "testType": "Unit",
+          "category": "unit",
+          "file": "tests/feature-004-vehicle-universe.test.mjs",
+          "testTitle": "RLFX vehicle fit rejects every direction mismatch before ranking",
+          "description": "JPY-strength versus USD can admit only long-JPY/short-USD orientation; opposite products retain DIRECTION_MISMATCH",
+          "commandRef": "CMD-FOUNDATION-CONTRACTS",
+          "liveSystem": false,
+          "regressionRequired": true
+        },
+        {
+          "id": "TP-01-24",
+          "scenarioLabel": "SCN-004-028",
+          "scenarioId": "SCN-004-028",
+          "coversScenarioIds": [
+            "SCN-004-028"
+          ],
+          "type": "unit",
+          "testType": "Unit",
+          "category": "unit",
+          "file": "tests/feature-004-vehicle-universe.test.mjs",
+          "testTitle": "RLFX vehicle tracking preserves market NAV underlying and unexplained residual",
+          "description": "Exact dates and compatible bases are required; missing legs cannot become inferred fee, carry, income, roll, or premium attribution",
+          "commandRef": "CMD-FOUNDATION-CONTRACTS",
+          "liveSystem": false,
+          "regressionRequired": true
+        },
+        {
+          "id": "TP-01-25",
+          "scenarioLabel": "SCN-004-029",
+          "scenarioId": "SCN-004-029",
+          "coversScenarioIds": [
+            "SCN-004-029"
+          ],
+          "type": "unit",
+          "testType": "Unit",
+          "category": "unit",
+          "file": "tests/feature-004-vehicle-universe.test.mjs",
+          "testTitle": "RLFX broad-dollar vehicle fit rejects basket mismatch before lexicographic selection",
+          "description": "UUP and USDU retain separate baskets, mechanisms, collateral, benchmarks, and clocks; ticker order cannot decide fit",
+          "commandRef": "CMD-FOUNDATION-CONTRACTS",
+          "liveSystem": false,
+          "regressionRequired": true
+        },
+        {
+          "id": "TP-01-26",
+          "scenarioLabel": "SCN-004-030",
+          "scenarioId": "SCN-004-030",
+          "coversScenarioIds": [
+            "SCN-004-030"
+          ],
+          "type": "unit",
+          "testType": "Unit",
+          "category": "unit",
+          "file": "tests/feature-004-vehicle-universe.test.mjs",
+          "testTitle": "RLFX daily-reset fit rejects YCS outside the exact tactical reset session",
+          "description": "Swing/structural, reset exclusion, direction mismatch, and expired reset session each fail closed",
+          "commandRef": "CMD-FOUNDATION-CONTRACTS",
+          "liveSystem": false,
+          "regressionRequired": true
+        },
+        {
+          "id": "TP-01-27",
+          "scenarioLabel": "SCN-004-031",
+          "scenarioId": "SCN-004-031",
+          "coversScenarioIds": [
+            "SCN-004-031"
+          ],
+          "type": "unit",
+          "testType": "Unit adversarial",
+          "category": "unit",
+          "file": "tests/feature-004-vehicle-universe.test.mjs",
+          "testTitle": "RLFX no-vehicle outcome retains every rejection and the recommendation ledger emits no event",
+          "description": "Canonical no-vehicle has null selection, no instrument/trigger/invalidation, and all settled reasons; the actual ledger admission path rejects it before event construction and existing history bytes remain unchanged",
+          "commandRef": "CMD-FOUNDATION-CONTRACTS",
+          "liveSystem": false,
+          "regressionRequired": true
+        },
+        {
+          "id": "TP-01-28",
+          "scenarioLabel": "SCN-004-019, SCN-004-027..031",
+          "scenarioId": "SCN-004-019",
+          "coversScenarioIds": [
+            "SCN-004-019",
+            "SCN-004-027",
+            "SCN-004-028",
+            "SCN-004-029",
+            "SCN-004-030",
+            "SCN-004-031"
+          ],
+          "type": "functional",
+          "testType": "Functional",
+          "category": "functional",
+          "file": "tests/feature-004-tool-control-binding.test.mjs",
+          "testTitle": "RLFX owner decision and ToolControlBinding preserve one objective vehicle state and evidence identity",
+          "description": "One accepted commit recomputes once; read-only snapshots cannot commit or silently change owner truth",
+          "commandRef": "CMD-FOUNDATION-CONTRACTS",
+          "liveSystem": false,
+          "regressionRequired": true
+        },
+        {
+          "id": "TP-01-29",
+          "scenarioLabel": "SCN-004-032",
+          "scenarioId": "SCN-004-032",
+          "coversScenarioIds": [
+            "SCN-004-032"
+          ],
+          "type": "functional",
+          "testType": "Functional",
+          "category": "functional",
+          "file": "tests/feature-004-brief-eligibility.test.mjs",
+          "testTitle": "RLBRIEF FX eligibility refuses stale mismatched contradicted rights-ineligible or uncited current evidence",
+          "description": "Prior verified publication stays explicitly non-current and cannot satisfy the current gate",
+          "commandRef": "CMD-FOUNDATION-CONTRACTS",
+          "liveSystem": false,
+          "regressionRequired": true
+        },
+        {
+          "id": "TP-01-30",
+          "scenarioLabel": "SCN-004-033",
+          "scenarioId": "SCN-004-033",
+          "coversScenarioIds": [
+            "SCN-004-033"
+          ],
+          "type": "functional",
+          "testType": "Functional",
+          "category": "functional",
+          "file": "tests/feature-004-journey-evidence-refresh.test.mjs",
+          "testTitle": "RLJOURNEY evidence refresh reopens only semantic dependents and preserves no execution",
+          "description": "First affected step plus transitive dependents become stale; unrelated steps and audit history survive; packet remains non-executable",
+          "commandRef": "CMD-FOUNDATION-CONTRACTS",
+          "liveSystem": false,
+          "regressionRequired": true
+        },
+        {
+          "id": "TP-01-31",
+          "scenarioLabel": "SCN-004-019, SCN-004-032",
+          "scenarioId": "SCN-004-019",
+          "coversScenarioIds": [
+            "SCN-004-019",
+            "SCN-004-032"
+          ],
+          "type": "unit",
+          "testType": "Unit adversarial",
+          "category": "unit",
+          "file": "tests/feature-004-vehicle-universe.test.mjs",
+          "testTitle": "RLFX RecommendationOutcomeV1 rejects incomplete attributable gates and projects reader-safe branches",
+          "description": "Remove each trigger/invalidation instrument, relation, finite level, observation basis, current-rights evidence ref, or branch field in turn; result is unavailable non-recommendation, never new not-evaluable; complete recommendation survives; projectFxReaderDecision omits raw identities/codes and escapes authored text",
+          "commandRef": "CMD-FOUNDATION-CONTRACTS",
+          "liveSystem": false,
+          "regressionRequired": true
+        }
       ]
     },
     {
       "scopeId": "SCOPE-02",
       "scopeName": "ETF-First Four-View Route And Simple/Power Integration",
       "foundation": false,
-      "dependsOn": ["SCOPE-01"],
+      "dependsOn": [
+        "SCOPE-01"
+      ],
       "tests": [
-        {"id":"TP-02-01","scenarioLabel":"SCN-004-017","scenarioId":"SCN-004-017","coversScenarioIds":["SCN-004-017"],"type":"e2e-ui","testType":"Regression E2E","category":"e2e-ui","file":"tests/fx-regime-relative-value-lab.spec.mjs","testTitle":"Regression SCN-004-017: public FX route paints truthful unavailable state without an authorized dependency","description":"Actual cache/policy posture, no injected response, no numeric minimum","commandRef":"CMD-E2E-FX","liveSystem":true,"regressionRequired":true},
-        {"id":"TP-02-02","scenarioLabel":"SCN-004-018","scenarioId":"SCN-004-018","coversScenarioIds":["SCN-004-018"],"type":"e2e-ui","testType":"Regression E2E","category":"e2e-ui","file":"tests/fx-regime-relative-value-lab.spec.mjs","testTitle":"Regression SCN-004-018: control changes cause zero data requests","description":"Count normal same-origin requests before/after controls","commandRef":"CMD-E2E-FX","liveSystem":true,"regressionRequired":true},
-        {"id":"TP-02-03","scenarioLabel":"SCN-004-017, SCN-004-018","scenarioId":"SCN-004-017","coversScenarioIds":["SCN-004-017","SCN-004-018"],"type":"e2e-ui","testType":"Regression E2E","category":"e2e-ui","file":"tests/fx-regime-relative-value-lab.spec.mjs","testTitle":"Regression SCN-004-017/018: Simple and Power share one unavailable owner decision while controls do not fetch","description":"Owner identity, explicit cutoff, and unavailable-field parity across editable projections","commandRef":"CMD-E2E-FX","liveSystem":true,"regressionRequired":true},
-        {"id":"TP-02-04","scenarioLabel":"SCN-004-025","scenarioId":"SCN-004-025","coversScenarioIds":["SCN-004-025"],"type":"e2e-ui","testType":"Regression E2E adversarial","category":"e2e-ui","file":"tests/fx-regime-relative-value-lab.spec.mjs","testTitle":"Regression SCN-004-025: canvas pointer keyboard summary table and responsive layout share one projection","description":"Replace the structured adapter with pointer-only context or remove the focus rail, visible summary, same-data table, nonblank pixels, 130% text, or desktop/mobile containment and the test fails","commandRef":"CMD-E2E-FX","liveSystem":true,"regressionRequired":true},
-        {"id":"TP-02-05","scenarioLabel":"SCN-004-001, SCN-004-002","scenarioId":"SCN-004-001","coversScenarioIds":["SCN-004-001","SCN-004-002"],"type":"e2e-ui","testType":"Regression E2E","category":"e2e-ui","file":"tests/fx-regime-relative-value-lab.spec.mjs","testTitle":"Regression SCN-004-001/002: public dollar slots stay independently unavailable without authorization","description":"Broad/AFE/EME show exact states; unreviewed proxy supplies no number, substitute, or false divergence","commandRef":"CMD-E2E-FX","liveSystem":true,"regressionRequired":true},
-        {"id":"TP-02-06","scenarioLabel":"SCN-004-003, SCN-004-006, SCN-004-007, SCN-004-008","scenarioId":"SCN-004-003","coversScenarioIds":["SCN-004-003","SCN-004-006","SCN-004-007","SCN-004-008"],"type":"e2e-ui","testType":"Regression E2E","category":"e2e-ui","file":"tests/fx-regime-relative-value-lab.spec.mjs","testTitle":"Regression SCN-004-003/006/007/008: public cohort boards remain bounded and unranked without authorized spot","description":"Separate cohorts/reference group, no selected-pair rename, no automatic rank/candidate","commandRef":"CMD-E2E-FX","liveSystem":true,"regressionRequired":true},
-        {"id":"TP-02-07","scenarioLabel":"SCN-004-004, SCN-004-005","scenarioId":"SCN-004-004","coversScenarioIds":["SCN-004-004","SCN-004-005"],"type":"e2e-ui","testType":"Regression E2E","category":"e2e-ui","file":"tests/fx-regime-relative-value-lab.spec.mjs","testTitle":"Regression SCN-004-004/005: public pair and alignment surfaces infer no orientation or numeric result","description":"No ticker-spelling inference, fill, or fabricated common-date value","commandRef":"CMD-E2E-FX","liveSystem":true,"regressionRequired":true},
-        {"id":"TP-02-08","scenarioLabel":"SCN-004-009..016","scenarioId":"SCN-004-009","coversScenarioIds":["SCN-004-009","SCN-004-010","SCN-004-011","SCN-004-012","SCN-004-013","SCN-004-014","SCN-004-015","SCN-004-016"],"type":"e2e-ui","testType":"Regression E2E","category":"e2e-ui","file":"tests/fx-regime-relative-value-lab.spec.mjs","testTitle":"Regression SCN-004-009-016: public evidence anatomy retains exact unavailable families","description":"Policy/carry/value/positioning/event unavailable reasons remain distinct; unwind Indeterminate; no false conflict","commandRef":"CMD-E2E-FX","liveSystem":true,"regressionRequired":true},
-        {"id":"TP-02-09","scenarioLabel":"SCN-004-024","scenarioId":"SCN-004-024","coversScenarioIds":["SCN-004-024"],"type":"e2e-ui","testType":"Security Regression E2E","category":"e2e-ui","file":"tests/fx-regime-relative-value-lab.spec.mjs","testTitle":"Regression SCN-004-024: rights-unclear source values stay out of public route state","description":"No numeric/source payload in DOM, owner read, or storage","commandRef":"CMD-E2E-FX","liveSystem":true,"regressionRequired":true},
-        {"id":"TP-02-10","scenarioLabel":"All Scope 2","contractId":"scope-02-page-contract","type":"functional","testType":"Page contract","category":"functional","file":"fx-regime-relative-value-lab.html","testTitle":"fx-regime-relative-value-lab.html inline script and literal IDs","description":"Syntax, dependency order, and referenced DOM IDs","commandRef":"CMD-PAGE-FX","liveSystem":false},
-        {"id":"TP-02-11","scenarioLabel":"SCN-004-024, SCN-004-025","scenarioId":"SCN-004-024","coversScenarioIds":["SCN-004-024","SCN-004-025"],"type":"e2e-ui","testType":"Security/Accessibility E2E","category":"e2e-ui","file":"tests/fx-regime-relative-value-lab.spec.mjs","testTitle":"Regression SCN-004-024/025: direct FX route exposes no credential or restricted-payload surface","description":"No credential input/storage writer; source context remains focusable without restricted value","commandRef":"CMD-E2E-FX","liveSystem":true,"regressionRequired":true},
-        {"id":"TP-02-12","scenarioLabel":"All Scope 2 scenarios","contractId":"scope-02-broader-e2e","type":"e2e-ui","testType":"Broader E2E checkpoint","category":"e2e-ui","file":"tests/fx-regime-relative-value-lab.spec.mjs","testTitle":"complete committed actual-route set","description":"All actual-route tests pass together with zero interception, skip, or fixture replacement","commandRef":"CMD-E2E-FX","liveSystem":true},
-        {"id":"TP-02-13","scenarioLabel":"SCN-004-027","scenarioId":"SCN-004-027","coversScenarioIds":["SCN-004-027"],"type":"e2e-ui","testType":"Regression E2E adversarial","category":"e2e-ui","file":"tests/fx-regime-relative-value-lab.spec.mjs","testTitle":"Regression SCN-004-027: JPY strength rejects every direction-mismatched vehicle before selecting FXY","description":"Opposite-direction product is present and must fail; the test cannot pass from FXY presence alone","commandRef":"CMD-E2E-FX","liveSystem":true,"regressionRequired":true},
-        {"id":"TP-02-14","scenarioLabel":"SCN-004-028","scenarioId":"SCN-004-028","coversScenarioIds":["SCN-004-028"],"type":"e2e-ui","testType":"Regression E2E adversarial","category":"e2e-ui","file":"tests/fx-regime-relative-value-lab.spec.mjs","testTitle":"Regression SCN-004-028: tracking preserves an unexplained residual when no sourced contribution closes it","description":"Missing contribution remains missing; residual cannot disappear into an invented label","commandRef":"CMD-E2E-FX","liveSystem":true,"regressionRequired":true},
-        {"id":"TP-02-15","scenarioLabel":"SCN-004-029","scenarioId":"SCN-004-029","coversScenarioIds":["SCN-004-029"],"type":"e2e-ui","testType":"Regression E2E adversarial","category":"e2e-ui","file":"tests/fx-regime-relative-value-lab.spec.mjs","testTitle":"Regression SCN-004-029: a long-dollar direction cannot erase the UUP and USDU basket mismatch","description":"Both products share direction but differ in basket; shared direction alone cannot make them substitutes","commandRef":"CMD-E2E-FX","liveSystem":true,"regressionRequired":true},
-        {"id":"TP-02-16","scenarioLabel":"SCN-004-030","scenarioId":"SCN-004-030","coversScenarioIds":["SCN-004-030"],"type":"e2e-ui","testType":"Regression E2E adversarial","category":"e2e-ui","file":"tests/fx-regime-relative-value-lab.spec.mjs","testTitle":"Regression SCN-004-030: YCS resets to Rejected outside Tactical and expires at the source session boundary","description":"Swing, reset exclusion, direction mismatch, and expired reset session are exercised","commandRef":"CMD-E2E-FX","liveSystem":true,"regressionRequired":true},
-        {"id":"TP-02-17","scenarioLabel":"SCN-004-031","scenarioId":"SCN-004-031","coversScenarioIds":["SCN-004-031"],"type":"e2e-ui","testType":"Regression E2E adversarial","category":"e2e-ui","file":"tests/fx-regime-relative-value-lab.spec.mjs","testTitle":"Regression SCN-004-031: no eligible result preserves every rejection and selects no substitute","description":"Every product is settled but ineligible; null selection and no constraint relaxation are required","commandRef":"CMD-E2E-FX","liveSystem":true,"regressionRequired":true},
-        {"id":"TP-02-18","scenarioLabel":"SCN-004-025","scenarioId":"SCN-004-025","coversScenarioIds":["SCN-004-025"],"type":"e2e-ui","testType":"Security regression E2E adversarial","category":"e2e-ui","file":"tests/fx-regime-relative-value-lab.spec.mjs","testTitle":"Regression SCN-004-025 adversarial: authored markup renders only as text at every reader sink","description":"Inject tags, attributes, script terminators, entities, and URL-shaped payloads into decision, tooltip, citation, rejection, unavailable, Journey, and packet copy; no element, attribute, script, navigation, or URL is created","commandRef":"CMD-E2E-FX","liveSystem":true,"regressionRequired":true},
-        {"id":"TP-02-19","scenarioLabel":"SCN-004-025","scenarioId":"SCN-004-025","coversScenarioIds":["SCN-004-025"],"type":"e2e-ui","testType":"Accessibility regression E2E adversarial","category":"e2e-ui","file":"tests/fx-regime-relative-value-lab.spec.mjs","testTitle":"Regression SCN-004-025 adversarial: every declared context has definition current meaning focus and adjacent text","description":"Remove one definition, current interpretation, focus path, adjacent description, or RLTKR decoration from each context class in turn and the completeness audit fails","commandRef":"CMD-E2E-FX","liveSystem":true,"regressionRequired":true}
+        {
+          "id": "TP-02-01",
+          "scenarioLabel": "SCN-004-017",
+          "scenarioId": "SCN-004-017",
+          "coversScenarioIds": [
+            "SCN-004-017"
+          ],
+          "type": "e2e-ui",
+          "testType": "Regression E2E",
+          "category": "e2e-ui",
+          "file": "tests/fx-regime-relative-value-lab.spec.mjs",
+          "testTitle": "Regression SCN-004-017: public FX route paints truthful unavailable state without an authorized dependency",
+          "description": "Actual cache/policy posture, no injected response, no numeric minimum",
+          "commandRef": "CMD-E2E-FX",
+          "liveSystem": true,
+          "regressionRequired": true
+        },
+        {
+          "id": "TP-02-02",
+          "scenarioLabel": "SCN-004-018",
+          "scenarioId": "SCN-004-018",
+          "coversScenarioIds": [
+            "SCN-004-018"
+          ],
+          "type": "e2e-ui",
+          "testType": "Regression E2E",
+          "category": "e2e-ui",
+          "file": "tests/fx-regime-relative-value-lab.spec.mjs",
+          "testTitle": "Regression SCN-004-018: control changes cause zero data requests",
+          "description": "Count normal same-origin requests before/after controls",
+          "commandRef": "CMD-E2E-FX",
+          "liveSystem": true,
+          "regressionRequired": true
+        },
+        {
+          "id": "TP-02-03",
+          "scenarioLabel": "SCN-004-017, SCN-004-018",
+          "scenarioId": "SCN-004-017",
+          "coversScenarioIds": [
+            "SCN-004-017",
+            "SCN-004-018"
+          ],
+          "type": "e2e-ui",
+          "testType": "Regression E2E",
+          "category": "e2e-ui",
+          "file": "tests/fx-regime-relative-value-lab.spec.mjs",
+          "testTitle": "Regression SCN-004-017/018: Simple and Power share one unavailable owner decision while controls do not fetch",
+          "description": "Owner identity, explicit cutoff, and unavailable-field parity across editable projections",
+          "commandRef": "CMD-E2E-FX",
+          "liveSystem": true,
+          "regressionRequired": true
+        },
+        {
+          "id": "TP-02-04",
+          "scenarioLabel": "SCN-004-025",
+          "scenarioId": "SCN-004-025",
+          "coversScenarioIds": [
+            "SCN-004-025"
+          ],
+          "type": "e2e-ui",
+          "testType": "Regression E2E adversarial",
+          "category": "e2e-ui",
+          "file": "tests/fx-regime-relative-value-lab.spec.mjs",
+          "testTitle": "Regression SCN-004-025: canvas pointer keyboard summary table and responsive layout share one projection",
+          "description": "Replace the structured adapter with pointer-only context or remove the focus rail, visible summary, same-data table, nonblank pixels, 130% text, or desktop/mobile containment and the test fails",
+          "commandRef": "CMD-E2E-FX",
+          "liveSystem": true,
+          "regressionRequired": true
+        },
+        {
+          "id": "TP-02-05",
+          "scenarioLabel": "SCN-004-001, SCN-004-002",
+          "scenarioId": "SCN-004-001",
+          "coversScenarioIds": [
+            "SCN-004-001",
+            "SCN-004-002"
+          ],
+          "type": "e2e-ui",
+          "testType": "Regression E2E",
+          "category": "e2e-ui",
+          "file": "tests/fx-regime-relative-value-lab.spec.mjs",
+          "testTitle": "Regression SCN-004-001/002: public dollar slots stay independently unavailable without authorization",
+          "description": "Broad/AFE/EME show exact states; unreviewed proxy supplies no number, substitute, or false divergence",
+          "commandRef": "CMD-E2E-FX",
+          "liveSystem": true,
+          "regressionRequired": true
+        },
+        {
+          "id": "TP-02-06",
+          "scenarioLabel": "SCN-004-003, SCN-004-006, SCN-004-007, SCN-004-008",
+          "scenarioId": "SCN-004-003",
+          "coversScenarioIds": [
+            "SCN-004-003",
+            "SCN-004-006",
+            "SCN-004-007",
+            "SCN-004-008"
+          ],
+          "type": "e2e-ui",
+          "testType": "Regression E2E",
+          "category": "e2e-ui",
+          "file": "tests/fx-regime-relative-value-lab.spec.mjs",
+          "testTitle": "Regression SCN-004-003/006/007/008: public cohort boards remain bounded and unranked without authorized spot",
+          "description": "Separate cohorts/reference group, no selected-pair rename, no automatic rank/candidate",
+          "commandRef": "CMD-E2E-FX",
+          "liveSystem": true,
+          "regressionRequired": true
+        },
+        {
+          "id": "TP-02-07",
+          "scenarioLabel": "SCN-004-004, SCN-004-005",
+          "scenarioId": "SCN-004-004",
+          "coversScenarioIds": [
+            "SCN-004-004",
+            "SCN-004-005"
+          ],
+          "type": "e2e-ui",
+          "testType": "Regression E2E",
+          "category": "e2e-ui",
+          "file": "tests/fx-regime-relative-value-lab.spec.mjs",
+          "testTitle": "Regression SCN-004-004/005: public pair and alignment surfaces infer no orientation or numeric result",
+          "description": "No ticker-spelling inference, fill, or fabricated common-date value",
+          "commandRef": "CMD-E2E-FX",
+          "liveSystem": true,
+          "regressionRequired": true
+        },
+        {
+          "id": "TP-02-08",
+          "scenarioLabel": "SCN-004-009..016",
+          "scenarioId": "SCN-004-009",
+          "coversScenarioIds": [
+            "SCN-004-009",
+            "SCN-004-010",
+            "SCN-004-011",
+            "SCN-004-012",
+            "SCN-004-013",
+            "SCN-004-014",
+            "SCN-004-015",
+            "SCN-004-016"
+          ],
+          "type": "e2e-ui",
+          "testType": "Regression E2E",
+          "category": "e2e-ui",
+          "file": "tests/fx-regime-relative-value-lab.spec.mjs",
+          "testTitle": "Regression SCN-004-009-016: public evidence anatomy retains exact unavailable families",
+          "description": "Policy/carry/value/positioning/event unavailable reasons remain distinct; unwind Indeterminate; no false conflict",
+          "commandRef": "CMD-E2E-FX",
+          "liveSystem": true,
+          "regressionRequired": true
+        },
+        {
+          "id": "TP-02-09",
+          "scenarioLabel": "SCN-004-024",
+          "scenarioId": "SCN-004-024",
+          "coversScenarioIds": [
+            "SCN-004-024"
+          ],
+          "type": "e2e-ui",
+          "testType": "Security Regression E2E",
+          "category": "e2e-ui",
+          "file": "tests/fx-regime-relative-value-lab.spec.mjs",
+          "testTitle": "Regression SCN-004-024: rights-unclear source values stay out of public route state",
+          "description": "No numeric/source payload in DOM, owner read, or storage",
+          "commandRef": "CMD-E2E-FX",
+          "liveSystem": true,
+          "regressionRequired": true
+        },
+        {
+          "id": "TP-02-10",
+          "scenarioLabel": "All Scope 2",
+          "contractId": "scope-02-page-contract",
+          "type": "functional",
+          "testType": "Page contract",
+          "category": "functional",
+          "file": "fx-regime-relative-value-lab.html",
+          "testTitle": "fx-regime-relative-value-lab.html inline script and literal IDs",
+          "description": "Syntax, dependency order, and referenced DOM IDs",
+          "commandRef": "CMD-PAGE-FX",
+          "liveSystem": false
+        },
+        {
+          "id": "TP-02-11",
+          "scenarioLabel": "SCN-004-024, SCN-004-025",
+          "scenarioId": "SCN-004-024",
+          "coversScenarioIds": [
+            "SCN-004-024",
+            "SCN-004-025"
+          ],
+          "type": "e2e-ui",
+          "testType": "Security/Accessibility E2E",
+          "category": "e2e-ui",
+          "file": "tests/fx-regime-relative-value-lab.spec.mjs",
+          "testTitle": "Regression SCN-004-024/025: direct FX route exposes no credential or restricted-payload surface",
+          "description": "No credential input/storage writer; source context remains focusable without restricted value",
+          "commandRef": "CMD-E2E-FX",
+          "liveSystem": true,
+          "regressionRequired": true
+        },
+        {
+          "id": "TP-02-12",
+          "scenarioLabel": "All Scope 2 scenarios",
+          "contractId": "scope-02-broader-e2e",
+          "type": "e2e-ui",
+          "testType": "Broader E2E checkpoint",
+          "category": "e2e-ui",
+          "file": "tests/fx-regime-relative-value-lab.spec.mjs",
+          "testTitle": "complete committed actual-route set",
+          "description": "All actual-route tests pass together with zero interception, skip, or fixture replacement",
+          "commandRef": "CMD-E2E-FX",
+          "liveSystem": true
+        },
+        {
+          "id": "TP-02-13",
+          "scenarioLabel": "SCN-004-027",
+          "scenarioId": "SCN-004-027",
+          "coversScenarioIds": [
+            "SCN-004-027"
+          ],
+          "type": "e2e-ui",
+          "testType": "Regression E2E adversarial",
+          "category": "e2e-ui",
+          "file": "tests/fx-regime-relative-value-lab.spec.mjs",
+          "testTitle": "Regression SCN-004-027: JPY strength rejects every direction-mismatched vehicle before selecting FXY",
+          "description": "Opposite-direction product is present and must fail; the test cannot pass from FXY presence alone",
+          "commandRef": "CMD-E2E-FX",
+          "liveSystem": true,
+          "regressionRequired": true
+        },
+        {
+          "id": "TP-02-14",
+          "scenarioLabel": "SCN-004-028",
+          "scenarioId": "SCN-004-028",
+          "coversScenarioIds": [
+            "SCN-004-028"
+          ],
+          "type": "e2e-ui",
+          "testType": "Regression E2E adversarial",
+          "category": "e2e-ui",
+          "file": "tests/fx-regime-relative-value-lab.spec.mjs",
+          "testTitle": "Regression SCN-004-028: tracking preserves an unexplained residual when no sourced contribution closes it",
+          "description": "Missing contribution remains missing; residual cannot disappear into an invented label",
+          "commandRef": "CMD-E2E-FX",
+          "liveSystem": true,
+          "regressionRequired": true
+        },
+        {
+          "id": "TP-02-15",
+          "scenarioLabel": "SCN-004-029",
+          "scenarioId": "SCN-004-029",
+          "coversScenarioIds": [
+            "SCN-004-029"
+          ],
+          "type": "e2e-ui",
+          "testType": "Regression E2E adversarial",
+          "category": "e2e-ui",
+          "file": "tests/fx-regime-relative-value-lab.spec.mjs",
+          "testTitle": "Regression SCN-004-029: a long-dollar direction cannot erase the UUP and USDU basket mismatch",
+          "description": "Both products share direction but differ in basket; shared direction alone cannot make them substitutes",
+          "commandRef": "CMD-E2E-FX",
+          "liveSystem": true,
+          "regressionRequired": true
+        },
+        {
+          "id": "TP-02-16",
+          "scenarioLabel": "SCN-004-030",
+          "scenarioId": "SCN-004-030",
+          "coversScenarioIds": [
+            "SCN-004-030"
+          ],
+          "type": "e2e-ui",
+          "testType": "Regression E2E adversarial",
+          "category": "e2e-ui",
+          "file": "tests/fx-regime-relative-value-lab.spec.mjs",
+          "testTitle": "Regression SCN-004-030: YCS resets to Rejected outside Tactical and expires at the source session boundary",
+          "description": "Swing, reset exclusion, direction mismatch, and expired reset session are exercised",
+          "commandRef": "CMD-E2E-FX",
+          "liveSystem": true,
+          "regressionRequired": true
+        },
+        {
+          "id": "TP-02-17",
+          "scenarioLabel": "SCN-004-031",
+          "scenarioId": "SCN-004-031",
+          "coversScenarioIds": [
+            "SCN-004-031"
+          ],
+          "type": "e2e-ui",
+          "testType": "Regression E2E adversarial",
+          "category": "e2e-ui",
+          "file": "tests/fx-regime-relative-value-lab.spec.mjs",
+          "testTitle": "Regression SCN-004-031: no eligible result preserves every rejection and selects no substitute",
+          "description": "Every product is settled but ineligible; null selection and no constraint relaxation are required",
+          "commandRef": "CMD-E2E-FX",
+          "liveSystem": true,
+          "regressionRequired": true
+        },
+        {
+          "id": "TP-02-18",
+          "scenarioLabel": "SCN-004-025",
+          "scenarioId": "SCN-004-025",
+          "coversScenarioIds": [
+            "SCN-004-025"
+          ],
+          "type": "e2e-ui",
+          "testType": "Security regression E2E adversarial",
+          "category": "e2e-ui",
+          "file": "tests/fx-regime-relative-value-lab.spec.mjs",
+          "testTitle": "Regression SCN-004-025 adversarial: authored markup renders only as text at every reader sink",
+          "description": "Inject tags, attributes, script terminators, entities, and URL-shaped payloads into decision, tooltip, citation, rejection, unavailable, Journey, and packet copy; no element, attribute, script, navigation, or URL is created",
+          "commandRef": "CMD-E2E-FX",
+          "liveSystem": true,
+          "regressionRequired": true
+        },
+        {
+          "id": "TP-02-19",
+          "scenarioLabel": "SCN-004-025",
+          "scenarioId": "SCN-004-025",
+          "coversScenarioIds": [
+            "SCN-004-025"
+          ],
+          "type": "e2e-ui",
+          "testType": "Accessibility regression E2E adversarial",
+          "category": "e2e-ui",
+          "file": "tests/fx-regime-relative-value-lab.spec.mjs",
+          "testTitle": "Regression SCN-004-025 adversarial: every declared context has definition current meaning focus and adjacent text",
+          "description": "Remove one definition, current interpretation, focus path, adjacent description, or RLTKR decoration from each context class in turn and the completeness audit fails",
+          "commandRef": "CMD-E2E-FX",
+          "liveSystem": true,
+          "regressionRequired": true
+        }
       ]
     },
     {
-      "scopeId":"SCOPE-03",
-      "scopeName":"Global Rotation Equity-Only Migration",
-      "foundation":false,
-      "dependsOn":["SCOPE-02"],
-      "tests":[
-        {"id":"TP-03-01","scenarioLabel":"SCN-004-020","scenarioId":"SCN-004-020","coversScenarioIds":["SCN-004-020"],"type":"unit","testType":"Unit","category":"unit","file":"scripts/selftest.mjs","testTitle":"Global usdLeadership and decomposition preserve distinct returns coverage and clocks","description":"Adversarial unmatched newest FX date; two-leg/three-leg objects cannot alias or share fields","commandRef":"CMD-SELFTEST","liveSystem":false,"regressionRequired":true},
-        {"id":"TP-03-02","scenarioLabel":"SCN-004-021","scenarioId":"SCN-004-021","coversScenarioIds":["SCN-004-021"],"type":"unit","testType":"Unit","category":"unit","file":"scripts/selftest.mjs","testTitle":"Global equity-only score and rank are invariant to raw FX reversal","description":"Current additive score must fail red","commandRef":"CMD-SELFTEST","liveSystem":false,"regressionRequired":true},
-        {"id":"TP-03-03","scenarioLabel":"SCN-004-020, SCN-004-022","scenarioId":"SCN-004-020","coversScenarioIds":["SCN-004-020","SCN-004-022"],"type":"functional","testType":"Functional","category":"functional","file":"scripts/selftest.mjs","testTitle":"Global owner projection rejects flattened or shared USD and decomposition fields","description":"Canary: production headless projection preserves distinct nested returns/coverage/clocks and strips unavailable decomposition numerics","commandRef":"CMD-SELFTEST","liveSystem":false,"regressionRequired":true},
-        {"id":"TP-03-04","scenarioLabel":"SCN-004-020","scenarioId":"SCN-004-020","coversScenarioIds":["SCN-004-020"],"type":"functional","testType":"Browser functional","category":"functional","file":"tests/fx-regime-relative-value-lab.spec.mjs","testTitle":"Browser functional SCN-004-020: controlled Global inputs preserve exact two-leg and three-leg products","description":"Canary: independent browser path outside scripts/selftest.mjs executes the production page/module contract; not E2E","commandRef":"CMD-BROWSER-FUNCTIONAL","liveSystem":false,"regressionRequired":true},
-        {"id":"TP-03-05","scenarioLabel":"SCN-004-021","scenarioId":"SCN-004-021","coversScenarioIds":["SCN-004-021"],"type":"functional","testType":"Browser functional","category":"functional","file":"tests/fx-regime-relative-value-lab.spec.mjs","testTitle":"Browser functional SCN-004-021: controlled FX reversal cannot change Global score or rank","description":"Production computation changes decomposition only","commandRef":"CMD-BROWSER-FUNCTIONAL","liveSystem":false,"regressionRequired":true},
-        {"id":"TP-03-06","scenarioLabel":"SCN-004-022","scenarioId":"SCN-004-022","coversScenarioIds":["SCN-004-022"],"type":"e2e-ui","testType":"Regression E2E","category":"e2e-ui","file":"tests/fx-regime-relative-value-lab.spec.mjs","testTitle":"Regression SCN-004-022: public Global route preserves USD leadership and truthful unavailable decomposition","description":"Canary: actual route and source posture preserve USD leadership with no injected FX or zero/neutral substitution","commandRef":"CMD-E2E-FX","liveSystem":true,"regressionRequired":true},
-        {"id":"TP-03-07","scenarioLabel":"All Scope 3","contractId":"scope-03-page-contract","type":"functional","testType":"Page contract","category":"functional","file":"global-rotation-lab.html","testTitle":"global-rotation-lab.html inline script and literal IDs","description":"Slider removal and new DOM fields remain coherent","commandRef":"CMD-PAGE-GLOBAL","liveSystem":false},
-        {"id":"TP-03-08","scenarioLabel":"SCN-004-021","scenarioId":"SCN-004-021","coversScenarioIds":["SCN-004-021"],"type":"functional","testType":"Consumer trace","category":"functional","file":"global-rotation-lab.html","testTitle":"Global stale identifier scan","description":"Canary: zero stale first-party scoring/orientation references across every declared consumer","commandRef":"CMD-GLOBAL-CONSUMERS","liveSystem":false,"regressionRequired":true},
-        {"id":"TP-03-09","scenarioLabel":"All Scope 3","contractId":"scope-03-broader-e2e","type":"e2e-ui","testType":"Broader E2E checkpoint","category":"e2e-ui","file":"tests/fx-regime-relative-value-lab.spec.mjs","testTitle":"complete committed Global actual-route set","description":"Global real-route behavior passes with zero interception or fixture replacement","commandRef":"CMD-E2E-FX","liveSystem":true},
-        {"id":"TP-03-10","scenarioLabel":"All Scope 3","contractId":"scope-03-full-regression","type":"functional","testType":"Full repository regression","category":"functional","file":"scripts/selftest.mjs","testTitle":"complete committed suite","description":"Must be genuinely green with BASE-BRIEF-01 unchanged; 344/1 is not success","commandRef":"CMD-SELFTEST","liveSystem":false}
+      "scopeId": "SCOPE-03",
+      "scopeName": "Global Rotation Equity-Only Migration",
+      "foundation": false,
+      "dependsOn": [
+        "SCOPE-02"
+      ],
+      "tests": [
+        {
+          "id": "TP-03-01",
+          "scenarioLabel": "SCN-004-020",
+          "scenarioId": "SCN-004-020",
+          "coversScenarioIds": [
+            "SCN-004-020"
+          ],
+          "type": "unit",
+          "testType": "Unit",
+          "category": "unit",
+          "file": "scripts/selftest.mjs",
+          "testTitle": "Global usdLeadership and decomposition preserve distinct returns coverage and clocks",
+          "description": "Adversarial unmatched newest FX date; two-leg/three-leg objects cannot alias or share fields",
+          "commandRef": "CMD-SELFTEST",
+          "liveSystem": false,
+          "regressionRequired": true
+        },
+        {
+          "id": "TP-03-02",
+          "scenarioLabel": "SCN-004-021",
+          "scenarioId": "SCN-004-021",
+          "coversScenarioIds": [
+            "SCN-004-021"
+          ],
+          "type": "unit",
+          "testType": "Unit",
+          "category": "unit",
+          "file": "scripts/selftest.mjs",
+          "testTitle": "Global equity-only score and rank are invariant to raw FX reversal",
+          "description": "Current additive score must fail red",
+          "commandRef": "CMD-SELFTEST",
+          "liveSystem": false,
+          "regressionRequired": true
+        },
+        {
+          "id": "TP-03-03",
+          "scenarioLabel": "SCN-004-020, SCN-004-022",
+          "scenarioId": "SCN-004-020",
+          "coversScenarioIds": [
+            "SCN-004-020",
+            "SCN-004-022"
+          ],
+          "type": "functional",
+          "testType": "Functional",
+          "category": "functional",
+          "file": "scripts/selftest.mjs",
+          "testTitle": "Global owner projection rejects flattened or shared USD and decomposition fields",
+          "description": "Canary: production headless projection preserves distinct nested returns/coverage/clocks and strips unavailable decomposition numerics",
+          "commandRef": "CMD-SELFTEST",
+          "liveSystem": false,
+          "regressionRequired": true
+        },
+        {
+          "id": "TP-03-04",
+          "scenarioLabel": "SCN-004-020",
+          "scenarioId": "SCN-004-020",
+          "coversScenarioIds": [
+            "SCN-004-020"
+          ],
+          "type": "functional",
+          "testType": "Browser functional",
+          "category": "functional",
+          "file": "tests/fx-regime-relative-value-lab.spec.mjs",
+          "testTitle": "Browser functional SCN-004-020: controlled Global inputs preserve exact two-leg and three-leg products",
+          "description": "Canary: independent browser path outside scripts/selftest.mjs executes the production page/module contract; not E2E",
+          "commandRef": "CMD-BROWSER-FUNCTIONAL",
+          "liveSystem": false,
+          "regressionRequired": true
+        },
+        {
+          "id": "TP-03-05",
+          "scenarioLabel": "SCN-004-021",
+          "scenarioId": "SCN-004-021",
+          "coversScenarioIds": [
+            "SCN-004-021"
+          ],
+          "type": "functional",
+          "testType": "Browser functional",
+          "category": "functional",
+          "file": "tests/fx-regime-relative-value-lab.spec.mjs",
+          "testTitle": "Browser functional SCN-004-021: controlled FX reversal cannot change Global score or rank",
+          "description": "Production computation changes decomposition only",
+          "commandRef": "CMD-BROWSER-FUNCTIONAL",
+          "liveSystem": false,
+          "regressionRequired": true
+        },
+        {
+          "id": "TP-03-06",
+          "scenarioLabel": "SCN-004-022",
+          "scenarioId": "SCN-004-022",
+          "coversScenarioIds": [
+            "SCN-004-022"
+          ],
+          "type": "e2e-ui",
+          "testType": "Regression E2E",
+          "category": "e2e-ui",
+          "file": "tests/fx-regime-relative-value-lab.spec.mjs",
+          "testTitle": "Regression SCN-004-022: public Global route preserves USD leadership and truthful unavailable decomposition",
+          "description": "Canary: actual route and source posture preserve USD leadership with no injected FX or zero/neutral substitution",
+          "commandRef": "CMD-E2E-FX",
+          "liveSystem": true,
+          "regressionRequired": true
+        },
+        {
+          "id": "TP-03-07",
+          "scenarioLabel": "All Scope 3",
+          "contractId": "scope-03-page-contract",
+          "type": "functional",
+          "testType": "Page contract",
+          "category": "functional",
+          "file": "global-rotation-lab.html",
+          "testTitle": "global-rotation-lab.html inline script and literal IDs",
+          "description": "Slider removal and new DOM fields remain coherent",
+          "commandRef": "CMD-PAGE-GLOBAL",
+          "liveSystem": false
+        },
+        {
+          "id": "TP-03-08",
+          "scenarioLabel": "SCN-004-021",
+          "scenarioId": "SCN-004-021",
+          "coversScenarioIds": [
+            "SCN-004-021"
+          ],
+          "type": "functional",
+          "testType": "Consumer trace",
+          "category": "functional",
+          "file": "global-rotation-lab.html",
+          "testTitle": "Global stale identifier scan",
+          "description": "Canary: zero stale first-party scoring/orientation references across every declared consumer",
+          "commandRef": "CMD-GLOBAL-CONSUMERS",
+          "liveSystem": false,
+          "regressionRequired": true
+        },
+        {
+          "id": "TP-03-09",
+          "scenarioLabel": "All Scope 3",
+          "contractId": "scope-03-broader-e2e",
+          "type": "e2e-ui",
+          "testType": "Broader E2E checkpoint",
+          "category": "e2e-ui",
+          "file": "tests/fx-regime-relative-value-lab.spec.mjs",
+          "testTitle": "complete committed Global actual-route set",
+          "description": "Global real-route behavior passes with zero interception or fixture replacement",
+          "commandRef": "CMD-E2E-FX",
+          "liveSystem": true
+        },
+        {
+          "id": "TP-03-10",
+          "scenarioLabel": "All Scope 3",
+          "contractId": "scope-03-full-regression",
+          "type": "functional",
+          "testType": "Full repository regression",
+          "category": "functional",
+          "file": "scripts/selftest.mjs",
+          "testTitle": "complete committed suite",
+          "description": "Must be genuinely green with BASE-BRIEF-01 unchanged; 344/1 is not success",
+          "commandRef": "CMD-SELFTEST",
+          "liveSystem": false
+        }
       ]
     },
     {
-      "scopeId":"SCOPE-04",
-      "scopeName":"Shared Brief And Journey Integration",
-      "foundation":false,
-      "dependsOn":["SCOPE-03"],
-      "tests":[
-        {"id":"TP-04-01","scenarioLabel":"SCN-004-023","scenarioId":"SCN-004-023","coversScenarioIds":["SCN-004-023"],"type":"unit","testType":"Unit","category":"unit","file":"scripts/selftest.mjs","testTitle":"RLBRIEF compares independent leader-currency strength with approximate local-relative return","description":"Same/opposite nonzero signs yield Agreement/Divergence; selected pair, USD return, and translation cannot substitute","commandRef":"CMD-SELFTEST","liveSystem":false,"regressionRequired":true},
-        {"id":"TP-04-02","scenarioLabel":"SCN-004-023","scenarioId":"SCN-004-023","coversScenarioIds":["SCN-004-023"],"type":"unit","testType":"Unit","category":"unit","file":"scripts/selftest.mjs","testTitle":"RLBRIEF requires current owner versions computedAt and freshUntil","description":"Zero, stale, missing, unavailable, wrong-version, or clock-incomplete input is Insufficient Evidence","commandRef":"CMD-SELFTEST","liveSystem":false,"regressionRequired":true},
-        {"id":"TP-04-03","scenarioLabel":"SCN-004-023","scenarioId":"SCN-004-023","coversScenarioIds":["SCN-004-023"],"type":"functional","testType":"Functional adversarial","category":"functional","file":"scripts/validate-brief-payload.mjs","testTitle":"FX Global relationship rejects third composites and Feature 004 watchlist coverage claims","description":"Reject flattened Global, absent clocks/owners, stale synthesis, merged score, FX matrix domain, owner-precedence entry, applicability rule, domain-agnostic per-ticker read, cell, or covered-count claim; preserve reasoned unavailable for an unaccepted existing domain","commandRef":"CMD-BRIEF-VALIDATE","liveSystem":false,"regressionRequired":true},
-        {"id":"TP-04-04","scenarioLabel":"SCN-004-023","scenarioId":"SCN-004-023","coversScenarioIds":["SCN-004-023"],"type":"functional","testType":"Browser functional","category":"functional","file":"tests/fx-regime-relative-value-lab.spec.mjs","testTitle":"Browser functional SCN-004-023: controlled current owner facts render Agreement and Divergence","description":"Production rlbrief.js and renderer; controlled owner reads, not E2E","commandRef":"CMD-BROWSER-FUNCTIONAL","liveSystem":false,"regressionRequired":true},
-        {"id":"TP-04-05","scenarioLabel":"SCN-004-023","scenarioId":"SCN-004-023","coversScenarioIds":["SCN-004-023"],"type":"functional","testType":"Browser functional adversarial","category":"functional","file":"tests/fx-regime-relative-value-lab.spec.mjs","testTitle":"Browser functional SCN-004-023 adversarial: stale missing flat or unaccepted owner facts stay reasoned unavailable","description":"No directional synthesis, third composite, watchlist domain/cell/applicability, or coverage claim; one owner deep link remains when allowed","commandRef":"CMD-BROWSER-FUNCTIONAL","liveSystem":false,"regressionRequired":true},
-        {"id":"TP-04-06","scenarioLabel":"SCN-004-023","scenarioId":"SCN-004-023","coversScenarioIds":["SCN-004-023"],"type":"e2e-ui","testType":"Regression E2E","category":"e2e-ui","file":"tests/fx-regime-relative-value-lab.spec.mjs","testTitle":"Regression SCN-004-023: public Market Brief route reports Insufficient Evidence for unavailable owners","description":"Actual owner reads/source posture, no injected current owner response","commandRef":"CMD-E2E-FX","liveSystem":true,"regressionRequired":true},
-        {"id":"TP-04-07","scenarioLabel":"SCN-004-019","scenarioId":"SCN-004-019","coversScenarioIds":["SCN-004-019"],"type":"e2e-ui","testType":"Regression E2E adversarial","category":"e2e-ui","file":"tests/fx-regime-relative-value-lab.spec.mjs","testTitle":"Regression SCN-004-019: four views share one reader outcome while machine identity stays in Power","description":"Recommendation or explicit non-recommendation, vehicle, cutoff, confirmation, invalidation, provenance access, and deep link stay equal; inject raw identity/governance vocabulary and require every default view/accessibility/announcement sink to refuse it; Power explains technical identity; request and compute counts remain unchanged on view switches","commandRef":"CMD-E2E-FX","liveSystem":true,"regressionRequired":true},
-        {"id":"TP-04-08","scenarioLabel":"SCN-004-023","scenarioId":"SCN-004-023","coversScenarioIds":["SCN-004-023"],"type":"functional","testType":"Page contract","category":"functional","file":"market-brief.html","testTitle":"market-brief.html inline script and literal IDs","description":"Relationship DOM references remain valid","commandRef":"CMD-PAGE-BRIEF","liveSystem":false,"regressionRequired":true},
-        {"id":"TP-04-09","scenarioLabel":"SCN-004-032","scenarioId":"SCN-004-032","coversScenarioIds":["SCN-004-032"],"type":"unit","testType":"Unit adversarial","category":"unit","file":"scripts/selftest.mjs","testTitle":"RLBRIEF publishes only complete scoreable outcomes and preserves refused prior and historical evidence","description":"Remove each trigger/invalidation attribution field or make current evidence stale, missing, contradicted, rights-ineligible, or uncited; current prose refuses as unavailable non-recommendation, no ledger event or new not-evaluable appears, prior stays non-current, historical rows remain byte-identical","commandRef":"CMD-SELFTEST","liveSystem":false,"regressionRequired":true},
-        {"id":"TP-04-10","scenarioLabel":"SCN-004-032","scenarioId":"SCN-004-032","coversScenarioIds":["SCN-004-032"],"type":"functional","testType":"Browser functional adversarial","category":"functional","file":"tests/fx-regime-relative-value-lab.spec.mjs","testTitle":"Browser functional SCN-004-032: incomplete scoreability or stale evidence refuses current Brief","description":"Controlled production gate distinguishes one complete recommendation from unavailable non-recommendation and prior verified content without browsing or gap filling","commandRef":"CMD-BROWSER-FUNCTIONAL","liveSystem":false,"regressionRequired":true},
-        {"id":"TP-04-11","scenarioLabel":"SCN-004-032","scenarioId":"SCN-004-032","coversScenarioIds":["SCN-004-032"],"type":"e2e-ui","testType":"Regression E2E adversarial","category":"e2e-ui","file":"tests/fx-regime-relative-value-lab.spec.mjs","testTitle":"Regression SCN-004-032: current Brief refuses ineligible evidence and incomplete scoreability","description":"Real same-origin owner/publication posture; no direct browse, injected conclusion, new not-evaluable, non-recommendation ledger call, or current relabeling of prior evidence","commandRef":"CMD-E2E-FX","liveSystem":true,"regressionRequired":true},
-        {"id":"TP-04-12","scenarioLabel":"SCN-004-033","scenarioId":"SCN-004-033","coversScenarioIds":["SCN-004-033"],"type":"functional","testType":"Contract","category":"functional","file":"scripts/validate-tool-experience.mjs","testTitle":"Feature 004 Journey definitions resolve exact DAGs evidence slots and no-execution policy","description":"Two definitions, twelve steps, closed dependencies, privacy-safe context, signoff, and no execution","commandRef":"CMD-TOOL-EXPERIENCE","liveSystem":false,"regressionRequired":true},
-        {"id":"TP-04-13","scenarioLabel":"SCN-004-033","scenarioId":"SCN-004-033","coversScenarioIds":["SCN-004-033"],"type":"unit","testType":"Unit","category":"unit","file":"scripts/selftest.mjs","testTitle":"RLJOURNEY semantic evidence refresh reopens only affected transitive dependents","description":"Objective, fit, tracking, and confirmation changes reopen the correct first step and dependents while preserving unrelated history","commandRef":"CMD-SELFTEST","liveSystem":false,"regressionRequired":true},
-        {"id":"TP-04-14","scenarioLabel":"SCN-004-033","scenarioId":"SCN-004-033","coversScenarioIds":["SCN-004-033"],"type":"e2e-ui","testType":"Regression E2E adversarial","category":"e2e-ui","file":"tests/fx-regime-relative-value-lab.spec.mjs","testTitle":"Regression SCN-004-033: Journey evidence refresh reopens transitive dependents and every completion packet remains non-executable","description":"Evidence change, backtrack, stale packet, re-evaluation, signoff, noExecution:true, executed:false, and forbidden field absence","commandRef":"CMD-E2E-FX","liveSystem":true,"regressionRequired":true}
+      "scopeId": "SCOPE-04",
+      "scopeName": "Shared Brief And Journey Integration",
+      "foundation": false,
+      "dependsOn": [
+        "SCOPE-03"
+      ],
+      "tests": [
+        {
+          "id": "TP-04-01",
+          "scenarioLabel": "SCN-004-023",
+          "scenarioId": "SCN-004-023",
+          "coversScenarioIds": [
+            "SCN-004-023"
+          ],
+          "type": "unit",
+          "testType": "Unit",
+          "category": "unit",
+          "file": "scripts/selftest.mjs",
+          "testTitle": "RLBRIEF compares independent leader-currency strength with approximate local-relative return",
+          "description": "Same/opposite nonzero signs yield Agreement/Divergence; selected pair, USD return, and translation cannot substitute",
+          "commandRef": "CMD-SELFTEST",
+          "liveSystem": false,
+          "regressionRequired": true
+        },
+        {
+          "id": "TP-04-02",
+          "scenarioLabel": "SCN-004-023",
+          "scenarioId": "SCN-004-023",
+          "coversScenarioIds": [
+            "SCN-004-023"
+          ],
+          "type": "unit",
+          "testType": "Unit",
+          "category": "unit",
+          "file": "scripts/selftest.mjs",
+          "testTitle": "RLBRIEF requires current owner versions computedAt and freshUntil",
+          "description": "Zero, stale, missing, unavailable, wrong-version, or clock-incomplete input is Insufficient Evidence",
+          "commandRef": "CMD-SELFTEST",
+          "liveSystem": false,
+          "regressionRequired": true
+        },
+        {
+          "id": "TP-04-03",
+          "scenarioLabel": "SCN-004-023",
+          "scenarioId": "SCN-004-023",
+          "coversScenarioIds": [
+            "SCN-004-023"
+          ],
+          "type": "functional",
+          "testType": "Functional adversarial",
+          "category": "functional",
+          "file": "scripts/validate-brief-payload.mjs",
+          "testTitle": "FX Global relationship rejects third composites and Feature 004 watchlist coverage claims",
+          "description": "Reject flattened Global, absent clocks/owners, stale synthesis, merged score, FX matrix domain, owner-precedence entry, applicability rule, domain-agnostic per-ticker read, cell, or covered-count claim; preserve reasoned unavailable for an unaccepted existing domain",
+          "commandRef": "CMD-BRIEF-VALIDATE",
+          "liveSystem": false,
+          "regressionRequired": true
+        },
+        {
+          "id": "TP-04-04",
+          "scenarioLabel": "SCN-004-023",
+          "scenarioId": "SCN-004-023",
+          "coversScenarioIds": [
+            "SCN-004-023"
+          ],
+          "type": "functional",
+          "testType": "Browser functional",
+          "category": "functional",
+          "file": "tests/fx-regime-relative-value-lab.spec.mjs",
+          "testTitle": "Browser functional SCN-004-023: controlled current owner facts render Agreement and Divergence",
+          "description": "Production rlbrief.js and renderer; controlled owner reads, not E2E",
+          "commandRef": "CMD-BROWSER-FUNCTIONAL",
+          "liveSystem": false,
+          "regressionRequired": true
+        },
+        {
+          "id": "TP-04-05",
+          "scenarioLabel": "SCN-004-023",
+          "scenarioId": "SCN-004-023",
+          "coversScenarioIds": [
+            "SCN-004-023"
+          ],
+          "type": "functional",
+          "testType": "Browser functional adversarial",
+          "category": "functional",
+          "file": "tests/fx-regime-relative-value-lab.spec.mjs",
+          "testTitle": "Browser functional SCN-004-023 adversarial: stale missing flat or unaccepted owner facts stay reasoned unavailable",
+          "description": "No directional synthesis, third composite, watchlist domain/cell/applicability, or coverage claim; one owner deep link remains when allowed",
+          "commandRef": "CMD-BROWSER-FUNCTIONAL",
+          "liveSystem": false,
+          "regressionRequired": true
+        },
+        {
+          "id": "TP-04-06",
+          "scenarioLabel": "SCN-004-023",
+          "scenarioId": "SCN-004-023",
+          "coversScenarioIds": [
+            "SCN-004-023"
+          ],
+          "type": "e2e-ui",
+          "testType": "Regression E2E",
+          "category": "e2e-ui",
+          "file": "tests/fx-regime-relative-value-lab.spec.mjs",
+          "testTitle": "Regression SCN-004-023: public Market Brief route reports Insufficient Evidence for unavailable owners",
+          "description": "Actual owner reads/source posture, no injected current owner response",
+          "commandRef": "CMD-E2E-FX",
+          "liveSystem": true,
+          "regressionRequired": true
+        },
+        {
+          "id": "TP-04-07",
+          "scenarioLabel": "SCN-004-019",
+          "scenarioId": "SCN-004-019",
+          "coversScenarioIds": [
+            "SCN-004-019"
+          ],
+          "type": "e2e-ui",
+          "testType": "Regression E2E adversarial",
+          "category": "e2e-ui",
+          "file": "tests/fx-regime-relative-value-lab.spec.mjs",
+          "testTitle": "Regression SCN-004-019: four views share one reader outcome while machine identity stays in Power",
+          "description": "Recommendation or explicit non-recommendation, vehicle, cutoff, confirmation, invalidation, provenance access, and deep link stay equal; inject raw identity/governance vocabulary and require every default view/accessibility/announcement sink to refuse it; Power explains technical identity; request and compute counts remain unchanged on view switches",
+          "commandRef": "CMD-E2E-FX",
+          "liveSystem": true,
+          "regressionRequired": true
+        },
+        {
+          "id": "TP-04-08",
+          "scenarioLabel": "SCN-004-023",
+          "scenarioId": "SCN-004-023",
+          "coversScenarioIds": [
+            "SCN-004-023"
+          ],
+          "type": "functional",
+          "testType": "Page contract",
+          "category": "functional",
+          "file": "market-brief.html",
+          "testTitle": "market-brief.html inline script and literal IDs",
+          "description": "Relationship DOM references remain valid",
+          "commandRef": "CMD-PAGE-BRIEF",
+          "liveSystem": false,
+          "regressionRequired": true
+        },
+        {
+          "id": "TP-04-09",
+          "scenarioLabel": "SCN-004-032",
+          "scenarioId": "SCN-004-032",
+          "coversScenarioIds": [
+            "SCN-004-032"
+          ],
+          "type": "unit",
+          "testType": "Unit adversarial",
+          "category": "unit",
+          "file": "scripts/selftest.mjs",
+          "testTitle": "RLBRIEF publishes only complete scoreable outcomes and preserves refused prior and historical evidence",
+          "description": "Remove each trigger/invalidation attribution field or make current evidence stale, missing, contradicted, rights-ineligible, or uncited; current prose refuses as unavailable non-recommendation, no ledger event or new not-evaluable appears, prior stays non-current, historical rows remain byte-identical",
+          "commandRef": "CMD-SELFTEST",
+          "liveSystem": false,
+          "regressionRequired": true
+        },
+        {
+          "id": "TP-04-10",
+          "scenarioLabel": "SCN-004-032",
+          "scenarioId": "SCN-004-032",
+          "coversScenarioIds": [
+            "SCN-004-032"
+          ],
+          "type": "functional",
+          "testType": "Browser functional adversarial",
+          "category": "functional",
+          "file": "tests/fx-regime-relative-value-lab.spec.mjs",
+          "testTitle": "Browser functional SCN-004-032: incomplete scoreability or stale evidence refuses current Brief",
+          "description": "Controlled production gate distinguishes one complete recommendation from unavailable non-recommendation and prior verified content without browsing or gap filling",
+          "commandRef": "CMD-BROWSER-FUNCTIONAL",
+          "liveSystem": false,
+          "regressionRequired": true
+        },
+        {
+          "id": "TP-04-11",
+          "scenarioLabel": "SCN-004-032",
+          "scenarioId": "SCN-004-032",
+          "coversScenarioIds": [
+            "SCN-004-032"
+          ],
+          "type": "e2e-ui",
+          "testType": "Regression E2E adversarial",
+          "category": "e2e-ui",
+          "file": "tests/fx-regime-relative-value-lab.spec.mjs",
+          "testTitle": "Regression SCN-004-032: current Brief refuses ineligible evidence and incomplete scoreability",
+          "description": "Real same-origin owner/publication posture; no direct browse, injected conclusion, new not-evaluable, non-recommendation ledger call, or current relabeling of prior evidence",
+          "commandRef": "CMD-E2E-FX",
+          "liveSystem": true,
+          "regressionRequired": true
+        },
+        {
+          "id": "TP-04-12",
+          "scenarioLabel": "SCN-004-033",
+          "scenarioId": "SCN-004-033",
+          "coversScenarioIds": [
+            "SCN-004-033"
+          ],
+          "type": "functional",
+          "testType": "Contract",
+          "category": "functional",
+          "file": "scripts/validate-tool-experience.mjs",
+          "testTitle": "Feature 004 Journey definitions resolve exact DAGs evidence slots and no-execution policy",
+          "description": "Two definitions, twelve steps, closed dependencies, privacy-safe context, signoff, and no execution",
+          "commandRef": "CMD-TOOL-EXPERIENCE",
+          "liveSystem": false,
+          "regressionRequired": true
+        },
+        {
+          "id": "TP-04-13",
+          "scenarioLabel": "SCN-004-033",
+          "scenarioId": "SCN-004-033",
+          "coversScenarioIds": [
+            "SCN-004-033"
+          ],
+          "type": "unit",
+          "testType": "Unit",
+          "category": "unit",
+          "file": "scripts/selftest.mjs",
+          "testTitle": "RLJOURNEY semantic evidence refresh reopens only affected transitive dependents",
+          "description": "Objective, fit, tracking, and confirmation changes reopen the correct first step and dependents while preserving unrelated history",
+          "commandRef": "CMD-SELFTEST",
+          "liveSystem": false,
+          "regressionRequired": true
+        },
+        {
+          "id": "TP-04-14",
+          "scenarioLabel": "SCN-004-033",
+          "scenarioId": "SCN-004-033",
+          "coversScenarioIds": [
+            "SCN-004-033"
+          ],
+          "type": "e2e-ui",
+          "testType": "Regression E2E adversarial",
+          "category": "e2e-ui",
+          "file": "tests/fx-regime-relative-value-lab.spec.mjs",
+          "testTitle": "Regression SCN-004-033: Journey evidence refresh reopens transitive dependents and every completion packet remains non-executable",
+          "description": "Evidence change, backtrack, stale packet, re-evaluation, signoff, noExecution:true, executed:false, and forbidden field absence",
+          "commandRef": "CMD-E2E-FX",
+          "liveSystem": true,
+          "regressionRequired": true
+        }
       ]
     },
     {
-      "scopeId":"SCOPE-05",
-      "scopeName":"Atomic Registration Documentation And Closure",
-      "foundation":false,
-      "dependsOn":["SCOPE-04"],
-      "tests":[
-        {"id":"TP-05-01","scenarioLabel":"SCN-004-026","scenarioId":"SCN-004-026","coversScenarioIds":["SCN-004-026"],"type":"e2e-ui","testType":"Regression E2E adversarial","category":"e2e-ui","file":"tests/fx-regime-relative-value-lab.spec.mjs","testTitle":"Regression SCN-004-026: cutover activates every route view owner note and deep link or remains excluded","description":"Remove or mismatch any route, navigation, registry, Simple, Brief, Journey, owner-read, note, deep-link, documentation, or exclusion edge and the complete surface remains excluded; no partial-public state is accepted","commandRef":"CMD-E2E-FX","liveSystem":true,"regressionRequired":true},
-        {"id":"TP-05-02","scenarioLabel":"SCN-004-026","scenarioId":"SCN-004-026","coversScenarioIds":["SCN-004-026"],"type":"e2e-ui","testType":"Security E2E canary","category":"e2e-ui","file":"tests/provider-credentials.spec.mjs","testTitle":"complete committed suite","description":"All registered tools retain storage/transport protections","commandRef":"CMD-E2E-PROVIDER","liveSystem":true,"regressionRequired":true},
-        {"id":"TP-05-03","scenarioLabel":"SCN-004-026","scenarioId":"SCN-004-026","coversScenarioIds":["SCN-004-026"],"type":"unit","testType":"Security unit canary","category":"unit","file":"tests/provider-credentials.unit.mjs","testTitle":"complete committed suite","description":"Session-only credential and durable non-secret cache contract","commandRef":"CMD-PROVIDER-UNIT","liveSystem":false,"regressionRequired":true},
-        {"id":"TP-05-04","scenarioLabel":"SCN-004-026","scenarioId":"SCN-004-026","coversScenarioIds":["SCN-004-026"],"type":"functional","testType":"Security functional canary","category":"functional","file":"tests/provider-credentials.functional.mjs","testTitle":"complete committed suite","description":"Registered tool gains no credential mutation authority","commandRef":"CMD-PROVIDER-FUNCTIONAL","liveSystem":false,"regressionRequired":true},
-        {"id":"TP-05-05","scenarioLabel":"SCN-004-026","scenarioId":"SCN-004-026","coversScenarioIds":["SCN-004-026"],"type":"stress","testType":"Protected security stress canary","category":"stress","file":"tests/provider-credentials.stress.mjs","testTitle":"complete committed suite","description":"Existing shared-infrastructure canary only; no Feature 004 stress objective","commandRef":"CMD-PROVIDER-STRESS","liveSystem":false,"regressionRequired":true},
-        {"id":"TP-05-06","scenarioLabel":"SCN-004-026","scenarioId":"SCN-004-026","coversScenarioIds":["SCN-004-026"],"type":"load","testType":"Protected security load canary","category":"load","file":"tests/provider-credentials.load.mjs","testTitle":"complete committed suite","description":"Existing shared-infrastructure canary only; no Feature 004 load objective","commandRef":"CMD-PROVIDER-LOAD","liveSystem":false,"regressionRequired":true},
-        {"id":"TP-05-07","scenarioLabel":"SCN-004-026 / BASE-BRIEF-01","scenarioId":"SCN-004-026","coversScenarioIds":["SCN-004-026"],"protectedCanaryIds":["BASE-BRIEF-01"],"type":"e2e-ui","testType":"Bond E2E canary","category":"e2e-ui","file":"tests/bond-regime-lab.spec.mjs","testTitle":"complete committed suite","description":"Bond route/read behavior remains and coverage assertion is not weakened","commandRef":"CMD-E2E-BOND","liveSystem":true,"regressionRequired":true},
-        {"id":"TP-05-08","scenarioLabel":"Cross-tool","contractId":"causal-browser-canary","type":"e2e-ui","testType":"Causal E2E canary","category":"e2e-ui","file":"tests/causal-rotation-lab.spec.mjs","testTitle":"complete committed suite","description":"Causal route/read behavior unchanged","commandRef":"CMD-E2E-CAUSAL","liveSystem":true},
-        {"id":"TP-05-09","scenarioLabel":"Cross-tool","contractId":"causal-validator-canary","type":"functional","testType":"Causal contract canary","category":"functional","file":"scripts/validate-causal-rotation.mjs","testTitle":"complete committed validator","description":"Causal config/observation/ledger integrity unchanged","commandRef":"CMD-CAUSAL-VALIDATE","liveSystem":false},
-        {"id":"TP-05-10","scenarioLabel":"SCN-004-021","scenarioId":"SCN-004-021","coversScenarioIds":["SCN-004-021"],"type":"functional","testType":"Consumer trace","category":"functional","file":"global-rotation-lab.html","testTitle":"Global stale identifier scan","description":"Removed additive FX consumers remain absent","commandRef":"CMD-GLOBAL-CONSUMERS","liveSystem":false,"regressionRequired":true},
-        {"id":"TP-05-11","scenarioLabel":"SCN-004-023","scenarioId":"SCN-004-023","coversScenarioIds":["SCN-004-023"],"type":"functional","testType":"Consumer trace","category":"functional","file":"market-brief.html","testTitle":"Brief third-composite stale identifier scan","description":"No merged-score identifier enters first-party consumers","commandRef":"CMD-BRIEF-COMPOSITE","liveSystem":false,"regressionRequired":true},
-        {"id":"TP-05-12","scenarioLabel":"All 33 scenarios + protected canaries","contractId":"scope-05-full-regression","coversScenarioIds":["SCN-004-001","SCN-004-002","SCN-004-003","SCN-004-004","SCN-004-005","SCN-004-006","SCN-004-007","SCN-004-008","SCN-004-009","SCN-004-010","SCN-004-011","SCN-004-012","SCN-004-013","SCN-004-014","SCN-004-015","SCN-004-016","SCN-004-017","SCN-004-018","SCN-004-019","SCN-004-020","SCN-004-021","SCN-004-022","SCN-004-023","SCN-004-024","SCN-004-025","SCN-004-026","SCN-004-027","SCN-004-028","SCN-004-029","SCN-004-030","SCN-004-031","SCN-004-032","SCN-004-033"],"type":"functional","testType":"Full repository regression","category":"functional","file":"scripts/selftest.mjs","testTitle":"complete committed suite","description":"Genuinely green run with unchanged protected assertions and all 33 contracts; no prior count is accepted as current proof","commandRef":"CMD-SELFTEST","liveSystem":false},
-        {"id":"TP-05-13","scenarioLabel":"All Scope 5","contractId":"GRILL-004-09","type":"functional","testType":"Collision preservation","category":"functional","file":"tests/feature-004-dirty-tree-collision.test.mjs","testTitle":"Feature 004 preserves every pre-existing dirty hunk","description":"Preserve every inherited checkpoint and complete current path identity; reject unknown, missing, duplicate, reordered, staged, broadened, or byte-drifted state.","commandRef":"CMD-COLLISION","liveSystem":false},
-        {"id":"TP-05-14","scenarioLabel":"SCN-004-026","scenarioId":"SCN-004-026","coversScenarioIds":["SCN-004-026"],"type":"e2e-ui","testType":"Regression E2E adversarial","category":"e2e-ui","file":"tests/fx-regime-relative-value-lab.spec.mjs","testTitle":"Regression SCN-004-026 adversarial: source tokens do not prove an unreachable reader entry point","description":"Keep each route/nav/view/Journey/note/deep-link token in source while making the browser target unreachable; static search still finds it, but browser reach fails and exclusion remains","commandRef":"CMD-E2E-FX","liveSystem":true,"regressionRequired":true},
-        {"id":"TP-05-15","scenarioLabel":"SCN-004-026 / NFR-021 / D18","scenarioId":"SCN-004-026","coversScenarioIds":["SCN-004-026"],"requirementRefs":["NFR-021","D18"],"type":"functional","testType":"Budget contract adversarial","category":"functional","file":"scripts/selftest.mjs","testTitle":"Feature 004 rejects timeout widening without same-condition latency and stall coverage","description":"Increase any readiness timeout without same-predicate measured latency and an adversarial stalled/starved predicate; the budget guard rejects it. A measured normal case alone cannot authorize widening","commandRef":"CMD-SELFTEST","liveSystem":false,"regressionRequired":true}
+      "scopeId": "SCOPE-05",
+      "scopeName": "Atomic Registration Documentation And Closure",
+      "foundation": false,
+      "dependsOn": [
+        "SCOPE-04"
+      ],
+      "tests": [
+        {
+          "id": "TP-05-01",
+          "scenarioLabel": "SCN-004-026",
+          "scenarioId": "SCN-004-026",
+          "coversScenarioIds": [
+            "SCN-004-026"
+          ],
+          "type": "e2e-ui",
+          "testType": "Regression E2E adversarial",
+          "category": "e2e-ui",
+          "file": "tests/fx-regime-relative-value-lab.spec.mjs",
+          "testTitle": "Regression SCN-004-026: cutover activates every route view owner note and deep link or remains excluded",
+          "description": "Remove or mismatch any route, navigation, registry, Simple, Brief, Journey, owner-read, note, deep-link, documentation, or exclusion edge and the complete surface remains excluded; no partial-public state is accepted",
+          "commandRef": "CMD-E2E-FX",
+          "liveSystem": true,
+          "regressionRequired": true
+        },
+        {
+          "id": "TP-05-02",
+          "scenarioLabel": "SCN-004-026",
+          "scenarioId": "SCN-004-026",
+          "coversScenarioIds": [
+            "SCN-004-026"
+          ],
+          "type": "e2e-ui",
+          "testType": "Security E2E canary",
+          "category": "e2e-ui",
+          "file": "tests/provider-credentials.spec.mjs",
+          "testTitle": "complete committed suite",
+          "description": "All registered tools retain storage/transport protections",
+          "commandRef": "CMD-E2E-PROVIDER",
+          "liveSystem": true,
+          "regressionRequired": true
+        },
+        {
+          "id": "TP-05-03",
+          "scenarioLabel": "SCN-004-026",
+          "scenarioId": "SCN-004-026",
+          "coversScenarioIds": [
+            "SCN-004-026"
+          ],
+          "type": "unit",
+          "testType": "Security unit canary",
+          "category": "unit",
+          "file": "tests/provider-credentials.unit.mjs",
+          "testTitle": "complete committed suite",
+          "description": "Session-only credential and durable non-secret cache contract",
+          "commandRef": "CMD-PROVIDER-UNIT",
+          "liveSystem": false,
+          "regressionRequired": true
+        },
+        {
+          "id": "TP-05-04",
+          "scenarioLabel": "SCN-004-026",
+          "scenarioId": "SCN-004-026",
+          "coversScenarioIds": [
+            "SCN-004-026"
+          ],
+          "type": "functional",
+          "testType": "Security functional canary",
+          "category": "functional",
+          "file": "tests/provider-credentials.functional.mjs",
+          "testTitle": "complete committed suite",
+          "description": "Registered tool gains no credential mutation authority",
+          "commandRef": "CMD-PROVIDER-FUNCTIONAL",
+          "liveSystem": false,
+          "regressionRequired": true
+        },
+        {
+          "id": "TP-05-05",
+          "scenarioLabel": "SCN-004-026",
+          "scenarioId": "SCN-004-026",
+          "coversScenarioIds": [
+            "SCN-004-026"
+          ],
+          "type": "stress",
+          "testType": "Protected security stress canary",
+          "category": "stress",
+          "file": "tests/provider-credentials.stress.mjs",
+          "testTitle": "complete committed suite",
+          "description": "Existing shared-infrastructure canary only; no Feature 004 stress objective",
+          "commandRef": "CMD-PROVIDER-STRESS",
+          "liveSystem": false,
+          "regressionRequired": true
+        },
+        {
+          "id": "TP-05-06",
+          "scenarioLabel": "SCN-004-026",
+          "scenarioId": "SCN-004-026",
+          "coversScenarioIds": [
+            "SCN-004-026"
+          ],
+          "type": "load",
+          "testType": "Protected security load canary",
+          "category": "load",
+          "file": "tests/provider-credentials.load.mjs",
+          "testTitle": "complete committed suite",
+          "description": "Existing shared-infrastructure canary only; no Feature 004 load objective",
+          "commandRef": "CMD-PROVIDER-LOAD",
+          "liveSystem": false,
+          "regressionRequired": true
+        },
+        {
+          "id": "TP-05-07",
+          "scenarioLabel": "SCN-004-026 / BASE-BRIEF-01",
+          "scenarioId": "SCN-004-026",
+          "coversScenarioIds": [
+            "SCN-004-026"
+          ],
+          "protectedCanaryIds": [
+            "BASE-BRIEF-01"
+          ],
+          "type": "e2e-ui",
+          "testType": "Bond E2E canary",
+          "category": "e2e-ui",
+          "file": "tests/bond-regime-lab.spec.mjs",
+          "testTitle": "complete committed suite",
+          "description": "Bond route/read behavior remains and coverage assertion is not weakened",
+          "commandRef": "CMD-E2E-BOND",
+          "liveSystem": true,
+          "regressionRequired": true
+        },
+        {
+          "id": "TP-05-08",
+          "scenarioLabel": "Cross-tool",
+          "contractId": "causal-browser-canary",
+          "type": "e2e-ui",
+          "testType": "Causal E2E canary",
+          "category": "e2e-ui",
+          "file": "tests/causal-rotation-lab.spec.mjs",
+          "testTitle": "complete committed suite",
+          "description": "Causal route/read behavior unchanged",
+          "commandRef": "CMD-E2E-CAUSAL",
+          "liveSystem": true
+        },
+        {
+          "id": "TP-05-09",
+          "scenarioLabel": "Cross-tool",
+          "contractId": "causal-validator-canary",
+          "type": "functional",
+          "testType": "Causal contract canary",
+          "category": "functional",
+          "file": "scripts/validate-causal-rotation.mjs",
+          "testTitle": "complete committed validator",
+          "description": "Causal config/observation/ledger integrity unchanged",
+          "commandRef": "CMD-CAUSAL-VALIDATE",
+          "liveSystem": false
+        },
+        {
+          "id": "TP-05-10",
+          "scenarioLabel": "SCN-004-021",
+          "scenarioId": "SCN-004-021",
+          "coversScenarioIds": [
+            "SCN-004-021"
+          ],
+          "type": "functional",
+          "testType": "Consumer trace",
+          "category": "functional",
+          "file": "global-rotation-lab.html",
+          "testTitle": "Global stale identifier scan",
+          "description": "Removed additive FX consumers remain absent",
+          "commandRef": "CMD-GLOBAL-CONSUMERS",
+          "liveSystem": false,
+          "regressionRequired": true
+        },
+        {
+          "id": "TP-05-11",
+          "scenarioLabel": "SCN-004-023",
+          "scenarioId": "SCN-004-023",
+          "coversScenarioIds": [
+            "SCN-004-023"
+          ],
+          "type": "functional",
+          "testType": "Consumer trace",
+          "category": "functional",
+          "file": "market-brief.html",
+          "testTitle": "Brief third-composite stale identifier scan",
+          "description": "No merged-score identifier enters first-party consumers",
+          "commandRef": "CMD-BRIEF-COMPOSITE",
+          "liveSystem": false,
+          "regressionRequired": true
+        },
+        {
+          "id": "TP-05-12",
+          "scenarioLabel": "All 33 scenarios + protected canaries",
+          "contractId": "scope-05-full-regression",
+          "coversScenarioIds": [
+            "SCN-004-001",
+            "SCN-004-002",
+            "SCN-004-003",
+            "SCN-004-004",
+            "SCN-004-005",
+            "SCN-004-006",
+            "SCN-004-007",
+            "SCN-004-008",
+            "SCN-004-009",
+            "SCN-004-010",
+            "SCN-004-011",
+            "SCN-004-012",
+            "SCN-004-013",
+            "SCN-004-014",
+            "SCN-004-015",
+            "SCN-004-016",
+            "SCN-004-017",
+            "SCN-004-018",
+            "SCN-004-019",
+            "SCN-004-020",
+            "SCN-004-021",
+            "SCN-004-022",
+            "SCN-004-023",
+            "SCN-004-024",
+            "SCN-004-025",
+            "SCN-004-026",
+            "SCN-004-027",
+            "SCN-004-028",
+            "SCN-004-029",
+            "SCN-004-030",
+            "SCN-004-031",
+            "SCN-004-032",
+            "SCN-004-033"
+          ],
+          "type": "functional",
+          "testType": "Full repository regression",
+          "category": "functional",
+          "file": "scripts/selftest.mjs",
+          "testTitle": "complete committed suite",
+          "description": "Genuinely green run with unchanged protected assertions and all 33 contracts; no prior count is accepted as current proof",
+          "commandRef": "CMD-SELFTEST",
+          "liveSystem": false
+        },
+        {
+          "id": "TP-05-13",
+          "scenarioLabel": "All Scope 5",
+          "contractId": "GRILL-004-09",
+          "type": "functional",
+          "testType": "Collision preservation",
+          "category": "functional",
+          "file": "tests/feature-004-dirty-tree-collision.test.mjs",
+          "testTitle": "Feature 004 preserves every pre-existing dirty hunk",
+          "description": "Preserve every inherited checkpoint and complete current path identity; reject unknown, missing, duplicate, reordered, staged, broadened, or byte-drifted state.",
+          "commandRef": "CMD-COLLISION",
+          "liveSystem": false
+        },
+        {
+          "id": "TP-05-14",
+          "scenarioLabel": "SCN-004-026",
+          "scenarioId": "SCN-004-026",
+          "coversScenarioIds": [
+            "SCN-004-026"
+          ],
+          "type": "e2e-ui",
+          "testType": "Regression E2E adversarial",
+          "category": "e2e-ui",
+          "file": "tests/fx-regime-relative-value-lab.spec.mjs",
+          "testTitle": "Regression SCN-004-026 adversarial: source tokens do not prove an unreachable reader entry point",
+          "description": "Keep each route/nav/view/Journey/note/deep-link token in source while making the browser target unreachable; static search still finds it, but browser reach fails and exclusion remains",
+          "commandRef": "CMD-E2E-FX",
+          "liveSystem": true,
+          "regressionRequired": true
+        },
+        {
+          "id": "TP-05-15",
+          "scenarioLabel": "SCN-004-026 / NFR-021 / D18",
+          "scenarioId": "SCN-004-026",
+          "coversScenarioIds": [
+            "SCN-004-026"
+          ],
+          "requirementRefs": [
+            "NFR-021",
+            "D18"
+          ],
+          "type": "functional",
+          "testType": "Budget contract adversarial",
+          "category": "functional",
+          "file": "scripts/selftest.mjs",
+          "testTitle": "Feature 004 rejects timeout widening without same-condition latency and stall coverage",
+          "description": "Increase any readiness timeout without same-predicate measured latency and an adversarial stalled/starved predicate; the budget guard rejects it. A measured normal case alone cannot authorize widening",
+          "commandRef": "CMD-SELFTEST",
+          "liveSystem": false,
+          "regressionRequired": true
+        }
       ]
     }
   ]

@@ -26,19 +26,23 @@
         "substate": "needs_reverification",
         "runStartedAt": null,
         "completedPhaseClaims": [
-            "bootstrap"
+            "bootstrap",
+            "implement",
+            "test"
         ],
-        "pendingTransitionRequests": [
-            "F004-V16-HERMETIC-HISTORICAL-V13-001"
-        ],
-        "nextRequiredOwner": "bubbles.test",
-        "nextRequiredTarget": "F004-V16-HERMETIC-HISTORICAL-V13-001: append one report-final v16 block and change only the collision parser so post-v14 v13 adversarial replay uses pinned immutable history rather than absent current foreign bytes; re-assert v12 identity only for the Feature-004-owned required records, derive foreign v12 authority from the recorded v12.protectedAuthorityClosure, and assert no cross-epoch v12 identity, record-matrix, or inventory hash for foreign records inside the hermetic builder; preserve v14 as sole current-file authority and run unchanged three-case committed-only acceptance under 600 seconds. SCOPE-02 remains unavailable for pickup.",
+        "pendingTransitionRequests": [],
+        "nextRequiredOwner": "bubbles.validate",
+        "nextRequiredTarget": "Certify SCOPE-01. The prior v16 successor target is withdrawn as a superseded workaround and was never delivered; the underlying defect was stale evidence pins invalidated by a repository-wide PII de-personalization git history rewrite, resolved instead by re-pinning the v9 through v15 evidence to post-rewrite truth under a recorded history-rewrite epoch. The unchanged three-case collision acceptance is current and green on a clean tree, all 44 SCOPE-01 DoD items are checked, and every SCOPE-01 executable suite passes. SCOPE-02 unblocks on bubbles.validate certification and not before.",
         "findingDispositionHistory": [
             {
                 "findingId": "F004-SCOPE01-COMMITTED-COLLISION-DEPENDENCY-001",
                 "intakeDisposition": "pending",
-                "currentDisposition": "routed",
-                "successorId": "F004-V16-HERMETIC-HISTORICAL-V13-001",
+                "currentDisposition": "addressed",
+                "successorId": null,
+                "withdrawnSuccessorId": "F004-V16-HERMETIC-HISTORICAL-V13-001",
+                "withdrawalReason": "The v16 successor was a seventeenth workaround epoch layered on a chain whose real defect was stale evidence pins. A repository-wide PII de-personalization git history rewrite invalidated roughly thirty SHA-256 pins across the twenty-two marker-bounded evidence blocks. The adopted resolution re-pins the v9 through v15 evidence to post-rewrite truth and records the history-rewrite epoch explicitly. The v16 implementation was deleted at -1238 lines and never delivered.",
+                "addressedByCommit": "d6c462e3",
+                "addressedByCommitSubject": "test(004): complete collision evidence migration after PII history rewrite",
                 "completionClaim": false
             },
             {
@@ -1324,6 +1328,37 @@
                 "scopeCompletion": "not claimed"
             },
             "summary": "Amended the F004-V16-HERMETIC-HISTORICAL-V13-001 contract after bubbles.test proved a planning defect. The prior contract required the hermetic builder to re-assert every v12 identity commitment for all records derived from the pinned v13 payload plus the aggregate v12 record-matrix and inventory hashes, which is unsatisfiable for any foreign path whose owner committed between the v12 and v13 epochs. V16 now re-asserts v12 identity only for the reachable Feature-004-owned required records, derives foreign v12 authority from the recorded v12.protectedAuthorityClosure following the established v14 derivation, and asserts no cross-epoch v12 identity, record-matrix, or inventory hash for foreign records inside the hermetic builder while the v12 epoch keeps its own commitment assertion and rejects. Foreign v13 records remain opaque pinned historical commitments and no current foreign path may be read. Explicitly authorized bubbles.test to update the single HERMETIC_HISTORICAL_V13_V16_BLOCK_SHA256 pin, the corresponding v16 report block claims, and the planning-authority commit prefixes that this planning commit necessarily moves. Recorded no evidence, checked no item, and performed no status or certification transition."
+        },
+        {
+            "agent": "bubbles.goal",
+            "workflowMode": "full-delivery",
+            "phasesExecuted": [
+                "plan"
+            ],
+            "statusBefore": "in_progress",
+            "statusAfter": "in_progress",
+            "startedAt": "2026-08-08T00:04:36Z",
+            "finishedAt": "2026-08-08T00:04:36Z",
+            "outcome": "completed_owned",
+            "addressedFindings": [
+                "F004-V16-HERMETIC-HISTORICAL-V13-001"
+            ],
+            "unresolvedFindings": [],
+            "nextRequiredOwner": "bubbles.validate",
+            "nextRequiredTarget": "Certify SCOPE-01.",
+            "evidenceRefs": [
+                "scopes.md#scope-1-continuation-gate",
+                "commit 52782f73 docs(004): correct Scope 1 continuation gate after history-rewrite resolution",
+                "commit d6c462e3 test(004): complete collision evidence migration after PII history rewrite",
+                "commit bbcce47e fix(004): make v12 adversarial inventory harness clean-tree safe",
+                "commit fc3919b0 fix(004): make v14 inventory-stability probe clean-tree safe"
+            ],
+            "validation": {
+                "collisionAcceptance": "exit 0; timeout 900 node --test tests/feature-004-dirty-tree-collision.test.mjs on a clean working tree: tests 3, pass 3, fail 0",
+                "productCheck": "exit 0; node scripts/selftest.mjs: 1273 passed, 0 failed",
+                "reportImmutability": "specs/004-fx-regime-relative-value-lab/report.md byte-unchanged; all 22 marker-bounded SHA-256 pinned evidence blocks intact"
+            },
+            "summary": "Withdrew F004-V16-HERMETIC-HISTORICAL-V13-001 as a superseded workaround that was never delivered, and reconciled the withdrawal across scopes.md, test-plan.json, and state.json. The blocking condition was never a Feature 004 defect. A repository-wide PII de-personalization git history rewrite invalidated roughly thirty SHA-256 evidence pins; the byte arithmetic confirms the attribution exactly, since a pinned length of 580643 against an actual 580597 is a delta of -46 that decomposes as two home-path segment rewrites at +1 byte each and six operator-name rewrites at -8 bytes each. The adopted resolution re-pins v9 through v15 to post-rewrite truth under a recorded history-rewrite epoch rather than adding a seventeenth workaround. Restoring the acceptance also exposed three pre-existing defects: the v12 adversarial inventory harness and the v14 inventory-stability probe both threw TypeError on any clean tree, meaning this test was never reproducible from a clean checkout, and the v15 brotli-compressed evidence payload carried a committed literal absolute operator path that the grep-based PII lint could not see because the payload is compressed. All three are fixed."
         }
     ],
     "activeBugs": [],

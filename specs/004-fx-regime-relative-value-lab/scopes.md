@@ -1744,7 +1744,9 @@ The excluded FX route completes the ordinary four-view experience through shared
 
 ### Change Boundary
 
-**Allowed product files and exact hunks:** `rlbrief.js`, `rljourney.js`, `journeys.json`, `scripts/brief-refresh.mjs`, `scripts/validate-brief-payload.mjs`, `market-brief.html`, `market-brief.config.json`, additive Feature 004 blocks in `scripts/selftest.mjs`, and Scope 4 blocks in `tests/fx-regime-relative-value-lab.spec.mjs`.
+**Allowed product files and exact hunks:** `rlbrief.js`, `rljourney.js`, `scripts/brief-refresh.mjs`, `scripts/validate-brief-payload.mjs`, `market-brief.html`, `market-brief.config.json`, additive Feature 004 blocks in `scripts/selftest.mjs`, and Scope 4 blocks in `tests/fx-regime-relative-value-lab.spec.mjs`.
+
+**Measured registry boundary:** `journeys.json` was listed here originally and cannot be written in this scope. `rlexperience.js` enforces that every Journey definition is *referenced exactly once* by a registered tool's `experience.journeyDefinitionIds` (`E012-REGISTRY`, `$.journeys.definitions[N].definitionId`). The FX tool is not in `tools.json` until Scope 5, so adding the two FX definitions here makes the Feature 012 foundation validator reject the whole registry — measured directly: adding them took the selftest from 1292/0 to 1280/2 with exactly that code, and reverting restored 1292/0. `rljourney.js::validateRegistryCompleteness` is more permissive because it iterates the tool inventory rather than the definition list, which is why the definitions compile in isolation but the registry as a whole does not. The registry trio (`tools.json`, `simple-models.json`, `journeys.json`) is therefore atomic by construction, which is exactly what Scope 5 exists to land. Both FX Journey IDs move there, where Scope 5's DoD already requires them.
 
 **Collision prerequisite:** recorded identities for `market-brief.html`, `scripts/selftest.mjs`, and `scripts/validate-brief-payload.mjs` must match before editing. `market-brief.config.json` requires a fresh just-in-time checkpoint because its prior clean observation is non-authoritative. Any mismatch blocks that path until reviewed.
 
@@ -1757,7 +1759,7 @@ The excluded FX route completes the ordinary four-view experience through shared
 - `market-brief.html`
 - `rlbrief.js`
 - `rljourney.js`
-- `journeys.json`
+- `journeys.json` — deferred to Scope 5; see the Measured registry boundary above
 - `market-brief.config.json`
 
 ### Consumer Impact Sweep
@@ -1913,7 +1915,7 @@ The stable route, visible title, shared four-view experience, two Journey defini
 
 ### Change Boundary
 
-**Allowed product files and exact hunks:** `tools.json`, `index.html`, `rlnav.js`, `site-exclusions.json`, registry-validation blocks in `scripts/selftest.mjs` and `scripts/validate-tool-experience.mjs`, Scope 5 blocks in `tests/fx-regime-relative-value-lab.spec.mjs`, and owner-routed docs updates to `notes/fx-regime-relative-value-lab.md`, `notes/global-rotation-lab.md`, `notes/market-brief.md`, `README.md`, and `notes/README.md`.
+**Allowed product files and exact hunks:** `tools.json`, `index.html`, `rlnav.js`, `journeys.json`, `simple-models.json`, `rlexperience-adapters/macro-rotation.js`, `site-exclusions.json`, registry-validation blocks in `scripts/selftest.mjs` and `scripts/validate-tool-experience.mjs`, Scope 5 blocks in `tests/fx-regime-relative-value-lab.spec.mjs`, and owner-routed docs updates to `notes/fx-regime-relative-value-lab.md`, `notes/global-rotation-lab.md`, `notes/market-brief.md`, `README.md`, and `notes/README.md`.
 
 **Collision prerequisite:** every recorded dirty/shared path identity must match immediately before edit. A mismatch requires a fresh reviewed checkpoint. `market-brief.config.json` is not edited in this scope.
 

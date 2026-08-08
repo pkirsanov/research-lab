@@ -152,6 +152,29 @@ plus `rlmarketaction.js` · `rlcontracts.js` · `market-brief.scorecard.json` ·
 `tool-experience.config.json`. Also excluded in this scope: `rlattention.js`,
 `scripts/validate-brief-payload.mjs`, `scripts/selftest.mjs`.
 
+**Allowed file families.** Stated as families rather than a path list so a new
+file cannot slip in by not having been enumerated:
+
+| Family | Members | Why this scope may touch it |
+|--------|---------|-----------------------------|
+| Outcome ledger | `market-brief.attention-outcomes.jsonl` | The append-only record of what each item turned out to be. |
+| Published record | `market-brief.attention-scorecard.json` | The reduction the reader sees. |
+| Its reducer | `scripts/build-attention-scorecard.mjs` | Turns the ledger into the record deterministically. |
+| Record render block | `market-brief.html` (`#attentionRecord` only) | Where the record is shown; the tier itself is Scope 3's. |
+| Its own contract suite | `tests/attention-payload-contract.test.mjs` | The scenarios that certify withholding below the minimum sample. |
+
+**Excluded surfaces.** Anything not in the Allowed table is excluded by default;
+these are named because they are what a change here would most plausibly reach for:
+
+| Surface | Members | Owner |
+|---------|---------|-------|
+| Capability module | `rlattention.js` | Scope 1 — the record CALLS computeInterruptionRate, it never restates the arithmetic |
+| Publication gate | `scripts/validate-brief-payload.mjs` | Scope 2 |
+| Recommendation scorecard | `market-brief.scorecard.json` | A DIFFERENT scorecard; byte-identity across an attention generation is asserted, not assumed |
+| Project test harness | `scripts/selftest.mjs` | Scope 5 |
+| Sibling tool modules | `rlbrief.js`, `rlexperience.js`, `rlfx.js`, `rljourney.js`, `rlmarketaction.js`, `rlcontracts.js` | Concurrent sessions |
+| Sibling spec packets | `specs/004*`, `specs/_bugs/BUG-002*`, `specs/012*/bugs/*` | Concurrent sessions |
+
 ### Cross-Scope Dependency — SCN-017-033 Is Fixed In Scope 1
 
 `rlattention.js` stays excluded from this scope. The duplicate that SCN-017-033
@@ -195,6 +218,7 @@ generation and record the digest comparison as raw output.
 | TP-04-05 | Withholding | functional | SCN-017-037 | `tests/attention-payload-contract.test.mjs` | byDecisionWindow and byChannel withhold independently (design T-29) | `node scripts/build-attention-scorecard.mjs` | No | `report.md#tp-04-05` |
 | TP-04-06 | Boundary | integration | SCN-017-038 | `tests/attention-payload-contract.test.mjs` | no write path to the recommendation ledger or the recommendation scorecard (design T-30) | `node --test tests/attention-payload-contract.test.mjs` | No | `report.md#tp-04-06` |
 | TP-04-07 | Boundary | integration | SCN-017-039 | `tests/attention-payload-contract.test.mjs` | the recommendation scorecard is byte-identical before and after a full attention generation (design T-31) | `node --test tests/attention-payload-contract.test.mjs` | No | `report.md#tp-04-07` |
+| TP-04-08 | Regression E2E | e2e-ui | SCN-017-058 | `tests/attention-browser.spec.mjs` | Regression: the record still shows the withheld state with its sample size and never a zero rate — the asymmetry P5 forbids is a rendering property, so it is guarded in the browser and not only in the reducer | `npx --no-install playwright test tests/attention-browser.spec.mjs --config=playwright.config.mjs --project=system-chrome` | Yes | `report.md#tp-04-08` |
 
 ### Definition of Done - Tiered Validation
 

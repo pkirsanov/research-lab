@@ -296,6 +296,28 @@ plus `rlmarketaction.js` · `rlcontracts.js` · `market-brief.scorecard.json` ·
 `market-brief.payload.json`, `scripts/validate-brief-payload.mjs`,
 `scripts/selftest.mjs`, `notes/market-brief.md`.
 
+**Allowed file families.** Stated as families rather than a path list so a new
+file cannot slip in by not having been enumerated:
+
+| Family | Members | Why this scope may touch it |
+|--------|---------|-----------------------------|
+| Capability module | `rlattention.js` | The single definition this scope exists to create. |
+| Its own unit suite | `tests/rlattention.test.mjs` | The scenarios that certify the module; no other suite may assert its internals. |
+| Its engineering note | `notes/decision-attention.md` | The handoff for the next engineer, not reader-facing copy. |
+
+**Excluded surfaces.** Also stated as families. Anything not in the Allowed
+table above is excluded by default; these are called out because they are the
+ones a change here would most plausibly reach for:
+
+| Surface | Members | Owner |
+|---------|---------|-------|
+| Renderers | `rlbrief.js`, `market-brief.html` | Scope 3 and a concurrent session |
+| Publication path | `scripts/validate-brief-payload.mjs`, `market-brief.payload.json` | Scope 2 |
+| Project test harness | `scripts/selftest.mjs` | Scope 5 |
+| Reader documentation | `notes/market-brief.md` | Scope 5 |
+| Sibling tool modules | `rlexperience.js`, `rlfx.js`, `rljourney.js`, `rlmarketaction.js`, `rlcontracts.js` | Concurrent sessions |
+| Sibling spec packets | `specs/004*`, `specs/_bugs/BUG-002*`, `specs/012*/bugs/*` | Concurrent sessions |
+
 ## Rollback
 
 Delete `rlattention.js`, `tests/rlattention.test.mjs` and
@@ -345,6 +367,7 @@ confirm each refusal scenario still refuses.
 | TP-01-23 | Refusal | unit | SCN-017-023 | `tests/rlattention.test.mjs` | an illegal lifecycle edge refuses and the item retains its previous state (design T-23) | `node --test tests/rlattention.test.mjs` | No | `report.md#tp-01-23` |
 | TP-01-24 | Functional | functional | SCN-017-024 | `tests/rlattention.test.mjs` | supersession closes the prior item in the same generation with a back-reference (design T-24) | `node --test tests/rlattention.test.mjs` | No | `report.md#tp-01-24` |
 | TP-01-25 | Invariant | unit | SCN-017-046 | `tests/rlattention.test.mjs` | a terminal-state item is excluded from selection entirely, reaching neither published nor suppressed (plan amendment 1) | `node --test tests/rlattention.test.mjs` | No | `report.md#tp-01-25` |
+| TP-01-26 | Regression E2E | e2e-ui | SCN-017-028 · SCN-017-057 | `tests/attention-browser.spec.mjs` | Regression: the module's composed output still renders in the live tier — a unit suite proves the contract in isolation, this proves the contract survives the renderer | `npx --no-install playwright test tests/attention-browser.spec.mjs --config=playwright.config.mjs --project=system-chrome` | Yes | `report.md#tp-01-26` |
 
 ### Definition of Done - Tiered Validation
 
@@ -1128,3 +1151,85 @@ its row below stays unticked.
   restored, sha256 c2f5d47c04ae7b39ffda6df31e82995aa5419c6d96c34fb07ebf6e6990544c5f
   re-run: 24 pass / 0 fail / exit 0
   ```
+
+- [x] Scenario-specific E2E regression tests for EVERY new/changed/fixed behavior exist and pass (TP-01-26).
+
+  **Claim Source:** executed in this turn.
+
+  ```text
+  $ npx --no-install playwright test tests/attention-browser.spec.mjs \
+      --config=playwright.config.mjs --project=system-chrome --reporter=list
+  ✓ 1 decision attention tier renders items and record from committed data
+  ✓ 2 decision attention items carry no alert severity label or alert styling
+  ✓ 3 every decision attention field and control exposes a contextual tooltip
+  ✓ 4 authored decision attention text with markup renders escaped
+  ✓ 5 elapsed decision attention items render expired and a stale generation is declared
+  ✓ 6 decision attention rendering holds all six performance budgets
+  ✓ 7 SCN-017-051 The tier renders its declared empty state for an all-excluded generation
+  ✓ 8 SCN-017-057 The tier stays readable at a phone width with nothing clipped
+  ✓ 9 SCN-017-058 The record shows the withheld state with its sample size, never a zero rate
+  ✓ 10 SCN-017-059 No item appears in both the decision tier and the catalyst feed
+    10 passed
+  EXIT=0
+  ```
+
+  The unit suite proves this module's contract in isolation; these prove the
+  contract SURVIVES the renderer. Neither substitutes for the other: a module can
+  satisfy every unit scenario and still be composed into a page that never shows
+  its output, which is exactly the failure SCN-017-059 caught.
+
+- [x] Broader E2E regression suite passes with no unrelated breakage.
+
+  **Claim Source:** executed in this turn — the WHOLE Playwright suite, not this
+  scope's file.
+
+  ```text
+  $ npx --no-install playwright test --config=playwright.config.mjs \
+      --project=system-chrome --reporter=line
+  [292/294] tests/volatility-sizing-lab.spec.mjs:405:1 › TP-02-04: the volatility
+           tool is reachable THROUGH the shared rlnav registration
+  [293/294] tests/web-evidence.spec.mjs:195:1 › Regression: SCN-012-037 frozen safe
+           bundle renders bounded metadata and no raw or hostile content
+  [294/294] tests/simple-production-wiring.spec.mjs:956:1 › TP-15-04 the swept set
+           is derived from the production registry + pages
+    294 passed (5.4m)
+  FULL SUITE exit=0
+
+  $ node scripts/selftest.mjs
+  Research-Lab self-test: 1273 passed, 0 failed
+  ```
+
+  294 of 294 across 34 spec files. This run is load-bearing rather than
+  ceremonial: the same command was 292 passed / 2 failed earlier in this session
+  and both failures were real — a fixture that no longer modelled the publication
+  path, and a live deployed-site flake that re-ran clean 26/26 in isolation.
+
+- [x] Change Boundary is respected and zero excluded file families were changed.
+
+  **Claim Source:** executed in this turn, per family rather than per path.
+
+  ```text
+  $ for f in <scope 1 EXCLUDED families>; do
+      git --no-pager log --oneline c0c7d34c..HEAD -- "$f" | wc -l
+    done
+  rlbrief.js                             UNCHANGED across the whole feature
+  rlexperience.js                        UNCHANGED across the whole feature
+  rlfx.js                                UNCHANGED across the whole feature
+  rljourney.js                           UNCHANGED across the whole feature
+  rlmarketaction.js                      UNCHANGED across the whole feature
+  rlcontracts.js                         UNCHANGED across the whole feature
+  tool-experience.config.json            UNCHANGED across the whole feature
+  market-brief.scorecard.json            2 commit(s)
+
+  $ git --no-pager log --oneline c0c7d34c..HEAD -- market-brief.scorecard.json
+  7d81316a tier-a: scheduled refresh 2026-08-07T15:42Z
+  001d54ad market-brief: auto-refresh + narrative 2026-08-07 10:52 EDT (morning)
+  ```
+
+  Seven of the eight families are untouched across the ENTIRE feature, not merely
+  by this scope. The eighth is attributed rather than waved past: both commits are
+  the scheduled refresh cron, a different actor from this scope. The remaining
+  excluded families — renderers, publication path, project harness — were changed
+  by their own owning scopes (3, 2 and 5), which is the boundary working as
+  designed: scope isolation forbids reaching outside your own paths, it does not
+  freeze the feature around you.

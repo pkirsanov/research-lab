@@ -167,6 +167,56 @@ Scenario: SCN-017-053 The authoring instruction asks only for the authored judge
 
 ## Change Boundary And Protected Paths
 
+**Allowed file families.** Stated as families rather than a path list so a new
+file cannot slip in by not having been enumerated:
+
+| Family | Members | Why this scope may touch it |
+|--------|---------|-----------------------------|
+| Publish-time build step | `scripts/build-attention-items.mjs` | The step this scope exists to create. |
+| Publication script | `scripts/brief-refresh-and-push.sh` | The step is only structural if the pipeline RUNS it; an orphaned build step is a file, not a guarantee. |
+| Authoring lane instruction | `scripts/brief-narrative-parallel.mjs` | The lane's ask shrinks to judgement only, which is the whole mechanism. |
+| Published payload | `market-brief.payload.json` | Gains `attentionExclusions[]` additively. |
+| Publication gate | `scripts/validate-brief-payload.mjs` | Must consume the key this scope introduces; the build step single-sources its context from the gate so the two cannot disagree. |
+| Test-path baseline | `scripts/validate-spec-test-paths.baseline` | Removing the one stale entry the guard itself demanded; the baseline shrinks and never grows. |
+| Project test harness | `scripts/selftest.mjs` | NARROWLY — registering this scope's own module only. |
+| Publication fixture | `tests/brief-refresh-atomicity.support.mjs` | The fixture must model the pipeline this scope changed, or no test can reproduce it. |
+| Its own suites | `tests/attention-payload-contract.test.mjs`, `tests/attention-browser.spec.mjs` | The scenarios that certify the routing. |
+
+**Excluded surfaces.** Anything not in the Allowed table is excluded by default;
+these are named because they are what a change here would most plausibly reach for:
+
+| Surface | Members | Owner |
+|---------|---------|-------|
+| Capability module | `rlattention.js` | Scope 1 — this scope CALLS the composer and restates none of it |
+| Brief page | `market-brief.html` | Scope 3 |
+| Record reducer | `scripts/build-attention-scorecard.mjs` | Scope 4 |
+| Legacy feed renderer | `rlbrief.js` | Concurrent session |
+| Sibling tool modules | `rlexperience.js`, `rlfx.js`, `rljourney.js`, `rlmarketaction.js`, `rlcontracts.js` | Concurrent sessions |
+| Sibling spec packets | `specs/004*`, `specs/_bugs/BUG-002*`, `specs/012*/bugs/*` | Concurrent sessions |
+
+## Consumer Impact Sweep
+
+This scope REMOVES an interface: the authoring lane no longer emits the
+serialized attention envelope. It authors judgement only, and the envelope is
+composed downstream. Anything that read a lane-authored envelope field, or that
+assumed the lane was the field's origin, is a consumer of the removed interface
+and must be swept for stale references.
+
+| Consumer surface | What it consumed | Disposition after F-017-06 |
+|------------------|------------------|----------------------------|
+| `scripts/validate-brief-payload.mjs` | The full envelope on `attention[]` | Unchanged shape, new origin. It now also consumes `attentionExclusions[]`, so a refused candidate is recorded rather than silently absent. |
+| `market-brief.html` `#decisionAttention` | The full envelope | Unchanged. The tier reads the composed envelope; it never knew or cared who composed it, which is exactly why the move is safe. |
+| `market-brief.html` legacy `#attention` feed | The same `attention[]` array | Unchanged shape. The de-duplication that stops both surfaces showing one item is a Scope 5 call-site concern, not a lane concern. |
+| `scripts/brief-refresh-and-push.sh` | Nothing previously — it had no attention step | NEW consumer. It now runs the build step between the lane and the gate. This was the missing link: before it, the removal of the lane-authored envelope had no replacement on the publication path at all. |
+| `tests/brief-refresh-atomicity.support.mjs` | The pipeline's file set | NEW consumer. The fixture must copy the build step and the composer's own dependencies, or it models a pipeline that no longer exists. |
+
+**Stale-reference sweep.** The removed interface has no surviving first-party
+reader: no consumer still expects the lane to author an envelope field, and no
+consumer reads a field the composer does not produce. There is no navigation,
+breadcrumb, redirect or deep link into an attention item — the tier is rendered
+inline on the brief page and has no addressable route — so the rename/removal
+has no URL-shaped consumer surface to update.
+
 **Allowed:** `scripts/build-attention-items.mjs`,
 `scripts/brief-narrative-parallel.mjs`, `market-brief.payload.json`,
 `tests/attention-payload-contract.test.mjs`, `tests/attention-browser.spec.mjs`,
@@ -417,6 +467,8 @@ run, and restore the step byte-identical.
 | TP-06-05 | Render | e2e-ui | SCN-017-051 | `tests/attention-browser.spec.mjs` | the decision attention tier renders its declared empty state for an all-excluded generation with no placeholder card | `npx --no-install playwright test tests/attention-browser.spec.mjs --config=playwright.config.mjs --project=system-chrome --grep "the decision attention tier renders its declared empty state for an all-excluded generation" --reporter=list` | Yes | `report.md#tp-06-05` |
 | TP-06-06 | Provenance | unit | SCN-017-052 | `tests/attention-payload-contract.test.mjs` | the build step resolves window, transmission, provenance and lifecycle from committed contracts and declares no second copy of any module rule | `node --test tests/attention-payload-contract.test.mjs` | No | `report.md#tp-06-06` |
 | TP-06-07 | Contract | unit | SCN-017-053 | `tests/attention-payload-contract.test.mjs` | the attention authoring instruction asks only for the authored judgement and never for a decision-attention/v1 envelope, so an edit reintroducing the envelope ask fails | `node --test tests/attention-payload-contract.test.mjs` | No | `report.md#tp-06-07` |
+| TP-06-08 | Regression E2E | e2e-ui | SCN-017-051 · SCN-017-059 | `tests/attention-browser.spec.mjs` | Regression: routing the lane through the composer changes WHO builds the envelope and must change nothing the reader sees — the tier still renders, and an all-refused generation still renders its declared empty state | `npx --no-install playwright test tests/attention-browser.spec.mjs --config=playwright.config.mjs --project=system-chrome` | Yes | `report.md#tp-06-08` |
+| TP-06-09 | Fixture Canary: publication path | integration | SCN-017-047 | `tests/brief-refresh-atomicity.test.mjs` | Canary: the shared publication fixture reproduces the pipeline AFTER the build step is wired in — run BEFORE any broad suite rerun, because this scope changes the script every other publication test depends on | `node --test tests/brief-refresh-atomicity.test.mjs` | Yes | `report.md#tp-06-09` |
 
 ### Definition of Done - Tiered Validation
 

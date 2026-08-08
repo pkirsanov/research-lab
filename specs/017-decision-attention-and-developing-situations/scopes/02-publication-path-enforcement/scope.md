@@ -108,6 +108,27 @@ plus `rlmarketaction.js` · `rlcontracts.js` · `market-brief.scorecard.json` ·
 `tool-experience.config.json`. Also excluded in this scope: `market-brief.html`,
 `rlattention.js`, `scripts/selftest.mjs`.
 
+**Allowed file families.** Stated as families rather than a path list so a new
+file cannot slip in by not having been enumerated:
+
+| Family | Members | Why this scope may touch it |
+|--------|---------|-----------------------------|
+| Publication gate | `scripts/validate-brief-payload.mjs` | The refusal this scope exists to add. |
+| Published payload | `market-brief.payload.json` | The artifact the gate judges; changed additively only. |
+| Authoring lane instruction | `scripts/brief-narrative-parallel.mjs` | What the lane is asked to produce must match what the gate accepts. |
+| Its own contract suite | `tests/attention-payload-contract.test.mjs` | The scenarios that certify the gate refuses. |
+
+**Excluded surfaces.** Anything not in the Allowed table is excluded by default;
+these are named because they are what a change here would most plausibly reach for:
+
+| Surface | Members | Owner |
+|---------|---------|-------|
+| Capability module | `rlattention.js` | Scope 1 — the gate CALLS the composer, it never restates it |
+| Renderers | `rlbrief.js`, `market-brief.html` | Scope 3 and a concurrent session |
+| Project test harness | `scripts/selftest.mjs` | Scope 5 |
+| Sibling tool modules | `rlexperience.js`, `rlfx.js`, `rljourney.js`, `rlmarketaction.js`, `rlcontracts.js` | Concurrent sessions |
+| Sibling spec packets | `specs/004*`, `specs/_bugs/BUG-002*`, `specs/012*/bugs/*` | Concurrent sessions |
+
 ## Rollback
 
 Restore the previous attention branch in `scripts/validate-brief-payload.mjs`,
@@ -141,6 +162,8 @@ the before-and-after payload parse both succeed with no pre-existing key changed
 | TP-02-02 | Parity | integration | SCN-017-026 | `tests/attention-payload-contract.test.mjs` | validator and browser apply the identical predicate on one fixture (design T-33) | `node --test tests/attention-payload-contract.test.mjs` | No | `report.md#tp-02-02` |
 | TP-02-03 | Compatibility | integration | SCN-017-027 | `tests/attention-payload-contract.test.mjs` | existing attention consumers still parse the payload unchanged (design T-43) | `node --test tests/attention-payload-contract.test.mjs` | No | `report.md#tp-02-03` |
 | TP-02-04 | Contract | unit | SCN-017-045 | `tests/attention-payload-contract.test.mjs` | the attention authoring instruction text names every required `decision-attention/v1` field, so a future edit that drops one fails | `node --test tests/attention-payload-contract.test.mjs` | No | `report.md#tp-02-04` |
+| TP-02-05 | Regression E2E | e2e-ui | SCN-017-028 · SCN-017-051 | `tests/attention-browser.spec.mjs` | Regression: a payload the gate admitted still renders, and an all-refused generation still renders the declared empty state — a gate that refuses everything must not take the page down with it | `npx --no-install playwright test tests/attention-browser.spec.mjs --config=playwright.config.mjs --project=system-chrome` | Yes | `report.md#tp-02-05` |
+| TP-02-06 | Fixture Canary: publication path | integration | SCN-017-025 | `tests/brief-refresh-atomicity.test.mjs` | Canary: the shared publication fixture still reproduces the real path after this scope changes the gate — run BEFORE any broad suite rerun, because a broken fixture makes every downstream suite lie in the same direction | `node --test tests/brief-refresh-atomicity.test.mjs` | Yes | `report.md#tp-02-06` |
 
 ### Definition of Done - Tiered Validation
 

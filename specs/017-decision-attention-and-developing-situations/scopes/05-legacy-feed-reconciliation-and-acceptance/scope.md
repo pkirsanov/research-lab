@@ -140,6 +140,28 @@ plus `rlmarketaction.js` · `rlcontracts.js` · `market-brief.scorecard.json` ·
 `tool-experience.config.json`. Also excluded in this scope: `rlattention.js`,
 `scripts/validate-brief-payload.mjs`, `scripts/build-attention-scorecard.mjs`.
 
+**Allowed file families.** Stated as families rather than a path list so a new
+file cannot slip in by not having been enumerated:
+
+| Family | Members | Why this scope may touch it |
+|--------|---------|-----------------------------|
+| Brief page call sites | `market-brief.html` | Where the two attention surfaces are reconciled against each other. |
+| Project test harness | `scripts/selftest.mjs` | This scope owns registering the new module with the project suite. |
+| Reader documentation | `notes/market-brief.md` | Where H-4 and H-5 are recorded in reader language. |
+| Acceptance suites | `tests/attention-payload-contract.test.mjs`, `tests/attention-browser.spec.mjs` | The scenarios that certify the two surfaces do not contradict each other. |
+
+**Excluded surfaces.** Anything not in the Allowed table is excluded by default;
+these are named because they are what a change here would most plausibly reach for:
+
+| Surface | Members | Owner |
+|---------|---------|-------|
+| Capability module | `rlattention.js` | Scope 1 |
+| Publication gate | `scripts/validate-brief-payload.mjs` | Scope 2 |
+| Record reducer | `scripts/build-attention-scorecard.mjs` | Scope 4 |
+| Legacy feed renderer | `rlbrief.js` | Concurrent session — reconciliation is done at the call site, never inside the feed |
+| Sibling tool modules | `rlexperience.js`, `rlfx.js`, `rljourney.js`, `rlmarketaction.js`, `rlcontracts.js` | Concurrent sessions |
+| Sibling spec packets | `specs/004*`, `specs/_bugs/BUG-002*`, `specs/012*/bugs/*` | Concurrent sessions |
+
 ## Rollback
 
 Restore the prior `#attention` heading and copy in `market-brief.html`, remove the
@@ -169,6 +191,7 @@ acceptance tests and the browser budget run.
 | TP-05-03 | Invariant | integration | SCN-017-042 | `tests/attention-payload-contract.test.mjs` | red alert thresholds and seven hard gates are byte-identical (design T-40) | `node --test tests/attention-payload-contract.test.mjs` | No | `report.md#tp-05-03` |
 | TP-05-04 | Budget | stress | SCN-017-043 | `tests/attention-browser.spec.mjs` | decision attention rendering holds all six performance budgets (design T-42) | `npx --no-install playwright test tests/attention-browser.spec.mjs --config=playwright.config.mjs --project=system-chrome --grep "decision attention rendering holds all six performance budgets" --reporter=list` | Yes | `report.md#tp-05-04` |
 | TP-05-05 | Acceptance | integration | SCN-017-044 | `tests/attention-payload-contract.test.mjs` | project selftest exits 0 with the new module registered (design T-44) | `node scripts/selftest.mjs` | No | `report.md#tp-05-05` |
+| TP-05-06 | Regression E2E | e2e-ui | SCN-017-059 | `tests/attention-browser.spec.mjs` | Regression: no item appears in BOTH the decision tier and the catalyst feed — the reconciliation this scope exists for is a whole-page property, so it can only be guarded end to end | `npx --no-install playwright test tests/attention-browser.spec.mjs --config=playwright.config.mjs --project=system-chrome` | Yes | `report.md#tp-05-06` |
 
 ### Definition of Done - Tiered Validation
 

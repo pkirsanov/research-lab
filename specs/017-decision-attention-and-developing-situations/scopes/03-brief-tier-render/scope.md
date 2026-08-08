@@ -135,6 +135,26 @@ plus `rlmarketaction.js` · `rlcontracts.js` · `market-brief.scorecard.json` ·
 `scripts/validate-brief-payload.mjs`, `market-brief.payload.json`,
 `scripts/selftest.mjs`.
 
+**Allowed file families.** Stated as families rather than a path list so a new
+file cannot slip in by not having been enumerated:
+
+| Family | Members | Why this scope may touch it |
+|--------|---------|-----------------------------|
+| Brief page | `market-brief.html` | The tier this scope renders, and its call sites. |
+| Its own browser suite | `tests/attention-browser.spec.mjs` | The live-stack scenarios that certify the render. |
+
+**Excluded surfaces.** Anything not in the Allowed table is excluded by default;
+these are named because they are what a change here would most plausibly reach for:
+
+| Surface | Members | Owner |
+|---------|---------|-------|
+| Capability module | `rlattention.js` | Scope 1 |
+| Publication path | `scripts/validate-brief-payload.mjs`, `market-brief.payload.json` | Scope 2 — the tier renders what the gate admitted, it never re-judges |
+| Legacy feed renderer | `rlbrief.js` | Concurrent session — de-duplication is done at the call site instead |
+| Project test harness | `scripts/selftest.mjs` | Scope 5 |
+| Sibling tool modules | `rlexperience.js`, `rlfx.js`, `rljourney.js`, `rlmarketaction.js`, `rlcontracts.js` | Concurrent sessions |
+| Sibling spec packets | `specs/004*`, `specs/_bugs/BUG-002*`, `specs/012*/bugs/*` | Concurrent sessions |
+
 ## Rollback
 
 Remove the `#decisionAttention` section, the `#attentionRecord` placeholder and
@@ -163,6 +183,7 @@ stale declaration both appear.
 | TP-03-03 | Browser | e2e-ui | SCN-017-030 | `tests/attention-browser.spec.mjs` | every decision attention field and control exposes a contextual tooltip (design T-36) | `npx --no-install playwright test tests/attention-browser.spec.mjs --config=playwright.config.mjs --project=system-chrome --grep "every decision attention field and control exposes a contextual tooltip" --reporter=list` | Yes | `report.md#tp-03-03` |
 | TP-03-04 | Browser | e2e-ui | SCN-017-031 | `tests/attention-browser.spec.mjs` | authored decision attention text with markup renders escaped (design T-37) | `npx --no-install playwright test tests/attention-browser.spec.mjs --config=playwright.config.mjs --project=system-chrome --grep "authored decision attention text with markup renders escaped" --reporter=list` | Yes | `report.md#tp-03-04` |
 | TP-03-05 | Browser | e2e-ui | SCN-017-032 | `tests/attention-browser.spec.mjs` | elapsed decision attention items render expired and a stale generation is declared (design T-41) | `npx --no-install playwright test tests/attention-browser.spec.mjs --config=playwright.config.mjs --project=system-chrome --grep "elapsed decision attention items render expired and a stale generation is declared" --reporter=list` | Yes | `report.md#tp-03-05` |
+| TP-03-06 | Regression E2E | e2e-ui | SCN-017-029 · SCN-017-030 · SCN-017-057 | `tests/attention-browser.spec.mjs` | Regression: the tier keeps its no-alert-styling, tooltip and narrow-width properties across the whole browser suite, not only in the scenario that introduced each | `npx --no-install playwright test tests/attention-browser.spec.mjs --config=playwright.config.mjs --project=system-chrome` | Yes | `report.md#tp-03-06` |
 
 ### Definition of Done - Tiered Validation
 

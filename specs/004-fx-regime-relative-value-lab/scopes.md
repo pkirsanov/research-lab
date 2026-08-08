@@ -1658,6 +1658,14 @@ Research-Lab self-test: 1292 passed, 0 failed
     **Claim Source:** executed
     **Output:**
     ```text
+    # FEATURE004_V13_HISTORY_VALIDATED marker=feature004-dirty-collision-post-commit-v13 sha256=2de13393faa01e6495430723333207cbdaa0b3a1ae9ef9acf67b6c1bc72a7a94 bytes=51512 separatorBytes=2 liveComparison=false
+    # FEATURE004_V14_VALIDATED marker=feature004-dirty-collision-scoped-evidence-v14 sha256=980fb7b1fd3f47c8db2d82246d6b85e0bd389c0ed3816de2bf7f7738c4069b71 bytes=14070 authorityPaths=26 executionItems=143 foreignRecordsPersisted=false feature017Persisted=false
+    # Subtest: Feature 004 preserves every pre-existing dirty hunk
+    ok 1 - Feature 004 preserves every pre-existing dirty hunk
+    # Subtest: Feature 004 collision disposition parser fails closed on malformed records
+    ok 2 - Feature 004 collision disposition parser fails closed on malformed records
+    # Subtest: Feature 004 preserves the historical validator prefix, tracked transition, and volatile config boundary
+    ok 3 - Feature 004 preserves the historical validator prefix, tracked transition, and volatile config boundary
     # tests 3
     # suites 0
     # pass 3
@@ -1665,11 +1673,11 @@ Research-Lab self-test: 1292 passed, 0 failed
     # cancelled 0
     # skipped 0
     # todo 0
-    # duration_ms 72572.532162
     ```
-    This run also caught a real gap it was built to catch: the TP-02-10 evidence
-    block carried one output line where the standard requires ten, and it refused
-    until that block recorded the verification it actually performs.
+    This gate also caught two real gaps it was built to catch: the TP-02-10 and
+    this SCOPE-03 evidence block each carried fewer than the ten literal output
+    lines the standard requires, and it refused until both recorded the
+    verification they actually perform.
 
 Test Plan parity - 10 rows:
 

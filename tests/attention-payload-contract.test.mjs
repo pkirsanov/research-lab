@@ -2428,3 +2428,152 @@ test('SCN-017-053 The authoring instruction asks only for the authored judgement
   );
 });
 
+/* ══════════════════════════════════════════════════════════════════════════
+ * SCN-017-061 — the privacy refusal must not become the disclosure.
+ *
+ * `rlattention.js` raises RLATTN-PRIVACY when a candidate's subject sits
+ * outside the public watchlist scope. The build step then records that refusal
+ * with `subject: gateResult.subject` — the offending value, verbatim.
+ *
+ * The exclusion record is serialized into `market-brief.payload.json` and
+ * committed to a PUBLIC repository. So a candidate refused BECAUSE it names
+ * something private has that exact name published permanently, in git history,
+ * by the very guard that refused it. That is worse than not checking at all:
+ * the check creates a durable public record of precisely the values it
+ * identified as out of scope.
+ *
+ * The fix is a redaction, not a deletion. An exclusion still has to be
+ * actionable — an operator must be able to see WHICH candidate was refused and
+ * WHY — so the second arm below asserts that a NON-privacy refusal keeps naming
+ * its subject. That arm passes today and must keep passing, which is what makes
+ * a blanket `subject: null` an over-correction rather than a fix.
+ * ══════════════════════════════════════════════════════════════════════════ */
+
+/* A subject the committed watchlist deliberately does not carry, shaped like a
+   real private holding rather than a placeholder — this is exactly the value
+   `checkSubject` refuses for being outside the public watchlist scope. It is a
+   SENTINEL: distinctive enough that its presence anywhere in a serialized
+   record is unambiguous, and never a substring of any committed ticker. */
+const PRIVATE_SUBJECT_SENTINEL = 'PRIVATE-POSITION-NVDA-7f3c1a';
+
+test('SCN-017-061 A candidate refused for privacy is recorded without leaking the offending value', async () => {
+  const build = await loadBuildStep();
+
+  /* ONE generation carrying TWO refusals for TWO DIFFERENT reasons, so a single
+     run proves both that the private value is withheld and that a non-privacy
+     refusal still names its subject. Split across two runs, a blanket
+     `subject: null` would satisfy the first assertion and never meet the
+     second. */
+  const baseCtx = build.attentionBuildContext(COMMITTED_PAYLOAD, COMMITTED_BRIEF_CONFIG);
+  assert.ok(baseCtx.watchlistScope.length > 0, 'the committed watchlist scope must be non-empty');
+  const overlapSubject = baseCtx.watchlistScope[0];
+
+  /* The overlap arm needs a subject a published action already covers. The
+     action is declared here rather than borrowed from the committed payload so
+     the fixture cannot quietly stop overlapping when the brief is regenerated
+     four times a day. The step still derives the coverage itself, through the
+     real `actionSubjectTickers`. */
+  const payload = Object.assign({}, COMMITTED_PAYLOAD, {
+    nextSession: Object.assign({}, COMMITTED_PAYLOAD.nextSession, {
+      actions: [{ subject: `${overlapSubject} longer-term structural core - HOLD` }]
+    })
+  });
+  const ctx = build.attentionBuildContext(payload, COMMITTED_BRIEF_CONFIG);
+  assert.ok(
+    ctx.publishedActionSubjects.includes(overlapSubject),
+    `${overlapSubject} must genuinely be covered by a published action, or the overlap arm below refuses for some `
+      + `other reason. Published action subjects: ${JSON.stringify(ctx.publishedActionSubjects)}`
+  );
+
+  const overlapping = completeCandidate(ctx, overlapSubject);
+
+  const privateHolding = completeCandidate(ctx, overlapSubject);
+  privateHolding.observed = Object.assign({}, privateHolding.observed, { subject: PRIVATE_SUBJECT_SENTINEL });
+
+  /* ── NON-VACUITY ──────────────────────────────────────────────────────────
+     The sentinel is a value the candidate GENUINELY carries, one the committed
+     watchlist GENUINELY refuses, and one that IS findable in serialized JSON.
+     Without all three, the absence assertion below would be searching for a
+     string that was never there to leak, and would pass unfixed. */
+  assert.equal(
+    privateHolding.observed.subject, PRIVATE_SUBJECT_SENTINEL,
+    'the refused candidate must actually carry the sentinel as its observed subject'
+  );
+  assert.equal(
+    ctx.watchlistScope.includes(PRIVATE_SUBJECT_SENTINEL), false,
+    `${PRIVATE_SUBJECT_SENTINEL} must genuinely sit outside the committed public watchlist scope. `
+      + `Scope: ${JSON.stringify(ctx.watchlistScope)}`
+  );
+  assert.ok(
+    JSON.stringify(privateHolding).includes(PRIVATE_SUBJECT_SENTINEL),
+    'the sentinel must be findable in a serialized candidate, otherwise the absence assertion below cannot fire'
+  );
+
+  const candidates = [overlapping, privateHolding];
+  const run = build.buildAttentionItems(candidates, payload, COMMITTED_BRIEF_CONFIG);
+
+  /* 1. NEITHER candidate is silently dropped. Withholding a value must never
+        cost the accounting: both refusals are still recorded, and published
+        plus excluded still equals declared. */
+  assert.deepEqual([...run.items], [], `neither candidate may publish. Published: ${JSON.stringify(run.items)}`);
+  assert.equal(
+    run.items.length + run.exclusions.length, candidates.length,
+    `published plus excluded must equal declared. Received: ${JSON.stringify(run.exclusions)}`
+  );
+
+  const overlapEntry = run.exclusions.find((exclusion) => exclusion.index === 0);
+  const privacyEntry = run.exclusions.find((exclusion) => exclusion.index === 1);
+
+  assert.ok(
+    privacyEntry,
+    `the refused private candidate must remain identifiable by its index. Received: ${JSON.stringify(run.exclusions)}`
+  );
+  assert.equal(
+    privacyEntry.code, 'RLATTN-PRIVACY',
+    `the privacy refusal must carry the composer's own privacy code. Received: ${JSON.stringify(privacyEntry)}`
+  );
+  assert.ok(
+    exclusionDetail(privacyEntry).length > 0,
+    `the privacy refusal must still state why it was refused. Received: ${JSON.stringify(privacyEntry)}`
+  );
+
+  /* 2. SCOPED, NOT BLANKET. A non-privacy refusal still names its subject: an
+        operator has to see WHICH watchlist ticker already carried an action.
+        This arm passes today and must keep passing after the fix — deleting
+        every subject would protect nothing here and destroy the diagnostic. */
+  assert.ok(
+    overlapEntry,
+    `the overlapping candidate must remain identifiable by its index. Received: ${JSON.stringify(run.exclusions)}`
+  );
+  assert.equal(
+    overlapEntry.code, 'RLATTN-OVERLAP',
+    'the first refusal must be an overlap rather than a privacy refusal, or this arm proves nothing about '
+      + `scoping. Received: ${JSON.stringify(overlapEntry)}`
+  );
+  assert.equal(
+    overlapEntry.subject, overlapSubject,
+    `a non-privacy refusal must keep naming its subject. ${overlapSubject} is a public watchlist ticker already `
+      + 'published as an action, so withholding it protects nothing and removes the operator\'s only handle on '
+      + `the refusal. Received: ${JSON.stringify(overlapEntry)}`
+  );
+
+  /* 3. THE DEFECT. Asserted on the SERIALIZED record, not on the `subject`
+        field, so a fix that merely relocates the value into `field`, `reason`
+        or a new key fails here exactly as loudly. */
+  const serializedExclusions = JSON.stringify(run.exclusions);
+  assert.equal(
+    serializedExclusions.includes(PRIVATE_SUBJECT_SENTINEL), false,
+    'a candidate refused BECAUSE its subject is outside the public watchlist scope must not have that subject '
+      + 'written into the exclusion record. The record is serialized into market-brief.payload.json and committed '
+      + 'to a public repository, so recording it publishes the exact value the guard identified as out of scope — '
+      + 'permanently, in git history. A guard that refuses an item and then discloses it is worse than no guard. '
+      + `Leaked value: ${JSON.stringify(PRIVATE_SUBJECT_SENTINEL)}. `
+      + `Serialized exclusions: ${serializedExclusions}`
+  );
+  assert.equal(
+    JSON.stringify(run).includes(PRIVATE_SUBJECT_SENTINEL), false,
+    'the refused subject must appear nowhere in the build result — withholding it from the exclusions while '
+      + `relocating it into the published items would disclose it just the same. Serialized run: ${JSON.stringify(run)}`
+  );
+});
+

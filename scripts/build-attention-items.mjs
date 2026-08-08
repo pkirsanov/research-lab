@@ -118,13 +118,46 @@ export function authoredJudgementOnly(candidate) {
   return authored;
 }
 
+/* The one refusal whose own subject is the thing being protected. */
+const PRIVACY_REFUSAL_CODE = 'RLATTN-PRIVACY';
+
+/** Recorded in place of a withheld subject — never mistakable for a ticker. */
+const REDACTED_SUBJECT = '[redacted: privacy refusal]';
+
+/**
+ * What an exclusion is allowed to record as the refused candidate's subject.
+ *
+ * A privacy refusal is raised BECAUSE the candidate names something outside the
+ * public scope. Recording that name publishes the exact value the guard just
+ * refused — into `market-brief.payload.json`, committed to a public repository,
+ * permanently, in git history. A guard that refuses a value and then discloses
+ * it is worse than no guard, so the value is withheld and a marked placeholder
+ * takes its place. `index`, `code`, `field` and `reason` are untouched: the
+ * refusal stays countable and actionable, only the offending value goes.
+ *
+ * Keyed on the CODE, not on one call site — `rlattention.js` raises
+ * `RLATTN-PRIVACY` both for a subject outside the watchlist scope and for a
+ * position field, and both must withhold.
+ *
+ * Deliberately scoped to that code alone. Every other refusal keeps naming its
+ * subject: an overlap refusal is about a public watchlist ticker, so withholding
+ * it would protect nothing and would remove the operator's only handle on the
+ * refusal.
+ */
+function recordableSubject(code, subject) {
+  if (typeof subject !== 'string') return null;
+  return code === PRIVACY_REFUSAL_CODE ? REDACTED_SUBJECT : subject;
+}
+
 /**
  * Build every candidate through the certified composer.
  *
  * Returns `{ items, exclusions }`. `items` are conforming
  * `decision-attention/v1` envelopes in candidate order; `exclusions` carry the
  * composer's own `RLATTN-*` code, the offending field and the candidate's
- * identity, so a refusal can be acted on rather than merely counted.
+ * identity, so a refusal can be acted on rather than merely counted — with the
+ * offending value withheld when the refusal is itself a privacy refusal, per
+ * `recordableSubject`.
  */
 export function buildAttentionItems(candidates, payload, config) {
   const ctx = attentionBuildContext(payload, config);
@@ -142,9 +175,11 @@ export function buildAttentionItems(candidates, payload, config) {
     const built = RLATTN.buildAttentionItem(gateResult, authored, ctx);
 
     if (built && built.ok === false) {
+      /* the offending value is filtered HERE, at the only place it could enter
+         the record, so no downstream reader of an exclusion can republish it. */
       exclusions.push(Object.freeze({
         index,
-        subject: gateResult && typeof gateResult.subject === 'string' ? gateResult.subject : null,
+        subject: recordableSubject(built.code, gateResult ? gateResult.subject : null),
         code: built.code,
         field: built.field,
         reason: built.message
@@ -236,6 +271,9 @@ function main(argv) {
     const before = Object.keys(payload);
     const result = recomposePayloadAttention(payload, config);
     console.log(`[build-attention-items] recomposed: ${result.items.length} built, ${result.exclusions.length} refused`);
+    /* prints the RECORDED subject, already redacted for a privacy refusal. Never
+       reach back to the candidate here: stdout reaches CI logs and transcripts
+       that cannot be retracted. */
     for (const exclusion of result.exclusions) {
       console.log(`[build-attention-items] refused ${exclusion.subject || `candidate ${exclusion.index}`}`
         + ` — ${exclusion.code} on ${exclusion.field}: ${exclusion.reason}`);
@@ -267,6 +305,9 @@ function main(argv) {
   const { items, exclusions } = buildAttentionItems(candidates, payload, config);
 
   console.log(`[build-attention-items] ${items.length} built, ${exclusions.length} refused`);
+  /* prints the RECORDED subject, already redacted for a privacy refusal. Never
+     reach back to the candidate here: stdout reaches CI logs and transcripts
+     that cannot be retracted. */
   for (const exclusion of exclusions) {
     console.log(`[build-attention-items] refused candidate ${exclusion.index}`
       + `${exclusion.subject ? ` (subject=${exclusion.subject})` : ''}`

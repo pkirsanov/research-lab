@@ -1,26 +1,26 @@
 {
-  "asOf": "2026-08-08T20:21:42.455Z",
-  "generatedAt": "2026-08-08T20:21:42.455Z",
-  "window": "pre-close",
+  "asOf": "2026-08-08T21:00:26.256Z",
+  "generatedAt": "2026-08-08T21:00:26.256Z",
+  "window": "after-hours",
   "marketClosed": true,
   "nextSessionDate": "2026-08-10",
   "dataFreshness": {
     "bars": {
-      "updated": "2026-08-08T20:21:30.811Z",
+      "updated": "2026-08-08T21:00:15.914Z",
       "symbolCount": 291,
       "expectedSessionDate": "2026-08-07",
       "refreshDate": "2026-08-08",
-      "refreshWindow": "pre-close",
+      "refreshWindow": "after-hours",
       "freshSymbolCount": 291,
       "carriedSymbolCount": 0,
       "missingSymbolCount": 0
     },
     "options": {
-      "updated": "2026-08-08T20:21:35.372Z",
+      "updated": "2026-08-08T21:00:20.688Z",
       "symbolCount": 22,
       "expectedSessionDate": null,
       "refreshDate": "2026-08-08",
-      "refreshWindow": "pre-close",
+      "refreshWindow": "after-hours",
       "freshSymbolCount": 22,
       "carriedSymbolCount": 0,
       "missingSymbolCount": 0
@@ -627,7 +627,7 @@
   "toolReads": {
     "sector-research-lab": {
       "id": "sector-research-lab",
-      "asOf": "2026-08-08T20:21:40.774Z",
+      "asOf": "2026-08-08T21:00:24.405Z",
       "read": "Rotate toward XLY as XLI weakens.",
       "metrics": {
         "into": {
@@ -866,7 +866,7 @@
           "score": 59.8,
           "trend": "Uptrend",
           "mom21": 3.08,
-          "mom63": 22.3,
+          "mom63": 22.31,
           "mom126": -7.1,
           "vol": 48.88,
           "maxDrawdown": 35.37,
@@ -885,7 +885,7 @@
               "symbols": [
                 "BTC-USD"
               ],
-              "score": 59.758366229379234,
+              "score": 59.77477704531344,
               "detail": "Bitcoin price direction confirms or contradicts the wider crypto price trend; no on-chain input is used."
             }
           ],
@@ -898,7 +898,7 @@
             "score": 59.8,
             "trend": "Uptrend",
             "mom21": 3.08,
-            "mom63": 22.3,
+            "mom63": 22.31,
             "mom126": -7.1,
             "vol": 48.88,
             "maxDrawdown": 35.37,
@@ -917,7 +917,7 @@
                 "symbols": [
                   "BTC-USD"
                 ],
-                "score": 59.758366229379234,
+                "score": 59.77477704531344,
                 "detail": "Bitcoin price direction confirms or contradicts the wider crypto price trend; no on-chain input is used."
               }
             ],
@@ -961,9 +961,9 @@
             "model": "bitcoin",
             "score": 51.9,
             "trend": "Mixed",
-            "mom21": 0.35,
-            "mom63": 6.83,
-            "mom126": -3.37,
+            "mom21": 0.36,
+            "mom63": 6.84,
+            "mom126": -3.36,
             "vol": 34.99,
             "maxDrawdown": 28.71,
             "riskPenalty": 5.68,
@@ -1112,7 +1112,7 @@
                   "TLT",
                   "TIP"
                 ],
-                "score": 47.087028923663325,
+                "score": 47.08700436447347,
                 "detail": "TLT direction plus TIP-vs-TLT is a rough rate mix, not a direct real-yield series."
               }
             ],
@@ -1163,9 +1163,9 @@
             "model": "bitcoin",
             "score": 51.9,
             "trend": "Mixed",
-            "mom21": 0.35,
-            "mom63": 6.83,
-            "mom126": -3.37,
+            "mom21": 0.36,
+            "mom63": 6.84,
+            "mom126": -3.36,
             "vol": 34.99,
             "maxDrawdown": 28.71,
             "riskPenalty": 5.68,
@@ -1696,7 +1696,7 @@
     },
     "market-heatmap-lab": {
       "id": "market-heatmap-lab",
-      "asOf": "2026-08-08T20:21:42.348Z",
+      "asOf": "2026-08-08T21:00:26.146Z",
       "read": "Leadership is broad — 61.77% of 135 constituents are positive against a 60% broad-market threshold.",
       "deepLink": "market-heatmap-lab.html",
       "source": "owning-tool-functions",

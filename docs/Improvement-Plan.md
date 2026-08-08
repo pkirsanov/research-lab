@@ -572,7 +572,7 @@ Full inventory of every non-terminal packet, with DoD completion and whether a b
 | `014-shared-cycle-and-seasonality-exchange` | not_started | — | 0/235 | correct |
 | `015-recommendation-outcome-ledger-and-track-record` | blocked | yes | 0/376 | blocker named |
 | `016-auction-gamma-playbook` | not_started | — | 0/197 | correct |
-| `017-decision-attention-and-developing-situations` | in_progress | — | **147/148** | all 6 scopes Done; the one unticked item is a contested proof obligation (below), and the spec is otherwise blocked only on the same validate-owned ceiling as `BUG-001` |
+| `017-decision-attention-and-developing-situations` | in_progress | — | **178/178** | all 6 scopes Done; all 39 policy planning requirements delivered; blocked only on specialist phases that must be dispatched by their owning agents |
 | `BUG-001-central-provider-credential-security` | in_progress | yes | **18/18** | see below |
 | `BUG-005-…-unsatisfiable-in-place-delivery` | blocked | yes | 0/17 | blocker named |
 | `BUG-006-evaluate-before-publish-…` | blocked | yes | 5/22 | blocker named |
@@ -657,6 +657,20 @@ drop a claim the original made. **Re-applying the narrowing would be an edit war
 not re-applied. The remaining work is a one-line owner decision — either the item is narrowed and ticked, or
 scope 6 returns to `In Progress` until the blanket claim can be met. Both are honest; picking one is not this
 document's call.
+
+#### Resolved by its owner, with a stronger claim than either candidate *(2026-08-08)*
+
+The scope owner took neither option. Instead of narrowing the assertion or reverting the status, they kept the
+blanket byte-identity obligation and **satisfied it** — by attributing every differing excluded path to the
+specific commit and hunk that changed it. That is a stronger proof than the narrowing would have produced: the
+narrowed wording would have asserted only that scope 6 stayed inside its boundary, whereas the attribution shows
+what happened to each path and who did it.
+
+Two lessons worth keeping. Deferring to the owner was correct — the third option was better than either of the
+two on the table, and it was not visible from outside the scope. And "the assertion is unsatisfiable as written"
+was itself wrong: it was unsatisfiable only under the evidence available at the time.
+
+Spec `017` now reads **178/178** with all six scopes Done and all 39 policy planning requirements delivered.
 
 ---
 

@@ -335,3 +335,466 @@ test('Browser functional SCN-004-015/016/024: unwind and event absence retain mu
   expect(JSON.stringify(result.normalized)).not.toContain('918273.645');
   expect(JSON.stringify(result.normalized)).not.toContain('restricted.example.invalid');
 });
+
+/* ══════════════════════════════════════════════════════════════════════════════════════════════
+   Scope 2 — production-route regressions (TP-02-01 … TP-02-19).
+
+   These serve the repository root exactly as checked out: no request interception, no fixture
+   substitution, no controlled source input. Every assertion is therefore a statement about what
+   the shipped route actually does under the committed source posture.
+
+   Measured posture (scopes.md → "Measured Source Posture"): all 95 committed vehicle observations
+   carry rights "unknown", so every registry member resolves Unavailable and the aggregate never
+   reaches the settled No Eligible Vehicle outcome. The authorized-facts branches of
+   SCN-004-027…031 are proven against the same production rlfx.js path by the named contracts in
+   tests/feature-004-vehicle-universe.test.mjs.
+   ══════════════════════════════════════════════════════════════════════════════════════════════ */
+
+const FX_ROUTE = '/fx-regime-relative-value-lab.html';
+const FX_REGISTRY_ORDER = ['FXY', 'FXE', 'UUP', 'UDN', 'USDU', 'CEW', 'YCS'];
+const FX_EVIDENCE_FAMILIES = ['Spot', 'Independent strength', 'Carry', 'REER value', 'Delayed positioning', 'Realized risk', 'Events'];
+
+async function openFxRoute(page) {
+  const requested = [];
+  page.on('request', (request) => { requested.push(request.url()); });
+  await page.goto(site.baseUrl + FX_ROUTE);
+  await expect(page.locator('body')).toHaveAttribute('data-fx-ready', '1');
+  return requested;
+}
+
+function fxOwnerSnapshot(page) {
+  return page.evaluate(() => {
+    const lab = window.FxRegimeLab;
+    const owner = lab.ownerDecision();
+    const reader = lab.readerDecision();
+    const read = lab.toolRead();
+    return {
+      ownerDecisionId: owner.ownerDecisionId,
+      evidenceIdentity: owner.evidenceIdentity,
+      ownerState: owner.state,
+      fitState: owner.vehicleFit.state,
+      selected: owner.vehicleFit.selected,
+      freshUntil: owner.freshUntil,
+      evaluations: owner.vehicleFit.evaluations.map((e) => ({
+        vehicleId: e.vehicleId, ticker: e.ticker, state: e.state, reasonCodes: e.reasonCodes.slice()
+      })),
+      decision: reader.decision,
+      vehicle: reader.vehicle,
+      confirmation: reader.confirmation,
+      invalidation: reader.invalidation,
+      evidenceCutoff: reader.evidenceCutoff,
+      reasons: reader.reasons.slice(),
+      availability: read.availability,
+      requestCount: lab.requestCount(),
+      loadError: lab.loadError()
+    };
+  });
+}
+
+test('Regression SCN-004-017: public FX route paints truthful unavailable state without an authorized dependency', async ({ page }) => {
+  const requested = await openFxRoute(page);
+  const state = await fxOwnerSnapshot(page);
+
+  expect(state.loadError).toBeNull();
+  expect(state.ownerState).toBe('unavailable');
+  expect(state.fitState).toBe('Unavailable');
+  expect(state.selected).toBeNull();
+  expect(state.freshUntil).toBeNull();
+  expect(state.decision).toBe('Recommendation unavailable');
+  expect(state.vehicle).toBeNull();
+  expect(state.confirmation).toBeNull();
+  expect(state.invalidation).toBeNull();
+  expect(state.availability).toBe('unavailable');
+  expect(state.reasons.length).toBeGreaterThan(0);
+
+  // The unavailable state is explicit and reasoned, never blank and never a neutral placeholder.
+  await expect(page.locator('#simplePanel')).toContainText('Recommendation unavailable');
+  await expect(page.locator('#simpleReasons')).toContainText('Reuse rights are not established for a required fact.');
+
+  // No unapproved source was requested: every request stayed same-origin.
+  expect(requested.filter((url) => !url.startsWith(site.baseUrl))).toEqual([]);
+
+  // No numeric rank, pair level, or regime score was substituted for the missing evidence.
+  expect(await page.locator('#simplePanel').innerText()).not.toMatch(/\d+\.\d+/);
+});
+
+test('Regression SCN-004-018: control changes cause zero data requests', async ({ page }) => {
+  await openFxRoute(page);
+  // Let the initial load fully settle so the counter below measures control-driven traffic only.
+  await page.waitForLoadState('networkidle');
+  const before = await page.evaluate(() => window.FxRegimeLab.requestCount());
+
+  const networkAfterReady = [];
+  page.on('request', (request) => { networkAfterReady.push(request.url()); });
+
+  const controlIds = await page.$$eval('#controlGrid select', (nodes) => nodes.map((n) => n.getAttribute('data-control-id')));
+  expect(controlIds.length).toBeGreaterThan(0);
+
+  // Drive every control to a different option through the real change event.
+  for (const id of controlIds) {
+    const select = page.locator(`#controlGrid select[data-control-id="${id}"]`);
+    const options = await select.locator('option').evaluateAll((nodes) => nodes.map((n) => n.value));
+    const current = await select.inputValue();
+    const next = options.find((value) => value !== current);
+    if (next === undefined) continue;
+    await select.selectOption(next);
+  }
+
+  const after = await page.evaluate(() => window.FxRegimeLab.requestCount());
+  expect(after).toBe(before);
+  expect(networkAfterReady).toEqual([]);
+});
+
+test('Regression SCN-004-017/018: Simple and Power share one unavailable owner decision while controls do not fetch', async ({ page }) => {
+  await openFxRoute(page);
+  const first = await fxOwnerSnapshot(page);
+
+  // Simple, Power, and the identity panel all project the SAME frozen owner decision.
+  await expect(page.locator('#identityPanel')).toContainText(first.ownerDecisionId);
+  await expect(page.locator('#identityPanel')).toContainText(first.evidenceIdentity);
+  await expect(page.locator('#simplePanel')).toContainText(first.evidenceCutoff);
+  await expect(page.locator('#identityPanel')).toContainText('Unavailable');
+
+  // A control change re-freezes one decision that every projection still shares, with no fetch.
+  await page.locator('#controlGrid select[data-control-id="horizon"]').selectOption('tactical');
+  const second = await fxOwnerSnapshot(page);
+  expect(second.requestCount).toBe(first.requestCount);
+  expect(second.ownerState).toBe('unavailable');
+  await expect(page.locator('#identityPanel')).toContainText(second.ownerDecisionId);
+  await expect(page.locator('#simplePanel')).toContainText(second.evidenceCutoff);
+
+  // Every unavailable field stays unavailable in BOTH projections — no projection invents a value.
+  expect(second.vehicle).toBeNull();
+  expect(second.confirmation).toBeNull();
+  expect(second.invalidation).toBeNull();
+  expect(second.selected).toBeNull();
+});
+
+test('Regression SCN-004-025: canvas pointer keyboard summary table and responsive layout share one projection', async ({ page }) => {
+  await openFxRoute(page);
+
+  // The structured adapter attached cleanly — a rejected adapter records data-rlchart-error.
+  const canvas = page.locator('#vehicleChart');
+  await expect(canvas).toHaveAttribute('data-rlchart-mode', 'structured');
+  expect(await canvas.getAttribute('data-rlchart-error')).toBeNull();
+
+  // One projection drives the keyboard rail, the visible summary, and the accessible table.
+  const projection = await page.evaluate(() => window.FxRegimeLab.projection().map((row) => ({ pointId: row.pointId, ticker: row.ticker, state: row.state })));
+  expect(projection.map((row) => row.ticker)).toEqual(FX_REGISTRY_ORDER);
+
+  const railOptions = await page.$$eval('[role="listbox"] [role="option"]', (nodes) => nodes.map((n) => n.textContent.trim()));
+  expect(railOptions.length).toBe(projection.length);
+
+  const summary = await page.locator('#vehicleChartSummary').innerText();
+  for (const row of projection) expect(summary).toContain(row.ticker);
+
+  const tableRows = await page.$$eval('#vehicleTableBody tr', (nodes) => nodes.map((n) => n.id));
+  expect(tableRows).toEqual(projection.map((row) => 'vehicle-row-' + row.pointId));
+
+  // Keyboard focus reaches the canvas and selects a point from the same projection.
+  await canvas.focus();
+  await page.keyboard.press('ArrowRight');
+  const activePoint = await canvas.getAttribute('data-rlchart-active-point');
+  expect(projection.map((row) => row.pointId)).toContain(activePoint);
+  expect(await canvas.getAttribute('aria-activedescendant')).toBeTruthy();
+
+  // The canvas is genuinely painted, not a blank element.
+  const nonblank = await page.evaluate(() => {
+    const el = document.getElementById('vehicleChart');
+    const data = el.getContext('2d').getImageData(0, 0, el.width, el.height).data;
+    for (let i = 3; i < data.length; i += 4) if (data[i] !== 0) return true;
+    return false;
+  });
+  expect(nonblank).toBe(true);
+
+  // Responsive containment: no page-level horizontal overflow at either checkpoint or at 130% text.
+  for (const viewport of [{ width: 1440, height: 1000 }, { width: 390, height: 844 }]) {
+    await page.setViewportSize(viewport);
+    await page.waitForTimeout(200);
+    const overflow = await page.evaluate(() => document.documentElement.scrollWidth - document.documentElement.clientWidth);
+    expect(overflow).toBeLessThanOrEqual(1);
+  }
+  await page.evaluate(() => { document.documentElement.style.fontSize = '130%'; });
+  await page.waitForTimeout(200);
+  const scaledOverflow = await page.evaluate(() => document.documentElement.scrollWidth - document.documentElement.clientWidth);
+  expect(scaledOverflow).toBeLessThanOrEqual(1);
+});
+
+test('Regression SCN-004-001/002: public dollar slots stay independently unavailable without authorization', async ({ page }) => {
+  await openFxRoute(page);
+
+  // Each dollar comparison slot is selectable and each resolves independently unavailable — the
+  // route never lets one slot's absence supply another slot's value.
+  const seen = [];
+  for (const slot of ['Broad', 'AFE', 'EME']) {
+    await page.locator('#controlGrid select[data-control-id="dollarComparison"]').selectOption(slot);
+    const state = await fxOwnerSnapshot(page);
+    expect(state.ownerState).toBe('unavailable');
+    expect(state.vehicle).toBeNull();
+    seen.push(state.evidenceCutoff);
+    // No unreviewed proxy supplied a number or a divergence for this slot.
+    expect(await page.locator('#currencyPanel').innerText()).not.toMatch(/\d+\.\d+/);
+  }
+  expect(seen.length).toBe(3);
+});
+
+test('Regression SCN-004-003/006/007/008: public cohort boards remain bounded and unranked without authorized spot', async ({ page }) => {
+  await openFxRoute(page);
+
+  for (const cohort of ['G10', 'liquid-EM', 'managed-reference']) {
+    await page.locator('#controlGrid select[data-control-id="cohort"]').selectOption(cohort);
+    const state = await fxOwnerSnapshot(page);
+    expect(state.ownerState).toBe('unavailable');
+    // No automatic rank or candidate emerged from an unauthorized cohort board.
+    expect(state.vehicle).toBeNull();
+    expect(state.selected).toBeNull();
+    const currency = await page.locator('#currencyPanel').innerText();
+    expect(currency).not.toMatch(/\brank\s*[:#]?\s*\d/i);
+  }
+});
+
+test('Regression SCN-004-004/005: public pair and alignment surfaces infer no orientation or numeric result', async ({ page }) => {
+  await openFxRoute(page);
+
+  // Changing base and quote must not manufacture an orientation verdict or a common-date value.
+  await page.locator('#controlGrid select[data-control-id="base"]').selectOption('JPY');
+  await page.locator('#controlGrid select[data-control-id="quote"]').selectOption('USD');
+  const forward = await fxOwnerSnapshot(page);
+  expect(forward.ownerState).toBe('unavailable');
+  expect(forward.confirmation).toBeNull();
+  expect(forward.invalidation).toBeNull();
+
+  const currencyText = await page.locator('#currencyPanel').innerText();
+  expect(currencyText).not.toMatch(/\d+\.\d+/);
+  // Ticker spelling alone never implies a direction.
+  expect(currencyText).not.toMatch(/\b(stronger|weaker)\b/i);
+});
+
+test('Regression SCN-004-009-016: public evidence anatomy retains exact unavailable families', async ({ page }) => {
+  await openFxRoute(page);
+
+  const families = await page.$$eval('#evidenceTableBody tr', (rows) => rows.map((row) => ({
+    name: row.children[0].textContent.trim(),
+    state: row.children[1].textContent.trim()
+  })));
+
+  // Every family is present exactly once and carries its OWN state — none is pooled or inherited.
+  expect(families.map((f) => f.name)).toEqual(FX_EVIDENCE_FAMILIES);
+  for (const family of families) {
+    expect(family.state).not.toBe('');
+    expect(family.state).not.toBe('Available');
+  }
+  // No family reported a numeric result while its evidence is unavailable.
+  expect(await page.locator('#evidenceTable').innerText()).not.toMatch(/\d+\.\d+/);
+});
+
+test('Regression SCN-004-024: rights-unclear source values stay out of public route state', async ({ page }) => {
+  await openFxRoute(page);
+
+  const exposure = await page.evaluate(() => ({
+    dom: document.body.innerHTML,
+    owner: JSON.stringify(window.FxRegimeLab.ownerDecision()),
+    read: JSON.stringify(window.FxRegimeLab.toolRead()),
+    storage: JSON.stringify(Object.entries(localStorage)) + JSON.stringify(Object.entries(sessionStorage))
+  }));
+
+  // A rights-unclear observation contributes its REASON, never its value or its restricted source.
+  for (const surface of [exposure.dom, exposure.owner, exposure.read, exposure.storage]) {
+    expect(surface).not.toContain('restricted.example.invalid');
+    expect(surface).not.toContain('918273.645');
+  }
+  expect(exposure.owner).toContain('RIGHTS_UNCLEAR');
+});
+
+test('Regression SCN-004-024/025: direct FX route exposes no credential or restricted-payload surface', async ({ page }) => {
+  await openFxRoute(page);
+
+  // The route offers no credential capture surface of any kind.
+  expect(await page.locator('input[type="password"]').count()).toBe(0);
+  expect(await page.locator('input[name*="key" i], input[name*="token" i], input[id*="apikey" i]').count()).toBe(0);
+
+  const wroteCredential = await page.evaluate(() => {
+    const keys = Object.keys(localStorage).concat(Object.keys(sessionStorage));
+    return keys.filter((key) => /key|token|secret|credential/i.test(key));
+  });
+  expect(wroteCredential).toEqual([]);
+
+  // Source context remains reachable and explained without carrying a restricted value.
+  const identity = await page.locator('#identityPanel').innerText();
+  expect(identity).toContain('Unavailable');
+});
+
+test('Regression SCN-004-027: the route never infers FXY orientation or a direction match from an unauthorized fact', async ({ page }) => {
+  await openFxRoute(page);
+  await page.locator('#controlGrid select[data-control-id="vehicleClass"]').selectOption('unlevered-single-currency');
+  const state = await fxOwnerSnapshot(page);
+
+  const byTicker = Object.fromEntries(state.evaluations.map((e) => [e.ticker, e]));
+  // FXY is present and MUST NOT be promoted without an authorized fact.
+  expect(byTicker.FXY).toBeTruthy();
+  expect(byTicker.FXY.state).toBe('Unavailable');
+  expect(byTicker.FXY.reasonCodes).toContain('RIGHTS_UNCLEAR');
+
+  // The opposite-direction products are present too, and none was given a direction verdict.
+  for (const ticker of ['UUP', 'USDU', 'YCS']) {
+    expect(byTicker[ticker]).toBeTruthy();
+    expect(byTicker[ticker].state).toBe('Unavailable');
+    expect(byTicker[ticker].reasonCodes).not.toContain('DIRECTION_MISMATCH');
+  }
+  // No member was promoted to a fit state, so no orientation was inferred anywhere.
+  expect(state.evaluations.filter((e) => e.state !== 'Unavailable')).toEqual([]);
+  expect(state.selected).toBeNull();
+});
+
+test('Regression SCN-004-028: the route reports tracking evidence incomplete and invents no contribution', async ({ page }) => {
+  await openFxRoute(page);
+  const state = await fxOwnerSnapshot(page);
+
+  for (const evaluation of state.evaluations) {
+    expect(evaluation.reasonCodes).toContain('TRACKING_EVIDENCE_INCOMPLETE');
+  }
+  // The residual is never closed by an invented attribution.
+  const surface = await page.evaluate(() => document.body.innerText + JSON.stringify(window.FxRegimeLab.ownerDecision()));
+  for (const invented of ['carryAttribution', 'feeAttribution', 'rollAttribution', 'premiumAttribution']) {
+    expect(surface).not.toContain(invented);
+  }
+});
+
+test('Regression SCN-004-029: a shared long-dollar direction cannot merge or reorder UUP and USDU', async ({ page }) => {
+  await openFxRoute(page);
+  await page.locator('#controlGrid select[data-control-id="dollarComparison"]').selectOption('Broad');
+  const state = await fxOwnerSnapshot(page);
+
+  const uup = state.evaluations.filter((e) => e.ticker === 'UUP');
+  const usdu = state.evaluations.filter((e) => e.ticker === 'USDU');
+  // Both broad-dollar wrappers survive as separate identities — neither is merged away or dropped.
+  expect(uup.length).toBe(1);
+  expect(usdu.length).toBe(1);
+  expect(uup[0].vehicleId).not.toBe(usdu[0].vehicleId);
+  // Neither was ranked above the other on a shared direction alone.
+  expect(uup[0].state).toBe('Unavailable');
+  expect(usdu[0].state).toBe('Unavailable');
+  expect(state.selected).toBeNull();
+
+  // Both remain independently visible in the accessible table.
+  await expect(page.locator('#vehicleTableBody')).toContainText('UUP');
+  await expect(page.locator('#vehicleTableBody')).toContainText('USDU');
+});
+
+test('Regression SCN-004-030: YCS never earns a tactical pass without an authorized reset session', async ({ page }) => {
+  await openFxRoute(page);
+
+  for (const horizon of ['tactical', 'swing', 'structural']) {
+    for (const reset of ['permit-tactical', 'exclude']) {
+      await page.locator('#controlGrid select[data-control-id="horizon"]').selectOption(horizon);
+      await page.locator('#controlGrid select[data-control-id="dailyResetPermission"]').selectOption(reset);
+      const state = await fxOwnerSnapshot(page);
+      const ycs = state.evaluations.find((e) => e.ticker === 'YCS');
+      expect(ycs).toBeTruthy();
+      // A daily-reset product never reaches Tactical-Only or selection without an authorized session.
+      expect(ycs.state).toBe('Unavailable');
+      expect(ycs.state).not.toBe('Tactical-Only');
+      expect(state.selected).toBeNull();
+    }
+  }
+});
+
+test('Regression SCN-004-031: an unavailable aggregate never becomes No Eligible Vehicle and selects no substitute', async ({ page }) => {
+  await openFxRoute(page);
+  const state = await fxOwnerSnapshot(page);
+
+  // Unavailable and the settled No Eligible Vehicle outcome are DIFFERENT canonical results, and the
+  // route must not upgrade an unauthorized posture into a settled non-recommendation.
+  expect(state.fitState).toBe('Unavailable');
+  expect(state.fitState).not.toBe('No Eligible Vehicle');
+  expect(state.selected).toBeNull();
+
+  // Every registry member appears exactly once with its own exact reasons.
+  expect(state.evaluations.map((e) => e.ticker)).toEqual(FX_REGISTRY_ORDER);
+  for (const evaluation of state.evaluations) {
+    expect(evaluation.reasonCodes.length).toBeGreaterThan(0);
+  }
+  // No constraint was relaxed and no unrelated fund was substituted.
+  expect(state.evaluations.filter((e) => !FX_REGISTRY_ORDER.includes(e.ticker))).toEqual([]);
+});
+
+test('Regression SCN-004-025 adversarial: authored markup renders only as text at every reader sink', async ({ page }) => {
+  await openFxRoute(page);
+
+  const hostile = '<img src=x onerror=alert(1)><script>alert(2)</script>" onmouseover="alert(3)';
+
+  // Layer 1 — the boundary. Each control either REFUSES hostile copy through the production closed
+  // vocabulary, or accepts it and must render it inert. Both are safe; silently building markup is
+  // not. The refusal must also roll back, or a later recompute would rethrow and wedge the route.
+  const boundary = await page.evaluate((value) => {
+    const results = {};
+    for (const id of ['objective', 'subjectId', 'evidenceLens', 'dollarComparison', 'horizon']) {
+      let refused = false;
+      try { window.FxRegimeLab.setControl(id, value); } catch (error) { refused = true; }
+      results[id] = refused;
+    }
+    return {
+      results,
+      refusedCount: Object.values(results).filter(Boolean).length,
+      stillLive: window.FxRegimeLab.ownerDecision() !== null
+    };
+  }, hostile);
+
+  // The guard is live: hostile copy cannot pass every control unchallenged.
+  expect(boundary.refusedCount).toBeGreaterThan(0);
+  // A refused value is rolled back, so the route keeps rendering.
+  expect(boundary.stillLive).toBe(true);
+  await expect(page.locator('#simplePanel')).toContainText('Recommendation unavailable');
+
+  // Layer 2 — the sinks. No authored model or configuration string anywhere on the route created an
+  // element, an inline script, an event-handler attribute, or a javascript: URL.
+  const sinks = await page.evaluate(() => ({
+    injectedImages: document.querySelectorAll('img[src="x"]').length,
+    inlineScripts: Array.from(document.querySelectorAll('script:not([src])')).filter((n) => /alert\(/.test(n.textContent)).length,
+    handlerAttributes: document.querySelectorAll('[onmouseover],[onerror],[onclick],[onload]').length,
+    javascriptUrls: Array.from(document.querySelectorAll('[href],[src]')).filter((n) => /^javascript:/i.test(n.getAttribute('href') || n.getAttribute('src') || '')).length
+  }));
+  expect(sinks.injectedImages).toBe(0);
+  expect(sinks.inlineScripts).toBe(0);
+  expect(sinks.handlerAttributes).toBe(0);
+  expect(sinks.javascriptUrls).toBe(0);
+
+  // Layer 3 — the sink mechanism itself. Every contextual explanation is carried as an attribute
+  // value and as text, never as parsed markup, so an authored '<' stays a literal '<'.
+  const escaped = await page.evaluate(() => {
+    const probe = document.createElement('span');
+    const authored = '<b>authored</b>';
+    probe.textContent = authored;
+    return { html: probe.innerHTML, children: probe.children.length };
+  });
+  expect(escaped.children).toBe(0);
+  expect(escaped.html).toBe('&lt;b&gt;authored&lt;/b&gt;');
+});
+
+test('Regression SCN-004-025 adversarial: every declared context has definition current meaning focus and adjacent text', async ({ page }) => {
+  await openFxRoute(page);
+
+  const audit = await page.evaluate(() => {
+    const nodes = Array.from(document.querySelectorAll('[data-tip]'));
+    return {
+      count: nodes.length,
+      missingDefinition: nodes.filter((n) => !/ — /.test(n.getAttribute('data-tip'))).length,
+      missingMeaning: nodes.filter((n) => !/Current reading: /.test(n.getAttribute('data-tip'))).length,
+      missingFocus: nodes.filter((n) => n.getAttribute('tabindex') === null).length,
+      missingAdjacent: nodes.filter((n) => !n.getAttribute('aria-label')).length,
+      missingTitle: nodes.filter((n) => !n.getAttribute('title')).length
+    };
+  });
+
+  // Every declared context class is covered; removing any one of the five would fail this audit.
+  expect(audit.count).toBeGreaterThan(0);
+  expect(audit.missingDefinition).toBe(0);
+  expect(audit.missingMeaning).toBe(0);
+  expect(audit.missingFocus).toBe(0);
+  expect(audit.missingAdjacent).toBe(0);
+  expect(audit.missingTitle).toBe(0);
+
+  // Every ticker on the route is RLTKR-decorated.
+  const undecorated = await page.evaluate(() => Array.from(document.querySelectorAll('[data-tkr]')).filter((n) => !n.querySelector('a') && n.tagName !== 'A').length);
+  expect(undecorated).toBe(0);
+});

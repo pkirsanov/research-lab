@@ -237,6 +237,8 @@
     <script src="rlapp.js"></script>
     <script src="rlg.js"></script>
     <script src="rlticker.js"></script>
+    <!-- rlcontext defines RLCTX, which rlchart's structured-adapter validator requires. -->
+    <script src="rlcontext.js"></script>
     <script src="rlchart.js"></script>
     <script src="rlnav.js"></script>
     <script src="rlexperience-adapters/macro-rotation.js"></script>
@@ -552,14 +554,14 @@
                     modelId: "rlfx-owner-decision/v1",
                     evidenceIdentity: owner.evidenceIdentity,
                     sourceRefs: [VEHICLE_UNIVERSE_PATH],
-                    observedAsOf: owner.evidenceCutoff,
+                    observedAsOf: owner.evidenceCutoff === null ? "Unavailable - no eligible evidence cutoff exists" : owner.evidenceCutoff,
                     retrievedOrPublishedAt: owner.computedAt,
                     freshness: owner.evidenceCutoff === null ? "unavailable" : "fresh",
                     dataTier: "reviewed-configuration"
                 },
                 uncertainty: {
                     state: row.state === "Unavailable" ? "unavailable" : "bounded",
-                    rangeOrBand: "",
+                    rangeOrBand: "Not a numeric range - the disposition is categorical.",
                     reason: row.state === "Unavailable" ? "Required listed-vehicle facts are absent or rights-unclear." : "The disposition is settled by the declared fit policy."
                 },
                 limitation: "This disposition describes research eligibility only and is not investment advice.",
@@ -655,11 +657,10 @@
                 }
             };
 
-            if (RLCHART && typeof RLCHART.validateStructuredAdapter === "function") {
-                var validation = RLCHART.validateStructuredAdapter(adapter);
-                if (validation.ok && typeof RLCHART.attach === "function") {
-                    RLCHART.attach(canvas, adapter);
-                }
+            /* attach() re-validates and records data-rlchart-error on failure. Skipping the call
+               on a bad adapter would hide that failure, so always attach and let it report. */
+            if (RLCHART && typeof RLCHART.attach === "function") {
+                RLCHART.attach(canvas, adapter);
             }
 
             /* The visible summary is generated from the SAME projection, so it can never drift from
@@ -816,8 +817,17 @@
             controls: function () { return runtime.controls ? JSON.parse(JSON.stringify(runtime.controls)) : null; },
             setControl: function (id, value) {
                 if (!runtime.controls || !Object.prototype.hasOwnProperty.call(runtime.controls, id)) return false;
+                /* Transactional: a value the engine's closed vocabulary rejects must not be left
+                   behind, or every later recompute would rethrow and wedge the route. */
+                var previous = runtime.controls[id];
                 runtime.controls[id] = value;
-                recompute();
+                try {
+                    recompute();
+                } catch (error) {
+                    runtime.controls[id] = previous;
+                    recompute();
+                    throw error;
+                }
                 return true;
             },
             ownerDecision: function () { return runtime.owner; },

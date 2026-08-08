@@ -818,6 +818,38 @@ is the most probable cause. **Before treating this as a repo defect, re-run the 
 machine.** If it still flakes there, investigate worker isolation (per-worker static server) — not the timeout.
 Recorded as **D18**.
 
+### Session-date rollover turns the scheduled-launcher tests red — measured *(2026-08-08)*
+
+A second, unrelated non-defect, recorded because it is **deterministic** rather than flaky and so reads far more
+like a regression than D18 does.
+
+`tests/brief-refresh-atomicity.test.mjs` stood at 26/26 during this session and later reported **18 passed /
+8 failed**. All eight failures are the `scheduled launcher` cluster, and every one is the same assertion:
+
+```text
+[brief-cache] FAIL
+  - data/bars/index.json expectedSessionDate must equal 2026-08-07
+```
+
+The mechanism, in three measurements:
+
+1. `scripts/validate-brief-cache.mjs:80` derives the expectation from the CLOCK —
+   `latestCompletedSessionDate()`, not from any committed value.
+2. `data/bars/index.json` carries `expectedSessionDate: 2026-08-06`, and it carries that value **identically at
+   `origin/main` and in the working tree** — 76 local commits did not touch it.
+3. The wall clock passed midnight ET. At `2026-08-08 02:05 EDT` the latest completed XNYS session is
+   `2026-08-07`, so the committed cache is one session stale and the validator correctly refuses it.
+
+The eight failures are exactly the tests that clone `origin/main` into an isolated checkout; the other eighteen
+use the in-place fixture and still pass. So the trigger is committed-cache age, not code.
+
+**This is the cache validator working.** The cache genuinely IS stale, and the 4×/day cron refreshes it at the
+next pre-market window. Do NOT "fix" this by regenerating `data/bars/` by hand or by relaxing the validator —
+the first fabricates market data and the second disables the only check that notices the brief is serving a
+stale session. Re-run after the next scheduled publication.
+
+Recorded as **D19**.
+
 ---
 
 ### Step 4 — coverage is bounded by evidence, not by effort

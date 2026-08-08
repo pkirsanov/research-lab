@@ -1,6 +1,8 @@
 # Feature 017 Execution Report
 
-This report began as a structural template created during planning, and is now filled from execution. The rule it was created under still governs every anchor below: nothing here may be written from expectation, inference, or summary; each anchor carries raw terminal output captured in the session that produced it. Where an anchor is still empty, it means that command has not been run — not that it passed quietly.
+This report began as a structural template created during planning, and is now filled from execution. The rule it was created under still governs: nothing here may be written from expectation, inference, or summary.
+
+It is a **rollup**. Raw per-row terminal output lives in the six per-scope reports — 192 fenced blocks, zero placeholders — and this file links to it rather than copying it, because a second transcript of the same run is a second thing that must be kept true and the two drift the moment either is edited. A `TP-` anchor here is a link target, not an evidence slot.
 
 ## Summary
 
@@ -86,215 +88,215 @@ additively on top of the existing brief rather than by rewriting it.
 
 ## Test Evidence
 
+**How evidence is recorded in this feature.** Per-row evidence lives in the six
+per-scope reports, which together carry 192 fenced blocks of raw command output
+and zero placeholders. This rollup **links** to it rather than copying it: a
+second transcript of the same run is a second thing that has to be kept true, and
+the two drift the moment one is edited. Each `TP-` anchor below is preserved as a
+link target and points at the scope report that owns that row.
+
+An anchor that points somewhere is therefore not an unrun command — the earlier
+"_Awaiting execution_" text under these anchors said exactly that and was wrong,
+which is audit finding A-017-03.
+
 ### Scope 1 — Attention Capability Module And Item Contract
+
+Rows TP-01-01 through TP-01-25 are recorded in
+[`scopes/01-attention-capability-module/report.md`](scopes/01-attention-capability-module/report.md)
+(62 evidence fences, 0 placeholders).
 
 **TP-01-01**
 
-_Awaiting execution. No evidence recorded yet._
-
 **TP-01-02**
-
-_Awaiting execution. No evidence recorded yet._
 
 **TP-01-03**
 
-_Awaiting execution. No evidence recorded yet._
-
 **TP-01-04**
-
-_Awaiting execution. No evidence recorded yet._
 
 **TP-01-05**
 
-_Awaiting execution. No evidence recorded yet._
-
 **TP-01-06**
-
-_Awaiting execution. No evidence recorded yet._
 
 **TP-01-07**
 
-_Awaiting execution. No evidence recorded yet._
-
 **TP-01-08**
-
-_Awaiting execution. No evidence recorded yet._
 
 **TP-01-09**
 
-_Awaiting execution. No evidence recorded yet._
-
 **TP-01-10**
-
-_Awaiting execution. No evidence recorded yet._
 
 **TP-01-11**
 
-_Awaiting execution. No evidence recorded yet._
-
 **TP-01-12**
-
-_Awaiting execution. No evidence recorded yet._
 
 **TP-01-13**
 
-_Awaiting execution. No evidence recorded yet._
-
 **TP-01-14**
-
-_Awaiting execution. No evidence recorded yet._
 
 **TP-01-15**
 
-_Awaiting execution. No evidence recorded yet._
-
 **TP-01-16**
-
-_Awaiting execution. No evidence recorded yet._
 
 **TP-01-17**
 
-_Awaiting execution. No evidence recorded yet._
-
 **TP-01-18**
-
-_Awaiting execution. No evidence recorded yet._
 
 **TP-01-19**
 
-_Awaiting execution. No evidence recorded yet._
-
 **TP-01-20**
-
-_Awaiting execution. No evidence recorded yet._
 
 **TP-01-21**
 
-_Awaiting execution. No evidence recorded yet._
-
 **TP-01-22**
-
-_Awaiting execution. No evidence recorded yet._
 
 **TP-01-23**
 
-_Awaiting execution. No evidence recorded yet._
-
 **TP-01-24**
-
-_Awaiting execution. No evidence recorded yet._
 
 **TP-01-25**
 
-_Awaiting execution. No evidence recorded yet._
-
 ### Scope 2 — Publication-Path Enforcement
+
+Rows TP-02-01 through TP-02-03 are recorded in
+[`scopes/02-publication-path-enforcement/report.md`](scopes/02-publication-path-enforcement/report.md)
+(20 evidence fences, 0 placeholders).
 
 **TP-02-01**
 
-_Awaiting execution. No evidence recorded yet._
-
 **TP-02-02**
-
-_Awaiting execution. No evidence recorded yet._
 
 **TP-02-03**
 
-_Awaiting execution. No evidence recorded yet._
-
 ### Scope 3 — Brief Tier Render
+
+Rows TP-03-01 through TP-03-05 are recorded in
+[`scopes/03-brief-tier-render/report.md`](scopes/03-brief-tier-render/report.md)
+(24 evidence fences, 0 placeholders).
 
 **TP-03-01**
 
-_Awaiting execution. No evidence recorded yet._
-
 **TP-03-02**
-
-_Awaiting execution. No evidence recorded yet._
 
 **TP-03-03**
 
-_Awaiting execution. No evidence recorded yet._
-
 **TP-03-04**
-
-_Awaiting execution. No evidence recorded yet._
 
 **TP-03-05**
 
-_Awaiting execution. No evidence recorded yet._
-
 ### Scope 4 — Outcome Record And Interruption Rate
+
+Rows TP-04-01 through TP-04-07 are recorded in
+[`scopes/04-outcome-record-and-interruption-rate/report.md`](scopes/04-outcome-record-and-interruption-rate/report.md)
+(38 evidence fences, 0 placeholders). That report also narrates the SCN-017-033
+scope-boundary escalation ahead of its green evidence, because a one-failure run
+there is the record of a boundary holding rather than a defect report.
 
 **TP-04-01**
 
-_Awaiting execution. No evidence recorded yet._
-
 **TP-04-02**
-
-_Awaiting execution. No evidence recorded yet._
 
 **TP-04-03**
 
-_Awaiting execution. No evidence recorded yet._
-
 **TP-04-04**
-
-_Awaiting execution. No evidence recorded yet._
 
 **TP-04-05**
 
-_Awaiting execution. No evidence recorded yet._
-
 **TP-04-06**
-
-_Awaiting execution. No evidence recorded yet._
 
 **TP-04-07**
 
-_Awaiting execution. No evidence recorded yet._
-
 ### Scope 5 — Legacy Feed Reconciliation And Acceptance
+
+Rows TP-05-01 through TP-05-05 are recorded in
+[`scopes/05-legacy-feed-reconciliation-and-acceptance/report.md`](scopes/05-legacy-feed-reconciliation-and-acceptance/report.md)
+(22 evidence fences, 0 placeholders).
 
 **TP-05-01**
 
-_Awaiting execution. No evidence recorded yet._
-
 **TP-05-02**
-
-_Awaiting execution. No evidence recorded yet._
 
 **TP-05-03**
 
-_Awaiting execution. No evidence recorded yet._
-
 **TP-05-04**
-
-_Awaiting execution. No evidence recorded yet._
 
 **TP-05-05**
 
-_Awaiting execution. No evidence recorded yet._
-
 ## Uncertainty Declarations
 
-_Awaiting execution. No evidence recorded yet._
+One remains, in Scope 6. Every other scope closed its declarations before reaching
+`Done`; 178 DoD items are ticked and 0 are unticked across all six.
+
+The standing uncertainty is **F-017-06's residual**: the browser row that proves
+the interruption rate is read from the published scorecard is honest but not yet
+adversarial, because the shipped artifact reduces to `closedSample: 0` and at that
+value the wired read and the old hardcoded read emit identical text. It is stated
+in Open Findings rather than closed.
 
 ## Scenario Contract Evidence
 
-_Awaiting execution. No evidence recorded yet._
+Scenario-to-row binding is recorded per scope; each scope report names the
+scenario every row proves. Two contract properties were verified for this rollup:
+
+- **No skipped or focused tests.** A scan of the three spec-017 test files for
+  `.skip(`, `.only(`, `xit(`, `xdescribe(`, `test.todo` and `it.todo` returns zero
+  matches.
+- **The e2e-ui proof is genuinely live-stack.** A non-comment scan of
+  `tests/attention-browser.spec.mjs` for `page.route`, `context.route`,
+  `.intercept(`, `cy.intercept`, `msw` and `nock` returns nothing. The only
+  textual matches are comments asserting their own absence — which is why the
+  scan has to exclude comment lines to mean anything at all.
 
 ## Coverage Report
 
-_Awaiting execution. No evidence recorded yet._
+Measured on the working tree during the test phase:
+
+| suite | result |
+|---|---|
+| `node scripts/selftest.mjs` | 1273 passed, 0 failed (exit 0) |
+| `node --test tests/rlattention.test.mjs tests/attention-payload-contract.test.mjs` | 54 passed, 0 failed (exit 0) |
+| Playwright `system-chrome`, full suite | 311 tests, green after the stabilize fix |
+| `node scripts/validate-brief-payload.mjs` | PASS (exit 0) |
+| `node scripts/audit-reader-legibility.mjs` | 23 pages audited, 0 leaks |
+| `node scripts/validate-spec-test-paths.mjs` | OK — 0 new, 0 stale of 217 referenced |
+| `node --test tests/brief-refresh-atomicity.test.mjs` | 18 passed, 8 failed — the D19 cluster below |
+
+**The 8 failures are environmental, not code.** All sit in the scheduled-launcher
+cluster and assert `data/bars/index.json expectedSessionDate must equal 2026-08-07`.
+`scripts/validate-brief-cache.mjs` derives that expectation from the clock; the
+committed cache is byte-identical at `origin/main` and locally, and the wall clock
+passed midnight ET. The cache genuinely is stale and the scheduled refresh renews
+it. Nothing was regenerated and no validator was relaxed to make them pass.
+
+**Measurement basis (A-017-04).** The 54/54 figure is the working tree, which
+carried an uncommitted `SCN-017-062` while its fix `fa6f3d68` was already
+committed; `HEAD` alone declares 53.
 
 ## Lint/Quality
 
-_Awaiting execution. No evidence recorded yet._
+| gate | result |
+|---|---|
+| `artifact-lint.sh specs/017-...` | PASSED (exit 0) |
+| `regression-quality-guard.sh tests/attention-browser.spec.mjs` | 0 violations, 0 warnings (exit 0) |
+| `state-transition-guard.sh specs/017-...` | exit 1 — sole failing gate family **G022** |
+
+The guard passes 25 of 26 gate families: G040, G051, G053, G068, G082–G100, G128,
+G130 and G131. G022 is the specialist-dispatch gap documented in
+`executionHistory`, not a defect in the delivered feature.
 
 ## Validation Summary
 
-_Awaiting execution. No evidence recorded yet._
+**Not certified. `bubbles.validate` refused `done` and the refusal still stands.**
+
+| record | outcome |
+|---|---|
+| `bubbles.validate` certification | REFUSED — `assurance.level: fast`, `missingForFull: ["independent-audit"]` |
+| `AUD-017-001` — first independent audit | `REWORK_REQUIRED` — 5 findings, 4 of them against the execution record |
+| `AUD-017-002` — supersedes 001 | `REWORK_REQUIRED` — closed F-017-04, A-017-02, A-017-04; opened A-017-06 |
+
+The audit supplied the `independent-audit` input validate recorded as missing, so
+the refusal now stands on new grounds rather than being lifted. Certification is
+validate-owned and has deliberately not been written by any other agent — a
+self-certification is precisely what `missingForFull` existed to prevent.
 
 ## Audit Verdict
 

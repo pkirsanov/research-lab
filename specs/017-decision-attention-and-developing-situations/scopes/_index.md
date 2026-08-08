@@ -42,6 +42,47 @@ state its all-excluded case must render is Scope 3's.
 
 ---
 
+## Dependency Graph
+
+The Scope Inventory above names each scope's prerequisites. This section states
+the same DAG keyed by the on-disk scope directory, so a scope directory can never
+exist without a declared position in the graph — and so the edges can be checked
+mechanically rather than read out of prose.
+
+| ## | Scope Directory | Depends On | Unblocks | Why the edge exists |
+|----|-----------------|------------|----------|---------------------|
+| 01 | `01-attention-capability-module` | none | 02, 03, 04, 06 | The foundation. Everything downstream either calls the composer, validates its output, renders it, or reduces it. |
+| 02 | `02-publication-path-enforcement` | 01 | 03, 05, 06 | The gate can only refuse an item whose shape Scope 1 defines. |
+| 03 | `03-brief-tier-render` | 01, 02 | 04, 05, 06 | The tier renders only what the gate has already admitted. |
+| 04 | `04-outcome-record-and-interruption-rate` | 01, 03 | 05 | The record reduces terminal outcomes over items the tier has published. |
+| 05 | `05-legacy-feed-reconciliation-and-acceptance` | 02, 03, 04 | none | Reconciliation needs both surfaces and the record already standing, since it asserts what must NOT differ between them. |
+| 06 | `06-authoring-lane-composer-routing` | 01, 02, 03 | none | The lane calls Scope 1's composer, must satisfy Scope 2's gate, and its all-excluded case must render Scope 3's declared empty state. |
+
+```mermaid
+graph LR
+  S01["01 · capability module"] --> S02["02 · publication gate"]
+  S01 --> S03["03 · brief tier"]
+  S01 --> S04["04 · outcome record"]
+  S01 --> S06["06 · authoring lane"]
+  S02 --> S03
+  S02 --> S05["05 · legacy reconciliation"]
+  S02 --> S06
+  S03 --> S04
+  S03 --> S05
+  S03 --> S06
+  S04 --> S05
+```
+
+Two properties this graph is meant to make obvious. **Scope 1 is the only root** —
+there is exactly one definition of an attention item, and every other scope
+consumes it rather than restating it. **Scopes 5 and 6 are both leaves, and they
+are independent of each other** — 5 asserts that the legacy feed and the new tier
+do not contradict each other, while 6 changes who composes the item; neither
+needs the other's outcome, which is why 6 could be added as a later amendment
+without reopening 5.
+
+---
+
 ## Execution Outline
 
 ### Phase Order

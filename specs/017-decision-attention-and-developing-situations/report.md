@@ -299,7 +299,7 @@ inherited from those sessions rather than continued from a ledger.
 
 ### F-017-04 — Rank rationale renders a vacuous self-comparison when two items share a subject
 
-**Status:** Open · **Severity:** reader-facing correctness, not a crash ·
+**Status:** FIXED (verified 2026-08-08) · **Severity:** reader-facing correctness, not a crash ·
 **Found during:** Scope 3 (`03-brief-tier-render`), reading the rendered page ·
 **Owner:** `bubbles.design` for the rule, then `bubbles.plan` for the scope and
 Test Plan row.
@@ -356,9 +356,31 @@ sentence on the page. A new scenario is needed before the defect can be fixed
 under test, which is why this is routed to `bubbles.plan` after the design rule
 is settled rather than being fixed inside Scope 3.
 
+**Resolution (verified 2026-08-08).** Fixed in `rlattention.js::rankRationale`,
+which now branches three ways instead of one. Option 1 was taken for the
+identical-reason case and a narrower form of option 2 for the rest; option 3 was
+correctly rejected, so a payload carrying two `QQQ` items remains valid:
+
+| case | rendered form |
+|---|---|
+| distinct subjects | unchanged comparative sentence (the regression surface) |
+| same subject, identical reasons | `X is placed here because R; the item below it stands on the same footing.` |
+| same subject, differing reasons | `X is placed above a second X item because R1, while for the second R2.` |
+
+The vacuous self-comparison is therefore unreachable: when the two sides carry
+the same reasoning the sentence no longer pretends to compare them.
+
+**The "Test coverage: None" paragraph above is superseded.** `rankRationale` is
+part of the module's exported surface and the tail of `tests/rlattention.test.mjs`
+now exercises all three branches. That suite asserts against clause constants
+derived from production rather than against literal sentences, which is why a
+grep for the rendered wording does not find it — the test survives a copy edit
+and still fails on a behaviour change, which is the correct trade.
+
 ### F-017-06 — The rendered interruption rate is hardcoded to an empty ledger
 
-**Status:** Open · **Severity:** low today, reader-facing correctness once the
+**Status:** FIXED for the wiring defect · one residual coverage gap recorded below
+(verified 2026-08-08) · **Severity:** low today, reader-facing correctness once the
 ledger is populated · **Found during:** Scope 4 (`04-outcome-record-and-interruption-rate`),
 reading the render path · **Owner:** `bubbles.plan` for the Test Plan row, then
 implementation.
@@ -401,4 +423,41 @@ wire `renderAttentionRecord` to read `market-brief.attention-scorecard.json`
 instead of passing a literal. Both belong to Scope 4's surfaces
 (`market-brief.html` `#attentionRecord` block and the scorecard artifact), so no
 change-boundary widening is needed to fix it.
+
+**Verified outcome (2026-08-08) — the wiring half is done, the adversarial half is not.**
+
+The hardcoded literal is gone. `market-brief.html` now reads the published
+reduction and falls back to the reducer's own empty-set answer only when nothing
+has been published:
+
+```text
+var published = ATTENTION_RECORD && typeof ATTENTION_RECORD === "object"
+    ? ATTENTION_RECORD.overall : null;
+var rate = (published && typeof published === "object")
+    ? published
+    : RLATTN.computeInterruptionRate([], null, generatedAt || null);
+```
+
+That fallback is materially different from the defect: the empty-set answer now
+comes from the reducer rather than from a literal typed into the renderer, so the
+page cannot pin itself to "the sample is too small" once the ledger fills.
+
+The reducer itself is well covered over NON-empty ledgers —
+`tests/attention-payload-contract.test.mjs` drives closed samples of 22, 26, 19,
+20, 25 and 5, including the sufficiency boundary at exactly 20.
+
+**What is still owed.** `tests/attention-browser.spec.mjs` asserts the rendered
+block against the shipped artifact, but the shipped artifact currently reduces to
+`closedSample: 0`. At that value the wired read and the old hardcoded read emit
+the *same* statement, the same sample size and the same minimum — so the browser
+row, as it stands, would still pass against the defect. This is precisely the
+trap this finding named: "a fixture with an empty ledger cannot detect this
+defect." The row is therefore honest but not yet adversarial.
+
+Closing it needs a non-empty scorecard served to a real page load. It cannot be
+closed with `page.route`, because repo policy classifies an intercepted
+Playwright test out of `e2e-ui` entirely — mocking the artifact would convert the
+only live-stack proof into a mocked one and leave the gap open while appearing to
+close it. The legitimate route is a static fixture root serving a seeded
+scorecard. Recorded rather than papered over.
 

@@ -1399,7 +1399,13 @@ sla_scope_count=0
 for scope_path in ${scope_files[@]+"${scope_files[@]}"}; do
   [[ -f "$scope_path" ]] || continue
 
-  if grep -Eiq 'latency|throughput|p95|p99|response time|sla|slo' "$scope_path"; then
+  # `sla` and `slo` are word-bounded; the rest are not. Unbounded, the two
+  # three-letter terms match any word merely CONTAINING them — "slot", "slope",
+  # "slow", "slate", "Slack", "translate" — so a scope that says "slot" once was
+  # told it had a latency SLA and owed stress coverage it had no reason to write.
+  # The longer terms need no boundary: nothing innocent contains "latency" or
+  # "throughput". Guarded by a selftest case below.
+  if grep -Eiq 'latency|throughput|p95|p99|response time|\bsla\b|\bslo\b' "$scope_path"; then
     sla_scope_count=$((sla_scope_count + 1))
     if grep -Eq '^\|[[:space:]]*Stress[[:space:]]*\|' "$scope_path" || grep -Eiq 'stress' "$scope_path"; then
       pass "SLA-sensitive scope includes stress coverage: ${scope_path#$feature_dir/}"
@@ -3296,7 +3302,19 @@ if [[ "$transition_audit_profile" == "planning-maturity-v1" ]]; then
 elif [[ "$state_status" == "done_with_concerns" && "$(json_first_bool "legacyStatusCompatibility" "$state_file" || true)" == "true" ]]; then
   info "Check 18 skipped: state.json status is legacy read-only 'done_with_concerns' with legacyStatusCompatibility:true (Gate G040/G092)"
 else
-  deferral_pattern='deferred|defer to|deferred to|future scope|future work|future iteration|follow-up|follow up|followup|out of scope|not in scope|beyond scope|will address later|address later|revisit later|separate ticket|separate issue|separate PR|tracked separately|handled separately|punt\b|punted|postpone|postponed|skip for now|skipped for now|not implemented yet|not yet implemented|placeholder|temporary workaround'
+  # NOTE on the `placeholder` term (Gate G040 false-positive class). Every other
+  # term in this list is prose that ADMITS deferral ("deferred", "out of scope",
+  # "skip for now"). The bare noun `placeholder` is not: it is ordinary UI, DOM
+  # and test vocabulary, and it appears most often in artifacts that FORBID one
+  # — "the empty state renders with no placeholder card", "do not synthesise a
+  # placeholder item". Matching the bare noun therefore flagged prose asserting
+  # the exact opposite of deferral. It is narrowed to admission-bearing forms
+  # ("is a placeholder", "placeholder value/until/for now"), which still catch a
+  # genuine "this is a placeholder until X" admission while ignoring a noun that
+  # merely names an artifact. Guarded by two selftest cases below: a negative
+  # (prohibition prose must NOT block) and its adversarial twin (a real
+  # admission MUST still block), so the narrowing cannot silently disable it.
+  deferral_pattern='deferred|defer to|deferred to|future scope|future work|future iteration|follow-up|follow up|followup|out of scope|not in scope|beyond scope|will address later|address later|revisit later|separate ticket|separate issue|separate PR|tracked separately|handled separately|punt\b|punted|postpone|postponed|skip for now|skipped for now|not implemented yet|not yet implemented|(is|are|was|were|remains?|stays?|left|leaving)[[:space:]]+(still[[:space:]]+)?an?[[:space:]]+placeholder|placeholder[[:space:]]+(value|until|for now)|temporary workaround'
   # Strategy (i): exclude schema-canonical follow-up field names mandated
   # by completion-governance.md AND the canonical "Follow-Up Narrative"
   # section heading itself. Both are schema-structural usage, not deferred-
@@ -3840,8 +3858,19 @@ else
   # is the signature of one captured result being reused to back a second,
   # unrelated claim, which is exactly what G021 exists to catch.
   if command -v jq >/dev/null 2>&1; then
+    # An EMPTY stdout is excluded, and that exclusion is what makes the rule
+    # correct rather than merely narrow. Every command that writes nothing to
+    # stdout hashes to e3b0c442… — the SHA-256 of the empty string — so a
+    # `grep` with no match, a run that wrote only to stderr, and a `--help`
+    # that exited 127 all collide with each other. Reading that collision as
+    # forgery accuses honest work of the single most serious thing this guard
+    # can allege. A receipt with no stdout also has no evidentiary content to
+    # clone, so excluding it removes the false-positive class without weakening
+    # the check: a real forgery reuses a SUBSTANTIVE captured result, which is
+    # by definition non-empty. `stdoutBytes` is already in the receipt schema,
+    # so this needs no new capture and no hardcoded digest.
     c43_clones="$(jq -rs '
-      map(select((.stdoutHash // "") != "" and (.cmd // "") != ""))
+      map(select((.stdoutHash // "") != "" and (.cmd // "") != "" and (.stdoutBytes // 0) > 0))
       | group_by(.stdoutHash)
       | map(select((map(.cmd) | unique | length) > 1))
       | .[]

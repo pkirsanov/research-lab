@@ -117,6 +117,17 @@ assert_log_not_contains() {
   fi
 }
 
+# Canonical expectation of the guard's TRANSITION_GUARD_RESULT_V1 field order.
+# This is the ONLY copy of that order in this file: assert_transition_result
+# walks it positionally, and assert_transition_result_contract_matches_emitter
+# compares it against the order re-derived from the guard's own emitter source.
+TRANSITION_RESULT_FIELDS="schemaVersion workflowMode auditProfile targetStatus contractDigest targetRevision applicableCheckClasses notApplicableChecks passedGateIds failedGateIds failedChecks blockingCode parentExpandedPhases failureCount exitStatus verdict"
+
+# Fields whose value must be a bracketed list. Named rather than addressed by
+# index, so inserting a field cannot silently re-point this check at the wrong
+# columns the way the positional 7..11 range could.
+TRANSITION_RESULT_LIST_FIELDS="applicableCheckClasses notApplicableChecks passedGateIds failedGateIds failedChecks"
+
 assert_transition_result() {
   local log_file="$1"
   local expected_mode="$2"
@@ -133,9 +144,11 @@ assert_transition_result() {
     -v expected_target="$expected_target" \
     -v expected_na="$expected_not_applicable" \
     -v expected_verdict="$expected_verdict" \
-    -v expected_exit="$expected_exit" '
+    -v expected_exit="$expected_exit" \
+    -v expected_fields="$TRANSITION_RESULT_FIELDS" \
+    -v list_fields="$TRANSITION_RESULT_LIST_FIELDS" '
     BEGIN {
-      field_count = split("schemaVersion workflowMode auditProfile targetStatus contractDigest targetRevision applicableCheckClasses notApplicableChecks passedGateIds failedGateIds failedChecks blockingCode failureCount exitStatus verdict", fields, " ")
+      field_count = split(expected_fields, fields, " ")
     }
     $0 == "BEGIN TRANSITION_GUARD_RESULT_V1" {
       begin_count++
@@ -165,9 +178,11 @@ assert_transition_result() {
       if (values["targetStatus"] != expected_target) invalid = 1
       if (values["notApplicableChecks"] != expected_na) invalid = 1
       if (values["verdict"] != expected_verdict || values["exitStatus"] != expected_exit) invalid = 1
-      for (field_number = 7; field_number <= 11; field_number++) {
-        if (values[fields[field_number]] !~ /^\[[A-Za-z0-9,-]*\]$/) invalid = 1
+      list_field_count = split(list_fields, list_field_names, " ")
+      for (list_index = 1; list_index <= list_field_count; list_index++) {
+        if (values[list_field_names[list_index]] !~ /^\[[A-Za-z0-9,-]*\]$/) invalid = 1
       }
+      if (values["parentExpandedPhases"] !~ /^[0-9]+$/) invalid = 1
       if (values["failureCount"] !~ /^[0-9]+$/) invalid = 1
       failure_count = values["failureCount"] + 0
       if (expected_verdict == "PASS" && (failure_count != 0 || values["blockingCode"] != "none")) invalid = 1
@@ -188,6 +203,41 @@ assert_transition_result() {
     echo "--- invalid transition result: $log_file ---"
     sed -n '/BEGIN TRANSITION_GUARD_RESULT_V1/,/END TRANSITION_GUARD_RESULT_V1/p' "$log_file"
     echo "--- end invalid transition result ---"
+  fi
+}
+
+# Re-derive the emitted field order from the guard's emitter block instead of
+# keeping a third hardcoded copy of it.
+guard_emitted_result_fields() {
+  awk '
+    index($0, "BEGIN TRANSITION_GUARD_RESULT_V1") > 0 { active = 1; next }
+    index($0, "END TRANSITION_GUARD_RESULT_V1") > 0 { if (active) exit }
+    active && match($0, /[A-Za-z][A-Za-z0-9]*: /) {
+      printf "%s%s", separator, substr($0, RSTART, RLENGTH - 2)
+      separator = " "
+    }
+    END { printf "\n" }
+  ' "$GUARD_SCRIPT"
+}
+
+# IMP-036 SCOPE-2 added parentExpandedPhases to the guard's emitter but to
+# neither of its two consumers, so every assert_transition_result call silently
+# accepted any result for months. Comparing the consumer's expectation against
+# the emitter's own source on every run is what stops that recurring.
+assert_transition_result_contract_matches_emitter() {
+  local label="$1"
+  local emitted_fields
+  emitted_fields="$(guard_emitted_result_fields)"
+
+  if [[ "$emitted_fields" == "$TRANSITION_RESULT_FIELDS" ]]; then
+    pass "$label"
+  else
+    fail "$label"
+    echo "--- emitter order, derived from $GUARD_SCRIPT ---"
+    echo "$emitted_fields"
+    echo "--- consumer order, TRANSITION_RESULT_FIELDS ---"
+    echo "$TRANSITION_RESULT_FIELDS"
+    echo "--- end TRANSITION_GUARD_RESULT_V1 contract mismatch ---"
   fi
 }
 
@@ -1828,6 +1878,9 @@ with open(path, "w", encoding="utf-8") as handle:
 PY
 }
 
+assert_transition_result_contract_matches_emitter \
+  "TRANSITION_GUARD_RESULT_V1 emitter field order matches this suite's expectation"
+
 positive_feature_dir="$tmp_root/specs/900-transition-guard-selftest-pass"
 negative_feature_dir="$tmp_root/specs/901-transition-guard-selftest-missing-owner"
 shared_positive_feature_dir="$tmp_root/specs/903-transition-guard-selftest-shared-pass"
@@ -1853,6 +1906,8 @@ g040_planning_na_dir="$tmp_root/specs/930-g040-planning-not-applicable"
 g040_pos_deferred_dir="$tmp_root/specs/920-g040-positive-deferred-prose"
 g040_pos_skip_for_now_dir="$tmp_root/specs/921-g040-positive-skip-for-now"
 g040_neg_followup_fields_dir="$tmp_root/specs/922-g040-negative-schema-yaml-only"
+g040_neg_placeholder_noun_dir="$tmp_root/specs/938-g040-negative-placeholder-noun"
+g040_pos_placeholder_admission_dir="$tmp_root/specs/939-g040-positive-placeholder-admission"
 g040_neg_done_with_concerns_dir="$tmp_root/specs/923-g040-negative-done-with-concerns"
 g040_neg_skip_markers_dir="$tmp_root/specs/924-g040-negative-skip-markers"
 g040_pos_skip_marker_outside_dir="$tmp_root/specs/925-g040-positive-skip-marker-outside"
@@ -1941,6 +1996,19 @@ emit_g040_fixture "$g040_pos_skip_for_now_dir" "done" \
 emit_g040_fixture "$g040_neg_followup_fields_dir" "done" \
   "Schema worked example follows in YAML form below." \
   "no" "yes"
+# The bare noun `placeholder` is ordinary UI/DOM/test vocabulary, and it appears
+# most often in prose that FORBIDS one. Every sentence below asserts the OPPOSITE
+# of deferral, so none may block. The last clause is adversarial: it names a
+# placeholder as the object of a completed action, which is still not an
+# admission that anything was left unfinished.
+emit_g040_fixture "$g040_neg_placeholder_noun_dir" "done" \
+  "The empty state renders with no placeholder card, and the builder must not synthesise a placeholder item. The record placeholder text is asserted verbatim. The adversarial probe confirmed the node was replaced with a placeholder and then restored byte-identical." \
+  "no" "no"
+# Adversarial twin of the case above: the narrowing must NOT have disabled the
+# term. A genuine admission that something IS a placeholder still blocks.
+emit_g040_fixture "$g040_pos_placeholder_admission_dir" "done" \
+  "The scoring weight is a placeholder value until the calibration lands." \
+  "no" "no"
 emit_g040_fixture "$g040_neg_done_with_concerns_dir" "done_with_concerns" \
   "Concern routed to bubbles.bug for follow-up tracking; nothing was deferred." \
   "no" "yes" "yes"
@@ -2965,6 +3033,16 @@ g040_neg_followup_log="$tmp_root/g040-neg-followup.log"
 run_capture "$g040_neg_followup_log" bash "$GUARD_SCRIPT" "$g040_neg_followup_fields_dir" >/dev/null
 assert_log_not_contains "$g040_neg_followup_log" "deferral language hit" "G040 Check 18 ignores schema followUpOwner/followUpAction/followUpTarget/followUps tokens"
 
+echo "Running G040 Check 18 — negative: prohibition and UI 'placeholder' nouns do NOT trigger..."
+g040_neg_placeholder_noun_log="$tmp_root/g040-neg-placeholder-noun.log"
+run_capture "$g040_neg_placeholder_noun_log" bash "$GUARD_SCRIPT" "$g040_neg_placeholder_noun_dir" >/dev/null
+assert_log_not_contains "$g040_neg_placeholder_noun_log" "deferral language hit" "G040 Check 18 ignores 'no placeholder card', 'must not synthesise a placeholder', the UI record placeholder, and an adversarial 'replaced with a placeholder' probe description"
+
+echo "Running G040 Check 18 — positive (adversarial twin): a real placeholder admission still BLOCKs..."
+g040_pos_placeholder_admission_log="$tmp_root/g040-pos-placeholder-admission.log"
+run_capture "$g040_pos_placeholder_admission_log" bash "$GUARD_SCRIPT" "$g040_pos_placeholder_admission_dir" >/dev/null
+assert_log_contains "$g040_pos_placeholder_admission_log" "deferral language hit" "G040 Check 18 still BLOCKs on 'is a placeholder value until' — the narrowing did not disable the term"
+
 echo "Running transition metadata negative: done_with_concerns fails loud..."
 g040_neg_dwc_log="$tmp_root/g040-neg-dwc.log"
 run_capture "$g040_neg_dwc_log" bash "$GUARD_SCRIPT" "$g040_neg_done_with_concerns_dir" >/dev/null
@@ -3093,6 +3171,128 @@ EOF
     grep -nE "$check14_regex" "$check14_must_flag" || true
     echo "--- end ---"
   fi
+fi
+
+# Check 5A (Gate G026) decides whether a scope is SLA-sensitive and therefore owes
+# stress coverage. Its trigger list mixes long unambiguous terms (latency,
+# throughput) with the two three-letter abbreviations `sla` and `slo`. Unbounded,
+# those two match any word merely CONTAINING them, so an ordinary word like "slot"
+# told a scope it had a latency SLA and owed stress tests it had no reason to
+# write. The regex is extracted from the guard source so the test cannot drift
+# from the implementation it guards.
+echo "Running Check 5A — SLA trigger word-boundary (false-positive regression)..."
+
+check5a_regex="$(grep -E "grep -Eiq 'latency\|throughput" "$GUARD_SCRIPT" | sed -E "s/^.*grep -Eiq '([^']*)'.*\$/\1/" || true)"
+if [[ -z "$check5a_regex" ]]; then
+  fail "Check 5A SLA regex could not be extracted from $GUARD_SCRIPT (guard shape changed)"
+else
+  pass "Check 5A SLA regex extracted from guard source (no test/source drift)"
+
+  check5a_must_not="$tmp_root/check5a-must-not-flag.txt"
+  cat <<'EOF' > "$check5a_must_not"
+a refusal names which item it is about, not only which slot
+the slot-only shape would have passed
+translate the payload before comparing
+a slate of scenarios
+Slack notification target
+slow query path
+the slope of the curve
+EOF
+
+  check5a_must_flag="$tmp_root/check5a-must-flag.txt"
+  cat <<'EOF' > "$check5a_must_flag"
+p95 latency budget is 200ms
+throughput target of 1000 rps
+the SLA is 200ms
+our SLO for uptime is 99.9%
+p99 response time
+EOF
+
+  if grep -Eiq "$check5a_regex" "$check5a_must_not"; then
+    fail "Check 5A false-positives on words merely containing sla/slo (slot, slate, Slack, slow, slope, translate)"
+    echo "--- offending must-not-flag lines ---"
+    grep -niE "$check5a_regex" "$check5a_must_not" || true
+    echo "--- end ---"
+  else
+    pass "Check 5A does NOT treat slot/slot-only/translate/slate/Slack/slow/slope as an SLA declaration"
+  fi
+
+  # Adversarial twin: the boundary must not have disabled the terms it bounded.
+  check5a_pos_count="$({ grep -ciE "$check5a_regex" "$check5a_must_flag"; } || true)"
+  if [[ "$check5a_pos_count" -eq 5 ]]; then
+    pass "Check 5A still flags all 5 genuine SLA declarations (p95 latency, throughput, SLA, SLO, p99 response time)"
+  else
+    fail "Check 5A regressed on genuine SLA declarations ($check5a_pos_count hits, expected 5)"
+    echo "--- genuine SLA lines matched ---"
+    grep -niE "$check5a_regex" "$check5a_must_flag" || true
+    echo "--- end ---"
+  fi
+fi
+
+echo "Running Check 43 empty-stdout receipt-clone exemption (BUG-007)..."
+# Check 43 alleges FORGERY: it says one captured stdout is cited by two different
+# commands, "which cannot happen from honest execution". That is the most serious
+# accusation this guard makes, so its false-positive floor has to be zero.
+#
+# Every command that writes NOTHING to stdout hashes to the SHA-256 of the empty
+# string. A `grep` that matched nothing, a run that wrote only to stderr, and a
+# `--help` that exited non-zero therefore all collide with one another — and the
+# guard read that collision as a forged receipt. A receipt with no stdout also
+# carries no evidentiary content to clone, so excluding it removes the entire
+# false-positive class without softening the check: a real forgery reuses a
+# SUBSTANTIVE result, which is by definition non-empty.
+#
+# The predicate is extracted from the guard source so this test cannot drift away
+# from the code it defends.
+c43_predicate="$(grep -F 'map(select((.stdoutHash' "$GUARD_SCRIPT" | head -1 || true)"
+if [[ -z "$c43_predicate" ]]; then
+  fail "Check 43 clone predicate could not be extracted from $GUARD_SCRIPT (guard shape changed)"
+elif ! echo "$c43_predicate" | grep -qF '(.stdoutBytes // 0) > 0'; then
+  fail "Check 43 clone predicate lost its empty-stdout exemption — BUG-007 regressed"
+  echo "--- extracted predicate ---"
+  echo "$c43_predicate"
+  echo "--- end ---"
+else
+  pass "Check 43 clone predicate extracted from guard source and retains the empty-stdout exemption"
+
+  c43_dir="$(mktemp -d)"
+  # Three DIFFERENT commands that each legitimately produced no stdout. All three
+  # share the empty-string digest. This is the shape that produced the real-world
+  # false positive; it MUST NOT be reported as a clone.
+  c43_empty_log="$c43_dir/empty.jsonl"
+  {
+    printf '%s\n' '{"cmd":"grep -rn TODO src/","stdoutHash":"e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855","stdoutBytes":0}'
+    printf '%s\n' '{"cmd":"node scripts/validate.mjs","stdoutHash":"e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855","stdoutBytes":0}'
+    printf '%s\n' '{"cmd":"npx playwright test --list","stdoutHash":"e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855","stdoutBytes":0}'
+  } > "$c43_empty_log"
+
+  # ADVERSARIAL: two different commands sharing a REAL, non-empty captured stdout.
+  # If this stops failing, the exemption has been widened into a hole and the
+  # check no longer detects the forgery it exists to detect.
+  c43_real_log="$c43_dir/real.jsonl"
+  {
+    printf '%s\n' '{"cmd":"node --test tests/unit.test.mjs","stdoutHash":"9f2c1a77b3e45d6081ca2be7f4d0913ac5e8b26df1074a3c9e5b0d8f6a271c43","stdoutBytes":2048}'
+    printf '%s\n' '{"cmd":"node --test tests/contract.test.mjs","stdoutHash":"9f2c1a77b3e45d6081ca2be7f4d0913ac5e8b26df1074a3c9e5b0d8f6a271c43","stdoutBytes":2048}'
+  } > "$c43_real_log"
+
+  c43_jq="$c43_predicate | group_by(.stdoutHash) | map(select((map(.cmd) | unique | length) > 1)) | length"
+
+  c43_empty_hits="$(jq -rs "$c43_jq" "$c43_empty_log" 2>/dev/null || echo "ERR")"
+  c43_real_hits="$(jq -rs "$c43_jq" "$c43_real_log" 2>/dev/null || echo "ERR")"
+
+  if [[ "$c43_empty_hits" == "0" ]]; then
+    pass "Check 43 does not accuse three different commands that each produced empty stdout"
+  else
+    fail "Check 43 false-positives on empty stdout ($c43_empty_hits clone group(s), expected 0) — BUG-007 regressed"
+  fi
+
+  if [[ "$c43_real_hits" == "1" ]]; then
+    pass "Check 43 still detects a genuine clone (two commands sharing real non-empty stdout)"
+  else
+    fail "Check 43 no longer detects a genuine receipt clone ($c43_real_hits group(s), expected 1) — exemption widened into a hole"
+  fi
+
+  rm -rf "$c43_dir"
 fi
 
 echo "Running Check 8 basename-only planning-maturity exemption (flat-layout root deliverables)..."

@@ -272,7 +272,7 @@ core_check_label() {
       *"Cheatsheet generator selftest"* | *"Modes split"* | \
       *"Scan-lib"* | *"Derived-artifact regen"* | *"Gate scaffolder"* | \
       *"drift-check selftest"* | *"hub-report selftest"* | \
-      *"guard-lib timeout fallback"*)
+      *"guard-lib timeout fallback"*) # portable-ok: case pattern matching a check NAME, not a timeout invocation
       return 0
       ;;
     *) return 1 ;;
@@ -427,6 +427,17 @@ run_check "Workflow YAML validity selftest (IMP-102 / SCOPE-3)" bash "$SCRIPT_DI
 # intentionally use raw timeout/sed -i mediated by guard-lib + the PATH shim).
 macos_portability_guard_timeout_seconds="${BUBBLES_MACOS_PORTABILITY_GUARD_SELFTEST_TIMEOUT_SECONDS:-120}"
 run_check "macOS portability guard selftest (bubbles-cross-platform-shell)" bubbles_run_with_timeout "$macos_portability_guard_timeout_seconds" bash "$SCRIPT_DIR/macos-portability-guard-selftest.sh"
+# BSD-userland simulator (OW-002): the PATH shim at the top of this file only
+# works in the macOS-to-GNU direction -- it lets a Mac run GNU-shaped code.
+# Nothing let a Linux host run BSD-shaped userland, so a macOS-only failure could
+# not be reproduced without a Mac, and the release-hygiene-macos job's logs are
+# not readable from a workstation. That is why OW-002's macOS failures sat
+# unattributed. Run the simulator's HERMETIC selftest, never a live scan: the
+# simulator is opt-in tooling that nothing executes unless a caller assigns its
+# output to PATH. The selftest asserts TRANSLATION rather than mere acceptance,
+# because a shim that only rejected GNU spellings would break the correct BSD
+# branch too and produce false attributions -- worse than having no simulator.
+run_check "BSD-userland simulator selftest (OW-002)" bubbles_run_with_timeout 120 bash "$SCRIPT_DIR/bsd-userland-sim-selftest.sh"
 # guard-lib timeout fallback (OW-009): on a host with no coreutils timeout the
 # fallback watchdog must NOT inherit the caller's stdout pipe, or a command
 # substitution blocks for the FULL timeout even after the command already
@@ -439,6 +450,29 @@ run_check "guard-lib timeout fallback selftest (OW-009)" bubbles_run_with_timeou
 # silently masking declare -A breakage — positive static + functional + an
 # adversarial guard-removed fixture that must break the static check.
 run_check "Bash baseline guard selftest (IMP-102 / SCOPE-5)" bash "$SCRIPT_DIR/bash-baseline-guard-selftest.sh"
+# Evidence-Backed Experience Recall (IMP-037). Registration is explicit here --
+# nothing in this file auto-discovers `*-selftest.sh`, so an unregistered suite
+# is simply never executed. These six were green but unwired through SCOPE-5,
+# which meant ~516 assertions guarded nothing in pre-push or release-check.
+# Timeouts are ~4x the measured runtime (1s/1s/11s/45s/16s/7s) so a normal run
+# never trips them but a hang still fails instead of blocking the gate forever.
+run_check "Experience-recall resolver selftest (IMP-037 / SCOPE-1)" bubbles_run_with_timeout 60 bash "$SCRIPT_DIR/experience-recall-resolve-selftest.sh"
+run_check "Experience-recall adapter-contract selftest (IMP-037 / SCOPE-1)" bubbles_run_with_timeout 60 bash "$SCRIPT_DIR/experience-recall-adapter-contract-selftest.sh"
+run_check "Experience-recall indexer selftest (IMP-037 / SCOPE-2)" bubbles_run_with_timeout 120 bash "$SCRIPT_DIR/experience-recall-index-selftest.sh"
+run_check "Experience-recall CLI selftest (IMP-037 / SCOPE-3)" bubbles_run_with_timeout 300 bash "$SCRIPT_DIR/experience-recall-cli-selftest.sh"
+run_check "Experience-recall lifecycle selftest (IMP-037 / SCOPE-4)" bubbles_run_with_timeout 180 bash "$SCRIPT_DIR/experience-recall-lifecycle-selftest.sh"
+# The authority firewall: recalled experience is tier 4 and advisory, so a
+# recall id/index path/export can never be cited as evidence -- refused in
+# EVERY mode including --advisory, because that is an authority breach, not a
+# schema nit. Also pins the validator's fallback constants to the indexer's.
+run_check "Experience-recall authority firewall selftest (IMP-037 / SCOPE-6)" bubbles_run_with_timeout 120 bash "$SCRIPT_DIR/experience-recall-authority-selftest.sh"
+# Retrieval QUALITY, not just correctness: a labeled corpus measures macro
+# precision/recall at the result bound and attacks repository isolation, anchor
+# validity, freshness, lifecycle, corpus admission, and prompt injection. A
+# provider that retrieves nothing useful passes every other selftest.
+# Source-only: the corpus lives under bubbles/eval/, which does not ship, so
+# downstream this could only ever SKIP.
+run_check_self_only "Experience-recall evaluation selftest (IMP-037 / SCOPE-7)" bubbles_run_with_timeout 300 bash "$SCRIPT_DIR/experience-recall-eval-selftest.sh"
 run_check_self_only "Installer manifest check (v6.0 / B9)" bash "$SCRIPT_DIR/generate-installer.sh"
 run_check_self_only "Installer manifest selftest (v6.0 / B9)" bash "$SCRIPT_DIR/generate-installer-selftest.sh"
 run_check_self_only "Payload integrity verifier selftest (IMP-101 / SCOPE-8)" bash "$SCRIPT_DIR/verify-payload-integrity-selftest.sh"

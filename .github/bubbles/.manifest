@@ -32,6 +32,8 @@ bubbles/scripts/audit-result-contract-lint.sh
 bubbles/scripts/bash-baseline-guard-selftest.sh
 bubbles/scripts/batch-promotion-lint-selftest.sh
 bubbles/scripts/batch-promotion-lint.sh
+bubbles/scripts/bsd-userland-sim-selftest.sh
+bubbles/scripts/bsd-userland-sim.sh
 bubbles/scripts/bubbles-drift-check-selftest.sh
 bubbles/scripts/bubbles-drift-check.sh
 bubbles/scripts/bubbles-graph-neighbors.sh
@@ -116,8 +118,11 @@ bubbles/scripts/execution-substate-guard.sh
 bubbles/scripts/expand-migrate-contract-guard-selftest.sh
 bubbles/scripts/expand-migrate-contract-guard.sh
 bubbles/scripts/experience-recall-adapter-contract-selftest.sh
+bubbles/scripts/experience-recall-authority-selftest.sh
 bubbles/scripts/experience-recall-cli-selftest.sh
+bubbles/scripts/experience-recall-eval-selftest.sh
 bubbles/scripts/experience-recall-index-selftest.sh
+bubbles/scripts/experience-recall-lifecycle-selftest.sh
 bubbles/scripts/experience-recall-resolve-selftest.sh
 bubbles/scripts/experience-recall-resolve.sh
 bubbles/scripts/experience-recall.sh
@@ -408,6 +413,7 @@ bubbles/scripts/worktree-spawn-selftest.sh
 bubbles/scripts/worktree-spawn.sh
 bubbles/scripts/yaml-schema-validate.sh
 bubbles/scripts/experience-recall-index.py
+bubbles/scripts/experience-recall-lifecycle.py
 bubbles/scripts/scope-universe-resolver.py
 bubbles/scripts/guards/control-plane-checks.sh
 bubbles/scripts/guards/planning-checks.sh
@@ -451,14 +457,17 @@ bubbles/mcp/resources/workflows.json
 bubbles/mcp/server.py
 bubbles/mcp/tools/check_gate.json
 bubbles/mcp/tools/check_observability.json
+bubbles/mcp/tools/experience_recall_status.json
 bubbles/mcp/tools/graph_neighbors.json
 bubbles/mcp/tools/list_open_findings.json
 bubbles/mcp/tools/query_tool_log.json
+bubbles/mcp/tools/read_experience.json
 bubbles/mcp/tools/read_spec.json
 bubbles/mcp/tools/record_evidence.json
 bubbles/mcp/tools/resolve_mode.json
 bubbles/mcp/tools/route_finding.json
 bubbles/mcp/tools/search_code.json
+bubbles/mcp/tools/search_experience.json
 bubbles/mcp/tools/validate_dod.json
 bubbles/mcp/tools/verify_status_transition.json
 bubbles/cheatsheet/README.md
@@ -543,6 +552,7 @@ docs/recipes/design-a-capability.md
 docs/recipes/devops-release-coordination.md
 docs/recipes/devops-work.md
 docs/recipes/end-of-day.md
+docs/recipes/evidence-backed-experience-recall.md
 docs/recipes/explore-idea.md
 docs/recipes/fix-a-bug.md
 docs/recipes/framework-dogfood.md

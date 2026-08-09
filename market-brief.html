@@ -970,6 +970,7 @@
         <details class="drawer" id="mac-evidence" data-mac-evidence>
             <summary>⌄ Latest owning-tool reads — evidence layer (Power view)</summary>
             <div class="body" id="toolReads"></div>
+            <div class="body" id="fxGlobalRelationship"></div>
         </details>
 
         <details class="drawer" id="experimentalDrawer">
@@ -1094,6 +1095,56 @@
             }
 
             function localToolReads() { try { return (typeof RLDATA !== 'undefined' && RLDATA.toolRead) ? (RLDATA.toolRead() || {}) : {}; } catch (e) { return {}; } }
+
+            /* The FX/Global relationship is a READ of two owners, never a third model. Both reads
+               come from their own publishers, and an absent or non-current one is stated as
+               Insufficient Evidence with the reason it actually carries. */
+            function renderFxGlobalRelationship() {
+                var host = el("fxGlobalRelationship");
+                if (!host || typeof RLBRIEF === 'undefined' || typeof RLBRIEF.evaluateFxGlobalRelationship !== 'function') return;
+                while (host.firstChild) host.removeChild(host.firstChild);
+
+                var reads = {};
+                var snapshot = (SNAP && SNAP.toolReads) || {};
+                var local = localToolReads();
+                Object.keys(snapshot).forEach(function (k) { reads[k] = snapshot[k]; });
+                Object.keys(local).forEach(function (k) { reads[k] = local[k]; });
+
+                var result = RLBRIEF.evaluateFxGlobalRelationship(
+                    reads['fx-regime-relative-value-lab'] || null,
+                    reads['global-rotation-lab'] || null,
+                    new Date().toISOString()
+                );
+
+                var line = document.createElement("div");
+                line.setAttribute("data-relationship", result.relationship);
+                line.textContent = "FX and Global Rotation: " + result.relationship;
+                host.appendChild(line);
+
+                if (result.relationship === "Insufficient Evidence") {
+                    var why = document.createElement("div");
+                    why.className = "sub";
+                    why.textContent = result.blockingReasons.length
+                        ? "No directional relationship is attributable: " + result.blockingReasons.join(", ") + "."
+                        : "No directional relationship is attributable.";
+                    host.appendChild(why);
+                }
+
+                /* Each owner is attributed through its OWN deep link and clocks; neither is merged. */
+                [result.fx, result.global].forEach(function (owner) {
+                    if (!owner) return;
+                    var row = document.createElement("div");
+                    row.className = "sub";
+                    var link = document.createElement("a");
+                    link.href = owner.ownerDeepLink;
+                    link.textContent = owner.toolId;
+                    row.appendChild(link);
+                    var clocks = document.createElement("span");
+                    clocks.textContent = " — computed " + owner.computedAt + ", current until " + owner.freshUntil;
+                    row.appendChild(clocks);
+                    host.appendChild(row);
+                });
+            }
 
             /* ═════════════ Decision attention tier ═════════════
                The items asking for a decision this session, rendered above the
@@ -1500,6 +1551,7 @@
                 RLBRIEF.renderGroups(el("groups"), (PAYLOAD && PAYLOAD.groups) || (SNAP && SNAP.groups), CFG);
                 RLBRIEF.renderWatchlist(el("watchlist"), WL && WL.items, CFG, PAYLOAD && PAYLOAD.watchlistNotes);
                 RLBRIEF.renderToolReads(el("toolReads"), TOOLS && TOOLS.tools, SNAP && SNAP.toolReads, localToolReads());
+                renderFxGlobalRelationship();
                 renderExperimental(); renderComputed(); setWindow(pickWindow());
             }
 

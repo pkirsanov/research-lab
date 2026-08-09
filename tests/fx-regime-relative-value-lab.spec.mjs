@@ -912,3 +912,27 @@ test('Regression SCN-004-025 adversarial: every declared context has definition 
   const undecorated = await page.evaluate(() => Array.from(document.querySelectorAll('[data-tkr]')).filter((n) => !n.querySelector('a') && n.tagName !== 'A').length);
   expect(undecorated).toBe(0);
 });
+
+test('Regression SCN-004-023: the real Brief route states the FX/Global relationship honestly', async ({ page }) => {
+  await page.goto(site.baseUrl + '/market-brief.html');
+  const panel = page.locator('#fxGlobalRelationship');
+  await expect(panel).toHaveCount(1);
+  await expect(panel.locator('[data-relationship]')).toHaveCount(1);
+
+  const state = await page.evaluate(() => {
+    const node = document.querySelector('#fxGlobalRelationship [data-relationship]');
+    // textContent, not innerText: the panel lives inside a collapsed <details> drawer.
+    return { relationship: node && node.getAttribute('data-relationship'), text: document.getElementById('fxGlobalRelationship').textContent };
+  });
+
+  // The FX route is excluded until Scope 5, so its owner read is absent here. The honest result is
+  // Insufficient Evidence — never a fabricated direction.
+  expect(['Agreement', 'Divergence', 'Insufficient Evidence']).toContain(state.relationship);
+  expect(state.relationship).toBe('Insufficient Evidence');
+  expect(state.text).toContain('No directional relationship is attributable');
+
+  // No third composite, score, or coverage claim is rendered anywhere in the panel.
+  expect(state.text).not.toMatch(/\bscore\b/i);
+  expect(state.text).not.toMatch(/\bcoverage\b/i);
+  expect(state.text).not.toMatch(/\d+\s*%/);
+});

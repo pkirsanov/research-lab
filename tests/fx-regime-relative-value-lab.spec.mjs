@@ -1163,3 +1163,194 @@ test('Regression SCN-004-026: cutover activates every route view owner note and 
   expect(live.loadError).toBeNull();
   expect(live.controls).toBeGreaterThan(0);
 });
+
+/* The four routed obligations. Scope 4 proved their runtime against production rljourney.js and
+   rlbrief.js; these run them against the shell that registration just made mountable. */
+
+async function openRegisteredRoute(page) {
+  const requests = [];
+  page.on('request', (request) => requests.push(request.url()));
+  await page.goto(site.baseUrl + '/fx-regime-relative-value-lab.html');
+  await expect(page.locator('body')).toHaveAttribute('data-fx-ready', '1');
+  await expect(page.locator('[data-rlbrief-mount][data-tool-id]')).toHaveAttribute('data-rlexperience-state', 'registered');
+  return requests;
+}
+
+test('Regression SCN-004-019: four views share one reader outcome while machine identity stays in Power', async ({ page }) => {
+  await openRegisteredRoute(page);
+
+  // The shared switcher resolved the ordinary four-view set — impossible while the route was excluded.
+  const shell = await page.evaluate(() => {
+    const registration = window.__rlviewsRegistration;
+    return {
+      viewIds: registration && registration.shell ? registration.shell.viewIds : null,
+      kind: registration && registration.shell ? registration.shell.kind : null,
+      switchers: document.querySelectorAll('[data-rlviews-switch], [role="tablist"], .rlviews-switch').length
+    };
+  });
+  expect(shell.viewIds).toEqual(['simple', 'power', 'brief', 'journey']);
+  expect(shell.kind).toBe('ordinary');
+  expect(shell.switchers).toBe(1);
+
+  // There is no page-local mode strip competing with the shared switcher.
+  expect(await page.locator('#modeSeg').count()).toBe(0);
+
+  // One owner decision backs every projection: Simple, Power, and the published v2 read agree.
+  const parity = await page.evaluate(() => {
+    const owner = window.FxRegimeLab.ownerDecision();
+    const reader = window.FxRegimeLab.readerDecision();
+    const read = window.FxRegimeLab.toolRead();
+    return {
+      ownerDecisionId: owner.ownerDecisionId,
+      readOwnerDecisionId: read.metrics.ownerDecisionId,
+      evidenceIdentity: owner.evidenceIdentity,
+      readEvidenceIdentity: read.metrics.evidenceIdentity,
+      readerDecision: reader.decision,
+      readAvailability: read.availability,
+      simpleText: document.getElementById('simplePanel').textContent,
+      identityText: document.getElementById('identityPanel').textContent
+    };
+  });
+  expect(parity.readOwnerDecisionId).toBe(parity.ownerDecisionId);
+  expect(parity.readEvidenceIdentity).toBe(parity.evidenceIdentity);
+  expect(parity.readAvailability).toBe('unavailable');
+  expect(parity.readerDecision).toBe('Recommendation unavailable');
+
+  // Machine identity is a Power-only disclosure: the default Simple copy never leaks it.
+  expect(parity.identityText).toContain(parity.ownerDecisionId);
+  expect(parity.simpleText).not.toContain(parity.ownerDecisionId);
+  expect(parity.simpleText).not.toContain(parity.evidenceIdentity);
+});
+
+test('Regression SCN-004-019 adversarial: switching views neither fetches nor recomputes the owner decision', async ({ page }) => {
+  await openRegisteredRoute(page);
+  await page.waitForLoadState('networkidle');
+
+  const before = await page.evaluate(() => ({
+    requests: window.FxRegimeLab.requestCount(),
+    ownerDecisionId: window.FxRegimeLab.ownerDecision().ownerDecisionId
+  }));
+
+  const networkAfter = [];
+  page.on('request', (request) => networkAfter.push(request.url()));
+
+  // Drive the shared switcher through every view the shell declared.
+  const switched = await page.evaluate(() => {
+    const registration = window.__rlviewsRegistration;
+    const viewIds = registration.shell.viewIds.slice();
+    const visited = [];
+    for (const viewId of viewIds) {
+      location.hash = '#' + viewId;
+      visited.push(location.hash);
+    }
+    return visited;
+  });
+  expect(switched.length).toBe(4);
+  await page.waitForTimeout(600);
+
+  const after = await page.evaluate(() => ({
+    requests: window.FxRegimeLab.requestCount(),
+    ownerDecisionId: window.FxRegimeLab.ownerDecision().ownerDecisionId
+  }));
+
+  // A view switch is a projection change, never a fetch and never a new decision.
+  expect(after.requests).toBe(before.requests);
+  expect(after.ownerDecisionId).toBe(before.ownerDecisionId);
+  expect(networkAfter).toEqual([]);
+});
+
+test('Regression SCN-004-033: Journey evidence refresh reopens transitive dependents and every completion packet remains non-executable', async ({ page }) => {
+  await openRegisteredRoute(page);
+
+  // Both DAGs are reachable through the registered tool, and the runtime is the production one.
+  const journey = await page.evaluate(async () => {
+    const registration = window.__rlviewsRegistration;
+    const journeyIds = registration.registry.tools.find((t) => t.id === 'fx-regime-relative-value-lab').experience.journeyDefinitionIds;
+    const registry = await fetch('journeys.json', { cache: 'no-store' }).then((r) => r.json());
+    const RJ = window.RLJOURNEY;
+    const compiled = RJ.compileRegistry(registry);
+    const selectionId = journeyIds[0];
+    const selection = compiled.value.definitions[selectionId];
+
+    const ref = (id, ch) => ({
+      requirementId: id, evidenceRef: 'owner:' + id, semanticFingerprint: 'sha256:' + ch.repeat(64),
+      sourceClass: 'owner-evidence', valueState: 'ready', observedAsOf: '2026-08-09T11:00:00.000Z',
+      retrievedOrPublishedAt: '2026-08-09T12:00:00.000Z', freshness: 'fresh', dataTier: 'public'
+    });
+    let session = RJ.createSession(selection, {
+      context: { evidenceIdentity: 'fxe-v1-aaa' },
+      createdAt: '2026-08-09T12:00:00.000Z',
+      semanticEvidenceRefs: [ref('owner-evidence-changed', 'a')]
+    }).value;
+
+    const base = selectionId + '/step/';
+    const evidence = [{ slot: 'owner-evidence', ref: 'owner:fx', provenance: 'owner-evidence' }];
+    for (const stepId of selection.order) {
+      session = RJ.completeStep(session, stepId, { input: { choice: stepId }, evidence, completedAt: '2026-08-09T12:00:00.000Z' }).value;
+    }
+    const packet = RJ.buildCompletionPacket(session, { outcome: 'complete', signoff: { reviewer: 'independent-reviewer', decision: 'accept-research-process' } });
+
+    const reopened = RJ.refreshEvidence(session, [ref('owner-evidence-changed', 'b')]);
+    const afterRefresh = reopened.ok ? reopened.value : null;
+    const stalePacket = afterRefresh ? RJ.buildCompletionPacket(afterRefresh, { outcome: 'complete', signoff: { reviewer: 'independent-reviewer', decision: 'accept-research-process' } }) : null;
+
+    return {
+      journeyCount: journeyIds.length,
+      compiled: compiled.ok,
+      packetOk: packet.ok,
+      noExecution: packet.ok ? packet.value.noExecution : null,
+      executed: packet.ok ? packet.value.executed : null,
+      packetText: packet.ok ? JSON.stringify(packet.value).toLowerCase() : '',
+      objectiveAfter: afterRefresh ? afterRefresh.steps[base + 'objective'].status : null,
+      horizonAfter: afterRefresh ? afterRefresh.steps[base + 'horizon'].status : null,
+      stalePacketOk: stalePacket ? stalePacket.ok : null,
+      forbidden: RJ.FORBIDDEN_FIELD_ROOTS
+    };
+  });
+
+  expect(journey.journeyCount).toBe(2);
+  expect(journey.compiled).toBe(true);
+  expect(journey.packetOk).toBe(true);
+  expect(journey.noExecution).toBe(true);
+  expect(journey.executed).toBe(false);
+  for (const forbidden of journey.forbidden) {
+    expect(journey.packetText).not.toContain('"' + forbidden);
+  }
+
+  // A changed semantic fingerprint reopens the affected step and its transitive dependents, and a
+  // reopened session cannot be signed off as complete.
+  expect(journey.objectiveAfter).not.toBe('complete');
+  expect(journey.horizonAfter).not.toBe('complete');
+  expect(journey.stalePacketOk).toBe(false);
+});
+
+test('Regression SCN-004-026 adversarial: source tokens do not prove an unreachable reader entry point', async ({ page }) => {
+  const fs = require('node:fs');
+  const routeFile = 'fx-regime-relative-value-lab.html';
+
+  // The registries name the route in source. That is the evidence this test refuses to accept.
+  const landing = fs.readFileSync(new URL('../index.html', import.meta.url), 'utf8');
+  const nav = fs.readFileSync(new URL('../rlnav.js', import.meta.url), 'utf8');
+  expect(landing).toContain(routeFile);
+  expect(nav).toContain(routeFile);
+
+  // Only a browser that actually reaches and boots the route counts.
+  const served = await page.goto(site.baseUrl + '/' + routeFile);
+  expect(served.status()).toBe(200);
+  await expect(page.locator('body')).toHaveAttribute('data-fx-ready', '1');
+
+  // Adversarial control: a path present in no registry must NOT serve, which proves a 200 above is
+  // a real reach rather than a server that answers everything.
+  const absent = await page.goto(site.baseUrl + '/fx-regime-relative-value-lab-does-not-exist.html');
+  expect(absent.status()).toBe(404);
+
+  // And the reachable route is genuinely the registered one, not a same-named static shell.
+  await page.goto(site.baseUrl + '/' + routeFile);
+  await expect(page.locator('body')).toHaveAttribute('data-fx-ready', '1');
+  const identity = await page.evaluate(() => ({
+    toolId: window.FxRegimeLab.toolId,
+    registered: document.querySelector('[data-rlbrief-mount]').getAttribute('data-rlexperience-state')
+  }));
+  expect(identity.toolId).toBe('fx-regime-relative-value-lab');
+  expect(identity.registered).toBe('registered');
+});

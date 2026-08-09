@@ -873,6 +873,38 @@ the latest completed XNYS session. The eight failures return to green with no co
 
 ---
 
+### D20 — three specs claim phases with no execution record behind them, and one of them is `done`
+
+Recorded as **D20** *(2026-08-09)*. Surfaced by a new upstream gate, **Check 7C — Phase-Claim Execution
+Backing** (bubbles `585d86f`), added because an independent audit of spec 017 found four `implement` claims
+standing against one `implement` `executionHistory` entry. Check 7A analyses `executionHistory` only, so a
+*claim* with no backing entry was structurally invisible to it.
+
+The gate was calibrated by measuring all 17 specs in this repo rather than by guessing a threshold:
+
+| spec | status | finding | gate verdict |
+|---|---|---|---|
+| `009-msft-july-market-refresh` | **`done`** | 17 claims, **0** `executionHistory` entries in either location | **BLOCK** |
+| `012-market-action-center-and-guided-tools` | `blocked` | 1 zero-backing (`implement`); `test` 7 claims/5 runs | BLOCK |
+| `002-distributed-tool-briefs-and-history` | `done` | `implement` 10 claims / 1 run | WARN only |
+
+Spec 009 is the one that matters. It is certified `done`, it records **seventeen** phase claims and **zero**
+execution entries, and nine of those claims sit on a uniform five-minute grid (`16:10, 16:15, 16:25, 16:30,
+16:40, 16:45, 16:50, 16:55, 17:00`) — the same tidied-rather-than-measured signature an independent audit
+raised against spec 017 and which was remediated there.
+
+**This is recorded, not fixed, and deliberately so.** Reconstructing seventeen execution spans for a spec
+whose runs left no record would be inventing the very evidence the gate exists to demand. Whether the work
+behind those claims was real is answerable — spec 009's scope reports carry its evidence — but that is an
+investigation of spec 009, not a side effect of shipping a gate.
+
+Note the asymmetry the gate encodes: 002 only *warns*, because ten claims against one run is suspicious
+rather than provably false (one entry can legitimately cover several runs of a phase). Blocking that class
+would have false-blocked a `done` spec on a shape that is merely untidy. Zero backing runs is the
+unambiguous case, and only that one blocks.
+
+---
+
 ### Step 4 — coverage is bounded by evidence, not by effort
 
 `covered 0 → 14 of 28` public-matrix cells, each computed from committed same-origin data through

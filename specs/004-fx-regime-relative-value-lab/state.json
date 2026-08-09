@@ -21,8 +21,8 @@
     "requiresRevalidation": false,
     "execution": {
         "activeAgent": "bubbles.implement",
-        "currentPhase": "test",
-        "currentScope": "SCOPE-03",
+        "currentPhase": "implement",
+        "currentScope": "SCOPE-04",
         "substate": "ready",
         "runStartedAt": null,
         "completedPhaseClaims": [
@@ -31,8 +31,8 @@
             "test"
         ],
         "pendingTransitionRequests": [],
-        "nextRequiredOwner": "bubbles.validate",
-        "nextRequiredTarget": "Certify SCOPE-02 and SCOPE-03. Both are Done with every DoD item checked and inline evidence. SCOPE-02: 28/28, CMD-E2E-FX 52/0. SCOPE-03: 19/19, the Global Rotation equity-only migration. CMD-SELFTEST 1292/0 (up from 1273, no decrease). CMD-E2E-FX 58/0 across both browser projects with zero interception. CMD-PAGE-GLOBAL OK. CMD-GLOBAL-CONSUMERS returns global_consumer_trace_exit=1, the zero-match sentinel, across all five declared consumer files. CMD-COLLISION 3/0. CMD-ARTIFACT, CMD-TRACE, CMD-FRESHNESS all exit 0. Protected canaries ran before the broad reruns: Bond 56/0, Causal 8/0. Raw FX can no longer change country score or rank because scoreCountryLeadership rejects an fx key outright; usdLeadership and decomposition are separate products with independent clocks; and rlfx.js was removed from site-exclusions.json because global-rotation-lab.html is a registered public page that now consumes it, which would otherwise 404 on the deployed site.",
+        "nextRequiredOwner": "bubbles.implement",
+        "nextRequiredTarget": "Continue SCOPE-04 (Shared Brief And Journey Integration). SCOPES 01-03 are Done; 02 and 03 await validate certification. SCOPE-04 delivered so far: (a) rlbrief.js evaluateFxGlobalRelationship classifies Agreement, Divergence, and Insufficient Evidence from each owner read without building a third model, with its own closed reason vocabulary; (b) both FX Journey DAGs (currency-vehicle-selection and wrapper-mismatch, six steps each) validated through production rljourney.js for compilation, dependency order, privacy boundary, human signoff, no-execution packets, semantic evidence refresh, transitive reopen, history preservation, and refusal to sign off a reopened session. selftest 1346/0, brief validator PASS, collision 3/0. Remaining SCOPE-04 work: the FX owner read in scripts/brief-refresh.mjs, market-brief.html relationship rendering, and the TP-04-06/07/11/14 real-route E2E rows. Registry-blocked pieces are already routed to SCOPE-05: journeys.json (rlexperience.js requires every definition be referenced exactly once by a registered tool; measured 1292/0 to 1280/2 and back), plus the four-view shell, simple-models.json, and the FX Simple adapter. tests/fixtures/fx-regime/journey-definitions.json is the single source SCOPE-05 copies into journeys.json so the cutover cannot drift from what was validated.",
         "findingDispositionHistory": [
             {
                 "findingId": "F004-SCOPE01-COMMITTED-COLLISION-DEPENDENCY-001",

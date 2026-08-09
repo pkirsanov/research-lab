@@ -934,16 +934,32 @@
     });
   }
 
-  /* Classifies the FX and Global owner reads against each other WITHOUT building a third model:
-     it reads each owner's own direction and clocks, and never merges them into a score. */
+  /* Classifies the FX and Global owner reads against each other WITHOUT building a third model: it
+     reads each owner's OWN published direction and clocks from its real versioned tool read, and
+     never merges them into a score. FX direction comes from the recommendation outcome's economic
+     direction; Global direction comes from the leader's USD relative return. */
+  function fxRelationshipDirection(read) {
+    if (read.id === FX_BRIEF_TOOL_ID) {
+      var outcome = read.metrics && read.metrics.recommendationOutcome;
+      var side = outcome && outcome.economicDirection && outcome.economicDirection.instrumentSide;
+      if (side === "long") return 1;
+      if (side === "short") return -1;
+      return 0;
+    }
+    var leader = read.metrics && read.metrics.leader;
+    var relative = leader && leader.usdLeadership && leader.usdLeadership.usdRelativeReturn;
+    if (typeof relative !== "number" || !isFinite(relative) || relative === 0) return 0;
+    return relative > 0 ? 1 : -1;
+  }
+
   function evaluateFxGlobalRelationship(fxRead, globalRead, decisionTime) {
     var reasons = {};
-    function side(read, expectedToolId, missingReason) {
+    function side(read, expectedId, missingReason) {
       if (read == null || typeof read !== "object") {
         fxBriefAddReason(reasons, missingReason);
         return null;
       }
-      if (read.toolId !== expectedToolId) {
+      if (read.id !== expectedId) {
         fxBriefAddReason(reasons, "OWNER_TOOL_MISMATCH");
         return null;
       }
@@ -959,18 +975,19 @@
         fxBriefAddReason(reasons, "OWNER_STALE");
         return null;
       }
-      if (read.direction !== -1 && read.direction !== 1) {
+      var direction = fxRelationshipDirection(read);
+      if (direction !== -1 && direction !== 1) {
         fxBriefAddReason(reasons, "DIRECTION_NOT_ATTRIBUTABLE");
         return null;
       }
-      if (!read.ownerDeepLink) {
+      if (!read.deepLink) {
         fxBriefAddReason(reasons, "OWNER_DEEP_LINK_MISSING");
         return null;
       }
       return {
-        toolId: read.toolId, direction: read.direction, computedAt: read.computedAt,
-        freshUntil: read.freshUntil, ownerDeepLink: read.ownerDeepLink,
-        evidenceIdentity: read.evidenceIdentity || null
+        toolId: read.id, direction: direction, computedAt: read.computedAt,
+        freshUntil: read.freshUntil, ownerDeepLink: read.deepLink,
+        evidenceIdentity: (read.metrics && read.metrics.evidenceIdentity) || null
       };
     }
     var fx = side(fxRead, FX_BRIEF_TOOL_ID, "FX_OWNER_READ_MISSING");

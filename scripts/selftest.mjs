@@ -66,13 +66,6 @@ function build(fnSources, exportNames, preamble = '') {
 }
 
 let failures = 0, passes = 0;
-const failureDetails = [];
-const writeLog = console.log.bind(console);
-console.log = (...args) => {
-  const line = args.map(String).join(' ');
-  if (line.includes('\u2717 FAIL')) failureDetails.push(line);
-  writeLog(...args);
-};
 function assert(cond, msg) {
   if (cond) { passes++; console.log('  \u2713 ' + msg); }
   else { failures++; console.log('  \u2717 FAIL: ' + msg); }
@@ -5880,10 +5873,6 @@ try {
 } catch (e) { failures++; console.log('  \u2717 FAIL (spec artifact test-path guard threw): ' + e.message); }
 
 /* ---------- summary ---------- */
-if (failureDetails.length > 0) {
-  writeLog('\nFailure recap:');
-  for (const detail of failureDetails) writeLog(detail);
-}
 console.log('\n' + '='.repeat(48));
 console.log('Research-Lab self-test: ' + passes + ' passed, ' + failures + ' failed');
 console.log('='.repeat(48));

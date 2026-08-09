@@ -111,7 +111,6 @@ tests/market-regime-lab.spec.mjs
 tests/market-regime-lab.stress.spec.mjs
 tests/portfolio-allocation.functional.mjs
 tests/portfolio-analytics.unit.mjs
-tests/portfolio-brief.functional.mjs
 tests/portfolio-matrix-privacy.functional.mjs
 tests/portfolio-private.spec.mjs
 tests/portfolio-publisher-boundary.functional.mjs

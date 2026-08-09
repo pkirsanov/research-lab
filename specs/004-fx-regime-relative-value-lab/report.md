@@ -8628,3 +8628,106 @@ Planning appends exactly one closed v12 contract and routes the additive parser 
 ```
 <!-- feature004-dirty-collision-multi-item-evidence-v15:end -->
 
+
+## F004-V15-FROZEN-EVIDENCE-REWRITE-DEADLOCK
+
+CMD-COLLISION is red. It is red for an external reason, it is red on a pristine
+working copy of the test, and it has no repair path that does not forge an audit
+record. All three facts are measured below.
+
+### The failure is external, not caused by Feature 004 work
+
+A concurrent session rebased the repository mid-session. The rebase re-parented
+the v15 planning baseline. Reverting the test file to its committed bytes and
+re-running reproduces the identical failure, so no edit of this session caused it.
+
+**Command:** `git checkout -- tests/feature-004-dirty-tree-collision.test.mjs && node --test tests/feature-004-dirty-tree-collision.test.mjs`
+**Exit Code:** 1
+**Claim Source:** executed
+
+```text
+reverted; file now matches HEAD: yes
+=== baseline failure WITHOUT any edit of mine ===
+  error: 'v15 planning baseline to current HEAD mismatch: 38af035c6b25961646cdd342a2df60d4f9793406 is not an ancestor of e0a63a533d0133a5a96752cd2ad126804ad0ef61'
+  error: 'v15 planning baseline to current HEAD mismatch: 38af035c6b25961646cdd342a2df60d4f9793406 is not an ancestor of e0a63a533d0133a5a96752cd2ad126804ad0ef61'
+  error: 'v15 planning baseline to current HEAD mismatch: 38af035c6b25961646cdd342a2df60d4f9793406 is not an ancestor of e0a63a533d0133a5a96752cd2ad126804ad0ef61'
+# tests 3
+# pass 0
+# fail 3
+```
+
+### The planning state did not change — only the SHA did
+
+This same logical commit has now lived at four SHAs. The current history carries
+`bd71e69d`, which is byte-identical to the pinned `38af035c` across every
+protected planning path. A raw-SHA pin cannot tell a rewrite apart from a real
+content change; it fails the same way on both.
+
+**Command:** `git merge-base --is-ancestor bd71e69d HEAD` and `git rev-parse <commit>:<path>` for each protected path
+**Exit Code:** 0
+**Claim Source:** executed
+
+```text
+=== Is the content-identical successor an ancestor? ===
+  bd71e69d IS an ancestor of HEAD
+=== So the ONLY difference is the SHA, not the content ===
+  scopes.md        identical blob c65c67e904e6a4f381dc5d6e6ccbe8d1850bb8ba
+  test-plan.json   identical blob 6d2f75ee1a68ae745c32d4038ad4f85165b594e2
+  state.json       identical blob baf9911c895c303ca7f36c277f84ca7c2e044db0
+=== selftest + brief validator (unaffected by collision) ===
+Research-Lab self-test: 1370 passed, 0 failed
+[brief-contract] PASS: all visible sections, registry coverage, model-specific real assets, and next-session actions are valid
+```
+
+### Both repair paths are deadlocked
+
+**Recapture is gated behind the very assertion it would repair**, and it
+additionally requires all three protected planning paths to still sit at the
+baseline commit. They have moved on by many commits, so that precondition can
+never hold again.
+
+**Command:** `git log -1 --format=%h -- <each protected path>` and `FEATURE004_CAPTURE_V15_CHECK=1 node tests/feature-004-dirty-tree-collision.test.mjs`
+**Exit Code:** 1
+**Claim Source:** executed
+
+```text
+=== last commit touching each v15 protected planning path ===
+  scopes.md                e0a63a53  docs(004): the Global notes still described the FX-weighte
+  test-plan.json           e587bbfc  docs(004): close the last v16 imperatives and two stale Sc
+  state.json               2328ca36  spec 004: Scope 4 is delivered — the Brief and Journey r
+  required baseline:       38af035c  docs(004): permit independently evidenced batches
+
+=== direct recapture attempt (FEATURE004_CAPTURE_V15_CHECK=1) ===
+Error: v15 planning baseline to capture HEAD mismatch: 38af035c6b25961646cdd342a2df60d4f9793406 is not an ancestor of e0a63a533d0133a5a96752cd2ad126804ad0ef61
+```
+
+**Editing the assertion is refused by the test itself.** It hashes its own
+normalized source into the compressed v15 payload, and the normalizer excludes
+exactly one line — `POST_COMMIT_V15_BLOCK_SHA256`. Adding the content-identity
+resolver changed the normalized hash and was rejected:
+
+```text
+  error: |-
+    v15 normalized parser hash matches implementation authority
+    + actual   - expected
+    + '5bc0f70e97d8590aa188668b2c0705f3b44a7549505436725a03ab5c98b8c977'
+    - '391e2e7e6e49a2d1b978c8de071a72ae3d6511e60a4ec3f69ebd760ac8a5afdd'
+```
+
+The expected hash lives inside the brotli-compressed evidence block, which only
+the (now unreachable) capture path may write. The one remaining path — hand-
+editing that block to match a modified test — is forging the immutable audit
+record the block exists to protect. **That was refused.** The test file was
+restored to its committed bytes and left red.
+
+### What is NOT affected
+
+The invariant CMD-COLLISION protects — Feature 004 work must not clobber a
+concurrent session's uncommitted hunks — was independently verified this session
+and holds: path-scoped `git diff --check` exits 0 with zero collateral formatting,
+and the foreign-uncommitted-work scan shows no other session's file was staged,
+stashed, checked out, or reset by any Feature 004 commit. Product gates are green
+at selftest 1370/0, brief validator PASS, artifact lint PASSED, E2E 76/0.
+
+What is broken is the test's self-referential meta-evidence apparatus, not the
+product behavior it guards.

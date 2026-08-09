@@ -682,6 +682,32 @@
       "limitations": ["Until owner evidence exists, the adapter must return unavailable rather than reinterpret the foundation receipt as a signal."],
       "deepLinkTargets": {"power":"technical-analysis-decision-lab.html#power","journey":"technical-analysis-decision-lab.html#journey"},
       "definitionFingerprint": null
+    },
+    {
+      "contractVersion": "simple-model-definition/v1",
+      "definitionId": "simple-model/fx-currency-vehicle/v1",
+      "toolId": "fx-regime-relative-value-lab",
+      "modelId": "fx-currency-vehicle",
+      "modelVersion": "v1",
+      "researchQuestion": "Which listed vehicle expresses this currency objective under the active horizon, structure, liquidity, and cost constraints",
+      "resultSchemaId": "simple-model-output/generic-scenario/v1",
+      "adapterId": "simple-adapter/fx-currency-vehicle/v1",
+      "adapterModule": "rlexperience-adapters/macro-rotation.js",
+      "inputRequirements": [{"requirementId":"owner-evidence","sourceClass":"owner-evidence","required":true,"stalePolicy":"reject"}],
+      "parameterDefinitions": [
+        {"parameterId":"horizon","label":"Horizon","kind":"enum","unit":"none","domain":{"options":[{"value":"tactical","label":"Tactical"},{"value":"swing","label":"Swing"},{"value":"structural","label":"Structural"}]},"defaultValue":"swing","defaultSource":"registry","interpretation":"Structure and reset rules are enforced against this holding horizon.","affectsOutputPaths":["summary.outcomes"],"disabledWhen":[],"identityBearing":true},
+        {"parameterId":"vehicle-class","label":"Vehicle class","kind":"enum","unit":"none","domain":{"options":[{"value":"unlevered-single-currency","label":"Unlevered single currency"},{"value":"broad-dollar-basket","label":"Broad dollar basket"},{"value":"diversified-currency-basket","label":"Diversified currency basket"},{"value":"tactical-daily-reset","label":"Tactical daily reset"}]},"defaultValue":"unlevered-single-currency","defaultSource":"registry","interpretation":"Constrains exposure mechanism, legal structure, leverage, and reset policy.","affectsOutputPaths":["summary.outcomes"],"disabledWhen":[],"identityBearing":true},
+        {"parameterId":"daily-reset","label":"Daily reset","kind":"enum","unit":"none","domain":{"options":[{"value":"exclude","label":"Exclude daily-reset vehicles"},{"value":"permit-tactical","label":"Permit inside tactical horizon"}]},"defaultValue":"exclude","defaultSource":"registry","interpretation":"Excluding reset products rejects them regardless of direction match.","affectsOutputPaths":["summary.outcomes"],"disabledWhen":[],"identityBearing":true}
+      ],
+      "scenarioDefinitions": [{"scenarioId":"baseline","label":"Baseline","parameterOverrides":{}}],
+      "seedPolicy": {"required":false,"defaultSeed":null,"defaultSource":null,"randomnessClass":"none","commonRandomNumbersForSensitivity":false},
+      "sensitivityPolicy": {"method":"one-at-a-time","requireOutputEffect":true,"flatRegionPolicy":"explicit-proof"},
+      "calibrationPolicy": {"class":"owner-evidence-relative","requiredFields":["state","reason"]},
+      "provenancePolicy": {"allowedClasses":["observed-fact","user-assumption","model-estimate","unavailable"],"requireEvidenceCutoff":true},
+      "performancePolicy": {"maxComputeMs":250,"deterministic":true},
+      "limitations": ["Research eligibility only. An unavailable or rights-unclear listed-vehicle fact can never become an eligible vehicle, and no constraint is relaxed to produce one."],
+      "deepLinkTargets": {"power":"fx-regime-relative-value-lab.html#power","journey":"fx-regime-relative-value-lab.html#journey"},
+      "definitionFingerprint": null
     }
   ]
 }

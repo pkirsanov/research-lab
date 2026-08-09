@@ -1787,6 +1787,12 @@
       "deepLink": "technical-analysis-decision-lab.html",
       "status": "stale",
       "reason": "The headless adapter ran but the owner five-gate model is not implemented, so no analytic result is published (asOf 2026-08-07T13:30:00Z): the per-stock five-gate model (context / location / confirmation / validation gate scoring plus setup-state and expectancy) is absent from technical-analysis-decision-lab.html — a Scope-01 foundation-receipt validator that publishes no read for SPY. The data foundation is present but no setup-state, trigger or expectancy conclusion can be asserted. Preserve the explicit unresolved owner-read state; open the owning tool for a specific stock once the five-gate model is implemented to compute a live read for the after-hours 2026-08-09 view."
+    },
+    {
+      "id": "fx-regime-relative-value-lab",
+      "deepLink": "fx-regime-relative-value-lab.html",
+      "status": "stale",
+      "reason": "The owner model is implemented and publishes a read, but the rights gate withholds every candidate, so no currency vehicle is recommended this window. All 95 committed vehicle observations in fx-vehicle-universe.json carry rights \"unknown\", which normalizes each to availability unavailable with RIGHTS_UNCLEAR; all seven listed vehicles (FXY, FXE, UUP, UDN, USDU, CEW, YCS) therefore settle Unavailable with [RIGHTS_UNCLEAR, REQUIRED_FACT_MISSING, TRACKING_EVIDENCE_INCOMPLETE], selected is null and the reader decision is \"Recommendation unavailable\". This is the rights gate operating correctly on rights-unclear evidence, not a model defect and not a missing implementation — the lab refuses rather than relax an eligibility constraint to manufacture a currency recommendation. Publishing rights-clear vehicle observations is what changes this; open the owning tool to inspect the per-vehicle disposition and its exact reason codes."
     }
   ],
   "watchlistNotes": {

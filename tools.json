@@ -1657,6 +1657,68 @@
         ],
         "publicAliases": []
       }
+    },
+    {
+      "id": "fx-regime-relative-value-lab",
+      "group": "Rotation & Macro",
+      "title": "FX Regime & Currency Vehicle Lab",
+      "nav": {
+        "label": "FX Regime",
+        "icon": "💱"
+      },
+      "file": "fx-regime-relative-value-lab.html",
+      "notes": "notes/fx-regime-relative-value-lab.md",
+      "data": "fx-regime-universe.json",
+      "status": "live",
+      "updated": "2026-08-09",
+      "blurb": "ETF-first currency workspace that maps a currency view to an eligible listed vehicle, or refuses. Separate dollar slots, cohort boards that never pool, and pair reads that infer no orientation from ticker spelling. Every vehicle carries a settled disposition with exact reason codes; direction mismatch, basket mismatch, daily-reset boundaries, and an unexplained tracking residual are all visible, and no constraint is relaxed to manufacture a recommendation.",
+      "tags": [
+        "currency",
+        "FX regime",
+        "listed vehicle",
+        "FXY FXE",
+        "UUP USDU",
+        "broad dollar",
+        "daily reset",
+        "tracking residual",
+        "rights-gated evidence",
+        "Simple + Power",
+        "shared cache"
+      ],
+      "briefing": {
+        "role": "source",
+        "profile": "live-market",
+        "readAdapter": "fx-owning-model-v2",
+        "readContractVersion": "tool-model-read/v1",
+        "freshnessPolicy": "daily-market-bars-v1",
+        "recommendationPolicy": "market-action-v1",
+        "budgetPolicy": "live-market-v1"
+      },
+      "experience": {
+        "contractVersion": "tool-experience/v1",
+        "kind": "ordinary",
+        "viewSetId": "ordinary-four-view/v1",
+        "viewIds": [
+          "simple",
+          "power",
+          "brief",
+          "journey"
+        ],
+        "simpleModelDefinitionId": "simple-model/fx-currency-vehicle/v1",
+        "simpleAdapterId": "simple-adapter/fx-currency-vehicle/v1",
+        "simpleAdapterModule": "rlexperience-adapters/macro-rotation.js",
+        "powerAdapterId": "power-adapter/existing-owner-page/v1",
+        "briefPolicyId": "web-evidence-policy/live-market/v1",
+        "journeyDefinitionIds": [
+          "journey/fx-regime-relative-value-lab/currency-vehicle-selection/v1",
+          "journey/fx-regime-relative-value-lab/wrapper-mismatch/v1"
+        ],
+        "contextPolicyId": "contextual-tooltip/v1",
+        "matrixDomains": [
+          "macro-rotation"
+        ],
+        "publicAliases": []
+      }
     }
   ]
 }

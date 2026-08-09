@@ -1054,3 +1054,112 @@ test('Regression SCN-004-032: current Brief refuses ineligible evidence and inco
   expect(posture.bodyText).not.toContain('not-evaluable');
   expect(posture.bodyText).not.toMatch(/prior evidence[^.]*\bcurrent\b/i);
 });
+
+test('Regression SCN-004-026: cutover activates every route view owner note and deep link or remains excluded', async ({ page }) => {
+  const fs = require('node:fs');
+  const experience = require('../rlexperience.js');
+  const toolId = 'fx-regime-relative-value-lab';
+  const routeFile = 'fx-regime-relative-value-lab.html';
+
+  const registry = JSON.parse(fs.readFileSync(new URL('../tools.json', import.meta.url), 'utf8'));
+  const config = JSON.parse(fs.readFileSync(new URL('../tool-experience.config.json', import.meta.url), 'utf8'));
+  const exclusions = JSON.parse(fs.readFileSync(new URL('../site-exclusions.json', import.meta.url), 'utf8'));
+  const landingSource = fs.readFileSync(new URL('../index.html', import.meta.url), 'utf8');
+  const navSource = fs.readFileSync(new URL('../rlnav.js', import.meta.url), 'utf8');
+
+  // (1) The tool is registered exactly once, and the three registries agree on its position.
+  const registryIds = registry.tools.map((entry) => entry.id);
+  expect(registryIds.filter((id) => id === toolId)).toHaveLength(1);
+  const registryIndex = registryIds.indexOf(toolId);
+
+  const landingFiles = [...landingSource.replace(/\/\*[\s\S]*?\*\//g, '').matchAll(/^\s*file:\s*'([^']+\.html)'/gm)].map((m) => m[1]);
+  const navFiles = [...navSource.replace(/\/\*[\s\S]*?\*\//g, '').matchAll(/file:\s*"([^"]+\.html)"/g)].map((m) => m[1]);
+  // The landing registry omits the aggregator route that tools.json carries first, so both
+  // navigation registries are compared on their own shared ordering, not on a raw index.
+  expect(landingFiles.filter((file) => file === routeFile)).toHaveLength(1);
+  expect(navFiles.filter((file) => file === routeFile)).toHaveLength(1);
+  const registryOrder = registryIds
+    .map((id) => (registry.tools.find((entry) => entry.id === id) || {}).file)
+    .filter((file) => landingFiles.includes(file));
+  expect(landingFiles).toEqual(registryOrder);
+  expect(navFiles.filter((file) => registryOrder.includes(file))).toEqual(registryOrder);
+
+  // (2) Every consumer the shell needs resolves. Before the cutover this was structurally
+  //     impossible: resolveShell requires exactly one tools.json match, so an excluded route
+  //     could not mount the four-view shell at all.
+  const entry = registry.tools[registryIndex];
+  const shell = experience.resolveShell(config, registry, toolId);
+  expect(shell.ok).toBe(true);
+  expect(shell.value.viewIds).toEqual(['simple', 'power', 'brief', 'journey']);
+  expect(shell.value.kind).toBe('ordinary');
+
+  // (3) The Simple model and its adapter are declared and present.
+  const models = JSON.parse(fs.readFileSync(new URL('../simple-models.json', import.meta.url), 'utf8'));
+  const model = models.definitions.find((def) => def.definitionId === entry.experience.simpleModelDefinitionId);
+  expect(model).toBeTruthy();
+  expect(model.toolId).toBe(toolId);
+  expect(model.adapterId).toBe(entry.experience.simpleAdapterId);
+  const adapterModule = require('../' + entry.experience.simpleAdapterModule);
+  expect(adapterModule.supportedAdapterIds).toContain(entry.experience.simpleAdapterId);
+  // Every parameter domain is a real option list — a bare value array is rejected upstream.
+  for (const parameter of model.parameterDefinitions) {
+    expect(Array.isArray(parameter.domain.options)).toBe(true);
+    expect(parameter.domain.options.length).toBeGreaterThan(0);
+  }
+
+  // (4) Both Journey definitions resolve, and each is claimed by exactly one registered tool.
+  const journeys = JSON.parse(fs.readFileSync(new URL('../journeys.json', import.meta.url), 'utf8'));
+  expect(entry.experience.journeyDefinitionIds).toHaveLength(2);
+  const allClaimed = registry.tools.flatMap((tool) => (tool.experience || {}).journeyDefinitionIds || []);
+  for (const journeyId of entry.experience.journeyDefinitionIds) {
+    const definition = journeys.definitions.find((def) => def.definitionId === journeyId);
+    expect(definition).toBeTruthy();
+    expect(definition.toolId).toBe(toolId);
+    expect(allClaimed.filter((id) => id === journeyId)).toHaveLength(1);
+    expect(journeys.steps.filter((step) => step.definitionId === journeyId).length).toBeGreaterThan(0);
+  }
+
+  // (5) The owner note the registry advertises actually exists and describes this tool.
+  expect(entry.notes).toBe('notes/fx-regime-relative-value-lab.md');
+  const note = fs.readFileSync(new URL('../' + entry.notes, import.meta.url), 'utf8');
+  expect(note.length).toBeGreaterThan(500);
+  expect(note).toContain('RIGHTS_UNCLEAR');
+
+  // (6) Registration and exclusion are mutually exclusive. A registered route, its universe,
+  //     and its owner note must all ship; nothing the route depends on may stay excluded.
+  const excludedPaths = exclusions.files.map((file) => file.path);
+  expect(excludedPaths).not.toContain(routeFile);
+  expect(excludedPaths).not.toContain(entry.data);
+  expect(excludedPaths).not.toContain('rlfx.js');
+  expect(excludedPaths).not.toContain('fx-vehicle-universe.json');
+
+  // (7) The projected site — what actually deploys — carries the route.
+  const { planPagesSite } = await import('../scripts/build-pages-site.mjs');
+  const plan = planPagesSite();
+  expect(plan.registeredPages).toContain(routeFile);
+  expect(plan.excludedPaths).not.toContain(routeFile);
+
+  // (8) Adversarial: the checks above are not vacuous. Removing the registry entry — the exact
+  //     partial-cutover state Scope 5 forbids — must break shell resolution, not degrade quietly.
+  const partial = JSON.parse(JSON.stringify(registry));
+  partial.tools = partial.tools.filter((tool) => tool.id !== toolId);
+  const brokenShell = experience.resolveShell(config, partial, toolId);
+  expect(brokenShell.ok).toBe(false);
+  const orphaned = journeys.definitions.filter((def) => def.toolId === toolId);
+  expect(orphaned.length).toBe(2);
+  expect(partial.tools.flatMap((tool) => (tool.experience || {}).journeyDefinitionIds || []))
+    .not.toContain(orphaned[0].definitionId);
+
+  // (9) The live route serves and boots through the registered file name.
+  const response = await page.goto(site.baseUrl + '/' + routeFile);
+  expect(response.status()).toBe(200);
+  await expect(page.locator('body')).toHaveAttribute('data-fx-ready', '1');
+  const live = await page.evaluate(() => ({
+    toolId: window.FxRegimeLab.toolId,
+    loadError: window.FxRegimeLab.loadError(),
+    controls: Object.keys(window.FxRegimeLab.controls()).length
+  }));
+  expect(live.toolId).toBe(toolId);
+  expect(live.loadError).toBeNull();
+  expect(live.controls).toBeGreaterThan(0);
+});

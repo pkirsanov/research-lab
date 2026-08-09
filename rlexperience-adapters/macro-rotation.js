@@ -1427,8 +1427,143 @@
     return null;
   }
 
-  function createFixedIncomeSleeveAdapter(api, definition, ownerByIdentity) {
+  var FX_VEHICLE_OUTPUT_PATHS = {
+    "horizon": ["summary.evaluations"],
+    "vehicle-class": ["summary.evaluations"],
+    "daily-reset": ["summary.evaluations"]
+  };
+
+  /* The FX owner decision is already settled by rlfx.js. This adapter PROJECTS it — it never
+     re-evaluates a vehicle, and an unavailable owner state stays unavailable. */
+  function fxVehicleSummary(ownerState) {
+    var fit = (ownerState && ownerState.vehicleFit) || {};
+    var evaluations = Array.isArray(fit.evaluations) ? fit.evaluations : [];
     return {
+      state: fit.state || "Unavailable",
+      selectedVehicleId: fit.selected ? fit.selected.vehicleId : null,
+      evaluationCount: evaluations.length,
+      eligibleCount: evaluations.filter(function (e) { return e.state === "Eligible"; }).length,
+      evaluations: evaluations.map(function (e) {
+        return { vehicleId: e.vehicleId, ticker: e.ticker, state: e.state, reasonCodes: (e.reasonCodes || []).slice() };
+      })
+    };
+  }
+
+  function buildFxVehicleEvidence(api, ownerState) {
+    var cutoff = String((ownerState && ownerState.evidenceCutoff) || "unavailable");
+    var ready = ownerState && ownerState.state === "ready";
+    return {
+      contractVersion: "simple-evidence-snapshot/v1",
+      toolId: "fx-regime-relative-value-lab",
+      state: ready ? "ready" : "unavailable",
+      evidenceCutoff: cutoff,
+      evidenceRefs: [{
+        requirementId: "owner-evidence",
+        evidenceRef: "owner:fx-regime-relative-value-lab:vehicle-fit:" + cutoff,
+        semanticFingerprint: ownerStateFingerprint(api, ownerState),
+        sourceClass: "observed-fact",
+        observedAsOf: cutoff,
+        retrievedOrPublishedAt: cutoff,
+        freshness: "cache-current-for-render",
+        dataTier: "reviewed-configuration",
+        valueState: ready ? "ready" : "unavailable"
+      }],
+      parameterValues: {},
+      evidenceIdentity: ownerStateFingerprint(api, ownerState)
+    };
+  }
+
+  function fxVehicleOutput(input, summary) {
+    var ready = summary.state !== "Unavailable";
+    var values = { summary: summary };
+    return {
+      contractVersion: "simple-model-output/v1",
+      state: ready ? "ready" : "unavailable",
+      values: values,
+      scenarios: input.scenarios.map(function (scenario) {
+        return { scenarioId: scenario.scenarioId, state: ready ? "ready" : "unavailable", values: values };
+      }),
+      calibration: {
+        state: "owner-evidence-relative",
+        reason: summary.eligibleCount + " of " + summary.evaluationCount + " registry vehicles are eligible under the active constraints."
+      },
+      provenance: { classes: ["observed-fact"], evidenceIdentity: input.evidenceIdentity },
+      uncertainty: {
+        state: ready ? "bounded" : "wide",
+        rangeOrBand: summary.selectedVehicleId ? ("Selected " + summary.selectedVehicleId) : "No vehicle selected",
+        reason: "Every disposition is the frozen owner evaluation for that registry member; no constraint is relaxed to produce one."
+      }
+    };
+  }
+
+  function createFxCurrencyVehicleAdapter(api, definition, ownerByIdentity) {
+    return {
+      contractVersion: "simple-model-adapter/v1",
+      adapterId: definition.adapterId,
+      supportedDefinitionIds: [definition.definitionId],
+      validateDefinition: function (candidate) {
+        return { ok: true, value: candidate };
+      },
+      captureEvidence: function (ownerContext) {
+        if (!ownerContext || typeof ownerContext !== "object") {
+          return { ok: false, error: { reason: "owner context required" } };
+        }
+        var ownerState = ownerContext.ownerState;
+        if (!ownerState || typeof ownerState !== "object" || !ownerState.vehicleFit) {
+          return { ok: false, error: { reason: "FX owner decision with a vehicle fit is required" } };
+        }
+        var frozen = deepFreeze(JSON.parse(JSON.stringify(ownerState)));
+        var evidence = buildFxVehicleEvidence(api, frozen);
+        ownerByIdentity.set(evidence.evidenceIdentity, frozen);
+        return { ok: true, value: evidence };
+      },
+      normalizeInputs: function (candidate, evidence, parameterValues, seed, scenarioIds) {
+        return api.normalizeSimpleInput(candidate, evidence, parameterValues, seed, scenarioIds);
+      },
+      compute: function (input) {
+        var ownerState = ownerByIdentity.get(input.evidenceIdentity);
+        if (!ownerState) {
+          return { ok: false, error: { reason: "frozen owner state is unavailable for this evidence identity" } };
+        }
+        return { ok: true, value: fxVehicleOutput(input, fxVehicleSummary(ownerState)) };
+      },
+      compareSensitivity: function (baselineInput, currentInput) {
+        var ownerState = ownerByIdentity.get(currentInput.evidenceIdentity);
+        if (!ownerState) {
+          return { ok: false, error: { reason: "frozen owner state is unavailable for sensitivity" } };
+        }
+        var baselineValues = paramMap(baselineInput);
+        var currentValues = paramMap(currentInput);
+        var summary = fxVehicleSummary(ownerState);
+        var effects = [];
+        Object.keys(currentValues).forEach(function (parameterId) {
+          if (parameterId === "seed") return;
+          if (baselineValues[parameterId] === currentValues[parameterId]) return;
+          var paths = FX_VEHICLE_OUTPUT_PATHS[parameterId] || [];
+          /* The owner decision is frozen, so a control change cannot move it here. That is the
+             honest result, not a missing effect — the flat-region proof states exactly why. */
+          effects.push({
+            parameterId: parameterId,
+            oldValue: baselineValues[parameterId],
+            newValue: currentValues[parameterId],
+            direction: "changed",
+            magnitude: 1,
+            nonlinear: false,
+            resultPaths: paths,
+            outputChanged: false,
+            flatRegionProof: {
+              parameterId: parameterId,
+              resultPaths: paths,
+              reason: "The owner decision is frozen for this evidence identity, and every registry member is " + summary.state + " under it, so this parameter cannot change the projection."
+            }
+          });
+        });
+        return { ok: true, value: { contractVersion: "simple-sensitivity/v1", effects: effects } };
+      }
+    };
+  }
+
+  function createFixedIncomeSleeveAdapter(api, definition, ownerByIdentity) {    return {
       contractVersion: "simple-model-adapter/v1",
       adapterId: definition.adapterId,
       supportedDefinitionIds: [definition.definitionId],
@@ -1904,6 +2039,10 @@
       var etfDefinition = byToolId["etf-momentum-lab"];
       adapters[etfDefinition.adapterId] = createEtfRankingAdapter(api, etfDefinition, ownerByIdentity);
     }
+    if (byToolId["fx-regime-relative-value-lab"]) {
+      var fxDefinition = byToolId["fx-regime-relative-value-lab"];
+      adapters[fxDefinition.adapterId] = createFxCurrencyVehicleAdapter(api, fxDefinition, ownerByIdentity);
+    }
     return adapters;
   }
 
@@ -1921,7 +2060,7 @@
   return {
     contractVersion: "macro-rotation-adapters/v1",
     module: "rlexperience-adapters/macro-rotation.js",
-    supportedAdapterIds: ["simple-adapter/sector-rotation-transition/v1", "simple-adapter/country-rotation/v1", "simple-adapter/real-asset-driver/v1", "simple-adapter/fixed-income-sleeve/v1", "simple-adapter/etf-ranking/v1"],
+    supportedAdapterIds: ["simple-adapter/sector-rotation-transition/v1", "simple-adapter/country-rotation/v1", "simple-adapter/real-asset-driver/v1", "simple-adapter/fixed-income-sleeve/v1", "simple-adapter/etf-ranking/v1", "simple-adapter/fx-currency-vehicle/v1"],
     rollZ100: rollZ100,
     rrgQuadrant: rrgQuadrant,
     stateLabel: stateLabel,

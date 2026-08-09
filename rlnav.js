@@ -99,7 +99,8 @@
     { label: "Ocean Shores Rentals", full: "Ocean Shores Rental Market Lab", icon: "🏖️", file: "ocean-shores-rental-market-lab.html", group: "Place-based" }
   );
   TOOLS.push(
-    { label: "TA Decision", full: "Technical Analysis Decision Lab", icon: "📐", file: "technical-analysis-decision-lab.html", group: "Market Structure" }
+    { label: "TA Decision", full: "Technical Analysis Decision Lab", icon: "📐", file: "technical-analysis-decision-lab.html", group: "Market Structure" },
+    { label: "FX Regime", full: "FX Regime & Currency Vehicle Lab", icon: "💱", file: "fx-regime-relative-value-lab.html", group: "Rotation & Macro" }
   );
 
   var LSKEY = "rlnav.pinned";

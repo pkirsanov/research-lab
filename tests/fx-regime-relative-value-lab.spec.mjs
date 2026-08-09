@@ -913,8 +913,7 @@ test('Regression SCN-004-025 adversarial: every declared context has definition 
   expect(undecorated).toBe(0);
 });
 
-test('Regression SCN-004-023: the real Brief route states the FX/Global relationship honestly', async ({ page }) => {
-  await page.goto(site.baseUrl + '/market-brief.html');
+test('Regression SCN-004-023: the real Brief route states the FX/Global relationship honestly', async ({ page }) => {  await page.goto(site.baseUrl + '/market-brief.html');
   const panel = page.locator('#fxGlobalRelationship');
   await expect(panel).toHaveCount(1);
   await expect(panel.locator('[data-relationship]')).toHaveCount(1);
@@ -935,4 +934,89 @@ test('Regression SCN-004-023: the real Brief route states the FX/Global relation
   expect(state.text).not.toMatch(/\bscore\b/i);
   expect(state.text).not.toMatch(/\bcoverage\b/i);
   expect(state.text).not.toMatch(/\d+\s*%/);
+});
+
+/* TP-04-04 / TP-04-05 — controlled owner facts through production rlbrief.js in a real browser.
+   These are functional, not E2E: the owner reads are constructed, the classifier is production. */
+async function openBriefClassifier(page) {
+  await page.goto(site.baseUrl + '/market-brief.html');
+  await page.waitForFunction(() => typeof window.RLBRIEF !== 'undefined' && typeof window.RLBRIEF.evaluateFxGlobalRelationship === 'function');
+}
+
+const FX_READ = (side) => ({
+  contractVersion: 'rlfx-tool-read/v2', id: 'fx-regime-relative-value-lab', availability: 'current',
+  asOf: '2026-08-08T12:00:00.000Z', read: 'FX owner read', deepLink: 'fx-regime-relative-value-lab.html#power',
+  computedAt: '2026-08-08T12:00:00.000Z', freshUntil: '2026-08-09T00:00:00.000Z',
+  metrics: { evidenceIdentity: 'fxe-v1-aaa', recommendationOutcome: { economicDirection: { exposure: 'long-JPY/short-USD', instrumentSide: side } } }
+});
+const GLOBAL_READ = (relative) => ({
+  contractVersion: 'rl-tool-read/v1', id: 'global-rotation-lab', availability: 'current',
+  asOf: '2026-08-08T12:00:00.000Z', read: 'Global owner read', deepLink: 'global-rotation-lab.html#simple',
+  computedAt: '2026-08-08T12:00:00.000Z', freshUntil: '2026-08-09T00:00:00.000Z',
+  metrics: { evidenceIdentity: 'gr-v1-bbb', leader: { ticker: 'EWJ', usdLeadership: { state: 'ready', usdRelativeReturn: relative } } }
+});
+
+test('Browser functional SCN-004-023: controlled current owner facts render Agreement and Divergence', async ({ page }) => {
+  await openBriefClassifier(page);
+
+  const both = await page.evaluate(({ fxRead, up, down }) => {
+    const at = '2026-08-08T12:00:00.000Z';
+    return {
+      agree: window.RLBRIEF.evaluateFxGlobalRelationship(fxRead, up, at),
+      diverge: window.RLBRIEF.evaluateFxGlobalRelationship(fxRead, down, at)
+    };
+  }, { fxRead: FX_READ('long'), up: GLOBAL_READ(0.04), down: GLOBAL_READ(-0.04) });
+
+  expect(both.agree.relationship).toBe('Agreement');
+  expect(both.diverge.relationship).toBe('Divergence');
+  expect(both.agree.blockingReasons).toEqual([]);
+
+  // Both owners are attributed with their own clocks and deep links; nothing is merged.
+  expect(both.agree.fx.ownerDeepLink).not.toBe(both.agree.global.ownerDeepLink);
+  expect(both.agree.fx.computedAt).toBeTruthy();
+  expect(both.agree.global.freshUntil).toBeTruthy();
+  expect(both.agree.score).toBeUndefined();
+  expect(both.agree.coverage).toBeUndefined();
+
+  // Non-vacuity: one label for both inputs would mean the classifier decided nothing.
+  expect(both.agree.relationship).not.toBe(both.diverge.relationship);
+});
+
+test('Browser functional SCN-004-023 adversarial: stale missing flat or unaccepted owner facts stay reasoned unavailable', async ({ page }) => {
+  await openBriefClassifier(page);
+
+  const cases = await page.evaluate(({ fxRead, flat, stale, wrongTool }) => {
+    const at = '2026-08-08T12:00:00.000Z';
+    const run = (fx, global) => {
+      const r = window.RLBRIEF.evaluateFxGlobalRelationship(fx, global, at);
+      return { relationship: r.relationship, reasons: r.blockingReasons.slice(), fx: r.fx, global: r.global, keys: Object.keys(r) };
+    };
+    return {
+      flat: run(fxRead, flat),
+      stale: run(fxRead, stale),
+      missing: run(null, flat),
+      wrongTool: run(wrongTool, flat)
+    };
+  }, {
+    fxRead: FX_READ('long'),
+    flat: GLOBAL_READ(0),
+    stale: Object.assign(GLOBAL_READ(0.04), { freshUntil: '2026-08-08T00:00:00.000Z' }),
+    wrongTool: Object.assign(FX_READ('long'), { id: 'some-other-lab' })
+  });
+
+  for (const key of ['flat', 'stale', 'missing', 'wrongTool']) {
+    expect(cases[key].relationship).toBe('Insufficient Evidence');
+    // No third composite, matrix domain/cell/applicability, or coverage claim is ever produced.
+    expect(cases[key].keys.sort()).toEqual(['blockingReasons', 'contractVersion', 'fx', 'global', 'relationship']);
+  }
+
+  expect(cases.flat.reasons).toContain('DIRECTION_NOT_ATTRIBUTABLE');
+  expect(cases.stale.reasons).toContain('OWNER_STALE');
+  expect(cases.missing.reasons).toContain('FX_OWNER_READ_MISSING');
+  expect(cases.wrongTool.reasons).toContain('OWNER_TOOL_MISMATCH');
+
+  // A refused pairing still keeps the owner that IS current attributable through its own deep link.
+  expect(cases.stale.fx).not.toBeNull();
+  expect(cases.stale.fx.ownerDeepLink).toBe('fx-regime-relative-value-lab.html#power');
+  expect(cases.stale.global).toBeNull();
 });

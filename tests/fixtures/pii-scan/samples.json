@@ -18,6 +18,11 @@
             "text": "cd /home/jdoe/repo"
         },
         {
+            "rule": "home-path",
+            "label": "a home path pasted into a commit-message body",
+            "text": "refreshed via install.sh --local-source /home/jdoe/bubbles"
+        },
+        {
             "rule": "machine-hostname",
             "label": "an Apple device name",
             "text": "host Jamies-MacBook-Pro ready"

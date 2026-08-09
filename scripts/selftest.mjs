@@ -66,6 +66,13 @@ function build(fnSources, exportNames, preamble = '') {
 }
 
 let failures = 0, passes = 0;
+const failureDetails = [];
+const writeLog = console.log.bind(console);
+console.log = (...args) => {
+  const line = args.map(String).join(' ');
+  if (line.includes('\u2717 FAIL')) failureDetails.push(line);
+  writeLog(...args);
+};
 function assert(cond, msg) {
   if (cond) { passes++; console.log('  \u2713 ' + msg); }
   else { failures++; console.log('  \u2717 FAIL: ' + msg); }
@@ -1707,6 +1714,15 @@ try {
   assert(piiResult.ok, 'committed surface carries no personal identifier');
   assert(piiResult.filesScanned > 500, 'the scan covered the repository (files=' + piiResult.filesScanned + ')');
 
+  /* Commit messages are the other half of the committed surface, and `git ls-files`
+     cannot see them — that blind spot let a home path sit in history through an
+     earlier scrub. Requiring a non-trivial count stops this passing vacuously if
+     git ever goes missing and the message pass silently yields nothing. */
+  assert(piiResult.messagesScanned > 100, 'the scan covered commit messages (messages=' + piiResult.messagesScanned + ')');
+  const piiMessages = piiScan.listCommitMessages(ROOT);
+  assert(piiMessages.length === piiResult.messagesScanned, 'every enumerated commit message is scanned');
+  assert(piiMessages.every((record) => /^[0-9a-f]{40}$/.test(record.sha)), 'each scanned message is bound to a commit sha');
+
   /* ADVERSARIAL: a scan that reports clean for ANY input proves nothing. Drive the
      committed synthetic samples through every rule and require each to fire. */
   const piiConfig = piiScan.loadConfig(ROOT);
@@ -1733,7 +1749,7 @@ try {
   assert((piiConfig.deniedTermHashes || []).length >= 1, 'the committed denylist carries at least one term digest');
 
   /* A scanner that prints what it found copies the identifier into CI logs. */
-  const piiSample = piiScan.formatFindings({ ok: false, filesScanned: 1, findings: [{ file: 'x.md', line: 1, column: 1, rule: 'personal-email', length: 20 }] });
+  const piiSample = piiScan.formatFindings({ ok: false, filesScanned: 1, messagesScanned: 0, findings: [{ file: 'x.md', line: 1, column: 1, rule: 'personal-email', length: 20 }] });
   assert(piiSample.split('\n')[0].indexOf('@') < 0, 'a finding line never echoes the matched identifier');
 } catch (e) { failures++; console.log('  \u2717 FAIL (pii-scan group threw): ' + e.message); }
 
@@ -5864,6 +5880,10 @@ try {
 } catch (e) { failures++; console.log('  \u2717 FAIL (spec artifact test-path guard threw): ' + e.message); }
 
 /* ---------- summary ---------- */
+if (failureDetails.length > 0) {
+  writeLog('\nFailure recap:');
+  for (const detail of failureDetails) writeLog(detail);
+}
 console.log('\n' + '='.repeat(48));
 console.log('Research-Lab self-test: ' + passes + ' passed, ' + failures + ' failed');
 console.log('='.repeat(48));

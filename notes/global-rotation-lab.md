@@ -63,21 +63,27 @@ The trend state uses price versus 20-, 50-, and 200-day moving averages plus the
 
 Risk quality combines 63-day annualized realized volatility and trailing 252-bar maximum drawdown. Defense posture puts more weight on this component; offense puts more weight on momentum.
 
-### FX confirmation
+### Currency decomposition
 
-The currency series is oriented so positive means the local currency strengthened versus USD. It confirms or contradicts the primary relative-equity signal.
+The currency series is oriented so positive means the local currency strengthened versus USD. It is a **separate evidence product**, not a scoring input.
 
-**Do not add the ETF return and FX return together.** A US-listed unhedged country ETF already embeds currency translation in its USD return. FX is deliberately a confirmation input, not a second return forecast. Raising the FX weight can still double-count the same impulse, so the default is restrained at 14%.
+**Do not add the ETF return and FX return together.** A US-listed unhedged country ETF already embeds currency translation in its USD return. Raw FX therefore cannot reach the country score at all: `RLFX.scoreCountryLeadership` refuses an `fx` key outright, so an FX reversal can never move score or rank.
+
+The route publishes two independent objects, each with its own returns, coverage, `asOf`, `computedAt`, and `freshUntil`:
+
+- `usdLeadership` — the two-leg USD-investor read (country ETF versus benchmark).
+- `decomposition` — the three-leg read that separates approximate local return, translation, and interaction, using `(1 + R_USD) / (1 + R_FX) - 1`.
+
+When the FX leg is absent, misoriented, or date-incompatible, `usdLeadership` stays available on its own and `decomposition` is `unavailable` with its exact reason. No zero-FX assumption is ever substituted.
 
 ### Composite
 
-The country score maps bounded momentum, trend, risk, and FX components to $0$-$100$, with 50 neutral. Missing components are omitted and remaining weights are renormalized; missing data is never converted to zero.
+The country score maps bounded momentum, trend, and risk components to $0$-$100$, with 50 neutral. It is equity-only. Missing components are omitted and remaining weights are renormalized; missing data is never converted to zero.
 
 ## Simple controls
 
 - **Benchmark**: `ACWI` default; `EFA` and `EEM` isolate developed or emerging relative leadership.
 - **Primary lookback**: 21, 63 (default), or 126 trading days.
-- **FX confirmation weight**: 0-30%, default 14%.
 - **Trend strictness**: flexible, balanced (default), strict.
 - **Risk posture**: offense, balanced (default), defense.
 

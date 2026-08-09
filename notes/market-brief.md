@@ -229,7 +229,7 @@ The brief shows a one-line state + a delta, then links out. It NEVER re-implemen
 | Sector rotation · leading→lagging flips · breadth | `sector-research-lab.html` |
 | Market-wide green/red map · breadth at a glance · leaders/laggards · sector-vs-constituent | `market-heatmap-lab.html` |
 | Momentum + momentum Δ (ETF / sector / name) | `etf-momentum-lab.html` · `sector-research-lab.html` |
-| International country/region rotation · FX confirmation · local-close timing | `global-rotation-lab.html` |
+| International country/region rotation · equity-only leadership · separate USD/FX decomposition · local-close timing | `global-rotation-lab.html` |
 | Gold · silver · bitcoin/crypto · broad/energy/industrial/agriculture commodities | `real-assets-lab.html` |
 | Gamma flip · call/put walls · OPEX clock | `gamma-trading-lab.html` · `options-structure-lab.html` |
 | Unusual options positioning · vol/OI · premium · IV · call-vs-put lean | `options-flow-feed-lab.html` (positioning proxy, NOT a live tape — see §3) |

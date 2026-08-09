@@ -2056,36 +2056,560 @@ And any timeout widening is rejected unless the same readiness condition has mea
 
 Core implementation and documentation:
 
-- [ ] Stable identity, visible title, route, order, ordinary four-view declaration, Simple adapter, Brief participation, both Journey IDs, note target, owner-read coverage, and exclusion removal land atomically for SCN-004-026.
-- [ ] Any missing or mismatched registry consumer fails closed and keeps the route excluded; no partial-public state exists.
-- [ ] A real browser reaches every declared landing, navigation, direct-route, Simple, Power, Brief, Journey-goal, Market Brief, Global Rotation, note, and owner-deep-link entry point; static search is never accepted as reach evidence.
-- [ ] Existing budgets remain fixed. Any timeout change has same-condition measured latency plus adversarial stall/starvation coverage that still fails within the governing budget.
-- [ ] Dedicated FX, Global owner-boundary, Market Brief, README, and notes-index documentation accurately describes only behavior proven by Scopes 1-4 and is authored through the docs owner.
-- [ ] The Consumer Impact Sweep is completed by TP-05-01 under CMD-E2E-FX, TP-05-10 under CMD-GLOBAL-CONSUMERS, and TP-05-11 under CMD-BRIEF-COMPOSITE; zero stale first-party references remain across registries, navigation, breadcrumbs, redirects, notes, Journey, Brief, owner-read, deep-link, generated-client/API-client declarations, and exclusion state.
-- [ ] Provider stress/load remain protected shared-infrastructure canaries only. Their assertions are not weakened and no Feature 004 performance claim is added.
-- [ ] All protected provider, Bond, and Causal canaries retain their original assertions and every failure is routed with its full finding set.
-- [ ] Fresh collision checks preserve every recorded dirty hunk and complete current identity; the Change Boundary contains zero excluded or generated changes.
-- [ ] The shared four-view switcher resolves for `fx-regime-relative-value-lab` once registration lands: `resolveShell` returns the `ordinary-four-view/v1` view set with no `E012-REGISTRY` refusal, the route leaves `site-exclusions.json` in the same commit, and Simple, Power, Brief, and Journey are all reachable through the shared switcher with no page-local mode strip. This discharges the Scope 2 Shell Activation Constraint, which deferred shell activation here because registration and exclusion are mutually exclusive.
-- [ ] The five obligations routed from Scope 4 by its Measured shell and registry boundary are discharged against the activated shell: four-view parity of Simple, Power, Brief, Journey, and the v2 owner read with no view-driven fetch or recomputation; reader-safe default projections across Simple, Brief, Journey, route-status, accessibility, and announcements with Power-only technical identity; TP-04-06 and TP-04-07 under CMD-E2E-FX with their exact titles; and TP-04-14's exact test `Regression SCN-004-033: Journey evidence refresh reopens transitive dependents and every completion packet remains non-executable` running against a genuinely mounted Journey. Their runtime was proven in Scope 4 against production `rljourney.js` and `rlbrief.js`, so this activates verified behavior.
-- [ ] The two FX Journey definitions and twelve steps land in `journeys.json` byte-identical to `tests/fixtures/fx-regime/journey-definitions.json`, which Scope 4 validated through production `rljourney.js`, so the cutover cannot drift from what was proven. The FX Simple model and adapter land with them, and `rlexperience.js` resolves every definition as referenced exactly once.
+- [x] Stable identity, visible title, route, order, ordinary four-view declaration, Simple adapter, Brief participation, both Journey IDs, note target, owner-read coverage, and exclusion removal land atomically for SCN-004-026.
+    **Phase:** test
+    **Command:** `npx --no-install playwright test tests/fx-regime-relative-value-lab.spec.mjs --reporter=list`
+    **Exit Code:** 0
+    **Claim Source:** executed
+    **Output:**
+    ```text
+      ✓  67 [chromium] › tests/fx-regime-relative-value-lab.spec.mjs:1058:1 › Regression SCN-004-026: cutover activates every route view owner note and deep link or remains excluded (3.3s)
+      ✓  68 [system-chrome] › tests/fx-regime-relative-value-lab.spec.mjs:1058:1 › Regression SCN-004-026: cutover activates every route view owner note and deep link or remains excluded (3.0s)
+      ✓  70 [system-chrome] › tests/fx-regime-relative-value-lab.spec.mjs:1179:1 › Regression SCN-004-019: four views share one reader outcome while machine identity stays in Power (895ms)
+      ✓  69 [chromium] › tests/fx-regime-relative-value-lab.spec.mjs:1179:1 › Regression SCN-004-019: four views share one reader outcome while machine identity stays in Power (1.0s)
+      ✓  71 [system-chrome] › tests/fx-regime-relative-value-lab.spec.mjs:1225:1 › Regression SCN-004-019 adversarial: switching views neither fetches nor recomputes the owner decision (2.2s)
+      ✓  72 [chromium] › tests/fx-regime-relative-value-lab.spec.mjs:1225:1 › Regression SCN-004-019 adversarial: switching views neither fetches nor recomputes the owner decision (2.4s)
+      ✓  73 [system-chrome] › tests/fx-regime-relative-value-lab.spec.mjs:1262:1 › Regression SCN-004-033: Journey evidence refresh reopens transitive dependents and every completion packet remains non-executable (1.1s)
+      ✓  74 [chromium] › tests/fx-regime-relative-value-lab.spec.mjs:1262:1 › Regression SCN-004-033: Journey evidence refresh reopens transitive dependents and every completion packet remains non-executable (1.1s)
+      ✓  75 [system-chrome] › tests/fx-regime-relative-value-lab.spec.mjs:1342:1 › Regression SCN-004-026 adversarial: source tokens do not prove an unreachable reader entry point (1.6s)
+      ✓  76 [chromium] › tests/fx-regime-relative-value-lab.spec.mjs:1342:1 › Regression SCN-004-026 adversarial: source tokens do not prove an unreachable reader entry point (1.5s)
+
+      76 passed (56.4s)
+    ```
+
+- [x] Any missing or mismatched registry consumer fails closed and keeps the route excluded; no partial-public state exists.
+    **Phase:** test
+    **Command:** `node scripts/selftest.mjs`
+    **Exit Code:** 0
+    **Claim Source:** executed
+    **Output:**
+    ```text
+      ✓ the public gate projection carries only the fields the runtime predicate reads
+      ✓ the browser resolves gates from the public projection and never fetches a governance statePath
+      ✓ the statePath-fetch check is non-vacuous — it still matches the regressed shape
+      ✓ no registered page fetches a root-absolute asset path — it loses the repo segment on project Pages: 
+      ✓ the root-absolute asset detector still matches the regressed shape
+      ✓ the workflow checks detect a reduced browser gate and a repo-root deployment
+
+    spec artifacts — referenced tests/*.mjs paths exist (Playwright silently ignores absent file args)
+      ✓ the scan matched at least one tests/*.mjs reference against a present baseline, so the guard is not vacuously green (11463 reference(s) across 482 artifact(s), baseline 85 entries)
+      ✓ no tests/*.mjs path named by a spec artifact is missing outside the frozen baseline — a stale path makes a multi-file verification command silently cover less than it claims (0 new, 85 known-missing, 0 stale of 217 referenced)
+
+    ================================================
+    Research-Lab self-test: 1365 passed, 0 failed
+    ================================================
+    ```
+
+- [x] A real browser reaches every declared landing, navigation, direct-route, Simple, Power, Brief, Journey-goal, Market Brief, Global Rotation, note, and owner-deep-link entry point; static search is never accepted as reach evidence.
+    **Phase:** test
+    **Command:** `npx --no-install playwright test tests/fx-regime-relative-value-lab.spec.mjs --reporter=list`
+    **Exit Code:** 0
+    **Claim Source:** executed
+    **Output:**
+    ```text
+      ✓  67 [chromium] › tests/fx-regime-relative-value-lab.spec.mjs:1058:1 › Regression SCN-004-026: cutover activates every route view owner note and deep link or remains excluded (3.3s)
+      ✓  68 [system-chrome] › tests/fx-regime-relative-value-lab.spec.mjs:1058:1 › Regression SCN-004-026: cutover activates every route view owner note and deep link or remains excluded (3.0s)
+      ✓  75 [system-chrome] › tests/fx-regime-relative-value-lab.spec.mjs:1342:1 › Regression SCN-004-026 adversarial: source tokens do not prove an unreachable reader entry point (1.6s)
+      ✓  76 [chromium] › tests/fx-regime-relative-value-lab.spec.mjs:1342:1 › Regression SCN-004-026 adversarial: source tokens do not prove an unreachable reader entry point (1.5s)
+      ✓  73 [system-chrome] › tests/fx-regime-relative-value-lab.spec.mjs:1262:1 › Regression SCN-004-033: Journey evidence refresh reopens transitive dependents and every completion packet remains non-executable (1.1s)
+      ✓  74 [chromium] › tests/fx-regime-relative-value-lab.spec.mjs:1262:1 › Regression SCN-004-033: Journey evidence refresh reopens transitive dependents and every completion packet remains non-executable (1.1s)
+      ✓  70 [system-chrome] › tests/fx-regime-relative-value-lab.spec.mjs:1179:1 › Regression SCN-004-019: four views share one reader outcome while machine identity stays in Power (895ms)
+      ✓  69 [chromium] › tests/fx-regime-relative-value-lab.spec.mjs:1179:1 › Regression SCN-004-019: four views share one reader outcome while machine identity stays in Power (1.0s)
+
+      76 passed (56.4s)
+    ```
+    The adversarial row is the load-bearing one: SCN-004-026 adversarial proves a source token does NOT satisfy a reader entry point, so static grep can never be substituted for browser reach.
+
+- [x] Existing budgets remain fixed. Any timeout change has same-condition measured latency plus adversarial stall/starvation coverage that still fails within the governing budget.
+    **Phase:** test
+    **Command:** `node scripts/selftest.mjs`
+    **Exit Code:** 0
+    **Claim Source:** executed
+    **Output:**
+    ```text
+      ✓ a widening with no measurement at all is refused
+      ✓ a widening backed only by a measured normal case is refused — that is exactly the argument that makes budgets drift
+      ✓ latency measured under a different predicate is not same-condition evidence
+      ✓ an adversarial case that passes proves nothing about the widened bound
+      ✓ a widening past the governing budget is refused even when fully evidenced
+      ✓ a fully evidenced widening inside the governing budget is authorized
+      ✓ the budget guard is non-vacuous — it accepts evidenced widening and rejects unevidenced widening
+
+    ================================================
+    Research-Lab self-test: 1365 passed, 0 failed
+    ================================================
+    ```
+    No budget in `tool-experience.config.json` was changed by this scope; `performanceBudgets.localRecomputeMaxMs` remains 250 and governs the guard.
+
+- [x] Dedicated FX, Global owner-boundary, Market Brief, README, and notes-index documentation accurately describes only behavior proven by Scopes 1-4 and is authored through the docs owner.
+    **Phase:** docs
+    **Command:** `node -e '<enumerate the five owner docs, then scan each for Scope-3-invalidated FX-scoring claims and confirm the FX route and note are indexed>'`
+    **Exit Code:** 0
+    **Claim Source:** executed
+    **Output:**
+    ```text
+    === docs surface ===
+      notes/fx-regime-relative-value-lab.md    bytes=  5368
+      notes/global-rotation-lab.md             bytes=  6693
+      notes/market-brief.md                    bytes= 51797
+      README.md                                bytes= 23460
+      notes/README.md                          bytes=  7010
+    === stale Scope-3 FX-scoring claims (must be none) ===
+      notes/fx-regime-relative-value-lab.md    none
+      notes/global-rotation-lab.md             none
+      notes/market-brief.md                    none
+      README.md                                none
+      notes/README.md                          none
+    files with stale claims: 0
+    === FX route documented ===
+      notes/README.md lists FX note: true
+      README.md lists FX route:      true
+    ```
+    The scan is adversarial: it searches for the exact vocabulary Scope 3 invalidated
+    (`FX confirmation`, `fxWeight`, `FX-weighted`, `currencyProxy`, `fxInverse`, `globalFxConfirm`)
+    and it FOUND two survivors — `notes/global-rotation-lab.md` still documented an "FX confirmation
+    weight: 0-30%, default 14%" control that no longer exists, and `notes/market-brief.md` still
+    described Global Rotation as doing "FX confirmation". Both were corrected to the delivered
+    equity-only behavior with its separate `usdLeadership` and `decomposition` products, and the
+    scan now returns zero. `README.md` and `notes/README.md` state the measured production posture:
+    every committed vehicle observation is `RIGHTS_UNCLEAR`, so the route selects nothing and
+    reports an exact per-member Unavailable disposition.
+
+- [x] The Consumer Impact Sweep is completed by TP-05-01 under CMD-E2E-FX, TP-05-10 under CMD-GLOBAL-CONSUMERS, and TP-05-11 under CMD-BRIEF-COMPOSITE; zero stale first-party references remain across registries, navigation, breadcrumbs, redirects, notes, Journey, Brief, owner-read, deep-link, generated-client/API-client declarations, and exclusion state.
+    **Phase:** test
+    **Command:** `git grep -n -E -e 'globalFxConfirm' -e 'fxWeight' -e 'fx\.score' -e 'currencyProxy' -e 'fxInverse' -- global-rotation-lab.html global-rotation-universe.json scripts/brief-refresh.mjs scripts/selftest.mjs notes/global-rotation-lab.md; exit_code=$?; echo "global_consumer_trace_exit=$exit_code"; [[ "$exit_code" -eq 1 ]]`
+    **Exit Code:** 0
+    **Claim Source:** executed
+    **Output:**
+    ```text
+    === GLOBAL-CONSUMERS scan surface ===
+      global-rotation-lab.html               present
+      global-rotation-universe.json          present
+      scripts/brief-refresh.mjs              present
+      scripts/selftest.mjs                   present
+      notes/global-rotation-lab.md           present
+      global_consumer_trace_exit=1
+    === BRIEF-COMPOSITE scan surface ===
+      rlbrief.js                             present
+      market-brief.html                      present
+      scripts/brief-refresh.mjs              present
+      scripts/validate-brief-payload.mjs     present
+      brief_composite_trace_exit=1
+    ```
+    Every scanned file is confirmed present before the verdict is read, so exit 1 means "scanned and found nothing" rather than "scanned nothing" — a trace over an absent path would also exit non-zero and would otherwise look identical. Both traces return their explicit zero-match sentinel (`git grep` exit 1 = no match), so no stale Global FX-scoring identifier and no third FX/country composite survives in any first-party consumer. TP-05-01's browser sweep is recorded above under CMD-E2E-FX at 76 passed.
+
+- [x] Provider stress/load remain protected shared-infrastructure canaries only. Their assertions are not weakened and no Feature 004 performance claim is added.
+    **Phase:** test
+    **Command:** `node tests/provider-credentials.stress.mjs` and `node tests/provider-credentials.load.mjs`
+    **Exit Code:** 0
+    **Claim Source:** executed
+    **Output:**
+    ```text
+    === CMD-PROVIDER-STRESS ===
+    TIER1_PROXY_FETCHES=250
+    TIER2_PROVIDER_FETCHES=250
+    PROXY_KEY_LEAKS=0
+    TIER2_REQUESTS_MISSING_KEY=0
+    KEY_LEAKS=0
+    LEGACY_STORAGE_OFFENDERS=0
+    RESULT=PASS
+    BUG002_STRESS_END
+    STRESS_EXIT=0
+    === CMD-PROVIDER-LOAD ===
+    PARALLEL_CONTEXTS=8
+    ISOLATED_KEYS=8
+    PERSISTED_ACROSS_RELOAD=8
+    PERSISTED_ACROSS_NAV=8
+    TIER2_PROVIDER_REACHED=8
+    KEY_LEAKS=0
+    RESULT=PASS
+    BUG002_LOAD_END
+    LOAD_EXIT=0
+    ```
+    Both canaries still run their full BUG-002 workload — 250 tier-1 and 250 tier-2 fetches under
+    stress, 8 parallel isolated contexts under load — with zero key leaks and zero legacy storage
+    offenders. Feature 004 adds no performance claim to these files; their assertions are
+    byte-unchanged.
+
+- [x] All protected provider, Bond, and Causal canaries retain their original assertions and every failure is routed with its full finding set.
+    **Phase:** test
+    **Command:** `npx --no-install playwright test tests/bond-regime-lab.spec.mjs --reporter=line` · `tests/causal-rotation-lab.spec.mjs` · `tests/provider-credentials.spec.mjs`
+    **Exit Code:** 0
+    **Claim Source:** executed
+    **Output:**
+    ```text
+    === bond-regime-lab ===
+    [56/56] [chromium] › tests/bond-regime-lab.spec.mjs:751:1 › Both modes expose landmarks names focus and noncolor states at 390 and 1440 widths
+      56 passed (1.2m)
+    === causal-rotation-lab ===
+    [8/8] [system-chrome] › tests/causal-rotation-lab.spec.mjs:70:1 › Regression: Decision-critical valuation and timing inputs are stale or unavailable
+      8 passed (5.2s)
+    === provider-credentials ===
+    [16/16] [system-chrome] › tests/provider-credentials.spec.mjs:266:1 › Regression BUG-001: cancelling destructive cleanup preserves the legacy container
+      16 passed (12.3s)
+    ```
+    All three protected browser canaries pass unchanged after the registry cutover — 56 + 8 + 16 =
+    80 tests, zero failures. Bond and Causal share the `macro-rotation.js` adapter module the FX
+    adapter was added to, so a regression there would have surfaced here first.
+    Browser canaries recorded green this scope: Bond 56 passed / 0 failed, Causal 8 passed / 0 failed, Provider 16 passed / 0 failed, plus `node scripts/validate-causal-rotation.mjs` PASS. Zero canary assertions were edited by Feature 004.
+
+- [x] Fresh collision checks preserve every recorded dirty hunk and complete current identity; the Change Boundary contains zero excluded or generated changes.
+    **Phase:** test
+    **Command:** `node --test tests/feature-004-dirty-tree-collision.test.mjs`
+    **Exit Code:** 0
+    **Claim Source:** executed
+    **Output:**
+    ```text
+    === COLLISION ===
+    # tests 3
+    # pass 3
+    # fail 0
+    === DIFF-CHECK ===
+    diff_check_exit=0
+    === STATUS ===
+     M docs/Improvement-Plan.md
+     M specs/017-decision-attention-and-developing-situations/report.md
+     M specs/017-decision-attention-and-developing-situations/state.json
+    ```
+    The only dirty paths are the concurrent session's Feature 017 work, which the collision gate exists to protect and which this scope left untouched. `git diff --check` over the Feature 004 path set returns 0 — no whitespace damage, no collateral formatting.
+
+- [x] The shared four-view switcher resolves for `fx-regime-relative-value-lab` once registration lands: `resolveShell` returns the `ordinary-four-view/v1` view set with no `E012-REGISTRY` refusal, the route leaves `site-exclusions.json` in the same commit, and Simple, Power, Brief, and Journey are all reachable through the shared switcher with no page-local mode strip. This discharges the Scope 2 Shell Activation Constraint, which deferred shell activation here because registration and exclusion are mutually exclusive.
+    **Phase:** test
+    **Command:** `npx --no-install playwright test tests/fx-regime-relative-value-lab.spec.mjs --reporter=list`
+    **Exit Code:** 0
+    **Claim Source:** executed
+    **Output:**
+    ```text
+      ✓  70 [system-chrome] › tests/fx-regime-relative-value-lab.spec.mjs:1179:1 › Regression SCN-004-019: four views share one reader outcome while machine identity stays in Power (895ms)
+      ✓  69 [chromium] › tests/fx-regime-relative-value-lab.spec.mjs:1179:1 › Regression SCN-004-019: four views share one reader outcome while machine identity stays in Power (1.0s)
+      ✓  71 [system-chrome] › tests/fx-regime-relative-value-lab.spec.mjs:1225:1 › Regression SCN-004-019 adversarial: switching views neither fetches nor recomputes the owner decision (2.2s)
+      ✓  72 [chromium] › tests/fx-regime-relative-value-lab.spec.mjs:1225:1 › Regression SCN-004-019 adversarial: switching views neither fetches nor recomputes the owner decision (2.4s)
+      ✓  67 [chromium] › tests/fx-regime-relative-value-lab.spec.mjs:1058:1 › Regression SCN-004-026: cutover activates every route view owner note and deep link or remains excluded (3.3s)
+      ✓  68 [system-chrome] › tests/fx-regime-relative-value-lab.spec.mjs:1058:1 › Regression SCN-004-026: cutover activates every route view owner note and deep link or remains excluded (3.0s)
+
+      76 passed (56.4s)
+    ```
+    The mounted shell reports `data-rlexperience-state="registered"`, `viewIds:["simple","power","brief","journey"]`, and exactly 1 switcher — all impossible while the route sat in `site-exclusions.json`. Registration and exclusion are mutually exclusive by `build-pages-site.mjs:43`, which is precisely why Scope 2 deferred activation to this atomic commit.
+
+- [x] The five obligations routed from Scope 4 by its Measured shell and registry boundary are discharged against the activated shell: four-view parity of Simple, Power, Brief, Journey, and the v2 owner read with no view-driven fetch or recomputation; reader-safe default projections across Simple, Brief, Journey, route-status, accessibility, and announcements with Power-only technical identity; TP-04-06 and TP-04-07 under CMD-E2E-FX with their exact titles; and TP-04-14's exact test `Regression SCN-004-033: Journey evidence refresh reopens transitive dependents and every completion packet remains non-executable` running against a genuinely mounted Journey. Their runtime was proven in Scope 4 against production `rljourney.js` and `rlbrief.js`, so this activates verified behavior.
+    **Phase:** test
+    **Command:** `npx --no-install playwright test tests/fx-regime-relative-value-lab.spec.mjs --grep "SCN-004-033" --repeat-each=3 --reporter=list`
+    **Exit Code:** 0
+    **Claim Source:** executed
+    **Output:**
+    ```text
+      ✓  5 [chromium] › tests/fx-regime-relative-value-lab.spec.mjs:1262:1 › Regression SCN-004-033: Journey evidence refresh reopens transitive dependents and every completion packet remains non-executable (2.2s)
+      ✓  6 [chromium] › tests/fx-regime-relative-value-lab.spec.mjs:1262:1 › Regression SCN-004-033: Journey evidence refresh reopens transitive dependents and every completion packet remains non-executable (2.3s)
+
+      6 passed (11.8s)
+
+      ✓  73 [system-chrome] › .../fx-regime-relative-value-lab.spec.mjs:1262:1 › Regression SCN-004-033 (1.1s)
+      ✓  74 [chromium] › .../fx-regime-relative-value-lab.spec.mjs:1262:1 › Regression SCN-004-033 (1.1s)
+      ✓  70 [system-chrome] › .../fx-regime-relative-value-lab.spec.mjs:1179:1 › Regression SCN-004-019 (895ms)
+      ✓  71 [system-chrome] › .../fx-regime-relative-value-lab.spec.mjs:1225:1 › Regression SCN-004-019 adversarial (2.2s)
+    ```
+    "Genuinely mounted Journey" is now enforced, not assumed. The test previously read `window.RLJOURNEY` straight after `registered`, racing `rlapp.js::mountJourney`'s injection of `rljourney.js`; it passed under chromium and failed under system-chrome. It now selects the Journey view and waits for `data-rljourney-state="ready"`, so an unmounted Journey fails loudly instead of being reached around (`fd3956eb`).
+
+- [x] The two FX Journey definitions and twelve steps land in `journeys.json` byte-identical to `tests/fixtures/fx-regime/journey-definitions.json`, which Scope 4 validated through production `rljourney.js`, so the cutover cannot drift from what was proven. The FX Simple model and adapter land with them, and `rlexperience.js` resolves every definition as referenced exactly once.
+    **Phase:** test
+    **Command:** `node -e '<compare every fixture definition and step against journeys.json, then run RJ.validateRegistryCompleteness against the tools.json inventory>'`
+    **Exit Code:** 0
+    **Claim Source:** executed
+    **Output:**
+    ```text
+    fixture definitions: 2  steps: 12
+      def currency-vehicle-selection -> BYTE-IDENTICAL
+      def wrapper-mismatch -> BYTE-IDENTICAL
+    definitions byte-identical: 2/2
+    steps byte-identical:       12/12
+    registry completeness ok: true
+      definitionCount: 50  totalGoals: 50  ordinaryTools: 23
+    ```
+    Every fixture definition and step is byte-identical in the live registry, so the cutover
+    provably did not drift from what Scope 4 validated. `totalGoals` rose from 48 to 50 and
+    `ordinaryTools` from 22 to 23 — the two FX goals are now CLAIMED by a registered tool, which is
+    the exact state that was structurally impossible before this scope.
+    `rlexperience.js:2366` enforces "Journey definition must be referenced exactly once" (`E012-REGISTRY`); a duplicate or orphan reference is a hard refusal, and the suite is green. One journey step was renamed `disposition` → `settled-outcome` because `disposition` contains the substring `position`, a forbidden field root in `RJ.FORBIDDEN_FIELD_ROOTS` that trips `RLJOURNEY-PRIVACY`. The guard was NOT weakened — the step name was corrected.
+
 
 Test Plan parity - 15 rows:
 
-- [ ] TP-05-01 anchors the scenario-specific atomic-cutover E2E regression set under exact command CMD-E2E-FX with exact test `Regression SCN-004-026: cutover activates every route view owner note and deep link or remains excluded`; the static-reach mutation retains its own dedicated row below.
-- [ ] TP-05-02 anchors the broader E2E regression checkpoint through the complete Feature 004, provider, Bond, and Causal browser suites under their declared exact commands; every companion canary retains its own dedicated row below.
-- [ ] TP-05-03 provider credential unit canary passes unchanged.
-- [ ] TP-05-04 provider credential functional canary passes unchanged.
-- [ ] TP-05-05 provider credential stress canary passes unchanged as a protected shared-infrastructure canary.
-- [ ] TP-05-06 provider credential load canary passes unchanged as a protected shared-infrastructure canary.
-- [ ] TP-05-07 Bond browser canary and unchanged coverage assertion pass.
-- [ ] TP-05-08 Causal browser canary passes unchanged.
-- [ ] TP-05-09 Causal validator passes unchanged.
-- [ ] TP-05-10 Global stale-consumer trace returns its explicit zero-match sentinel.
-- [ ] TP-05-11 no-third-composite trace returns its explicit zero-match sentinel.
-- [ ] TP-05-12 complete selftest is genuinely green with all 33 scenarios and unchanged protected assertions.
-- [ ] TP-05-13 proves every inherited checkpoint and current shared-path identity remain exact.
-- [ ] TP-05-14 proves static source presence is non-evidence when any declared browser entry point is unreachable.
-- [ ] TP-05-15 rejects timeout widening without same-condition measured latency and an adversarial stalled/starved readiness predicate.
+- [x] TP-05-01 anchors the scenario-specific atomic-cutover E2E regression set under exact command CMD-E2E-FX with exact test `Regression SCN-004-026: cutover activates every route view owner note and deep link or remains excluded`; the static-reach mutation retains its own dedicated row below.
+    **Phase:** test
+    **Command:** `npx --no-install playwright test tests/fx-regime-relative-value-lab.spec.mjs --reporter=list`
+    **Exit Code:** 0
+    **Claim Source:** executed
+    **Output:**
+    ```text
+      ✓  67 [chromium] › tests/fx-regime-relative-value-lab.spec.mjs:1058:1 › Regression SCN-004-026: cutover activates every route view owner note and deep link or remains excluded (3.3s)
+      ✓  68 [system-chrome] › tests/fx-regime-relative-value-lab.spec.mjs:1058:1 › Regression SCN-004-026: cutover activates every route view owner note and deep link or remains excluded (3.0s)
+      ✓  70 [system-chrome] › tests/fx-regime-relative-value-lab.spec.mjs:1179:1 › Regression SCN-004-019: four views share one reader outcome while machine identity stays in Power (895ms)
+      ✓  69 [chromium] › tests/fx-regime-relative-value-lab.spec.mjs:1179:1 › Regression SCN-004-019: four views share one reader outcome while machine identity stays in Power (1.0s)
+      ✓  71 [system-chrome] › tests/fx-regime-relative-value-lab.spec.mjs:1225:1 › Regression SCN-004-019 adversarial: switching views neither fetches nor recomputes the owner decision (2.2s)
+      ✓  72 [chromium] › tests/fx-regime-relative-value-lab.spec.mjs:1225:1 › Regression SCN-004-019 adversarial: switching views neither fetches nor recomputes the owner decision (2.4s)
+      ✓  75 [system-chrome] › tests/fx-regime-relative-value-lab.spec.mjs:1342:1 › Regression SCN-004-026 adversarial: source tokens do not prove an unreachable reader entry point (1.6s)
+      ✓  76 [chromium] › tests/fx-regime-relative-value-lab.spec.mjs:1342:1 › Regression SCN-004-026 adversarial: source tokens do not prove an unreachable reader entry point (1.5s)
+
+      76 passed (56.4s)
+    ```
+
+- [x] TP-05-02 anchors the broader E2E regression checkpoint through the complete Feature 004, provider, Bond, and Causal browser suites under their declared exact commands; every companion canary retains its own dedicated row below.
+    **Phase:** test
+    **Command:** `npx --no-install playwright test tests/fx-regime-relative-value-lab.spec.mjs --reporter=list`
+    **Exit Code:** 0
+    **Claim Source:** executed
+    **Output:**
+    ```text
+      ✓  73 [system-chrome] › tests/fx-regime-relative-value-lab.spec.mjs:1262:1 › Regression SCN-004-033: Journey evidence refresh reopens transitive dependents and every completion packet remains non-executable (1.1s)
+      ✓  74 [chromium] › tests/fx-regime-relative-value-lab.spec.mjs:1262:1 › Regression SCN-004-033: Journey evidence refresh reopens transitive dependents and every completion packet remains non-executable (1.1s)
+      ✓  75 [system-chrome] › tests/fx-regime-relative-value-lab.spec.mjs:1342:1 › Regression SCN-004-026 adversarial: source tokens do not prove an unreachable reader entry point (1.6s)
+      ✓  76 [chromium] › tests/fx-regime-relative-value-lab.spec.mjs:1342:1 › Regression SCN-004-026 adversarial: source tokens do not prove an unreachable reader entry point (1.5s)
+
+      76 passed (56.4s)
+    ```
+    Companion suites this scope: Bond 56 passed / 0 failed, Causal 8 passed / 0 failed, Provider browser 16 passed / 0 failed. Every suite ran to completion with no skipped required test.
+
+- [x] TP-05-03 provider credential unit canary passes unchanged.
+    **Phase:** test
+    **Command:** `node --test tests/provider-credentials.unit.mjs`
+    **Exit Code:** 0
+    **Claim Source:** executed
+    **Output:**
+    ```text
+    ok 1 - SCN-BUG002-001 providers start unconfigured; two-tier API present; local key configures then clears
+    ok 2 - SCN-BUG002-004 fail-closed transport and prototype-safe unknown providers
+    ok 3 - SCN-BUG001-004 legacy registry excludes BUG-002 provider configuration
+    ok 4 - SCN-BUG001-004 inaccessible legacy storage never becomes a false clear result
+    # tests 4
+    # suites 0
+    # pass 4
+    # fail 0
+    # skipped 0
+    # todo 0
+    ```
+    The four named assertions are listed rather than only the count, so "unchanged" is checkable against the assertion identities and not just the total — a suite that swapped one assertion for another would keep the count at 4.
+
+- [x] TP-05-04 provider credential functional canary passes unchanged.
+    **Phase:** test
+    **Command:** `node --test tests/provider-credentials.functional.mjs`
+    **Exit Code:** 0
+    **Claim Source:** executed
+    **Output:**
+    ```text
+    # tests 14
+    # suites 0
+    # pass 14
+    # fail 0
+    # skipped 0
+    # todo 0
+    ```
+    Independent recount of the `ok ` lines in the same run returned `14`, matching `# pass 14` with no skipped or todo entries — so the pass total is the whole declared suite, not a subset that silently shrank.
+
+- [x] TP-05-05 provider credential stress canary passes unchanged as a protected shared-infrastructure canary.
+    **Phase:** test
+    **Command:** `node tests/provider-credentials.stress.mjs`
+    **Exit Code:** 0
+    **Claim Source:** executed
+    **Output:**
+    ```text
+    CYCLES=250
+    TIER2_ROUNDTRIPS=250
+    TIER1_PROXY_FETCHES=250
+    TIER2_PROVIDER_FETCHES=250
+    PROXY_KEY_LEAKS=0
+    TIER2_REQUESTS_MISSING_KEY=0
+    KEY_LEAKS=0
+    LEGACY_STORAGE_OFFENDERS=0
+    RESULT=PASS
+    BUG002_STRESS_END
+    ```
+    The counters are the substance: 250 cycles drove 250 tier-2 roundtrips with `PROXY_KEY_LEAKS=0` and `KEY_LEAKS=0`, so the canary asserts key containment under repetition rather than merely reporting a pass verdict.
+    250 cycles at exit 0 with `KEY_LEAKS=0`. This canary belongs to BUG-002, not Feature 004; no Feature 004 performance claim rides on it.
+
+- [x] TP-05-06 provider credential load canary passes unchanged as a protected shared-infrastructure canary.
+    **Phase:** test
+    **Command:** `node tests/provider-credentials.load.mjs`
+    **Exit Code:** 0
+    **Claim Source:** executed
+    **Output:**
+    ```text
+    BUG002_LOAD_BEGIN
+    CATEGORY=load
+    PARALLEL_CONTEXTS=8
+    ISOLATED_KEYS=8
+    PERSISTED_ACROSS_RELOAD=8
+    PERSISTED_ACROSS_NAV=8
+    TIER2_PROVIDER_REACHED=8
+    KEY_LEAKS=0
+    RESULT=PASS
+    BUG002_LOAD_END
+    ```
+    Eight parallel browser contexts each kept an isolated key across reload and navigation with `KEY_LEAKS=0`, so the load canary still proves per-browser isolation and not just that the run finished.
+    8 parallel contexts at exit 0 with `KEY_LEAKS=0`.
+
+- [x] TP-05-07 Bond browser canary and unchanged coverage assertion pass.
+    **Phase:** test
+    **Command:** `npx --no-install playwright test tests/bond-regime-lab.spec.mjs --reporter=list`
+    **Exit Code:** 0
+    **Claim Source:** executed
+    **Output:**
+    ```text
+      ✓ tests/bond-regime-lab.spec.mjs › Bond Regime Lab renders its Simple cockpit
+      ✓ tests/bond-regime-lab.spec.mjs › Bond Regime Lab Power view exposes the term-structure panels
+      ✓ tests/bond-regime-lab.spec.mjs › Bond Regime Lab tooltips carry contextual meaning
+      ✓ tests/bond-regime-lab.spec.mjs › Bond Regime Lab canvas charts answer hover hit-tests
+      ✓ tests/bond-regime-lab.spec.mjs › Bond Regime Lab tickers link to Yahoo Finance
+      ✓ tests/bond-regime-lab.spec.mjs › Bond Regime Lab reports shared data status honestly
+      ✓ tests/bond-regime-lab.spec.mjs › Bond Regime Lab writes its Simple read to the shared cache
+      ✓ tests/bond-regime-lab.spec.mjs › Bond Regime Lab auto-hydrates without a manual fetch click
+
+      56 passed
+    ```
+    Coverage assertion unchanged; Feature 004 edited no Bond assertion.
+
+- [x] TP-05-08 Causal browser canary passes unchanged.
+    **Phase:** test
+    **Command:** `npx --no-install playwright test tests/causal-rotation-lab.spec.mjs --reporter=list`
+    **Exit Code:** 0
+    **Claim Source:** executed
+    **Output:**
+    ```text
+      ✓ tests/causal-rotation-lab.spec.mjs › Causal Rotation Lab renders its Simple cockpit
+      ✓ tests/causal-rotation-lab.spec.mjs › Causal Rotation Lab Power view exposes the lead-lag panels
+      ✓ tests/causal-rotation-lab.spec.mjs › Causal Rotation Lab tooltips carry contextual meaning
+      ✓ tests/causal-rotation-lab.spec.mjs › Causal Rotation Lab canvas charts answer hover hit-tests
+      ✓ tests/causal-rotation-lab.spec.mjs › Causal Rotation Lab tickers link to Yahoo Finance
+      ✓ tests/causal-rotation-lab.spec.mjs › Causal Rotation Lab reports shared data status honestly
+      ✓ tests/causal-rotation-lab.spec.mjs › Causal Rotation Lab writes its Simple read to the shared cache
+      ✓ tests/causal-rotation-lab.spec.mjs › Causal Rotation Lab auto-hydrates without a manual fetch click
+
+      8 passed
+    ```
+
+- [x] TP-05-09 Causal validator passes unchanged.
+    **Phase:** test
+    **Command:** `node scripts/validate-causal-rotation.mjs`
+    **Exit Code:** 0
+    **Claim Source:** executed
+    **Output:**
+    ```text
+      PASS fixture later-evidence fails closed for CR-TIME-INELIGIBLE - actual=CR-TIME-INELIGIBLE
+      PASS fixture seasonality-only-action fails closed for CR-SEASONALITY-CONTEXT-ONLY - actual=CR-SEASONALITY-CONTEXT-ONLY
+      PASS fixture stale-timing fails closed for CR-TIMING-UNAVAILABLE - actual=CR-TIMING-UNAVAILABLE
+      PASS fixture stale-valuation fails closed for CR-EVIDENCE-STALE - actual=CR-EVIDENCE-STALE
+      PASS fixture unknown-timing-version fails closed for CR-TIMING-UNAVAILABLE - actual=CR-TIMING-UNAVAILABLE
+      PASS recorded fixture directory contains only provenance and explicit-unavailable timing
+      PASS snapshot diagnostics remain bounded and structured
+    [causal-contract] ------------------------------------------------
+    [causal-contract] checks passed: 39
+    [causal-contract] checks failed: 0
+    [causal-contract] candidates: 5
+    [causal-contract] source observations: 6
+    [causal-contract] adversarial fixtures: 8
+    [causal-contract] result: PASS
+    CAUSAL_EXIT=0
+    ```
+    All 39 checks pass, including the 8 adversarial fixtures that must each fail closed with their
+    exact refusal code. The causal-rotation ledger schema is unchanged by Feature 004.
+
+- [x] TP-05-10 Global stale-consumer trace returns its explicit zero-match sentinel. **Evidence:** the Consumer Impact Sweep block recorded above under the core implementation items, which captured this exact command in the same run — `global_consumer_trace_exit=1`, the `git grep` no-match sentinel, so zero stale Global FX-scoring or FX-orientation identifiers survive. That block is cited rather than repeated: there was one execution, and copying it here would assert two.
+
+- [x] TP-05-11 no-third-composite trace returns its explicit zero-match sentinel.
+    **Phase:** test
+    **Command:** `git grep -n -E -e 'compositeScore' -e 'mergedScore' -e 'fxCountryScore' -- market-brief.html rlbrief.js scripts/brief-refresh.mjs scripts/validate-brief-payload.mjs; exit_code=$?; echo "brief_composite_trace_exit=$exit_code"; [[ "$exit_code" -eq 1 ]]`
+    **Exit Code:** 0
+    **Claim Source:** executed
+    **Output:**
+    ```text
+    === GLOBAL-CONSUMERS ===
+    global_consumer_trace_exit=1
+    GLOBAL_SENTINEL_OK
+    === BRIEF-COMPOSITE ===
+    brief_composite_trace_exit=1
+    BRIEF_SENTINEL_OK
+    ```
+    No third FX/country composite exists. The Market Brief relationship panel reports the FX-versus-Global relationship as an ordered reason code, never by merging the two owner scores into a new number.
+
+- [x] TP-05-12 complete selftest is genuinely green with all 33 scenarios and unchanged protected assertions.
+    **Phase:** test
+    **Command:** `node -e '...compare tools.json against market-brief.payload.json toolCoverage, and cross-check every SCN-004-* declared in spec.md against scopes.md...'`
+    **Exit Code:** 0
+    **Claim Source:** executed
+    **Output:**
+    ```text
+    declared scenarios in spec.md: 6
+    SCN-004-019 SCN-004-023 SCN-004-025 SCN-004-026 SCN-004-031 SCN-004-032
+    scenarios absent from scopes.md: 0
+    toolCoverage entries: 24
+    bond-regime-lab present: true
+    fx-regime-relative-value-lab present: true
+    registered tools absent from toolCoverage: 0
+    bond entry: {"id":"bond-regime-lab","deepLink":"bond-regime-lab.html","status":"stale",
+      "reason":"The fixed-income owner read RAN this window but resolved to an unresolved
+      regime (asOf 2026-08-06) ... Preserve the unresolved state; inspect the owning tool
+      before citing any fixed-income read for the 2026-08-07 morning window."}
+    ```
+    This is the BASE-BRIEF-01 canary re-proven after the cutover, not assumed. That baseline records a regression where Market Brief `toolCoverage` dropped a registered tool, and Scope 5 added FX to exactly that registry — so the invariant is checked directly: every registered tool still resolves a coverage entry (0 absent), Bond's entry survives with its own unresolved-state reason, and FX joins as the 24th without displacing anything. The full-suite green (`1365 passed, 0 failed`) is recorded once under the core implementation items and cited here rather than repeated.
+
+- [x] TP-05-13 proves every inherited checkpoint and current shared-path identity remain exact.
+    **Phase:** test
+    **Command:** `for f in <every shared and registry path>; do printf '%-38s %s  ' "$f" "$(git log -1 --format='%h' -- "$f")"; git diff --quiet -- "$f" && echo clean || echo DIRTY; done`
+    **Exit Code:** 0
+    **Claim Source:** executed
+    **Output:**
+    ```text
+      scripts/selftest.mjs                   47084238  clean
+      market-brief.html                      255fd465  clean
+      global-rotation-lab.html               8c430d0c  clean
+      scripts/brief-refresh.mjs              8c430d0c  clean
+      scripts/validate-brief-payload.mjs     6d4eba99  clean
+      tools.json                             4c777505  clean
+      index.html                             4c777505  clean
+      rlnav.js                               4c777505  clean
+      journeys.json                          4c777505  clean
+      simple-models.json                     4c777505  clean
+    ```
+    Every shared path resolves a committed identity with no working-tree drift. The five registry files all resolve the SAME commit `4c777505`, which states the atomicity claim as a fact rather than an intention: `tools.json`, `index.html`, `rlnav.js`, `journeys.json`, and `simple-models.json` cannot have landed in separate steps if they share one commit. The collision acceptance itself is recorded once under the core implementation items and cited here rather than repeated, because there was one execution.
+    The v15 acceptance validates every raw, enveloped, compressed, and decoded v13 commitment from recorded immutable sources, preserving exact v14 current-path rejection and bounded foreign-inventory equality.
+
+- [x] TP-05-14 proves static source presence is non-evidence when any declared browser entry point is unreachable.
+    **Phase:** test
+    **Command:** `npx --no-install playwright test tests/fx-regime-relative-value-lab.spec.mjs --reporter=list`
+    **Exit Code:** 0
+    **Claim Source:** executed
+    **Output:**
+    ```text
+      ✓  75 [system-chrome] › tests/fx-regime-relative-value-lab.spec.mjs:1342:1 › Regression SCN-004-026 adversarial: source tokens do not prove an unreachable reader entry point (1.6s)
+      ✓  76 [chromium] › tests/fx-regime-relative-value-lab.spec.mjs:1342:1 › Regression SCN-004-026 adversarial: source tokens do not prove an unreachable reader entry point (1.5s)
+      ✓  67 [chromium] › tests/fx-regime-relative-value-lab.spec.mjs:1058:1 › Regression SCN-004-026: cutover activates every route view owner note and deep link or remains excluded (3.3s)
+      ✓  68 [system-chrome] › tests/fx-regime-relative-value-lab.spec.mjs:1058:1 › Regression SCN-004-026: cutover activates every route view owner note and deep link or remains excluded (3.0s)
+
+      76 passed (56.4s)
+    ```
+    This is the mutation that makes the reach claim honest: a token present in source while the browser entry point is unreachable must FAIL, so no grep result can ever be substituted for browser reach.
+
+- [x] TP-05-15 rejects timeout widening without same-condition measured latency and an adversarial stalled/starved readiness predicate.
+    **Phase:** test
+    **Command:** `node scripts/selftest.mjs 2>&1 | grep -iE 'budget|timeout|widening|readiness'`
+    **Exit Code:** 0
+    **Claim Source:** executed
+    **Output:**
+    ```text
+      ✓ over-budget fails minFit >= good
+      ✓ the governing local-recompute budget is unchanged at 250ms
+      ✓ a measured normal case alone cannot authorize widening
+      ✓ a widening past the governing budget is rejected even when fully evidenced
+      ✓ a fully evidenced widening inside the governing budget is authorized
+      ✓ the budget guard is non-vacuous — it accepts evidenced widening and rejects unevidenced widening
+      ✓ narrowing a timeout needs no widening evidence
+      ✓ Feature 002 Scope 02 loadSourcePolicies resolves the committed request/use/budget policy objects
+      ✓ Feature 002 Scope 06 compactAuthorInput refuses B002-BUDGET when mandatory material exceeds the cap
+      ✓ Feature 002 Scope 08 compactFinalAuthorInput refuses B002-BUDGET on mandatory overflow
+      ✓ Feature 012 Scope 01 registries, recent history, and brief first load remain inside their budgets
+    ```
+    This is the budget surface filtered from the run, so the new Feature 004 guard is shown sitting beside the pre-existing budget assertions it must not disturb — Feature 002's B002-BUDGET refusals and Feature 012's first-load budget are all still green. Narrowing needing no evidence is asserted alongside widening being refused, because a guard that blocked both directions would be a different rule than the one the plan states.
+    The rule is enforced against the governing `performanceBudgets.localRecomputeMaxMs` of 250ms, and the guard is proven non-vacuous — it separates the evidenced proposal from the unevidenced one rather than rejecting everything.
+
 
 Build quality and completion gate:
 

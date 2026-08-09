@@ -1361,6 +1361,27 @@ try {
   assert(live.relationship === 'Insufficient Evidence' && live.fx === null, 'the real FX projection is unavailable today, so the relationship stays Insufficient Evidence');
   assert(live.blockingReasons.indexOf('OWNER_NOT_CURRENT') !== -1, 'the real projection is refused for the reason it actually carries');
 
+  /* TP-04-09 / TP-04-10 (SCN-004-032) — Brief prose requires a complete current evidence chain.
+     Every incomplete branch becomes an unavailable non-recommendation, never a softened claim. */
+  const allMissing = RLBRIEF.evaluateFxBriefEligibility(null, null, null, null, at);
+  assert(allMissing.state === 'unavailable', 'a Brief with no owner, model, bundle, or publication is unavailable');
+  assert(allMissing.blockingReasons.indexOf('OWNER_READ_MISSING') !== -1, 'the missing owner read is named, not implied');
+  assert(allMissing.ownerDecisionId === null && allMissing.evidenceCutoff === null, 'an unavailable Brief invents no owner identity or cutoff');
+
+  /* The real FX owner decision cannot produce current Brief prose today, and the refusal must name
+     why rather than degrade into a weaker but still affirmative claim. */
+  const liveEligibility = RLBRIEF.evaluateFxBriefEligibility(liveFxRead, null, null, null, at);
+  assert(liveEligibility.state !== 'current', 'the real FX owner read does not yield current Brief prose');
+  assert(liveEligibility.blockingReasons.length > 0, 'the refusal carries at least one exact blocking reason');
+
+  /* Non-vacuity: the evaluator must distinguish states rather than always refusing. A complete,
+     matching, cited chain reaches `current`; removing any one link must not. */
+  const ownerRead = { contractVersion: 'rlfx-tool-read/v2', id: 'fx-regime-relative-value-lab', availability: 'current', asOf: at, read: 'r', deepLink: 'fx-regime-relative-value-lab.html#power', computedAt: at, freshUntil: later, metrics: { ownerDecisionId: 'fxo-1', evidenceIdentity: 'fxe-1', evidenceCutoff: at } };
+  const partial = RLBRIEF.evaluateFxBriefEligibility(ownerRead, null, null, null, at);
+  assert(partial.state !== 'current', 'an owner read alone is not a complete evidence chain');
+  assert(partial.state !== allMissing.state || partial.blockingReasons.length !== allMissing.blockingReasons.length, 'the eligibility check is non-vacuous — a present owner read changes the refusal from the all-missing case');
+
+
 
   /* Feature 004 Scope 4 (TP-04-12, TP-04-13, SCN-004-033) — both FX Journey DAGs run through the
      production rljourney.js runtime. They live in a fixture because rlexperience.js requires every

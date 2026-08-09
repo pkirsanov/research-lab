@@ -1020,3 +1020,37 @@ test('Browser functional SCN-004-023 adversarial: stale missing flat or unaccept
   expect(cases.stale.fx.ownerDeepLink).toBe('fx-regime-relative-value-lab.html#power');
   expect(cases.stale.global).toBeNull();
 });
+
+test('Regression SCN-004-032: current Brief refuses ineligible evidence and incomplete scoreability', async ({ page }) => {
+  await openBriefClassifier(page);
+
+  // Real same-origin posture: whatever the Brief route actually holds right now, with no injected
+  // conclusion and no direct browse of a tool page.
+  const posture = await page.evaluate(() => {
+    const at = new Date().toISOString();
+    const reads = (typeof RLDATA !== 'undefined' && RLDATA.toolRead) ? (RLDATA.toolRead() || {}) : {};
+    const fx = reads['fx-regime-relative-value-lab'] || null;
+    const eligibility = window.RLBRIEF.evaluateFxBriefEligibility(fx, null, null, null, at);
+    return {
+      state: eligibility.state,
+      reasons: eligibility.blockingReasons.slice(),
+      ownerDecisionId: eligibility.ownerDecisionId,
+      evidenceCutoff: eligibility.evidenceCutoff,
+      priorPublicationRef: eligibility.priorPublicationRef,
+      bodyText: document.body.textContent
+    };
+  });
+
+  // The chain is incomplete on the real route, so the Brief refuses rather than softening.
+  expect(posture.state).not.toBe('current');
+  expect(posture.reasons.length).toBeGreaterThan(0);
+
+  // A refusal invents no owner identity, no cutoff, and no prior publication to lean on.
+  expect(posture.ownerDecisionId).toBeNull();
+  expect(posture.evidenceCutoff).toBeNull();
+  expect(posture.priorPublicationRef).toBeNull();
+
+  // No prior evidence is relabeled current, and no non-recommendation ledger event is announced.
+  expect(posture.bodyText).not.toContain('not-evaluable');
+  expect(posture.bodyText).not.toMatch(/prior evidence[^.]*\bcurrent\b/i);
+});

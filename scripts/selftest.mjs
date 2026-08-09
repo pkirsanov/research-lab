@@ -1345,6 +1345,50 @@ try {
   const missing = RLBRIEF.evaluateFxGlobalRelationship(null, globalSide(0.04), at);
   assert(missing.relationship === 'Insufficient Evidence' && missing.blockingReasons.indexOf('FX_OWNER_READ_MISSING') !== -1, 'a missing FX owner read is reasoned, not synthesized');
 
+  /* Feature 004 Scope 5 (TP-05-15, NFR-021) — a readiness timeout may only widen on evidence.
+     The guard below is the authorization rule: a proposal must carry same-condition measured
+     latency AND an adversarial stalled/starved case that still fails inside the governing budget.
+     A measured normal case alone is exactly the argument that makes budgets drift. */
+  function fxAuthorizeBudgetWidening(proposal, governingBudgetMs) {
+    const reasons = [];
+    if (!proposal || typeof proposal !== 'object') return { ok: false, reasons: ['NO_PROPOSAL'] };
+    if (!Number.isFinite(proposal.proposedMs) || !Number.isFinite(proposal.currentMs)) reasons.push('BUDGET_NOT_NUMERIC');
+    else if (proposal.proposedMs <= proposal.currentMs) return { ok: true, reasons: [] }; // not a widening
+    if (!Number.isFinite(proposal.measuredLatencyMs)) reasons.push('NO_SAME_CONDITION_MEASUREMENT');
+    if (proposal.measurementCondition !== proposal.predicate) reasons.push('MEASUREMENT_CONDITION_MISMATCH');
+    const stalls = Array.isArray(proposal.adversarialCases) ? proposal.adversarialCases : [];
+    if (!stalls.some((c) => c.kind === 'stalled')) reasons.push('NO_STALLED_CASE');
+    if (!stalls.some((c) => c.kind === 'starved')) reasons.push('NO_STARVED_CASE');
+    if (stalls.some((c) => c.stillFails !== true)) reasons.push('ADVERSARIAL_CASE_DOES_NOT_FAIL');
+    if (Number.isFinite(proposal.proposedMs) && proposal.proposedMs > governingBudgetMs) reasons.push('EXCEEDS_GOVERNING_BUDGET');
+    return { ok: reasons.length === 0, reasons };
+  }
+
+  const governing = JSON.parse(read('tool-experience.config.json')).performanceBudgets.localRecomputeMaxMs;
+  assert(governing === 250, 'the governing local-recompute budget is unchanged at 250ms');
+
+  const measuredOnly = { predicate: 'fx-owner-ready', currentMs: 100, proposedMs: 200, measuredLatencyMs: 140, measurementCondition: 'fx-owner-ready', adversarialCases: [] };
+  const onlyMeasured = fxAuthorizeBudgetWidening(measuredOnly, governing);
+  assert(!onlyMeasured.ok, 'a measured normal case alone cannot authorize widening');
+  assert(onlyMeasured.reasons.indexOf('NO_STALLED_CASE') !== -1 && onlyMeasured.reasons.indexOf('NO_STARVED_CASE') !== -1, 'the missing adversarial coverage is named');
+
+  const wrongCondition = { predicate: 'fx-owner-ready', currentMs: 100, proposedMs: 200, measuredLatencyMs: 140, measurementCondition: 'some-other-predicate', adversarialCases: [{ kind: 'stalled', stillFails: true }, { kind: 'starved', stillFails: true }] };
+  assert(fxAuthorizeBudgetWidening(wrongCondition, governing).reasons.indexOf('MEASUREMENT_CONDITION_MISMATCH') !== -1, 'latency measured under a different predicate is not same-condition evidence');
+
+  const passingAdversarial = { predicate: 'fx-owner-ready', currentMs: 100, proposedMs: 200, measuredLatencyMs: 140, measurementCondition: 'fx-owner-ready', adversarialCases: [{ kind: 'stalled', stillFails: true }, { kind: 'starved', stillFails: false }] };
+  assert(fxAuthorizeBudgetWidening(passingAdversarial, governing).reasons.indexOf('ADVERSARIAL_CASE_DOES_NOT_FAIL') !== -1, 'an adversarial case that passes proves nothing and is rejected');
+
+  const overBudget = { predicate: 'fx-owner-ready', currentMs: 100, proposedMs: 400, measuredLatencyMs: 140, measurementCondition: 'fx-owner-ready', adversarialCases: [{ kind: 'stalled', stillFails: true }, { kind: 'starved', stillFails: true }] };
+  assert(fxAuthorizeBudgetWidening(overBudget, governing).reasons.indexOf('EXCEEDS_GOVERNING_BUDGET') !== -1, 'a widening past the governing budget is rejected even when fully evidenced');
+
+  const evidencedWidening = { predicate: 'fx-owner-ready', currentMs: 100, proposedMs: 200, measuredLatencyMs: 140, measurementCondition: 'fx-owner-ready', adversarialCases: [{ kind: 'stalled', stillFails: true }, { kind: 'starved', stillFails: true }] };
+  assert(fxAuthorizeBudgetWidening(evidencedWidening, governing).ok, 'a fully evidenced widening inside the governing budget is authorized');
+
+  /* Non-vacuity: the guard must genuinely separate the two, not reject everything. */
+  assert(fxAuthorizeBudgetWidening(evidencedWidening, governing).ok !== onlyMeasured.ok, 'the budget guard is non-vacuous — it accepts evidenced widening and rejects unevidenced widening');
+  assert(fxAuthorizeBudgetWidening({ predicate: 'p', currentMs: 200, proposedMs: 100 }, governing).ok, 'narrowing a timeout needs no widening evidence');
+
+
   /* The real production projection must flow through the classifier unmodified. Today's committed
      source posture makes the FX read unavailable, so the honest result is Insufficient Evidence. */
   const liveFxRead = RLFX.projectFxToolReadV2(RLFX.computeFxOwnerDecision({

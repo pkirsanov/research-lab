@@ -598,6 +598,28 @@
       "summary": "Evidence-integrity sweep of the packet. Zero unfilled evidence-template markers across every scope.md, scope report and the feature report, so the fabrication signature the anti-fabrication gates look for is absent. 178 DoD items checked and 0 unchecked. All six scopes report Status: Done. Every scope report carries substantial raw command output (20 to 62 fenced blocks each) rather than prose summaries. artifact-lint.sh exits 0. The transition guard passes 25 of 26 gate families; the single failure is G022, which is the dispatch-capability gap this history documents rather than a defect in the delivered work."
     },
     {
+      "agent": "bubbles.implement",
+      "phasesExecuted": ["implement"],
+      "startedAt": "2026-08-06T00:00:00Z",
+      "completedAt": "2026-08-06T00:00:00Z",
+      "durationUnmeasured": true,
+      "durationUnmeasuredReason": "RECONSTRUCTED by bubbles.workflow under audit finding A-017-08, which observed four implement claims against one executionHistory entry. The original run wrote a completedPhaseClaims entry and no history entry, so the only surviving instant is its claimedAt. That instant is ALSO suspect on its own terms: 2026-08-06T00:00:00Z is round midnight and byte-identical to execution.runStartedAt, so it reads as the packet's start rather than as a measured completion. It is carried forward unchanged rather than replaced by a nicer-looking guess, because inventing a plausible time would destroy the one signal that says this value was never measured.",
+      "statusBefore": "in_progress",
+      "statusAfter": "in_progress",
+      "summary": "Scopes 1 and 2 implemented. Record reconstructed from the surviving completedPhaseClaims entry at 2026-08-06T00:00:00Z; see that claim for the substantive report, which states both scopes were evidenced but neither DoD-complete at the time, with seven and four unticked items respectively."
+    },
+    {
+      "agent": "bubbles.implement",
+      "phasesExecuted": ["implement"],
+      "startedAt": "2026-08-06T20:32:34Z",
+      "completedAt": "2026-08-06T20:32:34Z",
+      "durationUnmeasured": true,
+      "durationUnmeasuredReason": "RECONSTRUCTED by bubbles.workflow under audit finding A-017-08. The original run recorded a completedPhaseClaims entry and no executionHistory entry, so only its claimedAt instant survives. No span is derivable: the nearest bracketing events are the first plan bootstrap at 2026-08-06T21:54:16Z after it and nothing measured before it, and any start inferred from those would be a guess presented as a measurement.",
+      "statusBefore": "in_progress",
+      "statusAfter": "in_progress",
+      "summary": "Scope 3 implemented. Record reconstructed from the surviving completedPhaseClaims entry at 2026-08-06T20:32:34Z, which reports the tier rendering from committed data, five browser scenarios proven RED then GREEN, TP-03-05 proven to bite by an adversarial mutation restored byte-identical, and finding F-017-04 filed."
+    },
+    {
       "agent": "bubbles.plan",
       "phasesExecuted": ["bootstrap"],
       "startedAt": "2026-08-06T21:54:16Z",
@@ -629,6 +651,17 @@
       "statusBefore": "in_progress",
       "statusAfter": "in_progress",
       "summary": "Plan amendment 2, ARTIFACT-ONLY. Added Scope 6 'Authoring Lane Composer Routing' implementing the ratified decision F-017-06, which supersedes in part the F-017-02 assumption that an authoring instruction alone makes the lane comply. Three consecutive cron publishes (348c9f88 pre-market, d2f85159 after-hours, 1412f3e0) each emitted zero decision-attention/v1 markers while enforcement was fully intact, so the lane is routed through RLATTN.buildAttentionItem at publish time: the lane authors only the authored argument, a new scripts/build-attention-items.mjs supplies gateResult from the payload's own observed tool reads and ctx from the committed calendar, watchlist and window vocabulary, the composer builds or refuses each candidate with a named RLATTN-* code, and every refusal is excluded from attention[] and recorded in attentionExclusions[] mirroring the toolCoverage[].reason contract. An all-refused generation publishes an empty set and the tier's declared empty state; that is not the banned soft fallback because nothing is defaulted and exclusion happens BEFORE the payload is formed, so FR-037 and the hard-cutover posture are unweakened. Created scopes/06-authoring-lane-composer-routing/scope.md with Status Not Started, Depends On 1/2/3, seven Gherkin scenarios SCN-017-047 through SCN-017-053 continuing from the highest id in use (SCN-017-046), seven Test Plan rows TP-06-01 through TP-06-07, an Implementation Files/Allowed/Excluded boundary, a Shared Infrastructure Impact Sweep table matching the sibling column shape, a Rollback section, and an anti-tautology requirement binding SCN-017-048 to a candidate that genuinely fails to build, SCN-017-050 to a payload where every candidate fails, and SCN-017-049 to a mixed generation. All 26 DoD checkboxes are unticked. Every new test row targets an EXISTING test file (tests/attention-payload-contract.test.mjs, tests/attention-browser.spec.mjs) so scripts/validate-spec-test-paths.mjs gains no new missing path and its baseline needed no edit. Registered the seven scenarios in scenario-manifest.json and the seven rows in test-plan.json (totalRows 46 -> 53, designTest null throughout because F-017-06 postdates the design test table T-01..T-44), and recorded the decision as Amendment 2 in scopes/_index.md with the inventory, phase order, validation checkpoint, scope table and totals line updated. Raised one consequence for the planning owner rather than acting on it: shrinking the authoring instruction turns Scope 2's SCN-017-045 and TP-02-04 RED, since they assert the instruction names the decision window, transmission path and provenance class that F-017-06 moves to the build step; Scope 2 was NOT edited and the reconciliation is owed before Scope 6 executes. Also corrected an inherited naming assumption: Scope 2's plan text names decisionAttention.items, but the committed payload carries the decision-attention/v1 fields additively on attention[] (5 items, no decisionAttention key) and scripts/validate-brief-payload.mjs iterates payload.attention, so Scope 6 is written against attention[]. No source, test, config, payload, HTML, notes, design.md or spec.md file was modified; every write landed inside specs/017-decision-attention-and-developing-situations/. No git mutation was run. Top-level status stays in_progress and certification.* was not touched. execution.activeAgent and execution.currentPhase were deliberately left describing the in-flight implement phase, because this amendment layers on that phase rather than ending it."
+    },
+    {
+      "agent": "bubbles.implement",
+      "phasesExecuted": ["implement"],
+      "startedAt": "2026-08-07T17:17:27Z",
+      "completedAt": "2026-08-07T17:17:27Z",
+      "durationUnmeasured": true,
+      "durationUnmeasuredReason": "RECONSTRUCTED by bubbles.workflow under audit finding A-017-08. The original run wrote a completedPhaseClaims entry and no executionHistory entry, so only its claimedAt instant survives. It sits between the second plan bootstrap at 2026-08-07T14:06:00Z and the validate run beginning 2026-08-08T00:38:00Z, but a span stretched across that gap would be manufactured, not measured, so it is declared unmeasured instead.",
+      "statusBefore": "in_progress",
+      "statusAfter": "in_progress",
+      "summary": "Scope 6 implemented. Record reconstructed from the surviving completedPhaseClaims entry at 2026-08-07T17:17:27Z, which reports the authoring lane routed through the composer so the published attention set is built by a script from authored judgement rather than authored wholesale."
     },
     {
       "agent": "bubbles.validate",

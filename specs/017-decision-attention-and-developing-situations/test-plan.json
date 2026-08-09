@@ -2,12 +2,12 @@
   "contractVersion": "test-plan/v1",
   "featureDir": "specs/017-decision-attention-and-developing-situations",
   "generatedBy": "bubbles.plan",
-  "totalRows": 53,
+  "totalRows": 64,
   "scopes": [
     {
       "scope": 1,
       "scopeId": "01-attention-capability-module",
-      "rowCount": 25,
+      "rowCount": 26,
       "rows": [
         { "id": "TP-01-01", "designTest": "T-01", "file": "tests/rlattention.test.mjs", "category": "unit", "liveSystem": false },
         { "id": "TP-01-02", "designTest": "T-02", "file": "tests/rlattention.test.mjs", "category": "unit", "liveSystem": false },
@@ -33,36 +33,40 @@
         { "id": "TP-01-22", "designTest": "T-22", "file": "tests/rlattention.test.mjs", "category": "unit", "liveSystem": false },
         { "id": "TP-01-23", "designTest": "T-23", "file": "tests/rlattention.test.mjs", "category": "unit", "liveSystem": false },
         { "id": "TP-01-24", "designTest": "T-24", "file": "tests/rlattention.test.mjs", "category": "unit", "liveSystem": false },
-        { "id": "TP-01-25", "designTest": null, "file": "tests/rlattention.test.mjs", "category": "unit", "liveSystem": false }
+        { "id": "TP-01-25", "designTest": null, "file": "tests/rlattention.test.mjs", "category": "unit", "liveSystem": false },
+        { "id": "TP-01-26", "designTest": null, "file": "tests/attention-browser.spec.mjs", "category": "e2e-ui", "liveSystem": true }
       ]
     },
     {
       "scope": 2,
       "scopeId": "02-publication-path-enforcement",
-      "rowCount": 4,
+      "rowCount": 6,
       "rows": [
         { "id": "TP-02-01", "designTest": "T-32", "file": "tests/attention-payload-contract.test.mjs", "category": "integration", "liveSystem": false },
         { "id": "TP-02-02", "designTest": "T-33", "file": "tests/attention-payload-contract.test.mjs", "category": "integration", "liveSystem": false },
         { "id": "TP-02-03", "designTest": "T-43", "file": "tests/attention-payload-contract.test.mjs", "category": "integration", "liveSystem": false },
-        { "id": "TP-02-04", "designTest": null, "file": "tests/attention-payload-contract.test.mjs", "category": "unit", "liveSystem": false }
+        { "id": "TP-02-04", "designTest": null, "file": "tests/attention-payload-contract.test.mjs", "category": "unit", "liveSystem": false },
+        { "id": "TP-02-05", "designTest": null, "file": "tests/attention-browser.spec.mjs", "category": "e2e-ui", "liveSystem": true },
+        { "id": "TP-02-06", "designTest": null, "file": "tests/brief-refresh-atomicity.test.mjs", "category": "integration", "liveSystem": true }
       ]
     },
     {
       "scope": 3,
       "scopeId": "03-brief-tier-render",
-      "rowCount": 5,
+      "rowCount": 6,
       "rows": [
         { "id": "TP-03-01", "designTest": "T-34", "file": "tests/attention-browser.spec.mjs", "category": "e2e-ui", "liveSystem": true },
         { "id": "TP-03-02", "designTest": "T-35", "file": "tests/attention-browser.spec.mjs", "category": "e2e-ui", "liveSystem": true },
         { "id": "TP-03-03", "designTest": "T-36", "file": "tests/attention-browser.spec.mjs", "category": "e2e-ui", "liveSystem": true },
         { "id": "TP-03-04", "designTest": "T-37", "file": "tests/attention-browser.spec.mjs", "category": "e2e-ui", "liveSystem": true },
-        { "id": "TP-03-05", "designTest": "T-41", "file": "tests/attention-browser.spec.mjs", "category": "e2e-ui", "liveSystem": true }
+        { "id": "TP-03-05", "designTest": "T-41", "file": "tests/attention-browser.spec.mjs", "category": "e2e-ui", "liveSystem": true },
+        { "id": "TP-03-06", "designTest": null, "file": "tests/attention-browser.spec.mjs", "category": "e2e-ui", "liveSystem": true }
       ]
     },
     {
       "scope": 4,
       "scopeId": "04-outcome-record-and-interruption-rate",
-      "rowCount": 7,
+      "rowCount": 9,
       "rows": [
         { "id": "TP-04-01", "designTest": "T-25", "file": "tests/attention-payload-contract.test.mjs", "category": "integration", "liveSystem": false },
         { "id": "TP-04-02", "designTest": "T-26", "file": "tests/attention-payload-contract.test.mjs", "category": "integration", "liveSystem": false },
@@ -70,25 +74,28 @@
         { "id": "TP-04-04", "designTest": "T-28", "file": "tests/attention-payload-contract.test.mjs", "category": "integration", "liveSystem": false },
         { "id": "TP-04-05", "designTest": "T-29", "file": "tests/attention-payload-contract.test.mjs", "category": "integration", "liveSystem": false },
         { "id": "TP-04-06", "designTest": "T-30", "file": "tests/attention-payload-contract.test.mjs", "category": "integration", "liveSystem": false },
-        { "id": "TP-04-07", "designTest": "T-31", "file": "tests/attention-payload-contract.test.mjs", "category": "integration", "liveSystem": false }
+        { "id": "TP-04-07", "designTest": "T-31", "file": "tests/attention-payload-contract.test.mjs", "category": "integration", "liveSystem": false },
+        { "id": "TP-04-08", "designTest": null, "file": "tests/attention-browser.spec.mjs", "category": "e2e-ui", "liveSystem": true },
+        { "id": "TP-04-09", "designTest": null, "file": "tests/attention-browser.spec.mjs", "category": "e2e-ui", "liveSystem": true }
       ]
     },
     {
       "scope": 5,
       "scopeId": "05-legacy-feed-reconciliation-and-acceptance",
-      "rowCount": 5,
+      "rowCount": 6,
       "rows": [
         { "id": "TP-05-01", "designTest": "T-38", "file": "scripts/audit-reader-legibility.mjs", "category": "integration", "liveSystem": false },
         { "id": "TP-05-02", "designTest": "T-39", "file": "tests/attention-payload-contract.test.mjs", "category": "integration", "liveSystem": false },
         { "id": "TP-05-03", "designTest": "T-40", "file": "tests/attention-payload-contract.test.mjs", "category": "integration", "liveSystem": false },
         { "id": "TP-05-04", "designTest": "T-42", "file": "tests/attention-browser.spec.mjs", "category": "e2e-ui", "liveSystem": true },
-        { "id": "TP-05-05", "designTest": "T-44", "file": "scripts/selftest.mjs", "category": "integration", "liveSystem": false }
+        { "id": "TP-05-05", "designTest": "T-44", "file": "scripts/selftest.mjs", "category": "integration", "liveSystem": false },
+        { "id": "TP-05-06", "designTest": null, "file": "tests/attention-browser.spec.mjs", "category": "e2e-ui", "liveSystem": true }
       ]
     },
     {
       "scope": 6,
       "scopeId": "06-authoring-lane-composer-routing",
-      "rowCount": 7,
+      "rowCount": 11,
       "rows": [
         { "id": "TP-06-01", "designTest": null, "file": "tests/attention-payload-contract.test.mjs", "category": "integration", "liveSystem": false },
         { "id": "TP-06-02", "designTest": null, "file": "tests/attention-payload-contract.test.mjs", "category": "integration", "liveSystem": false },
@@ -96,7 +103,11 @@
         { "id": "TP-06-04", "designTest": null, "file": "tests/attention-payload-contract.test.mjs", "category": "integration", "liveSystem": false },
         { "id": "TP-06-05", "designTest": null, "file": "tests/attention-browser.spec.mjs", "category": "e2e-ui", "liveSystem": true },
         { "id": "TP-06-06", "designTest": null, "file": "tests/attention-payload-contract.test.mjs", "category": "unit", "liveSystem": false },
-        { "id": "TP-06-07", "designTest": null, "file": "tests/attention-payload-contract.test.mjs", "category": "unit", "liveSystem": false }
+        { "id": "TP-06-07", "designTest": null, "file": "tests/attention-payload-contract.test.mjs", "category": "unit", "liveSystem": false },
+        { "id": "TP-06-08", "designTest": null, "file": "tests/attention-browser.spec.mjs", "category": "e2e-ui", "liveSystem": true },
+        { "id": "TP-06-09", "designTest": null, "file": "tests/brief-refresh-atomicity.test.mjs", "category": "integration", "liveSystem": true },
+        { "id": "TP-06-10", "designTest": null, "file": "tests/attention-payload-contract.test.mjs", "category": "integration", "liveSystem": false },
+        { "id": "TP-06-11", "designTest": null, "file": "tests/attention-payload-contract.test.mjs", "category": "integration", "liveSystem": false }
       ]
     }
   ]

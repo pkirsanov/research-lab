@@ -469,6 +469,8 @@ run, and restore the step byte-identical.
 | TP-06-07 | Contract | unit | SCN-017-053 | `tests/attention-payload-contract.test.mjs` | the attention authoring instruction asks only for the authored judgement and never for a decision-attention/v1 envelope, so an edit reintroducing the envelope ask fails | `node --test tests/attention-payload-contract.test.mjs` | No | `report.md#tp-06-07` |
 | TP-06-08 | Regression E2E | e2e-ui | SCN-017-051 · SCN-017-059 | `tests/attention-browser.spec.mjs` | Regression: routing the lane through the composer changes WHO builds the envelope and must change nothing the reader sees — the tier still renders, and an all-refused generation still renders its declared empty state | `npx --no-install playwright test tests/attention-browser.spec.mjs --config=playwright.config.mjs --project=system-chrome` | Yes | `report.md#tp-06-08` |
 | TP-06-09 | Fixture Canary: publication path | integration | SCN-017-047 | `tests/brief-refresh-atomicity.test.mjs` | Canary: the shared publication fixture reproduces the pipeline AFTER the build step is wired in — run BEFORE any broad suite rerun, because this scope changes the script every other publication test depends on | `node --test tests/brief-refresh-atomicity.test.mjs` | Yes | `report.md#tp-06-09` |
+| TP-06-10 | Privacy | integration | SCN-017-061 | `tests/attention-payload-contract.test.mjs` | a candidate refused for privacy is recorded WITHOUT the offending value — the exclusion keeps the refusal code and field but never the subject, so the record of a withheld subject does not itself disclose it | `node --test tests/attention-payload-contract.test.mjs` | No | `report.md#tp-06-10` |
+| TP-06-11 | Privacy | integration | SCN-017-062 | `tests/attention-payload-contract.test.mjs` | the same refusal never prints the offending value to stdout — TP-06-10 closes the committed-record sink and this closes the console sink, because a leak that only reaches the terminal still leaves the record looking clean | `node --test tests/attention-payload-contract.test.mjs` | No | `report.md#tp-06-11` |
 
 ### Definition of Done - Tiered Validation
 
@@ -1423,6 +1425,30 @@ run, and restore the step byte-identical.
   downstream suite reported it. That is precisely the failure mode a canary is
   for: shared-harness breakage makes every dependent suite wrong in the same
   direction, which reads like a product regression instead of a harness defect.
+
+- [x] A privacy refusal is recorded WITHOUT the offending value (TP-06-10, SCN-017-061) and never prints it to stdout (TP-06-11, SCN-017-062).
+
+  **Claim Source:** executed in this turn.
+
+  ```text
+  $ node --test --test-name-pattern "SCN-017-06[12]" \
+      tests/attention-payload-contract.test.mjs
+  ok 1 - SCN-017-061 A candidate refused for privacy is recorded without leaking the offending value
+  ok 2 - SCN-017-062 A privacy refusal never prints the offending value to stdout
+  # tests 2
+  # pass 2
+  # fail 0
+  EXIT=0
+  ```
+
+  Two sinks, because closing one leaves the other open. The composer refuses a
+  candidate whose subject falls outside the public watchlist scope, and the
+  exclusion record has to say a refusal happened without repeating the thing
+  being withheld — otherwise the record of the leak IS the leak. SCN-017-061
+  closes the committed-record sink; SCN-017-062 closes the console sink, where a
+  leak reaches a terminal and a session transcript while the committed record
+  still looks clean. The two use distinct sentinels so a failure names which sink
+  it escaped through.
 
 - [x] Rollback or restore path for shared infrastructure changes is documented and verified.
 

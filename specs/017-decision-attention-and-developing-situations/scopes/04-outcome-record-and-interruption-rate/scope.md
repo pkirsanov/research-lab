@@ -219,6 +219,7 @@ generation and record the digest comparison as raw output.
 | TP-04-06 | Boundary | integration | SCN-017-038 | `tests/attention-payload-contract.test.mjs` | no write path to the recommendation ledger or the recommendation scorecard (design T-30) | `node --test tests/attention-payload-contract.test.mjs` | No | `report.md#tp-04-06` |
 | TP-04-07 | Boundary | integration | SCN-017-039 | `tests/attention-payload-contract.test.mjs` | the recommendation scorecard is byte-identical before and after a full attention generation (design T-31) | `node --test tests/attention-payload-contract.test.mjs` | No | `report.md#tp-04-07` |
 | TP-04-08 | Regression E2E | e2e-ui | SCN-017-058 | `tests/attention-browser.spec.mjs` | Regression: the record still shows the withheld state with its sample size and never a zero rate — the asymmetry P5 forbids is a rendering property, so it is guarded in the browser and not only in the reducer | `npx --no-install playwright test tests/attention-browser.spec.mjs --config=playwright.config.mjs --project=system-chrome` | Yes | `report.md#tp-04-08` |
+| TP-04-09 | Adversarial Render | e2e-ui | SCN-017-063 | `tests/attention-browser.spec.mjs` | Closes F-017-06. The record renders the PUBLISHED reduction, proven with a seeded non-empty scorecard whose sufficient-sample statement the old hardcoded empty read could not produce. TP-04-08 asserts the withheld state, which an empty ledger and the defect render identically — this row is the one that can tell them apart | `npx --no-install playwright test tests/attention-browser.spec.mjs --config=playwright.config.mjs --project=system-chrome --grep "SCN-017-063"` | Yes | `report.md#tp-04-09` |
 
 ### Definition of Done - Tiered Validation
 
@@ -750,6 +751,37 @@ generation and record the digest comparison as raw output.
   sample. This proves the RENDER withholds too. That distinction is the whole
   point: a reducer can return null correctly and a renderer can still print 0%,
   and it is the printed 0% the reader would act on.
+
+- [x] The record is proven to read the PUBLISHED reduction, using a sample the empty ledger cannot fake (TP-04-09, SCN-017-063). Closes F-017-06.
+
+  **Claim Source:** executed in this turn, RED against the reintroduced defect
+  then GREEN against the fix, with the renderer restored byte-identical.
+
+  ```text
+  RED — renderer reverted to the defect form (hardcoded empty read):
+  $ npx --no-install playwright test tests/attention-browser.spec.mjs \
+      --config=playwright.config.mjs --project=system-chrome --grep "SCN-017-063"
+  ✘ SCN-017-063 The record renders the published reduction, not a recomputed empty ledger
+    Error: the record must render the PUBLISHED statement. Rendered text did not
+    contain "Of the closed attention items, 13 of 24 were warranted."
+    1 failed
+
+  GREEN — renderer restored:
+  $ npx --no-install playwright test tests/attention-browser.spec.mjs \
+      --config=playwright.config.mjs --project=system-chrome --grep "SCN-017-063"
+  ✓ 1 SCN-017-063 The record renders the published reduction, not a recomputed empty ledger (7.4s)
+    1 passed (10.7s)
+  EXIT=0
+  ```
+
+  TP-04-08 asserts the withheld state, which the defect and a correct read
+  render identically while the ledger is empty — that is exactly why F-017-06
+  stayed open after its wiring was fixed. This row seeds a SUFFICIENT sample
+  through the static-server `overrides` seam, so the page performs a real HTTP
+  fetch for a scorecard that reduces to a published rate. The old hardcoded
+  `computeInterruptionRate([], ...)` cannot produce that sentence at all, so the
+  row fails against the defect and passes against the fix. No `page.route`: the
+  override pins a DEPENDENCY's observed state, not the system under test.
 
 - [x] Broader E2E regression suite passes with no unrelated breakage.
 

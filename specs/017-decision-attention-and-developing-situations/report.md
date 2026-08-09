@@ -101,7 +101,7 @@ which is audit finding A-017-03.
 
 ### Scope 1 — Attention Capability Module And Item Contract
 
-Rows TP-01-01 through TP-01-25 are recorded in
+Rows TP-01-01 through TP-01-26 are recorded in
 [`scopes/01-attention-capability-module/report.md`](scopes/01-attention-capability-module/report.md)
 (62 evidence fences, 0 placeholders).
 
@@ -155,9 +155,11 @@ Rows TP-01-01 through TP-01-25 are recorded in
 
 **TP-01-25**
 
+**TP-01-26**
+
 ### Scope 2 — Publication-Path Enforcement
 
-Rows TP-02-01 through TP-02-03 are recorded in
+Rows TP-02-01 through TP-02-06 are recorded in
 [`scopes/02-publication-path-enforcement/report.md`](scopes/02-publication-path-enforcement/report.md)
 (20 evidence fences, 0 placeholders).
 
@@ -167,9 +169,15 @@ Rows TP-02-01 through TP-02-03 are recorded in
 
 **TP-02-03**
 
+**TP-02-04**
+
+**TP-02-05**
+
+**TP-02-06**
+
 ### Scope 3 — Brief Tier Render
 
-Rows TP-03-01 through TP-03-05 are recorded in
+Rows TP-03-01 through TP-03-06 are recorded in
 [`scopes/03-brief-tier-render/report.md`](scopes/03-brief-tier-render/report.md)
 (24 evidence fences, 0 placeholders).
 
@@ -183,9 +191,11 @@ Rows TP-03-01 through TP-03-05 are recorded in
 
 **TP-03-05**
 
+**TP-03-06**
+
 ### Scope 4 — Outcome Record And Interruption Rate
 
-Rows TP-04-01 through TP-04-07 are recorded in
+Rows TP-04-01 through TP-04-09 are recorded in
 [`scopes/04-outcome-record-and-interruption-rate/report.md`](scopes/04-outcome-record-and-interruption-rate/report.md)
 (38 evidence fences, 0 placeholders). That report also narrates the SCN-017-033
 scope-boundary escalation ahead of its green evidence, because a one-failure run
@@ -205,9 +215,13 @@ there is the record of a boundary holding rather than a defect report.
 
 **TP-04-07**
 
+**TP-04-08**
+
+**TP-04-09**
+
 ### Scope 5 — Legacy Feed Reconciliation And Acceptance
 
-Rows TP-05-01 through TP-05-05 are recorded in
+Rows TP-05-01 through TP-05-06 are recorded in
 [`scopes/05-legacy-feed-reconciliation-and-acceptance/report.md`](scopes/05-legacy-feed-reconciliation-and-acceptance/report.md)
 (22 evidence fences, 0 placeholders).
 
@@ -220,6 +234,38 @@ Rows TP-05-01 through TP-05-05 are recorded in
 **TP-05-04**
 
 **TP-05-05**
+
+**TP-05-06**
+
+### Scope 6 — Authoring Lane Composer Routing
+
+Rows TP-06-01 through TP-06-11 are recorded in
+[`scopes/06-authoring-lane-composer-routing/report.md`](scopes/06-authoring-lane-composer-routing/report.md)
+(26 evidence fences, 0 placeholders). That report also carries the runtime-delta
+diff for the composer step, because this scope changed the publication script
+every other publication test depends on.
+
+**TP-06-01**
+
+**TP-06-02**
+
+**TP-06-03**
+
+**TP-06-04**
+
+**TP-06-05**
+
+**TP-06-06**
+
+**TP-06-07**
+
+**TP-06-08**
+
+**TP-06-09**
+
+**TP-06-10**
+
+**TP-06-11**
 
 ## Uncertainty Declarations
 

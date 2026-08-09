@@ -34,6 +34,7 @@
  * literal passed into the render context. No Math.random, no wall clock.
  */
 import { readFileSync } from 'node:fs';
+import { createRequire } from 'node:module';
 
 import { expect, test } from './playwright-runtime.mjs';
 import { startStaticServer } from './tool-experience.support.mjs';
@@ -1200,4 +1201,89 @@ test('SCN-017-059 No item appears in both the decision tier and the catalyst fee
   expect(`prefix ${probe} suffix`.includes(probe),
     'the substring comparison used above must actually detect a repeated headline')
     .toBe(true);
+});
+
+/* ═══════════ TP-04-09 — SCN-017-063 the record reads the PUBLISHED reduction ═══════════ */
+
+/* Closes F-017-06 adversarially.
+ *
+ * The existing withheld-state row (SCN-017-058) asserts against the SHIPPED
+ * scorecard, which currently reduces to closedSample 0. At that value the wired
+ * read and the old hardcoded `computeInterruptionRate([], ...)` emit the SAME
+ * statement, the same sample size and the same minimum — so that row would still
+ * pass against the defect. The finding said so itself: "a fixture with an empty
+ * ledger cannot detect this defect."
+ *
+ * This row seeds a SUFFICIENT sample instead, which the empty-ledger recompute
+ * can never produce. It is served over a real HTTP fetch by the suite's static
+ * server, NOT via page.route: repo policy classifies an intercepted Playwright
+ * test out of e2e-ui entirely, so mocking here would convert the only live-stack
+ * proof into a mocked one and leave the gap open while appearing to close it.
+ * Overriding one served artifact pins a DEPENDENCY's observed state; the page
+ * still performs its own fetch and still renders whatever it actually observed.
+ *
+ * Fixtures supply outcome observations only. Every number asserted below is
+ * derived by the production reducer from those observations, so this cannot
+ * drift into asserting a hand-typed expectation. */
+test('SCN-017-063 The record renders the published reduction, not a recomputed empty ledger', async ({ page }) => {
+  test.setTimeout(90_000);
+
+  const RLATTN = createRequire(import.meta.url)('../rlattention.js');
+  const asOf = '2026-08-08T12:00:00.000Z';
+
+  const effectiveClass = RLATTN.TERMINAL_OUTCOME_CLASSES
+    .find((outcomeClass) => outcomeClass !== 'expired-without-effect');
+  expect(effectiveClass, 'the module must publish a terminal class that counts as effective').toBeTruthy();
+
+  const records = [
+    ...Array.from({ length: 17 }, () => ({ outcomeClass: effectiveClass })),
+    ...Array.from({ length: 5 }, () => ({ outcomeClass: 'expired-without-effect' }))
+  ];
+
+  const overall = RLATTN.computeInterruptionRate(records, null, asOf);
+  const withheld = RLATTN.computeInterruptionRate([], null, asOf);
+
+  expect(overall.sufficientSample,
+    'the seeded sample must clear the reducer minimum, otherwise this row proves nothing')
+    .toBe(true);
+  expect(overall.statement,
+    'the seeded and empty reductions must differ, or the assertion below cannot discriminate')
+    .not.toBe(withheld.statement);
+
+  const seededSite = await startStaticServer({
+    overrides: {
+      'market-brief.attention-scorecard.json': JSON.stringify({
+        contractVersion: 'attention-scorecard/v1',
+        generatedAt: asOf,
+        overall,
+        byDecisionWindow: {},
+        byChannel: {}
+      })
+    }
+  });
+
+  try {
+    await page.goto('about:blank');
+    await page.goto(`${seededSite.baseUrl}/${PAGE}`);
+    await expect(page.locator('#scorecard')).toBeVisible({ timeout: 30000 });
+
+    const record = page.locator('#attentionRecord');
+    await expect(record).toBeVisible();
+
+    const rendered = await record.evaluate((host) => {
+      const titles = Array.from(host.querySelectorAll('[title]')).map((node) => node.getAttribute('title'));
+      return `${host.textContent} ${titles.join(' ')}`;
+    });
+
+    expect(rendered,
+      `the record must render the PUBLISHED reduction's statement. Rendered: ${JSON.stringify(rendered)}`)
+      .toContain(overall.statement);
+    expect(rendered, 'the published effective/closed counts must reach the reader')
+      .toContain(String(overall.closedSample));
+    expect(rendered,
+      'the withheld statement must be absent — its presence is the defect this row exists to catch')
+      .not.toContain(withheld.statement);
+  } finally {
+    await seededSite.close();
+  }
 });

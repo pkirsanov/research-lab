@@ -166,12 +166,32 @@ function listTrackedFiles(root) {
     return files;
 }
 
+/* Commit messages are a second committed surface. `git ls-files` cannot reach
+   them, so a file-only scan reports clean while an identifier sits in history
+   forever — which is exactly how `/home/<user>` survived an earlier scrub. In a
+   shallow CI clone this sees the tip commit, which is the one being added. */
+export function listCommitMessages(root) {
+    let out;
+    try {
+        out = execFileSync('git', ['-C', root, 'log', '--format=%H%x1f%B%x1e'], { encoding: 'utf8', maxBuffer: 256 * 1024 * 1024 });
+    } catch { return []; }
+    const records = [];
+    for (const raw of out.split('\u001e')) {
+        const record = raw.replace(/^\n+/, '');
+        const split = record.indexOf('\u001f');
+        if (split === -1) continue;
+        records.push({ sha: record.slice(0, split), message: record.slice(split + 1) });
+    }
+    return records;
+}
+
 export function runPiiScan({ root = ROOT } = {}) {
     const config = loadConfig(root);
     const rules = buildRules(config);
     const allow = buildAllow(config);
     const findings = [];
     let filesScanned = 0;
+    let messagesScanned = 0;
 
     for (const file of listTrackedFiles(root)) {
         if (file === CONFIG_PATH) continue;
@@ -188,17 +208,27 @@ export function runPiiScan({ root = ROOT } = {}) {
             findings.push({ file, ...finding });
         }
     }
+
+    for (const { sha, message } of listCommitMessages(root)) {
+        const label = `git-message:${sha.slice(0, 12)}`;
+        messagesScanned++;
+        for (const finding of scanText(message, rules)) {
+            if (isAllowed(allow, label, finding.rule)) continue;
+            findings.push({ file: label, ...finding });
+        }
+    }
     findings.sort((a, b) => a.file.localeCompare(b.file) || a.line - b.line || a.column - b.column);
-    return { ok: findings.length === 0, findings, filesScanned };
+    return { ok: findings.length === 0, findings, filesScanned, messagesScanned };
 }
 
 /* Rule and location only. The matched text is deliberately withheld. */
 export function formatFindings(result) {
     const lines = result.findings.map((f) => `[pii-scan] ${f.file}:${f.line}:${f.column} rule=${f.rule} length=${f.length}`);
-    lines.push(`[pii-scan] files=${result.filesScanned} findings=${result.findings.length} ${result.ok ? 'OK' : 'FAIL'}`);
+    lines.push(`[pii-scan] files=${result.filesScanned} messages=${result.messagesScanned} findings=${result.findings.length} ${result.ok ? 'OK' : 'FAIL'}`);
     if (!result.ok) {
         lines.push('[pii-scan] The matched text is withheld on purpose — printing it would copy the identifier into CI logs.');
         lines.push('[pii-scan] Open each cited line. Remove the identifier, or add a reasoned entry to scripts/pii-scan.config.json "allow".');
+        lines.push('[pii-scan] A git-message:<sha> finding lives in a commit message, not a file — it needs a history rewrite (git filter-repo --message-callback), not an edit.');
     }
     return lines.join('\n');
 }

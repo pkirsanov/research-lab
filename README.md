@@ -69,6 +69,7 @@ The tool list itself is **not** enumerated here — [`tools.json`](tools.json) i
 ├── rlexperience-adapters/*.js        # per-domain model adapters the tools and Tier-A reads share
 ├── rljourney.js                      # guided-journey runtime (mounts on [data-rljourney-mount])
 ├── rlbrief.js  rlmarketaction.js     # brief rendering + market-action triage
+├── rlattention.js                    # the brief's decision-attention tier — composer, validator, ranking
 ├── rlviews.js  rlcontext.js          # view focus + contextual tooltips
 ├── rlsession.js rlvol.js rlportfolio.js rlrental.js rlcompany.js rlfx.js rlcausal.js rlvalidation.js
 │                                     # domain engines consumed by the tools that own them
@@ -85,6 +86,7 @@ The tool list itself is **not** enumerated here — [`tools.json`](tools.json) i
 ├── market-brief.config.json          # what it tracks
 ├── market-brief.snapshot.json        # Tier-A deterministic snapshot (tool reads)
 ├── market-brief.payload.json         # published payload (Tier-A + Tier-B narrative)
+├── market-brief.attention-*.json(l)  # decision-attention outcome ledger + its reduced interruption rate
 ├── briefs/history/                   # append-only history: per-tool briefs + the recommendation ledger
 │
 │  ── committed market data (same-origin, no CORS, no key)

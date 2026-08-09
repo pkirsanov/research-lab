@@ -129,7 +129,17 @@ after-hours = reactions/follow-through).
       trigger, expiry, rationale), and this script — not a model — builds each `decision-attention/v1` envelope
       from that judgement plus the committed window, transmission, provenance and lifecycle contracts in
       `rlattention.js`. A candidate that cannot satisfy those contracts is refused with a closed `RLATTN-*`
-      code and recorded in the exclusion accounting instead of being published. Skipping this step does not
+      code and recorded in the payload's own `attentionExclusions[]` — index, subject, code, offending field
+      and reason — instead of being published, so published-plus-excluded always accounts for every candidate
+      declared and **nothing is silently dropped**. A refusal is a correct outcome, not a run failure: the step
+      exits 0 when it refuses a candidate (the seven-card tier is a ceiling, never a quota), and only a genuine
+      build error exits non-zero and fails the attempt. One refusal withholds its own evidence — for
+      `RLATTN-PRIVACY` the subject is replaced with `[redacted: privacy refusal]` in the record *and* in
+      stdout, because recording it would publish into a public repo, and permanently into git history, the
+      exact value the guard had just refused; every other refusal still names its subject, which is the
+      operator's only handle on it. Nothing is defaulted back into shape: if every candidate is refused the
+      tier publishes empty and renders its declared empty state, and the brief still publishes.
+      Skipping this step does not
       fail loudly — it silently republishes the previous generation's attention set — so it belongs in the
       pipeline, not in an operator's memory;
     4. validates the final pair and publishes `briefs/` from the exact pre-final tool bundle. The graph
@@ -523,8 +533,24 @@ rotation math (§4).
   },
   "attention": [
     { "rank": 1, "domain": "rotation|gamma|momentum|regime|flows|event",
-      "horizon": "structural|swing|tactical", "structuralAnchor": "<the MA/level/trend this rests on>",
-      "title": "", "what": "", "why": "", "confidence": 0, "deepLink": "" }
+      "structuralAnchor": "<the MA/level/trend this rests on>",
+      "title": "", "what": "", "why": "", "confidence": 0, "deepLink": "",
+      "contractVersion": "decision-attention/v1", "id": "", "gateId": "",
+      "disposition": "attention|context|no-action", "subject": "<a watchlist ticker>",
+      "headline": "<at most 120 characters>", "rationale": "", "verb": "<a research verb>",
+      "horizon": "structural|swing|tactical", "severity": "mild|moderate|severe",
+      "imminence": "imminent|developing|latent", "observedAt": "<ISO8601>",
+      "decisionWindow": "pre-market|morning|pre-close|after-hours",
+      "windowBoundaryUtc": "", "windowTradingDate": "", "windowResolvedFrom": "",
+      "escalationTrigger": "", "invalidation": "", "expiry": "<ISO8601>",
+      "transmissionPath": [], "transmissionAbsenceNote": "",
+      "marketConfirmation": { "state": "present|absent|partial", "detail": "" }, "marketConfirmationNote": "",
+      "figures": [ { "label": "", "value": "", "provenance": { "sourceId": "", "asOf": "<ISO8601>" } } ],
+      "state": "", "lifecycle": [], "supersededBy": null }
+  ],
+  "attentionExclusions": [
+    { "index": 0, "subject": "<the refused candidate — or [redacted: privacy refusal]>",
+      "code": "RLATTN-*", "field": "", "reason": "" }
   ],
   "recommendations": [
     { "action": "trim|add|hedge|watch|rotate", "horizon": "structural|swing|tactical",
@@ -553,6 +579,18 @@ rotation math (§4).
   "experimental": [ { "title": "", "note": "", "hiddenByDefault": true } ]
 }
 ```
+
+**`attention[]` is two contracts in one object, and the lane authors neither of them whole.** The first nine
+keys are the older catalyst shape; everything from `contractVersion` down is the `decision-attention/v1`
+envelope that `scripts/build-attention-items.mjs` composes at publish time (step 3b) and merges *over* the
+catalyst fields, so neither half overwrites the other. The lane authors only the judgement — `headline`, the
+falsifiability triple (`escalationTrigger`, `invalidation`, `expiry`), the four enums (`verb`, `horizon`,
+`severity`, `imminence`) and `rationale`. It does **not** author `decisionWindow`: the build step takes that
+from the payload's own `window`, so the window a reader sees is always the window the brief was generated
+for. `attentionExclusions[]` is the refusal record for candidates the composer would not build; it is
+validated when present rather than required, but its shape is not optional — a `code` outside the composer's
+closed refusal list, or a missing `field` or `reason`, fails the gate. Full field rules:
+[`notes/decision-attention.md`](decision-attention.md).
 
 **`asOf` vs `generatedAt`:** `asOf` is the window/session the brief analyzes (e.g. the 11:00 ET `morning` window); `generatedAt` is the actual ISO wall-clock of the run that produced this file. Stamp `generatedAt` fresh on **every** (re)generation — the cockpit header renders it as “· regenerated …”. Tier-A (`brief-refresh.mjs`) sets both to the run time automatically.
 
@@ -599,15 +637,26 @@ as escalated and is scored under that outcome, so the record stays honest today.
 in front of the reader as live alerts waits on the alert surface itself, which is still gated in the code
 and is not switched on by this work. Nothing here quietly turns that gate on.
 
+*What the record says today:* the outcome ledger `market-brief.attention-outcomes.jsonl` is empty and no
+scheduled step appends to it — `scripts/build-attention-scorecard.mjs` is a manual CLI, not part of the
+4×/day pipeline. So the record surface reports that the closed sample is too small to state an interruption
+rate, rather than a flattering zero. That is the designed refusal to publish a rate below the minimum
+sample, not a defect in the maths; closing it needs a closure step on the publication path. See
+[`notes/decision-attention.md`](decision-attention.md) §10.
+
 ---
 
 ## 11. Artifacts, registry sync, validation
 
-Files: `market-brief.html` (cockpit) · `rlbrief.js` (shared brief components) · `market-brief.config.json` ·
+Files: `market-brief.html` (cockpit) · `rlbrief.js` (shared brief components) · `rlattention.js` (the
+decision-attention composer + validator) · `market-brief.config.json` ·
 `market-brief.payload.json` · `brief-history.jsonl` · `watchlist.json` · `notes/market-brief.md` (this) ·
+[`notes/decision-attention.md`](decision-attention.md) (the attention tier's handoff doc) ·
 `.github/copilot-instructions.md` · `.github/prompts/market-brief-update.prompt.md` ·
-`scripts/brief-refresh.mjs` (Tier A). Also implement the `RLDATA` shared layer — the brief's
-`macro` / `events` needs are its first real consumer.
+`scripts/brief-refresh.mjs` (Tier A) · `scripts/build-attention-items.mjs` (step 3b) ·
+`scripts/build-attention-scorecard.mjs` + `market-brief.attention-outcomes.jsonl` +
+`market-brief.attention-scorecard.json` (the interruption record — manual, see §10a). Also implement the
+`RLDATA` shared layer — the brief's `macro` / `events` needs are its first real consumer.
 
 The mega-cap / thematic groups (§7a) live in `config.json → track.groups[]`, are computed by
 `scripts/brief-refresh.mjs`, rendered by `rlbrief.js → renderGroups` (pure helpers `groupBreadth` /

@@ -14,8 +14,10 @@ Companion files:
 - [`notes/market-brief.md`](market-brief.md) — the 4×/day brief runbook. Decision Attention renders inside that brief.
 - `rlattention.js` — the one composer and validator for this tier. Browser global `RLATTN`; UMD, so Node tests get the same object.
 - `rlmarketaction.js` — the certified alert engine. Owns the lifecycle vocabulary, the transmission channels, the research verbs, and Red Alert.
+- `scripts/build-attention-items.mjs` — the publish-time build step. Calls the module's own `buildAttentionItem` once per candidate and records every refusal.
 - `scripts/validate-brief-payload.mjs` — the publish gate. Delegates every attention rule to the module.
-- `scripts/brief-narrative-parallel.mjs` — where the agent is told what to author into `attention`.
+- `scripts/build-attention-scorecard.mjs` — reduces the outcome ledger into the interruption rate. Not on the automated path; see §10.
+- `scripts/brief-narrative-parallel.mjs` — where the agent is told what **judgement** to author. It no longer authors an envelope; see §7.
 - `scripts/reader-vocabulary.mjs` — the reader-legibility field lists.
 - `market-brief.html` — the render surface.
 
@@ -27,8 +29,10 @@ Decision Attention is the **urgency** tier. It carries things that deserve the r
 before the next session but do not clear the Red Alert bar. It lives inside the existing `brief`
 view. Every item must be falsifiable, must land in a decision window, and must either name a
 transmission channel or say plainly that it has none. Items in a terminal lifecycle state are
-filtered out before ranking. One module owns every rule; the publish gate calls that module rather
-than restating it.
+filtered out before ranking. One module owns every rule; the build step and the publish gate both
+call that module rather than restating it. A candidate the module refuses is neither published nor
+quietly dropped — it is recorded with its named reason, so published plus excluded always accounts
+for every candidate declared.
 
 ---
 
@@ -121,6 +125,11 @@ the brief publishes on. It is resolved, not stored raw. `resolveDecisionWindow` 
 trading date, an observed session calendar, and a window vocabulary of `{ anchor, offsetMinutes }`
 where `anchor` is `open` or `close`. It emits `windowBoundaryUtc`, `windowTradingDate`, and
 `windowResolvedFrom`.
+
+**The author does not pick the window.** `scripts/build-attention-items.mjs` reads it off the
+generation itself — the payload's own `window` — and merges it in *after* stripping the authored
+keys, so a candidate that tried to author its own window loses it. The window a reader sees is
+always the window the brief was generated for.
 
 A non-trading date, or a boundary that has already elapsed, rolls forward to the next observed session
 and reports `windowResolvedFrom: "next-session-open"`. A window never resolves into the past. There is
@@ -274,6 +283,43 @@ flattering zero.
 
 ## 7. The publication path
 
+Three components sit on the path, in this order, and they run in this order in
+`scripts/brief-refresh-and-push.sh`:
+
+```
+lane (judgement)  →  build-attention-items.mjs (envelope)  →  validate-brief-payload.mjs (refusal)
+```
+
+### The lane authors judgement, not an envelope
+
+Nine fields: `headline`, the falsifiability triple (`escalationTrigger`, `invalidation`, `expiry`),
+the four judgement enums (`verb`, `horizon`, `severity`, `imminence`), and `rationale`. That list is
+`AUTHORED_JUDGEMENT_KEYS` in the build step, and anything outside it is stripped before the composer
+sees it, so a stray envelope field cannot ride along.
+
+### The build step composes the envelope
+
+`build-attention-items.mjs --recompose --write` calls `RLATTN.buildAttentionItem(gateResult, authored, ctx)`
+once per candidate. The three arguments have three different origins and the step keeps them apart:
+
+| Argument | Origin |
+| --- | --- |
+| `gateResult` | observed — the candidate's own market facts |
+| `authored` | judgement — what the lane wrote, and nothing else |
+| `ctx` | deterministic — committed watchlist scope, exchange calendar, window vocabulary, generation window |
+
+`ctx` is single-sourced from `scripts/validate-brief-payload.mjs`, so the step that BUILDS an item and
+the gate that REFUSES one cannot disagree about the scope, the calendar, or the vocabulary.
+
+The composer answers `{ ok, item }`. What publishes is the envelope inside the result, never the wrapper.
+
+The recompose is **additive or nothing**. Each surviving item keeps every field the composer does not
+own — `title`, `what`, `why`, `structuralAnchor` and the rest belong to the older catalyst contract, and
+the envelope is merged over the published item rather than replacing it. The step refuses to write if a
+pre-existing top-level payload key would be lost.
+
+### The publish gate re-checks every item
+
 `scripts/validate-brief-payload.mjs` requires `rlattention.js` through `createRequire` and re-exports
 the module's own predicate:
 
@@ -282,7 +328,8 @@ export const validateAttentionItem = RLATTN.validateAttentionItem;
 ```
 
 It then calls that predicate per item and pushes each violation as
-`attention[i].<field> <CODE>: <message>`. It also enforces the card maximum.
+`attention[i].<field> <CODE>: <message>`. It also enforces the card maximum and validates the shape of
+every exclusion record.
 
 **The gate restates no attention rule locally.** The headline ceiling, the falsifiability triple, the
 window vocabulary, the transmission channels, and the provenance class all have exactly one definition.
@@ -294,36 +341,89 @@ in the wrong file. Identity re-export makes that class of bug impossible rather 
 
 If you need a new rule, put it in `rlattention.js`. Do not add a check to the gate.
 
+### Nothing is silently dropped
+
+A candidate the composer refuses is excluded from `attention[]` **and recorded** in
+`attentionExclusions[]` with its `index`, its `subject`, the closed `RLATTN-*` `code`, the offending
+`field`, and the composer's own `reason`. Published plus excluded equals the number of candidates
+declared; `tests/attention-payload-contract.test.mjs` asserts that equality directly.
+
+A refusal is therefore actionable rather than merely counted. Excluding a candidate is also a **correct
+outcome, not a run failure** — the build step exits 0 when it refuses one, because the tier is a
+ceiling and never a quota, so publishing six items instead of seven is right. A genuine build error
+exits non-zero and fails the attempt.
+
+### Hard cutover: no default, no soft fallback
+
+There is no dual-shape acceptance window and no value substituted for a missing field. A `ctx` member
+no committed artifact can supply is left **absent**, so the composer refuses the item by name rather
+than composing something plausible. If every candidate is refused, `attention[]` is empty and the tier
+renders its declared empty state — the brief still publishes.
+
+`attentionExclusions` itself is validated **when present** rather than required. The key arrives with
+the build step's payload cutover, and refusing every brief until then would have taken the live 4×/day
+publication down for a key nothing wrote yet. Its *shape* is not optional: a `code` outside
+`REFUSAL_CODES`, or a missing `field` or `reason`, fails the gate. A reason that names no real refusal
+code reads as an explanation and explains nothing.
+
+### A privacy refusal withholds the value it refused
+
+`RLATTN-PRIVACY` is the one refusal whose own subject is the thing being protected. It is raised
+*because* the candidate named something outside the public scope — a subject off the watchlist, or a
+position field. Recording that name would publish, into a public repository and permanently into git
+history, the exact value the guard had just refused. A guard that refuses a value and then discloses it
+is worse than no guard.
+
+So for that code alone the recorded `subject` becomes `[redacted: privacy refusal]` — in the payload
+record **and** in the step's stdout, because stdout reaches CI logs and transcripts that cannot be
+retracted. `index`, `code`, `field` and `reason` are untouched, so the refusal stays countable and
+actionable; only the offending value goes.
+
+The redaction is keyed on the **code**, not on one call site, because `rlattention.js` raises
+`RLATTN-PRIVACY` from more than one place and both must withhold. Every other refusal still names its
+subject: an `RLATTN-OVERLAP` refusal is about a public watchlist ticker, so withholding it would
+protect nothing and would remove the operator's only handle on the refusal.
+
 ---
 
-## 8. The atomic three-part change — read this before touching the validator
+## 8. Why the build step exists — read this before touching the contract
 
 **This is the most important operational warning in this document.**
 
-Three things must move in the same change:
+The lane used to emit a `decision-attention/v1` envelope directly, guided by a prose instruction that
+named every required field. That arrangement failed twice, in two different ways.
 
-1. the predicate in `rlattention.js`,
-2. the migration of `market-brief.payload.json` to the new shape,
-3. the `attention` authoring instruction in `scripts/brief-narrative-parallel.mjs`.
+**First failure — the instruction lagged the contract.** The validator was tightened and the payload
+was migrated; the authoring instruction was not updated in the same change. Within hours the 4×/day
+cron republished the brief and re-emitted the pre-migration item shape. The scheduler does not know a
+migration occurred. It runs the instruction it has. The window between a commit and the next cron run
+is at most a few hours.
 
-Miss the third and the brief cannot publish.
+**Second failure — the instruction was correct and still did not hold.** With the instruction intact
+and the publication gate armed, three consecutive cron publishes emitted **zero** conforming items. A
+prose instruction to a language model is advisory. It is not a mechanical guarantee, and no amount of
+editing the prose makes it one.
 
-The authoring instruction is the string that tells the agent what to write into `attention` on every
-run. It sits in the parallel narrative task that declares `keys: ['attention', 'recommendations', 'events']`.
-As written today it names the card cap and asks for ranked items. It does **not** name this tier's
-required fields. Anything the instruction does not name is not reliably authored, and anything not
-authored fails the gate.
+So the lane no longer emits the envelope at all. It authors judgement, and
+`scripts/build-attention-items.mjs` constructs the envelope by calling the certified composer.
+**Compliance became structural rather than advisory: the lane cannot emit a non-conforming envelope
+when it no longer emits the envelope.**
 
-**This is not theoretical. It happened during delivery.** The validator was tightened and the payload
-was migrated. The authoring instruction was not updated in the same change. Within hours the 4×/day
-cron republished the brief and re-emitted the pre-migration item shape — exactly as predicted. The
-scheduler does not know a migration occurred. It runs the instruction it has.
+What that changes about your edit:
 
-So the failure mode is specific and repeatable: tighten the validator, and the next scheduled run
-authors the old shape, the gate rejects it, and the brief stops publishing until someone notices. The
-window between your commit and the next cron run is at most a few hours.
+| You are adding | Must the authoring instruction change? |
+| --- | --- |
+| a field the composer derives from `gateResult` or `ctx` | No. The build step already supplies it. |
+| a field in `AUTHORED_JUDGEMENT_KEYS` | **Yes**, in the same change. It is the one thing still authored. |
 
-Treat the three edits as one commit. If you cannot land all three, land none.
+The residual risk is narrower than it was, but it has not vanished: an authored judgement field the
+instruction does not name is not reliably authored, and an item missing one is **refused rather than
+defaulted**. Migrate `market-brief.payload.json` in the same change as well.
+
+**The one thing that must never be skipped:** the build step has to run on the publication path,
+between the lane and the gate. Skipping it does **not** fail loudly — it silently republishes the
+previous generation's attention set. That is why it lives in `scripts/brief-refresh-and-push.sh` and
+not in an operator's memory.
 
 ---
 
@@ -337,9 +437,12 @@ Do these in order.
 3. Pick an existing refusal code from `REFUSAL_CODES`, or add one there. The list is closed; keep it closed.
 4. Add the field to the frozen item in `buildAttentionItem` and to `toViewModel`. `toViewModel` returns
    raw strings and booleans only — the caller escapes.
-5. Update the `attention` authoring instruction in `scripts/brief-narrative-parallel.mjs` **in the same
-   change**. See §8.
-6. Migrate `market-brief.payload.json` **in the same change**.
+5. If — and only if — the field is authored judgement, add it to `AUTHORED_JUDGEMENT_KEYS` in
+   `scripts/build-attention-items.mjs` **and** to the `attention` authoring instruction in
+   `scripts/brief-narrative-parallel.mjs`, in the same change. A field the composer derives from
+   `gateResult` or `ctx` needs neither. See §8.
+6. Migrate `market-brief.payload.json` **in the same change**. `build-attention-items.mjs --recompose
+   --write` re-composes the committed items through the composer and is the intended way to do it.
 7. Add the field pattern to `scripts/reader-vocabulary.mjs`. Put it in `BRIEF_NARRATIVE_FIELDS_REQUIRED`
    unless it is genuinely intermittent. Move a pattern to the optional list only because it is
    intermittently emitted, never to silence a red required pattern.
@@ -352,39 +455,48 @@ Do not add the check to `scripts/validate-brief-payload.mjs`. It delegates by de
 
 ## 10. Known open items
 
-Two things are true today and are not yet fixed. Both are cosmetic-to-moderate, neither blocks publish.
+Two items recorded here at delivery are now **closed**. They are named so a future reader does not go
+looking for a defect that is no longer there:
 
-**The rank rationale can render a vacuous self-comparison.** `rankRationale(higher, lower)` builds its
-sentence from each item's subject label. When two adjacent ranked items share a subject, the output
-reads like "QQQ is placed above QQQ because its effect is already arriving and a transmission channel
-is identified, while for QQQ its effect is still developing and no transmission channel is identified."
-Every clause is literally true and the sentence is useless to a reader. The comparison needs a
-discriminator other than the subject when the subjects match — the headline is the obvious candidate,
-since it is already part of the tiebreak. Not yet done.
+- **The vacuous rank rationale is fixed.** `rankRationale` now detects a shared subject. When the two
+  reasons also match it states the fact once and says the item below stands on the same footing;
+  when they differ it distinguishes "a second `<subject>` item". Sharing a subject stayed valid, so
+  the repair went into the sentence and not into a uniqueness rule.
+- **The two conditionally-present confirmation fields are fixed.**
+  `attention.[].marketConfirmation.detail` and `attention.[].marketConfirmationNote` now sit in
+  `BRIEF_NARRATIVE_FIELDS_OPTIONAL` in `scripts/reader-vocabulary.mjs`, each proven against
+  `rlattention.js` as its producer rather than against the assembling script, which never names them.
+  The leak gate still checks both identically; only the proof of realness moved.
 
-**Two conditionally-present confirmation fields are declared REQUIRED.**
-`attention.[].marketConfirmation.detail` and `attention.[].marketConfirmationNote` both sit in
-`BRIEF_NARRATIVE_FIELDS_REQUIRED` in `scripts/reader-vocabulary.mjs`. By the rule in §3, exactly one of
-them is present on any given item and the other is legitimately absent, decided by
-`marketConfirmation.state`. They belong on the optional list, but that list is pinned pattern-and-producer
-by an assertion in `scripts/selftest.mjs`, so they cannot simply be moved. The consequence: a future
-healthy publish could turn them red for the wrong reason. The real fix is a conditional class in the
-vocabulary — "required when state is X" — rather than moving them and weakening the pin.
+One item is open, and it is operational rather than cosmetic.
+
+**The outcome ledger is empty, and nothing on the automated path appends to it.**
+`market-brief.attention-outcomes.jsonl` currently holds zero lines, and the only callers of
+`appendOutcomeRecord` are the CLI and the tests — `scripts/brief-refresh-and-push.sh` does not run
+`scripts/build-attention-scorecard.mjs`. The consequence is honest but inert: the committed
+`market-brief.attention-scorecard.json` reports a null rate and states that the closed sample is too
+small, and it will keep saying exactly that until closures are recorded. That is
+`computeInterruptionRate` refusing to publish a number below `minClosedSample` (20), which is the
+designed behaviour and not a bug — but it means the tier can interrupt the reader four times a day and
+cannot yet answer for how often it was right. Closing this needs a closure step on the publication
+path. It does not need a change to the rate maths.
 
 ---
 
 ## 11. Verification status
 
-Recorded at delivery, all green:
+Re-verified 2026-08-08:
 
 | Check | Result |
 | --- | --- |
-| `tests/rlattention.test.mjs` | 25/25 |
-| `tests/attention-payload-contract.test.mjs` | 15/15 |
-| `tests/attention-browser.spec.mjs` (`--project=system-chrome`) | 6/6 |
-| `node scripts/selftest.mjs` | 1251 passed, 0 failed |
-| `node scripts/validate-brief-payload.mjs` | exit 0 |
+| `node --test tests/rlattention.test.mjs` | 27/27 |
+| `node --test tests/attention-payload-contract.test.mjs` | 27/27 |
+| `node scripts/selftest.mjs` | 1273 passed, 0 failed |
+| `node scripts/validate-brief-payload.mjs market-brief.payload.json` | exit 0 |
 | `node scripts/audit-reader-legibility.mjs` | 0 leaks across 23 pages |
+| `tests/attention-browser.spec.mjs` (`--project=system-chrome`) | **not re-run in this pass** — needs the `system-chrome` project |
+
+The committed payload carries 3 published items and 2 recorded exclusions, both `RLATTN-OVERLAP`.
 
 `rlattention.js` exports 16 frozen members: `CONTRACT_VERSION`, `ATTENTION_LIFECYCLE_STATES`,
 `ATTENTION_LIFECYCLE_TRANSITIONS`, `DECISION_WINDOWS`, `TERMINAL_OUTCOME_CLASSES`, `REFUSAL_CODES`,

@@ -1331,6 +1331,105 @@ try {
   const missing = RLBRIEF.evaluateFxGlobalRelationship(null, globalSide(1), at);
   assert(missing.relationship === 'Insufficient Evidence' && missing.blockingReasons.indexOf('FX_OWNER_READ_MISSING') !== -1, 'a missing FX owner read is reasoned, not synthesized');
 
+  /* Feature 004 Scope 4 (TP-04-12, TP-04-13, SCN-004-033) — both FX Journey DAGs run through the
+     production rljourney.js runtime. They live in a fixture because rlexperience.js requires every
+     journeys.json definition to be claimed by a registered tool, and the FX tool registers in
+     Scope 5; Scope 5 copies this exact fixture in, so the cutover cannot drift from what ran here. */
+  const RJ = (await import('node:module')).createRequire(import.meta.url)('../rljourney.js');
+  const fxJourneys = JSON.parse(read('tests/fixtures/fx-regime/journey-definitions.json'));
+  assert(fxJourneys.definitions.length === 2 && fxJourneys.steps.length === 12, 'the FX registry carries exactly two definitions and twelve steps');
+
+  const fxCompiled = RJ.compileRegistry(fxJourneys);
+  assert(fxCompiled.ok, 'both FX Journey DAGs compile through production rljourney.js');
+  const selection = fxCompiled.value.definitions['journey/fx-regime-relative-value-lab/currency-vehicle-selection/v1'];
+  const wrapper = fxCompiled.value.definitions['journey/fx-regime-relative-value-lab/wrapper-mismatch/v1'];
+  assert(selection && wrapper, 'both declared FX goals resolve');
+  assert(selection.order.length === 6 && wrapper.order.length === 6, 'each FX DAG orders exactly six steps');
+  assert(selection.noExecution === true && wrapper.noExecution === true, 'both FX DAGs declare noExecution');
+  assert(selection.evidenceRequiredSlots.indexOf('owner-evidence') !== -1, 'the selection DAG requires an owner-evidence slot');
+  assert(fxJourneys.definitions.every((d) => d.privacyClass === 'public-safe'), 'both FX DAGs stay inside the public-safe privacy boundary');
+  assert(fxJourneys.definitions.every((d) => d.packetPolicy.humanSignoffRequired === true && d.packetPolicy.noExecution === true), 'both FX completion packets require human signoff and forbid execution');
+
+  /* The order is a real dependency sort, not the declaration order: `structure` depends on both
+     `horizon` and `direction`, so it can never precede either. */
+  const order = selection.order;
+  const at_ = (id) => order.indexOf('journey/fx-regime-relative-value-lab/currency-vehicle-selection/v1/step/' + id);
+  assert(at_('objective') < at_('horizon') && at_('objective') < at_('direction'), 'the objective step precedes both branches it feeds');
+  assert(at_('horizon') < at_('structure') && at_('direction') < at_('structure'), 'structure follows both of its dependencies');
+  assert(at_('structure') < at_('constraints') && at_('constraints') < at_('settled-outcome'), 'the settled outcome is last');
+
+  /* TP-04-13 (SCN-004-033) — refreshing evidence reopens the first affected step and its transitive
+     dependents, and preserves both unrelated steps and the audit history. */
+  const semanticRef = (requirementId, ch) => ({
+    requirementId,
+    evidenceRef: 'owner:' + requirementId,
+    semanticFingerprint: 'sha256:' + ch.repeat(64),
+    sourceClass: 'owner-evidence',
+    valueState: 'ready',
+    observedAsOf: '2026-08-08T11:00:00.000Z',
+    retrievedOrPublishedAt: at,
+    freshness: 'fresh',
+    dataTier: 'public'
+  });
+
+  const created = RJ.createSession(selection, {
+    context: { evidenceIdentity: 'fxe-v1-aaa' },
+    createdAt: at,
+    semanticEvidenceRefs: [semanticRef('owner-evidence-changed', 'a')]
+  });
+  assert(created.ok, 'an FX Journey session starts from the compiled DAG with a semantic baseline');
+  let fxSession = created.value;
+
+  const stepBase = 'journey/fx-regime-relative-value-lab/currency-vehicle-selection/v1/step/';
+  const ownerEvidence = [{ slot: 'owner-evidence', ref: 'owner:fx:fxe-v1-aaa', provenance: 'owner-evidence' }];
+
+  for (const id of ['objective', 'horizon', 'direction']) {
+    const done = RJ.completeStep(fxSession, stepBase + id, { input: { choice: id }, evidence: ownerEvidence, completedAt: at });
+    assert(done.ok, 'the ' + id + ' step completes with current owner evidence');
+    fxSession = done.value;
+  }
+  assert(fxSession.steps[stepBase + 'objective'].status === 'complete', 'a completed step is recorded complete');
+
+  /* TP-04-13 (SCN-004-033) — refreshing evidence reopens the affected step and its transitive
+     dependents on the FX DAG itself, and preserves both unrelated steps and the audit history. */
+  const unchangedRefresh = RJ.refreshEvidence(fxSession, [semanticRef('owner-evidence-changed', 'a')]);
+  assert(unchangedRefresh.ok, 'an unchanged semantic refresh is accepted');
+  assert(unchangedRefresh.value.steps[stepBase + 'objective'].status === 'complete', 'an unchanged fingerprint reopens nothing');
+
+  const changed = RJ.refreshEvidence(unchangedRefresh.value, [semanticRef('owner-evidence-changed', 'b')]);
+  assert(changed.ok, 'a changed semantic fingerprint is accepted');
+  const after = changed.value;
+  assert(after.steps[stepBase + 'objective'].status !== 'complete', 'the affected step reopens when its semantic evidence changes');
+  assert(after.steps[stepBase + 'horizon'].status !== 'complete' && after.steps[stepBase + 'direction'].status !== 'complete', 'transitive dependents reopen with it');
+  assert(after.steps[stepBase + 'settled-outcome'].status !== 'complete', 'a step that never ran is never marked complete by a refresh');
+  assert(Array.isArray(after.history) && after.history.length >= fxSession.history.length, 'audit history is preserved across the refresh, never truncated');
+
+  /* Non-vacuity: the reopen must be driven by the CHANGED fingerprint, not by calling refresh at
+     all — the unchanged pass above must leave the same step complete. */
+  assert(unchangedRefresh.value.steps[stepBase + 'objective'].status !== after.steps[stepBase + 'objective'].status, 'the reopen check is non-vacuous — only the changed fingerprint reopens the step');
+
+  /* TP-04-12 — a completion packet requires human signoff, stays non-executable, and carries no
+     order, portfolio, holding, account, credential, or personalized tax field. */
+  let complete = created.value;
+  for (const stepId of selection.order) {
+    complete = RJ.completeStep(complete, stepId, { input: { choice: stepId }, evidence: ownerEvidence, completedAt: at }).value;
+  }
+  const packet = RJ.buildCompletionPacket(complete, { outcome: 'complete', signoff: { reviewer: 'independent-reviewer', decision: 'accept-research-process' } });
+  assert(packet.ok, 'a fully current FX Journey builds a completion packet');
+  assert(packet.value.noExecution === true && packet.value.executed === false, 'the packet retains noExecution:true and executed:false');
+  const packetText = JSON.stringify(packet.value).toLowerCase();
+  for (const forbidden of RJ.FORBIDDEN_FIELD_ROOTS) {
+    assert(packetText.indexOf('"' + forbidden) === -1, 'the completion packet carries no ' + forbidden + ' field');
+  }
+
+  /* A packet cannot be built from a session whose evidence went stale — signoff never revives it. */
+  const stalePacket = RJ.buildCompletionPacket(after, { outcome: 'complete', signoff: { reviewer: 'independent-reviewer', decision: 'accept-research-process' } });
+  assert(!stalePacket.ok, 'a reopened session cannot be signed off as complete');
+
+
+
+
+
 
   /* TP-03-01 (SCN-004-020) — the two-leg and three-leg products are separate objects with their
      own returns, coverage, and clocks. The adversarial case gives FX an unmatched newest date, so

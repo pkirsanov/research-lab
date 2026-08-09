@@ -852,8 +852,16 @@ Recorded as **D19**.
 #### D19 re-diagnosis (2026-08-09) — waiting for the cron does NOT clear it
 
 The original entry said the 4×/day cron would refresh the cache at the next pre-market window. **That is
-disproven.** Two days later the committed cache still reads `2026-08-06`, so the cause is upstream of the
-clock: the market-data provider is rate-limiting this host.
+disproven.** Two days later the committed cache still had not reached the latest completed session, so the
+cause is upstream of the clock: the market-data provider is rate-limiting this host.
+
+**Correction (2026-08-09, raised by audit `AUD-017-004`):** this paragraph first said the cache "still reads
+`2026-08-06`". It does not — it reads **`2026-08-07`**. The cache **advanced by one session and then stopped
+short**, which is a materially different fault from never advancing at all: a cache frozen at its original
+value points at a refresh that never ran, whereas one that advanced and stalled points at a refresh that runs
+and partially succeeds. The validator still refuses it, because the latest completed XNYS session is later
+still. The 429 measurement below is unaffected and was re-confirmed at correction time, on both hosts, with a
+`github.com` control returning 200.
 
 Measured:
 

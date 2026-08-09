@@ -843,12 +843,33 @@ The mechanism, in three measurements:
 The eight failures are exactly the tests that clone `origin/main` into an isolated checkout; the other eighteen
 use the in-place fixture and still pass. So the trigger is committed-cache age, not code.
 
-**This is the cache validator working.** The cache genuinely IS stale, and the 4×/day cron refreshes it at the
-next pre-market window. Do NOT "fix" this by regenerating `data/bars/` by hand or by relaxing the validator —
-the first fabricates market data and the second disables the only check that notices the brief is serving a
-stale session. Re-run after the next scheduled publication.
+**This is the cache validator working.** The cache genuinely IS stale. Do NOT "fix" this by regenerating
+`data/bars/` by hand or by relaxing the validator — the first fabricates market data and the second disables
+the only check that notices the brief is serving a stale session.
 
 Recorded as **D19**.
+
+#### D19 re-diagnosis (2026-08-09) — waiting for the cron does NOT clear it
+
+The original entry said the 4×/day cron would refresh the cache at the next pre-market window. **That is
+disproven.** Two days later the committed cache still reads `2026-08-06`, so the cause is upstream of the
+clock: the market-data provider is rate-limiting this host.
+
+Measured:
+
+| probe | result |
+|---|---|
+| `query1.finance.yahoo.com` SPY daily chart, 4 consecutive attempts | HTTP **429** every time |
+| `query2.finance.yahoo.com` same request | HTTP **429** |
+| `https://github.com` in the same session | HTTP **200** |
+
+So this is provider throttling, not a connectivity fault. `scripts/fetch-bars.mjs` calls the public Yahoo
+chart endpoint and needs no API key, so no credential is missing either — the refresh simply cannot complete
+from this IP. **The cron cannot resolve it, because the cron calls the same endpoint from the same host.**
+
+The action is therefore operator-owned and specific: re-run the refresh from a host the provider is not
+throttling, or wait out the throttle, then confirm `data/bars/index.json` `expectedSessionDate` advances to
+the latest completed XNYS session. The eight failures return to green with no code change once it does.
 
 ---
 

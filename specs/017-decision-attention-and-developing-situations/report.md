@@ -836,7 +836,7 @@ and still fails on a behaviour change, which is the correct trade.
 
 ### F-017-06 — The rendered interruption rate is hardcoded to an empty ledger
 
-**Status:** FIXED for the wiring defect · one residual coverage gap recorded below
+**Status:** CLOSED (2026-08-09) — wiring fixed 2026-08-08, adversarial coverage added 2026-08-09
 (verified 2026-08-08) · **Severity:** low today, reader-facing correctness once the
 ledger is populated · **Found during:** Scope 4 (`04-outcome-record-and-interruption-rate`),
 reading the render path · **Owner:** `bubbles.plan` for the Test Plan row, then
@@ -917,4 +917,28 @@ Playwright test out of `e2e-ui` entirely — mocking the artifact would convert 
 only live-stack proof into a mocked one and leave the gap open while appearing to
 close it. The legitimate route is a static fixture root serving a seeded
 scorecard. Recorded rather than papered over.
+
+**CLOSED 2026-08-09 by SCN-017-063 / TP-04-09, via exactly the route named above.**
+
+The shared static-server helper already supports an `overrides` map, and its own
+comment states the distinction that makes it legitimate here: an override pins a
+DEPENDENCY's observed state, and the page still performs a real HTTP fetch. So
+the system under test is not mocked — only the artifact it reads is seeded.
+
+The seeded scorecard reduces to a SUFFICIENT sample, which produces a statement
+of the form *"Of the closed attention items, N of M were warranted."* The old
+hardcoded `computeInterruptionRate([], ...)` cannot emit that sentence at any
+value, because an empty ledger is never a sufficient sample. That is the
+asymmetry the empty-ledger row lacked.
+
+Proven in both directions rather than asserted:
+
+| run | renderer | result |
+|---|---|---|
+| RED | reverted to the hardcoded empty read | FAILS — rendered text did not contain the published statement |
+| GREEN | restored | PASSES (7.4s) |
+
+The renderer was restored byte-identical after the RED run. The row therefore
+fails against the defect and passes against the fix, which is what TP-04-08
+could not do while the shipped artifact reduced to `closedSample: 0`.
 

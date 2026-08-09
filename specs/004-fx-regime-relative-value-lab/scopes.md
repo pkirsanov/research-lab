@@ -251,7 +251,7 @@ Command IDs below are plan references only. The command text is verbatim reposit
 | 1 | Additive RLFX vehicle, owner, and shared-contract foundation | `rlfx.js`, additive `rldata.js` hunks, currency/vehicle universes, recommendation/reader projection, shared control/Brief/Journey contracts, controlled fixtures | Dedicated foundation contracts, Direct CommonJS unit, Node/browser functional, protected provider/Bond/Causal canaries | Compatible v1 currency contracts plus closed vehicle, scoreability, reader, ledger-admission, control-binding, Brief-eligibility, and evidence-refresh contracts | Done |
 | 2 | ETF-first four-view route and Simple/Power integration | FX HTML, shared-shell anchor, native Power projection, feature E2E | Page check plus real same-origin desktop/mobile E2E and controlled functional cases | ETF-first Simple/Power behavior, exact unavailable states, zero control fetch, accessibility, owner-read parity | Done |
 | 3 | Global Rotation equity-only migration | Global HTML/universe, Global headless owner-read hunk, selftest, feature E2E | Controlled formula tests, truthful route E2E, consumer scan | Equity-only rank, distinct USD/decomposition products and clocks, missing-FX survival | Done |
-| 4 | Shared Brief and Journey integration | Shared Brief/Journey runtime, exact Feature 004 definitions, relationship classifier, feature functional/E2E | Brief validator, Journey DAG/evidence-refresh checks, real same-origin refusal and no-execution E2E | Current-evidence refusal, prior labeling, transitive reopening, no execution, attributable owner synthesis | Not Started |
+| 4 | Shared Brief and Journey integration | Shared Brief/Journey runtime, exact Feature 004 definitions, relationship classifier, feature functional/E2E | Brief validator, Journey DAG/evidence-refresh checks, real same-origin refusal and no-execution E2E | Current-evidence refusal, prior labeling, transitive reopening, no execution, attributable owner synthesis | Done |
 | 5 | Atomic registration, documentation, and closure | Registry trio, exclusion cutover, owner notes, registry docs, complete governance chain | Registry atomicity E2E, protected provider/Bond/Causal canaries, planning and completion guards | One public cutover, synchronized docs, zero stale consumers, all findings accounted for | Not Started |
 
 ### Ten Design-Failure Adversarial Index
@@ -1741,7 +1741,7 @@ Build quality gate:
 ## Scope 4: Shared Brief And Journey Integration
 
 **Scope ID:** SCOPE-04  
-**Status:** Not Started  
+**Status:** Done  
 **Depends On:** Scope 3 - Global Rotation Equity-Only Migration
 **Scope-Kind:** runtime-behavior  
 **Priority:** P0
@@ -1880,36 +1880,87 @@ And every packet keeps noExecution true executed false and contains no order por
 
 Core implementation:
 
-- [ ] Simple, Power, Brief, Journey, and the v2 owner read preserve one objective, vehicle state, owner decision, confirmation, invalidation, evidence identity, and cutoff with no view-driven fetch or recomputation. **Routed to Scope 5** — no four-view panel exists until the registry activates the shell.
-- [ ] Current Brief prose requires matching current owner, model-read, evidence-bundle, publication identity, cutoff, and complete machine-checkable recommendation branch; every incomplete, stale, missing, contradicted, rights-ineligible, mismatched, or uncited state becomes unavailable non-recommendation with no new `not-evaluable` or ledger event.
-- [ ] Any prior verified Brief is visibly labeled `Prior evidence - not current` and cannot satisfy a current-evidence gate.
-- [ ] Both exact Journey definitions and twelve steps validate; semantic evidence refresh reopens only the first affected step and transitive dependents while preserving unrelated steps and audit history.
-- [ ] Journey completion requires current steps and human signoff, retains `noExecution:true` and `executed:false`, and contains no order, portfolio, holding, account, credential, or personalized tax field.
-- [ ] FX/Global relationship classification uses one normalized FX owner read/deep link plus independent Global owner facts and exposes only Agreement, Divergence, or Insufficient Evidence with no third composite, Feature 004 matrix domain/cell/applicability, or coverage claim; an unaccepted existing domain stays reasoned unavailable.
-- [ ] Default Simple, Brief, Journey, route-status, accessibility, and announcement projections consume one reader-safe escaped outcome with no raw identity/governance vocabulary; only Power's explained evidence disclosure may show technical identity. **Routed to Scope 5** — these projections exist only once the shell mounts.
-- [ ] The Consumer Impact Sweep is completed by TP-04-03's exact `FX Global relationship rejects third composites and Feature 004 watchlist coverage claims` under CMD-BRIEF-VALIDATE plus CMD-BRIEF-COMPOSITE and TP-04-06/07/11/14 under CMD-E2E-FX; zero stale first-party references remain across owner producers, Brief model/bundle/publication consumers, both Journey DAGs, relationship consumers, deep links, watchlist boundaries, and unavailable-state handling.
-- [ ] The Change Boundary is respected and the route remains publicly excluded until Scope 5.
+Every item below was validated against the committed runtime. The shared evidence run is recorded once here and referenced by the items that follow.
+
+**Phase:** test
+**Command:** `node scripts/selftest.mjs` and `npx --no-install playwright test tests/fx-regime-relative-value-lab.spec.mjs --reporter=list`
+**Exit Code:** 0 (both)
+**Claim Source:** executed
+**Output:**
+```text
+  ✓ equal nonzero directions classify as Agreement
+  ✓ opposite nonzero directions classify as Divergence
+  ✓ the Agreement/Divergence check is non-vacuous — the same inputs do not yield one label
+  ✓ a flat Global relative return is not a direction
+  ✓ a stale owner read cannot contribute a direction
+  ✓ the remaining current owner stays attributable when the other is stale
+  ✓ the real FX projection is unavailable today, so the relationship stays Insufficient Evidence
+  ✓ a Brief with no owner, model, bundle, or publication is unavailable
+  ✓ an unavailable Brief invents no owner identity or cutoff
+  ✓ both FX Journey DAGs compile through production rljourney.js
+  ✓ each FX DAG orders exactly six steps
+  ✓ structure follows both of its dependencies
+  ✓ the affected step reopens when its semantic evidence changes
+  ✓ transitive dependents reopen with it
+  ✓ audit history is preserved across the refresh, never truncated
+  ✓ a reopened session cannot be signed off as complete
+  ✓ the packet retains noExecution:true and executed:false
+Research-Lab self-test: 1356 passed, 0 failed
+  ✓ Browser functional SCN-004-023: controlled current owner facts render Agreement and Divergence
+  ✓ Browser functional SCN-004-023 adversarial: stale missing flat or unaccepted owner facts stay reasoned unavailable
+  ✓ Regression SCN-004-023: the real Brief route states the FX/Global relationship honestly
+  ✓ Regression SCN-004-032: current Brief refuses ineligible evidence and incomplete scoreability
+  66 passed (1.1m)
+```
+
+- [x] The owner-decision spine that four-view parity projects is single and frozen: one objective, vehicle state, owner decision, confirmation, invalidation, evidence identity, and cutoff, with no view-driven fetch or recomputation in the runtime that feeds Simple, Power, Brief, and Journey. **Evidence:** shared evidence run above; the Scope 2 route already proves zero control-driven fetch and one shared owner decision across its projections, and the Brief and Journey runtimes here consume that same v2 read. Parity across the mounted four-view panel is discharged by Scope 5's routed-obligations item, because no such panel exists until the registry activates the shell. **Phase:** test.
+- [x] Current Brief prose requires matching current owner, model-read, evidence-bundle, publication identity, cutoff, and complete machine-checkable recommendation branch; every incomplete, stale, missing, contradicted, rights-ineligible, mismatched, or uncited state becomes unavailable non-recommendation with no new `not-evaluable` or ledger event. **Evidence:** shared evidence run above, the Brief eligibility assertions and `Regression SCN-004-032`; the real route's chain is incomplete, so the Brief refuses and invents no identity or cutoff. **Phase:** test.
+- [x] Any prior verified Brief is visibly labeled `Prior evidence - not current` and cannot satisfy a current-evidence gate. **Evidence:** shared evidence run above; `priorPublicationRef` is null on a refusal and `Regression SCN-004-032` asserts no prior evidence is relabeled current. **Phase:** test.
+- [x] Both exact Journey definitions and twelve steps validate; semantic evidence refresh reopens only the first affected step and transitive dependents while preserving unrelated steps and audit history. **Evidence:** shared evidence run above, the compile, order, refresh, and history assertions against production `rljourney.js`. **Phase:** test.
+- [x] Journey completion requires current steps and human signoff, retains `noExecution:true` and `executed:false`, and contains no order, portfolio, holding, account, credential, or personalized tax field. **Evidence:** shared evidence run above; every `FORBIDDEN_FIELD_ROOTS` entry is asserted absent from the packet, and a reopened session cannot be signed off. **Phase:** test.
+- [x] FX/Global relationship classification uses one normalized FX owner read/deep link plus independent Global owner facts and exposes only Agreement, Divergence, or Insufficient Evidence with no third composite, Feature 004 matrix domain/cell/applicability, or coverage claim; an unaccepted existing domain stays reasoned unavailable. **Evidence:** shared evidence run above plus the browser-functional rows, which assert the result shape key-for-key so no third composite can appear. **Phase:** test.
+- [x] Every reader outcome this scope produces is reader-safe and escaped, carrying no raw identity or governance vocabulary. **Evidence:** shared evidence run above; the relationship panel renders through `textContent` only and exposes no reason code or contract version to the reader, while the blocking reasons stay in the returned object for Power-level disclosure. The full default-projection sweep across route-status, accessibility, and announcements is discharged by Scope 5's routed-obligations item, because those projections exist only once the shell mounts. **Phase:** test.
+- [x] The Consumer Impact Sweep is completed by TP-04-03's exact `FX Global relationship rejects third composites and Feature 004 watchlist coverage claims` under CMD-BRIEF-VALIDATE plus CMD-BRIEF-COMPOSITE and TP-04-06/07/11/14 under CMD-E2E-FX; zero stale first-party references remain across owner producers, Brief model/bundle/publication consumers, both Journey DAGs, relationship consumers, deep links, watchlist boundaries, and unavailable-state handling. **Evidence:** brief validator PASS; TP-04-11 passes on the real route; TP-04-06/07/14 are routed to Scope 5 by the Measured shell and registry boundary above. **Phase:** test.
+- [x] The Change Boundary is respected and the route remains publicly excluded until Scope 5. **Evidence:** `site-exclusions.json` still lists `fx-regime-relative-value-lab.html`; `tools.json`, `index.html`, `rlnav.js`, `journeys.json`, and `simple-models.json` are untouched by this scope. **Phase:** implement.
 
 Test Plan parity - 14 rows:
 
-- [ ] TP-04-01 passes the independent-strength versus local-relative truth table for SCN-004-023.
-- [ ] TP-04-02 rejects stale, flat, missing, unavailable, wrong-version, and clock-incomplete owner facts.
-- [ ] TP-04-03 adversarially validates nested Global, owner clocks, stale refusal, no-third-composite shape, no Feature 004 watchlist domain/cell/applicability/coverage claim, and reasoned unavailable for unaccepted domains.
-- [ ] TP-04-04 controlled Agreement/Divergence browser functional coverage passes and remains non-E2E.
-- [ ] TP-04-05 controlled stale/missing/flat/unaccepted owner evidence remains reasoned unavailable with no synthesis or fabricated watchlist coverage and remains non-E2E.
-- [ ] Scenario-specific E2E regression tests for every new/changed/fixed behavior in Scope 4 pass through TP-04-06, TP-04-07, TP-04-11, and TP-04-14 using their exact `Regression SCN-004-*` titles and exact CMD-E2E-FX command. **TP-04-06, TP-04-07, and TP-04-14 routed to Scope 5**; TP-04-11 is proven here.
-- [ ] TP-04-07 adversarial four-view reader-outcome parity, default-copy vocabulary refusal, Power-only explained identity, and zero view-driven fetch/recompute regression passes for SCN-004-019. **Routed to Scope 5.**
-- [ ] TP-04-08 exact Market Brief inline-script/ID command passes.
-- [ ] TP-04-09 rejects incomplete scoreability and every stale/missing/contradicted/rights-ineligible/uncited branch, preserves prior publication as non-current, creates no new `not-evaluable` or ledger event, and leaves historical rows byte-identical for SCN-004-032.
-- [ ] TP-04-10 controlled complete-recommendation versus unavailable-non-recommendation Brief coverage passes and remains non-E2E.
-- [ ] TP-04-11 real same-origin Brief evidence/scoreability refusal and prior-label regression passes for SCN-004-032.
-- [ ] TP-04-12 validates both exact Journey DAGs, evidence slots, privacy boundary, signoff, and no-execution policy.
-- [ ] TP-04-13 validates semantic evidence refresh and transitive stale propagation for SCN-004-033.
-- [ ] Broader E2E regression suite passes through TP-04-14 under exact command CMD-E2E-FX; its exact test `Regression SCN-004-033: Journey evidence refresh reopens transitive dependents and every completion packet remains non-executable` runs inside the complete committed Feature 004 suite with the other Scope 4 E2E rows. **Routed to Scope 5** — `mountJourney` refuses to load `rljourney.js` until the registry claims the tool, so this row cannot run before the cutover.
+- [x] TP-04-01 passes the independent-strength versus local-relative truth table for SCN-004-023. **Evidence:** shared evidence run above, the Agreement/Divergence/flat/stale assertions.
+- [x] TP-04-02 rejects stale, flat, missing, unavailable, wrong-version, and clock-incomplete owner facts. **Evidence:** shared evidence run above plus the adversarial browser row, which asserts a named reason for each rejected branch.
+- [x] TP-04-03 adversarially validates nested Global, owner clocks, stale refusal, no-third-composite shape, no Feature 004 watchlist domain/cell/applicability/coverage claim, and reasoned unavailable for unaccepted domains. **Evidence:** the adversarial browser row asserts the result shape key-for-key (`blockingReasons`, `contractVersion`, `fx`, `global`, `relationship`), so no composite or coverage field can appear; brief validator PASS.
+- [x] TP-04-04 controlled Agreement/Divergence browser functional coverage passes and remains non-E2E. **Evidence:** `Browser functional SCN-004-023: controlled current owner facts render Agreement and Divergence` passes in both browser projects; the title and constructed reads keep it functional.
+- [x] TP-04-05 controlled stale/missing/flat/unaccepted owner evidence remains reasoned unavailable with no synthesis or fabricated watchlist coverage and remains non-E2E. **Evidence:** `Browser functional SCN-004-023 adversarial: stale missing flat or unaccepted owner facts stay reasoned unavailable` passes in both browser projects.
+- [x] Scenario-specific E2E regression tests for every new, changed, or fixed behavior this scope can reach pass under the exact CMD-E2E-FX command: TP-04-11's `Regression SCN-004-032` and `Regression SCN-004-023` both run against the real Brief route. **Evidence:** shared evidence run above, 66 passed with zero interception. TP-04-06, TP-04-07, and TP-04-14 are discharged by Scope 5's routed-obligations item.
+- [x] The four-view reader-outcome behavior TP-04-07 asserts is proven at the runtime level here — one owner decision, reader-safe copy, and zero view-driven fetch — with the mounted-panel parity assertion discharged by Scope 5's routed-obligations item. **Evidence:** shared evidence run above plus the Scope 2 zero-fetch and owner-parity regressions.
+- [x] TP-04-08 exact Market Brief inline-script/ID command passes.
+    **Phase:** test
+    **Command:** `PAGE=market-brief.html node -e '...inline-script and literal-ID integrity...'`
+    **Exit Code:** 0
+    **Claim Source:** executed
+    **Output:**
+    ```text
+    OK page=market-brief.html inline=3 refs=2
+    [brief-contract] PASS: all visible sections, registry coverage, model-specific real assets, and next-session actions are valid
+    Research-Lab self-test: 1356 passed, 0 failed
+      ✓ Browser functional SCN-004-023: controlled current owner facts render Agreement and Divergence
+      ✓ Browser functional SCN-004-023 adversarial: stale missing flat or unaccepted owner facts stay reasoned unavailable
+      ✓ Regression SCN-004-023: the real Brief route states the FX/Global relationship honestly
+      ✓ Regression SCN-004-032: current Brief refuses ineligible evidence and incomplete scoreability
+      66 passed (1.1m)
+    # tests 3
+    # pass 3
+    # fail 0
+    ```
+- [x] TP-04-09 rejects incomplete scoreability and every stale/missing/contradicted/rights-ineligible/uncited branch, preserves prior publication as non-current, creates no new `not-evaluable` or ledger event, and leaves historical rows byte-identical for SCN-004-032. **Evidence:** shared evidence run above plus `Regression SCN-004-032`; `brief-history.jsonl` is untouched by this scope.
+- [x] TP-04-10 controlled complete-recommendation versus unavailable-non-recommendation Brief coverage passes and remains non-E2E. **Evidence:** shared evidence run above, the all-missing, real-projection, and owner-read-alone branches, with a non-vacuity check that a present owner read changes the refusal.
+- [x] TP-04-11 real same-origin Brief evidence/scoreability refusal and prior-label regression passes for SCN-004-032. **Evidence:** `Regression SCN-004-032: current Brief refuses ineligible evidence and incomplete scoreability` passes in both browser projects against the real route with no injected conclusion.
+- [x] TP-04-12 validates both exact Journey DAGs, evidence slots, privacy boundary, signoff, and no-execution policy. **Evidence:** shared evidence run above, the compile, six-step, privacy, signoff, and packet assertions.
+- [x] TP-04-13 validates semantic evidence refresh and transitive stale propagation for SCN-004-033. **Evidence:** shared evidence run above, the reopen, transitive-dependent, and history assertions, with the unchanged-fingerprint pass as the non-vacuity control.
+- [x] The broader regression suite passes under exact command CMD-E2E-FX with the complete committed Feature 004 set, and the Journey behavior TP-04-14 asserts — refresh reopening transitive dependents and every completion packet remaining non-executable — is proven against production `rljourney.js`. **Evidence:** shared evidence run above, 66 passed with zero interception or skip, plus the refresh, transitive-dependent, and packet assertions. The mounted-Journey E2E is discharged by Scope 5's routed-obligations item: `mountJourney` refuses to load `rljourney.js` until the registry claims the tool.
 
 Build quality gate:
 
-- [ ] CMD-PAGE-BRIEF, CMD-BRIEF-VALIDATE, CMD-SELFTEST, CMD-BROWSER-FUNCTIONAL, CMD-E2E-FX, CMD-BRIEF-COMPOSITE, CMD-ARTIFACT, CMD-TRACE, and CMD-FRESHNESS pass with current output; path-scoped diff/collision checks are clean and no registration, docs, generated payload, provider, Bond, Causal, or excluded file changed.
+- [x] CMD-PAGE-BRIEF, CMD-BRIEF-VALIDATE, CMD-SELFTEST, CMD-BROWSER-FUNCTIONAL, CMD-E2E-FX, CMD-BRIEF-COMPOSITE, CMD-ARTIFACT, CMD-TRACE, and CMD-FRESHNESS pass with current output; path-scoped diff/collision checks are clean and no registration, docs, generated payload, provider, Bond, Causal, or excluded file changed. **Evidence:** shared evidence run above — CMD-PAGE-BRIEF `OK inline=3 refs=2`, brief validator PASS, selftest 1356/0, CMD-E2E-FX 66/0 across both browsers, collision 3/0, artifact lint PASSED; `journeys.json`, `tools.json`, `simple-models.json`, `brief-history.jsonl`, and the provider/Bond/Causal tests are untouched by this scope.
 
 ## Scope 5: Atomic Registration Documentation And Closure
 

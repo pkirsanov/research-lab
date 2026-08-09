@@ -1262,6 +1262,21 @@ test('Regression SCN-004-019 adversarial: switching views neither fetches nor re
 test('Regression SCN-004-033: Journey evidence refresh reopens transitive dependents and every completion packet remains non-executable', async ({ page }) => {
   await openRegisteredRoute(page);
 
+  /* The Journey runtime is NOT a page script — `rlapp.js::mountJourney` injects `rljourney.js`
+     only after the shell builds the Journey panel, and it publishes readiness on the mount
+     anchor. Reading `window.RLJOURNEY` straight after `registered` therefore races the
+     injection: it happened to be resolved under one browser and not the other, which is how
+     this surfaced as a one-project failure rather than an honest red.
+
+     Selecting the Journey view and waiting for `data-rljourney-state="ready"` is not a
+     tolerance for slowness — it is the condition this test claims to exercise. The routed
+     obligation requires this run "against a genuinely mounted Journey", so an unmounted
+     Journey must fail rather than be reached around. The wait STRENGTHENS the test: it now
+     proves the panel and runtime actually mounted through the shared shell, and it still
+     fails loudly (never silently skips) if the mount never becomes ready. */
+  await page.evaluate(() => { location.hash = '#journey'; });
+  await expect(page.locator('[data-rljourney-mount]')).toHaveAttribute('data-rljourney-state', 'ready');
+
   // Both DAGs are reachable through the registered tool, and the runtime is the production one.
   const journey = await page.evaluate(async () => {
     const registration = window.__rlviewsRegistration;

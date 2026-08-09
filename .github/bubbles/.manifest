@@ -172,6 +172,12 @@ bubbles/scripts/generate-installer-selftest.sh
 bubbles/scripts/generate-installer.sh
 bubbles/scripts/generate-modes-block.sh
 bubbles/scripts/generate-release-manifest.sh
+bubbles/scripts/goal-contract-selftest.sh
+bubbles/scripts/goal-contract.sh
+bubbles/scripts/goal-fidelity-guard-selftest.sh
+bubbles/scripts/goal-fidelity-guard.sh
+bubbles/scripts/goal-fidelity-telemetry-selftest.sh
+bubbles/scripts/goal-fidelity-telemetry.sh
 bubbles/scripts/governance-index-lint-selftest.sh
 bubbles/scripts/governance-index-lint.sh
 bubbles/scripts/guard-lib-timeout-selftest.sh
@@ -240,6 +246,8 @@ bubbles/scripts/orchestrator-tool-frontmatter-lint-selftest.sh
 bubbles/scripts/orchestrator-tool-frontmatter-lint.sh
 bubbles/scripts/parallel-fanout-determinism-selftest.sh
 bubbles/scripts/parallel-fanout.sh
+bubbles/scripts/phase-relevance-resolve-selftest.sh
+bubbles/scripts/phase-relevance-resolve.sh
 bubbles/scripts/pii-scan.sh
 bubbles/scripts/plan-dependency-depth-guard-selftest.sh
 bubbles/scripts/plan-dependency-depth-guard.sh
@@ -432,6 +440,7 @@ bubbles/adapters/observability/prometheus.sh
 bubbles/schemas/adoption-profiles.schema.json
 bubbles/schemas/capability-ledger.schema.json
 bubbles/schemas/experience-recall.schema.json
+bubbles/schemas/goal-contract.schema.json
 bubbles/schemas/propagation-policy.schema.json
 bubbles/schemas/repository-binding.schema.json
 bubbles/schemas/result-envelope.schema.json

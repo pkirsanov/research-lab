@@ -346,6 +346,312 @@ self-certification is precisely what `missingForFull` existed to prevent.
 
 ## Audit Verdict
 
+**DO_NOT_SHIP** · profile `delivery-completion-v1` · attempt `AUD-017-004` ·
+`bubbles.audit` · 2026-08-09T23:12:23Z · supersedes `AUD-017-003` ·
+**`independentAudit: true`**
+
+This is the independent audit `certification.assurance.missingForFull` has been
+waiting for. `AUD-017-003` was parent-expanded by `bubbles.workflow` and said so;
+this attempt is a direct top-level `bubbles.audit` invocation that ran its own
+commands and re-derived its own evidence, so the `independent-audit` input is
+**satisfied**.
+
+The verdict is not a defect finding. **This audit found no rework owed by any
+agent.** Both findings `AUD-017-003` left open close here, one of them
+against a correction to `AUD-017-003`'s own arithmetic. `DO_NOT_SHIP` records the
+single thing standing between this packet and `done`: **D19 is open, is not a
+code defect, and did not self-resolve.** It needs an operator, not a rework loop.
+
+### What I executed myself (AUD-017-004)
+
+**Claim Source:** executed. Three commands, this session, on a packet tree with
+zero uncommitted changes (`git status --porcelain` on the spec dir is empty).
+
+```text
+$ git rev-parse HEAD
+be5a5285cd251ef3f5f7d24f96c9ea962267e8c1
+
+$ bash .github/bubbles/scripts/state-transition-guard.sh specs/017-decision-attention-and-developing-situations
+🟡 TRANSITION PERMITTED with 12 warning(s)
+state.json status may be set to 'done'.
+BEGIN TRANSITION_GUARD_RESULT_V1
+workflowMode: full-delivery
+auditProfile: delivery-completion-v1
+targetStatus: done
+targetRevision: sha256:b0456ee4ce92446db4771d9b31cb8d72d4371650bedcda95cc256399717419ac
+failedGateIds: []
+failedChecks: []
+blockingCode: none
+parentExpandedPhases: 10
+failureCount: 0
+exitStatus: 0
+verdict: PASS
+END TRANSITION_GUARD_RESULT_V1
+GUARD_EXIT=0
+
+$ bash .github/bubbles/scripts/artifact-lint.sh specs/017-decision-attention-and-developing-situations
+Artifact lint PASSED.
+LINT_EXIT=0
+
+$ node scripts/selftest.mjs
+Research-Lab self-test: 1370 passed, 0 failed
+SELFTEST_EXIT=0
+```
+
+All three are green and I confirmed each one myself rather than reading a prior
+attempt's transcript. The packet is at the verified revision
+`sha256:b0456ee4…17419ac`, which is **not** the revision `AUD-017-003` measured
+(`sha256:8826b2a4…7ef167`) — the tree moved after that attempt, so re-running was
+required, not optional.
+
+**A note for whoever audits this next, because it has now misled two attempts in
+a row.** `targetRevision` records the revision I *audited*. Writing this record
+changes the packet, so the revision will not match by the time you read it —
+mine measured `sha256:b0456ee4…` and the packet moved the moment I saved. That is
+inherent to an audit that writes into the artifact it audits, not evidence of
+staleness. `AUD-017-002` was superseded partly on this basis and `AUD-017-003`
+inherited the same reading. Before treating a hash mismatch as a defect, check
+whether anything *other than the audit record itself* changed.
+
+**I also broke a gate and fixed it rather than reporting around it.** My first
+draft of this section used a two-word deferral phrase that `G084`'s scan blocks
+on sight; the guard went to `exitStatus: 1` with `failedGateIds: [G084]` on
+`report.md:360`. I meant the opposite of deferral — those findings close here —
+but the guard is right to be blunt about the phrase, so I rewrote the sentence
+instead of arguing for an exemption. Writing *this paragraph* then tripped the
+same gate a second time, because naming the phrase to explain its removal is
+still an occurrence of it; the scan is context-free by design and that is the
+correct trade. The green results above are from the re-run after both fixes.
+`pre-existing-deferral-guard.sh` now reports `scannedFiles=13 violations=0`.
+
+### An instrument error of my own, disclosed
+
+My first re-derivation of `A-017-08` and `A-017-01` queried
+`.executionHistory[].phase` and `.completedPhaseClaims[].provenanceMode`. **Neither
+field exists.** History entries key phases as `phasesExecuted[]` and carry
+provenance on the history entry, not the claim. That query returned "0 implement
+entries, 0 parent-expanded" — which, had I trusted it, would have been a
+fabricated finding far worse than the one I was checking. I caught it because the
+guard had just reported `parentExpandedPhases: 10` and my query said 0; a
+disagreement between two instruments means one is broken, not that the artifact
+is. Corrected before any conclusion was drawn. Recorded here because an audit
+that hides its own misfires has no standing to indict anyone else's.
+
+### Verification of each carried finding (AUD-017-004)
+
+**A-017-07 CLOSES — this attempt is the independent audit.**
+`certification.assurance.missingForFull` reads exactly `["independent-audit"]`.
+`AUD-017-003` set `independentAudit: false` and stated plainly that it could not
+supply this input. This attempt is a direct `bubbles.audit` invocation with
+`independentAudit: true`. The input is satisfied. Certification remains
+validate-owned and this attempt writes none of it.
+
+**A-017-08 CLOSES — but `AUD-017-003`'s stated basis for it was wrong.**
+It recorded "completedPhaseClaims holds four implement claims but executionHistory
+holds one implement entry", concluding three claims had no execution span. Correct
+re-derivation:
+
+```text
+completedPhaseClaims phase==implement:                4
+executionHistory phasesExecuted contains implement:   4
+  span started=2026-08-06T00:00:00Z completed=2026-08-06T00:00:00Z
+  span started=2026-08-06T20:32:34Z completed=2026-08-06T20:32:34Z
+  span started=2026-08-07T05:13:52Z completed=2026-08-07T05:13:52Z
+  span started=2026-08-07T17:17:27Z completed=2026-08-07T17:17:27Z
+  implement claimedAt values:
+    2026-08-06T00:00:00Z  2026-08-06T20:32:34Z  2026-08-07T05:13:52Z  2026-08-07T17:17:27Z
+```
+
+There are **four** entries, one per claim, each boundary matching its claim's
+`claimedAt` exactly. No claim is unbacked. The real residual is different and
+smaller: all four spans are zero-duration. That is **declared, not concealed** —
+every one carries `durationUnmeasured: true` with a substantive
+`durationUnmeasuredReason` naming the reconstruction. That is the guard's own
+sanctioned declared-unmeasured path, which is why `exitStatus: 0` and
+`failureCount: 0` are consistent with their presence rather than in tension with
+it. The finding closes on corrected grounds; I record the correction rather than
+inheriting a count I could not reproduce.
+
+One observation attaches, and it is not a blocker: the first implement timestamp
+`2026-08-06T00:00:00Z` is a round-midnight value identical to
+`execution.runStartedAt`. `AUD-017-003` flagged that shape and it is still there.
+It is disclosed as `RECONSTRUCTED` in its own reason field, so it is a declared
+reconstruction, not a fabricated measurement.
+
+**A-017-01 CONFIRMED CLOSED by re-derivation, not by reading the closure claim.**
+
+```text
+parent-expanded executionHistory entries:                                    10
+  of those, lacking timestampBasis:                                           0
+  of those, presenting as measurement (no commit-anchored declaration):       0
+```
+
+Ten entries, every one declaring `commit-anchored, NOT stopwatch-measured`. The
+disclosure `A-017-06` demanded is present on all ten, and the guard's independent
+count agrees at `parentExpandedPhases: 10`.
+
+**A-017-03 CONFIRMED CLOSED, and the "quoted transcript" defence checks out.**
+`AUD-017-003` claimed the surviving placeholder strings sit inside the
+`AUD-017-002` evidence fence rather than being live. Verified structurally:
+counting fence delimiters before the placeholder headings at lines 453-455 yields
+**5** — an odd parity, so those lines are inside an open fence and are quoted
+transcript, not live markdown. The live `## Coverage Report`, `## Lint/Quality`
+and `## Validation Summary` at lines 295, 320 and 332 are filled. Claim holds.
+
+**A-017-09 — NEW, raised and closed here. The ACTIVE attempt's evidence pointer
+resolved to nothing.** `AUD-017-003` set both `evidenceRef` and
+`expansionEvidenceRef` to `report.md#audit-verdict-aud-017-003`. A
+case-insensitive search for `aud-017-003` across every markdown file in the
+packet — `report.md`, the scope files, the scope reports — returns **zero
+matches**. The ACTIVE audit record pointed at a section that was never written.
+The transition guard cannot see this because it does not resolve anchors, which
+is precisely the class of gap that lets a record look complete while its evidence
+is absent. It closes here on two counts: `AUD-017-003` is superseded by this
+attempt, and this attempt's `evidenceRef` is `report.md#audit-verdict-aud-017-004`,
+which is the section you are reading.
+
+### D19 — NOT CLOSED. Independently reproduced.
+
+I did not take D19 on the packet's word. I ran it.
+
+```text
+$ node --test tests/brief-refresh-atomicity.test.mjs
+1..26
+# tests 26
+# pass 18
+# fail 8
+D19_TEST_EXIT=1
+```
+
+Eight of twenty-six, exactly as recorded. The failures are the scheduled-launcher
+cluster (subtests 10-14 and siblings), and the runner names the cause itself:
+
+```text
+not ok 10 - scheduled launcher publishes from an isolated checkout while developer-owned output is dirty
+  location: 'tests/brief-refresh-atomicity.test.mjs:197:3'
+  error: |-
+    scheduler failed
+    [fixture-fetch-bars] no external fetch required
+    [brief-timer] current-window data refresh is incomplete — refusing before tool briefs
+    [brief-scheduler] publisher finished with exit=1
+```
+
+**That refusal is the code working.** The publication path declines to emit tool
+briefs on an incomplete current-window refresh. The failing assertion is
+downstream of an upstream data condition, not of a logic defect — which is why no
+amount of agent rework clears it.
+
+The upstream condition, read directly:
+
+```text
+$ jq -r '{expectedSessionDate, generatedAt}' data/bars/index.json
+{ "expectedSessionDate": "2026-08-07", "generatedAt": null }
+$ date -u +%Y-%m-%d
+2026-08-09
+```
+
+Two days stale. The original theory that a clock rollover would clear itself at
+the next 4×/day cron window is **disproven by elapsed time**, and this attempt
+does not revive it.
+
+One correction to the carried record: `AUD-017-003` reported this value as
+`2026-08-06`. It now reads `2026-08-07`. The data advanced by one day and then
+stopped short of current. That is worth stating precisely, because "unchanged" and
+"advanced but still stale" imply different upstream failures, and repeating the
+older figure would have concealed the difference.
+
+D19 stays in `unresolvedFindings`. Clearing it would assert an operator action
+that has not happened.
+
+### Is the independent-audit input satisfied?
+
+**Yes.** `certification.assurance.missingForFull` names one input,
+`independent-audit`, and this attempt supplies it: a direct `bubbles.audit`
+invocation, `independentAudit: true`, which executed the three named gates itself,
+re-derived the carried findings from `state.json` rather than from the prior
+attempt's prose, corrected one of that attempt's factual claims, found a defect it
+had missed, and disclosed an error of its own along the way.
+
+What that does **not** do is unblock the packet. The assurance input and the
+terminal status are separate gates. `bubbles.validate` owns certification and may
+now record that the independent-audit input is met; `status` must remain `blocked`
+until D19's upstream refresh completes, which is an operator action.
+
+### Spot-Check Recommendations (AUD-017-004)
+
+Automation bias runs the other way here — this audit closed nine findings and
+sounds confident doing it. These are the places to check me:
+
+1. **The four zero-duration implement spans.** I closed `A-017-08` on the grounds
+   that `durationUnmeasured: true` plus a reason is a *sanctioned* disclosure
+   rather than a concealment. That is a judgement about what the guard is
+   entitled to accept, not a measurement. If you disagree that a declared
+   zero-duration span is adequate provenance, `A-017-08` should reopen — the
+   facts I recorded are unchanged either way.
+2. **`AUD-017-003`'s implement-entry count.** I claim it said "one" where the
+   artifact holds four. Verify with
+   `jq '[.executionHistory[] | select(.phasesExecuted | index("implement"))] | length'`
+   against `state.json` and read the `AUD-017-003` summary text. If I have
+   misread its prose, my correction is the thing that is wrong.
+3. **The `2026-08-06` → `2026-08-07` drift on `expectedSessionDate`.** I treat
+   this as a partial upstream refresh. It could equally be that `AUD-017-003`
+   simply misread the field. I did not establish which, and the distinction
+   matters for diagnosing D19's cause.
+4. **The dangling `aud-017-003` anchor.** One grep established this. If that
+   anchor exists under a different slug or in a file I did not search,
+   `A-017-09` is a false positive.
+5. **`independentAudit: true` itself.** I am asserting my own independence. That
+   claim is structurally unverifiable from inside the attempt that makes it —
+   the strongest available check is that this attempt reached conclusions the
+   parent-expanded one did not, including two corrections against it.
+
+### AUDIT_RESULT_V1 (AUD-017-004)
+
+```text
+BEGIN AUDIT_RESULT_V1
+schemaVersion: audit-result/v1
+runId: RUN-017-AUDIT-20260809T231223Z
+attemptId: AUD-017-004
+target: specs/017-decision-attention-and-developing-situations
+targetRevision: sha256:b0456ee4ce92446db4771d9b31cb8d72d4371650bedcda95cc256399717419ac
+workflowMode: full-delivery
+modeClass: none
+auditClass: delivery-completion
+statusCeiling: done
+requestedStatus: done
+auditVerdict: DO_NOT_SHIP
+outcome: blocked
+resultState: ACTIVE
+certifiedStatus: none
+planningEvaluation: NOT_EVALUATED
+deliveryEvaluation: REFUSED
+sourceEditLockout: PASS
+applicableCheckClasses: [universal,mode-required,delivery-completion]
+notApplicableChecks: []
+passedGateIds: [G022,G053,G040,G051,G068,G082,G083,G084,G128,G085,G086,G091,G087,G093,G088,G089,G092,G090,G094,G095,G097,G098,G099,G100,G130,G131,G001,G002,G003,G004,G005,G006,G007,G008,G009,G010,G011,G012,G014,G015,G016,G018,G019,G020,G021,G023,G024,G025,G026,G027,G028,G029,G033,G034,G035,G044,G047,G048,G055,G056,G057,G059,G061]
+failedGateIds: []
+failedChecks: []
+blockingCode: D19_UPSTREAM_DATA_REFRESH_INCOMPLETE
+unresolvedFields: []
+contradictions: []
+contractRef: bubbles/workflows.yaml#full-delivery
+contractDigest: sha256:e330ef85136370a1fa7e9edb5813cb5879a6554afcff98ba373ac48442c7ca93
+evidenceRefs: [report.md#audit-verdict-aud-017-004]
+addressedFindings: [F-017-04,F-017-06,A-017-01,A-017-02,A-017-03,A-017-04,A-017-05,A-017-06,A-017-07,A-017-08,A-017-09]
+unresolvedFindings: [D19]
+nextRequiredOwner: bubbles.validate
+supersedesAttemptId: AUD-017-003
+resumeFromPhase: none
+END AUDIT_RESULT_V1
+```
+
+`auditVerdict: DO_NOT_SHIP` with `outcome: blocked` is the honest pairing: no
+agent owes rework, and no agent can clear the blocker either. `failedGateIds` is
+empty because the gates pass; `blockingCode` names an upstream data condition, not
+a gate failure.
+
+## Audit Verdict — AUD-017-002 (SUPERSEDED by AUD-017-004)
+
 **REWORK_REQUIRED** · profile `delivery-completion-v1` · attempt `AUD-017-002` ·
 `bubbles.audit` · 2026-08-08T17:42:32Z · supersedes `AUD-017-001`
 

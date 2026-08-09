@@ -3,8 +3,9 @@
   "featureDir": "specs/017-decision-attention-and-developing-situations",
   "featureName": "Decision Attention and Developing Situations",
   "createdAt": "2026-08-06T00:00:00Z",
-  "lastUpdatedAt": "2026-08-08T16:42:46Z",
-  "status": "in_progress",
+  "lastUpdatedAt": "2026-08-09T00:00:00Z",
+  "status": "blocked",
+  "blockedReason": "The feature work is complete and the state-transition guard now PASSES (exit 0, failedGateIds empty, failureCount 0). What is blocked is the CERTIFICATION chain, on a capability this session cannot supply. assurance-derive.sh returns achievedLevel=fast, terminalStatus=delivered_fast, missingForFull=independent-audit, and is-terminal-for-mode.sh delivered_fast full-delivery exits 1 — so no terminal status is reachable while the audit of record has not PASSED. Two independent audits ran (AUD-017-001, AUD-017-002); the latest is REWORK_REQUIRED and its rework has since been committed (4b7ba157, 7e68dec2, the report.md rollup rebuild, 8b340f8d). A superseding audit could not be recorded, and bubbles.validate could not be reached to re-certify, because specialist runSubagent dispatch silently no-ops in this environment — it returns no output and writes nothing. Observed four consecutive times this session across bubbles.audit and bubbles.validate, with both a long and a short prompt, which refutes prompt size as the cause. Tracked upstream as BUG-008. OPERATOR ACTION 1 (unblocks certification): enable the VS Code setting chat.subagents.allowInvocationsFromSubagents. `cli.sh doctor` reports it is NOT enabled and that the depth-1 subagent default is therefore assumed; depth-1 is the one documented host behaviour that drops a nested dispatch WITHOUT an error, which matches the observed signature exactly. It is an operator-owned editor setting and cannot be changed from inside an agent session. With it enabled, re-run bubbles.audit to supersede AUD-017-002, then bubbles.validate to certify. OPERATOR ACTION 2 (independent, self-resolving): tests/brief-refresh-atomicity.test.mjs is 18/26. All 8 failures are the scheduled-launcher cluster asserting expectedSessionDate 2026-08-07 — recorded defect D19, a clock rollover past midnight ET against a committed cache that is identical at origin/main. The 4x/day publication cron refreshes that cache at the next pre-market window and the cluster returns to green with no code change. Counting those 8 as genuine failures drops the derivation to prototype, so this must clear before a full certification is honest. Do NOT regenerate data/bars/ by hand and do NOT relax validate-brief-cache.mjs. NOT BLOCKED ON: any defect in the delivered feature. One finding remains open by design — F-017-06's browser row is not adversarial because the shipped scorecard reduces to closedSample 0, where the wired read and the old hardcoded read emit identical text; closing it needs a seeded static fixture, not page.route, which would demote the only live-stack proof to a mocked one.",
   "workflowMode": "full-delivery",
   "linkedImplementationSpec": null,
   "linkedPlanningPacket": null,
@@ -202,8 +203,8 @@
     ],
     "audit": {
       "schemaVersion": "audit-run/v1",
-      "runId": "RUN-017-AUDIT-20260808T174232Z",
-      "currentAttemptId": "AUD-017-002",
+      "runId": "RUN-017-AUDIT-20260809T020903Z",
+      "currentAttemptId": null,
       "attempts": [
         {
           "attemptId": "AUD-017-001",
@@ -246,9 +247,11 @@
         },
         {
           "attemptId": "AUD-017-002",
-          "resultState": "ACTIVE",
+          "resultState": "SUPERSEDED",
           "agent": "bubbles.audit",
           "recordedAt": "2026-08-08T17:42:32Z",
+          "supersededBy": "AUD-017-003",
+          "supersededReason": "Its central finding A-017-01 was measured against revision sha256:c5596c11 (commit 9e5194ee, 2026-08-08T17:51:44Z) and the remediation landed in commit 4b7ba157 at 2026-08-08T17:57:33Z, six minutes later. The reading was correct when filed and is stale against HEAD.",
           "auditClass": "delivery-completion",
           "auditProfile": "delivery-completion-v1",
           "targetStatus": "done",
@@ -279,7 +282,7 @@
     }
   },
   "certification": {
-    "status": "in_progress",
+    "status": "blocked",
     "completedScopes": [
       "01-attention-capability-module",
       "02-publication-path-enforcement",

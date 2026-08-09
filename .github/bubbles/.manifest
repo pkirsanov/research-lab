@@ -49,6 +49,7 @@ bubbles/scripts/capability-freshness-selftest.sh
 bubbles/scripts/capability-ledger-selftest.sh
 bubbles/scripts/case-collision-guard-selftest.sh
 bubbles/scripts/case-collision-guard.sh
+bubbles/scripts/ci-annotation-emitter-selftest.sh
 bubbles/scripts/claim-source-lint-selftest.sh
 bubbles/scripts/claim-source-lint.sh
 bubbles/scripts/cli.sh

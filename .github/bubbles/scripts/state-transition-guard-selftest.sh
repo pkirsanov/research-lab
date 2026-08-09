@@ -1878,6 +1878,79 @@ with open(path, "w", encoding="utf-8") as handle:
 PY
 }
 
+mutate_partial_certified_phases_with_dict_claims() {
+  local state_file="$1"
+
+  python3 - "$state_file" <<'PY'
+import json
+import sys
+
+path = sys.argv[1]
+with open(path, encoding="utf-8") as handle:
+    data = json.load(handle)
+
+# Regression shape for the Check 6 short-circuit defect. Check 6 used to select
+# its phase source with `certification_phases or execution_phase_claims or
+# legacy_phases`, so a NON-EMPTY certifiedCompletedPhases won outright and
+# execution.completedPhaseClaims was never evaluated at all. Observed live: a
+# packet certified for ["validate"] alongside fourteen execution claims had every
+# other phase reported as unrecorded (G022) while Check 6B — which reads
+# completedPhaseClaims directly — PASSED those same entries. One guard run
+# asserted both "phase not recorded" and "that phase's record has valid
+# provenance" for identical data. The sibling fixture above pins the EMPTY-
+# certification path; this one pins the PARTIAL-certification path, which the
+# `or` left completely unguarded.
+#
+# certifiedCompletedPhases carries only 'validate'; the remaining required phase
+# 'audit' exists ONLY as a dict-shaped execution claim. Under workflowMode=iterate
+# (required specialists: validate, audit) the two sources satisfy the requirement
+# only when Check 6 MERGES them. 'implement' is a second, non-required dict claim
+# so the mixed string+dict input is normalized across more than one record.
+data["workflowMode"] = "iterate"
+snapshot = data.get("policySnapshot")
+if isinstance(snapshot, dict):
+    snapshot["workflowMode"] = "iterate"
+
+execution = data.get("execution")
+if not isinstance(execution, dict):
+    execution = {}
+    data["execution"] = execution
+
+execution["completedPhaseClaims"] = [
+    {"phase": "audit", "agent": "bubbles.audit"},
+    {"phase": "implement", "agent": "bubbles.implement"},
+]
+execution["executionHistory"] = [
+    {
+        "agent": "bubbles.implement",
+        "runStartedAt": "2026-03-27T11:00:00Z",
+        "runCompletedAt": "2026-03-27T11:09:00Z",
+        "phasesExecuted": ["implement"],
+    },
+    {
+        "agent": "bubbles.validate",
+        "runStartedAt": "2026-03-27T11:20:00Z",
+        "runCompletedAt": "2026-03-27T11:26:00Z",
+        "phasesExecuted": ["validate"],
+    },
+    {
+        "agent": "bubbles.audit",
+        "runStartedAt": "2026-03-27T11:35:00Z",
+        "runCompletedAt": "2026-03-27T11:43:00Z",
+        "phasesExecuted": ["audit"],
+    },
+]
+
+cert = data.get("certification")
+if isinstance(cert, dict):
+    cert["certifiedCompletedPhases"] = ["validate"]
+
+with open(path, "w", encoding="utf-8") as handle:
+    json.dump(data, handle, indent=2)
+    handle.write("\n")
+PY
+}
+
 assert_transition_result_contract_matches_emitter \
   "TRANSITION_GUARD_RESULT_V1 emitter field order matches this suite's expectation"
 
@@ -2113,6 +2186,17 @@ cp -R "$positive_feature_dir" "$bug007_benign_dir"
 dict_phase_claims_dir="$tmp_root/specs/933-transition-guard-selftest-dict-phase-claims"
 cp -R "$positive_feature_dir" "$dict_phase_claims_dir"
 mutate_dict_shaped_phase_claims "$dict_phase_claims_dir/state.json"
+
+# Check 6 regression fixture (short-circuit `or` on the phase source). A state.json
+# with a NON-EMPTY but PARTIAL certifiedCompletedPhases (["validate"]) plus the
+# remaining required phase carried ONLY as a dict-shaped execution claim
+# ({"phase": "audit", ...}) previously reported 'audit' as unrecorded, because a
+# truthy certification list short-circuited execution.completedPhaseClaims out of
+# the selection entirely. The sibling fixture above covers the EMPTY-certification
+# path; this one covers the PARTIAL path the `or` left unguarded.
+partial_certified_phase_claims_dir="$tmp_root/specs/940-transition-guard-selftest-partial-certified-phase-claims"
+cp -R "$positive_feature_dir" "$partial_certified_phase_claims_dir"
+mutate_partial_certified_phases_with_dict_claims "$partial_certified_phase_claims_dir/state.json"
 
 echo "Running agent ownership lint precheck..."
 lint_log="$tmp_root/agent-ownership-lint.log"
@@ -2549,6 +2633,28 @@ assert_log_not_contains "$dict_phase_claims_log" "unhashable type: 'dict'" "Chec
 assert_log_contains "$dict_phase_claims_log" "Required phase 'validate' recorded in execution/certification phase records" "Check 6: phase name 'validate' is read OUT of the dict-shaped completedPhaseClaims (empty certifiedCompletedPhases)"
 assert_log_contains "$dict_phase_claims_log" "Required phase 'audit' recorded in execution/certification phase records" "Check 6: phase name 'audit' is read OUT of the dict-shaped completedPhaseClaims (empty certifiedCompletedPhases)"
 assert_log_contains "$dict_phase_claims_log" "Phase 'validate' has specialist provenance from bubbles.validate" "Check 6B: dict-shaped claim is normalized to its phase name and validated for provenance (not silently swallowed)"
+
+# Check 6 — a PARTIAL certifiedCompletedPhases must NOT short-circuit
+# execution.completedPhaseClaims out of the phase source. Regression for the `or`
+# selection that made Check 6 and Check 6B contradict each other on identical
+# data. Same convention as the fixture above: assert on Check 6 / 6B log content
+# only, since the fixture's overall exit may be non-zero for unrelated ceiling
+# reasons.
+echo "Running Check 6 partial-certification phase-source regression selftest..."
+partial_certified_log="$tmp_root/partial-certified-phase-claims.log"
+run_capture "$partial_certified_log" bash "$GUARD_SCRIPT" "$partial_certified_phase_claims_dir" >/dev/null
+assert_log_contains "$partial_certified_log" "Required phase 'validate' recorded in execution/certification phase records" "Check 6: the certified phase is still counted after the merge (certification source not dropped)"
+assert_log_contains "$partial_certified_log" "Required phase 'audit' recorded in execution/certification phase records" "Check 6: an execution claim IS evaluated even though certifiedCompletedPhases is non-empty (no short-circuit)"
+assert_log_not_contains "$partial_certified_log" "Required phase 'audit' NOT in execution/certification phase records" "Check 6: a phase present only in completedPhaseClaims is NOT reported missing under partial certification (Gate G022 false positive)"
+assert_log_not_contains "$partial_certified_log" "Traceback (most recent call last)" "Check 6: mixed string+dict phase sources do NOT crash the guard with a Python Traceback"
+assert_log_not_contains "$partial_certified_log" "unhashable type: 'dict'" "Check 6: dict claim records normalize to phase names instead of raising the unhashable-dict TypeError"
+# Check 6 / Check 6B agreement on 'audit'. The provenance line ALONE does not
+# prove agreement: Check 6B reads completedPhaseClaims directly and is immune to
+# the `or` short-circuit, so it passed even while Check 6 was blocking the same
+# record. The paired negative is what makes the agreement claim real; it repeats
+# the Check 6 needle asserted above, kept adjacent so both halves sit together.
+assert_log_contains "$partial_certified_log" "Phase 'audit' has specialist provenance from bubbles.audit" "Check 6B: the 'audit' claim record carries specialist provenance from bubbles.audit"
+assert_log_not_contains "$partial_certified_log" "Required phase 'audit' NOT in execution/certification phase records" "Check 6 emits no BLOCK for the same 'audit' record Check 6B accepted above (the two checks agree)"
 
 echo "Running negative packet-field selftest..."
 negative_log="$tmp_root/negative-guard.log"
@@ -3243,17 +3349,29 @@ echo "Running Check 43 empty-stdout receipt-clone exemption (BUG-007)..."
 # SUBSTANTIVE result, which is by definition non-empty.
 #
 # The predicate is extracted from the guard source so this test cannot drift away
-# from the code it defends.
+# from the code it defends. The empty-stdout digest is extracted the same way, for
+# the same reason.
 c43_predicate="$(grep -F 'map(select((.stdoutHash' "$GUARD_SCRIPT" | head -1 || true)"
+c43_empty_sha="$(grep -oE 'c43_empty_stdout_sha256="[0-9a-f]{64}"' "$GUARD_SCRIPT" | grep -oE '[0-9a-f]{64}' | head -1 || true)"
 if [[ -z "$c43_predicate" ]]; then
   fail "Check 43 clone predicate could not be extracted from $GUARD_SCRIPT (guard shape changed)"
-elif ! echo "$c43_predicate" | grep -qF '(.stdoutBytes // 0) > 0'; then
+elif [[ "$c43_empty_sha" != "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855" ]]; then
+  fail "Check 43 empty-stdout constant is not the SHA-256 of the empty string (got: '${c43_empty_sha}')"
+elif ! echo "$c43_predicate" | grep -qF '$empty_sha'; then
   fail "Check 43 clone predicate lost its empty-stdout exemption — BUG-007 regressed"
   echo "--- extracted predicate ---"
   echo "$c43_predicate"
   echo "--- end ---"
+elif echo "$c43_predicate" | grep -qF '(.stdoutBytes // 0) > 0'; then
+  # The exemption must key on the DIGEST, which every receipt carries. Keying it
+  # on `stdoutBytes` defaults an ABSENT field to 0, and `0 > 0` then filters a
+  # genuine clone out of detection entirely. That is a silent hole, not a fix.
+  fail "Check 43 clone predicate keys its exemption on the optional stdoutBytes field — an absent field would exempt genuine clones"
+  echo "--- extracted predicate ---"
+  echo "$c43_predicate"
+  echo "--- end ---"
 else
-  pass "Check 43 clone predicate extracted from guard source and retains the empty-stdout exemption"
+  pass "Check 43 clone predicate extracted from guard source and exempts empty stdout by digest, not by an optional field"
 
   c43_dir="$(mktemp -d)"
   # Three DIFFERENT commands that each legitimately produced no stdout. All three
@@ -3275,10 +3393,31 @@ else
     printf '%s\n' '{"cmd":"node --test tests/contract.test.mjs","stdoutHash":"9f2c1a77b3e45d6081ca2be7f4d0913ac5e8b26df1074a3c9e5b0d8f6a271c43","stdoutBytes":2048}'
   } > "$c43_real_log"
 
+  # REGRESSION PIN (the shape that reached main): two different commands sharing a
+  # real non-empty stdout, on receipts that carry NO `stdoutBytes` key at all. The
+  # field is optional, so a predicate that reads `(.stdoutBytes // 0) > 0` defaults
+  # it to 0 and filters this genuine clone out of detection. It must be caught by
+  # the digest test alone, with no field present.
+  c43_nobytes_log="$c43_dir/nobytes.jsonl"
+  {
+    printf '%s\n' '{"cmd":"cargo test","stdoutHash":"9f2c1a77b3e45d6081ca2be7f4d0913ac5e8b26df1074a3c9e5b0d8f6a271c43"}'
+    printf '%s\n' '{"cmd":"npm run lint","stdoutHash":"9f2c1a77b3e45d6081ca2be7f4d0913ac5e8b26df1074a3c9e5b0d8f6a271c43"}'
+  } > "$c43_nobytes_log"
+
+  # The mirror of the pin: empty stdout must stay exempt even when `stdoutBytes` is
+  # absent, proving the digest carries the exemption on its own.
+  c43_empty_nobytes_log="$c43_dir/empty-nobytes.jsonl"
+  {
+    printf '%s\n' '{"cmd":"grep -rn TODO src/","stdoutHash":"e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"}'
+    printf '%s\n' '{"cmd":"node scripts/validate.mjs","stdoutHash":"e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"}'
+  } > "$c43_empty_nobytes_log"
+
   c43_jq="$c43_predicate | group_by(.stdoutHash) | map(select((map(.cmd) | unique | length) > 1)) | length"
 
-  c43_empty_hits="$(jq -rs "$c43_jq" "$c43_empty_log" 2>/dev/null || echo "ERR")"
-  c43_real_hits="$(jq -rs "$c43_jq" "$c43_real_log" 2>/dev/null || echo "ERR")"
+  c43_empty_hits="$(jq -rs --arg empty_sha "$c43_empty_sha" "$c43_jq" "$c43_empty_log" 2>/dev/null || echo "ERR")"
+  c43_real_hits="$(jq -rs --arg empty_sha "$c43_empty_sha" "$c43_jq" "$c43_real_log" 2>/dev/null || echo "ERR")"
+  c43_nobytes_hits="$(jq -rs --arg empty_sha "$c43_empty_sha" "$c43_jq" "$c43_nobytes_log" 2>/dev/null || echo "ERR")"
+  c43_empty_nobytes_hits="$(jq -rs --arg empty_sha "$c43_empty_sha" "$c43_jq" "$c43_empty_nobytes_log" 2>/dev/null || echo "ERR")"
 
   if [[ "$c43_empty_hits" == "0" ]]; then
     pass "Check 43 does not accuse three different commands that each produced empty stdout"
@@ -3290,6 +3429,18 @@ else
     pass "Check 43 still detects a genuine clone (two commands sharing real non-empty stdout)"
   else
     fail "Check 43 no longer detects a genuine receipt clone ($c43_real_hits group(s), expected 1) — exemption widened into a hole"
+  fi
+
+  if [[ "$c43_nobytes_hits" == "1" ]]; then
+    pass "Check 43 detects a genuine clone on receipts carrying NO stdoutBytes field (exemption is digest-keyed, not field-keyed)"
+  else
+    fail "Check 43 missed a genuine clone on receipts with no stdoutBytes field ($c43_nobytes_hits group(s), expected 1) — an optional-field exemption is silently excusing forgeries"
+  fi
+
+  if [[ "$c43_empty_nobytes_hits" == "0" ]]; then
+    pass "Check 43 exempts empty stdout by digest alone, with no stdoutBytes field present"
+  else
+    fail "Check 43 false-positives on empty stdout when stdoutBytes is absent ($c43_empty_nobytes_hits group(s), expected 0)"
   fi
 
   rm -rf "$c43_dir"
@@ -3519,6 +3670,90 @@ else
   sed -n '1,260p' "$c9_html_id_log"
 fi
 assert_log_not_contains "$c9_html_id_log" "anchor missing OR block <10 non-blank lines" "Check 9: no false anchor-missing failure for an <a id> anchor"
+
+echo "Running Check 7A executionHistory reader defects (BUG-012)..."
+
+# BUG-012: Check 7A never evaluated a single entry, for two independent reasons.
+# Both are shape defects in the guard's own reader, so they are asserted against
+# guard SOURCE — and each assertion is paired with an adversarial twin proving
+# the assertion actually fires on the old buggy shape. Without those twins this
+# whole block could pass vacuously, which is precisely the failure mode BUG-012
+# was: a check that reported success because it had examined nothing.
+
+c7a_src="$(sed -n '/Check 7A: executionHistory Timestamp Plausibility/,/^PY$/p' "$GUARD_SCRIPT")"
+if [[ -z "$c7a_src" ]]; then
+  fail "Check 7A source block could not be extracted from $GUARD_SCRIPT (guard shape changed)"
+else
+  pass "Check 7A source block extracted from guard source (no test/source drift)"
+
+  # --- Defect 1: container selection must fall back to the TOP level ----------
+  # executionHistory is written at the top level by most agents. The old
+  # expression always chose data['execution'] because that key is always a dict,
+  # so the top-level array was never read and the check saw an empty list.
+  if printf '%s\n' "$c7a_src" | grep -q 'data.get("executionHistory")'; then
+    pass "Check 7A falls back to the TOP-level executionHistory (BUG-012 defect 1 fixed)"
+  else
+    fail "Check 7A does not read the top-level executionHistory — it will see [] for every packet that writes it there (BUG-012 defect 1)"
+  fi
+
+  c7a_old_container='container = data.get("execution", {}) if isinstance(data.get("execution"), dict) else data'
+  if printf '%s\n' "$c7a_src" | grep -qF "$c7a_old_container"; then
+    fail "Check 7A still carries the always-chooses-execution container expression (BUG-012 defect 1 regressed)"
+  else
+    pass "Check 7A no longer carries the always-chooses-execution container expression"
+  fi
+
+  # Adversarial twin for defect 1: prove the detector above is not vacuous by
+  # running it against the exact old line. If this does NOT match, the guard
+  # could regress to the old shape without this selftest noticing.
+  c7a_old_fixture="$tmp_root/c7a-old-container.txt"
+  printf '%s\n' "$c7a_old_container" > "$c7a_old_fixture"
+  if grep -qF "$c7a_old_container" "$c7a_old_fixture"; then
+    pass "Check 7A defect-1 detector is adversarially proven (it matches the pre-fix container line)"
+  else
+    fail "Check 7A defect-1 detector is vacuous — it does not even match the known-buggy container line"
+  fi
+
+  # --- Defect 2: entry timestamps are startedAt, not runStartedAt -------------
+  # runStartedAt is an EXECUTION-level field. Measured across the discovering
+  # repo it appears on 0 executionHistory entries against startedAt's 252, so
+  # reading it made every entry hit the `continue`.
+  if printf '%s\n' "$c7a_src" | grep -q 'entry.get("startedAt")'; then
+    pass "Check 7A reads the entry field that entries actually carry, startedAt (BUG-012 defect 2 fixed)"
+  else
+    fail "Check 7A does not read entry.startedAt — every entry will be skipped (BUG-012 defect 2)"
+  fi
+
+  if printf '%s\n' "$c7a_src" | grep -qE 'entry\.get\("(completedAt|finishedAt)"\)'; then
+    pass "Check 7A reads a completion field that entries actually carry (completedAt/finishedAt)"
+  else
+    fail "Check 7A reads no entry completion field that entries carry — every entry will be skipped (BUG-012 defect 2)"
+  fi
+
+  # Adversarial twin for defect 2: a reader that ONLY knows the run* names must
+  # be recognised as broken. This is the shape that shipped.
+  c7a_only_run="$(printf '%s\n' "$c7a_src" | grep -c 'entry.get("startedAt")' || true)"
+  if [[ "$c7a_only_run" -eq 0 ]]; then
+    fail "Check 7A entry reader knows only the run* field names (BUG-012 defect 2 regressed)"
+  else
+    pass "Check 7A entry reader is adversarially proven not to be run*-only"
+  fi
+fi
+
+# --- The second site sharing the identical container bug ---------------------
+# The implement-run counter behind lockdownState reported "0 implement-phase
+# run(s)" on a packet recording one, and passed by agreeing with its own empty
+# read. A check that cannot fail is not a check.
+c7a_lockdown_src="$(sed -n '/^print(f"ROUND={round_count}")/,/^PY$/p' "$GUARD_SCRIPT")"
+if [[ -z "$c7a_lockdown_src" ]]; then
+  fail "lockdownState implement-run counter source could not be extracted (guard shape changed)"
+else
+  if printf '%s\n' "$c7a_lockdown_src" | grep -q 'data.get("executionHistory")'; then
+    pass "lockdownState implement-run counter falls back to the TOP-level executionHistory (BUG-012)"
+  else
+    fail "lockdownState implement-run counter cannot see a top-level executionHistory — it will count 0 implement runs and 'pass' (BUG-012)"
+  fi
+fi
 
 echo "----------------------------------------"
 if [[ "$failures" -gt 0 ]]; then

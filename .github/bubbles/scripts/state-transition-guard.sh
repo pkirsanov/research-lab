@@ -1449,7 +1449,14 @@ if not isinstance(execution_phase_claims, list):
 if not isinstance(legacy_phases, list):
     legacy_phases = []
 
-selected_phases = certification_phases or execution_phase_claims or legacy_phases
+# MERGE, never short-circuit. A truthy `certifiedCompletedPhases` used to win
+# outright via `or`, so a spec carrying certification ["validate"] alongside 14
+# execution claims reported every other phase as unrecorded — while Check 6B,
+# reading completedPhaseClaims directly, passed those same entries. One run then
+# asserted both "phase not recorded" and "that phase's record has valid
+# provenance". Concatenating is safe: _phase_name() below normalizes bare
+# strings and dict claim records alike, and dict.fromkeys dedups the result.
+selected_phases = list(certification_phases) + list(execution_phase_claims) + list(legacy_phases)
 
 # v4.1.0: phaseStubs[] — a phase can be honestly declared as no-work-needed
 # via state.json.execution.phaseStubs[<phase>] = {reason: "...", justification: "..."}
@@ -1979,8 +1986,15 @@ except Exception:
     sys.exit(0)
 
 history = []
-container = data.get("execution", {}) if isinstance(data.get("execution"), dict) else data
-raw = container.get("executionHistory", [])
+# executionHistory is written at the TOP level by most agents and under
+# execution.* by others. Selecting only one location silently yields [] for the
+# other, which turned this whole check into a no-op that reported "fewer than 3
+# entries" against a packet holding fourteen. Check 6B already falls back this
+# way; if this check does not, the two disagree about the same array.
+execution_obj = data.get("execution") if isinstance(data.get("execution"), dict) else {}
+raw = execution_obj.get("executionHistory")
+if not isinstance(raw, list):
+    raw = data.get("executionHistory")
 if not isinstance(raw, list):
     raw = []
 
@@ -1988,8 +2002,17 @@ entries = []
 for entry in raw:
     if not isinstance(entry, dict):
         continue
-    started = parse_ts(entry.get("runStartedAt"))
-    completed = parse_ts(entry.get("runCompletedAt"))
+    # Entry timestamps are startedAt plus completedAt or finishedAt.
+    # runStartedAt is an EXECUTION-level field, not an entry field: across every
+    # recorded packet it appears zero times on an entry, so reading it here made
+    # the loop `continue` on all of them. This check had never once evaluated an
+    # entry, which is why it did not catch a set of fabricated timestamps.
+    started = parse_ts(entry.get("startedAt") or entry.get("runStartedAt"))
+    completed = parse_ts(
+        entry.get("completedAt")
+        or entry.get("finishedAt")
+        or entry.get("runCompletedAt")
+    )
     if started is None or completed is None:
         continue
     phases = entry.get("phasesExecuted") or []
@@ -2000,6 +2023,15 @@ for entry in raw:
         "started": started,
         "completed": completed,
         "phases": [p for p in phases if isinstance(p, str)],
+        # An entry may DECLARE that its span was never measured — the writer
+        # stored one instant rather than a start and a finish. That is a
+        # different condition from a fabricated span, and conflating them makes
+        # the zero-duration signal unusable on any record written before a span
+        # was required. The declaration must carry a substantive reason, so it
+        # cannot be used as a silent exemption, and it is reported either way.
+        "unmeasured": entry.get("durationUnmeasured") is True,
+        "unmeasured_reason": (entry.get("durationUnmeasuredReason") or "").strip()
+            if isinstance(entry.get("durationUnmeasuredReason"), str) else "",
     })
 
 if len(entries) < 3:
@@ -2018,11 +2050,22 @@ if intervals and len(set(intervals)) == 1 and intervals[0] > 0:
 
 # Check zero-duration entries (excluding intentionally zero phases)
 zero_dur_offenders = []
+unmeasured_spans = []
+UNMEASURED_REASON_MIN = 20
 for e in entries:
     duration = (e["completed"] - e["started"]).total_seconds()
     if duration <= 0:
         if not e["phases"] or any(p not in ZERO_DURATION_EXEMPT for p in e["phases"]):
-            zero_dur_offenders.append(f"{e['agent']}:{','.join(e['phases']) or '?'}")
+            label = f"{e['agent']}:{','.join(e['phases']) or '?'}"
+            # A declared-unmeasured span is surfaced, not blocked. An EMPTY or
+            # perfunctory reason is still an offender: the declaration has to
+            # cost something or it is just a bypass with extra steps.
+            if e["unmeasured"] and len(e["unmeasured_reason"]) >= UNMEASURED_REASON_MIN:
+                unmeasured_spans.append(label)
+            else:
+                zero_dur_offenders.append(label)
+if unmeasured_spans:
+    print(f"UNMEASURED_SPANS={'|'.join(unmeasured_spans)}")
 if zero_dur_offenders:
     print(f"ZERO_DURATION={'|'.join(zero_dur_offenders)}")
 
@@ -2051,6 +2094,13 @@ else
   uniform_interval="$(echo "$exec_history_analysis" | grep -E '^UNIFORM_INTERVAL=' | head -n 1 | sed 's/^UNIFORM_INTERVAL=//' || true)"
   if [[ -n "$uniform_interval" ]]; then
     fail "executionHistory has $exec_count entries with identical ${uniform_interval}s intervals — FABRICATION INDICATOR"
+  fi
+
+  # Surfaced, never silent: a declared-unmeasured span is a weaker record than a
+  # measured one, and a reader should be told which entries carry that weakness.
+  unmeasured_line="$(echo "$exec_history_analysis" | grep -E '^UNMEASURED_SPANS=' | head -n 1 | sed 's/^UNMEASURED_SPANS=//' || true)"
+  if [[ -n "$unmeasured_line" ]]; then
+    info "executionHistory declares unmeasured spans (single instant recorded, reason given): $unmeasured_line"
   fi
 
   zero_dur_line="$(echo "$exec_history_analysis" | grep -E '^ZERO_DURATION=' | head -n 1 | sed 's/^ZERO_DURATION=//' || true)"
@@ -2101,8 +2151,13 @@ print(f"ROUND={round_count}")
 if last_clean is not None:
     print(f"LAST_CLEAN={last_clean}")
 
-container = data.get("execution", {}) if isinstance(data.get("execution"), dict) else data
-history = container.get("executionHistory", [])
+# Same top-level / execution.* fallback as Check 7A. Without it this counted zero
+# implement runs on a packet that records one, then "passed" by agreeing with its
+# own empty read.
+execution_obj = data.get("execution") if isinstance(data.get("execution"), dict) else {}
+history = execution_obj.get("executionHistory")
+if not isinstance(history, list):
+    history = data.get("executionHistory")
 if not isinstance(history, list):
     history = []
 
@@ -3867,10 +3922,18 @@ else
     # can allege. A receipt with no stdout also has no evidentiary content to
     # clone, so excluding it removes the false-positive class without weakening
     # the check: a real forgery reuses a SUBSTANTIVE captured result, which is
-    # by definition non-empty. `stdoutBytes` is already in the receipt schema,
-    # so this needs no new capture and no hardcoded digest.
-    c43_clones="$(jq -rs '
-      map(select((.stdoutHash // "") != "" and (.cmd // "") != "" and (.stdoutBytes // 0) > 0))
+    # by definition non-empty.
+    #
+    # The DIGEST is the discriminator, not `stdoutBytes`. `stdoutBytes` is
+    # optional, so keying the exemption on it meant an absent field defaulted
+    # to 0 and silently excluded a genuine clone from detection (BUG-007's
+    # first fix over-corrected exactly this way). Every receipt of every
+    # vintage carries a stdoutHash, so the empty-string digest identifies
+    # empty stdout with no field required. An explicitly-present
+    # `stdoutBytes: 0` is still honoured; an ABSENT one exempts nothing.
+    c43_empty_stdout_sha256="e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    c43_clones="$(jq -rs --arg empty_sha "$c43_empty_stdout_sha256" '
+      map(select((.stdoutHash // "") != "" and (.cmd // "") != "" and (.stdoutHash != $empty_sha) and ((has("stdoutBytes") and .stdoutBytes == 0) | not)))
       | group_by(.stdoutHash)
       | map(select((map(.cmd) | unique | length) > 1))
       | .[]

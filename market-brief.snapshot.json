@@ -1,26 +1,26 @@
 {
-  "asOf": "2026-08-09T14:45:34.965Z",
-  "generatedAt": "2026-08-09T14:45:34.965Z",
-  "window": "morning",
+  "asOf": "2026-08-09T19:25:37.698Z",
+  "generatedAt": "2026-08-09T19:25:37.698Z",
+  "window": "pre-close",
   "marketClosed": true,
   "nextSessionDate": "2026-08-10",
   "dataFreshness": {
     "bars": {
-      "updated": "2026-08-09T14:45:21.958Z",
+      "updated": "2026-08-09T19:25:29.820Z",
       "symbolCount": 291,
       "expectedSessionDate": "2026-08-07",
       "refreshDate": "2026-08-09",
-      "refreshWindow": "morning",
+      "refreshWindow": "pre-close",
       "freshSymbolCount": 291,
       "carriedSymbolCount": 0,
       "missingSymbolCount": 0
     },
     "options": {
-      "updated": "2026-08-09T14:45:26.352Z",
+      "updated": "2026-08-09T19:25:33.188Z",
       "symbolCount": 22,
       "expectedSessionDate": null,
       "refreshDate": "2026-08-09",
-      "refreshWindow": "morning",
+      "refreshWindow": "pre-close",
       "freshSymbolCount": 22,
       "carriedSymbolCount": 0,
       "missingSymbolCount": 0
@@ -627,7 +627,7 @@
   "toolReads": {
     "sector-research-lab": {
       "id": "sector-research-lab",
-      "asOf": "2026-08-09T14:45:32.214Z",
+      "asOf": "2026-08-09T19:25:36.430Z",
       "read": "Rotate toward XLY as XLI weakens.",
       "metrics": {
         "into": {
@@ -747,19 +747,19 @@
     "global-rotation-lab": {
       "id": "global-rotation-lab",
       "asOf": "2026-08-07T13:30:00.000Z",
-      "read": "EWS (Singapore) leads global rotation at 84.5/100 versus ACWI; EWC is next.",
+      "read": "EWS (Singapore) leads global rotation at 84.3/100 versus ACWI; EWC is next.",
       "metrics": {
         "benchmark": "ACWI",
         "leader": {
           "ticker": "EWS",
           "country": "Singapore",
-          "score": 84.5,
+          "score": 84.3,
           "rel21": 3.21,
           "rel63": 12.55,
           "rel126": 6.95,
           "trend": "Strong uptrend",
           "fx": "Confirms leadership",
-          "fxStrength": 0.99,
+          "fxStrength": 0.84,
           "vol": 14.9,
           "maxDrawdown": 7.82,
           "asOf": "2026-08-07T13:30:00.000Z"
@@ -768,13 +768,13 @@
           {
             "ticker": "EWS",
             "country": "Singapore",
-            "score": 84.5,
+            "score": 84.3,
             "rel21": 3.21,
             "rel63": 12.55,
             "rel126": 6.95,
             "trend": "Strong uptrend",
             "fx": "Confirms leadership",
-            "fxStrength": 0.99,
+            "fxStrength": 0.84,
             "vol": 14.9,
             "maxDrawdown": 7.82,
             "asOf": "2026-08-07T13:30:00.000Z"
@@ -782,13 +782,13 @@
           {
             "ticker": "EWC",
             "country": "Canada",
-            "score": 71.4,
+            "score": 71.2,
             "rel21": 2.19,
             "rel63": 0.96,
             "rel126": 0.3,
             "trend": "Strong uptrend",
             "fx": "Confirms leadership",
-            "fxStrength": 0.81,
+            "fxStrength": 0.65,
             "vol": 12.12,
             "maxDrawdown": 8.51,
             "asOf": "2026-08-07T13:30:00.000Z"
@@ -796,55 +796,55 @@
           {
             "ticker": "EWA",
             "country": "Australia",
-            "score": 70.3,
+            "score": 69.5,
             "rel21": 5.02,
             "rel63": -0.96,
             "rel126": -2.7,
             "trend": "Strong uptrend",
             "fx": "FX offsets weakness",
-            "fxStrength": 1.35,
+            "fxStrength": 0.79,
             "vol": 16.95,
             "maxDrawdown": 10.01,
             "asOf": "2026-08-07T13:30:00.000Z"
           },
           {
-            "ticker": "EWU",
-            "country": "United Kingdom",
-            "score": 68.9,
-            "rel21": 1.99,
-            "rel63": 1.07,
-            "rel126": -6.07,
-            "trend": "Strong uptrend",
-            "fx": "Confirms leadership",
-            "fxStrength": 0.71,
-            "vol": 14.76,
-            "maxDrawdown": 9.92,
-            "asOf": "2026-08-07T13:30:00.000Z"
-          },
-          {
             "ticker": "EWG",
             "country": "Germany",
-            "score": 67.1,
+            "score": 67.5,
             "rel21": 3.16,
             "rel63": 0.09,
             "rel126": -8.65,
             "trend": "Strong uptrend",
             "fx": "FX neutral",
-            "fxStrength": 1.12,
+            "fxStrength": 1.38,
             "vol": 18.12,
             "maxDrawdown": 14.54,
             "asOf": "2026-08-07T13:30:00.000Z"
           },
           {
+            "ticker": "EWU",
+            "country": "United Kingdom",
+            "score": 67.4,
+            "rel21": 1.99,
+            "rel63": 1.07,
+            "rel126": -6.07,
+            "trend": "Strong uptrend",
+            "fx": "FX headwind",
+            "fxStrength": -0.36,
+            "vol": 14.76,
+            "maxDrawdown": 9.92,
+            "asOf": "2026-08-07T13:30:00.000Z"
+          },
+          {
             "ticker": "EWJ",
             "country": "Japan",
-            "score": 66.9,
+            "score": 67.3,
             "rel21": 0.8,
             "rel63": 1.51,
             "rel126": -0.31,
             "trend": "Constructive",
             "fx": "Confirms leadership",
-            "fxStrength": 2.55,
+            "fxStrength": 2.86,
             "vol": 23.21,
             "maxDrawdown": 13.59,
             "asOf": "2026-08-07T13:30:00.000Z"
@@ -858,7 +858,7 @@
     "real-assets-lab": {
       "id": "real-assets-lab",
       "asOf": "2026-08-07T13:30:00.000Z",
-      "read": "CPER leads real assets at 59.6/100; GLD 33, BTC 49, SLV 10.",
+      "read": "CPER leads real assets at 59.6/100; GLD 33, BTC 49.1, SLV 10.",
       "metrics": {
         "leader": {
           "ticker": "CPER",
@@ -930,11 +930,11 @@
           {
             "ticker": "ETH-USD",
             "model": "crypto",
-            "score": 53.3,
+            "score": 53.2,
             "trend": "Mixed",
-            "mom21": 2.72,
-            "mom63": 14,
-            "mom126": -8.84,
+            "mom21": 2.64,
+            "mom63": 13.91,
+            "mom126": -8.92,
             "vol": 48.75,
             "maxDrawdown": 35.37,
             "riskPenalty": 7.21,
@@ -952,7 +952,7 @@
                 "symbols": [
                   "BTC-USD"
                 ],
-                "score": 54.25514289101,
+                "score": 54.35516475816385,
                 "detail": "Bitcoin price direction confirms or contradicts the wider crypto price trend; no on-chain input is used."
               }
             ],
@@ -994,11 +994,11 @@
           {
             "ticker": "BTC-USD",
             "model": "bitcoin",
-            "score": 49,
+            "score": 49.1,
             "trend": "Mixed",
-            "mom21": 0.67,
-            "mom63": 2.98,
-            "mom126": -5.59,
+            "mom21": 0.74,
+            "mom63": 3.05,
+            "mom126": -5.53,
             "vol": 34.73,
             "maxDrawdown": 28.71,
             "riskPenalty": 5.68,
@@ -1163,11 +1163,11 @@
           "BTC-USD": {
             "ticker": "BTC-USD",
             "model": "bitcoin",
-            "score": 49,
+            "score": 49.1,
             "trend": "Mixed",
-            "mom21": 0.67,
-            "mom63": 2.98,
-            "mom126": -5.59,
+            "mom21": 0.74,
+            "mom63": 3.05,
+            "mom126": -5.53,
             "vol": 34.73,
             "maxDrawdown": 28.71,
             "riskPenalty": 5.68,
@@ -1698,7 +1698,7 @@
     },
     "market-heatmap-lab": {
       "id": "market-heatmap-lab",
-      "asOf": "2026-08-09T14:45:34.852Z",
+      "asOf": "2026-08-09T19:25:37.589Z",
       "read": "Leadership is broad — 61.77% of 135 constituents are positive against a 60% broad-market threshold.",
       "deepLink": "market-heatmap-lab.html",
       "source": "owning-tool-functions",
@@ -1852,13 +1852,13 @@
       "id": "global-rotation-lab",
       "deepLink": "global-rotation-lab.html",
       "status": "fresh-headless",
-      "reason": "EWS (Singapore) leads global rotation at 84.5/100 versus ACWI; EWC is next."
+      "reason": "EWS (Singapore) leads global rotation at 84.3/100 versus ACWI; EWC is next."
     },
     {
       "id": "real-assets-lab",
       "deepLink": "real-assets-lab.html",
       "status": "fresh-headless",
-      "reason": "CPER leads real assets at 59.6/100; GLD 33, BTC 49, SLV 10."
+      "reason": "CPER leads real assets at 59.6/100; GLD 33, BTC 49.1, SLV 10."
     },
     {
       "id": "bond-regime-lab",

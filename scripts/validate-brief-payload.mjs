@@ -77,6 +77,13 @@ export function windowVocabularyFrom(config) {
   return vocabulary;
 }
 
+/* The registry's own page files are the only legitimate deep-link targets. An
+   allowlist derived from the registry cannot drift from it the way a restated
+   literal list would. Absent or unregistered is refused, never defaulted. */
+export function toolDeepLinksFrom(registry) {
+  return (registry?.tools || []).map((tool) => tool?.file).filter(hasText);
+}
+
 function hasText(value) {
   return typeof value === 'string' && value.trim().length > 0;
 }
@@ -399,7 +406,8 @@ export function validateBriefPayload(payload, registry, config, snapshot) {
       watchlistScope: WATCHLIST_SCOPE,
       calendarSource: XNYS_CALENDAR_SOURCE,
       windowVocabulary: windowVocabularyFrom(config),
-      tradingDateIso: payload?.nextSession?.sessionDate
+      tradingDateIso: payload?.nextSession?.sessionDate,
+      toolDeepLinks: toolDeepLinksFrom(registry)
     };
     payload.attention.forEach((item, index) => {
       for (const violation of validateAttentionItem(item, attentionContext).violations) {

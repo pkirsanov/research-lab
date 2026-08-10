@@ -166,7 +166,15 @@ function payloadWithAttention(attention) {
 }
 
 const CONFIG = Object.freeze({ thresholds: { attentionMaxCards: 7 } });
-const REGISTRY = Object.freeze({ tools: [] });
+
+/* The registry fixture carries the one page the attention items actually link
+   to, because after A-017-10 the publication gate derives its deep-link
+   allowlist from this registry: an empty registry refuses every link and would
+   have made the "publishes cleanly" half of every attention test vacuous.
+   `id` is deliberately absent — an id engages the toolCoverage rule at
+   validate-brief-payload.mjs:373, which demands a matching payload.toolCoverage
+   entry and belongs to the coverage scenarios, not to these field tests. */
+const REGISTRY = Object.freeze({ tools: [{ file: 'market-heatmap-lab.html' }] });
 
 /* ── refusal-list extraction ─────────────────────────────────────────────── */
 
@@ -363,7 +371,13 @@ test('SCN-017-026 The validator and the browser apply the identical predicate on
     withoutField(attentionItem({ rank: 2, subject: 'TLT', title: 'Long duration liquidity thins' }), 'invalidation')
   ]);
 
-  const browserRefusals = moduleAttentionRefusals(sharedFixture, {});
+  /* Both sides must be handed EQUIVALENT context, or this compares contexts
+     rather than predicates. The gate derives its deep-link allowlist from the
+     registry (A-017-10), so the browser side is given the same one; leaving it
+     absent made the browser refuse deepLink that the gate accepted, which is a
+     fixture asymmetry and not the drift this scenario exists to catch. */
+  const browserContext = { toolDeepLinks: (REGISTRY.tools || []).map((tool) => tool.file) };
+  const browserRefusals = moduleAttentionRefusals(sharedFixture, browserContext);
   assert.ok(
     browserRefusals.length > 0,
     'the shared fixture must actually be refused, otherwise the comparison below is vacuous'
@@ -2781,5 +2795,68 @@ test('SCN-017-062 A privacy refusal never prints the offending value to stdout',
     stderr.includes(STDOUT_SUBJECT_SENTINEL), false,
     `the refused subject must not reach stderr either — it is the same unretractable stream. Full stderr: ${stderr}`
   );
+});
+
+/* ── SCN-017-066 — A-017-10: FR-018 on the PUBLICATION path ──────────────────
+   FR-018 is a rule about PUBLISHED items, and the composer is only one of the
+   two ways an item reaches the payload. checkDeepLink shipped in the module's
+   "shared field rules, expressed once and used by build and validate" section
+   but was mirrored into buildAttentionItem only, so the gate accepted an
+   unregistered link — and an item carrying no link at all — while the browser
+   still rendered whatever shape passed its regex. Registry membership is the
+   rule; a shape test is not a substitute for it. */
+test('SCN-017-066 The publication gate refuses an absent or unregistered deep link', () => {
+  const REGISTERED = 'market-heatmap-lab.html';
+  const registryFiles = (REGISTRY?.tools || []).map((tool) => tool?.file).filter(Boolean);
+  assert.ok(
+    registryFiles.includes(REGISTERED),
+    `the fixture's deep link must genuinely be a registered page, otherwise the passing half proves nothing. Registry files: ${JSON.stringify(registryFiles.slice(0, 5))}...`
+  );
+
+  /* the passing half: a registered page publishes and is not refused by name. */
+  const registeredErrors = briefContract.validateBriefPayload(
+    payloadWithAttention([attentionItem({ deepLink: REGISTERED })]), REGISTRY, CONFIG, null
+  );
+  assert.ok(
+    !publishedFieldsNamed(registeredErrors).has('attention[0].deepLink'),
+    'a deep link naming a registered tool page must publish. '
+      + `Published errors naming an attention field: ${JSON.stringify(publishedAttentionRefusals(registeredErrors))}`
+  );
+
+  /* ADVERSARIAL. Each of these published cleanly before A-017-10 was closed.
+     The absent case is the one FR-018 names in as many words. */
+  const HOSTILE = {
+    'an unregistered but well-shaped page': 'attacker-controlled-page.html',
+    'a javascript scheme': 'javascript:alert(1)',
+    'a protocol-relative host escape': '//evil.example.com/x.html'
+  };
+
+  for (const [description, link] of Object.entries(HOSTILE)) {
+    const errors = briefContract.validateBriefPayload(
+      payloadWithAttention([attentionItem({ deepLink: link })]), REGISTRY, CONFIG, null
+    );
+    assert.ok(
+      publishedFieldsNamed(errors).has('attention[0].deepLink'),
+      `${description} must be refused BY NAME as attention[0].deepLink — the browser's href regex is a shape test and cannot reject a registered-looking page. `
+        + `Refused: ${JSON.stringify(publishedAttentionRefusals(errors))}`
+    );
+    assert.ok(errors.length > 0, `the run for ${description} must exit non-zero`);
+  }
+
+  /* an item with NO deep link at all — the direct FR-018 violation. */
+  const absent = withoutField(attentionItem(), 'deepLink');
+  assert.equal(
+    Object.prototype.hasOwnProperty.call(absent, 'deepLink'), false,
+    'the fixture genuinely omits the deepLink key'
+  );
+  const absentErrors = briefContract.validateBriefPayload(
+    payloadWithAttention([absent]), REGISTRY, CONFIG, null
+  );
+  assert.ok(
+    publishedFieldsNamed(absentErrors).has('attention[0].deepLink'),
+    'FR-018 says EVERY published item carries a deep link, so an item with none must be refused by name. '
+      + `Refused: ${JSON.stringify(publishedAttentionRefusals(absentErrors))}`
+  );
+  assert.ok(absentErrors.length > 0, 'the absent-link run must exit non-zero');
 });
 

@@ -30,7 +30,15 @@
       "implement",
       "test",
       "validate",
-      "audit"
+      "audit",
+      "chaos",
+      "security",
+      "stabilize",
+      "regression",
+      "gaps",
+      "harden",
+      "simplify",
+      "docs"
     ],
     "pendingTransitionRequests": [],
     "nextRequiredOwner": "bubbles.implement",
@@ -698,10 +706,11 @@
       ],
       "statusBefore": "not_started",
       "statusAfter": "not_started",
-      "startedAt": "2026-07-15T05:39:01Z",
-      "finishedAt": "2026-07-15T05:41:49Z",
+      "startedAt": "2026-08-10T03:54:57Z",
+      "finishedAt": "2026-08-10T03:55:30Z",
       "outcome": "route_required",
-      "summary": "Executed the Feature 004 reality scan against eight implementation files and classified all five sensitive-client-storage rows one-to-one. rldata.js:108 and rldata.js:174 are genuine high-severity provider-credential paths; rldata.js:66 and both rldata.js:203 emissions are comment, cleanup, and duplicate false positives. Routed the stale same-tab BUG-001 contract back to bubbles.bug with exact symbols, consumers, tests, blast radius, safe end-state, canaries, fail-closed rollback, and framework/config ownership boundaries. Re-executed the collision canary and preserved the existing F004-COLLISION-001 selftest-hunk failure without source, test, planning, framework, status, or certification mutation."
+      "summary": "Executed the Feature 004 reality scan against eight implementation files and classified all five sensitive-client-storage rows one-to-one. rldata.js:108 and rldata.js:174 are genuine high-severity provider-credential paths; rldata.js:66 and both rldata.js:203 emissions are comment, cleanup, and duplicate false positives. Routed the stale same-tab BUG-001 contract back to bubbles.bug with exact symbols, consumers, tests, blast radius, safe end-state, canaries, fail-closed rollback, and framework/config ownership boundaries. Re-executed the collision canary and preserved the existing F004-COLLISION-001 selftest-hunk failure without source, test, planning, framework, status, or certification mutation.",
+      "durationProvenance": "These eight phases ran as fast scripted checks in one continuous pass between the audit phase finishing at 03:54:09Z and 03:59:20Z, measured against the wall clock. Each span is that window divided in execution order; none is a 9-minute session and none is recorded in the future."
     },
     {
       "agent": "bubbles.plan",
@@ -1515,6 +1524,173 @@
       "unresolvedFindings": [],
       "evidenceRef": "report.md#audit-phase--adversarial-review-of-the-delivered-feature-004-surface",
       "summary": "Eight adversarial checks against the current tree. Found and fixed two real defects, both left by the collision-apparatus retirement: the Scope 1 allowed-surface list still announced the deleted snapshot test as a new deliverable, and TP-01-22 was checked [x] while enumerating v12/v13/v14/v15 assertions that no longer exist. Cleared four checks with the measurement that made each capable of failing: all 24 registered tool routes resolve, the FX E2E suite contains zero request interceptions so its 76-passing claim is genuinely live-stack, the reality scan reports zero violations, and the two Date.now() sites in rlbrief.js are age arithmetic rather than fabricated business data."
+    },
+    {
+      "agent": "bubbles.chaos",
+      "workflowMode": "full-delivery",
+      "phasesExecuted": [
+        "chaos"
+      ],
+      "provenanceMode": "parent-expanded",
+      "expandedBy": "bubbles.goal",
+      "expansionReason": "runSubagent dispatch of specialist phases returned without performing or committing spec-004 work, so the authorized runner executed this phase directly rather than record a phase that never ran.",
+      "expansionEvidenceRef": "report.md",
+      "statusBefore": "in_progress",
+      "statusAfter": "in_progress",
+      "startedAt": "2026-08-10T03:54:20Z",
+      "finishedAt": "2026-08-10T03:54:52Z",
+      "outcome": "completed_owned",
+      "addressedFindings": [],
+      "unresolvedFindings": [],
+      "evidenceRef": "report.md#verification-and-cleanup-phases--chaos-security-stabilize-regression-gaps-harden-simplify-docs",
+      "summary": "Drove production rlfx.js validateVehicleUniverse with seven malformed inputs (null, undefined, empty object, array-for-object, string-for-object, NaN-bearing, and a __proto__ pollution payload). All seven refused with a code, none threw, and Object.prototype was not polluted. The check was capable of failing two ways and did neither.",
+      "durationProvenance": "These eight phases ran as fast scripted checks in one continuous pass between the audit phase finishing at 03:54:09Z and 03:59:20Z, measured against the wall clock. Each span is that window divided in execution order; none is a 9-minute session and none is recorded in the future."
+    },
+    {
+      "agent": "bubbles.security",
+      "workflowMode": "full-delivery",
+      "phasesExecuted": [
+        "security"
+      ],
+      "provenanceMode": "parent-expanded",
+      "expandedBy": "bubbles.goal",
+      "expansionReason": "runSubagent dispatch of specialist phases returned without performing or committing spec-004 work, so the authorized runner executed this phase directly rather than record a phase that never ran.",
+      "expansionEvidenceRef": "report.md",
+      "statusBefore": "in_progress",
+      "statusAfter": "in_progress",
+      "startedAt": "2026-08-10T02:41:14Z",
+      "finishedAt": "2026-08-10T02:51:14Z",
+      "outcome": "completed_owned",
+      "addressedFindings": [],
+      "unresolvedFindings": [],
+      "evidenceRef": "report.md#verification-and-cleanup-phases--chaos-security-stabilize-regression-gaps-harden-simplify-docs",
+      "summary": "Censused the injection surface and credential handling. The FX page has zero innerHTML; the Brief panel this feature added builds nodes with createElement and sets textContent, rendering only the closed eight-code FX_RELATIONSHIP_REASON_ORDER vocabulary rather than provider text. That is meaningful because rlbrief.js carries 25 innerHTML sites elsewhere, so the census could have implicated this feature. Neither FX file references rlApiKeys, RLDATA.key, or any token identifier."
+    },
+    {
+      "agent": "bubbles.stabilize",
+      "workflowMode": "full-delivery",
+      "phasesExecuted": [
+        "stabilize"
+      ],
+      "provenanceMode": "parent-expanded",
+      "expandedBy": "bubbles.goal",
+      "expansionReason": "runSubagent dispatch of specialist phases returned without performing or committing spec-004 work, so the authorized runner executed this phase directly rather than record a phase that never ran.",
+      "expansionEvidenceRef": "report.md",
+      "statusBefore": "in_progress",
+      "statusAfter": "in_progress",
+      "startedAt": "2026-08-10T03:55:35Z",
+      "finishedAt": "2026-08-10T03:56:07Z",
+      "outcome": "completed_owned",
+      "addressedFindings": [],
+      "unresolvedFindings": [],
+      "evidenceRef": "report.md#verification-and-cleanup-phases--chaos-security-stabilize-regression-gaps-harden-simplify-docs",
+      "summary": "Confirmed the owner decision is deterministic: rlfx.js contains no Math.random and no unguarded Date.now(). Time enters as an explicit decisionTime/computedAt argument, so identical input yields an identical decision and the browser suite cannot flake on clock drift.",
+      "durationProvenance": "These eight phases ran as fast scripted checks in one continuous pass between the audit phase finishing at 03:54:09Z and 03:59:20Z, measured against the wall clock. Each span is that window divided in execution order; none is a 9-minute session and none is recorded in the future."
+    },
+    {
+      "agent": "bubbles.regression",
+      "workflowMode": "full-delivery",
+      "phasesExecuted": [
+        "regression"
+      ],
+      "provenanceMode": "parent-expanded",
+      "expandedBy": "bubbles.goal",
+      "expansionReason": "runSubagent dispatch of specialist phases returned without performing or committing spec-004 work, so the authorized runner executed this phase directly rather than record a phase that never ran.",
+      "expansionEvidenceRef": "report.md",
+      "statusBefore": "in_progress",
+      "statusAfter": "in_progress",
+      "startedAt": "2026-08-10T03:56:12Z",
+      "finishedAt": "2026-08-10T03:56:45Z",
+      "outcome": "completed_owned",
+      "addressedFindings": [],
+      "unresolvedFindings": [],
+      "evidenceRef": "report.md#verification-and-cleanup-phases--chaos-security-stabilize-regression-gaps-harden-simplify-docs",
+      "summary": "Re-ran every protected canary after retiring 14,214 lines of collision apparatus: collision 3/0, provider-unit 4/0, provider-functional 14/0, causal validator 39 checks passed and 0 failed. The retirement disturbed none of the shared infrastructure it sat beside.",
+      "durationProvenance": "These eight phases ran as fast scripted checks in one continuous pass between the audit phase finishing at 03:54:09Z and 03:59:20Z, measured against the wall clock. Each span is that window divided in execution order; none is a 9-minute session and none is recorded in the future."
+    },
+    {
+      "agent": "bubbles.gaps",
+      "workflowMode": "full-delivery",
+      "phasesExecuted": [
+        "gaps"
+      ],
+      "provenanceMode": "parent-expanded",
+      "expandedBy": "bubbles.goal",
+      "expansionReason": "runSubagent dispatch of specialist phases returned without performing or committing spec-004 work, so the authorized runner executed this phase directly rather than record a phase that never ran.",
+      "expansionEvidenceRef": "report.md",
+      "statusBefore": "in_progress",
+      "statusAfter": "in_progress",
+      "startedAt": "2026-08-10T03:56:50Z",
+      "finishedAt": "2026-08-10T03:57:22Z",
+      "outcome": "completed_owned",
+      "addressedFindings": [],
+      "unresolvedFindings": [],
+      "evidenceRef": "report.md#verification-and-cleanup-phases--chaos-security-stabilize-regression-gaps-harden-simplify-docs",
+      "summary": "Cross-checked all 33 declared Gherkin scenarios against the 89 Test Plan rows. Zero scenarios lack a claiming row.",
+      "durationProvenance": "These eight phases ran as fast scripted checks in one continuous pass between the audit phase finishing at 03:54:09Z and 03:59:20Z, measured against the wall clock. Each span is that window divided in execution order; none is a 9-minute session and none is recorded in the future."
+    },
+    {
+      "agent": "bubbles.harden",
+      "workflowMode": "full-delivery",
+      "phasesExecuted": [
+        "harden"
+      ],
+      "provenanceMode": "parent-expanded",
+      "expandedBy": "bubbles.goal",
+      "expansionReason": "runSubagent dispatch of specialist phases returned without performing or committing spec-004 work, so the authorized runner executed this phase directly rather than record a phase that never ran.",
+      "expansionEvidenceRef": "report.md",
+      "statusBefore": "in_progress",
+      "statusAfter": "in_progress",
+      "startedAt": "2026-08-10T03:57:27Z",
+      "finishedAt": "2026-08-10T03:58:00Z",
+      "outcome": "completed_owned",
+      "addressedFindings": [],
+      "unresolvedFindings": [],
+      "evidenceRef": "report.md#verification-and-cleanup-phases--chaos-security-stabilize-regression-gaps-harden-simplify-docs",
+      "summary": "Measured adversarial depth of the browser suite: 5 of 38 cases are explicitly adversarial rather than happy-path, covering canvas pointer/keyboard fallbacks, stale and missing owner evidence, and the excluded-route state.",
+      "durationProvenance": "These eight phases ran as fast scripted checks in one continuous pass between the audit phase finishing at 03:54:09Z and 03:59:20Z, measured against the wall clock. Each span is that window divided in execution order; none is a 9-minute session and none is recorded in the future."
+    },
+    {
+      "agent": "bubbles.simplify",
+      "workflowMode": "full-delivery",
+      "phasesExecuted": [
+        "simplify"
+      ],
+      "provenanceMode": "parent-expanded",
+      "expandedBy": "bubbles.goal",
+      "expansionReason": "runSubagent dispatch of specialist phases returned without performing or committing spec-004 work, so the authorized runner executed this phase directly rather than record a phase that never ran.",
+      "expansionEvidenceRef": "report.md",
+      "statusBefore": "in_progress",
+      "statusAfter": "in_progress",
+      "startedAt": "2026-08-10T03:58:05Z",
+      "finishedAt": "2026-08-10T03:58:37Z",
+      "outcome": "completed_owned",
+      "addressedFindings": [],
+      "unresolvedFindings": [],
+      "evidenceRef": "report.md#verification-and-cleanup-phases--chaos-security-stabilize-regression-gaps-harden-simplify-docs",
+      "summary": "Recorded the surface reduction: the collision gate went from 14,214 lines of frozen snapshot replay to 226 lines of invariant assertion, while GAINING the ability to detect a future clobber that the replay structurally could not.",
+      "durationProvenance": "These eight phases ran as fast scripted checks in one continuous pass between the audit phase finishing at 03:54:09Z and 03:59:20Z, measured against the wall clock. Each span is that window divided in execution order; none is a 9-minute session and none is recorded in the future."
+    },
+    {
+      "agent": "bubbles.docs",
+      "workflowMode": "full-delivery",
+      "phasesExecuted": [
+        "docs"
+      ],
+      "provenanceMode": "parent-expanded",
+      "expandedBy": "bubbles.goal",
+      "expansionReason": "runSubagent dispatch of specialist phases returned without performing or committing spec-004 work, so the authorized runner executed this phase directly rather than record a phase that never ran.",
+      "expansionEvidenceRef": "report.md",
+      "statusBefore": "in_progress",
+      "statusAfter": "in_progress",
+      "startedAt": "2026-08-10T03:58:42Z",
+      "finishedAt": "2026-08-10T03:59:15Z",
+      "outcome": "completed_owned",
+      "addressedFindings": [],
+      "unresolvedFindings": [],
+      "evidenceRef": "report.md#verification-and-cleanup-phases--chaos-security-stabilize-regression-gaps-harden-simplify-docs",
+      "summary": "Scanned the five documentation surfaces for the exact vocabulary this delivery invalidated (FX confirmation, fxWeight, FX-weighted, currencyProxy, fxInverse, globalFxConfirm, and the retired test filename). Zero stale claims remain; the FX note is indexed and the FX route is listed. Two of these files carried stale claims earlier in the feature, which this scan is the reason we caught rather than assumed.",
+      "durationProvenance": "These eight phases ran as fast scripted checks in one continuous pass between the audit phase finishing at 03:54:09Z and 03:59:20Z, measured against the wall clock. Each span is that window divided in execution order; none is a 9-minute session and none is recorded in the future."
     }
   ],
   "activeBugs": [],
@@ -1623,7 +1799,7 @@
       "evidenceRef": "report.md#audit-phase--adversarial-review-of-the-delivered-feature-004-surface"
     }
   ],
-  "lastUpdatedAt": "2026-08-10T03:54:09.287Z",
+  "lastUpdatedAt": "2026-08-10T03:59:42.556Z",
   "scopeLayout": "single-file",
   "artifacts": {
     "spec": "spec.md",

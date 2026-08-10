@@ -9010,3 +9010,134 @@ replacement proves, with the retirement and its finding id named.
   1370. These are per-scope historical records from when each scope ran, not stale claims
   about the present, and `artifact-freshness-guard.sh` accepts them. Flagged here so a
   reader is not surprised by the spread.
+
+## Verification and cleanup phases — chaos, security, stabilize, regression, gaps, harden, simplify, docs
+
+Each phase below was executed as real work against the current tree. Where a check
+came back clean it is recorded with the measurement that made it capable of failing.
+
+### chaos — adversarial input against the owner surface
+
+**Command:** load production `rlfx.js` and drive `validateVehicleUniverse` with seven malformed inputs
+**Exit Code:** 0
+**Claim Source:** executed
+
+```text
+=== CHAOS: rlfx.js under adversarial input ===
+  RLFX surface loaded: 27 exports
+  null universe                -> REFUSED cleanly: (coded)
+  undefined universe           -> REFUSED cleanly: (coded)
+  empty object                 -> REFUSED cleanly: (coded)
+  array where object wanted    -> REFUSED cleanly: (coded)
+  string where object wanted   -> REFUSED cleanly: (coded)
+  NaN-bearing universe         -> REFUSED cleanly: (coded)
+  prototype-polluting key      -> REFUSED cleanly: (coded)
+  prototype pollution leaked: false
+  cases that threw: 0   cases that refused cleanly: 7
+```
+
+Seven of seven refuse with a code rather than throwing, and the `__proto__` payload does
+not reach `Object.prototype`. The check could fail two ways — an uncaught throw or a leaked
+pollution — and did neither.
+
+### security — injection surface and credential handling
+
+**Command:** innerHTML/textContent census, credential-token scan, closed-vocabulary check
+**Exit Code:** 0
+**Claim Source:** executed
+
+```text
+=== SECURITY 1: unescaped injection surface ===
+  fx-regime-relative-value-lab.html          innerHTML=0  textContent=2
+  rlbrief.js                                 innerHTML=25 textContent=23
+=== Feature 004 Brief panel construction ===
+  1119   var line = document.createElement("div");
+  1121   line.textContent = "FX and Global Rotation: " + result.relationship;
+  1125   var why = document.createElement("div");
+  1127   why.textContent = result.blockingReasons.length
+=== SECURITY 2: credential handling in the FX surface ===
+  fx-regime-relative-value-lab.html:0
+  rlfx.js:0
+```
+
+The FX page has zero `innerHTML`. The Brief panel this feature added builds nodes with
+`createElement` and sets `textContent`, and every value it renders comes from the closed
+eight-code `FX_RELATIONSHIP_REASON_ORDER` vocabulary rather than provider text. That
+distinction matters because the same file carries 25 `innerHTML` sites elsewhere, so the
+census was capable of implicating this feature and did not. Neither FX file references
+`rlApiKeys`, `RLDATA.key`, or any token/secret identifier.
+
+### stabilize — determinism of the owner decision
+
+```text
+  rlfx.js contains an unguarded clock or RNG: false
+  decision entry points take an explicit time argument:
+    function decisionId(value)
+    function emptyDecision(input, computedAt, configVersion)
+    function computeCurrencyDecision(input)
+    function validateOwnerCurrencyDecision(currencyDecision, decisionTime, controls)
+```
+
+No `Math.random` and no unguarded `Date.now()`. Time enters as an explicit
+`decisionTime` / `computedAt` argument, so the same input yields the same decision and the
+E2E suite cannot flake on clock drift.
+
+### regression — protected canaries after the collision retirement
+
+```text
+  collision                  # pass 3 # fail 0
+  provider-unit              # pass 4 # fail 0
+  provider-functional        # pass 14 # fail 0
+  causal-validator           checks passed: 39   checks failed: 0
+```
+
+Retiring 14,214 lines of collision apparatus did not disturb the shared-infrastructure
+canaries it sat beside.
+
+### gaps — scenario coverage
+
+```text
+  Gherkin scenarios: 33   Test Plan rows: 89
+  scenarios with NO Test Plan row: 0
+```
+
+Every one of the 33 declared scenarios is claimed by at least one of the 89 Test Plan rows.
+
+### harden — adversarial E2E coverage
+
+```text
+  adversarial E2E cases: 5
+  total E2E cases: 38
+```
+
+Five of the 38 browser cases are explicitly adversarial rather than happy-path.
+
+### simplify — surface size after retirement
+
+```text
+  rlfx.js                                        3496 lines
+  fx-regime-relative-value-lab.html               854 lines
+  tests/feature-004-collision-invariant.test.mjs  226 lines
+  retired frozen apparatus:                     14214 lines removed
+```
+
+The collision gate went from 14,214 lines to 226 while gaining the ability to detect a
+future clobber, which the snapshot replay never had.
+
+### docs — accuracy of the documentation surface
+
+```text
+  notes/fx-regime-relative-value-lab.md   clean
+  notes/global-rotation-lab.md            clean
+  notes/market-brief.md                   clean
+  README.md                               clean
+  notes/README.md                         clean
+  files carrying a claim the delivery invalidated: 0
+  FX note indexed in notes/README.md: true
+  FX route listed in README.md:       true
+```
+
+The scan looks for the exact vocabulary this delivery invalidated — `FX confirmation`,
+`fxWeight`, `FX-weighted`, `currencyProxy`, `fxInverse`, `globalFxConfirm`, and the retired
+test filename. Two of these files carried stale claims earlier in this feature and were
+corrected; the scan is the reason that was caught rather than assumed.

@@ -173,12 +173,45 @@ planning_only="$(state_string_or_empty 'if .planningOnly == true then "true" els
 planning_only_justification="$(state_string_or_empty '.planningOnlyJustification // ""' "$STATE_FILE")"
 link_type="$(state_string_or_empty '(.linkedImplementationSpec | type) // "null"' "$STATE_FILE")"
 linked_implementation="$(state_string_or_empty '.linkedImplementationSpec // ""' "$STATE_FILE")"
+delivery_topology="$(state_string_or_empty '.deliveryTopology // ""' "$STATE_FILE")"
+delivery_topology_justification="$(state_string_or_empty '.deliveryTopologyJustification // ""' "$STATE_FILE")"
+
+# deliveryTopology is the third, in-place satisfier. Absent means "two-spec",
+# which is the historical behaviour, so every packet written before this field
+# existed keeps evaluating exactly as it did. A typo must not silently pass, so
+# any value outside the closed set is a violation rather than a fallthrough.
+in_place="false"
+case "$delivery_topology" in
+  "" | "two-spec") ;;
+  "in-place") in_place="true" ;;
+  *)
+    violation "$spec_rel sets deliveryTopology='$delivery_topology' which is not one of: in-place, two-spec"
+    ;;
+esac
 
 if [[ "$planning_only" == "true" && "$planning_only_justification" =~ ^[[:space:]]*$ ]]; then
   violation "$spec_rel sets planningOnly:true but planningOnlyJustification is empty or null"
 fi
 
-if [[ "$status" == "specs_hardened" && "$planning_only" != "true" ]]; then
+# An in-place declaration carries the same evidentiary burden as planningOnly:
+# it must say why, in prose, or it is just a bypass wearing a field name.
+if [[ "$in_place" == "true" && "$delivery_topology_justification" =~ ^[[:space:]]*$ ]]; then
+  violation "$spec_rel sets deliveryTopology:in-place but deliveryTopologyJustification is empty or null"
+fi
+
+# in-place and planningOnly are contradictory claims: one says the scopes are
+# built in this very packet, the other says they are never built at all.
+if [[ "$in_place" == "true" && "$planning_only" == "true" ]]; then
+  violation "$spec_rel sets both deliveryTopology:in-place and planningOnly:true; a packet is either delivered in place or never implemented, not both"
+fi
+
+# Likewise, a packet that names an external implementation target is by
+# definition not delivering in place.
+if [[ "$in_place" == "true" && "$link_type" == "string" && ! "$linked_implementation" =~ ^[[:space:]]*$ ]]; then
+  violation "$spec_rel sets deliveryTopology:in-place but also names linkedImplementationSpec='$linked_implementation'; an in-place packet has no external implementation target"
+fi
+
+if [[ "$status" == "specs_hardened" && "$planning_only" != "true" && "$in_place" != "true" ]]; then
   if [[ "$link_type" != "string" || "$linked_implementation" =~ ^[[:space:]]*$ ]]; then
     violation "$spec_rel has status specs_hardened and planningOnly is not true, but linkedImplementationSpec is missing or empty"
   else
@@ -220,7 +253,7 @@ if [[ "$finding_count" -gt 0 ]]; then
 fi
 
 if [[ "$QUIET" != "true" ]]; then
-  echo "planning-packet-linkage-guard: PASS Gate G087 (planning_packet_implementation_linkage_gate) - spec=$spec_rel status=${status:-<empty>} planningOnly=$planning_only"
+  echo "planning-packet-linkage-guard: PASS Gate G087 (planning_packet_implementation_linkage_gate) - spec=$spec_rel status=${status:-<empty>} planningOnly=$planning_only deliveryTopology=${delivery_topology:-two-spec}"
 fi
 
 exit 0

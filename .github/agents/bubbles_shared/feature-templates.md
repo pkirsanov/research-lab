@@ -327,6 +327,8 @@ Rules:
   "linkedPlanningPacket": null,
   "planningOnly": false,
   "planningOnlyJustification": null,
+  "deliveryTopology": null,
+  "deliveryTopologyJustification": null,
   "specDependsOn": [],
   "workBoundary": {
     "repositoryRoots": ["<repo-slug>"],
@@ -433,6 +435,8 @@ Rules:
 **`linkedPlanningPacket`:** Implementation-spec back-link to the planning packet it implements; `null` when absent.
 **`planningOnly`:** Explicit boolean; defaults to `false` and may be `true` only with a non-empty `planningOnlyJustification`.
 **`planningOnlyJustification`:** Non-empty reason when `planningOnly` is `true`; otherwise `null`.
+**`deliveryTopology`:** How this spec's scopes reach implementation. `"two-spec"` (or `null`, which means the same) says a separate implementation spec does the work and must be named in `linkedImplementationSpec`. `"in-place"` says this spec implements its own scopes, so there is no external target to name; it requires a non-empty `deliveryTopologyJustification` and is mutually exclusive with both `planningOnly:true` and a non-empty `linkedImplementationSpec`. Any other value is rejected by Gate G087 rather than passing silently.
+**`deliveryTopologyJustification`:** Non-empty reason when `deliveryTopology` is `"in-place"`; otherwise `null`.
 **`specDependsOn`:** Explicit array of repo-relative spec paths; empty array when no dependency exists.
 **`certifiedAt`:** Top-level certification timestamp; `null` until certification or backfill from scope-level certification timestamps.
 **`requiresRevalidation`:** Explicit boolean used by inter-spec dependency/revalidation flows; defaults to `false`.

@@ -1,0 +1,664 @@
+{
+    "contractVersion": "test-plan/v1",
+    "featureDir": "specs/018-headless-official-curve-publication",
+    "generatedBy": "bubbles.plan",
+    "totalRows": 51,
+    "testSurfaces": {
+        "scripts/selftest.mjs": "node scripts/selftest.mjs",
+        "scripts/validate-official-curves.mjs": "node scripts/validate-official-curves.mjs",
+        "scripts/validate-brief-payload.mjs": "node scripts/validate-brief-payload.mjs",
+        "scripts/validate-spec-test-paths.mjs": "node scripts/validate-spec-test-paths.mjs",
+        "tests/bond-regime-lab.spec.mjs": "npx --no-install playwright test tests/bond-regime-lab.spec.mjs --config=playwright.config.mjs --project=system-chrome"
+    },
+    "scopes": [
+        {
+            "scope": 1,
+            "scopeId": "01-official-curve-artifact-contract",
+            "foundation": true,
+            "rowCount": 11,
+            "rows": [
+                {
+                    "id": "TP-01-01",
+                    "scenarios": [
+                        "SCN-018-004"
+                    ],
+                    "file": "scripts/selftest.mjs",
+                    "category": "unit",
+                    "liveSystem": false,
+                    "assertionClass": "structural-provenance-completeness"
+                },
+                {
+                    "id": "TP-01-02",
+                    "scenarios": [
+                        "SCN-018-001"
+                    ],
+                    "file": "scripts/selftest.mjs",
+                    "category": "unit",
+                    "liveSystem": false,
+                    "assertionClass": "credential-shaped-refusal"
+                },
+                {
+                    "id": "TP-01-03",
+                    "scenarios": [
+                        "SCN-018-004",
+                        "SCN-018-019"
+                    ],
+                    "file": "scripts/validate-official-curves.mjs",
+                    "category": "integration",
+                    "liveSystem": false,
+                    "assertionClass": "gate-exit-code-and-named-error"
+                },
+                {
+                    "id": "TP-01-04",
+                    "scenarios": [
+                        "SCN-018-002"
+                    ],
+                    "file": "scripts/selftest.mjs",
+                    "category": "unit",
+                    "liveSystem": false,
+                    "assertionClass": "restricted-value-sweep"
+                },
+                {
+                    "id": "TP-01-05",
+                    "scenarios": [
+                        "SCN-018-003"
+                    ],
+                    "file": "scripts/selftest.mjs",
+                    "category": "unit",
+                    "liveSystem": false,
+                    "assertionClass": "source-policy-scan"
+                },
+                {
+                    "id": "TP-01-06",
+                    "scenarios": [
+                        "SCN-018-018"
+                    ],
+                    "file": "scripts/selftest.mjs",
+                    "category": "unit",
+                    "liveSystem": false,
+                    "assertionClass": "restricted-value-sweep"
+                },
+                {
+                    "id": "TP-01-07",
+                    "scenarios": [
+                        "SCN-018-019"
+                    ],
+                    "file": "scripts/selftest.mjs",
+                    "category": "unit",
+                    "liveSystem": false,
+                    "assertionClass": "adversarial-binding-gap"
+                },
+                {
+                    "id": "TP-01-08",
+                    "scenarios": [
+                        "SCN-018-020"
+                    ],
+                    "file": "scripts/selftest.mjs",
+                    "category": "unit",
+                    "liveSystem": false,
+                    "assertionClass": "declared-policy-verbatim-and-copy-retention"
+                },
+                {
+                    "id": "TP-01-09",
+                    "scenarios": [
+                        "SCN-018-021"
+                    ],
+                    "file": "scripts/selftest.mjs",
+                    "category": "unit",
+                    "liveSystem": false,
+                    "assertionClass": "additive-only-contract-extension"
+                },
+                {
+                    "id": "TP-01-10",
+                    "scenarios": [
+                        "SCN-018-022"
+                    ],
+                    "file": "scripts/validate-spec-test-paths.mjs",
+                    "category": "integration",
+                    "liveSystem": false,
+                    "assertionClass": "spec-test-path-guard"
+                },
+                {
+                    "id": "TP-01-11",
+                    "scenarios": [
+                        "SCN-018-021"
+                    ],
+                    "file": "scripts/selftest.mjs",
+                    "category": "integration",
+                    "liveSystem": false,
+                    "assertionClass": "regression-existing-provenance-groups"
+                }
+            ]
+        },
+        {
+            "scope": 2,
+            "scopeId": "02-tier-a-official-curve-acquisition",
+            "foundation": false,
+            "rowCount": 8,
+            "rows": [
+                {
+                    "id": "TP-02-01",
+                    "scenarios": [
+                        "SCN-018-005"
+                    ],
+                    "file": "scripts/selftest.mjs",
+                    "category": "functional",
+                    "liveSystem": false,
+                    "assertionClass": "whole-family-rejection-zero-rows"
+                },
+                {
+                    "id": "TP-02-02",
+                    "scenarios": [
+                        "SCN-018-006"
+                    ],
+                    "file": "scripts/selftest.mjs",
+                    "category": "functional",
+                    "liveSystem": false,
+                    "assertionClass": "family-independence"
+                },
+                {
+                    "id": "TP-02-03",
+                    "scenarios": [
+                        "SCN-018-023"
+                    ],
+                    "file": "scripts/selftest.mjs",
+                    "category": "functional",
+                    "liveSystem": false,
+                    "assertionClass": "two-year-coverage-and-merge-order"
+                },
+                {
+                    "id": "TP-02-04",
+                    "scenarios": [
+                        "SCN-018-024"
+                    ],
+                    "file": "scripts/selftest.mjs",
+                    "category": "functional",
+                    "liveSystem": false,
+                    "assertionClass": "carry-forward-byte-identity-no-restamp"
+                },
+                {
+                    "id": "TP-02-05",
+                    "scenarios": [
+                        "SCN-018-025"
+                    ],
+                    "file": "scripts/selftest.mjs",
+                    "category": "integration",
+                    "liveSystem": false,
+                    "assertionClass": "failure-isolation"
+                },
+                {
+                    "id": "TP-02-06",
+                    "scenarios": [
+                        "SCN-018-026"
+                    ],
+                    "file": "scripts/selftest.mjs",
+                    "category": "unit",
+                    "liveSystem": false,
+                    "assertionClass": "single-url-definition"
+                },
+                {
+                    "id": "TP-02-07",
+                    "scenarios": [
+                        "SCN-018-023"
+                    ],
+                    "file": "scripts/validate-official-curves.mjs",
+                    "category": "integration",
+                    "liveSystem": false,
+                    "assertionClass": "producer-satisfies-contract"
+                },
+                {
+                    "id": "TP-02-08",
+                    "scenarios": [
+                        "SCN-018-005",
+                        "SCN-018-006"
+                    ],
+                    "file": "scripts/selftest.mjs",
+                    "category": "functional",
+                    "liveSystem": false,
+                    "assertionClass": "regression-request-surface-and-restricted-families"
+                }
+            ]
+        },
+        {
+            "scope": 3,
+            "scopeId": "03-observed-cadence-freshness-admission",
+            "foundation": false,
+            "rowCount": 7,
+            "rows": [
+                {
+                    "id": "TP-03-01",
+                    "scenarios": [
+                        "SCN-018-007"
+                    ],
+                    "file": "scripts/selftest.mjs",
+                    "category": "unit",
+                    "liveSystem": false,
+                    "assertionClass": "weekend-is-current"
+                },
+                {
+                    "id": "TP-03-02",
+                    "scenarios": [
+                        "SCN-018-008"
+                    ],
+                    "file": "scripts/selftest.mjs",
+                    "category": "unit",
+                    "liveSystem": false,
+                    "assertionClass": "holiday-is-current-and-equity-calendar-unread"
+                },
+                {
+                    "id": "TP-03-03",
+                    "scenarios": [
+                        "SCN-018-009"
+                    ],
+                    "file": "scripts/selftest.mjs",
+                    "category": "unit",
+                    "liveSystem": false,
+                    "assertionClass": "stale-with-named-reason-and-code"
+                },
+                {
+                    "id": "TP-03-04",
+                    "scenarios": [
+                        "SCN-018-010"
+                    ],
+                    "file": "scripts/selftest.mjs",
+                    "category": "unit",
+                    "liveSystem": false,
+                    "assertionClass": "undetermined-neither-current-nor-stale"
+                },
+                {
+                    "id": "TP-03-05",
+                    "scenarios": [
+                        "SCN-018-027"
+                    ],
+                    "file": "scripts/selftest.mjs",
+                    "category": "unit",
+                    "liveSystem": false,
+                    "assertionClass": "window-boundary-both-sides"
+                },
+                {
+                    "id": "TP-03-06",
+                    "scenarios": [
+                        "SCN-018-028"
+                    ],
+                    "file": "scripts/selftest.mjs",
+                    "category": "unit",
+                    "liveSystem": false,
+                    "assertionClass": "adversarial-publication-stoppage"
+                },
+                {
+                    "id": "TP-03-07",
+                    "scenarios": [
+                        "SCN-018-027"
+                    ],
+                    "file": "scripts/selftest.mjs",
+                    "category": "unit",
+                    "liveSystem": false,
+                    "assertionClass": "regression-determinism-no-wall-clock"
+                }
+            ]
+        },
+        {
+            "scope": 4,
+            "scopeId": "04-headless-consumption-path",
+            "foundation": false,
+            "rowCount": 10,
+            "rows": [
+                {
+                    "id": "TP-04-01",
+                    "scenarios": [
+                        "SCN-018-015"
+                    ],
+                    "file": "scripts/selftest.mjs",
+                    "category": "functional",
+                    "liveSystem": false,
+                    "assertionClass": "named-absence-no-substitute"
+                },
+                {
+                    "id": "TP-04-02",
+                    "scenarios": [
+                        "SCN-018-016"
+                    ],
+                    "file": "scripts/selftest.mjs",
+                    "category": "functional",
+                    "liveSystem": false,
+                    "assertionClass": "invalid-artifact-zero-rows-admitted"
+                },
+                {
+                    "id": "TP-04-03",
+                    "scenarios": [
+                        "SCN-018-017"
+                    ],
+                    "file": "scripts/selftest.mjs",
+                    "category": "functional",
+                    "liveSystem": false,
+                    "assertionClass": "committed-adversarial-2-shape-satisfied",
+                    "satisfiesCommittedAssertion": "scripts/selftest.mjs:5670-5682"
+                },
+                {
+                    "id": "TP-04-04",
+                    "scenarios": [
+                        "SCN-018-029"
+                    ],
+                    "file": "scripts/selftest.mjs",
+                    "category": "functional",
+                    "liveSystem": false,
+                    "assertionClass": "stale-withholding-and-null-curve-as-of"
+                },
+                {
+                    "id": "TP-04-05",
+                    "scenarios": [
+                        "SCN-018-013"
+                    ],
+                    "file": "scripts/selftest.mjs",
+                    "category": "functional",
+                    "liveSystem": false,
+                    "assertionClass": "level-alone-sets-no-posture"
+                },
+                {
+                    "id": "TP-04-06",
+                    "scenarios": [
+                        "SCN-018-014"
+                    ],
+                    "file": "scripts/selftest.mjs",
+                    "category": "functional",
+                    "liveSystem": false,
+                    "assertionClass": "exact-common-date-breakeven-count"
+                },
+                {
+                    "id": "TP-04-07",
+                    "scenarios": [
+                        "SCN-018-030"
+                    ],
+                    "file": "scripts/selftest.mjs",
+                    "category": "functional",
+                    "liveSystem": false,
+                    "assertionClass": "live-read-branches-both-assert"
+                },
+                {
+                    "id": "TP-04-08",
+                    "scenarios": [
+                        "SCN-018-031"
+                    ],
+                    "file": "scripts/selftest.mjs",
+                    "category": "functional",
+                    "liveSystem": false,
+                    "assertionClass": "explicit-absence-adversarial"
+                },
+                {
+                    "id": "TP-04-09",
+                    "scenarios": [
+                        "SCN-018-030"
+                    ],
+                    "file": "scripts/selftest.mjs",
+                    "category": "unit",
+                    "liveSystem": false,
+                    "assertionClass": "injection-precedence-seam-unwidened"
+                },
+                {
+                    "id": "TP-04-10",
+                    "scenarios": [
+                        "SCN-018-017"
+                    ],
+                    "file": "scripts/validate-brief-payload.mjs",
+                    "category": "integration",
+                    "liveSystem": true,
+                    "assertionClass": "regression-publication-gate-and-additive-metric"
+                }
+            ]
+        },
+        {
+            "scope": 5,
+            "scopeId": "05-brief-read-and-provenance-render",
+            "foundation": false,
+            "rowCount": 8,
+            "rows": [
+                {
+                    "id": "TP-05-01",
+                    "scenarios": [
+                        "SCN-018-032"
+                    ],
+                    "file": "tests/bond-regime-lab.spec.mjs",
+                    "category": "e2e-ui",
+                    "liveSystem": true,
+                    "assertionClass": "two-axis-rows-no-slug-painted"
+                },
+                {
+                    "id": "TP-05-02",
+                    "scenarios": [
+                        "SCN-018-033"
+                    ],
+                    "file": "tests/bond-regime-lab.spec.mjs",
+                    "category": "e2e-ui",
+                    "liveSystem": true,
+                    "assertionClass": "stale-reason-and-last-good-labelled"
+                },
+                {
+                    "id": "TP-05-03",
+                    "scenarios": [
+                        "SCN-018-034"
+                    ],
+                    "file": "tests/bond-regime-lab.spec.mjs",
+                    "category": "e2e-ui",
+                    "liveSystem": true,
+                    "assertionClass": "absent-form-published-string-verbatim"
+                },
+                {
+                    "id": "TP-05-04",
+                    "scenarios": [
+                        "SCN-018-004"
+                    ],
+                    "file": "tests/bond-regime-lab.spec.mjs",
+                    "category": "e2e-ui",
+                    "liveSystem": true,
+                    "assertionClass": "provenance-row-complete-no-empty-cell"
+                },
+                {
+                    "id": "TP-05-05",
+                    "scenarios": [
+                        "SCN-018-018"
+                    ],
+                    "file": "tests/bond-regime-lab.spec.mjs",
+                    "category": "e2e-ui",
+                    "liveSystem": true,
+                    "assertionClass": "restricted-value-render-sweep"
+                },
+                {
+                    "id": "TP-05-06",
+                    "scenarios": [
+                        "SCN-018-035"
+                    ],
+                    "file": "tests/bond-regime-lab.spec.mjs",
+                    "category": "e2e-ui",
+                    "liveSystem": true,
+                    "assertionClass": "undetermined-states-observation-count"
+                },
+                {
+                    "id": "TP-05-07",
+                    "scenarios": [
+                        "SCN-018-032"
+                    ],
+                    "file": "tests/bond-regime-lab.spec.mjs",
+                    "category": "e2e-ui",
+                    "liveSystem": true,
+                    "assertionClass": "level-impulse-and-real-breakeven-separation"
+                },
+                {
+                    "id": "TP-05-08",
+                    "scenarios": [
+                        "SCN-018-032",
+                        "SCN-018-034"
+                    ],
+                    "file": "tests/bond-regime-lab.spec.mjs",
+                    "category": "e2e-ui",
+                    "liveSystem": true,
+                    "assertionClass": "regression-monochrome-zoom-and-existing-rows"
+                }
+            ]
+        },
+        {
+            "scope": 6,
+            "scopeId": "06-one-model-parity-guarantee",
+            "foundation": false,
+            "rowCount": 7,
+            "rows": [
+                {
+                    "id": "TP-06-01",
+                    "scenarios": [
+                        "SCN-018-011"
+                    ],
+                    "file": "scripts/selftest.mjs",
+                    "category": "integration",
+                    "liveSystem": false,
+                    "assertionClass": "differential-pairwise-equality"
+                },
+                {
+                    "id": "TP-06-02",
+                    "scenarios": [
+                        "SCN-018-012"
+                    ],
+                    "file": "scripts/selftest.mjs",
+                    "category": "integration",
+                    "liveSystem": false,
+                    "assertionClass": "coverage-window-load-bearing"
+                },
+                {
+                    "id": "TP-06-03",
+                    "scenarios": [
+                        "SCN-018-036"
+                    ],
+                    "file": "scripts/selftest.mjs",
+                    "category": "integration",
+                    "liveSystem": false,
+                    "assertionClass": "adversarial-perturbation-must-differ"
+                },
+                {
+                    "id": "TP-06-04",
+                    "scenarios": [
+                        "SCN-018-037"
+                    ],
+                    "file": "scripts/selftest.mjs",
+                    "category": "integration",
+                    "liveSystem": false,
+                    "assertionClass": "unequal-window-cannot-be-compared"
+                },
+                {
+                    "id": "TP-06-05",
+                    "scenarios": [
+                        "SCN-018-011"
+                    ],
+                    "file": "scripts/selftest.mjs",
+                    "category": "unit",
+                    "liveSystem": false,
+                    "assertionClass": "committed-artifact-byte-identity"
+                },
+                {
+                    "id": "TP-06-06",
+                    "scenarios": [
+                        "SCN-018-038"
+                    ],
+                    "file": "tests/bond-regime-lab.spec.mjs",
+                    "category": "e2e-ui",
+                    "liveSystem": true,
+                    "assertionClass": "parity-line-three-verdicts-silence-is-not-agreement"
+                },
+                {
+                    "id": "TP-06-07",
+                    "scenarios": [
+                        "SCN-018-011",
+                        "SCN-018-038"
+                    ],
+                    "file": "tests/bond-regime-lab.spec.mjs",
+                    "category": "e2e-ui",
+                    "liveSystem": true,
+                    "assertionClass": "regression-parity-line-and-existing-rows"
+                }
+            ]
+        }
+    ],
+    "businessScenarioCoverage": {
+        "BS-018-001": [
+            "TP-01-02"
+        ],
+        "BS-018-002": [
+            "TP-01-04"
+        ],
+        "BS-018-003": [
+            "TP-01-05"
+        ],
+        "BS-018-004": [
+            "TP-01-01",
+            "TP-01-03",
+            "TP-05-04"
+        ],
+        "BS-018-005": [
+            "TP-02-01",
+            "TP-02-08"
+        ],
+        "BS-018-006": [
+            "TP-02-02",
+            "TP-02-08"
+        ],
+        "BS-018-007": [
+            "TP-03-01"
+        ],
+        "BS-018-008": [
+            "TP-03-02"
+        ],
+        "BS-018-009": [
+            "TP-03-03",
+            "TP-05-02"
+        ],
+        "BS-018-010": [
+            "TP-03-04",
+            "TP-05-06"
+        ],
+        "BS-018-011": [
+            "TP-06-01",
+            "TP-06-05",
+            "TP-06-07"
+        ],
+        "BS-018-012": [
+            "TP-06-02"
+        ],
+        "BS-018-013": [
+            "TP-04-05"
+        ],
+        "BS-018-014": [
+            "TP-04-06"
+        ],
+        "BS-018-015": [
+            "TP-04-01",
+            "TP-05-03"
+        ],
+        "BS-018-016": [
+            "TP-04-02"
+        ],
+        "BS-018-017": [
+            "TP-04-03",
+            "TP-04-10",
+            "TP-05-01"
+        ],
+        "BS-018-018": [
+            "TP-01-06",
+            "TP-05-05"
+        ]
+    },
+    "requiredAssertionDiscipline": {
+        "structuralOnly": true,
+        "reason": "Curve values are live market data. Every assertion is a shape, a state, a named reason, a provenance field, an as-of, a count, or an equality between two computed results. No assertion pins a yield, a basis-point spread, or a classification word to a numeric or string literal.",
+        "differentialRow": "TP-06-01",
+        "adversarialRows": [
+            "TP-01-07",
+            "TP-02-01",
+            "TP-02-04",
+            "TP-03-02",
+            "TP-03-04",
+            "TP-03-06",
+            "TP-04-01",
+            "TP-04-02",
+            "TP-04-08",
+            "TP-06-03",
+            "TP-06-04"
+        ]
+    }
+}

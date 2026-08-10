@@ -1,0 +1,730 @@
+{
+    "contractVersion": "scenario-manifest/v1",
+    "featureDir": "specs/018-headless-official-curve-publication",
+    "generatedBy": "bubbles.plan",
+    "scenarioCount": 38,
+    "businessScenarioMapping": "SCN-018-001 through SCN-018-018 map one-to-one onto BS-018-001 through BS-018-018 in spec.md. SCN-018-019 through SCN-018-038 are planning-added scenarios covering the adversarial cases design.md names and the routed items R-2 through R-5.",
+    "scenarios": [
+        {
+            "scenarioId": "SCN-018-001",
+            "businessScenario": "BS-018-001",
+            "scopeId": "01-official-curve-artifact-contract",
+            "scope": 1,
+            "status": "not_started",
+            "requiredTestType": "unit",
+            "linkedTests": [
+                "scripts/selftest.mjs",
+                "scripts/validate-official-curves.mjs"
+            ],
+            "testRows": [
+                "TP-01-02"
+            ],
+            "evidenceRefs": [
+                "scopes/01-official-curve-artifact-contract/report.md#tp-01-02"
+            ]
+        },
+        {
+            "scenarioId": "SCN-018-002",
+            "businessScenario": "BS-018-002",
+            "scopeId": "01-official-curve-artifact-contract",
+            "scope": 1,
+            "status": "not_started",
+            "requiredTestType": "unit",
+            "linkedTests": [
+                "scripts/selftest.mjs"
+            ],
+            "testRows": [
+                "TP-01-04"
+            ],
+            "evidenceRefs": [
+                "scopes/01-official-curve-artifact-contract/report.md#tp-01-04"
+            ]
+        },
+        {
+            "scenarioId": "SCN-018-003",
+            "businessScenario": "BS-018-003",
+            "scopeId": "01-official-curve-artifact-contract",
+            "scope": 1,
+            "status": "not_started",
+            "requiredTestType": "unit",
+            "linkedTests": [
+                "scripts/selftest.mjs"
+            ],
+            "testRows": [
+                "TP-01-05"
+            ],
+            "evidenceRefs": [
+                "scopes/01-official-curve-artifact-contract/report.md#tp-01-05"
+            ]
+        },
+        {
+            "scenarioId": "SCN-018-004",
+            "businessScenario": "BS-018-004",
+            "scopeId": "01-official-curve-artifact-contract",
+            "scope": 1,
+            "status": "not_started",
+            "requiredTestType": "unit",
+            "linkedTests": [
+                "scripts/selftest.mjs",
+                "scripts/validate-official-curves.mjs",
+                "tests/bond-regime-lab.spec.mjs"
+            ],
+            "testRows": [
+                "TP-01-01",
+                "TP-01-03",
+                "TP-05-04"
+            ],
+            "evidenceRefs": [
+                "scopes/01-official-curve-artifact-contract/report.md#tp-01-01",
+                "scopes/01-official-curve-artifact-contract/report.md#tp-01-03",
+                "scopes/05-brief-read-and-provenance-render/report.md#tp-05-04"
+            ]
+        },
+        {
+            "scenarioId": "SCN-018-005",
+            "businessScenario": "BS-018-005",
+            "scopeId": "02-tier-a-official-curve-acquisition",
+            "scope": 2,
+            "status": "not_started",
+            "requiredTestType": "functional",
+            "linkedTests": [
+                "scripts/selftest.mjs"
+            ],
+            "testRows": [
+                "TP-02-01",
+                "TP-02-08"
+            ],
+            "evidenceRefs": [
+                "scopes/02-tier-a-official-curve-acquisition/report.md#tp-02-01",
+                "scopes/02-tier-a-official-curve-acquisition/report.md#tp-02-08"
+            ]
+        },
+        {
+            "scenarioId": "SCN-018-006",
+            "businessScenario": "BS-018-006",
+            "scopeId": "02-tier-a-official-curve-acquisition",
+            "scope": 2,
+            "status": "not_started",
+            "requiredTestType": "functional",
+            "linkedTests": [
+                "scripts/selftest.mjs"
+            ],
+            "testRows": [
+                "TP-02-02",
+                "TP-02-08"
+            ],
+            "evidenceRefs": [
+                "scopes/02-tier-a-official-curve-acquisition/report.md#tp-02-02",
+                "scopes/02-tier-a-official-curve-acquisition/report.md#tp-02-08"
+            ]
+        },
+        {
+            "scenarioId": "SCN-018-007",
+            "businessScenario": "BS-018-007",
+            "scopeId": "03-observed-cadence-freshness-admission",
+            "scope": 3,
+            "status": "not_started",
+            "requiredTestType": "unit",
+            "linkedTests": [
+                "scripts/selftest.mjs"
+            ],
+            "testRows": [
+                "TP-03-01"
+            ],
+            "evidenceRefs": [
+                "scopes/03-observed-cadence-freshness-admission/report.md#tp-03-01"
+            ]
+        },
+        {
+            "scenarioId": "SCN-018-008",
+            "businessScenario": "BS-018-008",
+            "scopeId": "03-observed-cadence-freshness-admission",
+            "scope": 3,
+            "status": "not_started",
+            "requiredTestType": "unit",
+            "linkedTests": [
+                "scripts/selftest.mjs"
+            ],
+            "testRows": [
+                "TP-03-02"
+            ],
+            "evidenceRefs": [
+                "scopes/03-observed-cadence-freshness-admission/report.md#tp-03-02"
+            ]
+        },
+        {
+            "scenarioId": "SCN-018-009",
+            "businessScenario": "BS-018-009",
+            "scopeId": "03-observed-cadence-freshness-admission",
+            "scope": 3,
+            "status": "not_started",
+            "requiredTestType": "unit",
+            "linkedTests": [
+                "scripts/selftest.mjs",
+                "tests/bond-regime-lab.spec.mjs"
+            ],
+            "testRows": [
+                "TP-03-03",
+                "TP-05-02"
+            ],
+            "evidenceRefs": [
+                "scopes/03-observed-cadence-freshness-admission/report.md#tp-03-03",
+                "scopes/05-brief-read-and-provenance-render/report.md#tp-05-02"
+            ]
+        },
+        {
+            "scenarioId": "SCN-018-010",
+            "businessScenario": "BS-018-010",
+            "scopeId": "03-observed-cadence-freshness-admission",
+            "scope": 3,
+            "status": "not_started",
+            "requiredTestType": "unit",
+            "linkedTests": [
+                "scripts/selftest.mjs",
+                "tests/bond-regime-lab.spec.mjs"
+            ],
+            "testRows": [
+                "TP-03-04",
+                "TP-05-06"
+            ],
+            "evidenceRefs": [
+                "scopes/03-observed-cadence-freshness-admission/report.md#tp-03-04",
+                "scopes/05-brief-read-and-provenance-render/report.md#tp-05-06"
+            ]
+        },
+        {
+            "scenarioId": "SCN-018-011",
+            "businessScenario": "BS-018-011",
+            "scopeId": "06-one-model-parity-guarantee",
+            "scope": 6,
+            "status": "not_started",
+            "requiredTestType": "integration",
+            "linkedTests": [
+                "scripts/selftest.mjs",
+                "tests/bond-regime-lab.spec.mjs"
+            ],
+            "testRows": [
+                "TP-06-01",
+                "TP-06-05",
+                "TP-06-07"
+            ],
+            "evidenceRefs": [
+                "scopes/06-one-model-parity-guarantee/report.md#tp-06-01",
+                "scopes/06-one-model-parity-guarantee/report.md#tp-06-05",
+                "scopes/06-one-model-parity-guarantee/report.md#tp-06-07"
+            ]
+        },
+        {
+            "scenarioId": "SCN-018-012",
+            "businessScenario": "BS-018-012",
+            "scopeId": "06-one-model-parity-guarantee",
+            "scope": 6,
+            "status": "not_started",
+            "requiredTestType": "integration",
+            "linkedTests": [
+                "scripts/selftest.mjs"
+            ],
+            "testRows": [
+                "TP-06-02"
+            ],
+            "evidenceRefs": [
+                "scopes/06-one-model-parity-guarantee/report.md#tp-06-02"
+            ]
+        },
+        {
+            "scenarioId": "SCN-018-013",
+            "businessScenario": "BS-018-013",
+            "scopeId": "04-headless-consumption-path",
+            "scope": 4,
+            "status": "not_started",
+            "requiredTestType": "functional",
+            "linkedTests": [
+                "scripts/selftest.mjs"
+            ],
+            "testRows": [
+                "TP-04-05"
+            ],
+            "evidenceRefs": [
+                "scopes/04-headless-consumption-path/report.md#tp-04-05"
+            ]
+        },
+        {
+            "scenarioId": "SCN-018-014",
+            "businessScenario": "BS-018-014",
+            "scopeId": "04-headless-consumption-path",
+            "scope": 4,
+            "status": "not_started",
+            "requiredTestType": "functional",
+            "linkedTests": [
+                "scripts/selftest.mjs"
+            ],
+            "testRows": [
+                "TP-04-06"
+            ],
+            "evidenceRefs": [
+                "scopes/04-headless-consumption-path/report.md#tp-04-06"
+            ]
+        },
+        {
+            "scenarioId": "SCN-018-015",
+            "businessScenario": "BS-018-015",
+            "scopeId": "04-headless-consumption-path",
+            "scope": 4,
+            "status": "not_started",
+            "requiredTestType": "functional",
+            "linkedTests": [
+                "scripts/selftest.mjs",
+                "tests/bond-regime-lab.spec.mjs"
+            ],
+            "testRows": [
+                "TP-04-01",
+                "TP-05-03"
+            ],
+            "evidenceRefs": [
+                "scopes/04-headless-consumption-path/report.md#tp-04-01",
+                "scopes/05-brief-read-and-provenance-render/report.md#tp-05-03"
+            ]
+        },
+        {
+            "scenarioId": "SCN-018-016",
+            "businessScenario": "BS-018-016",
+            "scopeId": "04-headless-consumption-path",
+            "scope": 4,
+            "status": "not_started",
+            "requiredTestType": "functional",
+            "linkedTests": [
+                "scripts/selftest.mjs"
+            ],
+            "testRows": [
+                "TP-04-02"
+            ],
+            "evidenceRefs": [
+                "scopes/04-headless-consumption-path/report.md#tp-04-02"
+            ]
+        },
+        {
+            "scenarioId": "SCN-018-017",
+            "businessScenario": "BS-018-017",
+            "scopeId": "04-headless-consumption-path",
+            "scope": 4,
+            "status": "not_started",
+            "requiredTestType": "functional",
+            "linkedTests": [
+                "scripts/selftest.mjs",
+                "scripts/validate-brief-payload.mjs",
+                "tests/bond-regime-lab.spec.mjs"
+            ],
+            "testRows": [
+                "TP-04-03",
+                "TP-04-10",
+                "TP-05-01"
+            ],
+            "evidenceRefs": [
+                "scopes/04-headless-consumption-path/report.md#tp-04-03",
+                "scopes/04-headless-consumption-path/report.md#tp-04-10",
+                "scopes/05-brief-read-and-provenance-render/report.md#tp-05-01"
+            ],
+            "satisfiesCommittedAssertion": "scripts/selftest.mjs:5670-5682"
+        },
+        {
+            "scenarioId": "SCN-018-018",
+            "businessScenario": "BS-018-018",
+            "scopeId": "01-official-curve-artifact-contract",
+            "scope": 1,
+            "status": "not_started",
+            "requiredTestType": "unit",
+            "linkedTests": [
+                "scripts/selftest.mjs",
+                "tests/bond-regime-lab.spec.mjs"
+            ],
+            "testRows": [
+                "TP-01-06",
+                "TP-05-05"
+            ],
+            "evidenceRefs": [
+                "scopes/01-official-curve-artifact-contract/report.md#tp-01-06",
+                "scopes/05-brief-read-and-provenance-render/report.md#tp-05-05"
+            ]
+        },
+        {
+            "scenarioId": "SCN-018-019",
+            "businessScenario": null,
+            "scopeId": "01-official-curve-artifact-contract",
+            "scope": 1,
+            "status": "not_started",
+            "requiredTestType": "unit",
+            "linkedTests": [
+                "scripts/selftest.mjs",
+                "scripts/validate-official-curves.mjs"
+            ],
+            "testRows": [
+                "TP-01-03",
+                "TP-01-07"
+            ],
+            "evidenceRefs": [
+                "scopes/01-official-curve-artifact-contract/report.md#tp-01-03",
+                "scopes/01-official-curve-artifact-contract/report.md#tp-01-07"
+            ],
+            "origin": "design.md § Open Question 2 — the source-id-to-query binding the frozen contract cannot express"
+        },
+        {
+            "scenarioId": "SCN-018-020",
+            "businessScenario": null,
+            "scopeId": "01-official-curve-artifact-contract",
+            "scope": 1,
+            "status": "not_started",
+            "requiredTestType": "unit",
+            "linkedTests": [
+                "scripts/selftest.mjs"
+            ],
+            "testRows": [
+                "TP-01-08"
+            ],
+            "evidenceRefs": [
+                "scopes/01-official-curve-artifact-contract/report.md#tp-01-08"
+            ],
+            "origin": "design.md routed item R-4 — the persistence field interpretation"
+        },
+        {
+            "scenarioId": "SCN-018-021",
+            "businessScenario": null,
+            "scopeId": "01-official-curve-artifact-contract",
+            "scope": 1,
+            "status": "not_started",
+            "requiredTestType": "unit",
+            "linkedTests": [
+                "scripts/selftest.mjs"
+            ],
+            "testRows": [
+                "TP-01-09",
+                "TP-01-11"
+            ],
+            "evidenceRefs": [
+                "scopes/01-official-curve-artifact-contract/report.md#tp-01-09",
+                "scopes/01-official-curve-artifact-contract/report.md#tp-01-11"
+            ],
+            "origin": "FR-018-038 — every contract change is additive"
+        },
+        {
+            "scenarioId": "SCN-018-022",
+            "businessScenario": null,
+            "scopeId": "01-official-curve-artifact-contract",
+            "scope": 1,
+            "status": "not_started",
+            "requiredTestType": "integration",
+            "linkedTests": [
+                "scripts/validate-spec-test-paths.mjs"
+            ],
+            "testRows": [
+                "TP-01-10"
+            ],
+            "evidenceRefs": [
+                "scopes/01-official-curve-artifact-contract/report.md#tp-01-10"
+            ],
+            "origin": "design.md routed item R-5 — the spec-test-path guard"
+        },
+        {
+            "scenarioId": "SCN-018-023",
+            "businessScenario": null,
+            "scopeId": "02-tier-a-official-curve-acquisition",
+            "scope": 2,
+            "status": "not_started",
+            "requiredTestType": "functional",
+            "linkedTests": [
+                "scripts/selftest.mjs",
+                "scripts/validate-official-curves.mjs"
+            ],
+            "testRows": [
+                "TP-02-03",
+                "TP-02-07"
+            ],
+            "evidenceRefs": [
+                "scopes/02-tier-a-official-curve-acquisition/report.md#tp-02-03",
+                "scopes/02-tier-a-official-curve-acquisition/report.md#tp-02-07"
+            ],
+            "origin": "FR-018-005 and H-5 — the two-calendar-year merge window"
+        },
+        {
+            "scenarioId": "SCN-018-024",
+            "businessScenario": null,
+            "scopeId": "02-tier-a-official-curve-acquisition",
+            "scope": 2,
+            "status": "not_started",
+            "requiredTestType": "functional",
+            "linkedTests": [
+                "scripts/selftest.mjs"
+            ],
+            "testRows": [
+                "TP-02-04"
+            ],
+            "evidenceRefs": [
+                "scopes/02-tier-a-official-curve-acquisition/report.md#tp-02-04"
+            ],
+            "origin": "design.md § Carry-forward rule and H-6 — the headless degrade path"
+        },
+        {
+            "scenarioId": "SCN-018-025",
+            "businessScenario": null,
+            "scopeId": "02-tier-a-official-curve-acquisition",
+            "scope": 2,
+            "status": "not_started",
+            "requiredTestType": "integration",
+            "linkedTests": [
+                "scripts/selftest.mjs"
+            ],
+            "testRows": [
+                "TP-02-05"
+            ],
+            "evidenceRefs": [
+                "scopes/02-tier-a-official-curve-acquisition/report.md#tp-02-05"
+            ],
+            "origin": "NFR Failure isolation"
+        },
+        {
+            "scenarioId": "SCN-018-026",
+            "businessScenario": null,
+            "scopeId": "02-tier-a-official-curve-acquisition",
+            "scope": 2,
+            "status": "not_started",
+            "requiredTestType": "unit",
+            "linkedTests": [
+                "scripts/selftest.mjs"
+            ],
+            "testRows": [
+                "TP-02-06"
+            ],
+            "evidenceRefs": [
+                "scopes/02-tier-a-official-curve-acquisition/report.md#tp-02-06"
+            ],
+            "origin": "FR-018-002 — exactly one URL definition"
+        },
+        {
+            "scenarioId": "SCN-018-027",
+            "businessScenario": null,
+            "scopeId": "03-observed-cadence-freshness-admission",
+            "scope": 3,
+            "status": "not_started",
+            "requiredTestType": "unit",
+            "linkedTests": [
+                "scripts/selftest.mjs"
+            ],
+            "testRows": [
+                "TP-03-05",
+                "TP-03-07"
+            ],
+            "evidenceRefs": [
+                "scopes/03-observed-cadence-freshness-admission/report.md#tp-03-05",
+                "scopes/03-observed-cadence-freshness-admission/report.md#tp-03-07"
+            ],
+            "origin": "design.md § Freshness tests — the boundary from both sides"
+        },
+        {
+            "scenarioId": "SCN-018-028",
+            "businessScenario": null,
+            "scopeId": "03-observed-cadence-freshness-admission",
+            "scope": 3,
+            "status": "not_started",
+            "requiredTestType": "unit",
+            "linkedTests": [
+                "scripts/selftest.mjs"
+            ],
+            "testRows": [
+                "TP-03-06"
+            ],
+            "evidenceRefs": [
+                "scopes/03-observed-cadence-freshness-admission/report.md#tp-03-06"
+            ],
+            "origin": "design.md § Why this rule and not a holiday list — a live publication stoppage still goes stale"
+        },
+        {
+            "scenarioId": "SCN-018-029",
+            "businessScenario": null,
+            "scopeId": "04-headless-consumption-path",
+            "scope": 4,
+            "status": "not_started",
+            "requiredTestType": "functional",
+            "linkedTests": [
+                "scripts/selftest.mjs"
+            ],
+            "testRows": [
+                "TP-04-04"
+            ],
+            "evidenceRefs": [
+                "scopes/04-headless-consumption-path/report.md#tp-04-04"
+            ],
+            "origin": "FR-018-029 and FR-018-031 — stale rows withheld and curveAsOf null"
+        },
+        {
+            "scenarioId": "SCN-018-030",
+            "businessScenario": null,
+            "scopeId": "04-headless-consumption-path",
+            "scope": 4,
+            "status": "not_started",
+            "requiredTestType": "functional",
+            "linkedTests": [
+                "scripts/selftest.mjs"
+            ],
+            "testRows": [
+                "TP-04-07",
+                "TP-04-09"
+            ],
+            "evidenceRefs": [
+                "scopes/04-headless-consumption-path/report.md#tp-04-07",
+                "scopes/04-headless-consumption-path/report.md#tp-04-09"
+            ],
+            "origin": "design.md § Reconciling the committed assertions — the live read branches on the admission verdict"
+        },
+        {
+            "scenarioId": "SCN-018-031",
+            "businessScenario": null,
+            "scopeId": "04-headless-consumption-path",
+            "scope": 4,
+            "status": "not_started",
+            "requiredTestType": "functional",
+            "linkedTests": [
+                "scripts/selftest.mjs"
+            ],
+            "testRows": [
+                "TP-04-08"
+            ],
+            "evidenceRefs": [
+                "scopes/04-headless-consumption-path/report.md#tp-04-08"
+            ],
+            "origin": "design.md § Reconciling the committed assertions item 3 — ADVERSARIAL 3 states its absence explicitly"
+        },
+        {
+            "scenarioId": "SCN-018-032",
+            "businessScenario": null,
+            "scopeId": "05-brief-read-and-provenance-render",
+            "scope": 5,
+            "status": "not_started",
+            "requiredTestType": "e2e-ui",
+            "linkedTests": [
+                "tests/bond-regime-lab.spec.mjs"
+            ],
+            "testRows": [
+                "TP-05-01",
+                "TP-05-07",
+                "TP-05-08"
+            ],
+            "evidenceRefs": [
+                "scopes/05-brief-read-and-provenance-render/report.md#tp-05-01",
+                "scopes/05-brief-read-and-provenance-render/report.md#tp-05-07",
+                "scopes/05-brief-read-and-provenance-render/report.md#tp-05-08"
+            ],
+            "origin": "spec.md § The Central Rendering Problem — the partial-resolution card"
+        },
+        {
+            "scenarioId": "SCN-018-033",
+            "businessScenario": null,
+            "scopeId": "05-brief-read-and-provenance-render",
+            "scope": 5,
+            "status": "not_started",
+            "requiredTestType": "e2e-ui",
+            "linkedTests": [
+                "tests/bond-regime-lab.spec.mjs"
+            ],
+            "testRows": [
+                "TP-05-02"
+            ],
+            "evidenceRefs": [
+                "scopes/05-brief-read-and-provenance-render/report.md#tp-05-02"
+            ],
+            "origin": "spec.md § Screen: Bond read — curve artifact stale beyond its window"
+        },
+        {
+            "scenarioId": "SCN-018-034",
+            "businessScenario": null,
+            "scopeId": "05-brief-read-and-provenance-render",
+            "scope": 5,
+            "status": "not_started",
+            "requiredTestType": "e2e-ui",
+            "linkedTests": [
+                "tests/bond-regime-lab.spec.mjs"
+            ],
+            "testRows": [
+                "TP-05-03",
+                "TP-05-08"
+            ],
+            "evidenceRefs": [
+                "scopes/05-brief-read-and-provenance-render/report.md#tp-05-03",
+                "scopes/05-brief-read-and-provenance-render/report.md#tp-05-08"
+            ],
+            "origin": "spec.md § Screen: Bond read — curve artifact absent"
+        },
+        {
+            "scenarioId": "SCN-018-035",
+            "businessScenario": null,
+            "scopeId": "05-brief-read-and-provenance-render",
+            "scope": 5,
+            "status": "not_started",
+            "requiredTestType": "e2e-ui",
+            "linkedTests": [
+                "tests/bond-regime-lab.spec.mjs"
+            ],
+            "testRows": [
+                "TP-05-06"
+            ],
+            "evidenceRefs": [
+                "scopes/05-brief-read-and-provenance-render/report.md#tp-05-06"
+            ],
+            "origin": "design.md routed item R-2 — the underivable-freshness wording states an observation count"
+        },
+        {
+            "scenarioId": "SCN-018-036",
+            "businessScenario": null,
+            "scopeId": "06-one-model-parity-guarantee",
+            "scope": 6,
+            "status": "not_started",
+            "requiredTestType": "integration",
+            "linkedTests": [
+                "scripts/selftest.mjs"
+            ],
+            "testRows": [
+                "TP-06-03"
+            ],
+            "evidenceRefs": [
+                "scopes/06-one-model-parity-guarantee/report.md#tp-06-03"
+            ],
+            "origin": "design.md § The differential test item 6 — the perturbation adversarial"
+        },
+        {
+            "scenarioId": "SCN-018-037",
+            "businessScenario": null,
+            "scopeId": "06-one-model-parity-guarantee",
+            "scope": 6,
+            "status": "not_started",
+            "requiredTestType": "integration",
+            "linkedTests": [
+                "scripts/selftest.mjs"
+            ],
+            "testRows": [
+                "TP-06-04"
+            ],
+            "evidenceRefs": [
+                "scopes/06-one-model-parity-guarantee/report.md#tp-06-04"
+            ],
+            "origin": "design.md § D-1 and routed item R-3 — unequal observation windows cannot be compared"
+        },
+        {
+            "scenarioId": "SCN-018-038",
+            "businessScenario": null,
+            "scopeId": "06-one-model-parity-guarantee",
+            "scope": 6,
+            "status": "not_started",
+            "requiredTestType": "e2e-ui",
+            "linkedTests": [
+                "tests/bond-regime-lab.spec.mjs"
+            ],
+            "testRows": [
+                "TP-06-06",
+                "TP-06-07"
+            ],
+            "evidenceRefs": [
+                "scopes/06-one-model-parity-guarantee/report.md#tp-06-06",
+                "scopes/06-one-model-parity-guarantee/report.md#tp-06-07"
+            ],
+            "origin": "spec.md § One-model guarantee — silence is never agreement"
+        }
+    ]
+}

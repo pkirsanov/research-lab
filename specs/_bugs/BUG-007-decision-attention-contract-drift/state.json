@@ -1,0 +1,157 @@
+{
+  "version": 3,
+  "featureDir": "specs/_bugs/BUG-007-decision-attention-contract-drift",
+  "featureName": "BUG-007 Decision-Attention Contract Drift In The Committed Brief Payload",
+  "createdAt": "2026-08-10T16:26:00Z",
+  "lastUpdatedAt": "2026-08-10T16:26:00Z",
+  "completedAt": null,
+  "certifiedAt": null,
+  "status": "in_progress",
+  "blockedReason": null,
+  "workflowMode": "bugfix-fastlane",
+  "planningOnly": false,
+  "planningOnlyJustification": null,
+  "linkedImplementationSpec": "specs/017-decision-attention-and-developing-situations",
+  "linkedPlanningPacket": null,
+  "specDependsOn": [
+    "specs/017-decision-attention-and-developing-situations"
+  ],
+  "requiresRevalidation": false,
+  "scopeLayout": "single-file",
+  "artifacts": {
+    "bug": "bug.md",
+    "spec": "spec.md",
+    "design": "design.md",
+    "scopes": "scopes.md",
+    "report": "report.md",
+    "uservalidation": "uservalidation.md"
+  },
+  "execution": {
+    "activeAgent": "bubbles.bug",
+    "currentPhase": "documentation",
+    "currentPhaseStatus": "completed",
+    "executionModel": "direct-authorized-runner",
+    "parentAgent": null,
+    "runStartedAt": "2026-08-10T16:06:00Z",
+    "completedAt": null,
+    "currentScope": 2,
+    "nextRequiredOwner": "repository-owner",
+    "nextRequiredTarget": "02-residual-observations",
+    "completedPhaseClaims": [
+      {
+        "phase": "discovery",
+        "agent": "bubbles.bug",
+        "claimSource": "executed",
+        "partial": false,
+        "claimedAt": "2026-08-10T16:26:00Z",
+        "evidenceRef": "report.md#test-evidence",
+        "note": "THE REPORTED DEFECT DOES NOT REPRODUCE AT HEAD, AND THAT WAS ESTABLISHED BY MEASUREMENT RATHER THAN ASSUMED IN EITHER DIRECTION. Repository binding committed at revision 9 for research-lab before any repository-local read or write. git status --porcelain empty at HEAD aeb1bcbc3373cc90cc846fc4bfb577dd9f75c927, before and after every command. node scripts/selftest.mjs returns 'Research-Lab self-test: 1370 passed, 0 failed' with SELFTEST_EXIT=0, confirmed twice. The reported 1363/7 state was reproduced exactly at the parent commit cc990911d in a detached worktree, which is how the three failures lost to scrollback were recovered rather than inferred: (1) 'Registry-wide Market Brief coverage selftest includes the registered volatility owner read' at selftest.mjs:476, which fails on briefErrors.length === 0 for the attention violations and not for anything about the volatility tool; (2) 'current payload satisfies the executable brief contract' carrying 55 RLATTN-* violations, eleven codes across each of five items; (3) 'every REQUIRED narrative pattern matches a real field in the committed payload' naming attention.[].rationale, attention.[].invalidation, attention.[].escalationTrigger. The four already-named failures reproduced verbatim. The worktree was removed with --force and git worktree list afterwards shows only the primary checkout."
+      },
+      {
+        "phase": "analysis",
+        "agent": "bubbles.bug",
+        "claimSource": "executed",
+        "partial": false,
+        "claimedAt": "2026-08-10T16:26:00Z",
+        "evidenceRef": "design.md",
+        "note": "ROOT CAUSE GROUNDED AND FAMILY STRUCTURE DETERMINED, NOT ASSUMED. At cc990911d market-brief.payload.json carried 5 attention items with exactly the nine legacy catalyst keys, 0 carrying contractVersion, 0 in a declared decision window, and no attentionExclusions; at aeb1bcbc3 it carries 3 items, 3 with contractVersion decision-attention/v1, 3 in a declared window, plus 2 named refusals. The legacy shape reaches back at least to a8edab38e, so the drift was carried across multiple scheduled regenerations rather than introduced by one edit. ALL SEVEN FAILURES COLLAPSE TO ONE ROOT CAUSE WITH THREE PROPAGATION PATHS. The stale market-brief.page.json projection is a CONSEQUENCE of the contract drift, not an independent failure, established by three measurements: build-brief-page-artifacts.mjs:38 reads 'attention: payload.attention' verbatim; market-brief.page.json is byte-identical at HEAD and HEAD~1 and already carried the 3 composed items at the red revision, so the projection was ahead of its own source; and commit aeb1bcbc3 does not touch market-brief.page.json at all, yet the byte-currency assertion turned green. The counter-hypothesis that this was an independent staleness of the kind 6253ca100 fixed when the FX tool registered is refuted by the third measurement, since an independent staleness would have required a page.json edit to clear."
+      },
+      {
+        "phase": "documentation",
+        "agent": "bubbles.bug",
+        "claimSource": "executed",
+        "partial": false,
+        "claimedAt": "2026-08-10T16:26:00Z",
+        "evidenceRef": "bug.md",
+        "note": "Six artifacts authored plus uservalidation.md for parity with the BUG-005 and BUG-006 precedent: bug.md, spec.md, design.md, scopes.md, report.md, uservalidation.md, state.json. SIX CORRECTIONS TO THE ORIGINAL REPORT ARE RECORDED IN report.md RATHER THAN QUIETLY ABSORBED. C1 the defect does not reproduce at HEAD, though it did at the revision where it was captured. C2 the recommended remedy was already applied by the recommended route, commit aeb1bcbc3 changing build-attention-items.mjs and the payload together. C3 the durable lifecycle control already exists: the composer runs at brief-refresh-and-push.sh:386 between the narrative lane and the payload gate inside the same && chain, and notes/market-brief.md documents it as step 3b at lines 125-132. C4 the named permanent guard already exists at selftest.mjs:6103-6106 and was proven non-vacuous differentially, FAIL at HEAD~1 with 5 items and 0 carrying contractVersion, PASS at HEAD with 3 and 3; a second guard was deliberately NOT authored because it would duplicate authority over one property. C5 the two failure families are not independent. C6 the tier is 5 items before composition and 3 plus 2 refusals after. NOTHING WAS FIXED BY THIS RUN and no file outside this bug folder was modified."
+      }
+    ],
+    "pendingTransitionRequests": [],
+    "scopeInventory": [
+      "01-verify-the-defect-its-family-structure-and-its-closure",
+      "02-residual-observations"
+    ],
+    "audit": []
+  },
+  "certification": {
+    "status": "in_progress",
+    "completedAt": null,
+    "certifiedAt": null,
+    "completedScopes": [],
+    "certifiedCompletedPhases": [],
+    "scopeProgress": [],
+    "assurance": null,
+    "lockdownState": null,
+    "note": "NO CERTIFICATION IS ASSERTED. Scope 1 is Done with every DoD item backed by an executed command whose raw output is embedded inline in scopes.md, but certification is validate-owned and bubbles.validate was NOT invoked in this run. Scope 2 is Not started and carries four owner-owned observations. Three suites named in this packet were NOT executed here and no claim is made about them: tests/attention-payload-contract.test.mjs, tests/rlattention.test.mjs, and the Playwright suite tests/attention-browser.spec.mjs. A live scheduled publication run was not exercised end to end, so the durable-control claim is that the composer step is wired between lane and gate, not that a fresh regeneration was observed producing a conformant payload. FINAL-STATE CAVEAT: the 1370/0 green measurement was taken at clean HEAD and is scoped to that revision. A concurrent writer then modified market-brief.payload.json and tests/attention-payload-contract.test.mjs at 16:16-16:17 UTC, and the suite now returns 1369 passed, 1 failed at exit 1 on the byte-currency assertion. That failure was isolated read-only to the backdrop key and is NOT a BUG-007 regression; attention is byte-current. See OBS-007-04."
+  },
+  "policySnapshot": {
+    "workflowMode": "bugfix-fastlane",
+    "grill": false,
+    "tdd": false,
+    "autoCommit": false,
+    "lockdown": false,
+    "regression": false,
+    "validation": false
+  },
+  "transitionRequests": [],
+  "reworkQueue": [],
+  "executionHistory": [
+    {
+      "agent": "bubbles.bug",
+      "phasesExecuted": [
+        "discovery",
+        "analysis",
+        "documentation"
+      ],
+      "statusBefore": "not_started",
+      "statusAfter": "in_progress",
+      "startedAt": "2026-08-10T16:06:00Z",
+      "finishedAt": "2026-08-10T16:26:00Z",
+      "outcome": "documented",
+      "summary": "VERIFY-AND-RECORD RUN. The reported defect is real and fully reproducible at cc990911d, and is NOT reproducible at HEAD aeb1bcbc3, where node scripts/selftest.mjs returns 1370 passed, 0 failed at exit 0 on a clean tree. Commit aeb1bcbc3, authored about two hours before this packet under spec 017, recomposed market-brief.payload.json through the certified composer and closed all seven assertions at once. This run did NOT author the fix and claims no authorship. Its work was to reproduce the red state without mutating the tree, enumerate the complete seven-failure set including the three lost to scrollback, ground the root cause in the measured payload shape at both revisions, determine by measurement that the page-projection failure is consequent on the contract drift rather than independent, establish that the durable control against the roughly four-times-daily regeneration already sits inside the regeneration path rather than in the committed bytes, and prove the existing named guard non-vacuous. The fix design in design.md names its choice explicitly: the publish path is what changed, the runbook records it, and the artifact projection step is deliberately left as a dumb verbatim copy so that correctness is enforced once upstream rather than in two places that could disagree. Residual exposure is recorded honestly rather than closed: the composer exits 0 on refusal by design, so an all-refusal run would also exit 0, and whether the declared zero-published-zero-excluded failure condition is enforced mechanically was not verified."
+    }
+  ],
+  "activeBugs": [],
+  "resolvedBugs": [
+    {
+      "id": "BUG-007",
+      "summary": "market-brief.payload.json carried its attention tier in the legacy narrative catalyst shape instead of the decision-attention/v1 envelope certified by rlattention.js, so selectAttentionItems published 0 of 5 and node scripts/selftest.mjs ended 1363 passed, 7 failed.",
+      "resolvedBy": "aeb1bcbc3373cc90cc846fc4bfb577dd9f75c927",
+      "resolvedOutsideThisPacket": true,
+      "verifiedBy": "bubbles.bug",
+      "verifiedAt": "2026-08-10T16:26:00Z",
+      "verification": "node scripts/selftest.mjs at clean HEAD: 1370 passed, 0 failed, exit 0. Red state reproduced at cc990911d: 1363 passed, 7 failed. The tree was subsequently made dirty by a concurrent writer and the suite is now 1369 passed, 1 failed on an unrelated backdrop staleness; attention remains byte-current, so this resolution is not withdrawn. See OBS-007-04."
+    }
+  ],
+  "addressedFindings": [],
+  "unresolvedFindings": [
+    {
+      "id": "OBS-007-01",
+      "severity": "low",
+      "summary": "market-brief.snapshot.json carries no attention key while market-brief.payload.json carries three items, so the two artifacts disagree about whether the tier exists. Measured: snapshot.attention is undefined. Whether this is a defect was NOT established and is not claimed. The brief page projects attention from the payload and build-brief-page-artifacts.mjs reads payload.attention with no snapshot fallback, so the absence may be correct by design.",
+      "owner": "specs/017-decision-attention-and-developing-situations",
+      "status": "open"
+    },
+    {
+      "id": "OBS-007-02",
+      "severity": "low",
+      "summary": "scripts/build-attention-items.mjs exits 0 when it refuses a candidate, which is correct by design because refusing one is a correct outcome, but a run refusing EVERY candidate would also exit 0. The scope for that step declares that a run publishing zero with zero recorded exclusions is a failure; whether that condition is enforced mechanically anywhere on the publish path was NOT verified in this session.",
+      "owner": "specs/017-decision-attention-and-developing-situations",
+      "status": "open"
+    },
+    {
+      "id": "OBS-007-03",
+      "severity": "informational",
+      "summary": "specs/017-decision-attention-and-developing-situations/state.json is in_progress under an explicit certification refusal naming four surviving blockers. None of those blockers is this defect, and this bug asserts nothing about that spec's certification. Read from that spec's state.json rather than re-measured.",
+      "owner": "specs/017-decision-attention-and-developing-situations",
+      "status": "open"
+    },
+    {
+      "id": "OBS-007-04",
+      "severity": "medium",
+      "summary": "CONCURRENT WRITER, NOT THIS RUN. market-brief.payload.json and tests/attention-payload-contract.test.mjs were modified at 16:16-16:17 UTC, after every measurement in this packet was taken, leaving the tree dirty and node scripts/selftest.mjs at 1369 passed, 1 failed, exit 1, on 'market-brief.page.json is byte-current with its full source artifacts'. A read-only rebuild comparison isolates the cause to a single differing projected key, backdrop, from an added globalBackdrop narrative entry; attention is byte-current, so BUG-007 has NOT regressed. Deliberately not repaired: regenerating the page artifacts would fold another session's uncommitted narrative edit into this packet. This instance also sharpens the family classification in design.md section 2 - the byte-currency assertion is a general staleness detector over every projected key, consequent on the attention drift at HEAD~1 but not attention-specific by nature.",
+      "owner": "concurrent-session-holder",
+      "status": "open"
+    }
+  ]
+}

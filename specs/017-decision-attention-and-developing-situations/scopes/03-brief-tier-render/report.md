@@ -333,3 +333,65 @@ One new defect was found while reading the rendered page during this scope and i
 filed as F-017-04 in the feature-level `report.md`. It is reader-facing copy
 correctness in the rank rationale, it is not covered by any test, and it is routed
 rather than fixed here.
+
+<!-- bubbles:certifying-window-begin -->
+
+## Certification Window — 2026-08-10
+
+Everything above this marker is prior-window execution history. Everything below
+was captured at certification time.
+
+### Validation Evidence
+
+**Phase Agent:** bubbles.validate
+**Executed:** YES
+**Command:** `npx --no-install playwright test tests/attention-browser.spec.mjs --config=playwright.config.mjs --project=system-chrome --reporter=line`
+
+**Claim Source:** executed. This scope is browser-only — all six of its Test Plan
+rows name `tests/attention-browser.spec.mjs`, so the whole live-stack file was run.
+
+```text
+$ npx --no-install playwright test tests/attention-browser.spec.mjs \
+    --config=playwright.config.mjs --project=system-chrome --reporter=line
+[11/12] SCN-017-063 The record renders the published reduction, not a recomputed empty ledger
+[12/12] SCN-017-065 An item links to its owning tool and a hostile link never becomes an anchor
+  12 passed (2.1m)
+```
+
+### Audit Evidence
+
+**Phase Agent:** bubbles.audit
+**Executed:** YES
+**Command:** `bash .github/bubbles/scripts/goal-fidelity-guard.sh --boundary pre-certification --session-file .specify/memory/bubbles.session.json --spec-dir specs/017-decision-attention-and-developing-situations`
+
+**Claim Source:** executed. The F-017-04 note above is superseded: the rank
+rationale now branches three ways and is covered by SCN-017-060.
+
+```text
+$ grep -c '^- \[x\]' scopes/03-brief-tier-render/scope.md
+23
+$ grep -c '^- \[ \]' scopes/03-brief-tier-render/scope.md
+0
+$ bash .github/bubbles/scripts/goal-fidelity-guard.sh --boundary pre-certification
+goal-fidelity-guard: PASS boundary=pre-certification
+```
+
+### Chaos Evidence
+
+**Phase Agent:** bubbles.chaos
+**Executed:** YES
+**Command:** `grep -cE 'page\.route|context\.route|msw|nock' tests/attention-browser.spec.mjs`
+
+**Claim Source:** executed. The render tier's chaos surface is hostile input: a
+fabricated deep link must never become an anchor, and the tier must stay readable
+when the projection is empty or narrow.
+
+```text
+$ grep -c 'expect(' tests/attention-browser.spec.mjs
+126
+$ grep -cE 'page\.route|context\.route|msw|nock' tests/attention-browser.spec.mjs
+0
+  12 passed (2.1m)
+```
+
+Zero interception calls: this is a genuine live-stack proof, not a mocked one.

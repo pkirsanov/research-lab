@@ -250,3 +250,66 @@ Four Definition of Done items remain unticked, listed above with their causes. O
 of them — refusal messages naming the offending item — is a genuine coverage gap
 rather than an unrun command, and needs a Test Plan row from the planning owner
 before it can be honestly ticked.
+
+<!-- bubbles:certifying-window-begin -->
+
+## Certification Window — 2026-08-10
+
+Everything above this marker is prior-window execution history. Everything below
+was captured at certification time.
+
+### Validation Evidence
+
+**Phase Agent:** bubbles.validate
+**Executed:** YES
+**Command:** `node --test --test-name-pattern "(SCN-017-025|SCN-017-026|SCN-017-027|SCN-017-045|SCN-017-025b)" tests/attention-payload-contract.test.mjs`
+
+**Claim Source:** executed. This scope's five declared scenarios were run by name.
+
+```text
+$ node --test --test-name-pattern "(SCN-017-025|SCN-017-026|SCN-017-027|SCN-017-045|SCN-017-025b)" \
+    tests/attention-payload-contract.test.mjs
+# tests 5
+# pass 5
+# fail 0
+```
+
+### Audit Evidence
+
+**Phase Agent:** bubbles.audit
+**Executed:** YES
+**Command:** `bash .github/bubbles/scripts/artifact-lint.sh specs/017-decision-attention-and-developing-situations`
+
+**Claim Source:** executed. `AUD-017-005` carries `unresolvedFindings: []` and
+`blockingCode: none` against this packet.
+
+```text
+$ grep -c '^- \[x\]' scopes/02-publication-path-enforcement/scope.md
+23
+$ grep -c '^- \[ \]' scopes/02-publication-path-enforcement/scope.md
+0
+$ bash .github/bubbles/scripts/artifact-lint.sh specs/017-...
+Artifact lint PASSED.
+```
+
+### Chaos Evidence
+
+**Phase Agent:** bubbles.chaos
+**Executed:** YES
+**Command:** `node --test tests/brief-refresh-atomicity.test.mjs`
+
+**Claim Source:** executed. This scope declares `tests/brief-refresh-atomicity.test.mjs`
+(TP-02-06 / SCN-017-025), which is the publication-chaos suite: parent termination
+after a confirmed push, a lost receipt, a dead stale lock, a rejected final push,
+and an invalid baseline repaired through a final-valid pair.
+
+```text
+$ node --test tests/brief-refresh-atomicity.test.mjs
+# tests 26
+# pass 26
+# fail 0
+```
+
+This suite ran 18/26 for most of this feature's life. Both causes were repaired
+rather than excused — a fixture that stamped today's calendar date where the
+validator requires the latest completed session, and a stale literal.

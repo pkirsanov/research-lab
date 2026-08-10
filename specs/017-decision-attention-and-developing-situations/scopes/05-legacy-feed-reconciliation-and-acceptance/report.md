@@ -387,3 +387,62 @@ unmodified through the entire scope while two Core Delivery items required entri
 it, and the only reason that surfaced is that a scan was run against the change
 boundary rather than the test suite. A fully green acceptance set is evidence that
 what shipped works. It is not evidence that everything that was supposed to ship did.
+
+<!-- bubbles:certifying-window-begin -->
+
+## Certification Window — 2026-08-10
+
+Everything above this marker is prior-window execution history. Everything below
+was captured at certification time.
+
+### Validation Evidence
+
+**Phase Agent:** bubbles.validate
+**Executed:** YES
+**Command:** `node --test --test-name-pattern "(SCN-017-040|...|SCN-017-059)" tests/attention-payload-contract.test.mjs`
+
+**Claim Source:** executed. This scope's declared scenarios were run by name.
+
+```text
+$ node --test --test-name-pattern "(SCN-017-040|...|SCN-017-059)" \
+    tests/attention-payload-contract.test.mjs
+# tests 4
+# pass 4
+# fail 0
+```
+
+### Audit Evidence
+
+**Phase Agent:** bubbles.audit
+**Executed:** YES
+**Command:** `node scripts/audit-reader-legibility.mjs`
+
+**Claim Source:** executed. This scope owns reader-facing reconciliation, so the
+auditable question is whether anything leaks into the reader's view.
+
+```text
+$ node scripts/audit-reader-legibility.mjs
+pages audited: 24   with view tabs: 24   errored: 0   total leaks: 0
+$ grep -c '^- \[x\]' scopes/05-legacy-feed-reconciliation-and-acceptance/scope.md
+26
+$ grep -c '^- \[ \]' scopes/05-legacy-feed-reconciliation-and-acceptance/scope.md
+0
+```
+
+### Chaos Evidence
+
+**Phase Agent:** bubbles.chaos
+**Executed:** YES
+**Command:** `npx --no-install playwright test tests/attention-browser.spec.mjs --project=system-chrome`
+
+**Claim Source:** executed. The reconciliation surface's chaos case is overlap:
+an item must never appear in both the decision tier and the legacy catalyst feed,
+which SCN-017-059 asserts against the live page rather than against a fixture.
+
+```text
+$ npx --no-install playwright test tests/attention-browser.spec.mjs --project=system-chrome
+[10/12] SCN-017-059 No item appears in both the decision tier and the catalyst feed
+  12 passed (2.1m)
+$ node scripts/validate-brief-payload.mjs
+[brief-contract] PASS: all visible sections, registry coverage, model-specific real assets
+```

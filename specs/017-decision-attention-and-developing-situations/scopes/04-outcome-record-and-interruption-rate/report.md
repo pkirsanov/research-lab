@@ -457,3 +457,65 @@ handoff; the benefit is that the defect record names `selectAttentionItems` rath
 than the outcome-record scope, and that this scope's byte-identity claim was not
 quietly voided to obtain a clean-looking green. The `Depends On: 1` edge carried
 the fix exactly as designed.
+
+<!-- bubbles:certifying-window-begin -->
+
+## Certification Window — 2026-08-10
+
+Everything above this marker is prior-window execution history. Everything below
+was captured at certification time.
+
+### Validation Evidence
+
+**Phase Agent:** bubbles.validate
+**Executed:** YES
+**Command:** `node --test --test-name-pattern "(SCN-017-033|...|SCN-017-063)" tests/attention-payload-contract.test.mjs`
+
+**Claim Source:** executed. This scope's declared scenarios were run by name.
+
+```text
+$ node --test --test-name-pattern "(SCN-017-033|...|SCN-017-063)" \
+    tests/attention-payload-contract.test.mjs
+# tests 8
+# pass 8
+# fail 0
+```
+
+### Audit Evidence
+
+**Phase Agent:** bubbles.audit
+**Executed:** YES
+**Command:** `bash .github/bubbles/scripts/state-transition-guard.sh specs/017-decision-attention-and-developing-situations`
+
+**Claim Source:** executed. F-017-06 — raised against this scope — is now CLOSED.
+The renderer reads the published reduction, and SCN-017-063 proves it
+adversarially by serving a seeded non-empty scorecard through a real HTTP fetch
+rather than `page.route`, which would have demoted the only live-stack proof.
+
+```text
+$ grep -c '^- \[x\]' scopes/04-outcome-record-and-interruption-rate/scope.md
+27
+$ grep -c '^- \[ \]' scopes/04-outcome-record-and-interruption-rate/scope.md
+0
+$ bash .github/bubbles/scripts/state-transition-guard.sh specs/017-...
+verdict: PASS   failureCount: 0   failedGateIds: []
+```
+
+### Chaos Evidence
+
+**Phase Agent:** bubbles.chaos
+**Executed:** YES
+**Command:** `grep -ohE 'RLATTN-[A-Z]+' tests/attention-payload-contract.test.mjs | sort -u | wc -l`
+
+**Claim Source:** executed. The outcome ledger's chaos surface is a second write
+for the same terminated item and a correction arriving after close: the ledger is
+append-only, so a duplicate must be refused at write time and a correction must
+append rather than replace.
+
+```text
+$ grep -ohE 'RLATTN-[A-Z]+' tests/attention-payload-contract.test.mjs | sort -u | wc -l
+4
+$ grep -c 'assert\.' tests/attention-payload-contract.test.mjs
+325
+# tests 8   # pass 8   # fail 0
+```

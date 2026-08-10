@@ -488,3 +488,71 @@ the pipeline the step changed. `rlattention.js` and `market-brief.html` appear
 because the same baseline spans sibling scopes' work; they are excluded from THIS
 scope's boundary and were changed by scopes 1/4 and 3 respectively.
 
+<!-- bubbles:certifying-window-begin -->
+
+## Certification Window — 2026-08-10
+
+Everything above this marker is prior-window execution history. Everything below
+was captured at certification time.
+
+### Validation Evidence
+
+**Phase Agent:** bubbles.validate
+**Executed:** YES
+**Command:** `node --test --test-name-pattern "(SCN-017-047|...|SCN-017-062)" tests/attention-payload-contract.test.mjs`
+
+**Claim Source:** executed. This scope's declared scenarios were run by name — the
+largest scenario set in the feature.
+
+```text
+$ node --test --test-name-pattern "(SCN-017-047|...|SCN-017-062)" \
+    tests/attention-payload-contract.test.mjs
+# tests 10
+# pass 10
+# fail 0
+```
+
+### Audit Evidence
+
+**Phase Agent:** bubbles.audit
+**Executed:** YES
+**Command:** `grep -n -A2 'build-attention-items' scripts/brief-refresh-and-push.sh`
+
+**Claim Source:** executed. This scope's central claim — that routing the lane
+through the composer makes compliance structural rather than advisory — was
+audited against the live pipeline, not against the instruction text.
+
+```text
+$ grep -n -A2 'build-attention-items' scripts/brief-refresh-and-push.sh
+386:       && "$NODE_BIN" scripts/build-attention-items.mjs --recompose --write \
+387:       && "$NODE_BIN" scripts/validate-brief-payload.mjs "$PAYLOAD" --drop-unscoreable
+$ grep -c '^- \[x\]' scopes/06-authoring-lane-composer-routing/scope.md
+34
+$ grep -c '^- \[ \]' scopes/06-authoring-lane-composer-routing/scope.md
+0
+```
+
+The composer sits between the lane and the payload gate, which is what makes the
+guarantee structural: the lane can no longer emit a non-conforming envelope
+because it no longer emits the envelope at all.
+
+### Chaos Evidence
+
+**Phase Agent:** bubbles.chaos
+**Executed:** YES
+**Command:** `node --test tests/brief-refresh-atomicity.test.mjs`
+
+**Claim Source:** executed. This scope declares the publication-chaos suite
+(TP-06-09 / SCN-017-047). The adversarial proof that matters here is the one
+recorded above — neutralising `exclusions.push` behind `if (false)` so refusals
+drop silently — which fired six guards including all three required rows.
+
+```text
+$ node --test tests/brief-refresh-atomicity.test.mjs
+# tests 26
+# pass 26
+# fail 0
+$ node scripts/validate-brief-payload.mjs
+[brief-contract] PASS: all visible sections, registry coverage, model-specific real assets
+```
+

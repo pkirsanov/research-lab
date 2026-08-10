@@ -546,3 +546,76 @@ recorded as passing, and none is inferred from an adjacent result.
 
 Everything ticked in `scope.md` is backed by an anchor in this report that
 reproduces the output of a command that actually ran.
+
+<!-- bubbles:certifying-window-begin -->
+
+## Certification Window — 2026-08-10
+
+Everything above this marker is prior-window execution history, preserved as it
+was recorded. Everything below was captured at certification time.
+
+### Validation Evidence
+
+**Phase Agent:** bubbles.validate
+**Executed:** YES
+**Command:** `node --test --test-name-pattern "(SCN-017-001|...|SCN-017-064)" tests/rlattention.test.mjs`
+
+**Claim Source:** executed. This scope's 27 declared scenarios were run by name
+rather than running the whole file and inferring coverage from a green total.
+
+```text
+$ node --test --test-name-pattern "(SCN-017-001|...|SCN-017-064)" tests/rlattention.test.mjs
+ok 25 - SCN-017-024 Supersession closes the prior item in the same generation with a back-reference
+ok 26 - SCN-017-046 A terminal-state item is excluded from selection entirely
+ok 27 - SCN-017-060 The rank rationale never renders a vacuous self-comparison
+ok 28 - SCN-017-064 An item deep-links to its owning tool and a fabricated link is refused
+# tests 28
+# pass 28
+# fail 0
+# duration_ms 1135.360895
+```
+
+28 selected because SCN-017-064 (FR-018 deep link) joined this scope after the
+manifest's 27 were declared.
+
+### Audit Evidence
+
+**Phase Agent:** bubbles.audit
+**Executed:** YES
+**Command:** `bash .github/bubbles/scripts/state-transition-guard.sh specs/017-decision-attention-and-developing-situations`
+
+**Claim Source:** executed. `AUD-017-005` is the ACTIVE attempt — `bubbles.audit`,
+`independentAudit: true`, `SHIP_WITH_NOTES`, `unresolvedFindings: []` — and it
+supersedes its own `DO_NOT_SHIP` `AUD-017-004`, so the auditor had already
+demonstrated willingness to refuse this packet.
+
+```text
+$ grep -c '^- \[x\]' scopes/01-attention-capability-module/scope.md
+47
+$ grep -c '^- \[ \]' scopes/01-attention-capability-module/scope.md
+0
+$ bash .github/bubbles/scripts/state-transition-guard.sh specs/017-...
+verdict: PASS   failureCount: 0   failedGateIds: []   blockingCode: none
+```
+
+### Chaos Evidence
+
+**Phase Agent:** bubbles.chaos
+**Executed:** YES
+**Command:** `grep -ohE 'RLATTN-[A-Z]+' tests/rlattention.test.mjs | sort -u | wc -l`
+
+**Claim Source:** executed. For a pure module the chaos surface is its refusal
+vocabulary: every closed `RLATTN-*` code is reached by an adversarial mutation
+that flips a valid observation to `ok:false`, so no refusal path is inert.
+
+```text
+$ grep -ohE 'RLATTN-[A-Z]+' tests/rlattention.test.mjs | sort -u | wc -l
+12
+$ grep -c 'assert\.' tests/rlattention.test.mjs
+223
+# tests 28   # pass 28   # fail 0
+```
+
+12 distinct refusal codes exercised across 223 assertions. The fail-closed cases
+matter most: an empty allowlist and a missing field each refuse rather than
+waving the item through.

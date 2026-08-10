@@ -66,6 +66,51 @@ const STALE_GENERATED_AT = '2026-08-01T12:00:00.000Z';
 const ELAPSED_EXPIRY = '2026-08-02T20:00:00.000Z';
 const LIVE_EXPIRY = '2026-08-09T20:00:00.000Z';
 
+/* An all-refused generation is valid and renders the declared empty state. Tests
+   that exercise card rendering still need one contract-shaped input, so they use
+   this deterministic seed only when the committed tier is honestly empty. */
+const ATTENTION_FIXTURE_SEED = ATTENTION_ITEMS[0] || Object.freeze({
+  rank: 1,
+  domain: 'index breadth',
+  horizon: 'swing',
+  title: 'Breadth diverges from the index trend',
+  structuralAnchor: 'The broad-market participation gate remains unresolved.',
+  what: 'Participation weakened while the index held its structural trend.',
+  why: 'A persistent divergence can change the next-session risk posture.',
+  confidence: 55,
+  deepLink: 'market-heatmap-lab.html',
+  contractVersion: 'decision-attention/v1',
+  id: 'attn-browser-fixture-seed',
+  gateId: 'gate-browser-fixture-seed',
+  subject: 'SPY',
+  disposition: 'attention',
+  severity: 'moderate',
+  imminence: 'developing',
+  headline: 'Breadth weakened while the index held its structural trend',
+  rationale: 'The participation signal diverged from the index close.',
+  verb: 'scenario-test',
+  invalidation: 'Breadth recovers above the declared broad-market gate.',
+  escalationTrigger: 'Breadth falls below the observed session low.',
+  expiry: LIVE_EXPIRY,
+  decisionWindow: 'morning',
+  windowBoundaryUtc: '2026-08-06T15:00:00.000Z',
+  windowTradingDate: '2026-08-06',
+  windowResolvedFrom: 'session',
+  transmissionPath: ['breadth-market-structure'],
+  transmissionAbsenceNote: null,
+  marketConfirmation: { state: 'present', detail: 'The breadth divergence is present in the observed session.' },
+  marketConfirmationNote: null,
+  figures: [{
+    label: 'broad-market participation',
+    value: 'below the declared gate',
+    provenance: { sourceId: 'market-heatmap-lab', asOf: '2026-08-06T14:30:00.000Z' }
+  }],
+  observedAt: '2026-08-06T14:30:00.000Z',
+  state: 'discovered',
+  supersededBy: null,
+  lifecycle: [{ to: 'discovered', at: '2026-08-06T14:30:00.000Z', condition: 'observed', ref: null }]
+});
+
 /* one distinct hostile payload per sink, so a single escaped sink cannot cover for another. */
 const XSS = {
   headline: '<img id="rl-attn-xss-headline" src="x" onerror="globalThis.__rlAttnInjected=true">',
@@ -103,7 +148,7 @@ async function clearProviderAccess(page) {
 /* Build a decision-attention/v1 item from the first committed item so a fixture
    stays contract-shaped, then apply the overrides the scenario needs. */
 function fixtureItem(overrides) {
-  return Object.assign({}, ATTENTION_ITEMS[0], overrides);
+  return Object.assign({}, ATTENTION_FIXTURE_SEED, overrides);
 }
 
 async function renderFixture(page, context) {
@@ -111,6 +156,13 @@ async function renderFixture(page, context) {
   expect(seam, 'window.__rlattn.render must exist as the fixture render seam for the decision attention tier')
     .toBe('function');
   await page.evaluate((ctx) => window.__rlattn.render(ctx), context);
+}
+
+async function ensureRenderedAttentionFixture(page) {
+  if (ATTENTION_ITEMS.length > 0) return ATTENTION_ITEMS;
+  const fixture = [fixtureItem({ id: 'attn-empty-generation-render-fixture', expiry: LIVE_EXPIRY })];
+  await renderFixture(page, { nowUtc: FIXTURE_NOW, generatedAt: FIXTURE_NOW, attention: fixture });
+  return fixture;
 }
 
 /* Every scenario in this file runs under the same console guard. Two of the
@@ -261,9 +313,6 @@ test.afterEach(() => {
 test('decision attention tier renders items and record from committed data', async ({ page }) => {
   test.setTimeout(90_000);
 
-  expect(ATTENTION_ITEMS.length, 'the committed payload must carry decision-attention/v1 items')
-    .toBeGreaterThan(0);
-
   await clearProviderAccess(page);
 
   // PASSIVE observation only — record what the page asks for, answer nothing.
@@ -280,6 +329,13 @@ test('decision attention tier renders items and record from committed data', asy
   // specific committed headline text is on screen — a container with N empty cards cannot pass.
   for (const item of ATTENTION_ITEMS) {
     await expect(tier).toContainText(item.headline);
+  }
+  if (ATTENTION_ITEMS.length === 0) {
+    expect(PAYLOAD.attentionExclusions, 'an empty committed tier must account for refused candidates')
+      .toBeInstanceOf(Array);
+    expect(PAYLOAD.attentionExclusions.length, 'an empty tier with no exclusions is a silent drop')
+      .toBeGreaterThan(0);
+    await expect(tier.locator('[data-attn-field="empty-state"]')).toBeVisible();
   }
 
   // the tier sits ABOVE the existing #attention feed, inside the Brief view.
@@ -320,8 +376,9 @@ test('decision attention items carry no alert severity label or alert styling', 
 
   await openBrief(page);
 
+  const renderedItems = await ensureRenderedAttentionFixture(page);
   const items = page.locator('#decisionAttention [data-attn-item]');
-  await expect(items).toHaveCount(ATTENTION_ITEMS.length);
+  await expect(items).toHaveCount(renderedItems.length);
 
   // PROVE the names are REAL before asserting their absence, so this cannot be a tautology:
   // the alert pill styling must exist as a rule in the page's own stylesheet…
@@ -344,7 +401,7 @@ test('decision attention items carry no alert severity label or alert styling', 
   await page.locator('#rlviews button[data-rlview-mode="red-alert"]').click();
   await expect(page.locator('[data-rlexperience-panel="red-alert"] [data-mac-redalert]')).not.toHaveCount(0);
   await page.locator('#rlviews button[data-rlview-mode="brief"]').click();
-  await expect(items).toHaveCount(ATTENTION_ITEMS.length);
+  await expect(items).toHaveCount(renderedItems.length);
 
   // POSITIVE absence: inspect every rendered node of every item.
   const audit = await page.evaluate(({ severityWords, alertClasses, redAlertPrefix }) => {
@@ -381,8 +438,9 @@ test('every decision attention field and control exposes a contextual tooltip', 
 
   await openBrief(page);
 
+  const renderedItems = await ensureRenderedAttentionFixture(page);
   const items = page.locator('#decisionAttention [data-attn-item]');
-  await expect(items).toHaveCount(ATTENTION_ITEMS.length);
+  await expect(items).toHaveCount(renderedItems.length);
 
   // the matrix requires an expandable item; expand the first one so the expanded
   // fields (escalation trigger, invalidation, expiry, provenance) are also audited.
@@ -575,7 +633,7 @@ const TIER_CARD_CEILING = 7;
    id and headline so ranking and selection do the real work of ordering and
    de-duplicating rather than collapsing a set of clones. */
 function fixtureSet(size) {
-  const seed = ATTENTION_ITEMS[0];
+  const seed = ATTENTION_FIXTURE_SEED;
   const items = [];
   for (let index = 0; index < size; index += 1) {
     items.push(Object.assign({}, seed, {
@@ -590,9 +648,6 @@ function fixtureSet(size) {
 
 test('decision attention rendering holds all six performance budgets', async ({ page }) => {
   test.setTimeout(180_000);
-
-  expect(ATTENTION_ITEMS.length, 'the committed payload must carry decision-attention/v1 items to build fixtures from')
-    .toBeGreaterThan(0);
 
   /* ── PASSIVE request recorder, armed BEFORE navigation ─────────────────── */
   const requests = [];
@@ -698,7 +753,7 @@ test('decision attention rendering holds all six performance budgets', async ({ 
   }, {
     validationSize: VALIDATION_SET_SIZE,
     rankingSize: RANKING_SET_SIZE,
-    seedItem: ATTENTION_ITEMS[0],
+    seedItem: ATTENTION_FIXTURE_SEED,
     cardCeiling: TIER_CARD_CEILING
   });
 
@@ -990,6 +1045,7 @@ test('SCN-017-057 The tier stays readable at a phone width with nothing clipped'
 
   const tier = page.locator('#decisionAttention');
   await expect(tier).toBeVisible();
+  const renderedItems = await ensureRenderedAttentionFixture(page);
 
   /* READINESS BEFORE MEASUREMENT. openBrief() proves FIRST PAINT only: the page's
      renderAll() paints #scorecard and #decisionAttention in the SAME synchronous
@@ -1006,7 +1062,7 @@ test('SCN-017-057 The tier stays readable at a phone width with nothing clipped'
      None of them is a fixed delay, and none of them can hide a clip: a layout that
      settles clipped still fails assertion 2, and a layout that never settles fails
      here by name rather than passing on a lucky sample. */
-  await expect(tier.locator('[data-attn-item]')).toHaveCount(ATTENTION_ITEMS.length);
+  await expect(tier.locator('[data-attn-item]')).toHaveCount(renderedItems.length);
   await page.evaluate(() => document.fonts.ready.then(() => undefined));
   await page.evaluate(() => new Promise((settled, neverSettled) => {
     /* exactly the geometry assertions 1 and 2 read, so "settled" means settled for
@@ -1304,8 +1360,10 @@ test('SCN-017-065 An item links to its owning tool and a hostile link never beco
 
   const tier = page.locator('#decisionAttention');
 
+  const linkedItems = await ensureRenderedAttentionFixture(page);
+
   /* every COMMITTED item links to the tool that owns its math. */
-  for (const item of ATTENTION_ITEMS) {
+  for (const item of linkedItems) {
     expect(typeof item.deepLink,
       `committed item ${item.id} must carry a deep link (FR-018)`).toBe('string');
 

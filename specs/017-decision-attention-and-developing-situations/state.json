@@ -209,8 +209,8 @@
     ],
     "audit": {
       "schemaVersion": "audit-run/v1",
-      "runId": "RUN-017-AUDIT-20260809T020903Z",
-      "currentAttemptId": "AUD-017-004",
+      "runId": "RUN-017-AUDIT-20260810T030841Z",
+      "currentAttemptId": "AUD-017-005",
       "attempts": [
         {
           "attemptId": "AUD-017-001",
@@ -320,7 +320,9 @@
         },
         {
           "attemptId": "AUD-017-004",
-          "resultState": "ACTIVE",
+          "resultState": "SUPERSEDED",
+          "supersededBy": "AUD-017-005",
+          "supersededReason": "Stale on both revision and finding state. It measured sha256:b0456ee4 and refused delivery on a single unresolved finding, D19, which it characterised as an environmental blocker no agent rework could clear. That characterisation is now refuted by measurement: D19 was two agent-fixable defects, both fixed in the tree, and brief-refresh-atomicity re-executes at 26 passed / 0 failed exit 0 against the current sha256:4837d9b4. AUD-017-005 re-executed every command rather than reading this transcript.",
           "agent": "bubbles.audit",
           "independentAudit": true,
           "recordedAt": "2026-08-09T23:12:23Z",
@@ -359,6 +361,65 @@
           "resumeFromPhase": null,
           "auditResultV1": "BEGIN AUDIT_RESULT_V1\nschemaVersion: audit-result/v1\nrunId: RUN-017-AUDIT-20260809T231223Z\nattemptId: AUD-017-004\ntarget: specs/017-decision-attention-and-developing-situations\ntargetRevision: sha256:b0456ee4ce92446db4771d9b31cb8d72d4371650bedcda95cc256399717419ac\nworkflowMode: full-delivery\nmodeClass: none\nauditClass: delivery-completion\nstatusCeiling: done\nrequestedStatus: done\nauditVerdict: DO_NOT_SHIP\noutcome: blocked\nresultState: ACTIVE\ncertifiedStatus: none\nplanningEvaluation: NOT_EVALUATED\ndeliveryEvaluation: REFUSED\nsourceEditLockout: PASS\napplicableCheckClasses: [universal,mode-required,delivery-completion]\nnotApplicableChecks: []\npassedGateIds: [G022,G053,G040,G051,G068,G082,G083,G084,G128,G085,G086,G091,G087,G093,G088,G089,G092,G090,G094,G095,G097,G098,G099,G100,G130,G131,G001,G002,G003,G004,G005,G006,G007,G008,G009,G010,G011,G012,G014,G015,G016,G018,G019,G020,G021,G023,G024,G025,G026,G027,G028,G029,G033,G034,G035,G044,G047,G048,G055,G056,G057,G059,G061]\nfailedGateIds: []\nfailedChecks: []\nblockingCode: D19_UPSTREAM_DATA_REFRESH_INCOMPLETE\nunresolvedFields: []\ncontradictions: []\ncontractRef: bubbles/workflows.yaml#full-delivery\ncontractDigest: sha256:e330ef85136370a1fa7e9edb5813cb5879a6554afcff98ba373ac48442c7ca93\nevidenceRefs: [report.md#audit-verdict-aud-017-004]\naddressedFindings: [F-017-04,F-017-06,A-017-01,A-017-02,A-017-03,A-017-04,A-017-05,A-017-06,A-017-07,A-017-08,A-017-09]\nunresolvedFindings: [D19]\nnextRequiredOwner: bubbles.validate\nsupersedesAttemptId: AUD-017-003\nresumeFromPhase: none\nEND AUDIT_RESULT_V1",
           "summary": "FOURTH audit attempt and the FIRST that satisfies assurance.missingForFull. It is a direct top-level bubbles.audit invocation with independentAudit true, superseding the parent-expanded AUD-017-003 which stated plainly that it could not supply this input. THE THREE NAMED GATES WERE EXECUTED BY THIS ATTEMPT, NOT READ FROM A PRIOR TRANSCRIPT: state-transition-guard exit 0, verdict PASS, failedGateIds empty, failureCount 0, targetRevision sha256:b0456ee4; artifact-lint exit 0 PASSED; node scripts/selftest.mjs exit 0 with 1370 passed 0 failed. Re-running was required rather than optional, because the packet has moved to sha256:b0456ee4 from the sha256:8826b2a4 that AUD-017-003 measured. THE AUDIT FOUND NO REWORK OWED BY ANY AGENT. A-017-07 CLOSES because this attempt is the independent audit it names. A-017-08 CLOSES, BUT ON CORRECTED GROUNDS: AUD-017-003 recorded that completedPhaseClaims holds four implement claims while executionHistory holds one entry, concluding three claims had no execution span. That is wrong. There are four executionHistory entries whose phasesExecuted contains implement, one per claim, each startedAt and completedAt matching its claim's claimedAt exactly, so no claim is unbacked. The real residual is narrower - all four spans are zero-duration - and it is declared rather than concealed, since each carries durationUnmeasured true with a substantive reason, the guard's own sanctioned path. A-017-01 CONFIRMED CLOSED by re-derivation: 10 parent-expanded entries, 0 lacking timestampBasis, 0 presenting as measurement. A-017-03 CONFIRMED CLOSED and its quoted-transcript defence checked structurally: fence-delimiter parity before the placeholder headings at lines 453-455 is 5, an odd count, so those lines sit inside an open fence and are quoted transcript, while the live sections at 295, 320 and 332 are filled. A-017-09 IS NEW, RAISED AND CLOSED HERE: AUD-017-003 set both evidenceRef and expansionEvidenceRef to report.md#audit-verdict-aud-017-003, and a case-insensitive search for that string across report.md, the scope files and the scope reports returns zero matches - the ACTIVE audit record pointed at a section that was never written. The transition guard cannot see this because it does not resolve anchors. It closes because AUD-017-003 is now superseded and this attempt's evidenceRef resolves to a section that exists. D19 IS NOT CLOSED AND WAS NOT TAKEN ON THE PACKET'S WORD. Reproduced directly: node --test tests/brief-refresh-atomicity.test.mjs gives 26 tests, 18 pass, 8 fail, exit 1. The failures are the scheduled-launcher cluster and the runner names the cause itself - '[brief-timer] current-window data refresh is incomplete - refusing before tool briefs' followed by 'publisher finished with exit=1'. That refusal is the code working correctly against an incomplete upstream refresh, which is why no agent rework clears it. data/bars/index.json reads expectedSessionDate 2026-08-07 against a 2026-08-09 clock, so the theory that a clock rollover would clear itself at the next cron window is disproven by elapsed time. ONE CORRECTION TO THE CARRIED RECORD: AUD-017-003 reported that field as 2026-08-06; it now reads 2026-08-07, so the data advanced one day and stopped short of current. 'Unchanged' and 'advanced but still stale' imply different upstream failures, and repeating the older figure would have concealed the difference. VERDICT AND STATUS. auditVerdict DO_NOT_SHIP with outcome blocked is the honest pairing: no agent owes rework and no agent can clear the blocker either. failedGateIds is empty because the gates pass; blockingCode names an upstream data condition, not a gate failure. Status must remain blocked. bubbles.validate owns certification and may now record that the independent-audit input is satisfied, but the terminal status cannot change until D19's upstream refresh completes, which is an operator action."
+        },
+        {
+          "attemptId": "AUD-017-005",
+          "resultState": "ACTIVE",
+          "agent": "bubbles.audit",
+          "independentAudit": true,
+          "recordedAt": "2026-08-10T03:08:41Z",
+          "auditClass": "delivery-completion",
+          "auditProfile": "delivery-completion-v1",
+          "targetStatus": "done",
+          "targetRevision": "sha256:4837d9b47239446f6df072cd3f43741ab9dbe6987bebf83261afdd92736aba00",
+          "contractDigest": "sha256:e330ef85136370a1fa7e9edb5813cb5879a6554afcff98ba373ac48442c7ca93",
+          "guardExit": 0,
+          "failedGateIds": [],
+          "failedChecks": [],
+          "provenanceMode": "direct-invocation",
+          "antiFabricationVerdict": "CLEAN, and the D19 closure was verified ADVERSARIALLY rather than accepted. The stated fix has a known failure mode: the prior record warned that on the next trading day the seven date-conflation failures would pass on their own, retiring the symptom while leaving a suite that silently fails every weekend. A 26/26 run on a trading day would therefore have proved nothing. This attempt measured the day-shape before drawing any conclusion. Today's New York calendar date is 2026-08-09, a SUNDAY, while the latest completed XNYS session derived from data/calendars/xnys/calendar.json is 2026-08-07. The two DIVERGE, which is exactly the condition that produced 18/26. The suite passing 26/26 here is therefore the fix being exercised, not the calendar retiring the symptom. The fix is also structural in source and not an environment pin: tests/brief-refresh-atomicity.support.mjs now derives the latest completed session from the committed calendar the way validate-brief-cache.mjs does, and deliberately does NOT reuse BAR_EXPECTED_SESSION_DATE, because both sides read that variable and sharing it would make them agree by construction and the assertion vacuous. The second defect is fixed in commit f8ce2306, which replaces the toolBundleCount literal 22 with a value derived from the registry the fixture copies, so a publisher that DROPS a tool still fails. One correction to the claim as filed, recorded because it would otherwise read as fabrication: the commit presented as the fix, 25f5dd0b, changes only docs/Improvement-Plan.md and state.json and contains NO test or source change. The actual code fixes are in f8ce2306 and in the support-fixture change; 25f5dd0b is the narrative record, not the fix. Both code changes are committed and the tree is clean at those paths.",
+          "ownershipBoundaryVerdict": "CLEAN. This attempt wrote only state.json and report.md inside this packet. No scope file, DoD checkbox, scope status, test, source file, guard or certification field was touched. state.json.certification is untouched and remains validate-owned at in_progress. The certifiedStatus done inside AUDIT_RESULT_V1 is this attempt's delivery ASSESSMENT in its own transcript, which the result contract requires for a positive delivery verdict; it is not a certification write and confers none.",
+          "deliveryGateStatus": "ALL FIVE COMMANDS EXECUTED BY THIS ATTEMPT, NONE READ FROM A PRIOR TRANSCRIPT. node --test tests/brief-refresh-atomicity.test.mjs exit 0, 26 passed / 0 failed / 0 skipped / 0 todo, duration 113889ms. node scripts/selftest.mjs exit 0, 1370 passed / 0 failed. node scripts/validate-brief-cache.mjs exit 0, PASS 361 JSON cache files parsed, indexes coherent. state-transition-guard.sh exit 0, verdict PASS, failureCount 0, failedGateIds empty, blockingCode none, targetRevision sha256:4837d9b4. artifact-lint.sh exit 0, PASSED. The no-regeneration claim holds where it was made testable: git status --short data/bars/ is EMPTY both before and after every run.",
+          "auditVerdict": "SHIP_WITH_NOTES",
+          "outcome": "completed_diagnostic",
+          "blockingCode": "none",
+          "evidenceRef": "report.md#audit-verdict-aud-017-005",
+          "addressedFindings": [
+            "F-017-04",
+            "F-017-06",
+            "A-017-01",
+            "A-017-02",
+            "A-017-03",
+            "A-017-04",
+            "A-017-05",
+            "A-017-06",
+            "A-017-07",
+            "A-017-08",
+            "A-017-09",
+            "D19"
+          ],
+          "unresolvedFindings": [],
+          "observations": [
+            {
+              "id": "O-017-01",
+              "severity": "low",
+              "followUpOwner": "bubbles.plan",
+              "followUpAction": "Give each named scope a consumer surface, or record an Exposure-Deferred commitment pointing at a real spec section.",
+              "summary": "Non-blocking and advisory only. The guard's vertical-delivery-plan check reports UNEXPOSED INCREMENT for four scopes that name no consumer surface and declare no deferral: 01-attention-capability-module, 02-publication-path-enforcement, 04-outcome-record-and-interruption-rate, 05-legacy-feed-reconciliation-and-acceptance. The check is advisory in .github/bubbles-project.yaml, so the guard returned PASS and this does not refuse delivery. Recorded so it is not mistaken later for something the audit missed."
+            },
+            {
+              "id": "O-017-02",
+              "severity": "low",
+              "followUpOwner": "bubbles.validate",
+              "followUpAction": "Commit or discard the regenerated payload so the tree is clean before certification.",
+              "summary": "Non-blocking working-tree hygiene, outside this packet. market-brief.payload.json is modified and uncommitted, 249 insertions / 39 deletions. It was ALREADY modified before this attempt ran any command, so no audit command produced it; it is the output of the live refresh the D19 narrative describes. It is not under data/bars/, so it does not contradict the no-regeneration claim as that claim was framed. Recorded because an uncommitted live-data artifact left in the tree can be mistaken for test residue."
+            }
+          ],
+          "nextRequiredOwner": "none",
+          "supersedesAttemptId": "AUD-017-004",
+          "resumeFromPhase": null,
+          "auditResultV1": "BEGIN AUDIT_RESULT_V1\nschemaVersion: audit-result/v1\nrunId: RUN-017-AUDIT-20260810T030841Z\nattemptId: AUD-017-005\ntarget: specs/017-decision-attention-and-developing-situations\ntargetRevision: sha256:4837d9b47239446f6df072cd3f43741ab9dbe6987bebf83261afdd92736aba00\nworkflowMode: full-delivery\nmodeClass: none\nauditClass: delivery-completion\nstatusCeiling: done\nrequestedStatus: done\nauditVerdict: SHIP_WITH_NOTES\noutcome: completed_diagnostic\nresultState: ACTIVE\ncertifiedStatus: done\nplanningEvaluation: NOT_EVALUATED\ndeliveryEvaluation: CERTIFIED\nsourceEditLockout: PASS\napplicableCheckClasses: [universal,mode-required,delivery-completion]\nnotApplicableChecks: []\npassedGateIds: [G022,G053,G040,G051,G068,G082,G083,G084,G128,G085,G086,G091,G087,G093,G088,G089,G092,G090,G094,G095,G097,G098,G099,G100,G130,G131,G001,G002,G003,G004,G005,G006,G007,G008,G009,G010,G011,G012,G014,G015,G016,G018,G019,G020,G021,G023,G024,G025,G026,G027,G028,G029,G033,G034,G035,G044,G047,G048,G055,G056,G057,G059,G061]\nfailedGateIds: []\nfailedChecks: []\nblockingCode: none\nunresolvedFields: []\ncontradictions: []\ncontractRef: bubbles/workflows/modes.yaml#full-delivery\ncontractDigest: sha256:e330ef85136370a1fa7e9edb5813cb5879a6554afcff98ba373ac48442c7ca93\nevidenceRefs: [report.md#audit-verdict-aud-017-005]\naddressedFindings: [F-017-04,F-017-06,A-017-01,A-017-02,A-017-03,A-017-04,A-017-05,A-017-06,A-017-07,A-017-08,A-017-09,D19]\nunresolvedFindings: []\nnextRequiredOwner: none\nsupersedesAttemptId: AUD-017-004\nresumeFromPhase: none\nEND AUDIT_RESULT_V1",
+          "summary": "FIFTH audit attempt, superseding AUD-017-004, whose sole unresolved finding was D19. D19 IS VERIFIED RESOLVED AND CLOSES, and the finding set is now empty, so delivery is no longer refused. THE CLAIM WAS VERIFIED, NOT ACCEPTED. All five named commands were re-executed by this attempt: brief-refresh-atomicity 26 passed / 0 failed exit 0 (was 18/26); selftest 1370 passed / 0 failed exit 0; validate-brief-cache PASS 361 files exit 0; state-transition-guard PASS, failureCount 0, exit 0; artifact-lint PASSED exit 0. THE DECISIVE CHECK WAS ADVERSARIAL, because a green run alone could not distinguish a fix from the calendar retiring the symptom - the exact trap the prior record named. Today in New York is Sunday 2026-08-09 while the latest completed XNYS session is 2026-08-07: they DIVERGE, which is the precise day-shape that produced 18/26. A green suite under that condition is the fix working. Both named defects are real and fixed in source: the fixture now derives the completed session from the committed calendar independently of BAR_EXPECTED_SESSION_DATE (so the assertion is not vacuous), and commit f8ce2306 derives the tool-bundle count from the registry instead of the stale literal 22, keeping the test failing if a publisher DROPS a tool. ONE CORRECTION TO THE CLAIM AS FILED: commit 25f5dd0b, presented as the fix, contains no test or source change at all - only docs/Improvement-Plan.md and state.json. The code fixes live in f8ce2306 and the support-fixture change. This does not weaken the closure, since both fixes are committed and independently re-executed here, but the record should not say the fix landed where it did not. The no-regeneration claim holds where it was testable: git status --short data/bars/ is empty before and after every run. TWO NON-BLOCKING OBSERVATIONS are recorded rather than dropped: an advisory unexposed-increment plan-shape report on four scopes, and an uncommitted regenerated market-brief.payload.json that predates this attempt. Neither refuses delivery; both are named so they are not later mistaken for something this audit missed. NEXT: certification is validate-owned and untouched at in_progress; bubbles.validate may now derive assurance against a passing independent audit. Expect targetRevision to drift past sha256:4837d9b4 the moment this record is written, since the record lands in the artifact it measures."
         }
       ]
     }

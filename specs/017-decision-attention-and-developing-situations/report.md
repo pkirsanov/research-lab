@@ -450,7 +450,214 @@ routes to `bubbles.test`, not to the operator.
 
 Certification remains validate-owned and no other agent has written it.
 
-## Audit Verdict AUD-017-004
+## Audit Verdict AUD-017-005
+
+**SHIP_WITH_NOTES** · profile `delivery-completion-v1` · attempt `AUD-017-005` ·
+`bubbles.audit` · 2026-08-10T03:08:41Z · supersedes `AUD-017-004` ·
+**`independentAudit: true`**
+
+`AUD-017-004` refused delivery on one unresolved finding, **D19**, which it
+characterised as an environmental blocker that no agent rework could clear.
+**That characterisation is refuted. D19 closes.** The finding set is now empty
+and delivery is no longer refused.
+
+### The claim, and why a green run alone would not have settled it
+
+The resolution claim was that `brief-refresh-atomicity` is 26/26 because of two
+agent-fixable defects: a fixture that stamped `expectedSessionDate` with today's
+**calendar** date instead of the latest **completed** XNYS session, and a
+hardcoded `toolBundleCount: 22` left stale by a 23rd registered tool.
+
+A passing suite could not, by itself, establish that. The superseded record named
+the trap precisely: *"on the next trading day the 7 fixture failures will pass on
+their own, since calendar date and session date coincide again. That would retire
+the symptom while leaving a suite that silently fails every weekend."* A 26/26 on
+a trading day is therefore consistent with both a real fix and no fix at all.
+
+So the day-shape was measured **before** any conclusion was drawn.
+
+```
+today NY calendar date : 2026-08-09 (Sunday)
+latest COMPLETED XNYS  : 2026-08-07
+DIVERGENT (fix exercised)? YES - old buggy fixture would FAIL today
+```
+
+The two dates **diverge**, which is exactly the condition that produced 18/26.
+The suite is green under the worst case, not under the case that hides the bug.
+
+### Both defects are fixed in source, not pinned by environment
+
+`tests/brief-refresh-atomicity.support.mjs` now derives the latest completed
+session from the committed calendar the way `validate-brief-cache.mjs` does, and
+deliberately does **not** reuse `BAR_EXPECTED_SESSION_DATE` — both sides read
+that variable, so sharing it would make them agree by construction and the
+assertion vacuous. Commit `f8ce2306` replaces the `22` literal with a count
+derived from the registry the fixture copies, so a publisher that **drops** a
+tool still fails; a literal at or below the true count silently stops covering
+the tools it does not count.
+
+**One correction to the claim as filed.** Commit `25f5dd0b`, presented as the
+fix, changes only `docs/Improvement-Plan.md` and `state.json` and contains **no
+test or source change**:
+
+```
+ docs/Improvement-Plan.md                           | 39 ++++++++++++++++++++++
+ .../state.json                                     |  6 ++--
+ 2 files changed, 42 insertions(+), 3 deletions(-)
+```
+
+The code fixes live in `f8ce2306` and in the support-fixture change. This does
+not weaken the closure — both are committed and both were re-executed here — but
+the record must not say the fix landed where it did not.
+
+### Commands re-executed by this attempt
+
+Every command below was run by this attempt. None was read from a prior transcript.
+
+```
+$ node --test tests/brief-refresh-atomicity.test.mjs
+1..26
+# tests 26
+# suites 0
+# pass 26
+# fail 0
+# cancelled 0
+# skipped 0
+# todo 0
+# duration_ms 113889.073527
+TEST_EXIT=0
+
+$ node scripts/selftest.mjs
+================================================
+Research-Lab self-test: 1370 passed, 0 failed
+================================================
+SELFTEST_EXIT=0
+
+$ node scripts/validate-brief-cache.mjs
+[brief-cache] PASS: 361 JSON cache files parsed; indexes are coherent
+CACHE_EXIT=0
+
+$ git status --short data/bars/
+(empty = clean)
+
+$ bash .github/bubbles/scripts/artifact-lint.sh specs/017-...
+Artifact lint PASSED.
+LINT_EXIT=0
+```
+
+The no-regeneration claim holds where it was made testable: `git status --short
+data/bars/` is empty **both before and after** every run above.
+
+### Guard
+
+```
+BEGIN TRANSITION_GUARD_RESULT_V1
+schemaVersion: transition-guard-result/v1
+workflowMode: full-delivery
+auditProfile: delivery-completion-v1
+targetStatus: done
+contractDigest: sha256:e330ef85136370a1fa7e9edb5813cb5879a6554afcff98ba373ac48442c7ca93
+targetRevision: sha256:4837d9b47239446f6df072cd3f43741ab9dbe6987bebf83261afdd92736aba00
+applicableCheckClasses: [universal,mode-required,delivery-completion]
+notApplicableChecks: []
+passedGateIds: [G022,G053,G040,G051,G068,G082,G083,G084,G128,G085,G086,G091,G087,G093,G088,G089,G092,G090,G094,G095,G097,G098,G099,G100,G130,G131,G001,G002,G003,G004,G005,G006,G007,G008,G009,G010,G011,G012,G014,G015,G016,G018,G019,G020,G021,G023,G024,G025,G026,G027,G028,G029,G033,G034,G035,G044,G047,G048,G055,G056,G057,G059,G061]
+failedGateIds: []
+failedChecks: []
+blockingCode: none
+parentExpandedPhases: 10
+failureCount: 0
+exitStatus: 0
+verdict: PASS
+END TRANSITION_GUARD_RESULT_V1
+```
+
+`targetRevision` will drift past `sha256:4837d9b4` the moment this record is
+written, because the record lands in the artifact it measures. That is expected
+and disclosed, not staleness.
+
+### Notes (non-blocking)
+
+Neither note refuses delivery. Both are recorded so they are not later mistaken
+for something this audit missed.
+
+1. **O-017-01 — advisory unexposed increment.** The guard's vertical-delivery
+   plan check reports that four scopes name no consumer surface and declare no
+   deferral: `01-attention-capability-module`, `02-publication-path-enforcement`,
+   `04-outcome-record-and-interruption-rate`,
+   `05-legacy-feed-reconciliation-and-acceptance`. The check is advisory in
+   `.github/bubbles-project.yaml`, so the guard returned PASS. Owner
+   `bubbles.plan`.
+2. **O-017-02 — uncommitted regenerated payload.** `market-brief.payload.json`
+   is modified and uncommitted (249 insertions / 39 deletions). It was **already
+   modified before this attempt ran any command**, so no audit command produced
+   it; it is output of the live refresh the D19 narrative describes. It is not
+   under `data/bars/`. Owner `bubbles.validate`.
+
+### Spot-Check Recommendations
+
+Automation bias grows as the report sounds more confident. These are the items
+worth verifying by hand:
+
+1. **The day-shape claim is the whole argument.** Re-run the divergence check
+   yourself; if today's NY calendar date and the latest completed XNYS session
+   were ever equal, the 26/26 result proves nothing about the fix.
+2. **The fix is in `f8ce2306` and the support fixture, not in `25f5dd0b`.**
+   Confirm with `git show --stat 25f5dd0b` — the commit whose message announces
+   the fix carries no code.
+3. **`market-brief.payload.json` is uncommitted.** Confirm it predates this
+   audit and decide whether to commit or discard it before certification.
+4. **The four advisory unexposed scopes.** Advisory today; confirm that is still
+   the intended posture for this feature.
+
+### Ownership
+
+This attempt wrote only `state.json` and `report.md` inside this packet. No scope
+file, DoD checkbox, scope status, test, source file, guard or certification field
+was touched. `state.json.certification` remains validate-owned and untouched at
+`in_progress`. The `certifiedStatus: done` inside `AUDIT_RESULT_V1` is this
+attempt's delivery **assessment** in its own transcript, required by the result
+contract for a positive delivery verdict; it is not a certification write and
+confers none.
+
+```
+BEGIN AUDIT_RESULT_V1
+schemaVersion: audit-result/v1
+runId: RUN-017-AUDIT-20260810T030841Z
+attemptId: AUD-017-005
+target: specs/017-decision-attention-and-developing-situations
+targetRevision: sha256:4837d9b47239446f6df072cd3f43741ab9dbe6987bebf83261afdd92736aba00
+workflowMode: full-delivery
+modeClass: none
+auditClass: delivery-completion
+statusCeiling: done
+requestedStatus: done
+auditVerdict: SHIP_WITH_NOTES
+outcome: completed_diagnostic
+resultState: ACTIVE
+certifiedStatus: done
+planningEvaluation: NOT_EVALUATED
+deliveryEvaluation: CERTIFIED
+sourceEditLockout: PASS
+applicableCheckClasses: [universal,mode-required,delivery-completion]
+notApplicableChecks: []
+passedGateIds: [G022,G053,G040,G051,G068,G082,G083,G084,G128,G085,G086,G091,G087,G093,G088,G089,G092,G090,G094,G095,G097,G098,G099,G100,G130,G131,G001,G002,G003,G004,G005,G006,G007,G008,G009,G010,G011,G012,G014,G015,G016,G018,G019,G020,G021,G023,G024,G025,G026,G027,G028,G029,G033,G034,G035,G044,G047,G048,G055,G056,G057,G059,G061]
+failedGateIds: []
+failedChecks: []
+blockingCode: none
+unresolvedFields: []
+contradictions: []
+contractRef: bubbles/workflows/modes.yaml#full-delivery
+contractDigest: sha256:e330ef85136370a1fa7e9edb5813cb5879a6554afcff98ba373ac48442c7ca93
+evidenceRefs: [report.md#audit-verdict-aud-017-005]
+addressedFindings: [F-017-04,F-017-06,A-017-01,A-017-02,A-017-03,A-017-04,A-017-05,A-017-06,A-017-07,A-017-08,A-017-09,D19]
+unresolvedFindings: []
+nextRequiredOwner: none
+supersedesAttemptId: AUD-017-004
+resumeFromPhase: none
+END AUDIT_RESULT_V1
+```
+
+## Audit Verdict AUD-017-004 (SUPERSEDED by AUD-017-005)
 
 **DO_NOT_SHIP** · profile `delivery-completion-v1` · attempt `AUD-017-004` ·
 `bubbles.audit` · 2026-08-09T23:12:23Z · supersedes `AUD-017-003` ·

@@ -879,6 +879,45 @@ The action is therefore operator-owned and specific: re-run the refresh from a h
 throttling, or wait out the throttle, then confirm `data/bars/index.json` `expectedSessionDate` advances to
 the latest completed XNYS session. The eight failures return to green with no code change once it does.
 
+#### D19 RESOLVED (2026-08-10) — and both earlier diagnoses were wrong
+
+`brief-refresh-atomicity.test.mjs` is **26 passed, 0 failed**. It had been 18/26 for this entire feature.
+
+There was no operator action and no external blocker. Both diagnoses above were wrong, and the throttle
+diagnosis was wrong in a way worth recording, because it was wrong *about its own relevance*.
+
+**The failing tests never touched the network.** `bubbles.validate` established this independently: the
+harness substitutes a stub for `scripts/fetch-bars.mjs`, and every failing run prints
+`[fixture-fetch-bars] no external fetch required`. A provider throttle therefore could not have caused these
+failures no matter what its state was. The table above measured something real and then attributed to it a
+failure it had no path to.
+
+**The 429 is real, and does not apply to the real fetcher either.** Re-measured against the same endpoint:
+
+| probe | User-Agent | result |
+|---|---|---|
+| `query1.finance.yahoo.com` SPY daily chart | `curl/8.x` (default) | HTTP **429**, 3 consecutive |
+| same URL, same session | a browser UA | HTTP **200** |
+| same URL, same session | the exact UA `scripts/fetch-bars.mjs` sends | HTTP **200** |
+
+The provider rejects the default `curl` agent, not this host. `fetch-bars.mjs` has always sent its own agent,
+so the live refresh was never blocked — running it wrote 290/290 snapshots from the provider. The lesson is
+narrow and repeatable: **probe with the caller's own configuration, or draw no conclusion about the caller.**
+
+**The actual causes were two agent-fixable defects, both named by `bubbles.validate` before being fixed:**
+
+1. `brief-refresh-atomicity.support.mjs` wrote its own `data/bars/index.json` stamping `expectedSessionDate`
+   with **today's calendar date**. The validator correctly requires the latest *completed* XNYS session, so
+   the two disagree on every non-trading day — and this ran on a Sunday. The fixture now derives that date
+   from the committed calendar the same way the validator does, computed independently rather than passed
+   through the shared env override, which would have made the assertion vacuous. That fixed 7 of the 8.
+2. The 8th had no environmental excuse and failed on any day: the barrier assertion hardcoded
+   `toolBundleCount: 22` after a 23rd tool was registered. Now derived from the registry rule.
+
+**What this cost:** a real feature reported as blocked on an external party for two days, when the blocker was
+a test fixture, a stale literal, and a probe that did not reproduce the caller. The cache validator was right
+every single time; what was wrong was the story told about why it was refusing.
+
 ---
 
 ### D20 — three specs claim phases with no execution record behind them, and one of them is `done`

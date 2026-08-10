@@ -199,21 +199,8 @@ the before-and-after payload parse both succeed with no pre-existing key changed
 
 - [x] The gate enforces FR-018 on the publication path, refusing a deep link that is unregistered, a hostile scheme, or absent entirely (A-017-10).
 
-  **Claim Source:** executed — SCN-017-066 (TP-02-07). RED was established by
-  independent audit AUD-017-006, not by this session: driving the real committed
-  `market-brief.payload.json` through `validateBriefPayload` returned **0 errors**
-  when `attention[0].deepLink` was set to an unregistered page, to
-  `javascript:alert(1)`, to `//evil.example.com/x.html`, or deleted entirely,
-  while the same five inputs through `buildAttentionItem` refused correctly with
-  `RLATTN-DEEPLINK`. The check shipped in the module's "shared field rules,
-  expressed once and used by build and validate" block but was mirrored into the
-  composer only, so the DoD item above — "calls the module predicate and restates
-  no rule locally" — was satisfied in letter while one of the thirteen shared
-  rules never reached the gate. Closed in `1af8b1aa` by recording
-  `checkDeepLink(item.deepLink, ctx.toolDeepLinks)` in `validateAttentionItem`
-  and resolving the allowlist from `tools.json` in the gate's `attentionContext`
-  — from the registry rather than from the payload under validation, so the lane
-  being constrained cannot widen its own allowlist.
+  **Claim Source:** executed — SCN-017-066 (TP-02-07); RED measured by
+  independent audit AUD-017-006, see `report.md#tp-02-07`.
 
   ```text
   $ node --test --test-name-pattern="SCN-017-066" tests/attention-payload-contract.test.mjs
@@ -234,7 +221,26 @@ the before-and-after payload parse both succeed with no pre-existing key changed
   # tests 28
   # pass 28
   # fail 0
+
+  $ node scripts/validate-brief-payload.mjs market-brief.payload.json
+  [brief-contract] PASS: all visible sections, registry coverage, model-specific real assets, and next-session actions are valid
+  gate exit=0
   ```
+
+  RED belongs to the audit, not to this session: driving the real committed
+  `market-brief.payload.json` through `validateBriefPayload` returned **0 errors**
+  with `attention[0].deepLink` set to an unregistered page, to
+  `javascript:alert(1)`, to `//evil.example.com/x.html`, or deleted entirely,
+  while the same five inputs through `buildAttentionItem` refused with
+  `RLATTN-DEEPLINK`. The check shipped in the module's "shared field rules,
+  expressed once and used by build and validate" block but reached the composer
+  only, so the DoD item above — "calls the module predicate and restates no rule
+  locally" — held in letter while one of the thirteen shared rules never reached
+  the gate. Closed in `1af8b1aa` by recording
+  `checkDeepLink(item.deepLink, ctx.toolDeepLinks)` in `validateAttentionItem`
+  and resolving the allowlist from `tools.json` in the gate's `attentionContext`
+  — from the registry rather than from the payload under validation, so the lane
+  being constrained cannot widen its own allowlist.
 
 - [x] Every refusal message names the offending field and the offending item.
 

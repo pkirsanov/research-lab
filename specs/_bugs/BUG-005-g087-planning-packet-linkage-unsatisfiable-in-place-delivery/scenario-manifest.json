@@ -1,0 +1,145 @@
+{
+  "schemaVersion": 1,
+  "version": 1,
+  "spec": "BUG-005",
+  "featureDir": "specs/_bugs/BUG-005-g087-planning-packet-linkage-unsatisfiable-in-place-delivery",
+  "generatedAt": "2026-08-10T21:41:14Z",
+  "evidenceBoundary": "This packet's three scopes are governance scopes: an owner decision (Scope 1), an upstream routing of a registry wiring-description defect (Scope 2), and a disposition of a historical certification (Scope 3). Their proof surface is inspection of recorded artifacts and replay of the G087 guard - not product runtime behavior. Scope 1's Test Plan records static checks against design.md (the ruling text it asserts), not executable product tests; the scenarios keep an empty linkedTests array because no test FILE is authored by this packet, and naming one would be a fabricated reference.",
+  "scenarios": [
+    {
+      "id": "SCN-BUG005-001",
+      "scenarioId": "SCN-BUG005-001",
+      "scopeRef": "SCOPE-01",
+      "scope": "SCOPE-01-owner-decision-on-resolution-direction",
+      "title": "Owner records a decision",
+      "gherkin": {
+        "feature": "A truthful resolution direction is selected",
+        "given": "four candidate directions are documented with their costs",
+        "when": "the owner selects one or a combination",
+        "then": "the decision and its rationale are recorded",
+        "and": "an implementation packet may be opened against it"
+      },
+      "behaviorClass": "governance",
+      "changeType": "governance-decision",
+      "requiredTestType": "functional",
+      "regressionRequired": false,
+      "lockdown": {
+        "state": "unlocked"
+      },
+      "linkedTests": [],
+      "evidenceRefs": [
+        "design.md#candidate-resolution-directions",
+        "design.md#owner-ruling"
+      ]
+    },
+    {
+      "id": "SCN-BUG005-002",
+      "scenarioId": "SCN-BUG005-002",
+      "scopeRef": "SCOPE-01",
+      "scope": "SCOPE-01-owner-decision-on-resolution-direction",
+      "title": "No direction is selected",
+      "gherkin": {
+        "feature": "A truthful resolution direction is selected",
+        "given": "the decision is outstanding",
+        "then": "this bug remains blocked",
+        "and": "spec 016 cannot reach its declared ceiling truthfully"
+      },
+      "behaviorClass": "governance",
+      "changeType": "governance-decision",
+      "requiredTestType": "functional",
+      "regressionRequired": false,
+      "lockdown": {
+        "state": "unlocked"
+      },
+      "linkedTests": [],
+      "evidenceRefs": [
+        "design.md#owner-ruling"
+      ]
+    },
+    {
+      "id": "SCN-BUG005-003",
+      "scenarioId": "SCN-BUG005-003",
+      "scopeRef": "SCOPE-02",
+      "scope": "SCOPE-02-registry-wiring-description-correction",
+      "title": "Investigator follows the registry description",
+      "gherkin": {
+        "feature": "Gate wiring is discoverable from its registry description",
+        "given": "the G087 registry entry names the script that invokes the guard",
+        "when": "an investigator greps that named script for the guard invocation",
+        "then": "the invocation is found there",
+        "and": "no false negative is produced"
+      },
+      "behaviorClass": "governance",
+      "changeType": "governance-routing",
+      "requiredTestType": "functional",
+      "regressionRequired": false,
+      "lockdown": {
+        "state": "unlocked"
+      },
+      "linkedTests": [
+        ".github/bubbles/registry/gates.yaml :: grep -A12 '  G087:' .github/bubbles/registry/gates.yaml"
+      ],
+      "evidenceRefs": [
+        "report.md#e-a3--g087-wiring-at-b525326d-the-false-negative-trap",
+        "design.md#owner-ruling"
+      ]
+    },
+    {
+      "id": "SCN-BUG005-004",
+      "scenarioId": "SCN-BUG005-004",
+      "scopeRef": "SCOPE-03",
+      "scope": "SCOPE-03-disposition-of-spec-013-historical-certification",
+      "title": "Historical certification is dispositioned",
+      "gherkin": {
+        "feature": "A live blocking gate is not silently passed by a rejecting state",
+        "given": "spec 013 was certified at a commit where G087 was live",
+        "and": "replaying the guard at that commit exits 1",
+        "when": "the owner reviews the record",
+        "then": "the discrepancy is either annotated or explicitly ruled discharged"
+      },
+      "behaviorClass": "governance",
+      "changeType": "governance-disposition",
+      "requiredTestType": "functional",
+      "regressionRequired": false,
+      "lockdown": {
+        "state": "unlocked"
+      },
+      "linkedTests": [
+        "specs/013-market-regime-stack-and-strategy-playbook :: G087 guard replay at the archived certifying commit, expecting exit 1 — procedure recorded in bug.md#r1--spec-013-was-certified-in-a-state-g087-rejects"
+      ],
+      "evidenceRefs": [
+        "report.md#test-evidence",
+        "bug.md#r1--spec-013-was-certified-in-a-state-g087-rejects",
+        "design.md#owner-ruling"
+      ]
+    },
+    {
+      "id": "SCN-BUG005-005",
+      "scenarioId": "SCN-BUG005-005",
+      "scopeRef": "SCOPE-03",
+      "scope": "SCOPE-03-disposition-of-spec-013-historical-certification",
+      "title": "The latent risk is confirmed to be latent",
+      "gherkin": {
+        "feature": "A live blocking gate is not silently passed by a rejecting state",
+        "given": "spec 013 is at status in_progress under full-delivery",
+        "when": "the guard is run against spec 013 at HEAD",
+        "then": "it exits 0",
+        "and": "no active failure is attributable to this finding"
+      },
+      "behaviorClass": "governance",
+      "changeType": "governance-disposition",
+      "requiredTestType": "functional",
+      "regressionRequired": false,
+      "lockdown": {
+        "state": "unlocked"
+      },
+      "linkedTests": [
+        "bash .github/bubbles/scripts/planning-packet-linkage-guard.sh specs/013-market-regime-stack-and-strategy-playbook"
+      ],
+      "evidenceRefs": [
+        "report.md#e-a6--the-risk-is-latent-not-active",
+        "report.md#test-evidence"
+      ]
+    }
+  ]
+}

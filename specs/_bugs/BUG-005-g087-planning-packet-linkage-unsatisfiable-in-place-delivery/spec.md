@@ -39,6 +39,63 @@ With no second spec in existence, an honest packet has no valid value for
 `linkedImplementationSpec`, and `planningOnly: true` would misstate intent.
 `specs_hardened` therefore has no truthful satisfaction path.
 
+## Domain Capability Model
+
+### Capability
+
+**Truthful terminal-disposition declaration for a hardened planning packet.**
+
+Gate G087 fires when a spec reaches `status == "specs_hardened"` and demands
+that the packet declare, truthfully, how its scopes reach implementation. The
+capability is not "pass G087" — it is *stating where delivery happens* in a form
+a machine can check. G087 is the enforcement surface; the disposition is the
+domain object.
+
+A disposition model is only as good as its coverage. When a delivery shape the
+repository actually practises has no matching disposition, packets in that shape
+cannot describe themselves, and the gate stops measuring truth and starts
+selecting which false statement gets made. That is the failure recorded in
+[bug.md](bug.md) and restated as FR-005-001 and FR-005-002 below.
+
+### Domain Primitives
+
+| Primitive | Purpose | Lifecycle |
+|---|---|---|
+| Planning packet | The spec whose scopes are being dispositioned | authored → `specs_hardened` → graduates or hands off |
+| Disposition | The declared answer to "where do these scopes get built?" | absent → declared → re-validated at every promotion |
+| Delivery target | The artifact that actually implements the scopes | none / another packet / this packet |
+| Justification | Evidence attached to a disposition that names no target | required non-empty, else the disposition is refused |
+| Back-link | `linkedPlanningPacket` on the implementation spec | written when that target reaches `done`; validated in reverse |
+
+### Relationships
+
+- A **planning packet** carries exactly one **disposition**.
+- A **disposition** identifies exactly one **delivery target**, which may be *none*.
+- A disposition naming **no external target** must carry a **justification**. A
+  disposition naming **another packet** must instead survive live cross-reference
+  validation, and once that target is `done` it must carry a **back-link**.
+- Two dispositions may not be asserted at once. Each names a different delivery
+  target, so holding two asserts two contradictory topologies, at least one of
+  which is false.
+
+### Business Policies
+
+Every concrete disposition must obey all of these.
+
+- **P1 — Declarations are checkable, not statements of good faith.** A
+  disposition either names a target that can be verified to exist, or carries a
+  justification that is present and non-empty.
+- **P2 — Absence is a defined value, not an error.** A packet authored before a
+  disposition field existed evaluates exactly as it did before that field
+  existed.
+- **P3 — An unrecognised value is refused, never coerced to absent.** A typo must
+  fail loudly rather than silently inherit the default and buy a pass.
+- **P4 — Coverage is total.** Every delivery shape the repository practises has a
+  disposition that describes it truthfully. A shape with no truthful disposition
+  is a defect in the model, not in the packet.
+- **P5 — Mutual exclusivity is mechanical, not conventional.** Contradictory
+  dispositions are refused by the guard, not left to author discipline.
+
 ## Requirements
 
 ### FR-005-001 — A self-delivered packet MUST have a truthful terminal path

@@ -8786,3 +8786,168 @@ hazard is now a permanently guarded case.
 
 The retired snapshot test could not have found this. It replayed a past tree
 rather than exercising the operation.
+
+## Scope 02-04 Certification Validation 2026-08-10
+
+### Summary
+
+`certification.completedScopes` listed only `SCOPE-01`, while `scopes.md`
+declared Scopes 1 through 4 as `**Status:** Done`. Certified completion
+therefore undercounted delivered scopes by three. That mismatch is the Gate
+G027 phase-scope coherence failure. This window certifies `SCOPE-02`,
+`SCOPE-03`, and `SCOPE-04` against the four canonical checks and records the
+measured DoD tally behind each one.
+
+Scope 5 remains `Not Started` and still carries one unchecked DoD item, so the
+spec stays `in_progress`. No `done` ceiling is claimed here.
+
+### Test Evidence
+
+**Phase:** validate
+**Claim Source:** executed
+
+Four commands ran in this session against the current working tree. Raw output
+follows, one fenced block per command.
+
+#### 1. Product self-test
+
+Command: `node scripts/selftest.mjs`. The run emitted 360 lines. The verbatim
+tail below carries the final assertion group and the summary banner.
+
+```text
+  ✓ the committed dependency-gate projection matches its source specs — a stale projection misreports delivery
+  ✓ the projected site ships the dependency-gate projection, so gates resolve identically on Pages
+  ✓ every declared dependency gate is represented in the projection
+  ✓ the public gate projection carries only the fields the runtime predicate reads
+  ✓ the browser resolves gates from the public projection and never fetches a governance statePath
+  ✓ the statePath-fetch check is non-vacuous — it still matches the regressed shape
+  ✓ no registered page fetches a root-absolute asset path — it loses the repo segment on project Pages:
+  ✓ the root-absolute asset detector still matches the regressed shape
+  ✓ the workflow checks detect a reduced browser gate and a repo-root deployment
+
+spec artifacts — referenced tests/*.mjs paths exist (Playwright silently ignores absent file args)
+  ✓ the scan matched at least one tests/*.mjs reference against a present baseline, so the guard is not vacuously green (11569 reference(s) across 482 artifact(s), baseline 86 entries)
+  ✓ no tests/*.mjs path named by a spec artifact is missing outside the frozen baseline — a stale path makes a multi-file verification command silently cover less than it claims (0 new, 86 known-missing, 0 stale of 218 referenced)
+
+================================================
+Research-Lab self-test: 1370 passed, 0 failed
+================================================
+SELFTEST_EXIT=0
+```
+
+#### 2. Brief payload contract
+
+Command: `node scripts/validate-brief-payload.mjs`. The block below is the
+complete output, unabridged — this validator prints one verdict line.
+
+```text
+$ node scripts/validate-brief-payload.mjs; echo "BRIEF_VALIDATOR_EXIT=$?"
+[brief-contract] PASS: all visible sections, registry coverage, model-specific real assets, and next-session actions are valid
+BRIEF_VALIDATOR_EXIT=0
+```
+
+#### 3. Collision invariant acceptance
+
+Command: `node --test tests/feature-004-collision-invariant.test.mjs`. Complete
+output, including the contract dump that proves the detector is non-vacuous
+against all ten destructive git operations.
+
+```text
+{
+  "contract": "feature004-collision-invariant/v1",
+  "safeOperationPreservesForeignWork": true,
+  "destructiveOperationsDetected": [
+    { "label": "git checkout -- <foreign>", "detectedChanges": 2 },
+    { "label": "git restore <foreign>", "detectedChanges": 2 },
+    { "label": "git reset --hard", "detectedChanges": 5 },
+    { "label": "git stash", "detectedChanges": 8 },
+    { "label": "git clean -fd", "detectedChanges": 3 },
+    { "label": "git add -A (stages foreign work)", "detectedChanges": 4 },
+    { "label": "git restore --staged <foreign>", "detectedChanges": 2 },
+    { "label": "overwrite foreign bytes", "detectedChanges": 1 },
+    { "label": "chmod foreign path", "detectedChanges": 1 },
+    { "label": "bare git commit sweeps foreign staged work", "detectedChanges": 1 }
+  ]
+}
+✔ Feature 004 shaped work leaves every foreign uncommitted hunk byte-identical (297.167922ms)
+✔ the collision detector rejects every destructive operation (non-vacuity) (1997.241473ms)
+✔ a foreign path that was never dirty is not silently treated as preserved (262.454089ms)
+ℹ tests 3
+ℹ suites 0
+ℹ pass 3
+ℹ fail 0
+ℹ cancelled 0
+ℹ skipped 0
+ℹ todo 0
+ℹ duration_ms 2777.856747
+COLLISION_TEST_EXIT=0
+```
+
+The JSON dump above is reformatted for width only; every label and count is the
+value the run printed.
+
+#### 4. Bubbles artifact lint
+
+Command:
+`bash .github/bubbles/scripts/artifact-lint.sh specs/004-fx-regime-relative-value-lab 'SCN-004-[0-9]{3}'`.
+Complete output.
+
+```text
+✅ Required artifact exists: spec.md
+✅ Required artifact exists: design.md
+✅ Required artifact exists: uservalidation.md
+✅ Required artifact exists: state.json
+✅ Required artifact exists: scopes.md
+✅ Required artifact exists: report.md
+✅ No forbidden sidecar artifacts present
+✅ Found DoD section in scopes.md
+✅ scopes.md DoD contains checkbox items
+✅ All DoD bullet items use checkbox syntax in scopes.md
+✅ Found Checklist section in uservalidation.md
+✅ uservalidation checklist contains checkbox entries
+✅ uservalidation checklist has checked-by-default entries
+✅ All checklist bullet items use checkbox syntax
+✅ Detected state.json status: in_progress
+✅ Detected state.json workflowMode: full-delivery
+✅ state.json v3 has required field: status
+✅ state.json v3 has required field: execution
+✅ state.json v3 has required field: certification
+✅ state.json v3 has required field: policySnapshot
+✅ state.json v3 has recommended field: transitionRequests
+✅ state.json v3 has recommended field: reworkQueue
+✅ state.json v3 has recommended field: executionHistory
+✅ Top-level status matches certification.status
+ℹ️  Workflow mode 'full-delivery' allows status 'done'; current status is 'in_progress'
+✅ Mode-specific report gates skipped (status not in promotion set)
+✅ All checked DoD items in scopes.md have evidence blocks
+✅ No unfilled evidence template placeholders in scopes.md
+✅ No unfilled evidence template placeholders in report.md
+
+Artifact lint PASSED.
+ARTIFACT_LINT_EXIT=0
+```
+
+### Measured DoD Tally Behind Each Certified Scope
+
+Counts were measured directly from the scope sections of `scopes.md`, not
+asserted. A scope was certified only where its DoD carried zero unchecked items.
+
+| Scope | Name | `scopes.md` status | Checked | Unchecked | Certified here |
+|---|---|---|---|---|---|
+| SCOPE-01 | Additive RLFX Vehicle Owner And Shared-Contract Foundation | Done | 44 | 0 | already certified |
+| SCOPE-02 | ETF-First Four-View Route And Simple/Power Integration | Done | 29 | 0 | yes |
+| SCOPE-03 | Global Rotation Equity-Only Migration | Done | 19 | 0 | yes |
+| SCOPE-04 | Shared Brief And Journey Integration | Done | 24 | 0 | yes |
+| SCOPE-05 | Atomic Registration Documentation And Closure | Not Started | 30 | 1 | no |
+
+### Completion Statement
+
+This window is a certification repair, not a delivery window. It changes only
+`state.json` certification bookkeeping and this report section. It makes no
+runtime, source, or test delta claim, and it moves no scope status or DoD
+checkbox in `scopes.md`.
+
+`certification.completedScopes` now holds four entries and agrees with the four
+scopes that `scopes.md` declares Done, which closes the Gate G027 coherence
+failure. The spec status remains `in_progress` because Scope 5 has not started.
+The next owner is `bubbles.implement` for Scope 5.

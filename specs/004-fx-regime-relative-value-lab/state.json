@@ -28,7 +28,8 @@
     "completedPhaseClaims": [
       "bootstrap",
       "implement",
-      "test"
+      "test",
+      "validate"
     ],
     "pendingTransitionRequests": [],
     "nextRequiredOwner": "bubbles.implement",
@@ -64,7 +65,10 @@
   "certification": {
     "status": "in_progress",
     "completedScopes": [
-      "SCOPE-01"
+      "SCOPE-01",
+      "SCOPE-02",
+      "SCOPE-03",
+      "SCOPE-04"
     ],
     "certifiedCompletedPhases": [],
     "scopeProgress": [
@@ -85,6 +89,66 @@
           "CMD-ARTIFACT": "exit 0 - Artifact lint PASSED with every checked DoD item carrying an evidence block",
           "dodTally": "44 checked / 0 unchecked across SCOPE-01",
           "workingTree": "git status --porcelain on spec-004 paths and the collision acceptance is clean"
+        }
+      },
+      {
+        "scope": 2,
+        "scopeId": "SCOPE-02",
+        "name": "ETF-First Four-View Route And Simple/Power Integration",
+        "status": "done",
+        "dependsOn": [
+          "SCOPE-01"
+        ],
+        "scopeDir": null,
+        "evidenceFile": "report.md",
+        "certifiedAt": "2026-08-10T03:08:02Z",
+        "certificationEvidence": {
+          "CMD-SELFTEST": "exit 0 - Research-Lab self-test: 1370 passed, 0 failed",
+          "CMD-BRIEF-CONTRACT": "exit 0 - [brief-contract] PASS: all visible sections, registry coverage, model-specific real assets, and next-session actions are valid",
+          "CMD-COLLISION": "exit 0 - node --test tests/feature-004-collision-invariant.test.mjs: tests 3, pass 3, fail 0, duration_ms 2777.856747",
+          "CMD-ARTIFACT": "exit 0 - Artifact lint PASSED (bash .github/bubbles/scripts/artifact-lint.sh specs/004-fx-regime-relative-value-lab SCN-004-[0-9]{3})",
+          "dodTally": "29 checked / 0 unchecked across SCOPE-02",
+          "scopeStatusSource": "scopes.md line 1200 declares **Status:** Done"
+        }
+      },
+      {
+        "scope": 3,
+        "scopeId": "SCOPE-03",
+        "name": "Global Rotation Equity-Only Migration",
+        "status": "done",
+        "dependsOn": [
+          "SCOPE-02"
+        ],
+        "scopeDir": null,
+        "evidenceFile": "report.md",
+        "certifiedAt": "2026-08-10T03:08:02Z",
+        "certificationEvidence": {
+          "CMD-SELFTEST": "exit 0 - Research-Lab self-test: 1370 passed, 0 failed",
+          "CMD-BRIEF-CONTRACT": "exit 0 - [brief-contract] PASS: all visible sections, registry coverage, model-specific real assets, and next-session actions are valid",
+          "CMD-COLLISION": "exit 0 - node --test tests/feature-004-collision-invariant.test.mjs: tests 3, pass 3, fail 0, duration_ms 2777.856747",
+          "CMD-ARTIFACT": "exit 0 - Artifact lint PASSED (bash .github/bubbles/scripts/artifact-lint.sh specs/004-fx-regime-relative-value-lab SCN-004-[0-9]{3})",
+          "dodTally": "19 checked / 0 unchecked across SCOPE-03",
+          "scopeStatusSource": "scopes.md line 1545 declares **Status:** Done"
+        }
+      },
+      {
+        "scope": 4,
+        "scopeId": "SCOPE-04",
+        "name": "Shared Brief And Journey Integration",
+        "status": "done",
+        "dependsOn": [
+          "SCOPE-03"
+        ],
+        "scopeDir": null,
+        "evidenceFile": "report.md",
+        "certifiedAt": "2026-08-10T03:08:02Z",
+        "certificationEvidence": {
+          "CMD-SELFTEST": "exit 0 - Research-Lab self-test: 1370 passed, 0 failed",
+          "CMD-BRIEF-CONTRACT": "exit 0 - [brief-contract] PASS: all visible sections, registry coverage, model-specific real assets, and next-session actions are valid",
+          "CMD-COLLISION": "exit 0 - node --test tests/feature-004-collision-invariant.test.mjs: tests 3, pass 3, fail 0, duration_ms 2777.856747",
+          "CMD-ARTIFACT": "exit 0 - Artifact lint PASSED (bash .github/bubbles/scripts/artifact-lint.sh specs/004-fx-regime-relative-value-lab SCN-004-[0-9]{3})",
+          "dodTally": "24 checked / 0 unchecked across SCOPE-04",
+          "scopeStatusSource": "scopes.md line 1789 declares **Status:** Done"
         }
       }
     ],
@@ -1398,6 +1462,35 @@
       },
       "summary": "Withdrew F004-V16-HERMETIC-HISTORICAL-V13-001 as a superseded workaround that was never delivered, and reconciled the withdrawal across scopes.md, test-plan.json, and state.json. The blocking condition was never a Feature 004 defect. A repository-wide PII de-personalization git history rewrite invalidated roughly thirty SHA-256 evidence pins; the byte arithmetic confirms the attribution exactly, since a pinned length of 580643 against an actual 580597 is a delta of -46 that decomposes as two home-path segment rewrites at +1 byte each and six operator-name rewrites at -8 bytes each. The adopted resolution re-pins v9 through v15 to post-rewrite truth under a recorded history-rewrite epoch rather than adding a seventeenth workaround. Restoring the acceptance also exposed three pre-existing defects: the v12 adversarial inventory harness and the v14 inventory-stability probe both threw TypeError on any clean tree, meaning this test was never reproducible from a clean checkout, and the v15 brotli-compressed evidence payload carried a committed literal absolute operator path that the grep-based PII lint could not see because the payload is compressed. All three are fixed.",
       "startedAtProvenance": "Reconstructed from evidence this entry itself cites. The single recorded instant was the envelope-write time. The run produced commit d6c462e3 at 2026-08-07T21:16:38Z, so it was executing then; that is the tightest defensible start grounded in a real observation."
+    },
+    {
+      "agent": "bubbles.validate",
+      "workflowMode": "full-delivery",
+      "phasesExecuted": [
+        "validate"
+      ],
+      "statusBefore": "in_progress",
+      "statusAfter": "in_progress",
+      "startedAt": "2026-08-10T03:03:52Z",
+      "finishedAt": "2026-08-10T03:08:02Z",
+      "outcome": "completed_owned",
+      "addressedFindings": [
+        "F004-G027-CERTIFIED-SCOPE-UNDERCOUNT"
+      ],
+      "unresolvedFindings": [],
+      "nextRequiredOwner": "bubbles.implement",
+      "nextRequiredTarget": "Execute Scope 5 (Atomic Registration Documentation And Closure), the only scope still Not Started.",
+      "evidenceRefs": [
+        "report.md#scope-02-04-certification-validation-2026-08-10"
+      ],
+      "validation": {
+        "productCheck": "exit 0 - Research-Lab self-test: 1370 passed, 0 failed",
+        "briefContract": "exit 0 - [brief-contract] PASS: all visible sections, registry coverage, model-specific real assets, and next-session actions are valid",
+        "collisionAcceptance": "exit 0 - node --test tests/feature-004-collision-invariant.test.mjs: tests 3, pass 3, fail 0, duration_ms 2777.856747",
+        "artifactLint": "exit 0 - Artifact lint PASSED (bash .github/bubbles/scripts/artifact-lint.sh specs/004-fx-regime-relative-value-lab SCN-004-[0-9]{3})"
+      },
+      "summary": "Certified SCOPE-02, SCOPE-03, and SCOPE-04 against the four canonical checks and closed the Gate G027 phase-scope coherence failure. scopes.md declared Scopes 1 through 4 Done while certification.completedScopes listed only SCOPE-01, so certified completion undercounted delivered scopes by three. Verified each newly certified scope carries a fully checked DoD (29/0, 19/0, 24/0 measured directly from scopes.md) before recording it. Status stays in_progress because Scope 5 remains Not Started with one unchecked DoD item, so the spec is not eligible for a done ceiling.",
+      "startedAtProvenance": "Grounded in a real recorded instant: the repository-binding control file records this runs preflight decision rb:vscode-a855981ff9231b3a8f1b780a6192a1da:7 at 2026-08-10T03:03:52Z, which is when this validation run began."
     }
   ],
   "activeBugs": [],
@@ -1488,7 +1581,7 @@
       "defectFoundByReplacement": "Writing the safe operation the obvious way (git add <owned> then a bare git commit) FAILED the new test, because a bare commit commits the entire index and therefore sweeps a concurrent session already-staged work into the Feature 004 commit. The owned path is committed either way, so the mistake is invisible without this comparison. The safe shape is a pathspec-limited commit, and the bare-commit hazard is now a permanently guarded case. The retired snapshot test could not have found this: it replayed a past tree rather than exercising the operation."
     }
   ],
-  "lastUpdatedAt": "2026-08-10T02:15:57.556Z",
+  "lastUpdatedAt": "2026-08-10T03:08:02Z",
   "scopeLayout": "single-file",
   "artifacts": {
     "spec": "spec.md",

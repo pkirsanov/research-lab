@@ -223,13 +223,29 @@ if (process.env.BRIEF_REQUIRE_COMPLETE_RUN === '1') {
 console.log('[fixture-fetch-options] wrote independent raw data');
 `);
   writeFixtureScript(resolve(repoRoot, 'scripts/fetch-bars.mjs'), `
-import { appendFileSync, mkdirSync, writeFileSync } from 'node:fs';
+import { appendFileSync, mkdirSync, readFileSync, writeFileSync } from 'node:fs';
 if (process.env.BUG002_BOUNDARY_LOG) appendFileSync(process.env.BUG002_BOUNDARY_LOG, 'fetch-bars\\n');
 if (process.env.BRIEF_REQUIRE_COMPLETE_RUN === '1') {
   const date = new Intl.DateTimeFormat('en-CA', { timeZone: 'America/New_York', year: 'numeric', month: '2-digit', day: '2-digit' }).format(new Date());
   const incomplete = process.env.BUG002_INCOMPLETE_REFRESH === '1';
   mkdirSync(new URL('../data/bars/', import.meta.url), { recursive: true });
-  const sessionDate = process.env.BAR_EXPECTED_SESSION_DATE || date;
+  /* Derive the latest COMPLETED session from the committed calendar, the way
+     validate-brief-cache.mjs does, instead of defaulting to today. Today is a
+     completed session only after that session closes; on a weekend, a holiday or
+     before the close the two differ, and the fixture then manufactures an index
+     the validator is right to reject — which reads as a data outage rather than
+     as the fixture bug it is.
+     Derived here independently rather than shared through
+     BAR_EXPECTED_SESSION_DATE: both sides read that variable, so setting it
+     would make them agree by construction and the assertion vacuous. */
+  let completedSession = null;
+  try {
+    const cal = JSON.parse(readFileSync(new URL('../data/calendars/xnys/calendar.json', import.meta.url), 'utf8'));
+    const now = Date.now();
+    const rows = (cal.rows || []).filter((r) => (r.dateState === 'regular' || r.dateState === 'early-close') && r.regular && Number.isFinite(Date.parse(r.regular.endUtc)) && Date.parse(r.regular.endUtc) <= now);
+    completedSession = rows.length ? rows[rows.length - 1].tradingDate : null;
+  } catch { completedSession = null; }
+  const sessionDate = process.env.BAR_EXPECTED_SESSION_DATE || completedSession || date;
   writeFileSync(new URL('../data/bars/FIXTURE.json', import.meta.url), JSON.stringify({ sym: 'FIXTURE', asof: sessionDate, rows: [{ t: 1, c: 1 }] }) + '\\n');
   writeFileSync(new URL('../data/bars/index.json', import.meta.url), JSON.stringify({ updated: new Date().toISOString(), refreshDate: date, refreshWindow: process.env.BRIEF_WINDOW, expectedSessionDate: sessionDate, expected: 1, count: 1, freshCount: incomplete ? 0 : 1, carriedCount: incomplete ? 1 : 0, reconstructedCount: 0, sessionReuseCount: 0, zeroObservedCount: 0, thinObservedCount: 0, missing: [], tickers: [{ sym: 'FIXTURE', asof: sessionDate, sessionDate, sessionState: 'observed', zeroObserved: false, thinObserved: false, carried: incomplete, reconstructed: false, sessionCached: false }] }) + '\\n');
 }

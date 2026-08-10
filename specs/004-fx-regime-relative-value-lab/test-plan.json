@@ -244,7 +244,7 @@
       "scripts/fetch-bars.mjs",
       "scripts/selftest.mjs",
       "tests/fx-regime-relative-value-lab.spec.mjs",
-      "tests/feature-004-dirty-tree-collision.test.mjs",
+      "tests/feature-004-collision-invariant.test.mjs",
       "tests/feature-004-vehicle-universe.test.mjs",
       "tests/feature-004-tool-control-binding.test.mjs",
       "tests/feature-004-brief-eligibility.test.mjs",
@@ -255,7 +255,7 @@
     ],
     "identityCheckpointRule": "Capture all requiredScope1Paths plus every protected foreign dirty hunk and untracked file. Classify paths outside requiredScope1Paths as foreign-unrelated; protection grants no Feature 004 ownership. Record path kind, status, tracked HEAD/index identities when applicable, worktree Git OID, worktree SHA-256, hunk count, and complete ordered hunk hashes for ordinary paths. Volatile or concurrent paths require just-in-time capture and fail closed on later drift.",
     "collisionParserSelfIdentity": {
-      "path": "tests/feature-004-dirty-tree-collision.test.mjs",
+      "path": "tests/feature-004-collision-invariant.test.mjs",
       "mode": "normalized-self-pins/v1",
       "pinLiterals": [
         "DURABLE_EVIDENCE_BLOCK_SHA256",
@@ -287,7 +287,7 @@
     "testOwnerHandoff": {
       "owner": "bubbles.test",
       "allowedProductCodeEdits": false,
-      "testEditBoundary": "tests/feature-004-dirty-tree-collision.test.mjs only",
+      "testEditBoundary": "tests/feature-004-collision-invariant.test.mjs only",
       "steps": [
         "Select actual current Scope 1 receipt rows from the root ledger by the exact stable key and append the test-owned feature004-scope1-durable-evidence-v1 report block with literal raw output; do not synthesize or summarize rows.",
         "Capture and append feature004-dirty-collision-current-identity-v4 using normalized-self-pins/v1 for the collision parser and ordinary exact identities for the other 18 Scope 1 paths, plus every protected foreign dirty hunk without ownership transfer.",
@@ -405,7 +405,7 @@
       "outcome": "route_required"
     },
     "parserTransition": {
-      "path": "tests/feature-004-dirty-tree-collision.test.mjs",
+      "path": "tests/feature-004-collision-invariant.test.mjs",
       "function": "validateOwnerSettledSuccessor",
       "capturedLineRange": {
         "start": 1187,
@@ -449,7 +449,7 @@
     "testOwnerHandoff": {
       "owner": "bubbles.test",
       "allowedProductCodeEdits": false,
-      "testEditBoundary": "tests/feature-004-dirty-tree-collision.test.mjs only",
+      "testEditBoundary": "tests/feature-004-collision-invariant.test.mjs only",
       "requiredActions": [
         "Add only CURRENT_IDENTITY_V5_BLOCK_SHA256 and the closed v5 parser schema while retaining the durable and v4 pin literals unchanged.",
         "Apply exactly the five-assertion transition identified by the old and new hunk hashes.",
@@ -559,7 +559,7 @@
     "testOwnerHandoff": {
       "owner": "bubbles.test",
       "allowedProductCodeEdits": false,
-      "testEditBoundary": "tests/feature-004-dirty-tree-collision.test.mjs only",
+      "testEditBoundary": "tests/feature-004-collision-invariant.test.mjs only",
       "requiredActions": [
         "Add exactly one FOREIGN_ROADMAP_V6_BLOCK_SHA256 pin and one closed v6 parser branch while preserving all predecessor pins and parser requirements.",
         "Apply only the exact roadmap identity overlay before the already-authorized v5 five-assertion transition.",
@@ -765,7 +765,7 @@
     "testOwnerHandoff": {
       "owner": "bubbles.test",
       "allowedProductCodeEdits": false,
-      "testEditBoundary": "tests/feature-004-dirty-tree-collision.test.mjs only",
+      "testEditBoundary": "tests/feature-004-collision-invariant.test.mjs only",
       "requiredActions": [
         "Add exactly one FOREIGN_SET_V7_BLOCK_SHA256 pin and one closed v7 parser branch while preserving every predecessor pin and parser requirement.",
         "Validate v4, validate v6 as historical input, apply the exact three-path v7 foreign set, then apply the exact v5 five-assertion transition.",
@@ -824,7 +824,7 @@
         "scripts/fetch-bars.mjs",
         "scripts/selftest.mjs",
         "tests/fx-regime-relative-value-lab.spec.mjs",
-        "tests/feature-004-dirty-tree-collision.test.mjs",
+        "tests/feature-004-collision-invariant.test.mjs",
         "tests/feature-004-vehicle-universe.test.mjs",
         "tests/feature-004-tool-control-binding.test.mjs",
         "tests/feature-004-brief-eligibility.test.mjs",
@@ -903,7 +903,7 @@
     "testOwnerHandoff": {
       "owner": "bubbles.test",
       "allowedProductCodeEdits": false,
-      "testEditBoundary": "tests/feature-004-dirty-tree-collision.test.mjs only",
+      "testEditBoundary": "tests/feature-004-collision-invariant.test.mjs only",
       "requiredActions": [
         "Add exactly one POST_COMMIT_V9_BLOCK_SHA256 pin and one closed v9 parser branch while preserving every predecessor byte and pin.",
         "Validate v4, durable evidence, v6, and v7 as history; apply the exact v9 matrix; then validate the already-physical v5 transition.",
@@ -1162,7 +1162,7 @@
     },
     "acceptanceContract": {
       "commandRef": "CMD-COLLISION",
-      "exactCommand": "node --test tests/feature-004-dirty-tree-collision.test.mjs",
+      "exactCommand": "node --test tests/feature-004-collision-invariant.test.mjs",
       "timeoutSeconds": 600,
       "timeoutIncreaseAllowed": false,
       "topLevelCaseCount": 3,
@@ -1196,7 +1196,7 @@
     },
     "testOwnerHandoff": {
       "owner": "bubbles.test",
-      "onlyAllowedEditedPath": "tests/feature-004-dirty-tree-collision.test.mjs",
+      "onlyAllowedEditedPath": "tests/feature-004-collision-invariant.test.mjs",
       "allowedProductCodeEdits": false,
       "requiredActions": [
         "Add exactly one v13 marker-inclusive report pin and the normalized pin-family successor without changing predecessor pins or branches.",
@@ -1289,7 +1289,7 @@
         "scripts/fetch-bars.mjs",
         "scripts/selftest.mjs",
         "tests/fx-regime-relative-value-lab.spec.mjs",
-        "tests/feature-004-dirty-tree-collision.test.mjs",
+        "tests/feature-004-collision-invariant.test.mjs",
         "tests/feature-004-vehicle-universe.test.mjs",
         "tests/feature-004-tool-control-binding.test.mjs",
         "tests/feature-004-brief-eligibility.test.mjs",
@@ -1346,7 +1346,7 @@
       "allowedProductCodeEdits": false,
       "allowedPaths": [
         "specs/004-fx-regime-relative-value-lab/report.md",
-        "tests/feature-004-dirty-tree-collision.test.mjs"
+        "tests/feature-004-collision-invariant.test.mjs"
       ],
       "requiredActions": [
         "Run after TR-F004-SCOPE01-SCOREABILITY-READER-FOUNDATION-001 settles and all plan bytes are stable.",
@@ -1493,7 +1493,7 @@
       "expectedUniqueTestPlanIdCount": 89,
       "expectedScenarioCount": 33,
       "expectedUniqueScenarioIdCount": 33,
-      "command": "node --test tests/feature-004-dirty-tree-collision.test.mjs",
+      "command": "node --test tests/feature-004-collision-invariant.test.mjs",
       "timeoutSeconds": 600,
       "expectedTopLevelCaseCount": 3,
       "inheritEveryV14V13AndPredecessorCheck": true
@@ -1510,7 +1510,7 @@
       "allowedProductCodeEdits": false,
       "allowedPaths": [
         "specs/004-fx-regime-relative-value-lab/report.md",
-        "tests/feature-004-dirty-tree-collision.test.mjs"
+        "tests/feature-004-collision-invariant.test.mjs"
       ],
       "requiredActions": [
         "Preserve v14 as immutable fully parsed history and append exactly one v15 cardinality-only successor with its own raw pin and exact two-LF suffix.",
@@ -1552,7 +1552,7 @@
     "CMD-PROVIDER-FUNCTIONAL": "node --test tests/provider-credentials.functional.mjs",
     "CMD-PROVIDER-STRESS": "node tests/provider-credentials.stress.mjs",
     "CMD-PROVIDER-LOAD": "node tests/provider-credentials.load.mjs",
-    "CMD-COLLISION": "node --test tests/feature-004-dirty-tree-collision.test.mjs",
+    "CMD-COLLISION": "node --test tests/feature-004-collision-invariant.test.mjs",
     "CMD-GLOBAL-CONSUMERS": "git grep -n -E -e 'globalFxConfirm' -e 'fxWeight' -e 'fx\\.score' -e 'currencyProxy' -e 'fxInverse' -- global-rotation-lab.html global-rotation-universe.json scripts/brief-refresh.mjs scripts/selftest.mjs notes/global-rotation-lab.md; exit_code=$?; echo \"global_consumer_trace_exit=$exit_code\"; [[ \"$exit_code\" -eq 1 ]]",
     "CMD-BRIEF-COMPOSITE": "git grep -n -E -e 'compositeScore' -e 'mergedScore' -e 'fxCountryScore' -- market-brief.html rlbrief.js scripts/brief-refresh.mjs scripts/validate-brief-payload.mjs; exit_code=$?; echo \"brief_composite_trace_exit=$exit_code\"; [[ \"$exit_code\" -eq 1 ]]"
   },
@@ -2014,7 +2014,7 @@
           "type": "functional",
           "testType": "Collision and evidence-history preservation",
           "category": "functional",
-          "file": "tests/feature-004-dirty-tree-collision.test.mjs",
+          "file": "tests/feature-004-collision-invariant.test.mjs",
           "testTitle": "all three existing top-level test cases",
           "description": "Preserve and parse every v12/v13/v14/v15 byte and exact historical two-LF separators; validate exact raw/envelope/compressed/decoded commitments, internal matrix/inventory/cross-links, predecessor and protected closure, selectors, normalization, closed schemas, nine promotion adversaries, path-copy/deep-clone equivalence, source immutability, parser-pin mutations, and all predecessor adversaries; prove absent or arbitrary current foreign paths cannot influence history; reject opaque-commitment mutation or live-byte substitution; retain v14 current Scope 1 path rejection, the unchanged command, 600-second ceiling, three cases, and every inherited assertion, order, and failure condition. No v16 successor is required; that route is withdrawn and was never delivered.",
           "commandRef": "CMD-COLLISION",
@@ -3185,7 +3185,7 @@
           "type": "functional",
           "testType": "Collision preservation",
           "category": "functional",
-          "file": "tests/feature-004-dirty-tree-collision.test.mjs",
+          "file": "tests/feature-004-collision-invariant.test.mjs",
           "testTitle": "Feature 004 preserves every pre-existing dirty hunk",
           "description": "Preserve every inherited checkpoint and complete current path identity; reject unknown, missing, duplicate, reordered, staged, broadened, or byte-drifted state.",
           "commandRef": "CMD-COLLISION",

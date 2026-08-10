@@ -8731,3 +8731,58 @@ at selftest 1370/0, brief validator PASS, artifact lint PASSED, E2E 76/0.
 
 What is broken is the test's self-referential meta-evidence apparatus, not the
 product behavior it guards.
+
+### Resolution — the frozen apparatus is retired, the invariant is now tested directly
+
+Adopted the first operator option. `tests/feature-004-dirty-tree-collision.test.mjs`
+is removed and `CMD-COLLISION` now runs `tests/feature-004-collision-invariant.test.mjs`.
+
+The retired file replayed a frozen snapshot of one historical dirty tree: raw
+commit SHAs, worktree hashes, and a brotli-compressed block that hashed its own
+source. That shape had two defects. It could not survive a history rewrite, which
+is why eleven versioned epochs accumulated and a twelfth was written and deleted.
+And a snapshot of a past tree cannot detect a FUTURE clobber, which is the actual
+risk. The replacement asserts the behaviour against hermetic sandbox repositories,
+so it pins nothing about this repository and no rewrite can invalidate it.
+
+Nothing was lost. All fourteen evidence epochs remain in this report (151
+references, every marker intact); only the validator that could no longer run was
+removed, and it is recorded in `scripts/validate-spec-test-paths.baseline` so the
+missing-path ratchet tracks it rather than silently ignoring it.
+
+**Command:** `node --test tests/feature-004-collision-invariant.test.mjs`
+**Exit Code:** 0
+**Claim Source:** executed
+
+```text
+ok 1 - Feature 004 shaped work leaves every foreign uncommitted hunk byte-identical
+ok 2 - the collision detector rejects every destructive operation (non-vacuity)
+ok 3 - a foreign path that was never dirty is not silently treated as preserved
+1..3
+# tests 3
+# suites 0
+# pass 3
+# fail 0
+# cancelled 0
+# skipped 0
+# todo 0
+```
+
+Non-vacuity is enforced rather than claimed: the same comparator that guards the
+safe path must CATCH all ten of `git checkout --`, `git restore`, `git reset
+--hard`, `git stash`, `git clean -fd`, `git add -A`, `git restore --staged`, a
+byte overwrite, a chmod, and a bare `git commit`. A comparator that always
+reported "unchanged" would fail every one of them.
+
+#### The replacement found a real hazard on its first run
+
+Writing the safe operation the obvious way — `git add <owned path>` then a bare
+`git commit` — FAILED. A bare commit commits the entire index, so a concurrent
+session's already-staged work is swept into the Feature 004 commit and silently
+leaves that session's tree. The owned path is committed either way, so the
+mistake is invisible without comparing foreign state before and after. The safe
+shape is a pathspec-limited `git commit -- <owned path>`, and the bare-commit
+hazard is now a permanently guarded case.
+
+The retired snapshot test could not have found this. It replayed a past tree
+rather than exercising the operation.

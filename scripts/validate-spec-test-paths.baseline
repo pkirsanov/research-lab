@@ -25,19 +25,21 @@
 # There is no --skip / --force / --ignore / --bypass flag and there never will
 # be. A bypass-shaped flag exits non-zero.
 #
-# FROZEN: 90 missing path(s) across 1779 reference site(s), on 2026-08-04.
+# FROZEN: 86 missing path(s) across 1978 reference site(s), on 2026-08-10.
 #
 # ---- debt attribution ------------------------------------------------------
 #   paths | sites | spec | status
 #      31 |   102 | specs/002-distributed-tool-briefs-and-history | status=done  <-- see NOTE
 #      20 |   128 | specs/012-market-action-center-and-guided-tools | status=blocked
-#      10 |   427 | specs/008-portfolio-survival-and-brief-lab | status=in_progress
+#       9 |   423 | specs/008-portfolio-survival-and-brief-lab | status=in_progress
 #       8 |   287 | specs/014-shared-cycle-and-seasonality-exchange | status=not_started
 #       8 |   377 | specs/015-recommendation-outcome-ledger-and-track-record | status=blocked
 #       6 |    81 | specs/001-causal-rotation-intelligence | status=blocked
-#       4 |     4 | specs/_bugs | status=unknown
 #       3 |   120 | specs/013-market-regime-stack-and-strategy-playbook | status=in_progress
+#       1 |   134 | specs/004-fx-regime-relative-value-lab | status=in_progress
+#       1 |     3 | specs/010-company-fundamentals-and-brief-lab | status=done  <-- see NOTE
 #       1 |   253 | specs/016-auction-gamma-playbook | status=not_started
+#       1 |    70 | specs/_bugs | status=unknown
 #
 # ---- NOTE: a status=done spec is carrying frozen debt -----------------------
 #
@@ -49,6 +51,11 @@
 #     31 distinct missing path(s) across 102 reference site(s)
 #         98 site(s) in plan context — a forward-looking coverage claim
 #          4 site(s) in report.md — an EVIDENCE context, not a plan context
+#
+#   specs/010-company-fundamentals-and-brief-lab — status=done
+#     1 distinct missing path(s) across 3 reference site(s)
+#          0 site(s) in plan context — a forward-looking coverage claim
+#          3 site(s) in report.md — an EVIDENCE context, not a plan context
 #
 # `report.md` is captured-transcript and gap-declaration space. A stale path
 # there may be a verbatim terminal capture of a scratch file that has since
@@ -97,6 +104,7 @@ tests/distributed-briefs-scope10.spec.mjs
 tests/distributed-briefs-shared-canary.test.mjs
 tests/distributed-briefs-static-server.integration.test.mjs
 tests/distributed-briefs-ui-canary.test.mjs
+tests/feature-004-dirty-tree-collision.test.mjs
 tests/feature-012.acceptance.spec.mjs
 tests/feature-012.acceptance.unit.mjs
 tests/feature-012.consumer-trace.mjs

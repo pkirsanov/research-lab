@@ -1450,7 +1450,7 @@
     },
     {
       "id": "F004-V15-FROZEN-EVIDENCE-REWRITE-DEADLOCK-001",
-      "status": "open",
+      "status": "addressed",
       "severity": "blocking",
       "owner": "bubbles.plan",
       "command": "node --test tests/feature-004-dirty-tree-collision.test.mjs",
@@ -1470,10 +1470,14 @@
         "Re-establish a fresh v15 planning baseline by governance decision so the capture precondition can hold once more, then recapture. This restores the gate but preserves the fragility.",
         "Accept CMD-COLLISION as permanently red and remove it from the Feature 004 required command set, recording why."
       ],
-      "agentRefusedWorkaround": "Regenerating or hand-editing the brotli-compressed v15 evidence block to match a modified test file. That would forge the immutable audit record the block exists to protect."
+      "agentRefusedWorkaround": "Regenerating or hand-editing the brotli-compressed v15 evidence block to match a modified test file. That would forge the immutable audit record the block exists to protect.",
+      "resolution": "Adopted operator option 1: retired the frozen v1-v15 encoded-evidence apparatus and re-expressed CMD-COLLISION as tests/feature-004-collision-invariant.test.mjs, which asserts the INVARIANT against hermetic sandbox repositories instead of replaying a frozen snapshot of one historical dirty tree. The new test pins nothing about this repository history, so no future rewrite can invalidate it. All fourteen evidence epochs remain preserved in report.md (151 references, every epoch marker intact); only the validator that could no longer run was removed, and it is recorded in scripts/validate-spec-test-paths.baseline so the missing-path ratchet tracks it rather than silently ignoring it.",
+      "replacedBy": "tests/feature-004-collision-invariant.test.mjs",
+      "newCoverage": "3 tests, 10 destructive operations each proven detected. The safe path asserts that a Feature-004-shaped operation leaves every foreign worktree byte, staged blob, file mode and porcelain status identical; the non-vacuity suite requires the same comparator to CATCH git checkout --, git restore, git reset --hard, git stash, git clean -fd, git add -A, git restore --staged, a byte overwrite, a chmod, and a bare git commit.",
+      "defectFoundByReplacement": "Writing the safe operation the obvious way (git add <owned> then a bare git commit) FAILED the new test, because a bare commit commits the entire index and therefore sweeps a concurrent session already-staged work into the Feature 004 commit. The owned path is committed either way, so the mistake is invisible without this comparison. The safe shape is a pathspec-limited commit, and the bare-commit hazard is now a permanently guarded case. The retired snapshot test could not have found this: it replayed a past tree rather than exercising the operation."
     }
   ],
-  "lastUpdatedAt": "2026-08-09T21:43:57.009Z",
+  "lastUpdatedAt": "2026-08-10T00:21:50.714Z",
   "scopeLayout": "single-file",
   "artifacts": {
     "spec": "spec.md",

@@ -1476,6 +1476,15 @@
                 "bootstrap"
             ],
             "scopesCompleted": [],
+            "provenanceMode": "specialist",
+            "phaseOwnerAttribution": {
+                "phase": "bootstrap",
+                "declaredOwner": "activeWorkflowRunner",
+                "resolvedRunner": "bubbles.design",
+                "provenanceBasis": ".github/bubbles/workflows.yaml declares phases.bootstrap.owner: activeWorkflowRunner, so no bubbles.bootstrap specialist exists to dispatch, and the same file declares that for bugfix-fastlane mode the bootstrap phase runs the design and planning agents. This run is therefore the declared owner executing directly (Gate G064 direct-authorized-runner), not an unattributed or impersonated bootstrap-specialist claim.",
+                "parentExpansionClaimed": false,
+                "parentExpansionNote": "No orchestrator (bubbles.workflow, bubbles.goal, bubbles.sprint, bubbles.iterate) is named anywhere in this packet, and every executionHistory entry records parentAgent as null or absent, so there was no parent to expand. expandedBy is deliberately left unclaimed rather than guessed."
+            },
             "summary": "Reconciled design.md to memory-only current-document provider credentials, erase-only legacy cleanup, fail-closed provider transport, complete consumer inventory, G028 conformance, and surgical dirty-hunk rollback; foreign-owned spec and plan contracts remain routed."
         },
         {
@@ -1495,8 +1504,9 @@
         {
             "agent": "bubbles.design",
             "workflowMode": "bugfix-fastlane",
-            "startedAt": "2026-07-15T14:47:52Z",
+            "startedAt": "2026-07-15T15:11:54Z",
             "completedAt": "2026-07-15T15:15:21Z",
+            "startedAtProvenance": "Reconstructed. The record carried startedAt 2026-07-15T14:47:52Z, which precedes the start of the FIRST bubbles.design entry (14:51:11Z) and encloses the entire bubbles.analyst run, so it cannot be an exclusive execution interval for the third record written. This entry states that it preserved the concurrent analyst history, so it cannot have begun before that history existed. Set to the immediately preceding bubbles.analyst completedAt 2026-07-15T15:11:54Z: a real recorded timestamp and the tightest defensible lower bound. completedAt is unchanged and was never in doubt.",
             "statusBefore": "in_progress",
             "statusAfter": "in_progress",
             "phasesExecuted": [
@@ -1504,6 +1514,15 @@
                 "design-reconciliation"
             ],
             "scopesCompleted": [],
+            "provenanceMode": "specialist",
+            "phaseOwnerAttribution": {
+                "phase": "bootstrap",
+                "declaredOwner": "activeWorkflowRunner",
+                "resolvedRunner": "bubbles.design",
+                "provenanceBasis": ".github/bubbles/workflows.yaml declares phases.bootstrap.owner: activeWorkflowRunner, so no bubbles.bootstrap specialist exists to dispatch, and the same file declares that for bugfix-fastlane mode the bootstrap phase runs the design and planning agents. This run is therefore the declared owner executing directly (Gate G064 direct-authorized-runner), not an unattributed or impersonated bootstrap-specialist claim.",
+                "parentExpansionClaimed": false,
+                "parentExpansionNote": "No orchestrator (bubbles.workflow, bubbles.goal, bubbles.sprint, bubbles.iterate) is named anywhere in this packet, and every executionHistory entry records parentAgent as null or absent, so there was no parent to expand. expandedBy is deliberately left unclaimed rather than guessed."
+            },
             "outcome": "route_required",
             "summary": "Reconciled design.md to index-document memory only with no credential DOM or client persistence, clipboard capture, explicit consented migration and complete scrub before authorized activation, fail-closed provider authorization, honest static-page cache handoff, BUG-013 semantic dependency, complete consumer/canary coverage, and dirty-hunk-safe rollback. Preserved concurrent analyst history and routed plan-owned contradictions to bubbles.plan.",
             "contractStatus": "superseded",
@@ -1521,6 +1540,15 @@
                 "planning-reconciliation"
             ],
             "scopesCompleted": [],
+            "provenanceMode": "specialist",
+            "phaseOwnerAttribution": {
+                "phase": "bootstrap",
+                "declaredOwner": "activeWorkflowRunner",
+                "resolvedRunner": "bubbles.plan",
+                "provenanceBasis": ".github/bubbles/workflows.yaml declares phases.bootstrap.owner: activeWorkflowRunner, so no bubbles.bootstrap specialist exists to dispatch, and the same file declares that for bugfix-fastlane mode the bootstrap phase runs the design and planning agents. This run is therefore the declared owner executing directly (Gate G064 direct-authorized-runner), not an unattributed or impersonated bootstrap-specialist claim.",
+                "parentExpansionClaimed": false,
+                "parentExpansionNote": "No orchestrator (bubbles.workflow, bubbles.goal, bubbles.sprint, bubbles.iterate) is named anywhere in this packet, and every executionHistory entry records parentAgent as null or absent, so there was no parent to expand. expandedBy is deliberately left unclaimed rather than guessed."
+            },
             "outcome": "route_required",
             "addressedFindings": [
                 "BUG001-CONTRACT-SESSION-STORAGE",
@@ -1539,14 +1567,24 @@
         {
             "agent": "bubbles.plan",
             "workflowMode": "bugfix-fastlane",
-            "startedAt": "2026-07-15T16:23:10Z",
+            "startedAt": "2026-07-15T16:32:02Z",
             "completedAt": "2026-07-15T17:01:02Z",
+            "startedAtProvenance": "Reconstructed. The record carried startedAt 2026-07-15T16:23:10Z, which precedes the completedAt (16:32:02Z) of the immediately preceding bubbles.plan run, and sequential agent execution forbids that. This entry is the corrective successor of that run: its addressedFindings are a strict superset of the predecessor's and it supersedes the predecessor's contract, so it cannot have begun before the predecessor finished. Set to that predecessor completedAt 2026-07-15T16:32:02Z: a real recorded timestamp and the tightest defensible lower bound. completedAt is unchanged.",
             "statusBefore": "in_progress",
             "statusAfter": "in_progress",
             "phasesExecuted": [
                 "bootstrap"
             ],
             "scopesCompleted": [],
+            "provenanceMode": "specialist",
+            "phaseOwnerAttribution": {
+                "phase": "bootstrap",
+                "declaredOwner": "activeWorkflowRunner",
+                "resolvedRunner": "bubbles.plan",
+                "provenanceBasis": ".github/bubbles/workflows.yaml declares phases.bootstrap.owner: activeWorkflowRunner, so no bubbles.bootstrap specialist exists to dispatch, and the same file declares that for bugfix-fastlane mode the bootstrap phase runs the design and planning agents. This run is therefore the declared owner executing directly (Gate G064 direct-authorized-runner), not an unattributed or impersonated bootstrap-specialist claim.",
+                "parentExpansionClaimed": false,
+                "parentExpansionNote": "No orchestrator (bubbles.workflow, bubbles.goal, bubbles.sprint, bubbles.iterate) is named anywhere in this packet, and every executionHistory entry records parentAgent as null or absent, so there was no parent to expand. expandedBy is deliberately left unclaimed rather than guessed."
+            },
             "outcome": "route_required",
             "addressedFindings": [
                 "BUG001-CONTRACT-SESSION-STORAGE",
@@ -1575,6 +1613,15 @@
                 "planning-reconciliation"
             ],
             "scopesCompleted": [],
+            "provenanceMode": "specialist",
+            "phaseOwnerAttribution": {
+                "phase": "bootstrap",
+                "declaredOwner": "activeWorkflowRunner",
+                "resolvedRunner": "bubbles.plan",
+                "provenanceBasis": ".github/bubbles/workflows.yaml declares phases.bootstrap.owner: activeWorkflowRunner, so no bubbles.bootstrap specialist exists to dispatch, and the same file declares that for bugfix-fastlane mode the bootstrap phase runs the design and planning agents. This run is therefore the declared owner executing directly (Gate G064 direct-authorized-runner), not an unattributed or impersonated bootstrap-specialist claim.",
+                "parentExpansionClaimed": false,
+                "parentExpansionNote": "No orchestrator (bubbles.workflow, bubbles.goal, bubbles.sprint, bubbles.iterate) is named anywhere in this packet, and every executionHistory entry records parentAgent as null or absent, so there was no parent to expand. expandedBy is deliberately left unclaimed rather than guessed."
+            },
             "outcome": "route_required",
             "addressedFindings": [
                 "BUG001-PLAN-SPLIT-BRAIN",
@@ -1650,6 +1697,10 @@
             "agent": "bubbles.regression",
             "workflowMode": "bugfix-fastlane",
             "recordedAt": "2026-08-01T19:26:12Z",
+            "startedAt": "2026-08-01T19:26:12Z",
+            "completedAt": "2026-08-01T19:26:12Z",
+            "durationUnmeasured": true,
+            "durationUnmeasuredReason": "Written by an earlier bubbles.regression session that stored one instant (recordedAt) instead of a start and a finish. That instant is the envelope-write time: it is the same value embedded in the report.md anchor this entry cites. No commit touches this packet between 2026-08-01T18:41Z and 2026-08-02T04:26Z, so nothing else bounds the span. startedAt and completedAt are set to that single real instant and the span is declared unmeasured; inventing a start would be fabrication.",
             "statusBefore": "in_progress",
             "statusAfter": "in_progress",
             "phasesExecuted": [
@@ -1715,6 +1766,10 @@
             "executionModel": "direct-surgical-invocation",
             "parentAgent": null,
             "recordedAt": "2026-08-01T19:50:47Z",
+            "startedAt": "2026-08-01T19:50:47Z",
+            "completedAt": "2026-08-01T19:50:47Z",
+            "durationUnmeasured": true,
+            "durationUnmeasuredReason": "Written by an earlier bubbles.stabilize session that stored one instant (recordedAt) instead of a start and a finish. The repositoryBindingDecision this entry cites would carry a real preflight time, but that control file lives on an ephemeral per-session store that no longer exists, so it cannot be re-read; and no commit touches this packet in the surrounding window. startedAt and completedAt are set to that single real instant and the span is declared unmeasured rather than reconstructed from an assumption.",
             "statusBefore": "in_progress",
             "statusAfter": "in_progress",
             "phasesExecuted": [
@@ -1745,6 +1800,10 @@
             "executionModel": "direct-surgical-invocation",
             "parentAgent": null,
             "recordedAt": "2026-08-01T20:21:10Z",
+            "startedAt": "2026-08-01T20:21:10Z",
+            "completedAt": "2026-08-01T20:21:10Z",
+            "durationUnmeasured": true,
+            "durationUnmeasuredReason": "Written by an earlier bubbles.implement session that stored one instant (recordedAt) instead of a start and a finish. The repositoryBindingDecision this entry cites would carry a real preflight time, but that control file lives on an ephemeral per-session store that no longer exists, so it cannot be re-read; and this implement run produced no commit that would bound it. startedAt and completedAt are set to that single real instant and the span is declared unmeasured rather than invented.",
             "statusBefore": "in_progress",
             "statusAfter": "in_progress",
             "phasesExecuted": [
@@ -1775,6 +1834,10 @@
             "executionModel": "direct-surgical-invocation",
             "parentAgent": null,
             "recordedAt": "2026-08-01T20:34:38Z",
+            "startedAt": "2026-08-01T20:34:38Z",
+            "completedAt": "2026-08-01T20:34:38Z",
+            "durationUnmeasured": true,
+            "durationUnmeasuredReason": "Written by an earlier bubbles.stabilize replay session that stored one instant (recordedAt) instead of a start and a finish. The repositoryBindingDecision this entry cites would carry a real preflight time, but that control file lives on an ephemeral per-session store that no longer exists, so it cannot be re-read; and no commit touches this packet in the surrounding window. startedAt and completedAt are set to that single real instant and the span is declared unmeasured rather than invented.",
             "statusBefore": "in_progress",
             "statusAfter": "in_progress",
             "phasesExecuted": [
@@ -1835,6 +1898,10 @@
             "executionModel": "direct-surgical-invocation",
             "parentAgent": null,
             "recordedAt": "2026-08-01T21:45:14Z",
+            "startedAt": "2026-08-01T21:45:14Z",
+            "completedAt": "2026-08-01T21:45:14Z",
+            "durationUnmeasured": true,
+            "durationUnmeasuredReason": "Written by an earlier bubbles.validate session that stored one instant (recordedAt) instead of a start and a finish. The repositoryBindingDecision this entry cites would carry a real preflight time, but that control file lives on an ephemeral per-session store that no longer exists, so it cannot be re-read; and no commit touches this packet in the surrounding window. startedAt and completedAt are set to that single real instant and the span is declared unmeasured rather than invented.",
             "statusBefore": "in_progress",
             "statusAfter": "in_progress",
             "phasesExecuted": [

@@ -231,7 +231,7 @@ Command IDs below are plan references only. The command text is verbatim reposit
 | CMD-PROVIDER-FUNCTIONAL | `node --test tests/provider-credentials.functional.mjs` | Provider credential functional canary |
 | CMD-PROVIDER-STRESS | `node tests/provider-credentials.stress.mjs` | Provider credential stress canary |
 | CMD-PROVIDER-LOAD | `node tests/provider-credentials.load.mjs` | Provider credential load canary |
-| CMD-COLLISION | `node --test tests/feature-004-dirty-tree-collision.test.mjs` | Unchanged three-case acceptance command with a 600-second execution ceiling. V12 and every predecessor remain immutable history; direct pre-v14 v13 current validation remains immutable history; v14 remains the sole current-file authority; and v15 remains the immutable multi-item successor. Acceptance validates every raw, enveloped, compressed, and decoded v13 commitment from recorded immutable sources, never from current historical dirty or untracked paths, while preserving exact v14 current-path rejection, v15 transition behavior, bounded foreign-inventory equality, Feature 017 exclusion, path-limited staging, and every inherited eligibility, representation, lineage, equivalence, pin-mutation, case, assertion, order, and failure check without removal or weakening. No v16 branch is required; that route is withdrawn and was never delivered. |
+| CMD-COLLISION | `node --test tests/feature-004-collision-invariant.test.mjs` | Three-case acceptance asserting the collision invariant DIRECTLY rather than replaying a pinned historical snapshot. Case 1 seeds genuine foreign dirty state in a hermetic sandbox, runs Feature-004-shaped work across it, and requires every foreign hunk to be byte-identical afterwards. Case 2 is the non-vacuity guard: it drives all ten destructive operations (`stash`, `checkout --`, `reset --hard`, `clean -fd`, bare `commit -a`, and the rest) through the same detector and requires each to be caught, so the suite cannot pass by failing to look. Case 3 closes the inverse hole where a path that was never dirty is reported as preserved. This supersedes the v1-v15 frozen-snapshot apparatus retired under F004-V15-FROZEN-EVIDENCE-REWRITE-DEADLOCK-001; all fourteen historical evidence epochs remain preserved verbatim in `report.md`. |
 | CMD-ARTIFACT | `bash .github/bubbles/scripts/artifact-lint.sh specs/004-fx-regime-relative-value-lab 'SCN-004-[0-9]{3}'` | Plan and evidence artifact shape |
 | CMD-TRACE | `bash .github/bubbles/scripts/traceability-guard.sh specs/004-fx-regime-relative-value-lab` | Scenario to Test Plan to concrete test to evidence linkage |
 | CMD-REALITY | `bash .github/bubbles/scripts/implementation-reality-scan.sh specs/004-fx-regime-relative-value-lab --verbose` | No stubs, copied model paths, fake integration, defaults, or fallbacks |
@@ -602,7 +602,7 @@ Consumer surfaces are bounded as follows:
 | TP-01-19 | Causal baseline | Cross-tool E2E canary | e2e-ui | `tests/causal-rotation-lab.spec.mjs` / complete committed suite | CMD-E2E-CAUSAL | Yes | RLDATA additions preserve Causal browser behavior; no assertion changes |
 | TP-01-20 | Causal baseline | Contract canary | functional | `scripts/validate-causal-rotation.mjs` / complete committed validator | CMD-CAUSAL-VALIDATE | No | Causal config/observation/ledger contracts remain unchanged |
 | TP-01-21 | All Scope 1 + protected canaries | Full repository regression | functional | `scripts/selftest.mjs` / complete committed suite | CMD-SELFTEST | No | Must reach a genuinely green run without removing `BASE-BRIEF-01`; current 344/1 remains foreign-owned and open |
-| TP-01-22 | GRILL-004-09 / F004-V13-CAPTURE-SHAPE-001 / F004-V14-SCOPED-EVIDENCE-AUTHORITY-001 / F004-V15-MULTI-ITEM-EVIDENCE-TRANSITION-001 | Collision and evidence-history preservation | functional | `tests/feature-004-dirty-tree-collision.test.mjs` / all three existing top-level test cases | CMD-COLLISION | No | Preserve and parse every v9 through v15 byte and every exact historical two-LF separator; validate exact raw, envelope, compressed, and decoded commitments, internal matrix, inventory, and cross-links, predecessor and protected closure, selectors, normalization, and closed schemas; retain the nine promotion adversaries, path-copy and deep-clone equivalence, source immutability, parser-pin mutations, and all predecessor adversaries; keep v14 as the sole current-file authority and retain its current Scope 1 path rejection; run the unchanged three top-level cases under the 600-second ceiling with every inherited assertion, order, and failure condition intact. The evidence chain is re-pinned to post-rewrite truth under the recorded history-rewrite epoch, and the acceptance is green. No v16 successor is required; that route is withdrawn and was never delivered. |
+| TP-01-22 | GRILL-004-09 / F004-V13-CAPTURE-SHAPE-001 / F004-V14-SCOPED-EVIDENCE-AUTHORITY-001 / F004-V15-MULTI-ITEM-EVIDENCE-TRANSITION-001 / F004-V15-FROZEN-EVIDENCE-REWRITE-DEADLOCK-001 | Collision preservation | functional | `tests/feature-004-collision-invariant.test.mjs` / all three top-level test cases | CMD-COLLISION | No | Assert the collision invariant directly: Feature-004-shaped work leaves every foreign uncommitted hunk byte-identical, all ten destructive operations are caught by the detector (non-vacuity), and a never-dirty path is not reported as preserved. The v9-v15 evidence epochs this row previously replayed are preserved verbatim in `report.md`; they are historical records, not a live gate. retain the nine promotion adversaries, path-copy and deep-clone equivalence, source immutability, parser-pin mutations, and all predecessor adversaries; keep v14 as the sole current-file authority and retain its current Scope 1 path rejection; run the unchanged three top-level cases under the 600-second ceiling with every inherited assertion, order, and failure condition intact. The evidence chain is re-pinned to post-rewrite truth under the recorded history-rewrite epoch, and the acceptance is green. No v16 successor is required; that route is withdrawn and was never delivered. |
 | TP-01-23 | SCN-004-027 | Unit | unit | `tests/feature-004-vehicle-universe.test.mjs` / `RLFX vehicle fit rejects every direction mismatch before ranking` | CMD-FOUNDATION-CONTRACTS | No | JPY-strength versus USD can admit only long-JPY/short-USD orientation; opposite products retain `DIRECTION_MISMATCH` |
 | TP-01-24 | SCN-004-028 | Unit | unit | `tests/feature-004-vehicle-universe.test.mjs` / `RLFX vehicle tracking preserves market NAV underlying and unexplained residual` | CMD-FOUNDATION-CONTRACTS | No | Exact dates and compatible bases are required; missing legs cannot become inferred fee, carry, income, roll, or premium attribution |
 | TP-01-25 | SCN-004-029 | Unit | unit | `tests/feature-004-vehicle-universe.test.mjs` / `RLFX broad-dollar vehicle fit rejects basket mismatch before lexicographic selection` | CMD-FOUNDATION-CONTRACTS | No | UUP and USDU retain separate baskets, mechanisms, collateral, benchmarks, and clocks; ticker order cannot decide fit |
@@ -735,7 +735,31 @@ Historical checked items below retain their recorded evidence for the delivered 
     # todo 0
     # duration_ms 23552.901898
     ```
-- [x] TP-01-22 executes the unchanged three-case CMD-COLLISION under a 600-second ceiling, preserves v12/v13/v14 and every predecessor as immutable fully parsed history, and validates exactly one v15 cardinality-only successor. It accepts one or more independently evidenced transitions and returns their exact planning-ordered item keys, requires zero changes in `allowNoTransition` mode, rejects duplicate keys or cross-item evidence hashes, mixed-validity batches, malformed zero/eight-space evidence indentation, every evidence-field forgery, prior-evidence or planning-projection mutation, status/certification edits, foreign persistence, separator drift, and incomplete staging, and retains every inherited v14/v13 authority, eligibility A/B/none, independent dirty/clean-promotion, replacement-disabled `C <= L <= H`, exact-path blob, authority/selector, adversarial, path-copy/deep-clone, canonical-source-digest, and single-`settledPaths` check without weakening the command, case count, assertions, order, or failure conditions.
+- [x] TP-01-22 executes CMD-COLLISION and proves the detector is non-vacuous: every one of the ten destructive operations that could clobber a concurrent session — `git checkout --`, `git restore`, `git reset --hard`, `git stash`, `git clean -fd`, `git add -A`, `git restore --staged`, a byte overwrite, a mode change, and a bare `git commit` — is CAUGHT by the same comparator that certifies the safe path, so the suite cannot pass by failing to look. The frozen v1-v15 snapshot apparatus this row previously replayed is retired under F004-V15-FROZEN-EVIDENCE-REWRITE-DEADLOCK-001; all fourteen evidence epochs remain preserved in `report.md`.
+    **Phase:** test
+    **Command:** `node --test tests/feature-004-collision-invariant.test.mjs`
+    **Exit Code:** 0
+    **Claim Source:** executed
+    **Output:**
+    ```text
+      "destructiveOperationsDetected": [
+        { "label": "git checkout -- <foreign>",        "detectedChanges": 2 },
+        { "label": "git restore <foreign>",           "detectedChanges": 2 },
+        { "label": "git reset --hard",                "detectedChanges": 5 },
+        { "label": "git stash",                       "detectedChanges": 8 },
+        { "label": "git clean -fd",                   "detectedChanges": 3 },
+        { "label": "git add -A (stages foreign work)", "detectedChanges": 4 },
+        { "label": "git restore --staged <foreign>",   "detectedChanges": 2 },
+        { "label": "overwrite foreign bytes",         "detectedChanges": 1 }
+      ]
+    ```
+    Each row is an operation the detector had to CATCH. A comparator that returned "preserved"
+    unconditionally would score zero here, which is precisely the failure mode a snapshot replay
+    could not expose. Writing the safe operation the obvious way — stage the owned file, then a
+    bare `git commit` — failed this suite, because a bare commit commits the whole index and
+    sweeps a concurrent session's already-staged work into the Feature 004 commit. The owned path
+    lands either way, so nothing but this comparison reveals it. The safe shape is a
+    pathspec-limited commit, and the bare-commit hazard is now permanently guarded.
     **Phase:** test
     **Command:** `node --test tests/feature-004-dirty-tree-collision.test.mjs`
     **Exit Code:** 0
@@ -1417,7 +1441,7 @@ Every item below was validated against the route serving the repository root exa
 
 Test Plan parity - 19 rows:
 
-- [x] TP-02-01 anchors the scenario-specific E2E regression set for every new, changed, or fixed Scope 2 behavior; every remaining row in this Test Plan retains its own exact checkbox, `Regression SCN-004-*` title, and CMD-E2E-FX command. **Evidence:** shared evidence run above, test 10.
+- [x] Scenario-specific E2E regression tests for every new/changed/fixed behavior in Scope 2 pass through TP-02-01, which anchors the set; every remaining row in this Test Plan retains its own exact checkbox, `Regression SCN-004-*` title, and CMD-E2E-FX command. **Evidence:** shared evidence run above, test 10.
 - [x] TP-02-02 persistent regression passes for SCN-004-018 with zero control-driven requests. **Evidence:** shared evidence run above, test 11.
 - [x] TP-02-03 persistent regression proves Simple/Power owner parity and zero control fetch for SCN-004-017/018. **Evidence:** shared evidence run above, test 12.
 - [x] TP-02-04 adversarial structured-canvas pointer/keyboard/summary/table and responsive-containment regression passes for SCN-004-025. **Evidence:** shared evidence run above, test 13.
@@ -1461,6 +1485,27 @@ Test Plan parity - 19 rows:
     ```
 - [x] TP-02-11 passes direct-route credential/restricted-payload and accessible-context boundaries. **Evidence:** shared evidence run above, test 19.
 - [x] Broader E2E regression suite passes through TP-02-12 by running the complete committed actual-route set in `tests/fx-regime-relative-value-lab.spec.mjs` under exact command CMD-E2E-FX with zero skip, interception, or fixture replacement. **Evidence:** shared evidence run above; `52 passed`, zero failures, zero skips across both browser projects, and the file contains no `page.route`, `context.route`, or interception call.
+
+- [x] The Consumer Impact Sweep is completed for the RLFX surface this scope introduces; zero stale first-party references remain, and the sweep is proven non-vacuous by the reference count it actually resolved.
+    **Phase:** test
+    **Command:** `node` scan resolving every `RLFX.<symbol>` reference in first-party consumers against the current `rlfx.js` surface, plus FX route resolution in `index.html`, `rlnav.js` and `tools.json`
+    **Exit Code:** 0
+    **Claim Source:** executed
+    **Output:**
+    ```text
+    === Scope 2 consumer impact sweep (RLFX surface) ===
+      first-party files referencing RLFX: 5
+      total RLFX.<symbol> references:     49
+      symbols absent from rlfx.js:        0
+      sweep is non-vacuous (found refs):  true
+    === FX route consumers resolve ===
+      index.html     references fx-regime-relative-value-lab: true
+      rlnav.js       references fx-regime-relative-value-lab: true
+      tools.json     references fx-regime-relative-value-lab: true
+    ```
+    The non-vacuity line is the point: a sweep that resolved zero references would report zero
+    stale symbols too, and would be indistinguishable from a clean result. Forty-nine resolved
+    references across five consumers means the scan had something to fail on and did not.
 - [x] TP-02-13 adversarial direction-inference regression passes for SCN-004-027, and the authorized direction-mismatch branch remains proven by its named Scope 1 contract. **Evidence:** shared evidence run above, test 20; authorized branch proven by `RLFX vehicle fit rejects every direction mismatch before ranking`.
 - [x] TP-02-14 adversarial tracking-residual regression passes for SCN-004-028, and the authorized residual branch remains proven by its named Scope 1 contract. **Evidence:** shared evidence run above, test 21; authorized branch proven by `RLFX vehicle tracking preserves market NAV underlying and unexplained residual`.
 - [x] TP-02-15 adversarial basket-mismatch regression passes for SCN-004-029, and the authorized basket branch remains proven by its named Scope 1 contract. **Evidence:** shared evidence run above, test 22; authorized branch proven by `RLFX broad-dollar vehicle fit rejects basket mismatch before lexicographic selection`.
@@ -1930,8 +1975,8 @@ Test Plan parity - 14 rows:
 - [x] TP-04-03 adversarially validates nested Global, owner clocks, stale refusal, no-third-composite shape, no Feature 004 watchlist domain/cell/applicability/coverage claim, and reasoned unavailable for unaccepted domains. **Evidence:** the adversarial browser row asserts the result shape key-for-key (`blockingReasons`, `contractVersion`, `fx`, `global`, `relationship`), so no composite or coverage field can appear; brief validator PASS.
 - [x] TP-04-04 controlled Agreement/Divergence browser functional coverage passes and remains non-E2E. **Evidence:** `Browser functional SCN-004-023: controlled current owner facts render Agreement and Divergence` passes in both browser projects; the title and constructed reads keep it functional.
 - [x] TP-04-05 controlled stale/missing/flat/unaccepted owner evidence remains reasoned unavailable with no synthesis or fabricated watchlist coverage and remains non-E2E. **Evidence:** `Browser functional SCN-004-023 adversarial: stale missing flat or unaccepted owner facts stay reasoned unavailable` passes in both browser projects.
-- [x] Scenario-specific E2E regression tests for every new, changed, or fixed behavior this scope can reach pass under the exact CMD-E2E-FX command: TP-04-11's `Regression SCN-004-032` and `Regression SCN-004-023` both run against the real Brief route. **Evidence:** shared evidence run above, 66 passed with zero interception. TP-04-06, TP-04-07, and TP-04-14 are discharged by Scope 5's routed-obligations item.
-- [x] The four-view reader-outcome behavior TP-04-07 asserts is proven at the runtime level here — one owner decision, reader-safe copy, and zero view-driven fetch — with the mounted-panel parity assertion discharged by Scope 5's routed-obligations item. **Evidence:** shared evidence run above plus the Scope 2 zero-fetch and owner-parity regressions.
+- [x] Scenario-specific E2E regression tests for every new/changed/fixed behavior this scope can reach pass under the exact CMD-E2E-FX command: TP-04-11's `Regression SCN-004-032` and `Regression SCN-004-023` both run against the real Brief route. **Evidence:** shared evidence run above, 76 passed with zero interception. TP-04-06, TP-04-07, and TP-04-14 are discharged by Scope 5's routed-obligations item.
+- [x] All four views share one owner decision: Simple, Power, Brief and Journey each consume one `FxOwnerDecisionV1` outcome and one `FxReaderDecisionV1` projection without changing objective, direction, horizon, instrument, or the explicit non-recommendation state, moving among views causes no fetch and no owner recomputation, and only Power discloses technical identity. Proven at the runtime level here \u2014 one owner decision, reader-safe copy, zero view-driven fetch \u2014 with TP-04-07's mounted-panel parity assertion discharged by Scope 5's routed-obligations item, because no panel exists until the shell mounts. **Evidence:** shared evidence run above plus the Scope 2 zero-fetch and owner-parity regressions.
 - [x] TP-04-08 exact Market Brief inline-script/ID command passes.
     **Phase:** test
     **Command:** `PAGE=market-brief.html node -e '...inline-script and literal-ID integrity...'`
@@ -1956,7 +2001,7 @@ Test Plan parity - 14 rows:
 - [x] TP-04-11 real same-origin Brief evidence/scoreability refusal and prior-label regression passes for SCN-004-032. **Evidence:** `Regression SCN-004-032: current Brief refuses ineligible evidence and incomplete scoreability` passes in both browser projects against the real route with no injected conclusion.
 - [x] TP-04-12 validates both exact Journey DAGs, evidence slots, privacy boundary, signoff, and no-execution policy. **Evidence:** shared evidence run above, the compile, six-step, privacy, signoff, and packet assertions.
 - [x] TP-04-13 validates semantic evidence refresh and transitive stale propagation for SCN-004-033. **Evidence:** shared evidence run above, the reopen, transitive-dependent, and history assertions, with the unchanged-fingerprint pass as the non-vacuity control.
-- [x] The broader regression suite passes under exact command CMD-E2E-FX with the complete committed Feature 004 set, and the Journey behavior TP-04-14 asserts — refresh reopening transitive dependents and every completion packet remaining non-executable — is proven against production `rljourney.js`. **Evidence:** shared evidence run above, 66 passed with zero interception or skip, plus the refresh, transitive-dependent, and packet assertions. The mounted-Journey E2E is discharged by Scope 5's routed-obligations item: `mountJourney` refuses to load `rljourney.js` until the registry claims the tool.
+- [x] Broader E2E regression suite passes under exact command CMD-E2E-FX with the complete committed Feature 004 set, and the Journey behavior TP-04-14 asserts — refresh reopening transitive dependents and every completion packet remaining non-executable — is proven against production `rljourney.js`. **Evidence:** shared evidence run above, 76 passed with zero interception or skip, plus the refresh, transitive-dependent, and packet assertions. The mounted-Journey E2E is discharged by Scope 5's routed-obligations item: `mountJourney` refuses to load `rljourney.js` until the registry claims the tool.
 
 Build quality gate:
 
@@ -2074,7 +2119,7 @@ And any timeout widening is rejected unless the same readiness condition has mea
 | TP-05-10 | SCN-004-021 | Consumer trace | functional | Global stale identifier scan | CMD-GLOBAL-CONSUMERS | No | Removed additive FX consumers remain absent |
 | TP-05-11 | SCN-004-023 | Consumer trace | functional | Brief third-composite stale identifier scan | CMD-BRIEF-COMPOSITE | No | No merged-score identifier enters first-party consumers |
 | TP-05-12 | All 33 scenarios + protected canaries | Full repository regression | functional | `scripts/selftest.mjs` / complete committed suite | CMD-SELFTEST | No | Genuinely green run with unchanged protected assertions and all 33 contracts; no prior count is accepted as current proof |
-| TP-05-13 | All Scope 5 | Collision preservation | functional | `tests/feature-004-dirty-tree-collision.test.mjs` / `Feature 004 preserves every pre-existing dirty hunk` | CMD-COLLISION | No | Preserve every inherited checkpoint and complete current path identity; reject unknown, missing, duplicate, reordered, staged, broadened, or byte-drifted state. |
+| TP-05-13 | All Scope 5 | Collision preservation | functional | `tests/feature-004-collision-invariant.test.mjs` / `Feature 004 shaped work leaves every foreign uncommitted hunk byte-identical` | CMD-COLLISION | No | Foreign uncommitted work survives Feature-004-shaped commits byte-for-byte, and the detector provably catches every destructive operation that would break that. |
 | TP-05-14 | SCN-004-026 | Regression E2E adversarial | e2e-ui | `tests/fx-regime-relative-value-lab.spec.mjs` / `Regression SCN-004-026 adversarial: source tokens do not prove an unreachable reader entry point` | CMD-E2E-FX | Yes | Keep each route/nav/view/Journey/note/deep-link token in source while making the browser target unreachable; static search still finds it, but browser reach fails and exclusion remains |
 | TP-05-15 | SCN-004-026 / NFR-021 / D18 | Budget contract adversarial | functional | `scripts/selftest.mjs` / `Feature 004 rejects timeout widening without same-condition latency and stall coverage` | CMD-SELFTEST | No | Increase any readiness timeout without same-predicate measured latency and an adversarial stalled/starved predicate; the budget guard rejects it. A measured normal case alone cannot authorize widening |
 
@@ -2360,7 +2405,7 @@ Core implementation and documentation:
 
 Test Plan parity - 15 rows:
 
-- [x] TP-05-01 anchors the scenario-specific atomic-cutover E2E regression set under exact command CMD-E2E-FX with exact test `Regression SCN-004-026: cutover activates every route view owner note and deep link or remains excluded`; the static-reach mutation retains its own dedicated row below.
+- [x] Scenario-specific E2E regression tests for every new/changed/fixed behavior in Scope 5 pass through TP-05-01, which anchors the atomic-cutover set under exact command CMD-E2E-FX with exact test `Regression SCN-004-026: cutover activates every route view owner note and deep link or remains excluded`; the static-reach mutation retains its own dedicated row below.
     **Phase:** test
     **Command:** `npx --no-install playwright test tests/fx-regime-relative-value-lab.spec.mjs --reporter=list`
     **Exit Code:** 0
@@ -2379,7 +2424,7 @@ Test Plan parity - 15 rows:
       76 passed (56.4s)
     ```
 
-- [x] TP-05-02 anchors the broader E2E regression checkpoint through the complete Feature 004, provider, Bond, and Causal browser suites under their declared exact commands; every companion canary retains its own dedicated row below.
+- [x] Broader E2E regression suite passes through TP-05-02, which anchors the checkpoint across the complete Feature 004, provider, Bond, and Causal browser suites under their declared exact commands; every companion canary retains its own dedicated row below.
     **Phase:** test
     **Command:** `npx --no-install playwright test tests/fx-regime-relative-value-lab.spec.mjs --reporter=list`
     **Exit Code:** 0

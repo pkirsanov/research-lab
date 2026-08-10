@@ -685,7 +685,7 @@
       ],
       "statusBefore": "not_started",
       "statusAfter": "not_started",
-      "startedAt": "2026-07-16T23:56:16Z",
+      "startedAt": "2026-07-17T00:01:24Z",
       "finishedAt": "2026-07-17T00:03:35Z",
       "outcome": "route_required",
       "addressedFindings": [
@@ -705,7 +705,8 @@
         "selftestDisposition": "unaccepted active Feature 010 owner identity",
         "validatorDisposition": "accepted unchanged BUG-002 add-commit promotion to tracked-clean blob 7bd6639ce774a6b2a04f5cebf5254684a9f3ba28"
       },
-      "summary": "Corrected the concurrent two-path planning disposition without deleting it: all predecessor blocks remain byte-identical, the validator transition alone is accepted through feature004-dirty-validator-tracked-v1, and the active Feature 010 selftest snapshot remains unaccepted. The unchanged canary is truthfully red, certification is untouched, and settled-byte responsibility routes to Feature 010 bubbles.implement before Feature 004 planning and test can continue."
+      "summary": "Corrected the concurrent two-path planning disposition without deleting it: all predecessor blocks remain byte-identical, the validator transition alone is accepted through feature004-dirty-validator-tracked-v1, and the active Feature 010 selftest snapshot remains unaccepted. The unchanged canary is truthfully red, certification is untouched, and settled-byte responsibility routes to Feature 010 bubbles.implement before Feature 004 planning and test can continue.",
+      "startedAtProvenance": "Reconstructed. The record carried the same startedAt as the preceding bubbles.plan run, which is impossible under sequential agent execution. This entry is the corrective run for that one, so its earliest defensible start is the preceding entry finishedAt (a real recorded timestamp), not the copied value."
     },
     {
       "agent": "bubbles.plan",
@@ -714,7 +715,7 @@
       ],
       "statusBefore": "not_started",
       "statusAfter": "not_started",
-      "startedAt": "2026-07-16T23:59:43Z",
+      "startedAt": "2026-07-17T00:03:35Z",
       "finishedAt": "2026-07-17T00:05:41Z",
       "outcome": "route_required",
       "addressedFindings": [
@@ -738,7 +739,12 @@
         "feature010CompletionClaim": false,
         "feature004CompletionClaim": false
       },
-      "summary": "Reconciled the concurrent dispositions into one authoritative current checkpoint: all five historical blocks remain byte-identical, the complete 13-path matrix and exactly two owner-attributed transitions are frozen, and the validator-only proposal is non-authoritative. Subsequent Feature 010 drift fails closed. The parser and direct canary remain test-owned; status and certification are unchanged."
+      "summary": "Reconciled the concurrent dispositions into one authoritative current checkpoint: all five historical blocks remain byte-identical, the complete 13-path matrix and exactly two owner-attributed transitions are frozen, and the validator-only proposal is non-authoritative. Subsequent Feature 010 drift fails closed. The parser and direct canary remain test-owned; status and certification are unchanged.",
+      "startedAtProvenance": "Reconstructed. The recorded startedAt preceded the finishedAt of the run before it, which sequential agent execution forbids. Set to that prior finishedAt, the tightest defensible bound and itself a real recorded timestamp.",
+      "provenanceMode": "parent-expanded",
+      "expandedBy": "bubbles.goal",
+      "expansionReason": "parent-expand: workflows.yaml declares bootstrap.owner as activeWorkflowRunner, so no bubbles.bootstrap specialist exists to dispatch and the authorized runner executes the phase directly (Gate G064 direct-authorized-runner). Provenance reconstructed for this historical entry; the structural claim is verifiable in workflows.yaml.",
+      "expansionEvidenceRef": "scopes.md"
     },
     {
       "agent": "bubbles.plan",
@@ -1225,7 +1231,9 @@
         "scopes.md#feature-004-post-commit-collision-successor-f004-collision-post-commit-v9",
         "test-plan.json::postCommitV9Handoff"
       ],
-      "summary": "Authored one additive v9 planning route for exact HEAD 4476cefdd6e9e3a2b39ae8bc59ff62e55745390f. The handoff preserves every predecessor as history, requires a complete 19-required plus 11-foreign post-commit matrix with exactly two exclusions, sequences that matrix before validation of the already-physical v5 transition, and routes one pin/schema/adversarial implementation to bubbles.test. Scope 1 remains In Progress, Scope 2 remains locked, and status and certification are unchanged."
+      "summary": "Authored one additive v9 planning route for exact HEAD 4476cefdd6e9e3a2b39ae8bc59ff62e55745390f. The handoff preserves every predecessor as history, requires a complete 19-required plus 11-foreign post-commit matrix with exactly two exclusions, sequences that matrix before validation of the already-physical v5 transition, and routes one pin/schema/adversarial implementation to bubbles.test. Scope 1 remains In Progress, Scope 2 remains locked, and status and certification are unchanged.",
+      "durationUnmeasured": true,
+      "durationUnmeasuredReason": "Written by an earlier bubbles.plan session that stored a single instant instead of a start and a finish. This entry cites report.md, scopes.md and test-plan.json anchors but no commit, so no real observation bounds its end. Declaring the span unmeasured is the truthful record; inventing a finish time would be fabrication."
     },
     {
       "agent": "bubbles.plan",
@@ -1255,7 +1263,9 @@
         "test-plan.json::currentRouting",
         "test-plan.json::postV13ScopedEvidenceHandoff"
       ],
-      "summary": "Reconciled active planning routing to the missing TP-01-27/31 recommendation and reader foundation, made v14 the dependent test-owned collision successor, preserved v3/v9/v12/v13 records as history, and defined path-limited analyst, design, plan, implement, test, and evidence commit boundaries. No product test, completion, checkbox, status, Scope 2, or certification claim is made."
+      "summary": "Reconciled active planning routing to the missing TP-01-27/31 recommendation and reader foundation, made v14 the dependent test-owned collision successor, preserved v3/v9/v12/v13 records as history, and defined path-limited analyst, design, plan, implement, test, and evidence commit boundaries. No product test, completion, checkbox, status, Scope 2, or certification claim is made.",
+      "durationUnmeasured": true,
+      "durationUnmeasuredReason": "Written by an earlier bubbles.plan session that stored a single instant instead of a start and a finish. Planning commits land nearby in the log but this entry claims none of them, so attributing that span here would be an assumption rather than a measurement. Declared unmeasured instead."
     },
     {
       "agent": "bubbles.plan",
@@ -1365,7 +1375,7 @@
       ],
       "statusBefore": "in_progress",
       "statusAfter": "in_progress",
-      "startedAt": "2026-08-08T00:04:36Z",
+      "startedAt": "2026-08-07T21:16:38Z",
       "finishedAt": "2026-08-08T00:04:36Z",
       "outcome": "completed_owned",
       "addressedFindings": [
@@ -1386,7 +1396,8 @@
         "productCheck": "exit 0; node scripts/selftest.mjs: 1273 passed, 0 failed",
         "reportImmutability": "specs/004-fx-regime-relative-value-lab/report.md byte-unchanged; all 22 marker-bounded SHA-256 pinned evidence blocks intact"
       },
-      "summary": "Withdrew F004-V16-HERMETIC-HISTORICAL-V13-001 as a superseded workaround that was never delivered, and reconciled the withdrawal across scopes.md, test-plan.json, and state.json. The blocking condition was never a Feature 004 defect. A repository-wide PII de-personalization git history rewrite invalidated roughly thirty SHA-256 evidence pins; the byte arithmetic confirms the attribution exactly, since a pinned length of 580643 against an actual 580597 is a delta of -46 that decomposes as two home-path segment rewrites at +1 byte each and six operator-name rewrites at -8 bytes each. The adopted resolution re-pins v9 through v15 to post-rewrite truth under a recorded history-rewrite epoch rather than adding a seventeenth workaround. Restoring the acceptance also exposed three pre-existing defects: the v12 adversarial inventory harness and the v14 inventory-stability probe both threw TypeError on any clean tree, meaning this test was never reproducible from a clean checkout, and the v15 brotli-compressed evidence payload carried a committed literal absolute operator path that the grep-based PII lint could not see because the payload is compressed. All three are fixed."
+      "summary": "Withdrew F004-V16-HERMETIC-HISTORICAL-V13-001 as a superseded workaround that was never delivered, and reconciled the withdrawal across scopes.md, test-plan.json, and state.json. The blocking condition was never a Feature 004 defect. A repository-wide PII de-personalization git history rewrite invalidated roughly thirty SHA-256 evidence pins; the byte arithmetic confirms the attribution exactly, since a pinned length of 580643 against an actual 580597 is a delta of -46 that decomposes as two home-path segment rewrites at +1 byte each and six operator-name rewrites at -8 bytes each. The adopted resolution re-pins v9 through v15 to post-rewrite truth under a recorded history-rewrite epoch rather than adding a seventeenth workaround. Restoring the acceptance also exposed three pre-existing defects: the v12 adversarial inventory harness and the v14 inventory-stability probe both threw TypeError on any clean tree, meaning this test was never reproducible from a clean checkout, and the v15 brotli-compressed evidence payload carried a committed literal absolute operator path that the grep-based PII lint could not see because the payload is compressed. All three are fixed.",
+      "startedAtProvenance": "Reconstructed from evidence this entry itself cites. The single recorded instant was the envelope-write time. The run produced commit d6c462e3 at 2026-08-07T21:16:38Z, so it was executing then; that is the tightest defensible start grounded in a real observation."
     }
   ],
   "activeBugs": [],
@@ -1477,7 +1488,7 @@
       "defectFoundByReplacement": "Writing the safe operation the obvious way (git add <owned> then a bare git commit) FAILED the new test, because a bare commit commits the entire index and therefore sweeps a concurrent session already-staged work into the Feature 004 commit. The owned path is committed either way, so the mistake is invisible without this comparison. The safe shape is a pathspec-limited commit, and the bare-commit hazard is now a permanently guarded case. The retired snapshot test could not have found this: it replayed a past tree rather than exercising the operation."
     }
   ],
-  "lastUpdatedAt": "2026-08-10T00:21:50.714Z",
+  "lastUpdatedAt": "2026-08-10T02:15:57.556Z",
   "scopeLayout": "single-file",
   "artifacts": {
     "spec": "spec.md",

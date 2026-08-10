@@ -2823,10 +2823,24 @@ test('SCN-017-066 The publication gate refuses an absent or unregistered deep li
       + `Published errors naming an attention field: ${JSON.stringify(publishedAttentionRefusals(registeredErrors))}`
   );
 
+  /* A SECTION of a registered page is still that page. `toolReads` carries
+     `bond-regime-lab.html#simple` today and the browser's href guard admits a
+     fragment, so a whole-string comparison would refuse a live link and put the
+     gate and the render in disagreement. */
+  const fragmentErrors = briefContract.validateBriefPayload(
+    payloadWithAttention([attentionItem({ deepLink: `${REGISTERED}#simple` })]), REGISTRY, CONFIG, null
+  );
+  assert.ok(
+    !publishedFieldsNamed(fragmentErrors).has('attention[0].deepLink'),
+    'a fragment addressing a section of a REGISTERED page must publish. '
+      + `Published errors naming an attention field: ${JSON.stringify(publishedAttentionRefusals(fragmentErrors))}`
+  );
+
   /* ADVERSARIAL. Each of these published cleanly before A-017-10 was closed.
      The absent case is the one FR-018 names in as many words. */
   const HOSTILE = {
     'an unregistered but well-shaped page': 'attacker-controlled-page.html',
+    'an unregistered page wearing a fragment': 'attacker-controlled-page.html#simple',
     'a javascript scheme': 'javascript:alert(1)',
     'a protocol-relative host escape': '//evil.example.com/x.html'
   };

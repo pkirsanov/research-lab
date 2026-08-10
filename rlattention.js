@@ -191,6 +191,9 @@
   function isPlainObject(v) { return v !== null && typeof v === "object" && !Array.isArray(v); }
   function isNonEmptyString(v) { return typeof v === "string" && v.trim().length > 0; }
   function trimmed(v) { return typeof v === "string" ? v.trim() : ""; }
+  /* The page a link addresses, with any section fragment removed. Only the
+     fragment is dropped, so a hostile value still fails registry membership. */
+  function pageOf(v) { return trimmed(v).split("#")[0]; }
   function isFiniteNumber(v) { return typeof v === "number" && isFinite(v); }
 
   function refuse(code, field, message) {
@@ -408,8 +411,12 @@
     if (!isNonEmptyString(deepLink)) {
       return refuse("RLATTN-DEEPLINK", "deepLink", "an attention item deep-links to the tool that owns its math");
     }
-    var allowed = Array.isArray(toolDeepLinks) ? toolDeepLinks.map(trimmed) : [];
-    if (allowed.length === 0 || allowed.indexOf(trimmed(deepLink)) === -1) {
+    var allowed = Array.isArray(toolDeepLinks) ? toolDeepLinks.map(pageOf) : [];
+    /* Membership is a property of the PAGE. A link may address a section of a
+       registered tool (bond-regime-lab.html#simple is a live toolReads value),
+       and the browser's href guard already admits a fragment, so comparing the
+       whole string would refuse a legitimate link and disagree with the render. */
+    if (allowed.length === 0 || allowed.indexOf(pageOf(deepLink)) === -1) {
       return refuse("RLATTN-DEEPLINK", "deepLink", "the deep link is not a registered tool page");
     }
     return null;

@@ -1287,3 +1287,65 @@ test('SCN-017-063 The record renders the published reduction, not a recomputed e
     await seededSite.close();
   }
 });
+
+/* ═══════════════ SCN-017-065 — BS-017-018 / FR-018 owner deep link ═══════════════ */
+
+/* The reader is told to check the figures at source, so the link has to actually
+   go there. The adversarial half is the reason this scenario exists: `deepLink`
+   is authored input that reaches an href, and a hostile value renders exactly
+   like a real one. Text assertions alone would pass on a `javascript:` link. */
+test('SCN-017-065 An item links to its owning tool and a hostile link never becomes an anchor', async ({ page }) => {
+  test.setTimeout(90_000);
+
+  const pageErrors = [];
+  page.on('pageerror', (error) => pageErrors.push(error.message));
+
+  await openBrief(page);
+
+  const tier = page.locator('#decisionAttention');
+
+  /* every COMMITTED item links to the tool that owns its math. */
+  for (const item of ATTENTION_ITEMS) {
+    expect(typeof item.deepLink,
+      `committed item ${item.id} must carry a deep link (FR-018)`).toBe('string');
+
+    const card = tier.locator(`[data-attn-id="${item.id}"]`);
+    await expect(card).toHaveCount(1);
+
+    const link = card.locator('[data-attn-field="owner-link"]');
+    await expect(link, `item ${item.id} must expose a link to its owning tool`).toHaveCount(1);
+    await expect(link).toHaveAttribute('href', item.deepLink);
+  }
+
+  /* ADVERSARIAL: each hostile value must be refused an anchor. A bare
+     toHaveCount(0) on the anchor would also pass if the tier failed to render
+     at all, so each case asserts the card itself is still present. */
+  const HOSTILE = [
+    'javascript:globalThis.__rlAttnLinkInjected=true',
+    'https://evil.example.com/market-heatmap-lab.html',
+    '../../etc/passwd',
+    'data:text/html,<script>globalThis.__rlAttnLinkInjected=true</script>'
+  ];
+
+  for (const hostile of HOSTILE) {
+    await renderFixture(page, {
+      nowUtc: FIXTURE_NOW,
+      generatedAt: FIXTURE_NOW,
+      attention: [fixtureItem({ id: 'attn-hostile-link', deepLink: hostile, expiry: LIVE_EXPIRY })]
+    });
+
+    const card = tier.locator('[data-attn-id="attn-hostile-link"]');
+    await expect(card, `the tier must still render the item for ${hostile}`).toHaveCount(1);
+    await card.locator('summary').first().click();
+
+    await expect(card.locator('[data-attn-field="owner-link"]'),
+      `a hostile deep link must never become an anchor: ${hostile}`).toHaveCount(0);
+
+    const hrefs = await card.locator('a').evaluateAll((nodes) => nodes.map((n) => n.getAttribute('href')));
+    expect(hrefs, `no anchor in the card may carry the hostile value: ${hostile}`).not.toContain(hostile);
+  }
+
+  expect(await page.evaluate(() => globalThis.__rlAttnLinkInjected === true),
+    'a hostile deep link must never execute').toBe(false);
+  expect(pageErrors, `browser errors during owner-link render: ${pageErrors.join(' | ')}`).toEqual([]);
+});

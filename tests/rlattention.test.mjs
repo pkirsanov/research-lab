@@ -115,12 +115,20 @@ const WINDOW_VOCABULARY = Object.freeze({
 
 const WATCHLIST = Object.freeze(['SPY', 'TLT', 'HYG', 'EURUSD']);
 
+/* FR-018 allowlist: the registry-derived tool pages an item may link to. */
+const TOOL_DEEP_LINKS = Object.freeze([
+  'market-heatmap-lab.html',
+  'sector-research-lab.html',
+  'bond-regime-lab.html'
+]);
+
 function ctx(overrides) {
   return Object.assign({
     tradingDateIso: TRADING_DATE,
     calendarSource: CALENDAR,
     windowVocabulary: WINDOW_VOCABULARY,
     watchlistScope: WATCHLIST,
+    toolDeepLinks: TOOL_DEEP_LINKS,
     publishedActionSubjects: []
   }, overrides || {});
 }
@@ -130,6 +138,7 @@ function gateResult(overrides) {
   return Object.assign({
     gateId: 'low-noise-gate',
     subject: 'HYG',
+    deepLink: 'market-heatmap-lab.html',
     disposition: 'attention',
     severity: 'moderate',
     imminence: 'imminent',
@@ -1073,4 +1082,39 @@ test('SCN-017-060 The rank rationale never renders a vacuous self-comparison', (
     'the higher reason must still be stated for distinct subjects; got: ' + JSON.stringify(comparative));
   assert.equal(comparative.includes(DORMANT_CLAUSE), true,
     'the lower reason must still be stated for distinct subjects; got: ' + JSON.stringify(comparative));
+});
+
+/* BS-017-018 / FR-018. The tier links rather than reimplements, so a reader can
+   check the math where it is owned. The adversarial half is the point: an item
+   that could carry any string could send a reader to a page that never produced
+   its figure, and a fabricated link renders identically to a real one. */
+test('SCN-017-064 An item deep-links to its owning tool and a fabricated link is refused', () => {
+  const RL = load();
+  const built = RL.buildAttentionItem(gateResult(), authored(), ctx());
+
+  assert.equal(built.ok, true, 'a candidate naming a registered tool page must build; got: ' + JSON.stringify(built));
+  assert.equal(built.item.deepLink, 'market-heatmap-lab.html',
+    'the item must carry the deep link of the tool that owns its math');
+  assert.equal(TOOL_DEEP_LINKS.includes(built.item.deepLink), true,
+    'the carried link must be one the registry actually declares');
+
+  /* the item links to the tool rather than restating its computation */
+  assert.equal(built.item.deepLink.endsWith('.html'), true,
+    'the deep link must address a tool page');
+
+  const fabricated = RL.buildAttentionItem(
+    gateResult({ deepLink: 'attacker-controlled-page.html' }), authored(), ctx());
+  assert.equal(fabricated.ok, false, 'a link outside the registry allowlist must be refused');
+  assert.equal(fabricated.code, 'RLATTN-DEEPLINK',
+    'the refusal must name the deep-link contract; got: ' + JSON.stringify(fabricated));
+  assert.equal(fabricated.field, 'deepLink');
+
+  const missing = RL.buildAttentionItem(gateResult({ deepLink: undefined }), authored(), ctx());
+  assert.equal(missing.ok, false, 'an item with no deep link must be refused, not published unlinked');
+  assert.equal(missing.code, 'RLATTN-DEEPLINK');
+
+  /* an empty allowlist must not become a pass-through */
+  const noRegistry = RL.buildAttentionItem(gateResult(), authored(), ctx({ toolDeepLinks: [] }));
+  assert.equal(noRegistry.ok, false, 'with no registered tool pages nothing may be linked');
+  assert.equal(noRegistry.code, 'RLATTN-DEEPLINK');
 });

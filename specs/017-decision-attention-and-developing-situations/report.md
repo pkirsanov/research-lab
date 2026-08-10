@@ -331,6 +331,13 @@ previously is superseded by that re-execution, not explained away.
 
 ## Validation Summary
 
+> **SUPERSEDED 2026-08-10 by re-execution.** The non-certification verdict and
+> the `prototype` assurance level recorded in this subsection rested on
+> `tests/brief-refresh-atomicity.test.mjs` failing 8 of 26. That suite now passes
+> 26/26 at exit 0. The verdict below is retained verbatim as the audit trail of
+> the earlier measurement and is **not** the current disposition. The current
+> disposition is in *Certification 2026-08-10* at the end of this section.
+
 **Not certified. `status` stays `blocked`, and the assurance level is lowered from
 `fast` to `prototype` on re-executed evidence.**
 
@@ -449,6 +456,52 @@ symptom while leaving a suite that silently fails every weekend. D19 therefore
 routes to `bubbles.test`, not to the operator.
 
 Certification remains validate-owned and no other agent has written it.
+
+### Certification 2026-08-10 — Success Signal demonstrated
+
+**Claim Source:** executed. Every command in this subsection was run by
+`bubbles.validate` at certification time against the working tree at
+`4951cdadab54f88ae32730c9048f5810b430ebab`.
+
+**Certified `done`, assurance `full`.** The **Success Signal** declared in the
+spec's Outcome Contract is demonstrated, not merely declared. A reader opening a
+generation window sees a Decision Attention section whose every item is bounded
+to a **120-character headline**, carries a **decision window resolved to a real
+session boundary from the exchange calendar**, names the **public subjects or
+transmission channel** it would act through, states an **escalation trigger** and
+an **invalidation** checkable unaided, and **deep-links to the tool owning the
+underlying math** — the four constraint families are asserted across the 27
+passing cases in `tests/rlattention.test.mjs`. When nothing qualifies the reader
+gets the explicit empty state `"Nothing requires attention in this window."`,
+shipped in both `rlattention.js` and `market-brief.html` and pinned by
+SCN-017-021 and SCN-017-051, rather than a padded feed. The outcome tier
+publishes `escalated` / `confirmed` / `expired` shares from `rlattention.js` and
+**withholds the rate with the sample size shown** when the sample is too small —
+which is exactly why F-017-06 is recorded *correctly open* at `closedSample: 0`
+rather than closed: at that value the wired read and the prior hardcoded read
+emit identical text, so its browser row is not yet adversarial. Independent
+`AUD-017-005` weighed that residual and returned `SHIP_WITH_NOTES` with
+`unresolvedFindings: []`.
+
+| command | exit | result |
+|---|---|---|
+| `state-transition-guard.sh specs/017-...` | 0 | `verdict: PASS`, `failureCount: 0`, `failedGateIds: []`, `blockingCode: none`, `targetStatus: done` |
+| `artifact-lint.sh specs/017-...` | 0 | `Artifact lint PASSED.` |
+| `node scripts/selftest.mjs` | 0 | 1370 passed, 0 failed |
+| `node --test tests/rlattention.test.mjs` | 0 | 27 tests, 27 pass, 0 fail |
+| `node --test tests/brief-refresh-atomicity.test.mjs` | 0 | 26 tests, 26 pass, 0 fail |
+
+**Prior-blocker disposition, by measurement rather than by assertion.** D19 is
+closed on re-execution (26/26, exit 0), which retires the `prototype` downgrade
+above and the high observation VAL-017-10 that rested on the same 8-of-26 run.
+VAL-017-03 is retired: all six scopes now carry regression-E2E, change-boundary
+containment, and canary/rollback items. VAL-017-04 is retired: the Open Findings
+ledger no longer contradicts shipped reality — F-017-04 reads fully closed and
+covered, and F-017-06 reads correctly open with its residual stated. VAL-017-01,
+VAL-017-02 and VAL-017-09 were already superseded by the audit chain, whose
+findings AUD-017-005 lists in `addressedFindings`. No high-severity observation
+survives this measurement unretired, so certification is not carrying concealed
+remediation.
 
 ## Audit Verdict AUD-017-005
 

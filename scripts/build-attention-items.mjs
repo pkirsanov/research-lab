@@ -90,13 +90,16 @@ export function actionSubjectTickers(actions, watchlistScope) {
  * artifact or from the payload's own session; nothing is synthesized. A member
  * no artifact can supply is left ABSENT so the composer refuses the item by
  * name, which is the whole point of a hard cutover.
- */
-export function attentionBuildContext(payload, config) {
+ */export function attentionBuildContext(payload, config) {
   return Object.freeze({
     watchlistScope: WATCHLIST_SCOPE,
     calendarSource: XNYS_CALENDAR_SOURCE,
     windowVocabulary: windowVocabularyFrom(config),
     tradingDateIso: payload?.nextSession?.sessionDate,
+    /* FR-018 allowlist. Registry-derived from the same toolReads channel the
+       tier already publishes, so an item can only link to a tool that actually
+       filed a read this generation. */
+    toolDeepLinks: toolDeepLinkValues(payload),
     /* the window this generation is FOR. The lane no longer authors it — an
        author asked for a window types whichever one sounds right, and three
        publishes proved that. It is the generation's own property, so the build
@@ -107,6 +110,32 @@ export function attentionBuildContext(payload, config) {
        already carried by an action makes an attention card on it a duplicate. */
     publishedActionSubjects: actionSubjectTickers(payload?.nextSession?.actions, WATCHLIST_SCOPE)
   });
+}
+
+/** Every tool page an item may link to this generation, from the published reads. */
+export function toolDeepLinkValues(payload) {
+  const reads = payload && typeof payload.toolReads === 'object' && payload.toolReads ? payload.toolReads : {};
+  const links = [];
+  for (const id of Object.keys(reads)) {
+    const link = reads[id] && reads[id].deepLink;
+    if (typeof link === 'string' && link && !links.includes(link)) links.push(link);
+  }
+  return Object.freeze(links);
+}
+
+/* FR-018. Resolved from the tool that produced the item's first figure, never
+   from the candidate: a lane that could name its own destination could point a
+   reader at any page, exactly as it could once name its own decision window.
+   Unresolvable stays ABSENT so the composer refuses by name. */
+function resolvedDeepLink(gateResult, payload) {
+  const figures = gateResult && Array.isArray(gateResult.figures) ? gateResult.figures : [];
+  const reads = payload && typeof payload.toolReads === 'object' && payload.toolReads ? payload.toolReads : {};
+  for (const figure of figures) {
+    const sourceId = figure && figure.provenance && figure.provenance.sourceId;
+    const link = sourceId && reads[sourceId] && reads[sourceId].deepLink;
+    if (typeof link === 'string' && link) return link;
+  }
+  return undefined;
 }
 
 /** Keep only what the lane is allowed to author, so a stray envelope field cannot ride along. */
@@ -179,7 +208,13 @@ export function buildAttentionItems(candidates, payload, config) {
   const exclusions = [];
 
   (Array.isArray(candidates) ? candidates : []).forEach((candidate, index) => {
-    const gateResult = candidate && typeof candidate === 'object' ? candidate.observed : null;
+    const observed = candidate && typeof candidate === 'object' ? candidate.observed : null;
+
+    /* The deep link is composer-resolved for the same reason the window is:
+       both are properties of the generation, not judgements the lane may make. */
+    const gateResult = observed && typeof observed === 'object'
+      ? Object.assign({}, observed, { deepLink: resolvedDeepLink(observed, payload) })
+      : observed;
 
     /* The authored judgement, plus the ONE window the lane is no longer allowed
        to pick. Merged after the strip, never before: a candidate that tried to

@@ -167,7 +167,8 @@
     "RLATTN-TRANSMISSION",
     "RLATTN-CONFIRMATION",
     "RLATTN-PROVENANCE",
-    "RLATTN-VERB"
+    "RLATTN-VERB",
+    "RLATTN-DEEPLINK"
   ]);
 
   /* only a non-committal gate disposition may become an attention item. */
@@ -399,6 +400,21 @@
 
   /* An empty path is publishable only while the item is NOT claiming that the
      effect is already arriving; an imminent claim with no channel must say so. */
+  /* FR-018. The link is checked against the registry-derived allowlist rather than
+     accepted as written, for the same reason checkSubject checks watchlist scope: an
+     item that could name its own destination could send a reader anywhere, and a
+     fabricated link is indistinguishable from a real one once rendered. */
+  function checkDeepLink(deepLink, toolDeepLinks) {
+    if (!isNonEmptyString(deepLink)) {
+      return refuse("RLATTN-DEEPLINK", "deepLink", "an attention item deep-links to the tool that owns its math");
+    }
+    var allowed = Array.isArray(toolDeepLinks) ? toolDeepLinks.map(trimmed) : [];
+    if (allowed.length === 0 || allowed.indexOf(trimmed(deepLink)) === -1) {
+      return refuse("RLATTN-DEEPLINK", "deepLink", "the deep link is not a registered tool page");
+    }
+    return null;
+  }
+
   function checkTransmission(path, absenceNote, imminence) {
     if (!Array.isArray(path)) {
       return refuse("RLATTN-TRANSMISSION", "transmissionPath", "the transmission path is a list of certified channels");
@@ -484,6 +500,9 @@
     failure = checkOverlap(gateResult.subject, context.publishedActionSubjects);
     if (failure) return failure;
 
+    failure = checkDeepLink(gateResult.deepLink, context.toolDeepLinks);
+    if (failure) return failure;
+
     failure = checkHeadline(authored.headline);
     if (failure) return failure;
 
@@ -537,6 +556,7 @@
       id: id,
       gateId: isNonEmptyString(gateResult.gateId) ? trimmed(gateResult.gateId) : null,
       subject: subject,
+      deepLink: trimmed(gateResult.deepLink),
       disposition: trimmed(gateResult.disposition),
       severity: trimmed(gateResult.severity),
       imminence: trimmed(gateResult.imminence),

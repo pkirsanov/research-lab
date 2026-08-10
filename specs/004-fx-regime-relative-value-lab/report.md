@@ -8951,3 +8951,62 @@ checkbox in `scopes.md`.
 scopes that `scopes.md` declares Done, which closes the Gate G027 coherence
 failure. The spec status remains `in_progress` because Scope 5 has not started.
 The next owner is `bubbles.implement` for Scope 5.
+
+## Audit phase — adversarial review of the delivered Feature 004 surface
+
+Eight checks, run against the current tree. Two real defects found and fixed; the
+rest are recorded with the measurement that clears them, because an audit that
+only reports what it expected to find has not audited anything.
+
+**Phase:** audit
+**Command:** stale-reference scan, canned-data scan, route-resolution scan, interception scan, reality scan
+**Exit Code:** 0
+**Claim Source:** executed
+**Output:**
+
+```text
+=== AUDIT 3: commands named in scopes.md that no longer exist ===
+    MISSING: tests/feature-004-dirty-tree-collision.test.mjs
+
+=== AUDIT 5: first-party refs to a route that does not exist ===
+    registered tools: 24  missing route files: 0
+
+=== AUDIT 6: reality scan ===
+  Violations:     0
+  Warnings:       0
+🟢 PASSED: No source code reality violations detected
+
+=== AUDIT 7: interception in the FX E2E suite (would void live-stack claims) ===
+0
+  (0 = genuinely live-stack)
+```
+
+### Defects found and fixed
+
+**A. A deliverable claim named a file that no longer exists.** The Scope 1 allowed-
+surface list still announced `tests/feature-004-dirty-tree-collision.test.mjs` as a
+new deliverable describing report-baseline parsing. That file was retired. A surface
+list that names a deleted file is worse than silence: it tells a reader the coverage
+exists. Replaced with the invariant test that actually ships.
+
+**B. A checked DoD item enumerated assertions that no longer exist.** TP-01-22 claimed
+preservation of "every v12/v13/v14/predecessor assertion" and "exactly one v15
+cardinality-only successor". Those assertions were retired with their apparatus, so the
+item was marked [x] against machinery that is gone. Rewritten to claim what the
+replacement proves, with the retirement and its finding id named.
+
+### Checks that came back clean, and why the check was capable of failing
+
+- **Route resolution:** all 24 registered tools resolve to a file on disk. The FX route
+  is among them, so the scan had the newly-registered entry in scope.
+- **Interception scan:** zero `page.route` / `context.route` / `intercept` / `msw` / `nock`
+  occurrences in `tests/fx-regime-relative-value-lab.spec.mjs`. The 76-passing E2E claim
+  is therefore genuinely live-stack; a single interception would have made it a mocked
+  suite wearing an e2e-ui label.
+- **Canned data:** the two `Date.now()` sites in `rlbrief.js` are age arithmetic, and the
+  first accepts an injectable `nowMs`. Neither fabricates business data. `rlfx.js` and
+  `fx-regime-relative-value-lab.html` carry none.
+- **Historical evidence counts:** DoD blocks cite selftest at 1273, 1292, 1356, 1365 and
+  1370. These are per-scope historical records from when each scope ran, not stale claims
+  about the present, and `artifact-freshness-guard.sh` accepts them. Flagged here so a
+  reader is not surprised by the spread.

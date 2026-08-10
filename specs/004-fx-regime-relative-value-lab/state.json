@@ -29,7 +29,8 @@
       "bootstrap",
       "implement",
       "test",
-      "validate"
+      "validate",
+      "audit"
     ],
     "pendingTransitionRequests": [],
     "nextRequiredOwner": "bubbles.implement",
@@ -1491,6 +1492,29 @@
       },
       "summary": "Certified SCOPE-02, SCOPE-03, and SCOPE-04 against the four canonical checks and closed the Gate G027 phase-scope coherence failure. scopes.md declared Scopes 1 through 4 Done while certification.completedScopes listed only SCOPE-01, so certified completion undercounted delivered scopes by three. Verified each newly certified scope carries a fully checked DoD (29/0, 19/0, 24/0 measured directly from scopes.md) before recording it. Status stays in_progress because Scope 5 remains Not Started with one unchecked DoD item, so the spec is not eligible for a done ceiling.",
       "startedAtProvenance": "Grounded in a real recorded instant: the repository-binding control file records this runs preflight decision rb:vscode-a855981ff9231b3a8f1b780a6192a1da:7 at 2026-08-10T03:03:52Z, which is when this validation run began."
+    },
+    {
+      "agent": "bubbles.audit",
+      "workflowMode": "full-delivery",
+      "phasesExecuted": [
+        "audit"
+      ],
+      "provenanceMode": "parent-expanded",
+      "expandedBy": "bubbles.goal",
+      "expansionReason": "runSubagent dispatch to bubbles.audit returned without performing or committing any spec-004 work (two attempts). The authorized runner executed the audit phase directly rather than record a phase that did not run.",
+      "expansionEvidenceRef": "report.md",
+      "statusBefore": "in_progress",
+      "statusAfter": "in_progress",
+      "startedAt": "2026-08-10T03:38:09Z",
+      "finishedAt": "2026-08-10T03:54:09Z",
+      "outcome": "completed_owned",
+      "addressedFindings": [
+        "F004-AUDIT-STALE-DELIVERABLE-001",
+        "F004-AUDIT-STALE-DOD-TP0122-001"
+      ],
+      "unresolvedFindings": [],
+      "evidenceRef": "report.md#audit-phase--adversarial-review-of-the-delivered-feature-004-surface",
+      "summary": "Eight adversarial checks against the current tree. Found and fixed two real defects, both left by the collision-apparatus retirement: the Scope 1 allowed-surface list still announced the deleted snapshot test as a new deliverable, and TP-01-22 was checked [x] while enumerating v12/v13/v14/v15 assertions that no longer exist. Cleared four checks with the measurement that made each capable of failing: all 24 registered tool routes resolve, the FX E2E suite contains zero request interceptions so its 76-passing claim is genuinely live-stack, the reality scan reports zero violations, and the two Date.now() sites in rlbrief.js are age arithmetic rather than fabricated business data."
     }
   ],
   "activeBugs": [],
@@ -1579,9 +1603,27 @@
       "replacedBy": "tests/feature-004-collision-invariant.test.mjs",
       "newCoverage": "3 tests, 10 destructive operations each proven detected. The safe path asserts that a Feature-004-shaped operation leaves every foreign worktree byte, staged blob, file mode and porcelain status identical; the non-vacuity suite requires the same comparator to CATCH git checkout --, git restore, git reset --hard, git stash, git clean -fd, git add -A, git restore --staged, a byte overwrite, a chmod, and a bare git commit.",
       "defectFoundByReplacement": "Writing the safe operation the obvious way (git add <owned> then a bare git commit) FAILED the new test, because a bare commit commits the entire index and therefore sweeps a concurrent session already-staged work into the Feature 004 commit. The owned path is committed either way, so the mistake is invisible without this comparison. The safe shape is a pathspec-limited commit, and the bare-commit hazard is now a permanently guarded case. The retired snapshot test could not have found this: it replayed a past tree rather than exercising the operation."
+    },
+    {
+      "id": "F004-AUDIT-STALE-DELIVERABLE-001",
+      "status": "addressed",
+      "severity": "medium",
+      "owner": "bubbles.audit",
+      "summary": "The Scope 1 allowed-surface list named tests/feature-004-dirty-tree-collision.test.mjs as a new deliverable after that file was retired. A surface list naming a deleted file asserts coverage that does not exist.",
+      "resolution": "Replaced with tests/feature-004-collision-invariant.test.mjs and a note recording the retirement and its finding id.",
+      "evidenceRef": "report.md#audit-phase--adversarial-review-of-the-delivered-feature-004-surface"
+    },
+    {
+      "id": "F004-AUDIT-STALE-DOD-TP0122-001",
+      "status": "addressed",
+      "severity": "high",
+      "owner": "bubbles.audit",
+      "summary": "TP-01-22 was marked [x] while claiming preservation of every v12/v13/v14/predecessor assertion and exactly one v15 cardinality-only successor. Those assertions were retired with their apparatus, so a checked DoD item was vouching for machinery that no longer exists.",
+      "resolution": "Rewritten to claim what the replacement gate actually proves - ten destructive operations each caught by the same comparator that certifies the safe path - with the retirement named.",
+      "evidenceRef": "report.md#audit-phase--adversarial-review-of-the-delivered-feature-004-surface"
     }
   ],
-  "lastUpdatedAt": "2026-08-10T03:08:02Z",
+  "lastUpdatedAt": "2026-08-10T03:54:09.287Z",
   "scopeLayout": "single-file",
   "artifacts": {
     "spec": "spec.md",

@@ -103,6 +103,14 @@ export const BRIEF_NARRATIVE_FIELDS_REQUIRED = [
   'nextSession.actions.[].structuralAnchor',
   'nextSession.actions.[].trigger',
   'nextSession.actions.[].invalidation',
+  /* `instrument` was left undeclared while every sibling was guarded, on the
+     assumption that it names an instrument and stays short. The 16:55 refresh
+     wrote 213 characters into it — "SPY core (hold overnight into the 8/11
+     session; dealers closed positive-gamma …)" — which is reader prose the
+     brief renders verbatim, so it belongs under the vocabulary gate rather than
+     outside it. Declaring it guards the field; leaving it undeclared would have
+     let the next run put a status code in front of the reader unchecked. */
+  'recommendations.[].instrument',
   'recommendations.[].structuralAnchor',
   'recommendations.[].levels',
   'recommendations.[].trigger',

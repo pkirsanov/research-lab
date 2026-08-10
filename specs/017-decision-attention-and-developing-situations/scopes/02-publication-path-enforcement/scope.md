@@ -3,8 +3,8 @@
 ## 02-publication-path-enforcement
 
 **Status:** Done
-**Scope-Kind:** contract-enforcement
-**Tags:** validator, payload, parity
+**Scope-Kind:** runtime-behavior
+**Tags:** contract-enforcement, validator, payload, parity
 Depends On: Scope 1 - the attention capability foundation
 
 **Primary Outcome:** `scripts/validate-brief-payload.mjs` stops checking only the

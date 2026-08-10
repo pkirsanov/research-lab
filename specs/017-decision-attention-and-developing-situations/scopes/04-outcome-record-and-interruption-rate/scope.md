@@ -3,8 +3,8 @@
 ## 04-outcome-record-and-interruption-rate
 
 **Status:** Done
-**Scope-Kind:** data-record
-**Tags:** ledger, reducer, disjoint-record, withholding
+**Scope-Kind:** runtime-behavior
+**Tags:** data-record, ledger, reducer, disjoint-record, withholding
 Depends On: Scope 1 - the attention capability foundation, Scope 3
 
 **Primary Outcome:** Terminated attention items append exactly one record each to

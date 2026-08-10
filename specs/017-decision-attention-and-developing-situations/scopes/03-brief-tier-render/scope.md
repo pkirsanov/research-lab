@@ -3,8 +3,8 @@
 ## 03-brief-tier-render
 
 **Status:** Done
-**Scope-Kind:** ui-render
-**Tags:** brief-view, tooltips, escaping, degraded-state
+**Scope-Kind:** runtime-behavior
+**Tags:** ui-render, brief-view, tooltips, escaping, degraded-state
 Depends On: Scope 1 - the attention capability foundation, Scope 2
 
 **Primary Outcome:** `market-brief.html` gains a `#decisionAttention` section

@@ -3,8 +3,8 @@
 ## 06-authoring-lane-composer-routing
 
 **Status:** Done
-**Scope-Kind:** publish-pipeline
-**Tags:** composer-routing, build-step, exclusion-record, structural-compliance
+**Scope-Kind:** runtime-behavior
+**Tags:** publish-pipeline, composer-routing, build-step, exclusion-record, structural-compliance
 Depends On: Scope 1 - the attention capability foundation, Scope 2, Scope 3
 
 **Primary Outcome:** The authoring lane stops emitting `decision-attention/v1`

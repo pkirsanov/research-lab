@@ -3,8 +3,8 @@
 ## 05-legacy-feed-reconciliation-and-acceptance
 
 **Status:** Done
-**Scope-Kind:** acceptance
-**Tags:** reconciliation, legibility, view-identity, performance
+**Scope-Kind:** runtime-behavior
+**Tags:** acceptance, reconciliation, legibility, view-identity, performance
 Depends On: Scope 2, Scope 3, Scope 4 - and through all three, the Scope 1 attention capability foundation
 
 **Primary Outcome:** H-4 is resolved by **re-scoping** the legacy feed: `rlbrief.js`

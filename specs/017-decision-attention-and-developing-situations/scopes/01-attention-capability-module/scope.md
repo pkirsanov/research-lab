@@ -3,8 +3,8 @@
 ## 01-attention-capability-module
 
 **Status:** Done
-**Scope-Kind:** capability-foundation
-**Tags:** foundation:true, module, lifecycle, determinism
+**Scope-Kind:** runtime-behavior
+**Tags:** foundation:true, capability-foundation, module, lifecycle, determinism
 Depends On: none
 
 **Primary Outcome:** `rlattention.js` exists as a UMD module exposing the global

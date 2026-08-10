@@ -22,6 +22,7 @@ const HELPER = resolve(ROOT, 'tests/playwright-runtime.mjs');
 const LOCAL_PACKAGE = realpathSync(resolve(ROOT, 'node_modules/playwright'));
 const LOCAL_CLI = realpathSync(resolve(ROOT, 'node_modules/.bin/playwright'));
 const EXPECTED_BROWSER_SPEC_PATHS = [
+  'tests/attention-browser.spec.mjs',
   'tests/bond-regime-lab.spec.mjs',
   'tests/brief-payload-escaping.spec.mjs',
   'tests/causal-rotation-lab.spec.mjs',
@@ -57,13 +58,15 @@ const EXPECTED_BROWSER_SPEC_PATHS = [
   'tests/web-evidence.spec.mjs'
 ];
 const EXPECTED_NODE_SUITE_PATHS = [
+  'tests/attention-payload-contract.test.mjs',
   'tests/brief-d16-direction-aware-publish-gate.test.mjs',
   'tests/brief-refresh-atomicity.test.mjs',
   'tests/feature-004-brief-eligibility.test.mjs',
-  'tests/feature-004-dirty-tree-collision.test.mjs',
+  'tests/feature-004-collision-invariant.test.mjs',
   'tests/feature-004-journey-evidence-refresh.test.mjs',
   'tests/feature-004-tool-control-binding.test.mjs',
-  'tests/feature-004-vehicle-universe.test.mjs'
+  'tests/feature-004-vehicle-universe.test.mjs',
+  'tests/rlattention.test.mjs'
 ];
 
 test('shared runtime exports the exact checkout-local Playwright 1.61.1 API', () => {
@@ -186,7 +189,7 @@ test('every Playwright spec uses the shared seam and sole committed browser conf
   for (const specPath of importers) {
     console.log('[playwright-runtime] importer=' + specPath.slice(ROOT.length + 1));
   }
-  assert.equal(specPaths.length, 33);
+  assert.equal(specPaths.length, 34);
   assert.deepEqual(
     specPaths.map((specPath) => specPath.slice(ROOT.length + 1)),
     EXPECTED_BROWSER_SPEC_PATHS

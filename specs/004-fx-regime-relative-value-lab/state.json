@@ -17,7 +17,7 @@
   "planningOnly": false,
   "planningOnlyJustification": null,
   "specDependsOn": [],
-  "certifiedAt": "2026-08-10T04:42:24Z",
+  "certifiedAt": "2026-08-10T05:19:47Z",
   "requiresRevalidation": false,
   "execution": {
     "activeAgent": "bubbles.validate",
@@ -106,7 +106,7 @@
         "dependsOn": [],
         "scopeDir": null,
         "evidenceFile": "report.md",
-        "certifiedAt": "2026-08-06T00:00:00Z",
+        "certifiedAt": "2026-08-10T05:19:47Z",
         "certificationEvidence": {
           "CMD-FIRST-RED": "exit 0 - PASS RLFX CommonJS import preserves the existing global and explicit decisionTime is deterministic",
           "CMD-SELFTEST": "exit 0 - Research-Lab self-test: 1273 passed, 0 failed",
@@ -127,7 +127,7 @@
         ],
         "scopeDir": null,
         "evidenceFile": "report.md",
-        "certifiedAt": "2026-08-10T03:08:02Z",
+        "certifiedAt": "2026-08-10T05:19:47Z",
         "certificationEvidence": {
           "CMD-SELFTEST": "exit 0 - Research-Lab self-test: 1370 passed, 0 failed",
           "CMD-BRIEF-CONTRACT": "exit 0 - [brief-contract] PASS: all visible sections, registry coverage, model-specific real assets, and next-session actions are valid",
@@ -147,7 +147,7 @@
         ],
         "scopeDir": null,
         "evidenceFile": "report.md",
-        "certifiedAt": "2026-08-10T03:08:02Z",
+        "certifiedAt": "2026-08-10T05:19:47Z",
         "certificationEvidence": {
           "CMD-SELFTEST": "exit 0 - Research-Lab self-test: 1370 passed, 0 failed",
           "CMD-BRIEF-CONTRACT": "exit 0 - [brief-contract] PASS: all visible sections, registry coverage, model-specific real assets, and next-session actions are valid",
@@ -167,7 +167,7 @@
         ],
         "scopeDir": null,
         "evidenceFile": "report.md",
-        "certifiedAt": "2026-08-10T03:08:02Z",
+        "certifiedAt": "2026-08-10T05:19:47Z",
         "certificationEvidence": {
           "CMD-SELFTEST": "exit 0 - Research-Lab self-test: 1370 passed, 0 failed",
           "CMD-BRIEF-CONTRACT": "exit 0 - [brief-contract] PASS: all visible sections, registry coverage, model-specific real assets, and next-session actions are valid",
@@ -190,7 +190,7 @@
         ],
         "scopeDir": null,
         "evidenceFile": "report.md",
-        "certifiedAt": "2026-08-10T04:42:24Z",
+        "certifiedAt": "2026-08-10T05:19:47Z",
         "certificationEvidence": {
           "CMD-SELFTEST": "exit 0 - Research-Lab self-test: 1370 passed, 0 failed",
           "CMD-E2E-FX": "exit 0 - 38 passed (34.9s), project system-chrome, zero skipped and zero interception",
@@ -206,6 +206,12 @@
     "lockdownState": {
       "active": false,
       "lockedScenarioIds": []
+    },
+    "certifiedAt": "2026-08-10T05:19:47Z",
+    "recertifiedAfterSpecEdit": {
+      "at": "2026-08-10T05:19:47Z",
+      "reason": "Gate G088 requires a current spec-review recertification when certified planning truth changes after certifiedAt. The spec-review phase ran in this session and is recorded in executionHistory with its finding; certifiedAt is advanced to after the last planning edit was committed.",
+      "specReviewEvidenceRef": "report.md#spec-review-evidence"
     }
   },
   "policySnapshot": {
@@ -1872,7 +1878,7 @@
       "evidenceRef": "report.md#spec-review-evidence"
     }
   ],
-  "lastUpdatedAt": "2026-08-10T04:56:57.068Z",
+  "lastUpdatedAt": "2026-08-10T05:19:47.101Z",
   "scopeLayout": "single-file",
   "artifacts": {
     "spec": "spec.md",

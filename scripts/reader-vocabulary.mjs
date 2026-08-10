@@ -103,16 +103,6 @@ export const BRIEF_NARRATIVE_FIELDS_REQUIRED = [
   'nextSession.actions.[].structuralAnchor',
   'nextSession.actions.[].trigger',
   'nextSession.actions.[].invalidation',
-  'attention.[].title',
-  'attention.[].what',
-  'attention.[].why',
-  'attention.[].structuralAnchor',
-  'attention.[].rationale',
-  'attention.[].invalidation',
-  'attention.[].escalationTrigger',
-  /* rlattention.js refuses an item missing rationale/invalidation/escalationTrigger, so those
-     three are unconditional. The confirmation pair is not — it is conditional and complementary,
-     so it lives in the optional list below for the reason recorded there. */
   'recommendations.[].structuralAnchor',
   'recommendations.[].levels',
   'recommendations.[].trigger',
@@ -123,9 +113,7 @@ export const BRIEF_NARRATIVE_FIELDS_REQUIRED = [
   'events.[].psychologyNote',
   'events.[].scenarios.[].name',
   'events.[].scenarios.[].expectedEffect',
-  'psychology.regimeName',
-  'psychology.read',
-  'psychology.tell',
+  'psychology.*',
   'groups.[].label',
   'groups.[].note',
   'groups.[].notable.[].reason',
@@ -164,6 +152,16 @@ export const BRIEF_NARRATIVE_FIELDS_OPTIONAL = [
   { pattern: 'experimental.[].title', producer: 'scripts/brief-narrative-parallel.mjs' },
   { pattern: 'experimental.[].note', producer: 'scripts/brief-narrative-parallel.mjs' },
   { pattern: 'experimental.[].method', producer: 'scripts/brief-narrative-parallel.mjs' },
+  /* A generation may validly refuse every attention candidate. Legacy feed prose is rendered
+     by rlbrief.js when present; certified item prose is emitted by rlattention.js. Both remain
+     guarded for vocabulary leaks, but neither is required to appear in every payload. */
+  { pattern: 'attention.[].title', producer: 'rlbrief.js' },
+  { pattern: 'attention.[].what', producer: 'rlbrief.js' },
+  { pattern: 'attention.[].why', producer: 'rlbrief.js' },
+  { pattern: 'attention.[].structuralAnchor', producer: 'rlbrief.js' },
+  { pattern: 'attention.[].rationale', producer: 'rlattention.js' },
+  { pattern: 'attention.[].invalidation', producer: 'rlattention.js' },
+  { pattern: 'attention.[].escalationTrigger', producer: 'rlattention.js' },
   /* Conditional and complementary by contract: rlattention.js checkConfirmation demands
      `detail` only when the confirmation state is 'present', and the note only when it is NOT.
      Today's payload happens to carry both (states present/partial/partial), which is what made

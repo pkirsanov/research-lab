@@ -2325,8 +2325,10 @@ try {
   // generator applied the plain-word rule AND kept the code in brackets beside it. A gate that
   // accepted a sentence once the translation was present would let this straight through.
   const glossed = clone();
-  glossed.attention[0].structuralAnchor = 'msft-july-print-model and ai-capex-strategy-lab are both no call this cycle '
-    + '(coverage-only; do not feed the brief yet / not applicable this window).';
+  glossed.attention = [{
+    structuralAnchor: 'msft-july-print-model and ai-capex-strategy-lab are both no call this cycle '
+      + '(coverage-only; do not feed the brief yet / not applicable this window).'
+  }];
   const glossErrors = vocabularyErrors(glossed);
   assert(glossErrors.length === 1 && /attention\.\[\]\.structuralAnchor/.test(glossErrors[0]),
     'a code kept as a parenthetical gloss beside its own translation still fails — the translation does not excuse it');
@@ -2334,8 +2336,10 @@ try {
   // The complement of ADVERSARIAL 3: the corrected form must pass, or the "fix" would just be
   // the gate banning the sentence rather than the code.
   const translated = clone();
-  translated.attention[0].structuralAnchor = 'msft-july-print-model and ai-capex-strategy-lab are both no call this cycle '
-    + '(they do not feed the brief yet / not applicable this window).';
+  translated.attention = [{
+    structuralAnchor: 'msft-july-print-model and ai-capex-strategy-lab are both no call this cycle '
+      + '(they do not feed the brief yet / not applicable this window).'
+  }];
   assert(vocabularyErrors(translated).length === 0,
     'the same sentence with the code replaced by plain words passes — the rule bans the code, not the state');
 

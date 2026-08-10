@@ -8,6 +8,7 @@ test.afterAll(async () => { if (site) await site.close(); });
 async function waitForHeatmap(page) {
   await page.goto(`${site.baseUrl}/market-heatmap-lab.html`);
   await page.getByRole('tab', { name: 'Power', exact: true }).click();
+  await expect(page.locator('body')).toHaveAttribute('data-heatmap-hydration', 'ready', { timeout: 120000 });
   await expect(page.locator('#tbody tr').first()).toBeVisible();
   await expect(page.locator('#tm')).toHaveAttribute('data-rlchart-mode', 'structured');
   await expect(page.locator('#rlcontext-disclosure')).toHaveCount(1);

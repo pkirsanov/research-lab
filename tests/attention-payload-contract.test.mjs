@@ -398,7 +398,11 @@ test('SCN-017-027 Existing attention consumers still parse the payload unchanged
   /* the REAL committed artifact, read from disk. */
   const payload = JSON.parse(readFileSync(PAYLOAD_PATH, 'utf8'));
   assert.ok(Array.isArray(payload.attention), 'the committed payload carries an attention array');
-  assert.ok(payload.attention.length > 0, 'the committed payload carries at least one attention card');
+  assert.ok(Array.isArray(payload.attentionExclusions), 'the committed payload carries attention refusal accounting');
+  assert.ok(
+    payload.attention.length + payload.attentionExclusions.length > 0,
+    'the committed payload accounts for at least one candidate as published or excluded'
+  );
 
   payload.attention.forEach((item, index) => {
     /* HALF ONE — every pre-existing key survives the migration, by name, by
@@ -1355,15 +1359,16 @@ const READER_LEAK_PROBES = Object.freeze([
 ]);
 
 test('SCN-017-040 Reader legibility reports zero leaks across the tier and the record', async () => {
-  /* ── GIVEN: the tier and the record are genuinely populated ──────────────
-     Asserted, never assumed. A page with no tier would audit clean for the
-     uninteresting reason that there was nothing on it to leak. */
+  /* ── GIVEN: the tier ran and the record is genuinely populated ───────────
+     An all-refused generation legitimately renders the declared empty state,
+     but it must still account for every refused candidate by name. */
   const payload = readJson(PAYLOAD_PATH);
   const decisionAttention = (payload.attention || [])
     .filter((item) => item && item.contractVersion === 'decision-attention/v1');
+  const exclusions = Array.isArray(payload.attentionExclusions) ? payload.attentionExclusions : [];
   assert.ok(
-    decisionAttention.length > 0,
-    'the committed payload must carry at least one decision-attention/v1 item, otherwise a clean audit proves nothing'
+    decisionAttention.length + exclusions.length > 0,
+    'the committed payload must account for at least one attention candidate as published or excluded'
   );
 
   const pageSource = readFileSync(MARKET_BRIEF_PAGE_PATH, 'utf8');

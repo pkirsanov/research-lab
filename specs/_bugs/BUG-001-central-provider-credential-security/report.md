@@ -6948,3 +6948,355 @@ fabrication G022 and G027 exist to detect, so both stay open and the packet
 stays `in_progress`. This is the honest state, not a stalled one: the single
 remaining action is an audit run that actually produces output.
 
+## Audit Attempt AUD-BUG001-009 (bubbles.audit, delivery-completion-v1) — 2026-08-10T16:18:03Z
+
+**Attempt:** `AUD-BUG001-009` · supersedes `AUD-BUG001-008`
+**Started:** 2026-08-10T16:01:09Z · **Completed:** 2026-08-10T16:18:03Z
+**Repository binding decision:** `rb:vscode-a855981ff9231b3a8f1b780a6192a1da:12` (`PREFLIGHT_COMMITTED`, revision 12)
+**Audit profile:** `delivery-completion-v1` · **Target status:** `done` · **Workflow mode:** `bugfix-fastlane`
+**Contract digest:** `sha256:aa91472c047d3d985d38c1d308feb1e6081955b2aa553816deb5987d9cdc449f`
+**Target revision:** `sha256:b022406e14edd7690dd3ed7bda8f236a0097a6f85f91d80b41d3f0a4e1726e13`
+**Product git HEAD:** `f8c9b3fdbdf363fa4446115c2ed514d7b51f9457`
+**Verdict:** `REWORK_REQUIRED` · **Outcome:** `route_required` · **Next owner:** `bubbles.validate`
+
+This is the first audit attempt on this packet to complete a full evaluation
+against a cleanly resolving contract. All commands below were executed from the
+repository root in this session; each block is verbatim terminal output.
+
+### AUD-009-E1 Independent re-execution: unit and functional suites
+
+```text
+$ node --test tests/provider-credentials.unit.mjs
+✔ SCN-BUG002-001 providers start unconfigured; two-tier API present; local key configures then clears (18.574269ms)
+✔ SCN-BUG002-004 fail-closed transport and prototype-safe unknown providers (19.456078ms)
+✔ SCN-BUG001-004 legacy registry excludes BUG-002 provider configuration (1.840117ms)
+✔ SCN-BUG001-004 inaccessible legacy storage never becomes a false clear result (10.232493ms)
+ℹ tests 4
+ℹ suites 0
+ℹ pass 4
+ℹ fail 0
+ℹ cancelled 0
+ℹ skipped 0
+ℹ todo 0
+ℹ duration_ms 506.343326
+UNIT_EXIT=0
+-----
+$ node --test tests/provider-credentials.functional.mjs
+BUG004_CREDENTIAL_NORMALIZATION_MATRIX_BEGIN
+REGISTRY_PROVIDER_COUNT=4
+REGISTRY_RESERVED_QUERY_NAME_COUNT=3
+REGISTRY_RESERVED_QUERY_NAMES=apikey,token,api_key
+CALLER_RESERVED_QUERY_ENTRY_COUNT_PER_PROVIDER=18
+PROVIDER=twelvedata PROXY_CREDENTIAL_LEAKS=0 DIRECT_UNEXPECTED_CREDENTIALS=0 DIRECT_CONFIGURED_CANONICAL=1 DIRECT_REQUESTS=1 CROSS_PROVIDER_REQUESTS=0 ORDER_EXACT=true PROXY_NONCREDENTIAL_ORDER=true DIRECT_NONCREDENTIAL_ORDER=true
+PROVIDER=finnhub PROXY_CREDENTIAL_LEAKS=0 DIRECT_UNEXPECTED_CREDENTIALS=0 DIRECT_CONFIGURED_CANONICAL=1 DIRECT_REQUESTS=1 CROSS_PROVIDER_REQUESTS=0 ORDER_EXACT=true PROXY_NONCREDENTIAL_ORDER=true DIRECT_NONCREDENTIAL_ORDER=true
+PROVIDER=alphavantage PROXY_CREDENTIAL_LEAKS=0 DIRECT_UNEXPECTED_CREDENTIALS=0 DIRECT_CONFIGURED_CANONICAL=1 DIRECT_REQUESTS=1 CROSS_PROVIDER_REQUESTS=0 ORDER_EXACT=true PROXY_NONCREDENTIAL_ORDER=true DIRECT_NONCREDENTIAL_ORDER=true
+PROVIDER=fred PROXY_CREDENTIAL_LEAKS=0 DIRECT_UNEXPECTED_CREDENTIALS=0 DIRECT_CONFIGURED_CANONICAL=1 DIRECT_REQUESTS=1 CROSS_PROVIDER_REQUESTS=0 ORDER_EXACT=true PROXY_NONCREDENTIAL_ORDER=true DIRECT_NONCREDENTIAL_ORDER=true
+TOTAL_PROXY_CREDENTIAL_LEAKS=0
+TOTAL_DIRECT_UNEXPECTED_CREDENTIALS=0
+EXTERNAL_NETWORK=false
+MATRIX_FAILURES=0
+BUG004_CREDENTIAL_NORMALIZATION_MATRIX_END
+✔ SCN-BUG002-002 local keys persist across lifecycle signals (Tier-2 is durable, not memory-only) (19.69288ms)
+✔ SCN-BUG002-002b same browser shares keys across pages; separate browsers stay isolated (6.290758ms)
+✔ Regression BUG-004: proxy HTTP failure falls back once to same-provider local key (16.070946ms)
+✔ Regression BUG-004: key-bearing full URL stays keyless at proxy and singular at direct fallback (9.679088ms)
+✔ Regression BUG-004: registry-reserved query fields are stripped before proxy and canonicalized once for direct (17.767763ms)
+✔ Regression BUG-004: proxy transport rejection falls back once to same-provider local key (4.640443ms)
+✔ Regression BUG-004: proxy timeout rejection falls back once to same-provider local key (6.410159ms)
+✔ Regression BUG-004: proxy JSON decode failure falls back once to same-provider local key (1.215211ms)
+✔ Regression BUG-004: fallback never crosses provider or retries (1.166711ms)
+✔ Regression BUG-004: no same-provider key fails closed without disclosure (2.613524ms)
+✔ SCN-BUG004-003 force-local uses the shared direct provider path (1.528814ms)
+✔ SCN-BUG001-004 exact legacy containers erase while BUG-002 configuration remains unchanged (4.326539ms)
+✔ SCN-BUG001-004 partial legacy deletion reports incomplete and preserves BUG-002 configuration (0.615805ms)
+✔ SCN-BUG001-004 deletion failure plus unavailable verification does not count a still-present container as removed (0.772307ms)
+ℹ tests 14
+ℹ suites 0
+ℹ pass 14
+ℹ fail 0
+ℹ cancelled 0
+ℹ skipped 0
+ℹ todo 0
+ℹ duration_ms 391.777977
+FUNCTIONAL_EXIT=0
+```
+
+Observed independently: unit **4 tests / 4 pass / 0 fail**, functional **14 tests
+/ 14 pass / 0 fail**. All three `SCN-BUG001-004` functional cases — exact erase,
+partial-incomplete, and the reopened deletion-failure-plus-unavailable branch —
+pass, and the unit registry case proves the legacy registry cannot select the
+BUG-002 provider configuration.
+
+### AUD-009-E2 Independent re-execution: stress and load suites
+
+```text
+$ node tests/provider-credentials.stress.mjs
+BUG002_STRESS_BEGIN
+CATEGORY=stress
+CYCLES=250
+TIER2_ROUNDTRIPS=250
+TIER1_PROXY_FETCHES=250
+TIER2_PROVIDER_FETCHES=250
+PROXY_KEY_LEAKS=0
+TIER2_REQUESTS_MISSING_KEY=0
+KEY_LEAKS=0
+LEGACY_STORAGE_OFFENDERS=0
+RESULT=PASS
+BUG002_STRESS_END
+STRESS_EXIT=0
+-----
+$ node tests/provider-credentials.load.mjs
+BUG002_LOAD_BEGIN
+CATEGORY=load
+PARALLEL_CONTEXTS=8
+ISOLATED_KEYS=8
+PERSISTED_ACROSS_RELOAD=8
+PERSISTED_ACROSS_NAV=8
+TIER2_PROVIDER_REACHED=8
+KEY_LEAKS=0
+RESULT=PASS
+BUG002_LOAD_END
+LOAD_EXIT=0
+```
+
+`LEGACY_STORAGE_OFFENDERS=0` over 250 cycles is the direct behavioural proof that
+no legacy container is repopulated after erasure. `PERSISTED_ACROSS_RELOAD=8` and
+`TIER2_PROVIDER_REACHED=8` are the matching proof that BUG-002 Tier-2 durability
+is intact after the BUG-001 cleanup exists in the same build.
+
+### AUD-009-E3 Independent re-execution: repository selftest
+
+```text
+$ node scripts/selftest.mjs
+  ✓ the statePath-fetch check is non-vacuous — it still matches the regressed shape
+  ✓ no registered page fetches a root-absolute asset path — it loses the repo segment on project Pages:
+  ✓ the root-absolute asset detector still matches the regressed shape
+  ✓ the workflow checks detect a reduced browser gate and a repo-root deployment
+
+spec artifacts — referenced tests/*.mjs paths exist (Playwright silently ignores absent file args)
+  ✓ the scan matched at least one tests/*.mjs reference against a present baseline, so the guard is not vacuously green (11594 reference(s) across 482 artifact(s), baseline 86 entries)
+  ✓ no tests/*.mjs path named by a spec artifact is missing outside the frozen baseline — a stale path makes a multi-file verification command silently cover less than it claims (0 new, 86 known-missing, 0 stale of 218 referenced)
+
+================================================
+Research-Lab self-test: 1370 passed, 0 failed
+================================================
+SELFTEST_EXIT=0
+```
+
+Observed: **1370 passed, 0 failed**, exit 0.
+
+### AUD-009-E4 Inventory completeness: independent full-history container scan
+
+Method deliberately differs from a diff/text sweep: every distinct blob ever
+reachable from any ref whose path ends `.js`/`.html` (excluding `tests/`,
+`_site/`, `node_modules/`) is enumerated once and piped through `git cat-file
+--batch`, then storage container names are extracted. Both quote styles are
+accepted.
+
+```text
+$ git rev-list --objects --all | (shipped .js/.html blobs) | git cat-file --batch | extract storage container names
+aiCapexApi
+aiCapexHist
+aiCapexLab
+aiCapexQuotes
+bondRegimeLabState
+etfMomFhKey
+etfMomHoldings
+etfMomLab
+etfMomQuotes
+etfMomSeries
+etfMomTdKey
+gammaHist
+gammaTradingLab
+intradayTapeLab
+msftFhKey
+optSnaps
+optStructLab
+rlApiKeys
+rlData
+rlRates
+rlTreasuryCurves
+sectorLab
+sectorSeries
+smartMoneyLab
+swingStructLab
+tdKey
+26
+```
+
+**26 distinct names** ever referenced. Eight are declared in
+`LEGACY_CREDENTIAL_CONTAINERS`, so **18 are undeclared** — arithmetic
+independently reproduced.
+
+### AUD-009-E5 Inventory completeness: the legacy migration's own credential-source map
+
+Rather than reasoning about the 18 undeclared names one at a time, the decisive
+artifact is the pre-BUG-002 `rlMigrate()` function itself: it enumerates exactly
+which containers the legacy model treated as credential sources.
+
+```text
+$ full pre-BUG-002 rlMigrate() body (spaced variant, first match)
+            function rlMigrate() {
+                var o = rlKeys(), ch = false; function seed(p, v) { v = (v || '').trim(); if (v && !o[p]) { o[p] = v; ch = true; } }
+                try { var m = JSON.parse(localStorage.getItem('etfMomLab') || 'null'); if (m) seed('twelvedata', m.apiKey); } catch (e) { }
+                try { var s = JSON.parse(localStorage.getItem('optStructLab') || 'null'); if (s && s.key) seed('twelvedata', s.key); } catch (e) { }
+                if (ch) { try { localStorage.setItem('rlApiKeys', JSON.stringify(o)); } catch (e) { } }
+            }
+
+$ source container for the avKey/fhKey seeds
+aiCapexApi
+etfMomFhKey
+etfMomLab
+msftFhKey
+
+$ all historical shapes written to optStructLab
+     62 on:
+     31 zoom:
+     31 ticker:
+     31 sign:
+     31 rate:
+     31 provider:
+     31 nExp:
+     31 minOI:
+     31 div:
+     31 added:
+     20 riskPct:
+     20 acct:
+
+$ wider window: any credential field ever written to optStructLab?
+0
+(count of credential-shaped fields in optStructLab payloads == 0 means none)
+```
+
+Every container the legacy migration reads as a credential source —
+`etfMomLab`, `aiCapexApi`, `etfMomFhKey`, `msftFhKey`, and the `rlApiKeys` sink —
+**is declared**. One is not: `optStructLab`, read as `s.key`.
+
+That read is dead: across **all 31 historical versions** of the `optStructLab`
+writer the persisted fields are only `provider/ticker/nExp/sign/zoom/minOI/rate/
+div/added/on` plus later `acct/riskPct`, and a credential-shaped field appears
+**0** times. No shipped code path could ever place a credential in
+`optStructLab`, so excluding it from the erasure registry is correct — and
+positively desirable, because the container holds live, non-secret user
+preferences for a tool that still ships, and `whole-container` erasure would
+destroy them.
+
+**Disposition of the pre-audit inventory claim: conclusion CONFIRMED, stated
+reason REFUTED.** The claim asserted the `optStructLab` grep hits were
+neighbour-line contamination from `rlApiKeys`/`sectorLab`. They are not: there
+is a direct `getItem('optStructLab') → s.key → seed('twelvedata', …)` migration
+read. The exclusion is nonetheless correct, on the stronger verified ground that
+the writer never wrote the field. Recorded as `AUD-BUG001-009-OPTSTRUCTLAB-RATIONALE`.
+
+### AUD-009-E6 Scope limit of the completeness method (recorded, not waived)
+
+Both this scan and the pre-audit scan match only **string-literal** container
+names. Containers reached through a variable are invisible to that method:
+
+```text
+$ blind-spot measurement: storage writes whose container name is NOT a string literal (current tree)
+      3 localStorage.setItem(LS
+      3 localStorage.getItem(key
+      3 localStorage.getItem(LS
+      2 localStorage.setItem(STORAGE_KEY
+      2 localStorage.setItem(LEDGER_KEY
+      2 localStorage.setItem(KEY
+      2 localStorage.removeItem(key
+      2 localStorage.getItem(STORAGE_KEY
+      1 sessionStorage.removeItem(key
+      1 sessionStorage.getItem(key
+      1 localStorage.setItem(key
+      1 localStorage.setItem(SHELL.routingPolicy.localModeKey
+      1 localStorage.setItem(PROVIDER_CFG_KEY
+      1 localStorage.setItem(MSFT_MODE_KEY
+      1 localStorage.setItem(LS_SERIES
+      1 localStorage.setItem(LSKEY
+      1 localStorage.setItem(HOWTO_KEY
+      1 localStorage.setItem(CACHE_PREFIX
+=== what those identifiers resolve to ===
+./rldata.js:65:  var PROVIDER_CFG_KEY = "rlProviderConfig";
+```
+
+Corroborating this directly: three declared names — `rlStratVal`,
+`strategyValidationLab`, `rlSessionProviderCredentialsV1` — do **not** appear in
+the E4 literal scan at all, yet `rlStratVal` has 123 literal occurrences in
+history and is live in `strategy-validation-lab.html`. The inventory is
+therefore over-inclusive relative to the literal scan in three places, which is
+the safe direction: erasing a name no writer used is a verified no-op, and the
+unit suite proves unknown names cannot be selected.
+
+The honest statement is: inventory completeness is **verified for
+literal-form containers and for every container the legacy migration itself
+enumerated**, and is **not proven exhaustively** for variable-addressed
+containers. This bounds the claim; it does not defeat the SCOPE-01 requirement,
+because the requirement is scoped to the containers the pre-BUG-002 model left,
+and that set is exactly what E5 enumerates. Recorded as
+`AUD-BUG001-009-LITERAL-SCAN-BOUND` (severity low, `followUpOwner`
+`bubbles.validate`).
+
+### AUD-009-E7 Assertion-bound transition contract and guard
+
+```text
+$ transition-contract-resolver.sh specs/_bugs/BUG-001-central-provider-credential-security
+RESOLVER_EXIT=0
+workflowMode: bugfix-fastlane   auditProfile: delivery-completion-v1
+targetStatus: done              statusCeiling: done   currentStatus: in_progress
+contractDigest: sha256:aa91472c047d3d985d38c1d308feb1e6081955b2aa553816deb5987d9cdc449f
+targetRevision: sha256:b022406e14edd7690dd3ed7bda8f236a0097a6f85f91d80b41d3f0a4e1726e13
+
+$ state-transition-guard.sh --target-status done --expect-workflow-mode bugfix-fastlane --expect-contract-digest sha256:aa9147...
+🔴 BLOCK: Required phase 'audit' NOT in execution/certification phase records (Gate G022 violation)
+🔴 BLOCK: 1 specialist phase(s) missing — work was NOT executed through the full pipeline
+--- Check 15: Phase-Scope Coherence (Gate G027) ---
+🔴 BLOCK: Execution/certification phases claim implement/test phases but completedScopes is EMPTY — FABRICATION (Gate G027)
+--- Check 16: Implementation Reality Scan (Gate G028) ---
+✅ PASS: Implementation reality scan passed — no stub/fake/hardcoded data patterns detected
+BEGIN TRANSITION_GUARD_RESULT_V1
+failedGateIds: [G022,G027]
+blockingCode: DELIVERY_COMPLETION_FAILED
+failureCount: 4
+verdict: FAIL
+END TRANSITION_GUARD_RESULT_V1
+GUARD_EXIT=1
+```
+
+The guard resolves cleanly with real values and evaluates the full battery.
+Both failed gates are **validate-owned**, and neither is an audit-owned defect:
+`audit` was absent from the phase records because no audit had completed, and
+`certification.completedScopes` is empty because only `bubbles.validate` may
+write it. This attempt supplies the missing audit execution claim; publication
+and certification remain with `bubbles.validate`.
+
+### AUD-009 Verdict and finding disposition
+
+**`REWORK_REQUIRED`, routed to `bubbles.validate`.** The verdict is a statement
+about the *transition*, not about the product. `audit-result-contract-lint.sh`
+refuses a positive audit verdict while the transition guard reports `FAIL`
+(`CONSISTENCY: a positive audit verdict requires guard PASS`), and the guard
+still fails Gate G027 because `certification.completedScopes` is empty — a field
+only `bubbles.validate` may write. Recording `SHIP_IT` or `SHIP_WITH_NOTES`
+here would assert a completion the guard does not support, so the contract-legal
+value is `REWORK_REQUIRED` with the repair owner named.
+
+**No product defect was found.** SCOPE-01's single active requirement is
+satisfied on the evidence. The erasure removes exactly the containers the
+pre-BUG-002 model enumerated as credential sources, verifies their absence by
+exact name, refuses to count an unverified container as removed, and leaves
+BUG-002's Tier-1 proxy and Tier-2 `localStorage.rlProviderConfig` behaviour
+intact — proven by the registry unit case, the three `SCN-BUG001-004` functional
+cases, `LEGACY_STORAGE_OFFENDERS=0` across 250 stress cycles,
+`PERSISTED_ACROSS_RELOAD=8` under load, and 1370/0 on the repository selftest.
+
+This attempt also moved the guard: recording the `audit` execution claim cleared
+Gate G022, taking the guard from 4 failures on `[G022,G027]` to 1 remaining
+validate-owned failure on `[G027]`.
+
+| Finding | Disposition | Owner |
+| --- | --- | --- |
+| `BUG001-G022-AUDIT` | **ADDRESSED.** This attempt completed a full delivery-completion evaluation and `audit` is now recorded in `execution.completedPhaseClaims`; the guard no longer reports G022. | `bubbles.audit` |
+| `BUG001-G027-CERTIFICATION` | **UNRESOLVED — not audit-writable.** `certification.completedScopes` and `certification.certifiedCompletedPhases` are exclusively validate-owned. | `bubbles.validate` |
+| `AUD-BUG001-009-OPTSTRUCTLAB-RATIONALE` | **ADDRESSED.** Pre-audit exclusion rationale was wrong; the verified rationale is recorded in AUD-009-E5. The exclusion itself is correct. | `bubbles.audit` |
+| `AUD-BUG001-009-LITERAL-SCAN-BOUND` | **OBSERVATION (severity low).** Completeness is proven for literal-form and migration-enumerated containers, not for variable-addressed ones. No known credential exposure follows from it. | `bubbles.validate` |
+
+No `certification.*` field was written by this attempt.
+

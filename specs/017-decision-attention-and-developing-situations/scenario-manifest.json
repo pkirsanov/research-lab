@@ -69,6 +69,7 @@
     { "scenarioId": "SCN-017-062", "scopeId": "06-authoring-lane-composer-routing", "scope": 6, "status": "done", "requiredTestType": "integration", "linkedTests": ["tests/attention-payload-contract.test.mjs"], "evidenceRefs": ["tests/attention-payload-contract.test.mjs"] },
     { "scenarioId": "SCN-017-063", "scopeId": "04-outcome-record-and-interruption-rate", "scope": 4, "status": "done", "requiredTestType": "e2e-ui", "linkedTests": ["tests/attention-browser.spec.mjs"], "evidenceRefs": ["tests/attention-browser.spec.mjs"] },
     { "scenarioId": "SCN-017-064", "scopeId": "01-attention-capability-module", "scope": 1, "status": "done", "requiredTestType": "unit", "linkedTests": ["tests/rlattention.test.mjs"], "evidenceRefs": ["tests/rlattention.test.mjs"] },
-    { "scenarioId": "SCN-017-065", "scopeId": "03-brief-tier-render", "scope": 3, "status": "done", "requiredTestType": "e2e-ui", "linkedTests": ["tests/attention-browser.spec.mjs"], "evidenceRefs": ["tests/attention-browser.spec.mjs"] }
+    { "scenarioId": "SCN-017-065", "scopeId": "03-brief-tier-render", "scope": 3, "status": "done", "requiredTestType": "e2e-ui", "linkedTests": ["tests/attention-browser.spec.mjs"], "evidenceRefs": ["tests/attention-browser.spec.mjs"] },
+    { "scenarioId": "SCN-017-066", "scopeId": "02-publication-path-enforcement", "scope": 2, "status": "done", "requiredTestType": "integration", "linkedTests": ["tests/attention-payload-contract.test.mjs"], "evidenceRefs": ["tests/attention-payload-contract.test.mjs"] }
   ]
 }

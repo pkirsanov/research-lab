@@ -55,6 +55,13 @@ Scenario: SCN-017-045 The authoring instruction names every required attention f
   Then it names the escalation trigger, the invalidation and the expiry
   And it names the decision window, the transmission path and the provenance class
   And an edit that drops any one of them fails
+
+Scenario: SCN-017-066 The publication gate refuses an absent or unregistered deep link
+  Given an attention item whose deep link names a registered tool page
+  And further items whose deep link is unregistered, a javascript scheme, a protocol-relative host, or absent entirely
+  When the brief payload validator runs against each
+  Then the registered link publishes and is not refused by name
+  And each of the others is refused as attention[0].deepLink with a non-zero exit
 ```
 
 ## Implementation Files
@@ -164,6 +171,7 @@ the before-and-after payload parse both succeed with no pre-existing key changed
 | TP-02-04 | Contract | unit | SCN-017-045 | `tests/attention-payload-contract.test.mjs` | the attention authoring instruction text names every required `decision-attention/v1` field, so a future edit that drops one fails | `node --test tests/attention-payload-contract.test.mjs` | No | `report.md#tp-02-04` |
 | TP-02-05 | Regression E2E | e2e-ui | SCN-017-028 · SCN-017-051 | `tests/attention-browser.spec.mjs` | Regression: a payload the gate admitted still renders, and an all-refused generation still renders the declared empty state — a gate that refuses everything must not take the page down with it | `npx --no-install playwright test tests/attention-browser.spec.mjs --config=playwright.config.mjs --project=system-chrome` | Yes | `report.md#tp-02-05` |
 | TP-02-06 | Fixture Canary: publication path | integration | SCN-017-025 | `tests/brief-refresh-atomicity.test.mjs` | Canary: the shared publication fixture still reproduces the real path after this scope changes the gate — run BEFORE any broad suite rerun, because a broken fixture makes every downstream suite lie in the same direction | `node --test tests/brief-refresh-atomicity.test.mjs` | Yes | `report.md#tp-02-06` |
+| TP-02-07 | Refusal (A-017-10) | integration | SCN-017-066 | `tests/attention-payload-contract.test.mjs` | the publication gate refuses a deep link that is unregistered, a `javascript:` scheme, a protocol-relative host, or absent entirely, naming `attention[0].deepLink`; a registered page still publishes. FR-018 governs PUBLISHED items, and before this the check ran in the composer only | `node --test tests/attention-payload-contract.test.mjs` | No | `report.md#tp-02-07` |
 
 ### Definition of Done - Tiered Validation
 
@@ -186,6 +194,45 @@ the before-and-after payload parse both succeed with no pre-existing key changed
   $ node --test tests/attention-payload-contract.test.mjs
   # tests 4
   # pass 4
+  # fail 0
+  ```
+
+- [x] The gate enforces FR-018 on the publication path, refusing a deep link that is unregistered, a hostile scheme, or absent entirely (A-017-10).
+
+  **Claim Source:** executed — SCN-017-066 (TP-02-07). RED was established by
+  independent audit AUD-017-006, not by this session: driving the real committed
+  `market-brief.payload.json` through `validateBriefPayload` returned **0 errors**
+  when `attention[0].deepLink` was set to an unregistered page, to
+  `javascript:alert(1)`, to `//evil.example.com/x.html`, or deleted entirely,
+  while the same five inputs through `buildAttentionItem` refused correctly with
+  `RLATTN-DEEPLINK`. The check shipped in the module's "shared field rules,
+  expressed once and used by build and validate" block but was mirrored into the
+  composer only, so the DoD item above — "calls the module predicate and restates
+  no rule locally" — was satisfied in letter while one of the thirteen shared
+  rules never reached the gate. Closed in `1af8b1aa` by recording
+  `checkDeepLink(item.deepLink, ctx.toolDeepLinks)` in `validateAttentionItem`
+  and resolving the allowlist from `tools.json` in the gate's `attentionContext`
+  — from the registry rather than from the payload under validation, so the lane
+  being constrained cannot widen its own allowlist.
+
+  ```text
+  $ node --test --test-name-pattern="SCN-017-066" tests/attention-payload-contract.test.mjs
+  TAP version 13
+  # Subtest: SCN-017-066 The publication gate refuses an absent or unregistered deep link
+  ok 1 - SCN-017-066 The publication gate refuses an absent or unregistered deep link
+  1..1
+  # tests 1
+  # suites 0
+  # pass 1
+  # fail 0
+  # cancelled 0
+  # skipped 0
+  # todo 0
+  EXIT=0
+
+  $ node --test tests/attention-payload-contract.test.mjs
+  # tests 28
+  # pass 28
   # fail 0
   ```
 

@@ -217,7 +217,7 @@
     "audit": {
       "schemaVersion": "audit-run/v1",
       "runId": "RUN-017-AUDIT-20260810T030841Z",
-      "currentAttemptId": "AUD-017-005",
+      "currentAttemptId": "AUD-017-006",
       "attempts": [
         {
           "attemptId": "AUD-017-001",
@@ -371,7 +371,7 @@
         },
         {
           "attemptId": "AUD-017-005",
-          "resultState": "ACTIVE",
+          "resultState": "SUPERSEDED",
           "agent": "bubbles.audit",
           "independentAudit": true,
           "recordedAt": "2026-08-10T03:08:41Z",
@@ -427,6 +427,76 @@
           "resumeFromPhase": null,
           "auditResultV1": "BEGIN AUDIT_RESULT_V1\nschemaVersion: audit-result/v1\nrunId: RUN-017-AUDIT-20260810T030841Z\nattemptId: AUD-017-005\ntarget: specs/017-decision-attention-and-developing-situations\ntargetRevision: sha256:4837d9b47239446f6df072cd3f43741ab9dbe6987bebf83261afdd92736aba00\nworkflowMode: full-delivery\nmodeClass: none\nauditClass: delivery-completion\nstatusCeiling: done\nrequestedStatus: done\nauditVerdict: SHIP_WITH_NOTES\noutcome: completed_diagnostic\nresultState: ACTIVE\ncertifiedStatus: done\nplanningEvaluation: NOT_EVALUATED\ndeliveryEvaluation: CERTIFIED\nsourceEditLockout: PASS\napplicableCheckClasses: [universal,mode-required,delivery-completion]\nnotApplicableChecks: []\npassedGateIds: [G022,G053,G040,G051,G068,G082,G083,G084,G128,G085,G086,G091,G087,G093,G088,G089,G092,G090,G094,G095,G097,G098,G099,G100,G130,G131,G001,G002,G003,G004,G005,G006,G007,G008,G009,G010,G011,G012,G014,G015,G016,G018,G019,G020,G021,G023,G024,G025,G026,G027,G028,G029,G033,G034,G035,G044,G047,G048,G055,G056,G057,G059,G061]\nfailedGateIds: []\nfailedChecks: []\nblockingCode: none\nunresolvedFields: []\ncontradictions: []\ncontractRef: bubbles/workflows/modes.yaml#full-delivery\ncontractDigest: sha256:e330ef85136370a1fa7e9edb5813cb5879a6554afcff98ba373ac48442c7ca93\nevidenceRefs: [report.md#audit-verdict-aud-017-005]\naddressedFindings: [F-017-04,F-017-06,A-017-01,A-017-02,A-017-03,A-017-04,A-017-05,A-017-06,A-017-07,A-017-08,A-017-09,D19]\nunresolvedFindings: []\nnextRequiredOwner: none\nsupersedesAttemptId: AUD-017-004\nresumeFromPhase: none\nEND AUDIT_RESULT_V1",
           "summary": "FIFTH audit attempt, superseding AUD-017-004, whose sole unresolved finding was D19. D19 IS VERIFIED RESOLVED AND CLOSES, and the finding set is now empty, so delivery is no longer refused. THE CLAIM WAS VERIFIED, NOT ACCEPTED. All five named commands were re-executed by this attempt: brief-refresh-atomicity 26 passed / 0 failed exit 0 (was 18/26); selftest 1370 passed / 0 failed exit 0; validate-brief-cache PASS 361 files exit 0; state-transition-guard PASS, failureCount 0, exit 0; artifact-lint PASSED exit 0. THE DECISIVE CHECK WAS ADVERSARIAL, because a green run alone could not distinguish a fix from the calendar retiring the symptom - the exact trap the prior record named. Today in New York is Sunday 2026-08-09 while the latest completed XNYS session is 2026-08-07: they DIVERGE, which is the precise day-shape that produced 18/26. A green suite under that condition is the fix working. Both named defects are real and fixed in source: the fixture now derives the completed session from the committed calendar independently of BAR_EXPECTED_SESSION_DATE (so the assertion is not vacuous), and commit f8ce2306 derives the tool-bundle count from the registry instead of the stale literal 22, keeping the test failing if a publisher DROPS a tool. ONE CORRECTION TO THE CLAIM AS FILED: commit 25f5dd0b, presented as the fix, contains no test or source change at all - only docs/Improvement-Plan.md and state.json. The code fixes live in f8ce2306 and the support-fixture change. This does not weaken the closure, since both fixes are committed and independently re-executed here, but the record should not say the fix landed where it did not. The no-regeneration claim holds where it was testable: git status --short data/bars/ is empty before and after every run. TWO NON-BLOCKING OBSERVATIONS are recorded rather than dropped: an advisory unexposed-increment plan-shape report on four scopes, and an uncommitted regenerated market-brief.payload.json that predates this attempt. Neither refuses delivery; both are named so they are not later mistaken for something this audit missed. NEXT: certification is validate-owned and untouched at in_progress; bubbles.validate may now derive assurance against a passing independent audit. Expect targetRevision to drift past sha256:4837d9b4 the moment this record is written, since the record lands in the artifact it measures."
+        },
+        {
+          "attemptId": "AUD-017-006",
+          "resultState": "ACTIVE",
+          "agent": "bubbles.audit",
+          "independentAudit": true,
+          "recordedAt": "2026-08-10T17:05:00Z",
+          "auditClass": "delivery-completion",
+          "auditProfile": "delivery-completion-v1",
+          "targetStatus": "done",
+          "targetRevision": "sha256:0751f26e1a572bcaa8e92823db1d7eb2d6f5c230459156616e13b1c7aaea98ef",
+          "contractDigest": "sha256:e330ef85136370a1fa7e9edb5813cb5879a6554afcff98ba373ac48442c7ca93",
+          "guardExit": 0,
+          "failedGateIds": [],
+          "failedChecks": [],
+          "provenanceMode": "re-executed-in-session",
+          "antiFabricationVerdict": "CLEAN",
+          "ownershipBoundaryVerdict": "CLEAN",
+          "deliveryGateStatus": "REFUSED",
+          "auditVerdict": "REWORK_REQUIRED",
+          "outcome": "route_required",
+          "blockingCode": "FR018-PUBLISH-GATE-UNENFORCED",
+          "evidenceRef": "state.json#execution.audit.attempts[AUD-017-006].summary",
+          "addressedFindings": ["F-017-04", "F-017-06", "A-017-01", "A-017-02", "A-017-03", "A-017-04", "A-017-05", "A-017-06", "A-017-07", "A-017-08", "A-017-09", "D19"],
+          "unresolvedFindings": ["A-017-10"],
+          "observations": [
+            {
+              "id": "OBS-017-06a",
+              "severity": "low",
+              "note": "The working tree carries an uncommitted concurrent Bubbles framework upgrade (.github/bubbles/registry/gates.yaml and .github/bubbles/workflows.yaml, G087 description only, adding deliveryTopology). Spec 017 is status in_progress and not specs_hardened, so G087 does not evaluate against it and the drift cannot alter this verdict. Named so it is not later mistaken for something this audit ran against.",
+              "followUpOwner": "bubbles.devops",
+              "followUpAction": "Land or revert the in-flight framework upgrade so the installed registry matches .checksums."
+            },
+            {
+              "id": "OBS-017-06b",
+              "severity": "low",
+              "note": "SCN-017-065's hostile set (tests/attention-browser.spec.mjs:1323-1328) covers scheme and host escapes only: javascript:, absolute https, ../../etc/passwd, data:. It contains no well-shaped but unregistered page, which is the one hostile class the render regex cannot reject. The test is genuinely adversarial for what it claims; the uncovered class is what finding A-017-10 is about.",
+              "followUpOwner": "bubbles.plan",
+              "followUpAction": "Decide whether the browser tier should also refuse an unregistered page, or record that registry membership is deliberately a publish-time concern only."
+            }
+          ],
+          "nextRequiredOwner": "bubbles.plan",
+          "resumeFromPhase": null,
+          "supersedesAttemptId": "AUD-017-005",
+          "auditResultV1": {
+            "schemaVersion": "audit-result/v1",
+            "attemptId": "AUD-017-006",
+            "target": "specs/017-decision-attention-and-developing-situations",
+            "workflowMode": "full-delivery",
+            "modeClass": "none",
+            "auditClass": "delivery-completion",
+            "statusCeiling": "done",
+            "requestedStatus": "done",
+            "auditVerdict": "REWORK_REQUIRED",
+            "outcome": "route_required",
+            "resultState": "ACTIVE",
+            "certifiedStatus": "none",
+            "planningEvaluation": "NOT_EVALUATED",
+            "deliveryEvaluation": "REFUSED",
+            "sourceEditLockout": "NOT_EVALUATED",
+            "applicableCheckClasses": "universal,mode-required,delivery-completion",
+            "notApplicableChecks": "none",
+            "failedGateIds": "none",
+            "failedChecks": "none",
+            "blockingCode": "FR018-PUBLISH-GATE-UNENFORCED",
+            "contractRef": "bubbles/workflows/modes.yaml#full-delivery",
+            "nextRequiredOwner": "bubbles.plan",
+            "supersedesAttemptId": "AUD-017-005"
+          },
+          "summary": "INDEPENDENT AUDIT, EXECUTED IN THIS SESSION AGAINST HEAD 3b532cf2. Repository binding was committed first (decision rb:vscode-b1f8e7123dfeb6c0f5aa7381c64acf62:12, actionable, root ~/research-lab). WHY A FRESH ATTEMPT WAS OWED, CORRECTED ON MEASUREMENT: the prompt stated that targetRevision hashes spec-directory artifacts only and therefore could not witness the FR-018 source change. That is true in general but FALSE for this case, and taking it on faith would have understated the staleness. AUD-017-005 recorded targetRevision sha256:4837d9b4; the resolver now returns sha256:0751f26e. The revision MOVED, because commits aeb1bcbc (14:13:48Z) and c8b3bf4e (14:24:23Z) also wrote specs/017 report.md and scenario-manifest.json. AUD-017-005 is therefore provenance-conflicted by the lifecycle's own binding rule, not merely time-stale. EVERY HANDED-OVER MEASUREMENT WAS RE-EXECUTED RATHER THAN INHERITED, and all nine reproduced: state-transition-guard.sh with --target-status done --expect-workflow-mode full-delivery --expect-contract-digest sha256:e330ef85 returned exit 0, verdict PASS, failedGateIds [], failureCount 0, 63 gates passed, 6 advisory warnings; artifact-lint.sh PASSED exit 0; traceability-guard.sh PASSED with 0 warnings, 53 of 53 scenarios mapped; node scripts/selftest.mjs 1370 passed 0 failed; node --test tests/rlattention.test.mjs 28 of 28 including SCN-017-064; node --test tests/attention-payload-contract.test.mjs 27 of 27; npx playwright test tests/attention-browser.spec.mjs --project=system-chrome 12 of 12 including SCN-017-065; node scripts/validate-brief-payload.mjs exit 0; goal-fidelity-guard.sh --boundary pre-certification PASS. A skip-marker scan over the three attention test files returned no matches, so no suite total is inflated by a silently skipped case. ONE BLOCKING FINDING, FOUND BY THIS AUDIT AND RECORDED BY NO PRIOR ATTEMPT (A-017-10): FR-018 says every PUBLISHED item carries a deep link to the tool that owns its computation, and the registry check that enforces it exists in the composer ONLY. rlattention.js:407-417 defines checkDeepLink inside the section its own comment at line 395 calls 'shared field rules, expressed once and used by build and validate'. buildAttentionItem calls it at line 503. validateAttentionItem at lines 600-620 records twelve shared rules and checkDeepLink is the ONLY one missing; the module's own FR-018 comment at lines 401-405 justifies the check by analogy to checkSubject, and checkSubject IS mirrored into validate. The omission is load-bearing because scripts/validate-brief-payload.mjs delegates ALL attention field enforcement to that predicate by design (scope 02 DoD line 172: 'calls the module predicate and restates no rule locally'), and its attentionContext at lines 397-402 supplies watchlistScope, calendarSource, windowVocabulary and tradingDateIso but NEVER toolDeepLinks. MEASURED, NOT INFERRED: driving the real committed market-brief.payload.json through validateBriefPayload with the real tools.json, config and snapshot returns 0 errors when attention[0].deepLink is set to an unregistered page, to javascript:alert(1), to //evil.example.com/x.html, or DELETED ENTIRELY; validateAttentionItem under the publish gate's verbatim context returns ok=true violations=0 for all five. The same five inputs through buildAttentionItem refuse correctly with RLATTN-DEEPLINK. So an item carrying NO deep link at all publishes cleanly, which is a direct violation of FR-018's 'every published item carries a deep link' at the exact boundary the requirement names, and design.md:230 states the field rule 'resolves to an owning tool page' as a contract row that nothing on the read side implements. Three facts stop any other layer from catching it: market-brief.html:1356 guards the href with /^[A-Za-z0-9._-]+\\.html(#[A-Za-z0-9._-]*)?$/, which is a SHAPE test, so attacker-controlled-page.html becomes a live anchor while being unregistered; rlattention.js:543-544 excludes deepLink from stableId, so a substituted link preserves the item id and no identity check can see it; and SCN-017-064 exercises buildAttentionItem only while SCN-017-065's hostile set carries no well-shaped unregistered page, so the gap sits precisely between the two new tests. WHY THIS IS BLOCKING RATHER THAN A NOTE: scripts/brief-refresh-and-push.sh:362-370 states the project's own standard, that compliance must be STRUCTURAL because a prose instruction to a language model is advisory and three consecutive crons falsified it; leaving the registry check in one of the two publication paths reintroduces exactly the advisory posture that comment was written to end, and the gate's comment at lines 392-396 now asserts something untrue, that 'every item clears the same decision-attention/v1 field contract the browser applies, named field by field'. WHY NOT DO_NOT_SHIP: no code execution is reachable, the render regex does reject every scheme and host escape, the 4x/day cron path does run the composer at brief-refresh-and-push.sh:386, and everything else audited is clean. The remedy is a mirror, not a redesign: record(checkDeepLink(item.deepLink, ctx.toolDeepLinks)) in validateAttentionItem, toolDeepLinks resolved from tools.json in the gate's attentionContext, and a scenario under scope 02 proving the gate refuses an absent or unregistered link. NOT VERIFIED BY THIS SESSION, stated so it is not assumed: the mutation runs that reportedly proved SCN-017-064 and SCN-017-065 load-bearing were NOT re-executed here, because mutating shipped source in a repository with concurrent sessions risks another agent committing the mutation; both tests were instead shown non-tautological by direct behavioural probe, SCN-017-064 by its own empty-allowlist case at tests/rlattention.test.mjs:1117-1119 which proves fail-closed rather than pass-through, and SCN-017-065 by confirming all four hostile values fail the href regex so a neutralised regex would break its toHaveCount(0). OWNERSHIP HELD: certification.*, status and certification.status were not written by this attempt and remain validate-owned at in_progress; no scope status and no DoD checkbox was altered; no prior attempt record was edited except the required ACTIVE-to-SUPERSEDED transition on AUD-017-005. NEXT: routed to bubbles.plan, because closing A-017-10 needs a scope-02 scenario and DoD row before the implement work can be traced, and traceability-guard requires the scenario-to-row-to-test-to-evidence chain that does not yet exist for the publish-gate case."
         }
       ]
     }

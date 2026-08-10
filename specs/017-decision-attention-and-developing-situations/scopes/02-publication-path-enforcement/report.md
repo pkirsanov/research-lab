@@ -224,6 +224,59 @@ restored scripts/brief-narrative-parallel.mjs
 sha256 a0365e4dc13e5a45d44fb5a4e7a5711c0bb1c2fb48a2c86489a76897c03aaaee
 ```
 
+### TP-02-07
+
+SCN-017-066 · The publication gate refuses a deep link that is unregistered, a
+hostile scheme, or absent entirely (finding A-017-10).
+
+**Claim Source:** executed
+
+RED was not produced by this session. Independent audit `AUD-017-006` measured
+it directly: the real committed `market-brief.payload.json`, driven through
+`validateBriefPayload`, returned **0 errors** with `attention[0].deepLink` set to
+an unregistered page, to `javascript:alert(1)`, to `//evil.example.com/x.html`,
+or deleted outright — while the same five inputs through `buildAttentionItem`
+refused with `RLATTN-DEEPLINK`. FR-018 governs *published* items, and the check
+existed on the composer side only. Three things kept any other layer from
+catching it: `market-brief.html:1356` guards the href with a **shape** regex, so
+an unregistered `attacker-controlled-page.html` still became a live anchor;
+`deepLink` is excluded from `stableId`, so a substituted link preserved the item
+identity; and the gap sat precisely between SCN-017-064 (composer only) and
+SCN-017-065 (whose hostile set contained no well-shaped unregistered page).
+
+Closed in `1af8b1aa`. The gate's allowlist is resolved from `tools.json`, not
+from the payload being validated, so the lane under constraint cannot widen it.
+
+```text
+$ node --test --test-name-pattern="SCN-017-066" tests/attention-payload-contract.test.mjs
+TAP version 13
+# Subtest: SCN-017-066 The publication gate refuses an absent or unregistered deep link
+ok 1 - SCN-017-066 The publication gate refuses an absent or unregistered deep link
+1..1
+# tests 1
+# suites 0
+# pass 1
+# fail 0
+# cancelled 0
+# skipped 0
+# todo 0
+EXIT=0
+
+$ node --test tests/attention-payload-contract.test.mjs
+# tests 28
+# pass 28
+# fail 0
+
+$ node scripts/validate-brief-payload.mjs market-brief.payload.json
+[brief-contract] PASS: all visible sections, registry coverage, model-specific real assets, and next-session actions are valid
+gate exit=0
+```
+
+The fixture registry previously held `{ tools: [] }`. Once the gate derives its
+allowlist from the registry, an empty one refuses every link, which would have
+made the passing half of every attention scenario vacuous — SCN-017-066 asserts
+its own precondition and fails rather than passing emptily.
+
 ## Honest Gaps
 
 | DoD item | Why it is not ticked |

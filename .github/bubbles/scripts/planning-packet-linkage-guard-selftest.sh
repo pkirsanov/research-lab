@@ -38,8 +38,6 @@ write_planning_state() {
   local planning_only="$3"
   local justification="$4"
   local linked_implementation="$5"
-  local delivery_topology="${6:-null}"
-  local delivery_topology_justification="${7:-null}"
   cat > "$repo/specs/100-planning-packet/state.json" <<EOF
 {
   "version": 3,
@@ -51,8 +49,6 @@ write_planning_state() {
   "linkedPlanningPacket": null,
   "planningOnly": $planning_only,
   "planningOnlyJustification": $justification,
-  "deliveryTopology": $delivery_topology,
-  "deliveryTopologyJustification": $delivery_topology_justification,
   "specDependsOn": [],
   "certifiedAt": null,
   "requiresRevalidation": false,
@@ -204,69 +200,6 @@ assert_stderr_contains "S6" "G087"
 assert_stderr_contains "S6" "archived implementation target"
 assert_stderr_contains "S6" "relink to an active implementation spec"
 assert_stderr_contains "S6" "planningOnly:true"
-
-echo ""
-echo "--- S7: in-place delivery topology with justification passes ---"
-repo="$(stage_repo s7-in-place-valid)"
-write_planning_state "$repo" "specs_hardened" "false" "null" "null" \
-  '"in-place"' '"Scopes in this packet are implemented in this same spec; there is no second implementation spec to link."'
-write_implementation_state "$repo" "in_progress" "null"
-run_guard "$repo"
-assert_exit "S7 in-place opt-in" 0
-assert_stdout_contains "S7" "PASS Gate G087"
-assert_stdout_contains "S7" "deliveryTopology=in-place"
-
-echo ""
-echo "--- S8: in-place without justification fails ---"
-repo="$(stage_repo s8-in-place-empty)"
-write_planning_state "$repo" "specs_hardened" "false" "null" "null" '"in-place"' '""'
-write_implementation_state "$repo" "in_progress" "null"
-run_guard "$repo"
-assert_exit "S8 in-place empty justification" 1
-assert_stderr_contains "S8" "G087"
-assert_stderr_contains "S8" "deliveryTopologyJustification"
-
-echo ""
-echo "--- S9: in-place combined with planningOnly is contradictory and fails ---"
-repo="$(stage_repo s9-in-place-and-planning-only)"
-write_planning_state "$repo" "specs_hardened" "true" '"Planning only."' "null" \
-  '"in-place"' '"Delivered in place."'
-write_implementation_state "$repo" "in_progress" "null"
-run_guard "$repo"
-assert_exit "S9 in-place plus planningOnly" 1
-assert_stderr_contains "S9" "G087"
-assert_stderr_contains "S9" "not both"
-
-echo ""
-echo "--- S10: in-place combined with an external link is contradictory and fails ---"
-repo="$(stage_repo s10-in-place-and-link)"
-write_planning_state "$repo" "specs_hardened" "false" "null" '"specs/200-implementation"' \
-  '"in-place"' '"Delivered in place."'
-write_implementation_state "$repo" "in_progress" "null"
-run_guard "$repo"
-assert_exit "S10 in-place plus external link" 1
-assert_stderr_contains "S10" "G087"
-assert_stderr_contains "S10" "no external implementation target"
-
-echo ""
-echo "--- S11: an unrecognized deliveryTopology value fails instead of passing silently ---"
-repo="$(stage_repo s11-topology-typo)"
-write_planning_state "$repo" "specs_hardened" "false" "null" "null" '"inplace"' '"Typo."'
-write_implementation_state "$repo" "in_progress" "null"
-run_guard "$repo"
-assert_exit "S11 unrecognized topology" 1
-assert_stderr_contains "S11" "G087"
-assert_stderr_contains "S11" "is not one of"
-
-echo ""
-echo "--- S12: non-vacuity — explicit two-spec still requires the link ---"
-repo="$(stage_repo s12-two-spec-still-enforced)"
-write_planning_state "$repo" "specs_hardened" "false" "null" "null" '"two-spec"' "null"
-write_implementation_state "$repo" "in_progress" "null"
-run_guard "$repo"
-assert_exit "S12 two-spec still enforced" 1
-assert_stderr_contains "S12" "G087"
-assert_stderr_contains "S12" "linkedImplementationSpec is missing or empty"
 
 echo ""
 echo "=== Selftest verdict ==="

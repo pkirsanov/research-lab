@@ -85,6 +85,9 @@ async function settleThenClearRequests(page, requests) {
 }
 
 test('Regression: SCN-012-033 real-page shadow registry validation derives all experiences without cutover', async ({ page }) => {
+  const expectedToolIds = readRepoJson('tools.json').tools.map((tool) => tool.id);
+  expect(expectedToolIds.length).toBeGreaterThan(0);
+
   await page.goto(`${site.baseUrl}/index.html`);
   const before = await page.evaluate(() => ({
     navText: document.querySelector('nav')?.textContent || '',
@@ -103,8 +106,8 @@ test('Regression: SCN-012-033 real-page shadow registry validation derives all e
     return globalThis.RLEXPERIENCE.validateFoundation({ registry, config, models, journeys });
   });
   expect(result.ok).toBe(true);
-  expect(result.value.toolCount).toBe(23);
-  expect(result.value.toolIds).toHaveLength(23);
+  expect(result.value.toolCount).toBe(expectedToolIds.length);
+  expect(result.value.toolIds).toEqual(expectedToolIds);
   expect(result.value.shadowOnly).toBe(true);
   expect(result.value.integrationClaims).toEqual([]);
 

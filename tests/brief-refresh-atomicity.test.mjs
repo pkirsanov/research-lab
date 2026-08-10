@@ -21,6 +21,33 @@ const EXPECTED_TOOL_BUNDLE_COUNT = (() => {
   return tools.filter((tool) => tool && tool.id !== 'market-brief').length;
 })();
 
+/* The scheduler echoes the policy it will actually run with. The tests below pass
+   no override, so they exercise its DECLARED DEFAULTS - and a restated default
+   stops testing anything the moment it moves, which is exactly how the assertion
+   for 1800s outlived the change to 2700s while still passing for weeks. Read from
+   the declaration so the two cannot drift apart; a scheduler that echoes a value
+   it was not configured with still fails. */
+function schedulerDefault(name) {
+  const source = readFileSync(new URL('../scripts/brief-refresh-scheduled.sh', import.meta.url), 'utf8');
+  const declaration = source.match(new RegExp(`^export ${name}="\\$\\{${name}:-([^}]+)\\}"`, 'm'));
+  if (!declaration) {
+    throw new Error(`brief-refresh-scheduled.sh no longer declares a default for ${name}; the policy assertion cannot be derived`);
+  }
+  return declaration[1];
+}
+
+function narrativePolicyPattern() {
+  return new RegExp(`narrative policy: ${schedulerDefault('BRIEF_NARRATIVE_ATTEMPTS')} attempt\\(s\\), ${schedulerDefault('BRIEF_NARRATIVE_TIMEOUT')}s each`);
+}
+
+function lanePolicyPattern() {
+  return new RegExp(`lane policy: ${schedulerDefault('BRIEF_LANE_CONCURRENCY')} concurrent, ${schedulerDefault('BRIEF_LANE_ATTEMPTS')} attempt\\(s\\) each, ${schedulerDefault('BRIEF_LANE_EXIT_GRACE')}s post-write exit grace`);
+}
+
+function repairPolicyPattern() {
+  return new RegExp(`invalid-baseline repair: ${schedulerDefault('BRIEF_REPAIR_INVALID_BASELINE')} \\(final validation remains mandatory\\)`);
+}
+
 function readSchedulerStatus(path) {
   return Object.fromEntries(readFileSync(path, 'utf8').trim().split('\n').map((line) => {
     const separator = line.indexOf('=');
@@ -244,9 +271,9 @@ if (process.env.NODE_TEST_CONTEXT) {
 
     assert.equal(result.status, 0, `scheduler failed\nstdout:\n${result.stdout}\nstderr:\n${result.stderr}`);
     assert.match(result.stdout, /publisher checkout ready; developer worktree remains untouched/);
-    assert.match(result.stdout, /narrative policy: 1 attempt\(s\), 1800s each/);
-    assert.match(result.stdout, /lane policy: 2 concurrent, 2 attempt\(s\) each, 60s post-write exit grace/);
-    assert.match(result.stdout, /invalid-baseline repair: 1 \(final validation remains mandatory\)/);
+    assert.match(result.stdout, narrativePolicyPattern());
+    assert.match(result.stdout, lanePolicyPattern());
+    assert.match(result.stdout, repairPolicyPattern());
     assert.doesNotMatch(result.stdout, /\[fixture-source-worker\] local worker selected/, 'dirty local worker must not execute');
     assert.doesNotMatch(result.stdout, /\[fixture-source-validator\] local validator selected/, 'dirty local validator must not execute');
     assert.match(result.stdout, /pulling latest origin\/main before tool updates/);
@@ -787,7 +814,7 @@ if (process.env.NODE_TEST_CONTEXT) {
     });
 
     assert.equal(result.status, 0, `scheduled repair failed\nstdout:\n${result.stdout}\nstderr:\n${result.stderr}`);
-    assert.match(result.stdout, /invalid-baseline repair: 1 \(final validation remains mandatory\)/);
+    assert.match(result.stdout, repairPolicyPattern());
     assert.match(result.stdout, /explicit repair mode: invalid baseline may be replaced only by a final-valid matching pair/);
     assert.match(result.stdout, /selected transaction=matching-pair/);
     gitFixture(fixture, ['fetch', 'origin']);

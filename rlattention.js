@@ -621,7 +621,7 @@
     record(checkFigures(item.figures));
     /* FR-018 is a rule about PUBLISHED items, so the publish side has to enforce
        it too; build-side only left the gate accepting an absent link (A-017-10). */
-    record(checkDeepLink(item.deepLink, ctx.toolDeepLinks) && null);
+    record(checkDeepLink(item.deepLink, ctx.toolDeepLinks));
 
     var window = resolveDecisionWindow(item.decisionWindow, ctx.tradingDateIso, ctx.calendarSource, ctx.windowVocabulary);
     if (window.ok !== true) record(refuse("RLATTN-WINDOW", "decisionWindow", window.message));

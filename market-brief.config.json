@@ -192,7 +192,7 @@
             "date": "2026-07-14",
             "type": "CPI",
             "importance": "high",
-            "note": "June CPI RELEASED 8:30am ET 7/14 (BLS) — resolved COOL/in-line (web-verified 7/14): the marquee near-term binary is now PAST and it printed benign, NOT hot. It collided with the HEAVY Q2 big-bank open — JPMorgan, Wells Fargo, Citigroup, Bank of America, Goldman Sachs ALL reported pre-open the SAME morning and BEAT (bank tape opened green, XLF into clean Leading; Morgan Stanley follows 7/15). The cool print + bank beats bought a relief reclaim (QQQ back above its 50-day). The cool CPI did NOT kill the 7/29 hawkish-hold hike tail (still live, see FOMC row). Oil remains soft (WTI web-verified ~$71-72 area, off on the month on OPEC+ supply); watch any Strait-of-Hormuz re-escalation as the residual crude tail. This event flips from forward-catalyst to confirmed-outcome for the morning window."
+            "note": "June CPI RELEASED 8:30am ET 7/14 (BLS) — resolved COOL/in-line (web-verified 7/14): the marquee near-term binary is now PAST and it printed benign, NOT hot. It collided with the HEAVY Q2 big-bank open — JPMorgan, Wells Fargo, Citigroup, Bank of America, Goldman Sachs ALL reported pre-open the SAME morning and BEAT (bank tape opened green, XLF into clean Leading; Morgan Stanley follows 7/15). The cool print + bank beats bought a relief reclaim (QQQ back above its 50-day). The cool CPI did NOT kill the 7/29 hawkish-hold hike tail (still live, see FOMC row). WTI around $71-$72 was verified only for that historical 7/14 window and MUST NOT be carried forward. By 2026-08-10, Hormuz is an active physical supply shock. Re-verify crude, transit, and insurance each run. This event flips from forward-catalyst to confirmed-outcome for the morning window."
         },
         {
             "date": "2026-07-15",
@@ -256,8 +256,8 @@
         },
         {
             "category": "energy-commodities",
-            "importance": "medium",
-            "note": "Crude/energy trend doubles as the headline-CPI tail AND a geopolitical-risk gauge (a rolling-over XLE = crude fading = a cooler-CPI read-through). Verify WTI live — never carry a stale commodity level as fact."
+            "importance": "high",
+            "note": "Hormuz is an ACTIVE physical supply regime as of 2026-08-10, not a residual tail. Track insured crossings, loadings, war-risk premiums, Brent-WTI and prompt spreads, SPR capacity, and actual OPEC exports. The U.S. alternates strikes/blockades with reserves, escorts, pauses, and deal messaging. Iran uses route control, selective vessel attacks, fees, and proxy threats for concessions. Verify every level and incident each run. Never infer a price motive from timing alone."
         },
         {
             "category": "usd-liquidity",
@@ -266,8 +266,8 @@
         },
         {
             "category": "geopolitics",
-            "importance": "medium",
-            "note": "Standing global-tension set — armed conflict / war-risk, trade & tariffs & sanctions, elections & policy shifts. Read the CURRENT market impact each run; NEVER fabricate breaking news — cite it or label STALE/estimate."
+            "importance": "high",
+            "note": "The dominant live tension as of 2026-08-10 is the U.S.-Iran war, the U.S. blockade, and Iran's effective Hormuz restriction. Separate official attribution, independent incident confirmation, inferred motive, and scenario estimate. A route-map or deal headline is not reopening evidence. Require sustained insured transit and loadings. Also track Bab el-Mandeb, sanctions, elections, and policy shifts. Cite breaking news or label it STALE/estimate."
         },
         {
             "category": "china-growth",
@@ -544,8 +544,18 @@
         "policyId": "web-evidence-acquisition/v1",
         "userAgent": "ResearchLabEvidenceBot/1.0",
         "maxQueryChars": 240,
-        "acceptedMediaTypes": ["text/html", "text/plain"],
-        "sourceClasses": ["primary", "wire", "regulator", "exchange", "analysis", "publisher"],
+        "acceptedMediaTypes": [
+            "text/html",
+            "text/plain"
+        ],
+        "sourceClasses": [
+            "primary",
+            "wire",
+            "regulator",
+            "exchange",
+            "analysis",
+            "publisher"
+        ],
         "redirects": "none",
         "scheme": "https",
         "port": 443,
@@ -587,7 +597,12 @@
     "freshness-policy/v1": {
         "contractVersion": "freshness-policy/v1",
         "policyId": "freshness-policy/v1",
-        "windowsEt": ["07:30", "11:00", "15:00", "17:00"],
+        "windowsEt": [
+            "07:30",
+            "11:00",
+            "15:00",
+            "17:00"
+        ],
         "warnAfterHours": 18,
         "staleAfterHours": 72,
         "note": "The narrative (Tier-B) is operator-hosted and can silently stop refreshing, and a brief that quietly serves last week's read as if it were this morning's is the single most damaging thing this product can do. Thresholds allow for the legitimate gaps in a four-window weekday schedule: the largest normal overnight gap is 17:00 ET to 07:30 ET (~14.5h), so warnAfterHours 18 does not fire on a healthy night; a Friday-close to Monday-open weekend is ~62h, so staleAfterHours 72 does not fire on a healthy weekend. Past those, the page says so in a banner rather than letting the reader infer freshness from a timestamp they will not check. An absent payload is NOT treated as fresh - it renders the explicit 'narrative not refreshed this window' state."
@@ -597,7 +612,10 @@
         "policyId": "scorecard-policy/v1",
         "minResolvedSample": 20,
         "recentMissCount": 3,
-        "windowDays": [30, 90],
+        "windowDays": [
+            30,
+            90
+        ],
         "note": "Governs market-brief.scorecard.json. Below minResolvedSample the hit rate is WITHHELD and the sample size is shown instead - a rate over a handful of calls is noise dressed as evidence. recentMissCount misses are always published in full alongside the hits; selective reporting is the one unrecoverable failure for this product. not-evaluable is reported as its own share and never counted as a win."
     },
     "red-alert-policy/v1": {
@@ -609,20 +627,59 @@
         "minIndependentOrigins": 2,
         "minOwnerEvidence": 1,
         "components": {
-            "severity": { "weight": 25 },
-            "likelihood": { "weight": 15 },
-            "observableTransmission": { "weight": 20, "cap": 3 },
-            "evidenceStrength": { "weight": 20, "cap": 3 },
-            "imminence": { "weight": 10 },
-            "falsifiabilityActionability": { "weight": 10 }
+            "severity": {
+                "weight": 25
+            },
+            "likelihood": {
+                "weight": 15
+            },
+            "observableTransmission": {
+                "weight": 20,
+                "cap": 3
+            },
+            "evidenceStrength": {
+                "weight": 20,
+                "cap": 3
+            },
+            "imminence": {
+                "weight": 10
+            },
+            "falsifiabilityActionability": {
+                "weight": 10
+            }
         },
         "horizonBands": [
-            { "id": "0-2w", "maxDays": 14, "bandScore": 1 },
-            { "id": "2-8w", "maxDays": 56, "bandScore": 0.7 },
-            { "id": "2-6m", "maxDays": 180, "bandScore": 0.4 },
-            { "id": ">6m", "maxDays": null, "bandScore": 0.2 }
+            {
+                "id": "0-2w",
+                "maxDays": 14,
+                "bandScore": 1
+            },
+            {
+                "id": "2-8w",
+                "maxDays": 56,
+                "bandScore": 0.7
+            },
+            {
+                "id": "2-6m",
+                "maxDays": 180,
+                "bandScore": 0.4
+            },
+            {
+                "id": ">6m",
+                "maxDays": null,
+                "bandScore": 0.2
+            }
         ],
-        "severityLabels": { "1": "informational", "2": "low", "3": "elevated", "4": "high", "5": "severe" },
-        "stalenessWindowDays": { "source": 45, "ownerEvidence": 21 }
+        "severityLabels": {
+            "1": "informational",
+            "2": "low",
+            "3": "elevated",
+            "4": "high",
+            "5": "severe"
+        },
+        "stalenessWindowDays": {
+            "source": 45,
+            "ownerEvidence": 21
+        }
     }
 }

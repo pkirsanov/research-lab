@@ -41,6 +41,7 @@ A few notes span several tools rather than describing one. They live in this fol
 | --- | --- |
 | [shared-data-layer.md](shared-data-layer.md) | The shared fetch/cache/proxy data layer used by every tool. |
 | [volatility-drag-research.md](volatility-drag-research.md) | Where volatility drag is depended on but not shown. Live item: the undisclosed `μ ∝ σ` assumption behind vol-targeting (`1/σ`) versus Kelly (`1/σ²`). Also the two documented-but-unreconciled Sharpe conventions and the missing shared drag primitive. |
+| [us-iran-oil-market-intervention-patterns.md](us-iran-oil-market-intervention-patterns.md) | Evidence-led U.S. and Iranian oil-market intervention chronology, actor reaction functions, current Hormuz regime, scenario estimates, and confirmation rules. |
 
 ## Index
 

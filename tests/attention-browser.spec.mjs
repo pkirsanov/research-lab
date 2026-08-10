@@ -1231,6 +1231,7 @@ test('SCN-017-059 No item appears in both the decision tier and the catalyst fee
   const tier = page.locator('#decisionAttention');
   const feed = page.locator('#attention');
   await expect(tier).toBeVisible();
+  await ensureRenderedAttentionFixture(page);
 
   const tierHeadlines = await tier.locator('[data-attn-item]').allInnerTexts();
   expect(tierHeadlines.length,

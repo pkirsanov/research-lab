@@ -197,7 +197,7 @@ the before-and-after payload parse both succeed with no pre-existing key changed
   # fail 0
   ```
 
-- [x] The gate enforces FR-018 on the publication path, refusing a deep link that is unregistered, a hostile scheme, or absent entirely (A-017-10).
+- [x] SCN-017-066 — the publication gate enforces FR-018: a deep link naming a registered tool page publishes and is not refused by name, while an unregistered page, a `javascript:` scheme, a protocol-relative host, or an absent link is each refused as `attention[0].deepLink` with a non-zero exit (A-017-10).
 
   **Claim Source:** executed — SCN-017-066 (TP-02-07); RED measured by
   independent audit AUD-017-006, see `report.md#tp-02-07`.

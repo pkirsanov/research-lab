@@ -600,6 +600,31 @@ test('SCN-017-054 The build step composes the envelope the lane no longer emits'
   );
 });
 
+test('Regression: judgement-only lane output is refused rather than passed through to the payload gate', async () => {
+  const build = await import(resolve(ROOT, 'scripts/build-attention-items.mjs'));
+  const judgementOnly = {
+    headline: 'Breadth weakened while the index held its structural trend',
+    rationale: 'The participation signal diverged from the index close.',
+    verb: 'scenario-test',
+    horizon: 'swing',
+    severity: 'mild',
+    imminence: 'developing',
+    escalationTrigger: 'Breadth falls below the observed session low.',
+    invalidation: 'Breadth recovers above the declared broad-market gate.',
+    expiry: '2026-08-13T20:00:00.000Z'
+  };
+  const candidatePayload = { ...COMMITTED_PAYLOAD, attention: [judgementOnly] };
+
+  const result = build.recomposePayloadAttention(candidatePayload, COMMITTED_BRIEF_CONFIG);
+
+  assert.equal(result.items.length, 0, 'a candidate without an observed gate result cannot become an envelope');
+  assert.equal(result.exclusions.length, 1, 'the refused lane candidate must be accounted for exactly once');
+  assert.equal(result.exclusions[0].code, 'RLATTN-PROVENANCE');
+  assert.equal(result.exclusions[0].field, 'gateResult');
+  assert.deepEqual(result.payload.attention, [], 'the malformed candidate must not pass through to the payload gate');
+  assert.deepEqual(result.payload.attentionExclusions, result.exclusions);
+});
+
 test('SCN-017-055 The rendered record reads the published ledger, not a literal empty set', () => {
   /* TP-04-08. The renderer used to call computeInterruptionRate([]) with a
      hardcoded empty array. That is not "no data yet" — it is a permanent

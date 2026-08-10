@@ -2420,7 +2420,7 @@ try {
   // duplicate-free and classified exactly once (below). Membership may change; those hold.
   assert(BRIEF_NARRATIVE_FIELDS_OPTIONAL.length > 0 && BRIEF_NARRATIVE_FIELDS_OPTIONAL.every((entry) =>
     entry && typeof entry.pattern === 'string' && entry.pattern.trim().length > 0
-      && typeof entry.producer === 'string' && entry.producer.trim().length > 0),
+    && typeof entry.producer === 'string' && entry.producer.trim().length > 0),
     'the optional list is non-empty and every entry declares both a pattern and the producer it is proven against — an entry carrying no producer would be an unprovable exemption');
 
   // The producer freeze is replaced by a reachability requirement: a pattern can only be proven
@@ -6097,25 +6097,43 @@ try {
   assert(IMPURITY_PATTERNS.every((pattern) => pattern.test('var t = Date.now(); var u = new Date(); var r = Math.random();')),
     'the clock/randomness detector still matches every shape it forbids');
 
-  /* The rank order is exercised against the REAL committed tier, not a fixture. */
-  const committedTier = JSON.parse(read('market-brief.payload.json')).attention;
-  assert(Array.isArray(committedTier) && committedTier.length >= 3
+  /* The committed payload may honestly publish an empty tier when every declared candidate is
+     refused, but every candidate must still be accounted for by a conforming item or a named
+     exclusion. An empty tier with no exclusions is the silent-drop defect. */
+  const committedAttentionPayload = JSON.parse(read('market-brief.payload.json'));
+  const committedTier = committedAttentionPayload.attention;
+  const committedExclusions = committedAttentionPayload.attentionExclusions;
+  assert(Array.isArray(committedTier) && Array.isArray(committedExclusions)
+    && committedTier.length + committedExclusions.length > 0
     && committedTier.every((item) => item.contractVersion === RLATTN.CONTRACT_VERSION)
-    && committedTier.every((item) => RLATTN.DECISION_WINDOWS.includes(item.decisionWindow)),
-    'the committed brief carries a real decision-attention/v1 tier to rank, every item in a declared decision window (' + (Array.isArray(committedTier) ? committedTier.length : 0) + ' item(s))');
-  const rankedIds = (list) => RLATTN.rankAttentionItems(list).map((item) => item.id).join('|');
-  const canonicalOrder = rankedIds(committedTier);
-  assert(canonicalOrder === rankedIds(committedTier.slice().reverse())
-    && canonicalOrder === rankedIds(committedTier.slice(2).concat(committedTier.slice(0, 2))),
-    'ranking the real committed tier is identical under reversal and rotation, so it is a total order and not a stable-sort accident');
-  assert(committedTier.map((item) => item.id).join('|') === JSON.parse(read('market-brief.payload.json')).attention.map((item) => item.id).join('|'),
-    'ranking does not mutate the tier it was handed');
+    && committedTier.every((item) => RLATTN.DECISION_WINDOWS.includes(item.decisionWindow))
+    && committedExclusions.every((item) => item && RLATTN.REFUSAL_CODES.includes(item.code)
+      && typeof item.field === 'string' && item.field.length > 0
+      && typeof item.reason === 'string' && item.reason.length > 0),
+    'the committed brief accounts for every attention candidate as a decision-attention/v1 item or a named exclusion ('
+    + (Array.isArray(committedTier) ? committedTier.length : 0) + ' published, '
+    + (Array.isArray(committedExclusions) ? committedExclusions.length : 0) + ' excluded)');
 
-  /* Severity is recorded but is NOT the rank key — urgency and an identified channel are. */
   const attentionProbe = (id, imminence, severity, path) => ({
     id: id, subject: id.toUpperCase(), headline: id, state: 'discovered',
     decisionWindow: 'pre-close', imminence: imminence, severity: severity, transmissionPath: path
   });
+  const rankingTier = committedTier.length >= 3 ? committedTier : [
+    attentionProbe('ranking-a', 'latent', 'severe', [RLMKTACTION.TRANSMISSION_CHANNELS[0]]),
+    attentionProbe('ranking-b', 'imminent', 'mild', [RLMKTACTION.TRANSMISSION_CHANNELS[0]]),
+    attentionProbe('ranking-c', 'developing', 'moderate', [RLMKTACTION.TRANSMISSION_CHANNELS[0]])
+  ];
+  const rankedIds = (list) => RLATTN.rankAttentionItems(list).map((item) => item.id).join('|');
+  const canonicalOrder = rankedIds(rankingTier);
+  assert(canonicalOrder === rankedIds(rankingTier.slice().reverse())
+    && canonicalOrder === rankedIds(rankingTier.slice(2).concat(rankingTier.slice(0, 2))),
+    'ranking is identical under reversal and rotation, so it is a total order and not a stable-sort accident');
+  const rankingInputOrder = rankingTier.map((item) => item.id).join('|');
+  rankedIds(rankingTier);
+  assert(rankingInputOrder === rankingTier.map((item) => item.id).join('|'),
+    'ranking does not mutate the tier it was handed');
+
+  /* Severity is recorded but is NOT the rank key — urgency and an identified channel are. */
   const severeLatent = attentionProbe('a', 'latent', 'severe', [RLMKTACTION.TRANSMISSION_CHANNELS[0]]);
   const mildImminent = attentionProbe('b', 'imminent', 'mild', [RLMKTACTION.TRANSMISSION_CHANNELS[0]]);
   const mappedModerate = attentionProbe('c', 'imminent', 'moderate', [RLMKTACTION.TRANSMISSION_CHANNELS[0]]);
@@ -6128,11 +6146,11 @@ try {
   /* The card ceiling is a real ceiling: it must bite when the tier exceeds it, and it must be an
      overflow set rather than a rejection set. */
   const uncapped = RLATTN.selectAttentionItems(committedTier);
-  const capped = RLATTN.selectAttentionItems(committedTier, 2);
+  const capped = RLATTN.selectAttentionItems(rankingTier, 2);
   assert(uncapped.published.length === committedTier.length && uncapped.capApplied === false && uncapped.suppressed.length === 0,
     'every committed attention item is live and publishes under the default card ceiling (' + uncapped.published.length + ' of ' + uncapped.cap + ')');
   assert(capped.published.length === 2 && capped.capApplied === true
-    && capped.suppressed.length === committedTier.length - 2
+    && capped.suppressed.length === rankingTier.length - 2
     && capped.published.concat(capped.suppressed).map((item) => item.id).join('|') === canonicalOrder,
     'the card ceiling really bites and suppresses the ranked tail rather than dropping it (' + capped.published.length + ' published, ' + capped.suppressed.length + ' suppressed)');
 
@@ -6250,6 +6268,8 @@ try {
 
   assert(/- name: Self-test \(all assertions\)[\s\S]*?run: node scripts\/selftest\.mjs/.test(pagesWorkflow),
     'Pages verify runs the complete selftest');
+  assert(/verify:[\s\S]*?- name: Checkout\s+uses: actions\/checkout@v4\s+with:\s+fetch-depth: 0[\s\S]*?- name: Setup Node/.test(pagesWorkflow),
+    'Pages verify fetches full git history before the PII scan checks every commit message');
   assert(/- name: Full browser suite \(blocking\)[\s\S]*?playwright test --config=playwright\.config\.mjs --project=system-chrome/.test(pagesWorkflow),
     'Pages verify runs the full Playwright suite, not a selected file list');
   assert(!/continue-on-error:\s*true/.test(pagesWorkflow), 'no Pages verification job is allowed to fail softly');
@@ -6321,9 +6341,13 @@ try {
     'the root-absolute asset detector still matches the regressed shape');
 
   /* ADVERSARIAL: a reduced browser gate or direct root upload must fail these exact predicates. */
-  const weakenedWorkflow = pagesWorkflow.replace('Full browser suite (blocking)', 'Selected browser suite').replace('path: "_site"', 'path: "."');
-  assert(!/- name: Full browser suite \(blocking\)/.test(weakenedWorkflow) && !/path: "_site"/.test(weakenedWorkflow),
-    'the workflow checks detect a reduced browser gate and a repo-root deployment');
+  const weakenedWorkflow = pagesWorkflow.replace('Full browser suite (blocking)', 'Selected browser suite')
+    .replace('path: "_site"', 'path: "."')
+    .replace('fetch-depth: 0', 'fetch-depth: 1');
+  assert(!/- name: Full browser suite \(blocking\)/.test(weakenedWorkflow)
+    && !/path: "_site"/.test(weakenedWorkflow)
+    && !/fetch-depth: 0/.test(weakenedWorkflow),
+    'the workflow checks detect a shallow checkout, reduced browser gate, and repo-root deployment');
 } catch (e) { failures++; console.log('  \u2717 FAIL (Step 9 durability group threw): ' + e.message); }
 
 /* ---------- spec artifacts — every referenced test path exists (ratchet) ---------- */

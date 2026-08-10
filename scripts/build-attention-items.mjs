@@ -280,10 +280,14 @@ export function candidateFromPublishedItem(item) {
  */
 export function recomposePayloadAttention(payload, config) {
   const published = Array.isArray(payload?.attention) ? payload.attention : [];
-  const decisionItems = published.filter((item) => item && item.contractVersion === 'decision-attention/v1');
-  const passthrough = published.filter((item) => !(item && item.contractVersion === 'decision-attention/v1'));
+  const candidates = published.map((item) => item && item.contractVersion === 'decision-attention/v1'
+    ? candidateFromPublishedItem(item)
+    : item);
+  const { items, exclusions } = buildAttentionItems(candidates, payload, config);
 
-  const { items, exclusions } = buildAttentionItems(decisionItems.map(candidateFromPublishedItem), payload, config);
+  if (items.length + exclusions.length !== candidates.length) {
+    throw new Error(`recompose accounting failed: ${items.length} built + ${exclusions.length} excluded != ${candidates.length} declared`);
+  }
 
   /* Pair each built envelope back to the item it came from BY CANDIDATE ORDER,
      not by id: the composer mints its own id, so an id-join silently matches
@@ -291,14 +295,16 @@ export function recomposePayloadAttention(payload, config) {
      refused indices missing, so walking the sources and skipping the excluded
      ones lines them up exactly. */
   const excludedIndices = new Set(exclusions.map((exclusion) => exclusion.index));
-  const sources = decisionItems.filter((item, index) => !excludedIndices.has(index));
+  const sources = published.filter((item, index) => !excludedIndices.has(index));
   if (sources.length !== items.length) {
     throw new Error(`recompose pairing failed: ${sources.length} surviving source(s) against ${items.length} built item(s)`);
   }
-  const merged = items.map((built, index) => Object.assign({}, sources[index], built));
+  const merged = items.map((built, index) => sources[index]?.contractVersion === 'decision-attention/v1'
+    ? Object.assign({}, sources[index], built)
+    : built);
 
   return {
-    payload: Object.assign({}, payload, { attention: passthrough.concat(merged), attentionExclusions: exclusions }),
+    payload: Object.assign({}, payload, { attention: merged, attentionExclusions: exclusions }),
     items: merged,
     exclusions
   };

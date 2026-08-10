@@ -909,6 +909,11 @@ test('Regression SCN-004-025 adversarial: every declared context has definition 
   expect(audit.missingTitle).toBe(0);
 
   // Every ticker on the route is RLTKR-decorated.
+  await expect.poll(
+    () => page.evaluate(() => Array.from(document.querySelectorAll('[data-tkr]'))
+      .filter((node) => !node.querySelector('a') && node.tagName !== 'A').length),
+    { timeout: 10000, message: 'ticker decoration must settle after route readiness' }
+  ).toBe(0);
   const undecorated = await page.evaluate(() => Array.from(document.querySelectorAll('[data-tkr]')).filter((n) => !n.querySelector('a') && n.tagName !== 'A').length);
   expect(undecorated).toBe(0);
 });

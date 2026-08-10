@@ -388,7 +388,7 @@ async function actuateSimpleControlWithKeyboard(page, panel, parameter) {
   expect(target, `${parameter.parameterId}: target must differ from the current value`).not.toBe(current);
   await control.focus();
   await expect(control).toBeFocused();
-  await page.keyboard.press(key);
+  await control.press(key);
   await expect.poll(
     () => panel.getByLabel(parameter.label, { exact: true }).inputValue(),
     { timeout: 30000, message: `${parameter.parameterId}: keyboard actuation must reach ${target}` }

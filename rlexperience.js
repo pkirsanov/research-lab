@@ -1857,6 +1857,23 @@
       row.appendChild(readout);
 
       if (typeof node.addEventListener === "function") {
+        if (controlIsChoice(parameter)) {
+          node.addEventListener("keydown", function (event) {
+            var options = parameter.domain.options;
+            var currentIndex = options.map(function (option) {
+              return controlOptionToken(option.value);
+            }).indexOf(String(node.value));
+            var nextIndex = currentIndex;
+            if (event.key === "Home") nextIndex = 0;
+            else if (event.key === "End") nextIndex = options.length - 1;
+            else if (event.key === "ArrowDown" || event.key === "ArrowRight") nextIndex = Math.min(options.length - 1, currentIndex + 1);
+            else if (event.key === "ArrowUp" || event.key === "ArrowLeft") nextIndex = Math.max(0, currentIndex - 1);
+            else return;
+            event.preventDefault();
+            node.value = controlOptionToken(options[nextIndex].value);
+            commitControl(parameter, node);
+          });
+        }
         /* "input" only moves the readout (free); the model re-runs on the committed
            "change", so dragging a slider stays smooth and every commit is a real run. */
         node.addEventListener("input", function () {

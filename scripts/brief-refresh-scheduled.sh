@@ -49,8 +49,19 @@ DUE_ONLY="${BRIEF_SCHEDULE_DUE_ONLY:-0}"
 PUBLICATION_LEAD_MINUTES="${BRIEF_PUBLICATION_LEAD_MINUTES:-30}"
 
 export PATH="/opt/homebrew/bin:/opt/local/bin:/usr/local/bin:/usr/bin:/bin"
-export BRIEF_NARRATIVE_ATTEMPTS="${BRIEF_NARRATIVE_ATTEMPTS:-1}"
-export BRIEF_NARRATIVE_TIMEOUT="${BRIEF_NARRATIVE_TIMEOUT:-1800}"
+# A scheduled window is unattended and only comes round 4x a day, so losing one costs a whole
+# publication. Both budgets below are deliberately more generous than the interactive defaults in
+# brief-refresh-and-push.sh, which a human can simply re-run.
+#   attempts 2: the narrative is model-authored, so a transient contract miss (e.g. a lane leaking a
+#     status code into reader prose) is self-correcting on a fresh sample. At 1 attempt that single
+#     slip discarded the window outright, which is what happened on 2026-08-04.
+#   timeout 2700s: lane wall-time is dominated by machine load, not by the work. Observed core-lane
+#     times on this host span 813s / 1649s / 1816s; the 1800s default lost the 2026-08-08 pre-close
+#     window by SIXTEEN SECONDS. 2700s covers the observed spread with headroom.
+# Worst case stays bounded: 2 attempts x (4 lanes / 2 concurrent) x 2700s = 3h, inside the 6h
+# BRIEF_SCHEDULE_LOCK_STALE_AFTER, and the lock still prevents any overlap with the next window.
+export BRIEF_NARRATIVE_ATTEMPTS="${BRIEF_NARRATIVE_ATTEMPTS:-2}"
+export BRIEF_NARRATIVE_TIMEOUT="${BRIEF_NARRATIVE_TIMEOUT:-2700}"
 export BRIEF_LANE_ATTEMPTS="${BRIEF_LANE_ATTEMPTS:-2}"
 export BRIEF_LANE_CONCURRENCY="${BRIEF_LANE_CONCURRENCY:-2}"
 export BRIEF_LANE_EXIT_GRACE="${BRIEF_LANE_EXIT_GRACE:-60}"

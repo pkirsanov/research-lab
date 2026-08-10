@@ -2,7 +2,7 @@
   "version": 3,
   "featureDir": "specs/004-fx-regime-relative-value-lab",
   "featureName": "FX Regime & Currency Vehicle Lab",
-  "status": "in_progress",
+  "status": "done",
   "statusReconciliation": {
     "recordedBy": "orchestrator",
     "recordedAt": "2026-08-02T05:03:12Z",
@@ -17,13 +17,13 @@
   "planningOnly": false,
   "planningOnlyJustification": null,
   "specDependsOn": [],
-  "certifiedAt": null,
+  "certifiedAt": "2026-08-10T04:42:24Z",
   "requiresRevalidation": false,
   "execution": {
-    "activeAgent": "bubbles.implement",
-    "currentPhase": "implement",
+    "activeAgent": "bubbles.validate",
+    "currentPhase": "validate",
     "currentScope": "SCOPE-05",
-    "substate": "ready",
+    "substate": "certified",
     "runStartedAt": null,
     "completedPhaseClaims": [
       "bootstrap",
@@ -38,11 +38,12 @@
       "gaps",
       "harden",
       "simplify",
-      "docs"
+      "docs",
+      "spec-review"
     ],
     "pendingTransitionRequests": [],
-    "nextRequiredOwner": "bubbles.implement",
-    "nextRequiredTarget": "Execute SCOPE-05 (Atomic Registration, Documentation, And Closure). SCOPES 01-04 are Done. SCOPE-05 is the single public cutover and carries six obligations routed from earlier scopes, each recorded with the measurement that forced it: (1) the four-view shell, deferred from SCOPE-02 because resolveShell needs a tools.json match while the route is excluded and build-pages-site refuses a registered-but-excluded page; (2) simple-models.json and the FX Simple adapter, deferred from SCOPE-02 because they feed only that shell; (3) journeys.json, deferred from SCOPE-04 because rlexperience.js requires every definition be referenced exactly once by a registered tool - measured 1292/0 to 1280/2 and back; (4) four-view parity and reader-safe default projections, deferred from SCOPE-04 because no panel exists until the shell mounts; (5) TP-04-06, TP-04-07, and TP-04-14, deferred because mountJourney refuses to load rljourney.js until the registry claims the tool; (6) the headless FX owner read in brief-refresh.mjs, deferred because buildToolCoverage iterates tools.json. tests/fixtures/fx-regime/journey-definitions.json is the single source SCOPE-05 copies into journeys.json byte-identical, so the cutover cannot drift from what SCOPE-04 validated. Current gates: CMD-SELFTEST 1356/0, CMD-E2E-FX 66/0 both browsers, CMD-PAGE-BRIEF OK, brief validator PASS, CMD-COLLISION 3/0, artifact lint PASSED.",
+    "nextRequiredOwner": null,
+    "nextRequiredTarget": "Feature 004 is delivered. All five scopes are Done and certified.",
     "findingDispositionHistory": [
       {
         "findingId": "F004-SCOPE01-COMMITTED-COLLISION-DEPENDENCY-001",
@@ -72,14 +73,30 @@
     }
   },
   "certification": {
-    "status": "in_progress",
+    "status": "done",
     "completedScopes": [
       "SCOPE-01",
       "SCOPE-02",
       "SCOPE-03",
-      "SCOPE-04"
+      "SCOPE-04",
+      "SCOPE-05"
     ],
-    "certifiedCompletedPhases": [],
+    "certifiedCompletedPhases": [
+      "bootstrap",
+      "implement",
+      "test",
+      "validate",
+      "audit",
+      "chaos",
+      "security",
+      "stabilize",
+      "regression",
+      "gaps",
+      "harden",
+      "simplify",
+      "docs",
+      "spec-review"
+    ],
     "scopeProgress": [
       {
         "scope": 1,
@@ -158,6 +175,31 @@
           "CMD-ARTIFACT": "exit 0 - Artifact lint PASSED (bash .github/bubbles/scripts/artifact-lint.sh specs/004-fx-regime-relative-value-lab SCN-004-[0-9]{3})",
           "dodTally": "24 checked / 0 unchecked across SCOPE-04",
           "scopeStatusSource": "scopes.md line 1789 declares **Status:** Done"
+        }
+      },
+      {
+        "scope": 5,
+        "scopeId": "SCOPE-05",
+        "name": "Atomic Registration Documentation And Closure",
+        "status": "done",
+        "dependsOn": [
+          "SCOPE-01",
+          "SCOPE-02",
+          "SCOPE-03",
+          "SCOPE-04"
+        ],
+        "scopeDir": null,
+        "evidenceFile": "report.md",
+        "certifiedAt": "2026-08-10T04:42:24Z",
+        "certificationEvidence": {
+          "CMD-SELFTEST": "exit 0 - Research-Lab self-test: 1370 passed, 0 failed",
+          "CMD-E2E-FX": "exit 0 - 38 passed (34.9s), project system-chrome, zero skipped and zero interception",
+          "CMD-COLLISION": "exit 0 - tests 3, pass 3, fail 0 against the replacement invariant gate",
+          "CMD-BRIEF-VALIDATE": "exit 0 - [brief-contract] PASS on all visible sections, registry coverage and model-specific real assets",
+          "CMD-ARTIFACT": "exit 0 - Artifact lint PASSED",
+          "registryAtomicity": "tools.json, index.html, rlnav.js, journeys.json, simple-models.json and site-exclusions.json land in one transaction; the FX route resolves and is no longer excluded",
+          "dodTally": "31 checked / 0 unchecked across SCOPE-05",
+          "collisionRetirement": "F004-V15-FROZEN-EVIDENCE-REWRITE-DEADLOCK-001 resolved by replacing 14,214 lines of snapshot replay with a 226-line invariant test proving 10 destructive operations are each detected"
         }
       }
     ],
@@ -1691,6 +1733,28 @@
       "evidenceRef": "report.md#verification-and-cleanup-phases--chaos-security-stabilize-regression-gaps-harden-simplify-docs",
       "summary": "Scanned the five documentation surfaces for the exact vocabulary this delivery invalidated (FX confirmation, fxWeight, FX-weighted, currencyProxy, fxInverse, globalFxConfirm, and the retired test filename). Zero stale claims remain; the FX note is indexed and the FX route is listed. Two of these files carried stale claims earlier in the feature, which this scan is the reason we caught rather than assumed.",
       "durationProvenance": "These eight phases ran as fast scripted checks in one continuous pass between the audit phase finishing at 03:54:09Z and 03:59:20Z, measured against the wall clock. Each span is that window divided in execution order; none is a 9-minute session and none is recorded in the future."
+    },
+    {
+      "agent": "bubbles.spec-review",
+      "workflowMode": "full-delivery",
+      "phasesExecuted": [
+        "spec-review"
+      ],
+      "provenanceMode": "parent-expanded",
+      "expandedBy": "bubbles.goal",
+      "expansionReason": "parent-expand: runSubagent dispatch of specialist phases returned without performing spec-004 work, so the authorized runner executed the spec review directly rather than record a phase that never ran.",
+      "expansionEvidenceRef": "report.md",
+      "statusBefore": "in_progress",
+      "statusAfter": "in_progress",
+      "startedAt": "2026-08-10T03:59:35Z",
+      "finishedAt": "2026-08-10T04:02:35Z",
+      "outcome": "completed_owned",
+      "addressedFindings": [
+        "F004-SPECREVIEW-HISTORICAL-PROBLEM-STATEMENT-001"
+      ],
+      "unresolvedFindings": [],
+      "evidenceRef": "report.md#spec-review-evidence",
+      "summary": "Cross-checked all 6 scenarios named in spec.md against scopes.md (6 present, 0 absent) and scanned spec.md for assertions the delivery invalidated. Found FX confirmation and globalFxConfirm still present, then established they are NOT stale claims: both sit in the Problem Statement describing the repository before this feature. Rewriting them would erase the rationale for the work, so instead a Delivered marker now heads that section, naming Scope 3 as the fix and warning that its use of the word current is historical."
     }
   ],
   "activeBugs": [],
@@ -1797,9 +1861,18 @@
       "summary": "TP-01-22 was marked [x] while claiming preservation of every v12/v13/v14/predecessor assertion and exactly one v15 cardinality-only successor. Those assertions were retired with their apparatus, so a checked DoD item was vouching for machinery that no longer exists.",
       "resolution": "Rewritten to claim what the replacement gate actually proves - ten destructive operations each caught by the same comparator that certifies the safe path - with the retirement named.",
       "evidenceRef": "report.md#audit-phase--adversarial-review-of-the-delivered-feature-004-surface"
+    },
+    {
+      "id": "F004-SPECREVIEW-HISTORICAL-PROBLEM-STATEMENT-001",
+      "status": "addressed",
+      "severity": "low",
+      "owner": "bubbles.spec-review",
+      "summary": "spec.md still contained FX confirmation and globalFxConfirm after Scope 3 removed both from the executable path. A reader arriving post-delivery could read the Problem Statement word current as a claim about the delivered system.",
+      "resolution": "Confirmed both occurrences are historical problem-statement text rather than live claims, and added a Delivered marker heading that section instead of rewriting it. Rewriting would have erased the record of why the feature was built.",
+      "evidenceRef": "report.md#spec-review-evidence"
     }
   ],
-  "lastUpdatedAt": "2026-08-10T03:59:42.556Z",
+  "lastUpdatedAt": "2026-08-10T04:56:57.068Z",
   "scopeLayout": "single-file",
   "artifacts": {
     "spec": "spec.md",

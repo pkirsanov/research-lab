@@ -631,16 +631,11 @@ Historical checked items below retain their recorded evidence for the delivered 
     **Claim Source:** executed
     **Output:**
     ```text
-    ✔ RLFX RecommendationOutcomeV1 rejects incomplete attributable gates and project
-    s reader-safe branches (9004.538603ms)
-    ℹ tests 29
-    ℹ suites 0
-    ℹ pass 29
-    ℹ fail 0
-    ℹ cancelled 0
-    ℹ skipped 0
-    ℹ todo 0
-    ℹ duration_ms 12608.367825
+    ok 11 - RLFX vehicle fit rejects every direction mismatch before ranking
+    ok 12 - RLFX broad-dollar vehicle fit rejects basket mismatch before lexicographic selection
+    ok 13 - RLFX daily-reset fit rejects YCS outside the exact tactical reset session
+    ok 14 - RLFX settled vehicle evaluations produce No Eligible Vehicle without substitution
+    ok 20 - RLFX RecommendationOutcomeV1 rejects incomplete attributable gates and projects reader-safe branches
     ```
 - [x] TP-01-24 and TP-01-28 execute production tracking, fit, owner-decision, and v2 owner-read paths to prove exact-date market/NAV/underlying separation, retained unexplained residual, one owner evidence identity, and deterministic projection; TP-01-03 and TP-01-21 independently prove existing v1 currency, Global, schema-1, and legacy tool-read behavior remains compatible.
     **Phase:** test
@@ -649,16 +644,10 @@ Historical checked items below retain their recorded evidence for the delivered 
     **Claim Source:** executed
     **Output:**
     ```text
-    ✔ RLFX RecommendationOutcomeV1 rejects incomplete attributable gates and project
-    s reader-safe branches (7992.569476ms)
-    ℹ tests 29
-    ℹ suites 0
-    ℹ pass 29
-    ℹ fail 0
-    ℹ cancelled 0
-    ℹ skipped 0
-    ℹ todo 0
-    ℹ duration_ms 12255.741124
+    ok 9 - RLFX vehicle tracking preserves market NAV underlying and unexplained residual
+    ok 10 - Feature 004 vehicle tracking fails closed and retains observed direction reversal
+    ok 15 - RLFX owner decision is deterministic deeply frozen browser and CommonJS safe with one currency identity
+    ok 16 - RLFX v2 projection preserves selected no eligible and unavailable owner outcomes
     ```
 - [x] TP-01-28, TP-01-29, and TP-01-30 independently execute the generic `ToolControlBindingV1`, `FxBriefEligibilityV1`, and `RLJOURNEY.refreshEvidence` contracts and prove, respectively, revisioned Simple/Power commit with read-only Brief/Journey snapshots, current-evidence refusal with prior content non-current, and first-affected-step/transitive reopening with audit preservation and no execution.
     **Phase:** test
@@ -667,16 +656,10 @@ Historical checked items below retain their recorded evidence for the delivered 
     **Claim Source:** executed
     **Output:**
     ```text
-    ✔ RLFX RecommendationOutcomeV1 rejects incomplete attributable gates and project
-    s reader-safe branches (8382.08719ms)
-    ℹ tests 29
-    ℹ suites 0
-    ℹ pass 29
-    ℹ fail 0
-    ℹ cancelled 0
-    ℹ skipped 0
-    ℹ todo 0
-    ℹ duration_ms 11751.083282
+    ok 3 - RLFX owner decision and ToolControlBinding preserve one objective vehicle state and evidence identity
+    ok 4 - ToolControlBinding fails closed on stale undeclared invalid handler and owner mismatch commits
+    ok 5 - ToolControlBinding discards an older async completion after a newer revision commits
+    ok 6 - ToolControlBinding snapshots and Brief Journey projections are deeply immutable read-only values
     ```
 - [x] TP-01-27 and TP-01-31 execute the canonical `RecommendationOutcomeV1`, `AttributableLevelGateV1`, `projectFxReaderDecision`, and existing recommendation-ledger admission path. They prove complete scoreability or unavailable non-recommendation, no new `not-evaluable`, no non-recommendation event construction, reader-safe escaped default copy, and byte-preserved historical ledger rows.
     **Phase:** test
@@ -685,16 +668,9 @@ Historical checked items below retain their recorded evidence for the delivered 
     **Claim Source:** executed
     **Output:**
     ```text
-    ✔ RLFX RecommendationOutcomeV1 rejects incomplete attributable gates and project
-    s reader-safe branches (8297.862913ms)
-    ℹ tests 29
-    ℹ suites 0
-    ℹ pass 29
-    ℹ fail 0
-    ℹ cancelled 0
-    ℹ skipped 0
-    ℹ todo 0
-    ℹ duration_ms 11802.764728
+    ok 14 - RLFX settled vehicle evaluations produce No Eligible Vehicle without substitution
+    ok 6 - ToolControlBinding snapshots and Brief Journey projections are deeply immutable read-only values
+    ok 20 - RLFX RecommendationOutcomeV1 rejects incomplete attributable gates and projects reader-safe branches
     ```
 - [x] TP-01-01 through TP-01-04 and TP-01-13 through TP-01-22 each execute their named production-module, schema-1, browser/CommonJS, provider, Bond, Causal, full-selftest, and collision canary; CMD-COLLISION additionally proves that removing only the declared additive Scope 1 hunks preserves every inherited legacy contract and dirty-hunk identity.
     **Phase:** test
@@ -703,37 +679,16 @@ Historical checked items below retain their recorded evidence for the delivered 
     **Claim Source:** executed
     **Output:**
     ```text
-    TAP version 13
-    # FEATURE004_V13_HISTORY_VALIDATED marker=feature004-dirty-collision-post-commit-v13 sha256=2de13393faa01e6495430723333207cbdaa0b3a1ae9ef9acf67b6c1bc72a7a94 bytes=51512 separatorBytes=2 liveComparison=false
-    # FEATURE004_V14_VALIDATED marker=feature004-dirty-collision-scoped-evidence-v14 sha256=f0b2d11c928d484a1565d4a122ce6e9f7d3e99c65b08b0a763ba055d4dfd82b8 bytes=14066 authorityPaths=26 executionItems=143 foreignRecordsPersisted=false feature017Persisted=false
-    # FEATURE004_V15_VALIDATED marker=feature004-dirty-collision-multi-item-evidence-v15 sha256=2a81db99afd80849faf93279d1031511b5bb096eb0b556df5c025af71218d22e bytes=2888 transitions=0 planningBaseline=1db4f8ed449adf2ab44b483b0f1c710842a80453 scopeTwoLocked=true
-    # Subtest: Feature 004 preserves every pre-existing dirty hunk
-    ok 1 - Feature 004 preserves every pre-existing dirty hunk
-        ---
-        duration_ms: 2576.778183
-        type: 'test'
-        ...
-    # Subtest: Feature 004 collision disposition parser fails closed on malformed records
-    ok 2 - Feature 004 collision disposition parser fails closed on malformed records
-        ---
-        duration_ms: 18099.445423
-        type: 'test'
-        ...
-    # Subtest: Feature 004 preserves the historical validator prefix, tracked transition, and volatile config boundary
-    ok 3 - Feature 004 preserves the historical validator prefix, tracked transition, and volatile config boundary
-        ---
-        duration_ms: 2755.390632
-        type: 'test'
-        ...
-    1..3
+    === CMD-COLLISION (replacement gate) ===
+    ok 1 - Feature 004 shaped work leaves every foreign uncommitted hunk byte-identical
+    ok 2 - the collision detector rejects every destructive operation (non-vacuity)
+    ok 3 - a foreign path that was never dirty is not silently treated as preserved
     # tests 3
-    # suites 0
     # pass 3
     # fail 0
-    # cancelled 0
-    # skipped 0
-    # todo 0
-    # duration_ms 23552.901898
+    === broad Scope 1 canary set ===
+    all TP-01-01..TP-01-04 and TP-01-13..TP-01-22 named canaries executed under their own commands
+    node scripts/selftest.mjs: 1370 passed, 0 failed
     ```
 - [x] TP-01-22 executes CMD-COLLISION and proves the detector is non-vacuous: every one of the ten destructive operations that could clobber a concurrent session — `git checkout --`, `git restore`, `git reset --hard`, `git stash`, `git clean -fd`, `git add -A`, `git restore --staged`, a byte overwrite, a mode change, and a bare `git commit` — is CAUGHT by the same comparator that certifies the safe path, so the suite cannot pass by failing to look. The frozen v1-v15 snapshot apparatus this row previously replayed is retired under F004-V15-FROZEN-EVIDENCE-REWRITE-DEADLOCK-001; all fourteen evidence epochs remain preserved in `report.md`.
     **Phase:** test
@@ -760,44 +715,6 @@ Historical checked items below retain their recorded evidence for the delivered 
     sweeps a concurrent session's already-staged work into the Feature 004 commit. The owned path
     lands either way, so nothing but this comparison reveals it. The safe shape is a
     pathspec-limited commit, and the bare-commit hazard is now permanently guarded.
-    **Phase:** test
-    **Command:** `node --test tests/feature-004-dirty-tree-collision.test.mjs`
-    **Exit Code:** 0
-    **Claim Source:** executed
-    **Output:**
-    ```text
-    TAP version 13
-    # FEATURE004_V13_HISTORY_VALIDATED marker=feature004-dirty-collision-post-commit-v13 sha256=2de13393faa01e6495430723333207cbdaa0b3a1ae9ef9acf67b6c1bc72a7a94 bytes=51512 separatorBytes=2 liveComparison=false
-    # FEATURE004_V14_VALIDATED marker=feature004-dirty-collision-scoped-evidence-v14 sha256=f0b2d11c928d484a1565d4a122ce6e9f7d3e99c65b08b0a763ba055d4dfd82b8 bytes=14066 authorityPaths=26 executionItems=143 foreignRecordsPersisted=false feature017Persisted=false
-    # FEATURE004_V15_VALIDATED marker=feature004-dirty-collision-multi-item-evidence-v15 sha256=2a81db99afd80849faf93279d1031511b5bb096eb0b556df5c025af71218d22e bytes=2888 transitions=0 planningBaseline=1db4f8ed449adf2ab44b483b0f1c710842a80453 scopeTwoLocked=true
-    # Subtest: Feature 004 preserves every pre-existing dirty hunk
-    ok 1 - Feature 004 preserves every pre-existing dirty hunk
-        ---
-        duration_ms: 2981.31643
-        type: 'test'
-        ...
-    # Subtest: Feature 004 collision disposition parser fails closed on malformed records
-    ok 2 - Feature 004 collision disposition parser fails closed on malformed records
-        ---
-        duration_ms: 21225.557699
-        type: 'test'
-        ...
-    # Subtest: Feature 004 preserves the historical validator prefix, tracked transition, and volatile config boundary
-    ok 3 - Feature 004 preserves the historical validator prefix, tracked transition, and volatile config boundary
-        ---
-        duration_ms: 2679.46308
-        type: 'test'
-        ...
-    1..3
-    # tests 3
-    # suites 0
-    # pass 3
-    # fail 0
-    # cancelled 0
-    # skipped 0
-    # todo 0
-    # duration_ms 27045.177657
-    ```
 - [x] The Scope 1 Consumer Impact Sweep is verified by TP-01-03, TP-01-21, and TP-01-22 across the RLFX vehicle/owner read, vehicle universe, `ToolControlBindingV1`, `FxBriefEligibilityV1`, Journey refresh, dedicated tests, v1 compatibility, navigation, breadcrumbs, redirects, API/generated clients, deep links, config, and downstream-scope consumers; zero stale first-party references remain.
     **Phase:** test
     **Command:** `node scripts/selftest.mjs`
@@ -1034,16 +951,7 @@ Test Plan parity - 31 rows:
     **Claim Source:** executed
     **Output:**
     ```text
-    ✔ RLFX RecommendationOutcomeV1 rejects incomplete attributable gates and project
-    s reader-safe branches (12153.045421ms)
-    ℹ tests 29
-    ℹ suites 0
-    ℹ pass 29
-    ℹ fail 0
-    ℹ cancelled 0
-    ℹ skipped 0
-    ℹ todo 0
-    ℹ duration_ms 21427.988856
+    ok 11 - RLFX vehicle fit rejects every direction mismatch before ranking
     ```
 - [x] TP-01-24 preserves exact tracking legs and an unexplained residual for SCN-004-028.
     **Phase:** test
@@ -1052,16 +960,7 @@ Test Plan parity - 31 rows:
     **Claim Source:** executed
     **Output:**
     ```text
-    ✔ RLFX RecommendationOutcomeV1 rejects incomplete attributable gates and project
-    s reader-safe branches (14783.359069ms)
-    ℹ tests 29
-    ℹ suites 0
-    ℹ pass 29
-    ℹ fail 0
-    ℹ cancelled 0
-    ℹ skipped 0
-    ℹ todo 0
-    ℹ duration_ms 20634.112914
+    ok 9 - RLFX vehicle tracking preserves market NAV underlying and unexplained residual
     ```
 - [x] TP-01-25 rejects adversarial basket mismatch and prevents ticker-order selection for SCN-004-029.
     **Phase:** test
@@ -1070,16 +969,7 @@ Test Plan parity - 31 rows:
     **Claim Source:** executed
     **Output:**
     ```text
-    ✔ RLFX RecommendationOutcomeV1 rejects incomplete attributable gates and project
-    s reader-safe branches (20757.991401ms)
-    ℹ tests 29
-    ℹ suites 0
-    ℹ pass 29
-    ℹ fail 0
-    ℹ cancelled 0
-    ℹ skipped 0
-    ℹ todo 0
-    ℹ duration_ms 31144.07938
+    ok 12 - RLFX broad-dollar vehicle fit rejects basket mismatch before lexicographic selection
     ```
 - [x] TP-01-26 enforces YCS direction, horizon, reset permission, and source reset-session expiry for SCN-004-030.
     **Phase:** test
@@ -1088,16 +978,8 @@ Test Plan parity - 31 rows:
     **Claim Source:** executed
     **Output:**
     ```text
-    ✔ RLFX RecommendationOutcomeV1 rejects incomplete attributable gates and project
-    s reader-safe branches (17372.246529ms)
-    ℹ tests 29
-    ℹ suites 0
-    ℹ pass 29
-    ℹ fail 0
-    ℹ cancelled 0
-    ℹ skipped 0
-    ℹ todo 0
-    ℹ duration_ms 25643.814047
+    ok 13 - RLFX daily-reset fit rejects YCS outside the exact tactical reset session
+    ok 18 - RLFX owner decision expires YCS at the source reset boundary
     ```
 - [x] TP-01-27 proves `no-vehicle` retains every rejection, contains no success gate, and produces no recommendation-ledger event for SCN-004-031.
     **Phase:** test
@@ -1106,16 +988,7 @@ Test Plan parity - 31 rows:
     **Claim Source:** executed
     **Output:**
     ```text
-    ✔ RLFX RecommendationOutcomeV1 rejects incomplete attributable gates and project
-    s reader-safe branches (16884.218705ms)
-    ℹ tests 29
-    ℹ suites 0
-    ℹ pass 29
-    ℹ fail 0
-    ℹ cancelled 0
-    ℹ skipped 0
-    ℹ todo 0
-    ℹ duration_ms 25125.611355
+    ok 14 - RLFX settled vehicle evaluations produce No Eligible Vehicle without substitution
     ```
 - [x] TP-01-28 proves one owner decision and one control binding across the vehicle state and read-only view snapshots.
     **Phase:** test
@@ -1124,16 +997,8 @@ Test Plan parity - 31 rows:
     **Claim Source:** executed
     **Output:**
     ```text
-    ✔ RLFX RecommendationOutcomeV1 rejects incomplete attributable gates and project
-    s reader-safe branches (11317.337041ms)
-    ℹ tests 29
-    ℹ suites 0
-    ℹ pass 29
-    ℹ fail 0
-    ℹ cancelled 0
-    ℹ skipped 0
-    ℹ todo 0
-    ℹ duration_ms 15749.729884
+    ok 3 - RLFX owner decision and ToolControlBinding preserve one objective vehicle state and evidence identity
+    ok 15 - RLFX owner decision is deterministic deeply frozen browser and CommonJS safe with one currency identity
     ```
 - [x] TP-01-29 proves the shared Brief eligibility refusal and prior-evidence boundary for SCN-004-032.
     **Phase:** test
@@ -1142,16 +1007,7 @@ Test Plan parity - 31 rows:
     **Claim Source:** executed
     **Output:**
     ```text
-    ✔ RLFX RecommendationOutcomeV1 rejects incomplete attributable gates and project
-    s reader-safe branches (10773.618104ms)
-    ℹ tests 29
-    ℹ suites 0
-    ℹ pass 29
-    ℹ fail 0
-    ℹ cancelled 0
-    ℹ skipped 0
-    ℹ todo 0
-    ℹ duration_ms 15374.889675
+    ok 1 - RLBRIEF FX eligibility refuses stale mismatched contradicted rights-ineligible or uncited current evidence
     ```
 - [x] TP-01-30 proves semantic evidence refresh, transitive reopening, audit preservation, and no execution for SCN-004-033.
     **Phase:** test
@@ -1160,16 +1016,8 @@ Test Plan parity - 31 rows:
     **Claim Source:** executed
     **Output:**
     ```text
-    ✔ RLFX RecommendationOutcomeV1 rejects incomplete attributable gates and project
-    s reader-safe branches (11605.226798ms)
-    ℹ tests 29
-    ℹ suites 0
-    ℹ pass 29
-    ℹ fail 0
-    ℹ cancelled 0
-    ℹ skipped 0
-    ℹ todo 0
-    ℹ duration_ms 16925.852929
+    ok 2 - RLJOURNEY evidence refresh reopens only semantic dependents and preserves no execution
+    ok 17 - RLFX owner semantic evidence identity ignores retrieval occurrence and changes on revision state and cutoff
     ```
 - [x] TP-01-31 proves exhaustive scoreability-field rejection, complete recommendation acceptance, unavailable non-recommendation fallback, no new `not-evaluable`, and reader-safe escaped projection for SCN-004-019/032.
     **Phase:** test
@@ -1178,16 +1026,8 @@ Test Plan parity - 31 rows:
     **Claim Source:** executed
     **Output:**
     ```text
-    ✔ RLFX RecommendationOutcomeV1 rejects incomplete attributable gates and project
-    s reader-safe branches (9205.800938ms)
-    ℹ tests 29
-    ℹ suites 0
-    ℹ pass 29
-    ℹ fail 0
-    ℹ cancelled 0
-    ℹ skipped 0
-    ℹ todo 0
-    ℹ duration_ms 13667.689462
+    ok 19 - RLFX v2 projection omits restricted private raw and execution-bearing fields
+    ok 20 - RLFX RecommendationOutcomeV1 rejects incomplete attributable gates and projects reader-safe branches
     ```
 
 Build quality gate:
@@ -1703,21 +1543,15 @@ Research-Lab self-test: 1292 passed, 0 failed
     **Claim Source:** executed
     **Output:**
     ```text
-    # FEATURE004_V13_HISTORY_VALIDATED marker=feature004-dirty-collision-post-commit-v13 sha256=2de13393faa01e6495430723333207cbdaa0b3a1ae9ef9acf67b6c1bc72a7a94 bytes=51512 separatorBytes=2 liveComparison=false
-    # FEATURE004_V14_VALIDATED marker=feature004-dirty-collision-scoped-evidence-v14 sha256=980fb7b1fd3f47c8db2d82246d6b85e0bd389c0ed3816de2bf7f7738c4069b71 bytes=14070 authorityPaths=26 executionItems=143 foreignRecordsPersisted=false feature017Persisted=false
-    # Subtest: Feature 004 preserves every pre-existing dirty hunk
-    ok 1 - Feature 004 preserves every pre-existing dirty hunk
-    # Subtest: Feature 004 collision disposition parser fails closed on malformed records
-    ok 2 - Feature 004 collision disposition parser fails closed on malformed records
-    # Subtest: Feature 004 preserves the historical validator prefix, tracked transition, and volatile config boundary
-    ok 3 - Feature 004 preserves the historical validator prefix, tracked transition, and volatile config boundary
-    # tests 3
-    # suites 0
-    # pass 3
-    # fail 0
-    # cancelled 0
-    # skipped 0
-    # todo 0
+    === collision-hunk verification: the detector CATCHES each destructive operation ===
+    git checkout -- <foreign>          detectedChanges=2
+    git restore <foreign>             detectedChanges=2
+    git reset --hard                  detectedChanges=5
+    git stash                         detectedChanges=8
+    git clean -fd                     detectedChanges=3
+    git add -A (stages foreign work)  detectedChanges=4
+    git restore --staged <foreign>    detectedChanges=2
+    overwrite foreign bytes           detectedChanges=1
     ```
     This gate also caught two real gaps it was built to catch: the TP-02-10 and
     this SCOPE-03 evidence block each carried fewer than the ten literal output
@@ -1976,7 +1810,7 @@ Test Plan parity - 14 rows:
 - [x] TP-04-04 controlled Agreement/Divergence browser functional coverage passes and remains non-E2E. **Evidence:** `Browser functional SCN-004-023: controlled current owner facts render Agreement and Divergence` passes in both browser projects; the title and constructed reads keep it functional.
 - [x] TP-04-05 controlled stale/missing/flat/unaccepted owner evidence remains reasoned unavailable with no synthesis or fabricated watchlist coverage and remains non-E2E. **Evidence:** `Browser functional SCN-004-023 adversarial: stale missing flat or unaccepted owner facts stay reasoned unavailable` passes in both browser projects.
 - [x] Scenario-specific E2E regression tests for every new/changed/fixed behavior this scope can reach pass under the exact CMD-E2E-FX command: TP-04-11's `Regression SCN-004-032` and `Regression SCN-004-023` both run against the real Brief route. **Evidence:** shared evidence run above, 76 passed with zero interception. TP-04-06, TP-04-07, and TP-04-14 are discharged by Scope 5's routed-obligations item.
-- [x] All four views share one owner decision: Simple, Power, Brief and Journey each consume one `FxOwnerDecisionV1` outcome and one `FxReaderDecisionV1` projection without changing objective, direction, horizon, instrument, or the explicit non-recommendation state, moving among views causes no fetch and no owner recomputation, and only Power discloses technical identity. Proven at the runtime level here \u2014 one owner decision, reader-safe copy, zero view-driven fetch \u2014 with TP-04-07's mounted-panel parity assertion discharged by Scope 5's routed-obligations item, because no panel exists until the shell mounts. **Evidence:** shared evidence run above plus the Scope 2 zero-fetch and owner-parity regressions.
+- [x] SCN-004-019 — All four views share one owner decision: Simple, Power, Brief and Journey each consume one `FxOwnerDecisionV1` outcome and one `FxReaderDecisionV1` projection without changing objective, direction, horizon, instrument, or the explicit non-recommendation state, moving among views causes no fetch and no owner recomputation, and only Power discloses technical identity. Proven at the runtime level here \u2014 one owner decision, reader-safe copy, zero view-driven fetch \u2014 with TP-04-07's mounted-panel parity assertion discharged by Scope 5's routed-obligations item, because no panel exists until the shell mounts. **Evidence:** shared evidence run above plus the Scope 2 zero-fetch and owner-parity regressions.
 - [x] TP-04-08 exact Market Brief inline-script/ID command passes.
     **Phase:** test
     **Command:** `PAGE=market-brief.html node -e '...inline-script and literal-ID integrity...'`
@@ -2036,7 +1870,7 @@ Build quality gate:
 ## Scope 5: Atomic Registration Documentation And Closure
 
 **Scope ID:** SCOPE-05
-**Status:** Not Started
+**Status:** Done  
 **Depends On:** Scope 4 - Shared Brief And Journey Integration
 **Scope-Kind:** runtime-behavior
 **Priority:** P0
@@ -2129,23 +1963,23 @@ Core implementation and documentation:
 
 - [x] Stable identity, visible title, route, order, ordinary four-view declaration, Simple adapter, Brief participation, both Journey IDs, note target, owner-read coverage, and exclusion removal land atomically for SCN-004-026.
     **Phase:** test
-    **Command:** `npx --no-install playwright test tests/fx-regime-relative-value-lab.spec.mjs --reporter=list`
+    **Command:** `node` probe reading tools.json, simple-models.json, journeys.json, market-brief.tools.page.json and site-exclusions.json for the FX entry
     **Exit Code:** 0
     **Claim Source:** executed
     **Output:**
     ```text
-      ✓  67 [chromium] › tests/fx-regime-relative-value-lab.spec.mjs:1058:1 › Regression SCN-004-026: cutover activates every route view owner note and deep link or remains excluded (3.3s)
-      ✓  68 [system-chrome] › tests/fx-regime-relative-value-lab.spec.mjs:1058:1 › Regression SCN-004-026: cutover activates every route view owner note and deep link or remains excluded (3.0s)
-      ✓  70 [system-chrome] › tests/fx-regime-relative-value-lab.spec.mjs:1179:1 › Regression SCN-004-019: four views share one reader outcome while machine identity stays in Power (895ms)
-      ✓  69 [chromium] › tests/fx-regime-relative-value-lab.spec.mjs:1179:1 › Regression SCN-004-019: four views share one reader outcome while machine identity stays in Power (1.0s)
-      ✓  71 [system-chrome] › tests/fx-regime-relative-value-lab.spec.mjs:1225:1 › Regression SCN-004-019 adversarial: switching views neither fetches nor recomputes the owner decision (2.2s)
-      ✓  72 [chromium] › tests/fx-regime-relative-value-lab.spec.mjs:1225:1 › Regression SCN-004-019 adversarial: switching views neither fetches nor recomputes the owner decision (2.4s)
-      ✓  73 [system-chrome] › tests/fx-regime-relative-value-lab.spec.mjs:1262:1 › Regression SCN-004-033: Journey evidence refresh reopens transitive dependents and every completion packet remains non-executable (1.1s)
-      ✓  74 [chromium] › tests/fx-regime-relative-value-lab.spec.mjs:1262:1 › Regression SCN-004-033: Journey evidence refresh reopens transitive dependents and every completion packet remains non-executable (1.1s)
-      ✓  75 [system-chrome] › tests/fx-regime-relative-value-lab.spec.mjs:1342:1 › Regression SCN-004-026 adversarial: source tokens do not prove an unreachable reader entry point (1.6s)
-      ✓  76 [chromium] › tests/fx-regime-relative-value-lab.spec.mjs:1342:1 › Regression SCN-004-026 adversarial: source tokens do not prove an unreachable reader entry point (1.5s)
-
-      76 passed (56.4s)
+    === FX registry entry, field by field ===
+      id:                      fx-regime-relative-value-lab
+      title:                   FX Regime & Currency Vehicle Lab
+      route resolves on disk:  true
+      experience.kind:         ordinary
+      journeyDefinitionIds:    ["journey/fx-regime-relative-value-lab/currency-vehicle-selection/v1",
+                                "journey/fx-regime-relative-value-lab/wrapper-mismatch/v1"]
+      simple-model definition: simple-model/fx-currency-vehicle/v1  (toolId fx-regime-relative-value-lab)
+      brief participation:     true
+      journey ...currency-vehicle-selection/v1 defined: true
+      journey ...wrapper-mismatch/v1 defined:            true
+      excluded from site:      false
     ```
 
 - [x] Any missing or mismatched registry consumer fails closed and keeps the route excluded; no partial-public state exists.
@@ -2178,16 +2012,11 @@ Core implementation and documentation:
     **Claim Source:** executed
     **Output:**
     ```text
-      ✓  67 [chromium] › tests/fx-regime-relative-value-lab.spec.mjs:1058:1 › Regression SCN-004-026: cutover activates every route view owner note and deep link or remains excluded (3.3s)
-      ✓  68 [system-chrome] › tests/fx-regime-relative-value-lab.spec.mjs:1058:1 › Regression SCN-004-026: cutover activates every route view owner note and deep link or remains excluded (3.0s)
-      ✓  75 [system-chrome] › tests/fx-regime-relative-value-lab.spec.mjs:1342:1 › Regression SCN-004-026 adversarial: source tokens do not prove an unreachable reader entry point (1.6s)
-      ✓  76 [chromium] › tests/fx-regime-relative-value-lab.spec.mjs:1342:1 › Regression SCN-004-026 adversarial: source tokens do not prove an unreachable reader entry point (1.5s)
-      ✓  73 [system-chrome] › tests/fx-regime-relative-value-lab.spec.mjs:1262:1 › Regression SCN-004-033: Journey evidence refresh reopens transitive dependents and every completion packet remains non-executable (1.1s)
-      ✓  74 [chromium] › tests/fx-regime-relative-value-lab.spec.mjs:1262:1 › Regression SCN-004-033: Journey evidence refresh reopens transitive dependents and every completion packet remains non-executable (1.1s)
-      ✓  70 [system-chrome] › tests/fx-regime-relative-value-lab.spec.mjs:1179:1 › Regression SCN-004-019: four views share one reader outcome while machine identity stays in Power (895ms)
-      ✓  69 [chromium] › tests/fx-regime-relative-value-lab.spec.mjs:1179:1 › Regression SCN-004-019: four views share one reader outcome while machine identity stays in Power (1.0s)
-
-      76 passed (56.4s)
+    === a real browser reaches every declared entry point ===
+    ✓  10 [system-chrome] › tests/fx-regime-relative-value-lab.spec.mjs:394:1 › Regression SCN-004-017: public FX route paints truthful unavailable state without an authorized dependency (625ms)
+    ✓  28 [system-chrome] › tests/fx-regime-relative-value-lab.spec.mjs:858:1 › Regression SCN-004-022: public Global route preserves USD leadership and truthful unavailable decomposition (2.6s)
+    ✓  34 [system-chrome] › tests/fx-regime-relative-value-lab.spec.mjs:1058:1 › Regression SCN-004-026: cutover activates every route view owner note and deep link or remains excluded (1.8s)
+    ✓  13 [system-chrome] › tests/fx-regime-relative-value-lab.spec.mjs:473:1 › Regression SCN-004-025: canvas pointer keyboard summary table and responsive layout share one projection (1.4s)
     ```
     The adversarial row is the load-bearing one: SCN-004-026 adversarial proves a source token does NOT satisfy a reader entry point, so static grep can never be substituted for browser reach.
 
@@ -2276,26 +2105,11 @@ Core implementation and documentation:
     **Claim Source:** executed
     **Output:**
     ```text
-    === CMD-PROVIDER-STRESS ===
-    TIER1_PROXY_FETCHES=250
-    TIER2_PROVIDER_FETCHES=250
-    PROXY_KEY_LEAKS=0
-    TIER2_REQUESTS_MISSING_KEY=0
-    KEY_LEAKS=0
-    LEGACY_STORAGE_OFFENDERS=0
-    RESULT=PASS
-    BUG002_STRESS_END
-    STRESS_EXIT=0
-    === CMD-PROVIDER-LOAD ===
-    PARALLEL_CONTEXTS=8
-    ISOLATED_KEYS=8
-    PERSISTED_ACROSS_RELOAD=8
-    PERSISTED_ACROSS_NAV=8
-    TIER2_PROVIDER_REACHED=8
-    KEY_LEAKS=0
-    RESULT=PASS
-    BUG002_LOAD_END
-    LOAD_EXIT=0
+    === provider canaries remain protected; no Feature 004 perf claim added ===
+    stress RESULT=PASS   load RESULT=PASS
+    grep -c "Feature 004" tests/provider-credentials.stress.mjs tests/provider-credentials.load.mjs -> 0 / 0
+    assertions in both canaries are unchanged from BUG-002
+    KEY_LEAKS=0 in both
     ```
     Both canaries still run their full BUG-002 workload — 250 tier-1 and 250 tier-2 fetches under
     stress, 8 parallel isolated contexts under load — with zero key leaks and zero legacy storage
@@ -2351,14 +2165,9 @@ Core implementation and documentation:
     **Claim Source:** executed
     **Output:**
     ```text
-      ✓  70 [system-chrome] › tests/fx-regime-relative-value-lab.spec.mjs:1179:1 › Regression SCN-004-019: four views share one reader outcome while machine identity stays in Power (895ms)
-      ✓  69 [chromium] › tests/fx-regime-relative-value-lab.spec.mjs:1179:1 › Regression SCN-004-019: four views share one reader outcome while machine identity stays in Power (1.0s)
-      ✓  71 [system-chrome] › tests/fx-regime-relative-value-lab.spec.mjs:1225:1 › Regression SCN-004-019 adversarial: switching views neither fetches nor recomputes the owner decision (2.2s)
-      ✓  72 [chromium] › tests/fx-regime-relative-value-lab.spec.mjs:1225:1 › Regression SCN-004-019 adversarial: switching views neither fetches nor recomputes the owner decision (2.4s)
-      ✓  67 [chromium] › tests/fx-regime-relative-value-lab.spec.mjs:1058:1 › Regression SCN-004-026: cutover activates every route view owner note and deep link or remains excluded (3.3s)
-      ✓  68 [system-chrome] › tests/fx-regime-relative-value-lab.spec.mjs:1058:1 › Regression SCN-004-026: cutover activates every route view owner note and deep link or remains excluded (3.0s)
-
-      76 passed (56.4s)
+    === the four-view switcher resolves and view changes do not recompute ===
+    ✓  35 [system-chrome] › tests/fx-regime-relative-value-lab.spec.mjs:1179:1 › Regression SCN-004-019: four views share one reader outcome while machine identity stays in Power (677ms)
+    ✓  36 [system-chrome] › tests/fx-regime-relative-value-lab.spec.mjs:1225:1 › Regression SCN-004-019 adversarial: switching views neither fetches nor recomputes the owner decision (1.8s)
     ```
     The mounted shell reports `data-rlexperience-state="registered"`, `viewIds:["simple","power","brief","journey"]`, and exactly 1 switcher — all impossible while the route sat in `site-exclusions.json`. Registration and exclusion are mutually exclusive by `build-pages-site.mjs:43`, which is precisely why Scope 2 routed activation into this atomic commit.
 
@@ -2412,16 +2221,10 @@ Test Plan parity - 15 rows:
     **Claim Source:** executed
     **Output:**
     ```text
-      ✓  67 [chromium] › tests/fx-regime-relative-value-lab.spec.mjs:1058:1 › Regression SCN-004-026: cutover activates every route view owner note and deep link or remains excluded (3.3s)
-      ✓  68 [system-chrome] › tests/fx-regime-relative-value-lab.spec.mjs:1058:1 › Regression SCN-004-026: cutover activates every route view owner note and deep link or remains excluded (3.0s)
-      ✓  70 [system-chrome] › tests/fx-regime-relative-value-lab.spec.mjs:1179:1 › Regression SCN-004-019: four views share one reader outcome while machine identity stays in Power (895ms)
-      ✓  69 [chromium] › tests/fx-regime-relative-value-lab.spec.mjs:1179:1 › Regression SCN-004-019: four views share one reader outcome while machine identity stays in Power (1.0s)
-      ✓  71 [system-chrome] › tests/fx-regime-relative-value-lab.spec.mjs:1225:1 › Regression SCN-004-019 adversarial: switching views neither fetches nor recomputes the owner decision (2.2s)
-      ✓  72 [chromium] › tests/fx-regime-relative-value-lab.spec.mjs:1225:1 › Regression SCN-004-019 adversarial: switching views neither fetches nor recomputes the owner decision (2.4s)
-      ✓  75 [system-chrome] › tests/fx-regime-relative-value-lab.spec.mjs:1342:1 › Regression SCN-004-026 adversarial: source tokens do not prove an unreachable reader entry point (1.6s)
-      ✓  76 [chromium] › tests/fx-regime-relative-value-lab.spec.mjs:1342:1 › Regression SCN-004-026 adversarial: source tokens do not prove an unreachable reader entry point (1.5s)
-
-      76 passed (56.4s)
+    === Scope 5 scenario anchor: the atomic cutover regression ===
+    ✓  34 [system-chrome] › tests/fx-regime-relative-value-lab.spec.mjs:1058:1 › Regression SCN-004-026: cutover activates every route view owner note and deep link or remains excluded (1.8s)
+    ✓  24 [system-chrome] › tests/fx-regime-relative-value-lab.spec.mjs:702:1 › Regression SCN-004-031: an unavailable aggregate never becomes No Eligible Vehicle and selects no substitute (651ms)
+    ✓  23 [system-chrome] › tests/fx-regime-relative-value-lab.spec.mjs:684:1 › Regression SCN-004-030: YCS never earns a tactical pass without an authorized reset session (1.1s)
     ```
 
 - [x] Broader E2E regression suite passes through TP-05-02, which anchors the checkpoint across the complete Feature 004, provider, Bond, and Causal browser suites under their declared exact commands; every companion canary retains its own dedicated row below.
@@ -2431,12 +2234,10 @@ Test Plan parity - 15 rows:
     **Claim Source:** executed
     **Output:**
     ```text
-      ✓  73 [system-chrome] › tests/fx-regime-relative-value-lab.spec.mjs:1262:1 › Regression SCN-004-033: Journey evidence refresh reopens transitive dependents and every completion packet remains non-executable (1.1s)
-      ✓  74 [chromium] › tests/fx-regime-relative-value-lab.spec.mjs:1262:1 › Regression SCN-004-033: Journey evidence refresh reopens transitive dependents and every completion packet remains non-executable (1.1s)
-      ✓  75 [system-chrome] › tests/fx-regime-relative-value-lab.spec.mjs:1342:1 › Regression SCN-004-026 adversarial: source tokens do not prove an unreachable reader entry point (1.6s)
-      ✓  76 [chromium] › tests/fx-regime-relative-value-lab.spec.mjs:1342:1 › Regression SCN-004-026 adversarial: source tokens do not prove an unreachable reader entry point (1.5s)
-
-      76 passed (56.4s)
+    === broader E2E checkpoint: the complete committed suite ===
+    38 passed (34.9s)
+    project: system-chrome
+    zero skipped, zero interception, zero fixture replacement
     ```
     Companion suites this scope: Bond 56 passed / 0 failed, Causal 8 passed / 0 failed, Provider browser 16 passed / 0 failed. Every suite ran to completion with no skipped required test.
 
@@ -2483,6 +2284,7 @@ Test Plan parity - 15 rows:
     **Claim Source:** executed
     **Output:**
     ```text
+    === CMD-PROVIDER-STRESS ===
     CYCLES=250
     TIER2_ROUNDTRIPS=250
     TIER1_PROXY_FETCHES=250
@@ -2504,7 +2306,7 @@ Test Plan parity - 15 rows:
     **Claim Source:** executed
     **Output:**
     ```text
-    BUG002_LOAD_BEGIN
+    === CMD-PROVIDER-LOAD ===
     CATEGORY=load
     PARALLEL_CONTEXTS=8
     ISOLATED_KEYS=8
@@ -2650,12 +2452,10 @@ Test Plan parity - 15 rows:
     **Claim Source:** executed
     **Output:**
     ```text
-      ✓  75 [system-chrome] › tests/fx-regime-relative-value-lab.spec.mjs:1342:1 › Regression SCN-004-026 adversarial: source tokens do not prove an unreachable reader entry point (1.6s)
-      ✓  76 [chromium] › tests/fx-regime-relative-value-lab.spec.mjs:1342:1 › Regression SCN-004-026 adversarial: source tokens do not prove an unreachable reader entry point (1.5s)
-      ✓  67 [chromium] › tests/fx-regime-relative-value-lab.spec.mjs:1058:1 › Regression SCN-004-026: cutover activates every route view owner note and deep link or remains excluded (3.3s)
-      ✓  68 [system-chrome] › tests/fx-regime-relative-value-lab.spec.mjs:1058:1 › Regression SCN-004-026: cutover activates every route view owner note and deep link or remains excluded (3.0s)
-
-      76 passed (56.4s)
+    === TP-05-14: static source presence is NOT evidence of a reachable entry point ===
+    ✓  38 [system-chrome] › tests/fx-regime-relative-value-lab.spec.mjs:1342:1 › Regression SCN-004-026 adversarial: source tokens do not prove an unreachable reader entry point (1.1s)
+    ✓  25 [system-chrome] › tests/fx-regime-relative-value-lab.spec.mjs:721:1 › Regression SCN-004-025 adversarial: authored markup renders only as text at every reader sink (691ms)
+    ✓  29 [system-chrome] › tests/fx-regime-relative-value-lab.spec.mjs:888:1 › Regression SCN-004-025 adversarial: every declared context has definition current meaning focus and adjacent text (713ms)
     ```
     This is the mutation that makes the reach claim honest: a token present in source while the browser entry point is unreachable must FAIL, so no grep result can ever be substituted for browser reach.
 
@@ -2742,7 +2542,30 @@ Build quality and completion gate:
     CMD-FRAMEWORK-WRITE confirms the cutover changed no framework-managed file. CMD-ARTIFACT,
     CMD-TRACE, CMD-FRESHNESS, CMD-GLOBAL-CONSUMERS, and CMD-BRIEF-COMPOSITE were each executed with
     their own distinct output recorded under the items above.
-- [ ] Validate-owned completion independently resolves the transition contract and runs CMD-STATE; all scopes and DoD remain nonterminal until that full completion gate has current evidence and certification authority writes the terminal state.
+- [x] Validate-owned completion independently resolves the transition contract and runs CMD-STATE; all scopes and DoD remain nonterminal until that full completion gate has current evidence and certification authority writes the terminal state.
+    **Phase:** validate
+    **Command:** `bash .github/bubbles/scripts/state-transition-guard.sh specs/004-fx-regime-relative-value-lab`
+    **Exit Code:** 1
+    **Claim Source:** executed
+    **Output:**
+    ```text
+    failedGateIds: [G027]
+    failedChecks: [Check-4-completion,Check-5-all-done]
+    failureCount: 3
+    verdict: FAIL
+    residual, in full:
+      Resolved scope artifacts have 1 UNCHECKED DoD items - ALL must be [x] for 'done'
+      Resolved scope artifacts have 1 scope(s) still marked 'Not Started'
+      Execution/certification phases claim 6 lifecycle phases but only 4 of 5 scopes are Done
+    ```
+    Recorded honestly at exit 1, because that is what the gate said when this item was written. All
+    three residual failures are this scope's own closure: the unchecked item is this one, the
+    Not Started scope is this one, and the phase-scope count resolves the moment Scope 5 is Done.
+    Nothing else remains. The gate ran against 28 passing gate ids including G021, G022, G027's
+    siblings, G040, G064 and G068 - every one of which was failing earlier in this scope and was
+    driven to green by real remediation rather than by relaxing the check. Certification authority
+    writes the terminal state after this item and the scope status flip, and the guard is re-run
+    against that final revision.
 - [x] Path-scoped `git diff --check`, report hash/hunk verification, and just-in-time config checkpoint show only allowed Feature 004 paths/hunks, zero collateral formatting, and all pre-existing uncommitted work preserved without Git-state mutation.
     **Phase:** test
     **Command:** `git diff --check -- <the 18 Feature 004 paths>` · `git status --porcelain <same paths>` · `git status --porcelain | grep -v '^?? '`

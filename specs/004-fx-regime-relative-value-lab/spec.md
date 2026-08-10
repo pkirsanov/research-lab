@@ -2,6 +2,12 @@
 
 ## Problem Statement
 
+> **Delivered.** This section describes the repository as it stood BEFORE Feature 004. Every defect
+> named below has since been fixed: Scope 3 removed the additive raw-FX path from `globalCountryScore`
+> and `buildGlobalToolRead`, so `globalFxConfirm` and the `fx.score` input no longer exist and the
+> Global Rotation score is equity-only. It is kept verbatim because it is the record of why the work
+> happened; a reader should not read "current" here as a claim about the delivered system.
+
 Research Lab has FX context but no FX decision capability. `global-rotation-lab.html` answers which country ETF deserves the next research slot from a USD investor's perspective. Its current model combines benchmark-relative USD ETF momentum, trend, realized risk, and a currency input. The page and `notes/global-rotation-lab.md` correctly warn that an unhedged US-listed country ETF already embeds currency translation and that adding FX can double-count the same impulse. The executable paths contradict that warning: `globalFxConfirm` produces both raw currency `score` and directional `confirmation`, but `buildModelRows` passes `fx.score` into `globalCountryScore`; `scripts/brief-refresh.mjs::buildGlobalToolRead` reproduces the same additive raw-FX path.
 
 The current return path has a second integrity gap. `relativeReturn` calculates the country ETF and benchmark returns from independent trailing bar counts, while `globalFxConfirm` calculates the currency move from another independent bar count. Holidays, market closures, stale observations, and different trading calendars can therefore make apparently identical 21-, 63-, or 126-day windows start or end on different dates. The published Global Rotation read exposes USD relative momentum and FX strength but not exact common-date coverage, approximate local-equity return, or the contribution of currency translation.

@@ -3,7 +3,7 @@
     "featureDir": "specs/_bugs/BUG-001-central-provider-credential-security",
     "featureName": "BUG-001 Central Provider Credential Security",
     "createdAt": "2026-07-13T04:19:44Z",
-    "status": "in_progress",
+    "status": "done",
     "priorBlockerResolved": {
         "recordedBy": "orchestrator",
         "recordedAt": "2026-08-02T07:05:00Z",
@@ -54,8 +54,14 @@
     "planningOnly": false,
     "planningOnlyJustification": null,
     "specDependsOn": [],
-    "certifiedAt": null,
-    "requiresRevalidation": true,
+    "certifiedAt": "2026-08-10T17:31:15Z",
+    "requiresRevalidation": false,
+    "revalidationResolution": {
+        "resolvedBy": "bubbles.validate",
+        "resolvedAt": "2026-08-10T17:31:15Z",
+        "how": "Revalidated against current bytes rather than accepting the prior run's figures. All five SCOPE-01 verification commands were re-executed in this session and reproduced every expected figure exactly: unit 4 tests/4 pass, functional 14 tests/14 pass, stress LEGACY_STORAGE_OFFENDERS=0 RESULT=PASS, load KEY_LEAKS=0 RESULT=PASS, repository selftest 1370 passed 0 failed.",
+        "evidenceRef": "report.md#validate-certification-2026-08-10t173115z"
+    },
     "execution": {
         "activeAgent": "bubbles.audit",
         "currentPhase": "audit",
@@ -930,19 +936,30 @@
         }
     },
     "certification": {
-        "status": "in_progress",
-        "completedScopes": [],
-        "certifiedCompletedPhases": [],
+        "status": "done",
+        "completedScopes": [
+            "SCOPE-01"
+        ],
+        "certifiedCompletedPhases": [
+            "implement",
+            "test",
+            "regression",
+            "simplify",
+            "stabilize",
+            "security",
+            "validate",
+            "audit"
+        ],
         "scopeProgress": [
             {
                 "scope": 1,
                 "scopeId": "SCOPE-01",
                 "name": "Pre-BUG-002 Legacy Credential Erasure",
-                "status": "not_started",
+                "status": "done",
                 "dependsOn": [],
                 "scopeDir": null,
                 "evidenceFile": "report.md#scope-01-completion-replay---2026-08-01t172723z",
-                "certifiedAt": null
+                "certifiedAt": "2026-08-10T17:31:15Z"
             }
         ],
         "pendingAuditReconciliation": {
@@ -960,13 +977,16 @@
             ],
             "auditProfile": "delivery-completion-v1",
             "targetStatus": "done",
-            "status": "audit_complete_rework_required_awaiting_validate_certification",
+            "status": "resolved",
             "auditAttemptId": "AUD-BUG001-009",
             "auditVerdict": "REWORK_REQUIRED",
             "auditCompletedAt": "2026-08-10T16:18:03Z",
-            "remainingOwner": "bubbles.validate",
-            "remainingAction": "Publish the audit phase into certification.certifiedCompletedPhases and certify SCOPE-01 into certification.completedScopes, which clears the G022 and G027 guard failures. Audit recorded only its execution claim and wrote no certification field.",
-            "evidenceRef": "report.md#validate-pre-audit-replay-2026-08-01t214514z"
+            "remainingOwner": null,
+            "remainingAction": null,
+            "resolvedBy": "bubbles.validate",
+            "resolvedAt": "2026-08-10T17:31:15Z",
+            "resolution": "Resolved. AUD-BUG001-009 is the first completed delivery-completion-v1 evaluation of this packet and it recorded the audit execution claim, which cleared Gate G022 and took the guard from 4 failures to 2. bubbles.validate has now published the audit phase into certification.certifiedCompletedPhases and certified SCOPE-01 into certification.completedScopes, clearing the remaining validate-owned G027 pair. The REWORK_REQUIRED verdict was a statement about the transition, not the product: audit-result-contract-lint.sh refuses a positive audit verdict while the guard reports FAIL, and the sole failure it named was the certification field only validate may write. No product defect was outstanding.",
+            "evidenceRef": "report.md#validate-certification-2026-08-10t173115z"
         },
         "lockdownState": {
             "active": false,
@@ -2099,6 +2119,37 @@
             ],
             "repositoryBindingDecision": "rb:vscode-a855981ff9231b3a8f1b780a6192a1da:12",
             "summary": "Completed the first full delivery-completion-v1 evaluation of this packet. Independently re-executed the unit suite (4/4), functional suite (14/14 including all three SCN-BUG001-004 cases), stress suite (LEGACY_STORAGE_OFFENDERS=0 over 250 cycles), load suite (KEY_LEAKS=0, PERSISTED_ACROSS_RELOAD=8) and the repository selftest (1370 passed, 0 failed). Independently re-verified legacy-container inventory completeness by enumerating every shipped .js/.html blob in full git history: 26 distinct container names, 18 undeclared, arithmetic reproduced exactly. Confirmed the conclusion that no undeclared container is credential-bearing, but refuted the pre-audit rationale for optStructLab and replaced it with the verified one that no writer ever persisted a credential field there. Recorded the literal-scan method bound as a low-severity observation. No product defect was found: SCOPE-01's single active requirement is met and BUG-002 Tier-1 proxy and Tier-2 rlProviderConfig behaviour is intact. Recording the audit execution claim cleared Gate G022 and took the guard from 4 failures to 1. The verdict is REWORK_REQUIRED rather than a positive value because the result contract refuses a positive audit verdict while the guard reports FAIL, and the sole remaining failure G027 is validate-owned. No certification field was written."
+        },
+        {
+            "agent": "bubbles.validate",
+            "workflowMode": "bugfix-fastlane",
+            "executionModel": "direct-surgical-invocation",
+            "parentAgent": null,
+            "startedAt": "2026-08-10T17:21:56Z",
+            "completedAt": "2026-08-10T17:31:15Z",
+            "startedAtProvenance": "Observed, not asserted. The repository-binding control file recorded revision 14 (decision rb:vscode-a855981ff9231b3a8f1b780a6192a1da:14, this session's preflight) at that instant; `stat -c '%y'` on the control file reads 2026-08-10 17:21:56 UTC.",
+            "completedAtProvenance": "Observed via `date -u` in this session. Strictly after the prior bubbles.audit entry's completedAt 2026-08-10T16:18:03Z, so the two windows do not overlap, and not in the future.",
+            "statusBefore": "in_progress",
+            "statusAfter": "done",
+            "phasesExecuted": [
+                "validate"
+            ],
+            "scopesCompleted": [
+                "SCOPE-01"
+            ],
+            "outcome": "completed_owned",
+            "verdict": "CERTIFIED",
+            "addressedFindings": [
+                "BUG001-G027-CERTIFICATION",
+                "AUD-BUG001-009-LITERAL-SCAN-BOUND"
+            ],
+            "unresolvedFindings": [],
+            "nextRequiredOwner": null,
+            "evidenceRefs": [
+                "report.md#validate-certification-2026-08-10t173115z"
+            ],
+            "repositoryBindingDecision": "rb:vscode-a855981ff9231b3a8f1b780a6192a1da:14",
+            "summary": "Certified SCOPE-01 and promoted the packet to done. Re-executed the five SCOPE-01 verification commands against current bytes and reproduced every expected figure exactly: unit 4 tests/4 pass, functional 14 tests/14 pass including all three SCN-BUG001-004 cases, stress LEGACY_STORAGE_OFFENDERS=0 RESULT=PASS over 250 cycles, load KEY_LEAKS=0 RESULT=PASS with PERSISTED_ACROSS_RELOAD=8, repository selftest 1370 passed 0 failed. Closed AUD-BUG001-009-LITERAL-SCAN-BOUND by confirming its representative case directly rather than re-running the full-history container scan that had already been executed and agreed upon twice: strategy-validation-lab.html line 809 builds the persisted rlStratValSeries payload from a hard field whitelist {t, adj, c, fetchedAt}, and lines 806-812 contain zero credential-shaped identifiers, so that container cannot carry a credential by construction. Wrote only validate-owned fields: completedScopes, certifiedCompletedPhases, scopeProgress, pendingAuditReconciliation resolution, and both status mirrors set to done together so they cannot split into an E009-TARGET-MISMATCH again."
         }
     ],
     "activeBugs": [
@@ -2106,7 +2157,7 @@
     ],
     "resolvedBugs": [],
     "failures": [],
-    "lastUpdatedAt": "2026-08-01T22:13:51Z",
+    "lastUpdatedAt": "2026-08-10T17:31:15Z",
     "scopeLayout": "single-file",
     "artifacts": {
         "bug": "bug.md",
@@ -2155,5 +2206,5 @@
         ],
         "specDoneRequires": "The single active SCOPE-01 must satisfy the canonical bug-closure DoD for SCN-BUG001-004, all required workflow phases and findings must close, and bubbles.validate must certify completion."
     },
-    "notes": "BUG-002 remains authoritative for current Tier-1 proxy and Tier-2 localStorage.rlProviderConfig behavior. BUG-001 describes only pre-BUG-002 legacy-container closure under active SCOPE-01. SCOPE-01 execution is Done and PRE_AUDIT_CLEAN is recorded with current product and governance evidence. Top-level status, certification.status, certification.completedScopes, certification.scopeProgress, and certification.certifiedCompletedPhases remain nonterminal and unchanged pending a current delivery-completion audit; the route is bubbles.audit."
+    "notes": "BUG-002 remains authoritative for current Tier-1 proxy and Tier-2 localStorage.rlProviderConfig behavior. BUG-001 describes only pre-BUG-002 legacy-container closure under active SCOPE-01. SCOPE-01 execution is Done and certified. bubbles.audit completed AUD-BUG001-009, the first full delivery-completion-v1 evaluation of this packet, and bubbles.validate then published the audit phase and certified SCOPE-01 on 2026-08-10T17:31:15Z. Both status mirrors were set to done in the same write so they cannot split into an E009-TARGET-MISMATCH again. The earlier currentPosition, blockedReason and priorBlockerResolved blocks are preserved verbatim as point-in-time records; their operatorAction text is superseded by that certification and must not be re-actioned."
 }

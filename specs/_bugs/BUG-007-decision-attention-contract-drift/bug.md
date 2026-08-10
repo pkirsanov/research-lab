@@ -41,7 +41,7 @@ cd /tmp/rl-bug007-head1 && node scripts/selftest.mjs
 Measured at `cc990911d`. Summary line: `Research-Lab self-test: 1363 passed, 7 failed`.
 
 | # | Failing assertion (verbatim head of line) | Site |
-|---|---|---|
+| --- | --- | --- |
 | 1 | `Registry-wide Market Brief coverage selftest includes the registered volatility owner read` | `scripts/selftest.mjs:476` |
 | 2 | `current payload satisfies the executable brief contract: attention[0] (id absent).disposition RLATTN-DISPOSITION: …` — 55 violations, 11 per item across all 5 items | payload gate |
 | 3 | `every REQUIRED narrative pattern matches a real field in the committed payload — the required list describes this payload, not an imagined one: attention.[].rationale, attention.[].invalidation, attention.[].escalationTrigger` | narrative-pattern check |

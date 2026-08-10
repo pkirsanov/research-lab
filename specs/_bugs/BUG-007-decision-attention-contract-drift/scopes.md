@@ -59,7 +59,7 @@ Feature: BUG-007 Prevent a legacy-shape attention tier from republishing silentl
 ### Test Plan
 
 | Test type | Target | Command | Result |
-|---|---|---|---|
+| --- | --- | --- | --- |
 | Regression (pre-fix, must fail) | Full suite at `cc990911d` | `node scripts/selftest.mjs` in a detached worktree | 1363 passed, 7 failed |
 | Regression (post-fix, must pass) | Full suite at `aeb1bcbc3` | `node scripts/selftest.mjs` | 1370 passed, 0 failed, exit 0 |
 | Adversarial | Guard predicate at `scripts/selftest.mjs:6105` | Differential evaluation across both revisions | FAIL at `HEAD~1`, PASS at `HEAD` |
@@ -70,7 +70,8 @@ Feature: BUG-007 Prevent a legacy-shape attention tier from republishing silentl
 ### Definition of Done
 
 - [x] Root cause confirmed and documented
-   - Raw output evidence:
+  - Raw output evidence:
+
       ```
       HEAD~1   selftest.mjs:6105 predicate => FAIL | items: 5 | carrying contractVersion: 0 | in a declared window: 0
       HEAD     selftest.mjs:6105 predicate => PASS | items: 3 | carrying contractVersion: 3 | in a declared window: 3
@@ -86,10 +87,12 @@ Feature: BUG-007 Prevent a legacy-shape attention tier from republishing silentl
       payload.attentionExclusions: 2 entries
       snapshot.attention: undefined
       ```
-   - **Claim Source:** executed
+
+  - **Claim Source:** executed
 
 - [x] Pre-fix regression evidence obtained — the suite FAILS at the red revision
-   - Raw output evidence:
+  - Raw output evidence:
+
       ```
       Preparing worktree (detached HEAD cc990911d)
       HEAD is now at cc990911d test(runtime): declare the three undeclared committed suites in the pinned inventory
@@ -103,10 +106,12 @@ Feature: BUG-007 Prevent a legacy-shape attention tier from republishing silentl
       1572:Research-Lab self-test: 1363 passed, 7 failed
       GREP_DONE
       ```
-   - **Claim Source:** executed
+
+  - **Claim Source:** executed
 
 - [x] Adversarial regression case exists and would fail if the bug returned
-   - Raw output evidence:
+  - Raw output evidence:
+
       ```
       6105:    'the committed brief carries a real decision-attention/v1 tier to rank,
                every item in a declared decision window (' + (Array.isArray(committedTier)
@@ -120,12 +125,14 @@ Feature: BUG-007 Prevent a legacy-shape attention tier from republishing silentl
       HEAD~1   selftest.mjs:6105 predicate => FAIL | items: 5 | carrying contractVersion: 0 | in a declared window: 0
       HEAD     selftest.mjs:6105 predicate => PASS | items: 3 | carrying contractVersion: 3 | in a declared window: 3
       ```
+
      The guard reads the real committed artifact rather than a fixture, so a regenerated
      legacy-shape payload is checked as-published.
-   - **Claim Source:** executed
+  - **Claim Source:** executed
 
 - [x] Post-fix suite PASSES at HEAD on a clean tree
-   - Raw output evidence:
+  - Raw output evidence:
+
       ```
         ✓ the committed dependency-gate projection matches its source specs — a stale projection misreports delivery
         ✓ the projected site ships the dependency-gate projection, so gates resolve identically on Pages
@@ -144,13 +151,15 @@ Feature: BUG-007 Prevent a legacy-shape attention tier from republishing silentl
       ================================================
       SELFTEST_EXIT=0
       ```
+
      **Scoped claim.** This measurement was taken at clean `HEAD` before a concurrent writer
      modified the tree at 16:16–16:17 UTC. It is true of the revision measured and must not
      be read as the state of the tree now. Current state is recorded in UD-4 and OBS-007-04.
-   - **Claim Source:** executed
+  - **Claim Source:** executed
 
 - [x] The failures existed at a committed revision, not in local edits
-   - Raw output evidence:
+  - Raw output evidence:
+
       ```
       GIT_STATUS_EXIT=0 (empty above == clean tree)
       HEAD=aeb1bcbc3373cc90cc846fc4bfb577dd9f75c927 2026-08-10 14:13:48 +0000 FR-018: an attention item deep-links to its owning tool, checked against the registry
@@ -167,10 +176,12 @@ Feature: BUG-007 Prevent a legacy-shape attention tier from republishing silentl
       BUG-005-g087-planning-packet-linkage-unsatisfiable-in-place-delivery
       BUG-006-evaluate-before-publish-and-unscoreable-call-published
       ```
-   - **Claim Source:** executed
+
+  - **Claim Source:** executed
 
 - [x] The durable control against 4×/day regeneration is on the publish path, not in the bytes
-   - Raw output evidence:
+  - Raw output evidence:
+
       ```
       370-    # That only holds if the composer actually runs on the publication path.
       371:    # build-attention-items.mjs --recompose --write is that step, and it sits
@@ -188,10 +199,12 @@ Feature: BUG-007 Prevent a legacy-shape attention tier from republishing silentl
       126:      `scripts/build-attention-items.mjs --recompose --write`, after the lanes have
             written the payload and *before* the payload gate runs.
       ```
-   - **Claim Source:** executed
+
+  - **Claim Source:** executed
 
 - [x] The page-projection failure family was classified by measurement, not assumption
-   - Raw output evidence:
+  - Raw output evidence:
+
       ```
       38:      attention: payload.attention,
 
@@ -213,17 +226,20 @@ Feature: BUG-007 Prevent a legacy-shape attention tier from republishing silentl
        tests/rlattention.test.mjs                         |  44 ++++
        5 files changed, 405 insertions(+), 43 deletions(-)
       ```
+
      `market-brief.page.json` is absent from the fix commit's file list yet its assertion
      turned green, so the failure was consequent on the payload, not independent.
-   - **Claim Source:** executed
+  - **Claim Source:** executed
 
 - [x] Bug status recorded in `bug.md`
-   - Raw output evidence:
+  - Raw output evidence:
+
       ```
       bug.md §7 "Current State At HEAD" records: not reproducible; suite 1370 passed,
       0 failed; closure attributed to commit aeb1bcbc3 with its measured file list.
       ```
-   - **Claim Source:** executed
+
+  - **Claim Source:** executed
 
 ### Uncertainty Declarations
 

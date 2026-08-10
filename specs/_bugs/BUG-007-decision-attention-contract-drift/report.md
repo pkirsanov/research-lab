@@ -327,7 +327,7 @@ publishing them.
 ## Open Findings
 
 | ID | Severity | Summary | Owner | Status |
-|---|---|---|---|---|
+| --- | --- | --- | --- | --- |
 | OBS-007-01 | low | `market-brief.snapshot.json` has no `attention` key while the payload has three items. Whether this is a defect was not established. | spec 017 | open |
 | OBS-007-02 | low | The composer exits 0 on refusal by design; an all-refusal run would also exit 0. Mechanical enforcement of the declared "zero published with zero exclusions is a failure" rule was not verified. | spec 017 | open |
 | OBS-007-03 | informational | Spec 017 is `in_progress` under a certification refusal naming four surviving blockers, none of which is this defect. | spec 017 | open |

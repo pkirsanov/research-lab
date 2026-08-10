@@ -11,6 +11,16 @@ import {
   runFixtureValidator
 } from './brief-refresh-atomicity.support.mjs';
 
+/* One outcome per registered tool EXCEPT the brief itself, which consumes the
+   bundle rather than contributing to it. Derived from the registry the fixture
+   copies verbatim, because a literal here silently under-covers the barrier the
+   moment a tool is registered — which is exactly how this drifted to 22. */
+const EXPECTED_TOOL_BUNDLE_COUNT = (() => {
+  const registry = JSON.parse(readFileSync(new URL('../tools.json', import.meta.url), 'utf8'));
+  const tools = Array.isArray(registry) ? registry : registry.tools;
+  return tools.filter((tool) => tool && tool.id !== 'market-brief').length;
+})();
+
 function readSchedulerStatus(path) {
   return Object.fromEntries(readFileSync(path, 'utf8').trim().split('\n').map((line) => {
     const separator = line.indexOf('=');
@@ -245,8 +255,8 @@ if (process.env.NODE_TEST_CONTEXT) {
     assert.deepEqual(JSON.parse(readFileSync(fixture.copilotAuditFile, 'utf8')), {
       attempt: 1,
       cleanConfigObserved: true,
-      toolBundleCount: 22
-    }, 'the final-author lane consumes all 22 prepared source-tool outcomes');
+      toolBundleCount: EXPECTED_TOOL_BUNDLE_COUNT
+    }, `the final-author lane consumes all ${EXPECTED_TOOL_BUNDLE_COUNT} prepared source-tool outcomes`);
     const orderedMarkers = [
       'pulling latest origin/main before tool updates',
       '[fixture-fetch-bars]',

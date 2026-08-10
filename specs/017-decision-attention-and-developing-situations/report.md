@@ -323,32 +323,145 @@ committed; `HEAD` alone declares 53.
 |---|---|
 | `artifact-lint.sh specs/017-...` | PASSED (exit 0) |
 | `regression-quality-guard.sh tests/attention-browser.spec.mjs` | 0 violations, 0 warnings (exit 0) |
-| `state-transition-guard.sh specs/017-...` | exit 1 — sole failing gate family **G022** |
+| `state-transition-guard.sh specs/017-...` | PASSED (exit 0), `failedGateIds: []`, `failureCount: 0` |
 
-The guard passes 25 of 26 gate families: G040, G051, G053, G068, G082–G100, G128,
-G130 and G131. G022 is the specialist-dispatch gap documented in
-`executionHistory`, not a defect in the delivered feature.
+Re-executed by `bubbles.validate` on 2026-08-10. The guard now passes every
+applicable gate family, G022 included. The `exit 1` result this row carried
+previously is superseded by that re-execution, not explained away.
 
 ## Validation Summary
 
-**Not certified. `bubbles.validate` refused `done` and the refusal still stands.**
+**Not certified. `status` stays `blocked`, and the assurance level is lowered from
+`fast` to `prototype` on re-executed evidence.**
 
-| record | outcome |
-|---|---|
-| `bubbles.validate` certification | REFUSED — `assurance.level: fast`, `missingForFull: ["independent-audit"]` |
-| `AUD-017-001` — first independent audit | `REWORK_REQUIRED` — 5 findings, 4 of them against the execution record |
-| `AUD-017-002` — supersedes 001 | `REWORK_REQUIRED` — closed F-017-04, A-017-02, A-017-04; opened A-017-06 |
+**Claim Source:** executed. Every command below was run by `bubbles.validate` on
+2026-08-10, not read from a prior attempt's transcript.
 
-The audit supplied the `independent-audit` input validate recorded as missing, so
-the refusal now stands on new grounds rather than being lifted. Certification is
-validate-owned and has deliberately not been written by any other agent — a
-self-certification is precisely what `missingForFull` existed to prevent.
+| command | exit | result |
+|---|---|---|
+| `state-transition-guard.sh specs/017-...` | 0 | PASS, `failedGateIds: []`, `failureCount: 0` |
+| `artifact-lint.sh specs/017-...` | 0 | `Artifact lint PASSED.` |
+| `node scripts/selftest.mjs` | 0 | 1370 passed, 0 failed |
+| `node --test tests/brief-refresh-atomicity.test.mjs` | 1 | 26 tests, 18 pass, **8 fail** |
 
-## Audit Verdict
+### The independent-audit input, and why it does not lift the block
+
+`AUD-017-004` is a direct `bubbles.audit` invocation with `independentAudit: true`.
+The independent audit **phase** has therefore been performed, and the procedural
+obstacle that blocked every prior attempt is gone.
+
+That is not the same as satisfying the assurance input, and the two must not be
+conflated. `assurance-derive.sh` defines its fourth input at line 60 as
+`implement + full test coverage + all tests passing + audit **passed**`. It was
+run both ways to make the difference concrete:
+
+```text
+$ assurance-derive.sh --implement-complete true --tests-complete true \
+    --tests-passed true --audit-complete true
+achievedLevel=full
+terminalStatus=done
+missingForFull=none
+```
+
+Treating "an audit ran" as `--audit-complete true` therefore certifies a packet
+its own audit marked `DO_NOT_SHIP` as fully assured and `done`. That is the
+outcome the flag exists to prevent, so `--audit-complete` is read as the script
+documents it: **passed**. `AUD-017-004` returned `auditVerdict: DO_NOT_SHIP`,
+`deliveryEvaluation: REFUSED`, `certifiedStatus: none`, so the input is unmet and
+`independent-audit` stays in `missingForFull`.
+
+The distinction is recorded rather than resolved silently: what changed is that
+an independent audit now exists; what has not changed is that it did not pass.
+
+### Derivation actually run
+
+```text
+$ assurance-derive.sh --implement-complete true --tests-complete true \
+    --tests-passed false --audit-complete false
+achievedLevel=prototype
+terminalStatus=delivered_prototype
+missingForFull=all-tests-passing,independent-audit
+
+$ is-terminal-for-mode.sh delivered_prototype full-delivery
+exit 1
+```
+
+`--tests-passed` is recorded `false` because a committed suite fails: 8 of 26.
+The prior derivation recorded `true` on the grounds that those failures were an
+upstream data condition rather than test failures. That justification is refuted
+below, so it cannot carry the input. `delivered_prototype` is not
+terminal-for-mode under `full-delivery`, so no terminal status is written and the
+packet stays `blocked`.
+
+### D19 stays open, but its recorded cause is refuted
+
+D19 is **not closed** and nothing was regenerated or relaxed to move it. The
+failures are real. Their stated cause is not, and re-executing it produced the
+opposite of the record on three points.
+
+**1. The cache is not stale.** Run against its own window, the validator passes:
+
+```text
+$ jq -c '{refreshWindow, expectedSessionDate}' data/bars/index.json
+{"refreshWindow":"after-hours","expectedSessionDate":"2026-08-07"}
+
+$ BRIEF_WINDOW=after-hours node scripts/validate-brief-cache.mjs --require-current-run
+[brief-cache] PASS: 362 JSON cache files parsed; indexes are coherent and complete for 2026-08-09/after-hours
+VALIDATOR_EXIT=0
+```
+
+2026-08-09 is a **Sunday**, so 2026-08-07 (Friday) *is* the latest completed XNYS
+session. The record read "two days stale" by comparing a session date against a
+calendar date, which are only equal on a trading day. The committed and
+working-tree copies of the index are identical, so the isolated-checkout tests
+consume this same coherent cache.
+
+**2. The HTTP 429 is real but is not what fails these tests.** Re-confirmed now:
+`query1` and `query2` both return 429 while a `github.com` control returns 200.
+The failing tests never reach the network. They print
+`[fixture-fetch-bars] no external fetch required`, because the harness replaces
+`scripts/fetch-bars.mjs` with a stub.
+
+**3. The real cause is a fixture defect, and it is agent-fixable.** The stub in
+`tests/brief-refresh-atomicity.support.mjs:232` sets
+`sessionDate = BAR_EXPECTED_SESSION_DATE || <today's New York calendar date>`,
+making the same calendar-for-session substitution. The validator correctly
+demands the latest completed session, so the two disagree on every non-trading
+day. Pinning both sides through the hatch the code already provides isolates it,
+without editing a file:
+
+```text
+$ BAR_EXPECTED_SESSION_DATE=2026-08-07 node --test tests/brief-refresh-atomicity.test.mjs
+# tests 26
+# pass 25
+# fail 1
+```
+
+7 of the 8 failures are that conflation. The 8th is unrelated and carries no
+environmental excuse at all: `toolBundleCount` is asserted as a literal `22`
+while the lane now prepares `23`.
+
+**Consequence for the operator action.** Re-running the refresh from an
+unthrottled host would not clear D19, because `expectedSessionDate` is already
+correct. Worse, on the next trading day the 7 fixture failures will pass on their
+own, since calendar date and session date coincide again. That would retire the
+symptom while leaving a suite that silently fails every weekend. D19 therefore
+routes to `bubbles.test`, not to the operator.
+
+Certification remains validate-owned and no other agent has written it.
+
+## Audit Verdict AUD-017-004
 
 **DO_NOT_SHIP** · profile `delivery-completion-v1` · attempt `AUD-017-004` ·
 `bubbles.audit` · 2026-08-09T23:12:23Z · supersedes `AUD-017-003` ·
 **`independentAudit: true`**
+
+> Heading corrected by `bubbles.validate` 2026-08-10. This attempt's `evidenceRef`
+> is `report.md#audit-verdict-aud-017-004`, but the heading read `## Audit Verdict`
+> and slugified to `audit-verdict`, so the pointer resolved to nothing. That is the
+> defect `A-017-09` raised against `AUD-017-003`, recurring in the attempt that
+> closed it. The transcript itself was present and verifiable, so the verdict
+> stands; only the pointer was repaired.
 
 This is the independent audit `certification.assurance.missingForFull` has been
 waiting for. `AUD-017-003` was parent-expanded by `bubbles.workflow` and said so;

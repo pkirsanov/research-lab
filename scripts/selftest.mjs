@@ -7152,6 +7152,42 @@ try {
     'an unknown mode is refused and changes nothing, so a crafted deep link cannot force an undefined view state');
 } catch (e) { failures++; console.log('  \u2717 FAIL (trend-dynamics-cycle-lab mode threw): ' + e.message); }
 
+/* ── trend-dynamics-cycle-lab — closed state vocabulary (TP-04-01, spec 006 scope 4) ───────────
+   design.md requires closed truth/state vocabularies. Until now the builders passed truthState
+   through verbatim, so a typo or a future engine state would have reached the Brief as though it
+   were a declared reading -- and a consumer switching on the enum would fall through every arm
+   and render nothing, or worse, treat an unknown state as healthy. An undeclared state must fail
+   CLOSED to unavailable, which is the one value that overstates nothing. */
+try {
+  group('trend-dynamics-cycle-lab \u2014 an undeclared state fails closed instead of reaching a reader (TP-04-01)');
+  const vocSrc = read('trend-dynamics-cycle-lab.html');
+  const vocEnv = build([
+    extractFn(vocSrc, 'tdcComposeReadSentence'), extractFn(vocSrc, 'tdcBuildDeepLink'),
+    extractFn(vocSrc, 'tdcBuildToolRead')
+  ], ['tdcBuildToolRead']);
+  const vocResult = (over) => Object.assign({
+    contractVersion: 'tdc-analysis-result/v1', resultId: 'res-voc', requestDigest: 'dig-voc',
+    computedAt: '2026-08-11T12:00:00Z', sourceAsOf: '2026-08-10',
+    sourceAvailability: 'current', truthState: 'current',
+    request: { seriesId: 'srs-v', transformId: 'level', horizonId: 'medium' },
+    trend: { direction: 'rising', trendType: 'linear' }, strength: { score: 0.4 },
+    dynamics: { state: 'steady' }, changeState: 'stable',
+    confidencePct: 55, caveats: [], complete: true
+  }, over || {});
+
+  for (const declared of ['current', 'stale', 'degraded', 'unavailable']) {
+    const read1 = vocEnv.tdcBuildToolRead(vocResult({ truthState: declared }));
+    assert(read1.metrics.truthState === declared,
+      'the declared state \u201c' + declared + '\u201d survives unchanged, so the guard narrows nothing that is legitimate');
+  }
+
+  const bogus = vocEnv.tdcBuildToolRead(vocResult({ truthState: 'probably-fine' }));
+  assert(bogus.metrics.truthState === 'unavailable',
+    'an undeclared state fails CLOSED to unavailable rather than reaching the Brief as if it were a real reading');
+  assert(bogus.metrics.strengthScore === undefined && bogus.asOf === null,
+    'failing closed also withholds the measurements, so an unrecognised state cannot publish numbers a reader would trust');
+} catch (e) { failures++; console.log('  \u2717 FAIL (trend-dynamics-cycle-lab vocabulary threw): ' + e.message); }
+
 /* ---------- Bond regime: one-model parity guarantee (spec 018 Scope 6) ----------
    The highest-value test in feature 018. It makes the Outcome Contract's hard constraint — ONE
    model, two compositions — checkable rather than asserted.

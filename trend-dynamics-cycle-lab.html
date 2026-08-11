@@ -2964,7 +2964,10 @@
        reads downstream as a real measurement. */
     function tdcBuildToolRead(result) {
       if (!result || typeof result !== 'object' || result.complete !== true) return null;
-      var truth = result.truthState;
+      // Closed vocabulary: an unrecognised state fails to unavailable, the one value that
+      // overstates nothing, rather than reaching a consumer as if it were a real reading.
+      var declaredStates = ['current', 'stale', 'degraded', 'unavailable'];
+      var truth = declaredStates.indexOf(result.truthState) >= 0 ? result.truthState : 'unavailable';
       var unavailable = truth === 'unavailable';
       var request = result.request && typeof result.request === 'object' ? result.request : {};
       var metrics = {

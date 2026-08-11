@@ -17,8 +17,8 @@ Feature: BUG-007 Prevent a legacy-shape attention tier from republishing silentl
   Scenario: A payload authored in the legacy catalyst shape is refused by name
     Given market-brief.payload.json carries attention items with no contractVersion
     When node scripts/selftest.mjs runs
-    Then the assertion naming "a real decision-attention/v1 tier to rank" fails
-    And the failure message reports the item count it actually found
+    Then the assertion naming "accounts for every attention candidate as a decision-attention/v1 item or a named exclusion" fails
+    And the failure message reports the published and excluded counts it actually found
 
   Scenario: A payload composed through the certified composer publishes its whole tier
     Given every committed attention item declares decision-attention/v1 and a declared window
@@ -241,12 +241,85 @@ Feature: BUG-007 Prevent a legacy-shape attention tier from republishing silentl
 
   - **Claim Source:** executed
 
+#### Regression scenario verification
+
+One item per Gherkin scenario above, each stating that scenario's own claim.
+
+- [x] A payload authored in the legacy catalyst shape is refused by name — an
+      attention item carrying no `contractVersion` fails the committed-brief assertion,
+      and the message reports the counts it found.
+
+  **Claim Source:** executed — a legacy-shape item was injected into a DISPOSABLE
+  worktree (never the live tree) and the suite was run against it.
+
+  ```text
+  $ git worktree add --detach /tmp/rl-bug007 HEAD
+  # payload.attention := [{ id:'legacy-1', ... }]  (no contractVersion), exclusions := []
+  $ node scripts/selftest.mjs
+  ✗ FAIL: the committed brief accounts for every attention candidate as a
+    decision-attention/v1 item or a named exclusion (1 published, 0 excluded)
+  Research-Lab self-test: 1366 passed, 5 failed
+  $ git worktree remove --force /tmp/rl-bug007      # live tree untouched
+  ```
+
+- [x] A payload composed through the certified composer publishes its whole tier —
+      with no explicit ceiling every committed item publishes, `capApplied` is false
+      and the suppressed set is empty.
+
+  **Claim Source:** executed — covered by SCN-017-022 in `tests/rlattention.test.mjs`,
+  which asserts the under-ceiling case directly.
+
+  ```text
+  $ node --test tests/rlattention.test.mjs
+  ok 23 - SCN-017-022 The cap of seven is a ceiling and never a quota
+  # tests 28
+  # pass 28
+  # fail 0
+  ```
+
+- [x] The card ceiling overflows rather than rejects — at an explicit ceiling the
+      ranked tail moves to suppressed instead of being dropped, and published
+      concatenated with suppressed reproduces the canonical rank order.
+
+  **Claim Source:** executed — same scenario, the over-ceiling half of SCN-017-022.
+
+  ```text
+  $ node --test tests/rlattention.test.mjs
+  ok 23 - SCN-017-022 The cap of seven is a ceiling and never a quota
+  # pass 28  # fail 0
+  ```
+
+- [x] The page projection is byte-current with the payload it copies — the committed
+      page artifacts equal a fresh build.
+
+  **Claim Source:** executed — the projection's own `--check` mode at HEAD.
+
+  ```text
+  $ node scripts/build-brief-page-artifacts.mjs --check
+  {"contractVersion":"market-brief-page-build-result/v1","dryRun":false,"check":true,
+   "stale":false,"sizes":{"market-brief.page.json":91333, ...}}
+  exit=0
+  ```
+
+- [x] The composer runs inside the regeneration path, not beside it —
+      `build-attention-items.mjs --recompose --write` sits between the authoring lane
+      and the publication gate in the 4×/day script.
+
+  **Claim Source:** executed — read from the committed publish script at HEAD.
+
+  ```text
+  $ grep -n 'build-attention-items.mjs' scripts/brief-refresh-and-push.sh
+  371:    # build-attention-items.mjs --recompose --write is that step, and it sits
+  386:       && "$NODE_BIN" scripts/build-attention-items.mjs --recompose --write \
+  ```
+
 ### Uncertainty Declarations
 
-**UD-1 — Suites not executed in this session.** `tests/attention-payload-contract.test.mjs`,
-`tests/rlattention.test.mjs` and the Playwright suite `tests/attention-browser.spec.mjs`
-were **not** run. They are named in this packet only as surfaces that also cover the
-contract. No claim is made about their current pass state.
+**UD-1 — SUPERSEDED by execution.** This declaration recorded that
+`tests/attention-payload-contract.test.mjs`, `tests/rlattention.test.mjs` and the
+Playwright suite `tests/attention-browser.spec.mjs` were not run. They have since been
+executed at HEAD: 30/30, 28/28 and 12/12 respectively, all exit 0. The declaration is
+retained rather than deleted so the record shows what was and was not measured when.
 
 **UD-2 — The fix was not authored here.** The repair landed in commit `aeb1bcbc3` before this
 packet existed. This scope verified closure; it did not implement it. No claim of authorship
@@ -273,7 +346,7 @@ another session in flight. Recorded as OBS-007-04.
 
 All four were answered by measurement. The blocker was that they are owned by
 spec 017 and that spec was mid-certification; 017 is now `done` at `full`
-assurance, so the questions are answerable rather than deferred. One was a real
+assurance, so the questions are answerable now. One was a real
 defect and is fixed; three resolve as not-a-defect on evidence.
 
 - [x] **OBS-007-01** — RESOLVED, correct by design, not a defect. The snapshot's
@@ -294,13 +367,10 @@ defect and is fixed; three resolve as not-a-defect on evidence.
   # the one match loads a SEPARATE file, not snapshot.attention
   ```
 
-- [x] **OBS-007-02** — CONFIRMED A REAL GAP, and FIXED. The rule
+- [x] **OBS-007-02** — CONFIRMED A REAL GAP ON THE PUBLISH PATH, and FIXED. The rule
       "zero published with zero recorded exclusions is a failure" was declared in the
-      plan and enforced nowhere. The gate checked only the ceiling
-      (`attention.length > max`); there was no floor. The composer's accounting
-      assertion passes trivially at zero candidates (`0 + 0 === 0`), so a generation
-      that refused everything published an empty tier at exit 0 with no explanation.
-      Same class as A-017-10: a stated rule with no mechanical enforcement.
+      plan, and Scope 1 declares the durable control belongs **on the publish path**.
+      It was not there: the gate checked only the ceiling, with no floor.
 
   **Claim Source:** executed — gap reproduced, fix applied, regression proven
   load-bearing by mutation in a disposable worktree (never in the live tree).
@@ -324,6 +394,14 @@ defect and is fixed; three resolve as not-a-defect on evidence.
   ```
 
   Fixed in `2802b90a`.
+
+  **Correction to an earlier reading of this observation, recorded rather than quietly
+  amended:** the rule was NOT enforced nowhere. `scripts/selftest.mjs:6117` already
+  asserted `tier.length + exclusions.length > 0` against the **committed** payload, and
+  its comment names the same defect. That net is real, but it is a LATER one — it catches
+  the bad payload in CI, after the 4×/day cron has already published it. The fix moves the
+  control to the publish path, which is where Scope 1 says it belongs; the selftest
+  assertion remains as defence in depth.
 
 - [x] **OBS-007-03** — RESOLVED, premise no longer holds. The certification refusal
       this observation described is gone; 017 carries no `refusedAt`.

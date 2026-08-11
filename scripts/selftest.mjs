@@ -7029,6 +7029,29 @@ try {
     'an allowlisted value is percent-encoded, so a crafted id cannot inject an extra query parameter');
 } catch (e) { failures++; console.log('  \u2717 FAIL (trend-dynamics-cycle-lab deep link threw): ' + e.message); }
 
+/* ── trend-dynamics-cycle-lab — untrusted text stays text (TP-04-01, spec 006 scope 4) ─────────
+   design.md: source and catalog text is untrusted and text-rendered, and no eval, dynamic
+   script or active imported markup exists. The tool satisfies this today; nothing enforced it,
+   so a single innerHTML assignment during the remaining scope-4 render work would reintroduce
+   injection silently. Each case carries an adversarial twin proving the scan MATCHES a
+   violation, because a detector that cannot fire is worse than no detector. */
+try {
+  group('trend-dynamics-cycle-lab \u2014 untrusted source text cannot become markup or script (TP-04-01)');
+  const safeSrc = read('trend-dynamics-cycle-lab.html');
+  const dynamicScript = /\beval\s*\(|new\s+Function\s*\(|document\.write\s*\(/;
+  const markupSink = /\.(innerHTML|outerHTML)\s*=|insertAdjacentHTML\s*\(/;
+
+  assert(!dynamicScript.test(safeSrc),
+    'the tool contains no eval, no Function constructor and no document.write, so catalog text can never be executed');
+  assert(dynamicScript.test('var x = eval("1+1");') && dynamicScript.test('var f = new Function("a", "return a");'),
+    'the dynamic-script scan MATCHES both forms when present, so the clean result above is a measurement rather than a broken regex');
+
+  assert(!markupSink.test(safeSrc),
+    'no innerHTML, outerHTML or insertAdjacentHTML sink exists, so an untrusted series name or caveat is rendered as text');
+  assert(markupSink.test('node.innerHTML = untrusted;') && markupSink.test('node.insertAdjacentHTML("beforeend", untrusted);'),
+    'the markup-sink scan MATCHES both sink shapes when present, so this guard cannot pass vacuously');
+} catch (e) { failures++; console.log('  \u2717 FAIL (trend-dynamics-cycle-lab safe text threw): ' + e.message); }
+
 /* ---------- summary ---------- */
 console.log('\n' + '='.repeat(48));
 console.log('Research-Lab self-test: ' + passes + ' passed, ' + failures + ' failed');

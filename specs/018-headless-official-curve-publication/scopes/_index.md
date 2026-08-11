@@ -55,7 +55,7 @@ the resulting agreement meaningful.
 | --- | --- | --- | --- | --- |
 | 1 | Official Curve Artifact Contract And Validation Gate | [`01-official-curve-artifact-contract/scope.md`](01-official-curve-artifact-contract/scope.md) | none | Done |
 | 2 | Tier-A Official Curve Acquisition | [`02-tier-a-official-curve-acquisition/scope.md`](02-tier-a-official-curve-acquisition/scope.md) | 1 | Done |
-| 3 | Observed-Cadence Freshness Admission | [`03-observed-cadence-freshness-admission/scope.md`](03-observed-cadence-freshness-admission/scope.md) | 1 | Not started |
+| 3 | Observed-Cadence Freshness Admission | [`03-observed-cadence-freshness-admission/scope.md`](03-observed-cadence-freshness-admission/scope.md) | 1 | Done |
 | 4 | Headless Consumption Path | [`04-headless-consumption-path/scope.md`](04-headless-consumption-path/scope.md) | 1, 2, 3 | Not started |
 | 5 | Brief Read And Provenance Render | [`05-brief-read-and-provenance-render/scope.md`](05-brief-read-and-provenance-render/scope.md) | 4 | Not started |
 | 6 | One-Model Parity Guarantee | [`06-one-model-parity-guarantee/scope.md`](06-one-model-parity-guarantee/scope.md) | 1, 2, 3, 4, 5 | Not started |

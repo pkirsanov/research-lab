@@ -1230,9 +1230,81 @@
     var rows = available.map(function (row) {
       var tool = row.tool, value = row.value, href = value.deepLink || tool.file || "";
       var freshness = value.asOf ? fmtToolReadAge(value.asOf) : "as-of unknown";
-      return '<div class="toolread" data-tkr-auto title="Latest Simple-view read from the owning tool; open it for model controls and full diagnostics."><div><b>' + esc(tool.title || tool.id) + '</b> <span class="pill ' + (row.live ? 'live' : '') + '">' + (row.live ? 'browser' : 'Tier-A') + '</span></div><div class="ay">' + esc(value.read) + '</div><div class="sub">' + esc(freshness) + (href ? ' · ' + link(href, 'open tool ▸') : '') + '</div></div>';
+      var extra = tool.id === "bond-regime-lab" ? bondCardDetail(value) : "";
+      return '<div class="toolread" data-tkr-auto title="Latest Simple-view read from the owning tool; open it for model controls and full diagnostics."><div><b>' + esc(tool.title || tool.id) + '</b> <span class="pill ' + (row.live ? 'live' : '') + '">' + (row.live ? 'browser' : 'Tier-A') + '</span></div><div class="ay">' + esc(value.read) + '</div>' + extra + '<div class="sub">' + esc(freshness) + (href ? ' · ' + link(href, 'open tool ▸') : '') + '</div></div>';
     }).join("");
     el.innerHTML = '<div class="sub" style="margin-bottom:8px">' + available.length + ' owning-tool reads available · ' + missing.length + ' require an agent/browser read. Missing tools are explicit, never silently treated as neutral.</div>' + (rows || '<div class="sub">No owning-tool reads are available yet.</div>') + (missing.length ? '<div class="sub" style="margin-top:8px">Awaiting: ' + missing.map(function (tool) { return esc(tool.title || tool.id); }).join(', ') + '</div>' : '');
+  }
+  /* The bond card's extra detail (spec 018 scope 5). Three publication states — admitted, stale and
+     absent — share ONE geometry, so a reader who has learned one has learned all three. Every state
+     token is a shape glyph PLUS the state word, so removing all colour leaves the state fully
+     readable. No machine slug is ever painted: the render boundary is where `Indeterminate` becomes
+     "Not resolved" and where a null sleeve becomes a sentence. */
+  var BRL_GLYPH = { current: "\u25CF", stale: "\u25D0", unavailable: "\u25CB" };
+  /* tabindex makes the token focusable, so its two-part tooltip is reachable by keyboard and not
+     only by hover. The glyph is aria-hidden because the state word beside it already says the state. */
+  function brlToken(kind, word, tip) {
+    return '<span class="brl-tok" tabindex="0" title="' + esc(tip) + '" aria-label="' + esc(word + '. ' + tip) + '"><span aria-hidden="true">' + BRL_GLYPH[kind] + '</span> ' + esc(word) + '</span>';
+  }
+  function brlAxisWord(state) { return state === "Indeterminate" ? "Not resolved" : String(state || "Not resolved"); }
+  /* Turn an admission block into reader words. The stale case names the derived window and the last
+     good observation WITH its not-current qualifier in the same string, so the qualifier is inside
+     the accessible name rather than beside it. The underivable case states the observed-gap count
+     against the count the rule required — routed item R-2, settled with the basis the rule used. */
+  function brlAdmissionWords(admission) {
+    if (!admission) return null;
+    var verdict = admission.verdict, basis = String(admission.basis || "");
+    if (verdict === "current") return null;
+    if (verdict === "stale") {
+      var window = Number.isFinite(admission.windowDays) ? admission.windowDays + "-day derived window" : "its derived window";
+      var elapsed = Number.isFinite(admission.elapsedDays) ? admission.elapsedDays + " days" : "longer than that";
+      return { kind: "stale", word: "Stale",
+        text: "Withheld: last observation is " + elapsed + " old against a " + window + " taken from this family's own observed cadence. Last good observation " + (admission.lastGoodObservedAt || "unknown") + " — not current." };
+    }
+    var gaps = /insufficient-observed-history-gaps-(\d+)-of-(\d+)/.exec(basis);
+    if (gaps) {
+      return { kind: "unavailable", word: "Unavailable",
+        text: "Freshness cannot be derived: " + gaps[1] + " observed gap" + (gaps[1] === "1" ? "" : "s") + " available against the " + gaps[2] + " this family's cadence rule requires. Neither current nor stale is asserted." };
+    }
+    return { kind: "unavailable", word: "Unavailable",
+      text: "Withheld: " + basis.split("-").join(" ") + ". Nothing was substituted — no zero, no neutral filler, no carried value." };
+  }
+  function bondCardDetail(value) {
+    var m = (value && value.metrics) || {};
+    var credit = brlAxisWord(m.creditRegime), duration = brlAxisWord(m.durationPosture);
+    var creditOpen = m.creditRegime === "Indeterminate", durationOpen = m.durationPosture === "Indeterminate";
+    var axisKind = function (open) { return open ? "unavailable" : "current"; };
+    var axes = '<dl class="brl-axes">'
+      + '<dt title="Credit regime — the model\u2019s read of credit risk appetite. This reading: ' + esc(creditOpen ? "not resolved, because the evidence it needs is missing" : credit) + '.">Credit regime</dt>'
+      + '<dd>' + brlToken(axisKind(creditOpen), credit, "Credit regime \u2014 whether credit is compensating or penalising risk. This reading: " + (creditOpen ? "no verdict, because an independent credit-spread reading is missing." : credit + ".")) + '</dd>'
+      + '<dt title="Duration posture — the model\u2019s read of interest-rate exposure. This reading: ' + esc(durationOpen ? "not resolved, because the curve evidence it needs is missing" : duration) + '.">Duration posture</dt>'
+      + '<dd>' + brlToken(axisKind(durationOpen), duration, "Duration posture \u2014 whether to shorten, extend or stay balanced on rate exposure. This reading: " + (durationOpen ? "no verdict, because the Treasury curve is not admitted." : duration + ".")) + '</dd>'
+      + '</dl>';
+    // Both axes always render. A partial resolution is stated in words rather than left for the
+    // reader to infer from one row being populated and the other not.
+    var partial = (creditOpen !== durationOpen)
+      ? '<div class="sub brl-partial">One axis resolved and one did not: the ' + esc(creditOpen ? "duration" : "credit") + ' call has current evidence behind it, the ' + esc(creditOpen ? "credit" : "duration") + ' call does not.'
+        + (m.preferredSleeveId ? '' : ' No sleeve is ranked, because a ranked sleeve would imply both axes.') + '</div>'
+      : (creditOpen && durationOpen
+        ? '<div class="sub brl-partial">Neither axis resolved.' + (m.preferredSleeveId ? '' : ' No sleeve is ranked.') + '</div>'
+        : '');
+    var families = [
+      { label: "Curve level", state: m.curveState, tip: "Curve level \u2014 the shape of the nominal curve right now (inverted, flat or positive)." },
+      { label: "Curve impulse", state: m.curveImpulse, tip: "Curve impulse \u2014 the DIRECTION the curve has moved over the lookback. A separate reading from the level." },
+      { label: "Real yield and breakeven", state: m.inflationState, tip: "Inflation context \u2014 real yield and the derived common-date breakeven. Never shares a row or an as-of with the curve level." }
+    ].map(function (f) {
+      var open = !f.state || f.state === "Unavailable";
+      return '<div class="brl-fam"><span class="brl-fam-l" title="' + esc(f.tip) + '">' + esc(f.label) + '</span> '
+        + brlToken(open ? "unavailable" : "current", open ? "Unavailable" : String(f.state), f.tip + " This reading: " + (open ? "no admitted observation, so the model reports an absence rather than a value." : String(f.state) + ".")) + '</div>';
+    }).join("");
+    var admissionRows = ["nominal", "real"].map(function (key) {
+      var words = brlAdmissionWords((m.curveAdmission || {})[key]);
+      if (!words) return "";
+      return '<div class="brl-adm"><span class="brl-fam-l">' + esc(key === "nominal" ? "Nominal Treasury curve" : "Real Treasury curve") + '</span> '
+        + brlToken(words.kind, words.word, words.text) + '<div class="sub">' + esc(words.text) + '</div></div>';
+    }).join("");
+    var asOf = m.curveAsOf ? '<div class="sub">Curve observed as of ' + esc(m.curveAsOf) + '.</div>' : '';
+    return '<div class="brl-card">' + axes + partial + families + admissionRows + asOf + '</div>';
   }
   function fmtToolReadAge(iso) {
     var time = Date.parse(iso); if (!isFinite(time)) return String(iso || "as-of unknown");

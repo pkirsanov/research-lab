@@ -256,6 +256,30 @@ Two literals in two modules name the artifact file: the gate's default path and
 the acquisition's write path. They cannot be single-sourced by import without
 closing a cycle, so `scripts/selftest.mjs` asserts they are equal instead.
 
+### Source Table: Observed As Of Versus Retrieved
+
+The `sourceStatusTable` carries five columns in one fixed order for every family:
+*Family*, *State*, *Observed as of*, *Retrieved*, *Source / rights*. The order
+never varies by family, so a reader who has learned one row has learned them all.
+
+*Observed as of* and *Retrieved* are different facts and are never substituted
+for one another. The first is the date the issuer's own series carries; the
+second is when this tool fetched it, rendered as an explicit `UTC` stamp. A
+family that was never fetched renders **Not retrieved** rather than borrowing the
+observation date or printing a bare dash. Bars come from the shared RLDATA cache,
+so their retrieval cell says **Via shared cache** — the retrieval fact belongs to
+the cache, and claiming a timestamp this tool did not make would be false.
+Breakeven says **Derived, not retrieved**, because it is computed, not fetched.
+
+An official family names its source id, its rights class and a link whose text is
+the host, and the link is rendered only when the URL is `https` on the declared
+official host. A restricted family names its rights class and renders **no link
+and no value** — for a memory-only observation the link would itself be the
+disclosure. The breakeven row names its common-date count against the nominal
+count, so the exactness of the join is visible rather than asserted.
+
+No cell is ever an empty string or a bare dash. Every absence names its kind.
+
 ## Refresh Procedure
 
 1. Review characteristic `asOf` and `reviewWindowDays` fields in `bond-regime-universe.json`; update only from the linked issuer source.

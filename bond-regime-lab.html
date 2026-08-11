@@ -587,6 +587,7 @@
                                 <th scope="col">Family</th>
                                 <th scope="col">State</th>
                                 <th scope="col">Observed as of</th>
+                                <th scope="col">Retrieved</th>
                                 <th scope="col">Source / rights</th>
                             </tr>
                         </thead>
@@ -595,36 +596,42 @@
                                 <th scope="row">Adjusted ETF bars</th>
                                 <td data-source-state="bars">Unavailable</td>
                                 <td data-source-asof="bars">Unavailable</td>
+                                <td data-source-retrieved="bars">Not retrieved</td>
                                 <td data-source-note="bars">Shared RLDATA cache</td>
                             </tr>
                             <tr>
                                 <th scope="row">Nominal Treasury curve</th>
                                 <td data-source-state="nominal-curve">Unavailable</td>
                                 <td data-source-asof="nominal-curve">Unavailable</td>
+                                <td data-source-retrieved="nominal-curve">Not retrieved</td>
                                 <td data-source-note="nominal-curve">U.S. Treasury, public official</td>
                             </tr>
                             <tr>
                                 <th scope="row">Real Treasury curve</th>
                                 <td data-source-state="real-curve">Unavailable</td>
                                 <td data-source-asof="real-curve">Unavailable</td>
+                                <td data-source-retrieved="real-curve">Not retrieved</td>
                                 <td data-source-note="real-curve">U.S. Treasury, public official</td>
                             </tr>
                             <tr>
                                 <th scope="row">Derived breakeven</th>
                                 <td data-source-state="breakeven">Unavailable</td>
                                 <td data-source-asof="breakeven">Unavailable</td>
+                                <td data-source-retrieved="breakeven">Derived, not retrieved</td>
                                 <td data-source-note="breakeven">Common-date nominal minus real</td>
                             </tr>
                             <tr>
                                 <th scope="row">Credit OAS</th>
                                 <td data-source-state="oas">Unavailable</td>
                                 <td data-source-asof="oas">Unavailable</td>
+                                <td data-source-retrieved="oas">Not retrieved</td>
                                 <td data-source-note="oas">Current-tab user observation or unavailable; memory-only</td>
                             </tr>
                             <tr>
                                 <th scope="row">Financial conditions</th>
                                 <td data-source-state="financial-conditions">Unavailable</td>
                                 <td data-source-asof="financial-conditions">Unavailable</td>
+                                <td data-source-retrieved="financial-conditions">Not retrieved</td>
                                 <td data-source-note="financial-conditions">Current-tab user observation or unavailable;
                                     memory-only</td>
                             </tr>
@@ -2225,12 +2232,58 @@
                 text(document.querySelector('[data-source-asof="' + id + '"]'), observation && observation.observedAt || "Unavailable");
                 if (note) text(document.querySelector('[data-source-note="' + id + '"]'), note);
             }
+            // Retrieval time is a DIFFERENT fact from the observation date: when we fetched, not when
+            // the issuer published. A family that was never fetched says so rather than borrowing the
+            // observation date or rendering a bare dash.
+            function retrieved(id, observation) {
+                var cell = document.querySelector('[data-source-retrieved="' + id + '"]');
+                if (!cell) return;
+                var stamp = observation && observation.retrievedAt;
+                var parsed = stamp ? Date.parse(stamp) : NaN;
+                text(cell, Number.isFinite(parsed) ? new Date(parsed).toISOString().replace("T", " ").slice(0, 19) + " UTC" : "Not retrieved");
+            }
+            // An official family names its source id and links its source URL. A restricted family
+            // names its rights class and renders NO link and NO value — the rights class is the whole
+            // cell, because a link would itself be a disclosure.
+            function officialSource(id, observation) {
+                var cell = document.querySelector('[data-source-note="' + id + '"]');
+                if (!cell) return;
+                var url = observation && observation.sourceUrl, sourceId = (observation && observation.sourceId) || "us-treasury";
+                var host = "";
+                try { host = url ? new URL(url).host : ""; } catch (error) { host = ""; }
+                var official = /^https:\/\//.test(url || "") && host === "home.treasury.gov";
+                while (cell.firstChild) cell.removeChild(cell.firstChild);
+                cell.appendChild(document.createTextNode(sourceId + " · public official · "));
+                if (official) {
+                    var anchor = document.createElement("a");
+                    anchor.href = url;
+                    anchor.rel = "noreferrer noopener";
+                    anchor.textContent = host;
+                    anchor.title = "Source URL for " + sourceId + " — " + host + ". Opens the issuer's own published series.";
+                    cell.appendChild(anchor);
+                } else {
+                    cell.appendChild(document.createTextNode("source URL not retrieved this run"));
+                }
+                cell.appendChild(document.createTextNode("; " + ((observation && observation.errorCode) || "no error")));
+            }
             text(document.querySelector('[data-source-state="bars"]'), barsState);
             text(document.querySelector('[data-source-asof="bars"]'), barsAsOf);
-            family("nominal-curve", snapshot.nominalCurve, "U.S. Treasury, public official; " + ((snapshot.nominalCurve && snapshot.nominalCurve.errorCode) || "no error"));
-            family("real-curve", snapshot.realCurve, "U.S. Treasury, public official; " + ((snapshot.realCurve && snapshot.realCurve.errorCode) || "no error"));
+            // Bars are read from the shared RLDATA cache, so the retrieval fact belongs to the cache
+            // rather than to this tool. Saying so is truer than borrowing a timestamp we did not make.
+            text(document.querySelector('[data-source-retrieved="bars"]'), usableBars.length ? "Via shared cache" : "Not retrieved");
+            family("nominal-curve", snapshot.nominalCurve, null);
+            officialSource("nominal-curve", snapshot.nominalCurve);
+            retrieved("nominal-curve", snapshot.nominalCurve);
+            family("real-curve", snapshot.realCurve, null);
+            officialSource("real-curve", snapshot.realCurve);
+            retrieved("real-curve", snapshot.realCurve);
             var breakeven = runtime.viewModel && runtime.viewModel.breakevenRows && runtime.viewModel.breakevenRows.length ? { state: "fresh", observedAt: runtime.viewModel.breakevenRows[runtime.viewModel.breakevenRows.length - 1].date } : null;
-            family("breakeven", breakeven, "Derived from exact common nominal and real Treasury dates");
+            // Naming the common-date count against the nominal count makes the join's exactness
+            // visible: a reader can see how many nominal dates found no real partner.
+            var breakevenCount = ((runtime.viewModel && runtime.viewModel.breakevenRows) || []).length;
+            var nominalCount = ((snapshot.nominalCurve && snapshot.nominalCurve.rows) || []).length;
+            family("breakeven", breakeven, "Derived from exact common nominal and real Treasury dates; "
+                + breakevenCount + " common date" + (breakevenCount === 1 ? "" : "s") + " of " + nominalCount + " nominal observation" + (nominalCount === 1 ? "" : "s"));
             family("oas", runtime.manualObservations.oas, "Current-tab user observation or unavailable; memory-only");
             family("financial-conditions", runtime.manualObservations["financial-conditions"], "Current-tab user observation or unavailable; memory-only");
         }

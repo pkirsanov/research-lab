@@ -736,6 +736,59 @@
             border-bottom: 0
         }
 
+        /* Bond card (spec 018 scope 5). One geometry for all three publication states.
+           State is carried by a shape glyph PLUS the word, never by colour alone, so the
+           card stays fully readable with colour removed and at 200% zoom. The two axes are
+           a dl so they cannot fuse into one verdict line at any width. */
+        .brl-card {
+            margin: 6px 0 2px
+        }
+
+        .brl-axes {
+            display: grid;
+            grid-template-columns: max-content 1fr;
+            gap: 2px 10px;
+            margin: 0 0 6px
+        }
+
+        .brl-axes dt {
+            color: var(--muted);
+            font-size: 12px
+        }
+
+        .brl-axes dd {
+            margin: 0
+        }
+
+        .brl-tok {
+            display: inline-block;
+            white-space: nowrap;
+            font-variant-numeric: tabular-nums
+        }
+
+        .brl-fam,
+        .brl-adm {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 4px 8px;
+            align-items: baseline;
+            margin: 2px 0
+        }
+
+        .brl-fam-l {
+            color: var(--muted);
+            font-size: 12px;
+            min-width: 11ch
+        }
+
+        .brl-adm .sub {
+            flex: 1 1 100%
+        }
+
+        .brl-partial {
+            margin: 4px 0
+        }
+
         /* Decision attention — the items asking for a decision this session.
            Deliberately styled UNLIKE the Red Alert surface: no alert pill, no
            alert colour, no severity word. "This needs a decision today" and

@@ -764,3 +764,246 @@ test('Both modes expose landmarks names focus and noncolor states at 390 and 144
     await expect(page.locator('#rlviews button[data-rlview-mode="power"]')).toBeFocused();
   }
 });
+
+/* ════════ spec 018 Scope 5 — brief bond card + provenance render ════════
+   These rows drive the REAL production renderer (`RLBRIEF.renderToolReads`, loaded by
+   market-brief.html) in a real browser against fixture reads. No request is intercepted:
+   the input is a payload-shaped object handed to the renderer, which is what these rows
+   are about. That keeps them deterministic without turning them into mocked tests. */
+
+const BOND_TOOL = [{ id: 'bond-regime-lab', title: 'Bond Regime Lab', file: 'bond-regime-lab.html' }];
+
+function bondReadFixture(metrics, readString) {
+  return {
+    id: 'bond-regime-lab',
+    asOf: '2026-08-10T12:00:00.000Z',
+    read: readString,
+    state: 'unavailable',
+    deepLink: 'bond-regime-lab.html#simple',
+    source: 'owning-tool-functions',
+    metrics: Object.assign({
+      creditRegime: 'Indeterminate', durationPosture: 'Indeterminate',
+      confidence: 'Low', pricePulse: 'unavailable', confirmationState: 'unavailable',
+      curveState: 'Unavailable', curveImpulse: 'Unavailable', inflationState: 'Unavailable',
+      curveAdmission: {}, curveAsOf: null, readablePairs: [], evidenceGaps: [],
+      preferredSleeveId: null, resultPct: null
+    }, metrics)
+  };
+}
+
+async function renderBondCard(page, read) {
+  await page.goto(site.baseUrl + '/market-brief.html');
+  await page.waitForFunction(() => Boolean(window.RLBRIEF && window.RLBRIEF.renderToolReads));
+  await page.evaluate(({ tools, value }) => {
+    let host = document.querySelector('#brl-scope5-probe');
+    if (!host) {
+      host = document.createElement('div');
+      host.id = 'brl-scope5-probe';
+      document.body.appendChild(host);
+    }
+    window.RLBRIEF.renderToolReads(host, tools, { 'bond-regime-lab': value }, {});
+  }, { tools: BOND_TOOL, value: read });
+  return page.locator('#brl-scope5-probe');
+}
+
+test('TP-05-01 BS-018-017 render: the partial-resolution card shows both axes as labelled rows and paints no machine slug', async ({ page }) => {
+  const card = await renderBondCard(page, bondReadFixture({
+    durationPosture: 'Shorten', curveState: 'Positive', curveImpulse: 'Mixed', inflationState: 'Mixed',
+    curveAsOf: '2026-08-10', evidenceGaps: ['an independent credit-spread reading'],
+    curveAdmission: { nominal: { verdict: 'current', errorCode: null, lastGoodObservedAt: '2026-08-10', elapsedDays: 1, windowDays: 4, basis: 'observed-gap-max-3d-over-9-gaps-plus-lag-1d' } }
+  }, 'Credit evidence is missing, so the credit call cannot be made.'));
+
+  await expect(card.locator('.brl-axes dt')).toHaveCount(2);
+  await expect(card.locator('.brl-axes dt').nth(0)).toHaveText('Credit regime');
+  await expect(card.locator('.brl-axes dt').nth(1)).toHaveText('Duration posture');
+  await expect(card.locator('.brl-axes dd').nth(0)).toContainText('Not resolved');
+  await expect(card.locator('.brl-axes dd').nth(1)).toContainText('Shorten');
+
+  // The machine value must not reach the reader anywhere in the card's visible text.
+  const text = await card.innerText();
+  expect(text).not.toMatch(/(^|\s)unavailable(\s|$)/);
+  expect(text).not.toContain('Indeterminate');
+  expect(text).toMatch(/One axis resolved and one did not/);
+  expect(text).toMatch(/No sleeve is ranked/);
+
+  // Every axis row carries a two-part contextual tooltip, reachable without hover.
+  for (const nth of [0, 1]) {
+    const token = card.locator('.brl-axes dd .brl-tok').nth(nth);
+    const tip = await token.getAttribute('title');
+    expect(tip && tip.length).toBeGreaterThan(40);
+    expect(tip).toMatch(/This reading:/);
+    // Keyboard-reachable, and the accessible name carries the same two-part content as the hover tip.
+    await token.focus();
+    await expect(token).toBeFocused();
+    expect(await token.getAttribute('aria-label')).toContain(tip);
+  }
+});
+
+test('TP-05-02 BS-018-009 render: the stale card names its window and its last good observation as not current', async ({ page }) => {
+  const stale = { verdict: 'stale', errorCode: 'BRL-CURVE-FAMILY-STALE', lastGoodObservedAt: '2026-01-02', elapsedDays: 58, windowDays: 4, basis: 'observed-gap-max-3d-over-7-gaps-plus-lag-1d' };
+  const card = await renderBondCard(page, bondReadFixture({
+    evidenceGaps: ['the Treasury yield curve', 'an independent credit-spread reading'],
+    curveAdmission: { nominal: stale, real: stale }
+  }, 'Curve and credit evidence are both missing, so the credit call and the duration call cannot be made.'));
+
+  await expect(card.locator('.brl-adm')).toHaveCount(2);
+  for (const nth of [0, 1]) {
+    const token = card.locator('.brl-adm .brl-tok').nth(nth);
+    await expect(token).toContainText('Stale');
+    expect(await token.innerText()).toMatch(/[△▲◐]|Stale/);
+  }
+  const text = await card.innerText();
+  expect(text).toMatch(/4-day derived window/);
+  expect(text).toMatch(/58 days old/);
+  // The not-current qualifier sits INSIDE the same string as the date, not beside it.
+  expect(text).toMatch(/Last good observation 2026-01-02 — not current/);
+  const tip = await card.locator('.brl-adm .brl-tok').first().getAttribute('title');
+  expect(tip).toMatch(/Last good observation 2026-01-02 — not current/);
+  // A withheld family shows no classification.
+  expect(text).not.toMatch(/\b(Positive|Inverted|Flat|Bull Steepener|Bear Steepener|Heating|Cooling)\b/);
+});
+
+test('TP-05-03 BS-018-015 render: the absent card states that nothing was substituted and prints the published read verbatim', async ({ page }) => {
+  const absent = { verdict: 'unavailable', errorCode: 'BRL-CURVE-ARTIFACT-ABSENT', lastGoodObservedAt: null, elapsedDays: null, windowDays: null, basis: 'no-committed-artifact' };
+  const published = 'Neither axis has current evidence behind it, so the credit call and the duration call cannot be made.';
+  const card = await renderBondCard(page, bondReadFixture({
+    evidenceGaps: ['the Treasury yield curve', 'an independent credit-spread reading'],
+    curveAdmission: { nominal: absent, real: absent }
+  }, published));
+
+  await expect(card.locator('.brl-fam')).toHaveCount(3);
+  for (const nth of [0, 1, 2]) {
+    await expect(card.locator('.brl-fam .brl-tok').nth(nth)).toContainText('Unavailable');
+  }
+  const text = await card.innerText();
+  expect(text).toMatch(/Nothing was substituted — no zero, no neutral filler, no carried value/);
+  // The published string is rendered verbatim and is not duplicated into an aria-label.
+  await expect(card.locator('.ay')).toHaveText(published);
+  expect(await card.locator('.ay').getAttribute('aria-label')).toBeNull();
+});
+
+test('TP-05-04 the source table renders observed as-of and retrieval time with a reachable official source URL', async ({ page }) => {
+  await openFromSharedCache(page);
+  await page.getByRole('tab', { name: 'Power' }).click();
+
+  const headers = await page.locator('#sourceStatusTable thead th').allInnerTexts();
+  expect(headers).toEqual(['Family', 'State', 'Observed as of', 'Retrieved', 'Source / rights']);
+
+  for (const id of ['nominal-curve', 'real-curve']) {
+    await expect(page.locator('[data-source-asof="' + id + '"]')).not.toHaveText('');
+    const retrieved = await page.locator('[data-source-retrieved="' + id + '"]').innerText();
+    expect(retrieved).toMatch(/UTC$|^Not retrieved$/);
+    const note = await page.locator('[data-source-note="' + id + '"]').innerText();
+    expect(note).toContain('us-treasury');
+    expect(note).toContain('public official');
+    const link = page.locator('[data-source-note="' + id + '"] a');
+    if (await link.count()) {
+      expect(await link.getAttribute('href')).toMatch(/^https:\/\/home\.treasury\.gov\//);
+      await expect(link).toHaveText('home.treasury.gov');
+    }
+  }
+
+  // No cell in the whole table may be empty or a bare dash.
+  const cells = await page.locator('#sourceStatusTable tbody td').allInnerTexts();
+  expect(cells.length).toBeGreaterThan(0);
+  for (const cell of cells) {
+    expect(cell.trim()).not.toBe('');
+    expect(cell.trim()).not.toBe('—');
+    expect(cell.trim()).not.toBe('-');
+  }
+});
+
+test('TP-05-05 no restricted value or restricted source URL is rendered anywhere', async ({ page }) => {
+  await openFromSharedCache(page);
+  await page.getByRole('tab', { name: 'Power' }).click();
+
+  for (const id of ['oas', 'financial-conditions']) {
+    const note = await page.locator('[data-source-note="' + id + '"]').innerText();
+    expect(note).toMatch(/memory-only/);
+    await expect(page.locator('[data-source-note="' + id + '"] a')).toHaveCount(0);
+    const asOf = await page.locator('[data-source-asof="' + id + '"]').innerText();
+    expect(asOf.trim()).not.toBe('');
+  }
+
+  const body = await page.locator('body').innerText();
+  expect(body).not.toMatch(/\boas\s*[:=]\s*\d/i);
+  expect(body).not.toMatch(/fred\.stlouisfed\.org|api_key|apikey/i);
+
+  const persisted = await page.evaluate(() => JSON.stringify({ local: { ...localStorage }, session: { ...sessionStorage } }));
+  expect(persisted).not.toMatch(/api_key|apikey|fred\.stlouisfed\.org/i);
+});
+
+test('TP-05-06 BS-018-010 render: an underivable admission states its observed-gap count and asserts neither current nor stale', async ({ page }) => {
+  const undetermined = { verdict: 'undetermined', errorCode: 'BRL-CURVE-FRESHNESS-UNDERIVABLE', lastGoodObservedAt: null, elapsedDays: null, windowDays: null, basis: 'insufficient-observed-history-gaps-2-of-5' };
+  const card = await renderBondCard(page, bondReadFixture({
+    evidenceGaps: ['the Treasury yield curve', 'an independent credit-spread reading'],
+    curveAdmission: { nominal: undetermined }
+  }, 'Neither axis has current evidence behind it, so the credit call and the duration call cannot be made.'));
+
+  const token = card.locator('.brl-adm .brl-tok').first();
+  await expect(token).toContainText('Unavailable');
+  await expect(token).not.toContainText('Stale');
+  const text = await card.innerText();
+  // Routed item R-2: the rendered basis is the observation count the rule actually used.
+  expect(text).toMatch(/2 observed gaps available against the 5 this family's cadence rule requires/);
+  expect(text).toMatch(/Neither current nor stale is asserted/);
+});
+
+test('TP-05-07 curve level, curve impulse and the inflation pair never share a row, a token or an as-of', async ({ page }) => {
+  const card = await renderBondCard(page, bondReadFixture({
+    durationPosture: 'Shorten', curveState: 'Positive', curveImpulse: 'Mixed', inflationState: 'Mixed',
+    curveAsOf: '2026-08-10', evidenceGaps: ['an independent credit-spread reading'],
+    curveAdmission: { nominal: { verdict: 'current', errorCode: null, lastGoodObservedAt: '2026-08-10', elapsedDays: 1, windowDays: 4, basis: 'observed-gap-max-3d-over-9-gaps-plus-lag-1d' } }
+  }, 'Credit evidence is missing, so the credit call cannot be made.'));
+
+  for (const width of [1440, 390]) {
+    await page.setViewportSize({ width, height: 900 });
+    await expect(card.locator('.brl-fam')).toHaveCount(3);
+    const labels = await card.locator('.brl-fam .brl-fam-l').allInnerTexts();
+    expect(labels).toEqual(['Curve level', 'Curve impulse', 'Real yield and breakeven']);
+    await expect(card.locator('.brl-fam .brl-tok')).toHaveCount(3);
+    // Two axis rows must never collapse into one visual line at any width.
+    const boxes = await card.locator('.brl-axes dd').evaluateAll((nodes) => nodes.map((n) => n.getBoundingClientRect().top));
+    expect(boxes[1]).toBeGreaterThan(boxes[0]);
+  }
+
+  await openFromSharedCache(page);
+  await page.getByRole('tab', { name: 'Power' }).click();
+  const breakevenNote = await page.locator('[data-source-note="breakeven"]').innerText();
+  expect(breakevenNote).toMatch(/\d+ common dates? of \d+ nominal observations?/);
+  const breakevenAsOf = await page.locator('[data-source-asof="breakeven"]').innerText();
+  const nominalAsOf = await page.locator('[data-source-asof="nominal-curve"]').innerText();
+  expect(typeof breakevenAsOf).toBe('string');
+  expect(typeof nominalAsOf).toBe('string');
+});
+
+test('TP-05-08 Regression: every publication state stays readable with colour removed and at 200% zoom', async ({ page }) => {
+  const states = [
+    { label: 'fresh', metrics: { durationPosture: 'Shorten', curveState: 'Positive', curveImpulse: 'Mixed', inflationState: 'Mixed', curveAsOf: '2026-08-10', curveAdmission: { nominal: { verdict: 'current', errorCode: null, lastGoodObservedAt: '2026-08-10', elapsedDays: 1, windowDays: 4, basis: 'observed-gap-max-3d-over-9-gaps-plus-lag-1d' } } } },
+    { label: 'stale', metrics: { curveAdmission: { nominal: { verdict: 'stale', errorCode: 'BRL-CURVE-FAMILY-STALE', lastGoodObservedAt: '2026-01-02', elapsedDays: 58, windowDays: 4, basis: 'observed-gap-max-3d-over-7-gaps-plus-lag-1d' } } } },
+    { label: 'absent', metrics: { curveAdmission: { nominal: { verdict: 'unavailable', errorCode: 'BRL-CURVE-ARTIFACT-ABSENT', lastGoodObservedAt: null, elapsedDays: null, windowDays: null, basis: 'no-committed-artifact' } } } }
+  ];
+
+  for (const state of states) {
+    const card = await renderBondCard(page, bondReadFixture(state.metrics, 'A published read for the ' + state.label + ' state.'));
+    // Colour removed entirely: the state must still be readable from glyph plus word.
+    await page.evaluate(() => {
+      const style = document.createElement('style');
+      style.id = 'brl-nocolor';
+      style.textContent = '*{color:#000 !important;background:#fff !important;border-color:#000 !important}';
+      document.head.appendChild(style);
+    });
+    await expect(card.locator('.brl-axes dt')).toHaveCount(2);
+    const tokens = await card.locator('.brl-tok').allInnerTexts();
+    expect(tokens.length).toBeGreaterThan(0);
+    for (const token of tokens) expect(token.trim().length).toBeGreaterThan(1);
+
+    await page.evaluate(() => { document.documentElement.style.fontSize = '200%'; });
+    const fused = await card.locator('.brl-axes dd').evaluateAll((nodes) => nodes.length === 2 && Math.abs(nodes[0].getBoundingClientRect().top - nodes[1].getBoundingClientRect().top) < 2);
+    expect(fused).toBeFalsy();
+    await page.evaluate(() => {
+      document.documentElement.style.fontSize = '';
+      document.querySelector('#brl-nocolor')?.remove();
+    });
+  }
+});

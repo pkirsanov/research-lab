@@ -680,6 +680,44 @@ content). Every term, section, KPI, badge, chart and value carries a rich toolti
 
 ---
 
+## 12c. The bond card: one geometry, three publication states
+
+The `bond-regime-lab` tool read renders a card body the generic `.toolread`
+shell does not supply, because this tool publishes a *partial* verdict and a
+generic one-line read cannot say which half is missing.
+
+**Two axes, always both.** Credit regime first, then duration posture, as a `<dl>`
+with two labelled rows. Neither is ever hidden, merged into the other, or reduced
+to a single status word — a card showing one row would let a reader infer a
+verdict from an absence.
+
+**No machine value is painted.** `Indeterminate` renders as *Not resolved*, the
+`unavailable` state renders as words, and `preferredSleeveId: null` becomes an
+explicit "no sleeve is ranked" clause. Nothing internal reaches the reader.
+
+**Partial resolution is stated, not implied.** When exactly one axis resolves the
+card says so in words and names which one, rather than leaving the reader to
+compare two rows and draw the conclusion themselves.
+
+**State is glyph plus word, never colour.** Every state token carries a shape
+glyph and the state word, so removing all colour — or zooming to 200% — leaves
+the state fully readable. This is asserted in the browser suite, not assumed.
+
+**Three states, one geometry.** Fresh, stale and absent use the same layout, so a
+reader who has learned one has learned all three:
+
+| State | What the card adds |
+| --- | --- |
+| fresh / admitted | the resolved axis, the curve as-of, no admission row |
+| stale | the derived window, the elapsed age, and the last good observation *with its not-current qualifier inside the same string* so the qualifier lands in the accessible name |
+| underivable | the observed-gap count against the count the cadence rule required — asserting neither current nor stale |
+| absent | an explicit statement that nothing was substituted: no zero, no neutral filler, no carried value |
+
+The published `read` string renders verbatim in its own paragraph. It is never
+re-derived, paraphrased, or duplicated into an `aria-label`.
+
+---
+
 ## 12. Phase status
 
 - **Phases 0–5 — LIVE:** foundation, shared `RLDATA`, cockpit, agent payload/history, watchlist cards,
